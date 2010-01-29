@@ -6,7 +6,7 @@
 # no regular words or you'll be exposed to dictionary attacks.
 ActionController::Base.session = {
   :key         => '_stagemgr_session',
-  :secret      => '5487daa93ac821a4814cd572a78a3d64ed34f2df749bf173f5d290bade1b196166b9fb5b0c5e52b54064cc5f3f337c2edfc0a87b9cdad7fd66191ed2aeeb74f4'
+  :secret      => 'REDACTED_SECRET_TOKEN'
 }
 
 # Use the database for sessions instead of the cookie-based default,
