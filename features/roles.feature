@@ -27,7 +27,7 @@ Feature: Certain roles have certian responsibilities
       And I should not be able to edit/list/show users
       And I should not be able to edit roles
       And I should be able to list/show roles
-      And I should not be able to edit performances
+        And I should not be able to edit performances
       And I should not be able to edit/list/show reports
 
   Scenario: Stagemgr Administrator Role
