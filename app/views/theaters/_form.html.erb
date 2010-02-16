@@ -1,0 +1,22 @@
+<%= f.error_messages %>
+
+<p>
+  <%= f.label :name %><br />
+  <%= f.text_field :name %>
+</p>
+<p>
+  <%= f.label :url %><br />
+  <%= f.text_field :url %>
+</p>
+<p>
+  <%= f.label :logo %><br />
+  <%= f.text_field :logo %>
+</p>
+<p>
+  <%= f.label :theater_class %><br />
+  <%= f.select(:theater_class, Theater::THEATER_CLASSES) %>
+</p>
+<p>
+  <%= f.label :status %><br />
+  <%= f.select(:status, Theater::THEATER_STATUSES) %>
+</p>

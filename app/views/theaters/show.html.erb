@@ -1,0 +1,33 @@
+<p>
+  <b>Name:</b>
+  <%=h @theater.name %>
+</p>
+
+<p>
+  <b>Url:</b>
+  <%=h @theater.url %>
+</p>
+
+<p>
+  <b>Logo:</b>
+  <%=h @theater.logo %>
+</p>
+
+<p>
+  <b>Theater class:</b>
+  <%=h @theater.theater_class %>
+</p>
+
+<p>
+  <b>Status:</b>
+  <%=h @theater.status %>
+</p>
+
+<p>
+  <b>Productions:</b>
+  <%=link_to 'list', theater_productions_path(@theater)%>
+</p>
+
+
+<%= link_to 'Edit', edit_theater_path(@theater) %> |
+<%= link_to 'Back', theaters_path %>

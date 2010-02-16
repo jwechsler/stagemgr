@@ -1,0 +1,11 @@
+<h1>Editing theater</h1>
+
+<% form_for(@theater) do |f| %>
+  <%= render :partial => 'form', :locals=>{:f=>f} %>
+<p>
+  <%= f.submit 'Save' %>
+</p>
+<% end %>
+
+<%= link_to 'Show', @theater %> |
+<%= link_to 'Back', theaters_path %>

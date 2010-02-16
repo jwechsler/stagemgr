@@ -1,7 +1,14 @@
 Feature: An administrator can add production details to a theater
-  Once a theater has been created
-  As the StageMgr Admin user
+  Given a theater has been created
+  As a StageMgr Admin user
   I want to create / edit and delete production records
+
+  Background:
+    Given the following theaters exist:
+    | name          |
+    | Theater One   |
+    And I am a StageMgr Admin
+    And I log in to the site
 
   Scenario: Add a production
     Given the user has the create production permission

@@ -1,3 +1,5 @@
 rerun.txt
 *~
 log/*.log
+db/*.sqlite3
+db/schema.rb
