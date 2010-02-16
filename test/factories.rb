@@ -3,3 +3,9 @@ Factory.define(:user) do |user|
   user.password 'password'
   user.password_confirmation 'password'
 end
+
+Factory.define(:theater) do |theater|
+  theater.sequence(:name){|n|"Theater \##{n}"}
+  theater.theater_class Theater::THEATER_CLASSES.first
+  theater.status Theater::THEATER_STATUSES.first
+end
