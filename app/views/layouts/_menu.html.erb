@@ -1,6 +1,7 @@
-<%= links( link_to('Register',new_account_path), 
-           link_to('Log In',new_user_session_path), 
-           link_to('Theaters',theaters_path),
-           link_to('My Account',account_path),
-           link_to('Logout',user_session_path, :method => :delete, :confirm => "Are you sure you want to logout?")) %>
+<%= current_user.nil? ? 
+		links( link_to('Register',new_account_path), 
+		       link_to('Log In',new_user_session_path)) :
+        links( link_to('Theaters',theaters_path),
+               link_to('My Account',account_path),
+               link_to('Logout',user_session_path, :method => :delete, :confirm => "Are you sure you want to logout?")) %>
 
