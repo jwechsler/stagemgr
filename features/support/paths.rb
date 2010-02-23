@@ -12,6 +12,8 @@ module NavigationHelpers
       '/'
     when /^the login page$/
       url_for(:controller=>'user_sessions',:action=>'new')
+    when /^the admin\/theater page$/
+      url_for(:controller=>'theaters',:action=>'index')
     
     # Add more mappings here.
     # Here is an example that pulls values out of the Regexp:

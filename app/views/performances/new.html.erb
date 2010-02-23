@@ -1,0 +1,20 @@
+<h1>New performance</h1>
+
+<% form_for([@performance.production.theater,@performance.production,@performance]) do |f| %>
+  <%= f.error_messages %>
+
+  <p>
+    <%= f.label :on %><br />
+    <%= f.date_select :on %>
+  </p>
+  <p>
+    <%= f.label :at %><br />
+    <%= f.datetime_select :at %>
+  </p>
+  <%= f.hidden_field :production_id %>
+  <p>
+    <%= f.submit 'Create' %>
+  </p>
+<% end %>
+
+<%= link_to 'Back', theater_production_performances_path(@performance.production.theater,@performance.production) %>

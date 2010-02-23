@@ -4,4 +4,5 @@ class Production < ActiveRecord::Base
   validates_presence_of :theater
 
   belongs_to :theater
+  has_many :performances
 end

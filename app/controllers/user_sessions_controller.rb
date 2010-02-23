@@ -1,6 +1,4 @@
 class UserSessionsController < ApplicationController
-  after_filter :set_lockdown_values, :only => :create
-  
   def new
     @user_session = UserSession.new
   end
@@ -17,17 +15,8 @@ class UserSessionsController < ApplicationController
   
   def destroy
     current_user_session.destroy
-    reset_lockdown_session
     flash[:notice] = "Logout successful!"
     redirect_back_or_default new_user_session_url
-  end
-
-  private
-
-  def set_lockdown_values
-    if user = @user_session.user
-      add_lockdown_session_values(user)
-    end
   end
 
 end

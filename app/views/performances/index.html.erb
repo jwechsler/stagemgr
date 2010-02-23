@@ -1,0 +1,24 @@
+<h1>Listing performances</h1>
+
+<table>
+  <tr>
+    <th>On</th>
+    <th>At</th>
+    <th>Production</th>
+  </tr>
+
+<% @performances.each do |performance| %>
+  <tr>
+    <td><%=h performance.on %></td>
+    <td><%=h performance.at %></td>
+    <td><%=h performance.production %></td>
+    <td><%= link_to 'Show', [performance.production.theater, performance.production, performance] %></td>
+    <td><%= link_to 'Edit', edit_theater_production_performance_path(performance.production.theater, performance.production, performance) %></td>
+    <td><%= link_to 'Destroy', [performance.production.theater, performance.production, performance], :confirm => 'Are you sure?', :method => :delete %></td>
+  </tr>
+<% end %>
+</table>
+
+<br />
+
+<%= link_to 'New performance', new_theater_production_performance_path(@production.theater, @production) %>

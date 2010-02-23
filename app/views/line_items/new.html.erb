@@ -1,0 +1,23 @@
+<h1>New line_item</h1>
+
+<% form_for(@line_item) do |f| %>
+  <%= f.error_messages %>
+
+  <p>
+    <%= f.label :performance %><br />
+    <%= f.text_field :performance %>
+  </p>
+  <p>
+    <%= f.label :ticket_class %><br />
+    <%= f.text_field :ticket_class %>
+  </p>
+  <p>
+    <%= f.label :order %><br />
+    <%= f.text_field :order %>
+  </p>
+  <p>
+    <%= f.submit 'Create' %>
+  </p>
+<% end %>
+
+<%= link_to 'Back', line_items_path %>

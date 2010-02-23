@@ -5,4 +5,5 @@ class Theater < ActiveRecord::Base
   validates_inclusion_of :status,        :in => THEATER_STATUSES
 
   has_many :productions
+  has_and_belongs_to_many :users#, :as=>:owners
 end

@@ -1,9 +1,17 @@
 ActionController::Routing::Routes.draw do |map|
+  map.resources :orders
+
+  map.resources :line_items
+
+  map.resources :ticket_classes
+
   map.resources :theaters do |theater|
-    theater.resources :productions
+    theater.resources :productions do |production|
+      production.resources :performances
+    end
   end
 
-  map.resource :account, :controller => "users"
+  map.resource :account
   map.resources :users
   map.resource  :user_session
   map.root :controller => "user_sessions", :action => "new"
