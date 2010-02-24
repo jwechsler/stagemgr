@@ -5,13 +5,12 @@ class User < ActiveRecord::Base
     #c.my_config_option = my_value
   end
   
-  before_validation :set_defaults
-  
-  private
+  before_validation_on_create :set_defaults
   
   def set_defaults
-    self.is_administrator   = false if self.is_administrator.nil?
+    self.is_administrator = false if self.is_administrator.nil?
     self.is_box_office_user = false if self.is_box_office_user.nil?
+    true
   end
 
 end

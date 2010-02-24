@@ -1,4 +1,4 @@
-<%= link_to('Theaters',theaters_path) %> |
+<%= link_to('Theaters',theaters_path) if current_user.is_administrator %> |
 <%= link_to('Users', users_path) %> |
 <%= link_to('My Account',account_path) %> |
 <%= link_to('Logout',user_session_path, :method => :delete, :confirm => "Are you sure you want to logout?") %>

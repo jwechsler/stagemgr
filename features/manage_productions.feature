@@ -7,7 +7,7 @@ Feature: An administrator can add production details to a theater
     Given the following theaters exist:
     | name          |
     | Theater One   |
-    And I am a StageMgr Admin
+    And I am an Administrator
     And I log in to the site
 
   Scenario: Add a production
