@@ -10,17 +10,6 @@ class TheatersController < ApplicationController
     end
   end
 
-  # GET /theaters/1
-  # GET /theaters/1.xml
-  def show
-    @theater = Theater.find(params[:id])
-
-    respond_to do |format|
-      format.html # show.html.erb
-      format.xml  { render :xml => @theater }
-    end
-  end
-
   # GET /theaters/new
   # GET /theaters/new.xml
   def new
@@ -45,7 +34,7 @@ class TheatersController < ApplicationController
     respond_to do |format|
       if @theater.save
         flash[:notice] = 'Theater was successfully created.'
-        format.html { redirect_to(@theater) }
+        format.html { redirect_to(theaters_path) }
         format.xml  { render :xml => @theater, :status => :created, :location => @theater }
       else
         format.html { render :action => "new" }
@@ -62,7 +51,7 @@ class TheatersController < ApplicationController
     respond_to do |format|
       if @theater.update_attributes(params[:theater])
         flash[:notice] = 'Theater was successfully updated.'
-        format.html { redirect_to(@theater) }
+        format.html { redirect_to(theaters_path) }
         format.xml  { head :ok }
       else
         format.html { render :action => "edit" }

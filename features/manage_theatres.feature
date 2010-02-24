@@ -25,22 +25,54 @@ Feature: The Administrator can manage theater records
     When I go to the admin/theater page
     Then I should see "ABC Theater"
      And I should see "DEF Theater"
-     And each name is a link to a page to edit the theater record
+     And each theater name is a link to a page to edit the theater record
   
-	@wip
   Scenario: Add a theater
     Given I am an Administrator
-    When I visit the admin/theaters page
-      And I click on a Add new theater button
-    Then the system allows the user to enter Name | URL | Logo (uploaded image) | Class (Default / Resident / Renter) | Status ( Active / Inactive )
-      And click "Save"
-    Then the user is returned to the theaters list, and the new theater is visibile
-      And the logo is stored in a directory accessible by the web server
-      And the name of the theater is unique
+      And I go to the admin/theater page
+      And I follow "New theater"
+      And I fill in "Name" with "Theater Number One"
+      And I select "Default" from "Theater class"
+      And I select "Resident" from "Theater class"
+      And I select "Renter" from "Theater class"
+      And I select "Active" from "Status"
+      And I select "Inactive" from "Status"
+      And I press "Create"
+     Then I should be on the admin/theater page
+      And I should see "Theater Number One"
 
-	@wip
+  Scenario: Theater names must be unique
+	Given I am an Administrator
+      And the following theaters exist:
+        | name        |
+        | ABC Theater |
+        | DEF Theater |
+	  And I go to the admin/theater page
+	  And I follow "New theater"
+      And I fill in "Name" with "ABC Theater"
+      And I press "Create"
+     Then I should see "Name has already been taken"
+
   Scenario: Edit a theater
     Given I am an Administrator
-      And there is more than one theater in the system
-    When I visit the admin/theaters page
-      And I click on the name of a theater
+      And the following theaters exist:
+        | name        |
+        | ABC Theater |
+        | DEF Theater |
+      And I go to the admin/theater page
+      And I follow "ABC Theater"
+     When I fill in "Name" with "ABD Theater"
+      And I press "Save"
+     Then I should be on the admin/theater page
+      And I should see "ABD Theater"
+      And I should see "Theater was successfully updated."
+
+	Scenario: the logo is stored in a directory accessible by the web server
+    Given I am an Administrator
+      And I go to the admin/theater page
+      And I follow "New theater"
+      And I fill in "Name" with "Logo Theater"
+      And I attach the test file "logo.jpg" to "theater_logo" 
+      And I press "Create"
+     Then I should see the logo for "Logo Theater"
+

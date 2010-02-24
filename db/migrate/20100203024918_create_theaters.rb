@@ -3,7 +3,6 @@ class CreateTheaters < ActiveRecord::Migration
     create_table :theaters do |t|
       t.string :name
       t.string :url
-      t.binary :logo
       t.string :theater_class
       t.string :status
 
