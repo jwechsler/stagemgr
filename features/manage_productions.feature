@@ -8,18 +8,43 @@ Feature: An administrator can add production details to a theater
     | name          |
     | Theater One   |
     And I am an Administrator
-    And I log in to the site
+    And I am logged in
+    And I go to the home page
+    And I follow "Theaters"
+    And I follow "Theater One"
 
-  Scenario: Add a production
-    Given the user has the create production permission
-    When the administrator visits the theater detail page
-      And clicks "Add production"
-    Then the administrator can create a production record associated to the theater Name | Credit Lines (text) | First Preview (date) | Press Opening (date) | Opening (date) | Closing (date) | Show description (html) | Capacity | Additional Information (link) | Status (Active/Inactive)
+  Scenario: Add a production (Minimum Required fields)
+  Given I follow "Add production"
+    And I fill in "Name" with "New Production"
+   When I press "Create"
+   Then I should see "Production was successfully created."
+
+  Scenario: Add a production (All fields)
+  Given I follow "Add production"
+    And I fill in "Name" with "New Production"
+    And I fill in "Credit lines" with "Lorem ipsum"
+    And I select 01/01/2005 from "First preview at"
+    And I select 01/01/2005 from "Press opening at"
+    And I select 01/01/2005 from "Opening at"
+    And I select 01/01/2005 from "Closing at"
+    And I fill in "Show description" with "<h1>Hello</h1>"
+    And I fill in "Capacity" with "300"
+    And I fill in "Additional information link" with "http://google.com"
+    And I select "Active" from "Status"
+   When I press "Create"
+   Then I should see "Production was successfully created."
+
+  Scenario: Add a production (check valid values for select boxes)
+  Given I follow "Add production"
+  	And I select "Active" from "Status"
+  	And I select "Inactive" from "Status"
+
+  Scenario: Add a production (Name Required)
+  Given I follow "Add production"
+   When I press "Create"
+   Then I should see "Name can't be blank"
   
   Scenario: Delete a production
-    Given the user is associated to at least one theater
-      And has the delete production privilege
-      And the user visits the theater detail page
     When the user sees a delete link next to each production
       And the user clicks on that link
       And the user confirms the delete

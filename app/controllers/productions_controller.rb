@@ -1,16 +1,6 @@
 class ProductionsController < ApplicationController
   prepend_before_filter :find_theater
   append_before_filter :find_production, :only => [:show, :edit, :update, :destroy]
-  # GET /productions
-  # GET /productions.xml
-  def index
-    @productions = @theater.productions
-
-    respond_to do |format|
-      format.html # index.html.erb
-      format.xml  { render :xml => @productions }
-    end
-  end
 
   # GET /productions/1
   # GET /productions/1.xml
@@ -42,7 +32,7 @@ class ProductionsController < ApplicationController
     respond_to do |format|
       if @production.save
         flash[:notice] = 'Production was successfully created.'
-        format.html { redirect_to([@theater,@production]) }
+        format.html { redirect_to(edit_theater_path(@theater)) }
         format.xml  { render :xml => @production, :status => :created, :location => @production }
       else
         format.html { render :action => "new" }
@@ -57,7 +47,7 @@ class ProductionsController < ApplicationController
     respond_to do |format|
       if @production.update_attributes(params[:production])
         flash[:notice] = 'Production was successfully updated.'
-        format.html { redirect_to([@production.theater,@production]) }
+        format.html { redirect_to(edit_theater_path(@production.theater)) }
         format.xml  { head :ok }
       else
         format.html { render :action => "edit" }
@@ -72,7 +62,7 @@ class ProductionsController < ApplicationController
     @production.destroy
 
     respond_to do |format|
-      format.html { redirect_to(theater_productions_url(@production.theater)) }
+      format.html { redirect_to(edit_theater_path(@production.theater)) }
       format.xml  { head :ok }
     end
   end

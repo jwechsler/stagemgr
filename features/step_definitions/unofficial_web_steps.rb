@@ -19,6 +19,14 @@ Given /^(?:|I )should (|not )see a link (?:|to '(.+)' )labeled '(.+)'$/ do |is_n
   end
 end
 
+Given /^I select ([0-9]+\/[0-9]+\/[0-9]+) from "([^\"]*)"$/ do |date, field|
+  parent_of_date = locate("//label[contains(.,'#{field}')]")['for']
+  date = Date.parse(date)
+  Given "I select \"#{date.year}\" from \"#{parent_of_date}_1i\""
+  Given "I select \"#{Date::MONTHNAMES[date.month]}\" from \"#{parent_of_date}_2i\""
+  Given "I select \"#{date.day}\" from \"#{parent_of_date}_3i\""
+end
+
 When /^I attach the test file "([^\"]*)" to "([^\"]*)"$/ do |filename, field|
   path = Rails.root.join('test','files',filename).to_s
   attach_file(field, path)

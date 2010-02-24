@@ -27,19 +27,42 @@ Feature: The Administrator can manage theater records
      And I should see "DEF Theater"
      And each theater name is a link to a page to edit the theater record
   
-  Scenario: Add a theater
+  Scenario: Add a theater (Minimum Required fields)
     Given I am an Administrator
       And I go to the admin/theater page
       And I follow "New theater"
       And I fill in "Name" with "Theater Number One"
-      And I select "Default" from "Theater class"
-      And I select "Resident" from "Theater class"
+      And I press "Create"
+     Then I should be on the admin/theater page
+      And I should see "Theater Number One"
+
+  Scenario: Add a theater (All fields)
+    Given I am an Administrator
+      And I go to the admin/theater page
+      And I follow "New theater"
+      And I fill in "Name" with "Theater Number One"
       And I select "Renter" from "Theater class"
-      And I select "Active" from "Status"
       And I select "Inactive" from "Status"
       And I press "Create"
      Then I should be on the admin/theater page
       And I should see "Theater Number One"
+
+  Scenario: Add a theater (check valid values for select boxes)
+    Given I am an Administrator
+      And I go to the admin/theater page
+      And I follow "New theater"
+     Then I select "Default" from "Theater class"
+      And I select "Resident" from "Theater class"
+      And I select "Renter" from "Theater class"
+      And I select "Active" from "Status"
+      And I select "Inactive" from "Status"
+
+  Scenario: Add a theater (Name Required)
+    Given I am an Administrator
+      And I go to the admin/theater page
+      And I follow "New theater"
+      And I press "Create"
+      And I should see "Name can't be blank"
 
   Scenario: Theater names must be unique
 	Given I am an Administrator
