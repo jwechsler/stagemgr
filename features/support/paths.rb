@@ -14,6 +14,9 @@ module NavigationHelpers
       url_for(:controller=>'user_sessions',:action=>'new')
     when /^the admin\/theater page$/
       url_for(:controller=>'theaters',:action=>'index')
+    when /^the theater edit page for production "([^"]*)"$/
+      url_for(:controller=>'theaters', :action=>'edit', :id=>Production.find_by_name($1).theater.id)
+      
     
     # Add more mappings here.
     # Here is an example that pulls values out of the Regexp:
