@@ -12,9 +12,11 @@ ActionController::Routing::Routes.draw do |map|
   end
 
   map.resource :account
-  map.resources :users
+  map.resources :users do |user|
+    user.resources :theaters
+  end
   map.resource  :user_session
-  map.root :controller => "user_sessions", :action => "new"
+  map.root :controller => "accounts", :action => "show"
   map.login '/login', :controller => 'user_sessions', :action => 'new'
   map.logout '/logout', :controller => 'user_sessions', :action => 'destroy'
 

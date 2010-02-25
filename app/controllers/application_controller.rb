@@ -2,12 +2,21 @@ class ApplicationController < ActionController::Base
   helper :all
   helper_method :current_user_session, :current_user, :logged_in?, :current_user_is_admin?
   filter_parameter_logging :password, :password_confirmation
+  append_before_filter :require_login
 
   protected
 
   def clear_authlogic_session
     sess = current_user_session
     sess.destroy if sess
+  end
+  
+  def require_login
+    if current_user.nil?
+      store_location
+      flash[:notice] = "Log in"
+      redirect_to new_user_session_path and return
+    end
   end
   
   private
