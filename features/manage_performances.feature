@@ -27,6 +27,7 @@ Scenario: The box office user can add a performance to a production
      Performance Date
      Performance Time
      Status (Active / Inactive) 
+     Performance Code (defaults to Production Code + MMDD). This field is unique across ALL performances.
      Associated Ticket Classes
        There is a list of ticket classes (as defined for the production) with a boolean switch on each one
          to detail if tickets of that class are available for this production.  Each class also as a "limit"

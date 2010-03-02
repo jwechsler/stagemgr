@@ -26,7 +26,7 @@ Scenario: The box office user can add a ticket class to a production
    Then they can enter the following fields:
      Class Code (4 character abbreviation)
      Class name (varchar)
-     Ticket price 
+     Ticket price  
      Ticketing fee
      Visible on Web (boolean)
      Type (Fixed, Donation, Timed)
@@ -45,3 +45,16 @@ Scenario: The box office user return to a production from the ticket classes pag
     and I am visiting the ticket classes listing page
     and I click on the production name
    Then the user returns to the production detail page.
+
+Scenario: The box office user can delete a ticket class
+  Given I am a box office user 
+    and I am visiting the ticket classes listing page
+    and I click on a delete button in the row of a ticket class
+   Then the system prompts me for confirmation. If I confirm, the ticket class and all associations
+     to performances are deleted.
+
+Scenario: The box office user cannot create duplicate ticket class codes
+  Given the Box office user is on the New Ticket Class page
+    and the class code already exists
+  Then the user is alerted that that class code already exists and cannot save the record until they change it.
+  
