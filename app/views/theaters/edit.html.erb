@@ -7,16 +7,7 @@
 </p>
 <% end %>
 
-<h1>Productions:</h1>
-<table>
-  <tr>
-    <th>Name</th>
-    <th>Show description</th>
-    <th>Capacity</th>
-    <th>Status</th>
-  </tr>
-<%= render :partial => @theater.productions %>
-</table>
+<%= render :partial => 'productions' %>
 
 <p>
   <%= link_to 'Add production', new_theater_production_path(@theater) %>

@@ -1,4 +1,4 @@
-class TheatersController < ApplicationController
+class CurrentUser::TheatersController < ApplicationController
   # GET /theaters
   # GET /theaters.xml
   def index
@@ -34,7 +34,7 @@ class TheatersController < ApplicationController
     respond_to do |format|
       if @theater.save
         flash[:notice] = 'Theater was successfully created.'
-        format.html { redirect_to(theaters_path) }
+        format.html { redirect_to(current_user_theaters_path) }
         format.xml  { render :xml => @theater, :status => :created, :location => @theater }
       else
         format.html { render :action => "new" }
@@ -51,7 +51,7 @@ class TheatersController < ApplicationController
     respond_to do |format|
       if @theater.update_attributes(params[:theater])
         flash[:notice] = 'Theater was successfully updated.'
-        format.html { redirect_to(theaters_path) }
+        format.html { redirect_to(current_user_theaters_path) }
         format.xml  { head :ok }
       else
         format.html { render :action => "edit" }
@@ -67,7 +67,7 @@ class TheatersController < ApplicationController
     @theater.destroy
 
     respond_to do |format|
-      format.html { redirect_to(theaters_url) }
+      format.html { redirect_to(current_user_theaters_url) }
       format.xml  { head :ok }
     end
   end

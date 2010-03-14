@@ -1,0 +1,10 @@
+<h1>Editing production</h1>
+
+<% form_for([:admin, @production.theater, @production]) do |f| %>
+  <%= render :partial => '/productions/form', :locals=>{:f=>f} %>
+  <p>
+    <%= f.submit 'Update' %>
+  </p>
+<% end %>
+
+<%= link_to 'Back', edit_admin_theater_path(@production.theater) %>

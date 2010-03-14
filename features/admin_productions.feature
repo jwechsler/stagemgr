@@ -49,7 +49,7 @@ Feature: An administrator can add production details to a theater
   Given the following productions exist:
   | name             |
   | Production One   |
-    And I go to the theater edit page for production "Production One"
+    And I go to the admin theater edit page for production "Production One"
     And I follow "Destroy"
     And I hit "OK" on the popup
     And I should not see "Production One"
@@ -58,7 +58,7 @@ Feature: An administrator can add production details to a theater
   Given the following productions exist:
   | name             |
   | Production One   |
-    And I go to the theater edit page for production "Production One"
+    And I go to the admin theater edit page for production "Production One"
     And I follow "Production One"
     And I fill in "Name" with "Production One (Changed)"
     And I fill in "Credit lines" with "Lorem ipsum"

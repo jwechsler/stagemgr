@@ -4,19 +4,29 @@ ActionController::Routing::Routes.draw do |map|
   map.resources :line_items
 
   map.resources :ticket_classes
-
-  map.resources :theaters do |theater|
-    theater.resources :productions do |production|
-      production.resources :performances
+  
+  map.namespace :admin do |admin|
+    admin.resources :theaters do |theater|
+      theater.resources :productions do |production|
+        production.resources :performances
+      end
+    end
+    admin.resources :users do |user|
+      user.resources :theaters
     end
   end
-
-  map.resource :account
-  map.resources :users do |user|
-    user.resources :theaters
+  
+  map.namespace :current_user do |current_user|
+    current_user.resources :theaters do |theater|
+      theater.resources :productions do |production|
+        production.resources :performances
+      end
+    end
+    current_user.resource :account
   end
+
   map.resource  :user_session
-  map.root :controller => "accounts", :action => "show"
+  map.root :controller => "current_user/accounts", :action => "show"
   map.login '/login', :controller => 'user_sessions', :action => 'new'
   map.logout '/logout', :controller => 'user_sessions', :action => 'destroy'
 

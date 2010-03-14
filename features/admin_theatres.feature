@@ -7,21 +7,22 @@ Feature: The Administrator can manage theater records
     Given I am an Administrator
       And I am logged in
      When I go to the home page
-     Then I should see a link labeled 'Theaters'
+     Then I should see a link to '/admin/theaters'
 
   Scenario: There is not a 'Theaters' menu link for non-admins
   	Given I am not an Administrator
       And I am logged in
      When I go to the home page
-     Then I should not see a link labeled 'Theaters'
+     Then I should not see a link to '/admin/theaters'
 
   Scenario: List theaters as admin
-    Given I am an Administrator
-    And the following theaters exist:
+    Given the following theaters exist:
         | name        |
         | ABC Theater |
         | DEF Theater |
+	And I am an Administrator
     And I am logged in
+    And I go to the home page
     When I go to the admin/theater page
     Then I should see "ABC Theater"
      And I should see "DEF Theater"
@@ -29,6 +30,7 @@ Feature: The Administrator can manage theater records
   
   Scenario: Add a theater (Minimum Required fields)
     Given I am an Administrator
+      And I am logged in
       And I go to the admin/theater page
       And I follow "New theater"
       And I fill in "Name" with "Theater Number One"
@@ -38,6 +40,7 @@ Feature: The Administrator can manage theater records
 
   Scenario: Add a theater (All fields)
     Given I am an Administrator
+      And I am logged in
       And I go to the admin/theater page
       And I follow "New theater"
       And I fill in "Name" with "Theater Number One"
@@ -49,6 +52,7 @@ Feature: The Administrator can manage theater records
 
   Scenario: Add a theater (check valid values for select boxes)
     Given I am an Administrator
+      And I am logged in
       And I go to the admin/theater page
       And I follow "New theater"
      Then I select "Default" from "Theater class"
@@ -59,6 +63,7 @@ Feature: The Administrator can manage theater records
 
   Scenario: Add a theater (Name Required)
     Given I am an Administrator
+      And I am logged in
       And I go to the admin/theater page
       And I follow "New theater"
       And I press "Create"
@@ -70,6 +75,7 @@ Feature: The Administrator can manage theater records
         | name        |
         | ABC Theater |
         | DEF Theater |
+      And I am logged in
 	  And I go to the admin/theater page
 	  And I follow "New theater"
       And I fill in "Name" with "ABC Theater"
@@ -82,6 +88,7 @@ Feature: The Administrator can manage theater records
         | name        |
         | ABC Theater |
         | DEF Theater |
+      And I am logged in
       And I go to the admin/theater page
       And I follow "ABC Theater"
      When I fill in "Name" with "ABD Theater"
@@ -92,6 +99,7 @@ Feature: The Administrator can manage theater records
 
 	Scenario: the logo is stored in a directory accessible by the web server
     Given I am an Administrator
+      And I am logged in
       And I go to the admin/theater page
       And I follow "New theater"
       And I fill in "Name" with "Logo Theater"

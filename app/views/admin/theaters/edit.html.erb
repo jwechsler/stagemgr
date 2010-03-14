@@ -1,0 +1,16 @@
+<h1>Editing theater</h1>
+
+<% form_for([:admin,@theater], :html => { :multipart => true }) do |f| %>
+  <%= render :partial => '/theaters/form', :locals=>{:f=>f} %>
+<p>
+  <%= f.submit 'Save' %>
+</p>
+<% end %>
+
+<%= render :partial => '/theaters/productions' %>
+
+<p>
+  <%= link_to 'Add production', new_admin_theater_production_path(@theater) %>
+</p>
+
+<%= link_to 'Back', admin_theaters_path %>
