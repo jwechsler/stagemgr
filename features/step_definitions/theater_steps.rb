@@ -1,6 +1,6 @@
-Then /^each theater name is a link to a page to edit the theater record$/ do
+Then /^each theater name is a link to a theater detail page$/ do
   Theater.all.each do |theater|
-    Given "I should see a link to '/admin/theaters/#{theater.id}/edit' labeled '#{theater.name}'"
+    Given "I should see a link to '/admin/theaters/#{theater.id}' labeled '#{theater.name}'"
   end
 end
 

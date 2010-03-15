@@ -47,7 +47,7 @@ class Admin::ProductionsController < ApplicationController
     respond_to do |format|
       if @production.update_attributes(params[:production])
         flash[:notice] = 'Production was successfully updated.'
-        format.html { redirect_to(edit_admin_theater_path(@production.theater)) }
+        format.html { redirect_to(admin_theater_path(@production.theater)) }
         format.xml  { head :ok }
       else
         format.html { render :action => "edit" }

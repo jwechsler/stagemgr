@@ -58,7 +58,7 @@ Feature: An administrator can add production details to a theater
   Given the following productions exist:
   | name             |
   | Production One   |
-    And I go to the admin theater edit page for production "Production One"
+    And I go to the admin theater detail page for production "Production One"
     And I follow "Production One" "Edit" link
     And I fill in "Name" with "Production One (Changed)"
     And I fill in "Credit lines" with "Lorem ipsum"
@@ -78,7 +78,7 @@ Feature: An administrator can add production details to a theater
   Given the following productions exist:
   | name             | credit_lines  | first_preview_at | press_opening_at | opening_at | closing_at | show_description | capacity | additional_information_link | status   |
   | Production One   | cline1        | 01/10/2005       | 01/11/2005       | 01/12/2005 | 01/13/2005 | descriptive      | 300      | http://www.google.com       | Inactive |
-    And I go to the admin theater edit page for production "Production One"
+    And I go to the admin theater detail page for production "Production One"
     And I follow "Production One"
     And I should see "Production One"
     And I should see "descriptive"

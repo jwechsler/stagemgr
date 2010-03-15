@@ -16,6 +16,8 @@ module NavigationHelpers
       url_for(:controller=>'admin/theaters',:action=>'index', :only_path=>true)
     when /^the admin theater edit page for production "([^"]*)"$/
       url_for(:controller=>'admin/theaters', :action=>'edit', :id=>Production.find_by_name($1).theater.id, :only_path=>true)
+    when /^the admin theater detail page for production "([^"]*)"$/
+      url_for(:controller=>'admin/theaters', :action=>'show', :id=>Production.find_by_name($1).theater.id, :only_path=>true)
       
     
     # Add more mappings here.

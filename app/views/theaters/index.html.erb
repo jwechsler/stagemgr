@@ -10,14 +10,7 @@
   </tr>
 
 <% @theaters.each do |theater| %>
-  <tr>
-    <td><%=link_to theater.name, edit_theater_path(theater) %></td>
-    <td><%=h theater.url %></td>
-    <td><%=image_tag theater.logo.url %></td>
-    <td><%=h theater.theater_class %></td>
-    <td><%=h theater.status %></td>
-    <td><%= link_to 'Destroy', theater, :confirm => 'Are you sure?', :method => :delete %></td>
-  </tr>
+  <%= render :partial => theater %>
 <% end %>
 </table>
 

@@ -26,7 +26,7 @@ Feature: The Administrator can manage theater records
     When I go to the admin/theater page
     Then I should see "ABC Theater"
      And I should see "DEF Theater"
-     And each theater name is a link to a page to edit the theater record
+     And each theater name is a link to a theater detail page
   
   Scenario: Add a theater (Minimum Required fields)
     Given I am an Administrator
@@ -90,7 +90,7 @@ Feature: The Administrator can manage theater records
         | DEF Theater |
       And I am logged in
       And I go to the admin/theater page
-      And I follow "ABC Theater"
+      And I follow "ABC Theater" "Edit" link
      When I fill in "Name" with "ABD Theater"
       And I press "Save"
      Then I should be on the admin/theater page

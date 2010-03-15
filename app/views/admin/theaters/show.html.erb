@@ -1,0 +1,26 @@
+<h1><%=h @theater.name%></h1>
+
+<p>
+  Url:<br />
+  <%=h @theater.url %>
+</p>
+<p>
+  Theater class:<br />
+  <%=h @theater.theater_class %>
+</p>
+<p>
+  Status:<br />
+  <%=h @theater.status %>
+</p>
+<p>
+  Logo:<br />
+  <%=image_tag @theater.logo.url %>
+</p>
+
+<%= render :partial => '/theaters/productions' %>
+
+<p>
+  <%= link_to 'Add production', new_admin_theater_production_path(@theater) %>
+</p>
+
+<%= link_to 'Back', admin_theaters_path %>

@@ -22,7 +22,10 @@ class Admin::TheatersController < ApplicationController
     end
   end
 
-  # GET /theaters/1/edit
+  def show
+    @theater = Theater.find(params[:id])
+  end
+
   def edit
     @theater = Theater.find(params[:id])
   end
