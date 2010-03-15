@@ -1,3 +1,15 @@
+Given /^I debug stuff$/ do
+  require 'ruby-debug'
+  debugger 
+  a=1
+end
+
+Given /^I follow "([^\"]*)" "([^\"]*)" link$/ do |label, nondescript_link|
+  within(:xpath, Capybara::XPath.wrap("//a[contains(.,'#{label}')]/../..")) do
+    click_link(nondescript_link)
+  end
+end
+
 Given /^(?:|I )should (|not )see a link(?:| to '([^']+)')(?:| labeled '([^']+)')$/ do |is_not,path,link_label|
   begin
     if(is_not=='not ')

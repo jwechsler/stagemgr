@@ -59,7 +59,7 @@ Feature: An administrator can add production details to a theater
   | name             |
   | Production One   |
     And I go to the admin theater edit page for production "Production One"
-    And I follow "Production One"
+    And I follow "Production One" "Edit" link
     And I fill in "Name" with "Production One (Changed)"
     And I fill in "Credit lines" with "Lorem ipsum"
     And I select 01/01/2005 from "First preview at"
@@ -74,20 +74,20 @@ Feature: An administrator can add production details to a theater
    Then I should see "Production was successfully updated."
     And I should see "Production One (Changed)"
 
-  @wip
   Scenario: View a production
   Given the following productions exist:
   | name             | credit_lines  | first_preview_at | press_opening_at | opening_at | closing_at | show_description | capacity | additional_information_link | status   |
   | Production One   | cline1        | 01/10/2005       | 01/11/2005       | 01/12/2005 | 01/13/2005 | descriptive      | 300      | http://www.google.com       | Inactive |
-    And I go to the theater edit page for production "Production One"
+    And I go to the admin theater edit page for production "Production One"
+    And I follow "Production One"
     And I should see "Production One"
     And I should see "descriptive"
     And I should see "300"
     And I should see "Inactive"
     And I should see "http://www.google.com"
     And I should see "cline1"
-    And I should see "01/10/2005"
-    And I should see "01/11/2005"
-    And I should see "01/12/2005"
-    And I should see "01/13/2005"
+    And I should see "2005-01-10"
+    And I should see "2005-01-11"
+    And I should see "2005-01-12"
+    And I should see "2005-01-13"
 
