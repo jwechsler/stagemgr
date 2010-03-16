@@ -4,12 +4,20 @@
   <%= f.error_messages %>
 
   <p>
-    <%= f.label :on %><br />
-    <%= f.date_select :on %>
+    <%= f.label :performance_date %><br />
+    <%= f.date_select :performance_date %>
   </p>
   <p>
-    <%= f.label :at %><br />
-    <%= f.datetime_select :at %>
+    <%= f.label :performance_time %><br />
+    <%= f.time_select :performance_time %>
+  </p>
+  <p>
+    <%= f.label :status %><br />
+    <%= f.select(:status, Performance::PERFORMANCE_STATUSES) %>
+  </p>
+  <p>
+    <%= f.label :performance_code %><br />
+    <%= f.text_field :performance_code %>
   </p>
   <%= f.hidden_field :production_id %>
   <p>

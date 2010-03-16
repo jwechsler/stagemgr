@@ -1,5 +1,7 @@
 <tr>
-  <td><%=h performance.on %></td>
-  <td><%=h performance.at %></td>
+    <th><%= performance.performance_date %></th>
+    <th><%= performance.performance_time %></th>
+    <th><%= performance.status %></th>
+    <th><%= performance.performance_code %></th>
   <td><%= link_to 'Destroy', [:admin, performance.production.theater, performance.production, performance], :confirm => 'Are you sure?', :method => :delete %></td>
 </tr>
