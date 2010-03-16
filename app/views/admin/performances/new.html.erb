@@ -1,6 +1,6 @@
 <h1>New performance</h1>
 
-<% form_for([@performance.production.theater,@performance.production,@performance]) do |f| %>
+<% form_for([:admin,@performance.production.theater,@performance.production,@performance]) do |f| %>
   <%= f.error_messages %>
 
   <p>
@@ -17,4 +17,4 @@
   </p>
 <% end %>
 
-<%= link_to 'Back', theater_production_performances_path(@performance.production.theater,@performance.production) %>
+<%= link_to 'Back', admin_theater_production_performances_path(@performance.production.theater,@performance.production) %>

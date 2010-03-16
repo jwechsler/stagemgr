@@ -1,4 +1,4 @@
-class PerformancesController < ApplicationController
+class Admin::PerformancesController < ApplicationController
   prepend_before_filter :find_production
   append_before_filter :find_performance, :only => [:show, :edit, :update, :destroy]
   
@@ -44,7 +44,7 @@ class PerformancesController < ApplicationController
     respond_to do |format|
       if @performance.save
         flash[:notice] = 'Performance was successfully created.'
-        format.html { redirect_to([@performance.production.theater,@performance.production,@performance]) }
+        format.html { redirect_to(admin_theater_production_path(@performance.production.theater, @performance.production)) }
         format.xml  { render :xml => @performance, :status => :created, :location => @performance }
       else
         format.html { render :action => "new" }
@@ -59,7 +59,7 @@ class PerformancesController < ApplicationController
     respond_to do |format|
       if @performance.update_attributes(params[:performance])
         flash[:notice] = 'Performance was successfully updated.'
-        format.html { redirect_to(@performance) }
+        format.html { redirect_to([:admin,@performance.production.theater,@performance.production,@performance]) }
         format.xml  { head :ok }
       else
         format.html { render :action => "edit" }
@@ -71,10 +71,11 @@ class PerformancesController < ApplicationController
   # DELETE /performances/1
   # DELETE /performances/1.xml
   def destroy
+    production = @performance.production
     @performance.destroy
 
     respond_to do |format|
-      format.html { redirect_to(performances_url) }
+      format.html { redirect_to(admin_theater_production_path(production.theater,production)) }
       format.xml  { head :ok }
     end
   end

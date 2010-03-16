@@ -29,6 +29,7 @@ Feature: An administrator can add production details to a theater
     And I select 01/01/2005 from "Closing at"
     And I fill in "Show description" with "<h1>Hello</h1>"
     And I fill in "Capacity" with "300"
+    And I fill in "Production code" with "PD01"
     And I fill in "Additional information link" with "http://google.com"
     And I select "Active" from "Status"
    When I press "Create"
@@ -67,6 +68,7 @@ Feature: An administrator can add production details to a theater
     And I select 01/01/2005 from "Opening at"
     And I select 01/01/2005 from "Closing at"
     And I fill in "Show description" with "<h1>Hello</h1>"
+    And I fill in "Production code" with "PD01"
     And I fill in "Capacity" with "300"
     And I fill in "Additional information link" with "http://google.com"
     And I select "Inactive" from "Status"
@@ -76,8 +78,8 @@ Feature: An administrator can add production details to a theater
 
   Scenario: View a production
   Given the following productions exist:
-  | name             | credit_lines  | first_preview_at | press_opening_at | opening_at | closing_at | show_description | capacity | additional_information_link | status   |
-  | Production One   | cline1        | 01/10/2005       | 01/11/2005       | 01/12/2005 | 01/13/2005 | descriptive      | 300      | http://www.google.com       | Inactive |
+  | name             | credit_lines  | first_preview_at | press_opening_at | opening_at | closing_at | show_description | capacity | additional_information_link | status   | production_code |
+  | Production One   | cline1        | 01/10/2005       | 01/11/2005       | 01/12/2005 | 01/13/2005 | descriptive      | 300      | http://www.google.com       | Inactive | PD02            |
     And I go to the admin theater detail page for production "Production One"
     And I follow "Production One"
     And I should see "Production One"
@@ -90,4 +92,5 @@ Feature: An administrator can add production details to a theater
     And I should see "2005-01-11"
     And I should see "2005-01-12"
     And I should see "2005-01-13"
+    And I should see "PD02"
 
