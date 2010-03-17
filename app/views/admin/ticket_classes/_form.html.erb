@@ -20,7 +20,7 @@
 </p>
 <p>
   <%= f.label :ticket_type %><br />
-  <%= f.text_field :ticket_type %>
+  <%= f.select(:ticket_type, TicketClass::TICKET_TYPES) %>
 </p>
 <p>
   <%= f.label :minutes_before_show %><br />

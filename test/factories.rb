@@ -12,6 +12,7 @@ end
 
 Factory.define(:production) do |production|
   production.sequence(:name){|n|"Production \##{n}"}
+  production.sequence(:production_code){|n|"PRO#{'%02d' % n}"}
   production.status Production::PRODUCTION_STATUSES.first
   production.association :theater, :factory => :theater
 end
@@ -21,4 +22,5 @@ Factory.define(:performance) do |performance|
 end
 
 Factory.define(:ticket_class) do |ticket_class|
+  ticket_class.ticket_type TicketClass::TICKET_TYPES.first
 end
