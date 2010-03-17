@@ -1,4 +1,4 @@
-Given /^the following ([^\"]*) exist(?: on the ([a-zA-Z]+) "([^\"]*)"):$/ do |type, parent_type, parent_name, table|
+Given /^the following ([^\"]*) exist(?:| on the ([a-zA-Z]+) "([^\"]*)"):$/ do |type, parent_type, parent_name, table|
   symbol = type.underscore.singularize.to_sym
   parent = parent_type.constantize.find_by_name(parent_name) if parent_type
   

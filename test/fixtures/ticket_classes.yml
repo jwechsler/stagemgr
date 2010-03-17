@@ -1,0 +1,21 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+one:
+  class_code: MyString
+  class_name: MyString
+  ticket_price: 1.5
+  ticketing_fee: 1.5
+  web_visible: false
+  ticket_type: MyString
+  minutes_before_show: 1
+  production: 
+
+two:
+  class_code: MyString
+  class_name: MyString
+  ticket_price: 1.5
+  ticketing_fee: 1.5
+  web_visible: false
+  ticket_type: MyString
+  minutes_before_show: 1
+  production: 

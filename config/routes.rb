@@ -9,6 +9,7 @@ ActionController::Routing::Routes.draw do |map|
     admin.resources :theaters do |theater|
       theater.resources :productions do |production|
         production.resources :performances
+        production.resources :ticket_classes
       end
     end
     admin.resources :users do |user|

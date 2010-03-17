@@ -1,8 +1,9 @@
-class TicketClassesController < ApplicationController
-  # GET /ticket_classes
-  # GET /ticket_classes.xml
+class Admin::TicketClassesController < ApplicationController
+  prepend_before_filter :find_production
+  append_before_filter :find_ticket_class, :only => [:edit, :update, :destroy]
+
   def index
-    @ticket_classes = TicketClass.all
+    @ticket_classes = @production.ticket_classes.all
 
     respond_to do |format|
       format.html # index.html.erb
@@ -10,42 +11,23 @@ class TicketClassesController < ApplicationController
     end
   end
 
-  # GET /ticket_classes/1
-  # GET /ticket_classes/1.xml
-  def show
-    @ticket_class = TicketClass.find(params[:id])
-
-    respond_to do |format|
-      format.html # show.html.erb
-      format.xml  { render :xml => @ticket_class }
-    end
-  end
-
-  # GET /ticket_classes/new
-  # GET /ticket_classes/new.xml
   def new
-    @ticket_class = TicketClass.new
+    @ticket_class = @production.ticket_classes.build
 
     respond_to do |format|
       format.html # new.html.erb
-      format.xml  { render :xml => @ticket_class }
     end
   end
 
-  # GET /ticket_classes/1/edit
-  def edit
-    @ticket_class = TicketClass.find(params[:id])
-  end
+  def edit; end
 
-  # POST /ticket_classes
-  # POST /ticket_classes.xml
   def create
     @ticket_class = TicketClass.new(params[:ticket_class])
 
     respond_to do |format|
       if @ticket_class.save
         flash[:notice] = 'TicketClass was successfully created.'
-        format.html { redirect_to(@ticket_class) }
+        format.html { redirect_to(admin_theater_production_ticket_classes_path(@theater,@production)) }
         format.xml  { render :xml => @ticket_class, :status => :created, :location => @ticket_class }
       else
         format.html { render :action => "new" }
@@ -54,15 +36,11 @@ class TicketClassesController < ApplicationController
     end
   end
 
-  # PUT /ticket_classes/1
-  # PUT /ticket_classes/1.xml
   def update
-    @ticket_class = TicketClass.find(params[:id])
-
     respond_to do |format|
       if @ticket_class.update_attributes(params[:ticket_class])
         flash[:notice] = 'TicketClass was successfully updated.'
-        format.html { redirect_to(@ticket_class) }
+        format.html { redirect_to(admin_theater_production_ticket_classes_path(@theater,@production)) }
         format.xml  { head :ok }
       else
         format.html { render :action => "edit" }
@@ -71,15 +49,24 @@ class TicketClassesController < ApplicationController
     end
   end
 
-  # DELETE /ticket_classes/1
-  # DELETE /ticket_classes/1.xml
   def destroy
-    @ticket_class = TicketClass.find(params[:id])
     @ticket_class.destroy
 
     respond_to do |format|
-      format.html { redirect_to(ticket_classes_url) }
+      format.html { redirect_to(admin_theater_production_ticket_classes_path(@theater,@production)) }
       format.xml  { head :ok }
     end
   end
+  
+  private
+  
+  def find_production
+    @theater=Theater.find(params[:theater_id])
+    @production = @theater.productions.find(params[:production_id])
+  end
+
+  def find_ticket_class
+    @ticket_class = @production.ticket_classes.find(params[:id])
+  end
+  
 end

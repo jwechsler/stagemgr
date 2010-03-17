@@ -1,0 +1,31 @@
+<h1>Listing ticket_classes for <%=link_to @production.name, [:admin, @production.theater, @production]%></h1>
+
+<table>
+  <tr>
+    <th>Class code</th>
+    <th>Class name</th>
+    <th>Ticket price</th>
+    <th>Ticketing fee</th>
+    <th>Web visible</th>
+    <th>Ticket type</th>
+    <th>Minutes before show</th>
+  </tr>
+
+<% @ticket_classes.each do |ticket_class| %>
+  <tr>
+    <td><%=h ticket_class.class_code %></td>
+    <td><%=h ticket_class.class_name %></td>
+    <td><%=h ticket_class.ticket_price %></td>
+    <td><%=h ticket_class.ticketing_fee %></td>
+    <td><%=h ticket_class.web_visible %></td>
+    <td><%=h ticket_class.ticket_type %></td>
+    <td><%=h ticket_class.minutes_before_show %></td>
+    <td><%= link_to 'Edit', edit_admin_theater_production_ticket_class_path(@theater,@production, ticket_class) %></td>
+    <td><%= link_to 'Destroy', admin_theater_production_ticket_class_path(@theater,@production, ticket_class), :confirm => 'Are you sure?', :method => :delete %></td>
+  </tr>
+<% end %>
+</table>
+
+<br />
+
+<%= link_to 'New ticket_class', new_admin_theater_production_ticket_class_path(@theater,@production) %>

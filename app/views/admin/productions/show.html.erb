@@ -53,6 +53,11 @@
   <%=h @production.status %>
 </p>
 
+<p>
+  <b>Ticket classes:</b>
+  <%=link_to 'List', admin_theater_production_ticket_classes_path(@production.theater, @production)%>
+</p>
+
 <%= render :partial => '/productions/performances' %>
 
 <p>

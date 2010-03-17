@@ -5,4 +5,5 @@ class Production < ActiveRecord::Base
 
   belongs_to :theater
   has_many :performances
+  has_many :ticket_classes
 end

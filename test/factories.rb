@@ -15,3 +15,10 @@ Factory.define(:production) do |production|
   production.status Production::PRODUCTION_STATUSES.first
   production.association :theater, :factory => :theater
 end
+
+Factory.define(:performance) do |performance|
+  performance.association :production, :factory => :production
+end
+
+Factory.define(:ticket_class) do |ticket_class|
+end
