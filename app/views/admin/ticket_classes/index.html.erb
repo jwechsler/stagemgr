@@ -15,8 +15,8 @@
   <tr>
     <td><%=h ticket_class.class_code %></td>
     <td><%=h ticket_class.class_name %></td>
-    <td><%=h ticket_class.ticket_price %></td>
-    <td><%=h ticket_class.ticketing_fee %></td>
+    <td><%=h to_currency ticket_class.ticket_price %></td>
+    <td><%=h to_currency ticket_class.ticketing_fee %></td>
     <td><%=h ticket_class.web_visible %></td>
     <td><%=h ticket_class.ticket_type %></td>
     <td><%=h ticket_class.minutes_before_show %></td>
