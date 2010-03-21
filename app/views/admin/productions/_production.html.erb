@@ -1,6 +1,6 @@
 <tr>
   <td><%=link_to production.name, admin_theater_production_path(production.theater, production) %></td>
-  <td><%=h production.show_description %></td>
+  <td><%=production.show_description %></td>
   <td><%=h production.capacity %></td>
   <td><%=h production.status %></td>
   <td><%=link_to 'Edit', edit_admin_theater_production_path(production.theater, production) %></td>
