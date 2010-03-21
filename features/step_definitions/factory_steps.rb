@@ -3,10 +3,10 @@ Given /^the following ([^\"]*) exist(?:| on the ([a-zA-Z]+) "([^\"]*)"):$/ do |t
   parent = parent_type.constantize.find_by_name(parent_name) if parent_type
   
   table.hashes.each do |hash|
-    new_object = Factory(symbol, hash)
     if parent_type
-      parent.send("#{type}") << new_object
+      hash.merge!({"#{parent_type.downcase}_id".to_sym=>parent.id})
     end
+    new_object = Factory(symbol, hash)
   end
 end
 

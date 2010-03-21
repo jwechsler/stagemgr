@@ -12,5 +12,8 @@ Feature: Admins can manage performances
 
 Scenario: There is a performances link on the Productions Page
   Given the following performances exist on the Production "Production One":
-   Then there is a link to the performance listing page.
+  | performance_code |
+  | PERF             |
+    And I go to the admin production detail page for "Production One"
+   Then I should see "PERF"
 

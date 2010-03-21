@@ -13,8 +13,8 @@ Scenario: There is a ticket classes link on the Productions Page
   | class_code | class_name |
   | ABCD       | Alpha      |
     And I go to the admin production detail page for "Production One"
-    And I follow "Ticket Classes"
-   Then I should see "Ticket Classes"
+    And I follow "List"
+   Then I should see "Listing ticket_classes"
     
 
 

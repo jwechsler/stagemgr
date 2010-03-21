@@ -19,6 +19,7 @@ end
 
 Factory.define(:performance) do |performance|
   performance.association :production, :factory => :production
+  performance.status Performance::PERFORMANCE_STATUSES.first
 end
 
 Factory.define(:ticket_class) do |ticket_class|
