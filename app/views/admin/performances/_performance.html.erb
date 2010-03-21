@@ -1,6 +1,6 @@
 <tr>
     <td><%= performance.performance_date %></td>
-    <td><%= performance.performance_time %></td>
+    <td><%= performance.performance_time.to_s(:hour_min) %></td>
     <td><%= performance.status %></td>
     <td><%= performance.performance_code %></td>
   <td><%= link_to 'Destroy', [:admin, performance.production.theater, performance.production, performance], :confirm => 'Are you sure?', :method => :delete %></td>
