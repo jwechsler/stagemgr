@@ -3,5 +3,6 @@
     <td><%= performance.performance_time.to_s(:hour_min) %></td>
     <td><%= performance.status %></td>
     <td><%= performance.performance_code %></td>
+	<td><%= link_to 'Edit', edit_admin_theater_production_performance_path(performance.production.theater, performance.production, performance)%></td>
   <td><%= link_to 'Destroy', [:admin, performance.production.theater, performance.production, performance], :confirm => 'Are you sure?', :method => :delete %></td>
 </tr>

@@ -59,7 +59,7 @@ class Admin::PerformancesController < ApplicationController
     respond_to do |format|
       if @performance.update_attributes(params[:performance])
         flash[:notice] = 'Performance was successfully updated.'
-        format.html { redirect_to([:admin,@performance.production.theater,@performance.production,@performance]) }
+        format.html { redirect_to([:admin,@performance.production.theater,@performance.production]) }
         format.xml  { head :ok }
       else
         format.html { render :action => "edit" }

@@ -1,0 +1,17 @@
+<p>
+  <%= f.label :performance_date %><br />
+  <%= f.date_select :performance_date %>
+</p>
+<p>
+  <%= f.label :performance_time %><br />
+  <%= f.time_select :performance_time, {:minute_step => 15} %>
+</p>
+<p>
+  <%= f.label :status %><br />
+  <%= f.select(:status, Performance::PERFORMANCE_STATUSES) %>
+</p>
+<p>
+  <%= f.label :performance_code %><br />
+  <%= f.text_field :performance_code %>
+</p>
+<%= f.hidden_field :production_id %>
