@@ -35,13 +35,16 @@ class Admin::PerformancesController < ApplicationController
   end
   
   def duplicate
+    old_performance = @performance
     @performance = @performance.clone
+    @performance.ticket_class_allocations <<  old_performance.ticket_class_allocations.map{|tca|tca.clone}
     @performance.populate_ticket_class_allocations
     render :action => :new
   end
 
   # GET /performances/1/edit
   def edit
+    @performance.populate_ticket_class_allocations
   end
 
   # POST /performances
