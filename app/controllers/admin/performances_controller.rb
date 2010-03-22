@@ -1,6 +1,6 @@
 class Admin::PerformancesController < ApplicationController
   prepend_before_filter :find_production
-  append_before_filter :find_performance, :only => [:show, :edit, :update, :destroy]
+  append_before_filter :find_performance, :only => [:show, :edit, :update, :destroy, :duplicate]
   
   # GET /performances
   # GET /performances.xml
@@ -32,6 +32,12 @@ class Admin::PerformancesController < ApplicationController
       format.html # new.html.erb
       format.xml  { render :xml => @performance }
     end
+  end
+  
+  def duplicate
+    @performance = @performance.clone
+    @performance.populate_ticket_class_allocations
+    render :action => :new
   end
 
   # GET /performances/1/edit

@@ -8,7 +8,7 @@ ActionController::Routing::Routes.draw do |map|
   map.namespace :admin do |admin|
     admin.resources :theaters do |theater|
       theater.resources :productions do |production|
-        production.resources :performances
+        production.resources :performances, :member => 'duplicate'
         production.resources :ticket_classes
       end
     end
