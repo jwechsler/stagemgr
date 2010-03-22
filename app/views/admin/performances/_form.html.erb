@@ -15,3 +15,25 @@
   <%= f.text_field :performance_code %>
 </p>
 <%= f.hidden_field :production_id %>
+
+<h1>Ticket classes:</h1>
+<table>
+  <tr>
+    <th>Available</th>
+    <th>Ticket class code</th>
+    <th>Ticket class name</th>
+    <th>Limit</th>
+  </tr>
+<% f.fields_for :ticket_class_allocations do |ticket_class_allocation_form| %>
+<tr id='ticket_class_allocation_<%= ticket_class_allocation_form.object.ticket_class.id %>'>
+<td><%= ticket_class_allocation_form.check_box :available %></td>
+<td><%= ticket_class_allocation_form.object.ticket_class.class_code %></td>
+<td><%= ticket_class_allocation_form.object.ticket_class.class_name %></td>
+<td>
+	<%= ticket_class_allocation_form.text_field :limit %>
+	<%= ticket_class_allocation_form.hidden_field :performance_id %>
+	<%= ticket_class_allocation_form.hidden_field :ticket_class_id %>
+</td>
+</tr>
+<% end %>
+</table>

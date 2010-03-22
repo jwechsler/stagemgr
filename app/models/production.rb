@@ -8,4 +8,10 @@ class Production < ActiveRecord::Base
   belongs_to :theater
   has_many :performances
   has_many :ticket_classes
+  before_validation :clean_values
+  
+  private 
+  def clean_values
+    self.production_code.upcase!
+  end
 end

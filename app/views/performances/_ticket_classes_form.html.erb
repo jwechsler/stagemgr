@@ -1,0 +1,14 @@
+<h1>Ticket classes:</h1>
+<table>
+  <tr>
+    <th>Available</th>
+    <th>Ticket class code</th>
+    <th>Ticket class name</th>
+    <th>Limit</th>
+  </tr>
+<% @production.ticket_classes.each do |ticket_class| 
+	ticket_class_allocation = @production.ticket_class_allocation.build %>
+
+<%= render :partial => '/performances/ticket_class_form', :locals=>{:f=>f, :ticket_class_allocation=>ticket_class_allocation} %>
+<% end %>
+</table>

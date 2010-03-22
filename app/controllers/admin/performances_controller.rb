@@ -26,6 +26,7 @@ class Admin::PerformancesController < ApplicationController
   # GET /performances/new.xml
   def new
     @performance = Performance.new({:production=>@production})
+    @performance.populate_ticket_class_allocations
 
     respond_to do |format|
       format.html # new.html.erb
@@ -41,6 +42,7 @@ class Admin::PerformancesController < ApplicationController
   # POST /performances.xml
   def create
     @performance = Performance.new(params[:performance])
+    @performance.populate_ticket_class_allocations
     respond_to do |format|
       if @performance.save
         flash[:notice] = 'Performance was successfully created.'

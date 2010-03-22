@@ -1,0 +1,8 @@
+<% fields_for ticket_class_allocation do |f| %>
+<tr>
+	<td><%= f.check_box :enabled %></td>
+	<td><%= ticket_class_allocation.ticket_class.class_code %></td>
+	<td><%= ticket_class_allocation.ticket_class.class_name %></td>
+	<td><%= f.text_field :limit %></td>
+</tr>
+<% end %>

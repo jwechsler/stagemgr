@@ -8,11 +8,24 @@ class Performance < ActiveRecord::Base
   belongs_to :production
   has_and_belongs_to_many :ticket_classes
   has_many :line_items
+  has_many :ticket_class_allocations
   before_validation_on_create :set_defaults
+  before_validation :clean_values
+  accepts_nested_attributes_for :ticket_class_allocations
   
-  private
+  def populate_ticket_class_allocations
+    self.ticket_class_allocations.each{|tca|tca.performance=self}
+    (self.production.ticket_classes - self.ticket_class_allocations.map{|tca|tca.ticket_class}).each do |ticket_class|
+      self.ticket_class_allocations << TicketClassAllocation.new({:ticket_class=>ticket_class, :performance=>self})
+    end
+  end
+  
   def set_defaults
     self.performance_date = Date.today if self.performance_date.nil?
     self.performance_time = Time.now if self.performance_time.nil?
+  end
+  
+  def clean_values
+    self.performance_code.upcase!
   end
 end
