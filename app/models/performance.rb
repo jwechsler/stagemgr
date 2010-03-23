@@ -3,7 +3,7 @@ class Performance < ActiveRecord::Base
   validates_inclusion_of :status,        :in => PERFORMANCE_STATUSES
   validates_uniqueness_of :performance_code, :scope => :production_id
   validates_each :performance_time do |record, attr, value|
-    record.errors.add attr, 'has already been taken' if record.production.performances.any?{|p|p.performance_date==record.performance_date && p.performance_time==record.performance_time}
+    record.errors.add attr, 'has already been taken' if record.production.performances.any?{|p|p.id != record.id && p.performance_date==record.performance_date && p.performance_time==record.performance_time}
   end
   validates_presence_of :performance_code
   validates_presence_of :performance_date
