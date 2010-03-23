@@ -4,6 +4,7 @@ class Production < ActiveRecord::Base
   validates_presence_of :theater, :name
   validates_uniqueness_of :production_code
   validates_length_of :production_code, :in=>1..5
+  validates_numericality_of :capacity, :allow_nil => true
 
   belongs_to :theater
   has_many :performances

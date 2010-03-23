@@ -5,6 +5,7 @@ class TicketClass < ActiveRecord::Base
   validates_length_of :class_code, :in=>1..4
   belongs_to :production
   before_validation :clean_values
+  validates_numericality_of :minutes_before_show, :allow_nil => true
   
   private 
   def clean_values
