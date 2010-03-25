@@ -15,6 +15,7 @@ Factory.define(:production) do |production|
   production.sequence(:production_code){|n|"PRO#{'%02d' % n}"}
   production.status Production::PRODUCTION_STATUSES.first
   production.association :theater, :factory => :theater
+  production.capacity 100
 end
 
 Factory.define(:performance) do |performance|

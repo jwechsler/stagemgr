@@ -6,6 +6,7 @@ ActionController::Routing::Routes.draw do |map|
   map.resources :ticket_classes
   
   map.namespace :admin do |admin|
+    admin.resources :orders
     admin.resources :theaters do |theater|
       theater.resources :productions do |production|
         production.resources :performances, :member => 'duplicate'

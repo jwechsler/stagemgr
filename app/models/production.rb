@@ -4,11 +4,16 @@ class Production < ActiveRecord::Base
   validates_presence_of :theater, :name
   validates_uniqueness_of :production_code
   validates_length_of :production_code, :in=>1..5
-  validates_numericality_of :capacity, :allow_nil => true
+  validates_numericality_of :capacity
+  validates_each :capacity do |record, attr, value|
+    max_limit = record.ticket_classes.maximum('"limit"')
+    record.errors.add attr, 'must be greater than the limit of all ticket classes' if !max_limit.nil? && value <= max_limit
+  end
 
   belongs_to :theater
   has_many :performances
   has_many :ticket_classes
+  has_many :line_items
   before_validation :clean_values
   
   private 

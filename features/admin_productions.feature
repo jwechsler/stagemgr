@@ -17,6 +17,7 @@ Feature: An administrator can add production details to a theater
   Given I follow "Add production"
     And I fill in "Name" with "New Production"
     And I fill in "Production code" with "PD001"
+    And I fill in "Capacity" with "300"
    When I press "Create"
    Then I should see "Production was successfully created."
 
