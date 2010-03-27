@@ -6,9 +6,33 @@
 #   cities = City.create([{ :name => 'Chicago' }, { :name => 'Copenhagen' }])
 #   Major.create(:name => 'Daley', :city => cities.first)
 
-user = User.create({
-      :email => 'admin@yoursite.com',
-      :password => 'betterpassword',
+user        = User.create!({
+      :email                 => 'admin@yoursite.com',
+      :password              => 'betterpassword',
       :password_confirmation => 'betterpassword',
-      :is_administrator => true})    
+      :is_administrator      => true}) 
+      
+theater     = Theater.create!({
+  :name                      =>'Theater 1', 
+  :theater_class             =>Theater::THEATER_CLASSES.first, 
+  :status                    =>Theater::THEATER_STATUSES.first})
+
+production  = theater.productions.create!({
+  :name                      =>'Production 1', 
+  :status                    =>Production::PRODUCTION_STATUSES.first, 
+  :production_code           =>'T1P1', 
+  :capacity                  =>350})
+  
+ticket_class = production.ticket_classes.create!({
+  :ticket_type               =>TicketClass::TICKET_TYPES.first,
+  :class_code                =>'TC1'
+  
+})
+  
+performance = production.performances.create!({
+  :status                    =>Performance::PERFORMANCE_STATUSES.first,
+  :performance_code          =>'T1P10305'
+})
+
+
 

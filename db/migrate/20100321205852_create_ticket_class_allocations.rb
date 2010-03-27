@@ -4,7 +4,7 @@ class CreateTicketClassAllocations < ActiveRecord::Migration
       t.references :performance
       t.references :ticket_class
       t.boolean :available
-      t.integer :limit
+      t.integer :ticket_limit
 
       t.timestamps
     end

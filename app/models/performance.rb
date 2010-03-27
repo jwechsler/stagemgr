@@ -25,10 +25,14 @@ class Performance < ActiveRecord::Base
   before_validation              :clean_values
   accepts_nested_attributes_for  :ticket_class_allocations
   
+  def number_of_tickets_left
+    self.production.capacity - self.line_items.sum(:ticket_count)
+  end
+  
   def populate_ticket_class_allocations
     self.ticket_class_allocations.each{|tca|tca.performance=self}
     (self.production.ticket_classes - self.ticket_class_allocations.map{|tca|tca.ticket_class}).each do |ticket_class|
-      self.ticket_class_allocations << TicketClassAllocation.new({:ticket_class=>ticket_class, :performance=>self})
+      self.ticket_class_allocations.build({:ticket_class=>ticket_class, :performance=>self})
     end
   end
   
@@ -45,6 +49,6 @@ class Performance < ActiveRecord::Base
                                   :min   => ((self.performance_time.min.to_i/15)*15),
                                   :sec   => 0,
                                   :usec  => 0)
-    self.performance_code.upcase!
+    self.performance_code.upcase! if self.performance_code
   end
 end

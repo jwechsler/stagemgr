@@ -6,7 +6,7 @@ class Production < ActiveRecord::Base
   validates_length_of :production_code, :in=>1..5
   validates_numericality_of :capacity
   validates_each :capacity do |record, attr, value|
-    max_limit = record.ticket_classes.maximum('"limit"')
+    max_limit = record.performances.max{|performance| performace.ticket_classes_allocations.maximum(:ticket_limit) }
     record.errors.add attr, 'must be greater than the limit of all ticket classes' if !max_limit.nil? && value <= max_limit
   end
 
@@ -18,6 +18,6 @@ class Production < ActiveRecord::Base
   
   private 
   def clean_values
-    self.production_code.upcase!
+    self.production_code.upcase! unless self.production_code.nil?
   end
 end

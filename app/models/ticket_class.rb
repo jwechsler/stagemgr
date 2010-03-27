@@ -12,16 +12,27 @@ class TicketClass < ActiveRecord::Base
   end
     
   
-  def number_left
-    ticket_class_capacity_left = production_capacity_left = self.production.capacity - self.production.line_items.sum(:ticket_count)
-    unless self.limit.nil?
-      ticket_class_capacity_left = self.limit - self.line_items.sum(:ticket_count)
+  def number_left(performance)
+    ticket_class_capacity_left = production_capacity_left = performance.number_of_tickets_left
+    
+    unless number_allocated(performance).nil?
+      ticket_class_capacity_left = number_allocated(performance) - self.line_items.sum(:ticket_count)
     end
     return [ticket_class_capacity_left,production_capacity_left].min
   end
   
+  def number_taken(performance)
+    LineItem.sum(:ticket_count, :conditions=>{:ticket_class_id=>self.id,:performance_id=>performance.id})
+  end
+  
+  def number_allocated(performance)
+    sum = TicketClassAllocation.sum(:ticket_limit, :conditions=>{:ticket_class_id=>self.id,:performance_id=>performance.id})
+    return nil if sum == 0
+    sum
+  end
+  
   private 
   def clean_values
-    self.class_code.upcase!
+    self.class_code.upcase! if self.class_code
   end
 end

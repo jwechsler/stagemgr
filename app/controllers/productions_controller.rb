@@ -32,7 +32,7 @@ class ProductionsController < ApplicationController
     respond_to do |format|
       if @production.save
         flash[:notice] = 'Production was successfully created.'
-        format.html { redirect_to(edit_theater_path(@theater)) }
+        format.html { redirect_to(theater_path(@theater)) }
         format.xml  { render :xml => @production, :status => :created, :location => @production }
       else
         format.html { render :action => "new" }
@@ -47,7 +47,7 @@ class ProductionsController < ApplicationController
     respond_to do |format|
       if @production.update_attributes(params[:production])
         flash[:notice] = 'Production was successfully updated.'
-        format.html { redirect_to(edit_theater_path(@production.theater)) }
+        format.html { redirect_to(theater_path(@production.theater)) }
         format.xml  { head :ok }
       else
         format.html { render :action => "edit" }
@@ -62,7 +62,7 @@ class ProductionsController < ApplicationController
     @production.destroy
 
     respond_to do |format|
-      format.html { redirect_to(edit_theater_path(@production.theater)) }
+      format.html { redirect_to(theater_path(@production.theater)) }
       format.xml  { head :ok }
     end
   end

@@ -21,8 +21,20 @@ end
 Factory.define(:performance) do |performance|
   performance.association :production, :factory => :production
   performance.status Performance::PERFORMANCE_STATUSES.first
+  performance.sequence(:performance_code){|n|"PF#{'%02d' % n}"}
 end
 
 Factory.define(:ticket_class) do |ticket_class|
   ticket_class.ticket_type TicketClass::TICKET_TYPES.first
+  ticket_class.sequence(:class_code){|n|"CS#{'%02d' % n}"}
+end
+
+Factory.define(:order) do |order|
+  order.status Order::ORDER_STATUSES.first
+end
+
+Factory.define(:line_item) do |line_item|
+  line_item.association :order, :factory        => :order
+  line_item.association :performance, :factory  => :performance
+  line_item.association :ticket_class, :factory => :ticket_class
 end
