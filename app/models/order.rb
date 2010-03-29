@@ -11,7 +11,6 @@ class Order < ActiveRecord::Base
                          :email,
                          :billing_address_city,
                          :billing_address_line1,
-                         :billing_address_line2,
                          :billing_address_state,
                          :billing_address_zipcode,
                          :card_last_four,
