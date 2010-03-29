@@ -1,4 +1,6 @@
 class TicketClass < ActiveRecord::Base
+  include ActionView::Helpers::NumberHelper
+  include ApplicationHelper
   TICKET_TYPES = ['Fixed', 'Donation', 'Timed']
   validates_inclusion_of :ticket_type,        :in => TICKET_TYPES
   validates_uniqueness_of :class_code
@@ -6,11 +8,11 @@ class TicketClass < ActiveRecord::Base
   belongs_to :production
   has_many :line_items
   before_validation :clean_values
+  validates_numericality_of :ticket_price
   validates_numericality_of :minutes_before_show, :allow_nil => true
   validates_each :minutes_before_show do |record, attr, value|
     record.errors.add attr, 'must be less than production capacity' if !value.nil? && value >= self.production.capacity
   end
-    
   
   def number_left(performance)
     ticket_class_capacity_left = production_capacity_left = performance.number_of_tickets_left
@@ -29,6 +31,10 @@ class TicketClass < ActiveRecord::Base
     sum = TicketClassAllocation.sum(:ticket_limit, :conditions=>{:ticket_class_id=>self.id,:performance_id=>performance.id})
     return nil if sum == 0
     sum
+  end
+  
+  def to_s
+    "#{self.class_name||self.class_code}-#{self.ticket_type} #{to_currency  self.ticket_price}"
   end
   
   private 

@@ -23,9 +23,26 @@ production  = theater.productions.create!({
   :production_code           =>'T1P1', 
   :capacity                  =>350})
   
-ticket_class = production.ticket_classes.create!({
+fixed_ticket_class = production.ticket_classes.create!({
   :ticket_type               =>TicketClass::TICKET_TYPES.first,
+  :class_name                =>'General Admission',
+  :ticket_price              =>35,
   :class_code                =>'TC1'
+  
+})
+
+donation_ticket_class = production.ticket_classes.create!({
+  :ticket_type               =>TicketClass::TICKET_TYPES[1],
+  :class_name                =>'General Admission',
+  :ticket_price              =>35,
+  :class_code                =>'TC2',
+})
+
+timed_ticket_class = production.ticket_classes.create!({
+  :ticket_type               =>TicketClass::TICKET_TYPES[2],
+  :class_name                =>'General Admission',
+  :ticket_price              =>35,
+  :class_code                =>'TC3'
   
 })
   

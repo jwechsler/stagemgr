@@ -1,0 +1,70 @@
+<p>
+First Name:
+<%=h @order.first_name %>
+</p>
+<p>
+Last name:
+<%=h @order.last_name %>
+</p>
+<p>
+Email:
+<%=h @order.email %>
+</p>
+<p>
+Billing Address:
+</p>
+<p>
+Address Line1:
+<%=h @order.billing_address_line1 %>
+</p>
+<p>
+Address Line2:
+<%=h @order.billing_address_line2 %>
+</p>
+<p>
+City:
+<%=h @order.billing_address_city %>
+</p>
+<p>
+State/Province/Region:
+<%=h @order.billing_address_state %>
+</p>
+<p>
+ZIP/Postal Code:
+<%=h @order.billing_address_zipcode %>
+</p>
+<p>
+Card number:
+*<%=h @order.card_last_four %>
+</p>
+<p>
+Card type:
+<%=h @order.card_type %>
+</p>
+<p>
+
+<table id='line_items'>
+	<thead>
+	<th>Performance/Ticket Class</th>
+	<th>Ticket Count</th>
+	<th>Price Override</th>
+	</thead>
+<% @order.line_items.each do |line_item| %>
+	<tr>
+	<td><%=h line_item.performance.to_s %> <%=h line_item.ticket_class.to_s %></td>
+	<td><%=h line_item.ticket_count %></td>
+	<td><%=h line_item.price_override %></td>
+	</tr>
+<% end %>
+</table>
+<p>
+	Order Status: <%=h @order.status || 'New' %>
+</p>
+<p>
+	<% if @order.status == 'Processed' %>
+	<%= link_to 'Refund Order', refund_admin_order_path(@order), :confirm => "Are you sure?", :method=>:post %>
+	<% end %>
+	<% if @order.status == 'Processing' %>
+	<%= link_to 'Cancel Order', cancel_admin_order_path(@order), :confirm => "Are you sure?", :method=>:post %>
+	<% end %>
+</p>

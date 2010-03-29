@@ -1,0 +1,81 @@
+<% javascript :defaults, 'delegate', 'jquery', 'jquery.autocomplete' %>
+
+<%= error_messages_for :order %>
+
+<% form_for [:admin,@order] do |order_form| -%>
+
+  <% content_for :jstemplates do -%>
+  <%= "var line_item='#{generate_template(order_form, :line_items)}'" %>
+  <% end -%>
+
+<p>
+<%= order_form.label :first_name %>
+<%= order_form.text_field :first_name %>
+</p>
+<p>
+<%= order_form.label :last_name %>
+<%= order_form.text_field :last_name %>
+</p>
+<p>
+<%= order_form.label :email %>
+<%= order_form.text_field :email %>
+</p>
+<p>
+	Billing Address:
+</p>
+<p>
+<%= order_form.label :billing_address_line1, 'Address Line1' %>
+<%= order_form.text_field :billing_address_line1 %>
+</p>
+<p>
+<%= order_form.label :billing_address_line2, 'Address Line2' %>
+<%= order_form.text_field :billing_address_line2 %>
+</p>
+<p>
+<%= order_form.label :billing_address_city, 'City' %>
+<%= order_form.text_field :billing_address_city %>
+</p>
+<p>
+<%= order_form.label :billing_address_state, 'State/Province/Region' %>
+<%= order_form.text_field :billing_address_state %>
+</p>
+<p>
+<%= order_form.label :billing_address_zipcode, 'ZIP/Postal Code' %>
+<%= order_form.text_field :billing_address_zipcode %>
+</p>
+<p>
+<%= order_form.label :card_number %>
+<%= order_form.text_field :card_number %>
+</p>
+<p>
+<%= order_form.label :card_type %>
+<%= order_form.select :card_type, ActiveRecord::Validations::ClassMethods::DEFAULT_CREDIT_CARD_TYPES.values %>
+</p>
+
+
+
+<table id='line_items'>
+	<thead>
+	<th>Performance/Ticket Class</th>
+	<th>Ticket Count</th>
+	<th>Price Override</th>
+	</thead>
+<% order_form.fields_for :line_items do |line_item_form| %>
+<%= render :partial => 'line_item', :locals => { :f => line_item_form } %>
+<% end %>
+</table>
+<%= link_to 'Add a line item', '#line_item', :class => "add_nested_item", :rel => "line_items" %>
+<p>
+	Order Status: <%=order_form.object.status || 'New' %>
+</p>
+<p>
+<% if order_form.object.status.nil? || order_form.object.status == 'Held'%>
+<%= order_form.submit "Hold" %>
+<%= order_form.submit "Process" %>
+<% end %>
+<% unless order_form.object.new_record? %>
+<%= link_to 'Cancel Order', cancel_admin_order_path(order_form.object), :confirm => "Are you sure?", :method=>:post %>
+<% end %>
+</p>
+<% end -%>
+

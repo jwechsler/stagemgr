@@ -36,6 +36,12 @@ class Performance < ActiveRecord::Base
     end
   end
   
+  def to_s
+    "#{self.production.name} [#{self.performance_date.to_s(:dd_mm_yyyy)} #{self.performance_time.to_s(:hour_min)}]"
+  end
+  
+  private
+  
   def clean_values
     self.performance_date = Date.today if self.performance_date.nil?
     self.performance_time = Time.now if self.performance_time.nil?

@@ -1,0 +1,7 @@
+<tr class="line_item">
+	<% options = Performance.all.inject([]){|ary,p|p.production.ticket_classes.inject(ary){|ary,tc| ary<<["#{p.to_s} #{tc.to_s}","#{p.performance_code}-#{tc.class_code}"]; ary};ary}.sort_by{|a|a[1]} %>
+  <td><%= f.select :performance_and_ticket_class_codes, options %></td>
+  <td><%= f.text_field :ticket_count %></td>
+  <td><%= f.text_field :price_override %></td>
+  <td><%= remove_link_unless_new_record(f) %></td>
+</tr>
