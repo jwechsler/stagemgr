@@ -48,17 +48,23 @@ Card type:
 	<th>Performance/Ticket Class</th>
 	<th>Ticket Count</th>
 	<th>Price Override</th>
+	<th>Total</th>
 	</thead>
 <% @order.line_items.each do |line_item| %>
 	<tr>
 	<td><%=h line_item.performance.to_s %> <%=h line_item.ticket_class.to_s %></td>
 	<td><%=h line_item.ticket_count %></td>
-	<td><%=h line_item.price_override %></td>
+	<td><%=h to_currency line_item.price_override %></td>
+  	<td><%=h to_currency line_item.total%></td>
 	</tr>
 <% end %>
 </table>
 <p>
 	Order Status: <%=h @order.status || 'New' %>
+</p>
+<p>
+	Confirmation Code:
+	<%=h @order.confirmation_code %>
 </p>
 <p>
 	<% if @order.status == 'Processed' %>

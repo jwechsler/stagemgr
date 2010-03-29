@@ -49,7 +49,7 @@
 </p>
 <p>
 <%= order_form.label :card_type %>
-<%= order_form.select :card_type, ActiveRecord::Validations::ClassMethods::DEFAULT_CREDIT_CARD_TYPES.values %>
+<%= order_form.select :card_type, ActiveRecord::Validations::ClassMethods::DEFAULT_CREDIT_CARD_TYPES.values.sort - ['invalid'] %>
 </p>
 
 
@@ -59,19 +59,27 @@
 	<th>Performance/Ticket Class</th>
 	<th>Ticket Count</th>
 	<th>Price Override</th>
+	<th>Total</th>
 	</thead>
 <% order_form.fields_for :line_items do |line_item_form| %>
 <%= render :partial => 'line_item', :locals => { :f => line_item_form } %>
 <% end %>
 </table>
 <%= link_to 'Add a line item', '#line_item', :class => "add_nested_item", :rel => "line_items" %>
+
+<p>
+	<%= order_form.label :confirmation_code %>
+	<%= order_form.text_field :confirmation_code %>
+	( For Manually Processing Only )
+</p>
 <p>
 	Order Status: <%=order_form.object.status || 'New' %>
 </p>
 <p>
 <% if order_form.object.status.nil? || order_form.object.status == 'Held'%>
 <%= order_form.submit "Hold" %>
-<%= order_form.submit "Process" %>
+<%= order_form.submit "Process Online" %>
+<%= order_form.submit "Manually Processed" %>
 <% end %>
 <% unless order_form.object.new_record? %>
 <%= link_to 'Cancel Order', cancel_admin_order_path(order_form.object), :confirm => "Are you sure?", :method=>:post %>

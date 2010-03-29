@@ -18,6 +18,15 @@ class LineItem < ActiveRecord::Base
   
   validates_presence_of :performance, :ticket_class, :ticket_count, :order
   
+  def price
+    (self.price_override || self.ticket_class.try(:ticket_price)) || 0
+  end
+
+  def total
+    price * (self.ticket_count || 0)
+  end
+  
+  
   def performance_code=(string)
     self.performance = Performance.find_by_performance_code(string)
   end

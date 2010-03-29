@@ -66,8 +66,9 @@ class Admin::OrdersController < ApplicationController
   
   def update_order_status_from_params_and_save(order,params)
     old_status = order.status
-    order.status = 'Processing' if params[:commit]=='Process'
-    order.status = 'Held' if params[:commit]=='Hold'
+    order.status = Order::PROCESSED if params[:commit]=='Manually Processed'
+    order.status = Order::PROCESSING if params[:commit]=='Process Online'
+    order.status = Order::HELD if params[:commit]=='Hold'
     success = order.save
     unless success
       order.status = old_status
@@ -76,7 +77,7 @@ class Admin::OrdersController < ApplicationController
   end
   
   def redirect_to_proper_action
-    if @order.status == 'Held' || @order.status.nil?
+    if @order.status == Order::HELD || @order.status.nil?
       if params[:action] != 'edit'
         redirect_to(edit_admin_order_path(@order))
       end
