@@ -27,6 +27,12 @@ class LineItem < ActiveRecord::Base
   end
   
   
+  def production_code=(string)
+    @prodution_code=string
+  end
+  def production_code()
+    self.performance.try(:production).try(:production_code) || @production_code
+  end
   def performance_code=(string)
     self.performance = Performance.find_by_performance_code(string)
   end

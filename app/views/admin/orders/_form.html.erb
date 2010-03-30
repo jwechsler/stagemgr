@@ -55,13 +55,14 @@
 
 
 <table id='line_items'>
-	<thead>
-	<th>Performance</th>
-	<th>Ticket Class</th>
-	<th>Ticket Count</th>
-	<th>Price Override</th>
-	<th>Total</th>
-	</thead>
+  <thead>
+    <th>Production</th>
+    <th>Performance</th>
+    <th>Ticket Class</th>
+    <th>Ticket Count</th>
+    <th>Price Override</th>
+    <th>Total</th>
+  </thead>
 <% order_form.fields_for :line_items do |line_item_form| %>
 <%= render :partial => 'line_item', :locals => { :f => line_item_form } %>
 <% end %>

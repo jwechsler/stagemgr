@@ -2,13 +2,25 @@ class Admin::OrdersController < ApplicationController
   append_before_filter :find_order, :only => [:show, :edit, :update, :destroy]
   append_before_filter :redirect_to_proper_action, :only => [:edit, :show]
 
+  def autocomplete_production_code
+    find_options = {
+      :conditions => [ "LOWER(production_code) LIKE ?", '%'+params[:q].to_s.downcase + '%' ],
+      :order => "production_code ASC",
+      :limit => 10
+      }
+      productions = Production.scoped(find_options)
+      render :inline => productions.map{|production| "#{production.production_code}|#{production.to_s}"}.join("\n")
+  end
+  
   def autocomplete_performance_code
+    production = Production.find_by_production_code(params[:production_code])
+    return [] if production.nil?
     find_options = {
       :conditions => [ "LOWER(performance_code) LIKE ?", '%'+params[:q].to_s.downcase + '%' ],
       :order => "performance_code ASC",
       :limit => 10
       }
-    performances = Performance.scoped(find_options)
+    performances = production.performances.scoped(find_options)
     render :inline => performances.map{|performance| "#{performance.performance_code}|#{performance.to_s}"}.join("\n")
   end
   

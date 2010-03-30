@@ -7,6 +7,7 @@ ActionController::Routing::Routes.draw do |map|
   
   map.namespace :admin do |admin|
     admin.resources :orders, :collection => { 
+      :autocomplete_production_code => :get,
       :autocomplete_performance_code => :get,
       :autocomplete_ticket_class_code => :get
       }, :member => {:cancel=>:post, :refund=>:post}
