@@ -21,7 +21,6 @@ var myrules = {
       bottom: replace_ids(template)
     });
     add_autocomplete();
-
   },
   '.add_nested_item_lvl2': function(e){
     el = Event.findElement(e);
