@@ -1,4 +1,4 @@
-<% javascript :defaults, 'delegate', 'jquery', 'jquery.autocomplete' %>
+<% javascript :defaults, 'delegate', 'jquery', 'jquery.autocomplete', 'box_office_order' %>
 
 <%= error_messages_for :order %>
 
@@ -56,7 +56,8 @@
 
 <table id='line_items'>
 	<thead>
-	<th>Performance/Ticket Class</th>
+	<th>Performance</th>
+	<th>Ticket Class</th>
 	<th>Ticket Count</th>
 	<th>Price Override</th>
 	<th>Total</th>

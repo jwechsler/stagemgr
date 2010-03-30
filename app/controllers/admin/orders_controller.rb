@@ -1,7 +1,28 @@
 class Admin::OrdersController < ApplicationController
   append_before_filter :find_order, :only => [:show, :edit, :update, :destroy]
   append_before_filter :redirect_to_proper_action, :only => [:edit, :show]
-  autocomplete_for :performance, :performance_code
+
+  def autocomplete_performance_code
+    find_options = {
+      :conditions => [ "LOWER(performance_code) LIKE ?", '%'+params[:q].to_s.downcase + '%' ],
+      :order => "performance_code ASC",
+      :limit => 10
+      }
+    performances = Performance.scoped(find_options)
+    render :inline => performances.map{|performance| "#{performance.performance_code}|#{performance.to_s}"}.join("\n")
+  end
+  
+  def autocomplete_ticket_class_code
+    performance = Performance.find_by_performance_code(params[:performance_code])
+    return [] if performance.nil?
+    find_options = {
+      :conditions => [ "LOWER(class_code) LIKE ?", '%'+params[:q].to_s.downcase + '%' ],
+      :order => "class_code ASC",
+      :limit => 10
+      }
+    ticket_classes = performance.production.ticket_classes.scoped(find_options)
+    render :inline => ticket_classes.map{|ticket_class| "#{ticket_class.class_code}|#{ticket_class.to_s}"}.join("\n")
+  end
   
   def index
     @orders = Order.all

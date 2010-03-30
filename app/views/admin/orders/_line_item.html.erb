@@ -1,6 +1,17 @@
 <tr class="line_item">
-	<% options = Performance.all.inject([]){|ary,p|p.production.ticket_classes.inject(ary){|ary,tc| ary<<["#{p.to_s} #{tc.to_s}","#{p.performance_code}-#{tc.class_code}"]; ary};ary}.sort_by{|a|a[1]} %>
-  <td><%= f.select :performance_and_ticket_class_codes, options %></td>
+  <td>
+  <%= f.text_field :performance_code, 
+                   :class=>'autocomplete_pcode', 
+                   :autocomplete_url=>autocomplete_performance_code_admin_orders_path,
+                   :size=>10 %>
+  </td>
+  <td>
+  <%= f.text_field :ticket_class_code, 
+                   :class=>'autocomplete_tccode', 
+                   :autocomplete_url=>autocomplete_ticket_class_code_admin_orders_path,
+                   :dependent=>'previous_sibling',
+                   :size=>10 %>
+  </td>
   <td><%= f.text_field :ticket_count, :size => 4 %></td>
   <td><%= f.text_field :price_override, :size => 6 %></td>
   <td><%=h to_currency f.object.total%></td>

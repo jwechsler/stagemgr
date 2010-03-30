@@ -51,5 +51,23 @@ performance = production.performances.create!({
   :performance_code          =>'T1P10305'
 })
 
+production2  = theater.productions.create!({
+  :name                      =>'Production 2', 
+  :status                    =>Production::PRODUCTION_STATUSES.first, 
+  :production_code           =>'T1P2', 
+  :capacity                  =>350})
+
+performance2 = production2.performances.create!({
+  :status                    =>Performance::PERFORMANCE_STATUSES.first,
+  :performance_code          =>'T1P20305'
+})
+
+timed_ticket_class2 = production2.ticket_classes.create!({
+  :ticket_type               =>TicketClass::TICKET_TYPES[2],
+  :class_name                =>'General Admission',
+  :ticket_price              =>35,
+  :class_code                =>'TC4'
+
+})
 
 

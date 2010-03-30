@@ -6,7 +6,10 @@ ActionController::Routing::Routes.draw do |map|
   map.resources :ticket_classes
   
   map.namespace :admin do |admin|
-    admin.resources :orders, :collection => { :autocomplete_for_performance_performance_code => :get}, :member => {:cancel=>:post, :refund=>:post}
+    admin.resources :orders, :collection => { 
+      :autocomplete_performance_code => :get,
+      :autocomplete_ticket_class_code => :get
+      }, :member => {:cancel=>:post, :refund=>:post}
     admin.resources :theaters do |theater|
       theater.resources :productions do |production|
         production.resources :performances, :member => 'duplicate'

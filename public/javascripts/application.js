@@ -20,15 +20,8 @@ var myrules = {
     $(el.rel).insert({     
       bottom: replace_ids(template)
     });
-	jQuery(el.rel).find('input.autocomplete').each(function(){
-		    var input = jQuery(this);
-		    input.autocomplete(input.attr('autocomplete_url'),{
-		      matchContains:1,//also match inside of strings when caching
-		      // mustMatch:1,//allow only values from the list
-		      // selectFirst:1,//select the first item on tab/enter
-		      removeInitialValue:0//when first applying $.autocomplete
-		    });
-	});
+    add_autocomplete();
+
   },
   '.add_nested_item_lvl2': function(e){
     el = Event.findElement(e);
@@ -52,17 +45,4 @@ var myrules = {
 
 Event.observe(window, 'load', function(){
   $('container').delegate('click', myrules);
-});
-
-jQuery(function($){//on document ready
-  //autocomplete
-  $('input.autocomplete').each(function(){
-    var input = $(this);
-    input.autocomplete(input.attr('autocomplete_url'),{
-      matchContains:1,//also match inside of strings when caching
-      // mustMatch:1,//allow only values from the list
-      // selectFirst:1,//select the first item on tab/enter
-      removeInitialValue:0//when first applying $.autocomplete
-    });
-  });
 });
