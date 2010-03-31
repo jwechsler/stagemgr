@@ -1,4 +1,4 @@
-class Admin::ProductionsController < ApplicationController
+class Admin::ProductionsController < Admin::ApplicationController
   prepend_before_filter :find_theater
   append_before_filter :find_production, :only => [:show, :edit, :update, :destroy]
 

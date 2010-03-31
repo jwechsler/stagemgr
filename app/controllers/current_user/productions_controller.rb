@@ -1,4 +1,4 @@
-class CurrentUser::ProductionsController < ApplicationController
+class CurrentUser::ProductionsController < CurrentUser::ApplicationController
   prepend_before_filter :find_theater
   append_before_filter :find_production, :only => [:show, :edit, :update, :destroy]
 

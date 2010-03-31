@@ -1,4 +1,4 @@
-class Admin::PerformancesController < ApplicationController
+class Admin::PerformancesController < Admin::ApplicationController
   prepend_before_filter :find_production
   append_before_filter :find_performance, :only => [:show, :edit, :update, :destroy, :duplicate]
   

@@ -1,6 +1,6 @@
 <% if current_user.is_administrator %>
-	<%= link_to('Theaters',admin_theaters_path) %> |
-	<%= link_to('Users', admin_users_path) %> |
+	<%= link_to('Administer Theaters',admin_theaters_path) %> |
+	<%= link_to('Administer Users', admin_users_path) %> |
 <% end %>
 <% if current_user.is_administrator || current_user.is_box_office_user %>
 	<%= link_to('Box Office Order', new_admin_order_path) %> |

@@ -1,4 +1,4 @@
-class UsersController < ApplicationController
+class Admin::UsersController < Admin::ApplicationController
   prepend_before_filter :find_user, :only => [:show, :edit, :update, :destroy]
   
   # GET /users
@@ -18,25 +18,20 @@ class UsersController < ApplicationController
     @user = User.new(params[:user])
     if @user.save
       flash[:notice] = "Account registered!"
-      redirect_back_or_default account_url
+      redirect_back_or_default admin_users_path
     else
       render :action => :new
     end
   end
   
-  def show
-    @user = current_user
-  end
+  def show; end
  
-  def edit
-    @user = current_user
-  end
+  def edit; end
   
   def update
-    @user = current_user # makes our views "cleaner" and more consistent
     if @user.update_attributes(params[:user])
       flash[:notice] = "Account updated!"
-      redirect_to account_url
+      redirect_to admin_users_path
     else
       render :action => :edit
     end
@@ -48,15 +43,13 @@ class UsersController < ApplicationController
       user.destroy
       flash[:notice] = "User #{user.login} deleted!"
     end
-
     redirect_to root_path
   end
   
   private
   
   def find_user
-    @is_my_account = params[:id].nil?
-    @user = @is_my_account ? current_user : User.find(params[:id])
+    @user = User.find(params[:id])
   end
 
 end

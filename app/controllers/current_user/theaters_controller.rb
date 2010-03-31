@@ -1,4 +1,4 @@
-class CurrentUser::TheatersController < ApplicationController
+class CurrentUser::TheatersController < CurrentUser::ApplicationController
   # GET /theaters
   # GET /theaters.xml
   def index

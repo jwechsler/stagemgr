@@ -1,4 +1,4 @@
-class Admin::TheatersController < ApplicationController
+class Admin::TheatersController < Admin::ApplicationController
   #skip_before_filter :require_login
   # GET /theaters
   # GET /theaters.xml

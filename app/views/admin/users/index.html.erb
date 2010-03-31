@@ -1,0 +1,35 @@
+<h1>Listing users</h1>
+
+<table>
+  <tr>
+	<th>Email</th>
+	<th>Last request at</th>
+	<th>Login count</th>
+	<th>Failed login count</th>
+	<th>Last login ip</th>
+	<th>Last login at</th>
+	<th>Current login ip</th>
+	<th>Current login at</th>
+	<th>Administrator?</th>
+  </tr>
+
+<% @users.each do |user| %>
+  <tr>
+	<th><%= user.email %></td>
+	<th><%= user.last_request_at %></th>
+	<th><%= user.login_count %></th>
+	<th><%= user.failed_login_count %></th>
+	<th><%= user.last_login_ip %></th>
+	<th><%= user.last_login_at %></th>
+	<th><%= user.current_login_ip %></th>
+	<th><%= user.current_login_at %></th>
+	<th><%= user.is_administrator %></th>
+    <td><%= link_to 'Edit', edit_admin_user_path(user) %></td>
+    <td><%= link_to 'Destroy', [:admin, user], :confirm => 'Are you sure?', :method => :delete %></td>
+  </tr>
+<% end %>
+</table>
+
+<br />
+
+<%= link_to 'New user', new_admin_user_path %>

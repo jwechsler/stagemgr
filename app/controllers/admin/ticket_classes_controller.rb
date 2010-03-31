@@ -1,4 +1,4 @@
-class Admin::TicketClassesController < ApplicationController
+class Admin::TicketClassesController < Admin::ApplicationController
   prepend_before_filter :find_production
   append_before_filter :find_ticket_class, :only => [:edit, :update, :destroy]
 
