@@ -14,6 +14,8 @@ class AddFieldsToOrders < ActiveRecord::Migration
     add_column :orders, :on_mailing_list, :boolean
     add_column :orders, :card_last_four, :integer
     add_column :orders, :card_type, :string
+    add_column :orders, :card_expiration_year, :integer
+    add_column :orders, :card_expiration_month, :integer
   end
 
   def self.down
