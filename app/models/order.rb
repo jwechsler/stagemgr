@@ -28,7 +28,6 @@ class Order < ActiveRecord::Base
   validates_each :status do |record, attr, value|
     if value == PROCESSING
       error_msg=nil
-      require 'active_merchant'
       credit_card = ActiveMerchant::Billing::CreditCard.new(
                         :first_name         => record.first_name,
                         :last_name          => record.last_name,
@@ -40,8 +39,9 @@ class Order < ActiveRecord::Base
       if credit_card.valid?
         # Create a gateway object for the TrustCommerce service
         gateway = ActiveMerchant::Billing::AuthorizeNetGateway.new(
-                           :login=>'2Kay9XwBt65p', 
-                           :password=>'49Yq8s6L84N7jJ3M')
+                           :login=>ACTIVE_MERCHANT_LOGIN, 
+                           :password=>ACTIVE_MERCHANT_PASSWORD,
+                           :test=>ACTIVE_MERCHANT_TEST_MODE)
 
         # Authorize for the amount
         response = gateway.purchase((record.total*100).to_i, credit_card)
