@@ -83,6 +83,10 @@ class Order < ActiveRecord::Base
     self.line_items.to_a.sum{|line_item|line_item.total}
   end
   
+  def editable?
+    self.status == HELD || self.status.nil?
+  end
+  
   private
 
   def initialize_nested_line_items

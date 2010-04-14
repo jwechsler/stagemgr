@@ -110,7 +110,7 @@ class Admin::OrdersController < Admin::ApplicationController
   end
   
   def redirect_to_proper_action
-    if @order.status == Order::HELD || @order.status.nil?
+    if @order.editable?
       if params[:action] != 'edit'
         redirect_to(edit_admin_order_path(@order))
       end
