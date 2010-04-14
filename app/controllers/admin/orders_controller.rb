@@ -33,7 +33,7 @@ class Admin::OrdersController < Admin::ApplicationController
       :limit => 10
       }
     ticket_classes = performance.production.ticket_classes.scoped(find_options)
-    render :inline => ticket_classes.map{|ticket_class| "#{ticket_class.class_code}|#{ticket_class.to_s}|#{ticket_class.ticket_type}|#{ticket_class.ticket_price}"}.join("\n")
+    render :inline => ticket_classes.map{|ticket_class| "#{ticket_class.class_code}|#{ticket_class.to_s} (#{ticket_class.number_left(performance)} Tickets Left)|#{ticket_class.ticket_type}|#{ticket_class.ticket_price}"}.join("\n")
   end
   
   def index

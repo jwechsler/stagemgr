@@ -117,6 +117,10 @@ jQuery(function($){
       recalculate_row_total(my_tr);
     });
   });
+  $('input.ticket_count,input.price_override').each(function(){
+    input = $(this);
+    input.change(function(){recalculate_row_total(input.parents('tr'))});
+  });
 });
 }
 

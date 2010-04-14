@@ -38,7 +38,11 @@ class Performance < ActiveRecord::Base
   end
   
   def to_s
-    "#{self.production.name} [#{self.performance_date.to_s(:dd_mm_yyyy)} #{self.performance_time.to_s(:hour_min)}]"
+    "#{self.production.name} [#{datetime_s}] (#{number_of_tickets_left} Tickets Left)"
+  end
+  
+  def datetime_s
+    "#{self.performance_date.to_s(:dd_mm_yyyy)} #{self.performance_time.to_s(:hour_min)}"
   end
   
   private

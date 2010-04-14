@@ -16,6 +16,10 @@ class Production < ActiveRecord::Base
   has_many :line_items
   before_validation :clean_values
   
+  def to_s
+    "#{self.theater.name}, #{self.name}"
+  end
+  
   private 
   def clean_values
     self.production_code.upcase! unless self.production_code.nil?
