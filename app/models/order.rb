@@ -1,6 +1,7 @@
 class Order < ActiveRecord::Base
   attr_accessor :card_number
   attr_accessor :card_verification_number
+  belongs_to :performance
   
   HELD,PROCESSING,PROCESSED,REFUNDED,CANCELED = 'Held', 'Processing', 'Processed', 'Refunded', 'Canceled'
   ORDER_STATUSES = [HELD,PROCESSING,PROCESSED,REFUNDED,CANCELED]
@@ -22,7 +23,7 @@ class Order < ActiveRecord::Base
                          :card_expiration_month,
                          :card_type, :if=>Proc.new { |order| order.status == PROCESSING }
   validates_presence_of :confirmation_code, :if=>Proc.new { |order| order.status == PROCESSED }
-  validates_presence_of :status
+  validates_presence_of :status, :performance
   accepts_nested_attributes_for  :line_items, :allow_destroy => true
   before_validation_on_create :initialize_nested_line_items
   validates_each :status do |record, attr, value|
@@ -65,6 +66,18 @@ class Order < ActiveRecord::Base
   end
   
   before_validation :set_defaults
+  def production_code=(string)
+    @prodution_code=string
+  end
+  def production_code()
+    self.performance.try(:production).try(:production_code) || @production_code
+  end
+  def performance_code=(string)
+    self.performance = Performance.find_by_performance_code(string)
+  end
+  def performance_code()
+    self.performance.try(:performance_code)
+  end
   
   def total
     self.line_items.to_a.sum{|line_item|line_item.total}

@@ -8,6 +8,7 @@ class CreateProductions < ActiveRecord::Migration
       t.date :opening_at
       t.date :closing_at
       t.text :show_description
+      t.string :production_code
       t.integer :capacity
       t.string :additional_information_link
       t.string :status

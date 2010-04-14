@@ -1,4 +1,4 @@
-class Admin::UsersController < CurrentUser::ApplicationController
+class CurrentUser::UsersController < CurrentUser::ApplicationController
   prepend_before_filter :find_user, :only => [:show, :edit, :update, :destroy]
   
   # GET /users

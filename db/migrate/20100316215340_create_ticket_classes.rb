@@ -13,6 +13,7 @@ class CreateTicketClasses < ActiveRecord::Migration
       t.string :ticket_type
       t.integer :minutes_before_show
       t.references :production
+      t.string :description
 
       t.timestamps
     end

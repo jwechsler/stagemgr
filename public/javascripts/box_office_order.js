@@ -14,10 +14,19 @@ function formatCurrency(num) {
   return (((sign)?'':'-') + '$' + num + '.' + cents);
 }
 
+function recalculate_all_row_totals(){
+  jQuery('input.autocomplete_tccode').each(function(){
+	var ticket_class_code_input = jQuery(this);
+	ticket_class_code_input.val('');
+    var my_tr=ticket_class_code_input.parents('tr');
+    recalculate_row_total(my_tr);
+  });	  
+}
+
 function recalculate_row_total(row){
   tds = row.children('td');
-  production_code = tds.children('input.autocomplete_prcode').val();
-  performance_code_input = tds.children('input.autocomplete_pcode');
+  production_code = jQuery('#order_production_code').val();
+  performance_code_input = jQuery('#order_performance_code');
   ticket_class_code_input = tds.children('input.autocomplete_tccode');
   ticket_class_code = '';
   line_price=0;
@@ -51,14 +60,15 @@ function recalculate_row_total(row){
 function add_autocomplete(){
 jQuery(function($){
   //clear bindings so we don't add multiple event handlers
-  $('input.autocomplete_prcode,input.autocomplete_pcode,input.autocomplete_tccode,input.ticket_count,input.price_override').each(function(){
+  $('#order_production_code').unbind();
+  $('#order_performance_code').unbind();
+  $('input.autocomplete_tccode,input.ticket_count,input.price_override').each(function(){
     var input=$(this);
     input.unbind();
   });
   //autocomplete
-  $('input.autocomplete_prcode').each(function(){
-    var input = $(this);
-    input.autocomplete(input.attr('autocomplete_url'),{
+  var input=$('#order_production_code');
+  input.autocomplete(input.attr('autocomplete_url'),{
 	  cacheLength:0,
       matchContains:1,//also match inside of strings when caching
       mustMatch:1,//allow only values from the list
@@ -68,15 +78,10 @@ jQuery(function($){
       },
       width: 400
     }).result(function(event, item) {
-	  my_tr = input.parents('tr');
-      performance_code_input = my_tr.children('td').children('input.autocomplete_pcode');
-      performance_code_input.val('');
-      recalculate_row_total(my_tr);
+      recalculate_all_row_totals();
 	});
-  });
-  $('input.autocomplete_pcode').each(function(){
-    var input = $(this);
-    input.autocomplete(input.attr('autocomplete_url'),{
+  var input=$('#order_performance_code');
+  input.autocomplete(input.attr('autocomplete_url'),{
 	  cacheLength:0,
       matchContains:1,//also match inside of strings when caching
       mustMatch:1,//allow only values from the list
@@ -84,15 +89,11 @@ jQuery(function($){
       formatItem: function(row, i, max) {
         return "" + row[0] + " -- " + row[1];
       },
-      extraParams:{production_code:function(){ return input.parents('tr').children('td').children('input.autocomplete_prcode').val() }},
+      extraParams:{production_code:function(){ return $('#order_production_code').val() }},
       width: 400
     }).result(function(event, item) {
-	  my_tr = input.parents('tr');
-      ticket_class_code_input = my_tr.children('td').children('input.autocomplete_tccode');
-      ticket_class_code_input.val('');
-      recalculate_row_total(my_tr);
+      recalculate_all_row_totals();
 	});
-  });
   $('input.autocomplete_tccode').each(function(){
     var input = $(this);
     input.autocomplete(input.attr('autocomplete_url'),{
@@ -103,7 +104,7 @@ jQuery(function($){
       formatItem: function(row, i, max) {
         return "" + row[0] + " -- " + row[1];
       },
-      extraParams:{performance_code:function(){ return input.parents('tr').children('td').children('input.autocomplete_pcode').val() }},
+      extraParams:{performance_code:function(){ return $('#order_performance_code').val() }},
       width: 400
     }).result(function(event, data, formatted) {
       if(data){
@@ -115,7 +116,9 @@ jQuery(function($){
     });
   });
   //recalculate line on any change
-  $('input.autocomplete_prcode,input.autocomplete_pcode,input.autocomplete_tccode,input.ticket_count,input.price_override').each(function(){
+  $('#order_production_code').change(function(){recalculate_all_row_totals()});
+  $('#order_performance_code').change(function(){recalculate_all_row_totals()});
+  $('input.autocomplete_tccode,input.ticket_count,input.price_override').each(function(){
     var input=$(this);
     input.change(function(){
       recalculate_row_total(input.parents('tr'));

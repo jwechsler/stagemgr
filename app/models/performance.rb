@@ -3,7 +3,8 @@ class Performance < ActiveRecord::Base
 
   belongs_to               :production
   has_and_belongs_to_many  :ticket_classes
-  has_many                 :line_items
+  has_many                 :line_items, :through=>:orders
+  has_many                 :orders
   has_many                 :ticket_class_allocations
 
   validates_inclusion_of   :status,            :in => PERFORMANCE_STATUSES
@@ -26,7 +27,7 @@ class Performance < ActiveRecord::Base
   accepts_nested_attributes_for  :ticket_class_allocations
   
   def number_of_tickets_left
-    self.production.capacity - self.line_items.sum(:ticket_count)
+    self.production.capacity - self.orders.inject(0){|sum,order| sum + order.line_items.sum(:ticket_count) }
   end
   
   def populate_ticket_class_allocations

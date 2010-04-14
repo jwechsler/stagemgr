@@ -1,11 +1,10 @@
 class LineItem < ActiveRecord::Base
-  belongs_to :performance
   belongs_to :ticket_class
   belongs_to :order
   
   validates_each :ticket_count do |record, attr, value|
-    unless record.ticket_class.nil? || record.performance.nil? || value.nil?
-      record.errors.add attr, 'is more than the number left'  if value > record.ticket_class.number_left(record.performance)
+    unless record.ticket_class.nil? || record.order.nil? || record.order.performance.nil? || value.nil?
+      record.errors.add attr, 'is more than the number left'  if value > record.ticket_class.number_left(record.order.performance)
     end
   end
 
@@ -16,7 +15,7 @@ class LineItem < ActiveRecord::Base
   end
   validates_numericality_of :price_override, :allow_nil=>true
   
-  validates_presence_of :performance, :ticket_class, :ticket_count, :order
+  validates_presence_of :ticket_class, :ticket_count, :order
   
   def price
     (self.price_override || self.ticket_class.try(:ticket_price)) || 0
