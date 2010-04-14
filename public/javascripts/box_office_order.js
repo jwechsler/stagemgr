@@ -79,6 +79,7 @@ jQuery(function($){
       width: 400
     }).result(function(event, item) {
       recalculate_all_row_totals();
+      $('#order_performance_code').val('');
 	});
   var input=$('#order_performance_code');
   input.autocomplete(input.attr('autocomplete_url'),{
@@ -92,6 +93,7 @@ jQuery(function($){
       extraParams:{production_code:function(){ return $('#order_production_code').val() }},
       width: 400
     }).result(function(event, item) {
+      $('input.autocomplete_tccode').each(function(){$(this).val('')});
       recalculate_all_row_totals();
 	});
   $('input.autocomplete_tccode').each(function(){
@@ -114,15 +116,6 @@ jQuery(function($){
       }
       recalculate_row_total(my_tr);
     });
-  });
-  //recalculate line on any change
-  $('#order_production_code').change(function(){recalculate_all_row_totals()});
-  $('#order_performance_code').change(function(){recalculate_all_row_totals()});
-  $('input.autocomplete_tccode,input.ticket_count,input.price_override').each(function(){
-    var input=$(this);
-    input.change(function(){
-      recalculate_row_total(input.parents('tr'));
-    })
   });
 });
 }
