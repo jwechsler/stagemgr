@@ -42,17 +42,20 @@ Card type:
 <%=h @order.card_type %>
 </p>
 <p>
+Performance:
+<%=h @order.performance.to_s %>
+</p>
 
 <table id='line_items'>
 	<thead>
-	<th>Performance/Ticket Class</th>
+	<th>Ticket Class</th>
 	<th>Ticket Count</th>
 	<th>Price Override</th>
 	<th>Total</th>
 	</thead>
 <% @order.line_items.each do |line_item| %>
 	<tr>
-	<td><%=h line_item.order.performance.to_s %> <%=h line_item.ticket_class.to_s %></td>
+	<td><%=h line_item.ticket_class.to_s %></td>
 	<td><%=h line_item.ticket_count %></td>
 	<td><%=h to_currency line_item.price_override %></td>
   	<td><%=h to_currency line_item.total%></td>
