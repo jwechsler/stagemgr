@@ -52,7 +52,7 @@ Card type:
 	</thead>
 <% @order.line_items.each do |line_item| %>
 	<tr>
-	<td><%=h line_item.performance.to_s %> <%=h line_item.ticket_class.to_s %></td>
+	<td><%=h line_item.order.performance.to_s %> <%=h line_item.ticket_class.to_s %></td>
 	<td><%=h line_item.ticket_count %></td>
 	<td><%=h to_currency line_item.price_override %></td>
   	<td><%=h to_currency line_item.total%></td>
