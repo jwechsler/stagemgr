@@ -37,11 +37,16 @@ class Admin::OrdersController < Admin::ApplicationController
   end
   
   def index
-    @orders = Order.all
+    options_hash = {}
+    options_hash[:order] = "#{params[:sidx]} #{params[:sord]}" if params[:sidx] && params[:sord]
+    options_hash[:page] = params[:page] ? params[:page] : 1
+    options_hash[:per_page] = params[:rows] if params[:rows]
+    @orders = Order.paginate :all, options_hash
+    @order_count = Order.count
 
     respond_to do |format|
       format.html # index.html.erb
-      format.xml  { render :xml => @orders }
+      format.xml { render :partial => 'admin_orders_index_grid_data.xml.builder', :layout => false }
     end
   end
   

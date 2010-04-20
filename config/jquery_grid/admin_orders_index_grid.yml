@@ -1,0 +1,74 @@
+--- 
+:params: 
+  :datatype: xml
+  :mtype: GET
+  :colNames: 
+  - order number
+  - production code
+  - performance code
+  - purchaser last name
+  - purchaser first name
+  - order total
+  - order status
+  - last-4
+  - updated at
+  :colModel: 
+  - :width: 40
+    :index: id
+    :name: id
+    :editable: false
+  - :width: 130
+    :index: production_code
+    :name: production_code
+    :editable: false
+    :sortable: false
+  - :width: 130
+    :index: performance_code
+    :name: performance_code
+    :editable: false
+    :sortable: false
+  - :width: 130
+    :index: last_name
+    :name: last_name
+    :editable: false
+    :search: true
+  - :width: 130
+    :index: first_name
+    :name: first_name
+    :editable: false
+    :searchable: true
+  - :width: 130
+    :index: total
+    :name: total
+    :editable: false
+    :sortable: false
+  - :width: 130
+    :index: status
+    :name: status
+    :editable: false
+  - :width: 130
+    :index: card_last_four
+    :name: card_last_four
+    :editable: false
+  - :width: 130
+    :index: updated_at
+    :name: updated_at
+    :editable: false
+  :pager: $('#<grid_name>_pager')
+  :multipleSearch: true  
+  :search:
+  - :caption: "Search..."
+    :Find: "Find"
+    :Reset: "Reset"
+    :matchText: " match"
+    :rulesText: " rules"
+  :function_onSelectRow: "(id)
+   	if(id && id!==lastsel2) {
+	  $('#<grid_name>').restoreRow(lastsel2);
+	  $('#<grid_name>').editRow(id,true);
+	  lastsel2=id;
+	}"
+  :sortname: id
+  :sortorder: desc	
+  :rowNum: 10
+  :imgpath: /stylesheets/jqGrid-themes/basic/images

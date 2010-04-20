@@ -1,3 +1,5 @@
+<% javascript :defaults, 'delegate', 'jquery' %>
+
 <h1>Listing orders</h1>
 
 <table>
@@ -27,3 +29,9 @@
   </tr>
 <% end %>
 </table>
+
+<%= include_jquery_grid_javascript %>
+<%= include_jquery_grid_css %>
+<%= jquery_grid :admin_orders_index_grid, {:url => admin_orders_path } %>
+<%= jquery_grid_table %>
+<%= jquery_grid_pager %>
