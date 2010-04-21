@@ -24,7 +24,7 @@ module Hexagile
     end
     
     def jqgrid(title, id, action, columns = [], options = {})
-
+      options.reject!{|key,value|value.nil?}
       # Default options
       options =
         {
@@ -327,6 +327,73 @@ module Hexagile
       <link href="/stylesheets/cupertino/jquery-ui-1.7.2.custom.css" media="screen" rel="stylesheet" type="text/css" />
       <link href="/stylesheets/jqGrid/ui.jqgrid.css" media="screen" rel="stylesheet" type="text/css" />
       CSS
+    end
+    
+    def update_pagination_state_with_params!(restraining_model = nil)
+      model_klass = (restraining_model.is_a?(Class) || restraining_model.nil? ? restraining_model : restraining_model.to_s.classify.constantize)
+      pagination_state = previous_pagination_state(model_klass)
+      per_page = params[:rows] || pagination_state[:per_page] || 25
+      page = params[:page] || pagination_state[:page] || 1
+      order = if !params[:sidx].nil? && !params[:sidx].empty? && !params[:sord].nil? && !params[:sord].empty?
+        "#{params[:sidx].sub(/(\A[^\[]*)\[([^\]]*)\]/,'\2')} #{params[:sord]}"
+      elsif pagination_state[:order]
+        pagination_state[:order]
+      else
+        "#{restraining_model.table_name}.id ASC"
+      end
+      pagination_state.merge!({
+              :page => page,
+              :per_page => per_page,
+              :order => order
+      })
+      save_pagination_state(pagination_state, model_klass)
+    end
+
+    def options_from_pagination_state(pagination_state)
+      find_options = { :page => pagination_state[:page],
+                       :per_page  => pagination_state[:per_page] }
+      find_options.merge!(
+              :order => "#{pagination_state[:sort_field]} #{pagination_state[:sort_direction]}"
+      ) unless pagination_state[:sort_field].blank?
+
+      find_options
+    end
+
+    def options_from_search(restraining_model = nil)
+      returning options = {} do
+        model_klass = (restraining_model.is_a?(Class) || restraining_model.nil? ? restraining_model : restraining_model.to_s.classify.constantize)
+        sub_expressions = []
+        values = {}
+        if params["_search".to_sym]
+          model_klass.columns_hash.each do |attribute_name, column|
+            if value = params[attribute_name.to_sym]
+              key = "#{column.table_name}.#{attribute_name}"
+              value_placeholder = ":#{attribute_name}"
+
+              #ix adds case insensitive searching
+              sub_expressions << "REGEXP_LIKE(#{key}, #{value_placeholder}, 'i')"
+              values[attribute_name.to_sym] = value
+             end
+          end
+          unless sub_expressions.empty?
+            query = sub_expressions.join(" AND ")
+            logger.debug "Query #{query.inspect}"
+            options.merge!(:conditions => [query, values])
+          end
+        end
+      end
+    end
+
+    private
+
+    # get pagination state from session
+    def previous_pagination_state(model_klass = nil)
+      session["#{model_klass.to_s.tableize.tr('/','_') if model_klass}_pagination_state"] || {}
+    end
+
+    # save pagination state to session
+    def save_pagination_state(pagination_state, model_klass = nil)
+      session["#{model_klass.to_s.tableize.tr('/','_') if model_klass}_pagination_state"] = pagination_state
     end
   end
 end

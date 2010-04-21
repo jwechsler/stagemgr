@@ -37,36 +37,17 @@ class Admin::OrdersController < Admin::ApplicationController
   end
   
   def index
-    options_hash = {:include=>{:performance=>:production}}
-    params[:sidx]='performances.performance_code' if params[:sidx]=='performance_code'
-    params[:sidx]='productions.production_code' if params[:sidx]=='production_code'
-    options_hash[:order] = "#{params[:sidx]} #{params[:sord]}" unless params[:sidx].nil? || params[:sidx].empty? || params[:sord].nil? || params[:sord].empty?
-    options_hash[:page] = params[:page] ? params[:page] : 1
-    options_hash[:per_page] = params[:rows] if params[:rows]
-    if params['_search']
-      conditions = ['1=1']
-      Order.column_names.each do |column_name|
-        if params[column_name]
-          conditions[0]+=" AND #{column_name} like '%' || ? || '%'"
-          conditions<<params[column_name]
-        end
-      end
-      if params[:production_code]
-        conditions[0]+=" AND productions.production_code like '%' || ? || '%'" 
-        conditions<<params[:production_code]
-      end
-      if params[:performance_code]
-        conditions[0]+=" AND performances.performance_code like '%' || ? || '%'"
-        conditions<<params[:performance_code]
-      end
-      options_hash[:conditions]=conditions
-    end
-    @orders = Order.paginate :all, options_hash
-    @order_count = Order.count
-
+    pagination_state = update_pagination_state_with_params!(Order,Performance,Production)
+    @options_hash = will_paginate_options_from_pagination_state(pagination_state)
     respond_to do |format|
       format.html # index.html.erb
-      format.xml { render :partial => 'admin_orders_index_grid_data.xml.builder', :layout => false }
+      format.xml do
+        @options_hash.merge!(options_from_search(Order,Performance,Production))
+        @options_hash.merge!(:include=>{:performance=>:production})
+        @orders = Order.paginate :all, @options_hash
+        @order_count = Order.count
+        render :partial => 'admin_orders_index_grid_data.xml.builder', :layout => false
+      end
     end
   end
   

@@ -8,6 +8,6 @@ var orderRowSelected = function(id){
 
 <%= include_jquery_grid_javascript %>
 <%= include_jquery_grid_css %>
-<%= jquery_grid :admin_orders_index_grid %>
+<%= jquery_grid :admin_orders_index_grid, :rows_per_page=>@options_hash[:per_page] %>
 <br />
 <a id='admin_orders_index_grid_select_button' href='#'>View/Edit Order</a>
