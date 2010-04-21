@@ -37,7 +37,9 @@ class Admin::OrdersController < Admin::ApplicationController
   end
   
   def index
-    options_hash = {}
+    options_hash = {:include=>{:performance=>:production}}
+    params[:sidx]='performances.performance_code' if params[:sidx]=='performance_code'
+    params[:sidx]='productions.production_code' if params[:sidx]=='production_code'
     options_hash[:order] = "#{params[:sidx]} #{params[:sord]}" unless params[:sidx].nil? || params[:sidx].empty? || params[:sord].nil? || params[:sord].empty?
     options_hash[:page] = params[:page] ? params[:page] : 1
     options_hash[:per_page] = params[:rows] if params[:rows]
@@ -48,6 +50,14 @@ class Admin::OrdersController < Admin::ApplicationController
           conditions[0]+=" AND #{column_name} like '%' || ? || '%'"
           conditions<<params[column_name]
         end
+      end
+      if params[:production_code]
+        conditions[0]+=" AND productions.production_code like '%' || ? || '%'" 
+        conditions<<params[:production_code]
+      end
+      if params[:performance_code]
+        conditions[0]+=" AND performances.performance_code like '%' || ? || '%'"
+        conditions<<params[:performance_code]
       end
       options_hash[:conditions]=conditions
     end
