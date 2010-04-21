@@ -1,0 +1,47 @@
+---
+:title: Listing Orders
+:search: true
+:url: <%= admin_orders_path %>
+:selection_handler: orderRowSelected
+:columns:
+- :width: 40
+  :label: Order number
+  :index: id
+  :editable: false
+- :width: 130
+  :index: production_code
+  :editable: false
+  :sortable: false
+  :search: false
+- :width: 130
+  :index: performance_code
+  :editable: false
+  :sortable: false
+  :search: false
+- :width: 130
+  :label: Purchaser last name
+  :index: last_name
+  :editable: false
+  :search: true
+- :width: 130
+  :label: Purchaser first name
+  :index: first_name
+  :editable: false
+  :searchable: true
+- :width: 130
+  :label: Order total
+  :index: total
+  :editable: false
+  :sortable: false
+  :search: false
+- :width: 130
+  :index: status
+  :editable: false
+- :width: 130
+  :label: Last-4
+  :index: card_last_four
+  :editable: false
+- :width: 130
+  :index: updated_at
+  :editable: false
+  :search: false

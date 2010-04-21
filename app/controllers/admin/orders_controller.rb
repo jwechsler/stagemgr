@@ -38,9 +38,19 @@ class Admin::OrdersController < Admin::ApplicationController
   
   def index
     options_hash = {}
-    options_hash[:order] = "#{params[:sidx]} #{params[:sord]}" if params[:sidx] && params[:sord]
+    options_hash[:order] = "#{params[:sidx]} #{params[:sord]}" unless params[:sidx].nil? || params[:sidx].empty? || params[:sord].nil? || params[:sord].empty?
     options_hash[:page] = params[:page] ? params[:page] : 1
     options_hash[:per_page] = params[:rows] if params[:rows]
+    if params['_search']
+      conditions = ['1=1']
+      Order.column_names.each do |column_name|
+        if params[column_name]
+          conditions[0]+=" AND #{column_name} like '%' || ? || '%'"
+          conditions<<params[column_name]
+        end
+      end
+      options_hash[:conditions]=conditions
+    end
     @orders = Order.paginate :all, options_hash
     @order_count = Order.count
 
