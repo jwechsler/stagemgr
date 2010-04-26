@@ -5,8 +5,9 @@
 <%= f.hidden_field :production_code %>
 <%= f.hidden_field :performance_code %>
 <%= f.hidden_field :status %>
-<%= f.hidden_field :wizard_stage %>
-<%= render :partial=>"wizard_stage_#{@order.wizard_stage}", :locals=>{:f=>f}%>
+<%= render :partial=>"wizard_stage_2", :locals=>{:f=>f}%>
+<%= render :partial=>"wizard_stage_1", :locals=>{:f=>f}%>
+<%= render :partial=>"wizard_stage_3", :locals=>{:f=>f}%>
   <p>
     <%= f.submit @order.new_record? ? 'Create' : 'Update' %>
   </p>
