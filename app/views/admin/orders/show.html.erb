@@ -72,6 +72,8 @@ Performance:
 <p>
 	<% if @order.status == 'Processed' %>
 	<%= link_to 'Refund Order', refund_admin_order_path(@order), :confirm => "Are you sure?", :method=>:post %>
+	<%= link_to 'Exchange Order', exchange_admin_order_path(@order) %>
+	<%= link_to 'Fulfill Order', fulfill_admin_order_path(@order), :confirm => "Are you sure?", :method=>:post  %>
 	<% end %>
 	<% if @order.status == 'Processing' %>
 	<%= link_to 'Cancel Order', cancel_admin_order_path(@order), :confirm => "Are you sure?", :method=>:post %>

@@ -2,7 +2,7 @@ class Performance < ActiveRecord::Base
   PERFORMANCE_STATUSES = ['Active',  'Inactive']
 
   belongs_to               :production
-  has_and_belongs_to_many  :ticket_classes
+  has_many                 :ticket_classes, :through=>:ticket_class_allocations
   has_many                 :line_items, :through=>:orders
   has_many                 :orders
   has_many                 :ticket_class_allocations

@@ -97,7 +97,7 @@ Expiration Month/Year
 	Order Status: <%=order_form.object.status || 'New' %>
 </p>
 <p>
-<% if order_form.object.status.nil? || order_form.object.status == 'Held'%>
+<% if order_form.object.status.nil? || order_form.object.status == Order::HOLD%>
 <%= order_form.submit "Hold" %>
 <%= order_form.submit "Process Online" %>
 <%= order_form.submit "Manually Processed" %>

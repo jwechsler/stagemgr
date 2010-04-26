@@ -3,8 +3,8 @@ class Order < ActiveRecord::Base
   attr_accessor :card_verification_number
   belongs_to :performance
   
-  HELD,PROCESSING,PROCESSED,REFUNDED,CANCELED = 'Held', 'Processing', 'Processed', 'Refunded', 'Canceled'
-  ORDER_STATUSES = [HELD,PROCESSING,PROCESSED,REFUNDED,CANCELED]
+  HOLD,WEB,NEW,PROCESSING,PROCESSED,REFUNDED,EXCHANGED,FULFILLED,CANCELED = ["Hold", "Web", "New", "Processing", "Processed", "Refunded", "Exchanged", "Fulfilled", "Canceled"]
+  ORDER_STATUSES = [HOLD,WEB,NEW,PROCESSING,PROCESSED,REFUNDED,EXCHANGED,FULFILLED,CANCELED]
   has_many :line_items
 
   validates_inclusion_of   :status,            :in => ORDER_STATUSES
@@ -57,7 +57,7 @@ class Order < ActiveRecord::Base
       end
       if error_msg
         record.errors.add_to_base error_msg
-        record.status = HELD
+        record.status = HOLD
       else
         record.confirmation_code = response.authorization
         record.status = PROCESSED
@@ -84,7 +84,7 @@ class Order < ActiveRecord::Base
   end
   
   def editable?
-    self.status == HELD || self.status.nil?
+    [HOLD,NEW,nil].include? self.status
   end
   
   private
@@ -94,7 +94,7 @@ class Order < ActiveRecord::Base
   end
   
   def set_defaults
-    self.status ||= HELD
+    self.status ||= HOLD
     self.card_last_four = self.card_number[-4..-1] if self.card_number
   end
   

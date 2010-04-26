@@ -1,11 +1,30 @@
 <h1>New order</h1>
 
-<% form_for(@order) do |f| %>
-  <%= f.error_messages %>
+<% form_for([@production,@performance,@order]) do |f| %>
+<%= f.error_messages %>
+<%= f.hidden_field :production_code %>
+<%= f.hidden_field :performance_code %>
+<% some_are_donation = @order.line_items.any?{|li|li.ticket_class.ticket_type=='Donation'}%>
+<table id='line_items'>
+  <thead>
+    <th>Ticket class name</th>
+    <th>Ticket class description</th>
+	<th>Ticket Type</th>
+    <th>How many?</th>
+	<th>Price</th>
+<% if some_are_donation %>
+	<th>Suggested Donation</th>
+	<th>Actual Donation(if different)</th>
+<% end %>
+    <th></th>
+  </thead>
+<% f.fields_for :line_items do |line_item_form| %>
+<%= render :partial => 'line_item', :locals => { :f => line_item_form, :some_are_donation => some_are_donation } %>
+<% end %>
+</table>
+
 
   <p>
     <%= f.submit 'Create' %>
   </p>
 <% end %>
-
-<%= link_to 'Back', orders_path %>

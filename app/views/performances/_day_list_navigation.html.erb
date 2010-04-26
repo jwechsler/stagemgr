@@ -1,0 +1,4 @@
+<ul class='day_list_nav'>
+	<li class='previous'><%=link_to 'Previous', :action=>:index, :start_date=>(@start_date-1).beginning_of_month, :end_date=>@start_date-1 %></li>
+	<li class='next'><%=link_to 'Next', :action=>:index, :start_date=>@end_date+1, :end_date=>(@end_date+1).end_of_month %></li>
+</ul>

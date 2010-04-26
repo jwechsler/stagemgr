@@ -1,0 +1,7 @@
+<% title = performance.performance_time.to_s(:hour_min) %>
+<%= 
+if performance.performance_date<Date.today
+	title
+else
+	link_to(title,new_production_performance_order_path(performance.production.id,performance.id))
+end %>

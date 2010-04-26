@@ -1,0 +1,18 @@
+<tr class="line_item" price="<%=f.object.ticket_class.try(:ticket_price)%>" ticket_type="<%=f.object.ticket_class.try(:ticket_type)%>">
+  <td>
+	<%= f.hidden_field :ticket_class_id%>
+    <%= f.object.ticket_class.class_name %>
+  </td>
+  <td><%= f.object.ticket_class.description %></td>
+  <td><%= f.object.ticket_class.ticket_type %></td>
+  <td><%= f.select :ticket_count, 0.upto(20) %></td>
+<% if some_are_donation %>
+  <% if f.object.ticket_class.ticket_type == 'Donation' %>
+    <td></td><td><%= f.object.ticket_class.ticket_price %></td><td><%=f.text_field(:price_override, :class=>'price_override', :size => 6)%></td>
+  <% else %>
+    <td><%= f.object.ticket_class.ticket_price %></td><td></td><td></td>
+  <% end %>
+<% else %>
+  <td><%= f.object.ticket_class.ticket_price %></td>
+<% end %>
+</tr>

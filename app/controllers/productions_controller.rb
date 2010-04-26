@@ -1,6 +1,13 @@
 class ProductionsController < ApplicationController
-  prepend_before_filter :find_theater
+  prepend_before_filter :find_theater, :except => :index
   append_before_filter :find_production, :only => [:show, :edit, :update, :destroy]
+  
+  def index
+    @start_date = params[:start_date].nil? ? Date.today.beginning_of_week : Date.parse(params[:start_date])
+    @end_date = params[:end_date].nil? ? Date.today.beginning_of_week + 1.week - 1 : Date.parse(params[:end_date])
+    @productions = Production.find(:all, :include=>[:performances], :conditions=>['performances.performance_date >= ? and performances.performance_date <= ?',@start_date,@end_date], :order=>'performances.performance_date, performances.performance_time asc')
+    render :index, :layout=>false
+  end
 
   # GET /productions/1
   # GET /productions/1.xml

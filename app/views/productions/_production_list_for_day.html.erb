@@ -1,0 +1,8 @@
+<li class='day-header'><%= date.strftime('%A %B %d') %></li>
+<% productions = @productions.select{|pro|pro.performances.any?{|per|per.performance_date==date}} %>
+<% productions.each do |production|%>
+<li class='production'><%=production.name %> (<%= production.performances.select{|p|p.performance_date==date}.map{ |per| render :partial=>per}.join(', ') %>)</li>
+<% end%>
+<% if productions.empty? %>
+<li>&nbsp;</li>
+<% end %>

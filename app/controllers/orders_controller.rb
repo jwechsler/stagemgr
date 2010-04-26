@@ -1,15 +1,8 @@
 class OrdersController < ApplicationController
-  def show
-    @order = Order.find(params[:id])
-
-    respond_to do |format|
-      format.html # show.html.erb
-      format.xml  { render :xml => @order }
-    end
-  end
-
+  append_before_filter :find_parents
   def new
-    @order = Order.new
+    @order = @performance.orders.build(:status=>Order::WEB)
+    @performance.ticket_classes.each{|tc|@order.line_items.build(:ticket_class=>tc)}
 
     respond_to do |format|
       format.html # new.html.erb
@@ -49,5 +42,10 @@ class OrdersController < ApplicationController
         format.xml  { render :xml => @order.errors, :status => :unprocessable_entity }
       end
     end
+  end
+  private
+  def find_parents
+    @production = Production.find(params[:production_id])
+    @performance = @production.performances.find(params[:performance_id])
   end
 end
