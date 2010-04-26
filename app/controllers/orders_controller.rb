@@ -1,7 +1,7 @@
 class OrdersController < ApplicationController
   append_before_filter :find_parents
   def new
-    @order = @performance.orders.build(:status=>Order::WEB)
+    @order = @performance.orders.build(:status=>Order::WEB, :wizard_stage=>1)
     @performance.ticket_classes.each{|tc|@order.line_items.build(:ticket_class=>tc)}
 
     respond_to do |format|
@@ -12,6 +12,7 @@ class OrdersController < ApplicationController
 
   def edit
     @order = Order.find(params[:id])
+    render :action=>'new'
   end
 
   def create
@@ -19,8 +20,9 @@ class OrdersController < ApplicationController
 
     respond_to do |format|
       if @order.save
+        @order.wizard_stage = @order.wizard_stage.to_i + 1
         flash[:notice] = 'Order was successfully created.'
-        format.html { redirect_to(@order) }
+        format.html { render :action=> "new" }
         format.xml  { render :xml => @order, :status => :created, :location => @order }
       else
         format.html { render :action => "new" }
@@ -34,11 +36,12 @@ class OrdersController < ApplicationController
 
     respond_to do |format|
       if @order.update_attributes(params[:order])
+        @order.wizard_stage = @order.wizard_stage.to_i + 1
         flash[:notice] = 'Order was successfully updated.'
-        format.html { redirect_to(@order) }
+        format.html { render :action=> "new" }
         format.xml  { head :ok }
       else
-        format.html { render :action => "edit" }
+        format.html { render :action => "new" }
         format.xml  { render :xml => @order.errors, :status => :unprocessable_entity }
       end
     end

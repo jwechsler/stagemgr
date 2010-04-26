@@ -1,4 +1,5 @@
 class Order < ActiveRecord::Base
+  attr_accessor :wizard_stage
   attr_accessor :card_number
   attr_accessor :card_verification_number
   belongs_to :performance
