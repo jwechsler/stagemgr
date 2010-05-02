@@ -316,17 +316,11 @@ module Hexagile
     end
 
     def include_jquery_grid_javascript
-      <<-JS
-      <script src="/javascripts/jqGrid/i18n/grid.locale-en.js" type="text/javascript"></script>
-      <script src="/javascripts/jqGrid/jquery.jqGrid.min.js" type="text/javascript"></script>
-      JS
+      javascript_include_tag('jqGrid/i18n/grid.locale-en', 'jqGrid/jquery.jqGrid.min')
     end
     
     def include_jquery_grid_css
-      <<-CSS
-      <link href="/stylesheets/cupertino/jquery-ui-1.7.2.custom.css" media="screen" rel="stylesheet" type="text/css" />
-      <link href="/stylesheets/jqGrid/ui.jqgrid.css" media="screen" rel="stylesheet" type="text/css" />
-      CSS
+      stylesheet_link_tag('cupertino/jquery-ui-1.7.2.custom','jqGrid/ui.jqgrid.css')
     end
     
     def update_pagination_state_with_params!(restraining_model = nil)
