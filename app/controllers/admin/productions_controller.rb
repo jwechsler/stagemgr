@@ -62,7 +62,7 @@ class Admin::ProductionsController < Admin::ApplicationController
     @production.destroy
 
     respond_to do |format|
-      format.html { redirect_to(edit_admin_theater_path(@production.theater)) }
+      format.html { redirect_to(admin_theater_path(@production.theater)) }
       format.xml  { head :ok }
     end
   end
