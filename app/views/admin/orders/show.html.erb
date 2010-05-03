@@ -70,6 +70,14 @@ Performance:
 	<%=h @order.confirmation_code %>
 </p>
 <p>
+	Referral Code:
+	<%=h @order.referral_code %>
+</p>
+<p>
+	Notes:
+	<%=h @order.notes %>
+</p>
+<p>
 	<% if @order.status == 'Processed' %>
 	<%= link_to 'Refund Order', refund_admin_order_path(@order), :confirm => "Are you sure?", :method=>:post %>
 	<%= link_to 'Exchange Order', exchange_admin_order_path(@order) %>

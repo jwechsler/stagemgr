@@ -2,7 +2,7 @@
 
 <% content_for :jstemplates do -%>
 var orderRowSelected = function(id){
-	window.location = '/admin/orders/' + id;
+	window.location = '<%= admin_orders_path %>/' + id;
 }
 <% end -%>
 

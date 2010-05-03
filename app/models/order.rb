@@ -22,7 +22,7 @@ class Order < ActiveRecord::Base
                          :card_expiration_year,
                          :card_expiration_month,
                          :card_type, :if=>Proc.new { |order| order.status == PROCESSING }
-  validates_presence_of :confirmation_code, :if=>Proc.new { |order| order.status == PROCESSED }
+  validates_presence_of :confirmation_code, :if=>:should_have_confirmation_code?  # Proc.new { |order| order.status == PROCESSED }
   validates_presence_of :status, :performance
   accepts_nested_attributes_for  :line_items, :allow_destroy => true
   before_validation_on_create :initialize_nested_line_items
@@ -96,6 +96,10 @@ class Order < ActiveRecord::Base
   def set_defaults
     self.status ||= HOLD
     self.card_last_four = self.card_number[-4..-1] if self.card_number
+  end
+  
+  def should_have_confirmation_code?
+    self.status == PROCESSED && self.card_type != 'Cash'
   end
   
 end
