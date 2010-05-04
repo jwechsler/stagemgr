@@ -1,35 +1,27 @@
 <p>
-<%= f.label :first_name %>
+<table border="0">
+<tr><td><%= f.label :first_name %><br/>
 <%= f.text_field :first_name %>
-</p>
-<p>
-<%= f.label :last_name %>
+</td><td><%= f.label :last_name %><br/>
 <%= f.text_field :last_name %>
+</td></tr></table>
 </p>
 <p>
-<%= f.label :email %>
+<%= f.label :email %><br/>
 <%= f.text_field :email %>
 </p>
 <p>
-	Billing Address:
-</p>
+<%= f.label :billing_address_line1, 'Billing Address' %><br/>
+<%= f.text_field :billing_address_line1 %></p>
 <p>
-<%= f.label :billing_address_line1, 'Address Line1' %>
-<%= f.text_field :billing_address_line1 %>
-</p>
-<p>
-<%= f.label :billing_address_line2, 'Address Line2' %>
-<%= f.text_field :billing_address_line2 %>
-</p>
-<p>
-<%= f.label :billing_address_city, 'City' %>
-<%= f.text_field :billing_address_city %>
-</p>
-<p>
-<%= f.label :billing_address_state, 'State/Province/Region' %>
-<%= f.text_field :billing_address_state %>
-</p>
-<p>
-<%= f.label :billing_address_zipcode, 'ZIP/Postal Code' %>
-<%= f.text_field :billing_address_zipcode %>
-</p>
+<table border="0">
+  <tr><td >
+<%= f.label :billing_address_city, 'City' %><br />
+<%= f.text_field :billing_address_city %></td>
+<td>
+<%= f.label :billing_address_state, 'State' %><br/>
+<%= f.text_field :billing_address_state, :size=>3 %>
+</td><td>
+<%= f.label :billing_address_zipcode, 'Postal Code' %><br/>
+<%= f.text_field :billing_address_zipcode, :size=>11 %>
+</td></tr></table>
