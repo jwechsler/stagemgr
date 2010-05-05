@@ -8,6 +8,20 @@
   <%= "var line_item='#{generate_template(order_form, :line_items)}'" %>
   <% end -%>
 
+  <p>
+  <%= order_form.label :production_code %>
+  <%= order_form.text_field :production_code, 
+                   :class=>'autocomplete_prcode', 
+                   :autocomplete_url=>autocomplete_production_code_admin_orders_path,
+                   :size=>10 %>
+  </p>
+  <p>
+  <%= order_form.label :performance_code %>
+  <%= order_form.text_field :performance_code, 
+                   :class=>'autocomplete_pcode', 
+                   :autocomplete_url=>autocomplete_performance_code_admin_orders_path,
+                   :size=>10 %>
+  </p>
 <p>
 <%= order_form.label :first_name %>
 <%= order_form.text_field :first_name %>
@@ -20,20 +34,7 @@
 <%= order_form.label :email %>
 <%= order_form.text_field :email %>
 </p>
-<p>
-<%= order_form.label :production_code %>
-<%= order_form.text_field :production_code, 
-                 :class=>'autocomplete_prcode', 
-                 :autocomplete_url=>autocomplete_production_code_admin_orders_path,
-                 :size=>10 %>
-</p>
-<p>
-<%= order_form.label :performance_code %>
-<%= order_form.text_field :performance_code, 
-                 :class=>'autocomplete_pcode', 
-                 :autocomplete_url=>autocomplete_performance_code_admin_orders_path,
-                 :size=>10 %>
-</p>
+
 <table id='line_items'>
   <thead>
     <th>Ticket Class</th>
