@@ -33,6 +33,7 @@
   <%= render :partial => 'line_item', :locals => { :f => line_item_form } %>
   <% end %>
   </table>
+  <%= link_to 'Add a line item', '#line_item', :class => "add_nested_item", :rel => "line_items" %>
 <p>
 <%= order_form.label :first_name %>
 <%= order_form.text_field :first_name %>
@@ -41,13 +42,7 @@
 <%= order_form.label :last_name %>
 <%= order_form.text_field :last_name %>
 </p>
-<p>
-<%= order_form.label :email %>
-<%= order_form.text_field :email %>
-</p>
 
-
-<%= link_to 'Add a line item', '#line_item', :class => "add_nested_item", :rel => "line_items" %>
 <p>
 <%= order_form.label :card_type %>
 <%= order_form.select :card_type, ['Cash'] + ActiveRecord::Validations::ClassMethods::DEFAULT_CREDIT_CARD_TYPES.values.sort - ['invalid','Diners Club'] %>
@@ -56,7 +51,15 @@
 <%= order_form.label :card_number %>
 <%= order_form.text_field :card_number %>
 </p>
-
+<p>
+Expiration Month/Year
+<%= order_form.select :card_expiration_month, 1.upto(12).map{|n|['%02d' % n,n]} %>
+<%= order_form.select :card_expiration_year, Date.today.year.upto(Date.today.year+12).to_a %>
+</p>
+<p>
+<%= order_form.label :card_verification_number %>
+<%= order_form.text_field :card_verification_number, :size=>4 %>
+</p>
 <p>
 	Billing Address:
 </p>
@@ -80,24 +83,21 @@
 <%= order_form.label :billing_address_zipcode, 'ZIP/Postal Code' %>
 <%= order_form.text_field :billing_address_zipcode %>
 </p>
-<p>
-Expiration Month/Year
-<%= order_form.select :card_expiration_month, 1.upto(12).map{|n|['%02d' % n,n]} %>
-<%= order_form.select :card_expiration_year, Date.today.year.upto(Date.today.year+12).to_a %>
-</p>
-<p>
-<%= order_form.label :card_verification_number %>
-<%= order_form.text_field :card_verification_number, :size=>4 %>
-</p>
+
 <p>
 	<%= order_form.label :confirmation_code %>
 	<%= order_form.text_field :confirmation_code %>
 	( For Manually Processing Only )
 </p>
 <p>
+<%= order_form.label :email %>
+<%= order_form.text_field :email %>
+</p>
+<p>
 	<%= order_form.label :referral_code %>
 	<%= order_form.text_field :referral_code %>
 </p>
+
 <p>
 	Order Status: <%=order_form.object.status || 'New' %>
 </p>
