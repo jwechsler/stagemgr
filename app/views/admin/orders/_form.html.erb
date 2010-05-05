@@ -22,6 +22,17 @@
                    :autocomplete_url=>autocomplete_performance_code_admin_orders_path,
                    :size=>10 %>
   </p>
+  <table id='line_items'>
+    <thead>
+      <th>Ticket Class</th>
+      <th>Ticket Count</th>
+      <th>Price Override</th>
+      <th>Total</th>
+    </thead>
+  <% order_form.fields_for :line_items do |line_item_form| %>
+  <%= render :partial => 'line_item', :locals => { :f => line_item_form } %>
+  <% end %>
+  </table>
 <p>
 <%= order_form.label :first_name %>
 <%= order_form.text_field :first_name %>
@@ -35,17 +46,7 @@
 <%= order_form.text_field :email %>
 </p>
 
-<table id='line_items'>
-  <thead>
-    <th>Ticket Class</th>
-    <th>Ticket Count</th>
-    <th>Price Override</th>
-    <th>Total</th>
-  </thead>
-<% order_form.fields_for :line_items do |line_item_form| %>
-<%= render :partial => 'line_item', :locals => { :f => line_item_form } %>
-<% end %>
-</table>
+
 <%= link_to 'Add a line item', '#line_item', :class => "add_nested_item", :rel => "line_items" %>
 <p>
 <%= order_form.label :card_type %>
