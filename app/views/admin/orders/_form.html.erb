@@ -83,15 +83,14 @@ Expiration Month/Year
 <%= order_form.label :billing_address_zipcode, 'ZIP/Postal Code' %>
 <%= order_form.text_field :billing_address_zipcode %>
 </p>
-
+<p>
+<%= order_form.label :email %>
+<%= order_form.text_field :email %>
+</p>
 <p>
 	<%= order_form.label :confirmation_code %>
 	<%= order_form.text_field :confirmation_code %>
 	( For Manually Processing Only )
-</p>
-<p>
-<%= order_form.label :email %>
-<%= order_form.text_field :email %>
 </p>
 <p>
 	<%= order_form.label :referral_code %>
