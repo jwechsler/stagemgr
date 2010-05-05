@@ -4,5 +4,5 @@
 <li class='production'><%=production.name %> (<%= production.performances.select{|p|p.performance_date==date}.map{ |per| render :partial=>per}.join(', ') %>)</li>
 <% end%>
 <% if productions.empty? %>
-<li>&nbsp;</li>
+<li><div class="prop min30px"</div>&nbsp;<div class="clear"></div></li>
 <% end %>

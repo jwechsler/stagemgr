@@ -1,7 +1,7 @@
 <style>
 .calendar
 {
-width:420px;
+width:435px;
 }
 .calendar .day_list_nav
 {
@@ -29,7 +29,7 @@ float:left;
 margin:0;
 padding:0;
 border:1px solid #C9C9C9;
-width:13.9%;
+width:60px;
 }
 .calendar ul li
 {
@@ -59,6 +59,41 @@ text-align:right;
   font-size: .7em;
 }
 
+  .prop {
+    float:right;
+    width:1px;
+  }
+
+  .clear {
+    clear:both;
+    height:1px;
+    overflow:hidden;
+  }
+
+  .min30px {
+    height:30px;
+  }
+  .min50px {
+    height:50px;
+  }
+
+  .min100px {
+    height:100px;
+  }
+
+  .min150px {
+    height:150px;
+  }
+  
+  .min20px {
+    height:20px;
+  }
+
+  .calendar li.vertical_center {
+    height:20px;
+    line-height:20px;
+  }
+
 </style>
 <div class='calendar'>
   <h1><%=@production.name%></h1>
@@ -70,7 +105,7 @@ current_week_start = @start_date.beginning_of_week
 current_day = @start_date.beginning_of_week+day-1
 %>
 <ul class='<%=Date::DAYNAMES[day%6]%>'>
-<li class='day-header'><%=Date::DAYNAMES[day%7]%></li>
+<li class='day-header'><%=Date::DAYNAMES[day%7][0,3]%></li>
 <%
 while current_day < @end_date+day
 	%><%= render :partial=>'performance_list_for_day', :locals=>{:date=>current_day,:performances=>@performances} %><%

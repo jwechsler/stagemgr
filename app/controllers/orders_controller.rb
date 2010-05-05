@@ -24,7 +24,10 @@ class OrdersController < ApplicationController
 
     respond_to do |format|
       if @order.save 
-        flash[:notice] = 'Order was successfully created.'
+        @notice = "Thanks!  Your ticket reservation was been made and your credit card has been charged.  We will see you at the show on #{@order.performance.performance_date.to_formatted_s(:show_date)} at #{@order.performance.performance_time.to_formatted_s(:show_time)}.
+        Your tickets will be available for pickup at our box office at 1229 W Belmont one hour before showtime and seating is general admission. 
+        If you have any questions, please don't hesitate to call us at 773-975-8150 or email us at boxoffice@theaterwit.org.  Thanks for your support and we'll see you at the theatre.  Enjoy the show!"
+        flash[:notice] = @notice
         format.html { redirect_to(edit_production_performance_order_path(@order.performance.production, @order.performance, @order)) }
         format.xml  { render :xml => @order, :status => :created, :location => @order }
       else
