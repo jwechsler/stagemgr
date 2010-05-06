@@ -18,6 +18,7 @@ class OrdersController < ApplicationController
 
   def edit
     @order = Order.find(params[:id])
+    @available_ticket_classes = @performance.ticket_classes.select{|tc|tc.web_visible}
     render :action=>'new'
   end
 
