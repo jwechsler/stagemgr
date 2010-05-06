@@ -49,6 +49,10 @@ class Order < ActiveRecord::Base
     [HOLD,NEW,nil].include? self.status
   end
   
+  def full_name
+    "#{self.first_name} #{self.last_name}"
+  end
+  
   private
 
   def initialize_nested_line_items
@@ -79,16 +83,47 @@ class Order < ActiveRecord::Base
                       :verification_value => self.card_verification_number
                     )
     if credit_card.valid?
+      gateway_options = {
+        :login=>ACTIVE_MERCHANT_LOGIN, 
+        :password=>ACTIVE_MERCHANT_PASSWORD,
+        :test=>ACTIVE_MERCHANT_TEST_MODE}
+      purchase_options = {
+        :order_id => self.id,
+        :ip => 'The IP address of the customer making the purchase',
+        :customer => 'The name, customer number, or other information that identifies the customer',
+        :invoice => 'The invoice number',
+        :merchant => 'The name or description of the merchant offering the product',
+        :description => 'A description of the transaction',
+        :email => self.email,
+        :billing_address => 
+        {
+          :name => self.full_name,
+          :address1 => self.billing_address_line1,
+          :address2 => self.billing_address_line2,
+          :city => self.billing_address_city,
+          :state => self.billing_address_state,
+          :country => 'US',
+          :zip => self.billing_address_zipcode        
+        },
+        :shipping_address =>
+        {
+          :name => self.full_name,
+          :address1 => self.billing_address_line1,
+          :address2 => self.billing_address_line2,
+          :city => self.billing_address_city,
+          :state => self.billing_address_state,
+          :country => 'US',
+          :zip => self.billing_address_zipcode        
+        }
+      }
       # Create a gateway object for the TrustCommerce service
-      gateway = ActiveMerchant::Billing::AuthorizeNetGateway.new(
-                         :login=>ACTIVE_MERCHANT_LOGIN, 
-                         :password=>ACTIVE_MERCHANT_PASSWORD,
-                         :test=>ACTIVE_MERCHANT_TEST_MODE)
+      gateway = ActiveMerchant::Billing::AuthorizeNetGateway.new(gateway_options)
 
       # Authorize for the amount
-      response = gateway.purchase((self.total*100).to_i, credit_card)
-
+      response = gateway.purchase((self.total*100).to_i, credit_card, purchase_options)
+      
       if response.success?
+        puts response.avs_result.inspect
         puts "Successfully charged $#{sprintf("%.2f", self.total)} to the credit card ending #{self.card_last_four}"
       else
         error_msg = response.message
