@@ -30,6 +30,10 @@ class Performance < ActiveRecord::Base
     self.production.capacity - self.orders.inject(0){|sum,order| sum + order.line_items.sum(:ticket_count) }
   end
   
+  def sold_out?
+    self.number_of_tickets_left <= 0
+  end 
+  
   def populate_ticket_class_allocations
     self.ticket_class_allocations.each{|tca|tca.performance=self}
     (self.production.ticket_classes - self.ticket_class_allocations.map{|tca|tca.ticket_class}).each do |ticket_class|
