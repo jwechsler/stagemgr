@@ -24,9 +24,46 @@ class Order < ActiveRecord::Base
   validates_presence_of :confirmation_code, :if=>:should_have_confirmation_code?  # Proc.new { |order| order.status == PROCESSED }
   validates_presence_of :status, :performance
   accepts_nested_attributes_for  :line_items, :allow_destroy => true
-  after_save :process_online, :if=>:should_process?
   before_validation_on_create :initialize_nested_line_items
+  validates_each :status do |record, attr, value|
+    if value == PROCESSING
+      error_msg=nil
+      credit_card = ActiveMerchant::Billing::CreditCard.new(
+                        :first_name         => record.first_name,
+                        :last_name          => record.last_name,
+                        :number             => record.card_number,
+                        :month              => record.card_expiration_month,
+                        :year               => record.card_expiration_year,
+                        :verification_value => record.card_verification_number
+                      )
+      if credit_card.valid?
+        # Create a gateway object for the TrustCommerce service
+        gateway = ActiveMerchant::Billing::AuthorizeNetGateway.new(
+                           :login=>ACTIVE_MERCHANT_LOGIN, 
+                           :password=>ACTIVE_MERCHANT_PASSWORD,
+                           :test=>ACTIVE_MERCHANT_TEST_MODE)
 
+        # Authorize for the amount
+        response = gateway.purchase((record.total*100).to_i, credit_card)
+
+        if response.success?
+          puts "Successfully charged $#{sprintf("%.2f", record.total)} to the credit card ending #{record.card_last_four}"
+        else
+          error_msg = response.message
+        end
+      else
+        error_msg = 'Credit card is not valid.'
+      end
+      if error_msg
+        record.errors.add_to_base error_msg
+        record.status = HOLD
+      else
+        record.confirmation_code = response.authorization
+        record.status = PROCESSED
+      end
+    end
+  end
+  
   before_validation :set_defaults
   def production_code=(string)
     @prodution_code=string
@@ -67,7 +104,7 @@ class Order < ActiveRecord::Base
   def should_have_confirmation_code?
     self.status == PROCESSED && self.card_type != 'Cash'
   end
-  
+
   def should_process?
     self.status == PROCESSING
   end
