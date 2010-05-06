@@ -1,5 +1,5 @@
 module ActiveRecord::Validations::ClassMethods
-  DEFAULT_CREDIT_CARD_TYPES = {:visa => 'Visa', :master_card => 'MasterCard', :discover => 'Discover', :amex => 'American Express', :diners => 'Diners Club', :unknown => 'invalid' }
+  DEFAULT_CREDIT_CARD_TYPES = {:visa => 'Visa', :master_card => 'MasterCard', :discover => 'Discover', :amex => 'American Express', :unknown => 'invalid' }
   
   #I don't think anyone doing the right thing will be validating more than one type and one card number per record.
   def validates_credit_card(card_number, card_type, options)

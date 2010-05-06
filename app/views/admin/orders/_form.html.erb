@@ -45,7 +45,7 @@
 
 <p>
 <%= order_form.label :card_type %>
-<%= order_form.select :card_type, ['Cash'] + ActiveRecord::Validations::ClassMethods::DEFAULT_CREDIT_CARD_TYPES.values.sort - ['invalid','Diners Club'] %>
+<%= order_form.select :card_type, ['Cash'] + ActiveRecord::Validations::ClassMethods::DEFAULT_CREDIT_CARD_TYPES.values.sort - ['invalid'] %>
 </p>
 <p>
 <%= order_form.label :card_number %>
