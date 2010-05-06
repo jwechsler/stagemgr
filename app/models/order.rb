@@ -120,7 +120,7 @@ class Order < ActiveRecord::Base
       gateway = ActiveMerchant::Billing::AuthorizeNetGateway.new(gateway_options)
 
       # Authorize for the amount
-      response = gateway.purchase((self.total*100).to_i, credit_card, purchase_options)
+      response = gateway.purchase((self.total*100).to_i, credit_card, {})
       
       if response.success?
         puts response.avs_result.inspect
