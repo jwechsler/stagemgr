@@ -27,9 +27,12 @@ class OrdersController < ApplicationController
     @order.status = Order::PROCESSING
 
     respond_to do |format|
-      if @order.save 
-        @notice = "Your order has been created"
-        flash[:notice] = @notice
+      if @order.save
+        if @order.errors.empty? 
+          flash[:notice] = "Your order has been created"
+        else
+          flash[:notice] = @orders.errors.full_messages.join('<br/>')
+        end
         format.html { redirect_to(edit_production_performance_order_path(@order.performance.production, @order.performance, @order)) }
         format.xml  { render :xml => @order, :status => :created, :location => @order }
       else
@@ -41,10 +44,13 @@ class OrdersController < ApplicationController
 
   def update
     @order = Order.find(params[:id])
-
     respond_to do |format|
       if @order.update_attributes(params[:order])
-        flash[:notice] = 'Order was successfully updated.'
+        if @order.errors.empty? 
+          flash[:notice] = "Your order was successfully updated"
+        else
+          flash[:notice] = @orders.errors.full_messages.join('<br/>')
+        end
         format.html { redirect_to(edit_production_performance_order_path(@order.performance.production, @order.performance, @order)) }
         format.xml  { head :ok }
       else
