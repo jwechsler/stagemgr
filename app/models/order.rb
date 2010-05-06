@@ -12,7 +12,6 @@ class Order < ActiveRecord::Base
                          :card_type, :if=>Proc.new { |order| order.status == PROCESSING }
   validates_presence_of  :first_name,
                          :last_name,
-                         :email,
                          :billing_address_city,
                          :billing_address_line1,
                          :billing_address_state,
