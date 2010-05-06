@@ -1,3 +1,6 @@
+<% if @available_ticket_classes.empty? %>
+  No Web Available Tickets
+<% else %>
 <%=@order.new_record? ? 'New' : 'Continue'%> reservation for <%=@production.name%> on <%= @performance.performance_date.to_formatted_s(:long_ordinal) %> at <%=  @performance.performance_time.to_formatted_s(:hour_min)%></h1>
 
 <% form_for([@production,@performance,@order]) do |f| %>
@@ -11,4 +14,5 @@
   <p>
     <%= f.submit @order.new_record? ? 'Order tickets' : 'Update' %>
   </p>
+<% end %>
 <% end %>

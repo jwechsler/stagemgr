@@ -5,7 +5,8 @@ class OrdersController < ApplicationController
   
   def new
     @order = @performance.orders.build(:status=>Order::WEB)
-    @performance.ticket_classes.each{|tc|@order.line_items.build(:ticket_class=>tc)}
+    @available_ticket_classes = @performance.ticket_classes.select{|tc|tc.web_visible}
+    @available_ticket_classes.each{|tc|@order.line_items.build(:ticket_class=>tc)}
 
     respond_to do |format|
       format.html # new.html.erb
