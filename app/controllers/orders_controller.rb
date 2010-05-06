@@ -31,7 +31,7 @@ class OrdersController < ApplicationController
         if @order.errors.empty? 
           flash[:notice] = "Your order has been created"
         else
-          flash[:notice] = @orders.errors.full_messages.join('<br/>')
+          flash[:notice] = @order.errors.full_messages.join('<br/>')
         end
         format.html { redirect_to(edit_production_performance_order_path(@order.performance.production, @order.performance, @order)) }
         format.xml  { render :xml => @order, :status => :created, :location => @order }
@@ -49,7 +49,7 @@ class OrdersController < ApplicationController
         if @order.errors.empty? 
           flash[:notice] = "Your order was successfully updated"
         else
-          flash[:notice] = @orders.errors.full_messages.join('<br/>')
+          flash[:notice] = @order.errors.full_messages.join('<br/>')
         end
         format.html { redirect_to(edit_production_performance_order_path(@order.performance.production, @order.performance, @order)) }
         format.xml  { head :ok }
