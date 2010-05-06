@@ -1,4 +1,6 @@
+
 class OrdersController < ApplicationController
+
   append_before_filter :find_parents
   append_before_filter :find_order, :only => [:show, :edit, :update, :destroy]
   append_before_filter :redirect_to_proper_action, :only => [:edit, :show]
@@ -25,9 +27,7 @@ class OrdersController < ApplicationController
 
     respond_to do |format|
       if @order.save 
-        @notice = "Thanks!  Your ticket reservation was been made and your credit card has been charged.  We will see you at the show on #{@order.performance.performance_date.to_formatted_s(:show_date)} at #{@order.performance.performance_time.to_formatted_s(:show_time)}.
-        Your tickets will be available for pickup at our box office at 1229 W Belmont one hour before showtime and seating is general admission. 
-        If you have any questions, please don't hesitate to call us at 773-975-8150 or email us at boxoffice@theaterwit.org.  Thanks for your support and we'll see you at the theatre.  Enjoy the show!"
+        @notice = "Your order has been created"
         flash[:notice] = @notice
         format.html { redirect_to(edit_production_performance_order_path(@order.performance.production, @order.performance, @order)) }
         format.xml  { render :xml => @order, :status => :created, :location => @order }
