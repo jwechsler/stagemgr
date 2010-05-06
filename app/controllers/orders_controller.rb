@@ -7,7 +7,6 @@ class OrdersController < ApplicationController
   
   def new
     @order = @performance.orders.build(:status=>Order::WEB)
-    @available_ticket_classes = @performance.ticket_classes.select{|tc|tc.web_visible}
     @available_ticket_classes.each{|tc|@order.line_items.build(:ticket_class=>tc)}
 
     respond_to do |format|
@@ -18,7 +17,6 @@ class OrdersController < ApplicationController
 
   def edit
     @order = Order.find(params[:id])
-    @available_ticket_classes = @performance.ticket_classes.select{|tc|tc.web_visible}
     render :action=>'new'
   end
 
@@ -68,6 +66,7 @@ class OrdersController < ApplicationController
   def find_parents
     @production = Production.find(params[:production_id])
     @performance = @production.performances.find(params[:performance_id])
+    @available_ticket_classes = @performance.ticket_classes.select{|tc|tc.web_visible}
   end
   
   def find_order
