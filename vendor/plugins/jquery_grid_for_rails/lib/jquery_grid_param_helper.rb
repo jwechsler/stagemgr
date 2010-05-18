@@ -54,7 +54,8 @@ module JqueryGridParamHelper
 
               #ix adds case insensitive searching
               #sub_expressions << "REGEXP_LIKE(#{key}, #{value_placeholder}, 'i')"
-              sub_expressions << "#{key} like '%' || #{value_placeholder} || '%'"
+              sub_expressions << "#{key} like '%' #{value_placeholder} '%'"
+              #sub_expressions << "#{key} like '%' || #{value_placeholder} || '%'"
               values[attribute_name.to_sym] = value
             end
           end
