@@ -27,6 +27,7 @@ fixed_ticket_class = production.ticket_classes.create!({
   :ticket_type               =>TicketClass::TICKET_TYPES.first,
   :class_name                =>'General Admission',
   :ticket_price              =>35,
+  :web_visible               =>true,
   :class_code                =>'TC1'
   
 })
@@ -35,6 +36,7 @@ donation_ticket_class = production.ticket_classes.create!({
   :ticket_type               =>TicketClass::TICKET_TYPES[1],
   :class_name                =>'General Admission',
   :ticket_price              =>35,
+  :web_visible               =>true,
   :class_code                =>'TC2',
 })
 
@@ -42,10 +44,11 @@ timed_ticket_class = production.ticket_classes.create!({
   :ticket_type               =>TicketClass::TICKET_TYPES[2],
   :class_name                =>'General Admission',
   :ticket_price              =>35,
+  :web_visible               =>true,
   :class_code                =>'TC3'
   
 })
-  
+
 performance = production.performances.create!({
   :status                    =>Performance::PERFORMANCE_STATUSES.first,
   :performance_code          =>'T1P10305'
@@ -66,8 +69,11 @@ timed_ticket_class2 = production2.ticket_classes.create!({
   :ticket_type               =>TicketClass::TICKET_TYPES[2],
   :class_name                =>'General Admission',
   :ticket_price              =>35,
+  :web_visible               =>true,
   :class_code                =>'TC4'
 
 })
+
+Performance.all.each{|per|per.populate_ticket_class_allocations;per.ticket_class_allocations.each{|tca|tca.save!}}
 
 

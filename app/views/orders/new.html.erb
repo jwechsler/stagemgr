@@ -16,7 +16,7 @@
   <%= f.text_field :referral_code %>  
 </p>
   <p>
-    <%= f.submit @order.new_record? ? 'Order tickets' : 'Update' %>
+    <%= f.submit @order.new_record? ? 'Order tickets' : 'Update', :disable_with => 'Processing...' %>
   </p>
 <% end %>
 <% end %>
