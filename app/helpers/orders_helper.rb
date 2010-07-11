@@ -22,7 +22,7 @@ module OrdersHelper
   #   <% end -%>
   def generate_html(form_builder, method, options = {})
     options[:object] ||= form_builder.object.class.reflect_on_association(method).klass.new
-    options[:partial] ||= method.to_s.singularize
+    options[:partial] ||= "#{method.to_s.singularize}_form"
     options[:form_builder_local] ||= :f  
 
     form_builder.fields_for(method, options[:object], :child_index => 'NEW_RECORD') do |f|

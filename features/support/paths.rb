@@ -21,7 +21,8 @@ module NavigationHelpers
     when /^the admin production detail page for "([^"]*)"$/
       production = Production.find_by_name($1)
       admin_theater_production_path(production.theater, production)
-      
+    when /^New Box Office Order$/
+      url_for(:controller=>'admin/orders',:action=>'new', :only_path=>true)
     
     # Add more mappings here.
     # Here is an example that pulls values out of the Regexp:

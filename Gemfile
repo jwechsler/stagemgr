@@ -13,28 +13,35 @@ group :development do
   gem 'mongrel',              '1.1.5'
   gem 'capistrano',           '2.5.18'
   gem 'capistrano-ext',       '1.2.1'
+  gem 'ruby-debug'
 end
 
 group :test do
+  gem 'sqlite3-ruby'
   gem 'cucumber',           '0.8.3'
   gem 'cucumber-rails',     '0.3.2'
-  gem 'webrat',             '>=0.5.0' 
-  gem 'rspec',              '1.3.0' 
+  gem 'webrat',             '>=0.5.0'
+  gem 'rspec',              '1.3.0'
   gem 'rspec-rails',        '1.3.2'
   gem 'test-unit',          '2.0.7'
   gem 'flexmock',           '0.8.6'
   gem 'rcov',               '0.9.8'
   gem "shoulda",            '2.10.3'
   gem "factory_girl",       '1.2.4'
+  gem 'ruby-debug'
 end
 
 group :cucumber do
+  gem 'sqlite3-ruby'
+  gem 'capybara'
+  gem 'database_cleaner'
   gem 'cucumber',           '0.8.3'
   gem 'cucumber-rails',     '0.3.2'
-  gem 'webrat',             '>=0.5.0' 
-  gem 'rspec',              '1.3.0' 
+  gem 'webrat',             '>=0.5.0'
+  gem 'rspec',              '1.3.0'
   gem 'rspec-rails',        '1.3.2'
   gem 'test-unit',          '2.0.7'
   gem 'rcov',               '>=0.9.8'
   gem "factory_girl",       '1.2.4'
+  gem 'ruby-debug'
 end

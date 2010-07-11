@@ -68,15 +68,58 @@ class Admin::OrdersController < Admin::ApplicationController
   end
   
   def create
-    @order = Order.new(params[:order])
-    respond_to do |format|
-      if update_order_status_from_params_and_save(@order, params)
-        flash[:notice] = 'Order was successfully created.'
-        format.html { redirect_to(edit_admin_order_path(@order)) }
-        format.xml  { render :xml => @order, :status => :created, :location => @order }
+    cash_payment_hash = params[:order].delete(:cash_payment) || {}
+    credit_card_payment_hash = params[:order].delete(:credit_card_payment) || {}
+    order_params = params[:order].merge(:address_attributes=>params[:order].delete(:addresses))
+    @order = Order.new(order_params)
+    begin
+      case @order.payment_type
+      when Order::CREDIT_CARD
+        credit_card_payment_hash.merge!(
+          :payment_type=>'CreditCardPayment',
+          :order=>@order
+        )
+        @payment = CreditCardPayment.new(credit_card_payment_hash)
+        @payment.default_from_order
+        @payment.address = @order.address
+        @payment.process
+        @order.payments << @payment
+        @order.status = Order::PROCESSED
+        @order.save!
+      when Order::CASH
+        cash_payment_hash.merge!(
+          :payment_type=>'CashPayment',
+          :amount=>@order.total,
+          :order=>@order
+        )
+        @payment = CashPayment.new(cash_payment_hash)
+        @payment.save!
+        @order.payments << @payment
+        @order.status = Order::PROCESSED
+        @order.save!
+      when Order::FLEX_PASS
+        raise 'Unimplemented'
       else
-        format.html { render :action => "new", :controller=>'admin/orders' }
-        format.xml  { render :xml => @order.errors, :status => :unprocessable_entity }
+        raise 'Unimplemented'
+      end
+    
+      respond_to do |format|
+        flash[:notice] = 'Order was successfully created.'
+        format.html { redirect_to(edit_admin_order_path(@order.id)) }
+        format.xml  { render :xml => @order, :status => :created, :location => @order }
+      end
+    rescue StandardError => e
+      respond_to do |format|
+        case e
+        when InvalidCreditCard
+          flash.now[:notice] = "The credit card you entered was invalid. Reason: #{e.message}"
+        when CannotProcessPayment
+          flash.now[:notice] = "There was an error while processing your credit card. #{e.message}"
+        else
+          flash.now[:notice] = "There was an error creating the order. #{e.message}"
+        end
+        
+        format.html { render :new }
       end
     end
   end
@@ -96,18 +139,6 @@ class Admin::OrdersController < Admin::ApplicationController
   end
   
   private
-  
-  def update_order_status_from_params_and_save(order,params)
-    old_status = order.status
-    order.status = Order::PROCESSED if params[:commit]=='Manually Processed'
-    order.status = Order::PROCESSING if params[:commit]=='Process Online'
-    order.status = Order::HOLD if params[:commit]=='Hold'
-    success = order.save
-    unless success
-      order.status = old_status
-    end
-    success
-  end
   
   def redirect_to_proper_action
     if @order.editable?

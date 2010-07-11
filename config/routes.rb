@@ -9,7 +9,9 @@ ActionController::Routing::Routes.draw do |map|
     admin.resources :orders, :collection => { 
       :autocomplete_production_code => :get,
       :autocomplete_performance_code => :get,
-      :autocomplete_ticket_class_code => :get
+      :autocomplete_ticket_class_code => :get,
+      :credit_card_payment_form => :post,
+      :cash_payment_form => :post
       }, :member => {:cancel=>:post, :refund=>:post, :exchange=>:get, :fulfill=>:post}
     admin.resources :theaters do |theater|
       theater.resources :productions do |production|

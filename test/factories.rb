@@ -4,6 +4,13 @@ Factory.define(:user) do |user|
   user.password_confirmation 'password'
 end
 
+Factory.define(:address) do |address|
+  address.line1 '123 swift st'
+  address.city  'hoboken'
+  address.state 'ct'
+  address.zipcode 90210
+end
+
 Factory.define(:theater) do |theater|
   theater.sequence(:name){|n|"Theater \##{n}"}
   theater.theater_class Theater::THEATER_CLASSES.first
@@ -26,15 +33,16 @@ end
 
 Factory.define(:ticket_class) do |ticket_class|
   ticket_class.ticket_type TicketClass::TICKET_TYPES.first
+  ticket_class.ticket_price 5.0
   ticket_class.sequence(:class_code){|n|"CS#{'%02d' % n}"}
 end
 
 Factory.define(:order) do |order|
   order.status Order::ORDER_STATUSES.first
+  order.association :address, :factory => :address
 end
 
 Factory.define(:line_item) do |line_item|
   line_item.association :order, :factory        => :order
-  line_item.association :performance, :factory  => :performance
   line_item.association :ticket_class, :factory => :ticket_class
 end

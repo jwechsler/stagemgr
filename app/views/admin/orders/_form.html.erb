@@ -30,68 +30,31 @@
       <th>Total</th>
     </thead>
   <% order_form.fields_for :line_items do |line_item_form| %>
-  <%= render :partial => 'line_item', :locals => { :f => line_item_form } %>
+  <%= render :partial => 'line_item_form', :locals => { :f => line_item_form } %>
   <% end %>
   </table>
   <%= link_to 'Add a line item', '#line_item', :class => "add_nested_item", :rel => "line_items" %>
 <p>
-<%= order_form.label :first_name %>
-<%= order_form.text_field :first_name %>
-</p>
-<p>
-<%= order_form.label :last_name %>
-<%= order_form.text_field :last_name %>
-</p>
 
-<p>
-<%= order_form.label :card_type %>
-<%= order_form.select :card_type, ['Cash'] + ActiveRecord::Validations::ClassMethods::DEFAULT_CREDIT_CARD_TYPES.values.sort - ['invalid'] %>
-</p>
-<p>
-<%= order_form.label :card_number %>
-<%= order_form.text_field :card_number %>
-</p>
-<p>
-Expiration Month/Year
-<%= order_form.select :card_expiration_month, 1.upto(12).map{|n|['%02d' % n,n]} %>
-<%= order_form.select :card_expiration_year, Date.today.year.upto(Date.today.year+12).to_a %>
-</p>
-<p>
-<%= order_form.label :card_verification_number %>
-<%= order_form.text_field :card_verification_number, :size=>4 %>
-</p>
-<p>
-	Billing Address:
-</p>
-<p>
-<%= order_form.label :billing_address_line1, 'Address Line1' %>
-<%= order_form.text_field :billing_address_line1 %>
-</p>
-<p>
-<%= order_form.label :billing_address_line2, 'Address Line2' %>
-<%= order_form.text_field :billing_address_line2 %>
-</p>
-<p>
-<%= order_form.label :billing_address_city, 'City' %>
-<%= order_form.text_field :billing_address_city %>
-</p>
-<p>
-<%= order_form.label :billing_address_state, 'State/Province/Region' %>
-<%= order_form.text_field :billing_address_state %>
-</p>
-<p>
-<%= order_form.label :billing_address_zipcode, 'ZIP/Postal Code' %>
-<%= order_form.text_field :billing_address_zipcode %>
-</p>
-<p>
-<%= order_form.label :email %>
-<%= order_form.text_field :email %>
-</p>
-<p>
-	<%= order_form.label :confirmation_code %>
-	<%= order_form.text_field :confirmation_code %>
-	( For Manually Processing Only )
-</p>
+<% order_form.fields_for :addresses do |address_form| %>
+<%= render :partial => 'address_form', :locals => { :f => address_form } %>
+<% end %>
+
+<%= order_form.label :payment_type %>
+<%= order_form.select :payment_type, Order::PAYMENT_TYPES %>
+<div id='payment_forms'>
+<div id='credit_card_payment_form'>
+<% order_form.fields_for :credit_card_payment do |credit_card_payment_form| %>
+<%= render :partial => 'credit_card_payment_form', :locals => { :f => credit_card_payment_form } %>
+<% end %>
+</div>
+<div id='cash_payment_form'>
+<% order_form.fields_for :cash_payment do |cash_payment_form| %>
+<%= render :partial => 'cash_payment_form', :locals => { :f => cash_payment_form } %>
+<% end %>
+</div>
+</div>
+
 <p>
 	<%= order_form.label :referral_code %>
 	<%= order_form.text_field :referral_code %>
