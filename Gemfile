@@ -3,6 +3,7 @@ gem "rails",                  '2.3.5'
 gem "activemerchant",         '1.5.1'
 gem "mysql",                  '2.8.1'
 gem "authlogic",              '2.1.5'
+gem "will_paginate"
 
 group :development do
   gem 'wirble',               '0.1.3'
