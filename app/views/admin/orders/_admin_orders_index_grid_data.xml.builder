@@ -12,6 +12,7 @@ xml.rows do
       xml.cell o.address.first_name
       xml.cell o.total
       xml.cell o.status
+      xml.cell o.payment_type
       xml.cell o.payments.first.card_last_four
       xml.cell o.updated_at
     end

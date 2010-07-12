@@ -36,7 +36,7 @@
   <%= link_to 'Add a line item', '#line_item', :class => "add_nested_item", :rel => "line_items" %>
 <p>
 
-<% order_form.fields_for :addresses do |address_form| %>
+<% order_form.fields_for :address do |address_form| %>
 <%= render :partial => 'address_form', :locals => { :f => address_form } %>
 <% end %>
 
@@ -44,12 +44,12 @@
 <%= order_form.select :payment_type, Order::PAYMENT_TYPES %>
 <div id='payment_forms'>
 <div id='credit_card_payment_form'>
-<% order_form.fields_for :credit_card_payment do |credit_card_payment_form| %>
+<% order_form.fields_for :credit_card_payments do |credit_card_payment_form| %>
 <%= render :partial => 'credit_card_payment_form', :locals => { :f => credit_card_payment_form } %>
 <% end %>
 </div>
 <div id='cash_payment_form'>
-<% order_form.fields_for :cash_payment do |cash_payment_form| %>
+<% order_form.fields_for :cash_payments do |cash_payment_form| %>
 <%= render :partial => 'cash_payment_form', :locals => { :f => cash_payment_form } %>
 <% end %>
 </div>

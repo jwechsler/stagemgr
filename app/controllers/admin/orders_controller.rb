@@ -56,7 +56,10 @@ class Admin::OrdersController < Admin::ApplicationController
 
   def new
     @order = Order.new
+    @order.address = Address.new
     @order.line_items.build
+    @order.cash_payments.build
+    @order.credit_card_payments.build
 
     respond_to do |format|
       format.html # new.html.erb
@@ -68,40 +71,33 @@ class Admin::OrdersController < Admin::ApplicationController
   end
   
   def create
-    cash_payment_hash = params[:order].delete(:cash_payment) || {}
-    credit_card_payment_hash = params[:order].delete(:credit_card_payment) || {}
-    order_params = params[:order].merge(:address_attributes=>params[:order].delete(:addresses))
+    order_params = params[:order]
     @order = Order.new(order_params)
     begin
       case @order.payment_type
       when Order::CREDIT_CARD
-        credit_card_payment_hash.merge!(
-          :payment_type=>'CreditCardPayment',
-          :order=>@order
-        )
-        @payment = CreditCardPayment.new(credit_card_payment_hash)
+        @payment = @order.credit_card_payments.first
+        @payment.order = @order
         @payment.default_from_order
         @payment.address = @order.address
         @payment.process
         @order.payments << @payment
         @order.status = Order::PROCESSED
-        @order.save!
       when Order::CASH
-        cash_payment_hash.merge!(
-          :payment_type=>'CashPayment',
-          :amount=>@order.total,
-          :order=>@order
-        )
-        @payment = CashPayment.new(cash_payment_hash)
+        @payment = @order.cash_payments.build
+        @payment.order = @order
+        @payment.amount = @order.total
         @payment.save!
         @order.payments << @payment
         @order.status = Order::PROCESSED
-        @order.save!
       when Order::FLEX_PASS
         raise 'Unimplemented'
       else
         raise 'Unimplemented'
       end
+      @order.credit_card_payments = []
+      @order.cash_payments = []
+      @order.save!
     
       respond_to do |format|
         flash[:notice] = 'Order was successfully created.'

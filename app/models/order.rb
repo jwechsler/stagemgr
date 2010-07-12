@@ -1,10 +1,12 @@
 class Order < ActiveRecord::Base
   belongs_to            :performance
   has_many              :payments
+  has_many              :credit_card_payments
+  has_many              :cash_payments
 
   has_many                       :line_items
   belongs_to                     :address
-  accepts_nested_attributes_for  :line_items, :address, :payments, :allow_destroy => true
+  accepts_nested_attributes_for  :line_items, :address, :payments, :cash_payments, :credit_card_payments, :allow_destroy => true
   
   ORDER_STATUSES                                                                                    = (
   HOLD,   WEB,   NEW,   PROCESSING,   PROCESSED,   REFUNDED,   EXCHANGED,   FULFILLED,   CANCELED   =
@@ -21,6 +23,10 @@ class Order < ActiveRecord::Base
   before_validation_on_create :initialize_nested_line_items
   before_validation :set_defaults
   
+  def addresses
+    [self.address]
+  end
+
   def production_code=(string)
     @prodution_code=string
   end
@@ -50,7 +56,7 @@ class Order < ActiveRecord::Base
   end
 
   private
-
+  
   def initialize_nested_line_items
     line_items.each { |li| li.order = self }
   end
