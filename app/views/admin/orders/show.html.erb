@@ -50,17 +50,46 @@ Performance:
 	<thead>
 	<th>Ticket Class</th>
 	<th>Ticket Count</th>
-	<th>Price Override</th>
-	<th>Total</th>
 	</thead>
 <% @order.line_items.each do |line_item| %>
 	<tr>
 	<td><%=h line_item.ticket_class.to_s %></td>
 	<td><%=h line_item.ticket_count %></td>
-	<td><%=h to_currency line_item.price_override %></td>
-  	<td><%=h to_currency line_item.total%></td>
 	</tr>
 <% end %>
+  <tr>
+    <td></td>
+    <td><%= @order.line_items.map{|li|li.ticket_count}.sum %> -- Total Tickets</td>
+  </tr>
+</table>
+
+<table id='payments'>
+  <thead>
+   <th>id                      </th>
+   <th>amount                  </th>
+   <th>last_four          </th>
+   <th>card               </th>
+   <th>exp year    </th>
+   <th>exp month   </th>
+   <th>conf code       </th>
+   <th>linked id              </th>
+   <th>type                    </th>
+   <th>created              </th>
+  </thead>
+  <% @order.payments.each do |payment| %>
+  <tr>
+  <td><%= payment.id                      %></td>
+  <td><%= payment.amount                  %></td>
+  <td><%= payment.card_last_four          %></td>
+  <td><%= payment.card_type               %></td>
+  <td><%= payment.card_expiration_year    %></td>
+  <td><%= payment.card_expiration_month   %></td>
+  <td><%= payment.confirmation_code       %></td>
+  <td><%= payment.payment_id              %></td>
+  <td><%= payment.type                    %></td>
+  <td><%= payment.created_at              %></td>
+  </tr>
+  <% end %>
 </table>
 <p>
 	Order Status: <%=h @order.status || 'New' %>

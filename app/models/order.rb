@@ -54,6 +54,16 @@ class Order < ActiveRecord::Base
   def full_name
     "#{self.first_name} #{self.last_name}"
   end
+  
+  def refund!
+    Order.transaction do
+      self.payments.each{|payment|payment.refund!}
+      self.line_items.each{|li|li.refund!}
+      self.status = REFUNDED
+      save!
+    end
+    
+  end
 
   private
   

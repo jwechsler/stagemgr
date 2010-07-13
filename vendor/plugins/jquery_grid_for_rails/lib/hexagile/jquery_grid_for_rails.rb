@@ -28,10 +28,10 @@ module Hexagile
       # Default options
       options =
         {
-          :rows_per_page       => '25',
+          :rows_per_page       => '100',
           :sort_column         => '',
           :sort_order          => 'asc',
-          :height              => "'auto'",
+          :height              => "'auto'", 
           :gridview            => 'false',
           :error_handler       => 'null',
           :inline_edit_handler => 'null',

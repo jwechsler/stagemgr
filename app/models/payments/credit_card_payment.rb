@@ -54,6 +54,9 @@ class CreditCardPayment < Payment
     self.save!
   end
   
+  def refund!
+  end
+  
   private
   
   def get_purchase_options

@@ -25,6 +25,9 @@ class LineItem < ActiveRecord::Base
     price * (self.ticket_count || 0)
   end
   
+  def refund!
+    self.order.line_items.create!(self.attributes.merge(:ticket_count=>self.ticket_count*-1))
+  end
   
   def production_code=(string)
     @prodution_code=string

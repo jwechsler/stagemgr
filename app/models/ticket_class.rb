@@ -34,7 +34,7 @@ class TicketClass < ActiveRecord::Base
   end
   
   def to_s
-    "#{self.class_name||self.class_code}-#{self.ticket_type} #{to_currency  self.ticket_price}"
+    "#{self.class_name||self.class_code}-#{self.ticket_type}"
   end
   
   private 

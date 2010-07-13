@@ -1,5 +1,5 @@
 class Admin::OrdersController < Admin::ApplicationController
-  append_before_filter :find_order, :only => [:show, :edit, :update, :destroy]
+  append_before_filter :find_order, :only => [:show, :edit, :update, :destroy, :refund]
   append_before_filter :redirect_to_proper_action, :only => [:edit, :show]
 
   def autocomplete_production_code
@@ -73,44 +73,49 @@ class Admin::OrdersController < Admin::ApplicationController
   def create
     order_params = params[:order]
     @order = Order.new(order_params)
+   
     begin
-      case @order.payment_type
-      when Order::CREDIT_CARD
-        @payment = @order.credit_card_payments.first
-        @payment.order = @order
-        @payment.default_from_order
-        @payment.address = @order.address
-        @payment.process
-        @order.payments << @payment
-        @order.status = Order::PROCESSED
-      when Order::CASH
-        @payment = @order.cash_payments.build
-        @payment.order = @order
-        @payment.amount = @order.total
-        @payment.save!
-        @order.payments << @payment
-        @order.status = Order::PROCESSED
-      when Order::FLEX_PASS
-        raise 'Unimplemented'
-      else
-        raise 'Unimplemented'
+      Order.transaction do
+        case @order.payment_type
+        when Order::CREDIT_CARD
+          @payment = @order.credit_card_payments.first
+          @payment.order = @order
+          @payment.default_from_order
+          @payment.address = @order.address
+          @payment.process
+          @order.payments << @payment
+          @order.status = Order::PROCESSED
+        when Order::CASH
+          @payment = @order.cash_payments.build
+          @payment.order = @order
+          @payment.amount = @order.total
+          @payment.save!
+          @order.payments << @payment
+          @order.status = Order::PROCESSED
+        when Order::FLEX_PASS
+          raise 'Unimplemented'
+        else
+          raise 'Unimplemented'
+        end
+        @order.credit_card_payments = []
+        @order.cash_payments = []
+        @order.save!
       end
-      @order.credit_card_payments = []
-      @order.cash_payments = []
-      @order.save!
     
-      respond_to do |format|
-        flash[:notice] = 'Order was successfully created.'
-        format.html { redirect_to(edit_admin_order_path(@order.id)) }
-        format.xml  { render :xml => @order, :status => :created, :location => @order }
-      end
+        respond_to do |format|
+          flash[:notice] = 'Order was successfully created.'
+          format.html { redirect_to(edit_admin_order_path(@order.id)) }
+          format.xml  { render :xml => @order, :status => :created, :location => @order }
+        end
     rescue StandardError => e
+      @order.status = nil
       respond_to do |format|
         case e
         when InvalidCreditCard
           flash.now[:notice] = "The credit card you entered was invalid. Reason: #{e.message}"
         when CannotProcessPayment
           flash.now[:notice] = "There was an error while processing your credit card. #{e.message}"
+        when ActiveRecord::RecordInvalid
         else
           flash.now[:notice] = "There was an error creating the order. #{e.message}"
         end
@@ -132,6 +137,12 @@ class Admin::OrdersController < Admin::ApplicationController
         format.xml  { render :xml => @order.errors, :status => :unprocessable_entity }
       end
     end
+  end
+  
+  def refund
+    @order.refund!
+    redirect_to admin_order_path(@order)
+    
   end
   
   private
