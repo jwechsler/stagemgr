@@ -6,7 +6,4 @@ class Payment < ActiveRecord::Base
   def payment_type=(string)
     self.type=string
   end
-  def refund!
-    raise 'Invalid State'
-  end
 end

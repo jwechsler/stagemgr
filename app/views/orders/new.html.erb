@@ -3,20 +3,80 @@
 <% else %>
 <%=@order.new_record? ? 'New' : 'Continue'%> reservation for <%=@production.name%> on <%= @performance.performance_date.to_formatted_s(:long_ordinal) %> at <%=  @performance.performance_time.to_formatted_s(:hour_min)%></h1>
 
-<% form_for([@production,@performance,@order]) do |f| %>
-<%= f.error_messages %>
-<%= f.hidden_field :production_code %>
-<%= f.hidden_field :performance_code %>
-<%= f.hidden_field :status %>
-<%= render :partial=>"wizard_stage_2", :locals=>{:f=>f}%>
-<%= render :partial=>"wizard_stage_1", :locals=>{:f=>f}%>
-<%= render :partial=>"wizard_stage_3", :locals=>{:f=>f}%>
+<% form_for([@production,@performance,@order]) do |order_form| %>
+<%= order_form.error_messages %>
+<%= order_form.hidden_field :production_code %>
+<%= order_form.hidden_field :performance_code %>
+<%= order_form.hidden_field :status %>
 <p>
-  <%= f.label :referral_code %> (optional)<br/>
-  <%= f.text_field :referral_code %>  
+<% order_form.fields_for :address do |address_form| %>
+	<table border="0">
+	<tr><td><%= address_form.label :first_name %><br/>
+	<%= address_form.text_field :first_name %>
+	</td><td><%= address_form.label :last_name %><br/>
+	<%= address_form.text_field :last_name %>
+	</td></tr></table>
+	</p>
+	<p>
+	<%= address_form.label :email %><br/>
+	<%= address_form.text_field :email %>
+	</p>
+	<p>
+	<%= address_form.label :line1, 'Billing Address' %><br/>
+	<%= address_form.text_field :line1 %></p>
+	<p>
+	<table border="0">
+	  <tr><td >
+	<%= address_form.label :city, 'City' %><br />
+	<%= address_form.text_field :city %></td>
+	<td>
+	<%= address_form.label :state, 'State' %><br/>
+	<%= address_form.text_field :state, :size=>3 %>
+	</td><td>
+	<%= address_form.label :zipcode, 'Postal Code' %><br/>
+	<%= address_form.text_field :zipcode, :size=>11 %>
+	</td></tr></table>
+<% end %>
+<% some_are_donation = @order.line_items.any?{|li|li.ticket_class.ticket_type=='Donation'}%>
+<table id='line_items'>
+  <thead>
+	<th>Type</th>
+    <th>How many?</th>
+	<th>Price</th>
+<% if some_are_donation %>
+	<th>Suggested Donation</th>
+	<th>Actual Donation(if different)</th>
+<% end %>
+    <th></th>
+  </thead>
+<% order_form.fields_for :ticket_line_items do |line_item_form| %>
+<%= render :partial => 'line_item', :locals => { :f => line_item_form, :some_are_donation => some_are_donation } %>
+<% end %>
+</table>
+<% order_form.fields_for :credit_card_payments do |credit_card_payment_form| %>
+<%= credit_card_payment_form.label :card_type %>
+<%= credit_card_payment_form.select :card_type, ActiveRecord::Validations::ClassMethods::DEFAULT_CREDIT_CARD_TYPES.values.sort - ['invalid'] %>
+</p>
+<p>
+<%= credit_card_payment_form.label :card_number %>
+<%= credit_card_payment_form.text_field :card_number %>
+</p>
+<p>
+Expiration Month/Year
+<%= credit_card_payment_form.select :card_expiration_month, 1.upto(12).map{|n|['%02d' % n,n]} %>
+<%= credit_card_payment_form.select :card_expiration_year, Date.today.year.upto(Date.today.year+12).to_a %>
+</p>
+<p>
+<%= credit_card_payment_form.label :card_verification_number %>
+<%= credit_card_payment_form.text_field :card_verification_number, :size=>4 %>
+</p>
+<% end %>
+<p>
+  <%= order_form.label :referral_code %> (optional)<br/>
+  <%= order_form.text_field :referral_code %>  
 </p>
   <p>
-    <%= f.submit @order.new_record? ? 'Order tickets' : 'Update', :disable_with => 'Processing...' %>
+    <%= order_form.submit @order.new_record? ? 'Order tickets' : 'Update', :disable_with => 'Processing...' %>
   </p>
 <% end %>
 <% end %>

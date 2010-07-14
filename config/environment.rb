@@ -12,7 +12,7 @@ Rails::Initializer.run do |config|
   # -- all .rb files in that directory are automatically loaded.
 
   # Add additional load paths for your own custom dirs
-  config.load_paths += %W( #{RAILS_ROOT}/app/models/payments )
+  config.load_paths += %W( #{RAILS_ROOT}/app/models/payments #{RAILS_ROOT}/app/models/special_offers #{RAILS_ROOT}/app/models/line_items )
 
   # Specify gems that this application depends on and have them installed with rake gems:install
   # config.gem "bj"

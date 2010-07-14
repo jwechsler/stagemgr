@@ -5,8 +5,16 @@ class Order < ActiveRecord::Base
   has_many              :cash_payments
 
   has_many                       :line_items
+  has_many                       :ticket_line_items
+  #has_many                       :special_offer_line_items
   belongs_to                     :address
-  accepts_nested_attributes_for  :line_items, :address, :payments, :cash_payments, :credit_card_payments, :allow_destroy => true
+  accepts_nested_attributes_for  :line_items, 
+                                 :ticket_line_items, 
+  #                               :special_offer_line_items, 
+                                 :address, 
+                                 :payments, 
+                                 :cash_payments, 
+                                 :credit_card_payments, :allow_destroy => true
   
   ORDER_STATUSES                                                                                    = (
   HOLD,   WEB,   NEW,   PROCESSING,   PROCESSED,   REFUNDED,   EXCHANGED,   FULFILLED,   CANCELED   =
@@ -44,7 +52,8 @@ class Order < ActiveRecord::Base
   end
 
   def total
-    self.line_items.to_a.sum{|line_item|line_item.total}
+    #(self.line_items + self.ticket_line_items + self.special_offer_line_items).uniq.to_a.sum{|line_item|line_item.total}
+    (self.line_items + self.ticket_line_items).uniq.to_a.sum{|line_item|line_item.total}
   end
 
   def editable?
@@ -57,8 +66,8 @@ class Order < ActiveRecord::Base
   
   def refund!
     Order.transaction do
-      self.payments.each{|payment|payment.refund!}
-      self.line_items.each{|li|li.refund!}
+      self.payments.each{|payment|payment.refund! if payment.respond_to? :refund! }
+      self.line_items.each{|li|li.refund! if li.respond_to? :refund!}
       self.status = REFUNDED
       save!
     end

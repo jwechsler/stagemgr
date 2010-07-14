@@ -7,7 +7,9 @@ class OrdersController < ApplicationController
   
   def new
     @order = @performance.orders.build(:status=>Order::WEB)
-    @available_ticket_classes.each{|tc|@order.line_items.build(:ticket_class=>tc)}
+    @order.address = Address.new
+    @order.credit_card_payments.build
+    @available_ticket_classes.each{|tc|@order.ticket_line_items.build(:ticket_class=>tc)}
 
     respond_to do |format|
       format.html # new.html.erb
@@ -22,21 +24,34 @@ class OrdersController < ApplicationController
 
   def create
     @order = Order.new(params[:order])
-    @order.status = Order::PROCESSING
-
-    respond_to do |format|
-      if @order.save
-        if @order.errors.empty? 
-          flash[:notice] = "Your order has been created"
-        else
-          flash[:notice] = @order.errors.full_messages.join('<br/>')
-        end
+    begin
+      Order.transaction do
+        @payment = @order.credit_card_payments.first
+        @payment.order = @order
+        @payment.default_from_order
+        @payment.address = @order.address
+        @payment.process
+        @order.ticket_line_items.each{|tli|tli.order=@order}
+        @order.status = Order::PROCESSED
+        @order.save!
+      end
+      respond_to do |format|
+        flash[:notice] = "Your order has been created"
         format.html { redirect_to(edit_production_performance_order_path(@order.performance.production, @order.performance, @order)) }
         format.xml  { render :xml => @order, :status => :created, :location => @order }
-      else
-        format.html { render :action => "new" }
-        format.xml  { render :xml => @order.errors, :status => :unprocessable_entity }
       end
+    rescue StandardError => e
+        @order.status = nil
+        case e
+        when InvalidCreditCard
+          flash.now[:notice] = "The credit card you entered was invalid. Reason: #{e.message}"
+        when CannotProcessPayment
+          flash.now[:notice] = "There was an error while processing your credit card. #{e.message}"
+        when ActiveRecord::RecordInvalid
+        else
+          flash.now[:notice] = "There was an error creating the order. #{e.message}"
+        end
+        render :new
     end
   end
 

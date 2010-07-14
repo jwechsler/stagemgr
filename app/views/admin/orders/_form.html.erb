@@ -5,7 +5,7 @@
 <% form_for [:admin,@order] do |order_form| -%>
 
   <% content_for :jstemplates do -%>
-  <%= "var line_item='#{generate_template(order_form, :line_items)}'" %>
+  <%= "var line_item='#{generate_template(order_form, :ticket_line_items)}'" %>
   <% end -%>
 
   <p>
@@ -22,18 +22,18 @@
                    :autocomplete_url=>autocomplete_performance_code_admin_orders_path,
                    :size=>10 %>
   </p>
-  <table id='line_items'>
+  <table id='ticket_line_items'>
     <thead>
       <th>Ticket Class</th>
       <th>Ticket Count</th>
       <th>Price Override</th>
       <th>Total</th>
     </thead>
-  <% order_form.fields_for :line_items do |line_item_form| %>
-  <%= render :partial => 'line_item_form', :locals => { :f => line_item_form } %>
+  <% order_form.fields_for :ticket_line_items do |ticket_line_item_form| %>
+  <%= render :partial => 'ticket_line_item_form', :locals => { :f => ticket_line_item_form } %>
   <% end %>
   </table>
-  <%= link_to 'Add a line item', '#line_item', :class => "add_nested_item", :rel => "line_items" %>
+  <%= link_to 'Add a line item', '#ticket_line_item', :class => "add_nested_item", :rel => "ticket_line_items" %>
 <p>
 
 <% order_form.fields_for :address do |address_form| %>

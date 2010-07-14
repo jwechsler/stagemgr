@@ -88,7 +88,7 @@ class OrderTest < ActiveSupport::TestCase
 
     should "available tickets for a performance cannot drop below 0" do
       o = Order.create!(:status=>Order::HOLD,:address=>@address, :performance=>@performance)
-      li = o.line_items.build(:ticket_class=>@production.ticket_classes.first, :ticket_count=>11)
+      li = o.ticket_line_items.build(:ticket_class=>@production.ticket_classes.first, :ticket_count=>11)
       assert_false li.save
     end
 

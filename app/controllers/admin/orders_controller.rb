@@ -57,10 +57,10 @@ class Admin::OrdersController < Admin::ApplicationController
   def new
     @order = Order.new
     @order.address = Address.new
-    @order.line_items.build
+    @order.ticket_line_items.build
     @order.cash_payments.build
     @order.credit_card_payments.build
-
+    
     respond_to do |format|
       format.html # new.html.erb
       format.xml  { render :xml => @order }
@@ -73,15 +73,15 @@ class Admin::OrdersController < Admin::ApplicationController
   def create
     order_params = params[:order]
     @order = Order.new(order_params)
+    @order.ticket_line_items.each{|tli|tli.order=@order}
+    @order.credit_card_payments.each{|ccp|ccp.order=@order}
    
     begin
       Order.transaction do
         case @order.payment_type
         when Order::CREDIT_CARD
           @payment = @order.credit_card_payments.first
-          @payment.order = @order
           @payment.default_from_order
-          @payment.address = @order.address
           @payment.process
           @order.payments << @payment
           @order.status = Order::PROCESSED

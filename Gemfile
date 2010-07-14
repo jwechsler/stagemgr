@@ -44,5 +44,6 @@ group :cucumber do
   gem 'test-unit',          '2.0.7'
   gem 'rcov',               '>=0.9.8'
   gem "factory_girl",       '1.2.4'
+  gem 'launchy'
   gem 'ruby-debug'
 end

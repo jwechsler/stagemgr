@@ -29,6 +29,7 @@ Factory.define(:performance) do |performance|
   performance.association :production, :factory => :production
   performance.status Performance::PERFORMANCE_STATUSES.first
   performance.sequence(:performance_code){|n|"PF#{'%02d' % n}"}
+  performance.ticket_class_allocations{|perf|perf.populate_ticket_class_allocations}
 end
 
 Factory.define(:ticket_class) do |ticket_class|

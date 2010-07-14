@@ -21,8 +21,8 @@ Feature: Box office ordering
   Scenario: Create an order
   Given I fill in "Production code" with "ABC12"
     And I fill in "Performance code" with "PERF"
-    And I fill in "order_line_items_attributes_0_ticket_class_code" with "A"
-    And I fill in "order_line_items_attributes_0_ticket_count" with "2"
+    And I fill in "order_ticket_line_items_attributes_0_ticket_class_code" with "A"
+    And I fill in "order_ticket_line_items_attributes_0_ticket_count" with "2"
     And I fill in "First name" with "PERF"
     And I fill in "Last name" with "PERF"
     And I fill in "Address Line1" with "PERF"

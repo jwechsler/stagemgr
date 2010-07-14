@@ -36,7 +36,7 @@ class Performance < ActiveRecord::Base
   
   def populate_ticket_class_allocations
     self.ticket_class_allocations.each{|tca|tca.performance=self}
-    (self.production.ticket_classes - self.ticket_class_allocations.map{|tca|tca.ticket_class}).each do |ticket_class|
+    (self.production.ticket_classes - self.ticket_class_allocations.map{|tca|tca.ticket_class}).map do |ticket_class|
       self.ticket_class_allocations.build({:ticket_class=>ticket_class, :performance=>self})
     end
   end
