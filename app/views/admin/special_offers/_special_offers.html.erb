@@ -1,0 +1,10 @@
+<h2>Special offers:</h2>
+<table>
+  <tr>
+    <th>Type</th>
+    <th>Amount</th>
+    <th>Code</th>
+	<th><span style='font-size:10px'>&nbsp;&nbsp;&nbsp;<%= link_to 'New', url_for(@rest_path + [SpecialOffer.new]) + '/new' %></span></th>
+  </tr>
+<%= render :partial => '/admin/special_offers/special_offer', :collection=>@special_offers %>
+</table>

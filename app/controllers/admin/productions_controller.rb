@@ -1,6 +1,7 @@
 class Admin::ProductionsController < Admin::ApplicationController
   prepend_before_filter :find_theater
   append_before_filter :find_production, :only => [:show, :edit, :update, :destroy]
+  append_before_filter :find_context, :only => [:show]
 
   # GET /productions/1
   # GET /productions/1.xml
@@ -74,7 +75,8 @@ class Admin::ProductionsController < Admin::ApplicationController
   end
 
   def find_production
-    @production = @theater.productions.find(params[:id])
+    @production = @theater.productions.find_one(params[:id], :include=>:special_offers)
+    @special_offers = @production.special_offers
   end
   
 end

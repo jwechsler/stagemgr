@@ -1,0 +1,18 @@
+<%= f.error_messages %>
+
+<%= f.hidden_field :ticket_class_id %>
+<%= f.hidden_field :performance_id %>
+<%= f.hidden_field :production_id %>
+<%= f.hidden_field :theater_id %>
+<p>
+  <%= f.label :type %><br />
+  <%= f.select :type, {"$ Off"=>AmountOffSpecialOffer,"% Off"=>PercentOffSpecialOffer} %>
+</p>
+<p>
+  <%= f.label :amount %><br />
+  <%= f.text_field :amount %>
+</p>
+<p>
+  <%= f.label :code %><br />
+  <%= f.text_field :code %>
+</p>

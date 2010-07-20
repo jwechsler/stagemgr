@@ -6,11 +6,11 @@ class Order < ActiveRecord::Base
 
   has_many                       :line_items
   has_many                       :ticket_line_items
-  #has_many                       :special_offer_line_items
+  has_many                       :special_offer_line_items
   belongs_to                     :address
   accepts_nested_attributes_for  :line_items, 
                                  :ticket_line_items, 
-  #                               :special_offer_line_items, 
+                                 :special_offer_line_items, 
                                  :address, 
                                  :payments, 
                                  :cash_payments, 
@@ -52,8 +52,7 @@ class Order < ActiveRecord::Base
   end
 
   def total
-    #(self.line_items + self.ticket_line_items + self.special_offer_line_items).uniq.to_a.sum{|line_item|line_item.total}
-    (self.line_items + self.ticket_line_items).uniq.to_a.sum{|line_item|line_item.total}
+    (self.line_items + self.ticket_line_items + self.special_offer_line_items).uniq.to_a.sum{|line_item|line_item.total}
   end
 
   def editable?

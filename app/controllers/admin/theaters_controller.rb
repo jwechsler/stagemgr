@@ -1,7 +1,5 @@
 class Admin::TheatersController < Admin::ApplicationController
-  #skip_before_filter :require_login
-  # GET /theaters
-  # GET /theaters.xml
+  before_filter :find_context, :only=>:show
   def index
     @theaters = Theater.all
 
@@ -24,6 +22,7 @@ class Admin::TheatersController < Admin::ApplicationController
 
   def show
     @theater = Theater.find(params[:id])
+    @special_offers = @theater.special_offers
   end
 
   def edit

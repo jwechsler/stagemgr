@@ -11,6 +11,7 @@ class Production < ActiveRecord::Base
   end
 
   belongs_to :theater
+  has_many :special_offers
   has_many :performances
   has_many :ticket_classes
   has_many :line_items
@@ -18,6 +19,10 @@ class Production < ActiveRecord::Base
   
   def to_s
     "#{self.theater.name}, #{self.name}"
+  end
+  
+  def rest_path
+    [self.theater,self]
   end
   
   private 

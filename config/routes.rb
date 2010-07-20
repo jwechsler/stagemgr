@@ -14,9 +14,15 @@ ActionController::Routing::Routes.draw do |map|
       :cash_payment_form => :post
       }, :member => {:cancel=>:post, :refund=>:post, :exchange=>:get, :fulfill=>:post}
     admin.resources :theaters do |theater|
+      theater.resources :special_offers
       theater.resources :productions do |production|
-        production.resources :performances, :member => 'duplicate'
-        production.resources :ticket_classes
+        production.resources :special_offers
+        production.resources :performances, :member => 'duplicate' do |performance|
+          performance.resources :special_offers
+        end
+        production.resources :ticket_classes do |ticket_class|
+          ticket_class.resources :special_offers
+        end
       end
     end
     admin.resources :users do |user|
