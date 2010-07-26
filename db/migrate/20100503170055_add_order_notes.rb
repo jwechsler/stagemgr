@@ -4,6 +4,6 @@ class AddOrderNotes < ActiveRecord::Migration
   end
 
   def self.down
-    add_column :orders, :notes, :text
+    remove_column :orders, :notes, :text
   end
 end
