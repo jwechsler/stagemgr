@@ -81,7 +81,7 @@ class OrdersController < ApplicationController
   def find_parents
     @production = Production.find(params[:production_id])
     @performance = @production.performances.find(params[:performance_id])
-    @available_ticket_classes = @performance.ticket_classes.select{|tc|tc.web_visible}
+    @available_ticket_classes = @performance.ticket_class_allocations.select{|tca|tca.available}.map{|tca|tca.ticket_class}.select{|tc|tc.web_visible}
   end
   
   def find_order
