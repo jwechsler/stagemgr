@@ -8,9 +8,9 @@
   <% if f.object.ticket_class.ticket_type == 'Donation' %>
     <td></td><td><%= f.object.ticket_class.ticket_price %></td><td><%=f.text_field(:price_override, :class=>'price_override', :size => 6)%></td>
   <% else %>
-    <td><%= f.object.ticket_class.ticket_price %></td><td></td><td></td>
+    <td><%= number_to_currency(f.object.ticket_class.ticket_price) %></td><td></td><td></td>
   <% end %>
 <% else %>
-  <td><%= f.object.ticket_class.ticket_price %></td>
+  <td><%= number_to_currency(f.object.ticket_class.ticket_price) %></td>
 <% end %>
 </tr>
