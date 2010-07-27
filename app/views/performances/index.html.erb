@@ -97,7 +97,7 @@ text-align:right;
 </style>
 <div class='calendar'>
   <h1><%=@production.name%></h1>
-  <h2><%=Date::MONTHNAMES[@start_date.month] +" " + @start_date.to_s%></h2>
+  <h2><%=Date::MONTHNAMES[@start_date.month]%></h2>
 <%= render :partial=>'day_list_navigation', :locals=>{:first_date=>@start_date,:last_date=>@end_date} %>
 <%
 current_week_start = @start_date.beginning_of_week
