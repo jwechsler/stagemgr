@@ -2,8 +2,8 @@ class PerformancesController < ApplicationController
   append_before_filter :find_production
   
   def index
-    @start_date = params[:start_date].nil? ? Date.today.beginning_of_month : Date.parse(params[:start_date])
-    @end_date = params[:end_date].nil? ? Date.today.end_of_month : Date.parse(params[:end_date])
+    @start_date = params[:start_date].nil? ? (@production.first_preview_at.nil? ? Date.today.beginning_of_month : ((@production.first_preview_at.beginning_of_month < Date.today.beginning_of_month) ? Date.today.beginning_of_month : @production.first_preview_at.beginning_of_month)) : Date.parse(params[:start_date])
+    @end_date = @start_date.end_of_month;
     @performances = @production.performances.find(:all, :conditions=>['performances.performance_date >= ? and performances.performance_date <= ?',@start_date,@end_date], :order=>'performances.performance_date, performances.performance_time asc')
     render :index, :layout=>false
   end
