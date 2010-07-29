@@ -25,8 +25,13 @@ class Production < ActiveRecord::Base
     [self.theater,self]
   end
   
+  def running_dates
+    self.first_preview_at.strftime('%B %d, %Y') + " through " + self.closing_at.strftime('%B %d, %Y')
+  end
+  
   private 
   def clean_values
     self.production_code.upcase! unless self.production_code.nil?
   end
+  
 end

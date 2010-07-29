@@ -5,6 +5,12 @@ ActionController::Routing::Routes.draw do |map|
     end
   end
   
+  
+  # add /productions/upcoming as list response for embedding on coming soon page.
+  map.connect '/productions/upcoming',
+      :controller => 'productions',
+      :action => 'upcoming'
+    
   map.namespace :admin do |admin|
     admin.resources :orders, :collection => { 
       :autocomplete_production_code => :get,

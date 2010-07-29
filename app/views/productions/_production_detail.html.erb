@@ -1,0 +1,19 @@
+ <div class="production_information">
+  <% if production.theater.class_display != '' then %>
+    <span class="company_class><%=h production.theater.class_display %></span><br/>
+  <% end %>
+  <span class="company_header"><%=h production.theater.name %></span><br/>
+  <span id="production_name"><%=h production.name %></span><br/>
+  <span id="production_credits"><%=h production.credit_lines %></span><br/>
+  <div class="production_description">
+    <p>
+      <%= production.show_description %>
+    </p>
+  <p class="production_dates"><%=h production.running_dates %></p>
+  <% if production.additional_information_link != '' then %>
+    <p class="additional_information"><a href="<%= production.additional_information_link %>" target="_blank">More information about <i><%=h production.name %></i></a></p>
+  <% end %>
+  <p class="production_tickets"><%= link_to "Purchase tickets", production_performances_path(production.id) %></p>
+</div>
+
+  

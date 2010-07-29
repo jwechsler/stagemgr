@@ -1,0 +1,3 @@
+<% @productions.each { |production| %>
+<%= render :partial => 'production_detail', :locals=>{:production=>production} %>
+<% } %>

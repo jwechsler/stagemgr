@@ -1,4 +1,4 @@
-<p>Thanks!  Your ticket reservation was been made and your credit card has been charged <%= to_currency( @order.total) %>.
+<p>Thanks!  Your ticket reservation was been made and your credit card has been charged <%= number_to_currency( @order.total) %>.
 We will see you at the show on <%= @order.performance.performance_date.to_formatted_s(:show_date) %> at 
 <%= @order.performance.performance_time.to_formatted_s(:show_time) %>.  Your tickets will be available for pickup at our 
 box office at 1229 W Belmont one hour before showtime and seating is general admission.  If you have any questions, please 
