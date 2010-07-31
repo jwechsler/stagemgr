@@ -4,7 +4,9 @@
   <img class="show_logo" src="<%= production.logo_url %>" width="250" />
   <% end  %>
   <% if production.theater.class_display != '' then %>
-    <p><span class="company_class"><%=h production.theater.class_display %></span> - <span class="compnay_header"><%=h production.theater.name %></span></p>
+    <p><span class="company_class"><%=h production.theater.class_display %></span> - <span class="company_header"><%=h production.theater.name %></span></p>
+  <% else %>
+    <p><span class="company_header"><%= h production.theater.name %></span></p>
   <% end %>
   <span class="production_name"><%=h production.name %></span><br/>
   <span class="production_credits"><%=h production.credit_lines %></span><br/>
@@ -16,7 +18,7 @@
   <% if production.additional_information_link != '' then %>
     <p class="additional_information">For more information, click <a href="<%= production.additional_information_link %>" target="_blank">here</a>.</p>
   <% end %>
-  <p class="production_tickets"><%= link_to "Get Tickets / Performance Schedule for <i>#{production.name}</i>", production_performances_path(production.id) %></p>
+  <p class="production_tickets"><%= link_to "Get tickets/schedule for <i>#{production.name}</i>", production_performances_path(production.id) %></p>
 </div>
 
   
