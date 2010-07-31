@@ -13,6 +13,6 @@ class Theater < ActiveRecord::Base
   has_attached_file :logo
   
   def class_display
-    return theater_class = 'Default' ? '' : theater_class
+    return theater_class == 'Default' ? '' : theater_class
   end
 end
