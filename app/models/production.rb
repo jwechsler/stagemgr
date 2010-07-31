@@ -6,9 +6,12 @@ class Production < ActiveRecord::Base
   validates_length_of :production_code, :in=>1..5
   validates_numericality_of :capacity
   validates_each :capacity do |record, attr, value|
-    max_limit = record.performances.map{|performance| performance.ticket_class_allocations.maximum(:ticket_limit) }.max
-    if !max_limit.nil? then
-       record.errors.add attr, 'must be greater than the limit of all ticket classes' if !max_limit.nil? && value <= max_limit
+    max_array = record.performances.map{|performance| performance.ticket_class_allocations.maximum(:ticket_limit) }
+    if !max_array.nil? then
+      max_limit = max_array.max
+      if !max_limit.nil? then
+        record.errors.add attr, 'must be greater than the limit of all ticket classes' if !max_limit.nil? && value <= max_limit
+      end
     end
   end
 
