@@ -6,7 +6,7 @@
   <% if production.theater.class_display != '' then %>
     <p><span class="company_class"><%=h production.theater.class_display %></span> - <span class="company_header"><%=h production.theater.name %></span></p>
   <% else %>
-    <p><span class="company_header"><%= h production.theater.name %></span></p>
+    <p><span class="company_class"><%= h production.theater.name %></span></p>
   <% end %>
   <span class="production_name"><%=h production.name %></span><br/>
   <span class="production_credits"><%=h production.credit_lines %></span><br/>
