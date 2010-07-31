@@ -7,7 +7,9 @@ class Production < ActiveRecord::Base
   validates_numericality_of :capacity
   validates_each :capacity do |record, attr, value|
     max_limit = record.performances.map{|performance| performance.ticket_class_allocations.maximum(:ticket_limit) }.max
-    record.errors.add attr, 'must be greater than the limit of all ticket classes' if !max_limit.nil? && value <= max_limit
+    if !max_limit.nil? then
+       record.errors.add attr, 'must be greater than the limit of all ticket classes' if !max_limit.nil? && value <= max_limit
+    end
   end
 
   belongs_to :theater
