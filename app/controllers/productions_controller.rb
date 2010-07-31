@@ -12,7 +12,7 @@ class ProductionsController < ApplicationController
   def upcoming
     @current_date = Date.today
     @productions = Production.find(:all, :conditions=>['productions.first_preview_at >= ? and productions.status = \'Active\'',@current_date], :order=>'productions.first_preview_at')
-    render :upcoming
+    render :upcoming, :layout=>false
   end
   
 
