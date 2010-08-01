@@ -1,0 +1,24 @@
+<h1>Editing flex_pass_offer</h1>
+
+<% form_for(@flex_pass_offer) do |f| %>
+  <%= f.error_messages %>
+
+  <p>
+    <%= f.label :theater %><br />
+    <%= f.text_field :theater %>
+  </p>
+  <p>
+    <%= f.label :price %><br />
+    <%= f.text_field :price %>
+  </p>
+  <p>
+    <%= f.label :number_of_tickets %><br />
+    <%= f.text_field :number_of_tickets %>
+  </p>
+  <p>
+    <%= f.submit 'Update' %>
+  </p>
+<% end %>
+
+<%= link_to 'Show', @flex_pass_offer %> |
+<%= link_to 'Back', flex_pass_offers_path %>

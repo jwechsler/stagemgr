@@ -1,41 +1,37 @@
 ActionController::Routing::Routes.draw do |map|
+
   map.resources :productions, :only=>:index do |production|
     production.resources :performances, :only=>:index do |performance|
       performance.resources :orders
     end
   end
-  
-  
+
   # add /productions/upcoming as list response for embedding on coming soon page.
   map.connect '/productions/upcoming',
       :controller => 'productions',
       :action => 'upcoming'
-    
+
   map.namespace :admin do |admin|
-    admin.resources :orders, :collection => { 
+    admin.resources :flex_pass_offers
+    admin.resources :orders, :collection => {
       :autocomplete_production_code => :get,
       :autocomplete_performance_code => :get,
       :autocomplete_ticket_class_code => :get,
       :credit_card_payment_form => :post,
       :cash_payment_form => :post
       }, :member => {:cancel=>:post, :refund=>:post, :exchange=>:get, :fulfill=>:post}
+    admin.resources :special_offers
     admin.resources :theaters do |theater|
-      theater.resources :special_offers
       theater.resources :productions do |production|
-        production.resources :special_offers
-        production.resources :performances, :member => 'duplicate' do |performance|
-          performance.resources :special_offers
-        end
-        production.resources :ticket_classes do |ticket_class|
-          ticket_class.resources :special_offers
-        end
+        production.resources :performances, :member => 'duplicate'
+        production.resources :ticket_classes
       end
     end
     admin.resources :users do |user|
       user.resources :theaters
     end
   end
-  
+
   map.namespace :current_user do |current_user|
     current_user.resources :theaters do |theater|
       theater.resources :productions do |production|

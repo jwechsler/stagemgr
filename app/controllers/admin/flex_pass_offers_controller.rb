@@ -1,0 +1,84 @@
+class Admin::FlexPassOffersController < Admin::ApplicationController
+  before_filter :find_theater
+  # GET /flex_pass_offers
+  # GET /flex_pass_offers.xml
+  def index
+    @flex_pass_offers = FlexPassOffer.all
+
+    respond_to do |format|
+      format.html # index.html.erb
+      format.xml  { render :xml => @flex_pass_offers }
+    end
+  end
+
+  # GET /flex_pass_offers/1
+  # GET /flex_pass_offers/1.xml
+  def show
+    @flex_pass_offer = FlexPassOffer.find(params[:id])
+
+    respond_to do |format|
+      format.html # show.html.erb
+      format.xml  { render :xml => @flex_pass_offer }
+    end
+  end
+
+  # GET /flex_pass_offers/new
+  # GET /flex_pass_offers/new.xml
+  def new
+    @flex_pass_offer = @theater.flex_pass_offers.build
+
+    respond_to do |format|
+      format.html # new.html.erb
+      format.xml  { render :xml => @flex_pass_offer }
+    end
+  end
+
+  # GET /flex_pass_offers/1/edit
+  def edit
+    @flex_pass_offer = FlexPassOffer.find(params[:id])
+  end
+
+  # POST /flex_pass_offers
+  # POST /flex_pass_offers.xml
+  def create
+    @flex_pass_offer = FlexPassOffer.new(params[:flex_pass_offer])
+
+    respond_to do |format|
+      if @flex_pass_offer.save
+        flash[:notice] = 'FlexPassOffer was successfully created.'
+        format.html { redirect_to([:admin,@flex_pass_offer.theater]) }
+      else
+        format.html { render :action => "new" }
+      end
+    end
+  end
+
+  # PUT /flex_pass_offers/1
+  # PUT /flex_pass_offers/1.xml
+  def update
+    @flex_pass_offer = FlexPassOffer.find(params[:id])
+
+    respond_to do |format|
+      if @flex_pass_offer.update_attributes(params[:flex_pass_offer])
+        flash[:notice] = 'FlexPassOffer was successfully updated.'
+        format.html { redirect_to(@flex_pass_offer) }
+        format.xml  { head :ok }
+      else
+        format.html { render :action => "edit" }
+        format.xml  { render :xml => @flex_pass_offer.errors, :status => :unprocessable_entity }
+      end
+    end
+  end
+
+  # DELETE /flex_pass_offers/1
+  # DELETE /flex_pass_offers/1.xml
+  def destroy
+    @flex_pass_offer = FlexPassOffer.find(params[:id])
+    @flex_pass_offer.destroy
+
+    respond_to do |format|
+      format.html { redirect_to(flex_pass_offers_url) }
+      format.xml  { head :ok }
+    end
+  end
+end

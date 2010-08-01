@@ -2,6 +2,32 @@ class ApplicationController < ActionController::Base
   helper :all
   helper_method :current_user_session, :current_user, :logged_in?, :current_user_is_admin?
   filter_parameter_logging :password, :password_confirmation
+  
+  def method_missing(method, *args)
+    begin
+      method_name = method.to_s
+      if method_name =~ /^find_/
+        match_data = method_name.match(/^find_(.*)$/)
+        model_name = match_data[1]
+        model_class = model_name.classify.constantize
+        param_id = "#{model_name}_id".to_sym
+        found_model = if params[param_id]
+          model_class.find(params[param_id])
+        elsif params[:id]
+          model_class.find(params[:id])
+        else
+          nil
+        end
+        if found_model
+          instance_variable_set "@#{model_name}", found_model
+          return
+        end
+      end
+    rescue StandardError => e
+      #just do standard method_missing stuff if we fail
+    end
+    false
+  end
 
   protected
 

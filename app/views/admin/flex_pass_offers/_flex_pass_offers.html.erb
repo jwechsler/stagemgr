@@ -1,0 +1,9 @@
+<h2>FlexPass offers:</h2>
+<table>
+  <tr>
+    <th>Number of Tickets</th>
+    <th>Price</th>
+	<th><span style='font-size:10px'>&nbsp;&nbsp;&nbsp;<%= link_to 'New', url_for(@rest_path + [FlexPassOffer.new]) + '/new' %></span></th>
+  </tr>
+<%= render :partial => '/admin/flex_pass_offers/flex_pass_offer', :collection=>@flex_pass_offers %>
+</table>

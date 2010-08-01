@@ -22,7 +22,6 @@ class Admin::TheatersController < Admin::ApplicationController
 
   def show
     @theater = Theater.find(params[:id])
-    @special_offers = @theater.special_offers
   end
 
   def edit

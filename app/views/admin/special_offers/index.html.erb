@@ -1,0 +1,28 @@
+<% 
+plural_model_class_name = @controller.class.to_s.gsub(/.*::/,'').gsub(/Controller$/,'')
+model_class_name = plural_model_class_name.singularize
+instance_variable_name_for_collection = "#{plural_model_class_name.underscore}"
+model_class = model_class_name.constantize
+heading = instance_variable_name_for_collection.humanize
+attribute_names = model_class.column_names
+%>
+
+<h1><%= heading %></h1>
+
+<table>
+<thead>
+<%- attribute_names.each do |attribute_name| -%>
+<th><%= attribute_name.gsub(/_id$/,'').humanize %></th>
+<%- end -%>
+<%- instance_variable_get("@#{instance_variable_name_for_collection}").each do |model| -%>
+<tr>
+<%- attribute_names.each do |attribute_name| -%>
+<td><%= attribute_name =~ /_id$/ ? 
+			model.send(attribute_name.gsub(/_id$/,'').to_sym).to_s : 
+			model.send(attribute_name.to_sym) 
+	%></td>
+<%- end -%>
+</tr>
+<%- end -%>
+</thead>
+</table>
