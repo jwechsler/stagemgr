@@ -26,3 +26,5 @@ attribute_names = model_class.column_names
 <%- end -%>
 </thead>
 </table>
+
+<%= link_to "New #{model_class_name.underscore.humanize}", send("new_admin_#{model_class_name.underscore}_path".to_sym) %>
