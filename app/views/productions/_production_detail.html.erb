@@ -1,7 +1,7 @@
  <div class="production_information">
  
    <% if !production.logo_url.blank? then %>
-  <img class="show_logo" src="<%= production.logo_url %>" width="250" />
+  <img class="production_logo" src="<%= production.logo_url %>" width="250" />
   <% end  %>
   <% if production.theater.class_display != '' then %>
     <p><span class="company_class"><%=h production.theater.class_display %></span> - <span class="company_header"><%=h production.theater.name %></span></p>
@@ -15,7 +15,7 @@
     <p>
       <%= production.show_description %>
     </p>
-  <% if production.additional_information_link != '' then %>
+  <% if !production.additional_information_link.blank? then %>
     <p class="additional_information">For more information, click <a href="<%= production.additional_information_link %>" target="_blank">here</a>.</p>
   <% end %>
   <p class="production_tickets"><%= link_to "Get tickets/schedule for <i>#{production.name}</i>", production_performances_path(production.id) %></p>

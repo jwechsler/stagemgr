@@ -11,7 +11,7 @@ class ProductionsController < ApplicationController
   
   def upcoming
     @current_date = Date.today
-    @productions = Production.find(:all, :conditions=>['productions.first_preview_at >= ? and productions.status = \'Active\'',@current_date], :order=>'productions.first_preview_at')
+    @productions = Production.find(:all, :conditions=>['productions.first_preview_at >= ? and productions.status = \'Active\'',@current_date], :order=>'case theater_id when 1 then 0 else 1 end, productions.first_preview_at')
     render :upcoming, :layout=>false
   end
   
