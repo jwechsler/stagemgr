@@ -1,7 +1,7 @@
  <div class="production_information">
  
    <% if !production.logo_url.blank? then %>
-  <img class="show_logo" src="<%= production.logo_url %>" width="250" />
+  <img class="production_logo" src="<%= production.logo_url %>" width="250" />
   <% end  %>
   <% if production.theater.class_display != '' then %>
     <p><span class="company_class"><%=h production.theater.class_display %></span> - <span class="company_header"><%=h production.theater.name %></span></p>
