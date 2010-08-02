@@ -15,7 +15,7 @@
     <p>
       <%= production.show_description %>
     </p>
-  <% if production.additional_information_link != '' then %>
+  <% if !production.additional_information_link.blank? then %>
     <p class="additional_information">For more information, click <a href="<%= production.additional_information_link %>" target="_blank">here</a>.</p>
   <% end %>
   <p class="production_tickets"><%= link_to "Get tickets/schedule for <i>#{production.name}</i>", production_performances_path(production.id) %></p>
