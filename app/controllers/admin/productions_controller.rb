@@ -75,8 +75,7 @@ class Admin::ProductionsController < Admin::ApplicationController
   end
 
   def find_production
-    @production = @theater.productions.find_one(params[:id], :include=>:special_offers)
-    @special_offers = @production.special_offers
+    @production = @theater.productions.find(params[:id])
   end
   
 end

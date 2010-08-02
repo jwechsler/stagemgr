@@ -1,12 +1,19 @@
 <%= f.error_messages %>
 
-<%= f.hidden_field :ticket_class_id %>
-<%= f.hidden_field :performance_id %>
-<%= f.hidden_field :production_id %>
-<%= f.hidden_field :theater_id %>
 <p>
   <%= f.label :type %><br />
   <%= f.select :type, {"$ Off"=>AmountOffSpecialOffer,"% Off"=>PercentOffSpecialOffer} %>
+</p>
+<p>
+  Applicable To:<br />
+  <%= f.select :limiting_model_type, [
+	['All Tickets', nil],
+	['Tickets for Theater with id:', Theater.to_s],
+	['Tickets for Production with code:', Production.to_s],
+	['Tickets for Performance with code:', Performance.to_s],
+	['Tickets for Ticket Class with code:', TicketClass.to_s]
+	] %>
+  <%= f.text_field :limiting_id %>
 </p>
 <p>
   <%= f.label :amount %><br />
