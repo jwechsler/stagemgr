@@ -74,6 +74,12 @@ timed_ticket_class2 = production2.ticket_classes.create!({
 
 })
 
-Performance.all.each{|per|per.populate_ticket_class_allocations;per.ticket_class_allocations.each{|tca|tca.save!}}
+Performance.all.each do |per|
+  per.populate_ticket_class_allocations
+  per.ticket_class_allocations.each do |tca|
+    tca.available=true
+    tca.save!
+  end
+end
 
 
