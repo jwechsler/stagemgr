@@ -1,0 +1,19 @@
+<% payments.each do |payment|%>
+<%- if payment.type == 'CreditCardPayment' -%>
+<p>
+Card number:
+*<%=h payment.card_last_four %>
+</p>
+<p>
+Card type:
+<%=h payment.card_type %>
+</p>
+<%- elsif payment.type == 'CashPayment' -%>
+<p>
+	Paid cash in the amount of:
+	<%= payment.amount %>
+</p>
+<% else %>
+<%= payment.type %>
+<%- end -%>
+<%- end -%>

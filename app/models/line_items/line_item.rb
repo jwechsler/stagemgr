@@ -1,8 +1,7 @@
 class LineItem < ActiveRecord::Base
-  belongs_to :ticket_class
   belongs_to :order
 
-  validates_presence_of :ticket_class, :ticket_count, :order
+  validates_presence_of :order
 
   def production_code=(string)
     @prodution_code=string

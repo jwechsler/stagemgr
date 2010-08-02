@@ -6,10 +6,12 @@ class Order < ActiveRecord::Base
 
   has_many                       :line_items
   has_many                       :ticket_line_items
+  has_many                       :flex_pass_line_items
   has_many                       :special_offer_line_items
   belongs_to                     :address
   accepts_nested_attributes_for  :line_items, 
                                  :ticket_line_items, 
+                                 :flex_pass_line_items, 
                                  :special_offer_line_items, 
                                  :address, 
                                  :payments, 
@@ -27,7 +29,7 @@ class Order < ActiveRecord::Base
   validates_inclusion_of :status,        :in => ORDER_STATUSES
   validates_inclusion_of :payment_type,  :in => PAYMENT_TYPES
 
-  validates_presence_of  :address, :status, :performance
+  validates_presence_of  :address, :status
   before_validation_on_create :initialize_nested_line_items
   before_validation :set_defaults
   
@@ -52,7 +54,7 @@ class Order < ActiveRecord::Base
   end
 
   def total
-    (self.line_items + self.ticket_line_items + self.special_offer_line_items).uniq.to_a.sum{|line_item|line_item.total}
+    (self.line_items + self.ticket_line_items + self.special_offer_line_items + self.flex_pass_line_items).uniq.to_a.sum{|line_item|line_item.total}
   end
 
   def editable?
@@ -72,6 +74,48 @@ class Order < ActiveRecord::Base
     end
     
   end
+  
+  def process!    
+    payment = nil
+    
+    Order.transaction do
+      self.flex_pass_line_items.each do |fpli|
+        fpli.order=self
+      end
+      self.ticket_line_items.each{|tli|tli.order=self}
+      self.special_offer_line_items.each{|soli|soli.order=self}
+      self.credit_card_payments.each{|ccp|ccp.order=self}
+
+      case self.payment_type
+      when Order::CREDIT_CARD
+        payment = self.credit_card_payments.first
+        payment.default_from_order
+        payment.process
+        self.payments << payment
+        self.status = Order::PROCESSED
+      when Order::CASH
+        payment = self.cash_payments.build
+        payment.order = self
+        payment.amount = self.total
+        payment.save!
+        self.payments << payment
+        self.status = Order::PROCESSED
+      when Order::FLEX_PASS
+        raise 'Unimplemented'
+      else
+        raise 'Unimplemented'
+      end
+      self.credit_card_payments = []
+      self.cash_payments = []
+      self.save!
+      self.flex_pass_line_items.each do |fpli|
+        fpli.flex_pass = FlexPass.create! :flex_pass_offer => fpli.flex_pass_offer, :order => self, :address => self.address
+        fpli.save!
+      end
+    end
+    
+    payment
+  end
 
   private
   
@@ -82,6 +126,7 @@ class Order < ActiveRecord::Base
   def set_defaults
     self.status ||= HOLD
     self.payment_type ||= CREDIT_CARD
+    self.ticket_line_items.each{|tli|tli.order=self}
   end
 
 end
