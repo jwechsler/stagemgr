@@ -14,6 +14,7 @@ Feature: Web ordering
 	And the following performances exist on the Production "Production One":
 	| performance_code |
 	| PERF             |
+	And all the ticket class are available for Performance "PERF"
 	
 Scenario: Create an order
 Given I go to new web order for production "ABC12" and performance "PERF"

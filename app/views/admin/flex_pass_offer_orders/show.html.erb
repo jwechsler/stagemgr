@@ -1,0 +1,6 @@
+<%= %>
+<%= render :partial=>'/admin/orders/address_show', :locals=>{:address=>@order.address}%>
+<%= render :partial=>'/admin/orders/payments_show', :locals=>{:payments=>@order.payments}%>
+<%- @order.line_items.each do |line_item| -%>
+<%= render :partial=>line_item %>
+<%- end -%>

@@ -1,46 +1,5 @@
-<p>
-First Name:
-<%=h @order.address.first_name %>
-</p>
-<p>
-Last name:
-<%=h @order.address.last_name %>
-</p>
-<p>
-Email:
-<%=h @order.address.email %>
-</p>
-<p>
-Billing Address:
-</p>
-<p>
-Address Line1:
-<%=h @order.address.line1 %>
-</p>
-<p>
-Address Line2:
-<%=h @order.address.line2 %>
-</p>
-<p>
-City:
-<%=h @order.address.city %>
-</p>
-<p>
-State/Province/Region:
-<%=h @order.address.state %>
-</p>
-<p>
-ZIP/Postal Code:
-<%=h @order.address.zipcode %>
-</p>
-<p>
-Card number:
-*<%=h @order.payments.first.card_last_four %>
-</p>
-<p>
-Card type:
-<%=h @order.payments.first.card_type %>
-</p>
+<%= render :partial => 'address_show', :locals=>{:address=>@order.address } %>
+<%= render :partial => 'payments_show', :locals=>{:payments=>@order.payments } %>
 <p>
 Performance:
 <%=h @order.performance.to_s %>

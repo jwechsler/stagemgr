@@ -13,7 +13,7 @@ class PerformanceTest < ActiveSupport::TestCase
     end
 
     should "number of tickets left for a perfomance should be decremented by orders/line items" do
-      Factory.create(:line_item, :order=>@order, :ticket_count=>5)
+      Factory.create(:ticket_line_item, :order=>@order, :ticket_count=>5)
       assert_equal 5, @performance.number_of_tickets_left
     end
   end

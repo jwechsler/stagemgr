@@ -12,7 +12,10 @@ ActionController::Routing::Routes.draw do |map|
       :action => 'upcoming'
 
   map.namespace :admin do |admin|
-    admin.resources :flex_pass_offers
+    admin.resources :flex_pass_offers do |flex_pass_offer|
+      flex_pass_offer.resources :orders, :controller => 'flex_pass_offer_orders'
+    end
+    admin.resources :flex_passes
     admin.resources :orders, :collection => {
       :autocomplete_production_code => :get,
       :autocomplete_performance_code => :get,

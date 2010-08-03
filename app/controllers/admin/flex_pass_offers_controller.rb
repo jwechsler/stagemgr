@@ -1,14 +1,6 @@
 class Admin::FlexPassOffersController < Admin::ApplicationController
-  before_filter :find_theater
-  # GET /flex_pass_offers
-  # GET /flex_pass_offers.xml
   def index
     @flex_pass_offers = FlexPassOffer.all
-
-    respond_to do |format|
-      format.html # index.html.erb
-      format.xml  { render :xml => @flex_pass_offers }
-    end
   end
 
   # GET /flex_pass_offers/1
@@ -25,7 +17,7 @@ class Admin::FlexPassOffersController < Admin::ApplicationController
   # GET /flex_pass_offers/new
   # GET /flex_pass_offers/new.xml
   def new
-    @flex_pass_offer = @theater.flex_pass_offers.build
+    @flex_pass_offer = FlexPassOffer.new
 
     respond_to do |format|
       format.html # new.html.erb
@@ -46,7 +38,7 @@ class Admin::FlexPassOffersController < Admin::ApplicationController
     respond_to do |format|
       if @flex_pass_offer.save
         flash[:notice] = 'FlexPassOffer was successfully created.'
-        format.html { redirect_to([:admin,@flex_pass_offer.theater]) }
+        format.html { redirect_to(admin_flex_pass_offers_path) }
       else
         format.html { render :action => "new" }
       end

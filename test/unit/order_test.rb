@@ -11,7 +11,7 @@ class OrderTest < ActiveSupport::TestCase
     should 'be able to create entire hierarchy in new' do
       params_order = {
         "production_code"=>@production.production_code, 
-        "line_items_attributes"=>{
+        "ticket_line_items_attributes"=>{
           "0"=>{
             "ticket_class_code"=>@ticket_class.class_code, 
             "ticket_count"=>"2"
@@ -64,25 +64,25 @@ class OrderTest < ActiveSupport::TestCase
       
     should "A held order reduces the quantity of tickets available for the performance" do
       o = Order.create!(:status=>Order::HOLD,:address=>@address, :performance=>@performance)
-      li = o.line_items.create!(:ticket_class=>@production.ticket_classes.first, :ticket_count=>5)
+      li = o.ticket_line_items.create!(:ticket_class=>@production.ticket_classes.first, :ticket_count=>5)
       assert 5, @performance.number_of_tickets_left
     end
 
     should "A processed order reduces the quantity of tickets available for the performance" do
       o = Order.create!(:status=>Order::PROCESSED,:address=>@address, :performance=>@performance)
-      li = o.line_items.create!(:ticket_class=>@production.ticket_classes.first, :ticket_count=>5)
+      li = o.ticket_line_items.create!(:ticket_class=>@production.ticket_classes.first, :ticket_count=>5)
       assert 5, @performance.number_of_tickets_left
     end
 
     should "A canceled order does not reduce the quantity of tickets available for the performance" do
       o = Order.create!(:status=>Order::CANCELED,:address=>@address, :performance=>@performance)
-      li = o.line_items.create!(:ticket_class=>@production.ticket_classes.first, :ticket_count=>5)
+      li = o.ticket_line_items.create!(:ticket_class=>@production.ticket_classes.first, :ticket_count=>5)
       assert 10, @performance.number_of_tickets_left
     end
 
     should "A refunded order does not reduce the quantity of tickets available for the performance" do
       o = Order.create!(:status=>Order::REFUNDED,:address=>@address, :performance=>@performance)
-      li = o.line_items.create!(:ticket_class=>@production.ticket_classes.first, :ticket_count=>5)
+      li = o.ticket_line_items.create!(:ticket_class=>@production.ticket_classes.first, :ticket_count=>5)
       assert 10, @performance.number_of_tickets_left
     end
 

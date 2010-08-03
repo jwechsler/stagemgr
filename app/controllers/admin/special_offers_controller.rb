@@ -16,5 +16,6 @@ class Admin::SpecialOffersController < Admin::ApplicationController
   
   def index
     @special_offers = SpecialOffer.all
+    render 'admin/scaffold/index'
   end
 end
