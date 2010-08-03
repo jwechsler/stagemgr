@@ -12,9 +12,6 @@ a {
   color: #0000FF;
 }
 
-body {
-  background-color: #4B7399;
-}
 
 #container {
   width: 90%;
@@ -94,6 +91,7 @@ body {
 .production_information {
   font: 0.8em "Helvetica Neue", Helvetica, Geneva, "Lucida Grande", LucidaGrande, Lucida, Verdana, Helvetica, Arial, sans-serif;
   font-size: 13px;
+  background-color: #FFF;
 }
 
 .company_class {
