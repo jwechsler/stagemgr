@@ -1,24 +1,28 @@
-<h1>Listing flex_pass_offers</h1>
+<h1>Flex pass offers</h1>
 
 <table>
-  <tr>
-    <th>Theater</th>
-    <th>Price</th>
-    <th>Number of tickets</th>
-  </tr>
-
-<% @flex_pass_offers.each do |flex_pass_offer| %>
-  <tr>
-    <td><%=h flex_pass_offer.theater %></td>
-    <td><%=h flex_pass_offer.price %></td>
-    <td><%=h flex_pass_offer.number_of_tickets %></td>
-    <td><%= link_to 'Show', flex_pass_offer %></td>
-    <td><%= link_to 'Edit', edit_flex_pass_offer_path(flex_pass_offer) %></td>
-    <td><%= link_to 'Destroy', flex_pass_offer, :confirm => 'Are you sure?', :method => :delete %></td>
-  </tr>
-<% end %>
+<thead>
+<th>Id</th>
+<th>Theater</th>
+<th>Price</th>
+<th>Number of tickets</th>
+<th>Created at</th>
+<th>Updated at</th>
+<th>Actions</th>
+</thead>
+<%- @flex_pass_offers.each do |flex_pass_offer| -%>
+<tr>
+<td><%= flex_pass_offer.id %></td>
+<td><%= flex_pass_offer.theater.to_s %></td>
+<td><%= flex_pass_offer.price %></td>
+<td><%= flex_pass_offer.number_of_tickets %></td>
+<td><%= flex_pass_offer.created_at %></td>
+<td><%= flex_pass_offer.updated_at %></td>
+<td><%= link_to 'Create Order', new_admin_flex_pass_offer_order_path(flex_pass_offer) %></td>
+</tr>
+<%- end -%>
 </table>
 
 <br />
 
-<%= link_to 'New flex_pass_offer', new_flex_pass_offer_path %>
+<%= link_to 'New flex_pass_offer', new_admin_flex_pass_offer_path %>

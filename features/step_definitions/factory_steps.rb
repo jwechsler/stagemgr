@@ -14,5 +14,11 @@ Given /^a(?:|n) ([^\"]*) exists$/ do |type|
   symbol = type.underscore.to_sym
   Factory(symbol)
 end
-  
+
+Given /^all the ticket class are available for Performance "([^"]*)"$/ do |performance_code|
+  Performance.find_by_performance_code(performance_code).ticket_class_allocations.each do |tca|
+    tca.available = true
+    tca.save!
+  end
+end
   

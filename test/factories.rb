@@ -45,5 +45,9 @@ end
 
 Factory.define(:line_item) do |line_item|
   line_item.association :order, :factory        => :order
-  line_item.association :ticket_class, :factory => :ticket_class
+end
+
+Factory.define(:ticket_line_item) do |ticket_line_item|
+  ticket_line_item.association :order, :factory        => :order
+  ticket_line_item.association :ticket_class, :factory => :ticket_class
 end

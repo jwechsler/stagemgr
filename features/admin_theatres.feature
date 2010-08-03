@@ -44,7 +44,7 @@ Feature: The Administrator can manage theater records
       And I go to the admin/theater page
       And I follow "New theater"
       And I fill in "Name" with "Theater Number One"
-      And I select "Renter" from "Theater class"
+      And I select "Visiting Company" from "Theater class"
       And I select "Inactive" from "Status"
       And I press "Create"
      Then I should be on the admin/theater page
@@ -56,8 +56,9 @@ Feature: The Administrator can manage theater records
       And I go to the admin/theater page
       And I follow "New theater"
      Then I select "Default" from "Theater class"
-      And I select "Resident" from "Theater class"
-      And I select "Renter" from "Theater class"
+      And I select "Resident Company" from "Theater class"
+      And I select "Visiting Company" from "Theater class"
+      And I select "Guest Artist" from "Theater class"
       And I select "Active" from "Status"
       And I select "Inactive" from "Status"
 
