@@ -1,9 +1,9 @@
 <style>
-.calendar
+.stagemgr_calendar
 {
 width:435px;
 }
-.calendar .day_list_nav
+.stagemgr_calendar .stagemgr_day_list_nav
 {
 float:left;
 margin:0;
@@ -11,19 +11,19 @@ padding:0;
 background:#8080B2;
 width:100%;
 }
-.day_list_nav a
+.stagemgr_day_list_nav a
 {
 color:#FFFFFF;
 }
-.day_list_nav .previous
+.stagemgr_day_list_nav .stagemgr_previous
 {
 float:left;
 }
-.day_list_nav .next
+.stagemgr_day_list_nav .stagemgr_next
 {
 float:right;
 }
-.calendar ul
+.stagemgr_calendar ul
 {
 float:left;
 margin:0;
@@ -31,30 +31,30 @@ padding:0;
 border:1px solid #C9C9C9;
 width:60px;
 }
-.calendar ul li
+.stagemgr_calendar ul li
 {
 list-style:none;
 padding:0px 10px;
 font-size:.5em;
 }
-.calendar ul li.day-header
+.stagemgr_calendar ul li.day-header
 {
 background:#D9D9D9;
 font-weight:bold;
 text-align:right;
 }
 
-.calendar li.day-header
+.stagemgr_calendar li.day-header
 {
   font-weight:bold;
 }
 
-.calendar h1
+.stagemgr_calendar h1
 {
   font-size: 1em;
 }
 
-.calendar h2
+.stagemgr_calendar h2
 {
   font-size: .7em;
 }
@@ -89,16 +89,16 @@ text-align:right;
     height:20px;
   }
 
-  .calendar li.vertical_center {
+  .stagemgr_calendar li.vertical_center {
     height:20px;
     line-height:20px;
   }
 
 </style>
-<div class='calendar'>
+<div class='stagemgr_calendar'>
   <h1><%=@production.name%></h1>
   <h2><%=Date::MONTHNAMES[@start_date.month]%></h2>
-<%= render :partial=>'day_list_navigation', :locals=>{:first_date=>@start_date,:last_date=>@end_date} %>
+<%= render :partial=>'stagemgr_day_list_navigation', :locals=>{:first_date=>@start_date,:last_date=>@end_date} %>
 <%
 current_week_start = @start_date.beginning_of_week
 1.upto(7).each do |day|
@@ -115,5 +115,5 @@ end
 </ul>
 <% end %>
 
-<%= render :partial=>'day_list_navigation', :locals=>{:first_date=>@start_date,:last_date=>@end_date} %>
+<%= render :partial=>'stagemgr_day_list_navigation', :locals=>{:first_date=>@start_date,:last_date=>@end_date} %>
 </div>
