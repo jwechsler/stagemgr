@@ -1,7 +1,7 @@
 <% if @available_ticket_classes.nil? || @available_ticket_classes.empty? %>
   No Web Available Tickets
 <% else %>
-<%=@order.new_record? ? 'New' : 'Continue'%> reservation for <%=@production.name%> on <%= @performance.performance_date.to_formatted_s(:long_ordinal) %> at <%=  @performance.performance_time.to_formatted_s(:hour_min)%></h1>
+<%=@order.new_record? ? 'New' : 'Continue'%> ticket order for <%=@production.name%> on <%= @performance.performance_date.to_formatted_s(:long_ordinal) %> at <%=  @performance.performance_time.to_formatted_s(:hour_min)%></h1>
 
 <% form_for([@production,@performance,@order]) do |order_form| %>
 <%= order_form.error_messages %>
