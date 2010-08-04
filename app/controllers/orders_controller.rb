@@ -26,14 +26,8 @@ class OrdersController < ApplicationController
     @order = Order.new(params[:order])
     begin
       Order.transaction do
-        @payment = @order.credit_card_payments.first
-        @payment.order = @order
-        @payment.default_from_order
-        @payment.address = @order.address
-        @payment.process
-        @order.ticket_line_items.each{|tli|tli.order=@order}
-        @order.status = Order::PROCESSED
-        @order.save!
+        @order.payment_type = Order::CREDIT_CARD
+        @order.process!
       end
       respond_to do |format|
         flash[:notice] = "Your order has been created"

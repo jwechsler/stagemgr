@@ -51,3 +51,8 @@ Factory.define(:ticket_line_item) do |ticket_line_item|
   ticket_line_item.association :order, :factory        => :order
   ticket_line_item.association :ticket_class, :factory => :ticket_class
 end
+
+Factory.define(:amount_off_special_offer) do |special_offer|
+  special_offer.amount 1
+  special_offer.sequence(:code){|n|"SpecialOffer#{n}"}
+end

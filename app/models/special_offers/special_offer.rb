@@ -64,6 +64,16 @@ class SpecialOffer < ActiveRecord::Base
       self.ticket_class.nil_or.class_code
   end
   
+  def applicable_line_items(order)
+    return order.ticket_line_items if (self.theater.nil? && self.production.nil? && self.performance.nil? && self.ticket_class.nil?)
+    order.ticket_line_items.select do |tli|
+      (!self.theater.nil? && self.theater == tli.ticket_class.production.theater) ||
+      (!self.production.nil? && self.production == tli.ticket_class.production) ||
+      (!self.performance.nil? && false) || #can't get back to a performance from a line item right now
+      (!self.ticket_class.nil? && self.ticket_class == tli.ticket_class)
+    end
+  end
+  
   
   def calculate_discount(order)
     raise 'Inimplemented'

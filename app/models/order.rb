@@ -17,6 +17,7 @@ class Order < ActiveRecord::Base
                                  :payments, 
                                  :cash_payments, 
                                  :credit_card_payments, :allow_destroy => true
+  attr_accessor         :special_offer_code
   
   ORDER_STATUSES                                                                                    = (
   HOLD,   WEB,   NEW,   PROCESSING,   PROCESSED,   REFUNDED,   EXCHANGED,   FULFILLED,   CANCELED   =
@@ -82,10 +83,14 @@ class Order < ActiveRecord::Base
       self.flex_pass_line_items.each do |fpli|
         fpli.order=self
       end
+      special_offer = SpecialOffer.find_by_code(self.special_offer_code)
+      if special_offer
+        self.special_offer_line_items.build(:special_offer=>special_offer)
+      end
       self.ticket_line_items.each{|tli|tli.order=self}
       self.special_offer_line_items.each{|soli|soli.order=self}
       self.credit_card_payments.each{|ccp|ccp.order=self}
-
+      
       case self.payment_type
       when Order::CREDIT_CARD
         payment = self.credit_card_payments.first
