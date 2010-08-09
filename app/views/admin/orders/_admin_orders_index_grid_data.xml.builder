@@ -6,7 +6,7 @@ xml.rows do
   @orders.each do |o|
     xml.row :id => o.id do
       xml.cell o.id
-#      xml.cell o.production_code
+      xml.cell o.production_code
       xml.cell o.performance_code
       xml.cell o.address.try(:last_name).to_s + ", " + o.address.try(:first_name).to_s
 #      xml.cell o.address.try(:first_name)
