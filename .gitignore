@@ -7,3 +7,5 @@ db/*.sqlite3
 db/schema.rb
 public/system/
 .bundle
+config/initializers/active_merchant.rb
+
