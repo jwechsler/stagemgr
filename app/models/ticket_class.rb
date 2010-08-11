@@ -3,8 +3,8 @@ class TicketClass < ActiveRecord::Base
   include ApplicationHelper
   TICKET_TYPES = ['Fixed', 'Donation', 'Timed']
   validates_inclusion_of :ticket_type,        :in => TICKET_TYPES
-  validates_uniqueness_of :class_code
-  validates_length_of :class_code, :in=>1..4
+  validates_uniqueness_of :class_code,        :scope => :production_id
+  validates_length_of :class_code, :minimum => 1
   belongs_to :production
   has_many :line_items
   before_validation :clean_values

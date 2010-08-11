@@ -4,8 +4,11 @@ class OrderTest < ActiveSupport::TestCase
   context 'for nested attributes' do
     setup do
       @production = Factory.create(:production, :capacity=>10)
-      @ticket_class = Factory.create(:ticket_class, :production=>@production)
+      @ticket_class = Factory.create(:ticket_class, :production=>@production, :class_code=>'ABC', :ticket_price=>3)
       @performance = Factory.create(:performance, :production=>@production)
+      @production2 = Factory.create(:production, :capacity=>10)
+      @ticket_class2 = Factory.create(:ticket_class, :production=>@production2, :class_code=>'ABC', :ticket_price=>5)
+      @performance2 = Factory.create(:performance, :production=>@production2)
     end
     
     should 'be able to create entire hierarchy in new' do
@@ -45,6 +48,46 @@ class OrderTest < ActiveSupport::TestCase
       order = Order.create!(params_order)
       assert_equal CreditCardPayment, Order.find(order.id).payments.first.class
     end
+    
+    should 'correctly scope ticket_class code to production' do
+      params_order = {
+        "production_code"=>@production2.production_code, 
+        "ticket_line_items_attributes"=>{
+          "0"=>{
+            "ticket_class_code"=>@ticket_class2.class_code, 
+            "ticket_count"=>"1"
+          }
+        }, 
+        "address_attributes"=>{
+          "city"=>"Metropolis", 
+          "line1"=>"123 Swift St", 
+          "line2"=>"", 
+          "zipcode"=>"90210", 
+          "last_name"=>"", 
+          "state"=>"NC", 
+          "first_name"=>""
+        }, 
+        "notes"=>"", 
+        "performance_code"=>@performance2.performance_code, 
+        "referral_code"=>"", 
+        "payments_attributes"=>{
+          "0"=>{
+            "payment_type"=>"CreditCardPayment",
+            "card_expiration_month"=>"1",
+            "card_type"=>"American Express",
+            "card_number"=>"",
+            "card_verification_number"=>"",
+            "card_expiration_year"=>"2010",
+            "amount"=>"5.0"
+          }
+        }, 
+        "payment_type"=>"Credit Card"
+      }
+      order = Order.create!(params_order)
+      assert_equal CreditCardPayment, Order.find(order.id).payments.first.class
+      assert_equal 5, Order.find(order.id).ticket_line_items.first.total
+    end
+    
     should 'accept address and performance in create' do
       @production = Factory.create(:production, :capacity=>10)
       @ticket_class = Factory.create(:ticket_class, :production=>@production)

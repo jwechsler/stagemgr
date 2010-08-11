@@ -1,33 +1,17 @@
 class LineItem < ActiveRecord::Base
   belongs_to :order
+  attr_accessor :ticket_class_code
 
   validates_presence_of :order
+  
+  before_validation :assign_from_attr_accessors
+  
+  def assign_from_attr_accessors
+    self.ticket_class = self.order.performance.ticket_classes.find_by_class_code @ticket_class_code if @ticket_class_code
+  end
 
-  def production_code=(string)
-    @prodution_code=string
-  end
-  def production_code()
-    self.performance.try(:production).try(:production_code) || @production_code
-  end
-  def performance_code=(string)
-    self.performance = Performance.find_by_performance_code(string)
-  end
-  def performance_code()
-    self.performance.try(:performance_code)
-  end
-  def ticket_class_code=(string)
-    self.ticket_class=TicketClass.find_by_class_code(string)
-  end
   def ticket_class_code
-    self.ticket_class.try(:class_code)
-  end
-  def performance_and_ticket_class_codes=(string)
-    performance_code_string, ticket_class_code_string = string.split('-')
-    self.performance_code=performance_code_string
-    self.ticket_class_code=ticket_class_code_string
-  end
-  def performance_and_ticket_class_codes
-    "#{performance_code}-#{ticket_class_code}"
+    self.ticket_class_code || self.ticket_class.try(:class_code)
   end
 
 end
