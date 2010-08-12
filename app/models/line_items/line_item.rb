@@ -11,7 +11,12 @@ class LineItem < ActiveRecord::Base
   end
 
   def ticket_class_code
-    self.ticket_class_code || self.ticket_class.try(:class_code)
+    # self.ticket_class_code || self.ticket_class.try(:class_code)
+    self.ticket_class.try(:class_code)
+  end
+  
+  def ticket?
+    return false;
   end
 
 end

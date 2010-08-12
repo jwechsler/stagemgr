@@ -27,5 +27,10 @@ class TicketLineItem < LineItem
   def total
     price * (self.ticket_count || 0)
   end
+  
+  def ticket?
+     return true;
+  end
+  
 
 end

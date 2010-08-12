@@ -36,6 +36,12 @@
   <%= link_to 'Add a line item', '#ticket_line_item', :class => "add_nested_item", :rel => "ticket_line_items" %>
 <p>
 
+<%= order_form.label :special_offer_code %> (optional)<br/>
+<%= order_form.text_field :special_offer_code %>  
+
+</p>
+<p>
+  
 <% order_form.fields_for :address do |address_form| %>
 <%= render :partial => 'address_form', :locals => { :f => address_form } %>
 <% end %>

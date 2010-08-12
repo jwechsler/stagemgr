@@ -1,8 +1,8 @@
 <tr class="line_item" price="<%=f.object.ticket_class.try(:ticket_price)%>" ticket_type="<%=f.object.ticket_class.try(:ticket_type)%>">
   <td>
   <%= f.text_field :ticket_class_code, 
-                   :class=>'autocomplete_tccode', 
-                   :autocomplete_url=>autocomplete_ticket_class_code_admin_orders_path,
+                  :class=>'autocomplete_tccode', 
+                  :autocomplete_url=>autocomplete_ticket_class_code_admin_orders_path,
                    :size=>10 %>
   </td>
   <td><%= f.text_field :ticket_count, :size => 4, :class=>'ticket_count' %></td>

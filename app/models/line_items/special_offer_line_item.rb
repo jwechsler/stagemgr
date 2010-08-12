@@ -9,4 +9,9 @@ class SpecialOfferLineItem < LineItem
   def total
     price
   end
+  
+  def ticket_count
+    0
+  end
+  
 end

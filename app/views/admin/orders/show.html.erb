@@ -1,5 +1,6 @@
 <%= render :partial => 'address_show', :locals=>{:address=>@order.address } %>
 <%= render :partial => 'payments_show', :locals=>{:payments=>@order.payments } %>
+
 <p>
 Performance:
 <%=h @order.performance.to_s %>
@@ -11,14 +12,14 @@ Performance:
 	<th>Ticket Count</th>
 	</thead>
 <% @order.line_items.each do |line_item| %>
-	<tr>
+<% if line_item.ticket? then %><tr>
 	<td><%=h line_item.ticket_class.to_s %></td>
 	<td><%=h line_item.ticket_count %></td>
-	</tr>
+	</tr><% end %>
 <% end %>
   <tr>
     <td></td>
-    <td><%= @order.line_items.map{|li|li.ticket_count}.sum %> -- Total Tickets</td>
+    <td><%= @order.line_items.map{|li|li.ticket? ? li.ticket_count : 0}.sum %> -- Total Tickets</td>
   </tr>
 </table>
 
@@ -38,7 +39,7 @@ Performance:
   <% @order.payments.each do |payment| %>
   <tr>
   <td><%= payment.id                      %></td>
-  <td><%= payment.amount                  %></td>
+  <td><%= to_currency(payment.amount)                  %></td>
   <td><%= payment.card_last_four          %></td>
   <td><%= payment.card_type               %></td>
   <td><%= payment.card_expiration_year    %></td>
