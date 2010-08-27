@@ -8,7 +8,7 @@ class Performance < ActiveRecord::Base
   has_many                 :ticket_class_allocations
 
   validates_inclusion_of   :status,            :in => PERFORMANCE_STATUSES
-  validates_uniqueness_of  :performance_code,  :scope => :production_id
+  validates_uniqueness_of  :performance_code
   validates_each           :performance_time do |record, attr, value|
     if record.production.performances.any? do |p|
         p.id != record.id && 

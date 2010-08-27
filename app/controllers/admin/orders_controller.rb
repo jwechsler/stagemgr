@@ -28,7 +28,7 @@ class Admin::OrdersController < Admin::ApplicationController
     performance = Performance.find_by_performance_code(params[:performance_code])
     return [] if performance.nil?
     find_options = {
-      :conditions => [ "LOWER(class_code) LIKE ?", '%'+params[:q].to_s.downcase + '%' ],
+      :conditions => [ "LOWER(class_code) LIKE ? AND id IN (SELECT ticket_class_id from ticket_class_allocations where performance_id = ?)", '%'+params[:q].to_s.downcase + '%', performance.id ],
       :order => "class_code ASC",
       :limit => 10
       }
