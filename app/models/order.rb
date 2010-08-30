@@ -31,8 +31,24 @@ class Order < ActiveRecord::Base
   validates_inclusion_of :payment_type,  :in => PAYMENT_TYPES
 
   validates_presence_of  :address, :status
+  validates_associated   :address, 
+                         :payments, :credit_card_payments, :cash_payments, 
+                         :line_items, :ticket_line_items, :flex_pass_line_items, :special_offer_line_items
+  
   before_validation_on_create :initialize_nested_line_items
   before_validation :set_defaults
+  
+  validates_each :status do |record, attr, value|
+    if value == PROCESSED && record.total != record.value_of_all_payments
+      record.errors.add attr, "cannot be set to #{PROCESSED} if the total isn't countered by a payment."
+    end
+  end
+  
+  def value_of_all_payments
+    self.payments.to_a.sum{|p|p.amount} + 
+    self.credit_card_payments.to_a.sum{|ccp|ccp.amount} + 
+    self.cash_payments.to_a.sum{|cp|cp.amount}
+  end
   
   def addresses
     [self.address]
@@ -76,42 +92,30 @@ class Order < ActiveRecord::Base
     
   end
   
-  def process!    
+  def process!
     payment = nil
     
     Order.transaction do
-      self.flex_pass_line_items.each do |fpli|
-        fpli.order=self
-      end
-      special_offer = SpecialOffer.find_by_code(self.special_offer_code)
-      if special_offer
-        self.special_offer_line_items.build(:special_offer=>special_offer)
-      end
-      self.ticket_line_items.each{|tli|tli.order=self}
-      self.special_offer_line_items.each{|soli|soli.order=self}
-      self.credit_card_payments.each{|ccp|ccp.order=self}
+      self.status = PROCESSING
       
       case self.payment_type
       when Order::CREDIT_CARD
         payment = self.credit_card_payments.first
-        payment.default_from_order
-        payment.process
-        self.payments << payment
-        self.status = Order::PROCESSED
+        if payment
+          payment.default_from_order
+          payment.process!
+          payment.save!
+        else
+          raise 'Trying to process a credit card order without a credit card'
+        end
       when Order::CASH
-        payment = self.cash_payments.build
-        payment.order = self
-        payment.amount = self.total
-        payment.save!
-        self.payments << payment
-        self.status = Order::PROCESSED
+        payment = self.cash_payments.create! :amount=>self.total
       when Order::FLEX_PASS
         raise 'Unimplemented'
       else
         raise 'Unimplemented'
       end
-      self.credit_card_payments = []
-      self.cash_payments = []
+      self.status = Order::PROCESSED
       self.save!
       self.flex_pass_line_items.each do |fpli|
         fpli.flex_pass = FlexPass.create! :flex_pass_offer => fpli.flex_pass_offer, :order => self, :address => self.address
@@ -120,6 +124,14 @@ class Order < ActiveRecord::Base
     end
     
     payment
+  end
+  
+  def update_special_offer_line_items_from_code!
+    self.special_offer_line_items.clear
+    special_offer = SpecialOffer.find_by_code(self.special_offer_code)
+    if special_offer
+      self.special_offer_line_items.create!(:special_offer=>special_offer)
+    end
   end
 
   private

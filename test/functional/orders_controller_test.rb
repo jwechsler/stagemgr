@@ -1,0 +1,51 @@
+require 'test_helper'
+
+class OrdersControllerTest < ActionController::TestCase
+  test "the credit card order makes a valid credit card payment" do
+    @performance = Factory.create :performance
+    @production = @performance.production
+    @ticket_class = Factory.create :ticket_class, :ticket_price => 3.0
+    @performance.ticket_classes << @ticket_class
+    flexmock(@controller).should_receive(:admin_only).and_return(true)
+    flexmock(CreditCardPayment).new_instances do |credit_card_instance|
+      #credit_card_instance.should_receive(:process!).and_return(true)
+      #credit_card_instance.should_receive(:valid?).and_return(true)
+    end
+    authorize_net_response = flexmock('authorize_net_response')
+    authorize_net_response.should_receive(:authorization).and_return(35)
+    authorize_net_response.should_receive(:success?).and_return(true)
+    flexmock(ActiveMerchant::Billing::AuthorizeNetGateway).new_instances.should_receive(:purchase).and_return(authorize_net_response)
+    
+    assert_difference('Order.count') do
+      post :create, :production_id=>@production.id, :performance_id=>@performance.id, 
+        "order"=>{
+        "status"=>'Web',
+        "production_code"=>@production.production_code,
+        'performance_code'=>@performance.performance_code,
+        "address_attributes"=>address_hash, 
+        "credit_card_payments_attributes"=>{
+          "0"=>{
+            "card_expiration_month"=>'09',
+            "card_expiration_year"=>'2014',
+            "card_verification_number"=>'581',
+            "card_number"=>'6011000990139424',
+            "card_type"=>'Discover',
+          }
+        },
+        "ticket_line_items_attributes"=>{
+          "0"=>{
+            "ticket_class_id"=>@ticket_class.id, 
+            "ticket_count"=>"5"
+          }
+        },
+      }
+      assert_equal 'Your order has been created', flash[:notice]
+    end
+    new_order = Order.last
+    assert_equal 15, new_order.total
+    assert_equal 1, new_order.payments.count
+    assert_equal CreditCardPayment, new_order.payments.first.class
+    assert_equal 15, new_order.payments.first.amount
+    assert_equal Order::PROCESSED, new_order.status
+  end
+end

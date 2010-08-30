@@ -74,9 +74,9 @@
   <%= order_form.text_area :notes, :rows=>3 %>
 <p>
 <% if order_form.object.status.nil? || order_form.object.status == Order::HOLD%>
-<%= order_form.submit "Hold" %>
-<%= order_form.submit "Process Online" %>
-<%= order_form.submit "Manually Processed" %>
+<p>
+  <%= order_form.submit @order.new_record? ? 'Place Order' : 'Update', :disable_with => 'Processing...' %>
+</p>
 <% end %>
 <% unless order_form.object.new_record? %>
 <%= link_to 'Cancel Order', cancel_admin_order_path(order_form.object), :confirm => "Are you sure?", :method=>:post %>

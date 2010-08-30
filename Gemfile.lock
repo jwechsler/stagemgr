@@ -1,0 +1,243 @@
+--- 
+dependencies: 
+  test-unit: 
+    group: 
+    - :cucumber
+    version: = 2.0.7
+  ruby-debug: 
+    group: 
+    - :cucumber
+    version: ">= 0"
+  mongrel: 
+    group: 
+    - :development
+    version: = 1.1.5
+  rails: 
+    group: 
+    - :default
+    version: = 2.3.5
+  sqlite3-ruby: 
+    group: 
+    - :cucumber
+    version: ">= 0"
+  mysql: 
+    group: 
+    - :default
+    version: = 2.8.1
+  authlogic: 
+    group: 
+    - :default
+    version: = 2.1.5
+  bond: 
+    group: 
+    - :development
+    version: = 0.2.1
+  shoulda: 
+    group: 
+    - :test
+    version: = 2.10.3
+  rspec: 
+    group: 
+    - :cucumber
+    version: = 1.3.0
+  database_cleaner: 
+    group: 
+    - :cucumber
+    version: ">= 0"
+  what_methods: 
+    group: 
+    - :development
+    version: = 1.0.1
+  activemerchant: 
+    group: 
+    - :default
+    version: = 1.5.1
+  wirble: 
+    group: 
+    - :development
+    version: = 0.1.3
+  rspec-rails: 
+    group: 
+    - :cucumber
+    version: = 1.3.2
+  factory_girl: 
+    group: 
+    - :cucumber
+    version: = 1.2.4
+  rcov: 
+    group: 
+    - :cucumber
+    version: ">= 0.9.8"
+  cucumber-rails: 
+    group: 
+    - :cucumber
+    version: = 0.3.2
+  capistrano-ext: 
+    group: 
+    - :development
+    version: = 1.2.1
+  will_paginate: 
+    group: 
+    - :default
+    version: ">= 0"
+  webrat: 
+    group: 
+    - :cucumber
+    version: ">= 0.5.0"
+  g: 
+    group: 
+    - :development
+    version: = 1.4.0
+  flexmock: 
+    group: 
+    - :test
+    version: = 0.8.6
+  map_by_method: 
+    group: 
+    - :development
+    version: = 0.8.3
+  cucumber: 
+    group: 
+    - :cucumber
+    version: = 0.8.3
+  capistrano: 
+    group: 
+    - :development
+    version: = 2.5.18
+  capybara: 
+    group: 
+    - :cucumber
+    version: ">= 0"
+  launchy: 
+    group: 
+    - :cucumber
+    version: ">= 0"
+specs: 
+- rake: 
+    version: 0.8.7
+- activesupport: 
+    version: 2.3.5
+- rack: 
+    version: 1.0.1
+- actionpack: 
+    version: 2.3.5
+- actionmailer: 
+    version: 2.3.5
+- builder: 
+    version: 2.1.2
+- activemerchant: 
+    version: 1.5.1
+- activerecord: 
+    version: 2.3.5
+- activeresource: 
+    version: 2.3.5
+- authlogic: 
+    version: 2.1.5
+- bond: 
+    version: 0.2.1
+- highline: 
+    version: 1.6.1
+- net-ssh: 
+    version: 2.0.23
+- net-scp: 
+    version: 1.0.3
+- net-sftp: 
+    version: 2.0.5
+- net-ssh-gateway: 
+    version: 1.0.1
+- capistrano: 
+    version: 2.5.18
+- capistrano-ext: 
+    version: 1.2.1
+- culerity: 
+    version: 0.2.12
+- mime-types: 
+    version: "1.16"
+- nokogiri: 
+    version: 1.4.3.1
+- rack-test: 
+    version: 0.5.4
+- ffi: 
+    version: 0.6.3
+- json_pure: 
+    version: 1.4.6
+- rubyzip: 
+    version: 0.9.4
+- selenium-webdriver: 
+    version: 0.0.28
+- capybara: 
+    version: 0.3.9
+- cgi_multipart_eof_fix: 
+    version: 2.5.0
+- columnize: 
+    version: 0.3.1
+- configuration: 
+    version: 1.1.0
+- diff-lcs: 
+    version: 1.1.2
+- trollop: 
+    version: 1.16.2
+- gherkin: 
+    version: 2.0.2
+- term-ansicolor: 
+    version: 1.0.5
+- cucumber: 
+    version: 0.8.3
+- cucumber-rails: 
+    version: 0.3.2
+- daemons: 
+    version: 1.1.0
+- database_cleaner: 
+    version: 0.5.2
+- factory_girl: 
+    version: 1.2.4
+- fastthread: 
+    version: 1.0.7
+- flexmock: 
+    version: 0.8.6
+- ruby-growl: 
+    version: "2.0"
+- g: 
+    version: 1.4.0
+- gem_plugin: 
+    version: 0.2.3
+- launchy: 
+    version: 0.3.7
+- linecache: 
+    version: "0.43"
+- map_by_method: 
+    version: 0.8.3
+- mongrel: 
+    version: 1.1.5
+- mysql: 
+    version: 2.8.1
+- rails: 
+    version: 2.3.5
+- rcov: 
+    version: 0.9.8
+- rspec: 
+    version: 1.3.0
+- rspec-rails: 
+    version: 1.3.2
+- ruby-debug-base: 
+    version: 0.10.3
+- ruby-debug: 
+    version: 0.10.3
+- shoulda: 
+    version: 2.10.3
+- sqlite3-ruby: 
+    version: 1.3.1
+- test-unit: 
+    version: 2.0.7
+- webrat: 
+    version: 0.7.1
+- what_methods: 
+    version: 1.0.1
+- will_paginate: 
+    version: 2.3.14
+- wirble: 
+    version: 0.1.3
+hash: 5982d9a07103dcfc3ba902e696a3ecb248cbb50b
+sources: 
+- Rubygems: 
+    uri: http://rubygems.org

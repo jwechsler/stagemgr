@@ -40,4 +40,17 @@ class ActiveSupport::TestCase
   fixtures :all
 
   # Add more helper methods to be used by all tests here...
+  def address_hash
+    {
+      "first_name"=>"Joe", 
+      "last_name"=>"Shmoe", 
+      "email"=>"jshmoe@example.com", 
+      "line1"=>"123 Swift St", 
+      "line2"=>"", 
+      "city"=>"Anytown", 
+      "state"=>"il",
+      "zipcode"=>"60606"
+    }
+  end
+  
 end

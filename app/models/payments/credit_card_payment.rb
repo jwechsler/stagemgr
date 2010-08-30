@@ -2,7 +2,7 @@ InvalidCreditCard     = Class.new(StandardError)
 CannotProcessPayment  = Class.new(StandardError)
 
 class CreditCardPayment < Payment
-  has_one                :address
+  belongs_to             :address
 
   validates_credit_card  :card_number,
                          :card_type, {}
@@ -23,7 +23,7 @@ class CreditCardPayment < Payment
     self.card_last_four ||= self.card_number[-4..-1]
   end
 
-  def process
+  def process!
     credit_card = ActiveMerchant::Billing::CreditCard.new(
                       :first_name         => self.address.first_name,
                       :last_name          => self.address.last_name,
