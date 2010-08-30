@@ -97,15 +97,14 @@ class Order < ActiveRecord::Base
     
     Order.transaction do
       self.status = PROCESSING
-      self.save!
       
       case self.payment_type
       when Order::CREDIT_CARD
         payment = self.credit_card_payments.first
         if payment
           payment.default_from_order
-          payment.save!
           payment.process!
+          payment.save!
         else
           raise 'Trying to process a credit card order without a credit card'
         end

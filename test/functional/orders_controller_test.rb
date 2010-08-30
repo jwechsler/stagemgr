@@ -8,9 +8,13 @@ class OrdersControllerTest < ActionController::TestCase
     @performance.ticket_classes << @ticket_class
     flexmock(@controller).should_receive(:admin_only).and_return(true)
     flexmock(CreditCardPayment).new_instances do |credit_card_instance|
-      credit_card_instance.should_receive(:process!).and_return(true)
-      credit_card_instance.should_receive(:valid?).and_return(true)
+      #credit_card_instance.should_receive(:process!).and_return(true)
+      #credit_card_instance.should_receive(:valid?).and_return(true)
     end
+    authorize_net_response = flexmock('authorize_net_response')
+    authorize_net_response.should_receive(:authorization).and_return(35)
+    authorize_net_response.should_receive(:success?).and_return(true)
+    flexmock(ActiveMerchant::Billing::AuthorizeNetGateway).new_instances.should_receive(:purchase).and_return(authorize_net_response)
     
     assert_difference('Order.count') do
       post :create, :production_id=>@production.id, :performance_id=>@performance.id, 
@@ -23,9 +27,9 @@ class OrdersControllerTest < ActionController::TestCase
           "0"=>{
             "card_expiration_month"=>'09',
             "card_expiration_year"=>'2014',
-            "card_verification_number"=>'123',
-            "card_number"=>'123412341234',
-            "card_type"=>'American Express',
+            "card_verification_number"=>'581',
+            "card_number"=>'6011000990139424',
+            "card_type"=>'Discover',
           }
         },
         "ticket_line_items_attributes"=>{
