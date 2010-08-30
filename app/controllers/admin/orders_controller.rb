@@ -73,8 +73,18 @@ class Admin::OrdersController < Admin::ApplicationController
   def create
     order_params = params[:order]
     @order = Order.new(order_params)
-   
+    #save off the credit card payment to use if it turns out this is a credit card order
+    @credit_card_payment = @order.credit_card_payments.first
+    #and clear them out so save works
+    @order.credit_card_payments = []
+    @order.status = Order::NEW
+
     begin
+      @order.save!
+      @order.update_special_offer_line_items_from_code!
+      if @order.payment_type == 'Credit Card'
+        @order.credit_card_payments << @credit_card_payment
+      end
       @payment = @order.process!
     
       respond_to do |format|
@@ -91,6 +101,7 @@ class Admin::OrdersController < Admin::ApplicationController
         when CannotProcessPayment
           flash.now[:notice] = "There was an error while processing your credit card. #{e.message}"
         when ActiveRecord::RecordInvalid
+          flash.now[:notice] = "There was an error creating the order. #{e.message}"
         else
           flash.now[:notice] = "There was an error creating the order. #{e.message}"
         end

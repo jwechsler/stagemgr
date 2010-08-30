@@ -42,6 +42,7 @@ class OrdersController < ApplicationController
         when CannotProcessPayment
           flash.now[:notice] = "There was an error while processing your credit card. #{e.message}"
         when ActiveRecord::RecordInvalid
+          flash.now[:notice] = "There was an error creating the order. #{e.message}"
         else
           flash.now[:notice] = "There was an error creating the order. #{e.message}"
         end
