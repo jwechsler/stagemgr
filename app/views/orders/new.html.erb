@@ -80,7 +80,7 @@ Expiration Month/Year
   <%= order_form.text_field :referral_code %>  
 </p>
   <p>
-    <%= order_form.submit @order.new_record? ? 'Order tickets' : 'Update', :disable_with => 'Processing...' %>
+	<%= order_form.submit 'Order tickets', :disable_with => 'Processing...' if order_form.object.status == Order::NEW || order_form.object.status == Order::HOLD %>
   </p>
 <% end %>
 <% end %>

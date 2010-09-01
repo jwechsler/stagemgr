@@ -1,4 +1,23 @@
 module OrdersHelper
+  def update_order_status_from_params_and_save(order,params)
+    old_status = order.status
+    order.status = case params[:commit]
+    when 'Manually Processed'
+      Order::PROCESSED
+    when 'Place Order', 'Order tickets'
+      Order::PROCESSING
+    when 'Hold'
+      Order::HOLD
+    else
+      raise "Unimplemented order status for <#{params[:commit]}>"
+    end
+    success = order.save
+    unless success
+      order.status = old_status
+    end
+    success
+  end
+  
   def remove_link_unless_new_record(fields)
     out = ''
     out << fields.hidden_field(:_delete)  unless fields.object.new_record?

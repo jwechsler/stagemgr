@@ -1,5 +1,6 @@
 class Admin::OrdersController < Admin::ApplicationController
-  append_before_filter :find_order, :only => [:show, :edit, :update, :destroy, :refund]
+  include OrdersHelper
+  append_before_filter :find_order, :only => [:show, :edit, :update, :destroy, :refund, :cancel]
   append_before_filter :redirect_to_proper_action, :only => [:edit, :show]
 
   def autocomplete_production_code
@@ -60,6 +61,7 @@ class Admin::OrdersController < Admin::ApplicationController
     @order.ticket_line_items.build
     @order.cash_payments.build
     @order.credit_card_payments.build
+    @order.status = Order::NEW
     
     respond_to do |format|
       format.html # new.html.erb
@@ -82,10 +84,13 @@ class Admin::OrdersController < Admin::ApplicationController
     begin
       @order.save!
       @order.update_special_offer_line_items_from_code!
+      update_order_status_from_params_and_save(@order, params)
       if @order.payment_type == 'Credit Card'
         @order.credit_card_payments << @credit_card_payment
       end
-      @payment = @order.process!
+      if @order.status == Order::PROCESSING
+        @payment = @order.process!
+      end
     
       respond_to do |format|
         flash[:notice] = 'Order was successfully created.'
@@ -116,23 +121,27 @@ class Admin::OrdersController < Admin::ApplicationController
     respond_to do |format|
       if update_order_status_from_params_and_save(@order, params)
         flash[:notice] = 'Order was successfully saved.'
-        format.html { redirect_to(edit_admin_order_path(@order)) }
-        format.xml  { render :xml => @order, :status => :created, :location => @order }
-      else
-        format.html { render :action => "new", :controller=>'admin/orders' }
-        format.xml  { render :xml => @order.errors, :status => :unprocessable_entity }
+        if @order.status == Order::PROCESSING
+          @payment = @order.process!
+        end
       end
+      format.html { redirect_to(edit_admin_order_path(@order)) }
+      format.xml  { render :xml => @order, :status => :created, :location => @order }
     end
   end
   
   def refund
     @order.refund!
     redirect_to admin_order_path(@order)
-    
+  end
+  
+  def cancel
+    @order.cancel!
+    redirect_to admin_order_path(@order)
   end
   
   private
-  
+
   def redirect_to_proper_action
     if @order.editable?
       if params[:action] != 'edit'

@@ -8,7 +8,7 @@ class Admin::OrdersControllerTest < ActionController::TestCase
     @performance.ticket_classes << @ticket_class
     flexmock(@controller).should_receive(:admin_only).and_return(true)
     assert_difference('Order.count') do
-      post :create, 
+      post :create, :commit=>'Place Order',
         "order"=>{
         "address_attributes"=>address_hash, 
         "performance_code"=>@performance.performance_code, 
@@ -25,6 +25,7 @@ class Admin::OrdersControllerTest < ActionController::TestCase
     end
     new_order = Order.last
     assert_equal 15, new_order.total
+    assert_equal Order::PROCESSED, new_order.status
     assert_equal 1, new_order.payments.count
     assert_equal CashPayment, new_order.payments.first.class
     assert_equal 15, new_order.payments.first.amount
@@ -43,7 +44,7 @@ class Admin::OrdersControllerTest < ActionController::TestCase
     end
     
     assert_difference('Order.count') do
-      post :create, 
+      post :create, :commit=>'Place Order', 
         "order"=>{
         "address_attributes"=>address_hash, 
         "performance_code"=>@performance.performance_code,
