@@ -7,6 +7,7 @@ class OrdersController < ApplicationController
   
   def new
     @order = @performance.orders.build(:status=>Order::WEB)
+    @order.status = Order::NEW
     @order.address = Address.new
     @order.credit_card_payments.build
     @available_ticket_classes.each{|tc|@order.ticket_line_items.build(:ticket_class=>tc)}
@@ -42,7 +43,7 @@ class OrdersController < ApplicationController
         format.xml  { render :xml => @order, :status => :created, :location => @order }
       end
     rescue StandardError => e
-        @order.status = nil
+        @order.status = Order::NEW
         case e
         when InvalidCreditCard
           flash.now[:notice] = "The credit card you entered was invalid. Reason: #{e.message}"

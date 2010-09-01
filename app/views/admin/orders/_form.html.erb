@@ -67,20 +67,16 @@
 </p>
 
 <p>
-	Order Status: <%=order_form.object.status || 'New' %>
+	Order Status: <%=order_form.object.status%>
 </p>
 <p>
   <%= order_form.label :notes %>
   <%= order_form.text_area :notes, :rows=>3 %>
-<p>
-<% if order_form.object.status.nil? || order_form.object.status == Order::HOLD%>
-<p>
-  <%= order_form.submit @order.new_record? ? 'Place Order' : 'Update', :disable_with => 'Processing...' %>
 </p>
-<% end %>
-<% unless order_form.object.new_record? %>
-<%= link_to 'Cancel Order', cancel_admin_order_path(order_form.object), :confirm => "Are you sure?", :method=>:post %>
-<% end %>
+<p>
+  <%= order_form.submit 'Hold', :disable_with => 'Processing...' if order_form.object.status == Order::NEW || order_form.object.status == Order::HOLD %>
+  <%= order_form.submit 'Place Order', :disable_with => 'Processing...' if order_form.object.status == Order::NEW || order_form.object.status == Order::HOLD %>
+  <%= link_to 'Cancel Order', cancel_admin_order_path(order_form.object), :confirm => "Are you sure?", :method=>:post if order_form.object.status == Order::HOLD || order_form.object.status == Order::PROCESSING %>
 </p>
 <% end -%>
 

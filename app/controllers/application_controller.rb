@@ -3,7 +3,7 @@ class ApplicationController < ActionController::Base
   helper_method :current_user_session, :current_user, :logged_in?, :current_user_is_admin?
   filter_parameter_logging :password, :password_confirmation
   
-  def method_missing(method, *args)
+  def method_missing(method, *args, &block)
     begin
       method_name = method.to_s
       if method_name =~ /^find_/
@@ -20,13 +20,13 @@ class ApplicationController < ActionController::Base
         end
         if found_model
           instance_variable_set "@#{model_name}", found_model
-          return
         end
+        return
       end
     rescue StandardError => e
       #just do standard method_missing stuff if we fail
     end
-    false
+    super
   end
 
   protected
