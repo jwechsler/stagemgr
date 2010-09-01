@@ -56,7 +56,7 @@ Performance:
 </p>
 <p>
 	Confirmation Code:
-	<%=h @order.payments.first.isNil? "" : confirmation_code %>
+	<%=h @order.payments.first.nil? ? "" : @order.payments.first.confirmation_code %>
 </p>
 <p>
 	Referral Code:
