@@ -13,6 +13,11 @@
   <%=h @flex_pass_offer.number_of_tickets %>
 </p>
 
+<p>
+  <b>Payout per Ticket:</b>
+  <%=h @flex_pass_offer.payout_per_ticket %>
+</p>
 
-<%= link_to 'Edit', edit_flex_pass_offer_path(@flex_pass_offer) %> |
-<%= link_to 'Back', flex_pass_offers_path %>
+
+<%= link_to 'Edit', edit_admin_flex_pass_offer_path(@flex_pass_offer) %> |
+<%= link_to 'Back', admin_flex_pass_offers_path %>

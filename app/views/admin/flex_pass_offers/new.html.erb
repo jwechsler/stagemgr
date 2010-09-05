@@ -3,15 +3,8 @@
 <% form_for([:admin, @theater, @flex_pass_offer]) do |f| %>
   <%= f.error_messages %>
 
-  <%= f.hidden_field :theater_id %>
-  <p>
-    <%= f.label :price %><br />
-    <%= f.text_field :price %>
-  </p>
-  <p>
-    <%= f.label :number_of_tickets %><br />
-    <%= f.text_field :number_of_tickets %>
-  </p>
+  <%= render :partial => 'form', :locals=>{:f=>f} %>
+
   <p>
     <%= f.submit 'Create' %>
   </p>

@@ -6,6 +6,7 @@
 <th>Theater</th>
 <th>Price</th>
 <th>Number of tickets</th>
+<th>Payout/Ticket</th>
 <th>Created at</th>
 <th>Updated at</th>
 <th>Actions</th>
@@ -16,6 +17,7 @@
 <td><%= flex_pass_offer.theater.to_s %></td>
 <td><%= flex_pass_offer.price %></td>
 <td><%= flex_pass_offer.number_of_tickets %></td>
+<td><%= flex_pass_offer.payout_per_ticket %></td>
 <td><%= flex_pass_offer.created_at %></td>
 <td><%= flex_pass_offer.updated_at %></td>
 <td><%= link_to 'Create Order', new_admin_flex_pass_offer_order_path(flex_pass_offer) %></td>
