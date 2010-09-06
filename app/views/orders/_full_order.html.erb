@@ -1,9 +1,6 @@
-<%= render :partial => 'address_show', :locals=>{:address=>@order.address } %>
-<%= render :partial => 'payments_show', :locals=>{:payments=>@order.payments } %>
-
 <p>
 Performance:
-<%=h @order.performance.to_s %>
+<%=h order.performance.to_s %>
 </p>
 
 <table id='line_items'>
@@ -11,7 +8,7 @@ Performance:
 	<th>Ticket Class</th>
 	<th>Ticket Count</th>
 	</thead>
-<% @order.line_items.each do |line_item| %>
+<% order.line_items.each do |line_item| %>
 <% if line_item.ticket? then %><tr>
 	<td><%=h line_item.ticket_class.to_s %></td>
 	<td><%=h line_item.ticket_count %></td>
@@ -19,10 +16,13 @@ Performance:
 <% end %>
   <tr>
     <td></td>
-    <td><%= @order.line_items.map{|li|li.ticket? ? li.ticket_count : 0}.sum %> -- Total Tickets</td>
+    <td><%= order.line_items.map{|li|li.ticket? ? li.ticket_count : 0}.sum %> -- Total Tickets</td>
   </tr>
 </table>
 
+<h3>
+Payments
+</h3>
 <table id='payments'>
   <thead>
    <th>id                      </th>
@@ -36,7 +36,7 @@ Performance:
    <th>type                    </th>
    <th>created              </th>
   </thead>
-  <% @order.payments.each do |payment| %>
+  <% order.payments.each do |payment| %>
   <tr>
   <td><%= payment.id                      %></td>
   <td><%= to_currency(payment.amount)                  %></td>
@@ -53,27 +53,17 @@ Performance:
 </table>
 <p>
 	Order Status: 
-	<%=h @order.status %>
+	<%=h order.status %>
 </p>
 <p>
 	Confirmation Code:
-	<%=h @order.payments.first.nil? ? "" : @order.payments.first.confirmation_code %>
+	<%=h order.payments.first.nil? ? "" : order.payments.first.confirmation_code %>
 </p>
 <p>
 	Referral Code:
-	<%=h @order.referral_code %>
+	<%=h order.referral_code %>
 </p>
 <p>
 	Notes:
-	<%=h @order.notes %>
-</p>
-<p>
-	<% if @order.status == 'Processed' %>
-	<%= link_to 'Refund Order', refund_admin_order_path(@order), :confirm => "Are you sure?", :method=>:post %>
-	<%= link_to 'Exchange Order', new_admin_order_exchange_order_path(@order) %>
-	<%= link_to 'Fulfill Order', fulfill_admin_order_path(@order), :confirm => "Are you sure?", :method=>:post  %>
-	<% end %>
-	<% if @order.status == 'Processing' %>
-	<%= link_to 'Cancel Order', cancel_admin_order_path(@order), :confirm => "Are you sure?", :method=>:post %>
-	<% end %>
+	<%=h order.notes %>
 </p>

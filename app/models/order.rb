@@ -70,8 +70,12 @@ class Order < ActiveRecord::Base
     self.performance.try(:performance_code)
   end
 
-  def total
-    (self.line_items + self.ticket_line_items + self.special_offer_line_items + self.flex_pass_line_items).uniq.to_a.sum{|line_item|line_item.total}
+  def total(reload_line_items=false)
+    (self.line_items(reload_line_items) + 
+     self.ticket_line_items(reload_line_items) + 
+     self.special_offer_line_items(reload_line_items) + 
+     self.flex_pass_line_items(reload_line_items)
+    ).uniq.to_a.sum{|line_item|line_item.total}
   end
 
   def editable?
@@ -90,6 +94,19 @@ class Order < ActiveRecord::Base
       save!
     end
     
+  end
+  
+  def exchange_and_process_from!( original_order )
+    self.address = original_order.address
+    original_order.status = Order::EXCHANGED
+    exchange_payment_on_original_order = ExchangePayment.create!(:order=>original_order, :amount=>-1*original_order.payments(true).to_a.sum{|p|p.amount})
+    exchange_payment_on_self = ExchangePayment.create!(:order=>self, :amount=>-1 * exchange_payment_on_original_order.amount)
+    payment_difference = self.total - exchange_payment_on_self.amount
+    PriceOverridePayment.create!(:order=>self, :amount=>payment_difference) unless payment_difference == 0
+    self.status=Order::PROCESSED
+    self.payments(true)
+    self.save!
+    original_order.save!
   end
   
   def process!

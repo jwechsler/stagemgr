@@ -1,6 +1,33 @@
 require 'test_helper'
 
 class OrderTest < ActiveSupport::TestCase
+  context 'with an existing order' do
+    setup do
+      @production = Factory.create(:production, :capacity=>10)
+      @ticket_class = Factory.create(:ticket_class, :production=>@production, :class_code=>'ABC', :ticket_price=>3)
+      @performance = Factory.create(:performance, :production=>@production)
+      @production2 = Factory.create(:production, :capacity=>10)
+      @ticket_class2 = Factory.create(:ticket_class, :production=>@production2, :class_code=>'ABC', :ticket_price=>5)
+      @performance2 = Factory.create(:performance, :production=>@production2)
+      @original_order = Factory.create(:order)
+      @original_order.ticket_line_items.build(:ticket_class=>@ticket_class, :ticket_count=>1)
+      @original_order.payment_type = Order::CASH
+      @original_order.process!
+      assert_equal 1, @original_order.payments.count
+      assert @original_order.payments(true).to_a.sum{|p|p.amount} > 0
+    end
+    
+    should 'be able to exchange order' do
+      @exchange_order = Order.new(:status=>Order::NEW)
+      @exchange_order.ticket_line_items.build(:order=>@exchange_order, :ticket_class=>@ticket_class2, :ticket_count=>1).save!
+      @exchange_order.exchange_and_process_from! @original_order
+      assert_equal 0, @original_order.payments(true).to_a.sum{|p|p.amount}
+      assert_equal 5, @exchange_order.total(true)
+      assert_equal 5, @exchange_order.payments(true).to_a.sum{|p|p.amount}
+      assert_equal Order::EXCHANGED, @original_order.status
+      assert_equal Order::PROCESSED, @exchange_order.status
+    end
+  end
   context 'for nested attributes' do
     setup do
       @production = Factory.create(:production, :capacity=>10)

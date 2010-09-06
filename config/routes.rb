@@ -22,7 +22,9 @@ ActionController::Routing::Routes.draw do |map|
       :autocomplete_ticket_class_code => :get,
       :credit_card_payment_form => :post,
       :cash_payment_form => :post
-      }, :member => {:cancel=>:post, :refund=>:post, :exchange=>:get, :fulfill=>:post}
+      }, :member => {:cancel=>:post, :refund=>:post, :fulfill=>:post} do |order|
+      order.resources :exchange_orders, :only=>[:new,:create,:show]
+    end
     admin.resources :special_offers
     admin.resources :theaters do |theater|
       theater.resources :productions do |production|

@@ -1,1 +1,14 @@
-<%= render :partial => 'form' %>
+<% javascript :defaults, 'delegate', 'jquery-1.3.2.min', 'jquery.autocomplete', 'box_office_order' %>
+
+<%= error_messages_for :order %>
+
+<% form_for [:admin,@order] do |order_form| -%>
+
+<%= render :partial => 'form', :locals=>{:order_form=>order_form} %>
+
+<p>
+  <%= order_form.submit 'Hold', :disable_with => 'Processing...' if order_form.object.status == Order::NEW || order_form.object.status == Order::HOLD %>
+  <%= order_form.submit 'Place Order', :disable_with => 'Processing...' if order_form.object.status == Order::NEW || order_form.object.status == Order::HOLD %>
+  <%= link_to 'Cancel Order', cancel_admin_order_path(order_form.object), :confirm => "Are you sure?", :method=>:post if order_form.object.status == Order::HOLD || order_form.object.status == Order::PROCESSING %>
+</p>
+<% end -%>

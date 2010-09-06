@@ -1,0 +1,3 @@
+class ExchangePayment < Payment
+  
+end
