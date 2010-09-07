@@ -1,0 +1,10 @@
+<html>
+<head>
+<%= stylesheet_link_tag "application.css" %>
+</head>
+<body>
+<% @productions.each { |production| %>
+<%= render :partial => 'production_detail', :locals=>{:production=>production} %>
+<% } %>
+</body>
+</html>
