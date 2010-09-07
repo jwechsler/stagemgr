@@ -151,6 +151,22 @@ class Order < ActiveRecord::Base
     end
   end
 
+  
+  def description 
+    d = self.performance.to_short_s + " ("
+    c = false;
+    line_items.each { |li| 
+      d += li.to_s 
+      if c then
+        d += ", "
+      else
+        c = true
+      end
+    }
+    d += ")"
+    "#{d}"
+  end
+
   private
   
   def initialize_nested_line_items
@@ -162,5 +178,5 @@ class Order < ActiveRecord::Base
     self.payment_type ||= CREDIT_CARD
     self.ticket_line_items.each{|tli|tli.order=self}
   end
-
+  
 end

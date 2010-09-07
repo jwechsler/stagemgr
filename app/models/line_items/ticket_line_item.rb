@@ -32,5 +32,10 @@ class TicketLineItem < LineItem
      return true;
   end
   
+  def to_s
+    "#{ticket_count} #{ticket_class.class_code}"
+  end
+  
+  
 
 end

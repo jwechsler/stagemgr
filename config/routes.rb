@@ -11,6 +11,10 @@ ActionController::Routing::Routes.draw do |map|
       :controller => 'productions',
       :action => 'upcoming'
 
+  map.connect '/productions/now_playing',
+          :controller => 'productions',
+          :action => 'now_playing'
+
   map.namespace :admin do |admin|
     admin.resources :flex_pass_offers do |flex_pass_offer|
       flex_pass_offer.resources :orders, :controller => 'flex_pass_offer_orders'
