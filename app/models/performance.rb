@@ -1,5 +1,5 @@
 class Performance < ActiveRecord::Base
-  PERFORMANCE_STATUSES = ['Active',  'Inactive']
+  PERFORMANCE_STATUSES = ['Active',  'Inactive', 'Private']
 
   belongs_to               :production
   has_many                 :ticket_classes, :through=>:ticket_class_allocations
