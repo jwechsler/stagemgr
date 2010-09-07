@@ -24,8 +24,8 @@ class Order < ActiveRecord::Base
   "Hold", "Web", "New", "Processing", "Processed", "Refunded", "Exchanged", "Fulfilled", "Canceled"   )
 
   PAYMENT_TYPES                                                                                     = (
-  CREDIT_CARD,   CASH,   FLEX_PASS                                                                  =
-  "Credit Card", "Cash", "FlexPass"                                                                   )
+  CASH,   CREDIT_CARD,   FLEX_PASS                                                                  =
+  "Cash", "Credit Card", "FlexPass"                                                                   )
 
   validates_inclusion_of :status,        :in => ORDER_STATUSES
   validates_inclusion_of :payment_type,  :in => PAYMENT_TYPES
