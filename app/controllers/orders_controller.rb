@@ -34,6 +34,7 @@ class OrdersController < ApplicationController
         @order.save!
         @order.update_special_offer_line_items_from_code!
         @order.payment_type = Order::CREDIT_CARD
+        @credit_card_payment.note=@order.description(@order.ticket_line_items)
         @order.credit_card_payments << @credit_card_payment
         @order.process!
       end
