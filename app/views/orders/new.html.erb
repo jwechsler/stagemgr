@@ -75,12 +75,15 @@ Expiration Month/Year
   <%= order_form.label :special_offer_code %> (optional)<br/>
   <%= order_form.text_field :special_offer_code %>  
 </p>
-<!-- p>
+<p>
   <%= order_form.label :referral_code %> (optional)<br/>
   <%= order_form.text_field :referral_code %>  
-</p -->
+</p>
   <p>
 	<%= order_form.submit 'Order tickets', :disable_with => 'Processing...' if order_form.object.status == Order::NEW || order_form.object.status == Order::HOLD %>
   </p>
+<br clear="all" />
+<p>
+</p>
 <% end %>
 <% end %>
