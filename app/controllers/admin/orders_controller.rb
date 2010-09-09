@@ -62,7 +62,6 @@ class Admin::OrdersController < Admin::ApplicationController
     @order.cash_payments.build
     @order.credit_card_payments.build
     @order.status = Order::NEW
-    
     respond_to do |format|
       format.html # new.html.erb
       format.xml  { render :xml => @order }
@@ -93,6 +92,7 @@ class Admin::OrdersController < Admin::ApplicationController
       end
     
       respond_to do |format|
+        flash[:notice] = @order.status
         flash[:notice] = 'Order was successfully created.'
         format.html { redirect_to(edit_admin_order_path(@order.id)) }
         format.xml  { render :xml => @order, :status => :created, :location => @order }
@@ -120,6 +120,7 @@ class Admin::OrdersController < Admin::ApplicationController
     @order.attributes=params[:order]
     respond_to do |format|
       if update_order_status_from_params_and_save(@order, params)
+        flash[:notice] = @order.payment_type
         flash[:notice] = 'Order was successfully saved.'
         if @order.status == Order::PROCESSING
           @payment = @order.process!

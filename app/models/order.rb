@@ -32,22 +32,23 @@ class Order < ActiveRecord::Base
 
   validates_presence_of  :address, :status
   validates_associated   :address, 
-                         :payments, :credit_card_payments, :cash_payments, 
+                         :payments, :credit_card_payments, :cash_payments,
                          :line_items, :ticket_line_items, :flex_pass_line_items, :special_offer_line_items
   
   before_validation_on_create :initialize_nested_line_items
   before_validation :set_defaults
   
   validates_each :status do |record, attr, value|
-    if value == PROCESSED && record.total != record.value_of_all_payments
-      record.errors.add attr, "cannot be set to #{PROCESSED} if the total isn't countered by a payment."
-    end
+    #if value == PROCESSED && record.total != record.value_of_all_payments
+    #  record.errors.add attr, "cannot be set to #{PROCESSED} if the total isn't countered by a payment."
+    #end
   end
   
   def value_of_all_payments
     self.payments.to_a.sum{|p|p.amount} + 
     self.credit_card_payments.to_a.sum{|ccp|ccp.amount} + 
-    self.cash_payments.to_a.sum{|cp|cp.amount}
+    self.cash_payments.to_a.sum{|cp|cp.amount} 
+#    self.exchange_payments.to_a.sum{|exp|exp.amount}
   end
   
   def addresses
@@ -100,6 +101,7 @@ class Order < ActiveRecord::Base
     Order.transaction do
       self.address = original_order.address
       original_order.status = Order::EXCHANGED
+      self.payments = original_order.payments;
       exchange_payment_on_original_order = ExchangePayment.create!(:order=>original_order, :amount=>-1*original_order.payments(true).to_a.sum{|p|p.amount})
       exchange_payment_on_self = ExchangePayment.create!(:order=>self, :amount=>-1 * exchange_payment_on_original_order.amount, :payment_id=>exchange_payment_on_original_order.id)
       exchange_payment_on_original_order.update_attribute(:payment_id, exchange_payment_on_self.id)

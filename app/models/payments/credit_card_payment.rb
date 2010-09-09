@@ -20,7 +20,7 @@ class CreditCardPayment < Payment
   end
   
   def set_defaults
-    self.card_last_four ||= self.card_number[-4..-1]
+    self.card_last_four ||= self.card_number.nil? ? "" : self.card_number[-4..-1]
   end
 
   def process!
