@@ -26,28 +26,23 @@ Performance:
 <table id='payments'>
   <thead>
    <th>id                      </th>
-   <th>amount                  </th>
-   <th>last_four          </th>
-   <th>card               </th>
-   <th>exp year    </th>
-   <th>exp month   </th>
-   <th>conf code       </th>
-   <th>linked id              </th>
+   <th>Amount                  </th>
+   <th>Card Info              </th>
+   <th>Confirmation       </th>
+   <th>Linked?              </th>
    <th>type                    </th>
-   <th>created              </th>
+   <th>note              </th>
   </thead>
+  <% @order.payments.sort! { |a,b| a.created_on <=> b.created_on } %>
   <% @order.payments.each do |payment| %>
   <tr>
-  <td><%= payment.id                      %></td>
-  <td><%= to_currency(payment.amount)                  %></td>
-  <td><%= payment.card_last_four          %></td>
-  <td><%= payment.card_type               %></td>
-  <td><%= payment.card_expiration_year    %></td>
-  <td><%= payment.card_expiration_month   %></td>
-  <td><%= payment.confirmation_code       %></td>
-  <td><%= payment.payment_id              %></td>
-  <td><%= payment.type                    %></td>
-  <td><%= payment.created_at              %></td>
+  <td><%=h payment.id                      %></td>
+  <td><%=h to_currency(payment.amount)     %></td>
+  <td><%=h payment.card_type.nil? ? "" : payment.card_type + "-" + card_last_four          %></td>
+   <td><%=h payment.confirmation_code       %></td>
+  <td><%=h payment.payment_id              %></td>
+  <td><%=h payment.type                    %></td>
+  <td><%=h payment.note              %></td>
   </tr>
   <% end %>
 </table>

@@ -24,8 +24,8 @@ class Order < ActiveRecord::Base
   "Hold", "Web", "New", "Processing", "Processed", "Refunded", "Exchanged", "Fulfilled", "Canceled"   )
 
   PAYMENT_TYPES                                                                                     = (
-  CREDIT_CARD,   CASH,   FLEX_PASS                                                                  =
-  "Credit Card", "Cash", "FlexPass"                                                                   )
+  CASH,   CREDIT_CARD,   FLEX_PASS                                                                  =
+  "Cash", "Credit Card", "FlexPass"                                                                   )
 
   validates_inclusion_of :status,        :in => ORDER_STATUSES
   validates_inclusion_of :payment_type,  :in => PAYMENT_TYPES
@@ -123,13 +123,15 @@ class Order < ActiveRecord::Base
         payment = self.credit_card_payments.first
         if payment
           payment.default_from_order
+          payment.note=self.description(self.ticket_line_items)
           payment.process!
           payment.save!
         else
           raise 'Trying to process a credit card order without a credit card'
         end
       when Order::CASH
-        payment = self.cash_payments.create! :amount=>self.total
+        payment = self.cash_payments.create! :amount=>self.total, :note=>self.description(self.ticket_line_items)
+
       when Order::FLEX_PASS
         raise 'Unimplemented'
       else
@@ -154,6 +156,22 @@ class Order < ActiveRecord::Base
     end
   end
 
+  
+  def description(l_items)
+    d = self.performance.to_short_s + " ("
+    c = false;
+    l_items.each { |li| 
+      d += li.to_s 
+      if c then
+        d += ", "
+      else
+        c = true
+      end
+    }
+    d += ")"
+    "#{d}"
+  end
+
   private
   
   def initialize_nested_line_items
@@ -165,5 +183,5 @@ class Order < ActiveRecord::Base
     self.payment_type ||= CREDIT_CARD
     self.ticket_line_items.each{|tli|tli.order=self}
   end
-
+  
 end

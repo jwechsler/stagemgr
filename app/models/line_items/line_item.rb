@@ -16,6 +16,10 @@ class LineItem < ActiveRecord::Base
     self.ticket_class.try(:class_code)
   end
   
+  def total
+    0
+  end
+  
   def ticket?
     return false;
   end
