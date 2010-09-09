@@ -83,3 +83,22 @@ Performance.all.each do |per|
 end
 
 
+address = Address.create!(                :first_name=>'Bob',
+                                          :last_name=>'Loblaw')
+credit_card_order = Order.create!(        :payment_type=>Order::CREDIT_CARD, 
+                                          :status=>Order::NEW, 
+                                          :address=>address,
+                                          :performance=>performance)
+credit_card_order.ticket_line_items.create!(:ticket_class=>fixed_ticket_class, :ticket_count=>3)
+credit_card_order.credit_card_payments.create!(
+                                          :amount=>credit_card_order.total, 
+                                          :card_number=>'4539992043491562',
+                                          :card_expiration_month=>"1",
+                                          :card_type=>"Visa",
+                                          :card_verification_number=>"461",
+                                          :card_expiration_year=>"2020",
+                                          :confirmation_code=>"1234",
+                                          :address => address)
+credit_card_order.status=Order::PROCESSED
+credit_card_order.save!
+

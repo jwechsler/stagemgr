@@ -60,8 +60,37 @@ class OrdersController < ApplicationController
 
   def update
     @order = Order.find(params[:id])
+    @order.attributes = params[:order]
+    if @order.status == Order::NEW
+      begin
+        @credit_card_payment = @order.credit_card_payments.first
+        #and clear them out so save works
+        @order.credit_card_payments = []
+        Order.transaction do
+          @order.save!
+          @order.update_special_offer_line_items_from_code!
+          @order.payment_type = Order::CREDIT_CARD
+          @order.credit_card_payments << @credit_card_payment
+          @order.process!
+        end
+      rescue StandardError => e
+        @order.status = Order::NEW
+        case e
+        when InvalidCreditCard
+          flash.now[:notice] = "The credit card you entered was invalid. Reason: #{e.message}"
+        when CannotProcessPayment
+          flash.now[:notice] = "There was an error while processing your credit card. #{e.message}"
+        when ActiveRecord::RecordInvalid
+          flash.now[:notice] = "There was an error creating the order. #{e.message}"
+        else
+          flash.now[:notice] = "There was an error creating the order. #{e.message}"
+        end
+        render :new
+        return
+      end
+    end
     respond_to do |format|
-      if @order.update_attributes(params[:order])
+      if @order.save
         if @order.errors.empty? 
           flash[:notice] = "Your order was successfully updated"
         else

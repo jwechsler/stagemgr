@@ -47,7 +47,9 @@ class CreditCardPayment < Payment
     # Authorize for the amount
     response = gateway.purchase((self.amount*100).to_i, credit_card)
 
-    raise CannotProcessPayment, response.message unless response.success?
+    unless response.success?
+      raise CannotProcessPayment, response.message 
+    end
         
     self.confirmation_code = response.authorization
     
@@ -55,6 +57,22 @@ class CreditCardPayment < Payment
   end
   
   def refund!
+    raise 'UnimplementedException'
+    CreditCardPayment.transaction do
+      refund_payment = self.order.credit_card_payments.build(
+                                                    :amount                   => self.amount*-1,
+                                                    :payment_id               => self.id,
+                                                    :card_type                => self.card_type,
+                                                    :card_number              => self.card_number,
+                                                    :card_expiration_month    => self.card_expiration_month,
+                                                    :card_expiration_year     => self.card_expiration_year,
+                                                    :card_verification_number => self.card_verification_number,
+                                                    :address                  => self.address
+                                                  )
+      refund_payment.process!
+      self.payment_id=refund_payment.id
+      self.save!
+    end
   end
   
   private

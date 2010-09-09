@@ -32,4 +32,4 @@ Feature: Box office ordering
     And I fill in "ZIP/Postal Code" with "PERF"
     And I select "Cash" from "Payment type"
 
-    And I press "Process Online"
+    And I press "Place Order"

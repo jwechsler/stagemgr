@@ -98,7 +98,7 @@ class Admin::OrdersController < Admin::ApplicationController
         format.xml  { render :xml => @order, :status => :created, :location => @order }
       end
     rescue StandardError => e
-      @order.status = nil
+      @order.status = Order::NEW
       respond_to do |format|
         case e
         when InvalidCreditCard

@@ -75,7 +75,7 @@ class Order < ActiveRecord::Base
      self.ticket_line_items(reload_line_items) + 
      self.special_offer_line_items(reload_line_items) + 
      self.flex_pass_line_items(reload_line_items)
-    ).uniq.to_a.sum{|line_item|line_item.total}
+    ).uniq.to_a.sum{|line_item|line_item.respond_to?(:total) ? line_item.total : 0}
   end
 
   def editable?
@@ -97,16 +97,19 @@ class Order < ActiveRecord::Base
   end
   
   def exchange_and_process_from!( original_order )
-    self.address = original_order.address
-    original_order.status = Order::EXCHANGED
-    exchange_payment_on_original_order = ExchangePayment.create!(:order=>original_order, :amount=>-1*original_order.payments(true).to_a.sum{|p|p.amount})
-    exchange_payment_on_self = ExchangePayment.create!(:order=>self, :amount=>-1 * exchange_payment_on_original_order.amount)
-    payment_difference = self.total - exchange_payment_on_self.amount
-    PriceOverridePayment.create!(:order=>self, :amount=>payment_difference) unless payment_difference == 0
-    self.status=Order::PROCESSED
-    self.payments(true)
-    self.save!
-    original_order.save!
+    Order.transaction do
+      self.address = original_order.address
+      original_order.status = Order::EXCHANGED
+      exchange_payment_on_original_order = ExchangePayment.create!(:order=>original_order, :amount=>-1*original_order.payments(true).to_a.sum{|p|p.amount})
+      exchange_payment_on_self = ExchangePayment.create!(:order=>self, :amount=>-1 * exchange_payment_on_original_order.amount, :payment_id=>exchange_payment_on_original_order.id)
+      exchange_payment_on_original_order.update_attribute(:payment_id, exchange_payment_on_self.id)
+      payment_difference = self.total - exchange_payment_on_self.amount
+      PriceOverridePayment.create!(:order=>self, :amount=>payment_difference) unless payment_difference == 0
+      self.status=Order::PROCESSED
+      self.payments(true)
+      self.save!
+      original_order.save!
+    end
   end
   
   def process!

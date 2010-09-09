@@ -23,7 +23,8 @@ ActionController::Routing::Routes.draw do |map|
       :credit_card_payment_form => :post,
       :cash_payment_form => :post
       }, :member => {:cancel=>:post, :refund=>:post, :fulfill=>:post} do |order|
-      order.resources :exchange_orders, :only=>[:new,:create,:show]
+      order.resources :exchange_orders, :only=>[:new,:create]
+      order.resources :refund_orders, :only=>[:new,:create]
     end
     admin.resources :special_offers
     admin.resources :theaters do |theater|
