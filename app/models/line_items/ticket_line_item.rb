@@ -3,7 +3,7 @@ class TicketLineItem < LineItem
   validates_presence_of :ticket_class, :ticket_count
 
   validates_each :ticket_count do |record, attr, value|
-    unless record.ticket_class.nil? || record.order.nil? || record.order.performance.nil? || value.nil?
+    unless !record.new_record? || record.ticket_class.nil? || record.order.nil? || record.order.performance.nil? || value.nil?
       record.errors.add attr, 'is more than the number left'  if value > record.ticket_class.number_left(record.order.performance)
     end
   end

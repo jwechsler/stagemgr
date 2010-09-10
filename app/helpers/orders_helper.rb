@@ -17,6 +17,7 @@ module OrdersHelper
     end
     success = order.save
     unless success
+      flash[:notice] = order.errors.full_messages.join('<br/>')
       order.status = old_status
       order.payment_type = old_type
     end
