@@ -101,7 +101,6 @@ class Order < ActiveRecord::Base
     Order.transaction do
       self.address = original_order.address
       original_order.status = Order::EXCHANGED
-      self.payments = original_order.payments;
       exchange_payment_on_original_order = ExchangePayment.create!(:order=>original_order, :amount=>-1*original_order.payments(true).to_a.sum{|p|p.amount})
       exchange_payment_on_self = ExchangePayment.create!(:order=>self, :amount=>-1 * exchange_payment_on_original_order.amount, :payment_id=>exchange_payment_on_original_order.id)
       exchange_payment_on_original_order.update_attribute(:payment_id, exchange_payment_on_self.id)
