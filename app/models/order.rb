@@ -125,14 +125,14 @@ class Order < ActiveRecord::Base
         payment = self.credit_card_payments.first
         if payment
           payment.default_from_order
-          payment.note=self.description(self.ticket_line_items)
+          payment.note=self.description
           payment.process!
           payment.save!
         else
           raise 'Trying to process a credit card order without a credit card'
         end
       when Order::CASH
-        payment = self.cash_payments.create! :amount=>self.total, :note=>self.description(self.ticket_line_items)
+        payment = self.cash_payments.create! :amount=>self.total, :note=>self.description
 
       when Order::FLEX_PASS
         raise 'Unimplemented'
@@ -159,19 +159,10 @@ class Order < ActiveRecord::Base
   end
 
   
-  def description(l_items)
-    d = self.performance.to_short_s + " ("
-    c = false;
-    l_items.each { |li| 
-      d += li.to_s 
-      if c then
-        d += ", "
-      else
-        c = true
-      end
-    }
-    d += ")"
-    "#{d}"
+  def description
+    performance_s = self.performance.nil_or.to_short_s
+    line_items_s = self.ticket_line_items.map{ |li| li.to_s }.join(', ')
+    "#{performance_s} (#{line_items_s})"
   end
 
   private
