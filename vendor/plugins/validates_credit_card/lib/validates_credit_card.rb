@@ -11,7 +11,7 @@ module ActiveRecord::Validations::ClassMethods
   end
 
   def validates_credit_card_if_new(card_number, card_type, options, confirmation_code)
-    if !confirmation_code.blank? || card_number.length > 4 unless card_number.nil?
+    if !confirmation_code.blank? || card_number.nil? || card_number.length > 4 
       validates_credit_card(card_number, card_type, options)
     end
   end

@@ -4,5 +4,10 @@ ActiveMerchant::Billing::Base.mode = :production
 ACTIVE_MERCHANT_LOGIN='5V4s5jT2'
 ACTIVE_MERCHANT_PASSWORD='9TC49d2x4n6k4GNz'
 #should the requests be made in test mode (can run test against a real server)
-ACTIVE_MERCHANT_TEST_MODE=false
+if ENV['RAILS_ENV'] == 'development'
+  ACTIVE_MERCHANT_TEST_MODE=true
+else
+  ACTIVE_MERCHANT_TEST_MODE=false
+end
+
 
