@@ -4,15 +4,19 @@ CannotProcessPayment  = Class.new(StandardError)
 class CreditCardPayment < Payment
   belongs_to             :address
 
-  validates_credit_card  :card_number,
-                         :card_type, {}
-  validates_presence_of  :card_type,
-                         :card_last_four,
-                         :card_number,
-                         :card_expiration_year,
-                         :card_expiration_month,
-                         :confirmation_code
+  validates_credit_card_if_new  :card_number,
+                         :card_type, {}, :confirmation_code     
+  validates_presence_of  :card_type, :if => :needs_confirmation_code?
+  validates_presence_of  :card_last_four, :if => :needs_confirmation_code?
+  validates_presence_of  :card_number, :if => :needs_confirmation_code? 
+  validates_presence_of  :card_expiration_year, :if => :needs_confirmation_code?
+  validates_presence_of  :card_expiration_month, :if => :needs_confirmation_code?
+  validates_presence_of  :confirmation_code
   before_validation      :set_defaults
+  
+  def needs_confirmation_code?
+    self.confirmation_code.blank?
+  end 
                          
   def default_from_order
     self.address        ||= self.order.address
@@ -24,6 +28,7 @@ class CreditCardPayment < Payment
   end
 
   def process!
+    
     credit_card = ActiveMerchant::Billing::CreditCard.new(
                       :first_name         => self.address.first_name,
                       :last_name          => self.address.last_name,

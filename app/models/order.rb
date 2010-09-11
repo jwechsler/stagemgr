@@ -124,8 +124,7 @@ class Order < ActiveRecord::Base
         payment = self.credit_card_payments.first
         if payment
           payment.default_from_order
-          payment.note=self.description
-          payment.process!
+          payment.process! unless !payment.confirmation_code.blank?
           payment.save!
         else
           raise 'Trying to process a credit card order without a credit card'

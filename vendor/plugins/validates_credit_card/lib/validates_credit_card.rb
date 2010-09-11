@@ -10,6 +10,11 @@ module ActiveRecord::Validations::ClassMethods
     end
   end
 
+  def validates_credit_card_if_new(card_number, card_type, options, confirmation_code)
+    if confirmation_code && confirmation_code.blank?
+      validates_credit_card(card_number, card_type, options)
+    end
+  end
   #example
   #   validates_credit_card_type :card_type, :against => :card_number, :with => DEFAULT_CREDIT_CARD_TYPES
   def validates_credit_card_type(card_type, options)
