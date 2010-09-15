@@ -59,8 +59,6 @@ class Admin::OrdersController < Admin::ApplicationController
     @order = Order.new
     @order.address = Address.new
     @order.ticket_line_items.build
-    @order.cash_payments.build
-    @order.credit_card_payments.build
     @order.status = Order::NEW
     respond_to do |format|
       format.html # new.html.erb
@@ -72,33 +70,23 @@ class Admin::OrdersController < Admin::ApplicationController
   end
   
   def create
-    order_params = params[:order]
-    @order = Order.new(order_params)
-    #save off the credit card payment to use if it turns out this is a credit card order
-    @credit_card_payment = @order.credit_card_payments.first
-    #and clear them out so save works
-    @order.credit_card_payments = []
-    @order.status = Order::NEW
-
+    old_status = Order::NEW
+    @order = Order.new(params[:order])
     begin
       @order.save!
-      @order.update_special_offer_line_items_from_code!
-      update_order_status_from_params_and_save(@order, params)
-      if @order.payment_type == 'Credit Card'
-        @order.credit_card_payments << @credit_card_payment
-      end
-      if @order.status == Order::PROCESSING
-        @payment = @order.process!
+      old_status = @order.status
+      Order.transaction do
+        @order.transition_to!(convert_button_label_to_state(params[:commit]))
+        @order.transition_to!(Order::PROCESSED) if @order.status == Order::PROCESSING
       end
     
       respond_to do |format|
-        flash[:notice] = @order.status
-        flash[:notice] = 'Order was successfully created.'
+        flash[:notice] = "Order was successfully saved and is now #{@order.status}"
         format.html { redirect_to(edit_admin_order_path(@order.id)) }
         format.xml  { render :xml => @order, :status => :created, :location => @order }
       end
     rescue StandardError => e
-      @order.status = Order::NEW
+      @order.status = old_status
       respond_to do |format|
         case e
         when InvalidCreditCard
@@ -109,6 +97,7 @@ class Admin::OrdersController < Admin::ApplicationController
           flash.now[:notice] = "There was an error creating the order. #{e.message}"
         else
           flash.now[:notice] = "There was an error creating the order. #{e.message}"
+          logger.error "There was an error creating the order. #{e.message} #{e.backtrace}"
         end
         
         format.html { render :new }

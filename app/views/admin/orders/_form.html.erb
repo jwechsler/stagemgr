@@ -14,14 +14,10 @@
 	<%= order_form.select :payment_type, Order::PAYMENT_TYPES %>
 	<div id='payment_forms'>
 		<div id='credit_card_payment_form'>
-			<% order_form.fields_for :credit_card_payments do |credit_card_payment_form| %>
-				<%= render :partial => '/admin/orders/credit_card_payment_form', :locals => { :f => credit_card_payment_form } %>
-			<% end %>
+			<%= render :partial => '/admin/orders/credit_card_payment_form', :locals => { :f => order_form } %>
 		</div>
 		<div id='cash_payment_form'>
-			<% order_form.fields_for :cash_payments do |cash_payment_form| %>
-				<%= render :partial => '/admin/orders/cash_payment_form', :locals => { :f => cash_payment_form } %>
-			<% end %>
+			<%= render :partial => '/admin/orders/cash_payment_form', :locals => { :f => order_form } %>
 		</div>
 	</div>
 </p>
@@ -33,6 +29,7 @@
 
 <p>
 	Order Status: <%=order_form.object.status%>
+	<%= order_form.hidden_field :status %>
 </p>
 
 <p>

@@ -1,4 +1,6 @@
 class Order < ActiveRecord::Base
+  include PaymentFormFields
+  
   belongs_to            :performance
   has_many              :payments
   has_many              :credit_card_payments
@@ -27,8 +29,8 @@ class Order < ActiveRecord::Base
   CASH,   CREDIT_CARD,   FLEX_PASS                                                                  =
   "Cash", "Credit Card", "FlexPass"                                                                   )
 
-  validates_inclusion_of :status,        :in => ORDER_STATUSES
-  validates_inclusion_of :payment_type,  :in => PAYMENT_TYPES
+  validates_inclusion_of :status,           :in => ORDER_STATUSES
+  validates_inclusion_of :payment_type,     :in => PAYMENT_TYPES
 
   validates_presence_of  :address, :status
   validates_associated   :address, 
@@ -39,9 +41,9 @@ class Order < ActiveRecord::Base
   before_validation :set_defaults
   
   validates_each :status do |record, attr, value|
-    #if value == PROCESSED && record.total != record.value_of_all_payments
-    #  record.errors.add attr, "cannot be set to #{PROCESSED} if the total isn't countered by a payment."
-    #end
+    if value == PROCESSED && record.total != record.value_of_all_payments
+      record.errors.add attr, "cannot be set to #{PROCESSED} if the total isn't countered by a payment."
+    end
   end
   
   def value_of_all_payments
@@ -162,8 +164,46 @@ class Order < ActiveRecord::Base
     line_items_s = self.ticket_line_items.map{ |li| li.to_s }.join(', ')
     "#{performance_s} (#{line_items_s})"
   end
-
+  
+  def transition_to!(new_status)
+    self.send "transition_#{self.status.underscore}_to_#{new_status.underscore}!".to_sym
+    raise "Transition from #{self.status} to #{new_status} unsuccessful" unless self.status == new_status
+  end
+  
   private
+  
+  def transition_new_to_processing!
+    self.status = Order::PROCESSING
+    self.save!
+  end
+
+  def transition_hold_to_processing!
+    transition_new_to_processing!
+  end
+  
+  
+  def transition_processing_to_processed!
+    case self.payment_type
+    when CASH
+      self.cash_payments.build(:amount => self.total)
+    when CREDIT_CARD
+      new_payment = self.credit_card_payments.build(
+        :amount => self.total, 
+        :address => self.address,
+        :card_number => self.credit_card_number,
+        :card_expiration_month => self.credit_card_expiration_month,
+        :card_expiration_year => self.credit_card_expiration_year,
+        :card_type => self.credit_card_type,
+        :card_verification_number => self.credit_card_verification_number
+      )
+      new_payment.process!
+    else
+      raise 'New payment type not yet implemented.'
+    end
+    
+    self.status = Order::PROCESSED
+    self.save!
+  end
   
   def initialize_nested_line_items
     line_items.each { |li| li.order = self }

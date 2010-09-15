@@ -17,21 +17,17 @@ class OrdersControllerTest < ActionController::TestCase
     flexmock(ActiveMerchant::Billing::AuthorizeNetGateway).new_instances.should_receive(:purchase).and_return(authorize_net_response)
     
     assert_difference('Order.count') do
-      post :create, :production_id=>@production.id, :performance_id=>@performance.id, 
+      post :create, :commit=>'Place Order', :production_id=>@production.id, :performance_id=>@performance.id, 
         "order"=>{
-        "status"=>'Web',
+        "status"=>Order::NEW,
         "production_code"=>@production.production_code,
         'performance_code'=>@performance.performance_code,
         "address_attributes"=>address_hash, 
-        "credit_card_payments_attributes"=>{
-          "0"=>{
-            "card_expiration_month"=>'09',
-            "card_expiration_year"=>'2014',
-            "card_verification_number"=>'581',
-            "card_number"=>'6011000990139424',
-            "card_type"=>'Discover',
-          }
-        },
+        "credit_card_expiration_month"=>'09',
+        "credit_card_expiration_year"=>'2014',
+        "credit_card_verification_number"=>'123',
+        "credit_card_number"=>'4111111111111111',
+        "credit_card_type"=>'Visa',
         "ticket_line_items_attributes"=>{
           "0"=>{
             "ticket_class_id"=>@ticket_class.id, 
@@ -39,7 +35,7 @@ class OrdersControllerTest < ActionController::TestCase
           }
         },
       }
-      assert_equal 'Your order has been created', flash[:notice]
+      assert_equal 'Your ticket reservation was been made', flash[:notice]
     end
     new_order = Order.last
     assert_equal 15, new_order.total

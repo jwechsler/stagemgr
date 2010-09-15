@@ -1,27 +1,13 @@
 module OrdersHelper
-  def update_order_status_from_params_and_save(order,params)
-    old_status = order.status
-    old_type = order.payment_type
-    order.status = case params[:commit]
-    when 'Manually Processed'
-      Order::PROCESSED
+  def convert_button_label_to_state(button_label)
+    case button_label
     when 'Place Order', 'Order tickets'
       Order::PROCESSING
     when 'Hold'
       Order::HOLD
     else
-      raise "Unimplemented order status for <#{params[:commit]}>"
+      raise "Don't know what to do with button '#{button_label}'"
     end
-    if order.status == Order::HOLD then
-      order.payment_type = Order::CASH
-    end
-    success = order.save
-    unless success
-      flash[:notice] = order.errors.full_messages.join('<br/>')
-      order.status = old_status
-      order.payment_type = old_type
-    end
-    success
   end
   
   def remove_link_unless_new_record(fields)

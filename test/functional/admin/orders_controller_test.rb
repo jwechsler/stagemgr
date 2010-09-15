@@ -21,7 +21,7 @@ class Admin::OrdersControllerTest < ActionController::TestCase
         "payment_type"=>"Cash",
         "production_code"=>@production.production_code
       }
-      assert_equal 'Order was successfully created.', flash[:notice]
+      assert_equal 'Order was successfully saved and is now Processed', flash[:notice]
     end
     new_order = Order.last
     assert_equal 15, new_order.total
@@ -48,15 +48,11 @@ class Admin::OrdersControllerTest < ActionController::TestCase
         "order"=>{
         "address_attributes"=>address_hash, 
         "performance_code"=>@performance.performance_code,
-        "credit_card_payments_attributes"=>{
-          "0"=>{
-            "card_expiration_month"=>'09',
-            "card_expiration_year"=>'2014',
-            "card_verification_number"=>'123',
-            "card_number"=>'123412341234',
-            "card_type"=>'American Express',
-          }
-        },
+        "credit_card_expiration_month"=>'09',
+        "credit_card_expiration_year"=>'2014',
+        "credit_card_verification_number"=>'123',
+        "credit_card_number"=>'123412341234',
+        "credit_card_type"=>'American Express',
         "ticket_line_items_attributes"=>{
           "0"=>{
             "ticket_class_code"=>@ticket_class.class_code, 
@@ -66,7 +62,7 @@ class Admin::OrdersControllerTest < ActionController::TestCase
         "payment_type"=>"Credit Card",
         "production_code"=>@production.production_code
       }
-      assert_equal 'Order was successfully created.', flash[:notice]
+      assert_equal 'Order was successfully saved and is now Processed', flash[:notice]
     end
     new_order = Order.last
     assert_equal 15, new_order.total

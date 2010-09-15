@@ -53,24 +53,23 @@
 <%= render :partial => 'line_item', :locals => { :f => line_item_form, :some_are_donation => some_are_donation } %>
 <% end %>
 </table>
-<% order_form.fields_for :credit_card_payments do |credit_card_payment_form| %>
-<%= credit_card_payment_form.label :card_type %>
-<%= credit_card_payment_form.select :card_type, ActiveRecord::Validations::ClassMethods::DEFAULT_CREDIT_CARD_TYPES.values.sort - ['invalid'] %>
+<p>
+<%= order_form.label :credit_card_type %>
+<%= order_form.select :credit_card_type, ActiveRecord::Validations::ClassMethods::DEFAULT_CREDIT_CARD_TYPES.map{|sym, name| sym == :unknown ? nil : [name, sym.to_s]}.compact.sort_by{|pair|pair[0]}, :selected=>@order.credit_card_type %>
 </p>
 <p>
-<%= credit_card_payment_form.label :card_number %>
-<%= credit_card_payment_form.text_field :card_number %>
+<%= order_form.label :credit_card_number %>
+<%= order_form.text_field :credit_card_number %>
 </p>
 <p>
 Expiration Month/Year
-<%= credit_card_payment_form.select :card_expiration_month, 1.upto(12).map{|n|['%02d' % n,n]} %>
-<%= credit_card_payment_form.select :card_expiration_year, Date.today.year.upto(Date.today.year+12).to_a %>
+<%= order_form.select :credit_card_expiration_month, 1.upto(12).map{|n|['%02d' % n,n]}, :selected=>@order.credit_card_expiration_month.to_i %>
+<%= order_form.select :credit_card_expiration_year, Date.today.year.upto(Date.today.year+12).to_a, :selected=>@order.credit_card_expiration_year.to_i %>
 </p>
 <p>
-<%= credit_card_payment_form.label :card_verification_number %>
-<%= credit_card_payment_form.text_field :card_verification_number, :size=>4 %>
+<%= order_form.label :credit_card_verification_number %>
+<%= order_form.text_field :credit_card_verification_number, :size=>4 %>
 </p>
-<% end %>
 <p>
   <%= order_form.label :special_offer_code %> (optional)<br/>
   <%= order_form.text_field :special_offer_code %>  

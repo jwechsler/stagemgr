@@ -4,6 +4,9 @@ CannotProcessPayment  = Class.new(StandardError)
 class CreditCardPayment < Payment
   belongs_to             :address
 
+  attr_accessor :card_number
+  attr_accessor :card_verification_number
+
   validates_credit_card_if_new  :card_number,
                          :card_type, {}, :confirmation_code     
   validates_presence_of  :card_type, :if => :needs_confirmation_code?
@@ -28,8 +31,8 @@ class CreditCardPayment < Payment
   end
 
   def process!
-    
     credit_card = ActiveMerchant::Billing::CreditCard.new(
+                      :type               => self.card_type,
                       :first_name         => self.address.first_name,
                       :last_name          => self.address.last_name,
                       :number             => self.card_number,
@@ -37,7 +40,7 @@ class CreditCardPayment < Payment
                       :year               => self.card_expiration_year,
                       :verification_value => self.card_verification_number
                     )
-    raise InvalidCreditCard, credit_card.errors.full_messages unless credit_card.valid?
+    raise InvalidCreditCard, credit_card.errors.full_messages.join("\n") unless credit_card.valid?
 
     # Create a gateway object for the TrustCommerce service
     gateway_options = {

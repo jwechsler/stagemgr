@@ -55,25 +55,18 @@ class OrderTest < ActiveSupport::TestCase
           "last_name"=>"", 
           "state"=>"NC", 
           "first_name"=>""
-        }, 
+        },
         "notes"=>"", 
         "performance_code"=>@performance.performance_code, 
         "referral_code"=>"", 
-        "payments_attributes"=>{
-          "0"=>{
-            "payment_type"=>"CreditCardPayment",
-            "card_expiration_month"=>"1",
-            "card_type"=>"American Express",
-            "card_number"=>"",
-            "card_verification_number"=>"",
-            "card_expiration_year"=>"2010",
-            "amount"=>"5.0"
-          }
-        }, 
-        "payment_type"=>"Credit Card"
+        "payment_type"=>"Credit Card",
+        "credit_card_expiration_month"=>'09',
+        "credit_card_expiration_year"=>'2014',
+        "credit_card_verification_number"=>'123',
+        "credit_card_number"=>'123412341234',
+        "credit_card_type"=>'American Express'
       }
       order = Order.create!(params_order)
-      assert_equal CreditCardPayment, Order.find(order.id).payments.first.class
     end
     
     should 'correctly scope ticket_class code to production' do
@@ -97,21 +90,14 @@ class OrderTest < ActiveSupport::TestCase
         "notes"=>"", 
         "performance_code"=>@performance2.performance_code, 
         "referral_code"=>"", 
-        "payments_attributes"=>{
-          "0"=>{
-            "payment_type"=>"CreditCardPayment",
-            "card_expiration_month"=>"1",
-            "card_type"=>"American Express",
-            "card_number"=>"",
-            "card_verification_number"=>"",
-            "card_expiration_year"=>"2010",
-            "amount"=>"5.0"
-          }
-        }, 
-        "payment_type"=>"Credit Card"
+        "payment_type"=>"Credit Card",
+        "credit_card_expiration_month"=>'09',
+        "credit_card_expiration_year"=>'2014',
+        "credit_card_verification_number"=>'123',
+        "credit_card_number"=>'4111111111111111',
+        "credit_card_type"=>'Visa'
       }
       order = Order.create!(params_order)
-      assert_equal CreditCardPayment, Order.find(order.id).payments.first.class
       assert_equal 5, Order.find(order.id).ticket_line_items.first.total
     end
     

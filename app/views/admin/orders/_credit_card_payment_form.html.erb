@@ -1,21 +1,17 @@
 <p>
-<%= f.label :card_type %>
-<%= f.select :card_type, ActiveRecord::Validations::ClassMethods::DEFAULT_CREDIT_CARD_TYPES.values.sort - ['invalid'] %>
+<%= f.label :credit_card_type %>
+<%= f.select :credit_card_type, ActiveRecord::Validations::ClassMethods::DEFAULT_CREDIT_CARD_TYPES.values.sort - ['invalid'] %>
 </p>
 <p>
-<%= f.label :card_number %>
-<%= f.text_field :card_number %>
+<%= f.label :credit_card_number %>
+<%= f.text_field :credit_card_number %>
 </p>
 <p>
 Expiration Month/Year
-<%= f.select :card_expiration_month, 1.upto(12).map{|n|['%02d' % n,n]} %>
-<%= f.select :card_expiration_year, Date.today.year.upto(Date.today.year+12).to_a %>
+<%= f.select :credit_card_expiration_month, 1.upto(12).map{|n|['%02d' % n,n]} %>
+<%= f.select :credit_card_expiration_year, Date.today.year.upto(Date.today.year+12).to_a %>
 </p>
 <p>
-<%= f.label :card_verification_number %>
-<%= f.text_field :card_verification_number, :size=>4 %>
-</p>
-<p>
-<%= f.label :confirmation_code %>
-<%= f.text_field :confirmation_code, :size=>16 %>
+<%= f.label :credit_card_verification_number %>
+<%= f.text_field :credit_card_verification_number, :size=>4 %>
 </p>

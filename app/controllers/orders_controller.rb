@@ -1,5 +1,6 @@
 
 class OrdersController < ApplicationController
+  include OrdersHelper
 
   append_before_filter :find_parents
   append_before_filter :find_order, :only => [:show, :edit, :update, :destroy]
@@ -9,7 +10,6 @@ class OrdersController < ApplicationController
     @order = @performance.orders.build(:status=>Order::WEB)
     @order.status = Order::NEW
     @order.address = Address.new
-    @order.credit_card_payments.build
     @available_ticket_classes.each{|tc|@order.ticket_line_items.build(:ticket_class=>tc)}
 
     respond_to do |format|
@@ -24,85 +24,64 @@ class OrdersController < ApplicationController
   end
 
   def create
+    old_status = Order::NEW
     @order = Order.new(params[:order])
-    @credit_card_payment = @order.credit_card_payments.first
-    #and clear them out so save works
-    @order.credit_card_payments = []
-    @order.status = Order::NEW
     begin
+      @order.save!
+      old_status = @order.status
       Order.transaction do
-        @order.save!
-        @order.update_special_offer_line_items_from_code!
-        @order.payment_type = Order::CREDIT_CARD
-        @credit_card_payment.note=@order.description
-        @order.credit_card_payments << @credit_card_payment
-        @order.process!
+        @order.transition_to!(convert_button_label_to_state(params[:commit]))
+        @order.transition_to!(Order::PROCESSED) if @order.status == Order::PROCESSING
       end
       respond_to do |format|
-        flash[:notice] = "Your order has been created"
+        flash[:notice] = "Your ticket reservation was been made"
         format.html { redirect_to(edit_production_performance_order_path(@order.performance.production, @order.performance, @order)) }
         format.xml  { render :xml => @order, :status => :created, :location => @order }
       end
     rescue StandardError => e
-        @order.status = Order::NEW
-        case e
-        when InvalidCreditCard
-          flash.now[:notice] = "The credit card you entered was invalid. Reason: #{e.message}"
-        when CannotProcessPayment
-          flash.now[:notice] = "There was an error while processing your credit card. #{e.message}"
-        when ActiveRecord::RecordInvalid
-          flash.now[:notice] = "There was an error creating the order. #{e.message}"
-        else
-          flash.now[:notice] = "There was an error creating the order. #{e.message}"
-        end
-        render :new
+      @order.status = old_status
+      case e
+      when InvalidCreditCard
+        flash.now[:notice] = "The credit card you entered was invalid. Reason: #{e.message}"
+      when CannotProcessPayment
+        flash.now[:notice] = "There was an error while processing your credit card. #{e.message}"
+      when ActiveRecord::RecordInvalid
+        flash.now[:notice] = "There was an error creating the order. #{e.message}"
+      else
+        flash.now[:notice] = "There was an error creating the order. #{e.message}"
+        logger.error "There was an error creating the order. #{e.message} #{e.backtrace}"
+      end
+      render :action=>'new'
     end
   end
 
   def update
     @order = Order.find(params[:id])
+    old_status = @order.status
     @order.attributes = params[:order]
-    if @order.status == Order::NEW
-      begin
-        @credit_card_payment = @order.credit_card_payments.first
-        #and clear them out so save works
-        @order.credit_card_payments = []
-        Order.transaction do
-          @order.save!
-          @order.update_special_offer_line_items_from_code!
-          @order.payment_type = Order::CREDIT_CARD
-          @order.credit_card_payments << @credit_card_payment
-          @order.process!
-        end
-      rescue StandardError => e
-        @order.status = Order::NEW
-        case e
-        when InvalidCreditCard
-          flash.now[:notice] = "The credit card you entered was invalid. Reason: #{e.message}"
-        when CannotProcessPayment
-          flash.now[:notice] = "There was an error while processing your credit card. #{e.message}"
-        when ActiveRecord::RecordInvalid
-          flash.now[:notice] = "There was an error creating the order. #{e.message}"
-        else
-          flash.now[:notice] = "There was an error creating the order. #{e.message}"
-        end
-        render :new
-        return
+    begin
+      Order.transaction do
+        @order.transition_to!(convert_button_label_to_state(params[:commit]))
+        @order.transition_to!(Order::PROCESSED) if @order.status == Order::PROCESSING
       end
-    end
-    respond_to do |format|
-      if @order.save
-        if @order.errors.empty? 
-          flash[:notice] = "Your order was successfully updated"
-        else
-          flash[:notice] = @order.errors.full_messages.join('<br/>')
-        end
-        format.html { redirect_to(edit_production_performance_order_path(@order.performance.production, @order.performance, @order)) }
-        format.xml  { head :ok }
+      respond_to do |format|
+        flash.now[:notice] = "Your ticket reservation was been made"
+        render :action=>'new'
+      end
+    rescue StandardError => e
+      @order.status = old_status
+      case e
+      when InvalidCreditCard
+        flash.now[:notice] = "The credit card you entered was invalid. Reason: #{e.message}"
+      when CannotProcessPayment
+        flash.now[:notice] = "There was an error while processing your credit card. #{e.message}"
+      when ActiveRecord::RecordInvalid
+        flash.now[:notice] = "There was an error creating the order. #{e.message}"
       else
-        format.html { render :action => "new" }
-        format.xml  { render :xml => @order.errors, :status => :unprocessable_entity }
+        flash.now[:notice] = "There was an error creating the order. #{e.message}"
+        logger.error "There was an error creating the order. #{e.message} #{e.backtrace}"
       end
+      #render :action=>'new'
     end
   end
   

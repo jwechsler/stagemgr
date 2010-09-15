@@ -21,7 +21,9 @@ production  = theater.productions.create!({
   :name                      =>'Production 1', 
   :status                    =>Production::PRODUCTION_STATUSES.first, 
   :production_code           =>'T1P1', 
-  :capacity                  =>350})
+  :capacity                  =>350, 
+  :closing_at                =>Date.today + 5.months, 
+  :first_preview_at          =>Date.today - 1.months,})
   
 fixed_ticket_class = production.ticket_classes.create!({
   :ticket_type               =>TicketClass::TICKET_TYPES.first,
