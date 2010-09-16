@@ -5,7 +5,7 @@ class Admin::OrdersController < Admin::ApplicationController
 
   def autocomplete_production_code
     find_options = {
-      :conditions => [ "LOWER(production_code) LIKE ?", '%'+params[:q].to_s.downcase + '%' ],
+      :conditions => [ "LOWER(production_code) LIKE ? and status != 'Inactive'p", '%'+params[:q].to_s.downcase + '%' ],
       :order => "production_code ASC",
       :limit => 10
       }
@@ -17,7 +17,7 @@ class Admin::OrdersController < Admin::ApplicationController
     production = Production.find_by_production_code(params[:production_code])
     return [] if production.nil?
     find_options = {
-      :conditions => [ "LOWER(performance_code) LIKE ?", '%'+params[:q].to_s.downcase + '%' ],
+      :conditions => [ "LOWER(performance_code) LIKE ? and status != 'Inactive'", '%'+params[:q].to_s.downcase + '%' ],
       :order => "performance_code ASC",
       :limit => 10
       }
@@ -29,7 +29,7 @@ class Admin::OrdersController < Admin::ApplicationController
     performance = Performance.find_by_performance_code(params[:performance_code])
     return [] if performance.nil?
     find_options = {
-      :conditions => [ "LOWER(class_code) LIKE ? AND id IN (SELECT ticket_class_id from ticket_class_allocations where performance_id = ?)", '%'+params[:q].to_s.downcase + '%', performance.id ],
+      :conditions => [ "LOWER(class_code) LIKE ? AND id IN (SELECT ticket_class_id from ticket_class_allocations where performance_id = ? and available = 1)", '%'+params[:q].to_s.downcase + '%', performance.id ],
       :order => "class_code ASC",
       :limit => 10
       }
