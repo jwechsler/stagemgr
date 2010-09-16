@@ -99,6 +99,10 @@ class Order < ActiveRecord::Base
     
   end
   
+  def cancel!
+    Order.delete(self.id)
+  end
+  
   def exchange_and_process_from!( original_order )
     Order.transaction do
       self.address = original_order.address
