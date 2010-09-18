@@ -72,47 +72,12 @@ class Admin::OrdersController < Admin::ApplicationController
   def create
     old_status = Order::NEW
     @order = Order.new(params[:order])
-    begin
-      @order.save!
-      old_status = @order.status
-      Order.transaction do
-        @order.transition_to!(convert_button_label_to_state(params[:commit]))
-        @order.transition_to!(Order::PROCESSED) if @order.status == Order::PROCESSING
-      end
-    
-      respond_to do |format|
-        flash[:notice] = "Order was successfully saved and is now #{@order.status}"
-        format.html { redirect_to(edit_admin_order_path(@order.id)) }
-        format.xml  { render :xml => @order, :status => :created, :location => @order }
-      end
-    rescue StandardError => e
-      @order.status = old_status
-      respond_to do |format|
-        case e
-        when InvalidCreditCard
-          flash.now[:notice] = "The credit card you entered was invalid. Reason: #{e.message}"
-        when CannotProcessPayment
-          flash.now[:notice] = "There was an error while processing your credit card. #{e.message}"
-        when ActiveRecord::RecordInvalid
-          flash.now[:notice] = "There was an error creating the order. #{e.message}"
-        else
-          flash.now[:notice] = "There was an error creating the order. #{e.message}"
-          logger.error "There was an error creating the order. #{e.message} #{e.backtrace}"
-        end
-        
-        format.html { render :new }
-      end
-    end
+    process_order
   end
 
   def update
     @order.attributes=params[:order]
-    @order.transition_to!(Order::HOLD)
-    respond_to do |format|
-      flash[:notice] = 'Order was successfully saved.'
-      format.html { redirect_to(edit_admin_order_path(@order)) }
-      format.xml  { render :xml => @order, :status => :created, :location => @order }
-    end
+    process_order
   end
   
   def refund
@@ -141,6 +106,42 @@ class Admin::OrdersController < Admin::ApplicationController
   
   def find_order
     @order = Order.find(params[:id])
+  end
+  
+  private 
+  def process_order
+    begin
+      @order.save!
+      old_status = @order.status
+      Order.transaction do
+        @order.transition_to!(convert_button_label_to_state(params[:commit]))
+        @order.transition_to!(Order::PROCESSED) if @order.status == Order::PROCESSING
+      end
+    
+      respond_to do |format|
+        flash[:notice] = "Order was successfully saved and is now #{@order.status_display}"
+        format.html { redirect_to(edit_admin_order_path(@order.id)) }
+        format.xml  { render :xml => @order, :status => :created, :location => @order }
+      end
+    rescue StandardError => e
+      @order.status = old_status
+      respond_to do |format|
+        case e
+        when InvalidCreditCard
+          flash.now[:notice] = "The credit card you entered was invalid. Reason: #{e.message}"
+        when CannotProcessPayment
+          flash.now[:notice] = "There was an error while processing your credit card. #{e.message}"
+        when ActiveRecord::RecordInvalid
+          flash.now[:notice] = "There was an error creating the order. #{e.message}"
+        else
+          flash.now[:notice] = "There was an error creating the order. #{e.message}"
+          logger.error "There was an error creating the order. #{e.message} #{e.backtrace}"
+        end
+        
+        format.html { render :new }
+      end
+    end
+    
   end
   
 end

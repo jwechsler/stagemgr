@@ -174,6 +174,15 @@ class Order < ActiveRecord::Base
     raise "Transition from #{self.status} to #{new_status} unsuccessful" unless self.status == new_status
   end
   
+  def status_display
+    case self.status
+      when HOLD
+        "Held"
+      else
+        self.status
+    end
+  end
+  
   private
   
   def transition_new_to_hold!
