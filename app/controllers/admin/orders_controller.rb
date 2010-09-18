@@ -107,14 +107,9 @@ class Admin::OrdersController < Admin::ApplicationController
 
   def update
     @order.attributes=params[:order]
+    @order.transition_to!(Order::HOLD)
     respond_to do |format|
-      if update_order_status_from_params_and_save(@order, params)
-        flash[:notice] = @order.payment_type
-        flash[:notice] = 'Order was successfully saved.'
-        if @order.status == Order::PROCESSING
-          @payment = @order.process!
-        end
-      end
+      flash[:notice] = 'Order was successfully saved.'
       format.html { redirect_to(edit_admin_order_path(@order)) }
       format.xml  { render :xml => @order, :status => :created, :location => @order }
     end

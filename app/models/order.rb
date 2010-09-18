@@ -176,6 +176,11 @@ class Order < ActiveRecord::Base
   
   private
   
+  def transition_new_to_hold!
+    self.status = Order::HOLD
+    self.save!
+  end
+  
   def transition_new_to_processing!
     self.status = Order::PROCESSING
     self.save!
@@ -185,6 +190,9 @@ class Order < ActiveRecord::Base
     transition_new_to_processing!
   end
   
+  def transition_hold_to_hold!
+    self.save!
+  end
   
   def transition_processing_to_processed!
     case self.payment_type
