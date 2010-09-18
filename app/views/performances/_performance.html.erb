@@ -2,8 +2,12 @@
 <%= 
 if performance.performance_date<Date.today
 	title
-elsif performance.sold_out?
-  "Sold out!"
+elsif performance.near_capacity?
+  if performance.sold_out?
+    "Sold out!"
+  else
+    "<b>Call box office</b>"
+  end
 else
 	link_to(title,new_production_performance_order_path(performance.production.id,performance.id))
 end %>

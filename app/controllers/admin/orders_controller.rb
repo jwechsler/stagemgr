@@ -5,7 +5,7 @@ class Admin::OrdersController < Admin::ApplicationController
 
   def autocomplete_production_code
     find_options = {
-      :conditions => [ "LOWER(production_code) LIKE ? and status != 'Inactive'p", '%'+params[:q].to_s.downcase + '%' ],
+      :conditions => [ "LOWER(production_code) LIKE ? and status != 'Inactive'", '%'+params[:q].to_s.downcase + '%' ],
       :order => "production_code ASC",
       :limit => 10
       }

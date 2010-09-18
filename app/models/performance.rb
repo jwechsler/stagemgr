@@ -34,6 +34,10 @@ class Performance < ActiveRecord::Base
     self.number_of_tickets_left <= 0
   end 
   
+  def near_capacity?
+    self.number_of_tickets_left <= 9
+  end
+  
   def populate_ticket_class_allocations
     self.ticket_class_allocations.each{|tca|tca.performance=self}
     (self.production.ticket_classes - self.ticket_class_allocations.map{|tca|tca.ticket_class}).map do |ticket_class|
