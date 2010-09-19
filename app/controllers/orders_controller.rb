@@ -33,11 +33,9 @@ class OrdersController < ApplicationController
         @order.transition_to!(convert_button_label_to_state(params[:commit]))
         @order.transition_to!(Order::PROCESSED) if @order.status == Order::PROCESSING
       end
-      respond_to do |format|
-        flash[:notice] = "Your ticket reservation was been made"
-        format.html { redirect_to(edit_production_performance_order_path(@order.performance.production, @order.performance, @order)) }
-        format.xml  { render :xml => @order, :status => :created, :location => @order }
-      end
+      flash[:notice] = "Your ticket reservation was been made"
+      redirect_to_proper_action
+      return
     rescue StandardError => e
       @order.status = old_status
       case e
@@ -65,8 +63,9 @@ class OrdersController < ApplicationController
         @order.transition_to!(Order::PROCESSED) if @order.status == Order::PROCESSING
       end
       respond_to do |format|
-        flash.now[:notice] = "Your ticket reservation was been made"
-        render :action=>'new'
+        flash[:notice] = "Your ticket reservation was been made"
+        redirect_to_proper_action
+        return
       end
     rescue StandardError => e
       @order.status = old_status
@@ -81,7 +80,7 @@ class OrdersController < ApplicationController
         flash.now[:notice] = "There was an error creating the order. #{e.message}"
         logger.error "There was an error creating the order. #{e.message} #{e.backtrace}"
       end
-      #render :action=>'new'
+      render :action=>'new'
     end
   end
   
