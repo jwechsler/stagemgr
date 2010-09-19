@@ -39,7 +39,8 @@ class Admin::OrdersController < Admin::ApplicationController
   
   def index
     pagination_state = update_pagination_state_with_params!(Order,Performance,Production)
-    @options_hash = will_paginate_options_from_pagination_state(pagination_state)
+    @options_hash = {:conditions=>['productions.status <> ? and performances.status <> ?', 'Inactive', 'Inactive']}
+    @options_hash.merge!(will_paginate_options_from_pagination_state(pagination_state))
     respond_to do |format|
       format.html # index.html.erb
       format.xml do

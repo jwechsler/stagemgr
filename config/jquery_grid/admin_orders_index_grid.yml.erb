@@ -1,6 +1,7 @@
 ---
 :title: Listing Orders
 :search: true
+:hide_search_initially: false
 :url: <%= admin_orders_path %>
 :selection_handler: orderRowSelected
 :columns:
@@ -13,14 +14,24 @@
   :label: Prod. Code
   :editable: false
 - :width: 96
+  :index: productions.status
+  :label: Prod. Status
+  :editable: false
+  :search: false
+- :width: 96
   :index: performance_code
   :label: Perf. Code
   :editable: false
+- :width: 96
+  :index: performances.status
+  :label: Perf. Status
+  :editable: false
+  :search: false
 - :width: 228
   :label: Name
   :index: last_name
   :editable: false
-  :search: true
+  :search: false
 - :width: 64
   :label: Paid
   :index: value_of_all_payments
@@ -38,6 +49,7 @@
 - :width: 64
   :index: status
   :editable: false
+  :search: false
 - :width: 128
   :index: updated_at
   :editable: false

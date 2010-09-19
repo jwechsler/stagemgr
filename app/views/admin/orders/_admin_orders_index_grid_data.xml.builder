@@ -7,7 +7,9 @@ xml.rows do
     xml.row :id => o.id do
       xml.cell o.id
       xml.cell o.production_code
+      xml.cell o.performance.nil_or.production.nil_or.status
       xml.cell o.performance_code
+      xml.cell o.performance.nil_or.status
       xml.cell o.address.try(:last_name).to_s + ", " + o.address.try(:first_name).to_s
 #      xml.cell o.address.try(:first_name)
       xml.cell number_to_currency(o.total)

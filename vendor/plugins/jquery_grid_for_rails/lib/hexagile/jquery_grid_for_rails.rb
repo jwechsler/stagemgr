@@ -38,6 +38,7 @@ module Hexagile
           :add                 => 'false',
           :delete              => 'false',
           :search              => 'false',
+          :hide_search_initially => 'true',
           :edit                => 'false',
           :inline_edit         => 'false',
           :autowidth           => 'false',
@@ -64,7 +65,9 @@ module Hexagile
       if options[:search] == 'true'
         search = %Q/.navButtonAdd("##{id}_pager",{caption:"",title:"Toggle Search Toolbar", buttonicon :'ui-icon-search', onClickButton:function(){ mygrid[0].toggleToolbar() } })/
         filter_toolbar = "mygrid.filterToolbar();"
-        filter_toolbar << "mygrid[0].toggleToolbar()"
+        if options[:hide_search_initially] == 'true'
+          filter_toolbar << "mygrid[0].toggleToolbar()"
+        end
       end
 
       # Enable multi-selection (checkboxes)
