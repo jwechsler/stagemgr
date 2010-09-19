@@ -185,9 +185,18 @@ class Order < ActiveRecord::Base
   
   def description
     performance_s = self.performance.nil_or.to_short_s
-    line_items_s = self.ticket_line_items.map{ |li| li.to_s }.join(', ')
-    "#{performance_s} (#{line_items_s})"
+    "#{performance_s} (#{self.ticket_detail_description})"
   end
+  
+  def ticket_detail_description
+    self.ticket_line_items.map{ |li| if li.ticket_count > 0 
+      li.to_s 
+      else
+        ""
+      end
+     }.join(', ')
+  end
+  
   
   def transition_to!(new_status)
     self.send "transition_#{self.status.underscore}_to_#{new_status.underscore}!".to_sym

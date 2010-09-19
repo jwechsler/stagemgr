@@ -5,33 +5,28 @@
 :url: <%= admin_orders_path %>
 :selection_handler: orderRowSelected
 :columns:
-- :width: 72
+- :width: 46
   :label: #
   :index: id
   :editable: false
-- :width: 96
+- :width: 46
   :index: production_code
-  :label: Prod. Code
+  :label: Prod
   :editable: false
-- :width: 96
-  :index: productions.status
-  :label: Prod. Status
-  :editable: false
-  :search: false
-- :width: 96
+- :width: 72
   :index: performance_code
-  :label: Perf. Code
+  :label: Perf
   :editable: false
-- :width: 96
-  :index: performances.status
-  :label: Perf. Status
-  :editable: false
-  :search: false
-- :width: 228
-  :label: Name
+- :width: 128
+  :label: Last
   :index: last_name
   :editable: false
-  :search: false
+  :search: true
+- :width: 96
+  :label: First
+  :index: first_name
+  :editable: false
+  :search: true
 - :width: 64
   :label: Paid
   :index: value_of_all_payments
@@ -39,8 +34,8 @@
   :sortable: false
   :search: false
   :align: right
-- :width: 64
-  :label: '# Tix'
+- :width: 32
+  :label: 'Tix'
   :index: total
   :editable: false
   :sortable: false
@@ -51,6 +46,6 @@
   :editable: false
   :search: false
 - :width: 128
-  :index: updated_at
+  :index: description
   :editable: false
   :search: false

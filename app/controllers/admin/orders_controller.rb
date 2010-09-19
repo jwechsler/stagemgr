@@ -46,7 +46,7 @@ class Admin::OrdersController < Admin::ApplicationController
       format.xml do
         @options_hash.merge!(options_from_search(Order,Performance,Production))
         @options_hash.merge!(:include=>{:performance=>:production})
-        @orders = Order.paginate (:all, @options_hash)
+        @orders = Order.paginate(:all, @options_hash)
         @order_count = Order.count
         render :partial => 'admin_orders_index_grid_data.xml.builder', :layout => false
       end
