@@ -20,6 +20,8 @@ class Order < ActiveRecord::Base
                                  :cash_payments, 
                                  :credit_card_payments, :allow_destroy => true
   attr_accessor         :special_offer_code
+  attr_accessor         :door_sale
+  attr_accessor_with_default :email_confirmation,0
   
   ORDER_STATUSES                                                                                    = (
   HOLD,   WEB,   NEW,   PROCESSING,   PROCESSED,   REFUNDED,   EXCHANGED,   FULFILLED,   CANCELED   =
@@ -45,7 +47,7 @@ class Order < ActiveRecord::Base
       record.errors.add attr, "cannot be set to #{PROCESSED} if the total isn't countered by a payment."
     end
   end
-  
+    
   def value_of_all_payments
     self.payments.to_a.sum{|p|p.amount} + 
     self.credit_card_payments.to_a.sum{|ccp|ccp.amount} + 
@@ -80,6 +82,15 @@ class Order < ActiveRecord::Base
      self.flex_pass_line_items(reload_line_items)
     ).uniq.to_a.sum{|line_item|line_item.respond_to?(:total) ? line_item.total : 0}
   end
+  
+  def total_as_currency
+    number_to_currency(self.total,:delimiter => ",", :unit => "$",:separator => ".", :precision => 2)
+  end
+  
+  def ticket_quantity 
+    self.ticket_line_items(false).uniq.to_a.sum{|li| li.respond_to?(:ticket_count) ? li.ticket_count : 0}
+  end
+  
 
   def editable?
     [HOLD,NEW,nil].include? self.status
@@ -107,15 +118,24 @@ class Order < ActiveRecord::Base
     Order.transaction do
       self.address = original_order.address
       original_order.status = Order::EXCHANGED
-      exchange_payment_on_original_order = ExchangePayment.create!(:order=>original_order, :amount=>-1*original_order.payments(true).to_a.sum{|p|p.amount})
+      exchange_payment_on_original_order = ExchangePayment.create!(:order=>original_order, :amount=>-1*original_order.payments(true).to_a.sum{|p|p.amount}, :note=>original_order.description)
       exchange_payment_on_self = ExchangePayment.create!(:order=>self, :amount=>-1 * exchange_payment_on_original_order.amount, :payment_id=>exchange_payment_on_original_order.id)
       exchange_payment_on_original_order.update_attribute(:payment_id, exchange_payment_on_self.id)
       payment_difference = self.total - exchange_payment_on_self.amount
       PriceOverridePayment.create!(:order=>self, :amount=>payment_difference) unless payment_difference == 0
       self.status=Order::PROCESSED
+      self.set_email_confirmation
       self.payments(true)
       self.save!
+      original_order.release_tickets!
       original_order.save!
+    end
+  end
+  
+  def set_email_confirmation
+    now = DateTime.now
+    if self.performance.performance_date > Date.today || (self.performance.performance_date == Date.today && self.performance.performance_time > Time.now - (60*60))
+      self.email_confirmation=1
     end
   end
   
@@ -183,6 +203,12 @@ class Order < ActiveRecord::Base
     end
   end
   
+  
+  def release_tickets!
+    ticket_line_items.each { |ti| TicketLineItem.delete(ti.id) }
+  end
+  
+  
   private
   
   def transition_new_to_hold!
@@ -223,13 +249,14 @@ class Order < ActiveRecord::Base
     end
     
     self.status = Order::PROCESSED
+    self.set_email_confirmation
     self.save!
   end
   
   def initialize_nested_line_items
     line_items.each { |li| li.order = self }
   end
-
+  
   def set_defaults
     self.status ||= HOLD
     self.payment_type ||= CREDIT_CARD

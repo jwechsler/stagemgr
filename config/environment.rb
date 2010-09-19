@@ -41,6 +41,6 @@ Rails::Initializer.run do |config|
   
   # Observers
   
-#  config.active_record.observers = [:order_observer]
+  config.active_record.observers = [:order_observer]
 
 end
