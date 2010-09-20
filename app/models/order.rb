@@ -140,6 +140,7 @@ class Order < ActiveRecord::Base
   end
   
   def process!
+    # TIM -- this method also looks OOOOLLD.  Can you refactor it out of tests?
     payment = nil
     
     Order.transaction do
@@ -176,7 +177,12 @@ class Order < ActiveRecord::Base
   
   def update_special_offer_line_items_from_code!
     self.special_offer_line_items.clear
-    special_offer = SpecialOffer.find_by_code(self.special_offer_code)
+    special_offer = SpecialOffer.find(:first,
+      :conditions => ["code = trim(lower(?)) and (performance_id = ? or production_id = ? or theater_id = ? or (performance_id is null and production_id is null and theater_id is null))",
+        self.special_offer_code,
+        self.performance.id,
+        self.performance.production.id,
+        self.performance.production.theater.id])
     if special_offer
       self.special_offer_line_items.create!(:special_offer=>special_offer)
     end
@@ -239,6 +245,9 @@ class Order < ActiveRecord::Base
   end
   
   def transition_processing_to_processed!
+    
+    self.update_special_offer_line_items_from_code! unless self.special_offer_code.blank?
+    
     case self.payment_type
     when CASH
       self.cash_payments.build(:amount => self.total)

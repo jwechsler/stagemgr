@@ -1,7 +1,6 @@
 class SpecialOffer < ActiveRecord::Base
   validates_presence_of :type, :code
   validates_numericality_of :amount, :null=>false
-  validates_uniqueness_of :code
 
   attr_accessor :limiting_model_type
   attr_accessor :limiting_id
@@ -65,13 +64,7 @@ class SpecialOffer < ActiveRecord::Base
   end
   
   def applicable_line_items(order)
-    return order.ticket_line_items if (self.theater.nil? && self.production.nil? && self.performance.nil? && self.ticket_class.nil?)
-    order.ticket_line_items.select do |tli|
-      (!self.theater.nil? && self.theater == tli.ticket_class.production.theater) ||
-      (!self.production.nil? && self.production == tli.ticket_class.production) ||
-      (!self.performance.nil? && false) || #can't get back to a performance from a line item right now
-      (!self.ticket_class.nil? && self.ticket_class == tli.ticket_class)
-    end
+    return order.ticket_line_items
   end
   
   
