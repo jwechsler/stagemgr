@@ -54,9 +54,13 @@ class Admin::OrdersController < Admin::ApplicationController
             end
           end
         end
+        sort_column = params[:sidx]
+        sort_column = 'orders.id' if sort_column.empty?
+        sort_order = params[:sord]
+        sort_order 'ASC' if sort_order.empty?
         @options_hash = {:conditions=>([conditions_sql] + conditions_params) }
         @options_hash.merge!(:include=>[{:performance=>:production},:address])
-        @options_hash.merge!(:page => params[:page], :order => 'orders.id ASC')
+        @options_hash.merge!(:page => params[:page], :order => "#{sort_column} #{sort_order}")
         @orders = Order.paginate @options_hash
         @total_records = @orders.total_entries
         @total_pages = @total_records/25+1
