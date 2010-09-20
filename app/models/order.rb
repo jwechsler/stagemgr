@@ -250,7 +250,8 @@ class Order < ActiveRecord::Base
         :card_expiration_month => self.credit_card_expiration_month,
         :card_expiration_year => self.credit_card_expiration_year,
         :card_type => self.credit_card_type,
-        :card_verification_number => self.credit_card_verification_number
+        :card_verification_number => self.credit_card_verification_number,
+        :confirmation_code => self.credit_card_confirmation_code
       )
       new_payment.process!
     else

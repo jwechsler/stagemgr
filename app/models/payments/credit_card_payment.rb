@@ -31,41 +31,43 @@ class CreditCardPayment < Payment
   end
 
   def process!
-    credit_card = ActiveMerchant::Billing::CreditCard.new(
-                      :type               => self.card_type,
-                      :first_name         => self.address.first_name,
-                      :last_name          => self.address.last_name,
-                      :number             => self.card_number,
-                      :month              => self.card_expiration_month,
-                      :year               => self.card_expiration_year,
-                      :verification_value => self.card_verification_number
-                    )
-    raise InvalidCreditCard, credit_card.errors.full_messages.join("\n") unless credit_card.valid?
+    if self.confirmation_code.blank? || self.card_number.length != 4
+      credit_card = ActiveMerchant::Billing::CreditCard.new(
+                        :type               => self.card_type,
+                        :first_name         => self.address.first_name,
+                        :last_name          => self.address.last_name,
+                        :number             => self.card_number,
+                        :month              => self.card_expiration_month,
+                        :year               => self.card_expiration_year,
+                        :verification_value => self.card_verification_number
+                      )
+      raise InvalidCreditCard, credit_card.errors.full_messages.join("\n") unless credit_card.valid?
 
-    # Create a gateway object for the TrustCommerce service
-    gateway_options = {
-      :login=>ACTIVE_MERCHANT_LOGIN,
-      :password=>ACTIVE_MERCHANT_PASSWORD,
-      :test=>ACTIVE_MERCHANT_TEST_MODE}
-    # Create a gateway object for the TrustCommerce service
-    gateway = ActiveMerchant::Billing::AuthorizeNetGateway.new(
-      gateway_options
-    )
+      # Create a gateway object for the TrustCommerce service
+      gateway_options = {
+        :login=>ACTIVE_MERCHANT_LOGIN,
+        :password=>ACTIVE_MERCHANT_PASSWORD,
+        :test=>ACTIVE_MERCHANT_TEST_MODE}
+      # Create a gateway object for the TrustCommerce service
+      gateway = ActiveMerchant::Billing::AuthorizeNetGateway.new(
+        gateway_options
+      )
 
-    # Authorize for the amount
-    response = gateway.purchase((self.amount*100).to_i, credit_card)
+      # Authorize for the amount
+      response = gateway.purchase((self.amount*100).to_i, credit_card)
 
-    unless response.success?
-      raise CannotProcessPayment, response.message 
-    end
+      unless response.success?
+        raise CannotProcessPayment, response.message 
+      end
         
-    self.confirmation_code = response.authorization
-    
+      self.confirmation_code = response.authorization
+    end
     self.save!
   end
   
   def refund!
     raise 'UnimplementedException'
+  #  I think all the below is gibberish now and needs to be refactored for the new payment model? --jw
     CreditCardPayment.transaction do
       refund_payment = self.order.credit_card_payments.build(
                                                     :amount                   => self.amount*-1,
