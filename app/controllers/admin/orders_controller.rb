@@ -44,7 +44,7 @@ class Admin::OrdersController < Admin::ApplicationController
       format.html # index.html.erb
       format.xml do
         conditions_sql = 'productions.status <> ? and performances.status <> ?'
-        conditions_params = ['InactiveZZZ', 'InactiveAAA']
+        conditions_params = ['Inactive', 'Inactive']
         if params['_search']=='true'
           [ 'orders.id', 'productions.production_code', 'performances.performance_code', 
             'addresses.last_name', 'addresses.first_name'].each do |column_name|
