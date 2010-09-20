@@ -39,15 +39,27 @@ class Admin::OrdersController < Admin::ApplicationController
   
   def index
     pagination_state = update_pagination_state_with_params!(Order,Performance,Production)
-    @options_hash = {:conditions=>['productions.status <> ? and performances.status <> ?', 'Inactive', 'Inactive']}
-    @options_hash.merge!(will_paginate_options_from_pagination_state(pagination_state))
+    @options_hash = will_paginate_options_from_pagination_state(pagination_state)
     respond_to do |format|
       format.html # index.html.erb
       format.xml do
-        @options_hash.merge!(options_from_search(Order,Performance,Production))
-        @options_hash.merge!(:include=>{:performance=>:production})
-        @orders = Order.paginate(:all, @options_hash)
-        @order_count = Order.count
+        conditions_sql = 'productions.status <> ? and performances.status <> ?'
+        conditions_params = ['InactiveZZZ', 'InactiveAAA']
+        if params['_search']=='true'
+          [ 'orders.id', 'productions.production_code', 'performances.performance_code', 
+            'addresses.last_name', 'addresses.first_name'].each do |column_name|
+            if params[column_name]
+              conditions_sql += " and lower(#{column_name}) like '%' ? '%'"
+              conditions_params << params[column_name].downcase
+            end
+          end
+        end
+        @options_hash = {:conditions=>([conditions_sql] + conditions_params) }
+        @options_hash.merge!(:include=>[{:performance=>:production},:address])
+        @options_hash.merge!(:page => params[:page], :order => 'orders.id ASC')
+        @orders = Order.paginate @options_hash
+        @total_records = @orders.total_entries
+        @total_pages = @total_records/25+1
         render :partial => 'admin_orders_index_grid_data.xml.builder', :layout => false
       end
     end
