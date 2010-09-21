@@ -46,6 +46,7 @@ class Admin::OrdersController < Admin::ApplicationController
   end
   
   def index
+    store_search_and_pagination_state unless !session[:existing_box_office_orders_state].nil?
     respond_to do |format|
       format.html # index.html.erb
       format.xml do

@@ -10,7 +10,7 @@ var orderRowSelected = function(id){
 <%= include_jquery_grid_css %>
 <%
 grid_loaded_javascript='var launch_search = function(){};'
-search_keys = session[:existing_box_office_orders_state].keys - ['rows','page','sidx','sord']
+search_keys = session[:existing_box_office_orders_state].keys - ['rows','page','sidx','sord'] 
 if search_keys.size > 0
 set_search_script = search_keys.map do |key|
   ['rows','page','sidx','sord'].include?(key) ?
