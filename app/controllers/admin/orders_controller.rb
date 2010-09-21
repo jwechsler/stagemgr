@@ -2,6 +2,14 @@ class Admin::OrdersController < Admin::ApplicationController
   include OrdersHelper
   append_before_filter :find_order, :only => [:show, :edit, :update, :destroy, :refund, :cancel]
   append_before_filter :redirect_to_proper_action, :only => [:edit, :show]
+  
+  VALID_SEARCH_COLUMNS = [ 
+    'orders.id', 
+    'productions.production_code', 
+    'performances.performance_code', 
+    'addresses.last_name', 
+    'addresses.first_name'
+  ]
 
   def autocomplete_production_code
     find_options = {
@@ -38,32 +46,16 @@ class Admin::OrdersController < Admin::ApplicationController
   end
   
   def index
-    pagination_state = update_pagination_state_with_params!(Order,Performance,Production)
-    @options_hash = will_paginate_options_from_pagination_state(pagination_state)
     respond_to do |format|
       format.html # index.html.erb
       format.xml do
-        conditions_sql = 'productions.status <> ? and performances.status <> ?'
-        conditions_params = ['Inactive', 'Inactive']
-        if params['_search']=='true'
-          [ 'orders.id', 'productions.production_code', 'performances.performance_code', 
-            'addresses.last_name', 'addresses.first_name'].each do |column_name|
-            if params[column_name]
-              conditions_sql += " and lower(#{column_name}) like '%' ? '%'"
-              conditions_params << params[column_name].downcase
-            end
-          end
-        end
-        sort_column = params[:sidx]
-        sort_column = 'orders.id' if sort_column.empty?
-        sort_order = params[:sord]
-        sort_order 'ASC' if sort_order.empty?
-        @options_hash = {:conditions=>([conditions_sql] + conditions_params) }
+        store_search_and_pagination_state
+        @options_hash = get_search_conditions_from_params
+        @options_hash.merge!(get_pagination_options_from_params)
         @options_hash.merge!(:include=>[{:performance=>:production},:address])
-        @options_hash.merge!(:page => params[:page], :order => "#{sort_column} #{sort_order}")
         @orders = Order.paginate @options_hash
         @total_records = @orders.total_entries
-        @total_pages = @total_records/25+1
+        @total_pages = @total_records/@orders.per_page+1
         render :partial => 'admin_orders_index_grid_data.xml.builder', :layout => false
       end
     end
@@ -159,6 +151,43 @@ class Admin::OrdersController < Admin::ApplicationController
       end
     end
     
+  end
+  
+  private
+  
+  def store_search_and_pagination_state
+    state_to_store = {}
+    if params['_search']=='true'
+      VALID_SEARCH_COLUMNS.each do |column_name|
+        state_to_store[column_name]=params[column_name] if params[column_name] && !params[column_name].empty?
+      end
+    end
+    ['page','rows','sidx','sord'].each do |column_name|
+      state_to_store[column_name]=params[column_name] if params[column_name] && !params[column_name].empty?
+    end
+    session[:existing_box_office_orders_state] = state_to_store
+  end
+  
+  def get_search_conditions_from_params
+    conditions_sql = ['productions.status <> ?', 'performances.status <> ?']
+    conditions_params = ['Inactive', 'Inactive']
+    if params['_search']=='true'
+      VALID_SEARCH_COLUMNS.each do |column_name|
+        if params[column_name] && !params[column_name].empty?
+          conditions_sql << "lower(#{column_name}) like '%' ? '%'"
+          conditions_params << params[column_name].downcase
+        end
+      end
+    end
+    {:conditions=>([conditions_sql.join(' and ')] + conditions_params) }
+  end
+  
+  def get_pagination_options_from_params
+    sort_column = params[:sidx]
+    sort_column = 'orders.id' if sort_column.empty?
+    sort_order = params[:sord]
+    sort_order 'ASC' if sort_order.empty?
+    {:page => params[:page], :order => "#{sort_column} #{sort_order}"}
   end
   
 end

@@ -8,6 +8,40 @@ var orderRowSelected = function(id){
 
 <%= include_jquery_grid_javascript %>
 <%= include_jquery_grid_css %>
-<%= jquery_grid :admin_orders_index_grid, :rows_per_page=>@options_hash[:per_page] %>
+<%
+grid_loaded_javascript='var launch_search = function(){};'
+search_keys = session[:existing_box_office_orders_state].keys - ['rows','page','sidx','sord']
+if search_keys.size > 0
+set_search_script = search_keys.map do |key|
+  ['rows','page','sidx','sord'].include?(key) ?
+    nil :
+    "grid.find('#gs_#{key.gsub(/\./,'\\\\\\\\.')}').val('#{session[:existing_box_office_orders_state][key]}');"
+end.compact.join("\n\t")
+grid_loaded_javascript = "
+var trigger_search = function(){
+	var grid = jQuery('#gview_admin_orders_index_grid'); 
+	e = jQuery.Event('keypress'); 
+	e.charCode = 13; 
+	grid.find('#gs_#{search_keys.last.gsub(/\./,'\\\\\\\\.')}').trigger(e);
+	//stop the infinite loop
+	launch_search = function(){};
+}
+var launch_search = function(){
+	var grid = jQuery('#gview_admin_orders_index_grid');
+	//fill in all search boxes with the session stored values
+	#{set_search_script}
+	setTimeout('trigger_search()',500);
+}"
+end
+%>
+<script>
+<%=grid_loaded_javascript%>
+</script>
+<%= jquery_grid :admin_orders_index_grid, 
+                :rows_per_page=>session[:existing_box_office_orders_state]['rows'], 
+                :page=>session[:existing_box_office_orders_state]['page'],
+                :sort_column=>session[:existing_box_office_orders_state]['sidx'],
+                :sort_order=>session[:existing_box_office_orders_state]['sord'],
+                :grid_loaded=>'launch_search'%>
 <br />
 <a id='admin_orders_index_grid_select_button' href='#'>View/Edit Order</a>
