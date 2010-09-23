@@ -32,8 +32,9 @@ class CreditCardPayment < Payment
 
   def process!
     if self.confirmation_code.blank? || self.card_number.length != 4
+      ctype = (self.card_type == "MasterCard") ? "master" : self.card_type
       credit_card = ActiveMerchant::Billing::CreditCard.new(
-                        :type               => self.card_type,
+                        :type               => ctype,
                         :first_name         => self.address.first_name,
                         :last_name          => self.address.last_name,
                         :number             => self.card_number,
