@@ -35,11 +35,15 @@ class CreditCardPayment < Payment
       ctype = case self.card_type
       when 'MasterCard'
         "master"
+      when 'master_card'
+        "master"
       when 'American Express'
         "american_express"
       else
         self.card_type
       end
+      raise InvalidCreditCard, "type is #{ctype}"
+      
       credit_card = ActiveMerchant::Billing::CreditCard.new(
                         :type               => ctype,
                         :first_name         => self.address.first_name,
