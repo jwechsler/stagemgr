@@ -42,7 +42,6 @@ class CreditCardPayment < Payment
       else
         self.card_type
       end
-      raise InvalidCreditCard, "type is #{ctype}"
       
       credit_card = ActiveMerchant::Billing::CreditCard.new(
                         :type               => ctype,
