@@ -16,14 +16,16 @@ class ProductionsController < ApplicationController
   end
   
   def upcoming
-    @current_date = Date.today
+    @current_date = Date.today.end_of_week + 1
     @productions = Production.find(:all, :conditions=>['productions.first_preview_at > ? and productions.status = \'Active\'',@current_date], :order=>'case theater_id when 1 then 0 else 1 end, productions.first_preview_at')
     render :upcoming, :layout=>false
   end
   
   def now_playing
-    @current_date = Date.today
-    @productions = Production.find(:all, :conditions=>['productions.first_preview_at <= ? and productions.closing_at > ? and productions.status = \'Active\'',@current_date,@current_date], :order=>'case theater_id when 1 then 0 else 1 end, productions.name')
+    @current_date = Date.today.beginning_of_week
+    @end_of_week = Date.today.end_of_week
+    @second_date = Date.today
+    @productions = Production.find(:all, :conditions=>['productions.first_preview_at <= ? and productions.closing_at > ? and productions.status = \'Active\'',@end_of_week,@second_date], :order=>'case theater_id when 1 then 0 else 1 end, productions.name')
     render :now_playing, :layout=>false
   end
   
