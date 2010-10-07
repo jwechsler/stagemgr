@@ -71,8 +71,7 @@ class Admin::OrdersController < Admin::ApplicationController
     @order.ticket_line_items.build
     @order.status = Order::NEW
     respond_to do |format|
-      format.html # new.html.erb
-      format.xml  { render :xml => @order }
+      format.html{ render 'edit', :layout=>true }
     end
   end
   
@@ -148,7 +147,7 @@ class Admin::OrdersController < Admin::ApplicationController
           logger.error "There was an error creating the order. #{e.message} #{e.backtrace}"
         end
         
-        format.html { render :new }
+        format.html { render 'edit', :layout=>true }
       end
     end
     

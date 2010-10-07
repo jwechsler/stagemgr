@@ -1,0 +1,15 @@
+<p>
+	Number of Tickets on Pass:
+	<%= f.object.flex_pass_offer.number_of_tickets %>
+</p>
+
+<p>
+	Price of Pass:
+	<%= f.object.flex_pass_offer.price %>
+</p>
+
+<p>
+	Quantity:
+	<%= f.select :ticket_count, 1.upto(1) %>
+	<%= f.hidden_field :flex_pass_offer_id %>
+</p>

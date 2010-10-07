@@ -43,7 +43,7 @@ group :cucumber do
   gem 'rspec',              '1.3.0'
   gem 'rspec-rails',        '1.3.2'
   gem 'test-unit',          '2.0.7'
-  gem 'rcov',               '>=0.9.8'
+  gem 'rcov',               '0.9.8'
   gem "factory_girl",       '1.2.4'
   gem 'launchy'
   gem 'ruby-debug'

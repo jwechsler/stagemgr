@@ -134,7 +134,7 @@ class Order < ActiveRecord::Base
   
   def set_email_confirmation
     now = DateTime.now
-    if self.performance.performance_date > Date.today || (self.performance.performance_date == Date.today && self.performance.performance_time > Time.now - (60*60))
+    if !self.performance.nil? && (self.performance.performance_date > Date.today || (self.performance.performance_date == Date.today && self.performance.performance_time > Time.now - (60*60)))
       self.email_confirmation=1
     end
   end
