@@ -1,0 +1,11 @@
+<table id='ticket_line_items'>
+	<thead>
+	<th>Ticket Class</th>
+	<th>Ticket Count</th>
+	</thead>
+	<%= render :partial=> @order.ticket_line_items %>
+  <tr>
+    <td></td>
+    <td><%= @order.ticket_line_items.sum(:ticket_count) %> -- Total Tickets</td>
+  </tr>
+</table>

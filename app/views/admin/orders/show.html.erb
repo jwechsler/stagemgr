@@ -7,22 +7,7 @@ Performance:
 <%=h @order.performance.to_s %>
 </p>
 
-<table id='line_items'>
-	<thead>
-	<th>Ticket Class</th>
-	<th>Ticket Count</th>
-	</thead>
-<% @order.ticket_line_items.each do |ticket_line_item| %>
-	<tr>
-		<td><%=h ticket_line_item.ticket_class.to_s %></td>
-		<td><%=h ticket_line_item.ticket_count %></td>
-	</tr>
-<% end %>
-  <tr>
-    <td></td>
-    <td><%= @order.ticket_line_items.sum(:ticket_count) %> -- Total Tickets</td>
-  </tr>
-</table>
+<%= render :partial => '/admin/ticket_line_items/table' %>
 
 <table id='payments'>
   <thead>
