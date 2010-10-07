@@ -139,42 +139,6 @@ class Order < ActiveRecord::Base
     end
   end
   
-  def process!
-    # TIM -- this method also looks OOOOLLD.  Can you refactor it out of tests?
-    payment = nil
-    
-    Order.transaction do
-      self.status = PROCESSING
-      
-      case self.payment_type
-      when Order::CREDIT_CARD
-        payment = self.credit_card_payments.first
-        if payment
-          payment.default_from_order
-          payment.process! unless (!payment.confirmation_code.blank? && !payment.card_number.nil? && payment.card_number.length <= 4)
-          payment.save!
-        else
-          raise 'Trying to process a credit card order without a credit card'
-        end
-      when Order::CASH
-        payment = self.cash_payments.create! :amount=>self.total, :note=>self.description
-
-      when Order::FLEX_PASS
-        raise 'Unimplemented'
-      else
-        raise 'Unimplemented'
-      end
-      self.status = Order::PROCESSED
-      self.save!
-      self.flex_pass_line_items.each do |fpli|
-        fpli.flex_pass = FlexPass.create! :flex_pass_offer => fpli.flex_pass_offer, :order => self, :address => self.address
-        fpli.save!
-      end
-    end
-    
-    payment
-  end
-  
   def update_special_offer_line_items_from_code!
     self.special_offer_line_items.clear
     special_offer = SpecialOffer.find(:first,
@@ -205,8 +169,9 @@ class Order < ActiveRecord::Base
   
   
   def transition_to!(new_status)
+    old_status = self.status
     self.send "transition_#{self.status.underscore}_to_#{new_status.underscore}!".to_sym
-    raise "Transition from #{self.status} to #{new_status} unsuccessful" unless self.status == new_status
+    raise "Transition from #{old_status} to #{new_status} unsuccessful. Current status is #{self.status}." unless self.status == new_status
   end
   
   def status_display
@@ -280,6 +245,7 @@ class Order < ActiveRecord::Base
     self.status ||= HOLD
     self.payment_type ||= CREDIT_CARD
     self.ticket_line_items.each{|tli|tli.order=self}
+    self.flex_pass_line_items.each{|tli|tli.order=self}
   end
   
 end

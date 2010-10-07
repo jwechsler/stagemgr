@@ -12,7 +12,9 @@ class OrderTest < ActiveSupport::TestCase
       @original_order = Factory.create(:order)
       @original_order.ticket_line_items.build(:ticket_class=>@ticket_class, :ticket_count=>1)
       @original_order.payment_type = Order::CASH
-      @original_order.process!
+      @original_order.performance = @performance
+      @original_order.transition_to!(Order::PROCESSING)
+      @original_order.transition_to!(Order::PROCESSED)
       assert_equal 1, @original_order.payments.count
       assert @original_order.payments(true).to_a.sum{|p|p.amount} > 0
     end
