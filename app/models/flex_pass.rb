@@ -1,9 +1,10 @@
 class FlexPass < ActiveRecord::Base
   belongs_to :address
   belongs_to :flex_pass_offer
+  belongs_to :flex_pass_line_item
   belongs_to :order
   
-  validates_presence_of :address, :flex_pass_offer, :order, :code
+  validates_presence_of :address, :flex_pass_offer, :flex_pass_line_item, :order, :code
   
   before_validation_on_create :create_code
   
