@@ -11,7 +11,9 @@ class ProductionsController < ApplicationController
     
   def index
     @current_date = Date.today
-    @productions = Production.find(:all, :conditions=>['productions.closing_at > ? and productions.status = \'Active\'',@current_date], :order=>'case when date(productions.first_preview_at) >= date(current_date) then 1 else 0 end, case theater_id when 1 then 0 else 1 end, case when date(productions.first_preview_at) >= date(current_date) then productions.first_preview_at else productions.name end')
+    @b_week = Date.today.beginning_of_week
+    @e_week = Date.today.end_of_week
+    @productions = Production.find(:all, :conditions=>['productions.closing_at > ? and productions.status = \'Active\'',@b_week], :order=>'case when date(productions.first_preview_at) >= date(current_date) then 1 else 0 end, case theater_id when 1 then 0 else 1 end, case when date(productions.first_preview_at) >= date(current_date) then productions.first_preview_at else productions.name end')
     render :upcoming, :layout=>false
   end
   
