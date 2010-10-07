@@ -102,10 +102,10 @@ text-align:right;
 <%
 current_week_start = @start_date.beginning_of_week
 1.upto(7).each do |day|
-current_day = @start_date.beginning_of_week+day-1
+current_day = @start_date.beginning_of_week+day-2
 %>
-<ul class='<%=Date::DAYNAMES[day%6]%>'>
-<li class='day-header'><%=Date::DAYNAMES[day%7][0,3]%></li>
+<ul class='<%=Date::DAYNAMES[day%7-1]%>'>
+<li class='day-header'><%=Date::DAYNAMES[day%7-1][0,3]%></li>
 <%
 while current_day < @end_date+day
 	%><%= render :partial=>'performance_list_for_day', :locals=>{:date=>current_day,:performances=>@performances} %><%
