@@ -1,3 +1,4 @@
+<%- if @order.ticket_line_items.count > 0 -%>
 <p>Thanks!  Your ticket reservation was been made and your credit card has been charged <%= number_to_currency( @order.total) %>.
 We will see you at the show on <%= @order.performance.performance_date.to_formatted_s(:show_date) %> at 
 <%= @order.performance.performance_time.to_formatted_s(:show_time) %>.  Your tickets will be available for pickup at our 
@@ -5,3 +6,10 @@ box office at 1229 W Belmont ninety minutes before showtime and seating is gener
 don't hesitate to call us at 773-975-8150 or email us at boxoffice@theaterwit.org.  Thanks for your support and we'll see 
 you at the theatre.  Enjoy the show!
 </p>
+<%- elsif @order.flex_pass_line_items.count > 0 -%>
+<p>Thanks!  Your flex pass order has been made and your credit card has been charged <%= number_to_currency( @order.total) %>.
+Your flex pass will be available for pickup at our box office at 1229 W Belmont within 24 hours.  If you have any questions, please 
+don't hesitate to call us at 773-975-8150 or email us at boxoffice@theaterwit.org.  Thanks for your support and we'll see 
+you at the theatre.  Enjoy the shows!
+</p>
+<%- end -%>

@@ -1,9 +1,6 @@
-<% if @available_ticket_classes.nil? || @available_ticket_classes.empty? %>
-  No Web Available Tickets
-<% else %>
-<%=@order.new_record? ? 'New' : 'Continue'%> ticket order for <%=@production.name%> on <%= @performance.performance_date.to_formatted_s(:long_ordinal) %> at <%=  @performance.performance_time.to_formatted_s(:hour_min)%></h1>
+Order for <%=@order_for_to_s%>
 
-<% form_for([@production,@performance,@order]) do |order_form| %>
+<% form_for(@order) do |order_form| %>
 <%= order_form.error_messages %>
 <%= order_form.hidden_field :production_code %>
 <%= order_form.hidden_field :performance_code %>
@@ -41,6 +38,8 @@
 	<%= address_form.text_field :zipcode, :size=>11 %>
 	</td></tr></table>
 <% end %>
+
+<%- if @order.ticket_line_items.size > 0 -%>
 <% some_are_donation = @order.line_items.any?{|li|li.ticket_class.ticket_type=='Donation'}%>
 <table id='line_items'>
   <thead>
@@ -54,9 +53,32 @@
     <th></th>
   </thead>
 <% order_form.fields_for :ticket_line_items do |line_item_form| %>
-<%= render :partial => 'line_item', :locals => { :f => line_item_form, :some_are_donation => some_are_donation } %>
+<%= render :partial => '/orders/line_item', :locals => { :f => line_item_form, :some_are_donation => some_are_donation } %>
 <% end %>
 </table>
+<%- end -%>
+<%- if @order.flex_pass_line_items.size > 0 -%>
+<% order_form.fields_for :flex_pass_line_items do |flex_pass_line_item_form| %>
+
+<p>
+	Number of Tickets on Pass:
+	<%= @flex_pass_offer.number_of_tickets %>
+</p>
+
+<p>
+	Price of Pass:
+	<%= @flex_pass_offer.price %>
+</p>
+
+<p>
+	Quantity:
+	<%= flex_pass_line_item_form.select :ticket_count, 1.upto(20) %>
+	<%= flex_pass_line_item_form.hidden_field :flex_pass_offer_id %>
+</p>
+
+<%- end -%>
+<%- end -%>
+
 <p>
 <%= order_form.label :credit_card_type %>
 <%= order_form.select :credit_card_type, ActiveRecord::Validations::ClassMethods::DEFAULT_CREDIT_CARD_TYPES.map{|sym, name| sym == :unknown ? nil : [name, sym.to_s]}.compact.sort_by{|pair|pair[0]}, :selected=>@order.credit_card_type %>
@@ -88,5 +110,4 @@ Expiration Month/Year
 <br clear="all" />
 <p>
 </p>
-<% end %>
 <% end %>

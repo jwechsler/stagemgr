@@ -1,11 +1,17 @@
 ActionController::Routing::Routes.draw do |map|
 
+  map.resources :orders
+
   map.resources :productions, :only=>:index do |production|
     production.resources :performances, :only=>:index do |performance|
-      performance.resources :orders
+      performance.resources :orders, :controller => 'production_performance_orders'
     end
   end
-
+  
+  map.resources :flex_pass_offers, :only => false do |flex_pass_offer|
+    flex_pass_offer.resources :orders, :controller => 'flex_pass_offer_orders'
+  end
+  
   # add /productions/upcoming as list response for embedding on coming soon page.
   map.connect '/productions/upcoming',
       :controller => 'productions',
