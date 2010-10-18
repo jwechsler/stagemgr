@@ -129,7 +129,7 @@ function show_proper_payment_form(){
 		$('#payment_forms').children('div').each(function(){
 			$(this).hide();
 		});
-	    switch($('#order_payment_type').val())
+	switch($('#order_payment_type').val())
 	    {
 		case 'Credit Card':
 		  $('#credit_card_payment_form').show();
@@ -138,14 +138,16 @@ function show_proper_payment_form(){
 		  $('#cash_payment_form').show();
 		  break;
 		case 'FlexPass':
-		  $('#flexpass_payment_form').show();
+		  $('#flex_pass_payment_form').show();
 		  break;
 	    }
 	});
 }
 
-add_autocomplete();
-show_proper_payment_form();
+jQuery(document).ready(function(){
+  add_autocomplete();
+  show_proper_payment_form();
+});
 
 jQuery(function($){
   //clear bindings so we don't add multiple event handlers
