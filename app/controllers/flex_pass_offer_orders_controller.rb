@@ -6,6 +6,6 @@ class FlexPassOfferOrdersController < ApplicationController
     @flex_pass_offer = FlexPassOffer.find(params[:flex_pass_offer_id])
     @order.flex_pass_line_items.build(:flex_pass_offer_id=>@flex_pass_offer.id)
     @order_for_to_s = 'Flex Pass'
-    render '/orders/edit', :layout=>true
+    render '/orders/edit', :layout=>false
   end
 end

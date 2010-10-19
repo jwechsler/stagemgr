@@ -5,5 +5,8 @@ class AmountOffSpecialOffer < SpecialOffer
     # which ever one is smaller
     [self.amount,self.applicable_line_items(order).map{|li|li.total}.sum].sort.first * -1
   end
+  def to_s
+    "${amount} off"
+  end
   
 end

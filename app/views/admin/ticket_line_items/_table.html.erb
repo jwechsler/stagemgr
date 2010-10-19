@@ -2,12 +2,13 @@
 <table id='ticket_line_items'>
 	<thead>
 	<th>Ticket Class</th>
-	<th>Ticket Count</th>
+	<th>Count</th>
+	<th>Face Value</th>
 	</thead>
 	<%= render :partial=> @order.ticket_line_items %>
 	<tr>
-		<td></td>
-		<td><%= @order.ticket_line_items.sum(:ticket_count) %> -- Total Tickets</td>
+		<td><i>Total Tickets</i></td>
+		<td align="right"><i><%= @order.ticket_line_items.sum(:ticket_count) %></i></td><td></td>
 	</tr>
 </table>
 <%- end -%>
