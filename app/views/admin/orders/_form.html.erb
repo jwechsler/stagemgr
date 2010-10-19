@@ -7,17 +7,7 @@
 	<% order_form.fields_for :address do |address_form| %>
 		<%= render :partial => '/admin/orders/address_form', :locals => { :f => address_form } %>
 	<% end %>
-
-	<%= order_form.label :payment_type %>
-	<%= order_form.select :payment_type, payment_types %>
-	<div id='payment_forms'>
-		<div id='credit_card_payment_form'>
-			<%= render :partial => '/admin/orders/credit_card_payment_form', :locals => { :f => order_form } %>
-		</div>
-		<div id='cash_payment_form'>
-			<%= render :partial => '/admin/orders/cash_payment_form', :locals => { :f => order_form } %>
-		</div>
-	</div>
+	<%= render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form, :payment_types=>payment_types}%>
 </p>
 
 <p>

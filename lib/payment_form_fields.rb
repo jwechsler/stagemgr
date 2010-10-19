@@ -4,6 +4,7 @@ module PaymentFormFields
                 :credit_card_expiration_year,
                 :credit_card_expiration_month,
                 :credit_card_verification_number,
-                :credit_card_confirmation_code
+                :credit_card_confirmation_code,
+                :flex_pass_code
 
 end

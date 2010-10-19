@@ -5,6 +5,7 @@ class Order < ActiveRecord::Base
   has_many              :payments
   has_many              :credit_card_payments
   has_many              :cash_payments
+  has_many              :flex_pass_payments
 
   has_many                       :line_items
   has_many                       :ticket_line_items
@@ -43,8 +44,10 @@ class Order < ActiveRecord::Base
   before_validation :set_defaults
   
   validates_each :status do |record, attr, value|
-    if value == PROCESSED && record.total != record.value_of_all_payments
-      record.errors.add attr, "cannot be set to #{PROCESSED} if the total isn't countered by a payment."
+    if value == PROCESSED
+      unless record.total == record.value_of_all_payments || record.ticket_quantity == record.number_of_tickets_of_all_payments
+        record.errors.add attr, "cannot be set to #{PROCESSED} if the total isn't countered by a payment."
+      end
     end
   end
     
@@ -53,6 +56,10 @@ class Order < ActiveRecord::Base
     self.credit_card_payments.to_a.sum{|ccp|ccp.amount} + 
     self.cash_payments.to_a.sum{|cp|cp.amount} 
 #    self.exchange_payments.to_a.sum{|exp|exp.amount}
+  end
+
+  def number_of_tickets_of_all_payments
+    self.flex_pass_payments.to_a.sum{|fpp|fpp.number_of_tickets}
   end
   
   def addresses
@@ -228,6 +235,13 @@ class Order < ActiveRecord::Base
         :confirmation_code => self.credit_card_confirmation_code
       )
       new_payment.process!
+    when FLEX_PASS
+      flex_pass = FlexPass.find_by_code(self.flex_pass_code)
+      raise 'No FlexPass with that code exists' unless flex_pass
+      new_payment = self.flex_pass_payments.build(
+        :number_of_tickets => self.ticket_quantity,
+        :flex_pass => flex_pass
+      )
     else
       raise 'New payment type not yet implemented.'
     end
