@@ -9,6 +9,11 @@ class OrdersController < ApplicationController
 
   def show; end
 
+  def confirm
+    @order = Order.new(params[:order])
+    redirect_to(order_path(@order))
+  end def
+  
   def create
     old_status = Order::NEW
     @order = Order.new(params[:order])

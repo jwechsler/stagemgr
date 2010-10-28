@@ -7,6 +7,7 @@ Order for <%=@order_for_to_s%>
 <%= order_form.hidden_field :production_code %>
 <%= order_form.hidden_field :performance_code %>
 <%= order_form.hidden_field :status %>
+<%= hidden_field_tag 'order_phase', 'confirm' %>
 <p>
 <% order_form.fields_for :address do |address_form| %>
 	<table border="0">
@@ -89,10 +90,10 @@ Order for <%=@order_for_to_s%>
   <%= order_form.label :special_offer_code %> (optional)<br/>
   <%= order_form.text_field :special_offer_code %>  
 </p>
-<p>
+<!-- p>
   <%= order_form.label :referral_code %> (optional)<br/>
   <%= order_form.text_field :referral_code %>  
-</p>
+</p -->
   <p>
 	<%= order_form.submit 'Order tickets', :disable_with => 'Processing...' if order_form.object.status == Order::NEW || order_form.object.status == Order::HOLD %>
   </p>
