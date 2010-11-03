@@ -83,11 +83,15 @@ class Order < ActiveRecord::Base
   end
 
   def total(reload_line_items=false)
-    (self.line_items(reload_line_items) + 
-     self.ticket_line_items(reload_line_items) + 
-     self.special_offer_line_items(reload_line_items) + 
-     self.flex_pass_line_items(reload_line_items)
-    ).uniq.to_a.sum{|line_item|line_item.respond_to?(:total) ? line_item.total : 0}
+    if self.payments.blank? then
+      (self.line_items(reload_line_items) + 
+       self.ticket_line_items(reload_line_items) + 
+       self.special_offer_line_items(reload_line_items) + 
+       self.flex_pass_line_items(reload_line_items)
+      ).uniq.to_a.sum{|line_item|line_item.respond_to?(:total) ? line_item.total : 0}
+    else
+      self.payments.to_a.sum{|payment|payment.respond_to?(:amount) ? payment.amount : 0}
+    end
   end
   
   def total_as_currency
