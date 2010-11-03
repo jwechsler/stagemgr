@@ -240,7 +240,8 @@ class Order < ActiveRecord::Base
       raise 'No FlexPass with that code exists' unless flex_pass
       new_payment = self.flex_pass_payments.build(
         :number_of_tickets => self.ticket_quantity,
-        :flex_pass => flex_pass
+        :flex_pass => flex_pass,
+        :amount => flex_pass.flex_pass_offer.payout_per_ticket * self.ticket_quantity
       )
     else
       raise 'New payment type not yet implemented.'

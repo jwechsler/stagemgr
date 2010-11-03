@@ -8,7 +8,9 @@
 	<div id='cash_payment_form'>
 		<%= render :partial => '/orders/cash_payment_form', :locals => { :f => order_form } %>
 	</div>
+	<%- if !ordering_flex_pass then -%>
 	<div id='flex_pass_payment_form'>
 		<%= render :partial => '/orders/flex_pass_payment_form', :locals => { :f => order_form } %>
 	</div>
+	<%- end -%>
 </div>

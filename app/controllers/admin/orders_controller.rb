@@ -95,8 +95,8 @@ class Admin::OrdersController < Admin::ApplicationController
   end
   
   def cancel
-    @order.cancel!
-    redirect_to '/admin/orders'
+   # @order.cancel!
+    redirect_to :action=>"index", :controller=>"admin/orders"
   end
   
   private
