@@ -1,0 +1,6 @@
+<p>
+  <%- if @order.flex_pass_line_items.size == 0 -%>
+  <%= f.label :special_offer_code %> (optional)<br/>
+  <%= f.text_field :special_offer_code %>  
+  <%- end -%>
+</p>
