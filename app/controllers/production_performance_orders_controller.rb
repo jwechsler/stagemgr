@@ -11,7 +11,7 @@ class ProductionPerformanceOrdersController < ApplicationController
                       ' at ' + @performance.performance_time.to_formatted_s(:hour_min)
   
     respond_to do |format|
-      format.html{ render '/orders/edit', :layout=>true }
+      format.html{ render '/orders/edit', :layout=>false }
     end
   end
 end
