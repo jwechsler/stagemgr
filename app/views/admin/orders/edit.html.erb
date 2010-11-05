@@ -14,7 +14,7 @@
 	<% end %>
 <%- end -%>
 
-<%= render :partial => '/admin/orders/form', :locals=>{:order_form=>order_form, :payment_types=>Order::PAYMENT_TYPES} %>
+<%= render :partial => '/admin/orders/form', :locals=>{:order_form=>order_form} %>
 
 <p>
   <%= order_form.submit 'Hold', :disable_with => 'Processing...' if order_form.object.status == Order::NEW || order_form.object.status == Order::HOLD %>

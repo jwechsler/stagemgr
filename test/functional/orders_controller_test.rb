@@ -35,7 +35,7 @@ class OrdersControllerTest < ActionController::TestCase
           }
         },
       }
-      assert_equal 'Your ticket reservation was been made', flash[:notice]
+      assert_equal 'Order was successfully saved and is now Processed', flash[:notice]
     end
     new_order = Order.last
     assert_equal 15, new_order.total

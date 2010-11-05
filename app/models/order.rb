@@ -2,10 +2,13 @@ class Order < ActiveRecord::Base
   include PaymentFormFields
   
   belongs_to            :performance
+
   has_many              :payments
-  has_many              :credit_card_payments
-  has_many              :cash_payments
-  has_many              :flex_pass_payments
+  has_many                :credit_card_payments
+  has_many                :cash_payments
+  has_many                :flex_pass_payments
+  has_many                :exchange_payments
+  has_many                :price_override_payments
 
   has_many                       :line_items
   has_many                       :ticket_line_items
@@ -29,8 +32,8 @@ class Order < ActiveRecord::Base
   "Hold", "Web", "New", "Processing", "Processed", "Refunded", "Exchanged", "Fulfilled", "Canceled"   )
 
   PAYMENT_TYPES                                                                                     = (
-  CASH,   CREDIT_CARD,   FLEX_PASS                                                                  =
-  "Cash", "Credit Card", "FlexPass"                                                                   )
+  CASH,   CREDIT_CARD,   FLEX_PASS,  PRICE_OVERRIDE                                                 =
+  "Cash", "Credit Card", "FlexPass", "Price Override"                                                 )
 
   validates_inclusion_of :status,           :in => ORDER_STATUSES
   validates_inclusion_of :payment_type,     :in => PAYMENT_TYPES
@@ -52,10 +55,13 @@ class Order < ActiveRecord::Base
   end
     
   def value_of_all_payments
-    self.payments.to_a.sum{|p|p.amount} + 
-    self.credit_card_payments.to_a.sum{|ccp|ccp.amount} + 
-    self.cash_payments.to_a.sum{|cp|cp.amount} 
-#    self.exchange_payments.to_a.sum{|exp|exp.amount}
+    all_payments = self.payments.to_a +
+                   self.credit_card_payments.to_a +
+                   self.cash_payments.to_a +
+                   self.exchange_payments.to_a + 
+                   self.price_override_payments.to_a
+    all_payments = all_payments.uniq
+    all_payments.sum{|p| p.amount}
   end
 
   def number_of_tickets_of_all_payments
@@ -102,6 +108,21 @@ class Order < ActiveRecord::Base
     self.ticket_line_items(false).uniq.to_a.sum{|li| li.respond_to?(:ticket_count) ? li.ticket_count : 0}
   end
   
+  def contains_flex_pass?
+    (self.line_items.select{|li|li.is_a? FlexPassLineItem}+self.flex_pass_line_items).size > 0
+  end
+  
+  def valid_payment_types_for( current_user )
+    valid_payment_types = Order::PAYMENT_TYPES
+    unless current_user && ( current_user.is_administrator? || current_user.is_box_office_user? )
+      valid_payment_types.delete CASH
+      valid_payment_types.delete PRICE_OVERRIDE
+    end
+    if contains_flex_pass?
+      valid_payment_types.delete FLEX_PASS
+    end
+    valid_payment_types
+  end
 
   def editable?
     [HOLD,NEW,nil].include? self.status
@@ -129,17 +150,53 @@ class Order < ActiveRecord::Base
     Order.transaction do
       self.address = original_order.address
       original_order.status = Order::EXCHANGED
-      exchange_payment_on_original_order = ExchangePayment.create!(:order=>original_order, :amount=>-1*original_order.payments(true).to_a.sum{|p|p.amount}, :note=>original_order.description)
-      exchange_payment_on_self = ExchangePayment.create!(:order=>self, :amount=>-1 * exchange_payment_on_original_order.amount, :payment_id=>exchange_payment_on_original_order.id)
+      self.save!
+      exchange_payment_on_original_order = original_order.exchange_payments.create!(:amount=>-1*original_order.payments(true).to_a.sum{|p|p.amount}, :note=>original_order.description)
+      exchange_payment_on_self = self.exchange_payments.create!(:amount=>-1 * exchange_payment_on_original_order.amount, :payment_id=>exchange_payment_on_original_order.id)
       exchange_payment_on_original_order.update_attribute(:payment_id, exchange_payment_on_self.id)
       payment_difference = self.total - exchange_payment_on_self.amount
-      PriceOverridePayment.create!(:order=>self, :amount=>payment_difference) unless payment_difference == 0
+      if payment_difference < 0
+        self.price_override_payments.create!(:amount=>payment_difference)
+      elsif payment_difference > 0
+        create_proper_payment_in_amount_of!(payment_difference)
+      end
       self.status=Order::PROCESSED
       self.set_email_confirmation
       self.payments(true)
       self.save!
       original_order.release_tickets!
       original_order.save!
+    end
+  end
+  
+  def create_proper_payment_in_amount_of!(amount)
+    case self.payment_type
+    when CASH
+      self.cash_payments.create!(:amount => amount)
+    when CREDIT_CARD
+      new_payment = self.credit_card_payments.build(
+        :amount => amount, 
+        :address => self.address,
+        :card_number => self.credit_card_number,
+        :card_expiration_month => self.credit_card_expiration_month,
+        :card_expiration_year => self.credit_card_expiration_year,
+        :card_type => self.credit_card_type,
+        :card_verification_number => self.credit_card_verification_number,
+        :confirmation_code => self.credit_card_confirmation_code
+      )
+      new_payment.process!
+    when FLEX_PASS
+      flex_pass = FlexPass.find_by_code(self.flex_pass_code)
+      raise 'No FlexPass with that code exists' unless flex_pass
+      new_payment = self.flex_pass_payments.create!(
+        :number_of_tickets => self.ticket_quantity,
+        :flex_pass => flex_pass,
+        :amount => flex_pass.flex_pass_offer.payout_per_ticket * self.ticket_quantity
+      )
+    when PRICE_OVERRIDE
+      self.price_override_payments.create!(:amount => amount)
+    else
+      raise 'New payment type not yet implemented.'
     end
   end
   
@@ -224,32 +281,7 @@ class Order < ActiveRecord::Base
     
     self.update_special_offer_line_items_from_code! unless self.special_offer_code.blank?
     
-    case self.payment_type
-    when CASH
-      self.cash_payments.build(:amount => self.total)
-    when CREDIT_CARD
-      new_payment = self.credit_card_payments.build(
-        :amount => self.total, 
-        :address => self.address,
-        :card_number => self.credit_card_number,
-        :card_expiration_month => self.credit_card_expiration_month,
-        :card_expiration_year => self.credit_card_expiration_year,
-        :card_type => self.credit_card_type,
-        :card_verification_number => self.credit_card_verification_number,
-        :confirmation_code => self.credit_card_confirmation_code
-      )
-      new_payment.process!
-    when FLEX_PASS
-      flex_pass = FlexPass.find_by_code(self.flex_pass_code)
-      raise 'No FlexPass with that code exists' unless flex_pass
-      new_payment = self.flex_pass_payments.build(
-        :number_of_tickets => self.ticket_quantity,
-        :flex_pass => flex_pass,
-        :amount => flex_pass.flex_pass_offer.payout_per_ticket * self.ticket_quantity
-      )
-    else
-      raise 'New payment type not yet implemented.'
-    end
+    create_proper_payment_in_amount_of!(self.total)
     
     self.status = Order::PROCESSED
     self.set_email_confirmation
