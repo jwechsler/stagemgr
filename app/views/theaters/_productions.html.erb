@@ -6,5 +6,5 @@
     <th>Capacity</th>
     <th>Status</th>
   </tr>
-<%= render :partial => @theater.productions %>
+  <%= render :partial => @theater.productions.sort!  %>
 </table>
