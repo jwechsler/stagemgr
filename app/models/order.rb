@@ -210,7 +210,7 @@ class Order < ActiveRecord::Base
   def update_special_offer_line_items_from_code!
     self.special_offer_line_items.clear
     special_offer = SpecialOffer.find(:first,
-      :conditions => ["code = trim(lower(?)) and (performance_id = ? or production_id = ? or theater_id = ? or (performance_id is null and production_id is null and theater_id is null))",
+      :conditions => ["trim(lower(code)) = trim(lower(?)) and (performance_id = ? or production_id = ? or theater_id = ? or (performance_id is null and production_id is null and theater_id is null))",
         self.special_offer_code,
         self.performance.id,
         self.performance.production.id,

@@ -1,18 +1,8 @@
-<p>
-	<%= order_form.label :special_offer_code %> (optional)<br/>
-	<%= order_form.text_field :special_offer_code %>  
-</p>
-
 <p>  
 	<% order_form.fields_for :address do |address_form| %>
 		<%= render :partial => '/admin/orders/address_form', :locals => { :f => address_form } %>
 	<% end %>
 	<%= render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form}%>
-</p>
-
-<p>
-	<%= order_form.label :referral_code %>
-	<%= order_form.text_field :referral_code %>
 </p>
 
 <p>
