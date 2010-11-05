@@ -20,7 +20,7 @@ class OrderTest < ActiveSupport::TestCase
     end
     
     should 'be able to exchange order' do
-      @exchange_order = Order.new(:status=>Order::NEW, :performance=>@performance2)
+      @exchange_order = Order.new(:status=>Order::NEW, :performance=>@performance2, :payment_type=>Order::CASH)
       @exchange_order.ticket_line_items.build(:order=>@exchange_order, :ticket_class=>@ticket_class2, :ticket_count=>1).save!
       @exchange_order.exchange_and_process_from! @original_order
       assert_equal 0, @original_order.payments(true).to_a.sum{|p|p.amount}

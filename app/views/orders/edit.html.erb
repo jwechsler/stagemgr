@@ -83,7 +83,7 @@ Order for <%=@order_for_to_s%>
 <%- end -%>
 <%- end -%>
 
-<%= render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form, :payment_types=>Order::PAYMENT_TYPES-['Cash']}%>
+<%= render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form}%>
 
 <!-- p>
   <%= order_form.label :referral_code %> (optional)<br/>

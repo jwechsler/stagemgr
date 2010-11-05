@@ -1,8 +1,13 @@
 class ApplicationController < ActionController::Base
   helper :all
-  helper_method :current_user_session, :current_user, :logged_in?, :current_user_is_admin?
+  helper_method :current_user_session, :current_user, :logged_in?, :current_user_is_admin?, :payment_types_for
   filter_parameter_logging :password, :password_confirmation
   
+  
+  def payment_types_for(order)
+    order.valid_payment_types_for( current_user)
+  end
+    
   def method_missing(method, *args, &block)
     begin
       method_name = method.to_s
