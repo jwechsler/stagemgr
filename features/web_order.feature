@@ -35,7 +35,7 @@ And I select "Visa" from "Credit card type"
 And I fill in "Credit card number" with "4111111111111111"
 And I fill in "Credit card verification number" with "581"
 And I press "Order tickets"
-Then I should see "Your ticket reservation was been made"
+Then I should see "Order was successfully saved and is now"
 
 Scenario: Create an order with a special offer
 Given I go to new web order for production "ABC12" and performance "PERF"
@@ -54,7 +54,7 @@ And I fill in "Credit card number" with "6011000990139424"
 And I fill in "Credit card verification number" with "581"
 And I fill in "Special offer code" with "1DollarOff"
 And I press "Order tickets"
-Then I should see "Your ticket reservation was been made"
+Then I should see "Order was successfully saved and is now"
 
 Scenario: Have the credit card declined and then try again successfully
 Given I go to new web order for production "ABC12" and performance "PERF"
@@ -77,5 +77,5 @@ And I select "0" from "order_ticket_line_items_attributes_1_ticket_count"
 And I select "1" from "order_ticket_line_items_attributes_0_ticket_count"
 And I fill in "Credit card number" with "4111111111111111"
 And I press "Order tickets"
-Then I should see "Your ticket reservation was been made"
+Then I should see "Order was successfully saved and is now"
 

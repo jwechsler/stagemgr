@@ -4,8 +4,8 @@ Then /^each theater name is a link to a theater detail page$/ do
   end
 end
 
-Then /^I should see the logo for "([^\"]*)"$/ do |theater_name|
-  path = Theater.find_by_name(theater_name).logo.url
-  path = Capybara::XPath.send(:s, path)
-  page.should have_xpath("//img[@src=#{path}]")
-end
+# Then /^I should see the logo for "([^\"]*)"$/ do |theater_name|
+#   path = Theater.find_by_name(theater_name).logo.url
+#   path = Capybara::XPath.send(:s, path)
+#   page.should have_xpath("//img[@src=#{path}]")
+# end
