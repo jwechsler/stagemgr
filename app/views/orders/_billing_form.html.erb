@@ -1,7 +1,7 @@
 <%= order_form.label :payment_type %>
 <%= order_form.select :payment_type, payment_types_for(order_form.object) %>
 <div id='payment_forms'>
-  <%= render :partial => '/orders/special_offer_form', :locals => { :f => f } %>
+  <%= render :partial => '/orders/special_offer_form', :locals => { :f => order_form } %>
 	<div id='credit_card_payment_form'>
 		<%= render :partial => '/orders/credit_card_payment_form', :locals => { :f => order_form } %>
 	</div>
