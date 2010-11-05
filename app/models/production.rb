@@ -1,5 +1,5 @@
 class Production < ActiveRecord::Base
-  PRODUCTION_STATUSES = ['Active',  'Inactive', 'Private']
+  PRODUCTION_STATUSES = ['Active',  'Private', 'Inactive' ]
   validates_inclusion_of :status,        :in => PRODUCTION_STATUSES
   validates_presence_of :theater, :name
   validates_uniqueness_of :production_code
@@ -23,6 +23,10 @@ class Production < ActiveRecord::Base
   
   def running_dates
     self.first_preview_at.strftime('%B %d, %Y') + " through " + self.closing_at.strftime('%B %d, %Y')
+  end
+  
+  def <=>(other)
+      [PRODUCTION_STATUSES.index(self.status), self.opening_at, self.name] <=> [PRODUCTION_STATUSES.index(other.status), other.opening_at, other.name]
   end
   
   private 
