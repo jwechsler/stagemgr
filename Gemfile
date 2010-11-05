@@ -35,7 +35,7 @@ end
 
 group :cucumber do
   gem 'sqlite3-ruby'
-  gem 'capybara'
+  gem 'capybara',           '0.4.0'
   gem 'database_cleaner'
   gem 'cucumber',           '0.8.3'
   gem 'cucumber-rails',     '0.3.2'

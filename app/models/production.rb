@@ -26,7 +26,8 @@ class Production < ActiveRecord::Base
   end
   
   def <=>(other)
-      [PRODUCTION_STATUSES.index(self.status), self.opening_at, self.name] <=> [PRODUCTION_STATUSES.index(other.status), other.opening_at, other.name]
+      [PRODUCTION_STATUSES.index(self.status) || 0, self.opening_at || Date.today, self.name || ''] <=> 
+      [PRODUCTION_STATUSES.index(other.status) || 0, other.opening_at || Date.today, other.name || '']
   end
   
   private 
