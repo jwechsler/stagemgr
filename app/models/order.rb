@@ -113,7 +113,7 @@ class Order < ActiveRecord::Base
   end
   
   def valid_payment_types_for( current_user )
-    valid_payment_types = Order::PAYMENT_TYPES
+    valid_payment_types = Order::PAYMENT_TYPES.clone
     unless current_user && ( current_user.is_administrator? || current_user.is_box_office_user? )
       valid_payment_types.delete CASH
       valid_payment_types.delete PRICE_OVERRIDE
