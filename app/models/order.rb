@@ -123,7 +123,11 @@ class Order < ActiveRecord::Base
     end
     valid_payment_types
   end
-
+  
+  def show_confirmation_for?(current_user)
+    current_user && ( current_user.is_administrator? || current_user.is_box_office_user? )
+  end
+  
   def editable?
     [HOLD,NEW,nil].include? self.status
   end

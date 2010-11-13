@@ -20,6 +20,9 @@ class OrdersController < ApplicationController
     process_order(:edit_order_path)
   end
   
+  def confirm
+  end
+  
   private
   def find_order
     @order = Order.find(params[:id])

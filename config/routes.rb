@@ -1,7 +1,9 @@
 ActionController::Routing::Routes.draw do |map|
 
   map.resources :orders
-
+  
+  map.resources :orders, :collection=>{:confirm => :post}
+  
   map.resources :productions, :only=>:index do |production|
     production.resources :performances, :only=>:index do |performance|
       performance.resources :orders, :controller => 'production_performance_orders'

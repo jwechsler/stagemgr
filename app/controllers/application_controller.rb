@@ -1,11 +1,15 @@
 class ApplicationController < ActionController::Base
   helper :all
-  helper_method :current_user_session, :current_user, :logged_in?, :current_user_is_admin?, :payment_types_for
+  helper_method :current_user_session, :current_user, :logged_in?, :current_user_is_admin?, :payment_types_for, :backend_user?
   filter_parameter_logging :password, :password_confirmation
   
   
   def payment_types_for(order)
     order.valid_payment_types_for( current_user)
+  end
+  
+  def backend_user?
+    current_user && (current_user.is_administrator? || current_user.box_office_user?)
   end
     
   def method_missing(method, *args, &block)
