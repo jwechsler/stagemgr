@@ -90,7 +90,7 @@ Order for <%=@order_for_to_s%>
   <%= order_form.text_field :referral_code %>  
 </p -->
   <p>
-	<%= order_form.submit 'Order tickets', :disable_with => 'Processing...' if order_form.object.status == Order::NEW || order_form.object.status == Order::HOLD %>
+	<%= order_form.submit 'Order tickets', :action=>:confirm, :disable_with => 'Processing...' if order_form.object.status == Order::NEW || order_form.object.status == Order::HOLD %>
   </p>
 <br clear="all" />
 <p>

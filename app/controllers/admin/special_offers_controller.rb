@@ -15,7 +15,7 @@ class Admin::SpecialOffersController < Admin::ApplicationController
   end
   
   def index
-    @special_offers = SpecialOffer.all
+    @special_offers = SpecialOffer.find(:all,:order=>'code, performance_id')
     render 'admin/scaffold/index'
   end
 end
