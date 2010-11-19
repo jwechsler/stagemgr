@@ -23,8 +23,8 @@ class OrderObserver < ActiveRecord::Observer
     end
     response = MyEmma.signup(order.address.email, post_args)
     if response.success? 
-      address.add_to_mail_list = 2
-      address.save!
+      order.address.add_to_mail_list = 2
+      order.address.save!
     end
   end
 
