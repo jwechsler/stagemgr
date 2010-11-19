@@ -4,7 +4,7 @@ class Address < ActiveRecord::Base
   "Requested", "Saved" )
   
   def mailing_list_member?
-    self.add_to_mail_list
+    self.add_to_mail_list.blank? ? false : self.add_to_mail_list > 0
   end
   
 end
