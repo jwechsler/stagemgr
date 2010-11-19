@@ -34,6 +34,7 @@ class Order < ActiveRecord::Base
   PAYMENT_TYPES                                                                                     = (
   CASH,   CREDIT_CARD,   FLEX_PASS,  PRICE_OVERRIDE                                                 =
   "Cash", "Credit Card", "FlexPass", "Price Override"                                                 )
+  
 
   validates_inclusion_of :status,           :in => ORDER_STATUSES
   validates_inclusion_of :payment_type,     :in => PAYMENT_TYPES
@@ -205,10 +206,10 @@ class Order < ActiveRecord::Base
   end
   
   def set_email_confirmation
-    now = DateTime.now
-    if !self.performance.nil? && (self.performance.performance_date > Date.today || (self.performance.performance_date == Date.today && self.performance.performance_time > Time.now - (60*60)))
-      self.email_confirmation=1
-    end
+    #now = DateTime.now
+    #if !self.performance.nil? && (self.performance.performance_date > Date.today || (self.performance.performance_date == Date.today && self.performance.performance_time > Time.now - (60*60)))
+    self.email_confirmation=1
+    #end
   end
   
   def update_special_offer_line_items_from_code!

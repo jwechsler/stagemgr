@@ -48,3 +48,7 @@
   <%= f.label :status %><br />
   <%= f.select(:status, Production::PRODUCTION_STATUSES) %>
 </p>
+<p>
+  <%= f.label :myemma_attendee_group, 'Associated MyEmma Group ID' %><br />
+  <%= f.text_field :myemma_attendee_group %>
+</p>

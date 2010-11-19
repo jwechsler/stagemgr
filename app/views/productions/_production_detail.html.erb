@@ -18,7 +18,12 @@
   <% if !production.additional_information_link.blank? then %>
     <p class="additional_information">For more information, click <a href="<%= production.additional_information_link %>" target="_blank">here</a>.</p>
   <% end %>
-  <p class="production_tickets"><%= link_to "Get tickets/schedule for <i>#{production.name}</i>", production_performances_path(production.id) %></p>
+  <p class="production_tickets">
+  <%- if link_to_full %>
+    <%=link_to "Get tickets/schedule for <i>#{production.name}</i>", "https://www.theaterwit.org/boxoffice/production/index.php?production_id=#{production.id}" %>
+  <%- else %>
+    <%= link_to "Get tickets/schedule for <i>#{production.name}</i>", production_performances_path(production.id) %>
+  <%- end %></p>
   <br clear="all"/>
 </div>
 

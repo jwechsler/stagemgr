@@ -39,7 +39,10 @@ Order for <%=@order_for_to_s%>
 	</td><td>
 	<%= address_form.label :zipcode, 'Postal Code' %><br/>
 	<%= address_form.text_field :zipcode, :size=>11 %>
-	</td></tr></table>
+	</td>
+</tr>
+	</table>
+  </p>
 <% end %>
 
 <%- if @order.ticket_line_items.size > 0 -%>
@@ -89,9 +92,26 @@ Order for <%=@order_for_to_s%>
   <%= order_form.label :referral_code %> (optional)<br/>
   <%= order_form.text_field :referral_code %>  
 </p -->
+<p>
+  
+</p>
+<% order_form.fields_for :address do |address_form2| %>
+<p><table><tr><td> 
+      <%= address_form2.check_box :add_to_mail_list %><td>
+      Join the Theater Wit <%= if @order.performance.production.theater.id != 1
+        "and #{@order.performance.production.theater.name} mailing lists"
+      else
+        "mailing list"
+      end
+      %> for company news, special offers, ticket discounts and more delivered twice monthly.  Your contact information will not be shared. :)
+    </td></tr></table></p>
   <p>
+    Please note that all orders are <emp>non-refundable</emp> and <emp>non-exchangeable</emp>.  Once you've reviewed your order above, you can
+    click "Order tickets" below.
+  </p><p>
 	<%= order_form.submit 'Order tickets', :action=>:confirm, :disable_with => 'Processing...' if order_form.object.status == Order::NEW || order_form.object.status == Order::HOLD %>
   </p>
+<%- end -%>
 <br clear="all" />
 <p>
 </p>
