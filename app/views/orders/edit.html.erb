@@ -97,7 +97,7 @@ Order for <%=@order_for_to_s%>
 </p>
 <% order_form.fields_for :address do |address_form2| %>
 <p><table><tr><td> 
-      <%= address_form2.check_box :add_to_mail_list %><td>
+      <%= address_form2.check_box :add_to_mail_list, :checked=>1 %><td>
       Join the Theater Wit <%= if @order.performance.production.theater.id != 1
         "and #{@order.performance.production.theater.name} mailing lists"
       else
