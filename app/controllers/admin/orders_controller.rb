@@ -133,13 +133,19 @@ class Admin::OrdersController < Admin::ApplicationController
   end
   
   def get_search_conditions_from_params
-    conditions_sql = ['productions.status <> ?', 'performances.status <> ?']
+    conditions_sql = ['(performance_id is NULL or productions.status <> ?)', '(performance_id is NULL or performances.status <> ?)']
     conditions_params = ['Inactive', 'Inactive']
     if params['_search']=='true'
       VALID_SEARCH_COLUMNS.each do |column_name|
         if params[column_name] && !params[column_name].empty?
-          conditions_sql << "lower(#{column_name}) like '%' ? '%'"
-          conditions_params << params[column_name].downcase
+          if column_name.downcase == 'performances.performance_code'
+            conditions_sql << "((performance_id is null and 'flexpass' like '%' ? '%') or lower(#{column_name}) like '%' ? '%')"
+            conditions_params << params[column_name].downcase << params[column_name].downcase  
+          else
+            conditions_sql << "lower(#{column_name}) like '%' ? '%')"
+            conditions_params << params[column_name].downcase 
+            
+          end
         end
       end
     end

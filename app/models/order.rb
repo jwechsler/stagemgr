@@ -86,7 +86,7 @@ class Order < ActiveRecord::Base
   end
 
   def performance_code()
-    self.performance.try(:performance_code)
+    self.performance.nil? ? "FLEXPASS" : self.performance.try(:performance_code)
   end
 
   def total(reload_line_items=false)
@@ -225,7 +225,11 @@ class Order < ActiveRecord::Base
     end
   end
 
-  
+  def display_code
+    self.contains_flex_pass? ? "FLEXPASS" : "NOPE" 
+    # performance.performance_code
+  end
+     
   def description
     performance_s = self.performance.nil_or.to_short_s
     "#{performance_s} (#{self.ticket_detail_description})"
