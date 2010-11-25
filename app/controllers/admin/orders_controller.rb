@@ -133,7 +133,7 @@ class Admin::OrdersController < Admin::ApplicationController
   end
   
   def get_search_conditions_from_params
-    conditions_sql = ['productions.status <> ?', 'performances.status <> ?']
+    conditions_sql = ['(productions.status <> ? or productions.status is null)', '(performances.status <> ? or performances.status is null)']
     conditions_params = ['Inactive', 'Inactive']
     if params['_search']=='true'
       VALID_SEARCH_COLUMNS.each do |column_name|
