@@ -142,9 +142,8 @@ class Admin::OrdersController < Admin::ApplicationController
             conditions_sql << "((performance_id is null and 'flexpass' like '%' ? '%') or lower(#{column_name}) like '%' ? '%')"
             conditions_params << params[column_name].downcase << params[column_name].downcase  
           else
-            conditions_sql << "lower(#{column_name}) like '%' ? '%')"
+            conditions_sql << "lower(#{column_name}) like '%' ? '%'"
             conditions_params << params[column_name].downcase 
-            
           end
         end
       end
