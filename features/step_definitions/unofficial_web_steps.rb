@@ -43,7 +43,7 @@ end
 # end
 
 Given /^I select ([0-9]+\/[0-9]+\/[0-9]+) from "([^\"]*)"$/ do |date, field|
-  parent_of_date = locate(:xpath, "//label[contains(.,'#{field}')]")['for']
+  parent_of_date = find(:xpath, "//label[contains(.,'#{field}')]")['for']
   date = Date.parse(date)
   Given "I select \"#{date.year}\" from \"#{parent_of_date}_1i\""
   Given "I select \"#{Date::MONTHNAMES[date.month]}\" from \"#{parent_of_date}_2i\""
