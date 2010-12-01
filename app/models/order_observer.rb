@@ -17,7 +17,7 @@ class OrderObserver < ActiveRecord::Observer
          :emma_member_state=>order.address.state,
          :emma_member_postal_code=>order.address.zipcode,
          "group[208104529]"=>1}
-    grp = order.performance.production.myemma_attendee_group
+    grp = order.performance.production.myemma_attendee_group unless order.performance.nil?
     if !grp.blank?
       post_args["group[#{grp}]"] = 1
     end
