@@ -1,3 +1,5 @@
+InvalidSpecialOfferCode = Class.new(StandardError)
+
 class Order < ActiveRecord::Base
   include PaymentFormFields
   
@@ -54,7 +56,7 @@ class Order < ActiveRecord::Base
       end
     end
   end
-    
+  
   def value_of_all_payments
     all_payments = self.payments.to_a +
                    self.credit_card_payments.to_a +
@@ -222,6 +224,8 @@ class Order < ActiveRecord::Base
         self.performance.production.theater.id])
     if special_offer
       self.special_offer_line_items.create!(:special_offer=>special_offer)
+    else
+      raise "Unknown special offer code \"#{self.special_offer_code}\""
     end
   end
 
