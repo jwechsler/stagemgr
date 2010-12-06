@@ -3,7 +3,9 @@ class Notifier < ActionMailer::Base
   def order_notification(order)
     recipients order.address.email
     from       "boxoffice@theaterwit.org"
+    bcc        "boxoffice@theaterwit.org"
     subject    order.contains_flex_pass? ? "Your Theater Wit FlexPass is on it's way" : "Your ticket order for #{order.performance.production.name}" 
+    sent_on    Time.now
     body       order.contains_flex_pass? ? %Q(
 Thanks so much for your FlexPass order.  We are processing your request and you should receive your FlexPass in the mail in the next 5-7 business days.
 
