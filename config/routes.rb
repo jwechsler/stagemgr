@@ -38,7 +38,7 @@ ActionController::Routing::Routes.draw do |map|
       :autocomplete_ticket_class_code => :get,
       :credit_card_payment_form => :post,
       :cash_payment_form => :post
-      }, :member => {:cancel=>:post, :refund=>:post, :fulfill=>:post} do |order|
+      }, :member => {:cancel=>:post, :refund=>:post, :fulfill=>:get} do |order|
       order.resources :exchange_orders, :only=>[:new,:create]
       order.resources :refund_orders, :only=>[:new,:create]
     end

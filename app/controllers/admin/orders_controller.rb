@@ -1,6 +1,6 @@
 class Admin::OrdersController < Admin::ApplicationController
   include OrdersHelper
-  append_before_filter :find_order, :only => [:show, :edit, :update, :destroy, :refund, :cancel]
+  append_before_filter :find_order, :only => [:show, :edit, :update, :destroy, :refund, :cancel, :fulfill]
   append_before_filter :redirect_to_proper_action, :only => [:edit, :show]
   
   VALID_SEARCH_COLUMNS = [ 
@@ -65,6 +65,13 @@ class Admin::OrdersController < Admin::ApplicationController
   def show
   end
 
+
+  def fulfill
+    # @todo smelly code.  Why do I have to do this?
+    params[:commit] = 'Fulfill'
+    process_order(:admin_order_path)
+  end
+  
   def new
     @order = Order.new
     @order.address = Address.new

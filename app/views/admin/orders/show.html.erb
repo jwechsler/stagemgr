@@ -55,9 +55,9 @@ Performance:
 	<% if @order.status == 'Processed' %>
 	<%= link_to 'Refund Order', new_admin_order_refund_order_path(@order) %>
 	<%= link_to 'Exchange Order', new_admin_order_exchange_order_path(@order) %>
-	<%= link_to 'Fulfill Order', fulfill_admin_order_path(@order), :confirm => "Are you sure?", :method=>:post  %>
+	<%= link_to 'Fulfill Order', fulfill_admin_order_path(@order)  %>
 	<% end %>
-	<% if @order.status == 'Processing' || @order.status == 'Hold' %>
+	<% if @order.status == 'Processing' || @order.status == 'Hold' || @order.status == Order::NEW %>
 	<%= link_to 'Cancel Order', cancel_admin_order_path(@order), :confirm => "Are you sure?", :method=>:post %>
 	<% end %>
 </p>

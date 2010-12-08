@@ -22,6 +22,7 @@ class OrdersController < ApplicationController
   
   def confirm
   end
+ 
   
   private
   def find_order

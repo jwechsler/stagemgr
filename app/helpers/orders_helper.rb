@@ -5,6 +5,8 @@ module OrdersHelper
       Order::PROCESSING
     when 'Hold'
       Order::HOLD
+    when 'Fulfill'
+        Order::FULFILLED
     else
       raise "Don't know what to do with button '#{button_label}'"
     end

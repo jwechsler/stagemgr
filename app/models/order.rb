@@ -301,6 +301,11 @@ class Order < ActiveRecord::Base
     self.save!
   end
   
+  def transition_processed_to_fulfilled!
+    self.status = Order::FULFILLED
+    self.save!
+  end
+  
   def initialize_nested_line_items
     line_items.each { |li| li.order = self }
   end
