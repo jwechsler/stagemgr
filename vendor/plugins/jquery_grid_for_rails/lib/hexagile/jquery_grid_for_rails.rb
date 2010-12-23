@@ -75,6 +75,11 @@ module Hexagile
       if options[:multi_selection]
         multiselect = "multiselect: true,"
         multihandler = %Q/
+          jQuery(".select_button").click( function(e) {
+            var s; s = jQuery("##{id}").getGridParam('selarrrow');
+             #{options[:selection_handler]}(s,e.currentTarget.id);
+            return false;
+          });
           jQuery("##{id}_select_button").click( function() {
             var s; s = jQuery("##{id}").getGridParam('selarrrow');
             #{options[:selection_handler]}(s);

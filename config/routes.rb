@@ -36,6 +36,7 @@ ActionController::Routing::Routes.draw do |map|
       :autocomplete_production_code => :get,
       :autocomplete_performance_code => :get,
       :autocomplete_ticket_class_code => :get,
+      :fulfill_selected=>:post,
       :credit_card_payment_form => :post,
       :cash_payment_form => :post
       }, :member => {:cancel=>:post, :refund=>:post, :fulfill=>:get} do |order|

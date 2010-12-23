@@ -8,7 +8,8 @@ class Admin::OrdersController < Admin::ApplicationController
     'productions.production_code', 
     'performances.performance_code', 
     'addresses.last_name', 
-    'addresses.first_name'
+    'addresses.first_name',
+    'orders.status'
   ]
 
   def autocomplete_production_code
@@ -65,7 +66,17 @@ class Admin::OrdersController < Admin::ApplicationController
   def show
   end
 
-
+  def fulfill_selected
+    params[:commit] = 'Fulfill'
+    orders = Order.find(params[:ids])
+    orders.each { |o|
+      if o.status == 'Processed'
+        o.transition_to!(Order::FULFILLED)
+      end
+    }
+    logger.info params[:ids].to_s
+  end
+  
   def fulfill
     # @todo smelly code.  Why do I have to do this?
     params[:commit] = 'Fulfill'
