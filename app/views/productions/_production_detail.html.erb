@@ -1,12 +1,12 @@
  <div class="production_information">
- 
+ <a name="production<%= production.id %>"></a>
    <% if !production.logo_url.blank? then %>
   <img class="production_logo" src="<%= production.logo_url %>" width="250" />
   <% end  %>
   <% if production.theater.class_display != '' then %>
     <p><span class="company_class"><%=h production.theater.class_display %></span> - <span class="company_header"><%=h production.theater.name %></span></p>
   <% else %>
-    <p><span class="company_class"><%= h production.theater.name %></span></p>
+    <p><span class="company_class"><%= h production.theater.name %></span</p>
   <% end %>
   <span class="production_name"><%=h production.name %></span><br/>
   <span class="production_credits"><%= production.credit_lines %></span><br/>
