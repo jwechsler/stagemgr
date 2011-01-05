@@ -36,6 +36,13 @@ class TicketClass < ActiveRecord::Base
   def to_s
     "#{self.class_name||self.class_code}-#{self.ticket_type}"
   end
+
+  def self.search_by_code_and_performance_id(code, performance_id )
+    where("LOWER(class_code) LIKE ?",'%'+code.to_s.downcase + '%').
+      where("id IN (SELECT ticket_class_id from ticket_class_allocations where performance_id = ? and available = 1)",  performance_id ).
+      order("class_code ASC").
+      limit(10)
+  end
   
   private 
   def clean_values

@@ -1,72 +1,80 @@
-ActionController::Routing::Routes.draw do |map|
+Stagemgr::Application.routes.draw do
 
-  map.resources :orders, :collection => {:confirm => :post}
-  
-  # map.resources :orders, :collection=>{:confirm => :post}
-  
-  map.resources :productions, :only=>:index do |production|
-    production.resources :performances, :only=>:index do |performance|
-      performance.resources :orders, :controller => 'production_performance_orders'
+  resources :orders do
+    post :confirm, :on => :collection
+  end
+
+  resources :productions, :only=>:index do
+    resources :performances, :only=>:index do
+      resources :orders, :controller => 'production_performance_orders'
     end
   end
-  
-  map.resources :flex_pass_offers, :only => false do |flex_pass_offer|
-    flex_pass_offer.resources :orders, :controller => 'flex_pass_offer_orders'
+
+  resources :flex_pass_offers, :only => false do
+    resources :orders, :controller => 'flex_pass_offer_orders'
   end
-  
+
   # add /productions/upcoming as list response for embedding on coming soon page.
-  map.connect '/productions/upcoming',
+  get '/productions/upcoming',
       :controller => 'productions',
       :action => 'upcoming'
 
-  map.connect '/productions/now_playing',
+  get '/productions/now_playing',
           :controller => 'productions',
           :action => 'now_playing'
 
-  map.connect '/productions/by_date',
+  get '/productions/by_date',
           :controller => 'productions',
           :action => 'by_date'
 
-  map.namespace :admin do |admin|
-    admin.resources :flex_pass_offers do |flex_pass_offer|
-      flex_pass_offer.resources :orders, :controller => 'flex_pass_offer_orders'
+  namespace :admin do
+    resources :flex_pass_offers do
+      resources :orders, :controller => 'flex_pass_offer_orders'
     end
-    admin.resources :flex_passes
-    admin.resources :orders, :collection => {
-      :autocomplete_production_code => :get,
-      :autocomplete_performance_code => :get,
-      :autocomplete_ticket_class_code => :get,
-      :fulfill_selected=>:post,
-      :credit_card_payment_form => :post,
-      :cash_payment_form => :post
-      }, :member => {:cancel=>:post, :refund=>:post, :fulfill=>:get} do |order|
-      order.resources :exchange_orders, :only=>[:new,:create]
-      order.resources :refund_orders, :only=>[:new,:create]
+    resources :flex_passes
+    resources :orders do
+      collection do
+        get :autocomplete_production_code
+        get :autocomplete_performance_code
+        get :autocomplete_ticket_class_code
+        post :fulfill_selected
+        post :credit_card_payment_form
+        post :cash_payment_form
+      end
+      member do
+        post :cancel
+        post :refund
+        get  :fulfill
+      end
+      resources :exchange_orders, :only=>[:new,:create]
+      resources :refund_orders, :only=>[:new,:create]
     end
-    admin.resources :special_offers
-    admin.resources :theaters do |theater|
-      theater.resources :productions do |production|
-        production.resources :performances, :member => 'duplicate'
-        production.resources :ticket_classes
+    resources :special_offers
+    resources :theaters do
+      resources :productions do
+        resources :performances do
+          get 'duplicate', :on => :member
+        end
+        resources :ticket_classes
       end
     end
-    admin.resources :users do |user|
-      user.resources :theaters
+    resources :users do
+      resources :theaters
     end
   end
 
-  map.namespace :current_user do |current_user|
-    current_user.resources :theaters do |theater|
-      theater.resources :productions do |production|
-        production.resources :performances
+  namespace :current_user do
+    resources :theaters do
+      resources :productions do
+        resources :performances
       end
     end
-    current_user.resource :account
+    resource :account
   end
 
-  map.resource  :user_session
-  map.root :controller => "current_user/accounts", :action => "show"
-  map.login '/login', :controller => 'user_sessions', :action => 'new'
-  map.logout '/logout', :controller => 'user_sessions', :action => 'destroy'
+  resource  :user_session
+  root :to => 'current_user/accounts#show'
+  get '/login', :controller => 'user_sessions', :action => 'new'
+  get '/logout', :controller => 'user_sessions', :action => 'destroy'
 
 end

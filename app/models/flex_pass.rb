@@ -4,11 +4,11 @@ class FlexPass < ActiveRecord::Base
   belongs_to :flex_pass_line_item
   belongs_to :order
   has_many :flex_pass_payments
-  
+
   validates_presence_of :address, :flex_pass_offer, :flex_pass_line_item, :order, :code
-  
-  before_validation_on_create :create_code
-  
+
+  before_validation :create_code, :on => :create
+
   delegate :number_of_tickets, :to => :flex_pass_offer
 
   # Generates a random string from a set of easily readable characters

@@ -5,7 +5,7 @@ class User < ActiveRecord::Base
     #c.my_config_option = my_value
   end
   
-  before_validation_on_create :set_defaults
+  before_validation :set_defaults, :on => :create
   
   def set_defaults
     self.is_administrator = false if self.is_administrator.nil?

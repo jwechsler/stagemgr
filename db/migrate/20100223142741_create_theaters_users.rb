@@ -1,6 +1,6 @@
 class CreateTheatersUsers < ActiveRecord::Migration
   def self.up
-    create_table :theaters_users do |t|
+    create_table :theaters_users, :id => false do |t|
       t.references :theater
       t.references :user
     end

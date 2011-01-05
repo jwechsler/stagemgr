@@ -25,7 +25,7 @@
 		<th>Price Override</th>
 		<th>Total</th>
 	</thead>
-	<% order_form.fields_for :ticket_line_items do |ticket_line_item_form| %>
+	<%= order_form.fields_for :ticket_line_items do |ticket_line_item_form| %>
 	<%= render :partial => '/admin/orders/ticket_line_item_form', :locals => { :f => ticket_line_item_form } %>
 	<% end %>
 </table>

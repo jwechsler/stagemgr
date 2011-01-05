@@ -1,7 +1,7 @@
 module Hexagile
   module JqueryGridForRails
     def jquery_grid(id, options={})
-      yaml = ERB.new(File.open("#{RAILS_ROOT}/config/jquery_grid/#{id}.yml.erb", 'r').read).result(controller.send(:binding))
+      yaml = ERB.new(File.open("#{Rails.root}/config/jquery_grid/#{id}.yml.erb", 'r').read).result(controller.send(:binding))
       grid_data = YAML::load(yaml)
       options=grid_data.merge(options)
 

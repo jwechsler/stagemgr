@@ -1,3 +1,5 @@
+require 'payment_form_fields'
+
 InvalidSpecialOfferCode = Class.new(StandardError)
 
 class Order < ActiveRecord::Base
@@ -46,7 +48,7 @@ class Order < ActiveRecord::Base
                          :payments, :credit_card_payments, :cash_payments,
                          :line_items, :ticket_line_items, :flex_pass_line_items, :special_offer_line_items
   
-  before_validation_on_create :initialize_nested_line_items
+  before_validation :initialize_nested_line_items, :on => :create
   before_validation :set_defaults
   
   validates_each :status do |record, attr, value|

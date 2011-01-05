@@ -14,7 +14,7 @@ module OrdersHelper
   
   def remove_link_unless_new_record(fields)
     out = ''
-    out << fields.hidden_field(:_delete)  unless fields.object.new_record?
+    out << fields.hidden_field(:_destroy)  unless fields.object.new_record?
     out << link_to("remove", "##{fields.object.class.name.underscore}", :class => 'remove')
     out
   end

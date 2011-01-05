@@ -37,19 +37,19 @@ Performance:
 </table>
 <p>
 	Order Status: 
-	<%=h @order.status %>
+	<%= @order.status %>
 </p>
 <p>
 	Confirmation Code:
-	<%=h @order.payments.first.nil? ? "" : @order.payments.first.confirmation_code %>
+	<%= @order.payments.first.nil? ? "" : @order.payments.first.confirmation_code %>
 </p>
 <p>
 	Referral Code:
-	<%=h @order.referral_code %>
+	<%= @order.referral_code %>
 </p>
 <p>
 	Notes:
-	<%=h @order.notes %>
+	<%= @order.notes %>
 </p>
 <p>
 	<% if @order.status == 'Processed' %>

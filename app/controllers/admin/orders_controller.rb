@@ -25,24 +25,14 @@ class Admin::OrdersController < Admin::ApplicationController
   def autocomplete_performance_code
     production = Production.find_by_production_code(params[:production_code])
     return [] if production.nil?
-    find_options = {
-      :conditions => [ "LOWER(performance_code) LIKE ? and status != 'Inactive'", '%'+params[:q].to_s.downcase + '%' ],
-      :order => "performance_code ASC",
-      :limit => 10
-      }
-    performances = production.performances.scoped(find_options)
+    performances = production.performances.search_by_code(params[:q])
     render :inline => performances.map{|performance| "#{performance.performance_code}|#{performance.to_s}"}.join("\n")
   end
   
   def autocomplete_ticket_class_code
     performance = Performance.find_by_performance_code(params[:performance_code])
     return [] if performance.nil?
-    find_options = {
-      :conditions => [ "LOWER(class_code) LIKE ? AND id IN (SELECT ticket_class_id from ticket_class_allocations where performance_id = ? and available = 1)", '%'+params[:q].to_s.downcase + '%', performance.id ],
-      :order => "class_code ASC",
-      :limit => 10
-      }
-    ticket_classes = performance.production.ticket_classes.scoped(find_options)
+    ticket_classes = performance.production.ticket_classes.search_by_code_and_performance_id(params[:q], performance.id )
     render :inline => ticket_classes.map{|ticket_class| "#{ticket_class.class_code}|#{ticket_class.to_s} (#{ticket_class.number_left(performance)} Tickets Left)|#{ticket_class.ticket_type}|#{ticket_class.ticket_price}"}.join("\n")
   end
   

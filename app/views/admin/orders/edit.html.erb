@@ -2,7 +2,7 @@
 
 <%= error_messages_for :order %>
 
-<% form_for [:admin,@order] do |order_form| -%>
+<%= form_for [:admin,@order] do |order_form| -%>
 
 <%- if @order.ticket_line_items.size > 0 -%>
 	<%= render :partial=>'/admin/orders/ticket_line_items_form', :locals=>{:order_form=>order_form}%>

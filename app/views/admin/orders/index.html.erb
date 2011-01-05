@@ -46,12 +46,12 @@ end
 <script>
 <%=grid_loaded_javascript%>
 </script>
-<%= jquery_grid :admin_orders_index_grid, 
+<%= raw(jquery_grid :admin_orders_index_grid, 
                 :rows_per_page=>session[:existing_box_office_orders_state]['rows'], 
                 :page=>session[:existing_box_office_orders_state]['page'],
                 :sort_column=>session[:existing_box_office_orders_state]['sidx'],
                 :sort_order=>session[:existing_box_office_orders_state]['sord'],
-                :grid_loaded=>'launch_search'%>
+                :grid_loaded=>'launch_search' )%>
 <br />
 <table width="100%" border="0">
   <tr><td width="25%"><a class="select_button" id='admin_orders_index_grid_detail' href='#'>View/Edit Order</a>

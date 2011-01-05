@@ -56,8 +56,14 @@ class Performance < ActiveRecord::Base
   def datetime_s
     "#{self.performance_date.strftime('%m/%d')} #{self.performance_time.strftime('%H:%M')}"
   end
-  
-  
+
+  def self.search_by_code(code)
+    where("LOWER(performance_code) LIKE ?", '%'+code.to_s.downcase + '%').
+      where("status != 'Inactive'").
+      order("performance_code ASC").
+      limit(10)
+  end
+
   private
   
   def clean_values

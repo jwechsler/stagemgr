@@ -1,10 +1,41 @@
-source "http://rubygems.org"
-gem "rails",                  '2.3.5'
-gem "activemerchant",         '1.5.1'
+source 'http://rubygems.org'
+
+gem 'rails', '3.0.1'
+
+# Bundle edge Rails instead:
+# gem 'rails', :git => 'git://github.com/rails/rails.git'
+
+gem 'sqlite3-ruby', :require => 'sqlite3'
+
+# Use unicorn as the web server
+# gem 'unicorn'
+
+# Deploy with Capistrano
+# gem 'capistrano'
+
+# To use debugger
+# gem 'ruby-debug'
+
+# Bundle the extra gems:
+# gem 'bj'
+# gem 'nokogiri'
+# gem 'sqlite3-ruby', :require => 'sqlite3'
+# gem 'aws-s3', :require => 'aws/s3'
+
+# Bundle gems for the local environment. Make sure to
+# put test-only gems in this group so their generators
+# and rake tasks are available in development mode:
+# group :development, :test do
+#   gem 'webrat'
+# end
+
+
+gem "activemerchant"
 gem "mysql",                  '2.8.1'
-gem "authlogic",              '2.1.5'
-gem "will_paginate"
+gem "authlogic",              '2.1.6'
+gem "will_paginate",          '3.0.pre2'
 gem "my_emma"
+gem "paperclip"
 
 group :development do
   gem 'wirble',               '0.1.3'
@@ -29,7 +60,7 @@ group :test do
   gem 'flexmock',           '0.8.6'
   gem 'rcov',               '0.9.8'
   gem "shoulda",            '2.10.3'
-  gem "factory_girl",       '1.2.4'
+  gem "factory_girl",       '1.3.2'
   gem 'ruby-debug'
 end
 
@@ -44,7 +75,8 @@ group :cucumber do
   gem 'rspec-rails',        '1.3.2'
   gem 'test-unit',          '2.0.7'
   gem 'rcov',               '0.9.8'
-  gem "factory_girl",       '1.2.4'
+  gem "factory_girl",       '1.3.2'
   gem 'launchy'
   gem 'ruby-debug'
 end
+

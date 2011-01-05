@@ -12,6 +12,6 @@
       f.text_field(:price_override, :class=>'price_override', :size => 6, :disabled=>'disabled')
     %>
   </td>
-  <td class='total' ><%=h to_currency f.object.total%></td>
-  <td><%= remove_link_unless_new_record(f) %></td>
+  <td class='total' ><%= to_currency f.object.total%></td>
+  <td><%=raw remove_link_unless_new_record(f) %></td>
 </tr>

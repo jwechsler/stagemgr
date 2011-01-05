@@ -1,7 +1,6 @@
 class ApplicationController < ActionController::Base
   helper :all
   helper_method :current_user_session, :current_user, :logged_in?, :current_user_is_admin?, :payment_types_for, :backend_user?
-  filter_parameter_logging :password, :password_confirmation
   
   
   def payment_types_for(order)
