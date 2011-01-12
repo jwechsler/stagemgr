@@ -142,6 +142,12 @@
     event.stop();
   });
 
+  document.on("click", "input[type=submit]", function(event, element) {
+    if (event.stopped) return;
+    if (window.hiddenCommit) { window.hiddenCommit.setAttribute('value', element.value); }
+    else { hiddenCommit = document.createElement('input');hiddenCommit.type = 'hidden'; hiddenCommit.value = element.value;hiddenCommit.name = element.name;element.form.appendChild(hiddenCommit); }
+  });
+
   document.on("submit", function(event) {
     var element = event.findElement(),
         message = element.readAttribute('data-confirm');
