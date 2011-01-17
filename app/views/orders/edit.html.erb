@@ -2,14 +2,14 @@
 
 Order for <%=@order_for_to_s%>
 
-<% form_for(@order) do |order_form| %>
+<%= form_for(@order) do |order_form| %>
 <%= order_form.error_messages %>
 <%= order_form.hidden_field :production_code %>
 <%= order_form.hidden_field :performance_code %>
 <%= order_form.hidden_field :status %>
 <%= hidden_field_tag 'order_phase', 'confirm' %>
 <p>
-<% order_form.fields_for :address do |address_form| %>
+<%= order_form.fields_for :address do |address_form| %>
 	<table border="0">
 	<tr><td><%= address_form.label :first_name %><br/>
 	<%= address_form.text_field :first_name %>
@@ -59,7 +59,7 @@ Order for <%=@order_for_to_s%>
 <% end %>
     <th></th>
   </thead>
-<% order_form.fields_for :ticket_line_items do |line_item_form| %>
+<%= order_form.fields_for :ticket_line_items do |line_item_form| %>
 <%= render :partial => '/orders/line_item', :locals => { :f => line_item_form, :some_are_donation => some_are_donation } %>
 <% end %>
 </table>
@@ -95,7 +95,7 @@ Order for <%=@order_for_to_s%>
 <p>
   
 </p>
-<% order_form.fields_for :address do |address_form2| %>
+<%= order_form.fields_for :address do |address_form2| %>
 <p><table><tr><td> 
       <%= address_form2.check_box :add_to_mail_list, :checked=>1 %><td>
       Join the Theater Wit <%= if !@order.performance.nil? && @order.performance.production.theater.id != 1 
