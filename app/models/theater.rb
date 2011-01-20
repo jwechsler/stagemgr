@@ -16,4 +16,9 @@ class Theater < ActiveRecord::Base
   def class_display
     return theater_class == 'Default' ? '' : theater_class
   end
+  
+  def to_s
+    return self.name
+  end
+  
 end

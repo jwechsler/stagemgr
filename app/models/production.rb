@@ -14,7 +14,7 @@ class Production < ActiveRecord::Base
   before_validation :clean_values
   
   def to_s
-    "#{self.theater.name}, #{self.name}"
+    "#{self.name}, #{self.theater.name}"
   end
   
   def rest_path

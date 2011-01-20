@@ -15,7 +15,11 @@ class Admin::SpecialOffersController < Admin::ApplicationController
   end
   
   def index
-    @special_offers = SpecialOffer.find(:all,:order=>'code, performance_id')
+    t_ids = Theater.where("status != 'Inactive'").map {|x| x.id}
+    prod_ids = Production.where("status != 'Inactive'").map {|x| x.id}
+    perf_ids = Performance.where("status != 'Inactive' and production_id in (?)",prod_ids).map {|x| x.id}
+    
+    @special_offers = SpecialOffer.where("theater_id in (?) or performance_id in (?)  or production_id in (?) or (theater_id is null and performance_id is null and production_id is null)",t_ids,perf_ids,prod_ids).order("performance_id, production_id, theater_id")
     render 'admin/scaffold/index'
   end
 end
