@@ -34,6 +34,15 @@ class Performance < ActiveRecord::Base
     self.number_of_tickets_left <= 0
   end 
   
+  def happening_soon?
+    at = self.performance_at
+    (Time.now < at) && (at + 3.hours > Time.now)
+  end
+  
+  def performance_at
+    Time.parse(self.performance_date.to_s(:default) + self.performance_time.to_s(:hour_min))
+  end
+  
   def near_capacity?
     self.number_of_tickets_left <= 9
   end
