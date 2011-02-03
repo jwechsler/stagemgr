@@ -9,20 +9,20 @@
     <p><span class="company_class"><%= h production.theater.name %></span</p>
   <% end %>
   <span class="production_name"><%=h production.name %></span><br/>
-  <span class="production_credits"><%= production.credit_lines %></span><br/>
+  <span class="production_credits"><%=raw production.credit_lines %></span><br/>
   <p class="production_dates"><%=h production.running_dates %></p>
   <div class="production_description">
     <p>
-      <%= production.show_description %>
+      <%=raw production.show_description %>
     </p>
   <% if !production.additional_information_link.blank? then %>
     <p class="additional_information">For more information, click <a href="<%= production.additional_information_link %>" target="_blank">here</a>.</p>
   <% end %>
   <p class="production_tickets">
   <%- if link_to_full %>
-    <%=link_to "Get tickets/schedule for <i>#{production.name}</i>".html_safe, "https://www.theaterwit.org/boxoffice/production/index.php#top?production_id=#{production.id}" %>
+    <%=raw link_to "Get tickets/schedule for <i>#{production.name}</i>".html_safe, "https://www.theaterwit.org/boxoffice/production/index.php#top?production_id=#{production.id}" %>
   <%- else %>
-    <%= link_to "Get tickets/schedule for <i>#{production.name}</i>".html_safe, production_performances_path(production.id, :anchor=>"top") %>
+    <%=raw link_to "Get tickets/schedule for <i>#{production.name}</i>".html_safe, production_performances_path(production.id, :anchor=>"top") %>
   <%- end %></p>
   <br clear="all"/>
 </div>
