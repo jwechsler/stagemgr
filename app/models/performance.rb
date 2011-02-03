@@ -40,7 +40,7 @@ class Performance < ActiveRecord::Base
   end
   
   def performance_at
-    Time.parse(self.performance_date.to_s(:default) + self.performance_time.to_s(:hour_min))
+    Time.parse(self.performance_date.to_s(:default) + " " + self.performance_time.to_s(:hour_min))
   end
   
   def near_capacity?

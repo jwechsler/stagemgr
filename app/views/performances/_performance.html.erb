@@ -3,11 +3,11 @@
 if performance.performance_date<Date.today
 	title
 elsif performance.sold_out?
-  "Sold out!"
+  "#{title} Sold out!"
 elsif performance.happening_soon?
-  "Door only"  
+  "#{title} Door only"  
 elsif performance.near_capacity?
-  "Call box office"
+  "#{title} Call"
 else
 	link_to(title,new_production_performance_order_path(performance.production.id,performance.id))
 end %>
