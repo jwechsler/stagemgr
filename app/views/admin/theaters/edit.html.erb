@@ -1,6 +1,6 @@
 <h1>Editing theater</h1>
 
-<% form_for([:admin,@theater], :html => { :multipart => true }) do |f| %>
+<%= form_for([:admin,@theater], :html => { :multipart => true }) do |f| %>
   <%= render :partial => '/theaters/form', :locals=>{:f=>f} %>
 <p>
   <%= f.submit 'Save' %>

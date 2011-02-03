@@ -14,7 +14,7 @@
   <h3>Can only refund orders with only 1 payment</h3>
 <%-when @original_order.payments.first.class == CreditCardPayment -%>
   <h3>Please fill in the information for the card ending <%=@original_order.payments.first.card_last_four%>.</h3>
-  <% form_for [:admin,@original_order,@refund_order], :url=>admin_order_refund_orders_path(@original_order) do |order_form| -%>
+  <%= form_for [:admin,@original_order,@refund_order], :url=>admin_order_refund_orders_path(@original_order) do |order_form| -%>
     <%- order_form.fields_for :credit_card_payments do |credit_card_payment_form| -%>
 	<p>
 	<%= credit_card_payment_form.label :card_number %>
@@ -31,7 +31,7 @@
   <% end -%>
 <%-when @original_order.payments.first.class == CashPayment -%>
   <h3>Render <%=@original_order.payments.first.amount%> in cash and then press 'Process Refund' button.</h3>
-  <% form_for [:admin,@original_order,@refund_order], :url=>admin_order_refund_orders_path(@original_order) do |order_form| -%>
+  <%= form_for [:admin,@original_order,@refund_order], :url=>admin_order_refund_orders_path(@original_order) do |order_form| -%>
     <p>
       <%= order_form.submit 'Process Refund', :disable_with => 'Processing...'%>
     </p>

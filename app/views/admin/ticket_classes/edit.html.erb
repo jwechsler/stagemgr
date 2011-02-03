@@ -1,6 +1,6 @@
 <h1>Editing ticket_class</h1>
 
-<% form_for([:admin,@theater,@production,@ticket_class]) do |f| %>
+<%= form_for([:admin,@theater,@production,@ticket_class]) do |f| %>
   <%= f.error_messages %>
 
   <%= render :partial => 'form', :locals=>{:f=>f} %>

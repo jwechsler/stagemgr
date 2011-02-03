@@ -24,7 +24,7 @@
     <th>Ticket class name</th>
     <th>Limit</th>
   </tr>
-<% f.fields_for :ticket_class_allocations do |ticket_class_allocation_form| %>
+<%= f.fields_for :ticket_class_allocations do |ticket_class_allocation_form| %>
 <tr id='ticket_class_allocation_<%= ticket_class_allocation_form.object.ticket_class.id %>'>
 <td><%= ticket_class_allocation_form.check_box :available %></td>
 <td><%= ticket_class_allocation_form.object.ticket_class.class_code %></td>
