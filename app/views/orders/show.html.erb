@@ -1,8 +1,8 @@
 <%- if @order.ticket_line_items.count > 0 -%>
-<p>Thanks!  Your ticket reservation was been made and your credit card has been charged <%= number_to_currency( @order.total) %>.
-We will see you at the show on <%= @order.performance.performance_date.to_formatted_s(:show_date) %> at 
-<%= @order.performance.performance_time.to_formatted_s(:show_time) %>.  Your tickets will be available for pickup at our 
-box office at 1229 W Belmont ninety minutes before showtime and seating is general admission.  If you have any questions, please 
+<p>Thanks!  Your ticket reservation has been made and your credit card has been charged <%= number_to_currency( @order.total) %>.  Your order is
+  #<%= @order.id %>, and your tickets will be available for pickup under your name at our box office at 1229 W Belmont ninety minutes before curtain. 
+We will see you at the show on <%= @order.performance.performance_date.to_formatted_s(:long_ordinal) %> at 
+<%= @order.performance.performance_time.to_formatted_s(:hour_min) %>. Seating is general admission. If you have any questions, please 
 don't hesitate to call us at 773-975-8150 or email us at boxoffice@theaterwit.org.  Thanks for your support and we'll see 
 you at the theatre.  Enjoy the show!
 </p>

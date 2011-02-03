@@ -4,7 +4,7 @@ class Notifier < ActionMailer::Base
     recipients order.address.email
     from       "boxoffice@theaterwit.org"
     bcc        "boxoffice@theaterwit.org"
-    subject    order.contains_flex_pass? ? "Your Theater Wit FlexPass is on it's way" : "Your ticket order for #{order.performance.production.name}" 
+    subject    order.contains_flex_pass? ? "Your Theater Wit FlexPass is on it's way" : "Your reservation ##{order.id} for #{order.performance.production.name} is confirmed" 
     sent_on    Time.now
     body       order.contains_flex_pass? ? %Q(
 Thanks so much for your FlexPass order.  We are processing your request and you should receive your FlexPass in the mail in the next 5-7 business days.
@@ -20,7 +20,7 @@ Thanks and we'll see you at the theatre!
 The Staff at Theater Wit
 
 ) : %Q(
-Thanks so much for your order.  We have #{order.ticket_quantity} ticket#{order.ticket_quantity > 1 ? 's' : ''} reserved for the #{order.performance.performance_time.strftime('%l:%M %p')} performance on #{order.performance.performance_date.strftime('%A, %B %d')} of #{order.performance.production.name} at Theater Wit under your name.  The total charge was $#{'%0.2f' % order.total}. Your tickets will be available at the box office ninety minutes before curtain.  Here's some handy stuff you'll want to know:
+Thanks so much for your order.  We have #{order.ticket_quantity} ticket#{order.ticket_quantity > 1 ? 's' : ''} reserved for the #{order.performance.performance_time.strftime('%l:%M %p')} performance on #{order.performance.performance_date.strftime('%A, %B %d')} of #{order.performance.production.name} at Theater Wit under your name.  The total charge was $#{'%0.2f' % order.total}. Your tickets will be available at the box office ninety minutes before curtain under your name.  Here's some handy stuff you'll want to know:
 
 Getting Here
 
