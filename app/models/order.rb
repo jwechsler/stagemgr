@@ -227,7 +227,8 @@ class Order < ActiveRecord::Base
         self.special_offer_code,
         self.performance.id,
         self.performance.production.id,
-        self.performance.production.theater.id])
+        self.performance.production.theater.id],
+        :order=>"performance_id desc, production_id desc, theater_id desc")
     if special_offer
       self.special_offer_line_items.create!(:special_offer=>special_offer)
     else
