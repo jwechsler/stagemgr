@@ -20,7 +20,7 @@
   <% end %>
   <p class="production_tickets">
   <%- if link_to_full %>
-    <%=raw link_to "Get tickets/schedule for <i>#{production.name}</i>".html_safe, "https://www.theaterwit.org/boxoffice/production/index.php#top?production_id=#{production.id}" %>
+    <%=raw link_to "Get tickets/schedule for <i>#{production.name}</i>".html_safe, "https://www.theaterwit.org/boxoffice/production/index.php?production_id=#{production.id}", :anchor=>"top" %>
   <%- else %>
     <%=raw link_to "Get tickets/schedule for <i>#{production.name}</i>".html_safe, production_performances_path(production.id, :anchor=>"top") %>
   <%- end %></p>
