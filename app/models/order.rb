@@ -183,17 +183,21 @@ class Order < ActiveRecord::Base
     when CASH
       self.cash_payments.create!(:amount => amount)
     when CREDIT_CARD
-      new_payment = self.credit_card_payments.build(
-        :amount => amount, 
-        :address => self.address,
-        :card_number => self.credit_card_number,
-        :card_expiration_month => self.credit_card_expiration_month,
-        :card_expiration_year => self.credit_card_expiration_year,
-        :card_type => self.credit_card_type,
-        :card_verification_number => self.credit_card_verification_number,
-        :confirmation_code => self.credit_card_confirmation_code
-      )
-      new_payment.process!
+      if (amount != 0) then
+        new_payment = self.credit_card_payments.build(
+          :amount => amount, 
+          :address => self.address,
+          :card_number => self.credit_card_number,
+          :card_expiration_month => self.credit_card_expiration_month,
+          :card_expiration_year => self.credit_card_expiration_year,
+          :card_type => self.credit_card_type,
+          :card_verification_number => self.credit_card_verification_number,
+          :confirmation_code => self.credit_card_confirmation_code
+        )
+        new_payment.process!
+      else
+        self.cash_payments.create(:amount => 0);
+      end
     when FLEX_PASS
       flex_pass = FlexPass.find_by_code(self.flex_pass_code)
       raise 'No FlexPass with that code exists' unless flex_pass
