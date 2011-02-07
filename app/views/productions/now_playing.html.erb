@@ -4,7 +4,7 @@
 </head>
 <body>
 <% @productions.each { |production| %>
-<%= render :partial => 'production_detail', :locals=>{:production=>production, :link_to_full=>true} %>
+<%= render :partial => 'production_detail', :locals=>{:production=>production, :link_to_full=>false} %>
 <% } %>
 </body>
 </html>
