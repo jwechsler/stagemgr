@@ -1,6 +1,11 @@
 class RemovePrimaryKeyFromThtrUsr < ActiveRecord::Migration
   def self.up
-    remove_column :theaters_users, :id
+    begin
+      remove_column :theaters_users, :id
+    rescue
+      #this column doesn't exist in development so
+      #we want to just ignore it not being able to be removed
+    end
   end
 
   def self.down

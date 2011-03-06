@@ -1,4 +1,4 @@
-<% javascript :defaults, 'delegate', 'jquery-1.3.2.min' %>
+<% javascript :defaults, 'delegate', 'jquery-1.4.2.min' %>
 
 <% content_for :jstemplates do -%>
 var orderRowSelected = function(id,target){
@@ -6,6 +6,11 @@ var orderRowSelected = function(id,target){
     window.location = '<%= admin_orders_path %>/' + id;
   } else if (target == 'admin_orders_index_grid_fulfill') {
     jQuery.post("<%= fulfill_selected_admin_orders_path %>", { 'ids[]':id }, function(data) {
+      jQuery.each(data, function(key, value){
+        if( !value['success'] ){
+          alert("Order<" + key +"> can not be fulfilled. " + value['message']);
+        }
+      });
       e = jQuery.Event('keypress'); 
       e.charCode = 13;
       jQuery('#gbox_admin_orders_index_grid .ui-search-toolbar input').trigger(e);

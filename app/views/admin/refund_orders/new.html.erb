@@ -20,11 +20,11 @@
 	<%= credit_card_payment_form.label :card_number %>
 	<%= credit_card_payment_form.text_field :card_number %>
 	</p>
-	<p>
-	<%= credit_card_payment_form.label :card_verification_number %>
-	<%= credit_card_payment_form.text_field :card_verification_number, :size=>4 %>
-	</p>
-	<%- end -%>
+  <%- end -%>
+    <p>
+	    <%= order_form.label :notes %>
+	    <%= order_form.text_field :notes %>
+    </p>
     <p>
       <%= order_form.submit 'Process Refund', :disable_with => 'Processing...'%>
     </p>

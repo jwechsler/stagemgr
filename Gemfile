@@ -1,6 +1,6 @@
 source 'http://rubygems.org'
 
-gem 'rails', '3.0.1'
+gem 'rails', '3.0.3'
 
 # Bundle edge Rails instead:
 # gem 'rails', :git => 'git://github.com/rails/rails.git'
@@ -33,6 +33,7 @@ gem 'sqlite3-ruby', :require => 'sqlite3'
 gem "activemerchant"
 gem "mysql",                  '2.8.1'
 gem "authlogic",              '2.1.6'
+gem "acts_as_audited",        "2.0.0.rc7"
 gem "will_paginate",          '3.0.pre2'
 gem "my_emma"
 gem "paperclip"

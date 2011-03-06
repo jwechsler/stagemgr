@@ -2,6 +2,8 @@ InvalidCreditCard     = Class.new(StandardError)
 CannotProcessPayment  = Class.new(StandardError)
 
 class CreditCardPayment < Payment
+  acts_as_audited
+
   belongs_to             :address
 
   attr_accessor :card_number
@@ -16,16 +18,16 @@ class CreditCardPayment < Payment
   validates_presence_of  :card_expiration_month, :if => :needs_confirmation_code?
   validates_presence_of  :confirmation_code
   before_validation      :set_defaults
-  
+
   def needs_confirmation_code?
     self.confirmation_code.blank?
-  end 
-                         
+  end
+
   def default_from_order
     self.address        ||= self.order.address
     self.amount         ||= self.order.total
   end
-  
+
   def set_defaults
     self.card_last_four ||= self.card_number.nil? ? "" : self.card_number[-4..-1]
   end
@@ -42,7 +44,7 @@ class CreditCardPayment < Payment
       else
         self.card_type
       end
-      
+
       credit_card = ActiveMerchant::Billing::CreditCard.new(
                         :type               => ctype,
                         :first_name         => self.address.first_name,
@@ -59,45 +61,57 @@ class CreditCardPayment < Payment
         :login=>ACTIVE_MERCHANT_LOGIN,
         :password=>ACTIVE_MERCHANT_PASSWORD,
         :test=>ACTIVE_MERCHANT_TEST_MODE}
+
       # Create a gateway object for the TrustCommerce service
       gateway = ActiveMerchant::Billing::AuthorizeNetGateway.new(
         gateway_options
       )
 
+      charge_amount = (self.amount*100).to_i
       # Authorize for the amount
-      response = gateway.purchase((self.amount*100).to_i, credit_card)
+      response = gateway.authorize(charge_amount, credit_card)
+      if response.success?
+        self.confirmation_code = response.authorization
+        response = gateway.capture(charge_amount, response.authorization)
+      end
 
       unless response.success?
-        raise CannotProcessPayment, response.message 
+        raise CannotProcessPayment, response.message
       end
-        
-      self.confirmation_code = response.authorization
+
     end
     self.save!
   end
-  
+
   def refund!
-    raise 'UnimplementedException'
-  #  I think all the below is gibberish now and needs to be refactored for the new payment model? --jw
     CreditCardPayment.transaction do
-      refund_payment = self.order.credit_card_payments.build(
-                                                    :amount                   => self.amount*-1,
-                                                    :payment_id               => self.id,
-                                                    :card_type                => self.card_type,
-                                                    :card_number              => self.card_number,
-                                                    :card_expiration_month    => self.card_expiration_month,
-                                                    :card_expiration_year     => self.card_expiration_year,
-                                                    :card_verification_number => self.card_verification_number,
-                                                    :address                  => self.address
-                                                  )
-      refund_payment.process!
-      self.payment_id=refund_payment.id
+      # Create a gateway object for the TrustCommerce service
+      gateway_options = {
+        :login=>ACTIVE_MERCHANT_LOGIN,
+        :password=>ACTIVE_MERCHANT_PASSWORD,
+        :test=>ACTIVE_MERCHANT_TEST_MODE}
+
+      # Create a gateway object for the TrustCommerce service
+      gateway = ActiveMerchant::Billing::AuthorizeNetGateway.new(
+        gateway_options
+      )
+
+      response = gateway.credit((self.amount*100).to_i, self.confirmation_code, :card_number=>self.card_number)
+
+      unless response.success?
+        raise CannotProcessPayment, response.message
+      end
+
+      self.amount = 0
+      #relate this payment with itself to signify that it is it's own refund
+      self.payment_id = self.id
+
       self.save!
     end
   end
-  
+
   private
-  
+
   def get_purchase_options
     purchase_options = {
       :order_id => self.id,

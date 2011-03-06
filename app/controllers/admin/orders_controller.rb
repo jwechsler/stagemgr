@@ -59,12 +59,17 @@ class Admin::OrdersController < Admin::ApplicationController
   def fulfill_selected
     params[:commit] = 'Fulfill'
     orders = Order.find(params[:ids])
-    orders.each { |o|
-      if o.status == 'Processed'
-        o.transition_to!(Order::FULFILLED)
-      end
-    }
     logger.info params[:ids].to_s
+    statuses = {}
+    orders.each do |order|
+      if order.status == 'Processed'
+        order.transition_to!(Order::FULFILLED)
+        statuses[order.id]={:success=>true}
+      else
+        statuses[order.id]={:success=>false, :message=>"Only 'Processed' orders can be fulfilled" }
+      end
+    end
+    render :json=>statuses.to_json
   end
   
   def fulfill

@@ -30,7 +30,7 @@ class Order < ActiveRecord::Base
   attr_accessor         :special_offer_code
   attr_accessor         :door_sale
   attr_accessor_with_default :email_confirmation,0
-  
+
   ORDER_STATUSES                                                                                    = (
   HOLD,   WEB,   NEW,   PROCESSING,   PROCESSED,   REFUNDED,   EXCHANGED,   FULFILLED,   CANCELED   =
   "Hold", "Web", "New", "Processing", "Processed", "Refunded", "Exchanged", "Fulfilled", "Canceled"   )
@@ -38,7 +38,8 @@ class Order < ActiveRecord::Base
   PAYMENT_TYPES                                                                                     = (
   CASH,   CREDIT_CARD,   FLEX_PASS,  PRICE_OVERRIDE                                                 =
   "Cash", "Credit Card", "FlexPass", "Price Override"                                                 )
-  
+
+  acts_as_audited
 
   validates_inclusion_of :status,           :in => ORDER_STATUSES
   validates_inclusion_of :payment_type,     :in => PAYMENT_TYPES
@@ -47,10 +48,10 @@ class Order < ActiveRecord::Base
   validates_associated   :address, 
                          :payments, :credit_card_payments, :cash_payments,
                          :line_items, :ticket_line_items, :flex_pass_line_items, :special_offer_line_items
-  
+
   before_validation :initialize_nested_line_items, :on => :create
   before_validation :set_defaults
-  
+
   validates_each :status do |record, attr, value|
     if value == PROCESSED
       unless record.total == record.value_of_all_payments || record.ticket_quantity == record.number_of_tickets_of_all_payments
@@ -58,7 +59,7 @@ class Order < ActiveRecord::Base
       end
     end
   end
-  
+
   def value_of_all_payments
     all_payments = self.payments.to_a +
                    self.credit_card_payments.to_a +
@@ -72,7 +73,7 @@ class Order < ActiveRecord::Base
   def number_of_tickets_of_all_payments
     self.flex_pass_payments.to_a.sum{|fpp|fpp.number_of_tickets}
   end
-  
+
   def addresses
     [self.address]
   end
@@ -80,7 +81,7 @@ class Order < ActiveRecord::Base
   def production_code=(string)
     @prodution_code=string
   end
-  
+
   def production_code()
     self.performance.try(:production).try(:production_code) || @production_code
   end
@@ -104,19 +105,19 @@ class Order < ActiveRecord::Base
       self.payments.to_a.sum{|payment|payment.respond_to?(:amount) ? payment.amount : 0}
     end
   end
-  
+
   def total_as_currency
     number_to_currency(self.total,:delimiter => ",", :unit => "$",:separator => ".", :precision => 2)
   end
-  
+
   def ticket_quantity 
     self.ticket_line_items(false).uniq.to_a.sum{|li| li.respond_to?(:ticket_count) ? li.ticket_count : 0}
   end
-  
+
   def contains_flex_pass?
     (self.line_items.select{|li|li.is_a? FlexPassLineItem}+self.flex_pass_line_items).size > 0
   end
-  
+
   def valid_payment_types_for( current_user )
     valid_payment_types = Order::PAYMENT_TYPES.clone
     unless current_user && ( current_user.is_administrator? || current_user.is_box_office_user? )
@@ -128,11 +129,11 @@ class Order < ActiveRecord::Base
     end
     valid_payment_types
   end
-  
+
   def show_confirmation_for?(current_user)
     current_user && ( current_user.is_administrator? || current_user.is_box_office_user? )
   end
-  
+
   def editable?
     [HOLD,NEW,nil].include? self.status
   end
@@ -140,7 +141,7 @@ class Order < ActiveRecord::Base
   def full_name
     "#{self.first_name} #{self.last_name}"
   end
-  
+
   def refund!
     Order.transaction do
       self.payments.each{|payment|payment.refund! if payment.respond_to? :refund! }
@@ -148,13 +149,13 @@ class Order < ActiveRecord::Base
       self.status = REFUNDED
       save!
     end
-    
+
   end
-  
+
   def cancel!
     Order.delete(self.id)
   end
-  
+
   def exchange_and_process_from!( original_order )
     Order.transaction do
       self.address = original_order.address
@@ -177,7 +178,7 @@ class Order < ActiveRecord::Base
       original_order.save!
     end
   end
-  
+
   def create_proper_payment_in_amount_of!(amount)
     case self.payment_type
     when CASH
@@ -185,7 +186,7 @@ class Order < ActiveRecord::Base
     when CREDIT_CARD
       if (amount != 0) then
         new_payment = self.credit_card_payments.build(
-          :amount => amount, 
+          :amount => amount,
           :address => self.address,
           :card_number => self.credit_card_number,
           :card_expiration_month => self.credit_card_expiration_month,
@@ -212,14 +213,14 @@ class Order < ActiveRecord::Base
       raise 'New payment type not yet implemented.'
     end
   end
-  
+
   def set_email_confirmation
     #now = DateTime.now
     #if !self.performance.nil? && (self.performance.performance_date > Date.today || (self.performance.performance_date == Date.today && self.performance.performance_time > Time.now - (60*60)))
     self.email_confirmation=1
     #end
   end
-  
+
   def update_special_offer_line_items_from_code!
     self.special_offer_line_items.clear
     special_offer = SpecialOffer.find(:first,
@@ -240,12 +241,12 @@ class Order < ActiveRecord::Base
     self.contains_flex_pass? ? "FLEXPASS" : "NOPE" 
     # performance.performance_code
   end
-     
+
   def description
     performance_s = self.performance.nil_or.to_short_s
     "#{performance_s} (#{self.ticket_detail_description})"
   end
-  
+
   def ticket_detail_description
     self.ticket_line_items.map{ |li| if li.ticket_count > 0 
       li.to_s 
@@ -254,14 +255,13 @@ class Order < ActiveRecord::Base
       end
      }.join(', ')
   end
-  
-  
+
   def transition_to!(new_status)
     old_status = self.status
     self.send "transition_#{self.status.underscore}_to_#{new_status.underscore}!".to_sym
     raise "Transition from #{old_status} to #{new_status} unsuccessful. Current status is #{self.status}." unless self.status == new_status
   end
-  
+
   def status_display
     case self.status
       when HOLD
@@ -270,20 +270,18 @@ class Order < ActiveRecord::Base
         self.status
     end
   end
-  
-  
+
   def release_tickets!
     ticket_line_items.each { |ti| TicketLineItem.delete(ti.id) }
   end
-  
-  
+
   private
-  
+
   def transition_new_to_hold!
     self.status = Order::HOLD
     self.save!
   end
-  
+
   def transition_new_to_processing!
     self.status = Order::PROCESSING
     self.save!
@@ -292,36 +290,35 @@ class Order < ActiveRecord::Base
   def transition_hold_to_processing!
     transition_new_to_processing!
   end
-  
+
   def transition_hold_to_hold!
     self.save!
   end
-  
+
   def transition_processing_to_processed!
-    
     self.update_special_offer_line_items_from_code! unless self.special_offer_code.blank?
-    
+
     create_proper_payment_in_amount_of!(self.total)
-    
+
     self.status = Order::PROCESSED
     self.set_email_confirmation
     self.save!
   end
-  
+
   def transition_processed_to_fulfilled!
     self.status = Order::FULFILLED
     self.save!
   end
-  
+
   def initialize_nested_line_items
     line_items.each { |li| li.order = self }
   end
-  
+
   def set_defaults
     self.status ||= HOLD
     self.payment_type ||= CREDIT_CARD
     self.ticket_line_items.each{|tli|tli.order=self}
     self.flex_pass_line_items.each{|tli|tli.order=self}
   end
-  
+
 end
