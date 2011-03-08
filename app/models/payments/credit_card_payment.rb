@@ -102,11 +102,11 @@ class CreditCardPayment < Payment
         raise CannotProcessPayment, response.message
       end
 
-      self.amount = 0
-      #relate this payment with itself to signify that it is it's own refund
-      self.payment_id = self.id
+      refund_payment = CreditCardPayment.new(self.attributes)
+      refund_payment.amount = self.amount * -1
+      refund_payment.payment_id = self.id
+      refund_payment.save!
 
-      self.save!
     end
   end
 
