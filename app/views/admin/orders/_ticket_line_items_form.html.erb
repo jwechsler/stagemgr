@@ -1,5 +1,5 @@
 <%= content_for :jstemplates do -%>
-	<%= "var ticket_line_item='#{generate_template(order_form, :ticket_line_items, :partial=>'/admin/orders/ticket_line_item_form')}'" %>
+	<%= raw "var ticket_line_item='#{generate_template(order_form, :ticket_line_items, :partial=>'/admin/orders/ticket_line_item_form')}'" %>
 <% end -%>
 
 <p>
