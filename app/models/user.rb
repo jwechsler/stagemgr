@@ -12,5 +12,9 @@ class User < ActiveRecord::Base
     self.is_box_office_user = false if self.is_box_office_user.nil?
     true
   end
-
+  
+  def username
+    self.email
+  end
+  
 end

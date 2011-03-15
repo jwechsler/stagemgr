@@ -11,3 +11,5 @@ Time::DATE_FORMATS.merge!(
   :hour_min => "%l:%M%p",
   :show_date => "%A, %B %e"
 )
+
+require 'htmldiff'

@@ -37,6 +37,7 @@ gem "acts_as_audited",        "2.0.0.rc7"
 gem "will_paginate",          '3.0.pre2'
 gem "my_emma"
 gem "paperclip"
+gem "htmldiff"
 
 group :development do
   gem 'wirble',               '0.1.3'

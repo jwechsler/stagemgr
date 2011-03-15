@@ -218,3 +218,5 @@ text-align:right;
     line-height:20px;
   }
 
+  ins.diffmod, ins.diffins { background: #d4fdd5; text-decoration: none; }
+  del.diffmod, del.diffdel { color: #ff9999; }

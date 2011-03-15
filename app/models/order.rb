@@ -4,6 +4,7 @@ InvalidSpecialOfferCode = Class.new(StandardError)
 
 class Order < ActiveRecord::Base
   include PaymentFormFields
+  extend HTMLDiff
   
   belongs_to            :performance
 

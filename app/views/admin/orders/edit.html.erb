@@ -23,4 +23,16 @@
         link_to 'Cancel Order', cancel_admin_order_path(order_form.object), :confirm => "Are you sure?", :method=>:post 
       end %>
 </p>
+
+<h3>Note history for <%= @order.id %></h3>
+<ul>
+<% @order.audits.each do |revision| %>
+    <%- if !revision.audited_changes['notes'].blank? -%><li>
+    [<%= User.find_by_id(revision.user_id).username %>] : <%= distance_of_time_in_words_to_now revision.created_at %> ago<br>
+        <%= Order.diff(revision.audited_changes['notes'][0], revision.audited_changes['notes'][1]).html_safe %>
+       <BR><BR>
+  </li><%- end -%>
+<% end %>
+</ul>
+
 <% end -%>
