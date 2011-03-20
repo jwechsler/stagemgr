@@ -33,7 +33,7 @@ module Stagemgr
     
     # hide credit card parameters.
     
-    config.filter_parameters << :password << :credit_card_number 
+    config.filter_parameters << :password << :credit_card_number << :card_number
     
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.smtp_settings = {
