@@ -83,7 +83,8 @@ class CreditCardPayment < Payment
     self.save!
   end
 
-  def refund!
+  def refund!(cc_number = nil)
+
     CreditCardPayment.transaction do
       # Create a gateway object for the TrustCommerce service
       gateway_options = {
@@ -95,8 +96,8 @@ class CreditCardPayment < Payment
       gateway = ActiveMerchant::Billing::AuthorizeNetGateway.new(
         gateway_options
       )
-
-      response = gateway.credit((self.amount*100).to_i, self.confirmation_code, :card_number=>self.card_number)
+      
+      response = gateway.credit((self.amount*100).to_i, self.confirmation_code, :card_number=>(self.card_last_four.to_s == cc_number[-4..-1] ? cc_number : nil), :first_name=>self.address.first_name, :last_name=>self.address.last_name, :zip=>self.address.zipcode)
 
       unless response.success?
         raise CannotProcessPayment, response.message

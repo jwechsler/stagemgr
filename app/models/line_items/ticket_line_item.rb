@@ -21,7 +21,10 @@ class TicketLineItem < LineItem
   end
   
   def refund!
-    self.order.line_items.create!(self.attributes.merge(:ticket_count=>self.ticket_count*-1))
+    refund_lineitem = self.clone
+    refund_lineitem.ticket_count = refund_lineitem.ticket_count*-1
+    
+    self.order.ticket_line_items << refund_lineitem
   end
 
   def total

@@ -58,6 +58,9 @@ class Order < ActiveRecord::Base
       unless record.total == record.value_of_all_payments || record.ticket_quantity == record.number_of_tickets_of_all_payments
         record.errors.add attr, "cannot be set to #{PROCESSED} if the total isn't countered by a payment."
       end
+      unless record.ticket_line_items.empty? || record.ticket_quantity > 0
+        record.errors.add :ticket_line_items, "must contain at least one ticket."
+      end 
     end
   end
 
@@ -143,9 +146,10 @@ class Order < ActiveRecord::Base
     "#{self.first_name} #{self.last_name}"
   end
 
-  def refund!
+  def refund!(cc_number)
+    
     Order.transaction do
-      self.payments.each{|payment|payment.refund! if payment.respond_to? :refund! }
+      self.payments.each{|payment|payment.refund!(cc_number) if payment.respond_to? :refund! }
       self.line_items.each{|li|li.refund! if li.respond_to? :refund!}
       self.status = REFUNDED
       save!

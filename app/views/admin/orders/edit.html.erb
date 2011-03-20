@@ -24,15 +24,24 @@
       end %>
 </p>
 
-<h3>Note history for <%= @order.id %></h3>
+<%- if !@order.audits.empty? -%>
+<h3>Change history for <%= @order.id %></h3>
 <ul>
 <% @order.audits.each do |revision| %>
-    <%- if !revision.audited_changes['notes'].blank? -%><li>
-    [<%= User.find_by_id(revision.user_id).username %>] : <%= distance_of_time_in_words_to_now revision.created_at %> ago<br>
-        <%= Order.diff(revision.audited_changes['notes'][0], revision.audited_changes['notes'][1]).html_safe %>
-       <BR><BR>
-  </li><%- end -%>
+    <%= revision.user_id.nil? ? "[Web" : "[#{User.find_by_id(revision.user_id).username}" %>, <%= distance_of_time_in_words_to_now revision.created_at %> ago] 
+    <%- if revision.action == "create" -%>
+      created
+    <%- else -%>
+      <%= revision.action %>, 
+      <% revision.audited_changes.each do |fld,changes| %>
+        <%= "#{fld} changed to #{changes[1]}" %>
+      <%  end %>
+        
+    <%- end -%>
+      
+    <BR>
 <% end %>
 </ul>
+<%- end -%>
 
 <% end -%>
