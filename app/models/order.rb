@@ -37,8 +37,8 @@ class Order < ActiveRecord::Base
   "Hold", "Web", "New", "Processing", "Processed", "Refunded", "Exchanged", "Fulfilled", "Canceled"   )
 
   PAYMENT_TYPES                                                                                     = (
-  CASH,   CREDIT_CARD,   FLEX_PASS,  PRICE_OVERRIDE                                                 =
-  "Cash", "Credit Card", "FlexPass", "Price Override"                                                 )
+  CREDIT_CARD  ,CASH,    FLEX_PASS,  PRICE_OVERRIDE                                                 =
+  "Credit Card","Cash",  "FlexPass", "Price Override"                                                 )
 
   acts_as_audited
 
