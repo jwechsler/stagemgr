@@ -1,5 +1,5 @@
 <tr>
 	<td><%=h ticket_line_item.ticket_class.to_s %></td>
 	<td align="right"><%=h ticket_line_item.ticket_count %></td>
-	<td align="right"><%=h to_currency(ticket_line_item.ticket_class.ticket_price * ticket_line_item.ticket_count) %></td>
+	<td align="right"><%=h to_currency((ticket_line_item.ticket_class.ticket_type == 'Donation' ?  ticket_line_item.price_override : ticket_line_item.ticket_class.ticket_price) * ticket_line_item.ticket_count) %></td>
 </tr>
