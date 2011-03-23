@@ -78,6 +78,18 @@ class Order < ActiveRecord::Base
     self.flex_pass_payments.to_a.sum{|fpp|fpp.number_of_tickets}
   end
 
+  def exchangeable?
+    self.status == Order::PROCESSED || self.status == Order::FULFILLED
+  end
+
+  def fulfillable?
+    self.status == Order::PROCESSED
+  end
+
+  def refundable?
+    self.status == Order::PROCESSED || self.status == Order::FULFILLED
+  end
+
   def addresses
     [self.address]
   end
