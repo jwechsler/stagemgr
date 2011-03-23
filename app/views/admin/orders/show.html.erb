@@ -29,7 +29,12 @@ Performance:
   <td><%=h to_currency(payment.amount)     %></td>
   <td><%=h payment.card_type.nil? ? "" : payment.card_type + (payment.card_last_four.nil? ? "" : "-" + payment.card_last_four.to_s)         %></td>
    <td><%=h payment.confirmation_code       %></td>
-  <td><%=h payment.payment_id              %></td>
+  <td><% if payment.payment_id.blank? %>
+    &nbsp;
+   <% else %>
+    <%=h p = Payment.find_by_id(payment.payment_id)
+         link_to_unless p.order.blank?, p.order_id, {:id => p.order.id}  %>
+  <% end %></td>
   <td><%=h payment.type                    %></td>
   <td><%=h payment.note              %></td>
   </tr>
