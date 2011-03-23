@@ -166,6 +166,8 @@ class Order < ActiveRecord::Base
       self.address = original_order.address
       original_order.status = Order::EXCHANGED
       self.save!
+      self.update_special_offer_line_items_from_code!
+
       exchange_payment_on_original_order = original_order.exchange_payments.create!(:amount=>-1*original_order.payments(true).to_a.sum{|p|p.amount}, :note=>original_order.description)
       exchange_payment_on_self = self.exchange_payments.create!(:amount=>-1 * exchange_payment_on_original_order.amount, :payment_id=>exchange_payment_on_original_order.id)
       exchange_payment_on_original_order.update_attribute(:payment_id, exchange_payment_on_self.id)
@@ -227,18 +229,20 @@ class Order < ActiveRecord::Base
   end
 
   def update_special_offer_line_items_from_code!
-    self.special_offer_line_items.clear
-    special_offer = SpecialOffer.find(:first,
-      :conditions => ["trim(lower(code)) = trim(lower(?)) and (performance_id = ? or production_id = ? or theater_id = ? or (performance_id is null and production_id is null and theater_id is null))",
-        self.special_offer_code,
-        self.performance.id,
-        self.performance.production.id,
-        self.performance.production.theater.id],
-        :order=>"performance_id desc, production_id desc, theater_id desc")
-    if special_offer
-      self.special_offer_line_items.create!(:special_offer=>special_offer)
-    else
-      raise "Unknown special offer code \"#{self.special_offer_code}\""
+    if !self.special_offer_code.blank?
+      self.special_offer_line_items.clear
+      special_offer = SpecialOffer.find(:first,
+        :conditions => ["trim(lower(code)) = trim(lower(?)) and (performance_id = ? or production_id = ? or theater_id = ? or (performance_id is null and production_id is null and theater_id is null))",
+          self.special_offer_code,
+          self.performance.id,
+          self.performance.production.id,
+          self.performance.production.theater.id],
+          :order=>"performance_id desc, production_id desc, theater_id desc")
+      if special_offer
+        self.special_offer_line_items.create!(:special_offer=>special_offer)
+      else
+        raise "Unknown special offer code \"#{self.special_offer_code}\""
+      end
     end
   end
 

@@ -14,6 +14,7 @@ class Admin::ExchangeOrdersController < Admin::ApplicationController
   def create
     @original_order = Order.find(params[:order_id])
     @exchange_order = Order.new(params[:order])
+    @exchange_order.special_offer_code = params[:order][:special_offer_code]
     @exchange_order.exchange_and_process_from! @original_order
     respond_to do |format|
       flash[:notice] = 'Order was successfully exchanged.'
