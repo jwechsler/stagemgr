@@ -12,7 +12,7 @@ from performances perf
                         on (tca.performance_id = perf2.id and tca.ticket_class_id = tc.id and tca.available = 1) group by perf2.id) tix
 where (li.type is null or  li.type = 'TicketLineItem')
 and (o.status is null or o.status in ('Processed','Fulfilled','Hold'))
-and prod.name = @prod_code
+and prod.production_code = @prod_code
 and perf.status != 'Inactive'
 and perf.id = tix.id 
 group by prod.id, perf.performance_code
