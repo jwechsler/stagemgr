@@ -69,10 +69,9 @@ class CreditCardPayment < Payment
 
       charge_amount = (self.amount*100).to_i
       # Authorize for the amount
-      response = gateway.authorize(charge_amount, credit_card)
+      response = gateway.purchase(charge_amount, credit_card)
       if response.success?
         self.confirmation_code = response.authorization
-        response = gateway.capture(charge_amount, response.authorization)
       end
 
       unless response.success?
