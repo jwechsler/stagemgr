@@ -1,8 +1,29 @@
 <style>
-.calendar
+.performance_calendar
 {
-width:435px;
+width:570px;
 }
+
+
+.performance_calendar td, .performance_calendar th {
+  border-right: 1px solid #A2ADBC;
+  border-bottom: 1px solid #A2ADBC;
+  width: 81px;
+  min-height: 40px;
+  vertical-align: top;
+}
+
+.production_calendar td a:hover, .production_calendar td a:visited {
+  color: #6aa3ae;
+  background: url(images/bg_calendar.gif) no-repeat right top;
+}
+
+.day-header {
+  text-align: right;
+  font-weight: bold;
+  font-size: 12px;
+}
+
 .calendar .day_list_nav
 {
 float:left;
@@ -96,25 +117,35 @@ text-align:right;
 
 </style>
 
-  <div class='calendar'>
+<div >
   <a name="top"><h1><%=@production.name%></h1></a>
-  <h2><%=Date::MONTHNAMES[@start_date.month]%></h2>
-<%= render :partial=>'day_list_navigation', :locals=>{:first_date=>@start_date,:last_date=>@end_date} %>
-<%
-current_week_start = @start_date.beginning_of_week
-1.upto(7).each do |day|
-current_day = @start_date.beginning_of_week+day-2
-%>
-<ul class='<%=Date::DAYNAMES[day%7-1]%>'>
-<li class='day-header'><%=Date::DAYNAMES[day%7-1][0,3]%></li>
-<%
-while current_day < @end_date+day
-	%><%= render :partial=>'performance_list_for_day', :locals=>{:date=>current_day,:performances=>@performances} %><%
-	current_day = current_day+1.week
-end 
-%>
-</ul>
-<% end %>
+  <table class="performance_calendar">
+  <caption><%= link_to raw("&laquo;"), :action=>:index, :start_date=>@start_date.prev_month, :end_date=>@start_date-1 %> <%=Date::MONTHNAMES[@start_date.month]%> <%=link_to raw('&raquo;'), :action=>:index, :start_date=>@end_date+1, :end_date=>@end_date+1.week %></caption>
+  <tr>
+    <th scope="col" abbr="Sunday" title="Sunday">Sun</th>
+   	<th scope="col" abbr="Monday" title="Monday">Mon</th>
+   	<th scope="col" abbr="Tuesday" title="Tuesday">Tue</th>
+   	<th scope="col" abbr="Wednesday" title="Wednesday">Wed</th>
+   	<th scope="col" abbr="Thursday" title="Thursday">Thu</th>
+   	<th scope="col" abbr="Friday" title="Friday">Fre</th>
+   	<th scope="col" abbr="Saturday" title="Saturday">Sat</th>
+   </tr>
+   <%
+   current_week_start = @start_date.wday == 0 ? @start_date :  @start_date.beginning_of_week - 1
+   while current_week_start.month != (@start_date.month % 12) + 1  do 
+   %>
+   <tr>
+   <%
+   0.upto(6).each do |day|
+   current_day = current_week_start + day
+   %>
+     <%= render :partial=>'performance_list_for_day', :locals=>{:date=>current_day,:performances=>@performances} %>
+    <% end %>
+  </tr>
+  <% current_week_start = current_week_start + 7
+     end %>
+  </table>
+
 
 <%= render :partial=>'day_list_navigation', :locals=>{:first_date=>@start_date,:last_date=>@end_date} %>
 </div>
