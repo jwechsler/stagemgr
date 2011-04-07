@@ -4,7 +4,6 @@
 width:570px;
 }
 
-
 .performance_calendar td, .performance_calendar th {
   border-right: 1px solid #A2ADBC;
   border-bottom: 1px solid #A2ADBC;
@@ -13,13 +12,32 @@ width:570px;
   vertical-align: top;
 }
 
-.production_calendar td a:hover, .production_calendar td a:visited {
+.performance_calendar caption {
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.performance_calendar caption a {
+  text-decoration: none;
+}
+
+.performance_calendar td a:hover, .performance_calendar td a:visited {
   color: #6aa3ae;
-  background: url(images/bg_calendar.gif) no-repeat right top;
 }
 
 .day-header {
   text-align: right;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.show-info {
+  font-size: 14px;
+  min-height: 24px;
+}
+
+.boxoffice-message {
+  text-align: center;
   font-weight: bold;
   font-size: 12px;
 }
@@ -51,23 +69,6 @@ margin:0;
 padding:0;
 border:1px solid #C9C9C9;
 width:60px;
-}
-.calendar ul li
-{
-list-style:none;
-padding:0px 10px;
-font-size:.5em;
-}
-.calendar ul li.day-header
-{
-background:#D9D9D9;
-font-weight:bold;
-text-align:right;
-}
-
-.calendar li.day-header
-{
-  font-weight:bold;
 }
 
 .calendar h1
@@ -117,7 +118,7 @@ text-align:right;
 
 </style>
 
-<div >
+
   <a name="top"><h1><%=@production.name%></h1></a>
   <table class="performance_calendar">
   <caption><%= link_to raw("&laquo;"), :action=>:index, :start_date=>@start_date.prev_month, :end_date=>@start_date-1 %> <%=Date::MONTHNAMES[@start_date.month]%> <%=link_to raw('&raquo;'), :action=>:index, :start_date=>@end_date+1, :end_date=>@end_date+1.week %></caption>
@@ -144,8 +145,5 @@ text-align:right;
   </tr>
   <% current_week_start = current_week_start + 7
      end %>
+  <tr><td class="boxoffice-message" colspan="7">Problems? Call the box office at 773-975-8150</td></tr>
   </table>
-
-
-<%= render :partial=>'day_list_navigation', :locals=>{:first_date=>@start_date,:last_date=>@end_date} %>
-</div>

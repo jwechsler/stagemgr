@@ -1,13 +1,13 @@
-<% title = performance.performance_time.to_s(:hour_min) %>
-<%= 
-if performance.performance_date<Date.today
+<div class="show-info"><% title = performance.performance_time.to_s(:hour_min) %>
+<%= if performance.performance_date<Date.today
 	title
 elsif performance.sold_out?
-  "#{title} Sold out!"
+  raw "<del>#{title}</del><br/><font size=\"-2\">Sold out!</font>"
 elsif performance.happening_soon?
-  "#{title} Door only"  
+  raw "#{title}<br/><font size=\"-2\">Door only</font>"  
 elsif performance.near_capacity?
-  "#{title} Call"
+  raw "#{title}<br/><font size=\"-2\">Call box office</font>"
 else
 	link_to(title,new_production_performance_order_path(performance.production.id,performance.id))
 end %>
+</div>
