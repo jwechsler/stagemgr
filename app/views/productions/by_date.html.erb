@@ -1,4 +1,28 @@
 <style>
+.production_calendar {
+ width: 435px;
+ padding: 0px;
+ margin: 0;
+ border-left: 1px solid #A2ADBC;
+ font: normal 12px/20px Hevetica, Arial, sans-serif;
+ color: $616B76;
+ text-align:center;
+ background-color: #fff;
+} 
+
+.production_calendar td {
+  border-right: 1px solid #A2ADBC;
+  border-bottom: 1px solid #A2ADBC;
+  width: 20px;
+  height: 20px;
+  text-align: center;
+}
+
+.production_calendar td a:hover, .production_calendar td a:visited {
+  color: #6aa3ae;
+  background: url(images/bg_calendar.gif) no-repeat right top;
+}
+
 .day_list
 {
 float:left;
@@ -51,7 +75,19 @@ margin:0px 15px 0px;
 }
 
 </style>
-<ul class='day_list' >
+<table class="stagemgr_calendar">
+<caption><%=link_to 'Previous', :action=>:index, :start_date=>@start_date-1.week, :end_date=>@start_date-1 %>&laquo;</a> March <a href="#" title="next month" class="nav">&raquo;</a></caption>
+<tr>
+  <th scope="col" abbr="Sunday" title="Sunday">S</th>
+ 	<th scope="col" abbr="Monday" title="Monday">M</th>
+ 	<th scope="col" abbr="Tuesday" title="Tuesday">T</th>
+ 	<th scope="col" abbr="Wednesday" title="Wednesday">W</th>
+ 	<th scope="col" abbr="Thursday" title="Thursday">T</th>
+ 	<th scope="col" abbr="Friday" title="Friday">F</th>
+ 	<th scope="col" abbr="Saturday" title="Saturday">S</th>
+ </tr>
+</table>
+
 <%= render :partial=>'day_list_navigation', :locals=>{:first_date=>@start_date,:last_date=>@end_date} %>
 <% (@start_date..@end_date).each do |date| %>
 <%= render :partial=>'production_list_for_day', :locals=>{:date=>date,:productions=>@productions} %>

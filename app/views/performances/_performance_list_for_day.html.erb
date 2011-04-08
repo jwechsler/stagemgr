@@ -1,4 +1,10 @@
-<li class='day-header'><%=raw date<@start_date || date>@end_date ? '&nbsp;' : date.strftime('%d')%></li>
-<% performances = @performances.select{|per|per.performance_date==date}
-performances.each{ |performance| %><li class="vertical_center"><div class="prop min20px"</div><%= render :partial=>performance %><div class="clear"</div></li><% }
-(2-performances.size).times{ %><li><div class="prop min20px"</div>&nbsp;<div class="clear"></div></li><%}%>
+<td class="min100px">
+  <div class='day-header'><%=raw date<@start_date || date>@end_date ? '&nbsp;' : date.strftime('%d')%></div>
+  <% performances = @performances.select{|per|per.performance_date==date}
+     performances.each{ |performance| %>
+     <span class="vertical_center">
+      <%= render :partial=>performance %>
+     </span>
+  <% } %>
+  </span>
+</td>
