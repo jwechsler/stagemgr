@@ -26,6 +26,7 @@ class CreditCardPayment < Payment
   def default_from_order
     self.address        ||= self.order.address
     self.amount         ||= self.order.total
+    self.ip_address     ||= self.order.ip_address
   end
 
   def set_defaults
@@ -45,6 +46,7 @@ class CreditCardPayment < Payment
         self.card_type
       end
 
+
       credit_card = ActiveMerchant::Billing::CreditCard.new(
                         :type               => ctype,
                         :first_name         => self.address.first_name,
@@ -56,26 +58,47 @@ class CreditCardPayment < Payment
                       )
       raise InvalidCreditCard, credit_card.errors.full_messages.join("\n") unless credit_card.valid?
 
-      # Create a gateway object for the TrustCommerce service
-      gateway_options = {
-        :login=>ACTIVE_MERCHANT_LOGIN,
-        :password=>ACTIVE_MERCHANT_PASSWORD,
-        :test=>ACTIVE_MERCHANT_TEST_MODE}
+      billing_address = {
+        :name => "#{self.address.first_name} #{self.address.last_name}",
+        :address1 => self.address.line1,
+        :address2 => self.address.line2,
+        :city => self.address.city,
+        :state => self.address.state,
+        :zip => self.address.zipcode,
+        :country => 'US',
+        :phone => self.address.phone
+      }
 
-      # Create a gateway object for the TrustCommerce service
-      gateway = ActiveMerchant::Billing::AuthorizeNetGateway.new(
-        gateway_options
-      )
+      # Create paypal gateway
+
+      gateway = ActiveMerchant::Billing::PaypalGateway.new(:login=>$PAYPAL_LOGIN, :password=>$PAYPAL_PASSWORD)
 
       charge_amount = (self.amount*100).to_i
+
+      response = gateway.purchase(charge_amount, credit_card, :ip=>self.ip_address, :billing_address=>billing_address, :email => self.address.email, :order_id => self.order_id, :description => self.order.description)
+
+#
+#      # Create a gateway object for the TrustCommerce service
+#      gateway_options = {
+#        :login=>ACTIVE_MERCHANT_LOGIN,
+#        :password=>ACTIVE_MERCHANT_PASSWORD,
+#        :test=>ACTIVE_MERCHANT_TEST_MODE}
+#
+#      # Create a gateway object for the TrustCommerce service
+#      gateway = ActiveMerchant::Billing::AuthorizeNetGateway.new(
+#        gateway_options
+#      )
+#
+
       # Authorize for the amount
-      response = gateway.purchase(charge_amount, credit_card)
+#     response = gateway.purchase(charge_amount, credit_card)
+
       if response.success?
         self.confirmation_code = response.authorization
       end
 
       unless response.success?
-        raise CannotProcessPayment, response.message
+        raise CannotProcessPayment, "#{response.message}"
       end
 
     end

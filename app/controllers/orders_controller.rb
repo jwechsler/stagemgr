@@ -12,11 +12,13 @@ class OrdersController < ApplicationController
   def create
     old_status = Order::NEW
     @order = Order.new(params[:order])
+    @order.ip_address = request.remote_ip
     process_order(:edit_order_path)
   end
 
   def update
     @order.attributes=params[:order]
+    @order.ip_address = request.remote_ip
     process_order(:edit_order_path)
   end
   
