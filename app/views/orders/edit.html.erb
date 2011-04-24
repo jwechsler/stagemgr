@@ -63,7 +63,7 @@ Order for <%=@order_for_to_s%>
 <%= render :partial => '/orders/line_item', :locals => { :f => line_item_form, :some_are_donation => some_are_donation } %>
 <% end %>
 </table>
-<%= order_form.fields_for :donation_line_items_attributes do |donation_form| %>
+<%= order_form.fields_for :donation_line_items do |donation_form| %>
 <fieldset><legend>Make an additional donation</legend>
 I'm a supporter of Theater Wit! Mark me down for an additional tax-deductable donation of $<%= donation_form.text_field :donation_amount, :size=>7 %>
 </fieldset><% end %>

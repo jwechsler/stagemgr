@@ -50,7 +50,7 @@ class Order < ActiveRecord::Base
   validates_presence_of  :address, :status
   validates_associated   :address, 
                          :payments, :credit_card_payments, :cash_payments,
-                         :line_items, :ticket_line_items, :flex_pass_line_items, :special_offer_line_items
+                         :line_items, :ticket_line_items, :donation_line_items, :flex_pass_line_items, :special_offer_line_items
 
   before_validation :initialize_nested_line_items, :on => :create
   before_validation :set_defaults
@@ -214,7 +214,8 @@ class Order < ActiveRecord::Base
           :card_expiration_year => self.credit_card_expiration_year,
           :card_type => self.credit_card_type,
           :card_verification_number => self.credit_card_verification_number,
-          :confirmation_code => self.credit_card_confirmation_code
+          :confirmation_code => self.credit_card_confirmation_code,
+          :ip_address => self.ip_address
         )
         new_payment.process!
       else

@@ -9,6 +9,7 @@ class CreditCardPayment < Payment
   attr_accessor :card_number
   attr_accessor :card_verification_number
 
+
   validates_credit_card_if_new  :card_number,
                          :card_type, {}, :confirmation_code     
   validates_presence_of  :card_type, :if => :needs_confirmation_code?
