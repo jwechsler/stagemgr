@@ -95,6 +95,7 @@ class CreditCardPayment < Payment
 
       if response.success?
         self.confirmation_code = response.authorization
+        self.transaction_id = response.params["transaction_id"]   # Returned transaction id from paypal
       end
 
       unless response.success?
@@ -105,21 +106,27 @@ class CreditCardPayment < Payment
     self.save!
   end
 
-  def refund!(cc_number = nil)
+  def refund!(cc_number = nil, note = nil)
+
 
     CreditCardPayment.transaction do
       # Create a gateway object for the TrustCommerce service
-      gateway_options = {
-        :login=>ACTIVE_MERCHANT_LOGIN,
-        :password=>ACTIVE_MERCHANT_PASSWORD,
-        :test=>ACTIVE_MERCHANT_TEST_MODE}
+#      gateway_options = {
+#        :login=>ACTIVE_MERCHANT_LOGIN,
+#        :password=>ACTIVE_MERCHANT_PASSWORD,
+#        :test=>ACTIVE_MERCHANT_TEST_MODE}
+#
+#      # Create a gateway object for the TrustCommerce service
+#      gateway = ActiveMerchant::Billing::AuthorizeNetGateway.new(
+#        gateway_options
+#      )
 
-      # Create a gateway object for the TrustCommerce service
-      gateway = ActiveMerchant::Billing::AuthorizeNetGateway.new(
-        gateway_options
-      )
+      gateway = ActiveMerchant::Billing::PaypalGateway.new(:login=>$PAYPAL_LOGIN, :password=>$PAYPAL_PASSWORD)
+
+      refund_amount = (self.amount*100).to_i
+
       
-      response = gateway.credit((self.amount*100).to_i, self.confirmation_code, :card_number=>(self.card_last_four.to_s == cc_number[-4..-1] ? cc_number : nil), :first_name=>self.address.first_name, :last_name=>self.address.last_name, :zip=>self.address.zipcode)
+      response = gateway.credit(refund_amount, self.transaction_id, :note => note)
 
       unless response.success?
         raise CannotProcessPayment, response.message

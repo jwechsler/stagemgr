@@ -19,11 +19,13 @@ class Order < ActiveRecord::Base
   has_many                       :ticket_line_items
   has_many                       :flex_pass_line_items
   has_many                       :special_offer_line_items
+  has_many                       :donation_line_items
   belongs_to                     :address
   accepts_nested_attributes_for  :line_items, 
                                  :ticket_line_items, 
                                  :flex_pass_line_items, 
-                                 :special_offer_line_items, 
+                                 :special_offer_line_items,
+                                 :donation_line_items,
                                  :address, 
                                  :payments, 
                                  :cash_payments, 
@@ -161,7 +163,7 @@ class Order < ActiveRecord::Base
   def refund!(cc_number)
     
     Order.transaction do
-      self.payments.each{|payment|payment.refund!(cc_number) if payment.respond_to? :refund! }
+      self.payments.each{|payment|payment.refund!(cc_number,self.notes) if payment.respond_to? :refund! }
       self.line_items.each{|li|li.refund! if li.respond_to? :refund!}
       self.status = REFUNDED
       save!

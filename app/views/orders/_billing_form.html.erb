@@ -1,4 +1,5 @@
-<%= render :partial => '/orders/special_offer_form', :locals => { :f => order_form } %>
+<fieldset>
+  <legend>Payment information</legend>
 <%= order_form.label :payment_type %>
 <%= order_form.select :payment_type, payment_types_for(order_form.object) %>
 <div id='payment_forms'>
@@ -12,4 +13,6 @@
 		<%= render :partial => '/orders/flex_pass_payment_form', :locals => { :f => order_form } %>
 	</div>
 </div>
+  <%= render :partial => '/orders/special_offer_form', :locals => { :f => order_form } %>
 
+</fieldset>
