@@ -221,6 +221,7 @@ class Order < ActiveRecord::Base
     when FLEX_PASS
       flex_pass = FlexPass.find_by_code(self.flex_pass_code)
       raise 'No FlexPass with that code exists' unless flex_pass
+      raise "That FlexPass is restricted to #{Theater.find_by_id(flex_pass.flex_pass_offer.theater_id).name} performances" unless (flex_pass.theater_id.blank? or flex_pass.theater_id == self.performance.production.theater.id)
       new_payment = self.flex_pass_payments.create!(
         :number_of_tickets => self.ticket_quantity,
         :flex_pass => flex_pass,
