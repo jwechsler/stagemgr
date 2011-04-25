@@ -7,7 +7,7 @@ class ProductionPerformanceOrdersController < ApplicationController
     @order.status = Order::NEW
     @order.address = Address.new
     @available_ticket_classes.each{|tc|@order.ticket_line_items.build(:ticket_class=>tc)}
-    @order.donation_line_items.build(:donation_amount=>0)
+    # @order.donation_line_items.build(:donation_amount=>0)
     @order_for_to_s = @production.name + ' on ' + @performance.performance_date.to_formatted_s(:long_ordinal) +
                       ' at ' + @performance.performance_time.to_formatted_s(:hour_min)
   

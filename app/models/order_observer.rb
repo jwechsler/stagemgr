@@ -31,7 +31,13 @@ class OrderObserver < ActiveRecord::Observer
   def after_save(order)
 
     if order.status == Order::PROCESSED && order.email_confirmation == 1 && !order.address.email.blank?
-      Notifier.deliver_order_notification(order)
+      case when order.contains_tickets?
+        OrderMailer.ticket_confirmation(order).deliver
+        when order.contains_flex_pass?
+          OrderMailer.flexpass_confirmation(order).deliver
+        when order.contains_donation?
+          OrderMailer.donation_thank_you(order).deliver
+      end
       if order.address.mailing_list_member?
         add_show_to_myemma(order)
       end

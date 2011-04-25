@@ -1,9 +1,10 @@
 <%- if @order.ticket_line_items.size > 0 -%>
-<table id='ticket_line_items'>
+<fieldset><legend>Tickets</legend>
+<table width="50%" id='ticket_line_items'>
 	<thead>
-	<th>Ticket Class</th>
-	<th>Count</th>
-	<th>Face Value</th>
+	<th width="30%">Class</th>
+	<th width="10%" align="center">Count</th>
+	<th width="20%" align="right">Face Value</th>
 	</thead>
 	<%= render :partial=> @order.ticket_line_items %>
 	<tr>
@@ -11,4 +12,5 @@
 		<td align="right"><i><%= @order.ticket_line_items.sum(:ticket_count) %></i></td><td></td>
 	</tr>
 </table>
+    </fieldset>
 <%- end -%>

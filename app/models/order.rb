@@ -4,6 +4,7 @@ InvalidSpecialOfferCode = Class.new(StandardError)
 
 class Order < ActiveRecord::Base
   include PaymentFormFields
+  include ActionView::Helpers::NumberHelper
   extend HTMLDiff
   
   belongs_to            :performance
@@ -32,6 +33,7 @@ class Order < ActiveRecord::Base
                                  :credit_card_payments, :allow_destroy => true
   attr_accessor         :special_offer_code
   attr_accessor         :door_sale
+  attr_accessor         :additional_donation
   attr_accessor_with_default :email_confirmation,0
 
   ORDER_STATUSES                                                                                    = (
@@ -109,7 +111,13 @@ class Order < ActiveRecord::Base
   end
 
   def performance_code()
-    self.performance.nil? ? "FLEXPASS" : self.performance.try(:performance_code)
+    case when self.contains_flex_pass?
+        "FLEXPASS"
+      when self.contains_donation?
+        "DONATION"
+      else
+        self.performance.try(:performance_code)
+      end
   end
 
   def total(reload_line_items=false)
@@ -117,15 +125,12 @@ class Order < ActiveRecord::Base
       (self.line_items(reload_line_items) + 
        self.ticket_line_items(reload_line_items) + 
        self.special_offer_line_items(reload_line_items) + 
-       self.flex_pass_line_items(reload_line_items)
+       self.flex_pass_line_items(reload_line_items) +
+       self.donation_line_items(reload_line_items)
       ).uniq.to_a.sum{|line_item|line_item.respond_to?(:total) ? line_item.total : 0}
     else
       self.payments.to_a.sum{|payment|payment.respond_to?(:amount) ? payment.amount : 0}
     end
-  end
-
-  def total_as_currency
-    number_to_currency(self.total,:delimiter => ",", :unit => "$",:separator => ".", :precision => 2)
   end
 
   def ticket_quantity 
@@ -134,6 +139,14 @@ class Order < ActiveRecord::Base
 
   def contains_flex_pass?
     (self.line_items.select{|li|li.is_a? FlexPassLineItem}+self.flex_pass_line_items).size > 0
+  end
+
+  def contains_tickets?
+    (self.line_items.select{|li|(li.is_a? TicketLineItem) && (li.ticket_count > 0)} + self.ticket_line_items.select{|li|li.ticket_count > 0} ).size > 0
+  end
+
+  def contains_donation?
+    (self.line_items.select{|li|(li.is_a? DonationLineItem) && (li.donation_amount > 0)} + self.donation_line_items.select{|li|li.donation_amount > 0} ).size > 0
   end
 
   def valid_payment_types_for( current_user )
@@ -244,6 +257,7 @@ class Order < ActiveRecord::Base
     #end
   end
 
+
   def update_special_offer_line_items_from_code!
     if !self.special_offer_code.blank?
       self.special_offer_line_items.clear
@@ -268,9 +282,32 @@ class Order < ActiveRecord::Base
   end
 
   def description
-    performance_s = self.performance.nil_or.to_short_s
-    "#{performance_s} (#{self.ticket_detail_description})"
+    case
+      when self.contains_tickets?
+        performance_s = self.performance.nil_or.to_short_s
+        "#{performance_s} (#{self.ticket_detail_description})"
+      when self.contains_donation?
+        ""
+      else
+        ""
+    end
+
   end
+
+  def to_s
+    case
+         when self.contains_tickets?
+            self.ticket_detail_description
+         when self.contains_donation?
+           "Donation"
+         when self.contains_flex_pass?
+           "Flexpass Order"
+      else
+          "Unknown order"
+    end
+
+  end
+
 
   def ticket_detail_description
     self.ticket_line_items.map{ |li| if li.ticket_count > 0 
@@ -300,6 +337,7 @@ class Order < ActiveRecord::Base
     ticket_line_items.each { |ti| TicketLineItem.delete(ti.id) }
   end
 
+
   private
 
   def transition_new_to_hold!
@@ -325,6 +363,8 @@ class Order < ActiveRecord::Base
 
     create_proper_payment_in_amount_of!(self.total)
 
+    save_additional_donation_order unless (self.additional_donation.blank? || self.additional_donation == 0)
+
     self.status = Order::PROCESSED
     self.set_email_confirmation
     self.save!
@@ -345,5 +385,15 @@ class Order < ActiveRecord::Base
     self.ticket_line_items.each{|tli|tli.order=self}
     self.flex_pass_line_items.each{|tli|tli.order=self}
   end
+
+  def save_additional_donation_order
+    donation = Order.new(:address => self.address, :payment_type => self.payment_type, :status => Order::PROCESSING)
+    donation.save!
+
+    donation.donation_line_items.build(:donation_amount => self.additional_donation)
+    donation.transition_to!(Order::PROCESSED)
+
+  end
+
 
 end
