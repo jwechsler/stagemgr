@@ -45,10 +45,6 @@ Performance:
 	<%= @order.status %>
 </p>
 <p>
-	Confirmation Code:
-	<%= @order.payments.first.nil? ? "" : @order.payments.first.confirmation_code %>
-</p>
-<p>
 	Referral Code:
 	<%= @order.referral_code %>
 </p>

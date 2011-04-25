@@ -32,4 +32,14 @@ Stagemgr::Application.configure do
 
   # Print deprecation notices to the stderr
   config.active_support.deprecation = :stderr
+
+  # Setup paypal
+  config.after_initialize do
+    ActiveMerchange::Billing::Base.gateway_mode = :test
+    ActiveMerchant::Billing::PaypalGateway.pem_file = File.read(RAILS_ROOT+'/config/cert_key_pem_dev.txt')
+  end
+
+  $PAYPAL_LOGIN = 'test_1302729685_biz@theaterwit.org'
+  $PAYPAL_PASSWORD = 'testtest'
+
 end

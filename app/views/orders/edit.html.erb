@@ -27,7 +27,7 @@ Order for <%=@order_for_to_s%>
 	</p>
 	<p>
 	<%= address_form.label :line1, 'Billing Address' %><br/>
-	<%= address_form.text_field :line1 %></p>
+	<%= address_form.text_field :line1, :size => 68%></p>
 	<p>
 	<table border="0">
 	  <tr><td >
@@ -63,6 +63,10 @@ Order for <%=@order_for_to_s%>
 <%= render :partial => '/orders/line_item', :locals => { :f => line_item_form, :some_are_donation => some_are_donation } %>
 <% end %>
 </table>
+<%= order_form.fields_for :donation_line_items do |donation_form| %>
+<fieldset><legend>Make an additional donation</legend>
+I'm a supporter of Theater Wit! Mark me down for an additional tax-deductable donation of $<%= donation_form.text_field :donation_amount, :size=>7 %>
+</fieldset><% end %>
 <%- end -%>
 <%- if @order.flex_pass_line_items.size > 0 -%>
 <%= order_form.fields_for :flex_pass_line_items do |flex_pass_line_item_form| %>
