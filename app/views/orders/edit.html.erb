@@ -64,7 +64,11 @@ Order for <%=@order_for_to_s%>
 <% end %>
 </table>
 <fieldset><legend>Make an additional donation</legend>
-I'm a supporter of Theater Wit! Mark me down for a tax-deductible donation of $<%= order_form.text_field :additional_donation, :size=>7 %>!
+  <%- if @order.performance.production.theater.theater_class == 'Default' -%>
+    I'm a supporter of Theater Wit!  I'd like to make an additional tax-deductable contribution of $
+  <%- else -%>
+  Theater Wit provides facilities and artistic support for groups like <%= @order.performance.production.theater.name %>. You can help by making a tax-deductable donation of $
+  <%- end -%>  <%= donation_form.text_field :additional_donation, :size=>7 %>
 </fieldset>
 <%- end -%>
 <%- if @order.flex_pass_line_items.size > 0 -%>
