@@ -1,20 +1,22 @@
-<p>
-  <%= order_form.fields_for :address do |address_form| %>
-  	<%= render :partial=>'/admin/orders/name_form', :locals => { :f => address_form } %>
-  <% end %>
-	<%= render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form}%>
-	<%= order_form.fields_for :address do |address_form| %>
-		<%= render :partial => '/admin/orders/address_form', :locals => { :f => address_form } %>
-	<% end %>
-	
-</p>
+<fieldset>
+  <legend>Reservation</legend>
+    <%= order_form.fields_for :address do |address_form| %>
+        <%= render :partial=>'/admin/orders/name_form', :locals => {:f => address_form} %>
+    <% end %>
+  <fieldset>
+      <legend>Payment Information</legend>
+      <%= render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form} %>
+    <%= order_form.fields_for :address do |address_form| %>
+        <%= render :partial => '/admin/orders/address_form', :locals => {:f => address_form} %>
+    <% end %>
+  </fieldset>
+   </fieldset>
+  <p>
+    Order Status: <%= order_form.object.status %>
+    <%= order_form.hidden_field :status %>
+  </p>
 
-<p>
-	Order Status: <%=order_form.object.status%>
-	<%= order_form.hidden_field :status %>
-</p>
-
-<p>
-	<%= order_form.label :notes %>
-	<%= order_form.text_area :notes, :rows=>4 %>
-</p>
+  <p>
+    <%= order_form.label :notes %>
+    <%= order_form.text_area :notes, :rows=>4 %>
+  </p>

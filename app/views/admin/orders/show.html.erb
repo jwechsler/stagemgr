@@ -28,9 +28,9 @@ Performance:
   </thead>
   <% @order.payments.each do |payment| %>
   <tr>
-    <td width="10%"><%=h payment.type                    %></td>
+    <td width="10%"><%=h payment.type == 'CreditCardPayment' ? payment.card_type : payment.type                    %></td>
     <td width="10%" align="right"><%=h to_currency(payment.amount)     %></td>
-  <td width="10%" align="right"><%=h payment.card_type.nil? ? "" : payment.card_type + (payment.card_last_four.nil? ? "" : "-" + payment.card_last_four.to_s)         %></td>
+  <td width="10%" align="right"><%=h payment.card_type.nil? ? "" : (payment.card_last_four.nil? ? "" : payment.card_last_four.to_s)         %></td>
    <td width="15%" align="center"><%=h payment.confirmation_code       %></td>
   <td width="10%" align="center"><% if payment.payment_id.blank? %>
     &nbsp;

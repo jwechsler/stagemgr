@@ -5,6 +5,8 @@ class OrdersController < ApplicationController
   append_before_filter :find_order, :only => [:show, :edit, :update, :destroy]
   append_before_filter :redirect_to_proper_action, :only => [:edit, :show]
 
+  respond_to :html, :xml, :json
+
   def edit; end
 
   def show; end
@@ -24,7 +26,10 @@ class OrdersController < ApplicationController
   
   def confirm
   end
- 
+
+  def donate
+
+  end
   
   private
   def find_order
