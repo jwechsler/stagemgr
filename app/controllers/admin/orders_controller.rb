@@ -175,5 +175,6 @@ class Admin::OrdersController < Admin::ApplicationController
     sort_order 'ASC' if sort_order.empty?
     {:page => params[:page], :order => "#{sort_column} #{sort_order}"}
   end
+
   
 end

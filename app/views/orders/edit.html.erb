@@ -68,7 +68,7 @@ Order for <%=@order_for_to_s%>
     I'm a supporter of Theater Wit!  I'd like to make an additional tax-deductable contribution of $
   <%- else -%>
   Theater Wit provides facilities and artistic support for groups like <%= @order.performance.production.theater.name %>. You can help by making a tax-deductable donation of $
-  <%- end -%>  <%= donation_form.text_field :additional_donation, :size=>7 %>
+  <%- end -%>  <%= order_form.text_field :additional_donation, :size=>7 %>
 </fieldset>
 <%- end -%>
 <%- if @order.flex_pass_line_items.size > 0 -%>
@@ -93,8 +93,11 @@ Order for <%=@order_for_to_s%>
 <%- end -%>
 <%- end -%>
 
-<%= render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form}%>
+    <fieldset>
+      <legend>Payment information</legend>
 
+<%= render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form}%>
+   </fieldset>
 <!-- p>
   <%= order_form.label :referral_code %> (optional)<br/>
   <%= order_form.text_field :referral_code %>  
