@@ -1,128 +1,83 @@
 <% javascript :defaults, 'delegate', 'jquery-1.4.2.min', 'jquery.autocomplete', 'box_office_order' %>
 
-Order for <%=@order_for_to_s%>
+<h3><%= raw @order_for_to_s %></h3>
 
-<%= form_for(@order) do |order_form| %>
-<%= order_form.error_messages %>
-<%= order_form.hidden_field :production_code %>
-<%= order_form.hidden_field :performance_code %>
-<%= order_form.hidden_field :status %>
-<%= hidden_field_tag 'order_phase', 'confirm' %>
-<p>
-<%= order_form.fields_for :address do |address_form| %>
-	<table border="0">
-	<tr><td><%= address_form.label :first_name %><br/>
-	<%= address_form.text_field :first_name %>
-	</td><td><%= address_form.label :last_name %><br/>
-	<%= address_form.text_field :last_name %>
-	</td></tr></table>
-	</p>
-	<p>
-	<%= address_form.label :email %><br/>
-	<%= address_form.text_field :email %>
-	</p>
-	<p>
-	<%= address_form.label :phone %><br/>
-	<%= address_form.text_field :phone %>
-	</p>
-	<p>
-	<%= address_form.label :line1, 'Billing Address' %><br/>
-	<%= address_form.text_field :line1, :size => 68%></p>
-	<p>
-	<table border="0">
-	  <tr><td >
-	<%= address_form.label :city, 'City' %><br />
-	<%= address_form.text_field :city %></td>
-	<td>
-	<%= address_form.label :state, 'State' %><br/>
-	<%= address_form.text_field :state, :size=>3 %>
-	</td><td>
-	<%= address_form.label :zipcode, 'Postal Code' %><br/>
-	<%= address_form.text_field :zipcode, :size=>11 %>
-	</td>
-</tr>
-	</table>
-  </p>
-<% end %>
+<%= semantic_form_for @order do |order_form| %>
+    <%= order_form.inputs :class=>"order" do %>
+        <%= order_form.error_messages %>
+        <%= order_form.hidden_field :status %>
+        <%= render :partial => '/orders/address', :locals => {:order_form => order_form} %>
 
-<%- if @order.ticket_line_items.size > 0 -%>
-<% some_are_donation = @order.line_items.any?{|li|li.ticket_class.ticket_type=='Donation'}%>
-<table id='line_items'>
-  <thead>
-	<th>Type</th>
-    <th>How many?</th>
-	<th>Price</th>
+        <%- if @order.ticket_line_items.size > 0 -%>
+            <%- @submit_text = "Order Tickets" -%>
+            <%= order_form.hidden_field :production_code %>
+            <%= order_form.hidden_field :performance_code %>
+            <%= render :partial => '/orders/tickets', :locals => {:order_form => order_form, :order => @order} %>
+            <%= render :partial => '/orders/additional_donation', :locals => {:order_form => order_form, :order => @order} %>
+        <%- end -%>
 
-<% if some_are_donation %>
-	<th>Suggested Donation</th>
-	<th>Actual Donation(if different)</th>
-<% end %>
-    <th></th>
-  </thead>
-<%= order_form.fields_for :ticket_line_items do |line_item_form| %>
-<%= render :partial => '/orders/line_item', :locals => { :f => line_item_form, :some_are_donation => some_are_donation } %>
-<% end %>
-</table>
-<fieldset><legend>Make an additional donation</legend>
-  <%- if @order.performance.production.theater.theater_class == 'Default' -%>
-    I'm a supporter of Theater Wit!  I'd like to make an additional tax-deductable contribution of $
-  <%- else -%>
-  Theater Wit provides facilities and artistic support for groups like <%= @order.performance.production.theater.name %>. You can help by making a tax-deductable donation of $
-  <%- end -%>  <%= order_form.text_field :additional_donation, :size=>7 %>
-</fieldset>
+        <%- if @order.donation_line_items.size > 0 -%>
+            <%- @submit_text = "Make a donation" -%>
+
+            <%= render :partial => '/orders/donation', :locals => {:donation_form => order_form} %>
+        <%- end -%>
+        <!-- Flex Pass Order -->
+        <%- if @order.flex_pass_line_items.size > 0 -%>
+            <%- @submit_text = "Order FlexPass" -%>
+
+            <%= order_form.fields_for :flex_pass_line_items do |flex_pass_line_item_form| %>
+
+                <p>
+                  Number of Tickets on Pass:
+                  <%= @flex_pass_offer.number_of_tickets %>
+                </p>
+
+                <p>
+                  Price of Pass:
+                  <%= to_currency(@flex_pass_offer.price) %>
+                </p>
+
+                <p>
+                  Quantity:
+                  <%= flex_pass_line_item_form.select :ticket_count, 1.upto(5) %>
+                  <%= flex_pass_line_item_form.hidden_field :flex_pass_offer_id %>
+                </p>
+
+            <%- end -%>
+        <%- end %>
+        <%= render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form} %>
+
+        <%= order_form.fields_for :address do |address_form2| %>
+            <table>
+              <tr>
+                <td width="25%">&nbsp;</td>
+                <td valign="top">
+                <%= address_form2.check_box :add_to_mail_list, :checked=>1 %>
+                <td>
+                Join the Theater Wit <%= if !@order.performance.nil? && @order.performance.production.theater.id != 1
+                                             "and #{@order.performance.production.theater.name} mailing lists"
+                                         else
+                                             "mailing list"
+                                         end
+              %><br/><span style="font-size: 11px">Get company news, special offers, ticket discounts and more delivered twice monthly. Your email
+                will not be shared. :) </span>
+                </td></tr>
+            </table>
+        <%- end -%>
+        <%- if @order.ticket_line_items.size + @order.flex_pass_line_items.size > 0 -%>
+        <p id="non-exchange-notice">
+          Please note that all ticket purchases are <emp>non-refundable</emp> and <emp>non-exchangeable</emp>.
+          Once you've reviewed your order above, you can click "Order tickets" below.
+        </p>
+        <%- elsif @order.donation_line_items.size > 0 -%>
+            <p id="tax-deductible-notice">
+              Your donation is fully tax-deductible to the extent allowable by law under IRS code 501(c)(3).
+            </p>
+        <%- end %>
+    <%- end -%>
+
+
+    <%= order_form.submit @submit_text, :action=>:confirm, :disable_with => 'Processing...' if order_form.object.status == Order::NEW || order_form.object.status == Order::HOLD %>
 <%- end -%>
-<%- if @order.flex_pass_line_items.size > 0 -%>
-<%= order_form.fields_for :flex_pass_line_items do |flex_pass_line_item_form| %>
+<br clear="all"/>
 
-<p>
-	Number of Tickets on Pass:
-	<%= @flex_pass_offer.number_of_tickets %>
-</p>
-
-<p>
-	Price of Pass:
-	<%= to_currency(@flex_pass_offer.price) %>
-</p>
-
-<p>
-	Quantity:
-	<%= flex_pass_line_item_form.select :ticket_count, 1.upto(20) %>
-	<%= flex_pass_line_item_form.hidden_field :flex_pass_offer_id %>
-</p>
-
-<%- end -%>
-<%- end -%>
-
-    <fieldset>
-      <legend>Payment information</legend>
-
-<%= render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form}%>
-   </fieldset>
-<!-- p>
-  <%= order_form.label :referral_code %> (optional)<br/>
-  <%= order_form.text_field :referral_code %>  
-</p -->
-<p>
-  
-</p>
-<%= order_form.fields_for :address do |address_form2| %>
-<p><table><tr><td> 
-      <%= address_form2.check_box :add_to_mail_list, :checked=>1 %><td>
-      Join the Theater Wit <%= if !@order.performance.nil? && @order.performance.production.theater.id != 1 
-        "and #{@order.performance.production.theater.name} mailing lists"
-      else
-        "mailing list"
-      end
-      %> for company news, special offers, ticket discounts and more delivered twice monthly.  Your contact information will not be shared. :)
-    </td></tr></table></p>
-  <p>
-    Please note that all orders are <emp>non-refundable</emp> and <emp>non-exchangeable</emp>.  Once you've reviewed your order above, you can
-    click "Order tickets" below.
-  </p><p>
-	<%= order_form.submit 'Order tickets', :action=>:confirm, :disable_with => 'Processing...' if order_form.object.status == Order::NEW || order_form.object.status == Order::HOLD %>
-  </p>
-<%- end -%>
-<br clear="all" />
-<p>
-</p>
-<% end %>

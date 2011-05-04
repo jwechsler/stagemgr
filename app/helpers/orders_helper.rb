@@ -1,7 +1,7 @@
 module OrdersHelper
   def convert_button_label_to_state(button_label)
     case button_label
-    when 'Place Order', 'Order tickets'
+    when 'Place Order', 'Order tickets', 'Make a donation'
       Order::PROCESSING
     when 'Hold'
       Order::HOLD

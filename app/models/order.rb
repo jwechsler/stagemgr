@@ -294,6 +294,12 @@ class Order < ActiveRecord::Base
 
   end
 
+  def set_form_defaults
+    self.payment_type ||= CREDIT_CARD
+    self.credit_card_expiration_month = 1
+    self.credit_card_expiration_year = Date.today.year
+  end
+
   def to_s
     case
          when self.contains_tickets?
@@ -381,7 +387,7 @@ class Order < ActiveRecord::Base
 
   def set_defaults
     self.status ||= HOLD
-    self.payment_type ||= CREDIT_CARD
+    set_form_defaults
     self.ticket_line_items.each{|tli|tli.order=self}
     self.flex_pass_line_items.each{|tli|tli.order=self}
   end

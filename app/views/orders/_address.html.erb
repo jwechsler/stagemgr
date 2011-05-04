@@ -1,0 +1,33 @@
+<%= order_form.fields_for :address do |address_form| %>
+  	<table border="0">
+	<tr><td><%= address_form.label :first_name %><br/>
+	<%= address_form.text_field :first_name %>
+	</td><td><%= address_form.label :last_name %><br/>
+	<%= address_form.text_field :last_name %>
+	</td></tr></table>
+    <table><tr>
+      <td>
+        <%= address_form.label :email %><br/>
+	    <%= address_form.text_field :email %>
+	  </td></tr>
+      <tr><td>
+        <%= address_form.label :phone %><br/>
+	    <%= address_form.text_field :phone %>
+      </td></tr>
+	  <tr><td><%= address_form.label :line1, 'Billing Address' %><br/>
+	<%= address_form.text_field :line1, :size => 68%></td></tr>
+
+	<table border="0">
+	  <tr><td >
+	<%= address_form.label :city, 'City' %><br />
+	<%= address_form.text_field :city %></td>
+	<td>
+	<%= address_form.label :state, 'State' %><br/>
+	<%= address_form.text_field :state, :size=>3 %>
+	</td><td>
+	<%= address_form.label :zipcode, 'Postal Code' %><br/>
+	<%= address_form.text_field :zipcode, :size=>11 %>
+	</td>
+    </tr>
+	</table>
+<% end %>
