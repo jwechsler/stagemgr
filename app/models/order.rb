@@ -296,8 +296,6 @@ class Order < ActiveRecord::Base
 
   def set_form_defaults
     self.payment_type ||= CREDIT_CARD
-    self.credit_card_expiration_month = 1
-    self.credit_card_expiration_year = Date.today.year
   end
 
   def to_s
@@ -390,10 +388,12 @@ class Order < ActiveRecord::Base
     set_form_defaults
     self.ticket_line_items.each{|tli|tli.order=self}
     self.flex_pass_line_items.each{|tli|tli.order=self}
+    self.donation_line_items.each{|di| di.order=self }
   end
 
   def save_additional_donation_order
     donation = Order.new(:address => self.address, :payment_type => self.payment_type, :status => Order::PROCESSING)
+    donation.copy_payment_information(self)
     donation.save!
 
     donation.donation_line_items.build(:donation_amount => self.additional_donation)

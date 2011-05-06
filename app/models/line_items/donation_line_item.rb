@@ -3,7 +3,7 @@ class DonationLineItem < LineItem
 
   attr_accessor :donation_level
 
-  before_validation set_donation_amount_from_level
+  before_validation :set_donation_amount_from_level
 
   def total
     donation_amount
