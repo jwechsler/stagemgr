@@ -17,7 +17,7 @@ ticket_classes.id = order_items.ticket_class_id and
 perf.id = order_items.performance_id and
 perf.status != 'Inactive' and
 prod.id = perf.production_id
-and ((prod.status != 'Inactive' and prod.theater_id = @theater_id) or prod.production_code = @prod_code or @all_shows=1)
+and ((prod.status != 'Inactive' and prod.theater_id = @theater_id) or prod.production_code = @prod_code or (prod.status != 'Inactive' and @all_shows=1))
 and prod.theater_id = t.id
 and week(perf.performance_date,5) = week(curdate(),5)-1
 group by order_items.performance_id, order_items.ticket_class_id
