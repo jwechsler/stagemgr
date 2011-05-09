@@ -234,3 +234,7 @@ text-align:right;
     padding: 10px;
     font-style: italic;
 }
+
+.add_nested_item {
+    font-size: 10px;
+}

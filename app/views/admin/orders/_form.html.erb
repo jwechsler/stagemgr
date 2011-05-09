@@ -1,22 +1,12 @@
-<fieldset>
-  <legend>Reservation</legend>
     <%= order_form.fields_for :address do |address_form| %>
         <%= render :partial=>'/admin/orders/name_form', :locals => {:f => address_form} %>
     <% end %>
-  <fieldset>
-      <legend>Payment Information</legend>
       <%= render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form} %>
     <%= order_form.fields_for :address do |address_form| %>
         <%= render :partial => '/admin/orders/address_form', :locals => {:f => address_form} %>
     <% end %>
-  </fieldset>
-   </fieldset>
-  <p>
-    Order Status: <%= order_form.object.status %>
-    <%= order_form.hidden_field :status %>
-  </p>
+    <%= order_form.input :email_confirmation, :as=>:boolean, :label=>'Add to email list?' %>
 
-  <p>
-    <%= order_form.label :notes %>
-    <%= order_form.text_area :notes, :rows=>4 %>
-  </p>
+    <%= order_form.hidden_field :status %>
+
+    <%= order_form.input :notes, :input_html => { :rows => 4 } %>

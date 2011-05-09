@@ -13,7 +13,7 @@
 <%-when @original_order.payments.count != 1 -%>
   <h3>Can only refund orders with only 1 payment</h3>
 <%-when @original_order.payments.first.class == CreditCardPayment -%>
-  <h3>Please fill in the information for the card ending <%=@original_order.payments.first.card_last_four%>.</h3>
+  <h3>Note the reason for the refund and press "Process Refund"</h3>
   <%= form_for [:admin,@original_order,@refund_order], :url=>admin_order_refund_orders_path(@original_order) do |order_form| -%>
     <p>
 	    <%= order_form.label :notes %>

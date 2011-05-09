@@ -2,9 +2,6 @@
     <%= raw "var ticket_line_item='#{generate_template(order_form, :ticket_line_items, :partial=>'/admin/orders/ticket_line_item_form')}'" %>
 <% end -%>
 
-<fieldset>
-  <legend>Ticketing</legend>
-
   <table style="font-size:10px; text-align:left; padding: 0px;">
     <thead>
     <th><%= order_form.label Production %>
@@ -12,7 +9,6 @@
     <th>
       <%= order_form.label Performance %>
     </th>
-    <th>Tickets</th>
     </thead>
     <tr>
 
@@ -29,20 +25,23 @@
                                   :size=>10 %>
 
       </td>
-      <td valign="top">
-        <table id="ticket_line_items" style="padding: 0px;" width="100%">
-          <tr><td>Class</td><td>Qty</td><td>Donation</td><td>Total</td><td>&nbsp;</td></tr>
-          <%= order_form.fields_for :ticket_line_items do |ticket_line_item_form| %>
-              <%= render :partial => '/admin/orders/ticket_line_item_form', :locals => {:f => ticket_line_item_form} %>
-
-          <% end %>
-
-         </table>
-          <%= link_to 'Add a line item', '#ticket_line_item', :class => "add_nested_item", :rel => "ticket_line_items" %>
-
-          </td>
     </tr>
   </table>
-</fieldset>
+
+    <table id="ticket_line_items" style="padding: 0px; text-align: left; font-size: 10px;">
+      <thead>
+      <th>Class</th>
+      <th>Qty</th>
+      <th>Donation</th>
+      <th>Total</th>
+      </thead>
+      <%= order_form.fields_for :ticket_line_items do |ticket_line_item_form| %>
+          <%= render :partial => '/admin/orders/ticket_line_item_form', :locals => {:f => ticket_line_item_form} %>
+
+      <% end %>
+
+     </table>
+     <%= link_to 'Add a line item', '#ticket_line_item', :class => "add_nested_item", :rel => "ticket_line_items" %>
+
 
 

@@ -83,7 +83,7 @@ class Admin::OrdersController < Admin::ApplicationController
     @order.address = Address.new
     @order.ticket_line_items.build
     @order.status = Order::NEW
-    @order.set_defaults
+
     respond_to do |format|
       format.html{ render 'edit', :layout=>true }
     end
