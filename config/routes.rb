@@ -1,5 +1,12 @@
 Stagemgr::Application.routes.draw do
 
+  get "donations/new"
+
+  get "donations/confirm"
+
+  get "donations/show"
+
+
   resources :orders do
     post :confirm, :on => :collection
   end

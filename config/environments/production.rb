@@ -1,3 +1,5 @@
+require 'production_paypal'
+
 Stagemgr::Application.configure do
   # Settings specified here will take precedence over those in config/environment.rb
 
@@ -29,7 +31,7 @@ Stagemgr::Application.configure do
 
   # Disable Rails's static asset server
   # In production, Apache or nginx will already do this
-  config.serve_static_assets = false
+  config.serve_static_assets = true
 
   # Enable serving of images, stylesheets, and javascripts from an asset server
   # config.action_controller.asset_host = "http://assets.example.com"
@@ -46,4 +48,12 @@ Stagemgr::Application.configure do
 
   # Send deprecation notices to registered listeners
   config.active_support.deprecation = :notify
+
+  # Setup paypal
+   config.after_initialize do
+      ActiveMerchant::Billing::PaypalGateway.pem_file = File.read(RAILS_ROOT+'/config/cert_key_pem_prod.txt')
+    end
+
+    $PAYPAL_LOGIN = 'register_api1.theaterwit.org'
+    $PAYPAL_PASSWORD = 'REDACTED_PAYPAL_PASSWORD'
 end

@@ -1,45 +1,8 @@
-<p>
-	Billing Address:
-</p>
+<%= f.inputs do %>
+    <%= f.input :line1, :label=>'Street' %>
+    <%= f.input :line2, :label=>'&nbsp;' %>
+    <%= f.input :city, :label=>'City' %>
+    <%= f.input :state, :label=>'State' %>
+    <%= f.input :zipcode, :label=>"Zip/Postal" %>
+<%- end -%>
 
-<!-- <p>
-<%= f.label :first_name %>
-<%= f.text_field :first_name %>
-</p>
-<p>
-<%= f.label :last_name %>
-<%= f.text_field :last_name %>
-</p>
-<p>
-<%= f.label :email %>
-<%= f.text_field :email %>
-</p>
-<p>
-<%= f.label :phone %>
-<%= f.text_field :phone %>
-</p>
--->
-<p>
-<%= f.label :line1, 'Address Line1' %>
-<%= f.text_field :line1 %>
-</p>
-<p>
-<%= f.label :line2, 'Address Line2' %>
-<%= f.text_field :line2 %>
-</p>
-<p>
-<%= f.label :city, 'City' %>
-<%= f.text_field :city %>
-</p>
-<p>
-<%= f.label :state, 'State/Province/Region' %>
-<%= f.text_field :state %>
-</p>
-<p>
-<%= f.label :zipcode, 'ZIP/Postal Code' %>
-<%= f.text_field :zipcode %>
-</p>
-<p>
-    <%= f.label :add_to_email_list, 'Add to email list?' %>
-    <%= f.check_box :add_to_mail_list, :checked=>1 %>
-</p>

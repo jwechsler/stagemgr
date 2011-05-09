@@ -1,38 +1,9 @@
-<p>
-First Name:
-<%=h address.first_name %>
-</p>
-<p>
-Last name:
-<%=h address.last_name %>
-</p>
-<p>
-Email:
-<%=h address.email %>
-</p>
-Phone:
-<%=h address.phone %>
-</p>
-<p>
-Billing Address:
-</p>
-<p>
-Address Line1:
-<%=h address.line1 %>
-</p>
-<p>
-Address Line2:
-<%=h address.line2 %>
-</p>
-<p>
-City:
-<%=h address.city %>
-</p>
-<p>
-State/Province/Region:
-<%=h address.state %>
-</p>
-<p>
-ZIP/Postal Code:
-<%=h address.zipcode %>
-</p>
+  <b><%=h address.first_name %>
+  <%=h address.last_name %></b><br/>
+  <%- if !address.line1.blank? -%><%=h address.line1 %><br/><%- end -%>
+  <%- if !address.line2.blank? -%><%=h address.line2 %><br/><%- end -%>
+  <%- if !address.city.blank? -%><%=h address.city %>, <%- end -%>
+  <%- if !address.state.blank? -%><%=h address.state %> <%- end -%>
+  <%=h address.zipcode %><br/>
+  <%- if !address.email.blank? -%><i>Email: <%=h address.email %></i><br/><%- end -%>
+  <%- if !address.phone.blank? -%><i>Phone: <%=h address.phone %></i><%- end -%>

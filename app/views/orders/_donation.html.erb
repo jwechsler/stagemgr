@@ -1,0 +1,10 @@
+<%- donation_form.inputs do %>
+    <%= donation_form.semantic_fields_for :donation_line_items do |donation| %>
+        <%= donation.inputs :class=>"donation" do %>
+            <%= donation.input :donation_level, :as=>:radio, :collection=>@levels, :label=>"Contribution level:", :required=>false%>
+            <%= donation.input :donation_amount, :label=>"... or other amount", :required=>false %>
+
+        <%- end -%>
+    <%- end -%>
+
+<%- end -%>

@@ -83,6 +83,7 @@ class Admin::OrdersController < Admin::ApplicationController
     @order.address = Address.new
     @order.ticket_line_items.build
     @order.status = Order::NEW
+
     respond_to do |format|
       format.html{ render 'edit', :layout=>true }
     end
@@ -175,5 +176,6 @@ class Admin::OrdersController < Admin::ApplicationController
     sort_order 'ASC' if sort_order.empty?
     {:page => params[:page], :order => "#{sort_column} #{sort_order}"}
   end
+
   
 end

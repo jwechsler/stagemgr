@@ -220,3 +220,21 @@ text-align:right;
 
   ins.diffmod, ins.diffins { background: #d4fdd5; text-decoration: none; }
   del.diffmod, del.diffdel { color: #ff9999; }
+
+
+# Forms
+
+#non-exchange-notice {
+    padding: 10px;
+    font-weight: bold;
+    font-style: italic;
+}
+
+#tax-deductible-notice {
+    padding: 10px;
+    font-style: italic;
+}
+
+.add_nested_item {
+    font-size: 10px;
+}

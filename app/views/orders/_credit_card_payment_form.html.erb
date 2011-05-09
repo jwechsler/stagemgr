@@ -1,23 +1,16 @@
-<p>
-<%= f.label :credit_card_type %>
-<%= f.select :credit_card_type, ActiveRecord::Validations::ClassMethods::DEFAULT_CREDIT_CARD_TYPES.values.sort - ['invalid'] %>
-</p>
-<p>
-<%= f.label :credit_card_number %>
-<%= f.text_field :credit_card_number %>
-</p>
-<p>
-Expiration Month/Year
-<%= f.select :credit_card_expiration_month, 1.upto(12).map{|n|['%02d' % n,n]} %>
-<%= f.select :credit_card_expiration_year, Date.today.year.upto(Date.today.year+12).to_a %>
-</p>
-<p>
-<%= f.label :credit_card_verification_number %>
-<%= f.text_field :credit_card_verification_number, :size=>4 %>
-</p>
-<%- if backend_user? %>
-<p>
-<%= f.label :credit_card_confirmation_code %>
-<%= f.text_field :credit_card_confirmation_code, :size=>12 %>
-</p>
-<%- end %>
+<%= f.inputs do %>
+    <%= f.input :credit_card_type, :label=>"Card Type", :required=>true,  :include_blank=>false, :as=>:radio, :collection=>ActiveRecord::Validations::ClassMethods::DEFAULT_CREDIT_CARD_TYPES.values.sort - ['invalid'] %>
+    <%= f.input :credit_card_number, :required=>true, :input_html => { :maxlength=>16 } %>
+    <%= f.input :credit_card_expiration_month, :label=>"Month",  :include_blank=>false, :as=>:select, :collection=> 1.upto(12).map{|n|['%02d' % n,n]}, :wrapper_html => { :class => 'inlineA' } %>
+    <%= f.input :credit_card_expiration_year, :label=>"Year",  :include_blank=>false, :as=>:select, :collection=>Date.today.year.upto(Date.today.year+12).to_a, :wrapper_html => { :class => 'inlineB' } %>
+
+    <span style="float: left;">
+    <%= f.label :credit_card_verification_number, "CVV*" %>
+    <%= f.text_field :credit_card_verification_number, :size=>4, :label =>"CVV" %>
+    </span>
+    <br clear="all"/>
+    <li></li>
+    <%- if backend_user? %>
+        <%= f.input :credit_card_confirmation_code, :label=>'Manual authorization' %>
+    <%- end -%>
+<%- end -%>

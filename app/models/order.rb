@@ -4,6 +4,7 @@ InvalidSpecialOfferCode = Class.new(StandardError)
 
 class Order < ActiveRecord::Base
   include PaymentFormFields
+  include ActionView::Helpers::NumberHelper
   extend HTMLDiff
   
   belongs_to            :performance
@@ -19,17 +20,20 @@ class Order < ActiveRecord::Base
   has_many                       :ticket_line_items
   has_many                       :flex_pass_line_items
   has_many                       :special_offer_line_items
+  has_many                       :donation_line_items
   belongs_to                     :address
   accepts_nested_attributes_for  :line_items, 
                                  :ticket_line_items, 
                                  :flex_pass_line_items, 
-                                 :special_offer_line_items, 
+                                 :special_offer_line_items,
+                                 :donation_line_items,
                                  :address, 
                                  :payments, 
                                  :cash_payments, 
                                  :credit_card_payments, :allow_destroy => true
   attr_accessor         :special_offer_code
   attr_accessor         :door_sale
+  attr_accessor         :additional_donation
   attr_accessor_with_default :email_confirmation,0
 
   ORDER_STATUSES                                                                                    = (
@@ -48,7 +52,7 @@ class Order < ActiveRecord::Base
   validates_presence_of  :address, :status
   validates_associated   :address, 
                          :payments, :credit_card_payments, :cash_payments,
-                         :line_items, :ticket_line_items, :flex_pass_line_items, :special_offer_line_items
+                         :line_items, :ticket_line_items, :donation_line_items, :flex_pass_line_items, :special_offer_line_items
 
   before_validation :initialize_nested_line_items, :on => :create
   before_validation :set_defaults
@@ -107,7 +111,13 @@ class Order < ActiveRecord::Base
   end
 
   def performance_code()
-    self.performance.nil? ? "FLEXPASS" : self.performance.try(:performance_code)
+    case when self.contains_flex_pass?
+        "FLEXPASS"
+      when self.contains_donation?
+        "DONATION"
+      else
+        self.performance.try(:performance_code)
+      end
   end
 
   def total(reload_line_items=false)
@@ -115,15 +125,12 @@ class Order < ActiveRecord::Base
       (self.line_items(reload_line_items) + 
        self.ticket_line_items(reload_line_items) + 
        self.special_offer_line_items(reload_line_items) + 
-       self.flex_pass_line_items(reload_line_items)
+       self.flex_pass_line_items(reload_line_items) +
+       self.donation_line_items(reload_line_items)
       ).uniq.to_a.sum{|line_item|line_item.respond_to?(:total) ? line_item.total : 0}
     else
       self.payments.to_a.sum{|payment|payment.respond_to?(:amount) ? payment.amount : 0}
     end
-  end
-
-  def total_as_currency
-    number_to_currency(self.total,:delimiter => ",", :unit => "$",:separator => ".", :precision => 2)
   end
 
   def ticket_quantity 
@@ -132,6 +139,14 @@ class Order < ActiveRecord::Base
 
   def contains_flex_pass?
     (self.line_items.select{|li|li.is_a? FlexPassLineItem}+self.flex_pass_line_items).size > 0
+  end
+
+  def contains_tickets?
+    (self.line_items.select{|li|(li.is_a? TicketLineItem) && (li.ticket_count > 0)} + self.ticket_line_items.select{|li|li.ticket_count > 0} ).size > 0
+  end
+
+  def contains_donation?
+    (self.line_items.select{|li|(li.is_a? DonationLineItem) && (li.donation_amount > 0)} + self.donation_line_items.select{|li|li.donation_amount > 0} ).size > 0
   end
 
   def valid_payment_types_for( current_user )
@@ -161,7 +176,7 @@ class Order < ActiveRecord::Base
   def refund!(cc_number)
     
     Order.transaction do
-      self.payments.each{|payment|payment.refund!(cc_number) if payment.respond_to? :refund! }
+      self.payments.each{|payment|payment.refund!(cc_number,self.notes) if payment.respond_to? :refund! }
       self.line_items.each{|li|li.refund! if li.respond_to? :refund!}
       self.status = REFUNDED
       save!
@@ -212,7 +227,8 @@ class Order < ActiveRecord::Base
           :card_expiration_year => self.credit_card_expiration_year,
           :card_type => self.credit_card_type,
           :card_verification_number => self.credit_card_verification_number,
-          :confirmation_code => self.credit_card_confirmation_code
+          :confirmation_code => self.credit_card_confirmation_code,
+          :ip_address => self.ip_address
         )
         new_payment.process!
       else
@@ -221,6 +237,7 @@ class Order < ActiveRecord::Base
     when FLEX_PASS
       flex_pass = FlexPass.find_by_code(self.flex_pass_code)
       raise 'No FlexPass with that code exists' unless flex_pass
+      raise "That FlexPass is restricted to #{Theater.find_by_id(flex_pass.flex_pass_offer.theater_id).name} performances" unless (flex_pass.theater_id.blank? or flex_pass.theater_id == self.performance.production.theater.id)
       new_payment = self.flex_pass_payments.create!(
         :number_of_tickets => self.ticket_quantity,
         :flex_pass => flex_pass,
@@ -239,6 +256,7 @@ class Order < ActiveRecord::Base
     self.email_confirmation=1
     #end
   end
+
 
   def update_special_offer_line_items_from_code!
     if !self.special_offer_code.blank?
@@ -264,9 +282,36 @@ class Order < ActiveRecord::Base
   end
 
   def description
-    performance_s = self.performance.nil_or.to_short_s
-    "#{performance_s} (#{self.ticket_detail_description})"
+    case
+      when self.contains_tickets?
+        performance_s = self.performance.nil_or.to_short_s
+        "#{performance_s} (#{self.ticket_detail_description})"
+      when self.contains_donation?
+        ""
+      else
+        ""
+    end
+
   end
+
+  def set_form_defaults
+    self.payment_type ||= CREDIT_CARD
+  end
+
+  def to_s
+    case
+         when self.contains_tickets?
+            self.ticket_detail_description
+         when self.contains_donation?
+           "Donation"
+         when self.contains_flex_pass?
+           "Flexpass Order"
+      else
+          "Unknown order"
+    end
+
+  end
+
 
   def ticket_detail_description
     self.ticket_line_items.map{ |li| if li.ticket_count > 0 
@@ -296,6 +341,7 @@ class Order < ActiveRecord::Base
     ticket_line_items.each { |ti| TicketLineItem.delete(ti.id) }
   end
 
+
   private
 
   def transition_new_to_hold!
@@ -321,6 +367,8 @@ class Order < ActiveRecord::Base
 
     create_proper_payment_in_amount_of!(self.total)
 
+    save_additional_donation_order unless (self.additional_donation.blank? || self.additional_donation == 0)
+
     self.status = Order::PROCESSED
     self.set_email_confirmation
     self.save!
@@ -337,9 +385,21 @@ class Order < ActiveRecord::Base
 
   def set_defaults
     self.status ||= HOLD
-    self.payment_type ||= CREDIT_CARD
+    set_form_defaults
     self.ticket_line_items.each{|tli|tli.order=self}
     self.flex_pass_line_items.each{|tli|tli.order=self}
+    self.donation_line_items.each{|di| di.order=self }
   end
+
+  def save_additional_donation_order
+    donation = Order.new(:address => self.address, :payment_type => self.payment_type, :status => Order::PROCESSING)
+    donation.copy_payment_information(self)
+    donation.save!
+
+    donation.donation_line_items.build(:donation_amount => self.additional_donation)
+    donation.transition_to!(Order::PROCESSED)
+
+  end
+
 
 end

@@ -22,5 +22,16 @@ Stagemgr::Application.configure do
 
   # Only use best-standards-support built into browsers
   config.action_dispatch.best_standards_support = :builtin
+
+  # Setup paypal module
+
+  config.after_initialize do
+    ActiveMerchant::Billing::Base.gateway_mode = :test
+    ActiveMerchant::Billing::PaypalGateway.pem_file = File.read(RAILS_ROOT+'/config/cert_key_pem_dev.txt')
+  end
+
+  $PAYPAL_LOGIN = 'test_1302729685_biz_api1.theaterwit.org'
+  $PAYPAL_PASSWORD = 'JAGWA69SRLYL3F73'
+
 end
 

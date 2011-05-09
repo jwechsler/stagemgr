@@ -12,7 +12,7 @@ xml.rows do
       xml.cell number_to_currency(o.total)
       xml.cell o.line_items.map{|li|li.ticket_count}.sum
       xml.cell o.status
-      xml.cell o.ticket_detail_description
+      xml.cell o.to_s
     end
   end
 end

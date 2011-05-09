@@ -1,6 +1,5 @@
 <p>
   <%- unless f.object.contains_flex_pass? -%>
-  <%= f.label :special_offer_code %> (optional)<br/>
-  <%= f.text_field :special_offer_code %>  
+  <%= f.input :special_offer_code, :label=>"Discount Code (optional)" %>
   <%- end -%>
 </p>
