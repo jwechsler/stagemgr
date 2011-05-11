@@ -1,59 +1,6 @@
-<table width="100%"><tr><td width="80%" valign="top"><%= render :partial => 'address_show', :locals=>{:address=>@order.address } %>
-</td><td align="right"valign="top" width="20%"><i>Order ID <%=h @order.id %></i><br/><b><%= @order.status %></b></td> </tr></table>
+<%= render :partial => 'order_detail', :locals=>{:order=>@order } %>
 
 
-<%- if @order.contains_tickets? -%><p>
-Performance:
-<%=h @order.performance.to_s %>
-</p>
-<%- end -%>
-
-<%= render :partial => '/admin/ticket_line_items/table' %>
-
-<%= render :partial => '/admin/flex_pass_line_items/table' %>
-
-<%= render :partial => '/admin/donation_line_items/table' %>
-
-<%= render :partial => '/admin/special_offer_line_items/table' %>
-
-<fieldset><legend>Payment information</legend>
-<table id='payments'>
-  <thead>
-   <th >&nbsp;                    </th>
-   <th align="center">Amount                  </th>
-   <th>Last 4             </th>
-   <th align="center">Confirmation       </th>
-   <th align="center">Linked?              </th>
-   <th align="center">note              </th>
-  </thead>
-  <% @order.payments.each do |payment| %>
-  <tr>
-    <td width="10%"><%=h payment.type == 'CreditCardPayment' ? payment.card_type : payment.type                    %></td>
-    <td width="10%" align="right"><%=h to_currency(payment.amount)     %></td>
-  <td width="10%" align="right"><%=h payment.card_type.nil? ? "" : (payment.card_last_four.nil? ? "" : payment.card_last_four.to_s)         %></td>
-   <td width="15%" align="center"><%=h payment.confirmation_code       %></td>
-  <td width="10%" align="center"><% if payment.payment_id.blank? %>
-    &nbsp;
-   <% else %>
-    <%=h p = Payment.find_by_id(payment.payment_id)
-         link_to_unless p.order.blank?, p.order_id, {:id => p.order.id}  %>
-  <% end %></td>
-  <td width="45%" align="left"><%=h payment.note              %></td>
-  </tr>
-  <% end %>
-</table>
-  </fieldset>
-
-<p>
-	Referral Code:
-	<%= @order.referral_code %>
-</p>
-<%- if !@order.notes.blank? -%>
-<p><fieldset><legend>Notes</legend>
-	<%= @order.notes %>
-  </fieldset>
-</p>
-<%- end -%>
 <p>
 	<%= link_to 'Refund Order', new_admin_order_refund_order_path(@order) if @order.refundable? %>
 	<%= link_to 'Exchange Order', new_admin_order_exchange_order_path(@order) if @order.exchangeable? %>
