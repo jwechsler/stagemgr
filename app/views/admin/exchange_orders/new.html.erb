@@ -1,6 +1,6 @@
 <h3>Original Order</h3>
 <div style='border:3px black solid'>
-<%= render :partial=>'/orders/full_order', :locals=>{:order=>@original_order}%>
+<%= render :partial=>'/admin/orders/order_detail', :locals=>{:order=>@original_order}%>
 </div>
 <h3>Exchange Order</h3>
 <div style='border:3px black solid'>
@@ -9,18 +9,19 @@
 
 <%= error_messages_for :order %>
 
-<%= form_for [:admin,@original_order,@exchange_order], :url=>admin_order_exchange_orders_path(@original_order) do |order_form| -%>
-
+<%= semantic_form_for [:admin,@original_order,@exchange_order], :url=>admin_order_exchange_orders_path(@original_order) do |order_form| -%>
+  <%= order_form.inputs do %>
 <%= render :partial=>'/admin/orders/ticket_line_items_form', :locals=>{:order_form=>order_form}%>
 
 <p>Billing information for any overages:</p>
 
 <%= render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form}%>
-
+<%= order_form.input :notes, :input_html => { :rows => 4 } %>
 <p>
   <%= order_form.submit 'Hold', :disable_with => 'Processing...' if order_form.object.status == Order::NEW || order_form.object.status == Order::HOLD %>
   <%= order_form.submit 'Place Order', :disable_with => 'Processing...' if order_form.object.status == Order::NEW || order_form.object.status == Order::HOLD %>
 </p>
+<%- end -%>
 <% end -%>
 
 </div>
