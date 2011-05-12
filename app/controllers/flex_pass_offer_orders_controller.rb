@@ -8,4 +8,5 @@ class FlexPassOfferOrdersController < ApplicationController
     @order_for_to_s = 'Flex Pass'
     render '/orders/edit', :layout=>'none'
   end
+
 end

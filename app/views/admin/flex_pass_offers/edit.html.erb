@@ -1,14 +1,17 @@
 <h1>Editing flex_pass_offer</h1>
 
-<%= form_for([:admin,@flex_pass_offer]) do |f| %>
-  <%= f.error_messages %>
+
+<%= semantic_form_for ([:admin,@flex_pass_offer]) do |f| %>
+  <%= f.inputs do %>
 
   <%= render :partial => 'form', :locals=>{:f=>f} %>
 
-  <p>
-    <%= f.submit 'Update' %>
-  </p>
-<% end %>
+  <%- end -%>
+  <%= f.submit 'Update' %>
+  <%= f.buttons do %>
+    <%= f.commit_button %>
+  <%- end -%>
+<%- end -%>
 
 <%= link_to 'Show', [:admin,@flex_pass_offer] %> |
 <%= link_to 'Back', admin_flex_pass_offers_path %>

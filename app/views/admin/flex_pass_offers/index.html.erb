@@ -20,7 +20,7 @@
 <td><%= flex_pass_offer.payout_per_ticket %></td>
 <td><%= flex_pass_offer.created_at %></td>
 <td><%= flex_pass_offer.updated_at %></td>
-<td><%= link_to 'Create Order', new_admin_flex_pass_offer_order_path(flex_pass_offer) %></td>
+<td><%= link_to 'Create Order', new_admin_flex_pass_offer_order_path(flex_pass_offer) %>&nbsp;<%= link_to 'Edit Offer', edit_admin_flex_pass_offer_path(flex_pass_offer) %></td>
 </tr>
 <%- end -%>
 </table>
