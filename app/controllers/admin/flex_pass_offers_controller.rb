@@ -73,4 +73,5 @@ class Admin::FlexPassOffersController < Admin::ApplicationController
       format.xml  { head :ok }
     end
   end
+
 end
