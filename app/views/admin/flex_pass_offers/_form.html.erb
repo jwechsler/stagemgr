@@ -1,19 +1,9 @@
-<p>
-  <%= f.label :name %><br/>
-  <%= f.text_field :name %>
-<p>
-  <%= f.label :price %><br />
-  <%= f.text_field :price %>
-</p>
-<p>
-  <%= f.label :number_of_tickets %><br />
-  <%= f.text_field :number_of_tickets %>
-</p>
-<p>
-  <%= f.label :payout_per_ticket %><br />
-  <%= f.text_field :payout_per_ticket %>
-</p>
-<p>
-  <%= f.label :theater_id %><br/>
-  <%= f.text_field :theater_id %>
-</p>
+<%= f.inputs do %>
+  <%= f.input :name %>
+  <%= f.input :price %>
+  <%= f.input :number_of_tickets %>
+  <%= f.input :payout_per_ticket %>
+  <%= f.input :active %>
+  <%= f.input :theater, :as=>:select, :collection => Theater.find_all_by_status (['Active', 'Private']) %>
+  <%= f.input :exclude_theater %>
+<%- end -%>

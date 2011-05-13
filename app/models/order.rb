@@ -146,7 +146,7 @@ class Order < ActiveRecord::Base
   end
 
   def contains_donation?
-    (self.line_items.select{|li|(li.is_a? DonationLineItem) && (li.donation_amount > 0)} + self.donation_line_items.select{|li|li.donation_amount > 0} ).size > 0
+    self.donation_line_items.select{|li|(li.is_a? DonationLineItem) }
   end
 
   def valid_payment_types_for( current_user )
@@ -155,7 +155,7 @@ class Order < ActiveRecord::Base
       valid_payment_types.delete CASH
       valid_payment_types.delete PRICE_OVERRIDE
     end
-    if contains_flex_pass?
+    if self.contains_flex_pass? || self.contains_donation?
       valid_payment_types.delete FLEX_PASS
     end
     valid_payment_types
@@ -237,8 +237,13 @@ class Order < ActiveRecord::Base
     when FLEX_PASS
       flex_pass = FlexPass.find_by_code(self.flex_pass_code)
       raise 'No FlexPass with that code exists' unless flex_pass
-      raise "That FlexPass is restricted to #{Theater.find_by_id(flex_pass.flex_pass_offer.theater_id).name} performances" unless (flex_pass.theater_id.blank? or flex_pass.theater_id == self.performance.production.theater.id)
-      new_payment = self.flex_pass_payments.create!(
+      offer = flex_pass.flex_pass_offer
+      if !offer.theater_id.blank? then
+        raise "That FlexPass is restricted to #{Theater.find_by_id(offer.theater_id).name} productions" if (offer.theater_id != self.performance.production.theater.id and !offer.exclude_theater?)
+        raise "That Flexpass cannot be used for tickets for #{Theater.find_by_id(flex_pass.flex_pass_offer.theater_id).name} productions" if (flex_pass.flex_pass_offer.theater_id == self.performance.production.theater.id and flex_pass.flex_pass_offer.exclude_theater?)
+
+      end
+       new_payment = self.flex_pass_payments.create!(
         :number_of_tickets => self.ticket_quantity,
         :flex_pass => flex_pass,
         :amount => flex_pass.flex_pass_offer.payout_per_ticket * self.ticket_quantity

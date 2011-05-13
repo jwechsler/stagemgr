@@ -37,6 +37,7 @@ Stagemgr::Application.routes.draw do
   namespace :admin do
     resources :flex_pass_offers do
       resources :orders, :controller => 'flex_pass_offer_orders'
+
     end
     resources :flex_passes
     resources :orders do

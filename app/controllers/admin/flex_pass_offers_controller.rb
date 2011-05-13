@@ -53,7 +53,7 @@ class Admin::FlexPassOffersController < Admin::ApplicationController
     respond_to do |format|
       if @flex_pass_offer.update_attributes(params[:flex_pass_offer])
         flash[:notice] = 'FlexPassOffer was successfully updated.'
-        format.html { redirect_to(@flex_pass_offer) }
+        format.html { redirect_to([:admin,@flex_pass_offer]) }
         format.xml  { head :ok }
       else
         format.html { render :action => "edit" }
@@ -73,4 +73,5 @@ class Admin::FlexPassOffersController < Admin::ApplicationController
       format.xml  { head :ok }
     end
   end
+
 end
