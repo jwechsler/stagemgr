@@ -146,7 +146,7 @@ class Order < ActiveRecord::Base
   end
 
   def contains_donation?
-    self.donation_line_items.select{|li|(li.is_a? DonationLineItem) }
+    (self.donation_line_items.select{|li|(li.is_a? DonationLineItem) } + self.donation_line_items.select{|li|li.donation_amount > 0} ).size > 0
   end
 
   def valid_payment_types_for( current_user )
