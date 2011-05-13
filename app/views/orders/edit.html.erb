@@ -7,7 +7,6 @@
         <%= order_form.error_messages %>
         <%= order_form.hidden_field :status %>
         <%= render :partial => '/orders/address', :locals => {:order_form => order_form} %>
-
         <%- if @order.ticket_line_items.size > 0 -%>
             <%- @submit_text = "Order Tickets" -%>
             <%= order_form.hidden_field :production_code %>
@@ -23,27 +22,13 @@
         <%- end -%>
         <!-- Flex Pass Order -->
         <%- if @order.flex_pass_line_items.size > 0 -%>
+        <br/>
             <%- @submit_text = "Order FlexPass" -%>
 
-            <%= order_form.fields_for :flex_pass_line_items do |flex_pass_line_item_form| %>
-
-                <p>
-                  Number of Tickets on Pass:
-                  <%= @flex_pass_offer.number_of_tickets %>
-                </p>
-
-                <p>
-                  Price of Pass:
-                  <%= to_currency(@flex_pass_offer.price) %>
-                </p>
-
-                <p>
-                  Quantity:
-                  <%= flex_pass_line_item_form.select :ticket_count, 1.upto(5) %>
-                  <%= flex_pass_line_item_form.hidden_field :flex_pass_offer_id %>
-                </p>
-
+            <%= order_form.semantic_fields_for :flex_pass_line_items do |f| %>
+              <%= render :partial => '/orders/flex_pass', :locals => {:f => f} %>
             <%- end -%>
+
         <%- end %>
         <%= render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form} %>
 

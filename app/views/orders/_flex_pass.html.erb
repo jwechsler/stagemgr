@@ -1,0 +1,5 @@
+<%= f.inputs do %>
+  <p><%= "You are purchasing #{f.object.flex_pass_offer.name.pluralize} for #{number_to_currency(f.object.flex_pass_offer.price)} each"  %></p>
+  <%= f.input :ticket_count, :as=>:select, :collection=>1.upto(20), :label=>"Quantity", :required=>false, :include_blank=>false %>
+  <%= f.input :flex_pass_offer_id, :as=>:hidden %>
+<%- end -%>

@@ -222,6 +222,10 @@ text-align:right;
   del.diffmod, del.diffdel { color: #ff9999; }
 
 
+td.currency {
+  text-align: right;
+}
+
 # Forms
 
 #non-exchange-notice {

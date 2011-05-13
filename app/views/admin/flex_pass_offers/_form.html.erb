@@ -1,2 +1,9 @@
-  <%= f.inputs :name, :price, :number_of_tickets, :payout_per_ticket %>
-  <%= f.input :theater, :as=>:select, :collection => Theater.find_all_by_status (['Active','Private']) %>
+<%= f.inputs do %>
+  <%= f.input :name %>
+  <%= f.input :price %>
+  <%= f.input :number_of_tickets %>
+  <%= f.input :payout_per_ticket %>
+  <%= f.input :active %>
+  <%= f.input :theater, :as=>:select, :collection => Theater.find_all_by_status (['Active', 'Private']) %>
+  <%= f.input :exclude_theater %>
+<%- end -%>
