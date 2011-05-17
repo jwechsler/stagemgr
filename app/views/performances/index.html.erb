@@ -120,6 +120,13 @@ width:60px;
 
 
   <a name="top"><h1><%=@production.name%></h1></a>
+
+
+
+<%- if !@production.flex_pass_offer.blank? -%>
+  <span class="special_offer"><%= link_to @production.flex_pass_offer.description, new_flex_pass_offer_order_path(@production.flex_pass_offer)%></span>
+<%- end -%>
+
   <table class="performance_calendar">
   <caption><%= link_to raw("&laquo;"), :action=>:index, :start_date=>@start_date.prev_month, :end_date=>@start_date-1 %> <%=Date::MONTHNAMES[@start_date.month]%> <%=link_to raw('&raquo;'), :action=>:index, :start_date=>@end_date+1, :end_date=>@end_date+1.week %></caption>
   <tr>

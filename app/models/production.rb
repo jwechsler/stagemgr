@@ -12,7 +12,8 @@ class Production < ActiveRecord::Base
   has_many :ticket_classes
   has_many :line_items
   before_validation :clean_values
-  
+  belongs_to :flex_pass_offer
+
   def to_s
     "#{self.name}, #{self.theater.name}"
   end
@@ -29,7 +30,7 @@ class Production < ActiveRecord::Base
       [PRODUCTION_STATUSES.index(self.status) || 0, self.opening_at || Date.today, self.name || ''] <=> 
       [PRODUCTION_STATUSES.index(other.status) || 0, other.opening_at || Date.today, other.name || '']
   end
-  
+
   private 
   def clean_values
     self.production_code.upcase! unless self.production_code.nil?

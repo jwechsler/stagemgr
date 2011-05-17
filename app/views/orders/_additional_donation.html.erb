@@ -1,7 +1,12 @@
 <fieldset class="callout" style="border: 1px solid #000000; margin: 5px; padding: 5px;"><legend>Make an additional donation</legend>
-  <%- if @order.performance.production.theater.theater_class == 'Default' -%>
+  <%- if @order.performance.blank?
+    t = Theater.find(@order.flex_pass_line_items[0].flex_pass_offer.theater_id)
+  else
+    t = @order.performance.production.theater
+  end
+  if t.blank? || t.theater_class == 'Default' -%>
     I'm a supporter of Theater Wit!  I'd like to make an additional tax-deductable contribution of $
   <%- else -%>
-  Theater Wit provides facilities and artistic support for groups like <%= @order.performance.production.theater.name %>. You can help by making a tax-deductable donation of $
+  Theater Wit provides facilities and artistic support for groups like <%= t.name %>. You can help by making a tax-deductable donation of $
   <%- end -%>  <%= order_form.text_field :additional_donation, :size=>7 %>
 </fieldset>
