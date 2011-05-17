@@ -1,6 +1,6 @@
 <h1>Editing production</h1>
 
-<%= form_for([:admin, @production.theater, @production]) do |f| %>
+<%= semantic_form_for([:admin, @production.theater, @production]) do |f| %>
   <%= render :partial => '/productions/form', :locals=>{:f=>f} %>
   <p>
     <%= f.submit 'Update' %>
