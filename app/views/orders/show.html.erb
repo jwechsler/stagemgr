@@ -7,13 +7,7 @@ don't hesitate to call us at 773-975-8150 or email us at boxoffice@theaterwit.or
 you at the theatre.  Enjoy the show!
 </p>
 <%- elsif @order.flex_pass_line_items.count > 0 -%>
-<p>Thanks!  Your flex pass order has been placed and your credit card has been charged <%= number_to_currency( @order.total) %>.
-Your flex pass (with your authorization code) will be mailed to you within a week, but it does go through Chicago's postal service, so please call us if you
-don't see it soon.  You can use your flex pass to see whatever shows you want at Theater Wit, whenever you want (subject to availability).
-To use your flex pass, just give the box office person your authorization code or choose "flexpass" as your payment method when buying online.
-If you have any questions, please don't hesitate to call us at 773-975-8150 or email us at boxoffice@theaterwit.org.  Thanks for your support and we'll see 
-you at the theatre.  Enjoy the shows!
-</p>
+<%= render :partial=>'/line_items/flex_pass_confirmation', :locals=>{:flex_pass_offer=>@order.flex_pass_line_items[0].flex_pass_offer, :flex_passes=>@order.flex_pass_line_items[0].flex_passes} %>
 <%- elsif @order.donation_line_items.count > 0 -%>
 <p>
   Thanks!  You are 100% awesome.  And probably 100% adorable.  We've charged your credit card for <%= number_to_currency( @order.total) %> today for your

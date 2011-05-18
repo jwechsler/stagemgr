@@ -16,10 +16,14 @@ class OrderMailer < ActionMailer::Base
   end
 
   def flexpass_confirmation(order)
-     @order = order
-     mail(:to => order.address.email,
-         :from => "\"Theater Wit Box Office\" <boxoffice@theaterwit.org>",
-          :subject => "Your Theater Wit FlexPass")
+    @order = order
+    @order.flex_pass_line_items.each { |li|
+      @flex_pass_offer = li.flex_pass_offer
+      @flex_passes = li.flex_passes
+      mail(:to => order.address.email,
+           :from => "\"Theater Wit Box Office\" <boxoffice@theaterwit.org>",
+           :subject => "Your #{@flex_pass_offer.name} order")
+    }
   end
 
 end
