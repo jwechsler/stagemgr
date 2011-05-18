@@ -8,5 +8,5 @@
   <%= f.input :active %>
   <%= f.input :theater, :as=>:select, :collection => Theater.find_all_by_status (['Active', 'Private']) %>
   <%= f.input :exclude_theater %>
-  <%= f.input :web_visible %>
+  <%= f.input :web_visible, :label=>"Redeem immediately" %>
 <%- end -%>

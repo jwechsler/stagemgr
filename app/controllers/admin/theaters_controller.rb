@@ -1,7 +1,7 @@
 class Admin::TheatersController < Admin::ApplicationController
   before_filter :find_context, :only=>:show
   def index
-    @theaters = Theater.all
+    @theaters = Theater.find(:all).sort_by{|t| [t.status, t.theater_class, t.name]}
 
     respond_to do |format|
       format.html # index.html.erb
