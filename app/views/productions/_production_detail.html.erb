@@ -18,6 +18,9 @@
     <p>
       <%= raw production.show_description %>
     </p>
+    <%- if !production.running_time.blank? then -%>
+      <p class="running_time">Running Time: <%= distance_of_time_in_words(production.running_time*60) %></p>
+    <%- end -%>
     <% if !production.additional_information_link.blank? then %>
         <p class="additional_information">For more information, click
           <a href="<%= production.additional_information_link %>" target="_blank">here</a>.</p>
