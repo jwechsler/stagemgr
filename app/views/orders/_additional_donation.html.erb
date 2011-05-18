@@ -5,8 +5,8 @@
     t = @order.performance.production.theater
   end
   if t.blank? || t.theater_class == 'Default' -%>
-    I'm a supporter of Theater Wit!  I'd like to make an additional tax-deductable contribution of $
+    I'm a supporter of Theater Wit!  I'd like to make an additional tax-deductible contribution of $
   <%- else -%>
-  Theater Wit provides facilities and artistic support for groups like <%= t.name %>. You can help by making a tax-deductable donation of $
+  Theater Wit provides facilities and artistic support for groups like <%= t.name.strip %>. You can help by making a tax-deductible donation of $
   <%- end -%>  <%= order_form.text_field :additional_donation, :size=>7 %>
 </fieldset>

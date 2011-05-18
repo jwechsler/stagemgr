@@ -1,156 +1,166 @@
 <style>
-.performance_calendar
-{
-width:570px;
-}
+    .performance_calendar {
+        width: 570px;
+    }
 
-.performance_calendar td, .performance_calendar th {
-  border-right: 1px solid #A2ADBC;
-  border-bottom: 1px solid #A2ADBC;
-  width: 81px;
-  min-height: 40px;
-  vertical-align: top;
-}
+    .performance_calendar td, .performance_calendar th {
+        border-right: 1px solid #A2ADBC;
+        border-bottom: 1px solid #A2ADBC;
+        width: 81px;
+        min-height: 40px;
+        vertical-align: top;
+    }
 
-.performance_calendar caption {
-  font-weight: bold;
-  font-size: 18px;
-}
+    .performance_calendar caption {
+        font-weight: bold;
+        font-size: 18px;
+    }
 
-.performance_calendar caption a {
-  text-decoration: none;
-}
+    .performance_calendar caption a {
+        text-decoration: none;
+    }
 
-.performance_calendar td a:hover, .performance_calendar td a:visited {
-  color: #6aa3ae;
-}
+    .performance_calendar td a:hover, .performance_calendar td a:visited {
+        color: #6aa3ae;
+    }
 
-.day-header {
-  text-align: right;
-  font-weight: bold;
-  font-size: 12px;
-}
+    .day-header {
+        text-align: right;
+        font-weight: bold;
+        font-size: 12px;
+    }
 
-.show-info {
-  font-size: 14px;
-  min-height: 24px;
-}
+    .show-info {
+        font-size: 14px;
+        min-height: 24px;
+    }
 
-.boxoffice-message {
-  text-align: center;
-  font-weight: bold;
-  font-size: 12px;
-}
+    .boxoffice-message {
+        text-align: center;
+        font-weight: bold;
+        font-size: 12px;
+    }
 
-.calendar .day_list_nav
-{
-float:left;
-margin:0;
-padding:0;
-background:#8080B2;
-width:100%;
-}
-.day_list_nav a
-{
-color:#FFFFFF;
-}
-.day_list_nav .previous
-{
-float:left;
-}
-.day_list_nav .next
-{
-float:right;
-}
-.calendar ul
-{
-float:left;
-margin:0;
-padding:0;
-border:1px solid #C9C9C9;
-width:60px;
-}
+    .calendar .day_list_nav {
+        float: left;
+        margin: 0;
+        padding: 0;
+        background: #8080B2;
+        width: 100%;
+    }
 
-.calendar h1
-{
-  font-size: 1em;
-}
+    .day_list_nav a {
+        color: #FFFFFF;
+    }
 
-.calendar h2
-{
-  font-size: .7em;
-}
+    .day_list_nav .previous {
+        float: left;
+    }
 
-  .prop {
-    float:right;
-    width:1px;
-  }
+    .day_list_nav .next {
+        float: right;
+    }
 
-  .clear {
-    clear:both;
-    height:1px;
-    overflow:hidden;
-  }
+    .calendar ul {
+        float: left;
+        margin: 0;
+        padding: 0;
+        border: 1px solid #C9C9C9;
+        width: 60px;
+    }
 
-  .min30px {
-    height:30px;
-  }
-  .min50px {
-    height:50px;
-  }
+    .calendar h1 {
+        font-size: 1em;
+    }
 
-  .min100px {
-    height:100px;
-  }
+    .calendar h2 {
+        font-size: .7em;
+    }
 
-  .min150px {
-    height:150px;
-  }
-  
-  .min20px {
-    height:20px;
-  }
+    .prop {
+        float: right;
+        width: 1px;
+    }
 
-  .calendar li.vertical_center {
-    height:20px;
-    line-height:20px;
-  }
+    .clear {
+        clear: both;
+        height: 1px;
+        overflow: hidden;
+    }
+
+    .min30px {
+        height: 30px;
+    }
+
+    .min50px {
+        height: 50px;
+    }
+
+    .min100px {
+        height: 100px;
+    }
+
+    .min150px {
+        height: 150px;
+    }
+
+    .min20px {
+        height: 20px;
+    }
+
+    .calendar li.vertical_center {
+        height: 20px;
+        line-height: 20px;
+    }
+
+    .special_offer {
+        text-align: center;
+        text-decoration: underline;
+
+    }
+
 
 </style>
 
 
-  <a name="top"><h1><%=@production.name%></h1></a>
+<a name="top"><h1><%= @production.name %></h1></a>
 
 
-
-<%- if !@production.flex_pass_offer.blank? -%>
-  <span class="special_offer"><%= link_to @production.flex_pass_offer.description, new_flex_pass_offer_order_path(@production.flex_pass_offer)%></span>
-<%- end -%>
-
-  <table class="performance_calendar">
-  <caption><%= link_to raw("&laquo;"), :action=>:index, :start_date=>@start_date.prev_month, :end_date=>@start_date-1 %> <%=Date::MONTHNAMES[@start_date.month]%> <%=link_to raw('&raquo;'), :action=>:index, :start_date=>@end_date+1, :end_date=>@end_date+1.week %></caption>
+<table class="performance_calendar">
+  <caption>
+    <%- if !@production.flex_pass_offer.blank? -%>
+        <span class="special_offer"><%= link_to @production.flex_pass_offer.short_description, new_flex_pass_offer_order_path(@production.flex_pass_offer) unless @production.flex_pass_offer.short_description.blank? %>
+        </span>
+        <br/>or, purchase tickets for an individual show below
+        <br/>
+        <br/>
+    <%- end -%>
+    <%= link_to raw("&laquo;"), :action=>:index, :start_date=>@start_date.prev_month, :end_date=>@start_date-1 %> <%= Date::MONTHNAMES[@start_date.month] %> <%= link_to raw('&raquo;'), :action=>:index, :start_date=>@end_date+1, :end_date=>@end_date+1.week %>
+  </caption>
   <tr>
     <th scope="col" abbr="Sunday" title="Sunday">Sun</th>
-   	<th scope="col" abbr="Monday" title="Monday">Mon</th>
-   	<th scope="col" abbr="Tuesday" title="Tuesday">Tue</th>
-   	<th scope="col" abbr="Wednesday" title="Wednesday">Wed</th>
-   	<th scope="col" abbr="Thursday" title="Thursday">Thu</th>
-   	<th scope="col" abbr="Friday" title="Friday">Fri</th>
-   	<th scope="col" abbr="Saturday" title="Saturday">Sat</th>
-   </tr>
-   <%
-   current_week_start = @start_date.wday == 0 ? @start_date :  @start_date.beginning_of_week - 1
-   while current_week_start.month != (@start_date.month % 12) + 1  do 
-   %>
-   <tr>
-   <%
-   0.upto(6).each do |day|
-   current_day = current_week_start + day
-   %>
-     <%= render :partial=>'performance_list_for_day', :locals=>{:date=>current_day,:performances=>@performances} %>
-    <% end %>
+    <th scope="col" abbr="Monday" title="Monday">Mon</th>
+    <th scope="col" abbr="Tuesday" title="Tuesday">Tue</th>
+    <th scope="col" abbr="Wednesday" title="Wednesday">Wed</th>
+    <th scope="col" abbr="Thursday" title="Thursday">Thu</th>
+    <th scope="col" abbr="Friday" title="Friday">Fri</th>
+    <th scope="col" abbr="Saturday" title="Saturday">Sat</th>
   </tr>
+  <%
+     current_week_start = @start_date.wday == 0 ? @start_date : @start_date.beginning_of_week - 1
+     while current_week_start.month != (@start_date.month % 12) + 1 do
+  %>
+      <tr>
+        <%
+           0.upto(6).each do |day|
+               current_day = current_week_start + day
+        %>
+            <%= render :partial=>'performance_list_for_day', :locals=>{:date=>current_day, :performances=>@performances} %>
+        <% end %>
+      </tr>
   <% current_week_start = current_week_start + 7
      end %>
-  <tr><td class="boxoffice-message" colspan="7">Problems? Call the box office at 773-975-8150</td></tr>
-  </table>
+  <tr>
+    <td class="boxoffice-message" colspan="7">Problems? Call the box office at 773-975-8150</td>
+  </tr>
+</table>

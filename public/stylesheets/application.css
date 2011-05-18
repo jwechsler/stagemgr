@@ -226,6 +226,14 @@ td.currency {
   text-align: right;
 }
 
+.production_information .special_offer {
+    text-align: left;
+}
+.special_offer {
+    text-align: center;
+    font-weight: bold;
+}
+
 # Forms
 
 #non-exchange-notice {
