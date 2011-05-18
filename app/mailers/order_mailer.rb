@@ -19,7 +19,7 @@ class OrderMailer < ActionMailer::Base
      @order = order
      mail(:to => order.address.email,
          :from => "\"Theater Wit Box Office\" <boxoffice@theaterwit.org>",
-          :subject => "Your Theater Wit FlexPass is on it's way")
+          :subject => "Your Theater Wit FlexPass")
   end
 
 end

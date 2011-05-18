@@ -32,7 +32,7 @@ class OrderObserver < ActiveRecord::Observer
 
     if order.status == Order::PROCESSED && order.email_confirmation == 1 && !order.address.email.blank?
       case when order.contains_tickets?
-        OrderMailer.ticket_confirmation(order).deliver
+          OrderMailer.ticket_confirmation(order).deliver
         when order.contains_flex_pass?
           OrderMailer.flexpass_confirmation(order).deliver
         when order.contains_donation?

@@ -149,6 +149,10 @@ class Order < ActiveRecord::Base
     (self.donation_line_items.select{|li|(li.is_a? DonationLineItem) } + self.donation_line_items.select{|li|li.donation_amount > 0} ).size > 0
   end
 
+  def flex_pass_offer
+    FlexPassOffer.find(self.flex_pass_line_items[0].flex_pass_offer_id) unless self.flex_pass_line_items.size == 0
+  end
+
   def valid_payment_types_for( current_user )
     valid_payment_types = Order::PAYMENT_TYPES.clone
     unless current_user && ( current_user.is_administrator? || current_user.is_box_office_user? )

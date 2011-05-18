@@ -12,7 +12,7 @@
   <span class="production_name"><%= h production.name %></span><br/>
   <span class="production_credits"><%= raw production.credit_lines %></span><br/>
 
-  <p class="production_dates"><%= h production.running_dates %></p>
+  <p class="production_dates"><%=h  "#{production.first_preview_at.strftime('%B %d, %Y')} #{"through " + production.closing_at.strftime('%B %d, %Y ') unless production.first_preview_at == production.closing_at}" %></p>
 
   <div class="production_description">
     <p>
