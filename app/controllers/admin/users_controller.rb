@@ -1,5 +1,6 @@
 class Admin::UsersController < Admin::ApplicationController
-  prepend_before_filter :find_user, :only => [:show, :edit, :update, :destroy]
+  filter_resource_access
+  # prepend_before_filter :find_user, :only => [:show, :edit, :update, :destroy]
   
   # GET /users
   def index

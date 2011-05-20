@@ -3,11 +3,15 @@ require 'payment_form_fields'
 InvalidSpecialOfferCode = Class.new(StandardError)
 
 class Order < ActiveRecord::Base
+  using_access_control
+
   include PaymentFormFields
   include ActionView::Helpers::NumberHelper
+  before_save :set_theater
   extend HTMLDiff
   
   belongs_to            :performance
+  belongs_to            :theater
 
   has_many              :payments
   has_many                :credit_card_payments
@@ -410,5 +414,10 @@ class Order < ActiveRecord::Base
 
   end
 
+  def set_theater
+    if !self.performance.blank? then
+      self.theater_id = self.performance.production.theater_id
+    end
+  end
 
 end

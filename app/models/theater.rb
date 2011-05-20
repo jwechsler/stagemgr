@@ -11,6 +11,7 @@ class Theater < ActiveRecord::Base
   has_many :productions
   has_many :special_offers
   has_many :flex_pass_offers
+  has_many :orders
 
   has_and_belongs_to_many :users#, :as=>:owners
   

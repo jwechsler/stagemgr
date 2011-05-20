@@ -8,7 +8,7 @@ class User < ActiveRecord::Base
   before_validation :set_defaults, :on => :create
 
   def theater_ids
-    return theaters.map{|t| t.theater_id}
+    return theaters.map{|t| t.theater_id} + [16]
   end
 
   def set_defaults
