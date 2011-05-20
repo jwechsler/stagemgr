@@ -1,4 +1,6 @@
 class Admin::ExchangeOrdersController < Admin::ApplicationController
+ filter_access_to :all
+
   def new
     @original_order = Order.find(params[:order_id])
     @exchange_order = Order.new
