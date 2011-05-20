@@ -6,11 +6,7 @@ class User < ActiveRecord::Base
   end
   
   before_validation :set_defaults, :on => :create
-
-  def theater_ids
-    return theaters.map{|t| t.theater_id}
-  end
-
+  
   def set_defaults
     self.is_administrator = false if self.is_administrator.nil?
     self.is_box_office_user = false if self.is_box_office_user.nil?
@@ -19,13 +15,6 @@ class User < ActiveRecord::Base
   
   def username
     self.email
-  end
-
-  def role_symbols
-    roles = Array.new
-    roles += [:admin] if self.is_administrator?
-    roles += [:box_office] if self.is_box_office_user?
-    roles
   end
   
 end

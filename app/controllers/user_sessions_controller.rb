@@ -13,10 +13,6 @@ class UserSessionsController < ApplicationController
       render :action => :new
     end
   end
-
-  def show
-    @user_session = UserSession.new(params[:user_session])
-  end
   
   def destroy
     current_user_session.destroy

@@ -1,9 +1,7 @@
 class Admin::TheatersController < Admin::ApplicationController
-  filter_resource_access      # also sets up @theater object
-
   before_filter :find_context, :only=>:show
   def index
-    @theaters = Theater.with_permissions_to(:read).find(:all).sort_by{|t| [t.status, t.theater_class, t.name]}
+    @theaters = Theater.find(:all).sort_by{|t| [t.status, t.theater_class, t.name]}
 
     respond_to do |format|
       format.html # index.html.erb
@@ -14,6 +12,7 @@ class Admin::TheatersController < Admin::ApplicationController
   # GET /theaters/new
   # GET /theaters/new.xml
   def new
+    @theater = Theater.new
 
     respond_to do |format|
       format.html # new.html.erb
@@ -22,14 +21,17 @@ class Admin::TheatersController < Admin::ApplicationController
   end
 
   def show
+    @theater = Theater.find(params[:id])
   end
 
   def edit
+    @theater = Theater.find(params[:id])
   end
 
   # POST /theaters
   # POST /theaters.xml
   def create
+    @theater = Theater.new(params[:theater])
 
     respond_to do |format|
       if @theater.save
@@ -46,6 +48,7 @@ class Admin::TheatersController < Admin::ApplicationController
   # PUT /theaters/1
   # PUT /theaters/1.xml
   def update
+    @theater = Theater.find(params[:id])
 
     respond_to do |format|
       if @theater.update_attributes(params[:theater])
@@ -62,6 +65,7 @@ class Admin::TheatersController < Admin::ApplicationController
   # DELETE /theaters/1
   # DELETE /theaters/1.xml
   def destroy
+    @theater = Theater.find(params[:id])
     @theater.destroy
 
     respond_to do |format|

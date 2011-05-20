@@ -1,13 +1,7 @@
 class Admin::ApplicationController < ApplicationController
   before_filter :admin_only
-  before_filter { |c| Authorization.current_user = c.current_user }
-
+  
   protected
-
-  def permission_denied
-    flash[:error] = "Sorry, you are not allowed to access that page.  #{Authorization.current_user.role_symbols.join(',')}"
-    redirect_to root_url
-  end
   
   def admin_only
     if current_user.nil? || !current_user.is_administrator
