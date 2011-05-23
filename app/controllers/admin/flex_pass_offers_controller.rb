@@ -2,9 +2,9 @@ class Admin::FlexPassOffersController < Admin::ApplicationController
   filter_resource_access
 
   def index
-    @flex_pass_offers = FlexPassOffer.select {|o|
-      !current_user.backend_user? ||  }.all
-    @flex_pass_offers.select
+    @flex_pass_offers = FlexPassOffer.all
+    @flex_pass_offers = @flex_pass_offers.select {|o|
+      backend_user? || (!o.exclude_theater? && current_user.theater_ids.include?(o.theater_id)) }
   end
 
   # GET /flex_pass_offers/1

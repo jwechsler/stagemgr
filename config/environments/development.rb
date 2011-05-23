@@ -30,8 +30,10 @@ Stagemgr::Application.configure do
     ActiveMerchant::Billing::PaypalGateway.pem_file = File.read(RAILS_ROOT+'/config/cert_key_pem_dev.txt')
   end
 
-  $PAYPAL_LOGIN = 'test_1302729685_biz_api1.theaterwit.org'
-  $PAYPAL_PASSWORD = 'JAGWA69SRLYL3F73'
+  paypal_config = YAML::load(File.open("#{::Rails.root.to_s}/config/pay_pal_credentials.yml"))
+
+  $PAYPAL_LOGIN = paypal_config['development']['paypal_login']
+  $PAYPAL_PASSWORD = paypal_config['development']['paypal_password']
 
 end
 

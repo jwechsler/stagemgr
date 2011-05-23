@@ -5,7 +5,7 @@ class Admin::ApplicationController < ApplicationController
   protected
 
   def permission_denied
-    flash[:error] = "Sorry, you are not allowed to access that page.  #{Authorization.current_user.role_symbols.join(',')}"
+    flash[:error] = "Sorry, you are not allowed to access that page."
     redirect_to root_url
   end
 

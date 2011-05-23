@@ -38,6 +38,7 @@ authorization do
     has_permission_on :productions, :to=>[:view, :make, :manage]
     has_permission_on :performances, :to=>[:view, :make, :manage, :delete]
     has_permission_on :admin_ticket_classes, :to=>[:make,:manage]
+    has_permission_on :admin_flex_pass_offers, :to=>[:make, :manage, :view]
   end
 
   role :admin do

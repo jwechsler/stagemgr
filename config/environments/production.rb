@@ -1,3 +1,5 @@
+require 'PayPalCredentials'
+
 Stagemgr::Application.configure do
   # Settings specified here will take precedence over those in config/environment.rb
 
@@ -52,6 +54,7 @@ Stagemgr::Application.configure do
       ActiveMerchant::Billing::PaypalGateway.pem_file = File.read(RAILS_ROOT+'/config/cert_key_pem_prod.txt')
     end
 
-    $PAYPAL_LOGIN = 'register_api1.theaterwit.org'
-    $PAYPAL_PASSWORD = 'REDACTED_PAYPAL_PASSWORD'
+
+    $PAYPAL_LOGIN = @@PAYPAL_LOGIN
+    $PAYPAL_PASSWORD = @@PAYPAL_LOGIN
 end
