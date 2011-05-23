@@ -1,12 +1,9 @@
-<%= form.label :email %><br />
-<%= form.text_field :email %><br />
-<br />
-<%= form.label :password, form.object.new_record? ? nil : "Change password" %><br />
-<%= form.password_field :password %><br />
-<br />
-<%= form.label :password_confirmation %><br />
-<%= form.password_field :password_confirmation %><br />
-<br />
-<%= form.label :is_administrator %></br />
-<%= form.check_box :is_administrator %>
-<br />
+<%= f.inputs do %>
+    <%= f.input :email, :as=>:email %>
+    <%= f.input :password, :as=>:password %>
+    <%= f.input :password_confirmation, :as=>:password %>
+    <%= f.input :is_administrator %>
+    <%= f.input :is_box_office_user %>
+    <%= f.input :theaters, :label=>"Associated Theaters" %>
+<% end %>
+

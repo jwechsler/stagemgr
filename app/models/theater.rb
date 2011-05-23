@@ -1,5 +1,5 @@
 class Theater < ActiveRecord::Base
-  using_access_control :include_read=>true
+  using_access_control
 
   THEATER_CLASSES  = ['Default', 'Resident Company', 'Visiting Company', 'Guest Artist']
   THEATER_STATUSES = ['Active',  'Inactive']

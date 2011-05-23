@@ -143,9 +143,9 @@ class Admin::OrdersController < Admin::ApplicationController
     # Hide orders that we couldn't figure out how to obscure in declarative_authorizations because of paginate block
     # @todo this is probably fixable...
 
-    if !(Authorization.current_user.is_administrator? || Authorization.current_user.is_box_office?)
+    if !(Authorization.current_user.is_administrator? || Authorization.current_user.is_box_office_user?)
       conditions_sql += ['orders.theater_id is not null and orders.theater_id in (?)']
-      conditions_params += Authorization.current_user.theater_ids
+      conditions_params << Authorization.current_user.theater_ids
     end
 
     if params['_search']=='true'

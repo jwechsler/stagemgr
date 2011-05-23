@@ -320,7 +320,7 @@ class Order < ActiveRecord::Base
          when self.contains_flex_pass?
            "Flexpass Order"
       else
-          "Unknown order"
+          ""
     end
 
   end

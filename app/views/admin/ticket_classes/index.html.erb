@@ -20,12 +20,14 @@
     <td><%=h ticket_class.web_visible %></td>
     <td><%=h ticket_class.ticket_type %></td>
     <td><%=h ticket_class.minutes_before_show %></td>
-    <td><%= link_to 'Edit', edit_admin_theater_production_ticket_class_path(@theater,@production, ticket_class) %></td>
-    <td><%= link_to 'Destroy', admin_theater_production_ticket_class_path(@theater,@production, ticket_class), :confirm => 'Are you sure?', :method => :delete %></td>
+    <td><%- permitted_to? :manage, :admin_ticket_classes do %><%= link_to 'Edit', edit_admin_theater_production_ticket_class_path(@theater,@production, ticket_class) %><%- end -%></td>
+    <td><%- permitted_to? :destroy, :admin_ticket_classes do %><%= link_to 'Destroy', admin_theater_production_ticket_class_path(@theater,@production, ticket_class), :confirm => 'Are you sure?', :method => :delete %><%- end -%></td>
   </tr>
 <% end %>
 </table>
 
 <br />
 
-<%= link_to 'New ticket_class', new_admin_theater_production_ticket_class_path(@theater,@production) %>
+<%- permitted_to? :manage, :admin_ticket_classes do %>
+    <%= link_to 'New ticket_class', new_admin_theater_production_ticket_class_path(@theater,@production) %>
+<%- end -%>
