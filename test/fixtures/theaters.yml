@@ -6,9 +6,10 @@
 # two:
 #   column: value
 
-test_theater:
-  name: Test Theater
+theater_wit:
+  name: Theater Wit
   status: Active
   theater_class: Default
-  url: http://www.google.com
+  url: http://www.theaterwit.org
+
 

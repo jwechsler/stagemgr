@@ -1,13 +1,1 @@
 # Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
-
-one:
-  code: MyString
-  address: 
-  flex_pass_offer: 
-  order: 
-
-two:
-  code: MyString
-  address: 
-  flex_pass_offer: 
-  order: 

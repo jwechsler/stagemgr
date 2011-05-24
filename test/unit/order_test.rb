@@ -1,6 +1,58 @@
 require 'test_helper'
 
 class OrderTest < ActiveSupport::TestCase
+
+  self.use_instantiated_fixtures = true
+
+  context 'with a flexpass order' do
+    setup do
+      @order = Factory.create(:order, :address=>addresses(:jeremy), :payment_type => Order::CASH)
+
+      @order.flex_pass_line_items.build(:flex_pass_offer=> flex_pass_offers(:flexpass_5_offer), :ticket_count=>1)
+        @order.transition_to!(Order::PROCESSING)
+        @order.transition_to!(Order::PROCESSED)
+        @order.transition_to!(Order::FULFILLED)
+        assert_equal 1, @order.payments.count
+        assert_equal Order::FULFILLED, @order.status
+    end
+    should 'generate a flex pass' do
+      assert_equal 1, @order.flex_pass_line_items.count
+      assert_not_nil @order.flex_pass_line_items.first.flex_passes
+      assert_equal 1, @order.flex_pass_line_items.first.flex_passes.count
+      assert_not_nil @order.flex_pass_line_items.first.flex_passes[0].code
+
+    end
+    should 'allow you to buy a ticket' do
+      flex_pass = @order.flex_pass_line_items.first.flex_passes[0]
+      @ticket_order = Factory.create(:order, :address=>addresses(:jeremy),
+                                     :payment_type=>Order::FLEX_PASS,
+                                     :performance=>performances(:macbeth_opening))
+      @ticket_order.ticket_line_items.build(:ticket_class=>ticket_classes(:macbeth_general_admission),:ticket_count=>1)
+      @ticket_order.flex_pass_code = flex_pass.code
+      @ticket_order.transition_to!(Order::PROCESSING)
+      @ticket_order.transition_to!(Order::PROCESSED)
+      @ticket_order.transition_to!(Order::FULFILLED)
+      assert_equal 1, @ticket_order.flex_pass_payments.count
+      assert_equal flex_pass, @ticket_order.flex_pass_payments[0].flex_pass
+
+    end
+
+    should 'not allow you to buy too many tickets' do
+          flex_pass = @order.flex_pass_line_items.first.flex_passes[0]
+          @ticket_order = Factory.create(:order, :address=>addresses(:jeremy),
+                                         :payment_type=>Order::FLEX_PASS,
+                                         :performance=>performances(:macbeth_opening))
+          @ticket_order.ticket_line_items.build(:ticket_class=>ticket_classes(:macbeth_general_admission),:ticket_count=>6)
+          @ticket_order.flex_pass_code = flex_pass.code
+          @ticket_order.transition_to!(Order::PROCESSING)
+          @ticket_order.transition_to!(Order::PROCESSED)
+          @ticket_order.transition_to!(Order::FULFILLED)
+          assert_equal 1, @ticket_order.flex_pass_payments.count
+          assert_equal flex_pass, @ticket_order.flex_pass_payments[0].flex_pass
+
+        end
+
+  end
   context 'with an existing order' do
     setup do
       without_access_control do
