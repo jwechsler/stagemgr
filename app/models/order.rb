@@ -181,7 +181,7 @@ class Order < ActiveRecord::Base
     "#{self.first_name} #{self.last_name}"
   end
 
-  def refund!(cc_number)
+  def refund!
     
     Order.transaction do
       self.payments.each{|payment|payment.refund!(cc_number,self.notes) if payment.respond_to? :refund! }
@@ -301,6 +301,8 @@ class Order < ActiveRecord::Base
         "#{performance_s} (#{self.ticket_detail_description})"
       when self.contains_donation?
         ""
+      when self.contains_flex_pass?
+        self.flex_pass_line_items[0].flex_pass_offer.name
       else
         ""
     end
@@ -317,8 +319,8 @@ class Order < ActiveRecord::Base
             self.ticket_detail_description
          when self.contains_donation?
            "Donation"
-         when self.contains_flex_pass?
-           "Flexpass Order"
+      when self.contains_flex_pass?
+        self.flex_pass_line_items[0].to_s
       else
           ""
     end
@@ -380,7 +382,7 @@ class Order < ActiveRecord::Base
 
     create_proper_payment_in_amount_of!(self.total)
 
-    save_additional_donation_order unless (self.additional_donation.blank? || self.additional_donation == 0)
+    save_additional_donation_order unless (self.additional_donation.blank? || self.additional_donation.to_i == 0)
 
     self.status = Order::PROCESSED
     self.set_email_confirmation
@@ -417,6 +419,8 @@ class Order < ActiveRecord::Base
   def set_theater
     if !self.performance.blank? then
       self.theater_id = self.performance.production.theater_id
+    elsif self.contains_flex_pass?
+      self.theater_id = self.flex_pass_line_items[0].flex_pass_offer.theater_id
     end
   end
 

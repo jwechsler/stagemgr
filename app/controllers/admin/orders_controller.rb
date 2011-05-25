@@ -84,11 +84,8 @@ class Admin::OrdersController < Admin::ApplicationController
   end
   
   def refund
-    if params.hasKey?(:order) && params[:order].hasKey?(:credit_card_payments_attributes)
-      @order.refund!(params[:order][:credit_card_payments_attributes][0][:card_number])
-    else
-      @order.refund!
-    end
+
+    @order.refund!
     redirect_to admin_order_path(@order)
   end
   

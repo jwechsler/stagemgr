@@ -54,7 +54,7 @@ Stagemgr::Application.configure do
 
   paypal_config = YAML::load(File.open("#{::Rails.root.to_s}/config/pay_pal_credentials.yml"))
 
-  $PAYPAL_LOGIN = paypal_config['development']['paypal_login']
-  $PAYPAL_PASSWORD = paypal_config['development']['paypal_password']
+  $PAYPAL_LOGIN = paypal_config['production']['paypal_login']
+  $PAYPAL_PASSWORD = paypal_config['production']['paypal_password']
 
 end
