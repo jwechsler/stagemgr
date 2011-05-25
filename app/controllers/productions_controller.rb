@@ -1,4 +1,5 @@
 class ProductionsController < ApplicationController
+
   prepend_before_filter :find_theater, :except => [:index, :upcoming, :now_playing]
   append_before_filter :find_production, :only => [:show, :edit, :update, :destroy]
   
@@ -13,7 +14,7 @@ class ProductionsController < ApplicationController
     @current_date = Date.today
     @b_week = Date.today.beginning_of_week
     @e_week = Date.today.end_of_week
-    @productions = Production.find(:all, :conditions=>['productions.closing_at > ? and productions.status = \'Active\'',@b_week], :order=>'case when date(productions.first_preview_at) <= date(current_date) then 0 else 1 end, case theater_id when 1 then 0 else 1 end, case when date(productions.first_preview_at) <= date(current_date) then productions.name else productions.first_preview_at end')
+    @productions = Production.where_permitted_to(:read).find(:all, :conditions=>['productions.closing_at > ? and productions.status = \'Active\'',@b_week], :order=>'case when date(productions.first_preview_at) <= date(current_date) then 0 else 1 end, case theater_id when 1 then 0 else 1 end, case when date(productions.first_preview_at) <= date(current_date) then productions.name else productions.first_preview_at end')
     render :upcoming, :layout=>false
   end
   

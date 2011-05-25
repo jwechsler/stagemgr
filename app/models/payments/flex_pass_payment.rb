@@ -5,7 +5,7 @@ class FlexPassPayment < Payment
   validates_each :number_of_tickets do |record, attr, value|
     old_number_of_tickets = 0
     unless record.new_record?
-      old_number_of_tickets = FlexPassPayment.find(self.id).number_of_tickets
+      old_number_of_tickets = FlexPassPayment.find(record.id).number_of_tickets
     end
     flex_pass = FlexPass.find(record.flex_pass_id)
     number_of_tickets_left_after_save = flex_pass.number_of_tickets - 

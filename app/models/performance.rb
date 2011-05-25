@@ -1,4 +1,6 @@
 class Performance < ActiveRecord::Base
+  using_access_control
+
   PERFORMANCE_STATUSES = ['Active',  'Inactive', 'Private']
 
   belongs_to               :production

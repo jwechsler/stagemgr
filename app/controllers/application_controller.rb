@@ -8,7 +8,7 @@ class ApplicationController < ActionController::Base
   end
   
   def backend_user?
-    current_user && (current_user.is_administrator? || current_user.box_office_user?)
+    current_user && (current_user.is_administrator? || current_user.is_box_office_user?)
   end
     
   def method_missing(method, *args, &block)
@@ -50,10 +50,20 @@ class ApplicationController < ActionController::Base
   end
   
   def require_login
-    if current_user.nil?
-      store_location
-      flash[:notice] = "Log in"
-      redirect_to new_user_session_path and return
+    unless current_user
+      respond_to do |format|
+      format.html {
+        session[:return_to] = request.request_uri
+        flash[:notice] = "You must be logged in to access this page"
+        redirect_to new_user_session_path
+      }
+      format.xml {
+        user = User.new
+        user.errors.add_to_base("Authentication is required.")
+        render :xml => user.errors, :status => 401
+      }
+      end
+    return false
     end
   end
   

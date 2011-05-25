@@ -2,7 +2,7 @@
   <td width="100em;">
   <%= f.text_field :ticket_class_code, 
                   :class=>'autocomplete_tccode', 
-                  :autocomplete_url=>autocomplete_ticket_class_code_admin_orders_path,
+                  :autocomplete_url=>ticket_class_code_admin_auto_complete_index_path,
                    :size=>10 %>
   </td>
   <td width="40em;"><%= f.text_field :ticket_count, :size => 4, :class=>'ticket_count' %></td>

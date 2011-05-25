@@ -66,8 +66,12 @@
 <%= render :partial => '/productions/performances' %>
 
 <p>
-  <%= link_to 'Add performance', new_admin_theater_production_performance_path(@production.theater, @production) %>
+  <% if permitted_to? :create, :performance then %>
+     <%= link_to 'Add performance', new_admin_theater_production_performance_path(@production.theater, @production) %>
+  <%- end -%>
 </p>
 
-<%= link_to 'Edit', edit_admin_theater_production_path(@production.theater, @production) %> |
+<% if permitted_to? :edit, :production %>
+    <%= link_to 'Edit', edit_admin_theater_production_path(@production.theater, @production) %> |
+<%- end -%>
 <%= link_to 'Back', admin_theater_productions_path(@production.theater) %>

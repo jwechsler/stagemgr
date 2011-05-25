@@ -35,7 +35,7 @@ Stagemgr::Application.configure do
 
   # Setup paypal
   config.after_initialize do
-    ActiveMerchange::Billing::Base.gateway_mode = :test
+    ActiveMerchant::Billing::Base.gateway_mode = :test
     ActiveMerchant::Billing::PaypalGateway.pem_file = File.read(RAILS_ROOT+'/config/cert_key_pem_dev.txt')
   end
 

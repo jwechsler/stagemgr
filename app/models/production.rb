@@ -1,4 +1,6 @@
 class Production < ActiveRecord::Base
+  using_access_control :include_read=>true
+
   PRODUCTION_STATUSES = ['Active',  'Private', 'Inactive' ]
   validates_inclusion_of :status,        :in => PRODUCTION_STATUSES
   validates_presence_of :theater, :name

@@ -17,9 +17,13 @@
 <%= render :partial => '/theaters/productions' %>
 
 <p>
-  <%= link_to 'Add production', new_admin_theater_production_path(@theater) %>&nbsp;
+  <% permitted_to? :make, :productions do %>
+    <%= link_to 'Add production', new_admin_theater_production_path(@theater) %>&nbsp;
+  <% end %>
 </p>
 
-<%= link_to 'Back', admin_theaters_path %> &nbsp; <%= link_to 'Edit', edit_admin_theater_path %>
+<%= link_to 'Back', admin_theaters_path %> &nbsp; <% permitted_to? :manage, :productions do %>
+  <%= link_to 'Edit', edit_admin_theater_path %>
+<% end %>
 
 </div>

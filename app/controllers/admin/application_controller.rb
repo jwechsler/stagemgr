@@ -1,21 +1,14 @@
 class Admin::ApplicationController < ApplicationController
-  before_filter :admin_only
+
   before_filter { |c| Authorization.current_user = c.current_user }
 
   protected
 
   def permission_denied
-    flash[:error] = "Sorry, you are not allowed to access that page.  #{Authorization.current_user.role_symbols.join(',')}"
+    flash[:error] = "Sorry, you are not allowed to access that page."
     redirect_to root_url
   end
-  
-  def admin_only
-    if current_user.nil? || !current_user.is_administrator
-      store_location
-      flash[:notice] = "Restricted Access"
-      redirect_to '/' and return
-    end
-  end
+
 
   def find_context
     @context, @rest_path = 
@@ -37,4 +30,6 @@ class Admin::ApplicationController < ApplicationController
     end
     raise ActiveRecord::RecordNotFound if @context.nil?
   end
+
+
 end

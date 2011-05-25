@@ -2,6 +2,7 @@ require 'test_helper'
 
 class OrdersControllerTest < ActionController::TestCase
   test "the credit card order makes a valid credit card payment" do
+    without_access_control do
     @performance = Factory.create :performance
     @production = @performance.production
     @ticket_class = Factory.create :ticket_class, :ticket_price => 3.0
@@ -14,7 +15,8 @@ class OrdersControllerTest < ActionController::TestCase
     authorize_net_response = flexmock('authorize_net_response')
     authorize_net_response.should_receive(:authorization).and_return(35)
     authorize_net_response.should_receive(:success?).and_return(true)
-    flexmock(ActiveMerchant::Billing::AuthorizeNetGateway).new_instances.should_receive(:purchase).and_return(authorize_net_response)
+    authorize_net_response.should_receive(:params).and_return({:transaction_id=>'success0001'})
+    flexmock(ActiveMerchant::Billing::PaypalGateway).new_instances.should_receive(:purchase).and_return(authorize_net_response)
     
     assert_difference('Order.count') do
       post :create, :commit=>'Place Order', :production_id=>@production.id, :performance_id=>@performance.id, 
@@ -36,6 +38,7 @@ class OrdersControllerTest < ActionController::TestCase
         },
       }
       assert_equal 'Order was successfully saved and is now Processed', flash[:notice]
+      end
     end
     new_order = Order.last
     assert_equal 15, new_order.total

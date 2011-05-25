@@ -6,8 +6,10 @@ require 'factory_girl'
 Factory.definition_file_paths = File.expand_path(File.dirname(__FILE__) + "/factories")
 Factory.find_definitions
 require 'rails/test_help'
+require 'declarative_authorization/maintenance'
 
 class ActiveSupport::TestCase
+  include Authorization::TestHelper
   # Setup all fixtures in test/fixtures/*.(yml|csv) for all tests in alphabetical order.
   #
   # Note: You'll currently still have to declare fixtures explicitly in integration tests
@@ -27,4 +29,5 @@ class ActiveSupport::TestCase
       "zipcode"=>"60606"
     }
   end
+
 end

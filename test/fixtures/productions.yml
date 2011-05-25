@@ -1,0 +1,8 @@
+macbeth:
+  name: Macbeth
+  capacity: 15
+  opening_at: 2011-01-01
+  closing_at: <%= Time.now + 2.week %>
+  theater: theater_wit
+  status: Active
+

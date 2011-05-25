@@ -39,12 +39,16 @@ Stagemgr::Application.routes.draw do
       resources :orders, :controller => 'flex_pass_offer_orders'
 
     end
+    resources :auto_complete do
+      collection do
+        get :production_code
+        get :performance_code
+        get :ticket_class_code
+      end
+    end
     resources :flex_passes
     resources :orders do
       collection do
-        get :autocomplete_production_code
-        get :autocomplete_performance_code
-        get :autocomplete_ticket_class_code
         post :fulfill_selected
         post :credit_card_payment_form
         post :cash_payment_form

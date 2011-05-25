@@ -3,7 +3,11 @@ class Admin::TheatersController < Admin::ApplicationController
 
   before_filter :find_context, :only=>:show
   def index
-    @theaters = Theater.with_permissions_to(:read).find(:all).sort_by{|t| [t.status, t.theater_class, t.name]}
+    @theaters = Theater.find(:all).sort_by{|t| [t.status, t.theater_class, t.name]}
+
+    if Authorization.current_user.is_theater_user?
+      @theaters = @theaters.select{|t| Authorization.current_user.theaters.include?(t)}
+    end
 
     respond_to do |format|
       format.html # index.html.erb

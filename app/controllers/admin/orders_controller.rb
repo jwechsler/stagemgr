@@ -1,6 +1,10 @@
 class Admin::OrdersController < Admin::ApplicationController
+
+  filter_resource_access :attribute_check => true, :additional_new=>{:create => :new}, :additional_member=>{:refund,:refund}
+
   include OrdersHelper
-  append_before_filter :find_order, :only => [:show, :edit, :update, :destroy, :refund, :cancel, :fulfill]
+  #append_before_filter :find_order, :only => [:show, :edit, :update, :destroy, :refund, :cancel, :fulfill]
+  #append_before_filter :filter_by_allowed, :only => [:show, :edit, :update, :destroy, :refund, :cancel, :fulfill]
   append_before_filter :redirect_to_proper_action, :only => [:edit, :show]
   
   VALID_SEARCH_COLUMNS = [ 
@@ -12,30 +16,6 @@ class Admin::OrdersController < Admin::ApplicationController
     'orders.status'
   ]
 
-  def autocomplete_production_code
-    find_options = {
-      :conditions => [ "LOWER(production_code) LIKE ? and status != 'Inactive'", '%'+params[:q].to_s.downcase + '%' ],
-      :order => "production_code ASC",
-      :limit => 10
-      }
-      productions = Production.scoped(find_options)
-      render :inline => productions.map{|production| "#{production.production_code}|#{production.to_s}"}.join("\n")
-  end
-  
-  def autocomplete_performance_code
-    production = Production.find_by_production_code(params[:production_code])
-    return [] if production.nil?
-    performances = production.performances.search_by_code(params[:q])
-    render :inline => performances.map{|performance| "#{performance.performance_code}|#{performance.to_s}"}.join("\n")
-  end
-  
-  def autocomplete_ticket_class_code
-    performance = Performance.find_by_performance_code(params[:performance_code])
-    return [] if performance.nil?
-    ticket_classes = performance.production.ticket_classes.search_by_code_and_performance_id(params[:q], performance.id )
-    render :inline => ticket_classes.map{|ticket_class| "#{ticket_class.class_code}|#{ticket_class.to_s} (#{ticket_class.number_left(performance)} Tickets Left)|#{ticket_class.ticket_type}|#{ticket_class.ticket_price}"}.join("\n")
-  end
-  
   def index
     store_search_and_pagination_state unless !session[:existing_box_office_orders_state].nil?
     respond_to do |format|
@@ -54,6 +34,7 @@ class Admin::OrdersController < Admin::ApplicationController
   end
   
   def show
+
   end
 
   def fulfill_selected
@@ -73,7 +54,6 @@ class Admin::OrdersController < Admin::ApplicationController
   end
   
   def fulfill
-    # @todo smelly code.  Why do I have to do this?
     params[:commit] = 'Fulfill'
     process_order(:admin_order_path)
   end
@@ -136,6 +116,12 @@ class Admin::OrdersController < Admin::ApplicationController
   end
   
   private
+
+  def filter_by_allowed
+    @order = Order.find(params[:id])
+    permission_denied unless (Authorization.current_user.is_administrator? || Authorization.current_user.is_box_office? || Authorization.current_user.theater_ids.include?(@order.theater_id))
+
+  end
   
   def store_search_and_pagination_state
     state_to_store = {}
@@ -153,6 +139,14 @@ class Admin::OrdersController < Admin::ApplicationController
   def get_search_conditions_from_params
     conditions_sql = ['(productions.status <> ? or productions.status is null)', '(performances.status <> ? or performances.status is null)']
     conditions_params = ['Inactive', 'Inactive']
+    # Hide orders that we couldn't figure out how to obscure in declarative_authorizations because of paginate block
+    # @todo this is probably fixable...
+
+    if !(Authorization.current_user.is_administrator? || Authorization.current_user.is_box_office_user?)
+      conditions_sql += ['orders.theater_id is not null and orders.theater_id in (?)']
+      conditions_params << Authorization.current_user.theater_ids
+    end
+
     if params['_search']=='true'
       VALID_SEARCH_COLUMNS.each do |column_name|
         if params[column_name] && !params[column_name].empty?

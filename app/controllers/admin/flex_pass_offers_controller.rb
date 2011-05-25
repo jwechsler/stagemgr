@@ -1,12 +1,15 @@
 class Admin::FlexPassOffersController < Admin::ApplicationController
+  filter_resource_access
+
   def index
     @flex_pass_offers = FlexPassOffer.all
+    @flex_pass_offers = @flex_pass_offers.select {|o|
+      backend_user? || (!o.exclude_theater? && current_user.theater_ids.include?(o.theater_id)) }
   end
 
   # GET /flex_pass_offers/1
   # GET /flex_pass_offers/1.xml
   def show
-    @flex_pass_offer = FlexPassOffer.find(params[:id])
 
     respond_to do |format|
       format.html # show.html.erb
@@ -17,7 +20,6 @@ class Admin::FlexPassOffersController < Admin::ApplicationController
   # GET /flex_pass_offers/new
   # GET /flex_pass_offers/new.xml
   def new
-    @flex_pass_offer = FlexPassOffer.new
 
     respond_to do |format|
       format.html # new.html.erb
@@ -33,7 +35,6 @@ class Admin::FlexPassOffersController < Admin::ApplicationController
   # POST /flex_pass_offers
   # POST /flex_pass_offers.xml
   def create
-    @flex_pass_offer = FlexPassOffer.new(params[:flex_pass_offer])
 
     respond_to do |format|
       if @flex_pass_offer.save
@@ -48,7 +49,6 @@ class Admin::FlexPassOffersController < Admin::ApplicationController
   # PUT /flex_pass_offers/1
   # PUT /flex_pass_offers/1.xml
   def update
-    @flex_pass_offer = FlexPassOffer.find(params[:id])
 
     respond_to do |format|
       if @flex_pass_offer.update_attributes(params[:flex_pass_offer])
@@ -65,7 +65,6 @@ class Admin::FlexPassOffersController < Admin::ApplicationController
   # DELETE /flex_pass_offers/1
   # DELETE /flex_pass_offers/1.xml
   def destroy
-    @flex_pass_offer = FlexPassOffer.find(params[:id])
     @flex_pass_offer.destroy
 
     respond_to do |format|

@@ -1,0 +1,18 @@
+macbeth_general_admission:
+  class_code: GEN
+  production: macbeth
+  ticket_price: 10
+  ticketing_fee: 2
+  web_visible: true
+  class_name: General Admission
+  ticket_type: Fixed
+
+macbeth_comp:
+  class_code: COMP
+  production: macbeth
+  ticket_price: 0
+  ticketing_fee: 0.50
+  web_visible: false
+  class_name: Comp
+  ticket_type: Fixed
+
