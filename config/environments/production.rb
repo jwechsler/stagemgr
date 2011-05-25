@@ -1,5 +1,3 @@
-require 'PayPalCredentials'
-
 Stagemgr::Application.configure do
   # Settings specified here will take precedence over those in config/environment.rb
 
@@ -50,11 +48,13 @@ Stagemgr::Application.configure do
   config.active_support.deprecation = :notify
 
   # Setup paypal
-   config.after_initialize do
-      ActiveMerchant::Billing::PaypalGateway.pem_file = File.read(RAILS_ROOT+'/config/cert_key_pem_prod.txt')
+  config.after_initialize do
+      ActiveMerchant::Billing::PaypalGateway.pem_file = File.read("#{::Rails.root.to_s}/config/cert_key_pem_prod.txt")
     end
 
+  paypal_config = YAML::load(File.open("#{::Rails.root.to_s}/config/pay_pal_credentials.yml"))
 
-    $PAYPAL_LOGIN = @@PAYPAL_LOGIN
-    $PAYPAL_PASSWORD = @@PAYPAL_LOGIN
+  $PAYPAL_LOGIN = paypal_config['development']['paypal_login']
+  $PAYPAL_PASSWORD = paypal_config['development']['paypal_password']
+
 end
