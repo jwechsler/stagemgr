@@ -7,9 +7,10 @@
   <th>Price</th>
   <th>Qty</th>
   <th>Payout</th>
+  <th>Fee</th>
   <th>Restrictions</th>
   <th>Status</th>
-  <th>Actions</th>
+  <th></th>
   </thead>
   <%- @flex_pass_offers.each do |flex_pass_offer| -%>
       <tr>
@@ -17,7 +18,12 @@
         <td><%= flex_pass_offer.name %></td>
         <td class="currency"><%= number_to_currency(flex_pass_offer.price) %></td>
         <td align="center"><%= flex_pass_offer.number_of_tickets %></td>
-        <td class="currency"><%= number_to_currency(flex_pass_offer.payout_per_ticket) %></td>
+        <td class="currency"><%- if flex_pass_offer.payout_per_ticket > 0 -%>
+              <%= number_to_currency(flex_pass_offer.payout_per_ticket) %>/tkt
+            <%- else -%>
+              <%= number_to_currency(flex_pass_offer.flat_payout) %>
+            <%- end -%></td>
+        <td class="currency"><%= number_to_currency(flex_pass_offer.facility_fee) %></td>
         <td><%= if !flex_pass_offer.theater.blank? then
                     if flex_pass_offer.exclude_theater then
                         "All but #{flex_pass_offer.theater.name}"
