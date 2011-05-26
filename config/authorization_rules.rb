@@ -30,7 +30,7 @@ authorization do
 
   role :box_office do
     includes :theater_user
-    has_permission_on :admin_theaters, :to=>[:edit]
+    has_permission_on :admin_theaters, :to=>[:manage]
     has_permission_on :theaters, :to=>[:create,:update,:read]
     has_permission_on :admin_exchange_orders, :to=>[:make]
     has_permission_on :admin_orders, :to=>[:fulfill]
