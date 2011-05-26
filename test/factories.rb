@@ -5,6 +5,7 @@ Factory.define(:user) do |user|
 end
 
 Factory.define(:address) do |address|
+  address.last_name 'test'
   address.line1 '123 swift st'
   address.city  'hoboken'
   address.state 'ct'
