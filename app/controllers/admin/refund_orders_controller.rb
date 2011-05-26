@@ -1,4 +1,6 @@
 class Admin::RefundOrdersController < Admin::ApplicationController
+  filter_access_to :all
+
   def new
     @original_order = Order.find(params[:order_id])
     @refund_order = Order.new

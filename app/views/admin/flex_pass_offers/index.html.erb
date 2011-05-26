@@ -1,39 +1,53 @@
 <h1>Flex pass offers</h1>
 
 <table>
-<thead>
-<th>Id</th>
-<th>Offer</th>
-<th>Price</th>
-<th>Qty</th>
-<th>Payout</th>
-<th>Restrictions</th>
-<th>Status</th>
-<th>Actions</th>
-</thead>
-<%- @flex_pass_offers.each do |flex_pass_offer| -%>
-<tr>
-<td><%= flex_pass_offer.id %></td>
-  <td><%= flex_pass_offer.name %></td>
-<td class="currency"><%= number_to_currency(flex_pass_offer.price) %></td>
-<td align="center"><%= flex_pass_offer.number_of_tickets %></td>
-<td class="currency"><%= number_to_currency(flex_pass_offer.payout_per_ticket) %></td>
-  <td><%= if !flex_pass_offer.theater.blank? then
-            if flex_pass_offer.exclude_theater then
-              "All but #{flex_pass_offer.theater.name}"
-            else
-              "Only #{flex_pass_offer.theater.name}"
-            end
-          else
-            ""
-          end %>
-  </td>
-  <td><%=h flex_pass_offer.active? ? "Active" : "Inactive" %></td>
-<td><%= link_to 'Create Order', new_admin_flex_pass_offer_order_path(flex_pass_offer) %>&nbsp;<%= link_to 'Edit Offer', edit_admin_flex_pass_offer_path(flex_pass_offer) %></td>
-</tr>
-<%- end -%>
+  <thead>
+  <th>Id</th>
+  <th>Offer</th>
+  <th>Price</th>
+  <th>Qty</th>
+  <th>Payout</th>
+  <th>Fee</th>
+  <th>Restrictions</th>
+  <th>Status</th>
+  <th></th>
+  </thead>
+  <%- @flex_pass_offers.each do |flex_pass_offer| -%>
+      <tr>
+        <td><%= flex_pass_offer.id %></td>
+        <td><%= flex_pass_offer.name %></td>
+        <td class="currency"><%= number_to_currency(flex_pass_offer.price) %></td>
+        <td align="center"><%= flex_pass_offer.number_of_tickets %></td>
+        <td class="currency"><%- if flex_pass_offer.payout_per_ticket > 0 -%>
+              <%= number_to_currency(flex_pass_offer.payout_per_ticket) %>/tkt
+            <%- else -%>
+              <%= number_to_currency(flex_pass_offer.flat_payout) %>
+            <%- end -%></td>
+        <td class="currency"><%= number_to_currency(flex_pass_offer.facility_fee) %></td>
+        <td><%= if !flex_pass_offer.theater.blank? then
+                    if flex_pass_offer.exclude_theater then
+                        "All but #{flex_pass_offer.theater.name}"
+                    else
+                        "Only #{flex_pass_offer.theater.name}"
+                    end
+                else
+                    ""
+                end %>
+        </td>
+        <td><%= h flex_pass_offer.active? ? "Active" : "Inactive" %></td>
+        <td>
+          <% permitted_to? :create, :admin_orders do %>
+            <%= link_to 'Create Order', new_admin_flex_pass_offer_order_path(flex_pass_offer) %>
+          <%- end -%>&nbsp;
+          <% permitted_to? :manage, :admin_flex_pass_offers do %>
+            <%= link_to 'Edit Offer', edit_admin_flex_pass_offer_path(flex_pass_offer) %>
+          <%- end -%>
+        </td>
+      </tr>
+  <%- end -%>
 </table>
 
-<br />
-
-<%= link_to 'New flex_pass_offer', new_admin_flex_pass_offer_path %>
+<br/>
+<%- permitted_to? :create, :admin_flex_pass_offers do %>
+    <%= link_to 'New flex_pass_offer', new_admin_flex_pass_offer_path %>
+<%- end -%>

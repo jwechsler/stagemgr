@@ -1,0 +1,9 @@
+flexpass_5_offer:
+  active: true
+  description:
+    This flex pass lets you buy 5 tickets to any show
+  name: Flex5
+  number_of_tickets: 5
+  payout_per_ticket: 4
+  price: 25
+  short_description: See five shows for only $25

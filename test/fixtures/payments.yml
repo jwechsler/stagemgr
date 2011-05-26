@@ -1,0 +1,4 @@
+cash_payment_of_10_dollars:
+  type: CashPayment
+  amount: 10.00
+

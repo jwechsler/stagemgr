@@ -1,6 +1,6 @@
 <p>
   Thanks so much for your <%= flex_pass_offer.name %> order.
-  <%- if flex_pass_offer.web_visible? %>
+  <%- if flex_pass_offer.redeem_immediately? %>
     Your <%= flex_pass_offer.name %> <%= raw "#{flex_passes.count == 1 ? 'code is' : 'codes are'} <b>#{flex_passes.collect{|p| p.code}.to_sentence}</b>." %>
   <%- else -%>
     We are processing your request and you should receive your FlexPass in the mail in the next 5-7 business days.

@@ -18,5 +18,9 @@ class FlexPassLineItem < LineItem
       self.flex_passes.create!(:flex_pass_offer=>self.flex_pass_offer,:order=>self.order,:address=>self.order.address)
     end
   end
+
+  def to_s
+    "#{self.ticket_count} #{self.flex_pass_offer.name}"
+  end
   
 end

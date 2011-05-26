@@ -1,0 +1,10 @@
+new_macbeth_order:
+  performance: macbeth_opening_night
+  status: New
+  theater_id: theater_wit
+
+flexpass_5_order:
+  status: New
+  theater_id: theater_wit
+  address: jeremy
+  payment_type: Cash

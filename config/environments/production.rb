@@ -48,10 +48,13 @@ Stagemgr::Application.configure do
   config.active_support.deprecation = :notify
 
   # Setup paypal
-   config.after_initialize do
-      ActiveMerchant::Billing::PaypalGateway.pem_file = File.read(RAILS_ROOT+'/config/cert_key_pem_prod.txt')
+  config.after_initialize do
+      ActiveMerchant::Billing::PaypalGateway.pem_file = File.read("#{::Rails.root.to_s}/config/cert_key_pem_prod.txt")
     end
 
-    $PAYPAL_LOGIN = 'register_api1.theaterwit.org'
-    $PAYPAL_PASSWORD = 'REDACTED_PAYPAL_PASSWORD'
+  paypal_config = YAML::load(File.open("#{::Rails.root.to_s}/config/pay_pal_credentials.yml"))
+
+  $PAYPAL_LOGIN = paypal_config['production']['paypal_login']
+  $PAYPAL_PASSWORD = paypal_config['production']['paypal_password']
+
 end

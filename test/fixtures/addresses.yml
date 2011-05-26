@@ -5,3 +5,13 @@
 #
 # two:
 #   column: value
+
+jeremy:
+  add_to_mail_list: 0
+  city: Chicago
+  first_name: Jeremy
+  last_name: Wechsler
+  line1: 1229 W Belmont
+  phone: 773-975-8150
+  state: IL
+  zipcode: 60657

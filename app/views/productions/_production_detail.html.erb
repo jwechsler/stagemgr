@@ -34,7 +34,7 @@
 
     <p class="special_offer">
       <%- if !production.flex_pass_offer.blank? && !production.flex_pass_offer.short_description.blank? -%>
-          <%= link_to production.flex_pass_offer.short_description, new_flex_pass_offer_order_path(production.flex_pass_offer) %>
+          <%= link_to production.flex_pass_offer.short_description, new_flex_pass_offer_order_path(production.flex_pass_offer, :anchor=>"top") %>
       <%- end -%></p>
     <br clear="all"/>
   </div>

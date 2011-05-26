@@ -1,4 +1,7 @@
 class Address < ActiveRecord::Base
+
+  validates_presence_of :last_name
+
   MAILLIST_STATUS = (
   REQUESTED, SAVED = 
   "Requested", "Saved" )

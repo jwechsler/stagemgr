@@ -85,6 +85,18 @@ a {
 .colors, .task, .tag{border-left:10px solid #eee; padding-left:10px;}
 .task{border-color:#999; margin:2em 0;}
 
+/* Admin screen styles */
+
+.main_column {
+  float: left;
+  margin: 0 0 0px 0px;
+}
+
+.secondary_column {
+  float:right;
+  margin: 0 0 10px 10px;
+}
+
 
 /*  stagemgr-specific styles */
 

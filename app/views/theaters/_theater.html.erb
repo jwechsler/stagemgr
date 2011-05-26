@@ -4,6 +4,11 @@
   <td><%=image_tag theater.logo.url %></td>
   <td><%=h theater.theater_class %></td>
   <td><%=h theater.status %></td>
-  <td><%= link_to 'Edit', edit_admin_theater_path(theater) %></td>
-  <td><%= link_to 'Destroy', [:admin, theater], :confirm => 'Are you sure?', :method => :delete %></td>
+  <td><% permitted_to? :edit, :admin_theaters do %>
+    <%= link_to 'Edit', edit_admin_theater_path(theater) %>
+  <% end %></td>
+  <td><% permitted_to? :destroy, :admin_theaters do %>
+    <%= link_to 'Destroy', [:admin, theater], :confirm => 'Are you sure?', :method => :delete %>
+  <% end %>
+  </td>
 </tr>
