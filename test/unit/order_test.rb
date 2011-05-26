@@ -44,11 +44,12 @@ class OrderTest < ActiveSupport::TestCase
                                      :performance=>performances(:macbeth_opening))
       @ticket_order.ticket_line_items.build(:ticket_class=>ticket_classes(:macbeth_general_admission), :ticket_count=>6)
       @ticket_order.flex_pass_code = flex_pass.code
-      @ticket_order.transition_to!(Order::PROCESSING)
-      @ticket_order.transition_to!(Order::PROCESSED)
-      @ticket_order.transition_to!(Order::FULFILLED)
-      assert_equal 1, @ticket_order.flex_pass_payments.count
-      assert_equal flex_pass, @ticket_order.flex_pass_payments[0].flex_pass
+
+
+      assert_raises ActiveRecord::RecordInvalid do
+        @ticket_order.transition_to!(Order::PROCESSING)
+        @ticket_order.transition_to!(Order::PROCESSED)
+      end
 
     end
 
@@ -62,7 +63,7 @@ class OrderTest < ActiveSupport::TestCase
         @production2 = Factory.create(:production, :capacity=>10)
         @ticket_class2 = Factory.create(:ticket_class, :production=>@production2, :class_code=>'ABC', :ticket_price=>5)
         @performance2 = Factory.create(:performance, :production=>@production2)
-        @original_order = Factory.create(:order)
+        @original_order = Factory.create(:order, :address=>addresses(:jeremy))
         @original_order.ticket_line_items.build(:ticket_class=>@ticket_class, :ticket_count=>1)
         @original_order.payment_type = Order::CASH
         @original_order.performance = @performance
@@ -113,7 +114,7 @@ class OrderTest < ActiveSupport::TestCase
             "line1"=>"123 Swift St",
             "line2"=>"",
             "zipcode"=>"90210",
-            "last_name"=>"",
+            "last_name"=>"Test",
             "state"=>"NC",
             "first_name"=>""
           },
@@ -146,7 +147,7 @@ class OrderTest < ActiveSupport::TestCase
             "line1"=>"123 Swift St",
             "line2"=>"",
             "zipcode"=>"90210",
-            "last_name"=>"",
+            "last_name"=>"Test",
             "state"=>"NC",
             "first_name"=>""
           },
@@ -170,7 +171,7 @@ class OrderTest < ActiveSupport::TestCase
         @production = Factory.create(:production, :capacity=>10)
         @ticket_class = Factory.create(:ticket_class, :production=>@production)
         @performance = Factory.create(:performance, :production=>@production)
-        @address = Factory.create(:address)
+        @address = addresses(:jeremy)
         assert_not_nil @address
         Order.create!(:address=>@address, :performance=>@performance)
       end
@@ -183,7 +184,7 @@ class OrderTest < ActiveSupport::TestCase
         @production = Factory.create(:production, :capacity=>10)
         @ticket_class = Factory.create(:ticket_class, :production=>@production)
         @performance = Factory.create(:performance, :production=>@production)
-        @address = Factory.create(:address)
+        @address = addresses(:jeremy)
       end
     end
 

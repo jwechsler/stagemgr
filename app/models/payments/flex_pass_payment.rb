@@ -3,7 +3,7 @@ class FlexPassPayment < Payment
   belongs_to :flex_pass
   
   validates_each :number_of_tickets do |record, attr, value|
-t    old_number_of_tickets = 0
+    old_number_of_tickets = 0
     unless record.new_record?
       old_number_of_tickets = FlexPassPayment.find(record.id).number_of_tickets
     end

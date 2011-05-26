@@ -12,6 +12,12 @@
   <component name="GemRequirementsHolder" version="3">
     <requirement>
       <requirement>
+        <dependency name="StreetAddress" version="1.0.1" bound="LATEST_IN_BRANCH" git="false" path="false" doRequire="true" />
+      </requirement>
+      <source from="Gemfile" />
+    </requirement>
+    <requirement>
+      <requirement>
         <dependency name="activemerchant" version="0" bound="GREATER_OR_EQUAL" git="false" path="false" doRequire="true" />
       </requirement>
       <source from="Gemfile" />
@@ -180,13 +186,13 @@
     </requirement>
     <requirement>
       <requirement>
-        <dependency name="sqlite3-ruby" version="0" bound="GREATER_OR_EQUAL" lib="sqlite3" git="false" path="false" doRequire="true" />
+        <dependency name="sqlite3-ruby" version="0" bound="GREATER_OR_EQUAL" git="false" path="false" doRequire="true" />
       </requirement>
       <source from="Gemfile" />
     </requirement>
     <requirement>
       <requirement>
-        <dependency name="sqlite3-ruby" version="0" bound="GREATER_OR_EQUAL" git="false" path="false" doRequire="true" />
+        <dependency name="sqlite3-ruby" version="0" bound="GREATER_OR_EQUAL" lib="sqlite3" git="false" path="false" doRequire="true" />
       </requirement>
       <source from="Gemfile" />
     </requirement>
@@ -303,6 +309,10 @@
     <orderEntry type="library" scope="PROVIDED" name="[gem] cgi_multipart_eof_fix (v2.5.0, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/cgi_multipart_eof_fix-2.5.0)" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="[gem] gem_plugin (v0.2.3, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/gem_plugin-0.2.3)" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="[gem] mongrel (v1.1.5, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/mongrel-1.1.5)" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="[gem] i18n (v0.5.0, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/i18n-0.5.0)" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="[gem] formtastic (v1.2.3, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/formtastic-1.2.3)" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="[gem] declarative_authorization (v0.5.2, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/declarative_authorization-0.5.2)" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="[gem] validation_reflection (v1.0.0, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/validation_reflection-1.0.0)" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="[gem] rack-mount (v0.6.13, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/rack-mount-0.6.13)" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="[gem] tzinfo (v0.3.25, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/tzinfo-0.3.25)" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="[gem] activemodel (v3.0.3, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/activemodel-3.0.3)" level="application" />
@@ -318,11 +328,9 @@
     <orderEntry type="library" scope="PROVIDED" name="[gem] ffi (v0.6.3, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/ffi-0.6.3)" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="[gem] crack (v0.1.8, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/crack-0.1.8)" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="[gem] thor (v0.14.6, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/thor-0.14.6)" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="[gem] i18n (v0.5.0, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/i18n-0.5.0)" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="[gem] linecache (v0.43, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/linecache-0.43)" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="[gem] formtastic (v1.2.3, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/formtastic-1.2.3)" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="[gem] declarative_authorization (v0.5.2, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/declarative_authorization-0.5.2)" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="[gem] validation_reflection (v1.0.0, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/validation_reflection-1.0.0)" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="[gem] StreetAddress (v1.0.1, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/StreetAddress-1.0.1)" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="[gem] hoe (v2.9.4, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/hoe-2.9.4)" level="application" />
   </component>
 </module>
 

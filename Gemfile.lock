@@ -1,6 +1,8 @@
 GEM
   remote: http://rubygems.org/
   specs:
+    StreetAddress (1.0.1)
+      hoe (>= 1.5.0)
     abstract (1.0.0)
     actionmailer (3.0.3)
       actionpack (= 3.0.3)
@@ -95,6 +97,8 @@ GEM
     gherkin (2.0.2)
       trollop (~> 1.16.2)
     highline (1.6.1)
+    hoe (2.9.4)
+      rake (>= 0.8.7)
     htmldiff (0.0.1)
     httparty (0.4.5)
       crack (>= 0.1.1)
@@ -193,6 +197,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  StreetAddress (~> 1.0.1)
   activemerchant
   acts_as_audited (= 2.0.0.rc7)
   authlogic (= 2.1.6)

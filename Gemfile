@@ -41,6 +41,7 @@ gem "will_paginate",          '3.0.pre2'
 gem "my_emma"
 gem "paperclip"
 gem "htmldiff"
+gem "StreetAddress",           "~> 1.0.1"
 
 group :development do
   gem 'wirble',               '0.1.3'
