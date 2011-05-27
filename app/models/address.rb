@@ -36,10 +36,10 @@ class Address < ActiveRecord::Base
 
   def find_original
     if !self.email.blank? then
-      matches = Address.where("email = :email and id != :id",{:id=>self.id.nil? ? -1 : self.id, :email => self.email.strip}) unless self.email.blank?
+      matches = Address.where("email = :email and id < :id",{:id=>self.id, :email => self.email.strip}) unless self.email.blank?
     else
-      matches = Address.where("id != :id AND street_number = :street_number AND street = :street AND city = :city and upper(last_name) = upper(:last_name) and upper(first_name) = upper(:first_name)",
-                              {:id=>self.id.nil? ? -1 : self.id, :street_number=>self.street_number, :street=>self.street,
+      matches = Address.where("id < :id AND street_number = :street_number AND street = :street AND city = :city and upper(last_name) = upper(:last_name) and upper(first_name) = upper(:first_name)",
+                              {:id=>self.id, :street_number=>self.street_number, :street=>self.street,
                                :city=>self.city, :last_name=>self.last_name, :first_name=>self.first_name})
     end
     return matches.nil? ? nil : matches.sort!{|a,b| a.id <=> b.id}.first

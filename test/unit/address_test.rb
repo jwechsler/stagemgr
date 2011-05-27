@@ -30,15 +30,14 @@ class AddressTest < ActiveSupport::TestCase
       assert_nil @bad_address.street_number
     end
 
-    should "match reasonable other addresses on email first" do
-      @matching_email = Factory.create(:address, :first_name=>"Jill",:last_name=>"Guy",:email=>"test@matches.com")
-      @email_2 = Factory.create(:address, :first_name=>"Bill", :last_name=>"Guy",:email=>"bill@matches.com")
-      assert_not_nil @new_address.find_original
-
+    should "match reasonable other addresses on email first and only" do
+      @matching_address = Factory.create(:address, :first_name=>"Jill",:last_name=>"Guy",:email=>"test@matches.com")
+      @email_2 = Factory.create(:address, :first_name=>"Bill", :last_name=>"Guy",:email=>"test@matches.com")
+      assert_not_nil @email_2.find_original
     end
 
 
-    should "match reasonable other addresses on first_name, last_name, street, street_number and city" do
+    should "match addresses missing email on first_name, last_name, street, street_number and city" do
       @matching_email = Factory.create(:address, :first_name=>"Test",:last_name=>"Guy",:email=>"jill@matches.com", :line1=>"1229 W Belmont Ave Unit #3", :city=>"Chicago", :state=>"IL", :zipcode=>"60657")
       @email_2 = Factory.create(:address, :first_name=>"Test", :last_name=>"Guy", :line1=>"1229 W Belmont Ave Unit #3", :city=>"Chicago", :state=>"IL", :zipcode=>"60657")
       assert_not_nil @email_2.find_original
