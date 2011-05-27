@@ -75,6 +75,7 @@ class Admin::OrdersController < Admin::ApplicationController
   def create
     old_status = Order::NEW
     @order = Order.new(params[:order])
+
     process_order(:edit_admin_order_path)
   end
 
