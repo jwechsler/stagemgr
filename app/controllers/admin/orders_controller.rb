@@ -1,6 +1,6 @@
 class Admin::OrdersController < Admin::ApplicationController
 
-  filter_resource_access :attribute_check => true, :additional_new=>{:create => :new}, :additional_member=>{:refund, :refund}
+  filter_resource_access :attribute_check => true, :additional_new=>{:create => :new}, :additional_member=>{:refund => :refund}, :additional_collection=>{ :fulfill_selected=>:index}
 
   include OrdersHelper
   #append_before_filter :find_order, :only => [:show, :edit, :update, :destroy, :refund, :cancel, :fulfill]
