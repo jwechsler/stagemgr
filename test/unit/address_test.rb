@@ -4,7 +4,7 @@ class AddressTest < ActiveSupport::TestCase
   # Replace this with your real tests.
   context "with a valid address" do
     setup do
-      @new_address = Factory.create(:address, :first_name=>"Test", :last_name=>"Guy", :line1=>"1229 W Belmont Ave Unit #3", :city=>"Chicago", :state=>"IL", :zipcode=>"60657",:email=>"test@matches.com")
+      @new_address = Factory.create(:address, :first_name=>"Test", :last_name=>"Guy", :line1=>"1229 W Belmont Ave Unit #3", :city=>"Chicago", :state=>"IL", :zipcode=>"60657", :email=>"test@matches.com")
     end
     should "be able to parse street address" do
       @new_address.regularize!
@@ -29,32 +29,95 @@ class AddressTest < ActiveSupport::TestCase
       @bad_address.save!
       assert_nil @bad_address.street_number
     end
+  end
 
-    should "match reasonable other addresses on email first and only" do
-      @matching_address = Factory.create(:address, :first_name=>"Jill",:last_name=>"Guy",:email=>"test@matches.com")
-      @email_2 = Factory.create(:address, :first_name=>"Bill", :last_name=>"Guy",:email=>"test@matches.com")
-      assert_not_nil @email_2.find_original
+  context "with a set of preexisting addresses" do
+
+    setup do
+      @first_customer = Factory.create(:address, :first_name=>"First", :last_name=>"Guy", :line1=>"1229 W Belmont", :city=>"Chicago", :state=>"IL", :zipcode=>"60657", :email=>"test@matches.com")
+      @same_name_different_email = Factory.create(:address, :first_name=>"First", :last_name=>"Guy", :line1=>"1229 W Belmont", :city=>"Chicago", :state=>"IL", :zipcode=>"60657", :email=>"test@different.com")
+      @different_name_no_email = Factory.create(:address, :first_name=>"Second", :last_name=>"Guy", :line1=>"1229 W Belmont", :city=>"Chicago", :state=>"IL", :zipcode=>"60657")
+
+    end
+
+    should "match by name and email" do
+      @new_address = Address.new
+      @new_address.first_name = "First"
+      @new_address.last_name="Guy"
+      @new_address.line1="500 W Nowhere"
+      @new_address.zipcode="60640"
+      @new_address.email="test@matches.com"
+      @new_address.regularize!
+      @matching = @new_address.find_original
+      assert_not_nil @matching
+      assert_equal @first_customer.id, @matching.id
+    end
+
+    should "match by name and key address fields when email missing from new" do
+      @new_address = Address.new
+      @new_address.first_name = "First"
+      @new_address.last_name="Guy"
+      @new_address.line1="1229 W Belmont"
+      @new_address.city="Chicago"
+      @new_address.regularize!
+      @matching = @new_address.find_original
+      assert_not_nil @matching
+      assert_equal @first_customer.id, @matching.id
+    end
+
+    should "won't match without name" do
+      @new_address = Address.new
+      @new_address.first_name = "Other"
+      @new_address.last_name="Guy"
+      @new_address.line1="1229 W Belmont"
+      @new_address.city="Chicago"
+      @new_address.regularize!
+      @matching = @new_address.find_original
+      assert_nil @matching
+    end
+
+    should "dont match mismatched emails" do
+      @new_address = Address.new
+      @new_address.first_name = "First"
+      @new_address.last_name="Guy"
+      @new_address.line1="1229 W Belmont"
+      @new_address.city="Chicago"
+      @new_address.email="random@email.com"
+      @new_address.regularize!
+      @matching = @new_address.find_original
+      assert_nil @matching
+
+    end
+
+    should "merge missing information" do
+      @new_address = Address.new
+      @new_address.first_name = "First"
+      @new_address.last_name="Guy"
+      @new_address.line1="500 W Nowhere"
+      @new_address.zipcode="60640"
+      @new_address.email="test@matches.com"
+      @new_address.regularize!
+      @matching = @new_address.find_original
+      assert_not_nil @matching
+      @matching.update_from!(@new_address)
+      assert_equal "500 W Nowhere", @matching.line1
+      assert_equal "60640", @matching.zipcode
+
+      @new_address = Address.new
+      @new_address.first_name = "Second"
+      @new_address.last_name="Guy"
+      @new_address.line1="1229 W Belmont"
+      @new_address.city="Chicago"
+      @new_address.email="newemail@testing.com"
+      @new_address.regularize!
+      @matching = @new_address.find_original
+      assert_not_nil @matching
+      @matching.update_from!(@new_address)
+      assert_equal "newemail@testing.com", @matching.email
+
     end
 
 
-    should "match addresses missing email on first_name, last_name, street, street_number and city" do
-      @matching_email = Factory.create(:address, :first_name=>"Test",:last_name=>"Guy",:email=>"jill@matches.com", :line1=>"1229 W Belmont Ave Unit #3", :city=>"Chicago", :state=>"IL", :zipcode=>"60657")
-      @email_2 = Factory.create(:address, :first_name=>"Test", :last_name=>"Guy", :line1=>"1229 W Belmont Ave Unit #3", :city=>"Chicago", :state=>"IL", :zipcode=>"60657")
-      assert_not_nil @email_2.find_original
-
-    end
-    should "match correctly even if regularized but never saved" do
-      @matching_email = Address.new
-      @matching_email.last_name = "Guy"
-      @matching_email.city="chicago"
-      @matching_email.line1="1229 W Belmont"
-      @matching_email.regularize!
-      @matching_email.first_name = "Test"
-      matched = @matching_email.find_original
-      assert_not_nil matched
-      assert_equal "Test", matched.first_name
-
-    end
   end
 
   context "with a similar address" do

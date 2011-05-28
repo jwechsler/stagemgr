@@ -6,9 +6,9 @@ class Address < ActiveRecord::Base
   before_save :regularize!
 
   MAILLIST_STATUS = (
-  REQUESTED, SAVED = 
-  "Requested", "Saved" )
-  
+  REQUESTED, SAVED =
+    "Requested", "Saved")
+
   def mailing_list_member?
     self.add_to_mail_list.blank? ? false : self.add_to_mail_list > 0
   end
@@ -32,28 +32,39 @@ class Address < ActiveRecord::Base
     self.street.upcase! unless self.street.nil?
     self.street_type.upcase! unless self.street_type.nil?
     self.unit_prefix.upcase! unless self.unit_prefix.nil?
+    self.search_name = name_as_searchable
+    self
   end
 
   def find_original
-    if !self.email.blank? then
-      matches = Address.where("email = :email and id < :id",{:id=>self.id, :email => self.email.strip}) unless self.email.blank?
-    else
-      matches = Address.where("id < :id AND street_number = :street_number AND street = :street AND city = :city and upper(last_name) = upper(:last_name) and upper(first_name) = upper(:first_name)",
-                              {:id=>self.id, :street_number=>self.street_number, :street=>self.street,
-                               :city=>self.city, :last_name=>self.last_name, :first_name=>self.first_name})
+    comparison_id = self.id.nil? ? -1 : self.id
+
+    matches = Address.where("search_name = :search_name and email = :email and id <> :id", {:search_name=>name_as_searchable, :id=>comparison_id, :email => self.email.strip}) unless self.email.blank?
+    if matches.nil? || matches.size == 0
+      matches = Address.where("id <> :id AND street_number = :street_number AND street = :street AND city = :city and search_name = :search_name #{'and (email is null or email = :email)' unless self.email.blank?}",
+                              {:id=>comparison_id, :street_number=>self.street_number, :street=>self.street,
+                               :city=>self.city, :search_name=>name_as_searchable, :email=>self.email})
     end
-    return matches.nil? ? nil : matches.sort!{|a,b| a.id <=> b.id}.first
+    return matches.nil? ? nil : matches.select{|a| self.id.nil? ? true : (a.id < self.id)}.sort! { |a, b| a.id <=> b.id }.first
 
   end
 
   def update_from!(newer)
     self.email = newer.email unless newer.email.blank?
-    self.first_name = newer.email unless newer.email.blank?
+    self.first_name = newer.first_name unless newer.email.blank?
     self.last_name = newer.last_name unless newer.last_name.blank?
     self.line1 = newer.line1 unless newer.line1.blank?
     self.line2 = newer.line2 unless newer.line2.blank?
     self.city = newer.city unless newer.city.blank?
     self.state = newer.state unless newer.state.blank?
     self.zipcode = newer.zipcode unless newer.zipcode.blank?
+  end
+
+  private
+  def name_as_searchable
+    value = ""
+    value << self.first_name.upcase << " " if !self.first_name.blank?
+    value << self.last_name.upcase if !self.last_name.blank?
+    value
   end
 end
