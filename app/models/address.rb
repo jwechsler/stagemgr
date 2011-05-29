@@ -4,6 +4,7 @@ class Address < ActiveRecord::Base
 
   validates_presence_of :last_name
   before_save :regularize!
+  has_many :orders
 
   MAILLIST_STATUS = (
   REQUESTED, SAVED =
@@ -17,15 +18,23 @@ class Address < ActiveRecord::Base
 
   def regularize!
     self.line1.strip! unless self.line1.nil?
-    self.city = self.city.capitalize.strip unless self.city.nil?
+    self.city = self.city.titlecase.strip unless self.city.nil?
     self.line2.strip! unless self.line2.nil?
-    parsed_address = StreetAddress::US.parse_address("#{self.line1} #{self.line2}")
-    if !parsed_address.nil? then
-      self.street_number = parsed_address.number
-      self.street = parsed_address.street.upcase
-      self.street_type = parsed_address.street_type
-      self.unit = parsed_address.unit
-      self.unit_prefix = parsed_address.unit_prefix
+    if (!self.line1.nil? || !self.line2.nil?) then
+      parsed_address = StreetAddress::US.parse_address("#{self.line1} #{self.line2}")
+      if !parsed_address.nil? then
+        self.street_number = parsed_address.number
+        self.street = parsed_address.street
+        self.street_type = parsed_address.street_type
+        self.unit = parsed_address.unit
+        self.unit_prefix = parsed_address.unit_prefix
+      end
+    else
+      self.street_number = nil
+      self.street = nil
+      self.street_type = nil
+      self.unit = nil
+      self.unit_prefix = nil
     end
     self.email.downcase! unless self.email.nil?
     self.street_number.upcase! unless self.street_number.nil?
@@ -44,8 +53,12 @@ class Address < ActiveRecord::Base
       matches = Address.where("id <> :id AND street_number = :street_number AND street = :street AND city = :city and search_name = :search_name #{'and (email is null or email = :email)' unless self.email.blank?}",
                               {:id=>comparison_id, :street_number=>self.street_number, :street=>self.street,
                                :city=>self.city, :search_name=>name_as_searchable, :email=>self.email})
+      if matches.nil? || matches.size == 0
+        matches = Address.where("id <> :id and search_name = :search_name and street_number is null and street is null and city is null and email is null",
+                                {:id=>comparison_id, :search_name=>name_as_searchable})
+      end
     end
-    return matches.nil? ? nil : matches.select{|a| self.id.nil? ? true : (a.id < self.id)}.sort! { |a, b| a.id <=> b.id }.first
+    return matches.nil? ? nil : matches.select { |a| self.id.nil? ? true : (a.id < self.id) }.sort! { |a, b| a.id <=> b.id }.first
 
   end
 

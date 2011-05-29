@@ -7,7 +7,7 @@ class Order < ActiveRecord::Base
 
   include PaymentFormFields
   include ActionView::Helpers::NumberHelper
-  after_initialize :link_to_address_of_record
+  after_validation :auto_link_processed_to_address_of_record
   before_save :set_theater
   extend HTMLDiff
 
@@ -358,11 +358,8 @@ class Order < ActiveRecord::Base
     ticket_line_items.each { |ti| TicketLineItem.delete(ti.id) }
   end
 
-
-  private
-
   def link_to_address_of_record
-    if !self.address.nil? then
+    if !self.address.nil?  then
       self.address.regularize!
 
       merge = self.address.regularize!.find_original
@@ -370,9 +367,16 @@ class Order < ActiveRecord::Base
         merge.update_from!(self.address)
         a = self.address
         self.address = merge
-        a.destroy if !a.id.nil?
       end
     end
+  end
+
+  private
+
+  def auto_link_processed_to_address_of_record
+     if status == Order::PROCESSED then
+       link_to_address_of_record
+     end
   end
 
   def transition_new_to_hold!
