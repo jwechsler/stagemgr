@@ -14,7 +14,7 @@ class Admin::RefundOrdersController < Admin::ApplicationController
   def create
     @original_order = Order.find(params[:order_id])
     @original_order.notes = params[:order][:notes]
-    @original_order.refund!(params[:order].key?(:credit_card_payments_attributes) ? params[:order][:credit_card_payments_attributes]["0"][:card_number] : nil)
+    @original_order.refund!
 
     respond_to do |format|
       flash[:notice] = 'Order was successfully refunded.'

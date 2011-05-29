@@ -185,7 +185,7 @@ class Order < ActiveRecord::Base
   def refund!
 
     Order.transaction do
-      self.payments.each { |payment| payment.refund!(cc_number, self.notes) if payment.respond_to? :refund! }
+      self.payments.each { |payment| payment.refund!(nil, self.notes) if payment.respond_to? :refund! }
       self.line_items.each { |li| li.refund! if li.respond_to? :refund! }
       self.status = REFUNDED
       save!

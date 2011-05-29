@@ -81,7 +81,6 @@ class Admin::OrdersController < Admin::ApplicationController
 
   def update
     @order.attributes=params[:order]
-    link_order_to_address_of_record
     process_order(:edit_admin_order_path)
   end
 
