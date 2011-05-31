@@ -73,6 +73,13 @@ class Address < ActiveRecord::Base
     self.zipcode = newer.zipcode unless newer.zipcode.blank?
   end
 
+  def self.purge_matched_duplicates
+    Address.transaction do
+      candidates = Address.where("not exists (select id from orders where orders.address_id = addresses.id)")
+      candidates.each { |a| a.destroy unless a.find_original.nil? }
+    end
+  end
+
   private
   def name_as_searchable
     value = ""

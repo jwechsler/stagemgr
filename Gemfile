@@ -29,7 +29,7 @@ gem 'sqlite3-ruby', :require => 'sqlite3'
 #   gem 'webrat'
 # end
 
-
+gem "whenever", :require=>false
 gem "formtastic", '~> 1.2.3'
 gem "validation_reflection"
 gem "declarative_authorization"

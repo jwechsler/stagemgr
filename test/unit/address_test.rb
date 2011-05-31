@@ -139,4 +139,31 @@ class AddressTest < ActiveSupport::TestCase
     end
 
   end
+
+  context "with a duplicate address entry" do
+    setup do
+      @address_1 = addresses(:bob_smith_1)
+      @address_2 = addresses(:bob_smith_2)
+      @address_3 = addresses(:john_smith)
+      @address_1.save!
+      @address_2.save!
+      @address_2.save!
+    end
+
+    should "only use one of them for an order" do
+      order = Order.new
+      order.address = addresses(:bob_smith_2)
+      order.link_to_address_of_record
+      assert_not_nil order.address
+      assert_equal addresses(:bob_smith_1).id, order.address.id
+    end
+    should "purge the duplicate address" do
+      num_addresses = Address.all.count
+      Address.purge_matched_duplicates
+      assert_equal num_addresses-1, Address.all.count
+      assert_raise ActiveRecord::RecordNotFound do
+        Address.find(@address_2.id)
+      end
+    end
+  end
 end

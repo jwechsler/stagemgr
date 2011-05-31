@@ -362,7 +362,7 @@ class Order < ActiveRecord::Base
     if !self.address.nil?  then
       self.address.regularize!
 
-      merge = self.address.regularize!.find_original
+      merge = self.address.find_original
       if !merge.nil? then
         merge.update_from!(self.address)
         a = self.address
