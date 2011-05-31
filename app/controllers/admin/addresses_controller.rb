@@ -1,4 +1,6 @@
 class Admin::AddressesController < ApplicationController
+  filter_resource_access
+
   # GET /admin/addresses
   # GET /admin/addresses.xml
   def index
@@ -14,7 +16,7 @@ class Admin::AddressesController < ApplicationController
   # GET /admin/addresses/1.xml
   def show
     @address = Address.find(params[:id])
-
+    @visible_orders = @address.orders.select{|o| current_user.is_administrator? or current_user.is_box_office_user?|| current_user.theater_ids.include?(o.theater_id) }
     respond_to do |format|
       format.html # show.html.erb
       format.xml  { render :xml => @address }
@@ -41,10 +43,17 @@ class Admin::AddressesController < ApplicationController
   # POST /admin/addresses.xml
   def create
     @address = Address.new(params[:address])
-
+    match = @address.find_original
+    if !match.nil? then
+      match.update_from!(@address)
+      @address = match
+      notice = "Merged with existing audience member"
+    else
+      notice = "Audience member successfully created."
+    end
     respond_to do |format|
       if @address.save
-        format.html { redirect_to(:admin_address, :notice => 'Address was successfully created.') }
+        format.html { redirect_to(admin_address_path(@address), :notice => notice) }
         format.xml  { render :xml => :admin_address, :status => :created, :location => @address }
       else
         format.html { render :action => "new" }
@@ -57,10 +66,18 @@ class Admin::AddressesController < ApplicationController
   # PUT /admin/addresses/1.xml
   def update
     @address = Address.find(params[:id])
-
+    match = @address.find_original
+    if !match.nil? then
+      match.update_from!(@address)
+      @address = match
+      notice = "Updated data merged with existing audience member"
+    else
+      notice = "Audience member was successfully updated."
+    end
     respond_to do |format|
       if @address.update_attributes(params[:admin_address])
-        format.html { redirect_to(:admin_address, :notice => 'Address was successfully updated.') }
+
+        format.html { redirect_to(:admin_address, :notice => notice) }
         format.xml  { head :ok }
       else
         format.html { render :action => "edit" }

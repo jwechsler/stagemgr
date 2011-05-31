@@ -45,6 +45,12 @@ class Address < ActiveRecord::Base
     self
   end
 
+  def full_name
+    value = ""
+    value << self.first_name << " " if !self.first_name.blank?
+    value << self.last_name if !self.last_name.blank?
+    value
+  end
   def find_original
     comparison_id = self.id.nil? ? -1 : self.id
 
@@ -82,9 +88,6 @@ class Address < ActiveRecord::Base
 
   private
   def name_as_searchable
-    value = ""
-    value << self.first_name.upcase << " " if !self.first_name.blank?
-    value << self.last_name.upcase if !self.last_name.blank?
-    value
+    full_name.upcase
   end
 end

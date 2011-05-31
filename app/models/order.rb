@@ -301,13 +301,19 @@ class Order < ActiveRecord::Base
         performance_s = self.performance.nil_or.to_short_s
         "#{performance_s} (#{self.ticket_detail_description})"
       when self.contains_donation?
-        ""
+        sum = self.donation_line_items.inject{|sum,x| sum + x.donation_amount}
+        "Donation"
       when self.contains_flex_pass?
         self.flex_pass_line_items[0].flex_pass_offer.name
       else
         ""
     end
 
+  end
+
+  def total_amount
+    sum = self.payments.inject {|sum,x| sum + x.nil? ? 0 : x.amount}
+    sum.amount unless sum.nil?
   end
 
   def set_form_defaults

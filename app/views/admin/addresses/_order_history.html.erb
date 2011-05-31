@@ -1,0 +1,18 @@
+<table>
+  <thead>Order History</thead>
+  <tr>
+    <th>Order</th>
+    <th>Description</th>
+    <th>Amount</th>
+    <th>Status</th>
+  </tr>
+  <%- orders.sort { |a, b| b.created_at <=> a.created_at }.each { |o| -%>
+    <tr>
+      <td><%= link_to o.id, [:admin, o] %></td>
+      <td><%= o.description %></td>
+      <td><%= amt = o.total_amount
+              number_to_currency(amt) unless amt.nil? %></td>
+      <td><%= o.status %></td>
+    </tr>
+  <%- } -%>
+</table>

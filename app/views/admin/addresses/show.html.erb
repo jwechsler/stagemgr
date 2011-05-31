@@ -1,5 +1,7 @@
-<p id="notice"><%= notice %></p>
-
-
-<%= link_to 'Edit', edit_admin_address_path(@admin_address) %> |
+<%= render :partial=>"/admin/addresses/address_contact_info", :locals=>{:address=>@address} %>
+<br/>
+<%- if !@address.orders.nil? && @address.orders.size > 0 -%>
+    <%= render :partial=>"/admin/addresses/order_history", :locals=>{:orders=>@visible_orders} %>
+<%- end -%>
+<%= link_to 'Edit', edit_admin_address_path(@address) %> |
 <%= link_to 'Back', admin_addresses_path %>

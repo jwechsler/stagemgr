@@ -1,17 +1,11 @@
-<%= form_for(:admin_address) do |f| %>
-  <% if @address.errors.any? %>
-    <div id="error_explanation">
-      <h2><%= pluralize(@address.errors.count, "error") %> prohibited this admin_address from being saved:</h2>
+<%= f.inputs do %>
+    <%= f.input :first_name, :required=>false %>
+    <%= f.input :last_name %>
+    <%= f.input :email %>
+    <%= f.input :line1, :label=>"Street (line 1)", :required=>false %>
+    <%= f.input :line2, :label=>"Street (line 2)", :required=>false %>
+    <%= f.input :city, :required=>false %>
+    <%= f.input :state, :required=>false %>
+    <%= f.input :zipcode, :label=>"Zip Code", :required=>false %>
+<%- end -%>
 
-      <ul>
-      <% @address.errors.full_messages.each do |msg| %>
-        <li><%= msg %></li>
-      <% end %>
-      </ul>
-    </div>
-  <% end %>
-
-  <div class="actions">
-    <%= f.submit %>
-  </div>
-<% end %>

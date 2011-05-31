@@ -1,4 +1,4 @@
-<table width="100%"><tr><td width="80%" valign="top"><%= render :partial => '/admin/addresses/address_contact_info', :locals=>{:address=>order.address } %>
+<table width="100%"><tr><td width="80%" valign="top"><%= render :partial => '/admin/addresses/address_contact_info', :locals=>{:address=>order.address, :link_to_address=>true } %>
 </td><td align="right"valign="top" width="20%"><i>Order ID <%=h order.id %></i><br/><b><%= order.status %></b></td> </tr></table>
 
 <%- if order.contains_tickets? -%>

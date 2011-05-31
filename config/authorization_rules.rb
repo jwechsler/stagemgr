@@ -26,6 +26,7 @@ authorization do
     has_permission_on :flex_pass_offers, :to=>:read do
       if_attribute :theater_id => is_in {user.theater_ids}
     end
+    has_permission_on :admin_addresses, :to=>[:view,:manage,:make]
   end
 
   role :box_office do
@@ -39,6 +40,7 @@ authorization do
     has_permission_on :performances, :to=>[:view, :make, :manage, :delete]
     has_permission_on :admin_ticket_classes, :to=>[:make,:manage]
     has_permission_on :admin_flex_pass_offers, :to=>[:make, :manage, :view]
+    has_permission_on :admin_addresses, :to=>[:view_email]
   end
 
   role :admin do

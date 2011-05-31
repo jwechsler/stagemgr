@@ -1,6 +1,10 @@
 <h1>Editing admin_address</h1>
 
-<%= render 'form' %>
-
-<%= link_to 'Show', :admin_address %> |
+<%= semantic_form_for [:admin, @address] do  |f|%>
+<%= render :partial=>'/admin/addresses/form', :locals=>{:f=>f} %>
+    <%f.buttons do %>
+        <%= f.commit_button "Update" %>
+    <%- end -%>
+<%- end -%>
+<%= link_to 'Show', admin_address_path(@address) %> |
 <%= link_to 'Back', :admin_addresses %>

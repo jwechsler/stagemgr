@@ -222,6 +222,12 @@
     </requirement>
     <requirement>
       <requirement>
+        <dependency name="whenever" version="0" bound="GREATER_OR_EQUAL" git="false" path="false" doRequire="false" />
+      </requirement>
+      <source from="Gemfile" />
+    </requirement>
+    <requirement>
+      <requirement>
         <dependency name="will_paginate" version="3.0.pre2" bound="EQUAL" git="false" path="false" doRequire="true" />
       </requirement>
       <source from="Gemfile" />
@@ -331,6 +337,8 @@
     <orderEntry type="library" scope="PROVIDED" name="[gem] linecache (v0.43, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/linecache-0.43)" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="[gem] StreetAddress (v1.0.1, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/StreetAddress-1.0.1)" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="[gem] hoe (v2.9.4, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/hoe-2.9.4)" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="[gem] whenever (v0.6.8, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/whenever-0.6.8)" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="[gem] aaronh-chronic (v0.3.9, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/aaronh-chronic-0.3.9)" level="application" />
   </component>
 </module>
 
