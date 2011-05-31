@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="74d71d55-c2f8-4deb-b46c-43c5e207e326" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dev-environments/jw_idea/workspace.xml" afterPath="$PROJECT_DIR$/dev-environments/jw_idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/functional/admin/addresses_controller_test.rb" afterPath="$PROJECT_DIR$/test/functional/admin/addresses_controller_test.rb" />
-    </list>
+    <list default="true" id="74d71d55-c2f8-4deb-b46c-43c5e207e326" name="Default" comment="" />
     <ignored path="stagemgr.iws" />
     <ignored path=".idea/workspace.xml" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -39,7 +36,7 @@
       <file leaf-file-name="addresses_controller_test.rb" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/test/functional/admin/addresses_controller_test.rb">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="26" column="32" selection-start="575" selection-end="575" vertical-scroll-proportion="0.27734977">
+            <state line="26" column="32" selection-start="575" selection-end="575" vertical-scroll-proportion="0.48222566">
               <folding />
             </state>
           </provider>
@@ -102,7 +99,7 @@
       <file leaf-file-name="edit.html.erb" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/app/views/admin/addresses/edit.html.erb">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="10" column="0" selection-start="333" selection-end="333" vertical-scroll-proportion="-5.714286">
+            <state line="10" column="0" selection-start="333" selection-end="333" vertical-scroll-proportion="-3.4285715">
               <folding />
             </state>
           </provider>
@@ -111,7 +108,7 @@
       <file leaf-file-name="show.html.erb" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/app/views/admin/addresses/show.html.erb">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="4" column="96" selection-start="271" selection-end="271" vertical-scroll-proportion="-2.2857144">
+            <state line="6" column="96" selection-start="374" selection-end="374" vertical-scroll-proportion="-2.2857144">
               <folding />
             </state>
           </provider>
@@ -766,18 +763,18 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="22" width="1920" height="1130" extended-state="6" />
-    <editor active="true" />
+    <editor active="false" />
     <layout>
-      <window_info id="Data Sources" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.18118653" sideWeight="0.672447" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Data Sources" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.18118653" sideWeight="0.67052025" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32851636" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="true" content_ui="tabs" />
       <window_info id="Dependency Viewer" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.24959914" sideWeight="0.672447" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.24959914" sideWeight="0.67052025" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.37957612" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32755297" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32755297" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32947975" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
@@ -829,11 +826,11 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="ruby-line">
           <url>file://$PROJECT_DIR$/test/unit/address_test.rb</url>
-          <line>162</line>
+          <line>135</line>
         </line-breakpoint>
         <line-breakpoint enabled="true" type="ruby-line">
           <url>file://$PROJECT_DIR$/app/controllers/admin/addresses_controller.rb</url>
-          <line>45</line>
+          <line>52</line>
         </line-breakpoint>
         <line-breakpoint enabled="true" type="ruby-line">
           <url>file://$PROJECT_DIR$/app/controllers/admin/addresses_controller.rb</url>
@@ -901,7 +898,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/app/views/admin/addresses/show.html.erb">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="4" column="96" selection-start="271" selection-end="271" vertical-scroll-proportion="-2.2857144">
+        <state line="6" column="96" selection-start="374" selection-end="374" vertical-scroll-proportion="-2.2857144">
           <folding />
         </state>
       </provider>
@@ -922,7 +919,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/app/views/admin/addresses/edit.html.erb">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="10" column="0" selection-start="333" selection-end="333" vertical-scroll-proportion="-5.714286">
+        <state line="10" column="0" selection-start="333" selection-end="333" vertical-scroll-proportion="-3.4285715">
           <folding />
         </state>
       </provider>
@@ -950,7 +947,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/test/functional/admin/addresses_controller_test.rb">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="26" column="32" selection-start="575" selection-end="575" vertical-scroll-proportion="0.27734977">
+        <state line="26" column="32" selection-start="575" selection-end="575" vertical-scroll-proportion="0.48222566">
           <folding />
         </state>
       </provider>
