@@ -1,4 +1,6 @@
-class Admin::AddressesController < ApplicationController
+class Admin::AddressesController < Admin::ApplicationController
+  # before_filter { |c| Authorization.current_user = c.current_user }
+
   filter_resource_access
 
   # GET /admin/addresses
@@ -15,7 +17,6 @@ class Admin::AddressesController < ApplicationController
   # GET /admin/addresses/1
   # GET /admin/addresses/1.xml
   def show
-    @address = Address.find(params[:id])
     @visible_orders = @address.orders.select{|o| current_user.is_administrator? or current_user.is_box_office_user?|| current_user.theater_ids.include?(o.theater_id) }
     respond_to do |format|
       format.html # show.html.erb
@@ -26,8 +27,6 @@ class Admin::AddressesController < ApplicationController
   # GET /admin/addresses/new
   # GET /admin/addresses/new.xml
   def new
-    @address = Address.new
-
     respond_to do |format|
       format.html # new.html.erb
       format.xml  { render :xml => @address }
@@ -36,13 +35,11 @@ class Admin::AddressesController < ApplicationController
 
   # GET /admin/addresses/1/edit
   def edit
-    @address = Address.find(params[:id])
   end
 
   # POST /admin/addresses
   # POST /admin/addresses.xml
   def create
-    @address = Address.new(params[:address])
     match = @address.find_original
     if !match.nil? then
       match.update_from!(@address)
@@ -65,7 +62,14 @@ class Admin::AddressesController < ApplicationController
   # PUT /admin/addresses/1
   # PUT /admin/addresses/1.xml
   def update
-    @address = Address.find(params[:id])
+    @address.update_attributes(params[:address])
+  #  @address.address_tags = Array.new
+  #  params[:address][:address_tags_attributes].each_pair {
+  #      |k, v|
+  #    @address.address_tags << AddressTag.new(v)
+  #  }
+    #@address.address_tags.build(params[:address][:address_tags_attributes])
+#    @address.address_tags << params[:address][:address_tags_attributes]
     match = @address.find_original
     if !match.nil? then
       match.update_from!(@address)
@@ -75,7 +79,7 @@ class Admin::AddressesController < ApplicationController
       notice = "Audience member was successfully updated."
     end
     respond_to do |format|
-      if @address.update_attributes(params[:admin_address])
+      if @address.save
 
         format.html { redirect_to(:admin_address, :notice => notice) }
         format.xml  { head :ok }

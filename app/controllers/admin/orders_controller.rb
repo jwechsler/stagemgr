@@ -1,6 +1,6 @@
 class Admin::OrdersController < Admin::ApplicationController
 
-  filter_resource_access :attribute_check => true, :additional_new=>{:create => :new}, :additional_member=>{:refund => :refund}, :additional_collection=>{ :fulfill_selected=>:index}
+  filter_resource_access :attribute_check => true, :additional_new=>{:create => :new}, :additional_member=>{:refund => :refund}, :additional_collection=>{:fulfill_selected=>:index}
 
   include OrdersHelper
   #append_before_filter :find_order, :only => [:show, :edit, :update, :destroy, :refund, :cancel, :fulfill]
@@ -8,12 +8,12 @@ class Admin::OrdersController < Admin::ApplicationController
   append_before_filter :redirect_to_proper_action, :only => [:edit, :show]
 
   VALID_SEARCH_COLUMNS = [
-    'orders.id',
-    'productions.production_code',
-    'performances.performance_code',
-    'addresses.last_name',
-    'addresses.first_name',
-    'orders.status'
+      'orders.id',
+      'productions.production_code',
+      'performances.performance_code',
+      'addresses.last_name',
+      'addresses.first_name',
+      'orders.status'
   ]
 
   def index

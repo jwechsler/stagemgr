@@ -10,7 +10,7 @@
     <tr>
       <td><%= link_to o.id, [:admin, o] %></td>
       <td><%= o.description %></td>
-      <td><%= amt = o.total_amount
+      <td><%= amt = o.total
               number_to_currency(amt) unless amt.nil? %></td>
       <td><%= o.status %></td>
     </tr>

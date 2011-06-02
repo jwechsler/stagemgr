@@ -1,0 +1,17 @@
+<%= content_for :jstemplates do -%>
+    <%= raw "var tag_item='#{generate_template(f, :address_tags, :partial=>'/admin/address_tags/edit_tag')}'" %>
+<% end -%>
+<div class="formtastic_indented">
+  <table id="address_tags">
+    <tr>
+      <th>Label</th>
+      <th>Value</th>
+      <th>Theater</th>
+      <th></th>
+    </tr>
+    <% f.fields_for :address_tags do |tag| %>
+      <%= render :partial=>'/admin/address_tags/edit_tag', :locals=>{:f=>tag} %>
+    <%- end -%>
+  </table>
+  <%= link_to 'Add a tag', '#tag_item', :class => "add_nested_item", :rel => "address_tags" %>
+</div>

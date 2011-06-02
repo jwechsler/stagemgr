@@ -1,0 +1,11 @@
+<table id="address_tags">
+    <tr>
+      <th>Label</th>
+      <th>Value</th>
+      <th>Theater</th>
+      <th></th>
+    </tr>
+    <%= address_tags.each{|tag|
+        render :partial=>'/admin/address_tags/tag', :locals=>{:tag=>tag}} %>
+
+  </table>

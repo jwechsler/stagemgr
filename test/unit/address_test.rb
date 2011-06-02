@@ -1,7 +1,6 @@
 require 'test_helper'
 
 class AddressTest < ActiveSupport::TestCase
-  # Replace this with your real tests.
   context "with a valid address" do
     setup do
       @new_address = Factory.create(:address, :first_name=>"Test", :last_name=>"Guy", :line1=>"1229 W Belmont Ave Unit #3", :city=>"Chicago", :state=>"IL", :zipcode=>"60657", :email=>"test@matches.com")
@@ -164,6 +163,28 @@ class AddressTest < ActiveSupport::TestCase
       assert_raise ActiveRecord::RecordNotFound do
         Address.find(@address_2.id)
       end
+    end
+  end
+
+  context "with a new matching address and related tags" do
+    setup do
+      without_access_control do
+        @address_1 = Factory(:address, :first_name=>"bob", :last_name=>"Smith", :email=>"bob@smith.com")
+        @address_1.address_tags.build([{:label=>"Subscription ID", :value=>"9393", :theater => Factory(:theater)}])
+        @address_1.save
+        @address_2 = Factory(:address, :first_name=>"bob", :last_name=>"Smith", :email=>"bob@smith.com")
+        @address_2.address_tags.build([{:label=>"Subscription ID", :value=>"4444", :theater => Factory(:theater)}])
+        @address_2.save
+      end
+
+    end
+    should "merge the related tags" do
+      merge = @address_2.find_original
+      assert_equal 1, merge.address_tags.size
+      merge.update_from!(@address_2)
+      assert_equal 2, merge.address_tags.size
+      merge.save
+      assert_equal 2, Address.find(@address_1.id).address_tags.size
     end
   end
 end
