@@ -17,7 +17,7 @@ class Address < ActiveRecord::Base
     self.add_to_mail_list.blank? ? false : self.add_to_mail_list > 0
   end
 
-  attr_accessible :first_name, :last_name, :line1, :line2, :city, :state, :zipcode, :email, :phone, :street_number
+  attr_accessible :first_name, :last_name, :line1, :line2, :city, :state, :zipcode, :email, :phone, :street_number, :address_tags_attributes
 
   def regularize!
     self.line1.strip! unless self.line1.nil?

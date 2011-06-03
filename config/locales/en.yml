@@ -3,5 +3,7 @@
 
 en:
   hello: "Hello world"
-  formtastic:
+  time:
+    formats:
+      default: "%a, %d %b %Y %H:%M:%S"  formtastic:
     submit: "Submit"
