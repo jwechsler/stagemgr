@@ -63,7 +63,13 @@ class Admin::AddressesController < Admin::ApplicationController
   # PUT /admin/addresses/1.xml
   def update
     @address.update_attributes(params[:address])
-
+  #  @address.address_tags = Array.new
+  #  params[:address][:address_tags_attributes].each_pair {
+  #      |k, v|
+  #    @address.address_tags << AddressTag.new(v)
+  #  }
+    #@address.address_tags.build(params[:address][:address_tags_attributes])
+#    @address.address_tags << params[:address][:address_tags_attributes]
     match = @address.find_original
     if !match.nil? then
       match.update_from!(@address)

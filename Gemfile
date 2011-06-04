@@ -42,7 +42,6 @@ gem "my_emma"
 gem "paperclip"
 gem "htmldiff"
 gem "StreetAddress",           "~> 1.0.1"
-gem "active_scaffold_vho"
 
 group :development do
   gem 'wirble',               '0.1.3'
