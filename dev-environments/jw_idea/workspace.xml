@@ -1,7 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="74d71d55-c2f8-4deb-b46c-43c5e207e326" name="Default" comment="" />
+    <list default="true" id="74d71d55-c2f8-4deb-b46c-43c5e207e326" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dev-environments/jw_idea/stagemgr.iml" afterPath="$PROJECT_DIR$/dev-environments/jw_idea/stagemgr.iml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/models/address.rb" afterPath="$PROJECT_DIR$/app/models/address.rb" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/models/address_tag.rb" afterPath="$PROJECT_DIR$/app/models/address_tag.rb" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/views/admin/address_tags/_edit_tag.html.erb" afterPath="$PROJECT_DIR$/app/views/admin/address_tags/_edit_tag.html.erb" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/views/admin/addresses/new.html.erb" afterPath="$PROJECT_DIR$/app/views/admin/addresses/new.html.erb" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/views/admin/addresses/show.html.erb" afterPath="$PROJECT_DIR$/app/views/admin/addresses/show.html.erb" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dev-environments/jw_idea/workspace.xml" afterPath="$PROJECT_DIR$/dev-environments/jw_idea/workspace.xml" />
+    </list>
     <ignored path="stagemgr.iws" />
     <ignored path=".idea/workspace.xml" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -24,73 +32,28 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="addresses_controller.rb" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app/controllers/admin/addresses_controller.rb">
+      <file leaf-file-name="address.rb" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/models/address.rb">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="6" column="0" selection-start="149" selection-end="149" vertical-scroll-proportion="0.0">
+            <state line="27" column="34" selection-start="939" selection-end="939" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="addresses_controller_test.rb" pinned="false" current="true" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/test/functional/admin/addresses_controller_test.rb">
+      <file leaf-file-name="address_tag.rb" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/models/address_tag.rb">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="26" column="32" selection-start="575" selection-end="575" vertical-scroll-proportion="0.48222566">
+            <state line="3" column="2" selection-start="74" selection-end="74" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="test_case.rb" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$USER_HOME$/.rvm/gems/ruby-1.8.7-p334@rails3/gems/actionpack-3.0.3/lib/action_controller/test_case.rb">
+      <file leaf-file-name="new.html.erb" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/views/admin/addresses/new.html.erb">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="413" column="0" selection-start="15822" selection-end="15822" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="instrumenter.rb" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$USER_HOME$/.rvm/gems/ruby-1.8.7-p334@rails3/gems/activesupport-3.0.3/lib/active_support/notifications/instrumenter.rb">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="22" column="0" selection-start="588" selection-end="588" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="_address_contact_info.html.erb" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app/views/admin/addresses/_address_contact_info.html.erb">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="6" column="112" selection-start="488" selection-end="488" vertical-scroll-proportion="-3.4285715">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="authorization_rules.rb" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/config/authorization_rules.rb">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="2" column="64" selection-start="34" selection-end="34" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="users_controller.rb" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app/controllers/admin/users_controller.rb">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="user.rb" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app/models/user.rb">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="34" column="53" selection-start="884" selection-end="899" vertical-scroll-proportion="0.0">
+            <state line="1" column="0" selection-start="93" selection-end="93" vertical-scroll-proportion="-0.5714286">
               <folding />
             </state>
           </provider>
@@ -99,16 +62,61 @@
       <file leaf-file-name="edit.html.erb" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/app/views/admin/addresses/edit.html.erb">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="10" column="0" selection-start="333" selection-end="333" vertical-scroll-proportion="-3.4285715">
+            <state line="1" column="0" selection-start="0" selection-end="93" vertical-scroll-proportion="-0.5714286">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="show.html.erb" pinned="false" current="false" current-in-tab="false">
+      <file leaf-file-name="_tags.html.erb" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/views/admin/addresses/_tags.html.erb">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="15" column="56" selection-start="532" selection-end="532" vertical-scroll-proportion="-8.571428">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="show.html.erb" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app/views/admin/addresses/show.html.erb">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="6" column="96" selection-start="374" selection-end="374" vertical-scroll-proportion="-2.2857144">
+            <state line="3" column="1" selection-start="241" selection-end="241" vertical-scroll-proportion="0.05732484">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="_tags.html.erb" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/views/admin/address_tags/_tags.html.erb">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="8" column="32" selection-start="190" selection-end="190" vertical-scroll-proportion="-4.571429">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="_edit_tag.html.erb" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/views/admin/address_tags/_edit_tag.html.erb">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="5" column="8" selection-start="226" selection-end="226" vertical-scroll-proportion="-2.857143">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="_tag.html.erb" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/views/admin/address_tags/_tag.html.erb">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="-0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="theater.rb" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/models/theater.rb">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -131,22 +139,22 @@
   <component name="IdeDocumentHistory">
     <option name="changedFiles">
       <list>
-        <option value="$PROJECT_DIR$/test/unit/address_test.rb" />
-        <option value="$PROJECT_DIR$/config/locales/en.yml" />
         <option value="$PROJECT_DIR$/config/routes.rb" />
         <option value="$PROJECT_DIR$/app/views/admin/addresses/_form.html.erb" />
-        <option value="$PROJECT_DIR$/app/views/admin/addresses/new.html.erb" />
         <option value="$PROJECT_DIR$/app/models/order.rb" />
         <option value="$PROJECT_DIR$/app/views/admin/orders/_order_detail.html.erb" />
-        <option value="$PROJECT_DIR$/app/models/address.rb" />
         <option value="$PROJECT_DIR$/app/controllers/admin/application_controller.rb" />
         <option value="$PROJECT_DIR$/app/views/admin/addresses/_order_history.html.erb" />
-        <option value="$PROJECT_DIR$/app/views/admin/addresses/show.html.erb" />
         <option value="$PROJECT_DIR$/app/views/admin/addresses/edit.html.erb" />
         <option value="$PROJECT_DIR$/app/views/admin/addresses/_address_contact_info.html.erb" />
         <option value="$PROJECT_DIR$/config/authorization_rules.rb" />
         <option value="$PROJECT_DIR$/app/controllers/admin/addresses_controller.rb" />
         <option value="$PROJECT_DIR$/test/functional/admin/addresses_controller_test.rb" />
+        <option value="$PROJECT_DIR$/app/models/address.rb" />
+        <option value="$PROJECT_DIR$/app/views/admin/addresses/new.html.erb" />
+        <option value="$PROJECT_DIR$/app/models/address_tag.rb" />
+        <option value="$PROJECT_DIR$/app/views/admin/address_tags/_edit_tag.html.erb" />
+        <option value="$PROJECT_DIR$/app/views/admin/addresses/show.html.erb" />
       </list>
     </option>
   </component>
@@ -183,8 +191,8 @@
       <sortByType />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="Favorites" />
-      <pane id="RailsProjectView" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -231,7 +239,7 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="functional" />
+              <option name="myItemId" value="unit" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -245,11 +253,29 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="test" />
+              <option name="myItemId" value="app" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="functional" />
+              <option name="myItemId" value="views" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="stagemgr" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="stagemgr" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="app" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="views" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
@@ -270,63 +296,94 @@
               <option name="myItemId" value="app" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
-          </PATH>
-          <PATH>
             <PATH_ELEMENT>
-              <option name="myItemId" value="stagemgr" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="stagemgr" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="app" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="controllers" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="stagemgr" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="stagemgr" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="app" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="controllers" />
+              <option name="myItemId" value="views" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="admin" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="addresses" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="stagemgr" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="stagemgr" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="app" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="views" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="admin" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="address_tags" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="stagemgr" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="stagemgr" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="app" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="models" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="stagemgr" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="stagemgr" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="app" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scope" />
+      <pane id="RailsProjectView" />
     </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="options.splitter.main.proportions" value="0.3" />
-    <property name="options.lastSelected" value="org.jetbrains.plugins.ruby.settings.RubyIdeSdkConfigurable" />
+    <property name="options.lastSelected" value="preferences.sourceCode.General" />
     <property name="recentsLimit" value="5" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/test/unit" />
     <property name="RailsGeneratorsPopup.hiddenIncluded" value="false" />
     <property name="dynamic.classpath" value="false" />
     <property name="GoToClass.includeJavaFiles" value="false" />
     <property name="options.searchVisible" value="true" />
     <property name="options.splitter.details.proportions" value="0.2" />
   </component>
-  <component name="RunManager" selected="Test::Unit/Shoulda.test_should_create_admin_address">
+  <component name="RunManager" selected="Rails.Development: stagemgr">
     <configuration default="false" name="with a flexpass order should not allow you to buy too many tickets" type="TestUnitRunConfigurationType" factoryName="Test::Unit/Shoulda" temporary="true">
       <predefined_log_file id="RUBY_TESTUNIT" enabled="true" />
       <module name="stagemgr" />
@@ -725,15 +782,15 @@
       <method />
     </configuration>
     <list size="9">
-      <item index="0" class="java.lang.String" itemvalue="Rake.test" />
-      <item index="1" class="java.lang.String" itemvalue="Rake.spec" />
-      <item index="2" class="java.lang.String" itemvalue="Rails.Production: stagemgr" />
-      <item index="3" class="java.lang.String" itemvalue="Rails.Development: stagemgr" />
-      <item index="4" class="java.lang.String" itemvalue="Test::Unit/Shoulda.with a flexpass order should not allow you to buy too many tickets" />
-      <item index="5" class="java.lang.String" itemvalue="Test::Unit/Shoulda.AddressTest" />
-      <item index="6" class="java.lang.String" itemvalue="Ruby.address" />
-      <item index="7" class="java.lang.String" itemvalue="Test::Unit/Shoulda.test_should_get_index" />
-      <item index="8" class="java.lang.String" itemvalue="Test::Unit/Shoulda.test_should_create_admin_address" />
+      <item index="0" class="java.lang.String" itemvalue="Test::Unit/Shoulda.with a flexpass order should not allow you to buy too many tickets" />
+      <item index="1" class="java.lang.String" itemvalue="Test::Unit/Shoulda.AddressTest" />
+      <item index="2" class="java.lang.String" itemvalue="Ruby.address" />
+      <item index="3" class="java.lang.String" itemvalue="Test::Unit/Shoulda.test_should_get_index" />
+      <item index="4" class="java.lang.String" itemvalue="Test::Unit/Shoulda.test_should_create_admin_address" />
+      <item index="5" class="java.lang.String" itemvalue="Rake.test" />
+      <item index="6" class="java.lang.String" itemvalue="Rake.spec" />
+      <item index="7" class="java.lang.String" itemvalue="Rails.Production: stagemgr" />
+      <item index="8" class="java.lang.String" itemvalue="Rails.Development: stagemgr" />
     </list>
   </component>
   <component name="ShelveChangesManager" show_recycled="false" />
@@ -763,21 +820,21 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="22" width="1920" height="1130" extended-state="6" />
-    <editor active="false" />
+    <editor active="true" />
     <layout>
-      <window_info id="Data Sources" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.18118653" sideWeight="0.67052025" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Data Sources" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.18118653" sideWeight="0.672447" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32851636" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="true" content_ui="tabs" />
       <window_info id="Dependency Viewer" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.24959914" sideWeight="0.67052025" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.25601283" sideWeight="0.672447" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.37957612" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32755297" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32947975" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32755297" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32851636" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32851636" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32851636" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="3" side_tool="false" content_ui="combo" />
@@ -826,128 +883,124 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="ruby-line">
           <url>file://$PROJECT_DIR$/test/unit/address_test.rb</url>
-          <line>135</line>
+          <line>134</line>
         </line-breakpoint>
         <line-breakpoint enabled="true" type="ruby-line">
           <url>file://$PROJECT_DIR$/app/controllers/admin/addresses_controller.rb</url>
-          <line>52</line>
+          <line>49</line>
         </line-breakpoint>
         <line-breakpoint enabled="true" type="ruby-line">
           <url>file://$PROJECT_DIR$/app/controllers/admin/addresses_controller.rb</url>
-          <line>6</line>
+          <line>8</line>
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/app/views/admin/addresses/new.html.erb">
+    <entry file="file://$PROJECT_DIR$/test/unit/address_tag_test.rb">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="2" column="55" selection-start="34" selection-end="85" vertical-scroll-proportion="-1.1428572">
-          <folding />
-        </state>
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/models/address.rb">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="90" column="20" selection-start="3669" selection-end="3669" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/controllers/admin/application_controller.rb">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="2" column="0" selection-start="60" selection-end="60" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/views/admin/orders/_order_detail.html.erb">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="174" selection-start="174" selection-end="174" vertical-scroll-proportion="-0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/views/admin/orders/edit.html.erb">
+    <entry file="file://$PROJECT_DIR$/test/unit/address_test.rb">
       <provider selected="true" editor-type-id="text-editor">
         <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/models/user_session.rb">
+    <entry file="file://$PROJECT_DIR$/test/unit/donation_line_item_test.rb">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/controllers/admin/addresses_controller.rb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="6" column="0" selection-start="186" selection-end="186" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/models/user.rb">
+    <entry file="file://$PROJECT_DIR$/app/views/admin/addresses/_form.html.erb">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="34" column="53" selection-start="884" selection-end="899" vertical-scroll-proportion="0.0">
+        <state line="8" column="44" selection-start="440" selection-end="440" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/controllers/admin/users_controller.rb">
+    <entry file="file://$PROJECT_DIR$/app/views/admin/addresses/index.html.erb">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/views/admin/addresses/show.html.erb">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="6" column="96" selection-start="374" selection-end="374" vertical-scroll-proportion="-2.2857144">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/views/admin/addresses/_address_contact_info.html.erb">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="6" column="112" selection-start="488" selection-end="488" vertical-scroll-proportion="-3.4285715">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/config/authorization_rules.rb">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="2" column="64" selection-start="34" selection-end="34" vertical-scroll-proportion="0.0">
+        <state line="17" column="33" selection-start="418" selection-end="418" vertical-scroll-proportion="-9.714286">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/app/views/admin/addresses/edit.html.erb">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="10" column="0" selection-start="333" selection-end="333" vertical-scroll-proportion="-3.4285715">
+        <state line="1" column="0" selection-start="0" selection-end="93" vertical-scroll-proportion="-0.5714286">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/.rvm/gems/ruby-1.8.7-p334@rails3/gems/activesupport-3.0.3/lib/active_support/notifications/instrumenter.rb">
+    <entry file="file://$PROJECT_DIR$/app/views/admin/addresses/new.html.erb">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="22" column="0" selection-start="588" selection-end="588" vertical-scroll-proportion="0.0">
+        <state line="1" column="0" selection-start="93" selection-end="93" vertical-scroll-proportion="-0.5714286">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/controllers/admin/addresses_controller.rb">
+    <entry file="file://$PROJECT_DIR$/app/models/address.rb">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="6" column="0" selection-start="149" selection-end="149" vertical-scroll-proportion="0.0">
+        <state line="27" column="34" selection-start="939" selection-end="939" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/.rvm/gems/ruby-1.8.7-p334@rails3/gems/actionpack-3.0.3/lib/action_controller/test_case.rb">
+    <entry file="file://$PROJECT_DIR$/app/models/address_tag.rb">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="413" column="0" selection-start="15822" selection-end="15822" vertical-scroll-proportion="0.0">
+        <state line="3" column="2" selection-start="74" selection-end="74" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/functional/admin/addresses_controller_test.rb">
+    <entry file="file://$PROJECT_DIR$/app/models/theater.rb">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="26" column="32" selection-start="575" selection-end="575" vertical-scroll-proportion="0.48222566">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/views/admin/addresses/_tags.html.erb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="15" column="56" selection-start="532" selection-end="532" vertical-scroll-proportion="-8.571428">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/views/admin/address_tags/_tag.html.erb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/views/admin/address_tags/_tags.html.erb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="8" column="32" selection-start="190" selection-end="190" vertical-scroll-proportion="-4.571429">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/views/admin/address_tags/_edit_tag.html.erb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="5" column="8" selection-start="226" selection-end="226" vertical-scroll-proportion="-2.857143">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/views/admin/addresses/show.html.erb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="3" column="1" selection-start="241" selection-end="241" vertical-scroll-proportion="0.05732484">
           <folding />
         </state>
       </provider>
