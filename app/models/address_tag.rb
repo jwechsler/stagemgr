@@ -5,7 +5,7 @@ class AddressTag < ActiveRecord::Base
   belongs_to :address
 
   def to_s
-    "#{self.label} = '#{self.value}'"
+    "#{self.tag_label} = '#{self.tag_value}'"
   end
 
 

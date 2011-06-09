@@ -28,5 +28,8 @@ class Theater < ActiveRecord::Base
   def self.allowed
     Authorization.current_user.is_theater_user? ? Theater.where("status != 'Inactive' and id in (?)",[Authorization.current_user.theater_ids]) : Theater.where("status != 'Inactive'")
   end
-  
+
+  def is_default?
+    self.theater_class == 'Default'
+  end
 end

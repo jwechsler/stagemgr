@@ -1,12 +1,8 @@
 <tr>
   <td>
-    <%= tag.label %>
+    <%= tag.tag_label %><%= " [#{tag.theater.name}]" unless (!tag.theater.nil? || !tag.theater.is_default?) %>
   </td>
   <td>
-    <%= tag.value %>
+    <%= tag.tag_value %>
   </td>
-  <td>
-    <%= tag.theater.name if !tag.theater.nil? %>
-  </td>
-  <td></td>
 </tr>

@@ -4,8 +4,8 @@ class CreateAddressTags < ActiveRecord::Migration
     create_table :address_tags do |t|
       t.integer :address_id
       t.integer :theater_id
-      t.string :label
-      t.string :value
+      t.string :tag_label
+      t.string :tag_value
 
       t.timestamps
     end
