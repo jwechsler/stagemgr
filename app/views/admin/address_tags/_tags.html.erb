@@ -1,11 +1,6 @@
-<table id="address_tags">
-    <thead>
-      <th>Label</th>
-      <th>Value</th>
-    </thead>
-
+<dl class="name-value-display" id="address_tags">
   <%- address_tags.each{|tag| %>
-    <%=  render :partial=>'/admin/address_tags/tag', :locals=>{:tag=>tag} %>
-  <%- } %>
-
-  </table>
+    <dt><%= tag.tag_label %><%= " [#{tag.theater.name}]" unless (tag.theater.nil? || tag.theater.is_default?) %></dt>
+    <dd><%= tag.tag_value %></dd>
+  <%- } -%>
+</dl>

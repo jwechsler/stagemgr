@@ -7,7 +7,6 @@ class Address < ActiveRecord::Base
   has_many :orders
   has_many :address_tags
   accepts_nested_attributes_for :address_tags, :allow_destroy => true
-  before_validation :assign_tag_relations
 
   MAILLIST_STATUS = (
   REQUESTED, SAVED =
@@ -95,7 +94,4 @@ class Address < ActiveRecord::Base
     full_name.upcase
   end
 
-  def assign_tag_relations
-    self.address_tags.each { |tag| tag.address=self }
-  end
 end
