@@ -1,6 +1,6 @@
 <%= render :partial=>"/admin/addresses/address_contact_info", :locals=>{:address=>@address} %>
 <br/>
-<%= render (:partial=>"/admin/address_tags/tags", :locals=>{:address_tags=>@address.address_tags}) if @address.address_tags.count > 0 %>
+<%= render(:partial=>"/admin/address_tags/tags", :locals=>{:address_tags=>@address.address_tags}) if @address.address_tags.count > 0 %>
 <br clear="all">
 
 <%- if !@address.orders.nil? && @address.orders.size > 0 -%>

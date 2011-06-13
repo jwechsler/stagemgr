@@ -170,10 +170,10 @@ class AddressTest < ActiveSupport::TestCase
     setup do
       without_access_control do
         @address_1 = Factory(:address, :first_name=>"bob", :last_name=>"Smith", :email=>"bob@smith.com")
-        @address_1.address_tags.build([{:label=>"Subscription ID", :value=>"9393", :theater => Factory(:theater)}])
+        @address_1.address_tags.build([{:tag_label=>"Subscription ID", :tag_value=>"9393", :theater => Factory(:theater)}])
         @address_1.save
         @address_2 = Factory(:address, :first_name=>"bob", :last_name=>"Smith", :email=>"bob@smith.com")
-        @address_2.address_tags.build([{:label=>"Subscription ID", :value=>"4444", :theater => Factory(:theater)}])
+        @address_2.address_tags.build([{:tag_label=>"Subscription ID", :tag_value=>"4444", :theater => Factory(:theater)}])
         @address_2.save
       end
 
