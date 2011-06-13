@@ -2,7 +2,7 @@ class ProductionsController < ApplicationController
 
   prepend_before_filter :find_theater, :except => [:index, :upcoming, :now_playing]
   append_before_filter :find_production, :only => [:show, :edit, :update, :destroy]
-  
+
   def by_date
     @start_date = params[:start_date].nil? ? Date.today.beginning_of_week : Date.parse(params[:start_date])
     @end_date = params[:end_date].nil? ? Date.today.beginning_of_week + 1.week - 1 : Date.parse(params[:end_date])
