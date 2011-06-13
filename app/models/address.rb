@@ -5,6 +5,8 @@ class Address < ActiveRecord::Base
   validates_presence_of :last_name
   before_save :regularize!
   has_many :orders
+  has_many :address_tags
+  accepts_nested_attributes_for :address_tags, :allow_destroy => true
 
   MAILLIST_STATUS = (
   REQUESTED, SAVED =
@@ -14,7 +16,7 @@ class Address < ActiveRecord::Base
     self.add_to_mail_list.blank? ? false : self.add_to_mail_list > 0
   end
 
-  attr_accessible :first_name, :last_name, :line1, :line2, :city, :state, :zipcode, :email, :phone, :street_number
+  attr_accessible :first_name, :last_name, :line1, :line2, :city, :state, :zipcode, :email, :phone, :street_number, :address_tags_attributes
 
   def regularize!
     self.line1.strip! unless self.line1.nil?
@@ -77,6 +79,7 @@ class Address < ActiveRecord::Base
     self.city = newer.city unless newer.city.blank?
     self.state = newer.state unless newer.state.blank?
     self.zipcode = newer.zipcode unless newer.zipcode.blank?
+    self.address_tags << newer.address_tags
   end
 
   def self.purge_matched_duplicates
@@ -90,4 +93,5 @@ class Address < ActiveRecord::Base
   def name_as_searchable
     full_name.upcase
   end
+
 end

@@ -12,7 +12,7 @@ class Theater < ActiveRecord::Base
   has_many :special_offers
   has_many :flex_pass_offers
   has_many :orders
-
+  has_many :address_tags
   has_and_belongs_to_many :users#, :as=>:owners
   
   has_attached_file :logo
@@ -24,5 +24,12 @@ class Theater < ActiveRecord::Base
   def to_s
     return self.name
   end
-  
+
+  def self.allowed
+    Authorization.current_user.is_theater_user? ? Theater.where("status != 'Inactive' and id in (?)",[Authorization.current_user.theater_ids]) : Theater.where("status != 'Inactive'")
+  end
+
+  def is_default?
+    self.theater_class == 'Default'
+  end
 end
