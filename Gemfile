@@ -45,6 +45,7 @@ gem "StreetAddress",           "~> 1.0.1"
 
 group :development do
   gem 'wirble',               '0.1.3'
+  gem "nifty-generators"
   gem 'what_methods',         '1.0.1'
   gem 'map_by_method',        '0.8.3'
   gem 'bond',                 '0.2.1'

@@ -238,6 +238,11 @@ td.currency {
   text-align: right;
 }
 
+
+td.numeric {
+  text-align: right;
+}
+
 .production_information .special_offer {
     text-align: left;
 }
@@ -246,6 +251,15 @@ td.currency {
     font-weight: bold;
 }
 
+.report_title {
+  font-weight: bold;
+  font-size: 13px;
+}
+
+.help_text {
+  font-style: italic;
+  font-size: 12px;
+}
 # Forms
 
 #non-exchange-notice {

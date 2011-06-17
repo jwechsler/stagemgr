@@ -42,8 +42,8 @@ class Order < ActiveRecord::Base
   attr_accessor_with_default :email_confirmation, 0
 
   ORDER_STATUSES = (
-  HOLD, WEB, NEW, PROCESSING, PROCESSED, REFUNDED, EXCHANGED, FULFILLED, CANCELED =
-    "Hold", "Web", "New", "Processing", "Processed", "Refunded", "Exchanged", "Fulfilled", "Canceled")
+  HOLD, WEB, NEW, PROCESSING, PROCESSED, REFUNDED, EXCHANGED, FULFILLED, CANCELED, UNCLAIMED =
+    "Hold", "Web", "New", "Processing", "Processed", "Refunded", "Exchanged", "Fulfilled", "Canceled", "Unclaimed")
 
   PAYMENT_TYPES = (
   CREDIT_CARD, CASH, FLEX_PASS, PRICE_OVERRIDE =
@@ -125,6 +125,10 @@ class Order < ActiveRecord::Base
     end
   end
 
+  def ticket_quantity_by_class(class_code)
+    self.ticket_line_items.to_a.sum { |li| li.ticket_class.class_code == class_code ? li.ticket_count : 0 }
+
+  end
   def total(reload_line_items=false)
     if self.payments.blank? then
       (self.line_items(reload_line_items) +
@@ -136,6 +140,14 @@ class Order < ActiveRecord::Base
     else
       self.payments.to_a.sum { |payment| payment.respond_to?(:amount) ? payment.amount : 0 }
     end
+  end
+
+  def ticketing_fee
+    self.line_items.uniq.to_a.sum { |li| li.respond_to?(:ticketing_fee) ? li.ticketing_fee : 0 }
+  end
+
+  def credit_card_processing_fee
+    self.credit_card_payments.to_a.sum { |payment| payment.amount * 0.045 }
   end
 
   def ticket_quantity
@@ -176,6 +188,14 @@ class Order < ActiveRecord::Base
 
   def editable?
     [HOLD, NEW, nil].include? self.status
+  end
+
+  def paid?
+    [PROCESSED, FULFILLED, UNCLAIMED].include? self.status
+  end
+
+  def held?
+    self.status == HOLD
   end
 
   def full_name

@@ -1,4 +1,4 @@
-class Theater < ActiveRecord::Base
+ class Theater < ActiveRecord::Base
   using_access_control
 
   THEATER_CLASSES  = ['Default', 'Resident Company', 'Visiting Company', 'Guest Artist']

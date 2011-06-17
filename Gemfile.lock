@@ -131,6 +131,7 @@ GEM
     net-ssh (2.1.3)
     net-ssh-gateway (1.0.1)
       net-ssh (>= 1.99.1)
+    nifty-generators (0.4.6)
     nokogiri (1.4.4)
     paperclip (2.3.8)
       activerecord
@@ -223,6 +224,7 @@ DEPENDENCIES
   mongrel (= 1.1.5)
   my_emma
   mysql (= 2.8.1)
+  nifty-generators
   paperclip
   rails (= 3.0.3)
   rcov (= 0.9.8)

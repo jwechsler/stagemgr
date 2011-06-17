@@ -1,0 +1,22 @@
+<h1>Available reports</h1>
+
+<table>
+  <tr>
+    <th>Report</th>
+    <th></th>
+  </tr>
+  <tr>
+    <td><span class="report_title">Production Sales By Performance</span><br/>
+      <span class="help_text">Returns ticket counts and revenue by performance for specified production</td>
+    <td>
+      <%= form_tag(production_sales_by_performance_admin_reports_path, :method=>"post")  do %>
+        <%= collection_select(:report, :production_id, @productions, :id, :name) %>
+      <%= submit_tag "Show" %>
+      <%- end -%>
+        </td>
+  </tr>
+</table>
+
+<br />
+
+<%= link_to 'New Report', new_admin_report_path %>
