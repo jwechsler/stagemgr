@@ -45,7 +45,8 @@ authorization do
 
   role :admin do
     includes :box_office
-    has_permission_on :theaters, :to=>[:delete]
+    has_permission_on :theaters, :to=>[:delete,:make]
+    has_permission_on :admin_theaters, :to=>[:make]
     has_permission_on :orders, :to=>[:delete]
     has_permission_on :admin_refund_orders, :to=>[:make]
     has_permission_on :admin_users, :to=>[:view, :manage, :delete, :make]
