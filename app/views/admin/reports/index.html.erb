@@ -20,7 +20,15 @@
   </tr>
   <tr>
     <td><span class="report_title">FlexPass Redemptions</span><br/>
-      <span class="help_text">Returns Sales Info for specified FlexPass offer.  Coming soon</span>
+      <span class="help_text">Returns Sales Info for specified FlexPass offer.<br/>
+      Downloadable as flexpass_sales</span>
+    </td>
+    <td>
+      <%= form_tag(flexpass_sales_admin_reports_path, :method=>"post") do %>
+        <%= collection_select(:report, :flex_pass_offer_id, @flex_pass_offers, :id, :name) %>
+        <%= submit_tag "Show" %>
+        <%= submit_tag "Download", :name=>'download_csv' %>
+      <%- end %>
     </td>
   </tr>
 </table>

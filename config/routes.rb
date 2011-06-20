@@ -47,6 +47,7 @@ Stagemgr::Application.routes.draw do
     resources :reports do
       collection do
         post :production_sales_by_performance
+        post :flexpass_sales
       end
     end
 

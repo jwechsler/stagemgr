@@ -12,6 +12,13 @@ class Admin::ReportsController < Admin::ApplicationController
     else
       @productions.sort! { |p1, p2| p1.name <=> p2.name }
     end
+
+    if current_user.is_theater_user? then
+      @flex_pass_offers = @productions.map { |p| p.flex_pass_offer }
+    else
+      @flex_pass_offers = FlexPassOffer.find_all_by_active(true)
+    end
+
     respond_to do |format|
       format.html # index.html.erb
     end
@@ -44,6 +51,19 @@ class Admin::ReportsController < Admin::ApplicationController
     @admin_report = Admin::Report.find(params[:id])
   end
 
+  def flexpass_sales
+    @flex_pass_offer = FlexPassOffer.find(params[:report][:flex_pass_offer_id])
+    @headers, @report_data, @totals = build_flexpass_sales(@flex_pass_offer)
+    if params['download_csv'].nil? then
+      respond_to do |format|
+        format.html
+      end
+    else
+      send_report_as_csv('flexpass_sales_by_date', @headers, @report_data, @totals)
+    end
+
+  end
+
   def production_sales_by_performance
 
     @production = Production.find(params[:report][:production_id])
@@ -51,10 +71,9 @@ class Admin::ReportsController < Admin::ApplicationController
     if params['download_csv'].nil? then
       respond_to do |format|
         format.html
-
       end
     else
-      send_report_as_csv('production_totals',@headers,@report_data,@totals)
+      send_report_as_csv('production_totals', @headers, @report_data, @totals)
     end
   end
 
@@ -117,11 +136,51 @@ class Admin::ReportsController < Admin::ApplicationController
     csv_string = FasterCSV.generate do |csv|
       csv << headers
       data.each do |r|
-        csv << headers.map {|h| tidy_output(r[h]) }
+        csv << headers.map { |h| tidy_output(r[h]) }
       end
-      csv << headers.map {|h| tidy_output(totals[h]) }
+      csv << headers.map { |h| tidy_output(totals[h]) }
     end
     send_data csv_string, :type => "text/csv", :filename=>"#{title}.csv", :disposition=>'attachment'
+  end
+
+  def build_flexpass_sales(offer)
+    orders = offer.flex_passes.map { |f| f.order }
+    report = Array.new
+    headers = [:order_date, :last_name, :first_name, :street_address, :street_address_2, :state, :city, :state, :postal_code,
+               :phone, :collected, :payout, :facility_fee, :tickets_remaining, :status]
+
+    fee = Money.from_numeric(offer.facility_fee.nil? ? 0 : offer.facility_fee)
+    totals = {:payout=>Money.new(0), :facility_fee=>Money.new(0)}
+    orders.select { |o| !o.nil? && o.paid? }.sort { |o1, o2| o2.created_at <=> o1.created_at }.each { |o|
+      flex_pass = FlexPass.find_by_order_id(o.id)
+
+      used = FlexPassPayment.find_all_by_flex_pass_id(flex_pass.id)
+      if offer.flat_payout.blank? || offer.flat_payout == 0
+        payout = Money.from_numeric(used.sum{|p| p.number_of_tickets} * offer.payout_per_ticket)
+      else
+        payout = Money.from_numeric(offer.flat_payout.nil? ? 0 : offer.flat_payout)
+      end
+      report << {:order_date=>Date.parse(o.created_at.to_s),
+                 :last_name=>o.address.last_name,
+                 :first_name=>o.address.first_name,
+                 :street_address=>o.address.line1,
+                 :street_address_2=>o.address.line2,
+                 :state=>o.address.state,
+                 :city=>o.address.city,
+                 :state=>o.address.state,
+                 :postal_code=>o.address.zipcode,
+                 :phone=>o.address.phone,
+                 :payout=>payout,
+                 :collected=>Money.from_numeric(offer.price),
+                 :facility_fee=>fee,
+                 :tickets_remaining=>offer.number_of_tickets - used.sum { |p| p.number_of_tickets },
+                 :status=>o.status
+      }
+      totals[:payout] += payout
+      totals[:facility_fee] += fee
+
+    }
+    [headers, report, totals]
   end
 
   def build_production_sales_by_performance(production)
