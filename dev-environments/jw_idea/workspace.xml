@@ -2,12 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="74d71d55-c2f8-4deb-b46c-43c5e207e326" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/views/admin/reports/_generic.html.erb" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/controllers/admin/reports_controller.rb" afterPath="$PROJECT_DIR$/app/controllers/admin/reports_controller.rb" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/views/admin/reports/index.html.erb" afterPath="$PROJECT_DIR$/app/views/admin/reports/index.html.erb" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/views/admin/reports/production_sales_by_performance.html.erb" afterPath="$PROJECT_DIR$/app/views/admin/reports/production_sales_by_performance.html.erb" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/views/productions/_production_detail.html.erb" afterPath="$PROJECT_DIR$/app/views/productions/_production_detail.html.erb" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/config/routes.rb" afterPath="$PROJECT_DIR$/config/routes.rb" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dev-environments/jw_idea/workspace.xml" afterPath="$PROJECT_DIR$/dev-environments/jw_idea/workspace.xml" />
     </list>
     <ignored path="stagemgr.iws" />
@@ -32,55 +28,10 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="reports_controller.rb" pinned="false" current="true" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/app/controllers/admin/reports_controller.rb">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="173" column="61" selection-start="5551" selection-end="5551" vertical-scroll-proportion="0.6426117">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="_generic.html.erb" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app/views/admin/reports/_generic.html.erb">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="32" column="23" selection-start="967" selection-end="967" vertical-scroll-proportion="-18.285715">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="order.rb" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/app/models/order.rb">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="196" column="6" selection-start="6452" selection-end="6452" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="flex_pass_offer.rb" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app/models/flex_pass_offer.rb">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="0" column="6" selection-start="6" selection-end="6" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="flex_pass.rb" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app/models/flex_pass.rb">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="5" column="18" selection-start="160" selection-end="160" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="flex_pass_payment.rb" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app/models/payments/flex_pass_payment.rb">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="18" column="80" selection-start="806" selection-end="806" vertical-scroll-proportion="0.0">
+            <state line="219" column="38" selection-start="6883" selection-end="6883" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -89,34 +40,25 @@
       <file leaf-file-name="index.html.erb" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/app/views/admin/reports/index.html.erb">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="27" column="8" selection-start="989" selection-end="989" vertical-scroll-proportion="-15.428572">
+            <state line="20" column="0" selection-start="682" selection-end="682" vertical-scroll-proportion="-11.428572">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="_production_detail.html.erb" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app/views/productions/_production_detail.html.erb">
+      <file leaf-file-name="reports_helper.rb" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/helpers/admin/reports_helper.rb">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="42" column="0" selection-start="2370" selection-end="2370" vertical-scroll-proportion="-24.0">
+            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="routes.rb" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/config/routes.rb">
+      <file leaf-file-name="reports_controller.rb" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/app/controllers/admin/reports_controller.rb">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="31" column="97" selection-start="763" selection-end="763" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="flexpass_sales.erb" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app/views/admin/reports/flexpass_sales.erb">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="8" column="0" selection-start="317" selection-end="317" vertical-scroll-proportion="0.0">
+            <state line="15" column="0" selection-start="595" selection-end="595" vertical-scroll-proportion="0.29900333">
               <folding />
             </state>
           </provider>
@@ -139,7 +81,6 @@
   <component name="IdeDocumentHistory">
     <option name="changedFiles">
       <list>
-        <option value="$PROJECT_DIR$/test/functional/admin/addresses_controller_test.rb" />
         <option value="$PROJECT_DIR$/app/models/address.rb" />
         <option value="$PROJECT_DIR$/app/views/admin/addresses/new.html.erb" />
         <option value="$PROJECT_DIR$/app/models/address_tag.rb" />
@@ -151,9 +92,10 @@
         <option value="$PROJECT_DIR$/app/views/admin/reports/production_sales_by_performance.html.erb" />
         <option value="$PROJECT_DIR$/app/views/admin/reports/flexpass_sales_by_date.erb" />
         <option value="$PROJECT_DIR$/config/routes.rb" />
-        <option value="$PROJECT_DIR$/app/views/admin/reports/index.html.erb" />
         <option value="$PROJECT_DIR$/app/views/admin/reports/flexpass_sales.erb" />
         <option value="$PROJECT_DIR$/app/views/admin/reports/_generic.html.erb" />
+        <option value="$PROJECT_DIR$/app/models/order.rb" />
+        <option value="$PROJECT_DIR$/app/views/admin/reports/index.html.erb" />
         <option value="$PROJECT_DIR$/app/controllers/admin/reports_controller.rb" />
       </list>
     </option>
@@ -915,6 +857,10 @@
           <url>file://$PROJECT_DIR$/app/controllers/admin/addresses_controller.rb</url>
           <line>8</line>
         </line-breakpoint>
+        <line-breakpoint enabled="true" type="ruby-line">
+          <url>file://$PROJECT_DIR$/app/controllers/admin/reports_controller.rb</url>
+          <line>15</line>
+        </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
   </component>
@@ -940,13 +886,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/helpers/admin/reports_helper.rb">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="1" column="0" selection-start="28" selection-end="28" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/app/models/production.rb">
       <provider selected="true" editor-type-id="text-editor">
         <state line="0" column="6" selection-start="6" selection-end="6" vertical-scroll-proportion="0.0">
@@ -954,37 +893,16 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/views/admin/reports/production_sales_by_performance.html.erb">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="390" vertical-scroll-proportion="-0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/config/routes.rb">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="31" column="97" selection-start="763" selection-end="763" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/views/admin/reports/index.html.erb">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="27" column="8" selection-start="989" selection-end="989" vertical-scroll-proportion="-15.428572">
+        <state line="23" column="97" selection-start="557" selection-end="557" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/app/views/productions/_production_detail.html.erb">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="42" column="0" selection-start="2370" selection-end="2370" vertical-scroll-proportion="-24.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/views/admin/reports/flexpass_sales.erb">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="8" column="0" selection-start="317" selection-end="317" vertical-scroll-proportion="0.0">
+        <state line="42" column="0" selection-start="2245" selection-end="2245" vertical-scroll-proportion="-24.0">
           <folding />
         </state>
       </provider>
@@ -992,6 +910,13 @@
     <entry file="file://$PROJECT_DIR$/app/models/payments/flex_pass_payment.rb">
       <provider selected="true" editor-type-id="text-editor">
         <state line="18" column="80" selection-start="806" selection-end="806" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/models/flex_pass.rb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="5" column="18" selection-start="160" selection-end="160" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
@@ -1005,28 +930,28 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/app/models/order.rb">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="196" column="6" selection-start="6452" selection-end="6452" vertical-scroll-proportion="0.0">
+        <state line="219" column="38" selection-start="6883" selection-end="6883" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/views/admin/reports/_generic.html.erb">
+    <entry file="file://$PROJECT_DIR$/app/helpers/admin/reports_helper.rb">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="32" column="23" selection-start="967" selection-end="967" vertical-scroll-proportion="-18.285715">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/models/flex_pass.rb">
+    <entry file="file://$PROJECT_DIR$/app/views/admin/reports/index.html.erb">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="5" column="18" selection-start="160" selection-end="160" vertical-scroll-proportion="0.0">
+        <state line="20" column="0" selection-start="682" selection-end="682" vertical-scroll-proportion="-11.428572">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/app/controllers/admin/reports_controller.rb">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="173" column="61" selection-start="5551" selection-end="5551" vertical-scroll-proportion="0.6426117">
+        <state line="15" column="0" selection-start="595" selection-end="595" vertical-scroll-proportion="0.29900333">
           <folding />
         </state>
       </provider>

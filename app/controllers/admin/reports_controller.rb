@@ -14,7 +14,7 @@ class Admin::ReportsController < Admin::ApplicationController
     end
 
     if current_user.is_theater_user? then
-      @flex_pass_offers = @productions.map { |p| p.flex_pass_offer }
+      @flex_pass_offers = @productions.select{|p| !p.flex_pass_offer.nil?}.map { |p| p.flex_pass_offer }
     else
       @flex_pass_offers = FlexPassOffer.find_all_by_active(true)
     end

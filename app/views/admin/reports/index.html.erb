@@ -18,6 +18,7 @@
       <%- end -%>
         </td>
   </tr>
+  <%- if !@flex_pass_offers.nil? && @flex_pass_offers.size > 0 then %>
   <tr>
     <td><span class="report_title">FlexPass Redemptions</span><br/>
       <span class="help_text">Returns Sales Info for specified FlexPass offer.<br/>
@@ -31,6 +32,7 @@
       <%- end %>
     </td>
   </tr>
+  <%- end %>
 </table>
 
 <br />
