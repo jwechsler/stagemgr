@@ -1,56 +1,40 @@
-<h1><%= @production.theater.name %></h1>
+</br.><h1><%= @production.theater.name %></h1>
 <h2><%= @production.name %></h2>
 
-<%- header_row = @headers
-    total_row = @totals
-%>
-
 <table id="production_revenue_by_performance" class="report">
-  <caption><i><%= @production.name %></i> sales counts as of <%= Time.now.to_s(:hour_min) %> on <%= Time.now %></caption>
+  <caption>
+    <i><%= @production.name %></i> sales counts as of <%= Time.now.to_s(:hour_min) %> on <%= Time.now %>
+  </caption>
   <thead>
-    <%- header_row.each {|h| %>
-    <th><%= h %></th>
-    <%- } %>
+  <%- @headers.each { |h| %>
+    <th><%= if h.is_a?(Symbol) then
+              h.to_s.titlecase.gsub(/_/,' ')
+            else
+              h
+            end %></th>
+  <%- } %>
   </thead>
-  <%- odd_row = false %>
-  <%- @report_data.each { |row|
+  <%- odd_row = false
+      @report_data.each { |row|
   %>
     <tr class="<%= 'odd' if odd_row %>">
-      <%- odd_row = !odd_row %>
-      <td><%= row[@keys[:performance_code]]%></td>
-      <td><%= row[@keys[:performance_date]] %></td>
-      <td><%= row[@keys[:performance_time]].to_s(:hour_min) %></td>
-        <td class="numeric">
-          <%- class_qty = paid_orders.sum { |o| o.ticket_quantity_by_class(tc.class_code) }
-              @total_tickets[tc.class_code] += class_qty %>
-          <%= class_qty %></td>
+      <%- odd_row = !odd_row
+          @headers.each { |h| %>
+        <td class="<%= 'currency' if row[h].is_a?(Money)%> <%= 'numeric' if row[h].is_a?(Fixnum) %>">
+          <%= if row[h].is_a?(Money)
+                number_to_currency(row[h])
+              elsif row[h].is_a?(Time)
+                row[h].to_s(:hour_min)
+              else
+                row[h]
+              end %></td>
       <%- } %>
-      <td class="numeric">
-        <%= paid_tickets %>
-      </td>
-      <td class="numeric">
-        <%= held_tickets %></td>
-
-      <td class="currency"><%= number_to_currency(gross) %></td>
-      <td class="currency"><%= number_to_currency(ticketing_fee) %></td>
-      <td class="currency"><%= number_to_currency(credit_card_processing_fee) %></td>
-      <td class="currency"><%= number_to_currency(gross - (ticketing_fee + credit_card_processing_fee)) %></td>
     </tr>
 
   <%- } %>
   <tr class="report_summary_row <%= 'odd' if odd_row %>">
-    <td>TOTAL</td>
-    <td></td>
-    <td></td>
-    <%- ticket_classes.each { |tc| %>
-      <td class="numeric"><%= @total_tickets[tc.class_code] %></td>
-
+    <%- @headers.each { |h| %>
+      <td><%= @totals[h] %></td>
     <%- } %>
-    <td class="numeric"><%= @total_tickets[:paid_total] %></td>
-    <td class="numeric"><%= @total_tickets[:held_total] %></td>
-    <td class="numeric"><%= number_to_currency(@total_gross) %></td>
-    <td class="numeric"><%= number_to_currency(@total_facility) %></td>
-    <td class="numeric"><%= number_to_currency(@total_processing_fee) %></td>
-    <td class="numeric"><%= number_to_currency(@total_gross - (@total_facility + @total_processing_fee)) %></td>
   </tr>
 </table>

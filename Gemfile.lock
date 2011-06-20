@@ -117,6 +117,8 @@ GEM
       treetop (~> 1.4.8)
     map_by_method (0.8.3)
     mime-types (1.16)
+    money (3.7.1)
+      i18n (~> 0.4)
     mongrel (1.1.5)
       cgi_multipart_eof_fix (>= 2.4)
       daemons (>= 1.0.3)
@@ -223,6 +225,7 @@ DEPENDENCIES
   htmldiff
   launchy
   map_by_method (= 0.8.3)
+  money
   mongrel (= 1.1.5)
   my_emma
   mysql (= 2.8.1)
