@@ -1,3 +1,5 @@
+config/pay_pal_credentials.yml
+.idea
 .bundle
 db/*.sqlite3
 log/*.log
