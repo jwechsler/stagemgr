@@ -39,6 +39,8 @@ class TicketLineItem < LineItem
     "#{ticket_count} #{ticket_class.class_code}"
   end
   
-  
+  def ticketing_fee
+    self.ticket_class.ticketing_fee * self.ticket_count
+  end
 
 end

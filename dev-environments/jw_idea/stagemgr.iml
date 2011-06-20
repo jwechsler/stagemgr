@@ -90,6 +90,12 @@
     </requirement>
     <requirement>
       <requirement>
+        <dependency name="fastercsv" version="0" bound="GREATER_OR_EQUAL" git="false" path="false" doRequire="true" />
+      </requirement>
+      <source from="Gemfile" />
+    </requirement>
+    <requirement>
+      <requirement>
         <dependency name="flexmock" version="0.8.6" bound="EQUAL" git="false" path="false" doRequire="true" />
       </requirement>
       <source from="Gemfile" />
@@ -126,6 +132,12 @@
     </requirement>
     <requirement>
       <requirement>
+        <dependency name="money" version="0" bound="GREATER_OR_EQUAL" git="false" path="false" doRequire="true" />
+      </requirement>
+      <source from="Gemfile" />
+    </requirement>
+    <requirement>
+      <requirement>
         <dependency name="mongrel" version="1.1.5" bound="EQUAL" git="false" path="false" doRequire="true" />
       </requirement>
       <source from="Gemfile" />
@@ -139,6 +151,12 @@
     <requirement>
       <requirement>
         <dependency name="mysql" version="2.8.1" bound="EQUAL" git="false" path="false" doRequire="true" />
+      </requirement>
+      <source from="Gemfile" />
+    </requirement>
+    <requirement>
+      <requirement>
+        <dependency name="nifty-generators" version="0" bound="GREATER_OR_EQUAL" git="false" path="false" doRequire="true" />
       </requirement>
       <source from="Gemfile" />
     </requirement>
@@ -319,6 +337,12 @@
     <orderEntry type="library" scope="PROVIDED" name="[gem] formtastic (v1.2.3, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/formtastic-1.2.3)" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="[gem] declarative_authorization (v0.5.2, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/declarative_authorization-0.5.2)" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="[gem] validation_reflection (v1.0.0, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/validation_reflection-1.0.0)" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="[gem] StreetAddress (v1.0.1, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/StreetAddress-1.0.1)" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="[gem] hoe (v2.9.4, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/hoe-2.9.4)" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="[gem] whenever (v0.6.8, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/whenever-0.6.8)" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="[gem] aaronh-chronic (v0.3.9, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/aaronh-chronic-0.3.9)" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="[gem] nifty-generators (v0.4.6, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/nifty-generators-0.4.6)" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="[gem] fastercsv (v1.5.4, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/fastercsv-1.5.4)" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="[gem] rack-mount (v0.6.13, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/rack-mount-0.6.13)" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="[gem] tzinfo (v0.3.25, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/tzinfo-0.3.25)" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="[gem] activemodel (v3.0.3, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/activemodel-3.0.3)" level="application" />
@@ -335,10 +359,7 @@
     <orderEntry type="library" scope="PROVIDED" name="[gem] crack (v0.1.8, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/crack-0.1.8)" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="[gem] thor (v0.14.6, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/thor-0.14.6)" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="[gem] linecache (v0.43, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/linecache-0.43)" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="[gem] StreetAddress (v1.0.1, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/StreetAddress-1.0.1)" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="[gem] hoe (v2.9.4, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/hoe-2.9.4)" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="[gem] whenever (v0.6.8, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/whenever-0.6.8)" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="[gem] aaronh-chronic (v0.3.9, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/aaronh-chronic-0.3.9)" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="[gem] money (v3.7.1, /Users/jeremyw/.rvm/gems/ruby-1.8.7-p334@rails3/gems/money-3.7.1)" level="application" />
   </component>
 </module>
 

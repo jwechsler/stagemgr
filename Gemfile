@@ -42,9 +42,12 @@ gem "my_emma"
 gem "paperclip"
 gem "htmldiff"
 gem "StreetAddress",           "~> 1.0.1"
+gem "fastercsv"
+gem "money"
 
 group :development do
   gem 'wirble',               '0.1.3'
+  gem "nifty-generators"
   gem 'what_methods',         '1.0.1'
   gem 'map_by_method',        '0.8.3'
   gem 'bond',                 '0.2.1'

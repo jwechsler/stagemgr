@@ -1,0 +1,8 @@
+<h1><%= @flex_pass_offer.name %></h1>
+
+<table id="flexpass_sales_by_date" class="report">
+  <caption>
+    <i>Flexpass sales as of <%= Time.now.to_s(:hour_min) %> on <%= Time.now %>
+  </caption>
+  <%= render :partial=>"generic", :locals=>{:headers=>@headers, :report_body=>@report_data, :summary=>@totals} %>
+</table>
