@@ -93,4 +93,9 @@ class Admin::ReportsController < Admin::ApplicationController
       format.xml  { head :ok }
     end
   end
+
+  def production_sales_by_performance_to_csv(production)
+    ticket_classes = production.ticket_classes.sort { |t1, t2| t2.ticket_price <=> t1.ticket_price }
+
+  end
 end

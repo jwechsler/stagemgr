@@ -1,57 +1,93 @@
 <h1><%= @production.theater.name %></h1>
 <h2><%= @production.name %></h2>
-<h3>Production Sales Report as of <%= Time.now.to_s(:hour_min) %> on <%= Time.now %></h3>
-
 <%-
-  ticket_classes = @production.ticket_classes.sort{|t1,t2| t2.ticket_price <=> t1.ticket_price }
+    ticket_classes = @production.ticket_classes.sort { |t1, t2| t2.ticket_price <=> t1.ticket_price }
 %>
-<table id="production_revenue_by_performance" class="report" border="1">
+<table id="production_revenue_by_performance" class="report">
+  <caption><i><%= @production.name %></i> sales counts as of <%= Time.now.to_s(:hour_min) %> on <%= Time.now %></caption>
   <thead>
-    <th>Code</th>
-    <th>Date</th>
-    <th>Time</th>
-    <%- ticket_classes.each{|tc| %>
-        <th><%= tc.class_code %></th>
-    <%- } -%>
-    <th>Reserved</th>
-    <th>House Holds</th>
+  <th>Code</th>
+  <th>Date</th>
+  <th>Time</th>
+  <%- ticket_classes.each { |tc| %>
+    <th><%= tc.class_code %></th>
+  <%- }
+  @total_gross = 0
+    @total_facility = 0
+    @total_processing_fee = 0
+    @total_tickets = Hash.new
+    ticket_classes.each { |tc| @total_tickets[tc.class_code] = 0 }
+    @total_tickets[:paid_total] = 0
+    @total_tickets[:held_total] = 0
+      odd_row = false
+    -%>
+  <th>Reserved</th>
+  <th>House Holds</th>
 
-    <th>Gross</th>
-    <th>Facility</th>
-    <th>Processing</th>
-    <th>Net</th>
+  <th>Gross</th>
+  <th>Facility</th>
+  <th>Processing</th>
+  <th>Net</th>
   </thead>
-  <%- @production.performances.sort{|x,y|
-                                    (x.performance_date == y.performance_date) ?
-                                        x.performance_time <=>y.performance_time :
-                                        x.performance_date <=> y.performance_date }.each {|perf|
-    paid_orders = perf.orders.select{|o| o.paid? }
-    held_orders = perf.orders.select{|o| o.held? }
-    ticketing_fee = 0
-    credit_card_processing_fee = 0
-    %>
+  <%- @production.performances.sort { |x, y|
+    (x.performance_date == y.performance_date) ?
+        x.performance_time <=>y.performance_time :
+        x.performance_date <=> y.performance_date }.each { |perf|
+    paid_orders = perf.orders.select { |o| o.paid? }
+    held_orders = perf.orders.select { |o| o.held? }
 
-  <tr>
-    <td><%= perf.performance_code %></td>
-    <td><%= perf.performance_date %></td>
-    <td><%= perf.performance_time.to_s(:hour_min)%></td>
-    <%- ticket_classes.each{|tc| %>
-      <td class="numeric"><%= paid_orders.sum{|o| o.ticket_quantity_by_class(tc.class_code) } %></td>
+
+  %>
+
+    <tr class="<%= 'odd' if odd_row %>">
+      <%- odd_row = !odd_row %>
+      <td><%= perf.performance_code %></td>
+      <td><%= perf.performance_date %></td>
+      <td><%= perf.performance_time.to_s(:hour_min) %></td>
+      <%- ticket_classes.each { |tc| %>
+        <td class="numeric">
+          <%- class_qty = paid_orders.sum { |o| o.ticket_quantity_by_class(tc.class_code) }
+              @total_tickets[tc.class_code] += class_qty %>
+          <%= class_qty %></td>
       <%- } %>
-    <td class="numeric"><%= paid_orders.sum{|o| o.ticket_quantity } %></td>
-    <td class="numeric"><%= held_orders.sum{|o| o.ticket_quantity } %></td>
-    <%- gross = paid_orders.sum{|o| o.total }
-        ticketing_fee = paid_orders.sum{|o| o.ticketing_fee}
-        credit_card_processing_fee = paid_orders.sum{|o| o.credit_card_processing_fee}
+      <td class="numeric">
+        <%- paid_tickets = paid_orders.sum { |o| o.ticket_quantity }
+            @total_tickets[:paid_total] += paid_tickets %>
+        <%= paid_tickets %>
+      </td>
+      <td class="numeric">
+        <%- held_tickets = held_orders.sum { |o| o.ticket_quantity }
+            @total_tickets[:held_total] += held_tickets %>
+        <%= held_tickets %></td>
+      <%- gross = paid_orders.sum { |o| o.total }
+          ticketing_fee = paid_orders.sum { |o| o.ticketing_fee }
+          credit_card_processing_fee = paid_orders.sum { |o| o.credit_card_processing_fee }
+          @total_gross += gross
+          @total_facility += ticketing_fee
+          @total_processing_fee += credit_card_processing_fee
 
-    %>
-    <td class="currency"><%= number_to_currency(gross) %></td>
-    <td class="currency"><%= number_to_currency(ticketing_fee ) %></td>
-    <td class="currency"><%= number_to_currency(credit_card_processing_fee) %></td>
-    <td class="currency"><%= number_to_currency(gross - (ticketing_fee + credit_card_processing_fee )) %></td>
-  </tr>
 
-  <%- } %><tr>
+      %>
+      <td class="currency"><%= number_to_currency(gross) %></td>
+      <td class="currency"><%= number_to_currency(ticketing_fee) %></td>
+      <td class="currency"><%= number_to_currency(credit_card_processing_fee) %></td>
+      <td class="currency"><%= number_to_currency(gross - (ticketing_fee + credit_card_processing_fee)) %></td>
+    </tr>
 
+  <%- } %>
+  <tr class="report_summary_row <%= 'odd' if odd_row %>">
+    <td>TOTAL</td>
+    <td></td>
+    <td></td>
+    <%- ticket_classes.each { |tc| %>
+      <td class="numeric"><%= @total_tickets[tc.class_code] %></td>
+
+    <%- } %>
+    <td class="numeric"><%= @total_tickets[:paid_total] %></td>
+    <td class="numeric"><%= @total_tickets[:held_total] %></td>
+    <td class="numeric"><%= number_to_currency(@total_gross) %></td>
+    <td class="numeric"><%= number_to_currency(@total_facility) %></td>
+    <td class="numeric"><%= number_to_currency(@total_processing_fee) %></td>
+    <td class="numeric"><%= number_to_currency(@total_gross - (@total_facility + @total_processing_fee)) %></td>
   </tr>
 </table>

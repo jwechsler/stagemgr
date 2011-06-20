@@ -147,7 +147,9 @@ class Order < ActiveRecord::Base
   end
 
   def credit_card_processing_fee
-    self.credit_card_payments.to_a.sum { |payment| payment.amount * 0.045 }
+    processing_fee = self.credit_card_payments.to_a.sum { |payment| payment.amount * 0.04 }
+    processing_fee += 0.22 if processing_fee > 0
+    processing_fee
   end
 
   def ticket_quantity
