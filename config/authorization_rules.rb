@@ -52,6 +52,7 @@ authorization do
     has_permission_on :admin_refund_orders, :to=>[:make]
     has_permission_on :admin_users, :to=>[:view, :manage, :delete, :make]
     has_permission_on :productions, :to=>:delete
+    has_permission_on :admin_reports, :to=>[:reconciliation_reports]
   end
 end
 privileges do
