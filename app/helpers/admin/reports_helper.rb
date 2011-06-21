@@ -7,7 +7,8 @@ module Admin::ReportsHelper
       s << WeekSelect.new(c_week)
       c_week += 1.week
     end
-    s.sort!{ |d1,d2| d2.value <=> d1.value }
+    s.sort! { |d1, d2| d2.value <=> d1.value }
   end
+
 
 end

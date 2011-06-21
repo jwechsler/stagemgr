@@ -1,4 +1,5 @@
-<thead>
+<%- if !headers.nil? && headers.size > 0 then %>
+  <thead>
 <%- headers.each { |h| %>
   <th><%= if h.is_a?(Symbol) then
             h.to_s.titlecase.gsub(/_/, ' ')
@@ -10,7 +11,7 @@
 <%- odd_row = false
     report_body.each { |row|
 %>
-  <tr class="<%= 'odd' if odd_row %>">
+  <tr class="<%= 'odd' if odd_row %> <%= row[:display_class] if !row[:display_class].nil? %>">
     <%- odd_row = !odd_row
         headers.each { |h| %>
       <td class="<%= 'currency' if row[h].is_a?(Money) %> <%= 'numeric' if row[h].is_a?(Fixnum) %>">
@@ -25,15 +26,4 @@
   </tr>
 
 <%- } %>
-<tr class="report_summary_row <%= 'odd' if odd_row %>">
-  <%- headers.each { |h| %>
-    <td class="<%= 'currency' if summary[h].is_a?(Money) %> <%= 'numeric' if summary[h].is_a?(Fixnum) %>">
-      <%= if summary[h].is_a?(Money)
-            number_to_currency(summary[h])
-          elsif summary[h].is_a?(Time)
-            summary[h].to_s(:hour_min)
-          else
-            summary[h]
-          end %></td>
-  <%- } %>
-</tr>
+<%- end %>

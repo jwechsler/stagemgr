@@ -59,33 +59,106 @@ class Admin::ReportsController < Admin::ApplicationController
         format.html
       end
     else
-      send_report_as_csv('weekly_box_office', @headers, @report_data, nil)
+      send_report_as_csv('weekly_box_office', @headers, @report_data)
     end
   end
 
   def flexpass_sales
     @flex_pass_offer = FlexPassOffer.find(params[:report][:flex_pass_offer_id])
-    @headers, @report_data, @totals = build_flexpass_sales(@flex_pass_offer, params['download_csv'].nil?)
+    @headers, @report_data = build_flexpass_sales(@flex_pass_offer, params['download_csv'].nil?)
     if params['download_csv'].nil? then
       respond_to do |format|
         format.html
       end
     else
-      send_report_as_csv('flexpass_sales_by_date', @headers, @report_data, @totals)
+      send_report_as_csv('flexpass_sales_by_date', @headers, @report_data)
     end
 
+  end
+
+  def daily_box_office_receipts
+    @start_day = grab_from_date_select(:start_day, params[:report])
+    @end_day = grab_from_date_select(:end_day, params[:report])
+    if @start_day > @end_day then
+      t = @start_day
+      @start_day = @end_day
+      @end_day = t
+    end
+
+    if (@end_day - @start_day) > 6 then
+      flash[:error] = "You can only pull up to three months at a time"
+      redirect_to admin_reports_path
+    else
+      @headers, @report_data = build_daily_box_office_receipts(@start_day, @end_day, !params['download_csv'].nil?)
+      if params['download_csv'].nil? then
+        respond_to do |format|
+          format.html
+        end
+      else
+        send_report_as_csv('daily_boxoffice_receipts', @headers, @report_data)
+
+      end
+    end
+
+  end
+
+  def build_daily_box_office_receipts(start_day, end_day, build_for_dumpfile = false)
+
+    report = Array.new
+    day_total = Hash.new
+    zero_dollars = Money.new(0)
+    keys = [:order_date]
+    keys += [:id, :first_name, :last_name, :street_address, :street_address_2, :city, :state, :postal_code, :phone] if build_for_dumpfile
+    keys += [:email] if (build_for_dumpfile && permitted_to?(:view_email, :admin_addresses))
+    keys += Order::PAYMENT_TYPES
+    keys += [:performance_code, :special_offer_code, :status, :description] if build_for_dumpfile
+    current_date = start_day - 1.week
+    orders = Order.order("created_at").where("created_at >=:start_day and created_at < :end_day", {:start_day=>start_day, :end_day=>(end_day + 1.day)})
+    orders.each { |o|
+      c_day = o.created_at.in_time_zone("UTC").to_date
+      if c_day != current_date then
+        current_date = c_day
+        report << day_total unless day_total.empty?
+        day_total = Hash.new
+        day_total[:order_date] = c_day
+        day_total[:display_class] = :report_summary_row
+        Order::PAYMENT_TYPES.each { |t| day_total[t] = Money.new(0) }
+      end
+
+      amt = o.status == Order::HOLD ? zero_dollars : Money.from_numeric(o.total)
+      day_total[o.payment_type] += amt if (!o.payment_type.nil?)
+
+
+      if build_for_dumpfile then
+        row = Hash.new
+        row[:order_date] = o.created_at.to_s(:long)
+        row[:id] = o.id
+        row = row.merge(address_hash_from_order(o))
+        row[:performance_code] = o.performance.performance_code if !o.performance.blank?
+        row[:special_offer_code] = o.special_offer_code
+        row[:status] = o.status
+        row[:description] = o.description
+        row[o.payment_type] = amt if !o.payment_type.nil?
+        row[:display_class] = :report_detail_row
+        report << row
+      end
+
+
+    }
+    report << day_total
+    [keys, report]
   end
 
   def production_sales_by_performance
 
     @production = Production.find(params[:report][:production_id])
-    @headers, @report_data, @totals = build_production_sales_by_performance(@production, !params['download_csv'].nil?)
+    @headers, @report_data = build_production_sales_by_performance(@production, !params['download_csv'].nil?)
     if params['download_csv'].nil? then
       respond_to do |format|
         format.html
       end
     else
-      send_report_as_csv('production_totals', @headers, @report_data, @totals)
+      send_report_as_csv('production_totals', @headers, @report_data)
     end
   end
 
@@ -144,15 +217,27 @@ class Admin::ReportsController < Admin::ApplicationController
 
   private
 
-  def send_report_as_csv(title, headers, data, totals)
+  def send_report_as_csv(title, headers, data)
     csv_string = FasterCSV.generate do |csv|
       csv << headers
       data.each do |r|
         csv << headers.map { |h| tidy_output(r[h]) }
       end
-      csv << headers.map { |h| tidy_output(totals[h]) }
     end
     send_data csv_string, :type => "text/csv", :filename=>"#{title}.csv", :disposition=>'attachment'
+  end
+
+  def address_hash_from_order(o)
+    return {:last_name=>o.address.last_name,
+            :first_name=>o.address.first_name,
+            :street_address=>o.address.line1,
+            :street_address_2=>o.address.line2,
+            :state=>o.address.state,
+            :city=>o.address.city,
+            :state=>o.address.state,
+            :postal_code=>o.address.zipcode,
+            :phone=>o.address.phone,
+            :email=>o.address.email}
   end
 
   def build_flexpass_sales(offer, display_only = true)
@@ -163,7 +248,7 @@ class Admin::ReportsController < Admin::ApplicationController
     headers += [:collected, :payout, :facility_fee, :tickets_remaining, :status]
 
     fee = Money.from_numeric(offer.facility_fee.nil? ? 0 : offer.facility_fee)
-    totals = {:payout=>Money.new(0), :facility_fee=>Money.new(0)}
+    totals = {:payout=>Money.new(0), :facility_fee=>Money.new(0), :display_class=>:report_summary_row}
     orders.select { |o| !o.nil? && o.paid? }.sort { |o1, o2| o2.created_at <=> o1.created_at }.each { |o|
       flex_pass = FlexPass.find_by_order_id(o.id)
 
@@ -174,26 +259,19 @@ class Admin::ReportsController < Admin::ApplicationController
         payout = Money.from_numeric(offer.flat_payout.nil? ? 0 : offer.flat_payout)
       end
       report << {:order_date=>Date.parse(o.created_at.to_s),
-                 :last_name=>o.address.last_name,
-                 :first_name=>o.address.first_name,
-                 :street_address=>o.address.line1,
-                 :street_address_2=>o.address.line2,
-                 :state=>o.address.state,
-                 :city=>o.address.city,
-                 :state=>o.address.state,
-                 :postal_code=>o.address.zipcode,
-                 :phone=>o.address.phone,
                  :payout=>payout,
                  :collected=>Money.from_numeric(offer.price),
                  :facility_fee=>fee,
                  :tickets_remaining=>offer.number_of_tickets - used.sum { |p| p.number_of_tickets },
-                 :status=>o.status
-      }
+                 :status=>o.status,
+                 :display_class=>:report_detail_row}.merge(address_hash_from_order(o))
       totals[:payout] += payout
       totals[:facility_fee] += fee
 
     }
-    [headers, report, totals]
+    report << totals
+    [headers, report]
+
   end
 
   def build_production_sales_by_performance(productions, include_classes = true, perfs = nil)
@@ -206,23 +284,32 @@ class Admin::ReportsController < Admin::ApplicationController
     keys = Array.new
     report = Array.new
     total_tickets = Hash.new
+    total_tickets[:gross] = Money.new(0)
+    total_tickets[:facility] = Money.new(0)
+    total_tickets[:processing] = Money.new(0)
+    total_tickets[:paid] = 0
+    total_tickets[:holds] = 0
+    total_tickets[:display_class] = :report_summary_row
 
     productions.sort! { |p1, p2| p1.name <=> p2.name }
     productions.each { |production|
+      subtotal = Hash.new
+
       ticket_classes = production.ticket_classes.sort { |t1, t2| t2.ticket_price <=> t1.ticket_price }
       keys = [:performance_code, :performance_date, :performance_time]
       ticket_classes.each { |tc| keys << tc.class_code } if include_classes
       keys += [:paid, :holds, :gross, :facility, :processing, :net]
       ticket_classes.each { |tc| total_tickets[tc.class_code] = 0 }
-      total_tickets[:gross] = Money.new(0)
-      total_tickets[:facility] = Money.new(0)
-      total_tickets[:processing] = Money.new(0)
-      total_tickets[:paid] = 0
-      total_tickets[:holds] = 0
-
+      subtotal[:gross] = Money.new(0)
+      subtotal[:facility] = Money.new(0)
+      subtotal[:processing] = Money.new(0)
+      subtotal[:paid] = 0
+      subtotal[:holds] = 0
+      subtotal[:display_class] = :report_summary_row
+      subtotal[:performance_code] = production.production_code
       # header row
 
-      use_performances = perfs.nil? ? production.performances : perfs.select { |p| p.production.id = production.id }
+      use_performances = perfs.nil? ? production.performances : perfs.select { |p| p.production.id == production.id }
 
 
       use_performances.sort { |x, y| (x.performance_date == y.performance_date) ?
@@ -236,14 +323,15 @@ class Admin::ReportsController < Admin::ApplicationController
         gross = Money.from_numeric(paid_orders.sum { |o| o.total })
         ticketing_fee = Money.from_numeric(paid_orders.sum { |o| o.ticketing_fee })
         credit_card_processing_fee = Money.from_numeric(paid_orders.sum { |o| o.credit_card_processing_fee })
-        total_tickets[:gross] += gross
-        total_tickets[:facility] += ticketing_fee
-        total_tickets[:processing] += credit_card_processing_fee
-        total_tickets[:paid] += paid_tickets
-        total_tickets[:holds] += held_tickets
+        subtotal[:gross] += gross
+        subtotal[:facility] += ticketing_fee
+        subtotal[:processing] += credit_card_processing_fee
+        subtotal[:paid] += paid_tickets
+        subtotal[:holds] += held_tickets
         row = {:performance_code => perf.performance_code,
                :performance_date => perf.performance_date,
-               :performance_time => perf.performance_time}
+               :performance_time => perf.performance_time,
+               :display_class => :report_detail_row}
         if include_classes then
 
           ticket_classes.each { |tc|
@@ -263,13 +351,24 @@ class Admin::ReportsController < Admin::ApplicationController
         report << row
 
       }
+      subtotal[:net] = subtotal[:gross] - (subtotal[:facility] + subtotal[:processing])
+
+      report << subtotal
+      total_tickets[:gross] += subtotal[:gross]
+      total_tickets[:facility] += subtotal[:facility]
+      total_tickets[:processing] += subtotal[:processing]
+      total_tickets[:paid] += subtotal[:paid]
+      total_tickets[:holds] += subtotal[:holds]
 
     }
 
     total_tickets[:net] = total_tickets[:gross] - (total_tickets[:facility] + total_tickets[:processing])
+    total_tickets[:performance_code] = "TOTAL"
+    if productions.size > 1
+      report << total_tickets
+    end
 
-    [keys, report, total_tickets]
-
+    [keys, report]
   end
 
 
@@ -277,10 +376,13 @@ class Admin::ReportsController < Admin::ApplicationController
 
     performances = Performance.where("performance_date >= ? and performance_date <= ?",
                                      week_ending.beginning_of_week, week_ending.end_of_week)
-    productions = performances.map { |p| p.production }
-    keys, report_data, totals = build_production_sales_by_performance(productions, false, performances)
-
-    [keys, report_data]
+    productions = performances.map { |p| p.production }.uniq
+    build_production_sales_by_performance(productions, false, performances)
   end
 
+  def grab_from_date_select(field_name, params)
+    Date.new(params["#{field_name.to_s}(1i)"].to_i,
+             params["#{field_name.to_s}(2i)"].to_i,
+             params["#{field_name.to_s}(3i)"].to_i)
+  end
 end

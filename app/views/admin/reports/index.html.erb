@@ -42,10 +42,27 @@
       </td>
       <td>
         <%= form_tag(weekly_box_office_admin_reports_path, :method=>"post") do %>
-          <%= collection_select(:report, :week_ending, select_week_of, :display, :svalue) %>
+          <%= collection_select(:report, :week_ending, select_week_of, :display, :value) %>
           <%= submit_tag "Show" %>
           <%= submit_tag "Download", :name=>'download_csv' %>
 
+        <%- end %>
+      </td>
+    </tr>
+  <%- end %>
+  <%- if permitted_to? :box_office_reports, :admin_reports then %>
+    <tr>
+      <td>
+        <span class="report_title">Daily Receipts</span><br/>
+        <span class="help_text">Returns daily sales for specified range.  Order information included in download version</span>
+      </td>
+      <td>
+        <%= form_tag(daily_box_office_receipts_admin_reports_path, :method=>"post") do %>
+          From: <%= date_select(:report, :start_day, :default=>Time.now, :end_year=>Time.now.year) %>
+          To: <%= date_select(:report, :end_day, :default=>Time.now, :end_year=>Time.now.year) %>
+
+          <%= submit_tag "Show" %>
+          <%= submit_tag "Download", :name=>'download_csv' %>
         <%- end %>
       </td>
     </tr>
