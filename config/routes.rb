@@ -50,6 +50,7 @@ Stagemgr::Application.routes.draw do
         post :flexpass_sales
         post :weekly_box_office
         post :daily_box_office_receipts
+        post :order_dump
       end
     end
 

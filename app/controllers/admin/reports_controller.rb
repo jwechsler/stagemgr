@@ -76,6 +76,18 @@ class Admin::ReportsController < Admin::ApplicationController
 
   end
 
+  def order_dump
+    @production = Production.find(params[:report][:production_id])
+    @headers, @report_data = build_order_dump(@production)
+    if params['download_csv'].nil? then
+      respond_to do |format|
+        format.html
+      end
+    else
+      send_report_as_csv('production_attendee', @headers, @report_data)
+    end
+  end
+
   def daily_box_office_receipts
     @start_day = grab_from_date_select(:start_day, params[:report])
     @end_day = grab_from_date_select(:end_day, params[:report])
@@ -100,53 +112,6 @@ class Admin::ReportsController < Admin::ApplicationController
       end
     end
 
-  end
-
-  def build_daily_box_office_receipts(start_day, end_day, build_for_dumpfile = false)
-
-    report = Array.new
-    day_total = Hash.new
-    zero_dollars = Money.new(0)
-    keys = [:order_date]
-    keys += [:id, :first_name, :last_name, :street_address, :street_address_2, :city, :state, :postal_code, :phone] if build_for_dumpfile
-    keys += [:email] if (build_for_dumpfile && permitted_to?(:view_email, :admin_addresses))
-    keys += Order::PAYMENT_TYPES
-    keys += [:performance_code, :special_offer_code, :status, :description] if build_for_dumpfile
-    current_date = start_day - 1.week
-    orders = Order.order("created_at").where("created_at >=:start_day and created_at < :end_day", {:start_day=>start_day, :end_day=>(end_day + 1.day)})
-    orders.each { |o|
-      c_day = o.created_at.in_time_zone("UTC").to_date
-      if c_day != current_date then
-        current_date = c_day
-        report << day_total unless day_total.empty?
-        day_total = Hash.new
-        day_total[:order_date] = c_day
-        day_total[:display_class] = :report_summary_row
-        Order::PAYMENT_TYPES.each { |t| day_total[t] = Money.new(0) }
-      end
-
-      amt = o.status == Order::HOLD ? zero_dollars : Money.from_numeric(o.total)
-      day_total[o.payment_type] += amt if (!o.payment_type.nil?)
-
-
-      if build_for_dumpfile then
-        row = Hash.new
-        row[:order_date] = o.created_at.to_s(:long)
-        row[:id] = o.id
-        row = row.merge(address_hash_from_order(o))
-        row[:performance_code] = o.performance.performance_code if !o.performance.blank?
-        row[:special_offer_code] = o.special_offer_code
-        row[:status] = o.status
-        row[:description] = o.description
-        row[o.payment_type] = amt if !o.payment_type.nil?
-        row[:display_class] = :report_detail_row
-        report << row
-      end
-
-
-    }
-    report << day_total
-    [keys, report]
   end
 
   def production_sales_by_performance
@@ -274,6 +239,7 @@ class Admin::ReportsController < Admin::ApplicationController
 
   end
 
+
   def build_production_sales_by_performance(productions, include_classes = true, perfs = nil)
 
     if productions.is_a?(Array)
@@ -385,4 +351,79 @@ class Admin::ReportsController < Admin::ApplicationController
              params["#{field_name.to_s}(2i)"].to_i,
              params["#{field_name.to_s}(3i)"].to_i)
   end
+
+  def columns_for_orders(build_for_dumpfile)
+    keys = [:order_date]
+    keys += [:id, :first_name, :last_name, :street_address, :street_address_2, :city, :state, :postal_code, :phone] if build_for_dumpfile
+    keys += [:email] if (build_for_dumpfile && permitted_to?(:view_email, :admin_addresses))
+    keys += [:performance_code, :special_offer_code, :status, :description] if build_for_dumpfile
+    keys
+  end
+
+  def create_hash_from_order_fields(order)
+    row = Hash.new
+    row[:order_date] = order.created_at.to_s(:long)
+    row[:id] = order.id
+    row = row.merge(address_hash_from_order(order))
+    row[:performance_code] = order.performance.performance_code if !order.performance.blank?
+    row[:special_offer_code] = order.special_offer_code
+    row[:status] = order.status
+    row[:description] = order.description
+    row
+  end
+
+  def build_daily_box_office_receipts(start_day, end_day, build_for_dumpfile = false)
+
+    report = Array.new
+    day_total = Hash.new
+    zero_dollars = Money.new(0)
+    keys = columns_for_orders(build_for_dumpfile)
+    keys += Order::PAYMENT_TYPES
+    current_date = start_day - 1.week
+    orders = Order.order("created_at").where("created_at >=:start_day and created_at < :end_day", {:start_day=>start_day, :end_day=>(end_day + 1.day)})
+    orders.each { |o|
+      c_day = o.created_at.in_time_zone("UTC").to_date
+      if c_day != current_date then
+        current_date = c_day
+        report << day_total unless day_total.empty?
+        day_total = Hash.new
+        day_total[:order_date] = c_day
+        day_total[:display_class] = :report_summary_row
+        Order::PAYMENT_TYPES.each { |t| day_total[t] = Money.new(0) }
+      end
+
+      amt = o.status == Order::HOLD ? zero_dollars : Money.from_numeric(o.total)
+      day_total[o.payment_type] += amt if (!o.payment_type.nil?)
+
+
+      if build_for_dumpfile then
+        row = create_hash_from_order_fields(o)
+        row[o.payment_type] = amt if !o.payment_type.nil?
+        row[:display_class] = :report_detail_row
+        report << row
+      end
+
+
+    }
+    report << day_total
+    [keys, report]
+  end
+
+
+  def build_order_dump(production)
+    report = Array.new
+    keys = columns_for_orders(true)
+    production.performances.each { |performance|
+      orders = Order.where("performance_id = :performance_id",{:performance_id=>performance.id})
+
+      orders.each { |o|
+        if o.attended? then
+          row = create_hash_from_order_fields(o)
+          report << row
+        end
+      }
+    }
+    [keys, report]
+  end
+
 end

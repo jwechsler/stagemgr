@@ -34,6 +34,19 @@
       </td>
     </tr>
   <%- end %>
+  <tr>
+    <td>
+      <span class="report_title">Performance Attendees</span><br/>
+      <span class="help_text">Download a copy of all orders with attendee contact information as production_attendee.csv.
+      <%- if permitted_to?(:view_email, :admin_addresses) %><br/><strong>Warning: confidential email records included. DO NOT DISTRIBUTE.</strong><%- end -%></strong></span>
+    </td>
+    <td>
+      <%= form_tag(order_dump_admin_reports_path, :method=>"post") do %>
+        <%= collection_select(:report, :production_id, @productions, :id, :name) %>
+        <%= submit_tag "Download", :name=>'download_csv' %>
+      <%- end -%>
+    </td>
+  </tr>
   <%- if permitted_to? :box_office_reports, :admin_reports then %>
     <tr>
       <td>

@@ -45,6 +45,7 @@ class Order < ActiveRecord::Base
   HOLD, WEB, NEW, PROCESSING, PROCESSED, REFUNDED, EXCHANGED, FULFILLED, CANCELED, UNCLAIMED =
     "Hold", "Web", "New", "Processing", "Processed", "Refunded", "Exchanged", "Fulfilled", "Canceled", "Unclaimed")
 
+
   PAYMENT_TYPES = (
   CREDIT_CARD, CASH, FLEX_PASS, PRICE_OVERRIDE =
     "Credit Card", "Cash", "FlexPass", "Price Override")
@@ -71,6 +72,11 @@ class Order < ActiveRecord::Base
         record.errors.add :ticket_line_items, "must contain at least one ticket."
       end
     end
+  end
+
+
+  def attended?
+    [PROCESSED, FULFILLED].include?(self.status)
   end
 
   def value_of_all_payments
