@@ -48,6 +48,7 @@ Stagemgr::Application.routes.draw do
       collection do
         post :production_sales_by_performance
         post :flexpass_sales
+        post :weekly_box_office
       end
     end
 

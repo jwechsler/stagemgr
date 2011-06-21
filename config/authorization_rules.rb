@@ -41,6 +41,7 @@ authorization do
     has_permission_on :admin_ticket_classes, :to=>[:make,:manage]
     has_permission_on :admin_flex_pass_offers, :to=>[:make, :manage, :view]
     has_permission_on :admin_addresses, :to=>[:view_email]
+    has_permission_on :admin_reports, :to=>[:box_office_reports]
   end
 
   role :admin do

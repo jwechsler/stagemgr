@@ -9,32 +9,49 @@
   </tr>
   <tr>
     <td><span class="report_title">Production Sales By Performance</span><br/>
-      <span class="help_text">Returns ticket counts and revenue by performance for specified productions.<br/>Downloadable as production_totals.csv</span></td>
-    <td>
-      <%= form_tag(production_sales_by_performance_admin_reports_path, :method=>"post")  do %>
-        <%= collection_select(:report, :production_id, @productions, :id, :name) %>
-      <%= submit_tag "Show" %>
-      <%= submit_tag "Download", :name=>'download_csv' %>
-      <%- end -%>
-        </td>
-  </tr>
-  <%- if !@flex_pass_offers.nil? && @flex_pass_offers.size > 0 then %>
-  <tr>
-    <td><span class="report_title">FlexPass Redemptions</span><br/>
-      <span class="help_text">Returns Sales Info for specified FlexPass offer.<br/>
-      Downloadable as flexpass_sales</span>
+      <span class="help_text">Returns ticket counts and revenue by performance for specified productions.<br/>Downloadable version [production_totals.csv] includes counts by ticket class.</span>
     </td>
     <td>
-      <%= form_tag(flexpass_sales_admin_reports_path, :method=>"post") do %>
-        <%= collection_select(:report, :flex_pass_offer_id, @flex_pass_offers, :id, :name) %>
+      <%= form_tag(production_sales_by_performance_admin_reports_path, :method=>"post") do %>
+        <%= collection_select(:report, :production_id, @productions, :id, :name) %>
         <%= submit_tag "Show" %>
         <%= submit_tag "Download", :name=>'download_csv' %>
-      <%- end %>
+      <%- end -%>
     </td>
   </tr>
+  <%- if !@flex_pass_offers.nil? && @flex_pass_offers.size > 0 then %>
+    <tr>
+      <td><span class="report_title">FlexPass Redemptions</span><br/>
+      <span class="help_text">Returns Sales Info for specified FlexPass offer.<br/>
+      Downloadable version [flexpass_sales.csv] includes contact information for pass holders</span>
+      </td>
+      <td>
+        <%= form_tag(flexpass_sales_admin_reports_path, :method=>"post") do %>
+          <%= collection_select(:report, :flex_pass_offer_id, @flex_pass_offers, :id, :name) %>
+          <%= submit_tag "Show" %>
+          <%= submit_tag "Download", :name=>'download_csv' %>
+        <%- end %>
+      </td>
+    </tr>
+  <%- end %>
+  <%- if permitted_to? :box_office_reports, :admin_reports then %>
+    <tr>
+      <td>
+        <span class="report_title">Weekly Box Office</span><br/>
+        <span class="help_text">Returns aggregate numbers for performance sales during specified week</span>
+      </td>
+      <td>
+        <%= form_tag(weekly_box_office_admin_reports_path, :method=>"post") do %>
+          <%= collection_select(:report, :week_ending, select_week_of, :display, :svalue) %>
+          <%= submit_tag "Show" %>
+          <%= submit_tag "Download", :name=>'download_csv' %>
+
+        <%- end %>
+      </td>
+    </tr>
   <%- end %>
 </table>
 
-<br />
+<br/>
 
 <%= link_to 'New Report', new_admin_report_path %>
