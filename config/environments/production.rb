@@ -57,4 +57,10 @@ Stagemgr::Application.configure do
   $PAYPAL_LOGIN = paypal_config['production']['paypal_login']
   $PAYPAL_PASSWORD = paypal_config['production']['paypal_password']
 
+  # Set up notification for issues
+
+  config.middleware.use ExceptionNotifier,
+    :email_prefix=>"[Stagemgr Exception] ",
+    :sender_address=>%{"Exception Notifier" <bugs@theaterwit.org>},
+    :exception_recipients=>%w{bugs@theaterwit.org}
 end
