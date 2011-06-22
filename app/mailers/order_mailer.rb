@@ -26,4 +26,9 @@ class OrderMailer < ActionMailer::Base
     }
   end
 
+  def test_message(address)
+    mail(:to=>"jeremy@theaterwit.org",:from=>"\"Theater Wit Box Office\" <boxoffice@theaterwit.org>",
+    :subject=>"Test")
+  end
+
 end
