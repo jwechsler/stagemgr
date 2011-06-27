@@ -1,0 +1,30 @@
+<div class="coming_soon" style="font-size: 12px;">
+  <span style="font-weight: bolder;">Also at Theater Wit</span><br/>
+  <%- productions = Production.where("closing_at > :after_date and status!='Inactive' and not exists (select * from performances where status!='Inactive' and performances.production_id = productions.id and performances.id in (select performance_id from orders where address_id = :order_address))",
+                                     {:after_date=>Time.now.end_of_week,
+                                      :order_address=>order.address.id}).order("RAND()").limit(4) %>
+  <%- productions.each { |prod| %>
+    <div style="text-align:center; font-size:11px">
+      <p style="text-align:center;">
+        <%- if !prod.theater.is_default? %>
+        <span style="font-style:italic;  ">
+
+          <%= prod.theater.name %><br/>
+        </span>
+        <%- end %>
+        <span style="font-weight: bold; font-style:italic; font-size: 13px"><%= prod.name %></span><br/>
+        <%- if !prod.logo_url.blank? %>
+          <img src="<%= "http://www.theaterwit.org#{prod.logo_url}" %>" width="100%">
+          <br/>
+        <%- end %>
+        <%- if prod.now_playing? %>
+          Closes <%= prod.closing_at.to_s(:short) %>
+        <%- else %>
+          Starts <%= prod.first_preview_at.to_s(:short) %>
+        <%- end %>
+      </p>
+    </div>
+  <%- } %>
+  <br/><br/>
+  <span style="font-weight: bolder">And <a href="http://www.theaterwit.org">more</a>...</span>
+</div>

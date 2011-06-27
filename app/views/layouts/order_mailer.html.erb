@@ -1,0 +1,38 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+<head>
+<style>
+  .body {
+    font-size: 13px;
+  }
+  .coming_soon {
+    font-size: 11px;
+  }
+  .production_name {
+    font-weight: bold;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+<table border="0" padding="0">
+  <tr>
+    <td style="border: 1px; padding: 5px">
+      <table border="0" padding="0">
+        <tr>
+          <td width="80%" style="vertical-align:top; border: 1px">
+            <%= yield %>
+          </td>
+          <td width="150px" style="padding: 10px; vertical-align:top; background-color: #5C8392;">
+            <%= render :partial=>'also_playing', :locals=>{:order=>@order} %>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td></td>
+  </tr>
+</table>
+</body>
+</html>

@@ -1,7 +1,7 @@
 macbeth_general_admission:
   class_code: GEN
   production: macbeth
-  ticket_price: 10
+  ticket_price: 30
   ticketing_fee: 2
   web_visible: true
   class_name: General Admission

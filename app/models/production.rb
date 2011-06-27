@@ -33,6 +33,11 @@ class Production < ActiveRecord::Base
       [PRODUCTION_STATUSES.index(other.status) || 0, other.opening_at || Date.today, other.name || '']
   end
 
+  def now_playing?
+    n = Time.now.to_date
+    self.first_preview_at <= n && self.closing_at >= n
+  end
+
   private 
   def clean_values
     self.production_code.upcase! unless self.production_code.nil?

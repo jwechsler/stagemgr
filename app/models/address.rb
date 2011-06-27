@@ -10,11 +10,7 @@ class Address < ActiveRecord::Base
 
   MAILLIST_STATUS = (
   REQUESTED, SAVED =
-    "Requested", "Saved")
-
-  def mailing_list_member?
-    self.add_to_mail_list.blank? ? false : self.add_to_mail_list > 0
-  end
+      "Requested", "Saved")
 
   attr_accessible :first_name, :last_name, :line1, :line2, :city, :state, :zipcode, :email, :phone, :street_number, :address_tags_attributes
 
@@ -53,6 +49,7 @@ class Address < ActiveRecord::Base
     value << self.last_name if !self.last_name.blank?
     value
   end
+
   def find_original
     comparison_id = self.id.nil? ? -1 : self.id
 
@@ -79,6 +76,7 @@ class Address < ActiveRecord::Base
     self.city = newer.city unless newer.city.blank?
     self.state = newer.state unless newer.state.blank?
     self.zipcode = newer.zipcode unless newer.zipcode.blank?
+    self.phone = newer.phone unless newer.phone.blank?
     self.address_tags << newer.address_tags
   end
 
@@ -87,6 +85,32 @@ class Address < ActiveRecord::Base
       candidates = Address.where("not exists (select id from orders where orders.address_id = addresses.id)")
       candidates.each { |a| a.destroy unless a.find_original.nil? }
     end
+  end
+
+  def current_member?
+    false
+  end
+
+  def has_flex_pass?
+    !FlexPass.find_by_address_id(self.id).nil?
+  end
+
+  # @todo Flex pass programs can't be hard coded.
+  def flex_pass_candidate?
+    if !has_flex_pass?
+
+      recent_orders = self.orders.select { |o| o.created_at > 1.year.ago }
+      total_spent = recent_orders.sum { |o| o.total }
+      num_paid_tickets = recent_orders.sum { |o| o.total > 0 ? o.ticket_quantity : 0 }
+      candidate = recent_orders.size > 2 && total_spent/num_paid_tickets > 20
+    else
+      candidate = false
+    end
+    candidate
+  end
+
+  def first_time_paying? (current_order)
+    self.orders.select { |o| (o.id == current_order.id) && o.paid? }.size == 1
   end
 
   private

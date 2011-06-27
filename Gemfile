@@ -44,6 +44,9 @@ gem "htmldiff"
 gem "StreetAddress",           "~> 1.0.1"
 gem "fastercsv"
 gem "money"
+gem "gemcutter"
+gem "postmark-rails"
+
 
 group :development do
   gem 'wirble',               '0.1.3'

@@ -7,7 +7,6 @@
 #   column: value
 
 jeremy:
-  add_to_mail_list: 0
   city: Chicago
   first_name: Jeremy
   last_name: Wechsler

@@ -1,0 +1,16 @@
+<p>
+  <%= raw @order.performance.production.follow_up_message if !@order.performance.production.follow_up_message.blank? %>
+</p>
+<p>
+  I always want to hear from you about your experience in our home here at Theater Wit. I hope you will feel free to
+  email me at any time (<a href="mailto:jeremy@theaterwit.org">jeremy@theaterwit.org</a>) to tell me about it.  If you
+  like a bit of structure, you can also fill out a short survey.
+</p><p>
+  Take care, and I hope we'll see you again soon here at the theater,
+</p><p>
+  <%= image_tag attachments['photo.png'].url -%><br clear="all"/>
+  Jeremy Wechsler<br/>
+  Artistic Director,<br/>
+  Theater Wit</br>
+</p>
+</p>

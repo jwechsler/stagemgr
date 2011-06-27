@@ -96,6 +96,7 @@ GEM
     g (1.4.0)
       ruby-growl (>= 1.0.1)
     gem_plugin (0.2.3)
+    gemcutter (0.7.0)
     gherkin (2.0.2)
       trollop (~> 1.16.2)
     highline (1.6.1)
@@ -140,6 +141,11 @@ GEM
       activerecord
       activesupport
     polyglot (0.3.1)
+    postmark (0.9.6)
+    postmark-rails (0.4.1)
+      actionmailer
+      postmark (>= 0.9.0)
+      rake
     rack (1.2.1)
     rack-mount (0.6.13)
       rack (>= 1.0.0)
@@ -222,6 +228,7 @@ DEPENDENCIES
   flexmock (= 0.8.6)
   formtastic (~> 1.2.3)
   g (= 1.4.0)
+  gemcutter
   htmldiff
   launchy
   map_by_method (= 0.8.3)
@@ -231,6 +238,7 @@ DEPENDENCIES
   mysql (= 2.8.1)
   nifty-generators
   paperclip
+  postmark-rails
   rails (= 3.0.3)
   rcov (= 0.9.8)
   rspec (= 1.3.0)

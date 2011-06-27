@@ -17,4 +17,5 @@
   <%= f.input :status, :as=>:select, :collection=>Production::PRODUCTION_STATUSES, :include_blank=>false %>
   <%= f.input :flex_pass_offer, :collection=>f.object.theater.flex_pass_offers, :label=>"Festival Pass Offer" %>
   <%= f.input :myemma_attendee_group, :label=>"MyEmma Group Number" %>
+  <%= f.input :follow_up_message, :input_html=>{:rows => 6} %>
 <%- end -%>

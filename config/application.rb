@@ -14,14 +14,13 @@ module Stagemgr
 
     # Custom directories with classes and modules you want to be autoloadable.
     # config.autoload_paths += %W(#{config.root}/extras)
-    config.autoload_paths += %W( #{config.root}/app/models/payments #{config.root}/app/models/special_offers #{config.root}/app/models/line_items )
+    config.autoload_paths += %W( #{config.root}/app/models/payments #{config.root}/app/models/special_offers #{config.root}/app/models/line_items #{config.root}/app/models/order_tasks)
 
     # Only load the plugins named here, in the order given (default is alphabetical).
     # :all can be used as a placeholder for all plugins not explicitly named.
     # config.plugins = [ :exception_notification, :ssl_requirement, :all ]
 
     # Activate observers that should always be running.
-    config.active_record.observers = :order_observer
 
     # Set Time.zone default to the specified zone and make Active Record auto-convert to this zone.
     # Run "rake -D time" for a list of tasks for finding time zone names. Default is UTC.
@@ -34,18 +33,25 @@ module Stagemgr
     # hide credit card parameters.
     
     config.filter_parameters << :password << :credit_card_number << :card_number
-    
-  config.action_mailer.delivery_method = :smtp
-  config.action_mailer.smtp_settings = {
-    :enable_starttls_auto => true,
-    :address => 'smtp.gmail.com',
-    :port => 587,
-    :domain => 'theaterwit.org',
-    :authentication => :plain,
-    :user_name => 'boxoffice@theaterwit.org',
-    :password => 'fl00py'
-  }
 
+  # If you want to use gmail for deliver...
+  #config.action_mailer.delivery_method = :smtp
+  #config.action_mailer.smtp_settings = {
+  #  :enable_starttls_auto => true,
+  #  :address => 'smtp.gmail.com',
+  #  :port => 587,
+  #  :domain => 'yourdomain.org',
+  #  :authentication => :plain,
+  #  :user_name => 'user@yourdomain.org',
+  #  :password => 'yourpassword'
+  #}
+
+  #  Or set up postmark (get account at postmarkapp.com). Right now, only email to production settings implemeneted...
+    email_config =  YAML::load(File.open("#{::Rails.root.to_s}/config/email_credentials.yml"))
+
+    config.action_mailer.delivery_method   = :postmark
+    config.action_mailer.postmark_settings = { :api_key=>email_config['api_key'] }
+    config.action_mailer.raise_delivery_errors = true
 
     # JavaScript files you want as :defaults (application.js is always included).
     # config.action_view.javascript_expansions[:defaults] = %w(jquery rails)

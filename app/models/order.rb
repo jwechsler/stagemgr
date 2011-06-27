@@ -7,8 +7,10 @@ class Order < ActiveRecord::Base
 
   include PaymentFormFields
   include ActionView::Helpers::NumberHelper
-  after_validation :auto_link_processed_to_address_of_record
+  before_save :auto_link_processed_to_address_of_record
+  after_save :set_tasks_after_save
   before_save :set_theater
+
   extend HTMLDiff
 
   belongs_to :performance
@@ -20,6 +22,7 @@ class Order < ActiveRecord::Base
   has_many :flex_pass_payments
   has_many :exchange_payments
   has_many :price_override_payments
+  has_many :tasks, :class_name=>'OrderTask'
 
   has_many :line_items
   has_many :ticket_line_items
@@ -40,15 +43,16 @@ class Order < ActiveRecord::Base
   attr_accessor :door_sale
   attr_accessor :additional_donation
   attr_accessor_with_default :email_confirmation, 0
+  attr_accessor :add_to_email_list
 
   ORDER_STATUSES = (
   HOLD, WEB, NEW, PROCESSING, PROCESSED, REFUNDED, EXCHANGED, FULFILLED, CANCELED, UNCLAIMED =
-    "Hold", "Web", "New", "Processing", "Processed", "Refunded", "Exchanged", "Fulfilled", "Canceled", "Unclaimed")
+      "Hold", "Web", "New", "Processing", "Processed", "Refunded", "Exchanged", "Fulfilled", "Canceled", "Unclaimed")
 
 
   PAYMENT_TYPES = (
   CREDIT_CARD, CASH, FLEX_PASS, PRICE_OVERRIDE =
-    "Credit Card", "Cash", "FlexPass", "Price Override")
+      "Credit Card", "Cash", "FlexPass", "Price Override")
 
   acts_as_audited
 
@@ -79,12 +83,13 @@ class Order < ActiveRecord::Base
     [PROCESSED, FULFILLED].include?(self.status)
   end
 
+
   def value_of_all_payments
     all_payments = self.payments.to_a +
-      self.credit_card_payments.to_a +
-      self.cash_payments.to_a +
-      self.exchange_payments.to_a +
-      self.price_override_payments.to_a
+        self.credit_card_payments.to_a +
+        self.cash_payments.to_a +
+        self.exchange_payments.to_a +
+        self.price_override_payments.to_a
     all_payments = all_payments.uniq
     all_payments.sum { |p| p.amount }
   end
@@ -110,7 +115,7 @@ class Order < ActiveRecord::Base
   end
 
   def production_code=(string)
-    @prodution_code=string
+    @production_code=string
   end
 
   def production_code()
@@ -123,7 +128,7 @@ class Order < ActiveRecord::Base
 
   def performance_code()
     case when self.contains_flex_pass?
-           "FLEXPASS"
+      "FLEXPASS"
       when self.contains_donation?
         "DONATION"
       else
@@ -135,13 +140,14 @@ class Order < ActiveRecord::Base
     self.ticket_line_items.to_a.sum { |li| li.ticket_class.class_code == class_code ? li.ticket_count : 0 }
 
   end
+
   def total(reload_line_items=false)
     if self.payments.blank? then
       (self.line_items(reload_line_items) +
-        self.ticket_line_items(reload_line_items) +
-        self.special_offer_line_items(reload_line_items) +
-        self.flex_pass_line_items(reload_line_items) +
-        self.donation_line_items(reload_line_items)
+          self.ticket_line_items(reload_line_items) +
+          self.special_offer_line_items(reload_line_items) +
+          self.flex_pass_line_items(reload_line_items) +
+          self.donation_line_items(reload_line_items)
       ).uniq.to_a.sum { |line_item| line_item.respond_to?(:total) ? line_item.total : 0 }
     else
       self.payments.to_a.sum { |payment| payment.respond_to?(:amount) ? payment.amount : 0 }
@@ -176,6 +182,10 @@ class Order < ActiveRecord::Base
 
   def flex_pass_offer
     FlexPassOffer.find(self.flex_pass_line_items[0].flex_pass_offer_id) unless self.flex_pass_line_items.size == 0
+  end
+
+  def paid_with_flex_pass?
+    self.flex_pass_payments.size > 0
   end
 
   def valid_payment_types_for(current_user)
@@ -257,15 +267,15 @@ class Order < ActiveRecord::Base
       when CREDIT_CARD
         if (amount != 0) then
           new_payment = self.credit_card_payments.build(
-            :amount => amount,
-            :address => self.address,
-            :card_number => self.credit_card_number,
-            :card_expiration_month => self.credit_card_expiration_month,
-            :card_expiration_year => self.credit_card_expiration_year,
-            :card_type => self.credit_card_type,
-            :card_verification_number => self.credit_card_verification_number,
-            :confirmation_code => self.credit_card_confirmation_code,
-            :ip_address => self.ip_address
+              :amount => amount,
+              :address => self.address,
+              :card_number => self.credit_card_number,
+              :card_expiration_month => self.credit_card_expiration_month,
+              :card_expiration_year => self.credit_card_expiration_year,
+              :card_type => self.credit_card_type,
+              :card_verification_number => self.credit_card_verification_number,
+              :confirmation_code => self.credit_card_confirmation_code,
+              :ip_address => self.ip_address
           )
           new_payment.process!
         else
@@ -281,9 +291,9 @@ class Order < ActiveRecord::Base
 
         end
         new_payment = self.flex_pass_payments.create!(
-          :number_of_tickets => self.ticket_quantity,
-          :flex_pass => flex_pass,
-          :amount => flex_pass.flex_pass_offer.payout_per_ticket * self.ticket_quantity
+            :number_of_tickets => self.ticket_quantity,
+            :flex_pass => flex_pass,
+            :amount => flex_pass.flex_pass_offer.payout_per_ticket * self.ticket_quantity
         )
       when PRICE_OVERRIDE
         self.price_override_payments.create!(:amount => amount)
@@ -329,7 +339,7 @@ class Order < ActiveRecord::Base
         performance_s = self.performance.nil_or.to_short_s
         "#{performance_s} (#{self.ticket_detail_description})"
       when self.contains_donation?
-        sum = self.donation_line_items.inject{|sum,x| sum + x.donation_amount}
+        sum = self.donation_line_items.inject { |sum, x| sum + x.donation_amount }
         "Donation"
       when self.contains_flex_pass?
         self.flex_pass_line_items[0].flex_pass_offer.name
@@ -340,7 +350,7 @@ class Order < ActiveRecord::Base
   end
 
   def total_amount
-    sum = self.payments.inject {|sum,x| sum + x.nil? ? 0 : x.amount}
+    sum = self.payments.inject { |sum, x| sum + x.nil? ? 0 : x.amount }
     sum.amount unless sum.nil?
   end
 
@@ -393,7 +403,7 @@ class Order < ActiveRecord::Base
   end
 
   def link_to_address_of_record
-    if !self.address.nil?  then
+    if !self.address.nil? then
       self.address.regularize!
 
       merge = self.address.find_original
@@ -405,12 +415,26 @@ class Order < ActiveRecord::Base
     end
   end
 
+  def self.regularize_addresses
+    orders = Order.all
+    orders.each {|o|
+      o.link_to_address_of_record
+      if o.address_id_changed?
+        begin
+          o.save!
+        rescue Exception => e
+          puts(e)
+        end
+      end
+    }
+  end
+
   private
 
   def auto_link_processed_to_address_of_record
-     if status == Order::PROCESSED then
-       link_to_address_of_record
-     end
+    if self.status == Order::PROCESSED then
+      link_to_address_of_record
+    end
   end
 
   def transition_new_to_hold!
@@ -478,4 +502,61 @@ class Order < ActiveRecord::Base
     end
   end
 
+  def set_tasks_after_save
+    if self.status_changed?
+      case self.status
+        when PROCESSED
+          create_mail_list_task if (self.add_to_email_list == "1")
+          create_receipt_task
+          create_reminder_task
+        when FULFILLED
+          create_performance_followup_task
+        when UNCLAIMED, CANCELED
+          remove_performance_followup_task
+      end
+    end
+
+  end
+
+  def create_mail_list_task
+    self.tasks << MyEmmaTask.new(:execute_at=>Time.now + 5.minutes) if !self.address.email.nil?
+  end
+
+  def create_receipt_task
+    if self.contains_tickets?
+      self.tasks << OutreachTask.new(:execute_at=>Time.now + 5.minutes, :method_symbol=>:ticket_confirmation)
+    end
+
+    self.tasks << OutreachTask.new(:execute_at=>Time.now + 5.minutes, :method_symbol=>:flexpass_confirmation) if self.contains_flex_pass?
+    self.tasks << OutreachTask.new(:execute_at=>Time.now + 5.minutes, :method_symbol=>:donation_thank_you) if self.contains_donation?
+
+  end
+
+  def create_reminder_task
+
+    if self.contains_tickets?
+      day_before = self.performance.performance_date.to_datetime-1.day
+      self.tasks << OutreachTask.new(:execute_at=>day_before, :method_symbol=>:performance_reminder) unless day_before + 2.day > Time.now
+    end
+  end
+
+  def create_performance_followup_task
+    if self.contains_tickets?
+      monday_following = self.performance.performance_date.end_of_week + 1.day
+      case
+        when self.address.current_member?
+          self.tasks << OutreachTask.new(:execute_at=>monday_following, :method_symbol=>:member_followup)
+        when self.paid_with_flex_pass?
+          self.tasks << OutreachTask.new(:execute_at=>monday_following, :method_symbol=>:flex_pass_followup)
+        when self.address.first_time_paying?(self)
+          self.tasks << OutreachTask.new(:execute_at=>monday_following, :method_symbol=>:first_time_followup)
+        else
+          self.tasks << OutreachTask.new(:execute_at=>monday_following, :method_symbol=>:standard_followup)
+      end
+    end
+  end
+
+  def remove_performance_followup_task
+
+  end
 end

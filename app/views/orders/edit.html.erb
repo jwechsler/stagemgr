@@ -36,12 +36,11 @@
         <%- end %>
         <%= render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form} %>
 
-        <%= order_form.fields_for :address do |address_form2| %>
             <table>
               <tr>
                 <td width="25%">&nbsp;</td>
                 <td valign="top">
-                <%= address_form2.check_box :add_to_mail_list, :checked=>1 %>
+                <%= order_form.check_box :add_to_email_list, :checked=>1 %>
                 <td>
                 Join the Theater Wit <%= if !@order.performance.nil? && @order.performance.production.theater.id != 1
                                              "and #{@order.performance.production.theater.name} mailing lists"
@@ -54,7 +53,7 @@
                 will not be shared. :) </span>
                 </td></tr>
             </table>
-        <%- end -%>
+
         <%- if @order.ticket_line_items.size + @order.flex_pass_line_items.size > 0 -%>
         <p id="non-exchange-notice">
           Please note that all ticket purchases are <emp>non-refundable</emp> and <emp>non-exchangeable</emp>.
