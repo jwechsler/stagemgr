@@ -1,6 +1,9 @@
 class OrderTask < ActiveRecord::Base
+
+  after_initialize :init
+
   TASK_STATUSES = (
-      COMPLETED, FAILED = "Completed", "Failed"
+      UNTRIED, COMPLETED, FAILED = "Untried", "Completed", "Failed"
   )
   acts_as_audited
 
@@ -8,9 +11,23 @@ class OrderTask < ActiveRecord::Base
 
   validates_presence_of :order
 
-  def run
-    self.attempts += 1
-    self.status =  self.execute! ?  COMPLETED : FAILED
+
+  protected
+  def execute!
+    raise Exception.new("Unimplmented Task")
   end
+
+  private
+  def init
+    self.attempts ||= 0
+    self.status ||= UNTRIED
+  end
+
+  public
+    def run!
+      self.attempts += 1
+      self.status =  self.execute! ?  COMPLETED : FAILED
+      self.save!
+    end
 
 end

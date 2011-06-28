@@ -15,15 +15,15 @@
 </style>
 </head>
 <body>
-<table border="0" padding="0">
+<table style="border: 1px solid black; padding: 0">
   <tr>
-    <td style="border: 1px; padding: 5px">
-      <table border="0" padding="0">
+    <td ">
+      <table>
         <tr>
-          <td width="80%" style="vertical-align:top; border: 1px">
+          <td width="80%" style="vertical-align:top; padding-left: 10px; padding-right: 10px">
             <%= yield %>
           </td>
-          <td width="150px" style="padding: 10px; vertical-align:top; background-color: #5C8392;">
+          <td width="160px" style="vertical-align:top; background-color: #5C8392;">
             <%= render :partial=>'also_playing', :locals=>{:order=>@order} %>
           </td>
         </tr>

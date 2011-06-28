@@ -1,12 +1,6 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type"/>
-  </head>
-  <body>
-  <h3>See you <%= Date::DAYNAMES[Date.today.wday@order.performance.performance_date.wday] %></h3>
+  <h3>See you <%= Date::DAYNAMES[@order.performance.performance_date.wday] %></h3>
   <p>Just a reminder, you have <%= @order.ticket_quantity %> ticket<%= "s" unless @order.ticket_quantity == 1 %> reserved for the
-      <%= @order.performance.performance_time.strftime('%l:%M %p') %> performance this <%= Date::DAYNAMES[Date.today.wday@order.performance.performance_date.wday] %>.  We look forward to seeing you!
+      <%= @order.performance.performance_time.strftime('%l:%M %p') %> performance this <%= Date::DAYNAMES[@order.performance.performance_date.wday] %>.  We look forward to seeing you!
   </p>
 <h3>Getting Here</h3>
 <p>Theater Wit is located at 1229 W Belmont, between Southport and Racine.  We are accessible by "L" at the Belmont stop for the red, brown and purple lines four blocks east of us.  The 77 CTA bus also drops you on our doorstep.  If you will be driving, there is often street parking, and we offer valet service for many performances. If our valet is not working that day, you may park for free in our large lot behind Cooper's restaurant, directly across the street.</p>
@@ -27,5 +21,3 @@ Pre-show Dining Recommendations
 <p>Please remember that your tickets are NON-REFUNDABLE and NON-EXCHANGEABLE.  We will do our best to accommodate last-minute changes but we reserve the right to let your seats wither on the vine, as it were.</p>
 
 <p><i>See you at the theater!</i></p>
-  </body>
-</html>
