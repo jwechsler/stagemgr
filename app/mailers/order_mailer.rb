@@ -1,5 +1,7 @@
 class OrderMailer < ActionMailer::Base
 
+  layout "order_mailer", :except=>:performance_reminder
+
   def ticket_confirmation(order)
     @order = order
     mail(:to => @order.address.email,
@@ -34,9 +36,10 @@ class OrderMailer < ActionMailer::Base
     :tag=>"Test Message")
   end
 
-  def ticket_reminder(order)
-    mail(:to=>order.address.email,:from=>"\"Theater Wit Box Office\" <boxoffice@theaterwit.org>",
-         :subject=>"Don't forget you have tickets to #{order.performance.production.name}",
+  def performance_reminder(order)
+    @order = order
+    mail(:to=>@order.address.email,:from=>"\"Theater Wit Box Office\" <boxoffice@theaterwit.org>",
+         :subject=>"Don't forget you have tickets to #{@order.performance.production.name}",
          :tag=>"Ticket Reminder")
   end
 
