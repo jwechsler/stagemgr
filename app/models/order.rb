@@ -8,6 +8,7 @@ class Order < ActiveRecord::Base
   include PaymentFormFields
   include ActionView::Helpers::NumberHelper
   after_validation :auto_link_processed_to_address_of_record
+  after_validation :set_tickets_for_pass_redemption
   before_save :set_theater
   extend HTMLDiff
 
@@ -135,6 +136,7 @@ class Order < ActiveRecord::Base
     self.ticket_line_items.to_a.sum { |li| li.ticket_class.class_code == class_code ? li.ticket_count : 0 }
 
   end
+
   def total(reload_line_items=false)
     if self.payments.blank? then
       (self.line_items(reload_line_items) +
@@ -150,6 +152,7 @@ class Order < ActiveRecord::Base
 
   def ticketing_fee
     self.line_items.uniq.to_a.sum { |li| li.respond_to?(:ticketing_fee) ? li.ticketing_fee : 0 }
+
   end
 
   def credit_card_processing_fee
@@ -231,7 +234,7 @@ class Order < ActiveRecord::Base
       original_order.status = Order::EXCHANGED
       self.save!
       self.update_special_offer_line_items_from_code!
-
+      original_order.release_tickets!
       exchange_payment_on_original_order = original_order.exchange_payments.create!(:amount=>-1*original_order.payments(true).to_a.sum { |p| p.amount }, :note=>original_order.description)
       exchange_payment_on_self = self.exchange_payments.create!(:amount=>-1 * exchange_payment_on_original_order.amount, :payment_id=>exchange_payment_on_original_order.id)
       exchange_payment_on_original_order.update_attribute(:payment_id, exchange_payment_on_self.id)
@@ -245,7 +248,7 @@ class Order < ActiveRecord::Base
       self.set_email_confirmation
       self.payments(true)
       self.save!
-      original_order.release_tickets!
+
       original_order.save!
     end
   end
@@ -329,7 +332,7 @@ class Order < ActiveRecord::Base
         performance_s = self.performance.nil_or.to_short_s
         "#{performance_s} (#{self.ticket_detail_description})"
       when self.contains_donation?
-        sum = self.donation_line_items.inject{|sum,x| sum + x.donation_amount}
+        sum = self.donation_line_items.inject { |sum, x| sum + x.donation_amount }
         "Donation"
       when self.contains_flex_pass?
         self.flex_pass_line_items[0].flex_pass_offer.name
@@ -340,7 +343,7 @@ class Order < ActiveRecord::Base
   end
 
   def total_amount
-    sum = self.payments.inject {|sum,x| sum + x.nil? ? 0 : x.amount}
+    sum = self.payments.inject { |sum, x| sum + x.nil? ? 0 : x.amount }
     sum.amount unless sum.nil?
   end
 
@@ -393,7 +396,7 @@ class Order < ActiveRecord::Base
   end
 
   def link_to_address_of_record
-    if !self.address.nil?  then
+    if !self.address.nil? then
       self.address.regularize!
 
       merge = self.address.find_original
@@ -405,12 +408,36 @@ class Order < ActiveRecord::Base
     end
   end
 
+  def paid_with_pass?
+    self.payment_type == Order::FLEX_PASS || !self.flex_pass_payments.empty?
+  end
+
   private
 
+  def set_tickets_for_pass_redemption
+    if self.status_changed? && self.status == Order::PROCESSED && self.paid_with_pass?
+      flex_pass = FlexPass.find_by_code(self.flex_pass_code)
+      offer = flex_pass.flex_pass_offer
+      new_ticket_class = self.performance.production.ticket_classes.select { |tc| tc.class_code == offer.use_ticket_class_code }[0]
+      if !new_ticket_class.nil?
+        self.ticket_line_items.each { |li|
+          new_line_item = TicketLineItem.new
+          new_line_item.ticket_class = new_ticket_class
+          old_price = li.ticket_class.ticket_price
+          new_line_item.ticket_count = li.ticket_count
+          new_line_item.price_override = [li.ticket_class.ticket_price, new_ticket_class.ticket_price].min if new_ticket_class.ticket_type == TicketClass::DONATION
+          self.ticket_line_items << new_line_item
+          self.ticket_line_items.delete(li)
+
+        }
+      end
+    end
+  end
+
   def auto_link_processed_to_address_of_record
-     if status == Order::PROCESSED then
-       link_to_address_of_record
-     end
+    if status == Order::PROCESSED then
+      link_to_address_of_record
+    end
   end
 
   def transition_new_to_hold!

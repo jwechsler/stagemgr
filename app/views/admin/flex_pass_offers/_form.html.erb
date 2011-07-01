@@ -3,6 +3,7 @@
   <%= f.input :price %>
   <%= f.input :number_of_tickets %>
   <%= f.input :payout_per_ticket %>
+  <%= f.input :use_ticket_class_code, :as=>:select, :collection=>DefaultTicketClass.all.map{|tc| tc.class_code} %>
   <%= f.input :flat_payout %>
   <%= f.input :spiff %>
   <%= f.input :facility_fee %>

@@ -1,3 +1,9 @@
+Factory.define(:default_ticket_class) do |default_ticket_class|
+  default_ticket_class.web_visible false
+  default_ticket_class.ticket_price 0
+  default_ticket_class.ticketing_fee 0
+end
+
 Factory.define(:user) do |user|
   user.sequence(:email) {|n| "stagemgr#{n}@example.com"}
   user.password 'password'

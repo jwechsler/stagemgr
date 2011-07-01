@@ -1,31 +1,11 @@
-<p>
-  <%= f.label :class_code %><br />
-  <%= f.text_field :class_code %>
-</p>
-<p>
-  <%= f.label :class_name %><br />
-  <%= f.text_field :class_name %>
-</p>
-<p>
-  <%= f.label :ticket_price %><br />
-  <%= f.text_field :ticket_price %>
-</p>
-<p>
-  <%= f.label :ticketing_fee %><br />
-  <%= f.text_field :ticketing_fee %>
-</p>
-<p>
-  <%= f.label :web_visible %><br />
-  <%= f.check_box :web_visible %>
-</p>
-<p>
-  <%= f.label :ticket_type %><br />
-  <%= f.select(:ticket_type, TicketClass::TICKET_TYPES) %>
-</p>
-<p>
-  <%= f.label :minutes_before_show %><br />
-  <%= f.text_field :minutes_before_show %>
-</p>
-<p>
+<%= f.inputs do %>
+  <%= f.input :class_code %>
+  <%= f.input :class_name %>
+  <%= f.input :ticket_type, :as=>:select, :collection=>TicketClass::TICKET_TYPES %>
+  <%= f.input :ticket_price %>
+  <%= f.input :ticketing_fee %>
+  <%= f.input :web_visible %>
+  <%= f.input :auto_attach %>
+  <%= f.input :minutes_before_show %>
   <%= f.hidden_field :production_id %>
-</p>
+<%- end %>

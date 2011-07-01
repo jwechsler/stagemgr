@@ -93,3 +93,4 @@ group :cucumber do
   gem 'ruby-debug'
 end
 
+gem "mocha", :group => :test

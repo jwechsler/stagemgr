@@ -1,5 +1,7 @@
 Stagemgr::Application.routes.draw do
 
+  namespace(:admin){ resources :default_ticket_classes }
+
   get "donations/new"
 
   get "donations/confirm"
@@ -35,6 +37,8 @@ Stagemgr::Application.routes.draw do
           :action => 'by_date'
 
   namespace :admin do
+
+
     resources :addresses do
 
     end

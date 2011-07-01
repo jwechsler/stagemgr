@@ -50,7 +50,7 @@ module OrdersHelper
   private
   def process_order(on_success_redirect_to)
     begin
-       @order.save!
+      @order.save!
       old_status = @order.status
       Order.transaction do
         @order.transition_to!(convert_button_label_to_state(params[:commit]))
