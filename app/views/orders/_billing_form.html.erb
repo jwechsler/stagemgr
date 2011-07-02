@@ -1,4 +1,10 @@
-<%= order_form.input :payment_type, :label=>"Pay using", :include_blank=>false, :as=>:select, :collection=>((defined? allowed_payment_types).nil? ? payment_types_for(order_form.object) : allowed_payment_types) %>
+<%= if (defined? allowed_payment_types) && !allowed_payment_types.nil?
+      paytype = allowed_payment_types
+    else
+      paytype = payment_types_for(order_form.object)
+    end
+    order_form.input :payment_type, :label=>"Pay using", :include_blank=>false, :as=>:select,
+                     :collection=>paytype %>
 
   <div id='payment_forms'>
     <div id='credit_card_payment_form'>

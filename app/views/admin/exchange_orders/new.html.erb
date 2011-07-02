@@ -15,7 +15,8 @@
 
       <p>Billing information for any overages:</p>
 
-      <%= render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form, :allowed_payment_types=>@allowed_payment_types} %>
+      <%= render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form,
+                                                             :allowed_payment_types=>@allowed_payment_types} %>
       <%= order_form.input :notes, :input_html => {:rows => 4} %>
       <p>
         <%= order_form.submit 'Hold', :disable_with => 'Processing...' if order_form.object.status == Order::NEW || order_form.object.status == Order::HOLD %>
