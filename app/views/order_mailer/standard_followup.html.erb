@@ -1,0 +1,9 @@
+<h2>Good to see you</h2>
+
+<p>
+  Thanks for coming by to see <i><%= @order.performance.production.name %></i>.
+  <%= !@order.performance.production.follow_up_text unless @order.performance.production.follow_up_text.blank? %>
+  We're always happy to welcome folks back.  We look forward to welcoming you again (there are a few suggestions in
+  the sidebar on the right, but check our website for all upcoming events.
+</p>
+<%= render :partial=>'core_followup' %>

@@ -50,18 +50,31 @@ class OrderMailer < ActionMailer::Base
          :tag=>"Member Followup")
   end
 
-  def flex_pass_followup
-    inline_signature
-    mail(:to=>order.address.email,:from=>"\"Jeremy Wechsler\" <jeremy@theaterwit.org>",
-         :subject=>"Thanks for coming to #{order.performance.production.name}",
-         :tag=>"Flex Pass Followup")
+  def flex_pass_followup(order)
+    standard_followup(order)
   end
 
-  def first_time_followup
+  def first_time_followup(order)
+    @order = order
+    @special_offer = PercentOffSpecialOffer.new
+    @special_offer.create_code('1T',6)
+    @special_offer.auto_expire = Date.today + 3.months
+    @special_offer.number_of_uses = 1
+    @special_offer.amount = 25
+    @special_offer.ticket_class_code = "GEN"
+    @special_offer.save!
     inline_signature
     mail(:to=>order.address.email,:from=>"\"Jeremy Wechsler\" <jeremy@theaterwit.org>",
          :subject=>"Thanks for coming to Theater Wit",
          :tag=>"First Time Followup")
+  end
+
+  def standard_followup(order)
+    @order = order
+    inline_signature
+    mail(:to=>order.address.email,:from=>"\"Jeremy Wechsler\" <jeremy@theaterwit.org>",
+         :subject=>"Nice to see you again",
+         :tag=>"Standard Followup")
   end
 
   def inline_signature

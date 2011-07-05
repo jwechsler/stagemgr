@@ -1,7 +1,9 @@
 <h1>New Special Offer</h1>
 
-<%= form_for([:admin, @special_offer]) do |f| %>
-  <%= render :partial => '/admin/special_offers/form', :locals=>{:f=>f} %>
+<%= semantic_form_for([:admin, @special_offer]) do |f| %>
+  <%= f.inputs do %>
+    <%= render :partial => '/admin/special_offers/form', :locals=>{:f=>f} %>
+  <%- end %>
 <p>
   <%= f.submit 'Create' %>
 </p>

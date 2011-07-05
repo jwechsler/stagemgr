@@ -76,6 +76,10 @@ group :test do
   gem 'ruby-debug'
 end
 
+group :production do
+  gem 'exception_notification', :require=>'exception_notifier'
+end
+
 group :cucumber do
   gem 'sqlite3-ruby'
   gem 'capybara',           '0.4.0'
@@ -92,3 +96,4 @@ group :cucumber do
   gem 'ruby-debug'
 end
 
+gem "mocha", :group => :test

@@ -1,25 +1,15 @@
-<%= f.error_messages %>
+<%= f.input :type, :collection=>{"$ Off"=>AmountOffSpecialOffer,"% Off"=>PercentOffSpecialOffer}, :include_blank=>false %>
 
-<p>
-  <%= f.label :type %><br />
-  <%= f.select :type, {"$ Off"=>AmountOffSpecialOffer,"% Off"=>PercentOffSpecialOffer} %>
-</p>
-<p>
-  Applicable To:<br />
-  <%= f.select :limiting_model_type, [
-	['All Tickets', nil],
-	['Tickets for Theater with id:', Theater.to_s],
-	['Tickets for Production with code:', Production.to_s],
-	['Tickets for Performance with code:', Performance.to_s],
-	['Tickets for Ticket Class with code:', TicketClass.to_s]
+<%= f.input :limiting_model_type, :label=>"Restrict To", :include_blank=>false, :collection=>[
+	['Any', nil],
+	['Theater', Theater.to_s],
+	['Production', Production.to_s],
+	['Performance', Performance.to_s]
 	] %>
-  <%= f.text_field :limiting_id %>
-</p>
-<p>
-  <%= f.label :amount %><br />
-  <%= f.text_field :amount %>
-</p>
-<p>
-  <%= f.label :code %><br />
-  <%= f.text_field :code %>
-</p>
+<%= f.input :limiting_id, :label=>"Limiting Code" %>
+
+<%= f.input :amount %>
+<%= f.input :ticket_class_code, :label=>"For Ticket Classes starting with" %>
+<%= f.input :status, :collection=>SpecialOffer::OFFER_STATUSES, :include_blank=>false %>
+<%= f.input :number_of_uses, :label=>"Maximum uses" %>
+<%= f.input :auto_expire, :label=>"Expire on" %>

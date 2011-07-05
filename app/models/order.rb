@@ -83,7 +83,6 @@ class Order < ActiveRecord::Base
     [PROCESSED, FULFILLED].include?(self.status)
   end
 
-
   def value_of_all_payments
     all_payments = self.payments.to_a +
         self.credit_card_payments.to_a +
@@ -184,10 +183,6 @@ class Order < ActiveRecord::Base
     FlexPassOffer.find(self.flex_pass_line_items[0].flex_pass_offer_id) unless self.flex_pass_line_items.size == 0
   end
 
-  def paid_with_flex_pass?
-    self.flex_pass_payments.size > 0
-  end
-
   def valid_payment_types_for(current_user)
     valid_payment_types = Order::PAYMENT_TYPES.clone
     unless current_user && (current_user.is_administrator? || current_user.is_box_office_user?)
@@ -241,7 +236,7 @@ class Order < ActiveRecord::Base
       original_order.status = Order::EXCHANGED
       self.save!
       self.update_special_offer_line_items_from_code!
-
+      original_order.release_tickets!
       exchange_payment_on_original_order = original_order.exchange_payments.create!(:amount=>-1*original_order.payments(true).to_a.sum { |p| p.amount }, :note=>original_order.description)
       exchange_payment_on_self = self.exchange_payments.create!(:amount=>-1 * exchange_payment_on_original_order.amount, :payment_id=>exchange_payment_on_original_order.id)
       exchange_payment_on_original_order.update_attribute(:payment_id, exchange_payment_on_self.id)
@@ -255,7 +250,7 @@ class Order < ActiveRecord::Base
       self.set_email_confirmation
       self.payments(true)
       self.save!
-      original_order.release_tickets!
+
       original_order.save!
     end
   end
@@ -313,17 +308,11 @@ class Order < ActiveRecord::Base
   def update_special_offer_line_items_from_code!
     if !self.special_offer_code.blank?
       self.special_offer_line_items.clear
-      special_offer = SpecialOffer.find(:first,
-                                        :conditions => ["trim(lower(code)) = trim(lower(?)) and (performance_id = ? or production_id = ? or theater_id = ? or (performance_id is null and production_id is null and theater_id is null))",
-                                                        self.special_offer_code,
-                                                        self.performance.id,
-                                                        self.performance.production.id,
-                                                        self.performance.production.theater.id],
-                                        :order=>"performance_id desc, production_id desc, theater_id desc")
+      special_offer = SpecialOffer.find_by_order(self)
       if special_offer
         self.special_offer_line_items.create!(:special_offer=>special_offer)
       else
-        raise "Unknown special offer code \"#{self.special_offer_code}\""
+        raise "Unknown or expired special offer code \"#{self.special_offer_code}\""
       end
     end
   end
@@ -429,10 +418,36 @@ class Order < ActiveRecord::Base
     }
   end
 
+  def paid_with_pass?
+      self.payment_type == Order::FLEX_PASS || !self.flex_pass_payments.empty?
+    end
+
+    private
+  
   private
 
+  def set_tickets_for_pass_redemption
+    if self.status_changed? && self.status == Order::PROCESSED && self.paid_with_pass?
+      flex_pass = FlexPass.find_by_code(self.flex_pass_code)
+      offer = flex_pass.flex_pass_offer
+      new_ticket_class = self.performance.production.ticket_classes.select { |tc| tc.class_code == offer.use_ticket_class_code }[0]
+      if !new_ticket_class.nil?
+        self.ticket_line_items.each { |li|
+          new_line_item = TicketLineItem.new
+          new_line_item.ticket_class = new_ticket_class
+          old_price = li.ticket_class.ticket_price
+          new_line_item.ticket_count = li.ticket_count
+          new_line_item.price_override = [li.ticket_class.ticket_price, new_ticket_class.ticket_price].min if new_ticket_class.ticket_type == TicketClass::DONATION
+          self.ticket_line_items << new_line_item
+          self.ticket_line_items.delete(li)
+
+        }
+      end
+    end
+  end
+
   def auto_link_processed_to_address_of_record
-    if self.status == Order::PROCESSED then
+    if status == Order::PROCESSED then
       link_to_address_of_record
     end
   end
@@ -444,6 +459,7 @@ class Order < ActiveRecord::Base
 
   def transition_new_to_processing!
     self.status = Order::PROCESSING
+    self.update_special_offer_line_items_from_code! unless self.special_offer_code.blank?
     self.save!
   end
 
@@ -456,7 +472,6 @@ class Order < ActiveRecord::Base
   end
 
   def transition_processing_to_processed!
-    self.update_special_offer_line_items_from_code! unless self.special_offer_code.blank?
 
     create_proper_payment_in_amount_of!(self.total)
 
@@ -464,6 +479,7 @@ class Order < ActiveRecord::Base
 
     self.status = Order::PROCESSED
     self.set_email_confirmation
+    self.special_offer_line_items.each { |li| li.mark_redeemed }
     self.save!
   end
 
@@ -546,7 +562,7 @@ class Order < ActiveRecord::Base
       case
         when self.address.current_member?
           self.tasks << OutreachTask.new(:execute_at=>monday_following, :method_symbol=>:member_followup)
-        when self.paid_with_flex_pass?
+        when self.paid_with_pass?
           self.tasks << OutreachTask.new(:execute_at=>monday_following, :method_symbol=>:flex_pass_followup)
         when self.address.first_time_paying?(self)
           self.tasks << OutreachTask.new(:execute_at=>monday_following, :method_symbol=>:first_time_followup)

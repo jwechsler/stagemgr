@@ -13,5 +13,9 @@ class SpecialOfferLineItem < LineItem
   def ticket_count
     0
   end
-  
+
+  def mark_redeemed
+    special_offer.redeem_one_use!
+
+  end
 end

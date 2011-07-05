@@ -6,7 +6,8 @@ class Admin::ExchangeOrdersController < Admin::ApplicationController
     @exchange_order = Order.new
     @exchange_order.ticket_line_items.build
     @exchange_order.status = Order::NEW
-    
+    @allowed_payment_types =  [Order::FLEX_PASS] if @original_order.paid_with_pass?
+
     respond_to do |format|
       format.html # new.html.erb
       format.xml  { render :xml => @exchange_order }

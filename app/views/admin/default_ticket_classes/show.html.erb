@@ -1,0 +1,36 @@
+<% title "Admin/Default Ticket Class" %>
+
+<p>
+  <strong>Class Code:</strong>
+  <%= @default_ticket_class.class_code %>
+</p>
+<p>
+  <strong>Class Name:</strong>
+  <%= @default_ticket_class.class_name %>
+</p>
+<p>
+  <strong>Ticket Price:</strong>
+  <%= number_to_currency(@default_ticket_class.ticket_price) %>
+</p>
+<p>
+  <strong>Ticket Type:</strong>
+  <%= @default_ticket_class.ticket_type %>
+</p>
+<p>
+  <strong>Ticketing Fee:</strong>
+  <%= number_to_currency(@default_ticket_class.ticketing_fee) %>
+</p>
+<p>
+  <strong>Minutes Before Show:</strong>
+  <%= @default_ticket_class.minutes_before_show %>
+</p>
+<p>
+  <strong>Web Visible:</strong>
+  <%= @default_ticket_class.web_visible %>
+</p>
+
+<p>
+  <%= link_to "Edit", edit_admin_default_ticket_class_path(@default_ticket_class) %> |
+  <%= link_to "Destroy", [:admin, @default_ticket_class], :confirm => 'Are you sure?', :method => :delete %> |
+  <%= link_to "View All", admin_default_ticket_classes_path %>
+</p>

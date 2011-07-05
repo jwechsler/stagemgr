@@ -129,7 +129,7 @@
 <table class="performance_calendar">
   <caption>
     <%- if !@production.flex_pass_offer.blank? -%>
-        <span class="special_offer"><%= link_to @production.flex_pass_offer.short_description, new_flex_pass_offer_order_path(@production.flex_pass_offer) unless @production.flex_pass_offer.short_description.blank? %>
+        <span class="special_offer_upsell"><%= link_to @production.flex_pass_offer.short_description, new_flex_pass_offer_order_path(@production.flex_pass_offer) unless @production.flex_pass_offer.short_description.blank? %>
         </span>
         <br/>or, purchase tickets for an individual show below
         <br/>

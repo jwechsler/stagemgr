@@ -77,7 +77,7 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def order_dump
-    @production = Production.find(params[:report][:production_id])
+    @production = Production.with_permissions_to(:read).find(params[:report][:production_id])
     @headers, @report_data = build_order_dump(@production)
     if params['download_csv'].nil? then
       respond_to do |format|

@@ -1,14 +1,20 @@
-    <%= order_form.input :payment_type, :label=>"Pay using", :include_blank=> false, :as=>:select, :collection=>payment_types_for(order_form.object) %>
+<%= if (defined? allowed_payment_types) && !allowed_payment_types.nil?
+      paytype = allowed_payment_types
+    else
+      paytype = payment_types_for(order_form.object)
+    end
+    order_form.input :payment_type, :label=>"Pay using", :include_blank=>false, :as=>:select,
+                     :collection=>paytype %>
 
-    <div id='payment_forms'>
-        <div id='credit_card_payment_form'>
-		    <%= render :partial => '/orders/credit_card_payment_form', :locals => { :f => order_form } %>
-	    </div>
-	    <div id='cash_payment_form'>
-		    <%= render :partial => '/orders/cash_payment_form', :locals => { :f => order_form } %>
-	    </div>
-	    <div id='flex_pass_payment_form'>
-		    <%= render :partial => '/orders/flex_pass_payment_form', :locals => { :f => order_form } %>
-	    </div>
+  <div id='payment_forms'>
+    <div id='credit_card_payment_form'>
+      <%= render :partial => '/orders/credit_card_payment_form', :locals => {:f => order_form} %>
     </div>
-    <%= render :partial => '/orders/special_offer_form', :locals => { :f => order_form } %>
+    <div id='cash_payment_form'>
+      <%= render :partial => '/orders/cash_payment_form', :locals => {:f => order_form} %>
+    </div>
+    <div id='flex_pass_payment_form'>
+      <%= render :partial => '/orders/flex_pass_payment_form', :locals => {:f => order_form} %>
+    </div>
+  </div>
+  <%= render :partial => '/orders/special_offer_form', :locals => {:f => order_form} %>

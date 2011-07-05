@@ -1,5 +1,5 @@
 class Production < ActiveRecord::Base
-  using_access_control :include_read=>true
+  using_access_control
 
   PRODUCTION_STATUSES = ['Active',  'Private', 'Inactive' ]
   validates_inclusion_of :status,        :in => PRODUCTION_STATUSES
@@ -14,6 +14,7 @@ class Production < ActiveRecord::Base
   has_many :ticket_classes
   has_many :line_items
   before_validation :clean_values
+  before_save :assign_default_ticket_classes
   belongs_to :flex_pass_offer
 
   def to_s
@@ -42,5 +43,12 @@ class Production < ActiveRecord::Base
   def clean_values
     self.production_code.upcase! unless self.production_code.nil?
   end
-  
+
+  def assign_default_ticket_classes
+    defaults = DefaultTicketClass.all
+    defaults.each {|tcd| tc = TicketClass.new
+                          tc.attributes=tcd.to_hash
+                          self.ticket_classes << tc}
+    self
+  end
 end

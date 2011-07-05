@@ -1,17 +1,13 @@
-<html>
-<head>
-  <meta content="text/html; charset=UTF-8" http-equiv="Content-Type"/>
-</head>
-<body>
-<h2>Good to see you again</h2>
+<h2>Good to see you</h2>
 
 <p>
   Thanks for coming by to see <i><%= @order.performance.production.name %></i>.
   <%= !@order.performance.production.follow_up_text unless @order.performance.production.follow_up_text.blank? %>
-  I'd like to take this opportunity to invite you back to see anything else at Theater Wit over the next four months.
-  There's a ton happening here, some of which are listed in the sidebar to the left, and I hope you'll have a chance to
-  check out some more.
+  I'd like to take this opportunity to invite you back to see anything else at Theater Wit.
+  There's a ton happening here, some of which are listed in the sidebar to the left, and I hope you'll have a chance
+  to check out some more.  I hope your first time at Theater Wit was a great evening.  I'd like to offer you a one-use
+  discount code for <b>25% off any regular admission</b>, good through <%= @special_offer.auto_expire.to_s(:short) %>.
+  To use it, use the special code <b><%= @special_offer.code %></b> when you make your reservation, either online or by
+  phone.
 </p>
 <%= render :partial=>'core_followup' %>
-</body>
-</html>
