@@ -44,7 +44,6 @@ class OrderMailer < ActionMailer::Base
   end
 
   def member_followup(order)
-    inline_signature
     mail(:to=>order.address.email,:from=>"\"Jeremy Wechsler\" <jeremy@theaterwit.org>",
          :subject=>"Thanks for coming to #{order.performance.production.name}",
          :tag=>"Member Followup")
@@ -76,8 +75,5 @@ class OrderMailer < ActionMailer::Base
          :tag=>"Standard Followup")
   end
 
-  def inline_signature
-
-  end
 
 end
