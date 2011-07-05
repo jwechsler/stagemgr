@@ -71,14 +71,13 @@ class OrderMailer < ActionMailer::Base
 
   def standard_followup(order)
     @order = order
-    inline_signature
     mail(:to=>order.address.email,:from=>"\"Jeremy Wechsler\" <jeremy@theaterwit.org>",
          :subject=>"Nice to see you again",
          :tag=>"Standard Followup")
   end
 
   def inline_signature
-    attachments.inline['signature.png'] = File.read("#{::Rails.root.to_s}/public/images/jmwsignature.png")
+
   end
 
 end

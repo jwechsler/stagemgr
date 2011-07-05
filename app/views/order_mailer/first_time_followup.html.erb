@@ -2,11 +2,11 @@
 
 <p>
   Thanks for coming by to see <i><%= @order.performance.production.name %></i>.
-  <%= !@order.performance.production.follow_up_text unless @order.performance.production.follow_up_text.blank? %>
-  I'd like to take this opportunity to invite you back to see anything else at Theater Wit.
+  <%= raw @order.performance.production.follow_up_text unless @order.performance.production.follow_up_text.blank? %>
+  I'd like to take this opportunity to invite you back to Theater Wit.
   There's a ton happening here, some of which are listed in the sidebar to the left, and I hope you'll have a chance
-  to check out some more.  I hope your first time at Theater Wit was a great evening.  I'd like to offer you a one-use
-  discount code for <b>25% off any regular admission</b>, good through <%= @special_offer.auto_expire.to_s(:short) %>.
+  to check out some more. I'd like to offer you a one-use
+  discount code for <b>25% off any regular admission, good through <%= @special_offer.auto_expire.to_s(:short) %></b>.
   To use it, use the special code <b><%= @special_offer.code %></b> when you make your reservation, either online or by
   phone.
 </p>

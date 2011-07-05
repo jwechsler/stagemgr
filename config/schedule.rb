@@ -22,3 +22,7 @@
 every 1.day do
   runner "Address.purge_matched_duplicates"
 end
+
+every 5.minutes do
+  runner "OrderTask.run_pending"
+end

@@ -2,8 +2,8 @@
 
 <p>
   Thanks for coming by to see <i><%= @order.performance.production.name %></i>.
-  <%= !@order.performance.production.follow_up_text unless @order.performance.production.follow_up_text.blank? %>
-  We're always happy to welcome folks back.  We look forward to welcoming you again (there are a few suggestions in
-  the sidebar on the right, but check our website for all upcoming events.
+  I hope you had a good evening and will return soon (there are a few suggestions in
+  the sidebar on the right, but check our website for all upcoming events).
+  <%= raw @order.performance.production.follow_up_text unless @order.performance.production.follow_up_text.blank? %>
 </p>
 <%= render :partial=>'core_followup' %>

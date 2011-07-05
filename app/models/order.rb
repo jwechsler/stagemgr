@@ -98,15 +98,20 @@ class Order < ActiveRecord::Base
   end
 
   def exchangeable?
-    self.status == Order::PROCESSED || self.status == Order::FULFILLED
+    self.status == Order::PROCESSED || self.status == Order::FULFILLED || self.status == Order::UNCLAIMED
   end
 
   def fulfillable?
-    self.status == Order::PROCESSED
+    self.status == Order::PROCESSED || self.status == Order::UNCLAIMED
   end
 
+  def fulfilled?
+    self.status == Order::FULFILLED
+  end
+
+
   def refundable?
-    self.status == Order::PROCESSED || self.status == Order::FULFILLED
+    self.exchangeable?
   end
 
   def addresses
@@ -224,6 +229,11 @@ class Order < ActiveRecord::Base
       save!
     end
 
+  end
+
+  def unclaimed!
+    self.status = UNCLAIMED
+    save!
   end
 
   def cancel!
@@ -483,6 +493,10 @@ class Order < ActiveRecord::Base
     self.save!
   end
 
+  def transition_unclaimed_to_fulfilled!
+    transition_processed_to_fulfilled!
+  end
+
   def transition_processed_to_fulfilled!
     self.status = Order::FULFILLED
     self.save!
@@ -527,8 +541,8 @@ class Order < ActiveRecord::Base
           create_reminder_task
         when FULFILLED
           create_performance_followup_task
-        when UNCLAIMED, CANCELED
-          remove_performance_followup_task
+        when UNCLAIMED, CANCELED, REFUNDED
+          cancel_pending_tasks
       end
     end
 
@@ -572,7 +586,8 @@ class Order < ActiveRecord::Base
     end
   end
 
-  def remove_performance_followup_task
-
+  def cancel_pending_tasks
+    self.tasks.select {|t| t.uncompleted? }.each {|t| t.cancel! }
   end
+
 end

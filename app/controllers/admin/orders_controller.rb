@@ -90,6 +90,11 @@ class Admin::OrdersController < Admin::ApplicationController
     redirect_to admin_order_path(@order)
   end
 
+  def unclaimed
+    @order.unclaimed!
+    redirect_to admin_order_path(@order)
+  end
+
   def cancel
     # @order.cancel!
     redirect_to :action=>"index", :controller=>"admin/orders"

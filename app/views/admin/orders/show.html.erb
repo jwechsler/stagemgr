@@ -12,6 +12,7 @@
 	<% if @order.status == 'Processing' || @order.status == 'Hold' || @order.status == Order::NEW %>
 	<%= link_to 'Cancel Order', cancel_admin_order_path(@order), :confirm => "Are you sure?", :method=>:post %>
 	<% end %>
+  <%= link_to 'Unclaimed', unclaimed_admin_order_path(@order) if @order.fulfilled? %>
 </p>
 
 <%= render :partial => '/admin/orders/audit_show', :locals=>{:order_form=>@order} %>

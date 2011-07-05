@@ -76,6 +76,7 @@ Stagemgr::Application.routes.draw do
         post :cancel
         post :refund
         get  :fulfill
+        get :unclaimed
       end
       resources :exchange_orders, :only=>[:new,:create]
       resources :refund_orders, :only=>[:new,:create]

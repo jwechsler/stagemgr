@@ -110,7 +110,7 @@ class Address < ActiveRecord::Base
   end
 
   def first_time_paying? (current_order)
-    self.orders.select { |o| (o.id == current_order.id) && o.paid? }.size == 1
+    self.orders.select { |o| (o.id != current_order.id) && o.paid? }.size ==0
   end
 
   private
