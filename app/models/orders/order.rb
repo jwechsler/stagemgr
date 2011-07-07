@@ -147,12 +147,9 @@ class Order < ActiveRecord::Base
 
   def total(reload_line_items=false)
     if self.payments.blank? then
-      (self.line_items(reload_line_items) +
-          self.ticket_line_items(reload_line_items) +
-          self.special_offer_line_items(reload_line_items) +
-          self.flex_pass_line_items(reload_line_items) +
-          self.donation_line_items(reload_line_items)
-      ).uniq.to_a.sum { |line_item| line_item.respond_to?(:total) ? line_item.total : 0 }
+      self.unique_line_items(reload_line_items).to_a.sum { |line_item|
+        line_item.respond_to?(:total) ? line_item.total : 0
+      }
     else
       self.payments.to_a.sum { |payment| payment.respond_to?(:amount) ? payment.amount : 0 }
     end
@@ -432,8 +429,16 @@ class Order < ActiveRecord::Base
       self.payment_type == Order::FLEX_PASS || !self.flex_pass_payments.empty?
     end
 
-    private
-  
+  protected
+  def unique_line_items(reload_line_items = false)
+    (self.line_items(reload_line_items) +
+          self.ticket_line_items(reload_line_items) +
+          self.special_offer_line_items(reload_line_items) +
+          self.flex_pass_line_items(reload_line_items) +
+          self.donation_line_items(reload_line_items)
+      ).uniq
+  end
+
   private
 
   def set_tickets_for_pass_redemption
