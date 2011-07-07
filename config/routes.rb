@@ -1,5 +1,9 @@
 Stagemgr::Application.routes.draw do
 
+  namespace(:admin){ resources :memberships }
+
+  namespace(:admin){ resources :membership_offers }
+
   namespace(:admin){ resources :default_ticket_classes }
 
   get "donations/new"

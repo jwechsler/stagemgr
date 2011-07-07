@@ -1,0 +1,28 @@
+<%= form_for [:admin, @membership] do |f| %>
+  <%= f.error_messages %>
+  <p>
+    <%= f.label :membership_offer_id %><br />
+    <%= f.text_field :membership_offer_id %>
+  </p>
+  <p>
+    <%= f.label :member_since %><br />
+    <%= f.date_select :member_since %>
+  </p>
+  <p>
+    <%= f.label :order_id %><br />
+    <%= f.text_field :order_id %>
+  </p>
+  <p>
+    <%= f.label :address_id %><br />
+    <%= f.text_field :address_id %>
+  </p>
+  <p>
+    <%= f.label :member_code %><br />
+    <%= f.text_field :member_code %>
+  </p>
+  <p>
+    <%= f.label :status %><br />
+    <%= f.text_field :status %>
+  </p>
+  <p><%= f.submit %></p>
+<% end %>

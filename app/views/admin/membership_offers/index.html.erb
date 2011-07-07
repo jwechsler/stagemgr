@@ -1,0 +1,23 @@
+<% title "Admin/Membership Offers" %>
+
+<table>
+  <tr>
+    <th>Name</th>
+    <th>Recurring Cost</th>
+    <th>Email Html</th>
+    <th>Interval In Months</th>
+  </tr>
+  <% for membership_offer in @membership_offers %>
+    <tr>
+      <td><%= membership_offer.name %></td>
+      <td><%= membership_offer.recurring_cost %></td>
+      <td><%= membership_offer.email_html %></td>
+      <td><%= membership_offer.interval_in_months %></td>
+      <td><%= link_to "Show", [:admin, membership_offer] %></td>
+      <td><%= link_to "Edit", edit_admin_membership_offer_path(membership_offer) %></td>
+      <td><%= link_to "Destroy", [:admin, membership_offer], :confirm => 'Are you sure?', :method => :delete %></td>
+    </tr>
+  <% end %>
+</table>
+
+<p><%= link_to "New Admin/Membership Offer", new_admin_membership_offer_path %></p>

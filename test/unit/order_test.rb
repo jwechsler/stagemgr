@@ -238,4 +238,23 @@ class OrderTest < ActiveSupport::TestCase
     end
 
   end
+
+
+  context "with a membership offer" do
+    setup do
+      @address = addresses(:jeremy)
+      @offer = Factory.create(:membership_offer, :name=>"Test Offer", :interval_in_months=>1,
+                              :recurring_cost=>BigDecimal.new("15.00"), :ticket_class_code=>"MEMBER")
+    end
+
+    should "create a membership order" do
+      order = MembershipOrder.create!(:status=>Order::NEW, :address=>@address)
+      order.add_membership_offer(@offer)
+      order.add_payment(Factory.create(:cash_payment,:amount=>15))
+      order.transition_to!(Order::PROCESSING)
+      assert_not_nil(order.membership)
+      assert_equal(1,order.membership_line_items)
+
+    end
+  end
 end

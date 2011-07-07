@@ -24,5 +24,6 @@ class LineItem < ActiveRecord::Base
     return false;
   end
 
+
 end
 

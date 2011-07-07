@@ -1,0 +1,27 @@
+<% title "Admin/Memberships" %>
+
+<table>
+  <tr>
+    <th>Membership Offer</th>
+    <th>Member Since</th>
+    <th>Order</th>
+    <th>Address</th>
+    <th>Member Code</th>
+    <th>Status</th>
+  </tr>
+  <% for membership in @memberships %>
+    <tr>
+      <td><%= membership.membership_offer_id %></td>
+      <td><%= membership.member_since %></td>
+      <td><%= membership.order_id %></td>
+      <td><%= membership.address_id %></td>
+      <td><%= membership.member_code %></td>
+      <td><%= membership.status %></td>
+      <td><%= link_to "Show", [:admin, membership] %></td>
+      <td><%= link_to "Edit", edit_admin_membership_path(membership) %></td>
+      <td><%= link_to "Destroy", [:admin, membership], :confirm => 'Are you sure?', :method => :delete %></td>
+    </tr>
+  <% end %>
+</table>
+
+<p><%= link_to "New Admin/Membership", new_admin_membership_path %></p>

@@ -63,3 +63,13 @@ Factory.define(:amount_off_special_offer) do |special_offer|
   special_offer.amount 1
   special_offer.sequence(:code){|n|"SpecialOffer#{n}"}
 end
+
+Factory.define(:cash_payment) do |cash_payment|
+  cash_payment.amount 0
+end
+
+Factory.define(:membership_offer) do |offer|
+  offer.name 'Test membership'
+  offer.recurring_cost BigDecimal("5.00")
+  offer.ticket_class_code 'MEMBER'
+end
