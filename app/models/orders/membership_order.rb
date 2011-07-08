@@ -21,7 +21,9 @@ class MembershipOrder < Order
   end
 
   def set_membership_offer(offer)
-    self.membership_line_items << MembershipLineItem.create!(:membership_offer=>offer, :order=>self, :address=>self.address)
+    li = MembershipLineItem.create(:membership_offer=>offer, :address=>self.address)
+
+    self.membership_line_items << li
   end
 
   def membership
