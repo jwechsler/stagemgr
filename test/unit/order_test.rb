@@ -242,7 +242,7 @@ class OrderTest < ActiveSupport::TestCase
 
   context "with a membership offer" do
     setup do
-      @address = addresses(:jeremy)
+      @address = Factory.create(:address)
       @offer = Factory.create(:membership_offer, :name=>"Test Offer", :interval_in_months=>1,
                               :recurring_cost=>BigDecimal.new("15.00"), :ticket_class_code=>"MEMBER")
     end
@@ -252,12 +252,14 @@ class OrderTest < ActiveSupport::TestCase
       order.set_membership_offer(@offer)
       order.add_payment(Factory.create(:cash_payment,:amount=>15))
       order.transition_to!(Order::PROCESSING)
-      order.save!
       assert_equal(1,order.membership_line_items.size)
       assert_not_nil(order.membership)
       assert_not_nil(order.membership.member_code)
       assert_not_nil(order.membership.address)
       assert_equal(order.address_id, order.membership.address_id)
+      assert_equal(@offer, order.membership.membership_offer)
     end
+
+
   end
 end
