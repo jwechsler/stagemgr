@@ -2,6 +2,7 @@ class MembershipOrder < Order
 
   has_many :membership_line_items, :foreign_key=>:order_id
   accepts_nested_attributes_for :membership_line_items
+  validates_associated :membership_line_items
 
   def performance_code()
     "MEMBERSHIP"
@@ -15,12 +16,12 @@ class MembershipOrder < Order
     BigDecimal.new("0",2)
   end
 
-  def add_membership_offer(offer)
+  def add_payment(payment)
     # code here
   end
 
-  def add_payment(payment)
-    # code here
+  def set_membership_offer(offer)
+    self.membership_line_items << MembershipLineItem.create!(:membership_offer=>offer, :order=>self, :address=>self.address)
   end
 
   def membership
@@ -29,6 +30,18 @@ class MembershipOrder < Order
     else
       nil
     end
+  end
+
+
+  def link_to_address_of_record
+    super
+    self.membership_line_items.each { |li| li.membership.address = self.address}
+  end
+
+  def set_defaults
+    super
+    self.membership_line_items.each { |di| di.order=self
+                                           di.membership.address = self.address}
   end
 
   protected

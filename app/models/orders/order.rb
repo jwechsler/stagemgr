@@ -398,18 +398,6 @@ class Order < ActiveRecord::Base
     ticket_line_items.each { |ti| TicketLineItem.delete(ti.id) }
   end
 
-  def link_to_address_of_record
-    if !self.address.nil? then
-      self.address.regularize!
-
-      merge = self.address.find_original
-      if !merge.nil? then
-        merge.update_from!(self.address)
-        a = self.address
-        self.address = merge
-      end
-    end
-  end
 
   def self.regularize_addresses
     orders = Order.all
@@ -428,6 +416,20 @@ class Order < ActiveRecord::Base
   def paid_with_pass?
       self.payment_type == Order::FLEX_PASS || !self.flex_pass_payments.empty?
     end
+
+
+  def link_to_address_of_record
+    if !self.address.nil? then
+      self.address.regularize!
+
+      merge = self.address.find_original
+      if !merge.nil? then
+        merge.update_from!(self.address)
+        a = self.address
+        self.address = merge
+      end
+    end
+  end
 
   protected
   def unique_line_items(reload_line_items = false)
@@ -480,6 +482,17 @@ class Order < ActiveRecord::Base
     self.save!
   end
 
+  def set_defaults
+      self.status ||= HOLD
+      set_form_defaults
+      self.ticket_line_items.each { |tli| tli.order=self }
+      self.flex_pass_line_items.each { |tli| tli.order=self }
+      self.donation_line_items.each { |di| di.order=self }
+
+    end
+
+
+
   private
 
   def set_tickets_for_pass_redemption
@@ -513,13 +526,6 @@ class Order < ActiveRecord::Base
     line_items.each { |li| li.order = self }
   end
 
-  def set_defaults
-    self.status ||= HOLD
-    set_form_defaults
-    self.ticket_line_items.each { |tli| tli.order=self }
-    self.flex_pass_line_items.each { |tli| tli.order=self }
-    self.donation_line_items.each { |di| di.order=self }
-  end
 
   def save_additional_donation_order
     donation = Order.new(:address => self.address, :payment_type => self.payment_type, :status => Order::PROCESSING)
