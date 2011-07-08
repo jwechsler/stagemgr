@@ -44,6 +44,7 @@ class Order < ActiveRecord::Base
   attr_accessor :additional_donation
   attr_accessor_with_default :email_confirmation, 0
   attr_accessor :add_to_email_list
+  attr_accessor :do_not_create_tasks
 
   ORDER_STATUSES = (
   HOLD, WEB, NEW, PROCESSING, PROCESSED, REFUNDED, EXCHANGED, FULFILLED, CANCELED, UNCLAIMED =
@@ -432,28 +433,32 @@ class Order < ActiveRecord::Base
       self.payment_type == Order::FLEX_PASS || !self.flex_pass_payments.empty?
     end
 
-    private
-  
   private
 
   def set_tickets_for_pass_redemption
-    if self.status_changed? && self.status == Order::PROCESSED && self.paid_with_pass?
-      flex_pass = FlexPass.find_by_code(self.flex_pass_code)
-      offer = flex_pass.flex_pass_offer
-      new_ticket_class = self.performance.production.ticket_classes.select { |tc| tc.class_code == offer.use_ticket_class_code }[0]
-      if !new_ticket_class.nil?
-        self.ticket_line_items.each { |li|
-          new_line_item = TicketLineItem.new
-          new_line_item.ticket_class = new_ticket_class
-          old_price = li.ticket_class.ticket_price
-          new_line_item.ticket_count = li.ticket_count
-          new_line_item.price_override = [li.ticket_class.ticket_price, new_ticket_class.ticket_price].min if new_ticket_class.ticket_type == TicketClass::DONATION
-          self.ticket_line_items << new_line_item
-          self.ticket_line_items.delete(li)
+    reassign_tickets if self.status_changed? && self.status == Order::PROCESSED && self.paid_with_pass?
+  end
 
-        }
-      end
+  def reassign_tickets
+    flex_pass = FlexPass.find_by_code(self.flex_pass_code)
+    if flex_pass.nil?
+      flex_pass = self.flex_pass_payments.first.flex_pass
     end
+        offer = flex_pass.flex_pass_offer
+        new_ticket_class = self.performance.production.ticket_classes.select { |tc| tc.class_code == offer.use_ticket_class_code }.first
+        if !new_ticket_class.nil?
+          self.ticket_line_items.each { |li|
+            new_line_item = TicketLineItem.new
+            new_line_item.ticket_class = new_ticket_class
+            old_price = li.ticket_class.ticket_price
+            new_line_item.ticket_count = li.ticket_count
+            new_line_item.price_override = [li.ticket_class.ticket_price, new_ticket_class.ticket_price].min if new_ticket_class.ticket_type == TicketClass::DONATION
+            self.ticket_line_items << new_line_item
+            self.ticket_line_items.delete(li)
+
+          }
+        end
+
   end
 
   def auto_link_processed_to_address_of_record
@@ -533,7 +538,7 @@ class Order < ActiveRecord::Base
   end
 
   def set_tasks_after_save
-    if self.status_changed?
+    if self.do_not_create_tasks.nil? && self.status_changed?
       case self.status
         when PROCESSED
           create_mail_list_task if (self.add_to_email_list == "1")
