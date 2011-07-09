@@ -19,6 +19,8 @@
 
 # Learn more: http://github.com/javan/whenever
 
+set :output, {:error => nil}
+
 every 1.day do
   runner "Address.purge_matched_duplicates"
 end
