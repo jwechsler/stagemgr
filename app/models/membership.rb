@@ -9,7 +9,7 @@ class Membership < ActiveRecord::Base
   has_many :membership_line_items, :foreign_key=>:membership_id
   belongs_to :address
   belongs_to :membership_offer
-
+  validates_presence_of :address
   before_validation :create_code, :on=>:create
 
 

@@ -18,6 +18,7 @@ class Order < ActiveRecord::Base
 
   has_many :payments
   has_many :credit_card_payments
+  has_many :membership_payments
   has_many :cash_payments
   has_many :flex_pass_payments
   has_many :exchange_payments
@@ -38,7 +39,8 @@ class Order < ActiveRecord::Base
                                 :address,
                                 :payments,
                                 :cash_payments,
-                                :credit_card_payments, :allow_destroy => true
+                                :credit_card_payments,
+                                :membership_payments, :allow_destroy => true
   attr_accessor :special_offer_code
   attr_accessor :door_sale
   attr_accessor :additional_donation
@@ -51,8 +53,8 @@ class Order < ActiveRecord::Base
 
 
   PAYMENT_TYPES = (
-  CREDIT_CARD, CASH, FLEX_PASS, PRICE_OVERRIDE =
-      "Credit Card", "Cash", "FlexPass", "Price Override")
+  CREDIT_CARD, CASH, FLEX_PASS, PRICE_OVERRIDE, MEMBERSHIP =
+      "Credit Card", "Cash", "FlexPass", "Price Override", "Member ID")
 
   acts_as_audited
 
@@ -299,6 +301,13 @@ class Order < ActiveRecord::Base
         )
       when PRICE_OVERRIDE
         self.price_override_payments.create!(:amount => amount)
+      when MEMBERSHIP
+        membership = Membership.find_by_member_code(self.member_code)
+        raise "No current membership with that code exists" unless membership
+        if !self.address.email.blank? && membership.address.email.downcase.strip != self.address.email.downcase.strip
+          raise 'Member ID does not match provided email address'
+        end
+        new_payment = self.membership_payments.create!(:number_of_tickets=>self.ticket_quantity, :membership=>membership)
       else
         raise 'New payment type not yet implemented.'
     end
@@ -415,7 +424,12 @@ class Order < ActiveRecord::Base
 
   def paid_with_pass?
       self.payment_type == Order::FLEX_PASS || !self.flex_pass_payments.empty?
-    end
+  end
+
+
+  def paid_with_membership?
+    !self.membership_payments.empty?
+  end
 
 
   def link_to_address_of_record
@@ -491,29 +505,37 @@ class Order < ActiveRecord::Base
 
     end
 
+  def set_ticket_classes_using_offer(offer)
+    new_ticket_class = self.performance.production.ticket_classes.select { |tc| tc.class_code == offer.use_ticket_class_code }[0]
+    if !new_ticket_class.nil?
+      self.ticket_line_items.each { |li|
+        new_line_item = TicketLineItem.new
+        new_line_item.ticket_class = new_ticket_class
+        old_price = li.ticket_class.ticket_price
+        new_line_item.ticket_count = li.ticket_count
+        new_line_item.price_override = [li.ticket_class.ticket_price, new_ticket_class.ticket_price].min if new_ticket_class.ticket_type == TicketClass::DONATION
+        self.ticket_line_items << new_line_item
+        self.ticket_line_items.delete(li)
 
-
-  private
-
-  def set_tickets_for_pass_redemption
-    if self.status_changed? && self.status == Order::PROCESSED && self.paid_with_pass?
-      flex_pass = FlexPass.find_by_code(self.flex_pass_code)
-      offer = flex_pass.flex_pass_offer
-      new_ticket_class = self.performance.production.ticket_classes.select { |tc| tc.class_code == offer.use_ticket_class_code }[0]
-      if !new_ticket_class.nil?
-        self.ticket_line_items.each { |li|
-          new_line_item = TicketLineItem.new
-          new_line_item.ticket_class = new_ticket_class
-          old_price = li.ticket_class.ticket_price
-          new_line_item.ticket_count = li.ticket_count
-          new_line_item.price_override = [li.ticket_class.ticket_price, new_ticket_class.ticket_price].min if new_ticket_class.ticket_type == TicketClass::DONATION
-          self.ticket_line_items << new_line_item
-          self.ticket_line_items.delete(li)
-
-        }
-      end
+      }
     end
   end
+
+  def set_tickets_for_pass_redemption
+    if self.status_changed? && self.status == Order::PROCESSED
+      if self.paid_with_pass?
+        flex_pass = FlexPass.find_by_code(self.flex_pass_code)
+        offer = flex_pass.flex_pass_offer
+      end
+      if self.paid_with_membership?
+        membership = Membership.find_by_member_code(self.member_code)
+        offer = membership.membership_offer
+      end
+      set_ticket_classes_using_offer(offer)
+    end
+  end
+
+  private
 
   def auto_link_processed_to_address_of_record
     if status == Order::PROCESSED then

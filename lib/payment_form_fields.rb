@@ -5,7 +5,8 @@ module PaymentFormFields
                 :credit_card_expiration_month,
                 :credit_card_verification_number,
                 :credit_card_confirmation_code,
-                :flex_pass_code
+                :flex_pass_code,
+                :member_code
 
   def copy_payment_information(from_order)
     self.credit_card_number = from_order.credit_card_number

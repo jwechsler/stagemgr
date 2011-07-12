@@ -73,3 +73,7 @@ Factory.define(:membership_offer) do |offer|
   offer.recurring_cost BigDecimal("5.00")
   offer.ticket_class_code 'MEMBER'
 end
+
+Factory.define(:membership_payment) do |payment|
+  payment.amount 0
+end

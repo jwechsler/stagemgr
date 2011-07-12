@@ -242,24 +242,53 @@ class OrderTest < ActiveSupport::TestCase
 
   context "with a membership offer" do
     setup do
-      @address = Factory.create(:address)
+      @address = addresses(:jeremy)
       @offer = Factory.create(:membership_offer, :name=>"Test Offer", :interval_in_months=>1,
                               :recurring_cost=>BigDecimal.new("15.00"), :ticket_class_code=>"MEMBER")
+
     end
 
-    should "create a membership order" do
-      order = MembershipOrder.create!(:status=>Order::NEW, :address=>@address)
-      order.set_membership_offer(@offer)
-      order.add_payment(Factory.create(:cash_payment,:amount=>15))
-      order.transition_to!(Order::PROCESSING)
-      assert_equal(1,order.membership_line_items.size)
-      assert_not_nil(order.membership)
-      assert_not_nil(order.membership.member_code)
-      assert_not_nil(order.membership.address)
-      assert_equal(order.address_id, order.membership.address_id)
-      assert_equal(@offer, order.membership.membership_offer)
+    should "create a valid new membership order" do
+      @order = MembershipOrder.create!(:status=>Order::NEW, :address=>@address)
+      @order.set_membership_offer(@offer)
+      @order.payments << Factory.create(:cash_payment,:amount=>15)
+      @order.transition_to!(Order::PROCESSING)
+      @order.save!
+      assert_equal(1,@order.membership_line_items.size)
+      membership = Membership.find_by_member_code(@order.membership.member_code)
+      assert_not_nil(membership)
+      assert_not_nil(membership.member_code)
+      assert_not_nil(membership.address)
+      assert_equal(@order.address, membership.address)
+      assert_equal(@offer, membership.membership_offer)
     end
 
 
+
+  end
+
+  context "with an existing membership" do
+    setup do
+      @address = addresses(:jeremy)
+      @offer = Factory.create(:membership_offer, :name=>"Test Offer", :interval_in_months=>1,
+                              :recurring_cost=>BigDecimal.new("15.00"), :ticket_class_code=>"MEMBER")
+
+      @order = MembershipOrder.create!(:status=>Order::NEW, :address=>@address)
+      @order.set_membership_offer(@offer)
+      @order.payments << Factory.create(:cash_payment,:amount=>15)
+      @order.transition_to!(Order::PROCESSING)
+    end
+    should "allow you to purchase a ticket for a particular performance" do
+      code = @order.membership.member_code
+      o = Order.create(:status=>Order::NEW, :address=>@address, :performance=>performances(:macbeth_opening),:payment_type => Order::MEMBERSHIP,:member_code=>@order.membership.member_code)
+      o.ticket_line_items.create!(:ticket_class=>ticket_classes(:macbeth_general_admission),:ticket_count=>1)
+      assert_not_nil(o.address.email)
+      assert_not_nil(@order.membership.address)
+      o.transition_to!(Order::PROCESSING)
+      o.transition_to!(Order::PROCESSED)
+      assert_equal(o.status, Order::PROCESSED)
+      assert_equal(1,o.number_of_tickets_of_all_payments)
+
+    end
   end
 end

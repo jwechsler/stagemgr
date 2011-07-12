@@ -16,9 +16,6 @@ class MembershipOrder < Order
     BigDecimal.new("0",2)
   end
 
-  def add_payment(payment)
-    # code here
-  end
 
   def set_membership_offer(offer)
     li = MembershipLineItem.create(:membership_offer=>offer, :address=>self.address)
@@ -34,6 +31,12 @@ class MembershipOrder < Order
     end
   end
 
+  def valid_payment_types_for(current_user)
+    valid_payment_types = super(current_user)
+    valid_payment_types.delete(Order::FLEX_PASS)
+    valid_payment_types.delete(Order::MEMBERSHIP)
+    valid_payment_types
+  end
 
   def link_to_address_of_record
     super
@@ -43,7 +46,7 @@ class MembershipOrder < Order
   def set_defaults
     super
     self.membership_line_items.each { |di| di.order=self
-                                           di.membership.address = self.address}
+                                           di.membership.address = self.address if !di.membership.nil? }
   end
 
   protected
