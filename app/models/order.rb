@@ -67,6 +67,7 @@ class Order < ActiveRecord::Base
 
   before_validation :initialize_nested_line_items, :on => :create
   before_validation :set_defaults
+  before_validation :set_tickets_for_pass_redemption
 
   validates_each :status do |record, attr, value|
     if value == PROCESSED
