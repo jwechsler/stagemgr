@@ -1,5 +1,7 @@
-InvalidCreditCard     = Class.new(StandardError)
-CannotProcessPayment  = Class.new(StandardError)
+if !defined? InvalidCreditCard
+  InvalidCreditCard     = Class.new(StandardError)
+  CannotProcessPayment  = Class.new(StandardError)
+end
 
 class CreditCardPayment < Payment
   acts_as_audited

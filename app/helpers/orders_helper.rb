@@ -1,4 +1,5 @@
 module OrdersHelper
+
   def convert_button_label_to_state(button_label)
     case button_label
     when 'Place Order', 'Order Tickets', 'Make a donation', 'Order tickets', 'Order FlexPass'

@@ -46,6 +46,7 @@ class Order < ActiveRecord::Base
   attr_accessor :additional_donation
   attr_accessor_with_default :email_confirmation, 0
   attr_accessor :add_to_email_list
+  attr_accessor :do_not_create_tasks
 
   ORDER_STATUSES = (
   HOLD, WEB, NEW, PROCESSING, PROCESSED, REFUNDED, EXCHANGED, FULFILLED, CANCELED, UNCLAIMED =
@@ -68,6 +69,7 @@ class Order < ActiveRecord::Base
 
   before_validation :initialize_nested_line_items, :on => :create
   before_validation :set_defaults
+  before_validation :set_tickets_for_pass_redemption
 
   validates_each :status do |record, attr, value|
     if value == PROCESSED
@@ -294,11 +296,14 @@ class Order < ActiveRecord::Base
           raise "That Flexpass cannot be used for tickets for #{Theater.find_by_id(flex_pass.flex_pass_offer.theater_id).name} productions" if (flex_pass.flex_pass_offer.theater_id == self.performance.production.theater.id and flex_pass.flex_pass_offer.exclude_theater?)
 
         end
+        pass_ticket_class = production_ticket_class_from_offer(offer)
+        ,,,,, -- here figure out total cost of order with all applicable ticket fees
         new_payment = self.flex_pass_payments.create!(
             :number_of_tickets => self.ticket_quantity,
             :flex_pass => flex_pass,
-            :amount => flex_pass.flex_pass_offer.payout_per_ticket * self.ticket_quantity
+            :amount => self.applicable_price() * self.ticket_quantity
         )
+        new_payment.process!
       when PRICE_OVERRIDE
         self.price_override_payments.create!(:amount => amount)
       when MEMBERSHIP
@@ -308,6 +313,7 @@ class Order < ActiveRecord::Base
           raise 'Member ID does not match provided email address'
         end
         new_payment = self.membership_payments.create!(:number_of_tickets=>self.ticket_quantity, :membership=>membership)
+        new_payment.process!
       else
         raise 'New payment type not yet implemented.'
     end
@@ -344,7 +350,6 @@ class Order < ActiveRecord::Base
         performance_s = self.performance.nil_or.to_short_s
         "#{performance_s} (#{self.ticket_detail_description})"
       when self.contains_donation?
-        sum = self.donation_line_items.inject { |sum, x| sum + x.donation_amount }
         "Donation"
       when self.contains_flex_pass?
         self.flex_pass_line_items[0].flex_pass_offer.name
@@ -404,7 +409,7 @@ class Order < ActiveRecord::Base
   end
 
   def release_tickets!
-    ticket_line_items.each { |ti| TicketLineItem.delete(ti.id) }
+    self.ticket_line_items.each { |ti| TicketLineItem.delete(ti.id) }
   end
 
 
@@ -441,6 +446,7 @@ class Order < ActiveRecord::Base
         merge.update_from!(self.address)
         a = self.address
         self.address = merge
+        a.destroy if !a.nil?
       end
     end
   end
@@ -454,7 +460,6 @@ class Order < ActiveRecord::Base
           self.donation_line_items(reload_line_items)
       ).uniq
   end
-
 
   def transition_new_to_hold!
     self.status = Order::HOLD
@@ -505,15 +510,23 @@ class Order < ActiveRecord::Base
 
     end
 
+  def production_ticket_class_from_offer(offer)
+    self.performance.production.ticket_classes.select { |tc| tc.class_code == offer.use_ticket_class_code }.first
+  end
+
+  def applicable_price(regular_ticket_class, offer_ticket_class)
+    return [regular_ticket_class.ticket_price, offer_ticket_class.ticket_price].min
+  end
+
   def set_ticket_classes_using_offer(offer)
-    new_ticket_class = self.performance.production.ticket_classes.select { |tc| tc.class_code == offer.use_ticket_class_code }[0]
+    new_ticket_class = production_ticket_class_from_offer(offer)
     if !new_ticket_class.nil?
       self.ticket_line_items.each { |li|
         new_line_item = TicketLineItem.new
         new_line_item.ticket_class = new_ticket_class
         old_price = li.ticket_class.ticket_price
         new_line_item.ticket_count = li.ticket_count
-        new_line_item.price_override = [li.ticket_class.ticket_price, new_ticket_class.ticket_price].min if new_ticket_class.ticket_type == TicketClass::DONATION
+        new_line_item.price_override = self.applicable_price(li.ticket_class,new_ticket_class) if new_ticket_class.ticket_type == TicketClass::DONATION
         self.ticket_line_items << new_line_item
         self.ticket_line_items.delete(li)
 
@@ -526,12 +539,14 @@ class Order < ActiveRecord::Base
       if self.paid_with_pass?
         flex_pass = FlexPass.find_by_code(self.flex_pass_code)
         offer = flex_pass.flex_pass_offer
+        set_ticket_classes_using_offer(offer)
       end
       if self.paid_with_membership?
         membership = Membership.find_by_member_code(self.member_code)
         offer = membership.membership_offer
+        set_ticket_classes_using_offer(offer)
       end
-      set_ticket_classes_using_offer(offer)
+
     end
   end
 
@@ -547,7 +562,6 @@ class Order < ActiveRecord::Base
   def initialize_nested_line_items
     line_items.each { |li| li.order = self }
   end
-
 
   def save_additional_donation_order
     donation = Order.new(:address => self.address, :payment_type => self.payment_type, :status => Order::PROCESSING)
@@ -568,7 +582,7 @@ class Order < ActiveRecord::Base
   end
 
   def set_tasks_after_save
-    if self.status_changed?
+    if self.do_not_create_tasks.nil? && self.status_changed?
       case self.status
         when PROCESSED
           create_mail_list_task if (self.add_to_email_list == "1")

@@ -244,7 +244,7 @@ class OrderTest < ActiveSupport::TestCase
     setup do
       @address = addresses(:jeremy)
       @offer = Factory.create(:membership_offer, :name=>"Test Offer", :interval_in_months=>1,
-                              :recurring_cost=>BigDecimal.new("15.00"), :ticket_class_code=>"MEMBER")
+                              :recurring_cost=>BigDecimal.new("15.00"), :use_ticket_class_code=>"MEMBER")
 
     end
 
@@ -271,7 +271,7 @@ class OrderTest < ActiveSupport::TestCase
     setup do
       @address = addresses(:jeremy)
       @offer = Factory.create(:membership_offer, :name=>"Test Offer", :interval_in_months=>1,
-                              :recurring_cost=>BigDecimal.new("15.00"), :ticket_class_code=>"MEMBER")
+                              :recurring_cost=>BigDecimal.new("15.00"), :use_ticket_class_code=>"MEMBER")
 
       @order = MembershipOrder.create!(:status=>Order::NEW, :address=>@address)
       @order.set_membership_offer(@offer)
@@ -288,7 +288,7 @@ class OrderTest < ActiveSupport::TestCase
       o.transition_to!(Order::PROCESSED)
       assert_equal(o.status, Order::PROCESSED)
       assert_equal(1,o.number_of_tickets_of_all_payments)
-
+      assert_equal('MEMBER',o.ticket_line_items.first.class_code)
     end
   end
 end

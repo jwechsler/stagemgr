@@ -18,11 +18,7 @@
         <td><%= flex_pass_offer.name %></td>
         <td class="currency"><%= number_to_currency(flex_pass_offer.price) %></td>
         <td align="center"><%= flex_pass_offer.number_of_tickets %></td>
-        <td class="currency"><%- if flex_pass_offer.payout_per_ticket > 0 -%>
-              <%= number_to_currency(flex_pass_offer.payout_per_ticket) %>/tkt
-            <%- else -%>
-              <%= number_to_currency(flex_pass_offer.flat_payout) %>
-            <%- end -%></td>
+        <td class="center"><%= flex_pass_offer.use_ticket_class_code %><%= " (#{number_to_currency(flex_pass_offer.flat_payout)})" if !flex_pass_offer.flat_payout.blank? %> </td>
         <td class="currency"><%= number_to_currency(flex_pass_offer.facility_fee) %></td>
         <td><%= if !flex_pass_offer.theater.blank? then
                     if flex_pass_offer.exclude_theater then

@@ -3,7 +3,16 @@ class OutreachTask < OrderTask
   protected
 
   def execute!
-    OrderMailer.send(self.method_symbol,self.order).deliver if !self.order.address.email.nil?
-    return true
+    if self.order.address.email.blank? || attempts > 2
+      return false
+    end
+    result = true
+    begin
+      OrderMailer.send(self.method_symbol,self.order).deliver if !self.order.address.email.nil?
+    rescue => detail
+      result = false
+      self.result = detail.backtrace.join("\n")
+    end
+    return result
   end
 end

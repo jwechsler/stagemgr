@@ -14,7 +14,7 @@ class ProductionsController < ApplicationController
     @current_date = Date.today
     @b_week = Date.today.beginning_of_week
     @e_week = Date.today.end_of_week
-    @productions = Production.find(:all, :conditions=>['productions.closing_at > ? and productions.status = \'Active\'',@b_week], :order=>'case when date(productions.first_preview_at) <= date(current_date) then 0 else 1 end, case theater_id when 1 then 0 else 1 end, case when date(productions.first_preview_at) <= date(current_date) then productions.name else productions.first_preview_at end')
+    @productions = Production.find(:all, :conditions=>['productions.closing_at >= ? and productions.status = \'Active\'',@b_week], :order=>'case when date(productions.first_preview_at) <= date(current_date) then 0 else 1 end, case theater_id when 1 then 0 else 1 end, case when date(productions.first_preview_at) <= date(current_date) then productions.name else productions.first_preview_at end')
     render :upcoming, :layout=>false
   end
   
@@ -28,7 +28,7 @@ class ProductionsController < ApplicationController
     @current_date = Date.today.beginning_of_week
     @end_of_week = Date.today.end_of_week
     @second_date = Date.today
-    @productions = Production.find(:all, :conditions=>['productions.first_preview_at <= ? and productions.closing_at > ? and productions.status = \'Active\'',@end_of_week,@second_date], :order=>'case theater_id when 1 then 0 else 1 end, productions.name')
+    @productions = Production.find(:all, :conditions=>['productions.first_preview_at <= ? and productions.closing_at >= ? and productions.status = \'Active\'',@end_of_week,@second_date], :order=>'case theater_id when 1 then 0 else 1 end, productions.name')
     render :now_playing, :layout=>false
   end
   
