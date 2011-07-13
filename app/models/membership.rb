@@ -19,4 +19,5 @@ class Membership < ActiveRecord::Base
       self.member_code = "TW-#{(0...size).map{ charset.to_a[rand(charset.size)] }.join}"
     end
   end
+
 end

@@ -35,6 +35,7 @@ class MembershipOrder < Order
     valid_payment_types = super(current_user)
     valid_payment_types.delete(Order::FLEX_PASS)
     valid_payment_types.delete(Order::MEMBERSHIP)
+    valid_payment_types.delete(Order::CASH)
     valid_payment_types
   end
 
@@ -52,6 +53,21 @@ class MembershipOrder < Order
   protected
   def unique_line_items(reload_line_items=false)
     (super.unique_line_items(reload_line_items) + self.recurring_line_items(reload_line_items)).uniq
+  end
+
+  def create_credit_card_payment(amount)
+    new_payment = self.credit_card_payments.build(
+      :amount => amount,
+      :address => self.address,
+      :card_number => self.credit_card_number,
+      :card_expiration_month => self.credit_card_expiration_month,
+      :card_expiration_year => self.credit_card_expiration_year,
+      :card_type => self.credit_card_type,
+      :card_verification_number => self.credit_card_verification_number,
+      :confirmation_code => self.credit_card_confirmation_code,
+      :ip_address => self.ip_address
+    )
+    new_payment.process!
   end
 
 end

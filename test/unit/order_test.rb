@@ -1,4 +1,5 @@
 require 'test_helper'
+require 'exceptions'
 
 class OrderTest < ActiveSupport::TestCase
 
@@ -251,10 +252,10 @@ class OrderTest < ActiveSupport::TestCase
     should "create a valid new membership order" do
       @order = MembershipOrder.create!(:status=>Order::NEW, :address=>@address)
       @order.set_membership_offer(@offer)
-      @order.payments << Factory.create(:cash_payment,:amount=>15)
+      @order.payments << Factory.create(:cash_payment, :amount=>15)
       @order.transition_to!(Order::PROCESSING)
       @order.save!
-      assert_equal(1,@order.membership_line_items.size)
+      assert_equal(1, @order.membership_line_items.size)
       membership = Membership.find_by_member_code(@order.membership.member_code)
       assert_not_nil(membership)
       assert_not_nil(membership.member_code)
@@ -264,31 +265,64 @@ class OrderTest < ActiveSupport::TestCase
     end
 
 
-
   end
 
   context "with an existing membership" do
     setup do
       @address = addresses(:jeremy)
       @offer = Factory.create(:membership_offer, :name=>"Test Offer", :interval_in_months=>1,
-                              :recurring_cost=>BigDecimal.new("15.00"), :use_ticket_class_code=>"MEMBER")
+                              :recurring_cost=>BigDecimal.new("15.00"), :use_ticket_class_code=>"MEMBER", :tickets_per_performance=>1)
 
       @order = MembershipOrder.create!(:status=>Order::NEW, :address=>@address)
       @order.set_membership_offer(@offer)
-      @order.payments << Factory.create(:cash_payment,:amount=>15)
+      @order.payments << Factory.create(:cash_payment, :amount=>15)
       @order.transition_to!(Order::PROCESSING)
     end
     should "allow you to purchase a ticket for a particular performance" do
       code = @order.membership.member_code
-      o = Order.create(:status=>Order::NEW, :address=>@address, :performance=>performances(:macbeth_opening),:payment_type => Order::MEMBERSHIP,:member_code=>@order.membership.member_code)
-      o.ticket_line_items.create!(:ticket_class=>ticket_classes(:macbeth_general_admission),:ticket_count=>1)
+      o = Order.create(:status=>Order::NEW, :address=>@address, :performance=>performances(:macbeth_opening), :payment_type => Order::MEMBERSHIP, :member_code=>@order.membership.member_code)
+      o.ticket_line_items.create!(:ticket_class=>ticket_classes(:macbeth_general_admission), :ticket_count=>1)
       assert_not_nil(o.address.email)
       assert_not_nil(@order.membership.address)
       o.transition_to!(Order::PROCESSING)
       o.transition_to!(Order::PROCESSED)
       assert_equal(o.status, Order::PROCESSED)
-      assert_equal(1,o.ticket_line_items.select{|li| li.ticket_class.class_code == 'MEMBER'}.map{|li| li.ticket_count}.sum)
-      assert_equal('MEMBER',o.ticket_line_items.first.ticket_class.class_code)
+      assert_equal(1, o.ticket_line_items.select { |li| li.ticket_class.class_code == 'MEMBER' }.map { |li| li.ticket_count }.sum)
+      assert_equal('MEMBER', o.ticket_line_items.first.ticket_class.class_code)
     end
+    should "only allow you to purchase the specified number of tickets for that offer/performance" do
+      code = @order.membership.member_code
+      o = Order.create(:status=>Order::NEW, :address=>@address, :performance=>performances(:macbeth_opening), :payment_type => Order::MEMBERSHIP, :member_code=>@order.membership.member_code)
+      o.ticket_line_items.create!(:ticket_class=>ticket_classes(:macbeth_general_admission), :ticket_count=>2)
+      assert_not_nil(o.address.email)
+      assert_not_nil(@order.membership.address)
+      o.transition_to!(Order::PROCESSING)
+      assert_raise(Exceptions::TooManyTicketsForMembership) {
+        o.transition_to!(Order::PROCESSED)
+
+      }
+
+    end
+    should "only allow you to purchase the specified number of tickets across orders for a performance" do
+      code = @order.membership.member_code
+      o = Order.create(:status=>Order::NEW, :address=>@address, :performance=>performances(:macbeth_opening), :payment_type => Order::MEMBERSHIP, :member_code=>@order.membership.member_code)
+      o.ticket_line_items.create!(:ticket_class=>ticket_classes(:macbeth_general_admission), :ticket_count=>1)
+      assert_not_nil(o.address.email)
+      assert_not_nil(@order.membership.address)
+      o.transition_to!(Order::PROCESSING)
+      o.transition_to!(Order::PROCESSED)
+      code = @order.membership.member_code
+      o = Order.create(:status=>Order::NEW, :address=>@address, :performance=>performances(:macbeth_opening), :payment_type => Order::MEMBERSHIP, :member_code=>@order.membership.member_code)
+      o.ticket_line_items.create!(:ticket_class=>ticket_classes(:macbeth_general_admission), :ticket_count=>1)
+      assert_not_nil(o.address.email)
+      assert_not_nil(@order.membership.address)
+      o.transition_to!(Order::PROCESSING)
+      assert_raise(Exceptions::TooManyTicketsForMembership) {
+        o.transition_to!(Order::PROCESSED)
+
+      }
+
+    end
+
   end
 end

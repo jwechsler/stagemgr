@@ -50,12 +50,12 @@ class Order < ActiveRecord::Base
 
   ORDER_STATUSES = (
   HOLD, WEB, NEW, PROCESSING, PROCESSED, REFUNDED, EXCHANGED, FULFILLED, CANCELED, UNCLAIMED =
-      "Hold", "Web", "New", "Processing", "Processed", "Refunded", "Exchanged", "Fulfilled", "Canceled", "Unclaimed")
+    "Hold", "Web", "New", "Processing", "Processed", "Refunded", "Exchanged", "Fulfilled", "Canceled", "Unclaimed")
 
 
   PAYMENT_TYPES = (
   CREDIT_CARD, CASH, FLEX_PASS, PRICE_OVERRIDE, MEMBERSHIP =
-      "Credit Card", "Cash", "FlexPass", "Price Override", "Member ID")
+    "Credit Card", "Cash", "FlexPass", "Price Override", "Member ID")
 
   acts_as_audited
 
@@ -79,6 +79,9 @@ class Order < ActiveRecord::Base
       unless record.ticket_line_items.empty? || record.ticket_quantity > 0
         record.errors.add :ticket_line_items, "must contain at least one ticket."
       end
+      unless record.membership_payments.empty?
+        record.membership_payments.first.membership.membership_offer.verify_applicable_for(record)
+      end
     end
   end
 
@@ -88,7 +91,7 @@ class Order < ActiveRecord::Base
   end
 
   def value_of_all_payments
-    self.unique_payments.sum { |p| p.amount}
+    self.unique_payments.sum { |p| p.amount }
 
   end
 
@@ -126,12 +129,12 @@ class Order < ActiveRecord::Base
   end
 
   def performance_code=(string)
-    self.performance = Performance.find_by_performance_code(string)
+    self.performance=Performance.find_by_performance_code(string)
   end
 
   def performance_code()
     case when self.contains_flex_pass?
-      "FLEXPASS"
+           "FLEXPASS"
       when self.contains_donation?
         "DONATION"
       else
@@ -261,24 +264,14 @@ class Order < ActiveRecord::Base
     end
   end
 
+
   def create_proper_payment_in_amount_of!(amount)
     case self.payment_type
       when CASH
         self.cash_payments.create!(:amount => amount)
       when CREDIT_CARD
         if (amount != 0) then
-          new_payment = self.credit_card_payments.build(
-              :amount => amount,
-              :address => self.address,
-              :card_number => self.credit_card_number,
-              :card_expiration_month => self.credit_card_expiration_month,
-              :card_expiration_year => self.credit_card_expiration_year,
-              :card_type => self.credit_card_type,
-              :card_verification_number => self.credit_card_verification_number,
-              :confirmation_code => self.credit_card_confirmation_code,
-              :ip_address => self.ip_address
-          )
-          new_payment.process!
+          create_credit_card_payment(amount)
         else
           self.cash_payments.create(:amount => 0);
         end
@@ -292,11 +285,11 @@ class Order < ActiveRecord::Base
 
         end
         pass_ticket_class = production_ticket_class_from_offer(offer)
-        total_amount = ticket_line_items.inject(0) {|total_amount,li| total_amount += self.applicable_price(li.ticket_class,pass_ticket_class)* li.ticket_count }
+        total_amount = ticket_line_items.inject(0) { |total_amount, li| total_amount += self.applicable_price(li.ticket_class, pass_ticket_class)* li.ticket_count }
         new_payment = self.flex_pass_payments.create!(
-            :number_of_tickets => self.ticket_quantity,
-            :flex_pass => flex_pass,
-            :amount => total_amount
+          :number_of_tickets => self.ticket_quantity,
+          :flex_pass => flex_pass,
+          :amount => total_amount
         )
         new_payment.process!
       when PRICE_OVERRIDE
@@ -308,7 +301,7 @@ class Order < ActiveRecord::Base
           raise 'Member ID does not match provided email address'
         end
         pass_ticket_class = production_ticket_class_from_offer(membership.membership_offer)
-        total_amount = ticket_line_items.inject(0) {|total_amount,li| total_amount += self.applicable_price(li.ticket_class,pass_ticket_class)* li.ticket_count }
+        total_amount = ticket_line_items.inject(0) { |total_amount, li| total_amount += self.applicable_price(li.ticket_class, pass_ticket_class)* li.ticket_count }
 
         new_payment = self.membership_payments.create!(:number_of_tickets=>self.ticket_quantity, :membership=>membership, :amount=>total_amount)
         new_payment.process!
@@ -413,7 +406,7 @@ class Order < ActiveRecord::Base
 
   def self.regularize_addresses
     orders = Order.all
-    orders.each {|o|
+    orders.each { |o|
       o.link_to_address_of_record
       if o.address_id_changed?
         begin
@@ -426,7 +419,7 @@ class Order < ActiveRecord::Base
   end
 
   def paid_with_pass?
-      self.payment_type == Order::FLEX_PASS || !self.flex_pass_payments.empty?
+    self.payment_type == Order::FLEX_PASS || !self.flex_pass_payments.empty?
   end
 
 
@@ -450,23 +443,39 @@ class Order < ActiveRecord::Base
   end
 
   protected
+
+  def create_credit_card_payment(amount)
+    new_payment = self.credit_card_payments.build(
+      :amount => amount,
+      :address => self.address,
+      :card_number => self.credit_card_number,
+      :card_expiration_month => self.credit_card_expiration_month,
+      :card_expiration_year => self.credit_card_expiration_year,
+      :card_type => self.credit_card_type,
+      :card_verification_number => self.credit_card_verification_number,
+      :confirmation_code => self.credit_card_confirmation_code,
+      :ip_address => self.ip_address
+    )
+    new_payment.process!
+  end
+
   def unique_line_items(reload_line_items = false)
     (self.line_items(reload_line_items) +
-          self.ticket_line_items(reload_line_items) +
-          self.special_offer_line_items(reload_line_items) +
-          self.flex_pass_line_items(reload_line_items) +
-          self.donation_line_items(reload_line_items)
-      ).uniq
+      self.ticket_line_items(reload_line_items) +
+      self.special_offer_line_items(reload_line_items) +
+      self.flex_pass_line_items(reload_line_items) +
+      self.donation_line_items(reload_line_items)
+    ).uniq
   end
 
   def unique_payments
     (self.payments.to_a +
-        self.credit_card_payments +
-        self.cash_payments +
-        self.exchange_payments +
-        self.price_override_payments +
-        self.flex_pass_payments +
-        self.membership_payments).uniq
+      self.credit_card_payments +
+      self.cash_payments +
+      self.exchange_payments +
+      self.price_override_payments +
+      self.flex_pass_payments +
+      self.membership_payments).uniq
   end
 
   def transition_new_to_hold!
@@ -510,13 +519,13 @@ class Order < ActiveRecord::Base
   end
 
   def set_defaults
-      self.status ||= HOLD
-      set_form_defaults
-      self.ticket_line_items.each { |tli| tli.order=self }
-      self.flex_pass_line_items.each { |tli| tli.order=self }
-      self.donation_line_items.each { |di| di.order=self }
+    self.status ||= HOLD
+    set_form_defaults
+    self.ticket_line_items.each { |tli| tli.order=self }
+    self.flex_pass_line_items.each { |tli| tli.order=self }
+    self.donation_line_items.each { |di| di.order=self }
 
-    end
+  end
 
   def production_ticket_class_from_offer(offer)
     self.performance.production.ticket_classes.select { |tc| tc.class_code == offer.use_ticket_class_code }.first
@@ -534,7 +543,7 @@ class Order < ActiveRecord::Base
         new_line_item.ticket_class = new_ticket_class
         old_price = li.ticket_class.ticket_price
         new_line_item.ticket_count = li.ticket_count
-        new_line_item.price_override = self.applicable_price(li.ticket_class,new_ticket_class) if new_ticket_class.ticket_type == TicketClass::DONATION
+        new_line_item.price_override = self.applicable_price(li.ticket_class, new_ticket_class) if new_ticket_class.ticket_type == TicketClass::DONATION
         self.ticket_line_items << new_line_item
         self.ticket_line_items.delete(li)
 
@@ -646,7 +655,7 @@ class Order < ActiveRecord::Base
   end
 
   def cancel_pending_tasks
-    self.tasks.select {|t| t.uncompleted? }.each {|t| t.cancel! }
+    self.tasks.select { |t| t.uncompleted? }.each { |t| t.cancel! }
   end
 
 end
