@@ -53,4 +53,5 @@ class MembershipOrder < Order
   def unique_line_items(reload_line_items=false)
     (super.unique_line_items(reload_line_items) + self.recurring_line_items(reload_line_items)).uniq
   end
+
 end

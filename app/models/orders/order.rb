@@ -64,7 +64,7 @@ class Order < ActiveRecord::Base
 
   validates_presence_of :address, :status
   validates_associated :address,
-                       :payments, :credit_card_payments, :cash_payments,
+                       :payments, :credit_card_payments, :cash_payments, :membership_payments, :flex_pass_payments,
                        :line_items, :ticket_line_items, :donation_line_items, :flex_pass_line_items, :special_offer_line_items
 
   before_validation :initialize_nested_line_items, :on => :create
@@ -73,7 +73,7 @@ class Order < ActiveRecord::Base
 
   validates_each :status do |record, attr, value|
     if value == PROCESSED
-      unless record.total == record.value_of_all_payments || record.ticket_quantity == record.number_of_tickets_of_all_payments
+      unless record.total == record.value_of_all_payments
         record.errors.add attr, "cannot be set to #{PROCESSED} if the total isn't countered by a payment."
       end
       unless record.ticket_line_items.empty? || record.ticket_quantity > 0
@@ -88,13 +88,8 @@ class Order < ActiveRecord::Base
   end
 
   def value_of_all_payments
-    all_payments = self.payments.to_a +
-        self.credit_card_payments.to_a +
-        self.cash_payments.to_a +
-        self.exchange_payments.to_a +
-        self.price_override_payments.to_a
-    all_payments = all_payments.uniq
-    all_payments.sum { |p| p.amount }
+    self.unique_payments.sum { |p| p.amount}
+
   end
 
   def number_of_tickets_of_all_payments
@@ -297,11 +292,11 @@ class Order < ActiveRecord::Base
 
         end
         pass_ticket_class = production_ticket_class_from_offer(offer)
-        ,,,,, -- here figure out total cost of order with all applicable ticket fees
+        total_amount = ticket_line_items.inject(0) {|total_amount,li| total_amount += self.applicable_price(li.ticket_class,pass_ticket_class)* li.ticket_count }
         new_payment = self.flex_pass_payments.create!(
             :number_of_tickets => self.ticket_quantity,
             :flex_pass => flex_pass,
-            :amount => self.applicable_price() * self.ticket_quantity
+            :amount => total_amount
         )
         new_payment.process!
       when PRICE_OVERRIDE
@@ -312,7 +307,10 @@ class Order < ActiveRecord::Base
         if !self.address.email.blank? && membership.address.email.downcase.strip != self.address.email.downcase.strip
           raise 'Member ID does not match provided email address'
         end
-        new_payment = self.membership_payments.create!(:number_of_tickets=>self.ticket_quantity, :membership=>membership)
+        pass_ticket_class = production_ticket_class_from_offer(membership.membership_offer)
+        total_amount = ticket_line_items.inject(0) {|total_amount,li| total_amount += self.applicable_price(li.ticket_class,pass_ticket_class)* li.ticket_count }
+
+        new_payment = self.membership_payments.create!(:number_of_tickets=>self.ticket_quantity, :membership=>membership, :amount=>total_amount)
         new_payment.process!
       else
         raise 'New payment type not yet implemented.'
@@ -461,6 +459,16 @@ class Order < ActiveRecord::Base
       ).uniq
   end
 
+  def unique_payments
+    (self.payments.to_a +
+        self.credit_card_payments +
+        self.cash_payments +
+        self.exchange_payments +
+        self.price_override_payments +
+        self.flex_pass_payments +
+        self.membership_payments).uniq
+  end
+
   def transition_new_to_hold!
     self.status = Order::HOLD
     self.save!
@@ -545,6 +553,8 @@ class Order < ActiveRecord::Base
         membership = Membership.find_by_member_code(self.member_code)
         offer = membership.membership_offer
         set_ticket_classes_using_offer(offer)
+        self.ticket_line_items
+
       end
 
     end

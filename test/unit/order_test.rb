@@ -287,8 +287,8 @@ class OrderTest < ActiveSupport::TestCase
       o.transition_to!(Order::PROCESSING)
       o.transition_to!(Order::PROCESSED)
       assert_equal(o.status, Order::PROCESSED)
-      assert_equal(1,o.number_of_tickets_of_all_payments)
-      assert_equal('MEMBER',o.ticket_line_items.first.class_code)
+      assert_equal(1,o.ticket_line_items.select{|li| li.ticket_class.class_code == 'MEMBER'}.map{|li| li.ticket_count}.sum)
+      assert_equal('MEMBER',o.ticket_line_items.first.ticket_class.class_code)
     end
   end
 end
