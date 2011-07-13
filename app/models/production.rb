@@ -5,7 +5,7 @@ class Production < ActiveRecord::Base
   validates_inclusion_of :status,        :in => PRODUCTION_STATUSES
   validates_presence_of :theater, :name
   validates_uniqueness_of :production_code
-  validates_length_of :production_code, :in=>1..5
+  validates_length_of :production_code, :in=>1..7
   validates_numericality_of :capacity
 
   belongs_to :theater
@@ -37,6 +37,15 @@ class Production < ActiveRecord::Base
   def now_playing?
     n = Time.now.to_date
     self.first_preview_at <= n && self.closing_at >= n
+  end
+
+  def add_hold_to_every_performance(address, number_of_tickets, ticket_class_code)
+    ticket_class=ticket_classes.select{|tc| tc.class_code == ticket_class_code}.first
+    self.performances.each { |p|
+      o = Order.create(:status=>Order::HOLD, :address=>address, :performance=>p)
+      li = o.ticket_line_items.build(:ticket_class=>ticket_class, :ticket_count=>number_of_tickets)
+      o.save!
+    }
   end
 
   private 

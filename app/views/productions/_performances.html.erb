@@ -6,5 +6,5 @@
     <th>Status</th>
     <th>Performance Code</th>
   </tr>
-<%= render :partial => @production.performances %>
+<%= render :partial => @production.performances.sort{ |p1,p2| p1.performance_date <=> p2.performance_date} %>
 </table>
