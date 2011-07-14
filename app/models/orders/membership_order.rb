@@ -16,6 +16,9 @@ class MembershipOrder < Order
     BigDecimal.new("0",2)
   end
 
+  def membership_offer
+    self.membership_line_items.first.membership_offer if !self.membership_line_items.empty?
+  end
 
   def set_membership_offer(offer)
     li = MembershipLineItem.create(:membership_offer=>offer, :address=>self.address)
@@ -32,10 +35,8 @@ class MembershipOrder < Order
   end
 
   def valid_payment_types_for(current_user)
-    valid_payment_types = super(current_user)
-    valid_payment_types.delete(Order::FLEX_PASS)
-    valid_payment_types.delete(Order::MEMBERSHIP)
-    valid_payment_types.delete(Order::CASH)
+    valid_payment_types = Array.new
+    valid_payment_types << Order::CREDIT_CARD
     valid_payment_types
   end
 

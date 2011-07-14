@@ -1,0 +1,16 @@
+<% javascript :defaults, 'delegate', 'jquery-1.4.2.min', 'jquery.autocomplete', 'box_office_order' %>
+
+<h1><%= @order.membership_offer.name %></h1>
+<%- if !@order.membership_offer.html_description.blank? %>
+  <p><%= raw @order.membership_offer.html_description %></p>
+<%- end %>
+<%= semantic_form_for @order do |order_form| %>
+  <%= order_form.inputs :class=>"order" do %>
+    <%= order_form.error_messages %>
+    <%= order_form.hidden_field :status %>
+    <%= render :partial=>'/orders/address', :locals=>{:order_form=>order_form} %>
+    <%= render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form} %>
+
+  <%- end %>
+  <%= order_form.submit "Submit membership", :action=>:confirm, :disable_with => 'Processing...' if order_form.object.status == Order::NEW %>
+<%- end %>

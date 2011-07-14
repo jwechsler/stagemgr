@@ -1,6 +1,6 @@
 Stagemgr::Application.routes.draw do
 
-  namespace(:admin){ resources :memberships }
+   namespace(:admin){ resources :memberships }
 
   namespace(:admin){ resources :membership_offers }
 
@@ -11,6 +11,20 @@ Stagemgr::Application.routes.draw do
   get "donations/confirm"
 
   get "donations/show"
+
+  resources :membership_orders
+
+  # get "membership_orders/new"
+
+  # get "membership_orders/create"
+
+  # get "membership_orders/show"
+
+  # get "membership_orders/edit"
+
+  # get "membership_orders/confirm"
+
+  # get "membership_orders/checkout"
 
 
   resources :orders do
@@ -25,6 +39,10 @@ Stagemgr::Application.routes.draw do
 
   resources :flex_pass_offers, :only => false do
     resources :orders, :controller => 'flex_pass_offer_orders'
+  end
+
+  resources :membership_offers, :only => false do
+    resources :orders, :controller => 'membership_offer_orders'
   end
 
   # add /productions/upcoming as list response for embedding on coming soon page.
@@ -52,6 +70,9 @@ Stagemgr::Application.routes.draw do
 
     end
 
+    resources :membership_offers do
+
+    end
     resources :reports do
       collection do
         post :production_sales_by_performance

@@ -142,6 +142,23 @@ function show_proper_payment_form(){
 		  break;
 	    }
 	});
+  jQuery(function($){
+		$('#payment_forms').children('div').each(function(){
+			$(this).hide();
+		});
+	switch($('#membership_order_payment_type').val())
+	    {
+		case 'Credit Card':
+		  $('#credit_card_payment_form').show();
+		  break;
+		case 'Cash':
+		  $('#cash_payment_form').show();
+		  break;
+		case 'FlexPass':
+		  $('#flex_pass_payment_form').show();
+		  break;
+	    }
+	});
 }
 
 jQuery(document).ready(function(){

@@ -13,11 +13,6 @@
   <%= @membership_offer.email_html %>
 </p>
 <p>
-  <strong>Interval In Months:</strong>
-  <%= @membership_offer.interval_in_months %>
-</p>
-
-<p>
   <%= link_to "Edit", edit_admin_membership_offer_path(@membership_offer) %> |
   <%= link_to "Destroy", [:admin, @membership_offer], :confirm => 'Are you sure?', :method => :delete %> |
   <%= link_to "View All", admin_membership_offers_path %>
