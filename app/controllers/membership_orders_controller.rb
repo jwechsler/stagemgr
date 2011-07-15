@@ -1,15 +1,10 @@
 class MembershipOrdersController < ApplicationController
   layout 'none'
-
-  def new
-    @order = MembershipOrder.new
-    @order.address = Address.new
-    render :action=>'edit'
-  end
+  include OrdersHelper
 
   def create
-    @order = MembershipOrder.new(params[:order])
-
+    @order = MembershipOrder.new(params[:membership_order])
+    process_order(:edit_membership_order_path)
   end
 
   def show
@@ -23,5 +18,7 @@ class MembershipOrdersController < ApplicationController
 
   def checkout
   end
+
+  protected
 
 end

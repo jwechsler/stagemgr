@@ -1,8 +1,10 @@
 class MembershipOrder < Order
 
+  belongs_to :membership_offer
   has_many :membership_line_items, :foreign_key=>:order_id
   accepts_nested_attributes_for :membership_line_items
   validates_associated :membership_line_items
+  accepts_nested_attributes_for :membership_offer, :membership_line_items, :allow_destroy=>true
 
   def performance_code()
     "MEMBERSHIP"
@@ -37,6 +39,7 @@ class MembershipOrder < Order
   def valid_payment_types_for(current_user)
     valid_payment_types = Array.new
     valid_payment_types << Order::CREDIT_CARD
+    valid_payment_types << Order::CASH
     valid_payment_types
   end
 
