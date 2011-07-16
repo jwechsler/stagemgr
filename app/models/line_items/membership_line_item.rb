@@ -1,12 +1,14 @@
 class MembershipLineItem < LineItem
   validates_presence_of :membership_offer
   validates_presence_of :membership
+  validates_presence_of :address
   belongs_to :membership_offer
   belongs_to :membership
+  belongs_to :address
   before_validation :create_membership
   after_save :save_membership
   before_destroy :delete_membership
-  attr_accessor :address
+
 
   private
   def create_membership
@@ -16,7 +18,7 @@ class MembershipLineItem < LineItem
       self.membership.member_since=Date.today
       self.membership.membership_offer=self.membership_offer
       self.membership.status=Membership::ACTIVE
-      self.membership.address_id=self.address
+      self.membership.address=self.address
     end
   end
 

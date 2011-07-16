@@ -4,7 +4,7 @@ class MembershipOrder < Order
   has_many :membership_line_items, :foreign_key=>:order_id
   accepts_nested_attributes_for :membership_line_items
   validates_associated :membership_line_items
-  accepts_nested_attributes_for :membership_offer, :membership_line_items, :allow_destroy=>true
+  accepts_nested_attributes_for :membership_offer, :membership_line_items, :recurring_line_items, :allow_destroy=>true
 
   def performance_code()
     "MEMBERSHIP"
@@ -55,8 +55,13 @@ class MembershipOrder < Order
   end
 
   protected
+  def cascade_address_to_nested_items
+    super
+    membership_line_items.each {|li| li.address = self.address }
+  end
+
   def unique_line_items(reload_line_items=false)
-    (super.unique_line_items(reload_line_items) + self.recurring_line_items(reload_line_items)).uniq
+    (super + self.recurring_line_items(reload_line_items)).uniq
   end
 
   def create_credit_card_payment(amount)

@@ -7,9 +7,6 @@ class Order < ActiveRecord::Base
 
   include PaymentFormFields
   include ActionView::Helpers::NumberHelper
-  before_save :auto_link_processed_to_address_of_record
-  after_save :set_tasks_after_save
-  before_save :set_theater
 
   extend HTMLDiff
 
@@ -59,6 +56,17 @@ class Order < ActiveRecord::Base
 
   acts_as_audited
 
+  before_validation :auto_link_processed_to_address_of_record
+  before_validation :cascade_address_to_nested_items
+  before_validation :initialize_nested_line_items, :on => :create
+  before_validation :set_defaults
+  before_validation :set_tickets_for_pass_redemption
+
+  before_save :set_theater
+
+  after_save :set_tasks_after_save
+
+
   validates_inclusion_of :status, :in => ORDER_STATUSES
   validates_inclusion_of :payment_type, :in => PAYMENT_TYPES
 
@@ -66,10 +74,6 @@ class Order < ActiveRecord::Base
   validates_associated :address,
                        :payments, :credit_card_payments, :cash_payments, :membership_payments, :flex_pass_payments,
                        :line_items, :ticket_line_items, :donation_line_items, :flex_pass_line_items, :special_offer_line_items
-
-  before_validation :initialize_nested_line_items, :on => :create
-  before_validation :set_defaults
-  before_validation :set_tickets_for_pass_redemption
 
   validates_each :status do |record, attr, value|
     if value == PROCESSED
@@ -443,6 +447,9 @@ class Order < ActiveRecord::Base
   end
 
   protected
+  def cascade_address_to_nested_items
+     # code here
+   end
 
   def create_credit_card_payment(amount)
     new_payment = self.credit_card_payments.build(
