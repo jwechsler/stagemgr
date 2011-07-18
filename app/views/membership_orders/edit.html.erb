@@ -16,8 +16,6 @@
     <%= order_form.error_messages %>
     <%= order_form.hidden_field :status %>
     <%= render :partial=>'/orders/address', :locals=>{:order_form=>order_form} %>
-    <%= render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form} %>
-
   <%- end %>
   <%= order_form.submit "Checkout", :action=>:confirm, :disable_with => 'Processing...' if order_form.object.status == Order::NEW %>
 <%- end %>

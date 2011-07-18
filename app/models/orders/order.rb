@@ -388,9 +388,9 @@ class Order < ActiveRecord::Base
     }.join(', ')
   end
 
-  def transition_to!(new_status)
+  def transition_to!(new_status, redirect_to = nil)
     old_status = self.status
-    self.send "transition_#{self.status.underscore}_to_#{new_status.underscore}!".to_sym
+    redirect_to = self.send "transition_#{self.status.underscore}_to_#{new_status.underscore}!".to_sym, redirect_to
     raise "Transition from #{old_status} to #{new_status} unsuccessful. Current status is #{self.status}." unless self.status == new_status
   end
 
@@ -485,44 +485,51 @@ class Order < ActiveRecord::Base
       self.membership_payments).uniq
   end
 
-  def transition_new_to_hold!
+  def transition_new_to_hold!(redirect_to = nil)
     self.status = Order::HOLD
     self.save!
+    redirect_to
   end
 
-  def transition_new_to_processing!
+  def transition_new_to_processed!(redirect_to = nil)
+    transition_new_to_processing!(redirect_to)
+    transition_processing_to_processed!(redirect_to)
+  end
+
+  def transition_new_to_processing!(redirect_to = nil)
     self.status = Order::PROCESSING
     self.update_special_offer_line_items_from_code! unless self.special_offer_code.blank?
     self.save!
+    redirect_to
   end
 
-  def transition_hold_to_processing!
-    transition_new_to_processing!
+  def transition_hold_to_processing!(redirect_to = nil)
+    transition_new_to_processing!(redirect_to)
   end
 
-  def transition_hold_to_hold!
+  def transition_hold_to_hold!(redirect_to = nil)
     self.save!
+    redirect_to
   end
 
-  def transition_processing_to_processed!
-
+  def transition_processing_to_processed!(redirect_to = nil)
     create_proper_payment_in_amount_of!(self.total)
-
-    save_additional_donation_order unless (self.additional_donation.blank? || self.additional_donation.to_i == 0)
-
     self.status = Order::PROCESSED
     self.set_email_confirmation
     self.special_offer_line_items.each { |li| li.mark_redeemed }
     self.save!
+    save_additional_donation_order unless (self.additional_donation.blank? || self.additional_donation.to_i == 0)
+    redirect_to
   end
 
-  def transition_unclaimed_to_fulfilled!
-    transition_processed_to_fulfilled!
+  def transition_unclaimed_to_fulfilled!(redirect_to = nil)
+    transition_processed_to_fulfilled!(redirect_to)
   end
 
-  def transition_processed_to_fulfilled!
+  def transition_processed_to_fulfilled!(redirect_to = nil)
     self.status = Order::FULFILLED
     self.save!
+    redirect_to
   end
 
   def set_defaults
@@ -577,9 +584,8 @@ class Order < ActiveRecord::Base
   end
 
   private
-
   def auto_link_processed_to_address_of_record
-    if status == Order::PROCESSED then
+    if status == Order::PROCESSING then
       link_to_address_of_record
     end
   end

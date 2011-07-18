@@ -4,7 +4,7 @@ class Membership < ActiveRecord::Base
     ACTIVE, EXPIRED =
     "Active","Expired"
   )
-  attr_accessible :membership_offer_id, :member_since, :order_id, :address_id, :member_code, :status
+  attr_accessible :membership_offer_id, :member_since, :order_id, :address_id, :member_code, :status, :profile_id
 
   has_many :membership_line_items, :foreign_key=>:membership_id
   belongs_to :address
@@ -20,4 +20,13 @@ class Membership < ActiveRecord::Base
     end
   end
 
+  def current_status
+    gateway ||= ActiveMerchant::Billing::PaypalRecurringGateway.new(:login=>$PAYPAL_LOGIN,
+                                                                            :password=>$PAYPAL_PASSWORD)
+
+    response = gateway.get_profile_details(self.profile_id)
+
+    response.params["profile_status"][0..-8]
+
+  end
 end

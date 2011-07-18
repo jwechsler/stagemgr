@@ -244,7 +244,7 @@ class OrderTest < ActiveSupport::TestCase
   context "with a membership offer" do
     setup do
       @address = addresses(:jeremy)
-      @offer = Factory.create(:membership_offer, :name=>"Test Offer", :interval_in_months=>1,
+      @offer = Factory.create(:membership_offer, :name=>"Test Offer",
                               :recurring_cost=>BigDecimal.new("15.00"), :use_ticket_class_code=>"MEMBER")
 
     end
@@ -270,7 +270,7 @@ class OrderTest < ActiveSupport::TestCase
   context "with an existing membership" do
     setup do
       @address = addresses(:jeremy)
-      @offer = Factory.create(:membership_offer, :name=>"Test Offer", :interval_in_months=>1,
+      @offer = Factory.create(:membership_offer, :name=>"Test Offer",
                               :recurring_cost=>BigDecimal.new("15.00"), :use_ticket_class_code=>"MEMBER", :tickets_per_performance=>1)
 
       @order = MembershipOrder.create!(:status=>Order::NEW, :address=>@address)

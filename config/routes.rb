@@ -12,7 +12,11 @@ Stagemgr::Application.routes.draw do
 
   get "donations/show"
 
-  resources :membership_orders
+  resources :membership_orders do
+    member do
+      get :confirm
+    end
+  end
 
   # get "membership_orders/new"
 
@@ -60,6 +64,7 @@ Stagemgr::Application.routes.draw do
 
   namespace :admin do
 
+    resources :membership_orders
 
     resources :addresses do
 

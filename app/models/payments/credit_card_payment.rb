@@ -36,6 +36,7 @@ class CreditCardPayment < Payment
     self.card_last_four ||= self.card_number.nil? ? "" : self.card_number[-4..-1]
   end
 
+
   def process!
     if self.confirmation_code.blank? || self.card_number.length != 4
       ctype = case self.card_type
@@ -76,9 +77,8 @@ class CreditCardPayment < Payment
 
       gateway = ActiveMerchant::Billing::PaypalGateway.new(:login=>$PAYPAL_LOGIN, :password=>$PAYPAL_PASSWORD)
 
-      charge_amount = (self.amount*100).to_i
 
-      response = gateway.purchase(charge_amount, credit_card, :ip=>self.ip_address, :billing_address=>billing_address, :email => self.address.email, :order_id => self.order_id, :description => self.order.description)
+      response = gateway.purchase(self.charge_amount, credit_card, :ip=>self.ip_address, :billing_address=>billing_address, :email => self.address.email, :order_id => self.order_id, :description => self.order.description)
 
 #
 #      # Create a gateway object for the TrustCommerce service
@@ -94,7 +94,7 @@ class CreditCardPayment < Payment
 #
 
       # Authorize for the amount
-#     response = gateway.purchase(charge_amount, credit_card)
+#     response = gateway.purchase(self.charge_amount, credit_card)
 
       if response.success?
         self.confirmation_code = response.authorization
@@ -141,6 +141,11 @@ class CreditCardPayment < Payment
       refund_payment.save!
 
     end
+  end
+
+  protected
+  def charge_amount
+    (self.amount*100).to_i
   end
 
   private

@@ -1,7 +1,7 @@
 require 'exceptions.rb'
 
 class MembershipOffer < ActiveRecord::Base
-  attr_accessible :name, :recurring_cost, :email_html, :html_description, :use_ticket_class_code, :tickets_per_performance
+  attr_accessible :name, :recurring_cost, :email_html, :html_description, :use_ticket_class_code, :tickets_per_performance, :billing_agreement
 
   def verify_applicable_for(order)
     if !self.tickets_per_performance.nil?

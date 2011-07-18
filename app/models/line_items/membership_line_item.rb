@@ -5,6 +5,7 @@ class MembershipLineItem < LineItem
   belongs_to :membership_offer
   belongs_to :membership
   belongs_to :address
+  belongs_to :membership_order, :foreign_key=>:order_id
   before_validation :create_membership
   after_save :save_membership
   before_destroy :delete_membership
