@@ -53,7 +53,12 @@ class MembershipOrder < Order
     di.membership.address = self.address if !di.membership.nil? }
   end
 
+  def total(reload_line_items=false)
+    0
+  end
+
   protected
+
   def cascade_address_to_nested_items
     super
     membership_line_items.each { |li| li.address = self.address }
@@ -66,6 +71,22 @@ class MembershipOrder < Order
   def transition_new_to_processing!(redirect_to = nil)
     super
 
+  end
+
+  def create_credit_card_payment(amount)
+    new_payment = self.recurring_payments.build(
+      :amount => amount,
+      :address => self.address,
+      :ip_address => self.ip_address
+    )
+  end
+
+  def create_receipt_task
+    self.tasks << OutreachTask.new(:execute_at=>Time.now + 5.minutes, :method_symbol=>:membership_confirmation)
+  end
+
+  def create_mail_list_task
+    self.tasks << MyEmmaTask.new(:execute_at=>Time.now + 5.minutes, :additional_groups=>[self.membership_offer.myemma_group]) if !self.address.email.nil?
   end
 
 end

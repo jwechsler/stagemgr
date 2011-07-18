@@ -147,6 +147,9 @@ function show_proper_payment_form() {
       case 'FlexPass':
         $('#flex_pass_payment_form').show();
         break;
+      case 'Membership':
+        $('#membership_payment_form').show();
+        break;
     }
   });
 }

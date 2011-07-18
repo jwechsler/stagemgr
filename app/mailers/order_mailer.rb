@@ -10,6 +10,17 @@ class OrderMailer < ActionMailer::Base
          :tag=>"Ticket Confirmation")
   end
 
+  def membership_confirmation(order)
+    @order = order
+    @order.membership_line_items.each { |li|
+      @membership = li.membership
+      mail(:to => order.address.email,
+           :from => "\"Theater Wit Box Office\" <boxoffice@theaterwit.org>",
+           :subject => "Your #{@membership.membership_offer.name}",
+           :tag=>"Membership Confirmation")
+    }
+  end
+
   def donation_thank_you(order)
     @order = order
     mail(:to => order.address.email,

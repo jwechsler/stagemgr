@@ -7,5 +7,6 @@ class AddConstraintForOrdersToAddress < ActiveRecord::Migration
   end
 
   def self.down
+    execute %{alter table orders drop constraint address_owns_orders}
   end
 end

@@ -1,4 +1,4 @@
-    <%= order_form.fields_for :address do |address_form| %>
+<%= order_form.fields_for :address do |address_form| %>
         <%= render :partial=>'/admin/orders/name_form', :locals => {:f => address_form} %>
     <% end %>
       <%= render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form} %>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type"/>
+  </head>
+  <body>
+  <p>
+    Thanks so much becoming a member at Theater Wit.
+    <%- if @membership.is_active? %>
+      Your <%= @membership.membership_offer.name %> is ready to use immediately. You'll be getting a permanent card
+      in the mail as well as a detailed brochure about how to use it?  But hey, why wait? You can start using your
+      membership today.
+    <%- else %>
+      Your membership is not yet active.  Sometimes it takes PayPal an hour to validate your subscription. In the meantime,
+      we'll be happy to put tickets on hold for you.  Just call the box office with your name and member code.
+    <%- end %>
+  </p>
+  <p align="center"><b>Your member code is <%= @membership.member_code %></b><p>
+
+  <p>To use your membership online, just choose "Membership" instead of "Credit Card" as your payment method, and type
+  in that code.  You can use your membership to reserve a single ticket to any regular performance here at Theater Wit.
+  You can also drop by our box office with your code get pick up your tickets in advance in person if you're in the
+  neighborhood.</p>
+
+  <p>
+    If you haven't yet signed up for our email newsletter, <a href=="http://www.theaterwit.org/join/mailing.php">you should do so right now</a>.
+    You can specify how often you'd like to get building news and our schedule of events so you can take full advantage of your membership benefits.
+  </p>
+  <p>Keep in mind that your membership cannot be shared with another person.  Until our box office gets to know you,
+    please make sure to bring a picture ID when you come to pick up tickets.</p>
+  <p>
+    <%=raw @membership.email_html %>
+  </p><p>
+  Thank you for supporting Theater Wit and the many storefront theaters that make our home so special.  If you have any
+    questions, please call our box office at 773-975-8150.
+  </p>
+  <p>
+    See you at the theater!<br/>
+    <%= image_tag "http://www.theaterwit.org/static/img/mail/jmwsignature.png" -%><br clear="all"/>
+    Jeremy Wechsler<br/>
+    Artistic Director,<br/>
+    Theater Wit</br>
+  </p>
+
+
+ </body>
+</html>

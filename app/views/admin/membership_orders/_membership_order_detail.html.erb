@@ -1,7 +1,13 @@
 <table width="100%"><tr><td width="80%" valign="top"><%= render :partial => '/admin/addresses/address_contact_info', :locals=>{:address=>order.address, :link_to_address=>true } %>
 </td><td align="right"valign="top" width="20%"><i>Order ID <%=h order.id %></i><br/><b><%= order.status %></b></td> </tr></table>
 
-<%= @order.membership.current_status %>
+
+<fieldset>
+  <legend>Membership Information</legend>
+  Current Status: <%= @order.membership.current_status %><br/>
+  Member ID: <%= @order.membership.member_code %><br/>
+  Member Since: <%= @order.membership.member_since %>
+</fieldset>
 
 
 <fieldset>

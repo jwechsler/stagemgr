@@ -7,7 +7,9 @@ class OrdersController < ApplicationController
 
   respond_to :html, :xml, :json
 
-  def edit; end
+  def edit;
+    i = 1
+  end
 
   def show; end
 

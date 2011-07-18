@@ -34,6 +34,9 @@ class Admin::OrdersController < Admin::ApplicationController
   end
 
   def show
+    if @order.is_a? MembershipOrder
+      redirect_to url_for(:controller=>:membership_orders,:action=>:show, :id=>@order.id)
+    end
 
   end
 

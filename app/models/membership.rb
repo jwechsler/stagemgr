@@ -29,4 +29,8 @@ class Membership < ActiveRecord::Base
     response.params["profile_status"][0..-8]
 
   end
+
+  def is_active?
+    self.current_status == ACTIVE
+  end
 end
