@@ -28,6 +28,7 @@ authorization do
       if_attribute :theater_id => is_in {user.theater_ids}
     end
     has_permission_on :admin_addresses, :to=>[:view,:manage,:make]
+    has_permission_on :membership_orders, :to=>[:create, :read, :update]
   end
 
   role :box_office do
