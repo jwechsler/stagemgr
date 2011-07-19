@@ -505,8 +505,14 @@ class Order < ActiveRecord::Base
     redirect_to
   end
 
+
   def transition_hold_to_processing!(redirect_to = nil)
     transition_new_to_processing!(redirect_to)
+  end
+
+  def transition_hold_to_processed!(redirect_to = nil)
+    transition_new_to_processing!(redirect_to)
+    transition_processing_to_processed!(redirect_to)
   end
 
   def transition_hold_to_hold!(redirect_to = nil)
