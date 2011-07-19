@@ -6,7 +6,7 @@ Stagemgr::Application.configure do
   config.cache_classes = true
 
   # Full error reports are disabled and caching is turned on
-  config.consider_all_requests_local       = false
+  config.consider_all_requests_local = false
   config.action_controller.perform_caching = true
 
   # Specifies the header that your server uses for sending files
@@ -49,18 +49,20 @@ Stagemgr::Application.configure do
 
   # Setup paypal
   config.after_initialize do
-      ActiveMerchant::Billing::PaypalGateway.pem_file = File.read("#{::Rails.root.to_s}/config/cert_key_pem_prod.txt")
-    end
+    pem_file = File.read("#{::Rails.root.to_s}/config/cert_key_pem_prod.txt")
+    ActiveMerchant::Billing::PaypalGateway.pem_file = pem_file
+    ActiveMerchant::Billing::PaypalRecurringGateway.pem_file = pem_file
 
-  paypal_config = YAML::load(File.open("#{::Rails.root.to_s}/config/pay_pal_credentials.yml"))
+    paypal_config = YAML::load(File.open("#{::Rails.root.to_s}/config/pay_pal_credentials.yml"))
 
-  $PAYPAL_LOGIN = paypal_config['production']['paypal_login']
-  $PAYPAL_PASSWORD = paypal_config['production']['paypal_password']
+    $PAYPAL_LOGIN = paypal_config['production']['paypal_login']
+    $PAYPAL_PASSWORD = paypal_config['production']['paypal_password']
+  end
 
   # Set up notification for issues
 
   config.middleware.use ExceptionNotifier,
-    :email_prefix=>"[Stagemgr Exception] ",
-    :sender_address=>%{"Exception Notifier" <bugs@theaterwit.org>},
-    :exception_recipients=>%w{bugs@theaterwit.org}
+                        :email_prefix=>"[Stagemgr Exception] ",
+                        :sender_address=>%{"Exception Notifier" <bugs@theaterwit.org>},
+                        :exception_recipients=>%w{bugs@theaterwit.org}
 end
