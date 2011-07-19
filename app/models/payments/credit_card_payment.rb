@@ -4,6 +4,7 @@ if !defined? InvalidCreditCard
 end
 
 class CreditCardPayment < Payment
+
   acts_as_audited
 
   belongs_to             :address
@@ -36,30 +37,11 @@ class CreditCardPayment < Payment
     self.card_last_four ||= self.card_number.nil? ? "" : self.card_number[-4..-1]
   end
 
+
+
   def process!
     if self.confirmation_code.blank? || self.card_number.length != 4
-      ctype = case self.card_type
-      when 'MasterCard'
-        "master"
-      when 'master_card'
-        "master"
-      when 'American Express'
-        "american_express"
-      else
-        self.card_type
-      end
-
-
-      credit_card = ActiveMerchant::Billing::CreditCard.new(
-                        :type               => ctype,
-                        :first_name         => self.address.first_name,
-                        :last_name          => self.address.last_name,
-                        :number             => self.card_number,
-                        :month              => self.card_expiration_month,
-                        :year               => self.card_expiration_year,
-                        :verification_value => self.card_verification_number
-                      )
-      raise InvalidCreditCard, credit_card.errors.full_messages.join("\n") unless credit_card.valid?
+      credit_card = create_credit_card
 
       billing_address = {
         :name => "#{self.address.first_name} #{self.address.last_name}",
@@ -76,9 +58,8 @@ class CreditCardPayment < Payment
 
       gateway = ActiveMerchant::Billing::PaypalGateway.new(:login=>$PAYPAL_LOGIN, :password=>$PAYPAL_PASSWORD)
 
-      charge_amount = (self.amount*100).to_i
 
-      response = gateway.purchase(charge_amount, credit_card, :ip=>self.ip_address, :billing_address=>billing_address, :email => self.address.email, :order_id => self.order_id, :description => self.order.description)
+      response = gateway.purchase(self.charge_amount, credit_card, :ip=>self.ip_address, :billing_address=>billing_address, :email => self.address.email, :order_id => self.order_id, :description => self.order.description)
 
 #
 #      # Create a gateway object for the TrustCommerce service
@@ -94,7 +75,7 @@ class CreditCardPayment < Payment
 #
 
       # Authorize for the amount
-#     response = gateway.purchase(charge_amount, credit_card)
+#     response = gateway.purchase(self.charge_amount, credit_card)
 
       if response.success?
         self.confirmation_code = response.authorization
@@ -140,6 +121,40 @@ class CreditCardPayment < Payment
       refund_payment.payment_id = self.id
       refund_payment.save!
 
+    end
+  end
+
+
+  def create_credit_card
+    credit_card = ActiveMerchant::Billing::CreditCard.new(
+        :type => credit_card_type(self.card_type),
+        :first_name => self.address.first_name,
+        :last_name => self.address.last_name,
+        :number => self.card_number,
+        :month => self.card_expiration_month,
+        :year => self.card_expiration_year,
+        :verification_value => self.card_verification_number
+    )
+    raise InvalidCreditCard, credit_card.errors.full_messages.join("\n") unless credit_card.valid?
+    credit_card
+  end
+
+
+  protected
+  def charge_amount
+    (self.amount*100).to_i
+  end
+
+  def credit_card_type(ctype)
+    case ctype
+      when 'MasterCard'
+        "master"
+      when 'master_card'
+        "master"
+      when 'American Express'
+        "american_express"
+      else
+        ctype
     end
   end
 

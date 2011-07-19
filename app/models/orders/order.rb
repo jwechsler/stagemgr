@@ -7,9 +7,6 @@ class Order < ActiveRecord::Base
 
   include PaymentFormFields
   include ActionView::Helpers::NumberHelper
-  before_save :auto_link_processed_to_address_of_record
-  after_save :set_tasks_after_save
-  before_save :set_theater
 
   extend HTMLDiff
 
@@ -18,6 +15,7 @@ class Order < ActiveRecord::Base
 
   has_many :payments
   has_many :credit_card_payments
+  has_many :membership_payments
   has_many :cash_payments
   has_many :flex_pass_payments
   has_many :exchange_payments
@@ -38,7 +36,8 @@ class Order < ActiveRecord::Base
                                 :address,
                                 :payments,
                                 :cash_payments,
-                                :credit_card_payments, :allow_destroy => true
+                                :credit_card_payments,
+                                :membership_payments, :allow_destroy => true
   attr_accessor :special_offer_code
   attr_accessor :door_sale
   attr_accessor :additional_donation
@@ -52,30 +51,40 @@ class Order < ActiveRecord::Base
 
 
   PAYMENT_TYPES = (
-  CREDIT_CARD, CASH, FLEX_PASS, PRICE_OVERRIDE =
-      "Credit Card", "Cash", "FlexPass", "Price Override")
+  CREDIT_CARD, CASH, FLEX_PASS, PRICE_OVERRIDE, MEMBERSHIP =
+      "Credit Card", "Cash", "FlexPass", "Price Override", "Membership")
 
   acts_as_audited
+
+  before_validation :auto_link_processed_to_address_of_record
+  before_validation :cascade_address_to_nested_items
+  before_validation :initialize_nested_line_items, :on => :create
+  before_validation :set_defaults
+  before_validation :set_tickets_for_pass_redemption
+
+  before_save :set_theater
+
+  after_save :set_tasks_after_save
+
 
   validates_inclusion_of :status, :in => ORDER_STATUSES
   validates_inclusion_of :payment_type, :in => PAYMENT_TYPES
 
   validates_presence_of :address, :status
   validates_associated :address,
-                       :payments, :credit_card_payments, :cash_payments,
+                       :payments, :credit_card_payments, :cash_payments, :membership_payments, :flex_pass_payments,
                        :line_items, :ticket_line_items, :donation_line_items, :flex_pass_line_items, :special_offer_line_items
-
-  before_validation :initialize_nested_line_items, :on => :create
-  before_validation :set_defaults
-  before_validation :set_tickets_for_pass_redemption
 
   validates_each :status do |record, attr, value|
     if value == PROCESSED
-      unless record.total == record.value_of_all_payments || record.ticket_quantity == record.number_of_tickets_of_all_payments
+      unless record.total == record.value_of_all_payments
         record.errors.add attr, "cannot be set to #{PROCESSED} if the total isn't countered by a payment."
       end
       unless record.ticket_line_items.empty? || record.ticket_quantity > 0
         record.errors.add :ticket_line_items, "must contain at least one ticket."
+      end
+      unless record.membership_payments.empty?
+        record.membership_payments.first.membership.membership_offer.verify_applicable_for(record)
       end
     end
   end
@@ -86,13 +95,8 @@ class Order < ActiveRecord::Base
   end
 
   def value_of_all_payments
-    all_payments = self.payments.to_a +
-        self.credit_card_payments.to_a +
-        self.cash_payments.to_a +
-        self.exchange_payments.to_a +
-        self.price_override_payments.to_a
-    all_payments = all_payments.uniq
-    all_payments.sum { |p| p.amount }
+    self.unique_payments.sum { |p| p.amount }
+
   end
 
   def number_of_tickets_of_all_payments
@@ -129,7 +133,7 @@ class Order < ActiveRecord::Base
   end
 
   def performance_code=(string)
-    self.performance = Performance.find_by_performance_code(string)
+    self.performance=Performance.find_by_performance_code(string)
   end
 
   def performance_code()
@@ -149,12 +153,9 @@ class Order < ActiveRecord::Base
 
   def total(reload_line_items=false)
     if self.payments.blank? then
-      (self.line_items(reload_line_items) +
-          self.ticket_line_items(reload_line_items) +
-          self.special_offer_line_items(reload_line_items) +
-          self.flex_pass_line_items(reload_line_items) +
-          self.donation_line_items(reload_line_items)
-      ).uniq.to_a.sum { |line_item| line_item.respond_to?(:total) ? line_item.total : 0 }
+      self.unique_line_items(reload_line_items).to_a.sum { |line_item|
+        line_item.respond_to?(:total) ? line_item.total : 0
+      }
     else
       self.payments.to_a.sum { |payment| payment.respond_to?(:amount) ? payment.amount : 0 }
     end
@@ -198,6 +199,7 @@ class Order < ActiveRecord::Base
     end
     if self.contains_flex_pass? || self.contains_donation?
       valid_payment_types.delete FLEX_PASS
+      valid_payment_types.delete MEMBERSHIP
     end
     valid_payment_types
   end
@@ -267,24 +269,14 @@ class Order < ActiveRecord::Base
     end
   end
 
+
   def create_proper_payment_in_amount_of!(amount)
     case self.payment_type
       when CASH
         self.cash_payments.create!(:amount => amount)
       when CREDIT_CARD
         if (amount != 0) then
-          new_payment = self.credit_card_payments.build(
-              :amount => amount,
-              :address => self.address,
-              :card_number => self.credit_card_number,
-              :card_expiration_month => self.credit_card_expiration_month,
-              :card_expiration_year => self.credit_card_expiration_year,
-              :card_type => self.credit_card_type,
-              :card_verification_number => self.credit_card_verification_number,
-              :confirmation_code => self.credit_card_confirmation_code,
-              :ip_address => self.ip_address
-          )
-          new_payment.process!
+          create_credit_card_payment(amount)
         else
           self.cash_payments.create(:amount => 0);
         end
@@ -297,13 +289,27 @@ class Order < ActiveRecord::Base
           raise "That Flexpass cannot be used for tickets for #{Theater.find_by_id(flex_pass.flex_pass_offer.theater_id).name} productions" if (flex_pass.flex_pass_offer.theater_id == self.performance.production.theater.id and flex_pass.flex_pass_offer.exclude_theater?)
 
         end
+        pass_ticket_class = production_ticket_class_from_offer(offer)
+        total_amount = ticket_line_items.inject(0) { |total_amount, li| total_amount += self.applicable_price(li.ticket_class, pass_ticket_class)* li.ticket_count }
         new_payment = self.flex_pass_payments.create!(
             :number_of_tickets => self.ticket_quantity,
             :flex_pass => flex_pass,
-            :amount => flex_pass.flex_pass_offer.payout_per_ticket * self.ticket_quantity
+            :amount => total_amount
         )
+        new_payment.process!
       when PRICE_OVERRIDE
         self.price_override_payments.create!(:amount => amount)
+      when MEMBERSHIP
+        membership = Membership.find_by_member_code(self.member_code)
+        raise "No current membership with that code exists" unless membership
+        if !self.address.email.blank? && membership.address.email.downcase.strip != self.address.email.downcase.strip
+          raise 'Member ID does not match provided email address'
+        end
+        pass_ticket_class = production_ticket_class_from_offer(membership.membership_offer)
+        total_amount = ticket_line_items.inject(0) { |total_amount, li| total_amount += self.applicable_price(li.ticket_class, pass_ticket_class)* li.ticket_count }
+
+        new_payment = self.membership_payments.create!(:number_of_tickets=>self.ticket_quantity, :membership=>membership, :amount=>total_amount)
+        new_payment.process!
       else
         raise 'New payment type not yet implemented.'
     end
@@ -340,7 +346,6 @@ class Order < ActiveRecord::Base
         performance_s = self.performance.nil_or.to_short_s
         "#{performance_s} (#{self.ticket_detail_description})"
       when self.contains_donation?
-        sum = self.donation_line_items.inject { |sum, x| sum + x.donation_amount }
         "Donation"
       when self.contains_flex_pass?
         self.flex_pass_line_items[0].flex_pass_offer.name
@@ -384,10 +389,11 @@ class Order < ActiveRecord::Base
     }.join(', ')
   end
 
-  def transition_to!(new_status)
+  def transition_to!(new_status, redirect_to = nil)
     old_status = self.status
-    self.send "transition_#{self.status.underscore}_to_#{new_status.underscore}!".to_sym
+    redirect_to = self.send "transition_#{self.status.underscore}_to_#{new_status.underscore}!".to_sym, redirect_to
     raise "Transition from #{old_status} to #{new_status} unsuccessful. Current status is #{self.status}." unless self.status == new_status
+    redirect_to
   end
 
   def status_display
@@ -400,25 +406,13 @@ class Order < ActiveRecord::Base
   end
 
   def release_tickets!
-    ticket_line_items.each { |ti| TicketLineItem.delete(ti.id) }
+    self.ticket_line_items.each { |ti| TicketLineItem.delete(ti.id) }
   end
 
-  def link_to_address_of_record
-    if !self.address.nil? then
-      self.address.regularize!
-
-      merge = self.address.find_original
-      if !merge.nil? then
-        merge.update_from!(self.address)
-        a = self.address
-        self.address = merge
-      end
-    end
-  end
 
   def self.regularize_addresses
     orders = Order.all
-    orders.each {|o|
+    orders.each { |o|
       o.link_to_address_of_record
       if o.address_id_changed?
         begin
@@ -431,85 +425,113 @@ class Order < ActiveRecord::Base
   end
 
   def paid_with_pass?
-      self.payment_type == Order::FLEX_PASS || !self.flex_pass_payments.empty?
-    end
-
-  private
-
-  def set_tickets_for_pass_redemption
-    reassign_tickets if self.status_changed? && self.status == Order::PROCESSED && self.paid_with_pass?
+    self.payment_type == Order::FLEX_PASS || !self.flex_pass_payments.empty?
   end
 
-  def reassign_tickets
-    flex_pass = FlexPass.find_by_code(self.flex_pass_code)
-    if flex_pass.nil?
-      flex_pass = self.flex_pass_payments.first.flex_pass
-    end
-        offer = flex_pass.flex_pass_offer
-        new_ticket_class = self.performance.production.ticket_classes.select { |tc| tc.class_code == offer.use_ticket_class_code }.first
-        if !new_ticket_class.nil?
-          self.ticket_line_items.each { |li|
-            new_line_item = TicketLineItem.new
-            new_line_item.ticket_class = new_ticket_class
-            old_price = li.ticket_class.ticket_price
-            new_line_item.ticket_count = li.ticket_count
-            new_line_item.price_override = [li.ticket_class.ticket_price, new_ticket_class.ticket_price].min if new_ticket_class.ticket_type == TicketClass::DONATION
-            self.ticket_line_items << new_line_item
-            self.ticket_line_items.delete(li)
 
-          }
-        end
-
+  def paid_with_membership?
+    !self.membership_payments.empty?
   end
 
-  def auto_link_processed_to_address_of_record
-    if status == Order::PROCESSED then
-      link_to_address_of_record
+
+  def link_to_address_of_record
+    if !self.address.nil? then
+      self.address.regularize!
+
+      merge = self.address.find_original
+      if !merge.nil? then
+        merge.update_from!(self.address)
+        a = self.address
+        self.address = merge
+        a.destroy if !a.nil?
+      end
     end
   end
 
-  def transition_new_to_hold!
+  protected
+  def cascade_address_to_nested_items
+    # code here
+  end
+
+  def create_credit_card_payment(amount)
+    new_payment = self.credit_card_payments.build(
+        :amount => amount,
+        :address => self.address,
+        :card_number => self.credit_card_number,
+        :card_expiration_month => self.credit_card_expiration_month,
+        :card_expiration_year => self.credit_card_expiration_year,
+        :card_type => self.credit_card_type,
+        :card_verification_number => self.credit_card_verification_number,
+        :confirmation_code => self.credit_card_confirmation_code,
+        :ip_address => self.ip_address
+    )
+    new_payment.process!
+  end
+
+  def unique_line_items(reload_line_items = false)
+    (self.line_items(reload_line_items) +
+        self.ticket_line_items(reload_line_items) +
+        self.special_offer_line_items(reload_line_items) +
+        self.flex_pass_line_items(reload_line_items) +
+        self.donation_line_items(reload_line_items)
+    ).uniq
+  end
+
+  def unique_payments
+    (self.payments.to_a +
+        self.credit_card_payments +
+        self.cash_payments +
+        self.exchange_payments +
+        self.price_override_payments +
+        self.flex_pass_payments +
+        self.membership_payments).uniq
+  end
+
+  def transition_new_to_hold!(redirect_to = nil)
     self.status = Order::HOLD
     self.save!
+    redirect_to
   end
 
-  def transition_new_to_processing!
+  def transition_new_to_processed!(redirect_to = nil)
+    transition_new_to_processing!(redirect_to)
+    transition_processing_to_processed!(redirect_to)
+  end
+
+  def transition_new_to_processing!(redirect_to = nil)
     self.status = Order::PROCESSING
     self.update_special_offer_line_items_from_code! unless self.special_offer_code.blank?
     self.save!
+    redirect_to
   end
 
-  def transition_hold_to_processing!
-    transition_new_to_processing!
+  def transition_hold_to_processing!(redirect_to = nil)
+    transition_new_to_processing!(redirect_to)
   end
 
-  def transition_hold_to_hold!
+  def transition_hold_to_hold!(redirect_to = nil)
     self.save!
+    redirect_to
   end
 
-  def transition_processing_to_processed!
-
+  def transition_processing_to_processed!(redirect_to = nil)
     create_proper_payment_in_amount_of!(self.total)
-
-    save_additional_donation_order unless (self.additional_donation.blank? || self.additional_donation.to_i == 0)
-
     self.status = Order::PROCESSED
     self.set_email_confirmation
     self.special_offer_line_items.each { |li| li.mark_redeemed }
     self.save!
+    save_additional_donation_order unless (self.additional_donation.blank? || self.additional_donation.to_i == 0)
+    redirect_to
   end
 
-  def transition_unclaimed_to_fulfilled!
-    transition_processed_to_fulfilled!
+  def transition_unclaimed_to_fulfilled!(redirect_to = nil)
+    transition_processed_to_fulfilled!(redirect_to)
   end
 
-  def transition_processed_to_fulfilled!
+  def transition_processed_to_fulfilled!(redirect_to = nil)
     self.status = Order::FULFILLED
     self.save!
-  end
-
-  def initialize_nested_line_items
-    line_items.each { |li| li.order = self }
+    redirect_to
   end
 
   def set_defaults
@@ -518,6 +540,77 @@ class Order < ActiveRecord::Base
     self.ticket_line_items.each { |tli| tli.order=self }
     self.flex_pass_line_items.each { |tli| tli.order=self }
     self.donation_line_items.each { |di| di.order=self }
+
+  end
+
+  def production_ticket_class_from_offer(offer)
+    self.performance.production.ticket_classes.select { |tc| tc.class_code == offer.use_ticket_class_code }.first
+  end
+
+  def applicable_price(regular_ticket_class, offer_ticket_class)
+    return [regular_ticket_class.ticket_price, offer_ticket_class.ticket_price].min
+  end
+
+  def set_ticket_classes_using_offer(offer)
+    new_ticket_class = production_ticket_class_from_offer(offer)
+    if !new_ticket_class.nil?
+      self.ticket_line_items.each { |li|
+        new_line_item = TicketLineItem.new
+        new_line_item.ticket_class = new_ticket_class
+        old_price = li.ticket_class.ticket_price
+        new_line_item.ticket_count = li.ticket_count
+        new_line_item.price_override = self.applicable_price(li.ticket_class, new_ticket_class) if new_ticket_class.ticket_type == TicketClass::DONATION
+        self.ticket_line_items << new_line_item
+        self.ticket_line_items.delete(li)
+
+      }
+    end
+  end
+
+  def set_tickets_for_pass_redemption
+    if self.status_changed? && self.status == Order::PROCESSED
+      if self.paid_with_pass?
+        flex_pass = FlexPass.find_by_code(self.flex_pass_code)
+        offer = flex_pass.flex_pass_offer
+        set_ticket_classes_using_offer(offer)
+      end
+      if self.paid_with_membership?
+        membership = Membership.find_by_member_code(self.member_code)
+        offer = membership.membership_offer
+        set_ticket_classes_using_offer(offer)
+        self.ticket_line_items
+
+      end
+
+    end
+  end
+
+  def create_mail_list_task
+    self.tasks << MyEmmaTask.new(:execute_at=>Time.now + 5.minutes) if !self.address.email.nil?
+  end
+
+
+  def create_receipt_task
+    if self.contains_tickets?
+      self.tasks << OutreachTask.new(:execute_at=>Time.now + 5.minutes, :method_symbol=>:ticket_confirmation)
+    end
+
+    self.tasks << OutreachTask.new(:execute_at=>Time.now + 5.minutes, :method_symbol=>:flexpass_confirmation) if self.contains_flex_pass?
+    self.tasks << OutreachTask.new(:execute_at=>Time.now + 5.minutes, :method_symbol=>:donation_thank_you) if self.contains_donation?
+
+  end
+
+
+  private
+  def auto_link_processed_to_address_of_record
+    if status == Order::PROCESSING then
+      link_to_address_of_record
+    end
+  end
+
+
+  def initialize_nested_line_items
+    line_items.each { |li| li.order = self }
   end
 
   def save_additional_donation_order
@@ -554,19 +647,6 @@ class Order < ActiveRecord::Base
 
   end
 
-  def create_mail_list_task
-    self.tasks << MyEmmaTask.new(:execute_at=>Time.now + 5.minutes) if !self.address.email.nil?
-  end
-
-  def create_receipt_task
-    if self.contains_tickets?
-      self.tasks << OutreachTask.new(:execute_at=>Time.now + 5.minutes, :method_symbol=>:ticket_confirmation)
-    end
-
-    self.tasks << OutreachTask.new(:execute_at=>Time.now + 5.minutes, :method_symbol=>:flexpass_confirmation) if self.contains_flex_pass?
-    self.tasks << OutreachTask.new(:execute_at=>Time.now + 5.minutes, :method_symbol=>:donation_thank_you) if self.contains_donation?
-
-  end
 
   def create_reminder_task
 
@@ -593,7 +673,7 @@ class Order < ActiveRecord::Base
   end
 
   def cancel_pending_tasks
-    self.tasks.select {|t| t.uncompleted? }.each {|t| t.cancel! }
+    self.tasks.select { |t| t.uncompleted? }.each { |t| t.cancel! }
   end
 
 end

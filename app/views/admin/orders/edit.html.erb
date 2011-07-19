@@ -1,4 +1,6 @@
-<% javascript :defaults, 'delegate', 'jquery-1.4.2.min', 'jquery.autocomplete', 'box_office_order' %>
+<%=
+    i = 1
+    javascript :defaults, 'delegate', 'jquery-1.4.2.min', 'jquery.autocomplete', 'box_office_order' %>
 
 <%= error_messages_for :order %>
 
@@ -14,6 +16,7 @@
         <%- end -%>
 
         <%- if @order.flex_pass_line_items.size > 0 -%>
+
 	        <%= order_form.semantic_fields_for :flex_pass_line_items do |flex_pass_line_item_form| %>
 		        <%= render :partial => '/admin/orders/flex_pass_line_item_form', :locals => { :f => flex_pass_line_item_form } %>
 	        <%- end -%>

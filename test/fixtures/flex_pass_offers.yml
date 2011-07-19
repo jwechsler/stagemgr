@@ -7,3 +7,4 @@ flexpass_5_offer:
   payout_per_ticket: 4
   price: 25
   short_description: See five shows for only $25
+  use_ticket_class_code: FLEX

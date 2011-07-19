@@ -7,6 +7,7 @@ gem 'rails', '3.0.3'
 
 gem 'sqlite3-ruby', :require => 'sqlite3'
 
+
 # Use unicorn as the web server
 # gem 'unicorn'
 
@@ -33,7 +34,7 @@ gem "whenever", :require=>false
 gem "formtastic", '~> 1.2.3'
 gem "validation_reflection"
 gem "declarative_authorization"
-gem "activemerchant"
+gem "activemerchant", :git => 'https://github.com/florianguenther/active_merchant'
 gem "mysql",                  '2.8.1'
 gem "authlogic",              '2.1.6'
 gem "acts_as_audited",        "2.0.0.rc7"

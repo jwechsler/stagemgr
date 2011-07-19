@@ -7,6 +7,7 @@
 #   column: value
 
 jeremy:
+  id: 1
   city: Chicago
   first_name: Jeremy
   last_name: Wechsler
@@ -14,22 +15,24 @@ jeremy:
   phone: 773-975-8150
   state: IL
   zipcode: 60657
+  email: testuser@nowhere.com
 
 bob_smith_1:
-  id: 1
+  id: 2
   last_name: Smith
   first_name: Bob
   email: bob@bobsmith.com
   line1: 123 Somewhere
 
 bob_smith_2:
-  id: 2
+  id: 3
   last_name: "Smith"
   first_name: "Bob"
   email: "bob@bobsmith.com"
   city: "Chicago"
 
 john_smith:
+  id: 4
   last_name: "Smith"
   first_name: "John"
   email: "someone@else.com"

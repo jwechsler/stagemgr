@@ -1,6 +1,8 @@
 <% javascript :defaults, 'delegate', 'jquery-1.4.2.min', 'jquery.autocomplete', 'box_office_order' %>
 
+<%= debug @order %>
 <a name="top" style="text-decoration:none;"><h3><%= raw @order_for_to_s %>&nbsp;</h3></a>
+
 <%- if @order.flex_pass_line_items.size > 0 -%>
   <p><%= @order.flex_pass_line_items[0].flex_pass_offer.description%></p>
   <%- end -%>
@@ -35,6 +37,7 @@
 
         <%- end %>
         <%= render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form} %>
+        <%= render :partial => '/orders/special_offer_form', :locals => {:f => order_form} %>
 
             <table>
               <tr>

@@ -6,6 +6,7 @@ authorization do
     has_permission_on :performances, :to=>:read
     has_permission_on :flex_pass_offers, :to=>:read
     has_permission_on :orders, :to=>[:create,:read,:update]
+    has_permission_on :membership_orders, :to=>[:create, :read, :update]
   end
 
   role :theater_user do
@@ -41,6 +42,7 @@ authorization do
     has_permission_on :admin_flex_pass_offers, :to=>[:make, :manage, :view]
     has_permission_on :admin_addresses, :to=>[:view_email]
     has_permission_on :admin_reports, :to=>[:box_office_reports]
+    has_permission_on :admin_membership_orders, :to=>[:view]
   end
 
   role :admin do

@@ -1,0 +1,3 @@
+class RecurringPayment < Payment
+
+end

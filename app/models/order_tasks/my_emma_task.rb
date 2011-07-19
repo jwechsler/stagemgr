@@ -1,4 +1,5 @@
 class MyEmmaTask < OrderTask
+  attr_accessor :additional_groups
 
   protected
 
@@ -23,6 +24,9 @@ class MyEmmaTask < OrderTask
                  :emma_member_state=>order.address.state,
                  :emma_member_postal_code=>order.address.zipcode,
                  "group[208104529]"=>1}
+    if !additional_groups.nil?
+      additional_groups.each{|grp| post_args["group[#{grp}]"] = 1 if !grp.blank?}
+    end
     grp = order.performance.production.myemma_attendee_group unless order.performance.nil?
     if !grp.blank?
       post_args["group[#{grp}]"] = 1

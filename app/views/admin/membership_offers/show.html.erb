@@ -1,0 +1,19 @@
+<% title "Admin/Membership Offer" %>
+
+<p>
+  <strong>Name:</strong>
+  <%= @membership_offer.name %>
+</p>
+<p>
+  <strong>Recurring Cost:</strong>
+  <%= @membership_offer.recurring_cost %>
+</p>
+<p>
+  <strong>Email Html:</strong>
+  <%= @membership_offer.email_html %>
+</p>
+<p>
+  <%= link_to "Edit", edit_admin_membership_offer_path(@membership_offer) %> |
+  <%= link_to "Destroy", [:admin, @membership_offer], :confirm => 'Are you sure?', :method => :delete %> |
+  <%= link_to "View All", admin_membership_offers_path %>
+</p>

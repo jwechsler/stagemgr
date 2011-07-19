@@ -8,4 +8,7 @@ class Payment < ActiveRecord::Base
   def payment_type=(string)
     self.type=string
   end
+  def process!
+    self.save!
+  end
 end

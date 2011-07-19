@@ -16,3 +16,22 @@ macbeth_comp:
   class_name: Comp
   ticket_type: Fixed
 
+member:
+  class_code: MEMBER
+  production: macbeth
+  ticket_price: 17.50
+  ticketing_fee: 0
+  web_visible: false
+  software_managed: true
+  class_name: Member ticket
+  ticket_type: Donation
+
+flex:
+  class_code: FLEX
+  production: macbeth
+  ticket_price: 17.50
+  ticketing_fee: 0
+  web_visible: false
+  software_managed: true
+  class_name: FlexPass ticket
+  ticket_type: Donation
