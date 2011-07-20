@@ -6,6 +6,8 @@ class PerformancesController < ApplicationController
     @end_date = @start_date.end_of_month;
     @performances = @production.performances.find(:all, :conditions=>['performances.status != \'Inactive\' and performances.performance_date >= ? and performances.performance_date <= ?',@start_date,@end_date], :order=>'performances.performance_date, performances.performance_time asc')
     render :index, :layout=>'ext_site_wrapper'
+  end
+
   private
   
   def find_production
