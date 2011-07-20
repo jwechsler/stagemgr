@@ -1,5 +1,6 @@
 
 class OrdersController < ApplicationController
+  layout 'ext_site_wrapper'
   include OrdersHelper
 
   append_before_filter :find_order, :only => [:show, :edit, :update, :destroy]

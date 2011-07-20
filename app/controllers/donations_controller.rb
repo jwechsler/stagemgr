@@ -1,4 +1,6 @@
 class DonationsController < ApplicationController
+  layout 'ext_site_wrapper'
+
   def new
     @order = Order.new
     @order.status = Order::NEW
@@ -13,7 +15,7 @@ class DonationsController < ApplicationController
     @levels["Confidante ($1500)"] = 1500
     @levels["Patron ($2500)"] = 2500
     respond_to do |format|
-      format.html{ render '/orders/edit', :layout=>'none' }
+      format.html{ render '/orders/edit', :layout=>'ext_site_wrapper' }
     end
   end
 
