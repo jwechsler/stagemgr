@@ -14,3 +14,4 @@ db/*.sqlite3
 db/schema.rb
 public/system/
 config/initializers/active_merchant.rb
+app/views/layouts/ext_site_wrapper.html.erb

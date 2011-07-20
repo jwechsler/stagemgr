@@ -1,5 +1,4 @@
 class MembershipOfferOrdersController < ApplicationController
-  layout 'none'
 
   def new
      @order = MembershipOrder.new
@@ -12,7 +11,7 @@ class MembershipOfferOrdersController < ApplicationController
      end
      @order.membership_line_items.build(:membership_offer_id=>params[:membership_offer_id])
 
-     render '/membership_orders/edit', :layout=>'none'
+     render '/membership_orders/edit', :layout=>'ext_site_wrapper'
    end
 
 
