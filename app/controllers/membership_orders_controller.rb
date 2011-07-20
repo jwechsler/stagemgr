@@ -1,5 +1,5 @@
 class MembershipOrdersController < ApplicationController
-  layout 'none'
+  layout 'ext_site_wrapper'
   include OrdersHelper
 
   def create

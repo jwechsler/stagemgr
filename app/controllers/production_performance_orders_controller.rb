@@ -12,7 +12,7 @@ class ProductionPerformanceOrdersController < ApplicationController
                       ' at ' + @performance.performance_time.to_formatted_s(:hour_min)
   
     respond_to do |format|
-      format.html{ render '/orders/edit', :layout=>'none' }
+      format.html{ render '/orders/edit', :layout=>'ext_site_wrapper' }
     end
   end
 end
