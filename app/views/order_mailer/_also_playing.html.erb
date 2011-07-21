@@ -1,8 +1,9 @@
 <div class="coming_soon" style="font-size: 12px;">
   <p style="text-align:center"><span style="font-weight: bolder;">Also at Theater Wit</span></p>
   <br/>
-  <%- productions = Production.where("closing_at > :after_date and status!='Inactive' and not exists (select * from performances where status!='Inactive' and performances.production_id = productions.id and performances.id in (select performance_id from orders where address_id = :order_address))",
-                                     {:after_date=>Time.now.end_of_week,
+  <%- productions = Production.where("closing_at > :after_date and status in (:visible) and not exists (select * from performances where status!='Inactive' and performances.production_id = productions.id and performances.id in (select performance_id from orders where address_id = :order_address))",
+                                     {:visible=>Production.visible_statuses,
+                                      :after_date=>Time.now.end_of_week,
                                       :order_address=>order.address.id}).order("RAND()").limit(4) %>
   <%- productions.each { |prod| %>
     <div style="text-align:center; font-size:11px">

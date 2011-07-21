@@ -1,7 +1,10 @@
 class Production < ActiveRecord::Base
   using_access_control
 
-  PRODUCTION_STATUSES = ['Active',  'Private', 'Inactive' ]
+  PRODUCTION_STATUSES = (
+    ACTIVE,    PRIVATE,   INACTIVE =
+    'Active',  'Private', 'Inactive' )
+
   validates_inclusion_of :status,        :in => PRODUCTION_STATUSES
   validates_presence_of :theater, :name
   validates_uniqueness_of :production_code
@@ -46,6 +49,10 @@ class Production < ActiveRecord::Base
       li = o.ticket_line_items.build(:ticket_class=>ticket_class, :ticket_count=>number_of_tickets)
       o.save!
     }
+  end
+
+  def self.visible_statuses
+    [ACTIVE]
   end
 
   private 
