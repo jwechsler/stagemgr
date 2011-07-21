@@ -7,7 +7,7 @@
     <%= order_form.fields_for :address do |address_form| %>
         <%= render :partial => '/admin/orders/address_form', :locals => {:f => address_form} %>
     <% end %>
-    <%= order_form.input :add_to_email_list, :as=>:boolean, :label=>'Add to email list?' %>
+    <%= order_form.input :add_to_email_list, :as=>:boolean, :label=>'Add to email list?', :default=>false %>
 
     <%= order_form.hidden_field :status %>
 

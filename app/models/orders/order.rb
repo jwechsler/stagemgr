@@ -609,7 +609,7 @@ class Order < ActiveRecord::Base
 
   private
   def auto_link_processed_to_address_of_record
-    if status == Order::PROCESSING then
+    if status == Order::PROCESSED then
       link_to_address_of_record
     end
   end

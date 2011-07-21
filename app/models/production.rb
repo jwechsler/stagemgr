@@ -2,8 +2,13 @@ class Production < ActiveRecord::Base
   using_access_control
 
   PRODUCTION_STATUSES = (
-    ACTIVE,    PRIVATE,   INACTIVE =
-    'Active',  'Private', 'Inactive' )
+    ACTIVE,    PRIVATE,   INACTIVE, PRESALE =
+    'Active',  'Private', 'Inactive', 'Presale')
+
+  PRODUCTION_CLASSES = (
+    PLAY, SPECIAL_EVENT, PRIVATE_PARTY, CONFERENCE =
+    'Play', 'Special Event', 'Private Party', 'Conference'
+  )
 
   validates_inclusion_of :status,        :in => PRODUCTION_STATUSES
   validates_presence_of :theater, :name
@@ -52,7 +57,11 @@ class Production < ActiveRecord::Base
   end
 
   def self.visible_statuses
-    [ACTIVE]
+    [ACTIVE, PRESALE]
+  end
+
+  def self.performing_classes
+    [PLAY, SPECIAL_EVENT]
   end
 
   private 

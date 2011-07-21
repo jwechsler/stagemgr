@@ -6,7 +6,9 @@ class OrderMailer < ActionMailer::Base
 
   def ticket_confirmation(order)
     @order = order
-    @confirmation_message = ERB.new(@order.confirmation_message)
+    if !@order.performance.nil?
+      @confirmation_message = ERB.new(@order.performance.production.confirmation_message).result if !@order.performance.production.confirmation_message.blank?
+    end
     mail(:to => @order.address.email,
          :from => "\"Theater Wit Box Office\" <boxoffice@theaterwit.org>",
          :subject => "Your reservation ##{order.id} for #{@order.performance.production.name} is confirmed",
@@ -58,6 +60,10 @@ class OrderMailer < ActionMailer::Base
   end
 
   def member_followup(order)
+    if !@order.performance.nil?
+      @followup_message = ERB.new(@order.performance.production.followup_message).result if !@order.performance.production.followup_message.blank?
+      @followup_message_2 = ERB.new(@order.performance.production.followup_message).result if !@order.performance.production.followup_message_2.blank?
+    end
     mail(:to=>order.address.email,:from=>"\"Jeremy Wechsler\" <jeremy@theaterwit.org>",
          :subject=>"Thanks for coming to #{order.performance.production.name}",
          :tag=>"Member Followup")

@@ -1,42 +1,48 @@
 <div class="production_information">
   <a name="production<%= production.id %>"></a>
   <% if !production.logo_url.blank? then %>
-      <img class="production_logo" src="<%= production.logo_url %>" width="250"/>
+    <img class="production_logo" src="<%= production.logo_url %>" width="250"/>
   <% end %>
   <% if production.theater.class_display != '' then %>
-      <p><span class="company_class"><%= h production.theater.class_display %></span> -
-        <span class="company_header"><%= h production.theater.name %></span></p>
+    <p><span class="company_class"><%= production.theater.class_display %></span> -
+      <span class="company_header"><%= production.theater.name %></span></p>
   <% else %>
-      <p><span class="company_class"><%= h production.theater.name %></span</p>
+    <p><span class="company_class"><%= production.theater.name %></span></p>
   <% end %>
-  <span class="production_name"><%= h production.name %></span><br/>
+  <span class="production_name"><%= production.name %></span><br/>
   <span class="production_credits"><%= raw production.credit_lines %></span><br/>
 
-  <p class="production_dates"><%=h  "#{production.first_preview_at.strftime('%B %d, %Y')} #{"through " + production.closing_at.strftime('%B %d, %Y ') unless production.first_preview_at == production.closing_at}" %></p>
+  <p class="production_dates"><%= h "#{production.first_preview_at.strftime('%B %d, %Y')} #{"through " + production.closing_at.strftime('%B %d, %Y ') unless production.first_preview_at == production.closing_at}" %></p>
 
   <div class="production_description">
     <p>
       <%= raw production.show_description %>
     </p>
     <%- if !production.running_time.blank? then -%>
-      <p class="running_time">Running Time: <%= production.running_time > 95 ? distance_of_time_in_words(production.running_time*60) : "#{production.running_time} minutes" %><%= " with intermission" if production.intermission? %></p>
+      <p class="running_time">Running
+        Time: <%= production.running_time > 95 ? distance_of_time_in_words(production.running_time*60) : "#{production.running_time} minutes" %><%= " with intermission" if production.intermission? %></p>
     <%- end -%>
     <% if !production.additional_information_link.blank? then %>
-        <p class="additional_information">For more information, click
-          <a href="<%= production.additional_information_link %>" target="_blank">here</a>.</p>
+      <p class="additional_information">For more information, click
+        <a href="<%= production.additional_information_link %>" target="_blank">here</a>.</p>
     <% end %>
-    <p class="production_tickets">
-      <%- if link_to_full %>
+    <%- if production.status != Production::PRESALE %>
+      <p class="production_tickets">
+        <%- if link_to_full %>
           <%= raw link_to "Get tickets/schedule for <i>#{production.name}</i>".html_safe, "https://www.theaterwit.org/boxoffice/production/index.php?production_id=#{production.id}", :anchor=>"top" %>
-      <%- else %>
+        <%- else %>
           <%= raw link_to "Get tickets/schedule for <i>#{production.name}</i>".html_safe, production_performances_path(production.id, :anchor=>"top") %>
-      <%- end %></p>
+        <%- end %></p>
 
-    <p class="special_offer_upsell">
-      <%- if !production.flex_pass_offer.blank? && !production.flex_pass_offer.short_description.blank? -%>
+      <p class="special_offer_upsell">
+        <%- if !production.flex_pass_offer.blank? && !production.flex_pass_offer.short_description.blank? -%>
           <%= link_to production.flex_pass_offer.short_description, new_flex_pass_offer_order_path(production.flex_pass_offer, :anchor=>"top") %>
-      <%- end -%></p>
+        <%- end -%></p>
+    <%- else -%>
+      <p class="production tickets"><i>Tickets are not yet on sale for <%= production.name %>. Check back later!</i></p>
+    <%- end %>
     <br clear="all"/>
   </div>
 
   
+</div>

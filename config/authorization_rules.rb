@@ -29,14 +29,15 @@ authorization do
     end
     has_permission_on :admin_addresses, :to=>[:view,:manage,:make]
     has_permission_on :membership_orders, :to=>[:create, :read, :update]
+    has_permission_on :admin_exchange_orders, :to=>[:make]
   end
 
   role :box_office do
     includes :theater_user
     has_permission_on :admin_theaters, :to=>[:manage]
     has_permission_on :theaters, :to=>[:create,:update,:read]
-    has_permission_on :admin_exchange_orders, :to=>[:make]
-    has_permission_on :admin_orders, :to=>[:hold,:unclaimed,:fulfill]
+
+    has_permission_on :admin_orders, :to=>[:hold,:unclaimed, :fulfill]
     has_permission_on :productions, :to=>[:view, :make, :manage]
     has_permission_on :performances, :to=>[:view, :make, :manage, :delete]
     has_permission_on :admin_ticket_classes, :to=>[:make,:manage]

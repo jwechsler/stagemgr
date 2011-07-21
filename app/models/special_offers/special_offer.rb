@@ -60,7 +60,9 @@ class SpecialOffer < ActiveRecord::Base
   end
   
   def applicable_line_items(order)
-    return order.ticket_line_items
+    look_for = ticket_class_code.nil? ? '' : self.ticket_class_code
+
+    return order.ticket_line_items.select{ |li| li.ticket_class.class_code.starts_with?(look_for)}
   end
   
   
