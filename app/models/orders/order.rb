@@ -448,6 +448,22 @@ class Order < ActiveRecord::Base
     end
   end
 
+  def set_ticket_classes_using_offer(offer)
+    new_ticket_class = production_ticket_class_from_offer(offer)
+    if !new_ticket_class.nil?
+      self.ticket_line_items.each { |li|
+        new_line_item = TicketLineItem.new
+        new_line_item.ticket_class = new_ticket_class
+        old_price = li.ticket_class.ticket_price
+        new_line_item.ticket_count = li.ticket_count
+        new_line_item.price_override = self.applicable_price(li.ticket_class, new_ticket_class) if new_ticket_class.ticket_type == TicketClass::DONATION
+        self.ticket_line_items << new_line_item
+        self.ticket_line_items.delete(li)
+
+      }
+    end
+  end
+
   protected
   def cascade_address_to_nested_items
     # code here
@@ -557,21 +573,7 @@ class Order < ActiveRecord::Base
     return [regular_ticket_class.ticket_price, offer_ticket_class.ticket_price].min
   end
 
-  def set_ticket_classes_using_offer(offer)
-    new_ticket_class = production_ticket_class_from_offer(offer)
-    if !new_ticket_class.nil?
-      self.ticket_line_items.each { |li|
-        new_line_item = TicketLineItem.new
-        new_line_item.ticket_class = new_ticket_class
-        old_price = li.ticket_class.ticket_price
-        new_line_item.ticket_count = li.ticket_count
-        new_line_item.price_override = self.applicable_price(li.ticket_class, new_ticket_class) if new_ticket_class.ticket_type == TicketClass::DONATION
-        self.ticket_line_items << new_line_item
-        self.ticket_line_items.delete(li)
 
-      }
-    end
-  end
 
   def set_tickets_for_pass_redemption
     if self.status_changed? && self.status == Order::PROCESSED
@@ -606,6 +608,24 @@ class Order < ActiveRecord::Base
 
   end
 
+  def self.reassign_payments(offer)
+    orders = Order.where("id in (select order_id from payments where flex_pass_id in (select id from flex_passes where flex_pass_offer_id = :offer_id))",
+                         {:offer_id => offer.id})
+
+    orders.each {|o|
+      was = o.to_s
+      o.set_ticket_classes_using_offer(offer)
+      o.save!
+      if was != o.to_s
+        puts "Order #{o.id}: #{was} converted to #{o.to_s}"
+      else
+        puts "Order #{o.id}: #{was}"
+      end
+    }
+
+    nil
+
+  end
 
   private
   def auto_link_processed_to_address_of_record
