@@ -98,7 +98,7 @@ class AddressTest < ActiveSupport::TestCase
       @new_address.regularize!
       @matching = @new_address.find_original
       assert_not_nil @matching
-      @matching.update_from!(@new_address)
+      @matching.update_from(@new_address)
       assert_equal "500 W Nowhere", @matching.line1
       assert_equal "60640", @matching.zipcode
 
@@ -111,7 +111,7 @@ class AddressTest < ActiveSupport::TestCase
       @new_address.regularize!
       @matching = @new_address.find_original
       assert_not_nil @matching
-      @matching.update_from!(@new_address)
+      @matching.update_from(@new_address)
       assert_equal "newemail@testing.com", @matching.email
 
     end
@@ -129,7 +129,7 @@ class AddressTest < ActiveSupport::TestCase
       @entered_address.email = "info@theaterwit.org"
       @entered_address.line2 = "2nd Floor"
       @entered_address.line1 = "1 E Madison"
-      @original_address.update_from!(@entered_address)
+      @original_address.update_from(@entered_address)
       assert_equal "BetterName", @original_address.last_name
       assert_equal "info@theaterwit.org", @original_address.email
       assert_equal "1 E Madison", @original_address.line1
@@ -181,7 +181,7 @@ class AddressTest < ActiveSupport::TestCase
     should "merge the related tags" do
       merge = @address_2.find_original
       assert_equal 1, merge.address_tags.size
-      merge.update_from!(@address_2)
+      merge.update_from(@address_2)
       assert_equal 2, merge.address_tags.size
       merge.save
       assert_equal 2, Address.find(@address_1.id).address_tags.size

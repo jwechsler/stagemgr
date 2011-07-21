@@ -1,9 +1,12 @@
+require "erb"
+
 class OrderMailer < ActionMailer::Base
 
   layout "order_mailer", :except=>:performance_reminder
 
   def ticket_confirmation(order)
     @order = order
+    @confirmation_message = ERB.new(@order.confirmation_message)
     mail(:to => @order.address.email,
          :from => "\"Theater Wit Box Office\" <boxoffice@theaterwit.org>",
          :subject => "Your reservation ##{order.id} for #{@order.performance.production.name} is confirmed",

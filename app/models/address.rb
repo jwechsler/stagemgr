@@ -1,6 +1,10 @@
 require 'street_address'
+require 'address_imports'
+require 'csv'
 
 class Address < ActiveRecord::Base
+
+  include AddressImports
 
   validates_presence_of :last_name
   before_save :regularize!
@@ -10,7 +14,7 @@ class Address < ActiveRecord::Base
 
   MAILLIST_STATUS = (
   REQUESTED, SAVED =
-      "Requested", "Saved")
+    "Requested", "Saved")
 
   attr_accessible :first_name, :last_name, :line1, :line2, :city, :state, :zipcode, :email, :phone, :street_number, :address_tags_attributes
 
@@ -67,7 +71,7 @@ class Address < ActiveRecord::Base
 
   end
 
-  def update_from!(newer)
+  def update_from(newer)
     self.email = newer.email unless newer.email.blank?
     self.first_name = newer.first_name unless newer.email.blank?
     self.last_name = newer.last_name unless newer.last_name.blank?
@@ -77,7 +81,16 @@ class Address < ActiveRecord::Base
     self.state = newer.state unless newer.state.blank?
     self.zipcode = newer.zipcode unless newer.zipcode.blank?
     self.phone = newer.phone unless newer.phone.blank?
-    self.address_tags << newer.address_tags
+
+    newer.address_tags.each do |tag|
+      existing_tag = self.address_tags.select{|t| (t.tag_label == tag.tag_label) && (t.theater_id == tag.theater_id)}.first
+      if existing_tag.nil?
+        self.address_tags << tag
+      else
+        existing_tag.tag_value = tag.tag_value
+        existing_tag.theater = tag.theater
+      end
+    end
   end
 
   def self.purge_matched_duplicates
@@ -113,9 +126,53 @@ class Address < ActiveRecord::Base
     self.orders.select { |o| (o.id != current_order.id) && o.paid? }.size ==0
   end
 
-  private
-  def name_as_searchable
-    full_name.upcase
-  end
 
-end
+  def self.import_timeline_csv(filepath)
+    num_read = 0
+    num_merged = 0
+    timeline = Theater.find_by_name('TimeLine Theatre Company')
+    FasterCSV.foreach(filepath) do |row|
+        a=Address.new
+        a.first_name = row[1]
+        a.last_name = row[2]
+        a.line1 = row[3]
+        a.line2 = row[4]
+        a.city = row[5]
+        a.state = row[6]
+        a.zipcode = row[7]
+        a.phone = row[10]
+        a.phone = row[8] if a.phone.blank?
+        a.phone = row[9] if a.phone.blank?
+
+        a.email = row[11]
+        a.regularize!
+        sub_tag = AddressTag.new
+        sub_tag.address = a
+        sub_tag.tag_label = 'Subscriber ID'
+        sub_tag.tag_value = row[0]
+        sub_tag.theater_id = timeline.id
+        a.address_tags << sub_tag
+        type_tag = AddressTag.new
+        type_tag.address = a
+        type_tag.tag_label = 'Subscriber Type'
+        type_tag.tag_value = row[13]
+        type_tag.theater_id = timeline.id
+        a.address_tags << type_tag
+        existing = a.find_original
+        if !existing.nil?
+          num_merged += 1
+          existing.update_from(a)
+          a = existing
+        end
+        num_read += 1
+        a.save!
+      end
+      puts "CSV Import Successful,  #{num_read} records loaded, #{num_merged} merged"
+    end
+
+    private
+    def name_as_searchable
+      full_name.upcase
+    end
+
+  end

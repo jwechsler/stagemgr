@@ -440,7 +440,7 @@ class Order < ActiveRecord::Base
 
       merge = self.address.find_original
       if !merge.nil? then
-        merge.update_from!(self.address)
+        merge.update_from(self.address)
         a = self.address
         self.address = merge
         a.destroy if !a.nil?

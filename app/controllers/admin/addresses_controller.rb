@@ -42,7 +42,7 @@ class Admin::AddressesController < Admin::ApplicationController
   def create
     match = @address.find_original
     if !match.nil? then
-      match.update_from!(@address)
+      match.update_from(@address)
       @address = match
       notice = "Merged with existing audience member"
     else
@@ -72,7 +72,7 @@ class Admin::AddressesController < Admin::ApplicationController
 #    @address.address_tags << params[:address][:address_tags_attributes]
     match = @address.find_original
     if !match.nil? then
-      match.update_from!(@address)
+      match.update_from(@address)
       @address = match
       notice = "Updated data merged with existing audience member"
     else
