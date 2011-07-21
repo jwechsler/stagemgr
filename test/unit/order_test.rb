@@ -244,7 +244,7 @@ class OrderTest < ActiveSupport::TestCase
   context "with a membership offer" do
     setup do
       @address = addresses(:jeremy)
-      @offer = Factory.create(:membership_offer, :name=>"Test Offer",
+      @offer = Factory.create(:membership_offer, :name=>"Test Offer",:tickets_per_performance=>1,
                               :recurring_cost=>BigDecimal.new("15.00"), :use_ticket_class_code=>"MEMBER")
 
     end
