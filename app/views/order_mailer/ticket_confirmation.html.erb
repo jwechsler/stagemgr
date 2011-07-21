@@ -6,8 +6,10 @@
   <body>
   <h2>We have <%= @order.ticket_quantity %> ticket<%= "s" unless @order.ticket_quantity == 1 %> reserved for the
       <%= @order.performance.performance_time.strftime('%l:%M %p') %> performance on <%= @order.performance.performance_date.strftime('%A, %B %d') %>
-    of <i><%= @order.performance.production.name %></i></h2>
-  <p>Thanks so much for your order.  Your tickets will be waiting at the Theater Wit box office under your name.  The total charge was <%= '%0.2f' % @order.total %>. Here's some handy stuff you'll want to know:
+    of <i><%= @order.performance.production.name %></i><%- if @order.theater.theater_class != "Default" %>, presented by <%= @order.theater.name %><%- end %></h2>
+  <p>Thanks so much for your order.  Your tickets will be waiting at the Theater Wit box office under your name.
+    <%- if @order.total > 0 %>The total charge was <%= '%0.2f' % @order.total %>.<%- end %>
+    Here's some handy stuff you'll want to know:
   </p>
 <h3>Getting Here</h3>
 <p>Theater Wit is located at 1229 W Belmont, between Southport and Racine.  We are accessible by "L" at the Belmont stop for the red, brown and purple lines four blocks east of us.  The 77 CTA bus also drops you on our doorstep.  If you will be driving, there is often street parking, and we offer valet service for most performances.</p>
