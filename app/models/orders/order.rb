@@ -54,6 +54,10 @@ class Order < ActiveRecord::Base
   CREDIT_CARD, CASH, FLEX_PASS, PRICE_OVERRIDE, MEMBERSHIP =
       "Credit Card", "Cash", "FlexPass", "Price Override", "Membership")
 
+  REFERRALS = [
+      "Email", "Mail", "Cast/Staff/Production Team","Review/Feature","Radio","Newspaper Ad","Facebook","Twitter","Word of Mouth","Attended previous production","Other"
+  ]
+
   acts_as_audited
 
   before_validation :auto_link_processed_to_address_of_record
@@ -173,6 +177,10 @@ class Order < ActiveRecord::Base
 
   def ticket_quantity
     self.ticket_line_items(false).uniq.to_a.sum { |li| li.respond_to?(:ticket_count) ? li.ticket_count : 0 }
+  end
+
+  def is_a_ticket_order?
+    self.ticket_line_items.size > 0
   end
 
   def contains_flex_pass?

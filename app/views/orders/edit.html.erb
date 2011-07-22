@@ -11,7 +11,7 @@
         <%= order_form.error_messages %>
         <%= order_form.hidden_field :status %>
         <%= render :partial => '/orders/address', :locals => {:order_form => order_form} %>
-        <%- if @order.ticket_line_items.size > 0 -%>
+        <%- if @order.is_a_ticket_order? -%>
             <%- @submit_text = "Order Tickets" -%>
             <%= order_form.hidden_field :production_code %>
             <%= order_form.hidden_field :performance_code %>
@@ -37,7 +37,9 @@
         <%- end %>
         <%= render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form} %>
         <%= render :partial => '/orders/special_offer_form', :locals => {:f => order_form} %>
-
+        <%- if @order.is_a_ticket_order? %>
+          <%= order_form.input :heard_about, :collection=>Order::REFERRALS, :label=>"How did you hear about the show?" %>
+        <%- end %>
             <table>
               <tr>
                 <td width="25%">&nbsp;</td>

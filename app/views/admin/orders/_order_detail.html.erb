@@ -1,5 +1,10 @@
-<table width="100%"><tr><td width="80%" valign="top"><%= render :partial => '/admin/addresses/address_contact_info', :locals=>{:address=>order.address, :link_to_address=>true } %>
-</td><td align="right"valign="top" width="20%"><i>Order ID <%=h order.id %></i><br/><b><%= order.status %></b></td> </tr></table>
+<table width="100%">
+  <tr>
+    <td width="80%" valign="top"><%= render :partial => '/admin/addresses/address_contact_info', :locals=>{:address=>order.address, :link_to_address=>true} %>
+    </td>
+    <td align="right" valign="top" width="20%"><i>Order ID <%= h order.id %></i><br/><b><%= order.status %></b></td>
+  </tr>
+</table>
 
 <%- if order.contains_tickets? -%>
   <p>
@@ -45,10 +50,16 @@
     <%- end -%>
   </table>
 </fieldset>
-<p>
+<%- if !order.referral_code.blank? %><p>
   Referral Code:
   <%= order.referral_code %>
-</p>
+  </p>
+<%- end %>
+<%- if !order.heard_about.blank? %>
+  <p>
+    Heard about the show via <b><%= order.heard_about %></b>
+  </p>
+<%- end %>
 <%- if !order.notes.blank? -%>
   <p>
   <fieldset>
