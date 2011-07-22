@@ -55,9 +55,9 @@
   <%= order.referral_code %>
   </p>
 <%- end %>
-<%- if !order.heard_about.blank? %>
+<%- if !order.marketing_source.blank? %>
   <p>
-    Heard about the show via <b><%= order.heard_about %></b>
+    Heard about the show via <b><%= order.marketing_source %></b>
   </p>
 <%- end %>
 <%- if !order.notes.blank? -%>

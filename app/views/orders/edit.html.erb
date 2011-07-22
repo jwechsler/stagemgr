@@ -38,7 +38,7 @@
         <%= render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form} %>
         <%= render :partial => '/orders/special_offer_form', :locals => {:f => order_form} %>
         <%- if @order.is_a_ticket_order? %>
-          <%= order_form.input :heard_about, :collection=>Order::REFERRALS, :label=>"How did you hear about the show?" %>
+          <%= order_form.input :marketing_source, :collection=>Order::REFERRALS, :label=>"How did you hear about the show?" %>
         <%- end %>
             <table>
               <tr>
