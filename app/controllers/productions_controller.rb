@@ -1,6 +1,7 @@
 class ProductionsController < ApplicationController
 
   layout 'ext_site_wrapper'
+
   prepend_before_filter :find_theater, :except => [:index, :upcoming, :now_playing]
   append_before_filter :find_production, :only => [:show, :edit, :update, :destroy]
 
