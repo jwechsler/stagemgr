@@ -4,6 +4,7 @@
   <%= f.input :name %>
   <%= f.input :production_code %>
   <%= f.input :production_class, :collection=>Production::PRODUCTION_CLASSES, :include_blank=>false %>
+  <%= f.input :venue, :collection=>Venue.all %>
   <%= f.input :credit_lines, :input_html=> { :rows => 3 } %>
   <%= f.input :first_preview_at %>
   <%= f.input :press_opening_at %>

@@ -1,0 +1,11 @@
+<h1>Venues#primetime_now_playing</h1>
+<div id="primetime_shows_by_venue">
+  <%- @venues.each do |venue| %>
+    <%- venue.now_playing(Production::PLAY).each do |venue_production| %>
+      <%= venue.name %><br/>
+      <%= image_tag(venue_production.logo_url) %>
+      <%= venue_production.name %>
+    <%- end %>
+  <%- end %>
+
+</div>

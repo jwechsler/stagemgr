@@ -1,0 +1,7 @@
+one:
+  name: Venue One
+  ordinal_sort: 1
+
+two:
+  name: Venue Two
+  ordinal_sort: 2

@@ -40,14 +40,13 @@ gem "authlogic",              '2.1.6'
 gem "acts_as_audited",        "2.0.0.rc7"
 gem "will_paginate",          '3.0.pre2'
 gem "my_emma"
-gem "paperclip"
+gem "paperclip",               "~> 2.3"
 gem "htmldiff"
-gem "StreetAddress",           "~> 1.0.1"
+gem "StreetAddress",          "~> 1.0.1"
 gem "fastercsv"
 gem "money"
 gem "gemcutter"
 gem "postmark-rails"
-
 
 group :development do
   gem 'wirble',               '0.1.3'

@@ -5,4 +5,4 @@ macbeth:
   closing_at: <%= Time.now + 2.week %>
   theater: theater_wit
   status: Active
-
+  venue: one

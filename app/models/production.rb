@@ -6,8 +6,8 @@ class Production < ActiveRecord::Base
     'Active',  'Private', 'Inactive', 'Presale')
 
   PRODUCTION_CLASSES = (
-    PLAY, SPECIAL_EVENT, PRIVATE_PARTY, CONFERENCE =
-    'Play', 'Special Event', 'Private Party', 'Conference'
+    PLAY, SPECIAL_EVENT, PRIVATE_PARTY, CONFERENCE, OFF_TIME =
+    'Primetime', 'Special Event', 'Private Party', 'Conference', 'Off/Late night'
   )
 
   validates_inclusion_of :status,        :in => PRODUCTION_STATUSES
@@ -16,6 +16,7 @@ class Production < ActiveRecord::Base
   validates_length_of :production_code, :in=>1..7
   validates_numericality_of :capacity
 
+  belongs_to :venue
   belongs_to :theater
   has_many :special_offers
   has_many :performances
@@ -24,6 +25,7 @@ class Production < ActiveRecord::Base
   before_validation :clean_values
   before_save :assign_default_ticket_classes
   belongs_to :flex_pass_offer
+  # has_attached_file :promo, :styles => { :medium => "250x375>", :thumb => "125x186>" }
 
   def to_s
     "#{self.name}, #{self.theater.name}"
@@ -61,7 +63,7 @@ class Production < ActiveRecord::Base
   end
 
   def self.performing_classes
-    [PLAY, SPECIAL_EVENT]
+    [PLAY, SPECIAL_EVENT, OFF_TIME]
   end
 
   private 

@@ -1,0 +1,12 @@
+<% title "Admin/Venue" %>
+
+<p>
+  <strong>Name:</strong>
+  <%= @venue.name %>
+</p>
+
+<p>
+  <%= link_to "Edit", edit_admin_venue_path(@venue) %> |
+  <%= link_to "Destroy", [:admin, @venue], :confirm => 'Are you sure?', :method => :delete %> |
+  <%= link_to "View All", admin_venues_path %>
+</p>

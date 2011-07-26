@@ -8,6 +8,12 @@
   <%=h @production.production_code %>
 </p>
 
+<%- if !@production.venue.nil? %>
+  <p>
+    <b>Venue:</b>
+    <%= @production.venue.name %>
+  </p>
+<%- end %>
 <p>
   <b>Credit lines:</b>
   <%=h @production.credit_lines %>

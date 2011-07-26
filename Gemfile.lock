@@ -246,7 +246,7 @@ DEPENDENCIES
   my_emma
   mysql (= 2.8.1)
   nifty-generators
-  paperclip
+  paperclip (~> 2.3)
   postmark-rails
   rails (= 3.0.3)
   rcov (= 0.9.8)

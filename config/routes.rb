@@ -1,5 +1,23 @@
 Stagemgr::Application.routes.draw do
 
+  get "venues/primetime_now_playing"
+
+  get "venues/offtime_now_playing"
+
+  get "venues/primetime_up_next"
+
+  get "venues/offtime_up_next"
+
+  get "venue/primetime_now_playing"
+
+  get "venue/offnight_now_playing"
+
+  get "venue/primetime_up_next"
+
+  get "venue/offnight_up_next"
+
+  namespace(:admin){ resources :venues }
+
    namespace(:admin){ resources :memberships }
 
   namespace(:admin){ resources :membership_offers }
