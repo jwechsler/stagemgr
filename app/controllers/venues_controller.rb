@@ -2,11 +2,13 @@ class VenuesController < ApplicationController
   layout 'ext_site_wrapper'
 
   def primetime_now_playing
-    @venues = Venue.all.select{|v|
-      p = v.now_playing_or_next_up(Production::PLAY)
-      !p.empty?}.sort
+    @now_playing_productions = Array.new
+    Venue.all.sort.each do |venue|
+      prods = venue.now_playing_or_next_up(Production::PLAY)
+      @now_playing_productions += prods
+    end
     @offtime_productions = Array.new
-    @venues.each do |venue|
+    Venue.all.each do |venue|
       @offtime_productions += venue.now_playing(Production::OFF_TIME)
     end
   end

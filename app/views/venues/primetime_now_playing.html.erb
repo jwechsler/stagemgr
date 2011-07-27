@@ -1,24 +1,27 @@
 <h1>Venues#primetime_now_playing</h1>
-<div id="now_playing_shows_by_venue">
-  <%- slice = 100 / (@venues.size + (@offtime_productions.empty? ? 0 : 1)) %>
-  <%- @venues.each do |venue| %>
-    <%- venue.now_playing_or_next_up(Production::PLAY).each do |venue_production| %>
+<%- unless @now_playing_productions.empty? && @offtime_productions.empty? %>
+  <div id="now_playing_shows_by_venue">
+    <%- slice = 100 / (@now_playing_productions.size + (@offtime_productions.empty? ? 0 : 1)) %>
+    <%- @now_playing_productions.each do |venue_production| %>
       <div class="show_listing" style="width: <%= slice %>%">
-        <p class="venue"><%= venue.name %></p>
-        <%= image_tag(venue_production.logo_url, :class=>"promo_logo") %>
-        <p><span class="production_name"><%= venue_production.name %></span><%= ", presented by #{venue_production.theater.name}" if !venue_production.theater.is_default? %></p>
+        <p class="venue"><%= venue_production.venue.name %></p>
+        <%= image_tag(venue_production.best_image_url_available(:thumb), :class=>"promo_logo") %>
+        <p>
+          <span class="production_name"><%= venue_production.name %></span><%= ", presented by #{venue_production.theater.name}" if !venue_production.theater.is_default? %>
+        </p>
         <%- if !venue_production.theater.is_default? %>
-            <p class="company_class"><%= venue_production.theater.theater_class %></p>
+          <p class="company_class"><%= venue_production.theater.theater_class %></p>
         <%- end %>
       </div>
+
     <%- end %>
-  <%- end %>
-  <%- if !@offtime_productions.empty? %>
-    <p>Plus:</p>
-    <%- @offtime_productions.each do |production| %>
-      <div class="show_listing" style="width: <%= slice %>%">
-        <p class="production_name"><%= production.name %></p>
-      </div>
+    <%- if !@offtime_productions.empty? %>
+      <p>Plus:</p>
+      <%- @offtime_productions.each do |production| %>
+        <div class="show_listing" style="width: <%= slice %>%">
+          <p class="production_name"><%= production.name %></p>
+        </div>
+      <%- end %>
     <%- end %>
-  <%- end %>
-</div>
+  </div>
+<%- end %>

@@ -1,7 +1,7 @@
 class Performance < ActiveRecord::Base
   using_access_control
 
-  PERFORMANCE_STATUSES = ['Active',  'Inactive', 'Private']
+  PERFORMANCE_STATUSES = (ACTIVE, INACTIVE, PRIVATE = 'Active',  'Inactive', 'Private')
 
   belongs_to               :production
   has_many                 :ticket_classes, :through=>:ticket_class_allocations
@@ -73,6 +73,10 @@ class Performance < ActiveRecord::Base
       where("status != 'Inactive'").
       order("performance_code ASC").
       limit(10)
+  end
+
+  def self.visible_statuses
+    return [Performance::ACTIVE]
   end
 
   private
