@@ -46,6 +46,8 @@ Stagemgr::Application.configure do
 
   # Send deprecation notices to registered listeners
   config.active_support.deprecation = :notify
+  # Setup paperclip
+  Paperclip.options[:command_path] = "/usr/local/Cellar/imagemagick/6.6.9-4/bin/"
 
   # Setup paypal
   config.after_initialize do
