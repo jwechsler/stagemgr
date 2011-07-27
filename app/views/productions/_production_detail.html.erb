@@ -1,25 +1,24 @@
 <%= render :partial=>'/productions/info', :locals=>{:production=>production} %>
-<% if !production.additional_information_link.blank? then %>
-      <p class="additional_information">For more information, click
-        <a href="<%= production.additional_information_link %>" target="_blank">here</a>.</p>
-    <% end %>
-    <%- if production.status != Production::PRESALE %>
-      <p class="production_tickets">
-        <%- if link_to_full %>
-          <%= raw link_to "Get tickets/schedule for <i>#{production.name}</i>".html_safe, "https://www.theaterwit.org/boxoffice/production/index.php?production_id=#{production.id}", :anchor=>"top" %>
-        <%- else %>
-          <%= raw link_to "Get tickets/schedule for <i>#{production.name}</i>".html_safe, production_performances_path(production.id, :anchor=>"top") %>
-        <%- end %></p>
+<div class="production_information">
+  <% if !production.additional_information_link.blank? then %>
+    <p class="additional_information">For more information, click
+      <a href="<%= production.additional_information_link %>" target="_blank">here</a>.</p>
+  <% end %>
+  <%- if production.status != Production::PRESALE %>
+    <p class="production_tickets">
+      <%- if link_to_full %>
+        <%= raw link_to "Get tickets/schedule for <i>#{production.name}</i>".html_safe, "https://www.theaterwit.org/boxoffice/production/index.php?production_id=#{production.id}", :anchor=>"top" %>
+      <%- else %>
+        <%= raw link_to "Get tickets/schedule for <i>#{production.name}</i>".html_safe, production_performances_path(production.id, :anchor=>"top") %>
+      <%- end %></p>
 
-      <p class="special_offer_upsell">
-        <%- if !production.flex_pass_offer.blank? && !production.flex_pass_offer.short_description.blank? -%>
-          <%= link_to production.flex_pass_offer.short_description, new_flex_pass_offer_order_path(production.flex_pass_offer, :anchor=>"top") %>
-        <%- end -%></p>
-    <%- else -%>
-      <p class="production tickets"><i>Tickets are not yet on sale for <%= production.name %>. Check back later!</i></p>
-    <%- end %>
-    <br clear="all"/>
+    <p class="special_offer_upsell">
+      <%- if !production.flex_pass_offer.blank? && !production.flex_pass_offer.short_description.blank? -%>
+        <%= link_to production.flex_pass_offer.short_description, new_flex_pass_offer_order_path(production.flex_pass_offer, :anchor=>"top") %>
+      <%- end -%></p>
+  <%- else -%>
+    <p class="production tickets"><i>Tickets are not yet on sale for <%= production.name %>. Check back later!</i></p>
+  <%- end %>
+  <br clear="all"/>
   </div>
 
-
-</div>

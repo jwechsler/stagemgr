@@ -77,7 +77,7 @@ class Production < ActiveRecord::Base
       when !self.logo_url.blank?
         self.logo_url
       else
-        self.theater.logo.url(render)
+        nil
     end
   end
 
