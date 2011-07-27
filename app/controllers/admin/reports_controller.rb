@@ -362,7 +362,7 @@ class Admin::ReportsController < Admin::ApplicationController
 
   def create_hash_from_order_fields(order)
     row = Hash.new
-    row[:order_date] = order.created_at.to_s(:long)
+    row[:order_date] = order.created_at.to_formatted_s(:long) unless order.created_at.nil?
     row[:id] = order.id
     row = row.merge(address_hash_from_order(order))
     row[:performance_code] = order.performance.performance_code if !order.performance.blank?
