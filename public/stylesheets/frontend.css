@@ -1,3 +1,24 @@
-.primetime_shows_by_venue img {
-  border:  black
+.company_class {
+  font-weight: bold;
+  font-style: italic;
 }
+
+#now_playing_shows_by_venue {
+  float: left;
+  font-size: 12px;
+  width:100%;
+}
+
+#now_playing_shows_by_venue .show_listing {
+  width: 25%;
+  float: left;
+
+}
+#now_playing_shows_by_venue p {
+  line-height: 1.0em;
+}
+
+#now_playing_shows_by_venue .venue {
+  font-style: italic;
+}
+

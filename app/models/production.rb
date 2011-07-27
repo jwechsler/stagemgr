@@ -25,7 +25,7 @@ class Production < ActiveRecord::Base
   before_validation :clean_values
   before_save :assign_default_ticket_classes
   belongs_to :flex_pass_offer
-  # has_attached_file :promo, :styles => { :medium => "250x375>", :thumb => "125x186>" }
+  has_attached_file :promo, :styles => { :medium => "250x375>", :thumb => "125x186>" }
 
   def to_s
     "#{self.name}, #{self.theater.name}"
@@ -47,6 +47,10 @@ class Production < ActiveRecord::Base
   def now_playing?
     n = Time.now.to_date
     self.first_preview_at <= n && self.closing_at >= n
+  end
+
+  def is_visible?
+    Production.visible_statuses.include?(self.status)
   end
 
   def add_hold_to_every_performance(address, number_of_tickets, ticket_class_code)
