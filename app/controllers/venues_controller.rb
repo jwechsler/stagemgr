@@ -1,7 +1,7 @@
 class VenuesController < ApplicationController
   layout 'ext_site_wrapper'
 
-  def primetime_now_playing
+  def now_playing
     @now_playing_productions = Array.new
     Venue.all.sort.each do |venue|
       prods = venue.now_playing_or_next_up(Production::PLAY)

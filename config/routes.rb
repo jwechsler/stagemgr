@@ -1,6 +1,6 @@
 Stagemgr::Application.routes.draw do
 
-  get "venues/primetime_now_playing"
+  get "venues/now_playing"
 
   get "venues/offtime_now_playing"
 

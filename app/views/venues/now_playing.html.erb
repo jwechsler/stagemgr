@@ -1,0 +1,36 @@
+<%- unless @now_playing_productions.empty? && @offtime_productions.empty? %>
+  <div id="now_playing_shows_by_venue">
+    <%- num_pieces = (@now_playing_productions.size + (@offtime_productions.empty? ? 0 : 1))
+        row_count = (num_pieces > 4) ? 4 : num_pieces
+        slice = 100 / row_count %>
+    <%- @now_playing_productions.each do |venue_production| %>
+      <%- if row_count == 0 then
+            num_pieces -= 4
+            row_count = (num_pieces > 4) ? 4 : num_pieces
+            slice = 100 / row_count %>
+        <br style="clear: both"/>
+      <%- end %>
+      <div class="show_listing" style="width: <%= slice %>%">
+        <p class="venue"><%= venue_production.venue.name %></p>
+        <%- image_url = venue_production.best_image_url_available(:thumb) %>
+        <%= link_to(image_tag(image_url, :class=>"promo_logo"), production_performances_path(venue_production.id, :anchor=>"top")) unless image_url.nil? %>
+        <p>
+          <span class="production_name"><%= link_to(venue_production.name, production_performances_path(venue_production.id, :anchor=>"top")) %><%= ", presented by #{venue_production.theater.name}" if !venue_production.theater.is_default? %>
+        </p>
+        <%- if !venue_production.theater.is_default? %>
+          <p class="company_class"><%= venue_production.theater.theater_class %></p>
+        <%- end %>
+
+      </div>
+      <%- row_count -= 1 %>
+    <%- end %>
+    <%- if !@offtime_productions.empty? %>
+      <p>Plus:</p>
+      <%- @offtime_productions.each do |production| %>
+        <div class="show_listing" style="width: <%= slice %>%">
+          <p class="production_name"><%= production.name %></p>
+        </div>
+      <%- end %>
+    <%- end %>
+  </div>
+<%- end %>
