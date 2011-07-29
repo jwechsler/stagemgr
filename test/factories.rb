@@ -18,6 +18,10 @@ Factory.define(:address) do |address|
   address.zipcode 90210
 end
 
+Factory.define(:venue) do |venue|
+  venue.sequence(:name){|n|"Space #{n}"}
+  venue.sequence(:ordinal_sort){|n| "#{n}"}
+end
 Factory.define(:theater) do |theater|
   theater.sequence(:name){|n|"Theater \##{n}"}
   theater.theater_class Theater::THEATER_CLASSES.first
@@ -29,6 +33,7 @@ Factory.define(:production) do |production|
   production.sequence(:production_code){|n|"PRO#{'%02d' % n}"}
   production.status Production::PRODUCTION_STATUSES.first
   production.association :theater, :factory => :theater
+  production.association :venue, :factory=>:venue
   production.capacity 100
 end
 

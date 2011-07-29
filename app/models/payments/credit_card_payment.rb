@@ -87,7 +87,7 @@ class CreditCardPayment < Payment
       end
 
     end
-    self.save!
+    super
   end
 
   def refund!(cc_number = nil, note = nil)

@@ -9,6 +9,13 @@ class Payment < ActiveRecord::Base
     self.type=string
   end
   def process!
+    self.processed_on = Date.today
     self.save!
   end
+  def self.descendants
+    result = []
+    ObjectSpace.each_object(Class).each { |c| result << c if c < Payment }
+    result
+  end
+
 end
