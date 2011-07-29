@@ -107,6 +107,10 @@ class CreditCardPayment < Payment
 
       gateway = ActiveMerchant::Billing::PaypalGateway.new(:login=>$PAYPAL_LOGIN, :password=>$PAYPAL_PASSWORD)
 
+      refund_payment = self.clone
+      refund_payment.amount = self.amount*-1
+      self.order.credit_card_payments << refund_payment
+
       refund_amount = (self.amount*100).to_i
 
       
@@ -116,9 +120,6 @@ class CreditCardPayment < Payment
         raise CannotProcessPayment, response.message
       end
 
-      refund_payment = CreditCardPayment.new(self.attributes)
-      refund_payment.amount = self.amount * -1
-      refund_payment.payment_id = self.id
       refund_payment.save!
 
     end

@@ -1,9 +1,11 @@
 class CashPayment < Payment
   def refund!(cc_number = nil, note = nil)
     CashPayment.transaction do
-      refund_payment = self.order.cash_payments.create!(:amount=>self.amount*-1,:payment_id=>self.id)
-      self.payment_id=refund_payment.id
-      self.save!
+      refund_payment = self.clone
+      refund_payment.amount = refund_payment.amount*-1
+      refund_payment.order = order
+      self.order.cash_payments << refund_payment
+      refund_payment.save!
     end
   end
 end

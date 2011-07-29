@@ -5,6 +5,8 @@ class Payment < ActiveRecord::Base
   validates_numericality_of :amount, :unless => :number_of_tickets
   validates_numericality_of :number_of_tickets, :unless => :amount
   default_scope :order=>'created_at asc'
+  before_save :set_processed_on
+
   def payment_type=(string)
     self.type=string
   end
@@ -16,6 +18,11 @@ class Payment < ActiveRecord::Base
     result = []
     ObjectSpace.each_object(Class).each { |c| result << c if c < Payment }
     result
+  end
+
+  protected
+  def set_processed_on
+    self.processed_on = Date.today if (self.new_record? || self.amount_changed?)
   end
 
 end
