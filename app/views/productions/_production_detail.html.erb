@@ -1,9 +1,5 @@
 <%= render :partial=>'/productions/info', :locals=>{:production=>production} %>
 <div class="production_information">
-  <% if !production.additional_information_link.blank? then %>
-    <p class="additional_information">For more information, click
-      <a href="<%= production.additional_information_link %>" target="_blank">here</a>.</p>
-  <% end %>
   <%- if production.status != Production::PRESALE %>
     <p class="production_tickets">
       <%- if link_to_full %>

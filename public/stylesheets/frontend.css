@@ -3,25 +3,61 @@
   font-style: italic;
 }
 
+.production_list {
+  float: left;
+  font-size: 12px;
+  width: 100%;
+}
+
 #now_playing_shows_by_venue {
   float: left;
   font-size: 12px;
   width: 100%;
 }
 
-#now_playing_shows_by_venue .show_listing {
+.production_list .show_listing {
   float: left;
   position: relative;
   z-index: 100;
+  margin-bottom: 18px;
+  display: block;
+  text-align: center;
 }
 
-#now_playing_shows_by_venue p {
+.production_list p {
+  display: block;
   line-height: 1.0em;
   padding-right: 8px;
+  margin:  2px;
 }
 
-#now_playing_shows_by_venue .venue {
-  font-style: italic;
+.production_list .venue {
+ font-weight: bold;
+  font-size: 11px;
+}
+
+.production_list .production_class {
+  font-size: 9px;
+}
+
+.production_list .promo_logo {
+  margin-bottom: 5px;
+  margin-top: 5px;
+}
+
+.production_list .producing_company {
+  font-size: 11px;
+
+}
+
+.production_list .production_name {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.production_list .company_class {
+  font-size: 10px;
+  font-weight: normal;
 }
 
 .production_logo {

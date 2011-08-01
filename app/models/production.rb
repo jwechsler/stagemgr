@@ -45,8 +45,7 @@ class Production < ActiveRecord::Base
   end
 
   def now_playing?
-    n = Time.now.to_date
-    self.first_preview_at <= n && self.closing_at >= n
+    self.first_preview_at <= Date.today.end_of_week && self.closing_at >= Date.today
   end
 
   def is_visible?

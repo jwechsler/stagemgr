@@ -2,7 +2,7 @@ class ProductionsController < ApplicationController
 
   layout 'ext_site_wrapper'
 
-  prepend_before_filter :find_theater, :except => [:index, :upcoming, :now_playing]
+  prepend_before_filter :find_theater, :except => [:index, :upcoming, :now_playing, :box_office]
   append_before_filter :find_production, :only => [:show, :edit, :update, :destroy]
 
   def by_date
@@ -33,7 +33,25 @@ class ProductionsController < ApplicationController
     @productions = Production.find(:all, :conditions=>['productions.first_preview_at <= ? and productions.closing_at >= ? and productions.status in (?)',@end_of_week,@second_date,Production.visible_statuses], :order=>'case theater_id when 1 then 0 else 1 end, productions.name')
     render :now_playing
   end
-  
+
+
+  def box_office
+    @now_playing = now_playing_by_venue(Production::PLAY) + now_playing_by_venue(Production::OFF_TIME)
+    end_of_week = Date.today.end_of_week
+    three_months_from_now = (end_of_week+2.months).end_of_month
+    upcoming_shows = Production.where ('first_preview_at > :end_of_week and status in (:visible_status)', {:end_of_week=>end_of_week, :visible_status=>Production.visible_statuses}).order("case when promo_file_name is null then 1 else 0 end, first_preview_at ")
+    @coming_soon = Array.new
+    @long_term = Array.new
+    upcoming_shows.each do |prod|
+        if prod.first_preview_at <= three_months_from_now
+          @coming_soon << prod
+        else
+          @long_term << prod
+        end
+
+    end
+
+  end
 
   # GET /productions/1
   # GET /productions/1.xml
@@ -109,5 +127,15 @@ class ProductionsController < ApplicationController
   def find_production
     @production = @theater.productions.find(params[:id])
   end
+
+def now_playing_by_venue(production_type)
+    now_playing_productions = Array.new
+    Venue.all.sort.each do |venue|
+      prods = venue.now_playing(production_type)
+      now_playing_productions += prods
+    end
+    now_playing_productions
+  end
+
   
 end

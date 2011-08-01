@@ -1,0 +1,15 @@
+<%- unless production.first_preview_at.nil? %>
+  <p class="production_dates">
+  <%- unless production.status == Production::PRESALE %>
+    <%- if production.now_playing? %>
+        Now playing
+    <%- else %>
+      <%= production.first_preview_at.strftime('%B %d, %Y')%>
+    <%- end %>
+      <%= "through #{production.closing_at.strftime('%B %d, %Y ')}" unless production.closing_at.nil? %>
+  <%- else %>
+    <%= soft_date(production.first_preview_at) %>
+    <%= "through #{soft_date(production.closing_at)}" unless (production.closing_at.nil? || soft_date(production.first_preview_at) == soft_date(production.closing_at)) %>
+  <%- end %>
+</p>
+<%- end %>
