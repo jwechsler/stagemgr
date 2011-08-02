@@ -8,7 +8,7 @@ class Payment < ActiveRecord::Base
   before_save :set_processed_on
 
   def processing_fee
-    0
+    return 0
   end
 
   def payment_type=(string)

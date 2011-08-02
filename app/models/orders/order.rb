@@ -172,9 +172,10 @@ class Order < ActiveRecord::Base
   end
 
   def credit_card_processing_fee
-    processing_fee = self.payments.inject { |sum, payment| sum += payment.processing_fee }
-    processing_fee += 0.22 if processing_fee > 0
-    processing_fee
+    fee = 0
+    self.payments.each{ |p| fee += p.processing_fee unless p.processing_fee.nil? }
+    fee += 0.22 unless (fee.nil? || fee == 0)
+    fee
   end
 
   def ticket_quantity
