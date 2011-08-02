@@ -4,7 +4,7 @@ class Admin::RefundOrdersController < Admin::ApplicationController
   def new
     @original_order = Order.find(params[:order_id])
     @refund_order = Order.new
-    @refund_order.credit_card_payments.build
+    @refund_order.payments.build
 
     respond_to do |format|
       format.html # new.html.erb

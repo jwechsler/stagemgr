@@ -1,7 +1,8 @@
 <%- if @order.ticket_line_items.count > 0 -%>
 <p>Thanks!  Your ticket reservation has been made
-  <%- if @order.membership_payments.select { |p| p.is_a? MembershipPayment }.size > 0 %>
-    with your <%= @order.membership_payments.first.membership.membership_offer.name %>.
+  <%- member_payments = @order.membership_payments
+      if member_payments.size > 0 %>
+    with your <%= member_payments.first.membership.membership_offer.name %>.
   <%- else %>
     and your credit card has been charged <%= number_to_currency( @order.total) %>.
   <%- end %>

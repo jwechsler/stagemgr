@@ -7,6 +7,10 @@ class Payment < ActiveRecord::Base
   default_scope :order=>'created_at asc'
   before_save :set_processed_on
 
+  def processing_fee
+    0
+  end
+
   def payment_type=(string)
     self.type=string
   end

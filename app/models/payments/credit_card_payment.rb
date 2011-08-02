@@ -109,7 +109,7 @@ class CreditCardPayment < Payment
 
       refund_payment = self.clone
       refund_payment.amount = self.amount*-1
-      self.order.credit_card_payments << refund_payment
+      self.order.payments << refund_payment
 
       refund_amount = (self.amount*100).to_i
 
@@ -140,6 +140,9 @@ class CreditCardPayment < Payment
     credit_card
   end
 
+  def processing_fee
+    self.amount * 0.04
+  end
 
   protected
   def charge_amount

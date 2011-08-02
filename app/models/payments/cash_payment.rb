@@ -4,7 +4,7 @@ class CashPayment < Payment
       refund_payment = self.clone
       refund_payment.amount = refund_payment.amount*-1
       refund_payment.order = order
-      self.order.cash_payments << refund_payment
+      self.order.payments << refund_payment
       refund_payment.save!
     end
   end

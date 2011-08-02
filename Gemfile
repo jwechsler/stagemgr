@@ -1,6 +1,6 @@
 source 'http://rubygems.org'
 
-gem 'rails', '3.0.3'
+gem 'rails', '3.0.7'
 
 # Bundle edge Rails instead:
 # gem 'rails', :git => 'git://github.com/rails/rails.git'
@@ -36,7 +36,7 @@ gem "validation_reflection"
 gem "declarative_authorization"
 gem "activemerchant", :git => 'https://github.com/florianguenther/active_merchant'
 gem "mysql",                  '2.8.1'
-gem "authlogic",              '2.1.6'
+gem "authlogic"
 gem "acts_as_audited",        "2.0.0.rc7"
 gem "will_paginate",          '3.0.pre2'
 gem "my_emma"
@@ -63,15 +63,15 @@ end
 
 group :test do
   gem 'sqlite3-ruby'
-  gem 'cucumber',           '0.8.3'
-  gem 'cucumber-rails',     '0.3.2'
+  gem 'cucumber'
+  gem 'cucumber-rails'
   gem 'webrat',             '>=0.5.0'
-  gem 'rspec',              '1.3.0'
-  gem 'rspec-rails',        '1.3.2'
-  gem 'test-unit',          '2.0.7'
+  gem 'rspec',              '>=1.3.0'
+  gem 'rspec-rails',        '>=1.3.2'
+  gem 'test-unit',          '>=2.0.7'
   gem 'flexmock',           '0.8.6'
-  gem 'rcov',               '0.9.8'
-  gem "shoulda",            '2.10.3'
+  gem 'rcov',               '>=0.9.8'
+  gem "shoulda",            '>=2.10.3'
   gem "factory_girl",       '1.3.2'
   gem 'ruby-debug'
 end
@@ -84,13 +84,13 @@ group :cucumber do
   gem 'sqlite3-ruby'
   gem 'capybara',           '0.4.0'
   gem 'database_cleaner'
-  gem 'cucumber',           '0.8.3'
-  gem 'cucumber-rails',     '0.3.2'
+  gem 'cucumber'
+  gem 'cucumber-rails'
   gem 'webrat',             '>=0.5.0'
-  gem 'rspec',              '1.3.0'
-  gem 'rspec-rails',        '1.3.2'
-  gem 'test-unit',          '2.0.7'
-  gem 'rcov',               '0.9.8'
+  gem 'rspec',              '>=1.3.0'
+  gem 'rspec-rails',        '>=1.3.2'
+  gem 'test-unit',          '>=2.0.7'
+  gem 'rcov',               '>=0.9.8'
   gem "factory_girl",       '1.3.2'
   gem 'launchy'
   gem 'ruby-debug'
