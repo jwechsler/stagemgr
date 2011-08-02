@@ -19,13 +19,15 @@
        <%- unless production.production_class == Production::PLAY %>
         <p class="production_class"><%= production.production_class %></p>
        <%- end %>
-      <%= render :partial=>'production_dates', :locals=>{:production=>production} %>
       <%- unless production.theater.is_default? %>
           <p class="producing_company"><%= "presented by #{production.theater.name}" unless production.theater.is_default? %></p>
 
       <%- end %>
       <p class="company_class"><%= production.theater.is_default? ? production.theater.name : production.theater.theater_class %></p>
-
+      <%- unless production.short_description.blank? %>
+        <p class="production_short_desc"><%= production.short_description %></p>
+      <%- end %>
+      <%= render :partial=>'production_dates', :locals=>{:production=>production} %>
     </div>
     <%- row_count -= 1 %>
   <%- end %>

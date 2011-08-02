@@ -1,8 +1,17 @@
 <div id="performance_calendar_split">
+  <% if @production.status == Production::PRESALE %>
+          <%= render :partial=>'/productions/info', :locals=>{:production=>@production, :layout_style=>:production_information} %>
+    <p>Tickets are not yet on sale for this show. Subscribe to our <a href="http://www.theaterwit.org/join/mailing.phpƒ">mailing list</a> for up-to-date show listings and notifications</p>
+       <%- else %>
+
   <div id="show_detail_column">
-<%= render :partial=>'/productions/info', :locals=>{:production=>@production, :layout_style=>:production_information_vertical} %>
+
+      <%= render :partial=>'/productions/info', :locals=>{:production=>@production, :layout_style=>:production_information_vertical} %>
     </div>
-<table class="performance_calendar">
+  <% if @production.status == Production::PRESALE %>
+    <table class="performance_calendar"><tr><td style="text-align:center;">Tickets are not on sale yet for this show.  Join our mailing list to be kept up to date on when tickets will be available.</td></tr></table>
+  <%- else %>
+    <table class="performance_calendar">
   <caption>
     <%- if !@production.flex_pass_offer.blank? -%>
         <span class="special_offer_upsell"><%= link_to @production.flex_pass_offer.short_description, new_flex_pass_offer_order_path(@production.flex_pass_offer) unless @production.flex_pass_offer.short_description.blank? %>
@@ -40,4 +49,6 @@
     <td class="boxoffice-message" colspan="7">Problems? Call the box office at 773-975-8150</td>
   </tr>
 </table>
+    <%- end %>
   </div>
+  <%- end %>

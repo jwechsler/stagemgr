@@ -9,6 +9,15 @@
   width: 100%;
 }
 
+#box_office h1 {
+  width: 100%;
+  background-color: #77919f;
+  color: #FFFFFF;
+  clear:both;
+  text-align: right;
+  padding: 5px;
+}
+
 #now_playing_shows_by_venue {
   float: left;
   font-size: 12px;
@@ -22,6 +31,10 @@
   margin-bottom: 18px;
   display: block;
   text-align: center;
+}
+
+.production_list .production_short_desc {
+  margin-top: 10px;
 }
 
 .production_list p {

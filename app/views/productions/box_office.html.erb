@@ -1,12 +1,14 @@
-<%- unless @now_playing.nil? || @now_playing.empty? %>
-  <h1>Now Playing</h1>
-  <%= render :partial=>'list_in_table', :locals=>{:productions=>@now_playing, :across=>3} %>
-<%- end %>
-<%- unless @coming_soon.nil? || @coming_soon.empty? %>
-  <h1>Coming Soon</h1>
-  <%= render :partial=>'list_in_table', :locals=>{:productions=>@coming_soon, :across=>3} %>
-<%- end %>
-<%- unless @long_term.nil? || @long_term.empty? %>
-  <h1>This Season</h1>
-  <%= render :partial=>'list_in_table', :locals=>{:productions=>@long_term, :across=>3} %>
-<%- end %>
+<div id="box_office">
+  <%- unless @now_playing.nil? || @now_playing.empty? %>
+    <h1>Now Playing</h1>
+    <%= render :partial=>'list_in_table', :locals=>{:productions=>@now_playing, :across=>3} %>
+  <%- end %>
+  <%- unless @coming_soon.nil? || @coming_soon.empty? %>
+    <h1>Coming Soon</h1>
+    <%= render :partial=>'list_in_table', :locals=>{:productions=>@coming_soon, :across=>3} %>
+  <%- end %>
+  <%- unless @long_term.nil? || @long_term.empty? %>
+    <h1>Later This Season</h1>
+    <%= render :partial=>'list_in_table', :locals=>{:productions=>@long_term, :across=>3} %>
+  <%- end %>
+</div>
