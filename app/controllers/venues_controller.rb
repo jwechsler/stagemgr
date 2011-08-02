@@ -1,6 +1,7 @@
 class VenuesController < ApplicationController
   layout 'ext_site_wrapper'
 
+
   def now_playing
     @now_playing_productions = Array.new
     Venue.all.sort.each do |venue|
@@ -13,6 +14,10 @@ class VenuesController < ApplicationController
     end
   end
 
+  def current_shows
+    @now_playing_productions = now_playing_by_venue(Production::PLAY) + now_playing_by_venue(Production::OFF_TIME)
+  end
+
   def offtime_now_playing
   end
 
@@ -20,6 +25,15 @@ class VenuesController < ApplicationController
   end
 
   def offtime_up_next
+  end
+
+  def now_playing_by_venue(production_type)
+    now_playing_productions = Array.new
+    Venue.all.sort.each do |venue|
+      prods = venue.now_playing_or_next_up(production_type)
+      now_playing_productions += prods
+    end
+    now_playing_productions
   end
 
 end

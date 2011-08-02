@@ -1,5 +1,5 @@
 <%- unless @now_playing_productions.empty? && @offtime_productions.empty? %>
-  <div id="now_playing_shows_by_venue">
+  <div class="production_list" id="now_playing_shows_by_venue">
     <%- num_pieces = (@now_playing_productions.size + (@offtime_productions.empty? ? 0 : 1))
         row_count = (num_pieces > 4) ? 4 : num_pieces
         slice = 100 / row_count %>

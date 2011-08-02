@@ -1,0 +1,34 @@
+<div class="production_list">
+  <%- num_pieces = productions.size
+      row_count = (num_pieces > across) ? across : num_pieces
+      slice = 100 / row_count %>
+  <%- productions.each do |production| %>
+    <%- if row_count == 0 then
+          num_pieces -= across
+          row_count = (num_pieces > across) ? across : num_pieces
+          slice = 100 / row_count %>
+      <br style="clear: both"/>
+    <%- end %>
+    <div class="show_listing" style=<%= raw "\"width: #{slice}%\"" %>>
+       <p><%- image_url = production.best_image_url_available(:medium) %></p>
+      <%= link_to(image_tag(image_url, :class=>"promo_logo"), production_performances_path(production.id, :anchor=>"top")) unless image_url.nil? %>
+      <p class="production_name">
+        <%= link_to(production.name, production_performances_path(production.id, :anchor=>"top")) %>
+      </p>
+      <p class="venue"><%= production.venue.name %></p>
+       <%- unless production.production_class == Production::PLAY %>
+        <p class="production_class"><%= production.production_class %></p>
+       <%- end %>
+      <%- unless production.theater.is_default? %>
+          <p class="producing_company"><%= "presented by #{production.theater.name}" unless production.theater.is_default? %></p>
+
+      <%- end %>
+      <p class="company_class"><%= production.theater.is_default? ? production.theater.name : production.theater.theater_class %></p>
+      <%- unless production.short_description.blank? %>
+        <p class="production_short_desc"><%= production.short_description %></p>
+      <%- end %>
+      <%= render :partial=>'production_dates', :locals=>{:production=>production} %>
+    </div>
+    <%- row_count -= 1 %>
+  <%- end %>
+</div>

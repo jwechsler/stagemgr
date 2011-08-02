@@ -76,6 +76,10 @@ Stagemgr::Application.routes.draw do
           :controller => 'productions',
           :action => 'now_playing'
 
+  get '/productions/box_office',
+      :controller => 'productions',
+      :action => 'box_office'
+
   get '/productions/by_date',
           :controller => 'productions',
           :action => 'by_date'
