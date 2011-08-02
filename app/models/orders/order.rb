@@ -70,7 +70,8 @@ class Order < ActiveRecord::Base
   validates_presence_of :address, :status
   validates_associated :address,
                        :payments,
-                       :line_items, :ticket_line_items, :donation_line_items, :flex_pass_line_items, :special_offer_line_items
+                       :line_items, :ticket_line_items, :donation_line_items,
+                       :flex_pass_line_items, :special_offer_line_items
 
   validates_each :status do |record, attr, value|
     if value == PROCESSED
@@ -289,7 +290,8 @@ class Order < ActiveRecord::Base
         if (amount != 0) then
           create_credit_card_payment(amount)
         else
-          payments << CashPayment.new(:amount == 0)
+          switch_in = CashPayment.new(:amount => 0)
+          payments << switch_in
         end
       when FLEX_PASS
         flex_pass = FlexPass.find_by_code(self.flex_pass_code)
