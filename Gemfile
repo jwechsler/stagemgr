@@ -77,6 +77,7 @@ group :test do
 end
 
 group :production do
+  gem 'newrelic_rpm'
   gem 'exception_notification', :require=>'exception_notifier'
 end
 
