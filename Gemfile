@@ -1,6 +1,6 @@
 source 'http://rubygems.org'
 
-gem 'rails', '3.0.7'
+gem 'rails', '3.0.9'
 
 # Bundle edge Rails instead:
 # gem 'rails', :git => 'git://github.com/rails/rails.git'
@@ -32,6 +32,7 @@ gem 'sqlite3-ruby', :require => 'sqlite3'
 
 gem "whenever", :require=>false
 gem "formtastic", '~> 1.2.3'
+gem "formatize"
 gem "validation_reflection"
 gem "declarative_authorization"
 gem "activemerchant", :git => 'https://github.com/florianguenther/active_merchant'
@@ -47,6 +48,7 @@ gem "fastercsv"
 gem "money"
 gem "gemcutter"
 gem "postmark-rails"
+gem 'jquery-rails', '>= 1.0.12'
 
 group :development do
   gem 'wirble',               '0.1.3'

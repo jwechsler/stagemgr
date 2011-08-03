@@ -38,7 +38,7 @@
     <td>
       <span class="report_title">Production Attendees</span><br/>
       <span class="help_text">Download a copy of all orders with attendee contact information as production_attendee.csv.
-      <%- if permitted_to?(:view_email, :admin_addresses) %><br/><strong>Warning: confidential email records included. DO NOT DISTRIBUTE.</strong><%- end -%></strong></span>
+      <%- if permitted_to?(:view_email, :admin_addresses) %><br/><strong>Warning: confidential email records included. DO NOT DISTRIBUTE.</strong><%- end -%></span>
     </td>
     <td>
       <%= form_tag(order_dump_admin_reports_path, :method=>"post") do %>
@@ -59,6 +59,20 @@
           <%= submit_tag "Show" %>
           <%= submit_tag "Download", :name=>'download_csv' %>
 
+        <%- end %>
+      </td>
+    </tr>
+  <%- end %>
+  <%- if permitted_to? :fulfill, :admin_orders then %>
+    <tr>
+      <td>
+        <span class="report_title">Fulfill Tickets</span>
+        <span class="help_text">Returns label file for all unfulfilled orders, fulfilling them at the same time</span>
+      </td>
+      <td>
+        <%= form_tag(fulfill_tickets_admin_reports_path, :method=>"post") do %>
+          Through: <%= date_select(:report, :through_day, :default=>Time.now, :end_year=>Time.now.year) %>
+          <%= submit_tag "Download", :name=>'download_csv', :confirm =>"This will download labels for tickets and mark those orders as 'Fulfilled'.  Are you sure?" %>
         <%- end %>
       </td>
     </tr>

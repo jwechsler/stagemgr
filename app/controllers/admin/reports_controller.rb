@@ -114,6 +114,12 @@ class Admin::ReportsController < Admin::ApplicationController
 
   end
 
+  def fulfill_tickets
+    @through_day = grab_from_date_select(:through_day, params[:report])
+    @headers, @report_data = build_fulfill_labels(@through_day)
+    send_report_as_csv('ticket_labels', @headers, @report_data)
+  end
+
   def production_sales_by_performance
 
     @production = Production.find(params[:report][:production_id])
@@ -203,6 +209,31 @@ class Admin::ReportsController < Admin::ApplicationController
             :postal_code=>o.address.zipcode,
             :phone=>o.address.phone,
             :email=>o.address.email}
+  end
+
+  def build_fulfill_labels(through_date)
+    orders = Order.order("performances.performance_code").all(:include=>[:line_items, {:performance, :production}, :address],
+                        :conditions=>["orders.status = ? and performances.status = 'Active' and performances.performance_date <= ? and performances.performance_date >= ? and productions.status in (?)",
+                        Order::PROCESSED, through_date, Date.today, Production.visible_statuses])
+    report = Array.new
+    headers = [:order_id, :last_name, :first_name, :performance_code, :performance_date, :performance_time, :tickets, :member_id]
+    Order.transaction do
+      orders.each { |o|
+        if o.contains_tickets?
+          report << {:order_id => o.id,
+                     :last_name => o.address.last_name,
+                     :first_name=> o.address.first_name,
+                     :performance_code => o.performance.performance_code,
+                     :performance_date => o.performance.performance_date.to_formatted_s(:numeric_month_and_day),
+                     :performance_time => o.performance.performance_time.to_formatted_s(:standard_time),
+                     :tickets => o.ticket_detail_description,
+                     :member_id => o.membership_payments.size > 0 ? o.membership_payments.to_a.map { |mp| mp.membership.member_code} : ''}
+          o.transition_to!(Order::FULFILLED)
+          o.save!
+        end
+      }
+    end
+    [headers, report]
   end
 
   def build_flexpass_sales(offer, display_only = true)
@@ -378,7 +409,7 @@ class Admin::ReportsController < Admin::ApplicationController
     day_total = Hash.new
     zero_dollars = Money.new(0)
     keys = columns_for_orders(build_for_dumpfile)
-    payment_types = [CashPayment.to_s,CreditCardPayment.to_s,PriceOverridePayment.to_s,FlexPassPayment.to_s,MembershipPayment.to_s]
+    payment_types = [CashPayment.to_s, CreditCardPayment.to_s, PriceOverridePayment.to_s, FlexPassPayment.to_s, MembershipPayment.to_s]
     keys += payment_types
     current_date = start_day - 1.week
     payments = Payment.order("processed_on").where("processed_on >=:start_day and processed_on < :end_day", {:start_day=>start_day, :end_day=>(end_day + 1.day)})
@@ -398,7 +429,7 @@ class Admin::ReportsController < Admin::ApplicationController
 
 
       if build_for_dumpfile then
-        row = create_hash_from_order_fields(p.order )
+        row = create_hash_from_order_fields(p.order)
         row[p.class.to_s] = amt
         row[:display_class] = :report_detail_row
         report << row
@@ -415,7 +446,7 @@ class Admin::ReportsController < Admin::ApplicationController
     report = Array.new
     keys = columns_for_orders(true)
     production.performances.each { |performance|
-      orders = Order.where("performance_id = :performance_id",{:performance_id=>performance.id})
+      orders = Order.where("performance_id = :performance_id", {:performance_id=>performance.id})
 
       orders.each { |o|
         if o.attended? then
