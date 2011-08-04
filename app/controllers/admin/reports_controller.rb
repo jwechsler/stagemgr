@@ -216,18 +216,26 @@ class Admin::ReportsController < Admin::ApplicationController
                         :conditions=>["orders.status = ? and performances.status = 'Active' and performances.performance_date <= ? and performances.performance_date >= ? and productions.status in (?)",
                         Order::PROCESSED, through_date, Date.today, Production.visible_statuses])
     report = Array.new
-    headers = [:order_id, :last_name, :first_name, :performance_code, :performance_date, :performance_time, :tickets, :member_id]
+    headers = [:reserved_under, :performance_code, :tickets, :order_id, :profile, :member_id, :first_time, :last_24_months, :donor]
     Order.transaction do
       orders.each { |o|
         if o.contains_tickets?
-          report << {:order_id => o.id,
-                     :last_name => o.address.last_name,
-                     :first_name=> o.address.first_name,
+          is_donor = o.address.is_donor?
+          last24 = o.address.performances_attended(2.years.ago)
+          member_id = o.membership_payments.size > 0 ? o.membership_payments.to_a.map { |mp| mp.membership.member_code}.join(',') + ' ' : ''
+          attendance_code = member_id
+          attendance_code += o.address.first_time_paying?(o) ? 'N' : 'R'
+          attendance_code += "%04d" % last24
+          attendance_code += "D" if is_donor
+          report << {:reserved_under=>  "#{o.address.last_name}" + (', ' unless (o.address.last_name.blank? || o.address.first_name.blank?))+ (o.address.first_name.first unless o.address.first_name.blank?),
                      :performance_code => o.performance.performance_code,
-                     :performance_date => o.performance.performance_date.to_formatted_s(:numeric_month_and_day),
-                     :performance_time => o.performance.performance_time.to_formatted_s(:standard_time),
                      :tickets => o.ticket_detail_description,
-                     :member_id => o.membership_payments.size > 0 ? o.membership_payments.to_a.map { |mp| mp.membership.member_code} : ''}
+                     :profile => attendance_code,
+                     :order_id => o.id,
+                     :member_id => member_id,
+                     :first_time => o.address.first_time_paying?(o),
+                     :last_24_months => last24,
+                     :donor => is_donor}
           o.transition_to!(Order::FULFILLED)
           o.save!
         end

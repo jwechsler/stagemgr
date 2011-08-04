@@ -170,6 +170,18 @@ class Address < ActiveRecord::Base
       puts "CSV Import Successful,  #{num_read} records loaded, #{num_merged} merged"
     end
 
+    def performances_attended(since_when = 5.years.ago)
+      Order.count(:include=>[:performance],
+                      :conditions=>["orders.address_id = ? and orders.status = ? and performances.performance_date >= ? and performances.performance_date <= ?",
+                                    self.id, Order::FULFILLED, since_when, Date.today])
+    end
+
+    def is_donor?
+      Order.count(:include=>[:line_items],
+                  :conditions=>["orders.address_id = ? and line_items.type = ? and line_items.donation_amount > 0",
+                                self.id, DonationLineItem.to_s]) > 0
+    end
+
     private
     def name_as_searchable
       full_name.upcase
