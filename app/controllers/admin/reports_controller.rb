@@ -225,9 +225,9 @@ class Admin::ReportsController < Admin::ApplicationController
           member_id = o.membership_payments.size > 0 ? o.membership_payments.to_a.map { |mp| mp.membership.member_code}.join(',') + ' ' : ''
           attendance_code = member_id
           attendance_code += o.address.first_time_paying?(o) ? 'N' : 'R'
-          attendance_code += "%04d" % last24
-          attendance_code += "D" if is_donor
-          report << {:reserved_under=>  "#{o.address.last_name}" + (', ' unless (o.address.last_name.blank? || o.address.first_name.blank?))+ (o.address.first_name.first unless o.address.first_name.blank?),
+          attendance_code += ("%03d" % last24).reverse
+          attendance_code += "A" if is_donor
+          report << {:reserved_under=>  "#{o.address.last_name}" + ((o.address.last_name.blank? || o.address.first_name.blank?) ? '' : ', ') + (o.address.first_name.blank? ? '' : o.address.first_name.first ),
                      :performance_code => o.performance.performance_code,
                      :tickets => o.ticket_detail_description,
                      :profile => attendance_code,
