@@ -21,6 +21,10 @@
 
 set :output, {:error => nil}
 
+every 1.hour do
+  runner "Order.delete_unprocessed_orders"
+end
+
 every 1.day do
   runner "Address.purge_matched_duplicates"
 end

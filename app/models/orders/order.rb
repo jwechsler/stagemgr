@@ -441,6 +441,21 @@ class Order < ActiveRecord::Base
     }
   end
 
+  def self.transitory_statuses
+    [Order::NEW, Order::PROCESSING]
+  end
+
+  def self.delete_unprocessed_orders
+    orders = Order.where("status in (:transitory_status) and updated_at < :window",
+                         {:transitory_status=>self.transitory_statuses,
+                          :window=>Time.now - 1.hour})
+    orders.each  do  |order|
+      order.delete
+    end
+
+  end
+
+
   def paid_with_pass?
     self.payment_type == Order::FLEX_PASS || !self.flex_pass_payments.empty?
   end
