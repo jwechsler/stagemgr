@@ -48,7 +48,6 @@ gem "fastercsv"
 gem "money"
 gem "gemcutter"
 gem "postmark-rails"
-gem 'jquery-rails', '>= 1.0.12'
 
 group :development do
   gem 'wirble',               '0.1.3'
