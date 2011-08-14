@@ -1,54 +1,73 @@
 <div id="performance_calendar_split">
   <% if @production.status == Production::PRESALE %>
-          <%= render :partial=>'/productions/info', :locals=>{:production=>@production, :layout_style=>:production_information} %>
-    <p>Tickets are not yet on sale for this show. Subscribe to our <a href="http://www.theaterwit.org/join/mailing.phpƒ">mailing list</a> for up-to-date show listings and notifications</p>
-       <%- else %>
+    <%= render :partial=>'/productions/info', :locals=>{:production=>@production, :layout_style=>:production_information} %>
+    <p>Tickets are not yet on sale for this show. Subscribe to our
+      <a href="http://www.theaterwit.org/join/mailing.phpƒ">mailing list</a> for up-to-date show listings and
+      notifications</p>
+  <%- else %>
 
-  <div id="show_detail_column">
+    <div id="show_detail_column">
 
       <%= render :partial=>'/productions/info', :locals=>{:production=>@production, :layout_style=>:production_information_vertical} %>
     </div>
-  <% if @production.status == Production::PRESALE %>
-    <table class="performance_calendar"><tr><td style="text-align:center;">Tickets are not on sale yet for this show.  Join our mailing list to be kept up to date on when tickets will be available.</td></tr></table>
-  <%- else %>
-    <table class="performance_calendar">
-  <caption>
-    <%- if !@production.flex_pass_offer.blank? -%>
+    <% if @production.status == Production::PRESALE %>
+      <table class="performance_calendar">
+        <tr>
+          <td style="text-align:center;">Tickets are not on sale yet for this show. Join our mailing list to be kept up
+            to date on when tickets will be available.
+          </td>
+        </tr>
+      </table>
+    <%- else %>
+      <table class="performance_calendar">
+        <caption>
+          <%- if !@production.flex_pass_offer.blank? -%>
         <span class="special_offer_upsell"><%= link_to @production.flex_pass_offer.short_description, new_flex_pass_offer_order_path(@production.flex_pass_offer) unless @production.flex_pass_offer.short_description.blank? %>
         </span>
-        <br/>or, purchase tickets for an individual show below
-        <br/>
-        <br/>
-    <%- end -%>
-    <%= link_to raw("&laquo;"), :action=>:index, :start_date=>@start_date.prev_month, :end_date=>@start_date-1 %> <%= Date::MONTHNAMES[@start_date.month] %> <%= link_to raw('&raquo;'), :action=>:index, :start_date=>@end_date+1, :end_date=>@end_date+1.week %>
-  </caption>
-  <tr>
-    <th scope="col" abbr="Sunday" title="Sunday">Sun</th>
-    <th scope="col" abbr="Monday" title="Monday">Mon</th>
-    <th scope="col" abbr="Tuesday" title="Tuesday">Tue</th>
-    <th scope="col" abbr="Wednesday" title="Wednesday">Wed</th>
-    <th scope="col" abbr="Thursday" title="Thursday">Thu</th>
-    <th scope="col" abbr="Friday" title="Friday">Fri</th>
-    <th scope="col" abbr="Saturday" title="Saturday">Sat</th>
-  </tr>
-  <%
-     current_week_start = @start_date.wday == 0 ? @start_date : @start_date.beginning_of_week - 1
-     while current_week_start.month != (@start_date.month % 12) + 1 do
-  %>
-      <tr>
-        <%
-           0.upto(6).each do |day|
-               current_day = current_week_start + day
-        %>
-            <%= render :partial=>'performance_list_for_day', :locals=>{:date=>current_day, :performances=>@performances} %>
-        <% end %>
-      </tr>
-  <% current_week_start = current_week_start + 7
-     end %>
-  <tr>
-    <td class="boxoffice-message" colspan="7">Problems? Call the box office at 773-975-8150</td>
-  </tr>
-</table>
+            <br/>or, purchase tickets for an individual show below
+            <br/>
+            <br/>
+          <%- end -%>
+          <%= link_to raw("&laquo;"), :action=>:index, :start_date=>@start_date.prev_month, :end_date=>@start_date-1 %> <%= Date::MONTHNAMES[@start_date.month] %> <%= link_to raw('&raquo;'), :action=>:index, :start_date=>@end_date+1, :end_date=>@end_date+1.week %>
+        </caption>
+        <tr>
+          <th scope="col" abbr="Sunday" title="Sunday">Sun</th>
+          <th scope="col" abbr="Monday" title="Monday">Mon</th>
+          <th scope="col" abbr="Tuesday" title="Tuesday">Tue</th>
+          <th scope="col" abbr="Wednesday" title="Wednesday">Wed</th>
+          <th scope="col" abbr="Thursday" title="Thursday">Thu</th>
+          <th scope="col" abbr="Friday" title="Friday">Fri</th>
+          <th scope="col" abbr="Saturday" title="Saturday">Sat</th>
+        </tr>
+        <%- current_week_start = @start_date.wday == 0 ? @start_date : @start_date.beginning_of_week - 1 %>
+        <%- while current_week_start.month != (@start_date.month % 12) + 1 do %>
+          <tr>
+            <%
+               0.upto(6).each do |day|
+                 current_day = current_week_start + day
+            %>
+              <%= render :partial=>'performance_list_for_day', :locals=>{:date=>current_day, :performances=>@performances} %>
+            <% end %>
+          </tr>
+          <%- current_week_start = current_week_start + 7 %>
+        <%- end %>
+        <tr>
+          <td class="boxoffice-message" colspan="7">Problems? Call the box office at 773-975-8150</td>
+        </tr>
+        <%- unless @footnotes.empty? %>
+          <tr>
+            <td colspan="7">
+              <%- index = 0
+                  @footnotes.each do |note|
+                  index += 1 %>
+              <p align="right">
+                              <%= "[#{index}] #{SpecialFeature.find_by_short_name(note).description}" %>
+              </p>
+              <%- end %>
+            </td>
+          </tr>
+        <%- end %>
+      </table>
     <%- end %>
-  </div>
+    </div>
   <%- end %>

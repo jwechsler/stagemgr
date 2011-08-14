@@ -8,6 +8,7 @@ class Performance < ActiveRecord::Base
   has_many                 :line_items, :through=>:orders
   has_many                 :orders
   has_many                 :ticket_class_allocations
+  has_and_belongs_to_many      :special_features
 
   validates_inclusion_of   :status,            :in => PERFORMANCE_STATUSES
   validates_uniqueness_of  :performance_code

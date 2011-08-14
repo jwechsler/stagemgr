@@ -1,5 +1,7 @@
 Stagemgr::Application.routes.draw do
 
+  namespace(:admin){ resources :special_features }
+
   get "venues/now_playing"
 
   get "venues/offtime_now_playing"

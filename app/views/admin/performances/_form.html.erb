@@ -1,38 +1,29 @@
-<p>
-  <%= f.label :performance_date %><br />
-  <%= f.date_select :performance_date %>
-</p>
-<p>
-  <%= f.label :performance_time %><br />
-  <%= f.time_select :performance_time, {:minute_step => 15} %>
-</p>
-<p>
-  <%= f.label :status %><br />
-  <%= f.select(:status, Performance::PERFORMANCE_STATUSES) %>
-</p>
-<p>
-  <%= f.label :performance_code %><br />
-  <%= f.text_field :performance_code %>
-</p>
-<%= f.hidden_field :production_id %>
+<%= f.inputs do %>
+  <%= f.input :performance_date %>
+  <%= f.input :performance_time, {:minute_step => 15} %>
+  <%= f.input :performance_code %>
+  <%= f.input :status, :as=>:select, :collection=>Performance::PERFORMANCE_STATUSES %>
+  <%= f.hidden_field :production_id %>
+  <%= f.input :special_features, :as=>:check_boxes, :collection=>SpecialFeature.find_all_by_status(SpecialFeature::ACTIVE), :member_label=>:short_name %>
+  <h1>Ticket classes:</h1>
+  <table>
+    <tr>
+      <th>Available</th>
+      <th>Ticket class code</th>
+      <th>Ticket class name</th>
+      <th>Limit</th>
+    </tr>
+    <%= f.fields_for :ticket_class_allocations do |ticket_class_allocation_form| %>
+      <tr id='ticket_class_allocation_<%= ticket_class_allocation_form.object.ticket_class.id %>'>
+        <td><%= ticket_class_allocation_form.check_box :available, :disabled=>ticket_class_allocation_form.object.ticket_class.auto_attach %></td>
+        <td><%= ticket_class_allocation_form.object.ticket_class.class_code %></td>
+        <td><%= ticket_class_allocation_form.object.ticket_class.class_name %></td>
+        <td>
+          <%= ticket_class_allocation_form.text_field :ticket_limit %>
+          <%= ticket_class_allocation_form.hidden_field :ticket_class_id %>
+        </td>
+      </tr>
+    <% end %>
+  </table>
 
-<h1>Ticket classes:</h1>
-<table>
-  <tr>
-    <th>Available</th>
-    <th>Ticket class code</th>
-    <th>Ticket class name</th>
-    <th>Limit</th>
-  </tr>
-<%= f.fields_for :ticket_class_allocations do |ticket_class_allocation_form| %>
-<tr id='ticket_class_allocation_<%= ticket_class_allocation_form.object.ticket_class.id %>'>
-<td><%= ticket_class_allocation_form.check_box :available, :disabled=>ticket_class_allocation_form.object.ticket_class.auto_attach %></td>
-<td><%= ticket_class_allocation_form.object.ticket_class.class_code %></td>
-<td><%= ticket_class_allocation_form.object.ticket_class.class_name %></td>
-<td>
-	<%= ticket_class_allocation_form.text_field :ticket_limit %>
-	<%= ticket_class_allocation_form.hidden_field :ticket_class_id %>
-</td>
-</tr>
-<% end %>
-</table>
+<%- end %>

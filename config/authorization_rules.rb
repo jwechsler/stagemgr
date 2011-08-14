@@ -45,6 +45,7 @@ authorization do
     has_permission_on :admin_addresses, :to=>[:view_email]
     has_permission_on :admin_reports, :to=>[:box_office_reports]
     has_permission_on :admin_membership_orders, :to=>[:view]
+    has_permission_on :admin_special_features, :to=>[:view,:manage]
   end
 
   role :admin do

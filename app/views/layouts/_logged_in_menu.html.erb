@@ -27,5 +27,8 @@
 <%- permitted_to? :view, :admin_default_ticket_classes do -%>
   <%= link_to raw('Default&nbsp;Ticket&nbsp;Classes'), admin_default_ticket_classes_path%> |
 <%- end -%>
+<%- permitted_to? :manage, :admin_special_features do %>
+  <%= link_to('Performance Features', admin_special_features_path) %> |
+<%- end -%>
 <%= link_to('My Account', current_user_account_path) %> |
 <%= link_to('Logout',logout_path, :method => :delete, :confirm => "Are you sure you want to logout?") %>

@@ -1,7 +1,6 @@
 <h1>Editing performance</h1>
 
-<%= form_for([:admin,@performance.production.theater,@performance.production,@performance]) do |f| %>
-  <%= f.error_messages %>
+<%= semantic_form_for([:admin,@performance.production.theater,@performance.production,@performance]) do |f| %>
 
   <%= render :partial => 'form', :locals=>{:f=>f}%>
 
