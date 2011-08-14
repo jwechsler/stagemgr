@@ -1,0 +1,19 @@
+<% title "Admin/Special Features" %>
+
+<table>
+  <tr>
+    <th>Short Name</th>
+    <th>Description</th>
+  </tr>
+  <% for special_feature in @special_features %>
+    <tr>
+      <td><%= special_feature.short_name %></td>
+      <td><%= special_feature.description %></td>
+      <td><%= link_to "Show", [:admin, special_feature] %></td>
+      <td><%= link_to "Edit", edit_admin_special_feature_path(special_feature) %></td>
+      <td><%= link_to "Destroy", [:admin, special_feature], :confirm => 'Are you sure?', :method => :delete %></td>
+    </tr>
+  <% end %>
+</table>
+
+<p><%= link_to "New Admin/Special Feature", new_admin_special_feature_path %></p>

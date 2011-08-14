@@ -1,0 +1,16 @@
+<% title "Admin/Special Feature" %>
+
+<p>
+  <strong>Short Name:</strong>
+  <%= @special_feature.short_name %>
+</p>
+<p>
+  <strong>Description:</strong>
+  <%= @special_feature.description %>
+</p>
+
+<p>
+  <%= link_to "Edit", edit_admin_special_feature_path(@special_feature) %> |
+  <%= link_to "Destroy", [:admin, @special_feature], :confirm => 'Are you sure?', :method => :delete %> |
+  <%= link_to "View All", admin_special_features_path %>
+</p>
