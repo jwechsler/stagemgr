@@ -1,5 +1,4 @@
 class CreateSpecialFeatures < ActiveRecord::Migration
-  has_many :performances
 
   def self.up
     create_table :special_features do |t|
