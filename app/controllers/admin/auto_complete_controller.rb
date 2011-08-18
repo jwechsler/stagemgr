@@ -19,7 +19,9 @@ class Admin::AutoCompleteController < Admin::ApplicationController
 
   def ticket_class_code
     performance = Performance.find_by_performance_code(params[:performance_code])
-    return [] if performance.nil?
+     if performance.nil?
+       render :inline => Array.new
+     end
     ticket_classes = performance.production.ticket_classes.search_by_code_and_performance_id(params[:q], performance.id)
     render :inline => ticket_classes.select{|tc| !tc.software_managed}.map { |ticket_class| "#{ticket_class.class_code}|#{ticket_class.to_s} (#{ticket_class.number_left(performance)} Tickets Left)|#{ticket_class.ticket_type}|#{ticket_class.ticket_price}" }.join("\n")
   end
