@@ -24,8 +24,7 @@ class Order < ActiveRecord::Base
   has_many :special_offer_line_items
   has_many :donation_line_items
   belongs_to :address
-  accepts_nested_attributes_for :line_items,
-                                :ticket_line_items,
+  accepts_nested_attributes_for :ticket_line_items,
                                 :flex_pass_line_items,
                                 :special_offer_line_items,
                                 :donation_line_items,
@@ -70,10 +69,11 @@ class Order < ActiveRecord::Base
   validates_presence_of :address, :status
   validates_associated :address,
                        :payments,
-                       :line_items, :ticket_line_items, :donation_line_items,
+                       :ticket_line_items, :donation_line_items,
                        :flex_pass_line_items, :special_offer_line_items
 
   validates_each :status do |record, attr, value|
+
     if value == PROCESSED
       unless record.total == record.value_of_all_payments
         record.errors.add attr, "cannot be set to #{PROCESSED} if the total isn't countered by a payment."
