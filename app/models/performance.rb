@@ -69,10 +69,6 @@ class Performance < ActiveRecord::Base
     "#{self.performance_date.strftime('%m/%d')} #{self.performance_time.strftime('%H:%M')}"
   end
 
-  def inactive?
-    self.status == Performance::INACTIVE
-  end
-
   def self.search_by_code(code)
     where("LOWER(performance_code) LIKE ?", '%'+code.to_s.downcase + '%').
       where("status != 'Inactive'").
