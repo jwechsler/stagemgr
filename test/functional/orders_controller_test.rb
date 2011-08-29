@@ -20,7 +20,7 @@ class OrdersControllerTest < ActionController::TestCase
     
     assert_difference('Order.count') do
       post :create, :commit=>'Place Order', :production_id=>@production.id, :performance_id=>@performance.id, 
-        "ticket_order"=>{
+        "order"=>{
         "status"=>Order::NEW,
         "production_code"=>@production.production_code,
         'performance_code'=>@performance.performance_code,
@@ -40,7 +40,7 @@ class OrdersControllerTest < ActionController::TestCase
       assert_equal 'Order was successfully saved and is now Processed', flash[:notice]
       end
     end
-    new_order = TicketOrder.last
+    new_order = Order.last
     assert_equal 15, new_order.total
     assert_equal 1, new_order.payments.count
     assert_equal CreditCardPayment, new_order.payments.first.class

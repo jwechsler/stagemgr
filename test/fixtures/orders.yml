@@ -1,11 +1,9 @@
 new_macbeth_order:
-  type: TicketOrder
   performance: macbeth_opening_night
   status: New
   theater_id: theater_wit
 
 flexpass_5_order:
-  type: TicketOrder
   status: New
   theater_id: theater_wit
   address: jeremy

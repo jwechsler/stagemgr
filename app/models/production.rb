@@ -55,7 +55,7 @@ class Production < ActiveRecord::Base
   def add_hold_to_every_performance(address, number_of_tickets, ticket_class_code)
     ticket_class=ticket_classes.select { |tc| tc.class_code == ticket_class_code }.first
     self.performances.each { |p|
-      o = TicketOrder.create(:status=>Order::HOLD, :address=>address, :performance=>p)
+      o = Order.create(:status=>Order::HOLD, :address=>address, :performance=>p)
       li = o.ticket_line_items.build(:ticket_class=>ticket_class, :ticket_count=>number_of_tickets)
       o.save!
     }

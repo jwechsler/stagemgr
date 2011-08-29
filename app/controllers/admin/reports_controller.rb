@@ -212,14 +212,15 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def build_fulfill_labels(through_date)
-    orders = TicketOrder.order("performances.performance_code").all(:include=>[:line_items, {:performance, :production}, :address],
+    orders = Order.order("performances.performance_code").all(:include=>[:line_items, {:performance, :production}, :address],
                         :conditions=>["orders.status = ? and performances.status = 'Active' and performances.performance_date <= ? and performances.performance_date >= ? and productions.status in (?)",
                         Order::PROCESSED, through_date, Date.today, Production.visible_statuses])
     report = Array.new
     headers = [:reserved_under, :performance_code, :tickets, :order_id, :profile, :member_id, :first_time, :last_24_months, :donor]
     Order.transaction do
       orders.each { |o|
-         is_donor = o.address.is_donor?
+        if o.contains_tickets?
+          is_donor = o.address.is_donor?
           last24 = o.address.performances_attended(2.years.ago)
           member_id = o.membership_payments.size > 0 ? o.membership_payments.to_a.map { |mp| mp.membership.member_code}.join(',') + ' ' : ''
           attendance_code = member_id
@@ -228,7 +229,7 @@ class Admin::ReportsController < Admin::ApplicationController
           attendance_code += "A" if is_donor
           report << {:reserved_under=>  "#{o.address.last_name}" + ((o.address.last_name.blank? || o.address.first_name.blank?) ? '' : ', ') + (o.address.first_name.blank? ? '' : o.address.first_name.first ),
                      :performance_code => o.performance.performance_code,
-                     :tickets => o.to_s,
+                     :tickets => o.ticket_detail_description,
                      :profile => attendance_code,
                      :order_id => o.id,
                      :member_id => member_id,
@@ -237,6 +238,7 @@ class Admin::ReportsController < Admin::ApplicationController
                      :donor => is_donor}
           o.transition_to!(Order::FULFILLED)
           o.save!
+        end
       }
     end
     [headers, report]

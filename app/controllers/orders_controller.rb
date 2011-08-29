@@ -16,7 +16,7 @@ class OrdersController < ApplicationController
 
   def create
     old_status = Order::NEW
-    @order = TicketOrder.new(params[:order])
+    @order = Order.new(params[:order])
     @order.ip_address = request.remote_ip
     process_order(:edit_order_path)
   end

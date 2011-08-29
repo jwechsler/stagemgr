@@ -35,7 +35,7 @@ class Admin::OrdersController < Admin::ApplicationController
 
   def show
     if @order.is_a? MembershipOrder
-      redirect_to url_for(:controller=>:membership_orders, :action=>:show, :id=>@order.id)
+      redirect_to url_for(:controller=>:membership_orders,:action=>:show, :id=>@order.id)
     end
 
   end
@@ -62,7 +62,7 @@ class Admin::OrdersController < Admin::ApplicationController
   end
 
   def new
-    @order = TicketOrder.new
+    @order = Order.new
     @order.address = Address.new
     @order.ticket_line_items.build
     @order.status = Order::NEW
@@ -78,7 +78,7 @@ class Admin::OrdersController < Admin::ApplicationController
 
   def create
     old_status = Order::NEW
-    @order = TicketOrder.new(params[:order])
+    @order = Order.new(params[:order])
     process_order(:edit_admin_order_path)
   end
 
@@ -143,8 +143,8 @@ class Admin::OrdersController < Admin::ApplicationController
   end
 
   def get_search_conditions_from_params
-    conditions_sql = Array.new
-    conditions_params = Array.new
+    conditions_sql = ['(productions.status <> ? or productions.status is null)', '(performances.status <> ? or performances.status is null)']
+    conditions_params = ['Inactive', 'Inactive']
     # Hide orders that we couldn't figure out how to obscure in declarative_authorizations because of paginate block
     # @todo this is probably fixable...
 
@@ -153,43 +153,19 @@ class Admin::OrdersController < Admin::ApplicationController
       conditions_params << Authorization.current_user.theater_ids
     end
 
-    restrict_to_active = true
-    remove_active_restrict_on_columns = ['orders.id', 'addresses.last_name', 'addresses.first_name']
-
     if params['_search']=='true'
       VALID_SEARCH_COLUMNS.each do |column_name|
         if params[column_name] && !params[column_name].empty?
-          restrict_to_active &&= !remove_active_restrict_on_columns.include?(column_name)
-          case column_name
-            when 'performances.performance_code' :
-              case params[column_name].downcase
-                when 'membership' :
-                  conditions_sql << "type = 'MembershipOrder'"
-                when 'donation' :
-                  conditions_sql << "type = 'DonationOrder'"
-                when 'flexpass' :
-                  conditions_sql << "type = 'FlexPassOrder'"
-                else
-                  conditions_sql << "lower(#{column_name}) like '%' ? '%'"
-                  conditions_params << params[column_name].downcase
-              end
-            when 'orders.id' :
-              conditions_sql << "#{column_name} = ?"
-              conditions_params << params[column_name]
-
-            else
-              conditions_sql << "lower(#{column_name}) like '%' ? '%'"
-              conditions_params << params[column_name].downcase
+          if column_name.downcase == 'performances.performance_code'
+            conditions_sql << "((performance_id is null and 'flexpass' like '%' ? '%') or lower(#{column_name}) like '%' ? '%')"
+            conditions_params << params[column_name].downcase << params[column_name].downcase
+          else
+            conditions_sql << "lower(#{column_name}) like '%' ? '%'"
+            conditions_params << params[column_name].downcase
           end
         end
       end
     end
-
-    if restrict_to_active
-      conditions_sql << '(productions.status <> ? or productions.status is null)' << '(performances.status <> ? or performances.status is null)'
-      conditions_params << Production::INACTIVE << Performance::INACTIVE
-    end
-
     {:conditions=>([conditions_sql.join(' and ')] + conditions_params)}
   end
 
@@ -197,7 +173,7 @@ class Admin::OrdersController < Admin::ApplicationController
     sort_column = params[:sidx]
     sort_column = 'orders.id' if sort_column.empty?
     sort_order = params[:sord]
-    sort_order 'DESC' if sort_order.empty?
+    sort_order 'ASC' if sort_order.empty?
     {:page => params[:page], :order => "#{sort_column} #{sort_order}"}
   end
 

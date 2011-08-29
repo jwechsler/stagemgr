@@ -11,7 +11,7 @@
         <%= order_form.error_messages %>
         <%= order_form.hidden_field :status %>
         <%= render :partial => '/orders/address', :locals => {:order_form => order_form} %>
-        <%- if @order.is_a? TicketOrder -%>
+        <%- if @order.is_a_ticket_order? -%>
             <%- @submit_text = "Order Tickets" -%>
             <%= order_form.hidden_field :production_code %>
             <%= order_form.hidden_field :performance_code %>
@@ -37,7 +37,7 @@
         <%- end %>
         <%= render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form} %>
         <%= render :partial => '/orders/special_offer_form', :locals => {:f => order_form} %>
-        <%- if @order.is_a? TicketOrder %>
+        <%- if @order.is_a_ticket_order? %>
           <%= order_form.input :marketing_source, :collection=>Order::REFERRALS, :label=>"How did you hear about the show?" %>
         <%- end %>
             <table>
@@ -46,7 +46,7 @@
                 <td valign="top">
                 <%= order_form.check_box :add_to_email_list, :checked=>1 %>
                 <td>
-                Join the Theater Wit <%= if @order.is_a?(TicketOrder) && @order.performance.production.theater.id != 1
+                Join the Theater Wit <%= if !@order.performance.nil? && @order.performance.production.theater.id != 1
                                              "and #{@order.performance.production.theater.name} mailing lists"
                                          elsif @order.flex_pass_line_items.size > 0 && !@order.flex_pass_line_items[0].flex_pass_offer.theater_id.blank?
                                             "and #{Theater.find(@order.flex_pass_line_items[0].flex_pass_offer.theater_id).name} mailing lists"
@@ -58,7 +58,7 @@
                 </td></tr>
             </table>
 
-        <%- if @order.is_a?(TicketOrder) ||  @order.flex_pass_line_items.size > 0 -%>
+        <%- if @order.ticket_line_items.size + @order.flex_pass_line_items.size > 0 -%>
         <p id="non-exchange-notice">
           Please note that all ticket purchases are <emp>non-refundable</emp> and <emp>non-exchangeable</emp>.
           Once you've reviewed your order above, you can click the Order button below.
