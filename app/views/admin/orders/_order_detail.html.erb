@@ -6,7 +6,7 @@
   </tr>
 </table>
 
-<%- if order.contains_tickets? -%>
+<%- if order.is_a? TicketOrder -%>
   <p>
     Performance:
     <%= h order.performance.to_s %>

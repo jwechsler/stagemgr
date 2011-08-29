@@ -87,7 +87,7 @@ end
 
 address = Address.create!(                :first_name=>'Bob',
                                           :last_name=>'Loblaw')
-credit_card_order = Order.create!(        :payment_type=>Order::CREDIT_CARD, 
+credit_card_order = TicketOrder.create!(        :payment_type=>Order::CREDIT_CARD,
                                           :status=>Order::NEW, 
                                           :address=>address,
                                           :performance=>performance)

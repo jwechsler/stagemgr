@@ -51,6 +51,8 @@ Stagemgr::Application.routes.draw do
   # get "membership_orders/checkout"
 
 
+  resources :ticket_orders
+
   resources :orders do
     post :confirm, :on => :collection
   end

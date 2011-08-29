@@ -1,5 +1,5 @@
 <fieldset class="callout" style="border: 1px solid #000000; margin: 5px; padding: 5px;"><legend>Make an additional donation</legend>
-  <%- if @order.performance.blank?
+  <%- if !@order.is_a?(TicketOrder)
     t = Theater.find(@order.flex_pass_line_items[0].flex_pass_offer.theater_id) unless @order.flex_pass_line_items[0].flex_pass_offer.theater_id.blank?
   else
     t = @order.performance.production.theater

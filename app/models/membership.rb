@@ -31,6 +31,10 @@ class Membership < ActiveRecord::Base
   end
 
   def is_active?
-    self.current_status == ACTIVE
+    return false if self.status == Membership::EXPIRED
+    return true if self.current_status == Membership::ACTIVE
+    self.status = Membership::EXPIRED
+    self.save!
+    return false
   end
 end
