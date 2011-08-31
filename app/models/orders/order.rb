@@ -694,7 +694,7 @@ class Order < ActiveRecord::Base
           create_reminder_task
         when FULFILLED
           create_performance_followup_task
-        when UNCLAIMED, CANCELED, REFUNDED
+        when UNCLAIMED, CANCELED, REFUNDED, EXCHANGED
           cancel_pending_tasks
       end
     end
