@@ -52,14 +52,15 @@ class Order < ActiveRecord::Base
 
   acts_as_audited
 
-  after_validation :auto_link_processed_to_address_of_record
+
   before_validation :cascade_address_to_nested_items
   before_validation :initialize_nested_line_items, :on => :create
   before_validation :set_defaults
   before_validation :set_tickets_for_pass_redemption
 
-  before_save :set_theater
+  after_validation :auto_link_processed_to_address_of_record
 
+  before_save :set_theater
   after_save :set_tasks_after_save
 
 
