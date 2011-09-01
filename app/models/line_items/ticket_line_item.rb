@@ -1,4 +1,5 @@
 class TicketLineItem < LineItem
+  belongs_to :ticket_order, :foreign_key=>:order_id
   belongs_to :ticket_class
   validates_presence_of :ticket_class, :ticket_count
 

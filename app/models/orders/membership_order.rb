@@ -6,7 +6,7 @@ class MembershipOrder < Order
   validates_associated :membership_line_items
   accepts_nested_attributes_for :membership_offer, :membership_line_items, :recurring_payments, :allow_destroy=>true
 
-  def performance_code()
+  def display_code()
     "MEMBERSHIP"
   end
 

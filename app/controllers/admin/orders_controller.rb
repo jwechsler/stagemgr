@@ -10,7 +10,7 @@ class Admin::OrdersController < Admin::ApplicationController
   VALID_SEARCH_COLUMNS = [
       'orders.id',
       'productions.production_code',
-      'performances.performance_code',
+      'display_code',
       'addresses.last_name',
       'addresses.first_name',
       'orders.status'
@@ -161,7 +161,7 @@ class Admin::OrdersController < Admin::ApplicationController
         if params[column_name] && !params[column_name].empty?
           restrict_to_active &&= !remove_active_restrict_on_columns.include?(column_name)
           case column_name
-            when 'performances.performance_code' :
+            when 'display_code' :
               case params[column_name].downcase
                 when 'membership' :
                   conditions_sql << "type = 'MembershipOrder'"

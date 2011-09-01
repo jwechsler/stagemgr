@@ -19,13 +19,11 @@ class Order < ActiveRecord::Base
   has_many :tasks, :class_name=>'OrderTask'
 
   has_many :line_items
-  has_many :ticket_line_items
   has_many :flex_pass_line_items
   has_many :special_offer_line_items
   has_many :donation_line_items
   belongs_to :address
-  accepts_nested_attributes_for :ticket_line_items,
-                                :flex_pass_line_items,
+  accepts_nested_attributes_for :flex_pass_line_items,
                                 :special_offer_line_items,
                                 :donation_line_items,
                                 :address,
@@ -56,7 +54,6 @@ class Order < ActiveRecord::Base
   before_validation :cascade_address_to_nested_items
   before_validation :initialize_nested_line_items, :on => :create
   before_validation :set_defaults
-  before_validation :set_tickets_for_pass_redemption
 
   before_save :set_theater
 
@@ -69,7 +66,7 @@ class Order < ActiveRecord::Base
   validates_presence_of :address, :status
   validates_associated :address,
                        :payments,
-                       :ticket_line_items, :donation_line_items,
+                       :donation_line_items,
                        :flex_pass_line_items, :special_offer_line_items
 
   validates_each :status do |record, attr, value|
@@ -78,30 +75,19 @@ class Order < ActiveRecord::Base
       unless record.total == record.value_of_all_payments
         record.errors.add attr, "cannot be set to #{PROCESSED} if the total isn't countered by a payment."
       end
-      unless record.ticket_line_items.empty? || record.ticket_quantity > 0
-        record.errors.add :ticket_line_items, "must contain at least one ticket."
-      end
       m_payments = record.membership_payments
       m_payments.each { |p| p.membership.membership_offer.verify_applicable_for(record) }
     end
   end
 
 
-  def attended?
-    [PROCESSED, FULFILLED].include?(self.status)
-  end
-
   def value_of_all_payments
     self.unique_payments.sum { |p| p.amount }
 
   end
 
-  def number_of_tickets_of_all_payments
-    self.payments.to_a.sum { |fpp| fpp.number_of_tickets }
-  end
-
   def exchangeable?
-    self.status == Order::PROCESSED || self.status == Order::FULFILLED || self.status == Order::UNCLAIMED
+    false
   end
 
   def fulfillable?
@@ -121,31 +107,13 @@ class Order < ActiveRecord::Base
     [self.address]
   end
 
-  def production_code=(string)
-    @production_code=string
-  end
-
-  def production_code()
-    self.performance.try(:production).try(:production_code) || @production_code
-  end
-
-  def performance_code=(string)
-    self.performance=Performance.find_by_performance_code(string)
-  end
-
-  def performance_code()
-    case when self.contains_flex_pass?
-      "FLEXPASS"
+  def display_code()
+    case
+      when self.contains_flex_pass?
+        "FLEXPASS"
       when self.contains_donation?
         "DONATION"
-      else
-        self.performance.try(:performance_code)
     end
-  end
-
-  def ticket_quantity_by_class(class_code)
-    self.ticket_line_items.to_a.sum { |li| li.ticket_class.class_code == class_code ? li.ticket_count : 0 }
-
   end
 
   def total(reload_line_items=false)
@@ -178,21 +146,10 @@ class Order < ActiveRecord::Base
     fee
   end
 
-  def ticket_quantity
-    self.ticket_line_items(false).uniq.to_a.sum { |li| li.respond_to?(:ticket_count) ? li.ticket_count : 0 }
-  end
-
-  def is_a_ticket_order?
-    self.ticket_line_items.size > 0
-  end
-
   def contains_flex_pass?
     (self.line_items.select { |li| li.is_a? FlexPassLineItem }+self.flex_pass_line_items).size > 0
   end
 
-  def contains_tickets?
-    (self.line_items.select { |li| (li.is_a? TicketLineItem) && (li.ticket_count > 0) } + self.ticket_line_items.select { |li| li.ticket_count > 0 }).size > 0
-  end
 
   def contains_donation?
     (self.donation_line_items.select { |li| (li.is_a? DonationLineItem) } + self.donation_line_items.select { |li| li.donation_amount > 0 }).size > 0
@@ -229,10 +186,6 @@ class Order < ActiveRecord::Base
 
   def held?
     self.status == HOLD
-  end
-
-  def full_name
-    "#{self.first_name} #{self.last_name}"
   end
 
   def refund!
@@ -480,22 +433,6 @@ class Order < ActiveRecord::Base
     end
   end
 
-  def set_ticket_classes_using_offer(offer)
-    new_ticket_class = production_ticket_class_from_offer(offer)
-    if !new_ticket_class.nil?
-      self.ticket_line_items.each { |li|
-        new_line_item = TicketLineItem.new
-        new_line_item.ticket_class = new_ticket_class
-        old_price = li.ticket_class.ticket_price
-        new_line_item.ticket_count = li.ticket_count
-        new_line_item.price_override = self.applicable_price(li.ticket_class, new_ticket_class) if new_ticket_class.ticket_type == TicketClass::DONATION
-        self.ticket_line_items << new_line_item
-        self.ticket_line_items.delete(li)
-
-      }
-    end
-  end
-
   protected
   def cascade_address_to_nested_items
     # code here
@@ -603,24 +540,6 @@ class Order < ActiveRecord::Base
   end
 
 
-  def set_tickets_for_pass_redemption
-    if self.status_changed? && self.status == Order::PROCESSED
-      if self.paid_with_pass?
-        flex_pass = FlexPass.find_by_code(self.flex_pass_code)
-        offer = flex_pass.flex_pass_offer
-        set_ticket_classes_using_offer(offer)
-      end
-      if self.paid_with_membership?
-        membership = Membership.find_by_member_code(self.member_code)
-        offer = membership.membership_offer
-        set_ticket_classes_using_offer(offer)
-        self.ticket_line_items
-
-      end
-
-    end
-  end
-
   def create_mail_list_task
     self.tasks << MyEmmaTask.new(:execute_at=>Time.now + 5.minutes) if !self.address.email.nil?
   end
@@ -633,25 +552,6 @@ class Order < ActiveRecord::Base
 
     self.tasks << OutreachTask.new(:execute_at=>Time.now + 5.minutes, :method_symbol=>:flexpass_confirmation) if self.contains_flex_pass?
     self.tasks << OutreachTask.new(:execute_at=>Time.now + 5.minutes, :method_symbol=>:donation_thank_you) if self.contains_donation?
-
-  end
-
-  def self.reassign_payments(offer)
-    orders = Order.where("id in (select order_id from payments where flex_pass_id in (select id from flex_passes where flex_pass_offer_id = :offer_id))",
-                         {:offer_id => offer.id})
-
-    orders.each { |o|
-      was = o.to_s
-      o.set_ticket_classes_using_offer(offer)
-      o.save!
-      if was != o.to_s
-        puts "Order #{o.id}: #{was} converted to #{o.to_s}"
-      else
-        puts "Order #{o.id}: #{was}"
-      end
-    }
-
-    nil
 
   end
 

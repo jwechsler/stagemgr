@@ -212,7 +212,7 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def build_fulfill_labels(through_date)
-    orders = Order.order("performances.performance_code").all(:include=>[:line_items, {:performance, :production}, :address],
+    orders = TicketOrder.order("performances.performance_code").all(:include=>[:line_items, {:performance, :production}, :address],
                         :conditions=>["orders.status = ? and performances.status = 'Active' and performances.performance_date <= ? and performances.performance_date >= ? and productions.status in (?)",
                         Order::PROCESSED, through_date, Date.today, Production.visible_statuses])
     report = Array.new
@@ -454,7 +454,7 @@ class Admin::ReportsController < Admin::ApplicationController
     report = Array.new
     keys = columns_for_orders(true)
     production.performances.each { |performance|
-      orders = Order.where("performance_id = :performance_id", {:performance_id=>performance.id})
+      orders = TicketOrder.where("performance_id = :performance_id", {:performance_id=>performance.id})
 
       orders.each { |o|
         if o.attended? then

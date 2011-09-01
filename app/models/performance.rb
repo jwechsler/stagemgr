@@ -6,7 +6,7 @@ class Performance < ActiveRecord::Base
   belongs_to               :production
   has_many                 :ticket_classes, :through=>:ticket_class_allocations
   has_many                 :line_items, :through=>:orders
-  has_many                 :orders
+  has_many                 :orders, :foreign_key=>:order_id, :class_name=>'TicketOrder'
   has_many                 :ticket_class_allocations
   has_and_belongs_to_many      :special_features
 
