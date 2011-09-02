@@ -55,6 +55,10 @@ Stagemgr::Application.routes.draw do
     post :confirm, :on => :collection
   end
 
+  resources :ticket_orders do
+    post :confirm, :on=> :collection
+  end
+
   resources :productions, :only=>:index do
     resources :performances, :only=>:index do
       resources :orders, :controller => 'production_performance_orders'

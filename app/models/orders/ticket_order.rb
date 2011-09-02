@@ -120,7 +120,7 @@ class TicketOrder < Order
     self.ticket_line_items.each { |ti| TicketLineItem.delete(ti.id) }
   end
 
-  # These two may be useless....
+  # for form processing
   def production_code=(string)
     @production_code=string
   end
@@ -128,6 +128,17 @@ class TicketOrder < Order
   def production_code()
     self.performance.try(:production).try(:production_code) || @production_code
   end
+
+
+  def performance_code=(string)
+    self.performance=Performance.find_by_performance_code(string)
+  end
+
+
+  def performance_code()
+    self.performance.try(:performance_code)
+  end
+
 
   protected
   def applicable_price(regular_ticket_class, offer_ticket_class)
