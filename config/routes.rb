@@ -133,7 +133,7 @@ Stagemgr::Application.routes.draw do
         get  :fulfill
         get :unclaimed
       end
-      resources :exchange_orders, :only=>[:new,:create]
+      resources :exchange_ticket_orders, :only=>[:new,:create]
       resources :refund_orders, :only=>[:new,:create]
     end
     resources :special_offers

@@ -1,6 +1,7 @@
 require 'test_helper'
 
 class AddressTest < ActiveSupport::TestCase
+
   context "with a valid address" do
     setup do
       @new_address = Factory.create(:address, :first_name=>"Test", :last_name=>"Guy", :line1=>"1229 W Belmont Ave Unit #3", :city=>"Chicago", :state=>"IL", :zipcode=>"60657", :email=>"test@matches.com")

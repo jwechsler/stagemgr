@@ -72,7 +72,7 @@ group :test do
   gem 'test-unit',          '>=2.0.7'
   gem 'flexmock',           '0.8.6'
   gem 'rcov',               '>=0.9.8'
-  gem "shoulda",            '>=2.10.3'
+  gem 'shoulda-context'
   gem "factory_girl",       '1.3.2'
   gem 'ruby-debug'
 end

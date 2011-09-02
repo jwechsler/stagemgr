@@ -1,9 +1,9 @@
-class Admin::ExchangeOrdersController < Admin::ApplicationController
+class Admin::ExchangeTicketOrdersController < Admin::ApplicationController
  filter_access_to :all
 
   def new
-    @original_order = Order.find(params[:order_id])
-    @exchange_order = Order.new
+    @original_order = TicketOrder.find(params[:order_id])
+    @exchange_order = TicketOrder.new
     @exchange_order.ticket_line_items.build
     @exchange_order.status = Order::NEW
     @allowed_payment_types =  [Order::FLEX_PASS] if @original_order.paid_with_pass?
@@ -15,8 +15,8 @@ class Admin::ExchangeOrdersController < Admin::ApplicationController
   end
   
   def create
-    @original_order = Order.find(params[:order_id])
-    @exchange_order = Order.new(params[:order])
+    @original_order = TicketOrder.find(params[:order_id])
+    @exchange_order = TicketOrder.new(params[:order])
     @exchange_order.special_offer_code = params[:order][:special_offer_code]
     @exchange_order.exchange_and_process_from! @original_order
     respond_to do |format|

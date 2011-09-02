@@ -55,6 +55,11 @@ Factory.define(:order) do |order|
   order.association :address, :factory => :address
 end
 
+Factory.define(:ticket_order) do |order|
+  order.status Order::ORDER_STATUSES.first
+  order.association :address, :factory => :address
+end
+
 Factory.define(:line_item) do |line_item|
   line_item.association :order, :factory        => :order
 end

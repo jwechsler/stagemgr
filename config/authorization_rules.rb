@@ -6,6 +6,7 @@ authorization do
     has_permission_on :performances, :to=>:read
     has_permission_on :flex_pass_offers, :to=>:read
     has_permission_on :orders, :to=>[:create,:read,:update]
+    has_permission_on :ticket_orders, :to=>[:create,:read,:update]
     has_permission_on :membership_orders, :to=>[:create, :read, :update]
   end
 
@@ -29,7 +30,7 @@ authorization do
     end
     has_permission_on :admin_addresses, :to=>[:view,:manage,:make]
     has_permission_on :membership_orders, :to=>[:create, :read, :update]
-    has_permission_on :admin_exchange_orders, :to=>[:make]
+    has_permission_on :admin_exchange_ticket_orders, :to=>[:make]
   end
 
   role :box_office do

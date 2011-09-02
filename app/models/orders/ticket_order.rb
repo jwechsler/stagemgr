@@ -4,7 +4,9 @@ class TicketOrder < Order
   accepts_nested_attributes_for :ticket_line_items, :allow_destroy=>true
 
   validates_associated :ticket_line_items
+  validates_presence_of :performance
   before_validation :set_tickets_for_pass_redemption
+  before_save :set_theater
 
   validates_each :status do |record, attr, value|
 
@@ -42,6 +44,25 @@ class TicketOrder < Order
     self.performance.try(:performance_code)
   end
 
+  def description
+    performance_s = self.performance.nil_or.to_short_s
+    "#{performance_s} (#{self.ticket_detail_description})"
+  end
+
+   def to_s
+    self.ticket_detail_description
+   end
+
+   def ticket_detail_description
+    self.ticket_line_items.map { |li|
+      if li.ticket_count > 0
+        li.to_s
+      else
+        ""
+      end
+    }.join(', ')
+  end
+
 
   def ticket_quantity
     self.ticket_line_items(false).uniq.to_a.sum { |li| li.respond_to?(:ticket_count) ? li.ticket_count : 0 }
@@ -67,6 +88,151 @@ class TicketOrder < Order
 
   def contains_tickets?
     (self.line_items.select { |li| (li.is_a? TicketLineItem) && (li.ticket_count > 0) } + self.ticket_line_items.select { |li| li.ticket_count > 0 }).size > 0
+  end
+
+
+  def exchange_and_process_from!(original_order)
+    Order.transaction do
+      self.address = original_order.address
+      original_order.status = Order::EXCHANGED
+      self.save!
+      self.update_special_offer_line_items_from_code!
+      original_order.release_tickets!
+      exchange_payment_on_original_order = original_order.exchange_payments.create!(:amount=>-1*original_order.payments(true).to_a.sum { |p| p.amount }, :note=>original_order.description)
+      exchange_payment_on_self = self.exchange_payments.create!(:amount=>-1 * exchange_payment_on_original_order.amount, :payment_id=>exchange_payment_on_original_order.id)
+      exchange_payment_on_original_order.update_attribute(:payment_id, exchange_payment_on_self.id)
+      payment_difference = self.total - exchange_payment_on_self.amount
+      if payment_difference < 0
+        self.price_override_payments.create!(:amount=>payment_difference)
+      elsif payment_difference > 0
+        create_proper_payment_in_amount_of!(payment_difference)
+      end
+      self.status=Order::PROCESSED
+      self.set_email_confirmation
+      self.payments(true)
+      self.save!
+
+      original_order.save!
+    end
+  end
+
+  def release_tickets!
+    self.ticket_line_items.each { |ti| TicketLineItem.delete(ti.id) }
+  end
+
+  # These two may be useless....
+  def production_code=(string)
+    @production_code=string
+  end
+
+  def production_code()
+    self.performance.try(:production).try(:production_code) || @production_code
+  end
+
+  protected
+  def applicable_price(regular_ticket_class, offer_ticket_class)
+    return [regular_ticket_class.ticket_price, offer_ticket_class.ticket_price].min
+  end
+
+  def production_ticket_class_from_offer(offer)
+    self.performance.production.ticket_classes.select { |tc| tc.class_code == offer.use_ticket_class_code }.first
+  end
+
+  def create_proper_payment_in_amount_of!(amount)
+    case self.payment_type
+      when FLEX_PASS
+        flex_pass = FlexPass.find_by_code(self.flex_pass_code)
+        raise 'No FlexPass with that code exists' unless flex_pass
+        offer = flex_pass.flex_pass_offer
+        if !offer.theater_id.blank? then
+          raise "That FlexPass is restricted to #{Theater.find_by_id(offer.theater_id).name} productions" if (offer.theater_id != self.performance.production.theater.id and !offer.exclude_theater?)
+          raise "That Flexpass cannot be used for tickets for #{Theater.find_by_id(flex_pass.flex_pass_offer.theater_id).name} productions" if (flex_pass.flex_pass_offer.theater_id == self.performance.production.theater.id and flex_pass.flex_pass_offer.exclude_theater?)
+
+        end
+        pass_ticket_class = production_ticket_class_from_offer(offer)
+        total_amount = ticket_line_items.inject(0) { |total_amount, li| total_amount += self.applicable_price(li.ticket_class, pass_ticket_class)* li.ticket_count }
+        new_payment = FlexPassPayment.new(
+            :number_of_tickets => self.ticket_quantity,
+            :flex_pass => flex_pass,
+            :amount => total_amount
+        )
+        payments << new_payment
+        new_payment.process!
+      when MEMBERSHIP
+        membership = Membership.find_by_member_code(self.member_code)
+        raise "No current membership with that code exists" unless membership
+        if !self.address.email.blank? && membership.address.email.downcase.strip != self.address.email.downcase.strip
+          raise 'Member ID does not match provided email address'
+        end
+        pass_ticket_class = production_ticket_class_from_offer(membership.membership_offer)
+        total_amount = ticket_line_items.inject(0) { |total_amount, li| total_amount += self.applicable_price(li.ticket_class, pass_ticket_class)* li.ticket_count }
+
+        new_payment = MembershipPayment.new(:number_of_tickets=>self.ticket_quantity, :membership=>membership, :amount=>total_amount)
+        payments << new_payment
+        new_payment.process!
+      else
+        super
+    end
+  end
+
+  def unique_line_items(reload_line_items = false)
+    (super +
+        self.ticket_line_items(reload_line_items)
+    ).uniq
+  end
+
+  def set_defaults
+    self.ticket_line_items.each { |tli| tli.order=self }
+    super
+  end
+
+  def set_tasks_after_save
+    if self.do_not_create_tasks.nil? && self.status_changed?
+      super
+      case self.status
+        when PROCESSED
+          create_reminder_task
+        when FULFILLED
+          create_performance_followup_task
+      end
+    end
+
+  end
+
+  def create_reminder_task
+    if self.contains_tickets?
+      day_before = self.performance.performance_date.to_datetime-1.day
+      self.tasks << OutreachTask.new(:execute_at=>day_before, :method_symbol=>:performance_reminder) unless day_before - 1.day < Time.now
+    end
+  end
+
+
+  def create_receipt_task
+    self.tasks << OutreachTask.new(:execute_at=>Time.now + 5.minutes, :method_symbol=>:ticket_confirmation)
+
+    super
+  end
+
+  def create_performance_followup_task
+    if self.contains_tickets?
+      monday_following = self.performance.performance_date.end_of_week + 1.day
+      case
+        when self.address.current_member?
+          self.tasks << OutreachTask.new(:execute_at=>monday_following, :method_symbol=>:member_followup)
+        when self.paid_with_pass?
+          self.tasks << OutreachTask.new(:execute_at=>monday_following, :method_symbol=>:flex_pass_followup)
+        when self.address.first_time_paying?(self)
+          self.tasks << OutreachTask.new(:execute_at=>monday_following, :method_symbol=>:first_time_followup)
+        else
+          self.tasks << OutreachTask.new(:execute_at=>monday_following, :method_symbol=>:standard_followup)
+      end
+    end
+  end
+
+
+
+  def set_theater
+    self.theater_id = self.performance.production.theater_id
   end
 
   private

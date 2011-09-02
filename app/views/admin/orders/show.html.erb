@@ -5,8 +5,8 @@
 	<% permitted_to? :new, :admin_refund_orders do %>
     <%= link_to 'Refund Order', new_admin_order_refund_order_path(@order) if @order.refundable? %>
   <% end %>
-  <% permitted_to? :new, :admin_exchange_orders do %>
-	  <%= link_to 'Exchange Order', new_admin_order_exchange_order_path(@order) if (@order.exchangeable? && (!current_user.is_theater_user? || (current_user.is_theater_user? && @order.status!=Order::FULFILLED))) %>
+  <% permitted_to? :new, :admin_exchange_ticket_orders do %>
+	  <%= link_to 'Exchange Order', new_admin_order_exchange_ticket_order_path(@order) if (@order.exchangeable? && (!current_user.is_theater_user? || (current_user.is_theater_user? && @order.status!=Order::FULFILLED))) %>
   <% end %>
 	<%= link_to 'Fulfill Order', fulfill_admin_order_path(@order) if @order.fulfillable?  %>
 	<% if @order.status == 'Processing' || @order.status == 'Hold' || @order.status == Order::NEW %>
