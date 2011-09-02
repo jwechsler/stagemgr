@@ -13,6 +13,13 @@ class Membership < ActiveRecord::Base
   before_validation :create_code, :on=>:create
 
 
+  def verify_applicable_for(order)
+    if !self.membership_offer.tickets_per_performance.nil?
+      perfs = Order.where("performance_id = ? and id in (select order_id from payments where type = 'MembershipPayment' and membership_id = ?)", order.performance_id, self.id)
+      raise Exceptions::TooManyTicketsForMembership.new("This membership allows you #{self.membership_offer.tickets_per_performance} seat#{'s' if self.membership_offer.tickets_per_performance > 1} per performance") if self.membership_offer.tickets_per_performance < perfs.inject(0) { |sum, o1| sum += o1.membership_payments.inject(0) { |sum, p| sum += p.number_of_tickets } }
+    end
+  end
+
   def create_code(size = 6)
     charset = %w{ 2 3 4 6 7 9 A C D E F G H J K L M N P Q R T V W X Y Z}
     while self.member_code.nil? || !FlexPass.find_by_code(self.member_code).nil?

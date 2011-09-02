@@ -50,13 +50,14 @@ class Order < ActiveRecord::Base
 
   acts_as_audited
 
-  before_validation :auto_link_processed_to_address_of_record
+
   before_validation :cascade_address_to_nested_items
   before_validation :initialize_nested_line_items, :on => :create
   before_validation :set_defaults
 
-  before_save :set_theater
+  after_validation :auto_link_processed_to_address_of_record
 
+  before_save :set_theater
   after_save :set_tasks_after_save
 
 
@@ -76,7 +77,7 @@ class Order < ActiveRecord::Base
         record.errors.add attr, "cannot be set to #{PROCESSED} if the total isn't countered by a payment."
       end
       m_payments = record.membership_payments
-      m_payments.each { |p| p.membership.membership_offer.verify_applicable_for(record) }
+      m_payments.each { |p| p.membership.verify_applicable_for(record) }
     end
   end
 

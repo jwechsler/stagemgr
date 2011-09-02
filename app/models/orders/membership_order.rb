@@ -44,7 +44,13 @@ class MembershipOrder < Order
 
   def link_to_address_of_record
     super
-    self.membership_line_items.each { |li| li.membership.address = self.address if !li.membership.nil? }
+    self.membership_line_items.each do |li|
+      unless li.membership.nil?
+       li.membership.address = self.address
+       li.membership.save!
+      end
+    end
+    self
   end
 
   def set_defaults
