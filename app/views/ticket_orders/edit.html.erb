@@ -1,10 +1,12 @@
-<% javascript :defaults, 'delegate', 'jquery-1.4.2.min', 'jquery.autocomplete', 'box_office_order' %>
+<% javascript :defaults, 'delegate', 'jquery-1.4.2.min', 'jquery.autocomplete', 'ticket_order' %>
 
 <a name="top" style="text-decoration:none;"><h3><%= raw @order_for_to_s %>&nbsp;</h3></a>
 
 <%= semantic_form_for @order do |order_form| %>
   <%= order_form.inputs :class=>"order" do %>
-    <%= order_form.error_messages %>
+    <%- flash.each do |key, value| %>
+      <div class="flash <%= key %>"><%= value %></div>
+    <%- end %>
     <%= order_form.hidden_field :status %>
     <%= render :partial => '/orders/address', :locals => {:order_form => order_form} %>
     <%- @submit_text = "Order Tickets" -%>
