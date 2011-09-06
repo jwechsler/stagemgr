@@ -9,7 +9,6 @@ class Admin::OrdersController < Admin::ApplicationController
 
   VALID_SEARCH_COLUMNS = [
       'orders.id',
-      'productions.production_code',
       'display_code',
       'addresses.last_name',
       'addresses.first_name',
@@ -35,7 +34,9 @@ class Admin::OrdersController < Admin::ApplicationController
 
   def show
     if @order.is_a? MembershipOrder
-      redirect_to url_for(:controller=>:membership_orders,:action=>:show, :id=>@order.id)
+      redirect_to url_for(:controller=>:membership_orders, :action=>:show, :id=>@order.id)
+    elsif @order.is_a? TicketOrder
+      redirect_to url_for(:controller=>:ticket_orders, :action=>:show, :id=>@order.id)
     end
 
   end
@@ -73,6 +74,9 @@ class Admin::OrdersController < Admin::ApplicationController
   end
 
   def edit
+    if @order.is_a? TicketOrder
+      redirect_to_url_for(:controller=>:ticket_orders, :action=>:show, :id=>@order.id)
+    end
   end
 
 
@@ -103,7 +107,7 @@ class Admin::OrdersController < Admin::ApplicationController
     redirect_to :action=>"index", :controller=>"admin/orders"
   end
 
-  private
+  protected
 
   def redirect_to_proper_action
     if @order.editable?
@@ -192,9 +196,11 @@ class Admin::OrdersController < Admin::ApplicationController
 
     {:conditions=>([conditions_sql.join(' and ')] + conditions_params)}
   end
+
   def get_pagination_options_from_params
     sort_column = params[:sidx]
     sort_column = 'orders.id' if sort_column.empty?
+    sort_column = "case orders.type when 'TicketOrder' then performances.performance_code when 'Order' then null else orders.type end" if sort_column == 'display_code'
     sort_order = params[:sord]
     sort_order 'DESC' if sort_order.empty?
     {:page => params[:page], :order => "#{sort_column} #{sort_order}"}

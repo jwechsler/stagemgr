@@ -124,8 +124,25 @@ Stagemgr::Application.routes.draw do
         get :ticket_class_code
       end
     end
+
     resources :flex_passes
+
     resources :orders do
+      collection do
+        post :fulfill_selected
+        post :credit_card_payment_form
+        post :cash_payment_form
+      end
+      member do
+        post :cancel
+        post :refund
+        get  :fulfill
+        get :unclaimed
+      end
+      resources :refund_orders, :only=>[:new,:create]
+    end
+
+    resources :ticket_orders do
       collection do
         post :fulfill_selected
         post :credit_card_payment_form

@@ -15,6 +15,7 @@ authorization do
     has_permission_on :admin_theaters, :to=>[:view]
     has_permission_on :theaters, :to=>:read
     has_permission_on :admin_orders , :to=>[:view,:manage,:make]
+    has_permission_on :admin_ticket_orders , :to=>[:view,:manage,:make]
     has_permission_on :admin_auto_complete, :to=>[:view]
     has_permission_on :orders, :to=>[:create, :update]
     has_permission_on :theaters, :to=>:update do
@@ -39,6 +40,7 @@ authorization do
     has_permission_on :theaters, :to=>[:create,:update,:read]
 
     has_permission_on :admin_orders, :to=>[:hold,:unclaimed, :fulfill]
+    has_permission_on :admin_ticket_orders, :to=>[:hold,:unclaimed, :fulfill]
     has_permission_on :productions, :to=>[:view, :make, :manage]
     has_permission_on :performances, :to=>[:view, :make, :manage, :delete]
     has_permission_on :admin_ticket_classes, :to=>[:make,:manage]
@@ -54,6 +56,7 @@ authorization do
     has_permission_on :theaters, :to=>[:delete,:make]
     has_permission_on :admin_theaters, :to=>[:make]
     has_permission_on :orders, :to=>[:delete]
+    has_permission_on :admin_ticket_orders, :to=>[:hold,:unclaimed, :fulfill]
     has_permission_on :admin_refund_orders, :to=>[:make]
     has_permission_on :admin_users, :to=>[:view, :manage, :delete, :make]
     has_permission_on :productions, :to=>:delete
@@ -61,6 +64,7 @@ authorization do
     has_permission_on :admin_default_ticket_classes, :to=>[:view, :make, :manage]
   end
 end
+
 privileges do
   privilege :make, :includes => [:create, :new]
   privilege :view, :includes => [:index, :show, :read]
