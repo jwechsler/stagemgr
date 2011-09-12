@@ -6,7 +6,7 @@ class PerformanceTest < ActiveSupport::TestCase
       without_access_control do
         @production = Factory.create(:production, :capacity=>10)
         @performance = Factory.create(:performance, :production=>@production)
-        @order = Factory.create(:order, :performance=>@performance)
+        @order = Factory.create(:ticket_order, :performance=>@performance)
       end
     end
 
@@ -17,7 +17,7 @@ class PerformanceTest < ActiveSupport::TestCase
     end
 
 
-    should "number of tickets left for a perfomance should be decremented by orders/line items" do
+    should "number of tickets left for a performance should be decremented by orders/line items" do
       without_access_control do
         Factory.create(:ticket_line_item, :order=>@order, :ticket_count=>5)
         assert_equal 5, @performance.number_of_tickets_left

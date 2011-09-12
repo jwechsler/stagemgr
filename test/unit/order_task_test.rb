@@ -4,7 +4,7 @@ class OrderTaskTest < ActiveSupport::TestCase
 
   context "given a new order" do
     setup do
-      @order = Factory.create(:order, :address=>addresses(:jeremy), :payment_type => Order::CASH, :status=>Order::NEW,
+      @order = Factory.create(:ticket_order, :address=>addresses(:jeremy), :payment_type => Order::CASH, :status=>Order::NEW,
                               :performance=>performances(:macbeth_opening))
       @order.ticket_line_items << TicketLineItem.new({:ticket_class=>ticket_classes(:macbeth_general_admission), :ticket_count=>1})
 
@@ -36,7 +36,7 @@ class OrderTaskTest < ActiveSupport::TestCase
       @order.transition_to!(Order::PROCESSING)
       @order.transition_to!(Order::PROCESSED)
       @order.transition_to!(Order::FULFILLED)
-      @order2 = Factory.create(:order, :address=>addresses(:jeremy), :payment_type => Order::CASH, :status=>Order::NEW,
+      @order2 = Factory.create(:ticket_order, :address=>addresses(:jeremy), :payment_type => Order::CASH, :status=>Order::NEW,
                                :performance=>performances(:macbeth_matinee))
       @order2.ticket_line_items << TicketLineItem.new({:ticket_class=>ticket_classes(:macbeth_general_admission), :ticket_count=>1})
 

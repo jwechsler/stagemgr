@@ -4,7 +4,7 @@ class SpecialOfferTest < ActiveSupport::TestCase
   context "a one-time special offer for any performance of $2 off a GEN* ticket" do
     setup  do
       @special_offer = Factory.create(:amount_off_special_offer,:amount=>2,:code=>'TEST',:ticket_class_code=>'GEN',:number_of_uses=>1)
-      @order=Factory.create(:order, :performance=>performances(:macbeth_opening),:special_offer_code=>'TEST',:payment_type=>Order::CASH)
+      @order=Factory.create(:ticket_order, :performance=>performances(:macbeth_opening),:special_offer_code=>'TEST',:payment_type=>Order::CASH)
       @order.ticket_line_items.build(:ticket_class=>ticket_classes(:macbeth_general_admission), :ticket_count=>1)
 
     end
