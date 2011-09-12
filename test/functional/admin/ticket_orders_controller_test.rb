@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class Admin::OrdersControllerTest < ActionController::TestCase
+class Admin::TicketOrdersControllerTest < ActionController::TestCase
   test "the cash order makes a valid cash payment" do
     without_access_control do
       @performance = Factory.create :performance

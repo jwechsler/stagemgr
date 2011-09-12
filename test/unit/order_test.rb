@@ -64,7 +64,7 @@ class OrderTest < ActiveSupport::TestCase
         @production2 = Factory.create(:production, :capacity=>10)
         @ticket_class2 = Factory.create(:ticket_class, :production=>@production2, :class_code=>'ABC', :ticket_price=>5)
         @performance2 = Factory.create(:performance, :production=>@production2)
-        @original_order = Factory.create(:ticket_order, :address=>addresses(:jeremy), :performance=>@performance)
+        @original_order = Factory.create(:ticket_order, :address=>addresses(:jeremy), :performance=>@performance, :payment_type=>Order::CASH)
         @original_order.ticket_line_items.build(:ticket_class=>@ticket_class, :ticket_count=>1)
         @original_order.payment_type = Order::CASH
         @original_order.performance = @performance
@@ -127,7 +127,8 @@ class OrderTest < ActiveSupport::TestCase
           "credit_card_expiration_year"=>'2014',
           "credit_card_verification_number"=>'123',
           "credit_card_number"=>'123412341234',
-          "credit_card_type"=>'American Express'
+          "credit_card_type"=>'American Express',
+          "status" => Order::NEW
         }
         order = TicketOrder.create!(params_order)
       end
@@ -160,7 +161,8 @@ class OrderTest < ActiveSupport::TestCase
           "credit_card_expiration_year"=>'2014',
           "credit_card_verification_number"=>'123',
           "credit_card_number"=>'4111111111111111',
-          "credit_card_type"=>'Visa'
+          "credit_card_type"=>'Visa',
+          "status"=>Order::NEW
         }
         order = TicketOrder.create!(params_order)
         assert_equal 5, TicketOrder.find(order.id).ticket_line_items.first.total
@@ -174,7 +176,7 @@ class OrderTest < ActiveSupport::TestCase
         @performance = Factory.create(:performance, :production=>@production)
         @address = addresses(:jeremy)
         assert_not_nil @address
-        TicketOrder.create!(:address=>@address, :performance=>@performance)
+        TicketOrder.create!(:address=>@address, :performance=>@performance, :status=>Order::NEW, :payment_type=>Order::CASH)
       end
     end
   end
@@ -191,7 +193,7 @@ class OrderTest < ActiveSupport::TestCase
 
     should "A held order reduces the quantity of tickets available for the performance" do
       without_access_control do
-        o = TicketOrder.create!(:status=>Order::HOLD, :address=>@address, :performance=>@performance)
+        o = TicketOrder.create!(:status=>Order::HOLD, :address=>@address, :performance=>@performance, :payment_type=>Order::CASH)
         li = o.ticket_line_items.create!(:ticket_class=>@production.ticket_classes.first, :ticket_count=>5)
         assert_equal 5, @performance.number_of_tickets_left
       end
@@ -199,7 +201,7 @@ class OrderTest < ActiveSupport::TestCase
 
     should "A processed order reduces the quantity of tickets available for the performance" do
       without_access_control do
-        o = TicketOrder.create!(:status=>Order::PROCESSED, :address=>@address, :performance=>@performance)
+        o = TicketOrder.create!(:status=>Order::PROCESSED, :address=>@address, :performance=>@performance, :payment_type=>Order::CASH)
         li = o.ticket_line_items.create!(:ticket_class=>@production.ticket_classes.first, :ticket_count=>5)
         assert_equal 5, @performance.number_of_tickets_left
       end
@@ -227,7 +229,7 @@ class OrderTest < ActiveSupport::TestCase
 
     should "available tickets for a performance cannot drop below 0" do
       without_access_control do
-        o = TicketOrder.create!(:status=>Order::HOLD, :address=>@address, :performance=>@performance)
+        o = TicketOrder.create!(:status=>Order::HOLD, :address=>@address, :performance=>@performance, :payment_type=>Order::CASH)
         li = o.ticket_line_items.build(:ticket_class=>@production.ticket_classes.first, :ticket_count=>11)
         assert_false li.save
       end
@@ -235,10 +237,10 @@ class OrderTest < ActiveSupport::TestCase
 
     should "orders can be in Held, Canceled, Processed, or Refunded status" do
       without_access_control do
-        o = TicketOrder.create!(:status=>Order::HOLD, :address=>@address, :performance=>@performance)
-        o = TicketOrder.create!(:status=>Order::CANCELED, :address=>@address, :performance=>@performance)
-        o = TicketOrder.create!(:status=>Order::PROCESSED, :address=>@address, :performance=>@performance)
-        o = TicketOrder.create!(:status=>Order::REFUNDED, :address=>@address, :performance=>@performance)
+        o = TicketOrder.create!(:status=>Order::HOLD, :address=>@address, :performance=>@performance, :payment_type=>Order::CASH)
+        o = TicketOrder.create!(:status=>Order::CANCELED, :address=>@address, :performance=>@performance, :payment_type=>Order::CASH)
+        o = TicketOrder.create!(:status=>Order::PROCESSED, :address=>@address, :performance=>@performance, :payment_type=>Order::CASH)
+        o = TicketOrder.create!(:status=>Order::REFUNDED, :address=>@address, :performance=>@performance, :payment_type=>Order::CASH)
       end
     end
 

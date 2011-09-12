@@ -53,11 +53,13 @@ end
 Factory.define(:order) do |order|
   order.status Order::ORDER_STATUSES.first
   order.association :address, :factory => :address
+  order.payment_type Order::CASH
 end
 
 Factory.define(:ticket_order) do |order|
   order.status Order::ORDER_STATUSES.first
   order.association :address, :factory => :address
+  order.payment_type Order::CASH
 end
 
 Factory.define(:line_item) do |line_item|

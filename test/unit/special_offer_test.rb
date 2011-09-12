@@ -19,7 +19,7 @@ class SpecialOfferTest < ActiveSupport::TestCase
     should "not allow more than one redemption" do
       @order.transition_to!(Order::PROCESSING)
       @order.transition_to!(Order::PROCESSED)
-      second_order = Factory.create(:order, :performance=>performances(:macbeth_opening),:special_offer_code=>'TEST',:payment_type=>Order::CASH)
+      second_order = Factory.create(:ticket_order, :performance=>performances(:macbeth_opening),:special_offer_code=>'TEST',:payment_type=>Order::CASH)
       second_order.ticket_line_items.build(:ticket_class=>ticket_classes(:macbeth_general_admission), :ticket_count=>1)
       assert_raise { second_order.transition_to!(Order::PROCESSING) }
       assert_equal(0,second_order.special_offer_line_items.size)

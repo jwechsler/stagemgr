@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class OrdersControllerTest < ActionController::TestCase
+class TicketOrdersControllerTest < ActionController::TestCase
   test "the credit card order makes a valid credit card payment" do
     without_access_control do
     @performance = Factory.create :performance

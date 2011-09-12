@@ -95,6 +95,7 @@ class TicketOrder < Order
     Order.transaction do
       self.address = original_order.address
       original_order.status = Order::EXCHANGED
+      self.status = Order::NEW
       self.save!
       self.update_special_offer_line_items_from_code!
       original_order.release_tickets!
@@ -193,8 +194,8 @@ class TicketOrder < Order
   end
 
   def set_defaults
-    self.ticket_line_items.each { |tli| tli.order=self }
-    super
+    self.ticket_line_items.each { |tli| tli.order=self if tli.order.nil? }
+
   end
 
   def set_tasks_after_save
