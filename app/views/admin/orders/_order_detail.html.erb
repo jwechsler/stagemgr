@@ -6,14 +6,16 @@
   </tr>
 </table>
 
-<%- if order.contains_tickets? -%>
+<%- if order.is_a? TicketOrder -%>
   <p>
     Performance:
     <%= h order.performance.to_s %>
   </p>
 <%- end -%>
 
+<%- if order.is_a? TicketOrder %>
 <%= render :partial => '/admin/ticket_line_items/table', :locals=>{:order=>order} %>
+<%- end %>
 
 <%= render :partial => '/admin/flex_pass_line_items/table', :locals=>{:order=>order} %>
 
@@ -21,35 +23,8 @@
 
 <%= render :partial => '/admin/special_offer_line_items/table', :locals=>{:order=>order} %>
 
-<fieldset>
-  <legend>Payment information</legend>
-  <table id='payments'>
-    <thead>
-    <th>&nbsp;                    </th>
-    <th align="center">Amount</th>
-    <th>Last 4</th>
-    <th align="center">Confirmation</th>
-    <th align="center">Linked?</th>
-    <th align="center">note</th>
-    </thead>
-    <% order.payments.each do |payment| %>
-      <tr>
-        <td width="10%"><%= h payment.type == 'CreditCardPayment' ? payment.card_type : payment.type %></td>
-        <td width="10%" align="right"><%= h to_currency(payment.amount) %></td>
-        <td width="10%" align="right"><%= h payment.card_type.nil? ? "" : (payment.card_last_four.nil? ? "" : payment.card_last_four.to_s) %></td>
-        <td width="15%" align="center"><%= h payment.confirmation_code %></td>
-        <td width="10%" align="center">
-          <% if payment.payment_id.blank? %>
-            &nbsp;
-          <% else %>
-            <%= h p = Payment.find_by_id(payment.payment_id)
-                link_to_unless p.order.blank?, p.order_id, {:id => p.order.id} %>
-          <% end %></td>
-        <td width="45%" align="left"><%= h payment.note %></td>
-      </tr>
-    <%- end -%>
-  </table>
-</fieldset>
+<%= render :partial => '/admin/orders/payments', :locals=>{:order=>order} %>
+
 <%- if !order.referral_code.blank? %><p>
   Referral Code:
   <%= order.referral_code %>

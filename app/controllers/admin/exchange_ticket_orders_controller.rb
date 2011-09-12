@@ -2,7 +2,7 @@ class Admin::ExchangeTicketOrdersController < Admin::ApplicationController
  filter_access_to :all
 
   def new
-    @original_order = TicketOrder.find(params[:order_id])
+    @original_order = TicketOrder.find(params[:ticket_order_id])
     @exchange_order = TicketOrder.new
     @exchange_order.ticket_line_items.build
     @exchange_order.status = Order::NEW
@@ -15,13 +15,13 @@ class Admin::ExchangeTicketOrdersController < Admin::ApplicationController
   end
   
   def create
-    @original_order = TicketOrder.find(params[:order_id])
-    @exchange_order = TicketOrder.new(params[:order])
-    @exchange_order.special_offer_code = params[:order][:special_offer_code]
+    @original_order = TicketOrder.find(params[:ticket_order_id])
+    @exchange_order = TicketOrder.new(params[:ticket_order])
+    @exchange_order.special_offer_code = params[:ticket_order][:special_offer_code]
     @exchange_order.exchange_and_process_from! @original_order
     respond_to do |format|
       flash[:notice] = 'Order was successfully exchanged.'
-      format.html { redirect_to(edit_admin_order_path(@exchange_order.id)) }
+      format.html { redirect_to(edit_admin_ticket_order_path(@exchange_order.id)) }
       format.xml  { render :xml => @exchange_order, :status => :created, :location => @exchange_order }
     end
     

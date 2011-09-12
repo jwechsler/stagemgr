@@ -28,7 +28,7 @@ class MembershipLineItem < LineItem
   end
 
   def delete_membership
-    membership.destroy if !membership.nil?
+    membership.destroy unless membership.nil?
   end
 
 end

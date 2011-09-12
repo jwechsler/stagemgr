@@ -12,7 +12,7 @@
 <% if current_user.is_administrator %>
 	<%= link_to('Administer Users', admin_users_path) %> |
 <% end %>
-<%= link_to('New Ticket Order', new_admin_order_path) %> |
+<%= link_to('New Ticket Order', new_admin_ticket_order_path) %> |
 <%- permitted_to? :view, :admin_orders do -%>
     <%= link_to('Existing Orders', admin_orders_path) %> |
 <%- end -%>

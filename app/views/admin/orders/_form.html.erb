@@ -1,14 +1,26 @@
 <%= order_form.fields_for :address do |address_form| %>
-        <%= render :partial=>'/admin/orders/name_form', :locals => {:f => address_form} %>
-    <% end %>
-      <%= render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form} %>
-    <%= render :partial => '/orders/special_offer_form', :locals => {:f => order_form} %>
+  <%= render :partial=>'/admin/orders/name_form', :locals => {:f => address_form} %>
+<% end %>
+<%= render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form} %>
+<%= render :partial => '/orders/special_offer_form', :locals => {:f => order_form} %>
 
-    <%= order_form.fields_for :address do |address_form| %>
-        <%= render :partial => '/admin/orders/address_form', :locals => {:f => address_form} %>
-    <% end %>
-    <%= order_form.input :add_to_email_list, :as=>:boolean, :label=>'Add to email list?', :default=>false %>
-    <%= order_form.input :marketing_source, :collection=>Order::REFERRALS, :label=>"How did you hear about the show?" %>
-    <%= order_form.hidden_field :status %>
+<%= order_form.fields_for :address do |address_form| %>
+  <%= render :partial => '/admin/orders/address_form', :locals => {:f => address_form} %>
+<% end %>
+<%= order_form.input :add_to_email_list, :as=>:boolean, :label=>'Add to email list?', :default=>false %>
+<%= order_form.input :marketing_source, :collection=>Order::REFERRALS, :label=>"How did you hear about the show?" %>
+<%= order_form.hidden_field :status %>
 
-    <%= order_form.input :notes, :input_html => { :rows => 4 } %>
+<%= order_form.input :notes, :input_html => {:rows => 4} %>
+
+<p>
+  <% permitted_to? :hold, :admin_orders do %>
+    <%= order_form.submit 'Hold', :disable_with => 'Holding...' if order_form.object.status == Order::NEW || order_form.object.status == Order::HOLD %>
+  <% end %>
+  <%= order_form.submit 'Place Order', :confirm => "Process this order?", :disable_with => 'Processing...' if order_form.object.status == Order::NEW || order_form.object.status == Order::HOLD %>
+  <%= if order_form.object.status == Order::HOLD || order_form.object.status == Order::PROCESSING
+        link_to 'Cancel Order', cancel_admin_order_path(order_form.object), :confirm => "Are you sure?", :method=>:post
+      end %>
+</p>
+
+<%= render :partial => '/admin/orders/audit_show', :locals=>{:order_form=>order_form.object} %>

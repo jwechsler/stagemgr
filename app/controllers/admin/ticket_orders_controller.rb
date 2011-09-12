@@ -1,5 +1,16 @@
 class Admin::TicketOrdersController < Admin::OrdersController
 
+  def new
+    @ticket_order = TicketOrder.new
+    @ticket_order.address = Address.new
+    @ticket_order.ticket_line_items.build
+    @ticket_order.status = Order::NEW
+
+    respond_to do |format|
+      format.html { render 'edit', :layout=>true }
+    end
+  end
+
   def show
 
   end
@@ -7,6 +18,14 @@ class Admin::TicketOrdersController < Admin::OrdersController
   def edit
 
   end
+
+
+    def create
+      old_status = Order::NEW
+      @order = TicketOrder.new(params[:ticket_order])
+      process_order(:edit_admin_ticket_order_path)
+    end
+
 
   def redirect_to_proper_action
      if @ticket_order.editable?

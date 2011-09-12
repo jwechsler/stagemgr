@@ -1,0 +1,19 @@
+<p>
+    Performance:
+    <%= h ticket_order.performance.to_s %>
+  </p>
+
+<%= render :partial => '/admin/ticket_line_items/table', :locals=>{:order=>ticket_order} %>
+
+<%= render :partial => '/admin/orders/payments', :locals=>{:order=>ticket_order} %>
+
+<%= render :partial => '/admin/orders/referral', :locals=>{:order=>ticket_order} %>
+
+<%- if !ticket_order.marketing_source.blank? %>
+  <p>
+    Heard about the show via <b><%= ticket_order.marketing_source %></b>
+  </p>
+<%- end %>
+
+<%= render :partial=>'/admin/orders/notes', :locals=>{:order=>ticket_order} %>
+

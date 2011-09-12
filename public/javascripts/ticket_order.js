@@ -79,7 +79,7 @@ function add_autocomplete(order_type) {
       },
       width: 400
     }).result(function(event, item) {
-          recalculate_all_row_totals();
+          recalculate_all_row_totals(order_type);
           $('#' + order_type + '_performance_code').val('');
         });
     var input;
@@ -128,7 +128,7 @@ function add_autocomplete(order_type) {
     $('input.ticket_count,input.price_override').each(function() {
       input = $(this);
       input.change(function() {
-        recalculate_row_total(input.parents('tr'))
+        recalculate_row_total(order_type,input.parents('tr'))
       });
     });
   });

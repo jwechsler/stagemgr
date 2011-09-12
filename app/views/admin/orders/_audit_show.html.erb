@@ -1,8 +1,8 @@
 
-<%- if !@order.audits.empty? -%>
-<h3>Change history for <%= @order.id %></h3>
+<%- if !order_form.audits.empty? -%>
+<h3>Change history for <%= order_form.id %></h3>
 <ul>
-<%- @order.audits.each do |revision| -%>
+<%- order_form.audits.each do |revision| -%>
     <%= revision.user_id.nil? ? "[Web" : "[#{User.find_by_id(revision.user_id).username}" %>, <%= distance_of_time_in_words_to_now revision.created_at %> ago] 
     <%- if revision.action == "create" -%>
       created

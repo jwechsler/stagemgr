@@ -1,0 +1,25 @@
+<%=
+    javascript :defaults, 'delegate', 'jquery-1.4.2.min', 'jquery.autocomplete', 'ticket_order' %>
+
+<%= error_messages_for :ticket_order %>
+
+
+<%= semantic_form_for [:admin, @ticket_order] do |order_form| -%>
+  <%= order_form.inputs do %>
+
+    <table width="100%">
+      <tr>
+        <td valign="top" width="80%">
+          <%= render :partial=>'ticket_line_items_form', :locals=>{:order_form=>order_form} %>
+        </td>
+        <td valign="top" width="20%">
+          <p align="right"><b><%= @ticket_order.status %></b></p>
+        </td>
+      </tr>
+    </table>
+
+    <%= render :partial => '/admin/orders/form', :locals=>{:order_form=>order_form} %>
+
+  <%- end -%>
+
+<%- end -%>

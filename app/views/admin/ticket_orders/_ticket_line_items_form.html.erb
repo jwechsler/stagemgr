@@ -1,5 +1,5 @@
 <%= content_for :jstemplates do -%>
-    <%= raw "var ticket_line_item='#{generate_template(order_form, :ticket_line_items, :partial=>'/admin/orders/ticket_line_item_form')}'" %>
+    <%= raw "var ticket_line_item='#{generate_template(order_form, :ticket_line_items, :partial=>'/admin/ticket_orders/ticket_line_item_form')}'" %>
 <% end -%>
 
   <table style="font-size:10px; text-align:left; padding: 0px;">
@@ -36,7 +36,7 @@
       <th>Total</th>
       </thead>
       <%= order_form.fields_for :ticket_line_items do |ticket_line_item_form| %>
-          <%= render :partial => '/admin/orders/ticket_line_item_form', :locals => {:f => ticket_line_item_form} %>
+          <%= render :partial => '/admin/ticket_orders/ticket_line_item_form', :locals => {:f => ticket_line_item_form} %>
 
       <% end %>
 

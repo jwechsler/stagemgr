@@ -16,7 +16,7 @@ class Order < ActiveRecord::Base
   has_many :payments
   has_many :exchange_payments
   has_many :price_override_payments
-  has_many :tasks, :class_name=>'OrderTask'
+  has_many :tasks, :class_name=>'OrderTask', :dependent=>:destroy
 
   has_many :line_items
   has_many :flex_pass_line_items
@@ -206,7 +206,7 @@ class Order < ActiveRecord::Base
   end
 
   def cancel!
-    Order.delete(self.id)
+    self.destroy
   end
 
   def create_proper_payment_in_amount_of!(amount)
@@ -323,7 +323,7 @@ class Order < ActiveRecord::Base
                          {:transitory_status=>self.transitory_statuses,
                           :window=>Time.now - 1.hour})
     orders.each  do  |order|
-      order.delete
+      order.destroy
     end
 
   end

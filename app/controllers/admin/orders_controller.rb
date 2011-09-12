@@ -75,7 +75,7 @@ class Admin::OrdersController < Admin::ApplicationController
 
   def edit
     if @order.is_a? TicketOrder
-      redirect_to_url_for(:controller=>:ticket_orders, :action=>:show, :id=>@order.id)
+      redirect_to(:controller=>:ticket_orders, :action=>:show, :id=>@order.id)
     end
   end
 
@@ -103,13 +103,14 @@ class Admin::OrdersController < Admin::ApplicationController
   end
 
   def cancel
-    # @order.cancel!
+    @order.cancel!
     redirect_to :action=>"index", :controller=>"admin/orders"
   end
 
   protected
 
   def redirect_to_proper_action
+
     if @order.editable?
       if params[:action] != 'edit'
         redirect_to(edit_admin_order_path(@order))
@@ -174,7 +175,7 @@ class Admin::OrdersController < Admin::ApplicationController
                 when 'flexpass' :
                   conditions_sql << "type = 'FlexPassOrder'"
                 else
-                  conditions_sql << "lower(#{column_name}) like '%' ? '%'"
+                  conditions_sql << "type = 'TicketOrder' and lower(performances.performance_code) like '%' ? '%'"
                   conditions_params << params[column_name].downcase
               end
             when 'orders.id' :

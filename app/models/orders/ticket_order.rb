@@ -117,7 +117,7 @@ class TicketOrder < Order
   end
 
   def release_tickets!
-    self.ticket_line_items.each { |ti| TicketLineItem.delete(ti.id) }
+    self.ticket_line_items.each { |ti| ti.destroy }
   end
 
   # for form processing

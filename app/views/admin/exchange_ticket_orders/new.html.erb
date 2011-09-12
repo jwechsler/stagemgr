@@ -1,17 +1,17 @@
 <h3>Original Order</h3>
 <div style='border:3px black solid'>
-  <%= render :partial=>'/admin/orders/order_detail', :locals=>{:order=>@original_order} %>
+  <%= render :partial=>'/admin/ticket_orders/detail', :locals=>{:ticket_order=>@original_order} %>
 </div>
 <h3>Exchange Order</h3>
 <div style='border:3px black solid'>
 
-  <% javascript :defaults, 'delegate', 'jquery-1.4.2.min', 'jquery.autocomplete', 'box_office_order' %>
+  <% javascript :defaults, 'delegate', 'jquery-1.4.2.min', 'jquery.autocomplete', 'ticket_order' %>
 
   <%= error_messages_for :order %>
 
-  <%= semantic_form_for [:admin, @original_order, @exchange_order], :url=>admin_order_exchange_ticket_orders_path(@original_order) do |order_form| -%>
+  <%= semantic_form_for [:admin, @original_order, @exchange_order], :url=>admin_ticket_order_exchange_ticket_orders_path(@original_order) do |order_form| -%>
     <%= order_form.inputs do %>
-      <%= render :partial=>'/admin/orders/ticket_line_items_form', :locals=>{:order_form=>order_form} %>
+      <%= render :partial=>'/admin/ticket_orders/ticket_line_items_form', :locals=>{:order_form=>order_form} %>
 
       <p>Billing information for any overages:</p>
 
