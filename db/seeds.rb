@@ -5,6 +5,9 @@
 #   
 #   cities = City.create([{ :name => 'Chicago' }, { :name => 'Copenhagen' }])
 #   Major.create(:name => 'Daley', :city => cities.first)
+require "declarative_authorization/maintenance"
+include Authorization::Maintenance
+without_access_control do
 
 user        = User.create!({
       :email                 => 'admin@yoursite.com',
@@ -17,9 +20,15 @@ theater     = Theater.create!({
   :theater_class             =>Theater::THEATER_CLASSES.first, 
   :status                    =>Theater::THEATER_STATUSES.first})
 
+venue       = Venue.create!({
+  :name                      =>'Venue 1',
+  :ordinal_sort              => 1
+})
+
 production  = theater.productions.create!({
   :name                      =>'Production 1', 
-  :status                    =>Production::PRODUCTION_STATUSES.first, 
+  :status                    =>Production::PRODUCTION_STATUSES.first,
+  :venue                     =>venue,
   :production_code           =>'T1P1', 
   :capacity                  =>350, 
   :closing_at                =>Date.today + 5.months, 
@@ -59,6 +68,7 @@ performance = production.performances.create!({
 production2  = theater.productions.create!({
   :name                      =>'Production 2', 
   :status                    =>Production::PRODUCTION_STATUSES.first, 
+  :venue                     =>venue,
   :production_code           =>'T1P2', 
   :capacity                  =>350})
 
@@ -91,16 +101,4 @@ credit_card_order = Order.create!(        :payment_type=>Order::CREDIT_CARD,
                                           :status=>Order::NEW, 
                                           :address=>address,
                                           :performance=>performance)
-credit_card_order.ticket_line_items.create!(:ticket_class=>fixed_ticket_class, :ticket_count=>3)
-credit_card_order.credit_card_payments.create!(
-                                          :amount=>credit_card_order.total, 
-                                          :card_number=>'4539992043491562',
-                                          :card_expiration_month=>"1",
-                                          :card_type=>"Visa",
-                                          :card_verification_number=>"461",
-                                          :card_expiration_year=>"2020",
-                                          :confirmation_code=>"1234",
-                                          :address => address)
-credit_card_order.status=Order::PROCESSED
-credit_card_order.save!
-
+end

@@ -125,6 +125,10 @@ function add_autocomplete(order_type) {
             recalculate_row_total(order_type, my_tr);
           });
     });
+    jQuery('input.autocomplete_tccode,input.autocomplete_prcode,input.autocomplete_pcode').each(function() {
+      var input = jQuery(this);
+      input.bind('keypress', function(event){ return event.which != 13; });
+    });
     $('input.ticket_count,input.price_override').each(function() {
       input = $(this);
       input.change(function() {
