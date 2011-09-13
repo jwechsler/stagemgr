@@ -1,6 +1,10 @@
 <% javascript :defaults, 'delegate', 'jquery-1.4.2.min', 'jquery.autocomplete', 'ticket_order' %>
 
 <a name="top" style="text-decoration:none;"><h3><%= raw @order_for_to_s %>&nbsp;</h3></a>
+<%- @order.performance.special_features.each do |feature| %>
+  <div class="special_feature"><%= feature.description %><br/></div>
+<%- end %>
+
 
 <%= semantic_form_for @order do |order_form| %>
   <%= order_form.inputs :class=>"order" do %>

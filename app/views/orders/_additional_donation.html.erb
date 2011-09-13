@@ -1,5 +1,5 @@
 <fieldset class="callout" style="border: 1px solid #000000; margin: 5px; padding: 5px;"><legend>Make an additional donation</legend>
-  <%- t = @order.theater
+  <%- t = order_form.object.performance.production.theater
       if t.blank? || t.theater_class == 'Default' -%>
     I'm a supporter of Theater Wit!  I'd like to make an additional tax-deductible contribution of $
   <%- else -%>
