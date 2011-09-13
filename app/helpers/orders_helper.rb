@@ -51,23 +51,23 @@ module OrdersHelper
   end
 
   private
-  def process_order(on_success_redirect_to)
+  def process_order(order,on_success_redirect_to)
     begin
-      @order.save!
-      old_status = @order.status
+      order.save!
+      old_status = order.status
       Order.transaction do
-        on_success_redirect_to = @order.transition_to!(convert_button_label_to_state(params[:commit]), on_success_redirect_to)
+        on_success_redirect_to = order.transition_to!(convert_button_label_to_state(params[:commit]), on_success_redirect_to)
         # @order.transition_to!(Order::PROCESSED) if @order.status == Order::PROCESSING
       end
 
       if !on_success_redirect_to.nil?
         respond_to do |format|
-          flash[:notice] = "Order was successfully saved and is now #{@order.status_display}"
-          format.html { redirect_to(send(on_success_redirect_to, @order.id)) }
+          flash[:notice] = "Order was successfully saved and is now #{order.status_display}"
+          format.html { redirect_to(send(on_success_redirect_to, order.id)) }
         end
       end
     rescue StandardError => e
-      @order.status = old_status
+      order.status = old_status
       respond_to do |format|
         case e
           when InvalidCreditCard

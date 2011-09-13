@@ -59,7 +59,7 @@ class Admin::OrdersController < Admin::ApplicationController
 
   def fulfill
     params[:commit] = 'Fulfill'
-    process_order(:admin_order_path)
+    process_order(@order,:admin_order_path)
   end
 
   def new
@@ -83,12 +83,12 @@ class Admin::OrdersController < Admin::ApplicationController
   def create
     old_status = Order::NEW
     @order = Order.new(params[:order])
-    process_order(:edit_admin_order_path)
+    process_order(@order,:edit_admin_order_path)
   end
 
   def update
     @order.attributes=params[:order]
-    process_order(:edit_admin_order_path)
+    process_order(@order,:edit_admin_order_path)
   end
 
   def refund

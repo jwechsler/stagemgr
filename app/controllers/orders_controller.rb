@@ -18,13 +18,13 @@ class OrdersController < ApplicationController
     old_status = Order::NEW
     @order = Order.new(params[:order])
     @order.ip_address = request.remote_ip
-    process_order(:edit_order_path)
+    process_order(@order,:edit_order_path)
   end
 
   def update
     @order.attributes=params[:order]
     @order.ip_address = request.remote_ip
-    process_order(:edit_order_path)
+    process_order(@order,:edit_order_path)
   end
   
   def confirm

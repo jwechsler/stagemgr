@@ -20,7 +20,7 @@ class MembershipOrdersController < ApplicationController
 
   def update
     @order = MembershipOrder.new(params[:membership_order])
-    process_order(:confirm_membership_order_path)
+    process_order(@order,:confirm_membership_order_path)
   end
 
   def show
