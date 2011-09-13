@@ -19,11 +19,15 @@ class Admin::TicketOrdersController < Admin::OrdersController
 
   end
 
+  def update
+    @ticket_order.attributes=params[:ticket_order]
+    process_order(@ticket_order,:edit_admin_order_path)
+  end
 
     def create
       old_status = Order::NEW
-      @order = TicketOrder.new(params[:ticket_order])
-      process_order(:edit_admin_ticket_order_path)
+      @ticket_order = TicketOrder.new(params[:ticket_order])
+      process_order(@ticket_order,:edit_admin_ticket_order_path)
     end
 
 
