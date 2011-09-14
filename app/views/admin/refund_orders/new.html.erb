@@ -8,8 +8,8 @@
 <%= error_messages_for :order %>
 
 <%-case-%>
-<%-when (@original_order.status != Order::PROCESSED && @original_order.status != Order::FULFILLED) -%>
-  <h3>Can only refund orders in the Processed or Fulfilled state.</h3>
+<%-when (!@original_order.refundable?) -%>
+  <h3>This order can't be refunded, as it hasn't been processed.</h3>
 <%-when @original_order.payments.count != 1 -%>
   <h3>Can only refund orders with only 1 payment</h3>
 <%-when @original_order.payments.first.class == CreditCardPayment -%>

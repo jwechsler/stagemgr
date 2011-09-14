@@ -40,6 +40,10 @@ class TicketOrder < Order
     self.status == Order::PROCESSED || self.status == Order::FULFILLED || self.status == Order::UNCLAIMED
   end
 
+  def refundable?
+    self.exchangeable?
+  end
+
   def display_code
     self.performance.try(:performance_code)
   end

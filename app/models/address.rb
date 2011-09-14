@@ -100,6 +100,31 @@ class Address < ActiveRecord::Base
     end
   end
 
+  def customer_tag(order = nil)
+    attendance_code = ("%03d" % self.performances_attended(2.years.ago)).reverse
+    attendance_code += "A" if self.is_donor?
+    attendance_code += "M" if self.is_current_member?
+    attendance_code
+
+  end
+
+  def is_current_member?
+    self.orders.select{|o| (o.is_a? MembershipOrder) && (o.membership_line_items.first.membership.status == Membership::ACTIVE)}.count > 0
+  end
+
+  def self.export_addresses_as_csv(addresses, filename)
+    csv_string = FasterCSV.generate do |csv|
+      csv << [:id, :first_name, :last_name, :street_number, :street, :street_type, :unit, :unit_prefix, :zipcode, :customer_tag ]
+
+      addresses.each do |r|
+        csv << [r.id, r.first_name, r.last_name, r.street_number, r.street, r.street_type, r.unit, r.unit_prefix, r.zipcode, r.customer_tag]
+      end
+    end
+    File.open( filename, "w" ) do |the_file|
+      the_file.puts csv_string
+    end
+  end
+
   def current_member?
     false
   end
@@ -171,7 +196,7 @@ class Address < ActiveRecord::Base
     end
 
     def performances_attended(since_when = 5.years.ago)
-      Order.count(:include=>[:performance],
+      TicketOrder.count(:include=>[:performance],
                       :conditions=>["orders.address_id = ? and orders.status = ? and performances.performance_date >= ? and performances.performance_date <= ?",
                                     self.id, Order::FULFILLED, since_when, Date.today])
     end

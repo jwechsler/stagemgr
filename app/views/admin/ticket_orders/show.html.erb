@@ -3,8 +3,8 @@
 <%= render :partial=>'detail', :locals=>{:ticket_order=>@ticket_order} %>
 
 <p>
-	<% permitted_to? :new, :admin_refund_ticket_orders do %>
-    <%= link_to 'Refund Order', new_admin_ticket_order_refund_order_path(@ticket_order) if @ticket_order.refundable? %>
+	<% permitted_to? :new, :admin_refund_orders do %>
+    <%= link_to 'Refund Order', new_admin_order_refund_order_path(@ticket_order) if @ticket_order.refundable? %>
   <% end %>
   <% permitted_to? :new, :admin_exchange_ticket_orders do %>
 	  <%= link_to 'Exchange Order', new_admin_ticket_order_exchange_ticket_order_path(@ticket_order) if (@ticket_order.exchangeable? && (!current_user.is_theater_user? || (current_user.is_theater_user? && @ticket_order.status!=Order::FULFILLED))) %>
