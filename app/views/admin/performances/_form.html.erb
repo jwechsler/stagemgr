@@ -4,8 +4,9 @@
   <%= f.input :performance_code %>
   <%= f.input :status, :as=>:select, :collection=>Performance::PERFORMANCE_STATUSES %>
   <%= f.hidden_field :production_id %>
+  <%= f.input :suppress_notification, :label=>"Disable email notifications" %>
   <%= f.input :special_features, :as=>:check_boxes, :collection=>SpecialFeature.find_all_by_status(SpecialFeature::ACTIVE), :member_label=>:short_name %>
-  <h1>Ticket classes:</h1>
+    <h1>Ticket classes:</h1>
   <table>
     <tr>
       <th>Available</th>

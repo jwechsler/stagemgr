@@ -216,7 +216,7 @@ class TicketOrder < Order
   end
 
   def create_reminder_task
-    if self.contains_tickets?
+    if self.contains_tickets? && !self.performance.suppress_notification
       day_before = self.performance.performance_date.to_datetime-1.day
       self.tasks << OutreachTask.new(:execute_at=>day_before, :method_symbol=>:performance_reminder) unless day_before - 1.day < Time.now
     end
@@ -224,13 +224,13 @@ class TicketOrder < Order
 
 
   def create_receipt_task
-    self.tasks << OutreachTask.new(:execute_at=>Time.now + 5.minutes, :method_symbol=>:ticket_confirmation)
+    self.tasks << OutreachTask.new(:execute_at=>Time.now + 5.minutes, :method_symbol=>:ticket_confirmation) unless self.performance.suppress_notification
 
     super
   end
 
   def create_performance_followup_task
-    if self.contains_tickets?
+    if self.contains_tickets? && !self.performance.suppress_notification
       monday_following = self.performance.performance_date.end_of_week + 1.day
       case
         when self.address.current_member?
