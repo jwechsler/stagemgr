@@ -11,19 +11,22 @@ class Admin::AutoCompleteController < Admin::ApplicationController
 
   def performance_code
     production = Production.find_by_production_code(params[:production_code])
-    return [] if production.nil?
-    performances = production.performances.search_by_code(params[:q])
-    render :inline => performances.map { |performance| "#{performance.performance_code}|#{performance.to_s}" }.join("\n")
+    if production.nil?
+      render :inline=>""
+    else
+      performances = production.performances.search_by_code(params[:q])
+      render :inline => performances.map { |performance| "#{performance.performance_code}|#{performance.to_s}" }.join("\n")
+    end
   end
 
 
   def ticket_class_code
     performance = Performance.find_by_performance_code(params[:performance_code])
-     if performance.nil?
-       render :inline => Array.new
-     end
+    if performance.nil?
+      render :inline => ""
+    end
     ticket_classes = performance.production.ticket_classes.search_by_code_and_performance_id(params[:q], performance.id)
-    render :inline => ticket_classes.select{|tc| !tc.software_managed}.map { |ticket_class| "#{ticket_class.class_code}|#{ticket_class.to_s} (#{ticket_class.number_left(performance)} Tickets Left)|#{ticket_class.ticket_type}|#{ticket_class.ticket_price}" }.join("\n")
+    render :inline => ticket_classes.select { |tc| !tc.software_managed }.map { |ticket_class| "#{ticket_class.class_code}|#{ticket_class.to_s} (#{ticket_class.number_left(performance)} Tickets Left)|#{ticket_class.ticket_type}|#{ticket_class.ticket_price}" }.join("\n")
   end
 
 
