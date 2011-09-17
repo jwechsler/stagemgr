@@ -1,3 +1,5 @@
+var order_type = 'ticket_order';
+
 function formatCurrency(num) {
   num = num.toString().replace(/\$|\,/g, '');
   if (isNaN(num))
@@ -58,15 +60,32 @@ function recalculate_row_total(order_type, row) {
   }
   row.children('td.total').text(formatCurrency(line_price));
 }
+
+function add_autocomplete_tccode(order_type, tccode_input) {
+  tccode_input.autocomplete(tccode_input.attr('autocomplete_url'), {
+    cacheLength:0,
+    matchContains:1,//also match inside of strings when caching
+    mustMatch:1,//allow only values from the list
+    removeInitialValue:0,//when first applying $.autocomplete
+    formatItem: function(row, i, max) {
+      return "" + row[0] + " -- " + row[1];
+    },
+    extraParams:{performance_code:function() {
+      return jQuery('#' + order_type + '_performance_code').val();
+    }},
+    width: 400
+  }).result(function(event, data, formatted) {
+    if (data) {
+      my_tr = tccode_input.parents('tr');
+      my_tr.attr('price', data[3]);
+      my_tr.attr('ticket_type', data[2]);
+    }
+    recalculate_row_total(order_type, my_tr);
+  });
+}
+
 function add_autocomplete(order_type) {
   jQuery(function($) {
-    //clear bindings so we don't add multiple event handlers
-    $('#' + order_type + '_production_code').unbind();
-    $('#' + order_type + '_performance_code').unbind();
-    $('input.autocomplete_tccode,input.ticket_count,input.price_override').each(function() {
-      var input = $(this);
-      input.unbind();
-    });
     //autocomplete
     var input = $('#' + order_type + '_production_code');
     input.autocomplete(input.attr('autocomplete_url'), {
@@ -82,7 +101,6 @@ function add_autocomplete(order_type) {
           recalculate_all_row_totals(order_type);
           $('#' + order_type + '_performance_code').val('');
         });
-    var input;
     input = $('#' + order_type + '_performance_code');
     input.autocomplete(input.attr('autocomplete_url'), {
       cacheLength:0,
@@ -103,37 +121,7 @@ function add_autocomplete(order_type) {
           recalculate_all_row_totals(order_type);
         });
     $('input.autocomplete_tccode').each(function() {
-      var input = $(this);
-      input.autocomplete(input.attr('autocomplete_url'), {
-        cacheLength:0,
-        matchContains:1,//also match inside of strings when caching
-        mustMatch:1,//allow only values from the list
-        removeInitialValue:0,//when first applying $.autocomplete
-        formatItem: function(row, i, max) {
-          return "" + row[0] + " -- " + row[1];
-        },
-        extraParams:{performance_code:function() {
-          return $('#' + order_type + '_performance_code').val()
-        }},
-        width: 400
-      }).result(function(event, data, formatted) {
-            if (data) {
-              my_tr = input.parents('tr');
-              my_tr.attr('price', data[3]);
-              my_tr.attr('ticket_type', data[2]);
-            }
-            recalculate_row_total(order_type, my_tr);
-          });
-    });
-    jQuery('input.autocomplete_tccode,input.autocomplete_prcode,input.autocomplete_pcode').each(function() {
-      var input = jQuery(this);
-      input.bind('keypress', function(event){ return event.which != 13; });
-    });
-    $('input.ticket_count,input.price_override').each(function() {
-      input = $(this);
-      input.change(function() {
-        recalculate_row_total(order_type,input.parents('tr'))
-      });
+      add_autocomplete_tccode(order_type, $(this));
     });
   });
 }
@@ -160,16 +148,22 @@ function show_proper_payment_form() {
   });
 }
 
-jQuery(document).ready(function() {
-  add_autocomplete("ticket_order");
-  show_proper_payment_form();
-});
+var add_item_callback = function(added_item){
+  added_item.find('input.autocomplete_tccode').each(function() {
+    add_autocomplete_tccode(order_type, jQuery(this));
+  });
+}
 
-jQuery(function($) {
-  //clear bindings so we don't add multiple event handlers
-  payment_type_input = $('#ticket_order_payment_type');
-  payment_type_input.unbind();
-  payment_type_input.change(function() {
+jQuery(document).ready(function($) {
+  add_autocomplete("ticket_order");
+  $('input.ticket_count,input.price_override').live('change',function() {
+    recalculate_row_total("ticket_order",$(event.target).parents('tr'))
+  });
+  $('input.autocomplete_tccode,input.autocomplete_prcode,input.autocomplete_pcode').live('keypress', function() {
+    return event.which != 13;
+  });
+  show_proper_payment_form();
+  $('#ticket_order_payment_type').change(function() {
     show_proper_payment_form();
   });
 });

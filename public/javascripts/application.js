@@ -17,10 +17,10 @@ var myrules = {
   '.add_nested_item': function(e){
     el = Event.findElement(e);
     template = eval(el.href.replace(/.*#/, ''))
-    $(el.rel).insert({     
+    var added_item = jQuery($(el.rel).insert({
       bottom: replace_ids(template)
-    });
-    add_autocomplete();
+    })).children().last();
+    add_item_callback && add_item_callback(added_item);
   },
   '.add_nested_item_lvl2': function(e){
     el = Event.findElement(e);
