@@ -49,13 +49,6 @@ class Membership < ActiveRecord::Base
     self
   end
 
-  def current_status
-    response = update_from_profile
-
-    response["profile_status"][0..-8]
-
-  end
-
   def is_active?
     self.status == ACTIVE
   end
