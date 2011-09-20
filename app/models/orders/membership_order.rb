@@ -46,8 +46,8 @@ class MembershipOrder < Order
     super
     self.membership_line_items.each do |li|
       unless li.membership.nil?
-       li.membership.address = self.address
-       li.membership.save!
+        li.membership.address = self.address
+        li.membership.save!
       end
     end
     self
@@ -60,7 +60,17 @@ class MembershipOrder < Order
   end
 
   def total(reload_line_items=false)
-    0
+    self.value_of_all_payments
+  end
+
+  def create_proper_payment_in_amount_of!(amount)
+    self.membership.update_from_profile!
+    if self.membership.is_active?
+      payment = RecurringPayment.new
+      payment.amount = self.membership.membership_offer.recurring_cost
+      payment.transaction_id = self.membership.profile_id
+    end
+    self.payments << payment
   end
 
   protected
@@ -81,9 +91,9 @@ class MembershipOrder < Order
 
   def create_credit_card_payment(amount)
     new_payment = self.recurring_payments.build(
-      :amount => amount,
-      :address => self.address,
-      :ip_address => self.ip_address
+        :amount => amount,
+        :address => self.address,
+        :ip_address => self.ip_address
     )
   end
 
@@ -93,6 +103,20 @@ class MembershipOrder < Order
 
   def create_mail_list_task
     self.tasks << MyEmmaTask.new(:execute_at=>Time.now + 5.minutes, :additional_groups=>[self.membership_offer.myemma_group]) if !self.address.email.nil?
+  end
+
+  def set_tasks_after_save
+    if self.do_not_create_tasks.nil? && self.status_changed?
+      case self.status
+        when PROCESSED
+          if self.membership.is_active?
+            self.tasks << CheckMembershipTask.new(:execute_at=>self.membership.next_billing_date + 2.hours)
+          else
+            self.tasks << CheckMembershipTask.new(:execute_at=>Time.now + 2.minutes)
+          end
+      end
+    end
+    super
   end
 
 end

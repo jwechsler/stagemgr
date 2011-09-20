@@ -142,7 +142,6 @@ class Order < ActiveRecord::Base
   def credit_card_processing_fee
     fee = 0
     self.payments.each{ |p| fee += p.processing_fee unless p.processing_fee.nil? }
-    fee += 0.22 unless (fee.nil? || fee == 0)
     fee
   end
 

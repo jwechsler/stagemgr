@@ -141,7 +141,7 @@ class CreditCardPayment < Payment
   end
 
   def processing_fee
-    self.amount * 0.04
+    0.22 + self.amount * 0.04
   end
 
   protected

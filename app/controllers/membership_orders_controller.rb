@@ -48,6 +48,7 @@ class MembershipOrdersController < ApplicationController
       profile_id = response.params["profile_id"]
       membership = @order.membership
       membership.profile_id = profile_id
+      membership.status = response.params["profile_status"][0..-8]
       membership.save!
       @order.transition_to!(Order::PROCESSED)
       flash[:notice] = "Your PayPal account was successfully set up for the <strong>#{offer.name}</strong> payment plan."
