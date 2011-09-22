@@ -14,7 +14,7 @@ authorization do
     has_permission_on :admin_ticket_classes, :to=>[:view]
     has_permission_on :admin_theaters, :to=>[:view]
     has_permission_on :theaters, :to=>:read
-    has_permission_on :admin_orders , :to=>[:view,:manage,:make]
+    has_permission_on :admin_orders , :to=>[:view,:manage,:make,:hold_existing]
     has_permission_on :admin_ticket_orders , :to=>[:view,:manage,:make]
     has_permission_on :admin_auto_complete, :to=>[:view]
     has_permission_on :orders, :to=>[:create, :update]

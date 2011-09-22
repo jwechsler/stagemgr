@@ -14,9 +14,15 @@
 <%= order_form.input :notes, :input_html => {:rows => 4} %>
 
 <p>
-  <% permitted_to? :hold, :admin_orders do %>
-    <%= order_form.submit 'Hold', :disable_with => 'Holding...' if order_form.object.status == Order::NEW || order_form.object.status == Order::HOLD %>
-  <% end %>
+  <% if order_form.object.status != Order::NEW %>
+    <% permitted_to? :hold_existing, :admin_orders do %>
+      <%= order_form.submit 'Hold', :disable_with => 'Holding...' if order_form.object.status == Order::NEW || order_form.object.status == Order::HOLD %>
+    <%- end %>
+  <%- else %>
+    <% permitted_to? :hold, :admin_orders do %>
+      <%= order_form.submit 'Hold', :disable_with => 'Holding...' if order_form.object.status == Order::NEW || order_form.object.status == Order::HOLD %>
+    <%- end %>
+  <%- end %>
   <%= order_form.submit 'Place Order', :confirm => "Process this order?", :disable_with => 'Processing...' if order_form.object.status == Order::NEW || order_form.object.status == Order::HOLD %>
   <%= if order_form.object.status == Order::HOLD || order_form.object.status == Order::PROCESSING
         link_to 'Cancel Order', cancel_admin_order_path(order_form.object), :confirm => "Are you sure?", :method=>:post
