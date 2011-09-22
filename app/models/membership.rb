@@ -6,7 +6,7 @@ class Membership < ActiveRecord::Base
   )
   attr_accessible :membership_offer_id, :member_since, :order_id, :address_id, :member_code, :status, :profile_id
 
-  has_many :membership_line_items, :foreign_key=>:membership_id
+  has_one :membership_line_item, :foreign_key=>:membership_id
   belongs_to :address
   belongs_to :membership_offer
   validates_presence_of :address
