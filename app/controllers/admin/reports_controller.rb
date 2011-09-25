@@ -114,6 +114,19 @@ class Admin::ReportsController < Admin::ApplicationController
 
   end
 
+  def membership_usage
+    @headers, @report_data = build_membership_usage(!params['download_csv'].nil?)
+    if params['download_csv'].nil? then
+      respond_to do |format|
+        format.html
+      end
+    else
+      send_report_as_csv('daily_boxoffice_receipts', @headers, @report_data)
+
+    end
+
+  end
+
   def fulfill_tickets
     @through_day = grab_from_date_select(:through_day, params[:report])
     @headers, @report_data = build_fulfill_labels(@through_day)
@@ -213,8 +226,8 @@ class Admin::ReportsController < Admin::ApplicationController
 
   def build_fulfill_labels(through_date)
     orders = TicketOrder.order("performances.performance_code").all(:include=>[:line_items, {:performance, :production}, :address],
-                        :conditions=>["orders.status = ? and performances.status = 'Active' and performances.performance_date <= ? and performances.performance_date >= ? and productions.status in (?)",
-                        Order::PROCESSED, through_date, Date.today, Production.visible_statuses])
+                                                                    :conditions=>["orders.status = ? and performances.status = 'Active' and performances.performance_date <= ? and performances.performance_date >= ? and productions.status in (?)",
+                                                                                  Order::PROCESSED, through_date, Date.today, Production.visible_statuses])
     report = Array.new
     headers = [:reserved_under, :performance_code, :tickets, :order_id, :profile, :member_id, :first_time, :last_24_months, :donor]
     Order.transaction do
@@ -222,12 +235,12 @@ class Admin::ReportsController < Admin::ApplicationController
         if o.contains_tickets?
           is_donor = o.address.is_donor?
           last24 = o.address.performances_attended(2.years.ago)
-          member_id = o.membership_payments.size > 0 ? o.membership_payments.to_a.map { |mp| mp.membership.member_code}.join(',') + ' ' : ''
+          member_id = o.membership_payments.size > 0 ? o.membership_payments.to_a.map { |mp| mp.membership.member_code }.join(',') + ' ' : ''
           attendance_code = member_id
           attendance_code += o.address.first_time_paying?(o) ? 'N' : 'R'
           attendance_code += ("%03d" % last24).reverse
           attendance_code += "A" if is_donor
-          report << {:reserved_under=>  "#{o.address.last_name}" + ((o.address.last_name.blank? || o.address.first_name.blank?) ? '' : ', ') + (o.address.first_name.blank? ? '' : o.address.first_name.first ),
+          report << {:reserved_under=> "#{o.address.last_name}" + ((o.address.last_name.blank? || o.address.first_name.blank?) ? '' : ', ') + (o.address.first_name.blank? ? '' : o.address.first_name.first),
                      :performance_code => o.performance.performance_code,
                      :tickets => o.ticket_detail_description,
                      :profile => attendance_code,
@@ -242,6 +255,11 @@ class Admin::ReportsController < Admin::ApplicationController
       }
     end
     [headers, report]
+  end
+
+  def build_membership_usage(display_only = true)
+    memberships = Membership.all
+
   end
 
   def build_flexpass_sales(offer, display_only = true)
