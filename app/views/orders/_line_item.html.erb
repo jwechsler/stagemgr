@@ -11,6 +11,10 @@
     <td><%= number_to_currency(f.object.ticket_class.ticket_price) %></td><td></td><td></td>
   <% end %>
 <% else %>
-  <td><%= number_to_currency(f.object.ticket_class.ticket_price) %></td>
+  <td><%= if f.object.ticket_class.software_managed
+            "n/a"
+          else
+            number_to_currency(f.object.ticket_class.ticket_price)
+          end%></td>
 <% end %>
 </tr>
