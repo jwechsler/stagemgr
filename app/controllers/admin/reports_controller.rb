@@ -114,6 +114,17 @@ class Admin::ReportsController < Admin::ApplicationController
 
   end
 
+  def membership_usage
+    @headers, @report_data = build_membership_usage(!params['download_csv'].nil?)
+    if params['download_csv'].nil? then
+      respond_to do |format|
+        format.html
+      end
+    else
+      send_report_as_csv('membership_usage', @headers, @report_data)
+    end
+  end
+
   def fulfill_tickets
     @through_day = grab_from_date_select(:through_day, params[:report])
     @headers, @report_data = build_fulfill_labels(@through_day)
@@ -213,8 +224,8 @@ class Admin::ReportsController < Admin::ApplicationController
 
   def build_fulfill_labels(through_date)
     orders = TicketOrder.order("performances.performance_code").all(:include=>[:line_items, {:performance, :production}, :address],
-                        :conditions=>["orders.status = ? and performances.status = 'Active' and performances.performance_date <= ? and performances.performance_date >= ? and productions.status in (?)",
-                        Order::PROCESSED, through_date, Date.today, Production.visible_statuses])
+                                                                    :conditions=>["orders.status = ? and performances.status = 'Active' and performances.performance_date <= ? and performances.performance_date >= ? and productions.status in (?)",
+                                                                                  Order::PROCESSED, through_date, Date.today, Production.visible_statuses])
     report = Array.new
     headers = [:reserved_under, :performance_code, :tickets, :order_id, :profile, :member_id, :first_time, :last_24_months, :donor]
     Order.transaction do
@@ -222,12 +233,12 @@ class Admin::ReportsController < Admin::ApplicationController
         if o.contains_tickets?
           is_donor = o.address.is_donor?
           last24 = o.address.performances_attended(2.years.ago)
-          member_id = o.membership_payments.size > 0 ? o.membership_payments.to_a.map { |mp| mp.membership.member_code}.join(',') + ' ' : ''
+          member_id = o.membership_payments.size > 0 ? o.membership_payments.to_a.map { |mp| mp.membership.member_code }.join(',') + ' ' : ''
           attendance_code = member_id
           attendance_code += o.address.first_time_paying?(o) ? 'N' : 'R'
           attendance_code += ("%03d" % last24).reverse
           attendance_code += "A" if is_donor
-          report << {:reserved_under=>  "#{o.address.last_name}" + ((o.address.last_name.blank? || o.address.first_name.blank?) ? '' : ', ') + (o.address.first_name.blank? ? '' : o.address.first_name.first ),
+          report << {:reserved_under=> "#{o.address.last_name}" + ((o.address.last_name.blank? || o.address.first_name.blank?) ? '' : ', ') + (o.address.first_name.blank? ? '' : o.address.first_name.first),
                      :performance_code => o.performance.performance_code,
                      :tickets => o.ticket_detail_description,
                      :profile => attendance_code,
@@ -241,6 +252,48 @@ class Admin::ReportsController < Admin::ApplicationController
         end
       }
     end
+    [headers, report]
+  end
+
+  def build_membership_usage(display_only = true)
+    memberships = Membership.order(:member_since).all
+    report = Array.new
+    sums = { :collected=>Money.new(0), :payout=>Money.new(0), :performances_attended=>0, :number_cycles=>0}
+    headers = [:member_since, :last_name, :first_name, :status, :number_cycles, :collected, :performances_attended, :payout, :net_revenue, :avg_revenue_month, :avg_performances_month ]
+    memberships.each do |membership|
+      total_payout = Payment.sum(:amount,:conditions=>["type = 'MembershipPayment' and membership_id = ? and exists (select * from orders, performances where orders.id = payments.order_id and orders.performance_id = performances.id and performances.performance_date <= ?)", membership.id, membership.next_billing_date])
+      num_attended = Payment.count(:conditions=>["type = 'MembershipPayment' and membership_id = ? and exists (select * from orders, performances where orders.id = payments.order_id and orders.performance_id = performances.id and performances.performance_date <= ?)", membership.id, membership.next_billing_date])
+      avg_revenue_month = Money.from_numeric(0.0)
+      avg_performances_month = 0.0
+      unless membership.number_cycles_completed == 0
+
+        avg_revenue_month = Money.from_numeric((membership.aggregate_amount-total_payout)/membership.number_cycles_completed)
+        avg_performances_month = ((0.0 + num_attended)/membership.number_cycles_completed).round(1)
+      end
+
+      report << { :member_since=>membership.member_since.strftime("%D"),
+                  :last_name=>membership.membership_line_item.order.address.last_name,
+                  :first_name=>membership.membership_line_item.order.address.first_name,
+                  :status=>membership.status,
+                  :number_cycles=>membership.number_cycles_completed,
+                  :collected=>Money.from_numeric(membership.aggregate_amount),
+                  :performances_attended=>num_attended,
+                  :payout=>Money.from_numeric(total_payout),
+                  :net_revenue => Money.from_numeric(membership.aggregate_amount-total_payout),
+                  :avg_revenue_month=>avg_revenue_month,
+                  :avg_performances_month=>avg_performances_month
+      }
+      sums[:collected] += Money.from_numeric(membership.aggregate_amount)
+      sums[:payout] += Money.from_numeric(total_payout)
+      sums[:performances_attended] += num_attended
+      sums[:number_cycles] += membership.number_cycles_completed
+
+    end
+    sums[:net_revenue] = sums[:collected] - sums[:payout]
+    sums[:avg_revenue_month] = (sums[:net_revenue])/sums[:number_cycles]
+    sums[:new_revenue] = sums[:collected] - sums[:payout]
+    sums[:avg_performances_month] = ((0.0 + sums[:performances_attended]) / sums[:number_cycles]).round(1)
+    report << sums
     [headers, report]
   end
 

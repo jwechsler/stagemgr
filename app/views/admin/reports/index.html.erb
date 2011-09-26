@@ -95,6 +95,20 @@
       </td>
     </tr>
   <%- end %>
+   <%- if permitted_to? :membership_reports, :admin_reports then %>
+    <tr>
+      <td>
+        <span class="report_title">Membership Usage</span><br/>
+        <span class="help_text">Returns membership usage data by member.</span>
+      </td>
+      <td>
+        <%= form_tag(membership_usage_admin_reports_path, :method=>"post") do %>
+          <%= submit_tag "Show" %>
+          <%= submit_tag "Download", :name=>'download_csv' %>
+        <%- end %>
+      </td>
+    </tr>
+  <%- end %>
 </table>
 
 <br/>
