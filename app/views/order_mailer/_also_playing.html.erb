@@ -6,7 +6,7 @@
                                       :visible_classes=>[Production::PLAY],
                                       :after_date=>Time.now.end_of_week,
                                       :future_date=>(Time.now + 3.month),
-                                      :order_address=>order.address.id}).order("RAND()").limit(4) %>
+                                      :order_address=>order.address.id}).order("RAND()").limit(3) %>
   <%- productions.each { |prod| %>
     <div style="text-align:center; font-size:11px">
       <p style="text-align:center;">
@@ -17,8 +17,8 @@
         </span>
         <%- end %>
         <span style="font-weight: bold; font-style:italic; font-size: 13px"><%= prod.name %></span><br/>
-        <%- if !prod.logo_url.blank? %>
-          <img src="<%= "http://www.theaterwit.org#{prod.logo_url}" %>" width="100%">
+        <%- if !prod.best_image_url_available(:thumb).blank? %>
+          <img src="<%= "http://www.theaterwit.org#{prod.best_image_url_available(:thumb)}" %>" width="100%">
           <br/>
         <%- end %>
         <span style="font-weight: bold; font-size: 13px">

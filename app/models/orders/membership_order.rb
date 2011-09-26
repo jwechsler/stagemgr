@@ -65,7 +65,7 @@ class MembershipOrder < Order
 
   def create_proper_payment_in_amount_of!(amount)
     self.membership.update_from_profile!
-    if self.membership.is_active?
+    if self.membership.is_active? && self.membership.number_cycles_completed > 0
       payment = RecurringPayment.new
       payment.amount = self.membership.membership_offer.recurring_cost
       payment.note = "Automatically created recurring payment for processed attempt"
@@ -103,10 +103,10 @@ class MembershipOrder < Order
     if self.do_not_create_tasks.nil? && self.status_changed?
       case self.status
         when PROCESSED
-          if self.membership.is_active?
+          if self.membership.is_active? && self.membership.number_cycles_completed > 0
             self.tasks << CheckMembershipTask.new(:execute_at=>self.membership.next_billing_date + 2.hours)
           else
-            self.tasks << CheckMembershipTask.new(:execute_at=>Time.now + 2.minutes)
+            self.tasks << CheckMembershipTask.new(:execute_at=>Time.now + 5.minutes)
           end
       end
     end
