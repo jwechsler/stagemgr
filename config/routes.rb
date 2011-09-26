@@ -115,6 +115,7 @@ Stagemgr::Application.routes.draw do
         post :fulfill_tickets
         post :order_dump
         post :membership_usage
+        post :donations_dump
       end
     end
 

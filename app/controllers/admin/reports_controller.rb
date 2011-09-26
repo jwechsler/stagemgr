@@ -114,6 +114,29 @@ class Admin::ReportsController < Admin::ApplicationController
 
   end
 
+  def donations_dump
+    @start_day = grab_from_date_select(:start_day, params[:report])
+    @end_day = grab_from_date_select(:end_day, params[:report])
+    if @start_day > @end_day then
+      t = @start_day
+      @start_day = @end_day
+      @end_day = t
+    end
+
+    @headers, @report_data = build_donations_dump(@start_day, @end_day, !params['download_csv'].nil?)
+    if params['download_csv'].nil? then
+      respond_to do |format|
+        format.html
+      end
+    else
+      send_report_as_csv('donations', @headers, @report_data)
+
+    end
+
+
+  end
+
+
   def membership_usage
     @headers, @report_data = build_membership_usage(!params['download_csv'].nil?)
     if params['download_csv'].nil? then
@@ -502,6 +525,24 @@ class Admin::ReportsController < Admin::ApplicationController
     [keys, report]
   end
 
+  def build_donations_dump(start_day, end_day, build_for_dumpfile = false)
+    donations = Order.all(:include=>[:address,:line_items,:payments],:conditions=>["orders.status in (?) and line_items.type = 'DonationLineItem' and payments.processed_on >= ? and payments.processed_on <= ?",Order::PROCESSED, start_day,end_day])
+    report = Array.new
+    keys = columns_for_orders(true) + [:total]
+    Order.transaction do
+    donations.each { |o|
+      total = o.total
+      if total > 0
+      row = create_hash_from_order_fields(o)
+      row[:total] = o.total
+      report << row
+      end
+      o.transition_to!(Order::FULFILLED)
+    }
+
+    end
+    [keys, report]
+  end
 
   def build_order_dump(production)
     report = Array.new

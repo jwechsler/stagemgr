@@ -62,7 +62,7 @@ authorization do
     has_permission_on :admin_refund_orders, :to=>[:make]
     has_permission_on :admin_users, :to=>[:view, :manage, :delete, :make]
     has_permission_on :productions, :to=>:delete
-    has_permission_on :admin_reports, :to=>[:reconciliation_reports, :membership_reports]
+    has_permission_on :admin_reports, :to=>[:reconciliation_reports, :membership_reports, :fulfill_donations]
     has_permission_on :admin_default_ticket_classes, :to=>[:view, :make, :manage]
   end
 end
