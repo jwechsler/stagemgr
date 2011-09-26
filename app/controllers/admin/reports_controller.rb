@@ -121,10 +121,8 @@ class Admin::ReportsController < Admin::ApplicationController
         format.html
       end
     else
-      send_report_as_csv('daily_boxoffice_receipts', @headers, @report_data)
-
+      send_report_as_csv('membership_usage', @headers, @report_data)
     end
-
   end
 
   def fulfill_tickets
@@ -258,8 +256,45 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def build_membership_usage(display_only = true)
-    memberships = Membership.all
+    memberships = Membership.order(:member_since).all
+    report = Array.new
+    sums = { :collected=>Money.new(0), :payout=>Money.new(0), :performances_attended=>0, :number_cycles=>0}
+    headers = [:member_since, :last_name, :first_name, :status, :number_cycles, :collected, :performances_attended, :payout, :net_revenue, :avg_revenue_month, :avg_performances_month ]
+    memberships.each do |membership|
+      total_payout = Payment.sum(:amount,:conditions=>["type = 'MembershipPayment' and membership_id = ? and exists (select * from orders, performances where orders.id = payments.order_id and orders.performance_id = performances.id and performances.performance_date <= ?)", membership.id, membership.next_billing_date])
+      num_attended = Payment.count(:conditions=>["type = 'MembershipPayment' and membership_id = ? and exists (select * from orders, performances where orders.id = payments.order_id and orders.performance_id = performances.id and performances.performance_date <= ?)", membership.id, membership.next_billing_date])
+      avg_revenue_month = Money.from_numeric(0.0)
+      avg_performances_month = 0.0
+      unless membership.number_cycles_completed == 0
 
+        avg_revenue_month = Money.from_numeric((membership.aggregate_amount-total_payout)/membership.number_cycles_completed)
+        avg_performances_month = ((0.0 + num_attended)/membership.number_cycles_completed).round(1)
+      end
+
+      report << { :member_since=>membership.member_since.strftime("%D"),
+                  :last_name=>membership.membership_line_item.order.address.last_name,
+                  :first_name=>membership.membership_line_item.order.address.first_name,
+                  :status=>membership.status,
+                  :number_cycles=>membership.number_cycles_completed,
+                  :collected=>Money.from_numeric(membership.aggregate_amount),
+                  :performances_attended=>num_attended,
+                  :payout=>Money.from_numeric(total_payout),
+                  :net_revenue => Money.from_numeric(membership.aggregate_amount-total_payout),
+                  :avg_revenue_month=>avg_revenue_month,
+                  :avg_performances_month=>avg_performances_month
+      }
+      sums[:collected] += Money.from_numeric(membership.aggregate_amount)
+      sums[:payout] += Money.from_numeric(total_payout)
+      sums[:performances_attended] += num_attended
+      sums[:number_cycles] += membership.number_cycles_completed
+
+    end
+    sums[:net_revenue] = sums[:collected] - sums[:payout]
+    sums[:avg_revenue_month] = (sums[:net_revenue])/sums[:number_cycles]
+    sums[:new_revenue] = sums[:collected] - sums[:payout]
+    sums[:avg_performances_month] = ((0.0 + sums[:performances_attended]) / sums[:number_cycles]).round(1)
+    report << sums
+    [headers, report]
   end
 
   def build_flexpass_sales(offer, display_only = true)

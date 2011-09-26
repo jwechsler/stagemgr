@@ -114,6 +114,7 @@ Stagemgr::Application.routes.draw do
         post :daily_box_office_receipts
         post :fulfill_tickets
         post :order_dump
+        post :membership_usage
       end
     end
 
