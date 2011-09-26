@@ -68,9 +68,11 @@ class MembershipOrder < Order
     if self.membership.is_active?
       payment = RecurringPayment.new
       payment.amount = self.membership.membership_offer.recurring_cost
+      payment.note = "Automatically created recurring payment for processed attempt"
       payment.transaction_id = self.membership.profile_id
     end
     self.payments << payment
+    payment
   end
 
   protected
@@ -87,14 +89,6 @@ class MembershipOrder < Order
   def transition_new_to_processing!(redirect_to = nil)
     super
 
-  end
-
-  def create_credit_card_payment(amount)
-    new_payment = self.recurring_payments.build(
-        :amount => amount,
-        :address => self.address,
-        :ip_address => self.ip_address
-    )
   end
 
   def create_receipt_task

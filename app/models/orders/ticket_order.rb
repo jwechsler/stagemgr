@@ -187,8 +187,9 @@ class TicketOrder < Order
         payments << new_payment
         new_payment.process!
       else
-        super
+        new_payment = super
     end
+    new_payment
   end
 
   def unique_line_items(reload_line_items = false)
