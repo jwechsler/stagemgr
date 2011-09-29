@@ -9,7 +9,7 @@
     <%- else -%>
       <%= revision.action %>, 
       <% revision.audited_changes.each do |fld,changes| %>
-        <%= "#{fld} changed to #{changes[1]}" %>
+        <%= "#{fld} changed to #{changes[1]}" if !changes.nil? %>
       <%  end %>
         
     <%- end -%>
