@@ -221,14 +221,15 @@ class Order < ActiveRecord::Base
         if (amount != 0) then
           create_credit_card_payment(amount)
         else
-          switch_in = CashPayment.new(:amount => 0)
-          payments << switch_in
+          new_payment = CashPayment.new(:amount => 0)
+          payments << new_payment
         end
       when PRICE_OVERRIDE
-        self.price_override_payments.create!(:amount => amount)
+        new_payment = self.price_override_payments.create!(:amount => amount)
       else
         raise 'New payment type not yet implemented.'
     end
+    new_payment
   end
 
   def set_email_confirmation

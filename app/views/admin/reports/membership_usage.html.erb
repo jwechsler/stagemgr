@@ -1,0 +1,8 @@
+<h1>Membership Usage</h1>
+
+<table id="membership_usage" class="report">
+  <caption>
+    <i>Membership Usage report, generated at <%= Time.now.to_s(:hour_min) %> on <%= Time.now %>
+  </caption>
+  <%= render :partial=>"generic", :locals=>{:headers=>@headers, :report_body=>@report_data, :summary=>@totals} %>
+</table>

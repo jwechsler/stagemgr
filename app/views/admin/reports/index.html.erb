@@ -95,6 +95,36 @@
       </td>
     </tr>
   <%- end %>
+   <%- if permitted_to? :membership_reports, :admin_reports then %>
+    <tr>
+      <td>
+        <span class="report_title">Membership Usage</span><br/>
+        <span class="help_text">Returns membership usage data by member.</span>
+      </td>
+      <td>
+        <%= form_tag(membership_usage_admin_reports_path, :method=>"post") do %>
+          <%= submit_tag "Show" %>
+          <%= submit_tag "Download", :name=>'download_csv' %>
+        <%- end %>
+      </td>
+    </tr>
+  <%- end %>
+  <%- if permitted_to? :fulfill_donations, :admin_reports then %>
+    <tr>
+    <td>
+      <span class="report_title">Fulfill Donors</span><br/>
+      <span class="help_text">Download a copy of all donations with contact information as donations.csv.
+      <%- if permitted_to?(:view_email, :admin_addresses) %><br/><strong>This is a merge list for letters and will mark the selected orders as fulfilled</strong><%- end -%></span>
+    </td>
+    <td>
+      <%= form_tag(donations_dump_admin_reports_path, :method=>"post") do %>
+        From: <%= date_select(:report, :start_day, :default=>Time.now, :end_year=>Time.now.year) %>
+        To: <%= date_select(:report, :end_day, :default=>Time.now, :end_year=>Time.now.year) %>
+        <%= submit_tag "Download", :name=>'download_csv' %>
+      <%- end -%>
+    </td>
+  </tr>
+  <%- end %>
 </table>
 
 <br/>

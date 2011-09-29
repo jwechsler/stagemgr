@@ -12,7 +12,8 @@ class CheckMembershipTask < OrderTask
     result = !membership.is_pending?
     if membership.is_active?
       self.order.tasks << CheckMembershipTask.new(:execute_at=>membership.next_billing_date + 3.hours)
-      self.order.create_proper_payment_in_amount_of!(0)
+      new_payment = self.order.create_proper_payment_in_amount_of!(0)
+      new_payment.note = "Automatic payment created by membership check task"
       self.order.save!
     end
     result
