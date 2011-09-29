@@ -10,8 +10,12 @@
   of <i><%= @order.performance.production.name %></i><%- if @order.theater.theater_class != "Default" %>, presented by <%= @order.theater.name %>
   <%- end %></h2>
 
-<p>Thanks so much for your order. Your tickets will be waiting at the Theater Wit box office under your name.
-  <%- if @order.total > 0 %>The total charge was <%= '%0.2f' % @order.total %>.
+<p>Thanks so much for your order. Your tickets will be waiting at the Theater Wit box office under your name
+  <%- member_payments = @order.membership_payments
+      if member_payments.size > 0 %>
+    and were purchased with your <%= member_payments.first.membership.membership_offer.name %>.
+  <%- else %>
+    and the total charge was $<%= '%0.2f' % @order.customer_visible_total %>.
   <%- end %>
 </p>
 

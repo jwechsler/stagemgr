@@ -126,6 +126,10 @@ class Order < ActiveRecord::Base
     end
   end
 
+  def customer_visible_total(reload_line_items = false)
+    self.payments.to_a.sum { |payment| payment.respond_to?(:customer_visible_amount) ? payment.customer_visible_amount : 0 }
+  end
+
   def ticketing_fee
     self.line_items.uniq.to_a.sum { |li| li.respond_to?(:ticketing_fee) ? li.ticketing_fee : 0 }
   end

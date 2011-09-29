@@ -7,6 +7,10 @@ class Payment < ActiveRecord::Base
   default_scope :order=>'created_at asc'
   before_save :set_processed_on
 
+  def customer_visible_amount
+    self.amount
+  end
+
   def processing_fee
     return 0
   end

@@ -15,7 +15,10 @@ class FlexPassPayment < Payment
     record.errors.add attr, "cannot be more than the number of tickets left on flex pass." if number_of_tickets_left_after_save < 0
   end
   
-  
+  def customer_visible_amount
+    0.0
+  end
+
   def refund!
     raise 'Not Implemented'
   end
