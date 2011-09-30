@@ -41,5 +41,7 @@ Stagemgr::Application.configure do
 
   $DATABASEDOTCOM = databasedotcom_config['development']
 
+  SalesforceSync.materialize_all
+
 end
 

@@ -100,6 +100,10 @@ class Address < ActiveRecord::Base
     end
   end
 
+  def sync_to_salesforce
+
+  end
+
   def customer_tag(order = nil)
     attendance_code = ("%03d" % self.performances_attended(2.years.ago)).reverse
     attendance_code += "A" if self.is_donor?
