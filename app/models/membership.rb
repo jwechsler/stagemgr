@@ -1,8 +1,8 @@
 class Membership < ActiveRecord::Base
 
   MEMBERSHIP_STATUSES = (
-  ACTIVE, EXPIRED, PENDING, CANCELED =
-      "Active", "Expired", "Pending", "Canceled"
+  ACTIVE, EXPIRED, PENDING, CANCELED, SUSPENDED =
+      "Active", "Expired", "Pending", "Canceled", "Suspended"
   )
   attr_accessible :membership_offer_id, :member_since, :order_id, :address_id, :member_code, :status, :profile_id
 
@@ -41,8 +41,8 @@ class Membership < ActiveRecord::Base
     response = self.get_profile_data
     self.number_cycles_completed = response["number_cycles_completed"] unless response["number_cycles_completed"].blank?
     self.next_billing_date = response["next_billing_date"].to_date  unless response["next_billing_date"].blank?
-    self.aggregate_amount = response["aggregate_amount"]  unless response["next_billing_date"].blank?
-    self.status = response["profile_status"][0..-8]  unless response["next_billing_date"].blank?
+    self.aggregate_amount = response["aggregate_amount"]  unless response["aggregate_amount"].blank?
+    self.status = response["profile_status"][0..-8]  unless response["profile_status"].blank?
   end
 
   def update_from_profile!
