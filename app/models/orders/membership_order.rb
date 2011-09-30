@@ -63,16 +63,19 @@ class MembershipOrder < Order
     self.value_of_all_payments
   end
 
-  def create_proper_payment_in_amount_of!(amount)
-    self.membership.update_from_profile!
-    if self.membership.is_active? && self.membership.number_cycles_completed > 0
-      payment = RecurringPayment.new
+  def create_recurring_payment
+    payment = RecurringPayment.new
       payment.amount = self.membership.membership_offer.recurring_cost
       payment.note = "Automatically created recurring payment for processed attempt"
       payment.transaction_id = self.membership.profile_id
-    end
-    self.payments << payment
+      self.payments << payment
     payment
+  end
+  def create_proper_payment_in_amount_of!(amount)
+    self.membership.update_from_profile!
+    if self.membership.is_active? && self.membership.number_cycles_completed > 0
+      create_recurring_payment
+    end
   end
 
   protected
