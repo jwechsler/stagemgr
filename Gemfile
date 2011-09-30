@@ -32,6 +32,7 @@ gem 'sqlite3-ruby', :require => 'sqlite3'
 
 gem "whenever", :require=>false
 gem "formtastic", '~> 1.2.3'
+gem "databasedotcom", '~> 1.1.1'
 gem "formatize"
 gem "validation_reflection"
 gem "declarative_authorization"

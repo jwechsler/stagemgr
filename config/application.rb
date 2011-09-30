@@ -66,3 +66,8 @@ module Stagemgr
     config.action_view.javascript_expansions[:defaults] = %w(prototype rails)
   end
 end
+
+# define MyForce namespace for salesforce integration
+module MyForce
+
+end
