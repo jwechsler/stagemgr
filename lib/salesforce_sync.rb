@@ -16,7 +16,7 @@ class SalesforceSync
   end
 
   def SalesforceSync.sync_addresses_to_salesforce
-    addresses = Address.limit(5).where("created_at > ? and sf_last_sync_at < updated_at or sf_last_sync_at is null", DateTime.now + 1.hour)
+    addresses = Address.where("created_at > ? and sf_last_sync_at < updated_at or sf_last_sync_at is null", DateTime.now + 1.hour)
     addresses.each {|a| a.sync_to_salesforce! if a.orders.size > 0}
   end
 
