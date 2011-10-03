@@ -11,6 +11,7 @@ class Address < ActiveRecord::Base
   before_save :regularize!
   has_many :orders
   has_many :address_tags
+  has_many :memberships
   accepts_nested_attributes_for :address_tags, :allow_destroy => true
 
   MAILLIST_STATUS = (
@@ -61,11 +62,11 @@ class Address < ActiveRecord::Base
   def find_original
     comparison_id = self.id.nil? ? -1 : self.id
 
-    matches = Address.where("search_name = :search_name and (email = :email #{self.email.blank? ? '' : ' or email is null'}) and id <> :id", {:search_name=>name_as_searchable, :id=>comparison_id, :email => self.email.strip})
+    matches = Address.where("search_name = :search_name and (email = :email #{(self.email.blank? && self.street_number.blank?) ? '' : ' or email is null'}) and id <> :id", {:search_name=>name_as_searchable, :id=>comparison_id,  :email => (self.email.blank? ? '' : self.email.strip)})
     if matches.nil? || matches.size == 0
-      matches = Address.where("id <> :id AND street_number = :street_number AND street = :street AND city = :city and search_name = :search_name #{'and (email is null or email = :email)' unless self.email.blank?}",
+      matches = Address.where("id <> :id AND street_number = :street_number AND street = :street AND city = :city and search_name = :search_name #{self.email.blank? ? 'and email is not null' : 'and email is null'}",
                               {:id=>comparison_id, :street_number=>self.street_number, :street=>self.street,
-                               :city=>self.city, :search_name=>name_as_searchable, :email=>self.email})
+                               :city=>self.city, :search_name=>name_as_searchable})
       if matches.nil? || matches.size == 0
         matches = Address.where("id <> :id and search_name = :search_name and street_number is null and street is null and city is null and email is null",
                                 {:id=>comparison_id, :search_name=>name_as_searchable})
