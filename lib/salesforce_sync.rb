@@ -68,7 +68,7 @@ class SalesforceSync
           address.delete
         end
         if !address.sf_last_sync_at.nil? && delete_sf_records
-          sf_contact = Salesforce::Contact.find_by_stagemgr_id__c(a.id.to_s)
+          sf_contact = Salesforce::Contact.find_by_stagemgr_id__c(address.id.to_s)
           sf_contact.delete unless sf_contact.nil?
         end
 
