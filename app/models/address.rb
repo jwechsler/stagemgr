@@ -60,7 +60,7 @@ class Address < ActiveRecord::Base
   def find_original
     comparison_id = self.id.nil? ? -1 : self.id
 
-    matches = Address.where("search_name = :search_name and email = :email and id <> :id", {:search_name=>name_as_searchable, :id=>comparison_id, :email => self.email.strip}) unless self.email.blank?
+    matches = Address.where("search_name = :search_name and (email = :email #{self.email.blank? ? '' : ' or email is null'}) and id <> :id", {:search_name=>name_as_searchable, :id=>comparison_id, :email => self.email.strip})
     if matches.nil? || matches.size == 0
       matches = Address.where("id <> :id AND street_number = :street_number AND street = :street AND city = :city and search_name = :search_name #{'and (email is null or email = :email)' unless self.email.blank?}",
                               {:id=>comparison_id, :street_number=>self.street_number, :street=>self.street,
