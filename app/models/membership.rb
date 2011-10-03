@@ -52,10 +52,14 @@ class Membership < ActiveRecord::Base
   end
 
   def is_active?
-    self.status == ACTIVE
+    cycles = self.number_cycles_completed
+    cycles ||=0
+    (self.status == ACTIVE) && (cycles > 0)
   end
 
   def is_pending?
-    self.status == PENDING
+    cycles = self.number_cycles_completed
+    cycles ||=0
+    (self.status == PENDING) || (cycles == 0)
   end
 end

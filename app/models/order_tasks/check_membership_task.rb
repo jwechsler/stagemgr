@@ -7,16 +7,12 @@ class CheckMembershipTask < OrderTask
       return false
     end
 
-    membership.update_from_profile!
     result = false
-    if Date.today > membership.next_billing_date then
 
-      if membership.is_active?
-        new_payment = self.order.create_recurring_payment
-
-        if new_payment.nil?
-          result = false
-        else
+      if membership.is_active? || membership.is_pending?
+        membership.update_from_profile!
+        if membership.is_active?
+          new_payment = self.order.create_recurring_payment
           self.order.tasks << CheckMembershipTask.new(:execute_at=>membership.next_billing_date + 1.day)
           self.order.payments << new_payment
           new_payment.note = "Automatic payment created by membership check task"
@@ -24,10 +20,6 @@ class CheckMembershipTask < OrderTask
           result = true
         end
       end
-    else
-      self.execute_at = membership.next_billing_date
-      result=false
-    end
 
     result
   end
