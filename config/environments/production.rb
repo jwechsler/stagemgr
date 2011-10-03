@@ -64,6 +64,8 @@ Stagemgr::Application.configure do
 
     $DATABASEDOTCOM = databasedotcom_config['production']
 
+    SalesforceSync.materialize_all
+
   end
 
   # Set up notification for issues

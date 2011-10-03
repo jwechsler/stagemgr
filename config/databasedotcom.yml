@@ -1,6 +1,8 @@
 production:
-  client_id: 'register_api1.theaterwit.org'
-  client_secret: 'REDACTED_PAYPAL_PASSWORD'
+  client_id: '3MVG9QDx8IX8nP5RFvuwO9sHbAKBiUxr7ch25CUqaeOuj96.zGkm4vmUWmg4ejflNByjOJfpqd8rJAykZ.n35'
+  client_secret: '8395156559005153698'
+  username: 'software@theaterwit.org'
+  password: '7EdyXRFGqa8WVXTjgTUKpPnbGNd7ph73dPhNZtc'
 
 development:
   client_id: '3MVG9QDx8IX8nP5RFvuwO9sHbAKBiUxr7ch25CUqaeOuj96.zGkm4vmUWmg4ejflNByjOJfpqd8rJAykZ.n35'
