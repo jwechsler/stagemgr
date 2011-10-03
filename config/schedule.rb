@@ -32,3 +32,7 @@ end
 every 5.minutes do
   runner "OrderTask.run_pending"
 end
+
+every 8.hours do
+  runner "SalesforceSync.sync_addresses_to_salesforce"
+end

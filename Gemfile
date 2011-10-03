@@ -49,6 +49,7 @@ gem "fastercsv"
 gem "money"
 gem "gemcutter"
 gem "postmark-rails"
+gem "namecase", "~> 1.1.0"
 
 group :development do
   gem 'wirble',               '0.1.3'

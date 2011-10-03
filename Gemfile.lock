@@ -146,6 +146,7 @@ GEM
     my_emma (0.1.2)
       httparty (= 0.4.5)
     mysql (2.8.1)
+    namecase (1.1.0)
     net-scp (1.0.4)
       net-ssh (>= 1.99.1)
     net-sftp (2.0.5)
@@ -273,6 +274,7 @@ DEPENDENCIES
   mongrel (= 1.1.5)
   my_emma
   mysql (= 2.8.1)
+  namecase (~> 1.1.0)
   newrelic_rpm
   nifty-generators
   paperclip (~> 2.3)

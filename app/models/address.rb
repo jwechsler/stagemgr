@@ -14,11 +14,14 @@ class Address < ActiveRecord::Base
 
   MAILLIST_STATUS = (
   REQUESTED, SAVED =
-    "Requested", "Saved")
+      "Requested", "Saved")
 
   attr_accessible :first_name, :last_name, :line1, :line2, :city, :state, :zipcode, :email, :phone, :street_number, :address_tags_attributes
+  acts_as_audited :protect=>false, :except=>['street_number', 'street', 'street_type', 'unit', 'unit_prefix', 'search_name']
 
   def regularize!
+    self.first_name = NameCase(self.first_name)
+    self.last_name = NameCase(self.last_name)
     self.line1.strip! unless self.line1.nil?
     self.city = self.city.titlecase.strip unless self.city.nil?
     self.line2.strip! unless self.line2.nil?
@@ -83,7 +86,7 @@ class Address < ActiveRecord::Base
     self.phone = newer.phone unless newer.phone.blank?
 
     newer.address_tags.each do |tag|
-      existing_tag = self.address_tags.select{|t| (t.tag_label == tag.tag_label) && (t.theater_id == tag.theater_id)}.first
+      existing_tag = self.address_tags.select { |t| (t.tag_label == tag.tag_label) && (t.theater_id == tag.theater_id) }.first
       if existing_tag.nil?
         self.address_tags << tag
       else
@@ -100,67 +103,140 @@ class Address < ActiveRecord::Base
     end
   end
 
-  def sync_to_salesforce
+  def sync_to_salesforce!
+    sf_contact = Salesforce::Contact.find_by_stagemgr_id__c("#{self.id}")
+    sync_time = DateTime.now
+    if sf_contact.nil?
+      sf_contact = create_salesforce_contact
+    else
+      if self.field_changed_after?(:first_name, self.sf_last_sync_at)
+        sf_contact.FirstName = self.first_name unless self.first_name.blank?
+      else
+        self.first_name = sf_contact.FirstName unless sf_contact.FirstName.blank?
+      end
+      if self.field_changed_after?(:last_name, self.sf_last_sync_at)
+        sf_contact.LastName = self.last_name unless self.last_name.blank?
+      else
+        self.last_name = sf_contact.LastName unless sf_contact.LastName.blank?
+      end
 
-  end
+      if self.field_changed_after?(:email, self.sf_last_sync_at)
+        sf_contact.Email = self.email unless self.email.blank?
+      else
+        self.email = sf_contact.email unless sf_contact.email.blank?
+      end
 
-  def customer_tag(order = nil)
-    attendance_code = ("%03d" % self.performances_attended(2.years.ago)).reverse
-    attendance_code += "A" if self.is_donor?
-    attendance_code += "M" if self.is_current_member?
-    attendance_code
+      if [:line1, :line2].select { |f| self.field_changed_after?(f, self.sf_last_sync_at) }.size > 0
+        sf_contact.MailingStreet="#{self.line1}\r\n#{self.line2}" unless self.line1.blank?
+      else
+        unless sf_contact.MailingStreet.blank?
+          lines = sf_contact.MailingStreet.split("\r\n")
+          if lines.size > 0
+            self.line1 = lines[0]
+            if lines.size > 1
+              self.line2 = lines[1]
+            end
+          end
+        end
+      end
 
-  end
+      if self.field_changed_after?(:city, self.sf_last_sync_at)
+        sf_contact.MailingCity = self.city unless self.city.blank?
+        else
+          self.city = sf_contact.MailingCity unless sf_contact.MailingCity.blank?
+        end
 
-  def is_current_member?
-    self.orders.select{|o| (o.is_a? MembershipOrder) && (o.membership_line_items.first.membership.status == Membership::ACTIVE)}.count > 0
-  end
+        if self.field_changed_after?(:state, self.sf_last_sync_at)
+          sf_contact.MailingState = self.state unless self.state.blank?
+        else
+          self.state = sf_contact.MailingState unless sf_contact.MailingCity.blank?
+        end
 
-  def self.export_addresses_as_csv(addresses, filename)
-    csv_string = FasterCSV.generate do |csv|
-      csv << [:id, :first_name, :last_name, :street_number, :street, :street_type, :unit, :unit_prefix, :zipcode, :customer_tag ]
+        if self.field_changed_after?(:zipcode, self.sf_last_sync_at)
+          sf_contact.MailingPostalCode = self.zipcode unless self.zipcode.blank?
+        else
+          self.zipcode = sf_contact.MailingPostalCode unless sf_contact.MailingPostalCode.blank?
+        end
 
-      addresses.each do |r|
-        csv << [r.id, r.first_name, r.last_name, r.street_number, r.street, r.street_type, r.unit, r.unit_prefix, r.zipcode, r.customer_tag]
+        if self.field_changed_after?(:phone, self.sf_last_sync_at)
+          sf_contact.Phone = self.phone unless self.phone.blank?
+        else
+          self.phone = sf_contact.Phone unless sf_contact.Phone.blank?
+        end
+        sf.stagemgr_last_sync_at__c = sync_time
+        sf_contact.save
+      end
+      self.sf_last_sync_at = sync_time
+      self.save!
+
+    end
+
+    def field_changed_after?(field_name, change_time)
+      self.audits.select { |audit| audit.created_at > change_time }.each do |revision|
+        revision.audited_changes.each do |fld, changes|
+          return true if fld == field_name.to_s
+        end
+      end
+      return false
+    end
+
+    def customer_tag(order = nil)
+      attendance_code = ("%03d" % self.performances_attended(2.years.ago)).reverse
+      attendance_code += "A" if self.is_donor?
+      attendance_code += "M" if self.is_current_member?
+      attendance_code
+
+    end
+
+    def is_current_member?
+      self.orders.select { |o| (o.is_a? MembershipOrder) && (o.membership_line_items.first.membership.status == Membership::ACTIVE) }.count > 0
+    end
+
+    def self.export_addresses_as_csv(addresses, filename)
+      csv_string = FasterCSV.generate do |csv|
+        csv << [:id, :first_name, :last_name, :street_number, :street, :street_type, :unit, :unit_prefix, :zipcode, :customer_tag]
+
+        addresses.each do |r|
+          csv << [r.id, r.first_name, r.last_name, r.street_number, r.street, r.street_type, r.unit, r.unit_prefix, r.zipcode, r.customer_tag]
+        end
+      end
+      File.open(filename, "w") do |the_file|
+        the_file.puts csv_string
       end
     end
-    File.open( filename, "w" ) do |the_file|
-      the_file.puts csv_string
+
+    def current_member?
+      false
     end
-  end
 
-  def current_member?
-    false
-  end
-
-  def has_flex_pass?
-    !FlexPass.find_by_address_id(self.id).nil?
-  end
-
-  # @todo Flex pass programs can't be hard coded.
-  def flex_pass_candidate?
-    if !has_flex_pass?
-
-      recent_orders = self.orders.select { |o| o.created_at > 1.year.ago }
-      total_spent = recent_orders.sum { |o| o.total }
-      num_paid_tickets = recent_orders.sum { |o| o.total > 0 ? o.ticket_quantity : 0 }
-      candidate = recent_orders.size > 2 && total_spent/num_paid_tickets > 20
-    else
-      candidate = false
+    def has_flex_pass?
+      !FlexPass.find_by_address_id(self.id).nil?
     end
-    candidate
-  end
 
-  def first_time_paying? (current_order)
-    self.orders.select { |o| (o.id != current_order.id) && o.paid? }.size ==0
-  end
+    # @todo Flex pass programs can't be hard coded.
+    def flex_pass_candidate?
+      if !has_flex_pass?
+
+        recent_orders = self.orders.select { |o| o.created_at > 1.year.ago }
+        total_spent = recent_orders.sum { |o| o.total }
+        num_paid_tickets = recent_orders.sum { |o| o.total > 0 ? o.ticket_quantity : 0 }
+        candidate = recent_orders.size > 2 && total_spent/num_paid_tickets > 20
+      else
+        candidate = false
+      end
+      candidate
+    end
+
+    def first_time_paying? (current_order)
+      self.orders.select { |o| (o.id != current_order.id) && o.paid? }.size ==0
+    end
 
 
-  def self.import_timeline_csv(filepath)
-    num_read = 0
-    num_merged = 0
-    timeline = Theater.find_by_name('TimeLine Theatre Company')
-    FasterCSV.foreach(filepath) do |row|
+    def self.import_timeline_csv(filepath)
+      num_read = 0
+      num_merged = 0
+      timeline = Theater.find_by_name('TimeLine Theatre Company')
+      FasterCSV.foreach(filepath) do |row|
         a=Address.new
         a.first_name = row[1]
         a.last_name = row[2]
@@ -201,8 +277,8 @@ class Address < ActiveRecord::Base
 
     def performances_attended(since_when = 5.years.ago)
       TicketOrder.count(:include=>[:performance],
-                      :conditions=>["orders.address_id = ? and orders.status = ? and performances.performance_date >= ? and performances.performance_date <= ?",
-                                    self.id, Order::FULFILLED, since_when, Date.today])
+                        :conditions=>["orders.address_id = ? and orders.status = ? and performances.performance_date >= ? and performances.performance_date <= ?",
+                                      self.id, Order::FULFILLED, since_when, Date.today])
     end
 
     def is_donor?
@@ -214,6 +290,14 @@ class Address < ActiveRecord::Base
     private
     def name_as_searchable
       full_name.upcase
+    end
+
+    def create_salesforce_contact
+      Salesforce::Contact.create "LastName"=>self.last_name, "FirstName"=>self.first_name, "stagemgr_id__c"=>"#{self.id}",
+                                 "MailingStreet"=>"#{self.line1}\r\n#{self.line2}", "MailingCity"=>self.city,
+                                 "Email"=>self.email, "Phone"=>self.phone,
+                                 "MailingState"=>self.state, "MailingPostalCode"=>self.zipcode, "stagemgr_last_sync_at__c"=>DateTime.now
+
     end
 
   end
