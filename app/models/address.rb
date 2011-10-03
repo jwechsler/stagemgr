@@ -123,7 +123,7 @@ class Address < ActiveRecord::Base
       if self.field_changed_after?(:email, self.sf_last_sync_at)
         sf_contact.Email = self.email unless self.email.blank?
       else
-        self.email = sf_contact.email unless sf_contact.email.blank?
+        self.email = sf_contact.Email unless sf_contact.Email.blank?
       end
 
       if [:line1, :line2].select { |f| self.field_changed_after?(f, self.sf_last_sync_at) }.size > 0
@@ -163,7 +163,7 @@ class Address < ActiveRecord::Base
         else
           self.phone = sf_contact.Phone unless sf_contact.Phone.blank?
         end
-        sf.stagemgr_last_sync_at__c = sync_time
+        sf_contact.stagemgr_last_sync_at__c = sync_time
         sf_contact.save
       end
       self.sf_last_sync_at = sync_time
