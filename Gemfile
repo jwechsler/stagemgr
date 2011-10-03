@@ -32,6 +32,7 @@ gem 'sqlite3-ruby', :require => 'sqlite3'
 
 gem "whenever", :require=>false
 gem "formtastic", '~> 1.2.3'
+gem "databasedotcom", '~> 1.1.1'
 gem "formatize"
 gem "validation_reflection"
 gem "declarative_authorization"
@@ -48,6 +49,7 @@ gem "fastercsv"
 gem "money"
 gem "gemcutter"
 gem "postmark-rails"
+gem "namecase", "~> 1.1.0"
 
 group :development do
   gem 'wirble',               '0.1.3'

@@ -37,5 +37,11 @@ Stagemgr::Application.configure do
   $PAYPAL_LOGIN = paypal_config['development']['paypal_login']
   $PAYPAL_PASSWORD = paypal_config['development']['paypal_password']
 
+  databasedotcom_config = YAML::load(File.open("#{::Rails.root.to_s}/config/databasedotcom.yml"))
+
+  $DATABASEDOTCOM = databasedotcom_config['development']
+
+  SalesforceSync.materialize_all
+
 end
 

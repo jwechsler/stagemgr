@@ -59,6 +59,11 @@ Stagemgr::Application.configure do
 
     $PAYPAL_LOGIN = paypal_config['production']['paypal_login']
     $PAYPAL_PASSWORD = paypal_config['production']['paypal_password']
+
+    databasedotcom_config = YAML::load(File.open("#{::Rails.root.to_s}/config/databasedotcom.yml"))
+
+    $DATABASEDOTCOM = databasedotcom_config['production']
+
   end
 
   # Set up notification for issues
