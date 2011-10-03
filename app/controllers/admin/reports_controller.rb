@@ -281,39 +281,35 @@ class Admin::ReportsController < Admin::ApplicationController
   def build_membership_usage(display_only = true)
     memberships = Membership.order(:member_since)
     report = Array.new
-    sums = { :collected=>Money.new(0), :payout=>Money.new(0), :performances_attended=>0, :number_cycles=>0}
-    headers = [:member_since, :last_name, :first_name, :status, :number_cycles, :collected, :performances_attended, :payout, :net_revenue, :avg_revenue_month, :avg_performances_month ]
+    sums = {:collected=>Money.new(0), :payout=>Money.new(0), :performances_attended=>0, :number_cycles=>0}
+    headers = [:member_since, :last_name, :first_name, :status, :number_cycles, :collected, :performances_attended, :payout, :net_revenue, :avg_revenue_month, :avg_performances_month]
     memberships.each do |membership|
-      total_payout = Payment.sum(:amount,:conditions=>["type = 'MembershipPayment' and membership_id = ? and exists (select * from orders, performances where orders.id = payments.order_id and orders.performance_id = performances.id and performances.performance_date <= ?)", membership.id, membership.next_billing_date])
-      num_attended = Payment.count(:conditions=>["type = 'MembershipPayment' and membership_id = ? and exists (select * from orders, performances where orders.id = payments.order_id and orders.performance_id = performances.id and performances.performance_date <= ?)", membership.id, membership.next_billing_date])
-      avg_revenue_month = Money.from_numeric(0.0)
-      avg_performances_month = 0.0
       unless membership.number_cycles_completed.nil? || membership.number_cycles_completed == 0
-        cycles_completed = membership.number_cycles_completed
+        total_payout = Payment.sum(:amount, :conditions=>["type = 'MembershipPayment' and membership_id = ? and exists (select * from orders, performances where orders.id = payments.order_id and orders.performance_id = performances.id and performances.performance_date <= ?)", membership.id, membership.next_billing_date])
+        num_attended = Payment.count(:conditions=>["type = 'MembershipPayment' and membership_id = ? and exists (select * from orders, performances where orders.id = payments.order_id and orders.performance_id = performances.id and performances.performance_date <= ?)", membership.id, membership.next_billing_date])
+        avg_revenue_month = Money.from_numeric(0.0)
+        avg_performances_month = 0.0
         avg_revenue_month = Money.from_numeric((membership.aggregate_amount-total_payout)/membership.number_cycles_completed)
         avg_performances_month = ((0.0 + num_attended)/membership.number_cycles_completed).round(1)
-      else
-        cycles_completed = 0
+        aggregate_amount = membership.aggregate_amount.nil? ? 0.0 : membership.aggregate_amount
+
+        report << {:member_since=>membership.member_since.strftime("%D"),
+                   :last_name=>membership.membership_line_item.order.address.last_name,
+                   :first_name=>membership.membership_line_item.order.address.first_name,
+                   :status=>membership.status,
+                   :number_cycles=>membership.number_cycles_completed,
+                   :collected=>Money.from_numeric(aggregate_amount),
+                   :performances_attended=>num_attended,
+                   :payout=>Money.from_numeric(total_payout),
+                   :net_revenue => Money.from_numeric(aggregate_amount-total_payout),
+                   :avg_revenue_month=>avg_revenue_month,
+                   :avg_performances_month=>avg_performances_month
+        }
+        sums[:collected] += Money.from_numeric(aggregate_amount)
+        sums[:payout] += Money.from_numeric(total_payout)
+        sums[:performances_attended] += num_attended
+        sums[:number_cycles] += membership.number_cycles_completed
       end
-      aggregate_amount =  membership.aggregate_amount.nil? ? 0.0 : membership.aggregate_amount
-
-      report << { :member_since=>membership.member_since.strftime("%D"),
-                  :last_name=>membership.membership_line_item.order.address.last_name,
-                  :first_name=>membership.membership_line_item.order.address.first_name,
-                  :status=>membership.status,
-                  :number_cycles=>membership.number_cycles_completed,
-                  :collected=>Money.from_numeric(aggregate_amount),
-                  :performances_attended=>num_attended,
-                  :payout=>Money.from_numeric(total_payout),
-                  :net_revenue => Money.from_numeric(aggregate_amount-total_payout),
-                  :avg_revenue_month=>avg_revenue_month,
-                  :avg_performances_month=>avg_performances_month
-      }
-      sums[:collected] += Money.from_numeric(aggregate_amount)
-      sums[:payout] += Money.from_numeric(total_payout)
-      sums[:performances_attended] += num_attended
-      sums[:number_cycles] += cycles_completed
-
     end
     sums[:net_revenue] = sums[:collected] - sums[:payout]
     sums[:avg_revenue_month] = (sums[:net_revenue])/sums[:number_cycles]
@@ -529,19 +525,19 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def build_donations_dump(start_day, end_day, build_for_dumpfile = false)
-    donations = Order.all(:include=>[:address,:line_items,:payments],:conditions=>["orders.status in (?) and line_items.type = 'DonationLineItem' and payments.processed_on >= ? and payments.processed_on <= ?",Order::PROCESSED, start_day,end_day])
+    donations = Order.all(:include=>[:address, :line_items, :payments], :conditions=>["orders.status in (?) and line_items.type = 'DonationLineItem' and payments.processed_on >= ? and payments.processed_on <= ?", Order::PROCESSED, start_day, end_day])
     report = Array.new
     keys = columns_for_orders(true) + [:total]
     Order.transaction do
-    donations.each { |o|
-      total = o.total
-      if total > 0
-      row = create_hash_from_order_fields(o)
-      row[:total] = o.total
-      report << row
-      end
-      o.transition_to!(Order::FULFILLED)
-    }
+      donations.each { |o|
+        total = o.total
+        if total > 0
+          row = create_hash_from_order_fields(o)
+          row[:total] = o.total
+          report << row
+        end
+        o.transition_to!(Order::FULFILLED)
+      }
 
     end
     [keys, report]
