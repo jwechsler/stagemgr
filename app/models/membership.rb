@@ -64,7 +64,7 @@ class Membership < ActiveRecord::Base
   end
 
   def is_active?
-    self.status == ACTIVE
+    (self.status == ACTIVE && self.number_cycles_completed.to_i > 0)
   end
 
   def is_pending?
