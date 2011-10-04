@@ -330,6 +330,13 @@ class Order < ActiveRecord::Base
       order.destroy
     end
 
+    orders = Order.where("status in (:transitory_status) and updated_at < :window and type = 'MembershipOrder'",
+                         {:transitory_status=>self.transitory_statuses,
+                          :window=>Time.now - 1.day})
+    orders.each  do  |order|
+      order.destroy
+    end
+
   end
 
 

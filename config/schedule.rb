@@ -1,4 +1,4 @@
-˜# Use this file to easily define all of your cron jobs.
+# Use this file to easily define all of your cron jobs.
 #
 # It's helpful, but not entirely necessary to understand cron before proceeding.
 # http://en.wikipedia.org/wiki/Cron
@@ -33,6 +33,6 @@ every 5.minutes do
   runner "OrderTask.run_pending"
 end
 
-every 8.hours do
+every 1.day do
   runner "SalesforceSync.sync_addresses_to_salesforce"
 end
