@@ -64,7 +64,7 @@ class Address < ActiveRecord::Base
 
     matches = Address.where("search_name = :search_name and (email = :email #{(self.email.blank? && self.street_number.blank?) ? '' : ' or email is null or email = \'\''}) and id <> :id", {:search_name=>name_as_searchable, :id=>comparison_id,  :email => (self.email.blank? ? '' : self.email.strip)})
     if matches.nil? || matches.size == 0
-      matches = Address.where("id <> :id AND street_number = :street_number AND street = :street AND city = :city and search_name = :search_name #{self.email.blank? ? '' : 'and (email = \'\' or email is null'}",
+      matches = Address.where("id <> :id AND street_number = :street_number AND street = :street AND city = :city and search_name = :search_name #{self.email.blank? ? '' : 'and (email = \'\' or email is null)'}",
                               {:id=>comparison_id, :street_number=>self.street_number, :street=>self.street,
                                :city=>self.city, :search_name=>name_as_searchable})
       if matches.nil? || matches.size == 0

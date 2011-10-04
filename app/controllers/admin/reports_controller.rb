@@ -292,16 +292,7 @@ class Admin::ReportsController < Admin::ApplicationController
         avg_revenue_month = Money.from_numeric((membership.aggregate_amount-total_payout)/membership.number_cycles_completed)
         avg_performances_month = ((0.0 + num_attended)/membership.number_cycles_completed).round(1)
         aggregate_amount = membership.aggregate_amount.nil? ? 0.0 : membership.aggregate_amount
-        status = (case
-          when membership.is_active?
-            "Active"
-          when membership.is_pending?
-            "Pending"
-          when ['Cancelled','Suspended'].include?(membership.status)
-            membership.status
-          else
-            "Other"
-        end)
+        status = ()
 
         report << {:member_since=>membership.member_since.strftime("%D"),
                    :last_name=>membership.membership_line_item.order.address.last_name,
