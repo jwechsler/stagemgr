@@ -108,6 +108,7 @@ class Address < ActiveRecord::Base
   def sync_to_salesforce!
     sf_contact = Salesforce::Contact.find_by_stagemgr_id__c("#{self.id}")
     sync_time = DateTime.now
+    puts "syncing address id ##{self.id}"
     if sf_contact.nil?
       sf_contact = create_salesforce_contact
     else
