@@ -328,8 +328,8 @@ class Order < ActiveRecord::Base
 
     unless email.blank?
       flex_pass_orders = Order.all(:conditions=>["line_items.type = 'FlexPassLineItem' and status = ?", Order::PROCESSED], :include => :line_items)
+      OrderMailer.send(:flex_pass_pending_reminder, flex_pass_orders).deliver
     end
-
 
 
   end
