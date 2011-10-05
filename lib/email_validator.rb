@@ -18,7 +18,7 @@ class EmailValidator < ActiveModel::EachValidator
   end
 
   def validate_each(record, attribute, value)
-    unless value.blank? || value =~ EmailAddress
+    unless value.blank? || value.strip =~ EmailAddress
       record.errors[attribute] << (options[:message] || "is not valid")
     end
   end
