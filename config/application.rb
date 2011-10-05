@@ -65,5 +65,6 @@ module Stagemgr
     config.filter_parameters += [:password, :password_confirmation]
 
     config.action_view.javascript_expansions[:defaults] = %w(prototype rails)
+
   end
 end

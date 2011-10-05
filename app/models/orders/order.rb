@@ -322,6 +322,18 @@ class Order < ActiveRecord::Base
     [Order::NEW, Order::PROCESSING]
   end
 
+  def self.send_flex_pass_reminder
+
+    email = $EMAIL_ADDRESS['flex_pass_notifications']
+
+    unless email.blank?
+      flex_pass_orders = Order.all(:conditions=>["line_items.type = 'FlexPassLineItem' and status = ?", Order::PROCESSED], :include => :line_items)
+    end
+
+
+
+  end
+
   def self.delete_unprocessed_orders
     orders = Order.where("status in (:transitory_status) and updated_at < :window and type != 'MembershipOrder'",
                          {:transitory_status=>self.transitory_statuses,
