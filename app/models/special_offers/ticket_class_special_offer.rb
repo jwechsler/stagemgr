@@ -1,12 +1,13 @@
 class TicketClassSpecialOffer < SpecialOffer
 
-  validates_presence_of :use_ticket_class_code
-
-  def calculate_discount(order)
-    self.applicable_line_items(order).map{|li|li.total}.sum * self.amount/-100
+  def apply_to_order(order)
+    ticket_class = TicketClass.where("production_id = ? and class_code = ?",order.performance.production.id,self.change_ticket_class_code)
+    raise "Non applicable offer to this order" if ticket_class.nil
+    ticket_line_items = self.applicable_line_items(order)
+    ticket_line_items.each {|li| li.ticket_class_id = ticket_class.id }
   end
-  
+
   def to_s
-    ""
+    "Use #{self.change_ticket_class_code}"
   end
 end

@@ -1,5 +1,5 @@
 <%= f.input :code %>
-<%= f.input :type, :collection=>{"$ Off"=>AmountOffSpecialOffer,"% Off"=>PercentOffSpecialOffer}, :include_blank=>false %>
+<%= f.input :type, :collection=>{"$ Off"=>AmountOffSpecialOffer,"% Off"=>PercentOffSpecialOffer, 'TktClass'=>TicketClassSpecialOffer}, :include_blank=>false %>
 
 <%= f.input :limiting_model_type, :label=>"Restrict To", :include_blank=>false, :collection=>[
 	['Any', nil],
@@ -9,8 +9,10 @@
 	] %>
 <%= f.input :limiting_id, :label=>"Limiting Code" %>
 
-<%= f.input :amount %>
+<%= f.input :amount, :label=>"Discount" %>
 <%= f.input :ticket_class_code, :label=>"For Ticket Classes starting with" %>
 <%= f.input :status, :collection=>SpecialOffer::OFFER_STATUSES, :include_blank=>false %>
 <%= f.input :number_of_uses, :label=>"Maximum uses" %>
+<%= f.input :max_tickets_per_order, :label=>"Max tickets/order" %>
 <%= f.input :auto_expire, :label=>"Expire on" %>
+<%= f.input :change_ticket_class_code, :label=>"Set ticket class code" %>

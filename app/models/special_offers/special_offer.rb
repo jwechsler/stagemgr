@@ -1,6 +1,7 @@
 class SpecialOffer < ActiveRecord::Base
   validates_presence_of :type, :code
   validates_numericality_of :amount, :null=>false
+  validates_numericality_of :max_tickets_per_order
 
   OFFER_STATUSES = (
     ACTIVE, INACTIVE, EXPIRED =
@@ -58,13 +59,46 @@ class SpecialOffer < ActiveRecord::Base
       self.production.nil_or.production_code ||
       self.performance.nil_or.performance_code
   end
-  
+
+   def limiting_code
+    @limiting_id ||=
+      self.theater_id ||
+      self.production.nil_or.production_code ||
+      self.performance.nil_or.performance_code
+  end
+
   def applicable_line_items(order)
     look_for = ticket_class_code.nil? ? '' : self.ticket_class_code
-
-    return order.ticket_line_items.select{ |li| li.ticket_class.class_code.starts_with?(look_for)}
+    ticket_lines = order.ticket_line_items.select { |li| li.ticket_class.class_code.starts_with?(look_for) }.sort { |t1, t2| t2.ticket_price <=> t1.ticket_price }
+    num_remaining = self.max_tickets_per_order
+    unless num_remaining.nil?
+      applicable = Array.new
+      ticket_lines.each do |li|
+        break if num_remaining <= 0
+        if li.ticket_count > num_applied then
+          li2 = li.clone
+          li2.ticket_count = li.ticket_count - num_remaining
+          order.ticket_line_items << li2
+          li.ticket_count = num_remaining
+        end
+        applicable << li
+        num_remaining -= li.ticket_count
+      end
+      return applicable
+    else
+      return ticket_lines
+    end
   end
-  
+
+  def apply_to_order(order)
+
+  end
+
+  def to_s
+    code = "#{self.limiting_model_type} #{self.limiting_code}"
+    code += " for ticket classes starting with '#{self.ticket_class_code}'" unless self.ticket_class_code.blank?
+    code.blank? ? "Any" : code
+  end
   
   def calculate_discount(order)
     raise 'Inimplemented'

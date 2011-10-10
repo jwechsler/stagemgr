@@ -34,6 +34,12 @@
       <%= order_form.submit 'Process Refund', :disable_with => 'Processing...'%>
     </p>
   <% end -%>
+  <%- when @original_order.payments.first.class == MembershipPayment -%>
+    <%= form_for [:admin,@original_order,@refund_order], :url=>admin_order_refund_orders_path(@original_order) do |order_form| -%>
+      <p>
+      <%= order_form.submit 'Cancel Membership reservation', :disable_with=>'Processing...' %>
+    </p>
+  <%- end %>
 <%-else -%>
   <h3>Can't refund this order.</h3>
 <%-end-%>

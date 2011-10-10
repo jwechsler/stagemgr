@@ -4,6 +4,6 @@ class PercentOffSpecialOffer < SpecialOffer
   end
   
   def to_s
-    "#{amount}% off"
+    "#{amount}% off / #{super}"
   end
 end

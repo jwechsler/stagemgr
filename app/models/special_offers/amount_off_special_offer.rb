@@ -6,7 +6,7 @@ class AmountOffSpecialOffer < SpecialOffer
     self.amount * self.applicable_line_items(order).to_a.sum{|li| li.respond_to?(:ticket_count) ? li.ticket_count : 0} * -1
   end
   def to_s
-    "#{amount} off"
+    "$#{'%01.2f' % amount} off / #{super}"
   end
   
 end

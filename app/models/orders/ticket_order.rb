@@ -123,6 +123,7 @@ class TicketOrder < Order
 
   def release_tickets!
     self.ticket_line_items.each { |ti| ti.destroy }
+    self.payments.each { |p| p.release_tickets! }
   end
 
   # for form processing

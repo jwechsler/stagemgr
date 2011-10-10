@@ -2,6 +2,7 @@ class MembershipPayment < Payment
   validates_presence_of :membership
   belongs_to :membership
 
+
   def member_code
     self.membership.member_code
   end

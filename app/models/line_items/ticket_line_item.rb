@@ -5,7 +5,7 @@ class TicketLineItem < LineItem
 
   validates_each :ticket_count do |record, attr, value|
     unless !record.new_record? || record.ticket_class.nil? || record.order.nil? || record.order.performance.nil? || value.nil?
-      record.errors.add attr, 'is more than the number left'  if value > record.ticket_class.number_left(record.order.performance)
+      record.errors.add attr, 'is more than the number left' if value > record.ticket_class.number_left(record.order.performance)
     end
   end
 
@@ -14,32 +14,34 @@ class TicketLineItem < LineItem
       record.errors.add attr, "cannot be used on ticket class type #{record.ticket_class.ticket_type}" unless value.nil?
     end
   end
-  
+
   validates_numericality_of :price_override, :allow_nil=>true
 
   def price
     (self.price_override || self.ticket_class.try(:ticket_price)) || 0
   end
-  
+
   def refund!
-    refund_lineitem = self.clone
-    refund_lineitem.ticket_count = refund_lineitem.ticket_count*-1
-    
-    self.order.ticket_line_items << refund_lineitem
+    if self.ticket_count > 0
+      refund_lineitem = self.clone
+      refund_lineitem.ticket_count = refund_lineitem.ticket_count*-1
+
+      self.order.ticket_line_items << refund_lineitem
+    end
   end
 
   def total
     price * (self.ticket_count || 0)
   end
-  
+
   def ticket?
-     return true;
+    return true;
   end
-  
+
   def to_s
     "#{ticket_count} #{ticket_class.class_code}"
   end
-  
+
   def ticketing_fee
     self.ticket_class.ticketing_fee * self.ticket_count
   end

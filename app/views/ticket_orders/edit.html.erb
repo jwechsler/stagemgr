@@ -22,22 +22,15 @@
     <%= render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form} %>
     <%= render :partial => '/orders/special_offer_form', :locals => {:f => order_form} %>
     <%= order_form.input :marketing_source, :collection=>Order::REFERRALS, :label=>"How did you hear about the show?" %>
-    <table>
-      <tr>
-        <td width="25%">&nbsp;</td>
-        <td valign="top">
-          <%= order_form.check_box :add_to_email_list, :checked=>1 %>
-        <td>
-          Join the Theater Wit <%= if @order.performance.production.theater.id != 1
-                                     "and #{@order.performance.production.theater.name} mailing lists"
-                                   else
-                                     "mailing list"
-                                   end %>
-          <br/><span style="font-size: 11px">Get company news, special offers, ticket discounts and more delivered twice monthly. Your email
-                will not be shared. :) </span>
-        </td>
-      </tr>
-    </table>
+    <%- label_value = "Join the Theater Wit "
+              if @order.performance.production.theater.id != 1
+                label_value += "and #{@order.performance.production.theater.name} mailing lists"
+              else
+                label_value += "mailing list"
+              end
+              label_value += ".<br/> Get company news, special offers, ticket discounts and more delivered twice monthly. Your email
+                will not be shared. :) "%>
+    <%= order_form.input :add_to_email_list, :as=>:boolean, :label=>raw(label_value) %>
 
     <p id="non-exchange-notice">
       Please note that all ticket purchases are

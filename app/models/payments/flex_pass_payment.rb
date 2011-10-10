@@ -19,6 +19,11 @@ class FlexPassPayment < Payment
     0.0
   end
 
+  def release_tickets!
+    self.number_of_tickets = 0
+    self.save!
+  end
+
   def refund!
     raise 'Not Implemented'
   end

@@ -1,6 +1,9 @@
 
 <% some_are_donation = @order.line_items.any?{|li|li.ticket_class.ticket_type=='Donation'}%>
-<table id='line_items'>
+<li>
+  <label>Tickets</label>
+  <div class="inline">
+     <table id='line_items'>
   <thead>
 	<th>Type</th>
     <th>How many?</th>
@@ -16,3 +19,5 @@
 <%= render :partial => '/orders/line_item', :locals => { :f => line_item_form, :some_are_donation => some_are_donation } %>
 <% end %>
 </table>
+  </div>
+</li>

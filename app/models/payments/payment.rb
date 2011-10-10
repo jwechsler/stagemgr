@@ -28,6 +28,20 @@ class Payment < ActiveRecord::Base
     result
   end
 
+  def release_tickets!
+
+  end
+
+  def refund!(cc_number = nil, note = nil)
+    Payment.transaction do
+      refund_payment = self.clone
+      refund_payment.amount = refund_payment.amount*-1
+      refund_payment.order = order
+      self.order.payments << refund_payment
+      refund_payment.save!
+    end
+  end
+
   protected
   def set_processed_on
     self.processed_on = Date.today if (self.new_record? || self.amount_changed?)

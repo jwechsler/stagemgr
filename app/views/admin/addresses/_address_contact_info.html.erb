@@ -5,4 +5,10 @@
   <%- if !address.state.blank? -%><%=h address.state %> <%- end -%>
   <%=h address.zipcode %><br/>
   <%- if !address.email.blank?%><i>Email: </i><%= mail_to address.email, permitted_to?(:view_email, :admin_addresses) ? address.email : "[send e-mail]" %><br/><%- end -%>
-  <%- if !address.phone.blank? -%><i>Phone: <%=h address.phone %></i><%- end -%>
+  <%- if !address.phone.blank? -%><i>Phone: <%=h address.phone %></i><br/><%- end -%>
+  <%- memberships = Membership.find_all_by_address_id(address.id).select{|m| m.is_active?}
+      if memberships.size > 0
+        membership_list = memberships.map {|m| m.member_code }.join(',')
+  %>
+  <i>Member ID: </i><%= membership_list %><br/>
+  <%- end %>

@@ -160,6 +160,8 @@ Stagemgr::Application.routes.draw do
       resources :refund_orders, :only=>[:new,:create]
     end
     resources :special_offers
+    resources :amount_off_special_offers, :only=>[:edit,:index]
+
     resources :theaters do
       resources :productions do
         resources :performances do

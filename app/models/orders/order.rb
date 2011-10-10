@@ -430,9 +430,13 @@ class Order < ActiveRecord::Base
   end
 
   def transition_new_to_processing!(redirect_to = nil)
-    self.status = Order::PROCESSING
-    self.update_special_offer_line_items_from_code! unless self.special_offer_code.blank?
-    self.save!
+    Order.transaction do
+      self.status = Order::PROCESSING
+      self.update_special_offer_line_items_from_code! unless self.special_offer_code.blank?
+      self.special_offer_line_items.each { |li| li.apply_to_order(self) }
+
+      self.save!
+    end
     redirect_to
   end
 
