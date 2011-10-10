@@ -64,9 +64,9 @@ Stagemgr::Application.configure do
 
     $DATABASEDOTCOM = databasedotcom_config['production']
 
-    SalesforceSync.materialize_all
-
   end
+
+  $EMAIL_ADDRESS = YAML::load(File.open("#{::Rails.root.to_s}/config/emails.yml"))['production']
 
   # Set up notification for issues
 

@@ -38,7 +38,7 @@ class MembershipOrdersController < ApplicationController
 
     response = gateway.create_profile(token,
                                       :description => offer.billing_agreement,
-                                      :start_date => Time.now,
+                                      :start_date => Date.today,
                                       :frequency => 1,
                                       :amount => (offer.recurring_cost*100).to_i,
                                       :auto_bill_outstanding => true)

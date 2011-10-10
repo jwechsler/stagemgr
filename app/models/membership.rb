@@ -42,7 +42,19 @@ class Membership < ActiveRecord::Base
     self.number_cycles_completed = response["number_cycles_completed"] unless response["number_cycles_completed"].blank?
     self.next_billing_date = response["next_billing_date"].to_date  unless response["next_billing_date"].blank?
     self.aggregate_amount = response["aggregate_amount"]  unless response["aggregate_amount"].blank?
-    self.status = response["profile_status"][0..-8]  unless response["profile_status"].blank?
+    cycles = self.number_cycles_completed
+    cycles ||=0
+    profile_status = response["profile_status"][0..-8]  unless response["profile_status"].blank?
+    self.status = case
+      when (profile_status == ACTIVE) && (cycles > 0)
+        ACTIVE
+      when (profile_status == PENDING) || (profile_status == ACTIVE && cycles == 0)
+        PENDING
+      when ['Cancelled','Suspended'].include?(profile_status)
+        profile_status
+      else
+        "Other"
+    end
   end
 
   def update_from_profile!
@@ -52,14 +64,10 @@ class Membership < ActiveRecord::Base
   end
 
   def is_active?
-    cycles = self.number_cycles_completed
-    cycles ||=0
-    (self.status == ACTIVE) && (cycles > 0)
+    (self.status == ACTIVE && self.number_cycles_completed.to_i > 0)
   end
 
   def is_pending?
-    cycles = self.number_cycles_completed
-    cycles ||=0
-    (self.status == PENDING) || (cycles == 0)
+    self.status == PENDING
   end
 end

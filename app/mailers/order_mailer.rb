@@ -2,7 +2,7 @@ require "erb"
 
 class OrderMailer < ActionMailer::Base
 
-  layout "order_mailer", :except=>:performance_reminder
+  layout "order_mailer", :except=>[:performance_reminder, :flex_pass_pending_reminder]
 
   def ticket_confirmation(order)
     @order = order
@@ -47,14 +47,14 @@ class OrderMailer < ActionMailer::Base
   end
 
   def test_message(address)
-    mail(:to=>"jeremy@theaterwit.org",:from=>"\"Theater Wit Box Office\" <boxoffice@theaterwit.org>",
-    :subject=>"Test",
-    :tag=>"Test Message")
+    mail(:to=>"jeremy@theaterwit.org", :from=>"\"Theater Wit Box Office\" <boxoffice@theaterwit.org>",
+         :subject=>"Test",
+         :tag=>"Test Message")
   end
 
   def performance_reminder(order)
     @order = order
-    mail(:to=>@order.address.email,:from=>"\"Theater Wit Box Office\" <boxoffice@theaterwit.org>",
+    mail(:to=>@order.address.email, :from=>"\"Theater Wit Box Office\" <boxoffice@theaterwit.org>",
          :subject=>"Don't forget you have tickets to #{@order.performance.production.name}",
          :tag=>"Ticket Reminder")
   end
@@ -64,7 +64,7 @@ class OrderMailer < ActionMailer::Base
       @followup_message = ERB.new(@order.performance.production.followup_message).result if !@order.performance.production.followup_message.blank?
       @followup_message_2 = ERB.new(@order.performance.production.followup_message).result if !@order.performance.production.followup_message_2.blank?
     end
-    mail(:to=>order.address.email,:from=>"\"Jeremy Wechsler\" <jeremy@theaterwit.org>",
+    mail(:to=>order.address.email, :from=>"\"Jeremy Wechsler\" <jeremy@theaterwit.org>",
          :subject=>"Thanks for coming to #{order.performance.production.name}",
          :tag=>"Member Followup")
   end
@@ -76,24 +76,32 @@ class OrderMailer < ActionMailer::Base
   def first_time_followup(order)
     @order = order
     @special_offer = PercentOffSpecialOffer.new
-    @special_offer.create_code('1T',6)
+    @special_offer.create_code('1T', 6)
     @special_offer.auto_expire = Date.today + 3.months
     @special_offer.number_of_uses = 1
     @special_offer.amount = 25
     @special_offer.ticket_class_code = "GEN"
     @special_offer.save!
     inline_signature
-    mail(:to=>order.address.email,:from=>"\"Jeremy Wechsler\" <jeremy@theaterwit.org>",
+    mail(:to=>order.address.email, :from=>"\"Jeremy Wechsler\" <jeremy@theaterwit.org>",
          :subject=>"Thanks for coming to Theater Wit",
          :tag=>"First Time Followup")
   end
 
   def standard_followup(order)
     @order = order
-    mail(:to=>order.address.email,:from=>"\"Jeremy Wechsler\" <jeremy@theaterwit.org>",
+    mail(:to=>order.address.email, :from=>"\"Jeremy Wechsler\" <jeremy@theaterwit.org>",
          :subject=>"Nice to see you again",
          :tag=>"Standard Followup")
   end
 
+  def flex_pass_pending_reminder(flex_pass_orders)
+    unless flex_pass_orders.empty?
+      @flex_pass_orders = flex_pass_orders
+      mail(:to=>$EMAIL_ADDRESS['flex_pass_notifications'], :from=>"\"Theater Wit Box Office\" <boxoffice@theaterwit.org>",
+           :subject=>"Unprocessed Flex Passes",
+           :tag=>"Internal Notification")
+    end
+  end
 
 end

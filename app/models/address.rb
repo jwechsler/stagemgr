@@ -24,6 +24,7 @@ class Address < ActiveRecord::Base
   def regularize!
     self.first_name = NameCase(self.first_name)
     self.last_name = NameCase(self.last_name)
+    self.email.strip! unless self.email.nil?
     self.line1.strip! unless self.line1.nil?
     self.city = self.city.titlecase.strip unless self.city.nil?
     self.line2.strip! unless self.line2.nil?
@@ -64,7 +65,7 @@ class Address < ActiveRecord::Base
 
     matches = Address.where("search_name = :search_name and (email = :email #{(self.email.blank? && self.street_number.blank?) ? '' : ' or email is null or email = \'\''}) and id <> :id", {:search_name=>name_as_searchable, :id=>comparison_id,  :email => (self.email.blank? ? '' : self.email.strip)})
     if matches.nil? || matches.size == 0
-      matches = Address.where("id <> :id AND street_number = :street_number AND street = :street AND city = :city and search_name = :search_name #{self.email.blank? ? '' : 'and (email = \'\' or email is null'}",
+      matches = Address.where("id <> :id AND street_number = :street_number AND street = :street AND city = :city and search_name = :search_name #{self.email.blank? ? '' : 'and (email = \'\' or email is null)'}",
                               {:id=>comparison_id, :street_number=>self.street_number, :street=>self.street,
                                :city=>self.city, :search_name=>name_as_searchable})
       if matches.nil? || matches.size == 0
@@ -108,6 +109,7 @@ class Address < ActiveRecord::Base
   def sync_to_salesforce!
     sf_contact = Salesforce::Contact.find_by_stagemgr_id__c("#{self.id}")
     sync_time = DateTime.now
+    puts "syncing address id ##{self.id}"
     if sf_contact.nil?
       sf_contact = create_salesforce_contact
     else

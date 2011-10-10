@@ -1,0 +1,12 @@
+production:
+  box_office: boxoffice@theaterwit.org
+  online_errors: bugs@theaterwit.org
+  flex_pass_notifications: boxoffice@theaterwit.org
+  membership_notifications: jeremy@theaterwit.org
+
+development:
+  box_office: jeremy@theaterwit.org
+  online_errors: bugs@theaterwit.org
+  flex_pass_notifications: jeremy@theaterwit.org
+  membership_notifications: jeremy@theaterwit.org
+
