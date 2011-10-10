@@ -15,6 +15,7 @@ class SpecialOffer < ActiveRecord::Base
   belongs_to :performance
 
   validate :find_limiting_object
+  before_validation :fix_case
 
   def find_limiting_object
     t, i = limiting_model_type, limiting_id
@@ -135,5 +136,13 @@ class SpecialOffer < ActiveRecord::Base
   def redeem_one_use!
     self.number_of_uses -= 1 if !self.number_of_uses.blank? && self.number_of_uses >= 0
     self.save!
+  end
+
+  private
+  def fix_case
+    self.change_ticket_class_code.upcase!
+    self.ticket_class_code.upcase!
+    self.code.upcase!
+
   end
 end

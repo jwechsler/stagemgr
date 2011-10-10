@@ -41,7 +41,7 @@ class Admin::SpecialOffersController < Admin::ApplicationController
     prod_ids = Production.where("status != 'Inactive'").map {|x| x.id}
     perf_ids = Performance.where("status != 'Inactive' and production_id in (?)",prod_ids).map {|x| x.id}
     
-    @special_offers = SpecialOffer.where("system_generated = 0 and (theater_id in (?) or performance_id in (?)  or production_id in (?) or (theater_id is null and performance_id is null and production_id is null))",t_ids,perf_ids,prod_ids).order("performance_id, production_id, theater_id")
+    @special_offers = SpecialOffer.where("system_generated = 0 and (theater_id in (?) or performance_id in (?)  or production_id in (?) or (theater_id is null and performance_id is null and production_id is null))",t_ids,perf_ids,prod_ids).order("code, performance_id, production_id, theater_id")
     render :index
   end
 end
