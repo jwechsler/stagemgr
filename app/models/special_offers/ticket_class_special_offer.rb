@@ -8,6 +8,6 @@ class TicketClassSpecialOffer < SpecialOffer
   end
 
   def to_s
-    "Use #{self.change_ticket_class_code}"
+    "Use #{self.change_ticket_class_code} / #{super}"
   end
 end
