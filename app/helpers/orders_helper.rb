@@ -20,9 +20,10 @@ module OrdersHelper
     begin
       raise "Email required" if order.address.email.blank?
       raise "Name required" if order.address.full_name.blank?
-      raise "Billing address incomplete" if order.address.line1.blank? || order.address.city.blank? || order.address.state.blank? || order.address.zipcode.blank?
-      raise "Phone number required" if order.address.phone.blank?
-
+      unless [Order::MEMBERSHIP, Order::FLEX_PASS].include?(order.payment_type)
+        raise "Billing address incomplete" if order.address.line1.blank? || order.address.city.blank? || order.address.state.blank? || order.address.zipcode.blank?
+        raise "Phone number required" if order.address.phone.blank?
+      end
     rescue StandardError => e
       result = false
       rescue_error(e)
