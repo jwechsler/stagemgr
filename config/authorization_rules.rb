@@ -58,6 +58,7 @@ authorization do
     has_permission_on :admin_theaters, :to=>[:make]
     has_permission_on :admin_orders, :to=>[:cancel]
     has_permission_on :orders, :to=>[:delete]
+    has_permission_on :ticket_orders, :to=>[:delete]
     has_permission_on :admin_ticket_orders, :to=>[:hold,:unclaimed, :fulfill]
     has_permission_on :admin_refund_orders, :to=>[:make]
     has_permission_on :admin_users, :to=>[:view, :manage, :delete, :make]
