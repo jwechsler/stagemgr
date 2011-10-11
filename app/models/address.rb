@@ -57,6 +57,7 @@ class Address < ActiveRecord::Base
   end
 
   def find_original
+    self.regularize!
     comparison_id = self.id.nil? ? -1 : self.id
 
     matches = Address.where("search_name = :search_name and (email = :email #{(self.email.blank? && self.street_number.blank?) ? '' : ' or email is null or email = \'\''}) and id <> :id", {:search_name=>name_as_searchable, :id=>comparison_id,  :email => (self.email.blank? ? '' : self.email.strip)})
