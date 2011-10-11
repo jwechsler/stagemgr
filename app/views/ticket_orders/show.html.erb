@@ -1,9 +1,11 @@
-<p>Thanks!  Your ticket reservation has been made
+<p>Thanks!  Your ticket reservation has been
   <%- member_payments = @order.membership_payments
       if member_payments.size > 0 %>
-    with your <%= member_payments.first.membership.membership_offer.name %>.
+     made with your <%= member_payments.first.membership.membership_offer.name %>.
+  <%- elsif @order.total > 0 %>
+      made and your credit card has been charged <%= number_to_currency( @order.total) %>.
   <%- else %>
-    and your credit card has been charged <%= number_to_currency( @order.total) %>.
+      made.  You were not charged any money for this order.
   <%- end %>
   Your order is#<%= @order.id %>, and your tickets will be available for pickup under your name at our box office at 1229 W Belmont ninety minutes before curtain. A confirmation email will be sent shortly.
 We will see you at the show on <%= @order.performance.performance_date.to_formatted_s(:long_ordinal) %> at 

@@ -9,7 +9,7 @@
 <%= semantic_form_for @order do |order_form| %>
   <%= order_form.inputs :class=>"order" do %>
     <%- flash.each do |key, value| %>
-      <div class="flash <%= key %>"><%= value %></div>
+      <div id="flash_<%= key %>"><%= value %></div>
     <%- end %>
     <%= order_form.hidden_field :status %>
     <%= render :partial => '/orders/address', :locals => {:order_form => order_form} %>
@@ -43,8 +43,8 @@
 
   <%- end -%>
 
-
-  <p style="text-align:center;"><%= order_form.submit @submit_text, :action=>:confirm, :disable_with => 'Processing...' if [Order::NEW, Order::HOLD, Order::PROCESSING].include?(order_form.object.status) %></p>
+  <p>Status: <%= order_form.object.status %></p>
+  <p style="text-align:center;"><%= order_form.submit @submit_text, :action=>:confirm, :disable_with => 'Processing...' if (order_form.object.status.blank? || [Order::NEW, Order::HOLD, Order::PROCESSING].include?(order_form.object.status)) %></p>
 <%- end -%>
 <br clear="all"/>
 <p>If you are having any troubles, please call our box office at 773-975-8150 and we'll help you out!</p>

@@ -15,6 +15,21 @@ module OrdersHelper
     end
   end
 
+  def validate_web_order(order)
+    result = true
+    begin
+      raise "Email required" if order.address.email.blank?
+      raise "Name required" if order.address.full_name.blank?
+      raise "Billing address incomplete" if order.address.line1.blank? || order.address.city.blank? || order.address.state.blank? || order.address.zipcode.blank?
+      raise "Phone number required" if order.address.phone.blank?
+
+    rescue StandardError => e
+      result = false
+      rescue_error(e)
+    end
+    result
+  end
+
   def remove_link_unless_new_record(fields)
     out = ''
     out << fields.hidden_field(:_destroy) unless fields.object.new_record?
@@ -22,20 +37,20 @@ module OrdersHelper
     out
   end
 
-  # This method demonstrates the use of the :child_index option to render a
-  # form partial for, for instance, client side addition of new nested
-  # records.
-  #
-  # This specific example creates a link which uses javascript to add a new
-  # form partial to the DOM.
-  #
-  #   <% form_for @project do |project_form| -%>
-  #     <div id="tasks">
-  #       <% project_form.fields_for :tasks do |task_form| %>
-  #         <%= render :partial => 'task', :locals => { :f => task_form } %>
-  #       <% end %>
-  #     </div>
-  #   <% end -%>
+# This method demonstrates the use of the :child_index option to render a
+# form partial for, for instance, client side addition of new nested
+# records.
+#
+# This specific example creates a link which uses javascript to add a new
+# form partial to the DOM.
+#
+#   <% form_for @project do |project_form| -%>
+#     <div id="tasks">
+#       <% project_form.fields_for :tasks do |task_form| %>
+#         <%= render :partial => 'task', :locals => { :f => task_form } %>
+#       <% end %>
+#     </div>
+#   <% end -%>
   def generate_html(form_builder, method, options = {})
     options[:object] ||= form_builder.object.class.reflect_on_association(method).klass.new
     options[:partial] ||= "#{method.to_s.singularize}_form"
@@ -51,7 +66,7 @@ module OrdersHelper
   end
 
   private
-  def process_order(order,on_success_redirect_to)
+  def process_order(order, on_success_redirect_to)
     begin
       order.save!
       old_status = order.status
@@ -68,24 +83,28 @@ module OrdersHelper
       end
     rescue StandardError => e
       order.status = old_status
-      respond_to do |format|
-        case e
-          when InvalidCreditCard
-            flash.now[:notice] = "The credit card you entered was invalid. Reason: #{e.message}"
-          when CannotProcessPayment
-            flash.now[:notice] = "There was an error while processing your credit card. #{e.message}"
-          when ActiveRecord::RecordInvalid
-            flash.now[:notice] = "There was an error creating the order. #{e.message}"
-          else
-            flash.now[:notice] = "There was an error creating the order. #{e.message}"
-            logger.error "There was an error creating the order. #{e.message} #{e.backtrace}"
-        end
-
-        format.html { render 'edit', :layout=>true }
-      end
+      rescue_error(e)
     end
 
 
+  end
+
+  def rescue_error(e)
+    respond_to do |format|
+      case e
+        when InvalidCreditCard
+          flash.now[:error] = "The credit card you entered was invalid. Reason: #{e.message}"
+        when CannotProcessPayment
+          flash.now[:error] = "There was an error while processing your credit card. #{e.message}"
+        when ActiveRecord::RecordInvalid
+          flash.now[:error] = "There was an error creating your order. #{e.message}"
+        else
+          flash.now[:error] = "There was a problem with your order. #{e.message}"
+          logger.error "There was an error creating the order. #{e.message} #{e.backtrace}"
+      end
+
+      format.html { render 'edit', :layout=>true }
+    end
   end
 
   def submit_recurring_payment_request
@@ -103,5 +122,6 @@ module OrdersHelper
 
     redirect_to gateway.redirect_url_for(setup_response.token)
   end
+
 end
 
