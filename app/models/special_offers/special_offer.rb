@@ -76,7 +76,7 @@ class SpecialOffer < ActiveRecord::Base
       applicable = Array.new
       ticket_lines.each do |li|
         break if num_remaining <= 0
-        if li.ticket_count > num_applied then
+        if li.ticket_count > num_remaining then
           li2 = li.clone
           li2.ticket_count = li.ticket_count - num_remaining
           order.ticket_line_items << li2
@@ -102,7 +102,7 @@ class SpecialOffer < ActiveRecord::Base
   end
   
   def calculate_discount(order)
-    raise 'Inimplemented'
+    raise 'Unimplemented'
   end
 
   def create_code(prefix = '', size = 6)

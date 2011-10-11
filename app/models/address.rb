@@ -1,6 +1,7 @@
 require 'street_address'
 require 'address_imports'
 require 'csv'
+require 'name_parse'
 
 class Address < ActiveRecord::Base
 
@@ -8,7 +9,7 @@ class Address < ActiveRecord::Base
 
   validates_presence_of :last_name
   validates :email, :email=>true
-  before_save :regularize!
+  before_validation :regularize!
   has_many :orders
   has_many :address_tags
   has_many :memberships
@@ -18,12 +19,14 @@ class Address < ActiveRecord::Base
   REQUESTED, SAVED =
       "Requested", "Saved")
 
-  attr_accessible :first_name, :last_name, :line1, :line2, :city, :state, :zipcode, :email, :phone, :street_number, :address_tags_attributes
+  attr_accessible  :full_name, :line1, :line2, :city, :state, :zipcode, :email, :phone, :street_number, :address_tags_attributes
   acts_as_audited :protect=>false, :except=>['street_number', 'street', 'street_type', 'unit', 'unit_prefix', 'search_name']
 
   def regularize!
-    self.first_name = NameCase(self.first_name)
-    self.last_name = NameCase(self.last_name)
+    self.full_name = NameCase(self.full_name)
+    parsed = NameParse::Parser.new(self.full_name)
+    self.first_name = parsed.first
+    self.last_name = parsed.last
     self.email.strip! unless self.email.nil?
     self.line1.strip! unless self.line1.nil?
     self.city = self.city.titlecase.strip unless self.city.nil?
@@ -51,13 +54,6 @@ class Address < ActiveRecord::Base
     self.unit_prefix.upcase! unless self.unit_prefix.nil?
     self.search_name = name_as_searchable
     self
-  end
-
-  def full_name
-    value = ""
-    value << self.first_name << " " if !self.first_name.blank?
-    value << self.last_name if !self.last_name.blank?
-    value
   end
 
   def find_original

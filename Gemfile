@@ -50,6 +50,7 @@ gem "money"
 gem "gemcutter"
 gem "postmark-rails"
 gem "namecase", "~> 1.1.0"
+gem "name_parse", "~> 0.0.5"
 
 group :development do
   gem 'wirble',               '0.1.3'

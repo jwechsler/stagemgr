@@ -81,6 +81,7 @@ class OrderMailer < ActionMailer::Base
     @special_offer.number_of_uses = 1
     @special_offer.amount = 25
     @special_offer.ticket_class_code = "GEN"
+    @special_offer.system_generated = true
     @special_offer.save!
     inline_signature
     mail(:to=>order.address.email, :from=>"\"Jeremy Wechsler\" <jeremy@theaterwit.org>",

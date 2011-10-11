@@ -433,7 +433,7 @@ class Order < ActiveRecord::Base
     Order.transaction do
       self.status = Order::PROCESSING
       self.update_special_offer_line_items_from_code! unless self.special_offer_code.blank?
-      self.special_offer_line_items.each { |li| li.apply_to_order(self) }
+      self.special_offer_line_items.each { |li| li.special_offer.apply_to_order(self) }
 
       self.save!
     end
