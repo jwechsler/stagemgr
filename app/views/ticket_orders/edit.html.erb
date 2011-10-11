@@ -43,7 +43,6 @@
 
   <%- end -%>
 
-  <p>Status: <%= order_form.object.status %></p>
   <p style="text-align:center;"><%= order_form.submit @submit_text, :action=>:confirm, :disable_with => 'Processing...' if (order_form.object.status.blank? || [Order::NEW, Order::HOLD, Order::PROCESSING].include?(order_form.object.status)) %></p>
 <%- end -%>
 <br clear="all"/>
