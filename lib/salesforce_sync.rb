@@ -67,13 +67,13 @@ class SalesforceSync
           }
           merge.update_from(address)
           merge.save!
-          address.delete
+
         end
         if !address.sf_last_sync_at.nil? && delete_sf_records
           sf_contact = Salesforce::Contact.find_by_stagemgr_id__c(address.id.to_s)
           sf_contact.delete unless sf_contact.nil?
         end
-
+        address.delete unless merge.nil?
       end
     end
     nil

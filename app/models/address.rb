@@ -24,9 +24,17 @@ class Address < ActiveRecord::Base
 
   def regularize!
     self.full_name = NameCase(self.full_name)
-    parsed = NameParse::Parser.new(self.full_name)
-    self.first_name = parsed.first
-    self.last_name = parsed.last
+    if self.full_name.include?(' ')
+      parsed = NameParse::Parser.new(self.full_name)
+      self.first_name = parsed.first
+      self.last_name = parsed.last
+      self.middle_name = parsed.middle
+    else
+      self.last_name = self.full_name
+      self.first_name = ''
+      self.middle_name = ''
+    end
+
     self.email.strip! unless self.email.nil?
     self.line1.strip! unless self.line1.nil?
     self.city = self.city.titlecase.strip unless self.city.nil?
