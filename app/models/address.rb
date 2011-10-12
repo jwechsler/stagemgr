@@ -31,7 +31,7 @@ class Address < ActiveRecord::Base
         self.last_name = parsed.last
         self.middle_name = parsed.middle
       else
-        brute_force = a.full_name.split(' ')
+        brute_force = self.full_name.split(' ')
         self.last_name = brute_force.last
         self.first_name = brute_force[0..-2].join(' ')
       end
