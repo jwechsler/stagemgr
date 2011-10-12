@@ -26,9 +26,15 @@ class Address < ActiveRecord::Base
     self.full_name = NameCase(self.full_name)
     if self.full_name.include?(' ')
       parsed = NameParse::Parser.new(self.full_name)
-      self.first_name = parsed.first
-      self.last_name = parsed.last
-      self.middle_name = parsed.middle
+      if [:first_last,:first_mid_last].include?(parsed.matched)
+        self.first_name = parsed.first
+        self.last_name = parsed.last
+        self.middle_name = parsed.middle
+      else
+        brute_force = a.full_name.split(' ')
+        self.last_name = brute_force.last
+        self.first_name = brute_force[0..-2].join(' ')
+      end
     else
       self.last_name = self.full_name
       self.first_name = ''
