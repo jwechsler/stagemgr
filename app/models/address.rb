@@ -40,7 +40,7 @@ class Address < ActiveRecord::Base
         self.last_name = self.full_name
         self.first_name = ''
         self.middle_name = ''
-      endexit
+      end
 
       self.email.strip! unless self.email.nil?
       self.line1.strip! unless self.line1.nil?
