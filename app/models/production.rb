@@ -57,7 +57,10 @@ class Production < ActiveRecord::Base
     self.performances.each { |p|
       o = TicketOrder.create(:status=>Order::HOLD, :address=>address, :performance=>p, :payment_type=>Order::CASH)
       li = o.ticket_line_items.build(:ticket_class=>ticket_class, :ticket_count=>number_of_tickets)
-      o.save!
+      if !o.save
+        o.destroy
+        puts "Couldn't create hold for #{p.performance_code}"
+      end
     }
   end
 
