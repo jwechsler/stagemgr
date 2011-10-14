@@ -62,6 +62,7 @@ class Production < ActiveRecord::Base
         puts "Couldn't create hold for #{p.performance_code}"
       end
     }
+    nil
   end
 
   def self.visible_statuses
