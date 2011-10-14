@@ -254,6 +254,7 @@ class Admin::ReportsController < Admin::ApplicationController
     Order.transaction do
       orders.each { |o|
         if o.contains_tickets?
+          logger.info("Fulfilling order #{o.id}")
           is_donor = o.address.is_donor?
           last24 = o.address.performances_attended(2.years.ago)
           member_id = o.membership_payments.size > 0 ? o.membership_payments.to_a.map { |mp| mp.membership.member_code }.join(',') + ' ' : ''

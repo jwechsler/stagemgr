@@ -103,6 +103,7 @@ class Admin::OrdersController < Admin::ApplicationController
   end
 
   def cancel
+    raise "Cannot cancel orders with payments" if @order.payments.size > 0
     @order.cancel!
     redirect_to :action=>"index", :controller=>"admin/orders"
   end

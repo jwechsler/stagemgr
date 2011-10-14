@@ -17,12 +17,13 @@ class TicketOrdersController < ApplicationController
   def create
     @order = TicketOrder.new(params[:ticket_order])
     @order.ip_address = request.remote_ip
-    process_order(@order,:edit_ticket_order_path)
+    process_order(@order,:edit_ticket_order_path) if validate_web_order(@order)
   end
 
   def update
     @order.attributes=params[:ticket_order]
     @order.ip_address = request.remote_ip
+    validate_web_order(@order)
     process_order(@order,:edit_ticket_order_path)
   end
   

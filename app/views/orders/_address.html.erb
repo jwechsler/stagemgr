@@ -2,7 +2,7 @@
   <%= address_form.inputs do %>
     <%= address_form.input :full_name, :label=>"Name", :required=>true %>
     <%= address_form.input :email, :required=>true %>
-    <%= address_form.input :line1, :label=>"Billing Address", :required=>true %>
+    <%= address_form.input :line1, :label=>"Billing Address" %>
     <li>
       <label>&nbsp;</label>
 
@@ -26,6 +26,6 @@
         </table>
       </div>
     </li>
-    <%= address_form.input :phone, :required=>true %>
+    <%= address_form.input :phone %>
   <%- end %>
 <% end %>
