@@ -1,29 +1,40 @@
 class Admin::ExchangeTicketOrdersController < Admin::ApplicationController
- filter_access_to :all
+  filter_access_to :all
+  include OrdersHelper
 
   def new
     @original_order = TicketOrder.find(params[:ticket_order_id])
     @exchange_order = TicketOrder.new
     @exchange_order.ticket_line_items.build
     @exchange_order.status = Order::NEW
-    @allowed_payment_types =  [Order::FLEX_PASS] if @original_order.paid_with_pass?
+    @allowed_payment_types = [Order::FLEX_PASS] if @original_order.paid_with_pass?
 
     respond_to do |format|
       format.html # new.html.erb
-      format.xml  { render :xml => @exchange_order }
-    end  
-  end
-  
-  def create
-    @original_order = TicketOrder.find(params[:ticket_order_id])
-    @exchange_order = TicketOrder.new(params[:ticket_order])
-    @exchange_order.special_offer_code = params[:ticket_order][:special_offer_code]
-    @exchange_order.exchange_and_process_from! @original_order
-    respond_to do |format|
-      flash[:notice] = 'Order was successfully exchanged.'
-      format.html { redirect_to(edit_admin_ticket_order_path(@exchange_order.id)) }
-      format.xml  { render :xml => @exchange_order, :status => :created, :location => @exchange_order }
+      format.xml { render :xml => @exchange_order }
     end
-    
+  end
+
+  def create
+    TicketOrder.transaction do
+      begin
+        @original_order = TicketOrder.find(params[:ticket_order_id])
+        @exchange_order = TicketOrder.new(params[:ticket_order])
+        @exchange_order.special_offer_code = params[:ticket_order][:special_offer_code]
+        @exchange_order.exchange_and_process_from! @original_order
+        respond_to do |format|
+          flash[:notice] = 'Order was successfully exchanged.'
+          format.html { redirect_to(edit_admin_ticket_order_path(@exchange_order.id)) }
+          format.xml { render :xml => @exchange_order, :status => :created, :location => @exchange_order }
+        end
+      rescue StandardError => e
+        respond_to do |format|
+          flash[:error] = "There was a problem with the exchange. #{e.message}"
+          format.html { render 'new' }
+        end
+      end
+
+    end
+
   end
 end
