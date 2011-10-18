@@ -21,11 +21,10 @@ class Order < ActiveRecord::Base
   has_many :line_items
   has_many :flex_pass_line_items
   has_many :special_offer_line_items
-  has_many :donation_line_items
+
   belongs_to :address
   accepts_nested_attributes_for :flex_pass_line_items,
                                 :special_offer_line_items,
-                                :donation_line_items,
                                 :address,
                                 :allow_destroy => true
   attr_accessor :special_offer_code
@@ -66,7 +65,6 @@ class Order < ActiveRecord::Base
   validates_presence_of :address, :status
   validates_associated :address,
                        :payments,
-                       :donation_line_items,
                        :flex_pass_line_items, :special_offer_line_items
 
   validates_each :status do |record, attr, value|
@@ -98,7 +96,6 @@ class Order < ActiveRecord::Base
     self.status == Order::FULFILLED
   end
 
-
   def refundable?
     self.exchangeable?
   end
@@ -111,8 +108,6 @@ class Order < ActiveRecord::Base
     case
       when self.contains_flex_pass?
         "FLEXPASS"
-      when self.contains_donation?
-        "DONATION"
     end
   end
 
@@ -153,11 +148,6 @@ class Order < ActiveRecord::Base
     (self.line_items.select { |li| li.is_a? FlexPassLineItem }+self.flex_pass_line_items).size > 0
   end
 
-
-  def contains_donation?
-    (self.donation_line_items.select { |li| (li.is_a? DonationLineItem) } + self.donation_line_items.select { |li| li.donation_amount > 0 }).size > 0
-  end
-
   def flex_pass_offer
     FlexPassOffer.find(self.flex_pass_line_items[0].flex_pass_offer_id) unless self.flex_pass_line_items.size == 0
   end
@@ -168,7 +158,7 @@ class Order < ActiveRecord::Base
       valid_payment_types.delete CASH
       valid_payment_types.delete PRICE_OVERRIDE
     end
-    if self.contains_flex_pass? || self.contains_donation?
+    if self.contains_flex_pass?
       valid_payment_types.delete FLEX_PASS
       valid_payment_types.delete MEMBERSHIP
     end
@@ -257,12 +247,10 @@ class Order < ActiveRecord::Base
 
   def description
     case
-      when self.contains_donation?
-        "Donation"
       when self.contains_flex_pass?
         self.flex_pass_line_items[0].flex_pass_offer.name
       else
-        ""
+        "Unknown"
     end
 
   end
@@ -278,8 +266,7 @@ class Order < ActiveRecord::Base
 
   def to_s
     case
-      when self.contains_donation?
-        "Donation"
+
       when self.contains_flex_pass?
         self.flex_pass_line_items[0].to_s
       else
@@ -404,12 +391,13 @@ class Order < ActiveRecord::Base
     new_payment.process!
   end
 
+  def all_line_items(reload_line_items = false)
+    self.line_items(reload_line_items) + self.special_offer_line_items(reload_line_items) +
+        self.flex_pass_line_items(reload_line_items)
+  end
+
   def unique_line_items(reload_line_items = false)
-    (self.line_items(reload_line_items) +
-        self.special_offer_line_items(reload_line_items) +
-        self.flex_pass_line_items(reload_line_items) +
-        self.donation_line_items(reload_line_items)
-    ).uniq
+    self.all_line_items(reload_line_items).uniq
   end
 
   def unique_payments
@@ -479,8 +467,6 @@ class Order < ActiveRecord::Base
     self.status ||= HOLD
     set_form_defaults
     self.flex_pass_line_items.each { |tli| tli.order=self }
-    self.donation_line_items.each { |di| di.order=self }
-
   end
 
   def create_mail_list_task
@@ -489,10 +475,7 @@ class Order < ActiveRecord::Base
 
 
   def create_receipt_task
-
     self.tasks << OutreachTask.new(:execute_at=>Time.now + 5.minutes, :method_symbol=>:flexpass_confirmation) if self.contains_flex_pass?
-    self.tasks << OutreachTask.new(:execute_at=>Time.now + 5.minutes, :method_symbol=>:donation_thank_you) if self.contains_donation?
-
   end
 
 
@@ -528,7 +511,7 @@ class Order < ActiveRecord::Base
   end
 
   def save_additional_donation_order
-    donation = Order.new(:address => self.address, :payment_type => self.payment_type, :status => Order::PROCESSING)
+    donation = DonationOrder.new(:address => self.address, :payment_type => self.payment_type, :status => Order::PROCESSING)
     donation.copy_payment_information(self)
     donation.save!
 

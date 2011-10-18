@@ -1,0 +1,24 @@
+<%= render :partial => '/admin/orders/header', :locals=>{:order=>@donation_order} %>
+
+<%= render :partial => '/admin/donation_line_items/table', :locals=>{:order=>@donation_order} %>
+
+<%= render :partial => '/admin/orders/payments', :locals=>{:order=>@donation_order} %>
+
+<p>
+	<% permitted_to? :new, :admin_refund_orders do %>
+    <%= link_to 'Refund Order', new_admin_order_refund_order_path(@donation_order) if @donation_order.refundable? %>
+  <% end %>
+  <% permitted_to? :new, :admin_exchange_donation_orders do %>
+	  <%= link_to 'Exchange Order', new_admin_donation_order_exchange_donation_order_path(@donation_order) if (@donation_order.exchangeable? && (!current_user.is_theater_user? || (current_user.is_theater_user? && @donation_order.status!=Order::FULFILLED))) %>
+  <% end %>
+	<%= link_to 'Fulfill Order', fulfill_admin_order_path(@donation_order) if @donation_order.fulfillable?  %>
+	<% if @donation_order.status == 'Processing' || @donation_order.status == 'Hold' || @donation_order.status == Order::NEW %>
+	<%= link_to 'Cancel Order', cancel_admin_order_path(@donation_order), :confirm => "Are you sure?", :method=>:post %>
+	<% end %>
+  <% permitted_to? :unclaimed, :admin_orders do %>
+    <%= link_to 'Unclaimed', unclaimed_admin_order_path(@donation_order) if @donation_order.fulfilled? %>
+  <%- end %>
+</p>
+
+<%= render :partial => '/admin/orders/audit_show', :locals=>{:order_form=>@donation_order} %>
+

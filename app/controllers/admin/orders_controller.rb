@@ -37,8 +37,9 @@ class Admin::OrdersController < Admin::ApplicationController
       redirect_to url_for(:controller=>:membership_orders, :action=>:show, :id=>@order.id)
     elsif @order.is_a? TicketOrder
       redirect_to url_for(:controller=>:ticket_orders, :action=>:show, :id=>@order.id)
+    elsif @order.is_a? DonationOrder
+      redirect_to url_for(:controller=>:donation_orders, :action=>:show, :id=>@order.id)
     end
-
   end
 
   def fulfill_selected

@@ -199,3 +199,12 @@
 #content {
   padding: 10px;
 }
+
+#tax_deductible_notice {
+  text-align: center;
+  font-style: italic;
+}
+
+#contact_boxoffice_info {
+  text-align: center;
+}

@@ -6,20 +6,9 @@
   </tr>
 </table>
 
-<%- if order.is_a? TicketOrder -%>
-  <p>
-    Performance:
-    <%= h order.performance.to_s %>
-  </p>
-<%- end -%>
-
-<%- if order.is_a? TicketOrder %>
-<%= render :partial => '/admin/ticket_line_items/table', :locals=>{:order=>order} %>
-<%- end %>
 
 <%= render :partial => '/admin/flex_pass_line_items/table', :locals=>{:order=>order} %>
 
-<%= render :partial => '/admin/donation_line_items/table', :locals=>{:order=>order} %>
 
 <%= render :partial => '/admin/special_offer_line_items/table', :locals=>{:order=>order} %>
 

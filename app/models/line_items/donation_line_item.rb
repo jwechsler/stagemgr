@@ -1,4 +1,5 @@
 class DonationLineItem < LineItem
+  belongs_to :donation_order, :foreign_key=>:order_id
   validates_presence_of :donation_amount
 
   attr_accessor :donation_level

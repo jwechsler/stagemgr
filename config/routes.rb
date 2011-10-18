@@ -26,11 +26,13 @@ Stagemgr::Application.routes.draw do
 
   namespace(:admin){ resources :default_ticket_classes }
 
-  get "donations/new"
+  #get "donations/new"
 
-  get "donations/confirm"
+  #get "donations/confirm"
 
-  get "donations/show"
+  #get "donations/show"
+
+  resources :donations, :controller => "donation_orders"
 
   resources :membership_orders do
     member do
@@ -56,6 +58,10 @@ Stagemgr::Application.routes.draw do
   end
 
   resources :ticket_orders do
+    post :confirm, :on=> :collection
+  end
+
+  resources :donation_orders do
     post :confirm, :on=> :collection
   end
 
@@ -142,6 +148,17 @@ Stagemgr::Application.routes.draw do
         get :unclaimed
       end
       resources :refund_orders, :only=>[:new,:create]
+    end
+
+    resources :donation_orders do
+      collection do
+        post :fulfill_selected
+      end
+      member do
+        post :cancel
+        post :refund
+        get  :fulfill
+      end
     end
 
     resources :ticket_orders do
