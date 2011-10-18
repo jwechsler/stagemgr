@@ -4,7 +4,7 @@ class AddressTest < ActiveSupport::TestCase
 
   context "with a valid address" do
     setup do
-      @new_address = Factory.create(:address, :first_name=>"Test", :last_name=>"Guy", :line1=>"1229 W Belmont Ave Unit #3", :city=>"Chicago", :state=>"IL", :zipcode=>"60657", :email=>"test@matches.com")
+      @new_address = Factory.create(:address, :full_name=>"Test Guy", :line1=>"1229 W Belmont Ave Unit #3", :city=>"Chicago", :state=>"IL", :zipcode=>"60657", :email=>"test@matches.com")
     end
     should "be able to parse street address" do
       @new_address.regularize!
@@ -25,7 +25,7 @@ class AddressTest < ActiveSupport::TestCase
     end
 
     should "gracefully accept missing address" do
-      @bad_address = Factory.create(:address, :last_name=>"hi", :line1=>'', :city=>'')
+      @bad_address = Factory.create(:address, :full_name=>"hi", :line1=>'', :city=>'')
       @bad_address.save!
       assert_nil @bad_address.street_number
     end
@@ -34,16 +34,15 @@ class AddressTest < ActiveSupport::TestCase
   context "with a set of preexisting addresses" do
 
     setup do
-      @first_customer = Factory.create(:address, :first_name=>"First", :last_name=>"Guy", :line1=>"1229 W Belmont", :city=>"Chicago", :state=>"IL", :zipcode=>"60657", :email=>"test@matches.com")
-      @same_name_different_email = Factory.create(:address, :first_name=>"First", :last_name=>"Guy", :line1=>"1229 W Belmont", :city=>"Chicago", :state=>"IL", :zipcode=>"60657", :email=>"test@different.com")
-      @different_name_no_email = Factory.create(:address, :first_name=>"Second", :last_name=>"Guy", :line1=>"1229 W Belmont", :city=>"Chicago", :state=>"IL", :zipcode=>"60657")
+      @first_customer = Factory.create(:address, :full_name=>"Test Guy", :line1=>"1229 W Belmont", :city=>"Chicago", :state=>"IL", :zipcode=>"60657", :email=>"test@matches.com")
+      @same_name_different_email = Factory.create(:address, :full_name=>"First Guy", :line1=>"1229 W Belmont", :city=>"Chicago", :state=>"IL", :zipcode=>"60657", :email=>"test@different.com")
+      @different_name_no_email = Factory.create(:address, :full_name=>"Second Guy", :line1=>"1229 W Belmont", :city=>"Chicago", :state=>"IL", :zipcode=>"60657")
 
     end
 
     should "match by name and email" do
       @new_address = Address.new
-      @new_address.first_name = "First"
-      @new_address.last_name="Guy"
+      @new_address.full_name = "Test Guy"
       @new_address.line1="500 W Nowhere"
       @new_address.zipcode="60640"
       @new_address.email="test@matches.com"
@@ -55,8 +54,7 @@ class AddressTest < ActiveSupport::TestCase
 
     should "match by name and key address fields when email missing from new" do
       @new_address = Address.new
-      @new_address.first_name = "First"
-      @new_address.last_name="Guy"
+      @new_address.full_name="Test Guy"
       @new_address.line1="1229 W Belmont"
       @new_address.city="Chicago"
       @new_address.regularize!
@@ -67,8 +65,7 @@ class AddressTest < ActiveSupport::TestCase
 
     should "won't match without name" do
       @new_address = Address.new
-      @new_address.first_name = "Other"
-      @new_address.last_name="Guy"
+      @new_address.full_name = "Other Guy"
       @new_address.line1="1229 W Belmont"
       @new_address.city="Chicago"
       @new_address.regularize!
@@ -78,8 +75,7 @@ class AddressTest < ActiveSupport::TestCase
 
     should "dont match mismatched emails" do
       @new_address = Address.new
-      @new_address.first_name = "First"
-      @new_address.last_name="Guy"
+      @new_address.full_name = "First Guy"
       @new_address.line1="1229 W Belmont"
       @new_address.city="Chicago"
       @new_address.email="random@email.com"
@@ -91,8 +87,7 @@ class AddressTest < ActiveSupport::TestCase
 
     should "merge missing information" do
       @new_address = Address.new
-      @new_address.first_name = "First"
-      @new_address.last_name="Guy"
+      @new_address.full_name = "Test Guy"
       @new_address.line1="500 W Nowhere"
       @new_address.zipcode="60640"
       @new_address.email="test@matches.com"
@@ -104,8 +99,7 @@ class AddressTest < ActiveSupport::TestCase
       assert_equal "60640", @matching.zipcode
 
       @new_address = Address.new
-      @new_address.first_name = "Second"
-      @new_address.last_name="Guy"
+      @new_address.full_name = "Second Guy"
       @new_address.line1="1229 W Belmont"
       @new_address.city="Chicago"
       @new_address.email="newemail@testing.com"
@@ -126,12 +120,13 @@ class AddressTest < ActiveSupport::TestCase
     end
     should "merge newer contact information from a match" do
       @entered_address = Address.new
-      @entered_address.last_name = "BetterName"
+      @entered_address.full_name = "BetterName"
       @entered_address.email = "info@theaterwit.org"
       @entered_address.line2 = "2nd Floor"
       @entered_address.line1 = "1 E Madison"
+      @entered_address.regularize!
       @original_address.update_from(@entered_address)
-      assert_equal "BetterName", @original_address.last_name
+      assert_equal "Bettername", @original_address.last_name
       assert_equal "info@theaterwit.org", @original_address.email
       assert_equal "1 E Madison", @original_address.line1
       assert_equal "2nd Floor", @original_address.line2
@@ -170,10 +165,10 @@ class AddressTest < ActiveSupport::TestCase
   context "with a new matching address and related tags" do
     setup do
       without_access_control do
-        @address_1 = Factory(:address, :first_name=>"bob", :last_name=>"Smith", :email=>"bob@smith.com")
+        @address_1 = Factory(:address, :full_name => "Bob Smith", :first_name=>"bob", :last_name=>"Smith", :email=>"bob@smith.com", :search_name => "BOB SMITH")
         @address_1.address_tags.build([{:tag_label=>"Subscription ID", :tag_value=>"9393", :theater => Factory(:theater)}])
         @address_1.save
-        @address_2 = Factory(:address, :first_name=>"bob", :last_name=>"Smith", :email=>"bob@smith.com")
+        @address_2 = Factory(:address, :first_name=>"bob", :last_name=>"Smith", :email=>"bob@smith.com", :full_name => "bob Smith")
         @address_2.address_tags.build([{:tag_label=>"Subscription ID", :tag_value=>"4444", :theater => Factory(:theater)}])
         @address_2.save
       end

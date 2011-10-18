@@ -9,6 +9,7 @@
 jeremy:
   id: 1
   city: Chicago
+  full_name: "Jeremy Wechsler"
   first_name: Jeremy
   last_name: Wechsler
   line1: 1229 W Belmont
@@ -19,21 +20,27 @@ jeremy:
 
 bob_smith_1:
   id: 2
-  last_name: Smith
-  first_name: Bob
-  email: bob@bobsmith.com
+  full_name: "Bob Smith"
+  last_name: "Smith"
+  first_name: "Bob"
+  email: "bob@bobsmith.com"
   line1: 123 Somewhere
+  search_name: "BOB SMITH"
 
 bob_smith_2:
   id: 3
+  full_name: "Bob Smith"
   last_name: "Smith"
   first_name: "Bob"
   email: "bob@bobsmith.com"
   city: "Chicago"
+  search_name: "BOB SMITH"
 
 john_smith:
   id: 4
+  full_name: "John Smith"
   last_name: "Smith"
   first_name: "John"
   email: "someone@else.com"
   city: "Anchorage"
+  search_name: "JOHN SMITH"

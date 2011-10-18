@@ -11,7 +11,8 @@ Factory.define(:user) do |user|
 end
 
 Factory.define(:address) do |address|
-  address.last_name 'test'
+  address.last_name 'Test'
+  address.full_name 'Test'
   address.line1 '123 swift st'
   address.city  'hoboken'
   address.state 'ct'

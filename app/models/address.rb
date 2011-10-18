@@ -24,7 +24,7 @@ class Address < ActiveRecord::Base
 
   def regularize!
     if self.changed?
-      self.full_name = NameCase(self.full_name)
+     self.full_name = NameCase(self.full_name)
       if self.full_name.include?(' ')
         parsed = NameParse::Parser.new(self.full_name)
         if [:first_last, :first_mid_last].include?(parsed.matched)
@@ -47,7 +47,7 @@ class Address < ActiveRecord::Base
       self.city = self.city.titlecase.strip unless self.city.nil?
       self.line2.strip! unless self.line2.nil?
       if (!self.line1.nil? || !self.line2.nil?) then
-        parsed_address = StreetAddress::US.parse_address("#{self.line1} #{self.line2} #{self.city} #{self.state}")
+        parsed_address = StreetAddress::US.parse_address("#{self.line1}\n#{self.line2}")
         if !parsed_address.nil? then
           self.street_number = parsed_address.number
           self.street = parsed_address.street

@@ -115,7 +115,7 @@ class OrderTest < ActiveSupport::TestCase
             "line1"=>"123 Swift St",
             "line2"=>"",
             "zipcode"=>"90210",
-            "last_name"=>"Test",
+            "full_name"=>"Test",
             "state"=>"NC",
             "first_name"=>""
           },
@@ -149,7 +149,7 @@ class OrderTest < ActiveSupport::TestCase
             "line1"=>"123 Swift St",
             "line2"=>"",
             "zipcode"=>"90210",
-            "last_name"=>"Test",
+            "full_name"=>"Test",
             "state"=>"NC",
             "first_name"=>""
           },
@@ -207,7 +207,7 @@ class OrderTest < ActiveSupport::TestCase
       end
     end
 
-    should "A canceled order does not reduce the quantity of tickets available for the performance" do
+    should "A canceled order does not reduces the quantity of tickets available for the performance" do
       without_access_control do
         o = Factory.create(:ticket_order, :performance=>@performance, :payment_type=>Order::CASH)
         li = o.ticket_line_items.create!(:ticket_class=>@production.ticket_classes.first, :ticket_count=>5)
@@ -217,7 +217,7 @@ class OrderTest < ActiveSupport::TestCase
       end
     end
 
-    should "A refunded order does not reduce the quantity of tickets available for the performance" do
+    should "A refunded order does not reduces the quantity of tickets available for the performance" do
       without_access_control do
         o = Factory.create(:ticket_order, :performance=>@performance, :payment_type=>Order::CASH)
         li = o.ticket_line_items.create!(:ticket_class=>@production.ticket_classes.first, :ticket_count=>5)
@@ -286,6 +286,7 @@ class OrderTest < ActiveSupport::TestCase
     end
     should "allow you to purchase a ticket for a particular performance" do
       code = @order.membership.member_code
+      @order.membership.status = Membership::ACTIVE
       o = TicketOrder.create(:status=>Order::NEW, :address=>@address, :performance=>performances(:macbeth_opening), :payment_type => Order::MEMBERSHIP, :member_code=>@order.membership.member_code)
       o.ticket_line_items.create!(:ticket_class=>ticket_classes(:macbeth_general_admission), :ticket_count=>1)
       assert_not_nil(o.address.email)

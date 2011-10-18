@@ -140,8 +140,8 @@ class SpecialOffer < ActiveRecord::Base
 
   private
   def fix_case
-    self.change_ticket_class_code.upcase!
-    self.ticket_class_code.upcase!
+    self.change_ticket_class_code.upcase! unless self.change_ticket_class_code.nil?
+    self.ticket_class_code.upcase! unless self.ticket_class_code.nil?
     self.code.upcase!
 
   end
