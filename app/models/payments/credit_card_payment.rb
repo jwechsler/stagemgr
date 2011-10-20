@@ -37,7 +37,9 @@ class CreditCardPayment < Payment
     self.card_last_four ||= self.card_number.nil? ? "" : self.card_number[-4..-1]
   end
 
-
+  def receipt_description
+     "#{self.card_type} ending in #{self.card_last_four} AUTH #{confirmation_code}"
+   end
 
   def process!
     if self.confirmation_code.blank? || self.card_number.length != 4

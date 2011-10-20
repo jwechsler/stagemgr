@@ -19,6 +19,14 @@ class LineItem < ActiveRecord::Base
   def total
     0
   end
+
+  def receipt_total
+    self.total
+  end
+
+  def receipt_description
+    self.to_s
+  end
   
   def ticket?
     return false;

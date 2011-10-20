@@ -1,0 +1,5 @@
+development:
+  service: "http://localhost:3001"
+
+production:
+  service: "http://localhost:3001"

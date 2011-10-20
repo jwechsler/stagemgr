@@ -15,4 +15,9 @@ class MembershipPayment < Payment
     self.membership = Membership.find_by_member_code(code)
     raise UnknownMembershipCode if self.membership.nil?
   end
+
+  def receipt_description
+    "Membership ##{membership.member_code}"
+  end
+
 end
