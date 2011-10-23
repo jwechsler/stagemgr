@@ -3,63 +3,62 @@
 <a name="top" style="text-decoration:none;"><h3><%= raw @order_for_to_s %>&nbsp;</h3></a>
 
 <%- if @order.flex_pass_line_items.size > 0 -%>
-  <p><%= @order.flex_pass_line_items[0].flex_pass_offer.description%></p>
-  <%- end -%>
+  <p><%= @order.flex_pass_line_items[0].flex_pass_offer.description %></p>
+<%- end -%>
 
 <%= semantic_form_for @order do |order_form| %>
-    <%= order_form.inputs :class=>"order" do %>
-        <%= order_form.error_messages %>
-        <%= order_form.hidden_field :status %>
-        <%= render :partial => '/orders/address', :locals => {:order_form => order_form} %>
+  <%= order_form.inputs :class=>"order" do %>
+    <%= order_form.error_messages %>
+    <%= order_form.hidden_field :status %>
+    <%= render :partial => '/orders/address', :locals => {:order_form => order_form} %>
 
-        <%- if @order.donation_line_items.size > 0 -%>
-            <%- @submit_text = "Make a donation" -%>
+    <!-- Flex Pass Order -->
+    <%- if @order.flex_pass_line_items.size > 0 -%>
+      <br/>
+      <%- @submit_text = "Order FlexPass" -%>
 
-            <%= render :partial => '/orders/donation', :locals => {:donation_form => order_form} %>
-        <%- end -%>
-        <!-- Flex Pass Order -->
-        <%- if @order.flex_pass_line_items.size > 0 -%>
-        <br/>
-            <%- @submit_text = "Order FlexPass" -%>
+      <%= order_form.semantic_fields_for :flex_pass_line_items do |f| %>
+        <%= render :partial => '/orders/flex_pass', :locals => {:f => f} %>
+      <%- end -%>
+      <%= render :partial => '/orders/additional_donation', :locals => {:order_form => order_form, :order => @order} %>
 
-            <%= order_form.semantic_fields_for :flex_pass_line_items do |f| %>
-              <%= render :partial => '/orders/flex_pass', :locals => {:f => f} %>
-            <%- end -%>
-            <%= render :partial => '/orders/additional_donation', :locals => {:order_form => order_form, :order => @order} %>
-
-        <%- end %>
-        <%= render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form} %>
-        <%= render :partial => '/orders/special_offer_form', :locals => {:f => order_form} %>
-            <table>
-              <tr>
-                <td width="25%">&nbsp;</td>
-                <td valign="top">
-                <%= order_form.check_box :add_to_email_list, :checked=>1 %>
-                <td>
-                Join the Theater Wit <%= if @order.flex_pass_line_items.size > 0 && !@order.flex_pass_line_items[0].flex_pass_offer.theater_id.blank?
-                                            "and #{Theater.find(@order.flex_pass_line_items[0].flex_pass_offer.theater_id).name} mailing lists"
-                                         else
-                                             "mailing list"
-                                         end
-              %><br/><span style="font-size: 11px">Get company news, special offers, ticket discounts and more delivered twice monthly. Your email
+    <%- end %>
+    <%= render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form} %>
+    <%= render :partial => '/orders/special_offer_form', :locals => {:f => order_form} %>
+    <table>
+      <tr>
+        <td width="25%">&nbsp;</td>
+        <td valign="top">
+          <%= order_form.check_box :add_to_email_list, :checked=>1 %>
+        <td>
+          Join the Theater
+          Wit <%= if @order.flex_pass_line_items.size > 0 && !@order.flex_pass_line_items[0].flex_pass_offer.theater_id.blank?
+                    "and #{Theater.find(@order.flex_pass_line_items[0].flex_pass_offer.theater_id).name} mailing lists"
+                  else
+                    "mailing list"
+                  end
+        %>
+          <br/><span style="font-size: 11px">Get company news, special offers, ticket discounts and more delivered twice monthly. Your email
                 will not be shared. :) </span>
-                </td></tr>
-            </table>
+        </td>
+      </tr>
+    </table>
 
-        <%- if @order.flex_pass_line_items.size > 0 -%>
-        <p id="non-exchange-notice">
-          Please note that all ticket purchases are <emp>non-refundable</emp> and <emp>non-exchangeable</emp>.
-          Once you've reviewed your order above, you can click the Order button below.
-        </p>
-        <%- elsif @order.donation_line_items.size > 0 -%>
-            <p id="tax-deductible-notice">
-              Your donation is fully tax-deductible to the extent allowable by law under IRS code 501(c)(3).
-            </p>
-        <%- end %>
-    <%- end -%>
+    <%- if @order.flex_pass_line_items.size > 0 -%>
+      <p id="non-exchange-notice">
+        Please note that all ticket purchases are
+        <emp>non-refundable</emp>
+        and
+        <emp>non-exchangeable</emp>
+        .
+        Once you've reviewed your order above, you can click the Order button below.
+      </p>
+
+    <%- end %>
+  <%- end -%>
 
 
-    <p style="text-align:center;"><%= order_form.submit @submit_text, :action=>:confirm, :disable_with => 'Processing...' if order_form.object.status == Order::NEW || order_form.object.status == Order::HOLD %></p>
+  <p style="text-align:center;"><%= order_form.submit @submit_text, :action=>:confirm, :disable_with => 'Processing...' if order_form.object.status == Order::NEW || order_form.object.status == Order::HOLD %></p>
 <%- end -%>
 <br clear="all"/>
 <p>If you are having any troubles, please call our box office at 773-975-8150 and we'll help you out!</p>
