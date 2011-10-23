@@ -1,17 +1,1 @@
-<%- if @order.ticket_line_items.count > 0 -%>
-<p>Thanks!  Your ticket reservation has been made
-  <%- member_payments = @order.membership_payments
-      if member_payments.size > 0 %>
-    with your <%= member_payments.first.membership.membership_offer.name %>.
-  <%- else %>
-    and your credit card has been charged <%= number_to_currency( @order.total) %>.
-  <%- end %>
-  Your order is#<%= @order.id %>, and your tickets will be available for pickup under your name at our box office at 1229 W Belmont ninety minutes before curtain. A confirmation email will be sent shortly.
-We will see you at the show on <%= @order.performance.performance_date.to_formatted_s(:long_ordinal) %> at 
-<%= @order.performance.performance_time.to_formatted_s(:hour_min) %>. Seating is general admission. If you have any questions, please 
-don't hesitate to call us at 773-975-8150 or email us at boxoffice@theaterwit.org.  Thanks for your support and we'll see 
-you at the theatre.  Enjoy the show!
-</p>
-<%- elsif @order.flex_pass_line_items.count > 0 -%>
 <%= render :partial=>'/line_items/flex_pass_confirmation', :locals=>{:flex_pass_offer=>@order.flex_pass_line_items[0].flex_pass_offer, :flex_passes=>@order.flex_pass_line_items[0].flex_passes} %>
-<%- end -%>
