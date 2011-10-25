@@ -10,5 +10,12 @@ module Admin::ReportsHelper
     s.sort! { |d1, d2| d2.value <=> d1.value }
   end
 
+  def tidy_output(f)
+    if f.is_a?(Time)
+      f.to_s(:hour_min)
+    else
+      f
+    end
+  end
 
 end

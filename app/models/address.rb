@@ -223,6 +223,10 @@ class Address < ActiveRecord::Base
     end
   end
 
+  def contactable?
+    !self.line1.blank? || !self.email.blank?
+  end
+
   def current_member?
     false
   end

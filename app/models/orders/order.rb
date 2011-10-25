@@ -6,6 +6,7 @@ class Order < ActiveRecord::Base
   using_access_control
 
   include PaymentFormFields
+  include Admin::ReportsHelper
   include ActionView::Helpers::NumberHelper
 
   extend HTMLDiff
@@ -112,7 +113,7 @@ class Order < ActiveRecord::Base
   end
 
   def total(reload_line_items=false)
-    if self.payments.blank? then
+    if (self.payments.nil?) || (self.payments.size == 0) then
       self.unique_line_items(reload_line_items).to_a.sum { |line_item|
         line_item.respond_to?(:total) ? line_item.total : 0
       }
@@ -135,12 +136,12 @@ class Order < ActiveRecord::Base
   end
 
   def flex_pass_payments
-    payments.select{ |p| p.is_a? FlexPassPayment }
+    payments.select { |p| p.is_a? FlexPassPayment }
   end
 
   def credit_card_processing_fee
     fee = 0
-    self.payments.each{ |p| fee += p.processing_fee unless p.processing_fee.nil? }
+    self.payments.each { |p| fee += p.processing_fee unless p.processing_fee.nil? }
     fee
   end
 
@@ -325,14 +326,14 @@ class Order < ActiveRecord::Base
     orders = Order.where("status in (:transitory_status) and updated_at < :window and type != 'MembershipOrder'",
                          {:transitory_status=>self.transitory_statuses,
                           :window=>Time.now - 1.hour})
-    orders.each  do  |order|
+    orders.each do |order|
       order.destroy
     end
 
     orders = Order.where("status in (:transitory_status) and updated_at < :window and type = 'MembershipOrder'",
                          {:transitory_status=>self.transitory_statuses,
-                          :window=>Time.now - 1.day})
-    orders.each  do  |order|
+                          :window=>Time.now - 8.hours})
+    orders.each do |order|
       order.destroy
     end
 
@@ -361,6 +362,73 @@ class Order < ActiveRecord::Base
         a.destroy if !a.nil?
       end
     end
+  end
+
+  def self.export_trg_dump
+    FasterCSV.open("/tmp/trg_dump.csv", "w") do |csv|
+      orders = TicketOrder.order(:performance_id).includes(:address, :theater, :payments, {:performance, :production})
+      report = Array.new
+      headers = [:buyer_type, :year, :description, :first, :last, :full_name, :company, :email, :address1, :address2,
+                 :address3, :city, :state, :zip, :home_phone, :business_phone, :patron_id]
+      csv << headers
+      orders.each do |order|
+        if order.performance.performance_date <= Date.today && order.paid? && order.address.contactable?
+          puts "Writing order ##{order.id}"
+          buyer_type = case
+            when order.paid_with_membership?
+              'MEM'
+            when order.theater.is_default?
+              order.total == 0 ? 'CMP' : 'STB'
+            else
+              'REN'
+          end
+
+          season_tag = order.performance.production.season - 1 unless order.performance.production.season.blank?
+          season_text = "#{season_tag.to_s[2..3]}-#{(season_tag+1).to_s[2..3]}"
+
+          description = "#{season_text} #{buyer_type}: #{order.performance.production.name}"
+          csv << trg_row(buyer_type, order.performance.production.season, description, order.address)
+
+          description = "#{season_text} FULL: Building Attendee"
+          csv << trg_row(buyer_type, order.performance.production.season, description, order.address)
+
+          if order.theater.is_resident?
+            description = "#{season_text} FULL: Resident Company Attendee"
+            csv << trg_row(buyer_type, order.performance.production.season, description, order.address)
+          end
+
+          if order.theater.is_default?
+            description = "#{season_text} FULL: #{order.theater.name} Attendee"
+            csv << trg_row(buyer_type, order.performance.production.season, description, order.address)
+          end
+        end
+
+      end
+
+      orders = MembershipOrder.includes(:address, {:membership_line_items, :membership})
+
+      orders.each do |order|
+        description = "#{order.membership.member_since.year} MEM: #{order.membership.membership_offer.name}"
+        csv << trg_row('DNT', order.membership.member_since.year, description, order.address)
+      end
+
+      orders = DonationOrder.includes(:address)
+
+      orders.each do |order|
+        description = "#{order.created_at.year} Donor"
+        csv << trg_row('DNT', order.created_at.year, description, order.address)
+      end
+    end
+
+    nil
+  end
+
+  private
+
+
+  def self.trg_row(buyer_type, season, description, address)
+    return [buyer_type, season, description, address.first_name, address.last_name, address.full_name, '', address.email,
+            address.line1, address.line2, nil, address.city, address.state, address.zipcode, address.phone, address.id]
   end
 
   protected
@@ -402,7 +470,7 @@ class Order < ActiveRecord::Base
 
   def unique_payments
     (self.payments.to_a
-        self.exchange_payments +
+    self.exchange_payments +
         self.price_override_payments).uniq
   end
 

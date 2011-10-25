@@ -148,6 +148,17 @@ class Admin::ReportsController < Admin::ApplicationController
     end
   end
 
+  def trg_dump
+    @headers, @report_data = build_trg_dump
+    if params['download_csv'].nil? then
+      respond_to do |format|
+        format.html
+      end
+    else
+      send_report_as_csv('trg_data', @headers, @report_data)
+    end
+  end
+
   def fulfill_tickets
     @through_day = grab_from_date_select(:through_day, params[:report])
     @headers, @report_data = build_fulfill_labels(@through_day)
@@ -211,14 +222,6 @@ class Admin::ReportsController < Admin::ApplicationController
     end
   end
 
-
-  def tidy_output(f)
-    if f.is_a?(Time)
-      f.to_s(:hour_min)
-    else
-      f
-    end
-  end
 
   private
 
@@ -318,6 +321,63 @@ class Admin::ReportsController < Admin::ApplicationController
     sums[:avg_performances_month] = ((0.0 + sums[:performances_attended]) / sums[:number_cycles]).round(1)
     report << sums
     [headers, report]
+  end
+
+
+  def build_trg_dump
+    orders = TicketOrder.order(:performance_id).includes(:address,:theater, {:performance, :production})
+    report = Array.new
+    headers = [:buyer_type, :year, :description, :first, :last, :full_name, :company, :email, :address1, :address2,
+               :address3, :city, :state, :zip, :home_phone, :business_phone, :patron_id]
+    orders.each do |order|
+
+      buyer_type = case
+        when order.paid_with_membership?
+          'MEM'
+        when order.theater.is_default?
+          order.total == 0 ? 'CMP' : 'STB'
+        else
+          'REN'
+      end
+
+      season_tag = order.performance.production.season.to_i - 1
+      season_text = "#{season_tag.to_s[2..3]}-#{order.performance.production.season[2..3]}"
+
+      description = "#{season_text} #{buyer_type}: #{order.performance.production.name}"
+      report << trg_hash(buyer_type, order.performance.production.season, description, order.address)
+
+      description = "#{season_text} FULL: Building Attendee"
+      report << trg_hash(buyer_type, order.performance.production.season, description, order.address)
+
+      if order.theater.is_resident?
+        description = "#{season_text} FULL: Resident Company Attendee"
+        report << trg_hash(buyer_type, order.performance.production.season, description, order.address)
+      end
+
+      if order.theater.is_default?
+        description = "#{season_text} FULL: #{order.theater.name} Attendee"
+        report << trg_hash(buyer_type, order.performance.production.season, description, order.address)
+      end
+
+
+    end
+
+    orders = MembershipOrder.include(:address).includes([:membership_line_items,:membership])
+
+    orders.each do |order|
+      description = "#{order.membership.member_since.year} MEM: #{order.membership.membership_offer.name}"
+      report << trg_hash('DNT', order.membership.member_since.year, description, order.address)
+    end
+
+    orders = DonationOrder.include(:address)
+
+    orders.each do |order|
+      description = "#{order.created_at.year} Donor"
+      report << trg_hash('DNT', order.created_at.year, description, order.address)
+    end
+
+    [headers,report]
+
   end
 
   def build_flexpass_sales(offer, display_only = true)

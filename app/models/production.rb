@@ -11,7 +11,7 @@ class Production < ActiveRecord::Base
   )
 
   validates_inclusion_of :status, :in => PRODUCTION_STATUSES
-  validates_presence_of :theater, :name, :venue
+  validates_presence_of :theater, :name, :venue, :season
   validates_uniqueness_of :production_code
   validates_length_of :production_code, :in=>1..7
   validates_numericality_of :capacity

@@ -32,4 +32,8 @@
   def is_default?
     self.theater_class == 'Default'
   end
+
+  def is_resident?
+    self.theater_class == 'Resident Company'
+  end
 end
