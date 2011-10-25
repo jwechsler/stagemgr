@@ -1,5 +1,5 @@
 class Admin::ReportsController < Admin::ApplicationController
-
+  include Admin::ReportsHelper
   helper_method :tidy_output
 
   # GET /admin/reports
