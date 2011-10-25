@@ -67,7 +67,7 @@ class TicketOrder < Order
     }.join(', ')
   end
 
-  def create_print_order
+  def send_to_printer
     unless self.print_order_id.nil?
       print_order = PrintOrder.find(self.print_order_id)
     else
@@ -95,6 +95,8 @@ class TicketOrder < Order
                                             :amount => oli.receipt_total)
         print_line_item.save!
       }
+      self.payments.size
+
       self.payments.each { |pay|
         unless pay.receipt_description.blank?
           receipt_payment = ReceiptPayment.new(:order_id => self.print_order_id,
@@ -113,7 +115,6 @@ class TicketOrder < Order
         end
       end
 
-      self.save
     end
     print_order.post(:print)
   end
@@ -197,6 +198,12 @@ class TicketOrder < Order
 
 
   protected
+
+  def transition_processed_to_fulfilled!(redirect_to = nil)
+    self.send_to_printer
+    super
+  end
+
   def applicable_price(regular_ticket_class, offer_ticket_class)
     return [regular_ticket_class.ticket_price, offer_ticket_class.ticket_price].min
   end
@@ -219,9 +226,9 @@ class TicketOrder < Order
         pass_ticket_class = production_ticket_class_from_offer(offer)
         total_amount = ticket_line_items.inject(0) { |total_amount, li| total_amount += self.applicable_price(li.ticket_class, pass_ticket_class)* li.ticket_count }
         new_payment = FlexPassPayment.new(
-          :number_of_tickets => self.ticket_quantity,
-          :flex_pass => flex_pass,
-          :amount => total_amount
+            :number_of_tickets => self.ticket_quantity,
+            :flex_pass => flex_pass,
+            :amount => total_amount
         )
         payments << new_payment
         new_payment.process!
@@ -246,7 +253,7 @@ class TicketOrder < Order
 
   def unique_line_items(reload_line_items = false)
     (super +
-      self.ticket_line_items(reload_line_items)
+        self.ticket_line_items(reload_line_items)
     ).uniq
   end
 

@@ -19,6 +19,16 @@ class Admin::TicketOrdersController < Admin::OrdersController
 
   end
 
+  def reprint
+    if @ticket_order.fulfilled?
+      @ticket_order.send_to_printer
+    end
+    flash[:notice] = 'Ticket reprinted'
+    respond_to do |format|
+      format.html { render 'show', :layout=>true}
+    end
+  end
+
   def update
     @ticket_order.attributes=params[:ticket_order]
     process_order(@ticket_order,:edit_admin_order_path)
