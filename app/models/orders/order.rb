@@ -372,8 +372,9 @@ class Order < ActiveRecord::Base
                  :address3, :city, :state, :zip, :home_phone, :business_phone, :patron_id]
       csv << headers
       orders.each do |order|
+        puts "Processing order ##{order.id}"
         if order.performance.performance_date <= Date.today && order.paid? && order.address.contactable?
-          puts "Writing order ##{order.id}"
+
           buyer_type = case
             when order.paid_with_membership?
               'MEM'
