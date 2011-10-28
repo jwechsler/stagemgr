@@ -38,7 +38,7 @@ class CreditCardPayment < Payment
   end
 
   def receipt_description
-     "#{self.card_type} ending in #{self.card_last_four} AUTH #{confirmation_code}"
+     "#{self.card_type} ****#{self.card_last_four}::AUTH #{confirmation_code}"
    end
 
   def process!

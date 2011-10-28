@@ -89,7 +89,7 @@ class TicketOrder < Order
                                    :remote_id => self.id)
       print_order.save!
       self.print_order_id = print_order.id
-      self.line_items.each { |oli|
+      self.line_items.select{|li| li.ticket_count > 0 }.each { |oli|
         print_line_item = PrintLineItem.new(:order_id => self.print_order_id,
                                             :description => oli.receipt_description,
                                             :amount => oli.receipt_total)
