@@ -18,4 +18,13 @@ class SpecialOfferLineItem < LineItem
     special_offer.redeem_one_use!
 
   end
+
+  def receipt_total
+    self.price
+  end
+
+  def receipt_description
+    self.special_offer.code
+  end
+
 end

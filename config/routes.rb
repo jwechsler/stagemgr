@@ -171,6 +171,7 @@ Stagemgr::Application.routes.draw do
         post :cancel
         post :refund
         get  :fulfill
+        get :reprint
         get :unclaimed
       end
       resources :exchange_ticket_orders, :only=>[:new,:create]

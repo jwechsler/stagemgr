@@ -1,43 +1,55 @@
 if !defined? InvalidCreditCard
-  InvalidCreditCard     = Class.new(StandardError)
-  CannotProcessPayment  = Class.new(StandardError)
+  InvalidCreditCard = Class.new(StandardError)
+  CannotProcessPayment = Class.new(StandardError)
 end
 
 class CreditCardPayment < Payment
 
   acts_as_audited
 
-  belongs_to             :address
+  belongs_to :address
 
   attr_accessor :card_number
   attr_accessor :card_verification_number
 
 
-  validates_credit_card_if_new  :card_number,
-                         :card_type, {}, :confirmation_code     
-  validates_presence_of  :card_type, :if => :needs_confirmation_code?
-  validates_presence_of  :card_last_four, :if => :needs_confirmation_code?
-  validates_presence_of  :card_number, :if => :needs_confirmation_code? 
-  validates_presence_of  :card_expiration_year, :if => :needs_confirmation_code?
-  validates_presence_of  :card_expiration_month, :if => :needs_confirmation_code?
-  validates_presence_of  :confirmation_code
-  before_validation      :set_defaults
+  validates_credit_card_if_new :card_number,
+                               :card_type, {}, :confirmation_code
+  validates_presence_of :card_type, :if => :needs_confirmation_code?
+  validates_presence_of :card_last_four, :if => :needs_confirmation_code?
+  validates_presence_of :card_number, :if => :needs_confirmation_code?
+  validates_presence_of :card_expiration_year, :if => :needs_confirmation_code?
+  validates_presence_of :card_expiration_month, :if => :needs_confirmation_code?
+  validates_presence_of :confirmation_code
+  before_validation :set_defaults
 
   def needs_confirmation_code?
     self.confirmation_code.blank?
   end
 
   def default_from_order
-    self.address        ||= self.order.address
-    self.amount         ||= self.order.total
-    self.ip_address     ||= self.order.ip_address
+    self.address ||= self.order.address
+    self.amount ||= self.order.total
+    self.ip_address ||= self.order.ip_address
   end
 
   def set_defaults
     self.card_last_four ||= self.card_number.nil? ? "" : self.card_number[-4..-1]
   end
 
-
+  def receipt_description
+    ctype = case self.card_type
+              when 'MasterCard'
+                'MC'
+              when 'American Express'
+                'Amex'
+              when 'Discover'
+                'Dscvr'
+              when 'master_card'
+                'MC'
+            end
+    "#{ctype} ****#{self.card_last_four}::AUTH #{confirmation_code}"
+  end
 
   def process!
     if self.confirmation_code.blank? || self.card_number.length != 4
@@ -74,12 +86,12 @@ class CreditCardPayment < Payment
 #      )
 #
 
-      # Authorize for the amount
+# Authorize for the amount
 #     response = gateway.purchase(self.charge_amount, credit_card)
 
       if response.success?
         self.confirmation_code = response.authorization
-        self.transaction_id = response.params["transaction_id"]   # Returned transaction id from paypal
+        self.transaction_id = response.params["transaction_id"] # Returned transaction id from paypal
       end
 
       unless response.success?
@@ -95,15 +107,15 @@ class CreditCardPayment < Payment
 
     CreditCardPayment.transaction do
       # Create a gateway object for the TrustCommerce service
-#      gateway_options = {
-#        :login=>ACTIVE_MERCHANT_LOGIN,
-#        :password=>ACTIVE_MERCHANT_PASSWORD,
-#        :test=>ACTIVE_MERCHANT_TEST_MODE}
-#
-#      # Create a gateway object for the TrustCommerce service
-#      gateway = ActiveMerchant::Billing::AuthorizeNetGateway.new(
-#        gateway_options
-#      )
+      #      gateway_options = {
+      #        :login=>ACTIVE_MERCHANT_LOGIN,
+      #        :password=>ACTIVE_MERCHANT_PASSWORD,
+      #        :test=>ACTIVE_MERCHANT_TEST_MODE}
+      #
+      #      # Create a gateway object for the TrustCommerce service
+      #      gateway = ActiveMerchant::Billing::AuthorizeNetGateway.new(
+      #        gateway_options
+      #      )
 
       gateway = ActiveMerchant::Billing::PaypalGateway.new(:login=>$PAYPAL_LOGIN, :password=>$PAYPAL_PASSWORD)
 
@@ -113,7 +125,7 @@ class CreditCardPayment < Payment
 
       refund_amount = (self.amount*100).to_i
 
-      
+
       response = gateway.credit(refund_amount, self.transaction_id, :note => note)
 
       unless response.success?
@@ -128,13 +140,13 @@ class CreditCardPayment < Payment
 
   def create_credit_card
     credit_card = ActiveMerchant::Billing::CreditCard.new(
-        :type => credit_card_type(self.card_type),
-        :first_name => self.address.first_name,
-        :last_name => self.address.last_name,
-        :number => self.card_number,
-        :month => self.card_expiration_month,
-        :year => self.card_expiration_year,
-        :verification_value => self.card_verification_number
+      :type => credit_card_type(self.card_type),
+      :first_name => self.address.first_name,
+      :last_name => self.address.last_name,
+      :number => self.card_number,
+      :month => self.card_expiration_month,
+      :year => self.card_expiration_year,
+      :verification_value => self.card_verification_number
     )
     raise InvalidCreditCard, credit_card.errors.full_messages.join("\n") unless credit_card.valid?
     credit_card
@@ -174,25 +186,25 @@ class CreditCardPayment < Payment
       :description => 'A description of the transaction',
       :email => self.email,
       :billing_address =>
-      {
-        :name => self.full_name,
-        :address1 => self.billing_address_line1,
-        :address2 => self.billing_address_line2,
-        :city => self.billing_address_city,
-        :state => self.billing_address_state,
-        :country => 'US',
-        :zip => self.billing_address_zipcode
-      },
+        {
+          :name => self.full_name,
+          :address1 => self.billing_address_line1,
+          :address2 => self.billing_address_line2,
+          :city => self.billing_address_city,
+          :state => self.billing_address_state,
+          :country => 'US',
+          :zip => self.billing_address_zipcode
+        },
       :shipping_address =>
-      {
-        :name => self.full_name,
-        :address1 => self.billing_address_line1,
-        :address2 => self.billing_address_line2,
-        :city => self.billing_address_city,
-        :state => self.billing_address_state,
-        :country => 'US',
-        :zip => self.billing_address_zipcode
-      }
+        {
+          :name => self.full_name,
+          :address1 => self.billing_address_line1,
+          :address2 => self.billing_address_line2,
+          :city => self.billing_address_city,
+          :state => self.billing_address_state,
+          :country => 'US',
+          :zip => self.billing_address_zipcode
+        }
     }
   end
 

@@ -11,6 +11,10 @@ class Payment < ActiveRecord::Base
     self.amount
   end
 
+  def receipt_description
+    ''
+  end
+
   def processing_fee
     return 0
   end

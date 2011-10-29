@@ -53,11 +53,11 @@ class TicketOrder < Order
     "#{performance_s} (#{self.ticket_detail_description})"
   end
 
-   def to_s
+  def to_s
     self.ticket_detail_description
-   end
+  end
 
-   def ticket_detail_description
+  def ticket_detail_description
     self.ticket_line_items.map { |li|
       if li.ticket_count > 0
         li.to_s
@@ -67,6 +67,57 @@ class TicketOrder < Order
     }.join(', ')
   end
 
+  def send_to_printer
+    unless self.print_order_id.nil?
+      print_order = PrintOrder.find(self.print_order_id)
+    else
+      credit_lines = self.performance.production.credit_lines.split("\n")
+      credit_1 = credit_lines[0] unless credit_lines.nil?
+      credit_2 = credit_lines[1] unless credit_lines.size < 2
+      print_order = PrintOrder.new(:last_name=>self.address.last_name,
+                                   :first_name => self.address.first_name,
+                                   :performance_code => self.performance_code,
+                                   :venue => self.performance.production.venue.name,
+                                   :theater => self.theater.name,
+                                   :title => self.performance.production.name,
+                                   :credit_1 => credit_1,
+                                   :credit_2 => credit_2,
+                                   :patron_code => self.address.customer_tag,
+                                   :performance_date => self.performance.performance_date,
+                                   :performance_time => self.performance.performance_time,
+                                   :amount=>self.total,
+                                   :remote_id => self.id)
+      print_order.save!
+      self.print_order_id = print_order.id
+      self.line_items.select{|li| !li.special_offer_id.nil? || li.ticket_count > 0 }.each { |oli|
+        print_line_item = PrintLineItem.new(:order_id => self.print_order_id,
+                                            :description => oli.receipt_description,
+                                            :amount => oli.receipt_total)
+        print_line_item.save!
+      }
+      self.payments.size
+
+      self.payments.each { |pay|
+        unless pay.receipt_description.blank?
+          receipt_payment = ReceiptPayment.new(:order_id => self.print_order_id,
+                                               :description => pay.receipt_description,
+                                               :amount => pay.customer_visible_amount)
+          receipt_payment.save!
+        end
+      }
+      self.ticket_line_items.each do |tli|
+        tli.ticket_count.times do
+          ticket = Ticket.new(:order_id=>self.print_order_id,
+                              :ticket_class=>tli.ticket_class.class_code,
+                              :type=>'Ticket'
+          )
+          ticket.save!
+        end
+      end
+
+    end
+    print_order.post(:print)
+  end
 
   def ticket_quantity
     self.ticket_line_items(false).uniq.to_a.sum { |li| li.respond_to?(:ticket_count) ? li.ticket_count : 0 }
@@ -126,7 +177,7 @@ class TicketOrder < Order
     self.payments.each { |p| p.release_tickets! }
   end
 
-  # for form processing
+# for form processing
   def production_code=(string)
     @production_code=string
   end
@@ -147,6 +198,12 @@ class TicketOrder < Order
 
 
   protected
+
+  def transition_processed_to_fulfilled!(redirect_to = nil)
+    self.send_to_printer
+    super
+  end
+
   def applicable_price(regular_ticket_class, offer_ticket_class)
     return [regular_ticket_class.ticket_price, offer_ticket_class.ticket_price].min
   end
@@ -247,7 +304,6 @@ class TicketOrder < Order
       end
     end
   end
-
 
 
   def set_theater
