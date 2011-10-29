@@ -5,6 +5,7 @@ db/*.sqlite3
 log/*.log
 tmp/**/*
 
+config/ticket_print.yml
 config/database.yml
 config/newrelic.yml
 tags
