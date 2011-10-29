@@ -72,7 +72,7 @@ class SpecialOffer < ActiveRecord::Base
     look_for = ticket_class_code.nil? ? '' : self.ticket_class_code
     ticket_lines = order.ticket_line_items.select { |li| li.ticket_class.class_code.starts_with?(look_for) }.sort { |t1, t2| t2.ticket_price <=> t1.ticket_price }
     num_remaining = self.max_tickets_per_order
-    unless num_remaining.nil?
+    unless num_remaining.nil? || num_remaining == 0
       applicable = Array.new
       ticket_lines.each do |li|
         break if num_remaining <= 0
