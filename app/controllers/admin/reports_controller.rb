@@ -251,10 +251,9 @@ class Admin::ReportsController < Admin::ApplicationController
   def build_fulfill_labels(through_date)
     orders = TicketOrder.order("performances.performance_code").all(:include=>[:line_items, {:performance, :production}, :address],
                                                                     :conditions=>["orders.status = ? and performances.status = 'Active' and performances.performance_date <= ? and performances.performance_date >= ? and productions.status in (?)",
-                                                                                  Order::PROCESSED, through_date, Date.today-15.days, Production.visible_statuses])
+                                                                                  Order::PROCESSED, through_date, Date.today, Production.visible_statuses])
     report = Array.new
     headers = [:reserved_under, :performance_code, :tickets, :order_id, :profile, :member_id, :first_time, :last_24_months, :donor]
-    Order.transaction do
       orders.each { |o|
         if o.contains_tickets?
           logger.info("Fulfilling order #{o.id}")
@@ -278,8 +277,7 @@ class Admin::ReportsController < Admin::ApplicationController
           o.save!
         end
       }
-    end
-    [headers, report]
+        [headers, report]
   end
 
   def build_membership_usage(display_only = true)
