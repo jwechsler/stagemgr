@@ -63,7 +63,7 @@ class Order < ActiveRecord::Base
   validates_inclusion_of :status, :in => ORDER_STATUSES
   validates_inclusion_of :payment_type, :in => PAYMENT_TYPES
 
-  validates_presence_of :address, :status
+  validates_presence_of :address
   validates_associated :address,
                        :payments,
                        :flex_pass_line_items, :special_offer_line_items

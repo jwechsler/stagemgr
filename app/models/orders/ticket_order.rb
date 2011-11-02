@@ -78,7 +78,7 @@ class TicketOrder < Order
       credit_lines = self.performance.production.credit_lines.split("\n")
       credit_1 = credit_lines[0] unless credit_lines.nil?
       credit_2 = credit_lines[1] unless credit_lines.size < 2
-      print_order = PrintOrder.remote_new(:last_name=>self.address.last_name,
+      print_order = PrintOrder.new(:last_name=>self.address.last_name,
                                    :first_name => self.address.first_name,
                                    :performance_code => self.performance_code,
                                    :venue => self.performance.production.venue.name,
