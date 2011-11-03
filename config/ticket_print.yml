@@ -1,5 +1,6 @@
 development:
-  service:  "http://stagemgr:test@localhost:3001"
+ # service:  "http://stagemgr:test@localhost:3001"
+  service:  "http://stagemgr:REDACTED_TKTPRINT_PASSWORD@ticket.theaterwit.org"
 
 production:
   service:  "http://stagemgr:REDACTED_TKTPRINT_PASSWORD@ticket.theaterwit.org"

@@ -22,6 +22,14 @@ class MembershipOrder < Order
     self.membership_line_items.first.membership_offer if !self.membership_line_items.empty?
   end
 
+  def description
+    "Membership [#{self.months_active}]"
+  end
+
+  def to_s
+    "#{self.membership.status} #{self.months_active}"
+  end
+
   def set_membership_offer(offer)
     li = MembershipLineItem.create(:membership_offer=>offer, :address=>self.address)
 
@@ -117,4 +125,13 @@ class MembershipOrder < Order
     super
   end
 
+  protected
+  def months_active
+    if (self.membership.number_cycles_completed || 0) == 0
+      ""
+    else
+    "#{self.membership.number_cycles_completed} month#{'s' if self.membership.number_cycles_completed > 1}"
+    end
+
+  end
 end
