@@ -72,6 +72,7 @@ class TicketOrder < Order
       print_order = PrintOrder.find(self.print_order_id)
       if print_order.status == 'Printed'
         print_order.status = 'Unprinted'
+        print_order.reprints += 1
         print_order.save!
       end
     else
