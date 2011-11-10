@@ -60,6 +60,7 @@ authorization do
     has_permission_on :admin_orders, :to=>[:cancel]
     has_permission_on :orders, :to=>[:delete]
     has_permission_on :ticket_orders, :to=>[:delete]
+    has_permission_on :donation_orders, :to=>[:create,:read,:update]
     has_permission_on :admin_donation_orders, :to=>[:view,:manage,:make,:fulfill,:refund]
     has_permission_on :admin_ticket_orders, :to=>[:reprint]
     has_permission_on :admin_refund_orders, :to=>[:make]
