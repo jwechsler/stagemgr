@@ -40,7 +40,7 @@ authorization do
     includes :theater_user
     has_permission_on :admin_theaters, :to=>[:manage]
     has_permission_on :theaters, :to=>[:create,:update,:read]
-
+    has_permission_on :donation_orders, :to=>[:create,:read,:update]
     has_permission_on :admin_orders, :to=>[:hold,:unclaimed, :fulfill]
     has_permission_on :admin_ticket_orders, :to=>[:hold,:unclaimed, :fulfill]
     has_permission_on :productions, :to=>[:view, :make, :manage]
@@ -60,7 +60,7 @@ authorization do
     has_permission_on :admin_orders, :to=>[:cancel]
     has_permission_on :orders, :to=>[:delete]
     has_permission_on :ticket_orders, :to=>[:delete]
-    has_permission_on :donation_orders, :to=>[:create,:read,:update]
+
     has_permission_on :admin_donation_orders, :to=>[:view,:manage,:make,:fulfill,:refund]
     has_permission_on :admin_ticket_orders, :to=>[:reprint]
     has_permission_on :admin_refund_orders, :to=>[:make]
