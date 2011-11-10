@@ -97,8 +97,8 @@ class Admin::ReportsController < Admin::ApplicationController
       @end_day = t
     end
 
-    if (@end_day - @start_day) > 6 then
-      flash[:error] = "You can only pull up to three months at a time"
+    if (@end_day - @start_day) > 31 then
+      flash[:error] = "You can only pull up to one month at a time"
       redirect_to admin_reports_path
     else
       @headers, @report_data = build_daily_box_office_receipts(@start_day, @end_day, !params['download_csv'].nil?)
