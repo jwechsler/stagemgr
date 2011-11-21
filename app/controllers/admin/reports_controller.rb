@@ -236,7 +236,8 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def address_hash_from_order(o)
-    return {:last_name=>o.address.last_name,
+    unless o.address.blank?
+     {:last_name=>o.address.last_name,
             :first_name=>o.address.first_name,
             :street_address=>o.address.line1,
             :street_address_2=>o.address.line2,
@@ -246,6 +247,19 @@ class Admin::ReportsController < Admin::ApplicationController
             :postal_code=>o.address.zipcode,
             :phone=>o.address.phone,
             :email=>o.address.email}
+    else
+         {:last_name=>'',
+            :first_name=>'',
+            :street_address=>'',
+            :street_address_2=>'',
+            :state=>'',
+            :city=>'',
+            :state=>'',
+            :postal_code=>'',
+            :phone=>'',
+            :email=>''}
+    end
+
   end
 
   def build_fulfill_labels(through_date)
