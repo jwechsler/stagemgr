@@ -451,7 +451,7 @@ class Admin::ReportsController < Admin::ApplicationController
       ticket_classes = production.ticket_classes.sort { |t1, t2| t2.ticket_price <=> t1.ticket_price }
       keys = [:performance_code, :performance_date, :performance_time]
       ticket_classes.each { |tc| keys << tc.class_code } if include_classes
-      keys += [:paid, :holds, :gross, :facility, :processing, :net]
+      keys += [:paid, :holds, :max_ticket, :gross, :facility, :processing, :net]
       ticket_classes.each { |tc| total_tickets[tc.class_code] = 0 }
       subtotal[:gross] = Money.new(0)
       subtotal[:facility] = Money.new(0)
@@ -473,6 +473,7 @@ class Admin::ReportsController < Admin::ApplicationController
         held_orders = perf.orders.select { |o| o.held? }
         paid_tickets = paid_orders.sum { |o| o.ticket_quantity }
         held_tickets = held_orders.sum { |o| o.ticket_quantity }
+        max_ticket_price = perf.ticket_class_allocations.select{|tca| tca.available? }.max_by{|tca| tca.ticket_class.ticket_price}.ticket_class.ticket_price
         gross = Money.from_numeric(paid_orders.sum { |o| o.total })
         ticketing_fee = Money.from_numeric(paid_orders.sum { |o| o.ticketing_fee })
         credit_card_processing_fee = Money.from_numeric(paid_orders.sum { |o| o.credit_card_processing_fee })
@@ -484,7 +485,8 @@ class Admin::ReportsController < Admin::ApplicationController
         row = {:performance_code => perf.performance_code,
                :performance_date => perf.performance_date,
                :performance_time => perf.performance_time,
-               :display_class => :report_detail_row}
+               :display_class => :report_detail_row,
+               :max_ticket => Money.from_numeric(max_ticket_price)}
         if include_classes then
 
           ticket_classes.each { |tc|
