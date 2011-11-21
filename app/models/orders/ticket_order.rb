@@ -208,6 +208,9 @@ class TicketOrder < Order
     self.performance.try(:performance_code)
   end
 
+  def total_ticket_quantity
+    self.ticket_line_items.inject(0){|sum,li| sum + li.ticket_count }
+  end
 
   protected
 

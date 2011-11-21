@@ -542,6 +542,8 @@ class Admin::ReportsController < Admin::ApplicationController
     row[:special_offer_code] = order.special_offer_code
     row[:status] = order.status
     row[:description] = order.description
+    row[:order_total] = order.total
+    row[:num_tickets]  = order.total_ticket_quantity
     row
   end
 
@@ -605,8 +607,9 @@ class Admin::ReportsController < Admin::ApplicationController
   def build_order_dump(production)
     report = Array.new
     keys = columns_for_orders(true)
+    keys += [:order_total, :num_tickets]
     production.performances.each { |performance|
-      orders = TicketOrder.where("performance_id = :performance_id", {:performance_id=>performance.id})
+      orders = TicketOrder.joins(:line_items).where("performance_id = :performance_id", {:performance_id=>performance.id})
 
       orders.each { |o|
         if o.attended? then
