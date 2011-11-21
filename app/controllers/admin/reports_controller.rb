@@ -553,7 +553,7 @@ class Admin::ReportsController < Admin::ApplicationController
     row[:id] = order.id
     row = row.merge(address_hash_from_order(order))
     row[:performance_code] = order.performance.performance_code if !order.performance.blank?
-    row[:special_offer_code] = order.special_offer_code
+    row[:special_offer_code] = order.special_offer_code_used
     row[:status] = order.status
     row[:description] = order.description
     row[:order_total] = order.total

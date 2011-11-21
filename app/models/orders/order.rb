@@ -190,6 +190,10 @@ class Order < ActiveRecord::Base
     self.status == HOLD
   end
 
+  def special_offer_code_used
+    self.special_offer_line_items.empty? ? '' : self.special_offer_line_items.first.special_offer.code
+  end
+
   def refund!
 
     Order.transaction do
