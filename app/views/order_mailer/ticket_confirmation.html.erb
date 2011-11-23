@@ -17,6 +17,11 @@
   <%- else %>
     and the total charge was $<%= '%0.2f' % @order.customer_visible_total %>.
   <%- end %>
+  <%- unless @order.performance.production.allow_late_seating %>
+    <b>
+      Please note, there is no late seating available for this performance.  Latecomers will be issued a voucher to attend a subsequent performance, if available.
+    </b>
+  <%- end %>
 </p>
 
 <%- if !@confirmation_message.blank? %>

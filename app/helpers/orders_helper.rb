@@ -69,6 +69,7 @@ module OrdersHelper
   private
   def process_order(order, on_success_redirect_to)
     begin
+      order.credit_card_expiration_year = "20" + order.credit_card_expiration_year if order.credit_card_expiration_year.length < 3
       order.save!
       old_status = order.status
       Order.transaction do

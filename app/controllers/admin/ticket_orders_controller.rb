@@ -19,6 +19,14 @@ class Admin::TicketOrdersController < Admin::OrdersController
 
   end
 
+  def resend_confirmation
+    confirmation_task = @ticket_order.tasks.select{|t| t.method_symbol == 'ticket_confirmation'}.first
+    confirmation_task.run!
+    flash[:notice] = 'Confirmation email resent'
+    respond_to do |format|
+      format.html { render 'show', :layout=>true}
+    end
+  end
   def reprint
     if @ticket_order.fulfilled?
       @ticket_order.send_to_printer

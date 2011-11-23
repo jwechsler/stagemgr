@@ -1,7 +1,6 @@
-<p>
-  <b>Name:</b>
-  <%=h @production.name %>
-</p>
+
+<%= render :partial=>'/productions/info', :locals=>{:production=>@production} %>
+
 
 <p>
   <b>Production code:</b>
@@ -14,10 +13,6 @@
     <%= @production.venue.name %>
   </p>
 <%- end %>
-<p>
-  <b>Credit lines:</b>
-  <%=h @production.credit_lines %>
-</p>
 
 <p>
   <b>First preview at:</b>
@@ -40,16 +35,6 @@
 </p>
 
 <p>
-  <b>Production Logo:</b>
-  <%= @production.logo_url %>
-</p>
-
-<p>
-  <b>Show description:</b>
-  <%=@production.show_description %>
-</p>
-
-<p>
   <b>Capacity:</b>
   <%=h @production.capacity %>
 </p>
@@ -62,6 +47,21 @@
 <p>
   <b>Status:</b>
   <%=h @production.status %>
+</p>
+
+<p>
+  <b>Production Class:</b>
+  <%=h @production.production_class %>
+</p>
+
+<p>
+  <b>Custom Confirmation Message</b><br/>
+  <%= @production.confirmation_message %>
+</p>
+
+<p>
+  <b>Custom Follow up Message</b><br/>
+  <%= @production.follow_up_text %>
 </p>
 
 <p>

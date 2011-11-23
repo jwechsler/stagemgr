@@ -93,6 +93,14 @@
   font-weight: normal;
 }
 
+.production_list {
+    font-weight: bold;
+}
+
+.late_seating {
+    font-weight: bold;
+}
+
 .production_logo {
   width: 250px;
 }
