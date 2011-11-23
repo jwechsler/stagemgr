@@ -15,6 +15,7 @@
   <%= f.input :show_description, :input_html=>{ :rows=>6}%>
   <%= f.input :running_time, :label=>"Running Time (in minutes)" %>
   <%= f.input :intermission %>
+  <%= f.input :allow_late_seating %>
   <%= f.input :promo, :label=>"Production Image", :hint=>image_tag (f.object.promo.url(:thumb)) %>
   <%= f.input :capacity %>
   <%= f.input :additional_information_link, :as=>:url %>
