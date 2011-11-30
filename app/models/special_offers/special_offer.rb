@@ -81,6 +81,7 @@ class SpecialOffer < ActiveRecord::Base
           li2.ticket_count = li.ticket_count - num_remaining
           order.ticket_line_items << li2
           li.ticket_count = num_remaining
+          li.save
         end
         applicable << li
         num_remaining -= li.ticket_count
