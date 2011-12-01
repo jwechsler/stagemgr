@@ -17,7 +17,6 @@ class TicketOrdersController < ApplicationController
   def create
     @order = TicketOrder.new(params[:ticket_order])
     @order.ip_address = request.remote_ip
-    @order.save!
     process_order(@order,:confirm_ticket_order_path) if validate_web_order(@order)
   end
 

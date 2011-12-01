@@ -1,42 +1,71 @@
-<h2>Please confirm your ticket reservation</h2>
+<%= semantic_form_for @order do |order_form| %>
+  <%= order_form.inputs :class=>"order" do %>
+    <h2>Please confirm your ticket reservation</h2>
 
-<h3>You are purchasing the following tickets for <%= @order.performance.production.name %>
-  on <%= @order.performance.performance_date.to_formatted_s(:long_ordinal) %> at
-  <%= @order.performance.performance_time.to_formatted_s(:hour_min) %>.</h3>
+    <h3>You are purchasing the following tickets for <%= @order.performance.production.name %>
+      on <%= @order.performance.performance_date.to_formatted_s(:long_ordinal) %> at
+      <%= @order.performance.performance_time.to_formatted_s(:hour_min) %>.</h3>
 
-<table>
-  <thead>
-  <tr>
-    <td>Qty</td>
-    <td>Type</td>
-    <td>Price</td>
-  </tr>
-  </thead>
-  <%- qty = 0
-      total = Money.new(0)
-      @order.ticket_line_items.each { |tli|
-        qty += tli.ticket_count
-        total += Money.from_numeric(tli.receipt_total) %>
-    <tr>
-      <td><%= tli.ticket_count %></td>
-      <td><%= tli.ticket_class.class_name %></td>
-      <td>$ <%= Money.from_numeric(tli.receipt_total) %></td>
-    </tr>
-  <%- } %>
-  <tr class="total">
-    <td><%= qty %></td>
-    <td>Ticket<%= 's' if qty > 1 %> Total</td>
-    <td>$ <%= total.to_s %></td>
-
-  </tr>
-  <%- unless @order.special_offer_line_items.empty?
-        @order.special_offer_line_items.each { |so| %>
+    <table>
+      <thead>
       <tr>
-        <td><%= so.special_offer.code %></td>
-        <td><%= so.description %></td>
-        <td>-$ <%= Money.from_numeric(-1.0*so.special_offer.calculate_discount(@order)) %></td>
+        <th>Qty</th>
+        <th>Type</th>
+        <th>Price</th>
       </tr>
-    <%- }
-        end %>
-</table>
+      </thead>
+      <%- qty = 0
+          total = Money.new(0)
+          @order.ticket_line_items.each { |tli|
+            qty += tli.ticket_count
+            total += Money.from_numeric(tli.receipt_total) %>
+        <tr>
+          <td><%= tli.ticket_count %></td>
+          <td><%= tli.ticket_class.class_name %></td>
+          <td class="currency">$ <%= Money.from_numeric(tli.receipt_total) %></td>
+        </tr>
+      <%- } %>
+      <%- unless @order.special_offer_line_items.empty?
+            @order.special_offer_line_items.each { |so|
+              discount = Money.from_numeric(-1*so.special_offer.calculate_discount(@order))
+              total -= discount
+      %>
+          <tr>
+            <td><%= so.special_offer.code.upcase %></td>
+            <td><%= so.description %></td>
+            <td class="currency">-$ <%= discount %></td>
+          </tr>
+        <%- }
+            end %>
+      <tr class="total">
+        <td></td>
+        <td><b>Total Charge:</b></td>
+        <td class="currency">$ <%= total %></td>
+      </tr>
 
+
+    </table>
+
+    <%= order_form.input :payment_type, :as=>:hidden, :value=>@order.payment_type %>
+    <%= order_form.input :credit_card_number, :as=>:hidden, :value=>@order.credit_card_number %>
+    <%= order_form.input :credit_card_type, :as=>:hidden, :value=>@order.credit_card_type %>
+    <%= order_form.input :credit_card_expiration_year, :as=>:hidden, :value=>@order.credit_card_expiration_year %>
+    <%= order_form.input :credit_card_expiration_month, :as=>:hidden, :value=>@order.credit_card_expiration_month %>
+    <%= order_form.input :credit_card_verification_number, :as=>:hidden, :value=>@order.credit_card_verification_number %>
+    <%= order_form.input :flex_pass_code, :as=>:hidden, :value=>@order.flex_pass_code %>
+    <%= order_form.input :member_code, :as=>:hidden, :value=>@order.member_code %>
+    <%= order_form.input :status, :as=>:hidden, :value=>@order.status %>
+    <%- if total > 0 %>
+      <%- case @order.payment_type
+            when Order::CREDIT_CARD %>
+        This amount will be charged to your <%= @order.credit_card_type %> ending in <%= @order.credit_card_number[-4..-1] %>.
+      <%- when Order::MEMBERSHIP %>
+        This ticket will be applied to your membership.
+      <%- when Order::FLEX_PASS %>
+        You are using flex pass <%= @order.flex_pass_code %>.
+      <%- end %>
+    <%- end %>
+    <%= order_form.submit "Order Tickets", :disable_with => 'Processing...' if (order_form.object.status.blank? || [Order::NEW, Order::HOLD, Order::PROCESSING].include?(order_form.object.status)) %>
+
+  <%- end %>
+<%- end %>

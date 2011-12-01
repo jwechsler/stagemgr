@@ -1,5 +1,5 @@
 
-<% some_are_donation = @order.line_items.any?{|li|li.ticket_class.ticket_type=='Donation'}%>
+<% some_are_donation = @order.ticket_line_items.any?{|li|li.ticket_class.ticket_type=='Donation'}%>
 <li>
   <label>Tickets</label>
   <div class="inline">

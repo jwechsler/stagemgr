@@ -214,6 +214,10 @@ class TicketOrder < Order
 
   protected
 
+  def transition_processing_to_processing!(redirect_to = nil)
+    self.transition_new_to_processing!(redirect_to)
+  end
+
   def transition_processed_to_fulfilled!(redirect_to = nil)
     self.send_to_printer
     super

@@ -5,7 +5,7 @@ InvalidSpecialOfferCode = Class.new(StandardError)
 class Order < ActiveRecord::Base
   using_access_control
 
-  include PaymentFormFields
+#  include PaymentFormFields
   include Admin::ReportsHelper
   include ActionView::Helpers::NumberHelper
 
@@ -34,6 +34,28 @@ class Order < ActiveRecord::Base
   attr_accessor_with_default :email_confirmation, 0
   attr_accessor :add_to_email_list
   attr_accessor :do_not_create_tasks
+  validates_presence_of :credit_card_number, :credit_card_expiration_year, :credit_card_type,
+                          :credit_card_expiration_month, :credit_card_expiration_year, :if=>:using_credit_card?
+
+  attr_accessor :credit_card_number,
+                  :credit_card_type,
+                  :credit_card_expiration_year,
+                  :credit_card_expiration_month,
+                  :credit_card_verification_number,
+                  :credit_card_confirmation_code,
+                  :flex_pass_code,
+                  :member_code
+
+    def copy_payment_information(from_order)
+      self.credit_card_number = from_order.credit_card_number
+      self.credit_card_type = from_order.credit_card_type
+      self.credit_card_expiration_year = from_order.credit_card_expiration_year
+      self.credit_card_expiration_month = from_order.credit_card_expiration_month
+      self.credit_card_confirmation_code = from_order.credit_card_confirmation_code
+      self.credit_card_verification_number = from_order.credit_card_verification_number
+      self.flex_pass_code = from_order.flex_pass_code
+
+    end
 
   ORDER_STATUSES = (
   HOLD, WEB, NEW, PROCESSING, PROCESSED, REFUNDED, EXCHANGED, FULFILLED, CANCELED, UNCLAIMED =
@@ -60,7 +82,7 @@ class Order < ActiveRecord::Base
   after_save :set_tasks_after_save
 
 
-  validates_inclusion_of :status, :in => ORDER_STATUSES
+  validates_inclusion_of :status, :in => ORDER_STATUSES, :if=>:status_is_provided?
   validates_inclusion_of :payment_type, :in => PAYMENT_TYPES
 
   validates_presence_of :address
@@ -138,6 +160,9 @@ class Order < ActiveRecord::Base
     self.line_items.uniq.to_a.sum { |li| li.respond_to?(:ticketing_fee) ? li.ticketing_fee : 0 }
   end
 
+  def status_is_provided?
+    !self.status.blank?
+  end
 
   def membership_payments
     payments.select { |p| p.is_a? MembershipPayment }
@@ -184,6 +209,10 @@ class Order < ActiveRecord::Base
 
   def paid?
     [PROCESSED, FULFILLED, UNCLAIMED].include? self.status
+  end
+
+  def using_credit_card?
+    self.payment_type == Order::CREDIT_CARD
   end
 
   def held?

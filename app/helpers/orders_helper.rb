@@ -79,8 +79,12 @@ module OrdersHelper
 
       if !on_success_redirect_to.nil?
         respond_to do |format|
-          flash[:notice] = "Order was successfully saved and is now #{order.status_display}"
-          format.html { redirect_to(send(on_success_redirect_to, order.id)) }
+          if order.status == Order::PROCESSING
+            format.html { render "/ticket_orders/confirm" }
+          else
+            flash[:notice] = "Order was successfully saved and is now #{order.status_display}"
+            format.html { redirect_to(send(on_success_redirect_to, order.id)) }
+          end
         end
       end
     rescue StandardError => e
