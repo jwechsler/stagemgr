@@ -5,6 +5,8 @@
 
 <%= render :partial => '/admin/ticket_line_items/table', :locals=>{:order=>ticket_order} %>
 
+<%= render :partial=>'/admin/special_offer_line_items/table', :locals=>{:order=>ticket_order} %>
+
 <%= render :partial => '/admin/orders/payments', :locals=>{:order=>ticket_order} %>
 
 <%= render :partial => '/admin/orders/referral', :locals=>{:order=>ticket_order} %>
