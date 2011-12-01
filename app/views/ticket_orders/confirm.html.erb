@@ -1,6 +1,6 @@
-<%= semantic_form_for @order do |order_form| %>
+<%= semantic_form_for @order, :html=>{:name=>"confirm_form"} do |order_form| %>
   <%= order_form.inputs :class=>"order" do %>
-    <h2>Please confirm your ticket reservation</h2>
+    <h2><%= @order.address.first_name %>, please confirm your ticket reservation</h2>
 
     <h3>You are purchasing the following tickets for <%= @order.performance.production.name %>
       on <%= @order.performance.performance_date.to_formatted_s(:long_ordinal) %> at
@@ -55,17 +55,34 @@
     <%= order_form.input :flex_pass_code, :as=>:hidden, :value=>@order.flex_pass_code %>
     <%= order_form.input :member_code, :as=>:hidden, :value=>@order.member_code %>
     <%= order_form.input :status, :as=>:hidden, :value=>@order.status %>
-    <%- if total > 0 %>
-      <%- case @order.payment_type
-            when Order::CREDIT_CARD %>
-        This amount will be charged to your <%= @order.credit_card_type %> ending in <%= @order.credit_card_number[-4..-1] %>.
-      <%- when Order::MEMBERSHIP %>
-        This ticket will be applied to your membership.
-      <%- when Order::FLEX_PASS %>
-        You are using flex pass <%= @order.flex_pass_code %>.
+    <%= order_form.input :special_offer_code, :as=>:hidden, :value=>@order.special_offer_code %>
+    <br/>
+    <p>
+      <%- if total > 0 %>
+        <%- case @order.payment_type
+              when Order::CREDIT_CARD %>
+          This amount will be charged to your <%= @order.credit_card_type %> ending
+          in <%= @order.credit_card_number[-4..-1] %>.
+        <%- when Order::MEMBERSHIP %>
+          This ticket will be applied to your membership.
+        <%- when Order::FLEX_PASS %>
+          You are using flex pass <%= @order.flex_pass_code %>.
+        <%- end %>
       <%- end %>
-    <%- end %>
-    <%= order_form.submit "Order Tickets", :disable_with => 'Processing...' if (order_form.object.status.blank? || [Order::NEW, Order::HOLD, Order::PROCESSING].include?(order_form.object.status)) %>
 
+      Please note that all ticket purchases are
+      <i>non-refundable</i>
+      and
+      <i>non-exchangeable.</i>
+      When you are ready to purchase your tickets, click "Order Tickets". If you would like to change your order, click
+      <a href="javascript: submitForm()">here</a>.
+    </p>
+    <%= order_form.submit "Order Tickets", :disable_with => 'Processing...' if (order_form.object.status.blank? || [Order::NEW, Order::HOLD, Order::PROCESSING].include?(order_form.object.status)) %>
+    <script type="text/javascript">
+      function submitForm() {
+        document.forms["confirm_form"].submit();
+      }
+
+    </script>
   <%- end %>
 <%- end %>

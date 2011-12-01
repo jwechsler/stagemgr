@@ -96,9 +96,14 @@ class SpecialOffer < ActiveRecord::Base
 
   end
 
-  def description(order)
+  def applicable_count(order)
     applicable = self.applicable_line_items(order, false)
-    "on #{applicable.size} ticket"
+        count = applicable.inject(0){|sum, li| sum + li.ticket_count}
+
+  end
+  def description(order)
+    count = self.applicable_count(order)
+    "on #{count} ticket#{'s' if count != 0}"
   end
 
   def to_s
