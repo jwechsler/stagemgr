@@ -13,7 +13,7 @@
     <%- end %>
     <%= order_form.hidden_field :status %>
     <%= render :partial => '/orders/address', :locals => {:order_form => order_form} %>
-    <%- @submit_text = "Order Tickets" -%>
+    <%- @submit_text = "Review Order" -%>
     <%= order_form.hidden_field :production_code %>
     <%= order_form.hidden_field :performance_code %>
     <%= render :partial => '/ticket_orders/tickets', :locals => {:order_form => order_form, :order => @order} %>

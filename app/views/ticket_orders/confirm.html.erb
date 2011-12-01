@@ -1,0 +1,42 @@
+<h2>Please confirm your ticket reservation</h2>
+
+<h3>You are purchasing the following tickets for <%= @order.performance.production.name %>
+  on <%= @order.performance.performance_date.to_formatted_s(:long_ordinal) %> at
+  <%= @order.performance.performance_time.to_formatted_s(:hour_min) %>.</h3>
+
+<table>
+  <thead>
+  <tr>
+    <td>Qty</td>
+    <td>Type</td>
+    <td>Price</td>
+  </tr>
+  </thead>
+  <%- qty = 0
+      total = Money.new(0)
+      @order.ticket_line_items.each { |tli|
+        qty += tli.ticket_count
+        total += Money.from_numeric(tli.receipt_total) %>
+    <tr>
+      <td><%= tli.ticket_count %></td>
+      <td><%= tli.ticket_class.class_name %></td>
+      <td>$ <%= Money.from_numeric(tli.receipt_total) %></td>
+    </tr>
+  <%- } %>
+  <tr class="total">
+    <td><%= qty %></td>
+    <td>Ticket<%= 's' if qty > 1 %> Total</td>
+    <td>$ <%= total.to_s %></td>
+
+  </tr>
+  <%- unless @order.special_offer_line_items.empty?
+        @order.special_offer_line_items.each { |so| %>
+      <tr>
+        <td><%= so.special_offer.code %></td>
+        <td><%= so.description %></td>
+        <td>-$ <%= Money.from_numeric(-1.0*so.special_offer.calculate_discount(@order)) %></td>
+      </tr>
+    <%- }
+        end %>
+</table>
+

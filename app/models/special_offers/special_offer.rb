@@ -68,7 +68,7 @@ class SpecialOffer < ActiveRecord::Base
       self.performance.nil_or.performance_code
   end
 
-  def applicable_line_items(order)
+  def applicable_line_items(order, modify=true)
     look_for = ticket_class_code.nil? ? '' : self.ticket_class_code
     ticket_lines = order.ticket_line_items.select { |li| li.ticket_class.class_code.starts_with?(look_for) }.sort { |t1, t2| t2.ticket_price <=> t1.ticket_price }
     num_remaining = self.max_tickets_per_order
@@ -79,9 +79,9 @@ class SpecialOffer < ActiveRecord::Base
         if li.ticket_count > num_remaining then
           li2 = li.clone
           li2.ticket_count = li.ticket_count - num_remaining
-          order.ticket_line_items << li2
+          order.ticket_line_items << li2 if modify
           li.ticket_count = num_remaining
-          li.save
+          li.save if modify
         end
         applicable << li
         num_remaining -= li.ticket_count
@@ -94,6 +94,11 @@ class SpecialOffer < ActiveRecord::Base
 
   def apply_to_order(order)
 
+  end
+
+  def description(order)
+    applicable = self.applicable_line_items(order, false)
+    "on #{applicable.size} ticket"
   end
 
   def to_s
