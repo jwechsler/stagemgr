@@ -7,6 +7,7 @@ class TicketOrder < Order
   validates_presence_of :performance
   before_validation :set_tickets_for_pass_redemption
   before_save :set_theater
+  before_save :remove_empty_ticket_lines
 
   validates_each :status do |record, attr, value|
 
@@ -327,6 +328,10 @@ class TicketOrder < Order
 
   def set_theater
     self.theater_id = self.performance.production.theater_id
+  end
+
+  def remove_empty_ticket_lines
+    self.ticket_line_items.each {|li| self.ticket_line_items.delete(li) if li.ticket_count == 0}
   end
 
   private

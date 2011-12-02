@@ -69,8 +69,10 @@ module OrdersHelper
   private
   def process_order(order, on_success_redirect_to)
     begin
-      order.credit_card_expiration_year = "20" + order.credit_card_expiration_year unless order.credit_card_expiration_year.blank? || order.credit_card_expiration_year.length > 2
+      unless order.credit_card_expiration_year.blank? || order.credit_card_expiration_year.length > 2
+      order.credit_card_expiration_year = "20" + order.credit_card_expiration_year
       order.save!
+      end
       old_status = order.status
       unless (params[:commit].blank? && order.status == Order::PROCESSING)
         Order.transaction do
@@ -81,7 +83,8 @@ module OrdersHelper
         if !on_success_redirect_to.nil?
           respond_to do |format|
             if order.status == Order::PROCESSING
-              format.html { render "/ticket_orders/confirm" }
+
+              format.html { render "/ticket_orders/confirm", :locals=>{:order=>order} }
             else
               flash[:notice] = "Order was successfully saved and is now #{order.status_display}"
               format.html { redirect_to(send(on_success_redirect_to, order.id)) }
@@ -95,6 +98,8 @@ module OrdersHelper
       end
     rescue StandardError => e
       order.status = old_status
+      @order = Order.find(order.id) if order.status == Order::PROCESSING
+      @order.attributes.merge!(order.payment_attributes)
       rescue_error(e)
     end
 
@@ -121,8 +126,8 @@ module OrdersHelper
 
   def submit_recurring_payment_request
     gateway ||= ActiveMerchant::Billing::PaypalRecurringGateway.new(
-      :login => $PAYPAL_LOGIN,
-      :password => $PAYPAL_PASSWORD)
+        :login => $PAYPAL_LOGIN,
+        :password => $PAYPAL_PASSWORD)
     membership_offer = @order.membership_offer
 
     setup_response = gateway.setup_authorization((membership_offer.recurring_cost * 100).to_i,

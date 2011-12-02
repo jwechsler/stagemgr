@@ -1,10 +1,10 @@
-<%= semantic_form_for @order, :html=>{:name=>"confirm_form"} do |order_form| %>
+<%= semantic_form_for order, :html=>{:name=>"confirm_form"} do |order_form| %>
   <%= order_form.inputs :class=>"order" do %>
-    <h2><%= @order.address.first_name %>, please confirm your ticket reservation</h2>
+    <h2><%= order.address.first_name %>, please confirm your ticket reservation</h2>
 
-    <h3>You are purchasing the following tickets for <%= @order.performance.production.name %>
-      on <%= @order.performance.performance_date.to_formatted_s(:long_ordinal) %> at
-      <%= @order.performance.performance_time.to_formatted_s(:hour_min) %>.</h3>
+    <h3>You are purchasing the following tickets for <%= order.performance.production.name %>
+      on <%= order.performance.performance_date.to_formatted_s(:long_ordinal) %> at
+      <%= order.performance.performance_time.to_formatted_s(:hour_min) %>.</h3>
 
     <table>
       <thead>
@@ -16,24 +16,34 @@
       </thead>
       <%- qty = 0
           total = Money.new(0)
-          @order.ticket_line_items.each { |tli|
+          old_items = Array.new
+          new_items = Array.new
+          order.special_offer_line_items.each do |li|
+            new2, old2 = li.special_offer.modified_line_items_in_order(order)
+            old_items += old2
+            new_items += new2
+          end
+          tickets = order.ticket_line_items.to_a
+          tickets -= old_items
+          tickets += new_items
+          tickets.each { |tli|
             qty += tli.ticket_count
-            total += Money.from_numeric(tli.receipt_total) %>
+            total += Money.from_numeric(tli.receipt_total) unless tli.ticket_class.software_managed %>
         <tr>
           <td><%= tli.ticket_count %></td>
           <td><%= tli.ticket_class.class_name %></td>
-          <td class="currency">$ <%= Money.from_numeric(tli.receipt_total) %></td>
+          <td class="currency"><%= "$ #{Money.from_numeric(tli.receipt_total)}" unless tli.ticket_class.software_managed %></td>
         </tr>
       <%- } %>
-      <%- unless @order.special_offer_line_items.empty?
-            @order.special_offer_line_items.each { |so|
-              discount = Money.from_numeric(-1*so.special_offer.calculate_discount(@order))
+      <%- unless order.special_offer_line_items.empty?
+            order.special_offer_line_items.each { |so|
+              discount = Money.from_numeric(-1*so.special_offer.calculate_discount(order))
               total -= discount
       %>
           <tr>
             <td><%= so.special_offer.code.upcase %></td>
             <td><%= so.description %></td>
-            <td class="currency">-$ <%= discount %></td>
+            <td class="currency"><%= "$ #{discount}" if !so.special_offer.is_a? TicketClassSpecialOffer %></td>
           </tr>
         <%- }
             end %>
@@ -46,28 +56,28 @@
 
     </table>
 
-    <%= order_form.input :payment_type, :as=>:hidden, :value=>@order.payment_type %>
-    <%= order_form.input :credit_card_number, :as=>:hidden, :value=>@order.credit_card_number %>
-    <%= order_form.input :credit_card_type, :as=>:hidden, :value=>@order.credit_card_type %>
-    <%= order_form.input :credit_card_expiration_year, :as=>:hidden, :value=>@order.credit_card_expiration_year %>
-    <%= order_form.input :credit_card_expiration_month, :as=>:hidden, :value=>@order.credit_card_expiration_month %>
-    <%= order_form.input :credit_card_verification_number, :as=>:hidden, :value=>@order.credit_card_verification_number %>
-    <%= order_form.input :flex_pass_code, :as=>:hidden, :value=>@order.flex_pass_code %>
-    <%= order_form.input :member_code, :as=>:hidden, :value=>@order.member_code %>
-    <%= order_form.input :status, :as=>:hidden, :value=>@order.status %>
-    <%= order_form.input :special_offer_code, :as=>:hidden, :value=>@order.special_offer_code %>
-    <%= order_form.input :additional_donation, :as=>:hidden, :value=>@order.additional_donation %>
+    <%= order_form.input :payment_type, :as=>:hidden, :value=>order.payment_type %>
+    <%= order_form.input :credit_card_number, :as=>:hidden, :value=>order.credit_card_number %>
+    <%= order_form.input :credit_card_type, :as=>:hidden, :value=>order.credit_card_type %>
+    <%= order_form.input :credit_card_expiration_year, :as=>:hidden, :value=>order.credit_card_expiration_year %>
+    <%= order_form.input :credit_card_expiration_month, :as=>:hidden, :value=>order.credit_card_expiration_month %>
+    <%= order_form.input :credit_card_verification_number, :as=>:hidden, :value=>order.credit_card_verification_number %>
+    <%= order_form.input :flex_pass_code, :as=>:hidden, :value=>order.flex_pass_code %>
+    <%= order_form.input :member_code, :as=>:hidden, :value=>order.member_code %>
+    <%= order_form.input :status, :as=>:hidden, :value=>order.status %>
+    <%= order_form.input :special_offer_code, :as=>:hidden, :value=>order.special_offer_code %>
+    <%= order_form.input :additional_donation, :as=>:hidden, :value=>order.additional_donation %>
     <br/>
     <p>
       <%- if total > 0 %>
-        <%- case @order.payment_type
+        <%- case order.payment_type
               when Order::CREDIT_CARD %>
-          This amount will be charged to your <%= @order.credit_card_type %> ending
-          in <%= @order.credit_card_number[-4..-1] %>.
+          This amount will be charged to your <%= order.credit_card_type %> ending
+          in <%= order.credit_card_number[-4..-1] %>.
         <%- when Order::MEMBERSHIP %>
           This ticket will be applied to your membership.
         <%- when Order::FLEX_PASS %>
-          You are using flex pass <%= @order.flex_pass_code %>.
+          You are using flex pass <%= order.flex_pass_code %>.
         <%- end %>
       <%- end %>
 
@@ -78,6 +88,7 @@
       When you are ready to purchase your tickets, click "Order Tickets". If you would like to change your order, click
       <a href="javascript: submitForm()">here</a>.
     </p>
+    <br/>
     <%= order_form.submit "Order Tickets", :disable_with => 'Processing...' if (order_form.object.status.blank? || [Order::NEW, Order::HOLD, Order::PROCESSING].include?(order_form.object.status)) %>
     <script type="text/javascript">
       function submitForm() {
