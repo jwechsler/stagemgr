@@ -56,6 +56,7 @@
     <%= order_form.input :member_code, :as=>:hidden, :value=>@order.member_code %>
     <%= order_form.input :status, :as=>:hidden, :value=>@order.status %>
     <%= order_form.input :special_offer_code, :as=>:hidden, :value=>@order.special_offer_code %>
+    <%= order_form.input :additional_donation, :as=>:hidden, :value=>@order.additional_donation %>
     <br/>
     <p>
       <%- if total > 0 %>
