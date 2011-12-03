@@ -34,8 +34,6 @@ class Order < ActiveRecord::Base
   attr_accessor_with_default :email_confirmation, 0
   attr_accessor :add_to_email_list
   attr_accessor :do_not_create_tasks
-  validates_presence_of :credit_card_number, :credit_card_expiration_year, :credit_card_type,
-                        :credit_card_expiration_month, :credit_card_expiration_year, :if=>:using_credit_card?
 
   attr_accessor :credit_card_number,
                 :credit_card_type,
