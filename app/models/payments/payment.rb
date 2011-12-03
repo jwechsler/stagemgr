@@ -19,6 +19,9 @@ class Payment < ActiveRecord::Base
     return 0
   end
 
+  def to_s
+    "#{Money.from_numeric(amount)} #{self.class}"
+  end
   def payment_type=(string)
     self.type=string
   end

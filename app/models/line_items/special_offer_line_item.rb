@@ -23,6 +23,10 @@ class SpecialOfferLineItem < LineItem
     self.price
   end
 
+  def description
+    self.special_offer.description(self.order)
+  end
+
   def receipt_description
     self.special_offer.code
   end

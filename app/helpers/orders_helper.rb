@@ -2,7 +2,7 @@ module OrdersHelper
 
   def convert_button_label_to_state(button_label)
     case button_label
-      when 'Checkout'
+      when 'Checkout', 'Review Order'
         Order::PROCESSING
       when 'Place Order', 'Order Tickets', 'Make a donation', 'Order FlexPass'
         Order::PROCESSED
@@ -69,22 +69,37 @@ module OrdersHelper
   private
   def process_order(order, on_success_redirect_to)
     begin
-      order.credit_card_expiration_year = "20" + order.credit_card_expiration_year unless order.credit_card_expiration_year.blank? || order.credit_card_expiration_year.length > 2
+      unless order.credit_card_expiration_year.blank? || order.credit_card_expiration_year.length > 2
+      order.credit_card_expiration_year = "20" + order.credit_card_expiration_year
       order.save!
-      old_status = order.status
-      Order.transaction do
-        on_success_redirect_to = order.transition_to!(convert_button_label_to_state(params[:commit]), on_success_redirect_to)
-        # @order.transition_to!(Order::PROCESSED) if @order.status == Order::PROCESSING
       end
+      old_status = order.status
+      unless (params[:commit].blank? && order.status == Order::PROCESSING)
+        Order.transaction do
+          on_success_redirect_to = order.transition_to!(convert_button_label_to_state(params[:commit]), on_success_redirect_to)
+          # @order.transition_to!(Order::PROCESSED) if @order.status == Order::PROCESSING
+        end
 
-      if !on_success_redirect_to.nil?
+        if !on_success_redirect_to.nil?
+          respond_to do |format|
+            if order.status == Order::PROCESSING
+
+              format.html { render "/ticket_orders/confirm", :locals=>{:order=>order} }
+            else
+              flash[:notice] = "Order was successfully saved and is now #{order.status_display}"
+              format.html { redirect_to(send(on_success_redirect_to, order.id)) }
+            end
+          end
+        end
+      else
         respond_to do |format|
-          flash[:notice] = "Order was successfully saved and is now #{order.status_display}"
-          format.html { redirect_to(send(on_success_redirect_to, order.id)) }
+          format.html { render '/ticket_orders/edit' }
         end
       end
     rescue StandardError => e
       order.status = old_status
+      @order = Order.find(order.id) if order.status == Order::PROCESSING
+      @order.attributes.merge!(order.payment_attributes)
       rescue_error(e)
     end
 

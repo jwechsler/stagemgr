@@ -58,7 +58,7 @@ Stagemgr::Application.routes.draw do
   end
 
   resources :ticket_orders do
-    post :confirm, :on=> :collection
+    get :confirm, :on=> :member
   end
 
   resources :donation_orders do

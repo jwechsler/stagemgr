@@ -34,6 +34,39 @@ class Order < ActiveRecord::Base
   attr_accessor_with_default :email_confirmation, 0
   attr_accessor :add_to_email_list
   attr_accessor :do_not_create_tasks
+  validates_presence_of :credit_card_number, :credit_card_expiration_year, :credit_card_type,
+                        :credit_card_expiration_month, :credit_card_expiration_year, :if=>:using_credit_card?
+
+  attr_accessor :credit_card_number,
+                :credit_card_type,
+                :credit_card_expiration_year,
+                :credit_card_expiration_month,
+                :credit_card_verification_number,
+                :credit_card_confirmation_code,
+                :flex_pass_code,
+                :member_code
+
+  def copy_payment_information(from_order)
+    self.credit_card_number = from_order.credit_card_number
+    self.credit_card_type = from_order.credit_card_type
+    self.credit_card_expiration_year = from_order.credit_card_expiration_year
+    self.credit_card_expiration_month = from_order.credit_card_expiration_month
+    self.credit_card_confirmation_code = from_order.credit_card_confirmation_code
+    self.credit_card_verification_number = from_order.credit_card_verification_number
+    self.flex_pass_code = from_order.flex_pass_code
+
+  end
+
+  def payment_attributes
+    {:credit_card_number=>self.credit_card_number,
+     :credit_card_type=>self.credit_card_type,
+     :credit_card_expiration_year=>self.credit_card_expiration_year,
+     :credit_card_expiration_month=>self.credit_card_expiration_month,
+     :credit_card_confirmation_code=>self.credit_card_confirmation_code,
+     :flex_pass_code=>self.flex_pass_code,
+     :member_code=>self.member_code}
+  end
+
 
   ORDER_STATUSES = (
   HOLD, WEB, NEW, PROCESSING, PROCESSED, REFUNDED, EXCHANGED, FULFILLED, CANCELED, UNCLAIMED =
@@ -60,7 +93,7 @@ class Order < ActiveRecord::Base
   after_save :set_tasks_after_save
 
 
-  validates_inclusion_of :status, :in => ORDER_STATUSES
+  validates_inclusion_of :status, :in => ORDER_STATUSES, :if=>:status_is_provided?
   validates_inclusion_of :payment_type, :in => PAYMENT_TYPES
 
   validates_presence_of :address
@@ -118,12 +151,14 @@ class Order < ActiveRecord::Base
 
   def total(reload_line_items=false)
     if (self.payments.nil?) || (self.payments.size == 0) then
-      self.unique_line_items(reload_line_items).to_a.sum { |line_item|
+      a = self.unique_line_items(reload_line_items).to_a.sum { |line_item|
         line_item.respond_to?(:total) ? line_item.total : 0
       }
     else
-      self.payments.to_a.sum { |payment| payment.respond_to?(:amount) ? payment.amount : 0 }
+      a = self.payments.to_a.sum { |payment| payment.respond_to?(:amount) ? payment.amount : 0 }
     end
+    a = 0.0 if a < 0.0
+    a
   end
 
   def total_ticket_quantity
@@ -138,6 +173,9 @@ class Order < ActiveRecord::Base
     self.line_items.uniq.to_a.sum { |li| li.respond_to?(:ticketing_fee) ? li.ticketing_fee : 0 }
   end
 
+  def status_is_provided?
+    !self.status.blank?
+  end
 
   def membership_payments
     payments.select { |p| p.is_a? MembershipPayment }
@@ -184,6 +222,24 @@ class Order < ActiveRecord::Base
 
   def paid?
     [PROCESSED, FULFILLED, UNCLAIMED].include? self.status
+  end
+
+  def paid_with_currency?
+    [CASH, CREDIT_CARD].include? self.payment_type
+  end
+
+  def paid_with_flexpass?
+    FLEX_PASS == self.payment_type
+  end
+
+  def paid_with_flexpass
+    unless flex_pass_payments.empty?
+      FlexPass.find(flex_pass_payments.first.flex_pass_id)
+    end
+  end
+
+  def using_credit_card?
+    self.payment_type == Order::CREDIT_CARD
   end
 
   def held?
@@ -323,15 +379,12 @@ class Order < ActiveRecord::Base
   end
 
   def self.send_flex_pass_reminder
-
     email = $EMAIL_ADDRESS['flex_pass_notifications']
 
     unless email.blank?
       flex_pass_orders = Order.all(:conditions=>["line_items.type = 'FlexPassLineItem' and status = ?", Order::PROCESSED], :include => :line_items)
       OrderMailer.send(:flex_pass_pending_reminder, flex_pass_orders).deliver
     end
-
-
   end
 
   def self.delete_unprocessed_orders
@@ -501,9 +554,8 @@ class Order < ActiveRecord::Base
   def transition_new_to_processing!(redirect_to = nil)
     Order.transaction do
       self.status = Order::PROCESSING
+      self.save!
       self.update_special_offer_line_items_from_code! unless self.special_offer_code.blank?
-      self.special_offer_line_items.each { |li| li.special_offer.apply_to_order(self) }
-
       self.save!
     end
     redirect_to
@@ -525,11 +577,15 @@ class Order < ActiveRecord::Base
   end
 
   def transition_processing_to_processed!(redirect_to = nil)
-    create_proper_payment_in_amount_of!(self.total)
-    self.status = Order::PROCESSED
-    self.set_email_confirmation
-    self.special_offer_line_items.each { |li| li.mark_redeemed }
-    self.save!
+    Order.transaction do
+
+      self.special_offer_line_items.each { |li| li.special_offer.apply_to_order(self) }
+      create_proper_payment_in_amount_of!(self.total)
+      self.status = Order::PROCESSED
+      self.set_email_confirmation
+      self.special_offer_line_items.each { |li| li.mark_redeemed }
+      self.save!
+    end
     save_additional_donation_order unless (self.additional_donation.blank? || self.additional_donation.to_i == 0)
     redirect_to
   end

@@ -3,7 +3,7 @@ class TicketOrdersController < ApplicationController
   layout 'ext_site_wrapper'
   include OrdersHelper
 
-  append_before_filter :find_order, :only => [:show, :edit, :update, :destroy]
+  append_before_filter :find_order, :only => [:show, :edit, :update, :destroy, :confirm]
   append_before_filter :redirect_to_proper_action, :only => [:edit, :show]
 
   respond_to :html, :xml, :json
@@ -17,17 +17,24 @@ class TicketOrdersController < ApplicationController
   def create
     @order = TicketOrder.new(params[:ticket_order])
     @order.ip_address = request.remote_ip
-    process_order(@order,:edit_ticket_order_path) if validate_web_order(@order)
+    process_order(@order,:confirm_ticket_order_path) if validate_web_order(@order)
   end
 
   def update
     @order.attributes=params[:ticket_order]
     @order.ip_address = request.remote_ip
-    validate_web_order(@order)
-    process_order(@order,:edit_ticket_order_path)
+    tcs = @order.line_items.map{|li| li.ticket_class_id}
+    available = @order.performance.ticket_class_allocations.select { |tca| tca.available && tcs.include?(tca.id) }.map { |tca| tca.ticket_class }.select { |tc| tc.web_visible unless tc.nil? }
+    available.each { |tc| @order.ticket_line_items.build(:ticket_class=>tc, :ticket_count=>0) }
+
+      # @order.donation_line_items.build(:donation_amount=>0)
+    @order_for_to_s = @order.performance.production.name + ' on ' + @order.performance.performance_date.to_formatted_s(:long_ordinal) +
+          ' at ' + @order.performance.performance_time.to_formatted_s(:hour_min)
+    process_order(@order,:edit_ticket_order_path) if validate_web_order(@order)
   end
-  
+
   def confirm
+
   end
 
   def donate
