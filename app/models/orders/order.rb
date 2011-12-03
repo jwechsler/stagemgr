@@ -239,7 +239,7 @@ class Order < ActiveRecord::Base
   end
 
   def using_credit_card?
-    self.payment_type == Order::CREDIT_CARD
+    self.payment_type == Order::CREDIT_CARD && self.total > 0
   end
 
   def held?
