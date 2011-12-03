@@ -224,6 +224,20 @@ class Order < ActiveRecord::Base
     [PROCESSED, FULFILLED, UNCLAIMED].include? self.status
   end
 
+  def paid_with_currency?
+    [CASH, CREDIT_CARD].include? self.payment_type
+  end
+
+  def paid_with_flexpass?
+    FLEX_PASS == self.payment_type
+  end
+
+  def paid_with_flexpass
+    unless flex_pass_payments.empty?
+      FlexPass.find(flex_pass_payments.first.flex_pass_id)
+    end
+  end
+
   def using_credit_card?
     self.payment_type == Order::CREDIT_CARD
   end

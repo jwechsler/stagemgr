@@ -18,6 +18,11 @@ class FlexPass < ActiveRecord::Base
       self.code = (0...size).map{ charset.to_a[rand(charset.size)] }.join
     end
   end
+
+  def uses_remaining
+    used = FlexPassPayment.sum(:number_of_tickets,:conditions=>["flex_pass_id = ?", self.id])
+    self.flex_pass_offer.number_of_tickets - used
+  end
   
   
   
