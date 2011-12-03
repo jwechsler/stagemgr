@@ -103,8 +103,10 @@ module OrdersHelper
       end
     rescue StandardError => e
       order.status = old_status
-      @order = Order.find(order.id) if order.status == Order::PROCESSING
-      @order.attributes.merge!(order.payment_attributes)
+      if order.status == Order::PROCESSING
+        @order = Order.find(order.id) if order.status == Order::PROCESSING
+        @order.attributes.merge!(order.payment_attributes)
+      end
       rescue_error(e)
     end
 
