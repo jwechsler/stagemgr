@@ -65,8 +65,8 @@
                     <%= if performance.performance_date<Date.today
                       raw title
                     elsif performance.sold_out?
-                      raw "<del>#{title}</del><br/><font size=\"-2\">Sold out!</font>"
                       found_sold_out = true
+                      raw "<del>#{title}</del><br/><font size=\"-2\">Sold out!</font>"
                     elsif performance.happening_soon?
                       raw "#{title}<br/><font size=\"-2\">Door only</font>"
                     elsif performance.near_capacity?
