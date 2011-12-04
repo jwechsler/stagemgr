@@ -10,19 +10,7 @@
             slice = 100 / row_count %>
         <br style="clear: both"/>
       <%- end %>
-      <%= render :partial=>"show_thumb", locals=>{:slice=>slice,:production=>venu_production}
-      <div class="show_listing" style="width: <%= slice %>%">
-        <p class="venue"><%= venue_production.venue.name %></p>
-        <%- image_url = venue_production.best_image_url_available(:thumb) %>
-        <%= link_to(image_tag(image_url, :class=>"promo_logo"), production_performances_path(venue_production.id, :anchor=>"top")) unless image_url.nil? %>
-        <p>
-          <span class="production_name"><%= link_to(venue_production.name, production_performances_path(venue_production.id, :anchor=>"top")) %><br/><%= "presented by #{venue_production.theater.name}" if !venue_production.theater.is_default? %>
-        </p>
-        <%- if !venue_production.theater.is_default? %>
-          <p class="company_class"><%= venue_production.theater.theater_class %></p>
-        <%- end %>
-
-      </div>
+      <%= render :partial=>"show_thumb", :locals=>{:slice=>slice,:production=>venue_production} %>
       <%- row_count -= 1 %>
     <%- end %>
     <%- if !@offtime_productions.empty? %>
