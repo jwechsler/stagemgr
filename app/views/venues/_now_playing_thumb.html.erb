@@ -1,0 +1,13 @@
+<div class="show_listing" style="width: <%= slice %>%">
+  <p class="venue"><%= production.venue.name %></p>
+  <%- image_url = production.best_image_url_available(:thumb) %>
+  <%= link_to(image_tag(image_url, :class=>"promo_logo"), production_performances_path(production.id, :anchor=>"top")) unless image_url.nil? %>
+  <p>
+          <span class="production_name"><%= link_to(venue_production.name, production_performances_path(production.id, :anchor=>"top")) %>
+            <br/><%= "presented by #{production.theater.name}" if !production.theater.is_default? %>
+  </p>
+  <%- if !production.theater.is_default? %>
+    <p class="company_class"><%= production.theater.theater_class %></p>
+  <%- end %>
+
+</div>
