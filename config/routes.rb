@@ -2,7 +2,7 @@ Stagemgr::Application.routes.draw do
 
   namespace(:admin){ resources :special_features }
 
-  get "venues/now_playing_fb"
+  post "venues/now_playing_fb"
 
   get "venues/now_playing"
 
