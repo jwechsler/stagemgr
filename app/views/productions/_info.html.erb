@@ -22,9 +22,6 @@
       <p class="running_time">Running
         Time: <%= production.running_time > 95 ? distance_of_time_in_words(production.running_time*60) : "#{production.running_time} minutes" %><%= " with intermission" if production.intermission? %></p>
     <%- end -%>
-    <%- unless production.allow_late_seating %>
-      <p class="late_seating">There is no late seating available for this production.</p>
-    <%- end %>
     <% unless production.additional_information_link.blank?  %>
       <p class="additional_information">For more information, click
         <a href="<%= production.additional_information_link %>" <%= "target=\"_blank\"" unless production.theater.is_default? %> >here</a></p>

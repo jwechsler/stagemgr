@@ -97,36 +97,6 @@ a {
 
 /*  stagemgr-specific styles */
 
-.production_information {
-  font: 0.8em "Helvetica Neue", Helvetica, Geneva, "Lucida Grande", LucidaGrande, Lucida, Verdana, Helvetica, Arial, sans-serif;
-  font-size: 13px;
-}
-
-
-
-p .company_class {
- margin-bottom: 1em; 
-}
-
-.production_name {
-  font-weight: bold;
-}
-
-.production_credits {
-}
-
-.production_dates {
-  font-size: 80%;
-  font-style: italic;
-  margin-top: 1em;
-  margin-bottom: 1em;
-}
-
-.production_logo {
-  float: left;
-  margin-right: 6px;
-  margin-bottom: 4px;
-}
 
 .stagemgr_calendar
 {
@@ -213,7 +183,7 @@ text-align:right;
   .min150px {
     height:150px;
   }
-  
+
   .min20px {
     height:20px;
   }
@@ -222,9 +192,6 @@ text-align:right;
     height:20px;
     line-height:20px;
   }
-
-  ins.diffmod, ins.diffins { background: #d4fdd5; text-decoration: none; }
-  del.diffmod, del.diffdel { color: #ff9999; }
 
 
 td.currency {

@@ -1,0 +1,6 @@
+<%- new_window_link = false if !defined? new_window_link %>
+<%= render :partial=>'/productions/info', :locals=>{:production=>production, :new_window_link=>new_window_link} %>
+<%= render :partial=>'/productions/production_detail_links', :locals=>{:production=>production, :new_window_link=>new_window_link} %>
+<br clear="all"/>
+
+

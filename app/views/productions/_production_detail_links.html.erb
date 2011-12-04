@@ -1,0 +1,15 @@
+<div class="production_information">
+  <%- new_window_link = false if !defined? new_window_link %>
+  <%- if production.status != Production::PRESALE %>
+    <div class="production_tickets">
+      <%= raw link_to "Get tickets/schedule for <i>#{production.name}</i>".html_safe, production_performances_path(production.id, :anchor=>"top"), :target=>(new_window_link ? '_blank' : '_self') %>
+    </div>
+
+    <p class="special_offer_upsell">
+      <%- if !production.flex_pass_offer.blank? && !production.flex_pass_offer.short_description.blank? -%>
+        <%= link_to production.flex_pass_offer.short_description, new_flex_pass_offer_order_path(production.flex_pass_offer, :anchor=>"top") %>
+      <%- end -%></p>
+  <%- else -%>
+    <p class="production tickets"><i>Tickets are not yet on sale for <%= production.name %>. Check back later!</i></p>
+  <%- end %>
+</div>

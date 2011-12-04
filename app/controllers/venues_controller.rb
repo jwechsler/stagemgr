@@ -3,8 +3,11 @@ class VenuesController < ApplicationController
 
   def now_playing_fb
     self.set_now_playing_productions
+    @now_playing_productions += @offtime_productions
+    @home_shows = @now_playing_productions.select{|prod| prod.theater.is_default?}
+    @now_playing_productions -= @home_shows
     @max_pieces = 3
-    render :now_playing, :layout=>'facebook'
+    render :now_playing_fb, :layout=>'facebook'
   end
   def now_playing
     self.set_now_playing_productions

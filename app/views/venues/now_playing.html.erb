@@ -10,7 +10,7 @@
             slice = 100 / row_count %>
         <br style="clear: both"/>
       <%- end %>
-      <%= render :partial=>"now_playing_thumb", locals=>{:slice=>slice,:production=>venu_production}
+      <%= render :partial=>"show_thumb", locals=>{:slice=>slice,:production=>venu_production}
       <div class="show_listing" style="width: <%= slice %>%">
         <p class="venue"><%= venue_production.venue.name %></p>
         <%- image_url = venue_production.best_image_url_available(:thumb) %>
