@@ -199,7 +199,8 @@ class Address < ActiveRecord::Base
   end
 
   def customer_tag(order = nil)
-    attendance_code = ("%03d" % self.performances_attended(2.years.ago)).reverse
+    attendance_code = self.revenue_collected(18.months.ago).truncate.to_s.reverse.rjust(4,'0')
+    attendance_code += self.performances_attended(18.months.ago).to_s.reverse.rjust(2,'0')
     attendance_code += "A" if self.is_donor?
     attendance_code += "M" if self.is_current_member?
     attendance_code
@@ -295,6 +296,10 @@ class Address < ActiveRecord::Base
       a.save!
     end
     puts "CSV Import Successful,  #{num_read} records loaded, #{num_merged} merged"
+  end
+
+  def revenue_collected(since_when = 18.months.ago)
+    self.orders.select{|o| o.paid? && Payment.maximum(:processed_on, :conditions=>["order_id = ?", o.id]) > since_when.to_date }.map {|o| o.total}.sum
   end
 
   def performances_attended(since_when = 5.years.ago)
