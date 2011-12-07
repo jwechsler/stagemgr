@@ -41,6 +41,7 @@ class Order < ActiveRecord::Base
                 :credit_card_expiration_month,
                 :credit_card_verification_number,
                 :credit_card_confirmation_code,
+                :credit_card_swipe,
                 :flex_pass_code,
                 :member_code
 

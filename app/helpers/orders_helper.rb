@@ -1,5 +1,7 @@
 module OrdersHelper
 
+  SWIPE_REGEX =/^(%B)([0-9]{16})[\^]([a-zA-Z ]*)(\/)([a-zA-Z ]*)\^([0-9]{2})([0-9]{2})(.*)\?$/
+
   def convert_button_label_to_state(button_label)
     case button_label
       when 'Checkout', 'Review Order'
@@ -8,7 +10,7 @@ module OrdersHelper
         Order::PROCESSED
       when 'Hold'
         Order::HOLD
-      when 'Fulfill'
+      when 'Fulfill','Print Tickets'
         Order::FULFILLED
       else
         raise "Don't know what to do with button '#{button_label}'"
@@ -74,6 +76,13 @@ module OrdersHelper
   private
   def process_order(order, on_success_redirect_to)
     begin
+      unless order.credit_card_swipe.blank?
+        parsed = order.credit_card_swipe.scan(SWIPE_REGEX)[0]
+        order.address.full_name = parsed[4] + ' ' + parsed[2]
+        order.credit_card_expiration_year = parsed[5]
+        order.credit_card_expiration_month = parsed[6]
+        order.credit_card_number = parsed[1]
+      end
       unless order.credit_card_expiration_year.blank? || order.credit_card_expiration_year.length > 2
       order.credit_card_expiration_year = "20" + order.credit_card_expiration_year
       order.save!

@@ -1,5 +1,6 @@
 class TicketOrder < Order
 
+
   has_many :ticket_line_items, :foreign_key=>:order_id
   accepts_nested_attributes_for :ticket_line_items, :allow_destroy=>true
 
@@ -214,6 +215,11 @@ class TicketOrder < Order
   end
 
   protected
+
+  def transition_new_to_fulfilled!(redirect_to = nil)
+    redirect_to = self.transition_new_to_processed!(redirect_to)
+    self.transition_processed_to_fulfilled!(redirect_to)
+  end
 
   def transition_processing_to_processing!(redirect_to = nil)
     self.transition_new_to_processing!(redirect_to)
