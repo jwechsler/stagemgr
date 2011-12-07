@@ -90,6 +90,8 @@
     </p>
     <br/>
     <%= order_form.submit "Order Tickets", :disable_with => 'Processing...' if (order_form.object.status.blank? || [Order::NEW, Order::HOLD, Order::PROCESSING].include?(order_form.object.status)) %>
+    <br/>
+    <p align="center">Problems?  Give us a call at 773-975-8150.</p>
     <script type="text/javascript">
       function submitForm() {
         document.forms["confirm_form"].submit();
