@@ -23,7 +23,7 @@ class MembershipOrder < Order
   end
 
   def description
-    "Membership [#{self.months_active}]"
+    "Membership " + (self.months_active.blank? ? "" : "[#{self.months_active}]")
   end
 
   def to_s

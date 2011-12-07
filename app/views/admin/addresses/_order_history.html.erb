@@ -2,17 +2,34 @@
   <thead>Order History</thead>
   <tr>
     <th>Order</th>
+    <th>Created</th>
     <th>Description</th>
     <th>Amount</th>
     <th>Status</th>
   </tr>
-  <%- orders.sort { |a, b| b.created_at <=> a.created_at }.each { |o| -%>
+  <%- total = 0.0
+      orders.sort { |a, b| b.created_at <=> a.created_at }.each { |o| -%>
     <tr>
       <td><%= link_to o.id, [:admin, o] %></td>
+      <td><%= o.created_at %></td>
       <td><%= o.description %></td>
-      <td><%= amt = o.total
-              number_to_currency(amt) unless amt.nil? %></td>
+      <td class="currency"><%= amt = o.total
+              total += amt
+              number_to_currency(amt) unless amt.nil?
+              %></td>
       <td><%= o.status %></td>
     </tr>
+
   <%- } -%>
+  <tr class="summary">
+      <td colspan="2">
+        &nbsp;
+      </td>
+      <td class="summary">
+        Total
+      </td>
+      <td class="currency">
+        <%= number_to_currency(total) %>
+      </td>
+    </tr>
 </table>
