@@ -298,7 +298,9 @@ class Admin::ReportsController < Admin::ApplicationController
     memberships = Membership.order(:member_since)
     report = Array.new
     sums = {:collected=>Money.new(0), :payout=>Money.new(0), :performances_attended=>0, :number_cycles=>0}
-    headers = [:member_since, :last_name, :first_name, :status, :number_cycles, :collected, :performances_attended, :payout, :net_revenue, :avg_revenue_month, :avg_performances_month]
+    headers = [:member_since, :last_name, :first_name]
+    headers += [:street_address, :street_address_2, :state, :city, :state, :postal_code, :phone] unless display_only
+    headers += [:status, :number_cycles, :collected, :performances_attended, :payout, :net_revenue, :avg_revenue_month, :avg_performances_month]
     memberships.each do |membership|
       unless membership.number_cycles_completed.nil? || membership.number_cycles_completed == 0
         total_payout = Payment.sum(:amount, :conditions=>["type = 'MembershipPayment' and membership_id = ? and exists (select * from orders, performances where orders.id = payments.order_id and orders.performance_id = performances.id and performances.performance_date <= ?)", membership.id, membership.next_billing_date])
@@ -320,7 +322,7 @@ class Admin::ReportsController < Admin::ApplicationController
                    :net_revenue => Money.from_numeric(aggregate_amount-total_payout),
                    :avg_revenue_month=>avg_revenue_month,
                    :avg_performances_month=>avg_performances_month
-        }
+        }.merge(address_hash_from_order(membership_line_item.order))
         sums[:collected] += Money.from_numeric(aggregate_amount)
         sums[:payout] += Money.from_numeric(total_payout)
         sums[:performances_attended] += num_attended
