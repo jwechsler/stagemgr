@@ -322,7 +322,7 @@ class Admin::ReportsController < Admin::ApplicationController
                    :net_revenue => Money.from_numeric(aggregate_amount-total_payout),
                    :avg_revenue_month=>avg_revenue_month,
                    :avg_performances_month=>avg_performances_month
-        }.merge(address_hash_from_order(membership_line_item.order))
+        }.merge(address_hash_from_order(membership.membership_line_item.order))
         sums[:collected] += Money.from_numeric(aggregate_amount)
         sums[:payout] += Money.from_numeric(total_payout)
         sums[:performances_attended] += num_attended
