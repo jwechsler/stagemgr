@@ -138,7 +138,7 @@ class Admin::ReportsController < Admin::ApplicationController
 
 
   def membership_usage
-    @headers, @report_data = build_membership_usage(!params['download_csv'].nil?)
+    @headers, @report_data = build_membership_usage(params['download_csv'].nil?)
     if params['download_csv'].nil? then
       respond_to do |format|
         format.html
