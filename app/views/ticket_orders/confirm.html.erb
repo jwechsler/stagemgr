@@ -88,9 +88,9 @@
       When you are ready to purchase your tickets, click "Order Tickets". If you would like to change your order, click
       <a href="javascript: submitForm()">here</a>.
     </p>
-    <br/>
+    <p>
     <%= order_form.submit "Order Tickets", :disable_with => 'Processing...' if (order_form.object.status.blank? || [Order::NEW, Order::HOLD, Order::PROCESSING].include?(order_form.object.status)) %>
-    <br/>
+    </p>
 
   <%- end %>
 <%- end %>
