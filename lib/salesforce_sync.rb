@@ -12,7 +12,7 @@ class SalesforceSync
   def SalesforceSync.materialize_all
     client = SalesforceSync.connect_client
     client.sobject_module = Salesforce
-    %w(Contact Account Opportunity).each { |c| client.materialize(c) unless Salesforce.const_defined?(c)}
+    %w(Contact Account Opportunity User RecordType).each { |c| client.materialize(c) unless Salesforce.const_defined?(c)}
   end
 
   def SalesforceSync.sync_addresses_to_salesforce

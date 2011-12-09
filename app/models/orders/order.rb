@@ -488,6 +488,10 @@ class Order < ActiveRecord::Base
     nil
   end
 
+  def last_processed_on
+    self.payments.map {|p| p.processed_on}.max
+  end
+
   private
 
 
