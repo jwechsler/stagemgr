@@ -186,7 +186,7 @@ class Address < ActiveRecord::Base
     end
     self.sf_last_sync_at = sync_time
     self.save!
-
+    sf_contact
   end
 
   def field_changed_after?(field_name, change_time)

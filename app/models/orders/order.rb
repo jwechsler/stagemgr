@@ -219,8 +219,12 @@ class Order < ActiveRecord::Base
     [HOLD, NEW, nil].include? self.status
   end
 
-  def paid?
+  def finalized?
     [PROCESSED, FULFILLED, UNCLAIMED].include? self.status
+  end
+
+  def paid?
+    self.finalized?
   end
 
   def paid_with_currency?

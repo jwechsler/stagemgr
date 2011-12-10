@@ -38,5 +38,5 @@ every 5.minutes do
 end
 
 every 1.day do
-  runner "SalesforceSync.sync_addresses_to_salesforce"
+  runner "SalesforceSync.sync_orders"
 end
