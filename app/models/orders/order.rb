@@ -219,8 +219,12 @@ class Order < ActiveRecord::Base
     [HOLD, NEW, nil].include? self.status
   end
 
-  def paid?
+  def finalized?
     [PROCESSED, FULFILLED, UNCLAIMED].include? self.status
+  end
+
+  def paid?
+    self.finalized?
   end
 
   def paid_with_currency?
@@ -486,6 +490,10 @@ class Order < ActiveRecord::Base
     end
 
     nil
+  end
+
+  def last_processed_on
+    self.payments.map {|p| p.processed_on}.max
   end
 
   private

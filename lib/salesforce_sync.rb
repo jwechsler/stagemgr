@@ -12,11 +12,12 @@ class SalesforceSync
   def SalesforceSync.materialize_all
     client = SalesforceSync.connect_client
     client.sobject_module = Salesforce
-    %w(Contact Account Opportunity).each { |c| client.materialize(c) unless Salesforce.const_defined?(c)}
+    %w(Contact Account Opportunity User RecordType).each { |c| client.materialize(c) unless Salesforce.const_defined?(c)}
+    client
   end
 
   def SalesforceSync.sync_addresses_to_salesforce
-    SalesforceSync.materialize_all
+    client = SalesforceSync.materialize_all
     addresses = Address.where("created_at > ? and sf_last_sync_at < updated_at or sf_last_sync_at is null", DateTime.now + 1.hour)
     addresses.each { |a| a.sync_to_salesforce! if a.orders.size > 0 }
   end
@@ -27,6 +28,18 @@ class SalesforceSync
     contacts.each do |c|
       address = Address.find(c.stagemgr_id__c)
       address.sync_to_salesforce!
+    end
+  end
+
+  def SalesforceSync.sync_orders
+    client = SalesforceSync.materialize_all
+    user = Salesforce::User.find_by_Username(client.username)
+    record_type = Salesforce::RecordType.find_by_Name('Donation')
+
+
+    orders = DonationOrder.where("sf_last_sync_at is null or sf_last_sync_at < updated_at")
+    orders.select{|o| o.total > 0}.each do |order|
+      order.sync_to_salesforce!(user,record_type)
     end
   end
 
