@@ -97,14 +97,14 @@ class TicketOrder < Order
 
       # print_order.save!
 
-         print_order.attributes['line_items_attributes'] ||= []
+      print_order.attributes['line_items_attributes'] ||= []
       print_order.attributes['payments_attributes'] ||= []
       print_order.attributes['tickets_attributes'] ||= []
 
-      self.line_items.select{|li| !li.special_offer_id.nil? || li.ticket_count > 0 }.each { |oli|
+      self.line_items.select { |li| !li.special_offer_id.nil? || li.ticket_count > 0 }.each { |oli|
         print_order.line_items_attributes << PrintLineItem.new(:order_id => print_order.id,
-                                            :description => oli.receipt_description,
-                                            :amount => oli.receipt_total)
+                                                               :description => oli.receipt_description,
+                                                               :amount => oli.receipt_total)
         # print_line_item.save!
       }
       self.payments.size
@@ -211,7 +211,13 @@ class TicketOrder < Order
   end
 
   def total_ticket_quantity
-    self.ticket_line_items.inject(0){|sum,li| sum + li.ticket_count }
+    self.ticket_line_items.inject(0) { |sum, li| sum + li.ticket_count }
+  end
+
+  def unique_line_items(reload_line_items = false)
+    (super +
+        self.ticket_line_items(reload_line_items)
+    ).uniq
   end
 
   protected
@@ -277,11 +283,6 @@ class TicketOrder < Order
     new_payment
   end
 
-  def unique_line_items(reload_line_items = false)
-    (super +
-        self.ticket_line_items(reload_line_items)
-    ).uniq
-  end
 
   def set_defaults
     self.ticket_line_items.each { |tli| tli.order=self if tli.order.nil? }
@@ -337,7 +338,7 @@ class TicketOrder < Order
   end
 
   def remove_empty_ticket_lines
-    self.ticket_line_items.each {|li| self.ticket_line_items.delete(li) if li.ticket_count == 0}
+    self.ticket_line_items.each { |li| self.ticket_line_items.delete(li) if li.ticket_count == 0 }
   end
 
   private

@@ -1,4 +1,5 @@
 <%= semantic_form_for order, :html=>{:name=>"confirm_form"} do |order_form| %>
+  <%- total = Money.new(0) %>
   <%= order_form.inputs :class=>"order" do %>
     <h2><%= order.address.first_name %>, please confirm your ticket reservation</h2>
 
@@ -15,7 +16,7 @@
       </tr>
       </thead>
       <%- qty = 0
-          total = Money.new(0)
+
           old_items = Array.new
           new_items = Array.new
           order.special_offer_line_items.each do |li|
@@ -68,31 +69,33 @@
     <%= order_form.input :special_offer_code, :as=>:hidden, :value=>order.special_offer_code %>
     <%= order_form.input :additional_donation, :as=>:hidden, :value=>order.additional_donation %>
     <br/>
-    <p>
-      <%- if total > 0 %>
-        <%- case order.payment_type
-              when Order::CREDIT_CARD %>
-          This amount will be charged to your <%= order.credit_card_type %> ending
-          in <%= order.credit_card_number[-4..-1] %>.
-        <%- when Order::MEMBERSHIP %>
-          This ticket will be applied to your membership.
-        <%- when Order::FLEX_PASS %>
-          You are using flex pass <%= order.flex_pass_code %>.
-        <%- end %>
-      <%- end %>
 
-      Please note that all ticket purchases are
-      <i>non-refundable</i>
-      and
-      <i>non-exchangeable.</i>
-      When you are ready to purchase your tickets, click "Order Tickets". If you would like to change your order, click
-      <a href="javascript: submitForm()">here</a>.
-    </p>
-    <p>
-    <%= order_form.submit "Order Tickets", :disable_with => 'Processing...' if (order_form.object.status.blank? || [Order::NEW, Order::HOLD, Order::PROCESSING].include?(order_form.object.status)) %>
-    </p>
 
   <%- end %>
+  <p>
+    <%- if total > 0 %>
+      <%- case order.payment_type
+            when Order::CREDIT_CARD %>
+        This amount will be charged to your <%= order.credit_card_type %> ending
+        in <%= order.credit_card_number[-4..-1] %>.
+      <%- when Order::MEMBERSHIP %>
+        This ticket will be applied to your membership.
+      <%- when Order::FLEX_PASS %>
+        You are using flex pass <%= order.flex_pass_code %>.
+      <%- end %>
+    <%- end %>
+
+    Please note that all ticket purchases are
+    <i>non-refundable</i>
+    and
+    <i>non-exchangeable.</i>
+    When you are ready to purchase your tickets, click "Order Tickets". If you would like to change your order, click
+    <a href="javascript: submitForm()">here</a>.
+  </p>
+
+  <p>
+    <%= order_form.submit "Order Tickets", :disable_with => 'Processing...' if (order_form.object.status.blank? || [Order::NEW, Order::HOLD, Order::PROCESSING].include?(order_form.object.status)) %>
+  </p>
 <%- end %>
 <p align="center">Problems? Give us a call at 773-975-8150.</p>
 &nbsp;

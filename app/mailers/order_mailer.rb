@@ -83,10 +83,26 @@ class OrderMailer < ActionMailer::Base
     @special_offer.ticket_class_code = "GEN"
     @special_offer.system_generated = true
     @special_offer.save!
-    inline_signature
     mail(:to=>order.address.email, :from=>"\"Jeremy Wechsler\" <jeremy@theaterwit.org>",
          :subject=>"Thanks for coming to Theater Wit",
          :tag=>"First Time Followup")
+  end
+
+  def membership_friend_pass(order)
+    @order = order
+    @membership = order.membership
+    @special_offer = TicketClassSpecialOffer.new
+    @special_offer.create_code("MF",6)
+    @special_offer.number_of_uses = 1
+    @special_offer.auto_expire = Date.today + 6.months
+    @special_offer.max_tickets_per_order = 1
+    @special_offer.system_generated = true
+    @special_offer.change_ticket_class_code = @membership.membership_offer.use_member_friend_code
+    @special_offer.membership_id = @membership.id
+    @special_offer.save!
+    mail(:to=>order.address.email, :from=>"\"Jeremy Wechsler\" <jeremy@theaterwit.org>",
+         :subject=>"Thanks for being a member",
+         :tag=>"Member Bring a Friend")
   end
 
   def standard_followup(order)

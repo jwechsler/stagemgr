@@ -1,4 +1,6 @@
 class SpecialOffer < ActiveRecord::Base
+  belongs_to :membership
+
   validates_presence_of :type, :code
   validates_numericality_of :amount, :allow_nil=>true
   validates_numericality_of :max_tickets_per_order, :allow_nil=>true

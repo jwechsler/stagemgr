@@ -3,7 +3,7 @@ class OutreachTask < OrderTask
   protected
 
   def execute!
-    if self.order.address.email.blank? || attempts > 2
+    if self.order.address.email.blank? || attempts > 8
       return false
     end
     result = true

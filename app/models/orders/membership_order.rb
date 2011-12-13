@@ -87,6 +87,10 @@ class MembershipOrder < Order
     end
   end
 
+  def unique_line_items(reload_line_items=false)
+    (super + self.membership_line_items(reload_line_items)).uniq
+  end
+
   protected
 
   def cascade_address_to_nested_items
@@ -94,9 +98,6 @@ class MembershipOrder < Order
     membership_line_items.each { |li| li.address = self.address }
   end
 
-  def unique_line_items(reload_line_items=false)
-    (super + self.membership_line_items(reload_line_items)).uniq
-  end
 
   def transition_new_to_processing!(redirect_to = nil)
     super
@@ -120,6 +121,9 @@ class MembershipOrder < Order
           else
             self.tasks << CheckMembershipTask.new(:execute_at=>Time.now + 5.minutes)
           end
+          self.tasks << OutreachTask.new(:execute_at=>Time.now + 4.months,
+                                         :method_symbol=>:membership_friend_pass,
+                                         :repeat_monthly_interval => 6) unless self.membership_offer.use_member_friend_code.blank?
       end
     end
     super

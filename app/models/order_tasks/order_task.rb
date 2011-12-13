@@ -26,8 +26,19 @@ class OrderTask < ActiveRecord::Base
   public
     def run!
       self.attempts += 1
-      self.status =  self.execute! ?  COMPLETED : FAILED
+      success = self.execute!
+      self.status =  success ?  COMPLETED : FAILED
       self.save!
+      if success
+        unless self.repeat_monthly_interval.blank?
+          new_task = self.clone
+          new_task.execute_at = Time.now + self.repeat_monthly_interval.months
+          new_task.order_id = self.order_id
+          new_task.attempts = 0
+          new_task.status = UNTRIED
+          new_task.save!
+        end
+      end
     end
 
   def cancel!

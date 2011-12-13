@@ -4,6 +4,7 @@ class TicketClassSpecialOffer < SpecialOffer
     new_items, old_items = modified_line_items_in_order(order)
     new_items.each { |li| order.ticket_line_items << li }
     old_items.each { |li| order.ticket_line_items.delete(li) }
+    order.unique_line_items(true)
     self
   end
 
