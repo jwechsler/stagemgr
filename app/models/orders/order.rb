@@ -496,6 +496,10 @@ class Order < ActiveRecord::Base
     self.payments.map {|p| p.processed_on}.max
   end
 
+  def unique_line_items(reload_line_items = false)
+    self.all_line_items(reload_line_items).uniq
+  end
+
   private
 
 
@@ -504,9 +508,6 @@ class Order < ActiveRecord::Base
             address.line1, address.line2, nil, address.city, address.state, address.zipcode, address.phone, address.id]
   end
 
-  def unique_line_items(reload_line_items = false)
-    self.all_line_items(reload_line_items).uniq
-  end
 
   protected
 
