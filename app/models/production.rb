@@ -84,6 +84,25 @@ class Production < ActiveRecord::Base
     end
   end
 
+  def sync_to_salesforce!(user, record_type)
+    production = Salesforce::Product2.find_by_stagemgr_id__c(self.id)
+    if production.nil?
+      production = Salesforce::Product2.create("Name"=>self.name,
+                                            "ProductCode"=>self.production_code,
+                                            "RecordTypeID"=>record_type.Id,
+                                            "Producing_Theater__c"=>self.theater.name,
+                                            "stagemgr_id__c"=>self.id)
+    else
+      production.Name = self.name
+      production.ProductCode=self.production_code
+      production.Producing_Theater__c=self.theater.name
+    end
+    if production.save
+      self.sf_last_sync_at = DateTime.now
+      self.save!
+    end
+  end
+
   private
   def clean_values
     self.production_code.upcase! unless self.production_code.nil?

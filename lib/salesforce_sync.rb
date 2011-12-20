@@ -12,7 +12,7 @@ class SalesforceSync
   def SalesforceSync.materialize_all
     client = SalesforceSync.connect_client
     client.sobject_module = Salesforce
-    %w(Contact Account Opportunity User RecordType).each { |c| client.materialize(c) unless Salesforce.const_defined?(c)}
+    %w(Contact Account Opportunity User RecordType Product2).each { |c| client.materialize(c) unless Salesforce.const_defined?(c)}
     client
   end
 
@@ -29,6 +29,14 @@ class SalesforceSync
       address = Address.find(c.stagemgr_id__c)
       address.sync_to_salesforce!
     end
+  end
+
+  def SalesforceSync.sync_productions
+    client = SalesforceSync.materialize_all
+
+    prods = Production.where("sf_last_sync_at is null or sf_last_sync_at < updated_at")
+    record_type = Salesforce::RecordType.find_by_Name("Production")
+    prods.each{ |p| p.sync_to_salesforce!(nil, record_type) }
   end
 
   def SalesforceSync.sync_orders
