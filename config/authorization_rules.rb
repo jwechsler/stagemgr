@@ -19,6 +19,7 @@ authorization do
     has_permission_on :admin_ticket_orders , :to=>[:view,:manage,:make]
     has_permission_on :admin_auto_complete, :to=>[:view]
     has_permission_on :orders, :to=>[:create, :update]
+    has_permission_on :donation_orders, :to=>[:create, :update]
     has_permission_on :ticket_orders, :to=>[:create, :update]
     has_permission_on :theaters, :to=>:update do
       if_attribute :id => is_in {user.theater_ids}
