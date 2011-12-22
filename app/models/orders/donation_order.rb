@@ -47,8 +47,8 @@ class DonationOrder < Order
                                                   "AccountId"=>account.Id,
                                                   "npe01__Contact_Id_for_Role__c"=>account.Id,
                                                   "stagemgr_id__c"=>self.id,
-                                                  "OwnerId"=>sf_user.Id,
-                                                  "RecordTypeId"=>sf_donationtype.Id,
+                                                  "OwnerId"=>sf_user,
+                                                  "RecordTypeId"=>sf_donationtype,
                                                   "IsPrivate"=>false)
 
       else

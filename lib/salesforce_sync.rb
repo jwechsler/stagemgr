@@ -3,17 +3,42 @@ module Salesforce
 end
 
 class SalesforceSync
-  def SalesforceSync.connect_client
-    client = Databasedotcom::Client.new(:client_id => $DATABASEDOTCOM['client_id'], :client_secret=>$DATABASEDOTCOM['client_secret'])
-    client.authenticate :username=>$DATABASEDOTCOM['username'], :password=>$DATABASEDOTCOM['password']
+  def SalesforceSync.connect_client(client_id=nil, client_secret=nil, username=nil, password=nil)
+    client_id = $DATABASEDOTCOM['client_id'] if client_id.nil?
+    client_secret = $DATABASEDOTCOM['client_secret'] if client_secret.nil?
+    username = $DATABASEDOTCOM['username'] if username.nil?
+    password = $DATABASEDOTCOM['password'] if password.nil?
+    client = Databasedotcom::Client.new(:client_id => client_id, :client_secret=>client_secret)
+    client.authenticate :username=>username, :password=>password
     client
   end
 
-  def SalesforceSync.materialize_all
-    client = SalesforceSync.connect_client
+  def SalesforceSync.materialize_all(client_id = nil, client_secret = nil, username = nil, password = nil)
+    client = SalesforceSync.connect_client(client_id, client_secret, username, password)
     client.sobject_module = Salesforce
-    %w(Contact Account Opportunity User RecordType Product2).each { |c| client.materialize(c) unless Salesforce.const_defined?(c)}
+    %w(Contact Account Opportunity User RecordType Product2).each { |c| client.materialize(c) unless Salesforce.const_defined?(c) }
     client
+  end
+
+  def SalesforceSync.load_from_yaml_file(environment, yaml_file)
+
+    databasedotcom_config = YAML::load(File.open(yaml_file))
+
+    salesforcesync = databasedotcom_config[environment]
+    if salesforcesync['sync_to_salesforce']
+      client = SalesforceSync.materialize_all(salesforcesync['client_id'],
+                                              salesforcesync['client_secret'],
+                                              salesforcesync['username'],
+                                              salesforcesync['password'])
+      user = Salesforce::User.find_by_Username(client.username)
+      salesforcesync['user_id'] = user.Id
+
+      donation_record_type = Salesforce::RecordType.find_by_Name('Donation')
+      salesforcesync['donation_record_type_id'] = donation_record_type.Id
+      production_record_type = Salesforce::RecordType.find_by_Name("Production")
+      salesforcesync['production_record_type_id'] = production_record_type.Id
+    end
+    salesforcesync
   end
 
   def SalesforceSync.sync_addresses_to_salesforce
@@ -36,18 +61,15 @@ class SalesforceSync
 
     prods = Production.where("sf_last_sync_at is null or sf_last_sync_at < updated_at")
     record_type = Salesforce::RecordType.find_by_Name("Production")
-    prods.each{ |p| p.sync_to_salesforce!(nil, record_type) }
+    prods.each { |p| p.sync_to_salesforce!(nil, record_type) }
   end
 
   def SalesforceSync.sync_orders
     client = SalesforceSync.materialize_all
-    user = Salesforce::User.find_by_Username(client.username)
-    record_type = Salesforce::RecordType.find_by_Name('Donation')
-
 
     orders = DonationOrder.where("sf_last_sync_at is null or sf_last_sync_at < updated_at")
-    orders.select{|o| o.total > 0}.each do |order|
-      order.sync_to_salesforce!(user,record_type)
+    orders.select { |o| o.total > 0 }.each do |order|
+      order.sync_to_salesforce!($DATABASEDOTCOM['user_id'], $DATABASEDOTCOM['donation_record_type_id'])
     end
   end
 
@@ -80,7 +102,7 @@ class SalesforceSync
             membership.save!
           }
           flex_passes = FlexPass.find_all_by_address_id(address.id)
-          flex_passes.each { | flex_pass |
+          flex_passes.each { |flex_pass|
             puts "  Transferring flexpass ##{flex_pass.id}"
 
             flex_pass.address_id = merge.id

@@ -3,11 +3,11 @@ class Production < ActiveRecord::Base
 
   PRODUCTION_STATUSES = (
   ACTIVE, PRIVATE, INACTIVE, PRESALE =
-    'Active', 'Private', 'Inactive', 'Presale')
+      'Active', 'Private', 'Inactive', 'Presale')
 
   PRODUCTION_CLASSES = (
   PLAY, SPECIAL_EVENT, PRIVATE_PARTY, CONFERENCE, OFF_TIME =
-    'Primetime', 'Special Event', 'Private Party', 'Conference', 'Off/Late night'
+      'Primetime', 'Special Event', 'Private Party', 'Conference', 'Off/Late night'
   )
 
   validates_inclusion_of :status, :in => PRODUCTION_STATUSES
@@ -41,7 +41,7 @@ class Production < ActiveRecord::Base
 
   def <=>(other)
     [PRODUCTION_STATUSES.index(self.status) || 0, self.opening_at || Date.today, self.name || ''] <=>
-      [PRODUCTION_STATUSES.index(other.status) || 0, other.opening_at || Date.today, other.name || '']
+        [PRODUCTION_STATUSES.index(other.status) || 0, other.opening_at || Date.today, other.name || '']
   end
 
   def now_playing?
@@ -84,22 +84,27 @@ class Production < ActiveRecord::Base
     end
   end
 
-  def sync_to_salesforce!(user, record_type)
-    production = Salesforce::Product2.find_by_stagemgr_id__c(self.id)
-    if production.nil?
-      production = Salesforce::Product2.create("Name"=>self.name,
-                                            "ProductCode"=>self.production_code,
-                                            "RecordTypeID"=>record_type.Id,
-                                            "Producing_Theater__c"=>self.theater.name,
-                                            "stagemgr_id__c"=>self.id)
-    else
-      production.Name = self.name
-      production.ProductCode=self.production_code
-      production.Producing_Theater__c=self.theater.name
-    end
-    if production.save
-      self.sf_last_sync_at = DateTime.now
-      self.save!
+  def sync_to_salesforce!(user = nil, record_type_id = nil)
+    record_type_id = $DATABASEDOTCOM['production_record_type_id'] if record_type_id.nil?
+    if self.sf_last_sync_at.nil? || self.sf_last_sync_at <= self.updated_at
+      production = Salesforce::Product2.find_by_stagemgr_id__c(self.id)
+      if production.nil?
+        production = Salesforce::Product2.create("Name"=>self.name,
+                                                 "ProductCode"=>self.production_code,
+                                                 "RecordTypeID"=>record_type_id,
+                                                 "Producing_Theater__c"=>self.theater.name,
+                                                 "season__c"=>self.season,
+                                                 "stagemgr_id__c"=>self.id)
+      else
+        production.Name = self.name
+        production.ProductCode=self.production_code
+        production.Producing_Theater__c=self.theater.name
+        production.season__c=self.season
+      end
+      if production.save
+        self.sf_last_sync_at = DateTime.now
+        self.save!
+      end
     end
   end
 
