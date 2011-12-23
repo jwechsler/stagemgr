@@ -21,10 +21,11 @@ class Address < ActiveRecord::Base
 
   attr_accessible :full_name, :line1, :line2, :city, :state, :zipcode, :email, :phone, :street_number, :address_tags_attributes
   acts_as_audited :protect=>false, :except=>['street_number', 'street', 'street_type', 'unit', 'unit_prefix', 'search_name']
+  attr_accessor :sf_object
 
   def regularize!
     if self.changed?
-     self.full_name = NameCase(self.full_name)
+      self.full_name = NameCase(self.full_name)
       if self.full_name.include?(' ')
         parsed = NameParse::Parser.new(self.full_name)
         if [:first_last, :first_mid_last].include?(parsed.matched)
@@ -186,21 +187,33 @@ class Address < ActiveRecord::Base
     end
     self.sf_last_sync_at = sync_time
     self.save!
-    sf_contact
+    self.sf_object = sf_contact
+  end
+
+  def sf
+    if self.sf_object.nil?
+      self.sf_last_sync_at=nil
+      self.sync_to_salesforce!
+    end
+    self.sf_object
   end
 
   def field_changed_after?(field_name, change_time)
-    self.audits.select { |audit| audit.created_at > change_time }.each do |revision|
-      revision.audited_changes.each do |fld, changes|
-        return true if fld == field_name.to_s
+    unless change_time.nil?
+      self.audits.select { |audit| audit.created_at > change_time unless audit.created_at.nil? }.each do |revision|
+        revision.audited_changes.each do |fld, changes|
+          return true if fld == field_name.to_s
+        end
       end
+      return false
+    else
+      return true
     end
-    return false
   end
 
   def customer_tag(order = nil)
-    attendance_code = self.revenue_collected(18.months.ago).truncate.to_s.reverse.rjust(4,'0')
-    attendance_code += self.performances_attended(18.months.ago).to_s.reverse.rjust(2,'0')
+    attendance_code = self.revenue_collected(18.months.ago).truncate.to_s.reverse.rjust(4, '0')
+    attendance_code += self.performances_attended(18.months.ago).to_s.reverse.rjust(2, '0')
     attendance_code += "A" if self.is_donor?
     attendance_code += "M" if self.is_current_member?
     attendance_code
@@ -299,7 +312,7 @@ class Address < ActiveRecord::Base
   end
 
   def revenue_collected(since_when = 18.months.ago)
-    self.orders.select{|o| o.paid? && Payment.maximum(:processed_on, :conditions=>["order_id = ?", o.id]) > since_when.to_date }.map {|o| o.total}.sum
+    self.orders.select { |o| o.paid? && Payment.maximum(:processed_on, :conditions=>["order_id = ?", o.id]) > since_when.to_date }.map { |o| o.total }.sum
   end
 
   def performances_attended(since_when = 5.years.ago)

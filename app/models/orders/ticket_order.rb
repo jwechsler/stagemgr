@@ -200,15 +200,17 @@ class TicketOrder < Order
                                 self.performance.performance_date.day,
                                 self.performance.performance_time.hour,
                                 self.performance.performance_time.min,
-                                self.performance.performance_time.sec,
-                                Rational(Time.zone.utc_offset/60/60,24))
+                                self.performance.performance_time.sec)
         if event.nil?
           event = Salesforce::Event.create("stagemgr_order_id__c"=>self.id,
                                            "WhatId" => prod.Id,
                                            "ActivityDateTime" => showtime,
                                            "StartDateTime" => showtime,
                                            "WhoId"=>contact.Id,
-                                           "RecordType" => $DATABASEDOTCOM['ticket_order_record_type_id']
+                                           "DurationInMinutes"=>(self.performance.production.running_time.nil? ?
+                                             120 : self.performance.production.running_time),
+                                           "RecordTypeId" => $DATABASEDOTCOM['ticket_order_record_type_id'],
+                                           "OwnerId"=>$DATABASEDOTCOM['user_id']
           )
         else
           event.WhatId = prod.Id

@@ -94,10 +94,11 @@ class Production < ActiveRecord::Base
       if production.nil?
         production = Salesforce::Product2.create("Name"=>self.name,
                                                  "ProductCode"=>self.production_code,
-                                                 "RecordTypeID"=>record_type_id,
+                                                 "RecordTypeId"=>record_type_id,
                                                  "Producing_Theater__c"=>self.theater.name,
                                                  "season__c"=>self.season,
-                                                 "stagemgr_id__c"=>self.id)
+                                                 "stagemgr_id__c"=>self.id,
+                                                 "IsActive"=>true)
       else
         production.Name = self.name
         production.ProductCode=self.production_code
