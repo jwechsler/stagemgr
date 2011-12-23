@@ -263,7 +263,7 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def build_fulfill_labels(through_date)
-    orders = TicketOrder.order("performances.performance_date, productions.production_code, addresses.last_name").all(:include=>[:line_items, {:performance, :production}, :address],
+    orders = TicketOrder.order("performances.performance_date, productions.production_code, performances.performance_code, addresses.last_name").all(:include=>[:line_items, {:performance, :production}, :address],
                                                                     :conditions=>["orders.status = ? and performances.status = 'Active' and performances.performance_date <= ? and performances.performance_date >= ? and productions.status in (?)",
                                                                                   Order::PROCESSED, through_date, Date.today, Production.visible_statuses])
     report = Array.new
