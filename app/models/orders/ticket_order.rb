@@ -101,7 +101,7 @@ class TicketOrder < Order
       print_order.attributes['payments_attributes'] ||= []
       print_order.attributes['tickets_attributes'] ||= []
 
-      self.line_items.select { |li| !li.special_offer_id.nil? || li.ticket_count > 0 }.each { |oli|
+      self.unique_line_items.select { |li| !li.special_offer_id.nil? || li.ticket_count > 0 }.each { |oli|
         print_order.line_items_attributes << PrintLineItem.new(:order_id => print_order.id,
                                                                :description => oli.receipt_description,
                                                                :amount => oli.receipt_total)

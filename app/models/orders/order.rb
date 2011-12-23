@@ -604,6 +604,11 @@ class Order < ActiveRecord::Base
     transition_processed_to_fulfilled!(redirect_to)
   end
 
+  def transition_hold_to_fulfilled!(redirect_to = nil)
+    redirect_to = transition_hold_to_processed!(redirect_to)
+    transition_processed_to_fulfilled!
+  end
+
   def transition_processed_to_fulfilled!(redirect_to = nil)
     self.status = Order::FULFILLED
     self.save!
