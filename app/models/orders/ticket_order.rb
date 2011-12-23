@@ -186,6 +186,44 @@ class TicketOrder < Order
     end
   end
 
+  def sync_to_salesforce!
+    if self.syncable? && (self.sf_last_sync_at.nil? || self.sf_last_sync_at < self.updated_at)
+      event = Salesforce::Event.find_by_stagemgr_order_id__c(self.id)
+      # is delete needed?
+      if self.returned?
+        event.delete unless event.nil?
+      elsif
+        prod = self.performance.production.sf
+        contact = self.address.sf
+        showtime = DateTime.new(self.performance.performance_date.year,
+                                self.performance.performance_date.month,
+                                self.performance.performance_date.day,
+                                self.performance.performance_time.hour,
+                                self.performance.performance_time.min,
+                                self.performance.performance_time.sec,
+                                Rational(Time.zone.utc_offset/60/60,24))
+        if event.nil?
+          event = Salesforce::Event.create("stagemgr_order_id__c"=>self.id,
+                                           "WhatId" => prod.Id,
+                                           "ActivityDateTime" => showtime,
+                                           "StartDateTime" => showtime,
+                                           "WhoId"=>contact.Id,
+                                           "RecordType" => $DATABASEDOTCOM['ticket_order_record_type_id']
+          )
+        else
+          event.WhatId = prod.Id
+          event.ActivityDateTime = showtime
+          event.StartDateTime = showtime
+          event.WhoId = contact.Id
+        end
+        event.save
+      end
+
+      self.sf_last_sync_at = DateTime.now
+      self.save!
+    end
+  end
+
   def release_tickets!
     self.ticket_line_items.each { |ti| ti.destroy }
     self.payments.each { |p| p.release_tickets! }

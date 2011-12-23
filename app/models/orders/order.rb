@@ -227,6 +227,22 @@ class Order < ActiveRecord::Base
     self.finalized?
   end
 
+  def syncable?
+    self.attended? || self.unclaimed? || self.returned?
+  end
+
+  def returned?
+    [UNCLAIMED, REFUNDED, EXCHANGED].include? self.status
+  end
+
+  def unclaimed?
+    self.status == UNCLAIMED
+  end
+
+  def attended?
+    [PROCESSED, FULFILLED].include? self.status
+  end
+
   def paid_with_currency?
     [CASH, CREDIT_CARD].include? self.payment_type
   end

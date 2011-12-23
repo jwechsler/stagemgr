@@ -25,6 +25,9 @@ class Production < ActiveRecord::Base
   before_validation :clean_values
   before_save :assign_default_ticket_classes
   belongs_to :flex_pass_offer
+
+  attr_accessor :sf_object
+
   has_attached_file :promo, :styles => {:medium => "250x375>", :thumb => "125x186>"}
 
   def to_s
@@ -105,8 +108,21 @@ class Production < ActiveRecord::Base
         self.sf_last_sync_at = DateTime.now
         self.save!
       end
+      self.sf_object = production
     end
   end
+
+  def sf
+    if self.sf_object.nil?
+      self.sf_object = Salesforce::Product2.find_by_stagemgr_id__c(self.id)
+      if self.sf_object.nil?
+        self.sf_last_sync_at = nil
+        self.sync_to_salesforce!
+      end
+    end
+    self.sf_object
+  end
+
 
   private
   def clean_values
