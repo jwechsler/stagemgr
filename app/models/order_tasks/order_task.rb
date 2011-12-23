@@ -53,7 +53,12 @@ class OrderTask < ActiveRecord::Base
   def self.run_pending
     pending_tasks = OrderTask.where("status in ('Untried','Failed') and attempts < 12 and execute_at < ?",Time.now)
     pending_tasks.each { |task|
-      task.run!
+      begin
+        task.run!
+      rescue => e
+        puts "Could not run task #{task.id} on order #{task.order.id}: #{e}"
+      end
+
     }
 
   end
