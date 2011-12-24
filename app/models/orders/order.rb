@@ -44,6 +44,7 @@ class Order < ActiveRecord::Base
                 :credit_card_swipe,
                 :flex_pass_code,
                 :member_code
+  attr_accessor :sf_object
 
   def copy_payment_information(from_order)
     self.credit_card_number = from_order.credit_card_number
@@ -361,6 +362,17 @@ class Order < ActiveRecord::Base
         ""
     end
 
+  end
+
+  def sf
+    if self.sf_object.nil?
+      self.sf_object = Salesforce::Event.find_by_stagemgr_order_id__c(self.id)
+      if self.sf_object.nil?
+        self.sf_last_sync_at = nil
+        self.sync_to_salesforce!
+      end
+    end
+    self.sf_object
   end
 
   def transition_to!(new_status, redirect_to = nil)
