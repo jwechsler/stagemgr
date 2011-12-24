@@ -34,7 +34,7 @@ class DonationOrder < Order
     valid_payment_types
   end
 
-  def sync_to_salesforce!(sf_user, sf_donationtype)
+  def sync_to_salesforce!(sf_user = nil, sf_donationtype = nil)
     if self.finalized?
       c = self.address.sync_to_salesforce!
       account = Salesforce::Account.find_by_npe01__One2OneContact__c(c.Id)
@@ -47,8 +47,8 @@ class DonationOrder < Order
                                                   "AccountId"=>account.Id,
                                                   "npe01__Contact_Id_for_Role__c"=>account.Id,
                                                   "stagemgr_id__c"=>self.id,
-                                                  "OwnerId"=>sf_user.Id,
-                                                  "RecordTypeId"=>sf_donationtype.Id,
+                                                  "OwnerId"=>sf_user,
+                                                  "RecordTypeId"=>sf_donationtype,
                                                   "IsPrivate"=>false)
 
       else

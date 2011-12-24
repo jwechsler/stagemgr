@@ -37,9 +37,7 @@ Stagemgr::Application.configure do
   $PAYPAL_LOGIN = paypal_config['development']['paypal_login']
   $PAYPAL_PASSWORD = paypal_config['development']['paypal_password']
 
-  databasedotcom_config = YAML::load(File.open("#{::Rails.root.to_s}/config/databasedotcom.yml"))
-
-  $DATABASEDOTCOM = databasedotcom_config['development']
+  $DATABASEDOTCOM = SalesforceSync.load_from_yaml_file('development',"#{::Rails.root.to_s}/config/databasedotcom.yml")
 
   $TKTPRINT =  YAML::load(File.open("#{::Rails.root.to_s}/config/ticket_print.yml"))['development']
 
