@@ -228,7 +228,7 @@ class TicketOrder < Order
         event.save
       end
       self.sf_object = event
-      self.sf_last_sync_at = DateTime.now
+      self.sf_last_sync_at = DateTime.now + 15.seconds
       self.save!
     end
   end
