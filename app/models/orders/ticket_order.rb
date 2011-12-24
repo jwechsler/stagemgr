@@ -206,6 +206,7 @@ class TicketOrder < Order
           event = Salesforce::Event.create("stagemgr_order_id__c"=>self.id,
                                            "WhatId" => prod.Id,
                                            "IsAllDayEvent"=>true,
+                                           "ActivityDateTime" => self.performance.performance_date,
                                            "StartDateTime" => self.performance.performance_date,
                                            "Subject"=>(self.attended? ? 'Attended' : 'Missed'),
                                            "WhoId"=>contact.Id,
@@ -218,8 +219,8 @@ class TicketOrder < Order
           )
         else
           event.WhatId = prod.Id
-          event.ActivityDateTime = showtime
-          event.StartDateTime = showtime
+          event.ActivityDateTime = self.performance.performance_date
+          event.StartDateTime = self.performance.performance_date
           event.WhoId = contact.Id
           event.Subject = (self.attended? ? 'Attended' : 'Missed')
 
