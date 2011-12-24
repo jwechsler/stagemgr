@@ -186,7 +186,7 @@ class Address < ActiveRecord::Base
         sf_contact.stagemgr_last_sync_at__c = sync_time
         sf_contact.save
       end
-      self.sf_last_sync_at = Time.now + 15.seconds
+      self.sf_last_sync_at = DateTime.now + 15.seconds
       self.save!
       self.sf_object = sf_contact
     end
