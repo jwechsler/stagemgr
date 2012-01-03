@@ -197,6 +197,7 @@ class TicketOrder < Order
       if self.returned?
         event.delete unless event.nil?
       elsif
+        puts "  syncing production #{self.performance.production_id}"
         prod = sf_cache.production(self.performance.production_id)
         contact = sf_cache.address(self.address_id)
 
