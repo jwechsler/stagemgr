@@ -69,17 +69,19 @@ class SalesforceSync
   end
 
   def SalesforceSync.sync_orders
+    sf_cache = SyncCache.new
     orders = DonationOrder.where("sf_last_sync_at is null or sf_last_sync_at < updated_at")
     orders.select { |o| o.total > 0 }.each do |order|
       order.sync_to_salesforce!($DATABASEDOTCOM['user_id'], $DATABASEDOTCOM['donation_record_type_id'])
     end
-    orders = TicketOrder.where("sf_last_sync_at is null or sf_last_sync_at < updated_at")
+    orders = TicketOrder.where("sf_last_sync_at is null or sf_last_sync_at < updated_at").order("created_at desc")
     o_id = 0
     Authorization.ignore_access_control(true)
     begin
       orders.each do |o|
         o_id = o.id
-        o.sync_to_salesforce!
+        puts "Syncing order #{o_id}"
+        o.sync_to_salesforce!(sf_cache)
       end
     rescue => e
       puts "Sync of ticket order #{o_id} failed, #{e}"
