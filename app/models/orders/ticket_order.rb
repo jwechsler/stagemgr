@@ -231,9 +231,9 @@ class TicketOrder < Order
           event.WhoId = contact.Id
           event.Subject = (self.attended? ? 'Attended' : 'Missed')
           puts "  saving event to salesforce"
-          event.save
-        end
 
+        end
+        event.save
 
       end
       self.sf_object = event
