@@ -11,6 +11,7 @@ class SyncCache
     if a.nil?
       a = Address.find(address_id)
       @addresses[address_id] = a.sf
+      a = a.sf
     end
     a
   end
@@ -20,6 +21,7 @@ class SyncCache
     if p.nil?
       p = Production.find(production_id)
       @productions[production_id] = p.sf
+      p = p.sf
     end
     p
   end
