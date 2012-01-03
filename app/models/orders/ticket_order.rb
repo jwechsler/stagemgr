@@ -186,15 +186,20 @@ class TicketOrder < Order
     end
   end
 
-  def sync_to_salesforce!
+  def sync_to_salesforce!(sf_cache = nil)
+    if sf_cache.nil?
+      sf_cache = SyncCache.new
+    end
     if self.syncable? && (self.sf_last_sync_at.nil? || self.sf_last_sync_at < self.updated_at)
+      puts "syncing order #{self.id}"
       event = Salesforce::Event.find_by_stagemgr_order_id__c(self.id)
       # is delete needed?
       if self.returned?
         event.delete unless event.nil?
       elsif
-        prod = self.performance.production.sf
-        contact = self.address.sf
+        prod = sf_cache.production(self.performance.production_id)
+        contact = sf_cache.address(self.address_id)
+
         showtime = DateTime.new(self.performance.performance_date.year,
                                 self.performance.performance_date.month,
                                 self.performance.performance_date.day,
@@ -203,6 +208,7 @@ class TicketOrder < Order
                                 self.performance.performance_time.sec,
                                 Rational(Time.zone.utc_offset/60/60,24))
         if event.nil?
+          puts "  creating event in salesforce"
           event = Salesforce::Event.create("stagemgr_order_id__c"=>self.id,
                                            "WhatId" => prod.Id,
                                            "IsAllDayEvent"=>true,
@@ -223,9 +229,11 @@ class TicketOrder < Order
           event.StartDateTime = self.performance.performance_date
           event.WhoId = contact.Id
           event.Subject = (self.attended? ? 'Attended' : 'Missed')
-
+          puts "  saving event to salesforce"
+          event.save
         end
-        event.save
+
+
       end
       self.sf_object = event
       self.sf_last_sync_at = DateTime.now + 15.seconds

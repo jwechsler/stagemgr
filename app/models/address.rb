@@ -184,6 +184,7 @@ class Address < ActiveRecord::Base
           self.phone = sf_contact.Phone unless sf_contact.Phone.blank?
         end
         sf_contact.stagemgr_last_sync_at__c = sync_time
+        puts "  saving address #{self.id} to salesforce"
         sf_contact.save
       end
       self.sf_last_sync_at = DateTime.now + 15.seconds
@@ -335,6 +336,7 @@ class Address < ActiveRecord::Base
   end
 
   def create_salesforce_contact
+    puts "  creating new sf record"
     Salesforce::Contact.create "LastName"=>self.last_name, "FirstName"=>self.first_name, "stagemgr_id__c"=>"#{self.id}",
                                "MailingStreet"=>"#{self.line1}\r\n#{self.line2}", "MailingCity"=>self.city,
                                "Email"=>self.email, "Phone"=>self.phone,
