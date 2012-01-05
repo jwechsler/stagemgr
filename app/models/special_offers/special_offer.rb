@@ -95,7 +95,7 @@ class SpecialOffer < ActiveRecord::Base
   end
 
   def modified_line_items_in_order(order)
-
+    [Array.new, order.line_items]
   end
 
   def apply_to_order(order, modify=true)
