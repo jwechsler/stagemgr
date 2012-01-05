@@ -26,7 +26,13 @@ class TicketOrdersController < ApplicationController
     tcs = @order.line_items.map{|li| li.ticket_class_id}
     available = @order.performance.ticket_class_allocations.select { |tca| tca.available && tcs.include?(tca.id) }.map { |tca| tca.ticket_class }.select { |tc| tc.web_visible unless tc.nil? }
     available.each { |tc| @order.ticket_line_items.build(:ticket_class=>tc, :ticket_count=>0) }
-
+    unless @order.special_offer_line_items.empty?
+        @order.special_offer_line_items.each {|so|
+          so.destroy
+          @order.special_offer_line_items.delete(so)
+        }
+      @order.special_offer_line_items.delete
+    end
       # @order.donation_line_items.build(:donation_amount=>0)
     @order_for_to_s = @order.performance.production.name + ' on ' + @order.performance.performance_date.to_formatted_s(:long_ordinal) +
           ' at ' + @order.performance.performance_time.to_formatted_s(:hour_min)
