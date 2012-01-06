@@ -195,9 +195,9 @@ class TicketOrder < Order
       event = Salesforce::Event.find_by_stagemgr_order_id__c(self.id)
       # is delete needed?
       if self.returned?
+        puts "  removing synced copy"
         event.delete unless event.nil?
       elsif
-        puts "  syncing production #{self.performance.production_id}"
         prod = sf_cache.production(self.performance.production_id)
         contact = sf_cache.address(self.address_id)
 

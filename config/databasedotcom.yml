@@ -6,7 +6,7 @@ production:
   password: 'toka9phyd0thosiw6aXKh6wF2wzref1bwvhAEs'
 
 development:
-  sync_to_salesforce: true
+  sync_to_salesforce: false
   client_id: '3MVG9QDx8IX8nP5RFvuwO9sHbAKBiUxr7ch25CUqaeOuj96.zGkm4vmUWmg4ejflNByjOJfpqd8rJAykZ.n35'
   client_secret: '8395156559005153698'
   username: 'software@theaterwit.org'

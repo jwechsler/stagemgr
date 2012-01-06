@@ -20,8 +20,8 @@ class SyncCache
     p = @productions[production_id]
     if p.nil?
       p = Production.find(production_id)
-      @productions[production_id] = p.sf
       p = p.sf
+      @productions[production_id] = p
     end
     p
   end
