@@ -228,6 +228,14 @@ class Order < ActiveRecord::Base
     self.finalized?
   end
 
+  def self.syncable_statuses
+    return self.attended_statuses + [UNCLAIMED, REFUNDED, EXCHANGED]
+  end
+
+  def self.attended_statuses
+    [PROCESSED, FULFILLED]
+  end
+
   def syncable?
     self.attended? || self.unclaimed? || self.returned?
   end
@@ -241,7 +249,7 @@ class Order < ActiveRecord::Base
   end
 
   def attended?
-    [PROCESSED, FULFILLED].include? self.status
+    self.attended_statuses.include? self.status
   end
 
   def paid_with_currency?

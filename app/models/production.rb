@@ -90,7 +90,7 @@ class Production < ActiveRecord::Base
   def sync_to_salesforce!(user = nil, record_type_id = nil)
     record_type_id = $DATABASEDOTCOM['production_record_type_id'] if record_type_id.nil?
     if self.sf_last_sync_at.nil? || self.sf_last_sync_at <= self.updated_at
-      puts "Syncing production #{self.id}"
+      puts "syncing production #{self.id}"
       production = Salesforce::Product2.find_by_stagemgr_id__c(self.id)
       if production.nil?
         puts "  creating production on salesforce"
