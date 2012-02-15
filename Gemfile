@@ -1,6 +1,6 @@
 source 'http://rubygems.org'
 
-gem 'rails', '3.0.9'
+gem 'rails', '3.1.0'
 
 # Bundle edge Rails instead:
 # gem 'rails', :git => 'git://github.com/rails/rails.git'
@@ -37,7 +37,7 @@ gem "formatize"
 gem "validation_reflection"
 gem "declarative_authorization"
 gem "activemerchant", :git => 'https://github.com/florianguenther/active_merchant'
-gem "mysql",                  '2.8.1'
+gem "mysql2"
 gem "authlogic"
 gem "acts_as_audited",        "2.0.0.rc7"
 gem "will_paginate",          '3.0.pre2'
@@ -59,10 +59,8 @@ group :development do
   gem 'map_by_method',        '0.8.3'
   gem 'bond',                 '0.2.1'
   gem 'g',                    '1.4.0'
-  gem 'mongrel',              '1.1.5'
   gem 'capistrano',           '2.5.18'
   gem 'capistrano-ext',       '1.2.1'
-  gem 'ruby-debug'
 end
 
 group :test do
@@ -77,7 +75,6 @@ group :test do
   gem 'rcov',               '>=0.9.8'
   gem 'shoulda-context'
   gem "factory_girl",       '1.3.2'
-  gem 'ruby-debug'
 end
 
 group :production do
@@ -98,7 +95,6 @@ group :cucumber do
   gem 'rcov',               '>=0.9.8'
   gem "factory_girl",       '1.3.2'
   gem 'launchy'
-  gem 'ruby-debug'
 end
 
 gem "mocha", :group => :test
