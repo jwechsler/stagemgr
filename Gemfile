@@ -1,6 +1,6 @@
 source 'http://rubygems.org'
 
-gem 'rails', '3.1.0'
+gem 'rails', '3.0.9'
 
 # Bundle edge Rails instead:
 # gem 'rails', :git => 'git://github.com/rails/rails.git'
@@ -37,11 +37,11 @@ gem "formatize"
 gem "validation_reflection"
 gem "declarative_authorization"
 gem "activemerchant", :git => 'https://github.com/florianguenther/active_merchant'
-gem "mysql2"
+gem "mysql"
 gem "authlogic"
 gem "acts_as_audited",        "2.0.0.rc7"
 gem "will_paginate",          '3.0.pre2'
-gem "my_emma"
+gem "my_emma", :git=>"git://github.com/hashrocket/my_emma.git"
 gem "paperclip",               "~> 2.3"
 gem "htmldiff"
 gem "StreetAddress",          "~> 1.0.1"
