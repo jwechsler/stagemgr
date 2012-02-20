@@ -470,7 +470,7 @@ class Order < ActiveRecord::Base
 
   def self.export_trg_dump
     FasterCSV.open("/tmp/trg_dump.csv", "w") do |csv|
-      orders = TicketOrder.order(:performance_id).includes(:address, :theater, :payments, {:performance, :production})
+      orders = TicketOrder.order(:performance_id).includes(:address, :theater, :payments, {:performance => :production})
       report = Array.new
       headers = [:buyer_type, :year, :description, :first, :last, :full_name, :company, :email, :address1, :address2,
                  :address3, :city, :state, :zip, :home_phone, :business_phone, :patron_id]
@@ -510,7 +510,9 @@ class Order < ActiveRecord::Base
 
       end
 
-      orders = MembershipOrder.includes(:address, {:membership_line_items, :membership})
+      ## @todo fix includes
+      #orders = MembershipOrder.includes(:address, {:membership_line_items, :membership})
+      order = MembershipOrder.all
 
       orders.each do |order|
         description = "#{order.membership.member_since.year} MEM: #{order.membership.membership_offer.name}"
