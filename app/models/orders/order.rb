@@ -624,7 +624,7 @@ class Order < ActiveRecord::Base
 
   def transition_processing_to_processed!(redirect_to = nil)
     Order.transaction do
-
+      self.update_special_offer_line_items_from_code! unless self.special_offer_code.blank? || !self.special_offer_line_items.empty?
       self.special_offer_line_items.each { |li| li.special_offer.apply_to_order(self) }
       create_proper_payment_in_amount_of!(self.total)
       self.status = Order::PROCESSED
