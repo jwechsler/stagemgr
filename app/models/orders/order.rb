@@ -151,7 +151,7 @@ class Order < ActiveRecord::Base
 
   def total(reload_line_items=false)
     if (self.payments.nil?) || (self.payments.size == 0) then
-      a = self.unique_line_items(reload_line_items).to_a.sum { |line_item|
+      a = self.line_items.to_a.sum { |line_item|
         line_item.respond_to?(:total) ? line_item.total : 0
       }
     else
