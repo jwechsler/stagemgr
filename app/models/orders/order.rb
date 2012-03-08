@@ -151,7 +151,7 @@ class Order < ActiveRecord::Base
 
   def total(reload_line_items=false)
     if (self.payments.nil?) || (self.payments.size == 0) then
-      a = self.line_items.to_a.sum { |line_item|
+      a = self.unique_line_items.to_a.sum { |line_item|
         line_item.respond_to?(:total) ? line_item.total : 0
       }
     else
@@ -533,7 +533,16 @@ class Order < ActiveRecord::Base
   end
 
   def unique_line_items(reload_line_items = false)
-    self.all_line_items(reload_line_items).uniq
+    hack = self.all_line_items(reload_line_items).uniq
+    found_so = false
+    hack.each do |li|
+      if li.type == 'SpecialOfferLineItem'
+        hack.delete(li) if found_so
+        found_so = true
+      end
+
+    end
+    hack
   end
 
   private
