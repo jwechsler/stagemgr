@@ -8,6 +8,8 @@ class Performance < ActiveRecord::Base
   has_many                 :line_items, :through=>:orders
   has_many                 :orders, :class_name=>'TicketOrder'
   has_many                 :ticket_class_allocations
+  has_many                 :payment_restrictions, :dependent=>:destroy
+  has_many                 :restricted_payment_types, :class_name=>"PaymentType", :through=>:payment_restrictions
   has_and_belongs_to_many      :special_features
 
   validates_inclusion_of   :status,            :in => PERFORMANCE_STATUSES
