@@ -59,6 +59,11 @@ class TicketOrder < Order
     self.ticket_detail_description
   end
 
+  def valid_payment_types_for(current_user)
+    valid_payment_types = super
+    valid_payment_types = valid_payment_types - self.performance.restricted_payment_types.map { |rpt| rpt.display_name }
+  end
+
   def ticket_detail_description
     self.ticket_line_items.map { |li|
       if li.ticket_count > 0
