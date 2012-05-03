@@ -16,7 +16,7 @@ class Admin::ReportsController < Admin::ApplicationController
     if current_user.is_theater_user? then
       @flex_pass_offers = @productions.select { |p| !p.flex_pass_offer.nil? }.map { |p| p.flex_pass_offer }
     else
-      @flex_pass_offers = FlexPassOffer.find_all_by_active(true)
+      @flex_pass_offers = FlexPassOffer.all
     end
 
     respond_to do |format|
@@ -241,7 +241,6 @@ class Admin::ReportsController < Admin::ApplicationController
             :first_name=>o.address.first_name,
             :street_address=>o.address.line1,
             :street_address_2=>o.address.line2,
-            :state=>o.address.state,
             :city=>o.address.city,
             :state=>o.address.state,
             :postal_code=>o.address.zipcode,

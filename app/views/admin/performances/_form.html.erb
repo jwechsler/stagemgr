@@ -26,5 +26,6 @@
       </tr>
     <% end %>
   </table>
+  <%= f.input :restricted_payment_types, :as=>:select, :collection=>PaymentType.all, :member_label=>:display_name %>
 
 <%- end %>

@@ -16,6 +16,9 @@ class TicketOrder < Order
       unless record.ticket_line_items.empty? || record.ticket_quantity > 0
         record.errors.add :ticket_line_items, "must contain at least one ticket."
       end
+      if (!record.performance.nil? && !record.performance.restricted_payment_types.map{|r| r.display_name}.include?(record.payment_type))
+        record.errors.add :payment_type, "is not allowed for this event"
+      end
     end
   end
 
@@ -57,6 +60,12 @@ class TicketOrder < Order
 
   def to_s
     self.ticket_detail_description
+  end
+
+  def valid_payment_types_for(current_user)
+    valid_payment_types = super
+    valid_payment_types = valid_payment_types - self.performance.restricted_payment_types.map { |rpt| rpt.display_name } unless self.performance.nil?
+    valid_payment_types
   end
 
   def ticket_detail_description
