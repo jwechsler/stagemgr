@@ -103,6 +103,8 @@
       </td>
       <td>
         <%= form_tag(membership_usage_admin_reports_path, :method=>"post") do %>
+          From: <%=  date_select(:report, :start_day, :default=>Time.now.beginning_of_month) %>
+          To: <%=  date_select(:report, :end_day, :default=>Time.now.end_of_month) %>
           <%= submit_tag "Show" %>
           <%= submit_tag "Download", :name=>'download_csv' %>
         <%- end %>
