@@ -41,7 +41,8 @@ class MembershipOrdersController < ApplicationController
                                       :start_date => Date.today,
                                       :frequency => 1,
                                       :amount => (offer.recurring_cost*100).to_i,
-                                      :auto_bill_outstanding => true)
+                                      :auto_bill_outstanding => false,
+                                      :max_failed_payments => 1)
 
 
     if response.success?
