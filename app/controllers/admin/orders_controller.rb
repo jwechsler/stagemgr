@@ -23,7 +23,7 @@ class Admin::OrdersController < Admin::ApplicationController
         store_search_and_pagination_state
         @options_hash = get_search_conditions_from_params
         @options_hash.merge!(get_pagination_options_from_params)
-        @options_hash.merge!(:include=>[{:performance=>:production}, :address])
+        @options_hash.merge!(:include=>[{:performance=>:production}, :address, :payments])
         @orders = Order.paginate @options_hash
         @total_records = @orders.total_entries
         @total_pages = @total_records/@orders.per_page+1

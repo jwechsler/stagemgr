@@ -324,6 +324,17 @@ class Address < ActiveRecord::Base
                                     self.id, Order::FULFILLED, since_when, Date.today])
   end
 
+  def orders_processed(for_theaters = nil)
+    if for_theaters.nil?
+      TicketOrder.count( :conditions=>["orders.address_id = ? and orders.status in ( ? )",
+                                       self.id, Order.attended_statuses])
+    else
+      TicketOrder.count(
+                        :conditions=>["orders.address_id = ? and orders.status in (?) and orders.performance_id in (select id from performances where production_id in (select id from productions where theater_id in (?)",
+                                      self.id, Order.attended_statuses, for_theaters])
+    end
+  end
+
   def is_donor?
     Order.count(:include=>[:line_items],
                 :conditions=>["orders.address_id = ? and line_items.type = ? and line_items.donation_amount > 0",
