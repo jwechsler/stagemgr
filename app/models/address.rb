@@ -330,7 +330,7 @@ class Address < ActiveRecord::Base
                                        self.id, Order.attended_statuses])
     else
       TicketOrder.count(
-                        :conditions=>["orders.address_id = ? and orders.status in (?) and orders.performance_id in (select id from performances where production_id in (select id from productions where theater_id in (?)",
+                        :conditions=>["orders.address_id = ? and orders.status in (?) and orders.performance_id in (select id from performances where production_id in (select id from productions where theater_id in (?)))",
                                       self.id, Order.attended_statuses, for_theaters])
     end
   end

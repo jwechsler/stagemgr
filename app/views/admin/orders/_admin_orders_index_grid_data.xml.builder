@@ -12,7 +12,11 @@ xml.rows do
       xml.cell number_to_currency(o.total)
       xml.cell o.line_items.map{|li|li.ticket_count}.sum
       xml.cell o.status
-      permitted_to? :view_full_history ? (xml.cell o.address.orders_processed) : (xml.cell o.address.orders_processed(current_user.theater_ids))
+      if permitted_to? :view_full_history,:admin_orders
+        xml.cell o.address.orders_processed
+      else
+        o.address.orders_processed(current_user.theater_ids)
+      end
       xml.cell o.to_s
     end
   end
