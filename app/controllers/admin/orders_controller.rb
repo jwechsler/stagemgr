@@ -171,13 +171,13 @@ class Admin::OrdersController < Admin::ApplicationController
             when 'display_code' :
               case params[column_name].downcase
                 when 'membership' :
-                  conditions_sql << "type = 'MembershipOrder'"
+                  conditions_sql << "orders.type = 'MembershipOrder'"
                 when 'donation' :
-                  conditions_sql << "type = 'DonationOrder'"
+                  conditions_sql << "orders.type = 'DonationOrder'"
                 when 'flexpass' :
-                  conditions_sql << "type = 'FlexPassOrder'"
+                  conditions_sql << "orders.type = 'FlexPassOrder'"
                 else
-                  conditions_sql << "type = 'TicketOrder' and lower(performances.performance_code) like '%' ? '%'"
+                  conditions_sql << "orders.type = 'TicketOrder' and lower(performances.performance_code) like '%' ? '%'"
                   conditions_params << params[column_name].downcase
               end
             when 'orders.id' :
