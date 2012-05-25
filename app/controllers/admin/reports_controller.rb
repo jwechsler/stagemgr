@@ -411,6 +411,7 @@ class Admin::ReportsController < Admin::ApplicationController
     report = Array.new
     headers = [:order_date, :last_name, :first_name]
     headers += [:street_address, :street_address_2, :state, :city, :state, :postal_code, :phone] unless display_only
+    headers += [:email] if permitted_to?(:view_email, :admin_addresses)
     headers += [:collected, :payout, :facility_fee, :tickets_remaining, :status]
 
     fee = Money.from_numeric(offer.facility_fee.nil? ? 0 : offer.facility_fee)
