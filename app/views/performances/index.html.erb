@@ -30,10 +30,10 @@
             <br/>
             <br/>
           <%- else %>
-            <span class="special_offer_upsell">Purchase tickets for a specific date below, or <a href="/boxoffice/membership">become a member and see everything</a> for one low monthly subscription</span>
+            <span class="special_offer_upsell"><a href="/boxoffice/membership">Become a member and see everything at the Wit</a> for one low monthly subscription</span>
+            <br/>or, purchase tickets for an individual show below
             <br/>
             <br/>
-
           <%- end -%>
           <%= link_to raw("&laquo;"), :action=>:index, :start_date=>@start_date.prev_month, :end_date=>@start_date-1 %> <%= Date::MONTHNAMES[@start_date.month] %> <%= link_to raw('&raquo;'), :action=>:index, :start_date=>@end_date+1, :end_date=>@end_date+1.week %>
         </caption>
