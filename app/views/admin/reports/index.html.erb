@@ -111,6 +111,25 @@
       </td>
     </tr>
   <%- end %>
+  <%- if permitted_to? :mine_customer_data, :admin_reports then %>
+      <tr>
+      <td valign="top">
+        <span class="report_title">Mine Customer Data</span><br/>
+        <span class="help_text">Download a copy of customers with tracking and aggregate criteria
+      </td>
+      <td>
+        <%= form_tag(mine_customer_data_admin_reports_path, :method=>"post") do %>
+          Activity After: <%= date_select(:report, :from_day, :default=>Time.now, :end_year=>Time.now.year) %><br/>
+          Minimum Revenue: <%= number_field_tag(:minimum_revenue, 0)  %><br/>
+          Minimum Performances: <%= number_field_tag(:minimum_attended, 0) %><br/>
+          Must have attended: <%= select_tag(:required_theaters,  options_from_collection_for_select(Theater.all(:order=>:name), "id", "name"), :multiple=>true) %><br/>
+
+
+          <%= submit_tag "Download", :name=>'download_csv' %>
+        <%- end -%>
+      </td>
+    </tr>
+    <%- end %>
   <%- if permitted_to? :fulfill_donations, :admin_reports then %>
     <tr>
     <td>

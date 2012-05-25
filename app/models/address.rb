@@ -245,7 +245,11 @@ class Address < ActiveRecord::Base
   end
 
   def current_member?
-    false
+    self.is_current_member?
+  end
+
+  def is_current_flex_pass_holder?
+    self.orders.select { |o| (o.contains_flex_pass?) && (o.flex_pass_line_items.first.flex_pass.active?) }.count > 0
   end
 
   def has_flex_pass?
@@ -339,6 +343,17 @@ class Address < ActiveRecord::Base
     Order.count(:include=>[:line_items],
                 :conditions=>["orders.address_id = ? and line_items.type = ? and line_items.donation_amount > 0",
                               self.id, DonationLineItem.to_s]) > 0
+  end
+
+  def last_attendance_date
+    TicketOrder.includes(:performance).maximum('performance_date',:conditions=>["orders.address_id = ?", self.id])
+  end
+
+  def productions_attended(start_date = 50.years.ago, end_date = Time.now)
+    TicketOrder.includes(:performance,{:performance=>:production}).where("orders.address_id = ? and orders.status in (?) and performances.performance_date >= ? and performances.performance_date <= ?",
+                                             self.id,
+                                             Order.attended_statuses,
+                                             start_date, end_date).map{|o| o.performance.production}
   end
 
   private
