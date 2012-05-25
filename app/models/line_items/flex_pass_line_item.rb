@@ -19,6 +19,10 @@ class FlexPassLineItem < LineItem
     end
   end
 
+  def flex_pass
+    self.flex_passes.first
+  end
+
   def to_s
     "#{self.ticket_count} #{self.flex_pass_offer.name}"
   end

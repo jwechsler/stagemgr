@@ -124,6 +124,7 @@ Stagemgr::Application.routes.draw do
         post :order_dump
         post :membership_usage
         post :donations_dump
+        post :mine_customer_data
       end
     end
 

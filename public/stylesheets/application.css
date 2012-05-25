@@ -214,6 +214,7 @@ td.numeric {
 .report_title {
   font-weight: bold;
   font-size: 13px;
+  vertical-align: top;
 }
 
 table.report {

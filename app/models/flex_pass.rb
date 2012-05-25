@@ -23,6 +23,10 @@ class FlexPass < ActiveRecord::Base
     used = FlexPassPayment.sum(:number_of_tickets,:conditions=>["flex_pass_id = ?", self.id])
     self.flex_pass_offer.number_of_tickets - used
   end
+
+  def active?
+    self.uses_remaining > 0
+  end
   
   
   
