@@ -423,7 +423,7 @@ class Admin::ReportsController < Admin::ApplicationController
   def build_telemarketing_dump(start_day, minimum_attended = 0,required_theaters = nil,minimum_revenue = 0.0)
     orders = TicketOrder.includes(:address).where("orders.status in (?) and orders.created_at >= ?",Order.attended_statuses, start_day)
     orders = orders.select {|o| required_theaters.include?(o.performance.production.theater_id)} unless (required_theaters.nil? || required_theaters.empty?)
-    addresses = orders.map{|o| o.address}.uniq.select{|a| !a.nil? && !a.phone.blank? && a.performances_attended(start_day) > minimum_attended && a.revenue_collected(start_day) >= minimum_revenue}.sort{|a,b| a.last_name <=> b.last_name}
+    addresses = orders.map{|o| o.address}.uniq.select{|a| !a.nil? && !a.phone.blank? && a.performances_attended(start_day) >= minimum_attended && a.revenue_collected(start_day) >= minimum_revenue}.sort{|a,b| a.last_name <=> b.last_name}
 
     report = Array.new
     headers = [:full_name, :phone, :last_attended, :num_attended, :is_member, :is_flex_pass_holder, :production_history ]
