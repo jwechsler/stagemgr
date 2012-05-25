@@ -1,4 +1,4 @@
-<div id="performance_calendar_split">
+<div id="performance_calendar_split" xmlns="http://www.w3.org/1999/html">
   <% if @production.status == Production::PRESALE %>
     <%= render :partial=>'/productions/info', :locals=>{:production=>@production, :layout_style=>:production_information} %>
     <p>Tickets are not yet on sale for this show. Subscribe to our
@@ -24,11 +24,16 @@
       <table class="performance_calendar">
         <caption>
           <%- if !@production.flex_pass_offer.blank? -%>
-        <span class="special_offer_upsell"><%= link_to @production.flex_pass_offer.short_description, new_flex_pass_offer_order_path(@production.flex_pass_offer) unless @production.flex_pass_offer.short_description.blank? %>
-        </span>
+            <span class="special_offer_upsell"><%= link_to @production.flex_pass_offer.short_description, new_flex_pass_offer_order_path(@production.flex_pass_offer) unless @production.flex_pass_offer.short_description.blank? %>
+            </span>
             <br/>or, purchase tickets for an individual show below
             <br/>
             <br/>
+          <%- else %>
+            <span class="special_offer_upsell">Purchase tickets for a specific date below, or <a href="/boxoffice/membership">become a member and see everything</a> for one low monthly subscription</span>
+            <br/>
+            <br/>
+
           <%- end -%>
           <%= link_to raw("&laquo;"), :action=>:index, :start_date=>@start_date.prev_month, :end_date=>@start_date-1 %> <%= Date::MONTHNAMES[@start_date.month] %> <%= link_to raw('&raquo;'), :action=>:index, :start_date=>@end_date+1, :end_date=>@end_date+1.week %>
         </caption>
