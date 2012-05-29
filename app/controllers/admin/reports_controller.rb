@@ -139,7 +139,11 @@ class Admin::ReportsController < Admin::ApplicationController
   def mine_customer_data
     minimum_attended = 0,required_theaters = nil,minimum_revenue = 0.0
     @start_day = grab_from_date_select(:from_day, params[:report])
-    required_theaters = params[:required_theaters].map{|t| t.to_i}
+    if params[:required_theaters].nil?
+      required_theaters = []
+    else
+      required_theaters = params[:required_theaters].map{|t| t.to_i}
+    end
     minimum_attended = params[:minimum_attended].to_i
     minimum_revenue = params[:minimum_revenue].to_i
     @headers, @report_data = build_telemarketing_dump(@start_day, minimum_attended, required_theaters, minimum_revenue)
@@ -423,12 +427,15 @@ class Admin::ReportsController < Admin::ApplicationController
   def build_telemarketing_dump(start_day, minimum_attended = 0,required_theaters = nil,minimum_revenue = 0.0)
     orders = TicketOrder.includes(:address).where("orders.status in (?) and orders.created_at >= ?",Order.attended_statuses, start_day)
     orders = orders.select {|o| required_theaters.include?(o.performance.production.theater_id)} unless (required_theaters.nil? || required_theaters.empty?)
-    addresses = orders.map{|o| o.address}.uniq.select{|a| !a.nil? && !a.phone.blank? && a.performances_attended(start_day) >= minimum_attended && a.revenue_collected(start_day) >= minimum_revenue}.sort{|a,b| a.last_name <=> b.last_name}
+    addresses = orders.map{|o| o.address}.uniq.select{|a| !a.nil? && a.productions_attended(start_day).size >= minimum_attended && a.revenue_collected(start_day) >= minimum_revenue}.sort{|a,b| a.last_name <=> b.last_name}
 
     report = Array.new
-    headers = [:full_name, :phone, :last_attended, :num_attended, :is_member, :is_flex_pass_holder, :production_history ]
+    headers = [:primary_theatre_attendee, :full_name, :phone, :email, :last_attended, :attended_in_period, :total_attended, :companies_attended_in_period, :total_companies_attended, :is_member, :is_flex_pass_holder, :production_history, :city, :state, :postal_code ]
     addresses.each do |address|
-      prods = address.productions_attended(start_day).sort{|a,b| if b.opening_at.nil?
+      all_prods = address.productions_attended
+      primary_attendee = all_prods.map {|p| p.theater_id}.uniq.include?(1)
+      requested_prods = address.productions_attended(start_day)
+      prods = requested_prods.sort{|a,b| if b.opening_at.nil?
         false
       elsif a.opening_at.nil?
         true
@@ -437,12 +444,16 @@ class Admin::ReportsController < Admin::ApplicationController
       end
       }.map{|p| "#{p.name} [#{p.theater.name}]"}
       prodlist = prods.join(", ")
-          report << address_hash(address).merge({:full_name=>address.full_name,
+          report << address_hash(address).merge({:primary_theatre_attendee=>primary_attendee ? "*" : "",
+                                                 :full_name=>address.full_name,
                                                  :last_attended=>address.last_attendance_date,
-                                                 :num_attended => prods.size,
-                                             :production_history=>prodlist,
-                                             :is_member=>address.is_current_member?,
-                                             :is_flex_pass_holder=>address.is_current_flex_pass_holder?})
+                                                 :attended_in_period => prods.size,
+                                                 :total_attended => all_prods.size,
+                                                 :companies_attended_in_period => requested_prods.map {|p| p.theater_id}.uniq.size,
+                                                 :total_companies_attended => all_prods.map {|p| p.theater_id}.uniq.size,
+                                                 :production_history=>prodlist,
+                                                 :is_member=>address.is_current_member? ? "Y" : "N",
+                                                 :is_flex_pass_holder=>address.is_current_flex_pass_holder? ? "Y" : "N"})
     end
 
     [headers, report]

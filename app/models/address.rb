@@ -349,11 +349,11 @@ class Address < ActiveRecord::Base
     TicketOrder.includes(:performance).maximum('performance_date',:conditions=>["orders.address_id = ?", self.id])
   end
 
-  def productions_attended(start_date = 50.years.ago, end_date = Time.now)
+  def productions_attended(start_date = 10.years.ago, end_date = Time.now)
     TicketOrder.includes(:performance,{:performance=>:production}).where("orders.address_id = ? and orders.status in (?) and performances.performance_date >= ? and performances.performance_date <= ?",
                                              self.id,
                                              Order.attended_statuses,
-                                             start_date, end_date).map{|o| o.performance.production}
+                                             start_date, end_date).map{|o| o.performance.production}.uniq
   end
 
   private
