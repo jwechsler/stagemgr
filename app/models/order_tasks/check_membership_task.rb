@@ -3,7 +3,7 @@ class CheckMembershipTask < OrderTask
 
   def execute!
     membership = self.order.membership
-    if membership.blank? || attempts > 12
+    if membership.blank? || attempts > 48
       return false
     end
 
@@ -21,7 +21,7 @@ class CheckMembershipTask < OrderTask
       membership.save!
     end
 
-    self.execute_at += 8.hours if !result
+    self.execute_at += 1.hours if !result
 
     result
   end
