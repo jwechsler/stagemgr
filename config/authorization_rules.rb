@@ -7,6 +7,7 @@ authorization do
     has_permission_on :flex_pass_offers, :to=>:read
     has_permission_on :orders, :to=>[:create,:read,:update,:delete]
     has_permission_on :donation_orders, :to=>[:create,:read,:update]
+    has_permission_on :flex_pass_orders, :to=>[:create,:read,:update]
     has_permission_on :ticket_orders, :to=>[:create,:read,:update,:delete]
     has_permission_on :membership_orders, :to=>[:create, :read, :update,:delete]
   end

@@ -1,6 +1,7 @@
 class FlexPassLineItem < LineItem
   validates_presence_of :flex_pass_offer, :ticket_count
   belongs_to :flex_pass_offer
+  belongs_to :donation_order, :foreign_key=>:order_id
   has_many :flex_passes
 
   after_create :create_flex_passes

@@ -36,6 +36,7 @@ Stagemgr::Application.routes.draw do
 
   resources :donations, :controller => "donation_orders"
 
+
   resources :membership_orders do
     member do
       get :confirm
@@ -61,6 +62,10 @@ Stagemgr::Application.routes.draw do
 
   resources :ticket_orders do
     get :confirm, :on=> :member
+  end
+
+  resources :flex_pass_orders do
+    post :confirm, :on=>:member
   end
 
   resources :donation_orders do
