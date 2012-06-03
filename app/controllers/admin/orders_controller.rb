@@ -39,6 +39,8 @@ class Admin::OrdersController < Admin::ApplicationController
       redirect_to url_for(:controller=>:ticket_orders, :action=>:show, :id=>@order.id)
     elsif @order.is_a? DonationOrder
       redirect_to url_for(:controller=>:donation_orders, :action=>:show, :id=>@order.id)
+    elsif @order.is_a? FlexPassOrder
+      redirect_to url_for(:controller=>:flex_pass_orders, :action=>:show, :id=>@order.id)
     end
   end
 
@@ -77,6 +79,9 @@ class Admin::OrdersController < Admin::ApplicationController
   def edit
     if @order.is_a? TicketOrder
       redirect_to(:controller=>:ticket_orders, :action=>:show, :id=>@order.id)
+    elsif @order.is_a? FlexPassOrder
+      redirect_to(:controller=>:flex_pass_orders, :action=>:show, :id=>@order.id)
+
     end
   end
 
