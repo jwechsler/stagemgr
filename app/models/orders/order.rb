@@ -130,6 +130,10 @@ class Order < ActiveRecord::Base
     self.status == Order::FULFILLED
   end
 
+  def refunded?
+    self.status == Order::REFUNDED
+  end
+
   def self.attending_statuses
     [Order::PROCESSED, Order::FULFILLED]
   end
@@ -282,6 +286,7 @@ class Order < ActiveRecord::Base
 
     Order.transaction do
       refund_payments = []
+      create_notify_refund_task if self.fulfilled?
       self.payments.each { |payment| payment.refund!(nil, self.notes) if payment.respond_to? :refund! }
       self.unique_line_items.each { |li| li.refund! if li.respond_to? :refund! }
       self.status = REFUNDED
@@ -545,6 +550,10 @@ class Order < ActiveRecord::Base
     hack
   end
 
+  def reservation_date
+    nil
+  end
+
   private
 
 
@@ -670,6 +679,9 @@ class Order < ActiveRecord::Base
     self.tasks << MyEmmaTask.new(:execute_at=>Time.now + 5.minutes) if !self.address.email.nil?
   end
 
+  def create_notify_refund_task
+  end
+
 
   def create_receipt_task
     self.tasks << OutreachTask.new(:execute_at=>Time.now + 5.minutes, :method_symbol=>:flexpass_confirmation) if self.contains_flex_pass?
@@ -691,7 +703,7 @@ class Order < ActiveRecord::Base
 
 
   def cancel_pending_tasks
-    self.tasks.select { |t| t.uncompleted? }.each { |t| t.cancel! }
+    self.tasks.select { |t| t.uncompleted? && t.cancel_with_order? }.each { |t| t.cancel! }
   end
 
 

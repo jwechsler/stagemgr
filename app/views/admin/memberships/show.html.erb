@@ -21,10 +21,13 @@
   <%= @membership.member_code %>
 </p>
 <p>
+  <strong>Failed Payment Count:</strong>
+  <%= @membership.failed_payment_count %><%= " ($#{number_to_currency(@membership.outstanding_balance)}" if @membership.failed_payment_count > 0 %>
+</p>
+<p>
   <strong>Status:</strong>
   <%= @membership.status %>
 </p>
-
 <p>
   <%= link_to "Edit", edit_admin_membership_path(@membership) %> |
   <%= link_to "Destroy", [:admin, @membership], :confirm => 'Are you sure?', :method => :delete %> |

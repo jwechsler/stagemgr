@@ -9,8 +9,11 @@
     <%= f.text_field :credit_card_expiration_year, :cols=>2, :maxlength=>2 %>
     <%= f.label :credit_card_verification_number, "CVV*" %>
     <%= f.text_field :credit_card_verification_number, :size=>4, :label =>"CVV" %>
+    <%- if backend_user? %>
     <%= f.label :credit_card_swipe, "Swipe" %>
     <%= f.password_field :credit_card_swipe, :size=>25, :label=>"Swipe" %>
+
+    <%- end %>
     </span>
     <br clear="all"/>
     <li></li>

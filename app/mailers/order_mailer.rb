@@ -2,7 +2,7 @@ require "erb"
 
 class OrderMailer < ActionMailer::Base
 
-  layout "order_mailer", :except=>[:performance_reminder, :flex_pass_pending_reminder]
+  layout "order_mailer", :except=>[:performance_reminder, :flex_pass_pending_reminder, :refunded_item_alert]
 
   def ticket_confirmation(order)
     @order = order
@@ -44,6 +44,14 @@ class OrderMailer < ActionMailer::Base
            :subject => "Your #{@flex_pass_offer.name} order",
            :tag=>"Flex Pass Confirmation")
     }
+  end
+
+  def refunded_fulfilled_item_alert(order, email, action_by)
+    @order = order
+    @action_by = action_by
+    mail(:to=> email, :from => $EMAIL_ADDRESS['box_office'],
+         :subject=>"Warning: Fulfilled order #{@order.id} refunded",
+         :tag=>"Alert")
   end
 
   def test_message(address)

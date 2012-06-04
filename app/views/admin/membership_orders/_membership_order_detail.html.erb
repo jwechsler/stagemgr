@@ -4,7 +4,11 @@
   <legend>Membership Information</legend>
   Current Status: <%= @order.membership.status %><br/>
   Member ID: <%= @order.membership.member_code %><br/>
-  Member Since: <%= @order.membership.member_since %>
+  Member Since: <%= @order.membership.member_since %><br/>
+  Next Billing Date: <%=  @order.membership.next_billing_date %><br/>
+  <%- unless @order.membership.failed_payment_count.blank? || @order.membership.failed_payment_count == 0 %>
+  Failed Payment Count: <%= @order.membership.failed_payment_count %><%= " (#{number_to_currency(@order.membership.outstanding_balance)})" %>
+  <%- end %>
 </fieldset>
 
 <%= render :partial=>'/admin/orders/payments', :locals=>{:order=>@order} %>

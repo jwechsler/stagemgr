@@ -7,12 +7,14 @@ class Membership < ActiveRecord::Base
   attr_accessible :membership_offer_id, :member_since, :order_id, :address_id, :member_code, :status, :profile_id
 
   has_one :membership_line_item, :foreign_key=>:membership_id
-  has_many :special_offers
+  has_many :special_offers, :dependent=>:destroy
+  before_destroy :cancel_future_reservations
   belongs_to :address
   belongs_to :membership_offer
   validates_presence_of :address
   before_validation :create_code, :on=>:create
-
+  has_many :membership_payments
+  before_save :release_reservations_on_cancel_or_suspend
 
   def verify_applicable_for(order)
     if !self.membership_offer.tickets_per_performance.nil?
@@ -43,6 +45,8 @@ class Membership < ActiveRecord::Base
     self.number_cycles_completed = response["number_cycles_completed"] unless response["number_cycles_completed"].blank?
     self.next_billing_date = response["next_billing_date"].to_date  unless response["next_billing_date"].blank?
     self.aggregate_amount = response["aggregate_amount"]  unless response["aggregate_amount"].blank?
+    self.failed_payment_count = response["failed_payment_count"] unless response["failed_payment_count"].blank?
+    self.outstanding_balance = response["outstanding_balance"].to_f unless response["outstanding_balance"].blank?
     cycles = self.number_cycles_completed
     cycles ||=0
     profile_status = response["profile_status"][0..-8]  unless response["profile_status"].blank?
@@ -70,5 +74,24 @@ class Membership < ActiveRecord::Base
 
   def is_pending?
     self.status == PENDING
+  end
+
+  private
+
+  def release_reservations_on_cancel_or_suspend
+    if self.status_changed? && [Membership::CANCELED, Membership::SUSPENDED].include?(self.status)
+      cancel_future_reservations
+    end
+  end
+
+  def cancel_future_reservations
+    self.membership_payments.each do |payment|
+      o = payment.order
+      d = o.reservation_date
+      unless d.nil? || d < Time.now || o.refunded?
+        o.refund!
+      end
+    end
+    true
   end
 end

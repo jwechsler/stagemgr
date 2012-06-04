@@ -256,6 +256,10 @@ class TicketOrder < Order
     self.payments.each { |p| p.release_tickets! }
   end
 
+  def reservation_date
+    return performance.to_datetime
+  end
+
 # for form processing
   def production_code=(string)
     @production_code=string
@@ -381,6 +385,13 @@ class TicketOrder < Order
     super
   end
 
+  def create_notify_refund_task
+    self.tasks << NotificationTask.new(:execute_at=>Time.now, :notifications=>[$EMAIL_ADDRESS['box_office'],$EMAIL_ADDRESS['supervisor_notifications']].join(','),
+                                       :method_symbol=>:refunded_fulfilled_item_alert)
+    super
+  end
+
+
   def create_performance_followup_task
     if self.contains_tickets? && !self.performance.suppress_notification
       monday_following = self.performance.performance_date.end_of_week + 1.day
@@ -440,5 +451,6 @@ class TicketOrder < Order
 
     end
   end
+
 
 end

@@ -62,4 +62,9 @@ class OrderTask < ActiveRecord::Base
     }
 
   end
+
+  def cancel_with_order?
+    true
+  end
+
 end

@@ -47,7 +47,11 @@ class Performance < ActiveRecord::Base
   def performance_at
     Time.parse(self.performance_date.to_s(:default) + " " + self.performance_time.to_s(:hour_min))
   end
-  
+
+  def to_datetime
+   DateTime.parse("#{self.performance_date}T#{self.performance_time.strftime("%H:%M:00")}")
+  end
+
   def near_capacity?
     self.number_of_tickets_left <= 9
   end
