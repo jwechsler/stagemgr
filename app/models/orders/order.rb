@@ -240,7 +240,7 @@ class Order < ActiveRecord::Base
   end
 
   def paid_with_flexpass?
-    FLEX_PASS == self.payment_type
+    self.payment_type == Order::FLEX_PASS || !self.flex_pass_payments.empty?
   end
 
   def paid_with_flexpass
@@ -383,14 +383,6 @@ class Order < ActiveRecord::Base
     [Order::NEW, Order::PROCESSING]
   end
 
-  def self.send_flex_pass_reminder
-    email = $EMAIL_ADDRESS['flex_pass_notifications']
-
-    unless email.blank?
-      flex_pass_orders = Order.all(:conditions=>["line_items.type = 'FlexPassLineItem' and status = ?", Order::PROCESSED], :include => :line_items)
-      OrderMailer.send(:flex_pass_pending_reminder, flex_pass_orders).deliver
-    end
-  end
 
   def self.delete_unprocessed_orders
     orders = Order.where("status in (:transitory_status) and updated_at < :window and type != 'MembershipOrder'",
@@ -408,12 +400,6 @@ class Order < ActiveRecord::Base
     end
 
   end
-
-
-  def paid_with_pass?
-    self.payment_type == Order::FLEX_PASS || !self.flex_pass_payments.empty?
-  end
-
 
   def paid_with_membership?
     !self.membership_payments.empty?

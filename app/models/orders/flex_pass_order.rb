@@ -28,6 +28,20 @@ class FlexPassOrder < Order
     self.description
   end
 
+
+  def flex_pass_payments
+    payments.select { |p| p.is_a? FlexPassPayment }
+  end
+
+  def self.send_flex_pass_reminder
+    email = $EMAIL_ADDRESS['flex_pass_notifications']
+
+    unless email.blank?
+      flex_pass_orders = FlexPassOrder.find_all_by_status(Order::PROCESSED)
+      OrderMailer.send(:flex_pass_pending_reminder, flex_pass_orders).deliver
+    end
+  end
+
   protected
   def set_theater
     self.theater_id = self.flex_pass_line_items[0].flex_pass_offer.theater_id

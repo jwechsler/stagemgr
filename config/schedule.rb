@@ -30,7 +30,7 @@ every 1.day do
 end
 
 every 1.day do
-  runner "Order.send_flex_pass_reminder"
+  runner "FlexPassOrder.send_flex_pass_reminder"
 end
 
 every 5.minutes do

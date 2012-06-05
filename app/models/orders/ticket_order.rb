@@ -387,7 +387,7 @@ class TicketOrder < Order
       case
         when self.address.current_member?
           self.tasks << OutreachTask.new(:execute_at=>monday_following, :method_symbol=>:member_followup)
-        when self.paid_with_pass?
+        when self.paid_with_flexpass?
           self.tasks << OutreachTask.new(:execute_at=>monday_following, :method_symbol=>:flex_pass_followup)
         when self.address.first_time_paying?(self)
           self.tasks << OutreachTask.new(:execute_at=>monday_following, :method_symbol=>:first_time_followup)
@@ -425,7 +425,7 @@ class TicketOrder < Order
 
   def set_tickets_for_pass_redemption
     if self.status_changed? && self.status == Order::PROCESSED
-      if self.paid_with_pass?
+      if self.paid_with_flexpass?
         flex_pass = FlexPass.find_by_code(self.flex_pass_code)
         offer = flex_pass.flex_pass_offer
         set_ticket_classes_using_offer(offer)
