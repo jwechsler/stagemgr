@@ -1,4 +1,5 @@
 class Admin::FlexPassOfferOrdersController < Admin::ApplicationController
+
   def new
     @flex_pass_order = FlexPassOrder.new
     @flex_pass_order.status = Order::NEW

@@ -7,13 +7,6 @@
 </table>
 
 
-<%= render :partial => '/admin/flex_pass_line_items/table', :locals=>{:order=>order} %>
-
-
-<%= render :partial => '/admin/special_offer_line_items/table', :locals=>{:order=>order} %>
-
-<%= render :partial => '/admin/orders/payments', :locals=>{:order=>order} %>
-
 <%- if !order.referral_code.blank? %><p>
   Referral Code:
   <%= order.referral_code %>

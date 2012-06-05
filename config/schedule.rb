@@ -40,3 +40,7 @@ end
 every 1.day do
   runner "SalesforceSync.sync_orders"
 end
+
+every 1.day do
+  runner "FlexPass.check_expirations"
+end

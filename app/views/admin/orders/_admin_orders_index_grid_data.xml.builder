@@ -13,7 +13,11 @@ xml.rows do
       xml.cell o.line_items.map{|li|li.ticket_count}.sum
       xml.cell o.status
       if permitted_to? :view_full_history,:admin_orders
-        xml.cell o.address.orders_processed
+        if o.address.nil?
+          xml.cell "n/a"
+        else
+          xml.cell o.address.orders_processed unless o.address.nil?
+        end
       else
         o.address.orders_processed(current_user.theater_ids)
       end

@@ -13,6 +13,10 @@ class FlexPassOrder < Order
     "FLEXPASS"
   end
 
+  def all_line_items(reload_line_items = false)
+    super + self.flex_pass_line_items(reload_line_items)
+  end
+
   def valid_payment_types_for(current_user)
     valid_payment_types = super
     valid_payment_types.delete FLEX_PASS

@@ -8,7 +8,9 @@
   <%= render :partial => '/admin/orders/address_form', :locals => {:f => address_form} %>
 <% end %>
 <%= order_form.input :add_to_email_list, :as=>:boolean, :label=>'Add to email list?', :default=>false %>
-<%= order_form.input :marketing_source, :collection=>Order::REFERRALS, :label=>"How did you hear about the show?" %>
+<%- if order_form.object.is_a? TicketOrder %>
+  <%= order_form.input :marketing_source, :collection=>Order::REFERRALS, :label=>"How did you hear about the show?" %>
+<%- end %>
 <%= order_form.hidden_field :status %>
 
 <%= order_form.input :notes, :input_html => {:rows => 4} %>

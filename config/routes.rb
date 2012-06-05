@@ -107,6 +107,8 @@ Stagemgr::Application.routes.draw do
 
     resources :membership_orders
 
+    resources :flex_pass_orders
+
     resources :addresses do
 
     end

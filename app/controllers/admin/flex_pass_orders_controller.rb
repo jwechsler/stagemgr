@@ -1,22 +1,24 @@
-class Admin::FlexPassOrdersController < ApplicationController
+class Admin::FlexPassOrdersController < Admin::OrdersController
+  include OrdersHelper
 
-  def new
-    @flex_pass_order = FlexPassOrder.new
-    @flex_pass_order.address = Address.new
-    @flex_pass_order.flex_pass_line_items.build
-    @flex_pass_order.status = Order::NEW
-
-    respond_to do |format|
-      format.html { render 'edit', :layout=>true }
-    end
-  end
+  #def new
+  #  @flex_pass_order = FlexPassOrder.new
+  #  @flex_pass_order.address = Address.new
+  #  @flex_pass_order.flex_pass_line_items.build
+  #  @flex_pass_order.status = Order::NEW
+  #
+  #  respond_to do |format|
+  #    format.html { render 'edit', :layout=>true }
+  #  end
+  #end
 
   def show
 
   end
 
   def edit
-
+    order = @flex_pass_order
+    order
   end
 
   def update

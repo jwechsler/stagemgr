@@ -181,6 +181,7 @@ class Admin::OrdersController < Admin::ApplicationController
                   conditions_sql << "orders.type = 'DonationOrder'"
                 when 'flexpass' :
                   conditions_sql << "orders.type = 'FlexPassOrder'"
+                  conditions_sql << "(orders.id in (select order_id from flex_passes where active = 1))" if restrict_to_active
                 else
                   conditions_sql << "orders.type = 'TicketOrder' and lower(performances.performance_code) like '%' ? '%'"
                   conditions_params << params[column_name].downcase
