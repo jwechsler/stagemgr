@@ -5,7 +5,12 @@
   <%- else -%>
     We are processing your request and you should receive your FlexPass in the mail in the next 5-7 business days.
     Once you get your FlexPass, you'll see a code that you can use online and at our box office to get
-    tickets to any performance here at Theater Wit, subject to ticket availability.
+    tickets to any performance
+    <%-  unless flex_pass_offer.theater_id.nil? %>
+      produced by <%= flex_pass_offer.theater.name %>,
+    <%- else %>
+      here at Theater Wit,
+    <%- end %>subject to ticket availability.
   <%- end -%>
 
 </p><p>

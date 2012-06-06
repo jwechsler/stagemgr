@@ -7,11 +7,13 @@ authorization do
     has_permission_on :flex_pass_offers, :to=>:read
     has_permission_on :orders, :to=>[:create,:read,:update,:delete]
     has_permission_on :donation_orders, :to=>[:create,:read,:update]
+    has_permission_on :flex_pass_orders, :to=>[:create,:read,:update]
     has_permission_on :ticket_orders, :to=>[:create,:read,:update,:delete]
     has_permission_on :membership_orders, :to=>[:create, :read, :update,:delete]
   end
 
   role :theater_user do
+    has_permission_on :flex_pass_orders, :to=>[:create,:read,:update]
     has_permission_on :admin_ticket_classes, :to=>[:view]
     has_permission_on :admin_theaters, :to=>[:view]
     has_permission_on :theaters, :to=>:read
@@ -44,6 +46,7 @@ authorization do
     has_permission_on :donation_orders, :to=>[:create,:read,:update]
     has_permission_on :admin_orders, :to=>[:hold,:unclaimed, :fulfill, :resend_confirmation, :view_full_history]
     has_permission_on :admin_ticket_orders, :to=>[:hold,:unclaimed, :fulfill, :resend_confirmation]
+    has_permission_on :admin_flex_pass_orders, :to=>[:view, :make, :manage]
     has_permission_on :productions, :to=>[:view, :make, :manage]
     has_permission_on :performances, :to=>[:view, :make, :manage, :delete]
     has_permission_on :admin_ticket_classes, :to=>[:make,:manage]

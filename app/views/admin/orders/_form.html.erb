@@ -8,7 +8,9 @@
   <%= render :partial => '/admin/orders/address_form', :locals => {:f => address_form} %>
 <% end %>
 <%= order_form.input :add_to_email_list, :as=>:boolean, :label=>'Add to email list?', :default=>false %>
-<%= order_form.input :marketing_source, :collection=>Order::REFERRALS, :label=>"How did you hear about the show?" %>
+<%- if order_form.object.is_a? TicketOrder %>
+  <%= order_form.input :marketing_source, :collection=>Order::REFERRALS, :label=>"How did you hear about the show?" %>
+<%- end %>
 <%= order_form.hidden_field :status %>
 
 <%= order_form.input :notes, :input_html => {:rows => 4} %>
@@ -19,7 +21,7 @@
   <%- end %>
   <%= order_form.submit 'Place Order', :disable_with => 'Processing...', :confirm => "Process this order?" if [Order::NEW, Order::HOLD, Order::PROCESSING].include? order_form.object.status %>
   <% permitted_to? :hold, :admin_orders do %>
-    <%= order_form.submit 'Hold', :disable_with => 'Holding...' if order_form.object.status == Order::NEW || order_form.object.status == Order::HOLD %>
+    <%= order_form.submit 'Hold', :disable_with => 'Holding...' if order_form.object.holdable? %>
   <%- end %>
   <%= if order_form.object.status == Order::HOLD || order_form.object.status == Order::PROCESSING
         link_to 'Cancel Order', cancel_admin_order_path(order_form.object), :confirm => "Are you sure?", :method=>:post

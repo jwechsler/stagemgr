@@ -20,12 +20,10 @@ class Order < ActiveRecord::Base
   has_many :tasks, :class_name=>'OrderTask', :dependent=>:destroy
 
   has_many :line_items
-  has_many :flex_pass_line_items
   has_many :special_offer_line_items
 
   belongs_to :address
-  accepts_nested_attributes_for :flex_pass_line_items,
-                                :special_offer_line_items,
+  accepts_nested_attributes_for :special_offer_line_items,
                                 :address,
                                 :allow_destroy => true
   attr_accessor :special_offer_code
@@ -99,7 +97,7 @@ class Order < ActiveRecord::Base
   validates_presence_of :address
   validates_associated :address,
                        :payments,
-                       :flex_pass_line_items, :special_offer_line_items
+                       :special_offer_line_items
 
   validates_each :status do |record, attr, value|
 
@@ -119,6 +117,10 @@ class Order < ActiveRecord::Base
   end
 
   def exchangeable?
+    false
+  end
+
+  def holdable?
     false
   end
 
@@ -147,10 +149,7 @@ class Order < ActiveRecord::Base
   end
 
   def display_code()
-    case
-      when self.contains_flex_pass?
-        "FLEXPASS"
-    end
+    '???'
   end
 
   def total(reload_line_items=false)
@@ -195,23 +194,11 @@ class Order < ActiveRecord::Base
     fee
   end
 
-  def contains_flex_pass?
-    (self.line_items.select { |li| li.is_a? FlexPassLineItem }+self.flex_pass_line_items).size > 0
-  end
-
-  def flex_pass_offer
-    FlexPassOffer.find(self.flex_pass_line_items[0].flex_pass_offer_id) unless self.flex_pass_line_items.size == 0
-  end
-
   def valid_payment_types_for(current_user)
     valid_payment_types = Order::PAYMENT_TYPES.clone
     unless current_user && (current_user.is_administrator? || current_user.is_box_office_user?)
       valid_payment_types.delete CASH
       valid_payment_types.delete PRICE_OVERRIDE
-    end
-    if self.contains_flex_pass?
-      valid_payment_types.delete FLEX_PASS
-      valid_payment_types.delete MEMBERSHIP
     end
     valid_payment_types
   end
@@ -261,7 +248,7 @@ class Order < ActiveRecord::Base
   end
 
   def paid_with_flexpass?
-    FLEX_PASS == self.payment_type
+    self.payment_type == Order::FLEX_PASS || !self.flex_pass_payments.empty?
   end
 
   def paid_with_flexpass
@@ -343,18 +330,8 @@ class Order < ActiveRecord::Base
     end
   end
 
-  def display_code
-    self.contains_flex_pass? ? "FLEXPASS" : "DONATION"
-  end
-
   def description
-    case
-      when self.contains_flex_pass?
-        self.flex_pass_line_items[0].flex_pass_offer.name
-      else
-        "Unknown"
-    end
-
+    "Unknown"
   end
 
   def total_amount
@@ -367,14 +344,7 @@ class Order < ActiveRecord::Base
   end
 
   def to_s
-    case
-
-      when self.contains_flex_pass?
-        self.flex_pass_line_items[0].to_s
-      else
-        ""
-    end
-
+    "Unknown Order"
   end
 
   def sf
@@ -422,14 +392,6 @@ class Order < ActiveRecord::Base
     [Order::NEW, Order::PROCESSING]
   end
 
-  def self.send_flex_pass_reminder
-    email = $EMAIL_ADDRESS['flex_pass_notifications']
-
-    unless email.blank?
-      flex_pass_orders = Order.all(:conditions=>["line_items.type = 'FlexPassLineItem' and status = ?", Order::PROCESSED], :include => :line_items)
-      OrderMailer.send(:flex_pass_pending_reminder, flex_pass_orders).deliver
-    end
-  end
 
   def self.delete_unprocessed_orders
     orders = Order.where("status in (:transitory_status) and updated_at < :window and type != 'MembershipOrder'",
@@ -447,12 +409,6 @@ class Order < ActiveRecord::Base
     end
 
   end
-
-
-  def paid_with_pass?
-    self.payment_type == Order::FLEX_PASS || !self.flex_pass_payments.empty?
-  end
-
 
   def paid_with_membership?
     !self.membership_payments.empty?
@@ -550,10 +506,6 @@ class Order < ActiveRecord::Base
     hack
   end
 
-  def reservation_date
-    nil
-  end
-
   private
 
 
@@ -566,9 +518,7 @@ class Order < ActiveRecord::Base
   protected
 
   def set_theater
-    if self.contains_flex_pass?
-      self.theater_id = self.flex_pass_line_items[0].flex_pass_offer.theater_id
-    end
+
   end
 
   def cascade_address_to_nested_items
@@ -592,8 +542,7 @@ class Order < ActiveRecord::Base
   end
 
   def all_line_items(reload_line_items = false)
-    self.line_items(reload_line_items) + self.special_offer_line_items(reload_line_items) +
-        self.flex_pass_line_items(reload_line_items)
+    self.line_items(reload_line_items) + self.special_offer_line_items(reload_line_items)
   end
 
 
@@ -672,21 +621,15 @@ class Order < ActiveRecord::Base
   def set_defaults
     self.status ||= HOLD
     set_form_defaults
-    self.flex_pass_line_items.each { |tli| tli.order=self }
   end
 
   def create_mail_list_task
     self.tasks << MyEmmaTask.new(:execute_at=>Time.now + 5.minutes) if !self.address.email.nil?
   end
 
-  def create_notify_refund_task
-  end
-
-
   def create_receipt_task
-    self.tasks << OutreachTask.new(:execute_at=>Time.now + 5.minutes, :method_symbol=>:flexpass_confirmation) if self.contains_flex_pass?
-  end
 
+  end
 
   def set_tasks_after_save
     if self.do_not_create_tasks.nil? && self.status_changed?
@@ -703,7 +646,7 @@ class Order < ActiveRecord::Base
 
 
   def cancel_pending_tasks
-    self.tasks.select { |t| t.uncompleted? && t.cancel_with_order? }.each { |t| t.cancel! }
+    self.tasks.select { |t| t.uncompleted? }.each { |t| t.cancel! }
   end
 
 

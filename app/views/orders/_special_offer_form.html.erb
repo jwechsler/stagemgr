@@ -1,5 +1,5 @@
 <p>
-  <%- unless f.object.contains_flex_pass?
+  <%- unless f.object.is_a? FlexPassOrder
     unless defined? f.object.special_offer_code
       special_offer_code = ''
     else

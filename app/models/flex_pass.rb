@@ -27,7 +27,14 @@ class FlexPass < ActiveRecord::Base
   def active?
     self.uses_remaining > 0
   end
-  
-  
+
+  def self.check_expirations
+    FlexPass.find_all_by_active(true).each {|flex_pass|
+      if flex_pass.expiration_date <= Date.today || flex_pass.uses_remaining == 0
+        flex_pass.active=false
+        flex_pass.save
+      end
+    }
+  end
   
 end
