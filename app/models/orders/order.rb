@@ -631,6 +631,9 @@ class Order < ActiveRecord::Base
 
   end
 
+  def create_notify_refund_task
+  end
+
   def set_tasks_after_save
     if self.do_not_create_tasks.nil? && self.status_changed?
       case self.status
