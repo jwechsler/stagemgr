@@ -208,7 +208,7 @@ class Order < ActiveRecord::Base
   end
 
   def editable?
-    [HOLD, NEW, nil].include? self.status
+    [HOLD, NEW, PROCESSING, nil].include? self.status
   end
 
   def finalized?

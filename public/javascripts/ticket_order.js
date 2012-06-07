@@ -84,6 +84,29 @@ function add_autocomplete_tccode(order_type, tccode_input) {
   });
 }
 
+function add_autocomplete_tccode(order_type, tccode_input) {
+    tccode_input.autocomplete(tccode_input.attr('autocomplete_url'), {
+        cacheLength:0,
+        matchContains:1,//also match inside of strings when caching
+        mustMatch:1,//allow only values from the list
+        removeInitialValue:0,//when first applying $.autocomplete
+        formatItem: function(row, i, max) {
+            return "" + row[0] + " -- " + row[1];
+        },
+        extraParams:{performance_code:function() {
+            return jQuery('#' + order_type + '_performance_code').val();
+        }},
+        width: 400
+    }).result(function(event, data, formatted) {
+            if (data) {
+                my_tr = tccode_input.parents('tr');
+                my_tr.attr('price', data[3]);
+                my_tr.attr('ticket_type', data[2]);
+            }
+            recalculate_row_total(order_type, my_tr);
+        });
+}
+
 function add_autocomplete(order_type) {
   jQuery(function($) {
     //autocomplete

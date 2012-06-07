@@ -13,6 +13,14 @@ class Admin::TicketOrdersController < Admin::OrdersController
 
   def show
 
+    respond_to do |format|
+      format.html { if @ticket_order.editable?
+                      render 'edit'
+                    else
+                      render 'show'
+                    end
+      }
+    end
   end
 
   def edit
@@ -39,13 +47,13 @@ class Admin::TicketOrdersController < Admin::OrdersController
 
   def update
     @ticket_order.attributes=params[:ticket_order]
-    process_order(@ticket_order,:edit_admin_order_path)
+    @ticket_order = process_order(@ticket_order,:edit_admin_order_path)
   end
 
     def create
       old_status = Order::NEW
       @ticket_order = TicketOrder.new(params[:ticket_order])
-      process_order(@ticket_order,:edit_admin_ticket_order_path)
+      @ticket_order = process_order(@ticket_order,:edit_admin_ticket_order_path)
     end
 
 
