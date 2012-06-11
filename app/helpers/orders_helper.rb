@@ -108,15 +108,15 @@ module OrdersHelper
         end
       end
     rescue StandardError => e
-      order.status = old_status
+      order.status = old_status unless old_status.nil?
       if order.status == Order::PROCESSING
-        order = Order.find(order.id) if order.status == Order::PROCESSING
-        order = attributes.merge!(order.payment_attributes)
+        @order.reload
+        @order.reload_associated
+        @order.attributes.merge!(order.payment_attributes)
       end
       rescue_error(e)
     end
 
-    order
   end
 
   def rescue_error(e)
@@ -133,7 +133,7 @@ module OrdersHelper
           logger.error "There was an error creating the order. #{e.message} #{e.backtrace}"
       end
 
-      format.html { render 'edit', :layout=>true }
+      format.html { render 'edit', :order=>@order, :layout=>true }
     end
   end
 

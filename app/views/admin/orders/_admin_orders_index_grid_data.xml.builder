@@ -10,7 +10,7 @@ xml.rows do
       xml.cell o.address.try(:last_name).to_s
       xml.cell o.address.try(:first_name).to_s
       xml.cell number_to_currency(o.total)
-      xml.cell o.line_items.map{|li|li.ticket_count}.sum
+      xml.cell o.all_line_items.map{|li|li.ticket_count}.sum
       xml.cell o.status
       if permitted_to? :view_full_history,:admin_orders
         if o.address.nil?

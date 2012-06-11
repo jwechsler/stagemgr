@@ -17,7 +17,7 @@ class TicketClass < ActiveRecord::Base
     ticket_class_capacity_left = production_capacity_left = performance.number_of_tickets_left
     
     unless number_allocated(performance).nil?
-      ticket_class_capacity_left = number_allocated(performance) - self.line_items.sum(:ticket_count)
+      ticket_class_capacity_left = number_allocated(performance) - self.ticket_line_items.sum(:ticket_count)
     end
     return [ticket_class_capacity_left,production_capacity_left].min
   end

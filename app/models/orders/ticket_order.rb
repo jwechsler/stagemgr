@@ -53,6 +53,10 @@ class TicketOrder < Order
     true
   end
 
+  def printable?
+    [Order::NEW,Order::HOLD,Order::PROCESSING].include?(self.status)
+  end
+
   def display_code
     self.performance.try(:performance_code)
   end
@@ -169,7 +173,7 @@ class TicketOrder < Order
 
 
   def contains_tickets?
-    (self.line_items.select { |li| (li.is_a? TicketLineItem) && (li.ticket_count > 0) } + self.ticket_line_items.select { |li| li.ticket_count > 0 }).size > 0
+    (self.ticket_line_items.select { |li| li.ticket_count > 0} + self.ticket_line_items.select { |li| li.ticket_count > 0 }).size > 0
   end
 
 
@@ -293,7 +297,22 @@ class TicketOrder < Order
     ).uniq
   end
 
+
+  def ticketing_fee
+    self.ticket_line_items.uniq.to_a.sum { |li| li.ticketing_fee }
+  end
+
+
+  def all_line_items(reload_line_items = false)
+    super(reload_line_items) + self.ticket_line_items
+  end
+
+  def reload_associated
+    super
+    self.ticket_line_items(true)
+  end
   protected
+
 
   def transition_new_to_fulfilled!(redirect_to = nil)
     redirect_to = self.transition_new_to_processed!(redirect_to)

@@ -17,7 +17,7 @@
 
 <p>
   <% permitted_to? :fulfill, :admin_ticket_orders do %>
-    <%= order_form.submit 'Print Tickets', :disable_with => 'Printing...' if (order_form.object.is_a? TicketOrder) && (order_form.object.status == Order::NEW || order_form.object.status == Order::HOLD) %>
+    <%= order_form.submit 'Print Tickets', :disable_with => 'Printing...' if order_form.object.printable? %>
   <%- end %>
   <%= order_form.submit 'Place Order', :disable_with => 'Processing...', :confirm => "Process this order?" if [Order::NEW, Order::HOLD, Order::PROCESSING].include? order_form.object.status %>
   <% permitted_to? :hold, :admin_orders do %>

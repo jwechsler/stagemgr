@@ -8,7 +8,7 @@ Performance:
 	<th>Ticket Class</th>
 	<th>Ticket Count</th>
 	</thead>
-<% order.line_items.each do |line_item| %>
+<% order.ticket_line_items.each do |line_item| %>
 <% if line_item.ticket? then %><tr>
 	<td><%=h line_item.ticket_class.to_s %></td>
 	<td><%=h line_item.ticket_count %></td>
@@ -16,7 +16,7 @@ Performance:
 <% end %>
   <tr>
     <td></td>
-    <td><%= order.line_items.map{|li|li.ticket? ? li.ticket_count : 0}.sum %> -- Total Tickets</td>
+    <td><%= order.ticket_line_items.map{|li| li.ticket_count : 0}.sum %> -- Total Tickets</td>
   </tr>
 </table>
 
