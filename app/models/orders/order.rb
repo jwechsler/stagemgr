@@ -402,7 +402,7 @@ class Order < ActiveRecord::Base
   def self.delete_unprocessed_orders
     orders = Order.where("status in (:transitory_status) and updated_at < :window and type != 'MembershipOrder'",
                          {:transitory_status=>self.transitory_statuses,
-                          :window=>Time.now - 1.hour})
+                          :window=>Time.now - 20.minutes})
     orders.each do |order|
       order.destroy
     end
