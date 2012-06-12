@@ -3,8 +3,7 @@ require File.expand_path('../../config/environment', __FILE__)
 require 'flexmock/test_unit'
 require 'flexmock/rails'
 require 'factory_girl'
-Factory.definition_file_paths = File.expand_path(File.dirname(__FILE__) + "/factories")
-Factory.find_definitions
+#Factory.find_definitions
 require 'rails/test_help'
 require 'declarative_authorization/maintenance'
 

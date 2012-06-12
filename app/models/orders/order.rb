@@ -29,7 +29,7 @@ class Order < ActiveRecord::Base
   attr_accessor :special_offer_code
   attr_accessor :door_sale
   attr_accessor :additional_donation
-  attr_accessor_with_default :email_confirmation, 0
+  attr_accessor :email_confirmation
   attr_accessor :add_to_email_list
   attr_accessor :do_not_create_tasks
 
@@ -43,6 +43,8 @@ class Order < ActiveRecord::Base
                 :flex_pass_code,
                 :member_code
   attr_accessor :sf_object
+
+  after_initialize :clear_email_confirmation
 
   def copy_payment_information(from_order)
     self.credit_card_number = from_order.credit_card_number
@@ -195,7 +197,7 @@ class Order < ActiveRecord::Base
   end
 
   def valid_payment_types_for(current_user)
-    valid_payment_types = Order::PAYMENT_TYPES.clone
+    valid_payment_types = Order::PAYMENT_TYPES.dup
     unless current_user && (current_user.is_administrator? || current_user.is_box_office_user?)
       valid_payment_types.delete CASH
       valid_payment_types.delete PRICE_OVERRIDE
@@ -275,9 +277,9 @@ class Order < ActiveRecord::Base
       refund_payments = []
       create_notify_refund_task if self.fulfilled?
       self.payments.each { |payment| payment.refund!(nil, self.notes) if payment.respond_to? :refund! }
-      self.unique_line_items.each { |li| li.refund! if li.respond_to? :refund! }
+      self.unique_line_items.each { |li| self.refund_line_items (li.refund!) if li.respond_to? :refund!  }
       self.status = REFUNDED
-      save!
+      self.save!
     end
 
   end
@@ -290,6 +292,7 @@ class Order < ActiveRecord::Base
   def cancel!
     self.destroy
   end
+
 
   def create_proper_payment_in_amount_of!(amount)
     case self.payment_type
@@ -431,7 +434,7 @@ class Order < ActiveRecord::Base
 
   def self.export_trg_dump
     FasterCSV.open("/tmp/trg_dump.csv", "w") do |csv|
-      orders = TicketOrder.order(:performance_id).includes(:address, :theater, :payments, {:performance, :production})
+      orders = TicketOrder.order(:performance_id).includes(:address, :theater, :payments, {:performance=>:production})
       report = Array.new
       headers = [:buyer_type, :year, :description, :first, :last, :full_name, :company, :email, :address1, :address2,
                  :address3, :city, :state, :zip, :home_phone, :business_phone, :patron_id]
@@ -471,7 +474,7 @@ class Order < ActiveRecord::Base
 
       end
 
-      orders = MembershipOrder.includes(:address, {:membership_line_items, :membership})
+      orders = MembershipOrder.includes(:address, {:membership_line_items=>:membership})
 
       orders.each do |order|
         description = "#{order.membership.member_since.year} MEM: #{order.membership.membership_offer.name}"
@@ -514,10 +517,18 @@ class Order < ActiveRecord::Base
             address.line1, address.line2, nil, address.city, address.state, address.zipcode, address.phone, address.id]
   end
 
+  def clear_email_confirmation
+    @email_confirmation = 0
+  end
 
   protected
 
   def set_theater
+
+  end
+
+
+  def refund_line_items(reversing_entries)
 
   end
 

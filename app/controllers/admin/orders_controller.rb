@@ -173,20 +173,20 @@ class Admin::OrdersController < Admin::ApplicationController
         if params[column_name] && !params[column_name].empty?
           restrict_to_active &&= !remove_active_restrict_on_columns.include?(column_name)
           case column_name
-            when 'display_code' :
+            when 'display_code' then
               case params[column_name].downcase
-                when 'membership' :
+                when 'membership' then
                   conditions_sql << "orders.type = 'MembershipOrder'"
-                when 'donation' :
+                when 'donation' then
                   conditions_sql << "orders.type = 'DonationOrder'"
-                when 'flexpass' :
+                when 'flexpass' then
                   conditions_sql << "orders.type = 'FlexPassOrder'"
                   conditions_sql << "(orders.id in (select order_id from flex_passes where active = 1))" if restrict_to_active
                 else
                   conditions_sql << "orders.type = 'TicketOrder' and lower(performances.performance_code) like '%' ? '%'"
                   conditions_params << params[column_name].downcase
               end
-            when 'orders.id' :
+            when 'orders.id' then
               conditions_sql << "#{column_name} = ?"
               conditions_params << params[column_name]
 

@@ -147,7 +147,7 @@ class Admin::ReportsController < Admin::ApplicationController
     minimum_attended = params[:minimum_attended].to_i
     minimum_revenue = params[:minimum_revenue].to_i
     @headers, @report_data = build_telemarketing_dump(@start_day, minimum_attended, required_theaters, minimum_revenue)
-    send_report_as_csv ('customer',@headers, @report_data)
+    send_report_as_csv('customer', @headers, @report_data)
   end
 
   def membership_usage
@@ -155,12 +155,12 @@ class Admin::ReportsController < Admin::ApplicationController
     @start_day = days.min
     @end_day = days.max
     @headers, @report_data = build_membership_usage(@start_day, @end_day, params['download_csv'].nil?)
-    if params['download_csv'].nil? then
+    unless params['download_csv'].nil? then
+      send_report_as_csv('membership_usage', @headers, @report_data)
+    else
       respond_to do |format|
         format.html
       end
-    else
-      send_report_as_csv('membership_usage', @headers, @report_data)
     end
   end
 
@@ -282,7 +282,7 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def build_fulfill_labels(through_date)
-    orders = TicketOrder.order("performances.performance_date, productions.production_code, performances.performance_code, addresses.last_name").all(:include=>[:line_items, {:performance, :production}, :address],
+    orders = TicketOrder.order("performances.performance_date, productions.production_code, performances.performance_code, addresses.last_name").all(:include=>[:line_items, {:performance=>:production}, :address],
                                                                     :conditions=>["orders.status = ? and performances.status = 'Active' and performances.performance_date <= ? and performances.performance_date >= ? and productions.status in (?)",
                                                                                   Order::PROCESSED, through_date, Date.today, Production.visible_statuses])
     report = Array.new
@@ -369,7 +369,7 @@ class Admin::ReportsController < Admin::ApplicationController
 
 
   def build_trg_dump
-    orders = TicketOrder.order(:performance_id).includes(:address,:theater, {:performance, :production})
+    orders = TicketOrder.order(:performance_id).includes(:address,:theater, {:performance=>:production})
     report = Array.new
     headers = [:buyer_type, :year, :description, :first, :last, :full_name, :company, :email, :address1, :address2,
                :address3, :city, :state, :zip, :home_phone, :business_phone, :patron_id]

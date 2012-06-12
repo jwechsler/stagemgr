@@ -36,7 +36,7 @@ Stagemgr::Application.configure do
   # Setup paypal
   config.after_initialize do
     ActiveMerchant::Billing::Base.gateway_mode = :test
-    ActiveMerchant::Billing::PaypalGateway.pem_file = File.read(RAILS_ROOT+'/config/cert_key_pem_dev.txt')
+    ActiveMerchant::Billing::PaypalGateway.pem_file = File.read("#{::Rails.root.to_s}/config/cert_key_pem_dev.txt")
   end
 
   $PAYPAL_LOGIN = 'test_1302729685_biz@theaterwit.org'

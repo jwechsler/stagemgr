@@ -32,7 +32,7 @@ class Performance < ActiveRecord::Base
   accepts_nested_attributes_for  :ticket_class_allocations
   
   def number_of_tickets_left
-    self.production.capacity - self.orders.inject(0){|sum,order| sum + order.line_items.sum(:ticket_count) }
+    self.production.capacity - self.orders.inject(0){|sum,order| sum + order.ticket_line_items.sum(:ticket_count) }
   end
   
   def sold_out?

@@ -1,13 +1,17 @@
 require 'test_helper'
+include Authorization::Maintenance
 
 class OrderTaskTest < ActiveSupport::TestCase
 
+
   context "given a new order" do
     setup do
-      @order = Factory.create(:ticket_order, :address=>addresses(:jeremy), :payment_type => Order::CASH, :status=>Order::NEW,
-                              :performance=>performances(:macbeth_opening))
-      @order.ticket_line_items << TicketLineItem.new({:ticket_class=>ticket_classes(:macbeth_general_admission), :ticket_count=>1})
-
+      without_access_control do
+        @order = FactoryGirl.create(:ticket_order)
+        @order.address = addresses(:jeremy)
+        @order.performance = performances(:macbeth_opening)
+        @order.ticket_line_items << TicketLineItem.new({:ticket_class => ticket_classes(:macbeth_general_admission), :ticket_count => 1})
+      end
     end
     should "generate two outreach tasks when processed" do
       @order.transition_to!(Order::PROCESSING)
@@ -35,10 +39,9 @@ class OrderTaskTest < ActiveSupport::TestCase
     should "generate a different followup task for the second order" do
       @order.transition_to!(Order::PROCESSING)
       @order.transition_to!(Order::PROCESSED)
-      @order.transition_to!(Order::FULFILLED)
-      @order2 = Factory.create(:ticket_order, :address=>addresses(:jeremy), :payment_type => Order::CASH, :status=>Order::NEW,
-                               :performance=>performances(:macbeth_matinee))
-      @order2.ticket_line_items << TicketLineItem.new({:ticket_class=>ticket_classes(:macbeth_general_admission), :ticket_count=>1})
+      @order2 = Factory.create(:ticket_order, :address => addresses(:jeremy), :payment_type => Order::CASH, :status => Order::NEW,
+                               :performance => performances(:macbeth_matinee))
+      @order2.ticket_line_items << TicketLineItem.new({:ticket_class => ticket_classes(:macbeth_general_admission), :ticket_count => 1})
 
       @order2.transition_to!(Order::PROCESSING)
       @order2.transition_to!(Order::PROCESSED)
