@@ -42,4 +42,11 @@ Stagemgr::Application.configure do
   $PAYPAL_LOGIN = 'test_1302729685_biz@theaterwit.org'
   $PAYPAL_PASSWORD = 'testtest'
 
+
+  $DATABASEDOTCOM = SalesforceSync.load_from_yaml_file('test',"#{::Rails.root.to_s}/config/databasedotcom.yml")
+
+  $TKTPRINT =  YAML::load(File.open("#{::Rails.root.to_s}/config/ticket_print.yml"))['test']
+
+  $EMAIL_ADDRESS = YAML::load(File.open("#{::Rails.root.to_s}/config/emails.yml"))['test']
+
 end

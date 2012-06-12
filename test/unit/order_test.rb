@@ -7,7 +7,7 @@ class OrderTest < ActiveSupport::TestCase
 
   context 'with a flexpass order' do
     setup do
-      @order = Factory.create(:order, :address=>addresses(:jeremy), :payment_type => Order::CASH)
+      @order = Factory.create(:flex_pass_order, :address=>addresses(:jeremy), :payment_type => Order::CASH)
 
       @order.flex_pass_line_items.build(:flex_pass_offer=> flex_pass_offers(:flexpass_5_offer), :ticket_count=>1)
       @order.transition_to!(Order::PROCESSING)
@@ -32,7 +32,6 @@ class OrderTest < ActiveSupport::TestCase
       @ticket_order.flex_pass_code = flex_pass.code
       @ticket_order.transition_to!(Order::PROCESSING)
       @ticket_order.transition_to!(Order::PROCESSED)
-      @ticket_order.transition_to!(Order::FULFILLED)
       assert_equal 1, @ticket_order.flex_pass_payments.count
       assert_equal flex_pass, @ticket_order.flex_pass_payments[0].flex_pass
 
@@ -283,10 +282,13 @@ class OrderTest < ActiveSupport::TestCase
       @order.set_membership_offer(@offer)
       @order.payments << Factory.create(:cash_payment, :amount=>15)
       @order.transition_to!(Order::PROCESSING)
+      @order.membership.status = Membership::ACTIVE
+      @order.membership.number_cycles_completed = 1
+      @order.membership.save
     end
     should "allow you to purchase a ticket for a particular performance" do
       code = @order.membership.member_code
-      @order.membership.status = Membership::ACTIVE
+
       o = TicketOrder.create(:status=>Order::NEW, :address=>@address, :performance=>performances(:macbeth_opening), :payment_type => Order::MEMBERSHIP, :member_code=>@order.membership.member_code)
       o.ticket_line_items.create!(:ticket_class=>ticket_classes(:macbeth_general_admission), :ticket_count=>1)
       assert_not_nil(o.address.email)

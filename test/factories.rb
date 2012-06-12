@@ -36,6 +36,7 @@ Factory.define(:production) do |production|
   production.association :theater, :factory => :theater
   production.association :venue, :factory=>:venue
   production.capacity 100
+  production.season  Date.today.year
 end
 
 Factory.define(:performance) do |performance|
@@ -52,6 +53,12 @@ Factory.define(:ticket_class) do |ticket_class|
 end
 
 Factory.define(:order) do |order|
+  order.status Order::ORDER_STATUSES.first
+  order.association :address, :factory => :address
+  order.payment_type Order::CASH
+end
+
+Factory.define(:flex_pass_order) do |order|
   order.status Order::ORDER_STATUSES.first
   order.association :address, :factory => :address
   order.payment_type Order::CASH

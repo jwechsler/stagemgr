@@ -67,8 +67,8 @@ end
 
 group :test do
   gem 'sqlite3-ruby'
-  gem 'cucumber'
-  gem 'cucumber-rails'
+  gem 'cucumber-rails', :require=>false
+  gem 'database_cleaner'
   gem 'webrat',             '>=0.5.0'
   gem 'rspec',              '>=1.3.0'
   gem 'rspec-rails',        '>=1.3.2'

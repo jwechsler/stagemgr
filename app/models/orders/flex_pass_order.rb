@@ -48,7 +48,7 @@ class FlexPassOrder < Order
 
   protected
   def set_theater
-    self.theater_id = self.flex_pass_line_items[0].flex_pass_offer.theater_id
+    self.theater_id = self.flex_pass_line_items[0].flex_pass_offer.theater_id unless self.flex_pass_line_items.empty?
   end
 
 
