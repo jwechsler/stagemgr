@@ -299,7 +299,6 @@ class TicketOrder < Order
   protected
 
   def refund_line_items(reversing_entries)
-    self
     reversing_entries.each {|e| self.ticket_line_items << e }
     super(reversing_entries)
   end

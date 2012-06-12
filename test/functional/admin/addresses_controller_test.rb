@@ -2,7 +2,7 @@ require 'test_helper'
 
 class Admin::AddressesControllerTest < ActionController::TestCase
   setup do
-    @address = Factory.create(:address)
+    @address = FactoryGirl.create(:address)
   end
 
   test "should get index" do

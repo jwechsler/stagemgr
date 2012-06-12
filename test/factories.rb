@@ -77,16 +77,13 @@ FactoryGirl.define do
       order
     end
 
-    factory :line_item do
-      factory :special_offer_line_item do
-        association :order, :factory => :order
-      end
-      factory :ticket_line_item do
-        association :ticket_order, :factory => :ticket_order
-        association :ticket_class, :factory => :ticket_class
-      end
+    factory :special_offer_line_item do
+      association :order, :factory => :order
     end
 
+    factory :ticket_line_item do
+      association :ticket_class, :factory => :ticket_class
+    end
 
     factory :amount_off_special_offer do
       amount 1
