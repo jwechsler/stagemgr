@@ -10,7 +10,7 @@ class Admin::TicketOrdersControllerTest < ActionController::TestCase
       flexmock(@controller).should_receive(:admin_only).and_return(true)
       assert_difference('Order.count') do
         post :create, :commit=>'Place Order',
-             "order"=>{
+             "ticket_order"=>{
                  "address_attributes"=>address_hash,
                  "performance_code"=>@performance.performance_code,
                  "ticket_line_items_attributes"=>{

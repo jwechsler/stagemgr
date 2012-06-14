@@ -18,9 +18,8 @@ class ActiveSupport::TestCase
   # Add more helper methods to be used by all tests here...
   def address_hash
     {
-      "first_name"=>"Joe", 
-      "last_name"=>"Shmoe", 
-      "email"=>"jshmoe@example.com", 
+      "full_name"=>"Joe Schmoe",
+      "email"=>"jshmoe@example.com",
       "line1"=>"123 Swift St", 
       "line2"=>"", 
       "city"=>"Anytown", 

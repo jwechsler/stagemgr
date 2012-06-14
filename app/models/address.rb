@@ -7,7 +7,7 @@ class Address < ActiveRecord::Base
 
   include AddressImports
 
-  validates_presence_of :last_name
+  validates_presence_of :full_name
   validates :email, :email=>true
   before_validation :regularize!
   has_many :orders
