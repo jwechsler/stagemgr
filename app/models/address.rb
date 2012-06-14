@@ -345,6 +345,10 @@ class Address < ActiveRecord::Base
                               self.id, DonationLineItem.to_s]) > 0
   end
 
+  def to_s
+    "#{self.full_name} <#{self.email}>"
+  end
+
   def last_attendance_date
     TicketOrder.includes(:performance).maximum('performance_date',:conditions=>["orders.address_id = ?", self.id])
   end

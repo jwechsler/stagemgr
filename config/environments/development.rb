@@ -12,7 +12,6 @@ Stagemgr::Application.configure do
 
   # Show full error reports and disable caching
   config.consider_all_requests_local       = true
-  config.action_view.debug_rjs             = true
   config.action_controller.perform_caching = false
 
   # Don't care if the mailer can't send
@@ -28,7 +27,7 @@ Stagemgr::Application.configure do
 
   config.after_initialize do
     ActiveMerchant::Billing::Base.gateway_mode = :test
-    pem_file = File.read(RAILS_ROOT+'/config/cert_key_pem_dev.txt')
+    pem_file = File.read(::Rails.root.to_s+'/config/cert_key_pem_dev.txt')
     ActiveMerchant::Billing::PaypalGateway.pem_file = pem_file
     ActiveMerchant::Billing::PaypalRecurringGateway.pem_file = pem_file
   end
