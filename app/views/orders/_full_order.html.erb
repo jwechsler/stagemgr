@@ -16,7 +16,7 @@ Performance:
 <% end %>
   <tr>
     <td></td>
-    <td><%= order.ticket_line_items.map{|li| li.ticket_count : 0}.sum %> -- Total Tickets</td>
+    <td><%= order.ticket_line_items.map{|li| li.ticket_count }.sum %> -- Total Tickets</td>
   </tr>
 </table>
 
