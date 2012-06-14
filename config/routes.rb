@@ -109,9 +109,7 @@ Stagemgr::Application.routes.draw do
 
     resources :flex_pass_orders
 
-    resources :addresses do
-
-    end
+    resources :addresses
 
     resources :flex_pass_offers do
       resources :orders, :controller => 'flex_pass_offer_orders'

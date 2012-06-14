@@ -21,7 +21,7 @@
 
 set :output, {:error => nil}
 
-every 1.hour do
+every 10.minutes do
   runner "Order.delete_unprocessed_orders"
 end
 

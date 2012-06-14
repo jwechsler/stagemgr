@@ -83,15 +83,13 @@ module OrdersHelper
         order.credit_card_number = parsed[1]
       end
       unless order.credit_card_expiration_year.blank? || order.credit_card_expiration_year.length > 2
-      order.credit_card_expiration_year = "20" + order.credit_card_expiration_year
-      order.save!
+        order.credit_card_expiration_year = "20" + order.credit_card_expiration_year
+
       end
+      order.save!
       old_status = order.status
       unless (params[:commit].blank? && order.status == Order::PROCESSING)
-        Order.transaction do
-          on_success_redirect_to = order.transition_to!(convert_button_label_to_state(params[:commit]), on_success_redirect_to)
-          # @order.transition_to!(Order::PROCESSED) if @order.status == Order::PROCESSING
-        end
+        on_success_redirect_to = order.transition_to!(convert_button_label_to_state(params[:commit]), on_success_redirect_to)
 
         if !on_success_redirect_to.nil?
           respond_to do |format|
@@ -106,18 +104,18 @@ module OrdersHelper
         end
       else
         respond_to do |format|
-          format.html { render '/ticket_orders/edit' }
+          format.html { render 'edit' }
         end
       end
     rescue StandardError => e
-      order.status = old_status
+      order.status = old_status unless old_status.nil?
       if order.status == Order::PROCESSING
-        @order = Order.find(order.id) if order.status == Order::PROCESSING
+        @order.reload
+        @order.reload_associated
         @order.attributes.merge!(order.payment_attributes)
       end
       rescue_error(e)
     end
-
 
   end
 
@@ -135,7 +133,7 @@ module OrdersHelper
           logger.error "There was an error creating the order. #{e.message} #{e.backtrace}"
       end
 
-      format.html { render 'edit', :layout=>true }
+      format.html { render 'edit', :order=>@order, :layout=>true }
     end
   end
 

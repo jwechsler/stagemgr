@@ -91,7 +91,12 @@ class MembershipOrder < Order
     (super + self.membership_line_items(reload_line_items)).uniq
   end
 
+  def all_line_items(reload_line_items = false)
+    super(reload_line_items) + self.membership_line_items
+  end
+
   protected
+
 
   def cascade_address_to_nested_items
     super

@@ -67,13 +67,13 @@
   <%- if permitted_to? :fulfill, :admin_orders then %>
     <tr>
       <td>
-        <span class="report_title">Fulfill Tickets</span>
-        <span class="help_text">Returns label file for all unfulfilled orders, fulfilling them at the same time</span>
+        <span class="report_title">Print Tickets</span>
+        <span class="help_text">Returns label file for all unfulfilled orders, printing them at the same time</span>
       </td>
       <td>
         <%= form_tag(fulfill_tickets_admin_reports_path, :method=>"post") do %>
           Through: <%= date_select(:report, :through_day, :default=>Time.now, :end_year=>Time.now.year) %>
-          <%= submit_tag "Download", :name=>'download_csv', :confirm =>"This will download labels for tickets and mark those orders as 'Fulfilled'.  Are you sure?" %>
+          <%= submit_tag "Download", :name=>'download_csv', :confirm =>"This will download labels for tickets and print those tickets.  Are you sure?" %>
         <%- end %>
       </td>
     </tr>

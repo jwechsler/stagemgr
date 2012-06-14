@@ -19,7 +19,6 @@ class Order < ActiveRecord::Base
   has_many :price_override_payments
   has_many :tasks, :class_name=>'OrderTask', :dependent=>:destroy
 
-  has_many :line_items
   has_many :special_offer_line_items
 
   belongs_to :address
@@ -138,6 +137,10 @@ class Order < ActiveRecord::Base
     self.status == Order::REFUNDED
   end
 
+  def printable?
+    false
+  end
+
   def self.attending_statuses
     [Order::PROCESSED, Order::FULFILLED]
   end
@@ -174,9 +177,6 @@ class Order < ActiveRecord::Base
     self.payments.to_a.sum { |payment| payment.respond_to?(:customer_visible_amount) ? payment.customer_visible_amount : 0 }
   end
 
-  def ticketing_fee
-    self.line_items.uniq.to_a.sum { |li| li.respond_to?(:ticketing_fee) ? li.ticketing_fee : 0 }
-  end
 
   def status_is_provided?
     !self.status.blank?
@@ -210,7 +210,7 @@ class Order < ActiveRecord::Base
   end
 
   def editable?
-    [HOLD, NEW, nil].include? self.status
+    [HOLD, NEW, PROCESSING, nil].include? self.status
   end
 
   def finalized?
@@ -269,6 +269,12 @@ class Order < ActiveRecord::Base
 
   def special_offer_code_used
     self.special_offer_line_items.empty? ? '' : self.special_offer_line_items.first.special_offer.code
+  end
+
+  def reload_associated
+    self.payments(true)
+    self.tasks(true)
+    self.special_offer_line_items(true)
   end
 
   def refund!
@@ -399,7 +405,7 @@ class Order < ActiveRecord::Base
   def self.delete_unprocessed_orders
     orders = Order.where("status in (:transitory_status) and updated_at < :window and type != 'MembershipOrder'",
                          {:transitory_status=>self.transitory_statuses,
-                          :window=>Time.now - 1.hour})
+                          :window=>Time.now - 20.minutes})
     orders.each do |order|
       order.destroy
     end
@@ -497,13 +503,11 @@ class Order < ActiveRecord::Base
   end
 
   def unique_line_items(reload_line_items = false)
-    hack = self.all_line_items(reload_line_items).uniq
+    hack = self.special_offer_line_items(reload_line_items)
     found_so = false
     hack.each do |li|
-      if li.type == 'SpecialOfferLineItem'
-        hack.delete(li) if found_so
-        found_so = true
-      end
+      hack.delete(li) if found_so
+      found_so = true
 
     end
     hack
@@ -520,6 +524,11 @@ class Order < ActiveRecord::Base
   def clear_email_confirmation
     @email_confirmation = 0
   end
+
+  def all_line_items(reload_line_items = false)
+    self.special_offer_line_items(reload_line_items)
+  end
+
 
   protected
 
@@ -552,11 +561,6 @@ class Order < ActiveRecord::Base
     new_payment.process!
   end
 
-  def all_line_items(reload_line_items = false)
-    self.line_items(reload_line_items) + self.special_offer_line_items(reload_line_items)
-  end
-
-
 
   def unique_payments
     (self.payments.to_a
@@ -571,8 +575,10 @@ class Order < ActiveRecord::Base
   end
 
   def transition_new_to_processed!(redirect_to = nil)
-    transition_new_to_processing!(redirect_to)
-    transition_processing_to_processed!(redirect_to)
+    Order.transaction do
+      transition_new_to_processing!(redirect_to)
+      transition_processing_to_processed!(redirect_to)
+    end
   end
 
   def transition_new_to_processing!(redirect_to = nil)
@@ -609,8 +615,8 @@ class Order < ActiveRecord::Base
       self.set_email_confirmation
       self.special_offer_line_items.each { |li| li.mark_redeemed }
       self.save!
-    end
-    save_additional_donation_order unless (self.additional_donation.blank? || self.additional_donation.to_i == 0)
+      save_additional_donation_order unless (self.additional_donation.blank? || self.additional_donation.to_i == 0)
+      end
     redirect_to
   end
 
@@ -673,7 +679,7 @@ class Order < ActiveRecord::Base
 
 
   def initialize_nested_line_items
-    line_items.each { |li| li.order = self }
+    all_line_items.each { |li| li.order = self }
   end
 
   def save_additional_donation_order

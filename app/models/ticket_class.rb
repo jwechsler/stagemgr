@@ -7,7 +7,7 @@ class TicketClass < ActiveRecord::Base
   validates_uniqueness_of :class_code,        :scope => :production_id
   validates_length_of :class_code, :minimum => 1
   belongs_to :production
-  has_many :line_items
+  has_many :ticket_line_items
   before_validation :clean_values
   validates_numericality_of :ticket_price
   validates_numericality_of :minutes_before_show, :allow_nil => true
@@ -17,7 +17,7 @@ class TicketClass < ActiveRecord::Base
     ticket_class_capacity_left = production_capacity_left = performance.number_of_tickets_left
     
     unless number_allocated(performance).nil?
-      ticket_class_capacity_left = number_allocated(performance) - self.line_items.sum(:ticket_count)
+      ticket_class_capacity_left = number_allocated(performance) - self.ticket_line_items.sum(:ticket_count)
     end
     return [ticket_class_capacity_left,production_capacity_left].min
   end
