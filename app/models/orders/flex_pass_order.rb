@@ -14,7 +14,7 @@ class FlexPassOrder < Order
   end
 
   def all_line_items(reload_line_items = false)
-    super + self.flex_pass_line_items(reload_line_items)
+    super(reload_line_items) + self.flex_pass_line_items(reload_line_items)
   end
 
   def valid_payment_types_for(current_user)
@@ -44,6 +44,11 @@ class FlexPassOrder < Order
       flex_pass_orders = FlexPassOrder.find_all_by_status(Order::PROCESSED)
       OrderMailer.send(:flex_pass_pending_reminder, flex_pass_orders).deliver
     end
+  end
+
+  def reload_associated
+    super
+    self.flex_pass_line_items(true)
   end
 
   protected

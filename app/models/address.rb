@@ -340,9 +340,9 @@ class Address < ActiveRecord::Base
   end
 
   def is_donor?
-    Order.count(:include=>[:line_items],
-                :conditions=>["orders.address_id = ? and line_items.type = ? and line_items.donation_amount > 0",
-                              self.id, DonationLineItem.to_s]) > 0
+    DonationOrder.count(:include=>[:donation_line_items],
+                :conditions=>["orders.address_id = ? and line_items.donation_amount > 0",
+                              self.id]) > 0
   end
 
   def last_attendance_date

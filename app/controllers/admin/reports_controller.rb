@@ -282,7 +282,7 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def build_fulfill_labels(through_date)
-    orders = TicketOrder.order("performances.performance_date, productions.production_code, performances.performance_code, addresses.last_name").all(:include=>[:line_items, {:performance, :production}, :address],
+    orders = TicketOrder.order("performances.performance_date, productions.production_code, performances.performance_code, addresses.last_name").all(:include=>[:ticket_line_items, {:performance, :production}, :address],
                                                                     :conditions=>["orders.status = ? and performances.status = 'Active' and performances.performance_date <= ? and performances.performance_date >= ? and productions.status in (?)",
                                                                                   Order::PROCESSED, through_date, Date.today, Production.visible_statuses])
     report = Array.new
@@ -671,7 +671,7 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def build_donations_dump(start_day, end_day, build_for_dumpfile = false)
-    donations = Order.all(:include=>[:address, :line_items, :payments], :conditions=>["orders.status in (?) and line_items.type = 'DonationLineItem' and payments.processed_on >= ? and payments.processed_on <= ?", Order::PROCESSED, start_day, end_day])
+    donations = Order.all(:include=>[:address, :donation_line_items, :payments], :conditions=>["orders.status in (?) and line_items.type = 'DonationLineItem' and payments.processed_on >= ? and payments.processed_on <= ?", Order::PROCESSED, start_day, end_day])
     report = Array.new
     keys = columns_for_orders(true) + [:total]
     Order.transaction do
@@ -694,7 +694,7 @@ class Admin::ReportsController < Admin::ApplicationController
     keys = columns_for_orders(true)
     keys += [:order_total, :num_tickets]
     production.performances.each { |performance|
-      orders = TicketOrder.joins(:line_items).where("performance_id = :performance_id", {:performance_id=>performance.id})
+      orders = TicketOrder.joins(:ticket_line_items).where("performance_id = :performance_id", {:performance_id=>performance.id})
 
       orders.each { |o|
         if o.attended? then

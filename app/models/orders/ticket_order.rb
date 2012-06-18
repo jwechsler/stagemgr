@@ -53,6 +53,10 @@ class TicketOrder < Order
     true
   end
 
+  def printable?
+    [Order::NEW,Order::HOLD,Order::PROCESSING].include?(self.status)
+  end
+
   def display_code
     self.performance.try(:performance_code)
   end
@@ -169,7 +173,7 @@ class TicketOrder < Order
 
 
   def contains_tickets?
-    (self.line_items.select { |li| (li.is_a? TicketLineItem) && (li.ticket_count > 0) } + self.ticket_line_items.select { |li| li.ticket_count > 0 }).size > 0
+    (self.ticket_line_items.select { |li| li.ticket_count > 0} + self.ticket_line_items.select { |li| li.ticket_count > 0 }).size > 0
   end
 
 
@@ -293,7 +297,22 @@ class TicketOrder < Order
     ).uniq
   end
 
+
+  def ticketing_fee
+    self.ticket_line_items.uniq.to_a.sum { |li| li.ticketing_fee }
+  end
+
+
+  def all_line_items(reload_line_items = false)
+    super(reload_line_items) + self.ticket_line_items
+  end
+
+  def reload_associated
+    super
+    self.ticket_line_items(true)
+  end
   protected
+
 
   def transition_new_to_fulfilled!(redirect_to = nil)
     redirect_to = self.transition_new_to_processed!(redirect_to)
@@ -346,8 +365,8 @@ class TicketOrder < Order
         raise 'That member ID is not active. Please call the box office for assistance.' unless membership.is_active?
         pass_ticket_class = production_ticket_class_from_offer(membership.membership_offer)
         total_amount = ticket_line_items.inject(0) { |total_amount, li| total_amount += self.applicable_price(li.ticket_class, pass_ticket_class)* li.ticket_count }
-
-        new_payment = MembershipPayment.new(:number_of_tickets=>self.ticket_quantity, :membership=>membership, :amount=>total_amount)
+        qty = ticket_line_items.select{|li| self.applicable_price(li.ticket_class, pass_ticket_class) > 0}.sum { |li| li.respond_to?(:ticket_count) ? li.ticket_count : 0 }
+        new_payment = MembershipPayment.new(:number_of_tickets=>qty, :membership=>membership, :amount=>total_amount)
         payments << new_payment
         new_payment.process!
       else
@@ -426,6 +445,7 @@ class TicketOrder < Order
     new_ticket_class = production_ticket_class_from_offer(offer)
     if !new_ticket_class.nil?
       self.ticket_line_items.each { |li|
+        if li.ticket_class.ticket_price > 0
         new_line_item = TicketLineItem.new
         new_line_item.ticket_class = new_ticket_class
         old_price = li.ticket_class.ticket_price
@@ -433,7 +453,7 @@ class TicketOrder < Order
         new_line_item.price_override = self.applicable_price(li.ticket_class, new_ticket_class) if new_ticket_class.ticket_type == TicketClass::DONATION
         self.ticket_line_items << new_line_item
         self.ticket_line_items.delete(li)
-
+        end
       }
     end
   end

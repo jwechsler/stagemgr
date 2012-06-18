@@ -63,6 +63,11 @@ class DonationOrder < Order
     end
   end
 
+  def reload_associated
+    super
+    self.donation_line_items(true)
+  end
+
   protected
 
   def set_defaults
