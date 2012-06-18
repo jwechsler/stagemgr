@@ -24,7 +24,8 @@ class ActiveSupport::TestCase
       "line2"=>"", 
       "city"=>"Anytown", 
       "state"=>"il",
-      "zipcode"=>"60606"
+      "zipcode"=>"60606",
+      "phone"=>"312-555-5555"
     }
   end
 

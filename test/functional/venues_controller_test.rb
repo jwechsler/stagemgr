@@ -1,8 +1,8 @@
 require 'test_helper'
 
 class VenuesControllerTest < ActionController::TestCase
-  test "should get primetime_now_playing" do
-    get :primetime_now_playing
+  test "should get now_playing" do
+    get :now_playing
     assert_response :success
   end
 

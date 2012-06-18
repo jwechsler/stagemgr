@@ -48,7 +48,7 @@ class Admin::TicketOrdersControllerTest < ActionController::TestCase
 
       assert_difference('Order.count') do
         post :create, :commit=>'Place Order',
-             "order"=>{
+             "ticket_order"=>{
                  "address_attributes"=>address_hash,
                  "performance_code"=>@performance.performance_code,
                  "credit_card_expiration_month"=>'09',
