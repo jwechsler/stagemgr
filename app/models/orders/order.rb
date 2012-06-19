@@ -513,9 +513,13 @@ class Order < ActiveRecord::Base
     hack
   end
 
+
+  def all_line_items(reload_line_items = false)
+    self.special_offer_line_items(reload_line_items)
+  end
+
+
   private
-
-
   def self.trg_row(buyer_type, season, description, address)
     return [buyer_type, season, description, address.first_name, address.last_name, address.full_name, '', address.email,
             address.line1, address.line2, nil, address.city, address.state, address.zipcode, address.phone, address.id]
@@ -525,9 +529,6 @@ class Order < ActiveRecord::Base
     @email_confirmation = 0
   end
 
-  def all_line_items(reload_line_items = false)
-    self.special_offer_line_items(reload_line_items)
-  end
 
 
   protected
