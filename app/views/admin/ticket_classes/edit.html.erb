@@ -1,9 +1,9 @@
-<h1>Editing ticket_class</h1>
+<h1>Editing Ticket Class</h1>
 
 <%= semantic_form_for([:admin,@theater,@production,@ticket_class]) do |f| %>
 
     <%= render :partial => 'form', :locals=>{:f=>f} %>
-    <%= f.buttons %>
+    <%= f.actions %>
 
 <% end %>
 

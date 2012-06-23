@@ -1,28 +1,27 @@
 <%= f.inputs do %>
-  <%= f.error_messages %>
-
   <%= f.input :name %>
   <%= f.input :production_code %>
   <%= f.input :production_class, :collection=>Production::PRODUCTION_CLASSES, :include_blank=>false %>
-  <%= f.input :season %>
+  <%= f.input :status, :as=>:select, :collection=>Production::PRODUCTION_STATUSES, :include_blank=>false %>
+  <%= f.input :first_preview_at, :as=>:date %>
+  <%= f.input :press_opening_at, :as=>:date %>
+  <%= f.input :opening_at, :as=>:date %>
+  <%= f.input :closing_at, :as=>:date %>
+  <%= f.input :season, :as=>:string %>
   <%= f.input :venue, :collection=>Venue.all %>
   <%= f.input :credit_lines, :input_html=> { :rows => 3 } %>
-  <%= f.input :first_preview_at %>
-  <%= f.input :press_opening_at %>
-  <%= f.input :opening_at %>
-  <%= f.input :closing_at %>
   <%= f.input :short_description %>
   <%= f.input :show_description, :input_html=>{ :rows=>6}%>
-  <%= f.input :running_time, :label=>"Running Time (in minutes)" %>
+  <%= f.input :running_time, :label=>"Running Time", :hint=>"Number of minutes, including intermissions (if any)" %>
   <%= f.input :intermission %>
   <%= f.input :allow_late_seating %>
-  <%= f.input :promo, :label=>"Production Image", :hint=>image_tag (f.object.promo.url(:thumb)) %>
+  <%= f.input :promo, :label=>"Production Image", :hint=>image_tag(f.object.promo.url(:thumb)) %>
   <%= f.input :capacity %>
   <%= f.input :additional_information_link, :as=>:url %>
-  <%= f.input :status, :as=>:select, :collection=>Production::PRODUCTION_STATUSES, :include_blank=>false %>
   <%= f.input :flex_pass_offer, :collection=>f.object.theater.flex_pass_offers, :label=>"Festival Pass Offer" %>
+  <%= f.input :follow_up_message, :input_html=>{ :rows=>4 }, :hint=>"Embedded in thanks for coming follow up email." %>
+  <%= f.input :follow_up_message_2, :input_html=>{:rows => 4}, :label=>"Additional follow up message", :hint=>"Second paragraph follow up email." %>
+  <%= f.input :confirmation_message, :input_html=>{ :rows=>4}, :label=>"Additional Confirmation Message", :hint=>"Embedded in receipt" %>
   <%= f.input :myemma_attendee_group, :label=>"MyEmma Group Number" %>
-  <%= f.input :follow_up_message, :input_html=>{ :rows=>4 } %>
-  <%= f.input :follow_up_message_2, :input_html=>{:rows => 4}, :label=>"Additional follow up message" %>
-  <%= f.input :confirmation_message, :input_html=>{ :rows=>4}, :label=>"Additional Confirmation Message" %>
+
 <%- end -%>
