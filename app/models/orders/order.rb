@@ -157,7 +157,7 @@ class Order < ActiveRecord::Base
 
   def total(reload_line_items=false)
     if (self.payments.nil?) || (self.payments.size == 0) then
-      a = self.unique_line_items.to_a.sum { |line_item|
+      a = self.all_line_items.to_a.sum { |line_item|
         line_item.respond_to?(:total) ? line_item.total : 0
       }
     else
@@ -509,6 +509,10 @@ class Order < ActiveRecord::Base
     end
     hack
   end
+  def all_line_items(reload_line_items = false)
+    self.special_offer_line_items(reload_line_items)
+  end
+
 
   private
 
@@ -517,12 +521,6 @@ class Order < ActiveRecord::Base
     return [buyer_type, season, description, address.first_name, address.last_name, address.full_name, '', address.email,
             address.line1, address.line2, nil, address.city, address.state, address.zipcode, address.phone, address.id]
   end
-
-
-  def all_line_items(reload_line_items = false)
-    self.special_offer_line_items(reload_line_items)
-  end
-
 
   protected
 
