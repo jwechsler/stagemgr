@@ -1,1 +1,3 @@
-require 'test/test_helper'
+require 'declarative_authorization/maintenance'
+World(Authorization::Maintenance)
+

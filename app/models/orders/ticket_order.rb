@@ -268,6 +268,10 @@ class TicketOrder < Order
     return performance.to_datetime
   end
 
+  def all_line_items(reload_line_items = false)
+    super(reload_line_items) + self.ticket_line_items(reload_line_items)
+  end
+
 # for form processing
   def production_code=(string)
     @production_code=string

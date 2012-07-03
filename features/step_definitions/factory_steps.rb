@@ -6,13 +6,17 @@ Given /^the following ([^\"]*) exist(?:| on the ([a-zA-Z]+) "([^\"]*)"):$/ do |t
     if parent_type
       hash.merge!({"#{parent_type.downcase}_id".to_sym=>parent.id})
     end
-    new_object = Factory(symbol, hash)
+    without_access_control do
+      new_object = FactoryGirl.create(symbol, hash)
+    end
   end
 end
 
 Given /^a(?:|n) ([^\"]*) exists$/ do |type|
   symbol = type.underscore.to_sym
-  Factory(symbol)
+  without_access_control do
+    FactoryGirl.create!(symbol)
+  end
 end
 
 Given /^all the ticket class are available for Performance "([^"]*)"$/ do |performance_code|

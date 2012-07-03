@@ -7,11 +7,14 @@ Given /^(?:|I )(?:|am |is )logged in$/ do
 end
 
 Given /^I am (|not )an Administrator$/ do |inverse|
-  @current_test_user ||= Factory(:user)
+
+  @current_test_user ||= Factory.create!(:user)
   if inverse.empty?
     @current_test_user.is_administrator = true
   else
     @current_test_user.is_administrator = false
   end
   @current_test_user.save!
+  Authorization.current_user = @current_test_user
+
 end

@@ -14,7 +14,7 @@ Feature: Admins can manage performances
     And I am an Administrator
     And I am logged in
     And I go to the admin production detail page for "Production One"
-
+@wip
 Scenario: There is a performances link on the Productions Page
   Given the following performances exist on the Production "Production One":
   | performance_code |

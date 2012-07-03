@@ -67,11 +67,12 @@ end
 
 group :test do
   gem 'sqlite3-ruby'
+  gem 'capybara',            '0.4.0'
   gem 'cucumber-rails', :require=>false
   gem 'database_cleaner'
   gem 'webrat',             '>=0.5.0'
-  gem 'rspec',              '>=1.3.0'
-  gem 'rspec-rails',        '>=1.3.2'
+  gem 'rspec'
+  gem 'rspec-rails'
   gem 'test-unit',          '>=2.0.7'
   gem 'flexmock',           '0.8.6'
   gem 'simplecov'
@@ -86,13 +87,13 @@ end
 
 group :cucumber do
   gem 'sqlite3-ruby'
-  gem 'capybara',           '0.4.0'
+  gem 'capybara',            '0.4.0'
   gem 'database_cleaner'
   gem 'cucumber'
   gem 'cucumber-rails'
   gem 'webrat',             '>=0.5.0'
-  gem 'rspec',              '>=1.3.0'
-  gem 'rspec-rails',        '>=1.3.2'
+  gem 'rspec'
+  gem 'rspec-rails'
   gem 'test-unit',          '>=2.0.7'
   gem 'simplecov'
   gem "factory_girl_rails", "~> 3.0"
