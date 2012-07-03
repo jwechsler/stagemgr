@@ -1,3 +1,4 @@
+@wip
 Feature: Box office ordering
   As an administrator
   I want to create / edit and delete performances records
@@ -11,9 +12,9 @@ Feature: Box office ordering
     | A          | A Ticket   | 10.00        |
     | B          | B Ticket   | 15.00        |
     | C          | C Ticket   | 20.00        |
-	And the following performances exist on the Production "Production One":
-	| performance_code |
-	| PERF             |
+    And the following performances exist on the Production "Production One":
+      | performance_code |
+      | PERF             |
     And I am an Administrator
     And I am logged in
     And I go to New Box Office Order

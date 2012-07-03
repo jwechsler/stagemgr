@@ -46,8 +46,7 @@ Feature: An administrator can add production details to a theater
   Given I follow "Add production"
    When I press "Create"
    Then I should see "Name can't be blank"
-  
-  @wip
+
   Scenario: Delete a production
   Given the following productions exist:
   | name             |

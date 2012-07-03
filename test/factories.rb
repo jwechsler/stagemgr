@@ -35,6 +35,14 @@ FactoryGirl.define do
       status Theater::THEATER_STATUSES.first
     end
 
+
+    factory :ticket_class do
+      ticket_type TicketClass::TICKET_TYPES.first
+      ticket_price 5.0
+      sequence(:class_code) { |n| "GEN#{'%02d' % n}" }
+      production
+    end
+
     factory :production do
       sequence(:name) { |n| "Production \##{n}" }
       sequence(:production_code) { |n| "PRO#{'%02d' % n}" }
@@ -43,20 +51,25 @@ FactoryGirl.define do
       association :venue, :factory => :venue
       capacity 100
       season Date.today.year
+
+      factory :production_with_ticket_classes do
+        ignore do
+          ticket_class_count 1
+        end
+
+        after(:create) do |user, evaluator|
+          FactoryGirl.create_list(:ticket_class, evaluator.ticket_class_count, production: production)
+        end
+      end
     end
 
     factory :performance do
       association :production, :factory => :production
       status Performance::PERFORMANCE_STATUSES.first
       sequence(:performance_code) { |n| "PF#{'%02d' % n}" }
-      ticket_class_allocations { |perf| perf.populate_ticket_class_allocations }
+      after(:build) { |perf| perf.populate_ticket_class_allocations }
     end
 
-    factory :ticket_class do
-      ticket_type TicketClass::TICKET_TYPES.first
-      ticket_price 5.0
-      sequence(:class_code) { |n| "CS#{'%02d' % n}" }
-    end
 
    # factory :base_order do |order|
 

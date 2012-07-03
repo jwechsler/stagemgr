@@ -6,7 +6,7 @@ class User < ActiveRecord::Base
   "Administrator","Box Office Operator",  "Producer"   )
 
   acts_as_authentic do |c|
-    #c.my_config_option = my_value
+    c.maintain_sessions = false   if Rails.env == "test"   # authlogic/issues/262
   end
   
   before_validation :set_defaults, :on => :create

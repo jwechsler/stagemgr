@@ -14,7 +14,7 @@ Feature: Admins can manage performances
     And I am an Administrator
     And I am logged in
     And I go to the admin production detail page for "Production One"
-@wip
+
 Scenario: There is a performances link on the Productions Page
   Given the following performances exist on the Production "Production One":
   | performance_code |
@@ -31,8 +31,8 @@ Scenario: There is a New Performance link on the Performance Listing Page
     And I select 01/01/2005 from "Performance date"
     And I select "Active" from "Status"
     And I fill in "Performance code" with "PERF1"
-    And I fill in "performance_ticket_class_allocations_attributes_0_ticket_limit" with "10"
-    And I check "performance_ticket_class_allocations_attributes_0_available"
+    And I fill in "Limit" with "10"
+    And I check "Available"
    When I press "Create"
    Then I should see "Performance was successfully created."
 
