@@ -1,7 +1,7 @@
 require 'declarative_authorization/maintenance'
 include Authorization::Maintenance
 
-class Factory
+module FactoryGirl
   class << self
     alias_method :original_create, :create
 

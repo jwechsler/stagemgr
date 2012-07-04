@@ -20,17 +20,4 @@ Feature: Box office ordering
     And I go to New Box Office Order
 
   Scenario: Create an order
-  Given I fill in "Production code" with "ABC12"
-    And I fill in "Performance code" with "PERF"
-    And I fill in "order_ticket_line_items_attributes_0_ticket_class_code" with "A"
-    And I fill in "order_ticket_line_items_attributes_0_ticket_count" with "2"
-    And I fill in "First name" with "PERF"
-    And I fill in "Last name" with "PERF"
-    And I fill in "Address Line1" with "PERF"
-    And I fill in "Address Line2" with "PERF"
-    And I fill in "City" with "PERF"
-    And I fill in "State/Province/Region" with "PERF"
-    And I fill in "ZIP/Postal Code" with "PERF"
-    And I select "Cash" from "Payment type"
-
-    And I press "Place Order"
+  Given I create a ticket order
