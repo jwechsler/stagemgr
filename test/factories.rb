@@ -1,6 +1,18 @@
 require 'declarative_authorization/maintenance'
 include Authorization::Maintenance
 
+class Factory
+  class << self
+    alias_method :original_create, :create
+
+    def create(name, overrides = {})
+      without_access_control do
+        original_create(name, overrides)
+      end
+    end
+  end
+end
+
 FactoryGirl.define do
 
     factory :default_ticket_class do
