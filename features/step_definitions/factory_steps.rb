@@ -26,5 +26,21 @@ Given /^all the ticket class are available for Performance "([^"]*)"$/ do |perfo
   end
 end
 
+Given /^a theater "(.*?)" exists$/ do |name|
+  @theater = FactoryGirl.create(:theater,:name=>name)
+end
 
-  
+Given /^(\d?) venues? exists?/ do |venue_count|
+  venue_count.to_i.times do
+    FactoryGirl.create(:venue)
+  end
+end
+
+Given /^a?\s?venue "(.*?)" exists$/ do |venue|
+  @venue = FactoryGirl.create(:venue, :name=>venue)
+end
+
+Given /^a production "(.*?)" exists$/ do |name|
+  @production = FactoryGirl.create(:production, :name=>name, :theater=>@theater)
+end
+

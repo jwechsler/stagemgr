@@ -83,6 +83,7 @@ GEM
       ffi (~> 1.0.6)
     chronic (0.6.7)
     cocaine (0.2.1)
+    configuration (1.3.2)
     crack (0.3.1)
     cucumber (1.2.1)
       builder (>= 2.1.2)
@@ -131,8 +132,9 @@ GEM
       crack (>= 0.1.1)
     i18n (0.6.0)
     json (1.7.3)
-    launchy (2.1.0)
-      addressable (~> 2.2.6)
+    launchy (0.4.0)
+      configuration (>= 0.0.5)
+      rake (>= 0.8.1)
     libwebsocket (0.1.3)
       addressable
     mail (2.3.3)
@@ -141,7 +143,7 @@ GEM
       treetop (~> 1.4.8)
     map_by_method (0.8.3)
     metaclass (0.0.1)
-    mime-types (1.18)
+    mime-types (1.19)
     mocha (0.11.4)
       metaclass (~> 0.0.1)
     money (5.0.0)
@@ -165,7 +167,7 @@ GEM
     newrelic_rpm (3.3.5)
     nifty-generators (0.4.6)
     nokogiri (1.5.4)
-    paperclip (3.0.4)
+    paperclip (3.1.2)
       activemodel (>= 3.0.0)
       activerecord (>= 3.0.0)
       activesupport (>= 3.0.0)
@@ -286,7 +288,7 @@ DEPENDENCIES
   g (~> 1.6.0)
   gemcutter
   htmldiff
-  launchy
+  launchy (= 0.4.0)
   map_by_method (= 0.8.3)
   mocha
   money
@@ -297,7 +299,7 @@ DEPENDENCIES
   namecase (~> 1.1.0)
   newrelic_rpm
   nifty-generators
-  paperclip (~> 3.0.4)
+  paperclip (~> 3.1.2)
   postmark-rails
   rails (= 3.1.5)
   rbx-require-relative

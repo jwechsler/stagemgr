@@ -27,8 +27,11 @@ class Production < ActiveRecord::Base
   belongs_to :flex_pass_offer
 
   attr_accessor :sf_object
+  has_attached_file :promo, :styles => {:medium => "250x375>", :thumb => "125x186>"},
+                    :path => ":rails_root/public/system/:attachment/:id/:style/:filename",
+                    :url => "/system/:attachment/:id/:style/:filename"
 
-  has_attached_file :promo, :styles => {:medium => "250x375>", :thumb => "125x186>"}
+
 
   def to_s
     "#{self.name}, #{self.theater.name}"

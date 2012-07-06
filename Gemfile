@@ -43,7 +43,7 @@ gem "authlogic"
 gem "acts_as_audited", "~> 2.1.0"
 gem "will_paginate",          '~> 3.0.3'
 gem "my_emma", :git=> "https://github.com/hashrocket/my_emma.git"
-gem "paperclip",               "~> 3.0.4"
+gem "paperclip",               "~> 3.1.2"
 gem "htmldiff"
 gem "StreetAddress",          "~> 1.0.1"
 gem "fastercsv"
@@ -92,7 +92,7 @@ group :cucumber do
   gem 'cucumber'
   gem 'cucumber-rails'
   gem 'webrat',             '>=0.5.0'
-  gem 'launchy'
+  gem 'launchy',            '0.4.0'
   gem 'rspec'
   gem 'rspec-rails'
   gem 'test-unit',          '>=2.0.7'

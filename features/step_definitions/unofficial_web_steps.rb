@@ -42,12 +42,15 @@ end
 #   end
 # end
 
+Given /^I change "(.*?)" to "(.*?)"$/ do |field, value|
+  fill_in(field, :with => value)
+end
+
+
 Given /^I select ([0-9]+\/[0-9]+\/[0-9]+) from "([^\"]*)"$/ do |date, field|
   parent_of_date = find(:xpath, "//label[contains(.,'#{field}')]")['for']
-  date = Date.parse(date)
-  Given "I select \"#{date.year}\" from \"#{parent_of_date}_1i\""
-  Given "I select \"#{Date::MONTHNAMES[date.month]}\" from \"#{parent_of_date}_2i\""
-  Given "I select \"#{date.day}\" from \"#{parent_of_date}_3i\""
+  parent_of_date.gsub! /_1i/, ''
+  select_date_by_id(date, parent_of_date)
 end
 
 When /^I attach the test file "([^\"]*)" to "([^\"]*)"$/ do |filename, field|

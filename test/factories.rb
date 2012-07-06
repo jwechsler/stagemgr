@@ -42,9 +42,18 @@ FactoryGirl.define do
     end
 
     factory :theater do
+
       sequence(:name) { |n| "Theater \##{n}" }
       theater_class Theater::THEATER_CLASSES.first
       status Theater::THEATER_STATUSES.first
+      logo nil
+
+      factory :theater_with_venues do
+        ignore do
+          venue_count 1
+        end
+
+      end
     end
 
 
@@ -69,7 +78,7 @@ FactoryGirl.define do
           ticket_class_count 1
         end
 
-        after(:create) do |user, evaluator|
+        after(:create) do |production, evaluator|
           FactoryGirl.create_list(:ticket_class, evaluator.ticket_class_count, production: production)
         end
       end

@@ -1,3 +1,4 @@
+
 Feature: The Administrator can manage theater records
   In order to create theaters to attach performances and ticket classes to
   As a StageMgr Admin user
@@ -23,19 +24,20 @@ Feature: The Administrator can manage theater records
 	And I am an Administrator
     And I am logged in
     And I go to the home page
-    When I go to the admin/theater page
+    When I go to the admin theater page
     Then I should see "ABC Theater"
      And I should see "DEF Theater"
      And each theater name is a link to a theater detail page
-  
+  @wip
   Scenario: Add a theater (Minimum Required fields)
     Given I am an Administrator
       And I am logged in
       And I go to the admin/theater page
       And I follow "New theater"
-      And I fill in "Name" with "Theater Number One"
+      And I enter a theater called "Theater Number One"
       And I press "Create"
-     Then I should be on the admin/theater page
+     Then show me the page
+      And I should be on the admin/theater page
       And I should see "Theater Number One"
 
   Scenario: Add a theater (All fields)
