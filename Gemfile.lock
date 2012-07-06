@@ -131,6 +131,8 @@ GEM
       crack (>= 0.1.1)
     i18n (0.6.0)
     json (1.7.3)
+    launchy (2.1.0)
+      addressable (~> 2.2.6)
     libwebsocket (0.1.3)
       addressable
     mail (2.3.3)
@@ -269,7 +271,7 @@ DEPENDENCIES
   bond (= 0.4.2)
   capistrano (~> 2.12.0)
   capistrano-ext (= 1.2.1)
-  capybara (= 0.4.0)
+  capybara
   cucumber
   cucumber-rails
   database_cleaner
@@ -284,6 +286,7 @@ DEPENDENCIES
   g (~> 1.6.0)
   gemcutter
   htmldiff
+  launchy
   map_by_method (= 0.8.3)
   mocha
   money

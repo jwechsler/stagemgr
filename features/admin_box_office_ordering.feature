@@ -1,4 +1,3 @@
-@wip
 Feature: Box office ordering
   As an administrator
   I want to create / edit and delete performances records
@@ -21,3 +20,4 @@ Feature: Box office ordering
 
   Scenario: Create an order
   Given I create a ticket order
+  Then I should see "Order was successfully saved and is now Processed"
