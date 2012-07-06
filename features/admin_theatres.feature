@@ -28,42 +28,18 @@ Feature: The Administrator can manage theater records
     Then I should see "ABC Theater"
      And I should see "DEF Theater"
      And each theater name is a link to a theater detail page
-  @wip
-  Scenario: Add a theater (Minimum Required fields)
+
+  Scenario: Add a theater
     Given I am an Administrator
       And I am logged in
       And I go to the admin/theater page
       And I follow "New theater"
       And I enter a theater called "Theater Number One"
       And I press "Create"
-     Then show me the page
-      And I should be on the admin/theater page
-      And I should see "Theater Number One"
-
-  Scenario: Add a theater (All fields)
-    Given I am an Administrator
-      And I am logged in
-      And I go to the admin/theater page
-      And I follow "New theater"
-      And I fill in "Name" with "Theater Number One"
-      And I select "Visiting Company" from "Theater class"
-      And I select "Inactive" from "Status"
-      And I press "Create"
      Then I should be on the admin/theater page
       And I should see "Theater Number One"
 
-  Scenario: Add a theater (check valid values for select boxes)
-    Given I am an Administrator
-      And I am logged in
-      And I go to the admin/theater page
-      And I follow "New theater"
-     Then I select "Default" from "Theater class"
-      And I select "Resident Company" from "Theater class"
-      And I select "Visiting Company" from "Theater class"
-      And I select "Guest Artist" from "Theater class"
-      And I select "Active" from "Status"
-      And I select "Inactive" from "Status"
-
+  @wip
   Scenario: Add a theater (Name Required)
     Given I am an Administrator
       And I am logged in

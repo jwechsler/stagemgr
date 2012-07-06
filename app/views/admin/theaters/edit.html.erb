@@ -2,10 +2,8 @@
 
 <%= semantic_form_for([:admin,@theater], :html => { :multipart => true }) do |f| %>
   <%= f.inputs do %>
-    <%= f.input :name %>
-    <%= f.input :url %>
-    <%= f.input :theater_class, :label=>"Class", :as=>:select, :collection=>Theater::THEATER_CLASSES %>
-    <%= f.input :logo, :label=>"Theater Logo", :hint=>image_tag(f.object.logo.url(:thumb)) %>
+    <%= render :partial => '/theaters/form', :locals=>{:f=>f} %>
+
   <%- end %>
   <%= f.actions %>
 <% end %>

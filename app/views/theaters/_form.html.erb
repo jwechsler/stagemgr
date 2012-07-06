@@ -1,6 +1,7 @@
 <%= f.inputs do %>
     <%= f.input :name %>
-    <%= f.input :url %>
-    <%= f.input :theater_class, :as=>:select, :collection=>Theater::THEATER_CLASSES %>
+<%= f.input :url %>
+<%= f.input :theater_class, :as => :select, :collection => Theater::THEATER_CLASSES %>
+<%= f.input :status, :as=>:select, :collection=>Theater::THEATER_STATUSES, :selected=>Theater::THEATER_STATUSES.first %>
     <%= f.input :logo %>
 <%- end %>
