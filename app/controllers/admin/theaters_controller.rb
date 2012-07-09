@@ -52,7 +52,6 @@ class Admin::TheatersController < Admin::ApplicationController
   # PUT /theaters/1
   # PUT /theaters/1.xml
   def update
-    params[:theater].delete(:logo) if params[:theater][:logo].empty?
 
     respond_to do |format|
       if @theater.update_attributes(params[:theater])

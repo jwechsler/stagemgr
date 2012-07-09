@@ -39,9 +39,11 @@ Stagemgr::Application.configure do
     ActiveMerchant::Billing::PaypalGateway.pem_file = File.read("#{::Rails.root.to_s}/config/cert_key_pem_dev.txt")
   end
 
-  $PAYPAL_LOGIN = 'test_1302729685_biz@theaterwit.org'
-  $PAYPAL_PASSWORD = 'testtest'
+  paypal_config = YAML::load(File.open("#{::Rails.root.to_s}/config/pay_pal_credentials.yml"))
 
+  $PAYPAL_LOGIN = paypal_config['test']['paypal_login']
+  $PAYPAL_PASSWORD = paypal_config['test']['paypal_password']
+  $TEST_CREDIT_CARD = paypal_config['test']['test_credit_card']
 
   $DATABASEDOTCOM = SalesforceSync.load_from_yaml_file('test',"#{::Rails.root.to_s}/config/databasedotcom.yml")
 

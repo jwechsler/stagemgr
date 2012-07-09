@@ -39,50 +39,14 @@ Feature: The Administrator can manage theater records
      Then I should be on the admin/theater page
       And I should see "Theater Number One"
 
-  @wip
-  Scenario: Add a theater (Name Required)
-    Given I am an Administrator
-      And I am logged in
-      And I go to the admin/theater page
-      And I follow "New theater"
-      And I press "Create"
-      And I should see "Name can't be blank"
-
-  Scenario: Theater names must be unique
-	Given I am an Administrator
-      And the following theaters exist:
-        | name        |
-        | ABC Theater |
-        | DEF Theater |
-      And I am logged in
-	  And I go to the admin/theater page
-	  And I follow "New theater"
-      And I fill in "Name" with "ABC Theater"
-      And I press "Create"
-     Then I should see "Name has already been taken"
-
   Scenario: Edit a theater
     Given I am an Administrator
-      And the following theaters exist:
-        | name        |
-        | ABC Theater |
-        | DEF Theater |
+      And a theater "ABC Theater" exists
       And I am logged in
       And I go to the admin/theater page
-      And I follow "ABC Theater" "Edit" link
-     When I fill in "Name" with "ABD Theater"
-      And I press "Save"
+      And I follow "Edit"
+     When I change "Name" to "ABD Theater"
+      And I press "Update"
      Then I should be on the admin/theater page
       And I should see "ABD Theater"
       And I should see "Theater was successfully updated."
-
-	Scenario: the logo is stored in a directory accessible by the web server
-    Given I am an Administrator
-      And I am logged in
-      And I go to the admin/theater page
-      And I follow "New theater"
-      And I fill in "Name" with "Logo Theater"
-      And I attach the test file "logo.jpg" to "theater_logo" 
-      And I press "Create"
-     Then I should see the logo for "Logo Theater"
-

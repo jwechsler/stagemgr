@@ -26,7 +26,7 @@ module NavigationHelpers
       when /^New Box Office Order$/
         url_for(:controller => 'admin/ticket_orders', :action => 'new', :only_path => true)
       when /^new web order for production "([^"]*)" and performance "([^"]*)"/
-        new_production_performance_order_url(Production.find_by_production_code($1).id, Performance.find_by_performance_code($2).id)
+        new_production_performance_order_url(Production.find_by_name($1).id, Performance.find_by_performance_code($2).id)
 
       # Add more mappings here.
       # Here is an example that pulls values out of the Regexp:

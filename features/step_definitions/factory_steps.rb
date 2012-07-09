@@ -44,3 +44,7 @@ Given /^a production "(.*?)" exists$/ do |name|
   @production = FactoryGirl.create(:production, :name=>name, :theater=>@theater)
 end
 
+When /^a production "([^"]*)" exists for the theater "([^"]*)"$/ do |name, theater_name|
+  @theater = Theater.find_by_name(theater_name)
+  @production = FactoryGirl.create(:production, :name=>name, :code=>name[0..3].upper, :theater=>@theater)
+end
