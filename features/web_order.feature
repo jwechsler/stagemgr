@@ -43,24 +43,21 @@ Feature: Web ordering
     Then I should see "Your ticket reservation has been made"
      And I should see "$9.00"
 
-  @wip
   Scenario: Have the credit card declined and then try again successfully
     Given I go to new web order for production "Production One" and performance "PERF"
     And I enter my contact information
-    And show me the page
     And I select "0" from "ticket_order_ticket_line_items_attributes_0_ticket_count"
     And I select "1" from "ticket_order_ticket_line_items_attributes_1_ticket_count"
     And I enter a valid credit card as payment
     And I change "Credit card number" to "4222222222222"
     And I press "Review Order"
     And I press "Order Tickets"
-    And show me the page
     And I should see "Please enter a valid credit card number"
-    And I select "0" from "ticket_order_ticket_line_items_attributes_1_ticket_count"
-    And I select "1" from "ticket_order_ticket_line_items_attributes_0_ticket_count"
+    And I select "1" from "ticket_order_ticket_line_items_attributes_1_ticket_count"
+    And I select "0" from "ticket_order_ticket_line_items_attributes_0_ticket_count"
     And I enter a valid credit card as payment
     And I press "Review Order"
     And I press "Order Tickets"
    Then I should see "Your ticket reservation has been made"
-    And I should see "$9.00"
+    And I should see "$10.00"
 

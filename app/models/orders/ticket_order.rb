@@ -16,7 +16,7 @@ class TicketOrder < Order
       unless record.ticket_line_items.empty? || record.ticket_quantity > 0
         record.errors.add :ticket_line_items, "must contain at least one ticket."
       end
-      if (!record.performance.nil? && record.performance.restricted_payment_types.map{|r| r.display_name}.include?(record.payment_type))
+      if (!record.performance.nil? && record.performance.restricted_payment_types.map { |r| r.display_name }.include?(record.payment_type))
         record.errors.add :payment_type, "is not allowed for this event"
       end
     end
@@ -64,6 +64,21 @@ class TicketOrder < Order
 
   def to_s
     self.ticket_detail_description
+  end
+
+  def reload_associated
+    super
+    self.preset_line_items
+  end
+
+  def preset_line_items
+    super
+    unless self.finalized?
+      tcs = self.ticket_line_items.map { |li| li.ticket_class_id }
+      available = self.performance.ticket_class_allocations.select { |tca| tca.available && !tcs.include?(tca.ticket_class.id) }.map { |tca| tca.ticket_class }.select { |tc| tc.web_visible unless tc.nil? }
+      available.each { |tc| self.ticket_line_items.build(:ticket_class => tc, :ticket_count => 0) }
+      self.ticket_line_items.sort! { |a, b| a.ticket_class_id <=> b.ticket_class_id }
+    end
   end
 
   def valid_payment_types_for(current_user)
@@ -185,12 +200,12 @@ class TicketOrder < Order
       self.save!
       self.update_special_offer_line_items_from_code!
       original_order.release_tickets!
-      exchange_payment_on_original_order = original_order.exchange_payments.create!(:amount=>-1*original_order.payments(true).to_a.sum { |p| p.amount }, :note=>original_order.description)
-      exchange_payment_on_self = self.exchange_payments.create!(:amount=>-1 * exchange_payment_on_original_order.amount, :payment_id=>exchange_payment_on_original_order.id)
+      exchange_payment_on_original_order = original_order.exchange_payments.create!(:amount => -1*original_order.payments(true).to_a.sum { |p| p.amount }, :note => original_order.description)
+      exchange_payment_on_self = self.exchange_payments.create!(:amount => -1 * exchange_payment_on_original_order.amount, :payment_id => exchange_payment_on_original_order.id)
       exchange_payment_on_original_order.update_attribute(:payment_id, exchange_payment_on_self.id)
       payment_difference = self.total - exchange_payment_on_self.amount
       if payment_difference < 0
-        self.price_override_payments.create!(:amount=>payment_difference)
+        self.price_override_payments.create!(:amount => payment_difference)
       elsif payment_difference > 0
         create_proper_payment_in_amount_of!(payment_difference)
       end
@@ -214,8 +229,7 @@ class TicketOrder < Order
       if self.returned?
         puts "  removing synced copy"
         event.delete unless event.nil?
-      elsif
-        prod = sf_cache.production(self.performance.production_id)
+      elsif prod = sf_cache.production(self.performance.production_id)
         contact = sf_cache.address(self.address_id)
 
         showtime = DateTime.new(self.performance.performance_date.year,
@@ -224,21 +238,21 @@ class TicketOrder < Order
                                 self.performance.performance_time.hour,
                                 self.performance.performance_time.min,
                                 self.performance.performance_time.sec,
-                                Rational(Time.zone.utc_offset/60/60,24))
+                                Rational(Time.zone.utc_offset/60/60, 24))
         if event.nil?
           puts "  creating event in salesforce"
-          event = Salesforce::Event.create("stagemgr_order_id__c"=>self.id,
+          event = Salesforce::Event.create("stagemgr_order_id__c" => self.id,
                                            "WhatId" => prod.Id,
-                                           "IsAllDayEvent"=>true,
+                                           "IsAllDayEvent" => true,
                                            "ActivityDateTime" => self.performance.performance_date,
                                            "StartDateTime" => self.performance.performance_date,
-                                           "Subject"=>(self.attended? ? 'Attended' : 'Missed'),
-                                           "WhoId"=>contact.Id,
-                                           "DurationInMinutes"=>1440,
-                                           "IsPrivate"=>false,
-                                           "IsReminderSet"=>false,
-                                           "OwnerId"=>$DATABASEDOTCOM['user_id'],
-                                           "ShowAs"=>"Free",
+                                           "Subject" => (self.attended? ? 'Attended' : 'Missed'),
+                                           "WhoId" => contact.Id,
+                                           "DurationInMinutes" => 1440,
+                                           "IsPrivate" => false,
+                                           "IsReminderSet" => false,
+                                           "OwnerId" => $DATABASEDOTCOM['user_id'],
+                                           "ShowAs" => "Free",
                                            "RecordTypeId" => $DATABASEDOTCOM['ticket_order_record_type_id']
           )
         else
@@ -304,7 +318,7 @@ class TicketOrder < Order
   protected
 
   def refund_line_items(reversing_entries)
-    reversing_entries.each {|e| self.ticket_line_items << e }
+    reversing_entries.each { |e| self.ticket_line_items << e }
     super(reversing_entries)
   end
 
@@ -391,20 +405,20 @@ class TicketOrder < Order
   def create_reminder_task
     if self.contains_tickets? && !self.performance.suppress_notification
       day_before = self.performance.performance_date.to_datetime-1.day
-      self.tasks << OutreachTask.new(:execute_at=>day_before, :method_symbol=>:performance_reminder) unless day_before - 1.day < Time.now
+      self.tasks << OutreachTask.new(:execute_at => day_before, :method_symbol => :performance_reminder) unless day_before - 1.day < Time.now
     end
   end
 
 
   def create_receipt_task
-    self.tasks << OutreachTask.new(:execute_at=>Time.now + 5.minutes, :method_symbol=>:ticket_confirmation) unless self.performance.suppress_notification
+    self.tasks << OutreachTask.new(:execute_at => Time.now + 5.minutes, :method_symbol => :ticket_confirmation) unless self.performance.suppress_notification
 
     super
   end
 
   def create_notify_refund_task
-    self.tasks << NotificationTask.new(:execute_at=>Time.now, :notifications=>[$EMAIL_ADDRESS['box_office'],$EMAIL_ADDRESS['supervisor_notifications']].join(','),
-                                       :method_symbol=>:refunded_fulfilled_item_alert)
+    self.tasks << NotificationTask.new(:execute_at => Time.now, :notifications => [$EMAIL_ADDRESS['box_office'], $EMAIL_ADDRESS['supervisor_notifications']].join(','),
+                                       :method_symbol => :refunded_fulfilled_item_alert)
     super
   end
 
@@ -414,13 +428,13 @@ class TicketOrder < Order
       monday_following = self.performance.performance_date.end_of_week + 1.day
       case
         when self.address.current_member?
-          self.tasks << OutreachTask.new(:execute_at=>monday_following, :method_symbol=>:member_followup)
+          self.tasks << OutreachTask.new(:execute_at => monday_following, :method_symbol => :member_followup)
         when self.paid_with_flexpass?
-          self.tasks << OutreachTask.new(:execute_at=>monday_following, :method_symbol=>:flex_pass_followup)
+          self.tasks << OutreachTask.new(:execute_at => monday_following, :method_symbol => :flex_pass_followup)
         when self.address.first_time_paying?(self)
-          self.tasks << OutreachTask.new(:execute_at=>monday_following, :method_symbol=>:first_time_followup)
+          self.tasks << OutreachTask.new(:execute_at => monday_following, :method_symbol => :first_time_followup)
         else
-          self.tasks << OutreachTask.new(:execute_at=>monday_following, :method_symbol=>:standard_followup)
+          self.tasks << OutreachTask.new(:execute_at => monday_following, :method_symbol => :standard_followup)
       end
     end
   end

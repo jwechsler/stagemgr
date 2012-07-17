@@ -558,6 +558,10 @@ class Order < ActiveRecord::Base
         self.price_override_payments).uniq
   end
 
+  def preset_line_items
+
+  end
+
   def transition_new_to_hold!(redirect_to = nil)
     self.status = Order::HOLD
     self.save!

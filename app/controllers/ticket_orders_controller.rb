@@ -25,10 +25,7 @@ class TicketOrdersController < ApplicationController
   def update
     @order.attributes=params[:ticket_order]
     @order.ip_address = request.remote_ip
-    tcs = @order.ticket_line_items.map{|li| li.ticket_class_id}
-    available = @order.performance.ticket_class_allocations.select { |tca| tca.available && !tcs.include?(tca.id) }.map { |tca| tca.ticket_class }.select { |tc| tc.web_visible unless tc.nil? }
-    available.each { |tc| @order.ticket_line_items.build(:ticket_class=>tc, :ticket_count=>0) }
-    @order.ticket_line_items.sort!{|a,b| a.ticket_class_id <=> b.ticket_class_id}
+    @order.preset_line_items
     unless @order.special_offer_line_items.empty?
         @order.special_offer_line_items.each {|so|
           so.destroy
