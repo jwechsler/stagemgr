@@ -1,5 +1,4 @@
 body {
-  background-color: #FFF;
   font-family: Verdana, Helvetica, Arial;
   font-size: 14px;
 }
@@ -15,8 +14,7 @@ a {
 
 #container {
   margin: 0 auto;
-  background-color: #FFF;
-  border: solid 1px black;
+  border: solid 0px black;
 }
 
 #flash_notice, #flash_error {
