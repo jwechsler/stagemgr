@@ -11,6 +11,13 @@ end
 #  end
 #end
 
+Then /^['"]([^\"]*)['"] should link to ['"]([^\"]*)"(?: within "([^\"]*)")$/ do |link_text,
+page_name, container|
+  with_scope(container) do
+    URI.parse(page.find_link(link_text)['href']).path.should == path_to(page_name)
+  end
+end
+
 # Given /^(?:|I )should (|not )see a link(?:| to '([^']+)')(?:| labeled '([^']+)')$/ do |is_not,path,link_label|
 #   begin
 #     if(is_not=='not ')
@@ -56,4 +63,11 @@ end
 When /^I attach the test file "([^\"]*)" to "([^\"]*)"$/ do |filename, field|
   path = Rails.root.join('test','files',filename).to_s
   attach_file(field, path)
+end
+Then /^["']([^"]*)['"] should link to ['"]([^"]*)['"]$/ do |link_text, page_name|
+  URI.parse(page.find_link(link_text)['href']).path.should == path_to(page_name)
+end
+
+Then /^"([^"]*)" should not link to "([^"]*)"$/ do |link_text, page_name|
+  URI.parse(page.find_link(link_text)['href']).path.should != path_to(page_name)
 end
