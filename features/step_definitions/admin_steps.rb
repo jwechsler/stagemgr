@@ -36,3 +36,11 @@ When /^I enter a theater called "([^"]*)"$/ do |name|
   fill_in "Name", :with=>name
   select Theater::THEATER_CLASSES.first, :from=>"Theater class"
 end
+When /^I enter production code "([^"]*)" and performance code "([^"]*)"$/ do |prod_code, perf_code|
+  fill_in "ticket_order_production_code", :with=>prod_code
+  fill_in "ticket_order_performance_code", :with=>perf_code
+end
+When /^I enter (\d+) "([^"]*)" tickets$/ do |qty, ticket_class_code|
+  fill_in "ticket_order_ticket_line_items_attributes_0_ticket_class_code", :with=>ticket_class_code
+  fill_in "ticket_order_ticket_line_items_attributes_0_ticket_count", :with=>qty
+end
