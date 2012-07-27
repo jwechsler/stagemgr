@@ -1,4 +1,3 @@
-
 Feature: Admins can manage performances
   As an administrator
   I want to create / edit and delete performances records

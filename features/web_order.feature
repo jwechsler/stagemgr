@@ -38,10 +38,10 @@ Feature: Web ordering
     And I enter a valid credit card as payment
     And I fill in "Discount Code (optional)" with "1DollarOff"
     And I press "Review Order"
-    And I see "9.00"
+    And I should see "9.00"
     And I press "Order Tickets"
     Then I should see "Your ticket reservation has been made"
-    And I should see "$9.00"
+    And I should see "9.00"
 
   Scenario: Have the credit card declined and then try again successfully
     Given I go to new web order for production "Production One" and performance "PERF"
