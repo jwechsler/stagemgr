@@ -7,7 +7,7 @@ class OrderTest < ActiveSupport::TestCase
 
   context 'with a flexpass order' do
     setup do
-      @order = Factory.create(:order, :address=>addresses(:jeremy), :payment_type => Order::CASH)
+      @order = FactoryGirl.create(:flex_pass_order, :address=>addresses(:jeremy), :payment_type => Order::CASH)
 
       @order.flex_pass_line_items.build(:flex_pass_offer=> flex_pass_offers(:flexpass_5_offer), :ticket_count=>1)
       @order.transition_to!(Order::PROCESSING)
@@ -25,14 +25,13 @@ class OrderTest < ActiveSupport::TestCase
     end
     should 'allow you to buy a ticket' do
       flex_pass = @order.flex_pass_line_items.first.flex_passes[0]
-      @ticket_order = Factory.create(:ticket_order, :address=>addresses(:jeremy),
+      @ticket_order = FactoryGirl.create(:ticket_order, :address=>addresses(:jeremy),
                                      :payment_type=>Order::FLEX_PASS,
                                      :performance=>performances(:macbeth_opening))
       @ticket_order.ticket_line_items.build(:ticket_class=>ticket_classes(:macbeth_general_admission), :ticket_count=>1)
       @ticket_order.flex_pass_code = flex_pass.code
       @ticket_order.transition_to!(Order::PROCESSING)
       @ticket_order.transition_to!(Order::PROCESSED)
-      @ticket_order.transition_to!(Order::FULFILLED)
       assert_equal 1, @ticket_order.flex_pass_payments.count
       assert_equal flex_pass, @ticket_order.flex_pass_payments[0].flex_pass
 
@@ -40,7 +39,7 @@ class OrderTest < ActiveSupport::TestCase
 
     should 'not allow you to buy too many tickets' do
       flex_pass = @order.flex_pass_line_items.first.flex_passes[0]
-      @ticket_order = Factory.create(:ticket_order, :address=>addresses(:jeremy),
+      @ticket_order = FactoryGirl.create(:ticket_order, :address=>addresses(:jeremy),
                                      :payment_type=>Order::FLEX_PASS,
                                      :performance=>performances(:macbeth_opening))
       @ticket_order.ticket_line_items.build(:ticket_class=>ticket_classes(:macbeth_general_admission), :ticket_count=>6)
@@ -58,13 +57,13 @@ class OrderTest < ActiveSupport::TestCase
   context 'with an existing order' do
     setup do
       without_access_control do
-        @production = Factory.create(:production, :capacity=>10)
-        @ticket_class = Factory.create(:ticket_class, :production=>@production, :class_code=>'ABC', :ticket_price=>3)
-        @performance = Factory.create(:performance, :production=>@production)
-        @production2 = Factory.create(:production, :capacity=>10)
-        @ticket_class2 = Factory.create(:ticket_class, :production=>@production2, :class_code=>'ABC', :ticket_price=>5)
-        @performance2 = Factory.create(:performance, :production=>@production2)
-        @original_order = Factory.create(:ticket_order, :address=>addresses(:jeremy), :performance=>@performance, :payment_type=>Order::CASH)
+        @production = FactoryGirl.create(:production, :capacity=>10)
+        @ticket_class = FactoryGirl.create(:ticket_class, :production=>@production, :class_code=>'ABC', :ticket_price=>3)
+        @performance = FactoryGirl.create(:performance, :production=>@production)
+        @production2 = FactoryGirl.create(:production, :capacity=>10)
+        @ticket_class2 = FactoryGirl.create(:ticket_class, :production=>@production2, :class_code=>'ABC', :ticket_price=>5)
+        @performance2 = FactoryGirl.create(:performance, :production=>@production2)
+        @original_order = FactoryGirl.create(:ticket_order, :address=>addresses(:jeremy), :performance=>@performance, :payment_type=>Order::CASH)
         @original_order.ticket_line_items.build(:ticket_class=>@ticket_class, :ticket_count=>1)
         @original_order.payment_type = Order::CASH
         @original_order.performance = @performance
@@ -91,12 +90,12 @@ class OrderTest < ActiveSupport::TestCase
   context 'for nested attributes' do
     setup do
       without_access_control do
-        @production = Factory.create(:production, :capacity=>10)
-        @ticket_class = Factory.create(:ticket_class, :production=>@production, :class_code=>'ABC', :ticket_price=>3)
-        @performance = Factory.create(:performance, :production=>@production)
-        @production2 = Factory.create(:production, :capacity=>10)
-        @ticket_class2 = Factory.create(:ticket_class, :production=>@production2, :class_code=>'ABC', :ticket_price=>5)
-        @performance2 = Factory.create(:performance, :production=>@production2)
+        @production = FactoryGirl.create(:production, :capacity=>10)
+        @ticket_class = FactoryGirl.create(:ticket_class, :production=>@production, :class_code=>'ABC', :ticket_price=>3)
+        @performance = FactoryGirl.create(:performance, :production=>@production)
+        @production2 = FactoryGirl.create(:production, :capacity=>10)
+        @ticket_class2 = FactoryGirl.create(:ticket_class, :production=>@production2, :class_code=>'ABC', :ticket_price=>5)
+        @performance2 = FactoryGirl.create(:performance, :production=>@production2)
       end
     end
 
@@ -171,9 +170,9 @@ class OrderTest < ActiveSupport::TestCase
 
     should 'accept address and performance in create' do
       without_access_control do
-        @production = Factory.create(:production, :capacity=>10)
-        @ticket_class = Factory.create(:ticket_class, :production=>@production)
-        @performance = Factory.create(:performance, :production=>@production)
+        @production = FactoryGirl.create(:production, :capacity=>10)
+        @ticket_class = FactoryGirl.create(:ticket_class, :production=>@production)
+        @performance = FactoryGirl.create(:performance, :production=>@production)
         @address = addresses(:jeremy)
         assert_not_nil @address
         TicketOrder.create!(:address=>@address, :performance=>@performance, :status=>Order::NEW, :payment_type=>Order::CASH)
@@ -184,9 +183,11 @@ class OrderTest < ActiveSupport::TestCase
 
     setup do
       without_access_control do
-        @production = Factory.create(:production, :capacity=>10)
-        @ticket_class = Factory.create(:ticket_class, :production=>@production)
-        @performance = Factory.create(:performance, :production=>@production)
+        @production = FactoryGirl.build(:production)
+        @production.capacity = 10
+        @production.save
+        @ticket_class = FactoryGirl.create(:ticket_class, :production=>@production)
+        @performance = FactoryGirl.create(:performance, :production=>@production)
         @address = addresses(:jeremy)
       end
     end
@@ -209,7 +210,7 @@ class OrderTest < ActiveSupport::TestCase
 
     should "A canceled order does not reduces the quantity of tickets available for the performance" do
       without_access_control do
-        o = Factory.create(:ticket_order, :performance=>@performance, :payment_type=>Order::CASH)
+        o = FactoryGirl.create(:ticket_order, :performance=>@performance, :payment_type=>Order::CASH)
         li = o.ticket_line_items.create!(:ticket_class=>@production.ticket_classes.first, :ticket_count=>5)
         o.transition_to!(Order::PROCESSED)
         o.cancel!
@@ -219,7 +220,7 @@ class OrderTest < ActiveSupport::TestCase
 
     should "A refunded order does not reduces the quantity of tickets available for the performance" do
       without_access_control do
-        o = Factory.create(:ticket_order, :performance=>@performance, :payment_type=>Order::CASH)
+        o = FactoryGirl.create(:ticket_order, :performance=>@performance, :payment_type=>Order::CASH)
         li = o.ticket_line_items.create!(:ticket_class=>@production.ticket_classes.first, :ticket_count=>5)
         o.transition_to!(Order::PROCESSED)
         o.refund!
@@ -250,15 +251,15 @@ class OrderTest < ActiveSupport::TestCase
   context "with a membership offer" do
     setup do
       @address = addresses(:jeremy)
-      @offer = Factory.create(:membership_offer, :name=>"Test Offer",:tickets_per_performance=>1,
-                              :recurring_cost=>BigDecimal.new("15.00"), :use_ticket_class_code=>"MEMBER")
+      @offer = FactoryGirl.create(:membership_offer, :name=>"Test Offer",:tickets_per_performance=>1,
+                              :use_ticket_class_code=>"MEMBER")
 
     end
 
     should "create a valid new membership order" do
       @order = MembershipOrder.create!(:status=>Order::NEW, :address=>@address)
       @order.set_membership_offer(@offer)
-      @order.payments << Factory.create(:cash_payment, :amount=>15)
+      @order.payments << FactoryGirl.create(:cash_payment, :amount=>15)
       @order.transition_to!(Order::PROCESSING)
       @order.save!
       assert_equal(1, @order.membership_line_items.size)
@@ -276,17 +277,20 @@ class OrderTest < ActiveSupport::TestCase
   context "with an existing membership" do
     setup do
       @address = addresses(:jeremy)
-      @offer = Factory.create(:membership_offer, :name=>"Test Offer",
+      @offer = FactoryGirl.create(:membership_offer, :name=>"Test Offer",
                               :recurring_cost=>BigDecimal.new("15.00"), :use_ticket_class_code=>"MEMBER", :tickets_per_performance=>1)
 
       @order = MembershipOrder.create!(:status=>Order::NEW, :address=>@address)
       @order.set_membership_offer(@offer)
-      @order.payments << Factory.create(:cash_payment, :amount=>15)
+      @order.payments << FactoryGirl.create(:cash_payment, :amount=>15)
       @order.transition_to!(Order::PROCESSING)
+      @order.membership.status = Membership::ACTIVE
+      @order.membership.number_cycles_completed = 1
+      @order.membership.save
     end
     should "allow you to purchase a ticket for a particular performance" do
       code = @order.membership.member_code
-      @order.membership.status = Membership::ACTIVE
+
       o = TicketOrder.create(:status=>Order::NEW, :address=>@address, :performance=>performances(:macbeth_opening), :payment_type => Order::MEMBERSHIP, :member_code=>@order.membership.member_code)
       o.ticket_line_items.create!(:ticket_class=>ticket_classes(:macbeth_general_admission), :ticket_count=>1)
       assert_not_nil(o.address.email)

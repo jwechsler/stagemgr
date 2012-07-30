@@ -1,6 +1,7 @@
 body {
   font-family: Verdana, Helvetica, Arial;
   font-size: 14px;
+
 }
 
 a img {
@@ -13,7 +14,7 @@ a {
 
 
 #container {
-  margin: 0 auto;
+  margin: 4 auto;
   border: solid 0px black;
 }
 

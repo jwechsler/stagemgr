@@ -1,16 +1,9 @@
 require 'test_helper'
 
-class DonationsControllerTest < ActionController::TestCase
+class DonationOrdersControllerTest < ActionController::TestCase
   test "should get new" do
     without_access_control do
       get :new
-      assert_response :success
-    end
-  end
-
-  test "should get confirm" do
-    without_access_control do
-      get :confirm
       assert_response :success
     end
   end

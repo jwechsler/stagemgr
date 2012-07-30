@@ -119,7 +119,7 @@ class CreditCardPayment < Payment
 
       gateway = ActiveMerchant::Billing::PaypalGateway.new(:login=>$PAYPAL_LOGIN, :password=>$PAYPAL_PASSWORD)
 
-      refund_payment = self.clone
+      refund_payment = self.dup
       refund_payment.amount = self.amount*-1
       self.order.payments << refund_payment
 

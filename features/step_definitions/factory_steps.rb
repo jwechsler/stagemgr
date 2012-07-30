@@ -6,13 +6,17 @@ Given /^the following ([^\"]*) exist(?:| on the ([a-zA-Z]+) "([^\"]*)"):$/ do |t
     if parent_type
       hash.merge!({"#{parent_type.downcase}_id".to_sym=>parent.id})
     end
-    new_object = Factory(symbol, hash)
+    without_access_control do
+      new_object = FactoryGirl.create(symbol, hash)
+    end
   end
 end
 
 Given /^a(?:|n) ([^\"]*) exists$/ do |type|
   symbol = type.underscore.to_sym
-  Factory(symbol)
+  without_access_control do
+    FactoryGirl.create!(symbol)
+  end
 end
 
 Given /^all the ticket class are available for Performance "([^"]*)"$/ do |performance_code|
@@ -21,4 +25,26 @@ Given /^all the ticket class are available for Performance "([^"]*)"$/ do |perfo
     tca.save!
   end
 end
-  
+
+Given /^a theater "(.*?)" exists$/ do |name|
+  @theater = FactoryGirl.create(:theater,:name=>name)
+end
+
+Given /^(\d?) venues? exists?/ do |venue_count|
+  venue_count.to_i.times do
+    FactoryGirl.create(:venue)
+  end
+end
+
+Given /^a?\s?venue "(.*?)" exists$/ do |venue|
+  @venue = FactoryGirl.create(:venue, :name=>venue)
+end
+
+Given /^a production "(.*?)" exists$/ do |name|
+  @production = FactoryGirl.create(:production, :name=>name, :theater=>@theater)
+end
+
+When /^a production "([^"]*)" exists for the theater "([^"]*)"$/ do |name, theater_name|
+  @theater = Theater.find_by_name(theater_name)
+  @production = FactoryGirl.create(:production, :name=>name, :code=>name[0..3].upper, :theater=>@theater)
+end

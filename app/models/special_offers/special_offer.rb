@@ -79,7 +79,7 @@ class SpecialOffer < ActiveRecord::Base
       ticket_lines.each do |li|
         break if num_remaining <= 0
         if li.ticket_count > num_remaining then
-          li2 = li.clone
+          li2 = li.dup
           li2.ticket_count = li.ticket_count - num_remaining
           order.ticket_line_items << li2 if modify
           li.ticket_count = num_remaining

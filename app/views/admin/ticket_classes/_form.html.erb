@@ -2,8 +2,8 @@
   <%= f.input :class_code %>
   <%= f.input :class_name %>
   <%= f.input :ticket_type, :as=>:select, :collection=>TicketClass::TICKET_TYPES %>
-  <%= f.input :ticket_price %>
-  <%= f.input :ticketing_fee %>
+  <%= f.input :ticket_price, :as=>:number %>
+  <%= f.input :ticketing_fee, :as=>:number %>
   <%= f.input :web_visible %>
   <%= f.input :auto_attach %>
   <%= f.input :minutes_before_show %>

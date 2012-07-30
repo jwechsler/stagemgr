@@ -53,7 +53,7 @@ class ApplicationController < ActionController::Base
     unless current_user
       respond_to do |format|
       format.html {
-        session[:return_to] = request.request_uri
+        session[:return_to] = request.url
         flash[:notice] = "You must be logged in to access this page"
         redirect_to new_user_session_path
       }
@@ -80,7 +80,7 @@ class ApplicationController < ActionController::Base
       when request.format == :json
         #don't store
       else
-        session[:return_to] = request.request_uri
+        session[:return_to] = request.url
       end
     end
     

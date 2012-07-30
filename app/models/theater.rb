@@ -15,8 +15,11 @@
   has_many :address_tags
   has_and_belongs_to_many :users#, :as=>:owners
   
-  has_attached_file :logo
-  
+  has_attached_file :logo,
+                    :path => ":rails_root/public/system/:attachment/:id/:style/:filename",
+                    :url => "/system/:attachment/:id/:style/:filename"
+
+
   def class_display
     return theater_class == 'Default' ? '' : theater_class
   end

@@ -2,7 +2,7 @@ require 'test_helper'
 
 class Admin::AddressesControllerTest < ActionController::TestCase
   setup do
-    @address = Factory.create(:address)
+    @address = FactoryGirl.create(:address, :full_name=>"Controller Test")
   end
 
   test "should get index" do
@@ -22,9 +22,10 @@ class Admin::AddressesControllerTest < ActionController::TestCase
   end
 
   test "should create admin_address" do
+    address2 = FactoryGirl.build(:address, :full_name=>"New User")
     without_access_control do
       assert_difference('Address.count') do
-        post :create, :address => @address.attributes
+        post :create, :address => address2.attributes
       end
 
       assert_redirected_to admin_address_path(assigns(:address))
@@ -48,8 +49,8 @@ class Admin::AddressesControllerTest < ActionController::TestCase
 
   test "should update admin_address" do
     without_access_control do
-      put :update, :id => @address.to_param, :admin_address => @address.attributes
-      assert_redirected_to admin_address_path(assigns(:admin_address))
+      put :update, :id=>@address.to_param, :admin_address => @address.attributes
+      assert_redirected_to admin_address_path(:id=>@address.to_param)
     end
 
   end
@@ -57,7 +58,7 @@ class Admin::AddressesControllerTest < ActionController::TestCase
   test "should destroy admin_address" do
     without_access_control do
       assert_difference('Address.count', -1) do
-        delete :destroy, :id => @address.to_param
+        delete :destroy, :id=>@address.to_param
       end
       assert_redirected_to admin_addresses_path
     end

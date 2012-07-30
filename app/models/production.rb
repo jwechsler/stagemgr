@@ -27,8 +27,11 @@ class Production < ActiveRecord::Base
   belongs_to :flex_pass_offer
 
   attr_accessor :sf_object
+  has_attached_file :promo, :styles => {:medium => "250x375>", :thumb => "125x186>"},
+                    :path => ":rails_root/public/system/:attachment/:id/:style/:filename",
+                    :url => "/system/:attachment/:id/:style/:filename"
 
-  has_attached_file :promo, :styles => {:medium => "250x375>", :thumb => "125x186>"}
+
 
   def to_s
     "#{self.name}, #{self.theater.name}"
@@ -48,7 +51,11 @@ class Production < ActiveRecord::Base
   end
 
   def now_playing?
-    self.first_preview_at <= Date.today.end_of_week && self.closing_at >= Date.today
+    self.first_playing_date <= Date.today.end_of_week && self.closing_at >= Date.today
+  end
+
+  def first_playing_date
+    self.first_preview_at || self.press_opening_at || self.opening_at || Date.today + 10.years
   end
 
   def is_visible?

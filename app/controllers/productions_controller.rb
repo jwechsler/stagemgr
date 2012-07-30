@@ -39,7 +39,7 @@ class ProductionsController < ApplicationController
     @now_playing = now_playing_by_venue(Production::PLAY) + now_playing_by_venue(Production::OFF_TIME)
     end_of_week = Date.today.end_of_week
     three_months_from_now = (end_of_week+2.months).end_of_month
-    upcoming_shows = Production.where ('first_preview_at > :end_of_week and status in (:visible_status)', {:end_of_week=>end_of_week, :visible_status=>Production.visible_statuses}).order("case when promo_file_name is null then 1 else 0 end, first_preview_at ")
+    upcoming_shows = Production.where('first_preview_at > :end_of_week and status in (:visible_status)', {:end_of_week=>end_of_week, :visible_status=>Production.visible_statuses}).order("case when promo_file_name is null then 1 else 0 end, first_preview_at ")
     @coming_soon = Array.new
     @long_term = Array.new
     upcoming_shows.each do |prod|
