@@ -7,7 +7,7 @@ class Address < ActiveRecord::Base
 
   include AddressImports
 
-  validates_presence_of :last_name
+  validates_presence_of :full_name
   validates :email, :email=>true
   before_validation :regularize!
   has_many :orders
@@ -343,6 +343,10 @@ class Address < ActiveRecord::Base
     DonationOrder.count(:include=>[:donation_line_items],
                 :conditions=>["orders.address_id = ? and line_items.donation_amount > 0",
                               self.id]) > 0
+  end
+
+  def to_s
+    "#{self.full_name} <#{self.email}>"
   end
 
   def last_attendance_date

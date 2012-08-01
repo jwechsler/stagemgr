@@ -1,6 +1,6 @@
 Then /^each theater name is a link to a theater detail page$/ do
   Theater.all.each do |theater|
-    Given "I should see a link to '/admin/theaters/#{theater.id}' labeled '#{theater.name}'"
+    step "'#{theater.name}' should link to 'the admin detail page for theater '#{theater.name}''"
   end
 end
 

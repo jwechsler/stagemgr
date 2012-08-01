@@ -1,8 +1,8 @@
 class TicketOrder < Order
 
 
-  has_many :ticket_line_items, :foreign_key=>:order_id
-  accepts_nested_attributes_for :ticket_line_items, :allow_destroy=>true
+  has_many :ticket_line_items, :foreign_key => :order_id
+  accepts_nested_attributes_for :ticket_line_items, :allow_destroy => true
 
   validates_associated :ticket_line_items
   validates_presence_of :performance
@@ -16,7 +16,7 @@ class TicketOrder < Order
       unless record.ticket_line_items.empty? || record.ticket_quantity > 0
         record.errors.add :ticket_line_items, "must contain at least one ticket."
       end
-      if (!record.performance.nil? && record.performance.restricted_payment_types.map{|r| r.display_name}.include?(record.payment_type))
+      if (!record.performance.nil? && record.performance.restricted_payment_types.map { |r| r.display_name }.include?(record.payment_type))
         record.errors.add :payment_type, "is not allowed for this event"
       end
     end
@@ -53,10 +53,6 @@ class TicketOrder < Order
     true
   end
 
-  def printable?
-    [Order::NEW,Order::HOLD,Order::PROCESSING].include?(self.status)
-  end
-
   def display_code
     self.performance.try(:performance_code)
   end
@@ -68,6 +64,21 @@ class TicketOrder < Order
 
   def to_s
     self.ticket_detail_description
+  end
+
+  def reload_associated
+    super
+    self.preset_line_items
+  end
+
+  def preset_line_items
+    super
+    unless self.finalized?
+      tcs = self.ticket_line_items.map { |li| li.ticket_class_id }
+      available = self.performance.ticket_class_allocations.select { |tca| tca.available && !tcs.include?(tca.ticket_class.id) }.map { |tca| tca.ticket_class }.select { |tc| tc.web_visible unless tc.nil? }
+      available.each { |tc| self.ticket_line_items.build(:ticket_class => tc, :ticket_count => 0) }
+      self.ticket_line_items.sort! { |a, b| a.ticket_class_id <=> b.ticket_class_id }
+    end
   end
 
   def valid_payment_types_for(current_user)
@@ -87,66 +98,70 @@ class TicketOrder < Order
   end
 
   def send_to_printer
-    unless self.print_order_id.nil?
-      print_order = PrintOrder.find(self.print_order_id)
-      if print_order.status == 'Printed'
-        print_order.status = 'Unprinted'
-        print_order.reprints += 1
+    unless PrintOrder.site.to_s.blank?
+      unless self.print_order_id.nil?
+        print_order = PrintOrder.find(self.print_order_id)
+        if print_order.status == 'Printed'
+          print_order.status = 'Unprinted'
+          print_order.reprints += 1
+          print_order.save!
+        end
+      else
+        unless self.performance.productions.credit_lines.blank?
+          credit_lines = self.performance.production.credit_lines.split("\n")
+          credit_1 = credit_lines[0] unless credit_lines.nil?
+          credit_2 = credit_lines[1] unless credit_lines.size < 2
+        end
+        print_order = PrintOrder.new(:last_name => self.address.last_name,
+                                     :first_name => self.address.first_name,
+                                     :performance_code => self.performance_code,
+                                     :venue => self.performance.production.venue.name,
+                                     :theater => self.theater.name,
+                                     :title => self.performance.production.name,
+                                     :credit_1 => credit_1,
+                                     :credit_2 => credit_2,
+                                     :patron_code => self.address.customer_tag,
+                                     :performance_date => self.performance.performance_date,
+                                     :performance_time => self.performance.performance_time,
+                                     :amount => self.total,
+                                     :remote_id => self.id)
+
+        # print_order.save!
+
+        print_order.attributes['line_items_attributes'] ||= []
+        print_order.attributes['payments_attributes'] ||= []
+        print_order.attributes['tickets_attributes'] ||= []
+
+        self.unique_line_items.select { |li| !li.special_offer_id.nil? || li.ticket_count > 0 }.each { |oli|
+          print_order.line_items_attributes << PrintLineItem.new(:order_id => print_order.id,
+                                                                 :description => oli.receipt_description,
+                                                                 :amount => oli.receipt_total)
+          # print_line_item.save!
+        }
+        self.payments.size
+
+        self.payments.each { |pay|
+          unless pay.receipt_description.blank?
+            receipt_payment = ReceiptPayment.new(:order_id => self.print_order_id,
+                                                 :description => pay.receipt_description,
+                                                 :amount => pay.customer_visible_amount)
+            print_order.payments_attributes << receipt_payment
+          end
+        }
+        self.ticket_line_items.each do |tli|
+          tli.ticket_count.times do
+            ticket = Ticket.new(:order_id => self.print_order_id,
+                                :ticket_class => tli.ticket_class.class_code,
+                                :type => 'Ticket'
+            )
+            print_order.tickets_attributes << ticket
+            #ticket.save!
+          end
+        end
         print_order.save!
+        self.print_order_id = print_order.id
+
       end
-    else
-      credit_lines = self.performance.production.credit_lines.split("\n")
-      credit_1 = credit_lines[0] unless credit_lines.nil?
-      credit_2 = credit_lines[1] unless credit_lines.size < 2
-      print_order = PrintOrder.new(:last_name=>self.address.last_name,
-                                   :first_name => self.address.first_name,
-                                   :performance_code => self.performance_code,
-                                   :venue => self.performance.production.venue.name,
-                                   :theater => self.theater.name,
-                                   :title => self.performance.production.name,
-                                   :credit_1 => credit_1,
-                                   :credit_2 => credit_2,
-                                   :patron_code => self.address.customer_tag,
-                                   :performance_date => self.performance.performance_date,
-                                   :performance_time => self.performance.performance_time,
-                                   :amount=>self.total,
-                                   :remote_id => self.id)
-
-      # print_order.save!
-
-      print_order.attributes['line_items_attributes'] ||= []
-      print_order.attributes['payments_attributes'] ||= []
-      print_order.attributes['tickets_attributes'] ||= []
-
-      self.unique_line_items.select { |li| !li.special_offer_id.nil? || li.ticket_count > 0 }.each { |oli|
-        print_order.line_items_attributes << PrintLineItem.new(:order_id => print_order.id,
-                                                               :description => oli.receipt_description,
-                                                               :amount => oli.receipt_total)
-        # print_line_item.save!
-      }
-      self.payments.size
-
-      self.payments.each { |pay|
-        unless pay.receipt_description.blank?
-          receipt_payment = ReceiptPayment.new(:order_id => self.print_order_id,
-                                               :description => pay.receipt_description,
-                                               :amount => pay.customer_visible_amount)
-          print_order.payments_attributes << receipt_payment
-        end
-      }
-      self.ticket_line_items.each do |tli|
-        tli.ticket_count.times do
-          ticket = Ticket.new(:order_id=>self.print_order_id,
-                              :ticket_class=>tli.ticket_class.class_code,
-                              :type=>'Ticket'
-          )
-          print_order.tickets_attributes << ticket
-          #ticket.save!
-        end
-      end
-      print_order.save!
-      self.print_order_id = print_order.id
-
     end
   end
 
@@ -173,7 +188,7 @@ class TicketOrder < Order
 
 
   def contains_tickets?
-    (self.ticket_line_items.select { |li| li.ticket_count > 0} + self.ticket_line_items.select { |li| li.ticket_count > 0 }).size > 0
+    self.ticket_line_items.select { |li| li.ticket_count > 0 }.size > 0
   end
 
 
@@ -185,12 +200,12 @@ class TicketOrder < Order
       self.save!
       self.update_special_offer_line_items_from_code!
       original_order.release_tickets!
-      exchange_payment_on_original_order = original_order.exchange_payments.create!(:amount=>-1*original_order.payments(true).to_a.sum { |p| p.amount }, :note=>original_order.description)
-      exchange_payment_on_self = self.exchange_payments.create!(:amount=>-1 * exchange_payment_on_original_order.amount, :payment_id=>exchange_payment_on_original_order.id)
+      exchange_payment_on_original_order = original_order.exchange_payments.create!(:amount => -1*original_order.payments(true).to_a.sum { |p| p.amount }, :note => original_order.description)
+      exchange_payment_on_self = self.exchange_payments.create!(:amount => -1 * exchange_payment_on_original_order.amount, :payment_id => exchange_payment_on_original_order.id)
       exchange_payment_on_original_order.update_attribute(:payment_id, exchange_payment_on_self.id)
       payment_difference = self.total - exchange_payment_on_self.amount
       if payment_difference < 0
-        self.price_override_payments.create!(:amount=>payment_difference)
+        self.price_override_payments.create!(:amount => payment_difference)
       elsif payment_difference > 0
         create_proper_payment_in_amount_of!(payment_difference)
       end
@@ -214,8 +229,7 @@ class TicketOrder < Order
       if self.returned?
         puts "  removing synced copy"
         event.delete unless event.nil?
-      elsif
-        prod = sf_cache.production(self.performance.production_id)
+      elsif prod = sf_cache.production(self.performance.production_id)
         contact = sf_cache.address(self.address_id)
 
         showtime = DateTime.new(self.performance.performance_date.year,
@@ -224,21 +238,21 @@ class TicketOrder < Order
                                 self.performance.performance_time.hour,
                                 self.performance.performance_time.min,
                                 self.performance.performance_time.sec,
-                                Rational(Time.zone.utc_offset/60/60,24))
+                                Rational(Time.zone.utc_offset/60/60, 24))
         if event.nil?
           puts "  creating event in salesforce"
-          event = Salesforce::Event.create("stagemgr_order_id__c"=>self.id,
+          event = Salesforce::Event.create("stagemgr_order_id__c" => self.id,
                                            "WhatId" => prod.Id,
-                                           "IsAllDayEvent"=>true,
+                                           "IsAllDayEvent" => true,
                                            "ActivityDateTime" => self.performance.performance_date,
                                            "StartDateTime" => self.performance.performance_date,
-                                           "Subject"=>(self.attended? ? 'Attended' : 'Missed'),
-                                           "WhoId"=>contact.Id,
-                                           "DurationInMinutes"=>1440,
-                                           "IsPrivate"=>false,
-                                           "IsReminderSet"=>false,
-                                           "OwnerId"=>$DATABASEDOTCOM['user_id'],
-                                           "ShowAs"=>"Free",
+                                           "Subject" => (self.attended? ? 'Attended' : 'Missed'),
+                                           "WhoId" => contact.Id,
+                                           "DurationInMinutes" => 1440,
+                                           "IsPrivate" => false,
+                                           "IsReminderSet" => false,
+                                           "OwnerId" => $DATABASEDOTCOM['user_id'],
+                                           "ShowAs" => "Free",
                                            "RecordTypeId" => $DATABASEDOTCOM['ticket_order_record_type_id']
           )
         else
@@ -266,6 +280,10 @@ class TicketOrder < Order
 
   def reservation_date
     return performance.to_datetime
+  end
+
+  def all_line_items(reload_line_items = false)
+    super(reload_line_items) + self.ticket_line_items(reload_line_items)
   end
 
 # for form processing
@@ -297,22 +315,12 @@ class TicketOrder < Order
     ).uniq
   end
 
-
-  def ticketing_fee
-    self.ticket_line_items.uniq.to_a.sum { |li| li.ticketing_fee }
-  end
-
-
-  def all_line_items(reload_line_items = false)
-    super(reload_line_items) + self.ticket_line_items
-  end
-
-  def reload_associated
-    super
-    self.ticket_line_items(true)
-  end
   protected
 
+  def refund_line_items(reversing_entries)
+    reversing_entries.each { |e| self.ticket_line_items << e }
+    super(reversing_entries)
+  end
 
   def transition_new_to_fulfilled!(redirect_to = nil)
     redirect_to = self.transition_new_to_processed!(redirect_to)
@@ -365,8 +373,8 @@ class TicketOrder < Order
         raise 'That member ID is not active. Please call the box office for assistance.' unless membership.is_active?
         pass_ticket_class = production_ticket_class_from_offer(membership.membership_offer)
         total_amount = ticket_line_items.inject(0) { |total_amount, li| total_amount += self.applicable_price(li.ticket_class, pass_ticket_class)* li.ticket_count }
-        qty = ticket_line_items.select{|li| self.applicable_price(li.ticket_class, pass_ticket_class) > 0}.sum { |li| li.respond_to?(:ticket_count) ? li.ticket_count : 0 }
-        new_payment = MembershipPayment.new(:number_of_tickets=>qty, :membership=>membership, :amount=>total_amount)
+
+        new_payment = MembershipPayment.new(:number_of_tickets => self.ticket_quantity, :membership => membership, :amount => total_amount)
         payments << new_payment
         new_payment.process!
       else
@@ -397,20 +405,20 @@ class TicketOrder < Order
   def create_reminder_task
     if self.contains_tickets? && !self.performance.suppress_notification
       day_before = self.performance.performance_date.to_datetime-1.day
-      self.tasks << OutreachTask.new(:execute_at=>day_before, :method_symbol=>:performance_reminder) unless day_before - 1.day < Time.now
+      self.tasks << OutreachTask.new(:execute_at => day_before, :method_symbol => :performance_reminder) unless day_before - 1.day < Time.now
     end
   end
 
 
   def create_receipt_task
-    self.tasks << OutreachTask.new(:execute_at=>Time.now + 5.minutes, :method_symbol=>:ticket_confirmation) unless self.performance.suppress_notification
+    self.tasks << OutreachTask.new(:execute_at => Time.now + 5.minutes, :method_symbol => :ticket_confirmation) unless self.performance.suppress_notification
 
     super
   end
 
   def create_notify_refund_task
-    self.tasks << NotificationTask.new(:execute_at=>Time.now, :notifications=>[$EMAIL_ADDRESS['box_office'],$EMAIL_ADDRESS['supervisor_notifications']].join(','),
-                                       :method_symbol=>:refunded_fulfilled_item_alert)
+    self.tasks << NotificationTask.new(:execute_at => Time.now, :notifications => [$EMAIL_ADDRESS['box_office'], $EMAIL_ADDRESS['supervisor_notifications']].join(','),
+                                       :method_symbol => :refunded_fulfilled_item_alert)
     super
   end
 
@@ -420,13 +428,13 @@ class TicketOrder < Order
       monday_following = self.performance.performance_date.end_of_week + 1.day
       case
         when self.address.current_member?
-          self.tasks << OutreachTask.new(:execute_at=>monday_following, :method_symbol=>:member_followup)
+          self.tasks << OutreachTask.new(:execute_at => monday_following, :method_symbol => :member_followup)
         when self.paid_with_flexpass?
-          self.tasks << OutreachTask.new(:execute_at=>monday_following, :method_symbol=>:flex_pass_followup)
+          self.tasks << OutreachTask.new(:execute_at => monday_following, :method_symbol => :flex_pass_followup)
         when self.address.first_time_paying?(self)
-          self.tasks << OutreachTask.new(:execute_at=>monday_following, :method_symbol=>:first_time_followup)
+          self.tasks << OutreachTask.new(:execute_at => monday_following, :method_symbol => :first_time_followup)
         else
-          self.tasks << OutreachTask.new(:execute_at=>monday_following, :method_symbol=>:standard_followup)
+          self.tasks << OutreachTask.new(:execute_at => monday_following, :method_symbol => :standard_followup)
       end
     end
   end
@@ -445,7 +453,6 @@ class TicketOrder < Order
     new_ticket_class = production_ticket_class_from_offer(offer)
     if !new_ticket_class.nil?
       self.ticket_line_items.each { |li|
-        if li.ticket_class.ticket_price > 0
         new_line_item = TicketLineItem.new
         new_line_item.ticket_class = new_ticket_class
         old_price = li.ticket_class.ticket_price
@@ -453,7 +460,7 @@ class TicketOrder < Order
         new_line_item.price_override = self.applicable_price(li.ticket_class, new_ticket_class) if new_ticket_class.ticket_type == TicketClass::DONATION
         self.ticket_line_items << new_line_item
         self.ticket_line_items.delete(li)
-        end
+
       }
     end
   end

@@ -3,8 +3,7 @@ require File.expand_path('../../config/environment', __FILE__)
 require 'flexmock/test_unit'
 require 'flexmock/rails'
 require 'factory_girl'
-Factory.definition_file_paths = File.expand_path(File.dirname(__FILE__) + "/factories")
-Factory.find_definitions
+#Factory.find_definitions
 require 'rails/test_help'
 require 'declarative_authorization/maintenance'
 
@@ -19,14 +18,14 @@ class ActiveSupport::TestCase
   # Add more helper methods to be used by all tests here...
   def address_hash
     {
-      "first_name"=>"Joe", 
-      "last_name"=>"Shmoe", 
-      "email"=>"jshmoe@example.com", 
+      "full_name"=>"Joe Schmoe",
+      "email"=>"jshmoe@example.com",
       "line1"=>"123 Swift St", 
       "line2"=>"", 
       "city"=>"Anytown", 
       "state"=>"il",
-      "zipcode"=>"60606"
+      "zipcode"=>"60606",
+      "phone"=>"312-555-5555"
     }
   end
 

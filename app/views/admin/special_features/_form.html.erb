@@ -4,6 +4,6 @@
     <%= f.input :description %>
     <%= f.input :status, :as=>:select, :collection=>SpecialFeature::SPECIAL_FEATURE_STATUSES, :include_blank=>false %>
   <%- end %>
-  <%= f.buttons %>
+  <%= f.actions %>
 
 <% end %>

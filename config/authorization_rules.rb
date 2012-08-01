@@ -42,7 +42,7 @@ authorization do
   role :box_office do
     includes :theater_user
     has_permission_on :admin_theaters, :to=>[:manage]
-    has_permission_on :theaters, :to=>[:create,:update,:read]
+    has_permission_on :theaters, :to=>[:create,:update,:read,:manage]
     has_permission_on :donation_orders, :to=>[:create,:read,:update]
     has_permission_on :admin_orders, :to=>[:hold,:unclaimed, :fulfill, :resend_confirmation, :view_full_history]
     has_permission_on :admin_ticket_orders, :to=>[:hold,:unclaimed, :fulfill, :resend_confirmation]

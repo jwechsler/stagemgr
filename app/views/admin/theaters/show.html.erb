@@ -22,7 +22,8 @@
   <% end %>
 </p>
 
-<%= link_to 'Back', admin_theaters_path %> &nbsp; <% permitted_to? :manage, :productions do %>
+<%= link_to 'Back', admin_theaters_path %> &nbsp;
+<% permitted_to? :update, :theaters do %>
   <%= link_to 'Edit', edit_admin_theater_path %>
 <% end %>
 

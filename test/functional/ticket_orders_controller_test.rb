@@ -20,11 +20,12 @@ class TicketOrdersControllerTest < ActionController::TestCase
     
     assert_difference('Order.count') do
       post :create, :commit=>'Place Order', :production_id=>@production.id, :performance_id=>@performance.id, 
-        "order"=>{
+        "ticket_order"=>{
         "status"=>Order::NEW,
         "production_code"=>@production.production_code,
         'performance_code'=>@performance.performance_code,
-        "address_attributes"=>address_hash, 
+        "address_attributes"=>address_hash,
+        "payment_type"=>Order::CREDIT_CARD,
         "credit_card_expiration_month"=>'09',
         "credit_card_expiration_year"=>'2014',
         "credit_card_verification_number"=>'123',

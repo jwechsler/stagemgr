@@ -1,6 +1,7 @@
 body {
   font-family: Verdana, Helvetica, Arial;
   font-size: 14px;
+
 }
 
 a img {
@@ -13,8 +14,8 @@ a {
 
 
 #container {
-  margin: 0 auto;
-  border: solid 0px black;
+  margin: 4 auto;
+  border: solid 1px black;
 }
 
 #flash_notice, #flash_error {
