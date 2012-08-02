@@ -22,7 +22,7 @@ module Hexagile
       col_model.chop! << "]"
       [col_names, col_model]
     end
-    
+
     def jqgrid(title, id, action, columns = [], options = {})
       options.reject!{|key,value|value.nil?}
       # Default options
@@ -31,19 +31,19 @@ module Hexagile
           :rows_per_page       => '100',
           :sort_column         => '',
           :sort_order          => 'asc',
-          :height              => "'auto'", 
-          :gridview            => 'false',
+          :height              => "'auto'",
+          :gridview            => false,
           :error_handler       => 'null',
           :inline_edit_handler => 'null',
-          :add                 => 'false',
-          :delete              => 'false',
-          :search              => 'false',
-          :hide_search_initially => 'true',
-          :edit                => 'false',
-          :inline_edit         => 'false',
-          :autowidth           => 'false',
-          :rownumbers          => 'false',
-          :cell_edit           => 'false',
+          :add                 => false,
+          :delete              => false,
+          :search              => false,
+          :hide_search_initially => true,
+          :edit                => false,
+          :inline_edit         => false,
+          :autowidth           => false,
+          :rownumbers          => false,
+          :cell_edit           => false,
           :cell_url            => ''
         }.merge(options)
 
@@ -54,7 +54,7 @@ module Hexagile
       end
 
       options[:error_handler_return_value] = (options[:error_handler] == 'null') ? 'true;' : options[:error_handler]
-      edit_button = (options[:edit] == 'true' && options[:inline_edit] == 'false' && options[:cell_edit] == 'false').to_s
+      edit_button = (options[:edit] && !options[:inline_edit] && !options[:cell_edit]).to_s
 
       # Generate columns data
       col_names, col_model = gen_columns(columns)
@@ -62,10 +62,10 @@ module Hexagile
       # Enable filtering (by default)
       search = ""
       filter_toolbar = ""
-      if options[:search] == 'true'
+      if options[:search]
         search = %Q/.navButtonAdd("##{id}_pager",{caption:"",title:"Toggle Search Toolbar", buttonicon :'ui-icon-search', onClickButton:function(){ mygrid[0].toggleToolbar() } })/
         filter_toolbar = "mygrid.filterToolbar();"
-        if options[:hide_search_initially] == 'true'
+        if options[:hide_search_initially]
           filter_toolbar << "mygrid[0].toggleToolbar()"
         end
       end
@@ -139,7 +139,7 @@ module Hexagile
       end
 
       cell_selection_link = ""
-      if options[:direct_selection].blank? && options[:cell_edit] != 'true' && options[:cell_select_handler].present?
+      if options[:direct_selection].blank? && options[:cell_edit] != true && options[:cell_select_handler].present?
         cell_selection_link = %Q/
         onCellSelect:  function(rowid, iCol, cellcontent){
           if (rowid && iCol && cellcontent) {
@@ -162,7 +162,7 @@ module Hexagile
       # Enable inline editing
       # When a row is selected, all fields are transformed to input types
       editable = ""
-      if options[:edit] && options[:inline_edit] == 'true' && options[:cell_edit] == 'false'
+      if options[:edit] && options[:inline_edit] && !options[:cell_edit]
         editable = %Q/
         onSelectRow: function(id){
           if(id && id!==lastsel){
@@ -186,10 +186,10 @@ module Hexagile
             :rows_per_page => '10',
             :sort_column   => 'id',
             :sort_order    => 'asc',
-            :add           => 'false',
-            :edit          => 'false',
-            :delete        => 'false',
-            :search        => 'false'
+            :add           => false,
+            :edit          => false,
+            :delete        => false,
+            :search        => false
           }.merge(options[:subgrid])
 
         # Stringify options values
@@ -199,8 +199,8 @@ module Hexagile
         end
 
         subgrid_inline_edit = ""
-        if options[:subgrid][:inline_edit] == true
-          options[:subgrid][:edit] = 'false'
+        if options[:subgrid][:inline_edit]
+          options[:subgrid][:edit] = false
           subgrid_inline_edit = %Q/
           onSelectRow: function(id){
             if(id && id!==lastsel){
@@ -270,14 +270,14 @@ module Hexagile
         jQuery(document).ready(function(){
         var mygrid = jQuery("##{id}").jqGrid({
             url:'#{action}#{action.include?('?') ? '&' : '?'}',
-            xmlReader: { 
-              root: "rows", 
-              row: "row", 
-              page: "rows>currentpage", 
-              total: "rows>totalpages", 
-              records : "rows>totalrecords", 
-              repeatitems: true, 
-              cell: "cell", 
+            xmlReader: {
+              root: "rows",
+              row: "row",
+              page: "rows>currentpage",
+              total: "rows>totalpages",
+              records : "rows>totalrecords",
+              repeatitems: true,
+              cell: "cell",
               id: "[id]"
             },
             editurl:'#{options[:edit_url]}',
@@ -326,11 +326,11 @@ module Hexagile
     def include_jquery_grid_javascript
       javascript_include_tag('jqGrid/i18n/grid.locale-en', 'jqGrid/jquery.jqGrid.min')
     end
-    
+
     def include_jquery_grid_css
       stylesheet_link_tag('cupertino/jquery-ui-1.7.2.custom','jqGrid/ui.jqgrid.css')
     end
-    
+
     def update_pagination_state_with_params!(restraining_model = nil)
       model_klass = (restraining_model.is_a?(Class) || restraining_model.nil? ? restraining_model : restraining_model.to_s.classify.constantize)
       pagination_state = previous_pagination_state(model_klass)
