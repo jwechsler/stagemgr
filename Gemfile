@@ -5,8 +5,6 @@ gem 'rails', '3.1.5'
 # Bundle edge Rails instead:
 # gem 'rails', :git => 'git://github.com/rails/rails.git'
 
-gem 'sqlite3-ruby', :require => 'sqlite3'
-
 
 # Use unicorn as the web server
 # gem 'unicorn'
@@ -66,7 +64,7 @@ group :development do
 end
 
 group :test do
-  gem 'sqlite3-ruby'
+  gem 'sqlite3'
   gem 'capybara'
   gem 'cucumber-rails', :require=>false
   gem 'database_cleaner'
@@ -86,7 +84,7 @@ group :production do
 end
 
 group :cucumber do
-  gem 'sqlite3-ruby'
+  gem 'sqlite3'
   gem 'capybara'
   gem 'database_cleaner'
   gem 'cucumber'
