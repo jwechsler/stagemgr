@@ -4,6 +4,7 @@ config/pay_pal_credentials.yml
 db/*.sqlite3
 log/*.log
 tmp/**/*
+.DS_Store
 
 config/ticket_print.yml
 config/database.yml
