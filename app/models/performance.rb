@@ -14,6 +14,7 @@ class Performance < ActiveRecord::Base
 
   validates_inclusion_of   :status,            :in => PERFORMANCE_STATUSES
   validates_uniqueness_of  :performance_code
+  validates_uniqueness_of  :performance_time, :scope=>[:performance_date, :production_id]
   validates_each           :performance_time do |record, attr, value|
     if record.production.performances.any? do |p|
         p.id != record.id && 

@@ -1,5 +1,5 @@
 class TicketLineItem < LineItem
-  belongs_to :ticket_order, :foreign_key=>:order_id
+  belongs_to :ticket_order, :foreign_key => :order_id
   belongs_to :ticket_class
   validates_presence_of :ticket_class, :ticket_count
 
@@ -15,7 +15,7 @@ class TicketLineItem < LineItem
     end
   end
 
-  validates_numericality_of :price_override, :allow_nil=>true
+  validates_numericality_of :price_override, :allow_nil => true
 
   def price
     (self.price_override || self.ticket_class.try(:ticket_price)) || 0
@@ -23,11 +23,13 @@ class TicketLineItem < LineItem
 
   def refund!
     if self.ticket_count > 0
-      refund_lineitem = self.clone
+      refund_lineitem = self.dup
       refund_lineitem.ticket_count = refund_lineitem.ticket_count*-1
-
-      self.order.ticket_line_items << refund_lineitem
+      [refund_lineitem]
+    else
+      []
     end
+
   end
 
   def total

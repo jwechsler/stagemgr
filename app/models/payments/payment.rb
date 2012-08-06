@@ -41,7 +41,7 @@ class Payment < ActiveRecord::Base
 
   def refund!(cc_number = nil, note = nil)
     Payment.transaction do
-      refund_payment = self.clone
+      refund_payment = self.dup
       refund_payment.amount = refund_payment.amount*-1
       refund_payment.order = order
       self.order.payments << refund_payment

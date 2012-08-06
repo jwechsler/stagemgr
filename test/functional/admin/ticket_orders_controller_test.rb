@@ -3,14 +3,14 @@ require 'test_helper'
 class Admin::TicketOrdersControllerTest < ActionController::TestCase
   test "the cash order makes a valid cash payment" do
     without_access_control do
-      @performance = Factory.create :performance
+      @performance = FactoryGirl.create :performance
       @production = @performance.production
-      @ticket_class = Factory.create :ticket_class, :ticket_price => 3.0
+      @ticket_class = FactoryGirl.create :ticket_class, :ticket_price => 3.0
       @performance.ticket_classes << @ticket_class
       flexmock(@controller).should_receive(:admin_only).and_return(true)
       assert_difference('Order.count') do
         post :create, :commit=>'Place Order',
-             "order"=>{
+             "ticket_order"=>{
                  "address_attributes"=>address_hash,
                  "performance_code"=>@performance.performance_code,
                  "ticket_line_items_attributes"=>{
@@ -36,9 +36,9 @@ class Admin::TicketOrdersControllerTest < ActionController::TestCase
 
   test "the credit card order makes a valid credit card payment" do
     without_access_control do
-      @performance = Factory.create :performance
+      @performance = FactoryGirl.create :performance
       @production = @performance.production
-      @ticket_class = Factory.create :ticket_class, :ticket_price => 3.0
+      @ticket_class = FactoryGirl.create :ticket_class, :ticket_price => 3.0
       @performance.ticket_classes << @ticket_class
       flexmock(@controller).should_receive(:admin_only).and_return(true)
       flexmock(CreditCardPayment).new_instances do |credit_card_instance|
@@ -48,7 +48,7 @@ class Admin::TicketOrdersControllerTest < ActionController::TestCase
 
       assert_difference('Order.count') do
         post :create, :commit=>'Place Order',
-             "order"=>{
+             "ticket_order"=>{
                  "address_attributes"=>address_hash,
                  "performance_code"=>@performance.performance_code,
                  "credit_card_expiration_month"=>'09',

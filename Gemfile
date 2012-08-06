@@ -1,11 +1,9 @@
 source 'http://rubygems.org'
 
-gem 'rails', '3.0.9'
+gem 'rails', '3.1.5'
 
 # Bundle edge Rails instead:
 # gem 'rails', :git => 'git://github.com/rails/rails.git'
-
-gem 'sqlite3-ruby', :require => 'sqlite3'
 
 
 # Use unicorn as the web server
@@ -30,19 +28,20 @@ gem 'sqlite3-ruby', :require => 'sqlite3'
 #   gem 'webrat'
 # end
 
+gem "RedCloth", "4.2.9"
 gem "whenever", :require=>false
-gem "formtastic", '~> 1.2.3'
-gem "databasedotcom", '~> 1.1.1'
+gem "formtastic"
+gem "databasedotcom"
 gem "formatize"
 gem "validation_reflection"
 gem "declarative_authorization"
 gem "activemerchant", :git => 'https://github.com/florianguenther/active_merchant'
-gem "mysql",                  '2.8.1'
+gem "mysql2"
 gem "authlogic"
-gem "acts_as_audited",        "2.0.0.rc7"
-gem "will_paginate",          '3.0.pre2'
-gem "my_emma"
-gem "paperclip",               "~> 2.3"
+gem "acts_as_audited", "~> 2.1.0"
+gem "will_paginate",          '~> 3.0.3'
+gem "my_emma", :git=> "https://github.com/hashrocket/my_emma.git"
+gem "paperclip",               "~> 3.1.2"
 gem "htmldiff"
 gem "StreetAddress",          "~> 1.0.1"
 gem "fastercsv"
@@ -57,27 +56,26 @@ group :development do
   gem "nifty-generators"
   gem 'what_methods',         '1.0.1'
   gem 'map_by_method',        '0.8.3'
-  gem 'bond',                 '0.2.1'
-  gem 'g',                    '1.4.0'
-  gem 'mongrel',              '1.1.5'
-  gem 'capistrano',           '2.5.18'
+  gem 'bond',                 '0.4.2'
+  gem 'g',                    '~> 1.6.0'
+  gem 'mongrel',              '1.2.0.pre2'
+  gem 'capistrano',           '~> 2.12.0'
   gem 'capistrano-ext',       '1.2.1'
-  gem 'ruby-debug'
 end
 
 group :test do
-  gem 'sqlite3-ruby'
-  gem 'cucumber'
-  gem 'cucumber-rails'
+  gem 'sqlite3'
+  gem 'capybara'
+  gem 'cucumber-rails', :require=>false
+  gem 'database_cleaner'
   gem 'webrat',             '>=0.5.0'
-  gem 'rspec',              '>=1.3.0'
-  gem 'rspec-rails',        '>=1.3.2'
+  gem 'rspec'
+  gem 'rspec-rails'
   gem 'test-unit',          '>=2.0.7'
   gem 'flexmock',           '0.8.6'
-  gem 'rcov',               '>=0.9.8'
+  gem 'simplecov'
   gem 'shoulda-context'
-  gem "factory_girl",       '1.3.2'
-  gem 'ruby-debug'
+  gem "factory_girl_rails", "~> 3.0"
 end
 
 group :production do
@@ -86,19 +84,19 @@ group :production do
 end
 
 group :cucumber do
-  gem 'sqlite3-ruby'
-  gem 'capybara',           '0.4.0'
+  gem 'sqlite3'
+  gem 'capybara'
   gem 'database_cleaner'
   gem 'cucumber'
   gem 'cucumber-rails'
   gem 'webrat',             '>=0.5.0'
-  gem 'rspec',              '>=1.3.0'
-  gem 'rspec-rails',        '>=1.3.2'
+  gem 'launchy',            '0.4.0'
+  gem 'rspec'
+  gem 'rspec-rails'
   gem 'test-unit',          '>=2.0.7'
-  gem 'rcov',               '>=0.9.8'
-  gem "factory_girl",       '1.3.2'
-  gem 'launchy'
-  gem 'ruby-debug'
+  gem 'simplecov'
+  gem "factory_girl_rails", "~> 3.0"
+  gem "rbx-require-relative"
 end
 
 gem "mocha", :group => :test

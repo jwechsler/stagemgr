@@ -31,7 +31,7 @@ class OrderTask < ActiveRecord::Base
       self.save!
       if success
         unless self.repeat_monthly_interval.blank?
-          new_task = self.clone
+          new_task = self.dup
           new_task.execute_at = Time.now + self.repeat_monthly_interval.months
           new_task.order_id = self.order_id
           new_task.attempts = 0

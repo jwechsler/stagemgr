@@ -1,4 +1,6 @@
 class Admin::TheatersController < Admin::ApplicationController
+  before_filter :remove_empty_logo
+
   filter_resource_access      # also sets up @theater object
 
   before_filter :find_context, :only=>:show
@@ -71,6 +73,13 @@ class Admin::TheatersController < Admin::ApplicationController
     respond_to do |format|
       format.html { redirect_to(admin_theaters_url) }
       format.xml  { head :ok }
+    end
+  end
+
+  def remove_empty_logo
+    sub = params[:theater]
+    if sub
+      params[:theater].delete(:logo) if self.params[:theater][:logo].blank?
     end
   end
 end

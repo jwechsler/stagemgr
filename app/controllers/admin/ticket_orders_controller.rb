@@ -51,8 +51,8 @@ class Admin::TicketOrdersController < Admin::OrdersController
   end
 
     def create
-      old_status = Order::NEW
       @ticket_order = TicketOrder.new(params[:ticket_order])
+      @ticket_order.status = Order::NEW if @ticket_order.status.nil?
       @ticket_order = process_order(@ticket_order,:edit_admin_ticket_order_path)
     end
 

@@ -57,17 +57,17 @@
 
     </table>
 
-    <%= order_form.input :payment_type, :as=>:hidden, :value=>order.payment_type %>
-    <%= order_form.input :credit_card_number, :as=>:hidden, :value=>order.credit_card_number %>
-    <%= order_form.input :credit_card_type, :as=>:hidden, :value=>order.credit_card_type %>
-    <%= order_form.input :credit_card_expiration_year, :as=>:hidden, :value=>order.credit_card_expiration_year %>
-    <%= order_form.input :credit_card_expiration_month, :as=>:hidden, :value=>order.credit_card_expiration_month %>
-    <%= order_form.input :credit_card_verification_number, :as=>:hidden, :value=>order.credit_card_verification_number %>
-    <%= order_form.input :flex_pass_code, :as=>:hidden, :value=>order.flex_pass_code %>
-    <%= order_form.input :member_code, :as=>:hidden, :value=>order.member_code %>
-    <%= order_form.input :status, :as=>:hidden, :value=>order.status %>
-    <%= order_form.input :special_offer_code, :as=>:hidden, :value=>order.special_offer_code %>
-    <%= order_form.input :additional_donation, :as=>:hidden, :value=>order.additional_donation %>
+    <%= order_form.input :payment_type, :as=>:hidden, :input_html=>{:value=>order.payment_type} %>
+    <%= order_form.input :credit_card_number, :as=>:hidden, :input_html=>{:value=>order.credit_card_number } %>
+    <%= order_form.input :credit_card_type, :as=>:hidden, :input_html=>{:value=>order.credit_card_type } %>
+    <%= order_form.input :credit_card_expiration_year, :as=>:hidden, :input_html=>{:value=>order.credit_card_expiration_year } %>
+    <%= order_form.input :credit_card_expiration_month, :as=>:hidden, :input_html=>{:value=>order.credit_card_expiration_month } %>
+    <%= order_form.input :credit_card_verification_number, :as=>:hidden, :input_html=>{:value=>order.credit_card_verification_number } %>
+    <%= order_form.input :flex_pass_code, :as=>:hidden, :input_html=>{:value=>order.flex_pass_code } %>
+    <%= order_form.input :member_code, :as=>:hidden, :input_html=>{:value=>order.member_code } %>
+    <%= order_form.input :status, :as=>:hidden, :input_html=>{:value=>order.status } %>
+    <%= order_form.input :special_offer_code, :as=>:hidden, :input_html=>{:value=>order.special_offer_code } %>
+    <%= order_form.input :additional_donation, :as=>:hidden, :input_html=>{:value=>order.additional_donation } %>
     <br/>
 
 
