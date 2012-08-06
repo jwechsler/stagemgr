@@ -46,7 +46,7 @@ class Admin::ProductionsController < Admin::ApplicationController
   # PUT /productions/1
   # PUT /productions/1.xml
   def update
-    params[:production].delete(:promo) if params[:production][:promo].empty?
+    params[:production].delete(:promo) unless params[:production].has_key?(:promo)
     respond_to do |format|
       if @production.update_attributes(params[:production])
         flash[:notice] = "<i>#{@production.name}</i> was successfully updated."
