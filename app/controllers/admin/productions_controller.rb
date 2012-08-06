@@ -27,7 +27,7 @@ class Admin::ProductionsController < Admin::ApplicationController
   # POST /productions
   # POST /productions.xml
   def create
-    params[:production].delete(:promo) if params[:production][:promo].empty?
+    params[:production].delete(:promo) unless params[:production].has_key?(:promo) && params[:production][:promo].empty?
     @production = Production.new(params[:production])
     @production.theater = @theater
 
@@ -46,7 +46,7 @@ class Admin::ProductionsController < Admin::ApplicationController
   # PUT /productions/1
   # PUT /productions/1.xml
   def update
-    params[:production].delete(:promo) unless params[:production].has_key?(:promo)
+    params[:production].delete(:promo) unless params[:production].has_key?(:promo) && params[:production][:promo].empty?
     respond_to do |format|
       if @production.update_attributes(params[:production])
         flash[:notice] = "<i>#{@production.name}</i> was successfully updated."
