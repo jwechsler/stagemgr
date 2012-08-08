@@ -171,6 +171,10 @@ class Order < ActiveRecord::Base
     0
   end
 
+  def ticketing_fee
+    BigDecimal.new("0", 2)
+  end
+
   def customer_visible_total(reload_line_items = false)
     self.payments.to_a.sum { |payment| payment.respond_to?(:customer_visible_amount) ? payment.customer_visible_amount : 0 }
   end
