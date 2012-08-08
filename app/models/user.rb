@@ -12,7 +12,7 @@ class User < ActiveRecord::Base
   before_validation :set_defaults, :on => :create
 
   def theater_ids
-    return theaters.map{|t| t.theater_id.to_i}
+    return theaters.map{|t| t.id.to_i}
   end
 
   def set_defaults
