@@ -15,7 +15,7 @@ class SalesforceSync
 
   def SalesforceSync.materialize_all(client_id = nil, client_secret = nil, username = nil, password = nil)
     client = SalesforceSync.connect_client(client_id, client_secret, username, password)
-    client.sobject_module = Salesforce
+    client.sobject_module = ::Salesforce
     %w(Contact Account Opportunity User RecordType Product2 Event).each { |c| client.materialize(c) unless Salesforce.const_defined?(c) }
     client
   end

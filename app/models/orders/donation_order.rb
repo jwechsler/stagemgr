@@ -39,14 +39,14 @@ class DonationOrder < Order
       c = self.address.sf
       account = Salesforce::Account.find_by_npe01__One2OneContact__c(c.Id)
 
-      donation = Salesforce::Opportunity.find_by_stagemgr_id__c(self.id)
+      donation = Salesforce::Opportunity.find_by_stagemgr_id__c(self.id.to_s)
       if donation.nil?
         donation = Salesforce::Opportunity.create("Probability"=>100.0, "StageName"=>"Posted",
                                                   "Name"=>"#{self.address.full_name} (Online)", "Amount"=>self.total,
                                                   "CloseDate"=>self.last_processed_on,
                                                   "AccountId"=>account.Id,
                                                   "npe01__Contact_Id_for_Role__c"=>account.Id,
-                                                  "stagemgr_id__c"=>self.id,
+                                                  "stagemgr_id__c"=>self.id.to_s,
                                                   "OwnerId"=>sf_user,
                                                   "RecordTypeId"=>sf_donationtype,
                                                   "IsPrivate"=>false)
