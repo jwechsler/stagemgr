@@ -10,6 +10,7 @@ tmp/**/*
 
 config/ticket_print.yml
 config/database.yml
+config/databasedotcom.yml
 config/newrelic.yml
 tags
 rerun.txt
