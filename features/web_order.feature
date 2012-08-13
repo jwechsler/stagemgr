@@ -29,7 +29,7 @@ Feature: Web ordering
     And I press "Review Order"
     And I press "Order Tickets"
     Then I should see "$10.00"
-    And I should see "Your ticket reservation has been made"
+    Then I should see "Your ticket reservation has been made"
 
   Scenario: Create an order with a special offer
     Given I go to new web order for production "Production One" and performance "PERF"
