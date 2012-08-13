@@ -1,5 +1,5 @@
 config/pay_pal_credentials.yml
-.rbenv_version
+.rbenv-version
 .DS_Store
 .idea
 .bundle
