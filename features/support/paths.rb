@@ -36,6 +36,8 @@ module NavigationHelpers
       when /^new admin ticket order$/
         @using_admin_interface = true
         new_admin_ticket_order_url
+      when /^the admin order page for the (.*)$/
+        admin_order_path(eval "@#{$1}.id")
 
       # Add more mappings here.
       # Here is an example that pulls values out of the Regexp:

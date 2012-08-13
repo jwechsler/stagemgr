@@ -1,6 +1,6 @@
 <h3>Order to refund</h3>
 <div style='border:3px black solid'>
-<%= render :partial=>'/orders/full_order', :locals=>{:order=>@original_order}%>
+<%= render :partial=>"/admin/#{@original_order.class.to_s.underscore.pluralize}/full_order", :locals=>{:order=>@original_order}%>
 </div>
 <h3>Additional Instructions</h3>
 <div style='border:3px black solid'>

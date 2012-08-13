@@ -15,8 +15,10 @@ end
 Given /^a(?:|n) ([^\"]*) exists$/ do |type|
   symbol = type.underscore.to_sym
   without_access_control do
-    FactoryGirl.create!(symbol)
+    new_object = FactoryGirl.create(symbol)
+    eval "@#{type.underscore} = new_object"
   end
+
 end
 
 Given /^all the ticket class are available for Performance "([^"]*)"$/ do |performance_code|
@@ -47,4 +49,10 @@ end
 When /^a production "([^"]*)" exists for the theater "([^"]*)"$/ do |name, theater_name|
   @theater = Theater.find_by_name(theater_name)
   @production = FactoryGirl.create(:production, :name=>name, :code=>name[0..3].upper, :theater=>@theater)
+end
+
+When /^a donation of "\$(.*)" exists$/ do |amount|
+  @donation = FactoryGirl.create(:donation_order)
+  @donation.donation_line_items << FactoryGirl.create(:donation_line_item, :donation_amount=>amount)
+  @donation.transition_to!(Order::PROCESSED)
 end

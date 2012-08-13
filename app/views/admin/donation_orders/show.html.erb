@@ -1,8 +1,4 @@
-<%= render :partial => '/admin/orders/header', :locals=>{:order=>@donation_order} %>
-
-<%= render :partial => '/admin/donation_line_items/table', :locals=>{:order=>@donation_order} %>
-
-<%= render :partial => '/admin/orders/payments', :locals=>{:order=>@donation_order} %>
+<%= render :partial => 'full_order', :locals=>{:order=>@donation_order} %>
 
 <p>
 	<% permitted_to? :new, :admin_refund_orders do %>
