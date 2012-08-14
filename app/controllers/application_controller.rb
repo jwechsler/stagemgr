@@ -1,7 +1,7 @@
+
 class ApplicationController < ActionController::Base
   helper :all
   helper_method :current_user_session, :current_user, :logged_in?, :current_user_is_admin?, :payment_types_for, :backend_user?
-  
   
   def payment_types_for(order)
     order.valid_payment_types_for( current_user)
@@ -42,6 +42,21 @@ class ApplicationController < ActionController::Base
     @current_user = current_user_session && current_user_session.record
   end
 
+  include ActionView::Helpers::OutputSafetyHelper
+  def fading_flash_message(text, seconds=3)
+    raw text +
+      <<-EOJS
+        <script type='text/javascript'>
+          Event.observe(window, 'load',function() { 
+            setTimeout(function() {
+              message_id = $('notice') ? 'notice' : 'warning';
+              new Effect.Fade(message_id);
+            }, #{seconds*1000});
+          }, false);
+        </script>
+      EOJS
+  end
+  
   protected
 
   def clear_authlogic_session

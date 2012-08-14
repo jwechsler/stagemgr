@@ -178,7 +178,12 @@ class Admin::ReportsController < Admin::ApplicationController
   def fulfill_tickets
     @through_day = grab_from_date_select(:through_day, params[:report])
     @headers, @report_data = build_fulfill_labels(@through_day)
-    send_report_as_csv('ticket_labels', @headers, @report_data)
+    unless $TKTPRINT['service'].blank?
+      flash[:notice] = fading_flash_message("Tickets printed")
+      redirect_to admin_reports_path 
+    else
+      send_report_as_csv('ticket_labels', @headers, @report_data) unless $TKTPRINT['service'].blank?
+    end
   end
 
   def production_sales_by_performance
@@ -242,7 +247,7 @@ class Admin::ReportsController < Admin::ApplicationController
   private
 
   def send_report_as_csv(title, headers, data)
-    csv_string = FasterCSV.generate do |csv|
+    csv_string = CSV.generate do |csv|
       csv << headers
       data.each do |r|
         csv << headers.map { |h| tidy_output(r[h]) }
@@ -479,7 +484,7 @@ class Admin::ReportsController < Admin::ApplicationController
       else
         payout = Money.from_numeric(offer.flat_payout.nil? ? 0 : offer.flat_payout)
       end
-      report << {:order_date=>Date.parse(o.created_at.to_s),
+      report << {:order_date=>o.payments.group_by{|p| p.processed_on}.max.last,
                  :payout=>payout,
                  :collected=>Money.from_numeric(offer.price),
                  :facility_fee=>fee,
@@ -694,7 +699,7 @@ class Admin::ReportsController < Admin::ApplicationController
     keys = columns_for_orders(true)
     keys += [:order_total, :num_tickets]
     production.performances.each { |performance|
-      orders = TicketOrder.joins(:line_items).where("performance_id = :performance_id", {:performance_id=>performance.id})
+      orders = TicketOrder.joins(:ticket_line_items).where("performance_id = :performance_id", {:performance_id=>performance.id})
 
       orders.each { |o|
         if o.attended? then

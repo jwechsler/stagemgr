@@ -110,7 +110,6 @@ GEM
     factory_girl_rails (3.4.0)
       factory_girl (~> 3.4.0)
       railties (>= 3.0.0)
-    fastercsv (1.5.5)
     ffi (1.0.11)
     flexmock (0.8.6)
     formatize (1.1.0)
@@ -279,7 +278,6 @@ DEPENDENCIES
   declarative_authorization
   exception_notification
   factory_girl_rails (~> 3.0)
-  fastercsv
   flexmock (= 0.8.6)
   formatize
   formtastic

@@ -3,7 +3,7 @@
 <html>
   <head>
     <title><%= h(yield(:title) || "Untitled") %></title>
-    <%= stylesheet_link_tag 'application', 'jquery.autocomplete' %>
+    <%= stylesheet_link_tag 'application', 'jquery.autocomplete', 'jquery-1.4.2.min' %>
     <%= stylesheet_link_tag "formtastic" %>
     <%= stylesheet_link_tag "formtastic_changes" %>
     <%= yield(:head) %>
@@ -17,10 +17,7 @@
   <body>
 	<%= render :partial=>"layouts/menu" %>
     <div id="container">
-      <%- flash.each do |name, msg| -%>
-      <%= content_tag :div, raw(msg), :id => "flash_#{name}" %>
-    <%- end -%>
-
+			<%= render :partial=>'/flash_notice' %>
 
 
     <%- if show_title? -%>

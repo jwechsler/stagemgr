@@ -22,6 +22,20 @@ a {
 >>>>>>> b56da73ea19151df3a99947352de68577e6faa62
 }
 
+
+#notice { background-color: #A4E7A0; border: 1px solid #26722D; }
+#error { background-color: #F0A8A8; border: 1px solid #900; }
+#notice, #error { width: 90%; margin: 0 auto 10px auto; padding: 5px; }
+#notice p, #error p { margin-left: 20px; padding: 0; font-size: .75em; color: #000; }
+#notice a, #error a { text-decoration: none; padding: 0 3px; }
+#notice a { border: 1px solid #26722D; color: #26722D; }
+#error a { border: 1px solid #900; color: #900; }
+#notice a:hover, #error a:hover { color: #333; border: 1px solid #333; }
+
+#menu_area {
+	margin: 2px 0px 5px 0px;
+}
+
 #flash_notice, #flash_error {
   padding: 5px 8px;
   margin: 10px 0;

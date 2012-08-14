@@ -1,2 +1,4 @@
-<%= render :partial=>'/layouts/logged_out_menu' if current_user.nil? %>
-<%=	render :partial=>'/layouts/logged_in_menu'  unless current_user.nil? %>
+<div id="menu_area">
+	<%= render :partial=>'/layouts/logged_out_menu' if current_user.nil? %>
+	<%=	render :partial=>'/layouts/logged_in_menu'  unless current_user.nil? %>
+</div>
