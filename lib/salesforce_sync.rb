@@ -1,4 +1,4 @@
-module Salesforce
+module SalesforceData
 
 end
 
@@ -15,8 +15,8 @@ class SalesforceSync
 
   def SalesforceSync.materialize_all(client_id = nil, client_secret = nil, username = nil, password = nil)
     client = SalesforceSync.connect_client(client_id, client_secret, username, password)
-    client.sobject_module = ::Salesforce
-    %w(Contact Account Opportunity User RecordType Product2 Event).each { |c| client.materialize(c) unless Salesforce.const_defined?(c) }
+    client.sobject_module = ::SalesforceData
+    %w(Contact Account Opportunity User RecordType Product2 Event).each { |c| client.materialize(c) unless SalesforceData.const_defined?(c) }
     client
   end
 
@@ -31,14 +31,14 @@ class SalesforceSync
                                                 salesforcesync['client_secret'],
                                                 salesforcesync['username'],
                                                 salesforcesync['password'])
-        user = Salesforce::User.find_by_Username(client.username)
+        user = SalesforceData::User.find_by_Username(client.username)
         salesforcesync['user_id'] = user.Id
 
-        donation_record_type = Salesforce::RecordType.find_by_Name('Donation')
+        donation_record_type = SalesforceData::RecordType.find_by_Name('Donation')
         salesforcesync['donation_record_type_id'] = donation_record_type.Id
-        production_record_type = Salesforce::RecordType.find_by_Name("Production")
+        production_record_type = SalesforceData::RecordType.find_by_Name("Production")
         salesforcesync['production_record_type_id'] = production_record_type.Id
-        ticket_order_type = Salesforce::RecordType.find_by_Name("Ticket Order")
+        ticket_order_type = SalesforceData::RecordType.find_by_Name("Ticket Order")
         salesforcesync['ticket_order_record_type_id'] = ticket_order_type.Id
       rescue => e
         salesforcesync['sync_to_salesforce'] = "false"
@@ -55,7 +55,7 @@ class SalesforceSync
 
   def SalesforceSync.sync_addresses_from_salesforce
     SalesforceSync.materialize_all
-    contacts = Salesforce::Contact.find_all_by_stagemgr_last_sync_at__c("true")
+    contacts = SalesforceData::Contact.find_all_by_stagemgr_last_sync_at__c("true")
     contacts.each do |c|
       address = Address.find(c.stagemgr_id__c)
       address.sync_to_salesforce!
@@ -64,7 +64,7 @@ class SalesforceSync
 
   def SalesforceSync.sync_productions
     prods = Production.where("sf_last_sync_at is null or sf_last_sync_at < updated_at")
-    record_type = Salesforce::RecordType.find_by_Name("Production")
+    record_type = SalesforceData::RecordType.find_by_Name("Production")
     prods.each { |p| p.sync_to_salesforce! }
   end
 
@@ -128,7 +128,7 @@ class SalesforceSync
 
         end
         if !address.sf_last_sync_at.nil? && delete_sf_records
-          sf_contact = Salesforce::Contact.find_by_stagemgr_id__c(address.id.to_s)
+          sf_contact = SalesforceData::Contact.find_by_stagemgr_id__c(address.id.to_s)
           sf_contact.delete unless sf_contact.nil?
         end
         address.delete unless merge.nil?

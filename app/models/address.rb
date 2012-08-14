@@ -123,7 +123,7 @@ class Address < ActiveRecord::Base
 
   def sync_to_salesforce!
     if self.sf_last_sync_at.nil? || (self.sf_last_sync_at < self.updated_at)
-      sf_contact = Salesforce::Contact.find_by_stagemgr_id__c("#{self.id}")
+      sf_contact = SalesforceData::Contact.find_by_stagemgr_id__c("#{self.id}")
       sync_time = DateTime.now
       puts "syncing address id ##{self.id}"
       if sf_contact.nil?
@@ -367,7 +367,7 @@ class Address < ActiveRecord::Base
 
   def create_salesforce_contact
     puts "  creating new sf record"
-    Salesforce::Contact.create "LastName"=>self.last_name, "FirstName"=>self.first_name, "stagemgr_id__c"=>"#{self.id}",
+    SalesforceData::Contact.create "LastName"=>self.last_name, "FirstName"=>self.first_name, "stagemgr_id__c"=>"#{self.id}",
                                "MailingStreet"=>"#{self.line1}\r\n#{self.line2}", "MailingCity"=>self.city,
                                "Email"=>self.email, "Phone"=>self.phone,
                                "MailingState"=>self.state, "MailingPostalCode"=>self.zipcode, "stagemgr_last_sync_at__c"=>DateTime.now
