@@ -98,15 +98,15 @@ class Production < ActiveRecord::Base
     record_type_id = $DATABASEDOTCOM['production_record_type_id'] if record_type_id.nil?
     if self.sf_last_sync_at.nil? || self.sf_last_sync_at <= self.updated_at
       puts "syncing production #{self.id}"
-      production = SalesforceData::Product2.find_by_stagemgr_id__c(self.id)
+      production = SalesforceData::Product2.find_by_stagemgr_id__c(self.id.to_s)
       if production.nil?
         puts "  creating production on salesforce"
         production = SalesforceData::Product2.create("Name"=>self.name,
                                                  "ProductCode"=>self.production_code,
                                                  "RecordTypeId"=>record_type_id,
                                                  "Producing_Theater__c"=>self.theater.name,
-                                                 "season__c"=>self.season,
-                                                 "stagemgr_id__c"=>self.id,
+                                                 "season__c"=>self.season.to_s,
+                                                 "stagemgr_id__c"=>self.id.to_s,
                                                  "IsActive"=>true)
       else
         production.Name = self.name
@@ -125,7 +125,7 @@ class Production < ActiveRecord::Base
 
   def sf
     if self.sf_object.nil?
-      self.sf_object = SalesforceData::Product2.find_by_stagemgr_id__c(self.id)
+      self.sf_object = SalesforceData::Product2.find_by_stagemgr_id__c(self.id.to_s)
       if self.sf_object.nil?
         self.sf_last_sync_at = nil
         self.sync_to_salesforce!

@@ -227,7 +227,7 @@ class TicketOrder < Order
     end
     if self.syncable? && (self.sf_last_sync_at.nil? || self.sf_last_sync_at < self.updated_at)
       puts "syncing order #{self.id}"
-      event = SalesforceData::Event.find_by_stagemgr_order_id__c(self.id)
+      event = SalesforceData::Event.find_by_stagemgr_order_id__c(self.id.to_s)
       # is delete needed?
       if self.returned?
         puts "  removing synced copy"
@@ -244,7 +244,7 @@ class TicketOrder < Order
                                 Rational(Time.zone.utc_offset/60/60, 24))
         if event.nil?
           puts "  creating event in salesforce"
-          event = SalesforceData::Event.create("stagemgr_order_id__c" => self.id,
+          event = SalesforceData::Event.create("stagemgr_order_id__c" => self.id.to_s,
                                            "WhatId" => prod.Id,
                                            "IsAllDayEvent" => true,
                                            "ActivityDateTime" => self.performance.performance_date,
