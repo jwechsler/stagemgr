@@ -16,10 +16,10 @@ xml.rows do
         if o.address.nil?
           xml.cell "n/a"
         else
-          xml.cell o.address.orders_processed unless o.address.nil?
+          xml.cell o.address.orders_processed
         end
       else
-        o.address.orders_processed(current_user.theater_ids)
+        o.address.orders_processed(current_user.theater_ids) unless o.address.nil?
       end
       xml.cell o.to_s
     end
