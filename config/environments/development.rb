@@ -43,5 +43,7 @@ Stagemgr::Application.configure do
 
   $EMAIL_ADDRESS = YAML::load(File.open("#{::Rails.root.to_s}/config/emails.yml"))['development']
 
+  Paperclip.options[:log] = true
+
 end
 
