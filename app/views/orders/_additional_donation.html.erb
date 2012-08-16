@@ -1,8 +1,8 @@
 <fieldset class="callout" style="border: 1px solid #000000; margin-left: 25%; padding: 5px;"><legend>Make an additional donation</legend>
   <%- t = order_form.object.performance.production.theater unless order_form.object.performance.nil?
       if t.blank? || t.theater_class == 'Default' -%>
-    I'm a supporter of Theater Wit!  I'd like to make an additional tax-deductible contribution (and it's our two year anniversary in our new space.  Every donation helps us keep our doors open, and if you make a tax-deductible donation of $22 or more we'll send you a birthday present! $
+    I'm a supporter of Theater Wit!  I'd like to make an additional tax-deductible contribution  $
   <%- else -%>
-  Theater Wit provides facilities and artistic support for groups like <%= t.name.strip %>, plus it's our two year anniversary in our new space and if you make a donation of $22 or more we'll send you a birthday present! . Every donation helps us keep our doors open, however. $
+  Theater Wit provides facilities and artistic support for groups like <%= t.name.strip %>.  Please consider making an additional tax-deductable contribution to Theater Wit $
   <%- end -%>  <%= order_form.text_field :additional_donation, :size=>7 %>
 </fieldset>
