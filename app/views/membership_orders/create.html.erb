@@ -1,2 +1,7 @@
-<h1>MembershipOrders#create</h1>
-<p>Find me in app/views/membership_orders/create.html.erb</p>
+<div id="container">
+  <%- flash.each do |name, msg| -%>
+    <%= content_tag :div, msg, :id => "flash_#{name}" %>
+  <%- end -%>
+</div>
+<p>You should be all set.  We are processing your membership request right now and you'll get an email in a few minutes.
+Welcome!</p>
