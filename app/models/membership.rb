@@ -42,10 +42,9 @@ class Membership < ActiveRecord::Base
   end
 
   def get_profile_data
-    gateway ||= ActiveMerchant::Billing::PaypalRecurringGateway.new(:login=>$PAYPAL_LOGIN,
-                                                                    :password=>$PAYPAL_PASSWORD)
+    gateway ||= PaymentProcessing.recurring_gateway
 
-    response = gateway.get_profile_details(self.profile_id)
+    response = gateway.status_recurring(self.profile_id)
     response.params
   end
 

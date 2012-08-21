@@ -35,7 +35,7 @@ gem "databasedotcom"
 gem "formatize"
 gem "validation_reflection"
 gem "declarative_authorization"
-gem "activemerchant", :git => 'https://github.com/florianguenther/active_merchant'
+gem "activemerchant"
 gem "mysql2"
 gem "authlogic"
 gem "acts_as_audited", "~> 2.1.0"
@@ -60,6 +60,7 @@ group :development do
   gem 'mongrel',              '1.2.0.pre2'
   gem 'capistrano',           '~> 2.12.0'
   gem 'capistrano-ext',       '1.2.1'
+  gem 'pry'
 end
 
 group :test do

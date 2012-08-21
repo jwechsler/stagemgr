@@ -1,13 +1,4 @@
 GIT
-  remote: https://github.com/florianguenther/active_merchant
-  revision: 31861414aa2524874f56da6aeb9fab5394bb3db6
-  specs:
-    activemerchant (1.9.0)
-      activesupport (>= 2.3.2)
-      braintree (>= 2.0.0)
-      builder (>= 2.0.0)
-
-GIT
   remote: https://github.com/hashrocket/my_emma.git
   revision: 7c57c912660bf984fb8bad59b269b89d25dad856
   specs:
@@ -33,6 +24,17 @@ GEM
       rack-mount (~> 0.8.2)
       rack-test (~> 0.6.1)
       sprockets (~> 2.0.4)
+    active_utils (1.0.4)
+      activesupport (>= 2.3.11)
+      i18n
+    activemerchant (1.27.0)
+      active_utils (>= 1.0.2)
+      activesupport (>= 2.3.11)
+      builder (>= 2.0.0)
+      i18n
+      json (>= 1.5.1)
+      money
+      nokogiri
     activemodel (3.1.5)
       activesupport (= 3.1.5)
       builder (~> 3.0.0)
@@ -58,8 +60,6 @@ GEM
       activesupport (>= 3.0.7)
     bluecloth (2.2.0)
     bond (0.4.2)
-    braintree (2.16.0)
-      builder (>= 2.0.0)
     builder (3.0.0)
     capistrano (2.12.0)
       highline
@@ -83,6 +83,7 @@ GEM
       ffi (~> 1.0.6)
     chronic (0.6.7)
     cocaine (0.2.1)
+    coderay (1.0.7)
     configuration (1.3.2)
     crack (0.3.1)
     cucumber (1.2.1)
@@ -142,6 +143,7 @@ GEM
       treetop (~> 1.4.8)
     map_by_method (0.8.3)
     metaclass (0.0.1)
+    method_source (0.8)
     mime-types (1.19)
     mocha (0.11.4)
       metaclass (~> 0.0.1)
@@ -178,6 +180,10 @@ GEM
       actionmailer
       postmark (>= 0.9.0)
       rake
+    pry (0.9.10)
+      coderay (~> 1.0.5)
+      method_source (~> 0.8)
+      slop (~> 3.3.1)
     rack (1.3.6)
     rack-cache (1.2)
       rack (>= 0.4)
@@ -232,6 +238,7 @@ GEM
       multi_json (~> 1.0)
       simplecov-html (~> 0.5.3)
     simplecov-html (0.5.3)
+    slop (3.3.2)
     sprockets (2.0.4)
       hike (~> 1.2)
       rack (~> 1.0)
@@ -264,7 +271,7 @@ PLATFORMS
 DEPENDENCIES
   RedCloth (= 4.2.9)
   StreetAddress (~> 1.0.1)
-  activemerchant!
+  activemerchant
   acts_as_audited (~> 2.1.0)
   authlogic
   bond (= 0.4.2)
@@ -297,6 +304,7 @@ DEPENDENCIES
   nifty-generators
   paperclip (~> 3.1.2)
   postmark-rails
+  pry
   rails (= 3.1.5)
   rbx-require-relative
   rspec

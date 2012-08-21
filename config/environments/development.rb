@@ -24,19 +24,15 @@ Stagemgr::Application.configure do
   config.action_dispatch.best_standards_support = :builtin
 
   # Setup paypal module
+  
+  $PAYMENT_CONFIG = YAML::load(File.open("#{::Rails.root.to_s}/config/payment_processing.yml"))['development']
 
   config.after_initialize do
     ActiveMerchant::Billing::Base.gateway_mode = :test
-    pem_file = File.read(::Rails.root.to_s+'/config/cert_key_pem_dev.txt')
-    ActiveMerchant::Billing::PaypalGateway.pem_file = pem_file
-    ActiveMerchant::Billing::PaypalRecurringGateway.pem_file = pem_file
+    PaymentProcessing.after_initialize
   end
 
-  paypal_config = YAML::load(File.open("#{::Rails.root.to_s}/config/pay_pal_credentials.yml"))
-
-  $PAYPAL_LOGIN = paypal_config['development']['paypal_login']
-  $PAYPAL_PASSWORD = paypal_config['development']['paypal_password']
-
+  
   $DATABASEDOTCOM = SalesforceSync.load_from_yaml_file('development',"#{::Rails.root.to_s}/config/databasedotcom.yml")
 
   $TKTPRINT =  YAML::load(File.open("#{::Rails.root.to_s}/config/ticket_print.yml"))['development']
@@ -44,6 +40,15 @@ Stagemgr::Application.configure do
   $EMAIL_ADDRESS = YAML::load(File.open("#{::Rails.root.to_s}/config/emails.yml"))['development']
 
   Paperclip.options[:log] = true
+
+  silence_warnings do
+  begin
+    require 'pry'
+    IRB = Pry
+  rescue LoadError
+  end
+
+end
 
 end
 

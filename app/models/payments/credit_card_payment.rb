@@ -68,23 +68,10 @@ class CreditCardPayment < Payment
 
       # Create paypal gateway
 
-      gateway = ActiveMerchant::Billing::PaypalGateway.new(:login=>$PAYPAL_LOGIN, :password=>$PAYPAL_PASSWORD)
+      gateway = PaymentProcessing.gateway
 
 
       response = gateway.purchase(self.charge_amount, credit_card, :ip=>self.ip_address, :billing_address=>billing_address, :email => self.address.email, :order_id => self.order_id, :description => self.order.description)
-
-#
-#      # Create a gateway object for the TrustCommerce service
-#      gateway_options = {
-#        :login=>ACTIVE_MERCHANT_LOGIN,
-#        :password=>ACTIVE_MERCHANT_PASSWORD,
-#        :test=>ACTIVE_MERCHANT_TEST_MODE}
-#
-#      # Create a gateway object for the TrustCommerce service
-#      gateway = ActiveMerchant::Billing::AuthorizeNetGateway.new(
-#        gateway_options
-#      )
-#
 
 # Authorize for the amount
 #     response = gateway.purchase(self.charge_amount, credit_card)
@@ -117,7 +104,7 @@ class CreditCardPayment < Payment
       #        gateway_options
       #      )
 
-      gateway = ActiveMerchant::Billing::PaypalGateway.new(:login=>$PAYPAL_LOGIN, :password=>$PAYPAL_PASSWORD)
+      gateway = PaymentProcessing.gateway
 
       refund_payment = self.dup
       refund_payment.amount = self.amount*-1
@@ -139,17 +126,8 @@ class CreditCardPayment < Payment
 
 
   def create_credit_card
-    credit_card = ActiveMerchant::Billing::CreditCard.new(
-      :type => credit_card_type(self.card_type),
-      :first_name => self.address.first_name,
-      :last_name => self.address.last_name,
-      :number => self.card_number,
-      :month => self.card_expiration_month,
-      :year => self.card_expiration_year,
-      :verification_value => self.card_verification_number
-    )
-    raise InvalidCreditCard, credit_card.errors.full_messages.join("\n") unless credit_card.valid?
-    credit_card
+    PaymentProcessing.credit_card(self.card_type, self.address.first_name, self.address.last_name, self.card_number,
+     self.card_expiration_month, self.card_expiration_year, self.card_verification_number)
   end
 
   def processing_fee
@@ -159,19 +137,6 @@ class CreditCardPayment < Payment
   protected
   def charge_amount
     (self.amount*100).to_i
-  end
-
-  def credit_card_type(ctype)
-    case ctype
-      when 'MasterCard'
-        "master"
-      when 'master_card'
-        "master"
-      when 'American Express'
-        "american_express"
-      else
-        ctype
-    end
   end
 
   private
