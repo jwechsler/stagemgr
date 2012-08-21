@@ -51,7 +51,7 @@ Stagemgr::Application.configure do
 
   # Setup payments
 
-  $PAYMENT_CONFIG = YAML::load(File.open("#{::Rails.root.to_s}/config/payment_processing.yml"))['development']
+  $PAYMENT_CONFIG = YAML::load(File.open("#{::Rails.root.to_s}/config/payment_processing.yml"))['production']
 
   config.after_initialize do
     PaymentProcessing.after_initialize
