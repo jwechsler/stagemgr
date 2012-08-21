@@ -45,6 +45,7 @@ class MembershipOrdersController < ApplicationController
   end
 
   def edit
+    @order = MembershipOrder.find(params[:id])
   end
 
   def confirm
