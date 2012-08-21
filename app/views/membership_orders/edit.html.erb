@@ -20,7 +20,7 @@
     <table>
       <tr>
         <td valign="top">
-          <%= order_form.check_box :add_to_email_list, :checked=>1 %>
+          <%= order_form.check_box :add_to_email_list, :checked=>true %>
         </td>
         <td>
           Join our mailing list to take full advantage of your membership.
@@ -31,8 +31,5 @@
       </tr>
     </table>
   <%- end %>
-  <p>Currently, we manage all your membership payments securely using PayPal.  When you click
-  "Checkout" below, you'll be redirected to the PayPal site to set up your credit card and account.  Once you've completed
-  your signup process, your membership will be activated within minutes.</p>
   <%= order_form.submit "Checkout", :action=>:confirm, :disable_with => 'Processing...' if order_form.object.status == Order::NEW %>
 <%- end %>
