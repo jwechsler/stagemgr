@@ -37,6 +37,7 @@ module NavigationHelpers
         @using_admin_interface = true
         new_admin_ticket_order_url
       when /^the admin order page for the (.*)$/
+        @using_admin_interface = true
         admin_order_path(eval "@#{$1}.id")
 
       # Add more mappings here.

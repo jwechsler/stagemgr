@@ -136,22 +136,6 @@ module OrdersHelper
       format.html { render 'edit', :order=>@order, :layout=>true }
     end
   end
-
-  def submit_recurring_payment_request
-    gateway ||= ActiveMerchant::Billing::PaypalRecurringGateway.new(
-        :login => $PAYPAL_LOGIN,
-        :password => $PAYPAL_PASSWORD)
-    membership_offer = @order.membership_offer
-
-    setup_response = gateway.setup_authorization((membership_offer.recurring_cost * 100).to_i,
-                                                 :ip => request.remote_ip,
-                                                 :return_url => url_for(confirm_membership_order_path(:only_path=>false)),
-                                                 :cancel_return_url => "http://www.theaterwit.org/",
-                                                 :description => "Test description!"
-    )
-
-    redirect_to gateway.redirect_url_for(setup_response.token)
-  end
-
+  
 end
 

@@ -1,3 +1,4 @@
+@wip
 Feature: Web ordering
   As an web site user
   I want to be able to buy tickets, using a variety of payment methods

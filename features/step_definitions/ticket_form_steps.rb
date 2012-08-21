@@ -35,6 +35,6 @@ When /^I enter a valid credit card as payment( through the backend)?$/ do |backe
   else
     fill_in "ticket_order_credit_card_expiration_year", :with=>'18'
   end
-  fill_in "Credit card number", :with=>$TEST_CREDIT_CARD
+  fill_in "Credit card number", :with=>"4111111111111111"
   fill_in "CVV", :with=>"581"
 end

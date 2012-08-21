@@ -33,19 +33,16 @@ Stagemgr::Application.configure do
   # Print deprecation notices to the stderr
   config.active_support.deprecation = :stderr
 
-  # Setup paypal
+  # Setup payment methods
+
+  $PAYMENT_CONFIG = YAML::load(File.open("#{::Rails.root.to_s}/config/payment_processing.yml"))['test']
+  $TEST_CREDIT_CARD = $PAYMENT_CONFIG['test_credit_card']
+
   config.after_initialize do
     ActiveMerchant::Billing::Base.gateway_mode = :test
-    pem_file = File.read(::Rails.root.to_s+'/config/cert_key_pem_dev.txt')
-    ActiveMerchant::Billing::PaypalGateway.pem_file = pem_file
-    ActiveMerchant::Billing::PaypalRecurringGateway.pem_file = pem_file
   end
 
-  paypal_config = YAML::load(File.open("#{::Rails.root.to_s}/config/pay_pal_credentials.yml"))
-
-  $PAYPAL_LOGIN = paypal_config['test']['paypal_login']
-  $PAYPAL_PASSWORD = paypal_config['test']['paypal_password']
-  $TEST_CREDIT_CARD = paypal_config['test']['test_credit_card']
+  # $TEST_CREDIT_CARD = paypal_config['test']['test_credit_card']
 
   $DATABASEDOTCOM = SalesforceSync.load_from_yaml_file('test',"#{::Rails.root.to_s}/config/databasedotcom.yml")
 

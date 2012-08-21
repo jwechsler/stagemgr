@@ -49,20 +49,13 @@ Stagemgr::Application.configure do
   # Setup paperclip
   Paperclip.options[:command_path] = "/usr/local/Cellar/imagemagick/6.6.9-4/bin/"
 
-  # Setup paypal
+  # Setup payments
+
+  $PAYMENT_CONFIG = YAML::load(File.open("#{::Rails.root.to_s}/config/payment_processing.yml"))['development']
+
   config.after_initialize do
-    pem_file = File.read("#{::Rails.root.to_s}/config/cert_key_pem_prod.txt")
-    ActiveMerchant::Billing::PaypalGateway.pem_file = pem_file
-    ActiveMerchant::Billing::PaypalRecurringGateway.pem_file = pem_file
-
-    paypal_config = YAML::load(File.open("#{::Rails.root.to_s}/config/pay_pal_credentials.yml"))
-
-    $PAYPAL_LOGIN = paypal_config['production']['paypal_login']
-    $PAYPAL_PASSWORD = paypal_config['production']['paypal_password']
-
+    PaymentProcessing.after_initialize
     $DATABASEDOTCOM = SalesforceSync.load_from_yaml_file('production',"#{::Rails.root.to_s}/config/databasedotcom.yml")
-
-
   end
 
   $EMAIL_ADDRESS = YAML::load(File.open("#{::Rails.root.to_s}/config/emails.yml"))['production']

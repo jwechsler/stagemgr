@@ -54,7 +54,6 @@ class CreditCardPayment < Payment
   def process!
     if self.confirmation_code.blank? || self.card_number.length != 4
       credit_card = create_credit_card
-
       billing_address = {
         :name => "#{self.address.first_name} #{self.address.last_name}",
         :address1 => self.address.line1,
