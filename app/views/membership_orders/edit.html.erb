@@ -1,35 +1,43 @@
-<%= javascript :defaults, 'delegate', 'jquery-1.4.2.min', 'jquery.autocomplete', 'membership_order' %>
+<%- if @order.status == Order::NEW then %>
+ <%- if @order.membership_offer.on_sale then %>
+   <%= javascript :defaults, 'delegate', 'jquery-1.4.2.min', 'jquery.autocomplete', 'membership_order' %>
 
-<h1><%= @order.membership_offer.name %></h1>
+    <h1><%= @order.membership_offer.name %></h1>
 
-<%- if !@order.membership_offer.html_description.blank? %>
-  <p><%= raw @order.membership_offer.html_description %></p>
-<%- end %>
-<%= semantic_form_for @order do |order_form| %>
-  <%= order_form.error_messages %>
-  <%= order_form.inputs :class=>"order" do %>
-    <%= order_form.semantic_fields_for :membership_line_items do |mlif| %>
-      <% mlif.inputs do %>
-        <%= mlif.input :membership_offer_id, :as=>:hidden %>
-      <%- end %>
+    <%- if !@order.membership_offer.html_description.blank? %>
+      <p><%= raw @order.membership_offer.html_description %></p>
     <%- end %>
-    <%= order_form.hidden_field :status %>
-    <%= render :partial=>'/orders/address', :locals=>{:order_form=>order_form} %>
-    <%= render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form} %>
-  
-    <table>
-      <tr>
-        <td valign="top">
-          <%= order_form.check_box :add_to_email_list, :checked=>true %>
-        </td>
-        <td>
-          Join our mailing list to take full advantage of your membership.
-          <br/><span style="font-size: 11px">We'll send you company news,
-          special offers, building schedule and more delivered twice monthly. Your email
-                will not be shared. :) </span>
-        </td>
-      </tr>
-    </table>
+    <%= semantic_form_for @order do |order_form| %>
+      <%= order_form.error_messages %>
+      <%= order_form.inputs :class=>"order" do %>
+        <%= order_form.semantic_fields_for :membership_line_items do |mlif| %>
+          <% mlif.inputs do %>
+            <%= mlif.input :membership_offer_id, :as=>:hidden %>
+          <%- end %>
+        <%- end %>
+        <%= order_form.hidden_field :status %>
+        <%= render :partial=>'/orders/address', :locals=>{:order_form=>order_form} %>
+        <%= render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form} %>
+      
+        <table>
+          <tr>
+            <td valign="top">
+              <%= order_form.check_box :add_to_email_list, :checked=>true %>
+            </td>
+            <td>
+              Join our mailing list to take full advantage of your membership.
+              <br/><span style="font-size: 11px">We'll send you company news,
+              special offers, building schedule and more delivered twice monthly. Your email
+                    will not be shared. :) </span>
+            </td>
+          </tr>
+        </table>
+      <%- end %>
+      <%= order_form.submit "Checkout", :action=>:create, :disable_with => 'Processing...' if [Order::NEW, Order::PROCESSING].include?(order_form.object.status)%>
+    <%- end %>
+  <%- else %>
+    <p>That particular membership offer is no longer available. Please go back and make another selection. </p>
   <%- end %>
-  <%= order_form.submit "Checkout", :action=>:confirm, :disable_with => 'Processing...' if order_form.object.status == Order::NEW %>
+<%- else %>
+  <%= render :partial=>'/membership_orders/thanks' %>
 <%- end %>

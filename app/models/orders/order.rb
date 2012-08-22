@@ -211,6 +211,10 @@ class Order < ActiveRecord::Base
     current_user && (current_user.is_administrator? || current_user.is_box_office_user?)
   end
 
+  def processing?
+    PROCESSING == self.status
+  end
+
   def editable?
     [HOLD, NEW, PROCESSING, nil].include? self.status
   end

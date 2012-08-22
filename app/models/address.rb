@@ -16,32 +16,37 @@ class Address < ActiveRecord::Base
   accepts_nested_attributes_for :address_tags, :allow_destroy => true
 
   MAILLIST_STATUS = (
-  REQUESTED, SAVED =
-      "Requested", "Saved")
+    REQUESTED, SAVED =
+  "Requested", "Saved")
 
   attr_accessible :full_name, :line1, :line2, :city, :state, :zipcode, :email, :phone, :street_number, :address_tags_attributes
   acts_as_audited :protect=>false, :except=>['street_number', 'street', 'street_type', 'unit', 'unit_prefix', 'search_name']
   attr_accessor :sf_object
 
+  def parse_full_name
+    self.full_name = NameCase(self.full_name)
+    if self.full_name.include?(' ')
+      parsed = NameParse::Parser.new(self.full_name)
+      if [:first_last, :first_mid_last].include?(parsed.matched)
+        f_name = parsed.first
+        l_name = parsed.last
+        m_name = parsed.middle
+      else
+        brute_force = self.full_name.split(' ')
+        l_name = brute_force.last
+        f_name = brute_force[0..-2].join(' ')
+      end
+    else
+      l_name = self.full_name
+      f_name = ''
+      m_name = ''
+    end
+    [f_name, m_name, l_name]
+  end
+
   def regularize!
     if self.changed?
-      self.full_name = NameCase(self.full_name)
-      if self.full_name.include?(' ')
-        parsed = NameParse::Parser.new(self.full_name)
-        if [:first_last, :first_mid_last].include?(parsed.matched)
-          self.first_name = parsed.first
-          self.last_name = parsed.last
-          self.middle_name = parsed.middle
-        else
-          brute_force = self.full_name.split(' ')
-          self.last_name = brute_force.last
-          self.first_name = brute_force[0..-2].join(' ')
-        end
-      else
-        self.last_name = self.full_name
-        self.first_name = ''
-        self.middle_name = ''
-      end
+      self.first_name, self.middle_name, self.last_name = self.parse_full_name
 
       self.email.strip! unless self.email.nil?
       self.line1.strip! unless self.line1.nil?
@@ -334,15 +339,15 @@ class Address < ActiveRecord::Base
                                        self.id, Order.attended_statuses])
     else
       TicketOrder.count(
-                        :conditions=>["orders.address_id = ? and orders.status in (?) and orders.performance_id in (select id from performances where production_id in (select id from productions where theater_id in (?)))",
-                                      self.id, Order.attended_statuses, for_theaters])
+        :conditions=>["orders.address_id = ? and orders.status in (?) and orders.performance_id in (select id from performances where production_id in (select id from productions where theater_id in (?)))",
+                      self.id, Order.attended_statuses, for_theaters])
     end
   end
 
   def is_donor?
     DonationOrder.count(:include=>[:donation_line_items],
-                :conditions=>["orders.address_id = ? and line_items.donation_amount > 0",
-                              self.id]) > 0
+                        :conditions=>["orders.address_id = ? and line_items.donation_amount > 0",
+                                      self.id]) > 0
   end
 
   def to_s
@@ -355,9 +360,9 @@ class Address < ActiveRecord::Base
 
   def productions_attended(start_date = 10.years.ago, end_date = Time.now)
     TicketOrder.includes(:performance,{:performance=>:production}).where("orders.address_id = ? and orders.status in (?) and performances.performance_date >= ? and performances.performance_date <= ?",
-                                             self.id,
-                                             Order.attended_statuses,
-                                             start_date, end_date).map{|o| o.performance.production}.uniq
+                                                                         self.id,
+                                                                         Order.attended_statuses,
+                                                                         start_date, end_date).map{|o| o.performance.production}.uniq
   end
 
   private
@@ -368,9 +373,9 @@ class Address < ActiveRecord::Base
   def create_salesforce_contact
     puts "  creating new sf record"
     SalesforceData::Contact.create "LastName"=>self.last_name, "FirstName"=>self.first_name, "stagemgr_id__c"=>"#{self.id}",
-                               "MailingStreet"=>"#{self.line1}\r\n#{self.line2}", "MailingCity"=>self.city,
-                               "Email"=>self.email, "Phone"=>self.phone,
-                               "MailingState"=>self.state, "MailingPostalCode"=>self.zipcode, "stagemgr_last_sync_at__c"=>DateTime.now
+      "MailingStreet"=>"#{self.line1}\r\n#{self.line2}", "MailingCity"=>self.city,
+      "Email"=>self.email, "Phone"=>self.phone,
+      "MailingState"=>self.state, "MailingPostalCode"=>self.zipcode, "stagemgr_last_sync_at__c"=>DateTime.now
 
   end
 

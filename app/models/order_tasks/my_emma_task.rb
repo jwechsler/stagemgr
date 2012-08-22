@@ -35,5 +35,4 @@ class MyEmmaTask < OrderTask
     response
   end
 
-
 end

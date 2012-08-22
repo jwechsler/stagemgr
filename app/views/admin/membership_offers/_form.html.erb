@@ -5,11 +5,12 @@
     <%= f.input :tickets_per_performance %>
     <%= f.input :use_ticket_class_code, :as=>:select, :collection=>DefaultTicketClass.all.map{|tc| tc.class_code} %>
     <%= f.input :use_member_friend_code, :as=>:select, :collection=>DefaultTicketClass.all.map{|tc| tc.class_code} %>
-        <%= f.input :email_html %>
+    <%= f.input :on_sale %>
+    <%= f.input :email_html %>
     <%= f.input :myemma_group, :label=>"MyEmma Group ID" %>
     <%= f.input :html_description %>
     <%= f.input :billing_agreement %>
-    <%= f.buttons %>
+    <%= f.actions %>
   <%- end %>
 
 <% end %>
