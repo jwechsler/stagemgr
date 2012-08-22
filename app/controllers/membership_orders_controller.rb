@@ -18,9 +18,9 @@ class MembershipOrdersController < ApplicationController
                                                 @order.credit_card_verification_number)
 
     response = gateway.recurring((membership_offer.recurring_cost * 100).to_i, credit_card, 
-      :ip=>@order.ip_address, :order_id =>@order.id, 
+      :ip=>@order.ip_address, :order_id =>@order.id, :email=>@order.address.email,
       :description => membership_offer.billing_agreement, :start_date=>Date.today,
-      :period=>'Month', :frequency=>1)
+      :period=>'Month', :frequency=>1, :max_failed_payments=>1, :auto_bill_outstanding=> true)
     if response.success?
       profile_id = response.params["profile_id"]
       membership = @order.membership
@@ -28,7 +28,7 @@ class MembershipOrdersController < ApplicationController
       membership.status = response.params["profile_status"][0..-8]
       membership.save!
       @order.transition_to!(Order::PROCESSED)
-      flash[:notice] = raw "Your PayPal account was successfully set up for the <strong>#{membership_offer.name}</strong> payment plan."
+      flash[:notice] = raw "You've been successfully set up for the <strong>#{membership_offer.name}</strong> payment plan."
     else
       flash.now[:notice] = "There was a problem setting up your PayPal account for the <strong>#{membership_offer.name}</strong> payment plan"
       render url_for(:controller=>:membership_orders, :id => @order.id, :action=>:edit)
