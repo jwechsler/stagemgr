@@ -49,7 +49,7 @@ class Admin::ProductionsController < Admin::ApplicationController
     params[:production].delete(:promo) if params[:production].has_key?(:promo) && (params[:production][:promo].respond_to? :empty?) && params[:production][:promo].empty?
     respond_to do |format|
       if @production.update_attributes(params[:production])
-        flash[:notice] = "<i>#{@production.name}</i> was successfully updated."
+        flash[:notice] =  raw "<i>#{@production.name}</i> was successfully updated."
         format.html { redirect_to(admin_theater_path(@production.theater)) }
         format.xml  { head :ok }
       else

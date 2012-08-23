@@ -56,3 +56,11 @@ When /^a donation of "\$(.*)" exists$/ do |amount|
   @donation.donation_line_items << FactoryGirl.create(:donation_line_item, :donation_amount=>amount)
   @donation.transition_to!(Order::PROCESSED)
 end
+
+
+Then /^the order should have an email task$/ do
+  @order = Order.last
+  count = @order.tasks.select{|task| task.is_a? MyEmmaTask}.size 
+  raise "Expected one email task, got #{count}" if count != 1
+end
+

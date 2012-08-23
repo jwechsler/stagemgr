@@ -1,4 +1,3 @@
-@wip
 Feature: An administrator can add production details to a theater
   Given a theater has been created
   As a StageMgr Admin user
@@ -37,11 +36,11 @@ Feature: An administrator can add production details to a theater
     When I follow "Destroy"
     Then I should not see "Production One"
 
-
   Scenario: Edit a production
   Given a production "Production One" exists
     And I go to the admin detail page for theater "Theater One"
     And I follow "Edit"
     And I change "Name" to "Production One (Changed)"
    When I press "Update"
+    And show me the page
    Then I should see "Production One (Changed) was successfully updated."

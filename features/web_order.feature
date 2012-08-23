@@ -1,4 +1,3 @@
-@wip
 Feature: Web ordering
   As an web site user
   I want to be able to buy tickets, using a variety of payment methods
@@ -50,7 +49,7 @@ Feature: Web ordering
     And I select "0" from "ticket_order_ticket_line_items_attributes_0_ticket_count"
     And I select "1" from "ticket_order_ticket_line_items_attributes_1_ticket_count"
     And I enter a valid credit card as payment
-    And I change "Credit card number" to "4222222222222"
+    And I change "Credit card number" to "2"
     And I press "Review Order"
     And I press "Order Tickets"
     And I should see "Please enter a valid credit card number"
@@ -61,4 +60,16 @@ Feature: Web ordering
     And I press "Order Tickets"
     Then I should see "Your ticket reservation has been made"
     And I should see "$10.00"
+
+  @wip
+  Scenario: Sign up for the mailing list
+    Given I go to new web order for production "Production One" and performance "PERF"
+    And I enter my contact information
+    And I select "1" from "ticket_order_ticket_line_items_attributes_1_ticket_count"
+    And I enter a valid credit card as payment
+    And I check "ticket_order_add_to_email_list"
+    And I press "Review Order"
+    And I press "Order Tickets"
+    Then the order should have an email task
+
 
