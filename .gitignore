@@ -14,6 +14,7 @@ config/ticket_print.yml
 config/database.yml
 config/databasedotcom.yml
 config/newrelic.yml
+config/my_emma_credentials.yml
 tags
 rerun.txt
 *~
