@@ -9,30 +9,34 @@ class MyEmmaTask < OrderTask
 
   private
 
+  def self.newsletter_id
+    unless defined? @@newsletter_id
+      @@newsletter_id = MyEmma::Group.find_by_group_name("Customer").id
+    end
+  end
+
+
   def add_show_to_myemma(order)
-    MyEmma.credentials = {
-        :emma_account_id => '1402458',
-        :signup_post => '1418001',
-        :username => 'TheaterWitIsR3m0t3!',
-        :password => 'Y730y7z4'
-    }
-    post_args = {:emma_member_name_first=>order.address.first_name,
-                 :emma_member_name_last=>order.address.last_name,
-                 :emma_member_wildcard_1403237=>'Every other week',
-                 :emma_member_address=>order.address.line1,
-                 :emma_member_city=>order.address.city,
-                 :emma_member_state=>order.address.state,
-                 :emma_member_postal_code=>order.address.zipcode,
-                 "group[208104529]"=>1}
-    if !additional_groups.nil?
-      additional_groups.each{|grp| post_args["group[#{grp}]"] = 1 if !grp.blank?}
+    result = true
+
+    unless order.address.email.blank?
+      member = MyEmma::Member.new
+
+      groups = [208104529]
+      additional_groups.each{|grp| groups << grp unless grp.blank?} unless additional_groups.nil?
+      groups << order.performance.production.myemma_attendee_group unless order.performance.nil? || order.performance.production.myemma_attendee_group.blank?
+      member.name_first = order.address.first_name
+      member.name_last = order.address.last_name
+      member.email = order.address.email
+      member.wildcard_1403237 = 'Every other week'
+      member.address = order.address.line1
+      member.city = order.address.city
+      member.state = order.address.state
+      member.postal_code = order.address.zipcode
+
+      result = member.save(groups)
     end
-    grp = order.performance.production.myemma_attendee_group unless order.performance.nil?
-    if !grp.blank?
-      post_args["group[#{grp}]"] = 1
-    end
-    response = MyEmma.signup(order.address.email, post_args)
-    response
+
   end
 
 end

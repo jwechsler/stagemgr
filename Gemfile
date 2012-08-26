@@ -40,7 +40,8 @@ gem "mysql2"
 gem "authlogic"
 gem "acts_as_audited", "~> 2.1.0"
 gem "will_paginate",          '~> 3.0.3'
-gem "my_emma", :git=> "https://github.com/hashrocket/my_emma.git"
+#gem "my_emma", :git=> "https://github.com/hashrocket/my_emma.git"
+gem "my_emma", :path=>"~/dev/my_emma"
 gem "paperclip",               "~> 3.1.2"
 gem "htmldiff"
 gem "StreetAddress",          "~> 1.0.1"
@@ -61,6 +62,7 @@ group :development do
   gem 'capistrano',           '~> 2.12.0'
   gem 'capistrano-ext',       '1.2.1'
   gem 'pry'
+  gem 'httplog', :require=>false
 end
 
 group :test do
