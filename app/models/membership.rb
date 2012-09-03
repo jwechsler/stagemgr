@@ -84,6 +84,10 @@ class Membership < ActiveRecord::Base
     self.status == PENDING
   end
 
+  def source_order
+    self.membership_line_item.order
+  end
+
   private
 
   def release_reservations_on_cancel_or_suspend

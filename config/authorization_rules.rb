@@ -53,7 +53,8 @@ authorization do
     has_permission_on :admin_flex_pass_offers, :to=>[:make, :manage, :view]
     has_permission_on :admin_addresses, :to=>[:view_email]
     has_permission_on :admin_reports, :to=>[:box_office_reports]
-    has_permission_on :admin_membership_orders, :to=>[:view]
+    has_permission_on :admin_membership_orders, :to=>[:view, :make, :manage]
+    has_permission_on :admin_membership_offers, :to=>[:view]
     has_permission_on :admin_special_features, :to=>[:view,:manage]
     has_permission_on :admin_donation_orders, :to=>[:view,:manage,:make]
   end
@@ -65,12 +66,12 @@ authorization do
     has_permission_on :admin_orders, :to=>[:cancel]
     has_permission_on :orders, :to=>[:delete]
     has_permission_on :ticket_orders, :to=>[:delete]
-
     has_permission_on :admin_donation_orders, :to=>[:view,:manage,:make,:fulfill,:refund]
     has_permission_on :admin_ticket_orders, :to=>[:reprint]
     has_permission_on :admin_refund_orders, :to=>[:make]
     has_permission_on :admin_users, :to=>[:view, :manage, :delete, :make]
     has_permission_on :productions, :to=>:delete
+    has_permission_on :admin_membership_offers, :to=>[:make, :manage, :delete]
     has_permission_on :admin_reports, :to=>[:reconciliation_reports, :membership_reports, :fulfill_donations, :mine_customer_data]
     has_permission_on :admin_default_ticket_classes, :to=>[:view, :make, :manage]
   end

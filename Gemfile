@@ -63,6 +63,7 @@ group :development do
   gem 'capistrano-ext',       '1.2.1'
   gem 'pry'
   gem 'httplog', :require=>false
+  gem 'debugger'
 end
 
 group :test do

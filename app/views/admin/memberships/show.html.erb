@@ -1,33 +1,10 @@
 <% title "Admin/Membership" %>
 
 <p>
-  <strong>Membership Offer:</strong>
-  <%= @membership.membership_offer_id %>
+  <strong>Name:</strong>
+  <%= @membership.name %>
 </p>
-<p>
-  <strong>Member Since:</strong>
-  <%= @membership.member_since %>
-</p>
-<p>
-  <strong>Order:</strong>
-  <%= @membership.order_id %>
-</p>
-<p>
-  <strong>Address:</strong>
-  <%= @membership.address_id %>
-</p>
-<p>
-  <strong>Member Code:</strong>
-  <%= @membership.member_code %>
-</p>
-<p>
-  <strong>Failed Payment Count:</strong>
-  <%= @membership.failed_payment_count %><%= " ($#{number_to_currency(@membership.outstanding_balance)}" if @membership.failed_payment_count > 0 %>
-</p>
-<p>
-  <strong>Status:</strong>
-  <%= @membership.status %>
-</p>
+
 <p>
   <%= link_to "Edit", edit_admin_membership_path(@membership) %> |
   <%= link_to "Destroy", [:admin, @membership], :confirm => 'Are you sure?', :method => :delete %> |

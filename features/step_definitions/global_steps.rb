@@ -6,7 +6,7 @@ Given /^(?:|I )(?:|am |is )logged in$/ do
   click_button('Login')
 end
 
-Given /^I am (|not )an Administrator$/ do |inverse|
+Given /^I am (|not )an [aA]dministrator$/ do |inverse|
 
   @current_test_user ||= FactoryGirl.build(:user)
   if inverse.empty?
@@ -17,3 +17,20 @@ Given /^I am (|not )an Administrator$/ do |inverse|
   @current_test_user.save_without_session_maintenance
 
 end
+
+Given /^I am (|not |)a [bB]ox [oO]ffice [uU]ser$/ do |inverse|
+
+  @current_test_user ||= FactoryGirl.build(:user)
+  @current_test_user.is_box_office_user = inverse.empty?
+  @current_test_user.save_without_session_maintenance
+  Rails.logger.debug "Saved #{@current_test_user.to_yaml}"
+
+end
+
+Given /^I am a [tT]heater [Uu]ser$/ do
+
+  @current_test_user ||= FactoryGirl.build(:user)
+  @current_test_user.save_without_session_maintenance
+
+end
+

@@ -1,19 +1,46 @@
 module PaymentProcessing
 
   class BogusResponse < ActiveMerchant::Billing::Response
+
     def initialize(original_response)
       super(original_response.success?, original_response.message, original_response.params)
+      @custom_fields = {}
     end
 
     def authorization
       '12345'
     end
+
+    def [](key)
+      @custom_fields[key]
+    end
+
+    def []=(key,value)
+      @custom_fields[key] = value
+    end
+
+
   end
 
   class BogusGateway < ActiveMerchant::Billing::BogusGateway
-      def purchase(money, creditcard, options = {})
-        response = BogusResponse.new(super(money, creditcard, options))
+    def purchase(money, creditcard, options = {})
+      response = BogusResponse.new(super(money, creditcard, options))
     end
+
+    def recurring(money, credit_card, options={})
+      response = BogusResponse.new(super(money, credit_card, options))
+      response.params['profile_id'] = 'TESTPROFILE'
+      response.params['profile_status'] = 'ActiveProfile'
+      response
+    end
+
+    def status_recurring(profile_id)
+      r = BogusResponse.new(ActiveMerchant::Billing::Response.new(true, "Forced Response"))
+      r.params['profile_id'] = profile_id
+      r.params['profile_status'] = 'ActiveProfile'
+      r
+    end
+
   end
 
   def self.after_initialize

@@ -1,4 +1,4 @@
-<% title "Admin/Membership Offers" %>
+<% title "Membership Offers" %>
 
 <table>
   <tr>
@@ -13,11 +13,25 @@
       <td><%= membership_offer.name %></td>
       <td class="currency"><%= number_to_currency(membership_offer.recurring_cost) %></td>
       <td><%= membership_offer.on_sale %>
-      <td><%= link_to "Show", [:admin, membership_offer] %></td>
-      <td><%= link_to "Edit", edit_admin_membership_offer_path(membership_offer) %></td>
-      <td><%= link_to "Destroy", [:admin, membership_offer], :confirm => 'Are you sure?', :method => :delete %></td>
+      <td><%- if permitted_to? :view,:admin_membership_offers %>
+        <%= link_to "Show", [:admin, membership_offer] %>
+        <%- end %>
+      </td>
+      <td><%- if permitted_to? :edit, :admin_membership_offers %>
+        <%= link_to "Edit", edit_admin_membership_offer_path(membership_offer) %>
+        <%- end %>
+      </td>
+      <td><%- if permitted_to? :destroy, :admin_membership_offers %>
+        <%= link_to "Destroy", [:admin, membership_offer], :confirm => 'Are you sure?', :method => :delete %>
+        <%- end %>
+      </td>
+      <td>
+        <%= link_to "Create Order", new_admin_membership_offer_order_path(membership_offer) %>
+      </5d>
     </tr>
   <% end %>
 </table>
 
-<p><%= link_to "New Membership Offer", new_admin_membership_offer_path %></p>
+<%- if permitted_to? :create, :admin_membership_offers %>
+  <p><%= link_to "New Membership Offer", new_admin_membership_offer_path %></p>
+<%- end %>

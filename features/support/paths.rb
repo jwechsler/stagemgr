@@ -39,6 +39,12 @@ module NavigationHelpers
       when /^the admin order page for the (.*)$/
         @using_admin_interface = true
         admin_order_path(eval "@#{$1}.id")
+      when /^the admin membership offers page$/
+        @using_admin_interface = true
+        admin_membership_offers_path
+      when /^the new admin membership offer page$/
+        @using_admin_interface = true
+        new_admin_membership_offer_path
 
       # Add more mappings here.
       # Here is an example that pulls values out of the Regexp:

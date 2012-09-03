@@ -1,0 +1,26 @@
+<div class="membership_detail">
+  <div class="membership_column_1" style="float:left; width:50%">
+    Current Status: <%= membership.status %><br/>
+    Member ID: <%= membership.member_code %><br/>
+    Member Since: <%= membership.member_since %><br/>
+    Next Billing Date: <%=  membership.next_billing_date %><br/>
+    <%- unless membership.failed_payment_count.blank? || membership.failed_payment_count == 0 %>
+      Failed Payment Count: <%= membership.failed_payment_count %><%= " (#{number_to_currency(membership.outstanding_balance)})" %>
+    <%- end %>
+  </div><div class="membership_column_2" style="float:right; width=50%">
+    <%- linked_offers = membership.special_offers
+        unless linked_offers.empty? %>
+          Special Offers: 
+          <%=   codes = []
+                linked_offers.each do |offer|
+                if offer.exhausted?
+                  codes << "<i>#{offer.code} (used)</i>"
+                else
+                  codes << offer.code
+                end 
+              end
+              raw codes.join(',')
+          %>
+    <%-  end %>
+  </div>
+</div>

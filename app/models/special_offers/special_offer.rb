@@ -131,6 +131,11 @@ class SpecialOffer < ActiveRecord::Base
     self.code = prefix + self.code
   end
 
+  def exhausted?
+    !(self.number_of_uses.blank? || self.number_of_uses > 0)
+  end
+
+
   def self.find_by_order(order)
     perf_id = order.performance.id
     prod_id = order.performance.production.id
@@ -146,7 +151,7 @@ class SpecialOffer < ActiveRecord::Base
     offers.select { |o|
       (o.ticket_class_code.blank? || order.ticket_line_items.select { |li|
         li.ticket_class.class_code.starts_with?(o.ticket_class_code) }.size > 0) &&
-          (o.number_of_uses.blank? || o.number_of_uses > 0)
+          (!o.exhausted?)
     }.first
 
   end

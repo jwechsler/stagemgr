@@ -24,7 +24,7 @@ Stagemgr::Application.configure do
   config.action_dispatch.best_standards_support = :builtin
 
   # Setup paypal module
-  
+
   $PAYMENT_CONFIG = YAML::load(File.open("#{::Rails.root.to_s}/config/payment_processing.yml"))['development']
 
   config.after_initialize do
@@ -33,7 +33,7 @@ Stagemgr::Application.configure do
     MyEmma.set_credentials_from_yaml("#{self.root.to_s}/config/my_emma_credentials.yml")
   end
 
-  
+
   $DATABASEDOTCOM = SalesforceSync.load_from_yaml_file('development',"#{::Rails.root.to_s}/config/databasedotcom.yml")
 
   $TKTPRINT =  YAML::load(File.open("#{::Rails.root.to_s}/config/ticket_print.yml"))['development']
@@ -43,13 +43,26 @@ Stagemgr::Application.configure do
   Paperclip.options[:log] = true
 
   silence_warnings do
-  begin
-    require 'pry'
-    IRB = Pry
-  rescue LoadError
+    begin
+      require 'pry'
+      IRB = Pry
+    rescue LoadError
+    end
+
   end
 
 end
 
-end
+unless $rails_rake_task
+  require 'ruby-debug'
 
+  Debugger.settings[:autoeval] = true
+  Debugger.settings[:autolist] = 1
+  Debugger.settings[:reload_source_on_change] = true
+  begin
+    Debugger.start_remote
+  rescue Exception => e
+    puts "Cannot start remote debugger - #{e.message}"
+  end
+
+end

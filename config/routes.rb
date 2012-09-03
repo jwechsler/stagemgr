@@ -1,5 +1,8 @@
 Stagemgr::Application.routes.draw do
 
+  namespace(:admin){ resources :memberships }
+
+
   namespace(:admin){ resources :special_features }
 
   post "venues/now_playing_fb"
@@ -23,8 +26,6 @@ Stagemgr::Application.routes.draw do
   namespace(:admin){ resources :venues }
 
    namespace(:admin){ resources :memberships }
-
-  namespace(:admin){ resources :membership_offers }
 
   namespace(:admin){ resources :default_ticket_classes }
 
@@ -82,7 +83,7 @@ Stagemgr::Application.routes.draw do
     resources :orders, :controller => 'flex_pass_offer_orders'
   end
 
-  resources :membership_offers, :only => false do
+  resources :membership_offers do
     resources :orders, :controller => 'membership_offer_orders'
   end
 
@@ -105,7 +106,7 @@ Stagemgr::Application.routes.draw do
 
   namespace :admin do
 
-    resources :membership_orders
+    resources :membership_orders, :only=>false
 
     resources :flex_pass_orders
 
@@ -116,9 +117,12 @@ Stagemgr::Application.routes.draw do
 
     end
 
-    resources :membership_offers do
+    resources :membership_offers
 
+    resources :membership_offers, :only=>false do
+      resources :orders, :controller => 'membership_offer_orders'
     end
+
     resources :reports do
       collection do
         post :production_sales_by_performance

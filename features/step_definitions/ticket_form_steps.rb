@@ -28,12 +28,12 @@ When /^I enter a valid credit card as payment( through the backend)?$/ do |backe
   unless @using_admin_interface
     select "01", :from=>"ticket_order_credit_card_expiration_month"
   else
-    fill_in "ticket_order_credit_card_expiration_month", :with=>Date.today.month.to_s
+    fill_in "MM", :with=>Date.today.month.to_s
   end
   unless @using_admin_interface
     select "2018", :from=>"ticket_order_credit_card_expiration_year"
   else
-    fill_in "ticket_order_credit_card_expiration_year", :with=>'18'
+    fill_in "YY", :with=>'18'
   end
   fill_in "Credit card number", :with=>"4111111111111111"
   fill_in "CVV", :with=>"581"

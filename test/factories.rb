@@ -147,6 +147,7 @@ FactoryGirl.define do
       name 'Test membership'
       recurring_cost BigDecimal.new("5.00")
       use_ticket_class_code 'MEMBER'
+      tickets_per_performance 1
     end
 
 end

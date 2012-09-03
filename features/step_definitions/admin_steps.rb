@@ -29,18 +29,30 @@ Given /^I enter a complete production with code "(.*?)"$/ do |code|
   fill_in "Additional information link", :with=>"http://google.com"
   select "Active", :from=>"Status"
 end
+
 When /^all production status values are presented$/ do
   Production::PRODUCTION_STATUSES.each {|status| select status,:from=>"Status"}
 end
-When /^I enter a theater called "([^"]*)"$/ do |name|
+
+When /^I enter a theater called "([^\"]*)"$/ do |name|
   fill_in "Name", :with=>name
   select Theater::THEATER_CLASSES.first, :from=>"Theater class"
 end
-When /^I enter production code "([^"]*)" and performance code "([^"]*)"$/ do |prod_code, perf_code|
+
+When /^I enter production code "([^\"]*)" and performance code "([^\"]*)"$/ do |prod_code, perf_code|
   fill_in "ticket_order_production_code", :with=>prod_code
   fill_in "ticket_order_performance_code", :with=>perf_code
 end
-When /^I enter (\d+) "([^"]*)" tickets$/ do |qty, ticket_class_code|
+
+When /^I enter (\d+) "([^\"]*)" tickets$/ do |qty, ticket_class_code|
   fill_in "ticket_order_ticket_line_items_attributes_0_ticket_class_code", :with=>ticket_class_code
   fill_in "ticket_order_ticket_line_items_attributes_0_ticket_count", :with=>qty
+end
+
+When /^I enter a membership offer "(.*?)"$/ do |offer_name|
+  fill_in "Name", :with => offer_name
+  fill_in "membership_offer_recurring_cost", :with=>"10.00"
+  fill_in "Tickets per performance", :with=>"1"
+  select "MEMBER", :from=>"Use ticket class code"
+  select "MEMBERFRIEND", :from=>"Use member friend code"
 end

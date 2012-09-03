@@ -434,7 +434,11 @@ class Order < ActiveRecord::Base
     if !self.address.nil? then
       self.address.regularize!
 
-      merge = self.address.find_original
+      if self.paid_with_membership? then
+        merge = membership_payments.first.membership.address
+      else
+        merge = self.address.find_original
+      end
       if !merge.nil? then
         merge.update_from(self.address)
         a = self.address
