@@ -31,8 +31,6 @@ class Production < ActiveRecord::Base
                     :path => ":rails_root/public/system/:attachment/:id/:style/:filename",
                     :url => "/system/:attachment/:id/:style/:filename"
 
-
-
   def to_s
     "#{self.name}, #{self.theater.name}"
   end
@@ -147,4 +145,33 @@ class Production < ActiveRecord::Base
     self.ticket_classes << tc }
     self
   end
+
+  def manage_after_save_active
+    if self.status == ACTIVE && self.status.changed?
+      run_callbacks :save_active
+    end
+  end
+
+def manage_after_save_private
+    if self.status == PRIVATE && self.status.changed?
+      run_callbacks :save_private
+    end
+  end
+end
+
+/* Non-engine code */
+class Production
+  before_save :create_my_emma_group
+
+  private
+  def create_my_emma_group
+    if self.status.changed? && [ACTIVE, PRIVATE].include?(self.status) then
+      if self.myemma_attendee_group.blank? then
+        new_group = MyEmma::Group.new
+        new_group.group_name = self.my_emma_group_name
+        self.myemma_attendee_group = new_group.id if new_group_save
+      end
+    end
+  end
+
 end
