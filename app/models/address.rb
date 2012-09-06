@@ -101,6 +101,7 @@ class Address < ActiveRecord::Base
     self.email = newer.email unless newer.email.blank?
     self.first_name = newer.first_name unless newer.email.blank?
     self.last_name = newer.last_name unless newer.last_name.blank?
+    self.full_name = newer.full_name unless newer.full_name.blank?
     self.line1 = newer.line1 unless newer.line1.blank?
     self.line2 = newer.line2 unless newer.line2.blank?
     self.city = newer.city unless newer.city.blank?
