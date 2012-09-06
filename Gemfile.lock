@@ -1,7 +1,7 @@
 PATH
   remote: ~/dev/my_emma
   specs:
-    my_emma (0.0.1)
+    my_emma (0.0.2)
       activemodel
       crack
       httparty (= 0.7.8)
