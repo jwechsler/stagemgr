@@ -440,10 +440,13 @@ class Order < ActiveRecord::Base
         merge = self.address.find_original
       end
       if !merge.nil? then
-        merge.update_from(self.address)
-        a = self.address
-        self.address = merge
-        a.destroy if !a.nil?
+        comparison_id = self.address.id.nil? ? -1 : self.address.id
+        if comparison_id != merge.id then
+          merge.update_from(self.address)
+          a = self.address
+          self.address = merge
+          a.destroy if !a.nil?
+        end
       end
     end
   end
