@@ -1,7 +1,11 @@
 <h2>Good to see you</h2>
 
 <p>
-  Thanks for coming by to see <i><%= @order.performance.production.name %></i>.
+  <%- if @order.performance.production.theater.is_default? %>
+    Thanks for coming by to see <i><%= @order.performance.production.name %></i>.
+  <%- else %>
+    Thanks for coming by to see <i><%= @order.performance.production.name %>,</i> presented by <%= @order.performance.production.theater.name %>.
+  <%- end %>
   <%= raw @order.performance.production.follow_up_text unless @order.performance.production.follow_up_text.blank? %>
   I'd like to take this opportunity to invite you back to Theater Wit.
   There's a ton happening here, some of which are listed in the sidebar to the left, and I hope you'll have a chance
