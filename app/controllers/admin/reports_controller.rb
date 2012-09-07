@@ -6,7 +6,7 @@ class Admin::ReportsController < Admin::ApplicationController
   # GET /admin/reports.xml
   def index
 
-    @productions = Production.with_permissions_to(:read).where(current_user.is_theater_user? ? "1=1" : "status != 'Inactive' and exists (select * from theaters where theaters.status != 'Inactive' and theaters.id = productions.theater_id)")
+    @productions = Production.with_permissions_to(:read).where(current_user.is_theater_user? ? "1=1" : "(status != 'Inactive' and exists (select * from theaters where theaters.status != 'Inactive' and theaters.id = productions.theater_id)) or productions.theater_id = 1")
     if current_user.is_theater_user? then
       @productions.sort! { |p1, p2| p2.press_opening_at <=>p1.press_opening_at }
     else

@@ -37,7 +37,7 @@ module Stagemgr
     
     # hide credit card parameters.
     
-    config.filter_parameters << :password << :credit_card_number << :card_number
+    config.filter_parameters << :password << :credit_card_number << :card_number << :credit_card_verification_number << :credit_card_expiration_month << :credit_card_expiration_year
 
   # If you want to use gmail for deliver...
   #config.action_mailer.delivery_method = :smtp
