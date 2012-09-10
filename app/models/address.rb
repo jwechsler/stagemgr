@@ -356,7 +356,7 @@ class Address < ActiveRecord::Base
   end
 
   def last_attendance_date
-    TicketOrder.includes(:performance).maximum('performance_date',:conditions=>["orders.address_id = ?", self.id])
+    TicketOrder.joins(:performance).maximum('performance_date',:conditions=>["orders.address_id = ?", self.id])
   end
 
   def productions_attended(start_date = 10.years.ago, end_date = Time.now)

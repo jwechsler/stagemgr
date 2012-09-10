@@ -253,6 +253,9 @@ class Admin::ReportsController < Admin::ApplicationController
         csv << headers.map { |h| tidy_output(r[h]) }
       end
     end
+    f = File.new('/tmp/debug.csv','w')
+    f.puts(csv_string)
+    f.close
     send_data csv_string, :type => "text/csv", :filename=>"#{title}.csv", :disposition=>'attachment'
   end
 
@@ -430,12 +433,12 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def build_telemarketing_dump(start_day, minimum_attended = 0,required_theaters = nil,minimum_revenue = 0.0)
-    orders = TicketOrder.includes(:address).where("orders.status in (?) and orders.created_at >= ?",Order.attended_statuses, start_day)
+    orders = TicketOrder.includes(:address).where("orders.address_id = 21705 and orders.status in (?) and orders.created_at >= ?",Order.attended_statuses, start_day)
     orders = orders.select {|o| required_theaters.include?(o.performance.production.theater_id)} unless (required_theaters.nil? || required_theaters.empty?)
     addresses = orders.map{|o| o.address}.uniq.select{|a| !a.nil? && a.productions_attended(start_day).size >= minimum_attended && a.revenue_collected(start_day) >= minimum_revenue}.sort{|a,b| a.last_name <=> b.last_name}
 
     report = Array.new
-    headers = [:primary_theatre_attendee, :full_name, :phone, :email, :last_attended, :attended_in_period, :total_attended, :companies_attended_in_period, :total_companies_attended, :is_member, :is_flex_pass_holder, :production_history, :city, :state, :postal_code ]
+    headers = [:primary_theatre_attendee, :full_name, :phone, :email, :last_attended, :attended_in_period, :total_attended, :companies_attended_in_period, :total_companies_attended, :is_member, :is_flex_pass_holder, :production_history, :street_address, :city, :state, :postal_code ]
     addresses.each do |address|
       all_prods = address.productions_attended
       primary_attendee = all_prods.map {|p| p.theater_id}.uniq.include?(1)
