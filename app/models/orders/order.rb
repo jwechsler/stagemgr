@@ -584,10 +584,8 @@ class Order < ActiveRecord::Base
   end
 
   def transition_new_to_processed!(redirect_to = nil)
-    Order.transaction do
       transition_new_to_processing!(redirect_to)
       transition_processing_to_processed!(redirect_to)
-    end
   end
 
   def transition_new_to_processing!(redirect_to = nil)
