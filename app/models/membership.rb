@@ -59,7 +59,7 @@ class Membership < ActiveRecord::Base
     cycles ||=0
     profile_status = response["profile_status"][0..-8]  unless response["profile_status"].blank?
     self.status = case
-      when (profile_status == ACTIVE) && (cycles > 0)
+      when (profile_status == ACTIVE)
         ACTIVE
       when (profile_status == PENDING) || (profile_status == ACTIVE && cycles == 0)
         PENDING
