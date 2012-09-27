@@ -180,7 +180,7 @@ class Admin::ReportsController < Admin::ApplicationController
     @headers, @report_data = build_fulfill_labels(@through_day)
     unless $TKTPRINT['service'].blank?
       flash[:notice] = fading_flash_message("Tickets printed")
-      redirect_to admin_reports_path 
+      redirect_to admin_reports_path
     else
       send_report_as_csv('ticket_labels', @headers, @report_data) unless $TKTPRINT['service'].blank?
     end
@@ -433,7 +433,7 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def build_telemarketing_dump(start_day, minimum_attended = 0,required_theaters = nil,minimum_revenue = 0.0)
-    orders = TicketOrder.includes(:address).where("orders.address_id = 21705 and orders.status in (?) and orders.created_at >= ?",Order.attended_statuses, start_day)
+    orders = TicketOrder.includes(:address).where("orders.status in (?) and orders.created_at >= ?",Order.attended_statuses, start_day)
     orders = orders.select {|o| required_theaters.include?(o.performance.production.theater_id)} unless (required_theaters.nil? || required_theaters.empty?)
     addresses = orders.map{|o| o.address}.uniq.select{|a| !a.nil? && a.productions_attended(start_day).size >= minimum_attended && a.revenue_collected(start_day) >= minimum_revenue}.sort{|a,b| a.last_name <=> b.last_name}
 
