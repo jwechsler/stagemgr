@@ -4,7 +4,7 @@ class MembershipOrdersController < ApplicationController
   include MembershipOrdersHelper
 
   def create
-    self.create_membership
+    success = self.create_membership
 
     if success
       flash[:notice] = raw "You've been successfully set up for the <strong>#{@order.membership_offer.name}</strong> payment plan."
