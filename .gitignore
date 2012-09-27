@@ -9,7 +9,7 @@ db/*.sqlite3
 log/*.log
 tmp/**/*
 .DS_Store
-
+tmp/**
 config/ticket_print.yml
 config/database.yml
 config/databasedotcom.yml
