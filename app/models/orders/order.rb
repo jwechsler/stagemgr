@@ -86,6 +86,7 @@ class Order < ActiveRecord::Base
   before_validation :set_defaults
 
   after_validation :auto_link_processed_to_address_of_record
+  after_validation :prevent_status_rollbacks
   before_destroy :check_for_settled_payments
   before_save :set_theater
   after_save :set_tasks_after_save
@@ -215,6 +216,7 @@ class Order < ActiveRecord::Base
   def processing?
     PROCESSING == self.status
   end
+
 
   def editable?
     [HOLD, NEW, PROCESSING, nil].include? self.status
@@ -412,6 +414,11 @@ class Order < ActiveRecord::Base
     [Order::NEW, Order::PROCESSING]
   end
 
+  def self.unprocessed_statuses
+    [Order::HOLD] + self.transitory_statuses
+  end
+
+
 
   def self.delete_unprocessed_orders
     orders = Order.where("status in (:transitory_status) and updated_at < :window and type != 'MembershipOrder'",
@@ -553,6 +560,14 @@ class Order < ActiveRecord::Base
     raise "Cannot destroy orders with settled payments" if paid_amt > 0
     true
   end
+
+  def prevent_status_rollbacks
+    if self.status_changed? && !self.status_was.blank?
+      raise "Cannot reprocess orders" if Order.unprocessed_statuses.include?(self.status) && !Order.unprocessed_statuses.include?(self.status_was)
+    end
+    true
+  end
+
 
   def refund_line_items(reversing_entries)
 
