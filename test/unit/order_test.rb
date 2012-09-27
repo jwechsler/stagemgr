@@ -187,6 +187,7 @@ class OrderTest < ActiveSupport::TestCase
         @production.capacity = 10
         @production.save
         @ticket_class = FactoryGirl.create(:ticket_class, :production=>@production)
+        @comp_ticket = FactoryGirl.create(:ticket_class, :production=>@production, :class_code=>"COMP", :ticket_price=>0.0)
         @performance = FactoryGirl.create(:performance, :production=>@production)
         @address = addresses(:jeremy)
       end
@@ -211,7 +212,7 @@ class OrderTest < ActiveSupport::TestCase
     should "A canceled order does not reduces the quantity of tickets available for the performance" do
       without_access_control do
         o = FactoryGirl.create(:ticket_order, :performance=>@performance, :payment_type=>Order::CASH)
-        li = o.ticket_line_items.create!(:ticket_class=>@production.ticket_classes.first, :ticket_count=>5)
+        li = o.ticket_line_items.create!(:ticket_class=>@comp_ticket, :ticket_count=>5)
         o.transition_to!(Order::PROCESSED)
         o.cancel!
         assert_equal 10, @performance.number_of_tickets_left

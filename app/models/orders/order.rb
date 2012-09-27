@@ -86,6 +86,7 @@ class Order < ActiveRecord::Base
   before_validation :set_defaults
 
   after_validation :auto_link_processed_to_address_of_record
+  before_destroy :check_for_settled_payments
   before_save :set_theater
   after_save :set_tasks_after_save
 
@@ -349,9 +350,13 @@ class Order < ActiveRecord::Base
     "Unknown"
   end
 
-  def total_amount
+  def total_paid
     sum = self.payments.inject { |sum, x| sum + x.nil? ? 0 : x.amount }
     sum.amount unless sum.nil?
+  end
+
+  def total_amount
+    self.total_paid
   end
 
   def set_form_defaults
@@ -541,6 +546,12 @@ class Order < ActiveRecord::Base
 
   def set_theater
 
+  end
+
+  def check_for_settled_payments
+    paid_amt = self.total_paid || 0
+    raise "Cannot destroy orders with settled payments" if paid_amt > 0
+    true
   end
 
   def refund_line_items(reversing_entries)

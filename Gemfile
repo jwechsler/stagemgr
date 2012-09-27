@@ -65,6 +65,7 @@ group :development do
   gem 'pry'
   gem 'httplog', :require=>false
   gem 'debugger'
+  gem 'single_test'
 end
 
 group :test do
