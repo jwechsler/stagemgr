@@ -1,8 +1,8 @@
 GIT
   remote: https://github.com/jwechsler/my_emma.git
-  revision: 37d610fc6050f1b954fa8130a30a190b264c0f4b
+  revision: c23200d8fd00dcd7bbabbfaf3c645663c7b676eb
   specs:
-    my_emma (0.0.2)
+    my_emma (0.0.3)
       activemodel
       crack
       httparty (= 0.7.8)
@@ -312,7 +312,7 @@ DEPENDENCIES
   mocha
   money
   mongrel (= 1.2.0.pre2)
-  my_emma!
+  my_emma (~> 0.0.3)!
   mysql2
   name_parse (~> 0.0.5)
   namecase (~> 1.1.0)

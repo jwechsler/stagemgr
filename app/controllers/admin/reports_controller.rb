@@ -1,3 +1,5 @@
+require 'csv'
+
 class Admin::ReportsController < Admin::ApplicationController
   include Admin::ReportsHelper
   helper_method :tidy_output
@@ -250,7 +252,7 @@ class Admin::ReportsController < Admin::ApplicationController
     csv_string = CSV.generate do |csv|
       csv << headers
       data.each do |r|
-        csv << headers.map { |h| tidy_output(r[h]) }
+        csv << headers.map { |h| tidy_output(r[h]) } unless r.nil?
       end
     end
     f = File.new('/tmp/debug.csv','w')
@@ -270,6 +272,23 @@ class Admin::ReportsController < Admin::ApplicationController
                 :phone=>a.phone,
                 :email=>a.email}
   end
+
+  def address_hash_from_my_emma_member(member)
+    Hash[MyEmma::Member.api_attributes.to_a.map {
+      |a| key = case a
+        when :name_first
+          :first_name
+        when :name_last
+          :last_name
+        when :address
+          :street_address
+        else
+          a
+        end
+        [key.to_sym, member.instance_variable_get("@#{a.to_sym}") ]
+    }]
+  end
+
 
   def address_hash_from_order(o)
     unless o.address.blank?
@@ -326,7 +345,7 @@ class Admin::ReportsController < Admin::ApplicationController
     report = Array.new
     sums = {:collected=>Money.new(0), :payout=>Money.new(0), :performances_attended=>0, :number_cycles=>0}
     headers = [:member_since, :last_name, :first_name]
-    headers += [:street_address, :street_address_2, :state, :city, :state, :postal_code, :phone] unless display_only
+    headers += [:email, :street_address, :street_address_2, :state, :city, :state, :postal_code, :phone] unless display_only
     headers += [:status, :number_cycles, :collected, :performances_attended, :payout, :net_revenue, :avg_revenue_month, :avg_performances_month]
     memberships.each do |membership|
       unless membership.number_cycles_completed.nil? || membership.number_cycles_completed == 0 || membership.member_since > end_day || (membership.member_since + membership.number_cycles_completed.months) < start_day
@@ -697,19 +716,39 @@ class Admin::ReportsController < Admin::ApplicationController
     [keys, report]
   end
 
+  public
   def build_order_dump(production)
     report = Array.new
     keys = columns_for_orders(true)
     keys += [:order_total, :num_tickets]
+    members_by_email = Hash.new
+    unless MyEmma.disabled? || production.myemma_attendee_group.nil?
+      grp = MyEmma::Group.find(production.myemma_attendee_group)
+      members = grp.members
+
+      members.each do |m|
+        members_by_email[m.email] = m
+      end
+
+    end
     production.performances.each { |performance|
       orders = TicketOrder.joins(:ticket_line_items).where("performance_id = :performance_id", {:performance_id=>performance.id})
 
       orders.each { |o|
         if o.attended? then
           row = create_hash_from_order_fields(o)
+          members_by_email.delete(row[:email])
           report << row
         end
       }
+    }
+
+    members_by_email.each {|email, m|
+      if m.active?
+        row =  address_hash_from_my_emma_member(m)
+        row[:id] = 'email'
+        report << row
+      end
     }
     [keys, report]
   end

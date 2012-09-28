@@ -159,9 +159,13 @@ def manage_after_save_private
   end
 end
 
-# Non-engine code 
+# Non-engine code
 class Production
-  before_save :create_my_emma_group
+  before_save :create_my_emma_group unless :my_emma_disabled?
+
+  def my_emma_disabled?
+    MyEmma::disabled?
+  end
 
   def create_my_emma_group
     if self.myemma_attendee_group.blank? && self.status_changed? && [ACTIVE, PRIVATE].include?(self.status) then
