@@ -10,7 +10,7 @@ class Admin::ReportsController < Admin::ApplicationController
 
     @productions = Production.with_permissions_to(:read).where(current_user.is_theater_user? ? "1=1" : "(status != 'Inactive' and exists (select * from theaters where theaters.status != 'Inactive' and theaters.id = productions.theater_id)) or productions.theater_id = 1")
     if current_user.is_theater_user? then
-      @productions.sort! { |p1, p2| p2.press_opening_at <=>p1.press_opening_at }
+      @productions.sort! { |p1, p2| (p2.press_opening_at || Date.today-10.years) <=> (p1.press_opening_at || Date.today-10.years)}
     else
       @productions.sort! { |p1, p2| p1.name <=> p2.name }
     end
@@ -637,10 +637,10 @@ class Admin::ReportsController < Admin::ApplicationController
              params["#{field_name.to_s}(3i)"].to_i)
   end
 
-  def columns_for_orders(build_for_dumpfile)
+  def columns_for_orders(build_for_dumpfile, include_emails = false)
     keys = [:order_date]
     keys += [:id, :first_name, :last_name, :street_address, :street_address_2, :city, :state, :postal_code, :phone] if build_for_dumpfile
-    keys += [:email] if (build_for_dumpfile && permitted_to?(:view_email, :admin_addresses))
+    keys += [:email] if (build_for_dumpfile && (permitted_to?(:view_email, :admin_addresses) || include_emails))
     keys += [:performance_code, :special_offer_code, :status, :description] if build_for_dumpfile
     keys
   end
@@ -719,7 +719,7 @@ class Admin::ReportsController < Admin::ApplicationController
   public
   def build_order_dump(production)
     report = Array.new
-    keys = columns_for_orders(true)
+    keys = columns_for_orders(true,true)
     keys += [:order_total, :num_tickets]
     members_by_email = Hash.new
     unless MyEmma.disabled? || production.myemma_attendee_group.nil?
@@ -727,7 +727,7 @@ class Admin::ReportsController < Admin::ApplicationController
       members = grp.members
 
       members.each do |m|
-        members_by_email[m.email] = m
+        members_by_email[m.email.downcase] = m unless m.email.nil?
       end
 
     end
@@ -737,7 +737,13 @@ class Admin::ReportsController < Admin::ApplicationController
       orders.each { |o|
         if o.attended? then
           row = create_hash_from_order_fields(o)
-          members_by_email.delete(row[:email])
+          unless row[:email].nil?
+            if members_by_email.has_key?(row[:email].downcase)
+               members_by_email.delete(row[:email].downcase)
+            else
+              row[:email] = nil unless permitted_to?(:view_email, :admin_addresses)
+            end
+          end
           report << row
         end
       }
