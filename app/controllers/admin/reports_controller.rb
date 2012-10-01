@@ -270,7 +270,8 @@ class Admin::ReportsController < Admin::ApplicationController
                 :state=>a.state,
                 :postal_code=>a.zipcode,
                 :phone=>a.phone,
-                :email=>a.email}
+                :email=>a.email,
+                :address_id=>a.id}
   end
 
   def address_hash_from_my_emma_member(member)
@@ -457,7 +458,7 @@ class Admin::ReportsController < Admin::ApplicationController
     addresses = orders.map{|o| o.address}.uniq.select{|a| !a.nil? && a.productions_attended(start_day).size >= minimum_attended && a.revenue_collected(start_day) >= minimum_revenue}.sort{|a,b| a.last_name <=> b.last_name}
 
     report = Array.new
-    headers = [:primary_theatre_attendee, :full_name, :phone, :email, :last_attended, :attended_in_period, :total_attended, :companies_attended_in_period, :total_companies_attended, :is_member, :is_flex_pass_holder, :production_history, :street_address, :city, :state, :postal_code ]
+    headers = [:address_id, :primary_theatre_attendee, :full_name, :phone, :email, :last_attended, :attended_in_period, :total_attended, :companies_attended_in_period, :total_companies_attended, :is_member, :is_flex_pass_holder, :production_history, :street_address, :city, :state, :postal_code ]
     addresses.each do |address|
       all_prods = address.productions_attended
       primary_attendee = all_prods.map {|p| p.theater_id}.uniq.include?(1)
