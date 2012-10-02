@@ -1,7 +1,11 @@
 <h2>Good to see you</h2>
 
 <p>
-  Thanks for coming by to see <i><%= @order.performance.production.name %></i>.
+  <%- if @order.performance.production.theater.is_default? %>
+    Thanks for coming by to see <i><%= @order.performance.production.name %></i>.
+  <%- else %>
+    Thanks for coming by to see <i><%= @order.performance.production.name %>,</i> presented by <%= @order.performance.production.theater.name %>.
+  <%- end %>
   I hope you had a good evening and will return soon (there are a few suggestions in
   the sidebar on the right, but check our website for all upcoming events). Unless
   you've signed up for our email list, this is the last email you'll get from us in
