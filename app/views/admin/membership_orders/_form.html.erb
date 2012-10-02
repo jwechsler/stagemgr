@@ -1,4 +1,4 @@
-<%= javascript :defaults, 'delegate', 'jquery-1.4.2.min', 'CardReader', 'jquery.autocomplete', 'membership_order' %>
+<%= javascript :defaults, 'CardReader', 'membership_order' %>
 
 <%= error_messages_for :membership_order %>
 
@@ -46,7 +46,7 @@
     <%= order_form.fields_for :address do |address_form| %>
       <%= render :partial => '/admin/orders/address_form', :locals => {:f => address_form} %>
     <% end %>
-   
+
     <table>
       <tr>
         <td valign="top">

@@ -6,16 +6,19 @@ class Admin::AutoCompleteController < Admin::ApplicationController
       :conditions => ["LOWER(production_code) LIKE ? and status != 'Inactive'", '%'+params[:q].to_s.downcase + '%']
     }
     productions = Production.with_permissions_to(:read).where(["LOWER(production_code) LIKE ? and status != 'Inactive'", '%'+params[:q].to_s.downcase + '%'])
-    render :inline => productions.map { |production| "#{production.production_code}|#{production.to_s}" }.join("\n")
+    render :json => productions.map { |production|
+      {:code=>production.production_code, :name=>production.name, :theater=>production.theater.name} }
   end
 
   def performance_code
     production = Production.find_by_production_code(params[:production_code])
     if production.nil?
-      render :inline=>""
+      render :json=>Array.new
     else
       performances = production.performances.search_by_code(params[:q])
-      render :inline => performances.map { |performance| "#{performance.performance_code}|#{performance.to_s}" }.join("\n")
+      render :json => performances.map { |performance|
+        {:code=>performance.performance_code, :name=>performance.to_s}
+      }
     end
   end
 

@@ -51,6 +51,9 @@ gem "gemcutter"
 gem "postmark-rails"
 gem "namecase", "~> 1.1.0"
 gem "name_parse", "~> 0.0.5"
+gem "jquery-rails", '~> 2.1'
+#gem "rails3-jquery-autocomplete", :path=>"~/dev/rails3-jquery-autocomplete", :branch=>"v2"
+
 
 group :development do
   gem 'wirble',               '0.1.3'
@@ -102,6 +105,12 @@ group :cucumber do
   gem 'simplecov'
   gem "factory_girl_rails", "~> 3.0"
   gem "rbx-require-relative"
+end
+
+group :assets do
+  gem 'sass-rails', "~> 3.1.0"
+  gem 'coffee-rails', '~> 3.1.0'
+  gem 'uglifier'
 end
 
 gem "mocha", :group => :test

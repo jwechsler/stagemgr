@@ -33,7 +33,7 @@ a {
 #notice a:hover, #error a:hover { color: #333; border: 1px solid #333; }
 
 #menu_area {
-	margin: 2px 0px 5px 0px;
+  margin: 2px 0px 5px 0px;
 }
 
 #flash_notice, #flash_error {
@@ -303,5 +303,5 @@ dl.name-value-display {
   width: 560px;
 }
 
-.name-value-display dt {			font-style: italic; vertical-align: text-bottom; clear: left;			float: left;			min-width: 175px;			margin: .5em 0;		}
-.name-value-display  dd {			margin: .5em 0;			float: left;			padding: 0 0 0 1em;						}
+.name-value-display dt {      font-style: italic; vertical-align: text-bottom; clear: left;     float: left;      min-width: 175px;     margin: .5em 0;   }
+.name-value-display  dd {     margin: .5em 0;     float: left;      padding: 0 0 0 1em;           }

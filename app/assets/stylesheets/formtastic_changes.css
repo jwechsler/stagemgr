@@ -27,7 +27,7 @@ form.formtastic fieldset.address li {
 
 
 form.formtastic fieldset label {
-    font-size:12px;
+    font-size:14px;
 }
 
 form.formtastic fieldset ol li.inlineA {float: left; margin-left: 25%; width: 180px }
