@@ -32,7 +32,9 @@ function add_autocomplete_tccode(order_type, tccode_input) {
         recalculate_row_total(order_type, my_tr)
       }
     });
-
+    tccode_input.live('keypress', function() {
+      return event.which != 13;
+    });
 }
 
 
@@ -150,10 +152,14 @@ function setup_ticket_autocompletes(order_type) {
       });
     $(".autocomplete_tccode").each(function(index, domElement) {
         u = $(domElement).attr("autocomplete_url")
-        console.log(u)
         add_autocomplete_tccode(order_type, $(domElement))
       });
   });
+
+  $('input.autocomplete_tccode').live('keypress', function() {
+    return event.which != 13;
+  });
+
 };
 
 

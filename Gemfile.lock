@@ -8,6 +8,12 @@ GIT
       httparty (= 0.7.8)
       json
 
+GIT
+  remote: https://github.com/sandboxrem/jqgrid-rails3.git
+  revision: 8229bca04615ee4bfb12b2ca1b8a9288a2cfa7cc
+  specs:
+    jqgrid-rails3 (0.0.1)
+
 GEM
   remote: http://rubygems.org/
   specs:
@@ -329,6 +335,7 @@ DEPENDENCIES
   gemcutter
   htmldiff
   httplog
+  jqgrid-rails3!
   jquery-rails (~> 2.1)
   launchy (= 0.4.0)
   map_by_method (= 0.8.3)

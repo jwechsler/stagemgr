@@ -1,5 +1,3 @@
-<% javascript :defaults, 'delegate', 'jquery-1.4.2.min' %>
-
 <% content_for :jstemplates do -%>
 var orderRowSelected = function(id,target){
   if (target == "admin_orders_index_grid_detail") {
@@ -11,7 +9,7 @@ var orderRowSelected = function(id,target){
           alert("Order<" + key +"> can not be fulfilled. " + value['message']);
         }
       });
-      e = jQuery.Event('keypress'); 
+      e = jQuery.Event('keypress');
       e.charCode = 13;
       jQuery('#gbox_admin_orders_index_grid .ui-search-toolbar input').trigger(e);
     	});
@@ -24,7 +22,7 @@ var orderRowSelected = function(id,target){
 <%= include_jquery_grid_css %>
 <%
 grid_loaded_javascript='var launch_search = function(){};'
-search_keys = session[:existing_box_office_orders_state].keys - ['rows','page','sidx','sord'] 
+search_keys = session[:existing_box_office_orders_state].keys - ['rows','page','sidx','sord']
 if search_keys.size > 0
 set_search_script = search_keys.map do |key|
   ['rows','page','sidx','sord'].include?(key) ?
@@ -33,9 +31,9 @@ set_search_script = search_keys.map do |key|
 end.compact.join("\n\t")
 grid_loaded_javascript = "
 var trigger_search = function(){
-	var grid = jQuery('#gview_admin_orders_index_grid'); 
-	e = jQuery.Event('keypress'); 
-	e.charCode = 13; 
+	var grid = jQuery('#gview_admin_orders_index_grid');
+	e = jQuery.Event('keypress');
+	e.charCode = 13;
 	grid.find('#gs_#{search_keys.last.gsub(/\./,'\\\\\\\\.')}').trigger(e);
 	//stop the infinite loop
 	launch_search = function(){};
@@ -51,8 +49,8 @@ end
 <script>
 <%=grid_loaded_javascript%>
 </script>
-<%= raw(jquery_grid :admin_orders_index_grid, 
-                :rows_per_page=>session[:existing_box_office_orders_state]['rows'], 
+<%= raw(jquery_grid :admin_orders_index_grid,
+                :rows_per_page=>session[:existing_box_office_orders_state]['rows'],
                 :page=>session[:existing_box_office_orders_state]['page'],
                 :sort_column=>session[:existing_box_office_orders_state]['sidx'],
                 :sort_order=>session[:existing_box_office_orders_state]['sord'],

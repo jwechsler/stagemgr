@@ -47,17 +47,13 @@ setup_line_item_row_control(order_type)
 $('input.ticket_count,input.price_override').live('change',function() {
   recalculate_row_total("ticket_order",$(event.target).parents('tr'))
 });
-/*
-$('input.autocomplete_tccode').live('keypress', function() {
-  return event.which != 13;
-});
-*/
+
+
 show_proper_payment_form();
 $('#ticket_order_payment_type').change(function() {
   show_proper_payment_form();
 });
 $('#unclaimed_link').click(function(event) {
-  alert('Hooray!');
   event.preventDefault();
 });
 
