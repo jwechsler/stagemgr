@@ -52,7 +52,6 @@ gem "postmark-rails"
 gem "namecase", "~> 1.1.0"
 gem "name_parse", "~> 0.0.5"
 gem "jquery-rails", '~> 2.1'
-gem "jqgrid-rails3", :git=>"https://github.com/sandboxrem/jqgrid-rails3.git"
 #gem "rails3-jquery-autocomplete", :path=>"~/dev/rails3-jquery-autocomplete", :branch=>"v2"
 
 

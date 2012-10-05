@@ -18,8 +18,6 @@ var orderRowSelected = function(id,target){
 }
 <% end -%>
 
-<%= include_jquery_grid_javascript %>
-<%= include_jquery_grid_css %>
 <%
 grid_loaded_javascript='var launch_search = function(){};'
 search_keys = session[:existing_box_office_orders_state].keys - ['rows','page','sidx','sord']
