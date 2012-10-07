@@ -1,10 +1,11 @@
 
-function show_proper_payment_form() {
-  jQuery(function($) {
+
+function show_proper_payment_form(order_type) {
+  jQuery(document).ready(function($) {
     $('#payment_forms').children('div').each(function() {
       $(this).hide();
     });
-    switch ($('#ticket_order_payment_type').val()) {
+    switch ($('#' + order_type + '_payment_type').val()) {
       case 'Credit Card':
         $('#credit_card_payment_form').show();
         break;
@@ -21,3 +22,11 @@ function show_proper_payment_form() {
   });
 }
 
+
+function setup_payment_form(order_type) {
+  jQuery(document).ready(function($) {
+    $("#"+ order_type+"_payment_type").change(function() {
+      show_proper_payment_form(order_type);
+    });
+  });
+}
