@@ -142,6 +142,7 @@ Stagemgr::Application.routes.draw do
         get :production_code
         get :performance_code
         get :ticket_class_code
+        get :address
       end
     end
 

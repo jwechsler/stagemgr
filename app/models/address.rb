@@ -1,7 +1,7 @@
 require 'street_address'
 require 'address_imports'
 require 'csv'
-require 'name_parse'
+require 'people'
 
 class Address < ActiveRecord::Base
 
@@ -14,32 +14,29 @@ class Address < ActiveRecord::Base
   has_many :address_tags
   has_many :memberships
   accepts_nested_attributes_for :address_tags, :allow_destroy => true
+  before_save :set_search_name
 
   MAILLIST_STATUS = (
     REQUESTED, SAVED =
   "Requested", "Saved")
+
+  SEARCHABLE_REGEXP = /[\d+\s+\.!,]/
 
   attr_accessible :full_name, :line1, :line2, :city, :state, :zipcode, :email, :phone, :street_number, :address_tags_attributes
   acts_as_audited :protect=>false, :except=>['street_number', 'street', 'street_type', 'unit', 'unit_prefix', 'search_name']
   attr_accessor :sf_object
 
   def parse_full_name
-    self.full_name = NameCase(self.full_name)
-    if self.full_name.include?(' ')
-      parsed = NameParse::Parser.new(self.full_name)
-      if [:first_last, :first_mid_last].include?(parsed.matched)
-        f_name = parsed.first
-        l_name = parsed.last
-        m_name = parsed.middle
-      else
-        brute_force = self.full_name.split(' ')
-        l_name = brute_force.last
-        f_name = brute_force[0..-2].join(' ')
-      end
+    parsed = People::NameParser.new(:couples=>true).parse(self.full_name)
+    self.full_name = parsed.clean
+    if parsed[:parsed]
+      f_name = parsed[:first]
+      l_name = parsed[:last]
+      m_name = parsed[:middle]
     else
-      l_name = self.full_name
-      f_name = ''
-      m_name = ''
+      f_name = ""
+      l_name = parsed[:clean]
+      m_name = ""
     end
     [f_name, m_name, l_name]
   end
@@ -233,6 +230,10 @@ class Address < ActiveRecord::Base
     self.orders.select { |o| (o.is_a? MembershipOrder) && (o.membership_line_items.first.membership.status == Membership::ACTIVE) }.count > 0
   end
 
+  def current_membership
+    self.orders.select { |o| (o.is_a? MembershipOrder) && (o.membership_line_items.first.membership.status == Membership::ACTIVE) }.first
+  end
+
   def self.export_addresses_as_csv(addresses, filename)
     csv_string = FasterCSV.generate do |csv|
       csv << [:id, :first_name, :last_name, :street_number, :street, :street_type, :unit, :unit_prefix, :zipcode, :customer_tag]
@@ -366,9 +367,14 @@ class Address < ActiveRecord::Base
                                                                          start_date, end_date).map{|o| o.performance.production}.uniq
   end
 
+  protected
+  def set_search_name
+    self.search_name = self.full_name.gsub(/[\d+\s+\.!,]/,'').upcase
+  end
+
   private
   def name_as_searchable
-    full_name.upcase
+    full_name.gsub(SEARCHABLE_REGEXP,'').upcase
   end
 
   def create_salesforce_contact

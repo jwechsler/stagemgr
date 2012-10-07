@@ -14,3 +14,18 @@ function formatCurrency(num) {
         num.substring(num.length - (4 * i + 3));
   return (((sign) ? '' : '-') + '$' + num + '.' + cents);
 }
+
+
+function nvl(value, suffix) {
+  if (value === undefined) {
+    return ""
+  }
+  if ( suffix === undefined) {
+    return value
+  } else {
+    if (value.length > 0)
+      return value + suffix
+    else
+      return '';
+  }
+}

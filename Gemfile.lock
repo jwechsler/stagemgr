@@ -180,7 +180,6 @@ GEM
     multi_json (1.2.0)
     multipart-post (1.1.5)
     mysql2 (0.3.11)
-    name_parse (0.0.5)
     namecase (1.1.0)
     net-scp (1.0.4)
       net-ssh (>= 1.99.1)
@@ -198,6 +197,7 @@ GEM
       activesupport (>= 3.0.0)
       cocaine (>= 0.0.2)
       mime-types
+    people (0.2.1)
     polyglot (0.3.3)
     postmark (0.9.10)
     postmark-rails (0.4.1)
@@ -337,11 +337,11 @@ DEPENDENCIES
   mongrel (= 1.2.0.pre2)
   my_emma (~> 0.0.3)!
   mysql2
-  name_parse (~> 0.0.5)
   namecase (~> 1.1.0)
   newrelic_rpm
   nifty-generators
   paperclip (~> 3.1.2)
+  people
   postmark-rails
   pry
   rails (= 3.1.5)

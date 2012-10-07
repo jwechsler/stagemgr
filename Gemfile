@@ -50,7 +50,8 @@ gem "money"
 gem "gemcutter"
 gem "postmark-rails"
 gem "namecase", "~> 1.1.0"
-gem "name_parse", "~> 0.0.5"
+#gem "name_parse", "~> 0.0.5"
+gem "people"
 gem "jquery-rails", '~> 2.1'
 #gem "rails3-jquery-autocomplete", :path=>"~/dev/rails3-jquery-autocomplete", :branch=>"v2"
 

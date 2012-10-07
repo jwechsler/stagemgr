@@ -39,5 +39,29 @@ class Admin::AutoCompleteController < Admin::ApplicationController
     end
   end
 
+  def address
+    val = params[:q].gsub(Address::SEARCHABLE_REGEXP,'').upcase
+    addresses = Address.where("search_name like '%#{val}%' and id in (select address_id from orders)").limit(10).order(
+        'last_name', 'first_name', 'id');
+    if addresses.nil?
+      render :json=>Array.new
+    else
+      render :json => addresses.map { |a|
+        member_code = a.current_membership.membership.member_code if a.is_current_member?
+        { :address_id => a.id,
+          :full_name => a.full_name,
+          :email => a.email,
+          :line1=>a.line1,
+          :line2=>a.line2,
+          :city=>a.city,
+          :state=>a.state,
+          :zipcode=>a.zipcode,
+          :phone=>a.phone,
+          :member_code=>member_code
+        }
+
+      }
+    end
+  end
 
 end
