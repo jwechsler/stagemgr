@@ -20,8 +20,6 @@ $('input.ticket_count,input.price_override').live('change',function() {
   recalculate_row_total(order_type,$(event.target).parents('tr'))
 });
 
-setup_payment_form(order_type)
-
 $('#unclaimed_link').click(function(event) {
   event.preventDefault();
 });
