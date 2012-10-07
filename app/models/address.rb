@@ -28,7 +28,7 @@ class Address < ActiveRecord::Base
 
   def parse_full_name
     parsed = People::NameParser.new(:couples=>true).parse(self.full_name)
-    self.full_name = parsed.clean
+    self.full_name = parsed[:clean]
     if parsed[:parsed]
       f_name = parsed[:first]
       l_name = parsed[:last]
