@@ -1,2 +1,3 @@
-//= require orders/payments
-//= require orders/front_end_common
+//= require ticket_orders.js
+//= require_self
+

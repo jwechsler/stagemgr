@@ -9,9 +9,6 @@
 
 <%= semantic_form_for @order do |order_form| %>
   <%= order_form.inputs :class=>"order" do %>
-    <%- flash.each do |key, value| %>
-      <div id="flash_<%= key %>"><%= value %></div>
-    <%- end %>
     <%= order_form.hidden_field :status, :value=>(order_form.object.status.blank? ? Order::NEW : order_form.object.status ) %>
     <%= render :partial => '/orders/address', :locals => {:order_form => order_form} %>
     <%- @submit_text = "Review Order" -%>

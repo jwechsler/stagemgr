@@ -24,6 +24,9 @@ function show_proper_payment_form(order_type) {
 
 
 function setup_payment_form(order_type) {
+
+  show_proper_payment_form(order_type);
+
   jQuery(document).ready(function($) {
     $("#"+ order_type+"_payment_type").change(function() {
       show_proper_payment_form(order_type);
