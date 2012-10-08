@@ -221,60 +221,6 @@ class TicketOrder < Order
     end
   end
 
-  def sync_to_salesforce!(sf_cache = nil)
-    if sf_cache.nil?
-      sf_cache = SyncCache.new
-    end
-    if self.syncable? && (self.sf_last_sync_at.nil? || self.sf_last_sync_at < self.updated_at)
-      puts "syncing order #{self.id}"
-      event = SalesforceData::Event.find_by_stagemgr_order_id__c(self.id.to_s)
-      # is delete needed?
-      if self.returned?
-        puts "  removing synced copy"
-        event.delete unless event.nil?
-      elsif prod = sf_cache.production(self.performance.production_id)
-        contact = sf_cache.address(self.address_id)
-
-        showtime = DateTime.new(self.performance.performance_date.year,
-                                self.performance.performance_date.month,
-                                self.performance.performance_date.day,
-                                self.performance.performance_time.hour,
-                                self.performance.performance_time.min,
-                                self.performance.performance_time.sec,
-                                Rational(Time.zone.utc_offset/60/60, 24))
-        if event.nil?
-          puts "  creating event in salesforce"
-          event = SalesforceData::Event.create("stagemgr_order_id__c" => self.id.to_s,
-                                           "WhatId" => prod.Id,
-                                           "IsAllDayEvent" => true,
-                                           "ActivityDateTime" => self.performance.performance_date,
-                                           "StartDateTime" => self.performance.performance_date,
-                                           "Subject" => (self.attended? ? 'Attended' : 'Missed'),
-                                           "WhoId" => contact.Id,
-                                           "DurationInMinutes" => 1440,
-                                           "IsPrivate" => false,
-                                           "IsReminderSet" => false,
-                                           "OwnerId" => $DATABASEDOTCOM['user_id'],
-                                           "ShowAs" => "Free",
-                                           "RecordTypeId" => $DATABASEDOTCOM['ticket_order_record_type_id']
-          )
-        else
-          event.WhatId = prod.Id
-          event.ActivityDateTime = self.performance.performance_date
-          event.StartDateTime = self.performance.performance_date
-          event.WhoId = contact.Id
-          event.Subject = (self.attended? ? 'Attended' : 'Missed')
-          puts "  saving event to salesforce"
-
-        end
-        event.save
-
-      end
-      self.sf_object = event
-      self.sf_last_sync_at = DateTime.now + 15.seconds
-      self.save!
-    end
-  end
 
   def release_tickets!
     self.ticket_line_items.each { |ti| ti.destroy }
@@ -486,5 +432,57 @@ class TicketOrder < Order
     end
   end
 
+
+end
+
+
+# Salesforce engine bits
+
+class TicketOrder
+
+  def sync_to_salesforce!(sf_cache = nil)
+    if sf_cache.nil?
+      sf_cache = SyncCache.new
+    end
+    if self.syncable? && (self.sf_last_sync_at.nil? || self.sf_last_sync_at < self.updated_at)
+      puts "syncing order #{self.id}"
+      event = SalesforceData::OrderActivity__c.find_by_stagemgr_order_id__c(self.id)
+      # is delete needed?
+      if self.returned?
+        puts "  removing synced copy"
+        event.delete unless event.nil?
+      elsif
+        contact = sf_cache.address(self.address_id)
+        showtime = DateTime.new(self.performance.performance_date.year,
+                                self.performance.performance_date.month,
+                                self.performance.performance_date.day,
+                                self.performance.performance_time.hour,
+                                self.performance.performance_time.min,
+                                self.performance.performance_time.sec,
+                                Rational(Time.zone.utc_offset/60/60, 24))
+        if event.nil?
+          puts "  creating event in salesforce"
+          event = SalesforceData::OrderActivity__c.create("stagemgr_order_id__c" => self.id.to_s,
+            "Name" => self.performance.production.name,
+            "Attendee__c" => contact.Id,
+            "number_of_tickets__c" => self.total_ticket_quantity,
+            "spent__c" => self.total_amount,
+            "attended_on__c" => showtime)
+        else
+          puts " updating record"
+          event.Attendee__c = contact.Id
+          event.Name = self.performance.production.name
+          event.number_of_tickets__c = self.total_ticket_quantity
+          event.spent__c = self.total_amount
+          event.attended_on__c = showtime
+        end
+        event.save
+
+      end
+      self.sf_object = event
+      self.sf_last_sync_at = DateTime.now + 15.seconds
+      self.save!
+    end
+  end
 
 end

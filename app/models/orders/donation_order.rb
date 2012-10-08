@@ -34,6 +34,29 @@ class DonationOrder < Order
     valid_payment_types
   end
 
+
+  def reload_associated
+    super
+    self.donation_line_items(true)
+  end
+
+  protected
+
+  def set_defaults
+    super
+    self.donation_line_items.each { |di| di.order=self }
+  end
+
+  def create_receipt_task
+    super
+    self.tasks << OutreachTask.new(:execute_at=>Time.now + 5.minutes, :method_symbol=>:donation_thank_you)
+  end
+
+end
+
+def DonationOrder
+
+
   def sync_to_salesforce!(sf_user = nil, sf_donationtype = nil)
     if self.finalized?
       c = self.address.sf
@@ -63,21 +86,5 @@ class DonationOrder < Order
     end
   end
 
-  def reload_associated
-    super
-    self.donation_line_items(true)
-  end
-
-  protected
-
-  def set_defaults
-    super
-    self.donation_line_items.each { |di| di.order=self }
-  end
-
-  def create_receipt_task
-    super
-    self.tasks << OutreachTask.new(:execute_at=>Time.now + 5.minutes, :method_symbol=>:donation_thank_you)
-  end
-
 end
+
