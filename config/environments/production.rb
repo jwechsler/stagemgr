@@ -33,7 +33,7 @@ Stagemgr::Application.configure do
 
   config.assets.compress = true
   config.assets.js_compressor = :uglifier
-  config.assets.compile = false
+  config.assets.compile = true
   config.assets.digest = true
 
   # Enable serving of images, stylesheets, and javascripts from an asset server
