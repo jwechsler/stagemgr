@@ -1,3 +1,4 @@
-<%= f.input :full_name, :label=>"Name" %>
+<%= f.input :full_name, :label=>"Name", :input_html=> {
+  :autocomplete_url => address_admin_auto_complete_index_path } %>
 <%= f.input :email %>
 <%= f.input :phone %>

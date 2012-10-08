@@ -1,6 +1,6 @@
 <%- if @order.status == Order::NEW then %>
  <%- if @order.membership_offer.on_sale then %>
-   <%= javascript :defaults, 'delegate', 'jquery-1.4.2.min', 'jquery.autocomplete', 'membership_order' %>
+   <%= javascript :defaults, 'membership_order' %>
 
     <h1><%= @order.membership_offer.name %></h1>
 
@@ -18,7 +18,7 @@
         <%= order_form.hidden_field :status %>
         <%= render :partial=>'/orders/address', :locals=>{:order_form=>order_form} %>
         <%= render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form} %>
-      
+
         <table>
           <tr>
             <td valign="top">

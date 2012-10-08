@@ -1,0 +1,255 @@
+/*
+ *= require_self
+*/
+
+#flash_notice, .flash_error {
+  padding: 5px 8px;
+  margin: 10px 0;
+}
+
+#flash_notice {
+  background-color: #CFC;
+  border: solid 1px #6C6;
+}
+
+#flash_error {
+  background-color: #FCC;
+  border: solid 1px #C66;
+}
+
+.company_class {
+  font-weight: bold;
+  font-style: italic;
+}
+
+.production_list {
+  float: left;
+  font-size: 12px;
+  width: 100%;
+}
+
+#box_office h1 {
+  width: 100%;
+  background-color: #77919f;
+  color: #FFFFFF;
+  clear:both;
+  text-align: right;
+  padding: 5px;
+}
+
+#now_playing_shows_by_venue {
+  float: left;
+  font-size: 12px;
+  width: 100%;
+}
+
+.special_feature {
+  font-style: italic;
+}
+
+.production_list .show_listing {
+  float: left;
+  position: relative;
+  z-index: 100;
+  margin-bottom: 18px;
+  display: block;
+  text-align: center;
+}
+
+.production_list .production_short_desc {
+  margin-top: 10px;
+}
+
+.production_list p {
+  display: block;
+  line-height: 1.0em;
+  padding-right: 8px;
+  margin:  2px;
+}
+
+.production_list .venue {
+ font-weight: bold;
+  font-size: 11px;
+}
+
+.production_list .production_class {
+  font-size: 9px;
+}
+
+.production_list .promo_logo {
+  margin-bottom: 5px;
+  margin-top: 5px;
+}
+
+.production_list .producing_company {
+  font-size: 11px;
+
+}
+
+.production_list .production_name {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.production_list .company_class {
+  font-size: 10px;
+  font-weight: normal;
+}
+
+.production_list {
+    font-weight: bold;
+}
+
+.late_seating {
+    font-weight: bold;
+}
+
+.production_logo {
+  width: 250px;
+}
+
+.production_information_vertical {
+  clear: both;
+}
+
+#performance_calendar_split {
+  width: 860px;
+}
+
+#show_detail_column {
+  float: left;
+  width: 250px;
+  padding: 0px 25px 0px 0px;
+}
+
+.performance_calendar {
+  width: 570px;
+}
+
+.performance_calendar td, .performance_calendar th {
+  border-right: 1px solid #A2ADBC;
+  border-bottom: 1px solid #A2ADBC;
+  width: 81px;
+  min-height: 40px;
+  vertical-align: top;
+}
+
+.performance_calendar caption {
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.performance_calendar caption a {
+  text-decoration: none;
+}
+
+.performance_calendar td a:hover, .performance_calendar td a:visited {
+  color: #6aa3ae;
+}
+
+.day-header {
+  text-align: right;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.day-header {
+  text-align: right;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.show-info {
+  font-size: 14px;
+  min-height: 24px;
+}
+
+.boxoffice-message {
+  text-align: center;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.prop {
+  float: right;
+  width: 1px;
+}
+
+.clear {
+  clear: both;
+  height: 1px;
+  overflow: hidden;
+}
+
+.min30px {
+  height: 30px;
+}
+
+.min50px {
+  height: 50px;
+}
+
+.min100px {
+  height: 100px;
+}
+
+.min150px {
+  height: 150px;
+}
+
+.min20px {
+  height: 20px;
+}
+
+.special_offer {
+  text-align: center;
+  text-decoration: underline;
+
+}
+
+#content {
+  padding: 10px;
+}
+
+#tax_deductible_notice {
+  text-align: center;
+  font-style: italic;
+}
+
+#contact_boxoffice_info {
+  text-align: center;
+}
+
+.production_information {
+  font: 0.8em "Helvetica Neue", Helvetica, Geneva, "Lucida Grande", LucidaGrande, Lucida, Verdana, Helvetica, Arial, sans-serif;
+  font-size: 13px;
+}
+
+
+
+p .company_class {
+ margin-bottom: 1em;
+}
+
+.production_name {
+  font-weight: bold;
+}
+
+.production_credits {
+}
+
+.production_dates {
+  font-size: 80%;
+  font-style: italic;
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+.production_logo {
+  float: left;
+  margin-right: 6px;
+  margin-bottom: 4px;
+}
+
+  ins.diffmod, ins.diffins { background: #d4fdd5; text-decoration: none; }
+  del.diffmod, del.diffdel { color: #ff9999; }

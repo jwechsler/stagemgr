@@ -12,4 +12,8 @@ Time::DATE_FORMATS.merge!(
   :show_date => "%A, %B %e"
 )
 
+Date::DATE_FORMATS.merge!(
+  :show_date => "%A, %B %e"
+)
+
 require 'htmldiff'

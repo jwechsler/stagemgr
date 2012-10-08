@@ -7,7 +7,7 @@ require "#{File.dirname(__FILE__)}/../lib/my_emma_patches"
 
 # If you have a Gemfile, require the gems listed there, including any gems
 # you've limited to :test, :development, or :production.
-Bundler.require(:default, Rails.env) if defined?(Bundler)
+Bundler.require(:default, :assets, Rails.env) if defined?(Bundler)
 
 module Stagemgr
   class Application < Rails::Application
@@ -34,9 +34,9 @@ module Stagemgr
     # The default locale is :en and all translations from config/locales/*.rb,yml are auto loaded.
     # config.i18n.load_path += Dir[Rails.root.join('my', 'locales', '*.{rb,yml}').to_s]
     # config.i18n.default_locale = :de
-    
+
     # hide credit card parameters.
-    
+
     config.filter_parameters << :password << :credit_card_number << :card_number << :credit_card_verification_number << :credit_card_expiration_month << :credit_card_expiration_year
 
   # If you want to use gmail for deliver...
@@ -61,6 +61,11 @@ module Stagemgr
     # JavaScript files you want as :defaults (application.js is always included).
     # config.action_view.javascript_expansions[:defaults] = %w(jquery rails)
 
+    config.assets.enabled = true
+    config.assets.version = '1.0'
+    config.assets.prefix = '/assets'
+
+
     # Configure the default encoding used in templates for Ruby 1.9.
     config.encoding = "utf-8"
 
@@ -69,5 +74,10 @@ module Stagemgr
 
     config.action_view.javascript_expansions[:defaults] = %w(prototype rails)
 
+    initializer :after_append_asset_paths,
+            :group => :all,
+            :after => :append_assets_path do
+    config.assets.paths.unshift Rails.root.join("app", "assets", "stylesheets", "jquery", "cupertino").to_s
+end
   end
 end

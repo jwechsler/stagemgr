@@ -1,3 +1,5 @@
+<%= javascript 'ticket_order' %>
+
 <%= render :partial=>'/admin/orders/header', :locals=>{:order=>@ticket_order} %>
 
 <%= render :partial=>'detail', :locals=>{:ticket_order=>@ticket_order} %>
@@ -24,7 +26,7 @@
     <%= link_to 'Reprint', reprint_admin_ticket_order_path(@ticket_order) if @ticket_order.fulfilled? %>
   <%- end %>
   <% permitted_to? :unclaimed, :admin_orders do %>
-    <%= link_to 'Unclaimed', unclaimed_admin_order_path(@ticket_order) if @ticket_order.fulfilled? %>
+    <%= link_to 'Unclaimed', unclaimed_admin_order_path(@ticket_order),:id => 'unclaimed_link' if @ticket_order.fulfilled? %>
   <%- end %>
 </p>
 

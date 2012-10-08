@@ -7,8 +7,6 @@
 <h3>Exchange Order</h3>
 <div style='border:3px black solid'>
 
-  <% javascript :defaults, 'delegate', 'jquery-1.4.2.min', 'jquery.autocomplete', 'ticket_order' %>
-
   <%= error_messages_for :order %>
 
   <%= semantic_form_for [:admin, @original_order, @exchange_order], :url=>admin_ticket_order_exchange_ticket_orders_path(@original_order) do |order_form| -%>

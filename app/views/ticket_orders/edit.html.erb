@@ -1,4 +1,3 @@
-<% javascript :defaults, 'delegate', 'jquery-1.4.2.min', 'jquery.autocomplete', 'ticket_order' %>
 
 <% if !@order.updated_at.nil? && @order.updated_at < Time.now - 10.minutes %>
   This order has been inactive for more than 10 minutes.  For privacy protection, you'll have to <%= link_to("restart",new_production_performance_order_path(@order.performance.production.id,@order.performance.id)) %> it.  Sorry!
@@ -10,9 +9,6 @@
 
 <%= semantic_form_for @order do |order_form| %>
   <%= order_form.inputs :class=>"order" do %>
-    <%- flash.each do |key, value| %>
-      <div id="flash_<%= key %>"><%= value %></div>
-    <%- end %>
     <%= order_form.hidden_field :status, :value=>(order_form.object.status.blank? ? Order::NEW : order_form.object.status ) %>
     <%= render :partial => '/orders/address', :locals => {:order_form => order_form} %>
     <%- @submit_text = "Review Order" -%>
