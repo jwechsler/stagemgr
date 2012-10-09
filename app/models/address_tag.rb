@@ -8,5 +8,4 @@ class AddressTag < ActiveRecord::Base
     "#{self.tag_label} = '#{self.tag_value}'"
   end
 
-
 end

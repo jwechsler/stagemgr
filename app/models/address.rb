@@ -13,6 +13,7 @@ class Address < ActiveRecord::Base
   has_many :orders
   has_many :address_tags
   has_many :memberships
+  has_many :flex_passes
   accepts_nested_attributes_for :address_tags, :allow_destroy => true
   before_save :set_search_name
 
@@ -117,10 +118,83 @@ class Address < ActiveRecord::Base
     end
   end
 
+  def merge_and_purge(from_address)
+    Address.transaction do
+      self.update_from(from_address)
+      self.orders << from_address.orders
+      self.address_tags << from_address.address_tags
+      self.memberships << from_address.memberships
+      self.flex_passes << from_address.flex_passes
+      self.save!
+      if from_address.sf_last_sync_at.nil?
+        from_address.reload
+        from_address.destroy
+      else
+        from_address.reload
+        from_address.sf_purge = self.id
+        from_address.save!
+      end
+    end
+  end
+
+
   def self.purge_matched_duplicates
     Address.transaction do
       candidates = Address.where("not exists (select id from orders where orders.address_id = addresses.id)")
       candidates.each { |a| a.destroy unless a.find_original.nil? }
+    end
+  end
+
+  def self.update_address_from_csv(csv_file)
+    header_required = true
+    last_id = -1
+    index = Hash.new
+    CSV.foreach(csv_file) do |row|
+      if header_required
+        header_required = false
+        index = {
+          :address_id => row.index("Client Patron ID"),
+          :full_name => row.index("Full Name"),
+          :line1 => row.index("Address 1"),
+          :line2 => row.index("Address 2"),
+          :city => row.index("City"),
+          :state => row.index("State"),
+          :prefix => row.index("Prefix"),
+          :zipcode => row.index("Zip"),
+          :zip4 => row.index("Zip4")
+        }
+      else
+        new_id = row[index[:address_id]].to_i
+        case
+        when new_id < last_id
+          raise "Import file must be sorted by Client Patron ID for effective purging"
+        when new_id > last_id
+          begin
+            new_address = Address.find(new_id)
+            new_address.full_name = row[index[:full_name]]
+            new_address.line1 = row[index[:line1]]
+            new_address.line2 = row[index[:line2]]
+            new_address.city = row[index[:city]]
+            new_address.state = row[index[:state]]
+            new_address.prefix = row[index[:prefix]]
+            zip = row[index[:zipcode]]
+            zip = zip + '-' + row[index[:zip4]] unless row[index[:zip4]].blank?
+            new_address.zipcode = zip
+            original = new_address.find_original
+            if original.nil?
+              Rails.logger.info("Updating info on address ##{new_address.id}")
+              new_address.save!
+            else
+              Rails.logger.info("Merge/Purge on address ##{new_address.id} into ##{original.id}")
+              original.merge_and_purge(new_address)
+            end
+          rescue ActiveRecord::RecordNotFound => e
+            Rails.logger.info("Could not locate address ##{new_id}")
+          end
+        end
+        last_id = new_id
+      end
+
     end
   end
 

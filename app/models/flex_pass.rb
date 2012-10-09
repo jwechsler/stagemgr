@@ -36,5 +36,5 @@ class FlexPass < ActiveRecord::Base
       end
     }
   end
-  
+
 end
