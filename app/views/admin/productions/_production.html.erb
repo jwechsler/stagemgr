@@ -1,7 +1,6 @@
 <tr>
   <td><%=link_to production.name, admin_theater_production_path(production.theater, production) %></td>
-  <td><%=production.show_description %></td>
-  <td><%=h production.capacity %></td>
+  <td><%=h production.season %></td>
   <td><%=h production.status %></td>
   <td><% permitted_to? :delete, :productions do %><%=link_to 'Edit', edit_admin_theater_production_path(production.theater, production) %><% end %></td>
   <td><% permitted_to? :delete, :productions do %>

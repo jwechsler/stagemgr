@@ -83,12 +83,15 @@ class Address < ActiveRecord::Base
 
     matches = Address.where("search_name = :search_name and (email = :email #{(self.email.blank? && self.street_number.blank?) ? '' : ' or email is null or email = \'\''}) and id <> :id", {:search_name=>name_as_searchable, :id=>comparison_id, :email => (self.email.blank? ? '' : self.email.strip)})
     if matches.nil? || matches.size == 0
-      matches = Address.where("id <> :id AND street_number = :street_number AND street = :street AND city = :city and search_name = :search_name #{self.email.blank? ? '' : 'and (email = \'\' or email is null)'}",
-                              {:id=>comparison_id, :street_number=>self.street_number, :street=>self.street,
-                               :city=>self.city, :search_name=>name_as_searchable})
+      matches = Address.where("first_name = :first_name and last_name = :last_name and (email = :email #{(self.email.blank? && self.street_number.blank?) ? '' : ' or email is null or email = \'\''}) and id <> :id", {:first_name => self.first_name, :last_name => self.last_name, :id=>comparison_id, :email => (self.email.blank? ? '' : self.email.strip)})
       if matches.nil? || matches.size == 0
-        matches = Address.where("id <> :id and search_name = :search_name and street_number is null and street is null and city is null and (email = '' or email is null)",
-                                {:id=>comparison_id, :search_name=>name_as_searchable})
+        matches = Address.where("id <> :id AND street_number = :street_number AND street = :street AND city = :city and search_name = :search_name #{self.email.blank? ? '' : 'and (email = \'\' or email is null)'}",
+                                {:id=>comparison_id, :street_number=>self.street_number, :street=>self.street,
+                                 :city=>self.city, :search_name=>name_as_searchable})
+        if matches.nil? || matches.size == 0
+          matches = Address.where("id <> :id and search_name = :search_name and street_number is null and street is null and city is null and (email = '' or email is null)",
+                                  {:id=>comparison_id, :search_name=>name_as_searchable})
+        end
       end
     end
     return matches.nil? ? nil : matches.select { |a| self.id.nil? ? true : (a.id < self.id) }.sort! { |a, b| a.id <=> b.id }.first
@@ -198,85 +201,6 @@ class Address < ActiveRecord::Base
     end
   end
 
-  def sync_to_salesforce!
-    if self.sf_last_sync_at.nil? || (self.sf_last_sync_at < self.updated_at)
-      sf_contact = SalesforceData::Contact.find_by_stagemgr_id__c("#{self.id}")
-      sync_time = DateTime.now
-      puts "syncing address id ##{self.id}"
-      if sf_contact.nil?
-        sf_contact = create_salesforce_contact
-      else
-        if self.field_changed_after?(:first_name, self.sf_last_sync_at)
-          sf_contact.FirstName = self.first_name unless self.first_name.blank?
-        else
-          self.first_name = sf_contact.FirstName unless sf_contact.FirstName.blank?
-        end
-        if self.field_changed_after?(:last_name, self.sf_last_sync_at)
-          sf_contact.LastName = self.last_name unless self.last_name.blank?
-        else
-          self.last_name = sf_contact.LastName unless sf_contact.LastName.blank?
-        end
-
-        if self.field_changed_after?(:email, self.sf_last_sync_at)
-          sf_contact.Email = self.email unless self.email.blank?
-        else
-          self.email = sf_contact.Email unless sf_contact.Email.blank?
-        end
-
-        if [:line1, :line2].select { |f| self.field_changed_after?(f, self.sf_last_sync_at) }.size > 0
-          sf_contact.MailingStreet="#{self.line1}\r\n#{self.line2}" unless self.line1.blank?
-        else
-          unless sf_contact.MailingStreet.blank?
-            lines = sf_contact.MailingStreet.split("\r\n")
-            if lines.size > 0
-              self.line1 = lines[0]
-              if lines.size > 1
-                self.line2 = lines[1]
-              end
-            end
-          end
-        end
-
-        if self.field_changed_after?(:city, self.sf_last_sync_at)
-          sf_contact.MailingCity = self.city unless self.city.blank?
-        else
-          self.city = sf_contact.MailingCity unless sf_contact.MailingCity.blank?
-        end
-
-        if self.field_changed_after?(:state, self.sf_last_sync_at)
-          sf_contact.MailingState = self.state unless self.state.blank?
-        else
-          self.state = sf_contact.MailingState unless sf_contact.MailingCity.blank?
-        end
-
-        if self.field_changed_after?(:zipcode, self.sf_last_sync_at)
-          sf_contact.MailingPostalCode = self.zipcode unless self.zipcode.blank?
-        else
-          self.zipcode = sf_contact.MailingPostalCode unless sf_contact.MailingPostalCode.blank?
-        end
-
-        if self.field_changed_after?(:phone, self.sf_last_sync_at)
-          sf_contact.Phone = self.phone unless self.phone.blank?
-        else
-          self.phone = sf_contact.Phone unless sf_contact.Phone.blank?
-        end
-        sf_contact.stagemgr_last_sync_at__c = sync_time
-        puts "  saving address #{self.id} to salesforce"
-        sf_contact.save
-      end
-      self.sf_last_sync_at = DateTime.now + 15.seconds
-      self.save!
-      self.sf_object = sf_contact
-    end
-  end
-
-  def sf
-    if self.sf_object.nil?
-      self.sf_last_sync_at=nil
-      self.sync_to_salesforce!
-    end
-    self.sf_object
-  end
 
   def field_changed_after?(field_name, change_time)
     unless change_time.nil?
@@ -451,13 +375,129 @@ class Address < ActiveRecord::Base
     full_name.gsub(SEARCHABLE_REGEXP,'').upcase
   end
 
+
+end
+
+# Salesforce extraction
+
+class Address
+
+
   def create_salesforce_contact
     puts "  creating new sf record"
     SalesforceData::Contact.create "LastName"=>self.last_name, "FirstName"=>self.first_name, "stagemgr_id__c"=>"#{self.id}",
       "MailingStreet"=>"#{self.line1}\r\n#{self.line2}", "MailingCity"=>self.city,
       "Email"=>self.email, "Phone"=>self.phone,
       "MailingState"=>self.state, "MailingPostalCode"=>self.zipcode, "stagemgr_last_sync_at__c"=>DateTime.now
+    SalesforceData::Contact.find_by_stagemgr_id__c("#{self.id}")
+  end
+
+  def update_attendance_data(sf_contact)
+    seasons = Production.group("season").map{|p| p.season}.select{|season| SalesforceData::Contact.attributes.include?("productions_attended_#{season}__c")}
+
+    seasons.each do |season|
+      sf_contact.instance_variable_set("@productions_attended_#{season}__c".to_s,
+        Production.where('season = ? and id in (?)',season, self.orders.select{|o| !o.performance_id.nil?}.map {|o| o.performance.production_id }).count)
+      order_ids = self.orders.map {|o| o.id }
+      ticket_payments_for_season = Payment.includes({:order => {:performance => :production}}).where(
+        'order_id in (?) and orders.type = \'TicketOrder\' and productions.season = ? and payments.type != \'MembershipPayment\'',
+          order_ids,season).sum('payments.amount')
+      other_sales_for_season = Payment.includes(:order).where(
+        'order_id in (?) and orders.type not in (\'TicketOrder\',\'DonationOrder\') and payments.processed_on between ? and ?',
+        order_ids, "01-01-#{season}".to_date + 8.months,
+        "01-01-#{season}".to_date + 20.months).sum('payments.amount')
+      reported_revenue = 0.0
+      reported_revenue += other_sales_for_season unless other_sales_for_season.nil?
+      reported_revenue += ticket_payments_for_season unless ticket_payments_for_season.nil?
+      sf_contact.instance_variable_set("@gross_sales_#{season}__c".to_s,reported_revenue)
+    end
 
   end
 
+  def sync_to_salesforce!(force_sync = false)
+    if self.sf_last_sync_at.nil? || (self.sf_last_sync_at < self.updated_at) || force_sync
+      sf_contact = SalesforceData::Contact.find_by_stagemgr_id__c("#{self.id}")
+      sf_attributes = SalesforceData::Contact.attributes
+      sync_time = DateTime.now
+      puts "syncing address id ##{self.id}"
+      if sf_contact.nil? || self.sf_last_sync_at.nil?
+        sf_contact = create_salesforce_contact
+
+      else
+        if self.field_changed_after?(:first_name, self.sf_last_sync_at)
+          sf_contact.FirstName = self.first_name unless self.first_name.blank?
+        else
+          self.first_name = sf_contact.FirstName unless sf_contact.FirstName.blank?
+        end
+        if self.field_changed_after?(:last_name, self.sf_last_sync_at)
+          sf_contact.LastName = self.last_name unless self.last_name.blank?
+        else
+          self.last_name = sf_contact.LastName unless sf_contact.LastName.blank?
+        end
+
+        if self.field_changed_after?(:email, self.sf_last_sync_at)
+          sf_contact.Email = self.email unless self.email.blank?
+        else
+          self.email = sf_contact.Email unless sf_contact.Email.blank?
+        end
+
+
+        if [:line1, :line2].select { |f| self.field_changed_after?(f, self.sf_last_sync_at) }.size > 0
+          sf_contact.MailingStreet="#{self.line1}\r\n#{self.line2}" unless self.line1.blank?
+        else
+          unless sf_contact.MailingStreet.blank?
+            lines = sf_contact.MailingStreet.split("\r\n")
+            if lines.size > 0
+              self.line1 = lines[0]
+              if lines.size > 1
+                self.line2 = lines[1]
+              end
+            end
+          end
+        end
+
+        if self.field_changed_after?(:city, self.sf_last_sync_at)
+          sf_contact.MailingCity = self.city unless self.city.blank?
+        else
+          self.city = sf_contact.MailingCity unless sf_contact.MailingCity.blank?
+        end
+
+        if self.field_changed_after?(:state, self.sf_last_sync_at)
+          sf_contact.MailingState = self.state unless self.state.blank?
+        else
+          self.state = sf_contact.MailingState unless sf_contact.MailingCity.blank?
+        end
+
+        if self.field_changed_after?(:zipcode, self.sf_last_sync_at)
+          sf_contact.MailingPostalCode = self.zipcode unless self.zipcode.blank?
+        else
+          self.zipcode = sf_contact.MailingPostalCode unless sf_contact.MailingPostalCode.blank?
+        end
+
+        if self.field_changed_after?(:phone, self.sf_last_sync_at)
+          sf_contact.Phone = self.phone unless self.phone.blank?
+        else
+          self.phone = sf_contact.Phone unless sf_contact.Phone.blank?
+        end
+        sf_contact.stagemgr_last_sync_at__c = sync_time
+        self.update_attendance_data(sf_contact)
+
+      end
+      self.update_attendance_data(sf_contact)
+      sf_contact.save
+      self.sf_last_sync_at = DateTime.now + 15.seconds
+      self.save!
+      self.sf_object = sf_contact
+    end
+  end
+
+  def sf
+    if self.sf_object.nil?
+      self.sf_last_sync_at=nil
+      self.sync_to_salesforce!
+    end
+    self.sf_object
+  end
+
 end
+

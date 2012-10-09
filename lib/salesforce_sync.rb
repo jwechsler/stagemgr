@@ -7,7 +7,7 @@ class SalesforceSync
     client_id = $DATABASEDOTCOM['client_id'] if client_id.nil?
     client_secret = $DATABASEDOTCOM['client_secret'] if client_secret.nil?
     username = $DATABASEDOTCOM['username'] if username.nil?
-    password = $DATABASEDOTCOM['password'] if password.nil?
+    password = $DATABASEDOTCOM['password'] + $DATABASEDOTCOM['token'] if password.nil?
     client = Databasedotcom::Client.new(:client_id => client_id, :client_secret=>client_secret, :host=>$DATABASEDOTCOM['host'])
     client.authenticate :username=>username, :password=>password
     client
@@ -74,7 +74,8 @@ class SalesforceSync
     orders.select { |o| o.total > 0 }.each do |order|
       order.sync_to_salesforce!($DATABASEDOTCOM['user_id'], $DATABASEDOTCOM['donation_record_type_id'])
     end
-    orders = TicketOrder.where("sf_last_sync_at is null or sf_last_sync_at < updated_at and status in (?)", Order.syncable_statuses).order("created_at desc")
+    orders = TicketOrder.where("sf_last_sync_at is null or sf_last_sync_at < updated_at and status in (?)",
+     Order.syncable_statuses).order("created_at desc").limit(2000)
     o_id = 0
     Authorization.ignore_access_control(true)
     begin
