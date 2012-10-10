@@ -353,8 +353,8 @@ class Order < ActiveRecord::Base
   end
 
   def total_paid
-    sum = self.payments.inject { |sum, x| sum + x.nil? ? 0 : x.amount }
-    sum.amount unless sum.nil?
+    sum = self.payments.map{|p| p.amount}.inject(0) { |sum, x| sum + (x.nil? ? 0 : x) }
+    sum unless sum.nil?
   end
 
   def total_amount

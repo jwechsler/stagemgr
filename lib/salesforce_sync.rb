@@ -91,6 +91,7 @@ class SalesforceSync
       end
     rescue => e
       puts "Sync of ticket order #{o_id} failed, #{e}"
+      puts e.backtrace
     end
     Authorization.ignore_access_control(false)
   end
