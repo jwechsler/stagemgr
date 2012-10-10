@@ -488,15 +488,36 @@ class Address
       self.sf_last_sync_at = DateTime.now + 15.seconds
       self.save!
       self.sf_object = sf_contact
+    else
+      self.sf_object = SalesforceData::Contact.find_by_stagemgr_id__c("#{self.id}")
     end
+
   end
 
   def sf
     if self.sf_object.nil?
-      self.sf_last_sync_at=nil
       self.sync_to_salesforce!
     end
     self.sf_object
+  end
+
+  def has_orphaned_sf_records?
+    account = SalesforceData::Account.find_by_npe01__One2OneContact__c(self.sf.Id)
+    donations = SalesforceData::Opportunity.find_all_by_AccountId(self.sf.AccountId)
+    donations.select{|d| d.stagemgr_id__c.blank?}.size > 0
+  end
+
+  def delete_sf_record(force_check = true)
+    unless (force_check && !self.sf_record_exists?) || self.sf_last_sync_at.nil?
+      raise SalesforceData::SalesForceIntegrityException, "Cannot delete contact from salesforce without orphaning records" if self.has_orphaned_sf_records?
+      self.sf.delete
+      self.sf_last_sync_at = nil;
+    end
+  end
+
+  def sf_record_exists?
+    self.sf_object = SalesforceData::Contact.find_by_stagemgr_id__c("#{self.id}")
+    !self.sf_object.nil?
   end
 
 end

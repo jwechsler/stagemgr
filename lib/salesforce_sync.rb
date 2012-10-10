@@ -1,5 +1,8 @@
 module SalesforceData
 
+  class SalesForceIntegrityException < Exception
+  end
+
 end
 
 class SalesforceSync
@@ -75,7 +78,7 @@ class SalesforceSync
       order.sync_to_salesforce!($DATABASEDOTCOM['user_id'], $DATABASEDOTCOM['donation_record_type_id'])
     end
     orders = TicketOrder.where("sf_last_sync_at is null or sf_last_sync_at < updated_at and status in (?)",
-     Order.syncable_statuses).order("created_at desc").limit(2000)
+     Order.syncable_statuses).order("created_at desc").limit(2500)
     o_id = 0
     Authorization.ignore_access_control(true)
     begin
