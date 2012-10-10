@@ -482,6 +482,7 @@ class TicketOrder
       self.sf_object = event
       self.sf_last_sync_at = DateTime.now + 15.seconds
       self.save!
+      self.address.sync_to_salesforce!(true)
     end
   end
 
