@@ -54,8 +54,7 @@ class DonationOrder < Order
 
 end
 
-def DonationOrder
-
+class DonationOrder
 
   def sync_to_salesforce!(sf_user = nil, sf_donationtype = nil)
     if self.finalized?
