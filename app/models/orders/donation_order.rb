@@ -78,8 +78,8 @@ class DonationOrder
         donation.CloseDate = self.last_processed_on
         donation.AccountId = account.Id
         donation.npe01__Contact_Id_for_Role__c = account.Id
+	donation.save
       end
-      donation.save
       self.sf_last_sync_at = DateTime.now
       self.save!
     end

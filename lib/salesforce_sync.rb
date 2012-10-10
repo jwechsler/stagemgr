@@ -6,18 +6,19 @@ module SalesforceData
 end
 
 class SalesforceSync
-  def SalesforceSync.connect_client(client_id=nil, client_secret=nil, username=nil, password=nil)
+  def SalesforceSync.connect_client(client_id=nil, client_secret=nil, username=nil, password=nil, host=nil)
     client_id = $DATABASEDOTCOM['client_id'] if client_id.nil?
     client_secret = $DATABASEDOTCOM['client_secret'] if client_secret.nil?
     username = $DATABASEDOTCOM['username'] if username.nil?
     password = $DATABASEDOTCOM['password'] + $DATABASEDOTCOM['token'] if password.nil?
-    client = Databasedotcom::Client.new(:client_id => client_id, :client_secret=>client_secret, :host=>$DATABASEDOTCOM['host'])
+    host = $DATABASEDOTCOM['host'] if host.nil?
+    client = Databasedotcom::Client.new(:client_id => client_id, :client_secret=>client_secret, :host=>host)
     client.authenticate :username=>username, :password=>password
     client
   end
 
-  def SalesforceSync.materialize_all(client_id = nil, client_secret = nil, username = nil, password = nil)
-    client = SalesforceSync.connect_client(client_id, client_secret, username, password)
+  def SalesforceSync.materialize_all(client_id = nil, client_secret = nil, username = nil, password = nil, host = nil)
+    client = SalesforceSync.connect_client(client_id, client_secret, username, password, host)
     client.sobject_module = ::SalesforceData
     %w(Contact Account Opportunity User RecordType Product2 Event OrderActivity__c).each { |c| client.materialize(c) }
     client
@@ -26,17 +27,16 @@ class SalesforceSync
   def SalesforceSync.load_from_yaml_file(environment, yaml_file)
 
     databasedotcom_config = YAML::load(File.open(yaml_file))
-
     salesforcesync = databasedotcom_config[environment]
     if salesforcesync['sync_to_salesforce']
       begin
         client = SalesforceSync.materialize_all(salesforcesync['client_id'],
                                                 salesforcesync['client_secret'],
                                                 salesforcesync['username'],
-                                                salesforcesync['password'])
-        user = SalesforceData::User.find_by_Username(client.username)
+                                                salesforcesync['password']+salesforcesync['token'],
+						salesforcesync['host'])
+	user = SalesforceData::User.find_by_Username(client.username)
         salesforcesync['user_id'] = user.Id
-
         donation_record_type = SalesforceData::RecordType.find_by_Name('Donation')
         salesforcesync['donation_record_type_id'] = donation_record_type.Id
         production_record_type = SalesforceData::RecordType.find_by_Name("Production")
@@ -44,6 +44,8 @@ class SalesforceSync
         ticket_order_type = SalesforceData::RecordType.find_by_Name("Ticket Order")
         salesforcesync['ticket_order_record_type_id'] = ticket_order_type.Id
       rescue => e
+        puts e.message
+	puts e.backtrace
         salesforcesync['sync_to_salesforce'] = "false"
       end
     end
@@ -72,6 +74,7 @@ class SalesforceSync
   end
 
   def SalesforceSync.sync_orders
+    donation_record_type_id = SalesforceData::RecordType.find_by_Name('Donation').Id
     sf_cache = SyncCache.new
     orders = DonationOrder.where("sf_last_sync_at is null or sf_last_sync_at < updated_at")
     orders.select { |o| o.total > 0 }.each do |order|
