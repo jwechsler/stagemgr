@@ -2,15 +2,15 @@
 class ApplicationController < ActionController::Base
   helper :all
   helper_method :current_user_session, :current_user, :logged_in?, :current_user_is_admin?, :payment_types_for, :backend_user?
-  
+
   def payment_types_for(order)
     order.valid_payment_types_for( current_user)
   end
-  
+
   def backend_user?
     current_user && (current_user.is_administrator? || current_user.is_box_office_user?)
   end
-    
+
   def method_missing(method, *args, &block)
     begin
       method_name = method.to_s
@@ -47,7 +47,7 @@ class ApplicationController < ActionController::Base
     raw text +
       <<-EOJS
         <script type='text/javascript'>
-          Event.observe(window, 'load',function() { 
+          Event.observe(window, 'load',function() {
             setTimeout(function() {
               message_id = $('notice') ? 'notice' : 'warning';
               new Effect.Fade(message_id);
@@ -56,14 +56,14 @@ class ApplicationController < ActionController::Base
         </script>
       EOJS
   end
-  
+
   protected
 
   def clear_authlogic_session
     sess = current_user_session
     sess.destroy if sess
   end
-  
+
   def require_login
     unless current_user
       respond_to do |format|
@@ -74,14 +74,14 @@ class ApplicationController < ActionController::Base
       }
       format.xml {
         user = User.new
-        user.errors.add_to_base("Authentication is required.")
+        user.errors[:base] << "Authentication is required."
         render :xml => user.errors, :status => 401
       }
       end
     return false
     end
   end
-  
+
   private
     def current_user_session
       return @current_user_session if defined?(@current_user_session)
@@ -98,7 +98,7 @@ class ApplicationController < ActionController::Base
         session[:return_to] = request.url
       end
     end
-    
+
     def redirect_back_or_default(default)
       redirect_to(session[:return_to] || default)
       session[:return_to] = nil

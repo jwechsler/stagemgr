@@ -28,17 +28,17 @@ class SpecialOffer < ActiveRecord::Base
     limiting_object = case t
       when 'Theater'
         (self.theater = Theater.find_by_id(i)) ||
-            errors.add_to_base("Can't find Theater with id: #{i}")
+            errors[:base] << "Can't find Theater with id: #{i}"
       when 'Production'
         (self.production = Production.find_by_production_code(i)) ||
-            errors.add_to_base("Can't find Production with code: #{i}")
+            errors[:base] << "Can't find Production with code: #{i}"
       when 'Performance'
         (self.performance = Performance.find_by_performance_code(i)) ||
-            errors.add_to_base("Can't find Performance with code: #{i}")
+            errors[:base] << "Can't find Performance with code: #{i}"
       when '', nil
-        errors.add_to_base("You didn't pick the type but you enterd the id of: #{i}")
+        errors[:base] << "You didn't pick the type but you entered the id of: #{i}"
       else
-        errors.add_to_base('You tried to use an unknown type')
+        errors[:base] << 'You tried to use an unknown type'
         nil
     end
   end
