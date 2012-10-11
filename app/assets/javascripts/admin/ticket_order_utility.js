@@ -136,7 +136,7 @@ function setup_ticket_autocompletes(order_type) {
             success: function( data ) {
               response( $.map( data, function( item ) {
                 return {
-                  label: item.fdate + " " + item.ftime,
+                  label: item.fdate + " " + item.ftime + " (" + item.number_left + " remaining)",
                   value: item.code
                 }
               }));

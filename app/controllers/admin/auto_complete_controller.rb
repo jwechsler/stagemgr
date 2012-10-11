@@ -17,7 +17,10 @@ class Admin::AutoCompleteController < Admin::ApplicationController
     else
       performances = production.performances.search_by_code(params[:q])
       render :json => performances.map { |performance|
-        {:code=>performance.performance_code, :name=>performance.to_s, :fdate=>performance.performance_date.to_formatted_s(:show_date), :ftime=>performance.performance_time.to_formatted_s(:hour_min)}
+        {:code=>performance.performance_code, :name=>performance.to_s,
+          :fdate=>performance.performance_date.to_formatted_s(:show_date),
+          :ftime=>performance.performance_time.to_formatted_s(:hour_min),
+          :number_left=>performance.number_of_tickets_left}
       }
     end
   end
@@ -33,7 +36,7 @@ class Admin::AutoCompleteController < Admin::ApplicationController
         { :code=>ticket_class.class_code,
           :name=>"#{ticket_class.to_s } (#{ticket_class.number_left(performance)} Tickets Left)",
           :ticket_type=>ticket_class.ticket_type,
-          :ticket_price=>ticket_class.ticket_price
+          :ticket_price=>ticket_class.ticket_price,
         }
       }
     end
