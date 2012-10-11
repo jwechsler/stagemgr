@@ -7,6 +7,8 @@ class Address < ActiveRecord::Base
 
   include AddressImports
 
+  before_destroy :ensure_no_orders
+
   validates_presence_of :full_name
   validates :email, :email=>true
   before_validation :regularize!
@@ -16,6 +18,7 @@ class Address < ActiveRecord::Base
   has_many :flex_passes
   accepts_nested_attributes_for :address_tags, :allow_destroy => true
   before_save :set_search_name
+
 
   MAILLIST_STATUS = (
     REQUESTED, SAVED =
@@ -96,6 +99,10 @@ class Address < ActiveRecord::Base
     end
     return matches.nil? ? nil : matches.select { |a| self.id.nil? ? true : (a.id < self.id) }.sort! { |a, b| a.id <=> b.id }.first
 
+  end
+
+  def ensure_no_orders
+    raise "Cannot delete an address with associated orders" unless orders.count == 0
   end
 
   def update_from(newer)
