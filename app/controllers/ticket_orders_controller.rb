@@ -40,13 +40,15 @@ class TicketOrdersController < ApplicationController
   end
 
   def confirm
+    @order = @ticket_order
 
   end
 
   def donate
+    @order = @ticket_order
 
   end
-  
+
   private
   def find_order
     @order = TicketOrder.find(params[:id])

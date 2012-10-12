@@ -79,7 +79,7 @@ module OrdersHelper
     end
     expiration_year
   end
-  
+
 
   private
   def process_order(order, on_success_redirect_to)
@@ -118,6 +118,7 @@ module OrdersHelper
         end
       end
     rescue StandardError => e
+      Rails.logger.error(e.message)
       order.status = old_status unless old_status.nil?
       if order.status == Order::PROCESSING
         @order.reload
@@ -147,6 +148,6 @@ module OrdersHelper
       format.html { render 'edit', :order=>@order, :layout=>true }
     end
   end
-  
+
 end
 
