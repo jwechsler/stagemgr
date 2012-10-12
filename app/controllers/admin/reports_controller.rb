@@ -152,6 +152,14 @@ class Admin::ReportsController < Admin::ApplicationController
     send_report_as_csv('customer', @headers, @report_data)
   end
 
+  def house_management_seating
+    @date = grab_from_date_select(:performance_day, params[:report])
+    @headers, @report_data = build_house_management_seating_report(@date)
+    respond_to do |format|
+      format.html
+    end
+  end
+
   def membership_usage
     days = [grab_from_date_select(:start_day, params[:report]),grab_from_date_select(:end_day, params[:report])]
     @start_day = days.min
@@ -307,6 +315,32 @@ class Admin::ReportsController < Admin::ApplicationController
             :email=>''}
     end
 
+  end
+
+  def build_house_management_seating_report(for_date)
+    orders = TicketOrder.includes(:address, {:performance=>:production}).where(
+      "performances.performance_date = :performance_date and orders.status in (:attending)",
+      {:performance_date=>for_date, :attending=>Order.attending_statuses}).
+      order('orders.performance_id, addresses.last_name, addresses.first_name')
+
+    report = Array.new
+    headers = [:production_name, :patron_name, :special_requests, :notes, :is_member, :is_donor]
+    orders.each do |o|
+      if !o.special_request.blank? || o.address.is_current_member? || o.address.is_donor?
+
+        report << {
+          :production_name => o.performance.production.name,
+          :patron_name => o.address.full_name,
+          :special_requests =>  o.special_request,
+          :notes => o.notes,
+          :is_member => o.address.is_current_member?,
+          :is_donor => o.address.is_donor?
+
+        }
+      end
+    end
+
+    [headers, report]
   end
 
   def build_fulfill_labels(through_date)

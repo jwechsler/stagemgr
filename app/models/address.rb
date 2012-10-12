@@ -102,7 +102,7 @@ class Address < ActiveRecord::Base
   end
 
   def ensure_no_orders
-    raise "Cannot delete an address with associated orders" unless orders.count == 0
+    raise "Cannot delete an address with associated orders" unless orders(true).count == 0
   end
 
   def update_from(newer)
@@ -487,11 +487,11 @@ class Address
           self.phone = sf_contact.Phone unless sf_contact.Phone.blank?
         end
         sf_contact.stagemgr_last_sync_at__c = sync_time
-        self.update_attendance_data(sf_contact)
 
       end
       self.update_attendance_data(sf_contact)
       sf_contact.save
+      self.sf_contact_id = sf_contact.Id
       self.sf_last_sync_at = DateTime.now + 15.seconds
       self.save!
       self.sf_object = sf_contact

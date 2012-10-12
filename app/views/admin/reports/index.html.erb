@@ -46,6 +46,20 @@
       <%- end -%>
     </td>
   </tr>
+  <%- if permitted_to? :house_management_reports, :admin_reports then %>
+    <tr>
+      <td>
+        <span class="report_title">House Management Seating Report</span></br>
+        <span class="help_text">House management requests for special seating</span>
+      </td>
+      <td>
+        <%= form_tag(house_management_seating_admin_reports_path, :method=>"post") do %>
+          <%= date_select(:report, :performance_day, :default=>Time.now.end_of_month) %>
+          <%= submit_tag "Show" %>
+        <%- end %>
+      </td>
+    </tr>
+  <%- end %>
   <%- if permitted_to? :box_office_reports, :admin_reports then %>
     <tr>
       <td>

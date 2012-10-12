@@ -19,6 +19,8 @@
 
     <%= render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form} %>
     <%= render :partial => '/orders/special_offer_form', :locals => {:f => order_form, :special_offer_code=>@order.special_offer_code} %>
+    <%= order_form.input :special_request, :as=>:select, :collection=>TicketOrder::SEATING_REQUESTS,
+        :label => "Special seating requirements?" %>
     <%= order_form.input :marketing_source, :collection=>Order::REFERRALS, :label=>"How did you hear about the show?" %>
     <%- label_value = "Join the Theater Wit "
               if @order.performance.production.theater.id != 1

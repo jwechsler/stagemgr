@@ -3,6 +3,8 @@
 <% end %>
 <%= render :partial=>'/admin/orders/billing_form', :locals=>{:order_form=>order_form} %>
 <%= render :partial => '/orders/special_offer_form', :locals => {:f => order_form} %>
+<%= order_form.input :special_request, :as=>:select, :collection=>TicketOrder::SEATING_REQUESTS + ['See Notes'],
+        :label => "Special seating requirements?" %>
 
 <%= order_form.fields_for :address do |address_form| %>
   <%= render :partial => '/admin/orders/address_form', :locals => {:f => address_form} %>

@@ -1,14 +1,18 @@
 class TicketOrder < Order
 
+  before_validation :set_tickets_for_pass_redemption
+  before_save :set_theater
+  before_save :remove_empty_ticket_lines
 
   has_many :ticket_line_items, :foreign_key => :order_id
   accepts_nested_attributes_for :ticket_line_items, :allow_destroy => true
 
+  SEATING_REQUESTS = (
+    WHEELCHAIR, STAIRS =
+    'Wheelchair seating', 'No stairs')
+
   validates_associated :ticket_line_items
   validates_presence_of :performance
-  before_validation :set_tickets_for_pass_redemption
-  before_save :set_theater
-  before_save :remove_empty_ticket_lines
 
   validates_each :status do |record, attr, value|
 
@@ -480,6 +484,7 @@ class TicketOrder
 
       end
       self.sf_object = event
+      self.sf_order_id = sf_object.Id
       self.sf_last_sync_at = DateTime.now + 15.seconds
       self.save!
       self.address.sync_to_salesforce!(true)

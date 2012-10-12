@@ -215,6 +215,10 @@ td.currency {
   text-align: right;
 }
 
+td.boolean {
+  text-align: center;
+}
+
 
 td.numeric {
   text-align: right;

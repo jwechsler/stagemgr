@@ -1,0 +1,8 @@
+<h1>House Management Report <%= @date.to_s(:long) %></h1>
+
+<table id="house_management_seating" class="report">
+  <caption>
+    <i>House Management Report, generated at <%= Time.now.to_s(:hour_min) %> on <%= Time.now %>
+  </caption>
+  <%= render :partial=>"generic", :locals=>{:headers=>@headers, :report_body=>@report_data, :summary=>@totals} %>
+</table>
