@@ -326,7 +326,7 @@ class Admin::ReportsController < Admin::ApplicationController
     report = Array.new
     headers = [:production_name, :patron_name, :special_requests, :notes, :is_member, :is_donor]
     orders.each do |o|
-      if !o.special_request.blank? || o.address.is_current_member? || o.address.is_donor?
+      if !o.special_request.blank? || !o.notes.blank? || o.address.is_current_member? || o.address.is_donor?
 
         report << {
           :production_name => o.performance.production.name,
