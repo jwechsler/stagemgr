@@ -454,7 +454,7 @@ class Order < ActiveRecord::Base
       if !merge.nil? then
         comparison_id = self.address.id.nil? ? -1 : self.address.id
         if comparison_id != merge.id then
-          merge.update_from(self.address)
+          merge.merge_and_purge(self.address)
           a = self.address
           self.address = merge
           a.destroy if !a.nil?
