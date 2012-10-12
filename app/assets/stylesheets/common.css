@@ -15,11 +15,7 @@ a {
 
 #container {
   margin: 4 auto;
-<<<<<<< HEAD
   border: solid 0px black;
-=======
-  border: solid 1px black;
->>>>>>> b56da73ea19151df3a99947352de68577e6faa62
 }
 
 
@@ -284,7 +280,8 @@ table.report {
   font-style: italic;
   font-size: 12px;
 }
-# Forms
+/* Forms
+*/
 
 #non-exchange-notice {
     padding: 10px;
