@@ -7,7 +7,7 @@ class Address < ActiveRecord::Base
 
   include AddressImports
 
-  before_destroy :ensure_no_orders
+  before_destroy :ensure_no_finalized_orders
 
   validates_presence_of :full_name
   validates :email, :email=>true
@@ -101,8 +101,8 @@ class Address < ActiveRecord::Base
 
   end
 
-  def ensure_no_orders
-    raise "Cannot delete an address with associated orders" unless orders(true).count == 0
+  def ensure_no_finalized_orders
+    raise "Cannot delete an address with finalized orders" unless orders(true).select{|o| o.finalized? }.count == 0
   end
 
   def update_from(newer)
@@ -237,6 +237,10 @@ class Address < ActiveRecord::Base
 
   def current_membership
     self.orders.select { |o| (o.is_a? MembershipOrder) && (o.membership_line_items.first.membership.status == Membership::ACTIVE) }.first
+  end
+
+  def has_finalized_orders?
+    self.orders.select { |o| o.finalized? }.size > 0
   end
 
   def self.export_addresses_as_csv(addresses, filename)

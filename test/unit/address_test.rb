@@ -126,7 +126,7 @@ class AddressTest < ActiveSupport::TestCase
       @entered_address.line1 = "1 E Madison"
       @entered_address.regularize!
       @original_address.update_from(@entered_address)
-      assert_equal "Bettername", @original_address.last_name
+      assert_equal "BetterName", @original_address.last_name
       assert_equal "info@theaterwit.org", @original_address.email
       assert_equal "1 E Madison", @original_address.line1
       assert_equal "2nd Floor", @original_address.line2

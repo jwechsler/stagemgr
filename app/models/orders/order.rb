@@ -457,7 +457,7 @@ class Order < ActiveRecord::Base
           merge.update_from(self.address)
           a = self.address
           self.address = merge
-          a.destroy if !a.nil? && a.orders.empty?
+          a.destroy unless a.nil? || a.has_finalized_orders?
         end
       end
     end
