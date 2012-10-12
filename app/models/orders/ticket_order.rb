@@ -484,7 +484,7 @@ class TicketOrder
 
       end
       self.sf_object = event
-      self.sf_order_id = sf_object.Id
+      self.sf_order_id = nil || (sf_object.Id unless sf_object.nil?)
       self.sf_last_sync_at = DateTime.now + 15.seconds
       self.save!
       self.address.sync_to_salesforce!(true)
