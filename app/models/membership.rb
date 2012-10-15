@@ -119,7 +119,7 @@ class Membership
 
   after_save :update_membership_list_subscription, :if => :status_changed_for_myemma?
 
-  def status_changed_for_myemma
+  def status_changed_for_myemma?
     self.status_changed? && !MyEmma.disabled?
   end
 
