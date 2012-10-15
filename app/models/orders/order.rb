@@ -674,7 +674,9 @@ class Order < ActiveRecord::Base
   end
 
   def create_mail_list_task
-    self.tasks << MyEmmaTask.new(:execute_at=>Time.now + 5.minutes) if !self.address.email.nil?
+    if (self.add_to_email_list == "1")
+      self.tasks << MyEmmaTask.new(:execute_at=>Time.now + 5.minutes) if !self.address.email.nil?
+    end
   end
 
   def create_receipt_task
@@ -688,7 +690,7 @@ class Order < ActiveRecord::Base
     if self.do_not_create_tasks.nil? && self.status_changed?
       case self.status
         when PROCESSED
-          create_mail_list_task if (self.add_to_email_list == "1")
+          create_mail_list_task
           create_receipt_task
         when UNCLAIMED, CANCELED, REFUNDED, EXCHANGED
           cancel_pending_tasks
