@@ -114,61 +114,63 @@ class Membership < ActiveRecord::Base
 end
 
 # my_emma add on
-class Membership
+unless MyEmma.disabled?
+  class Membership
 
-  def update_my_emma_membership
-    if self.status_changed?
+    def update_my_emma_membership
+      if self.status_changed?
+        if self.inactive?
+          self.remove_from_membership_list
+        else
+          self.add_to_membership_list
+        end
+      end
+
+    end
+
+    def add_to_membership_list
+      unless self.membership_offer.myemma_group.nil?
+        begin
+          member = MyEmma::Member.new
+          member.name_first = self.address.first_name
+          member.name_last = self.address.last_name
+          member.email = self.address.email
+          member.address = self.address.line1
+          member.city = self.address.city
+          member.state = self.address.state
+          member.postal_code = self.address.zipcode
+          member.save([self.membership_offer.myemma_group])
+        rescue Exception=>e
+          Rails.logger.error("Could not update membership mailing list for address ##{self.address.id}, #{e.message}")
+        end
+      end
+    end
+
+    def remove_from_membership_list
+      group_id = self.membership_offer.myemma_group
+      unless group_id.blank? || self.address.email.blank? || self.address.is_current_member?
+        begin
+          member = MyEmma::Member.find_by_email(self.address.email)
+
+          unless member.nil?
+            group = MyEmma::Group.find(group_id)
+            group.remove_members(member)
+          end
+        rescue Exception=>e
+          Rails.logger.error("Could not update membership mailing list for address ##{self.address.id}, #{e.message}")
+        end
+      end
+    end
+
+    def update_membership_list_subscription
       if self.inactive?
         self.remove_from_membership_list
       else
         self.add_to_membership_list
       end
+      true
     end
 
+
   end
-
-  def add_to_membership_list
-    unless self.membership_offer.myemma_group.nil?
-      begin
-        member = MyEmma::Member.new
-        member.name_first = self.address.first_name
-        member.name_last = self.address.last_name
-        member.email = self.address.email
-        member.address = self.address.line1
-        member.city = self.address.city
-        member.state = self.address.state
-        member.postal_code = self.address.zipcode
-        member.save([self.membership_offer.myemma_group])
-      rescue Exception=>e
-        Rails.logger.error("Could not update membership mailing list for address ##{self.address.id}, #{e.message}")
-      end
-    end
-  end
-
-  def remove_from_membership_list
-    group_id = self.membership_offer.myemma_group
-    unless group_id.blank? || self.address.email.blank? || self.address.is_current_member?
-      begin
-        member = MyEmma::Member.find_by_email(self.address.email)
-
-        unless member.nil?
-          group = MyEmma::Group.find(group_id)
-          group.remove_members(member)
-        end
-      rescue Exception=>e
-        Rails.logger.error("Could not update membership mailing list for address ##{self.address.id}, #{e.message}")
-      end
-    end
-  end
-
-  def update_membership_list_subscription
-    if self.inactive?
-      self.remove_from_membership_list
-    else
-      self.add_to_membership_list
-    end
-    true
-  end
-
-
 end
