@@ -63,7 +63,9 @@ class Membership < ActiveRecord::Base
         ACTIVE
       when (profile_status == PENDING) || (profile_status == ACTIVE && cycles == 0)
         PENDING
-      when ['Cancelled','Suspended'].include?(profile_status)
+      when (['Cancelled',CANCELED].include?(profile_status))
+        CANCELED
+      when (profile_status == SUSPENDED)
         profile_status
       else
         "Other"
