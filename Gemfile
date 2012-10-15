@@ -40,7 +40,7 @@ gem "mysql2"
 gem "authlogic"
 gem "acts_as_audited", "~> 2.1.0"
 gem "will_paginate",          '~> 3.0.3'
-gem "my_emma",  "~>0.0.3", :git=>"https://github.com/jwechsler/my_emma.git"
+gem "my_emma",  "~>0.0.4", :git=>"https://github.com/jwechsler/my_emma.git"
 # or develop against "~/dev/my_emma"
 #gem "my_emma", :path=>"~/dev/my_emma"
 gem "paperclip",               "~> 3.1.2"

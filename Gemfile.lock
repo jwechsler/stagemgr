@@ -1,8 +1,8 @@
 GIT
   remote: https://github.com/jwechsler/my_emma.git
-  revision: c23200d8fd00dcd7bbabbfaf3c645663c7b676eb
+  revision: 2f13f48a4646ab9f422675f240e3ed688031200c
   specs:
-    my_emma (0.0.3)
+    my_emma (0.0.4)
       activemodel
       crack
       httparty (= 0.7.8)
@@ -335,7 +335,7 @@ DEPENDENCIES
   mocha
   money
   mongrel (= 1.2.0.pre2)
-  my_emma (~> 0.0.3)!
+  my_emma (~> 0.0.4)!
   mysql2
   namecase (~> 1.1.0)
   newrelic_rpm
