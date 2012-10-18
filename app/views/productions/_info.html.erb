@@ -18,9 +18,11 @@
     <p>
       <%= raw production.show_description %>
     </p>
-    <%- if !production.running_time.blank? then -%>
+    <%- if !production.running_time.blank? then
+      hour = "#{(production.running_time / 60).to_i} hour#{(production.running_time/60).to_i > 1 ? 's' : ''}"
+      hour = hour + " #{production.running_time % 60} minute#{(production.running_time % 60 > 1) ? 's' : ''}" if (production.running_time % 60) != 0-%>
       <p class="running_time">Running
-        Time: <%= production.running_time > 95 ? distance_of_time_in_words(production.running_time*60) : "#{production.running_time} minutes" %><%= " with intermission" if production.intermission? %></p>
+        Time: <%= hour %><%= " with intermission" if production.intermission? %></p>
     <%- end -%>
     <%- unless production.additional_information_link.blank?  %>
       <p>
