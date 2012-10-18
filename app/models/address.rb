@@ -335,7 +335,7 @@ class Address < ActiveRecord::Base
   end
 
   def revenue_collected(since_when = 18.months.ago)
-    self.orders.select { |o| o.paid? && Payment.maximum(:processed_on, :conditions=>["order_id = ?", o.id]) > since_when.to_date }.map { |o| o.total }.sum
+    self.orders.select { |o| o.paid? && (Payment.maximum(:processed_on, :conditions=>["order_id = ?", o.id]) || 0) > since_when.to_date }.map { |o| o.total }.sum
   end
 
   def performances_attended(since_when = 5.years.ago)
