@@ -48,7 +48,8 @@ class Production < ActiveRecord::Base
         [PRODUCTION_STATUSES.index(other.status) || 0, other.opening_at || Date.today, other.name || '']
   end
 
-  def now_playing?
+  def now_playing?(through = nil)
+    through = through || Date.today.end_of_week
     self.first_playing_date <= Date.today.end_of_week && self.closing_at >= Date.today
   end
 

@@ -45,7 +45,7 @@ class VenuesController < ApplicationController
     end
     @offtime_productions = Array.new
     Venue.all.each do |venue|
-      @offtime_productions += venue.now_playing(Production::OFF_TIME)
+      @offtime_productions += venue.now_playing(Production::OFF_TIME, Date.today.end_of_week + 3.days)
     end
   end
 end
