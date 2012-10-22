@@ -2,7 +2,7 @@ class ProductionsController < ApplicationController
 
   layout 'ext_site_wrapper'
 
-  prepend_before_filter :find_theater, :except => [:index, :upcoming, :now_playing, :box_office]
+  prepend_before_filter :find_theater, :except => [:index, :upcoming, :now_playing, :box_office, :by_date]
   append_before_filter :find_production, :only => [:show, :edit, :update, :destroy]
 
   def by_date
@@ -11,7 +11,7 @@ class ProductionsController < ApplicationController
     @productions = Production.find(:all, :include=>[:performances], :conditions=>['performances.performance_date >= ? and performances.performance_date <= ?',@start_date,@end_date], :order=>'performances.performance_date, performances.performance_time asc')
     render :index
   end
-    
+
   def index
     @current_date = Date.today
     @b_week = Date.today.beginning_of_week
@@ -19,13 +19,13 @@ class ProductionsController < ApplicationController
     @productions = Production.find(:all, :conditions=>['productions.closing_at >= ? and productions.status in (?) and productions.production_class in (?)',@b_week, Production.visible_statuses, Production.performing_classes], :order=>'case when date(productions.first_preview_at) <= date(current_date) then 0 else 1 end, case theater_id when 1 then 0 else 1 end, case when date(productions.first_preview_at) <= date(current_date) then productions.name else productions.first_preview_at end')
     render :upcoming
   end
-  
+
   def upcoming
     @current_date = Date.today.end_of_week + 1
     @productions = Production.find(:all, :conditions=>['productions.first_preview_at > ? and productions.status = \'Active\'',@current_date], :order=>'case theater_id when 1 then 0 else 1 end, productions.first_preview_at')
     render :upcoming
   end
-  
+
   def now_playing
     @current_date = Date.today.beginning_of_week
     @end_of_week = Date.today.end_of_week
@@ -117,9 +117,9 @@ class ProductionsController < ApplicationController
       format.xml  { head :ok }
     end
   end
-  
+
   private
-  
+
   def find_theater
     @theater=Theater.find(params[:theater_id])
   end
@@ -137,5 +137,5 @@ def now_playing_by_venue(production_type)
     now_playing_productions
   end
 
-  
+
 end

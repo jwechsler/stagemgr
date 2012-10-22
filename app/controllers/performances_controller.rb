@@ -1,7 +1,7 @@
 class PerformancesController < ApplicationController
   layout 'ext_site_wrapper'
 
-  append_before_filter :find_production
+  append_before_filter :find_production, :except=>[:by_date]
 
   def index
     if !@production.nil?
@@ -18,6 +18,16 @@ class PerformancesController < ApplicationController
     end
 
   end
+
+  def by_date
+    @footnotes = Array.new
+    @start_date = params[:start_date].nil? ? Date.today.beginning_of_week : Date.parse(params[:start_date])
+    @end_date = params[:end_date].nil? ? Date.today.beginning_of_week + 1.week - 1 : Date.parse(params[:end_date])
+    @performances = Performance.where('performances.performance_date >= ? and performances.performance_date <= ?',@start_date,@end_date).order(:performance_date, :performance_time)
+    @performances.each {|p| @footnotes += p.special_features.map {|f| f.short_name} }
+    render :by_date, :layout=>'ext_site_wrapper'
+  end
+
 
   private
 

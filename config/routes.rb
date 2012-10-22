@@ -79,6 +79,12 @@ Stagemgr::Application.routes.draw do
     end
   end
 
+  resources :performances, :only=>:index do
+    collection do
+      get :by_date
+    end
+  end
+
   resources :flex_pass_offers, :only => false do
     resources :orders, :controller => 'flex_pass_offer_orders'
   end
