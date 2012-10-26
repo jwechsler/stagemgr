@@ -110,6 +110,8 @@ Stagemgr::Application.routes.draw do
           :controller => 'productions',
           :action => 'by_date'
 
+  resources :productions, :only=>:show
+
   namespace :admin do
 
     resources :membership_orders, :only=>false
