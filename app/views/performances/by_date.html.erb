@@ -1,0 +1,73 @@
+
+<style type="text/css">
+
+  ul.calendar_list {
+    overflow:auto;
+    width: 100%;
+    clear: both;
+  }
+
+  ul.calendar_list lh p {
+    font-weight: bold;
+    font-size: 125%;
+    text-align:center;
+    line-height: 2em;
+  }
+  .performance_list_date {
+    clear: both;
+    font-weight: bold;
+    float: left;
+    width: 25%;
+  }
+
+  .performance_list_date .month_name {
+    clear: all;
+  }
+
+  li.performance_list {
+    list-style-type: none;
+  }
+
+  li.alternating {
+    background-color: #77919f;
+  }
+
+  .performance_list_detail {
+    float: right;
+    width: 75%;
+  }
+
+  .performance_list_detail .performance_time {
+    font-size: 75%;
+  }
+  .performance_list_date .day_of_month { font-size: 250%; }
+</style>
+
+<div id="production_detail">
+  This is where production info will go.
+</div>
+
+<div class="calendar_header">
+
+<ul class="calendar_list">
+  <lh>
+    <p><%= link_to raw("&laquo;&nbsp;Prev"), :action=>:by_date, :start_date=>@start_date - 7.days, :end_date=>@start_date-1.day %> Performance Schedule <%= link_to raw("Next&nbsp;&raquo;"), :action=>:by_date, :start_date=>@start_date + 7.days, :end_date=>@start_date+14.days %></p>
+  </lh>
+  <%- dates = @performances.map {|perf| perf.performance_date}.sort.uniq
+      alternating = true %>
+  <%- dates.each do |show_date| %>
+  <li class="performance_list <%= alternating ? 'alternating' : '' %>"><div class="performance_list_date"><span class="day_of_month"><%= show_date.day %></span>
+    <span class="month_name"><%= Date::MONTHNAMES[show_date.month] %></span>
+  </div>
+  <div class="performance_list_detail">
+    <%- @performances.select{|perf| perf.performance_date == show_date }.sort{|a,b| a.performance_time <=> b.performance_time}.each do |perf| %>
+    <%= link_to perf.production.name, "/productions/#{perf.production_id}", :remote=>true, "data-type" => :html %>
+    <%= render :partial=>"performance", :locals=>{:performance=>perf} %>
+    <%- end %>
+  </div>
+  </li>
+
+
+<%- alternating = !alternating
+    end %>
+</ul>
