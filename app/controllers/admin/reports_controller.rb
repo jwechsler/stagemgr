@@ -383,7 +383,8 @@ class Admin::ReportsController < Admin::ApplicationController
     headers += [:email, :street_address, :street_address_2, :state, :city, :state, :postal_code, :phone] unless display_only
     headers += [:status, :number_cycles, :collected, :performances_attended, :payout, :net_revenue, :avg_revenue_month, :avg_performances_month]
     memberships.each do |membership|
-      unless membership.number_cycles_completed.nil? || membership.number_cycles_completed == 0 || membership.member_since > end_day || (membership.member_since + membership.number_cycles_completed.months) < start_day
+      number_cycles_completed = membership.number_cycles_completed || 1
+      unless membership.member_since > end_day || (membership.member_since + number_cycles_completed.months) < start_day
         cutoff_max = [membership.next_billing_date, end_day].min
         cutoff_max = Date.civil(cutoff_max.year, cutoff_max.month, membership.next_billing_date.day)
         cutoff_min = [membership.member_since, start_day].max
@@ -393,14 +394,16 @@ class Admin::ReportsController < Admin::ApplicationController
           cutoff_max = cutoff_min + 1.month
           cycles_in_window = 1
         end
-        total_payout = Payment.sum(:amount, :conditions=>["type = 'MembershipPayment' and membership_id = ? and exists (select * from orders, performances where orders.id = payments.order_id and orders.performance_id = performances.id and performances.performance_date <= ? and performances.performance_date >= ?)", membership.id, cutoff_max, cutoff_min])
-        num_attended = Payment.count(:conditions=>["type = 'MembershipPayment' and membership_id = ? and exists (select * from orders, performances where orders.id = payments.order_id and orders.performance_id = performances.id and performances.performance_date <= ? and performances.performance_date >= ?)", membership.id, cutoff_max, cutoff_min])
+        total_payout = MembershipPayment.sum(:amount, :include=>[:order, [:order=>:performance]], :conditions=>["membership_id = ? and orders.id = payments.order_id and orders.performance_id = performances.id and performances.performance_date <= ? and performances.performance_date >= ?", membership.id, cutoff_max, cutoff_min])
+        num_attended = MembershipPayment.count(:include=>[:order, [:order=>:performance]], :conditions=>["membership_id = ? and orders.id = payments.order_id and orders.performance_id = performances.id and performances.performance_date <= ? and performances.performance_date >= ?", membership.id, cutoff_max, cutoff_min])
+        total_payout = RecurringPayment.sum(:amount, :include=>[:order, [:order=>:performance]], :conditions=>["membership_id = ? and orders.id = payments.order_id and orders.performance_id = performances.id and performances.performance_date <= ? and performances.performance_date >= ?", membership.id, cutoff_max, cutoff_min])
+
+        aggregate_amount = RecurringPayment.sum(:amount, :conditions=>["order_id = ? and processed_on > ? and processed_on < ?", membership.membership_line_item.order_id, cutoff_min, cutoff_max])
         avg_revenue_month = Money.from_numeric(0.0)
         avg_performances_month = 0.0
-        avg_revenue_month = Money.from_numeric((membership.aggregate_amount-total_payout)/cycles_in_window)
+        avg_revenue_month = Money.from_numeric((aggregate_amount-total_payout)/cycles_in_window)
         avg_performances_month = ((0.0 + num_attended)/cycles_in_window).round(1)
-        aggregate_amount = membership.aggregate_amount.nil? ? 0.0 : membership.aggregate_amount
-
+        # aggregate_amount = membership.aggregate_amount.nil? ? 0.0 : membership.aggregate_amount
         report << {:member_since=>membership.member_since.strftime("%D"),
                    :last_name=>membership.membership_line_item.order.address.last_name,
                    :first_name=>membership.membership_line_item.order.address.first_name,
