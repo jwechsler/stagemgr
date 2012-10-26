@@ -2,8 +2,8 @@ class ProductionsController < ApplicationController
 
   layout 'ext_site_wrapper'
 
-  prepend_before_filter :find_theater, :except => [:index, :upcoming, :now_playing, :box_office, :by_date]
-  append_before_filter :find_production, :only => [:show, :edit, :update, :destroy]
+  prepend_before_filter :find_theater, :except => [:index, :upcoming, :now_playing, :box_office, :by_date, :show]
+  append_before_filter :find_production, :only => [:edit, :update, :destroy]
 
   def by_date
     @start_date = params[:start_date].nil? ? Date.today.beginning_of_week : Date.parse(params[:start_date])
@@ -56,8 +56,9 @@ class ProductionsController < ApplicationController
   # GET /productions/1
   # GET /productions/1.xml
   def show
+    @production = Production.find(params[:id])
     respond_to do |format|
-      format.html # show.html.erb
+      format.html { render :layout=>false }# show.html.erb
       format.xml  { render :xml => @production }
     end
   end
@@ -67,7 +68,7 @@ class ProductionsController < ApplicationController
   def new
     @production = @theater.productions.build
     respond_to do |format|
-      format.html # new.html.erb
+      format.html  # new.html.erb
       format.xml  { render :xml => @production }
     end
   end
