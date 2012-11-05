@@ -107,6 +107,7 @@ class CreditCardPayment < Payment
 
       refund_payment = self.dup
       refund_payment.amount = self.amount*-1
+      refund_payment.ipn_track_id = nil
       self.order.payments << refund_payment
 
       refund_amount = (self.amount*100).to_i
