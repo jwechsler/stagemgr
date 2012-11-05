@@ -50,7 +50,7 @@ class Production < ActiveRecord::Base
 
   def now_playing?(through = nil)
     through ||= Date.today.end_of_week
-    self.first_playing_date <= through && self.closing_at >= Date.today
+    self.first_playing_date <= through && (self.closing_at.nil? ? true : (self.closing_at >= Date.today))
   end
 
   def first_playing_date

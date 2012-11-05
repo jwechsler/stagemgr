@@ -71,6 +71,7 @@ FactoryGirl.define do
       association :theater, :factory => :theater
       association :venue, :factory => :venue
       capacity 100
+      closing_at Date.today + 1.week
       season Date.today.year
 
       factory :production_with_ticket_classes do
@@ -110,7 +111,7 @@ FactoryGirl.define do
     factory :flex_pass_order do
       order
     end
-    
+
     factory :donation_order do
       order
     end
@@ -122,7 +123,7 @@ FactoryGirl.define do
     factory :ticket_line_item do
       association :ticket_class, :factory => :ticket_class
     end
-    
+
     factory :donation_line_item do
       association :order, :factory=>:donation_order
     end
