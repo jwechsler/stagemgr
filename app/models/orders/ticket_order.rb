@@ -323,7 +323,7 @@ class TicketOrder < Order
         if !self.address.email.blank? && membership.address.email.downcase.strip != self.address.email.downcase.strip
           raise 'Member ID does not match provided email address'
         end
-        raise 'That member ID is not active. Please call the box office for assistance.' unless membership.is_active?
+        raise 'That member ID is not active. Please call the box office for assistance.' unless membership.active?(self.performance.performance_date)
         pass_ticket_class = production_ticket_class_from_offer(membership.membership_offer)
         total_amount = ticket_line_items.inject(0) { |total_amount, li| total_amount += self.applicable_price(li.ticket_class, pass_ticket_class)* li.ticket_count }
 

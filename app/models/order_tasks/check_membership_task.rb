@@ -10,7 +10,7 @@ class CheckMembershipTask < OrderTask
     result = false
 
       membership.update_from_profile
-      if membership.number_cycles_completed_changed? && membership.is_active?
+      if membership.number_cycles_completed_changed? && membership.active?
         new_payment = self.order.create_recurring_payment("Created by membership check task")
         self.order.tasks << CheckMembershipTask.new(:execute_at=>membership.next_billing_date + 1.day)
         self.order.payments << new_payment

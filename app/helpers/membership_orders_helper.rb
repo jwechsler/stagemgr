@@ -8,7 +8,7 @@ module MembershipOrdersHelper
         @order.ip_address = request.remote_ip
         @order.transition_to!(Order::PROCESSING)
         membership_offer = @order.membership_offer
-    
+
         f_name, m_name, l_name = @order.address.parse_full_name
         @order.credit_card_expiration_year = self.fix_expiration_year(@order.credit_card_expiration_year)
         credit_card = PaymentProcessing.credit_card(@order.credit_card_type,
@@ -44,14 +44,14 @@ module MembershipOrdersHelper
   private
   def recurring_response(membership_offer, credit_card, ip, order_id, email)
     gateway ||= PaymentProcessing.recurring_gateway
-    
+
     trial_amt = membership_offer.trial_amount
     trial_amt = (trial_amt*100).to_i unless trial_amt.nil?
 
     response = gateway.recurring((membership_offer.recurring_cost * 100).to_i, credit_card,
                                    :ip=>ip, :order_id =>order_id, :email=>email,
                                    :description => membership_offer.billing_agreement, :start_date=>Date.today,
-                                   :period=>'Month', :frequency=>1, :max_failed_payments=>1, 
+                                   :period=>'Month', :frequency=>1, :max_failed_payments=>1,
                                    :auto_bill_outstanding=> true,
                                    :trial_amount => trial_amt,
                                    :trial_frequency=>1,

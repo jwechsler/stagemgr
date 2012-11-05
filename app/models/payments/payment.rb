@@ -26,7 +26,7 @@ class Payment < ActiveRecord::Base
     self.type=string
   end
   def process!
-    self.processed_on = Date.today
+    self.processed_on = DateTime.now
     self.save!
   end
   def self.descendants
@@ -51,7 +51,7 @@ class Payment < ActiveRecord::Base
 
   protected
   def set_processed_on
-    self.processed_on = Date.today if (self.new_record? || self.amount_changed?)
+    self.processed_on = self.processed_on || Date.today if self.new_record?
   end
 
 end

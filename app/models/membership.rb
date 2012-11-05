@@ -6,7 +6,9 @@ class Membership < ActiveRecord::Base
   )
   attr_accessible :membership_offer_id, :member_since, :order_id, :address_id, :member_code, :status, :profile_id
 
+  has_one :membership_order, :through=>:membership_line_item
   has_one :membership_line_item, :foreign_key=>:membership_id
+  has_one :membership_order, :through=>:membership_line_item
   has_many :special_offers, :dependent=>:destroy
   before_destroy :cancel_future_reservations
   belongs_to :address
@@ -78,16 +80,26 @@ class Membership < ActiveRecord::Base
     self
   end
 
-  def is_active?
-    self.status == ACTIVE
+  def active?(as_of = nil)
+
+    result = self.status == (ACTIVE && ((self.number_cycles_completed  || 0) > 0))
+    unless as_of.nil?
+      result ||= self.inactive? && (as_of <= self.last_effective_date)
+    end
+    result
   end
 
   def is_pending?
-    self.status == PENDING
+    self.status == PENDING || ((self.number_cycles_completed || 0) == 0)
   end
 
   def source_order
     self.membership_line_item.order
+  end
+
+  def last_effective_date
+    lp = self.membership_payments.max_by{|payment| payment.processed_on}
+    lp.processed_on + 1.month
   end
 
   def inactive?
@@ -103,10 +115,11 @@ class Membership < ActiveRecord::Base
   end
 
   def cancel_future_reservations
+    led = self.last_effective_date
     self.membership_payments.each do |payment|
       o = payment.order
       d = o.reservation_date
-      unless d.nil? || d < Time.now || o.refunded?
+      unless d.nil? || d < led || o.refunded?
         o.refund!
       end
     end

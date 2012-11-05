@@ -23,6 +23,15 @@ Stagemgr::Application.routes.draw do
 
   get "venue/offnight_up_next"
 
+
+  # paypal IPN routes
+
+  match '/pay_pal/notify' => 'pay_pal#notify'
+  match '/pay_pal/show' => 'pay_pal#show'
+  match '/pay_pal/cancel' => 'pay_pal#cancel'
+  match '/paypal/ipn' => 'pay_pal#paypal_ipn'
+
+
   namespace(:admin){ resources :venues }
 
    namespace(:admin){ resources :memberships }

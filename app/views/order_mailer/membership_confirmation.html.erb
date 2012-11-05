@@ -6,7 +6,7 @@
   <body>
   <p>
     Thanks so much becoming a member at Theater Wit.
-    <%- if @membership.is_active? %>
+    <%- if @membership.active? %>
       Your <%= @membership.membership_offer.name %> is ready to use immediately. You'll be getting a permanent card
       in the mail as well as a detailed brochure about how to use it?  But hey, why wait? You can start using your
       membership today.

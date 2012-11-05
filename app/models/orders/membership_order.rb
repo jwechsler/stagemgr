@@ -71,18 +71,21 @@ class MembershipOrder < Order
     self.value_of_all_payments
   end
 
-  def create_recurring_payment(note = nil)
+  def create_recurring_payment(note = nil, additional_info = {})
     payment = RecurringPayment.new
-    payment.amount = self.membership.membership_offer.recurring_cost
+    payment.amount = additional_info[:amount] || self.membership.membership_offer.recurring_cost
     payment.note = note || "Automatically created"
-    payment.transaction_id = self.membership.profile_id
+    payment.transaction_id = additional_info[:transaction_id] || self.membership.profile_id
+    payment.ipn_track_id = additional_info[:ipn_track_id]
+    payment.processed_on = additional_info[:processed_on]
+    payment.payment_fee = additional_info[:payment_fee]
     self.payments << payment
     payment
   end
 
   def create_proper_payment_in_amount_of!(amount)
     self.membership.update_from_profile!
-    if self.membership.is_active? && self.membership.number_cycles_completed > 0
+    if self.membership.active? && self.membership.number_cycles_completed > 0
       create_recurring_payment
     end
   end
@@ -118,18 +121,10 @@ class MembershipOrder < Order
   end
 
   def set_tasks_after_save
-    if self.do_not_create_tasks.nil? && self.status_changed?
-      case self.status
-        when PROCESSED
-          if self.membership.is_active? && self.membership.number_cycles_completed > 0
-            self.tasks << CheckMembershipTask.new(:execute_at=>self.membership.next_billing_date + 2.hours)
-          else
-            self.tasks << CheckMembershipTask.new(:execute_at=>Time.now + 5.minutes)
-          end
+    if self.do_not_create_tasks.nil? && self.status_changed? && self.status == PROCESSED
           self.tasks << OutreachTask.new(:execute_at=>Time.now + 4.months,
                                          :method_symbol=>:membership_friend_pass,
                                          :repeat_monthly_interval => 6) unless self.membership_offer.use_member_friend_code.blank?
-      end
     end
     super
   end

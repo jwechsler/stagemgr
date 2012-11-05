@@ -9,7 +9,7 @@
   <%=h address.zipcode %><br/>
   <%- if !address.email.blank?%><i>Email: </i><%= mail_to address.email, permitted_to?(:view_email, :admin_addresses) ? address.email : "[send e-mail]" %><br/><%- end -%>
   <%- if !address.phone.blank? -%><i>Phone: <%=h address.phone %></i><br/><%- end -%>
-  <%- memberships = Membership.find_all_by_address_id(address.id).select{|m| m.is_active?}
+  <%- memberships = Membership.find_all_by_address_id(address.id).select{|m| m.active?}
       if memberships.size > 0
         membership_list = memberships.map {|m| m.member_code }.join(',')
   %>
