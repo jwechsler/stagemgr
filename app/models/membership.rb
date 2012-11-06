@@ -82,16 +82,30 @@ class Membership < ActiveRecord::Base
 
   def active?(as_of = nil)
 
-    result = self.status == ACTIVE
-    result ||= self.total > 0 if self.number_cycles_completed == 0
-    unless as_of.nil?
-      result ||= self.inactive? && (as_of <= self.last_effective_date)
+    result = !self.pending?
+    if result
+      result = self.status == ACTIVE
+      result ||= self.total > 0 if self.number_cycles_completed == 0
+      unless as_of.nil?
+        result ||= self.inactive? && (as_of <= self.last_effective_date)
+      end
     end
     result
   end
 
-  def is_pending?
-    self.status == PENDING || (((self.number_cycles_completed || 0) == 0) || self.total == 0)
+  def current_status
+    case
+    when self.is_pending?
+      Membership::PENDING
+    when self.is_active?
+      Membership::ACTIVE
+    else
+      self.status
+    end
+  end
+
+  def pending?
+    self.status == PENDING || (((self.number_cycles_completed || 0) == 0) && self.total == 0)
   end
 
   def source_order
