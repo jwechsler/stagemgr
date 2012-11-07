@@ -95,7 +95,7 @@ class Membership < ActiveRecord::Base
 
   def current_status
     case
-    when self.is_pending?
+    when self.pending?
       Membership::PENDING
     when self.is_active?
       Membership::ACTIVE
