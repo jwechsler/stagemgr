@@ -12,7 +12,7 @@
     </thead>
     <% order.payments.each do |payment| %>
       <tr>
-        <td width="20%"><%= payment.processed_on.to_s(:short_date_and_time) %></td>
+        <td width="20%"><%= payment.processed_on.to_formatted_s(:short_date_and_time) %></td>
         <td width="10%"><%= h payment.type == 'CreditCardPayment' ? payment.card_type : payment.type[0..-8] %></td>
         <td width="10%" align="right"><%= h to_currency(payment.amount) %></td>
         <td width="10%" align="right"><%= h payment.card_type.nil? ? "" : (payment.card_last_four.nil? ? "" : payment.card_last_four.to_s) %></td>
