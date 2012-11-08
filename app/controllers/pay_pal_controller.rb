@@ -146,7 +146,8 @@ class PayPalController < ApplicationController
 
     else
 
-      render :text => 'ERROR' + '/n' + response.to_yaml
+      render :text => 'ERROR' 
+	#  + '/n' + response.to_yaml
 
     end
 

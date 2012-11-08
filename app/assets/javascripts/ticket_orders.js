@@ -6,6 +6,7 @@ var order_type = 'ticket_order'
 
 setup_payment_form(order_type);
 
+/*
 function show_special_request_form(order_type) {
   e = $("#" + order_type + "_special_request")
   e.fadeToggle();
@@ -19,3 +20,6 @@ function show_special_request_form(order_type) {
       show_special_request_form(order_type);
     });
   });
+
+*/
+
