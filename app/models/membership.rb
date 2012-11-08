@@ -95,9 +95,9 @@ class Membership < ActiveRecord::Base
 
   def current_status
     case
-    when self.is_pending?
+    when self.pending?
       Membership::PENDING
-    when self.is_active?
+    when self.active?
       Membership::ACTIVE
     else
       self.status
@@ -105,7 +105,7 @@ class Membership < ActiveRecord::Base
   end
 
   def pending?
-    self.status == PENDING || (((self.number_cycles_completed || 0) == 0) && self.total == 0)
+    self.status == PENDING || (((self.number_cycles_completed || 0) == 0) && self.membership_order.total == 0)
   end
 
   def source_order

@@ -33,6 +33,9 @@ module NavigationHelpers
         url_for(:controller => 'admin/ticket_orders', :action => 'new', :only_path => true)
       when /^new web order for production "([^"]*)" and performance "([^"]*)"/
         new_production_performance_order_url(Production.find_by_name($1).id, Performance.find_by_performance_code($2).id)
+      when /^new membership order for membership offer "([^"]*)"/
+        @_current_form='membership_order'
+        new_membership_offer_order_url(MembershipOffer.find_by_name($1).id)
       when /^new admin ticket order$/
         @using_admin_interface = true
         new_admin_ticket_order_url

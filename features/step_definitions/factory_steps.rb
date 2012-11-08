@@ -45,6 +45,11 @@ Given /^a production "(.*?)" exists$/ do |name|
   @production = FactoryGirl.create(:production, :name=>name, :theater=>@theater)
 end
 
+Given /^a membership offer "(.*?)" exists$/ do |offer_name|
+  @membership_offer = FactoryGirl.create(:membership_offer, :name=>offer_name)
+end
+
+
 When /^a production "([^"]*)" exists for the theater "([^"]*)"$/ do |name, theater_name|
   @theater = Theater.find_by_name(theater_name)
   @production = FactoryGirl.create(:production, :name=>name, :code=>name[0..3].upper, :theater=>@theater)
@@ -59,7 +64,20 @@ end
 
 Then /^the order should have an email task$/ do
   @order = Order.last
-  count = @order.tasks.select{|task| task.is_a? MyEmmaTask}.size 
+  count = @order.tasks.select{|task| task.is_a? MyEmmaTask}.size
   raise "Expected one email task, got #{count}" if count != 1
 end
 
+Then /^a membership exists with status "(.*?)"$/ do |status|
+  count = Membership.count
+  raise "More than one membership found" if count > 1
+  membership = Membership.find_by_status(status)
+  raise "No such membership \"#{status}\" found" if membership.nil?
+end
+
+
+Then /^a membership exists with current status "(.*?)"$/ do |status|
+  count = Membership.count
+  raise "More than one membership found" if count > 1
+  raise "No membership with current status \"#{status} found" unless Membership.all.select{|m| m.current_status == status }.count == 1
+end

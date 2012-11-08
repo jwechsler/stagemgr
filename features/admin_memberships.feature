@@ -50,7 +50,7 @@ Feature: Membership Administration
       And I should not see "Edit"
       And I should not see "Destroy"
       And I should not see "New Membership Offer"
-    
+
   Scenario: Box office personnel can place membership orders from the offers page
     Given I am a box office user
       And I am logged in
@@ -60,8 +60,7 @@ Feature: Membership Administration
       And I enter a valid credit card as payment
       And I press "Checkout"
      Then I should see "Customer successfully set up for the Monthly Membership payment plan"
-  
-  @wip
+
   Scenario: Administrators can create trial memberships
     Given I am an administrator
       And I am logged in
@@ -75,6 +74,6 @@ Feature: Membership Administration
       And I should see "Successfully created"
       And a membership_offer should exist with trial_period of 1
 
-    
 
-  
+
+
