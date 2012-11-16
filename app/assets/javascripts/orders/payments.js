@@ -33,3 +33,22 @@ function setup_payment_form(order_type) {
     });
   });
 }
+
+function show_gift_form(order_type) {
+  e = $("#gift_information")
+  v = $("#" + order_type + "_gift")
+  if (v.is(':checked')) {
+    e.show();
+  } else {
+    e.hide();
+  }
+}
+
+function setup_gift_form(order_type) {
+ jQuery(document).ready(function($) {
+    $("#" + order_type + "_gift").change(function() {
+      show_gift_form(order_type);
+    });
+    show_gift_form(order_type);
+  });
+}

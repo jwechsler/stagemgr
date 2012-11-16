@@ -22,6 +22,8 @@ class Order < ActiveRecord::Base
   has_many :special_offer_line_items
 
   belongs_to :address
+  belongs_to :recipient_address, :class_name=>:address, :foreign_key=>:recipient_address_id
+
   accepts_nested_attributes_for :special_offer_line_items,
                                 :address,
                                 :allow_destroy => true
@@ -31,6 +33,7 @@ class Order < ActiveRecord::Base
   attr_accessor :email_confirmation
   attr_accessor :add_to_email_list
   attr_accessor :do_not_create_tasks
+  attr_accessor :give_gift_on_month, :give_gift_on_day
 
   attr_accessor :credit_card_number,
                 :credit_card_type,
@@ -42,6 +45,7 @@ class Order < ActiveRecord::Base
                 :flex_pass_code,
                 :member_code
   attr_accessor :sf_object
+
 
   def copy_payment_information(from_order)
     self.credit_card_number = from_order.credit_card_number
@@ -84,13 +88,13 @@ class Order < ActiveRecord::Base
   before_validation :cascade_address_to_nested_items
   before_validation :initialize_nested_line_items, :on => :create
   before_validation :set_defaults
+  before_validation :create_recipient_address, :if=>:gift?
 
   after_validation :auto_link_processed_to_address_of_record
   after_validation :prevent_status_rollbacks
   before_destroy :check_for_settled_payments
   before_save :set_theater
   after_save :set_tasks_after_save
-
 
   validates_inclusion_of :status, :in => ORDER_STATUSES, :if=>:status_is_provided?
   validates_inclusion_of :payment_type, :in => PAYMENT_TYPES
@@ -668,6 +672,13 @@ class Order < ActiveRecord::Base
     redirect_to
   end
 
+  def create_recipient_address
+      new_owner = Address.new(:full_name=>self.recipient_name, :email=>self.recipient_email)
+      new_owner = new_owner.find_original || new_owner
+      new_owner.save!
+      self.recipient_address_id = new_owner.id
+  end
+
   def set_defaults
     self.status ||= HOLD
     set_form_defaults
@@ -683,6 +694,9 @@ class Order < ActiveRecord::Base
 
   end
 
+  def create_transfer_ownership_task
+  end
+
   def create_notify_refund_task
   end
 
@@ -692,6 +706,7 @@ class Order < ActiveRecord::Base
         when PROCESSED
           create_mail_list_task
           create_receipt_task
+          create_transfer_ownership_task if self.gift?
         when UNCLAIMED, CANCELED, REFUNDED, EXCHANGED
           cancel_pending_tasks
       end

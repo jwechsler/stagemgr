@@ -708,7 +708,7 @@ class Admin::ReportsController < Admin::ApplicationController
     current_date = start_day - 1.week
     payments = Payment.order("processed_on").where("processed_on >=:start_day and processed_on < :end_day", {:start_day=>start_day, :end_day=>(end_day + 1.day)})
     payments.each { |p|
-      c_day = p.processed_on
+      c_day = p.processed_on.to_date
       if c_day != current_date then
         current_date = c_day
         report << day_total unless day_total.empty?
