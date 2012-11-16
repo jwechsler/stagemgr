@@ -17,6 +17,11 @@
         <%- end %>
         <%= order_form.hidden_field :status %>
         <%= render :partial=>'/orders/address', :locals=>{:order_form=>order_form} %>
+        <%= order_form.input :gift, :label=>"Give as a gift" %>
+        <div id='gift_information'>
+          <%= render :partial=>'/orders/gift_recipient', :locals=>{:f=>order_form, :offer=>@order.membership_offer} %>
+        </div>
+
         <%= render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form} %>
 
         <table>

@@ -13,6 +13,7 @@ class Address < ActiveRecord::Base
   validates :email, :email=>true
   before_validation :regularize!
   has_many :orders
+  has_many :orders_as_recipient, :class_name=>:order, :foreign_key=>:recipient_address_id
   has_many :address_tags
   has_many :memberships
   has_many :flex_passes

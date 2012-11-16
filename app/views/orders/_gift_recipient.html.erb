@@ -1,0 +1,8 @@
+<%= f.inputs do %>
+  <%= f.input :recipient_name, :required=>true %>
+  <%= f.input :recipient_email, :required=>true, :hint=>"Sssh! We won't contact this recipient regarding this order until after you give the gift" %>
+  <%= h = ("This gift membership will auto-renew for #{pluralize(offer.max_cycles_if_gift, 'month')}." if (offer.max_cycles_if_gift || 0) > 0) || ""
+      f.input :gift_date, :order=>[:month,:day], :as=>:date, :label=>"Keep secret until...", :hint=>h
+     %>
+<%- end %>
+<br clear="all"/>

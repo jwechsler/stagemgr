@@ -74,6 +74,23 @@ Feature: Membership Administration
       And I should see "Successfully created"
       And a membership_offer should exist with trial_period of 1
 
-
+  @wip
+  Scenario: Box office personnel can place membership gift orders from the offers page
+    Given I am a box office user
+      And I am logged in
+     When I go to the admin membership offers page
+      And I follow "Create Order"
+      And I enter my contact information
+      And I enter a valid credit card as payment
+      And I check "Third Party Recipient"
+      And I enter a gift recipient
+      And I press "Checkout"
+    Then a membership exists with status "Active"
+      And a membership exists with current status "Pending"
+      And a membership order exists with a gift recipient "Gift Getter"
+      And a membership order exists for "Ticket Buyer"
+      And an address "Ticket Buyer" exists
+      And an address "Gift Getter" exists
+    And I should see "Customer successfully set up for the Monthly Membership payment plan"
 
 
