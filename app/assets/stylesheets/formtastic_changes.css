@@ -39,3 +39,7 @@ form.formtastic fieldset ol li input.ccexpiration { width: 2em; }
 form.formtastic fieldset ol li.ccexpirationB {float: left; margin-left: 0%; margin-right: 0%; }
 
 form.formtastic fieldset > ol > li > div.inline { float: left; width:72%; display:inline-block; }
+
+form.formtastic li {
+  list-style-image: none;
+}
