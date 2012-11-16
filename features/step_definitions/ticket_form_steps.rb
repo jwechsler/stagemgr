@@ -1,5 +1,5 @@
 def enter_patron_information
-  fill_in "Name", :with => "Jeremy Wechsler"
+  fill_in "Name", :with => "Ticket Buyer"
   fill_in "Email", :with => "test@theaterwit.org"
   fill_in "Billing Address", :with => "1229 W Belmont"
   fill_in "City", :with => "Chicago"
@@ -22,16 +22,25 @@ When /^I enter my contact information$/ do
   enter_patron_information
 end
 
+Given /^I enter a gift recipient$/ do
+  fill_in "Recipient name", :with=>"Gift Getter"
+  fill_in "Recipient email", :with=>"test@theaterwit.org"
+end
+
+
+
+
 When /^I enter a valid credit card as payment( through the backend)?$/ do |backend|
+  @_current_form = 'ticket_order' if @_current_form.blank?
   select "Credit Card", :from=>"Pay using"
   choose "Visa"
   unless @using_admin_interface
-    select "01", :from=>"ticket_order_credit_card_expiration_month"
+    select "01", :from=>"#{@_current_form}_credit_card_expiration_month"
   else
     fill_in "MM", :with=>Date.today.month.to_s
   end
   unless @using_admin_interface
-    select "2018", :from=>"ticket_order_credit_card_expiration_year"
+    select "2018", :from=>"#{@_current_form}_credit_card_expiration_year"
   else
     fill_in "YY", :with=>'18'
   end

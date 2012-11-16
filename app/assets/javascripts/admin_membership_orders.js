@@ -7,3 +7,4 @@ setup_address_autocompletes(order_type);
 
 setup_payment_form(order_type);
 
+setup_gift_form(order_type)

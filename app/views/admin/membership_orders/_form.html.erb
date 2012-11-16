@@ -44,7 +44,10 @@
     <%= order_form.fields_for :address do |address_form| %>
       <%= render :partial => '/admin/orders/address_form', :locals => {:f => address_form} %>
     <% end %>
-
+    <%= order_form.input :gift, :label=>"Third Party Recipient?" %>
+    <div id='gift_information'>
+      <%= render :partial=>'/orders/gift_recipient', :locals=>{:f=>order_form, :offer=>@membership_order.membership_offer} %>
+    </div>
     <table>
       <tr>
         <td valign="top">
