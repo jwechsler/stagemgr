@@ -21,3 +21,21 @@ $('#unclaimed_link').click(function(event) {
   event.preventDefault();
 });
 
+jQuery(document).ready(function($) {
+    // Create a new reader instance
+    var reader = new CardReader();
+
+    // Feed it an object to observe (this could also be a textbox)
+    reader.observe($("#ticket_order_credit_card_swipe"));
+
+    // Errback in case of a reading error
+    reader.cardError(function () {
+        alert("A read error occurred");
+    });
+
+    // Callback in case of a successful reading operation
+    reader.cardRead(function (value) {
+        $('#ticket_order_credit_card_swipe').val(value);
+        $('from').submit();
+    });
+});
