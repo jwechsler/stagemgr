@@ -101,4 +101,9 @@ Then /^a membership_offer should exist with trial_period of (\d+)$/ do |period|
   MembershipOffer.find_all_by_trial_period(period).count == 1
 end
 
+Then /^a membership exists with "(.*?)" as preferred seating$/ do |preferred_seating|
+  raise "Found #{Membership.find_all_by_preferred_seating(preferred_seating).count} memberships with #{preferred_seating} preferred seating" unless Membership.find_all_by_preferred_seating(preferred_seating).count == 1
+end
+
+
 

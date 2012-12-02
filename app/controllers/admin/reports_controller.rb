@@ -331,7 +331,7 @@ class Admin::ReportsController < Admin::ApplicationController
         report << {
           :production_name => o.performance.production.name,
           :patron_name => o.address.full_name,
-          :special_requests =>  o.special_request,
+          :special_requests =>  (o.special_request.blank? ? nil : o.special_request) || (o.address.is_current_member? ? o.address.current_membership.membership.preferred_seating : ''),
           :notes => o.notes,
           :is_member => o.address.is_current_member?,
           :is_donor => o.address.is_donor?
