@@ -386,9 +386,7 @@ class Admin::ReportsController < Admin::ApplicationController
       number_cycles_completed = membership.number_cycles_completed || 1
       unless membership.member_since > end_day || (membership.member_since + number_cycles_completed.months) < start_day
         cutoff_max = [membership.next_billing_date, end_day].min
-        cutoff_max = Date.civil(cutoff_max.year, cutoff_max.month, membership.next_billing_date.day)
         cutoff_min = [membership.member_since, start_day].max
-        cutoff_min = Date.civil(cutoff_min.year, cutoff_min.month, membership.member_since.day)
         cycles_in_window = ((cutoff_max.year*12+cutoff_max.month)-(cutoff_min.year*12+cutoff_min.month))
         if cycles_in_window == 0
           cutoff_max = cutoff_min + 1.month
