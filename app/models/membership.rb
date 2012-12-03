@@ -4,7 +4,12 @@ class Membership < ActiveRecord::Base
   ACTIVE, EXPIRED, PENDING, CANCELED, SUSPENDED =
       "Active", "Expired", "Pending", "Canceled", "Suspended"
   )
-  attr_accessible :membership_offer_id, :member_since, :order_id, :address_id, :member_code, :status, :profile_id
+
+  SEATING_REQUESTS = (
+    BEST_AVAILABLE, FRONT_ROW, TOWARDS_REAR, ON_AISLE, WHEELCHAIR, STAIRS =
+    'Best available (center)', 'Front row', 'Towards rear', 'On aisle', 'Wheelchair', 'No stairs')
+
+  attr_accessible :membership_offer_id, :member_since, :order_id, :address_id, :member_code, :status, :profile_id, :preferred_seating
 
   has_one :membership_order, :through=>:membership_line_item
   has_one :membership_line_item, :foreign_key=>:membership_id

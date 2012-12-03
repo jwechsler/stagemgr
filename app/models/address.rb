@@ -119,7 +119,8 @@ class Address < ActiveRecord::Base
     self.phone = newer.phone unless newer.phone.blank?
 
     newer.address_tags.each do |tag|
-      existing_tag = self.address_tags.select { |t| (t.tag_label == tag.tag_label) && (t.theater_id == tag.theater_id) }.first
+      existing_tag = self.address_tags.select { |t|
+        (t.tag_label == tag.tag_label) && (t.theater_id == tag.theater_id) }.first
       if existing_tag.nil?
         self.address_tags << tag
       else

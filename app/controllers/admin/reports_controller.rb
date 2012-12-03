@@ -331,7 +331,7 @@ class Admin::ReportsController < Admin::ApplicationController
         report << {
           :production_name => o.performance.production.name,
           :patron_name => o.address.full_name,
-          :special_requests =>  o.special_request,
+          :special_requests =>  (o.special_request.blank? ? nil : o.special_request) || (o.address.is_current_member? ? o.address.current_membership.membership.preferred_seating : ''),
           :notes => o.notes,
           :is_member => o.address.is_current_member?,
           :is_donor => o.address.is_donor?
@@ -385,10 +385,10 @@ class Admin::ReportsController < Admin::ApplicationController
     memberships.each do |membership|
       number_cycles_completed = membership.number_cycles_completed || 1
       unless membership.member_since > end_day || (membership.member_since + number_cycles_completed.months) < start_day
-        cutoff_max = [membership.next_billing_date, end_day].min
-        cutoff_max = Date.civil(cutoff_max.year, cutoff_max.month, membership.next_billing_date.day)
-        cutoff_min = [membership.member_since, start_day].max
-        cutoff_min = Date.civil(cutoff_min.year, cutoff_min.month, membership.member_since.day)
+        # cutoff_max = [membership.next_billing_date, end_day].min
+        cutoff_max = end_day
+        cutoff_min = start_day
+        # cutoff_min = [membership.member_since, start_day].max
         cycles_in_window = ((cutoff_max.year*12+cutoff_max.month)-(cutoff_min.year*12+cutoff_min.month))
         if cycles_in_window == 0
           cutoff_max = cutoff_min + 1.month

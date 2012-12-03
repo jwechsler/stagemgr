@@ -22,6 +22,9 @@
           <%= render :partial=>'/orders/gift_recipient', :locals=>{:f=>order_form, :offer=>@order.membership_offer} %>
         </div>
 
+        <%= render :partial=>'/membership_orders/preferred_seating', :locals=>{:f => order_form} %>
+
+
         <%= render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form} %>
 
         <table>

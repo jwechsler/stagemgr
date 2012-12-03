@@ -27,6 +27,7 @@ module MembershipOrdersHelper
           membership = @order.membership
           membership.profile_id = profile_id
           membership.status = response.params["profile_status"][0..-8]
+          membership.preferred_seating = @order.special_request
           membership.save!
           @order.transition_to!(Order::PROCESSED)
         else

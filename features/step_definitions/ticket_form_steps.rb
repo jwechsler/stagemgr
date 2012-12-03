@@ -27,7 +27,9 @@ Given /^I enter a gift recipient$/ do
   fill_in "Recipient email", :with=>"test@theaterwit.org"
 end
 
-
+When /^I prefer "(.*?)" seating$/ do |seating_preference|
+  select seating_preference, :from=>"Preferred Seating"
+end
 
 
 When /^I enter a valid credit card as payment( through the backend)?$/ do |backend|
