@@ -22,6 +22,7 @@ class Membership < ActiveRecord::Base
   before_validation :create_code, :on=>:create
   has_many :membership_payments
   before_save :release_reservations_on_cancel_or_suspend
+  before_save :release_pending_tasks_on_cancel
 
   def verify_applicable_for(order)
     if !self.membership_offer.tickets_per_performance.nil?
@@ -119,11 +120,19 @@ class Membership < ActiveRecord::Base
 
   def last_effective_date
     lp = self.membership_payments.max_by{|payment| payment.processed_on}
-    lp.processed_on + 1.month
+    if lp.nil?
+      self.created_at
+    else
+      lp.processed_on + 1.month
+    end
   end
 
   def inactive?
     [Membership::CANCELED, Membership::SUSPENDED].include?(self.status)
+  end
+
+  def canceled?
+    self.status == Membership::CANCELED
   end
 
   private
@@ -131,6 +140,14 @@ class Membership < ActiveRecord::Base
   def release_reservations_on_cancel_or_suspend
     if self.status_changed? && self.inactive?
       cancel_future_reservations
+    end
+  end
+
+  def release_pending_tasks_on_cancel
+    if self.status_changed? && self.canceled?
+      o = self.membership_line_item.order
+      o.cancel_pending_tasks
+      o.save!
     end
   end
 
