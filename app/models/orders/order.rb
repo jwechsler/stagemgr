@@ -94,6 +94,7 @@ class Order < ActiveRecord::Base
   after_validation :prevent_status_rollbacks
   before_destroy :check_for_settled_payments
   before_save :set_theater
+  before_save :cancel_pending_tasks, :if=>:newly_canceled?
   after_save :set_tasks_after_save
 
   validates_inclusion_of :status, :in => ORDER_STATUSES, :if=>:status_is_provided?
@@ -546,6 +547,12 @@ class Order < ActiveRecord::Base
     self.special_offer_line_items(reload_line_items)
   end
 
+
+  def cancel_pending_tasks
+    self.tasks.select { |t| t.uncompleted? }.each { |t| t.cancel! }
+  end
+
+
   private
 
   def self.trg_row(buyer_type, season, description, address)
@@ -700,6 +707,10 @@ class Order < ActiveRecord::Base
   def create_notify_refund_task
   end
 
+  def newly_canceled?
+    self.status_changed? && [UNCLAIMED, CANCELED, REFUNDED, EXCHANGED].include?(self.status)
+  end
+
   def set_tasks_after_save
     if self.do_not_create_tasks.nil? && self.status_changed?
       case self.status
@@ -707,18 +718,10 @@ class Order < ActiveRecord::Base
           create_mail_list_task
           create_receipt_task
           create_transfer_ownership_task if self.gift?
-        when UNCLAIMED, CANCELED, REFUNDED, EXCHANGED
-          cancel_pending_tasks
       end
     end
 
   end
-
-
-  def cancel_pending_tasks
-    self.tasks.select { |t| t.uncompleted? }.each { |t| t.cancel! }
-  end
-
 
   private
   def auto_link_processed_to_address_of_record
@@ -726,7 +729,6 @@ class Order < ActiveRecord::Base
       link_to_address_of_record
     end
   end
-
 
   def initialize_nested_line_items
     all_line_items.each { |li| li.order = self }
