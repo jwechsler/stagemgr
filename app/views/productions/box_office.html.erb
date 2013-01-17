@@ -4,7 +4,7 @@
     <%= render :partial=>'list_in_table', :locals=>{:productions=>@now_playing, :across=>3} %>
   <%- end %>
   <%- unless @coming_soon.nil? || @coming_soon.empty? %>
-    <h1>Coming Soon</h1>
+    <a name="coming_soon"><h1>Coming Soon</h1></a>
     <%= render :partial=>'list_in_table', :locals=>{:productions=>@coming_soon, :across=>3} %>
   <%- end %>
   <%- unless @long_term.nil? || @long_term.empty? %>
