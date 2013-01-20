@@ -57,6 +57,10 @@ class ApplicationController < ActionController::Base
       EOJS
   end
 
+  def index
+    render '/general/unavailable', :status=>404
+  end
+
   protected
 
   def clear_authlogic_session

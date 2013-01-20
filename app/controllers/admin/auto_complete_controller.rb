@@ -44,7 +44,7 @@ class Admin::AutoCompleteController < Admin::ApplicationController
 
   def address
     val = params[:q].gsub(Address::SEARCHABLE_REGEXP,'').upcase
-    addresses = Address.where("search_name like '%#{val}%' and id in (select address_id from orders)").limit(10).order(
+    addresses = Address.where("search_name like :search_expr and id in (select address_id from orders)", {:search_expr=>'%' + val + '%'}).limit(10).order(
         'last_name', 'first_name', 'id');
     if addresses.nil?
       render :json=>Array.new

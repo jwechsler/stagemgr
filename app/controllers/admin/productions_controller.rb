@@ -27,7 +27,9 @@ class Admin::ProductionsController < Admin::ApplicationController
   # POST /productions
   # POST /productions.xml
   def create
-    params[:production].delete(:promo) if params[:production].has_key?(:promo) && params[:production][:promo].empty?
+    if params[:production][:promo].respond_to? :empty?
+      params[:production].delete(:promo) if params[:production].has_key?(:promo) && params[:production][:promo].empty?
+    end
     @production = Production.new(params[:production])
     @production.theater = @theater
 
@@ -69,9 +71,9 @@ class Admin::ProductionsController < Admin::ApplicationController
       format.xml  { head :ok }
     end
   end
-  
+
   private
-  
+
   def find_theater
     @theater=Theater.find(params[:theater_id])
   end
@@ -79,5 +81,5 @@ class Admin::ProductionsController < Admin::ApplicationController
   def find_production
     @production = @theater.productions.find(params[:id])
   end
-  
+
 end

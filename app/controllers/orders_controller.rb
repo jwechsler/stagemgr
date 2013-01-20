@@ -26,14 +26,14 @@ class OrdersController < ApplicationController
     @order.ip_address = request.remote_ip
     process_order(@order,:edit_order_path)
   end
-  
+
   def confirm
   end
 
   def donate
 
   end
-  
+
   private
   def find_order
     @order = Order.find(params[:id])
@@ -50,4 +50,6 @@ class OrdersController < ApplicationController
       end
     end
   end
+
+
 end

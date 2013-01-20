@@ -12,13 +12,14 @@ Feature: An administrator can add production details to a theater
     And I follow "Theaters"
     And I follow "Theater One"
 
+  @wip
   Scenario: Add a production (Minimum Required fields)
   Given I follow "Add production"
     And I enter a production with code "TEST" and a capacity of "300"
    When I press "Create"
    Then I should see "Production was successfully created."
 
-
+  @wip
   Scenario: Add a production (All fields)
   Given I follow "Add production"
     And I enter a complete production with code "TEST"
