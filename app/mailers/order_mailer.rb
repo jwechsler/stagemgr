@@ -28,7 +28,7 @@ class OrderMailer < ActionMailer::Base
 
   def donation_thank_you(order)
     @order = order
-    if @order.campaign == '1113mythic'
+    if @order.campaign == 'mythic1113'
       mail(:to => order.address.email,
          :bcc=>'noraedunn@gmail.com,steven@1113productions.com',
          :from => "\"Jeremy Wechsler\" <jeremy@theaterwit.org>",
