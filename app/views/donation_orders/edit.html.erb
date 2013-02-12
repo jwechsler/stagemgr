@@ -1,14 +1,12 @@
 <% javascript :defaults,  'donation_order' %>
 
-<a name="top" style="text-decoration:none;"><h3>Support Theater Wit</h3></a>
+<a name="top" style="text-decoration:none;"><h3>Support <%= @order.campaign.eql?('1113mythic') ? "Nora Dunn's Mythical Proportions" : "Theater Wit" %></h3></a>
 
 
 <%= semantic_form_for @order do |order_form| %>
   <%= order_form.inputs :class=>"order" do %>
-    <%- flash.each do |key, value| %>
-      <div id="flash_<%= key %>"><%= value %></div>
-    <%- end %>
     <%= order_form.hidden_field :status %>
+    <%= order_form.hidden_field :campaign %>
     <%= render :partial => '/orders/address', :locals => {:order_form => order_form} %>
 
     <%- @submit_text = "Make a donation" -%>

@@ -15,7 +15,7 @@ class DonationOrder < Order
   end
 
   def to_s
-    "Donation"
+    "Donation (#{self.campaign})"
   end
 
   def description

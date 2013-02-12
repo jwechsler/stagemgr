@@ -28,10 +28,18 @@ class OrderMailer < ActionMailer::Base
 
   def donation_thank_you(order)
     @order = order
-    mail(:to => order.address.email,
+    if @order.campaign == '1113mythic'
+      mail(:to => order.address.email,
+         :bcc=>'noraedunn@gmail.com,steven@1113productions.com',
+         :from => "\"Jeremy Wechsler\" <jeremy@theaterwit.org>",
+         :subject => "Thank you, #{order.address.full_name}, for supporting Mythical Proportions!",
+         :tag=>"Donation Thank You")
+    else
+      mail(:to => order.address.email,
          :from => "\"Jeremy Wechsler\" <jeremy@theaterwit.org>",
          :subject => "Thank you for your donation (you are AWESOME)!",
          :tag=>"Donation Thank You")
+    end
   end
 
   def flexpass_confirmation(order)

@@ -4,21 +4,27 @@ class DonationOrdersController < ApplicationController
 
   append_before_filter :find_order, :only => [:show, :edit, :update, :destroy]
   append_before_filter :redirect_to_proper_action, :only => [:edit, :show]
+  append_before_filter :set_donation_levels
 
   respond_to :html, :xml, :json
 
-  def new
-    @order = DonationOrder.new
-    @order.status = Order::NEW
-    @order.address = Address.new
-    @order.donation_line_items.build(:donation_amount=>0)
-    # @todo Replace donation levels with user controlled donation level code
+  def set_donation_levels
     @levels = ActiveSupport::OrderedHash.new
     @levels["Buddy ($100)"] = 100
     @levels["Fast Friend ($250)"] = 250
     @levels["Comrade ($500)"] = 500
     @levels["Confidante ($1500)"] = 1500
     @levels["Patron ($2500)"] = 2500
+    @levels
+  end
+
+  def new
+    @order = DonationOrder.new
+    @order.status = Order::NEW
+    @order.address = Address.new
+    @order.campaign = params[:campaign] if params.has_key?(:campaign)
+    @order.donation_line_items.build(:donation_amount=>0)
+    # @todo Replace donation levels with user controlled donation level code
     respond_to do |format|
       format.html { render '/donation_orders/edit', :layout=>'ext_site_wrapper' }
     end

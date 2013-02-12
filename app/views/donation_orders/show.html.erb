@@ -1,6 +1,15 @@
+<%- if @order.campaign == '1113mythic' %>
+Thanks for helping bring <i>Mythical Proportions</i> to life! I really appreciate your support. Theater Wit has charged your credit card <%= number_to_currency(@order.total) %> today for your tax deductible donation. We'll also be sending you both an email and regular ol' snail mail message for your tax records. Please don't hesitate to contact the theater (773-975-8150) with any questions. We'd love to say hi!
+</p><p>
+Welcome to the Mythical Proportions team. :)
+</p><p>
+Best,<br/>
+Nora Dunn
+</p>
+<%- else %>
 <p>
   Thanks! You are 100% awesome. And probably 100% adorable. We've charged your credit card
-  for <%= number_to_currency(@order.total) %> today for your
+  <%= number_to_currency(@order.total) %> today for your
   donation. We'll also be sending you both an email and regular ol' snail mail message for your tax records. Please
   don't hesitate to call us at the
   theater (773-975-8150) or drop by next time you're in. We'd love to say hi.
@@ -11,3 +20,4 @@
   Artistic Director,<br/>
   Theater Wit
 </p>
+<%- end %>
