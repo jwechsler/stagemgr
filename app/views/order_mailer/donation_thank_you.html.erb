@@ -8,9 +8,7 @@
     <p>
 Hi <%= @order.address.first_name %>,
 </p>
-<p>Thanks so much for supporting our production of Mythical Proportions, created by Nora Dunn and presented by Theater Wit and 1113 Productions with your contribution of <%= number_to_currency(@order.total) %>. Contributions from people like you are what make everything we do all day possible, and I can't tell you what every sign of support means to us.  I am really excited to help bring Nora's work to Theater Wit. It promises to be a lovely production and a vivid and personal piece of theater.
-</p><p>
-I urge you to follow the progress and development of the play at <a href="http://mythologicalproportions.com">mythologicalproportions.com</a> and we look forward to seeing you starting in August!  Please grab me next time you're in the theater and say hi, or call me at 773-975-8150 if you have anything you'd like to discuss.
+<p>Thank you for your tax-deductable contribution of <%= number_to_currency(@order.total) %> to Mythical Proportions, written and performed by Nora Dunn, and presented by Theater Wit and 1113 Productions. You can learn more about the show and upcoming events by logging on to <a href="http://www.mythologicalproportions.com">www.mythologicalproportions.com</a>.
 </p>
   <%- else %>
     <p>
@@ -31,13 +29,13 @@ I urge you to follow the progress and development of the play at <a href="http:/
     Please grab me next time you're in the theater and say hi, or call me at 773-975-8150 if you have anything you'd like
       to discuss.
     </p>
-    <%- end %>
+
     <p>
       Best,<br/><br/>
       Jeremy Wechsler<br/>
       Artistic Director,<br/>
       Theater Wit<br>
      </p>
-
+    <%- end %>
  </body>
 </html>
