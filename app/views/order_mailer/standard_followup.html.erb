@@ -10,4 +10,5 @@
   I hope you had a good evening and will return soon (there are a few suggestions in
   the sidebar on the right, but check our website for all upcoming events).
 <br/><br/>
-<%= render :partial=>'core_followup' %>
+
+<%= render :partial=>'core_followup', :locals=>{:order=>@order} %>
