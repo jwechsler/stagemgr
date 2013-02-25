@@ -1,6 +1,6 @@
 <h2>Good to see you</h2>
 
-<p>
+<br/><br/>
   <%- if @order.performance.production.theater.is_default? %>
     Thanks for coming by to see <i><%= @order.performance.production.name %></i>.
   <%- else %>
@@ -12,6 +12,6 @@
   to check out some more. I'd like to offer you a one-use
   discount code for <b>25% off any regular admission, good through <%= @special_offer.auto_expire.to_s(:short) %></b>.
   To use it, use the special code <b><%= @special_offer.code %></b> when you make your reservation, either online or by
-  phone.
-</p>
+  phone.<br/><br/>
+
 <%= render :partial=>'core_followup' %>
