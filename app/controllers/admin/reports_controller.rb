@@ -736,7 +736,7 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def build_donations_dump(start_day, end_day, build_for_dumpfile = false)
-    donations = Order.all(:include=>[:address, :line_items, :payments], :conditions=>["orders.status in (?) and line_items.type = 'DonationLineItem' and payments.processed_on >= ? and payments.processed_on <= ?", Order::PROCESSED, start_day, end_day])
+    donations = Order.all(:include=>[:address, :donation_line_items, :payments], :conditions=>["orders.status in (?) and payments.processed_on >= ? and payments.processed_on <= ?", Order::PROCESSED, start_day, end_day])
     report = Array.new
     keys = columns_for_orders(true) + [:total]
     Order.transaction do
