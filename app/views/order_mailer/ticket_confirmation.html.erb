@@ -4,7 +4,7 @@
   <meta content="text/html; charset=UTF-8" http-equiv="Content-Type"/>
 </head>
 <body>
-<h2>We have <%= @order.ticket_quantity %> ticket<%= "s" unless @order.ticket_quantity == 1 %> reserved for the
+<h2>We have <%= @order.ticket_quantity %> ticket<%= "s" unless @order.ticket_quantity == 1 %> reserved under the name <%= @order.address.full_name %> for the
   <%= @order.performance.performance_time.strftime('%l:%M %p') %> performance
   on <%= @order.performance.performance_date.strftime('%A, %B %d') %>
   of <i><%= @order.performance.production.name %></i><%- if @order.theater.theater_class != "Default" %>, presented by <%= @order.theater.name %>
