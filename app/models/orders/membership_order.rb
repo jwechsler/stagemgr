@@ -45,9 +45,7 @@ class MembershipOrder < Order
   end
 
   def valid_payment_types_for(current_user)
-    valid_payment_types = Array.new
-    valid_payment_types << Order::CREDIT_CARD
-    valid_payment_types
+    CreditCardPaymentType.all
   end
 
   def link_to_address_of_record

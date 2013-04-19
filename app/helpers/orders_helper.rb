@@ -22,11 +22,11 @@ module OrdersHelper
     begin
       raise "Email required" if order.address.email.blank?
       raise "Name required" if order.address.full_name.blank?
-      unless [Order::MEMBERSHIP, Order::FLEX_PASS].include?(order.payment_type)
+      unless order.payment_type.is_a? PassPaymentType
         raise "Billing address incomplete" if order.address.line1.blank? || order.address.city.blank? || order.address.state.blank? || order.address.zipcode.blank?
         raise "Phone number required" if order.address.phone.blank?
       end
-      if Order::CREDIT_CARD == order.payment_type && !order.credit_card_number.blank?
+      if order.payment_type.is_a?(CreditCardPaymentType) && !order.credit_card_number.blank?
         raise "Credit card type required" if order.credit_card_type.blank?
         raise "Credit card verification number required" if order.credit_card_verification_number.blank?
       end

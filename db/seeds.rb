@@ -2,7 +2,7 @@
 # The data can then be loaded with the rake db:seed (or created alongside the db with db:setup).
 #
 # Examples:
-#   
+#
 #   cities = City.create([{ :name => 'Chicago' }, { :name => 'Copenhagen' }])
 #   Major.create(:name => 'Daley', :city => cities.first)
 require "declarative_authorization/maintenance"
@@ -13,11 +13,11 @@ user        = User.create!({
       :email                 => 'admin@yoursite.com',
       :password              => 'betterpassword',
       :password_confirmation => 'betterpassword',
-      :is_administrator      => true}) 
-      
+      :is_administrator      => true})
+
 theater     = Theater.create!({
-  :name                      =>'Theater 1', 
-  :theater_class             =>Theater::THEATER_CLASSES.first, 
+  :name                      =>'Theater 1',
+  :theater_class             =>Theater::THEATER_CLASSES.first,
   :status                    =>Theater::THEATER_STATUSES.first})
 
 venue       = Venue.create!({
@@ -26,21 +26,21 @@ venue       = Venue.create!({
 })
 
 production  = theater.productions.create!({
-  :name                      =>'Production 1', 
+  :name                      =>'Production 1',
   :status                    =>Production::PRODUCTION_STATUSES.first,
   :venue                     =>venue,
-  :production_code           =>'T1P1', 
-  :capacity                  =>350, 
-  :closing_at                =>Date.today + 5.months, 
+  :production_code           =>'T1P1',
+  :capacity                  =>350,
+  :closing_at                =>Date.today + 5.months,
   :first_preview_at          =>Date.today - 1.months,})
-  
+
 fixed_ticket_class = production.ticket_classes.create!({
   :ticket_type               =>TicketClass::TICKET_TYPES.first,
   :class_name                =>'General Admission',
   :ticket_price              =>35,
   :web_visible               =>true,
   :class_code                =>'TC1'
-  
+
 })
 
 donation_ticket_class = production.ticket_classes.create!({
@@ -57,7 +57,7 @@ timed_ticket_class = production.ticket_classes.create!({
   :ticket_price              =>35,
   :web_visible               =>true,
   :class_code                =>'TC3'
-  
+
 })
 
 performance = production.performances.create!({
@@ -66,10 +66,10 @@ performance = production.performances.create!({
 })
 
 production2  = theater.productions.create!({
-  :name                      =>'Production 2', 
-  :status                    =>Production::PRODUCTION_STATUSES.first, 
+  :name                      =>'Production 2',
+  :status                    =>Production::PRODUCTION_STATUSES.first,
   :venue                     =>venue,
-  :production_code           =>'T1P2', 
+  :production_code           =>'T1P2',
   :capacity                  =>350})
 
 performance2 = production2.performances.create!({
@@ -97,8 +97,8 @@ end
 
 address = Address.create!(                :first_name=>'Bob',
                                           :last_name=>'Loblaw')
-credit_card_order = Order.create!(        :payment_type=>Order::CREDIT_CARD, 
-                                          :status=>Order::NEW, 
+credit_card_order = Order.create!(        :payment_type=>CreditCardPaymentType.first,
+                                          :status=>Order::NEW,
                                           :address=>address,
                                           :performance=>performance)
 end

@@ -13,6 +13,7 @@ class Order < ActiveRecord::Base
 
   belongs_to :performance
   belongs_to :theater
+  belongs_to :payment_type
 
   has_many :payments
   has_many :exchange_payments
@@ -55,7 +56,7 @@ class Order < ActiveRecord::Base
     self.credit_card_confirmation_code = from_order.credit_card_confirmation_code
     self.credit_card_verification_number = from_order.credit_card_verification_number
     self.flex_pass_code = from_order.flex_pass_code
-
+    self.member_code = from_order.member_code
   end
 
   def payment_attributes
@@ -64,7 +65,9 @@ class Order < ActiveRecord::Base
      :credit_card_expiration_year=>self.credit_card_expiration_year,
      :credit_card_expiration_month=>self.credit_card_expiration_month,
      :credit_card_confirmation_code=>self.credit_card_confirmation_code,
+     :card_verification_number => self.credit_card_verification_number,
      :flex_pass_code=>self.flex_pass_code,
+     :ip_address => self.ip_address,
      :member_code=>self.member_code}
   end
 
@@ -73,10 +76,6 @@ class Order < ActiveRecord::Base
   HOLD, WEB, NEW, PROCESSING, PROCESSED, REFUNDED, EXCHANGED, FULFILLED, CANCELED, UNCLAIMED =
       "Hold", "Web", "New", "Processing", "Processed", "Refunded", "Exchanged", "Fulfilled", "Canceled", "Unclaimed")
 
-
-  PAYMENT_TYPES = (
-  CREDIT_CARD, CASH, FLEX_PASS, PRICE_OVERRIDE, MEMBERSHIP =
-      "Credit Card", "Cash", "FlexPass", "Price Override", "Membership")
 
   REFERRALS = [
       "Email", "Mail", "Cast/Staff/Production Team", "Review/Feature", "Radio", "Newspaper Ad", "Facebook", "Twitter", "Word of Mouth", "Attended previous production", "Other"
@@ -98,7 +97,6 @@ class Order < ActiveRecord::Base
   after_save :set_tasks_after_save
 
   validates_inclusion_of :status, :in => ORDER_STATUSES, :if=>:status_is_provided?
-  validates_inclusion_of :payment_type, :in => PAYMENT_TYPES
 
   validates_presence_of :address
   validates_associated :address,
@@ -111,7 +109,7 @@ class Order < ActiveRecord::Base
       unless record.total == record.value_of_all_payments
         record.errors.add attr, "cannot be set to #{PROCESSED} if the total isn't countered by a payment."
       end
-      m_payments = record.membership_payments
+      m_payments = record.payments.select{|p| p.is_a? MembershipPayment}
       m_payments.each { |p| p.membership.verify_applicable_for(record) }
     end
   end
@@ -206,12 +204,7 @@ class Order < ActiveRecord::Base
   end
 
   def valid_payment_types_for(current_user)
-    valid_payment_types = Order::PAYMENT_TYPES.dup
-    unless current_user && (current_user.is_administrator? || current_user.is_box_office_user?)
-      valid_payment_types.delete CASH
-      valid_payment_types.delete PRICE_OVERRIDE
-    end
-    valid_payment_types
+    PaymentType.valid_payment_types_for(current_user)
   end
 
   def show_confirmation_for?(current_user)
@@ -260,11 +253,11 @@ class Order < ActiveRecord::Base
   end
 
   def paid_with_currency?
-    [CASH, CREDIT_CARD].include? self.payment_type
+    self.payment_type.is_a? CurrencyPaymentType
   end
 
   def paid_with_flexpass?
-    self.payment_type == Order::FLEX_PASS || !self.flex_pass_payments.empty?
+    self.payment_type.is_a?(FlexPassPaymentType) && !self.flex_pass_payments.empty?
   end
 
   def paid_with_flexpass
@@ -274,7 +267,7 @@ class Order < ActiveRecord::Base
   end
 
   def using_credit_card?
-    self.payment_type == Order::CREDIT_CARD && self.total > 0
+    self.payment_type.is_a?(CreditCardPaymentType) && self.total > 0
   end
 
   def held?
@@ -313,31 +306,18 @@ class Order < ActiveRecord::Base
     self.destroy
   end
 
+  public
 
   def create_proper_payment_in_amount_of!(amount)
-    case self.payment_type
-      when CASH
-        new_payment = CashPayment.new(:amount => amount)
-        self.payments << new_payment
-      when CREDIT_CARD
-        if (amount != 0) then
-          create_credit_card_payment(amount)
-        else
-          new_payment = CashPayment.new(:amount => 0)
-          payments << new_payment
-        end
-      when PRICE_OVERRIDE
-        new_payment = self.price_override_payments.create!(:amount => amount)
-      else
-        raise 'New payment type not yet implemented.'
-    end
+    new_payment = self.payment_type.create_payment!(amount, self)
+    self.payments << new_payment
     new_payment
   end
 
   def set_email_confirmation
     #now = DateTime.now
     #if !self.performance.nil? && (self.performance.performance_date > Date.today || (self.performance.performance_date == Date.today && self.performance.performance_time > Time.now - (60*60)))
-    self.email_confirmation=1
+    self.email_confirmation = 1
     #end
   end
 
@@ -364,10 +344,6 @@ class Order < ActiveRecord::Base
 
   def total_amount
     self.total_paid
-  end
-
-  def set_form_defaults
-    self.payment_type ||= CREDIT_CARD
   end
 
   def to_s
@@ -688,7 +664,6 @@ class Order < ActiveRecord::Base
 
   def set_defaults
     self.status ||= HOLD
-    set_form_defaults
   end
 
   def create_mail_list_task

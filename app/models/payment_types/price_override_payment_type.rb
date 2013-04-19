@@ -1,0 +1,3 @@
+class PriceOverridePaymentType < PaymentType
+
+end

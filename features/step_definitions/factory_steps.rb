@@ -56,7 +56,7 @@ When /^a production "([^"]*)" exists for the theater "([^"]*)"$/ do |name, theat
 end
 
 When /^a donation of "\$(.*)" exists$/ do |amount|
-  @donation = FactoryGirl.create(:donation_order)
+  @donation = FactoryGirl.create(:donation_order, :payment_type=>CashPaymentType.first)
   @donation.donation_line_items << FactoryGirl.create(:donation_line_item, :donation_amount=>amount)
   @donation.transition_to!(Order::PROCESSED)
 end
@@ -105,5 +105,18 @@ Then /^a membership exists with "(.*?)" as preferred seating$/ do |preferred_sea
   raise "Found #{Membership.find_all_by_preferred_seating(preferred_seating).count} memberships with #{preferred_seating} preferred seating" unless Membership.find_all_by_preferred_seating(preferred_seating).count == 1
 end
 
+Given /^the system accepts currency$/ do
+  @credit_card_payment_type = FactoryGirl.create(:credit_card_payment_type)
+  @cash_payment_type = FactoryGirl.create(:cash_payment_type)
+end
 
+Given /^the system accepts memberships$/ do
+  @membership_payment_type = FactoryGirl.create(:credit_card_payment_type)
+  @flex_pass_payment_type = FactoryGirl.create(:cash_payment_type)
+end
+
+Given /^the system accepts flex passes$/ do
+  @membership_payment_type = FactoryGirl.create(:credit_card_payment_type)
+  @flex_pass_payment_type = FactoryGirl.create(:cash_payment_type)
+end
 

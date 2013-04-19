@@ -1,9 +1,9 @@
 Feature: Box office ordering
   As an administrator
   I want to create / edit and delete performances records
-
   Background:
     Given a theater "Test Theater" exists
+    And the system accepts currency
     And the following Productions exist on the Theater "Test Theater":
       | name           | production_code |
       | Production One | TEST            |

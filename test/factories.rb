@@ -36,6 +36,22 @@ FactoryGirl.define do
       zipcode 90210
     end
 
+    factory :credit_card_payment_type do
+      display_name "Credit Card"
+    end
+
+    factory :cash_payment_type do
+      display_name "Cash"
+    end
+
+    factory :membership_payment_type do
+      display_name "Membership"
+    end
+
+    factory :flex_pass_payment_type do
+      display_name "Flex Pass"
+    end
+
     factory :venue do
       sequence(:name) { |n| "Space #{n}" }
       sequence(:ordinal_sort) { |n| "#{n}" }
@@ -100,7 +116,7 @@ FactoryGirl.define do
     trait :order do
       status Order::ORDER_STATUSES.first
       association :address, :factory => :address
-      payment_type Order::CASH
+      payment_type CashPaymentType.first
     end
 
     factory :ticket_order do

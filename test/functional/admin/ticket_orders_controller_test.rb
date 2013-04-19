@@ -7,6 +7,7 @@ class Admin::TicketOrdersControllerTest < ActionController::TestCase
       @production = @performance.production
       @ticket_class = FactoryGirl.create :ticket_class, :ticket_price => 3.0
       @performance.ticket_classes << @ticket_class
+      @payment_type = FactoryGirl.create :cash_payment_type
       flexmock(@controller).should_receive(:admin_only).and_return(true)
       assert_difference('Order.count') do
         post :create, :commit=>'Place Order',
@@ -19,7 +20,7 @@ class Admin::TicketOrdersControllerTest < ActionController::TestCase
                          "ticket_count"=>"5"
                      }
                  },
-                 "payment_type"=>"Cash",
+                 "payment_type_id"=>@payment_type.id,
                  "production_code"=>@production.production_code
              }
         assert_equal 'Order was successfully saved and is now Processed', flash[:notice]
@@ -40,6 +41,7 @@ class Admin::TicketOrdersControllerTest < ActionController::TestCase
       @production = @performance.production
       @ticket_class = FactoryGirl.create :ticket_class, :ticket_price => 3.0
       @performance.ticket_classes << @ticket_class
+      @payment_type = FactoryGirl.create :credit_card_payment_type
       flexmock(@controller).should_receive(:admin_only).and_return(true)
       flexmock(CreditCardPayment).new_instances do |credit_card_instance|
         credit_card_instance.should_receive(:process!).and_return(true)
@@ -62,7 +64,7 @@ class Admin::TicketOrdersControllerTest < ActionController::TestCase
                          "ticket_count"=>"5"
                      }
                  },
-                 "payment_type"=>"Credit Card",
+                 "payment_type_id"=>@payment_type.id,
                  "production_code"=>@production.production_code
              }
         assert_equal 'Order was successfully saved and is now Processed', flash[:notice]

@@ -25,7 +25,7 @@ class Membership < ActiveRecord::Base
   before_save :release_pending_tasks_on_cancel
 
   def verify_applicable_for(order)
-    if !self.membership_offer.tickets_per_performance.nil?
+    unless self.membership_offer.tickets_per_performance.nil?
       perfs = Order.where("performance_id = ? and id in (select order_id from payments where type = 'MembershipPayment' and membership_id = ?)", order.performance_id, self.id)
       raise Exceptions::TooManyTicketsForMembership.new("This membership allows you #{self.membership_offer.tickets_per_performance} seat#{'s' if self.membership_offer.tickets_per_performance > 1} per performance") if self.membership_offer.tickets_per_performance < perfs.inject(0) { |sum, o1| sum += o1.membership_payments.inject(0) { |sum, p| sum += p.number_of_tickets } }
     end

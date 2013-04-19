@@ -20,4 +20,13 @@ class MembershipPayment < Payment
     "Membership ##{membership.member_code}"
   end
 
+  def process!(order = nil)
+    if !order.address.email.blank? && self.membership.address.email.downcase.strip != order.address.email.downcase.strip
+      raise 'Member ID does not match provided email address'
+    end
+    raise 'That member ID is not active. Please call the box office for assistance.' unless membership.active?
+    super
+  end
+
+
 end

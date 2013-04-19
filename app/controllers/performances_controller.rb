@@ -14,7 +14,7 @@ class PerformancesController < ApplicationController
       @footnotes = @footnotes.uniq
       render :index, :layout=>'ext_site_wrapper'
     else
-      super.index
+      super
     end
 
   end

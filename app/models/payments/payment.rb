@@ -22,13 +22,13 @@ class Payment < ActiveRecord::Base
   def to_s
     "#{Money.from_numeric(amount)} #{self.class}"
   end
-  def payment_type=(string)
-    self.type=string
-  end
-  def process!
+
+  def process!(order = nil)
     self.processed_on = DateTime.now
     self.save!
+    self
   end
+
   def self.descendants
     result = []
     ObjectSpace.each_object(Class).each { |c| result << c if c < Payment }

@@ -12,6 +12,7 @@ Feature: Membership Administration
      And the following membership_offer exists:
       | name               |
       | Monthly Membership |
+    And the system accepts currency
 
   Scenario: The Admin page has a link to manage membership offers
     Given I am a box office user

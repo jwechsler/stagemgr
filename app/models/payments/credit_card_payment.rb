@@ -51,7 +51,7 @@ class CreditCardPayment < Payment
     "#{ctype} ****#{self.card_last_four}::AUTH #{confirmation_code}"
   end
 
-  def process!
+  def process!(order = nil)
     if self.confirmation_code.blank? || self.card_number.length != 4
       credit_card = create_credit_card
       billing_address = {

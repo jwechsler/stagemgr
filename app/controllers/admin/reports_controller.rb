@@ -703,7 +703,9 @@ class Admin::ReportsController < Admin::ApplicationController
     day_total = Hash.new
     zero_dollars = Money.new(0)
     keys = columns_for_orders(build_for_dumpfile)
-    payment_types = [CashPayment.to_s, CreditCardPayment.to_s, PriceOverridePayment.to_s, FlexPassPayment.to_s, MembershipPayment.to_s]
+    payment_types = []
+    PaymentType.all.each {|pt| payment_types << pt.payment_class.to_s}
+    [CashPayment.to_s, CreditCardPayment.to_s, PriceOverridePayment.to_s, FlexPassPayment.to_s, MembershipPayment.to_s]
     keys += payment_types
     current_date = start_day - 1.week
     payments = Payment.order("processed_on").where("processed_on >=:start_day and processed_on < :end_day", {:start_day=>start_day, :end_day=>(end_day + 1.day)})

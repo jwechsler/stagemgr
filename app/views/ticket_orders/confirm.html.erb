@@ -57,7 +57,7 @@
 
     </table>
 
-    <%= order_form.input :payment_type, :as=>:hidden, :input_html=>{:value=>order.payment_type} %>
+    <%= order_form.input :payment_type_id, :as=>:hidden, :input_html=>{:value=>order.payment_type_id} %>
     <%= order_form.input :credit_card_number, :as=>:hidden, :input_html=>{:value=>order.credit_card_number } %>
     <%= order_form.input :credit_card_type, :as=>:hidden, :input_html=>{:value=>order.credit_card_type } %>
     <%= order_form.input :credit_card_expiration_year, :as=>:hidden, :input_html=>{:value=>order.credit_card_expiration_year } %>
@@ -75,13 +75,13 @@
   <%- end %>
   <p>
     <%- if total > 0 %>
-      <%- case order.payment_type
-            when Order::CREDIT_CARD %>
+      <%- case
+            when order.payment_type.is_a?(CreditCardPaymentType) %>
         This amount will be charged to your <%= order.credit_card_type %> ending
         in <%= order.credit_card_number[-4..-1] %>.
-      <%- when Order::MEMBERSHIP %>
+      <%- when order.payment_type.is_a?(MembershipPaymentType) %>
         This ticket will be applied to your membership.
-      <%- when Order::FLEX_PASS %>
+      <%- when order.payment_type.is_a?(FlexPassPaymentType) %>
         You are using flex pass <%= order.flex_pass_code %>.
       <%- end %>
     <%- end %>
