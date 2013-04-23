@@ -16,17 +16,15 @@ Feature: The Administrator can manage theater records
      Then I should not see "Theaters"
 
   Scenario: List theaters as admin
-    Given the following theaters exist:
-        | name        |
-        | ABC Theater |
-        | DEF Theater |
-	And I am an Administrator
-    And I am logged in
-    And I go to the home page
-    And I go to the admin theater page
-    Then I should see "ABC Theater"
-     And I should see "DEF Theater"
-     And each theater name is a link to a theater detail page
+    Given a theater "ABC Theater" exists
+      And a theater "DEF Theater" exists
+	    And I am an Administrator
+      And I am logged in
+      And I go to the home page
+      And I go to the admin theater page
+     Then I should see "ABC Theater"
+      And I should see "DEF Theater"
+      And each theater name is a link to a theater detail page
 
   Scenario: Add a theater
     Given I am an Administrator

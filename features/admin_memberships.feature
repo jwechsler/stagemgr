@@ -1,18 +1,11 @@
-
 Feature: Membership Administration
   In order to manage memberships on the back end
   As a box office user and administrator
   I want to manage memberships
 
   Background:
-    Given the following default_ticket_classes exist:
-      | class_code   | class_name     | ticket_price | web_visible | software_managed |
-      | MEMBER       | Member Ticket  | 5.00         | false        | true            |
-      | MEMBERFRIEND | Friend Ticket  | 0.00         | false        | true            |
-     And the following membership_offer exists:
-      | name               |
-      | Monthly Membership |
-    And the system accepts currency
+    Given a sample theater exists
+      And a membership offer "Monthly Membership" exists
 
   Scenario: The Admin page has a link to manage membership offers
     Given I am a box office user

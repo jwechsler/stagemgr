@@ -29,11 +29,20 @@ class FlexPassPayment < Payment
   end
 
   def release_tickets!
+    puts('released tickets')
     self.number_of_tickets = 0
     self.save!
   end
 
-  def refund!
-    raise 'Not Implemented'
+  def create_refund_payment(cc_number = nil, note = nil)
+      refund_payment = super
+      refund_payment.number_of_tickets = 0 - refund_payment.number_of_tickets
+      refund_payment
   end
+
+  def note
+    "#{self.number_of_tickets} ticket#{self.number_of_tickets != 1 ? 's' : ''}"
+  end
+
+
 end

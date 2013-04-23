@@ -8,8 +8,6 @@ Feature: Administer donation orders
 	  And I am an Administrator
 	  And I am logged in
 
-
-@wip
 Scenario: The administrator can refund an order
   When I go to the admin order page for the donation
    And I follow "Refund Order"

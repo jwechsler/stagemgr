@@ -49,3 +49,9 @@ When /^I enter a valid credit card as payment( through the backend)?$/ do |backe
   fill_in "Credit card number", :with=>"4111111111111111"
   fill_in "CVV", :with=>"581"
 end
+
+Given /^I enter flex pass code "(.*?)" as payment$/ do |pass_code|
+  @_current_form = 'ticket_order' if @_current_form.blank?
+  select "Flex Pass", :from=>"Pay using"
+  fill_in "Flex pass code", :with=>"#{pass_code}"
+end

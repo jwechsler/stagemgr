@@ -1,24 +1,35 @@
-Given /^the following (.*) exists?(?:| on the ([a-zA-Z]+) "([^\"]*)"):$/ do |type, parent_type, parent_name, table|
-  symbol = type.underscore.singularize.to_sym
-  parent = parent_type.constantize.find_by_name(parent_name) if parent_type
-  table.hashes.each do |hash|
-    if parent_type
-      hash.merge!({"#{parent_type.downcase}_id".to_sym=>parent.id})
-    end
-    without_access_control do
-      new_object = FactoryGirl.create(symbol, hash)
-    end
-  end
+#Given /^the following (.*) exists?(?:| on the ([a-zA-Z]+) "([^\"]*)"):$/ do |type, parent_type, parent_name, table|
+#  symbol = type.underscore.singularize.to_sym
+#  parent = parent_type.constantize.find_by_name(parent_name) if parent_type
+#  table.hashes.each do |hash|
+#    if parent_type
+#      hash.merge!({"#{parent_type.downcase}_id".to_sym=>parent.id})
+#    end
+#    without_access_control do
+#      new_object = FactoryGirl.create(symbol, hash)
+#    end
+#  end
+#end
+
+#Given /^a(?:|n) ([^\"]*) exists$/ do |type|
+#  symbol = type.underscore.to_sym
+#  without_access_control do
+#    new_object = FactoryGirl.create(symbol)
+#    eval "@#{type.underscore} = new_object"
+#  end
+
+#end
+
+
+Given /^a sample theater exists$/ do
+  FactoryGirl.create_test_theater
 end
 
-Given /^a(?:|n) ([^\"]*) exists$/ do |type|
-  symbol = type.underscore.to_sym
-  without_access_control do
-    new_object = FactoryGirl.create(symbol)
-    eval "@#{type.underscore} = new_object"
-  end
-
+Given /^a flex pass exists for (\d+) tickets with code "(.*?)"$/ do |number_of_tickets, redemption_code|
+  offer = FactoryGirl.create(:flex_pass_offer, :number_of_tickets => number_of_tickets)
+  FactoryGirl.create(:flex_pass, :flex_pass_offer=>offer, :code=>redemption_code)
 end
+
 
 Given /^all the ticket class are available for Performance "([^\"]*)"$/ do |performance_code|
   Performance.find_by_performance_code(performance_code).ticket_class_allocations.each do |tca|
@@ -111,12 +122,22 @@ Given /^the system accepts currency$/ do
 end
 
 Given /^the system accepts memberships$/ do
-  @membership_payment_type = FactoryGirl.create(:credit_card_payment_type)
-  @flex_pass_payment_type = FactoryGirl.create(:cash_payment_type)
+  @membership_payment_type = FactoryGirl.create(:membership_payment_type)
 end
 
 Given /^the system accepts flex passes$/ do
-  @membership_payment_type = FactoryGirl.create(:credit_card_payment_type)
-  @flex_pass_payment_type = FactoryGirl.create(:cash_payment_type)
+  @membership_payment_type = FactoryGirl.create(:flex_pass_payment_type)
 end
 
+
+Given /^a special offer exists with code "(.*?)" for \$(\d+) off$/ do |offer_code, amount|
+  FactoryGirl.create(:amount_off_special_offer, :code=>offer_code, :amount=>amount)
+end
+
+Given /^a ticket order for performance "(.*?)" paid with flex pass "(.*?)" exists$/ do |perf_code, pass_code|
+
+  perf = Performance.find_by_performance_code(perf_code)
+
+  @ticket_order = FactoryGirl.create(:ticket_order_for_a_pair_of_tickets_paid_with_flexpass, :flex_pass_code=>pass_code, :performance=>perf)
+
+end
