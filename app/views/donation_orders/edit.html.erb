@@ -2,6 +2,7 @@
 
 <a name="top" style="text-decoration:none;"><h3>Support <%= @order.campaign.eql?('mythic1113') ? "Nora Dunn's Mythical Proportions" : "Theater Wit" %></h3></a>
 
+<%= render :partial=>'/flash_notice' %>
 
 <%= semantic_form_for @order do |order_form| %>
   <%= order_form.inputs :class=>"order" do %>
