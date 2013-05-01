@@ -1,4 +1,4 @@
-class MembershipPayment < Payment
+class MembershipPayment < PassPayment
   validates_presence_of :membership
   belongs_to :membership
 
@@ -9,6 +9,10 @@ class MembershipPayment < Payment
 
   def customer_visible_amount
     0.0
+  end
+
+  def payment_info
+    membership.member_code
   end
 
   def member_code=(code)

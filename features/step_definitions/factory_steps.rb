@@ -42,6 +42,11 @@ Given /^a theater "(.*?)" exists$/ do |name|
   @theater = FactoryGirl.create(:theater,:name=>name)
 end
 
+Given /^a performance "(.*?)" exists$/ do |perf_code|
+  @performance = FactoryGirl.create(:performance, :performance_code=>perf_code)
+end
+
+
 Given /^(\d?) venues? exists?/ do |venue_count|
   venue_count.to_i.times do
     FactoryGirl.create(:venue)

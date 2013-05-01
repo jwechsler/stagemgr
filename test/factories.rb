@@ -1,6 +1,8 @@
 require 'declarative_authorization/maintenance'
 include Authorization::Maintenance
 
+FactoryGirl.duplicate_attribute_assignment_from_initialize_with = false
+
 module FactoryGirl
   class << self
     alias_method :original_create, :create
@@ -32,6 +34,8 @@ module FactoryGirl
                           :production=>production)
       FactoryGirl.create(:cash_payment_type)
       FactoryGirl.create(:credit_card_payment_type)
+      FactoryGirl.create(:flex_pass_payment_type)
+      FactoryGirl.create(:membership_payment_type)
       performance = FactoryGirl.create(:performance, :production=>production, :performance_code=>'PERF')
       FactoryGirl.create(:default_ticket_class, :class_code=>'PASS', :class_name=>"Pass Ticket",
                           :ticket_price=>1.00, :web_visible=>false, :software_managed=>true)
@@ -75,19 +79,27 @@ FactoryGirl.define do
 
   factory :credit_card_payment_type do
     display_name "Credit Card"
+    initialize_with { CreditCardPaymentType.find_or_create_by_id(1)}
   end
 
   factory :cash_payment_type do
     display_name "Cash"
+    initialize_with { CashPaymentType.find_or_create_by_id(2)}
   end
 
   factory :membership_payment_type do
     display_name "Membership"
-  end
+    initialize_with { MembershipPaymentType.find_or_create_by_id(3)}
+   end
 
   factory :flex_pass_payment_type do
-    display_name "Flex Pass"
+    initialize_with { FlexPassPaymentType.find_or_create_by_id(4) do |p|
+      p.display_name = 'Flex Pass'
+    end}
+
+
   end
+
 
   factory :venue do
     sequence(:name) { |n| "Space #{n}" }
@@ -115,6 +127,7 @@ FactoryGirl.define do
     sequence(:class_code) { |n| "GEN#{'%02d' % n}" }
     association :production
     auto_attach true
+    web_visible true
     factory :software_managed_ticket_class do
       software_managed true
       web_visible false
@@ -138,13 +151,13 @@ FactoryGirl.define do
     season Date.today.year
 
     ignore do
-        ticket_class_count 1
-      end
+      ticket_class_count 1
+    end
 
-      after(:create) do |production, evaluator|
-        FactoryGirl.create_list(:ticket_class, evaluator.ticket_class_count, :production=>production)
-        FactoryGirl.create(:software_managed_ticket_class, :class_code=>'PASS', :production=>production )
-      end
+    after(:create) do |production, evaluator|
+      FactoryGirl.create_list(:ticket_class, evaluator.ticket_class_count, :production=>production)
+      FactoryGirl.create(:software_managed_ticket_class, :class_code=>'PASS', :production=>production )
+    end
 
   end
 
@@ -152,8 +165,9 @@ FactoryGirl.define do
     association :production, :factory => :production
     status Performance::PERFORMANCE_STATUSES.first
     sequence(:performance_code) { |n| "PF#{'%02d' % n}" }
-    after(:build) { |perf| perf.ticket_class_allocations << FactoryGirl.create(:ticket_class_allocation, :performance=>perf) }
-    after(:build) { |perf| perf.populate_ticket_class_allocations }
+    after(:create) { |perf| perf.ticket_class_allocations << FactoryGirl.create(:ticket_class_allocation, :performance=>perf, :available=>true)
+      perf.populate_ticket_class_allocations
+    }
   end
 
 
@@ -164,7 +178,7 @@ FactoryGirl.define do
   trait :order do
     status Order::ORDER_STATUSES.first
     association :address, :factory => :address
-    payment_type CashPaymentType.first
+    association :payment_type, :factory=>:cash_payment_type
   end
 
   factory :ticket_order do
@@ -186,8 +200,7 @@ FactoryGirl.define do
       ignore do
         flex_pass_code 'TESTPASS'
       end
-      payment_type = FlexPassPaymentType.first
-
+      association :payment_type, :factory=>:flex_pass_payment_type
       after(:create) do |ticket_order, evaluator|
         find_code = FlexPass.find_by_code(evaluator.flex_pass_code).flex_pass_offer.use_ticket_class_code
         new_ticket_class = ticket_order.performance.ticket_class_allocations.select {|tca|

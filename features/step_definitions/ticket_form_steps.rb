@@ -50,8 +50,22 @@ When /^I enter a valid credit card as payment( through the backend)?$/ do |backe
   fill_in "CVV", :with=>"581"
 end
 
-Given /^I enter flex pass code "(.*?)" as payment$/ do |pass_code|
+Given /^I enter flex pass (code )?"(.*?)" as payment$/ do |ignore, pass_code|
   @_current_form = 'ticket_order' if @_current_form.blank?
   select "Flex Pass", :from=>"Pay using"
   fill_in "Flex pass code", :with=>"#{pass_code}"
 end
+
+Given /^I enter (\d+) tickets for performance "(.*?)"$/ do |num_tix, perf_code|
+  performance = Performance.find_by_performance_code(perf_code)
+  ticket_class_code = performance.ticket_class_allocations.select{|tca| tca.ticket_class.web_visible}.first.ticket_class.class_code
+  fill_in "ticket_order_ticket_line_items_attributes_0_ticket_class_code", :with =>  ticket_class_code
+  fill_in "ticket_order_ticket_line_items_attributes_0_ticket_count", :with => num_tix
+end
+
+Given /^I enter an exchange for the order to performance "(.*?)"$/ do |perf_code|
+  fill_in "ticket_order_production_code", :with => Performance.find_by_performance_code(perf_code).production.production_code
+  fill_in "ticket_order_performance_code", :with => perf_code
+end
+
+

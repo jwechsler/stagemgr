@@ -7,6 +7,7 @@ class Admin::ExchangeTicketOrdersController < Admin::ApplicationController
     @exchange_order = TicketOrder.new
     @exchange_order.ticket_line_items.build
     @exchange_order.status = Order::NEW
+
     @allowed_payment_types = @original_order.payment_type.allowed_payment_types_for_exchange(current_user)
 
     respond_to do |format|

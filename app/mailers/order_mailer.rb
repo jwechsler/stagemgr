@@ -76,6 +76,7 @@ class OrderMailer < ActionMailer::Base
   end
 
   def member_followup(order)
+    @order = order
     if !@order.performance.nil?
       @followup_message = ERB.new(@order.performance.production.followup_message).result if !@order.performance.production.followup_message.blank?
       @followup_message_2 = ERB.new(@order.performance.production.followup_message).result if !@order.performance.production.followup_message_2.blank?

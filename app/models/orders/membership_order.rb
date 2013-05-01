@@ -81,7 +81,7 @@ class MembershipOrder < Order
     payment
   end
 
-  def create_proper_payment_in_amount_of!(amount)
+  def create_proper_payment_in_amount_of!(amount, payment_options = {})
     self.membership.update_from_profile!
     if self.membership.active? && self.membership.number_cycles_completed > 0
       create_recurring_payment

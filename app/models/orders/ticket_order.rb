@@ -211,15 +211,13 @@ class TicketOrder < Order
       self.save!
       self.update_special_offer_line_items_from_code!
       original_order.release_tickets!
-      exchange_payment_on_original_order = original_order.exchange_payments.create!(:amount => -1*original_order.payments(true).to_a.sum { |p| p.amount }, :note => original_order.description)
-      exchange_payment_on_self = self.exchange_payments.create!(:amount => -1 * exchange_payment_on_original_order.amount, :payment_id => exchange_payment_on_original_order.id)
-      exchange_payment_on_original_order.update_attribute(:payment_id, exchange_payment_on_self.id)
-      payment_difference = self.total - exchange_payment_on_self.amount
-      if payment_difference < 0
-        self.price_override_payments.create!(:amount => payment_difference)
-      elsif payment_difference > 0
-        create_proper_payment_in_amount_of!(payment_difference)
+      exchange_payment_on_original_order = original_order.payment_type.create_exchange_offset_payment
+      self.payments << exchange_payment_on_original_order unless exchange_payment_on_original_order.nil?
+      apply_amount = original_order.payment_type.apply_exchange_payment_forward(original_order,self)
+      unless (apply_amount.nil? || apply_amount == 0)
+
       end
+
       self.status=Order::PROCESSED
       self.set_email_confirmation
       self.payments(true)

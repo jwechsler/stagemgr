@@ -308,8 +308,8 @@ class Order < ActiveRecord::Base
 
   public
 
-  def create_proper_payment_in_amount_of!(amount)
-    new_payment = self.payment_type.create_payment!(amount, self)
+  def create_proper_payment_in_amount_of!(amount, payment_options = {})
+    new_payment = self.payment_type.create_payment!(amount, self, payment_options)
     self.payments << new_payment
     new_payment
   end

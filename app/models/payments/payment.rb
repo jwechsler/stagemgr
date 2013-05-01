@@ -23,6 +23,16 @@ class Payment < ActiveRecord::Base
     "#{Money.from_numeric(amount)} #{self.class}"
   end
 
+  def payment_info
+    ""
+  end
+
+  def create_exchange_offset_payment
+    # ExchangePayment.new(:amount => -1*self.order.payments(true).to_a.sum { |p| p.amount }, :note => self.order.description)
+
+  end
+
+
   def process!(order = nil)
     self.processed_on = DateTime.now
     self.save!

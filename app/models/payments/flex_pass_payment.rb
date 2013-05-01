@@ -1,4 +1,4 @@
-class FlexPassPayment < Payment
+class FlexPassPayment < PassPayment
   validates_presence_of :flex_pass
   belongs_to :flex_pass
 
@@ -19,6 +19,10 @@ class FlexPassPayment < Payment
     0.0
   end
 
+  def payment_info
+    self.flex_pass.code
+  end
+
   def process!(order = nil)
     offer = self.flex_pass.flex_pass_offer
     if !offer.theater_id.blank? then
@@ -29,7 +33,6 @@ class FlexPassPayment < Payment
   end
 
   def release_tickets!
-    puts('released tickets')
     self.number_of_tickets = 0
     self.save!
   end
@@ -44,5 +47,9 @@ class FlexPassPayment < Payment
     "#{self.number_of_tickets} ticket#{self.number_of_tickets != 1 ? 's' : ''}"
   end
 
+  def create_exchange_offset_payment
+    offset_payment = super
+    offset_payment.number_of_tickets = 0 - offset_payment.number_of_tickets
+  end
 
 end
