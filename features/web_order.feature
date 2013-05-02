@@ -15,6 +15,7 @@ Feature: Web ordering
     Then I should see "$10.00"
     Then I should see "Your ticket reservation has been made"
 
+  @wip
   Scenario: Create an order with a special offer
     Given I go to new web order for production "Production One" and performance "PERF"
     And I enter my contact information
@@ -22,10 +23,10 @@ Feature: Web ordering
     And I enter a valid credit card as payment
     And I fill in "Discount Code (optional)" with "1DollarOff"
     And I press "Review Order"
-    And I should see "9.00"
+    And I should see "4.00"
     And I press "Order Tickets"
     Then I should see "Your ticket reservation has been made"
-    And I should see "9.00"
+    And I should see "4.00"
 
   # Scenario: Have the credit card declined and then try again successfully
   #   Given I go to new web order for production "Production One" and performance "PERF"

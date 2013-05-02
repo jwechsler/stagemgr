@@ -99,10 +99,10 @@ class OrderTest < ActiveSupport::TestCase
         @cash_payment_type = FactoryGirl.create(:cash_payment_type)
 
         @production = FactoryGirl.create(:production, :capacity=>10)
-        @ticket_class = FactoryGirl.create(:ticket_class, :production=>@production, :class_code=>'ABC', :ticket_price=>3)
+        @ticket_class = FactoryGirl.create(:ticket_class, :production=>@production, :class_code=>'ABC', :ticket_price=>3, :auto_attach=>true)
         @performance = FactoryGirl.create(:performance, :production=>@production)
         @production2 = FactoryGirl.create(:production, :capacity=>10)
-        @ticket_class2 = FactoryGirl.create(:ticket_class, :production=>@production2, :class_code=>'ABC', :ticket_price=>5)
+        @ticket_class2 = FactoryGirl.create(:ticket_class, :production=>@production2, :class_code=>'ABC', :ticket_price=>5, :auto_attach=>true)
         @performance2 = FactoryGirl.create(:performance, :production=>@production2)
       end
     end
@@ -113,7 +113,7 @@ class OrderTest < ActiveSupport::TestCase
           "production_code"=>@production.production_code,
           "ticket_line_items_attributes"=>{
             "0"=>{
-              "ticket_class_code"=>@ticket_class.class_code,
+              "ticket_class_id"=>@ticket_class.id,
               "ticket_count"=>"2"
             }
           },
@@ -147,7 +147,7 @@ class OrderTest < ActiveSupport::TestCase
           "production_code"=>@production2.production_code,
           "ticket_line_items_attributes"=>{
             "0"=>{
-              "ticket_class_code"=>@ticket_class2.class_code,
+              "ticket_class_id"=>@ticket_class2.id,
               "ticket_count"=>"1"
             }
           },

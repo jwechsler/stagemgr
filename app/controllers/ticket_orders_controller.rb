@@ -1,4 +1,3 @@
-
 class TicketOrdersController < ApplicationController
   layout 'ext_site_wrapper'
   include OrdersHelper

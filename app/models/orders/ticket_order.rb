@@ -211,11 +211,16 @@ class TicketOrder < Order
       self.save!
       self.update_special_offer_line_items_from_code!
       original_order.release_tickets!
-      exchange_payment_on_original_order = original_order.payment_type.create_exchange_offset_payment
-      self.payments << exchange_payment_on_original_order unless exchange_payment_on_original_order.nil?
-      apply_amount = original_order.payment_type.apply_exchange_payment_forward(original_order,self)
-      unless (apply_amount.nil? || apply_amount == 0)
+      exchange_payments_on_original_order = original_order.payments.map {|p| p.create_exchange_offset_payment}
+      exchange_payments_toward_exchange_order = self.payment_type.apply_exchange_offset_payments(exchange_payments_on_original_order)
+      exchange_payments_on_original_order.each {|p| original_order.payments << p unless p.nil? }
+      exchange_payments_toward_exchange_order.each { |p| self.payments << p unless p.nil? }
 
+      payment_difference = self.total_ticket_face_value - exchange_payments_toward_exchange_order.inject(0){|sum, x| sum = sum + x.amount }
+      if payment_difference < 0
+        self.price_override_payments.create!(:amount => payment_difference)
+      elsif payment_difference > 0
+        self.create_proper_payment_in_amount_of!(payment_difference)
       end
 
       self.status=Order::PROCESSED
@@ -226,7 +231,6 @@ class TicketOrder < Order
       original_order.save!
     end
   end
-
 
   def release_tickets!
     self.ticket_line_items.each { |ti| ti.destroy }
@@ -253,6 +257,12 @@ class TicketOrder < Order
 
   def performance_code=(string)
     self.performance=Performance.find_by_performance_code(string)
+  end
+
+  def total_ticket_face_value(reload_line_items=false)
+    a = self.all_line_items.to_a.sum { |line_item| line_item.respond_to?(:total) ? line_item.total : 0 }
+    a = 0.0 if a < 0.0
+    a
   end
 
 
