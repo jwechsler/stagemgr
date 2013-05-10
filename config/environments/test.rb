@@ -33,6 +33,12 @@ Stagemgr::Application.configure do
   # Print deprecation notices to the stderr
   config.active_support.deprecation = :stderr
 
+
+  # Turn off SQL Logging for development here
+  config.after_initialize do
+    ActiveRecord::Base.logger = Rails.logger.clone
+    ActiveRecord::Base.logger.level = Logger::INFO
+  end
   # Setup payment methods
 
   $PAYMENT_CONFIG = YAML::load(File.open("#{::Rails.root.to_s}/config/payment_processing.yml"))['test']

@@ -22,7 +22,7 @@ Feature: Flex Pass Ticket Order administration
       And I follow "Refund Order"
       And I press "Release Flex Pass tickets"
      Then I should see "Order was successfully refunded"
-  @wip
+
   Scenario: Box office users can exchange a flex pass order
      Given a ticket order for performance "PERF" paid with flex pass "TESTFLEX" exists
        And a performance "NEWPERF" exists
@@ -34,4 +34,4 @@ Feature: Flex Pass Ticket Order administration
        And I enter 2 tickets for performance "NEWPERF"
        And I enter flex pass code "TESTFLEX" as payment
        And I press "Place Order"
-      Then show me the page
+      Then I should see "Order was successfully exchanged"

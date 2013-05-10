@@ -32,6 +32,8 @@ class Admin::ExchangeTicketOrdersController < Admin::ApplicationController
         end
       rescue StandardError => e
         respond_to do |format|
+          Rails.logger.error("There was a problem with the exchange. #{e.message}")
+          Rails.logger.error(e.backtrace.join("\n"))
           flash[:error] = "There was a problem with the exchange. #{e.message}"
           format.html { render 'new' }
         end
