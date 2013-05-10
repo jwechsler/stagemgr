@@ -7,7 +7,8 @@ class Admin::ExchangeTicketOrdersController < Admin::ApplicationController
     @exchange_order = TicketOrder.new
     @exchange_order.ticket_line_items.build
     @exchange_order.status = Order::NEW
-    @allowed_payment_types = [Order::FLEX_PASS] if @original_order.paid_with_flexpass?
+
+    @allowed_payment_types = @original_order.payment_type.allowed_payment_types_for_exchange(current_user)
 
     respond_to do |format|
       format.html # new.html.erb
@@ -18,6 +19,8 @@ class Admin::ExchangeTicketOrdersController < Admin::ApplicationController
   def create
     TicketOrder.transaction do
       begin
+
+
         @original_order = TicketOrder.find(params[:ticket_order_id])
         @exchange_order = TicketOrder.new(params[:ticket_order])
         @exchange_order.special_offer_code = params[:ticket_order][:special_offer_code]
@@ -29,6 +32,8 @@ class Admin::ExchangeTicketOrdersController < Admin::ApplicationController
         end
       rescue StandardError => e
         respond_to do |format|
+          Rails.logger.error("There was a problem with the exchange. #{e.message}")
+          Rails.logger.error(e.backtrace.join("\n"))
           flash[:error] = "There was a problem with the exchange. #{e.message}"
           format.html { render 'new' }
         end

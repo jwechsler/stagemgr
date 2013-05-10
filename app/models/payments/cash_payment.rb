@@ -1,4 +1,4 @@
-class CashPayment < Payment
+class CashPayment < CurrencyPayment
 
   def receipt_description
     'Cash'

@@ -20,10 +20,14 @@ class TicketOrder < Order
       unless record.ticket_line_items.empty? || record.ticket_quantity > 0
         record.errors.add :ticket_line_items, "must contain at least one ticket."
       end
-      if (!record.performance.nil? && record.performance.restricted_payment_types.map { |r| r.display_name }.include?(record.payment_type))
+      if (!record.performance.nil? && record.performance.restricted_payment_types.include?(record.payment_type))
         record.errors.add :payment_type, "is not allowed for this event"
       end
     end
+  end
+
+  def theater_ids
+    [performance.production.theater.id]
   end
 
   def self.reassign_payments(offer)
@@ -87,7 +91,7 @@ class TicketOrder < Order
 
   def valid_payment_types_for(current_user)
     valid_payment_types = super
-    valid_payment_types = valid_payment_types - self.performance.restricted_payment_types.map { |rpt| rpt.display_name } unless self.performance.nil?
+    valid_payment_types = valid_payment_types - self.performance.restricted_payment_types unless self.performance.nil?
     valid_payment_types
   end
 
@@ -207,15 +211,18 @@ class TicketOrder < Order
       self.save!
       self.update_special_offer_line_items_from_code!
       original_order.release_tickets!
-      exchange_payment_on_original_order = original_order.exchange_payments.create!(:amount => -1*original_order.payments(true).to_a.sum { |p| p.amount }, :note => original_order.description)
-      exchange_payment_on_self = self.exchange_payments.create!(:amount => -1 * exchange_payment_on_original_order.amount, :payment_id => exchange_payment_on_original_order.id)
-      exchange_payment_on_original_order.update_attribute(:payment_id, exchange_payment_on_self.id)
-      payment_difference = self.total - exchange_payment_on_self.amount
+      exchange_payments_on_original_order = original_order.payments.map {|p| p.create_exchange_offset_payment}
+      exchange_payments_toward_exchange_order = self.payment_type.apply_exchange_offset_payments(exchange_payments_on_original_order)
+      exchange_payments_on_original_order.each {|p| original_order.payments << p unless p.nil? }
+      exchange_payments_toward_exchange_order.each { |p| self.payments << p unless p.nil? }
+
+      payment_difference = self.total_ticket_face_value - exchange_payments_toward_exchange_order.inject(0){|sum, x| sum = sum + x.amount }
       if payment_difference < 0
         self.price_override_payments.create!(:amount => payment_difference)
       elsif payment_difference > 0
-        create_proper_payment_in_amount_of!(payment_difference)
+        self.create_proper_payment_in_amount_of!(payment_difference)
       end
+
       self.status=Order::PROCESSED
       self.set_email_confirmation
       self.payments(true)
@@ -224,7 +231,6 @@ class TicketOrder < Order
       original_order.save!
     end
   end
-
 
   def release_tickets!
     self.ticket_line_items.each { |ti| ti.destroy }
@@ -253,6 +259,12 @@ class TicketOrder < Order
     self.performance=Performance.find_by_performance_code(string)
   end
 
+  def total_ticket_face_value(reload_line_items=false)
+    a = self.all_line_items.to_a.sum { |line_item| line_item.respond_to?(:total) ? line_item.total : 0 }
+    a = 0.0 if a < 0.0
+    a
+  end
+
 
   def performance_code()
     self.performance.try(:performance_code)
@@ -266,6 +278,10 @@ class TicketOrder < Order
     (super +
         self.ticket_line_items(reload_line_items)
     ).uniq
+  end
+
+  def production_ticket_class_from_offer(offer)
+    self.performance.production.ticket_classes.select { |tc| tc.class_code == offer.use_ticket_class_code }.first
   end
 
   protected
@@ -289,51 +305,8 @@ class TicketOrder < Order
     super
   end
 
-  def applicable_price(regular_ticket_class, offer_ticket_class)
+  def self.applicable_price(regular_ticket_class, offer_ticket_class)
     return [regular_ticket_class.ticket_price, offer_ticket_class.ticket_price].min
-  end
-
-  def production_ticket_class_from_offer(offer)
-    self.performance.production.ticket_classes.select { |tc| tc.class_code == offer.use_ticket_class_code }.first
-  end
-
-  def create_proper_payment_in_amount_of!(amount)
-    case self.payment_type
-      when FLEX_PASS
-        flex_pass = FlexPass.find_by_code(self.flex_pass_code)
-        raise 'No FlexPass with that code exists' unless flex_pass
-        offer = flex_pass.flex_pass_offer
-        if !offer.theater_id.blank? then
-          raise "That FlexPass is restricted to #{Theater.find_by_id(offer.theater_id).name} productions" if (offer.theater_id != self.performance.production.theater.id and !offer.exclude_theater?)
-          raise "That Flexpass cannot be used for tickets for #{Theater.find_by_id(flex_pass.flex_pass_offer.theater_id).name} productions" if (flex_pass.flex_pass_offer.theater_id == self.performance.production.theater.id and flex_pass.flex_pass_offer.exclude_theater?)
-
-        end
-        pass_ticket_class = production_ticket_class_from_offer(offer)
-        total_amount = ticket_line_items.inject(0) { |total_amount, li| total_amount += self.applicable_price(li.ticket_class, pass_ticket_class)* li.ticket_count }
-        new_payment = FlexPassPayment.new(
-            :number_of_tickets => self.ticket_quantity,
-            :flex_pass => flex_pass,
-            :amount => total_amount
-        )
-        payments << new_payment
-        new_payment.process!
-      when MEMBERSHIP
-        membership = Membership.find_by_member_code(self.member_code)
-        raise "No current membership with that code exists" unless membership
-        if !self.address.email.blank? && membership.address.email.downcase.strip != self.address.email.downcase.strip
-          raise 'Member ID does not match provided email address'
-        end
-        raise 'That member ID is not active. Please call the box office for assistance.' unless membership.active?(self.performance.performance_date)
-        pass_ticket_class = production_ticket_class_from_offer(membership.membership_offer)
-        total_amount = ticket_line_items.inject(0) { |total_amount, li| total_amount += self.applicable_price(li.ticket_class, pass_ticket_class)* li.ticket_count }
-
-        new_payment = MembershipPayment.new(:number_of_tickets => self.ticket_quantity, :membership => membership, :amount => total_amount)
-        payments << new_payment
-        new_payment.process!
-      else
-        new_payment = super
-    end
-    new_payment
   end
 
 
@@ -410,7 +383,7 @@ class TicketOrder < Order
         new_line_item.ticket_class = new_ticket_class
         old_price = li.ticket_class.ticket_price
         new_line_item.ticket_count = li.ticket_count
-        new_line_item.price_override = self.applicable_price(li.ticket_class, new_ticket_class) if new_ticket_class.ticket_type == TicketClass::DONATION
+        new_line_item.price_override = TicketOrder.applicable_price(li.ticket_class, new_ticket_class) if new_ticket_class.ticket_type == TicketClass::DONATION
         self.ticket_line_items << new_line_item
         self.ticket_line_items.delete(li)
 

@@ -17,12 +17,12 @@ class Performance < ActiveRecord::Base
   validates_uniqueness_of  :performance_time, :scope=>[:performance_date, :production_id]
   validates_each           :performance_time do |record, attr, value|
     if record.production.performances.any? do |p|
-        p.id != record.id && 
-        p.performance_date==record.performance_date && 
+        p.id != record.id &&
+        p.performance_date==record.performance_date &&
         p.performance_time.hour==record.performance_time.hour &&
         p.performance_time.min==record.performance_time.min
       end
-      record.errors.add attr, 'has already been taken' 
+      record.errors.add attr, 'has already been taken'
     end
   end
   validates_presence_of    :performance_code
@@ -31,20 +31,20 @@ class Performance < ActiveRecord::Base
 
   before_validation              :clean_values
   accepts_nested_attributes_for  :ticket_class_allocations
-  
+
   def number_of_tickets_left
     self.production.capacity - self.orders.inject(0){|sum,order| sum + order.ticket_line_items.sum(:ticket_count) }
   end
-  
+
   def sold_out?
     self.number_of_tickets_left <= 0
-  end 
-  
+  end
+
   def happening_soon?
     at = self.performance_at
     (Time.now < at) && (Time.now + 3.hours > at)
   end
-  
+
   def performance_at
     Time.parse(self.performance_date.to_s(:default) + " " + self.performance_time.to_s(:hour_min))
   end
@@ -56,22 +56,22 @@ class Performance < ActiveRecord::Base
   def near_capacity?
     self.number_of_tickets_left <= 9
   end
-  
+
   def populate_ticket_class_allocations
     self.ticket_class_allocations.each{|tca|tca.performance=self}
     (self.production.ticket_classes - self.ticket_class_allocations.map{|tca|tca.ticket_class}).map do |ticket_class|
       self.ticket_class_allocations.build({:ticket_class=>ticket_class, :performance=>self, :available=>ticket_class.auto_attach})
     end
   end
-  
+
   def to_s
     "#{self.production.name} [#{datetime_s}] (#{number_of_tickets_left} Tickets Left)"
   end
-  
+
   def to_short_s
     "#{self.production.name} on #{datetime_s}"
   end
-  
+
   def datetime_s
     "#{self.performance_date.strftime('%m/%d')} #{self.performance_time.strftime('%H:%M')}"
   end
@@ -94,7 +94,7 @@ class Performance < ActiveRecord::Base
   end
 
   private
-  
+
   def clean_values
     self.performance_date = Date.today if self.performance_date.nil?
     self.performance_time = Time.now if self.performance_time.nil?

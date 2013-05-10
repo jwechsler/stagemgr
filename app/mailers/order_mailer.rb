@@ -76,10 +76,14 @@ class OrderMailer < ActionMailer::Base
   end
 
   def member_followup(order)
-     @order = order
-     mail(:to=>order.address.email, :from=>"\"Jeremy Wechsler\" <jeremy@theaterwit.org>",
-          :subject=>"Thanks for coming to #{order.performance.production.name}",
-          :tag=>"Member Followup")
+    @order = order
+    if !@order.performance.nil?
+      @followup_message = ERB.new(@order.performance.production.followup_message).result if !@order.performance.production.followup_message.blank?
+      @followup_message_2 = ERB.new(@order.performance.production.followup_message).result if !@order.performance.production.followup_message_2.blank?
+    end
+    mail(:to=>order.address.email, :from=>"\"Jeremy Wechsler\" <jeremy@theaterwit.org>",
+         :subject=>"Thanks for coming to #{order.performance.production.name}",
+         :tag=>"Member Followup")
   end
 
   def flex_pass_followup(order)

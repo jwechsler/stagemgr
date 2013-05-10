@@ -3,23 +3,13 @@ Feature: Admins can manage performances
   I want to create / edit and delete performances records
 
   Background:
-    Given the following productions exist:
-      | name           |
-      | Production One |
-    And the following ticket_classes exist on the Production "Production One":
-      | class_code | class_name | ticket_price |
-      | A          | A Ticket   | 10.00        |
-      | B          | B Ticket   | 15.00        |
-      | C          | C Ticket   | 20.00        |
+    Given a sample theater exists
     And I am an Administrator
     And I am logged in
     And I go to the admin production detail page for "Production One"
 
   Scenario: There is a performances link on the Productions Page
-    Given the following performances exist on the Production "Production One":
-      | performance_code |
-      | PERF             |
-    And I go to the admin production detail page for "Production One"
+    Given I go to the admin production detail page for "Production One"
     Then I should see "PERF"
 
   Scenario: There is a New Performance link on the Performance Listing Page

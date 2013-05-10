@@ -53,6 +53,7 @@ When /^I enter a membership offer "(.*?)"$/ do |offer_name|
   fill_in "Name", :with => offer_name
   fill_in "membership_offer_recurring_cost", :with=>"10.00"
   fill_in "Tickets per performance", :with=>"1"
-  select "MEMBER", :from=>"Use ticket class code"
-  select "MEMBERFRIEND", :from=>"Use member friend code"
+  select "PASS", :from=>"Use ticket class code"
+  select "PASSFRIEND", :from=>"Use member friend code"
 end
+

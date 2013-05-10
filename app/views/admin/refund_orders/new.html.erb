@@ -33,11 +33,20 @@
     <p>
       <%= order_form.submit 'Process Refund', :disable_with => 'Processing...'%>
     </p>
-  <% end -%>
-  <%- when @original_order.payments.first.class == MembershipPayment -%>
-    <%= form_for [:admin,@original_order,@refund_order], :url=>admin_order_refund_orders_path(@original_order) do |order_form| -%>
-      <p>
-      <%= order_form.submit 'Cancel Membership reservation', :disable_with=>'Processing...' %>
+<% end -%>
+<%- when @original_order.payments.first.class == MembershipPayment -%>
+  <%= form_for [:admin,@original_order,@refund_order], :url=>admin_order_refund_orders_path(@original_order) do |order_form| -%>
+    <p>
+    <%= order_form.submit 'Cancel Membership reservation', :disable_with=>'Processing...' %>
+  </p>
+<%- end %>
+<%- when @original_order.payments.first.class == FlexPassPayment -%>
+  <%= form_for [:admin,@original_order,@refund_order], :url=>admin_order_refund_orders_path(@original_order) do |order_form| -%>
+    <p>
+      <%= order_form.label :notes %>
+      <%= order_form.text_field :notes %>
+    </p><p>
+      <%= order_form.submit 'Release Flex Pass tickets', :disable_with=>'Processing...' %>
     </p>
   <%- end %>
 <%-else -%>

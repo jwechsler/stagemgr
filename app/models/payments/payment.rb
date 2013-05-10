@@ -22,13 +22,23 @@ class Payment < ActiveRecord::Base
   def to_s
     "#{Money.from_numeric(amount)} #{self.class}"
   end
-  def payment_type=(string)
-    self.type=string
+
+  def payment_info
+    ""
   end
-  def process!
+
+  def create_exchange_offset_payment
+    # ExchangePayment.new(:amount => -1*self.order.payments(true).to_a.sum { |p| p.amount }, :note => self.order.description)
+
+  end
+
+
+  def process!(order = nil)
     self.processed_on = DateTime.now
     self.save!
+    self
   end
+
   def self.descendants
     result = []
     ObjectSpace.each_object(Class).each { |c| result << c if c < Payment }
@@ -39,12 +49,18 @@ class Payment < ActiveRecord::Base
 
   end
 
+  def create_refund_payment(cc_number = nil, note = nil)
+    refund_payment = self.dup
+    refund_payment.amount = refund_payment.amount*-1
+    refund_payment.order = order
+    self.order.payments << refund_payment
+    refund_payment
+  end
+
+
   def refund!(cc_number = nil, note = nil)
     Payment.transaction do
-      refund_payment = self.dup
-      refund_payment.amount = refund_payment.amount*-1
-      refund_payment.order = order
-      self.order.payments << refund_payment
+      refund_payment = create_refund_payment(cc_number, note)
       refund_payment.save!
     end
   end

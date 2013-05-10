@@ -1,4 +1,6 @@
 class SpecialOffer < ActiveRecord::Base
+
+  SPECIAL_OFFER_TYPES = ()
   belongs_to :membership
 
   validates_presence_of :type, :code

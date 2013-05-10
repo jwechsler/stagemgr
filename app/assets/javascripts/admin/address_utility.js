@@ -48,7 +48,11 @@ function setup_address_autocompletes(order_type) {
             $("#"+order_type+"_address_attributes_phone").val(ui.item.phone)
             $("#"+order_type+"_member_code").val(ui.item.member_code)
             if (ui.item.member_code) {
-              $("#"+order_type+"_payment_type").val('Membership')
+              $("#"+order_type+"_payment_type_id option").filter(function() {
+                //may want to use $.trim in here
+                return $(this).text() == 'Membership';
+              }).prop('selected', true);
+              /* $().val('Membership') */
               show_proper_payment_form(order_type)
             }
           }

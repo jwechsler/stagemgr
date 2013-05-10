@@ -4,7 +4,7 @@ class SpecialOfferTest < ActiveSupport::TestCase
   context "a one-time special offer for any performance of $2 off a GEN* ticket" do
     setup  do
       @special_offer = FactoryGirl.create(:amount_off_special_offer,:amount=>2,:code=>'TEST',:ticket_class_code=>'GEN',:number_of_uses=>1)
-      @order=FactoryGirl.create(:ticket_order, :performance=>performances(:macbeth_opening),:special_offer_code=>'TEST',:payment_type=>Order::CASH)
+      @order=FactoryGirl.create(:ticket_order, :performance=>performances(:macbeth_opening),:special_offer_code=>'TEST',:payment_type=>FactoryGirl.create(:cash_payment_type))
       @order.ticket_line_items.build(:ticket_class=>ticket_classes(:macbeth_general_admission), :ticket_count=>1)
 
     end
@@ -19,7 +19,7 @@ class SpecialOfferTest < ActiveSupport::TestCase
     should "not allow more than one redemption" do
       @order.transition_to!(Order::PROCESSING)
       @order.transition_to!(Order::PROCESSED)
-      second_order = FactoryGirl.create(:ticket_order, :performance=>performances(:macbeth_opening),:special_offer_code=>'TEST',:payment_type=>Order::CASH)
+      second_order = FactoryGirl.create(:ticket_order, :performance=>performances(:macbeth_opening),:special_offer_code=>'TEST',:payment_type=>CashPaymentType.first)
       second_order.ticket_line_items.build(:ticket_class=>ticket_classes(:macbeth_general_admission), :ticket_count=>1)
       assert_raise { second_order.transition_to!(Order::PROCESSING) }
       assert_equal(0,second_order.special_offer_line_items.size)

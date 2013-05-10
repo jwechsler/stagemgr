@@ -3,7 +3,7 @@ if !defined? InvalidCreditCard
   CannotProcessPayment = Class.new(StandardError)
 end
 
-class CreditCardPayment < Payment
+class CreditCardPayment < CurrencyPayment
 
   acts_as_audited
 
@@ -51,7 +51,7 @@ class CreditCardPayment < Payment
     "#{ctype} ****#{self.card_last_four}::AUTH #{confirmation_code}"
   end
 
-  def process!
+  def process!(order = nil)
     if self.confirmation_code.blank? || self.card_number.length != 4
       credit_card = create_credit_card
       billing_address = {
@@ -124,6 +124,9 @@ class CreditCardPayment < Payment
     end
   end
 
+  def payment_info
+    "#{self.card_type} ending in #{self.card_last_four.nil? ? "????" : self.card_last_four.to_s}"
+  end
 
   def create_credit_card
     PaymentProcessing.credit_card(self.card_type, self.address.first_name, self.address.last_name, self.card_number,

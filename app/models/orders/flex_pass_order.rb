@@ -19,9 +19,7 @@ class FlexPassOrder < Order
 
   def valid_payment_types_for(current_user)
     valid_payment_types = super
-    valid_payment_types.delete FLEX_PASS
-    valid_payment_types.delete MEMBERSHIP
-    valid_payment_types
+    valid_payment_types.select {|pt| pt.is_a? CurrencyPaymentType }
   end
 
   def description

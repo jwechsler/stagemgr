@@ -45,9 +45,7 @@ class MembershipOrder < Order
   end
 
   def valid_payment_types_for(current_user)
-    valid_payment_types = Array.new
-    valid_payment_types << Order::CREDIT_CARD
-    valid_payment_types
+    CreditCardPaymentType.all
   end
 
   def link_to_address_of_record
@@ -83,7 +81,7 @@ class MembershipOrder < Order
     payment
   end
 
-  def create_proper_payment_in_amount_of!(amount)
+  def create_proper_payment_in_amount_of!(amount, payment_options = {})
     self.membership.update_from_profile!
     if self.membership.active? && self.membership.number_cycles_completed > 0
       create_recurring_payment

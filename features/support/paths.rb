@@ -41,7 +41,8 @@ module NavigationHelpers
         new_admin_ticket_order_url
       when /^the admin order page for the (.*)$/
         @using_admin_interface = true
-        admin_order_path(eval "@#{$1}.id")
+        page_type = "#{$1}".gsub(' ','_')
+        admin_order_path(eval "@#{page_type}.id")
       when /^the admin membership offers page$/
         @using_admin_interface = true
         admin_membership_offers_path
