@@ -702,10 +702,9 @@ class Admin::ReportsController < Admin::ApplicationController
     report = Array.new
     day_total = Hash.new
     zero_dollars = Money.new(0)
-    keys = columns_for_orders(build_for_dumpfile)
+    keys = columns_for_orders(build_for_dumpfile) - [:order_date] + [:processed_on]
     payment_types = []
-    PaymentType.all.each {|pt| payment_types << pt.payment_class.to_s}
-    [CashPayment.to_s, CreditCardPayment.to_s, PriceOverridePayment.to_s, FlexPassPayment.to_s, MembershipPayment.to_s]
+    PaymentType.all.each {|pt| payment_types << pt.class.to_s[0..-12] unless pt.class.to_s[0..-12].blank?}
     keys += payment_types
     current_date = start_day - 1.week
     payments = Payment.order("processed_on").where("processed_on >=:start_day and processed_on < :end_day", {:start_day=>start_day, :end_day=>(end_day + 1.day)})
@@ -715,17 +714,17 @@ class Admin::ReportsController < Admin::ApplicationController
         current_date = c_day
         report << day_total unless day_total.empty?
         day_total = Hash.new
-        day_total[:order_date] = c_day
+        day_total[:processed_on] = c_day
         day_total[:display_class] = :report_summary_row
         payment_types.each { |t| day_total[t] = Money.new(0) }
       end
-
       amt = p.amount.nil? ? zero_dollars : Money.from_numeric(p.amount)
-      day_total[p.class.to_s] += amt if payment_types.include?(p.class.to_s)
 
+      day_total[p.class.to_s[0..-8]] +=  amt if payment_types.include?(p.class.to_s[0..-8])
 
       if build_for_dumpfile then
         row = create_hash_from_order_fields(p.order)
+
         row[p.class.to_s] = amt
         row[:display_class] = :report_detail_row
         report << row
