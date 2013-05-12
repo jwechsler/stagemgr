@@ -67,7 +67,7 @@ class Payment < ActiveRecord::Base
 
   protected
   def set_processed_on
-    self.processed_on = self.processed_on || Date.today if self.new_record?
+    self.processed_on = self.processed_on || Time.now if self.new_record?
   end
 
 end
