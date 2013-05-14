@@ -122,16 +122,16 @@ Then /^a membership exists with "(.*?)" as preferred seating$/ do |preferred_sea
 end
 
 Given /^the system accepts currency$/ do
-  @credit_card_payment_type = FactoryGirl.create(:credit_card_payment_type)
+  @credit_card_payment_type = FactoryGirl.create(:credit_card_payment_type, :allow_for_public=>true)
   @cash_payment_type = FactoryGirl.create(:cash_payment_type)
 end
 
 Given /^the system accepts memberships$/ do
-  @membership_payment_type = FactoryGirl.create(:membership_payment_type)
+  @membership_payment_type = FactoryGirl.create(:membership_payment_type, :allow_for_public=>true)
 end
 
 Given /^the system accepts flex passes$/ do
-  @membership_payment_type = FactoryGirl.create(:flex_pass_payment_type)
+  @membership_payment_type = FactoryGirl.create(:flex_pass_payment_type, :allow_for_public=>true)
 end
 
 

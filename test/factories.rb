@@ -32,10 +32,10 @@ module FactoryGirl
       FactoryGirl.create(:ticket_class, :class_code=>'SECRET', :class_name=>"Secret Ticket",
                           :ticket_price=>20.00, :web_visible=>false, :software_managed=>false,
                           :production=>production)
-      FactoryGirl.create(:cash_payment_type)
-      FactoryGirl.create(:credit_card_payment_type)
-      FactoryGirl.create(:flex_pass_payment_type)
-      FactoryGirl.create(:membership_payment_type)
+      FactoryGirl.create(:cash_payment_type, :allow_for_public=>false)
+      FactoryGirl.create(:credit_card_payment_type, :allow_for_public=>true)
+      FactoryGirl.create(:flex_pass_payment_type, :allow_for_public=>true)
+      FactoryGirl.create(:membership_payment_type, :allow_for_public=>true)
       performance = FactoryGirl.create(:performance, :production=>production, :performance_code=>'PERF')
       FactoryGirl.create(:default_ticket_class, :class_code=>'PASS', :class_name=>"Pass Ticket",
                           :ticket_price=>1.00, :web_visible=>false, :software_managed=>true)

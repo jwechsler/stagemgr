@@ -57,3 +57,12 @@ When /^I enter a membership offer "(.*?)"$/ do |offer_name|
   select "PASSFRIEND", :from=>"Use member friend code"
 end
 
+Given /^I allow ([^\s]*) payments for the public$/ do |payment_type|
+  check "payment_type_allow_for_public"
+end
+
+Given /^I disallow ([^\s]*) payments for the public$/ do |payment_type|
+  uncheck "payment_type_allow_for_public"
+end
+
+

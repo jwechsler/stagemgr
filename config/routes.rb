@@ -210,6 +210,7 @@ Stagemgr::Application.routes.draw do
       resources :refund_orders, :only=>[:new,:create]
     end
     resources :special_offers
+    resources :payment_types
     resources :amount_off_special_offers, :only=>[:edit,:index]
 
     resources :theaters do
@@ -223,6 +224,9 @@ Stagemgr::Application.routes.draw do
     resources :users do
       resources :theaters
     end
+
+    get '/system_options', :controller=>'system_options', :action=>'index'
+
   end
 
   namespace :current_user do
@@ -238,5 +242,6 @@ Stagemgr::Application.routes.draw do
   root :to => 'current_user/accounts#show'
   get '/login', :controller => 'user_sessions', :action => 'new'
   get '/logout', :controller => 'user_sessions', :action => 'destroy'
+
 
 end

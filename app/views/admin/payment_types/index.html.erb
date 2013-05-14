@@ -1,0 +1,22 @@
+<h1>Payment Types</h1>
+
+<table width="100%" cellspacing="0">
+  <thead>
+  <tr>
+    <th>Display Name</th>
+    <th>Allow for Public</th>
+    <th>Allow for Box Office</th>
+  </tr>
+  </thead>
+  <%- rownum = 0
+    @payment_types.each do |payment_type|
+    rownum += 1 %>
+    <tr style="background-color: <%= (rownum % 2 == 0) ? 'lightgray' : 'white' %>;">
+      <td><%= payment_type.display_name %></td>
+      <td align="center"><%= payment_type.allow_for_public %></td>
+      <td align="center"><%= payment_type.allow_for_box_office %></td>
+
+      <td><%= link_to 'Edit', edit_admin_payment_type_path(payment_type) if permitted_to?(:edit,:admin_payment_types)%></td>
+    </tr>
+  <%- end %>
+</table>

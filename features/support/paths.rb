@@ -13,6 +13,8 @@ module NavigationHelpers
         '/'
       when /^the login page$/
         url_for(:controller => 'user_sessions', :action => 'new', :only_path => true)
+      when /^the logout page$/
+        logout_path
       when /^the admin[\/| ]theaters? page$/
         @using_admin_interface = true
         url_for(:controller => 'admin/theaters', :action => 'index', :only_path => true)
@@ -49,7 +51,15 @@ module NavigationHelpers
       when /^the new admin membership offer page$/
         @using_admin_interface = true
         new_admin_membership_offer_path
-
+      when /^the system options page$/
+        @using_admin_interface=true
+        admin_system_options_path
+      when /^the manage payment types page$/
+        @using_admin_interface=true
+        admin_payment_types_path
+      when /^the edit page for payment type "([^"]*)"$/
+        @using_admin_interface=true
+        edit_admin_payment_type_path(PaymentType.find_by_display_name($1))
       # Add more mappings here.
       # Here is an example that pulls values out of the Regexp:
       #

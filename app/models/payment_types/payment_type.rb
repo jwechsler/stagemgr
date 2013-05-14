@@ -1,9 +1,10 @@
 class PaymentType < ActiveRecord::Base
 
   def self.valid_payment_types_for(current_user)
-    valid_payment_types = PaymentType.where ("type <> 'PriceOverridePaymentType'")
-    unless current_user && (current_user.is_administrator? || current_user.is_box_office_user?)
-      valid_payment_types.delete_if {|pt| pt.is_a? CashPaymentType }
+    if (!current_user.nil? && (current_user.is_administrator? || current_user.is_box_office_user?))
+      valid_payment_types = PaymentType.find_all_by_allow_for_box_office(true)
+    else
+      valid_payment_types = PaymentType.find_all_by_allow_for_public(true)
     end
     valid_payment_types
   end

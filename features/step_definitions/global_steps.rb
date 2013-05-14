@@ -1,4 +1,4 @@
-Given /^(?:|I )(?:|am |is )logged in$/ do
+Given /^(?:|I )(?:|am |is )log(?:|ged)? in$/ do
   @current_test_user ||= Factory(:user)
   visit path_to('the login page')
   fill_in('Email', :with=>@current_test_user.email)
@@ -32,5 +32,9 @@ Given /^I am a [tT]heater [Uu]ser$/ do
   @current_test_user ||= FactoryGirl.build(:user)
   @current_test_user.save_without_session_maintenance
 
+end
+
+Given /^I log out$/ do
+  visit path_to("the logout page")
 end
 

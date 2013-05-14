@@ -68,4 +68,10 @@ Given /^I enter an exchange for the order to performance "(.*?)"$/ do |perf_code
   fill_in "ticket_order_performance_code", :with => perf_code
 end
 
+Then /^the payment option should include "(.*?)"$/ do |value|
+  page.should have_xpath "//select[@id = 'ticket_order_payment_type_id']/option[text() = '#{value}']"
+end
 
+Then /^the payment option should not include "(.*?)"$/ do |value|
+  page.should_not have_xpath "//select[@id = 'ticket_order_payment_type_id']/option[text() = '#{value}']"
+end

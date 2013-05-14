@@ -41,6 +41,8 @@ authorization do
 
   role :box_office do
     includes :theater_user
+    has_permission_on :system_options, :to=>[:view]
+    has_permission_on :admin_payment_types, :to=>[:view]
     has_permission_on :admin_theaters, :to=>[:manage]
     has_permission_on :theaters, :to=>[:create,:update,:read,:manage]
     has_permission_on :donation_orders, :to=>[:create,:read,:update]
@@ -62,6 +64,8 @@ authorization do
   role :admin do
     includes :box_office
     has_permission_on :theaters, :to=>[:delete,:make]
+    has_permission_on :admin_payment_types, :to=>[:manage]
+    has_permission_on :system_options, :to=>[:manage]
     has_permission_on :admin_theaters, :to=>[:make]
     has_permission_on :admin_orders, :to=>[:cancel]
     has_permission_on :orders, :to=>[:delete]
