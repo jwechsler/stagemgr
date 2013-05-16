@@ -27,7 +27,7 @@ set_search_script = search_keys.map do |key|
     nil :
     "grid.find('#gs_#{key.gsub(/\./,'\\\\\\\\.')}').val('#{session[:existing_box_office_orders_state][key]}');"
 end.compact.join("\n\t")
-grid_loaded_javascript = "
+grid_loaded_javascript = raw("
 var trigger_search = function(){
 	var grid = jQuery('#gview_admin_orders_index_grid');
 	e = jQuery.Event('keypress');
@@ -41,7 +41,7 @@ var launch_search = function(){
 	//fill in all search boxes with the session stored values
 	#{set_search_script}
 	setTimeout('trigger_search()',500);
-}"
+}")
 end
 %>
 <script>
