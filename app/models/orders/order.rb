@@ -44,7 +44,8 @@ class Order < ActiveRecord::Base
                 :credit_card_confirmation_code,
                 :credit_card_swipe,
                 :flex_pass_code,
-                :member_code
+                :member_code,
+                :check_number
   attr_accessor :sf_object
 
 
@@ -68,7 +69,8 @@ class Order < ActiveRecord::Base
      :card_verification_number => self.credit_card_verification_number,
      :flex_pass_code=>self.flex_pass_code,
      :ip_address => self.ip_address,
-     :member_code=>self.member_code}
+     :member_code=>self.member_code,
+     :check_number=>self.check_number}
   end
 
 

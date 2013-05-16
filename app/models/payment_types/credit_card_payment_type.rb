@@ -14,10 +14,11 @@ class CreditCardPaymentType < CurrencyPaymentType
         :card_type => order.credit_card_type,
         :card_verification_number => order.credit_card_verification_number,
         :confirmation_code => order.credit_card_confirmation_code,
-        :ip_address => order.ip_address
+        :ip_address => order.ip_address,
+        :payment_type=>self
       )
     else
-      new_payment = CashPayment.new(:amount => 0)
+      new_payment = CashPaymentType.first.create_payment!(0)
     end
 
     new_payment.process!

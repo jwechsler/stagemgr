@@ -697,6 +697,14 @@ class Admin::ReportsController < Admin::ApplicationController
     row
   end
 
+  def payment_bucket(payment)
+    if payment.payment_type.nil?
+      payment.class.to_s[0..-8]
+    else
+      payment.payment_type.display_name
+    end
+  end
+
   def build_daily_box_office_receipts(start_day, end_day, build_for_dumpfile = false)
 
     report = Array.new
@@ -704,8 +712,7 @@ class Admin::ReportsController < Admin::ApplicationController
     zero_dollars = Money.new(0)
     keys = columns_for_orders(build_for_dumpfile) - [:order_date] + [:processed_on]
     payment_types = []
-    PaymentType.all.each {|pt| payment_types << pt.class.to_s[0..-12] unless pt.class.to_s[0..-12].blank?}
-    keys += payment_types
+
     current_date = start_day - 1.week
     payments = Payment.order("processed_on").where("processed_on >=:start_day and processed_on < :end_day", {:start_day=>start_day, :end_day=>(end_day + 1.day)})
     payments.each { |p|
@@ -716,11 +723,14 @@ class Admin::ReportsController < Admin::ApplicationController
         day_total = Hash.new
         day_total[:processed_on] = c_day
         day_total[:display_class] = :report_summary_row
-        payment_types.each { |t| day_total[t] = Money.new(0) }
       end
       amt = p.amount.nil? ? zero_dollars : Money.from_numeric(p.amount)
-
-      day_total[p.class.to_s[0..-8]] +=  amt if payment_types.include?(p.class.to_s[0..-8])
+      bucket = payment_bucket(p)
+      unless payment_types.include?(bucket)
+        day_total[bucket] = zero_dollars
+        payment_types << bucket
+      end
+      day_total[bucket] +=  amt
 
       if build_for_dumpfile then
         row = create_hash_from_order_fields(p.order)
@@ -732,6 +742,7 @@ class Admin::ReportsController < Admin::ApplicationController
 
 
     }
+    keys += payment_types.sort
     report << day_total
     [keys, report]
   end

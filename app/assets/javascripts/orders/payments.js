@@ -18,6 +18,9 @@ function show_proper_payment_form(order_type) {
       case 'Membership':
         $('#membership_payment_form').show();
         break;
+      case 'Check':
+        $('#check_payment_form').show();
+        break;
     }
   });
 }

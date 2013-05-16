@@ -126,6 +126,11 @@ Given /^the system accepts currency$/ do
   @cash_payment_type = FactoryGirl.create(:cash_payment_type)
 end
 
+Given /^the system accepts checks$/ do
+  @check_payment_type = FactoryGirl.create(:check_payment_type, :allow_for_public=>false)
+end
+
+
 Given /^the system accepts memberships$/ do
   @membership_payment_type = FactoryGirl.create(:membership_payment_type, :allow_for_public=>true)
 end

@@ -210,7 +210,11 @@ Stagemgr::Application.routes.draw do
       resources :refund_orders, :only=>[:new,:create]
     end
     resources :special_offers
-    resources :payment_types
+    resources :payment_types  do
+      get :new_external_payment, :on=>:collection
+      post :create_external_payment, :on=>:collection
+    end
+
     resources :amount_off_special_offers, :only=>[:edit,:index]
 
     resources :theaters do

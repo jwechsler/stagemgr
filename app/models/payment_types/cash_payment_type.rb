@@ -5,7 +5,7 @@ class CashPaymentType < CurrencyPaymentType
   end
 
   def create_payment!(amount, order, payment_details={})
-    new_payment = CashPayment.new(:amount => amount)
+    new_payment = CashPayment.new(:amount => amount, :payment_type=>self)
   end
 
   def payment_classes

@@ -50,6 +50,15 @@ When /^I enter a valid credit card as payment( through the backend)?$/ do |backe
   fill_in "CVV", :with=>"581"
 end
 
+Given /^I choose "(.*?)" as payment$/ do |external_payment|
+  select external_payment, :from=>"Pay using"
+end
+
+Given /^I enter a check number "(.*?)" as payment$/ do |check_number|
+  select "Check", :from=>"Pay using"
+  fill_in "Check number", :with=>check_number
+end
+
 Given /^I enter flex pass (code )?"(.*?)" as payment$/ do |ignore, pass_code|
   @_current_form = 'ticket_order' if @_current_form.blank?
   select "Flex Pass", :from=>"Pay using"

@@ -12,8 +12,8 @@
   <h3>This order can't be refunded, as it hasn't been processed.</h3>
 <%-when @original_order.payments.count != 1 -%>
   <h3>Can only refund orders with only 1 payment</h3>
-<%-when @original_order.payments.first.class == CreditCardPayment -%>
-  <h3>Note the reason for the refund and press "Process Refund"</h3>
+<%-when [CreditCardPayment,ExchangePayment,CashPayment,CheckPayment,ExternalPayment].include?(@original_order.payments.first.class) -%>
+  <h3><%= "Render #{number_to_currency(@original_order.payments.first.amount)} in cash, " if @original_order.payments.first.is_a?(CashPayment)%>Note the reason for the refund and press "Process Refund"</h3>
   <%= form_for [:admin,@original_order,@refund_order], :url=>admin_order_refund_orders_path(@original_order) do |order_form| -%>
     <p>
 	    <%= order_form.label :notes %>
@@ -23,17 +23,6 @@
       <%= order_form.submit 'Process Refund', :disable_with => 'Processing...'%>
     </p>
   <% end -%>
-<%-when @original_order.payments.first.class == CashPayment || @original_order.payments.first.class == ExchangePayment -%>
-  <h3>Render <%=number_to_currency(@original_order.payments.first.amount)%> in cash and then press 'Process Refund' button.</h3>
-  <%= form_for [:admin,@original_order,@refund_order], :url=>admin_order_refund_orders_path(@original_order) do |order_form| -%>
-   <p>
-	    <%= order_form.label :notes %>
-	    <%= order_form.text_field :notes %>
-    </p>
-    <p>
-      <%= order_form.submit 'Process Refund', :disable_with => 'Processing...'%>
-    </p>
-<% end -%>
 <%- when @original_order.payments.first.class == MembershipPayment -%>
   <%= form_for [:admin,@original_order,@refund_order], :url=>admin_order_refund_orders_path(@original_order) do |order_form| -%>
     <p>

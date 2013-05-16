@@ -96,8 +96,16 @@ FactoryGirl.define do
     initialize_with { FlexPassPaymentType.find_or_create_by_id(4) do |p|
       p.display_name = 'Flex Pass'
     end}
+  end
 
+  factory :external_payment_type do
+    display_name 'External Payment'
+    initialize_with { ExternalPaymentType.find_or_create_by_id(5)}
+  end
 
+  factory :check_payment_type do
+    display_name 'Check'
+    initialize_with { CheckPaymentType.find_or_create_by_id(6)}
   end
 
 

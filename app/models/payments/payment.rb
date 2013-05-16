@@ -2,6 +2,8 @@ class Payment < ActiveRecord::Base
   acts_as_audited
 
   belongs_to :order
+  belongs_to :payment_type
+
   validates_numericality_of :amount, :unless => :number_of_tickets
   validates_numericality_of :number_of_tickets, :unless => :amount
   default_scope :order=>'created_at asc'
@@ -57,7 +59,6 @@ class Payment < ActiveRecord::Base
     refund_payment
   end
 
-
   def refund!(cc_number = nil, note = nil)
     Payment.transaction do
       refund_payment = create_refund_payment(cc_number, note)
@@ -71,3 +72,10 @@ class Payment < ActiveRecord::Base
   end
 
 end
+
+class Class
+  def subclasses
+    ObjectSpace.each_object(Class).select { |klass| klass < self }
+  end
+end
+

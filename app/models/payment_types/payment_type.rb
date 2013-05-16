@@ -1,5 +1,9 @@
 class PaymentType < ActiveRecord::Base
 
+  has_many :payments
+  has_many :payment_restrictions, :dependent=>:destroy
+  validates_uniqueness_of :display_name
+
   def self.valid_payment_types_for(current_user)
     if (!current_user.nil? && (current_user.is_administrator? || current_user.is_box_office_user?))
       valid_payment_types = PaymentType.find_all_by_allow_for_box_office(true)
@@ -25,8 +29,6 @@ class PaymentType < ActiveRecord::Base
     end
     new_payment
   end
-
-  has_many :payment_restrictions, :dependent=>:destroy
 
 
   def to_label

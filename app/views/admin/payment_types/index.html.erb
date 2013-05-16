@@ -4,6 +4,7 @@
   <thead>
   <tr>
     <th>Display Name</th>
+    <th>Restrict to</th>
     <th>Allow for Public</th>
     <th>Allow for Box Office</th>
   </tr>
@@ -13,6 +14,7 @@
     rownum += 1 %>
     <tr style="background-color: <%= (rownum % 2 == 0) ? 'lightgray' : 'white' %>;">
       <td><%= payment_type.display_name %></td>
+      <td align="center"><%= payment_type.restrict_to_ticket_classes %></td>
       <td align="center"><%= payment_type.allow_for_public %></td>
       <td align="center"><%= payment_type.allow_for_box_office %></td>
 
@@ -20,3 +22,4 @@
     </tr>
   <%- end %>
 </table>
+<%= link_to 'Create External Payment', new_external_payment_admin_payment_types_path %>

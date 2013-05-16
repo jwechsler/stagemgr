@@ -1,9 +1,5 @@
 <h1>Settings for <%= @payment_type.type %></h1>
 <%= semantic_form_for([:admin, @payment_type], :url=>:admin_payment_type, :as=>:payment_type) do |f| %>
-  <%= f.inputs do %>
-  <%= f.input :display_name %>
-  <%= f.input :allow_for_public %>
-  <%= f.input :allow_for_box_office %>
-  <%- end %>
+  <%= render :partial=>"form", :locals=>{:f=>f} %>
   <%= f.submit 'Update' %>
 <%- end %>
