@@ -12,7 +12,6 @@ Feature: Box office ordering
        And I enter production code "TEST" and performance code "PERF"
        And I enter 2 "CHEAP" tickets
        And I enter my contact information
-       And show me the page
        And I enter a valid credit card as payment
        And I press "Place Order"
     Then I should see "Order was successfully saved and is now Processed"
