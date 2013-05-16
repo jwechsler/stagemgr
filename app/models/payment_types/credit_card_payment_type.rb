@@ -18,7 +18,7 @@ class CreditCardPaymentType < CurrencyPaymentType
         :payment_type=>self
       )
     else
-      new_payment = CashPaymentType.first.create_payment!(0)
+      new_payment = CashPaymentType.first.create_payment!(0, order)
     end
 
     new_payment.process!
