@@ -1,5 +1,5 @@
 <%= f.inputs do %>
-  <%= f.input :performance_date %>
+  <%= f.input :performance_date, :as=>:date_picker %>
   <%= f.input :performance_time, {:minute_step => 15} %>
   <%= f.input :performance_code %>
   <%= f.input :status, :as=>:select, :collection=>Performance::PERFORMANCE_STATUSES %>

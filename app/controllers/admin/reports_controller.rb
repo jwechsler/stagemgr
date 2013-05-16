@@ -91,8 +91,10 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def daily_box_office_receipts
-    @start_day = grab_from_date_select(:start_day, params[:report])
-    @end_day = grab_from_date_select(:end_day, params[:report])
+     Rails.logger.debug(params.to_yaml)
+
+    @start_day = params[:start_day].to_date
+    @end_day = params[:end_day].to_date
     if @start_day > @end_day then
       t = @start_day
       @start_day = @end_day
@@ -153,7 +155,7 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def house_management_seating
-    @date = grab_from_date_select(:performance_day, params[:report])
+    @date = params[:performance_day].to_date
     @headers, @report_data = build_house_management_seating_report(@date)
     respond_to do |format|
       format.html
@@ -161,7 +163,7 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def membership_usage
-    days = [grab_from_date_select(:start_day, params[:report]),grab_from_date_select(:end_day, params[:report])]
+    days = [params[:start_day].to_date,params[:end_day].to_date]
     @start_day = days.min
     @end_day = days.max
     @headers, @report_data = build_membership_usage(@start_day, @end_day, params['download_csv'].nil?)
@@ -186,7 +188,7 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def fulfill_tickets
-    @through_day = grab_from_date_select(:through_day, params[:report])
+    @through_day = params[:through_day].to_date
     @headers, @report_data = build_fulfill_labels(@through_day)
     unless $TKTPRINT['service'].blank?
       flash[:notice] = fading_flash_message("Tickets printed")

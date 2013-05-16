@@ -3,7 +3,9 @@
 //= require jquery_ujs
 //= require_this
 
+
 $(function(){
+   $("input[type=date]").datepicker({ dateFormat: 'yy-mm-dd' });
   $('.performance_list a[data-type=html]').on('ajax:success', function(event, data, status, xhr) {
     $('#production_detail').html(data)
   });

@@ -7,10 +7,14 @@ def enter_base_production(code, capacity = 99)
 end
 
 Given /^I enter a performance on "(.*?)" with code "(.*?)"$/ do |perf_date, perf_code|
-  select_date_by_id perf_date, "performance_performance_date"
+  fill_in "performance_performance_date", :with=>perf_date
   select "Active", :from=>"Status"
   fill_in "Performance code", :with=>perf_code
   check "performance_ticket_class_allocations_attributes_0_available"
+end
+
+Given /^I enter a performance date of "(.*?)"$/ do |perf_date|
+  fill_in "Performance date", :with=>perf_date
 end
 
 Given /^I enter a production with code "(.*?)" and [|a ] capacity of "(.*?)"$/ do |code, capacity|
@@ -20,10 +24,10 @@ end
 Given /^I enter a complete production with code "(.*?)"$/ do |code|
   enter_base_production(code)
   fill_in "Credit lines", :with=>"by Willard Shakepare"
-  select_date_by_id("#{Date.today.year}/01/01", "production_first_preview_at")
-  select_date_by_id("#{Date.today.year}/01/01", "production_press_opening_at")
-  select_date_by_id("#{Date.today.year}/01/01", "production_opening_at")
-  select_date_by_id("#{Date.today.year}/01/01", "production_closing_at")
+  fill_in "production_first_preview_at", :with=>"#{Date.today.year}-01-01"
+  fill_in "production_press_opening_at", :with=>"#{Date.today.year}-01-01"
+  fill_in "production_opening_at", :with=>"#{Date.today.year}-01-01"
+  fill_in "production_closing_at", :with=>"#{Date.today.year}-01-01"
   fill_in "Show description", :with=>"<h1>Hello</h1>"
   fill_in "Capacity", :with=>"300"
   fill_in "Additional information link", :with=>"http://google.com"

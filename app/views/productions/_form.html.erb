@@ -3,10 +3,10 @@
   <%= f.input :production_code %>
   <%= f.input :production_class, :collection=>Production::PRODUCTION_CLASSES, :include_blank=>false %>
   <%= f.input :status, :as=>:select, :collection=>Production::PRODUCTION_STATUSES, :include_blank=>false %>
-  <%= f.input :first_preview_at, :as=>:date %>
-  <%= f.input :press_opening_at, :as=>:date %>
-  <%= f.input :opening_at, :as=>:date %>
-  <%= f.input :closing_at, :as=>:date %>
+  <%= f.input :first_preview_at, :as=>:date_picker %>
+  <%= f.input :press_opening_at, :as=>:date_picker %>
+  <%= f.input :opening_at, :as=>:date_picker %>
+  <%= f.input :closing_at, :as=>:date_picker %>
   <%= f.input :season, :as=>:string %>
   <%= f.input :venue, :collection=>Venue.all %>
   <%= f.input :credit_lines, :input_html=> { :rows => 3 } %>

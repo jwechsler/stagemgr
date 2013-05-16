@@ -8,7 +8,6 @@ module MembershipOrdersHelper
         @order.ip_address = request.remote_ip
         @order.transition_to!(Order::PROCESSING)
         membership_offer = @order.membership_offer
-        @order.gift_date = @order.gift_date + 1.year unless (@order.gift_date.nil? || @order.gift_date >= Date.today)
         f_name, m_name, l_name = @order.address.parse_full_name
         @order.credit_card_expiration_year = self.fix_expiration_year(@order.credit_card_expiration_year)
         credit_card = PaymentProcessing.credit_card(@order.credit_card_type,

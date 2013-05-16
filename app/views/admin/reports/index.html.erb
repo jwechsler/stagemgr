@@ -45,6 +45,8 @@
       <%- end -%>
     </td>
   </tr>
+
+
   <%- if permitted_to? :house_management_reports, :admin_reports then %>
     <tr>
       <td>
@@ -53,7 +55,7 @@
       </td>
       <td>
         <%= form_tag(house_management_seating_admin_reports_path, :method=>"post") do %>
-          <%= date_select(:report, :performance_day, :default=>Time.now.end_of_month) %>
+          <%= text_field_tag( :performance_day, Date.today, :default=>Time.now.end_of_month, :type=>"date") %>
           <%= submit_tag "Show" %>
         <%- end %>
       </td>
@@ -80,14 +82,14 @@
       <td>
         <span class="report_title"><%- unless $TKTPRINT['service'].blank? %>Print Tickets<%- else %>Fulfill Tickets<%- end %></span>
         <span class="help_text">
-					<%- unless $TKTPRINT['service'].blank? %>Print all pending tickets
-					<%- else %>Returns label file for all unfulfilled orders
-					<%- end %>
-				</span>
+          <%- unless $TKTPRINT['service'].blank? %>Print all pending tickets
+          <%- else %>Returns label file for all unfulfilled orders
+          <%- end %>
+        </span>
       </td>
       <td>
         <%= form_tag(fulfill_tickets_admin_reports_path, :method=>"post") do %>
-          Through: <%= date_select(:report, :through_day, :default=>Time.now, :end_year=>Time.now.year) %>
+          Through: <%= text_field_tag(:through_day, Date.today, :default=>Time.now, :type=>"date") %>
           <%= submit_tag $TKTPRINT['service'].blank? ? "Fulfill" : "Print", :name=>'download_csv', :confirm =>"This will fulfill tickets.  Are you sure?" %>
         <%- end %>
       </td>
@@ -101,8 +103,8 @@
       </td>
       <td>
         <%= form_tag(daily_box_office_receipts_admin_reports_path, :method=>"post") do %>
-          From: <%= date_select(:report, :start_day, :default=>Time.now, :end_year=>Time.now.year) %>
-          To: <%= date_select(:report, :end_day, :default=>Time.now, :end_year=>Time.now.year) %>
+          From: <%= text_field_tag(:start_day, Date.today, :type=>"date") %>
+          To: <%= text_field_tag(:end_day, Date.today, :type=>"date") %>
 
           <%= submit_tag "Show" %>
           <%= submit_tag "Download", :name=>'download_csv' %>
@@ -118,8 +120,8 @@
       </td>
       <td>
         <%= form_tag(membership_usage_admin_reports_path, :method=>"post") do %>
-          From: <%=  date_select(:report, :start_day, :default=>Time.now.beginning_of_month) %>
-          To: <%=  date_select(:report, :end_day, :default=>Time.now.end_of_month) %>
+          From: <%= text_field_tag(:start_day, Date.today.beginning_of_month, :type=>"date") %>
+          To: <%= text_field_tag(:end_day, Date.today.end_of_month, :type=>"date") %>
           <%= submit_tag "Show" %>
           <%= submit_tag "Download", :name=>'download_csv' %>
         <%- end %>
@@ -145,7 +147,7 @@
       </td>
     </tr>
     <%- end %>
-  <%- if permitted_to? :fulfill_donations, :admin_reports then %>
+  <%- if false then %><!-- removed report permitted_to? :fulfill_donations, :admin_reports -->
     <tr>
     <td>
       <span class="report_title">Fulfill Donors</span><br/>
