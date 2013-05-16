@@ -732,7 +732,11 @@ class Admin::ReportsController < Admin::ApplicationController
         day_total[bucket] = zero_dollars
         payment_types << bucket
       end
-      day_total[bucket] +=  amt
+      if day_total[bucket].nil?
+        day_total[bucket] = amt
+      else
+        day_total[bucket] +=  amt
+      end
 
       if build_for_dumpfile then
         row = create_hash_from_order_fields(p.order)

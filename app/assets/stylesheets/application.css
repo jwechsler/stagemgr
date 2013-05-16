@@ -1,5 +1,6 @@
 /*
 *= require_self
-*= require jquery/cupertino/jquery-ui-1.8.24.custom
 *= require common
 */
+
+@import url(https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.24/themes/cupertino/jquery-ui.css)
