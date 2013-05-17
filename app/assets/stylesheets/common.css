@@ -300,9 +300,9 @@ table.report {
 
 dl.name-value-display {
   float: left;
-  clear: both;
   width: 560px;
 }
 
-.name-value-display dt {      font-style: italic; vertical-align: text-bottom; clear: left;     float: left;      min-width: 175px;     margin: .5em 0;   }
-.name-value-display  dd {     margin: .5em 0;     float: left;      padding: 0 0 0 1em;           }
+
+.name-value-display dt {   margin-top: 0px;   font-style: italic; vertical-align: text-bottom; clear: left;     float: left;      min-width: 175px;  }
+.name-value-display  dd {     margin-top: 0px;     float: left;               }

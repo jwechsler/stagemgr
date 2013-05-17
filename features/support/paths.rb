@@ -60,6 +60,12 @@ module NavigationHelpers
       when /^the manage payment types page$/
         @using_admin_interface=true
         admin_payment_types_path
+      when /^the address page for "([^"]*)"$/
+        @using_admin_interface=true
+        admin_address_path(Address.find_by_full_name($1))
+      when /^the edit address page for "([^"]*)"$/
+        @using_admin_interface=true
+        edit_admin_address_path(Address.find_by_full_name($1))
       when /^the edit page for payment type "([^"]*)"$/
         @using_admin_interface=true
         edit_admin_payment_type_path(PaymentType.find_by_display_name($1))
@@ -70,10 +76,16 @@ module NavigationHelpers
       #     user_profile_path(User.find_by_login($1))
 
       else
-        raise "Can't find mapping from \"#{page_name}\" to a path.\n" +
-                  "Now, go and add a mapping in #{__FILE__}"
+        begin
+          page_name =~ /the (.*) page/
+          path_components = $1.split(/\s+/)
+          self.send(path_components.push('path').join('_').to_sym)
+        rescue Object => e
+          raise "Can't find mapping from \"#{page_name}\" to a path.\n" +
+                   "Now, go and add a mapping in #{__FILE__}"
+        end
+      end
     end
-  end
 end
 
 World(NavigationHelpers)

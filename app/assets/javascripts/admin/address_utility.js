@@ -23,7 +23,7 @@ function setup_address_autocompletes(order_type) {
                   item.line1 = nvl(item.line1)
                   item.zipcode = nvl(item.zipcode)
                   return {
-                    label: item.full_name + " - "+nvl(item.line1, ", ") + nvl(item.city," ") + nvl(item.zipcode,' ') + nvl(item.email),
+                    label: item.full_name + " - "+nvl(item.line1, ", ") + nvl(item.city," ") + nvl(item.zipcode,' ') + nvl(item.email) ,
                     value: item.full_name,
                     email: item.email,
                     line1: item.line1,
@@ -32,7 +32,8 @@ function setup_address_autocompletes(order_type) {
                     zipcode: item.zipcode,
                     state: item.state,
                     member_code: item.member_code,
-                    phone: item.phone
+                    phone: item.phone,
+                    tags: item.tags
                   }
                 }));
               }
@@ -47,6 +48,14 @@ function setup_address_autocompletes(order_type) {
             $("#"+order_type+"_address_attributes_zipcode").val(ui.item.zipcode)
             $("#"+order_type+"_address_attributes_phone").val(ui.item.phone)
             $("#"+order_type+"_member_code").val(ui.item.member_code)
+            t = $("#address_tags_hints")
+            if (t.size() == 0) {
+              t = $("<p/>", {"class": "inline-hints", "id": "address_tags_hints"})
+              $("#"+order_type+"_address_attributes_full_name_input").append(t)
+            }
+            t.text(ui.item.tags);
+
+
             if (ui.item.member_code) {
               $("#"+order_type+"_payment_type_id option").filter(function() {
                 //may want to use $.trim in here
@@ -57,7 +66,6 @@ function setup_address_autocompletes(order_type) {
             }
           }
         });
-
       $("#"+order_type+"_address_attributes_full_name").bind('keypress', function() {
         return event.which != 13;
       });

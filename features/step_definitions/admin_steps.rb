@@ -10,7 +10,6 @@ Given /^I enter a performance on "(.*?)" with code "(.*?)"$/ do |perf_date, perf
   fill_in "performance_performance_date", :with=>perf_date
   select "Active", :from=>"Status"
   fill_in "Performance code", :with=>perf_code
-  check "performance_ticket_class_allocations_attributes_0_available"
 end
 
 Given /^I enter a performance date of "(.*?)"$/ do |perf_date|
@@ -84,6 +83,22 @@ end
 
 Given /^I edit the note to read "(.*?)"$/ do |new_note|
   fill_in "notes", :with=>new_note
+end
+
+Transform /^the (\d+)(?:st|nd|rd|th) address tag$/ do |num|
+  "ul.address_tags li:nth-child(#{num})"
+end
+
+#Transform /^the first address tag label$/ do
+#  "$(\"#address_tags input\")[0]"
+#end
+
+
+Given /^I add a tag "(.*?)" to the first address tag label$/ do |label|
+  save_and_open_page
+  click_link("Add a tag")
+
+  fill_in "#address_tags input:nth-of-type(1)", :with=>label
 end
 
 

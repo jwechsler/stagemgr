@@ -39,7 +39,7 @@ Feature: Admins can manage performances
     And I press "Create"
     And I should see "Performance was successfully created."
     And I go to the admin production detail page for "Production One"
-    And I follow "Duplicate"
+    And I follow "duplicate_PERF1"
     And I change "Performance code" to "PERF2"
     And I enter a performance date of "2015-01-02"
     When I press "Create"

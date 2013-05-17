@@ -51,6 +51,9 @@ class Admin::AutoCompleteController < Admin::ApplicationController
     else
       render :json => addresses.map { |a|
         member_code = a.current_membership.membership.member_code if a.is_current_member?
+        tags = current_user.allowed_tags(a.address_tags).map {|t| r = t.tag_label
+          r += " (#{t.tag_value})" unless t.tag_value.blank?
+          r}.join(", ")
         { :address_id => a.id,
           :full_name => a.full_name,
           :email => a.email,
@@ -60,7 +63,8 @@ class Admin::AutoCompleteController < Admin::ApplicationController
           :state=>a.state,
           :zipcode=>a.zipcode,
           :phone=>a.phone,
-          :member_code=>member_code
+          :member_code=>member_code,
+          :tags=>tags
         }
 
       }

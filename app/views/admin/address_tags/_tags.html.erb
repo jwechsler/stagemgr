@@ -1,5 +1,5 @@
 <dl class="name-value-display" id="address_tags">
-  <%- address_tags.each{|tag| %>
+  <%- current_user.allowed_tags(address_tags).each{|tag| %>
     <dt><%= tag.tag_label %><%= " [#{tag.theater.name}]" unless (tag.theater.nil? || tag.theater.is_default?) %></dt>
     <dd><%= tag.tag_value %></dd>
   <%- } %>

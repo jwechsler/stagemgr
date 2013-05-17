@@ -5,11 +5,11 @@
   <td><%= performance.performance_code %></td>
   <td>
     <%- permitted_to? :update, :performances do %>
-        <%= link_to 'Edit', edit_admin_theater_production_performance_path(performance.production.theater, performance.production, performance) %>
+        <%= link_to 'Edit', edit_admin_theater_production_performance_path(performance.production.theater, performance.production, performance), :id=>"edit_#{performance.performance_code.gsub(' ','_')}" %>
     <%- end -%></td>
   <td>
     <%- permitted_to? :create, :performances do %>
-        <%= link_to 'Duplicate', duplicate_admin_theater_production_performance_path(performance.production.theater, performance.production, performance) %>
+        <%= link_to 'Duplicate', duplicate_admin_theater_production_performance_path(performance.production.theater, performance.production, performance), :id=>"duplicate_#{performance.performance_code.gsub(' ','_')}" %>
     <%- end -%></td>
   <td><%- permitted_to? :delete, :performances do %>
         <%= link_to 'Destroy', [:admin, performance.production.theater, performance.production, performance], :confirm => 'Are you sure?', :method => :delete %>

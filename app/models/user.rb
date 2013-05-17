@@ -8,7 +8,7 @@ class User < ActiveRecord::Base
   acts_as_authentic do |c|
     c.maintain_sessions = false   if Rails.env == "test"   # authlogic/issues/262
   end
-  
+
   before_validation :set_defaults, :on => :create
 
   def theater_ids
@@ -24,7 +24,7 @@ class User < ActiveRecord::Base
   def is_theater_user?
     !self.theaters.empty? && !self.is_administrator? && !self.is_box_office_user?
   end
-  
+
   def username
     self.email
   end
@@ -36,5 +36,16 @@ class User < ActiveRecord::Base
     roles += [:theater_user] if self.is_theater_user?
     roles
   end
-  
+
+  def allowed_tags(tags)
+    allowed = Array.new
+    if self.is_theater_user?
+      ids = self.theater_ids
+      allowed = tags.select{|t| ids.include?(t.theater_id)}
+    else
+      allowed += tags
+    end
+    allowed
+  end
+
 end

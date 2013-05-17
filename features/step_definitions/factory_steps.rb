@@ -136,6 +136,11 @@ Given /^the system accepts memberships$/ do
   @membership_payment_type = FactoryGirl.create(:membership_payment_type, :allow_for_public=>true)
 end
 
+Given /^there is an address for "(.*?)"$/ do |full_name|
+  @address = FactoryGirl.create(:address, :full_name=>full_name)
+end
+
+
 Given /^the system accepts flex passes$/ do
   @membership_payment_type = FactoryGirl.create(:flex_pass_payment_type, :allow_for_public=>true)
 end

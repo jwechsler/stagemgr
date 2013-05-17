@@ -72,6 +72,11 @@ group :development do
   gem 'single_test'
 end
 
+group :development,:test,:cucumber do
+  gem 'rspec-rails'
+  gem 'factory_girl_rails'
+end
+
 group :test do
   gem 'sqlite3'
   gem 'capybara'
@@ -84,7 +89,6 @@ group :test do
   gem 'flexmock',           '0.8.6'
   gem 'simplecov'
   gem 'shoulda-context'
-  gem "factory_girl_rails", "~> 3.0"
 end
 
 group :production do
@@ -96,15 +100,14 @@ group :cucumber do
   gem 'sqlite3'
   gem 'capybara'
   gem 'database_cleaner'
-  gem 'cucumber'
+  gem "factory_girl_rails"
   gem 'cucumber-rails'
-  gem 'webrat',             '>=0.5.0'
-  gem 'launchy',            '0.4.0'
-  gem 'rspec'
+  gem 'cucumber'
+  gem 'launchy'
   gem 'rspec-rails'
   gem 'test-unit',          '>=2.0.7'
   gem 'simplecov'
-  gem "factory_girl_rails", "~> 3.0"
+
   gem "rbx-require-relative"
 end
 

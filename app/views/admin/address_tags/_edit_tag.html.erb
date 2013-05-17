@@ -1,6 +1,6 @@
 <tr class="address_tag">
-  <td><%= f.text_field :tag_label, :size=>14 %></td>
-  <td><%= f.text_field :tag_value, :size=>14 %></td>
+  <td><%= f.text_field :tag_label, :size=>50 %></td>
+  <td><%= f.text_field :tag_value, :size=>28 %></td>
   <td><%= f.collection_select(:theater_id, Theater.allowed, :id, :name) %></td>
   <td><%- unless f.object.new_record? %>
             <!-- For existing records we add a checkbox to be able to delete records. -->

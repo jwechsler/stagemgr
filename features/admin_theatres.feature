@@ -41,7 +41,7 @@ Feature: The Administrator can manage theater records
       And a theater "ABC Theater" exists
       And I am logged in
       And I go to the admin/theater page
-      And I follow "Edit"
+      And I follow "edit_abc_theater"
      When I change "Name" to "ABD Theater"
       And I press "Update"
      Then I should be on the admin/theater page
