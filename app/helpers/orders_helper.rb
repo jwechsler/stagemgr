@@ -12,6 +12,7 @@ module OrdersHelper
         Order::HOLD
       when 'Fulfill','Print Tickets'
         Order::FULFILLED
+      when 'Update note'
       else
         raise "Don't know what to do with button '#{button_label}'"
     end

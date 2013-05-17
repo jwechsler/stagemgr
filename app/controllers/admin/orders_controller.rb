@@ -1,6 +1,6 @@
 class Admin::OrdersController < Admin::ApplicationController
 
-  filter_resource_access :attribute_check => true, :additional_new=>{:create => :new}, :additional_member=>{:refund => :refund}, :additional_collection=>{:fulfill_selected=>:index}
+  filter_resource_access :attribute_check => true, :additional_new=>{:create => :new}, :additional_member=>{:refund => :refund, :update_notes=>:update_notes}, :additional_collection=>{:fulfill_selected=>:index}
 
   include OrdersHelper
   #append_before_filter :find_order, :only => [:show, :edit, :update, :destroy, :refund, :cancel, :fulfill]
@@ -95,6 +95,15 @@ class Admin::OrdersController < Admin::ApplicationController
   def update
     @order.attributes=params[:order]
     @order = process_order(@order,:edit_admin_order_path)
+  end
+
+  def update_notes
+    @order=Order.find(params[:id])
+    @order.notes=params[:notes]
+    if @order.save
+      flash[:notice] = 'Note updated.'
+    end
+    self.redirect_to_proper_action
   end
 
   def refund

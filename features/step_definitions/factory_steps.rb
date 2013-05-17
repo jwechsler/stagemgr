@@ -109,6 +109,7 @@ Then /^a membership order exists with a gift recipient "(.*?)"$/ do |name|
   raise "No membership with gift recipient \"#{name}\" found. Only found #{Address.all.map{|a| a.full_name}}" if order.nil?;
 end
 
+
 Then /^an address "(.*?)" exists$/ do |name|
   Address.where('full_name = ?',name).count == 1
 end
@@ -151,3 +152,9 @@ Given /^a ticket order for performance "(.*?)" paid with flex pass "(.*?)" exist
   @ticket_order = FactoryGirl.create(:ticket_order_for_a_pair_of_tickets_paid_with_flexpass, :flex_pass_code=>pass_code, :performance=>perf)
 
 end
+
+Given /^a ticket order for performance "(.*)" paid with cash exists$/ do |perf_code|
+  perf = Performance.find_by_performance_code(perf_code)
+  @ticket_order = FactoryGirl.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash, :performance=>perf)
+end
+

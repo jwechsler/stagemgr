@@ -189,6 +189,7 @@ Stagemgr::Application.routes.draw do
         post :cancel
         post :refund
         get  :fulfill
+        post :update_notes
       end
     end
 
@@ -205,6 +206,7 @@ Stagemgr::Application.routes.draw do
         get :reprint
         get :unclaimed
         get :resend_confirmation
+        post :update_notes
       end
       resources :exchange_ticket_orders, :only=>[:new,:create]
       resources :refund_orders, :only=>[:new,:create]

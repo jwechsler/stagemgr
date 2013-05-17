@@ -78,3 +78,12 @@ Given /^an external payment type "([^\"]*?)" exists$/ do |external_payment_name|
   FactoryGirl.create(:external_payment_type, :display_name=>external_payment_name, :allow_for_public=>false, :allow_for_box_office=>true)
 end
 
+Given /^I add a note$/ do
+  click_link("Add note")
+end
+
+Given /^I edit the note to read "(.*?)"$/ do |new_note|
+  fill_in "notes", :with=>new_note
+end
+
+

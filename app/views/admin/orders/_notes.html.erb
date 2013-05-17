@@ -1,8 +1,23 @@
+<div id="note_control">
 <%- if !order.notes.blank? -%>
   <p>
   <fieldset>
     <legend>Notes</legend>
     <%= order.notes %>
   </fieldset>
+  <div align="right"><font size="-1"><a href="#" id="update_note">Update note</a></font></div>
   </p>
+
+<%- else %>
+ <a href="#" id="update_note">Add note</a>
 <%- end -%>
+</div>
+<div id="update_note_control">
+  <%= form_for(order, :url=>update_notes_admin_ticket_order_path(order), :method=>'post') do |f| %>
+  <fieldset>
+    <legend>Notes</legend>
+    <%= text_area_tag(:notes, f.object.notes, :size=>"150x4", :id=>'notes') %><br/>
+    <%= f.submit 'Save update' %>
+ </fieldset>
+  <%- end %>
+</div>

@@ -49,5 +49,12 @@ Feature: Box office ordering
       And I press "Place Order"
       And I should see "Order was successfully saved and is now Processed"
 
-
+  Scenario: Update note on existing order
+    Given a ticket order for performance "PERF" paid with cash exists
+      And I go to the admin ticket order detail page
+      And I add a note
+      And I edit the note to read "Magic Update"
+      And I press "Save update"
+     Then I should see "Note updated"
+      And I should see "Magic Update"
 

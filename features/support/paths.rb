@@ -41,6 +41,9 @@ module NavigationHelpers
       when /^new admin ticket order$/
         @using_admin_interface = true
         new_admin_ticket_order_url
+      when /^the admin ticket order detail page$/
+        @using_admin_interface = true
+        admin_ticket_order_url(TicketOrder.last)
       when /^the admin order page for the (.*)$/
         @using_admin_interface = true
         page_type = "#{$1}".gsub(' ','_')

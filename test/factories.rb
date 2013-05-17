@@ -228,9 +228,22 @@ FactoryGirl.define do
       end
     end
 
+    trait :paid_with_cash do
+
+      association :payment_type, :factory=>:cash_payment_type
+      after(:create) do |ticket_order, evaluator|
+        num_tix = TicketLineItem.sum(:ticket_count, :conditions=>['id = ?', ticket_order.id])
+        ticket_order.payments << FactoryGirl.create(:cash_payment,
+                            :order=>ticket_order,
+                            :number_of_tickets=>num_tix,
+                            :amount=>(num_tix * ticket_order.ticket_line_items.inject(0){ |total, tli| total += tli.ticket_class.ticket_price }))
+        ticket_order.status = Order::PROCESSED
+        ticket_order.save!
+      end
+    end
 
     factory :ticket_order_for_a_pair_of_tickets_paid_with_flexpass, :traits=>[:for_a_pair_of_tickets, :paid_with_flex_pass]
-
+    factory :ticket_order_for_a_pair_of_tickets_paid_with_cash, :traits=>[:for_a_pair_of_tickets, :paid_with_cash]
   end
 
 

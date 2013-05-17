@@ -84,5 +84,5 @@ end
 privileges do
   privilege :make, :includes => [:create, :new]
   privilege :view, :includes => [:index, :show, :read]
-  privilege :manage, :includes => [:edit, :update]
+  privilege :manage, :includes => [:edit, :update, :update_notes]
 end
