@@ -30,8 +30,10 @@
                 row[h].to_s(:hour_min)
               elsif row[h].is_a?(TrueClass) || row[h].is_a?(FalseClass)
                 raw "&#x2717" if row[h]
-              else
+              elsif row[h].is_a?(String)
                 raw($TRUSTED_MARKDOWN.render(row[h]))
+              else
+                row[h]
               end %></td>
       <%- } %>
     </tr>

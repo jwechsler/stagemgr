@@ -36,7 +36,7 @@ class Payment < ActiveRecord::Base
 
 
   def process!(order = nil)
-    self.processed_on = DateTime.now
+    self.processed_on = Time.now
     self.save!
     self
   end

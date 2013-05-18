@@ -357,7 +357,7 @@ class Admin::ReportsController < Admin::ApplicationController
   def build_fulfill_labels(through_date)
     orders = TicketOrder.order("performances.performance_date, productions.production_code, performances.performance_code, addresses.last_name").all(:include=>[:ticket_line_items, {:performance=>:production}, :address],
                                                                     :conditions=>["orders.status = ? and performances.status = 'Active' and performances.performance_date <= ? and performances.performance_date >= ? and productions.status in (?)",
-                                                                                  Order::PROCESSED, through_date, Date.today, Production.visible_statuses])
+                                                                                  Order::PROCESSED, through_date, Time.now, Production.visible_statuses])
     report = Array.new
     headers = [:reserved_under, :performance_code, :tickets, :order_id, :profile, :member_id, :first_time, :last_24_months, :donor]
       orders.each { |o|
@@ -725,9 +725,11 @@ class Admin::ReportsController < Admin::ApplicationController
     payment_types = []
 
     current_date = start_day - 1.week
-    payments = Payment.order("processed_on").where("processed_on >=:start_day and processed_on < :end_day", {:start_day=>start_day, :end_day=>(end_day + 1.day)})
+
+    payments = Payment.order("processed_on").where("processed_on >=:start_day and processed_on < :end_day", {:start_day=>start_day.to_time(:local), :end_day=>(end_day + 1.day).to_time(:local)})
     payments.each { |p|
-      c_day = p.processed_on.to_date
+      Rails.logger.debug("processed_on = #{p.processed_on.to_s(:long)}")
+      c_day = p.processed_on.to_s
       if c_day != current_date then
         current_date = c_day
         report << day_total unless day_total.empty?
