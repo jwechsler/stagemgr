@@ -225,6 +225,7 @@ GEM
     rbx-require-relative (0.0.9)
     rdoc (3.12)
       json (~> 1.4)
+    redcarpet (2.2.2)
     rspec (2.10.0)
       rspec-core (~> 2.10.0)
       rspec-expectations (~> 2.10.0)
@@ -286,7 +287,6 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  RedCloth (= 4.2.9)
   StreetAddress (~> 1.0.1)
   activemerchant
   acts_as_audited (~> 2.1.0)
@@ -328,6 +328,7 @@ DEPENDENCIES
   pry
   rails (= 3.1.10)
   rbx-require-relative
+  redcarpet
   rspec
   rspec-rails
   sass-rails (~> 3.1.0)

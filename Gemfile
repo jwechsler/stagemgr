@@ -28,7 +28,7 @@ gem 'rails', '3.1.10'
 #   gem 'webrat'
 # end
 
-gem "RedCloth", "4.2.9"
+gem "redcarpet"
 gem "whenever", :require=>false
 gem "formtastic"
 gem "databasedotcom"

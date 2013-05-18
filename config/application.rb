@@ -39,19 +39,19 @@ module Stagemgr
 
     config.filter_parameters << :password << :credit_card_number << :card_number << :credit_card_verification_number << :credit_card_expiration_month << :credit_card_expiration_year
 
-  # If you want to use gmail for deliver...
-  #config.action_mailer.delivery_method = :smtp
-  #config.action_mailer.smtp_settings = {
-  #  :enable_starttls_auto => true,
-  #  :address => 'smtp.gmail.com',
-  #  :port => 587,
-  #  :domain => 'yourdomain.org',
-  #  :authentication => :plain,
-  #  :user_name => 'user@yourdomain.org',
-  #  :password => 'yourpassword'
-  #}
+    # If you want to use gmail for deliver...
+    #config.action_mailer.delivery_method = :smtp
+    #config.action_mailer.smtp_settings = {
+    #  :enable_starttls_auto => true,
+    #  :address => 'smtp.gmail.com',
+    #  :port => 587,
+    #  :domain => 'yourdomain.org',
+    #  :authentication => :plain,
+    #  :user_name => 'user@yourdomain.org',
+    #  :password => 'yourpassword'
+    #}
 
-  #  Or set up postmark (get account at postmarkapp.com). Right now, only email to production settings implemeneted...
+    #  Or set up postmark (get account at postmarkapp.com). Right now, only email to production settings implemeneted...
     email_config =  YAML::load(File.open("#{::Rails.root.to_s}/config/email_credentials.yml"))
 
     config.action_mailer.delivery_method   = :postmark
@@ -78,6 +78,10 @@ module Stagemgr
             :group => :all,
             :after => :append_assets_path do
     config.assets.paths.unshift Rails.root.join("app", "assets", "stylesheets", "jquery", "cupertino").to_s
-end
+
+    $MARKDOWN = Redcarpet::Markdown.new(Redcarpet::Render::HTML, :autolink => true, :space_after_headers => true, :filter_html=>true)
+    $TRUSTED_MARKDOWN = Redcarpet::Markdown.new(Redcarpet::Render::HTML, :autolink => true, :space_after_headers => true)
+
+  end
   end
 end

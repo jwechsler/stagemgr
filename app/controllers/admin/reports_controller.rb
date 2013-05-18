@@ -328,16 +328,25 @@ class Admin::ReportsController < Admin::ApplicationController
     report = Array.new
     headers = [:production_name, :patron_name, :special_requests, :notes, :is_member, :is_donor]
     orders.each do |o|
-      if !o.special_request.blank? || !o.notes.blank? || o.address.is_current_member? || o.address.is_donor?
-
+      if !o.special_request.blank? || !o.notes.blank? || o.address.is_current_member? || o.address.is_donor? || !o.address.address_tags.empty?
+        note_column = o.notes.blank? ? "" : o.notes
+        unless o.address.address_tags.empty?
+          note_column += "<br/>" unless note_column.blank?
+          note_column += "Patron Notes: " + o.address.address_tags.map{|tag|
+            r = "<i><font size=\"-1\" >#{tag.tag_label}"
+            r += " [#{tag.theater.name}]" unless (tag.theater_id.nil? || tag.theater.is_default?)
+            r += " (#{tag.tag_value})" unless tag.tag_value.blank?
+            r += "</font></i>"
+            r
+          }.join(", ")
+        end
         report << {
           :production_name => o.performance.production.name,
           :patron_name => o.address.full_name,
           :special_requests =>  (o.special_request.blank? ? nil : o.special_request) || (o.address.is_current_member? ? o.address.current_membership.membership.preferred_seating : ''),
-          :notes => o.notes,
+          :notes => note_column,
           :is_member => o.address.is_current_member?,
           :is_donor => o.address.is_donor?
-
         }
       end
     end
