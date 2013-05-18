@@ -2,7 +2,12 @@ class ExchangePayment < Payment
   validates_presence_of :payment_id
 
   def receipt_description
-    source_payment = "Exchg ##{Payment.find(self.payment_id).order_id}"
+    unless self.payment_id.nil?
+      source_payment = "Exchg ##{Payment.find(self.payment_id).order_id}"
+    else
+      source_payment = "Exchg"
+    end
+    source_payment
   end
 
 end
