@@ -227,7 +227,7 @@ class TicketOrder < Order
       self.set_email_confirmation
       self.payments(true)
       self.save!
-
+      Rails.logger.debug(original_order.payments.to_yaml)
       original_order.save!
     end
   end
