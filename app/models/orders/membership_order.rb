@@ -150,3 +150,23 @@ class MembershipOrder < Order
 
   end
 end
+
+
+# Salesforce engine bits
+
+class MembershipOrder
+
+  def sync_to_salesforce!(sf_cache = nil)
+    if sf_cache.nil?
+      sf_cache = SyncCache.new
+    end
+    if (self.sf_last_sync_at.nil? || self.sf_last_sync_at < self.updated_at)
+      puts "syncing order #{self.id}"
+      self.address.sync_to_salesforce!(true)
+      self.sf_last_sync_at = DateTime.now + 15.seconds
+      self.save!
+    end
+  end
+
+end
+

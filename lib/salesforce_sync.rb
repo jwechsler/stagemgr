@@ -80,7 +80,7 @@ class SalesforceSync
     orders.select { |o| o.total > 0 }.each do |order|
       order.sync_to_salesforce!($DATABASEDOTCOM['user_id'], $DATABASEDOTCOM['donation_record_type_id'])
     end
-    orders = TicketOrder.where("sf_last_sync_at is null or sf_last_sync_at < updated_at and status in (?)",
+    orders = Order.where("type in ('TicketOrder','MembershipOrder') and sf_last_sync_at is null or sf_last_sync_at < updated_at and status in (?)",
      Order.syncable_statuses).order("created_at desc").limit(2250)
     o_id = 0
     Authorization.ignore_access_control(true)
@@ -90,7 +90,7 @@ class SalesforceSync
         o.sync_to_salesforce!(sf_cache)
       end
     rescue => e
-      puts "Sync of ticket order #{o_id} failed, #{e}"
+      puts "Sync of #{o.class.to_s} #{o_id} failed, #{e}"
       puts e.backtrace
     end
     Authorization.ignore_access_control(false)
@@ -145,3 +145,4 @@ class SalesforceSync
     nil
   end
 end
+

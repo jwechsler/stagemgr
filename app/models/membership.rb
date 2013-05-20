@@ -13,7 +13,6 @@ class Membership < ActiveRecord::Base
 
   has_one :membership_order, :through=>:membership_line_item
   has_one :membership_line_item, :foreign_key=>:membership_id
-  has_one :membership_order, :through=>:membership_line_item
   has_many :special_offers, :dependent=>:destroy
   before_destroy :cancel_future_reservations
   belongs_to :address
@@ -227,6 +226,10 @@ class Membership
     true
   end
 
+  def last_payment
+    membership_order.payments.sort{|p1,p2|p1.processed_on<=>p2.processed_on}.last
+  end
 
 end
+
 

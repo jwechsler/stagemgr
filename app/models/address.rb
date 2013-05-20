@@ -237,8 +237,12 @@ class Address < ActiveRecord::Base
     self.orders.select { |o| (o.is_a? MembershipOrder) && (o.membership_line_items.first.membership.status == Membership::ACTIVE) }.count > 0
   end
 
+  def active_memberships
+    self.orders.select { |o| (o.is_a? MembershipOrder) && (o.membership_line_items.first.membership.status == Membership::ACTIVE) }
+  end
+
   def current_membership
-    self.orders.select { |o| (o.is_a? MembershipOrder) && (o.membership_line_items.first.membership.status == Membership::ACTIVE) }.first
+    self.active_memberships.first
   end
 
   def has_finalized_orders?
@@ -427,6 +431,16 @@ class Address
 
   end
 
+  def update_membership_data(sf_contact)
+    unless self.memberships.empty?
+      sf_contact.current_member__c = !self.current_membership.nil?
+      sf_contact.lapsed_member__c = !sf_contact.current_member__c && !self.memberships.empty?
+      puts "Updated membership status to active=#{sf_contact.active_member__c}"
+    end
+
+  end
+
+
   def sync_to_salesforce!(force_sync = false)
     if self.sf_last_sync_at.nil? || (self.sf_last_sync_at < self.updated_at) || force_sync
       sf_contact = SalesforceData::Contact.find_by_stagemgr_id__c("#{self.id}")
@@ -496,7 +510,8 @@ class Address
 
       end
       self.update_attendance_data(sf_contact)
-      sf_contact.save
+      self.update_membership_data(sf_contact)
+      puts "Save success = #{sf_contact.lapsed_member__c}"
       self.sf_contact_id = sf_contact.Id
       self.sf_last_sync_at = DateTime.now + 15.seconds
       self.save!
