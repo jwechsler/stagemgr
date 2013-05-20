@@ -143,16 +143,27 @@ Stagemgr::Application.routes.draw do
     resources :reports do
       collection do
         post :production_sales_by_performance
+        get :production_sales_by_performance, :action=>:index
         post :flexpass_sales
+        get :flexpass_sales, :action=>:index
         post :weekly_box_office
+        get :weekly_box_office, :action=>:index
         post :daily_box_office_receipts
+        get :daily_box_office_receipts, :action=>:index
         post :fulfill_tickets
+        get :fulfill_tickets, :action=>:index
         post :order_dump
+        get :order_dump, :action=>:index
         post :membership_usage
+        get :membership_usage, :action=>:index
         post :donations_dump
+        get :donations_dump, :action=>:index
         post :mine_customer_data
+        get :mine_customer_data, :action=>:index
         post :house_management_seating
+        get :house_management_seating, :action=>:index
       end
+
     end
 
     resources :auto_complete do
