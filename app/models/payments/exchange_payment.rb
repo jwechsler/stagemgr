@@ -1,5 +1,4 @@
 class ExchangePayment < Payment
-  validates_presence_of :payment_id
 
   def receipt_description
     unless self.payment_id.nil?
