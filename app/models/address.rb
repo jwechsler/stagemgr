@@ -238,7 +238,7 @@ class Address < ActiveRecord::Base
   end
 
   def active_memberships
-    self.orders.select { |o| (o.is_a? MembershipOrder) && (o.membership_line_items.first.membership.status == Membership::ACTIVE) }
+    self.orders.select { |o| (o.is_a? MembershipOrder) && (o.membership_line_items.first.membership.status == Membership::ACTIVE) }.map{|o| o.membership}
   end
 
   def current_membership
@@ -427,17 +427,19 @@ class Address
       reported_revenue += other_sales_for_season unless other_sales_for_season.nil?
       reported_revenue += ticket_payments_for_season unless ticket_payments_for_season.nil?
       sf_contact.instance_variable_set("@gross_sales_#{season}__c".to_s,reported_revenue)
-    end
 
+    end
+    sf_contact
   end
 
   def update_membership_data(sf_contact)
     unless self.memberships.empty?
+      puts "1"
       sf_contact.current_member__c = !self.current_membership.nil?
+      puts "2"
       sf_contact.lapsed_member__c = !sf_contact.current_member__c && !self.memberships.empty?
-      puts "Updated membership status to active=#{sf_contact.active_member__c}"
     end
-
+    sf_contact
   end
 
 
@@ -509,8 +511,8 @@ class Address
         sf_contact.stagemgr_last_sync_at__c = sync_time
 
       end
-      self.update_attendance_data(sf_contact)
-      self.update_membership_data(sf_contact)
+      sf_contact = self.update_attendance_data(sf_contact)
+      sf_contact = self.update_membership_data(sf_contact)
       puts "Save success = #{sf_contact.lapsed_member__c}"
       self.sf_contact_id = sf_contact.Id
       self.sf_last_sync_at = DateTime.now + 15.seconds
