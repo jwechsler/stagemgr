@@ -36,11 +36,11 @@ module FactoryGirl
       FactoryGirl.create(:credit_card_payment_type, :allow_for_public=>true)
       FactoryGirl.create(:flex_pass_payment_type, :allow_for_public=>true)
       FactoryGirl.create(:membership_payment_type, :allow_for_public=>true)
-      performance = FactoryGirl.create(:performance, :production=>production, :performance_code=>'PERF')
       FactoryGirl.create(:default_ticket_class, :class_code=>'PASS', :class_name=>"Pass Ticket",
-                          :ticket_price=>1.00, :web_visible=>false, :software_managed=>true)
+                          :ticket_price=>1.00, :web_visible=>false, :software_managed=>true, :auto_attach=>true)
       FactoryGirl.create(:default_ticket_class, :class_code=>'PASSFRIEND', :class_name=>"Pass Ticket",
-                          :ticket_price=>0.00, :web_visible=>false, :software_managed=>true)
+                          :ticket_price=>0.00, :web_visible=>false, :software_managed=>true, :auto_attach=>true)
+      performance = FactoryGirl.create(:performance, :production=>production, :performance_code=>'PERF', :performance_time=>"#{Date.today} 18:00".to_time)
 
       performance.ticket_class_allocations.each do |tca|
         tca.available = true
@@ -176,6 +176,8 @@ FactoryGirl.define do
     after(:create) { |perf| perf.ticket_class_allocations << FactoryGirl.create(:ticket_class_allocation, :performance=>perf, :available=>true)
       perf.populate_ticket_class_allocations
     }
+    performance_date Date.today
+    sequence (:performance_time) { |n| Time.now + 1.second}
   end
 
 
@@ -254,7 +256,6 @@ FactoryGirl.define do
     name 'Flex Pass'
     use_ticket_class_code 'PASS'
     active true
-    payout_per_ticket 1.00
   end
 
   factory :flex_pass do

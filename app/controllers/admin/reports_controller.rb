@@ -551,7 +551,7 @@ class Admin::ReportsController < Admin::ApplicationController
 
       used = FlexPassPayment.find_all_by_flex_pass_id(flex_pass.id)
       if offer.flat_payout.blank? || offer.flat_payout == 0
-        payout = Money.from_numeric(used.sum { |p| p.number_of_tickets } * offer.payout_per_ticket)
+        payout = Money.from_numeric(FlexPassPayment.sum(:amount, :conditions=>['flex_pass_id = ?',flex_pass.id]))
       else
         payout = Money.from_numeric(offer.flat_payout.nil? ? 0 : offer.flat_payout)
       end

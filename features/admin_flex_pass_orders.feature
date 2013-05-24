@@ -26,6 +26,7 @@ Feature: Flex Pass Ticket Order administration
   Scenario: Box office users can exchange a flex pass order
      Given a ticket order for performance "PERF" paid with flex pass "TESTFLEX" exists
        And a performance "NEWPERF" exists
+       And the performance "NEWPERF" has a ticket class code "PASS"
        And I am a box office user
        And I am logged in
        And I go to the admin order page for the ticket order

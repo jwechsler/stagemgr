@@ -43,7 +43,7 @@ Given /^a theater "(.*?)" exists$/ do |name|
 end
 
 Given /^a performance "(.*?)" exists$/ do |perf_code|
-  @performance = FactoryGirl.create(:performance, :performance_code=>perf_code)
+  @performance = FactoryGirl.create(:performance, :performance_code=>perf_code, :production=>Production.find_by_production_code('TEST'))
 end
 
 

@@ -18,7 +18,10 @@
   <%= f.input :promo, :label=>"Production Image", :hint=>image_tag(f.object.promo.url(:thumb)) %>
   <%= f.input :capacity %>
   <%= f.input :additional_information_link, :as=>:url %>
-  <%= f.input :flex_pass_offer, :collection=>f.object.theater.flex_pass_offers, :label=>"Festival Pass Offer" %>
+  <%= festival_passes = FlexPassOffer.find_all_by_treat_as_festival_pass(true).select{ |pass|
+    pass.theater_id.nil? || (pass.theater_id == f.object.theater_id && !pass.exclude_theater) ||
+    (pass.theater_id != f.object.theater_id && pass.exclude_theater) }
+    f.input :flex_pass_offer, :collection=>festival_passes, :label=>"Festival Pass Offer" %>
   <%= f.input :follow_up_message, :input_html=>{ :rows=>4 }, :hint=>"Embedded in thanks for coming follow up email." %>
   <%= f.input :follow_up_message_2, :input_html=>{:rows => 4}, :label=>"Additional follow up message", :hint=>"Second paragraph follow up email." %>
   <%= f.input :confirmation_message, :input_html=>{ :rows=>4}, :label=>"Additional Confirmation Message", :hint=>"Embedded in receipt" %>

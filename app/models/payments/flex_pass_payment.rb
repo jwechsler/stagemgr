@@ -29,6 +29,8 @@ class FlexPassPayment < PassPayment
       raise "That FlexPass is restricted to #{Theater.find_by_id(offer.theater_id).name} productions" if (!order.theater_ids.include?(offer.theater_id)  and !offer.exclude_theater?)
       raise "That Flexpass cannot be used for tickets for #{Theater.find_by_id(flex_pass.flex_pass_offer.theater_id).name} productions" if (order.theater_ids.include?(flex_pass.flex_pass_offer.theater_id) and flex_pass.flex_pass_offer.exclude_theater?)
     end
+    tc_list = order.performance.ticket_class_allocations.select { |tca| tca.available }.map { |tca| tca.ticket_class.class_code }
+    raise "#{offer.name} passes cannot be used for this particular performance (#{offer.use_ticket_class_code} restricted). Please contact our box office for details."  unless tc_list.include?(offer.use_ticket_class_code)
     super
   end
 
