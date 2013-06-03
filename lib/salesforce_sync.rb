@@ -90,7 +90,7 @@ class SalesforceSync
         o.sync_to_salesforce!(sf_cache)
       end
     rescue => e
-      puts "Sync of #{o.class.to_s} #{o_id} failed, #{e}"
+      puts "Sync of #{o_id} failed, #{e}"
       puts e.backtrace
     end
     Authorization.ignore_access_control(false)

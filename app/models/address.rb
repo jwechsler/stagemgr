@@ -417,7 +417,7 @@ class Address
         Production.where('season = ? and id in (?)',season, self.orders.select{|o| !o.performance_id.nil?}.map {|o| o.performance.production_id }).count)
       order_ids = self.orders.map {|o| o.id }
       ticket_payments_for_season = Payment.includes({:order => {:performance => :production}}).where(
-        'order_id in (?) and orders.type = \'TicketOrder\' and productions.season = ? and payments.type != \'MembershipPayment\'',
+        'order_id in (?) and orders.type = \'TicketOrder\' and productions.season = ?',
           order_ids,season).sum('payments.amount')
       other_sales_for_season = Payment.includes(:order).where(
         'order_id in (?) and orders.type not in (\'TicketOrder\',\'DonationOrder\') and payments.processed_on between ? and ?',
@@ -434,10 +434,7 @@ class Address
 
   def update_membership_data(sf_contact)
     unless self.memberships.empty?
-      puts "1"
       sf_contact.current_member__c = !self.current_membership.nil?
-      puts "2"
-      sf_contact.lapsed_member__c = !sf_contact.current_member__c && !self.memberships.empty?
     end
     sf_contact
   end
@@ -513,7 +510,7 @@ class Address
       end
       sf_contact = self.update_attendance_data(sf_contact)
       sf_contact = self.update_membership_data(sf_contact)
-      puts "Save success = #{sf_contact.lapsed_member__c}"
+      puts "Save success"
       self.sf_contact_id = sf_contact.Id
       self.sf_last_sync_at = DateTime.now + 15.seconds
       self.save!
