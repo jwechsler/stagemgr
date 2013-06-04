@@ -434,7 +434,7 @@ class Address
 
   def update_membership_data(sf_contact)
     unless self.memberships.empty?
-      sf_contact.current_member__c = !self.current_membership.nil?
+      sf_contact.current_member__c = self.current_member?
     end
     sf_contact
   end
@@ -510,6 +510,7 @@ class Address
       end
       sf_contact = self.update_attendance_data(sf_contact)
       sf_contact = self.update_membership_data(sf_contact)
+      sf_contact.save
       puts "Save success"
       self.sf_contact_id = sf_contact.Id
       self.sf_last_sync_at = DateTime.now + 15.seconds
