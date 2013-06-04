@@ -25,6 +25,7 @@
   <%= f.input :follow_up_message, :input_html=>{ :rows=>4 }, :hint=>"Embedded in thanks for coming follow up email." %>
   <%= f.input :follow_up_message_2, :input_html=>{:rows => 4}, :label=>"Additional follow up message", :hint=>"Second paragraph follow up email." %>
   <%= f.input :confirmation_message, :input_html=>{ :rows=>4}, :label=>"Additional Confirmation Message", :hint=>"Embedded in receipt" %>
+  <%= f.input :conversion_pixel_code, :input_html=>{:rows=>4}, :label=>"Ad conversion pixel code", :hint=>"Code Placed in header of order confirmation for ad tracking" %>
   <%= f.input :myemma_attendee_group, :label=>"MyEmma Group Number" %>
 
 <%- end -%>

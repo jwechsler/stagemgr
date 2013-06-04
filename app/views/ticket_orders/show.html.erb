@@ -1,4 +1,6 @@
-<p>Thanks!  Your ticket reservation has been
+  <% content_for(:head) do
+      raw(@order.performance.production.conversion_pixel_code) unless @order.performance.production.conversion_pixel_code.blank?
+    end %><p>Thanks!  Your ticket reservation has been
   <%- member_payments = @order.membership_payments
       if member_payments.size > 0 %>
      made with your <%= member_payments.first.membership.membership_offer.name %>.
