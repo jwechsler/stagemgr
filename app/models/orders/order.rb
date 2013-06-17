@@ -265,6 +265,8 @@ class Order < ActiveRecord::Base
   def paid_with_flexpass
     unless flex_pass_payments.empty?
       FlexPass.find(flex_pass_payments.first.flex_pass_id)
+    else
+      FlexPass.find_by_code(self.flex_pass_code)
     end
   end
 

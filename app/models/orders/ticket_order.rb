@@ -394,7 +394,7 @@ class TicketOrder < Order
   def set_tickets_for_pass_redemption
     if self.status_changed? && self.status == Order::PROCESSED
       if self.paid_with_flexpass?
-        flex_pass = FlexPass.find_by_code(self.flex_pass_code)
+        flex_pass = self.paid_with_flexpass
         offer = flex_pass.flex_pass_offer
         set_ticket_classes_using_offer(offer)
       end

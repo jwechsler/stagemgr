@@ -153,9 +153,7 @@ end
 Given /^a ticket order for performance "(.*?)" paid with flex pass "(.*?)" exists$/ do |perf_code, pass_code|
 
   perf = Performance.find_by_performance_code(perf_code)
-
   @ticket_order = FactoryGirl.create(:ticket_order_for_a_pair_of_tickets_paid_with_flexpass, :flex_pass_code=>pass_code, :performance=>perf)
-
 end
 
 Given /^a ticket order for performance "(.*)" paid with cash exists$/ do |perf_code|
