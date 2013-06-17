@@ -198,10 +198,10 @@ FactoryGirl.define do
     trait :for_a_pair_of_tickets do
 
       after(:create) do |ticket_order, evaluator|
-        ticket_line_item = FactoryGirl.create :ticket_line_item,
+        ticket_order.ticket_line_items << FactoryGirl.create(:ticket_line_item,
           :ticket_class=>ticket_order.performance.ticket_class_allocations.select{|tca| tca.available }.first.ticket_class,
           :ticket_count=>2,
-          :order=>ticket_order
+          :order=>ticket_order)
       end
 
     end
@@ -303,18 +303,13 @@ FactoryGirl.define do
   factory :payment do
     amount 0
 
-    factory :cash_payment do
-      type 'CashPayment'
+    factory :cash_payment, :parent=>:payment, :class=>'CashPayment' do
     end
 
-    factory :membership_payment do
-      type 'MembershipPayment'
-
+    factory :membership_payment, :parent=>:payment, :class=>'MembershipPayment' do
     end
 
-    factory :flex_pass_payment do
-      type 'FlexPassPayment'
-
+    factory :flex_pass_payment, :class=>'FlexPassPayment', :parent=>:payment do
     end
 
   end
