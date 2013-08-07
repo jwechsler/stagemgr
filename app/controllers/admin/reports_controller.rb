@@ -788,16 +788,7 @@ class Admin::ReportsController < Admin::ApplicationController
     report = Array.new
     keys = columns_for_orders(true,true)
     keys += [:order_total, :num_tickets]
-    members_by_email = Hash.new
-    unless MyEmma.disabled? || production.myemma_attendee_group.nil?
-      grp = MyEmma::Group.find(production.myemma_attendee_group)
-      members = grp.members
-
-      members.each do |m|
-        members_by_email[m.email.downcase] = m unless m.email.nil?
-      end
-
-    end
+    members_by_email = attendees_on_email_list(production)
     production.performances.each { |performance|
       orders = TicketOrder.joins(:ticket_line_items).where("performance_id = :performance_id", {:performance_id=>performance.id})
 
