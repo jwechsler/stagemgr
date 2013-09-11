@@ -10,7 +10,7 @@ module Admin::ReportsHelper
     s.sort! { |d1, d2| d2.value <=> d1.value }
   end
 
-  def self.tidy_output(f)
+  def tidy_output(f)
     if f.is_a?(Time)
       f.to_s(:hour_min)
     else
@@ -34,7 +34,7 @@ module Admin::ReportsHelper
     f.close
   end
 
-  def self.attendees_on_email_list(production)
+  def attendees_on_email_list(production)
     members_by_email = Hash.new
     unless MyEmma.disabled? || production.myemma_attendee_group.nil?
       grp = MyEmma::Group.find(production.myemma_attendee_group)
