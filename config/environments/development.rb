@@ -44,10 +44,10 @@ Stagemgr::Application.configure do
 
 
   $DATABASEDOTCOM = SalesforceSync.load_from_yaml_file('development',"#{::Rails.root.to_s}/config/databasedotcom.yml")
-
   $TKTPRINT =  YAML::load(File.open("#{::Rails.root.to_s}/config/ticket_print.yml"))['development']
-
   $EMAIL_ADDRESS = YAML::load(File.open("#{::Rails.root.to_s}/config/emails.yml"))['development']
+  $SERVER_CONFIG = YAML::load(File.open("#{::Rails.root.to_s}/config/server.yml"))['development']
+
 
   Paperclip.options[:log] = true
 

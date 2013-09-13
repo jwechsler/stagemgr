@@ -1,0 +1,13 @@
+development:
+  root_url:  "http://stagemgr.dev"
+  secure_root_url:  "http://stagemgr.dev"
+  #service:  "http://stagemgr:REDACTED_TKTPRINT_PASSWORD@ticket.theaterwit.org"
+
+test:
+  root_url:  ""
+  secure_root_url:  ""
+
+production:
+  root_url:  "http://configure.yourserver.here/tickets"
+  secure_rooturl: "https://configure.yourserver.here/tickets"
+
