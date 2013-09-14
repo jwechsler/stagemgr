@@ -44,3 +44,6 @@ end
 every 1.day do
   runner "FlexPass.check_expirations"
 end
+
+every 4.hours do
+  runner "CalendarExchange.publish_calendar(#{$SERVER_CONFIG['static_cache_dir']}/performance_schedule.ics"

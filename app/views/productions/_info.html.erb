@@ -16,7 +16,7 @@
   <%= render :partial=>'/productions/production_dates', :locals=>{:production=>production} %>
   <div class="production_description">
     <p>
-      <%= raw production.show_description %>
+      <%= raw $MARKDOWN.render(production.show_description) %>
     </p>
     <%- if !production.running_time.blank? then
       hour = "#{(production.running_time / 60).to_i} hour#{(production.running_time/60).to_i > 1 ? 's' : ''}"

@@ -1,7 +1,7 @@
 development:
   root_url:  "http://stagemgr.dev"
   secure_root_url:  "http://stagemgr.dev"
-  #service:  "http://stagemgr:REDACTED_TKTPRINT_PASSWORD@ticket.theaterwit.org"
+  static_cache_dir: "/Users/jeremyw/tmp"
 
 test:
   root_url:  ""

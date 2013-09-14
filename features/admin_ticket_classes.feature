@@ -6,6 +6,7 @@ Feature: An administrator can add theater classes to productions
     And I am logged in
     And I go to the admin production detail page for "Production One"
 
+@wip
 Scenario: There is a ticket classes link on the Productions Page
   Given I go to the admin production detail page for "Production One"
     And I follow "List"

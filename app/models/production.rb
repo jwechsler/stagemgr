@@ -95,14 +95,6 @@ class Production < ActiveRecord::Base
 
   # @todo the below are hooks for markdown feature as planned
 
-  def show_description_as_html
-    self.show_description.nil? ? "" : self.show_description
-  end
-
-  def show_description_as_text
-    self.short_description.nil? ? "" : self.short_description
-  end
-
   def sync_to_salesforce!(user = nil, record_type_id = nil)
     record_type_id = $DATABASEDOTCOM['production_record_type_id'] if record_type_id.nil?
     if self.sf_last_sync_at.nil? || self.sf_last_sync_at <= self.updated_at

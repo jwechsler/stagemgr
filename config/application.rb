@@ -77,11 +77,11 @@ module Stagemgr
     initializer :after_append_asset_paths,
             :group => :all,
             :after => :append_assets_path do
-    config.assets.paths.unshift Rails.root.join("app", "assets", "stylesheets", "jquery", "cupertino").to_s
+        config.assets.paths.unshift Rails.root.join("app", "assets", "stylesheets", "jquery", "cupertino").to_s
 
-    $MARKDOWN = Redcarpet::Markdown.new(Redcarpet::Render::HTML, :autolink => true, :space_after_headers => true, :filter_html=>true)
-    $TRUSTED_MARKDOWN = Redcarpet::Markdown.new(Redcarpet::Render::HTML, :autolink => true, :space_after_headers => true)
+        $MARKDOWN = Redcarpet::MarkdownExtension.new(Redcarpet::Render::HTML, :autolink => true, :space_after_headers => true, :filter_html=>true)
+        $TRUSTED_MARKDOWN = Redcarpet::MarkdownExtension.new(Redcarpet::Render::HTML, :autolink => true, :space_after_headers => true)
 
-  end
+    end
   end
 end
