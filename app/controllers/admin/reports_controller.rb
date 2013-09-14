@@ -326,7 +326,7 @@ class Admin::ReportsController < Admin::ApplicationController
       order('orders.performance_id, addresses.last_name, addresses.first_name')
 
     report = Array.new
-    headers = [:production_name, :patron_name, :special_requests, :notes, :is_member, :is_donor]
+    headers = [:production_name, :patron_name, :seats, :special_requests, :notes, :is_member, :is_donor]
     orders.each do |o|
       if !o.special_request.blank? || !o.notes.blank? || o.address.is_current_member? || o.address.is_donor? || !o.address.address_tags.empty?
         note_column = o.notes.blank? ? "" : o.notes
@@ -346,7 +346,8 @@ class Admin::ReportsController < Admin::ApplicationController
           :special_requests =>  (o.special_request.blank? ? nil : o.special_request) || (o.address.is_current_member? ? o.address.current_membership.preferred_seating : ''),
           :notes => note_column,
           :is_member => o.address.is_current_member?,
-          :is_donor => o.address.is_donor?
+          :is_donor => o.address.is_donor?,
+          :seats => o.total_ticket_quantity
         }
       end
     end
