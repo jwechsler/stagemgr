@@ -3,7 +3,7 @@ class CalendarExchange
 
   def self.publish_calendar(path)
     cal = Calendar.new
-    base_url = YAML
+    path = YAML::load(File.open("#{::Rails.root.to_s}/config/server.yml"))['production']['static_cache_dir'] + '/' + path
 
     Performance.where('productions.status in (?) and performances.status in (?) and performance_date > ?',Production.visible_statuses,Performance.visible_statuses,Date.today.beginning_of_month).includes(:production).each do |perf|
       params = { "X-ALT_DESC"=>"FMTTYPE=text/html:<!DOCTYPE HTMLS PUBLIC \"-//W3C//DTD HTMLS 3.2//EN\"\n<HTML><BODY>#{$MARKDOWN.render(perf.production.show_description)}</BODY></HTML>"}
@@ -21,7 +21,7 @@ class CalendarExchange
     output_file = File.new(path,'w')
     output_file.write(cal.to_ical)
     output_file.close
-    cal.to_ical
+    nil
   end
 
 end

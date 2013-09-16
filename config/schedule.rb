@@ -46,4 +46,6 @@ every 1.day do
 end
 
 every 4.hours do
-  runner "CalendarExchange.publish_calendar(#{$SERVER_CONFIG['static_cache_dir']}/performance_schedule.ics"
+  runner "CalendarExchange.publish_calendar 'performance_schedule.ics'"
+end
+
