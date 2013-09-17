@@ -37,6 +37,7 @@ authorization do
     has_permission_on :admin_addresses, :to=>[:view,:manage,:make]
     has_permission_on :membership_orders, :to=>[:create, :read, :update]
     has_permission_on :admin_exchange_ticket_orders, :to=>[:make]
+    has_permission_on :admin_reports, :to=>[:index]
   end
 
   role :box_office do

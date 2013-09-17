@@ -1,21 +1,22 @@
 require 'csv'
 
 class Admin::ReportsController < Admin::ApplicationController
+
   include Admin::ReportsHelper
   helper_method :tidy_output
 
   # GET /admin/reports
   # GET /admin/reports.xml
   def index
-
-    @productions = Production.with_permissions_to(:read).where(current_user.is_theater_user? ? "1=1" : "(status != 'Inactive' and exists (select * from theaters where theaters.status != 'Inactive' and theaters.id = productions.theater_id)) or productions.theater_id = 1")
-    if current_user.is_theater_user? then
+    is_theater_user = !current_user.nil? && current_user.is_theater_user?
+    @productions = Production.with_permissions_to(:read).where(is_theater_user ? "1=1" : "(status != 'Inactive' and exists (select * from theaters where theaters.status != 'Inactive' and theaters.id = productions.theater_id)) or productions.theater_id = 1")
+    if is_theater_user then
       @productions.sort! { |p1, p2| (p2.press_opening_at || Date.today-10.years) <=> (p1.press_opening_at || Date.today-10.years)}
     else
       @productions.sort! { |p1, p2| p1.name <=> p2.name }
     end
 
-    if current_user.is_theater_user? then
+    if is_theater_user then
       @flex_pass_offers = @productions.select { |p| !p.flex_pass_offer.nil? }.map { |p| p.flex_pass_offer }
     else
       @flex_pass_offers = FlexPassOffer.all
