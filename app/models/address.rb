@@ -138,6 +138,7 @@ class Address < ActiveRecord::Base
       self.address_tags << from_address.address_tags
       self.memberships << from_address.memberships
       self.flex_passes << from_address.flex_passes
+      self.productions << from_address.productions
       self.save!
       if from_address.sf_last_sync_at.nil?
         from_address.reload

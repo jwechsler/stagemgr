@@ -424,10 +424,11 @@ class TicketOrder < Order
   end
 
   def is_unique_visit?(prod)
-    Order.where("productions.id = ? and orders.id != ? and orders.status = ?",
+    Order.includes(:performance).where("performances.production_id = ? and orders.id != ? and orders.status = ? and orders.address_id = ?",
       prod.id,
       self.id,
-      Order::FULFILLED)
+      Order::FULFILLED,
+      self.address_id).count == 0
   end
 
   def set_tickets_for_pass_redemption

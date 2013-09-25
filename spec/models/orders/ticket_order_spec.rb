@@ -51,4 +51,20 @@ describe "a ticket order" do
     o.performance.production.attendees.count.should == 0
   end
 
+  it "should preserve the attendance when cancelling one of multiple reservations" do
+    o = FactoryGirl.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
+    a = o.address
+    o.transition_to!(Order::FULFILLED)
+    o.performance.production.attendees.count.should == 1
+    o2 = FactoryGirl.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
+    o2.address = a
+    o2.performance = o.performance
+    o2.save!
+    o2.transition_to!(Order::FULFILLED)
+    o2.performance.production.attendees.count.should == 1
+    o2.transition_to!(Order::UNCLAIMED)
+    o2.performance.production.attendees.count.should == 1
+  end
+
+
 end
