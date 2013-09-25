@@ -293,7 +293,8 @@ class Order < ActiveRecord::Base
     Order.transaction do
       refund_payments = []
       create_notify_refund_task if self.fulfilled?
-      self.payments.each { |payment| payment.refund!(nil, self.notes) if payment.respond_to? :refund! }
+      build_refunds = self.payments.dup
+      build_refunds.each { |payment| payment.refund!(nil, self.notes) if payment.respond_to? :refund! }
       self.unique_line_items.each { |li| self.refund_line_items (li.refund!) if li.respond_to? :refund!  }
       self.status = REFUNDED
       self.save!

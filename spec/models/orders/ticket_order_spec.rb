@@ -18,3 +18,37 @@ describe "an exchanged ticket order" do
 
 
 end
+
+describe "a ticket order" do
+
+  it "can be refunded" do
+    o = FactoryGirl.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
+    o.total.should > 0
+    o.refund!
+    o.total.should == 0.0
+  end
+
+  it "should mark its holder has having attended the production when fulfilled" do
+    original_order = FactoryGirl.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
+    original_order.transition_to!(Order::FULFILLED)
+    original_order.performance.production.attendees.count.should == 1
+  end
+
+  it "should unmark the holder has having attended when refunded" do
+    o = FactoryGirl.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
+    o.transition_to!(Order::FULFILLED)
+    production = o.performance.production
+    o.refund!
+    o.performance.production.attendees.count.should == 0
+  end
+
+   it "should unmark the holder has having attended when unclaimed" do
+    o = FactoryGirl.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
+    o.transition_to!(Order::FULFILLED)
+    o.transition_to!(Order::UNCLAIMED)
+    production = o.performance.production
+    o.refund!
+    o.performance.production.attendees.count.should == 0
+  end
+
+end
