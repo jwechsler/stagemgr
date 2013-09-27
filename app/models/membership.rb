@@ -151,12 +151,14 @@ class Membership < ActiveRecord::Base
   end
 
   def cancel_future_reservations
-    led = self.last_effective_date
-    self.membership_payments.each do |payment|
-      o = payment.order
-      d = o.reservation_date
-      unless d.nil? || d < led || o.refunded?
-        o.refund!
+    Membership.transaction do
+      led = self.last_effective_date
+      self.membership_payments.each do |payment|
+        o = payment.order
+        d = o.reservation_date
+        unless d.nil? || d < led || o.refunded?
+          o.refund!
+        end
       end
     end
     true

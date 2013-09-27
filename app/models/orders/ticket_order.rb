@@ -244,7 +244,7 @@ class TicketOrder < Order
   end
 
   def reservation_date
-    return performance.to_datetime
+    return performance.peformance_date.to_date
   end
 
   def all_line_items(reload_line_items = false)
