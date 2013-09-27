@@ -43,9 +43,20 @@ class Admin::AutoCompleteController < Admin::ApplicationController
   end
 
   def address
-    val = params[:q].gsub(Address::SEARCHABLE_REGEXP,'').upcase
-    addresses = Address.where("search_name like :search_expr and id in (select address_id from orders)", {:search_expr=>'%' + val + '%'}).limit(10).order(
-        'last_name', 'first_name', 'id');
+    cleaned_name, first_name, middle_name, last_name, first_name_2 = Address.parse_name(params[:q])
+    last_name = first_name if last_name.blank?
+    Rails.logger.debug [cleaned_name, first_name, middle_name, last_name].to_yaml
+    # val = params[:q].gsub(Address::SEARCHABLE_REGEXP,'').upcase
+
+    #addresses = Address.where("search_name like :search_expr and id in (select address_id from orders)", {:search_expr=>'%' + val + '%'}).limit(10).order(
+    #    'last_name', 'first_name', 'id');
+    unless first_name.blank? || (last_name == first_name)
+      addresses = Address.where("((first_name like ?) or (first_name like ?)) and last_name like ?",
+        "#{first_name}%", "#{first_name_2.blank? ? '-----' : first_name_2}%",
+        "#{last_name}%").includes(:orders).order("addresses.last_name, addresses.first_name, addresses.id").limit(15)
+    else
+      addresses = Address.where("first_name like ? or last_name like ?", last_name, last_name).includes(:orders).order("addresses.last_name, addresses.first_name, addresses.id").limit(15)
+    end
     if addresses.nil?
       render :json=>Array.new
     else

@@ -32,11 +32,12 @@ class Address < ActiveRecord::Base
   acts_as_audited :protect=>false, :except=>['street_number', 'street', 'street_type', 'unit', 'unit_prefix', 'search_name']
   attr_accessor :sf_object
 
-  def parse_full_name
-    parsed = People::NameParser.new(:couples=>true).parse(self.full_name)
-    self.full_name = parsed[:clean]
+  def self.parse_name(full_name)
+    parsed = People::NameParser.new(:couples=>true).parse(full_name)
+    cleaned_name = parsed[:clean]
     if parsed[:parsed]
       f_name = parsed[:first]
+      f_name2 = parsed[:first2]
       l_name = parsed[:last]
       m_name = parsed[:middle]
     else
@@ -44,12 +45,18 @@ class Address < ActiveRecord::Base
       l_name = parsed[:clean]
       m_name = ""
     end
+    [cleaned_name, f_name, m_name, l_name, f_name2]
+  end
+
+  def parse_full_name
+    cleaned_name, f_name, m_name, l_name, f_name2 = Address.parse_name(self.full_name)
+    self.full_name = cleaned_name
     [f_name, m_name, l_name]
   end
 
   def regularize!
     if self.changed?
-      self.first_name, self.middle_name, self.last_name = self.parse_full_name
+      self.first_name, self.middle_name, self.last_name = parse_full_name
 
       self.email.strip! unless self.email.nil?
       self.line1.strip! unless self.line1.nil?
