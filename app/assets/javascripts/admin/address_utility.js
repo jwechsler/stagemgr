@@ -33,7 +33,8 @@ function setup_address_autocompletes(order_type) {
                     state: item.state,
                     member_code: item.member_code,
                     phone: item.phone,
-                    tags: item.tags
+                    tags: item.tags,
+                    attended: item.attended
                   }
                 }));
               }
@@ -53,7 +54,15 @@ function setup_address_autocompletes(order_type) {
               t = $("<p/>", {"class": "inline-hints", "id": "address_tags_hints"})
               $("#"+order_type+"_address_attributes_full_name_input").append(t)
             }
-            t.text(ui.item.tags);
+            if (ui.item.attended != "") {
+              display_hint = "<b>Saw:</b> <i>" + ui.item.attended + "</i>"
+            } else {
+              display_hint = ""
+            }
+            if ((ui.item.tags != "") && (display_hint != "")) {
+              display_hint = display_hint + "<p/>"
+            }
+            t.html(display_hint + ui.item.tags);
 
 
             if (ui.item.member_code) {
