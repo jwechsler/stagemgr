@@ -17,6 +17,7 @@ class Address < ActiveRecord::Base
   has_many :address_tags
   has_many :memberships
   has_many :flex_passes
+  has_and_belongs_to_many :productions, uniq: true
   accepts_nested_attributes_for :address_tags, :reject_if => proc { |attributes| attributes['tag_label'].blank? }, :allow_destroy => true
   before_save :set_search_name
 
@@ -137,6 +138,7 @@ class Address < ActiveRecord::Base
       self.address_tags << from_address.address_tags
       self.memberships << from_address.memberships
       self.flex_passes << from_address.flex_passes
+      self.productions << from_address.productions
       self.save!
       if from_address.sf_last_sync_at.nil?
         from_address.reload

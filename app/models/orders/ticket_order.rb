@@ -3,6 +3,7 @@ class TicketOrder < Order
   before_validation :set_tickets_for_pass_redemption
   before_save :set_theater
   before_save :remove_empty_ticket_lines
+  after_save :update_attendance_record
 
   has_many :ticket_line_items, :foreign_key => :order_id
   accepts_nested_attributes_for :ticket_line_items, :allow_destroy => true
@@ -103,6 +104,11 @@ class TicketOrder < Order
         ""
       end
     }.join(', ')
+  end
+
+  # @todo remove when multiple performances for an order are allowed
+  def performances
+    [self.performance]
   end
 
   def send_to_printer
@@ -238,7 +244,7 @@ class TicketOrder < Order
   end
 
   def reservation_date
-    return performance.to_datetime
+    return performance.peformance_date.to_date
   end
 
   def all_line_items(reload_line_items = false)
@@ -284,6 +290,7 @@ class TicketOrder < Order
     self.performance.production.ticket_classes.select { |tc| tc.class_code == offer.use_ticket_class_code }.first
   end
 
+
   protected
 
   def refund_line_items(reversing_entries)
@@ -303,6 +310,14 @@ class TicketOrder < Order
   def transition_processed_to_fulfilled!(redirect_to = nil)
     self.send_to_printer
     super
+  end
+
+  def transition_fulfilled_to_unclaimed!(redirect_to = nil)
+    self.transition_processed_to_unclaimed!(redirect_to = nil)
+  end
+
+  def transition_processed_to_unclaimed!(redirect_to = nil)
+    self.unclaimed!
   end
 
   def self.applicable_price(regular_ticket_class, offer_ticket_class)
@@ -344,7 +359,7 @@ class TicketOrder < Order
 
   def create_notify_refund_task
     self.tasks << NotificationTask.new(:execute_at => Time.now, :notifications => [$EMAIL_ADDRESS['box_office'], $EMAIL_ADDRESS['supervisor_notifications']].join(','),
-                                       :method_symbol => :refunded_fulfilled_item_alert)
+                                       :method_symbol => :refunded_fulfilled_item_alert) unless $EMAIL_ADDRESS.nil?
     super
   end
 
@@ -374,6 +389,8 @@ class TicketOrder < Order
     self.ticket_line_items.each { |li| self.ticket_line_items.delete(li) if li.ticket_count == 0 }
   end
 
+
+
   private
   def set_ticket_classes_using_offer(offer)
     new_ticket_class = production_ticket_class_from_offer(offer)
@@ -389,6 +406,29 @@ class TicketOrder < Order
 
       }
     end
+  end
+
+  def update_attendance_record
+    if self.status_changed?
+      case self.status
+      when Order::FULFILLED
+        attendee = self.address
+        attendee.productions << self.performances.map {|perf| perf.production}
+      when Order::REFUNDED, Order::UNCLAIMED
+          self.performances.map { |perf| perf.production }.select {|p| is_unique_visit?(p) }.each {|p|
+            self.address.productions.delete(p)
+          }
+      end
+
+    end
+  end
+
+  def is_unique_visit?(prod)
+    Order.includes(:performance).where("performances.production_id = ? and orders.id != ? and orders.status = ? and orders.address_id = ?",
+      prod.id,
+      self.id,
+      Order::FULFILLED,
+      self.address_id).count == 0
   end
 
   def set_tickets_for_pass_redemption

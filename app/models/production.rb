@@ -25,6 +25,7 @@ class Production < ActiveRecord::Base
   before_validation :clean_values
   before_save :assign_default_ticket_classes
   belongs_to :flex_pass_offer
+  has_and_belongs_to_many :attendees, class_name: "Address", uniq: true
 
   attr_accessor :sf_object
   has_attached_file :promo, :styles => {:medium => "250x375>", :thumb => "125x186>"},
