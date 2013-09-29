@@ -12,7 +12,7 @@ class PerformanceTest < ActiveSupport::TestCase
 
     should "number of tickets left for a new performance should be that of the production" do
       without_access_control do
-        assert_equal 10, @performance.number_of_tickets_left
+        assert_equal 10, @performance.number_of_seats_left
       end
     end
 
@@ -23,7 +23,7 @@ class PerformanceTest < ActiveSupport::TestCase
         @order.ticket_line_items <<  new_tickets
         @order.save
         @performance.reload
-        assert_equal 5, @performance.number_of_tickets_left
+        assert_equal 5, @performance.number_of_seats_left
       end
     end
   end

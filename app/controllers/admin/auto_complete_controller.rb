@@ -20,7 +20,7 @@ class Admin::AutoCompleteController < Admin::ApplicationController
         {:code=>performance.performance_code, :name=>performance.to_s,
           :fdate=>performance.performance_date.to_formatted_s(:show_date),
           :ftime=>performance.performance_time.to_formatted_s(:hour_min),
-          :number_left=>performance.number_of_tickets_left}
+          :number_left=>performance.number_of_seats_left}
       }
     end
   end

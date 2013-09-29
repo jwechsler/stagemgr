@@ -32,12 +32,16 @@ class Performance < ActiveRecord::Base
   before_validation              :clean_values
   accepts_nested_attributes_for  :ticket_class_allocations
 
-  def number_of_tickets_left
+  def number_of_seats_left
     self.production.capacity - self.orders.select{|o| o.holding_seats? }.inject(0){|sum,order| sum + order.ticket_line_items.sum(:ticket_count) }
   end
 
+  def number_of_tickets_left
+    self.number_of_seats_left
+  end
+
   def sold_out?
-    self.number_of_tickets_left <= 0
+    self.number_of_seats_left <= 0
   end
 
   def happening_soon?
@@ -54,7 +58,7 @@ class Performance < ActiveRecord::Base
   end
 
   def near_capacity?
-    self.number_of_tickets_left <= 9
+    self.number_of_seats_left <= 9
   end
 
   def populate_ticket_class_allocations
@@ -65,7 +69,7 @@ class Performance < ActiveRecord::Base
   end
 
   def to_s
-    "#{self.production.name} [#{datetime_s}] (#{number_of_tickets_left} Tickets Left)"
+    "#{self.production.name} [#{datetime_s}] (#{number_of_seats_left} Seats Left)"
   end
 
   def to_short_s

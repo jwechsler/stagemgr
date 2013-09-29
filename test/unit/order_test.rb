@@ -209,7 +209,7 @@ class OrderTest < ActiveSupport::TestCase
       without_access_control do
         o = TicketOrder.create!(:status=>Order::HOLD, :address=>@address, :performance=>@performance, :payment_type=>@cash_payment_type)
         li = o.ticket_line_items.create!(:ticket_class=>@production.ticket_classes.first, :ticket_count=>5)
-        assert_equal 5, @performance.number_of_tickets_left
+        assert_equal 5, @performance.number_of_seats_left
       end
     end
 
@@ -217,7 +217,7 @@ class OrderTest < ActiveSupport::TestCase
       without_access_control do
         o = TicketOrder.create!(:status=>Order::PROCESSED, :address=>@address, :performance=>@performance, :payment_type=>@cash_payment_type)
         li = o.ticket_line_items.create!(:ticket_class=>@production.ticket_classes.first, :ticket_count=>5)
-        assert_equal 5, @performance.number_of_tickets_left
+        assert_equal 5, @performance.number_of_seats_left
       end
     end
 
@@ -227,7 +227,7 @@ class OrderTest < ActiveSupport::TestCase
         li = o.ticket_line_items.create!(:ticket_class=>@comp_ticket, :ticket_count=>5)
         o.transition_to!(Order::PROCESSED)
         o.cancel!
-        assert_equal 10, @performance.number_of_tickets_left
+        assert_equal 10, @performance.number_of_seats_left
       end
     end
 
@@ -237,7 +237,7 @@ class OrderTest < ActiveSupport::TestCase
         li = o.ticket_line_items.create!(:ticket_class=>@production.ticket_classes.first, :ticket_count=>5)
         o.transition_to!(Order::PROCESSED)
         o.refund!
-        assert_equal 10, @performance.number_of_tickets_left
+        assert_equal 10, @performance.number_of_seats_left
       end
     end
 

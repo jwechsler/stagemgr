@@ -78,12 +78,12 @@ describe "a ticket order" do
     o2.transition_to!(Order::PROCESSED)
     o2.performance.production.capacity = 10
     o2.performance.production.save!
-    o2.performance.number_of_tickets_left.should == 6
+    o2.performance.number_of_seats_left.should == 6
     o2.transition_to!(Order::FULFILLED)
-    o2.performance.number_of_tickets_left.should == 6
+    o2.performance.number_of_seats_left.should == 6
     o2.transition_to!(Order::UNCLAIMED)
     o2.performance.reload
-    o2.performance.number_of_tickets_left.should == 8
+    o2.performance.number_of_seats_left.should == 8
   end
 
 end
