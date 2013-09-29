@@ -7,6 +7,7 @@
     <th>Ticket price</th>
     <th>Ticketing fee</th>
     <th>Web visible</th>
+    <th>Holds Seats?</th>
     <th>Ticket type</th>
     <th>Minutes before show</th>
   </tr>
@@ -18,6 +19,7 @@
     <td><%=h to_currency ticket_class.ticket_price %></td>
     <td><%=h to_currency ticket_class.ticketing_fee %></td>
     <td><%=h ticket_class.web_visible %></td>
+    <td><%=h ticket_class.holds_seats %></td>
     <td><%=h ticket_class.ticket_type %></td>
     <td><%=h ticket_class.minutes_before_show %></td>
     <td><%- permitted_to? :manage, :admin_ticket_classes do %><%= link_to 'Edit', edit_admin_theater_production_ticket_class_path(@theater,@production, ticket_class) %><%- end -%></td>

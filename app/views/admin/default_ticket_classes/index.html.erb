@@ -9,6 +9,7 @@
     <th>Ticketing Fee</th>
     <th>Web</th>
     <th>Auto-attach</th>
+    <th>Holds Seats?</th>
   </tr>
   <% for default_ticket_class in @default_ticket_classes %>
     <tr>
@@ -19,6 +20,7 @@
       <td><%= number_to_currency(default_ticket_class.ticketing_fee) %></td>
       <td><%= default_ticket_class.web_visible %></td>
       <td><%= default_ticket_class.auto_attach %></td>
+      <td><%= default_ticket_class.holds_seats %></td>
       <td><%= link_to "Show", [:admin, default_ticket_class] %></td>
       <td><%= link_to "Edit", edit_admin_default_ticket_class_path(default_ticket_class) %></td>
       <td><%= link_to "Destroy", [:admin, default_ticket_class], :confirm => 'Are you sure?', :method => :delete %></td>

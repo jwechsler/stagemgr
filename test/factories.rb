@@ -60,6 +60,7 @@ FactoryGirl.define do
     web_visible false
     ticket_price 0
     ticketing_fee 0
+    holds_seats true
   end
 
   factory :user do
@@ -136,6 +137,7 @@ FactoryGirl.define do
     association :production
     auto_attach true
     web_visible true
+    holds_seats true
     factory :software_managed_ticket_class do
       software_managed true
       web_visible false
@@ -246,6 +248,7 @@ FactoryGirl.define do
 
     factory :ticket_order_for_a_pair_of_tickets_paid_with_flexpass, :traits=>[:for_a_pair_of_tickets, :paid_with_flex_pass]
     factory :ticket_order_for_a_pair_of_tickets_paid_with_cash, :traits=>[:for_a_pair_of_tickets, :paid_with_cash]
+
   end
 
 

@@ -33,7 +33,8 @@ class Performance < ActiveRecord::Base
   accepts_nested_attributes_for  :ticket_class_allocations
 
   def number_of_seats_left
-    self.production.capacity - self.orders.select{|o| o.holding_seats? }.inject(0){|sum,order| sum + order.ticket_line_items.sum(:ticket_count) }
+    self.production.capacity - TicketLineItem.where('ticket_classes.holds_seats = ? and orders.status in (?) and orders.performance_id = ?',true,Order::HOLDING_SEAT_STATUSES,self.id).includes(:order, :ticket_class).sum(:ticket_count)
+    # self.orders.select{|o| o.holding_seats? }.inject(0){|sum,order| sum + order.ticket_line_items.sum(:ticket_count) }
   end
 
   def number_of_tickets_left
