@@ -7,6 +7,7 @@ describe "an exchanged ticket order" do
     ticket_line_item = original_order.ticket_line_items.first.dup
     exchange_order.ticket_line_items << ticket_line_item
     exchange_order.exchange_and_process_from! original_order
+
     exchange_order.payments.count.should == 1
     original_order.payments.count.should == 2
     original_order.status.should == Order::EXCHANGED
@@ -66,5 +67,23 @@ describe "a ticket order" do
     o2.performance.production.attendees.count.should == 1
   end
 
+  it "does not block off seats when unclaimed" do
+    Authorization.ignore_access_control(true)
+    o = FactoryGirl.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
+    o2 = o.dup
+    o2.status = Order::NEW
+    o2.save!
+    o2.ticket_line_items << o.ticket_line_items.first.dup
+    o2.payments << o.payments.first.dup
+    o2.transition_to!(Order::PROCESSED)
+    o2.performance.production.capacity = 10
+    o2.performance.production.save!
+    o2.performance.number_of_tickets_left.should == 6
+    o2.transition_to!(Order::FULFILLED)
+    o2.performance.number_of_tickets_left.should == 6
+    o2.transition_to!(Order::UNCLAIMED)
+    o2.performance.reload
+    o2.performance.number_of_tickets_left.should == 8
+  end
 
 end

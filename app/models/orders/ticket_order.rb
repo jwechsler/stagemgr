@@ -62,6 +62,11 @@ class TicketOrder < Order
     true
   end
 
+  def holding_seats?
+    ![Order::UNCLAIMED, Order::CANCELED].include?(self.status)
+  end
+
+
   def display_code
     self.performance.try(:performance_code)
   end

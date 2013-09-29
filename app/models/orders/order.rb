@@ -130,6 +130,11 @@ class Order < ActiveRecord::Base
     false
   end
 
+  def holding_seats?
+    false
+  end
+
+
   def fulfillable?
     self.status == Order::PROCESSED || self.status == Order::UNCLAIMED
   end
