@@ -1,0 +1,22 @@
+#!/bin/bash
+
+#!/bin/bash
+
+case "$1" in
+  start)
+    if [[ "$RAILS_ENV" == "production" ]] ; then
+      nohup bundle exec rake environment resque:scheduler PIDFILE=./resque-scheduler.pid  >> log/resque-scheduler.log 2>&1 &
+    else
+      nohup bundle exec rake environment resque:scheduler PIDFILE=./resque-scheduler.pid QUEUE="*" >> log/resque-scheduler.log 2>&1 &
+    fi
+    ;;
+  stop)
+    kill `cat ./resque-scheduler.pid`
+    if [ $? -eq 0 ]; then
+      rm ./resque-scheduler.pid
+      echo "Resque workers stopped"
+    fi
+    ;;
+esac
+
+

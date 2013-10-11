@@ -1,0 +1,12 @@
+AgeOutFileStore:
+  every: "2h"
+  args: FileStore::REPORT, 24*60
+  description: 'Deletes generated reports older than 24 hours'
+  queue: maintenance
+
+AgeOutFileStore:
+  every: "48h"
+  args: FileStore::IMPORT, 24*60
+  description: 'Deletes imported raw data files after 24 hours'
+  queue: maintenance
+

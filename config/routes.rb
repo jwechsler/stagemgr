@@ -1,3 +1,5 @@
+require 'resque/server'
+
 Stagemgr::Application.routes.draw do
 
   namespace(:admin){ resources :memberships }
@@ -31,6 +33,8 @@ Stagemgr::Application.routes.draw do
   match '/pay_pal/cancel' => 'pay_pal#cancel'
   match '/paypal/ipn' => 'pay_pal#paypal_ipn'
 
+  # resque admin page
+  mount Resque::Server.new, :at => "/admin/resque"
 
   namespace(:admin){ resources :venues }
 
@@ -162,6 +166,7 @@ Stagemgr::Application.routes.draw do
         get :mine_customer_data, :action=>:index
         post :house_management_seating
         get :house_management_seating, :action=>:index
+        post :trg_dump
       end
 
     end
@@ -227,6 +232,8 @@ Stagemgr::Application.routes.draw do
       get :new_external_payment, :on=>:collection
       post :create_external_payment, :on=>:collection
     end
+
+    resources :imports
 
     resources :amount_off_special_offers, :only=>[:edit,:index]
 

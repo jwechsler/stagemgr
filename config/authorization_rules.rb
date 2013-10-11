@@ -60,6 +60,7 @@ authorization do
     has_permission_on :admin_membership_offers, :to=>[:view]
     has_permission_on :admin_special_features, :to=>[:view,:manage]
     has_permission_on :admin_donation_orders, :to=>[:view,:manage,:make]
+    has_permission_on :admin_imports, :to=>[:view, :make]
   end
 
   role :admin do
@@ -86,4 +87,5 @@ privileges do
   privilege :make, :includes => [:create, :new]
   privilege :view, :includes => [:index, :show, :read]
   privilege :manage, :includes => [:edit, :update, :update_notes]
+  privilege :box_office_reports=> [:trg_arts]
 end

@@ -1,6 +1,9 @@
 require 'csv'
 
 class Admin::ReportsController < Admin::ApplicationController
+  # filter_access_to :all
+  filter_access_to :trg_dump
+
 
   include Admin::ReportsHelper
   helper_method :tidy_output
@@ -9,6 +12,8 @@ class Admin::ReportsController < Admin::ApplicationController
   # GET /admin/reports.xml
   def index
     is_theater_user = !current_user.nil? && current_user.is_theater_user?
+    @generated_reports = FileStore.where("worker = ? and user_id = ?", FileStore::REPORT, current_user.id).order('created_at desc')
+    @generated_reports.select {|r| r.data.exists? }
     @productions = Production.with_permissions_to(:read).where(is_theater_user ? "1=1" : "(status != 'Inactive' and exists (select * from theaters where theaters.status != 'Inactive' and theaters.id = productions.theater_id)) or productions.theater_id = 1")
     if is_theater_user then
       @productions.sort! { |p1, p2| (p2.press_opening_at || Date.today-10.years) <=> (p1.press_opening_at || Date.today-10.years)}
@@ -178,14 +183,11 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def trg_dump
-    @headers, @report_data = build_trg_dump
-    if params['download_csv'].nil? then
-      respond_to do |format|
-        format.html
-      end
-    else
-      send_report_as_csv('trg_data', @headers, @report_data)
-    end
+    production = Production.find(params[:report][:production_id])
+    Resque.enqueue(TrgExport, production.nil? ? 0 : production.id, current_user.id)
+    flash[:notice] = 'Your export is queued for generation. You\'ll recieve notification when the process is complete.'
+    redirect_to admin_reports_path
+
   end
 
   def fulfill_tickets
@@ -446,7 +448,7 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
 
-  def build_trg_dump
+  def build_original_trg_dump #deprecated.  please look at this if you think you need to do an initial upload - jw
     orders = TicketOrder.order(:performance_id).includes(:address,:theater, {:performance=>:production})
     report = Array.new
     headers = [:buyer_type, :year, :description, :first, :last, :full_name, :company, :email, :address1, :address2,

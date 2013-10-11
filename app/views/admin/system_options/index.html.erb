@@ -1,5 +1,10 @@
-<%- permitted_to? :view, :admin_default_ticket_classes do -%>
-  <%= link_to raw('Default&nbsp;Ticket&nbsp;Classes'), admin_default_ticket_classes_path%><br/>
-<%- end -%>
+<%- permitted_to? :view, :admin_default_ticket_classes do %>
+  <%= link_to raw('Default&nbsp;Ticket&nbsp;Classes'), admin_default_ticket_classes_path %><br/>
+<%- end %>
 
-<%=link_to "Manage Payment Types", admin_payment_types_path %>
+<%=link_to "Manage Payment Types", admin_payment_types_path %><br/>
+
+<hr/>
+<%- permitted_to? :view, :admin_imports do %>
+  <%= link_to "Import data", admin_imports_path %><br/>
+<%- end %>

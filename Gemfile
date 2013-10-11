@@ -54,6 +54,10 @@ gem "namecase", "~> 1.1.0"
 gem "people"
 gem "jquery-rails", '~> 2.1'
 gem "icalendar"
+gem 'resque', :require => 'resque/server'
+gem 'resque-web', :require=>'resque_web'
+gem 'resque-scheduler', :require=>'resque_scheduler'
+
 #gem "rails3-jquery-autocomplete", :path=>"~/dev/rails3-jquery-autocomplete", :branch=>"v2"
 
 
@@ -71,6 +75,7 @@ group :development do
   gem 'httplog', :require=>false
   gem 'debugger'
   gem 'single_test'
+  gem 'ruby_parser'  # for declarative authorization eager loading for resque tasks
 end
 
 group :development,:test,:cucumber do

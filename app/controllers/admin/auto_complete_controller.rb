@@ -10,6 +10,13 @@ class Admin::AutoCompleteController < Admin::ApplicationController
       {:code=>production.production_code, :name=>production.name, :theater=>production.theater.name} }
   end
 
+  def any_production_code
+    productions = Production.with_permissions_to(:read).where(["LOWER(production_code) LIKE ?", params[:q].to_s.downcase + '%'])
+    render :json => productions.map { |production|
+      {:code=>production.production_code, :name=>production.name, :theater=>production.theater.name} }
+  end
+
+
   def performance_code
     production = Production.find_by_production_code(params[:production_code])
     if production.nil?

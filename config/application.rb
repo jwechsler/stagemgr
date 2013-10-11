@@ -9,6 +9,9 @@ require "#{File.dirname(__FILE__)}/../lib/my_emma_patches"
 # you've limited to :test, :development, or :production.
 Bundler.require(:default, :assets, Rails.env) if defined?(Bundler)
 
+# load resque front end
+require 'resque/server'
+
 module Stagemgr
   class Application < Rails::Application
 
@@ -18,7 +21,7 @@ module Stagemgr
 
     # Custom directories with classes and modules you want to be autoloadable.
     # config.autoload_paths += %W(#{config.root}/extras)
-    config.autoload_paths += %W( #{config.root}/app/models/orders #{config.root}/app/models/payments #{config.root}/app/models/special_offers #{config.root}/app/models/line_items #{config.root}/app/models/payment_types #{config.root}/app/models/order_tasks #{config.root}/app/models/tktprint)
+    config.autoload_paths += %W( #{config.root}/app/models/orders #{config.root}/app/models/payments #{config.root}/app/models/special_offers #{config.root}/app/models/line_items #{config.root}/app/models/payment_types #{config.root}/app/models/order_tasks #{config.root}/app/models/tktprint #{config.root}/app/models/resque_jobs)
     config.autoload_paths += %W( #{config.root}/lib )
     # Only load the plugins named here, in the order given (default is alphabetical).
     # :all can be used as a placeholder for all plugins not explicitly named.

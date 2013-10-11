@@ -1,5 +1,8 @@
 module Admin::ReportsHelper
 
+  TRG_IMPORT_HEADERS = [:FirstName, :LastName, :FullName, :CompanyName, :Email, :Address1, :Address2,
+               :Address3, :City, :State, :Zip, :HomePhone, :BusinessPhone, :ClientPatronID]
+
   def select_week_of
     c_week = 16.weeks.ago.to_date
     s = Array.new
@@ -10,7 +13,7 @@ module Admin::ReportsHelper
     s.sort! { |d1, d2| d2.value <=> d1.value }
   end
 
-  def tidy_output(f)
+  def self.tidy_output(f)
     if f.is_a?(Time)
       f.to_s(:hour_min)
     else
@@ -22,19 +25,25 @@ module Admin::ReportsHelper
     title.gsub(/[\/\(\)\'\" ]/, '_')
   end
 
-  def self.save_report_as_csv(file_path, headers, data)
+  def self.save_report_as_csv(file_path, headers, data, filestore=nil)
     csv_string = CSV.generate do |csv|
       csv << headers
       data.each do |r|
-        csv << headers.map { |h| Admin::ReportsHelper.tidy_output(r[h]) } unless r.nil?
+        csv << headers.map { |h| tidy_output(r[h]) } unless r.nil?
       end
     end
     f = File.new(file_path,'w')
     f.puts(csv_string)
     f.close
+    unless filestore.nil?
+      filestore.data = File.open(file_path)
+      filestore.worker = FileStore::REPORT
+      filestore.save
+      File.delete(file_path)
+    end
   end
 
-  def attendees_on_email_list(production)
+  def self.attendees_on_email_list(production)
     members_by_email = Hash.new
     unless MyEmma.disabled? || production.myemma_attendee_group.nil?
       grp = MyEmma::Group.find(production.myemma_attendee_group)

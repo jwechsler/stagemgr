@@ -5,6 +5,7 @@ config/pay_pal_credentials.yml
 .DS_Store
 .idea
 .bundle
+*.pid
 db/*.sqlite3
 log/*.log
 tmp/**/*

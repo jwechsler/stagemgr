@@ -1,0 +1,17 @@
+delete_generated_reports:
+  every: "1h"
+  args:
+  - report
+  - 24
+  description: 'Deletes generated reports older than 24 hours'
+  queue: maintenance
+  custom_job_class: AgeOutFileStore
+
+delete_completed_imports:
+  every: "1h"
+  args:
+  - import
+  - 24
+  description: 'Deletes imported raw data files after 24 hours'
+  queue: maintenance
+  custom_job_class: AgeOutFileStore

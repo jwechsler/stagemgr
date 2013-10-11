@@ -62,18 +62,18 @@ Stagemgr::Application.configure do
 
 end
 
-unless $rails_rake_task
-  require 'ruby-debug'
+# unless $rails_rake_task
+#   require 'ruby-debug'
+#
+#   Debugger.settings[:autoeval] = true
+#   Debugger.settings[:autolist] = 1
+#   Debugger.settings[:reload_source_on_change] = true
+#   begin
+#     Debugger.start_remote
+#   rescue Exception => e
+#     puts "Cannot start remote debugger - #{e.message}"
+#   end
 
-  Debugger.settings[:autoeval] = true
-  Debugger.settings[:autolist] = 1
-  Debugger.settings[:reload_source_on_change] = true
-  begin
-    Debugger.start_remote
-  rescue Exception => e
-    puts "Cannot start remote debugger - #{e.message}"
-  end
-
-end
+# end
 
 
