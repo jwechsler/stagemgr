@@ -145,7 +145,6 @@ GEM
       crack (= 0.1.8)
     httplog (0.2.4)
     i18n (0.6.5)
-    icalendar (1.4.3)
     jquery-rails (2.1.4)
       railties (>= 3.0, < 5.0)
       thor (>= 0.14, < 2.0)
@@ -255,6 +254,7 @@ GEM
       resque
       sass-rails
       twitter-bootstrap-rails
+    ri_cal (0.8.8)
     rspec (2.14.1)
       rspec-core (~> 2.14.0)
       rspec-expectations (~> 2.14.0)
@@ -358,7 +358,6 @@ DEPENDENCIES
   gemcutter
   htmldiff
   httplog
-  icalendar
   jquery-rails (~> 2.1.0)
   launchy
   map_by_method (= 0.8.3)
@@ -381,6 +380,7 @@ DEPENDENCIES
   resque-retry
   resque-scheduler
   resque-web
+  ri_cal
   rspec
   rspec-rails
   ruby_parser
