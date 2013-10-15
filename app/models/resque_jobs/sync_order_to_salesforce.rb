@@ -5,7 +5,7 @@ class SyncOrderToSalesforce
   @retry_delay = 3600
 
   def self.perform(order_id)
-    Authorization.without_access_control do
+    Authorization::Maintenance::without_access_control do
       syncable = Order.find(address_id)
       syncable.sf_disable_sync_on_commit = true
       syncable.sync_to_salesforce!(true)
