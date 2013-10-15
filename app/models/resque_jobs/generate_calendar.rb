@@ -1,26 +1,6 @@
 class GenerateCalendar
 
   def self.perform(path)
-    # cal.timezone do
-    #   timezone_id             "America/Chicago"
-#
-    #   daylight do
-    #     timezone_offset_from  "-0600"
-    #     timezone_offset_to    "-0500"
-    #     timezone_name         "CDT"
-    #     dtstart               "19700308TO20000"
-    #     add_recurrence_rule   "FREQ=YEARLY;BYMONTH=3;BYDAY=2SU"
-    #   end
-#
-    #   standard do
-    #     timezone_offset_from  "-0500"
-    #     timezone_offset_to    "-0600"
-    #     timezone_name         "CST"
-    #     dtstart               "19701101T020000"
-    #     add_recurrence_rule   "YEARLY;BYMONTH=11;BYDAY=1SU"
-    #   end
-    # end
-
     path = "performances.ics" if path.nil?
     path = $SERVER_CONFIG['static_cache_dir'] + '/' + path
 
@@ -41,7 +21,6 @@ class GenerateCalendar
           event.summary = perf.production.name
           event.location = perf.production.venue.name
           event.url = "#{$SERVER_CONFIG['secure_root_url']}#{Rails.application.routes.url_helpers.new_production_performance_order_path(:production_id=>perf.production_id, :performance_id => perf.id)}" unless perf.performance_date < Date.today
-          # event.dtstart.timezone_id = {"TZID"=>"America/Chicago"}
         end
       end
     end
