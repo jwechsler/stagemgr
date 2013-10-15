@@ -29,7 +29,7 @@ $(function() {
     return false;
   });
 
-  $('form a.remove_child').live('click', function() {
+  $('form a.remove_child').on('click', function() {
     var hidden_field = $(this).prev('input[type=hidden]')[0];
     if(hidden_field) {
       hidden_field.value = '1';

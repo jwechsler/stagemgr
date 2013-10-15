@@ -13,7 +13,7 @@ setup_line_item_row_control(order_type);
 setup_payment_form(order_type);
 
 // add_autocomplete("ticket_order");
-$('input.ticket_count,input.price_override').live('change',function() {
+$('input.ticket_count,input.price_override').on('change',function() {
   recalculate_row_total(order_type,$(event.target).parents('tr'))
 });
 
