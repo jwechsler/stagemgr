@@ -72,8 +72,11 @@ Stagemgr::Application.configure do
 
   # Set up notification for issues
 
-  config.middleware.use ExceptionNotifier,
-                        :email_prefix=>"[Stagemgr Exception] ",
-                        :sender_address=>%{"Exception Notifier" <bugs@theaterwit.org>},
-                        :exception_recipients=>%w{bugs@theaterwit.org}
 end
+
+Stagemgr::Application.config.middleware.use ExceptionNotification::Rack,
+                        :email=> {
+                          :email_prefix=>"[Stagemgr Exception] ",
+                          :sender_address=>%{"Exception Notifier" <bugs@theaterwit.org>},
+                          :exception_recipients=>%w{bugs@theaterwit.org}
+                        }
