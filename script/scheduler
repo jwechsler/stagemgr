@@ -14,7 +14,7 @@ case "$1" in
     kill `cat ./resque-scheduler.pid`
     if [ $? -eq 0 ]; then
       rm ./resque-scheduler.pid
-      echo "Resque workers stopped"
+      echo "Schedule worker stopped"
     fi
     ;;
 esac

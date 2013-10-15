@@ -420,8 +420,9 @@ class Address
     SalesforceSync.enabled? && !self.sf_disable_sync_on_commit? && ( !self.sf_contact_id.nil? || self.orders.count > 0 )
   end
 
-  def queue_sf_sync
-    Resque.enqueue_in(2.minutes, SyncAddressToSalesforce, self.id)
+  def queue_sf_sync(delay = nil)
+    delay = 2.minutes if delay.nil?
+    Resque.enqueue_in(delay, SyncAddressToSalesforce, self.id)
   end
 
 

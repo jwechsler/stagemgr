@@ -236,6 +236,10 @@ class Order < ActiveRecord::Base
     [HOLD, NEW, PROCESSING, nil].include? self.status
   end
 
+  def settled?
+    !self.editable?
+  end
+
   def finalized?
     self.finalized_statuses.include? self.status
   end
@@ -261,7 +265,7 @@ class Order < ActiveRecord::Base
   end
 
   def self.finalized_statuses
-    self.attended_statuses + [PROCESSED]
+    self.attended_statuses
   end
 
   def finalized_statuses
@@ -775,7 +779,7 @@ class Order
 
   after_commit :queue_sf_sync, :if=>Proc.new { |syncable| self.syncable? && !syncable.sf_disable_sync_on_commit? && SalesforceSync.enabled? }
 
-  def queue_sf_sync
+  def queue_sf_sync(delay = nil)
 
   end
 

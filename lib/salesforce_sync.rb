@@ -101,6 +101,38 @@ class SalesforceSync
     Authorization.ignore_access_control(false)
   end
 
+
+  def SalesforceSync.queue_pending_orders
+    if SalesforceSync.enabled?
+      count = 0
+      q_time = 2.minutes
+      donation_record_type_id = SalesforceData::RecordType.find_by_Name('Donation').Id
+      sf_cache = SyncCache.new
+      orders = DonationOrder.where("sf_last_sync_at is null or sf_last_sync_at < updated_at and status in ?",Order.syncable_statuses)
+      orders.select { |o| o.total > 0 }.each do |order|
+        if order.syncable?
+          order.queue_sf_sync(q_time)
+          count += 1
+          if count >= 500
+            q_time += 1.day + 1.minute
+            count = 0
+          end
+        end
+      end
+      orders = Order.where("type in ('TicketOrder','MembershipOrder') and sf_last_sync_at is null or sf_last_sync_at < updated_at and status in (?)",
+       Order.syncable_statuses).order("created_at desc").limit(2250)
+      orders.each do |order|
+        order.queue_sf_sync(q_time)
+        count += 1
+        if count >= 500
+          q_time += 1.day + 1.minute
+          count = 0
+        end
+      end
+    end
+  end
+
+
   def SalesforceSync.merge_purge_addresses(delete_sf_records = false)
     SalesforceSync.materialize_all if delete_sf_records
     addresses = Address.all

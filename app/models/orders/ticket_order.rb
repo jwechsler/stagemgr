@@ -462,8 +462,9 @@ end
 
 class TicketOrder
 
-  def queue_sf_sync
-    Resque.enqueue_in(2.minutes, SyncOrderToSalesforce, self.id)
+  def queue_sf_sync(delay)
+    delay = 2.minutes if delay.nil?
+    Resque.enqueue_in(delay, SyncOrderToSalesforce, self.id)
     super
   end
 

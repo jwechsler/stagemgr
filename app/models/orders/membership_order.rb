@@ -165,8 +165,9 @@ class MembershipOrder
     SalesforceSync.enabled?
   end
 
-  def queue_sf_sync # membership orders just update the address record at present
-    Resque.enqueue_in(2.minutes, SyncAddressToSalesforce, self.address_id)
+  def queue_sf_sync(delay) # membership orders just update the address record at present
+    delay = 2.minutes if delay.nil?
+    Resque.enqueue_in(delay, SyncAddressToSalesforce, self.address_id)
     super
   end
 
