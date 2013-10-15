@@ -21,31 +21,31 @@
 
 set :output, {:error => nil}
 
-every 10.minutes do
-  runner "Order.delete_unprocessed_orders"
-end
+#every 10.minutes do
+#  runner "Order.delete_unprocessed_orders"
+#end
 
-every 1.day do
-  runner "Address.purge_matched_duplicates"
-end
+#every 1.day do
+#  runner "Address.purge_matched_duplicates"
+#end
 
-every 1.day do
-  runner "FlexPassOrder.send_flex_pass_reminder"
-end
+#every 1.day do
+#  runner "FlexPassOrder.send_flex_pass_reminder"
+#end
 
-every 5.minutes do
-  runner "OrderTask.run_pending"
-end
+#every 5.minutes do
+#  runner "OrderTask.run_pending"
+#end
 
-every 1.day do
-  runner "SalesforceSync.sync_orders"
-end
+#every 1.day do
+#  runner "SalesforceSync.sync_orders"
+#end
 
-every 1.day do
-  runner "FlexPass.check_expirations"
-end
+#every 1.day do
+#  runner "FlexPass.check_expirations"
+#end
 
-every 4.hours do
-  runner "CalendarExchange.publish_calendar 'performance_schedule.ics'"
-end
+#every 4.hours do
+#  runner "CalendarExchange.publish_calendar 'performance_schedule.ics'"
+#end
 
