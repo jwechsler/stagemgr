@@ -29,6 +29,7 @@ gem 'rails', '3.1.10'
 # end
 
 gem "redcarpet"
+gem "whenever", :require=>false
 gem "formtastic"
 gem "databasedotcom"
 gem "formatize"
@@ -51,7 +52,7 @@ gem "postmark-rails"
 gem "namecase", "~> 1.1.0"
 #gem "name_parse", "~> 0.0.5"
 gem "people"
-gem "jquery-rails", '~> 2.1'
+gem "jquery-rails", '~> 2.1.0'
 gem "icalendar"
 gem 'resque', :require => 'resque/server'
 gem 'resque-web', :require=>'resque_web'
