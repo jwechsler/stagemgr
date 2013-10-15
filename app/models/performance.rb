@@ -58,6 +58,11 @@ class Performance < ActiveRecord::Base
    DateTime.parse("#{self.performance_date}T#{self.performance_time.strftime("%H:%M:00")}")
   end
 
+  def to_time_with_zone
+   Time.zone.parse("#{self.performance_date}T#{self.performance_time.strftime("%H:%M:00")}")
+  end
+
+
   def near_capacity?
     self.number_of_seats_left <= 9
   end
