@@ -53,7 +53,7 @@ gem "namecase", "~> 1.1.0"
 #gem "name_parse", "~> 0.0.5"
 gem "people"
 gem "jquery-rails", '~> 2.1.0'
-gem "ri_cal"
+gem "ri_cal", :git=>"https://github.com/ctide/ri_cal.git"
 gem 'resque', :require => 'resque/server'
 gem 'resque-web', :require=>'resque_web'
 gem 'resque-scheduler', :require=>'resque_scheduler'
