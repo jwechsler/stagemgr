@@ -280,7 +280,7 @@ class Address < ActiveRecord::Base
   end
 
   def is_current_flex_pass_holder?
-    self.orders.select { |o| (o.is_a? FlexPassOrder) && (o.flex_pass_line_items.first.flex_pass.active?) }.count > 0
+    self.orders.select { |o| (o.is_a? FlexPassOrder) && (o.flex_pass_line_items.first.flex_pass.available?) }.count > 0
   end
 
   def has_flex_pass?
@@ -408,6 +408,22 @@ end
 
 class Address
 
+  attr_writer :sf_disable_sync_on_commit
+
+  def sf_disable_sync_on_commit?
+    @sf_disable_sync_on_commit.nil? ? false : @sf_disable_sync_on_commit
+  end
+
+  after_commit :queue_sf_sync, :if=>:syncable?
+
+  def syncable?
+    SalesforceSync.enabled? && !self.sf_disable_sync_on_commit? && ( !self.sf_contact_id.nil? || self.orders.count > 0 )
+  end
+
+  def queue_sf_sync
+    Resque.enqueue_in(2.minutes, SyncAddressToSalesforce, self.id)
+  end
+
 
   def create_salesforce_contact
     puts "  creating new sf record"
@@ -448,9 +464,8 @@ class Address
     sf_contact
   end
 
-
   def sync_to_salesforce!(force_sync = false)
-    if self.sf_last_sync_at.nil? || (self.sf_last_sync_at < self.updated_at) || force_sync
+    if self.sf_last_sync_at.nil? || (self.sf_last_sync_at + 2.seconds < self.updated_at) || force_sync
       sf_contact = SalesforceData::Contact.find_by_stagemgr_id__c("#{self.id}")
       sf_attributes = SalesforceData::Contact.attributes
       sync_time = DateTime.now
@@ -520,11 +535,11 @@ class Address
       sf_contact = self.update_attendance_data(sf_contact)
       sf_contact = self.update_membership_data(sf_contact)
       sf_contact.save
-      puts "Save success"
       self.sf_contact_id = sf_contact.Id
-      self.sf_last_sync_at = DateTime.now + 15.seconds
-      self.save!
+      self.sf_last_sync_at = DateTime.now
       self.sf_object = sf_contact
+      self.sf_disable_sync_on_commit = true
+      self.save!
     else
       self.sf_object = SalesforceData::Contact.find_by_stagemgr_id__c("#{self.id}")
     end

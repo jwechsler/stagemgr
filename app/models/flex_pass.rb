@@ -4,6 +4,8 @@ class FlexPass < ActiveRecord::Base
   belongs_to :flex_pass_line_item
   belongs_to :order
   has_many :flex_pass_payments
+  before_create :set_expiration_date
+  after_create :queue_expiration
 
   validates_presence_of :address, :flex_pass_offer, :flex_pass_line_item, :order, :code
 
@@ -24,8 +26,16 @@ class FlexPass < ActiveRecord::Base
     self.flex_pass_offer.number_of_tickets - used
   end
 
-  def active?
-    self.uses_remaining > 0
+  def available?
+    self.uses_remaining > 0 && self.active?
+  end
+
+  def set_expiration_date
+    self.expiration_date = Time.now + flex_pass_offer.months_till_expiration
+  end
+
+  def queue_expiration
+    Resque.enqueue_in(flex_pass_offer.months_till_expiration.months, ExpireFlexPass, self.id)
   end
 
   def self.check_expirations

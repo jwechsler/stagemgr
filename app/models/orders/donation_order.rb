@@ -54,8 +54,19 @@ end
 
 class DonationOrder
 
+  def self.syncable_statuses
+    self.finalized_statuses
+  end
+
+  def queue_sf_sync
+    Resque.enqueue_in(2.minutes, SyncDonationToSalesforce, self.id)
+    super
+  end
+
   def sync_to_salesforce!(sf_user = nil, sf_donationtype = nil)
     if self.finalized?
+      sf_user = $DATABASEDOTCOM['user_id'] if sf_user.nil?
+      sf_donationtype = $DATABASEDOTCOM['donation_record_type_id'] if sf_donationtype.nil?
       c = self.address.sf
       account = SalesforceData::Account.find_by_npe01__One2OneContact__c(c.Id)
 
@@ -76,7 +87,7 @@ class DonationOrder
         donation.CloseDate = self.last_processed_on
         donation.AccountId = account.Id
         donation.npe01__Contact_Id_for_Role__c = account.Id
-	donation.save
+	      donation.save
       end
       self.sf_last_sync_at = DateTime.now
       self.save!

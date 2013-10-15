@@ -6,6 +6,11 @@ module SalesforceData
 end
 
 class SalesforceSync
+
+  def self.enabled?
+    $DATABASEDOTCOM['sync_to_salesforce']
+  end
+
   def SalesforceSync.connect_client(client_id=nil, client_secret=nil, username=nil, password=nil, host=nil)
     client_id = $DATABASEDOTCOM['client_id'] if client_id.nil?
     client_secret = $DATABASEDOTCOM['client_secret'] if client_secret.nil?
@@ -73,7 +78,7 @@ class SalesforceSync
     prods.each { |p| p.sync_to_salesforce! }
   end
 
-  def SalesforceSync.sync_orders
+  def SalesforceSync.resync_pending_orders
     donation_record_type_id = SalesforceData::RecordType.find_by_Name('Donation').Id
     sf_cache = SyncCache.new
     orders = DonationOrder.where("sf_last_sync_at is null or sf_last_sync_at < updated_at")

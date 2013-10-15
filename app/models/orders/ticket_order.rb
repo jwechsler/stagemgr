@@ -462,28 +462,29 @@ end
 
 class TicketOrder
 
+  def queue_sf_sync
+    Resque.enqueue_in(2.minutes, SyncOrderToSalesforce, self.id)
+    super
+  end
+
   def sync_to_salesforce!(sf_cache = nil)
     if sf_cache.nil?
       sf_cache = SyncCache.new
     end
-    if self.syncable? && (self.sf_last_sync_at.nil? || self.sf_last_sync_at < self.updated_at)
-      puts "syncing order #{self.id}"
+    if self.syncable?
       event = SalesforceData::OrderActivity__c.find_by_stagemgr_order_id__c(self.id)
       # is delete needed?
       if self.returned?
-        puts "  removing synced copy"
         event.delete unless event.nil?
       elsif
-        contact = sf_cache.address(self.address_id)
-        showtime = DateTime.new(self.performance.performance_date.year,
+        contact = sf_cache.address(self.address_id)  # May update/create address on salesforce as this point
+        showtime = Time.local(self.performance.performance_date.year,
                                 self.performance.performance_date.month,
                                 self.performance.performance_date.day,
                                 self.performance.performance_time.hour,
                                 self.performance.performance_time.min,
-                                self.performance.performance_time.sec,
-                                Rational(Time.zone.utc_offset/60/60, 24))
+                                self.performance.performance_time.sec)
         if event.nil?
-          puts "  creating event in salesforce"
           event = SalesforceData::OrderActivity__c.create("stagemgr_order_id__c" => self.id.to_s,
             "Name" => self.performance.production.name,
             "Attendee__c" => contact.Id,
@@ -491,7 +492,6 @@ class TicketOrder
             "spent__c" => self.total_amount,
             "attended_on__c" => showtime)
         else
-          puts " updating record"
           event.Attendee__c = contact.Id
           event.Name = self.performance.production.name
           event.number_of_tickets__c = self.total_ticket_quantity
@@ -502,10 +502,9 @@ class TicketOrder
 
       end
       self.sf_object = event
-      self.sf_order_id = nil || (sf_object.Id unless sf_object.nil?)
-      self.sf_last_sync_at = DateTime.now + 15.seconds
+      self.sf_order_id = nil || (self.sf_object.Id unless self.sf_object.nil?)
+      self.sf_last_sync_at = DateTime.now
       self.save!
-      self.address.sync_to_salesforce!(true)
     end
   end
 

@@ -1,7 +1,7 @@
 require 'declarative_authorization/maintenance'
 include Authorization::Maintenance
 
-FactoryGirl.duplicate_attribute_assignment_from_initialize_with = false
+# FactoryGirl.duplicate_attribute_assignment_from_initialize_with = false
 
 module FactoryGirl
   class << self

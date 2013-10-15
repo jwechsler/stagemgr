@@ -29,7 +29,6 @@ gem 'rails', '3.1.10'
 # end
 
 gem "redcarpet"
-gem "whenever", :require=>false
 gem "formtastic"
 gem "databasedotcom"
 gem "formatize"
@@ -57,6 +56,7 @@ gem "icalendar"
 gem 'resque', :require => 'resque/server'
 gem 'resque-web', :require=>'resque_web'
 gem 'resque-scheduler', :require=>'resque_scheduler'
+gem 'resque-retry'
 
 #gem "rails3-jquery-autocomplete", :path=>"~/dev/rails3-jquery-autocomplete", :branch=>"v2"
 

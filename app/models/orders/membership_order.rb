@@ -98,6 +98,11 @@ class MembershipOrder < Order
     super(reload_line_items) + self.membership_line_items
   end
 
+
+  def time_to_hold_in_transition
+    8.hours
+  end
+
   protected
 
 
@@ -156,16 +161,17 @@ end
 
 class MembershipOrder
 
-  def sync_to_salesforce!(sf_cache = nil)
-    if sf_cache.nil?
-      sf_cache = SyncCache.new
-    end
-    if (self.sf_last_sync_at.nil? || self.sf_last_sync_at < self.updated_at)
-      puts "syncing order #{self.id}"
-      self.address.sync_to_salesforce!(true)
-      self.sf_last_sync_at = DateTime.now + 15.seconds
-      self.save!
-    end
+  def syncable?
+    SalesforceSync.enabled?
+  end
+
+  def queue_sf_sync # membership orders just update the address record at present
+    Resque.enqueue_in(2.minutes, SyncAddressToSalesforce, self.address_id)
+    super
+  end
+
+  def self.syncable_statuses
+    return self.attended_statuses + super
   end
 
 end

@@ -1,9 +1,10 @@
-class CalendarExchange
+class GenerateCalendar
   include Icalendar
 
-  def self.publish_calendar(path)
+  def self.perform(path)
     cal = Calendar.new
-    path = YAML::load(File.open("#{::Rails.root.to_s}/config/server.yml"))['production']['static_cache_dir'] + '/' + path
+    path = "performances.ics" if path.nil?
+    path = $SERVER_CONFIG['static_cache_dir'] + '/' + path
 
     Performance.where('productions.status = ? and performances.status in (?) and performance_date > ?',Production::ACTIVE,Performance.visible_statuses,Date.today.beginning_of_month).includes(:production).each do |perf|
       params = { "X-ALT_DESC"=>"FMTTYPE=text/html:<!DOCTYPE HTMLS PUBLIC \"-//W3C//DTD HTMLS 3.2//EN\"\n<HTML><BODY>#{$MARKDOWN.render(perf.production.show_description)}</BODY></HTML>"}

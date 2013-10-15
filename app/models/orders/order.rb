@@ -49,6 +49,50 @@ class Order < ActiveRecord::Base
   attr_accessor :sf_object
 
 
+  ORDER_STATUSES = (
+  HOLD, WEB, NEW, PROCESSING, PROCESSED, REFUNDED, EXCHANGED, FULFILLED, CANCELED, UNCLAIMED =
+      "Hold", "Web", "New", "Processing", "Processed", "Refunded", "Exchanged", "Fulfilled", "Canceled", "Unclaimed")
+
+  HOLDING_SEAT_STATUSES = [HOLD, WEB, PROCESSING, PROCESSED, FULFILLED]
+
+  REFERRALS = [
+      "Email", "Mail", "Cast/Staff/Production Team", "Review/Feature", "Radio", "Newspaper Ad", "Facebook", "Twitter", "Word of Mouth", "Attended previous production", "Other"
+  ]
+
+  acts_as_audited
+
+
+  before_validation :cascade_address_to_nested_items
+  before_validation :initialize_nested_line_items, :on => :create
+  before_validation :set_defaults
+  before_validation :create_recipient_address, :if=>:gift?
+
+  before_save :link_to_address_of_record, :if=>[:status_changed?, :processed?]
+  after_validation :prevent_status_rollbacks
+  before_destroy :check_for_settled_payments
+  before_save :set_theater
+  before_save :cancel_pending_tasks, :if=>:newly_canceled?
+  after_save :set_tasks_after_save
+  after_commit :delete_abandoned
+
+  validates_inclusion_of :status, :in => ORDER_STATUSES, :if=>:status_is_provided?
+
+  validates_presence_of :address
+  validates_associated :address,
+                       :payments,
+                       :special_offer_line_items
+
+  validates_each :status do |record, attr, value|
+
+    if value == PROCESSED
+      unless record.total == record.value_of_all_payments
+        record.errors.add attr, "cannot be set to #{PROCESSED} if the total isn't countered by a payment."
+      end
+      m_payments = record.payments.select{|p| p.is_a? MembershipPayment}
+      m_payments.each { |p| p.membership.verify_applicable_for(record) }
+    end
+  end
+
   def copy_payment_information(from_order)
     self.credit_card_number = from_order.credit_card_number
     self.credit_card_type = from_order.credit_card_type
@@ -72,51 +116,6 @@ class Order < ActiveRecord::Base
      :member_code=>self.member_code,
      :check_number=>self.check_number}
   end
-
-
-  ORDER_STATUSES = (
-  HOLD, WEB, NEW, PROCESSING, PROCESSED, REFUNDED, EXCHANGED, FULFILLED, CANCELED, UNCLAIMED =
-      "Hold", "Web", "New", "Processing", "Processed", "Refunded", "Exchanged", "Fulfilled", "Canceled", "Unclaimed")
-
-  HOLDING_SEAT_STATUSES = [HOLD, WEB, PROCESSING, PROCESSED, FULFILLED]
-
-  REFERRALS = [
-      "Email", "Mail", "Cast/Staff/Production Team", "Review/Feature", "Radio", "Newspaper Ad", "Facebook", "Twitter", "Word of Mouth", "Attended previous production", "Other"
-  ]
-
-  acts_as_audited
-
-
-  before_validation :cascade_address_to_nested_items
-  before_validation :initialize_nested_line_items, :on => :create
-  before_validation :set_defaults
-  before_validation :create_recipient_address, :if=>:gift?
-
-  after_validation :auto_link_processed_to_address_of_record
-  after_validation :prevent_status_rollbacks
-  before_destroy :check_for_settled_payments
-  before_save :set_theater
-  before_save :cancel_pending_tasks, :if=>:newly_canceled?
-  after_save :set_tasks_after_save
-
-  validates_inclusion_of :status, :in => ORDER_STATUSES, :if=>:status_is_provided?
-
-  validates_presence_of :address
-  validates_associated :address,
-                       :payments,
-                       :special_offer_line_items
-
-  validates_each :status do |record, attr, value|
-
-    if value == PROCESSED
-      unless record.total == record.value_of_all_payments
-        record.errors.add attr, "cannot be set to #{PROCESSED} if the total isn't countered by a payment."
-      end
-      m_payments = record.payments.select{|p| p.is_a? MembershipPayment}
-      m_payments.each { |p| p.membership.verify_applicable_for(record) }
-    end
-  end
-
 
   def value_of_all_payments
     self.unique_payments.sum { |p| p.amount }
@@ -150,6 +149,10 @@ class Order < ActiveRecord::Base
 
   def printable?
     false
+  end
+
+  def time_to_hold_in_transition
+    15.minutes
   end
 
   def self.attending_statuses
@@ -187,6 +190,11 @@ class Order < ActiveRecord::Base
   def ticketing_fee
     BigDecimal.new("0", 2)
   end
+
+  def delete_abandoned
+    Resque.enqueue_in(self.time_to_hold_in_transition, DeleteAbandonedOrder, self.id)
+  end
+
 
   def customer_visible_total(reload_line_items = false)
     self.payments.to_a.sum { |payment| payment.respond_to?(:customer_visible_amount) ? payment.customer_visible_amount : 0 }
@@ -229,7 +237,7 @@ class Order < ActiveRecord::Base
   end
 
   def finalized?
-    [PROCESSED, FULFILLED, UNCLAIMED].include? self.status
+    self.finalized_statuses.include? self.status
   end
 
   def paid?
@@ -237,15 +245,31 @@ class Order < ActiveRecord::Base
   end
 
   def self.syncable_statuses
-    return self.attended_statuses + [UNCLAIMED, REFUNDED, EXCHANGED]
+    return Order.finalized_statuses + [UNCLAIMED, REFUNDED, EXCHANGED]
+  end
+
+  def syncable_statuses
+    return Order.syncable_statuses
   end
 
   def self.attended_statuses
     [PROCESSED, FULFILLED]
   end
 
-  def syncable?
-    self.attended? || self.unclaimed? || self.returned?
+  def attended_statuses
+    Order.attended_statuses
+  end
+
+  def self.finalized_statuses
+    self.attended_statuses + [PROCESSED]
+  end
+
+  def finalized_statuses
+    Order.finalized_statuses
+  end
+
+  def processed?
+    PROCESSED == self.status
   end
 
   def returned?
@@ -406,10 +430,17 @@ class Order < ActiveRecord::Base
     [Order::NEW, Order::PROCESSING]
   end
 
+  def transitory_statuses
+    Order.transitory_statuses
+  end
+
+  def transitory?
+    self.transitory_statuses.include? self.status
+  end
+
   def self.unprocessed_statuses
     [Order::HOLD] + self.transitory_statuses
   end
-
 
 
   def self.delete_unprocessed_orders
@@ -436,7 +467,6 @@ class Order < ActiveRecord::Base
 
   def link_to_address_of_record
     if !self.address.nil? then
-      self.address.regularize!
 
       if self.paid_with_membership? then
         merge = membership_payments.first.membership.address
@@ -732,3 +762,26 @@ class Order < ActiveRecord::Base
 
 
 end
+
+# Salesforce extension
+
+class Order
+
+  attr_writer :sf_disable_sync_on_commit
+
+  def sf_disable_sync_on_commit?
+    @sf_disable_sync_on_commit.nil? ? false : @sf_disable_sync_on_commit
+  end
+
+  after_commit :queue_sf_sync, :if=>Proc.new { |syncable| self.syncable? && !syncable.sf_disable_sync_on_commit? && SalesforceSync.enabled? }
+
+  def queue_sf_sync
+
+  end
+
+  def syncable?
+    self.syncable_statuses.include?(self.status)
+  end
+
+end
+
