@@ -1,4 +1,10 @@
 GIT
+  remote: https://github.com/ctide/ri_cal.git
+  revision: 8f3f73abfcfe4cb80099afc0d72b4693b5ef4776
+  specs:
+    ri_cal (0.8.8)
+
+GIT
   remote: https://github.com/jwechsler/my_emma.git
   revision: 2f13f48a4646ab9f422675f240e3ed688031200c
   specs:
@@ -254,7 +260,6 @@ GEM
       resque
       sass-rails
       twitter-bootstrap-rails
-    ri_cal (0.8.8)
     rspec (2.14.1)
       rspec-core (~> 2.14.0)
       rspec-expectations (~> 2.14.0)
@@ -380,7 +385,7 @@ DEPENDENCIES
   resque-retry
   resque-scheduler
   resque-web
-  ri_cal
+  ri_cal!
   rspec
   rspec-rails
   ruby_parser
