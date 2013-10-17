@@ -118,9 +118,9 @@ class Membership < ActiveRecord::Base
   end
 
   def last_effective_date
-    lp = self.membership_payments.max_by{|payment| payment.processed_on}
+    lp = self.membership_payments.max_by{|payment| payment.processed_on.to_date}
     if lp.nil?
-      self.created_at
+      self.created_at.to_date
     else
       lp.processed_on + 1.month
     end
