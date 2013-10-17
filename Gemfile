@@ -43,6 +43,7 @@ gem "will_paginate",          '~> 3.0.3'
 gem "my_emma",  "~>0.0.4", :git=>"https://github.com/jwechsler/my_emma.git"
 # or develop against "~/dev/my_emma"
 #gem "my_emma", :path=>"~/dev/my_emma"
+gem 'cocaine', '0.3.2'
 gem "paperclip",               "~> 3.1.2"
 gem "htmldiff"
 gem "StreetAddress",          "~> 1.0.1"
