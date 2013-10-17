@@ -265,7 +265,7 @@ class Admin::ReportsController < Admin::ApplicationController
     csv_string = CSV.generate do |csv|
       csv << headers
       data.each do |r|
-        csv << headers.map { |h| tidy_output(r[h]) } unless r.nil?
+        csv << headers.map { |h| Admin::ReportsHelper.tidy_output(r[h]) } unless r.nil?
       end
     end
     f = File.new('/tmp/debug.csv','w')
@@ -792,7 +792,7 @@ class Admin::ReportsController < Admin::ApplicationController
     report = Array.new
     keys = columns_for_orders(true,true)
     keys += [:order_total, :num_tickets]
-    members_by_email = attendees_on_email_list(production)
+    members_by_email = Admin::ReportsHelper.attendees_on_email_list(production)
     production.performances.each { |performance|
       orders = TicketOrder.joins(:ticket_line_items).where("performance_id = :performance_id", {:performance_id=>performance.id})
 
