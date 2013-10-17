@@ -87,5 +87,5 @@ privileges do
   privilege :make, :includes => [:create, :new]
   privilege :view, :includes => [:index, :show, :read]
   privilege :manage, :includes => [:edit, :update, :update_notes]
-  privilege :box_office_reports=> [:trg_arts]
+  privilege :box_office_reports, :includes=> [:trg_dump]
 end
