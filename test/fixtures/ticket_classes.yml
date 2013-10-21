@@ -35,3 +35,4 @@ flex:
   software_managed: true
   class_name: FlexPass ticket
   ticket_type: Donation
+  auto_attach: true

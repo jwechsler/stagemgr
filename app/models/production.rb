@@ -22,6 +22,8 @@ class Production < ActiveRecord::Base
   has_many :performances
   has_many :ticket_classes
   has_many :line_items
+  has_many :ticket_orders, :source=>:orders, :through=>:performances
+  has_one :production_stat
   before_validation :clean_values
   before_save :assign_default_ticket_classes
   belongs_to :flex_pass_offer
@@ -92,6 +94,12 @@ class Production < ActiveRecord::Base
       else
         nil
     end
+  end
+
+  def update_stats
+    self.build_production_stat if self.production_stat.nil?
+    self.production_stat.update
+    self.production_stat.save!
   end
 
   # @todo the below are hooks for markdown feature as planned

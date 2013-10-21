@@ -18,7 +18,7 @@
 	<%= link_to 'Cancel Order', cancel_admin_order_path(@ticket_order), :confirm => "Are you sure?", :method=>:post %>
 	<% end %>
   <% permitted_to? :resend_confirmation, :admin_orders do %>
-    <%- if @ticket_order.paid? && !@ticket_order.address.email.blank? %>
+    <%- if @ticket_order.settled? && !@ticket_order.address.email.blank? %>
     <%= link_to 'Resend Confirmation', resend_confirmation_admin_ticket_order_path(@ticket_order), :confirm=>"Resend confirmation email?" %>
   <%- end %>
   <%- end %>

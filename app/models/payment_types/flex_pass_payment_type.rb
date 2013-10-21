@@ -21,7 +21,7 @@ class FlexPassPaymentType < PassPaymentType
       total_amount += PassPaymentType.applicable_price(li.ticket_class, pass_ticket_class) * li.ticket_count
     }
     new_payment = FlexPassPayment.new(
-            :number_of_tickets => order.ticket_quantity,
+            :number_of_tickets => order.number_of_tickets,
             :flex_pass => flex_pass,
             :amount => total_amount,
             :payment_type=>self

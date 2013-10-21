@@ -56,7 +56,6 @@ gem "people"
 gem "jquery-rails", '~> 2.1.0'
 gem "ri_cal", :git=>"https://github.com/ctide/ri_cal.git"
 gem 'resque', :require => 'resque/server'
-gem 'resque-web', :require=>'resque_web'
 gem 'resque-scheduler', :require=>'resque_scheduler'
 gem 'resque-retry'
 
@@ -85,6 +84,7 @@ group :development,:test,:cucumber do
   gem 'factory_girl_rails'
 end
 
+
 group :test do
   gem 'sqlite3'
   gem 'capybara'
@@ -94,6 +94,7 @@ group :test do
   gem 'rspec'
   gem 'rspec-rails'
   gem 'test-unit',          '>=2.0.7'
+  gem "mocha", "~> 0.12.0", :require => false
   gem 'flexmock',           '0.8.6'
   gem 'simplecov'
   gem 'shoulda-context'
@@ -103,6 +104,11 @@ group :production do
   gem 'newrelic_rpm'
   gem 'exception_notification'
 end
+
+group :development,:production do
+  gem 'resque-web', :require=>'resque_web'
+end
+
 
 group :cucumber do
   gem 'sqlite3'
@@ -125,4 +131,3 @@ group :assets do
   gem 'uglifier'
 end
 
-gem "mocha", :group => :test

@@ -293,7 +293,7 @@ class Address < ActiveRecord::Base
 
       recent_orders = self.orders.select { |o| o.created_at > 1.year.ago }
       total_spent = recent_orders.sum { |o| o.total }
-      num_paid_tickets = recent_orders.sum { |o| o.total > 0 ? o.ticket_quantity : 0 }
+      num_paid_tickets = recent_orders.sum { |o| o.total > 0 ? o.number_of_tickets : 0 }
       candidate = recent_orders.size > 2 && total_spent/num_paid_tickets > 20
     else
       candidate = false
@@ -302,7 +302,7 @@ class Address < ActiveRecord::Base
   end
 
   def first_time_paying? (current_order)
-    self.orders.select { |o| (o.id != current_order.id) && o.paid? }.size ==0
+    self.orders.select { |o| (o.id != current_order.id) && o.settled? }.size ==0
   end
 
 
@@ -350,7 +350,7 @@ class Address < ActiveRecord::Base
   end
 
   def revenue_collected(since_when = 18.months.ago)
-    self.orders.select { |o| o.paid? && (Payment.maximum(:processed_on, :conditions=>["order_id = ?", o.id]) || since_when.to_date)   > since_when.to_date }.map { |o| o.total }.sum
+    self.orders.select { |o| o.settled? && (Payment.maximum(:processed_on, :conditions=>["order_id = ?", o.id]) || since_when.to_date)   > since_when.to_date }.map { |o| o.total }.sum
   end
 
   def performances_attended(since_when = 5.years.ago)

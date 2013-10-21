@@ -18,7 +18,7 @@ class TicketOrder < Order
   validates_each :status do |record, attr, value|
 
     if value == PROCESSED
-      unless record.ticket_line_items.empty? || record.ticket_quantity > 0
+      unless record.ticket_line_items.empty? || record.number_of_tickets > 0
         record.errors.add :ticket_line_items, "must contain at least one ticket."
       end
       if (!record.performance.nil? && record.performance.restricted_payment_types.include?(record.payment_type))
@@ -184,8 +184,13 @@ class TicketOrder < Order
     end
   end
 
+  def number_of_tickets
+     self.ticket_line_items(false).uniq.to_a.sum { |li| li.respond_to?(:ticket_count) ? li.ticket_count : 0 }
+  end
+
+  # @todo verify that this can be factored out
   def ticket_quantity
-    self.ticket_line_items(false).uniq.to_a.sum { |li| li.respond_to?(:ticket_count) ? li.ticket_count : 0 }
+    self.number_of_tickets
   end
 
   def performance_code=(string)
@@ -193,7 +198,9 @@ class TicketOrder < Order
   end
 
   def number_of_tickets_of_all_payments
-    self.payments.to_a.sum { |fpp| fpp.number_of_tickets }
+    number_of_tickets = self.payments.to_a.sum { |fpp| fpp.number_of_tickets.nil? ? 0 : fpp.number_of_tickets }
+    number_of_tickets = 0 if number_of_tickets.nil?
+    number_of_tickets
   end
 
   def attended?
