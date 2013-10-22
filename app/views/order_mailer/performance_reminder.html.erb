@@ -1,5 +1,5 @@
   <h3>See you <%= Date::DAYNAMES[@order.performance.performance_date.wday] %></h3>
-  <p>Just a reminder, you have <%= @order.ticket_quantity %> ticket<%= "s" unless @order.ticket_quantity == 1 %> reserved for the
+  <p>Just a reminder, you have <%= @order.number_of_tickets %> ticket<%= "s" unless @order.number_of_tickets == 1 %> reserved for the
       <%= @order.performance.performance_time.strftime('%l:%M %p') %> performance this <%= Date::DAYNAMES[@order.performance.performance_date.wday] %>.  We look forward to seeing you!
     <%- unless @order.performance.production.allow_late_seating %>
     <b>

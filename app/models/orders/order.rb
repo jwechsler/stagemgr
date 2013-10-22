@@ -236,16 +236,28 @@ class Order < ActiveRecord::Base
     [HOLD, NEW, PROCESSING, nil].include? self.status
   end
 
-  def settled?
-    !self.editable?
-  end
-
   def finalized?
     self.finalized_statuses.include? self.status
   end
 
   def paid?
     self.finalized?
+  end
+
+  def unsettled?
+    !self.settled?
+  end
+
+  def settled?
+    self.settled_statuses.include? self.status
+  end
+
+  def settled_statuses
+    Order.settled_statuses
+  end
+
+  def self.settled_statuses
+    [PROCESSED, FULFILLED, UNCLAIMED, REFUNDED, EXCHANGED]
   end
 
   def self.syncable_statuses

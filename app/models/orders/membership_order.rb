@@ -14,7 +14,7 @@ class MembershipOrder < Order
     BigDecimal.new("0", 2)
   end
 
-  def ticket_quantity
+  def number_of_tickets
     BigDecimal.new("0", 2)
   end
 

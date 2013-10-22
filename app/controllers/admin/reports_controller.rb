@@ -550,7 +550,7 @@ class Admin::ReportsController < Admin::ApplicationController
 
     fee = Money.from_numeric(offer.facility_fee.nil? ? 0 : offer.facility_fee)
     totals = {:payout=>Money.new(0), :facility_fee=>Money.new(0), :display_class=>:report_summary_row}
-    orders.select { |o| !o.nil? && o.paid? }.sort { |o1, o2| o2.created_at <=> o1.created_at }.each { |o|
+    orders.select { |o| !o.nil? && o.settled? }.sort { |o1, o2| o2.created_at <=> o1.created_at }.each { |o|
       flex_pass = FlexPass.find_by_order_id(o.id)
 
       used = FlexPassPayment.find_all_by_flex_pass_id(flex_pass.id)
@@ -620,8 +620,8 @@ class Admin::ReportsController < Admin::ApplicationController
       }.each { |perf|
         paid_orders = perf.orders.select { |o| o.paid? }
         held_orders = perf.orders.select { |o| o.held? }
-        paid_tickets = paid_orders.sum { |o| o.ticket_quantity }
-        held_tickets = held_orders.sum { |o| o.ticket_quantity }
+        paid_tickets = paid_orders.sum { |o| o.number_of_tickets }
+        held_tickets = held_orders.sum { |o| o.number_of_tickets }
         max_ticket_price = perf.ticket_class_allocations.select{|tca| tca.available? }.max_by{|tca| tca.ticket_class.ticket_price}.ticket_class.ticket_price
         gross = Money.from_numeric(paid_orders.sum { |o| o.total })
         ticketing_fee = Money.from_numeric(paid_orders.sum { |o| o.ticketing_fee })
