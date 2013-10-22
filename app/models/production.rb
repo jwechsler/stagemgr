@@ -26,6 +26,7 @@ class Production < ActiveRecord::Base
   has_one :production_stat
   before_validation :clean_values
   before_save :assign_default_ticket_classes
+  before_save :queue_statistics_recalc
   belongs_to :flex_pass_offer
   has_and_belongs_to_many :attendees, class_name: "Address", uniq: true
 
@@ -81,6 +82,10 @@ class Production < ActiveRecord::Base
     [ACTIVE, PRESALE]
   end
 
+  def self.on_sale_statuses
+    [ACTIVE, PRIVATE]
+  end
+
   def self.performing_classes
     [PLAY, SPECIAL_EVENT, OFF_TIME]
   end
@@ -100,6 +105,13 @@ class Production < ActiveRecord::Base
     self.build_production_stat if self.production_stat.nil?
     self.production_stat.update
     self.production_stat.save!
+    self.production_stat
+  end
+
+  def queue_statistics_recalc
+    if self.status_changed? and !Production.on_sale_statuses.include?(self.status)
+      Resque.enqueue_in(1.day, GenerateProductionSalesStatistics, self.id)
+    end
   end
 
   # @todo the below are hooks for markdown feature as planned
