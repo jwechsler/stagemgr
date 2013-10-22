@@ -12,12 +12,13 @@ setup_line_item_row_control(order_type);
 
 setup_payment_form(order_type);
 
-// add_autocomplete("ticket_order");
-$('input.ticket_count,input.price_override').on('change',function() {
-  recalculate_row_total(order_type,$(event.target).parents('tr'))
-});
+jQuery(document).ready(function($) {
+  $('input.ticket_count,input.price_override').on('change',function() {
+    recalculate_row_total(order_type,$(event.target).parents('tr'))
+  });
 
-$('#unclaimed_link').click(function(event) {
-  event.preventDefault();
+  $('#unclaimed_link').click(function(event) {
+    event.preventDefault();
+  });
 });
 
