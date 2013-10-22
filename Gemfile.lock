@@ -182,7 +182,6 @@ GEM
     net-ssh (2.7.0)
     net-ssh-gateway (1.2.0)
       net-ssh (>= 2.6.5)
-    newrelic_rpm (3.6.8.164)
     nifty-generators (0.4.6)
     nokogiri (1.6.0)
       mini_portile (~> 0.5.0)
@@ -370,7 +369,6 @@ DEPENDENCIES
   my_emma (~> 0.0.4)!
   mysql2
   namecase (~> 1.1.0)
-  newrelic_rpm
   nifty-generators
   paperclip (~> 3.1.2)
   people
