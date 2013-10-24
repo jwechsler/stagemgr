@@ -30,7 +30,7 @@ class Performance < ActiveRecord::Base
   validates_presence_of    :performance_time
 
   before_validation              :clean_values
-  before_save                    :populate_ticket_class_allocations
+  before_validation              :populate_ticket_class_allocations
   accepts_nested_attributes_for  :ticket_class_allocations
 
   def number_of_seats_left
@@ -71,7 +71,7 @@ class Performance < ActiveRecord::Base
   def populate_ticket_class_allocations
     self.ticket_class_allocations.each{|tca|tca.performance=self}
     (self.production.ticket_classes - self.ticket_class_allocations.map{|tca|tca.ticket_class}).map do |ticket_class|
-      self.ticket_class_allocations.create({:ticket_class=>ticket_class, :available=>ticket_class.auto_attach})
+      self.ticket_class_allocations.build({:ticket_class=>ticket_class, :available=>ticket_class.auto_attach, :performance=>self})
     end
   end
 

@@ -1,7 +1,7 @@
 class Admin::PerformancesController < Admin::ApplicationController
   prepend_before_filter :find_production
   append_before_filter :find_performance, :only => [:show, :edit, :update, :destroy, :duplicate]
-  
+
   # GET /performances
   # GET /performances.xml
   def index
@@ -26,19 +26,18 @@ class Admin::PerformancesController < Admin::ApplicationController
   # GET /performances/new.xml
   def new
     @performance = Performance.new({:production=>@production})
-    @performance.populate_ticket_class_allocations
 
     respond_to do |format|
       format.html # new.html.erb
       format.xml  { render :xml => @performance }
     end
   end
-  
+
   def duplicate
     old_performance = @performance
     @performance = @performance.dup
     @performance.ticket_class_allocations <<  old_performance.ticket_class_allocations.map{|tca|tca.dup}
-    @performance.populate_ticket_class_allocations
+    @performance.save
     render :action => :new
   end
 
@@ -51,7 +50,6 @@ class Admin::PerformancesController < Admin::ApplicationController
   # POST /performances.xml
   def create
     @performance = Performance.new(params[:performance])
-    @performance.populate_ticket_class_allocations
     respond_to do |format|
       if @performance.save
         flash[:notice] = 'Performance was successfully created.'
@@ -90,9 +88,9 @@ class Admin::PerformancesController < Admin::ApplicationController
       format.xml  { head :ok }
     end
   end
-  
+
   private
-  
+
   def find_production
     @theater=Theater.find(params[:theater_id])
     @production = @theater.productions.find(params[:production_id])
@@ -101,5 +99,5 @@ class Admin::PerformancesController < Admin::ApplicationController
   def find_performance
     @performance = @production.performances.find(params[:id])
   end
-  
+
 end

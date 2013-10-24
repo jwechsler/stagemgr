@@ -88,6 +88,7 @@ end
 group :test do
   gem 'sqlite3'
   gem 'capybara'
+  gem 'syntax'
   gem 'cucumber-rails', :require=>false
   gem 'database_cleaner'
   gem 'webrat',             '>=0.5.0'
