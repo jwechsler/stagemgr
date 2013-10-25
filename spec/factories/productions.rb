@@ -14,7 +14,13 @@ FactoryGirl.define do
     end
 
     after(:create) do |production, evaluator|
-      FactoryGirl.create_list(:ticket_class, evaluator.ticket_class_count, :production=>production)
+      if production.ticket_classes.empty?
+        FactoryGirl.create_list(:ticket_class, evaluator.ticket_class_count, :production=>production)
+      end
+      #evaluator.ticket_class_count.times do
+      #  production.ticket_classes << FactoryGirl.create(:ticket_class)
+      #end
+      #FactoryGirl.create_list(:ticket_class, evaluator.ticket_class_count, :production=>production)
       FactoryGirl.create(:software_managed_ticket_class, :class_code=>'PASS', :production=>production )
     end
 

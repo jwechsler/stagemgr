@@ -1,7 +1,7 @@
 class SendFlexPassReminders
   @queue = :notification
 
-  def perform
+  def self.perform
     email = $EMAIL_ADDRESS['flex_pass_notifications']
 
     unless email.blank?

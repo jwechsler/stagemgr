@@ -1,4 +1,4 @@
-require_relative "../../spec_helper.rb"
+require "spec_helper.rb"
 
 describe "a ticket class" do
   before (:each) do
@@ -39,4 +39,5 @@ describe "a ticket class" do
     o.performance.number_of_seats_left.should == o.performance.production.capacity
 
   end
+
 end

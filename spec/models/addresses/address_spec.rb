@@ -1,4 +1,4 @@
-require_relative "../../spec_helper.rb"
+require "spec_helper.rb"
 
 describe "a customer record" do
   it "should merge/purge production attendance records" do

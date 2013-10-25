@@ -40,6 +40,7 @@ module FactoryGirl
                           :ticket_price=>1.00, :web_visible=>false, :software_managed=>true, :auto_attach=>true)
       FactoryGirl.create(:default_ticket_class, :class_code=>'PASSFRIEND', :class_name=>"Pass Ticket",
                           :ticket_price=>0.00, :web_visible=>false, :software_managed=>true, :auto_attach=>true)
+      production.reload
       performance = FactoryGirl.create(:performance, :production=>production, :performance_code=>'PERF', :performance_time=>"#{Date.today} 18:00".to_time)
 
       performance.ticket_class_allocations.each do |tca|

@@ -30,11 +30,38 @@ class Performance < ActiveRecord::Base
   validates_presence_of    :performance_time
 
   before_validation              :clean_values
+  before_validation              :populate_ticket_class_allocations
+
   accepts_nested_attributes_for  :ticket_class_allocations
 
   def number_of_seats_left
-    self.production.capacity - TicketLineItem.where('ticket_classes.holds_seats = ? and orders.status in (?) and orders.performance_id = ?',true,Order::HOLDING_SEAT_STATUSES,self.id).includes(:order, :ticket_class).sum(:ticket_count)
+    self.production.capacity - self.seats_held
     # self.orders.select{|o| o.holding_seats? }.inject(0){|sum,order| sum + order.ticket_line_items.sum(:ticket_count) }
+  end
+
+  def seats_held
+    TicketLineItem.where('ticket_classes.holds_seats = ? and orders.status in (?) and orders.performance_id = ?',true,Order::HOLDING_SEAT_STATUSES,self.id).includes(:order, :ticket_class).sum(:ticket_count)
+  end
+
+  def scan_ticket_allocation_triggers
+    scan_required = true # we need to rescan if any performance allocation has shifted in case it cascades up
+    while scan_required
+      new_scan = false
+      seats_currently_held = self.seats_held
+      self.ticket_class_allocations.select{|tca| tca.shiftable? && tca.available?}.each do |tca|
+        if tca.trigger_satisfied?(seats_currently_held)
+          tca.available = false
+          allocation = self.allocation(tca.shift_to_code)
+          allocation.available = true
+          allocation.save
+          tca.save
+          new_scan = true
+        end
+      end
+      scan_required = new_scan
+      self.ticket_class_allocations(true) if new_scan
+    end
+
   end
 
   def number_of_tickets_left
@@ -70,8 +97,12 @@ class Performance < ActiveRecord::Base
   def populate_ticket_class_allocations
     self.ticket_class_allocations.each{|tca|tca.performance=self}
     (self.production.ticket_classes - self.ticket_class_allocations.map{|tca|tca.ticket_class}).map do |ticket_class|
-      self.ticket_class_allocations.build({:ticket_class=>ticket_class, :performance=>self, :available=>ticket_class.auto_attach})
+      self.ticket_class_allocations.build({:ticket_class=>ticket_class, :available=>ticket_class.auto_attach, :performance=>self})
     end
+  end
+
+  def allocation(class_code)
+    self.ticket_class_allocations.select{|tca| tca.ticket_class.class_code == class_code}.first
   end
 
   def to_s

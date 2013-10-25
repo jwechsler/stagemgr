@@ -6,15 +6,6 @@ def enter_base_production(code, capacity = 99)
   select "Space 1", :from=>"Venue"
 end
 
-Given /^I enter a performance on "(.*?)" with code "(.*?)"$/ do |perf_date, perf_code|
-  fill_in "performance_performance_date", :with=>perf_date
-  select "Active", :from=>"Status"
-  fill_in "Performance code", :with=>perf_code
-end
-
-Given /^I enter a performance date of "(.*?)"$/ do |perf_date|
-  fill_in "Performance date", :with=>perf_date
-end
 
 Given /^I enter a production with code "(.*?)" and [|a ] capacity of "(.*?)"$/ do |code, capacity|
   enter_base_production(code, capacity)

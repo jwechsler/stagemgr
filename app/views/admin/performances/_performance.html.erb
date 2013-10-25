@@ -2,7 +2,8 @@
   <td><%= performance.performance_date %></td>
   <td><%= performance.performance_time.to_s(:hour_min) %></td>
   <td><%= performance.status %></td>
-  <td><%= performance.performance_code %></td>
+  <td><%= link_to performance.performance_code, admin_theater_production_performance_path(performance.production.theater,
+      performance.production, performance), :id=>performance.id %></td>
   <td>
     <%- permitted_to? :update, :performances do %>
         <%= link_to 'Edit', edit_admin_theater_production_performance_path(performance.production.theater, performance.production, performance), :id=>"edit_#{performance.performance_code.gsub(' ','_')}" %>

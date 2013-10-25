@@ -1,7 +1,7 @@
 class Admin::PerformancesController < Admin::ApplicationController
   prepend_before_filter :find_production
   append_before_filter :find_performance, :only => [:show, :edit, :update, :destroy, :duplicate]
-  
+
   # GET /performances
   # GET /performances.xml
   def index
@@ -27,18 +27,17 @@ class Admin::PerformancesController < Admin::ApplicationController
   def new
     @performance = Performance.new({:production=>@production})
     @performance.populate_ticket_class_allocations
-
     respond_to do |format|
       format.html # new.html.erb
       format.xml  { render :xml => @performance }
     end
   end
-  
+
   def duplicate
     old_performance = @performance
     @performance = @performance.dup
     @performance.ticket_class_allocations <<  old_performance.ticket_class_allocations.map{|tca|tca.dup}
-    @performance.populate_ticket_class_allocations
+    @performance.save
     render :action => :new
   end
 
@@ -51,10 +50,9 @@ class Admin::PerformancesController < Admin::ApplicationController
   # POST /performances.xml
   def create
     @performance = Performance.new(params[:performance])
-    @performance.populate_ticket_class_allocations
     respond_to do |format|
       if @performance.save
-        flash[:notice] = 'Performance was successfully created.'
+        flash[:notice] = "Performance #{@performance.performance_code} was successfully created."
         format.html { redirect_to(admin_theater_production_path(@performance.production.theater, @performance.production)) }
         format.xml  { render :xml => @performance, :status => :created, :location => @performance }
       else
@@ -69,7 +67,7 @@ class Admin::PerformancesController < Admin::ApplicationController
   def update
     respond_to do |format|
       if @performance.update_attributes(params[:performance])
-        flash[:notice] = 'Performance was successfully updated.'
+        flash[:notice] = "Performance #{@performance.performance_code} was successfully updated."
         format.html { redirect_to([:admin,@performance.production.theater,@performance.production]) }
         format.xml  { head :ok }
       else
@@ -90,9 +88,9 @@ class Admin::PerformancesController < Admin::ApplicationController
       format.xml  { head :ok }
     end
   end
-  
+
   private
-  
+
   def find_production
     @theater=Theater.find(params[:theater_id])
     @production = @theater.productions.find(params[:production_id])
@@ -101,5 +99,5 @@ class Admin::PerformancesController < Admin::ApplicationController
   def find_performance
     @performance = @production.performances.find(params[:id])
   end
-  
+
 end

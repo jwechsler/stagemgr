@@ -36,3 +36,9 @@ GenerateProductionSalesStatistics:
   cron: '30 0 * * *'
   description: 'Generate statistics for previous days sales'
   queue: maintenance
+
+CheckPerformanceAllocationTriggers:
+  cron: '0 1 * * *'
+  description: 'Run any existing allocation triggers'
+  queue: maintenance
+

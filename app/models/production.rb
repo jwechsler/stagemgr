@@ -156,19 +156,19 @@ class Production < ActiveRecord::Base
     self.sf_object
   end
 
-
   private
   def clean_values
     self.production_code.upcase! unless self.production_code.nil?
   end
 
-  def assign_default_ticket_classes
+   def assign_default_ticket_classes
     defaults = DefaultTicketClass.all
     defaults.each { |tcd| tc = TicketClass.new
     tc.attributes=tcd.to_hash
-    self.ticket_classes << tc }
+    self.ticket_classes << tc}
     self
   end
+
 
   def manage_after_save_active
     if self.status == ACTIVE && self.status.changed?
