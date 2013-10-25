@@ -31,11 +31,37 @@ class Performance < ActiveRecord::Base
 
   before_validation              :clean_values
   before_validation              :populate_ticket_class_allocations
+
   accepts_nested_attributes_for  :ticket_class_allocations
 
   def number_of_seats_left
-    self.production.capacity - TicketLineItem.where('ticket_classes.holds_seats = ? and orders.status in (?) and orders.performance_id = ?',true,Order::HOLDING_SEAT_STATUSES,self.id).includes(:order, :ticket_class).sum(:ticket_count)
+    self.production.capacity - self.seats_held
     # self.orders.select{|o| o.holding_seats? }.inject(0){|sum,order| sum + order.ticket_line_items.sum(:ticket_count) }
+  end
+
+  def seats_held
+    TicketLineItem.where('ticket_classes.holds_seats = ? and orders.status in (?) and orders.performance_id = ?',true,Order::HOLDING_SEAT_STATUSES,self.id).includes(:order, :ticket_class).sum(:ticket_count)
+  end
+
+  def scan_ticket_allocation_triggers
+    scan_required = true # we need to rescan if any performance allocation has shifted in case it cascades up
+    while scan_required
+      new_scan = false
+      seats_currently_held = self.seats_held
+      self.ticket_class_allocations.select{|tca| tca.shiftable? && tca.available?}.each do |tca|
+        if tca.trigger_satisfied?(seats_currently_held)
+          tca.available = false
+          allocation = self.allocation(tca.shift_to_code)
+          allocation.available = true
+          allocation.save
+          tca.save
+          new_scan = true
+        end
+      end
+      scan_required = new_scan
+      self.ticket_class_allocations(true) if new_scan
+    end
+
   end
 
   def number_of_tickets_left

@@ -25,11 +25,13 @@ describe "a performance" do
     @performance.ticket_class_allocations.map{|tca| tca.ticket_class }.should include(ticket_class2)
   end
 
-  it "can shift associations based on triggered events" do
+  it "cascades availability based on triggered sales targets" do
     ticket_class = FactoryGirl.create(:ticket_class, :class_code=>'TESTA',:production=>@production,
       :ticket_price=>10, :web_visible=>true)
     ticket_class2 = FactoryGirl.create(:ticket_class, :class_code=>'TESTB', :production=>@production,
       :ticket_price=>20, :web_visible=>true)
+    ticket_class3 = FactoryGirl.create(:ticket_class, :class_code=>'TESTC', :production=>@production,
+      :ticket_price=>1, :web_visible=>true)
     @production.reload
     @performance.production.reload
     @performance.populate_ticket_class_allocations
@@ -37,16 +39,19 @@ describe "a performance" do
     allocation.available = true
     allocation.shiftable = true
     allocation.shift_to_code = ticket_class2.class_code
+    allocation.shift_days_before_performance = 1000
     allocation.save
     allocation2 = @performance.allocation(ticket_class2.class_code)
     allocation2.available = false
+    allocation2.shiftable = true
+    allocation2.shift_to_code = ticket_class3.class_code
+    allocation2.shift_days_before_performance = 1000
     allocation2.save
-    @performance.ticket_class_allocations.each {|tca| tca.trigger_shift if tca.shiftable? }
-    @performance.ticket_class_allocations(true)
-    original_allocation = @performance.allocation(ticket_class.class_code)
-    original_allocation.available.should eq(false)
-    new_allocation = @performance.allocation(ticket_class2.class_code)
-    new_allocation.available.should eq(true)
+    allocation3 = @performance.allocation(ticket_class3.class_code)
+    allocation3.available = false
+    allocation3.save
+    @performance.scan_ticket_allocation_triggers
+    [ticket_class, ticket_class2].each {|tc| @performance.allocation(tc.class_code).available.should == false }
+    @performance.allocation(ticket_class3.class_code).available.should == true
   end
-
 end

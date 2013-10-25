@@ -6,12 +6,25 @@ class TicketClassAllocation < ActiveRecord::Base
   validates_numericality_of :ticket_limit, :allow_nil => true
   validates_numericality_of :shift_days_before_performance, :allow_nil=>true
   validates_numericality_of :shift_when_capacity_over, :allow_nil=>true
+  validates_presence_of :shift_to_code, :if=>:shiftable?
+  validates_presence_of :shift_days_before_performance, :if=>Proc.new { |tca| tca.shiftable? && tca.shift_when_capacity_over.nil? }
+  validates_presence_of :shift_when_capacity_over, :if=>Proc.new { |tca| tca.shiftable? && tca.shift_days_before_performance.nil? }
 
-  def trigger_shift
-    self.available = false
-    allocation = self.performance.allocation(self.shift_to_code)
-    allocation.available = true
-    self.save && allocation.save
+
+  def trigger_satisfied?(seats_currently_held = nil)
+    self.shiftable? && (self.trigger_satisfied_by_capacity?(seats_currently_held) || self.trigger_satisifed_by_current_date?)
+  end
+
+  def trigger_satisifed_by_current_date?
+    return false if self.shift_days_before_performance.nil?
+    Date.today + self.shift_days_before_performance.days >= self.performance.performance_date
+  end
+
+  def trigger_satisfied_by_capacity?(seats_currently_held)
+    return false if self.shift_when_capacity_over.nil?
+
+    seats_currently_held = self.performance.seats_held if seats_currently_held.nil?
+    seats_currently_held / self.performance.production.capacity * 100 >= self.shift_when_capacity_over
   end
 
 end

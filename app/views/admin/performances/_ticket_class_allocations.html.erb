@@ -1,0 +1,14 @@
+<%- allocations.each { |tca| %>
+  <b><%=tca.ticket_class.class_code %></b> <%= "$#{Money.new(tca.ticket_class.ticket_price*100)} " if tca.ticket_class.ticket_price > 0 %> <%= tca.ticket_class.class_name %>
+  <%- if tca.shiftable? then %>
+      (will be replaced by <b><%= tca.shift_to_code %></b>
+      <%- unless tca.shift_when_capacity_over.nil? %>
+        when capacity at or over <%= tca.shift_when_capacity_over %>%
+        <%= tca.shift_days_before_performance.blank? ? '.)' : ' or ' %>
+      <%- end %>
+      <% unless tca.shift_days_before_performance.blank? %>
+        <%= pluralize tca.shift_days_before_performance , 'day' %> before performance.)
+      <%- end %>
+    <%- end %>
+  <br/>
+  <%- } %>

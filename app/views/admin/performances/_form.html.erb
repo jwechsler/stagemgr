@@ -13,6 +13,10 @@
       <th>Ticket class code</th>
       <th>Ticket class name</th>
       <th>Limit</th>
+      <th>Trigger?</th>
+      <th>To Code</th>
+      <th>At<br />%</th>
+      <th>Days<br />Before</th>
     </tr>
     <%= f.fields_for :ticket_class_allocations do |ticket_class_allocation_form| %>
       <tr id='ticket_class_allocation_<%= ticket_class_allocation_form.object.ticket_class.id %>'>
@@ -20,7 +24,16 @@
         <td><%= ticket_class_allocation_form.object.ticket_class.class_code %></td>
         <td><%= ticket_class_allocation_form.object.ticket_class.class_name %></td>
         <td>
-          <%= ticket_class_allocation_form.text_field :ticket_limit %>
+          <%= ticket_class_allocation_form.text_field :ticket_limit, :size=>3 %>
+        </td><td align="center">
+          <%= ticket_class_allocation_form.check_box :shiftable %>
+        </td><td >
+          <%= ticket_class_allocation_form.text_field :shift_to_code, :size=>9 %>
+        </td><td>
+          <%= ticket_class_allocation_form.text_field :shift_when_capacity_over, :size=>3 %>
+        </td><td>
+          <%= ticket_class_allocation_form.text_field :shift_days_before_performance, :size=>1 %>
+        </td><td>
           <%= ticket_class_allocation_form.hidden_field :ticket_class_id %>
         </td>
       </tr>

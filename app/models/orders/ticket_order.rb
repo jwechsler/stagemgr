@@ -302,7 +302,6 @@ class TicketOrder < Order
     self.performance.production.ticket_classes.select { |tc| tc.class_code == offer.use_ticket_class_code }.first
   end
 
-
   protected
 
   def refund_line_items(reversing_entries)

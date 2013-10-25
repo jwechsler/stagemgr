@@ -26,7 +26,7 @@ class Admin::PerformancesController < Admin::ApplicationController
   # GET /performances/new.xml
   def new
     @performance = Performance.new({:production=>@production})
-
+    @performance.populate_ticket_class_allocations
     respond_to do |format|
       format.html # new.html.erb
       format.xml  { render :xml => @performance }
@@ -52,7 +52,7 @@ class Admin::PerformancesController < Admin::ApplicationController
     @performance = Performance.new(params[:performance])
     respond_to do |format|
       if @performance.save
-        flash[:notice] = 'Performance was successfully created.'
+        flash[:notice] = "Performance #{@performance.performance_code} was successfully created."
         format.html { redirect_to(admin_theater_production_path(@performance.production.theater, @performance.production)) }
         format.xml  { render :xml => @performance, :status => :created, :location => @performance }
       else
@@ -67,7 +67,7 @@ class Admin::PerformancesController < Admin::ApplicationController
   def update
     respond_to do |format|
       if @performance.update_attributes(params[:performance])
-        flash[:notice] = 'Performance was successfully updated.'
+        flash[:notice] = "Performance #{@performance.performance_code} was successfully updated."
         format.html { redirect_to([:admin,@performance.production.theater,@performance.production]) }
         format.xml  { head :ok }
       else
