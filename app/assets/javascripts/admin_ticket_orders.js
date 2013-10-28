@@ -17,8 +17,5 @@ jQuery(document).ready(function($) {
     recalculate_row_total(order_type,$(event.target).parents('tr'))
   });
 
-  $('#unclaimed_link').click(function(event) {
-    event.preventDefault();
-  });
 });
 
