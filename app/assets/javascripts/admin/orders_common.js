@@ -37,7 +37,7 @@ jQuery(document).ready(function($) {
 
   $('#admin_flex_pass_order_form').each(function() {
 
-    var order_type = 'flex_pass_order'
+    order_type = 'flex_pass_order'
 
     setup_address_autocompletes(order_type);
 
@@ -46,6 +46,19 @@ jQuery(document).ready(function($) {
     setup_address_autocompletes(order_type);
 
   });
+
+//  $('#admin_exchange_ticket_order_form').each(function() {
+//
+//    var order_type = 'ticket_order'
+//
+//    setup_ticket_autocompletes('ticket_order');
+//
+//    setup_address_autocompletes(order_type);
+//
+//    setup_payment_form(order_type);
+//
+//
+//  });
 
   $('input.ticket_count,input.price_override').on('change',function() {
       recalculate_row_total(order_type,$(event.target).parents('tr'))
