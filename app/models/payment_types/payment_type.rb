@@ -40,7 +40,8 @@ class PaymentType < ActiveRecord::Base
   end
 
   def allowed_payment_types_for_exchange(current_user)
-    self.class.valid_payment_types_for(current_user)
+    PaymentType.all
+    []
   end
 
 
