@@ -156,7 +156,7 @@ class Membership < ActiveRecord::Base
       self.membership_payments.each do |payment|
         o = payment.order
         d = o.reservation_date
-        unless d.nil? || d < led || o.refunded?
+        unless d.nil? || d.to_datetime < led || o.refunded?
           o.refund!
         end
       end
