@@ -1,4 +1,3 @@
-
 function add_autocomplete_tccode(order_type, tccode_input) {
   found_data = null
   tccode_input.autocomplete({

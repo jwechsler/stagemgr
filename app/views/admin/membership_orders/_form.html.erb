@@ -27,7 +27,7 @@
 <%- if !@membership_order.membership_offer.html_description.blank? %>
   <p><%= raw @membership_order.membership_offer.html_description %></p>
 <%- end %>
-<%= semantic_form_for [:admin, @membership_order] do |order_form| %>
+<%= semantic_form_for [:admin, @membership_order], :html=>{:id=>'admin_membership_order_form'} do |order_form| %>
   <%= order_form.error_messages %>
   <%= order_form.inputs :class=>"order" do %>
     <%= order_form.fields_for :address do |address_form| %>

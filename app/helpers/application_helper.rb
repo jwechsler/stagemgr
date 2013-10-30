@@ -4,8 +4,12 @@ module ApplicationHelper
     number_to_currency(val,:delimiter => ",", :unit => "$",:separator => ".", :precision => 2)
   end
 
+  def backend?
+    controller.class.name.split("::").first == "Admin"
+  end
+
   def admin?
-    controller.class.name.split("::").first=="Admin"
+    self.backend?
   end
 
   def remove_child_link(name, f)
