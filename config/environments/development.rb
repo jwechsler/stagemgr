@@ -17,10 +17,10 @@ Stagemgr::Application.configure do
   config.assets.debug = true
 
   # test assets
-  config.assets.compress = true
-  config.assets.js_compressor = :uglifier
-  config.assets.compile = true
-  config.assets.digest = true
+  #config.assets.compress = true
+  #config.assets.js_compressor = :uglifier
+  #config.assets.compile = true
+  #config.assets.digest = true
 
   # Log error messages when you accidentally call methods on nil.
   config.whiny_nils = true
