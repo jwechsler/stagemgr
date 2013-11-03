@@ -5,8 +5,6 @@
 //= require admin/ticket_orders/CardReader
 //= require_self
 
-var order_type;
-
 jQuery(document).ready(function($) {
 
   $('#admin_ticket_order_form').each(function() {
@@ -19,7 +17,11 @@ jQuery(document).ready(function($) {
 
     setup_line_item_row_control('ticket_order');
 
-    setup_payment_form('ticket_order');
+    setup_payment_form();
+
+    $('input.ticket_count,input.price_override').on('change',function() {
+      recalculate_row_total(order_type,$(event.target).parents('tr'))
+    });
 
   });
 
@@ -29,7 +31,7 @@ jQuery(document).ready(function($) {
 
     setup_address_autocompletes(order_type);
 
-    setup_payment_form(order_type);
+    setup_payment_form();
 
     setup_gift_form(order_type)
 
@@ -41,7 +43,7 @@ jQuery(document).ready(function($) {
 
     setup_address_autocompletes(order_type);
 
-    setup_payment_form(order_type);
+    setup_payment_form();
 
     setup_address_autocompletes(order_type);
 
@@ -60,9 +62,8 @@ jQuery(document).ready(function($) {
 //
 //  });
 
-  $('input.ticket_count,input.price_override').on('change',function() {
-      recalculate_row_total(order_type,$(event.target).parents('tr'))
-    });
+  setup_gift_form();
+
 
   $('#update_note_control').hide();
 

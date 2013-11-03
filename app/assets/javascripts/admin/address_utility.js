@@ -70,8 +70,7 @@ function setup_address_autocompletes(order_type) {
                 //may want to use $.trim in here
                 return $(this).text() == 'Membership';
               }).prop('selected', true);
-              /* $().val('Membership') */
-              show_proper_payment_form(order_type)
+              show_proper_payment_form()
             }
           }
         });

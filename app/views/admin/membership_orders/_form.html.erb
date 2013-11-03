@@ -47,7 +47,7 @@
       <%= render :partial => '/admin/orders/address_form', :locals => {:f => address_form} %>
     <% end %>
 
-    <%= order_form.input :gift, :label=>"Third Party Recipient?" %>
+    <%= order_form.input :gift, :label=>"Third Party Recipient?", :input_html=>{:class=>'third_party_checkboxes'} %>
     <div id='gift_information'>
       <%= render :partial=>'/orders/gift_recipient', :locals=>{:f=>order_form, :offer=>@membership_order.membership_offer} %>
     </div>

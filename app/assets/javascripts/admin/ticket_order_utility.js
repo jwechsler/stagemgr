@@ -84,7 +84,7 @@ function recalculate_all_row_totals(order_type) {
 }
 
 
-var add_item_callback = function(added_item){
+var add_item_callback = function(order_type, added_item){
   added_item.find('input.autocomplete_tccode').each(function() {
     add_autocomplete_tccode(order_type, jQuery(this));
   });
@@ -168,7 +168,7 @@ replace_ids = function(s){
 }
 
 
-function setup_line_item_row_control() {
+function setup_line_item_row_control(order_type) {
   /*
   var myrules = {
     '.remove': function(e){
@@ -187,15 +187,12 @@ function setup_line_item_row_control() {
     }
   }
   */
-  jQuery(document).ready(function($) {
-    $(".add_nested_item").on("click", function(e){
+  $(".add_nested_item").on("click", function(e){
       el = e.toElement;
-      console.debug(el);
       template = eval(el.href.replace(/.*#/, ''))
       var added_item = $("#ticket_line_items tbody").append(replace_ids(template)).children().last();
-      add_item_callback && add_item_callback(added_item);
+      add_item_callback && add_item_callback(order_type,added_item);
       return true;
     });
-  });
 }
 

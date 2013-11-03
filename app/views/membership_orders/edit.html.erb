@@ -1,6 +1,5 @@
 <%- if @order.status == Order::NEW then %>
  <%- if @order.membership_offer.on_sale then %>
-   <%= javascript :defaults, 'membership_order' %>
 
     <h1><%= @order.membership_offer.name %></h1>
 

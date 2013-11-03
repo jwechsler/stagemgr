@@ -1,8 +1,9 @@
 //= require jquery
 //= require jquery-ui
 //= require jquery_ujs
+//= require utility
+//= require orders_common
 //= require_this
-
 
 $(function(){
    $("input[type=date]").datepicker({ dateFormat: 'yy-mm-dd' });
