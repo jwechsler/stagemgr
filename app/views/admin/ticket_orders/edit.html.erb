@@ -5,7 +5,7 @@
 
 </script>
 
-<%= semantic_form_for [:admin, @ticket_order] do |order_form| -%>
+<%= semantic_form_for [:admin, @ticket_order], :html=>{:id=>'admin_ticket_order_form'} do |order_form| -%>
   <%= order_form.inputs do %>
 
     <table width="100%">

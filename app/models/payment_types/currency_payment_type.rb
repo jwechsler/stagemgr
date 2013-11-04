@@ -1,7 +1,7 @@
 class CurrencyPaymentType < PaymentType
 
   def allowed_payment_types_for_exchange(current_user)
-    CurrencyPaymentType.all
+    super + CurrencyPaymentType.all
   end
 
   def apply_exchange_offset_payments(source_payments)

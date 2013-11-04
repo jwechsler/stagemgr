@@ -27,7 +27,7 @@
 <%- if !@membership_order.membership_offer.html_description.blank? %>
   <p><%= raw @membership_order.membership_offer.html_description %></p>
 <%- end %>
-<%= semantic_form_for [:admin, @membership_order] do |order_form| %>
+<%= semantic_form_for [:admin, @membership_order], :html=>{:id=>'admin_membership_order_form'} do |order_form| %>
   <%= order_form.error_messages %>
   <%= order_form.inputs :class=>"order" do %>
     <%= order_form.fields_for :address do |address_form| %>
@@ -47,7 +47,7 @@
       <%= render :partial => '/admin/orders/address_form', :locals => {:f => address_form} %>
     <% end %>
 
-    <%= order_form.input :gift, :label=>"Third Party Recipient?" %>
+    <%= order_form.input :gift, :label=>"Third Party Recipient?", :input_html=>{:class=>'third_party_checkboxes'} %>
     <div id='gift_information'>
       <%= render :partial=>'/orders/gift_recipient', :locals=>{:f=>order_form, :offer=>@membership_order.membership_offer} %>
     </div>

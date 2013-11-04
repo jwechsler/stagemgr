@@ -1,6 +1,5 @@
 <%- if @order.status == Order::NEW then %>
  <%- if @order.membership_offer.on_sale then %>
-   <%= javascript :defaults, 'membership_order' %>
 
     <h1><%= @order.membership_offer.name %></h1>
 
@@ -17,7 +16,7 @@
         <%- end %>
         <%= order_form.hidden_field :status %>
         <%= render :partial=>'/orders/address', :locals=>{:order_form=>order_form} %>
-        <%= order_form.input :gift, :label=>"Give as a gift" %>
+        <%= order_form.input :gift, :label=>"Give as a gift", :input_html=>{:class=>"third_party_checkboxes"} %>
         <div id='gift_information'>
           <%= render :partial=>'/orders/gift_recipient', :locals=>{:f=>order_form, :offer=>@order.membership_offer} %>
         </div>

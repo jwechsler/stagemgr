@@ -9,7 +9,6 @@ class Admin::ExchangeTicketOrdersController < Admin::ApplicationController
     @exchange_order.status = Order::NEW
 
     @allowed_payment_types = @original_order.payment_type.allowed_payment_types_for_exchange(current_user)
-
     respond_to do |format|
       format.html # new.html.erb
       format.xml { render :xml => @exchange_order }

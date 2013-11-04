@@ -9,7 +9,7 @@
 
   <%= error_messages_for :order %>
 
-  <%= semantic_form_for [:admin, @original_order, @exchange_order], :url=>admin_ticket_order_exchange_ticket_orders_path(@original_order) do |order_form| -%>
+  <%= semantic_form_for [:admin, @original_order, @exchange_order], :html=>{:id=>'admin_ticket_order_form'}, :url=>admin_ticket_order_exchange_ticket_orders_path(@original_order) do |order_form| -%>
     <%= order_form.inputs do %>
       <%= render :partial=>'/admin/ticket_orders/ticket_line_items_form', :locals=>{:order_form=>order_form, :allow_internal=>true} %>
       <%= render :partial => '/orders/special_offer_form', :locals => {:f => order_form} %>

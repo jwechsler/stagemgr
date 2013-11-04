@@ -5,7 +5,7 @@ class FlexPassPaymentType < PassPaymentType
   end
 
   def allowed_payment_types_for_exchange(current_user)
-    FlexPassPaymentType.all
+    super + FlexPassPaymentType.all
   end
 
   def apply_exchange_offset_payments(source_payments)

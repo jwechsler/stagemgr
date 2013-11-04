@@ -251,5 +251,10 @@ p .company_class {
   margin-bottom: 4px;
 }
 
-  ins.diffmod, ins.diffins { background: #d4fdd5; text-decoration: none; }
-  del.diffmod, del.diffdel { color: #ff9999; }
+ins.diffmod, ins.diffins { background: #d4fdd5; text-decoration: none; }
+del.diffmod, del.diffdel { color: #ff9999; }
+
+#ticket_line_items {
+  font-size: 14px;
+}
+
