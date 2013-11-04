@@ -10,10 +10,11 @@ class DonationOrdersController < ApplicationController
 
   def set_donation_levels
     @levels = ActiveSupport::OrderedHash.new
-    @levels["Buddy ($100)"] = 100
-    @levels["Fast Friend ($250)"] = 250
-    @levels["Comrade ($500)"] = 500
-    @levels["Confidante ($1500)"] = 1500
+    @levels["Friend ($25)"] = 25
+    @levels["Ally ($75)"] = 75
+    @levels["Advocate ($150)"] = 150
+    @levels["Confidante ($500)"] = 500
+    @levels["Partner ($1000)"] = 1000
     @levels["Patron ($2500)"] = 2500
     @levels
   end

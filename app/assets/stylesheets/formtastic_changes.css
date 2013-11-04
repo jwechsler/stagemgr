@@ -30,8 +30,8 @@ form.formtastic fieldset label {
     font-size:14px;
 }
 
-form.formtastic fieldset ol li.inlineA {float: left; margin-left: 25%; width: 180px }
-form.formtastic fieldset ol li.inlineB {float: left; margin-left: 0%; margin-right: 0%; width: 140px }
+form.formtastic fieldset ol li.inlineA {float: left; margin-left: 25%; width: 200px }
+form.formtastic fieldset ol li.inlineB {float: left; margin-left: 0%; margin-right: 0%; width: 180px }
 
 form.formtastic fieldset ol li.inlineAshort {float: left; margin-left: 25%; width:100px; }
 
