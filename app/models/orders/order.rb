@@ -177,7 +177,7 @@ class Order < ActiveRecord::Base
         line_item.respond_to?(:total) ? line_item.total : 0
       }
     else
-      a = self.payments.to_a.sum { |payment| payment.respond_to?(:amount) ? payment.amount : 0 }
+      a = self.value_of_all_payments
     end
     a = 0.0 if a < 0.0
     a
@@ -638,7 +638,7 @@ class Order < ActiveRecord::Base
   end
 
   def unique_payments
-    (self.payments.to_a
+    (self.payments.to_a +
     self.exchange_payments +
         self.price_override_payments).uniq
   end
