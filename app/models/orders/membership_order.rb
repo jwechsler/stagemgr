@@ -1,10 +1,12 @@
-class MembershipOrder < Order
+class MembershipOrder < RecurringOrder
 
   belongs_to :membership_offer
   has_many :membership_line_items, :foreign_key=>:order_id, :dependent => :destroy
-  has_many :recurring_payments, :foreign_key=>:order_id
   validates_associated :membership_line_items
   accepts_nested_attributes_for :membership_offer, :membership_line_items, :recurring_payments, :allow_destroy=>true
+
+  after_commit :update_membership_profile, :if=>:has_membership?
+
 
   def display_code()
     "MEMBERSHIP"
@@ -42,6 +44,14 @@ class MembershipOrder < Order
     else
       nil
     end
+  end
+
+  def has_membership?
+    !self.membership.nil?
+  end
+
+  def update_membership_profile
+    Resque.enqueue(UpdateMembershipProfile, self.membership.id)
   end
 
   def valid_payment_types_for(current_user)

@@ -99,6 +99,7 @@ group :test do
   gem 'flexmock',           '0.8.6'
   gem 'simplecov'
   gem 'shoulda-context'
+  gem 'fakeredis', :require => "fakeredis/rspec"
 end
 
 group :production do
