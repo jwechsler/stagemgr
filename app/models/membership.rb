@@ -65,6 +65,7 @@ class Membership < ActiveRecord::Base
     cycles = self.number_cycles_completed
     cycles ||=0
     profile_status = response["profile_status"][0..-8]  unless response["profile_status"].blank?
+    puts "PROFILE #{profile_status}"
     self.status = case
       when (profile_status == ACTIVE)
         ACTIVE

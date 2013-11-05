@@ -47,6 +47,8 @@ class CreditCardPayment < CurrencyPayment
                 'Dscvr'
               when 'master_card'
                 'MC'
+              else
+                self.card_type
             end
     "#{ctype} ****#{self.card_last_four}::AUTH #{confirmation_code}"
   end

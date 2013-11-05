@@ -192,6 +192,10 @@ FactoryGirl.define do
     association :ticket_class, :factory => :ticket_class
   end
 
+  factory :membership_line_item do
+    association :membership_offer, :factory => :membership_offer
+  end
+
   factory :donation_line_item do
     association :order, :factory=>:donation_order
   end
@@ -199,20 +203,6 @@ FactoryGirl.define do
   factory :amount_off_special_offer do
     amount 1
     sequence(:code) { |n| "SpecialOffer#{n}" }
-  end
-
-  factory :payment do
-    amount 0
-
-    factory :cash_payment, :parent=>:payment, :class=>'CashPayment' do
-    end
-
-    factory :membership_payment, :parent=>:payment, :class=>'MembershipPayment' do
-    end
-
-    factory :flex_pass_payment, :class=>'FlexPassPayment', :parent=>:payment do
-    end
-
   end
 
   factory :membership_offer do
