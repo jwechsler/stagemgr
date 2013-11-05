@@ -1,4 +1,4 @@
-class ProcessRecurringPaypalPayment < PaypalIpnJob
+  class ProcessRecurringPaypalPayment < PaypalIpnJob
 
   @queue = :sync
 
@@ -6,7 +6,7 @@ class ProcessRecurringPaypalPayment < PaypalIpnJob
 
     order = order_from_profile_id(profile_id(params))
     processed_on = DateTime.strptime(params['payment_date'],
-                                     PAYPAL_DATETIME_FORMAT).in_time_zone(Time.zone)
+                                     PayPalControllerHelper::PAYPAL_DATETIME_FORMAT).in_time_zone(Time.zone)
     payment_fee = params['payment_fee'].to_f
     amount = params['amount'].to_f
     transaction_id = params['txn_id']

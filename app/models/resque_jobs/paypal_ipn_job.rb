@@ -7,11 +7,9 @@ class PaypalIpnJob
   end
 
   def self.order_from_profile_id(profile_id)
-    profile_id = params['recurring_payment_id']
     order = nil
-    memberships = Membership.where('profile_id = ?', profile_id)
-    return memberships.first.membership_order if memberships.count > 0
-    nil
+    membership = Membership.find_by_profile_id(profile_id)
+    return membership.membership_order
   end
 
   def self.referenced_membership(params)
