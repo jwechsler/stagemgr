@@ -7,7 +7,7 @@ Performance Code: <%= @performance.performance_code %><br/>
 <br/>
 Status: <%= @performance.status %><br/>
 <%- unless @performance.special_features.empty? %>
-Special Features: <%= @performance.special_features.map {|f| f.name}.join(',') %><br/>
+Special Features: <%= @performance.special_features.map {|f| f.short_name}.join(',') %><br/>
 <%- end %>
 <h3>Available ticket classes</h3>
 <fieldset><legend>On Sale to Public</legend>
