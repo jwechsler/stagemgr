@@ -43,6 +43,23 @@
   width: 100%;
 }
 
+.background-dark {
+  color: white !important;
+}
+
+.background-dark a:link  {
+  color: white !important;
+}
+
+.background-dark a:visited  {
+  color: white !important;
+}
+
+
+background-dark {
+  color: white !important;
+}
+
 .special_feature {
   font-style: italic;
 }

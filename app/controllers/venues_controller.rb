@@ -10,6 +10,9 @@ class VenuesController < ApplicationController
     render :now_playing_fb, :layout=>'facebook'
   end
   def now_playing
+    @background = params['background']
+    @background = 'light' if @background.nil?
+    @background = 'light' unless ['light','dark'].include?(@background)
     self.set_now_playing_productions
     @max_pieces = 4
   end
