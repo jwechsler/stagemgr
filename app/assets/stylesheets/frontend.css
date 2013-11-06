@@ -79,14 +79,14 @@ background-dark {
 
 .production_list p {
   display: block;
-  line-height: 1.0em;
+  line-height: normal;
   padding-right: 8px;
   margin:  2px;
 }
 
 .production_list .venue {
  font-weight: bold;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .production_list .production_class {
@@ -111,10 +111,6 @@ background-dark {
 .production_list .company_class {
   font-size: 10px;
   font-weight: normal;
-}
-
-.production_list {
-    font-weight: bold;
 }
 
 .late_seating {
