@@ -1,68 +1,59 @@
-class DonationOrder < Order
+class DonationPledgeOrder < DonationOrder
 
-  has_many :donation_line_items, :foreign_key=>:order_id
+  include RecurringOrder
 
-  accepts_nested_attributes_for :donation_line_items,
-                                :allow_destroy => true
+  has_one :pledge, :foreign_key=>'order_id', :dependent => :destroy
 
-  validates_associated :donation_line_items
-
-
-  def refundable?
-    self.status == Order::PROCESSED || self.status == Order::FULFILLED
+  def valid_payment_types_for(current_user)
+    valid_payment_types = super
+    valid_payment_types.select {|pt| pt.is_a? CreditCardPaymentType }
   end
 
   def display_code()
-    "DONATION"
+    "PLEDGE"
   end
 
   def to_s
-    "Donation (#{self.campaign})"
+    "Pledge (#{self.campaign})"
   end
 
   def description
     self.to_s
   end
 
-  def all_line_items(reload_line_items = false)
-    super(reload_line_items) +
-        self.donation_line_items(reload_line_items)
+  def create_proper_payment_in_amount_of!(amount, payment_options = {})
+    response = RecurringProfile.create_recurring_profile(
+                              self,Date.today,(amount/12.0).round(2),
+                              'Theater Wit Monthly Pledge',2,{:cycles=>12}
+                  )
+    success = response.success?
+    if success
+      profile_id = response.params["profile_id"]
+      self.pledge = Pledge.create(:profile_id => profile_id,
+                                  :status =>response.params["profile_status"][0..-8],
+                                  :address=>self.address)
+      self.pledge.update_from_profile
+
+      self.donation_line_items.first.donation_amount = pledge.total # handle rounding problems
+    else
+      self.pledge=nil?
+    end
   end
 
-  def valid_payment_types_for(current_user)
-    valid_payment_types = super
-    valid_payment_types.select {|pt| pt.is_a? CurrencyPaymentType }
+  def is_balanced_transaction?
+    unless self.total == (self.pledge.aggregate_amount.nil? ? 0.0 : self.pledge.aggregate_amount/100.0) +
+      (self.pledge.outstanding_balance.nil? ? 0.0 : self.pledge.outstanding_balance/100.0)
+      errors.add :status, "cannot be set to #{PROCESSED} if the total isn't countered by pledged payments."
+    end
   end
 
-  def reload_associated
-    super
-    self.donation_line_items(true)
-  end
-
-  protected
-
-  def set_defaults
-    super
-    self.donation_line_items.each { |di| di.order=self }
-  end
-
-  def create_receipt_task
-    super
-    self.tasks << OutreachTask.new(:execute_at=>Time.now + 5.minutes, :method_symbol=>:donation_thank_you)
+  def recurring_profile
+    self.pledge
   end
 
 end
 
-class DonationOrder
-
-  def self.syncable_statuses
-    self.finalized_statuses
-  end
-
-  def queue_sf_sync
-    Resque.enqueue_in(2.minutes, SyncDonationToSalesforce, self.id)
-    super
-  end
+class DonationPledgeOrder
 
   def sync_to_salesforce!(sf_user = nil, sf_donationtype = nil)
     if self.finalized?
@@ -88,7 +79,7 @@ class DonationOrder
         donation.CloseDate = self.last_processed_on
         donation.AccountId = account.Id
         donation.npe01__Contact_Id_for_Role__c = account.Id
-	      donation.save
+        donation.save
       end
       self.sf_last_sync_at = DateTime.now
       self.save!
@@ -96,4 +87,3 @@ class DonationOrder
   end
 
 end
-

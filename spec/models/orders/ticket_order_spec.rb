@@ -74,7 +74,7 @@ describe "a ticket order" do
     o2.status = Order::NEW
     o2.save!
     o2.ticket_line_items << o.ticket_line_items.first.dup
-    o2.payments << o.payments.first.dup
+    o2.payment_type = FactoryGirl.create(:cash_payment_type)
     o2.transition_to!(Order::PROCESSED)
     o2.performance.production.capacity = 10
     o2.performance.production.save!

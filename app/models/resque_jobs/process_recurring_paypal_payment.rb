@@ -4,7 +4,8 @@
 
   def self.perform(params)
 
-    order = order_from_profile_id(profile_id(params))
+    profile = PaypalIpnJob.referenced_profile(params)
+    order = PaypalIpnJob.referenced_profile(params).recurring_order
     processed_on = DateTime.strptime(params['payment_date'],
                                      PayPalControllerHelper::PAYPAL_DATETIME_FORMAT).in_time_zone(Time.zone)
     payment_fee = params['payment_fee'].to_f

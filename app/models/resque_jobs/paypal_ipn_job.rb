@@ -6,20 +6,13 @@ class PaypalIpnJob
     params['recurring_payment_id']
   end
 
-  def self.order_from_profile_id(profile_id)
-    order = nil
-    membership = Membership.find_by_profile_id(profile_id)
-    return membership.membership_order
-  end
-
-  def self.referenced_membership(params)
+  def self.referenced_profile(params)
     profile_id = params['recurring_payment_id']
-    begin
-      membership = Membership.find_by_profile_id(profile_id)
-    rescue ActiveRecord::RecordNotFound
-      raise "Cannot locate membership with payment ID '#{profile_id}'"
-    end
-    membership
+    profile = Membership.find_by_profile_id(profile_id)
+    profile = Pledge.find_by_profile_id(profile_id) if profile.nil?
+    raise "Cannot locate profile with payment ID '#{profile_id}'" if profile.nil?
+
+    profile
   end
 
 end

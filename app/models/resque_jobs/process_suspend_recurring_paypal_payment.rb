@@ -2,10 +2,10 @@ class ProcessSuspendRecurringPaypalPayment < PaypalIpnJob
 
   def self.perform(params)
 
-    membership = referenced_membership(params)
+    profile = referenced_profile(params)
 
-    membership.status = Membership::SUSPENDED
-    membership.save!
+    profile.status = Membership::SUSPENDED
+    profile.save!
   end
 
 end

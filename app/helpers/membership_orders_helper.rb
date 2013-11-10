@@ -8,22 +8,23 @@ module MembershipOrdersHelper
         @order.ip_address = request.remote_ip
         @order.transition_to!(Order::PROCESSING)
         membership_offer = @order.membership_offer
-        f_name, m_name, l_name = @order.address.parse_full_name
-        @order.credit_card_expiration_year = self.fix_expiration_year(@order.credit_card_expiration_year)
-        credit_card = PaymentProcessing.credit_card(@order.credit_card_type,
-                                                    f_name,
-                                                    l_name,
-                                                    @order.credit_card_number,
-                                                    @order.credit_card_expiration_month,
-                                                    @order.credit_card_expiration_year,
-                                                    @order.credit_card_verification_number)
-        response = recurring_response(membership_offer, credit_card,
-                                      @order.ip_address, @order.id, @order.address.email,
-                                      @order.gift? ? @order.gift_date : Date.today)
+
+        trial_amount = membership_offer.trial_amount
+        trial_amount = (trial_amount*100).to_i unless trial_amount.nil?
+        additional_options = { :trial_amount    => trial_amount,
+                               :trial_frequency => 1,
+                               :trial_period    => 'Month',
+                               :trial_cycles    => membership_offer.trial_period
+                             }
+        membership = @order.membership
+        response = RecurringProfile.create_recurring_profile(@order,
+                                            @order.gift? ? @order.gift_date : Date.today,
+                                            (membership_offer.recurring_cost * 100).to_i,
+                                            membership_offer.billing_agreement, 1,
+                                            additional_options)
         success = response.success?
         if success
           profile_id = response.params["profile_id"]
-          membership = @order.membership
           membership.profile_id = profile_id
           membership.status = response.params["profile_status"][0..-8]
           membership.preferred_seating = @order.special_request

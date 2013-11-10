@@ -15,7 +15,7 @@ describe "a customer record" do
     o2.transition_to!(Order::FULFILLED)
     purge_address.productions.count.should == 1
     original_address.merge_and_purge(purge_address)
-    original_address.last_name.should =~ /(.*)-updated/
+    original_address.last_name.should =~ /(.*)-Updated/
     original_address.productions.count.should == 2
   end
 end

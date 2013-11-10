@@ -1,7 +1,9 @@
 module PaymentProcessing
 
+
   class BogusResponse < ActiveMerchant::Billing::Response
 
+    PROFILE_ID = 'TEST_PROFILE_ID'
     def initialize(original_response)
       super(original_response.success?, original_response.message, original_response.params)
       @custom_fields = {}
@@ -11,26 +13,32 @@ module PaymentProcessing
       '12345'
     end
 
-    def [](key)
-      @custom_fields[key]
-    end
-
-    def []=(key,value)
-      @custom_fields[key] = value
-    end
-
-
   end
 
   class BogusGateway < ActiveMerchant::Billing::BogusGateway
+    class_attribute :profiles
+
     def purchase(money, creditcard, options = {})
       response = BogusResponse.new(super(money, creditcard, options))
     end
 
     def recurring(money, credit_card, options={})
+
       response = BogusResponse.new(super(money, credit_card, options))
-      response.params['profile_id'] = 'TESTPROFILE'
+      response.params['profile_id'] = BogusResponse::PROFILE_ID
       response.params['profile_status'] = 'ActiveProfile'
+      BogusGateway.profiles = Hash.new if BogusGateway.profiles.nil?
+      if BogusGateway.profiles[BogusResponse::PROFILE_ID].nil?
+        balance = money
+        balance = balance*options['cycles'] if options.has_key?('cycles')
+        balance = balance*options[:cycles] if options.has_key?(:cycles)
+        BogusGateway.profiles[BogusResponse::PROFILE_ID] = response.params.merge({
+          'outstanding_balance'=>balance,
+          'aggregate_amount'=>0,
+          'number_cycles_completed'=>0,
+          'final_payment_due_date'=>(options[:start_date].to_date + options[:cycles].to_i.months)
+        }).merge(options)
+      end
       response
     end
 
@@ -38,6 +46,7 @@ module PaymentProcessing
       r = BogusResponse.new(ActiveMerchant::Billing::Response.new(true, "Forced Response"))
       r.params['profile_id'] = profile_id
       r.params['profile_status'] = 'ActiveProfile'
+      r.params.merge!(BogusGateway.profiles[profile_id])
       r
     end
 

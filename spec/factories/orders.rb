@@ -6,7 +6,12 @@ FactoryGirl.define do
     association :payment_type, :factory=>:cash_payment_type
   end
 
-  trait :paid_with_credit_card do
+
+  factory :ticket_order do
+    order
+    association :performance, :factory => :performance
+
+    trait :paid_with_credit_card do
 
       association :payment_type, :factory=>:credit_card_payment_type
       after(:create) do |ticket_order, evaluator|
@@ -23,9 +28,6 @@ FactoryGirl.define do
         ticket_order.save!
       end
     end
-  factory :ticket_order do
-    order
-    association :performance, :factory => :performance
 
     trait :for_a_pair_of_tickets do
 
@@ -101,8 +103,7 @@ FactoryGirl.define do
     after(:create) do |membership_order, evaluator|
       membership = FactoryGirl.create(:membership, :address=>membership_order.address)
       membership_order.membership_line_items << FactoryGirl.create(:membership_line_item, :order=>membership_order, :address=>membership_order.address, :membership=>membership)
-      membership_order.payments << FactoryGirl.create(:credit_card_payment,
-                          :order=>membership_order,
+      membership_order.payments << FactoryGirl.build(:credit_card_payment,
                           :amount=>membership_order.membership_line_items.first.membership_offer.recurring_cost,
                           :transaction_id => 'TEST_TRANSACTION',
                           :confirmation_code => 'CONFIRMED',
@@ -112,5 +113,41 @@ FactoryGirl.define do
       membership_order.save!
     end
   end
+
+  trait :one_thousand_dollar_donation do
+    association :payment_type, :factory=>:credit_card_payment_type
+      after(:create) do |donation_order, evaluator|
+        donation_order.donation_line_items << FactoryGirl.create(:donation_line_item, :donation_amount=>1000.00)
+        donation_order.save!
+      end
+  end
+
+  factory :donation_order do
+    order
+
+    factory :donation_order_for_one_thousand_dollars, :traits=>[:one_thousand_dollar_donation]
+
+  end
+
+   factory :donation_pledge_order do
+      order
+
+
+      trait :paid_with_credit_card do
+        credit_card_type 'Visa'
+        credit_card_number  '4111111111111111'
+        credit_card_expiration_month '12'
+        credit_card_expiration_year Date.today.year.to_s
+        credit_card_verification_number '999'
+        after(:create) do |order, evaluator|
+          order.create_proper_payment_in_amount_of!(order.value_of_all_line_items)
+        end
+
+      end
+
+      factory :donation_pledge_order_for_one_thousand_dollars, :traits=>[:one_thousand_dollar_donation]
+      factory :donation_pledge_order_for_one_thousand_dollars_using_credit_card, :traits=>[:one_thousand_dollar_donation, :paid_with_credit_card]
+    end
+
 
 end

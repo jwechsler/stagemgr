@@ -72,7 +72,8 @@ FactoryGirl.define do
 
   factory :address do
     last_name 'Test'
-    full_name 'Test'
+    full_name 'Jeremy Test'
+    first_name 'Jeremy'
     line1 '123 swift st'
     city 'hoboken'
     state 'ct'
@@ -171,10 +172,6 @@ FactoryGirl.define do
   end
 
   factory :flex_pass_order do
-    order
-  end
-
-  factory :donation_order do
     order
   end
 

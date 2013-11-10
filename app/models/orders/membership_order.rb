@@ -1,5 +1,5 @@
-class MembershipOrder < RecurringOrder
-
+class MembershipOrder < Order
+  include RecurringOrder
   belongs_to :membership_offer
   has_many :membership_line_items, :foreign_key=>:order_id, :dependent => :destroy
   validates_associated :membership_line_items
@@ -22,6 +22,10 @@ class MembershipOrder < RecurringOrder
 
   def membership_offer
     self.membership_line_items.first.membership_offer if !self.membership_line_items.empty?
+  end
+
+  def recurring_profile
+    self.membership
   end
 
   def description
@@ -77,21 +81,16 @@ class MembershipOrder < RecurringOrder
     di.membership.address = self.address if !di.membership.nil? }
   end
 
+
+  def is_balanced_transaction?
+    true
+  end
+
+
   def total(reload_line_items=false)
     self.value_of_all_payments
   end
 
-  def create_recurring_payment(note = nil, additional_info = {})
-    payment = RecurringPayment.new
-    payment.amount = additional_info[:amount] || self.membership.membership_offer.recurring_cost
-    payment.note = note || "Automatically created"
-    payment.transaction_id = additional_info[:transaction_id] || self.membership.profile_id
-    payment.ipn_track_id = additional_info[:ipn_track_id]
-    payment.processed_on = additional_info[:processed_on]
-    payment.payment_fee = additional_info[:payment_fee]
-    self.payments << payment
-    payment
-  end
 
   def create_proper_payment_in_amount_of!(amount, payment_options = {})
     self.membership.update_from_profile!
