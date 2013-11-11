@@ -1,4 +1,5 @@
 <div id="box_office"><h1>Now playing</h1>
+
 <%- unless @now_playing_productions.empty? && @home_shows.empty? %>
   <div id="featured_shows">
     <%- @home_shows.each do |production| %>
@@ -16,7 +17,7 @@
             slice = 100 / row_count %>
         <br style="clear: both"/>
       <%- end %>
-      <%= render :partial=>"show_thumb", :locals=>{:production=>venue_production, :slice=>slice, :new_window_link=>true,:background=>@background} %>
+      <%= render :partial=>"show_fb_thumb", :locals=>{:production=>venue_production, :slice=>slice, :new_window_link=>true,:background=>@background} %>
       <%- row_count -= 1 %>
     <%- end %>
   </div>
