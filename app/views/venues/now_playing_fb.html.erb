@@ -16,7 +16,7 @@
             slice = 100 / row_count %>
         <br style="clear: both"/>
       <%- end %>
-      <%= render :partial=>"show_thumb", :locals=>{:production=>venue_production, :slice=>slice, :new_window_link=>true} %>
+      <%= render :partial=>"show_thumb", :locals=>{:production=>venue_production, :slice=>slice, :new_window_link=>true,:background=>@background} %>
       <%- row_count -= 1 %>
     <%- end %>
   </div>
