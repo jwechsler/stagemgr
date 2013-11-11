@@ -13,7 +13,7 @@ module PayPalControllerHelper
       when 'web_accept'
         Resque.enqueue_in(5.seconds, ProcessPaypalPayment, params)
       else
-        logger.warn("Unhandled IPN request: #{params.to_yaml}")
+        Rails.logger.warn("Unhandled IPN request: #{params.to_yaml}")
     end
     true
   end
