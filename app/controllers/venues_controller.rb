@@ -1,5 +1,6 @@
 class VenuesController < ApplicationController
   layout 'ext_site_wrapper'
+  before_filter :set_background
 
   def now_playing_fb
     self.set_now_playing_productions
@@ -9,12 +10,16 @@ class VenuesController < ApplicationController
     @max_pieces = 3
     render :now_playing_fb, :layout=>'facebook'
   end
+
   def now_playing
+    self.set_now_playing_productions
+    @max_pieces = 4
+  end
+
+  def set_background
     @background = params['background']
     @background = 'light' if @background.nil?
     @background = 'light' unless ['light','dark'].include?(@background)
-    self.set_now_playing_productions
-    @max_pieces = 4
   end
 
   def current_shows
