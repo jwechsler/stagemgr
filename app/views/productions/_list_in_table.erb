@@ -6,13 +6,12 @@
     <% content_for(:head) do %>
       <style>
         #showimage_<%=production.id %>{
-          background: url(production.best_image_url_available(:medium)) no-repeat center center;
+          background: url(<%= production.best_image_url_available(:medium)%>) no-repeat center center;
           display:block;
           overflow:hidden;
           white-space:nowrap;
           text-indent:100%;
           height: 375px;
-          width: 250px;
         }
       </style>
     <% end %>
