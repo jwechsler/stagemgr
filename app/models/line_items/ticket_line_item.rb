@@ -3,12 +3,6 @@ class TicketLineItem < LineItem
   belongs_to :ticket_class
   validates_presence_of :ticket_class, :ticket_count
 
-  validates_each :ticket_count do |record, attr, value|
-    unless !record.new_record? || record.ticket_class.nil? || record.order.nil? || record.order.performance.nil? || value.nil?
-      record.errors.add attr, 'is more than the number left' if value > record.ticket_class.number_left(record.order.performance)
-    end
-  end
-
   validates_each :price_override do |record, attr, value|
     if record.ticket_class && record.ticket_class.ticket_type != 'Donation'
       record.errors.add attr, "cannot be used on ticket class type #{record.ticket_class.ticket_type}" unless value.nil?
@@ -16,6 +10,13 @@ class TicketLineItem < LineItem
   end
 
   validates_numericality_of :price_override, :allow_nil => true
+
+  def ticket_class_allocation_available?
+    unless self.order.nil? || self.order.performance_id.nil?
+      number_available = TicketClassAllocation.sum(:ticket_limit, :conditions=>{:ticket_class_id=>self.id,:performance_id=>performance.id})
+    end
+
+  end
 
   def price
     (self.price_override || self.ticket_class.try(:ticket_price)) || 0

@@ -27,4 +27,5 @@ class TicketClassAllocation < ActiveRecord::Base
     seats_currently_held / self.performance.production.capacity * 100 >= self.shift_when_capacity_over
   end
 
+
 end
