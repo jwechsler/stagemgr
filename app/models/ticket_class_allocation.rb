@@ -24,7 +24,7 @@ class TicketClassAllocation < ActiveRecord::Base
     return false if self.shift_when_capacity_over.nil?
 
     seats_currently_held = self.performance.seats_held if seats_currently_held.nil?
-    seats_currently_held / self.performance.production.capacity * 100 >= self.shift_when_capacity_over
+    seats_currently_held.to_f / self.performance.production.capacity * 100.0 >= self.shift_when_capacity_over
   end
 
 
