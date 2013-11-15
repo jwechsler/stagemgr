@@ -1,4 +1,4 @@
-<a name="top" style="text-decoration:none;"><h3>Support <%= @order.campaign.eql?('mythic1113') ? "Nora Dunn's Mythical Proportions" : "Theater Wit" %></h3></a>
+<a name="top" style="text-decoration:none;"><h3>Support Theater Wit</h3></a>
 
 <%= semantic_form_for @order do |order_form| %>
   <%= order_form.inputs :class=>"order" do %>
@@ -6,18 +6,23 @@
     <%= order_form.hidden_field :campaign %>
     <%= render :partial => '/orders/address', :locals => {:order_form => order_form} %>
 
-    <%- @submit_text = "Make a donation" -%>
-    <%= order_form.semantic_fields_for :donation_line_items do |donation| %>
-      <%= donation.inputs :class=>"donation" do %>
-        <%= donation.input :donation_level, :as=>:radio, :collection=>@levels, :label=>"Contribution level:", :required=>false %>
-        <%= donation.input :donation_amount, :label=>"... or other amount", :required=>false %>
+    <% @submit_text = "Make a donation" -%>
+    <% if @monthly_pledge %>
+      <%= order_form.semantic_fields_for :pledge do |pledge| %>
+        Pledge
+      <% end %>
+    <% else %>
+      <%= order_form.semantic_fields_for :donation_line_items do |donation| %>
+        <%= donation.inputs :class=>"donation" do %>
+          <%= donation.input :donation_level, :as=>:radio, :collection=>@levels, :label=>"Contribution level:", :required=>false %>
+          <%= donation.input :donation_amount, :label=>"... or other amount", :required=>false %>
+
+        <%- end -%>
 
       <%- end -%>
-
-    <%- end -%>
+    <% end %>
     <%= render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form} %>
-    <%- label_value = "Join the Theater Wit mailing list.<br/> Get company news, special offers, ticket discounts and more delivered twice monthly. Your email
-                    will not be shared. :) " %>
+    <%- label_value = "Join the Theater Wit mailing list.<br/>Get company news, special offers, ticket discounts and more delivered twice monthly. Your email will not be shared. :) " %>
     <%= order_form.input :add_to_email_list, :as=>:boolean, :label=>raw(label_value) %>
 
 

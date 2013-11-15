@@ -31,7 +31,6 @@ When /^I prefer "(.*?)" seating$/ do |seating_preference|
   select seating_preference, :from=>"Preferred Seating"
 end
 
-
 When /^I enter a valid credit card as payment( through the backend)?$/ do |backend|
   @_current_form = 'ticket_order' if @_current_form.blank?
   select "Credit Card", :from=>"Pay using"
