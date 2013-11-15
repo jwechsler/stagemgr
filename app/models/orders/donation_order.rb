@@ -58,9 +58,10 @@ class DonationOrder
     self.finalized_statuses
   end
 
-  def queue_sf_sync
-    Resque.enqueue_in(2.minutes, SyncDonationToSalesforce, self.id)
-    super
+  def queue_sf_sync(delay=nil)
+    delay ||= 2.minutes
+    Resque.enqueue_in(delay, SyncDonationToSalesforce, self.id)
+    super(delay)
   end
 
   def sync_to_salesforce!(sf_user = nil, sf_donationtype = nil)
