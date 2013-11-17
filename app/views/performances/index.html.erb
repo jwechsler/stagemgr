@@ -59,14 +59,14 @@
                   <%= raw current_day<@start_date || current_day > @end_date ? '&nbsp;' : current_day.strftime('%d') %>
                 </div>
                 <% performances = @performances.select { |per| per.performance_date==current_day }
-                   performances.each { |performance| %>
-                  <span class="vertical_center">
-                    <div class="show-info">
-                      <%- title = "#{performance.performance_time.to_s(:hour_min)}"
+                   performances.each { |performance|
+                    title = "#{performance.performance_time.to_s(:hour_min)}"
 
                           performance.special_features.each {|feature|
                             title <<= raw "<sup>[#{@footnotes.find_index(feature.short_name)+1}]&nbsp;</sup>"
-                          } unless performance.special_features.nil? %>
+                          } unless performance.special_features.nil?%>
+                  <span class="vertical_center">
+                    <div class="show-info">
                     <%= if performance.performance_date<Date.today
                       raw title
                     elsif performance.sold_out?
@@ -77,7 +77,25 @@
                     elsif performance.near_capacity?
                       raw "#{title}<br/><font size=\"-2\">Call box office</font>"
                     else
-                      link_to(raw(title),new_production_performance_order_path(performance.production.id,performance.id))
+                      visible = performance.ticket_class_allocations.select { |tca|
+                            tca.available? && tca.ticket_class.web_visible?
+                          }
+                      min_price = visible.first.ticket_class.ticket_price
+                      max_price = min_price
+                      visible.each { |tca| min_price = [tca.ticket_class.ticket_price, min_price].min
+                        max_price = [max_price, tca.ticket_class.ticket_price].max
+                      }
+                      display_min = min_price.to_i
+                      display_max = max_price.to_i
+                      display_min = Money.from_numeric(min_price) unless min_price == display_min
+                      display_max = Money.from_numeric(max_price) unless max_price == display_max
+
+                      result = link_to raw(title),
+                        new_production_performance_order_path(performance.production.id,performance.id)
+                      result += raw "<br/><span class=\"price_range\">$#{display_min}"
+                      result += raw "-$#{display_max}" unless max_price == min_price
+                      result += raw "</span>"
+                      result
                     end %>
                     </div>
 

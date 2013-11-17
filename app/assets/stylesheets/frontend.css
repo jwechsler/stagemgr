@@ -220,6 +220,10 @@ background-dark {
 
 }
 
+.price_range {
+  font-size: .5em;
+}
+
 #content {
   padding: 10px;
 }
