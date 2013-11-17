@@ -11,7 +11,7 @@ class Performance < ActiveRecord::Base
   has_many                 :payment_restrictions, :dependent=>:destroy
   has_many                 :restricted_payment_types, :source=>:payment_type, :through=>:payment_restrictions
   has_and_belongs_to_many      :special_features
-
+  default_scope            includes(:ticket_class_allocations)
   validates_inclusion_of   :status,            :in => PERFORMANCE_STATUSES
   validates_uniqueness_of  :performance_code
   validates_uniqueness_of  :performance_time, :scope=>[:performance_date, :production_id]
@@ -135,6 +135,10 @@ class Performance < ActiveRecord::Base
 
   def self.visible_statuses
     return [Performance::ACTIVE]
+  end
+
+  def visible?
+    Performance.visible_statuses.include?(self.status)
   end
 
   private
