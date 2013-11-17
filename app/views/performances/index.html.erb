@@ -35,7 +35,12 @@
             <br/>
             <br/>
           <%- end -%>
-          <%= link_to raw("&laquo;"), :action=>:index, :start_date=>@start_date.prev_month, :end_date=>@start_date-1 %> <%= Date::MONTHNAMES[@start_date.month] %> <%= link_to raw('&raquo;'), :action=>:index, :start_date=>@end_date+1, :end_date=>@end_date+1.week %>
+          <h3><span class="month_navigation">
+          <%= link_to raw("&laquo;#{Date::MONTHNAMES[(@start_date-1.month).month]}&nbsp;"), :action=>:index, :start_date=>@start_date.prev_month, :end_date=>@start_date-1 %>
+          </span>
+          <%= Date::MONTHNAMES[@start_date.month] %>
+          <span class="month_navigation"><%= link_to raw(Date::MONTHNAMES[(@start_date+1.month).month] + '&raquo;'), :action=>:index, :start_date=>@end_date+1, :end_date=>@end_date+1.week %></span>
+          </h3>
         </caption>
         <tr>
           <th scope="col" abbr="Sunday" title="Sunday">Sun</th>
