@@ -74,6 +74,7 @@
                           visible = performance.ticket_class_allocations.select { |tca|
                             tca.available? && tca.ticket_class.web_visible?
                           }
+                          unless visible.empty?
                           min_price = visible.first.ticket_class.ticket_price
                           max_price = min_price
                           visible.each { |tca| min_price = [tca.ticket_class.ticket_price, min_price].min
@@ -86,7 +87,10 @@
 
                           price_range = raw "<span class=\"price_range\">$#{display_min}"
                           price_range += raw "-$#{display_max}" unless max_price == min_price
-                          price_range += raw "</span>"%>
+                          price_range += raw "</span>"
+                          else
+                            price_range = ''
+                          end%>
                   <span class="vertical_center">
                     <div class="show-info">
                     <%= if performance.performance_date<Date.today
