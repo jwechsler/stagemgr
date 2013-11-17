@@ -64,7 +64,24 @@
 
                           performance.special_features.each {|feature|
                             title <<= raw "<sup>[#{@footnotes.find_index(feature.short_name)+1}]&nbsp;</sup>"
-                          } unless performance.special_features.nil?%>
+                          } unless performance.special_features.nil?
+
+                          visible = performance.ticket_class_allocations.select { |tca|
+                            tca.available? && tca.ticket_class.web_visible?
+                          }
+                          min_price = visible.first.ticket_class.ticket_price
+                          max_price = min_price
+                          visible.each { |tca| min_price = [tca.ticket_class.ticket_price, min_price].min
+                            max_price = [max_price, tca.ticket_class.ticket_price].max
+                          }
+                          display_min = min_price.to_i
+                          display_max = max_price.to_i
+                          display_min = Money.from_numeric(min_price) unless min_price == display_min
+                          display_max = Money.from_numeric(max_price) unless max_price == display_max
+
+                          price_range = raw "<span class=\"price_range\">$#{display_min}"
+                          price_range += raw "-$#{display_max}" unless max_price == min_price
+                          price_range += raw "</span>"%>
                   <span class="vertical_center">
                     <div class="show-info">
                     <%= if performance.performance_date<Date.today
@@ -73,29 +90,11 @@
                       found_sold_out = true
                       raw "<del>#{title}</del><br/><font size=\"-2\">Sold out!</font>"
                     elsif performance.happening_soon?
-                      raw "#{title}<br/><font size=\"-2\">Door only</font>"
+                      raw "#{title}<br/>#{price_range}<br/><font size=\"-2\">Door only</font>"
                     elsif performance.near_capacity?
-                      raw "#{title}<br/><font size=\"-2\">Call box office</font>"
+                      raw "#{title}<br/>#{price_range}<br/><font size=\"-2\">Call box office</font>"
                     else
-                      visible = performance.ticket_class_allocations.select { |tca|
-                            tca.available? && tca.ticket_class.web_visible?
-                          }
-                      min_price = visible.first.ticket_class.ticket_price
-                      max_price = min_price
-                      visible.each { |tca| min_price = [tca.ticket_class.ticket_price, min_price].min
-                        max_price = [max_price, tca.ticket_class.ticket_price].max
-                      }
-                      display_min = min_price.to_i
-                      display_max = max_price.to_i
-                      display_min = Money.from_numeric(min_price) unless min_price == display_min
-                      display_max = Money.from_numeric(max_price) unless max_price == display_max
-
-                      result = link_to raw(title),
-                        new_production_performance_order_path(performance.production.id,performance.id)
-                      result += raw "<br/><span class=\"price_range\">$#{display_min}"
-                      result += raw "-$#{display_max}" unless max_price == min_price
-                      result += raw "</span>"
-                      result
+                      raw "#{link_to raw(title), new_production_performance_order_path(performance.production.id,performance.id)}<br/>#{price_range}"
                     end %>
                     </div>
 
