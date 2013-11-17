@@ -1,5 +1,4 @@
-<% content_for :head do %>
-  <style>
+<style type="text/css" scoped>
   #nowplaying_thumb_<%= production.id %> {
     background: url(<%= production.best_image_url_available(:thumb)%>) no-repeat center center;
     display:block;
@@ -9,7 +8,6 @@
     height: 186px;
   }
   </style>
-<% end %>
 <div class="show_listing background-<%= background %>" style="width: <%= slice %>%">
   <p class="venue"><%= production.venue.name %></p>
   <%= image_url = production.best_image_url_available(:thumb)
