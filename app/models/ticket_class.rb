@@ -11,6 +11,8 @@ class TicketClass < ActiveRecord::Base
   before_validation :clean_values
   validates_numericality_of :ticket_price
   validates_numericality_of :minutes_before_show, :allow_nil => true
+  validates_presence_of :ticket_price
+  validates_presence_of :ticketing_fee
   after_save :update_auto_attached_performances
 
   def number_left(performance, exclude_order=nil)
