@@ -90,6 +90,22 @@ class Production < ActiveRecord::Base
     [PLAY, SPECIAL_EVENT, OFF_TIME]
   end
 
+  def price_range
+    min_price = nil
+    max_price = TicketClass.maximum(:ticket_price, :conditions=>['web_visible = ? and production_id = ?', true, self.id])
+    self.performances.each {|perf|
+      if perf.performance_date >= Date.today && perf.visible?
+        visible = perf.ticket_class_allocations.select { |tca|
+          tca.available? && tca.ticket_class.web_visible?
+        }
+        visible.each { |tca|
+          min_price = min_price.nil? ? tca.ticket_class.ticket_price : [tca.ticket_class.ticket_price, min_price].min
+        }
+      end
+    }
+    [min_price, max_price]
+  end
+
   def best_image_url_available(render)
     case
       when !self.promo_file_name.blank?

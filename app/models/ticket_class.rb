@@ -11,9 +11,11 @@ class TicketClass < ActiveRecord::Base
   before_validation :clean_values
   validates_numericality_of :ticket_price
   validates_numericality_of :minutes_before_show, :allow_nil => true
+  validates_presence_of :ticket_price
+  validates_presence_of :ticketing_fee
   after_save :update_auto_attached_performances
 
-  def number_left(performance)
+  def number_left(performance, exclude_order=nil)
     ticket_class_capacity_left = production_capacity_left = performance.number_of_seats_left
 
     unless number_allocated(performance).nil?
@@ -22,8 +24,12 @@ class TicketClass < ActiveRecord::Base
     return [ticket_class_capacity_left,production_capacity_left].min
   end
 
-  def number_taken(performance)
-    LineItem.sum(:ticket_count, :conditions=>{:ticket_class_id=>self.id,:performance_id=>performance.id})
+  def number_taken(performance, exclude_order = nil)
+    if exclude_order.nil?
+      LineItem.sum(:ticket_count, :conditions=>{:ticket_class_id=>self.id,:performance_id=>performance.id})
+    else
+      LineItem.where('ticket_class_id = ? and performance_id = ? and order_id != ?',self.id, performance.id, order.id).sum(:ticket_count)
+    end
   end
 
   def number_allocated(performance)

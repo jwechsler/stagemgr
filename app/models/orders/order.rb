@@ -196,7 +196,7 @@ class Order < ActiveRecord::Base
     a
   end
 
-  def total_ticket_quantity
+  def number_of_tickets
     0
   end
 

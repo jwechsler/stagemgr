@@ -220,6 +220,14 @@ background-dark {
 
 }
 
+.month_navigation {
+  font-size: .5em;
+  font-weight: bold;
+}
+.price_range {
+  font-size: .5em;
+}
+
 #content {
   padding: 10px;
 }

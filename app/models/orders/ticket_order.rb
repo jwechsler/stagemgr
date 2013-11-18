@@ -15,6 +15,9 @@ class TicketOrder < Order
   validates_associated :ticket_line_items
   validates_presence_of :performance
 
+  #before_validation :tickets_available?, :if=>[:processed?, :status_changed?]
+
+  validate :ticket_stock_available
   validates_each :status do |record, attr, value|
 
     if value == PROCESSED
@@ -26,6 +29,32 @@ class TicketOrder < Order
       end
     end
   end
+
+  def ticket_stock_available
+    unless self.ticket_line_items.empty?
+      ticket_counts_by_class = Hash.new
+      self.ticket_line_items.each do |tli|
+        errors.add :base, "Missing allocation for #{self.performance.performance_code} / #{tli.ticket_class.class_code}" unless self.performance.ticket_class_allocations.map{|tla| tla.ticket_class }.include?(tli.ticket_class)
+        if ticket_counts_by_class.has_key?(tli.ticket_class_id)
+          ticket_counts_by_class[tli.ticket_class_id] += tli.ticket_count
+        else
+          ticket_counts_by_class[tli.ticket_class_id] = tli.ticket_count
+        end
+      end
+      ticket_counts_by_class.keys.each do |key|
+        allocation = TicketClassAllocation.find_by_performance_id_and_ticket_class_id(self.performance_id, key)
+        unless allocation.nil?
+          number_of_tickets_already_used = TicketLineItem.where('ticket_class_id = ? and performance_id = ? and order_id != ?',key, self.performance_id, self.id).joins(:order).sum(:ticket_count)
+          if (!allocation.ticket_limit.nil? && (ticket_counts_by_class[key] + number_of_tickets_already_used > allocation.ticket_limit)) then
+            errors.add :base, "'#{TicketClass.find(key).class_name}' only has #{number_of_tickets_already_used} remaining."
+          end
+        end
+      end
+      seats_left = self.performance.number_of_seats_left(self)
+      errors.add :base, "There are only #{seats_left} reservations remaining for this performance." if seats_left < self.number_of_seats
+    end
+  end
+
 
   def theater_ids
     [performance.production.theater.id]
@@ -185,12 +214,11 @@ class TicketOrder < Order
   end
 
   def number_of_tickets
-     self.ticket_line_items(false).uniq.to_a.sum { |li| li.respond_to?(:ticket_count) ? li.ticket_count : 0 }
+    self.ticket_line_items.inject(0) { |sum, li| sum + li.ticket_count }
   end
 
-  # @todo verify that this can be factored out
-  def ticket_quantity
-    self.number_of_tickets
+  def number_of_seats
+    self.ticket_line_items.inject(0) { |sum, li| sum + (li.ticket_class.holds_seats? ? li.ticket_count : 0)}
   end
 
   def performance_code=(string)
@@ -286,10 +314,6 @@ class TicketOrder < Order
 
   def performance_code()
     self.performance.try(:performance_code)
-  end
-
-  def total_ticket_quantity
-    self.ticket_line_items.inject(0) { |sum, li| sum + li.ticket_count }
   end
 
   def unique_line_items(reload_line_items = false)
@@ -495,13 +519,13 @@ class TicketOrder
           event = SalesforceData::OrderActivity__c.create("stagemgr_order_id__c" => self.id.to_s,
             "Name" => self.performance.production.name,
             "Attendee__c" => contact.Id,
-            "number_of_tickets__c" => self.total_ticket_quantity,
+            "number_of_tickets__c" => self.number_of_tickets,
             "spent__c" => self.total_amount,
             "attended_on__c" => showtime)
         else
           event.Attendee__c = contact.Id
           event.Name = self.performance.production.name
-          event.number_of_tickets__c = self.total_ticket_quantity
+          event.number_of_tickets__c = self.number_of_tickets
           event.spent__c = self.total_amount
           event.attended_on__c = showtime
         end

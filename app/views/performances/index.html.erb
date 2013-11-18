@@ -35,7 +35,12 @@
             <br/>
             <br/>
           <%- end -%>
-          <%= link_to raw("&laquo;"), :action=>:index, :start_date=>@start_date.prev_month, :end_date=>@start_date-1 %> <%= Date::MONTHNAMES[@start_date.month] %> <%= link_to raw('&raquo;'), :action=>:index, :start_date=>@end_date+1, :end_date=>@end_date+1.week %>
+          <h3><span class="month_navigation">
+          <%= link_to raw("&laquo;#{Date::MONTHNAMES[(@start_date-1.month).month]}&nbsp;"), :action=>:index, :start_date=>@start_date.prev_month, :end_date=>@start_date-1 %>
+          </span>
+          <%= Date::MONTHNAMES[@start_date.month] %>
+          <span class="month_navigation"><%= link_to raw(Date::MONTHNAMES[(@start_date+1.month).month] + '&raquo;'), :action=>:index, :start_date=>@end_date+1, :end_date=>@end_date+1.week %></span>
+          </h3>
         </caption>
         <tr>
           <th scope="col" abbr="Sunday" title="Sunday">Sun</th>
@@ -59,25 +64,46 @@
                   <%= raw current_day<@start_date || current_day > @end_date ? '&nbsp;' : current_day.strftime('%d') %>
                 </div>
                 <% performances = @performances.select { |per| per.performance_date==current_day }
-                   performances.each { |performance| %>
-                  <span class="vertical_center">
-                    <div class="show-info">
-                      <%- title = "#{performance.performance_time.to_s(:hour_min)}"
+                   performances.each { |performance|
+                    title = "#{performance.performance_time.to_s(:hour_min)}"
 
                           performance.special_features.each {|feature|
                             title <<= raw "<sup>[#{@footnotes.find_index(feature.short_name)+1}]&nbsp;</sup>"
-                          } unless performance.special_features.nil? %>
+                          } unless performance.special_features.nil?
+
+                          visible = performance.ticket_class_allocations.select { |tca|
+                            tca.available? && tca.ticket_class.web_visible?
+                          }
+                          unless visible.empty?
+                          min_price = visible.first.ticket_class.ticket_price
+                          max_price = min_price
+                          visible.each { |tca| min_price = [tca.ticket_class.ticket_price, min_price].min
+                            max_price = [max_price, tca.ticket_class.ticket_price].max
+                          }
+                          display_min = min_price.to_i
+                          display_max = max_price.to_i
+                          display_min = Money.from_numeric(min_price) unless min_price == display_min
+                          display_max = Money.from_numeric(max_price) unless max_price == display_max
+
+                          price_range = raw "<span class=\"price_range\">$#{display_min}"
+                          price_range += raw "-$#{display_max}" unless max_price == min_price
+                          price_range += raw "</span>"
+                          else
+                            price_range = ''
+                          end%>
+                  <span class="vertical_center">
+                    <div class="show-info">
                     <%= if performance.performance_date<Date.today
                       raw title
                     elsif performance.sold_out?
                       found_sold_out = true
                       raw "<del>#{title}</del><br/><font size=\"-2\">Sold out!</font>"
                     elsif performance.happening_soon?
-                      raw "#{title}<br/><font size=\"-2\">Door only</font>"
+                      raw "#{title}<br/>#{price_range}<br/><font size=\"-2\">Door only</font>"
                     elsif performance.near_capacity?
-                      raw "#{title}<br/><font size=\"-2\">Call box office</font>"
+                      raw "#{title}<br/>#{price_range}<br/><font size=\"-2\">Call box office</font>"
                     else
-                      link_to(raw(title),new_production_performance_order_path(performance.production.id,performance.id))
+                      raw "#{link_to raw(title), new_production_performance_order_path(performance.production.id,performance.id)}<br/>#{price_range}"
                     end %>
                     </div>
 

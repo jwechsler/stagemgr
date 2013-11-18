@@ -2,12 +2,14 @@ require "spec_helper.rb"
 
 describe "an exchanged ticket order" do
   it "should have an offset payment" do
-    original_order = FactoryGirl.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
-    exchange_order = FactoryGirl.create(:ticket_order)
+    performance = FactoryGirl.create(:performance)
+    performance2 = FactoryGirl.create(:performance)
+    original_order = FactoryGirl.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash, :performance=>performance)
+    exchange_order = FactoryGirl.create(:ticket_order, :performance=>performance2)
     ticket_line_item = original_order.ticket_line_items.first.dup
+    ticket_line_item.ticket_class = performance2.ticket_class_allocations.first.ticket_class
     exchange_order.ticket_line_items << ticket_line_item
     exchange_order.exchange_and_process_from! original_order
-
     exchange_order.payments.count.should == 1
     original_order.payments.count.should == 2
     original_order.status.should == Order::EXCHANGED
@@ -57,9 +59,8 @@ describe "a ticket order" do
     a = o.address
     o.transition_to!(Order::FULFILLED)
     o.performance.production.attendees.count.should == 1
-    o2 = FactoryGirl.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
+    o2 = FactoryGirl.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash, :performance=>o.performance)
     o2.address = a
-    o2.performance = o.performance
     o2.save!
     o2.transition_to!(Order::FULFILLED)
     o2.performance.production.attendees.count.should == 1
@@ -88,4 +89,63 @@ describe "a ticket order" do
     o2.performance.number_of_seats_left.should == 8
   end
 
+  context "when overselling" do
+    it "cannot processes if it would oversell a particular ticket class" do
+        Authorization.ignore_access_control
+        production = FactoryGirl.create(:production, :capacity=>4)
+        performance = FactoryGirl.create(:performance, :production=>production)
+        performance.number_of_seats_left.should eq(4)
+        o = FactoryGirl.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash, :performance=>performance)
+        o2 = FactoryGirl.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash, :performance=>performance)
+        performance.number_of_seats_left.should eq(0)
+
+        lambda { order = FactoryGirl.create(:ticket_order_for_a_pair_of_tickets, :performance=>performance )
+                    order.transition_to!(Order::PROCESSING)
+            }.should raise_error(ActiveRecord::RecordInvalid)
+    end
+
+    it "cannot processes if it would oversell a performance" do
+        Authorization.ignore_access_control
+        production = FactoryGirl.create(:production, :capacity=>2)
+        tc_1 = FactoryGirl.create(:ticket_class, :production=>production, :class_code=>'CODEA')
+        tc_2 = FactoryGirl.create(:ticket_class, :production=>production, :class_code=>'CODEB')
+        tc_3 = FactoryGirl.create(:ticket_class, :production=>production, :class_code=>'CODEC')
+        production.reload
+        performance = FactoryGirl.create(:performance, :production=>production)
+
+        performance.number_of_seats_left.should eq(2)
+        tc_1.number_left(performance).should eq(2)
+        tc_2.number_left(performance).should eq(2)
+        tc_3.number_left(performance).should eq(2)
+
+        o  = FactoryGirl.create(:ticket_order, :performance=>performance)
+        o.ticket_line_items << FactoryGirl.build(
+                                    :ticket_line_item,
+                                    :ticket_class=>tc_1,
+                                    :ticket_count=>1,
+                                    :order=>o)
+        tc_1.number_left(performance).should eq(1)
+        tc_2.number_left(performance).should eq(1)
+        tc_2.number_left(performance).should eq(1)
+
+        o.ticket_line_items << FactoryGirl.build(
+                                    :ticket_line_item,
+                                    :ticket_class=>tc_2,
+                                    :ticket_count=>2,
+                                    :order=>o)
+        tc_1.number_left(performance).should eq(-1)
+        tc_2.number_left(performance).should eq(-1)
+        tc_2.number_left(performance).should eq(-1)
+
+        #o.ticket_line_items << FactoryGirl.create(
+        #                            :ticket_line_item,
+        #                            :ticket_class=>tc_3,
+        #                            :ticket_count=>1,
+        #                            :order=>o)
+        o.number_of_seats.should eq(3)
+
+
+        lambda { o.transition_to!(Order::PROCESSING) }.should raise_error(ActiveRecord::RecordInvalid)
+    end
+  end
 end

@@ -1,6 +1,7 @@
 class TicketClassAllocation < ActiveRecord::Base
   belongs_to :performance
   belongs_to :ticket_class
+  default_scope includes(:ticket_class)
   validates_presence_of :performance
   validates_presence_of :ticket_class
   validates_numericality_of :ticket_limit, :allow_nil => true
@@ -24,7 +25,8 @@ class TicketClassAllocation < ActiveRecord::Base
     return false if self.shift_when_capacity_over.nil?
 
     seats_currently_held = self.performance.seats_held if seats_currently_held.nil?
-    seats_currently_held / self.performance.production.capacity * 100 >= self.shift_when_capacity_over
+    seats_currently_held.to_f / self.performance.production.capacity * 100.0 >= self.shift_when_capacity_over
   end
+
 
 end

@@ -11,7 +11,7 @@ class Performance < ActiveRecord::Base
   has_many                 :payment_restrictions, :dependent=>:destroy
   has_many                 :restricted_payment_types, :source=>:payment_type, :through=>:payment_restrictions
   has_and_belongs_to_many      :special_features
-
+  default_scope            includes(:ticket_class_allocations)
   validates_inclusion_of   :status,            :in => PERFORMANCE_STATUSES
   validates_uniqueness_of  :performance_code
   validates_uniqueness_of  :performance_time, :scope=>[:performance_date, :production_id]
@@ -34,13 +34,16 @@ class Performance < ActiveRecord::Base
 
   accepts_nested_attributes_for  :ticket_class_allocations
 
-  def number_of_seats_left
-    self.production.capacity - self.seats_held
+  def number_of_seats_left(exclude_order = nil)
+    self.production.capacity - self.seats_held(exclude_order)
     # self.orders.select{|o| o.holding_seats? }.inject(0){|sum,order| sum + order.ticket_line_items.sum(:ticket_count) }
   end
 
-  def seats_held
-    TicketLineItem.where('ticket_classes.holds_seats = ? and orders.status in (?) and orders.performance_id = ?',true,Order::HOLDING_SEAT_STATUSES,self.id).includes(:order, :ticket_class).sum(:ticket_count)
+  def seats_held(exclude_order = nil)
+    TicketLineItem.where('ticket_classes.holds_seats = ? and orders.status in (?) and orders.performance_id = ? and order_id != ?',
+                            true,
+                            Order::HOLDING_SEAT_STATUSES,
+                            self.id,(exclude_order.nil? ? 0 : exclude_order.id)).includes(:order, :ticket_class).sum(:ticket_count)
   end
 
   def scan_ticket_allocation_triggers
@@ -132,6 +135,10 @@ class Performance < ActiveRecord::Base
 
   def self.visible_statuses
     return [Performance::ACTIVE]
+  end
+
+  def visible?
+    Performance.visible_statuses.include?(self.status)
   end
 
   private

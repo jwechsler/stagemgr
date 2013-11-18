@@ -350,7 +350,7 @@ class Admin::ReportsController < Admin::ApplicationController
           :notes => note_column,
           :is_member => o.address.is_current_member?,
           :is_donor => o.address.is_donor?,
-          :seats => o.total_ticket_quantity
+          :seats => o.number_of_seats
         }
       end
     end
@@ -708,7 +708,8 @@ class Admin::ReportsController < Admin::ApplicationController
     row[:status] = order.status
     row[:description] = order.description
     row[:order_total] = order.total
-    row[:num_tickets]  = order.total_ticket_quantity
+    row[:num_tickets]  = order.number_of_tickets
+    row[:num_seats] = order.number_of_seats
     row
   end
 
@@ -791,7 +792,7 @@ class Admin::ReportsController < Admin::ApplicationController
   def build_order_dump(production)
     report = Array.new
     keys = columns_for_orders(true,true)
-    keys += [:order_total, :num_tickets]
+    keys += [:order_total, :num_tickets, :num_seats]
     members_by_email = Admin::ReportsHelper.attendees_on_email_list(production)
     production.performances.each { |performance|
       orders = TicketOrder.joins(:ticket_line_items).where("performance_id = :performance_id", {:performance_id=>performance.id})
