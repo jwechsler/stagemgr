@@ -41,6 +41,9 @@ module NavigationHelpers
       when /^(the )?new donation order$/
         @_current_form='donation_order'
         new_donation_order_url
+      when /^(the |a )?new monthly pledge$/
+        @_current_form='donation_pledge_order'
+        new_donation_pledge_order_url
       when /^new admin ticket order$/
         @using_admin_interface = true
         new_admin_ticket_order_url

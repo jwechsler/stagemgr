@@ -3,6 +3,7 @@ FactoryGirl.define do
   factory :ticket_class do
     ticket_type 'Fixed'
     ticket_price 5.0
+    ticketing_fee 0.0
     sequence(:class_code) { |n| "GEN#{'%02d' % n}" }
     association :production
     auto_attach true

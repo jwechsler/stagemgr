@@ -22,18 +22,19 @@ class DonationPledgeOrder < DonationOrder
   end
 
   def create_proper_payment_in_amount_of!(amount, payment_options = {})
+    Rails.logger.debug("AMT: #{amount}")
     response = RecurringProfile.create_recurring_profile(
                               self,Date.today,(amount/12.0).round(2),
                               'Theater Wit Monthly Pledge',2,{:cycles=>12}
                   )
     success = response.success?
+    Rails.logger.debug("RESPONSE: #{response.to_yaml}")
     if success
       profile_id = response.params["profile_id"]
       self.pledge = Pledge.create(:profile_id => profile_id,
                                   :status =>response.params["profile_status"][0..-8],
                                   :address=>self.address)
-      self.pledge.update_from_profile
-
+      self.pledge.update_from_profile!
       self.donation_line_items.first.donation_amount = pledge.total # handle rounding problems
     else
       self.pledge=nil?
@@ -41,9 +42,8 @@ class DonationPledgeOrder < DonationOrder
   end
 
   def is_balanced_transaction?
-    unless self.total == (self.pledge.aggregate_amount.nil? ? 0.0 : self.pledge.aggregate_amount/100.0) +
-      (self.pledge.outstanding_balance.nil? ? 0.0 : self.pledge.outstanding_balance/100.0)
-      errors.add :status, "cannot be set to #{PROCESSED} if the total isn't countered by pledged payments."
+    if self.pledge.nil?
+      errors.add :status, "cannot be set to #{PROCESSED} without a valid recurring payment profile."
     end
   end
 

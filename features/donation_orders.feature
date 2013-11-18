@@ -24,12 +24,24 @@ Feature: Donations
      Then I should see "Order was successfully saved"
       And I should see "$40.50"
 
-  @wip
+
   Scenario: Make a monthly pledge
-    Given I go to new donation order
+    Given I go to new monthly pledge
       And I enter my contact information
       And I enter a valid credit card as payment
-      And I select the monthly pledge option
       And I enter "10" as a monthly pledge amount
       And I press "Make a donation"
-     Then I should see "Your pledge for $120.00 over the coming year ($10/month) has been made."
+     Then I should see "$120.00 over the coming year ($10.00/month)"
+      And I should see "Processed"
+  @wip
+  Scenario: Make a monthly pledge with a correction
+    Given I go to new monthly pledge
+      And I enter my contact information incorrectly
+      And I enter a valid credit card as payment
+      And I enter "10" as a monthly pledge amount
+      And I press "Make a donation"
+      And I should see "There was a problem"
+      And I enter my contact information
+      And I press "Make a donation"
+     Then I should see "$120.00 over the coming year ($10.00/month)"
+      And I should see "Processed"

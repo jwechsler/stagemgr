@@ -20,6 +20,11 @@ class DonationOrder < Order
     "Donation (#{self.campaign})"
   end
 
+  def total
+    self.donation_line_items.sum(:donation_amount)
+  end
+
+
   def description
     self.to_s
   end

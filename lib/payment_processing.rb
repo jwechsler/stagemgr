@@ -23,7 +23,7 @@ module PaymentProcessing
     end
 
     def recurring(money, credit_card, options={})
-
+      response = super(money, credit_card, options)
       response = BogusResponse.new(super(money, credit_card, options))
       response.params['profile_id'] = BogusResponse::PROFILE_ID
       response.params['profile_status'] = 'ActiveProfile'

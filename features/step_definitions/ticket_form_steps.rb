@@ -22,6 +22,12 @@ When /^I enter my contact information$/ do
   enter_patron_information
 end
 
+When /^I enter my contact information incorrectly$/ do
+  enter_patron_information
+  fill_in "Email", :with=>''
+  fill_in "Billing Address", :with=>''
+end
+
 Given /^I enter a gift recipient$/ do
   fill_in "Recipient name", :with=>"Gift Getter"
   fill_in "Recipient email", :with=>"test@theaterwit.org"
@@ -48,6 +54,7 @@ When /^I enter a valid credit card as payment( through the backend)?$/ do |backe
   fill_in "Credit card number", :with=>"4111111111111111"
   fill_in "CVV", :with=>"581"
 end
+
 
 Given /^I choose "(.*?)" as payment$/ do |external_payment|
   select external_payment, :from=>"Pay using"
