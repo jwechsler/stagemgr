@@ -49,7 +49,6 @@ class TrgImport
             merge_id = row[client_patron_id_idx]
             if merge_id.blank? then
               address_choices = Address.where('email in (?)', [row[email1_idx], row[email2_idx], row[email3_idx], row[email4_idx]]).order('id DESC')
-              a = Address.new if a.nil?
             else
               if merge_id =~ /\A[-+]?[0-9]*\.?[0-9]+\Z/ then
                 a = Address.find(merge_id.to_i)
@@ -57,6 +56,7 @@ class TrgImport
                 a = Address.find_by_sf_contact_id(merge_id)
               end
             end
+            a = Address.new if a.nil?
             a.first_name = row[first_name_idx]
             a.middle_name = row[middle_name_idx]
             a.last_name = row[last_name_idx]
@@ -85,6 +85,7 @@ class TrgImport
         filestore.save
     rescue Exception
         filestore.notes = "Error: #{$!}"
+        filestore.save
     end
   end
 
