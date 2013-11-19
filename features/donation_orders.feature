@@ -24,6 +24,7 @@ Feature: Donations
      Then I should see "Order was successfully saved"
       And I should see "$40.50"
 
+  @wip
   Scenario: Make a monthly pledge
     Given I go to new monthly pledge
       And I enter my contact information
@@ -32,7 +33,7 @@ Feature: Donations
       And I press "Make a pledge"
      Then I should see "$120.00 over the coming year ($10.00/month)"
       And I should see "Processed"
-
+@wip
   Scenario: Make a monthly pledge with a correction
     Given I go to new monthly pledge
       And I enter my contact information incorrectly
@@ -41,7 +42,6 @@ Feature: Donations
       And I press "Make a pledge"
       And I should see "There was a problem"
       And I enter my contact information
-      And show me the page
       And I press "Make a pledge"
      Then I should see "$120.00 over the coming year ($10.00/month)"
       And I should see "Processed"
