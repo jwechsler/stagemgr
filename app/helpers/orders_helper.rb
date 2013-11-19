@@ -6,7 +6,7 @@ module OrdersHelper
     case button_label
       when 'Checkout', 'Review Order'
         Order::PROCESSING
-      when 'Place Order', 'Order Tickets', 'Make a donation', 'Order FlexPass'
+      when 'Place Order', 'Order Tickets', 'Make a donation', 'Order FlexPass', 'Make a pledge'
         Order::PROCESSED
       when 'Hold'
         Order::HOLD
@@ -73,15 +73,6 @@ module OrdersHelper
     escape_javascript generate_html(form_builder, method, options)
   end
 
-
-  def fix_expiration_year(expiration_year)
-    unless expiration_year.blank? || expiration_year.length > 2
-      expiration_year = "20" + expiration_year
-    end
-    expiration_year
-  end
-
-
   private
   def process_order(order, on_success_redirect_to)
     begin
@@ -92,7 +83,7 @@ module OrdersHelper
         order.credit_card_expiration_month = parsed[6]
         order.credit_card_number = parsed[1]
       end
-      order.credit_card_expiration_year = self.fix_expiration_year(order.credit_card_expiration_year)
+      order.credit_card_expiration_year = Order.fix_expiration_year(order.credit_card_expiration_year)
       unless order.credit_card_expiration_year.blank? || order.credit_card_expiration_year.length > 2
         order.credit_card_expiration_year = "20" + order.credit_card_expiration_year
 
@@ -141,6 +132,7 @@ module OrdersHelper
           flash.now[:error] = "There was an error while processing your credit card. #{e.message}"
         when ActiveRecord::RecordInvalid
           flash.now[:error] = "There was an error creating your order. #{e.message}"
+          Rails.logger.debug(e)
         else
           flash.now[:error] = "There was a problem with your order. #{e.message}"
           logger.error "There was an error creating the order. #{e.message} #{e.backtrace}"

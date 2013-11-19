@@ -1,7 +1,3 @@
-<%- if @order.campaign == 'mythic1113' %>
-Thank you for your contribution to Mythical Proportions, written and performed by Nora Dunn, and presented by Theater Wit and 1113 Productions. You can learn more about the show and upcoming events by logging on to <a href="http://www.mythologicalproportions.com">www.mythologicalproportions.com</a>.
-</p>
-<%- else %>
 <p>
   Thanks! You are 100% awesome. And probably 100% adorable. We've charged your credit card
   <%= number_to_currency(@order.total) %> today for your
@@ -15,4 +11,4 @@ Thank you for your contribution to Mythical Proportions, written and performed b
   Artistic Director,<br/>
   Theater Wit
 </p>
-<%- end %>
+

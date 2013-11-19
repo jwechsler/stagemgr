@@ -38,6 +38,12 @@ module NavigationHelpers
       when /^new membership order for membership offer "([^"]*)"/
         @_current_form='membership_order'
         new_membership_offer_order_url(MembershipOffer.find_by_name($1).id)
+      when /^(the )?new donation order$/
+        @_current_form='donation_order'
+        new_donation_order_url
+      when /^(the |a )?new monthly pledge$/
+        @_current_form='donation_pledge_order'
+        new_donation_pledge_order_url
       when /^new admin ticket order$/
         @using_admin_interface = true
         new_admin_ticket_order_url

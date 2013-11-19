@@ -1,6 +1,6 @@
 <%= order_form.semantic_fields_for :address do |address_form| %>
   <%= address_form.inputs do %>
-    <%= address_form.input :full_name, :label=>"Name", :required=>true %>
+    <%= address_form.input :full_name, :label=>"Your Name", :required=>true %>
     <%= address_form.input :email, :required=>true %>
     <%= address_form.input :line1, :label=>"Billing Address", :required=>true %>
     <li>

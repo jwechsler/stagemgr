@@ -1,10 +1,10 @@
 class ProcessCancelRecurringPaypalPayment < PaypalIpnJob
 
   def self.perform(params)
-    membership = referenced_membership(params)
+    profile = referenced_profile(params)
 
-    membership.status = Membership::CANCELED
-    membership.save!
+    profile.status = Membership::CANCELED
+    profile.save!
   end
 
 end

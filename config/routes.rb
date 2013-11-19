@@ -50,7 +50,7 @@ Stagemgr::Application.routes.draw do
   #get "donations/show"
 
   resources :donations, :controller => "donation_orders"
-
+  resources :donation_pledge_orders
 
   resources :membership_orders do
     member do

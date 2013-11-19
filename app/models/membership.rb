@@ -1,23 +1,17 @@
 class Membership < ActiveRecord::Base
-
-  MEMBERSHIP_STATUSES = (
-  ACTIVE, EXPIRED, PENDING, CANCELED, SUSPENDED =
-      "Active", "Expired", "Pending", "Canceled", "Suspended"
-  )
+  include RecurringProfile
 
   SEATING_REQUESTS = (
     BEST_AVAILABLE, FRONT_ROW, TOWARDS_REAR, ON_AISLE, WHEELCHAIR, STAIRS =
     'Best available (center)', 'Front row', 'Towards rear', 'On aisle', 'Wheelchair', 'No stairs')
 
-  attr_accessible :membership_offer_id, :member_since, :order_id, :address_id, :member_code, :status, :profile_id, :preferred_seating
+  attr_accessible :membership_offer_id, :member_since, :member_code, :status, :preferred_seating
 
   has_one :membership_order, :through=>:membership_line_item
   has_one :membership_line_item, :foreign_key=>:membership_id
   has_many :special_offers, :dependent=>:destroy
   before_destroy :cancel_future_reservations
-  belongs_to :address
   belongs_to :membership_offer
-  validates_presence_of :address
   before_validation :create_code, :on=>:create
   has_many :membership_payments
   before_save :release_reservations_on_cancel_or_suspend
@@ -48,44 +42,6 @@ class Membership < ActiveRecord::Base
     end
   end
 
-  def get_profile_data
-    gateway ||= PaymentProcessing.recurring_gateway
-
-    response = gateway.status_recurring(self.profile_id)
-    response.params
-  end
-
-  def update_from_profile
-    response = self.get_profile_data
-    self.number_cycles_completed = response["number_cycles_completed"] unless response["number_cycles_completed"].blank?
-    self.next_billing_date = response["next_billing_date"].to_date  unless response["next_billing_date"].blank?
-    self.aggregate_amount = response["aggregate_amount"]  unless response["aggregate_amount"].blank?
-    self.failed_payment_count = response["failed_payment_count"] unless response["failed_payment_count"].blank?
-    self.outstanding_balance = response["outstanding_balance"].to_f unless response["outstanding_balance"].blank?
-    cycles = self.number_cycles_completed
-    cycles ||=0
-    profile_status = response["profile_status"][0..-8]  unless response["profile_status"].blank?
-    puts "PROFILE #{profile_status}"
-    self.status = case
-      when (profile_status == ACTIVE)
-        ACTIVE
-      when (profile_status == PENDING) || (profile_status == ACTIVE && cycles == 0)
-        PENDING
-      when (['Cancelled',CANCELED].include?(profile_status))
-        CANCELED
-      when (profile_status == SUSPENDED)
-        profile_status
-      else
-        "Other"
-    end
-  end
-
-  def update_from_profile!
-    self.update_from_profile
-    self.save!
-    self
-  end
-
   def active?(as_of = nil)
 
     result = !self.pending?
@@ -99,20 +55,6 @@ class Membership < ActiveRecord::Base
     result
   end
 
-  def current_status
-    case
-    when self.pending?
-      Membership::PENDING
-    when self.active?
-      Membership::ACTIVE
-    else
-      self.status
-    end
-  end
-
-  def pending?
-    self.status == PENDING || (((self.number_cycles_completed || 0) == 0) && self.membership_order.total == 0)
-  end
 
   def source_order
     self.membership_line_item.order
@@ -127,12 +69,9 @@ class Membership < ActiveRecord::Base
     end
   end
 
-  def inactive?
-    [Membership::CANCELED, Membership::SUSPENDED].include?(self.status)
-  end
 
-  def canceled?
-    self.status == Membership::CANCELED
+  def recurring_order
+    self.membership_order
   end
 
   private
@@ -164,6 +103,8 @@ class Membership < ActiveRecord::Base
     end
     true
   end
+
+
 end
 
 # my_emma add on

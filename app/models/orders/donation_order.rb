@@ -1,10 +1,12 @@
 class DonationOrder < Order
+
   has_many :donation_line_items, :foreign_key=>:order_id
 
   accepts_nested_attributes_for :donation_line_items,
                                 :allow_destroy => true
 
   validates_associated :donation_line_items
+
 
   def refundable?
     self.status == Order::PROCESSED || self.status == Order::FULFILLED
@@ -17,6 +19,11 @@ class DonationOrder < Order
   def to_s
     "Donation (#{self.campaign})"
   end
+
+  def total
+    self.donation_line_items.sum(:donation_amount)
+  end
+
 
   def description
     self.to_s
@@ -31,7 +38,6 @@ class DonationOrder < Order
     valid_payment_types = super
     valid_payment_types.select {|pt| pt.is_a? CurrencyPaymentType }
   end
-
 
   def reload_associated
     super

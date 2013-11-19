@@ -82,14 +82,19 @@ class Order < ActiveRecord::Base
                        :payments,
                        :special_offer_line_items
 
+  validate :is_balanced_transaction?, :if=>:processed?
   validates_each :status do |record, attr, value|
-
     if value == PROCESSED
-      unless record.total == record.value_of_all_payments
-        record.errors.add attr, "cannot be set to #{PROCESSED} if the total isn't countered by a payment."
-      end
       m_payments = record.payments.select{|p| p.is_a? MembershipPayment}
       m_payments.each { |p| p.membership.verify_applicable_for(record) }
+    end
+  end
+
+  def is_balanced_transaction?
+    li_total = self.value_of_all_line_items
+    pay_total = self.value_of_all_payments
+    unless li_total == pay_total
+      errors.add :status, "cannot be set to #{self.status} if the total ($#{li_total}) isn't countered by a payment (currently $#{pay_total})."
     end
   end
 
@@ -119,7 +124,15 @@ class Order < ActiveRecord::Base
 
   def value_of_all_payments
     self.unique_payments.sum { |p| p.amount }
+  end
 
+
+  def value_of_all_line_items
+    a = self.all_line_items.to_a.sum { |line_item|
+        line_item.respond_to?(:total) ? line_item.total : 0
+      }
+    a = 0.0 if a < 0.0
+    a
   end
 
   def exchangeable?
@@ -480,6 +493,12 @@ class Order < ActiveRecord::Base
     !self.membership_payments.empty?
   end
 
+  def self.fix_expiration_year(expiration_year)
+    unless expiration_year.blank? || expiration_year.length > 2
+      expiration_year = "20" + expiration_year
+    end
+    expiration_year
+  end
 
   def link_to_address_of_record
     if !self.address.nil? then
@@ -693,7 +712,7 @@ class Order < ActiveRecord::Base
       self.special_offer_line_items.each { |li| li.mark_redeemed }
       self.save!
       save_additional_donation_order unless (self.additional_donation.blank? || self.additional_donation.to_i == 0)
-      end
+    end
     redirect_to
   end
 
@@ -721,6 +740,7 @@ class Order < ActiveRecord::Base
 
   def set_defaults
     self.status ||= HOLD
+    self.hold_under = self.address.full_name if self.hold_under.blank?
   end
 
   def create_mail_list_task

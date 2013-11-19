@@ -1,5 +1,79 @@
 require 'spec_helper'
 
+shared_examples_for RecurringProfile do
+  before(:each) do
+    @paypal_callback.merge!({'recurring_payment_id' => PaymentProcessing::BogusResponse::PROFILE_ID})
+  end
+  context "when receiving new recurrent payment via ipn" do
+    before(:each) do
+      @paypal_callback.merge!({'invoice'=>@order.id.to_s,
+                         'amount'=>'10',
+                         'txn_type'=>'recurring_payment'})
+      @paypal_callback['txn_id'] = @order.payments.first.transaction_id unless @order.payments.empty?
+    end
+
+    it "should enqueue an additional payment against the order" do
+      Resque.should_receive(:enqueue).with(
+        ProcessRecurringPaypalPayment,
+        @paypal_callback
+      ).once
+      PayPalControllerHelper.process_paypal_ipn_request('recurring_payment', @paypal_callback)
+    end
+
+    it "should update the order payments" do
+      start_num_payments = @order.payments.count
+      old_total = @order.value_of_all_payments
+      ProcessRecurringPaypalPayment.perform(@paypal_callback)
+      @order.payments(true)
+      @order.payments.count.should eq(start_num_payments+1)
+      @order.total.should eq(old_total+10.0)
+    end
+  end
+
+  context "when receiving a suspension notification via ipn" do
+    before(:each) do
+      @paypal_callback['txn_type']='recurring_payment_suspended'
+    end
+
+    it "should enqueue a suspension request" do
+      Resque.should_receive(:enqueue).with(
+        ProcessSuspendRecurringPaypalPayment,
+        @paypal_callback
+      ).once
+      PayPalControllerHelper.process_paypal_ipn_request('recurring_payment_suspended', @paypal_callback)
+    end
+
+    it "should suspend the profile" do
+      @order.recurring_profile.status.should_not eq(RecurringProfile::SUSPENDED)
+      ProcessSuspendRecurringPaypalPayment.perform(@paypal_callback)
+      @order.recurring_profile.reload
+      @order.recurring_profile.status.should eq(RecurringProfile::SUSPENDED)
+    end
+
+  end
+
+  context "when receiving a cancellation notification via ipn" do
+    before(:each) do
+      @paypal_callback['txn_type']='recurring_payment_profile_cancel'
+    end
+
+    it "should enqueue a cancellation request" do
+      Resque.should_receive(:enqueue).with(
+        ProcessCancelRecurringPaypalPayment,
+        @paypal_callback
+      ).once
+      PayPalControllerHelper.process_paypal_ipn_request('recurring_payment_profile_cancel', @paypal_callback)
+    end
+
+    it "should cancel the profile" do
+      @order.recurring_profile.status.should_not eq(Membership::CANCELED)
+      ProcessCancelRecurringPaypalPayment.perform(@paypal_callback)
+      @order.recurring_profile.reload
+      @order.recurring_profile.status.should eq(Membership::CANCELED)
+    end
+  end
+end
+
 describe PayPalControllerHelper do
   before (:each) do
     @paypal_callback = {'ipn_track_id'=>'IPNTRACK1',
@@ -36,87 +110,23 @@ describe PayPalControllerHelper do
   end
 
   describe "for recurring payments" do
-    before(:each) do
-      @paypal_callback.merge!({'recurring_payment_id' => 'REMOTE_PROFILE_ID'})
-    end
 
-    context "when receiving new recurrent payment via ipn" do
+    context "for memberships" do
+
       before(:each) do
         @order = FactoryGirl.create(:membership_order)
-        @paypal_callback.merge!({'invoice'=>@order.id.to_s,
-                           'txn_id'=>@order.payments.first.transaction_id,
-                           'amount'=>'10',
-                           'txn_type'=>'recurring_payment'})
       end
 
-      it "should enqueue an additional payment against the membership order" do
-        Resque.should_receive(:enqueue).with(
-          ProcessRecurringPaypalPayment,
-          @paypal_callback
-        ).once
-        PayPalControllerHelper.process_paypal_ipn_request('recurring_payment', @paypal_callback)
-      end
-
-      it "should update the membership order payments" do
-        @order.payments.count.should eq(1)
-        old_total = @order.total
-        ProcessRecurringPaypalPayment.perform(@paypal_callback)
-        @order.payments(true)
-        @order.payments.count.should eq(2)
-        @order.total.should eq(old_total+10.0)
-      end
-
+      it_behaves_like RecurringProfile
 
     end
 
-    context "when receiving a suspension notification via ipn" do
+    context "for pledges" do
       before(:each) do
-        @order = FactoryGirl.create(:membership_order)
-        @paypal_callback.merge!({'invoice'=>@order.id.to_s,
-                           'txn_id'=>@order.payments.first.transaction_id,
-                           'txn_type'=>'recurring_payment_suspended'})
+        @order = FactoryGirl.create(:donation_pledge_order_for_one_thousand_dollars_using_credit_card)
       end
 
-      it "should enqueue a suspension request" do
-        Resque.should_receive(:enqueue).with(
-          ProcessSuspendRecurringPaypalPayment,
-          @paypal_callback
-        ).once
-        PayPalControllerHelper.process_paypal_ipn_request('recurring_payment_suspended', @paypal_callback)
-      end
-
-      it "should cancel the profile" do
-        @order.membership.status.should_not eq(Membership::CANCELED)
-        ProcessSuspendRecurringPaypalPayment.perform(@paypal_callback)
-        @order.membership.reload
-        @order.membership.status.should eq(Membership::SUSPENDED)
-      end
-
-    end
-
-
-    context "when receiving a cancellation notification via ipn" do
-      before(:each) do
-        @order = FactoryGirl.create(:membership_order)
-        @paypal_callback.merge!({'invoice'=>@order.id.to_s,
-                           'txn_id'=>@order.payments.first.transaction_id,
-                           'txn_type'=>'recurring_payment_profile_cancel'})
-      end
-
-      it "should enqueue a cancellation request" do
-        Resque.should_receive(:enqueue).with(
-          ProcessCancelRecurringPaypalPayment,
-          @paypal_callback
-        ).once
-        PayPalControllerHelper.process_paypal_ipn_request('recurring_payment_profile_cancel', @paypal_callback)
-      end
-
-      it "should cancel the profile" do
-        @order.membership.status.should_not eq(Membership::CANCELED)
-        ProcessCancelRecurringPaypalPayment.perform(@paypal_callback)
-        @order.membership.reload
-        @order.membership.status.should eq(Membership::CANCELED)
-      end
+      it_behaves_like RecurringProfile
     end
   end
 end
