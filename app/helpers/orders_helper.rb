@@ -6,7 +6,7 @@ module OrdersHelper
     case button_label
       when 'Checkout', 'Review Order'
         Order::PROCESSING
-      when 'Place Order', 'Order Tickets', 'Make a donation', 'Order FlexPass'
+      when 'Place Order', 'Order Tickets', 'Make a donation', 'Order FlexPass', 'Make a pledge'
         Order::PROCESSED
       when 'Hold'
         Order::HOLD
@@ -132,6 +132,7 @@ module OrdersHelper
           flash.now[:error] = "There was an error while processing your credit card. #{e.message}"
         when ActiveRecord::RecordInvalid
           flash.now[:error] = "There was an error creating your order. #{e.message}"
+          Rails.logger.debug(e)
         else
           flash.now[:error] = "There was a problem with your order. #{e.message}"
           logger.error "There was an error creating the order. #{e.message} #{e.backtrace}"

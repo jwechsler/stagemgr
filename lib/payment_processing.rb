@@ -30,13 +30,13 @@ module PaymentProcessing
       BogusGateway.profiles = Hash.new if BogusGateway.profiles.nil?
       if BogusGateway.profiles[BogusResponse::PROFILE_ID].nil?
         balance = money
-        balance = balance*options['cycles'] if options.has_key?('cycles')
-        balance = balance*options[:cycles] if options.has_key?(:cycles)
+        balance = balance*options['total_billing_cycles'] if options.has_key?('cycles')
+        balance = balance*options[:total_billing_cycles] if options.has_key?(:cycles)
         BogusGateway.profiles[BogusResponse::PROFILE_ID] = response.params.merge({
           'outstanding_balance'=>balance,
           'aggregate_amount'=>0,
           'number_cycles_completed'=>0,
-          'final_payment_due_date'=>(options[:start_date].to_date + options[:cycles].to_i.months)
+          'final_payment_due_date'=>(options[:start_date].to_date + options[:total_billing_cycles].to_i.months)
         }).merge(options)
       end
       response

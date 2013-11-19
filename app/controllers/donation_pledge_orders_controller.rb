@@ -9,14 +9,12 @@ class DonationPledgeOrdersController < ApplicationController
   respond_to :html, :xml, :json
 
   def set_donation_levels
-    @levels = ActiveSupport::OrderedHash.new
-    @levels["Friend ($25)"] = 25
-    @levels["Ally ($75)"] = 75
-    @levels["Advocate ($150)"] = 150
-    @levels["Confidante ($500)"] = 500
-    @levels["Partner ($1000)"] = 1000
-    @levels["Patron ($2500)"] = 2500
-    @levels
+     @levels = ActiveSupport::OrderedHash.new
+     @levels["Ally ($7/month)"] = 7 #84
+     @levels["Advocate ($13/month)"] = 13 #156
+     @levels["Confidante ($42/month)"] = 42 #504
+     @levels["Partner ($84/month)"] = 84 #1008
+     @levels
   end
 
   def new
@@ -49,7 +47,12 @@ class DonationPledgeOrdersController < ApplicationController
 
   def create
     @order = DonationPledgeOrder.new(params[:donation_pledge_order])
-    @order.donation_line_items.first.donation_amount *= 12.0
+    @order.donation_line_items.each { |dli|
+      if dli.donation_amount.blank? || dli.donation_amount == 0
+        dli.donation_amount = dli.donation_level
+        dli.save
+      end
+    }
     @order.ip_address = request.remote_ip
     process_order(@order, :edit_donation_pledge_order_path) if validate_web_order(@order)
   end

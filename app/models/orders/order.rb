@@ -740,6 +740,7 @@ class Order < ActiveRecord::Base
 
   def set_defaults
     self.status ||= HOLD
+    self.hold_under = self.address.full_name if self.hold_under.blank?
   end
 
   def create_mail_list_task

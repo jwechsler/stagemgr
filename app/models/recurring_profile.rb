@@ -47,6 +47,9 @@ module RecurringProfile
   def update_from_profile
     response = self.get_profile_data
     self.number_cycles_completed = response["number_cycles_completed"] unless response["number_cycles_completed"].blank?
+    self.number_cycles_remaining = response["number_cycles_remaining"] unless response["number_cycles_remaining"].blank?
+    self.total_billing_cycles = response["total_billing_cycles"] unless response["total_billing_cycles"].blank?
+    self.recurring_amount = response["amount"] unless response["amount"].blank?
     self.next_billing_date = response["next_billing_date"].to_date  unless response["next_billing_date"].blank?
     self.aggregate_amount = response["aggregate_amount"]  unless response["aggregate_amount"].blank?
     self.failed_payment_count = response["failed_payment_count"] unless response["failed_payment_count"].blank?

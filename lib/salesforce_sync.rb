@@ -25,7 +25,7 @@ class SalesforceSync
   def SalesforceSync.materialize_all(client_id = nil, client_secret = nil, username = nil, password = nil, host = nil)
     client = SalesforceSync.connect_client(client_id, client_secret, username, password, host)
     client.sobject_module = ::SalesforceData
-    %w(Contact Account Opportunity User RecordType Product2 Event OrderActivity__c).each { |c| client.materialize(c) }
+    %w(npe03__Recurring_Donation__c Contact Account Opportunity User RecordType Product2 Event OrderActivity__c).each { |c| client.materialize(c) }
     client
   end
 

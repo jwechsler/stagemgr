@@ -31,7 +31,7 @@ describe "a donation order" do
       @donation.credit_card_verification_number = '999'
       @donation.transition_to!(Order::PROCESSED)
       @donation.pledge.should_not be(nil)
-      expected = (1000/12.0).round(2)*12
+      expected = 12000
       @donation.total.should eq(expected)
 
       @donation.pledge.final_payment_due_date.should eq(Date.today+12.months)
