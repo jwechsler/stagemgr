@@ -55,21 +55,19 @@ class ProductionStat < ActiveRecord::Base
 
   def build_pending_snapshots
     unless !self.last_snapshot_calculated.nil? && self.last_snapshot_calculated >= self.production.closing_at
-      ProductionStat.transaction do
-        first_date = Order.minimum(:created_at,
-          :conditions => ['performance_id in (select id from performances where production_id = ?)', self.production_id])
-        first_date = Date.today if first_date.nil?
+      first_date = Order.minimum(:created_at,
+        :conditions => ['performance_id in (select id from performances where production_id = ?)', self.production_id])
+      first_date = Date.today if first_date.nil?
 
-        first_date = [first_date, self.last_snapshot_calculated.to_date+1.day].max unless self.last_snapshot_calculated.nil?
-        last_date = [self.production.closing_at.to_date, self.production.closing_at.to_date].min
-        c_date = first_date
-        while c_date <= last_date do
-          self.snapshot(c_date, true)
-          c_date += 1.day
-        end
-        self.last_snapshot_calculated = DateTime.now
-        self.save!
+      first_date = [first_date, self.last_snapshot_calculated.to_date+1.day].max unless self.last_snapshot_calculated.nil?
+      last_date = [self.production.closing_at.to_date, self.production.closing_at.to_date].min
+      c_date = first_date
+      while c_date <= last_date do
+        self.snapshot(c_date, true)
+        c_date += 1.day
       end
+      self.last_snapshot_calculated = DateTime.now
+      self.save!
     end
 
   end
