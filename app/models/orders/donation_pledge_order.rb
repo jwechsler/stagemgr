@@ -97,7 +97,7 @@ class DonationPledgeOrder
                                                   "OwnerId"=>sf_user)
 
       else
-        donation.Amount = self.total
+        donation.npe03__Amount__c = self.total
         donation.npe03__Contact__c = contact.Id
         donation.save
       end
