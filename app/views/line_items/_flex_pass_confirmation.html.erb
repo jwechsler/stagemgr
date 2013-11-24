@@ -1,32 +1,48 @@
-<p>
-  Thanks so much for your <%= flex_pass_offer.name %> order.
-  <%- if flex_pass_offer.redeem_immediately? %>
-    Your <%= flex_pass_offer.name %> <%= raw "#{flex_passes.count == 1 ? 'code is' : 'codes are'} <b>#{flex_passes.collect{|p| p.code}.to_sentence}</b>." %>
-  <%- else -%>
-    We are processing your request and you should receive your FlexPass in the mail in the next 5-7 business days.
-    Once you get your FlexPass, you'll see a code that you can use online and at our box office to get
-    tickets to any performance
-    <%-  unless flex_pass_offer.theater_id.nil? %>
-      produced by <%= flex_pass_offer.theater.name %>,
-    <%- else %>
-      here at Theater Wit,
-    <%- end %>subject to ticket availability.
-  <%- end -%>
-
-</p><p>
-</p>
-<ul>
-  <li>Online, you can choose "FlexPass" as your payment type and just enter your code from your web browser.</li>
-  <li>At our box office, you can present your card or tell us the code and we will be happy to redeem it for tickets.</li>
-</ul>
-<p>
-  <%=raw flex_pass_offer.description %>
-</p><p>
-Keep in mind that a FlexPass reservation, once made, is subject to the same restrictions regarding cancellation and refunds as any normal ticket.
-</p><p>
-Thank you for supporting Theater Wit and the many storefront theaters that make our home so special.  If you have any questions, please call our box office at 773-975-8150.
-</p><p>
-Thanks and we'll see you at the theatre!
-</p><p>
-<i>The Staff at Theater Wit</i>
-</p>
+<% content_for :email_title do %>
+ Your Theater Wit FlexPass
+<% end %>
+<table class="w410" width="410" cellpadding="0" cellspacing="0" border="0">
+  <tbody>
+    <tr>
+      <td class="w410" width="410">
+        <p align="left" class="article-title">
+          Thanks for your <%= flex_pass_offer.name %> order
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td class="w410" width="410" height="10">
+        <div align="left" class="article-content">
+          <p>
+            <% if flex_pass_offer.redeem_immediately? %>
+              Your <%= flex_pass_offer.name %> <%= raw "#{flex_passes.count == 1 ? 'code is' : 'codes are'} <b>#{flex_passes.collect{|p| p.code}.to_sentence}</b>." %>
+            <% else -%>
+              We are processing your request and you should receive your FlexPass in the mail in the next 5-7 business days.
+            <% end %>
+            Once you get your FlexPass, you'll see a code that you can use online and at our box office to get tickets to any performance
+            <%-  unless flex_pass_offer.theater_id.nil? %>
+              produced by <%= flex_pass_offer.theater.name %>,
+            <%- else %>
+              here at Theater Wit,
+            <%- end %>subject to ticket availability.
+          </p>
+          <ul>
+            <li>Online, you can choose "FlexPass" as your payment type and just enter your code from your web browser.</li>
+            <li>At our box office, you can present your card or tell us the code and we will be happy to redeem it for tickets.</li>
+          </ul>
+          <p>
+            <%=raw flex_pass_offer.description %>
+          </p><p>
+            Keep in mind that a FlexPass reservation, once made, is subject to the same restrictions regarding cancellation and refunds as any normal ticket.
+          </p><p>
+            Thank you for supporting Theater Wit and the many storefront theaters that make our home so special.  If you have any questions, please call our box office at 773-975-8150.
+          </p><p>
+            Thanks and we'll see you at the theatre!
+          </p><p>
+            <i>The Staff at Theater Wit</i>
+          </p>
+        </div>
+      </td>
+    </tr>
+  </tbody>
+</table>

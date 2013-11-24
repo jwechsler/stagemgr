@@ -530,7 +530,6 @@ class TicketOrder
           event.attended_on__c = showtime
         end
         event.save
-
       end
       self.sf_object = event
       self.sf_order_id = nil || (self.sf_object.Id unless self.sf_object.nil?)

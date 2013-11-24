@@ -78,8 +78,8 @@ class OrderMailer < ActionMailer::Base
   def member_followup(order)
     @order = order
     if !@order.performance.nil?
-      @followup_message = ERB.new(@order.performance.production.followup_message).result if !@order.performance.production.followup_message.blank?
-      @followup_message_2 = ERB.new(@order.performance.production.followup_message).result if !@order.performance.production.followup_message_2.blank?
+      @follow_up_message = ERB.new(@order.performance.production.follow_up_message).result if !@order.performance.production.follow_up_message.blank?
+      @follow_up_message_2 = ERB.new(@order.performance.production.follow_up_message).result if !@order.performance.production.follow_up_message_2.blank?
     end
     mail(:to=>order.address.email, :from=>"\"Jeremy Wechsler\" <jeremy@theaterwit.org>",
          :subject=>"Thanks for coming to #{order.performance.production.name}",

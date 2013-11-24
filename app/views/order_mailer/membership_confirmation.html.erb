@@ -1,38 +1,63 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type"/>
-  </head>
-  <body>
-    <%- if @order.gift? %>
-      <p>
-        Thanks for purchasing a <%= @membership.membership_offer.name %> for <%= @order.recipient_name %>.
-        Starting <%= @order.gift_date.to_s(:long) %>, <%= @order.gift_recipient %> will be able to to use
-        member code <b><%= @membership.member_code %><b> to attend a wide variety of performances and
-        productions here at Theater Wit.  If you'd like to get a physical membership card to give with your
-        gift, just contact our box office at 773-975-8150; if not, <%= @order.recipient_name %> can pick
-        up the card along with their first reservation.
-      </p>
-    <% else %>
-      <p>
+<% content_for :email_title do %>
+ Your Theater Wit Membership
+<% end %>
+<table class="w410" width="410" cellpadding="0" cellspacing="0" border="0">
+  <tbody>
+    <tr>
+      <td class="w410" width="410">
+        <p align="left" class="article-title">
+          Welcome to Theater Wit Membership
+        </p>
+        <div align="left" class="article-content">
+          <%- if @order.gift? %>
+            <p>
+              Thanks for purchasing a <%= @membership.membership_offer.name %> for <%= @order.recipient_name %>.
+              Starting <%= @order.gift_date.to_s(:long) %>, <%= @order.gift_recipient %> will be able to to use
+              member code <b><%= @membership.member_code %><b> to attend a wide variety of performances and
+              productions here at Theater Wit.  If you'd like to get a physical membership card to give with your
+              gift, just contact our box office at 773-975-8150; if not, <%= @order.recipient_name %> can pick
+              up the card along with their first reservation.
+            </p>
+          <% else %>
+            <p>
 
-        Thanks so much becoming a member at Theater Wit.
-        <%- if @membership.active? %>
-          Your <%= @membership.membership_offer.name %> is ready to use immediately. You'll be getting a permanent card
-          in the mail as well as a detailed brochure about how to use it?  But hey, why wait? You can start using your
-          membership today.
-        <%- else %>
-          Your membership is not yet active.
-            Sometimes it takes PayPal an hour to validate your subscription. In the meantime,
-          we'll be happy to put tickets on hold for you.  Just call the box office with your name and member code.
-        <%- end %>
-      </p>
-      <p align="center"><b>Your member code is <%= @membership.member_code %></b><p>
+              Thanks so much becoming a member at Theater Wit.
+              <%- if @membership.active? %>
+                Your <%= @membership.membership_offer.name %> is ready to use immediately. You'll be getting a permanent card
+                in the mail as well as a detailed brochure about how to use it?  But hey, why wait? You can start using your
+                membership today.
+              <%- else %>
+                Your membership is not yet active. Sometimes it takes PayPal an hour to validate your subscription. In the meantime,
+                we'll be happy to put tickets on hold for you.  Just call the box office with your name and member code.
+              <%- end %>
+            </p>
+        </div>
+      </td>
+    </tr>
+    <tr><td class="w410" width="410" height="10"></td></tr>
+    <tr>
+      <td class="w410" width="410">
+        <p align="left" class="article-title">
+          Using your Membership
+        </p>
+        <div align="left" class="article-content">
+          <p align="center"><b>Your member code is <%= @membership.member_code %></b><p>
 
-      <p>To use your membership online, just choose "Membership" instead of "Credit Card" as your payment method, and type
-      in that code.  You can use your membership to reserve a single ticket to any regular performance here at Theater Wit.
-      You can also drop by our box office with your code get pick up your tickets in advance in person if you're in the
-      neighborhood.</p>
+          <p>To use your membership online, just choose "Membership" instead of "Credit Card" as your payment method, and type
+          in that code.  You can use your membership to reserve a single ticket to any regular performance here at Theater Wit.
+          You can also drop by our box office with your code get pick up your tickets in advance in person if you're in the
+          neighborhood.</p>
+
+        </div>
+      </td>
+    </tr>
+    <tr><td class="w410" width="410" height="10"></td></tr>
+    <tr>
+      <td class="w410" width="410">
+        <p align="left" class="article-title">
+          Come as often as you like
+        </p>
+        <div align="left" class="article-content">
 
       <p>
         If you haven't yet signed up for our email newsletter, <a href=="http://www.theaterwit.org/join/mailing.php">you should do so right now</a>.
@@ -53,5 +78,11 @@
       Artistic Director,<br/>
       Theater Wit</br>
     </p>
-  </body>
-</html>
+
+        </div>
+      </td>
+    </tr>
+    <tr><td class="w410" width="410" height="10"></td></tr>
+  </tbody>
+</table>
+

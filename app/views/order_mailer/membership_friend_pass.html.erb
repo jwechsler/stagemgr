@@ -1,24 +1,42 @@
-<h2><%= @order.address.first_name %>, bring a friend to Theater Wit for free</h2>
+<% content_for :email_title do %>
+  Bring a friend for free
+<% end %>
 
-<p>
-  Thanks for being a member. I want to extend an invitation to bring a friend for free the next time
-  you come by. So, here's a one-use discount code for <b>a free admission</b> to one of our productions.
-</p><p>
-  To use it, you'll need to make two reservations (our software doesn't allow us to combine membership reservations
-  with other offers yet). After you make your member reservation, make a second one for a general admission
-  ticket using the special offer code <b><%= @special_offer.code %></b>.  Just leave the credit card section blank.
-  Your code is good for the next six months so no rush!
-</p>
-<p>
-  As part of your membership, you'll get one of the these passes every six months as a thank you. But hey,
-  why not bring a friend along with you in general? Don't be shy! You get to evangelize and support your
-  theater, and you get an evening out.  What could be better? For more information
-  about supporting Theater Wit, you can read <a href="http://www.theaterwit.org/join/index.php">this</a>
-  or give me a call at 773-975-8150.
-</p><p>
-  See you at the theater!<br/>
-  <%= image_tag "http://www.theaterwit.org/static/img/mail/jmwsignature.png" -%><br clear="all"/>
-  Jeremy Wechsler<br/>
-  Artistic Director,<br/>
-  Theater Wit</br>
-</p>
+<table class="w410" width="410" cellpadding="0" cellspacing="0" border="0">
+  <tbody>
+    <tr>
+      <td class="w410" width="410">
+        <p align="left" class="article-title">
+          <%= @order.address.first_name %>, bring a friend to Theater Wit for free
+        </p>
+        <div align="left" class="article-content">
+          <p>
+            Thanks for being a member. I want to extend an invitation to bring a friend for free the next time
+            you come by. So, here's a one-use discount code for <b>a free admission</b> to one of our productions.
+          </p><p>
+            To use it, you'll need to make two reservations (our software doesn't allow us to combine membership reservations
+            with other offers yet). After you make your member reservation, make a second one for a general admission
+            ticket using the special offer code <b><%= @special_offer.code %></b>.  Just leave the credit card section blank.
+            Your code is good for the next six months so no rush!
+          </p>
+          <p>
+            As part of your membership, you'll get one of the these passes every six months as a thank you. But hey,
+            why not bring a friend along with you in general? Don't be shy! You get to evangelize and support your
+            theater, and you get an evening out.  What could be better? For more information
+            about supporting Theater Wit, you can read <a href="http://www.theaterwit.org/join/index.php">this</a>
+            or give me a call at 773-975-8150.
+          </p><p>
+            See you at the theater!<br/>
+            <%= image_tag "http://www.theaterwit.org/static/img/mail/jmwsignature.png" -%><br clear="all"/>
+            Jeremy Wechsler<br/>
+            Artistic Director,<br/>
+            Theater Wit</br>
+          </p>
+        </div>
+      </td>
+    </tr>
+    <tr><td class="w410" width="410" height="10"></td></tr>
+  </tbody>
+</table>
+
+

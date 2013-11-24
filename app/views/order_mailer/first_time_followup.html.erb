@@ -1,17 +1,36 @@
-<h2>Good to see you</h2>
+<% content_for :email_title do %>
+ Thanks for coming to Theater Wit
+<% end %>
+<table class="w410" width="410" cellpadding="0" cellspacing="0" border="0">
+  <tbody>
+    <tr>
+      <td class="w410" width="410">
+        <p align="left" class="article-title">
+          <%- if @order.performance.production.theater.is_default? %>
+            Thanks for coming by to see <i><%= @order.performance.production.name %></i>.
+          <%- else %>
+            Thanks for coming by to see <i><%= @order.performance.production.name %>,</i>
+            presented by <%= @order.performance.production.theater.name %>.
+          <%- end %>
+        </p>
 
-<br/><br/>
-  <%- if @order.performance.production.theater.is_default? %>
-    Thanks for coming by to see <i><%= @order.performance.production.name %></i>.
-  <%- else %>
-    Thanks for coming by to see <i><%= @order.performance.production.name %>,</i> presented by <%= @order.performance.production.theater.name %>.
-  <%- end %>
-  <%= raw @order.performance.production.follow_up_text unless @order.performance.production.follow_up_text.blank? %>
-  I'd like to take this opportunity to invite you back to Theater Wit.
-  There's a ton happening here, some of which are listed in the sidebar to the right, and I hope you'll have a chance
-  to check out some more. I'd like to offer you a one-use
-  discount code for <b>25% off any regular admission, good through <%= @special_offer.auto_expire.to_s(:short) %></b>.
-  To use it, use the special code <b><%= @special_offer.code %></b> when you make your reservation, either online or by
-  phone.<br/><br/>
+        <div align="left" class="article-content">
+          <p>I hope you had a good evening and will return soon (there are a few suggestions in
+          the sidebar on the right, but check our website for all upcoming events).
+          </p><p>
+          I'd like to take this opportunity to invite you back to Theater Wit.
+          There's a ton happening here, some of which are listed in the sidebar to the right, and I hope you'll have a chance
+          to check out some more. I'd like to offer you a one-use
+          discount code for <b>25% off any regular admission, good through <%= @special_offer.auto_expire.to_s(:short) %></b>.
+          To use it, use the special code <b><%= @special_offer.code %></b> when you make your reservation, either online or by
+          phone.
+          </p>
+        </div>
+      </td>
+    </tr>
+    <tr><td class="w410" width="410" height="10"></td></tr>
+  </tbody>
+</table>
 
-<%= render :partial=>'core_followup' %>
+<%= render :partial=>'core_followup', :locals=>{:order=>@order} %>
+

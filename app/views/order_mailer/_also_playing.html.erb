@@ -1,39 +1,34 @@
-<div class="coming_soon" style="font-size: 12px;">
-  <p style="text-align:center"><span style="font-weight: bolder;">Also at Theater Wit</span></p>
-  <br/>
-  <%- productions = Production.where("closing_at > :after_date and opening_at < :future_date and status in (:visible) and production_class in (:visible_classes) and not exists (select * from performances where status!='Inactive' and performances.production_id = productions.id and performances.id in (select performance_id from orders where address_id = :order_address))",
+<table cellpadding="0" cellspacing="0" border="0">
+  <tbody>
+    <% productions = Production.where("closing_at > :after_date and opening_at < :future_date and status in (:visible) and production_class in (:visible_classes) and not exists (select * from performances where status!='Inactive' and performances.production_id = productions.id and performances.id in (select performance_id from orders where address_id = :order_address))",
                                      {:visible=>Production.visible_statuses,
                                       :visible_classes=>[Production::PLAY],
                                       :after_date=>Time.now.end_of_week,
                                       :future_date=>(Time.now + 3.month),
-                                      :order_address=>order.address.id}).order("RAND()").limit(3) %>
-  <%- productions.each { |prod| %>
-    <div style="text-align:center; font-size:11px">
-      <p style="text-align:center;">
-        <%- if !prod.theater.is_default? %>
-        <span style="font-style:italic;  ">
+                                      :order_address=>order.address.id}).order("RAND()").limit(3)
+      productions.each do |prod| %>
+        <tr>
+          <td width="3"></td>
+          <td valign="top">
+            <div class="production_name"><%= prod.name %></div>
+            <% unless prod.best_image_url_available(:thumb).blank? %>
+              <img src="<%= "http://www.theaterwit.org#{prod.best_image_url_available(:thumb)}" %>" width="100%">
+              <% unless prod.theater.is_default? %>
+                <div class="producing_company"><%= prod.theater.name %></div>
+              <% end %>
+            <% end %>
+            <div class="slug">
+              <%- if prod.now_playing? %>
+                Closes <%= prod.closing_at.to_s(:short) %>
+              <%- else %>
+                Starts <%= prod.first_preview_at.to_s(:short) %>
+              <%- end %>
+            </div>
+          </td>
+          <td width="6"><br/></td>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
 
-          <%= prod.theater.name %><br/>
-        </span>
-        <%- end %>
-        <span style="font-weight: bold; font-style:italic; font-size: 13px"><%= prod.name %></span><br/>
-        <%- if !prod.best_image_url_available(:thumb).blank? %>
-          <img src="<%= "http://www.theaterwit.org#{prod.best_image_url_available(:thumb)}" %>" width="100%">
-          <br/>
-        <%- end %>
-        <span style="font-weight: bold; font-size: 13px">
-          <%- if prod.now_playing? %>
-            Closes <%= prod.closing_at.to_s(:short) %>
-          <%- else %>
-            Starts <%= prod.first_preview_at.to_s(:short) %>
-          <%- end %>
-         </span>
-      </p>
-    </div>
-  <%- } %>
-  <br/>
-
-  <p style="text-align: right;">
-    <span style="font-weight: bolder;">And <a href="http://www.theaterwit.org">more</a>...</span>
-  </p>
-</div>

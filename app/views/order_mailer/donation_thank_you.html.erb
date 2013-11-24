@@ -1,17 +1,15 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type"/>
-  </head>
-  <body>
-<%- if @order.campaign == 'mythic1113' %>
-    <p>
-Hi <%= @order.address.first_name %>,
-</p>
-<p>Thank you for your tax-deductable contribution of <%= number_to_currency(@order.total) %> to Mythical Proportions, written and performed by Nora Dunn, and presented by Theater Wit and 1113 Productions. You can learn more about the show and upcoming events by logging on to <a href="http://www.mythologicalproportions.com">www.mythologicalproportions.com</a>.
-</p>
-  <%- else %>
-    <p>
+<% content_for :email_title do %>
+ Thanks for your support!
+<% end %>
+<table class="w410" width="410" cellpadding="0" cellspacing="0" border="0">
+  <tbody>
+    <tr>
+      <td class="w410" width="410">
+        <p align="left" class="article-title">
+          Did I say you're awesome yet? You are!
+        </p>
+        <div align="left" class="article-content">
+          <p>
       Thanks so much for supporting Theater Wit and the many storefront theaters that make our home so special
       with your contribution of <%= number_to_currency(@order.total) %>. Contributions from people like you are what make everything
       we do all day possible, and I can't tell you what every sign of support means to me.  In our brief history,
@@ -36,6 +34,10 @@ Hi <%= @order.address.first_name %>,
       Artistic Director,<br/>
       Theater Wit<br>
      </p>
-    <%- end %>
- </body>
-</html>
+
+        </div>
+      </td>
+    </tr>
+    <tr><td class="w410" width="410" height="10"></td></tr>
+  </tbody>
+</table>
