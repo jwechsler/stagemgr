@@ -51,7 +51,7 @@ class TicketOrder < Order
         end
       end
       seats_left = self.performance.number_of_seats_left(self)
-      errors.add :base, "There are only #{seats_left} reservations remaining for this performance." if seats_left < self.number_of_seats
+      errors.add :base, "There are #{seats_left == 1 ? "is" : "are"} only #{seats_left} reservation#{"s" unless seats_left == 1} remaining for this performance." if self.holding_seats? && seats_left < self.number_of_seats
     end
   end
 
