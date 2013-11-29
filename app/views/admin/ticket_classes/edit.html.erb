@@ -1,5 +1,7 @@
 <h1>Editing Ticket Class</h1>
 
+<%= error_messages_for :ticket_class %>
+
 <%= semantic_form_for([:admin,@theater,@production,@ticket_class]) do |f| %>
 
     <%= render :partial => 'form', :locals=>{:f=>f} %>

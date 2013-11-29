@@ -13,6 +13,7 @@ class TicketClass < ActiveRecord::Base
   validates_numericality_of :minutes_before_show, :allow_nil => true
   validates_presence_of :ticket_price
   validates_presence_of :ticketing_fee
+  before_validation :prevent_price_changes_after_sales
   after_save :update_auto_attached_performances
 
   def number_left(performance, exclude_order=nil)
@@ -23,6 +24,16 @@ class TicketClass < ActiveRecord::Base
     end
     return [ticket_class_capacity_left,production_capacity_left].min
   end
+
+  def prevent_price_changes_after_sales
+    unless self.ticket_type == DONATION
+      if self.ticket_price_changed? && TicketLineItem.count(:conditions=>['ticket_class_id = ?',self.id]) > 0
+        errors.add :base,"Cannot change ticket price if sales have already occurred"
+      end
+    end
+
+  end
+
 
   def number_taken(performance, exclude_order = nil)
     if exclude_order.nil?

@@ -5,6 +5,7 @@
   <%= f.input :ticket_price, :as=>:number %>
   <%= f.input :ticketing_fee, :as=>:number %>
   <%= f.input :web_visible %>
+  <%= f.input :software_managed, :hint=>" Check this when the price of the ticket should be hidden from the consumer.  Uncheck at your peril!" %>
   <%= f.input :holds_seats, :default=>true %>
   <%= f.input :auto_attach %>
   <%= f.input :minutes_before_show %>
