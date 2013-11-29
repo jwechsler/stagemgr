@@ -3,8 +3,8 @@
 case "$1" in
   start)
     if [[ "$RAILS_ENV" == "production" ]] ; then
-      nohup bundle exec rake environment resque:work PIDFILE=./resque.pid QUEUE=notification,report,maintenance,import >> log/resque.log 2>&1 &
-      nohup bundle exec rake environment resque:work PIDFILE=./resque-sync.pid QUEUE=sync >> log/sync.log 2>&1 &
+      nohup bundle exec rake environment resque:work PIDFILE=./resque.pid QUEUE=notification,printing,report,maintenance,import >> log/resque.log 2>&1 &
+      nohup bundle exec rake environment resque:work PIDFILE=./resque-sync.pid QUEUE=printing,sync >> log/sync.log 2>&1 &
     else
       nohup bundle exec rake environment resque:work PIDFILE=./resque.pid QUEUE="*" >> log/resque.log 2>&1 &
     fi

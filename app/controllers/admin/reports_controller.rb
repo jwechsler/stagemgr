@@ -360,8 +360,8 @@ class Admin::ReportsController < Admin::ApplicationController
 
   def build_fulfill_labels(through_date)
     orders = TicketOrder.order("performances.performance_date, productions.production_code, performances.performance_code, addresses.last_name").all(:include=>[:ticket_line_items, {:performance=>:production}, :address],
-                                                                    :conditions=>["orders.status = ? and performances.status = 'Active' and performances.performance_date <= ? and performances.performance_date >= ? and productions.status in (?)",
-                                                                                  Order::PROCESSED, through_date, Time.now, Production.visible_statuses])
+                                                                    :conditions=>["orders.status = ? and performances.status = 'Active' and performances.performance_date <= ? and performances.performance_date > ? and productions.status in (?)",
+                                                                                  Order::PROCESSED, through_date, through_date - 1.day, Production.visible_statuses])
     report = Array.new
     headers = [:reserved_under, :performance_code, :tickets, :order_id, :profile, :member_id, :first_time, :last_24_months, :donor]
       orders.each { |o|

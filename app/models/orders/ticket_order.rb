@@ -343,7 +343,7 @@ class TicketOrder < Order
   end
 
   def transition_processed_to_fulfilled!(redirect_to = nil)
-    self.send_to_printer
+    Resque.enqueue(PrintTicketOrder, self.id)
     super
   end
 
