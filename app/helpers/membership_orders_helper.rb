@@ -19,7 +19,7 @@ module MembershipOrdersHelper
         membership = @order.membership
         response = RecurringProfile.create_recurring_profile(@order,
                                             @order.gift? ? @order.gift_date : Date.today,
-                                            (membership_offer.recurring_cost * 100).to_i,
+                                            membership_offer.recurring_cost,
                                             membership_offer.billing_agreement, 1,
                                             additional_options)
         success = response.success?
