@@ -112,7 +112,7 @@ module OrdersHelper
     rescue StandardError => e
       Rails.logger.error(e.message)
       order.status = old_status unless old_status.nil?
-      if order.status == Order::PROCESSING
+      if order.status == Order::PROCESSING && !@order.nil?
         @order.reload
         @order.reload_associated
         @order.attributes.merge!(order.payment_attributes)
