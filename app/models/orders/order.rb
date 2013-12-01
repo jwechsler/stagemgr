@@ -514,6 +514,7 @@ class Order < ActiveRecord::Base
           merge.update_from(self.address)
           a = self.address
           self.address = merge
+          merge.save!
           a.destroy unless a.nil? || a.has_finalized_orders?
         end
       end
