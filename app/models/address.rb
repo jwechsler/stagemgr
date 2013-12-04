@@ -350,7 +350,7 @@ class Address < ActiveRecord::Base
   end
 
   def revenue_collected(since_when = 18.months.ago)
-    self.orders.select { |o| o.settled? && (Payment.maximum(:processed_on, :conditions=>["order_id = ?", o.id]) || since_when.to_date)   > since_when.to_date }.map { |o| o.total }.sum
+    Payment.includes(:order).where('orders.status in (?), payments.processed_on > ?', Order.settled_statuses, since_when).sum(:amount)
   end
 
   def performances_attended(since_when = 5.years.ago)
