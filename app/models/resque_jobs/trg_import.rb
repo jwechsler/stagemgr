@@ -60,7 +60,13 @@ class TrgImport
             a.first_name = row[first_name_idx]
             a.middle_name = row[middle_name_idx]
             a.last_name = row[last_name_idx]
-            a.full_name = row[full_name_idx]
+            if row[full_name_idx].blank?
+              a.full_name = a.first_name unless a.first_name.blank?
+              a.full_name += a.full_name.blank? ? " #{a.middle_name}" : a.middle_name unless a.middle_name.blank?
+              a.full_name += a.full_name.blank? ? " #{a.last_name}" : a.last_name unless a.last_name.blank?
+            else
+              a.full_name = row[full_name_idx]
+            end
             a.prefix = row[prefix_idx]
             a.line1 = row[address2_idx]
             a.city = row[city_idx]
