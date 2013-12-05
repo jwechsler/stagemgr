@@ -350,7 +350,7 @@ class Address < ActiveRecord::Base
   end
 
   def revenue_collected(since_when = 18.months.ago)
-    Payment.includes(:order).where('orders.status in (?), payments.processed_on > ?', Order.settled_statuses, since_when).sum(:amount)
+    Payment.includes(:order).where('orders.status in (?) and payments.processed_on >= ?', Order.settled_statuses, since_when).sum(:amount)
   end
 
   def performances_attended(since_when = 5.years.ago)
