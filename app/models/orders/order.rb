@@ -788,7 +788,7 @@ class Order < ActiveRecord::Base
   end
 
   def save_additional_donation_order
-    donation = DonationOrder.new(:address => self.address, :payment_type => self.payment_type, :status => Order::PROCESSING)
+    donation = DonationOrder.new(:address => self.address, :payment_type => self.payment_type, :status => Order::NEW)
     donation.copy_payment_information(self)
     donation.save!
 

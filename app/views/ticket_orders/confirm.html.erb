@@ -48,6 +48,15 @@
           </tr>
         <%- }
             end %>
+      <% unless order.additional_donation.blank? %>
+      <tr>
+        <td></td>
+        <td>Additional donation to Theater Wit (yay!)</td>
+        <% donation = Money.from_numeric(order.additional_donation.to_f) %>
+        <td class="currency"><%= "$ #{donation}" %></td>
+        <% total += donation %>
+      </tr>
+      <% end %>
       <tr class="total">
         <td></td>
         <td><b>Total Charge:</b></td>

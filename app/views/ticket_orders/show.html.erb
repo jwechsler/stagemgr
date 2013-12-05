@@ -5,7 +5,7 @@
       if member_payments.size > 0 %>
      made with your <%= member_payments.first.membership.membership_offer.name %>.
   <%- elsif (@order.total > 0) && (@order.paid_with_currency?) %>
-      made and your credit card has been charged <%= number_to_currency( @order.total) %>.
+      made and your credit card has been charged <%= number_to_currency( @order.total) %> for those tickets.  If you've made a donation, look for a separate email with our thanks.
   <%- elsif @order.paid_with_flexpass? %>
       made and your FlexPass has <%= pluralize(@order.paid_with_flexpass.uses_remaining,'ticket') %> remaining.
   <%- else %>
