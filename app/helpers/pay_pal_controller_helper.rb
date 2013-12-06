@@ -9,7 +9,8 @@ module PayPalControllerHelper
       when 'recurring_payment_suspended'
         Resque.enqueue(ProcessSuspendRecurringPaypalPayment, params)
       when 'recurring_payment_profile_cancel'
-        Resque.enqueue(ProcessCancelRecurringPaypalPayment, params)
+        profile = PaypalIpnJob.referenced_profile(params)
+        Resque.enqueue_at(profile.next_billing_date.to_time,ProcessCancelRecurringPaypalPayment,profile.id) unless profile.nil?
       when 'web_accept'
         Resque.enqueue_in(5.seconds, ProcessPaypalPayment, params)
       else

@@ -15,4 +15,11 @@ class PaypalIpnJob
     profile
   end
 
+  def self.referenced_profile_by_id(profile_id)
+    profile = Membership.find_by_id(profile_id)
+    profile = Pledge.find_by_id(profile_id) if profile.nil?
+    raise "Cannot locate profile with payment ID '#{profile_id}'" if profile.nil?
+    profile
+  end
+
 end
