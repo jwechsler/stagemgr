@@ -1,15 +1,13 @@
 <% t = order_form.object.performance.production.theater unless order_form.object.performance.nil?
    default_text = t.blank? || t.theater_class == 'Default'
 %>
-
-   %>
 <fieldset class="callout" style="border: 1px solid #000000; margin-left: 25%; padding: 5px;">
   <legend>
     <% if default_text %>I wish to offer additional support<% else %>Make a donation to Theater Wit<% end %>
   </legend>
   <% if default_text %>
     Yes! I love Theater Wit. Please add a tax-deductible contribution to this order. $
-  <%- else -%>
+  <% else %>
     In addition to it's own award-winning programming, Theater Wit provides facilities and artistic support for groups like <%= t.name.strip %>. Help us bring theater, laughter and debate to our community. Add a tax-deductible contribution to this order. $
   <%- end -%>  <%= order_form.text_field :additional_donation, :size=>7 %>
 </fieldset>

@@ -62,7 +62,13 @@
         <td><b>Total Charge:</b></td>
         <td class="currency">$ <%= total %></td>
       </tr>
-
+      <tr>
+        <td></td>
+        <td>
+          <a href="javascript: submitForm()"><b>Edit your order</b></a>
+        </td>
+        <td></td>
+      </tr>
 
     </table>
 
@@ -99,12 +105,14 @@
     <b>NON-REFUNDABLE</b>
     and
     <b>NON-EXCHANGEABLE.</b>
-    When you are ready to purchase your tickets, click "Order Tickets". If you would like to change your order, click
-    <a href="javascript: submitForm()">here</a>.
+    When you are ready to purchase your tickets, click "Order Tickets".
   </p>
-
-  <p>
-    <%= order_form.submit "Order Tickets", :disable_with => 'Processing...' if (order_form.object.status.blank? || [Order::NEW, Order::HOLD, Order::PROCESSING].include?(order_form.object.status)) %>
+  <br/>
+  <p align="center">
+    <%= order_form.submit "Order Tickets" %>
+  </p>
+  <br/>
+  <p><b>PLEASE NOTE: Processing your order can take a minute.  Once you order your tickets, please don't refresh your browser or use the back button or you may be charged twice.</b>
   </p>
 <%- end %>
 <p align="center">Problems? Give us a call at 773-975-8150.</p>
@@ -113,6 +121,6 @@
   function submitForm() {
     document.forms["confirm_form"].submit();
   }
-
 </script>
+
 
