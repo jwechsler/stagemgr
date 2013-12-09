@@ -23,7 +23,7 @@
       hour = hour + " #{production.running_time % 60} minute#{(production.running_time % 60 > 1) ? 's' : ''}" if (production.running_time % 60) != 0-%>
       <br>
       <p class="running_time">Running
-        Time: <%= hour %>with <%= "no " unless production.intermission? %>intermission</p>
+        Time: <%= hour %> with <%= "no " unless production.intermission? %>intermission</p>
     <%- end -%>
     <%- unless production.additional_information_link.blank?  %>
       <p>
