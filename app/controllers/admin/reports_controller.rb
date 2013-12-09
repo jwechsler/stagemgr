@@ -326,10 +326,10 @@ class Admin::ReportsController < Admin::ApplicationController
     orders = TicketOrder.includes(:address, {:performance=>:production}).where(
       "performances.performance_date = :performance_date and orders.status in (:attending)",
       {:performance_date=>for_date, :attending=>Order.attending_statuses}).
-      order('orders.performance_id, addresses.last_name, addresses.first_name')
+      order('productions.venue_id, performances.performance_time, addresses.last_name, addresses.first_name')
 
     report = Array.new
-    headers = [:production_name, :patron_name, :seats, :special_requests, :notes, :is_member, :is_donor]
+    headers = [:production_name, :performance_code, :patron_name, :seats, :special_requests, :notes, :is_member, :is_donor]
     orders.each do |o|
       if !o.special_request.blank? || !o.notes.blank? || o.address.is_current_member? || o.address.is_donor? || !o.address.address_tags.empty?
         note_column = o.notes.blank? ? "" : o.notes
@@ -346,6 +346,7 @@ class Admin::ReportsController < Admin::ApplicationController
         report << {
           :production_name => o.performance.production.name,
           :patron_name => o.address.full_name,
+          :performance_code => o.performance.performance_code,
           :special_requests =>  (o.special_request.blank? ? nil : o.special_request) || (o.address.is_current_member? ? o.address.current_membership.preferred_seating : ''),
           :notes => note_column,
           :is_member => o.address.is_current_member?,
