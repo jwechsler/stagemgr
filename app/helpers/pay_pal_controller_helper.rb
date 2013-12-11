@@ -6,7 +6,7 @@ module PayPalControllerHelper
     case txn_type
       when 'recurring_payment'
         Resque.enqueue(ProcessRecurringPaypalPayment, params)
-      when 'recurring_payment_suspended'
+      when 'recurring_payment_suspended', 'recurring_payment_suspended_due_to_max_failed_payment'
         Resque.enqueue(ProcessSuspendRecurringPaypalPayment, params)
       when 'recurring_payment_profile_cancel'
         profile = PaypalIpnJob.referenced_profile(params)
