@@ -1,4 +1,5 @@
 class ProcessSuspendRecurringPaypalPayment < PaypalIpnJob
+  @queue = :maintenance
 
   def self.perform(params)
 
