@@ -148,7 +148,7 @@ class SpecialOffer < ActiveRecord::Base
                         perf_id,
                         prod_id,
                         theater_id,
-                        Time.now],
+                        Time.now.to_date],
         :order=>"performance_id desc, production_id desc, theater_id desc")
     offers.select { |o|
       (o.ticket_class_code.blank? || order.ticket_line_items.select { |li|
