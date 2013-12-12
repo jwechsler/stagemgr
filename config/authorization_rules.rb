@@ -61,7 +61,7 @@ authorization do
     has_permission_on :admin_membership_offers, :to=>[:view]
     has_permission_on :admin_special_features, :to=>[:view,:manage]
     has_permission_on :admin_donation_orders, :to=>[:view,:manage,:make]
-    has_permission_on :admin_imports, :to=>[:view, :make]
+    has_permission_on :admin_imports, :to=>[:view, :make, :mailing_cards]
   end
 
   role :admin do

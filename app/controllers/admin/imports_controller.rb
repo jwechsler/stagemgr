@@ -6,6 +6,8 @@ class Admin::ImportsController < Admin::ApplicationController
     @imports = FileStore.where("worker = ? and user_id = ?", FileStore::IMPORT, current_user.id)
     @trg_basic_import = FileStore.new
     @trg_basic_import.format = FileStore::TRG_LIST_IMPORT_FORMAT
+    @card_basic_import = FileStore.new
+    @card_basic_import.format = FileStore::MAILING_CARD_IMPORT_FORMAT
     @productions = productions_visible_to_operations
     respond_to do |format|
       format.html # index.html.erb
@@ -30,6 +32,24 @@ class Admin::ImportsController < Admin::ApplicationController
     redirect_back_or_default admin_imports_path
 
   end
+
+  def mailing_cards
+    @card_basic_import = FileStore.create(params[:file_store])
+    @production = Production.find(params[:production][:production_id])
+    @card_basic_import.user = current_user
+    @card_basic_import.format = FileStore::MAILING_CARD_IMPORT_FORMAT
+    @card_basic_import.worker = FileStore::IMPORT
+    @card_basic_import.notes = "#{@production.name} Mailing List signups"
+    if @card_basic_import.is_mailing_card_format? && @card_basic_import.save
+      Resque.enqueue(MailingCardImport, @card_basic_import.id, @production.nil? ? 0 : @production.id)
+      flash[:notice] = 'Your list is importing'
+    else
+      flash[:error] = 'Invalid format'
+    end
+    redirect_back_or_default admin_imports_path
+
+  end
+
 
 
 

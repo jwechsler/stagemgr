@@ -1,0 +1,30 @@
+class AddAddressToMyEmmaJob
+  @queue = :sync
+
+  def self.perform(address_id, production_id = nil, additional_groups = nil)
+
+    production = Production.find(production_id) unless production_id.nil?
+    address = Address.find(address_id)
+
+    unless address.email.blank?
+
+      member = MyEmma::Member.new
+
+      groups = [208104529]
+      additional_groups.each{|grp| groups << grp unless grp.blank?} unless additional_groups.nil?
+      groups << production.myemma_attendee_group unless production.nil? || production.myemma_attendee_group.blank?
+      member.name_first = address.first_name
+      member.name_last = address.last_name
+      member.email = address.email
+      member.wildcard_1403237 = 'Every other week'
+      member.address = address.line1
+      member.city = address.city
+      member.state = address.state
+      member.postal_code = address.zipcode
+
+      result = member.save(groups)
+    end
+
+  end
+
+end

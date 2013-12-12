@@ -72,7 +72,7 @@
                           } unless performance.special_features.nil?
 
                           visible = performance.ticket_class_allocations.select { |tca|
-                            tca.available? && tca.ticket_class.web_visible?
+                            tca.available? && tca.ticket_class.web_visible? && tca.ticket_class.holds_seats?
                           }
                           unless visible.empty?
                           min_price = visible.first.ticket_class.ticket_price

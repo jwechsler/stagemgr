@@ -63,7 +63,7 @@ class TrgImport
             if row[full_name_idx].blank?
               a.full_name = a.first_name unless a.first_name.blank?
               a.full_name += a.full_name.blank? ? " #{a.middle_name}" : a.middle_name unless a.middle_name.blank?
-              a.full_name += a.full_name.blank? ? " #{a.last_name}" : a.last_name unless a.last_name.blank?
+              a.full_name += a.full_name.blank? ? a.last_name : " #{a.last_name}"  unless a.last_name.blank?
             else
               a.full_name = row[full_name_idx]
             end
