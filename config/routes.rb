@@ -234,7 +234,9 @@ Stagemgr::Application.routes.draw do
       post :create_external_payment, :on=>:collection
     end
 
-    resources :imports
+    resources :imports do
+      post :mailing_cards, :on=>:collection
+    end
 
     resources :amount_off_special_offers, :only=>[:edit,:index]
 

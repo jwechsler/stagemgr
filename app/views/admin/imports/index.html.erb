@@ -10,4 +10,14 @@
   <% end %>
   </fieldset>
   <br/>
+  <fieldset>
+    <legend>Import Mailing List Signup Cards</legend>
+  <%= form_for @card_basic_import, :url=> mailing_cards_admin_imports_path, :html=>{:multipart=>true} do |form| %>
+    Update <%= collection_select(:production, :production_id, @productions, :id, :name) %> mailing list attendees from file
+    <%= form.file_field :data %>
+    <br/>
+    <%= submit_tag "Import Mailing List" %>
+  <% end %>
+  </fieldset>
+
   <%= render :partial=>'/file_stores/current_files', :locals=>{:file_stores=>@imports} %>
