@@ -290,7 +290,7 @@ class Order < ActiveRecord::Base
   end
 
   def self.finalized_statuses
-    self.attended_statuses
+    self.attended_statuses + [UNCLAIMED]
   end
 
   def finalized_statuses
