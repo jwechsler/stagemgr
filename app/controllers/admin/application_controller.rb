@@ -1,5 +1,4 @@
 class Admin::ApplicationController < ApplicationController
-
   before_filter { |c| Authorization.current_user = c.current_user }
 
   protected
@@ -11,7 +10,7 @@ class Admin::ApplicationController < ApplicationController
 
 
   def find_context
-    @context, @rest_path = 
+    @context, @rest_path =
     case
     when (self.class == Admin::TheatersController) && params[:id]
       [Theater.find(params[:id])].map{|m| [m , [:admin, m]]}.first

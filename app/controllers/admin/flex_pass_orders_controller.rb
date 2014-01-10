@@ -36,11 +36,13 @@ class Admin::FlexPassOrdersController < Admin::OrdersController
   def redirect_to_proper_action
      if @flex_pass_order.editable?
        if params[:action] != 'edit'
-         redirect_to(edit_admin_flex_pass_order_path(@flex_pass_order))
+          flash.keep
+          redirect_to(edit_admin_flex_pass_order_path(@flex_pass_order))
        end
      else
        if params[:action] != 'show'
-         redirect_to(admin_flex_pass_order_path(@flex_pass_order))
+          flash.keep
+          redirect_to(admin_flex_pass_order_path(@flex_pass_order))
        end
      end
    end

@@ -68,7 +68,10 @@ class Admin::FlexPassOffersController < Admin::ApplicationController
     @flex_pass_offer.destroy
 
     respond_to do |format|
-      format.html { redirect_to(flex_pass_offers_url) }
+      format.html {
+        flash.keep
+        redirect_to(flex_pass_offers_url)
+      }
       format.xml  { head :ok }
     end
   end

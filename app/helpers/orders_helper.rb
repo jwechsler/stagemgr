@@ -100,7 +100,7 @@ module OrdersHelper
               format.html { render "/ticket_orders/confirm", :locals=>{:order=>order} }
             else
               flash[:notice] = "Order was successfully saved and is now #{order.status_display}"
-              format.html { redirect_to(send(on_success_redirect_to, order.id)) }
+              format.html { redirect_to send(on_success_redirect_to, order.id) }
             end
           end
         end

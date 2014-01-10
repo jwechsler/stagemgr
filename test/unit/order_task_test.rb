@@ -10,11 +10,10 @@ class OrderTaskTest < ActiveSupport::TestCase
         @cash_payment_type = FactoryGirl.create(:cash_payment_type)
         @flex_pass_payment_type = FactoryGirl.create(:flex_pass_payment_type)
 
-        @order = FactoryGirl.create(:ticket_order, :payment_type=>@cash_payment_type)
-        @order.address = addresses(:jeremy)
-        @order.performance = performances(:macbeth_opening)
-        @order.ticket_line_items << TicketLineItem.new({:ticket_class => ticket_classes(:macbeth_general_admission),
-                          :ticket_count => 1})
+        performance = FactoryGirl.create(:performance)
+
+        @order = FactoryGirl.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
+
       end
     end
     should "generate two outreach tasks when processed" do

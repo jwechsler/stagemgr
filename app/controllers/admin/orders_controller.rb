@@ -78,8 +78,10 @@ class Admin::OrdersController < Admin::ApplicationController
 
   def edit
     if @order.is_a? TicketOrder
+      flash.keep
       redirect_to(:controller=>:ticket_orders, :action=>:show, :id=>@order.id)
     elsif @order.is_a? FlexPassOrder
+      flash.keep
       redirect_to(:controller=>:flex_pass_orders, :action=>:show, :id=>@order.id)
 
     end
@@ -107,7 +109,6 @@ class Admin::OrdersController < Admin::ApplicationController
   end
 
   def refund
-
     @order.refund!
     redirect_to admin_order_path(@order)
   end

@@ -1,6 +1,6 @@
 source 'http://rubygems.org'
 
-gem 'rails', '3.1.12'
+gem 'rails', '3.2.16'
 
 # Bundle edge Rails instead:
 # gem 'rails', :git => 'git://github.com/rails/rails.git'
@@ -33,7 +33,7 @@ gem "whenever", :require=>false
 gem "formtastic"
 gem "databasedotcom"
 gem "formatize"
-gem "validation_reflection"
+# gem "validation_reflection"
 gem "declarative_authorization"
 gem "activemerchant"
 gem "mysql2"
@@ -85,11 +85,14 @@ group :development,:test,:cucumber do
 end
 
 
-group :test do
+group :test,:cucumber do
+  gem 'capybara', "~>2.2.1"
   gem 'sqlite3'
-  gem 'capybara'
-  gem 'syntax'
   gem 'cucumber-rails', :require=>false
+end
+
+group :test do
+  gem 'syntax'
   gem 'database_cleaner'
   gem 'webrat',             '>=0.5.0'
   gem 'rspec'
@@ -113,12 +116,10 @@ end
 
 
 group :cucumber do
-  gem 'sqlite3'
-  gem 'capybara'
   gem 'database_cleaner'
   gem "factory_girl_rails"
-  gem 'cucumber-rails'
   gem 'cucumber'
+
   gem 'launchy'
   gem 'rspec-rails'
   gem 'test-unit',          '>=2.0.7'
@@ -128,8 +129,8 @@ group :cucumber do
 end
 
 group :assets do
-  gem 'sass-rails', "~> 3.1.0"
-  gem 'coffee-rails', '~> 3.1.0'
+  gem 'sass-rails'
+  gem 'coffee-rails'
   gem 'uglifier'
 end
 

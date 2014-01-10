@@ -21,7 +21,11 @@
   <% permitted_to? :fulfill, :admin_ticket_orders do %>
     <%= order_form.submit 'Print Tickets', :disable_with => 'Printing...' if order_form.object.printable? %>
   <%- end %>
-  <%= order_form.submit 'Place Order', :disable_with => 'Processing...', :confirm => "Process this order?" if [Order::NEW, Order::HOLD, Order::PROCESSING].include? order_form.object.status %>
+  <%= if [Order::NEW, Order::HOLD, Order::PROCESSING].include? order_form.object.status
+    order_form.submit 'Place Order', :disable_with => 'Processing...', :confirm => "Process this order?"
+  else
+    order_form.submit 'Place Order'
+  end %>
   <% permitted_to? :hold, :admin_orders do %>
     <%= order_form.submit 'Hold', :disable_with => 'Holding...' if order_form.object.holdable? %>
   <%- end %>
