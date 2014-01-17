@@ -75,10 +75,12 @@ class DonationPledgeOrdersController < ApplicationController
   def redirect_to_proper_action
     if @order.editable?
       if params[:action] != 'edit'
+        flash.keep
         redirect_to(edit_donation_pledge_order_path(@order))
       end
     else
       if params[:action] != 'show'
+        flash.keep
         redirect_to(donation_pledge_order_path(@order))
       end
     end

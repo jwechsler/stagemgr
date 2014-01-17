@@ -32,14 +32,13 @@ class Admin::DonationOrdersController < Admin::OrdersController
 
 
   def redirect_to_proper_action
+    flash.keep
      if @donation_order.editable?
        if params[:action] != 'edit'
-          flash.keep
           redirect_to(edit_admin_donation_order_path(@ticket_order))
        end
      else
        if params[:action] != 'show'
-          flash.keep
           redirect_to(admin_donation_order_path(@ticket_order))
        end
      end

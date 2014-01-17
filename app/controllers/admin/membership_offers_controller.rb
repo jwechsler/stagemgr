@@ -1,6 +1,6 @@
 class Admin::MembershipOffersController < ApplicationController
   filter_resource_access
-  
+
   def index
     @membership_offers = MembershipOffer.all
   end

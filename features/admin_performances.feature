@@ -47,6 +47,7 @@ Feature: Admins can manage performances
     And I should see "PERF1"
     And I should see "PERF2"
 
+  @wip
   Scenario: The box office user can record trigger criteria
     Given I follow "Add performance"
       And I enter a performance on "2015-01-01" with code "PERF1"
@@ -55,4 +56,5 @@ Feature: Admins can manage performances
       And I press "Create"
       Then I should see "Performance PERF1 was successfully created"
       Then I follow "PERF1"
+      Then show me the page
       Then I should see "will be replaced by EXPENSIVE when capacity at or over 50% or 2 days before performance"

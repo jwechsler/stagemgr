@@ -30,14 +30,13 @@ class Admin::FlexPassesController < Admin::ApplicationController
 
 
   def redirect_to_proper_action
+    flash.keep
      if @ticket_order.editable?
        if params[:action] != 'edit'
-          flash.keep
           redirect_to(edit_admin_flex_pass_order_path(@flex_pass_order))
        end
      else
        if params[:action] != 'show'
-          flash.keep
           redirect_to(admin_flex_pass_order_path(@flex_pass_order))
        end
      end

@@ -54,6 +54,7 @@ class TicketOrdersController < ApplicationController
   end
 
   def redirect_to_proper_action
+    flash.keep
     if @order.editable?
       if params[:action] != 'edit'
         redirect_to(edit_ticket_order_path(@order))

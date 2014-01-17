@@ -50,7 +50,10 @@ class Admin::AddressesController < Admin::ApplicationController
     end
     respond_to do |format|
       if @address.save
-        format.html { redirect_to(admin_address_path(@address), :notice => notice) }
+        format.html {
+          flash.keep
+          redirect_to(admin_address_path(@address), :notice => notice)
+        }
         format.xml  { render :xml => :admin_address, :status => :created, :location => @address }
       else
         format.html { render :action => "new" }
@@ -81,7 +84,10 @@ class Admin::AddressesController < Admin::ApplicationController
     respond_to do |format|
       if @address.save
 
-        format.html { redirect_to(:admin_address, :notice => notice) }
+        format.html {
+          flash.keep
+          redirect_to(:admin_address, :notice => notice)
+        }
         format.xml  { head :ok }
       else
         format.html { render :action => "edit" }

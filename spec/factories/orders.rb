@@ -63,7 +63,7 @@ FactoryGirl.define do
           tli.ticket_class = new_ticket_class
           tli.save!
         end
-        num_tix = TicketLineItem.sum(:ticket_count, :conditions=>['id = ?', ticket_order.id])
+        num_tix = ticket_order.ticket_line_items.inject(0){|sum, tli| sum += tli.ticket_count }
         ticket_order.payments << FactoryGirl.create(:flex_pass_payment,
                             :order=>ticket_order,
                             :number_of_tickets=>num_tix,
@@ -78,7 +78,7 @@ FactoryGirl.define do
 
       association :payment_type, :factory=>:cash_payment_type
       after(:create) do |ticket_order, evaluator|
-        num_tix = TicketLineItem.sum(:ticket_count, :conditions=>['id = ?', ticket_order.id])
+        num_tix = ticket_order.ticket_line_items.inject(0){|sum, tli| sum += tli.ticket_count }
         ticket_order.payments << FactoryGirl.create(:cash_payment,
                             :order=>ticket_order,
                             :number_of_tickets=>num_tix,

@@ -58,14 +58,13 @@ class Admin::TicketOrdersController < Admin::OrdersController
 
 
   def redirect_to_proper_action
+    flash.keep
      if @ticket_order.editable?
        if params[:action] != 'edit'
-          flash.keep
           redirect_to(edit_admin_ticket_order_path(@ticket_order))
        end
      else
        if params[:action] != 'show'
-          flash.keep
           redirect_to(admin_ticket_order_path(@ticket_order))
        end
      end

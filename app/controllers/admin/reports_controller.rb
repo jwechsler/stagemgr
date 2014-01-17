@@ -1,8 +1,8 @@
 require 'csv'
 
 class Admin::ReportsController < Admin::ApplicationController
-  # filter_access_to :all
-  filter_access_to :trg_dump
+  filter_access_to :all
+  # filter_access_to :trg_dump,:index
 
 
   include Admin::ReportsHelper

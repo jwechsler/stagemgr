@@ -123,7 +123,7 @@ class Order < ActiveRecord::Base
   end
 
   def value_of_all_payments
-    self.unique_payments.sum { |p| p.amount }
+    self.payments.sum { |p| p.amount }
   end
 
 

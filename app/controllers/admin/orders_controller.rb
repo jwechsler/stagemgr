@@ -33,6 +33,7 @@ class Admin::OrdersController < Admin::ApplicationController
   end
 
   def show
+    flash.keep
     if @order.is_a? MembershipOrder
       redirect_to url_for(:controller=>:membership_orders, :action=>:show, :id=>@order.id)
     elsif @order.is_a? TicketOrder
@@ -127,7 +128,7 @@ class Admin::OrdersController < Admin::ApplicationController
   protected
 
   def redirect_to_proper_action
-
+    flash.keep
     if @order.editable?
       if params[:action] != 'edit'
         redirect_to(edit_admin_order_path(@order))
