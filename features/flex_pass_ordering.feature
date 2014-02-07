@@ -7,6 +7,7 @@ Feature: Flex Pass Ordering
     And the system accepts flex passes
     And a flex pass exists for 2 tickets with code "TESTFLEX"
 
+  @wip
   Scenario: Purchase tickets with a flex pass code
     Given I go to new web order for production "Production One" and performance "PERF"
       And I enter my contact information

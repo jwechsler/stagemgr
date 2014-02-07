@@ -47,7 +47,7 @@ gem 'cocaine', '0.3.2'
 gem "paperclip",               "~> 3.1.2"
 gem "htmldiff"
 gem "StreetAddress",          "~> 1.0.1"
-gem "money"
+gem "money", "6.1.0.beta1"
 gem "monetize"
 gem "gemcutter"
 gem "postmark-rails"
@@ -58,7 +58,7 @@ gem "jquery-rails", '~> 2.1.0'
 gem "ri_cal", :git=>"https://github.com/ctide/ri_cal.git"
 gem 'resque', :require => 'resque/server'
 gem 'resque-scheduler', :require=>'resque_scheduler'
-gem 'resque-retry'
+gem 'resque-retry', :git=>"https://github.com/jwechsler/resque-retry.git"
 
 #gem "rails3-jquery-autocomplete", :path=>"~/dev/rails3-jquery-autocomplete", :branch=>"v2"
 

@@ -14,6 +14,14 @@ GIT
       httparty (= 0.7.8)
       json
 
+GIT
+  remote: https://github.com/jwechsler/resque-retry.git
+  revision: 9ce25d2f22b9e037fdc88d23e1873d96dfca373c
+  specs:
+    resque-retry (1.0.0)
+      resque (>= 1.10.0)
+      resque-scheduler (>= 1.9.9)
+
 GEM
   remote: http://rubygems.org/
   specs:
@@ -169,9 +177,8 @@ GEM
     mocha (0.12.10)
       metaclass (~> 0.0.1)
     monetize (0.1.4)
-    money (6.0.1)
+    money (6.1.0.beta1)
       i18n (~> 0.6.4)
-      monetize (~> 0.1.3)
     mongrel (1.2.0.pre2)
       daemons (~> 1.0.10)
       gem_plugin (~> 0.2.3)
@@ -247,9 +254,6 @@ GEM
       redis-namespace (~> 1.2)
       sinatra (>= 0.9.2)
       vegas (~> 0.1.2)
-    resque-retry (1.0.0)
-      resque (>= 1.10.0)
-      resque-scheduler (>= 1.9.9)
     resque-scheduler (2.4.0)
       redis (>= 3.0.0)
       resque (~> 1.25)
@@ -372,7 +376,7 @@ DEPENDENCIES
   map_by_method (= 0.8.3)
   mocha (~> 0.12.0)
   monetize
-  money
+  money (= 6.1.0.beta1)
   mongrel (= 1.2.0.pre2)
   my_emma (~> 0.0.4)!
   mysql2
@@ -386,7 +390,7 @@ DEPENDENCIES
   rbx-require-relative
   redcarpet
   resque
-  resque-retry
+  resque-retry!
   resque-scheduler
   resque-web
   ri_cal!

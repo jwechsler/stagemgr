@@ -17,3 +17,4 @@ Date::DATE_FORMATS.merge!(
 )
 
 require 'htmldiff'
+require 'monetize/core_extensions'
