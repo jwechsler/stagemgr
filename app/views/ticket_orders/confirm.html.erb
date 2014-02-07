@@ -29,16 +29,16 @@
           tickets += new_items
           tickets.each { |tli|
             qty += tli.ticket_count
-            total += Money.from_numeric(tli.receipt_total) unless tli.ticket_class.software_managed %>
+            total += tli.receipt_total.to_money unless tli.ticket_class.software_managed %>
         <tr>
           <td><%= tli.ticket_count %></td>
           <td><%= tli.ticket_class.class_name %></td>
-          <td class="currency"><%= "$ #{Money.from_numeric(tli.receipt_total)}" unless tli.ticket_class.software_managed %></td>
+          <td class="currency"><%= "$ #{tli.receipt_total.to_money}" unless tli.ticket_class.software_managed %></td>
         </tr>
       <%- } %>
       <%- unless order.special_offer_line_items.empty?
             order.special_offer_line_items.each { |so|
-              discount = Money.from_numeric(-1*so.special_offer.calculate_discount(order))
+              discount = (-1*so.special_offer.calculate_discount(order)).to_money
               total -= discount
       %>
           <tr>
@@ -52,7 +52,7 @@
       <tr>
         <td></td>
         <td>Additional donation to Theater Wit (yay!)</td>
-        <% donation = Money.from_numeric(order.additional_donation.to_f) %>
+        <% donation = order.additional_donation.to_f.to_money %>
         <td class="currency"><%= "$ #{donation}" %></td>
         <% total += donation %>
       </tr>

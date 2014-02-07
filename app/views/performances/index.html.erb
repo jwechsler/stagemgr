@@ -1,3 +1,4 @@
+<%- require money/core_extensions %>
 <div id="performance_calendar_split" xmlns="http://www.w3.org/1999/html">
   <% if @production.status == Production::PRESALE %>
     <%= render :partial=>'/productions/info', :locals=>{:production=>@production, :layout_style=>:production_information} %>

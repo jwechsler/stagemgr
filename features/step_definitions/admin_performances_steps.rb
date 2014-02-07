@@ -20,3 +20,11 @@ Given /^I enter a trigger to "(.*?)" based on capacity of "(.*?)" for the (\d+)(
   fill_in "performance_ticket_class_allocations_attributes_#{num}_shift_to_code", :with=>code
   check "performance_ticket_class_allocations_attributes_#{num}_shiftable"
 end
+
+Then(/^show me the yaml for performance "(.*?)"$/) do |perf_code|
+  p = Performance.find_by_performance_code(perf_code)
+  puts p.to_yaml
+  puts "ticket class allocations"
+  puts p.ticket_class_allocations.to_yaml
+  puts p.ticket_classes.to_yaml
+end

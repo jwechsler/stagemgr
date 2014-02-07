@@ -98,8 +98,10 @@ class Performance < ActiveRecord::Base
   end
 
   def populate_ticket_class_allocations
+    Rails.logger.debug("*** ALLOCATION")
     self.ticket_class_allocations.each{|tca|tca.performance=self}
     (self.production.ticket_classes - self.ticket_class_allocations.map{|tca|tca.ticket_class}).map do |ticket_class|
+      Rails.logger.debug("   #{ticket_class.class_code}")
       self.ticket_class_allocations.build({:ticket_class=>ticket_class, :available=>ticket_class.auto_attach, :performance=>self})
     end
   end

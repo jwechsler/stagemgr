@@ -30,7 +30,7 @@ gem 'rails', '3.2.16'
 
 gem "redcarpet"
 gem "whenever", :require=>false
-gem "formtastic"
+gem "formtastic", "~> 2.3.0.rc2"
 gem "databasedotcom"
 gem "formatize"
 # gem "validation_reflection"
@@ -48,6 +48,7 @@ gem "paperclip",               "~> 3.1.2"
 gem "htmldiff"
 gem "StreetAddress",          "~> 1.0.1"
 gem "money"
+gem "monetize"
 gem "gemcutter"
 gem "postmark-rails"
 gem "namecase", "~> 1.1.0"
@@ -82,25 +83,24 @@ end
 group :development,:test,:cucumber do
   gem 'rspec-rails'
   gem 'factory_girl_rails'
+  gem 'database_cleaner'
 end
 
 
 group :test,:cucumber do
-  gem 'capybara', "~>2.2.1"
+  gem 'capybara'
   gem 'sqlite3'
   gem 'cucumber-rails', :require=>false
+  gem 'test-unit'
+  gem 'simplecov'
 end
 
 group :test do
   gem 'syntax'
-  gem 'database_cleaner'
-  gem 'webrat',             '>=0.5.0'
+  gem 'webrat'
   gem 'rspec'
-  gem 'rspec-rails'
-  gem 'test-unit',          '>=2.0.7'
   gem "mocha", "~> 0.12.0", :require => false
   gem 'flexmock',           '0.8.6'
-  gem 'simplecov'
   gem 'shoulda-context'
   gem 'fakeredis', :require => "fakeredis/rspec"
 end
@@ -116,15 +116,9 @@ end
 
 
 group :cucumber do
-  gem 'database_cleaner'
-  gem "factory_girl_rails"
   gem 'cucumber'
 
   gem 'launchy'
-  gem 'rspec-rails'
-  gem 'test-unit',          '>=2.0.7'
-  gem 'simplecov'
-
   gem "rbx-require-relative"
 end
 

@@ -20,7 +20,14 @@
     </tr>
     <%= f.fields_for :ticket_class_allocations do |ticket_class_allocation_form| %>
       <tr id='ticket_class_allocation_<%= ticket_class_allocation_form.object.ticket_class.id %>'>
-        <td><%= ticket_class_allocation_form.check_box :available, :disabled=>ticket_class_allocation_form.object.ticket_class.auto_attach %></td>
+
+        <td>
+          <% if ticket_class_allocation_form.object.ticket_class.auto_attach? then %>
+            <%= ticket_class_allocation_form.hidden_field :available, :value=>"1" %>&#x2713
+          <% else %>
+            <%= ticket_class_allocation_form.check_box :available %>
+          <% end  %>
+        </td>
         <td><%= ticket_class_allocation_form.object.ticket_class.class_code %></td>
         <td><%= ticket_class_allocation_form.object.ticket_class.class_name %></td>
         <td>
