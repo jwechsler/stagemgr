@@ -46,6 +46,7 @@ class MailingCardImport
             a.first_name = row[first_name_idx]
             a.last_name = row[last_name_idx]
             if row[full_name_idx].blank?
+              a.full_name = ""
               a.full_name = a.first_name unless a.first_name.blank?
               a.full_name += a.full_name.blank? ?  a.last_name : " #{a.last_name}"  unless a.last_name.blank?
             else
