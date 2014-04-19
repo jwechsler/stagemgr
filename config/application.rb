@@ -15,6 +15,11 @@ require 'resque/server'
 module Stagemgr
   class Application < Rails::Application
 
+    # Set the i18n default to false to accomodate old default behavior (in old credit card validator)
+    # @todo once this gem has been updated, remove this
+
+    config.i18n.enforce_available_locales = false
+
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration should go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded.

@@ -6,11 +6,22 @@ class User < ActiveRecord::Base
   ADMIN, BOXOFFICE, THEATERUSER  =
   "Administrator","Box Office Operator",  "Producer"   )
 
+  STATUSES = (
+  ACTIVE, INACTIVE =
+      'Active', 'Inactive')
+
+
   acts_as_authentic do |c|
     c.maintain_sessions = false   if Rails.env == "test"   # authlogic/issues/262
   end
 
   before_validation :set_defaults, :on => :create
+  after_initialize :init
+
+  def init
+    self.status = User::ACTIVE if self.status.blank?
+  end
+
 
   def theater_ids
     return theaters.map{|t| t.id.to_i}
