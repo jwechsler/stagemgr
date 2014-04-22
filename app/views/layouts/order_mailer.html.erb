@@ -1,278 +1,928 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional //EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html><head><title></title><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=320, target-densitydpi=device-dpi">
-<style type="text/css">
-/* Mobile-specific Styles */
-@media only screen and (max-width: 660px) {
-table[class=w0], td[class=w0] { width: 0 !important; }
-table[class=w10], td[class=w10], img[class=w10] { width:10px !important; }
-table[class=w15], td[class=w15], img[class=w15] { width:5px !important; }
-table[class=w30], td[class=w30], img[class=w30] { width:10px !important; }
-table[class=w60], td[class=w60], img[class=w60] { width:10px !important; }
-table[class=w125], td[class=w125], img[class=w125] { width:80px !important; }
-table[class=w130], td[class=w130], img[class=w130] { width:55px !important; }
-table[class=w140], td[class=w140], img[class=w140] { width:90px !important; }
-table[class=w160], td[class=w160], img[class=w160] { width:180px !important; }
-table[class=w170], td[class=w170], img[class=w170] { width:100px !important; }
-table[class=w180], td[class=w180], img[class=w180] { width:80px !important; }
-table[class=w195], td[class=w195], img[class=w195] { width:80px !important; }
-table[class=w220], td[class=w220], img[class=w220] { width:80px !important; }
-table[class=w240], td[class=w240], img[class=w240] { width:180px !important; }
-table[class=w255], td[class=w255], img[class=w255] { width:185px !important; }
-table[class=w275], td[class=w275], img[class=w275] { width:135px !important; }
-table[class=w280], td[class=w280], img[class=w280] { width:135px !important; }
-table[class=w300], td[class=w300], img[class=w300] { width:140px !important; }
-table[class=w325], td[class=w325], img[class=w325] { width:95px !important; }
-table[class=w360], td[class=w360], img[class=w360] { width:140px !important; }
-table[class=w410], td[class=w410], img[class=w410] { width:180px !important; }
-table[class=w470], td[class=w470], img[class=w470] { width:200px !important; }
-table[class=w580], td[class=w580], img[class=w580] { width:280px !important; }
-table[class=w640], td[class=w640], img[class=w640] { width:300px !important; }
-table[class*=hide], td[class*=hide], img[class*=hide], p[class*=hide], span[class*=hide] { display:none !important; }
-table[class=h0], td[class=h0] { height: 0 !important; }
-p[class=footer-content-left] { text-align: center !important; }
-#headline p { font-size: 30px !important; }
-#headline { clear:both; }
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="viewport" content="width=device-width"/>
 
-.article-content, #left-sidebar{ -webkit-text-size-adjust: 90% !important; -ms-text-size-adjust: 90% !important; }
-.header-content, .footer-content-left {-webkit-text-size-adjust: 80% !important; -ms-text-size-adjust: 80% !important;}
-img { height: auto; line-height: 100%;}
- }
-#logo { float:left; padding-bottom:15px; display:block; }
-/* Client-specific Styles */
-#outlook a { padding: 0; }  /* Force Outlook to provide a "view in browser" button. */
-body { width: 100% !important; }
-.ReadMsgBody { width: 100%; }
-.ExternalClass { width: 100%; display:block !important; } /* Force Hotmail to display emails at full width */
-/* Reset Styles */
-/* Add 100px so mobile switch bar doesn't cover street address. */
-body { background-color: #ececec; margin: 0; padding: 0; }
-img { outline: none; text-decoration: none; display: block;}
-br, strong br, b br, em br, i br { line-height:100%; }
-h1, h2, h3, h4, h5, h6 { line-height: 100% !important; -webkit-font-smoothing: antialiased; }
-h1 a, h2 a, h3 a, h4 a, h5 a, h6 a { color: blue !important; }
-h1 a:active, h2 a:active,  h3 a:active, h4 a:active, h5 a:active, h6 a:active { color: red !important; }
-/* Preferably not the same color as the normal header link color.  There is limited support for psuedo classes in email clients, this was added just for good measure. */
-h1 a:visited, h2 a:visited,  h3 a:visited, h4 a:visited, h5 a:visited, h6 a:visited { color: purple !important; }
-/* Preferably not the same color as the normal header link color. There is limited support for psuedo classes in email clients, this was added just for good measure. */
-table td, table tr { border-collapse: collapse; }
-.yshortcuts, .yshortcuts a, .yshortcuts a:link,.yshortcuts a:visited, .yshortcuts a:hover, .yshortcuts a span {
-color: black; text-decoration: none !important; border-bottom: none !important; background: none !important;
-} /* Body text color for the New Yahoo.  This example sets the font of Yahoo's Shortcuts to black. */
-/* This most probably won't work in all email clients. Don't include code blocks in email. */
-code {
-  white-space: normal;
-  word-break: break-all;
+</head>
+<body>
+  <style>
+/**********************************************
+* Ink v1.0.5 - Copyright 2013 ZURB Inc        *
+**********************************************/
+
+/* Client-specific Styles & Reset */
+
+#outlook a {
+  padding:0;
 }
-#background-table { background-color: #ececec; }
-/* Webkit Elements */
-#top-bar { border-radius:6px 6px 0px 0px; -moz-border-radius: 6px 6px 0px 0px; -webkit-border-radius:6px 6px 0px 0px; -webkit-font-smoothing: antialiased; background-color: #4b4044; color: #72a6a6; }
-#top-bar a { font-weight: bold; color: #72a6a6; text-decoration: none;}
-#footer { border-radius:0px 0px 6px 6px; -moz-border-radius: 0px 0px 6px 6px; -webkit-border-radius:0px 0px 6px 6px; -webkit-font-smoothing: antialiased; }
-/* Fonts and Content */
-body, td { font-family: 'Helvetica Neue', Arial, Helvetica, Geneva, sans-serif; }
-.header-content, .footer-content-left, .footer-content-right { -webkit-text-size-adjust: none; -ms-text-size-adjust: none; }
-/* Prevent Webkit and Windows Mobile platforms from changing default font sizes on header and footer. */
-.header-content { font-size: 12px; color: #72a6a6; }
-.header-content a { font-weight: bold; color: #72a6a6; text-decoration: none; }
-#headline p { color: #72a6a6; font-family: 'Helvetica Neue', Arial, Helvetica, Geneva, sans-serif; font-size: 36px; text-align: center; margin-top:0px; margin-bottom:30px; }
-#headline p a { color: #72a6a6; text-decoration: none; }
-#left-sidebar .production_name,.producing_company,.slug  { font-family: 'Helvetica Neue', Arial, Helvetica, Geneva, sans-serif; font-size: 1em; line-height: 1em; margin-top: 0px; margin-bottom: 0px; color:#d9653b; text-align:center;
+
+body{
+  width:100% !important;
+  min-width: 100%;
+  -webkit-text-size-adjust:100%;
+  -ms-text-size-adjust:100%;
+  margin:0;
+  padding:0;
 }
-#left-sidebar .producing_company { font-size: .80em; margin-bottom:3px; }
-#left-sidebar .production_name { font-size: .9em; margin-bottom:3px; font-weight:bold; font-style:italic; text-align:center; }
-#left-sidebar .slug {font-weight:bold; font-size:.75em; text-align:center; margin-top:6px; margin-bottom:12px;}
-#left-sidebar .toc-item { font-family: 'Helvetica Neue', Arial, Helvetica, Geneva, sans-serif; font-size: 12px; line-height: 16px; color: #4b4c44; margin-top: 0px; margin-bottom: 6px; }
-#left-sidebar .toc-item a { color: #4b4c44; text-decoration: none; }
-#left-sidebar .toc-heading { font-family: 'Helvetica Neue', Arial, Helvetica, Geneva, sans-serif; font-size: 11px; line-height: 15px; color:#d9653b; font-weight:bold; }
-#left-sidebar .toc-heading a { color: #d9653b; text-decoration: none; }
-#left-sidebar .left-column-heading { font-family: 'Helvetica Neue', Arial, Helvetica, Geneva, sans-serif; font-size: .9em; margin-bottom: .5em; color: #d9653b; font-weight:bold; }
-#left-sidebar .left-column-heading a { color: #d9653b; text-decoration:none; }
-#left-sidebar .left-column-subhead { font-family: 'Helvetica Neue', Arial, Helvetica, Geneva, sans-serif; font-size: 13px; line-height: 16px; color: #999999; font-weight: bold; margin-top: 0px; margin-bottom: 16px; }
-#left-sidebar .left-column-subhead a { color: #999999; text-decoration:none; }
-#left-sidebar .left-column-content { font-family: 'Helvetica Neue', Arial, Helvetica, Geneva, sans-serif; font-size: 12px; line-height: 16px; color: #d9653b; margin-top: 0px; margin-bottom: 16px; }
-#left-sidebar .left-column-content a { color: #4b4c44; text-decoration: none; }
-.article-title { font-size: 18px; line-height:24px; color: #d9653b; font-weight:bold; margin-top:0px; margin-bottom:18px; font-family: 'Helvetica Neue', Arial, Helvetica, Geneva, sans-serif; }
-.article-title a { color: #d9653b; text-decoration: none; }
-.article-title.with-meta {margin-bottom: 0;}
-.article-meta { font-size: 13px; line-height: 20px; color: #ccc; font-weight: bold; margin-top: 0;}
-.article-content { font-size: 13px; line-height: 18px; color: #444444; margin-top: 0px; margin-bottom: 18px; font-family: 'Helvetica Neue', Arial, Helvetica, Geneva, sans-serif; }
-.article-content a { color: #7f8c4f; font-weight:bold; text-decoration:none; }
-.article-content img { max-width: 100% }
-.article-content ol, .article-content ul { margin-top:0px; margin-bottom:18px; margin-left:19px; padding:0; }
-.article-content li { font-size: 13px; line-height: 18px; color: #444444; }
-.article-content li a { color: #7f8c4f; text-decoration:underline; }
-.article-content p {margin-bottom: 15px;}
-.footer-content-left { font-size: 12px; line-height: 15px; color: #72a6a6; margin-top: 0px; margin-bottom: 15px; }
-.footer-content-left a { color: #d5e9e7; font-weight: bold; text-decoration: none; }
-.footer-content-right { font-size: 11px; line-height: 16px; color: #72a6a6; margin-top: 0px; margin-bottom: 15px; }
-.footer-content-right a { color: #d5e9e7; font-weight: bold; text-decoration: none; }
-#footer { background-color: #4b4c44; color: #72a6a6; }
-#footer a { color: #d5e9e7; text-decoration: none; font-weight: bold; }
-#permission-reminder { white-space: normal; }
-#street-address { color: #d5e9e7; white-space: normal; }
-</style>
-<!--[if gte mso 9]>
-<style _tmplitem="83" >
-.article-content ol, .article-content ul {
-   margin: 0 0 0 24px;
-   padding: 0;
-   list-style-position: inside;
+
+ .ExternalClass {
+  width:100%;
 }
-</style>
-<![endif]--><style>[touch-action="none"]{ -ms-touch-action: none; touch-action: none; }[touch-action="pan-x"]{ -ms-touch-action: pan-x; touch-action: pan-x; }[touch-action="pan-y"]{ -ms-touch-action: pan-y; touch-action: pan-y; }[touch-action="scroll"],[touch-action="pan-x pan-y"],[touch-action="pan-y pan-x"]{ -ms-touch-action: pan-x pan-y; touch-action: pan-x pan-y; }</style></head><body><table width="100%" cellpadding="0" cellspacing="0" border="0" id="background-table">
-  <tbody><tr>
-    <td align="center" bgcolor="#ececec">
-          <table class="w640" style="margin:0 10px;" width="640" cellpadding="0" cellspacing="0" border="0">
-              <tbody><tr><td class="w640" width="640" height="20"></td></tr>
 
-              <tr>
-                  <td class="w640" width="640">
-                        <table id="top-bar" class="w640" width="640" cellpadding="0" cellspacing="0" border="0" bgcolor="#d5e9e7">
-    <tbody><tr>
-        <td class="w15" width="15"></td>
-        <td class="w325" width="350" valign="middle" align="left">
-            <table class="w325" width="350" cellpadding="0" cellspacing="0" border="0">
-                <tbody><tr><td class="w325" width="350" height="8"></td></tr>
-            </tbody></table>
-            <div class="header-content"><webversion><a href="http://www.theaterwit.org">Web</a></webversion><span class="hide">&nbsp;&nbsp;|&nbsp; <a href="http://www.theaterwit.org/join">Get Newsletter<a></span></div>
-            <table class="w325" width="350" cellpadding="0" cellspacing="0" border="0">
-                <tbody><tr><td class="w325" width="350" height="8"></td></tr>
-            </tbody></table>
-        </td>
-        <td class="w30" width="30"></td>
-        <td class="w255" width="255" valign="middle" align="right">
-            <table class="w255" width="255" cellpadding="0" cellspacing="0" border="0">
-                <tbody><tr><td class="w255" width="255" height="8"></td></tr>
-            </tbody></table>
-            <table cellpadding="0" cellspacing="0" border="0">
-    <tbody><tr>
+ .ExternalClass,
+ .ExternalClass p,
+ .ExternalClass span,
+ .ExternalClass font,
+ .ExternalClass td,
+ .ExternalClass div {
+  line-height: 100%;
+}
 
-        <td valign="middle"><fblike><img src="https://img.createsend1.com/img/templatebuilder/like-glyph.png" border="0" width="8" height="14" alt="Facebook icon"=""></fblike></td>
-        <td width="3"></td>
-        <td valign="middle"><div class="header-content"><a href="http://www.facebook.com/theaterwit">Like</a></div></td>
+#backgroundTable {
+  margin:0;
+  padding:0;
+  width:100% !important;
+  line-height: 100% !important;
+}
 
+img {
+  outline:none;
+  text-decoration:none;
+  -ms-interpolation-mode: bicubic;
+  width: auto;
+  max-width: 100%;
+  float: left;
+  clear: both;
+  display: block;
+}
 
+center {
+  width: 100%;
+  min-width: 580px;
+}
 
-        <td width="3"></td>
-        <td valign="middle"><tweet><img src="https://img.createsend1.com/img/templatebuilder/tweet-glyph.png" border="0" width="17" height="13" alt="Twitter icon"=""></tweet></td>
-        <td width="3"></td>
-        <td valign="middle"><div class="header-content"><a href="https://twitter.com/intent/user?screen_name=theaterwit">Follow</a></div></td>
+a img {
+  border: none;
+}
 
-    </tr>
-</tbody></table>
-            <table class="w255" width="255" cellpadding="0" cellspacing="0" border="0">
-                <tbody><tr><td class="w255" width="255" height="8"></td></tr>
-            </tbody></table>
-        </td>
-        <td class="w15" width="15"></td>
-    </tr>
-</tbody></table>
+p {
+  margin: 0 0 0 10px;
+}
 
+table {
+  border-spacing: 0;
+  border-collapse: collapse;
+}
+
+td {
+  word-break: break-word;
+  -webkit-hyphens: auto;
+  -moz-hyphens: auto;
+  hyphens: auto;
+  border-collapse: collapse !important;
+}
+
+table, tr, td {
+  padding: 0;
+  vertical-align: top;
+  text-align: left;
+}
+
+hr {
+  color: #d9d9d9;
+  background-color: #d9d9d9;
+  height: 1px;
+  border: none;
+}
+
+/* Responsive Grid */
+
+table.body {
+  height: 100%;
+  width: 100%;
+}
+
+table.container {
+  width: 580px;
+  margin: 0 auto;
+  text-align: inherit;
+}
+
+table.row {
+  padding: 0px;
+  width: 100%;
+  position: relative;
+}
+
+table.container table.row {
+  display: block;
+}
+
+td.wrapper {
+  padding: 10px 20px 0px 0px;
+  position: relative;
+}
+
+table.columns,
+table.column {
+  margin: 0 auto;
+}
+
+table.columns td,
+table.column td {
+  padding: 0px 0px 10px;
+}
+
+table.columns td.sub-columns,
+table.column td.sub-columns,
+table.columns td.sub-column,
+table.column td.sub-column {
+  padding-right: 10px;
+}
+
+td.sub-column, td.sub-columns {
+  min-width: 0px;
+}
+
+table.row td.last,
+table.container td.last {
+  padding-right: 0px;
+}
+
+table.one { width: 30px; }
+table.two { width: 80px; }
+table.three { width: 130px; }
+table.four { width: 180px; }
+table.five { width: 230px; }
+table.six { width: 280px; }
+table.seven { width: 330px; }
+table.eight { width: 380px; }
+table.nine { width: 430px; }
+table.ten { width: 480px; }
+table.eleven { width: 530px; }
+table.twelve { width: 580px; }
+
+table.one center { min-width: 30px; }
+table.two center { min-width: 80px; }
+table.three center { min-width: 130px; }
+table.four center { min-width: 180px; }
+table.five center { min-width: 230px; }
+table.six center { min-width: 280px; }
+table.seven center { min-width: 330px; }
+table.eight center { min-width: 380px; }
+table.nine center { min-width: 430px; }
+table.ten center { min-width: 480px; }
+table.eleven center { min-width: 530px; }
+table.twelve center { min-width: 580px; }
+
+table.one .panel center { min-width: 10px; }
+table.two .panel center { min-width: 60px; }
+table.three .panel center { min-width: 110px; }
+table.four .panel center { min-width: 160px; }
+table.five .panel center { min-width: 210px; }
+table.six .panel center { min-width: 260px; }
+table.seven .panel center { min-width: 310px; }
+table.eight .panel center { min-width: 360px; }
+table.nine .panel center { min-width: 410px; }
+table.ten .panel center { min-width: 460px; }
+table.eleven .panel center { min-width: 510px; }
+table.twelve .panel center { min-width: 560px; }
+
+ .body .columns td.one,
+ .body .column td.one { width: 8.333333%; }
+ .body .columns td.two,
+ .body .column td.two { width: 16.666666%; }
+ .body .columns td.three,
+ .body .column td.three { width: 25%; }
+ .body .columns td.four,
+ .body .column td.four { width: 33.333333%; }
+ .body .columns td.five,
+ .body .column td.five { width: 41.666666%; }
+ .body .columns td.six,
+ .body .column td.six { width: 50%; }
+ .body .columns td.seven,
+ .body .column td.seven { width: 58.333333%; }
+ .body .columns td.eight,
+ .body .column td.eight { width: 66.666666%; }
+ .body .columns td.nine,
+ .body .column td.nine { width: 75%; }
+ .body .columns td.ten,
+ .body .column td.ten { width: 83.333333%; }
+ .body .columns td.eleven,
+ .body .column td.eleven { width: 91.666666%; }
+ .body .columns td.twelve,
+ .body .column td.twelve { width: 100%; }
+
+td.offset-by-one { padding-left: 50px; }
+td.offset-by-two { padding-left: 100px; }
+td.offset-by-three { padding-left: 150px; }
+td.offset-by-four { padding-left: 200px; }
+td.offset-by-five { padding-left: 250px; }
+td.offset-by-six { padding-left: 300px; }
+td.offset-by-seven { padding-left: 350px; }
+td.offset-by-eight { padding-left: 400px; }
+td.offset-by-nine { padding-left: 450px; }
+td.offset-by-ten { padding-left: 500px; }
+td.offset-by-eleven { padding-left: 550px; }
+
+td.expander {
+  visibility: hidden;
+  width: 0px;
+  padding: 0 !important;
+}
+
+table.columns .text-pad,
+table.column .text-pad {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+table.columns .left-text-pad,
+table.columns .text-pad-left,
+table.column .left-text-pad,
+table.column .text-pad-left {
+  padding-left: 10px;
+}
+
+table.columns .right-text-pad,
+table.columns .text-pad-right,
+table.column .right-text-pad,
+table.column .text-pad-right {
+  padding-right: 10px;
+}
+
+/* Block Grid */
+
+ .block-grid {
+  width: 100%;
+  max-width: 580px;
+}
+
+ .block-grid td {
+  display: inline-block;
+  padding:10px;
+}
+
+ .two-up td {
+  width:270px;
+}
+
+ .three-up td {
+  width:173px;
+}
+
+ .four-up td {
+  width:125px;
+}
+
+ .five-up td {
+  width:96px;
+}
+
+ .six-up td {
+  width:76px;
+}
+
+ .seven-up td {
+  width:62px;
+}
+
+ .eight-up td {
+  width:52px;
+}
+
+/* Alignment & Visibility Classes */
+
+table.center, td.center {
+  text-align: center;
+}
+
+h1.center,
+h2.center,
+h3.center,
+h4.center,
+h5.center,
+h6.center {
+  text-align: center;
+}
+
+span.center {
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
+img.center {
+  margin: 0 auto;
+  float: none;
+}
+
+ .show-for-small,
+ .hide-for-desktop {
+  display: none;
+}
+
+/* Typography */
+
+body, table.body, h1, h2, h3, h4, h5, h6, p, td {
+  color: #222222;
+  font-family: "Helvetica", "Arial", sans-serif;
+  font-weight: normal;
+  padding:0;
+  margin: 0;
+  text-align: left;
+  line-height: 1.3;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  word-break: normal;
+}
+
+h1 {font-size: 36px;}
+h2 {font-size: 32px;}
+h3 {font-size: 28px;}
+h4 {font-size: 24px;}
+h5 {font-size: 20px;}
+h6 {font-size: 18px;}
+body, table.body, p, td {font-size: 14px;line-height:19px;}
+
+p.lead, p.lede, p.leed {
+  font-size: 18px;
+  line-height:21px;
+}
+
+p {
+  margin-bottom: 10px;
+}
+
+small {
+  font-size: 10px;
+}
+
+a {
+  color: #2ba6cb;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #2795b6 !important;
+}
+
+a:active {
+  color: #2795b6 !important;
+}
+
+a:visited {
+  color: #2ba6cb !important;
+}
+
+h1 a,
+h2 a,
+h3 a,
+h4 a,
+h5 a,
+h6 a {
+  color: #2ba6cb;
+}
+
+h1 a:active,
+h2 a:active,
+h3 a:active,
+h4 a:active,
+h5 a:active,
+h6 a:active {
+  color: #2ba6cb !important;
+}
+
+h1 a:visited,
+h2 a:visited,
+h3 a:visited,
+h4 a:visited,
+h5 a:visited,
+h6 a:visited {
+  color: #2ba6cb !important;
+}
+
+/* Panels */
+
+ .panel {
+  background: #F0F0F0;
+  border: 1px solid #d9d9d9;
+  padding: 10px !important;
+}
+
+ .sub-grid table {
+  width: 100%;
+}
+
+ .sub-grid td.sub-columns {
+  padding-bottom: 0;
+}
+
+/* Buttons */
+
+table.button,
+table.tiny-button,
+table.small-button,
+table.medium-button,
+table.large-button {
+  width: 100%;
+  overflow: hidden;
+}
+
+table.button td,
+table.tiny-button td,
+table.small-button td,
+table.medium-button td,
+table.large-button td {
+  display: block;
+  width: auto !important;
+  text-align: center;
+  background: #2ba6cb;
+  border: 1px solid #2284a1;
+  color: #ffffff;
+  padding: 8px 0;
+}
+
+table.tiny-button td {
+  padding: 5px 0 4px;
+}
+
+table.small-button td {
+  padding: 8px 0 7px;
+}
+
+table.medium-button td {
+  padding: 12px 0 10px;
+}
+
+table.large-button td {
+  padding: 21px 0 18px;
+}
+
+table.button td a,
+table.tiny-button td a,
+table.small-button td a,
+table.medium-button td a,
+table.large-button td a {
+  font-weight: bold;
+  text-decoration: none;
+  font-family: Helvetica, Arial, sans-serif;
+  color: #ffffff;
+  font-size: 16px;
+}
+
+table.tiny-button td a {
+  font-size: 12px;
+  font-weight: normal;
+}
+
+table.small-button td a {
+  font-size: 16px;
+}
+
+table.medium-button td a {
+  font-size: 20px;
+}
+
+table.large-button td a {
+  font-size: 24px;
+}
+
+table.button:hover td,
+table.button:visited td,
+table.button:active td {
+  background: #2795b6 !important;
+}
+
+table.button:hover td a,
+table.button:visited td a,
+table.button:active td a {
+  color: #fff !important;
+}
+
+table.button:hover td,
+table.tiny-button:hover td,
+table.small-button:hover td,
+table.medium-button:hover td,
+table.large-button:hover td {
+  background: #2795b6 !important;
+}
+
+table.button:hover td a,
+table.button:active td a,
+table.button td a:visited,
+table.tiny-button:hover td a,
+table.tiny-button:active td a,
+table.tiny-button td a:visited,
+table.small-button:hover td a,
+table.small-button:active td a,
+table.small-button td a:visited,
+table.medium-button:hover td a,
+table.medium-button:active td a,
+table.medium-button td a:visited,
+table.large-button:hover td a,
+table.large-button:active td a,
+table.large-button td a:visited {
+  color: #ffffff !important;
+}
+
+table.secondary td {
+  background: #e9e9e9;
+  border-color: #d0d0d0;
+  color: #555;
+}
+
+table.secondary td a {
+  color: #555;
+}
+
+table.secondary:hover td {
+  background: #d0d0d0 !important;
+  color: #555;
+}
+
+table.secondary:hover td a,
+table.secondary td a:visited,
+table.secondary:active td a {
+  color: #555 !important;
+}
+
+table.success td {
+  background: #5da423;
+  border-color: #457a1a;
+}
+
+table.success:hover td {
+  background: #457a1a !important;
+}
+
+table.alert td {
+  background: #c60f13;
+  border-color: #970b0e;
+}
+
+table.alert:hover td {
+  background: #970b0e !important;
+}
+
+table.radius td {
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+}
+
+table.round td {
+  -webkit-border-radius: 500px;
+  -moz-border-radius: 500px;
+  border-radius: 500px;
+}
+
+/* Outlook First */
+
+body.outlook p {
+  display: inline !important;
+}
+
+/*  Media Queries */
+
+@media only screen and (max-width: 600px) {
+
+  table[class="body"] img {
+    width: auto !important;
+    height: auto !important;
+  }
+
+  table[class="body"] center {
+    min-width: 0 !important;
+  }
+
+  table[class="body"] .container {
+    width: 95% !important;
+  }
+
+  table[class="body"] .row {
+    width: 100% !important;
+    display: block !important;
+  }
+
+  table[class="body"] .wrapper {
+    display: block !important;
+    padding-right: 0 !important;
+  }
+
+  table[class="body"] .columns,
+  table[class="body"] .column {
+    table-layout: fixed !important;
+    float: none !important;
+    width: 100% !important;
+    padding-right: 0px !important;
+    padding-left: 0px !important;
+    display: block !important;
+  }
+
+  table[class="body"] .wrapper.first .columns,
+  table[class="body"] .wrapper.first .column {
+    display: table !important;
+  }
+
+  table[class="body"] table.columns td,
+  table[class="body"] table.column td {
+    width: 100% !important;
+  }
+
+  table[class="body"] .columns td.one,
+  table[class="body"] .column td.one { width: 8.333333% !important; }
+  table[class="body"] .columns td.two,
+  table[class="body"] .column td.two { width: 16.666666% !important; }
+  table[class="body"] .columns td.three,
+  table[class="body"] .column td.three { width: 25% !important; }
+  table[class="body"] .columns td.four,
+  table[class="body"] .column td.four { width: 33.333333% !important; }
+  table[class="body"] .columns td.five,
+  table[class="body"] .column td.five { width: 41.666666% !important; }
+  table[class="body"] .columns td.six,
+  table[class="body"] .column td.six { width: 50% !important; }
+  table[class="body"] .columns td.seven,
+  table[class="body"] .column td.seven { width: 58.333333% !important; }
+  table[class="body"] .columns td.eight,
+  table[class="body"] .column td.eight { width: 66.666666% !important; }
+  table[class="body"] .columns td.nine,
+  table[class="body"] .column td.nine { width: 75% !important; }
+  table[class="body"] .columns td.ten,
+  table[class="body"] .column td.ten { width: 83.333333% !important; }
+  table[class="body"] .columns td.eleven,
+  table[class="body"] .column td.eleven { width: 91.666666% !important; }
+  table[class="body"] .columns td.twelve,
+  table[class="body"] .column td.twelve { width: 100% !important; }
+
+  table[class="body"] td.offset-by-one,
+  table[class="body"] td.offset-by-two,
+  table[class="body"] td.offset-by-three,
+  table[class="body"] td.offset-by-four,
+  table[class="body"] td.offset-by-five,
+  table[class="body"] td.offset-by-six,
+  table[class="body"] td.offset-by-seven,
+  table[class="body"] td.offset-by-eight,
+  table[class="body"] td.offset-by-nine,
+  table[class="body"] td.offset-by-ten,
+  table[class="body"] td.offset-by-eleven {
+    padding-left: 0 !important;
+  }
+
+  table[class="body"] table.columns td.expander {
+    width: 1px !important;
+  }
+
+  table[class="body"] .right-text-pad,
+  table[class="body"] .text-pad-right {
+    padding-left: 10px !important;
+  }
+
+  table[class="body"] .left-text-pad,
+  table[class="body"] .text-pad-left {
+    padding-right: 10px !important;
+  }
+
+  table[class="body"] .hide-for-small,
+  table[class="body"] .show-for-desktop {
+    display: none !important;
+  }
+
+  table[class="body"] .show-for-small,
+  table[class="body"] .hide-for-desktop {
+    display: inherit !important;
+  }
+}
+
+  </style>
+  <style>
+
+    table.facebook td {
+      background: #3b5998;
+      border-color: #2d4473;
+    }
+
+    table.facebook:hover td {
+      background: #2d4473 !important;
+    }
+
+    table.twitter td {
+      background: #00acee;
+      border-color: #0087bb;
+    }
+
+    table.twitter:hover td {
+      background: #0087bb !important;
+    }
+
+    table.google-plus td {
+      background-color: #DB4A39;
+      border-color: #CC0000;
+    }
+
+    table.google-plus:hover td {
+      background: #CC0000 !important;
+    }
+
+    .template-label {
+      color: #000000;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .callout .panel {
+      background: #ECF8FF;
+      border-color: #b9e5ff;
+    }
+
+    .header {
+      background: #c7d8a7;
+    }
+
+    .footer .wrapper {
+      background: #ebebeb;
+    }
+
+    .footer h5 {
+      padding-bottom: 10px;
+    }
+
+    table.columns .text-pad {
+      padding-left: 10px;
+      padding-right: 10px;
+    }
+
+    table.columns .left-text-pad {
+      padding-left: 10px;
+    }
+
+    table.columns .right-text-pad {
+      padding-right: 10px;
+    }
+
+    @media only screen and (max-width: 600px) {
+
+      table[class="body"] .right-text-pad {
+        padding-left: 10px !important;
+      }
+
+      table[class="body"] .left-text-pad {
+        padding-right: 10px !important;
+      }
+    }
+
+  </style>
+  <table class="body">
+    <tr>
+      <td class="center" align="center" valign="top">
+        <center>
+
+          <table class="row header">
+            <tr>
+              <td class="center" align="center">
+                <center>
+
+                  <table class="container">
+                    <tr>
+                      <td class="wrapper last">
+
+                        <table class="twelve columns">
+                          <tr>
+                            <td class="four sub-columns">
+                              <img src="http://www.theaterwit.org/static/img/logo_color_small_tagless.png">
+                            </td>
+                            <td class="two sub-columns last" style="text-align:right; vertical-align:middle;">
+                              <span class="template-label">10 years of smart art</span>
+                              <table class="tiny-button google-plus">
+                              <tr>
+                                <td>
+                                  <a href="https://www.facebook.com/theaterwit">Donate today!</a>
+                                </td>
+                              </tr>
+                            </table>
+                            </td>
+                            <td class="expander"></td>
+                          </tr>
+                        </table>
+
+                      </td>
+                    </tr>
+                  </table>
+
+                </center>
+              </td>
+            </tr>
+          </table>
+
+          <br>
+          <table class="container">
+            <table class="row">
+                <tbody>
+                  <tr>
+                    <td class="panel twelve columns">
+                      <h3><%= yield :email_title %></h3>
                     </td>
-                </tr>
-                <tr>
-                <td id="header" class="w640" width="640" align="center" bgcolor="#d5e9e7">
+                  </tr>
+                </tbody>
+              </table>
+              <!-- content start -->
+              <table class="row">
+                <tbody>
 
-    <table class="w640" width="640" cellpadding="0" cellspacing="0" border="0">
-        <tbody><tr><td class="w30" width="30"></td><td class="w580" width="580" height="30"></td><td class="w30" width="30"></td></tr>
-        <tr>
-            <td class="w30" width="30"></td>
-            <td class="w580" width="580">
-            <div align="left" id="w80" style="float:left; padding-bottom:15px; ">
-                <img class="logo" src="http://www.theaterwit.org/static/img/logo_color_small_tagless.png">
-              </div>
-                <div align="center" id="headline" style="overflow:hidden">
-                    <p>
-                        <strong><%= yield :email_title %></strong>
-                    </p>
-                </div>
-            </td>
-            <td class="w30" width="30"></td>
-        </tr>
-    </tbody></table>
+                  <tr>
+                    <td class="wrapper" valign="top">
+
+                      <table class="eight columns">
+                        <tr>
+                          <td valign="top" style="vertical-align:top">
+                            <%= yield %>
 
 
-</td>
-                </tr>
-
-                <tr id="twocolumn-content-row"><td class="w640" width="640"><table class="w640" width="640" cellpadding="0" cellspacing="0" border="0">
-  <tbody><tr>
-        <td class="w15" width="15" bgcolor="#f0f1f2"></td>
-        <td id="left-sidebar" class="w140" width="140" bgcolor="#f0f1f2" valign="top" align="left">
-            <table class="w140" width="140" cellpadding="0" cellspacing="0" border="0">
-                <tbody><tr><td class="w140" width="140" height="15"></td></tr>
-                <tr>
-                    <td class="w140" width="140">
-                        <div align="left" class="left-column-heading">ALSO AT THE WIT...</div>
-                    <br/>
-                    <%= render :partial=>'also_playing', :locals=>{:order=>@order} %>
-                    </td>
-                </tr>
-
-            </tbody></table>
-
-      <!--  -->
-        </td>
-        <td class="w15" width="15" bgcolor="#f0f1f2"></td>
-        <td class="w470" width="470" bgcolor="#ffffff" valign="top">
-            <table class="w470" width="470" cellpadding="0" cellspacing="0" border="0">
-                <tbody><tr><td class="w470" width="470" height="30"></td></tr>
-            </tbody></table>
-            <table class="w470" width="470" cellpadding="0" cellspacing="0" border="0">
-                <tbody><tr>
-                    <td class="w30" width="30"></td>
-                    <td class="w410" width="410">
-
-                      <%= yield %>
-
-                    </td>
-                    <td class="w30" width="30"></td>
-                </tr>
-            </tbody></table>
-        </td>
-      </tr>
-    </tbody></table>
-    </td></tr>
-                <tr>
-                  <td class="w640" width="640"><table class="w640" width="640" cellpadding="0" cellspacing="0" border="0">
-                        <tbody><tr>
-                            <td class="w170" width="170" bgcolor="#f0f1f2" height="15"></td>
-                            <td class="w470" width="470" bgcolor="#ffffff" height="15"></td>
+                          </td>
+                          <td class="expander"></td>
                         </tr>
-                  </tbody></table></td>
-                </tr>
+                      </table>
 
+                    </td>
+                    <td class="wrapper last">
+
+                      <table class="four columns">
+                        <tr>
+                          <td class="panel">
+                            <%= render :partial=>'also_playing', :locals=>{:order=>@order} %>
+                          </td>
+                          <td class="expander"></td>
+                        </tr>
+                      </table>
+                      <br>
+                      <table class="four columns">
+                        <tr>
+                          <td class="panel">
+                            <h6 style="margin-bottom:5px;">Connect With Us:</h6>
+                            <table class="tiny-button facebook">
+                                <tr>
+                                  <td>
+                                    <a href="https://www.facebook.com/theaterwit">Facebook</a>
+                                  </td>
+                                </tr>
+                              </table>
+
+                              <hr>
+
+                              <table class="tiny-button twitter">
+                                <tr>
+                                  <td>
+                                    <a href="https://www.twitter.com/theaterwit">Twitter</a>
+                                  </td>
+                                </tr>
+                              </table>
+
+                            <br>
+                            <h6 style="margin-bottom:5px;">Real World:</h6>
+                            <p>1229 W Belmont</p>
+                            <p>Phone: <b>773.975.8150</b></p>
+                            <p>Or by <a href="mailto:info@theaterwit.org">email</a></p>
+                          </td>
+                          <td class="expander"></td>
+                        </tr>
+                      </table>
+
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <br>
+              <br>
+              <!-- Legal + Unsubscribe -->
+              <table class="row">
                 <tr>
-                <td class="w640" width="640">
-    <table id="footer" class="w640" width="640" cellpadding="0" cellspacing="0" border="0" bgcolor="#4b4c44">
-        <tbody><tr><td class="w30" width="30"></td><td class="w580 h0" width="360" height="30">
-          <p class="footer-content-left"><!--
-          Gift memberships and flex passes available for the holidays.  Get yours today.
-          -->
-          </p>
-        </td><td class="w0" width="60"></td><td class="w0" width="160"></td><td class="w30" width="30"></td></tr>
-        <tr>
-            <td class="w30" width="30"></td>
-            <td class="w580" width="360" valign="top">
-            <span class="hide"><p id="permission-reminder" align="left" class="footer-content-left"></p></span>
-            <p align="left" class="footer-content-left"></p>
-            </td>
-            <td class="hide w0" width="60"></td>
-            <td class="hide w0" width="160" valign="top">
-            <p id="street-address" align="right" class="footer-content-right">1229 W Belmont<br/>Chicago, Illinois 60657</p>
-            </td>
-            <td class="w30" width="30"></td>
-        </tr>
-        <tr><td class="w30" width="30"></td><td class="w580 h0" width="360" height="15"></td><td class="w0" width="60"></td><td class="w0" width="160"></td><td class="w30" width="30"></td></tr>
-    </tbody></table>
-                </td>
+                  <td class="wrapper last">
+
+                    <table class="twelve columns">
+                      <tr>
+                        <td align="center">
+                          <center>
+                            <p style="text-align:center;">Hey! You can subscribe to our newsletter, <a href="#">by clicking here</a>!</p>
+                          </center>
+                        </td>
+                        <td class="expander"></td>
+                      </tr>
+                    </table>
+
+                  </td>
                 </tr>
-                <tr><td class="w640" width="640" height="60"></td></tr>
-              </tbody>
-            </table>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </body>
+              </table>
+
+              <!-- container end below -->
+              </td>
+            </tr>
+          </table>
+
+        </center>
+      </td>
+    </tr>
+  </table>
+</body>
 </html>

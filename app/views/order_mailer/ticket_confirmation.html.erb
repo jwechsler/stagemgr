@@ -1,14 +1,10 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta content="text/html; charset=UTF-8" http-equiv="Content-Type"/>
-</head>
-<body>
-<h2>We have <%= @order.number_of_tickets %> ticket<%= "s" unless @order.number_of_tickets == 1 %> reserved under the name <%= @order.address.full_name %> for the
+ <%- content_for :email_title do %>
+ We have <%= @order.number_of_tickets %> ticket<%= "s" unless @order.number_of_tickets == 1 %> reserved under the name <%= @order.address.full_name %> for the
   <%= @order.performance.performance_time.strftime('%l:%M %p') %> performance
-  on <%= @order.performance.performance_date.strftime('%A, %B %d') %>
   of <i><%= @order.performance.production.name %></i><%- if @order.theater.theater_class != "Default" %>, presented by <%= @order.theater.name %>
-  <%- end %></h2>
+  on <%= @order.performance.performance_date.strftime('%A, %B %d') %>
+  <%- end %>
+<%- end %>
 
 <p>Thanks so much for your order. Your tickets will be waiting at the Theater Wit box office under your name
   <%- member_payments = @order.membership_payments
@@ -28,42 +24,35 @@
   <p><%= @confirmation_message %></p>
 <%- end %>
 
-<h2>Here's some handy stuff you'll want to know:</h2>
+<h3>Here's some handy stuff you'll want to know:</h3>
 
-<h3>Getting Here</h3>
+<h4>Getting Here</h4>
 
 <p>Theater Wit is located at 1229 W Belmont, between Southport and Racine. We are accessible by "L" at the Belmont stop
   for the red, brown and purple lines four blocks east of us. The 77 CTA bus also drops you on our doorstep. If you will
-  be driving, there is often street parking, and we offer free parking behind Cooper's and, when that's full, valet service for $10.</p>
+  be driving, there is often street parking, and we offer free parking behind Cooper's and, when that's full, valet service for $10.  The valets pick up cars right next to us at Stage 773.</p>
 
-<h3>
+<h4>
   Pre-show Dining Recommendations
-</h3>
+</h4>
 
-<p><a href="http://www.cooperschicago.com/">Cooper's</a> (773.929.2667) is directly across the street, and features an
-  excellent bbq and sandwich menu, along with some tasty vegetarian options.</p>
+<p><a href="http://www.cooperschicago.com/">Cooper's</a> (773.929.2667) is directly across the street, and features an excellent bbq and sandwich menu, along with some tasty soup and beer options.</p>
 
-<p><a href="http://lagondolachicago.com">La Gondola</a> (773.935.9011) is also across the street, and has a very good
-  country Italian food and Chicago-style Pizza.</p>
-
-<h3>Seating and Admission</h3>
+<h4>Seating and Admission</h4>
 
 <p>All seating is general admission. Each show opens its doors 25 minutes before curtain time. Our houses are intimate
   with excellent sightlines, but if you are concerned, you may want to show up on the earlier side for your pick of
   seats. If you have any special seating needs (handicapped/wheelchair accessible, groups over 15), please call us at
   773-975-8150 and we'll make sure you're taken care of.
-  <i>Please note that late seating is <b>not available</b> for shows.</i> Please make plans to be at the theater
+  <i>Please note that late seating is <b>not necessarily available</b>.</i> Please make plans to be at the theater
   at least ten minutes before curtain to avoid tears and recriminations.
 </p>
 
-<h3>Bar</h3>
+<h4>Bar</h4>
 
-<p>Theater Wit has a full cocktail wine and chocolate bar. We feature handmade chocolates by local artisans and a
-  variety of top-shelf liquors, including local artisinal brews. All drinks may be taken into the performance.</p>
+<p>Theater Wit has a full cocktail, wine and beer bar. We feature handmade chocolates and baked goods by local artisans and a variety of top-shelf liquors, including local micro brews. All drinks may be taken into the performance.</p>
 
-<h3>And The Obligatory Legal Speak at the End of Emails</h3>
+<h4>And The Obligatory Legal Speak at the End of Emails</h4>
 
 <p>Please remember that your tickets are NON-REFUNDABLE and NON-EXCHANGEABLE. We will do our best to accommodate
   last-minute changes but we reserve the right to let your seats wither on the vine, as it were.</p>
-</body>
-</html>

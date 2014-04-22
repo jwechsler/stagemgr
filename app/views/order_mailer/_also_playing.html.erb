@@ -1,34 +1,31 @@
-<table cellpadding="0" cellspacing="0" border="0">
-  <tbody>
-    <% productions = Production.where("closing_at > :after_date and opening_at < :future_date and status in (:visible) and production_class in (:visible_classes) and not exists (select * from performances where status!='Inactive' and performances.production_id = productions.id and performances.id in (select performance_id from orders where address_id = :order_address))",
-                                     {:visible=>Production.visible_statuses,
-                                      :visible_classes=>[Production::PLAY],
-                                      :after_date=>Time.now.end_of_week,
-                                      :future_date=>(Time.now + 3.month),
-                                      :order_address=>order.address.id}).order("RAND()").limit(3)
-      productions.each do |prod| %>
-        <tr>
-          <td width="3"></td>
-          <td valign="top">
-            <div class="production_name"><%= prod.name %></div>
-            <% unless prod.best_image_url_available(:thumb).blank? %>
-              <img src="<%= "http://www.theaterwit.org#{prod.best_image_url_available(:thumb)}" %>" width="100%">
-              <% unless prod.theater.is_default? %>
-                <div class="producing_company"><%= prod.theater.name %></div>
-              <% end %>
+<h6>Also playing</h6>
+<% productions = Production.where("closing_at > :after_date and opening_at < :future_date and status in (:visible) and production_class in (:visible_classes) and not exists (select * from performances where status!='Inactive' and performances.production_id = productions.id and performances.id in (select performance_id from orders where address_id = :order_address))",
+                                 {:visible=>Production.visible_statuses,
+                                  :visible_classes=>[Production::PLAY],
+                                  :after_date=>Time.now.end_of_week,
+                                  :future_date=>(Time.now + 3.month),
+                                  :order_address=>order.address.id}).order("RAND()").limit(3)
+  productions.each do |prod| %>
+    <table>
+      <tr>
+        <td class="center panel">
+          <span class="production_name"><%= prod.name %></span><br/>
+          <% unless prod.best_image_url_available(:thumb).blank? %>
+            <a href="<%=url_for(controller:'performances',:production_id=>prod.id)%>">
+              <img src="<%="http://www.theaterwit.org#{prod.best_image_url_available(:thumb)}" %> width="100%"></a>
+            <% unless prod.theater.is_default? %>
+              <span class="producing_company"><%= prod.theater.name %></span><br>
             <% end %>
-            <div class="slug">
-              <%- if prod.now_playing? %>
-                Closes <%= prod.closing_at.to_s(:short) %>
-              <%- else %>
-                Starts <%= prod.first_preview_at.to_s(:short) %>
-              <%- end %>
-            </div>
-          </td>
-          <td width="6"><br/></td>
+          <% end %>
+          <div class="slug">
+            <%- if prod.now_playing? %>
+              Closes <%= prod.closing_at.to_s(:short) %>
+            <%- else %>
+              Starts <%= prod.first_preview_at.to_s(:short) %>
+            <%- end %>
+          </div>
         </td>
       </tr>
-    <% end %>
-  </tbody>
-</table>
-
+    </table>
+    <hr>
+  <% end %>
