@@ -1,5 +1,15 @@
 require 'spec_helper'
 
 describe OrderTaskSuppression do
-  pending "add some examples to (or delete) #{__FILE__}"
+  it "prevents order tasks associated with it from firing" do
+    o = FactoryGirl.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
+    t = o.tasks.first
+    payment_type = o.payment_type
+    payment_type.order_task_suppressions << FactoryGirl.create(:order_task_suppression,task_type:t.type,method_name:t.method_symbol)
+    payment_type.save!
+    t.status.should eq(OrderTask::UNTRIED)
+    t.run!
+    t.status.should eq(OrderTask::CANCELLED)
+  end
+
 end

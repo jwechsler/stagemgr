@@ -25,18 +25,22 @@ class OrderTask < ActiveRecord::Base
 
   public
     def run!
-      self.attempts += 1
-      success = self.execute!
-      self.status =  success ?  COMPLETED : FAILED
-      self.save!
-      if success
-        unless self.repeat_monthly_interval.blank?
-          new_task = self.dup
-          new_task.execute_at = Time.now + self.repeat_monthly_interval.months
-          new_task.order_id = self.order_id
-          new_task.attempts = 0
-          new_task.status = UNTRIED
-          new_task.save!
+      if self.order.payment_type.order_task_suppressions.map{|s| [s.task_type, s.method_name || 'NIL']}.include?([self.type, self.method_symbol || 'NIL'])
+        self.cancel!
+      else
+        self.attempts += 1
+        success = self.execute!
+        self.status =  success ?  COMPLETED : FAILED
+        self.save!
+        if success
+          unless self.repeat_monthly_interval.blank?
+            new_task = self.dup
+            new_task.execute_at = Time.now + self.repeat_monthly_interval.months
+            new_task.order_id = self.order_id
+            new_task.attempts = 0
+            new_task.status = UNTRIED
+            new_task.save!
+          end
         end
       end
     end
