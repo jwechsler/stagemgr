@@ -325,7 +325,7 @@ class Admin::ReportsController < Admin::ApplicationController
   def build_house_management_seating_report(for_date)
     orders = TicketOrder.includes(:address, {:performance=>:production}).where(
       "performances.performance_date = :performance_date and orders.status in (:attending)",
-      {:performance_date=>for_date, :attending=>Order.attending_statuses}).
+      {:performance_date=>for_date, :attending=>Order.attending_statuses + Order.held_statuses}).
       order('productions.venue_id, performances.performance_time, addresses.last_name, addresses.first_name')
 
     report = Array.new
