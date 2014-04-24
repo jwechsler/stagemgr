@@ -2,6 +2,8 @@ class PaymentType < ActiveRecord::Base
 
   has_many :payments
   has_many :payment_restrictions, :dependent=>:destroy
+  has_many :order_task_suppressions, :dependent=>:destroy
+
   validates_uniqueness_of :display_name
 
   def self.valid_payment_types_for(current_user)
