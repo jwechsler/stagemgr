@@ -1,26 +1,13 @@
 <% content_for :email_title do %>
- Good to see you
+  <%- if @order.performance.production.theater.is_default? %>
+    Thanks for coming by to see <i><%= @order.performance.production.name %></i>.
+  <%- else %>
+    Thanks for coming by to see <i><%= @order.performance.production.name %>,</i>
+    presented by <%= @order.performance.production.theater.name %>.
+  <%- end %>
 <% end %>
-<table class="w410" width="410" cellpadding="0" cellspacing="0" border="0">
-  <tbody>
-    <tr>
-      <td class="w410" width="410">
-        <p align="left" class="article-title">
-          <%- if @order.performance.production.theater.is_default? %>
-            Thanks for coming by to see <i><%= @order.performance.production.name %></i>.
-          <%- else %>
-            Thanks for coming by to see <i><%= @order.performance.production.name %>,</i>
-            presented by <%= @order.performance.production.theater.name %>.
-          <%- end %>
-        </p>
-        <div align="left" class="article-content">
-          I hope you had a good evening and will return soon (there are a few suggestions in
-          the sidebar on the right, but check our website for all upcoming events).
-        </div>
-      </td>
-    </tr>
-    <tr><td class="w410" width="410" height="10"></td></tr>
-  </tbody>
-</table>
-
+<p>
+  I hope you had a good evening and will return soon (there are a few suggestions in
+  the sidebar on the right, but check our website for all upcoming events).
+</p>
 <%= render :partial=>'core_followup', :locals=>{:order=>@order} %>

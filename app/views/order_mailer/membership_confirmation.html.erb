@@ -1,88 +1,55 @@
 <% content_for :email_title do %>
- Your Theater Wit Membership
-<% end %>
-<table class="w410" width="410" cellpadding="0" cellspacing="0" border="0">
-  <tbody>
-    <tr>
-      <td class="w410" width="410">
-        <p align="left" class="article-title">
-          Welcome to Theater Wit Membership
-        </p>
-        <div align="left" class="article-content">
-          <%- if @order.gift? %>
-            <p>
+ <%- if @order.gift? %>
               Thanks for purchasing a <%= @membership.membership_offer.name %> for <%= @order.recipient_name %>.
-              Starting <%= @order.gift_date.to_s(:long) %>, <%= @order.gift_recipient %> will be able to to use
-              member code <b><%= @membership.member_code %><b> to attend a wide variety of performances and
-              productions here at Theater Wit.  If you'd like to get a physical membership card to give with your
-              gift, just contact our box office at 773-975-8150; if not, <%= @order.recipient_name %> can pick
-              up the card along with their first reservation.
-            </p>
-          <% else %>
-            <p>
-
-              Thanks so much becoming a member at Theater Wit.
-              <%- if @membership.active? %>
-                Your <%= @membership.membership_offer.name %> is ready to use immediately. You'll be getting a permanent card
-                in the mail as well as a detailed brochure about how to use it?  But hey, why wait? You can start using your
-                membership today.
-              <%- else %>
-                Your membership is not yet active. Sometimes it takes PayPal an hour to validate your subscription. In the meantime,
-                we'll be happy to put tickets on hold for you.  Just call the box office with your name and member code.
-              <%- end %>
-            </p>
-        </div>
-      </td>
-    </tr>
-    <tr><td class="w410" width="410" height="10"></td></tr>
-    <tr>
-      <td class="w410" width="410">
-        <p align="left" class="article-title">
-          Using your Membership
-        </p>
-        <div align="left" class="article-content">
-          <p align="center"><b>Your member code is <%= @membership.member_code %></b><p>
-
-          <p>To use your membership online, just choose "Membership" instead of "Credit Card" as your payment method, and type
-          in that code.  You can use your membership to reserve a single ticket to any regular performance here at Theater Wit.
-          You can also drop by our box office with your code get pick up your tickets in advance in person if you're in the
-          neighborhood.</p>
-
-        </div>
-      </td>
-    </tr>
-    <tr><td class="w410" width="410" height="10"></td></tr>
-    <tr>
-      <td class="w410" width="410">
-        <p align="left" class="article-title">
-          Come as often as you like
-        </p>
-        <div align="left" class="article-content">
-
-      <p>
-        If you haven't yet signed up for our email newsletter, <a href=="http://www.theaterwit.org/join/mailing.php">you should do so right now</a>.
-        You can specify how often you'd like to get building news and our schedule of events so you can take full advantage of your membership benefits.
-      </p>
-      <p>Keep in mind that your membership cannot be shared with another person.  Until our box office gets to know you, please make sure to bring a picture ID when you come to pick up tickets.</p>
-      <p>
-        <%=raw @membership.membership_offer.email_html %>
-      </p>
-    <% end %>
+  <% else %>
+    Thanks so much becoming a member at Theater Wit.
+  <% end %>
+<% end %>
+<%- if @order.gift? %>
     <p>
-      Thank you for supporting Theater Wit and the many storefront theaters that make our home so special.  If you have any questions, please call us at 773-975-8150.
-    </p>
-    <p>
-      See you at the theater!<br/>
-      <%= image_tag "http://www.theaterwit.org/static/img/mail/jmwsignature.png" -%><br clear="all"/>
-      Jeremy Wechsler<br/>
-      Artistic Director,<br/>
-      Theater Wit</br>
-    </p>
+    Starting <%= @order.gift_date.to_s(:long) %>, <%= @order.gift_recipient %> will be able to to use
+    member code <b><%= @membership.member_code %></b> to attend a wide variety of performances and
+    productions here at Theater Wit.  If you'd like to get a physical membership card to give with your
+    gift, just contact our box office at 773-975-8150; if not, <%= @order.recipient_name %> can pick
+    up the card along with their first reservation.</p>
+<% else %>
+  <p>
+  <%- if @membership.active? %>
+    Your <%= @membership.membership_offer.name %> is ready to use immediately. You'll be getting a permanent card
+    in the mail as well as a detailed brochure about how to use it?  But hey, why wait? You can start using your
+    membership today.
+  <%- else %>
+    Your membership is not yet active. Sometimes it takes PayPal an hour to validate your subscription. In the meantime,
+    we'll be happy to put tickets on hold for you.  Just call the box office with your name and member code.
+  <%- end %>
+  </p>
+  <h4>
+    Using your Membership
+  </h4>
+  <p align="center"><b>Your member code is <%= @membership.member_code %></b><p>
 
-        </div>
-      </td>
-    </tr>
-    <tr><td class="w410" width="410" height="10"></td></tr>
-  </tbody>
-</table>
+    <p>To use your membership online, just choose "Membership" instead of "Credit Card" as your payment method, and type
+    in that code.  You can use your membership to reserve a single ticket to any regular performance here at Theater Wit.
+    You can also drop by our box office with your code get pick up your tickets in advance in person if you're in the
+    neighborhood.</p>
+  <h4>
+    Come as often as you like
+  </h4>
 
+  <p>
+    Keep in mind that your membership cannot be shared with another person.  Until our box office gets to know you, please make sure to bring a picture ID when you come to pick up tickets.
+  </p>
+  <p>
+    <%=raw @membership.membership_offer.email_html %>
+  </p>
+<% end %>
+<p>
+  Thank you for supporting Theater Wit and the many storefront theaters that make our home so special.  If you have any questions, please call us at 773-975-8150.
+</p>
+<p>
+  See you at the theater!<br/>
+  <%= image_tag "http://www.theaterwit.org/static/img/mail/jmwsignature.png" -%><br clear="all"/>
+  Jeremy Wechsler<br/>
+  Artistic Director,<br/>
+  Theater Wit</br>
+</p>

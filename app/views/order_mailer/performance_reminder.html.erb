@@ -1,4 +1,6 @@
-  <h3>See you <%= Date::DAYNAMES[@order.performance.performance_date.wday] %></h3>
+<% content_for :email_title do %>
+  See your <%= Date::DAYNAMES[@order.performance.performance_date.wday] %>
+<% end %>
   <p>Just a reminder, you have <%= @order.number_of_tickets %> ticket<%= "s" unless @order.number_of_tickets == 1 %> reserved for the
       <%= @order.performance.performance_time.strftime('%l:%M %p') %> performance this <%= Date::DAYNAMES[@order.performance.performance_date.wday] %>.  We look forward to seeing you!
     <%- unless @order.performance.production.allow_late_seating %>
@@ -21,7 +23,7 @@ Pre-show Dining Recommendations
 </p>
 
   <h3>Bar</h3>
-<p>Theater Wit has a full cocktail wine and chocolate bar.  We feature handmade chocolates by local artisans and a variety of top-shelf liquors, including local artisinal brews. All drinks may be taken into the performance.</p>
+<p>Theater Wit has a full cocktail, beer, wine and snack bar.  We feature handmade chocolates by local artisans and a variety of top-shelf liquors, including local micro brews. All drinks may be taken into the performance.</p>
 
 <h3>And The Obligatory Legal Speak at the End of Emails</h3>
 <p>Please remember that your tickets are NON-REFUNDABLE and NON-EXCHANGEABLE.  We will do our best to accommodate last-minute changes but we reserve the right to let your seats wither on the vine, as it were.</p>
