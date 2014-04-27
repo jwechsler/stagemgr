@@ -25,7 +25,7 @@ class OrderTask < ActiveRecord::Base
 
   public
     def run!
-      if self.order.payment_type.order_task_suppressions.map{|s| [s.task_type, s.method_name || 'NIL']}.include?([self.type, self.method_symbol || 'NIL'])
+      if self.order.payment_type.order_task_suppressions.map{|s| [s.task_type, self.method_symbol.blank? ? 'NIL' : (s.method_name || 'NIL')]}.include?([self.type, self.method_symbol || 'NIL'])
         self.cancel!
       else
         self.attempts += 1

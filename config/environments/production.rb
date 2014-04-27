@@ -65,8 +65,8 @@ Stagemgr::Application.configure do
 
   $EMAIL_ADDRESS = YAML::load(File.open("#{::Rails.root.to_s}/config/emails.yml"))['production']
   $DATABASEDOTCOM = SalesforceSync.load_from_yaml_file('production',"#{::Rails.root.to_s}/config/databasedotcom.yml")
-  $SERVER_CONFIG = YAML::load(File.open("#{::Rails.root.to_s}/config/server.yml"))['production']
-
+  config_data = YAML::load(File.open("#{::Rails.root.to_s}/config/server.yml"))
+  $SERVER_CONFIG = config_data['all'].merge(config_data['production'])
 
   $TKTPRINT =  YAML::load(File.open("#{::Rails.root.to_s}/config/ticket_print.yml"))['production']
 

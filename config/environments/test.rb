@@ -59,6 +59,7 @@ Stagemgr::Application.configure do
   $TKTPRINT =  YAML::load(File.open("#{::Rails.root.to_s}/config/ticket_print.yml"))['test']
 
   $EMAIL_ADDRESS = YAML::load(File.open("#{::Rails.root.to_s}/config/emails.yml"))['test']
-  $SERVER_CONFIG = YAML::load(File.open("#{::Rails.root.to_s}/config/server.yml"))['test']
+  config_data = YAML::load(File.open("#{::Rails.root.to_s}/config/server.yml"))
+  $SERVER_CONFIG = config_data['all'].merge(config_data['test'])
 
 end
