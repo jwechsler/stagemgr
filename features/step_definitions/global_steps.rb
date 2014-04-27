@@ -35,6 +35,6 @@ Given /^I am a [tT]heater [Uu]ser$/ do
 end
 
 Given /^I log out$/ do
-  visit path_to("the logout page")
+  page.driver.submit :delete, path_to("the logout page")
 end
 
