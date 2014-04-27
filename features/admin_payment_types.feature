@@ -21,6 +21,7 @@ Feature: Payment Types Administration
         And I should see "Flex Pass"
         And I should see "Edit"
 
+  @wip
   Scenario: Make a payment type active for the public
       Given I go to the edit page for payment type "Cash"
         And I allow cash payments for the public
