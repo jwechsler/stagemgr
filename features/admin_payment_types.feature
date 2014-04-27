@@ -21,7 +21,6 @@ Feature: Payment Types Administration
         And I should see "Flex Pass"
         And I should see "Edit"
 
-  @wip
   Scenario: Make a payment type active for the public
       Given I go to the edit page for payment type "Cash"
         And I allow cash payments for the public
@@ -41,3 +40,21 @@ Feature: Payment Types Administration
         And I log out
         And I go to new web order for production "Production One" and performance "PERF"
         And the payment option should not include "Cash"
+
+
+  Scenario: Set up suppression rules
+      Given I go to the edit page for payment type "Cash"
+        And I allow cash payments for the public
+        And I suppress the "ticket_confirmation" method for "OutreachTask"
+        And I press "Update"
+       Then I should see "sucessfully updated"
+        And I go to the edit page for payment type "Cash"
+       Then I should see "OutreachTask"
+        And I should see "ticket_confirmation"
+        And I delete the "ticket_confirmation" method for "OutreachTask"
+        And I press "Update"
+       Then I should see "sucessfully updated"
+        And I go the edit page for payment type "Cash"
+       Then I should not see "OutreachTask"
+        And I should not see "ticket_confirmation"
+
