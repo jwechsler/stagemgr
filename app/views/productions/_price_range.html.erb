@@ -2,8 +2,8 @@
 <%= (min_price,max_price)=production.price_range
   display_min = min_price.to_i
   display_max = max_price.to_i
-  display_min = Money.from_numeric(min_price) unless min_price == display_min
-  display_max = Money.from_numeric(max_price) unless max_price == display_max
+  display_min = min_price.to_money unless min_price == display_min
+  display_max = max_price.to_money unless max_price == display_max
 
   price_range = "$#{display_min}"
   price_range += "-$#{display_max}" unless max_price == min_price

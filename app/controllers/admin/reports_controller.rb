@@ -415,9 +415,9 @@ class Admin::ReportsController < Admin::ApplicationController
         total_payout = RecurringPayment.sum(:amount, :include=>[:order, [:order=>:performance]], :conditions=>["membership_id = ? and orders.id = payments.order_id and orders.performance_id = performances.id and performances.performance_date <= ? and performances.performance_date >= ?", membership.id, cutoff_max, cutoff_min])
 
         aggregate_amount = RecurringPayment.sum(:amount, :conditions=>["order_id = ? and processed_on > ? and processed_on < ?", membership.membership_line_item.order_id, cutoff_min, cutoff_max])
-        avg_revenue_month = Money.from_numeric(0.0)
+        avg_revenue_month = "0".to_money
         avg_performances_month = 0.0
-        avg_revenue_month = Money.from_numeric((aggregate_amount-total_payout)/cycles_in_window)
+        avg_revenue_month = ((aggregate_amount-total_payout)/cycles_in_window).to_money
         avg_performances_month = ((0.0 + num_attended)/cycles_in_window).round(1)
         # aggregate_amount = membership.aggregate_amount.nil? ? 0.0 : membership.aggregate_amount
         report << {:member_since=>membership.member_since.strftime("%D"),
@@ -425,15 +425,15 @@ class Admin::ReportsController < Admin::ApplicationController
                    :first_name=>membership.membership_line_item.order.address.first_name,
                    :status=>membership.status,
                    :number_cycles=>cycles_in_window,
-                   :collected=>Money.from_numeric(aggregate_amount),
+                   :collected=>aggregate_amount.to_money,
                    :performances_attended=>num_attended,
-                   :payout=>Money.from_numeric(total_payout),
-                   :net_revenue => Money.from_numeric(aggregate_amount-total_payout),
+                   :payout=>total_payout.to_money,
+                   :net_revenue => (aggregate_amount-total_payout).to_money,
                    :avg_revenue_month=>avg_revenue_month,
                    :avg_performances_month=>avg_performances_month
         }.merge(address_hash_from_order(membership.membership_line_item.order))
-        sums[:collected] += Money.from_numeric(aggregate_amount)
-        sums[:payout] += Money.from_numeric(total_payout)
+        sums[:collected] += aggregate_amount.to_money
+        sums[:payout] += total_payout.to_money
         sums[:performances_attended] += num_attended
         sums[:number_cycles] += cycles_in_window
       end
@@ -549,20 +549,20 @@ class Admin::ReportsController < Admin::ApplicationController
     headers += [:email] if permitted_to?(:view_email, :admin_addresses)
     headers += [:collected, :payout, :facility_fee, :tickets_remaining, :status]
 
-    fee = Money.from_numeric(offer.facility_fee.nil? ? 0 : offer.facility_fee)
+    fee = (offer.facility_fee.nil? ? 0 : offer.facility_fee).to_money
     totals = {:payout=>Money.new(0), :facility_fee=>Money.new(0), :display_class=>:report_summary_row}
     orders.select { |o| !o.nil? && o.settled? }.sort { |o1, o2| o2.created_at <=> o1.created_at }.each { |o|
       flex_pass = FlexPass.find_by_order_id(o.id)
 
       used = FlexPassPayment.find_all_by_flex_pass_id(flex_pass.id)
       if offer.flat_payout.blank? || offer.flat_payout == 0
-        payout = Money.from_numeric(FlexPassPayment.sum(:amount, :conditions=>['flex_pass_id = ?',flex_pass.id]))
+        payout = FlexPassPayment.sum(:amount, :conditions=>['flex_pass_id = ?',flex_pass.id]).to_money
       else
-        payout = Money.from_numeric(offer.flat_payout.nil? ? 0 : offer.flat_payout)
+        payout = (offer.flat_payout.nil? ? 0 : offer.flat_payout).to_money
       end
       report << {:order_date=>o.payments.group_by{|p| p.processed_on}.max.last,
                  :payout=>payout,
-                 :collected=>Money.from_numeric(offer.price),
+                 :collected=>offer.price.to_money,
                  :facility_fee=>fee,
                  :tickets_remaining=>offer.number_of_tickets - used.sum { |p| p.number_of_tickets },
                  :status=>o.status,
@@ -624,9 +624,9 @@ class Admin::ReportsController < Admin::ApplicationController
         paid_tickets = paid_orders.sum { |o| o.number_of_tickets }
         held_tickets = held_orders.sum { |o| o.number_of_tickets }
         max_ticket_price = perf.ticket_class_allocations.select{|tca| tca.available? }.max_by{|tca| tca.ticket_class.ticket_price}.ticket_class.ticket_price
-        gross = Money.from_numeric(paid_orders.sum { |o| o.total })
-        ticketing_fee = Money.from_numeric(paid_orders.sum { |o| o.ticketing_fee })
-        credit_card_processing_fee = Money.from_numeric(paid_orders.sum { |o| o.credit_card_processing_fee })
+        gross = paid_orders.sum { |o| o.total }.to_money
+        ticketing_fee = paid_orders.sum { |o| o.ticketing_fee }.to_money
+        credit_card_processing_fee = paid_orders.sum { |o| o.credit_card_processing_fee }.to_money
         subtotal[:gross] += gross
         subtotal[:facility] += ticketing_fee
         subtotal[:processing] += credit_card_processing_fee
@@ -636,7 +636,7 @@ class Admin::ReportsController < Admin::ApplicationController
                :performance_date => perf.performance_date,
                :performance_time => perf.performance_time,
                :display_class => :report_detail_row,
-               :max_ticket => Money.from_numeric(max_ticket_price)}
+               :max_ticket => max_ticket_price.to_money}
         if include_classes then
 
           ticket_classes.each { |tc|
@@ -743,7 +743,7 @@ class Admin::ReportsController < Admin::ApplicationController
         day_total[:processed_on] = c_day
         day_total[:display_class] = :report_summary_row
       end
-      amt = p.amount.nil? ? zero_dollars : Money.from_numeric(p.amount)
+      amt = p.amount.nil? ? zero_dollars : p.amount.to_money
       bucket = payment_bucket(p)
       unless payment_types.include?(bucket)
         day_total[bucket] = zero_dollars
