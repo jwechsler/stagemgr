@@ -560,7 +560,7 @@ class Admin::ReportsController < Admin::ApplicationController
       else
         payout = (offer.flat_payout.nil? ? 0 : offer.flat_payout).to_money
       end
-      report << {:order_date=>o.payments.group_by{|p| p.processed_on}.max.last,
+      report << {:order_date=>o.payments.group_by{|p| p.created_at}.max.first.to_date,
                  :payout=>payout,
                  :collected=>offer.price.to_money,
                  :facility_fee=>fee,
