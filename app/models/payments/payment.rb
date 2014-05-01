@@ -22,7 +22,7 @@ class Payment < ActiveRecord::Base
   end
 
   def to_s
-    "#{Money.from_numeric(amount)} #{self.class}"
+    "#{amount.to_money} #{self.class}"
   end
 
   def payment_info

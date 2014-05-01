@@ -40,7 +40,7 @@ authorization do
     has_permission_on :admin_addresses, :to=>[:view,:manage,:make]
     has_permission_on :membership_orders, :to=>[:create, :read, :update]
     has_permission_on :admin_exchange_ticket_orders, :to=>[:make]
-    has_permission_on :admin_reports, :to=>[:index]
+    has_permission_on :admin_reports, :to=>[:index,:show_reports]
   end
 
   role :box_office do
@@ -58,7 +58,7 @@ authorization do
     has_permission_on :admin_ticket_classes, :to=>[:make,:manage]
     has_permission_on :admin_flex_pass_offers, :to=>[:make, :manage, :view]
     has_permission_on :admin_addresses, :to=>[:view_email]
-    has_permission_on :admin_reports, :to=>[:box_office_reports, :house_management_reports]
+    has_permission_on :admin_reports, :to=>[:box_office_reports, :house_management_reports, :membership_reports]
     has_permission_on :admin_membership_orders, :to=>[:view, :make, :manage]
     has_permission_on :admin_membership_offers, :to=>[:view]
     has_permission_on :admin_special_features, :to=>[:view,:manage]
@@ -90,5 +90,10 @@ privileges do
   privilege :make, :includes => [:create, :new]
   privilege :view, :includes => [:index, :show, :read]
   privilege :manage, :includes => [:edit, :update, :update_notes]
-  privilege :box_office_reports, :includes=> [:trg_dump]
+  privilege :box_office_reports, :includes=> [:trg_dump, :daily_box_office_receipts, :fulfill_tickets, ]
+  privilege :show_reports, :includes=>[:production_sales_by_performance, :order_dump]
+  privilege :house_management_reports, :includes=>[:house_management_seating]
+  privilege :reconciliation_reports, :includes=>[:flexpass_sales, :weekly_box_office]
+  privilege :membership_reports, :includes=>[:membership_usage]
+
 end

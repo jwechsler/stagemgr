@@ -22,7 +22,7 @@ class PayPalController < ApplicationController
     if ENV['RAILS_ENV'] == 'development'
       paypal_url = 'www.sandbox.paypal.com'
     else
-      paypal_url = 'www.paypal.com'
+      paypal_url = 'paypal.com'
     end
 
     # Verify all this with paypal

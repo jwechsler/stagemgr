@@ -1,4 +1,4 @@
-<%- require money/core_extensions %>
+<%- require 'money' %>
 <div id="performance_calendar_split" xmlns="http://www.w3.org/1999/html">
   <% if @production.status == Production::PRESALE %>
     <%= render :partial=>'/productions/info', :locals=>{:production=>@production, :layout_style=>:production_information} %>
@@ -81,10 +81,10 @@
                           visible.each { |tca| min_price = [tca.ticket_class.ticket_price, min_price].min
                             max_price = [max_price, tca.ticket_class.ticket_price].max
                           }
-                          display_min = min_price.to_i
-                          display_max = max_price.to_i
-                          display_min = Money.from_numeric(min_price) unless min_price == display_min
-                          display_max = Money.from_numeric(max_price) unless max_price == display_max
+                          display_min = min_price
+                          display_max = max_price
+                          display_min = min_price.to_money unless min_price == display_min
+                          display_max = max_price.to_money unless max_price == display_max
 
                           price_range = raw "<span class=\"price_range\">$#{display_min}"
                           price_range += raw "-$#{display_max}" unless max_price == min_price
