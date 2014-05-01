@@ -338,7 +338,7 @@ class Order < ActiveRecord::Base
   end
 
   def self.held_statuses
-    [Order.HOLD]
+    [Order::HOLD]
   end
 
   def special_offer_code_used
