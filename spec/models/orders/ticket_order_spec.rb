@@ -18,8 +18,6 @@ describe "an exchanged ticket order" do
     original_order.payments.select {|p| p.is_a? ExchangePayment}.each{|p| p.payment_id.should == exchange_order.payments.first.id}
     exchange_order.payments.each {|p| p.payment_id.should be_in(original_order.payments.map{|op| op.id})}
   end
-
-
 end
 
 describe "a ticket order" do
@@ -166,5 +164,21 @@ describe "a ticket order" do
       o.transition_to!(Order::UNCLAIMED)
       performance.number_of_seats_left.should eq(2)
     end
+
+    it "creates tasks for asynchronous post-operation, except where prohibited by the payment type" do
+      o = FactoryGirl.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
+      task_count = o.tasks.count
+      task_count.should be > 0
+      payment_type = o.payment_type
+      payment_type.order_task_suppressions << FactoryGirl.create(:order_task_suppression, task_type:o.tasks.first.type, method_name:o.tasks.first.method_symbol)
+      payment_type.save
+      o2 = FactoryGirl.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
+      o2.tasks.count.should eq(task_count)
+      t = o2.tasks.first
+      t.run!
+      t.status.should eq('Cancelled')
+
+    end
+
   end
 end
