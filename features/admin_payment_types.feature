@@ -41,20 +41,20 @@ Feature: Payment Types Administration
         And I go to new web order for production "Production One" and performance "PERF"
         And the payment option should not include "Cash"
 
-
+  @javascript
   Scenario: Set up suppression rules
       Given I go to the edit page for payment type "Cash"
         And I allow cash payments for the public
         And I suppress the "ticket_confirmation" method for "OutreachTask"
         And I press "Update"
-       Then I should see "sucessfully updated"
+       Then I should see "successfully updated"
         And I go to the edit page for payment type "Cash"
        Then I should see "OutreachTask"
         And I should see "ticket_confirmation"
-        And I delete the "ticket_confirmation" method for "OutreachTask"
+        And I delete the first order task suppression
         And I press "Update"
-       Then I should see "sucessfully updated"
-        And I go the edit page for payment type "Cash"
+       Then I should see "successfully updated"
+        And I go to the edit page for payment type "Cash"
        Then I should not see "OutreachTask"
         And I should not see "ticket_confirmation"
 

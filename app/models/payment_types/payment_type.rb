@@ -3,6 +3,7 @@ class PaymentType < ActiveRecord::Base
   has_many :payments
   has_many :payment_restrictions, :dependent=>:destroy
   has_many :order_task_suppressions, :dependent=>:destroy
+  accepts_nested_attributes_for :order_task_suppressions, :reject_if => proc { |attributes| attributes['task_type'].blank? }, :allow_destroy=>true
 
   validates_uniqueness_of :display_name
 

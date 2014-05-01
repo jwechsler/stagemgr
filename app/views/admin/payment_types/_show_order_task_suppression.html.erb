@@ -1,0 +1,15 @@
+<tr>
+  <td>
+    <%= f.object.task_type %>
+  </td>
+  <td>
+    <%= f.object.method_name %>
+  </td>
+  <td>
+    <%- unless f.object.new_record? %>
+      <!-- For existing records we add a checkbox to be able to delete records. -->
+      <%= f.label :_destroy,  "Remove: " %>
+      <%= f.check_box :_destroy %>
+    <% end %>
+  </td>
+</tr>

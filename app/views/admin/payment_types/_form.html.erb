@@ -3,4 +3,5 @@
     <%= f.input :allow_for_public %>
     <%= f.input :allow_for_box_office %>
     <%= f.input :restrict_to_ticket_classes, :label=>"Only apply to ticket classes starting with" %>
+    <%= render :partial=>'order_task_suppressions', :locals=>{:f=>f} %>
   <%- end %>

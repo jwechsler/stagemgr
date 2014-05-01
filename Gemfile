@@ -69,12 +69,13 @@ group :development do
   gem "nifty-generators"
   gem 'what_methods',         '1.0.1'
   gem 'map_by_method',        '0.8.3'
-  gem 'bond',                 '0.4.2'
+  gem 'bond'
   gem 'g',                    '~> 1.6.0'
   gem 'mongrel',              '1.2.0.pre2'
   gem 'capistrano',           '~> 2.12.0'
   gem 'capistrano-ext',       '1.2.1'
   gem 'pry'
+  gem 'rb-readline'
   gem 'httplog', :require=>false
   gem 'debugger'
   gem 'single_test'
@@ -90,6 +91,7 @@ end
 
 group :test,:cucumber do
   gem 'capybara'
+  gem 'capybara-webkit'
   gem 'sqlite3'
   gem 'cucumber-rails', :require=>false
   gem 'test-unit'
