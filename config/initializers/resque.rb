@@ -8,3 +8,5 @@ require 'resque-retry/server'
 Resque::Failure::MultipleWithRetrySuppression.classes = [Resque::Failure::Redis]
 Resque::Failure.backend = Resque::Failure::MultipleWithRetrySuppression
 
+class Stagemgr::Resque < Resque::Server
+end
