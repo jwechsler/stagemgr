@@ -33,7 +33,7 @@ class Production < ActiveRecord::Base
   attr_accessor :sf_object
   has_attached_file :promo, :styles => {:medium => "250x375>", :thumb => "125x186>"},
                     :path => ":rails_root/public/system/:attachment/:id/:style/:filename",
-                    :url => "#{Rails.application.config.action_controller.relative_url_root}/system/:attachment/:id/:style/:filename"
+                    :url => "/tickets/system/:attachment/:id/:style/:filename"
 
   def to_s
     "#{self.name}, #{self.theater.name}"

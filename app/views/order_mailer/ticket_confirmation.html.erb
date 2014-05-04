@@ -2,8 +2,8 @@
  We have <%= @order.number_of_tickets %> ticket<%= "s" unless @order.number_of_tickets == 1 %> reserved under the name <%= @order.address.full_name %> for the
   <%= @order.performance.performance_time.strftime('%l:%M %p') %> performance
   of <i><%= @order.performance.production.name %></i><%- if @order.theater.theater_class != "Default" %>, presented by <%= @order.theater.name %>
-  on <%= @order.performance.performance_date.strftime('%A, %B %d') %>
   <%- end %>
+  on <%= @order.performance.performance_date.strftime('%A, %B %d') %>
 <%- end %>
 
 <p>Thanks so much for your order. Your tickets will be waiting at the Theater Wit box office under your name
