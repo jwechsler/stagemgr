@@ -42,3 +42,15 @@ Feature: An administrator can add production details to a theater
     And I change "Name" to "Production One (Changed)"
    When I press "Update"
    Then I should see "Production One (Changed) was successfully updated."
+
+  @wip
+  Scenario: Production calls to action
+  Given a production "Production One" exists
+    And I go to the admin production edit page for "Production One"
+    And I change "Calendar Call to Action" to "*Visit* [a test page](http://www.mytest.page)"
+    And I press "Update"
+    And I go to the box office calendar for production "Production One"
+    And show me the page
+   Then I should see "Visit"
+    And I should not see "*Visit*"
+    And a link exists to "http://www.mytest.page"

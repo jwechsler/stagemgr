@@ -43,6 +43,10 @@
   width: 100%;
 }
 
+.calendar-callout {
+  text-align: center;
+}
+
 .background-dark {
   color: white !important;
 }

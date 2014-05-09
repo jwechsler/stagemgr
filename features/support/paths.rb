@@ -34,10 +34,16 @@ module NavigationHelpers
         @using_admin_interface = true
         production = Production.find_by_name($1)
         admin_theater_production_path(production.theater, production)
+      when /^the admin production edit page for "([^"]*)"$/
+        @using_admin_interface = true
+        production = Production.find_by_name($1)
+        edit_admin_theater_production_path(production.theater, production)
       when /^New Box Office Order$/
         url_for(:controller => 'admin/ticket_orders', :action => 'new', :only_path => true)
       when /^new web order for production "([^"]*)" and performance "([^"]*)"/
         new_production_performance_order_url(Production.find_by_name($1).id, Performance.find_by_performance_code($2).id)
+      when /^the box office calendar for production "([^"]*)"/
+        production_performances_path(Production.find_by_name($1))
       when /^new membership order for membership offer "([^"]*)"/
         @_current_form='membership_order'
         new_membership_offer_order_url(MembershipOffer.find_by_name($1).id)

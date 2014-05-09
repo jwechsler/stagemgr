@@ -1,5 +1,6 @@
 # Methods added to this helper will be available to all templates in the application.
 module ApplicationHelper
+
   def to_currency(val)
     number_to_currency(val,:delimiter => ",", :unit => "$",:separator => ".", :precision => 2)
   end
@@ -31,5 +32,13 @@ module ApplicationHelper
       end
     end
   end
+
+  def markdown_renderer
+    if controller.markdown.nil?
+      controller.markdown = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)
+    end
+
+  end
+
 end
 

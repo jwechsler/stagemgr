@@ -1,6 +1,6 @@
 Given /^I debug stuff$/ do
   require 'ruby-debug'
-  debugger 
+  debugger
   a=1
 end
 
@@ -16,6 +16,10 @@ page_name, container|
   with_scope(container) do
     URI.parse(page.find_link(link_text)['href']).path.should == path_to(page_name)
   end
+end
+
+Then /^a link exists to "(.*?)"$/ do |arg1|
+   page.should have_xpath("//a[@href='" + arg1 + "']")
 end
 
 # Given /^(?:|I )should (|not )see a link(?:| to '([^']+)')(?:| labeled '([^']+)')$/ do |is_not,path,link_label|

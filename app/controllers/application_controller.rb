@@ -3,6 +3,8 @@ class ApplicationController < ActionController::Base
   helper :all
   helper_method :current_user_session, :current_user, :logged_in?, :current_user_is_admin?, :payment_types_for, :backend_user?
 
+  attr_accessor :markdown
+
   def payment_types_for(order)
     order.valid_payment_types_for(current_user)
   end
