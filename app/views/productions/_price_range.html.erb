@@ -5,7 +5,7 @@
   display_min = min_price.to_money unless min_price == display_min
   display_max = max_price.to_money unless max_price == display_max
 
-  price_range = "$#{display_min}"
-  price_range += "-$#{display_max}" unless max_price == min_price
+  price_range = "$#{display_min.format(:no_cents_if_whole=>true)}"
+  price_range += "$#{display_max.format(:no_cents_if_whole=>true)}" unless max_price == min_price
 %>
 </span>
