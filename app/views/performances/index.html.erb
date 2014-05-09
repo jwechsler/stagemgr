@@ -13,6 +13,8 @@
       <%= render :partial=>'/productions/late_seating_notice', :locals=>{:production=>@production} %>
     </div>
 
+    <%= render :partial=>'/productions/calendar_callout', :locals=>{production:@production} %>
+
     <% if @production.status == Production::PRESALE %>
       <table class="performance_calendar">
         <tr>
@@ -81,13 +83,11 @@
                           visible.each { |tca| min_price = [tca.ticket_class.ticket_price, min_price].min
                             max_price = [max_price, tca.ticket_class.ticket_price].max
                           }
-                          display_min = min_price
-                          display_max = max_price
-                          display_min = min_price.to_money unless min_price == display_min
-                          display_max = max_price.to_money unless max_price == display_max
+                          display_min = min_price.to_money
+                          display_max = max_price.to_money
 
-                          price_range = raw "<span class=\"price_range\">$#{display_min}"
-                          price_range += raw "-$#{display_max}" unless max_price == min_price
+                          price_range = raw "<span class=\"price_range\">#{display_min.format(:no_cents_if_whole=>true)}"
+                          price_range += raw "-#{display_max.format(:no_cents_if_whole=>true)}" unless max_price == min_price
                           price_range += raw "</span>"
                           else
                             price_range = ''
