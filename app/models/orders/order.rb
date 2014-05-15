@@ -73,7 +73,7 @@ class Order < ActiveRecord::Base
   before_save :set_theater
   before_save :cancel_pending_tasks, :if=>:newly_canceled?
   after_save :set_tasks_after_save
-  after_commit :delete_abandoned, :if=>:processing?
+  after_commit :delete_abandoned, :if=>:transitory?
 
   validates_inclusion_of :status, :in => ORDER_STATUSES, :if=>:status_is_provided?
 
