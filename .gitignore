@@ -24,6 +24,8 @@ rerun.txt
 log/*.log
 db/*.sqlite3
 db/schema.rb
+vendor/bundle/
 public/system/
+public/assets/
 config/initializers/active_merchant.rb
 app/views/layouts/ext_site_wrapper.html.erb
