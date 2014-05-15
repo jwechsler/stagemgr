@@ -134,7 +134,10 @@ class OrderMailer < ActionMailer::Base
       @flex_pass_orders = flex_pass_orders
       mail(:to=>$EMAIL_ADDRESS['flex_pass_notifications'], :from=>"\"Theater Wit Box Office\" <boxoffice@theaterwit.org>",
            :subject=>"Unprocessed Flex Passes",
-           :tag=>"Internal Notification")
+           :tag=>"Internal Notification") do |format|
+        format.html { render layout: 'internal_mail'}
+        format.text
+      end
     end
   end
 
