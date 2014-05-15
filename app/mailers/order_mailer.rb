@@ -136,7 +136,6 @@ class OrderMailer < ActionMailer::Base
            :subject=>"Unprocessed Flex Passes",
            :tag=>"Internal Notification") do |format|
         format.html { render layout: 'internal_mail'}
-        format.text
       end
     end
   end
