@@ -72,8 +72,7 @@ group :development do
   gem 'bond'
   gem 'g',                    '~> 1.6.0'
   gem 'mongrel',              '1.2.0.pre2'
-  gem 'capistrano',           '~> 2.12.0'
-  gem 'capistrano-ext',       '1.2.1'
+  gem 'capistrano-rails'
   gem 'pry'
   gem 'rb-readline'
   gem 'httplog', :require=>false
