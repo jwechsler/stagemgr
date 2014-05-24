@@ -73,6 +73,7 @@ group :development do
   gem 'g',                    '~> 1.6.0'
   gem 'mongrel',              '1.2.0.pre2'
   gem 'capistrano-rails'
+  gem 'capistrano-rbenv', '~> 2.0'
   gem 'pry'
   gem 'rb-readline'
   gem 'httplog', :require=>false
