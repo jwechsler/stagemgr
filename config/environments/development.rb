@@ -1,5 +1,5 @@
 require 'salesforce_sync'
-require 'httplog'
+#require 'httplog'
 
 Stagemgr::Application.configure do
   # Settings specified here will take precedence over those in config/environment.rb
