@@ -4,7 +4,7 @@ module MembershipOrdersHelper
     success = false
     begin
       MembershipOrder.transaction do
-        @order = MembershipOrder.new(params[:membership_order])
+        @order = MembershipOrder.new(params['membership_order'])
         @order.ip_address = request.remote_ip
         @order.transition_to!(Order::PROCESSING)
         membership_offer = @order.membership_offer
