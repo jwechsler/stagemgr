@@ -7,6 +7,7 @@ module MembershipOrdersHelper
         @order = MembershipOrder.new(params['membership_order'])
         @order.ip_address = request.remote_ip
         @order.transition_to!(Order::PROCESSING)
+
         membership_offer = @order.membership_offer
 
         trial_amount = membership_offer.trial_amount
