@@ -6,7 +6,6 @@
 <%- @order.performance.special_features.each do |feature| %>
   <div class="special_feature"><%= feature.description %><br/></div>
 <% end %>
-<%= render :partial=>'/flash_notice' %>
 
 <%= semantic_form_for @order do |order_form| %>
   <%= order_form.inputs :class=>"order" do %>
