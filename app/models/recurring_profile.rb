@@ -100,7 +100,7 @@ module RecurringProfile
   end
 
   def pending?
-    self.status == PENDING || (((self.number_cycles_completed || 0) == 0) && self.membership_order.total == 0)
+    self.status == PENDING || ((self.number_cycles_completed || 0) == 0)
   end
 
 

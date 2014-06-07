@@ -1,4 +1,5 @@
 class FileStore < ActiveRecord::Base
+  include SafeAttributes::Base
   belongs_to :user
   has_attached_file :data, {
     :path=>":rails_root/public/system/filestore/:hash/:filename",

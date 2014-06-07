@@ -33,7 +33,7 @@ class MembershipOrder < Order
   end
 
   def to_s
-    "#{self.membership.current_status} #{self.months_active}"
+    self.membership.nil? ? "Unknown" : "#{self.membership.current_status} #{self.months_active}"
   end
 
   def set_membership_offer(offer)
@@ -124,6 +124,10 @@ class MembershipOrder < Order
   def transition_new_to_processing!(redirect_to = nil)
     super
 
+  end
+
+  def transition_processing_to_processing!(redirect_to = nil)
+    self.transition_new_to_processing!(redirect_to)
   end
 
   def starting_at

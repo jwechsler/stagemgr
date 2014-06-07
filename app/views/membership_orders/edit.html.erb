@@ -1,4 +1,4 @@
-<%- if @order.status == Order::NEW then %>
+<%- if [Order::NEW,Order::PROCESSING].include?(@order.status) then %>
  <%- if @order.membership_offer.on_sale then %>
 
     <h1><%= @order.membership_offer.name %></h1>
