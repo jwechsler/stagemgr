@@ -82,7 +82,7 @@ class Order < ActiveRecord::Base
                        :payments,
                        :special_offer_line_items
 
-  validate :is_balanced_transaction?, :if=>:processed?
+  before_save :is_balanced_transaction?, :if=>[:status_changed?, :processed?]
   validates_each :status do |record, attr, value|
     if value == PROCESSED
       m_payments = record.payments.select{|p| p.is_a? MembershipPayment}
