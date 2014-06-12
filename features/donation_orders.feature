@@ -1,4 +1,3 @@
-@wip
 Feature: Donations
   In order to make a donation
   As a web site user
