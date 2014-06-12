@@ -160,8 +160,17 @@ class TicketOrder < Order
           credit_1 = credit_lines[0] unless credit_lines.nil?
           credit_2 = credit_lines[1] unless credit_lines.size < 2
         end
-        print_order = PrintOrder.new(:last_name => self.address.last_name,
-                                     :first_name => self.address.first_name,
+
+        [cleaned_name, f_name, m_name, l_name, f_name2] = Address.parse_name(hold_under)
+        unless cleaned_name == self.address.full_name
+          use_last_name = l_name
+          use_first_name = f_name
+        else
+          use_last_name = self.address.last_name
+          use_first_name = self.address.first_name
+        end
+        print_order = PrintOrder.new(:last_name => use_last_name,
+                                     :first_name => use_first_name,
                                      :performance_code => self.performance_code,
                                      :venue => self.performance.production.venue.name,
                                      :theater => self.theater.name,

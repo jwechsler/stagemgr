@@ -28,3 +28,9 @@ Then(/^show me the yaml for performance "(.*?)"$/) do |perf_code|
   puts p.ticket_class_allocations.to_yaml
   puts p.ticket_classes.to_yaml
 end
+
+Then (/^the performance date for "(.*?)" is "(.*?)"$/) do |perf_code, required_date|
+  raise "unknown performance code" unless (perf = Performance.find_by_performance_code(perf_code))
+  raise "expected performance date of #{required_date}, but was #{perf.performance_date}" unless required_date.to_date == perf.performance_date
+end
+

@@ -14,7 +14,7 @@
   <%= order_form.input :marketing_source, :collection=>Order::REFERRALS, :label=>"How did you hear about the show?" %>
 <%- end %>
 <%= order_form.hidden_field :status %>
-
+<%= order_form.input :hold_under, :label=>'Hold reservation under' %>
 <%= order_form.input :notes, :input_html => {:rows => 4} %>
 
 <p>

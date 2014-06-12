@@ -33,6 +33,8 @@ Feature: Admins can manage performances
     When I press "Create"
     Then I should see "has already been taken"
 
+  @wip
+  @javascript
   Scenario: The box office user can duplicate a performance
     Given I follow "Add performance"
     And I enter a performance on "2015-01-01" with code "PERF1"
@@ -46,6 +48,7 @@ Feature: Admins can manage performances
     Then I should see "Performance PERF2 was successfully created"
     And I should see "PERF1"
     And I should see "PERF2"
+    And the performance date for "PERF2" is "2015-01-02"
 
   Scenario: The box office user can record trigger criteria
     Given I follow "Add performance"
