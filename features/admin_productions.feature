@@ -1,12 +1,12 @@
 Feature: An administrator can add production details to a theater
   Given a theater has been created
-  As a StageMgr Admin user
+  As a StageMgr box office user
   I want to create / edit and delete production records
 
   Background:
     Given a theater "Theater One" exists
       And a venue "Space 1" exists
-    And I am an Administrator
+    And I am a box office user
     And I am logged in
     And I go to the home page
     And I follow "Theaters"
@@ -43,7 +43,6 @@ Feature: An administrator can add production details to a theater
    When I press "Update"
    Then I should see "Production One (Changed) was successfully updated."
 
-  @wip
   Scenario: Production calls to action
   Given a production "Production One" exists
     And I go to the admin production edit page for "Production One"
