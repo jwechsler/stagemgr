@@ -21,10 +21,6 @@
   <%= link_to('Membership Offers', admin_membership_offers_path) %> |
 <%- end %>
 
-<% if current_user.is_administrator || current_user.is_box_office_user %>
-
-	<%= link_to('Special Offers', admin_special_offers_path) %> |
-<%- end -%>
 <%- permitted_to? :view, :admin_flex_pass_offers do %>
 	<%= link_to('Flex Pass Offers', admin_flex_pass_offers_path) %> |
 <% end %>
