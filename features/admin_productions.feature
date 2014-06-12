@@ -50,7 +50,6 @@ Feature: An administrator can add production details to a theater
     And I change "Calendar Call to Action" to "*Visit* [a test page](http://www.mytest.page)"
     And I press "Update"
     And I go to the box office calendar for production "Production One"
-    And show me the page
    Then I should see "Visit"
     And I should not see "*Visit*"
     And a link exists to "http://www.mytest.page"
