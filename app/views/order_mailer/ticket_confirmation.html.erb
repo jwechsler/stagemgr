@@ -20,7 +20,7 @@
   <%- end %>
 </p>
 
-<%= raw markdown_renderer.render(@confirmation_message) unless @confirmation_message.blank? %>
+<%= raw @markdown_renderer.render(@order.performance.production.confirmation_message) unless @order.performance.production.confirmation_message.blank? %>
 
 <h3>Here's some handy stuff you'll want to know:</h3>
 

@@ -1,12 +1,17 @@
 require "erb"
 
 class OrderMailer < ActionMailer::Base
-  include ApplicationHelper
+  @markdown_renderer = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)
   layout "order_mailer", :except=>[:performance_reminder, :flex_pass_pending_reminder, :refunded_item_alert]
-
+ 
+  def markdown_renderer
+    Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)
+  end 
+ 
   def ticket_confirmation(order,address=nil,action_by=nil)
     @order = order
-    if !@order.performance.nil?
+    @markdown_renderer = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)
+     if !@order.performance.nil?
       @confirmation_message = ERB.new(@order.performance.production.confirmation_message).result if !@order.performance.production.confirmation_message.blank?
     end
     mail(:to => @order.address.email,
@@ -70,6 +75,7 @@ class OrderMailer < ActionMailer::Base
 
   def performance_reminder(order,address=nil,action_by=nil)
     @order = order
+    @markdown_renderer = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)
     mail(:to=>@order.address.email, :from=>"\"Theater Wit Box Office\" <boxoffice@theaterwit.org>",
          :subject=>"Don't forget you have tickets to #{@order.performance.production.name}",
          :tag=>"Ticket Reminder")
@@ -77,6 +83,7 @@ class OrderMailer < ActionMailer::Base
 
   def member_followup(order,address=nil,action_by=nil)
     @order = order
+    @markdown_renderer = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)
     if !@order.performance.nil?
       @follow_up_message = ERB.new(@order.performance.production.follow_up_message).result if !@order.performance.production.follow_up_message.blank?
       @follow_up_message_2 = ERB.new(@order.performance.production.follow_up_message).result if !@order.performance.production.follow_up_message_2.blank?
@@ -91,6 +98,7 @@ class OrderMailer < ActionMailer::Base
   end
 
   def first_time_followup(order,address=nil,action_by=nil)
+    @markdown_renderer = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)
     @order = order
     @special_offer = PercentOffSpecialOffer.new
     @special_offer.create_code('1T', 6)
@@ -124,6 +132,7 @@ class OrderMailer < ActionMailer::Base
 
   def standard_followup(order,address=nil,action_by=nil)
     @order = order
+    @markdown_renderer = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)
     mail(:to=>order.address.email, :from=>"\"Jeremy Wechsler\" <jeremy@theaterwit.org>",
          :subject=>"Nice to see you again",
          :tag=>"Standard Followup")
