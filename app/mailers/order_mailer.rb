@@ -1,10 +1,10 @@
 require "erb"
 
 class OrderMailer < ActionMailer::Base
-
+  include ApplicationHelper
   layout "order_mailer", :except=>[:performance_reminder, :flex_pass_pending_reminder, :refunded_item_alert]
 
-  def ticket_confirmation(order)
+  def ticket_confirmation(order,address=nil,action_by=nil)
     @order = order
     if !@order.performance.nil?
       @confirmation_message = ERB.new(@order.performance.production.confirmation_message).result if !@order.performance.production.confirmation_message.blank?
@@ -15,7 +15,7 @@ class OrderMailer < ActionMailer::Base
          :tag=>"Ticket Confirmation")
   end
 
-  def membership_confirmation(order)
+  def membership_confirmation(order,address=nil,action_by=nil)
     @order = order
     @order.membership_line_items.each { |li|
       @membership = li.membership
@@ -26,7 +26,7 @@ class OrderMailer < ActionMailer::Base
     }
   end
 
-  def donation_thank_you(order)
+  def donation_thank_you(order,address=nil,action_by=nil)
     @order = order
     if @order.campaign == 'mythic1113'
       mail(:to => order.address.email,
@@ -42,7 +42,7 @@ class OrderMailer < ActionMailer::Base
     end
   end
 
-  def flexpass_confirmation(order)
+  def flexpass_confirmation(order,address=nil,action_by=nil)
     @order = order
     @order.flex_pass_line_items.each { |li|
       @flex_pass_offer = li.flex_pass_offer
@@ -68,14 +68,14 @@ class OrderMailer < ActionMailer::Base
          :tag=>"Test Message")
   end
 
-  def performance_reminder(order)
+  def performance_reminder(order,address=nil,action_by=nil)
     @order = order
     mail(:to=>@order.address.email, :from=>"\"Theater Wit Box Office\" <boxoffice@theaterwit.org>",
          :subject=>"Don't forget you have tickets to #{@order.performance.production.name}",
          :tag=>"Ticket Reminder")
   end
 
-  def member_followup(order)
+  def member_followup(order,address=nil,action_by=nil)
     @order = order
     if !@order.performance.nil?
       @follow_up_message = ERB.new(@order.performance.production.follow_up_message).result if !@order.performance.production.follow_up_message.blank?
@@ -86,11 +86,11 @@ class OrderMailer < ActionMailer::Base
          :tag=>"Member Followup")
   end
 
-  def flex_pass_followup(order)
+  def flex_pass_followup(order,address=nil,action_by=nil)
     standard_followup(order)
   end
 
-  def first_time_followup(order)
+  def first_time_followup(order,address=nil,action_by=nil)
     @order = order
     @special_offer = PercentOffSpecialOffer.new
     @special_offer.create_code('1T', 6)
@@ -105,7 +105,7 @@ class OrderMailer < ActionMailer::Base
          :tag=>"First Time Followup")
   end
 
-  def membership_friend_pass(order)
+  def membership_friend_pass(order,address=nil,action_by=nil)
     @order = order
     @membership = order.membership
     @special_offer = TicketClassSpecialOffer.new
@@ -122,14 +122,14 @@ class OrderMailer < ActionMailer::Base
          :tag=>"Member Bring a Friend")
   end
 
-  def standard_followup(order)
+  def standard_followup(order,address=nil,action_by=nil)
     @order = order
     mail(:to=>order.address.email, :from=>"\"Jeremy Wechsler\" <jeremy@theaterwit.org>",
          :subject=>"Nice to see you again",
          :tag=>"Standard Followup")
   end
 
-  def flex_pass_pending_reminder(flex_pass_orders)
+  def flex_pass_pending_reminder(flex_pass_orders,address=nil,action_by=nil)
     unless flex_pass_orders.empty?
       @flex_pass_orders = flex_pass_orders
       mail(:to=>$EMAIL_ADDRESS['flex_pass_notifications'], :from=>"\"Theater Wit Box Office\" <boxoffice@theaterwit.org>",
