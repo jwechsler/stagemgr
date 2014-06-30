@@ -49,6 +49,10 @@ class FlexPassPayment < PassPayment
     "#{self.number_of_tickets} ticket#{self.number_of_tickets != 1 ? 's' : ''}"
   end
 
+  def receipt_description
+    "#{self.number_of_tickets} FlexPass"
+  end
+
   def create_exchange_offset_payment
     offset_payment = super
     offset_payment.number_of_tickets = 0 - offset_payment.number_of_tickets
