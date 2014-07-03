@@ -4,7 +4,7 @@
       <tr>
         <td class="w410" width="410">
           <div align="left" class="article-content">
-            <%= raw @order.performance.production.follow_up_message_2 %>
+            <%= raw @markdown_renderer.render(@order.performance.production.follow_up_message_2) %>
           </div>
         </td>
       </tr>
