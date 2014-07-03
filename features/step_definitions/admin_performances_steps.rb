@@ -21,6 +21,14 @@ Given /^I enter a trigger to "(.*?)" based on capacity of "(.*?)" for the (\d+)(
   check "performance_ticket_class_allocations_attributes_#{num}_shiftable"
 end
 
+Given /^I enter a custom feature "(.*?)" with a description of "(.*?)"$/ do |short_name, description|
+  fill_in "performance_special_feature_short_markdown", :with=>short_name
+  fill_in "performance_special_feature_full_markdown", :with=>description
+
+  pending # express the regexp above with the code you wish you had
+end
+
+
 Then(/^show me the yaml for performance "(.*?)"$/) do |perf_code|
   p = Performance.find_by_performance_code(perf_code)
   puts p.to_yaml
