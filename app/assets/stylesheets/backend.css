@@ -1,4 +1,4 @@
 /*
- *= require jqGrid/ui.jqgrid
  *= require jquery.autocomplete
-*/
+ *= require_this
+ */

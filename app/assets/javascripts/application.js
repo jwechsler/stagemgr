@@ -1,9 +1,15 @@
 //= require jquery
 //= require jquery-ui
 //= require jquery_ujs
+//= require foundation
+//= require dataTables/jquery.dataTables
+//= require dataTables/jquery.dataTables.foundation
+//= require dataTables/extras/dataTables.tableTools.js
 //= require utility
 //= require orders_common
 //= require_this
+
+$(document).foundation();
 
 $(function(){
    $("input[type=date]").datepicker({ dateFormat: 'yy-mm-dd' });

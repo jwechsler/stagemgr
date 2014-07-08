@@ -31,6 +31,7 @@ gem 'rails', '3.2.16'
 gem "redcarpet"
 gem "whenever", :require=>false
 gem "formtastic", "~> 2.3.0.rc2"
+gem "simple_form"
 gem "databasedotcom"
 gem "formatize"
 # gem "validation_reflection"
@@ -54,6 +55,9 @@ gem "gemcutter"
 gem "dynamic_form"
 gem "postmark-rails"
 gem "namecase", "~> 1.1.0"
+gem 'jquery-datatables-rails', git: 'git://github.com/rweng/jquery-datatables-rails.git', branch: 'master'
+gem 'ajax-datatables-rails'
+# gem 'jqgrid-rails3', :git=>"https://github.com/davebaldwin/jqgrid-rails3.git"
 #gem "name_parse", "~> 0.0.5"
 gem "people"
 gem "jquery-rails", '~> 2.1.0'
@@ -127,8 +131,12 @@ group :cucumber do
 end
 
 group :assets do
-  gem 'sass-rails'
-  gem 'coffee-rails'
-  gem 'uglifier'
+  gem 'sass', '3.2.13'
+  gem 'sass-rails',   '~> 3.2.3'
+  gem 'coffee-rails', '~> 3.2.1'
+  gem 'uglifier', '>= 1.0.3'
+  # Add Foundation Here
+  gem 'compass-rails' # you need this or you get an err
+  gem 'zurb-foundation', '~> 4.0.0'
 end
 

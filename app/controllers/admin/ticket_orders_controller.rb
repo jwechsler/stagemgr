@@ -12,7 +12,6 @@ class Admin::TicketOrdersController < Admin::OrdersController
   end
 
   def show
-
     respond_to do |format|
       format.html { if @ticket_order.editable?
                       render 'edit'

@@ -40,5 +40,26 @@ module ApplicationHelper
 
   end
 
+  def order_status_severity_class(status)
+    case status
+    when Order::NEW
+      "secondary"
+    when Order::PROCESSING
+      "alert"
+    when Order::REFUNDED
+      "alert"
+    when Order::CANCELED
+      "alert"
+    when Order::UNCLAIMED
+      "secondary"
+    when Order::EXCHANGED
+      "secondary"
+    when Order::HOLD
+      "secondary"
+    else
+      "success"
+    end
+  end
+
 end
 

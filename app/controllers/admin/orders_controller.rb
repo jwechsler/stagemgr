@@ -16,19 +16,21 @@ class Admin::OrdersController < Admin::ApplicationController
   ]
 
   def index
-    store_search_and_pagination_state unless !session[:existing_box_office_orders_state].nil?
+    # store_search_and_pagination_state unless !session[:existing_box_office_orders_state].nil?
     respond_to do |format|
-      format.html # index.html.erb
-      format.xml do
-        store_search_and_pagination_state
-        @options_hash = get_search_conditions_from_params
-        @options_hash.merge!(get_pagination_options_from_params)
-        @options_hash.merge!(:include=>[{:performance=>:production}, :address, :payments])
-        @orders = Order.paginate @options_hash
-        @total_records = @orders.total_entries
-        @total_pages = @total_records/@orders.per_page+1
-        render :partial => 'admin_orders_index_grid_data.xml.builder', :layout => false
-      end
+      format.html
+       # index.html.erb
+      # format.xml do
+      #   store_search_and_pagination_state
+      #   @options_hash = get_search_conditions_from_params
+      #   @options_hash.merge!(get_pagination_options_from_params)
+      #   @options_hash.merge!(:include=>[{:performance=>:production}, :address, :payments])
+      #   @orders = Order.paginate @options_hash
+      #   @total_records = @orders.total_entries
+      #   @total_pages = @total_records/@orders.per_page+1
+      #   render :partial => 'admin_orders_index_grid_data.xml.builder', :layout => false
+      # end
+      format.json { render json: OrdersDatatable.new(view_context) }
     end
   end
 

@@ -1,62 +1,117 @@
-<% content_for :jstemplates do -%>
-var orderRowSelected = function(id,target){
-  if (target == "admin_orders_index_grid_detail") {
-    window.location = '<%= admin_orders_path %>/' + id;
-  } else if (target == 'admin_orders_index_grid_fulfill') {
-    jQuery.post("<%= fulfill_selected_admin_orders_path %>", { 'ids[]':id }, function(data) {
-      jQuery.each(data, function(key, value){
-        if( !value['success'] ){
-          alert("Order<" + key +"> can not be fulfilled. " + value['message']);
-        }
-      });
-      e = jQuery.Event('keypress');
-      e.charCode = 13;
-      jQuery('#gbox_admin_orders_index_grid .ui-search-toolbar input').trigger(e);
-    	});
-
-  }
-}
-<% end -%>
-
-<%
-grid_loaded_javascript='var launch_search = function(){};'
-search_keys = session[:existing_box_office_orders_state].keys - ['rows','page','sidx','sord']
-if search_keys.size > 0
-set_search_script = search_keys.map do |key|
-  ['rows','page','sidx','sord'].include?(key) ?
-    nil :
-    "grid.find('#gs_#{key.gsub(/\./,'\\\\\\\\.')}').val('#{session[:existing_box_office_orders_state][key]}');"
-end.compact.join("\n\t")
-grid_loaded_javascript = raw("
-var trigger_search = function(){
-	var grid = jQuery('#gview_admin_orders_index_grid');
-	e = jQuery.Event('keypress');
-	e.charCode = 13;
-	grid.find('#gs_#{search_keys.last.gsub(/\./,'\\\\\\\\.')}').trigger(e);
-	//stop the infinite loop
-	launch_search = function(){};
-}
-var launch_search = function(){
-	var grid = jQuery('#gview_admin_orders_index_grid');
-	//fill in all search boxes with the session stored values
-	#{set_search_script}
-	setTimeout('trigger_search()',500);
-}")
-end
-%>
-<script>
-<%=grid_loaded_javascript%>
-</script>
-<%= raw(jquery_grid :admin_orders_index_grid,
-                :rows_per_page=>session[:existing_box_office_orders_state]['rows'],
-                :page=>session[:existing_box_office_orders_state]['page'],
-                :sort_column=>session[:existing_box_office_orders_state]['sidx'],
-                :sort_order=>session[:existing_box_office_orders_state]['sord'],
-                :grid_loaded=>'launch_search' )%>
-<br />
-<table width="100%" border="0">
-  <tr><td width="25%"><a class="select_button" id='admin_orders_index_grid_detail' href='#'>View/Edit Order</a>
-  </td><td>
-    <a class="select_button" id='admin_orders_index_grid_fulfill' href='#'>Fulfill Order(s)</a>
-  </td></tr>
+<table id="orders-table", data-source="<%= admin_orders_path(format: :json) %>">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Code</th>
+      <th>Name</th>
+      <th>Status</th>
+      <th>Total</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+  </tbody>
+  <tfoot>
+    <tr>
+      <th class="searchy">ID</th>
+      <th class="searchy">Code</th>
+      <th class="searchy">Name</th>
+      <th id="status-search" class="option-search"></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </tfoot>
 </table>
+
+<script type="text/javascript" class="init">
+jQuery(document).ready(function() {
+
+
+  // Setup - add a text input to each footer cell
+
+  $('#orders-table').dataTable({
+    "dom": '<"top"<"right"<"toolbar">>>rt<"bottom"lip><"clear">',
+    "tableTools": {},
+    "processing": true,
+    "order": [[0, "desc"]],
+    "ordering": true,
+    "serverSide": true,
+    "stateSave": true,
+    "ajax": $('#orders-table').data('source'),
+    "sPaginationType": "foundation",
+    "columns": [
+    {"searchable":true},
+    null,
+    null,
+    null,
+    null,
+    null]
+
+  });
+
+  $("div.header").html('<span><b>Existing orders</b></span>');
+  $("div.toolbar").html(
+    '<a id="select-all-button" href="#" class="tiny button">Select all</a>'+
+    '<a id="print-tickets-button" href="#" class="tiny button disabled">Fulfill Selected</a>');
+  $('#orders-table tfoot th.searchy').each( function () {
+      var title = $('#orders-table thead th').eq( $(this).index() ).text();
+      $(this).html( '<input class = "orders-table-search" id="orders-table-search-' + $(this).index() + '" type="text" placeholder="Search '+title+'">' );
+  } );
+
+
+  $("#status-search").each( function ( i ) {
+        var select = $('<select><option value="any">Any</option><% Order::ORDER_STATUSES.each{|s| %><option value="<%= s%>"><%= s%></option><% } %></select>')
+            .appendTo( $(this).empty() )
+            .on( 'change', function () {
+                table.column( 3 ) // index of orders
+                    .search( $(this).val(), true, false )
+                    .draw();
+            } );
+  });
+
+  var table = $('#orders-table').DataTable();
+  // Apply the filter
+  table.columns().flatten().each( function ( colIdx ) {
+      $( 'input.orders-table-search', table.column( colIdx ).footer() ).on( 'change', function () {
+          table
+              .column( colIdx )
+              .search( this.value )
+              .draw();
+
+      } );
+  });
+
+  /* Now do the individual input values */
+  var settings = $('#orders-table').dataTable().fnSettings();
+  var jqInputs = $('.orders-table-search');
+  for ( var i=0 ; i<settings.aoPreSearchCols.length ; i++ )
+  {
+    if(settings.aoPreSearchCols[i].sSearch!='')
+    {
+      jqInputs[i].value = settings.aoPreSearchCols[i].sSearch;
+    }
+  }
+  if(settings.aoPreSearchCols[3].sSearch!='') {
+    $('#status-search').val(settings.aoPreSearchCols[i].sSearch);
+  }
+
+
+  $('#orders-table tbody').on( 'click', 'tr', function () {
+        $(this).toggleClass('selected');
+        if (table.rows('.selected').data().length == 0) {
+          $('#print-tickets-button').addClass('disabled');
+        } else {
+          $('#print-tickets-button').removeClass('disabled');
+        }
+    } );
+
+  $('#select-all-button').click( function () {
+    var oTT = new $.fn.dataTable.TableTools( table )
+    oTT.fnSelectAll(true);
+  } );
+
+  $('#print-tickets-button').click( function () {
+      alert( table.rows('.selected').data().length +' row(s) selected' );
+  } );
+});
+</script>

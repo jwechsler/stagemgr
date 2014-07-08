@@ -1,9 +1,12 @@
 /*
 *= require_self
 *= require common
+*= require jquery/cupertino/jquery-ui-1.8.24.custom.css
+*= require foundation_and_overrides
+*= require dataTables/jquery.dataTables
+*= require dataTables/jquery.dataTables.foundation
+*= require dataTables/extras/dataTables.tableTools
 */
-
-@import url(https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.24/themes/cupertino/jquery-ui.css);
 
 #processing-div-background{
     display: none;
@@ -32,3 +35,7 @@
     border-radius: 5px;
     /* behavior: url("/css/pie/PIE.htc"); /* HANDLES IE */
 }
+
+
+    table.dataTable tr.odd { background-color: white;  border:1px lightgrey;}
+    table.dataTable tr.even{ background-color: AliceBlue; border:1px lightgrey; }
