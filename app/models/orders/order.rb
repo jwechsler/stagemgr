@@ -50,10 +50,10 @@ class Order < ActiveRecord::Base
 
 
   ORDER_STATUSES = (
-  HOLD, WEB, NEW, PROCESSING, PROCESSED, REFUNDED, EXCHANGED, FULFILLED, CANCELED, UNCLAIMED =
-      "Hold", "Web", "New", "Processing", "Processed", "Refunded", "Exchanged", "Fulfilled", "Canceled", "Unclaimed")
+  HOLD, NEW, PROCESSING, PROCESSED, REFUNDED, EXCHANGED, FULFILLED, CANCELED, UNCLAIMED =
+      "Hold", "New", "Processing", "Processed", "Refunded", "Exchanged", "Fulfilled", "Canceled", "Unclaimed")
 
-  HOLDING_SEAT_STATUSES = [HOLD, WEB, PROCESSING, PROCESSED, FULFILLED]
+  HOLDING_SEAT_STATUSES = [HOLD, PROCESSING, PROCESSED, FULFILLED]
 
   REFERRALS = [
       "Email", "Mail", "Cast/Staff/Production Team", "Review/Feature", "Radio", "Newspaper Ad", "Facebook", "Twitter", "Word of Mouth", "Attended previous production", "Other"

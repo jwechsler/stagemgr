@@ -13,16 +13,11 @@
   	<!-- Set the viewport width to device width for mobile -->
   	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  	<title><%= content_for?(:title) ? yield(:title) : "Untitled" %></title>
+  	<title><%= content_for?(:title) ? "StageMgr: #{yield(:title)}" : "Untitled" %></title>
 
   	<%= stylesheet_link_tag "application" %>
-  	<%= stylesheet_link_tag "formtastic" %>
-    <%= stylesheet_link_tag "formtastic_changes" %>
-    <%= stylesheet_link_tag "backend" %>
-    <%= javascript_include_tag "application" %>
-    <%= javascript_include_tag 'admin_application' %>
+  	<%= stylesheet_link_tag "backend" %>
     <%= javascript_include_tag "vendor/custom.modernizr" %>
-
     <%= csrf_meta_tags %>
     <%= yield(:head) %>
   </head>
@@ -30,27 +25,26 @@
   <body>
 
     <%= render :partial=>"layouts/menu" %>
-    <div id="container" >
-      <div class="row">
-        <div class="small-12 columns">
-          <%= render :partial=>'/flash_notice' %>
-        </div>
-        <div class="small-12 columns">
-          <%- if show_title? -%>
-            <h1><%=h yield(:title) %></h1>
-          <%- end -%>
-        </div>
-      </div>
-      <div class="row">
-        <div class="small-12 columns">
-          <%= yield %>
-        </div>
-      </div>
 
+    <div class="row">
+
+      <div class="small-12 columns">
+        <%= render :partial=>'/flash_notice' %>
+      </div>
+      <div class="small-12 columns">
+        <%- if show_title? -%>
+          <h1><%=h yield(:title) %></h1>
+        <%- end -%>
+      </div>
+    </div>
+    <div class="row">
+      <div class="small-12 columns">
+        <%= yield %>
+      </div>
     </div>
 
-    <%= javascript_tag do %>
-      <%= yield(:jstemplates) %>
-    <% end -%>
+    <%= javascript_include_tag "application" %>
+    <%= javascript_include_tag 'admin_application' %>
+    <%= yield(:js) %>
   </body>
 </html>

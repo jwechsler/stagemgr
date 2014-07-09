@@ -2,6 +2,7 @@
 //= require jquery-ui
 //= require jquery_ujs
 //= require foundation
+//= require foundation/foundation.topbar
 //= require dataTables/jquery.dataTables
 //= require dataTables/jquery.dataTables.foundation
 //= require dataTables/extras/dataTables.tableTools.js

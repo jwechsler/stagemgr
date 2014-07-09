@@ -1,5 +1,5 @@
 class OrdersDatatable
-  delegate :order_status_severity_class, :params, :h, :raw, :link_to, :number_to_currency, to: :@view
+  delegate :permitted_to?, :order_status_severity_class, :params, :h, :raw, :link_to, :number_to_currency, to: :@view
 
   def initialize(view)
     @view = view
@@ -27,6 +27,7 @@ private
         order.display_code,
         order.address.nil? ? '???' : link_to(order.address.full_name, [:admin, order.address]),
         raw("<span class=\"label #{order_status_severity_class(order.status)}\">#{order.status}</span>"),
+        order.address.nil? ? "n/a" : (permitted_to?(:view_full_history,:admin_orders) ? order.address.orders_processed : order.address.orders_processed(current_user.theater_ids)),
         number_to_currency(order.total),
         h(order.description),
         order.id
