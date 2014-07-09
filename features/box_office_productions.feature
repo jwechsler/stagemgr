@@ -40,7 +40,6 @@ Feature: An administrator can add production details to a theater
     And I follow "Edit"
     And I change "Name" to "Production One (Changed)"
    When I press "Update"
-   And show me the page
    Then I should see "Production One (Changed)"
 
   Scenario: Production calls to action

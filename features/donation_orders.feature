@@ -21,7 +21,7 @@ Feature: Donations
       And I enter a valid credit card as payment
       And I enter "40.50" as a donation amount
       And I press "Make a donation"
-     Then I should see "credit card was charged"
+     Then I should see "charged your credit card"
       And I should see "$40.50"
 
   Scenario: Make a monthly pledge

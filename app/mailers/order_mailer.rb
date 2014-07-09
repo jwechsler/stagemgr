@@ -1,6 +1,7 @@
 require "erb"
 
 class OrderMailer < ActionMailer::Base
+  helper ApplicationHelper
 
   layout "order_mailer", :except=>[:performance_reminder, :flex_pass_pending_reminder, :refunded_item_alert]
 

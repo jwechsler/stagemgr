@@ -1,8 +1,8 @@
 <% content_for :email_title do %>
   See your <%= Date::DAYNAMES[@order.performance.performance_date.wday] %>
 <% end %>
-  <p>Just a reminder, you have <%= @order.number_of_tickets %> ticket<%= "s" unless @order.number_of_tickets == 1 %> reserved for the
-      <%= @order.performance.performance_time.strftime('%l:%M %p') %> performance this <%= Date::DAYNAMES[@order.performance.performance_date.wday] %>.  We look forward to seeing you!
+  <p>Just a reminder, you have <%= @order.number_of_tickets %> ticket<%= "s" unless @order.number_of_tickets == 1 %> at
+      <%= @order.performance.performance_time.strftime('%l:%M %p') %> this <%= Date::DAYNAMES[@order.performance.performance_date.wday] %>.  We look forward to seeing you!
     <%- unless @order.performance.production.allow_late_seating %>
     <b>
       Please note, there is no late seating available for this performance.  Latecomers will be issued a voucher to attend a subsequent performance, if available.
@@ -10,19 +10,22 @@
   <%- end %>
 
   </p>
+
+<%= render :partial=>"special_features", :locals=>{:order=>@order} %>
+
 <h3>Getting Here</h3>
 <p>Theater Wit is located at 1229 W Belmont, between Southport and Racine.  We are accessible by "L" at the Belmont stop for the red, brown and purple lines four blocks east of us.  The 77 CTA bus also drops you on our doorstep.  If you will be driving, there is often street parking, and we offer valet service for many performances. If our valet is not working that day, you may park for free in our large lot behind Cooper's restaurant, directly across the street.</p>
 <h3>
 Pre-show Dining Recommendations
 </h3>
-<p><a href="http://www.cooperschicago.com/">Cooper's</a> (773.929.2667) is directly across the street, and features an excellent bbq and sandwich menu, along with some tasty vegetarian options.  Valet parking is complimentary if you dine at Cooper's.</p>
-<p><a href="http://lagondolachicago.com">La Gondola</a> (773.935.9011) is also across the street, and has a very good country Italian food and Chicago-style Pizza.</p>
-  <h3>Seating and Admission</h3>
+<p><a href="http://www.cooperschicago.com/">Cooper's</a> (773.929.2667) is directly across the street, and features an excellent bbq and sandwich menu, along with some tasty vegetarian options.</p>
+
+<h3>Seating and Admission</h3>
 <p>All seating is general admission.  Each show opens its doors 25 minutes before curtain time. Our houses are intimate with excellent sightlines, but if you are concerned, you may want to show up on the earlier side for your pick of seats.  If you have any special seating needs (handicapped/wheelchair accessible, groups over 15), please call us at 773-975-8150 and we'll make sure you're taken care of.
 <i>Please note that late seating is often <b>not available</b> for shows.</i> Please make plans to be at the theater at least ten minutes before curtain to avoid tears and recriminations.
 </p>
 
-  <h3>Bar</h3>
+<h3>Bar</h3>
 <p>Theater Wit has a full cocktail, beer, wine and snack bar.  We feature handmade chocolates by local artisans and a variety of top-shelf liquors, including local micro brews. All drinks may be taken into the performance.</p>
 
 <h3>And The Obligatory Legal Speak at the End of Emails</h3>

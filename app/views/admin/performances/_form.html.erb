@@ -7,7 +7,7 @@
   <%= f.input :suppress_notification, :label=>"Disable email notifications" %>
   <%= f.input :special_features, :as=>:check_boxes, :collection=>SpecialFeature.find_all_by_status(SpecialFeature::ACTIVE), :member_label=>:short_name %>
   <%= f.input :special_feature_display_markdown, :label=>"Custom Special Feature" ,:input_html => {:rows => 3}, :hint=>"For web site display, markdown enabled" %>
-  <%= f.input :special_feature_email_markdown, :label=>"Custom Email", :input_html => {:rows => 4}, :hint=>"For confirmation and reminder emails, markdown enabled" %>
+  <%= f.input :special_feature_email_markdown, :label=>"Custom Email", :input_html => {:rows => 4}, :hint=>"Custom text to override feature information in emails, markdown enabled" %>
     <h1>Ticket classes:</h1>
   <table>
     <tr>

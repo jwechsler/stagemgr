@@ -57,12 +57,14 @@ Feature: Box office users can manage performances
       Then I follow "PERF1"
       Then I should see "will be replaced by EXPENSIVE when capacity at or over 50% or 2 days before performance"
 
-  @wip
   Scenario: The box office user can create custom performance features
     Given I follow "Add performance"
       And I enter a performance on "2015-01-01" with code "PERF1"
-      And I enter a custom feature "Special Silent Performance" with a description of "This performance will be entirely mimed"
+      And I enter a custom feature description of "Special Silent Performance"
+      And I enter a custom feature email of "This performance *will* be entirely mimed"
+
       And I press "Create"
      Then I should see "Performance PERF1 was successfully created"
      Then I follow "PERF1"
      Then I should see "Special Silent Performance"
+      And I should see "entirely mimed"
