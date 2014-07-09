@@ -185,6 +185,7 @@ Stagemgr::Application.routes.draw do
 
     resources :orders do
       collection do
+        post :unclaim_selected
         post :fulfill_selected
         post :credit_card_payment_form
         post :cash_payment_form

@@ -1,6 +1,6 @@
 class Admin::OrdersController < Admin::ApplicationController
 
-  filter_resource_access :attribute_check => true, :additional_new=>{:create => :new}, :additional_member=>{:refund => :refund, :update_notes=>:update_notes}, :additional_collection=>{:fulfill_selected=>:index}
+  filter_resource_access :attribute_check => true, :additional_new=>{:create => :new}, :additional_member=>{:refund => :refund, :update_notes=>:update_notes}, :additional_collection=>{:fulfill_selected=>:index, :unclaim_selected=>:index}
 
   include OrdersHelper
   #append_before_filter :find_order, :only => [:show, :edit, :update, :destroy, :refund, :cancel, :fulfill]
@@ -58,6 +58,22 @@ class Admin::OrdersController < Admin::ApplicationController
         statuses[order.id]={:success=>true}
       else
         statuses[order.id]={:success=>false, :message=>"Only 'Processed' orders can be fulfilled"}
+      end
+    end
+    render :json=>statuses.to_json
+  end
+
+  def unclaim_selected
+    params[:commit] = 'Unclaimed'
+    orders = Order.find(params[:ids])
+    logger.info params[:ids].to_s
+    statuses = {}
+    orders.each do |order|
+      if order.status == 'Fulfilled'
+        order.transition_to!(Order::UNCLAIMED)
+        statuses[order.id]={:success=>true}
+      else
+        statuses[order.id]={:success=>false, :message=>"Only 'Fulfilled' orders can be unclaimed"}
       end
     end
     render :json=>statuses.to_json

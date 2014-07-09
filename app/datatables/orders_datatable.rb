@@ -28,7 +28,8 @@ private
         order.address.nil? ? '???' : link_to(order.address.full_name, [:admin, order.address]),
         raw("<span class=\"label #{order_status_severity_class(order.status)}\">#{order.status}</span>"),
         number_to_currency(order.total),
-        h(order.description)
+        h(order.description),
+        order.id
       ]
     end
   end
@@ -62,7 +63,7 @@ private
 
   def sort_clause
     columns = column_mapping
-    if params[:order].present?
+    unless params[:order].nil?
       sort_list = params[:order].keys.map{|key|
         if params[:order][key].has_key?("column")
           use_c = columns[params[:order][key]["column"].to_i]
