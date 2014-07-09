@@ -10,7 +10,8 @@ class PerformancesController < ApplicationController
       @end_date = @start_date.end_of_month;
       @performances = @production.performances.find(:all, :include=>[:ticket_class_allocations, :orders, :special_features, :production, {:orders=>:ticket_line_items}], :conditions=>['performances.status in (?) and performances.performance_date >= ? and performances.performance_date <= ?', Performance.visible_statuses, @start_date, @end_date], :order=>'performances.performance_date, performances.performance_time asc')
       @footnotes = Array.new
-      @performances.each {|p| @footnotes += p.special_features.map {|f| f.short_name} }
+      @performances.each {|p| @footnotes += p.special_features.map {|f| f.short_name}
+                              @footnotes += "_custom#{p.id}"}
       @footnotes = @footnotes.uniq
       render :index, :layout=>'ext_site_wrapper'
     else
@@ -24,7 +25,8 @@ class PerformancesController < ApplicationController
     @start_date = params[:start_date].nil? ? Date.today.beginning_of_week : Date.parse(params[:start_date])
     @end_date = params[:end_date].nil? ? Date.today.beginning_of_week + 1.week - 1 : Date.parse(params[:end_date])
     @performances = Performance.where('performances.performance_date >= ? and performances.performance_date <= ?',@start_date,@end_date).order(:performance_date, :performance_time)
-    @performances.each {|p| @footnotes += p.special_features.map {|f| f.short_name} }
+    @performances.each {|p| @footnotes += p.special_features.map {|f| f.short_name}
+                        @footnotes += "_custom#{p.id}"}
     render :by_date, :layout=>'ext_site_wrapper'
   end
 

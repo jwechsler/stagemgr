@@ -57,5 +57,13 @@ module ApplicationHelper
     end
   end
 
+  def display_markdown(markdown_text, trusted = false)
+    if trusted
+      raw($TRUSTED_MARKDOWN.render(markdown_text))
+    else
+      raw($MARKDOWN.render(markdown_text))
+    end
+  end
+
 end
 

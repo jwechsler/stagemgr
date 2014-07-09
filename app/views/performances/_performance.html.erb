@@ -4,6 +4,8 @@
       performance.special_features.each {|feature|
         title <<= raw "<sup>[#{@footnotes.find_index(feature.short_name)+1}]&nbsp;</sup>"
       } unless performance.special_features.nil?
+
+      title <<= raw "<sup>[#{@footnotes.length}+1}]&nbsp;</sup>" unless performance.special_feature_display_markdown.blank?
       min_price = 0
       max_price = 0
       visible = performance.ticket_class_allocations.select { |tca| tca.available? && tca.ticket_class.web_visible? }
@@ -16,7 +18,7 @@ elsif performance.sold_out?
 elsif performance.happening_soon?
   raw "#{title}<br/><font size=\"-2\">Door available</font>"
 elsif performance.near_capacity?
-  raw "#{title}<br/><font size=\"-2\">Call box office</font>"
+  raw "#{title}<br/><font size=\"-2\">Limited seats remaining. Call box office</font>"
 else
   visible = performance.ticket_class_allocations.select { |tca|
     tca.available? && tca.ticket_class.web_visible?

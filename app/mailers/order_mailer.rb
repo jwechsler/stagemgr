@@ -2,12 +2,14 @@ require "erb"
 
 class OrderMailer < ActionMailer::Base
   @markdown_renderer = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)
+  helper ApplicationHelper
+
   layout "order_mailer", :except=>[:performance_reminder, :flex_pass_pending_reminder, :refunded_item_alert]
- 
+
   def markdown_renderer
     Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)
-  end 
- 
+  end
+
   def ticket_confirmation(order,address=nil,action_by=nil)
     @order = order
     @markdown_renderer = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)

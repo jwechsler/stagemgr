@@ -73,7 +73,7 @@
                           performance.special_features.each {|feature|
                             title <<= raw "<sup>[#{@footnotes.find_index(feature.short_name)+1}]&nbsp;</sup>"
                           } unless performance.special_features.nil?
-
+                          title <<= raw "<sup>[#{@footnotes.find_index("_custom#{performance.id}")+1}]&nbsp;</sup>" unless performance.special_feature_display_markdown.blank?
                           visible = performance.ticket_class_allocations.select { |tca|
                             tca.available? && tca.ticket_class.web_visible? && tca.ticket_class.holds_seats?
                           }
@@ -134,13 +134,17 @@
         <%- unless @footnotes.empty? %>
           <tr>
             <td colspan="7">
-              <%- index = 0
-                  @footnotes.each do |note|
+              <% index = 0 %>
+
+              <% @footnotes.each do |note|
                     index += 1 %>
                 <p align="right">
-                  <%= "[#{index}] #{SpecialFeature.find_by_short_name(note).description}" %>
-                </p>
-              <%- end %>
+                  <% if note.start_with?("_custom") %>
+                    <%= render_markdown(performance.special_feature_display_markdown) %>
+                  <% else %>
+                    <p><%= "[#{index}] #{SpecialFeature.find_by_short_name(note).description}" %></p>
+                  <% end %>
+              <% end %>
 
             </td>
           </tr>

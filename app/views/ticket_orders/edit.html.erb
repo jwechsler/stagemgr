@@ -6,6 +6,9 @@
 <%- @order.performance.special_features.each do |feature| %>
   <div class="special_feature"><%= feature.description %><br/></div>
 <% end %>
+<% unless @order.performance.special_feature_display_markdown.blank? %>
+  <div class="special_feature"><%= render_markdown(@order.performance.special-feature_display_markdown) %></div>
+<% end %>
 
 <%= semantic_form_for @order do |order_form| %>
   <%= order_form.inputs :class=>"order" do %>
