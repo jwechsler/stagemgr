@@ -1,30 +1,34 @@
-<div id="theater_show">
-  <div class="main_column">
-    <h1><%=h @theater.name %></h1>
-    <h3><%=h @theater.theater_class %></h3>
-        <%= if @theater.url.blank?
-            raw "<i>Unknown URL</i>"
-           else
-              link_to @theater.url
-           end %><br/>
+<div class="row">
+  <div class='small-10 columns left'>
+    <div class="row">
+      <div class="small-2 medium-2 columns hide-for-small-only">
+        <%= image_tag(@theater.logo.url(:thumbnail), style:"max-height:120px;") if @theater.logo.exists? %>
+      </div>
+      <div class="small-10 medium-10 columns">
+        <h3><%=h @theater.name %></h3>
+        <%= link_to(@theater.url, @theater.url) unless @theater.url.blank? %>
+      </div>
+    </div>
   </div>
-  <div class="secondary_column">
-     <b><%= @theater.status%></b><br/>
-    <%= @theater.logo.url.blank? ? (raw "<i>No logo</i>") : (image_tag @theater.logo.url) %>
+  <div class="small-2 columns right">
+    <span class="label"><%= @theater.theater_class %></span>
+    <span class="label"><%= @theater.status %></span><br/>
   </div>
-  <br clear="all"/>
+</div>
 
-<%= render :partial => '/theaters/productions' %>
+<h4>Productions</h4>
+<%= render :partial => 'production_listing' %>
+</h4>
 
-<p>
-  <% permitted_to? :make, :productions do %>
-    <%= link_to 'Add production', new_admin_theater_production_path(@theater) %>&nbsp;
-  <% end %>
-</p>
 
-<%= link_to 'Back', admin_theaters_path %> &nbsp;
-<% permitted_to? :update, :theaters do %>
-  <%= link_to 'Edit Theater', edit_admin_theater_path %>
-<% end %>
 
+<div class="row">
+  <div class="small-12 columns">
+    <ul class="button-group">
+      <li><%= link_to 'Back', admin_theaters_path, class: 'button' %></li>
+      <% permitted_to? :update, :theaters do %>
+        <li><%= link_to 'Edit Theater', edit_admin_theater_path, class: 'button' %></li>
+      <% end %>
+    </ul>
+  </div>
 </div>

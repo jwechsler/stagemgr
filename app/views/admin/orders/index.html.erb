@@ -100,6 +100,7 @@ jQuery(document).ready(function() {
       $(this).html( '<input class = "orders-table-search" id="orders-table-search-' + $(this).index() + '" type="text" placeholder="Search '+title+'">' );
   } );
 
+  var table = $('#orders-table').DataTable();
 
   $("#status-search").each( function ( i ) {
         var select = $('<select><option value="any">Any</option><% Order::ORDER_STATUSES.each{|s| %><option value="<%= s%>"><%= s%></option><% } %></select>')
@@ -111,7 +112,7 @@ jQuery(document).ready(function() {
             } );
   });
 
-  var table = $('#orders-table').DataTable();
+
   // Apply the filter
   table.columns().flatten().each( function ( colIdx ) {
       $( 'input.orders-table-search', table.column( colIdx ).footer() ).on( 'change', function () {

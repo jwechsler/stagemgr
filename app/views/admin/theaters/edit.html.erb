@@ -1,11 +1,6 @@
-<h1>Editing theater</h1>
+<%= content_for :title do %>Editing <%= @theater.name %><% end %>
+<h3>Editing Theater</h3>
+<%= render :partial => '/theaters/form', :locals=>{:theater=>@theater} %>
 
-<%= semantic_form_for([:admin,@theater], :html => { :multipart => true }) do |f| %>
-  <%= f.inputs do %>
-    <%= render :partial => '/theaters/form', :locals=>{:f=>f} %>
-
-  <%- end %>
-  <%= f.actions %>
-<% end %>
 
 <%= link_to 'Back', admin_theaters_path %>
