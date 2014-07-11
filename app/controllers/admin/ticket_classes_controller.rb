@@ -5,7 +5,7 @@ class Admin::TicketClassesController < Admin::ApplicationController
   append_before_filter :find_ticket_class, :only => [:edit, :update, :destroy]
 
   def index
-    @ticket_classes = @production.ticket_classes.all
+    @ticket_classes = @production.ticket_classes.all.sort_by {|tc| tc.class_code }
 
     respond_to do |format|
       format.html # index.html.erb
@@ -59,9 +59,9 @@ class Admin::TicketClassesController < Admin::ApplicationController
       format.xml  { head :ok }
     end
   end
-  
+
   private
-  
+
   def find_production
     @theater=Theater.find(params[:theater_id])
     @production = @theater.productions.find(params[:production_id])
@@ -70,5 +70,5 @@ class Admin::TicketClassesController < Admin::ApplicationController
   def find_ticket_class
     @ticket_class = @production.ticket_classes.find(params[:id])
   end
-  
+
 end

@@ -52,6 +52,7 @@ gem "StreetAddress",          "~> 1.0.1"
 gem "money", "6.1.0.beta1"
 gem "monetize"
 gem "gemcutter"
+gem 'font-awesome-rails'
 gem "dynamic_form"
 gem "postmark-rails"
 gem "namecase", "~> 1.1.0"

@@ -168,6 +168,8 @@ GEM
     fakeredis (0.4.3)
       redis (~> 3.0.0)
     flexmock (0.8.6)
+    font-awesome-rails (4.1.0.0)
+      railties (>= 3.2, < 5.0)
     formatize (1.1.0)
       RedCloth (~> 4.2)
       actionpack (~> 3.0)
@@ -409,6 +411,7 @@ DEPENDENCIES
   factory_girl_rails
   fakeredis
   flexmock (= 0.8.6)
+  font-awesome-rails
   formatize
   formtastic (~> 2.3.0.rc2)
   g (~> 1.6.0)

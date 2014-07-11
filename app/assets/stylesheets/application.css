@@ -2,6 +2,7 @@
 *= require_self
 *= require common
 *= require jquery/cupertino/jquery-ui-1.8.24.custom
+*= require font-awesome
 *= require foundation_and_overrides
 *= require dataTables/jquery.dataTables
 *= require dataTables/jquery.dataTables.foundation
@@ -19,3 +20,4 @@
   margin-top: -12px;
   font-size: 50%;
 }
+
