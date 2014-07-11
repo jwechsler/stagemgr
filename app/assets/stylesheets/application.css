@@ -11,3 +11,11 @@
 .strike {
     text-decoration: line-through;
 }
+
+.hint {
+  display:inline-block;
+  color: gray;
+  float:right;
+  margin-top: -12px;
+  font-size: 50%;
+}

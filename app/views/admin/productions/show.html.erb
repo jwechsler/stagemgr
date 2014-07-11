@@ -1,68 +1,49 @@
+<div class="row">
+  <div class="small-4 columns">
+    <%= render :partial=>'/productions/info', :locals=>{:production=>@production} %>
+  </div>
+  <div class="small-8 columns panel">
+    <div class="row">
+      <div class="small-8 columns">
+        <p><b>Production code: </b><%= @production.production_code %></p>
+        <p><b>First preview: </b><%= @production.first_preview_at.to_s(:long_with_day_of_week) %></p>
 
-<%= render :partial=>'/productions/info', :locals=>{:production=>@production} %>
+        <p><b>Press opening: </b><%= @production.press_opening_at.to_s(:long_with_day_of_week) %></p>
 
+        <p><b>Opening at: </b><%= @production.opening_at.to_s(:long_with_day_of_week) %></p>
 
-<p>
-  <b>Production code:</b>
-  <%=h @production.production_code %>
-</p>
+        <p><b>Closing at: </b><%= @production.closing_at.to_s(:long_with_day_of_week) %></p>
+      </div>
+      <div class="small-4 columns">
+        <p><b>Status: </b><%= @production.status %></p>
+        <p><b>Class: </b><%=h @production.production_class %></p>
+        <p><b>Venue: </b><%= @production.venue.name %></p>
+        <p><b>Capacity: </b><%=h @production.capacity %></p>
+        <% unless @production.additional_information_link.blank? %>
+        <p><%= link_to @production.additional_information_link, @production.additional_information_link %></p>
+        <% end %>
+      </div>
+      <div class="small-12 columns">
+        <%=link_to 'Ticket Classes', admin_theater_production_ticket_classes_path(@production.theater, @production), class: 'button' %>
+      </div>
+      <div class="small-12 columns">
+        <% unless @production.confirmation_message.blank? %>
+          <h5>Confirmation Message</h5>
+          <%= display_markdown(@production.confirmation_message) %>
+          <% end %>
+          <% unless @production.follow_up_message.blank? %>
+          <h5>Followup Message</h5>
+          <%= display_markdown(@production.follow_up_message) %>
+          <% end %>
+          <% unless @production.follow_up_message_2.blank? %>
+          <h5>Followup Message #2</h5>
+          <%= display_markdown(@production.follow_up_message_2) %>
+          <% end %>
 
-<%- if !@production.venue.nil? %>
-  <p>
-    <b>Venue:</b>
-    <%= @production.venue.name %>
-  </p>
-<%- end %>
-
-<p>
-  <b>First preview at:</b>
-  <%=h @production.first_preview_at %>
-</p>
-
-<p>
-  <b>Press opening at:</b>
-  <%=h @production.press_opening_at %>
-</p>
-
-<p>
-  <b>Opening at:</b>
-  <%=h @production.opening_at %>
-</p>
-
-<p>
-  <b>Closing at:</b>
-  <%=h @production.closing_at %>
-</p>
-
-<p>
-  <b>Capacity:</b>
-  <%=h @production.capacity %>
-</p>
-
-<p>
-  <b>Additional information link:</b>
-  <%=h @production.additional_information_link %>
-</p>
-
-<p>
-  <b>Status:</b>
-  <%=h @production.status %>
-</p>
-
-<p>
-  <b>Production Class:</b>
-  <%=h @production.production_class %>
-</p>
-
-<p>
-  <b>Custom Confirmation Message</b><br/>
-  <%= @production.confirmation_message %>
-</p>
-
-<p>
-  <b>Custom Follow up Message</b><br/>
-  <%= @production.follow_up_text %>
-</p>
+      </div>
+    </div>
+  </div>
+</div>
 
 <p>
   <b>Ticket classes:</b>

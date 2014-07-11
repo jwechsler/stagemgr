@@ -1,11 +1,6 @@
 <% content_for :title do %>Editing <%= @production.name %><% end %>
-<h3>Editing production</h3>
+<h3>Editing Production</h3>
 
-<%= simple_form_for([:admin, @production.theater, @production], :html=>{:multipart=>true}) do |f| %>
-  <%= render :partial => '/admin/productions/form', :locals=>{:f=>f} %>
-  <p>
-    <%= f.submit 'Update' %>
-  </p>
-<% end %>
+<%= render :partial => '/admin/productions/form', :locals=>{:production=>@production} %>
 
-<%= link_to 'Back', edit_admin_theater_path(@production.theater) %>
+<%= link_to 'Back', edit_admin_theater_path(@production.theater), class: 'button right' %>

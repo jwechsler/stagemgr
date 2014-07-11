@@ -17,7 +17,7 @@
 
   has_attached_file :logo,
                     :path => ":rails_root/public/system/:attachment/:id/:style/:filename",
-                    :url => "/system/:attachment/:id/:style/:filename",
+                    :url => "#{Rails.application.config.action_controller.relative_url_root}/system/:attachment/:id/:style/:filename",
                     :styles => {:medium => "250x250>", :small => "125x125>", :thumbnail => "125x125>"}
 
 

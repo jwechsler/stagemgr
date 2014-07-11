@@ -14,7 +14,7 @@
       cmp
     }.each do |production| %>
     <tr>
-      <td><%= production.name %></td>
+      <td><%= link_to production.name, admin_theater_production_path(production.theater, production) %></td>
       <td><%= production.season %></td>
       <td><%= production.status %></td>
       <td>
@@ -39,7 +39,7 @@
     $('#production-listing').dataTable({
 
       dom: 'lf<"toolbar-buttons">rtip',
-      stateSave: false,
+      stateSave: true,
       pagingType: "foundation",
       columnDefs: [
         {targets: "_all", orderable:false},

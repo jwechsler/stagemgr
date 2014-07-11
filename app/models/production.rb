@@ -11,9 +11,9 @@ class Production < ActiveRecord::Base
   )
 
   validates_inclusion_of :status, :in => PRODUCTION_STATUSES
-  validates_presence_of :theater, :name, :venue, :season
+  validates_presence_of :theater, :name, :venue, :season, :production_code
   validates_uniqueness_of :production_code
-  validates_length_of :production_code, :in=>1..7
+  validates_length_of :production_code, :in=>1..8
   validates_numericality_of :capacity
 
   belongs_to :venue
@@ -33,7 +33,7 @@ class Production < ActiveRecord::Base
   attr_accessor :sf_object
   has_attached_file :promo, :styles => {:medium => "250x375>", :thumb => "125x186>"},
                     :path => ":rails_root/public/system/:attachment/:id/:style/:filename",
-                    :url => "/tickets/system/:attachment/:id/:style/:filename"
+                    :url => "#{Rails.application.config.action_controller.relative_url_root}/system/:attachment/:id/:style/:filename"
 
   def to_s
     "#{self.name}, #{self.theater.name}"
