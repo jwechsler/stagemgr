@@ -1,5 +1,8 @@
-<% title "New Admin/Special Feature" %>
-
+<% content_for :title do %>New Special Feature<% end %>
+<ul class="breadcrumbs">
+  <li><%= link_to 'Special Features', admin_special_features_path %></li>
+  <li class="current"><a href='#'>New</a></li>
+</ul>
 <%= render 'form' %>
 
 <p><%= link_to "Back to List", admin_special_features_path %></p>

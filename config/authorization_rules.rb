@@ -63,7 +63,7 @@ authorization do
     has_permission_on :admin_reports, :to=>[:box_office_reports, :house_management_reports, :membership_reports]
     has_permission_on :admin_membership_orders, :to=>[:view, :make, :manage]
     has_permission_on :admin_membership_offers, :to=>[:view]
-    has_permission_on :admin_special_features, :to=>[:view,:manage]
+    has_permission_on :admin_special_features, :to=>[:make,:view,:manage,:destroy]
     has_permission_on :admin_donation_orders, :to=>[:view,:manage,:make]
     has_permission_on :admin_imports, :to=>[:view, :make, :mailing_cards]
   end

@@ -1,4 +1,6 @@
 class Admin::SpecialFeaturesController < ApplicationController
+  filter_resource_access
+
   def index
     @special_features = SpecialFeature.all
   end
@@ -14,7 +16,7 @@ class Admin::SpecialFeaturesController < ApplicationController
   def create
     @special_feature = SpecialFeature.new(params[:special_feature])
     if @special_feature.save
-      redirect_to [:admin, @special_feature], :notice => "Successfully created special feature."
+      redirect_to [:admin, :special_features], :notice => "Successfully created special feature."
     else
       render :action => 'new'
     end
@@ -27,7 +29,7 @@ class Admin::SpecialFeaturesController < ApplicationController
   def update
     @special_feature = SpecialFeature.find(params[:id])
     if @special_feature.update_attributes(params[:special_feature])
-      redirect_to [:admin, @special_feature], :notice  => "Successfully updated special feature."
+      redirect_to [:admin, :special_features], :notice  => "Successfully updated special feature."
     else
       render :action => 'edit'
     end
