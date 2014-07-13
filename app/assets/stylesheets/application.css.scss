@@ -1,0 +1,33 @@
+@import 'foundation_and_overrides';
+@import 'common';
+@import 'jquery/cupertino/jquery-ui-1.8.24.custom';
+@import 'font-awesome';
+@import 'foundation-icons';
+@import 'dataTables/jquery.dataTables.foundation';
+@import 'dataTables/extras/dataTables.tableTools';
+
+
+.strike {
+    text-decoration: line-through;
+}
+
+.hint {
+  display:inline-block;
+  color: gray;
+  float:right;
+  margin-top: -12px;
+  font-size: 50%;
+}
+
+label.boolean + span.hint {
+  margin-top: -1.6em;
+}
+
+.dataTable tbody tr td .button {
+  margin-top: 1em;
+}
+
+
+#performance_restricted_payment_type_ids {
+  height: 6em;
+}

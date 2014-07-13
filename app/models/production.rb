@@ -108,7 +108,7 @@ class Production < ActiveRecord::Base
 
   def best_image_url_available(render)
     case
-      when !self.promo_file_name.blank?
+      when self.promo.exists?
         self.promo.url(render)
       when !self.logo_url.blank?
         self.logo_url

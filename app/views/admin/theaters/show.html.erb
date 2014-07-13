@@ -1,18 +1,28 @@
+<ul class="breadcrumbs">
+  <li><%= link_to 'Theaters', admin_theaters_path %></li>
+  <li class="current"><a href='#'><%= @theater.name %></a></li>
+</ul>
+
 <div class="row">
   <div class='small-10 columns left'>
     <div class="row">
+      <% if @theater.logo.exists?
+         colsize = 8 %>
       <div class="small-2 medium-2 columns hide-for-small-only">
         <%= image_tag(@theater.logo.url(:thumbnail), style:"max-height:120px;") if @theater.logo.exists? %>
       </div>
-      <div class="small-10 medium-10 columns">
+      <% else
+          colsize = 10
+        end %>
+      <div class="small-<%= colsize %> medium-<%= colsize %> columns">
         <h3><%=h @theater.name %></h3>
         <%= link_to(@theater.url, @theater.url) unless @theater.url.blank? %>
       </div>
     </div>
   </div>
   <div class="small-2 columns right">
-    <span class="label"><%= @theater.theater_class %></span>
-    <span class="label"><%= @theater.status %></span><br/>
+    <span class="secondary label"><%= @theater.theater_class %></span>
+    <span class="secondary label"><%= @theater.status %></span><br/>
   </div>
 </div>
 

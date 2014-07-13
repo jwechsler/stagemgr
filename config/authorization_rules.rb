@@ -14,6 +14,7 @@ authorization do
   end
 
   role :theater_user do
+    has_permission_on :admin_performances, :to=>[:view]
     has_permission_on :flex_pass_orders, :to=>[:create,:read,:update]
     has_permission_on :admin_ticket_classes, :to=>[:view]
     has_permission_on :admin_theaters, :to=>[:view]
@@ -45,6 +46,7 @@ authorization do
 
   role :box_office do
     includes :theater_user
+    has_permission_on :admin_performances, :to=>[:manage,:delete]
     has_permission_on :system_options, :to=>[:view]
     has_permission_on :admin_payment_types, :to=>[:view]
     has_permission_on :admin_theaters, :to=>[:manage]

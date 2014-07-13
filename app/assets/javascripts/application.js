@@ -3,6 +3,8 @@
 //= require jquery_ujs
 //= require foundation
 //= require foundation/foundation.topbar
+//= require foundation-datetimepicker
+
 //= require dataTables/jquery.dataTables
 //= require dataTables/jquery.dataTables.foundation
 //= require dataTables/extras/dataTables.tableTools.js
@@ -13,13 +15,32 @@
 $(document).foundation();
 
 $(document).ready(function() {
-  $("input.date_picker").each(function(){
-    $(this).datepicker({
-      altFormat: "yy-mm-dd",
-      dateFormat: "mm/dd/yy",
-      altField: $(this).next()
-      });
+  $("input.date_picker").fdatetimepicker({
+    format: 'yyyy-mm-dd',
+    minView: 2,
+    pickTime: false
+  })
+  $('input.tidme_picker').fdatetimepicker({
+    format: 'H:ii P',
+    pickDate: false,
+    autoclose: true,
+    maxView: 1,
+    startView: 1,
+    minuteStep: 15,
+    showMeridian: true,
+  })
+
+  $('input.datetime_picker').fdatetimepicker({
+      autoclose: true,
+      todayBtn: 'linked',
+      format: "mm/dd/yy H:iiP",
+
+      setStartDate: '2000-01-01',
+      minuteStep: 15,
+      pickerPosition: "bottom-left"
+
   });
+
 });
 
 $(function(){
@@ -55,3 +76,5 @@ $(function() {
     return false;
   });
 });
+
+$(function(){ $(document).foundation(); });

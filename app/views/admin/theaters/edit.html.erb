@@ -1,6 +1,9 @@
 <%= content_for :title do %>Editing <%= @theater.name %><% end %>
-<h3>Editing Theater</h3>
+<ul class="breadcrumbs">
+  <li><%= link_to 'Theaters', admin_theaters_path %></li>
+  <li class="current"><a href='#'>Edit</a></li>
+</ul>
 <%= render :partial => '/theaters/form', :locals=>{:theater=>@theater} %>
 
 
-<%= link_to 'Back', admin_theaters_path %>
+

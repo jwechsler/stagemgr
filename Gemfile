@@ -1,4 +1,5 @@
 source 'http://rubygems.org'
+source 'https://rails-assets.org'
 
 gem 'rails', '3.2.16'
 
@@ -57,6 +58,7 @@ gem "dynamic_form"
 gem "postmark-rails"
 gem "namecase", "~> 1.1.0"
 gem 'jquery-datatables-rails', git: 'git://github.com/rweng/jquery-datatables-rails.git', branch: 'master'
+# gem 'autonumeric-rails'
 gem 'ajax-datatables-rails'
 # gem 'jqgrid-rails3', :git=>"https://github.com/davebaldwin/jqgrid-rails3.git"
 #gem "name_parse", "~> 0.0.5"
@@ -66,6 +68,7 @@ gem "ri_cal", :git=>"https://github.com/ctide/ri_cal.git"
 gem 'resque', :require => 'resque/server'
 gem 'resque-scheduler', :require=>'resque_scheduler'
 gem 'resque-retry', :git=>"https://github.com/jwechsler/resque-retry.git"
+gem 'foundation-datetimepicker-rails'
 
 #gem "rails3-jquery-autocomplete", :path=>"~/dev/rails3-jquery-autocomplete", :branch=>"v2"
 
@@ -131,6 +134,7 @@ group :cucumber do
   gem "rbx-require-relative"
 end
 
+# assets
 group :assets do
   gem 'sass', '3.2.13'
   gem 'sass-rails',   '~> 3.2.3'
@@ -138,6 +142,7 @@ group :assets do
   gem 'uglifier', '>= 1.0.3'
   # Add Foundation Here
   gem 'compass-rails' # you need this or you get an err
-  gem 'zurb-foundation', '~> 4.0.0'
+  gem 'foundation-rails'
+  gem 'foundation-icons-sass-rails'
 end
 

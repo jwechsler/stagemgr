@@ -1,12 +1,9 @@
-<h1>New performance</h1>
+<% content_for :title do %>Edit <%= @performance.performance_code %><% end %>
+<ul class="breadcrumbs">
+  <li><%= link_to 'Theaters', admin_theaters_path %></li>
+  <li><%= link_to @performance.production.theater.name, admin_theater_path(@performance.production.theater) %></li>
+  <li><%= link_to @performance.production.name, admin_theater_production_path(@performance.production.theater, @performance.production) %></li>
+  <li class="current"><a href="#">New Performance</a></li>
+</ul>
 
-<%= semantic_form_for([:admin,@performance.production.theater,@performance.production,@performance]) do |f| %>
-
-  <%= render :partial => 'form', :locals=>{:f=>f}%>
-
-  <p>
-    <%= f.submit 'Create' %>
-  </p>
-<% end %>
-
-<%= link_to 'Back', admin_theater_production_path(@performance.production.theater,@performance.production) %>
+<%= render :partial => 'form', :locals=>{:performance=>@performance}%>
