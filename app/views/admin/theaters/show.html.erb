@@ -1,7 +1,9 @@
+<% content_for :breadcrumbs do %>
 <ul class="breadcrumbs">
   <li><%= link_to 'Theaters', admin_theaters_path %></li>
   <li class="current"><a href='#'><%= @theater.name %></a></li>
 </ul>
+<% end %>
 
 <div class="row">
   <div class='small-10 columns left'>

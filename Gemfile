@@ -55,6 +55,8 @@ gem "monetize"
 gem "gemcutter"
 gem 'font-awesome-rails'
 gem "dynamic_form"
+gem "cocoon"
+gem "haml"
 gem "postmark-rails"
 gem "namecase", "~> 1.1.0"
 gem 'jquery-datatables-rails', git: 'git://github.com/rweng/jquery-datatables-rails.git', branch: 'master'
@@ -70,7 +72,7 @@ gem 'resque-scheduler', :require=>'resque_scheduler'
 gem 'resque-retry', :git=>"https://github.com/jwechsler/resque-retry.git"
 gem 'foundation-datetimepicker-rails'
 
-#gem "rails3-jquery-autocomplete", :path=>"~/dev/rails3-jquery-autocomplete", :branch=>"v2"
+gem 'rails3-jquery-autocomplete'
 
 
 group :development do
@@ -85,6 +87,7 @@ group :development do
   gem 'capistrano-rbenv', '~> 2.0'
   gem 'pry'
   gem 'rb-readline'
+  gem "haml-rails"
   gem 'httplog', :require=>false
   gem 'debugger'
   gem 'single_test'

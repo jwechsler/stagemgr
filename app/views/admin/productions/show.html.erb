@@ -1,9 +1,11 @@
 <% content_for :title do %><%= @production.name %><% end %>
+<% content_for :breadcrumbs do %>
 <ul class="breadcrumbs">
   <li><%= link_to 'Theaters', admin_theaters_path %></li>
   <li><%= link_to @production.theater.name, admin_theater_path(@production.theater) %></li>
   <li class="current"><a href="#"><%= @production.name %></a></li>
 </ul>
+<% end %>
 
 <div class="row">
   <div class="small-4 columns">

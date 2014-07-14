@@ -18,7 +18,7 @@ class SpecialOffer < ActiveRecord::Base
   belongs_to :production
   belongs_to :performance
 
-  validate :find_limiting_object
+  before_validation :find_limiting_object
   before_validation :fix_case
 
   def find_limiting_object
@@ -27,22 +27,28 @@ class SpecialOffer < ActiveRecord::Base
     self.production = nil
     self.performance = nil
     return if (t.nil? || t.blank?) && (i.nil? || i.blank?)
-    limiting_object = case t
+    case t
       when 'Theater'
-        (self.theater = Theater.find_by_id(i)) ||
-            errors[:base] << "Can't find Theater with id: #{i}"
+        unless Theater.exists?(i)
+          errors.add :base, "Can't find Theater with id: #{i}"
+          return false
+        end
       when 'Production'
         (self.production = Production.find_by_production_code(i)) ||
             errors[:base] << "Can't find Production with code: #{i}"
+        !production.nil?
       when 'Performance'
         (self.performance = Performance.find_by_performance_code(i)) ||
             errors[:base] << "Can't find Performance with code: #{i}"
+        !performance.nil?
       when '', nil
         errors[:base] << "You didn't pick the type but you entered the id of: #{i}"
+        false
       else
         errors[:base] << 'You tried to use an unknown type'
-        nil
+        false
     end
+    return true
   end
 
   def limiting_model_type

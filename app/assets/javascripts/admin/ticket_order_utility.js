@@ -115,7 +115,7 @@ function setup_ticket_autocompletes(order_type) {
         },
         select: function(ui, event) {
           $("#"+order_type+"_performance_code").val("")
-          $(".autocomplete_tccode").val("")
+          $("input.autocomplete_tccode").val("")
           $(".total").val("$0.00")
           $(".ticket_count").val("0")
           recalculate_all_row_totals(order_type)
@@ -143,13 +143,13 @@ function setup_ticket_autocompletes(order_type) {
           })
         },
         select: function(ui, event) {
-          $(".autocomplete_tccode").val("")
+          $("input.autocomplete_tccode").val("")
           $(".total").val("$0.00")
           $(".ticket_count").val("0")
           recalculate_all_row_totals(order_type)
         }
       });
-    $(".autocomplete_tccode").each(function(index, domElement) {
+    $("input.autocomplete_tccode").each(function(index, domElement) {
         u = $(domElement).attr("autocomplete_url")
         add_autocomplete_tccode(order_type, $(domElement))
       });

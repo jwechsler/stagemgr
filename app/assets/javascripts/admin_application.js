@@ -1,6 +1,6 @@
 //= require application
 //= require admin/orders_common
-
+//= require cocoon
 
 // setup dataTable with standard active switch selector. Call from ready state
 function setupActiveSwitchOnDataTable(table_selector, status_column_idx) {
@@ -10,7 +10,7 @@ function setupActiveSwitchOnDataTable(table_selector, status_column_idx) {
     var table = $(table_selector).DataTable();
     table.columns(status_column_idx).search('^Active$');
 
-    if ((typeof settings.aoPreSearchCols[status_column_idx] != 'undefined') && settings.aoPreSearchCols[status_column_idx].sSearch.length==0) {
+    if ((typeof settings.aoPreSearchCols[status_column_idx] != 'undefined') && settings.aoPreSearchCols[status_column_idx].sSearch.length>0) {
       activeSwitch.text('Show Active')
     } else {
       activeSwitch.text('Show All')

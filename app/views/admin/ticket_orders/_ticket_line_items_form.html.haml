@@ -1,0 +1,21 @@
+%div.row
+  %div.small-6.columns
+    = order_form.input :production_code, url: production_code_admin_auto_complete_index_path, as: :autocomplete
+    -# = order_form.label :production_code, 'Production'
+    -# = order_form.input_field :production_code, class: 'autocomplete_prcode',
+    -#:label=>'Production',
+    -#:input_html=>{:autocomplete_url=>production_code_admin_auto_complete_index_path}
+  %div.small-6.columns
+    = order_form.input :performance_code,
+    :label=>'Performance',
+    :class=>'autocomplete_pcode',
+    :input_html=>{:autocomplete_url=>performance_code_admin_auto_complete_index_path}
+
+#ticket_line_items
+  = order_form.simple_fields_for :ticket_line_items do |tlif|
+    = render 'ticket_line_item_fields', :f=>tlif
+  %div.row
+    %div.small-12.columns
+      .links
+        = link_to_add_association 'Add tickets', order_form, :ticket_line_items, :class=>'small button'
+

@@ -1,5 +1,7 @@
 class Admin::TicketOrdersController < Admin::OrdersController
 
+  autocomplete :production, :production_code
+
   def new
     @ticket_order = TicketOrder.new
     @ticket_order.address = Address.new

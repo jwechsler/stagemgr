@@ -4,7 +4,7 @@
 //= require foundation
 //= require foundation/foundation.topbar
 //= require foundation-datetimepicker
-
+//= require autocomplete-rails
 //= require dataTables/jquery.dataTables
 //= require dataTables/jquery.dataTables.foundation
 //= require dataTables/extras/dataTables.tableTools.js

@@ -38,13 +38,6 @@ module OrdersHelper
     result
   end
 
-  def remove_link_unless_new_record(fields)
-    out = ''
-    out << fields.hidden_field(:_destroy) unless fields.object.new_record?
-    out << link_to("remove", "##{fields.object.class.name.underscore}", :class => 'remove')
-    out
-  end
-
 # This method demonstrates the use of the :child_index option to render a
 # form partial for, for instance, client side addition of new nested
 # records.

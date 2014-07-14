@@ -1,0 +1,16 @@
+.nested-items.ticket_line_item
+  %div.row{ :price=>f.object.ticket_class.try(:ticket_price),
+  :ticket_type=>f.object.ticket_class.try(:ticket_type) }
+    %div.small-3.columns
+      = f.label :ticket_class_code, 'Ticket Class'
+      = f.input_field :ticket_class_code, class: 'autocomplete_tccode', html_options: {:autocomplete_url=>ticket_class_code_admin_auto_complete_index_path}
+    %div.small-3.columns
+      = f.input :ticket_count, :class=>'ticket_count', label: "\# Tix"
+    %div.small-3.columns
+      = f.object.try(:ticket_class).try(:ticket_type)=='Donation' ? f.input(:price_override, :class=>'price_override', label: 'Override') : f.input(:price_override, :class=>'price_override', label: 'Override', :disabled=>'disabled')
+    %div.small-2.columns.total
+      = f.label "Total"
+      %div{ :style=>'margin-top: .5em' }
+        = to_currency f.object.total
+    %div.small-1.columns
+      = link_to_remove_association "Remove", f, :class=>'tiny alert button right'

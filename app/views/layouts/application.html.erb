@@ -27,6 +27,10 @@
     <%= render :partial=>"layouts/menu" %>
 
     <div class="row">
+      <%=h yield(:breadcrumbs) %>
+    </div>
+
+    <div class="row">
       <%= render :partial=>'/flash_notice' %>
     </div>
 
