@@ -28,10 +28,11 @@ class TicketClass < ActiveRecord::Base
   def prevent_price_changes_after_sales
     unless self.ticket_type == DONATION
       if self.ticket_price_changed? && TicketLineItem.count(:conditions=>['ticket_class_id = ?',self.id]) > 0
-        errors.add :base,"Cannot change ticket price if sales have already occurred"
+        errors.add :base,"Cannot change ticket price from #{self.ticket_price_was} to #{self.ticket_price} if sales have already occurred"
+        return false
       end
     end
-
+    return true;
   end
 
 
