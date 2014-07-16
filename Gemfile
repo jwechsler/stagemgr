@@ -60,7 +60,7 @@ gem "jquery-rails", '~> 2.1.0'
 gem "ri_cal", :git=>"https://github.com/ctide/ri_cal.git"
 gem 'resque', :require => 'resque/server'
 gem 'resque-scheduler', :require=>'resque_scheduler'
-gem 'resque-retry', :git=>"https://github.com/jwechsler/resque-retry.git"
+gem 'resque-retry' #, :git=>"https://github.com/jwechsler/resque-retry.git"
 
 #gem "rails3-jquery-autocomplete", :path=>"~/dev/rails3-jquery-autocomplete", :branch=>"v2"
 
