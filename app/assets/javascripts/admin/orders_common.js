@@ -9,6 +9,21 @@ jQuery(document).ready(function($) {
 
 $('#admin_ticket_order_form').each(function() {
 
+    $.fn.setup_code_input = function() {
+
+      $(this).on('blur',function() {
+        price = this.id.replace('ticket_class_code','price_override')
+        price_field = $('#'+price);
+        price_field.val(Number($(this).attr('data-q-ticket_price')).toFixed(2));
+        recalculate_row_total(order_type,$(this).parents('.line_item'));
+      });
+    }
+
+    $.fn.setup_recalculate_row = function() {
+      $(this).on('blur',function() {
+        recalculate_row_total(order_type,$(this).parents('.line_item'));
+      });
+    }
     var order_type = 'ticket_order'
 
     // setup_address_autocompletes('ticket_order');
@@ -17,16 +32,14 @@ $('#admin_ticket_order_form').each(function() {
 
     setup_payment_form();
 
-    $('input.code-input').on('blur',function() {
-      price = this.id.replace('ticket_class_code','price_override')
-      price_field = $('#'+price);
-      price_field.val(Number(price_field.parents('.line_item').attr('data-q-ticket_price')).toFixed(2));
-      recalculate_row_total(order_type,$(this).parents('.line_item'));
+    $('input.code-input').setup_code_input();
+
+    $('#ticket_line_items').on('cocoon:after-insert', function(e, insertedItem) {
+      $(insertedItem).find('input.code-input').setup_code_input();
+      $(insertedItem).find('input.ticket_count').setup_recalculate_row();
     });
 
-    $('input.ticket_count,input.price_override').on('blur',function() {
-      recalculate_row_total(order_type,$(this).parents('.line_item'));
-    });
+    $('input.ticket_count,input.price_override').setup_recalculate_row();
 
   });
 

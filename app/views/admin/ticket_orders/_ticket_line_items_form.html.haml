@@ -6,7 +6,7 @@
     -#:label=>'Production',
     -#:input_html=>{:autocomplete_url=>production_code_admin_auto_complete_index_path}
   %div.small-6.columns
-    = order_form.input :performance_code, :label=>'Performance', url: autocomplete_performance_performance_code_admin_ticket_orders_path, as: :autocomplete, input_html: {:fields=>{:production_code=>'#ticket_order_production_code'}, 'data-auto-focus'=>true}
+    = order_form.input :performance_code, :label=>'Performance', url: autocomplete_performance_performance_code_admin_ticket_orders_path, as: :autocomplete, input_html: {'data-autocomplete-fields'=>'{"production_code":"#ticket_order_production_code"}', 'data-auto-focus'=>true}
 
 #ticket_line_items
   = order_form.simple_fields_for :ticket_line_items do |tlif|
