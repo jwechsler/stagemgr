@@ -24,6 +24,13 @@ GIT
       json
 
 GIT
+  remote: https://github.com/jwechsler/rails3-jquery-autocomplete.git
+  revision: 90d9fcfa13b666bb3d626101a7fc2f385142bb71
+  specs:
+    rails3-jquery-autocomplete (1.0.9)
+      rails (~> 3.0)
+
+GIT
   remote: https://github.com/jwechsler/resque-retry.git
   revision: 9ce25d2f22b9e037fdc88d23e1873d96dfca373c
   specs:
@@ -275,8 +282,6 @@ GEM
       activesupport (= 3.2.16)
       bundler (~> 1.0)
       railties (= 3.2.16)
-    rails3-jquery-autocomplete (1.0.14)
-      rails (>= 3.0)
     railties (3.2.16)
       actionpack (= 3.2.16)
       activesupport (= 3.2.16)
@@ -457,7 +462,7 @@ DEPENDENCIES
   postmark-rails
   pry
   rails (= 3.2.16)
-  rails3-jquery-autocomplete
+  rails3-jquery-autocomplete!
   rb-readline
   rbx-require-relative
   redcarpet
