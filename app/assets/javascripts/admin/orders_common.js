@@ -1,30 +1,36 @@
 //= require utility
 //= require orders/payments
 //= require admin/address_utility
-//= require admin/ticket_order_utility
+/* //= require admin/ticket_order_utility */
 //= require admin/ticket_orders/CardReader
 //= require_self
 
 jQuery(document).ready(function($) {
 
-  $('#admin_ticket_order_form').each(function() {
+$('#admin_ticket_order_form').each(function() {
 
-    order_type = 'ticket_order'
+    var order_type = 'ticket_order'
 
-    setup_ticket_autocompletes('ticket_order');
+    // setup_address_autocompletes('ticket_order');
 
-    setup_address_autocompletes('ticket_order');
-
-    setup_line_item_row_control('ticket_order');
+    // setup_line_item_row_control('ticket_order');
 
     setup_payment_form();
 
-    $('input.ticket_count,input.price_override').on('change',function() {
-      recalculate_row_total(order_type,$(event.target).parents('tr'))
+    $('input.code-input').on('blur',function() {
+      price = this.id.replace('ticket_class_code','price_override')
+      price_field = $('#'+price);
+      price_field.val(Number(price_field.parents('.line_item').attr('data-q-ticket_price')).toFixed(2));
+      recalculate_row_total(order_type,$(this).parents('.line_item'));
+    });
+
+    $('input.ticket_count,input.price_override').on('blur',function() {
+      recalculate_row_total(order_type,$(this).parents('.line_item'));
     });
 
   });
 
+/*
   $('#admin_membership_order_form').each(function() {
 
     order_type = 'membership_order'
@@ -62,6 +68,7 @@ jQuery(document).ready(function($) {
 //
 //  });
 
+*/
   setup_gift_form();
 
 

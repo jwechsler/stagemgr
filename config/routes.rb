@@ -217,6 +217,8 @@ Stagemgr::Application.routes.draw do
         post :credit_card_payment_form
         post :cash_payment_form
         get :autocomplete_production_production_code
+        get :autocomplete_performance_performance_code
+        get :autocomplete_ticket_line_item_ticket_class_code
       end
       member do
         post :cancel

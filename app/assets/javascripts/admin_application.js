@@ -31,3 +31,4 @@ function setupActiveSwitchOnDataTable(table_selector, status_column_idx) {
 
     });
 }
+

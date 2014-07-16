@@ -1,19 +1,29 @@
 %div.row
   %div.small-6.columns
-    = order_form.input :production_code, url: production_code_admin_auto_complete_index_path, as: :autocomplete
+    = order_form.input :production_code, label: 'Production', url:  autocomplete_production_production_code_admin_ticket_orders_path, as: :autocomplete, id_element: '#production_code_id', input_html: {:update_elements=>{:production_code=>'#ticket_order_production_code'}, 'data-auto-focus'=>true}
     -# = order_form.label :production_code, 'Production'
     -# = order_form.input_field :production_code, class: 'autocomplete_prcode',
     -#:label=>'Production',
     -#:input_html=>{:autocomplete_url=>production_code_admin_auto_complete_index_path}
   %div.small-6.columns
-    = order_form.input :performance_code,
-    :label=>'Performance',
-    :class=>'autocomplete_pcode',
-    :input_html=>{:autocomplete_url=>performance_code_admin_auto_complete_index_path}
+    = order_form.input :performance_code, :label=>'Performance', url: autocomplete_performance_performance_code_admin_ticket_orders_path, as: :autocomplete, input_html: {:fields=>{:production_code=>'#ticket_order_production_code'}, 'data-auto-focus'=>true}
 
 #ticket_line_items
   = order_form.simple_fields_for :ticket_line_items do |tlif|
-    = render 'ticket_line_item_fields', :f=>tlif
+    %div.row
+      %div.small-3.columns
+        = tlif.label 'Ticket Class'
+      %div.small-2.columns
+        = tlif.label "\# Tix"
+      %div.small-3.columns
+        = tlif.label 'Price'
+      %div.small-3.columns
+        = tlif.label 'Total'
+      %div.small-1.columns
+        %span
+          &nbsp;
+
+    = render 'ticket_line_item_fields', :f=>tlif, :production_selector=>'#ticket_order_production_code', :performance_selector=>'#ticket_order_performance_code'
   %div.row
     %div.small-12.columns
       .links

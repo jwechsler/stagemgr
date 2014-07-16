@@ -31,6 +31,7 @@ class Production < ActiveRecord::Base
   has_and_belongs_to_many :attendees, class_name: "Address", uniq: true
 
   attr_accessor :sf_object
+
   has_attached_file :promo, :styles => {:medium => "250x375>", :thumb => "125x186>"},
                     :path => ":rails_root/public/system/:attachment/:id/:style/:filename",
                     :url => "#{Rails.application.config.action_controller.relative_url_root}/system/:attachment/:id/:style/:filename"
@@ -192,11 +193,17 @@ class Production < ActiveRecord::Base
     end
   end
 
-def manage_after_save_private
+  def manage_after_save_private
     if self.status == PRIVATE && self.status.changed?
       run_callbacks :save_private
     end
   end
+
+  def production_code_autocomplete_display
+    prod = Production.find(self.id)
+    "#{self.production_code} [#{prod.name}, #{prod.theater.name}]"
+  end
+
 end
 
 # Non-engine code
