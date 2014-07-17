@@ -52,7 +52,7 @@ authorization do
     has_permission_on :admin_theaters, :to=>[:manage]
     has_permission_on :theaters, :to=>[:create,:update,:read,:manage]
     has_permission_on :donation_orders, :to=>[:create,:read,:update]
-    has_permission_on :admin_orders, :to=>[:hold,:unclaimed, :fulfill, :resend_confirmation, :view_full_history]
+    has_permission_on :admin_orders, :to=>[:hold,:unclaimed, :fulfill, :resend_confirmation, :view_full_history, :swipe_card, :confirm_credit_card]
     has_permission_on :admin_ticket_orders, :to=>[:hold,:unclaimed, :fulfill, :resend_confirmation]
     has_permission_on :admin_flex_pass_orders, :to=>[:view, :make, :manage]
     has_permission_on :productions, :to=>[:view, :make, :manage]

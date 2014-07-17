@@ -1,0 +1,30 @@
+%div.row
+  %div.small-4.columns
+    = f.input :credit_card_type, :label=>"Card Type", :required=>true,  :include_blank=>false, :collection=>ActiveRecord::Validations::ClassMethods::DEFAULT_CREDIT_CARD_TYPES.values.sort - ['invalid']
+  %div.small-8.columns
+    %div.row
+      %div.small-12.columns
+        = f.input :credit_card_number, :required=>true, :input_html => { :maxlength=>16 }
+        %div.row.collapse
+          %div.small-1.columns
+            = f.label :credit_card_expiration_month, "MM", :class=>"prefix "
+          %div.small-2.columns
+            = f.input_field :credit_card_expiration_month, :cols=>2, :maxlength=>2
+          %div.small-1.columns
+            = f.label :credit_card_expiration_year, "YY", :class=>"prefix"
+          %div.small-2.columns
+            = f.input_field :credit_card_expiration_year, :cols=>2, :maxlength=>2
+          %div.small-1.columns
+            &nbsp;
+          %div.small-2.columns
+            = f.label :credit_card_verification_number, "CVV*", :class=>"prefix"
+          %div.small-3.columns
+            = f.input_field :credit_card_verification_number, :size=>4
+    %div.row
+      - permitted_to? :swipe_card, :admin_orders do
+        %div.small-6.columns
+          = f.input :credit_card_swipe, :size=>25, :label=>"Swipe", :as=>:password
+      - permitted_to? :confirm_credit_card, :admin_orders do
+        %div.small-6.columns
+          = f.input :credit_card_confirmation_code, :label=>'Manual authorization'
+

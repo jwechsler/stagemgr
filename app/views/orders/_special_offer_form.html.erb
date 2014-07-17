@@ -1,4 +1,3 @@
-<p>
   <%- unless f.object.is_a? FlexPassOrder
     unless defined? f.object.special_offer_code
       special_offer_code = ''
@@ -8,4 +7,3 @@
   %>
   <%= f.input :special_offer_code, :label=>"Discount Code (optional)", :input_html=>{:value=>special_offer_code} %>
   <%- end -%>
-</p>
