@@ -110,7 +110,7 @@ private
         when 'orders.status'
           conditions << ["#{field} = ?",search_text] unless search_text.eql?('any')
         else
-          conditions << ["#{field} = ?",search_text.upcase]
+          # conditions << "/* unknown #{field} */"
         end
       end
     }

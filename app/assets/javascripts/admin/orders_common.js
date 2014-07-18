@@ -7,7 +7,7 @@
 
 jQuery(document).ready(function($) {
 
-$('#admin_ticket_order_form').each(function() {
+  $('#admin_ticket_order_form').each(function() {
 
     $.fn.setup_code_input = function() {
 
@@ -26,7 +26,7 @@ $('#admin_ticket_order_form').each(function() {
     }
     var order_type = 'ticket_order'
 
-    // setup_address_autocompletes('ticket_order');
+    //setup_address_autocompletes('ticket_order');
 
     // setup_line_item_row_control('ticket_order');
 
@@ -41,58 +41,73 @@ $('#admin_ticket_order_form').each(function() {
 
     $('input.ticket_count,input.price_override').setup_recalculate_row();
 
-  });
+    $('#ticket_order_address_attributes_full_name').on("railsAutocomplete.select", function(event,ui) {
+      autofillAddress('ticket_order',event,ui);
+    });
 
-/*
-  $('#admin_membership_order_form').each(function() {
-
-    order_type = 'membership_order'
-
-    setup_address_autocompletes(order_type);
-
-    setup_payment_form();
-
-    setup_gift_form(order_type)
-
-  });
-
-  $('#admin_flex_pass_order_form').each(function() {
-
-    order_type = 'flex_pass_order'
-
-    setup_address_autocompletes(order_type);
-
-    setup_payment_form();
-
-    setup_address_autocompletes(order_type);
-
-  });
-
-//  $('#admin_exchange_ticket_order_form').each(function() {
-//
-//    var order_type = 'ticket_order'
-//
-//    setup_ticket_autocompletes('ticket_order');
-//
-//    setup_address_autocompletes(order_type);
-//
-//    setup_payment_form(order_type);
-//
-//
-//  });
-
-*/
-  setup_gift_form();
+    $('#disassociate-address').on('click', function() {
+      $('#ticket_order_address_attributes_id').val('');
+      $("#quick-lookup #tags").html('');
+      $("#quick-lookup #attended_shows").html('');
+      $('div#full-name-input-column').addClass('small-12');
+      $('div#full-name-input-column').removeClass('small-10');
+      $('div#full-name-clear-column').addClass('hide');
+      $('#quick-lookup').addClass('hide');
+    })
 
 
-  $('#update_note_control').hide();
+      // $.event.trigger({type:"railsAutocomplete.select",message:"hi",time: new Date()});
 
-  $('#update_note').click(function() {
+
+  /*
+    $('#admin_membership_order_form').each(function() {
+
+      order_type = 'membership_order'
+
+      setup_address_autocompletes(order_type);
+
+      setup_payment_form();
+
+      setup_gift_form(order_type)
+
+    });
+
+    $('#admin_flex_pass_order_form').each(function() {
+
+      order_type = 'flex_pass_order'
+
+      setup_address_autocompletes(order_type);
+
+      setup_payment_form();
+
+      setup_address_autocompletes(order_type);
+
+    });
+
+  //  $('#admin_exchange_ticket_order_form').each(function() {
+  //
+  //    var order_type = 'ticket_order'
+  //
+  //    setup_ticket_autocompletes('ticket_order');
+  //
+  //    setup_address_autocompletes(order_type);
+  //
+  //    setup_payment_form(order_type);
+  //
+  //
+  //  });
+
+  */
+    setup_gift_form();
+
+    $('#update_note_control').hide();
+
+    $('#update_note').click(function() {
       $('#note_control').hide();
       $('#update_note_control').show('slow');
       return false;
     });
 
-
+  });
 });
 

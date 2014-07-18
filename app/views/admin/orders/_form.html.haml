@@ -3,16 +3,12 @@
   %div.small-6.columns
     = order_form.simple_fields_for :address do |address_form|
       = render '/admin/orders/name_form', :f => address_form
+      = order_form.input :special_request, :as=>:select, :collection=>TicketOrder::SEATING_REQUESTS + ['See Notes'], :label=>"Special seating requirements?"
   %div.small-6.columns
     = render '/admin/orders/billing_form', :order_form=>order_form
 %div.row
-  %div.small-6.columns
-    = render '/orders/special_offer_form', :f => order_form
-  %div.small-6.columns
-    = order_form.input :special_request, :as=>:select, :collection=>TicketOrder::SEATING_REQUESTS + ['See Notes'], :label=>"Special seating requirements?"
-%div.row
   %div.small-12.columns
-    = order_form.fields_for :address do |address_form|
+    = order_form.simple_fields_for :address do |address_form|
       = render '/admin/orders/address_form', :f => address_form
 
     = order_form.input :add_to_email_list, :as=>:boolean, :label=>'Add to email list?', :default=>false
@@ -42,3 +38,11 @@
       = link_to 'Cancel Order', cancel_admin_order_path(order_form.object), :confirm => "Are you sure?", :method=>:post
   %div.small-6.columns
     = render '/admin/orders/audit_show', :order_form=>order_form.object
+
+= content_for :js do
+  :javascript
+
+    jQuery(document).ready(function($) {
+
+
+    });

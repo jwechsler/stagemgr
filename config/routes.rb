@@ -132,7 +132,11 @@ Stagemgr::Application.routes.draw do
 
     resources :flex_pass_orders
 
-    resources :addresses
+    resources :addresses do
+      collection do
+        get :autocomplete_address
+      end
+    end
 
     resources :flex_pass_offers do
       resources :orders, :controller => 'flex_pass_offer_orders'

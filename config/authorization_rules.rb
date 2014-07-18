@@ -46,7 +46,7 @@ authorization do
 
   role :box_office do
     includes :theater_user
-    has_permission_on :admin_performances, :to=>[:manage,:delete]
+    has_permission_on :admin_performances, :to=>[:make, :manage,:delete,:duplicate]
     has_permission_on :system_options, :to=>[:view]
     has_permission_on :admin_payment_types, :to=>[:view]
     has_permission_on :admin_theaters, :to=>[:manage]

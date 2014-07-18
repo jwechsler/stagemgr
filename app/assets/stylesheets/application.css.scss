@@ -35,3 +35,19 @@ label.boolean + span.hint {
 .button.remove {
   margin-top: 1em;
 }
+
+#quick-lookup {
+  font-size: .5em;
+}
+.quick-lookup-history {
+  color: gray;
+  font-family: italic;
+  font: {
+    family: italic;
+  }
+}
+
+#quick-lookup h5 {
+  font-size: .6em;
+  color: gray;
+}

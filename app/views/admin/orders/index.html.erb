@@ -4,6 +4,16 @@
 <table id="orders-table", class="hide" data-source="<%= admin_orders_path(format: :json) %>">
   <thead>
     <tr>
+      <th id="foot_ID" class="searchy"></th>
+      <th id="footer-code" class="searchy"></th>
+      <th id="footer-name" class="searchy"></th>
+      <th id="status-search" class="option-search"></th>
+      <th id="visits"></th>
+      <th id="total"></th>
+      <th id="description"></th>
+      <th id="footer_hidden_id"></th>
+    </tr>
+    <tr>
       <th>ID</th>
       <th>Code</th>
       <th>Name</th>
@@ -13,21 +23,11 @@
       <th>Description</th>
       <th>Hidden ID</th>
     </tr>
+
   </thead>
   <tbody>
   </tbody>
-  <tfoot>
-    <tr>
-      <th id="foot_ID" class="searchy"></th>
-      <th id="footer-code" class="searchy"></th>
-      <th id ="footer-name" class="searchy"></th>
-      <th id="status-search" class="option-search"></th>
-      <th id="visits"></th>
-      <th id="total"></th>
-      <th id="description"></th>
-      <th id="footer_hidden_id"></th>
-    </tr>
-  </tfoot>
+
 </table>
 
 <% content_for :js do%>
@@ -50,6 +50,7 @@ jQuery(document).ready(function() {
     dom: '<"top"<"right"<"toolbar">>>rtT<"bottom"lip><"clear">',
     tableTools:{
       "aButtons": [ ],
+      "searchable": true,
       "sRowSelect": "os",
       "fnRowSelected": function ( nodes ) {
         update_order_selection_buttons();
@@ -95,12 +96,25 @@ jQuery(document).ready(function() {
       buttons += '<a id="print-tickets-button" href="#" class="tiny button disabled">Fulfill Orders</a>' if permitted_to?(:fulfill, :admin_orders)
       buttons += '<a id="unclaimed-tickets-button" href="#" class="tiny button disabled">Mark Unclaimed</a>' if permitted_to?(:unclaimed, :admin_orders) %>
   $("div.toolbar").html('<%= raw(buttons) %>');
-  $('#orders-table tfoot th.searchy').each( function () {
+  $('#orders-table thead th.searchy').each( function () {
       var title = $('#orders-table thead th').eq( $(this).index() ).text();
       $(this).html( '<input class = "orders-table-search" id="orders-table-search-' + $(this).index() + '" type="text" placeholder="Search '+title+'">' );
   } );
 
   var table = $('#orders-table').DataTable();
+
+  var settings = $('#orders-table').dataTable().fnSettings();
+
+  $("#foot_ID,#footer-code,#footer-name").each(function (colIdx) {
+    this.value = settings.aoPreSearchCols[colIdx].sSearch;
+    $(this).find('input').on('change', function() {
+      table.column(colIdx).search(this.value).draw();
+    })
+  });
+
+  //$("#foot_ID input").on('change', function() {
+  //  table.column(0).search(this.value).draw();
+  //});
 
   $("#status-search").each( function ( i ) {
         var select = $('<select><option value="any">Any</option><% Order::ORDER_STATUSES.each{|s| %><option value="<%= s%>"><%= s%></option><% } %></select>')
@@ -112,21 +126,9 @@ jQuery(document).ready(function() {
             } );
   });
 
-
-  // Apply the filter
-  table.columns().flatten().each( function ( colIdx ) {
-      $( 'input.orders-table-search', table.column( colIdx ).footer() ).on( 'change', function () {
-          table
-              .column( colIdx )
-              .search( this.value )
-              .draw();
-
-      } );
-  });
-
   /* Now do the individual input values */
-  var settings = $('#orders-table').dataTable().fnSettings();
-  var jqInputs = $('.orders-table-search');
+
+  var jqInputs = $('.searchy');
   for ( var i=0 ; i<settings.aoPreSearchCols.length ; i++ )
   {
     if(settings.aoPreSearchCols[i].sSearch!='')

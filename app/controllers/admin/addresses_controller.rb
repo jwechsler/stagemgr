@@ -1,7 +1,6 @@
 class Admin::AddressesController < Admin::ApplicationController
-  # before_filter { |c| Authorization.current_user = c.current_user }
 
-  filter_resource_access
+  filter_resource_access :additional_collection=>{:autocomplete_address=>:index}
 
   # GET /admin/addresses
   # GET /admin/addresses.xml
@@ -105,6 +104,55 @@ class Admin::AddressesController < Admin::ApplicationController
     respond_to do |format|
       format.html { redirect_to(admin_addresses_url) }
       format.xml  { head :ok }
+    end
+  end
+
+  def autocomplete_address
+    cleaned_name, first_name, middle_name, last_name, first_name_2 = Address.parse_name(params[:term])
+    last_name = first_name if last_name.blank?
+    Rails.logger.debug [cleaned_name, first_name, middle_name, last_name].to_yaml
+    # val = params[:q].gsub(Address::SEARCHABLE_REGEXP,'').upcase
+
+    #addresses = Address.where("search_name like :search_expr and id in (select address_id from orders)", {:search_expr=>'%' + val + '%'}).limit(10).order(
+    #    'last_name', 'first_name', 'id');
+    unless first_name.blank? || (last_name == first_name)
+      addresses = Address.where("((first_name like ?) or (first_name like ?)) and last_name like ?",
+        "#{first_name}%", "#{first_name_2.blank? ? '-----' : first_name_2}%",
+        "#{last_name}%").includes({:orders=>{:performance=>:production}}).order("addresses.last_name, addresses.first_name, addresses.id").limit(15)
+    else
+      addresses = Address.where("first_name like ? or last_name like ?", last_name+'%', last_name+'%').includes({:orders=>{:performance=>:production}}).order("addresses.last_name, addresses.first_name, addresses.id").limit(15)
+    end
+    if addresses.nil?
+      render :json=>Array.new
+    else
+      render :json => addresses.map { |a|
+        value = a.full_name
+        member_code = a.is_current_member? ? a.current_membership.member_code : nil
+        tags = current_user.allowed_tags(a.address_tags).map {|t|
+          "<div class=\"small-6 columns quick-lookup-history\">#{t.tag_label}</div><div class=\"small-6 columns quick-lookup-history\">#{t.tag_value}</div>"
+          }.join(" ")
+        label = a.full_name
+        label += " [MEMBER]" unless member_code.nil?
+        label += " #{a.line1} #{a.city} #{a.zipcode}" unless a.line1.blank?
+        label += " #{a.email}" unless a.email.blank?
+        attended = a.productions.sort {|a,b| b.closing_at <=> a.closing_at}[0..9].map{|p| "<div class=\"small-6 columns quick-lookup-history\">#{p.name}</div>" }.join(' ')
+        { :id => a.id,
+          :label=>label,
+          :value=>a.full_name,
+          :full_name => a.full_name,
+          :email => a.email,
+          :line1=>a.line1,
+          :line2=>a.line2,
+          :city=>a.city,
+          :state=>a.state,
+          :zipcode=>a.zipcode,
+          :phone=>a.phone,
+          :member_code=>member_code,
+          :tags=>tags,
+          :attended=>attended
+        }
+
+      }
     end
   end
 end
