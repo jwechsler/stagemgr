@@ -4,19 +4,21 @@
     = order_form.simple_fields_for :address do |address_form|
       = render '/admin/orders/name_form', :f => address_form
       = order_form.input :special_request, :as=>:select, :collection=>TicketOrder::SEATING_REQUESTS + ['See Notes'], :label=>"Special seating requirements?"
+      = order_form.input :hold_under, :label=>'Hold reservation under'
   %div.small-6.columns
     = render '/admin/orders/billing_form', :order_form=>order_form
+
 %div.row
-  %div.small-12.columns
+  %div.small-12.medium-6.columns
     = order_form.simple_fields_for :address do |address_form|
       = render '/admin/orders/address_form', :f => address_form
+  %div.small-12.medium-6.columns
+    %fieldset
+      %legend Marketing
+      = order_form.input :add_to_email_list, :as=>:boolean, :label=>'Add to email list?', :default=>false
+      - if order_form.object.is_a? TicketOrder
+        = order_form.input :marketing_source, :collection=>Order::REFERRALS, :label=>"How did you hear about the show?"
 
-    = order_form.input :add_to_email_list, :as=>:boolean, :label=>'Add to email list?', :default=>false
-    - if order_form.object.is_a? TicketOrder
-      = order_form.input :marketing_source, :collection=>Order::REFERRALS, :label=>"How did you hear about the show?"
-
-
-    = order_form.input :hold_under, :label=>'Hold reservation under'
 %div.row
   %div.small-12.columns
     = order_form.input :notes, :input_html => {:rows => 4}
@@ -24,25 +26,17 @@
 %div.row
   %div.small-6.columns
     - permitted_to? :fulfill, :admin_ticket_orders do
-      = order_form.submit 'Print Tickets', :disable_with => 'Printing...' if order_form.object.printable?
+      = order_form.submit 'Print Tickets', :class=>'button', :disable_with => 'Printing...' if order_form.object.printable?
 
     - if [Order::NEW, Order::HOLD, Order::PROCESSING].include? order_form.object.status
-      = order_form.submit 'Place Order', :disable_with => 'Processing...', :confirm => "Process this order?"
+      = order_form.submit 'Place Order', :class=>'button', :disable_with => 'Processing...', :confirm => "Process this order?"
     - else
       = order_form.submit 'Place Order'
 
     - permitted_to? :hold, :admin_orders do
-      = order_form.submit 'Hold', :disable_with => 'Holding...' if order_form.object.holdable?
+      = order_form.submit 'Hold', :disable_with => 'Holding...', :class=>'button' if order_form.object.holdable?
 
     = if order_form.object.status == Order::HOLD || order_form.object.status == Order::PROCESSING
-      = link_to 'Cancel Order', cancel_admin_order_path(order_form.object), :confirm => "Are you sure?", :method=>:post
+      = link_to 'Cancel Order', cancel_admin_order_path(order_form.object), :confirm=>"Are you sure?", :method=>:post, :class=>'button'
   %div.small-6.columns
     = render '/admin/orders/audit_show', :order_form=>order_form.object
-
-= content_for :js do
-  :javascript
-
-    jQuery(document).ready(function($) {
-
-
-    });

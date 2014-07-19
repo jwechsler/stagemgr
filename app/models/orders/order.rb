@@ -3,7 +3,7 @@ require 'payment_form_fields'
 InvalidSpecialOfferCode = Class.new(StandardError)
 
 class Order < ActiveRecord::Base
-  using_access_control
+  @using_access_control
 
   include PaymentFormFields
   include Admin::ReportsHelper
@@ -430,9 +430,16 @@ class Order < ActiveRecord::Base
   end
 
   def transition_to!(new_status, redirect_to = nil)
-    old_status = self.status
-    redirect_to = self.send "transition_#{self.status.underscore}_to_#{new_status.underscore}!".to_sym, redirect_to
-    raise "Transition from #{old_status} to #{new_status} unsuccessful. Current status is #{self.status}." unless self.status == new_status
+    Order.transaction do
+      begin
+        old_status = self.status
+        redirect_to = self.send "transition_#{self.status.underscore}_to_#{new_status.underscore}!".to_sym, redirect_to
+        raise "Transition from #{old_status} to #{new_status} unsuccessful. Current status is #{self.status}." unless self.status == new_status
+      rescue Exception=>e
+        self.reload
+        raise e
+      end
+    end
     redirect_to
   end
 

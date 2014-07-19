@@ -11,10 +11,10 @@ jQuery(document).ready(function($) {
 
     $.fn.setup_code_input = function() {
 
-      $(this).on('blur',function() {
+      $(this).on('railsAutocomplete.select',function(event,ui) {
         price = this.id.replace('ticket_class_code','price_override')
         price_field = $('#'+price);
-        price_field.val(Number($(this).attr('data-q-ticket_price')).toFixed(2));
+        price_field.val(Number(ui.item.ticket_price).toFixed(2));
         recalculate_row_total(order_type,$(this).parents('.line_item'));
       });
     }
@@ -46,13 +46,12 @@ jQuery(document).ready(function($) {
     });
 
     $('#disassociate-address').on('click', function() {
-      $('#ticket_order_address_attributes_id').val('');
+      $('#linked_to_address_id').val('');
       $("#quick-lookup #tags").html('');
       $("#quick-lookup #attended_shows").html('');
       $('div#full-name-input-column').addClass('small-12');
       $('div#full-name-input-column').removeClass('small-10');
       $('div#full-name-clear-column').addClass('hide');
-      $('#quick-lookup').addClass('hide');
     })
 
 

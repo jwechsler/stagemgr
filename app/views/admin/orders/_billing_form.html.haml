@@ -1,4 +1,4 @@
-= order_form.input :payment_type, :label=>"Pay using", :include_blank=>false, :as=>:select, :collection=>payment_types(order_form.object, (defined? allowed_payment_types?) ? allowed_payment_types : nil), :input_html=>{:class=>'payment_type_choice'}
+= order_form.association :payment_type, :label=>"Pay using", :include_blank=>false, :as=>:select, :collection=>payment_types(order_form.object, (defined? allowed_payment_types?) ? allowed_payment_types : nil), :input_html=>{:class=>'payment_type_choice'}
 
 %div#payment_forms
   %div#credit_card_payment_form

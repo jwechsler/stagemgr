@@ -1,11 +1,10 @@
 = f.label :full_name, "Name"
 %div.row.collapse
   %div#full-name-input-column.small-12.columns
-    = f.input_field :full_name, :label=>"Name", :as=>:autocomplete, :url=>autocomplete_address_admin_addresses_path, :id_element=>'.address_id', :update_elements => { }
-    = f.input_field :id, :as=>:hidden, :class=>'address_id'
+    = f.input_field :full_name, :label=>"Name", :as=>:autocomplete, :url=>autocomplete_address_admin_addresses_path, :id_element=>'#linked_to_address_id', :update_elements => { }
+    %hidden_field_tag{:id=>"linked_to_address_id"}
   %div#full-name-clear-column.small-2.columns.hide
     %a#disassociate-address.postfix.button{:href=>'#'} Clear
-
 %input{:id=>"fake_safari_email", :name=>"fake_safari[email]", :style=>"position:absolute; top:-1000px;",:type=>"text",:value=>"Safari Autofill Me",:type=>"email"}
 = f.input :email
 = f.input :phone
