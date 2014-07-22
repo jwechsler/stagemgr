@@ -1,0 +1,31 @@
+= content_for :title do
+  = "Exchange Order \##{@original_order.id}"
+= content_for :breadcrumbs do
+  %div.row.collapse
+    %div.small-10.columns
+      %ul.breadcrumbs
+        %li
+          = link_to 'Existing Orders', admin_orders_path
+        %li
+          = link_to "Order \##{@original_order.id}"
+        %li.current
+          %a{:href=>'#'}= "Exchange"
+    %div.small-2.columns
+      = render '/admin/orders/status_bar', :order=>@original_order
+
+%div.row
+  %fieldset
+    %legend Original Order
+    = render '/admin/ticket_orders/detail', :ticket_order=>@original_order
+%div.row
+  %div.small-12.columns
+    %fieldset
+      %legend Exchange Order
+      = simple_form_for [:admin, @original_order, @exchange_order], :html=>{:id=>'admin_ticket_order_form'}, :url=>admin_ticket_order_exchange_ticket_orders_path(@original_order) do |order_form|
+        = render '/admin/ticket_orders/ticket_line_items_form', :order_form=>order_form, :allow_internal=>true
+        = render '/admin/orders/billing_form', :order_form=>order_form, :allowed_payment_types=>@allowed_payment_types
+        = order_form.input :notes, :input_html=>{:rows => 4}
+        - if order_form.object.status == Order::NEW || order_form.object.status == Order::HOLD
+          = order_form.submit 'Hold', :disable_with=>'Processing...', :class=>'button'
+        - if order_form.object.status == Order::NEW || order_form.object.status == Order::HOLD
+          = order_form.submit 'Place Order', :disable_with=>'Processing...', :class=>'button'

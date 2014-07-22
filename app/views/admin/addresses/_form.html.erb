@@ -1,9 +1,0 @@
-<%= f.input :full_name %>
-<%= f.input :email %>
-<%= f.input :line1, :label=>"Street (line 1)", :required=>false %>
-<%= f.input :line2, :label=>"Street (line 2)", :required=>false %>
-<%= f.input :city, :required=>false %>
-<%= f.input :state, :required=>false %>
-<%= f.input :zipcode, :label=>"Zip Code", :required=>false %>
-<%= render :partial=>'/admin/addresses/tags', :locals=>{:f=>f} %>
-

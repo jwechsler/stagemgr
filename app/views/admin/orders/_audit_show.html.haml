@@ -1,0 +1,19 @@
+- if !order_form.audits.empty?
+  %div.row
+    %div.small-12.columns
+      %h4 Change history
+      - order_form.audits.each do |revision|
+        %div.row
+          %div.small-3.columns
+            = revision.user_id.nil? ? "Web" : "#{User.find_by_id(revision.user_id).username}"
+          %div.small-3.columns
+            = distance_of_time_in_words_to_now revision.created_at
+          %div.small-6.columns
+            - if revision.action == "create"
+              - revision.audited_changes.each do |fld,changes|
+                = raw "#{fld} is #{changes}<br/>" if !changes.blank?
+            - else
+              - revision.audited_changes.each do |fld,changes|
+                = raw "#{fld} changed to #{changes[1]}<br/>" if !changes.nil?
+          %div.small-4.columns
+

@@ -23,10 +23,10 @@
         %span
           &nbsp;
 
-    = render 'ticket_line_item_fields', :f=>tlif, :production_selector=>'#ticket_order_production_code', :performance_selector=>'#ticket_order_performance_code'
+    = render '/admin/ticket_orders/ticket_line_item_fields', :f=>tlif, :production_selector=>'#ticket_order_production_code', :performance_selector=>'#ticket_order_performance_code'
   %div.row
     %div.small-3.columns
       .links
-        = link_to_add_association 'Add tickets', order_form, :ticket_line_items, :class=>'small button'
+        = link_to_add_association 'Add tickets', order_form, :ticket_line_items, :class=>'small button', :partial=>'admin/ticket_orders/ticket_line_item_fields'
     %div.small-9.columns
       = render '/admin/orders/special_offer_form', :f => order_form

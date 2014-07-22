@@ -40,9 +40,3 @@ function recalculate_all_row_totals(order_type) {
   });
 }
 
-
-var add_item_callback = function(order_type, added_item){
-  added_item.find('input.autocomplete_tccode').each(function() {
-    add_autocomplete_tccode(order_type, jQuery(this));
-  });
-}

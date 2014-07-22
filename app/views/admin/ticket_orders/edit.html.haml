@@ -1,16 +1,4 @@
-= content_for :title do
-  Ticket Order
-= content_for :breadcrumbs do
-  %div.row.collapse
-    %div.small-10.columns
-      %ul.breadcrumbs
-        %li
-          = link_to 'Existing Orders', admin_orders_path
-        %li.current
-          %a{:href=>'#'} Ticket Order
-    %div.small-2.columns
-      %span.postfix.info{:style=>"font-size:11px; line-height:31px; height:31px;"}
-        = @ticket_order.status.upcase
+= render '/admin/orders/header_bar', :order=>@ticket_order
 
 
 = simple_form_for [:admin, @ticket_order], :html=>{:id=>'admin_ticket_order_form', :autocomplete=>"off"} do |order_form|

@@ -135,6 +135,8 @@ Stagemgr::Application.routes.draw do
     resources :addresses do
       collection do
         get :autocomplete_address
+        get :autocomplete_tag
+        get :autocomplete_address_tag_tag_label
       end
     end
 
@@ -214,6 +216,8 @@ Stagemgr::Application.routes.draw do
         post :update_notes
       end
     end
+
+    resources :donation_pledge_orders, :path=>:donation_orders
 
     resources :ticket_orders do
       collection do

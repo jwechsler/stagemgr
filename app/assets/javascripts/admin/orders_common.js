@@ -5,6 +5,8 @@
 //= require admin/ticket_orders/CardReader
 //= require_self
 
+
+
 jQuery(document).ready(function($) {
 
   $('#admin_ticket_order_form').each(function() {
@@ -31,7 +33,6 @@ jQuery(document).ready(function($) {
     // setup_line_item_row_control('ticket_order');
 
     setup_payment_form();
-
     $('input.code-input').setup_code_input();
 
     $('#ticket_line_items').on('cocoon:after-insert', function(e, insertedItem) {
@@ -52,7 +53,7 @@ jQuery(document).ready(function($) {
       $('div#full-name-input-column').addClass('small-12');
       $('div#full-name-input-column').removeClass('small-10');
       $('div#full-name-clear-column').addClass('hide');
-    })
+    });
 
 
       // $.event.trigger({type:"railsAutocomplete.select",message:"hi",time: new Date()});
@@ -97,16 +98,19 @@ jQuery(document).ready(function($) {
   //  });
 
   */
+
+
+  });
+
     setup_gift_form();
 
-    $('#update_note_control').hide();
+    $('#update_note_control').addClass("hide");
 
     $('#update_note').click(function() {
-      $('#note_control').hide();
-      $('#update_note_control').show('slow');
+      $('#note_control').addClass("hide");
+      $('#update_note_control').removeClass('hide');
       return false;
     });
 
-  });
 });
 

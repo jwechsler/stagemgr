@@ -1,6 +1,8 @@
 class Admin::AddressesController < Admin::ApplicationController
 
-  filter_resource_access :additional_collection=>{:autocomplete_address=>:index}
+  filter_resource_access :additional_collection=>{:autocomplete_address=>:index, :autocomplete_tag=>:index, :autocomplete_address_tag_tag_label=>:index}
+
+  autocomplete :address_tag,:tag_label
 
   # GET /admin/addresses
   # GET /admin/addresses.xml
@@ -10,6 +12,7 @@ class Admin::AddressesController < Admin::ApplicationController
     respond_to do |format|
       format.html # index.html.erb
       format.xml  { render :xml => @addresses }
+      format.json { render json: AddressesDatatable.new(view_context) }
     end
   end
 
@@ -154,5 +157,13 @@ class Admin::AddressesController < Admin::ApplicationController
 
       }
     end
+  end
+
+  def autocomplete_tag
+    #tags = AddressTag.order(:tag_label).select('tag_label').where('tag_label like ?', "#{params[:term]}%").uniq
+    #render :json => tags.map do |tag|
+    #  { :id=>tag.tag_label, :label=>tag.tag_label, :value=>tag.tag_label }
+    #end
+    render :json=>AddressTag.order(:tag_label).select('DISTINCT tag_label');
   end
 end
