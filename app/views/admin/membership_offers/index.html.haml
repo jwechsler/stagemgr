@@ -7,12 +7,13 @@
 
 .row
   .small-12.columns
-    %table#membership-offer-listing
+    %table#membership-offer-listing.hide.display
       %thead
         %tr
           %th Name
           %th Recurring Cost
           %th On Sale
+          %th.hide Status
           %th
       %tbody
         - for membership_offer in @membership_offers
@@ -20,6 +21,7 @@
             %td= link_to membership_offer.name, [:admin, membership_offer]
             %td.currency= number_to_currency(membership_offer.recurring_cost)
             %td= membership_offer.on_sale
+            %td.hide= membership_offer.status
             %td
               .button-bar
                 %ul.button-group
@@ -31,3 +33,27 @@
                   - else
                     %a.tiny.button.disabled{:href=>'#'} Create Order
     = link_to "New Membership Offer", new_admin_membership_offer_path, :class=>'button' if permitted_to? :create, :admin_membership_offers
+
+= content_for :js do
+  :javascript
+    $(document).ready(function() {
+      $('#membership-offer-listing').dataTable({
+
+        dom: 'lf<"toolbar-buttons">rtip',
+        stateSave: true,
+        pageLength: 25,
+        order: [[3, "asc"],[0, 'asc']],
+        pagingType: "foundation",
+        columnDefs: [
+          {targets: "_all", orderable:false},
+          {targets: [1,2], searchable:false},
+             ],
+        fnInitComplete:function() {
+          $("#membership-offer-listing").show();
+          this.fnAdjustColumnSizing();
+        },
+      });
+
+      setupActiveSwitchOnDataTable('#membership-offer-listing',3)
+
+    });

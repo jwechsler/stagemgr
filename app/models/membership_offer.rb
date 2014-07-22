@@ -9,6 +9,8 @@ class MembershipOffer < ActiveRecord::Base
   validates_presence_of :name,:use_ticket_class_code,:recurring_cost,:tickets_per_performance
   validates_numericality_of :tickets_per_performance, :recurring_cost
   validates_numericality_of :trial_price, :if=>:has_trial?
+  before_save :take_inactive_off_sale, :unless=>:active?
+
   OFFER_STATUSES = (ACTIVE, INACTIVE = 'Active',  'Inactive')
   def has_trial?
     !self.trial_period.nil? && self.trial_period > 0
@@ -22,4 +24,8 @@ class MembershipOffer < ActiveRecord::Base
     self.status == ACTIVE
   end
 
+  def take_inactive_off_sale
+    self.on_sale = false
+    true
+  end
 end

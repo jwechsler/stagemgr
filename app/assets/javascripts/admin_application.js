@@ -8,12 +8,13 @@ function setupActiveSwitchOnDataTable(table_selector, status_column_idx) {
     var settings = $(table_selector).dataTable().fnSettings();
     var activeSwitch = $('#active-switch');
     var table = $(table_selector).DataTable();
-    table.columns(status_column_idx).search('^Active$');
 
     if ((typeof settings.aoPreSearchCols[status_column_idx] == 'undefined') ||settings.aoPreSearchCols[status_column_idx].sSearch.length==0) {
       activeSwitch.text('Show Active')
     } else {
       activeSwitch.text('Show All')
+      console.log('log')
+      console.log(settings.aoPreSearchCols[status_column_idx])
     }
     activeSwitch.prop('checked',true);
     activeSwitch.on('click', function () {
