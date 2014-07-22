@@ -140,7 +140,7 @@
                     index += 1 %>
                 <p align="right">
                   <% if note.start_with?("_custom") %>
-                    <%= render_markdown(performance.special_feature_display_markdown) %>
+                    <%= display_markdown(performance.special_feature_display_markdown) %>
                   <% else %>
                     <p><%= "[#{index}] #{SpecialFeature.find_by_short_name(note).description}" %></p>
                   <% end %>

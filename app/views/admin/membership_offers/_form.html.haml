@@ -1,0 +1,50 @@
+
+= simple_form_for [:admin, membership_offer] do |f|
+  .row
+    .small-12.medium-6.columns
+      = f.input :name
+    .small-12.medium-6.columns
+      .row
+        .small-6.columns
+          = f.input :status, :as=>:select, :collection=>MembershipOffer::OFFER_STATUSES, :include_blank=>false
+        .small-6.columns
+          = f.label :on_sale
+          = f.input_field :on_sale
+  .row
+    .small-12.columns
+      %fieldset
+        %legend Membership Details
+        .row
+          .small-6.medium-3.columns
+            = f.input :recurring_cost
+          .small-6.medium-3.columns
+            = f.input :tickets_per_performance
+          .small-6.medium-3.columns
+            = f.input :use_ticket_class_code, :as=>:select, :collection=>DefaultTicketClass.all.map{|tc| tc.class_code}
+          .small-6.medium-3.columns
+            = f.input :use_member_friend_code, :as=>:select, :collection=>DefaultTicketClass.all.map{|tc| tc.class_code}
+        .row
+          .small-6.medium-3.columns
+            = f.input :trial_period, :label=>"Trial Periods"
+          .small-6.medium-3.columns
+            = f.input :trial_price, :label=>"Trial Price"
+          .small-6.medium-3.columns
+            = f.label :restricted_to_first_time, "First time members only"
+            = f.input_field :restricted_to_first_time
+          .small-6.medium-3.columns
+            = f.input :max_cycles_if_gift, :hint => "Number of billing cycles before gift membership expires", :label=>"Gift duration"
+  .row
+    .small-12.columns
+      %fieldset
+        %legend Notification/Display
+        .row
+          .small-12.columns
+            = f.input :html_description
+            = f.input :email_html
+        .row
+          .small-6.columns
+            = f.input :myemma_group, :label=>"MyEmma Group ID"
+          .small-6.columns
+            = f.input :billing_agreement
+  = f.submit :class=>'button'
+

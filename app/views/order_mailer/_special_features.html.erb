@@ -1,5 +1,5 @@
 <% unless performance.special_feature_email_markdown.blank? %>
-  <%= render_markdown(performance.special_feature_email_markdown) %>
+  <%= display_markdown(performance.special_feature_email_markdown) %>
 <% else %>
-  <%= render_markdown(performance.special_feature_display_markdown) unless order.special_feature_display_markdown.blank? %>
+  <%= display_markdown(performance.special_feature_display_markdown) unless order.special_feature_display_markdown.blank? %>
 <% end %>

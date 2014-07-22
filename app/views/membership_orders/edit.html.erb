@@ -1,11 +1,7 @@
 <%- if [Order::NEW,Order::PROCESSING].include?(@order.status) then %>
  <%- if @order.membership_offer.on_sale then %>
 
-    <h1><%= @order.membership_offer.name %></h1>
-
-    <%- if !@order.membership_offer.html_description.blank? %>
-      <p><%= raw @order.membership_offer.html_description %></p>
-    <%- end %>
+    <%= render :partial=>'/membership_offers/info', :locals=>{:membership_offer=>@order.membership_offer}
     <%= semantic_form_for @order do |order_form| %>
       <%= order_form.error_messages %>
       <%= order_form.inputs :class=>"order" do %>

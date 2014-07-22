@@ -1,4 +1,9 @@
 <% content_for :title do %>Existing Orders<% end %>
+<% content_for :breadcrumbs do %>
+<ul class="breadcrumbs">
+  <li class="current"><a href='#'>Membership Offers</a></li>
+</ul>
+<% end %>
 
 <h4>Existing orders</h4>
 <table id="orders-table", class="hide" data-source="<%= admin_orders_path(format: :json) %>">
