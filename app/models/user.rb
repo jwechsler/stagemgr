@@ -22,6 +22,9 @@ class User < ActiveRecord::Base
     self.status = User::ACTIVE if self.status.blank?
   end
 
+  def inactive?
+    self.status == INACTIVE
+  end
 
   def theater_ids
     return theaters.map{|t| t.id.to_i}
