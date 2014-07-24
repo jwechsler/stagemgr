@@ -37,6 +37,14 @@ label.boolean + span.hint {
 
 }
 
+select {
+    height: auto;
+}
+
+select[size], select[multiple] {
+    background-image: none;
+}
+
 
 #performance_restricted_payment_type_ids {
   height: 6em;

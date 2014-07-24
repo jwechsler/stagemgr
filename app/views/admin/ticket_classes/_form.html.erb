@@ -1,47 +1,8 @@
 <div class="row">
   <div class="small-12 columns">
   <%= simple_form_for([:admin,theater,production,ticket_class]) do |f| %>
-    <div class="row">
-      <div class="small-4 columns">
-        <%= f.input :class_code %>
-      </div>
-      <div class="small-8 columns">
-      <%= f.input :ticket_type, :as=>:select, :collection=>TicketClass::TICKET_TYPES %>
-      </div>
-    </div>
-    <%= f.input :class_name %>
-
-    <div class="row">
-      <div class="small-6 columns">
-        <fieldset>
-          <legend>Pricing</legend>
-
-          <%= f.label :ticket_price %>
-          <%= f.input_field :ticket_price, :type=>:number, :value=>number_with_precision(f.object.ticket_price, :precision => 2), step: 0.25 %>
-
-          <%= f.label :ticketing_fee %>
-          <%= f.input_field :ticketing_fee, :type=>:number, :value=>number_with_precision(f.object.ticketing_fee, :precision => 2), step: 0.25  %>
-        </fieldset>
-      </div>
-      <div class="small-6 columns">
-        <fieldset>
-        <legend>Ticket Class Options</legend>
-        <div class="row">
-        <div class="small-12 columns">
-        <%= f.input :web_visible, :hint=>"Make this ticket class end-user purchasable" %>
-        <%= f.input :software_managed, :hint=>"Hide the actual price from the customer" %>
-
-        <%= f.input :holds_seats, :default=>true, :hint=>"Reserve seats from inventory" %>
-        <%= f.input :auto_attach, :hint=>"Automatically attach to every performance" %>
-        <%= f.input :minutes_before_show, :hint=>"Reveal timed tickets at this point before showtime" %>
-        </div>
-        </div>
-      </div>
-    </fieldset>
-    </div>
-
-      <%= f.hidden_field :production_id %>
-      <%= f.button :submit %>
+    <%= f.hidden_field :production_id %>
+    <%= render :partial=>'fields', :locals=>{:f=>f} %>
   <%- end %>
   </div>
 </div>

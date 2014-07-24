@@ -65,5 +65,12 @@ module ApplicationHelper
     end
   end
 
+  def checkmark(value)
+    if value
+      raw fa_icon 'check'
+    else
+      ''
+    end
+  end
 end
 

@@ -1,0 +1,11 @@
+= content_for :title do
+  @flex_pass_offer.name
+= content_for :breadcrumbs do
+  %ul.breadcrumbs
+    %li= link_to 'Flex Pass Offers', admin_flex_pass_offers_path
+    %li.current
+      %a{:href=>'#'}= @flex_pass_offer.name
+
+.row
+  .small-12.columns
+    = render 'form', :flex_pass_offer=>@flex_pass_offer

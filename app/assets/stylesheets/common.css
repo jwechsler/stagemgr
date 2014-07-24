@@ -276,8 +276,11 @@ table.report {
 }
 
 .help_text {
+  display: block;
   font-style: italic;
   font-size: 12px;
+  line-height: 1.2em;
+  margin-botton: .5em;
 }
 /* Forms
 */
