@@ -1,6 +1,8 @@
 class User < ActiveRecord::Base
   has_and_belongs_to_many :theaters #, :as => :owned_theaters
   has_many :file_stores
+  validates_presence_of :email
+  validates_uniqueness_of :email
 
   PRIVILEGE_LEVELS                                   = (
   ADMIN, BOXOFFICE, THEATERUSER  =
