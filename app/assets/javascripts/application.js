@@ -1,9 +1,9 @@
 //= require jquery
 //= require jquery-ui
-//= require jquery_ujs
 //= require foundation
 //= require foundation/foundation.topbar
 //= require foundation-datetimepicker
+//= require jquery_ujs
 //= require autocomplete-rails
 //= require dataTables/jquery.dataTables
 //= require dataTables/jquery.dataTables.foundation

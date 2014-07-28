@@ -1,0 +1,11 @@
+
+.row
+  .small-12.columns
+    %h3 Login
+
+    = simple_form_for @user_session, :as => :user_session, :url => user_session_path do |f|
+      = f.error_messages
+      = f.input :email
+      = f.input :password
+      = f.input :remember_me, :as=>:boolean
+      = f.button :submit, 'Login'

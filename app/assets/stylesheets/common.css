@@ -219,9 +219,7 @@ td.numeric {
   text-align: right;
 }
 
-.production_information .special_offer {
-    text-align: left;
-}
+
 .special_offer_upsell {
     text-align: center;
     font-weight: bold;

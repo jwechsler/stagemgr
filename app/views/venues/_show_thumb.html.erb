@@ -8,7 +8,7 @@
     height: 186px;
   }
   </style>
-<div class="show_listing background-<%= background %>" style="width: <%= slice %>%">
+<div class="show-listing background-<%= background %>" style="width: <%= slice %>%">
   <p class="venue"><%= production.venue.name %></p>
   <%= image_url = production.best_image_url_available(:thumb)
       link_to("showtitle", production_performances_path(production.id, :anchor=>"top"), id:"nowplaying_thumb_#{production.id}") unless image_url.nil? %>

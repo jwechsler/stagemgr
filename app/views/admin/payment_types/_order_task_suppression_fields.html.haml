@@ -1,0 +1,17 @@
+.nested-fields
+  .row
+    .small-5.columns
+      .row.collapse
+        .small-3.columns
+          = f.label :task_type, 'Type', :class=>'left prefix'
+        .small-9.columns
+          = f.input_field :task_type
+    .small-5.columns
+      .row.collapse
+        .small-3.columns
+          = f.label :method_name, 'Method', :class=>'left prefix'
+        .small-9.columns
+          = f.input_field :method_name
+
+    .small-2.columns
+      = link_to_remove_association "remove", f, :class=>'tiny alert button'

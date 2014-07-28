@@ -1,39 +1,44 @@
 <% content_for :title do %>Existing Orders<% end %>
 <% content_for :breadcrumbs do %>
 <ul class="breadcrumbs">
-  <li class="current"><a href='#'>Membership Offers</a></li>
+  <li class="current"><a href='#'>Orders</a></li>
 </ul>
 <% end %>
 
-<h4>Existing orders</h4>
-<table id="orders-table", class="hide" data-source="<%= admin_orders_path(format: :json) %>">
-  <thead>
-    <tr>
-      <th id="foot_ID" class="searchy"></th>
-      <th id="footer-code" class="searchy"></th>
-      <th id="footer-name" class="searchy"></th>
-      <th id="status-search" class="option-search"></th>
-      <th id="visits"></th>
-      <th id="total"></th>
-      <th id="description"></th>
-      <th id="footer_hidden_id"></th>
-    </tr>
-    <tr>
-      <th>ID</th>
-      <th>Code</th>
-      <th>Name</th>
-      <th>Status</th>
-      <th>Visits</th>
-      <th>Total</th>
-      <th>Description</th>
-      <th>Hidden ID</th>
-    </tr>
+<div class="row">
+  <div class="small-12 columns">
 
-  </thead>
-  <tbody>
-  </tbody>
+    <table id="orders-table", class="hide" data-source="<%= admin_orders_path(format: :json) %>">
+      <thead>
+        <tr>
+          <th id="foot_ID" class="searchy"></th>
+          <th id="footer-code" class="searchy"></th>
+          <th id="footer-name" class="searchy"></th>
+          <th id="status-search" class="option-search"></th>
+          <th id="visits"></th>
+          <th id="total"></th>
+          <th id="description"></th>
+          <th id="footer_hidden_id"></th>
+        </tr>
+        <tr>
+          <th>ID</th>
+          <th>Code</th>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Visits</th>
+          <th>Total</th>
+          <th>Description</th>
+          <th>Hidden ID</th>
+        </tr>
 
-</table>
+      </thead>
+      <tbody>
+      </tbody>
+
+    </table>
+  </div>
+</div>
+
 
 <% content_for :js do%>
 <script type="text/javascript" class="init">

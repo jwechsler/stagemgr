@@ -130,6 +130,7 @@ Stagemgr::Application.routes.draw do
 
     resources :membership_orders, :only=>false
 
+
     resources :flex_pass_orders
 
     resources :addresses do
@@ -201,6 +202,7 @@ Stagemgr::Application.routes.draw do
         post :refund
         get  :fulfill
         get :unclaimed
+        post :update_notes
       end
       resources :refund_orders, :only=>[:new,:create]
     end
@@ -213,7 +215,6 @@ Stagemgr::Application.routes.draw do
         post :cancel
         post :refund
         get  :fulfill
-        post :update_notes
       end
     end
 
@@ -235,7 +236,6 @@ Stagemgr::Application.routes.draw do
         get :reprint
         get :unclaimed
         get :resend_confirmation
-        post :update_notes
       end
       resources :exchange_ticket_orders, :only=>[:new,:create]
       resources :refund_orders, :only=>[:new,:create]

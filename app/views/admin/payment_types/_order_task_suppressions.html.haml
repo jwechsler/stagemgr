@@ -1,0 +1,5 @@
+#order-task-supressions
+  = f.simple_fields_for :order_task_suppressions do |order_task_suppression|
+    = render 'order_task_suppression_fields', :f=>order_task_suppression
+  .links
+    = link_to_add_association 'add suppression', f, :order_task_suppressions, :class=>'tiny button'

@@ -99,11 +99,13 @@ private
         when 'code'
           if 'MEMBERSHIP'.start_with?(search_text.upcase)
             conditions << 'orders.type = \'MembershipOrder\''
-          end
-          if 'FLEXPASS'.start_with?(search_text.upcase)
+            active_productions_only = false
+          elsif 'FLEXPASS'.start_with?(search_text.upcase)
             conditions << 'orders.type = \'FlexPassOrder\''
+            active_productions_only = false
+          else
+            conditions << ['performances.performance_code like ?',"%#{search_text.upcase}%"]
           end
-          conditions << ['performances.performance_code like ?',"%#{search_text.upcase}%"]
         when 'orders.id'
           conditions << ["#{field} = ?",search_text.upcase]
           active_productions_only = false

@@ -1,6 +1,5 @@
 = render '/admin/orders/header_bar', :order=>@ticket_order
 
-
 = simple_form_for [:admin, @ticket_order], :html=>{:id=>'admin_ticket_order_form', :autocomplete=>"off"} do |order_form|
   %div.row
     %div.columns.small-12.medium-8

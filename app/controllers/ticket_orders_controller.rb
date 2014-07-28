@@ -17,6 +17,7 @@ class TicketOrdersController < ApplicationController
 
   def create
     @order = TicketOrder.new(params[:ticket_order])
+    Rails.logger.debug('*** ' + @order.ticket_line_items.to_yaml)
     @order.ip_address = request.remote_ip
     process_order(@order,:confirm_ticket_order_path) if validate_web_order(@order)
   end

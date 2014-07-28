@@ -1,0 +1,43 @@
+= content_for :title do
+  Imports
+= content_for :breadcrumbs do
+  %ul.breadcrumbs
+    %li.current= link_to 'Imports', admin_imports_path
+
+.row
+  .small-12.columns
+    %fieldset
+      %legend Import TRGarts Order File
+      = form_for @trg_basic_import, :url=> admin_imports_path, :html=>{:multipart=>true} do |form|
+        .row
+          .small-3.columns
+            = label_tag :production, 'Update attendees', :class=>'left inline'
+          .small-9.columns
+            = collection_select :production, :production_id, @productions, :id, :name, :include_blank=>true
+
+        .row
+          .small-3.columns
+            =label_tag :data, 'From file', :class=>'left inline'
+          .small-9.columns
+            = form.file_field :data
+        %br
+        = submit_tag "Import Attendees", :class=>'button'
+
+
+    %br
+    %fieldset
+      %legend Import Mailing List Signup Cards
+      = form_for @card_basic_import, :url=> mailing_cards_admin_imports_path, :html=>{:multipart=>true} do |form|
+        .row
+          .small-3.columns
+            = label_tag :production, 'Update attendees', :class=>'left inline'
+          .small-9.columns
+            = collection_select :production, :production_id, @productions, :id, :name
+        .row
+          .small-3.columns
+            = label_tag :data, 'From file', :class=>'left inline'
+          .small-9.columns
+            = form.file_field :data
+        = submit_tag "Import Mailing List", :class=>'button'
+
+    = render '/file_stores/current_files', :file_stores=>@imports

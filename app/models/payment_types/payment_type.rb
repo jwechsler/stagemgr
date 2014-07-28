@@ -5,6 +5,8 @@ class PaymentType < ActiveRecord::Base
   has_many :order_task_suppressions, :dependent=>:destroy
   accepts_nested_attributes_for :order_task_suppressions, :reject_if => proc { |attributes| attributes['task_type'].blank? }, :allow_destroy=>true
 
+  before_destroy :prevent_orphans
+
   validates_uniqueness_of :display_name
 
   def self.valid_payment_types_for(current_user)
@@ -45,6 +47,15 @@ class PaymentType < ActiveRecord::Base
   def allowed_payment_types_for_exchange(current_user)
     PaymentType.all
     []
+  end
+
+  def prevent_orphans
+    if self.payments.count > 0
+      self.errors[:base] << "#{self.display_name} has payments associated with it.  Cannot be deleted"
+      false
+    else
+      true
+    end
   end
 
 

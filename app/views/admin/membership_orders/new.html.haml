@@ -1,0 +1,9 @@
+= content_for :title do
+  New Membership Order
+= content_for :breadcrumbs do
+  %ul.breadcrumbs
+    %li= link_to 'Membership Offers', admin_membership_offers_path
+    %li.current
+      %a{:href=>'#'} New Order
+
+= render '/admin/membership_orders/form'

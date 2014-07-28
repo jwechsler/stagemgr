@@ -1,33 +1,38 @@
-`<fieldset>
-  <legend>Payment information</legend>
-  <table id='payments'>
-    <thead>
-    <th>On</th>
-    <th>Using</th>
-    <th align="center">Amount</th>
-    <th>Payment Info</th>
-    <th align="center">Confirmation</th>
-    <th align="center">note</th>
-    </thead>
-    <% order.payments.each do |payment| %>
-      <tr>
-        <td width="20%"><%= payment.processed_on.to_formatted_s(:short_date_and_time) %></td>
-        <td width="10%"><% if payment.payment_id.blank? %>
-            <%- if payment.payment_type.nil? %>
-              <%=h "#{payment.type[0..-8]}" %>
-            <%- else %>
-              <%=h "#{payment.payment_type.display_name}" %>
-            <%- end %>
-          <% else %>
-            <%=h p = Payment.find_by_id(payment.payment_id)
-                link_to_unless p.order.blank?, "#{payment.type[0..-8]} / #{p.order_id}", {:id => p.order.id} %>
-          <% end %></td>
-        <td width="10%" align="right"><%= h to_currency(payment.amount) %></td>
-        <td width="10%" align="right"><%= h payment.payment_info %></td>
-        <td width="15%" align="center"><%= h payment.confirmation_code %></td>
+<div class="row">
+  <div class="small-12 columns">
+    <fieldset>
+      <legend>Payment information</legend>
+      <table id='payments'>
+        <thead>
+        <th>On</th>
+        <th>Using</th>
+        <th align="center">Amount</th>
+        <th>Payment Info</th>
+        <th align="center">Confirmation</th>
+        <th align="center">note</th>
+        </thead>
+        <% order.payments.each do |payment| %>
+          <tr>
+            <td width="20%"><%= payment.processed_on.to_formatted_s(:short_date_and_time) %></td>
+            <td width="10%"><% if payment.payment_id.blank? %>
+                <%- if payment.payment_type.nil? %>
+                  <%=h "#{payment.type[0..-8]}" %>
+                <%- else %>
+                  <%=h "#{payment.payment_type.display_name}" %>
+                <%- end %>
+              <% else %>
+                <%=h p = Payment.find_by_id(payment.payment_id)
+                    link_to_unless p.order.blank?, "#{payment.type[0..-8]} / #{p.order_id}", {:id => p.order.id} %>
+              <% end %></td>
+            <td width="10%" align="right"><%= h to_currency(payment.amount) %></td>
+            <td width="10%" align="right"><%= h payment.payment_info %></td>
+            <td width="15%" align="center"><%= h payment.confirmation_code %></td>
 
-        <td width="25%" align="left"><%= h payment.note %></td>
-      </tr>
-    <%- end -%>
-  </table>
-</fieldset>
+            <td width="25%" align="left"><%= h payment.note %></td>
+          </tr>
+        <%- end -%>
+      </table>
+    </fieldset>
+
+  </div>
+</div>

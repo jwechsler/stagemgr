@@ -5,16 +5,7 @@
       <img class="production_logo" src="<%= production.best_image_url_available(:medium) %>" width="250"/>
     <%- end %>
     <div class="production_information <%= (defined? layout_style) ? layout_style : '' %>">
-      <% if production.theater.class_display != '' then %>
-        <span class="company_class"><%= production.theater.class_display %></span>
-        <span class="company_header"><%= production.theater.name %></span>
-      <% else %>
-        <span class="company_class"><%= production.theater.name %></span>
-      <% end %>
-      <span class="production_name"><%= production.name %></span><br/>
-      <span class="production_credits"><%= raw production.credit_lines %></span><br/>
-
-      <%= render :partial=>'/productions/production_dates', :locals=>{:production=>production} %>
+      <%= render :partial=>'/productions/header', :locals=>{:production=>production} %>
       <div class="production_description">
         <p>
           <%= raw $MARKDOWN.render(production.show_description) %>

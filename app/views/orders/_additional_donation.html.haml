@@ -1,0 +1,24 @@
+.row
+  .small-12.columns
+    - t = order_form.object.performance.production.theater unless order_form.object.performance.nil?
+    - default_text = t.blank? || t.theater_class == 'Default'
+
+    %fieldset.panel
+      %legend
+        - if default_text
+          I wish to offer additional support
+        - else
+          Make a donation to Theater Wit
+      %p
+        - if default_text
+          Yes! I love Theater Wit. Please add a tax-deductible contribution to this order.
+        - else
+          In addition to its own award-winning programming, Theater Wit subsidizes facilities and  support for groups like
+          = "#{t.name.strip}."
+          Help us bring theater, laughter and debate to our community. Please add a tax-deductible contribution to this order.
+
+      .row.collapse
+        .small-1.columns
+          = order_form.label :additional_donation, '$', :class=>'right prefix'
+        .small-11.columns
+          = order_form.input_field :additional_donation, :size=>7, :label=>'$'

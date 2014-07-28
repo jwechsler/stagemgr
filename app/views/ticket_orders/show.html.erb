@@ -1,19 +1,28 @@
-  <% content_for(:head) do
+<div class="row">
+  <div class="small-12 columns">
+    <% content_for(:head) do
       raw(@order.performance.production.conversion_pixel_code) unless @order.performance.production.conversion_pixel_code.blank?
-    end %><p>Thanks!  Your ticket reservation has been
-  <%- member_payments = @order.membership_payments
-      if member_payments.size > 0 %>
-     made with your <%= member_payments.first.membership.membership_offer.name %>.
-  <%- elsif (@order.total > 0) && (@order.paid_with_currency?) %>
-      made and your credit card has been charged <%= number_to_currency( @order.total) %> for those tickets.  If you've made a donation, look for a separate email with our thanks.
-  <%- elsif @order.paid_with_flexpass? %>
-      made and your FlexPass has <%= pluralize(@order.paid_with_flexpass.uses_remaining,'ticket') %> remaining.
-  <%- else %>
-      made.  You were not charged any money for this order.
-  <%- end %>
-  Your order id is #<%= @order.id %>, and your tickets will be available for pickup under your name at our box office at 1229 W Belmont ninety minutes before curtain. A confirmation email will be sent shortly.
-We will see you at the show on <%= @order.performance.performance_date.to_formatted_s(:long_ordinal) %> at
-<%= @order.performance.performance_time.to_formatted_s(:hour_min) %>. Seating is general admission. If you have any questions, please
-don't hesitate to call us at 773-975-8150 or email us at boxoffice@theaterwit.org.  Thanks for your support and we'll see
-you at the theatre.  Enjoy the show!
-</p>
+    end %>
+    <p>
+      Thanks!  Your ticket reservation has been
+      <%- member_payments = @order.membership_payments
+          if member_payments.size > 0 %>
+         made with your <%= member_payments.first.membership.membership_offer.name %>.
+      <%- elsif (@order.total > 0) && (@order.paid_with_currency?) %>
+          made and your credit card has been charged <%= number_to_currency( @order.total) %> for those tickets.  If you've made a donation, look for a separate email with our thanks.
+      <%- elsif @order.paid_with_flexpass? %>
+          made and your FlexPass has <%= pluralize(@order.paid_with_flexpass.uses_remaining,'ticket') %> remaining.
+      <%- else %>
+          made.  You were not charged any money for this order.
+      <%- end %>
+      Your order id is #<%= @order.id %>, and your tickets will be available for pickup under your name at our box office at 1229 W Belmont ninety minutes before curtain. A confirmation email will be sent shortly.
+    </p>
+    <p>
+      We will see you at the show on <%= @order.performance.performance_date.to_formatted_s(:long_ordinal) %> at
+      <%= @order.performance.performance_time.to_formatted_s(:hour_min) %>. Seating is general admission. If you have any questions, please
+      don't hesitate to call us at 773-975-8150 or email us at <a href="mailto:boxoffice.theaterit.org">boxoffice@theaterwit.org</a>.  Thanks for your support and we'll see
+      you at the theatre.  Enjoy the show!
+    </p>
+
+  </div>
+</div>

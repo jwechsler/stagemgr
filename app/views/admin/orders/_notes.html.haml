@@ -14,7 +14,8 @@
       - else
         %a{:href=>'#', :id=>'update_note', :class=>'small button right'} Add note
     %div#update_note_control.hide
-      = form_for(order, :url=>update_notes_admin_ticket_order_path(order), :method=>'post') do |f|
+      -#
+      = form_for( order, :url=>update_notes_admin_order_path(order), :method=>'post') do |f|
         %fieldset
           %legend Notes
           = text_area_tag(:notes, f.object.notes, :size=>"150x4", :id=>'notes')

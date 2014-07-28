@@ -4,7 +4,11 @@
     = order_form.simple_fields_for :address do |address_form|
       = render '/admin/orders/name_form', :f => address_form
       = order_form.input :special_request, :as=>:select, :collection=>TicketOrder::SEATING_REQUESTS + ['See Notes'], :label=>"Special seating requirements?"
-      = order_form.input :hold_under, :label=>'Hold reservation under'
+      - if (order_form.object.is_a?(TicketOrder) || order_form.object.is_a?(FlexPassOrder))
+        = order_form.input :hold_under, :label=>'Hold reservation under'
+      - else
+        -if order_form.object.is_a? MembershipOrder
+          = render '/membership_orders/third_party', :order_form=>order_form
   %div.small-6.columns
     = render '/admin/orders/billing_form', :order_form=>order_form
 

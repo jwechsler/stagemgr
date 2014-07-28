@@ -5,7 +5,8 @@
   <li class="current"><a href='#'>Theaters</a></li>
 </ul>
 <% end %>
-
+<div class="row">
+<div class="small-12 columns">
 <table id="theater-listing" class="hide display">
   <thead>
     <tr>
@@ -17,6 +18,7 @@
 
       </th>
     </tr>
+  </thead>
   <tbody>
     <% @theaters.each do |theater| %>
       <tr>
@@ -38,6 +40,9 @@
   </tbody>
 </table>
 <%= link_to 'New theater', new_admin_theater_path, :class=>'small button right' %>
+
+</div>
+</div>
 
 <% content_for :js do %>
   <script type="text/javascript">

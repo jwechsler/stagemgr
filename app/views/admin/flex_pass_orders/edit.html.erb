@@ -1,13 +1,13 @@
 
 <%= error_messages_for :flex_pass_order %>
 
-<%= semantic_form_for [:admin, @flex_pass_order], :html=>{:id=>'admin_flex_pass_order_form'} do |order_form| -%>
+<%= simple_form_for [:admin, @flex_pass_order], :html=>{:id=>'admin_flex_pass_order_form'} do |order_form| -%>
   <%= order_form.inputs do %>
 
     <table width="100%">
       <tr>
         <td valign="top" width="80%">
-            <%= order_form.semantic_fields_for :flex_pass_line_items do |flex_pass_line_item_form| %>
+            <%= order_form.simple_fields_for :flex_pass_line_items do |flex_pass_line_item_form| %>
               <%= render :partial => '/admin/flex_pass_orders/flex_pass_line_item_form', :locals => {:f => flex_pass_line_item_form} %>
             <%- end -%>
 
