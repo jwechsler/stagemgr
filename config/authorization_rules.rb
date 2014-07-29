@@ -79,7 +79,7 @@ authorization do
     has_permission_on :orders, :to=>[:delete]
     has_permission_on :ticket_orders, :to=>[:delete]
     has_permission_on :admin_donation_orders, :to=>[:view,:manage,:make,:fulfill,:refund]
-    has_permission_on :admin_ticket_orders, :to=>[:reprint]
+    has_permission_on :admin_ticket_orders, :to=>[:reprint, :refund]
     has_permission_on :admin_refund_orders, :to=>[:make]
     has_permission_on :admin_users, :to=>[:view, :manage, :delete, :make]
     has_permission_on :productions, :to=>:delete

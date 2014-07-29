@@ -1,0 +1,7 @@
+.row
+  .small-12.columns
+    %h3
+      Thanks for your
+      = @order.flex_pass_line_items[0].flex_pass_offer.name
+      order
+    = render 'flex_pass_detail', :flex_pass_offer=>@order.flex_pass_line_items[0].flex_pass_offer, :flex_passes=>@order.flex_passes

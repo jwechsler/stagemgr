@@ -97,10 +97,10 @@ private
           conditions << ['addresses.full_name REGEXP ?', search_text.upcase]
           active_productions_only = false
         when 'code'
-          if 'MEMBERSHIP'.start_with?(search_text.upcase)
+          if 'MEMBERSHIP' == search_text.upcase
             conditions << 'orders.type = \'MembershipOrder\''
             active_productions_only = false
-          elsif 'FLEXPASS'.start_with?(search_text.upcase)
+          elsif 'FLEXPASS' == search_text.upcase
             conditions << 'orders.type = \'FlexPassOrder\''
             active_productions_only = false
           else
@@ -116,7 +116,7 @@ private
         end
       end
     }
-    conditions << ["productions.status != ?", Production::INACTIVE] if active_productions_only
+    conditions << ["(productions.status != ? || (orders.type != 'TicketOrder'))", Production::INACTIVE] if active_productions_only
     bind_variables = []
     sql = conditions.map {|condition|
       if condition.is_a?(Array)

@@ -127,5 +127,16 @@ module OrdersHelper
     end
   end
 
+  def special_feature_footnotes_for(performance, footnotes)
+    text = ''
+    unless performance.special_features.empty?
+      performance.special_features.each do |feature|
+        text <<= raw "<sup>[#{@footnotes.find_index(feature.short_name)+1}]&nbsp;</sup>"
+      end
+    end
+    text <<= raw "<sup>[#{@footnotes.find_index("_custom#{performance.id}")+1}]&nbsp;</sup>" unless performance.special_feature_display_markdown.blank?
+    text
+  end
+
 end
 

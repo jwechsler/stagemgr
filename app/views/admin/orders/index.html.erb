@@ -138,6 +138,7 @@ jQuery(document).ready(function() {
 
   /* Now do the individual input values */
 
+
   var jqInputs = $('.searchy');
   for ( var i=0 ; i<settings.aoPreSearchCols.length ; i++ )
   {
@@ -148,6 +149,19 @@ jQuery(document).ready(function() {
       }
     }
   }
+
+  if(settings.aoPreSearchCols[0].sSearch!='') {
+    $('#foot_ID input').val(settings.aoPreSearchCols[0].sSearch);
+  }
+
+  if(settings.aoPreSearchCols[1].sSearch!='') {
+    $('#footer-code input').val(settings.aoPreSearchCols[1].sSearch);
+  }
+
+  if(settings.aoPreSearchCols[2].sSearch!='') {
+    $('#footer-name input').val(settings.aoPreSearchCols[2].sSearch);
+  }
+
   if(settings.aoPreSearchCols[3].sSearch!='') {
     $('#status-search').val(settings.aoPreSearchCols[3].sSearch);
   }

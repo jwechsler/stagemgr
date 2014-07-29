@@ -95,7 +95,7 @@ jQuery(document).ready(function($) {
   $('#admin_flex_pass_order_form').each(function() {
 
     $('#flex_pass_order_address_attributes_full_name').on("railsAutocomplete.select", function(event,ui) {
-      autofillAddress('membership_order',event,ui);
+      autofillAddress('flex_pass_order',event,ui);
     });
 
   });

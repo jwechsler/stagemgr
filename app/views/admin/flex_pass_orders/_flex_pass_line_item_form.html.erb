@@ -1,6 +1,0 @@
-<%= f.inputs do %>
-  <p style="display:block; float: left; width: 100%;"><%= "You are purchasing a #{f.object.flex_pass_offer.name} for #{number_to_currency(f.object.flex_pass_offer.price)}"  %></p>
-  <li class="select optional"><label for="ticket_count">Quantity</label><%= f.select :ticket_count, 1.upto(20).sort, :required=>false %></li>
-  <%= f.input :ticket_count, :as=>:select, :collection=>1.upto(20), :label=>"Quantity", :required=>false, :include_blank=>false %>
-  <%= f.input :flex_pass_offer_id, :as=>:hidden %>
-<%- end -%>

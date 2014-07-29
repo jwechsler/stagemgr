@@ -44,12 +44,8 @@
               - performances = @performances.select { |per| per.performance_date==current_day }
               - performances.each do |performance|
                 - title = "#{performance.performance_time.to_s(:hour_min)}"
+                - title << special_feature_footnotes_for(performance,@footnotes)
 
-                - unless performance.special_features.empty?
-                  - performance.special_features.each do |feature|
-                    - title <<= raw "<sup>[#{@footnotes.find_index(feature.short_name)+1}]&nbsp;</sup>"
-
-                - title <<= raw "<sup>[#{@footnotes.find_index("_custom#{performance.id}")+1}]&nbsp;</sup>" unless performance.special_feature_display_markdown.blank?
                 %span.vertical_center
                   .show-info
                     - if performance.performance_date<Date.today
@@ -76,6 +72,7 @@
                       = link_to raw(title), new_production_performance_order_path(performance.production.id,performance.id)
                       %br
                       = price_range(performance)
+
 
         - current_week_start = current_week_start + 7
     %tfoot

@@ -1,0 +1,23 @@
+.row
+  .small-12.columns
+    = render '/admin/orders/header', :order=>@flex_pass_order
+.row
+  .small-12.medium-6.columns
+    %fieldset
+      %legend Holder Info
+      =render '/admin/addresses/info', :address=>@flex_pass_order.address, :breadcrumb_order=>@flex_pass_order
+  .small-12.medium-6.columns
+    %fieldset
+      %legend Flex Pass
+      = render :partial => '/admin/flex_pass_line_items/table', :locals=>{:order=>@flex_pass_order}
+.row
+  .small-12.columns
+    = render '/admin/orders/payments', :order=>@flex_pass_order
+    = render '/admin/orders/referral', :order=>@flex_pass_order
+    = render '/admin/orders/notes', :order=>@flex_pass_order
+    = render '/admin/orders/audit_show', :order_form=>@flex_pass_order
+    - permitted_to? :new, :admin_refund_orders do
+      = link_to 'Refund Order', new_admin_order_refund_order_path(@flex_pass_order), :class=>'small alert button' if @flex_pass_order.refundable?
+    = link_to 'Fulfill Order', fulfill_admin_order_path(@flex_pass_order), :class=>'small button' if @flex_pass_order.fulfillable?
+    - if @flex_pass_order.status == 'Processing' || @flex_pass_order.status == 'Hold' || @flex_pass_order.status == Order::NEW
+      = link_to 'Cancel Order', cancel_admin_order_path(@flex_pass_order), :class=>'small alert button', :confirm => "Are you sure?", :method=>:post

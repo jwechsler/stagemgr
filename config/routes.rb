@@ -99,7 +99,7 @@ Stagemgr::Application.routes.draw do
     end
   end
 
-  resources :flex_pass_offers, :only => false do
+  resources :flex_pass_offers, :only => :index do
     resources :orders, :controller => 'flex_pass_offer_orders'
   end
 
