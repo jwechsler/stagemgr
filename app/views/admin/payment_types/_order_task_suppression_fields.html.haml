@@ -5,13 +5,13 @@
         .small-3.columns
           = f.label :task_type, 'Type', :class=>'left prefix'
         .small-9.columns.new_order_task_suppression_task_type
-          = f.select :task_type, :collection=>['OutreachTask']
+          = f.input_field :task_type, :collection=>$SERVER_CONFIG['allowed_order_task_suppressions'].keys.uniq, :include_blank=>false
     .small-5.columns
       .row.collapse
         .small-3.columns
           = f.label :method_name, 'Method', :class=>'left prefix'
-        .small-9.columns
-          = f.select :method_name, :class=>'new_order_task_suppression_task_method'
+        .small-9.columns.new_order_task_suppression_task_method
+          = f.input_field :method_name, :collection=>$SERVER_CONFIG['allowed_order_task_suppressions'].keys.map { |k| $SERVER_CONFIG['allowed_order_task_suppressions'][k] }.flatten.sort, :include_blank=>false
 
     .small-2.columns
       = link_to_remove_association "remove", f, :class=>'tiny alert button'

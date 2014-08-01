@@ -52,12 +52,12 @@ Feature: Box office users can manage performances
   Scenario: The box office user can record trigger criteria
     Given I follow "Add performance"
       And I enter a performance on "2015-01-01" with code "PERF1"
-      And I enter a trigger to "EXPENSIVE" based on capacity of "50" for the 5th ticket class
-      And I enter a trigger to "EXPENSIVE" based on "2" days before for the 5th ticket class
+      And I enter a trigger to "SECRET" based on capacity of "50" for the 5th ticket class
+      And I enter a trigger to "SECRET" based on "2" days before for the 5th ticket class
       And I press "Create"
       Then I should see "Performance PERF1 was successfully created"
       Then I follow "PERF1"
-      Then I should see "will be replaced by EXPENSIVE when capacity at or over 50% or 2 days before performance"
+      Then I should see "will be replaced by SECRET when capacity at or over 50% or 2 days before performance"
 
   Scenario: The box office user can create custom performance features
     Given I follow "Add performance"
