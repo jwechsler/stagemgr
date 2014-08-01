@@ -1,4 +1,3 @@
-
 <%= simple_form_for([:admin,performance.production.theater,performance.production,performance]) do |f| %>
   <div class="row">
     <%= f.hidden_field :production_id %>
@@ -16,7 +15,7 @@
           <%= f.input :performance_date, :readonly=> true, :as=>:date_picker, :label=>"Date" %>
         </div>
         <div class="small-6 columns">
-          <%= f.input :performance_time, :as=>:string, input_html: {:value=>performance.performance_time.to_s(:hour_min)}, :label=>"Time" %>
+          <%= f.input :performance_time, :as=>:time_picker, input_html: {:value=>performance.performance_time.nil? ? '' : performance.performance_time.to_s(:hour_min) }, :label=>"Time" %>
         </div>
       </div>
     </div>

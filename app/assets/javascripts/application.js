@@ -20,7 +20,7 @@ $(document).ready(function() {
     minView: 2,
     pickTime: false
   })
-  $('input.tidme_picker').fdatetimepicker({
+  $('input.time_picker').fdatetimepicker({
     format: 'H:ii P',
     pickDate: false,
     autoclose: true,

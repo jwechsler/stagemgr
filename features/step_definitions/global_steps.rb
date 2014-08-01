@@ -30,6 +30,7 @@ end
 Given /^I am a [tT]heater [Uu]ser$/ do
 
   @current_test_user ||= FactoryGirl.build(:user)
+  @current_test_user.theaters << Theater.first
   @current_test_user.save_without_session_maintenance
 
 end

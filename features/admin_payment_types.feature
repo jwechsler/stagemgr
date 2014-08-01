@@ -40,9 +40,11 @@ Feature: Payment Types Administration
       And the payment option should not include "Cash"
 
   @javascript
+  @wip
   Scenario: Set up suppression rules
     Given I go to the edit page for payment type "Cash"
       And I allow cash payments for the public
+      And show me the page
       And I suppress the "ticket_confirmation" method for "OutreachTask"
       And I press "Update"
      Then I should see "successfully updated"

@@ -25,7 +25,7 @@
       <%- permitted_to? :view, :admin_orders do -%>
       <li><%= link_to('Existing Orders', admin_orders_path) %></li>
       <%- end -%>
-      <% if permitted_to?(:view,:admin_membership_offers) || permitted_to(:view,:admin_flex_pass_offers) %>
+      <% if permitted_to?(:view,:admin_membership_offers) || permitted_to?(:view,:admin_flex_pass_offers) %>
       <li class="has-dropdown"><a href="#">Passes</a>
         <ul class="dropdown">
           <%- permitted_to? :view, :admin_membership_offers do -%>

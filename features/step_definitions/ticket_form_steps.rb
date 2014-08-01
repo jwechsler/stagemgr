@@ -1,7 +1,7 @@
 def enter_patron_information
   fill_in "Name", :with => "Ticket Buyer"
   fill_in "Email", :with => "test@theaterwit.org"
-  fill_in "Billing Address", :with => "1229 W Belmont"
+  fill_in "Street", :with => "1229 W Belmont"
   fill_in "City", :with => "Chicago"
   fill_in "State", :with => "IL"
   fill_in "Zip", :with => "60657"
@@ -39,8 +39,13 @@ end
 
 When /^I enter a valid credit card as payment( through the backend)?$/ do |backend|
   @_current_form = 'ticket_order' if @_current_form.blank?
-  select "Credit Card", :from=>"Pay using"
-  choose "Visa"
+
+  if @using_admin_interface
+    select "Credit Card", :from=>"Pay using"
+  else
+    choose "Credit Card"
+  end
+  select "Visa", :from=>"Card Type"
   unless @using_admin_interface
     select "01", :from=>"#{@_current_form}_credit_card_expiration_month"
   else
@@ -51,7 +56,7 @@ When /^I enter a valid credit card as payment( through the backend)?$/ do |backe
   else
     fill_in "YY", :with=>'18'
   end
-  fill_in "Credit card number", :with=>"4111111111111111"
+  fill_in @using_admin_interface ? 'Credit card number' : 'Card #', :with=>"4111111111111111"
   fill_in "CVV", :with=>"581"
 end
 
@@ -84,7 +89,9 @@ Given /^I enter an exchange for the order to performance "(.*?)"$/ do |perf_code
 end
 
 Then /^the payment option should include "(.*?)"$/ do |value|
-  page.should have_xpath "//select[@id = 'ticket_order_payment_type_id']/option[text() = '#{value}']"
+
+  page.has_checked_field?('#ticket_order_payment_type_id',:with=>value)
+  # "//select[@id = 'ticket_order_payment_type_id']/option[text() = '#{value}']"
 end
 
 Then /^the payment option should not include "(.*?)"$/ do |value|

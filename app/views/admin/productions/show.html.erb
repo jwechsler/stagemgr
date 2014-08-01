@@ -21,7 +21,6 @@
       </ul>
       <div class="tabs-content">
       <div class="content active" id="prodpanel-1">
-
           <div class="small-12 columns">
             <h3>Performances</h3>
             <%= render :partial => 'performance_listing' %>
@@ -34,13 +33,18 @@
         <div class="content" id="prodpanel-2">
           <div class="small-8 columns">
             <p><b>Production code: </b><%= @production.production_code %></p>
-            <p><b>First preview: </b><%= @production.first_preview_at.to_s(:long_with_day_of_week) %></p>
-
-            <p><b>Press opening: </b><%= @production.press_opening_at.to_s(:long_with_day_of_week) %></p>
-
-            <p><b>Opening at: </b><%= @production.opening_at.to_s(:long_with_day_of_week) %></p>
-
-            <p><b>Closing at: </b><%= @production.closing_at.to_s(:long_with_day_of_week) %></p>
+            <% unless @production.first_preview_at.blank? %>
+              <p><b>First preview: </b><%= @production.first_preview_at.to_s(:long_with_day_of_week) %></p>
+            <% end %>
+            <% unless @production.press_opening_at.nil? %>
+              <p><b>Press opening: </b><%= @production.press_opening_at.to_s(:long_with_day_of_week) %></p>
+            <% end %>
+            <% unless @production.opening_at.nil? %>
+              <p><b>Opening at: </b><%= @production.opening_at.to_s(:long_with_day_of_week) %></p>
+            <% end %>
+            <% unless @production.closing_at.nil? %>
+              <p><b>Closing at: </b><%= @production.closing_at.to_s(:long_with_day_of_week) %></p>
+            <% end %>
           </div>
           <div class="small-4 columns">
             <p><b>Status: </b><%= @production.status %></p>
