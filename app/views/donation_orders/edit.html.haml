@@ -1,0 +1,44 @@
+.row
+  .small-12.columns
+    %h3 Support Theater Wit
+
+    = simple_form_for @order do |order_form|
+      .order
+        = order_form.hidden_field :status
+        = order_form.hidden_field :campaign
+        = render :partial => '/orders/address', :locals => {:order_form => order_form}
+
+        - @submit_text = "Make a donation"
+        - if @monthly_pledge
+          = order_form.simple_fields_for :pledge do |pledge|
+            Pledge
+        - else
+          = order_form.simple_fields_for :donation_line_items do |donation|
+            .donation
+              .row
+                .small-2.columns
+                  =donation.label :donation_level, "Contribution Level:", :class=>'left inline'
+                .small-10.columns
+                  = donation.input_field :donation_level, :as=>:radio_buttons, :collection=>@levels, :label=>"Contribution level:", :required=>false
+                  .row
+                    .small-4.columns
+                      = donation.label :donation_amount, "... or other amount $", :class=>'right inline'
+                    .small-8.columns
+                      = donation.input_field :donation_amount, :required=>false
+
+        = render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form}
+        - label_value = "Join the Theater Wit mailing list.<br/>Get company news, special offers, ticket discounts and more delivered twice monthly. Your email will not be shared. :) "
+        = order_form.input :add_to_email_list, :as=>:boolean, :label=>raw(label_value)
+
+        %br
+
+        = order_form.submit "Make a donation", :disable_with => 'Processing...', :class=>'button' if (order_form.object.status.blank? || [Order::NEW, Order::HOLD, Order::PROCESSING].include?(order_form.object.status))
+
+    %p#tax_deductible_notice
+      Your donation is fully tax-deductible to the extent allowable by law under IRS code 501(c)(3).
+    %p#contact_boxoffice_info
+      If you are having any troubles, please call our box office at 773-975-8150 and we 'll help you out!
+
+
+= content_for :js do
+  = javascript_include_tag 'orders_common'

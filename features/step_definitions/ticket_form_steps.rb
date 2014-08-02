@@ -25,7 +25,7 @@ end
 When /^I enter my contact information incorrectly$/ do
   enter_patron_information
   fill_in "Email", :with=>''
-  fill_in "Billing Address", :with=>''
+  fill_in "Street Address", :with=>''
 end
 
 Given /^I enter a gift recipient$/ do
@@ -70,9 +70,13 @@ Given /^I enter a check number "(.*?)" as payment$/ do |check_number|
   fill_in "Check number", :with=>check_number
 end
 
-Given /^I enter flex pass (code )?"(.*?)" as payment$/ do |ignore, pass_code|
+Given /^I enter flex pass( code)? "(.*?)" as payment$/ do |ignore, pass_code|
   @_current_form = 'ticket_order' if @_current_form.blank?
-  select "Flex Pass", :from=>"Pay using"
+  if @using_admin_interface
+    select "Flex Pass", :from=>'Pay using'
+  else
+    choose "Flex Pass"
+  end
   fill_in "Flex pass code", :with=>"#{pass_code}"
 end
 
