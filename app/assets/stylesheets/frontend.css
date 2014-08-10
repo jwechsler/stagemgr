@@ -53,11 +53,6 @@
   font-size: 1em;
 }
 
-.company_class {
-  font-size: 10px;
-  font-weight: normal;
-}
-
 
 #flash_notice, .flash_error {
   padding: 5px 8px;
@@ -75,8 +70,8 @@
 }
 
 .company_class {
-  font-weight: bold;
   font-style: italic;
+  font-size: 80%;
 }
 
 

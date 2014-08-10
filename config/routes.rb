@@ -10,6 +10,7 @@ Stagemgr::Application.routes.draw do
   post "venues/now_playing_fb"
 
   get "venues/now_playing"
+  get "venues/now_playing_vertical"
   get "venues/now_playing_fb"
 
   get "venues/offtime_now_playing"

@@ -1,0 +1,26 @@
+:css
+  #nowplaying_thumb_#{production.id} {
+    background: url(#{production.best_image_url_available(:thumb)}) no-repeat center center;
+    display:block;
+    overflow:hidden;
+    white-space:nowrap;
+    text-indent:100%;
+    height: 186px;
+  }
+
+%div{:class=>"show-listing background-#{background}", :style=>"width:#{slice}%"}
+  %p
+    %p.venue= production.venue.name
+    - image_url = production.best_image_url_available(:thumb)
+    = link_to("showtitle", production_performances_path(production.id, :anchor=>"top"), id:"nowplaying_thumb_#{production.id}") unless image_url.nil?
+    %div.production_name
+      - if (defined? new_window_link) && new_window_link
+        = link_to production.name, production_performances_path(production.id), :target=>'_blank'
+      - else
+        = link_to(production.name, production_performances_path(production.id, :anchor=>"top"))
+    - if !production.theater.is_default?
+      %div.presenter= "presented by #{production.theater.name}"
+    - else
+      %div.presenter= production.theater.name
+    - unless production.theater.is_default?
+      %div.company_class= production.theater.theater_class
