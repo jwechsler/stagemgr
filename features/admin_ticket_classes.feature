@@ -4,12 +4,12 @@ Feature: An administrator can add theater classes to productions
     Given a sample theater exists
     And I am an Administrator
     And I am logged in
-    And I go to the admin production detail page for "Production One"
 
-Scenario: There is a ticket classes link on the Productions Page
-  Given I go to the admin production detail page for "Production One"
-    And I follow "List"
-   Then I should see "Listing ticket_classes"
+  Scenario: There is a ticket classes link on the Theater Productions Page
+    Given I go to the admin detail page for theater "Test Theater"
+      And I follow "Ticket Classes"
+     Then I should see "Ticket Classes"
+      And I should see "New Ticket Class"
 
 
 

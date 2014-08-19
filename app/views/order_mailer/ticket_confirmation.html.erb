@@ -22,6 +22,8 @@
 
 <%= raw @markdown_renderer.render(@order.performance.production.confirmation_message) unless @order.performance.production.confirmation_message.blank? %>
 
+<%= render :partial=>"special_features", :locals=>{:order=>@order} %>
+
 <h3>Here's some handy stuff you'll want to know:</h3>
 
 <h4>Getting Here</h4>

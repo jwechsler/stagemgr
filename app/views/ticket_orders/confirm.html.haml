@@ -1,0 +1,107 @@
+.row
+  .small-12.columns.order
+    = simple_form_for order, :html=>{:name=>"confirm_form"} do |order_form|
+      - total = Money.new(0)
+
+      %h2= "#{order.address.first_name}, please confirm your ticket reservation"
+
+      %h3
+        You are purchasing the following tickets for
+        %span.production_name= order.performance.production.name
+        = order.performance.performance_date.to_formatted_s(:long_ordinal)
+        at
+        = "#{order.performance.performance_time.to_formatted_s(:hour_min)}."
+
+      %table{:style=>"background:none;width:100%"}
+        %thead
+          %tr
+            %td Qty
+            %td Type
+            %td Price
+        %tbody
+          - qty = 0
+          - old_items = Array.new
+          - new_items = Array.new
+          - order.special_offer_line_items.each do |li|
+            - new2, old2 = li.special_offer.modified_line_items_in_order(order)
+            - old_items += old2
+            - new_items += new2
+
+          - tickets = order.ticket_line_items.to_a
+          - tickets -= old_items
+          - tickets += new_items
+          - tickets.each do |tli|
+            - qty += tli.ticket_count
+            - total += tli.receipt_total.to_money unless tli.ticket_class.software_managed
+            %tr
+              %td= tli.ticket_count
+              %td= tli.ticket_class.class_name
+              %td= "$ #{tli.receipt_total.to_money}" unless tli.ticket_class.software_managed
+
+          - unless order.special_offer_line_items.empty?
+            - order.special_offer_line_items.each do |so|
+              - discount = (-1*so.special_offer.calculate_discount(order)).to_money
+              - total -= discount
+              %tr
+                %td= so.special_offer.code.upcase
+                %td= so.description
+                %td
+                  = "$ #{discount}" unless so.special_offer.is_a? TicketClassSpecialOffer
+
+          - unless order.additional_donation.blank?
+            - donation = order.additional_donation.to_f.to_money
+            - total += donation
+            %tr
+              %td
+              %td Additional donation to Theater Wit (yay!)
+              %td= donation
+          %tr.total
+            %td
+            %td
+              %strong.right Total Charge
+            %td.currency
+              $
+              = total
+          %td
+            %td
+            %td
+            %td
+              %a.tiny.button.right{:href=>"javascript: submitForm()"} Edit your order
+
+      = order_form.input :payment_type_id, :as=>:hidden, :input_html=>{:value=>order.payment_type_id}
+      = order_form.input :credit_card_number, :as=>:hidden, :input_html=>{:value=>order.credit_card_number }
+      = order_form.input :credit_card_type, :as=>:hidden, :input_html=>{:value=>order.credit_card_type }
+      = order_form.input :credit_card_expiration_year, :as=>:hidden, :input_html=>{:value=>order.credit_card_expiration_year }
+      = order_form.input :credit_card_expiration_month, :as=>:hidden, :input_html=>{:value=>order.credit_card_expiration_month }
+      = order_form.input :credit_card_verification_number, :as=>:hidden, :input_html=>{:value=>order.credit_card_verification_number }
+      = order_form.input :flex_pass_code, :as=>:hidden, :input_html=>{:value=>order.flex_pass_code}
+      = order_form.input :member_code, :as=>:hidden, :input_html=>{:value=>order.member_code }
+      = order_form.input :status, :as=>:hidden, :input_html=>{:value=>order.status }
+      = order_form.input :special_offer_code, :as=>:hidden, :input_html=>{:value=>order.special_offer_code }
+      = order_form.input :additional_donation, :as=>:hidden, :input_html=>{:value=>order.additional_donation }
+      = order_form.input :add_to_email_list, :as=>:hidden, :input_html=>{:value=>order.add_to_email_list }
+      %br
+      %p
+        = payment_text_for order if total > 0
+        Please note that all ticket purchases are
+        %strong NON-REFUNDABLE
+        and
+        %strong NON-EXCHANGEABLE.
+        When you are ready to purchase your tickets, click "Order Tickets".
+
+      .row
+        .small-3.small-centered.columns
+          = order_form.button :submit, 'Order Tickets'
+
+      .row
+        .small-12.columns
+          %p
+            %strong
+              PLEASE NOTE: Processing your order can take a minute.  Once you order your tickets, please don't refresh your browser or use the back button or you may be charged twice.
+          %p.text-center
+            Problems? Give us a call at 773-975-8150.
+
+:javascript
+  function submitForm() {
+    document.forms["confirm_form"].submit();
+  }

@@ -1,0 +1,13 @@
+
+%div.row
+  %div.small-12.columns
+    - unless f.object.address_tags.empty?
+      = f.simple_fields_for :address_tags do |tag|
+        %div.row
+          %div.small-6.columns= tag.label :tag_label, 'Tag'
+          %div.small-6.columns= tag.label :theater, 'Visibility'
+        #address-tags
+          = render 'address_tag_fields', :f=>tag
+      %div.row
+        %div.small-12.columns
+          = link_to_add_association 'add tag', f, :address_tags, :class=>'small button right'

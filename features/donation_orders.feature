@@ -5,7 +5,6 @@ Feature: Donations
   Background:
     Given the system accepts currency
 
-
   Scenario: Make a preselected donation
     Given I go to new donation order
       And I enter my contact information

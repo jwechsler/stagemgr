@@ -1,9 +1,0 @@
-<h2>Productions:</h2>
-<table>
-  <tr>
-    <th>Name</th>
-    <th>Season</th>
-    <th>Status</th>
-  </tr>
-  <%= render :partial => @theater.productions.sort! {|a,b| b.opening_at <=> a.opening_at}  %>
-</table>

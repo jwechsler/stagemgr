@@ -1,0 +1,14 @@
+- paytype = payment_types(order_form.object, (defined? allowed_payment_types?) ? allowed_payment_types : nil, true)
+.row
+  .small-12.columns
+    .row
+      .small-12.medium-2.columns
+        = order_form.label :payment_type, "Pay using", :class=>'left'
+      .small-12.medium-10.columns.payment_type_choice{:class=>"#{'hide' if paytype.size==1}"}
+        = order_form.association :payment_type, :label=>'', :include_blank=>false, :as=>:foundation_ui_radio_buttons, :collection=>paytype, :checked=>(order_form.object.payment_type.nil? ? paytype.first.id : 1)
+      .medium-2.hide-for-small-only.columns
+      .small-12.medium-10.columns
+        #payment_forms
+          = render '/orders/credit_card_payment_form', :f=>order_form
+          = render '/orders/flex_pass_payment_form', :f => order_form
+          = render '/orders/membership_payment_form', :f => order_form

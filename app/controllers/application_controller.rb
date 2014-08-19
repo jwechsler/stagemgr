@@ -5,8 +5,13 @@ class ApplicationController < ActionController::Base
 
   attr_accessor :markdown
 
-  def payment_types_for(order)
-    order.valid_payment_types_for(current_user)
+  def payment_types_for(order, frontend = true)
+    types = order.valid_payment_types_for(current_user)
+    if frontend
+      types.select{|t| t.allow_for_public? }
+    else
+      types
+    end
   end
 
   def backend_user?

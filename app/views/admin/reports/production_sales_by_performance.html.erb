@@ -1,9 +1,11 @@
-<h1><%= @production.theater.name %></h1>
-<h2><%= @production.name %></h2>
+<div class="row"><div class="small-12 columns">
+<h3><%= @production.theater.name %></h3>
+<h4><%= @production.name %></h4>
 
 <table id="production_revenue_by_performance" class="report">
   <caption>
-    <i><%= @production.name %></i> sales counts as of <%= Time.now.to_s(:hour_min) %> on <%= Time.now %>
+    <i><%= @production.name %></i> sales counts as of <%= Time.now.to_s(:hour_min) %> on <%= Time.now %></i>
   </caption>
   <%= render :partial=>"generic", :locals=>{:headers=>@headers, :report_body=>@report_data, :summary=>@totals} %>
 </table>
+</div></div>

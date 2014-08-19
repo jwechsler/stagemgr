@@ -2,7 +2,7 @@ class Admin::MembershipOffersController < ApplicationController
   filter_resource_access
 
   def index
-    @membership_offers = MembershipOffer.all
+    @membership_offers = MembershipOffer.order(:status, :name).all
   end
 
   def show

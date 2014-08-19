@@ -1,0 +1,11 @@
+= render '/admin/orders/header_bar', :order=>@ticket_order
+
+= simple_form_for [:admin, @ticket_order], :html=>{:id=>'admin_ticket_order_form', :autocomplete=>"off"} do |order_form|
+  %div.row
+    %div.columns.small-12.medium-8
+      = render 'ticket_line_items_form', :order_form=>order_form
+    %div.columns.small-12.medium-4
+      = render '/admin/addresses/quick_lookup', :f=>order_form
+  %div.row
+    %div.columns.small-12
+      = render :partial=>'/admin/orders/form', :locals=>{:order_form=>order_form}

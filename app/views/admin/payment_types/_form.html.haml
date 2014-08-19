@@ -1,0 +1,9 @@
+= simple_form_for [:admin, payment_type], :as=>:payment_type, :url=>url do |f|
+  = f.input :display_name
+  = f.input :allow_for_public
+  = f.input :allow_for_box_office
+  = f.input :restrict_to_ticket_classes, :label=>"Only apply to ticket classes starting with"
+  %fieldset
+    %legend Order Task Suppressions
+    = render 'order_task_suppressions', :f=>f
+  = f.button :submit

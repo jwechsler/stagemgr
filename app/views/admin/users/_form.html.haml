@@ -1,0 +1,16 @@
+= simple_form_for [:admin,user] do |f|
+  .row
+    .small-8.columns
+      = f.input :email, :as=>:email
+    .small-4.columns
+      = f.input :status, :as=>:select, :collection=>User::STATUSES, :include_blank=>false
+
+  = f.input :password, :as=>:password
+  = f.input :password_confirmation, :as=>:password
+  .row
+    .small-6.columns
+      = f.input :is_administrator
+      = f.input :is_box_office_user
+    .small-6.columns
+      = f.association :theaters, :label=>"Associated Theaters"
+  = f.button :submit

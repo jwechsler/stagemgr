@@ -35,12 +35,12 @@ Feature: Membership Administration
      Then I should see "Monthly Alternate"
       And I should see "Successfully created"
 
-
   Scenario: Box office users can only view and add orders
     Given I am a box office user
       And I am logged in
      When I go to the admin membership offers page
-     Then I should see "Show"
+     Then I should see "Monthly Membership"
+      And I should see "Create Order"
       And I should not see "Edit"
       And I should not see "Destroy"
       And I should not see "New Membership Offer"
@@ -52,7 +52,7 @@ Feature: Membership Administration
       And I follow "Create Order"
       And I enter my contact information
       And I enter a valid credit card as payment
-      And I press "Checkout"
+      And I press "Place Order"
      Then I should see "Customer successfully set up for the Monthly Membership payment plan"
 
   Scenario: Administrators can create trial memberships
@@ -62,7 +62,7 @@ Feature: Membership Administration
       And I enter a membership offer "Trial Membership"
       And I fill in "Trial Periods" with "1"
       And I fill in "Trial Price" with "0.00"
-      And I check "Offer restricted to first time members"
+      And I check "First time members only"
       And I press "Create Membership offer"
      Then I should see "Trial Membership"
       And I should see "Successfully created"
@@ -75,9 +75,9 @@ Feature: Membership Administration
       And I follow "Create Order"
       And I enter my contact information
       And I enter a valid credit card as payment
-      And I check "Third Party Recipient"
+      And I check "Give as a gift"
       And I enter a gift recipient
-      And I press "Checkout"
+      And I press "Place Order"
     Then a membership exists with status "Active"
       And a membership exists with current status "Pending"
       And a membership order exists with a gift recipient "Gift Getter"
@@ -94,7 +94,7 @@ Feature: Membership Administration
       And I enter my contact information
       And I enter a valid credit card as payment
       And I prefer "Front row" seating
-      And I press "Checkout"
+      And I press "Place Order"
      Then a membership exists with status "Active"
       And a membership order exists for "Ticket Buyer"
       And a membership exists with "Front row" as preferred seating

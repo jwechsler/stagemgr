@@ -1,0 +1,16 @@
+= render '/admin/orders/header_bar', :order=>@flex_pass_order
+
+.row
+  .small-12.columns
+
+    = error_messages_for :flex_pass_order
+    = simple_form_for [:admin, @flex_pass_order], :html=>{:id=>'admin_flex_pass_order_form'} do |order_form|
+      .row
+        .small-12.medium-8.columns
+          = order_form.simple_fields_for :flex_pass_line_items do |flex_pass_line_item_form|
+            = render '/admin/flex_pass_orders/flex_pass_line_item_form', :f => flex_pass_line_item_form
+        .small-12.medium-4.columns
+          = render '/admin/addresses/quick_lookup', :f=>order_form
+
+      = render :partial => '/admin/orders/form', :locals=>{:order_form=>order_form}
+

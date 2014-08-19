@@ -1,0 +1,23 @@
+%div#credit_card_payment_form
+  .row.collapse
+    .small-4.medium-1.columns
+      = f.label :credit_card_type, :label=>"Card Type", :class=>'left prefix'
+    .small-8.medium-3.columns
+      = f.input_field :credit_card_type, :label=>"Card Type", :required=>true,  :include_blank=>false, :as=>:select, :collection=>ActiveRecord::Validations::ClassMethods::DEFAULT_CREDIT_CARD_TYPES.values.sort - ['invalid']
+    .small-4.medium-2.columns
+      = f.label :credit_card_number, 'Card #', :required=>true, :class=>'left prefix'
+    .small-8.medium-6.columns
+      = f.input_field :credit_card_number, :required=>true, :input_html => { :maxlength=>16 }
+  .row.collapse
+    .small-4.medium-1.columns
+      = f.label :credit_card_expiration_month, 'Month', :class=>'left prefix'
+    .small-8.medium-3.columns
+      = f.input_field :credit_card_expiration_month, :label=>"Month",  :include_blank=>false, :as=>:select, :collection=> 1.upto(12).map{|n|['%02d' % n,n]}
+    .small-4.medium-2.columns
+      = f.label :credit_card_expiration_year, 'Year', :class=>'left prefix'
+    .small-8.medium-3.columns
+      = f.input_field :credit_card_expiration_year, :label=>"Year",  :include_blank=>false, :as=>:select, :collection=>Date.today.year.upto(Date.today.year+12).to_a
+    .small-4.medium-1.columns
+      = f.label :credit_card_verification_number, "CVV*", :class=>'left prefix'
+    .small-8.medium-2.columns
+      = f.input_field :credit_card_verification_number, :size=>4, :label =>"CVV"

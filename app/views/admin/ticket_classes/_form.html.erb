@@ -1,13 +1,8 @@
-<%= f.inputs do %>
-  <%= f.input :class_code %>
-  <%= f.input :class_name %>
-  <%= f.input :ticket_type, :as=>:select, :collection=>TicketClass::TICKET_TYPES %>
-  <%= f.input :ticket_price, :as=>:number %>
-  <%= f.input :ticketing_fee, :as=>:number %>
-  <%= f.input :web_visible %>
-  <%= f.input :software_managed, :hint=>" Check this when the price of the ticket should be hidden from the consumer.  Uncheck at your peril!" %>
-  <%= f.input :holds_seats, :default=>true %>
-  <%= f.input :auto_attach %>
-  <%= f.input :minutes_before_show %>
-  <%= f.hidden_field :production_id %>
-<%- end %>
+<div class="row">
+  <div class="small-12 columns">
+  <%= simple_form_for([:admin,theater,production,ticket_class]) do |f| %>
+    <%= f.hidden_field :production_id %>
+    <%= render :partial=>'fields', :locals=>{:f=>f} %>
+  <%- end %>
+  </div>
+</div>

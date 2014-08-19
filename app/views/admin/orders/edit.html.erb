@@ -1,11 +1,8 @@
 
 <%= error_messages_for :order %>
 
-<%= semantic_form_for [:admin, @order] do |order_form| -%>
-  <%= order_form.inputs do %>
+<%= simple_form_for [:admin, @order] do |order_form| -%>
 
     <%= render :partial => '/admin/orders/form', :locals=>{:order_form=>order_form} %>
-
-  <%- end -%>
 
 <%- end -%>

@@ -6,19 +6,27 @@ Given /^I enter a performance on "(.*?)" with code "(.*?)"$/ do |perf_date, perf
 end
 
 Given /^I enter a performance date of "(.*?)"$/ do |perf_date|
-  fill_in "Performance date", :with=>perf_date
+  find(:css, '#performance_performance_date.performance_date-alt').set(perf_date)
 end
 
 Given /^I enter a trigger to "(.*?)" based on "(.*?)" days before for the (\d+)(?:st|nd|rd|th) ticket class$/ do |code, value, num|
   fill_in "performance_ticket_class_allocations_attributes_#{num}_shift_days_before_performance", :with=>value
-  fill_in "performance_ticket_class_allocations_attributes_#{num}_shift_to_code", :with=>code
+  select code, :from=>"performance_ticket_class_allocations_attributes_#{num}_shift_to_code"
   check "performance_ticket_class_allocations_attributes_#{num}_shiftable"
 end
 
 Given /^I enter a trigger to "(.*?)" based on capacity of "(.*?)" for the (\d+)(?:st|nd|rd|th) ticket class$/ do |code, value, num|
   fill_in "performance_ticket_class_allocations_attributes_#{num}_shift_when_capacity_over", :with=>value
-  fill_in "performance_ticket_class_allocations_attributes_#{num}_shift_to_code", :with=>code
+  select code, :from=>"performance_ticket_class_allocations_attributes_#{num}_shift_to_code"
   check "performance_ticket_class_allocations_attributes_#{num}_shiftable"
+end
+
+Given /^I enter a custom feature description of "(.*?)"$/ do |description|
+  fill_in "performance_special_feature_display_markdown", :with=>description
+end
+
+Given /^I enter a custom feature email of "(.*?)"$/ do |email|
+  fill_in "performance_special_feature_email_markdown", :with=>email
 end
 
 Then(/^show me the yaml for performance "(.*?)"$/) do |perf_code|

@@ -1,0 +1,51 @@
+%h3= raw @order_for_to_s
+
+%p= @order.flex_pass_line_items[0].flex_pass_offer.description
+
+= simple_form_for @order do |order_form|
+
+  = order_form.hidden_field :status
+  = render :partial => '/orders/address', :locals => {:order_form => order_form}
+
+  %br
+  - @submit_text = "Order FlexPass"
+  = order_form.simple_fields_for :flex_pass_line_items do |f|
+    = render '/flex_pass_orders/flex_pass', :f => f
+
+  %fieldset
+    %legend Make an additional donation
+
+    .row.collapse
+      .small-8.medium-10.columns
+        = order_form.label :additional_donation, 'I love Theater Wit! I\'d like to make an additional tax-deductible contribution of $', :class=>' inline'
+      .small-4.medium-2.columns
+        = order_form.text_field :additional_donation, :size => 7, :class=>'left'
+
+
+  = render :partial => '/orders/billing_form', :locals => {:order_form => order_form}
+
+  .row
+    .small-12.medium-6.columns.small-centered.panel
+      .row
+        .small-1.columns
+          = order_form.check_box :add_to_email_list, :checked => 1
+        .small-11.columns
+          %p
+            Join the Theater Wit mailing list
+          %p{:style=>"font-size: 80%"}
+            Get company news, special offers, ticket discounts and more delivered twice monthly. Keep abreast of everything happening so your flex pass doesn't get bored. Your email will not be shared. :)
+
+    %p#non-exchange-notice
+      Please note that all ticket and flex pass purchases are
+      %emp non-refundable
+      and
+      %emp non-exchangeable.
+      Once you've reviewed your order above, you can click the Order button below.
+
+  = order_form.submit @submit_text, :action => :confirm, :disable_with => 'Processing...', :class=>'button' if order_form.object.status == Order::NEW || order_form.object.status == Order::HOLD
+  %br/
+  %p If you are having any troubles, please call our box office at 773-975-8150 and we'll help you out!
+
+
+= content_for :js do
+  = javascript_include_tag 'orders_common'

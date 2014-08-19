@@ -1,4 +1,5 @@
 source 'http://rubygems.org'
+source 'https://rails-assets.org'
 
 gem 'rails', '3.2.16'
 
@@ -30,9 +31,8 @@ gem 'rails', '3.2.16'
 
 gem "redcarpet"
 gem "whenever", :require=>false
-gem "formtastic", "~> 2.3.0.rc2"
+gem "simple_form"
 gem "databasedotcom"
-gem "formatize"
 # gem "validation_reflection"
 gem "declarative_authorization"
 gem "activemerchant"
@@ -51,19 +51,28 @@ gem "StreetAddress",          "~> 1.0.1"
 gem "money", "6.1.0.beta1"
 gem "monetize"
 gem "gemcutter"
+gem 'font-awesome-rails'
 gem "dynamic_form"
+gem "cocoon"
+gem "haml"
 gem "postmark-rails"
 gem "namecase", "~> 1.1.0"
+gem 'jquery-datatables-rails', git: 'git://github.com/rweng/jquery-datatables-rails.git', branch: 'master'
+# gem 'autonumeric-rails'
+gem 'ajax-datatables-rails'
+# gem 'jqgrid-rails3', :git=>"https://github.com/davebaldwin/jqgrid-rails3.git"
 #gem "name_parse", "~> 0.0.5"
 gem "people"
-gem "jquery-rails", '~> 2.1.0'
+gem "jquery-rails"
+gem "jquery-ui-rails"
 gem "ri_cal", :git=>"https://github.com/ctide/ri_cal.git"
 gem 'resque', :require => 'resque/server'
 gem 'resque-scheduler', :require=>'resque_scheduler'
-gem 'resque-retry' #, :git=>"https://github.com/jwechsler/resque-retry.git"
+gem 'resque-retry', :git=>"https://github.com/jwechsler/resque-retry.git"
+gem 'foundation-datetimepicker-rails'
 
-#gem "rails3-jquery-autocomplete", :path=>"~/dev/rails3-jquery-autocomplete", :branch=>"v2"
-
+gem 'rails3-jquery-autocomplete',:path=>'/Users/jeremyw/dev/rails3-jquery-autocomplete'   #:git=>"https://github.com/jwechsler/rails3-jquery-autocomplete.git"
+gem 'rails_config', git: 'https://github.com/railsconfig/rails_config.git'
 
 group :development do
   gem 'wirble',               '0.1.3'
@@ -77,6 +86,7 @@ group :development do
   gem 'capistrano-rbenv', '~> 2.0'
   gem 'pry'
   gem 'rb-readline'
+  gem "haml-rails"
   gem 'httplog', :require=>false
   gem 'debugger'
   gem 'single_test'
@@ -126,9 +136,15 @@ group :cucumber do
   gem "rbx-require-relative"
 end
 
+# assets
 group :assets do
-  gem 'sass-rails'
-  gem 'coffee-rails'
-  gem 'uglifier'
+  gem 'sass', '3.2.13'
+  gem 'sass-rails',   '~> 3.2.3'
+  gem 'coffee-rails', '~> 3.2.1'
+  gem 'uglifier', '>= 1.0.3'
+  # Add Foundation Here
+  gem 'compass-rails' # you need this or you get an err
+  gem 'foundation-rails'
+  gem 'foundation-icons-sass-rails'
 end
 

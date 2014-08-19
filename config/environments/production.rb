@@ -12,6 +12,10 @@ Stagemgr::Application.configure do
   # Specifies the header that your server uses for sending files
   config.action_dispatch.x_sendfile_header = "X-Sendfile"
 
+  # set this to any SubURI you may have running in passenger or its ilk, or blank if not
+
+  config.action_controller.relative_url_root = '/tickets'
+
   # For nginx:
   # config.action_dispatch.x_sendfile_header = 'X-Accel-Redirect'
 
@@ -35,6 +39,7 @@ Stagemgr::Application.configure do
   config.assets.js_compressor = :uglifier
   config.assets.compile = true
   config.assets.digest = true
+  config.assets.precompile += %w( vendor/modernizr.js )
 
   # Enable serving of images, stylesheets, and javascripts from an asset server
   # config.action_controller.asset_host = "http://assets.example.com"

@@ -16,7 +16,7 @@
     <%- if !@offtime_productions.empty? %>
       <p class="background-<%= @background %>">Plus:</p>
       <%- @offtime_productions.each do |production| %>
-        <div class="show_listing background-<%= @background %>" style="width: <%= slice %>%">
+        <div class="show-listing background-<%= @background %>" style="width: <%= slice %>%">
           <p class="production_name"><%= link_to production.name, production_performances_path(production.id), :anchor=>"top" %><br/><%= "presented by #{production.theater.name}" if !production.theater.is_default? %></p>
         </div>
       <%- end %>

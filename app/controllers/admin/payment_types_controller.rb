@@ -49,4 +49,17 @@ class Admin::PaymentTypesController < Admin::ApplicationController
 
   end
 
+  def destroy
+    @payment_type.destroy
+    if @payment_type.destroyed?
+      flash[:notice] = raw "<i>#{@payment_type.display_name} deleted"
+    else
+      @payment_type.errors.full_messages.each { |m|
+        flash[:error] = m
+      }
+    end
+    redirect_to :action=>'index'
+  end
+
+
 end

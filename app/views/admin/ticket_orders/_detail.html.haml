@@ -1,0 +1,18 @@
+%div.row
+  %div.small-12.medium-6.columns
+    %h4
+      %i= ticket_order.performance.production.name
+    %h5= "#{ticket_order.performance.performance_date.to_s(:long_with_day_of_week)} #{ticket_order.performance.performance_time.to_s(:hour_min)}"
+    =render '/admin/addresses/info', :address=>ticket_order.address, :breadcrumb_order=>ticket_order
+  %div.small-12.medium-6.columns
+    = render '/admin/ticket_line_items/table', :order=>ticket_order
+    = render '/admin/special_offer_line_items/table', :order=>ticket_order
+%div.row
+  %div.small-12.columns
+    = render :partial => '/admin/orders/payments', :locals=>{:order=>ticket_order}
+    = render :partial => '/admin/orders/referral', :locals=>{:order=>ticket_order}
+%div.row
+  %div.small-12.columns
+    - if !ticket_order.marketing_source.blank?
+      Heard about the show via
+      %b= ticket_order.marketing_source

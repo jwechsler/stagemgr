@@ -1,4 +1,13 @@
 GIT
+  remote: git://github.com/rweng/jquery-datatables-rails.git
+  revision: 815e93880ca971635704f1767236e884f263c269
+  branch: master
+  specs:
+    jquery-datatables-rails (2.1.10.0.2)
+      jquery-rails
+      sass-rails
+
+GIT
   remote: https://github.com/ctide/ri_cal.git
   revision: 8f3f73abfcfe4cb80099afc0d72b4693b5ef4776
   specs:
@@ -14,10 +23,31 @@ GIT
       httparty (= 0.7.8)
       json
 
+GIT
+  remote: https://github.com/jwechsler/resque-retry.git
+  revision: 9ce25d2f22b9e037fdc88d23e1873d96dfca373c
+  specs:
+    resque-retry (1.0.0)
+      resque (>= 1.10.0)
+      resque-scheduler (>= 1.9.9)
+
+GIT
+  remote: https://github.com/railsconfig/rails_config.git
+  revision: 44284ca3babd10901734261e3ea2dbd277a56455
+  specs:
+    rails_config (0.4.2)
+      activesupport (>= 3.0)
+
+PATH
+  remote: /Users/jeremyw/dev/rails3-jquery-autocomplete
+  specs:
+    rails3-jquery-autocomplete (1.0.14)
+      rails (>= 3.0)
+
 GEM
   remote: http://rubygems.org/
+  remote: https://rails-assets.org/
   specs:
-    RedCloth (4.2.9)
     StreetAddress (1.0.5)
     actionmailer (3.2.16)
       actionpack (= 3.2.16)
@@ -60,11 +90,12 @@ GEM
     acts_as_audited (2.1.0)
       rails (~> 3.0, >= 3.0.3)
     addressable (2.3.5)
+    ajax-datatables-rails (0.2.0)
+      railties (>= 3.1)
     arel (3.0.3)
     authlogic (3.1.3)
       activerecord (>= 3.0.0)
       activesupport (>= 3.0.0)
-    bluecloth (2.2.0)
     bond (0.5.1)
     builder (3.0.4)
     capistrano (3.2.1)
@@ -90,7 +121,9 @@ GEM
       capybara (~> 2.0, >= 2.0.2)
       json
     chronic (0.10.2)
+    chunky_png (1.3.1)
     cocaine (0.3.2)
+    cocoon (1.2.6)
     coderay (1.1.0)
     coffee-rails (3.2.2)
       coffee-script (>= 2.2.0)
@@ -100,6 +133,13 @@ GEM
       execjs
     coffee-script-source (1.7.0)
     columnize (0.3.6)
+    compass (0.12.2)
+      chunky_png (~> 1.2)
+      fssm (>= 0.2.7)
+      sass (~> 3.1)
+    compass-rails (1.1.7)
+      compass (>= 0.12.2)
+      sprockets (<= 2.11.0)
     crack (0.1.8)
     cucumber (1.3.10)
       builder (>= 2.1.2)
@@ -141,28 +181,41 @@ GEM
     fakeredis (0.4.3)
       redis (~> 3.0.0)
     flexmock (0.8.6)
-    formatize (1.1.0)
-      RedCloth (~> 4.2)
-      actionpack (~> 3.0)
-      bluecloth (~> 2.2)
-    formtastic (2.3.0.rc2)
-      actionpack (>= 3.0)
+    font-awesome-rails (4.1.0.0)
+      railties (>= 3.2, < 5.0)
+    foundation-datetimepicker-rails (0.1.3)
+    foundation-icons-sass-rails (3.0.0)
+      railties (>= 3.1.1)
+      sass-rails (>= 3.1.1)
+    foundation-rails (5.3.0.1)
+      railties (>= 3.1.0)
+      sass (>= 3.2.0)
+    fssm (0.2.10)
     g (1.6.0)
       ruby_gntp
     gem_plugin (0.2.3)
     gemcutter (0.7.1)
     gherkin (2.12.2)
       multi_json (~> 1.3)
+    haml (4.0.5)
+      tilt
+    haml-rails (0.4)
+      actionpack (>= 3.1, < 4.1)
+      activesupport (>= 3.1, < 4.1)
+      haml (>= 3.1, < 4.1)
+      railties (>= 3.1, < 4.1)
     hike (1.2.3)
     htmldiff (0.0.1)
     httparty (0.7.8)
       crack (= 0.1.8)
     httplog (0.2.4)
-    i18n (0.6.9)
+    i18n (0.6.11)
     journey (1.0.4)
-    jquery-rails (2.1.4)
+    jquery-rails (3.1.1)
       railties (>= 3.0, < 5.0)
       thor (>= 0.14, < 2.0)
+    jquery-ui-rails (5.0.0)
+      railties (>= 3.2.16)
     json (1.8.1)
     launchy (2.4.2)
       addressable (~> 2.3)
@@ -183,7 +236,7 @@ GEM
       daemons (~> 1.0.10)
       gem_plugin (~> 0.2.3)
     mono_logger (1.1.0)
-    multi_json (1.10.0)
+    multi_json (1.10.1)
     multi_test (0.0.3)
     multipart-post (1.2.0)
     mysql2 (0.3.14)
@@ -201,7 +254,7 @@ GEM
       cocaine (>= 0.0.2)
       mime-types
     people (0.2.1)
-    polyglot (0.3.4)
+    polyglot (0.3.5)
     postmark (1.0.2)
       json
       rake
@@ -236,7 +289,7 @@ GEM
       rake (>= 0.8.7)
       rdoc (~> 3.4)
       thor (>= 0.14.6, < 2.0)
-    rake (10.3.1)
+    rake (10.3.2)
     rb-readline (0.5.1)
     rbx-require-relative (0.0.9)
     rdoc (3.12.2)
@@ -251,9 +304,6 @@ GEM
       redis-namespace (~> 1.3)
       sinatra (>= 0.9.2)
       vegas (~> 0.1.2)
-    resque-retry (1.2.1)
-      resque (~> 1.25)
-      resque-scheduler (~> 2.5)
     resque-scheduler (2.5.5)
       mono_logger (~> 1.0)
       redis (~> 3.0.4)
@@ -288,13 +338,16 @@ GEM
       tzinfo (>= 0.3.22)
     safe_attributes (1.0.10)
       activerecord (>= 3.0.0)
-    sass (3.3.7)
+    sass (3.2.13)
     sass-rails (3.2.6)
       railties (~> 3.2.0)
       sass (>= 3.1.10)
       tilt (~> 1.3)
     sexp_processor (4.4.1)
     shoulda-context (1.1.6)
+    simple_form (2.1.1)
+      actionpack (~> 3.0)
+      activemodel (~> 3.0)
     simplecov (0.8.2)
       docile (~> 1.1.0)
       multi_json
@@ -332,7 +385,7 @@ GEM
       execjs
       rails (>= 3.1)
       railties (>= 3.1)
-    tzinfo (0.3.39)
+    tzinfo (0.3.40)
     uglifier (2.4.0)
       execjs (>= 0.3.0)
       json (>= 1.8.0)
@@ -358,6 +411,7 @@ DEPENDENCIES
   StreetAddress (~> 1.0.1)
   activemerchant
   acts_as_audited (~> 2.1.0)
+  ajax-datatables-rails
   authlogic (~> 3.1.0)
   bond
   capistrano-rails
@@ -365,7 +419,9 @@ DEPENDENCIES
   capybara
   capybara-webkit
   cocaine (= 0.3.2)
-  coffee-rails
+  cocoon
+  coffee-rails (~> 3.2.1)
+  compass-rails
   cucumber
   cucumber-rails
   database_cleaner
@@ -377,13 +433,19 @@ DEPENDENCIES
   factory_girl_rails
   fakeredis
   flexmock (= 0.8.6)
-  formatize
-  formtastic (~> 2.3.0.rc2)
+  font-awesome-rails
+  foundation-datetimepicker-rails
+  foundation-icons-sass-rails
+  foundation-rails
   g (~> 1.6.0)
   gemcutter
+  haml
+  haml-rails
   htmldiff
   httplog
-  jquery-rails (~> 2.1.0)
+  jquery-datatables-rails!
+  jquery-rails
+  jquery-ui-rails
   launchy
   map_by_method (= 0.8.3)
   mocha (~> 0.12.0)
@@ -399,11 +461,13 @@ DEPENDENCIES
   postmark-rails
   pry
   rails (= 3.2.16)
+  rails3-jquery-autocomplete!
+  rails_config!
   rb-readline
   rbx-require-relative
   redcarpet
   resque
-  resque-retry
+  resque-retry!
   resque-scheduler
   resque-web
   ri_cal!
@@ -411,14 +475,16 @@ DEPENDENCIES
   rspec-rails
   ruby_parser
   safe_attributes
-  sass-rails
+  sass (= 3.2.13)
+  sass-rails (~> 3.2.3)
   shoulda-context
+  simple_form
   simplecov
   single_test
   sqlite3
   syntax
   test-unit
-  uglifier
+  uglifier (>= 1.0.3)
   webrat
   what_methods (= 1.0.1)
   whenever

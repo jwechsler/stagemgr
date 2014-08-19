@@ -24,11 +24,11 @@ class Admin::DonationOrdersController < Admin::OrdersController
     process_order(@donation_order,:edit_admin_donation_order_path)
   end
 
-    def create
-      old_status = Order::NEW
-      @donation_order = DonationOrder.new(params[:ticket_order])
-      process_order(@donation_order,:edit_admin_donation_order_path)
-    end
+  def create
+    old_status = Order::NEW
+    @donation_order = DonationOrder.new(params[:ticket_order])
+    process_order(@donation_order,:edit_admin_donation_order_path)
+  end
 
 
   def redirect_to_proper_action

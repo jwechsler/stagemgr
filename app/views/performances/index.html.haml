@@ -1,0 +1,16 @@
+- require 'money'
+- if @production.status == Production::PRESALE
+  = render :partial=>'/productions/info', :locals=>{:production=>@production, :layout_style=>:production_information}
+  %p
+    Tickets are not yet on sale for this show. Subscribe to our
+    %a{:href=>"http://www.theaterwit.org/join/mailing.php"} mailing list
+    for up-to-date show listings and notifications
+- else
+  .row
+    #show_detail_column.small-12.medium-4.columns
+      = render :partial=>'/productions/info', :locals=>{:production=>@production, :layout_style=>:production_information_vertical}
+      = render :partial=>'/productions/late_seating_notice', :locals=>{:production=>@production}
+    .medium-8.columns.show-for-medium-up
+      = render 'calendar', :production=>@production
+    .small-12.columns.show-for-small-only
+      = render 'list_by_date', :performances=>@production.performances

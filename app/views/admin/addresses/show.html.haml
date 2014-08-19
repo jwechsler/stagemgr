@@ -1,0 +1,21 @@
+= content_for :title do
+  = @address.full_name
+= content_for :breadcrumbs do
+  %ul.breadcrumbs
+    %li
+      = link_to 'Addresses', admin_addresses_path
+    %li.current
+      %a{:href=>'#'}= @address.full_name
+
+%div.row
+  %div.small-12.medium-6.columns
+    = render :partial=>"/admin/addresses/address_contact_info", :locals=>{:address=>@address}
+  %div.small-12.medium-6.columns
+    = render(:partial=>"/admin/address_tags/tags", :locals=>{:address_tags=>@address.address_tags}) if @address.address_tags.count > 0
+%div.row
+  %div.small-12.columns.right
+    = link_to 'Edit', edit_admin_address_path(@address), :class=>'small button'
+
+- if !@address.orders.nil? && @address.orders.size > 0
+  = render :partial=>"/admin/addresses/order_history", :locals=>{:orders=>@visible_orders}
+

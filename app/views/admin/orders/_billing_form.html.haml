@@ -1,0 +1,15 @@
+- paytype = payment_types(order_form.object, (defined? allowed_payment_types?) ? allowed_payment_types : nil, false)
+%div.payment_type_choice
+  = order_form.association :payment_type, :label=>"Pay using", :include_blank=>false, :as=>:select, :collection=>paytype
+
+%div#payment_forms
+  %div#credit_card_payment_form
+    = render '/admin/orders/credit_card_payment_form', :f => order_form
+  %div#cash_payment_form
+    = render '/admin/orders/cash_payment_form', :f => order_form
+  %div#flex_pass_payment_form
+    = render '/orders/flex_pass_payment_form', :f => order_form
+  %div#membership_payment_form
+    = render '/orders/membership_payment_form', :f => order_form
+  %div#check_payment_form
+    = render '/orders/check_payment_form', :f => order_form

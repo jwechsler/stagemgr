@@ -1,9 +1,11 @@
-<%= semantic_form_for [:admin, @special_feature] do |f| %>
-  <%= f.inputs do %>
-    <%= f.input :short_name %>
-    <%= f.input :description %>
+<%= simple_form_for [:admin, @special_feature] do |f| %>
+<div class="row">
+  <div class="small-6 columns">
+    <%= f.input :short_name, :hint=>'Quick selection label' %>
     <%= f.input :status, :as=>:select, :collection=>SpecialFeature::SPECIAL_FEATURE_STATUSES, :include_blank=>false %>
-  <%- end %>
-  <%= f.actions %>
-
+  </div><div class="small-6 columns">
+    <%= f.input :description, :hint=>'Markdown enabled display of special feature for web site / emails' %>
+  </div>
+  <%= f.button :submit %>
+</div>
 <% end %>

@@ -3,7 +3,7 @@ require 'payment_form_fields'
 InvalidSpecialOfferCode = Class.new(StandardError)
 
 class Order < ActiveRecord::Base
-  using_access_control
+  @using_access_control
 
   include PaymentFormFields
   include Admin::ReportsHelper
@@ -50,10 +50,10 @@ class Order < ActiveRecord::Base
 
 
   ORDER_STATUSES = (
-  HOLD, WEB, NEW, PROCESSING, PROCESSED, REFUNDED, EXCHANGED, FULFILLED, CANCELED, UNCLAIMED =
-      "Hold", "Web", "New", "Processing", "Processed", "Refunded", "Exchanged", "Fulfilled", "Canceled", "Unclaimed")
+  HOLD, NEW, PROCESSING, PROCESSED, REFUNDED, EXCHANGED, FULFILLED, CANCELED, UNCLAIMED =
+      "Hold", "New", "Processing", "Processed", "Refunded", "Exchanged", "Fulfilled", "Canceled", "Unclaimed")
 
-  HOLDING_SEAT_STATUSES = [HOLD, WEB, PROCESSING, PROCESSED, FULFILLED]
+  HOLDING_SEAT_STATUSES = [HOLD, PROCESSING, PROCESSED, FULFILLED]
 
   REFERRALS = [
       "Email", "Mail", "Cast/Staff/Production Team", "Review/Feature", "Radio", "Newspaper Ad", "Facebook", "Twitter", "Word of Mouth", "Attended previous production", "Other"
@@ -430,9 +430,16 @@ class Order < ActiveRecord::Base
   end
 
   def transition_to!(new_status, redirect_to = nil)
-    old_status = self.status
-    redirect_to = self.send "transition_#{self.status.underscore}_to_#{new_status.underscore}!".to_sym, redirect_to
-    raise "Transition from #{old_status} to #{new_status} unsuccessful. Current status is #{self.status}." unless self.status == new_status
+    Order.transaction do
+      begin
+        old_status = self.status
+        redirect_to = self.send "transition_#{self.status.underscore}_to_#{new_status.underscore}!".to_sym, redirect_to
+        raise "Transition from #{old_status} to #{new_status} unsuccessful. Current status is #{self.status}." unless self.status == new_status
+      rescue Exception=>e
+        self.reload
+        raise e
+      end
+    end
     redirect_to
   end
 

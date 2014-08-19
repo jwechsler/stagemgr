@@ -1,0 +1,32 @@
+- if [Order::NEW,Order::PROCESSING].include?(@order.status) then
+  - if @order.membership_offer.on_sale then
+    = render :partial=>'/membership_offers/info', :locals=>{:membership_offer=>@order.membership_offer}
+    = simple_form_for @order do |order_form|
+      = order_form.error_messages
+      = order_form.simple_fields_for :membership_line_items do |mlif|
+        = mlif.input :membership_offer_id, :as=>:hidden
+      = order_form.hidden_field :status
+      = render :partial=>'/orders/address', :locals=>{:order_form=>order_form}
+      = render '/membership_orders/third_party', :order_form=>order_form, :offer=>@order.membership_offer
+      = render :partial=>'/membership_orders/preferred_seating', :locals=>{:f => order_form}
+      = render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form}
+
+      .row
+        .small-1.columns
+          = order_form.check_box :add_to_email_list, :checked=>true
+        .small-11.columns
+          Join our mailing list to take full advantage of your membership.
+          %br
+          %span{:style=>"font-size: 80%"}
+            We'll send you company news, special offers, building schedule and more delivered twice monthly. Your email will not be shared. :)
+
+      = order_form.submit "Checkout", :action=>:create, class: "submit button", data: { disable_with: "Processing..." } if [Order::NEW, Order::PROCESSING].include?(order_form.object.status)
+  - else
+    %p
+      That particular membership offer is no longer available. Please go back and make another selection.
+- else
+  = render :partial=>'/membership_orders/thanks'
+
+= content_for :js do
+  = javascript_include_tag 'orders_common'
+

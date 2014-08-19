@@ -1,0 +1,18 @@
+.row
+  .small-12.columns
+    = render '/admin/orders/header', :order=>@order
+  .row
+    .small-12.medium-6.columns
+      %fieldset
+        %legend Member Info
+        =render '/admin/addresses/info', :address=>@order.address, :breadcrumb_order=>@order
+    .small-12.medium-6.columns
+      %fieldset
+        %legend Membership Information
+        = render '/admin/memberships/detail', :membership=>@order.membership
+  .row
+    .small-12.columns
+      = render '/admin/orders/payments', :order=>@order
+      = render '/admin/orders/referral', :order=>@order
+      = render '/admin/orders/notes', :order=>@order
+      = render '/admin/orders/audit_show', :order_form=>@order

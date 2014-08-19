@@ -2,6 +2,58 @@
  *= require_self
 */
 
+/* production display css */
+
+
+.production_list {
+}
+
+.production_list .show-listing {
+  float: left;
+  z-index: 100;
+  text-align: center;
+}
+
+.show-listing,.production_list {
+  position: relative;
+  margin-bottom: 18px;
+  display: block;
+}
+
+
+.production_list .production_short_desc {
+  margin-top: 10px;
+}
+
+.production_list > div.venue {
+  font-size: .5em;
+}
+.production_list p {
+  display: block;
+  line-height: normal;
+}
+
+
+.production_list .production_class {
+  font-size: 9px;
+}
+
+.production_list .promo_logo {
+  margin-bottom: 5px;
+  margin-top: 5px;
+}
+
+.production_list .producing_company {
+  font-size: 11px;
+
+}
+
+.production_name {
+  font-weight: bold;
+  font-size: 1em;
+}
+
+
 #flash_notice, .flash_error {
   padding: 5px 8px;
   margin: 10px 0;
@@ -18,18 +70,12 @@
 }
 
 .company_class {
-  font-weight: bold;
   font-style: italic;
+  font-size: 80%;
 }
 
-.production_list {
-  float: left;
-  font-size: 12px;
-  width: 100%;
-}
 
 #box_office h1 {
-  width: 100%;
   background-color: #77919f;
   color: #FFFFFF;
   clear:both;
@@ -68,55 +114,6 @@ background-dark {
   font-style: italic;
 }
 
-.production_list .show_listing {
-  float: left;
-  position: relative;
-  z-index: 100;
-  margin-bottom: 18px;
-  display: block;
-  text-align: center;
-}
-
-.production_list .production_short_desc {
-  margin-top: 10px;
-}
-
-.production_list p {
-  display: block;
-  line-height: normal;
-  padding-right: 8px;
-  margin:  2px;
-}
-
-.production_list .venue {
- font-weight: bold;
-  font-size: 12px;
-}
-
-.production_list .production_class {
-  font-size: 9px;
-}
-
-.production_list .promo_logo {
-  margin-bottom: 5px;
-  margin-top: 5px;
-}
-
-.production_list .producing_company {
-  font-size: 11px;
-
-}
-
-.production_list .production_name {
-  font-weight: bold;
-  font-size: 14px;
-}
-
-.production_list .company_class {
-  font-size: 10px;
-  font-weight: normal;
-}
-
 .late_seating {
     font-weight: bold;
 }
@@ -129,19 +126,11 @@ background-dark {
   clear: both;
 }
 
-#performance_calendar_split {
-  width: 860px;
-}
-
 #show_detail_column {
-  float: left;
-  width: 250px;
+
   padding: 0px 25px 0px 0px;
 }
 
-.performance_calendar {
-  width: 570px;
-}
 
 .performance_calendar td, .performance_calendar th {
   border-right: 1px solid #A2ADBC;
@@ -244,12 +233,6 @@ background-dark {
 #contact_boxoffice_info {
   text-align: center;
 }
-
-.production_information {
-  font: 0.8em "Helvetica Neue", Helvetica, Geneva, "Lucida Grande", LucidaGrande, Lucida, Verdana, Helvetica, Arial, sans-serif;
-  font-size: 13px;
-}
-
 
 
 p .company_class {

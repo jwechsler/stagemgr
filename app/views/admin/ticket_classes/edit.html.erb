@@ -1,12 +1,6 @@
-<h1>Editing Ticket Class</h1>
+<% content_for :title do %>Editing Ticket Class <%= @ticket_class.class_code %> on <%= @production.name %><% end %>
+<h3>Editing Ticket Class </h3>
 
-<%= error_messages_for :ticket_class %>
-
-<%= semantic_form_for([:admin,@theater,@production,@ticket_class]) do |f| %>
-
-    <%= render :partial => 'form', :locals=>{:f=>f} %>
-    <%= f.actions %>
-
-<% end %>
+<%= render :partial => 'form', :locals=>{theater: @theater, production: @production, ticket_class: @ticket_class} %>
 
 <%= link_to 'Back', admin_theater_production_ticket_classes_path(@theater,@production) %>

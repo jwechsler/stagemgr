@@ -1,0 +1,4 @@
+%span.third_party_checkbox
+  = order_form.input :gift, :label=>"Give as a gift"
+  #gift_information.hide
+    = render '/orders/gift_recipient', :f=>order_form, :offer=>order_form.object.membership_offer

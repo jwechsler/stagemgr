@@ -1,0 +1,31 @@
+.row
+  .small-6.columns
+    %p
+      %strong Email
+      = @user.email
+    = link_to 'Edit', edit_current_user_account_path, :class=>'button'
+  .small-6.columns
+    %fieldset
+      %legend Login statistics
+      %p
+        %strong Login count:
+        = @user.login_count
+      %p
+        %strong Login count:
+        = @user.login_count
+      %p
+        %strong Last request at:
+        = @user.last_request_at
+      %p
+        %strong Last login at:
+        = @user.last_login_at
+      %p
+        %strong Current login at:
+        = @user.current_login_at
+      %p
+        %strong Last login ip:
+        = @user.last_login_ip
+      %p
+        %strong Current login ip:
+        = @user.current_login_ip
+

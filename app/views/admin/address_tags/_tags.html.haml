@@ -1,0 +1,13 @@
+%table
+  %thead
+    %tr
+      %td Tag
+      %td Value
+  %tbody
+  - current_user.allowed_tags(address_tags).each do |tag|
+    %tr
+      %td
+        = tag.tag_label
+        = " [#{tag.theater.name}]" unless (tag.theater.nil? || tag.theater.is_default?)
+      %td
+        = tag.tag_value
