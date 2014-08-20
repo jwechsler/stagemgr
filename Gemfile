@@ -137,7 +137,6 @@ group :cucumber do
 end
 
 # assets
-group :assets do
   gem 'sass', '3.2.13'
   gem 'sass-rails',   '~> 3.2.3'
   gem 'coffee-rails', '~> 3.2.1'
@@ -146,5 +145,5 @@ group :assets do
   gem 'compass-rails' # you need this or you get an err
   gem 'foundation-rails'
   gem 'foundation-icons-sass-rails'
-end
+
 
