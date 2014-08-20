@@ -5,7 +5,7 @@
     - productions.each do |production|
       - content_for(:head) do
         = production_image_style(production)
-      %div.columns.small-12.medium-4.small-centered.show-listing{:class=>"medium-#{slice}"}
+      %div.columns.small-12.show-listing{:class=>"medium-#{slice}"}
         = render 'header', :production=>production
         - unless production.short_description.blank?
           %p.production_short_desc= production.short_description
