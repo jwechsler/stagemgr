@@ -1,5 +1,5 @@
 %p
-  = link_to image_tag(production.best_image_url_available(:medium)), production_performances_path(production.id, :anchor=>"top"), :id=>production_image_id unless production.best_image_url_available(:medium).nil?
+  = link_to image_tag(production.best_image_url_available(:medium)), production_performances_path(production.id, :anchor=>"top"), :id=>production_image_id(production) unless production.best_image_url_available(:medium).nil?
   %div.production_name= link_to production.name, production_performances_path(production.id, :anchor=>"top")
   %div.venue= production.venue.name
   - unless production.production_class == Production::PLAY
