@@ -71,7 +71,7 @@ gem 'resque-scheduler', :require=>'resque_scheduler'
 gem 'resque-retry', :git=>"https://github.com/jwechsler/resque-retry.git"
 gem 'foundation-datetimepicker-rails'
 
-gem 'rails3-jquery-autocomplete',:path=>'/Users/jeremyw/dev/rails3-jquery-autocomplete'   #:git=>"https://github.com/jwechsler/rails3-jquery-autocomplete.git"
+gem 'rails3-jquery-autocomplete',:git=>"https://github.com/jwechsler/rails3-jquery-autocomplete.git" #:path=>'/Users/jeremyw/dev/rails3-jquery-autocomplete'
 gem 'rails_config', git: 'https://github.com/railsconfig/rails_config.git'
 
 group :development do

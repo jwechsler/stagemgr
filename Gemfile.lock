@@ -24,6 +24,13 @@ GIT
       json
 
 GIT
+  remote: https://github.com/jwechsler/rails3-jquery-autocomplete.git
+  revision: a27846d7f590bd73a2e9246614d92f22a4443831
+  specs:
+    rails3-jquery-autocomplete (1.0.14)
+      rails (>= 3.0)
+
+GIT
   remote: https://github.com/jwechsler/resque-retry.git
   revision: 9ce25d2f22b9e037fdc88d23e1873d96dfca373c
   specs:
@@ -37,12 +44,6 @@ GIT
   specs:
     rails_config (0.4.2)
       activesupport (>= 3.0)
-
-PATH
-  remote: /Users/jeremyw/dev/rails3-jquery-autocomplete
-  specs:
-    rails3-jquery-autocomplete (1.0.14)
-      rails (>= 3.0)
 
 GEM
   remote: http://rubygems.org/
