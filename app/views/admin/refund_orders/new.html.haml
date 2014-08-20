@@ -1,0 +1,38 @@
+.row
+  .small-12.columns
+    %fieldset
+      %legend Order to refund
+      %div
+        = render :partial=>"/admin/#{@original_order.class.to_s.underscore.pluralize}/full_order", :locals=>{:order=>@original_order}
+
+    = error_messages_for :order
+
+    - case
+    - when (!@original_order.refundable?)
+      %h3 This order can't be refunded, as it hasn't been processed.
+    - when @original_order.payments.count != 1
+      %h3 Can only refund orders with only 1 payment
+    - when [CreditCardPayment,ExchangePayment,CashPayment,CheckPayment,ExternalPayment].include?(@original_order.payments.first.class)
+      %h4
+        - if @original_order.payments.first.is_a?(CashPayment)
+          "Render #{number_to_currency(@original_order.payments.first.amount)} in cash, "
+        -else
+          Note the reason for the refund and press "Process Refund"
+      = form_for [:admin,@original_order,@refund_order], :url=>admin_order_refund_orders_path(@original_order) do |order_form|
+        %p
+          = order_form.label :notes
+          = order_form.text_field :notes
+        %p
+          = order_form.submit 'Process Refund', :disable_with => 'Processing...', :class=>'alert button'
+    - when @original_order.payments.first.class == MembershipPayment
+      = form_for [:admin,@original_order,@refund_order], :url=>admin_order_refund_orders_path(@original_order) do |order_form|
+        = order_form.submit 'Cancel Membership reservation', :disable_with=>'Processing...'
+    - when @original_order.payments.first.class == FlexPassPayment
+      = form_for [:admin,@original_order,@refund_order], :url=>admin_order_refund_orders_path(@original_order) do |order_form|
+        %p
+          = order_form.label :notes
+          = order_form.text_field :notes
+        %p
+          = order_form.submit 'Release Flex Pass tickets', :disable_with=>'Processing...'
+    - else
+      %h3 Can't refund this order.

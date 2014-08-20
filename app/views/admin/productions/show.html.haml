@@ -1,0 +1,95 @@
+- content_for :title do
+  = @production.name
+- content_for :breadcrumbs do
+  %ul.breadcrumbs
+    %li= link_to 'Theaters', admin_theaters_path
+    %li= link_to @production.theater.name, admin_theater_path(@production.theater)
+    %li.current
+      %a{:href=>"#"}= @production.name
+
+.row
+  .small-4.columns
+    = render :partial=>'/productions/info', :locals=>{:production=>@production}
+
+  .small-8.columns
+    .row
+
+      %ul.tabs{'data-tab'=>'data-tab'}
+        %li.tab-title.active
+          %a{:href=>"#prodpanel-1"} Performances
+        %li.tab-title
+          %a{:href=>"#prodpanel-2"} Settings
+        %li.tab-title
+          %a{:href=>"#prodpanel-3"} Custom Notifications
+
+      .tabs-content
+        #prodpanel-1.content.active
+          .small-12.columns
+            %h3 Performances
+            = render :partial => 'performance_listing'
+
+            - permitted_to? :create, :performances do
+              = link_to 'Add performance', new_admin_theater_production_performance_path(@production.theater, @production), class: 'small button right'
+
+
+        #prodpanel-2.content
+          .small-8.columns
+            %p
+              %b Production code:
+              = @production.production_code
+            - unless @production.first_preview_at.blank?
+              %p
+                %strong First preview:
+                = @production.first_preview_at.to_s(:long_with_day_of_week)
+            - unless @production.press_opening_at.nil?
+              %p
+                %strong Press opening:
+                = @production.press_opening_at.to_s(:long_with_day_of_week)
+            - unless @production.opening_at.nil?
+              %p
+                %strong Opening at:
+                = @production.opening_at.to_s(:long_with_day_of_week)
+            - unless @production.closing_at.nil?
+              %p
+                %strong Closing at:
+                = @production.closing_at.to_s(:long_with_day_of_week)
+
+          .small-4.columns
+            %p
+              %strong Status:
+              = @production.status
+            %p
+              %strong Class:
+              = @production.production_class
+            %p
+              %strong Venue:
+              = @production.venue.name
+            %p
+              %strong Capacity:
+              = @production.capacity
+            - unless @production.additional_information_link.blank?
+              %p
+                = link_to @production.additional_information_link, @production.additional_information_link
+
+        #prodpanel-3.content
+          .small-12.columns
+            - no_displayed_confirmation = true
+            - unless @production.confirmation_message.blank?
+              - no_displayed_confirmation = false
+              %h5 Confirmation Message
+              = display_markdown(@production.confirmation_message)
+            - unless @production.follow_up_message.blank?
+              - no_displayed_confirmation = false
+              %h5 Followup Message
+              = display_markdown(@production.follow_up_message)
+            - unless @production.follow_up_message_2.blank?
+              - no_displayed_confirmation = false
+              %h5 Followup Message #2
+              = display_markdown(@production.follow_up_message_2)
+            - if no_displayed_confirmation
+              %h5 No custom notifications defined
+
+  .small-12.columns
+    - if permitted_to? :update, :productions
+      = link_to 'Edit', edit_admin_theater_production_path(@production.theater, @production), :class=>'button'
+

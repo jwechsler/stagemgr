@@ -47,9 +47,9 @@ Feature: Payment Types Administration
       And I press "Update"
      Then I should see "successfully updated"
       And I go to the edit page for payment type "Cash"
-     Then I should see "OutreachTask"
-      And I should see "ticket_confirmation"
-      And I delete the first order task suppression
+     Then the suppression type should be 'OutreachTask'
+      And the suppression method should be 'ticket_confirmation'
+      And I follow "remove"
       And I press "Update"
      Then I should see "successfully updated"
       And I go to the edit page for payment type "Cash"

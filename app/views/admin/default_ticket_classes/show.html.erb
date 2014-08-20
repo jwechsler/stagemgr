@@ -34,3 +34,5 @@
   <%= link_to "Destroy", [:admin, @default_ticket_class], :confirm => 'Are you sure?', :method => :delete %> |
   <%= link_to "View All", admin_default_ticket_classes_path %>
 </p>
+
+= link_to "Destroy", [:admin, default_ticket_class], :confirm => 'Are you sure?', :method => :delete, :class=>'tiny alert button'

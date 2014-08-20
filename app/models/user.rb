@@ -1,6 +1,8 @@
 class User < ActiveRecord::Base
   has_and_belongs_to_many :theaters #, :as => :owned_theaters
   has_many :file_stores
+  validates_presence_of :email
+  validates_uniqueness_of :email
 
   PRIVILEGE_LEVELS                                   = (
   ADMIN, BOXOFFICE, THEATERUSER  =
@@ -22,6 +24,9 @@ class User < ActiveRecord::Base
     self.status = User::ACTIVE if self.status.blank?
   end
 
+  def inactive?
+    self.status == INACTIVE
+  end
 
   def theater_ids
     return theaters.map{|t| t.id.to_i}

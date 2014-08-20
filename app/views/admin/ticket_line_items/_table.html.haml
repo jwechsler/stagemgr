@@ -1,0 +1,19 @@
+- if order.ticket_line_items.size > 0
+	%div.row
+		%div.small-12.columns
+			%fieldset
+				%legend Tickets
+				%table{:id=>'ticket_line_items_display',:width=>"100%"}
+					%thead
+						%th Class
+						%th Count
+						%th Face Value
+					%tbody
+						= render :partial=> order.ticket_line_items
+					%tfoot
+						%tr
+							%td
+								%i Total
+							%td{:align=>"right"}
+								%i= order.ticket_line_items.sum(:ticket_count)
+

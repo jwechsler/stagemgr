@@ -1,5 +1,6 @@
-<h1>Daily Sales</h1>
-<h2><%= @start_day.to_s(:long) %> - <%= @end_day.to_s(:long) %></h2>
+<div class="row"><div class="small-12 columns">
+<h3>Daily Sales</h3>
+<h4><%= @start_day.to_s(:long) %> - <%= @end_day.to_s(:long) %></h4>
 
 <table id="daily_box_office_receipts" class="report">
   <caption>
@@ -7,3 +8,4 @@
   </caption>
   <%= render :partial=>"generic", :locals=>{:headers=>@headers, :report_body=>@report_data, :summary=>@totals} %>
 </table>
+</div></div>

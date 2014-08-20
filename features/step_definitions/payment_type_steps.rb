@@ -16,11 +16,20 @@ Given /^an external payment type "([^\"]*?)" exists$/ do |external_payment_name|
 end
 
 Given(/^I suppress the "(.*?)" method for "(.*?)"$/) do |method_name, task_type|
-  click_link("Add a task suppression")
-  find('.new_order_task_suppression_task_type').find(:option,task_type,{}).select_option
-  find('.new_order_task_suppression_method_name').find(:option,method_name,{}).select_option
+  click_link("add suppression")
+  find('.new_order_task_suppression_task_type select').find(:option,task_type,{}).select_option
+  find('.new_order_task_suppression_task_method select').find(:option,method_name,{}).select_option
 end
 
 Then(/^I delete the first order task suppression$/) do
   check "payment_type_order_task_suppressions_attributes_0__destroy"
 end
+
+Then(/^the suppression type should be '(.*?)'$/) do |value|
+  expect(page).to have_select('payment_type_order_task_suppressions_attributes_0_task_type', selected: value)
+end
+
+Then(/^the suppression method should be '(.*?)'$/) do |value|
+  expect(page).to have_select('payment_type_order_task_suppressions_attributes_0_method_name', selected: value)
+end
+

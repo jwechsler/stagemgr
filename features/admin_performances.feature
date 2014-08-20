@@ -1,10 +1,10 @@
-Feature: Admins can manage performances
-  As an administrator
+Feature: Box office users can manage performances
+  As a box office user
   I want to create / edit and delete performances records
 
   Background:
     Given a sample theater exists
-    And I am an Administrator
+    And I am a box office user
     And I am logged in
     And I go to the admin production detail page for "Production One"
 
@@ -33,8 +33,6 @@ Feature: Admins can manage performances
     When I press "Create"
     Then I should see "has already been taken"
 
-  @wip
-  @javascript
   Scenario: The box office user can duplicate a performance
     Given I follow "Add performance"
     And I enter a performance on "2015-01-01" with code "PERF1"
@@ -42,6 +40,7 @@ Feature: Admins can manage performances
     And I should see "Performance PERF1 was successfully created."
     And I go to the admin production detail page for "Production One"
     And I follow "duplicate_PERF1"
+
     And I change "Performance code" to "PERF2"
     And I enter a performance date of "2015-01-02"
     When I press "Create"
@@ -53,9 +52,21 @@ Feature: Admins can manage performances
   Scenario: The box office user can record trigger criteria
     Given I follow "Add performance"
       And I enter a performance on "2015-01-01" with code "PERF1"
-      And I enter a trigger to "EXPENSIVE" based on capacity of "50" for the 5th ticket class
-      And I enter a trigger to "EXPENSIVE" based on "2" days before for the 5th ticket class
+      And I enter a trigger to "SECRET" based on capacity of "50" for the 5th ticket class
+      And I enter a trigger to "SECRET" based on "2" days before for the 5th ticket class
       And I press "Create"
       Then I should see "Performance PERF1 was successfully created"
       Then I follow "PERF1"
-      Then I should see "will be replaced by EXPENSIVE when capacity at or over 50% or 2 days before performance"
+      Then I should see "will be replaced by SECRET when capacity at or over 50% or 2 days before performance"
+
+  Scenario: The box office user can create custom performance features
+    Given I follow "Add performance"
+      And I enter a performance on "2015-01-01" with code "PERF1"
+      And I enter a custom feature description of "Special Silent Performance"
+      And I enter a custom feature email of "This performance *will* be entirely mimed"
+
+      And I press "Create"
+     Then I should see "Performance PERF1 was successfully created"
+     Then I follow "PERF1"
+     Then I should see "Special Silent Performance"
+      And I should see "entirely mimed"

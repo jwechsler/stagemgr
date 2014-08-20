@@ -3,6 +3,11 @@ class MembershipOrdersController < ApplicationController
   include OrdersHelper
   include MembershipOrdersHelper
 
+  def payment_types_for(order, frontend = true)
+    types = super
+    types.select{|t| t.is_a? CreditCardPaymentType}
+  end
+
   def create
     success = self.create_membership
 

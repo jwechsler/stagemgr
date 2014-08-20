@@ -1,6 +1,8 @@
 class Admin::PerformancesController < Admin::ApplicationController
+  filter_resource_access
   prepend_before_filter :find_production
   append_before_filter :find_performance, :only => [:show, :edit, :update, :destroy, :duplicate]
+
 
   # GET /performances
   # GET /performances.xml

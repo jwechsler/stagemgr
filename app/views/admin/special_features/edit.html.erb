@@ -1,4 +1,10 @@
-<% title "Edit Admin/Special Feature" %>
+<%= content_for :title do %>Edit Special Feature<% end %>
+<% content_for :breadcrumbs do %>
+<ul class="breadcrumbs">
+  <li><%= link_to 'Special Features', admin_special_features_path%></li>
+  <li class="current"><a href='#'>Edit</a></li>
+</ul>
+<% end %>
 
 <%= render 'form' %>
 

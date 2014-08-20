@@ -1,6 +1,6 @@
 class Admin::OrdersController < Admin::ApplicationController
 
-  filter_resource_access :attribute_check => true, :additional_new=>{:create => :new}, :additional_member=>{:refund => :refund, :update_notes=>:update_notes}, :additional_collection=>{:fulfill_selected=>:index}
+  filter_resource_access :attribute_check => true, :additional_new=>{:create => :new}, :additional_member=>{:refund => :refund, :update_notes=>:update_notes}, :additional_collection=>{:fulfill_selected=>:index, :unclaim_selected=>:index}
 
   include OrdersHelper
   #append_before_filter :find_order, :only => [:show, :edit, :update, :destroy, :refund, :cancel, :fulfill]
@@ -16,19 +16,21 @@ class Admin::OrdersController < Admin::ApplicationController
   ]
 
   def index
-    store_search_and_pagination_state unless !session[:existing_box_office_orders_state].nil?
+    # store_search_and_pagination_state unless !session[:existing_box_office_orders_state].nil?
     respond_to do |format|
-      format.html # index.html.erb
-      format.xml do
-        store_search_and_pagination_state
-        @options_hash = get_search_conditions_from_params
-        @options_hash.merge!(get_pagination_options_from_params)
-        @options_hash.merge!(:include=>[{:performance=>:production}, :address, :payments])
-        @orders = Order.paginate @options_hash
-        @total_records = @orders.total_entries
-        @total_pages = @total_records/@orders.per_page+1
-        render :partial => 'admin_orders_index_grid_data.xml.builder', :layout => false
-      end
+      format.html
+       # index.html.erb
+      # format.xml do
+      #   store_search_and_pagination_state
+      #   @options_hash = get_search_conditions_from_params
+      #   @options_hash.merge!(get_pagination_options_from_params)
+      #   @options_hash.merge!(:include=>[{:performance=>:production}, :address, :payments])
+      #   @orders = Order.paginate @options_hash
+      #   @total_records = @orders.total_entries
+      #   @total_pages = @total_records/@orders.per_page+1
+      #   render :partial => 'admin_orders_index_grid_data.xml.builder', :layout => false
+      # end
+      format.json { render json: OrdersDatatable.new(view_context) }
     end
   end
 
@@ -56,6 +58,22 @@ class Admin::OrdersController < Admin::ApplicationController
         statuses[order.id]={:success=>true}
       else
         statuses[order.id]={:success=>false, :message=>"Only 'Processed' orders can be fulfilled"}
+      end
+    end
+    render :json=>statuses.to_json
+  end
+
+  def unclaim_selected
+    params[:commit] = 'Unclaimed'
+    orders = Order.find(params[:ids])
+    logger.info params[:ids].to_s
+    statuses = {}
+    orders.each do |order|
+      if order.status == 'Fulfilled'
+        order.transition_to!(Order::UNCLAIMED)
+        statuses[order.id]={:success=>true}
+      else
+        statuses[order.id]={:success=>false, :message=>"Only 'Fulfilled' orders can be unclaimed"}
       end
     end
     render :json=>statuses.to_json

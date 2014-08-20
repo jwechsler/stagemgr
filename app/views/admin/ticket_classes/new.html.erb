@@ -1,10 +1,6 @@
-<h1>New ticket_class</h1>
+<% content_for :title do %>New Ticket Class on <%= @production.name %><% end %>
+<h3>New Ticket Class on <i><% = @production.name %></h3>
 
-<%= semantic_form_for([:admin,@theater,@production,@ticket_class]) do |f| %>
-  <%= render :partial => 'form', :locals=>{:f=>f} %>
-  <p>
-    <%= f.submit 'Create' %>
-  </p>
-<% end %>
+<%= render :partial => 'form', :locals=>{theater: @theater, production: @production, ticket_class: @ticket_class} %>
 
-<%= link_to 'Back', admin_theater_production_path(@production.theater, @production)  %>
+<%= link_to 'Back', admin_theater_production_ticket_classes_path(@theater,@production) %>

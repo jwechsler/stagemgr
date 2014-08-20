@@ -1,0 +1,6 @@
+- unless f.object.is_a? FlexPassOrder
+  %div.row.collapse
+    %div.small-4.columns
+      =f.label :special_offer_code, "Discount Code", :class=>'prefix'
+    %div.small-8.columns
+      = f.input_field :special_offer_code

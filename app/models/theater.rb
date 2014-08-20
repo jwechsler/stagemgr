@@ -14,16 +14,17 @@
   has_many :orders
   has_many :address_tags
   has_and_belongs_to_many :users#, :as=>:owners
-  
+
   has_attached_file :logo,
                     :path => ":rails_root/public/system/:attachment/:id/:style/:filename",
-                    :url => "/system/:attachment/:id/:style/:filename"
+                    :url => "#{Rails.application.config.action_controller.relative_url_root}/system/:attachment/:id/:style/:filename",
+                    :styles => {:medium => "250x250>", :small => "125x125>", :thumbnail => "125x125>"}
 
 
   def class_display
     return theater_class == 'Default' ? '' : theater_class
   end
-  
+
   def to_s
     return self.name
   end
@@ -39,4 +40,9 @@
   def is_resident?
     self.theater_class == 'Resident Company'
   end
+
+  def inactive?
+    self.status == 'Inactive'
+  end
+
 end

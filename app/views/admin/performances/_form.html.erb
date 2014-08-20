@@ -1,51 +1,93 @@
-<%= f.inputs do %>
-  <%= f.input :performance_date, :as=>:date_picker %>
-  <%= f.input :performance_time, {:minute_step => 15} %>
-  <%= f.input :performance_code %>
-  <%= f.input :status, :as=>:select, :collection=>Performance::PERFORMANCE_STATUSES %>
-  <%= f.hidden_field :production_id %>
-  <%= f.input :suppress_notification, :label=>"Disable email notifications" %>
-  <%= f.input :special_features, :as=>:check_boxes, :collection=>SpecialFeature.find_all_by_status(SpecialFeature::ACTIVE), :member_label=>:short_name %>
-    <h1>Ticket classes:</h1>
-  <table>
-    <tr>
-      <th>Available</th>
-      <th>Ticket class code</th>
-      <th>Ticket class name</th>
-      <th>Limit</th>
-      <th>Trigger?</th>
-      <th>To Code</th>
-      <th>At<br />%</th>
-      <th>Days<br />Before</th>
-    </tr>
-    <%= f.fields_for :ticket_class_allocations do |ticket_class_allocation_form| %>
-      <tr id='ticket_class_allocation_<%= ticket_class_allocation_form.object.ticket_class.id %>'>
+<%= simple_form_for([:admin,performance.production.theater,performance.production,performance]) do |f| %>
+  <div class="row">
+    <%= f.hidden_field :production_id %>
+    <div class="small-6 medium-4 columns">
+      <div class="row">
+        <div class="small-6 columns">
+          <%= f.input :performance_code %>
+        </div>
+        <div class="small-6 columns">
+          <%= f.input :status, :as=>:select, :collection=>Performance::PERFORMANCE_STATUSES, include_blank:false %>
+        </div>
+      </div>
+      <div class="row">
+        <div class="small-6 columns">
+          <%= f.input :performance_date, :readonly=> true, :as=>:date_picker, :label=>"Date" %>
+        </div>
+        <div class="small-6 columns">
+          <%= f.input :performance_time, :as=>:time_picker, input_html: {:value=>performance.performance_time.nil? ? '' : performance.performance_time.to_s(:hour_min) }, :label=>"Time" %>
+        </div>
+      </div>
+    </div>
+    <div class="small-6 medium-4 columns">
+      <%= f.association :restricted_payment_types, :as=>:select, :collection=>PaymentType.all, :member_label=>:display_name, :hint=>"Prevent sales with these payment types" %>
+      <%= f.input :suppress_notification, :label=>"Suppress notification e-mails" %>
+    </div>
+    <div class="small-6 medium-4 columns">
+      <%= f.association :special_features, :as=>:check_boxes, :collection=>SpecialFeature.find_all_by_status(SpecialFeature::ACTIVE, :order=>:short_name), :member_label=>:short_name %>
+      <%= f.input :special_feature_display_markdown, :label=>"Custom Special Feature" ,:input_html => {:rows => 3}, :hint=>"For web site display, markdown enabled" %>
+      <%= f.input :special_feature_email_markdown, :label=>"Custom Email", :input_html => {:rows => 4}, :hint=>"Custom text to override feature information in emails, markdown enabled" %>
+    </div>
+  </div>
+  <div class="row">
+    <div class="small-12 columns">
+      <h3>Ticket classes:</h3>
+      <table id="ticket-class-listing" class="display">
+        <thead>
+          <tr>
+            <th>Available</th>
+            <th>Ticket class code</th>
+            <th>Ticket class name</th>
+            <th>Limit</th>
+            <th>Trigger?</th>
+            <th>To Code</th>
+            <th>At<br />%</th>
+            <th>Days<br />Before</th>
+            <th class="hide"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% ticket_class_list = f.object.production.ticket_classes.map {|tc| tc.class_code} %>
+          <%= f.fields_for(:ticket_class_allocations, performance.ticket_class_allocations.sort_by {|tca| tca.ticket_class.class_code}) do |ticket_class_allocation_form| %>
+            <tr id='ticket_class_allocation_<%= ticket_class_allocation_form.object.ticket_class.id %>'>
 
-        <td>
-          <% if ticket_class_allocation_form.object.ticket_class.auto_attach? then %>
-            <%= ticket_class_allocation_form.hidden_field :available, :value=>"1" %>&#x2713
-          <% else %>
-            <%= ticket_class_allocation_form.check_box :available %>
-          <% end  %>
-        </td>
-        <td><%= ticket_class_allocation_form.object.ticket_class.class_code %></td>
-        <td><%= ticket_class_allocation_form.object.ticket_class.class_name %></td>
-        <td>
-          <%= ticket_class_allocation_form.text_field :ticket_limit, :size=>3 %>
-        </td><td align="center">
-          <%= ticket_class_allocation_form.check_box :shiftable %>
-        </td><td >
-          <%= ticket_class_allocation_form.text_field :shift_to_code, :size=>9 %>
-        </td><td>
-          <%= ticket_class_allocation_form.text_field :shift_when_capacity_over, :size=>3 %>
-        </td><td>
-          <%= ticket_class_allocation_form.text_field :shift_days_before_performance, :size=>1 %>
-        </td><td>
-          <%= ticket_class_allocation_form.hidden_field :ticket_class_id %>
-        </td>
-      </tr>
-    <% end %>
-  </table>
-  <%= f.input :restricted_payment_types, :as=>:select, :collection=>PaymentType.all, :member_label=>:display_name %>
+              <td>
+                <% if ticket_class_allocation_form.object.ticket_class.auto_attach? then %>
+                  <%= ticket_class_allocation_form.hidden_field :available, :value=>"1" %>&#x2713
+                <% else %>
+                  <%= ticket_class_allocation_form.check_box :available %>
+                <% end  %>
+              </td>
+              <td><%= ticket_class_allocation_form.object.ticket_class.class_code %></td>
+              <td><%= ticket_class_allocation_form.object.ticket_class.class_name %></td>
+              <td>
+                <%= ticket_class_allocation_form.input :ticket_limit, :label=>false,
+                   :step=>5 %>
+              </td><td class="text-center">
+                <%= ticket_class_allocation_form.check_box :shiftable %>
+              </td><td >
+                <%= ticket_class_allocation_form.input :shift_to_code, as: :select, collection: ticket_class_list, member_label: :class_code, label: false %>
+              </td><td>
+                <%= ticket_class_allocation_form.input :shift_when_capacity_over, :as=>:numeric, :label=>false   %>
+              </td><td>
+                <%= ticket_class_allocation_form.input :shift_days_before_performance, :as=>:numeric, :label=>false %>
+              </td><td class="hide">
+                <%= ticket_class_allocation_form.hidden_field :ticket_class_id %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
 
-<%- end %>
+  <%= f.button :submit %>
+<% end %>
+
+<% content_for :js do %>
+  <script type="text/javascript">
+
+  </script>
+<% end %>
+
+

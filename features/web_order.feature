@@ -20,7 +20,7 @@ Feature: Web ordering
     And I enter my contact information
     And I select "1" from "ticket_order_ticket_line_items_attributes_1_ticket_count"
     And I enter a valid credit card as payment
-    And I fill in "Discount Code (optional)" with "1DollarOff"
+    And I fill in "Discount code" with "1DollarOff"
     And I press "Review Order"
     And I should see "4.00"
     And I press "Order Tickets"
@@ -44,6 +44,7 @@ Feature: Web ordering
   #   And I press "Order Tickets"
   #   Then I should see "Your ticket reservation has been made"
   #   And I should see "$10.00"
+
 
   Scenario: Sign up for the mailing list
     Given I go to new web order for production "Production One" and performance "PERF"

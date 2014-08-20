@@ -4,6 +4,8 @@ require 'salesforce_sync'
 Stagemgr::Application.configure do
   # Settings specified here will take precedence over those in config/environment.rb
 
+  config.action_controller.relative_url_root = ""
+
   # In the development environment your application's code is reloaded on
   # every request.  This slows down response time but is perfect for development
   # since you don't have to restart the webserver when you make code changes.
@@ -48,6 +50,7 @@ Stagemgr::Application.configure do
     MyEmma.set_credentials_from_yaml("#{self.root.to_s}/config/my_emma_credentials.yml")
   end
 
+  config.external_site_root = 'file:///Users/jeremyw/dev/site'
 
   $DATABASEDOTCOM = SalesforceSync.load_from_yaml_file('development',"#{::Rails.root.to_s}/config/databasedotcom.yml")
   $TKTPRINT =  YAML::load(File.open("#{::Rails.root.to_s}/config/ticket_print.yml"))['development']

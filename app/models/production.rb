@@ -11,9 +11,9 @@ class Production < ActiveRecord::Base
   )
 
   validates_inclusion_of :status, :in => PRODUCTION_STATUSES
-  validates_presence_of :theater, :name, :venue, :season
+  validates_presence_of :theater, :name, :venue, :season, :production_code
   validates_uniqueness_of :production_code
-  validates_length_of :production_code, :in=>1..7
+  validates_length_of :production_code, :in=>1..8
   validates_numericality_of :capacity
 
   belongs_to :venue
@@ -31,9 +31,10 @@ class Production < ActiveRecord::Base
   has_and_belongs_to_many :attendees, class_name: "Address", uniq: true
 
   attr_accessor :sf_object
+
   has_attached_file :promo, :styles => {:medium => "250x375>", :thumb => "125x186>"},
                     :path => ":rails_root/public/system/:attachment/:id/:style/:filename",
-                    :url => "/tickets/system/:attachment/:id/:style/:filename"
+                    :url => "#{Rails.application.config.action_controller.relative_url_root}/system/:attachment/:id/:style/:filename"
 
   def to_s
     "#{self.name}, #{self.theater.name}"
@@ -108,7 +109,7 @@ class Production < ActiveRecord::Base
 
   def best_image_url_available(render)
     case
-      when !self.promo_file_name.blank?
+      when self.promo.exists?
         self.promo.url(render)
       when !self.logo_url.blank?
         self.logo_url
@@ -192,11 +193,17 @@ class Production < ActiveRecord::Base
     end
   end
 
-def manage_after_save_private
+  def manage_after_save_private
     if self.status == PRIVATE && self.status.changed?
       run_callbacks :save_private
     end
   end
+
+  def production_code_autocomplete_display
+    prod = Production.find(self.id)
+    "#{self.production_code} [#{prod.name}, #{prod.theater.name}]"
+  end
+
 end
 
 # Non-engine code

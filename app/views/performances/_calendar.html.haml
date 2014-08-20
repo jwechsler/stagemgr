@@ -1,0 +1,99 @@
+= render :partial=>'/productions/calendar_callout', :locals=>{production:@production}
+
+- if @production.status == Production::PRESALE
+  %p
+    Tickets are not on sale yet for this show. Join our mailing list to be kept up to date on when tickets will be available.
+- else
+  %table.performance_calendar
+    %caption
+      - if !@production.flex_pass_offer.blank?
+        %div.special_offer_upsell
+          = link_to @production.flex_pass_offer.short_description, new_flex_pass_offer_order_path(@production.flex_pass_offer) unless @production.flex_pass_offer.short_description.blank?
+          or, purchase tickets for an individual show below
+      - else
+        %span.special_offer_upsell
+          %a{:href=>"/boxoffice/membership"} Become a member and see everything at the Wit
+          for one low monthly subscription, or purchase tickets for an individual show below
+
+      %h3
+        %span.month_navigation= link_to raw("&laquo;#{Date::MONTHNAMES[(@start_date-1.month).month]}&nbsp;"), :action=>:index, :start_date=>@start_date.prev_month, :end_date=>@start_date-1
+        = Date::MONTHNAMES[@start_date.month]
+        %span.month_navigation= link_to raw(Date::MONTHNAMES[(@start_date+1.month).month] + '&raquo;'), :action=>:index, :start_date=>@end_date+1, :end_date=>@end_date+1.week
+    %thead
+      %tr
+        %th{:scope=>"col",:abbr=>"Sunday",:title=>"Sunday"} Sun
+        %th{:scope=>"col",:abbr=>"Monday",:title=>"Monday"} Mon
+        %th{:scope=>"col",:abbr=>"Tuesday",:title=>"Tuesday"} Tue
+        %th{:scope=>"col",:abbr=>"Wednesday",:title=>"Wednesday"} Wed
+        %th{:scope=>"col",:abbr=>"Thursday",:title=>"Thursday"} Thu
+        %th{:scope=>"col",:abbr=>"Friday",:title=>"Friday"} Fri
+        %th{:scope=>"col",:abbr=>"Saturday",:title=>"Saturday"} Sat
+
+    %tbody
+      - found_sold_out = false
+      - current_week_start = @start_date.wday == 0 ? @start_date : @start_date.beginning_of_week - 1
+      - while current_week_start.month != (@start_date.month % 12) + 1 do
+        %tr
+          - 0.upto(6).each do |day|
+            - current_day = current_week_start + day
+
+            %td.min100px
+              .day-header
+                = raw current_day<@start_date || current_day > @end_date ? '&nbsp;' : current_day.strftime('%d')
+
+              - performances = @performances.select { |per| per.performance_date==current_day }
+              - performances.each do |performance|
+                - title = "#{performance.performance_time.to_s(:hour_min)}"
+                - title << special_feature_footnotes_for(performance,@footnotes)
+
+                %span.vertical_center
+                  .show-info
+                    - if performance.performance_date<Date.today
+                      = raw title
+                    - elsif performance.sold_out?
+                      - found_sold_out = true
+                      %del= raw title
+                      %br
+                      %font{:size=>"-2"} Sold out!
+
+                    - elsif performance.happening_soon?
+                      = raw title
+                      %br
+                      = price_range(performance)
+                      %br
+                      %font{:size=>"-2"} Door only
+                    - elsif performance.near_capacity?
+                      = raw title
+                      %br
+                      = price_range(performance)
+                      %br
+                      %font{:size=>"-2"} Call box office
+                    - else
+                      = link_to raw(title), new_production_performance_order_path(performance.production.id,performance.id)
+                      %br
+                      = price_range(performance)
+
+
+        - current_week_start = current_week_start + 7
+    %tfoot
+      %tr
+        %td.boxoffice-message{:colspan=>"7"}  Problems? Call the box office at 773-975-8150
+      - if found_sold_out and !@production.allow_late_seating
+        %tr
+          %td.boxoffice-message{:colspan=>"7"}
+            %i
+              Sold out?!?
+            We keep a waiting list at the door starting 90 minutes before showtime. Any
+            available tickets will be released to the list at curtain.
+
+      - unless @footnotes.empty?
+        %tr
+          %td{:colspan=>"7"}
+            - index = 0
+            - @footnotes.each do |note|
+              - index += 1
+              %p.text-right
+                - if note.start_with?("_custom")
+                  = display_markdown(Performance.find(note[7..10]).special_feature_display_markdown)
+                - else
+                  %p= "[#{index}] #{SpecialFeature.find_by_short_name(note).description}"

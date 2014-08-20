@@ -9,22 +9,22 @@ Feature: Box office ordering
 
   Scenario: Create a credit card order
     Given I go to new admin ticket order
-       And I enter production code "TEST" and performance code "PERF"
-       And I enter 2 "CHEAP" tickets
-       And I enter my contact information
-       And I enter a valid credit card as payment
-       And I press "Place Order"
+      And I enter production code "TEST" and performance code "PERF"
+      And I enter 2 "CHEAP" tickets
+      And I enter my contact information
+      And I enter a valid credit card as payment
+      And I press "Place Order"
     Then I should see "Order was successfully saved and is now Processed"
 
   Scenario: Create a personal check order
-     Given I go to new admin ticket order
-       And I enter production code "TEST" and performance code "PERF"
-       And I enter 2 "CHEAP" tickets
-       And I enter my contact information
-       And I enter a check number "1224" as payment
-       And I press "Place Order"
-      Then I should see "Order was successfully saved and is now Processed"
-       And I should see "1224"
+    Given I go to new admin ticket order
+      And I enter production code "TEST" and performance code "PERF"
+      And I enter 2 "CHEAP" tickets
+      And I enter my contact information
+      And I enter a check number "1224" as payment
+      And I press "Place Order"
+     Then I should see "Order was successfully saved and is now Processed"
+      And I should see "1224"
 
   Scenario: Create an external payment order
     Given an external payment type "Goldstar" exists

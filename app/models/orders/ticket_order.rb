@@ -5,6 +5,8 @@ class TicketOrder < Order
   before_save :remove_empty_ticket_lines
   after_save :update_attendance_record
 
+  attr_accessor :selected_production
+
   has_many :ticket_line_items, :foreign_key => :order_id
   accepts_nested_attributes_for :ticket_line_items, :allow_destroy => true
 

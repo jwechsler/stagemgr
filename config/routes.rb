@@ -10,6 +10,7 @@ Stagemgr::Application.routes.draw do
   post "venues/now_playing_fb"
 
   get "venues/now_playing"
+  get "venues/now_playing_vertical"
   get "venues/now_playing_fb"
 
   get "venues/offtime_now_playing"
@@ -99,7 +100,7 @@ Stagemgr::Application.routes.draw do
     end
   end
 
-  resources :flex_pass_offers, :only => false do
+  resources :flex_pass_offers, :only => :index do
     resources :orders, :controller => 'flex_pass_offer_orders'
   end
 
@@ -130,9 +131,16 @@ Stagemgr::Application.routes.draw do
 
     resources :membership_orders, :only=>false
 
+
     resources :flex_pass_orders
 
-    resources :addresses
+    resources :addresses do
+      collection do
+        get :autocomplete_address
+        get :autocomplete_tag
+        get :autocomplete_address_tag_tag_label
+      end
+    end
 
     resources :flex_pass_offers do
       resources :orders, :controller => 'flex_pass_offer_orders'
@@ -185,6 +193,7 @@ Stagemgr::Application.routes.draw do
 
     resources :orders do
       collection do
+        post :unclaim_selected
         post :fulfill_selected
         post :credit_card_payment_form
         post :cash_payment_form
@@ -194,6 +203,7 @@ Stagemgr::Application.routes.draw do
         post :refund
         get  :fulfill
         get :unclaimed
+        post :update_notes
       end
       resources :refund_orders, :only=>[:new,:create]
     end
@@ -206,15 +216,19 @@ Stagemgr::Application.routes.draw do
         post :cancel
         post :refund
         get  :fulfill
-        post :update_notes
       end
     end
+
+    resources :donation_pledge_orders, :path=>:donation_orders
 
     resources :ticket_orders do
       collection do
         post :fulfill_selected
         post :credit_card_payment_form
         post :cash_payment_form
+        get :autocomplete_production_production_code
+        get :autocomplete_performance_performance_code
+        get :autocomplete_ticket_line_item_ticket_class_code
       end
       member do
         post :cancel
@@ -223,7 +237,6 @@ Stagemgr::Application.routes.draw do
         get :reprint
         get :unclaimed
         get :resend_confirmation
-        post :update_notes
       end
       resources :exchange_ticket_orders, :only=>[:new,:create]
       resources :refund_orders, :only=>[:new,:create]

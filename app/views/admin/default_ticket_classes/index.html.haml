@@ -1,0 +1,57 @@
+= content_for :title do
+  Default Ticket Classes
+= content_for :breadcrumbs do
+  %ul.breadcrumbs
+    %li.current= link_to 'Default Ticket Classes', admin_default_ticket_classes_path
+
+.row
+  .small-12.columns
+    %table#default-ticket-class-listing.hide.display
+      %thead
+        %tr
+          %th Class Code
+          %th Class Name
+          %th Price
+          %th Fee
+          %th Web
+          %th Auto-attach
+          %th Holds Seats?
+          %th{:style=>"width:180px"}
+      %tbody
+        - for default_ticket_class in @default_ticket_classes
+          %tr
+            %td
+              = link_to default_ticket_class.class_code, [:admin, default_ticket_class]
+            %td
+              %span.label.right.secondary= default_ticket_class.ticket_type
+              = default_ticket_class.class_name
+            %td.currency= number_to_currency(default_ticket_class.ticket_price)
+            %td.currency= number_to_currency(default_ticket_class.ticketing_fee)
+            %td.text-center= checkmark(default_ticket_class.web_visible)
+            %td.text-center= checkmark(default_ticket_class.auto_attach)
+            %td.text-center= checkmark(default_ticket_class.holds_seats)
+            %td
+              = link_to "Edit", edit_admin_default_ticket_class_path(default_ticket_class), :class=>'tiny button'
+
+  = link_to "New Default Ticket Class", new_admin_default_ticket_class_path, :class=>'button'
+
+= content_for :js do
+  :javascript
+
+    $(document).ready(function() {
+      $('#default-ticket-class-listing').dataTable({
+        paging: false,
+        dom: 'lf<"toolbar-buttons">rtip',
+        stateSave: true,
+        pagingType: "foundation",
+        columnDefs: [
+          {targets: "_all", orderable:false},
+          {targets: "2,3,4,5,6,7", searchable:false},
+          {targets: "2,3", type:'numeric-fmt'}  ],
+        fnInitComplete:function() {
+          $("#default-ticket-class-listing").show();
+          this.fnAdjustColumnSizing();
+        },
+      });
+
+    });

@@ -1,41 +1,47 @@
 //= require jquery
 //= require jquery-ui
+//= require foundation
+//= require foundation/foundation.topbar
+//= require foundation-datetimepicker
 //= require jquery_ujs
+//= require autocomplete-rails
+//= require dataTables/jquery.dataTables
+//= require dataTables/jquery.dataTables.foundation
+//= require dataTables/extras/dataTables.tableTools.js
 //= require utility
 //= require orders_common
 //= require_this
 
-$(function(){
-   $("input[type=date]").datepicker({ dateFormat: 'yy-mm-dd' });
-  $('.performance_list a[data-type=html]').on('ajax:success', function(event, data, status, xhr) {
-    $('#production_detail').html(data)
-  });
+$(document).foundation();
 
-  $('a.ajax_target_loader').click(function() {
-
-    $("#" + $(this).attr('target_id')).load($(this).attr('fetch_url'), "id=" + $(this).attr('fetch_id'))
-
+$(document).ready(function() {
+  $("input.date_picker").fdatetimepicker({
+    format: 'yyyy-mm-dd',
+    minView: 2,
+    pickTime: false
   })
-})
+  $('input.time_picker').fdatetimepicker({
+    format: 'H:ii P',
+    pickDate: false,
+    autoclose: true,
+    maxView: 1,
+    startView: 1,
+    minuteStep: 15,
+    showMeridian: true,
+  })
 
-$(function() {
-  $('form a.add_child').click(function() {
-    var assoc   = $(this).attr('data-association');
-    var content = $('#' + assoc + '_fields_template').html();
-    var regexp  = new RegExp('new_' + assoc, 'g');
-    var new_id  = new Date().getTime();
+  $('input.datetime_picker').fdatetimepicker({
+      autoclose: true,
+      todayBtn: 'linked',
+      format: "mm/dd/yy H:iiP",
 
-    $(this).before(content.replace(regexp, new_id));
-    $(this).before($("<br/>"))
-    return false;
+      setStartDate: '2000-01-01',
+      minuteStep: 15,
+      pickerPosition: "bottom-left"
+
   });
 
-  $('form a.remove_child').on('click', function() {
-    var hidden_field = $(this).prev('input[type=hidden]')[0];
-    if(hidden_field) {
-      hidden_field.value = '1';
-    }
-    $(this).parents('.fields').hide();
-    return false;
-  });
 });
+
+
+$(function(){ $(document).foundation(); });

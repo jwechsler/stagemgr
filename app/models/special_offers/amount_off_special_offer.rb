@@ -15,13 +15,11 @@ class AmountOffSpecialOffer < SpecialOffer
   end
 
   def to_s
-    def description(order)
-          unless amount.nil?
-            "$#{'%01.2f' % amount} off #{super}"
-          else
-            "ERROR amount off"
-          end
+    unless amount.nil?
+      "$#{'%01.2f' % amount} off #{super}"
+    else
+      "ERROR amount off"
     end
   end
-  
+
 end

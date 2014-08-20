@@ -1,0 +1,34 @@
+= content_for :title do
+  Payment Types
+= content_for :breadcrumbs do
+  %ul.breadcrumbs
+    %li.current= link_to 'Payment Types', admin_users_path
+
+.row
+  .small-12.columns
+    %table
+      %thead
+        %tr
+          %th Display Name
+          %th Restrict to
+          %th Allow for Public
+          %th Allow for Box Office
+          %th
+      %tbody
+        - @payment_types.each do |payment_type|
+          %tr
+            %td= payment_type.display_name
+            %td.text-center= payment_type.restrict_to_ticket_classes
+            %td.text-center= checkmark(payment_type.allow_for_public)
+            %td.text-center= checkmark(payment_type.allow_for_box_office)
+
+            %td
+              - permitted_to? :manage, :admin_payment_types do
+                - if payment_type.is_a? ExternalPaymentType
+                  = link_to 'Destroy', admin_payment_type_path(payment_type), :confirm=>'Are you sure?', :method=>:delete, :class=>"alert tiny button"
+                - else
+                  %a.alert.disabled.tiny.button{:href=>'#'} Destroy
+              = link_to 'Edit', edit_admin_payment_type_path(payment_type), :class=>'tiny button' if permitted_to?(:edit,:admin_payment_types)
+
+
+    = link_to 'Create External Payment', new_external_payment_admin_payment_types_path, :class=>'button'

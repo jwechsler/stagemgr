@@ -49,46 +49,4 @@ class Admin::AutoCompleteController < Admin::ApplicationController
     end
   end
 
-  def address
-    cleaned_name, first_name, middle_name, last_name, first_name_2 = Address.parse_name(params[:q])
-    last_name = first_name if last_name.blank?
-    Rails.logger.debug [cleaned_name, first_name, middle_name, last_name].to_yaml
-    # val = params[:q].gsub(Address::SEARCHABLE_REGEXP,'').upcase
-
-    #addresses = Address.where("search_name like :search_expr and id in (select address_id from orders)", {:search_expr=>'%' + val + '%'}).limit(10).order(
-    #    'last_name', 'first_name', 'id');
-    unless first_name.blank? || (last_name == first_name)
-      addresses = Address.where("((first_name like ?) or (first_name like ?)) and last_name like ?",
-        "#{first_name}%", "#{first_name_2.blank? ? '-----' : first_name_2}%",
-        "#{last_name}%").includes(:orders).order("addresses.last_name, addresses.first_name, addresses.id").limit(15)
-    else
-      addresses = Address.where("first_name like ? or last_name like ?", last_name, last_name).includes(:orders).order("addresses.last_name, addresses.first_name, addresses.id").limit(15)
-    end
-    if addresses.nil?
-      render :json=>Array.new
-    else
-      render :json => addresses.map { |a|
-        member_code = a.current_membership.member_code if a.is_current_member?
-        tags = current_user.allowed_tags(a.address_tags).map {|t| r = "<b>#{t.tag_label}</b>"
-          r += " (#{t.tag_value})" unless t.tag_value.blank?
-          r}.join(", ")
-        attended = a.productions.sort {|a,b| b.closing_at <=> a.closing_at}.map{|p| p.name}.join(',')
-        { :address_id => a.id,
-          :full_name => a.full_name,
-          :email => a.email,
-          :line1=>a.line1,
-          :line2=>a.line2,
-          :city=>a.city,
-          :state=>a.state,
-          :zipcode=>a.zipcode,
-          :phone=>a.phone,
-          :member_code=>member_code,
-          :tags=>tags,
-          :attended=>attended
-        }
-
-      }
-    end
-  end
-
 end

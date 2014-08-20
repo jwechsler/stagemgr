@@ -1,10 +1,12 @@
-<h1>New production</h1>
-
-<%= semantic_form_for([:admin,@theater,@production], :html=>{:multipart=>true}) do |f| %>
-  <%= render :partial => '/productions/form', :locals=>{:f=>f} %>
-  <p>
-    <%= f.submit 'Create' %>
-  </p>
+<% content_for :title do %>New Production<% end %>
+<% content_for :breadcrumbs do %>
+<ul class="breadcrumbs">
+  <li><%= link_to 'Theaters', admin_theaters_path %></li>
+  <li><%= link_to @production.theater.name, admin_theaters_path(@production.theater) %></li>
+  <li class="current"><a href='#'>New Production</a></li>
+</ul>
 <% end %>
 
-<%= link_to 'Back', edit_admin_theater_path(@theater) %>
+<%= render :partial => '/admin/productions/form', :locals=>{:production=>@production} %>
+
+<%= link_to 'Back', edit_admin_theater_path(@production.theater), class: 'button right' %>

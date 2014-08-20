@@ -1,0 +1,36 @@
+= content_for :breadcrumbs do
+  %ul.breadcrumbs
+    %li= link_to 'Theaters', admin_theaters_path
+    %li.current
+      %a{:href=>'#'}= @theater.name
+.row
+  .small-10.columns.left
+    .row
+      - if @theater.logo.exists?
+        colsize = 8
+        .small-2.medium-2.columns.hide-for-small-only
+          = image_tag(@theater.logo.url(:thumbnail), style:"max-height:120px;") if @theater.logo.exists?
+
+      - else
+        - colsize = 10
+
+      .small.columns{:class=>"small-#{colsize} medium-#{colsize}"}
+        %h3= @theater.name
+        = link_to(@theater.url, @theater.url) unless @theater.url.blank?
+
+
+
+    .small-2.columns.right
+      %span.secondary.label= @theater.theater_class
+      %span.secondary.label= @theater.status
+
+.row
+  .small-12.columns
+    %h4 Productions
+    = render :partial => 'production_listing'
+.row
+  .small-12.columns
+    %ul.button-group
+      %li= link_to 'Back', admin_theaters_path, class: 'button'
+      - permitted_to? :update, :theaters do
+        %li= link_to 'Edit Theater', edit_admin_theater_path, class: 'button'

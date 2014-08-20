@@ -38,41 +38,6 @@ module OrdersHelper
     result
   end
 
-  def remove_link_unless_new_record(fields)
-    out = ''
-    out << fields.hidden_field(:_destroy) unless fields.object.new_record?
-    out << link_to("remove", "##{fields.object.class.name.underscore}", :class => 'remove')
-    out
-  end
-
-# This method demonstrates the use of the :child_index option to render a
-# form partial for, for instance, client side addition of new nested
-# records.
-#
-# This specific example creates a link which uses javascript to add a new
-# form partial to the DOM.
-#
-#   <% form_for @project do |project_form| -%>
-#     <div id="tasks">
-#       <% project_form.fields_for :tasks do |task_form| %>
-#         <%= render :partial => 'task', :locals => { :f => task_form } %>
-#       <% end %>
-#     </div>
-#   <% end -%>
-  def generate_html(form_builder, method, options = {})
-    options[:object] ||= form_builder.object.class.reflect_on_association(method).klass.new
-    options[:partial] ||= "#{method.to_s.singularize}_form"
-    options[:form_builder_local] ||= :f
-
-    form_builder.fields_for(method, options[:object], :child_index => 'NEW_RECORD') do |f|
-      render(:partial => options[:partial], :locals => {options[:form_builder_local] => f})
-    end
-  end
-
-  def generate_template(form_builder, method, options = {})
-    escape_javascript generate_html(form_builder, method, options)
-  end
-
   private
   def process_order(order, on_success_redirect_to)
     begin
@@ -141,6 +106,36 @@ module OrdersHelper
 
       format.html { render 'edit', :order=>@order, :layout=>true }
     end
+  end
+
+  def payment_types(order, allowed_payment_types = nil, front_end_only = true)
+    paytype = payment_types_for(order, front_end_only)
+    unless allowed_payment_types.nil?
+      paytype = paytype.select {|pt| allowed_payment_types.includes?(paytype)}
+    end
+    paytype
+  end
+
+  def payment_text_for(order)
+    case
+      when order.payment_type.is_a?(CreditCardPaymentType)
+        "This amount will be charged to your #{order.credit_card_type} ending in #{order.credit_card_number[-4..-1]}."
+      when order.payment_type.is_a?(MembershipPaymentType)
+        "This order will be applied to your membership."
+      when order.payment_type.is_a?(FlexPassPaymentType)
+        "You are using flex pass #{order.flex_pass_code}."
+    end
+  end
+
+  def special_feature_footnotes_for(performance, footnotes)
+    text = ''
+    unless performance.special_features.empty?
+      performance.special_features.each do |feature|
+        text <<= raw "<sup>[#{@footnotes.find_index(feature.short_name)+1}]&nbsp;</sup>"
+      end
+    end
+    text <<= raw "<sup>[#{@footnotes.find_index("_custom#{performance.id}")+1}]&nbsp;</sup>" unless performance.special_feature_display_markdown.blank?
+    text
   end
 
 end

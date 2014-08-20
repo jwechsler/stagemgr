@@ -1,0 +1,14 @@
+.row
+  .small-12.columns
+    %fieldset
+      %legend Tickets
+      .row{:style=>'margin-bottom: 8px'}
+        .small-6.columns
+          %strong Type
+        .small-3.columns
+          %strong How many?
+        .small-3.columns
+          %strong Price/ticket
+      = order_form.fields_for :ticket_line_items do |line_item_form|
+        - unless line_item_form.object.ticket_class.software_managed || !line_item_form.object.ticket_class.web_visible?
+          = render :partial => '/orders/line_item', :locals => {:f => line_item_form,}

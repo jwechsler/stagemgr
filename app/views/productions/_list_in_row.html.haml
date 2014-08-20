@@ -1,0 +1,12 @@
+.production_list
+  .row
+    - num_pieces = productions.size
+    - slice = 12 / across
+    - productions.each do |production|
+      - content_for(:head) do
+        = production_image_style(production)
+      %div.columns.small-12.small-centered.show-listing{:class=>"medium-#{slice}"}
+        = render 'header', :production=>production
+        - unless production.short_description.blank?
+          %p.production_short_desc= production.short_description
+        = render '/productions/production_dates', :production=>production

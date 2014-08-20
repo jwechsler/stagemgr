@@ -16,6 +16,11 @@ class VenuesController < ApplicationController
     @max_pieces = 4
   end
 
+  def now_playing_vertical
+    self.set_background
+    self.set_now_playing_productions
+  end
+
   def set_background
     @background = params['background']
     @background = 'light' if @background.nil?

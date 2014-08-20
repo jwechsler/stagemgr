@@ -1,0 +1,38 @@
+.row.membership_detail
+  .small-12.columns
+    .row
+      .small-6.columns
+        %strong Current Status:
+        = membership.current_status
+      .small-6.columns
+        %span.right= link_to membership.membership_offer.name, admin_membership_offer_path(membership.membership_offer.id)
+    .row
+      .small-6.columns
+        %strong Member ID:
+        = membership.member_code
+      .small-6.columns
+        %span.right
+          %strong # Tix
+          = membership.membership_offer.tickets_per_performance
+
+    %strong Member Since:
+    = membership.member_since
+    %br
+    %strong Next Billing Date:
+    = membership.next_billing_date
+    %br
+
+    - unless membership.failed_payment_count.blank? || membership.failed_payment_count == 0
+      %strong Failed Payment Count:
+      =  "#{membership.failed_payment_count} (#{number_to_currency(membership.outstanding_balance)})"
+      %br
+    - linked_offers = membership.special_offers
+    - unless linked_offers.empty?
+      %strong Special Offers:
+      - codes = []
+      - linked_offers.each do |offer|
+        - if offer.exhausted?
+          - codes << "<i>#{offer.code} (used)</i>"
+        - else
+          - codes << offer.code
+      = raw codes.join(',')

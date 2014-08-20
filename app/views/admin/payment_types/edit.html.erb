@@ -1,5 +1,0 @@
-<h1>Settings for <%= @payment_type.type %></h1>
-<%= semantic_form_for([:admin, @payment_type], :url=>:admin_payment_type, :as=>:payment_type) do |f| %>
-  <%= render :partial=>"form", :locals=>{:f=>f} %>
-  <%= f.submit 'Update' %>
-<%- end %>

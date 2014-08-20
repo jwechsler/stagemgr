@@ -1,9 +1,0 @@
-<h1>New <%= @payment_type.type %></h1>
-<%= semantic_form_for([:admin, @payment_type], :url=>:create_external_payment_admin_payment_types, :as=>:payment_type) do |f| %>
-   <%= f.inputs do %>
-    <%= f.input :display_name %>
-    <%= f.input :allow_for_public %>
-    <%= f.input :allow_for_box_office %>
-  <%- end %>
-  <%= f.submit 'Create' %>
-<%- end %>

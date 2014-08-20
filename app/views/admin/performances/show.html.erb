@@ -6,9 +6,27 @@
 Performance Code: <%= @performance.performance_code %><br/>
 <br/>
 Status: <%= @performance.status %><br/>
-<%- unless @performance.special_features.empty? %>
-Special Features: <%= @performance.special_features.map {|f| f.short_name}.join(',') %><br/>
-<%- end %>
+<% unless @performance.special_features.empty? && @performance.special_feature_display_markdown.blank? %>
+  <fieldset>
+    <legend>Special Features</legend>
+    <ul>
+
+      <% unless @performance.special_features.empty? %>
+        <% @performance.special_features.each do |f| %>
+          <li><%= f.footer %></li>
+        <% end %>
+      <% end %>
+
+      <% unless @performance.special_feature_display_markdown.blank? %>
+        <li><%= display_markdown(@performance.special_feature_display_markdown) %></li>
+      <% end %>
+    </ul>
+    <% unless @performance.special_feature_email_markdown.blank? %>
+      <h5>Email override for special features</h5>
+      <%= display_markdown(@performance.special_feature_email_markdown) %>
+    <% end %>
+  </fieldset>
+<% end %>
 <h3>Available ticket classes</h3>
 <fieldset><legend>On Sale to Public</legend>
   <%= allocations = @performance.ticket_class_allocations.select{|tca|

@@ -14,6 +14,7 @@ authorization do
   end
 
   role :theater_user do
+    has_permission_on :admin_performances, :to=>[:view]
     has_permission_on :flex_pass_orders, :to=>[:create,:read,:update]
     has_permission_on :admin_ticket_classes, :to=>[:view]
     has_permission_on :admin_theaters, :to=>[:view]
@@ -45,12 +46,13 @@ authorization do
 
   role :box_office do
     includes :theater_user
+    has_permission_on :admin_performances, :to=>[:make, :manage,:delete,:duplicate]
     has_permission_on :system_options, :to=>[:view]
     has_permission_on :admin_payment_types, :to=>[:view]
     has_permission_on :admin_theaters, :to=>[:manage]
     has_permission_on :theaters, :to=>[:create,:update,:read,:manage]
     has_permission_on :donation_orders, :to=>[:create,:read,:update]
-    has_permission_on :admin_orders, :to=>[:hold,:unclaimed, :fulfill, :resend_confirmation, :view_full_history]
+    has_permission_on :admin_orders, :to=>[:hold,:unclaimed, :fulfill, :resend_confirmation, :view_full_history, :swipe_card, :confirm_credit_card]
     has_permission_on :admin_ticket_orders, :to=>[:hold,:unclaimed, :fulfill, :resend_confirmation]
     has_permission_on :admin_flex_pass_orders, :to=>[:view, :make, :manage]
     has_permission_on :productions, :to=>[:view, :make, :manage]
@@ -61,7 +63,8 @@ authorization do
     has_permission_on :admin_reports, :to=>[:box_office_reports, :house_management_reports, :membership_reports]
     has_permission_on :admin_membership_orders, :to=>[:view, :make, :manage]
     has_permission_on :admin_membership_offers, :to=>[:view]
-    has_permission_on :admin_special_features, :to=>[:view,:manage]
+    has_permission_on :admin_special_features, :to=>[:make,:view,:manage,:destroy]
+    has_permission_on :admin_special_offers, :to=>[:make, :view, :manage, :destroy]
     has_permission_on :admin_donation_orders, :to=>[:view,:manage,:make]
     has_permission_on :admin_imports, :to=>[:view, :make, :mailing_cards]
   end
@@ -69,14 +72,14 @@ authorization do
   role :admin do
     includes :box_office
     has_permission_on :theaters, :to=>[:delete,:make]
-    has_permission_on :admin_payment_types, :to=>[:manage, :make]
+    has_permission_on :admin_payment_types, :to=>[:manage, :make, :destroy]
     has_permission_on :system_options, :to=>[:manage]
     has_permission_on :admin_theaters, :to=>[:make]
     has_permission_on :admin_orders, :to=>[:cancel]
     has_permission_on :orders, :to=>[:delete]
     has_permission_on :ticket_orders, :to=>[:delete]
     has_permission_on :admin_donation_orders, :to=>[:view,:manage,:make,:fulfill,:refund]
-    has_permission_on :admin_ticket_orders, :to=>[:reprint]
+    has_permission_on :admin_ticket_orders, :to=>[:reprint, :refund]
     has_permission_on :admin_refund_orders, :to=>[:make]
     has_permission_on :admin_users, :to=>[:view, :manage, :delete, :make]
     has_permission_on :productions, :to=>:delete

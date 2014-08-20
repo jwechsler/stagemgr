@@ -61,7 +61,6 @@ class MembershipOrder < Order
   def valid_payment_types_for(current_user)
     valid_payment_types = super
     valid_payment_types.select {|pt| pt.is_a? CreditCardPaymentType }
-    valid_payment_types
   end
 
   def link_to_address_of_record

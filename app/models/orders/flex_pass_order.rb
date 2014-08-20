@@ -30,6 +30,10 @@ class FlexPassOrder < Order
     self.description
   end
 
+  def flex_passes
+    self.flex_pass_line_items.map { |fli| fli.flex_passes }.flatten
+  end
+
 
   def flex_pass_payments
     payments.select { |p| p.is_a? FlexPassPayment }
@@ -47,6 +51,14 @@ class FlexPassOrder < Order
   def reload_associated
     super
     self.flex_pass_line_items(true)
+  end
+
+  def refundable?
+    used = false
+    self.flex_pass_line_items.each {|li|
+      used ||= li.flex_pass.uses_remaining == li.flex_pass.flex_pass_offer.number_of_tickets
+    }
+    used
   end
 
   protected
