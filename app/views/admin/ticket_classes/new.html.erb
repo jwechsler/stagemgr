@@ -1,5 +1,5 @@
 <% content_for :title do %>New Ticket Class on <%= @production.name %><% end %>
-<h3>New Ticket Class on <i><% = @production.name %></h3>
+<h3>New Ticket Class on <i><%= @production.name %></h3>
 
 <%= render :partial => 'form', :locals=>{theater: @theater, production: @production, ticket_class: @ticket_class} %>
 
