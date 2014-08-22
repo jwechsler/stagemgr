@@ -16,29 +16,22 @@ class Admin::ExchangeTicketOrdersController < Admin::ApplicationController
   end
 
   def create
-    TicketOrder.transaction do
-      begin
-
-
-        @original_order = TicketOrder.find(params[:ticket_order_id])
-        @exchange_order = TicketOrder.new(params[:ticket_order])
-        @exchange_order.special_offer_code = params[:ticket_order][:special_offer_code]
-        @exchange_order.exchange_and_process_from! @original_order
-        respond_to do |format|
-          flash[:notice] = 'Order was successfully exchanged.'
-          format.html { redirect_to(edit_admin_ticket_order_path(@exchange_order.id)) }
-          format.xml { render :xml => @exchange_order, :status => :created, :location => @exchange_order }
-        end
-      rescue StandardError => e
-        respond_to do |format|
-          Rails.logger.error("There was a problem with the exchange. #{e.message}")
-          Rails.logger.error(e.backtrace.join("\n"))
-          flash[:error] = "There was a problem with the exchange. #{e.message}"
-          format.html { render 'new' }
-        end
+    error = nil
+    begin
+      @original_order = TicketOrder.find(params[:ticket_order_id])
+      @exchange_order = TicketOrder.new(params[:ticket_order])
+      @exchange_order.special_offer_code = params[:ticket_order][:special_offer_code]
+      @exchange_order.exchange_and_process_from! @original_order
+      respond_to do |format|
+        flash[:notice] = 'Order was successfully exchanged.'
+        format.html { redirect_to(edit_admin_ticket_order_path(@exchange_order.id)) }
+        format.xml { render :xml => @exchange_order, :status => :created, :location => @exchange_order }
       end
-
+    rescue Exception => e
+      Rails.logger.error("There was a problem with the exchange. #{e.message}")
+      Rails.logger.error(e.backtrace.join("\n"))
+      flash[:error] = "There was a problem with the exchange. #{e.message}"
+      redirect_to new_admin_ticket_order_exchange_ticket_order_path(@original_order.id)
     end
-
   end
 end
