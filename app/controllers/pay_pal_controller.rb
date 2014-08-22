@@ -26,8 +26,18 @@ class PayPalController < ApplicationController
     end
 
     # Verify all this with paypal
+    attempts = 0
+    http = nil
+    begin
+      attempts += 1
+      http = Net::HTTP.start(paypal_url, 80)
+    rescue SocketError
 
-    http = Net::HTTP.start(paypal_url, 80)
+      if attempts <= 11
+        sleep(5.seconds)
+        retry
+      end
+    end
     response = http.post('/cgi-bin/webscr', query)
     http.finish
 
