@@ -11,7 +11,7 @@ class Admin::SpecialOffersController < Admin::ApplicationController
     if @special_offer.save
       redirect_to admin_special_offers_path, :notice=>"Created new special offer '#{@special_offer.code}"
     else
-      redirect_to new_admin_special_offers_path
+      render :action => 'new'
     end
 
   end
