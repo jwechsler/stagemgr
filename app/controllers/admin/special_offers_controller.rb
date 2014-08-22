@@ -9,9 +9,9 @@ class Admin::SpecialOffersController < Admin::ApplicationController
     @special_offer = SpecialOffer.new(params[:special_offer])
     @special_offer.type = params[:special_offer][:type]
     if @special_offer.save
-      redirect_to admin_special_offers_path
+      redirect_to [:admin, @special_offer], :notice=>"Successfully created special offer '#{@special_offer.code}"
     else
-      render :new
+      render :action=> 'new'
     end
 
   end
