@@ -55,13 +55,13 @@ jQuery(document).ready(function($) {
         price = this.id.replace('ticket_class_code','price_override')
         price_field = $('#'+price);
         price_field.val(Number(ui.item.ticket_price).toFixed(2));
-        recalculate_row_total(order_type,$(this).parents('.line_item'));
+        recalculate_row_total('ticket_order',$(this).parents('.line_item'));
       });
     }
 
     $.fn.setup_recalculate_row = function() {
       $(this).on('blur',function() {
-        recalculate_row_total(order_type,$(this).parents('.line_item'));
+        recalculate_row_total('ticket_order',$(this).parents('.line_item'));
       });
     }
 
