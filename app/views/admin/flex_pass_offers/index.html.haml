@@ -18,7 +18,7 @@
         %th.hide Status
         %th
       %tbody
-        - @flex_pass_offers.each do |flex_pass_offer| -
+        - @flex_pass_offers.each do |flex_pass_offer|
           %tr
             %td= link_to flex_pass_offer.name, admin_flex_pass_offer_path(flex_pass_offer)
             %td.currency= number_to_currency(flex_pass_offer.price)
