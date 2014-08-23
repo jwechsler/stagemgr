@@ -281,7 +281,7 @@ Stagemgr::Application.routes.draw do
   resource  :user_session
   root :to => 'current_user/accounts#show'
   get '/login', :controller => 'user_sessions', :action => 'new'
-  delete '/logout', :controller => 'user_sessions', :action => 'destroy'
+  get '/logout', :controller => 'user_sessions', :action => 'destroy'
 
 
 end
