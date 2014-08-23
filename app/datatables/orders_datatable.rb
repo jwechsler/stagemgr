@@ -1,8 +1,10 @@
 class OrdersDatatable
+
   delegate :permitted_to?, :order_status_severity_class, :params, :h, :raw, :link_to, :number_to_currency, to: :@view
 
-  def initialize(view)
+  def initialize(view, current_user)
     @view = view
+    @current_user = current_user
   end
 
   def as_json(options = {})
@@ -17,21 +19,25 @@ class OrdersDatatable
 private
 
   def data
-    orders.map do |order|
-      [
-        #link_to(product.name, product),
-        #h(product.category),
-        #h(product.released_on.strftime("%B %e, %Y")),
-        #number_to_currency(product.price)
-        link_to(order.id, [:admin, order]),
-        order.display_code,
-        order.address.nil? ? '???' : link_to(order.address.full_name, [:admin, order.address]),
-        raw("<span class=\"label #{order_status_severity_class(order.status)}\">#{order.status}</span>"),
-        order.address.nil? ? "n/a" : (permitted_to?(:view_full_history,:admin_orders) ? order.address.orders_processed : order.address.orders_processed(current_user.theater_ids)),
-        number_to_currency(order.total),
-        h(order.description),
-        order.id
-      ]
+    if defined? @current_user
+      orders.map do |order|
+        [
+          #link_to(product.name, product),
+          #h(product.category),
+          #h(product.released_on.strftime("%B %e, %Y")),
+          #number_to_currency(product.price)
+          link_to(order.id, [:admin, order]),
+          order.display_code,
+          order.address.nil? ? '???' : link_to(order.address.full_name, [:admin, order.address]),
+          raw("<span class=\"label #{order_status_severity_class(order.status)}\">#{order.status}</span>"),
+          order.address.nil? ? "n/a" : (permitted_to?(:view_full_history,:admin_orders) ? order.address.orders_processed : order.address.orders_processed(@current_user.theater_ids)),
+          number_to_currency(order.total),
+          h(order.description),
+          order.id
+        ]
+      end
+    else
+      [ '','','','','','','','']
     end
   end
 

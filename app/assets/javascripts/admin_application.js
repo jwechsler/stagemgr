@@ -33,3 +33,14 @@ function setupActiveSwitchOnDataTable(table_selector, status_column_idx) {
     });
 }
 
+
+$(function(){ $(document).foundation(); });
+
+//
+setInterval("refresh_window();",28805000);
+
+function refresh_window(){
+  window.location = location.href;
+};
+
+
