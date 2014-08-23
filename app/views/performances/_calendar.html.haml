@@ -94,6 +94,6 @@
               - index += 1
               %p.text-right
                 - if note.start_with?("_custom")
-                  = display_markdown(Performance.find(note[7..10]).special_feature_display_markdown)
+                  = display_markdown("[#{index}] " + Performance.find(note[7..10]).special_feature_display_markdown)
                 - else
                   %p= "[#{index}] #{SpecialFeature.find_by_short_name(note).description}"

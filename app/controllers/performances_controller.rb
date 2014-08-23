@@ -15,8 +15,11 @@ class PerformancesController < ApplicationController
         unless p.special_features.empty?
 
           @footnotes += p.special_features.map {|f| f.short_name}
-          @footnotes << "_custom#{p.id}"
-        end }
+
+        end
+        @footnotes << "_custom#{p.id}" unless p.special_feature_display_markdown.blank?
+        Rails.logger.debug(@footnotes.to_yaml)
+      }
       @footnotes = @footnotes.uniq
       render :index, :layout=>'ext_site_wrapper'
     else
