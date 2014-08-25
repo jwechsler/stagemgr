@@ -1,0 +1,64 @@
+.row
+  .small-12.columns
+    = simple_form_for([:admin, production.theater, production], :html=>{:multipart=>true}) do |f|
+      %div.row
+        %div.small-8.columns
+          = f.input :name
+          %fieldset
+            %legend Run Dates
+            .row
+              .small-6.columns
+                = f.input :first_preview_at, :as=>:date_picker
+                = f.input :press_opening_at, :as=>:date_picker
+
+              .small-6.columns
+                = f.input :opening_at, :as=>:date_picker
+                = f.input :closing_at, :as=>:date_picker
+        %div.small-4.columns
+          = f.input :production_code
+          = f.input :production_class, :collection=>Production::PRODUCTION_CLASSES, :include_blank=>false
+          = f.input :status, :as=>:select, :collection=>Production::PRODUCTION_STATUSES, :include_blank=>false
+          = f.input :season, :as=>:string
+          = f.association :venue, include_blank: false
+
+      %div.row
+        %div.small-3.columns
+          = f.input :promo, :label=>"Production Image"
+          = image_tag(f.object.promo.url(:thumb)) if f.object.promo.exists?
+        %div.small-9.columns
+          = f.input :credit_lines, :input_html=>{rows:4}
+          = f.input :short_description
+          = f.input :show_description, :hint=>"Long description (markdown enabled)"
+      %div.row
+
+        %div.small-6.columns
+          %fieldset
+            %legend House Management
+            = f.input :running_time, :label=>"Running Time", :hint=>"Number of minutes, including intermissions (if any)"
+            = f.input :intermission
+            = f.input :allow_late_seating
+            = f.input :capacity
+
+        %div.small-6.columns
+          %fieldset
+            %legend Sales
+            = f.input :additional_information_link, :as=>:url
+            = f.input :calendar_callout, :input_html=>{:rows=>4}, :label=>"Calendar Call to Action", :hint=>"Markdown code placed in header of calendar display page for this production"
+            = f.input :conversion_pixel_code, :input_html=>{:rows=>4}, :label=>"Ad conversion pixel code", :hint=>"Code Placed in header of order confirmation for ad tracking"
+
+            %div.row
+              %div.small-6.columns
+                - festival_passes = FlexPassOffer.find_all_by_treat_as_festival_pass(true).select do |pass|
+                  - pass.theater_id.nil? || (pass.theater_id == f.object.theater_id && !pass.exclude_theater) || (pass.theater_id != f.object.theater_id && pass.exclude_theater)
+                = f.association :flex_pass_offer, :collection=>festival_passes, :label=>"Festival Pass Offer"
+
+                = f.input :myemma_attendee_group, :label=>"MyEmma Group Number"
+
+      %div.row
+        %div.small-12.columns
+          %fieldset
+            %legend Notification
+            = f.input :follow_up_message_2, :input_html=>{:rows => 4}, :label=>"Additional follow up message", :hint=>"Markdown-enabled second paragraph follow up email."
+            = f.input :confirmation_message, :input_html=>{ :rows=>4}, :label=>"Additional Confirmation Message", :hint=>"Markdown-enabled section to be embedded in receipt."
+
+      = f.button :submit

@@ -1,10 +1,13 @@
 <h1>Editing production</h1>
 
-<%= form_for([@production.theater, @production]) do |f| %>
-  <%= render :partial => 'form', :locals=>{:f=>f} %>
-  <p>
-    <%= f.submit 'Update' %>
-  </p>
-<% end %>
+<div class="row">
+  <div class="small-12 columns">
+    <%= form_for([@production.theater, @production]) do |f| %>
+      <%= render :partial => 'form', :locals=>{:f=>f} %>
+      <p>
+        <%= f.submit 'Update' %>
+      </p>
+    <% end %>
 
-<%= link_to 'Back', edit_theater_path(@production.theater) %>
+  </div>
+</div>
