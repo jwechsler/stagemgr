@@ -12,9 +12,10 @@
 //= require orders_common
 //= require_this
 
-$(document).foundation();
 
 $(document).ready(function() {
+  $(document).foundation();
+
   $("input.date_picker").fdatetimepicker({
     format: 'yyyy-mm-dd',
     minView: 2,
