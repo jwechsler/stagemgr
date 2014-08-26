@@ -91,51 +91,57 @@ private
   end
 
   def where_clause
-    active_productions_only = true
-    conditions = []
+    if defined? @current_user
+      active_productions_only = true
+      conditions = []
 
-    sort_list = params[:columns].keys.each {|idx|
-      search_text = params[:columns][idx][:search][:value]
-      unless search_text.blank?
-        field = column_mapping[idx.to_i]
-        case field
-        when 'addresses.full_name'
-          conditions << ['addresses.full_name REGEXP ?', search_text.upcase]
-          active_productions_only = false
-        when 'code'
-          if 'MEMBERSHIP' == search_text.upcase
-            conditions << 'orders.type = \'MembershipOrder\''
+      sort_list = params[:columns].keys.each {|idx|
+        search_text = params[:columns][idx][:search][:value]
+        unless search_text.blank?
+          field = column_mapping[idx.to_i]
+          case field
+          when 'addresses.full_name'
+            conditions << ['addresses.full_name REGEXP ?', search_text.upcase]
             active_productions_only = false
-          elsif 'FLEXPASS' == search_text.upcase
-            conditions << 'orders.type = \'FlexPassOrder\''
+          when 'code'
+            if 'MEMBERSHIP' == search_text.upcase
+              conditions << 'orders.type = \'MembershipOrder\''
+              active_productions_only = false
+            elsif 'FLEXPASS' == search_text.upcase
+              conditions << 'orders.type = \'FlexPassOrder\''
+              active_productions_only = false
+            else
+              conditions << ['performances.performance_code like ?',"%#{search_text.upcase}%"]
+            end
+          when 'orders.id'
+            conditions << ["#{field} = ?",search_text.upcase]
             active_productions_only = false
+          when 'orders.status'
+            conditions << ["#{field} = ?",search_text] unless search_text.eql?('any')
           else
-            conditions << ['performances.performance_code like ?',"%#{search_text.upcase}%"]
+            # conditions << "/* unknown #{field} */"
           end
-        when 'orders.id'
-          conditions << ["#{field} = ?",search_text.upcase]
-          active_productions_only = false
-        when 'orders.status'
-          conditions << ["#{field} = ?",search_text] unless search_text.eql?('any')
-        else
-          # conditions << "/* unknown #{field} */"
         end
+      }
+      conditions << ["(productions.status != ? || (orders.type != 'TicketOrder'))", Production::INACTIVE] if active_productions_only
+      if @current_user.is_theater_user?
+        conditions << ["productions.theater_id in (select id from theaters where id in (?))", @current_user.theater_ids]
       end
-    }
-    conditions << ["(productions.status != ? || (orders.type != 'TicketOrder'))", Production::INACTIVE] if active_productions_only
-    bind_variables = []
-    sql = conditions.map {|condition|
-      if condition.is_a?(Array)
-        text = condition[0]
-        bind_variables << condition[1]
-      else
-        text = condition
-      end
-      "(#{text})"
-    }.join(' AND ')
-    [sql, bind_variables]
+      bind_variables = []
+      sql = conditions.map {|condition|
+        if condition.is_a?(Array)
+          text = condition[0]
+          bind_variables << condition[1]
+        else
+          text = condition
+        end
+        "(#{text})"
+      }.join(' AND ')
+      [sql, bind_variables]
+    else
+      ['0=1',Array.new]
+    end
   end
-
 
   def sort_direction(key)
     params[:order][key]["dir"] == "desc" ? "desc" : "asc"
