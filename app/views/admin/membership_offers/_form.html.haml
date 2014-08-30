@@ -8,7 +8,7 @@
         .small-6.columns
           = f.input :status, :as=>:select, :collection=>MembershipOffer::OFFER_STATUSES, :include_blank=>false
         .small-6.columns
-          = f.label :on_sale
+          = f.label :on_sale, "On sale to public"
           = f.input_field :on_sale
   .row
     .small-12.columns

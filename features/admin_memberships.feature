@@ -99,3 +99,17 @@ Feature: Membership Administration
       And a membership order exists for "Ticket Buyer"
       And a membership exists with "Front row" as preferred seating
 
+  Scenario: Administrators can set a flag to prevent public sales
+    Given I am an administrator
+      And I am logged in
+    When I go to the admin edit page for membership offer "Monthly Membership"
+     And I uncheck "On sale to public"
+     And I press "Update Membership offer"
+    Then I should see "Private"
+     And I go to the new membership order for membership offer "Monthly Membership"
+    Then I should see "You have been directed to a page that is not active.  Please notify the site administrator."
+    Then I go to the admin edit page for membership offer "Monthly Membership"
+     And I check "On sale to public"
+     And I press "Update Membership offer"
+     And I go to the new membership order for membership offer "Monthly Membership"
+    Then I should not see "is not active"

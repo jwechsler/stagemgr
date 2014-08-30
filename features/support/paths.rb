@@ -44,9 +44,12 @@ module NavigationHelpers
         new_production_performance_order_url(Production.find_by_name($1).id, Performance.find_by_performance_code($2).id)
       when /^the box office calendar for production "([^"]*)"/
         production_performances_path(Production.find_by_name($1))
-      when /^new membership order for membership offer "([^"]*)"/
+      when /^(the )?new membership order for membership offer "([^"]*)"/
         @_current_form='membership_order'
-        new_membership_offer_order_url(MembershipOffer.find_by_name($1).id)
+        new_membership_offer_order_url(MembershipOffer.find_by_name($2).id)
+      when /^the admin edit page for membership offer "([^"]*)"/
+        @using_admin_interface = true
+        edit_admin_membership_offer_url(MembershipOffer.find_by_name($1))
       when /^(the )?new donation order$/
         @_current_form='donation_order'
         new_donation_order_url

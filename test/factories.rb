@@ -192,7 +192,7 @@ FactoryGirl.define do
   factory :membership_offer do
     name 'Test membership'
     recurring_cost BigDecimal.new("5.00")
-    use_ticket_class_code 'MEMBER'
+    use_ticket_class_code 'PASS'
     tickets_per_performance 1
   end
 

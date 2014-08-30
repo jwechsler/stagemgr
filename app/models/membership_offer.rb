@@ -28,4 +28,9 @@ class MembershipOffer < ActiveRecord::Base
     self.on_sale = false
     true
   end
+
+  def on_sale_to_public?
+    self.on_sale
+  end
+
 end
