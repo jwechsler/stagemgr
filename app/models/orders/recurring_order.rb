@@ -56,17 +56,18 @@ module RecurringOrder
       while fill_date > Date.today do
         fill_date -= 1.month
       end
-      while total_collected < total_expected do
+      while total_collected < total_expected.to_f do
         amount = self.recurring_profile.recurring_amount || self.recurring_offer.recurring_cost
-        amount = total_expected - total_collected if total_expected - total_collected < amount
+        amount = total_expected.to_f - total_collected if (total_expected.to_f - total_collected < amount)
         # now we have the payment amount, back place it
         found = false
         new_date = fill_date
+        bottom_limit = self.recurring_profile.created_at.to_date
         begin
           check_month = "#{new_date.month}/#{new_date.year}"
           found = known_dates.include?(check_month)
-          new_date -= 1.month unless found
-        end until !found || new_date < self.recurring_profile.created_at.to_date
+          new_date -= 1.month if found
+        end until !found || new_date < bottom_limit
 
         if new_date < self.recurring_profile.created_at.to_date then
           fill_date = self.recurring_profile.created_at.to_date + 1.day
