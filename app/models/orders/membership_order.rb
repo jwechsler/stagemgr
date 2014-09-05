@@ -28,6 +28,10 @@ class MembershipOrder < Order
     self.membership
   end
 
+  def recurring_offer
+    self.membership_offer
+  end
+
   def description
     "Membership " + (self.months_active.blank? ? "" : "[#{self.months_active}]")
   end

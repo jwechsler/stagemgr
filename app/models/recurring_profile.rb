@@ -115,4 +115,6 @@ module RecurringProfile
   def recurring_order
     raise "RecurringProfile\#recurring_order not yet implemented"
   end
+
+
 end
