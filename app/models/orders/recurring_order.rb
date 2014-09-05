@@ -46,7 +46,7 @@ module RecurringOrder
   # decide if we have missing monthly payments
   def payment_sanity_check
 
-    self.recurring_profile.get_profile_data
+    #self.recurring_profile.get_profile_data
     expected_payments = self.recurring_profile.number_cycles_completed - (self.recurring_profile.failed_payment_count || 0)
     if self.recurring_payments.count < expected_payments then
       total_collected = self.recurring_payments.map(&:amount).reduce(:+) || 0
@@ -61,14 +61,17 @@ module RecurringOrder
         amount = total_expected - total_collected if total_expected - total_collected < amount
         # now we have the payment amount, back place it
         found = false
+        new_date = fill_date
         begin
-          check_month = "#{fill_date.month}/#{fill_date.year}"
+          check_month = "#{new_date.month}/#{new_date.year}"
           found = known_dates.include?(check_month)
-          fill_date -= 1.month unless found
-        end until !found || fill_date < recurring_profile.created_at.to_date
+          new_date -= 1.month unless found
+        end until !found || new_date < recurring_profile.created_at.to_date
 
-        if fill_date < recurring_profile.created_at.to_date then
+        if new_date < recurring_profile.created_at.to_date then
           fill_date = recurring_profile.created_at.to_date + 1.day
+        else
+          fill_date = new_date
         end
 
         self.create_missing_recurring_payment(fill_date, amount)
