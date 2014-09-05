@@ -9,8 +9,8 @@
 
 <% @performances.each do |performance| %>
   <tr>
-    <td><%=h performance.on %></td>
-    <td><%=h performance.at %></td>
+    <td><%=h performance.performance_date %></td>
+    <td><%=h performance.performance_time %></td>
     <td><%=h performance.production %></td>
     <td><%= link_to 'Show', [performance.production.theater, performance.production, performance] %></td>
     <td><%= link_to('Edit', edit_theater_production_performance_path(performance.production.theater, performance.production, performance)) if permitted_to(:edit,:performance) %></td>
