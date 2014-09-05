@@ -23,7 +23,7 @@
     %br
     %strong Profile ID:
     %a{:href=>"https://www.paypal.com/us/cgi-bin/webscr?cmd=%5fprofile%2drecurring%2dpayments&encrypted_profile_id=#{membership.profile_id}&mp_id=#{membership.profile_id}&return_to=merchant&flag_flow=merchant#name1"} #{membership.profile_id}
-
+    %br
     - unless membership.failed_payment_count.blank? || membership.failed_payment_count == 0
       %strong Failed Payment Count:
       =  "#{membership.failed_payment_count} (#{number_to_currency(membership.outstanding_balance)})"
