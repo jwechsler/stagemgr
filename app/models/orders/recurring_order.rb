@@ -65,7 +65,7 @@ module RecurringOrder
           check_month = "#{fill_date.month}/#{fill_date.year}"
           found = known_dates.include?(check_month)
           fill_date -= 1.month unless found
-        end until found || fill_date < recurring_profile.created_at.to_date
+        end until !found || fill_date < recurring_profile.created_at.to_date
 
         if fill_date < recurring_profile.created_at.to_date then
           fill_date = recurring_profile.created_at.to_date + 1.day
