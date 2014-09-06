@@ -33,6 +33,7 @@ Feature: Box office users can manage performances
     When I press "Create"
     Then I should see "has already been taken"
 
+  @javascript
   Scenario: The box office user can duplicate a performance
     Given I follow "Add performance"
     And I enter a performance on "2015-01-01" with code "PERF1"
@@ -42,7 +43,9 @@ Feature: Box office users can manage performances
     And I follow "duplicate_PERF1"
 
     And I change "Performance code" to "PERF2"
+
     And I enter a performance date of "2015-01-02"
+    And show me the page
     When I press "Create"
     Then I should see "Performance PERF2 was successfully created"
     And I should see "PERF1"

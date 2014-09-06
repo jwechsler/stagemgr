@@ -6,7 +6,9 @@ Given /^I enter a performance on "(.*?)" with code "(.*?)"$/ do |perf_date, perf
 end
 
 Given /^I enter a performance date of "(.*?)"$/ do |perf_date|
-  find(:css, '#performance_performance_date.performance_date-alt').set(perf_date)
+  fill_in "performance_performance_date", :with=>perf_date
+  page.execute_script("$('#performance_performance_date').val('#{perf_date}')")
+  #find(:css, '#performance_performance_date').value(perf_date)
 end
 
 Given /^I enter a trigger to "(.*?)" based on "(.*?)" days before for the (\d+)(?:st|nd|rd|th) ticket class$/ do |code, value, num|
