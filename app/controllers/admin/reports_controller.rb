@@ -394,10 +394,10 @@ class Admin::ReportsController < Admin::ApplicationController
   def build_membership_usage(start_day, end_day, display_only = true)
     memberships = Membership.order(:member_since)
     report = Array.new
-    sums = {:collected=>Money.new(0), :payout=>Money.new(0), :performances_attended=>0, :number_cycles=>0}
-    headers = [:member_since, :last_name, :first_name]
+    sums = {:collected=>Money.new(0), :payout=>Money.new(0), :performances_attended=>0, :number_cycles=>0, :tickets_per_performance=>0}
+    headers = [:member_since, :last_name, :first_name, :member_code]
     headers += [:email, :street_address, :street_address_2, :state, :city, :state, :postal_code, :phone] unless display_only
-    headers += [:status, :number_cycles, :collected, :performances_attended, :payout, :net_revenue, :avg_revenue_month, :avg_performances_month]
+    headers += [:status, :number_cycles, :tickets_per_performance, :collected, :performances_attended, :payout, :net_revenue, :avg_revenue_month, :avg_performances_month]
     memberships.each do |membership|
       number_cycles_completed = membership.number_cycles_completed || 1
       unless membership.member_since > end_day || (membership.member_since + number_cycles_completed.months) < start_day
@@ -423,8 +423,10 @@ class Admin::ReportsController < Admin::ApplicationController
         report << {:member_since=>membership.member_since.strftime("%D"),
                    :last_name=>membership.membership_line_item.order.address.last_name,
                    :first_name=>membership.membership_line_item.order.address.first_name,
+                   :member_code=>membership.member_code,
                    :status=>membership.status,
                    :number_cycles=>cycles_in_window,
+                   :tickets_per_performance=>membership.membership_offer.tickets_per_performance,
                    :collected=>aggregate_amount.to_money,
                    :performances_attended=>num_attended,
                    :payout=>total_payout.to_money,
@@ -436,6 +438,7 @@ class Admin::ReportsController < Admin::ApplicationController
         sums[:payout] += total_payout.to_money
         sums[:performances_attended] += num_attended
         sums[:number_cycles] += cycles_in_window
+        sums[:tickets_per_performance] += membership.membership_offer.tickets_per_performance
       end
     end
     if sums[:number_cycles] > 0
