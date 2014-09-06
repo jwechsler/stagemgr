@@ -74,7 +74,7 @@ module RecurringOrder
         else
           fill_date = new_date
         end
-
+        known_dates << "#{fill_date.month}/#{fill_date.year}"
         self.create_missing_recurring_payment(fill_date, amount)
         total_collected += amount
       end
