@@ -1,0 +1,52 @@
+- content_for :title do
+  = @production.name
+- content_for :breadcrumbs do
+  %ul.breadcrumbs
+    %li= link_to 'Theaters', admin_theaters_path
+    %li= link_to @production.theater.name, admin_theater_path(@production.theater)
+    %li= link_to @production.name, admin_theater_production_path(@production)
+    %li.current
+      %a{:href=>"#"}= @performance.performance_code
+
+.row
+  .small-12.columns
+    %h3
+      %i= @performance.production.name
+      on
+      = @performance.performance_date
+      at
+      = @performance.performance_time.to_s(:hour_min)
+
+    Performance Code:
+    = @performance.performance_code
+    %br
+    %br
+    Status:
+    = @performance.status
+    %br
+    - unless @performance.special_features.empty? && @performance.special_feature_display_markdown.blank?
+      %fieldset
+        %legend Special Features
+        %ul
+          - unless @performance.special_features.empty?
+            - @performance.special_features.each do |f|
+              %li= f.description
+
+          - unless @performance.special_feature_display_markdown.blank?
+            %li= display_markdown(@performance.special_feature_display_markdown)
+
+        - unless @performance.special_feature_email_markdown.blank?
+          %h5 Email override for special features
+          = display_markdown(@performance.special_feature_email_markdown)
+
+
+    %h3 Available ticket classes
+    %fieldset
+      %legend On Sale to Public
+      - allocations = @performance.ticket_class_allocations.select { |tca| tca.available? && tca.ticket_class.web_visible? }.sort{|a,b| a.ticket_class.class_code <=> b.ticket_class.class_code }
+      = render partial: 'ticket_class_allocations', locals: {allocations: allocations}
+    %fieldset
+      %legend Backend
+      - allocations = @performance.ticket_class_allocations.select{|tca| tca.available? && !tca.ticket_class.web_visible? }.sort{ |a,b| a.ticket_class.class_code <=> b.ticket_class.class_code }
+      = render partial: 'ticket_class_allocations', locals: {allocations: allocations}
+
