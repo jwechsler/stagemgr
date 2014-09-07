@@ -3,6 +3,7 @@
 //= require foundation
 //= require foundation/foundation.topbar
 //= require foundation-datetimepicker
+//= require jquery.timepicker.js
 //= require jquery_ujs
 //= require autocomplete-rails
 //= require dataTables/jquery.dataTables
@@ -21,15 +22,12 @@ $(document).ready(function() {
     minView: 2,
     pickTime: false
   })
-  $('input.time_picker').fdatetimepicker({
-    format: 'H:ii P',
-    pickDate: false,
-    autoclose: true,
-    maxView: 1,
-    startView: 1,
-    minuteStep: 15,
-    showMeridian: true,
-  })
+
+  $('input.time_picker').timepicker({
+    step:15,
+    minTime:"9:00am",
+    maxTime:"11:30pm",
+  });
 
   $('input.datetime_picker').fdatetimepicker({
       autoclose: true,
