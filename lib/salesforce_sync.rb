@@ -7,6 +7,10 @@ end
 
 class SalesforceSync
 
+  def self.error_message
+    @@sf_error
+  end
+
   def self.enabled?
     $DATABASEDOTCOM['sync_to_salesforce']
   end
@@ -49,8 +53,9 @@ class SalesforceSync
         ticket_order_type = SalesforceData::RecordType.find_by_Name("Ticket Order")
         salesforcesync['ticket_order_record_type_id'] = ticket_order_type.Id
       rescue => e
-#        puts e.message
-#	puts e.backtrace
+        @@sf_error = e.message
+        #puts e.message
+      	#puts e.backtrace
         salesforcesync['sync_to_salesforce'] = "false"
       end
     end

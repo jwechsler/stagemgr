@@ -59,6 +59,12 @@ class DonationOrdersController < ApplicationController
   def confirm
   end
 
+  def payment_types_for(order, frontend = true)
+    types = super
+    types.select{|t| t.is_a? CreditCardPaymentType}
+  end
+
+
   private
   def find_order
     @order = DonationOrder.find(params[:id])

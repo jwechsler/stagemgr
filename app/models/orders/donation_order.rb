@@ -75,15 +75,14 @@ class DonationOrder
       sf_user = $DATABASEDOTCOM['user_id'] if sf_user.nil?
       sf_donationtype = $DATABASEDOTCOM['donation_record_type_id'] if sf_donationtype.nil?
       c = self.address.sf
-      account = SalesforceData::Account.find_by_npe01__One2OneContact__c(c.Id)
 
       donation = SalesforceData::Opportunity.find_by_stagemgr_id__c(self.id.to_s)
       if donation.nil?
         donation = SalesforceData::Opportunity.create("Probability"=>100.0, "StageName"=>"Posted",
                                                   "Name"=>"#{self.address.full_name} (Online)", "Amount"=>self.total,
                                                   "CloseDate"=>self.last_processed_on,
-                                                  "AccountId"=>account.Id,
-                                                  "npe01__Contact_Id_for_Role__c"=>account.Id,
+                                                  "AccountId"=>c.AccountId,
+                                                  "npe01__Contact_Id_for_Role__c"=>c.Id,
                                                   "stagemgr_id__c"=>self.id.to_s,
                                                   "OwnerId"=>sf_user,
                                                   "RecordTypeId"=>sf_donationtype,
