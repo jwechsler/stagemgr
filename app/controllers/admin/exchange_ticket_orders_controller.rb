@@ -20,6 +20,7 @@ class Admin::ExchangeTicketOrdersController < Admin::ApplicationController
     begin
       @original_order = TicketOrder.find(params[:ticket_order_id])
       @exchange_order = TicketOrder.new(params[:ticket_order])
+      @exchange_order.regularize_credit_card_expiration
       @exchange_order.special_offer_code = params[:ticket_order][:special_offer_code]
       @exchange_order.exchange_and_process_from! @original_order
       respond_to do |format|

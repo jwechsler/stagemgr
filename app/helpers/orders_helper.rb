@@ -48,11 +48,7 @@ module OrdersHelper
         order.credit_card_expiration_month = parsed[6]
         order.credit_card_number = parsed[1]
       end
-      order.credit_card_expiration_year = Order.fix_expiration_year(order.credit_card_expiration_year)
-      unless order.credit_card_expiration_year.blank? || order.credit_card_expiration_year.length > 2
-        order.credit_card_expiration_year = "20" + order.credit_card_expiration_year
-
-      end
+      order.regularize_credit_card_expiration
       order.save!
       old_status = order.status
       unless (params[:commit].blank? && order.status == Order::PROCESSING)

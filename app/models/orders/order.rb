@@ -351,6 +351,14 @@ class Order < ActiveRecord::Base
     self.special_offer_line_items(true)
   end
 
+  
+  def regularize_credit_card_expiration
+    self.credit_card_expiration_year = Order.fix_expiration_year(self.credit_card_expiration_year)
+    unless self.credit_card_expiration_year.blank? || self.credit_card_expiration_year.length > 2
+      self.credit_card_expiration_year = "20" + self.credit_card_expiration_year
+    end
+  end
+
   def refund!
 
     Order.transaction do
@@ -617,6 +625,7 @@ class Order < ActiveRecord::Base
   end
 
 
+
   private
 
   def self.trg_row(buyer_type, season, description, address)
@@ -625,6 +634,7 @@ class Order < ActiveRecord::Base
   end
 
   protected
+
 
   def set_theater
 
