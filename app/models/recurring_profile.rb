@@ -91,16 +91,11 @@ module RecurringProfile
   end
 
   def active?(as_of = nil)
-
-    result = !self.pending?
-    if result
-      result = self.status == ACTIVE
-    end
-    result
+    self.status == ACTIVE
   end
 
   def pending?
-    self.status == PENDING || ((self.number_cycles_completed || 0) == 0)
+    self.status == PENDING
   end
 
 
