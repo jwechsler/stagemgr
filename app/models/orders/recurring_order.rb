@@ -47,6 +47,7 @@ module RecurringOrder
   def payment_sanity_check
 
     self.recurring_profile.get_profile_data
+    self.recurring_profile.save!
     expected_payments = self.recurring_profile.number_cycles_completed - (self.recurring_profile.failed_payment_count || 0)
     if self.recurring_payments.count < expected_payments then
       total_collected = self.recurring_payments.map(&:amount).reduce(:+) || 0
