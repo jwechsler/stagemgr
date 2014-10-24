@@ -68,7 +68,7 @@ gem "jquery-ui-rails"
 gem "ri_cal", :git=>"https://github.com/ctide/ri_cal.git"
 gem 'resque', :require => 'resque/server'
 gem 'resque-scheduler', :require=>'resque_scheduler'
-gem 'resque-retry', :git=>"https://github.com/jwechsler/resque-retry.git"
+gem 'resque-retry'  #, :git=>"https://github.com/jwechsler/resque-retry.git"
 gem 'foundation-datetimepicker-rails'
 
 gem 'rails3-jquery-autocomplete',:git=>"https://github.com/jwechsler/rails3-jquery-autocomplete.git" #:path=>'/Users/jeremyw/dev/rails3-jquery-autocomplete'
