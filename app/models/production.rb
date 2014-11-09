@@ -66,6 +66,11 @@ class Production < ActiveRecord::Base
     Production.visible_statuses.include?(self.status)
   end
 
+  # placeholder for email list management through plugin engine
+  def attendees_on_email_list
+    Hash.new
+  end
+
   def add_hold_to_every_performance(address, number_of_tickets, ticket_class_code)
     ticket_class=ticket_classes.select { |tc| tc.class_code == ticket_class_code }.first
     self.performances.each { |p|
@@ -227,5 +232,27 @@ class Production
   def my_emma_group_name
     "#{self.season} #{self.name} Attendee"
   end
+
+  def attendees_on_email_list
+    members_by_email = Hash.new
+    unless MyEmma.disabled? || self.myemma_attendee_group.nil?
+      grp = MyEmma::Group.find(self.myemma_attendee_group)
+      members = grp.members
+
+      members.each do |m|
+        members_by_email[m.email.downcase] = m unless m.email.nil?
+      end
+
+    end
+    members_by_email
+  end
+
+
+end
+
+# @todo extract to MyEmma engine
+
+class Production < ActiveRecord::Base
+
 
 end

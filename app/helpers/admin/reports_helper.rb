@@ -134,7 +134,7 @@ module Admin::ReportsHelper
       reports.keys.each do |key|
         if reports[key].size > 0
           file_name = "/tmp/#{season_tag}_#{key}_#{safe_title(production.name)}.csv"
-          save_report_as_csv(file_name, headers, reports[key])
+          Report.save_report_as_csv(file_name, headers, reports[key])
         end
       end
 
@@ -152,7 +152,7 @@ module Admin::ReportsHelper
 
     master_lists.keys.each do |key|
       file_name = "/tmp/#{season}_#{key.tr(' ','_')}.csv"
-      save_report_as_csv(file_name, headers, master_lists[key])
+      Report.save_report_as_csv(file_name, headers, master_lists[key])
     end
 
   end
