@@ -84,6 +84,7 @@ group :development do
   gem 'mongrel',              '1.2.0.pre2'
   gem 'capistrano-rails'
   gem 'capistrano-rbenv', '~> 2.0'
+  gem 'pry-rails'
   gem 'pry'
   gem 'rb-readline'
   gem "haml-rails"

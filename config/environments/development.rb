@@ -61,14 +61,14 @@ Stagemgr::Application.configure do
 
   Paperclip.options[:log] = true
 
-  silence_warnings do
-    begin
-      require 'pry'
-      IRB = Pry
-    rescue LoadError
-    end
-
-  end
+  # silence_warnings do
+  #   begin
+  #     require 'pry'
+  #     IRB = Pry
+  #   rescue LoadError
+  #   end
+#
+  # end
 
 end
 
