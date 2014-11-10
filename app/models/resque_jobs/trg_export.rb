@@ -4,7 +4,7 @@ class TrgExport
 
   def self.perform(production_id, reporting_user_id)
     p = Production.find(production_id)
-    report = ProductionMailingList.new
-    fs = report.create(p, reporting_user_id)
+    report = ProductionMailingList.new(p, reporting_user_id)
+    fs = report.create
   end
 end

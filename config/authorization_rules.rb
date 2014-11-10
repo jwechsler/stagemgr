@@ -93,7 +93,7 @@ privileges do
   privilege :make, :includes => [:create, :new]
   privilege :view, :includes => [:index, :show, :read]
   privilege :manage, :includes => [:edit, :update, :update_notes]
-  privilege :box_office_reports, :includes=> [:trg_dump, :daily_box_office_receipts, :fulfill_tickets, ]
+  privilege :box_office_reports, :includes=> [:trg_dump, :attended_dump, :daily_box_office_receipts, :fulfill_tickets, ]
   privilege :show_reports, :includes=>[:production_sales_by_performance, :order_dump]
   privilege :house_management_reports, :includes=>[:house_management_seating]
   privilege :reconciliation_reports, :includes=>[:flexpass_sales, :weekly_box_office]
