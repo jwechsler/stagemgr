@@ -101,7 +101,7 @@ end
 Then /^a membership exists with current status "(.*?)"$/ do |status|
   count = Membership.count
   raise "More than one membership found" if count > 1
-  raise "No membership with current status \"#{status} found" unless Membership.all.select{|m| m.current_status == status }.count == 1
+  raise "No membership with current status \"#{status}\" found" unless Membership.all.select{|m| m.current_status == status }.count == 1
 end
 
 Then /^a membership order exists with a gift recipient "(.*?)"$/ do |name|

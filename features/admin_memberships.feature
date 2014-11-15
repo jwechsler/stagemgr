@@ -79,7 +79,6 @@ Feature: Membership Administration
       And I enter a gift recipient
       And I press "Place Order"
     Then a membership exists with status "Active"
-      And a membership exists with current status "Pending"
       And a membership order exists with a gift recipient "Gift Getter"
       And a membership order exists for "Ticket Buyer"
       And an address "Ticket Buyer" exists

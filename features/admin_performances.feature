@@ -45,7 +45,6 @@ Feature: Box office users can manage performances
     And I change "Performance code" to "PERF2"
 
     And I enter a performance date of "2015-01-02"
-    And show me the page
     When I press "Create"
     Then I should see "Performance PERF2 was successfully created"
     And I should see "PERF1"
