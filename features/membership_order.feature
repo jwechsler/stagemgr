@@ -5,7 +5,6 @@ Feature: Membership Ordering
     Given a membership offer "Test Membership" exists
     And the system accepts currency
 
-  @wip
   Scenario: Create a membership
     Given I go to new membership order for membership offer "Test Membership"
     And I enter my contact information
@@ -16,7 +15,6 @@ Feature: Membership Ordering
      And a membership exists with status "Active"
      And a membership exists with "Best available (center)" as preferred seating
 
-  @wip
   Scenario: Create a gift membership
     Given I go to new membership order for membership offer "Test Membership"
     And I check "Give as a gift"

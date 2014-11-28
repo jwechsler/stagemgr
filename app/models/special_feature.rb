@@ -10,7 +10,7 @@ class SpecialFeature < ActiveRecord::Base
   has_and_belongs_to_many :performances
 
   validates_presence_of :short_name, :description
-  validates :name, :uniqueness => {:case_sensitive => false}
+  validates :short_name, :uniqueness => {:case_sensitive => false}
 
   def to_s
     self.short_name
