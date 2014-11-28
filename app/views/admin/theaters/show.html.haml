@@ -7,7 +7,7 @@
   .small-10.columns.left
     .row
       - if @theater.logo.exists?
-        colsize = 8
+        - colsize = 8
         .small-2.medium-2.columns.hide-for-small-only
           = image_tag(@theater.logo.url(:thumbnail), style:"max-height:120px;") if @theater.logo.exists?
 
