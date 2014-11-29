@@ -1,5 +1,5 @@
 class GenerateProductionSalesStatistics
-@queue = :maintenance
+  @queue = :maintenance
 
   def self.perform(production_id = nil)
     if production_id.nil?

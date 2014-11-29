@@ -38,6 +38,14 @@ describe "a donation order" do
       @donation.value_of_all_payments.should eq(0.0)
     end
 
+    it "should update address aggregate donations" do
+      @donation = FactoryGirl.create(:donation_order_for_one_thousand_dollars)
+      @donation.payment_type = FactoryGirl.create(:cash_payment_type)
+      @donation.transition_to!(Order::PROCESSED)
+      @donation.address.donated_this_year.should eq(Money.new(100000))
+      @donation.address.donated_last_n_days.should eq(Money.new(100000))
+      @donation.address.donated_last_year.should eq(Money.new(0))
+    end
 
   end
 
