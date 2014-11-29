@@ -162,7 +162,8 @@ class Admin::ReportsController < Admin::ApplicationController
 
   def house_management_seating
     @date = params[:performance_day].to_date
-    @headers, @report_data = build_house_management_seating_report(@date)
+    report = HouseManagementReport.new(@date)
+    @headers, @report_data = report.create
     respond_to do |format|
       format.html
     end
@@ -329,43 +330,6 @@ class Admin::ReportsController < Admin::ApplicationController
             :email=>''}
     end
 
-  end
-
-  def build_house_management_seating_report(for_date)
-    orders = TicketOrder.includes(:address, {:performance=>:production}).where(
-      "performances.performance_date = :performance_date and orders.status in (:attending)",
-      {:performance_date=>for_date, :attending=>Order.attending_statuses + Order.held_statuses}).
-      order('productions.venue_id, performances.performance_time, addresses.last_name, addresses.first_name')
-
-    report = Array.new
-    headers = [:production_name, :performance_code, :patron_name, :seats, :special_requests, :notes, :is_member, :is_donor]
-    orders.each do |o|
-      if !o.special_request.blank? || !o.notes.blank? || o.address.is_current_member? || o.address.is_donor? || !o.address.address_tags.empty?
-        note_column = o.notes.blank? ? "" : o.notes
-        unless o.address.address_tags.empty?
-          note_column += "<br/>" unless note_column.blank?
-          note_column += "Patron Notes: " + o.address.address_tags.map{|tag|
-            r = "<i><font size=\"-1\" >#{tag.tag_label}"
-            r += " [#{tag.theater.name}]" unless (tag.theater_id.nil? || tag.theater.is_default?)
-            r += " (#{tag.tag_value})" unless tag.tag_value.blank?
-            r += "</font></i>"
-            r
-          }.join(", ")
-        end
-        report << {
-          :production_name => o.performance.production.name,
-          :patron_name => o.address.full_name,
-          :performance_code => o.performance.performance_code,
-          :special_requests =>  (o.special_request.blank? ? nil : o.special_request) || (o.address.is_current_member? ? o.address.current_membership.preferred_seating : ''),
-          :notes => note_column,
-          :is_member => o.address.is_current_member?,
-          :is_donor => o.address.is_donor?,
-          :seats => o.number_of_seats
-        }
-      end
-    end
-
-    [headers, report]
   end
 
   def build_fulfill_labels(through_date)

@@ -42,3 +42,9 @@ CheckPerformanceAllocationTriggers:
   description: 'Run any existing allocation triggers'
   queue: maintenance
 
+UpdateAttendeesFromSalesforce:
+  cron: '0 10 * * *'
+  description: 'Update today''s attendee records from Salesforce'
+  queue: sync
+
+

@@ -110,6 +110,9 @@ private
             elsif 'FLEXPASS' == search_text.upcase
               conditions << 'orders.type = \'FlexPassOrder\''
               active_productions_only = false
+            elsif 'DONATION' == search_text.upcase
+              conditions << 'orders.type = \'DonationOrder\''
+              active_productions_only = false
             else
               conditions << ['performances.performance_code like ?',"%#{search_text.upcase}%"]
             end

@@ -7,6 +7,7 @@ class DonationOrder < Order
 
   validates_associated :donation_line_items
 
+  after_save :update_address_aggregates
 
   def refundable?
     self.status == Order::PROCESSED || self.status == Order::FULFILLED
@@ -56,6 +57,11 @@ class DonationOrder < Order
     self.tasks << OutreachTask.new(:execute_at=>Time.now + 5.minutes, :method_symbol=>:donation_thank_you)
   end
 
+  def update_address_aggregates
+    self.address.update_donor_levels!
+  end
+
+
 end
 
 class DonationOrder
@@ -67,6 +73,7 @@ class DonationOrder
   def queue_sf_sync(delay=nil)
     delay ||= 2.minutes
     Resque.enqueue_in(delay, SyncDonationToSalesforce, self.id)
+    Resque.enqueue_in(delay + 2.day, SyncAddressToSalesforce, self.address_id)
     super(delay)
   end
 

@@ -87,6 +87,9 @@ module NavigationHelpers
       when /^the edit page for payment type "([^"]*)"$/
         @using_admin_interface=true
         edit_admin_payment_type_path(PaymentType.find_by_display_name($1))
+      when /^the new special feature page$/
+        @using_admin_interface=true
+        new_admin_special_feature_path
       # Add more mappings here.
       # Here is an example that pulls values out of the Regexp:
       #

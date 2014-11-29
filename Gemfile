@@ -48,7 +48,9 @@ gem 'cocaine', '0.3.2'
 gem "paperclip",               "~> 3.1.2"
 gem "htmldiff"
 gem "StreetAddress",          "~> 1.0.1"
-gem "money", "6.1.0.beta1"
+gem "i18n", "~> 0.6.11"
+gem "money"
+gem "money-rails"
 gem "monetize"
 gem "gemcutter"
 gem 'font-awesome-rails'

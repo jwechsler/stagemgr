@@ -7,6 +7,10 @@ class Address < ActiveRecord::Base
 
   include AddressImports
 
+  monetize :donated_this_year_cents
+  monetize :donated_last_year_cents
+  monetize :donated_last_n_days_cents
+
   before_destroy :ensure_no_finalized_orders
 
   validates_presence_of :full_name
@@ -370,10 +374,13 @@ class Address < ActiveRecord::Base
     end
   end
 
+  def update_donor_levels!
+    self.update_donor_levels_from_donation_orders
+    self.save!
+  end
+
   def is_donor?
-    DonationOrder.count(:include=>[:donation_line_items],
-                        :conditions=>["orders.address_id = ? and line_items.donation_amount > 0",
-                                      self.id]) > 0
+    ((self.donated_last_year || 0) + (self.donated_this_year || 0)) > 0
   end
 
   def to_s
@@ -396,11 +403,27 @@ class Address < ActiveRecord::Base
     self.search_name = self.full_name.gsub(/[\d+\s+\.!,]/,'').upcase
   end
 
+  def update_donor_levels_from_donation_orders
+    one_year_ago = Date.today - 1.year
+
+    self.donated_last_n_days = Payment.sum(:amount,
+                        :include=>[:order],
+                        :conditions=>["orders.type = 'DonationOrder' and orders.address_id = ? and orders.status in (?) and processed_on >= ? ",
+                                      self.id, Order.finalized_statuses, one_year_ago])
+    self.donated_this_year = Payment.sum(:amount,
+                        :include=>[:order],
+                        :conditions=>["orders.type = 'DonationOrder' and orders.address_id = ? and orders.status in (?) and (processed_on between ? and ?) ",
+                                      self.id, Order.finalized_statuses, Date.parse("#{Date.today.year}-01-01"), Date.parse("#{Date.today.year+1}-01-01") ])
+    self.donated_last_year = Payment.sum(:amount,
+                        :include=>[:order],
+                        :conditions=>["orders.type = 'DonationOrder' and orders.address_id = ? and orders.status in (?) and (processed_on between ? and ?) ",
+                                      self.id, Order.finalized_statuses, Date.parse("#{Date.today.year-1}-01-01"), Date.parse("#{Date.today.year}-01-01")])
+  end
+
   private
   def name_as_searchable
     full_name.gsub(SEARCHABLE_REGEXP,'').upcase
   end
-
 
 end
 
@@ -473,7 +496,7 @@ class Address
       puts "syncing address id ##{self.id}"
       if sf_contact.nil? || self.sf_last_sync_at.nil?
         sf_contact = create_salesforce_contact
-
+        puts "*** #{sf_contact.AccountId}"
       else
         if self.field_changed_after?(:first_name, self.sf_last_sync_at)
           sf_contact.FirstName = self.first_name unless self.first_name.blank?
@@ -540,7 +563,7 @@ class Address
       self.sf_last_sync_at = DateTime.now
       self.sf_object = sf_contact
       self.sf_disable_sync_on_commit = true
-      self.save!
+      self.update_donor_levels!
     else
       self.sf_object = SalesforceData::Contact.find_by_stagemgr_id__c("#{self.id}")
     end
@@ -555,7 +578,6 @@ class Address
   end
 
   def has_orphaned_sf_records?
-    account = SalesforceData::Account.find_by_npe01__One2OneContact__c(self.sf.Id)
     donations = SalesforceData::Opportunity.find_all_by_AccountId(self.sf.AccountId)
     donations.select{|d| d.stagemgr_id__c.blank?}.size > 0
   end
@@ -572,5 +594,19 @@ class Address
     self.sf_object = SalesforceData::Contact.find_by_stagemgr_id__c("#{self.id}")
     !self.sf_object.nil?
   end
+
+  def update_donor_levels!
+    if  SalesforceSync.enabled?
+      account = SalesforceData::Account.find(self.sf.AccountId)
+      self.donated_this_year = account.npo02__OppAmountThisYear__c
+      self.donated_last_year = account.npo02__OppAmountLastYear__c
+      self.donated_last_n_days = account.npo02__OppAmountLastNDays__c
+      self.sf_disable_sync_on_commit = true
+    else
+      self.update_donor_levels_from_donation_orders
+    end
+    self.save!
+  end
+
 
 end
