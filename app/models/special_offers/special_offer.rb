@@ -149,7 +149,7 @@ class SpecialOffer < ActiveRecord::Base
     prod_id = order.performance.production.id
     theater_id = order.performance.production.theater.id
     offers = SpecialOffer.all(
-        :conditions => ["trim(lower(code)) = trim(lower(?)) and (performance_id = ? or production_id = ? or theater_id = ? or (performance_id is null and production_id is null and theater_id is null)) and (auto_expire is null or auto_expire >= ?)",
+        :conditions => ["trim(lower(code)) = trim(lower(?)) and (performance_id = ? or production_id = ? or theater_id = ? or (performance_id is null and production_id is null and theater_id is null)) and status = 'Active' and (auto_expire is null or auto_expire >= ?)",
                         order.special_offer_code,
                         perf_id,
                         prod_id,
