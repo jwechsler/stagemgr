@@ -8,7 +8,7 @@
             = p.performance_date.to_s(:long)
           %td
             = p.performance_time.to_s(:hour_min)
-            = special_feature_footnotes_for(p, @footnotes)
+            = raw special_feature_footnotes_for(p, @footnotes)
           %td
             = price_range(p)
           %td
