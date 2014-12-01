@@ -2,9 +2,9 @@
   .small-6.columns.vertical-center
     = f.hidden_field :ticket_class_id
     = f.object.ticket_class.class_name
-  .small-3.columns
+  .small-6.medium-3.columns
     = f.select :ticket_count, 0.upto(20).map{|x| x}
-  .small-3.columns.vertical-center
+  .small-12.medium-3.columns.vertical-center
     - if f.object.ticket_class.ticket_type == 'Donation'
       = f.input_field :price_override, :class=>'price_override', :placeholder=>"Suggested #{number_to_currency(f.object.ticket_class.ticket_price)}"
     -else
@@ -12,3 +12,6 @@
         n/a
       -else
         = number_to_currency(f.object.ticket_class.ticket_price)
+  - unless f.object.ticket_class.purchase_page_annotation.blank?
+    .small-12.columns.ticket_class_annotation
+      = display_markdown(f.object.ticket_class.purchase_page_annotation)

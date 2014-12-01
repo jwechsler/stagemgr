@@ -21,7 +21,7 @@
         - for default_ticket_class in @default_ticket_classes
           %tr
             %td
-              = link_to default_ticket_class.class_code, [:admin, default_ticket_class]
+              = default_ticket_class.class_code
             %td
               %span.label.right.secondary= default_ticket_class.ticket_type
               = default_ticket_class.class_name

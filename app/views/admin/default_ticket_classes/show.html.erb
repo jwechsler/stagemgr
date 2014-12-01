@@ -28,6 +28,14 @@
   <strong>Web Visible:</strong>
   <%= @default_ticket_class.web_visible %>
 </p>
+<p>
+  <strong>Purchase Page Annotation:</strong>
+  <%= @default_ticket_class.purchase_page_annotation %>
+</p>
+<p>
+  <strong>Purchase Email Annotation:</strong>
+  <%= @default_ticket_class.purchase_email_annotation %>
+</p>
 
 <p>
   <%= link_to "Edit", edit_admin_default_ticket_class_path(@default_ticket_class) %> |
@@ -35,4 +43,4 @@
   <%= link_to "View All", admin_default_ticket_classes_path %>
 </p>
 
-= link_to "Destroy", [:admin, default_ticket_class], :confirm => 'Are you sure?', :method => :delete, :class=>'tiny alert button'
+<%= link_to "Destroy", [:admin, @default_ticket_class], :confirm => 'Are you sure?', :method => :delete, :class=>'tiny alert button' %>

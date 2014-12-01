@@ -10,6 +10,3 @@ Feature: An administrator can add theater classes to productions
       And I follow "Ticket Classes"
      Then I should see "Ticket Classes"
       And I should see "New Ticket Class"
-
-
-

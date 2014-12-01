@@ -1,62 +1,76 @@
-<% content_for :title do %><%= @production.name%> Ticket Classes<% end %><h3><i><%= @production.name%></i> Ticket Classes</h3>
-
-<table id="ticket-class-listing" class="hide display">
-  <thead>
-    <tr>
-      <th>Class code</th>
-      <th>Class name</th>
-      <th>Ticket price</th>
-      <th>Ticketing fee</th>
-      <th>Web Visible?</th>
-      <th>Holds Seats?</th>
-      <th>Ticket type</th>
-      <th>Minutes before show</th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-  <% @ticket_classes.each do |ticket_class| %>
-  <tr>
-    <td><%= ticket_class.class_code %></td>
-    <td><%= ticket_class.class_name %></td>
-    <td class="text-right"><%= to_currency ticket_class.ticket_price %></td>
-    <td class="text-right"><%= to_currency ticket_class.ticketing_fee %></td>
-    <td class="text-center"><% if ticket_class.web_visible? %><span class="fa fa-check" /><% end %></td>
-    <td class="text-center"><% if ticket_class.holds_seats? %><span class="fa fa-check" /><% end %></td>
-    <td><%= ticket_class.ticket_type %></td>
-    <td><%= ticket_class.minutes_before_show %></td>
-    <td><% permitted_to? :manage, :admin_ticket_classes do %><%= link_to 'Edit', edit_admin_theater_production_ticket_class_path(@theater,@production, ticket_class), class: 'button small' %><%- end -%><%- permitted_to? :destroy, :admin_ticket_classes do %><%= link_to 'Destroy', admin_theater_production_ticket_class_path(@theater,@production, ticket_class), :confirm => 'Are you sure?', :method => :delete, class: 'button small' %><%- end -%></td>
-  </tr>
-  <% end %>
-  </tbody>
-</table>
-<br/>
-<%=link_to 'Back', [:admin, @production.theater, @production], class: 'button' %>
-
-<% permitted_to? :manage, :admin_ticket_classes do %>
-    <%= link_to 'New Ticket Class', new_admin_theater_production_ticket_class_path(@theater,@production), class: 'button right small' %>
+<!--- admin/ticket_classes/index.html.erb -->
+<% content_for :title do %>Theaters<% end %>
+<% content_for :breadcrumbs do %>
+<ul class="breadcrumbs">
+  <li><%= link_to "Theaters", admin_theaters_path %></li>
+  <li><%= link_to @production.theater.name, admin_theater_path(@production.theater) %></li>
+  <li><%= link_to @production.name, admin_theater_production_path(@production.theater, @production) %></a></li>
+  <li class="current"><a href='#'>Ticket Classes</a></li>
+</ul>
 <% end %>
+<div class="row">
+  <div class="small-12 columns">
+    <% content_for :title do %><%= @production.name%> Ticket Classes<% end %><h3><i><%= @production.name%></i> Ticket Classes</h3>
 
-<% content_for :js do %>
-  <script type="text/javascript">
+    <table id="ticket-class-listing" class="hide display">
+      <thead>
+        <tr>
+          <th>Class code</th>
+          <th>Class name</th>
+          <th>Ticket price</th>
+          <th>Ticketing fee</th>
+          <th>Web Visible?</th>
+          <th>Holds Seats?</th>
+          <th>Ticket type</th>
+          <th>Minutes before show</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+      <% @ticket_classes.each do |ticket_class| %>
+      <tr>
+        <td><%= ticket_class.class_code %></td>
+        <td><%= ticket_class.class_name %></td>
+        <td class="text-right"><%= to_currency ticket_class.ticket_price %></td>
+        <td class="text-right"><%= to_currency ticket_class.ticketing_fee %></td>
+        <td class="text-center"><% if ticket_class.web_visible? %><span class="fa fa-check" /><% end %></td>
+        <td class="text-center"><% if ticket_class.holds_seats? %><span class="fa fa-check" /><% end %></td>
+        <td><%= ticket_class.ticket_type %></td>
+        <td><%= ticket_class.minutes_before_show %></td>
+        <td><% permitted_to? :manage, :admin_ticket_classes do %><%= link_to 'Edit', edit_admin_theater_production_ticket_class_path(@theater,@production, ticket_class), class: 'button small' %><%- end -%><%- permitted_to? :destroy, :admin_ticket_classes do %><%= link_to 'Destroy', admin_theater_production_ticket_class_path(@theater,@production, ticket_class), :confirm => 'Are you sure?', :method => :delete, class: 'button small' %><%- end -%></td>
+      </tr>
+      <% end %>
+      </tbody>
+    </table>
+    <br/>
+    <%=link_to 'Back', [:admin, @production.theater, @production], class: 'button' %>
 
-  $(document).ready(function() {
-    $('#ticket-class-listing').dataTable({
+    <% permitted_to? :manage, :admin_ticket_classes do %>
+        <%= link_to 'New Ticket Class', new_admin_theater_production_ticket_class_path(@theater,@production), class: 'button right small' %>
+    <% end %>
 
-      dom: 'lf<"toolbar-buttons">rtip',
-      stateSave: true,
-      pagingType: "foundation",
-      columnDefs: [
-        {targets: "_all", orderable:false},
-        {targets: "2,3,4,5", searchable:false},
-        {targets: "2,3", type:'numeric-fmt'}  ],
-      fnInitComplete:function() {
-        $("#ticket-class-listing").show();
-        this.fnAdjustColumnSizing();
-      },
-    });
+    <% content_for :js do %>
+      <script type="text/javascript">
 
-  });
+      $(document).ready(function() {
+        $('#ticket-class-listing').dataTable({
 
-  </script>
-<% end %>
+          dom: 'lf<"toolbar-buttons">rtip',
+          stateSave: true,
+          pagingType: "foundation",
+          columnDefs: [
+            {targets: "_all", orderable:false},
+            {targets: "2,3,4,5", searchable:false},
+            {targets: "2,3", type:'numeric-fmt'}  ],
+          fnInitComplete:function() {
+            $("#ticket-class-listing").show();
+            this.fnAdjustColumnSizing();
+          },
+        });
+
+      });
+
+      </script>
+    <% end %>
+  </div>
+</div>

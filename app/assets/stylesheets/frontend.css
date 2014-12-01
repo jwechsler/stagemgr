@@ -266,3 +266,8 @@ del.diffmod, del.diffdel { color: #ff9999; }
   font-size: 14px;
 }
 
+.ticket_class_annotation p {
+  font-size:80%;
+  margin-top: -1.5em;
+}
+

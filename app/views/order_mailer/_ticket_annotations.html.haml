@@ -1,0 +1,8 @@
+- additional_annotations = @order.ticket_line_items.select { |tli| !tli.ticket_class.purchase_email_annotation.blank? }.map { |tli| tli.ticket_class.purchase_email_annotation }.uniq
+- unless additional_annotations.empty?
+  %p
+    A few notes about your order
+  %ul
+    - additional_annotations.each do |annotation|
+      %li
+        = annotation
