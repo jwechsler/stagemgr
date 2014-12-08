@@ -220,7 +220,7 @@ class Production
   end
 
   def create_my_emma_group
-    unless MyEmma.disabled?
+    unless MyEmma.disabled? || !$SERVER_CONFIG['my_emma']['create_production_groups']
       if self.myemma_attendee_group.blank? then
         new_group = MyEmma::Group.new
         new_group.group_name = self.my_emma_group_name
