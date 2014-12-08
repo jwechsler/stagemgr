@@ -393,6 +393,8 @@ GEM
     uglifier (2.4.0)
       execjs (>= 0.3.0)
       json (>= 1.8.0)
+    validates_formatting_of (0.8.0)
+      activemodel (~> 3.0)
     vegas (0.1.11)
       rack (>= 1.0.0)
     webrat (0.7.3)
@@ -492,6 +494,7 @@ DEPENDENCIES
   syntax
   test-unit
   uglifier (>= 1.0.3)
+  validates_formatting_of
   webrat
   what_methods (= 1.0.1)
   whenever

@@ -86,6 +86,14 @@
               - no_displayed_confirmation = false
               %h5 Followup Message #2
               = display_markdown(@production.follow_up_message_2)
+            - unless @production.survey_link.blank?
+              %h5 Custom Survey Link
+              - no_displayed_confirmation = false
+              %a{:href=>@production.survey_link}= @production.survey_link
+            - unless @production.mailing_list_link.blank?
+              - no_displayed_confirmation = false
+              %h5 Custom Mailing List Solicitation
+              %a{:href=>@production.mailing_list_link}= @production.mailing_list_link
             - if no_displayed_confirmation
               %h5 No custom notifications defined
 

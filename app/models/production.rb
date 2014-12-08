@@ -15,6 +15,8 @@ class Production < ActiveRecord::Base
   validates_uniqueness_of :production_code
   validates_length_of :production_code, :in=>1..8
   validates_numericality_of :capacity
+  validates_formatting_of :survey_link, :using => :url, :allow_blank=>true
+  validates_formatting_of :mailing_list_link, :using => :url, :allow_blank=>true
 
   belongs_to :venue
   belongs_to :theater

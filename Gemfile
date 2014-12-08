@@ -58,6 +58,7 @@ gem "dynamic_form"
 gem "cocoon"
 gem "haml"
 gem "postmark-rails"
+gem "validates_formatting_of"
 gem "namecase", "~> 1.1.0"
 gem 'jquery-datatables-rails', git: 'git://github.com/rweng/jquery-datatables-rails.git', branch: 'master'
 # gem 'autonumeric-rails'
