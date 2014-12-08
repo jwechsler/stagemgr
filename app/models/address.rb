@@ -14,7 +14,7 @@ class Address < ActiveRecord::Base
   before_destroy :ensure_no_finalized_orders
 
   validates_presence_of :full_name
-  validates :email, :email=>true
+  validates :email, :email=>true, :allow_blank=>true
   before_validation :regularize!
   has_many :orders
   has_many :orders_as_recipient, :class_name=>:order, :foreign_key=>:recipient_address_id
