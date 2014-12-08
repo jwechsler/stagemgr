@@ -4,7 +4,7 @@
                                   :visible_classes=>[Production::PLAY],
                                   :after_date=>Time.now.end_of_week,
                                   :future_date=>(Time.now + 3.month),
-                                  :order_address=>order.address.id}).order("RAND()").limit(3)
+                                  :order_address=>order.address.id}).order("random()").limit(3)
   productions.each do |prod| %>
     <table>
       <tr>

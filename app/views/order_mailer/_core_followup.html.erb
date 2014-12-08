@@ -24,7 +24,7 @@
           <p>
             I always want to hear from you about your experience in our home here at Theater Wit. I hope you will feel free to
             email me at any time (<a href="mailto:jeremy@theaterwit.org">jeremy@theaterwit.org</a>) to tell me about it.  If you
-            like a bit of structure, you can also <a href="https://app.e2ma.net/app2/survey/1402458/213016998/41f751222a/?v=a"><b>fill out a three question survey</b></a>.
+            like a bit of structure, you can also <a href="<%= survey_link(@order.performance.production) %>"><b>fill out a three question survey</b></a>.
           </p>
         </div>
       </td>
@@ -42,7 +42,7 @@
   <p>
     You can check in at our <a href="http://www.theaterwit.org">website<a>,
   on <a href="http://www.facebook.com/theaterwit">Facebook page</a>, or <a href="http://twitter.com/theaterwit">Twitter</a> for current news.  And, while this is
-  <b>the last email</b> you'll get from your ticket order, there's always our <a href="http://www.theaterwit.org/mailing">mailing list if you're afraid you'll miss us</a>.
+  <b>the last email</b> you'll get from your ticket order, there's always our <a href="<%= mailing_list_link(@order.performance.production) %>">mailing list if you're afraid you'll miss us</a>.
   I hope you had a great evening at the theater. </p>
   <p>
     <% if @order.address.productions.count >= 2 %>

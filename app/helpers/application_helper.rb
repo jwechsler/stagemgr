@@ -53,5 +53,13 @@ module ApplicationHelper
     end
   end
 
+  def mailing_list_link(production = nil)
+    (production.nil? || production.mailing_list_link.blank?) ? $SERVER_CONFIG['mailing_list_link'] : production.mailing_list_link
+  end
+
+  def survey_link(production = nil)
+    (production.nil? || production.survey_link.blank?) ? $SERVER_CONFIG['survey_link'] : production.survey_link
+  end
+
 end
 

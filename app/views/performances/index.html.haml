@@ -3,7 +3,7 @@
   = render :partial=>'/productions/info', :locals=>{:production=>@production, :layout_style=>:production_information}
   %p
     Tickets are not yet on sale for this show. Subscribe to our
-    %a{:href=>"http://www.theaterwit.org/mailing"} mailing list
+    %a{:href=>mailing_list_link(@production)} mailing list
     for up-to-date show listings and notifications
 - else
   .row
