@@ -489,7 +489,7 @@ class Address
   end
 
   def sync_to_salesforce!(force_sync = false)
-    if self.sf_last_sync_at.nil? || (self.sf_last_sync_at + 2.seconds < self.updated_at) || force_sync
+    if (self.sf_purge.blank?) && (self.sf_last_sync_at.nil? || (self.sf_last_sync_at + 2.seconds < self.updated_at) || force_sync)
       sf_contact = SalesforceData::Contact.find_by_stagemgr_id__c("#{self.id}")
       sf_attributes = SalesforceData::Contact.attributes
       sync_time = DateTime.now
