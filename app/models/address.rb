@@ -494,7 +494,7 @@ class Address
       sf_attributes = SalesforceData::Contact.attributes
       sync_time = DateTime.now
       puts "syncing address id ##{self.id}"
-      if sf_contact.nil? || self.sf_last_sync_at.nil?
+      if sf_contact.nil?
         sf_contact = create_salesforce_contact
         puts "*** #{sf_contact.AccountId}"
       else
