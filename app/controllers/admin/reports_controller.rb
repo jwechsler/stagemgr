@@ -185,7 +185,7 @@ class Admin::ReportsController < Admin::ApplicationController
 
   def trg_dump
     production = Production.find(params[:report][:production_id])
-    Resque.enqueue(TrgExport, production.nil? ? 0 : production.id, current_user.id)
+    Resque.enqueue(TrgExport, production.nil? ? 0 : production.id, current_user.id, permitted_to?(:view_email, :admin_addresses))
     flash[:notice] = 'Your export is queued for generation. You\'ll recieve notification when the process is complete.'
     redirect_to admin_reports_path
 
