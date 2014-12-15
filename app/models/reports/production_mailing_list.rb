@@ -22,8 +22,10 @@ class ProductionMailingList < MailingList
     consolidation_code = self.production.theater.is_default? ? 'ALL' : 'REN'
     all_attendees.each do |address|
       hash = MailingList.mailing_hash_from_buyer(address)
-      unless self.allow_email_exports? || members_by_email.has_key?(hash[:Email].downcase)
-        hash[:Email] = nil
+      unless hash[:Email].nil?
+        unless self.allow_email_exports? || members_by_email.has_key?(hash[:Email].downcase)
+          hash[:Email] = nil
+        end
       end
       hash[:Title] = self.production.name
       hash[:Season] = season_tag
