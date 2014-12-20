@@ -2,10 +2,10 @@
 //= require_this
 
 function show_gift_form() {
-  e = $("#gift_information")
-  v = $(".third_party_checkbox input").each(function() {
+  e = $("#gift_information");
+  v = $(".third_party_checkbox input.boolean").each(function() {
     if ($(this).is(':checked')) {
-      e.removeClass('hide');
+      e.removeClass("hide");
     } else {
       e.addClass('hide');
     }
