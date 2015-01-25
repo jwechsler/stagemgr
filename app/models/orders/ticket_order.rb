@@ -48,7 +48,12 @@ class TicketOrder < Order
         unless allocation.nil?
           number_of_tickets_already_used = TicketLineItem.where('ticket_class_id = ? and performance_id = ? and order_id != ?',key, self.performance_id, self.id).joins(:order).sum(:ticket_count)
           if (!allocation.ticket_limit.nil? && (ticket_counts_by_class[key] + number_of_tickets_already_used > allocation.ticket_limit)) then
-            errors.add :base, "'#{TicketClass.find(key).class_name}' only has #{number_of_tickets_already_used} remaining."
+            remainder = allocation.ticket_limit - number_of_tickets_already_used
+            if remainder > 0
+              errors.add :base, "There are only #{allocation.ticket_limit - number_of_tickets_already_used} '#{TicketClass.find(key).class_name}' tickets remaining."
+            else
+              errors.add :base, "Sorry, there are no '#{TicketClass.find(key).class_name}' tickets left."
+            end
           end
         end
       end
@@ -95,6 +100,20 @@ class TicketOrder < Order
 
   def holding_seats?
     ![Order::UNCLAIMED, Order::CANCELED].include?(self.status)
+  end
+
+  def assigned_seats?
+    result = false
+    self.ticket_line_items.each {|tli| result ||= tli.ticket_class.assigns_seats? }
+    result
+  end
+
+  def seat_assignments
+    if self.assigned_seats?
+      "#{self.ticket_detail_description}"
+    else
+      ""
+    end
   end
 
 

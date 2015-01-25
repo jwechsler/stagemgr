@@ -35,6 +35,12 @@ class HouseManagementReport < Report
             r
           }.join(", ")
         end
+        seat_assignments = o.seat_assignments
+        unless seat_assignments.blank?
+          note_column += "<br/>" unless note_column.blank?
+          note_column += "Seating: <i><font size=\"-1\" >#{seat_assignments}</font></i>"
+        end
+
         report << {
           :production_name => o.performance.production.name,
           :patron_name => o.address.full_name,
