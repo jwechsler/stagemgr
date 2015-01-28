@@ -100,7 +100,7 @@ class Production < ActiveRecord::Base
 
   def price_range
     min_price = nil
-    max_price = TicketClass.maximum(:ticket_price, :conditions=>['web_visible = ? and production_id = ?', true, self.id])
+    max_price = TicketClass.maximum(:ticket_price, :conditions=>['web_visible = ? and production_id = ? and show_in_pricing_range = ?', true, self.id, true])
     self.performances.each {|perf|
       if perf.performance_date >= Date.today && perf.visible?
         visible = perf.ticket_class_allocations.select { |tca|

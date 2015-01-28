@@ -26,6 +26,7 @@
 
         = f.input :holds_seats, :default=>true, :hint=>"Reserve seats from inventory"
         = f.input :assigns_seats, :default=>false, :hint=>"Creates a seat assignment"
+        = f.input :show_in_pricing_range, :default=>true, :hint=>"Show in pricing overview"
         = f.input :auto_attach, :hint=>"Automatically attach to every performance"
         = f.input :minutes_before_show, :hint=>"Reveal timed tickets at this point before showtime"
         = f.input :purchase_page_annotation, :as=>:text, :hint=>'Additional detail text for purchase page', input_html: {rows: 2}

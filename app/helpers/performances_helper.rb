@@ -1,6 +1,6 @@
 module PerformancesHelper
   def price_range(performance)
-    visible = performance.ticket_class_allocations.select { |tca| tca.available? && tca.ticket_class.web_visible? && tca.ticket_class.holds_seats? }
+    visible = performance.ticket_class_allocations.select { |tca| tca.available? && tca.ticket_class.web_visible? && tca.ticket_class.holds_seats? && tca.ticket_class.show_in_pricing_range? }
 
     unless visible.empty?
       min_price = visible.first.ticket_class.ticket_price
