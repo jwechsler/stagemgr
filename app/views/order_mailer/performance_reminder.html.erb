@@ -1,7 +1,7 @@
 <% content_for :email_title do %>
-  See your <%= Date::DAYNAMES[@order.performance.performance_date.wday] %>
+  See you <%= Date::DAYNAMES[@order.performance.performance_date.wday] %>
 <% end %>
-  <p>Just a reminder, you have <%= @order.number_of_tickets %> ticket<%= "s" unless @order.number_of_tickets == 1 %> at
+  <p>Just a reminder, you have <%= @order.number_of_seats %> ticket<%= "s" unless @order.number_of_seats == 1 %> at
       <%= @order.performance.performance_time.strftime('%l:%M %p') %> this <%= Date::DAYNAMES[@order.performance.performance_date.wday] %>.  We look forward to seeing you!
     <%- unless @order.performance.production.allow_late_seating %>
     <b>
@@ -21,6 +21,8 @@ Pre-show Dining Recommendations
 </h3>
 
 <p><a href="http://www.cooperschicago.com/">Cooper's</a> (773.929.2667) is directly across the street, and features an excellent bbq and sandwich menu, along with some tasty vegetarian options.</p>
+
+<p><a href="http://www.fahlstromsfreshfish.com">Fahlstrom's Fish Market</a> (773-281-6000) is a terrfic seafood diner, also just steps away from Theater Wit's front door.</p>
 
 <h3>Seating and Admission</h3>
 <p>All seating is general admission.  Each show opens its doors 25 minutes before curtain time. Our houses are intimate with excellent sightlines, but if you are concerned, you may want to show up on the earlier side for your pick of seats.  If you have any special seating needs (handicapped/wheelchair accessible, groups over 15), please call us at 773-975-8150 and we'll make sure you're taken care of.
