@@ -23,7 +23,9 @@ class HouseManagementReport < Report
     report = Array.new
     headers = [:production_name, :performance_code, :patron_name, :seats, :special_requests, :notes, :is_member, :is_donor]
     orders.each do |o|
-      if !o.special_request.blank? || !o.notes.blank? || o.address.is_current_member? || o.address.is_donor? || !o.address.address_tags.empty?
+      seat_assignments = o.seat_assignments
+        
+      if !o.special_request.blank? || !o.notes.blank? || o.address.is_current_member? || o.address.is_donor? || !o.address.address_tags.empty? || !seat_assignments.blank?
         note_column = o.notes.blank? ? "" : o.notes
         unless o.address.address_tags.empty?
           note_column += "<br/>" unless note_column.blank?
@@ -35,7 +37,6 @@ class HouseManagementReport < Report
             r
           }.join(", ")
         end
-        seat_assignments = o.seat_assignments
         unless seat_assignments.blank?
           note_column += "<br/>" unless note_column.blank?
           note_column += "Seating: <i><font size=\"-1\" >#{seat_assignments}</font></i>"
