@@ -1,3 +1,4 @@
+require 'csv'
 class TrgImport
   @queue = :import
 
@@ -18,9 +19,6 @@ class TrgImport
         zip_idx = 0
         zip4_idx = 0
         email1_idx = 0
-        email2_idx = 0
-        email3_idx = 0
-        email4_idx = 0
         filestore = FileStore.find(filestore_id)
         production = Production.find(production_id) unless production_id == 0
         filestore.notes = "Importing #{production.nil? ? '' : production.name + ' '}attendees..."
@@ -29,26 +27,27 @@ class TrgImport
           if headers.nil? then
             _index = 0
             headers = Hash[row.map {|header| _index += 1; [header, _index]}]
-            client_patron_id_idx = headers['Client Patron ID'] - 1
-            first_name_idx = headers['First Name'] - 1
-            middle_name_idx = headers['Middle Name'] - 1
-            last_name_idx = headers['Last Name'] - 1
+            ['OrgPatronID','FirstName','MiddleName','LastName','Prefix','FullName','Address','City','StateCode','PostalCode','Zip4','Email'].each do |t|
+                raise "Missing expected header #{t}" if headers[t].nil? 
+            end
+
+            client_patron_id_idx = headers['OrgPatronID'] - 1
+            first_name_idx = headers['FirstName'] - 1
+            middle_name_idx = headers['MiddleName'] - 1
+            last_name_idx = headers['LastName'] - 1
             prefix_idx = headers['Prefix'] - 1
-            full_name_idx = headers['Full Name'] - 1
-            address2_idx = headers['Address 2'] - 1
+            full_name_idx = headers['FullName'] - 1
+            address2_idx = headers['Address'] - 1
             city_idx = headers['City'] - 1
-            state_idx = headers['State'] - 1
-            zip_idx = headers['Zip'] - 1
+            state_idx = headers['StateCode'] - 1
+            zip_idx = headers['PostalCode'] - 1
             zip4_idx = headers['Zip4'] - 1
-            email1_idx = headers['Email 1'] - 1
-            email2_idx = headers['Email 2'] - 1
-            email3_idx = headers['Email 3'] - 1
-            email4_idx = headers['Email 4'] - 1
-          else
+            email1_idx = headers['Email'] - 1
+            else
             total += 1
             merge_id = row[client_patron_id_idx]
             if merge_id.blank? then
-              address_choices = Address.where('email in (?)', [row[email1_idx], row[email2_idx], row[email3_idx], row[email4_idx]]).order('id DESC')
+              address_choices = Address.where('email = ?', row[email1_idx]).order('id DESC')
             else
               if merge_id =~ /\A[-+]?[0-9]*\.?[0-9]+\Z/ then
                 a = Address.find(merge_id.to_i)
@@ -89,8 +88,11 @@ class TrgImport
         end
         filestore.notes = "Imported #{total} contacts, merged #{merged} as attendees#{production.nil? ? '' : ' ' + production.name}."
         filestore.save
-    rescue Exception
-        filestore.notes = "Error: #{$!}"
+    rescue => e
+        puts e.backtrace
+        Rails.logger.error e.message
+        e.backtrace.each { |line| Rails.logger.error line }
+        filestore.notes = "Error: #{e.message}"
         filestore.save
     end
   end
