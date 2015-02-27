@@ -43,6 +43,37 @@ module RecurringOrder
     payment
   end
 
+  def queue_next_sanity_check
+    case
+      when self.recurring_profile.active?
+        Resque.enqueue_at(self.recurring_profile.next_billing_date + 1.day,
+                          UpdateRecurringProfile,
+                          self.id)
+      when self.recurring_profile.suspended?
+        Resque.enqueue_in(8.hours,UpdateRecurringProfile,
+                          self.id)
+      when self.recurring_profile.pending?
+        Resque.enqueue_in(10.minutes, UpdateRecurringProfile, self.id)
+      end
+  end
+
+  def stop_sanity_checks
+    Resque::Job.destroy('maintenance','UpdateRecurringProfile',self.id)
+  end
+
+  def reconcile_to_payment_service
+    self.recurring_profile.update_from_profile
+    total_expected = self.recurring_profile.aggregate_amount.to_f
+    total_collected = self.recurring_payments.map(&:amount).reduce(:+) || 0
+
+    if total_collected < total_expected
+      self.create_missing_recurring_payment(Date.today, total_expected - total_collected)
+    end
+
+    self.save!
+    self.queue_next_sanity_check
+  end
+
   # decide if we have missing monthly payments
   def payment_sanity_check
 

@@ -43,9 +43,8 @@ module RecurringProfile
     response.params
   end
 
-
-  def update_from_profile
-    response = self.get_profile_data
+  def update_from_profile(response = nil)
+    response = self.get_profile_data if response.nil?
     self.number_cycles_completed = response["number_cycles_completed"] unless response["number_cycles_completed"].blank?
     self.number_cycles_remaining = response["number_cycles_remaining"] unless response["number_cycles_remaining"].blank?
     self.total_billing_cycles = response["total_billing_cycles"] unless response["total_billing_cycles"].blank?
@@ -92,6 +91,10 @@ module RecurringProfile
 
   def active?(as_of = nil)
     self.status == ACTIVE
+  end
+
+  def suspended?
+    self.status == SUSPENDED
   end
 
   def pending?
