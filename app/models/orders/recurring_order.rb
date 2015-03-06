@@ -65,16 +65,18 @@ module RecurringOrder
   end
 
   def reconcile_to_payment_service
-    self.recurring_profile.update_from_profile
-    total_expected = self.recurring_profile.aggregate_amount.to_f
-    total_collected = self.recurring_payments.map(&:amount).reduce(:+) || 0
+    unless self.recurring_profile.profile_id.nil?
+      self.recurring_profile.update_from_profile!
+      total_expected = self.recurring_profile.aggregate_amount.to_f
+      total_collected = self.recurring_payments.map(&:amount).reduce(:+) || 0
 
-    if total_collected < total_expected
-      self.create_missing_recurring_payment(Date.today, total_expected - total_collected)
+      if total_collected < total_expected
+        self.create_missing_recurring_payment(Date.today, total_expected - total_collected)
+      end
+
+      self.save!
+      self.queue_next_sanity_check
     end
-
-    self.save!
-    self.queue_next_sanity_check
   end
 
   # decide if we have missing monthly payments
