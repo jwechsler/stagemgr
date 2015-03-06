@@ -89,6 +89,7 @@ group :development do
   gem 'capistrano-rbenv', '~> 2.0'
   gem 'pry-rails'
   gem 'pry'
+  gem 'http_logger'
   gem 'rb-readline'
   gem "haml-rails"
   gem 'httplog', :require=>false
