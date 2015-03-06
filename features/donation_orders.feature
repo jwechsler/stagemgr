@@ -23,12 +23,14 @@ Feature: Donations
      Then I should see "charged your credit card"
       And I should see "$40.50"
 
+  @wip
   Scenario: Make a monthly pledge
     Given I go to new monthly pledge
       And I enter my contact information
       And I enter a valid credit card as payment
       And I enter "10" as a monthly pledge amount
       And I press "Make a pledge"
+      And show me the page
      Then I should see "$120.00 over the coming year ($10.00/month)"
       And I should see "Thanks so much for your pledge"
 

@@ -77,8 +77,14 @@ module PaymentProcessing
     requested_gateway ||= default_gateway
     case requested_gateway
     when 'paypal'
-      ActiveMerchant::Billing::PaypalGateway.new(:login=>$PAYMENT_CONFIG['paypal']['login'],
-        :password=>$PAYMENT_CONFIG['paypal']['password'])
+      if $PAYMENT_CONFIG['paypal']['signature'].nil? then
+        ActiveMerchant::Billing::PaypalGateway.new(:login=>$PAYMENT_CONFIG['paypal']['login'],
+          :password=>$PAYMENT_CONFIG['paypal']['password'])
+      else
+        ActiveMerchant::Billing::PaypalGateway.new(:login=>$PAYMENT_CONFIG['paypal']['login'],
+          :password=>$PAYMENT_CONFIG['paypal']['password'],
+          :signature=>$PAYMENT_CONFIG['paypal']['signature'])
+      end
     when 'paypal_express'
       ActiveMerchant::Billing::PaypalExpressGateway.new(:login=>$PAYMENT_CONFIG['paypal_express']['login'],
         :password=>$PAYMENT_CONFIG['paypal_express']['password'])

@@ -199,6 +199,7 @@ GEM
       railties (>= 3.1, < 4.1)
     hike (1.2.3)
     htmldiff (0.0.1)
+    http_logger (0.5.1)
     httparty (0.7.8)
       crack (= 0.1.8)
     httplog (0.2.4)
@@ -448,6 +449,7 @@ DEPENDENCIES
   haml
   haml-rails
   htmldiff
+  http_logger
   httplog
   i18n (~> 0.6.11)
   jquery-datatables-rails!

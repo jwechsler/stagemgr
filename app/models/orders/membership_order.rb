@@ -163,12 +163,15 @@ class MembershipOrder < Order
 
   protected
   def months_active
-    if (self.membership.number_cycles_completed || 0) == 0
-      ""
+    if self.membership.nil?
+      "ERROR. Membership data missing"
     else
-    "#{self.membership.number_cycles_completed} month#{'s' if self.membership.number_cycles_completed > 1}"
+      if (self.membership.number_cycles_completed || 0) == 0
+        ""
+      else
+        "#{self.membership.number_cycles_completed} month#{'s' if self.membership.number_cycles_completed > 1}"
+      end
     end
-
   end
 end
 
