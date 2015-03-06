@@ -4,6 +4,7 @@ module RecurringOrder
   included do
     has_many :recurring_payments, :foreign_key=>:order_id
     accepts_nested_attributes_for :recurring_payments
+    after_create :queue_next_sanity_check
   end
 
   def suspend!
@@ -44,17 +45,19 @@ module RecurringOrder
   end
 
   def queue_next_sanity_check
+    
     case
-      when self.recurring_profile.active?
-        Resque.enqueue_at(self.recurring_profile.next_billing_date + 1.day,
-                          UpdateRecurringProfile,
-                          self.id)
-      when self.recurring_profile.suspended?
-        Resque.enqueue_in(8.hours,UpdateRecurringProfile,
-                          self.id)
-      when self.recurring_profile.pending?
-        Resque.enqueue_in(10.minutes, UpdateRecurringProfile, self.id)
-      end
+    when self.recurring_profile.nil? || self.recurring_profile.pending?
+      Resque.enqueue_in(10.minutes, UpdateRecurringProfile, self.id)
+    when self.recurring_profile.active?
+      Resque.enqueue_at(((self.recurring_profile.next_billing_date || Date.today)+ 1.day).to_time,
+                        UpdateRecurringProfile,
+                        self.id)
+    when self.recurring_profile.suspended?
+      Resque.enqueue_in(8.hours,UpdateRecurringProfile,
+                        self.id)        
+    end
+  
   end
 
   def stop_sanity_checks
