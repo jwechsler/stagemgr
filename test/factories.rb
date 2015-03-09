@@ -78,6 +78,7 @@ FactoryGirl.define do
     city 'hoboken'
     state 'ct'
     zipcode 90210
+    email 'jeremy@test.com'
   end
 
   factory :credit_card_payment_type do
