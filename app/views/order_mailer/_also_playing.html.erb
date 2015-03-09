@@ -11,7 +11,7 @@
         <td class="center panel">
           <span class="production_name"><%= prod.name %></span><br/>
           <% unless prod.best_image_url_available(:thumb).blank? %>
-            <a href="<%=url_for(controller:'performances',:production_id=>prod.id)%>">
+            <a href="<%=url_for(controller:'performances',:production_id=>prod.id, :only_path=>false)%>">
               <img src="<%="http://www.theaterwit.org#{prod.best_image_url_available(:thumb)}" %> width="100%"></a>
             <% unless prod.theater.is_default? %>
               <span class="producing_company"><%= prod.theater.name %></span><br>

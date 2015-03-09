@@ -75,6 +75,8 @@ Stagemgr::Application.configure do
 
   $TKTPRINT =  YAML::load(File.open("#{::Rails.root.to_s}/config/ticket_print.yml"))['production']
 
+  config.action_mailer.default_url_options = { host: $SERVER_CONFIG['host'], protocol: $SERVER_CONFIG['host_protocol'] }
+
   # Set up notification for issues
 
 end

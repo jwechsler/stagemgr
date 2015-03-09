@@ -58,6 +58,8 @@ Stagemgr::Application.configure do
   config_data = YAML::load(File.open("#{::Rails.root.to_s}/config/server.yml"))
   $SERVER_CONFIG = config_data['all'].merge(config_data['development'])
 
+  config.action_mailer.default_url_options = { host: $SERVER_CONFIG['host'], protocol: $SERVER_CONFIG['host_protocol'] }
+  puts config.action_mailer.default_url_options.to_yaml
 
   Paperclip.options[:log] = true
 
