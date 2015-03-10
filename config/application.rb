@@ -65,7 +65,7 @@ module Stagemgr
     config.action_mailer.delivery_method   = :postmark
     config.action_mailer.postmark_settings = { :api_key=>email_config['api_key'] }
     config.action_mailer.raise_delivery_errors = true
-
+    puts $SERVER_CONFIG.to_yaml
     # JavaScript files you want as :defaults (application.js is always included).
     # config.action_view.javascript_expansions[:defaults] = %w(jquery rails)
 
