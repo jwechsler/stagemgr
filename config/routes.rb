@@ -131,6 +131,13 @@ Stagemgr::Application.routes.draw do
 
     resources :membership_orders, :only=>false
 
+    resources :membership_orders do
+      member do
+        get :reactivate
+        get :cancel
+      end
+    end
+
 
     resources :flex_pass_orders
 

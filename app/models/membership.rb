@@ -14,7 +14,7 @@ class Membership < ActiveRecord::Base
   belongs_to :membership_offer
   before_validation :create_code, :on=>:create
   has_many :membership_payments
-  before_save :release_reservations_on_cancel_or_suspend
+  before_save :release_reservations_on_cancel
   before_save :release_pending_tasks_on_cancel
 
   def verify_applicable_for(order)
@@ -42,20 +42,6 @@ class Membership < ActiveRecord::Base
     end
   end
 
-  def active?(as_of = nil)
-
-    result = !self.pending?
-    if result
-      result = self.status == ACTIVE
-      result ||= self.membership_order.total > 0 if self.number_cycles_completed == 0
-      unless as_of.nil?
-        result ||= self.inactive? && (as_of <= self.last_effective_date)
-      end
-    end
-    result
-  end
-
-
   def source_order
     self.membership_line_item.order
   end
@@ -76,8 +62,8 @@ class Membership < ActiveRecord::Base
 
   private
 
-  def release_reservations_on_cancel_or_suspend
-    if self.status_changed? && self.inactive?
+  def release_reservations_on_cancel
+    if self.status_changed? && self.canceled?
       cancel_future_reservations
     end
   end
@@ -103,7 +89,6 @@ class Membership < ActiveRecord::Base
     end
     true
   end
-
 
 end
 

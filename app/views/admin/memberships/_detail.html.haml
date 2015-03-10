@@ -2,10 +2,12 @@
   .small-12.columns
     .row
       .small-6.columns
-        %strong Current Status:
-        = membership.current_status
+        = link_to membership.membership_offer.name, admin_membership_offer_path(membership.membership_offer.id)
+
+
       .small-6.columns
-        %span.right= link_to membership.membership_offer.name, admin_membership_offer_path(membership.membership_offer.id)
+        %span.label.success.right= "Membership #{membership.current_status}"
+
     .row
       .small-6.columns
         %strong Member ID:
@@ -38,3 +40,10 @@
         - else
           - codes << offer.code
       = raw codes.join(',')
+    %ul.button-group.right
+      - if membership.suspended?
+        %li
+          =link_to 'Reactivate', reactivate_admin_membership_order_path(@order), class:"tiny button"
+      - unless membership.canceled?
+        %li
+          =link_to 'Cancel', cancel_admin_membership_order_path(@order), class: "tiny button alert", confirm: "Cancel this payment PERMANENTLY?"

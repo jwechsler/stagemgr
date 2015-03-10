@@ -61,7 +61,7 @@ authorization do
     has_permission_on :admin_flex_pass_offers, :to=>[:make, :manage, :view]
     has_permission_on :admin_addresses, :to=>[:view_email]
     has_permission_on :admin_reports, :to=>[:box_office_reports, :house_management_reports, :membership_reports]
-    has_permission_on :admin_membership_orders, :to=>[:view, :make, :manage]
+    has_permission_on :admin_membership_orders, :to=>[:view, :make, :manage, :reactivate, :cancel]
     has_permission_on :admin_membership_offers, :to=>[:view]
     has_permission_on :admin_special_features, :to=>[:make,:view,:manage,:destroy]
     has_permission_on :admin_special_offers, :to=>[:make, :view, :manage, :destroy]

@@ -9,6 +9,20 @@ module RecurringProfile
 
     validates_presence_of :address
     validates_uniqueness_of :profile_id
+    after_commit :cancel_reconciliation_checks, :if=>Proc.new { |record|
+      record.previous_changes.include?(:status) &&
+      record.previous_changes[:status].first != record.previous_changes[:status].last && record.canceled?
+    }
+
+    after_commit :notify_on_suspension, :if=>Proc.new { |record|
+      record.previous_changes.include?(:status) &&
+      record.previous_changes[:status].first != record.previous_changes[:status].last && record.suspended?
+    }
+
+  end
+
+  def cancel_reconciliation_checks
+    self.recurring_order.stop_sanity_checks
   end
 
   def self.create_recurring_profile(order,start_date, recurring_amount, profile_description,
@@ -114,5 +128,18 @@ module RecurringProfile
     raise "RecurringProfile\#recurring_order not yet implemented"
   end
 
+  def notify_on_suspension
+    raise "RecurringProfile\#notify_on_suspension not yet implemented"
+  end
+
+  def reactivate
+    gateway ||= PaymentProcessing.recurring_gateway
+    gateway.reactivate_recurring(self.profile_id)
+  end
+
+  def cancel
+    gateway ||= PaymentProcessing.recurring_gateway
+    gateway.cancel_recurring(self.profile_id)
+  end
 
 end

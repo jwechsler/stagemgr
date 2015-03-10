@@ -7,12 +7,16 @@ module RecurringOrder
     after_create :queue_next_sanity_check
   end
 
+  def reactivate
+    self.recurring_profile.reactivate
+  end
+
   def suspend!
     raise "Recurringorder.suspend not yet implemented!"
   end
 
-  def cancel!
-    raise "RecurringOrder.cancel not yet implemeneted"
+  def cancel
+    self.recurring_profile.cancel
   end
 
   def recurring_profile
@@ -45,7 +49,7 @@ module RecurringOrder
   end
 
   def queue_next_sanity_check
-    
+
     case
     when self.recurring_profile.nil? || self.recurring_profile.pending?
       Resque.enqueue_in(10.minutes, UpdateRecurringProfile, self.id)
@@ -55,9 +59,9 @@ module RecurringOrder
                         self.id)
     when self.recurring_profile.suspended?
       Resque.enqueue_in(8.hours,UpdateRecurringProfile,
-                        self.id)        
+                        self.id)
     end
-  
+
   end
 
   def stop_sanity_checks
@@ -75,7 +79,6 @@ module RecurringOrder
       end
 
       self.save!
-      self.queue_next_sanity_check
     end
   end
 
