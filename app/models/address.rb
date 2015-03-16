@@ -440,7 +440,7 @@ class Address
   after_commit :queue_sf_sync, :if=>:syncable?
 
   def syncable?
-    SalesforceSync.enabled? && !self.sf_disable_sync_on_commit? && ( !self.sf_contact_id.nil? || self.orders.count > 0 )
+    SalesforceSync.enabled? && !self.sf_disable_sync_on_commit? && ( !self.sf_contact_id.nil? || self.orders.count > 0 || !self.sf_purge.blank?)
   end
 
   def queue_sf_sync(delay = nil)
