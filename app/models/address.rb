@@ -445,9 +445,8 @@ class Address
 
   def queue_sf_sync(delay = nil)
     delay = 2.minutes if delay.nil?
-    Resque.enqueue_in(delay, SyncAddressToSalesforce, self.id)
+    Resque.enqueue_in(delay, SyncAddressToSalesforce, self.id) if self.changed?
   end
-
 
   def create_salesforce_contact
     puts "  creating new sf record"
