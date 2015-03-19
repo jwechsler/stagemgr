@@ -3,7 +3,7 @@ class UpdateRecurringProfile
 
   def self.perform(recurring_order_id)
     begin
-      order = RecurringOrder.find(recurring_order_id)
+      order = Order.find(recurring_order_id)
       order.reconcile_to_payment_service
       order.queue_next_sanity_check unless order.membership.canceled?
     rescue ActiveRecord::RecordNotFound => e
