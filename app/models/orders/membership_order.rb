@@ -5,7 +5,7 @@ class MembershipOrder < Order
   validates_associated :membership_line_items
   accepts_nested_attributes_for :membership_offer, :membership_line_items, :recurring_payments, :allow_destroy=>true
 
-  after_commit :update_membership_profile, :if=>:has_membership?
+  # after_commit :update_membership_profile, :if=>:has_membership?
 
 
   def display_code()
@@ -59,7 +59,7 @@ class MembershipOrder < Order
   end
 
   def update_membership_profile
-    Resque.enqueue(UpdateMembershipProfile, self.membership.id)
+    Resque.enqueue(UpdateMembershipProfile, self.membership.id) if self.changed?
   end
 
   def valid_payment_types_for(current_user)
