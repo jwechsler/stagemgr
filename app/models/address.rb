@@ -247,11 +247,11 @@ class Address < ActiveRecord::Base
   end
 
   def is_current_member?
-    self.orders.select { |o| (o.is_a? MembershipOrder) && (o.membership_line_items.first.membership.status == Membership::ACTIVE) }.count > 0
+    self.orders.select { |o| (o.is_a? MembershipOrder) && !o.membership.nil? && (o.membership.status == Membership::ACTIVE) }.count > 0
   end
 
   def active_memberships
-    self.orders.select { |o| (o.is_a? MembershipOrder) && (o.membership_line_items.first.membership.status == Membership::ACTIVE) }.map{|o| o.membership}
+    self.orders.select { |o| (o.is_a? MembershipOrder) && !o.membership.nil? && (o.membership.status == Membership::ACTIVE) }.map{|o| o.membership}
   end
 
   def current_membership
