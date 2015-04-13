@@ -15,7 +15,7 @@
       %p{:class=>"background-#{@background}"}
         Plus:
         - @offtime_productions.each do |production|
-          .show-listing{:class=>"background-#{@background}", :style=>"columns small-#{(slice*12.0/100.0).round}">
+          .show-listing{:class=>"background-#{@background}", :style=>"columns small-#{(slice*12.0/100.0).round}"}
             %p.production_name
               = link_to production.name, production_performances_path(production.id)
               %br
