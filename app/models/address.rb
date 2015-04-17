@@ -487,8 +487,12 @@ class Address
     sf_contact
   end
 
+  def has_syncable_orders?
+    self.orders.select { |o| o.syncable? }.size > 0
+  end
+
   def sync_to_salesforce!(force_sync = false)
-    if self.has_finalized_orders?
+    if self.has_syncable_orders?
       if (self.sf_purge.blank?) && (self.sf_last_sync_at.nil? || (self.sf_last_sync_at + 2.seconds < self.updated_at) || force_sync)
         sf_contact = SalesforceData::Contact.find_by_stagemgr_id__c("#{self.id}")
         sf_attributes = SalesforceData::Contact.attributes
