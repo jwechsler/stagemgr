@@ -1,0 +1,22 @@
+- unless @now_playing_productions.empty? && @offtime_productions.empty?
+  #now_playing_shows_by_venue.production_list
+    - num_pieces = (@now_playing_productions.size + (@offtime_productions.empty? ? 0 : 1))
+    - row_count = (num_pieces > @max_pieces) ? @max_pieces : num_pieces
+    - slice = 100 / row_count
+    - @now_playing_productions.each do |venue_production|
+      - if row_count == 0 then
+        - num_pieces -= @max_pieces
+        - row_count = (num_pieces > @max_pieces) ? @max_pieces : num_pieces
+        - slice = 100 / row_count
+        %br{:style=>"clear: both"}
+      = render :partial=>"show_thumb", :locals=>{:slice=>slice,:production=>venue_production, :background=>@background}
+      - row_count -= 1
+    - if !@offtime_productions.empty?
+      %p{:class=>"background-#{@background}"}
+        Plus:
+        - @offtime_productions.each do |production|
+          .show-listing{:class=>"background-#{@background}", :style=>"columns small-#{(slice*12.0/100.0).round}"}
+            %p.production_name
+              = link_to production.name, production_performances_path(production.id)
+              %br
+              = "presented by #{production.theater.name}" if !production.theater.is_default?

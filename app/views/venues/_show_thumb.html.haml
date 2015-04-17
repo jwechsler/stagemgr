@@ -8,7 +8,7 @@
     height: 186px;
   }
 
-%div{:class=>"show-listing background-#{background}", :style=>"width:#{slice}%"}
+%div{:class=>"show-listing background-#{background} columns small-#{(slice*12.0/100).round}"}
   %p
     %div.venue= production.venue.name
     - image_url = production.best_image_url_available(:thumb)
