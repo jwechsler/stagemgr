@@ -488,85 +488,86 @@ class Address
   end
 
   def sync_to_salesforce!(force_sync = false)
-    if (self.sf_purge.blank?) && (self.sf_last_sync_at.nil? || (self.sf_last_sync_at + 2.seconds < self.updated_at) || force_sync)
-      sf_contact = SalesforceData::Contact.find_by_stagemgr_id__c("#{self.id}")
-      sf_attributes = SalesforceData::Contact.attributes
-      sync_time = DateTime.now
-      puts "syncing address id ##{self.id}"
-      if sf_contact.nil?
-        sf_contact = create_salesforce_contact
-        puts "*** #{sf_contact.AccountId}"
-      else
-        if self.field_changed_after?(:first_name, self.sf_last_sync_at)
-          sf_contact.FirstName = self.first_name unless self.first_name.blank?
+    if self.has_finalized_orders?
+      if (self.sf_purge.blank?) && (self.sf_last_sync_at.nil? || (self.sf_last_sync_at + 2.seconds < self.updated_at) || force_sync)
+        sf_contact = SalesforceData::Contact.find_by_stagemgr_id__c("#{self.id}")
+        sf_attributes = SalesforceData::Contact.attributes
+        sync_time = DateTime.now
+        puts "syncing address id ##{self.id}"
+        if sf_contact.nil?
+          sf_contact = create_salesforce_contact
+          puts "*** #{sf_contact.AccountId}"
         else
-          self.first_name = sf_contact.FirstName unless sf_contact.FirstName.blank?
-        end
-        if self.field_changed_after?(:last_name, self.sf_last_sync_at)
-          sf_contact.LastName = self.last_name unless self.last_name.blank?
-        else
-          self.last_name = sf_contact.LastName unless sf_contact.LastName.blank?
-        end
+          if self.field_changed_after?(:first_name, self.sf_last_sync_at)
+            sf_contact.FirstName = self.first_name unless self.first_name.blank?
+          else
+            self.first_name = sf_contact.FirstName unless sf_contact.FirstName.blank?
+          end
+          if self.field_changed_after?(:last_name, self.sf_last_sync_at)
+            sf_contact.LastName = self.last_name unless self.last_name.blank?
+          else
+            self.last_name = sf_contact.LastName unless sf_contact.LastName.blank?
+          end
 
-        if self.field_changed_after?(:email, self.sf_last_sync_at)
-          sf_contact.Email = self.email unless self.email.blank?
-        else
-          self.email = sf_contact.Email unless sf_contact.Email.blank?
-        end
+          if self.field_changed_after?(:email, self.sf_last_sync_at)
+            sf_contact.Email = self.email unless self.email.blank?
+          else
+            self.email = sf_contact.Email unless sf_contact.Email.blank?
+          end
 
 
-        if [:line1, :line2].select { |f| self.field_changed_after?(f, self.sf_last_sync_at) }.size > 0
-          sf_contact.MailingStreet="#{self.line1}\r\n#{self.line2}" unless self.line1.blank?
-        else
-          unless sf_contact.MailingStreet.blank?
-            lines = sf_contact.MailingStreet.split("\r\n")
-            if lines.size > 0
-              self.line1 = lines[0]
-              if lines.size > 1
-                self.line2 = lines[1]
+          if [:line1, :line2].select { |f| self.field_changed_after?(f, self.sf_last_sync_at) }.size > 0
+            sf_contact.MailingStreet="#{self.line1}\r\n#{self.line2}" unless self.line1.blank?
+          else
+            unless sf_contact.MailingStreet.blank?
+              lines = sf_contact.MailingStreet.split("\r\n")
+              if lines.size > 0
+                self.line1 = lines[0]
+                if lines.size > 1
+                  self.line2 = lines[1]
+                end
               end
             end
           end
-        end
 
-        if self.field_changed_after?(:city, self.sf_last_sync_at)
-          sf_contact.MailingCity = self.city unless self.city.blank?
-        else
-          self.city = sf_contact.MailingCity unless sf_contact.MailingCity.blank?
-        end
+          if self.field_changed_after?(:city, self.sf_last_sync_at)
+            sf_contact.MailingCity = self.city unless self.city.blank?
+          else
+            self.city = sf_contact.MailingCity unless sf_contact.MailingCity.blank?
+          end
 
-        if self.field_changed_after?(:state, self.sf_last_sync_at)
-          sf_contact.MailingState = self.state unless self.state.blank?
-        else
-          self.state = sf_contact.MailingState unless sf_contact.MailingCity.blank?
-        end
+          if self.field_changed_after?(:state, self.sf_last_sync_at)
+            sf_contact.MailingState = self.state unless self.state.blank?
+          else
+            self.state = sf_contact.MailingState unless sf_contact.MailingCity.blank?
+          end
 
-        if self.field_changed_after?(:zipcode, self.sf_last_sync_at)
-          sf_contact.MailingPostalCode = self.zipcode unless self.zipcode.blank?
-        else
-          self.zipcode = sf_contact.MailingPostalCode unless sf_contact.MailingPostalCode.blank?
-        end
+          if self.field_changed_after?(:zipcode, self.sf_last_sync_at)
+            sf_contact.MailingPostalCode = self.zipcode unless self.zipcode.blank?
+          else
+            self.zipcode = sf_contact.MailingPostalCode unless sf_contact.MailingPostalCode.blank?
+          end
 
-        if self.field_changed_after?(:phone, self.sf_last_sync_at)
-          sf_contact.Phone = self.phone unless self.phone.blank?
-        else
-          self.phone = sf_contact.Phone unless sf_contact.Phone.blank?
-        end
-        sf_contact.stagemgr_last_sync_at__c = sync_time
+          if self.field_changed_after?(:phone, self.sf_last_sync_at)
+            sf_contact.Phone = self.phone unless self.phone.blank?
+          else
+            self.phone = sf_contact.Phone unless sf_contact.Phone.blank?
+          end
+          sf_contact.stagemgr_last_sync_at__c = sync_time
 
+        end
+        sf_contact = self.update_attendance_data(sf_contact)
+        sf_contact = self.update_membership_data(sf_contact)
+        sf_contact.save
+        self.sf_contact_id = sf_contact.Id
+        self.sf_last_sync_at = DateTime.now
+        self.sf_object = sf_contact
+        self.sf_disable_sync_on_commit = true
+        self.update_donor_levels!
+      else
+        self.sf_object = SalesforceData::Contact.find_by_stagemgr_id__c("#{self.id}")
       end
-      sf_contact = self.update_attendance_data(sf_contact)
-      sf_contact = self.update_membership_data(sf_contact)
-      sf_contact.save
-      self.sf_contact_id = sf_contact.Id
-      self.sf_last_sync_at = DateTime.now
-      self.sf_object = sf_contact
-      self.sf_disable_sync_on_commit = true
-      self.update_donor_levels!
-    else
-      self.sf_object = SalesforceData::Contact.find_by_stagemgr_id__c("#{self.id}")
     end
-
   end
 
   def sf
