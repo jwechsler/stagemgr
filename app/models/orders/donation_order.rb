@@ -7,7 +7,7 @@ class DonationOrder < Order
 
   validates_associated :donation_line_items
 
-  after_save :update_address_aggregates
+  # after_save :update_address_aggregates
 
   def refundable?
     self.status == Order::PROCESSED || self.status == Order::FULFILLED
