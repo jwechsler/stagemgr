@@ -11,7 +11,8 @@ class MyEmmaTask < OrderTask
 
   def self.newsletter_id
     unless defined? @@newsletter_id
-      @@newsletter_id = MyEmma::Group.find_by_group_name("Customer").id
+      group = MyEmma::Group.find_by_group_name("Newsletter")
+      @@newsletter_id = group.id unless group.nil?
     end
   end
 
@@ -22,7 +23,7 @@ class MyEmmaTask < OrderTask
     unless order.address.email.blank?
       member = MyEmma::Member.new
 
-      groups = [208104529]
+      groups = [MyEmmaTask.newsletter_id]
       additional_groups.each{|grp| groups << grp unless grp.blank?} unless additional_groups.nil?
       groups << order.performance.production.myemma_attendee_group unless order.performance.nil? || order.performance.production.myemma_attendee_group.blank?
       member.name_first = order.address.first_name
