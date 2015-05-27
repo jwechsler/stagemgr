@@ -17,9 +17,9 @@
                 - if p.sold_out?
                   - found_sold_out = true
                   %strong Sold out!
-                - elsif p.happening_soon? && !p.order_url_override.blank?
+                - elsif p.happening_soon? && p.order_url_override.blank?
                   Tickets available at door
-                - elsif p.near_capacity? && !p.order_url_override.blank?
+                - elsif p.near_capacity? && p.order_url_override.blank?
                   %strong Limited availability. Call box office
                 - else
                   = link_to 'Buy Tickets', new_order_path(p), :class=>'button tiny', :style=>'margin-bottom:0em'
