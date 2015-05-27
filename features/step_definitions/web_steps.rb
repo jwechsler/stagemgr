@@ -125,6 +125,10 @@ Then /^(?:|I )should see \/([^\/]*)\/$/ do |regexp|
   end
 end
 
+Then(/^I should see a link "(.*?)" to "(.*?)"$/) do |link,url|
+  page.should have_link(link, :href => url)
+end
+
 Then /^(?:|I )should not see "([^"]*)"$/ do |text|
   if page.respond_to? :should
     page.should have_no_content(text)

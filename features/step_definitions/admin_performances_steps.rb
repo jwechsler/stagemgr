@@ -44,3 +44,7 @@ Then (/^the performance date for "(.*?)" is "(.*?)"$/) do |perf_code, required_d
   raise "expected performance date of #{required_date}, but was #{perf.performance_date}" unless required_date.to_date == perf.performance_date
 end
 
+Given(/^I enter an override URL of "(.*?)"$/) do |url|
+  fill_in "performance_order_url_override", :with=>url
+end
+

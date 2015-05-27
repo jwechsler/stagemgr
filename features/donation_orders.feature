@@ -23,7 +23,6 @@ Feature: Donations
      Then I should see "charged your credit card"
       And I should see "$40.50"
 
-  @wip
   Scenario: Make a monthly pledge
     Given I go to new monthly pledge
       And I enter my contact information

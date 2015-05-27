@@ -19,4 +19,13 @@ module PerformancesHelper
       price_range = ''
     end
   end
+
+  def new_order_path(performance)
+    if performance.order_url_override.blank?
+      new_production_performance_order_path(performance.production.id,performance.id)
+    else
+      performance.order_url_override
+    end
+  end
+
 end

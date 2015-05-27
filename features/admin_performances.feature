@@ -72,3 +72,13 @@ Feature: Box office users can manage performances
      Then I follow "PERF1"
      Then I should see "Special Silent Performance"
       And I should see "entirely mimed"
+
+  Scenario: The box office user can override sales links for a particular performance
+    Given I go to the admin performance edit page for production "Production One" and performance "PERF"
+      And I enter an override URL of "http://testsite.com/specialperformance"
+      And I press "Update"
+      And I go to the box office calendar for production "Production One"
+      And show me the page
+     Then I should see a link "6:00PM" to "http://testsite.com/specialperformance"
+
+

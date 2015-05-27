@@ -22,6 +22,7 @@
     <div class="small-6 medium-4 columns">
       <%= f.association :restricted_payment_types, :as=>:select, :collection=>PaymentType.all, :member_label=>:display_name, :hint=>"Prevent sales with these payment types" %>
       <%= f.input :suppress_notification, :label=>"Suppress notification e-mails" %>
+      <%= f.input :order_url_override, :hint=>"Process sales for this performance outside stagemgr" %>
     </div>
     <div class="small-6 medium-4 columns">
       <%= f.association :special_features, :as=>:check_boxes, :collection=>SpecialFeature.find_all_by_status(SpecialFeature::ACTIVE, :order=>:short_name), :member_label=>:short_name %>

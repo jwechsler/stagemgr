@@ -54,24 +54,25 @@
                         - found_sold_out = true
                         %br
                         %font{:size=>"-2"} Sold out!
-
-                    - elsif performance.happening_soon?
-                      = raw title
-                      %br
-                      = price_range(performance)
-                      %br
-                      %font{:size=>"-2"} Door only
-                    - elsif performance.near_capacity?
-                      = raw title
-                      %br
-                      = price_range(performance)
-                      %br
-                      %font{:size=>"-2"} Limited seats remaining. Call box office
+                    - elsif performance.order_url_override.blank?
+                      - if performance.happening_soon?
+                        = raw title
+                        %br
+                        = price_range(performance)
+                        %br
+                        %font{:size=>"-2"} Door only
+                      - elsif performance.near_capacity?
+                        = raw title
+                        %br
+                        = price_range(performance)
+                        %br
+                        %font{:size=>"-2"} Limited seats remaining. Call box office
+                      - else
+                        = link_to raw(title), new_order_path(performance)
+                        %br
+                        = price_range(performance)
                     - else
-                      = link_to raw(title), new_production_performance_order_path(performance.production.id,performance.id)
-                      %br
-                      = price_range(performance)
-
+                      = link_to raw(title), new_order_path(performance)
 
         - current_week_start = current_week_start + 7
     %tfoot

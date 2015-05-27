@@ -38,6 +38,11 @@ module NavigationHelpers
         @using_admin_interface = true
         production = Production.find_by_name($1)
         edit_admin_theater_production_path(production.theater, production)
+      when /^the admin performance edit page for production "([^"]*)" and performance "([^"]*)"$/
+        @using_admin_interface = true
+        production = Production.find_by_name($1)
+        performance = production.performances.select{|perf| perf.performance_code == $2}.first
+        edit_admin_theater_production_performance_path(production.theater, production, performance)
       when /^New Box Office Order$/
         url_for(:controller => 'admin/ticket_orders', :action => 'new', :only_path => true)
       when /^new web order for production "([^"]*)" and performance "([^"]*)"/
