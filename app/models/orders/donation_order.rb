@@ -98,8 +98,8 @@ class DonationOrder
       else
         donation.Amount = self.total
         donation.CloseDate = self.last_processed_on
-        donation.AccountId = account.Id
-        donation.npe01__Contact_Id_for_Role__c = account.Id
+        donation.AccountId = self.address.sf.AccountId
+        donation.npe01__Contact_Id_for_Role__c = self.address.sf.Id
 	      donation.save
       end
       self.sf_last_sync_at = DateTime.now
