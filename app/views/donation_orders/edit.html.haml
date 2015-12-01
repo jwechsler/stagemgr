@@ -7,7 +7,7 @@
         = order_form.hidden_field :status
         = order_form.hidden_field :campaign
         = render :partial => '/orders/address', :locals => {:order_form => order_form}
-
+        = order_form.input :hold_under, :label=>"Acknowledgement", :hint=>"How would you like this donation to be credited?"
         - @submit_text = "Make a donation"
         - if @monthly_pledge
           = order_form.simple_fields_for :pledge do |pledge|
