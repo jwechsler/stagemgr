@@ -33,8 +33,7 @@ class PayPalController < ApplicationController
     http = nil
     begin
       attempts += 1
-      http = Net::HTTP.new(uri.host, uri.port)
-      http.use_ssl = true
+      http = Net::HTTP.start(uri.host, uri.port)
       http.verify_mode = OpenSSL::SSL::VERIFY_NONE
     rescue SocketError
 
