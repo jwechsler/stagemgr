@@ -86,7 +86,7 @@ class DonationOrder
       donation = SalesforceData::Opportunity.find_by_stagemgr_id__c(self.id.to_s)
       if donation.nil?
         donation = SalesforceData::Opportunity.create("Probability"=>100.0, "StageName"=>"Posted",
-                                                  "Name"=>"#{self.address.full_name} (Online)", "Amount"=>self.total,
+                                                  "Name"=>"#{self.hold_under.blank? ? self.address.full_name : self.hold_under}", "Amount"=>self.total,
                                                   "CloseDate"=>self.last_processed_on,
                                                   "AccountId"=>c.AccountId,
                                                   "npe01__Contact_Id_for_Role__c"=>c.Id,
