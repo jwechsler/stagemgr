@@ -21,9 +21,9 @@ class PayPalController < ApplicationController
     request.params.each_pair {|key, value| query = query + '&' + key + '=' +
       value if key != 'register/pay_pal_ipn.html/pay_pal_ipn' }
     if ENV['RAILS_ENV'] == 'development'
-      paypal_url = 'https://www.sandbox.paypal.com'
+      paypal_url = 'http://www.sandbox.paypal.com'
     else
-      paypal_url = 'https://paypal.com'
+      paypal_url = 'http://paypal.com'
     end
 
     uri = URI.parse(paypal_url)
@@ -33,11 +33,9 @@ class PayPalController < ApplicationController
     http = nil
     begin
       attempts += 1
-      http = Net::HTTP.new(uri.host, uri.port)
+      http = Net::HTTP.start(uri.host, uri.port)
       http.open_timeout = 60
       http.read_timeout = 60
-      http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-      http.use_ssl = true
     rescue SocketError
 
       if attempts <= 5
