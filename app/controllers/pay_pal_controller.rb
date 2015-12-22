@@ -1,5 +1,4 @@
 require 'ostruct'
-require "net/https"
 require "uri"
 
 class PayPalController < ApplicationController
@@ -34,12 +33,12 @@ class PayPalController < ApplicationController
     http = nil
     begin
       attempts += 1
-      http = Net::HTTP.start(uri.host, 80)
+      http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = true
       http.verify_mode = OpenSSL::SSL::VERIFY_NONE
     rescue SocketError
 
-      if attempts <= 11
+      if attempts <= 5
         sleep(5.seconds)
         retry
       end
