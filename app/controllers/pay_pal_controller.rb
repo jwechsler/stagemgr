@@ -1,4 +1,6 @@
 require 'ostruct'
+require "net/https"
+require "uri"
 
 class PayPalController < ApplicationController
   include PayPalControllerHelper
@@ -20,17 +22,21 @@ class PayPalController < ApplicationController
     request.params.each_pair {|key, value| query = query + '&' + key + '=' +
       value if key != 'register/pay_pal_ipn.html/pay_pal_ipn' }
     if ENV['RAILS_ENV'] == 'development'
-      paypal_url = 'www.sandbox.paypal.com'
+      paypal_url = 'https://www.sandbox.paypal.com'
     else
-      paypal_url = 'paypal.com'
+      paypal_url = 'https://paypal.com'
     end
+
+    uri = URI.parse(paypal_url)
 
     # Verify all this with paypal
     attempts = 0
     http = nil
     begin
       attempts += 1
-      http = Net::HTTP.start(paypal_url, 80)
+      http = Net::HTTP.start(uri.host, 80)
+      http.use_ssl = true
+      http.verify_mode = OpenSSL::SSL::VERIFY_NONE
     rescue SocketError
 
       if attempts <= 11
