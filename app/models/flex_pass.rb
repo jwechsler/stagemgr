@@ -31,7 +31,7 @@ class FlexPass < ActiveRecord::Base
   end
 
   def set_expiration_date
-    self.expiration_date = Time.now + flex_pass_offer.months_till_expiration
+    self.expiration_date = Time.now + flex_pass_offer.months_till_expiration.months
   end
 
   def queue_expiration
@@ -42,9 +42,21 @@ class FlexPass < ActiveRecord::Base
     FlexPass.find_all_by_active(true).each {|flex_pass|
       if flex_pass.expiration_date <= Date.today || flex_pass.uses_remaining == 0
         flex_pass.active=false
-        flex_pass.save
+        flex_pass.save!
       end
     }
+  end
+
+  def self.fix_mangled_passes
+    passes = FlexPass.all
+    passes.select{|p| p.flex_pass_line_item.nil? }.each{|p| p.destroy}
+    passes = FlexPass.all
+    passes.each { |p|
+      p.order = p.flex_pass_line_item.order
+      p.address = p.order.address
+      p.expiration_date = p.created_at.to_date + p.flex_pass_offer.months_till_expiration.months
+      p.save!
+     }; ""
   end
 
 end

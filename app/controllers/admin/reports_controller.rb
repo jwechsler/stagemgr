@@ -518,33 +518,40 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def build_flexpass_sales(offer, display_only = true)
-    orders = offer.flex_passes.map { |f| f.order }
+    orders = offer.flex_passes.map { |f| f.order }.select{|o| !o.nil?}
+    orders.sort! { |a,b| a.created_at <=> b.created_at }
     report = Array.new
     headers = [:order_date, :last_name, :first_name]
     headers += [:street_address, :street_address_2, :state, :city, :state, :postal_code, :phone] unless display_only
     headers += [:email] if permitted_to?(:view_email, :admin_addresses)
-    headers += [:collected, :payout, :facility_fee, :tickets_remaining, :status]
+    headers += [:collected, :payout, :facility_fee, :tickets_remaining, :converted_balance, :status]
 
     fee = (offer.facility_fee.nil? ? 0 : offer.facility_fee).to_money
-    totals = {:payout=>Money.new(0), :facility_fee=>Money.new(0), :display_class=>:report_summary_row}
+    totals = {:payout=>Money.new(0), :facility_fee=>Money.new(0), :display_class=>:report_summary_row,
+      :converted_balance=>Money.new(0), :tickets_remaining=>0}
     orders.select { |o| !o.nil? && o.settled? }.sort { |o1, o2| o2.created_at <=> o1.created_at }.each { |o|
       flex_pass = FlexPass.find_by_order_id(o.id)
-
+      status = flex_pass.available? ?  o.status : flex_pass.expiration_date.to_s
       used = FlexPassPayment.find_all_by_flex_pass_id(flex_pass.id)
       if offer.flat_payout.blank? || offer.flat_payout == 0
         payout = FlexPassPayment.sum(:amount, :conditions=>['flex_pass_id = ?',flex_pass.id]).to_money
       else
         payout = (offer.flat_payout.nil? ? 0 : offer.flat_payout).to_money
       end
-      report << {:order_date=>o.payments.group_by{|p| p.created_at}.max.first.to_date,
+      converted_balance = flex_pass.available? ? 0.to_money : offer.price.to_money - fee.to_money - payout
+      tickets_remaining = flex_pass.available? ? offer.number_of_tickets - used.sum { |p| p.number_of_tickets } : 0
+      report << {:order_date=>o.created_at.to_date,
                  :payout=>payout,
                  :collected=>offer.price.to_money,
                  :facility_fee=>fee,
-                 :tickets_remaining=>offer.number_of_tickets - used.sum { |p| p.number_of_tickets },
-                 :status=>o.status,
+                 :tickets_remaining=>tickets_remaining,
+                 :converted_balance=>converted_balance,
+                 :status=>status,
                  :display_class=>:report_detail_row}.merge(address_hash_from_order(o))
       totals[:payout] += payout
       totals[:facility_fee] += fee
+      totals[:converted_balance] += converted_balance
+      totals[:tickets_remaining] += tickets_remaining
 
     }
     report << totals
