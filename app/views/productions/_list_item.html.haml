@@ -1,0 +1,5 @@
+%div.columns.small-12.show-listing{:class=>"medium-#{slice}"}
+  = render 'header', :production=>production
+  - unless production.short_description.blank?
+    %p.production_short_desc= production.short_description
+  = render '/productions/production_dates', :production=>production
