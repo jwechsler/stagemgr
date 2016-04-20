@@ -23,11 +23,12 @@ class Admin::SpecialOffersController < Admin::ApplicationController
 
   def update
     @special_offer = SpecialOffer.find(params[:id])
-    possible_types =
     key = :special_offer
     object_type = [:percent_off_special_offer, :amount_off_special_offer, :ticket_class_special_offer].select {|t| params.has_key?(t)}.first
+    @special_offer.attributes=params[object_type].dup.slice!(:type)
+    @special_offer.limiting_model_type=params[object_type][:limiting_model_type]
+    @special_offer.limiting_id = params[object_type][:limiting_id]
 
-    @special_offer.attributes=params[object_type]
     if @special_offer.save
       flash[:notice] = "Offer updated"
       redirect_to admin_special_offers_path

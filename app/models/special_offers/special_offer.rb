@@ -29,10 +29,9 @@ class SpecialOffer < ActiveRecord::Base
     return if (t.nil? || t.blank?) && (i.nil? || i.blank?)
     case t
       when 'Theater'
-        unless Theater.exists?(i)
-          errors.add :base, "Can't find Theater with id: #{i}"
-          return false
-        end
+        (self.theater = Theater.find(i)) ||
+          errors[:base] << "Can't find Theater with id: #{i}"
+        !theater.nil?
       when 'Production'
         (self.production = Production.find_by_production_code(i)) ||
             errors[:base] << "Can't find Production with code: #{i}"
@@ -73,7 +72,7 @@ class SpecialOffer < ActiveRecord::Base
 
   def limiting_code
     @limiting_id ||=
-        self.theater_id ||
+        self.theater.nil_or.name ||
             self.production.nil_or.production_code ||
             self.performance.nil_or.performance_code
   end
@@ -122,7 +121,7 @@ class SpecialOffer < ActiveRecord::Base
   end
 
   def to_s
-    code = "#{self.limiting_model_type} #{self.limiting_code}"
+    code = "#{self.limiting_model_type} '#{self.limiting_code}'"
     code += " for ticket classes starting with '#{self.ticket_class_code}'" unless self.ticket_class_code.blank?
     code.blank? ? "Any" : code
   end
