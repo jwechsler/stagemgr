@@ -142,25 +142,31 @@ class SpecialOffer < ActiveRecord::Base
     !(self.number_of_uses.blank? || self.number_of_uses > 0)
   end
 
-
-  def self.find_by_order(order)
-    perf_id = order.performance.id
-    prod_id = order.performance.production.id
-    theater_id = order.performance.production.theater.id
+  def self.find_all_by_performance(performance, code, starts_with = false)
+    logger.debug("*** find_all_by_performance start")
+    perf_id = performance.id
+    prod_id = performance.production.id
+    theater_id = performance.production.theater.id
     offers = SpecialOffer.all(
-        :conditions => ["trim(lower(code)) = trim(lower(?)) and (performance_id = ? or production_id = ? or theater_id = ? or (performance_id is null and production_id is null and theater_id is null)) and status = 'Active' and (auto_expire is null or auto_expire >= ?)",
-                        order.special_offer_code,
+        :conditions => ["trim(lower(code)) #{starts_with ? 'LIKE' : '='} trim(lower(?)) and (performance_id = ? or production_id = ? or theater_id = ? or (performance_id is null and production_id is null and theater_id is null)) and status = 'Active' and (auto_expire is null or auto_expire >= ?)",
+                        starts_with ? "#{code}%" : code,
                         perf_id,
                         prod_id,
                         theater_id,
                         Time.now.to_date],
         :order=>"performance_id desc, production_id desc, theater_id desc")
+    logger.debug("*** find_all_by_performance end. #{offers.to_yaml}")
+
+    offers
+  end
+
+  def self.find_by_order(order)
+    offers = SpecialOffer.find_all_by_performance(order.performance, order.special_offer_code)
     offers.select { |o|
       (o.ticket_class_code.blank? || order.ticket_line_items.select { |li|
         li.ticket_class.class_code.starts_with?(o.ticket_class_code) }.size > 0) &&
           (!o.exhausted?)
     }.first
-
   end
 
   def redeem_one_use!

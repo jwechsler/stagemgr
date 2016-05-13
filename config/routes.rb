@@ -237,6 +237,7 @@ Stagemgr::Application.routes.draw do
         get :autocomplete_production_production_code
         get :autocomplete_performance_performance_code
         get :autocomplete_ticket_line_item_ticket_class_code
+        get :autocomplete_special_offer_special_offer_code
       end
       member do
         post :cancel

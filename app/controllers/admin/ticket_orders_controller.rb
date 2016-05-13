@@ -3,7 +3,8 @@ class Admin::TicketOrdersController < Admin::OrdersController
   filter_resource_access :additional_collection=>{
     :autocomplete_production_production_code=>:index,
     :autocomplete_performance_performance_code=>:index,
-    :autocomplete_ticket_line_item_ticket_class_code=>:index
+    :autocomplete_ticket_line_item_ticket_class_code=>:index,
+    :autocomplete_special_offer_special_offer_code=>:index
   }
 
   autocomplete :production, :production_code, :extra_data => [:production_code], :display_value=>:production_code_autocomplete_display
@@ -34,6 +35,18 @@ class Admin::TicketOrdersController < Admin::OrdersController
           :ticket_type=>ticket_class.ticket_type,
           :ticket_price=>ticket_class.ticket_price
         }
+      }
+    end
+  end
+
+  def autocomplete_special_offer_special_offer_code
+    performance = Performance.find_by_performance_code(params[:performance_code])
+    if performance.nil?
+      render :json=>Array.new
+    else
+      special_offers = SpecialOffer.find_all_by_performance(performance,params[:term],true)
+      render :json => special_offers.map { |offer|
+        {:id=>offer.id, :value=>offer.code, :label=>"#{offer.code}: #{offer.to_s}"}
       }
     end
   end
