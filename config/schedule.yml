@@ -47,4 +47,9 @@ UpdateAttendeesFromSalesforce:
   description: 'Update today''s attendee records from Salesforce'
   queue: sync
 
+PurgeExpiredSpecialOffers:
+  every: '1m'
+  description: 'Purge expired special offers'
+  queue: maintenance
+
 

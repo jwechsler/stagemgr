@@ -169,6 +169,22 @@ class SpecialOffer < ActiveRecord::Base
     }.first
   end
 
+  def self.purge_expired_offers
+    expiration_delay = Date.today - 3.months
+    offers = SpecialOffer.where("not exists (select * from line_items where special_offer_id = special_offers.id) and
+      ((production_id in (select id from productions where closing_at < ?)) or
+       (performance_id in (select performances.id from performances,productions where performances.production_id = production_id and productions.closing_at < ?)) or
+       (auto_expire < CURRENT_DATE ) or
+       (status = 'Expired') or
+       (status = 'Inactive'))
+      ", expiration_delay, expiration_delay )
+    delete_count = 0
+    offers.each { |offer| offer.destroy
+      delete_count += 1 }
+    Rails.logger.info "Deleted #{delete_count} expired and unused offers"
+    puts "Deleted #{delete_count} expired and unused offers"
+  end
+
   def redeem_one_use!
     self.number_of_uses -= 1 if !self.number_of_uses.blank? && self.number_of_uses >= 0
     self.save!
