@@ -182,7 +182,6 @@ class SpecialOffer < ActiveRecord::Base
     offers.each { |offer| offer.destroy
       delete_count += 1 }
     Rails.logger.info "Deleted #{delete_count} expired and unused offers"
-    puts "Deleted #{delete_count} expired and unused offers"
   end
 
   def redeem_one_use!
