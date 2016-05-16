@@ -48,7 +48,7 @@ UpdateAttendeesFromSalesforce:
   queue: sync
 
 PurgeExpiredSpecialOffers:
-  every: '1m'
+  every: '* * * * 0'
   description: 'Purge expired special offers'
   queue: maintenance
 
