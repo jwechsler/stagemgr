@@ -60,13 +60,18 @@
                         %br
                         = price_range(performance)
                         %br
-                        %font{:size=>"-2"} Door only
+                        %font{:size=>"-2"} Tickets available at door
                       - elsif performance.near_capacity?
                         = raw title
                         %br
                         = price_range(performance)
                         %br
-                        %font{:size=>"-2"} Limited seats remaining. Call box office
+                        %font{:size=>"-2"}
+                          - if performance.number_of_seats_left == 1
+                            1 ticket
+                          - else
+                            Limited seats
+                          remaining. Call box office
                       - else
                         = link_to raw(title), new_order_path(performance)
                         %br
@@ -77,7 +82,7 @@
         - current_week_start = current_week_start + 7
     %tfoot
       %tr
-        %td.boxoffice-message{:colspan=>"7"}  Problems? Call the box office at 773-975-8150
+        %td.boxoffice-message{:colspan=>"7"}  Problems? Call the box office at 773-975-8150 during business hours
       - if found_sold_out and !@production.allow_late_seating
         %tr
           %td.boxoffice-message{:colspan=>"7"}
