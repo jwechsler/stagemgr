@@ -31,14 +31,11 @@
       =  "#{membership.failed_payment_count} (#{number_to_currency(membership.outstanding_balance)})"
       %br
     - linked_offers = membership.special_offers
-    - unless linked_offers.empty?
-      %strong Special Offers:
-      - codes = []
-      - linked_offers.each do |offer|
-        - if offer.exhausted?
-          - codes << "<i>#{offer.code} (used)</i>"
-        - else
-          - codes << offer.code
+    - codes = []
+    - linked_offers.each do |offer|
+      - codes << "#{offer.code} (#{offer.to_s})" unless (offer.expired? || offer.exhausted?)
+    - unless codes.empty?
+      %strong Current Offers:
       = raw codes.join(',')
     %ul.button-group.right
       - if membership.suspended?
