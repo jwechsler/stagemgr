@@ -8,6 +8,6 @@
           %div.small-6.columns= tag.label :theater, 'Visibility'
         #address-tags
           = render 'address_tag_fields', :f=>tag
-      %div.row
-        %div.small-12.columns
-          = link_to_add_association 'add tag', f, :address_tags, :class=>'small button right'
+    %div.row
+      %div.small-12.columns
+        = link_to_add_association 'add tag', f, :address_tags, :class=>'small button right'

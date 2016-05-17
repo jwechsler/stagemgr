@@ -11,7 +11,7 @@
   %div.small-12.medium-6.columns
     = render :partial=>"/admin/addresses/address_contact_info", :locals=>{:address=>@address}
   %div.small-12.medium-6.columns
-    = render(:partial=>"/admin/address_tags/tags", :locals=>{:address_tags=>@address.address_tags}) if @address.address_tags.count > 0
+    = render(:partial=>"/admin/address_tags/tags", :locals=>{:address_tags=>@address.address_tags})
 %div.row
   %div.small-12.columns.right
     = link_to 'Edit', edit_admin_address_path(@address), :class=>'small button'
