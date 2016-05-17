@@ -121,7 +121,8 @@ class SpecialOffer < ActiveRecord::Base
   end
 
   def to_s
-    code = "#{self.limiting_model_type} '#{self.limiting_code}'"
+    code = self.limiting_model_type || ""
+    code += (!self.limiting_code.blank? ? "'#{self.limiting_code}'" : '')
     code += " for ticket classes starting with '#{self.ticket_class_code}'" unless self.ticket_class_code.blank?
     code.blank? ? "Any" : code
   end
@@ -140,6 +141,10 @@ class SpecialOffer < ActiveRecord::Base
 
   def exhausted?
     !(self.number_of_uses.blank? || self.number_of_uses > 0)
+  end
+
+  def expired?
+    self.status == EXPIRED
   end
 
   def self.find_all_by_performance(performance, code, starts_with = false)
