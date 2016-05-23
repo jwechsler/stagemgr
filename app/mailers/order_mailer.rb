@@ -76,11 +76,15 @@ class OrderMailer < ActionMailer::Base
   end
 
   def performance_reminder(order,address=nil,action_by=nil)
-    @order = order
-    @markdown_renderer = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)
-    mail(:to=>@order.address.email, :from=>"\"Theater Wit Box Office\" <boxoffice@theaterwit.org>",
-         :subject=>"Don't forget you have tickets to #{@order.performance.production.name}",
-         :tag=>"Ticket Reminder")
+    if order.performance.performance_date > Date.today+1.day
+      @order = order
+      @markdown_renderer = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)
+      mail(:to=>@order.address.email, :from=>"\"Theater Wit Box Office\" <boxoffice@theaterwit.org>",
+           :subject=>"Don't forget you have tickets to #{@order.performance.production.name}",
+           :tag=>"Ticket Reminder")
+    else
+      true
+    end
   end
 
   def member_followup(order,address=nil,action_by=nil)
