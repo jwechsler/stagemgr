@@ -207,7 +207,7 @@ class Admin::ReportsController < Admin::ApplicationController
       flash[:notice] = fading_flash_message("Tickets printed")
       redirect_to admin_reports_path
     else
-      send_report_as_csv('ticket_labels', @headers, @report_data) unless $TKTPRINT['service'].blank?
+      send_report_as_csv('ticket_labels', @headers, @report_data)
     end
   end
 
