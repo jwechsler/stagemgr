@@ -29,7 +29,7 @@
     = order_form.input :notes, :input_html => {:rows => 4}
 
 %div.row
-  %div.small-6.columns
+  %div.small-12.columns
     - permitted_to? :fulfill, :admin_ticket_orders do
       = order_form.submit 'Print Tickets', :class=>'button', :disable_with => 'Printing...' if order_form.object.printable?
 
@@ -41,7 +41,8 @@
     - permitted_to? :hold, :admin_orders do
       = order_form.submit 'Hold', :disable_with => 'Holding...', :class=>'button' if order_form.object.holdable?
 
-    = if order_form.object.status == Order::HOLD || order_form.object.status == Order::PROCESSING
+    - if order_form.object.status == Order::HOLD || order_form.object.status == Order::PROCESSING
       = link_to 'Cancel Order', cancel_admin_order_path(order_form.object), :confirm=>"Are you sure?", :method=>:post, :class=>'button'
-  %div.small-6.columns
+
+  %div.small-12.columns
     = render '/admin/orders/audit_show', :order_form=>order_form.object
