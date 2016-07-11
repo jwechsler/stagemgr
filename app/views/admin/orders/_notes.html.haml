@@ -1,11 +1,12 @@
 %div.row
   %div.small-12.columns
     %div#note_control
-      - unless order.notes.blank? && order.special_request.blank?
+      - unless order.notes.blank? && order.special_request.blank? && order.hold_under.blank?
         %div.row
           %div.small-12.columns
             %fieldset
               %legend Notes/Special Seating
+              %p{:class=>'hold-under'}= "Hold under \"#{order.hold_under}\"" unless order.hold_under.blank?
               %p= order.notes unless order.notes.blank?
               %p= order.special_request unless order.special_request.blank?
         %div.row
@@ -18,5 +19,8 @@
       = form_for( order, :url=>update_notes_admin_order_path(order), :method=>'post') do |f|
         %fieldset
           %legend Notes
+          Hold reservation under
+          = f.text_field :hold_under
+          Notes
           = text_area_tag(:notes, f.object.notes, :size=>"150x4", :id=>'notes')
           = f.submit 'Save update', :class=>'right small button'
