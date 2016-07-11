@@ -336,6 +336,7 @@ class Admin::ReportsController < Admin::ApplicationController
     orders = TicketOrder.order("performances.performance_date, productions.production_code, performances.performance_code, addresses.last_name").all(:include=>[:ticket_line_items, {:performance=>:production}, :address],
                                                                     :conditions=>["orders.status = ? and performances.status = 'Active' and performances.performance_date <= ? and performances.performance_date > ? and productions.status in (?)",
                                                                                   Order::PROCESSED, through_date, through_date - 1.day, Production.visible_statuses])
+    orders = orders.sort_by{|o| [o.performance.performance_code, o.hold_under.blank? ? o.address.last_name : Address.parse_name(o.hold_under)[3] ]}
     report = Array.new
     headers = [:reserved_under, :performance_code, :tickets, :order_id, :profile, :member_id, :first_time, :last_24_months, :donor]
       orders.each { |o|
@@ -348,7 +349,14 @@ class Admin::ReportsController < Admin::ApplicationController
           attendance_code += o.address.first_time_paying?(o) ? 'N' : 'R'
           attendance_code += ("%03d" % last24).reverse
           attendance_code += "A" if is_donor
-          report << {:reserved_under=> "#{o.address.last_name}" + ((o.address.last_name.blank? || o.address.first_name.blank?) ? '' : ', ') + (o.address.first_name.blank? ? '' : o.address.first_name.first),
+          if o.hold_under.blank?
+            ticket_name = "#{o.address.last_name}" + ((o.address.last_name.blank? || o.address.first_name.blank?) ? '' : ', ') + (o.address.first_name.blank? ? '' : o.address.first_name.first)
+          else
+            cleaned_name, f_name, m_name, l_name, f_name2 = Address.parse_name(o.hold_under)
+            ticket_name = "#{l_name}" + ((l_name.blank? || f_name.blank?) ? '' : ', ') + (f_name.blank? ? '' : f_name.first)
+          end
+
+          report << {:reserved_under=> ticket_name,
                      :performance_code => o.performance.performance_code,
                      :tickets => o.ticket_detail_description,
                      :profile => attendance_code,
