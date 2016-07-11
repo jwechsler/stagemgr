@@ -100,12 +100,17 @@ class Admin::TicketOrdersController < Admin::OrdersController
     @ticket_order = process_order(@ticket_order,:edit_admin_order_path)
   end
 
-    def create
-      @ticket_order = TicketOrder.new(params[:ticket_order])
-      @ticket_order.status = Order::NEW if @ticket_order.status.nil?
+  def create
+    @ticket_order = TicketOrder.new(params[:ticket_order])
+    @ticket_order.status = Order::NEW if @ticket_order.status.nil?
+    time_cutoff = @ticket_order.performance.to_datetime - ($SERVER_CONFIG['minutes_before_performance_close_to_third_party_sales'] || 0).minutes
+    if permitted_to?(:order_anytime, :admin_orders) || (Time.now < time_cutoff)
       @ticket_order = process_order(@ticket_order,:edit_admin_ticket_order_path)
+    else
+      flash[:error] = "Orders for this performance must be placed through the box office after #{time_cutoff.strftime('%H:%M%p')} on #{time_cutoff.strftime('%m/%d/%y')}"
+      render 'edit', layout: true
     end
-
+  end
 
   def redirect_to_proper_action
     flash.keep

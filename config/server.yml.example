@@ -16,3 +16,6 @@ production:
   secure_rooturl: "https://configure.yourserver.here/tickets"
   filestore_hash: "yoursecrethere"
   resque_admin_password: "yourpassword"
+
+all:
+  minutes_before_performance_close_to_third_party_sales: 30

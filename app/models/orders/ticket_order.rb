@@ -62,7 +62,6 @@ class TicketOrder < Order
     end
   end
 
-
   def theater_ids
     [performance.production.theater.id]
   end
