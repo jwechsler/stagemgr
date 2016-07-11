@@ -111,14 +111,14 @@ jQuery(document).ready(function() {
       $(this).html( '<input class = "orders-table-search" id="orders-table-search-' + $(this).index() + '" type="text" placeholder="Search '+title+'">' );
   } );
 
-  var table = $('#orders-table').DataTable();
+  var myTable = $('#orders-table').DataTable();
 
   var settings = $('#orders-table').dataTable().fnSettings();
 
   $("#foot_ID,#footer-code,#footer-name").each(function (colIdx) {
     this.value = settings.aoPreSearchCols[colIdx].sSearch;
     $(this).find('input').on('change', function() {
-      table.column(colIdx).search(this.value).draw();
+      myTable.column(colIdx).search(this.value).draw();
     })
   });
 
@@ -130,7 +130,7 @@ jQuery(document).ready(function() {
         var select = $('<select><option value="any">Any</option><% Order::ORDER_STATUSES.each{|s| %><option value="<%= s%>"><%= s%></option><% } %></select>')
             .appendTo( $(this).empty() )
             .on( 'change', function () {
-                table.column( 3 ) // index of orders
+                myTable.column( 3 ) // index of orders
                     .search( $(this).val(), true, false )
                     .draw();
             } );
@@ -168,14 +168,14 @@ jQuery(document).ready(function() {
 
   // Manage select all function
   $('#select-all-button').click( function () {
-    var oTT = new $.fn.dataTable.TableTools( table )
+    var oTT = new $.fn.dataTable.TableTools( myTable )
     oTT.fnSelectAll(true);
   } );
 
   $('#print-tickets-button').click( function () {
-    var oTT = new $.fn.dataTable.TableTools( table )
+    var oTT = new $.fn.dataTable.TableTools( myTable )
     var ids = $.map(oTT.fnGetSelectedData(), function(v,i) {
-                    return v[6];
+                    return v[7];
               });
     jQuery.post("<%= fulfill_selected_admin_orders_path %>", { 'ids[]':ids }, function(data) {
         jQuery.each(data, function(key, value) {
@@ -185,15 +185,16 @@ jQuery(document).ready(function() {
       });
 
     });
-    table.ajax.reload(null,false);
+    myTable.ajax.reload(null,false);
+    myTable.draw(false);
     $('#print-tickets-button,#unclaimed-tickets-button').addClass('disabled');
 
   });
 
   $('#unclaimed-tickets-button').click( function () {
-    var oTT = new $.fn.dataTable.TableTools( table )
+    var oTT = new $.fn.dataTable.TableTools( myTable )
     var ids = $.map(oTT.fnGetSelectedData(), function(v,i) {
-                    return v[6];
+                    return v[7];
               });
     jQuery.post("<%= unclaim_selected_admin_orders_path %>", { 'ids[]':ids }, function(data) {
         jQuery.each(data, function(key, value) {
@@ -203,7 +204,8 @@ jQuery(document).ready(function() {
       });
 
     });
-    table.ajax.reload(null,false);
+    myTable.ajax.reload(null,false);
+    myTable.draw(false);
     $('#print-tickets-button,#unclaimed-tickets-button').addClass('disabled');
 
   });

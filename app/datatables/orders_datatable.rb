@@ -36,7 +36,7 @@ private
           #h(product.category),
           #h(product.released_on.strftime("%B %e, %Y")),
           #number_to_currency(product.price)
-          link_to(order.id, [:admin, order]),
+          link_to(order.id, [:admin, order], :id=>order.id),
           order.display_code,
           format_name_for_table(order),
           raw("<span class=\"label #{order_status_severity_class(order.status)}\">#{order.status}</span>"),

@@ -50,7 +50,6 @@ class Admin::OrdersController < Admin::ApplicationController
   def fulfill_selected
     params[:commit] = 'Fulfill'
     orders = Order.find(params[:ids])
-    logger.info params[:ids].to_s
     statuses = {}
     orders.each do |order|
       if order.status == 'Processed'
