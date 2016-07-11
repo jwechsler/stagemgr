@@ -95,6 +95,10 @@ module NavigationHelpers
       when /^the new special feature page$/
         @using_admin_interface=true
         new_admin_special_feature_path
+      when /^the existing orders page$/
+        @using_admin_interface=true
+        admin_orders_path
+
       # Add more mappings here.
       # Here is an example that pulls values out of the Regexp:
       #

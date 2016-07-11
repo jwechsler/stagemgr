@@ -18,6 +18,16 @@ class OrdersDatatable
 
 private
 
+  def format_name_for_table(order)
+    if order.address.nil?
+      "???"
+    else
+      display = ""
+      display += "<br/>(h/u #{order.hold_under})" unless order.hold_under.blank?
+      link_to(order.address.full_name, [:admin, order.address]) + raw(display)
+    end
+  end
+
   def data
     if defined? @current_user
       orders.map do |order|
@@ -28,7 +38,7 @@ private
           #number_to_currency(product.price)
           link_to(order.id, [:admin, order]),
           order.display_code,
-          order.address.nil? ? '???' : link_to(order.address.full_name, [:admin, order.address]),
+          format_name_for_table(order),
           raw("<span class=\"label #{order_status_severity_class(order.status)}\">#{order.status}</span>"),
           order.address.nil? ? "n/a" : (permitted_to?(:view_full_history,:admin_orders) ? order.address.orders_processed : order.address.orders_processed(@current_user.theater_ids)),
           number_to_currency(order.total),
@@ -101,7 +111,7 @@ private
           field = column_mapping[idx.to_i]
           case field
           when 'addresses.full_name'
-            conditions << ['addresses.full_name REGEXP ?', search_text.upcase]
+            conditions << ['((addresses.full_name REGEXP ?) OR (orders.hold_under REGEXP ?))', [search_text.upcase, search_text.upcase]]
             active_productions_only = false
           when 'code'
             if 'MEMBERSHIP' == search_text.upcase
@@ -134,7 +144,11 @@ private
       sql = conditions.map {|condition|
         if condition.is_a?(Array)
           text = condition[0]
-          bind_variables << condition[1]
+          if condition[1].kind_of?(Array)
+            condition[1].each { |c| bind_variables << c }
+          else
+            bind_variables << condition[1]
+          end
         else
           text = condition
         end

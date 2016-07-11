@@ -101,3 +101,8 @@ end
 Then /^the payment option should not include "(.*?)"$/ do |value|
   page.should_not have_xpath "//select[@id = 'ticket_order_payment_type_id']/option[text() = '#{value}']"
 end
+
+Given(/^I mark the order as held under "(.*?)"$/) do |hold_under_name|
+  fill_in "ticket_order_hold_under", :with=> hold_under_name
+end
+

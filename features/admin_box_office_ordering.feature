@@ -58,3 +58,15 @@ Feature: Box office ordering
      Then I should see "Note updated"
       And I should see "Magic Update"
 
+  Scenario: Hold order under name
+    Given I go to new admin ticket order
+      And I enter production code "TEST" and performance code "PERF"
+      And I enter 2 "CHEAP" tickets
+      And I enter my contact information
+      And I enter a check number "1224" as payment
+      And I mark the order as held under "Magic Hold Guy"
+      And I press "Place Order"
+     Then I should see "Order was successfully saved"
+      And I should see "Hold under"
+      And I should see "Magic Hold Guy"
+
