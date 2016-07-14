@@ -180,5 +180,16 @@ describe "a ticket order" do
 
     end
 
+    it "can be held under a different name but not under an email", :wip=>true do
+
+      o = FactoryGirl.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
+      o.hold_under = "Another Name"
+      o.save.should eq true
+      o.hold_under.should eq('Another Name')
+      o.hold_under = 'bad@email.com'
+      puts "hi"
+      o.save.should eq false
+    end
+
   end
 end

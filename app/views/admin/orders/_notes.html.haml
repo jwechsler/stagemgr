@@ -19,7 +19,7 @@
       = form_for( order, :url=>update_notes_admin_order_path(order), :method=>'post') do |f|
         %fieldset
           %legend Notes
-          Hold reservation under
+          Hold reservation under (name, not email)
           = f.text_field :hold_under
           Notes
           = text_area_tag(:notes, f.object.notes, :size=>"150x4", :id=>'notes')

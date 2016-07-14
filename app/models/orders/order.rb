@@ -81,6 +81,7 @@ class Order < ActiveRecord::Base
   validates_associated :address,
                        :payments,
                        :special_offer_line_items
+  validates :hold_under, not_email: true
 
   before_save :is_balanced_transaction?, :if=>[:status_changed?, :processed?]
   validates_each :status do |record, attr, value|
@@ -351,7 +352,7 @@ class Order < ActiveRecord::Base
     self.special_offer_line_items(true)
   end
 
-  
+
   def regularize_credit_card_expiration
     self.credit_card_expiration_year = Order.fix_expiration_year(self.credit_card_expiration_year)
     unless self.credit_card_expiration_year.blank? || self.credit_card_expiration_year.length > 2

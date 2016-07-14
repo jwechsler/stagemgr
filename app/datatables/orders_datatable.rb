@@ -104,6 +104,7 @@ private
     if defined? @current_user
       active_productions_only = true
       conditions = []
+      bind_variables = []
 
       sort_list = params[:columns].keys.each {|idx|
         search_text = params[:columns][idx][:search][:value]
@@ -111,7 +112,9 @@ private
           field = column_mapping[idx.to_i]
           case field
           when 'addresses.full_name'
-            conditions << ['((addresses.full_name REGEXP ?) OR (orders.hold_under REGEXP ?))', [search_text.upcase, search_text.upcase]]
+            conditions << '((addresses.full_name REGEXP ?) OR (orders.hold_under REGEXP ?))'
+            bind_variables << search_text.upcase
+            bind_variables << search_text.upcase
             active_productions_only = false
           when 'code'
             if 'MEMBERSHIP' == search_text.upcase
@@ -124,36 +127,32 @@ private
               conditions << 'orders.type = \'DonationOrder\''
               active_productions_only = false
             else
-              conditions << ['performances.performance_code like ?',"%#{search_text.upcase}%"]
+              conditions << 'performances.performance_code like ?'
+              bind_variables << "%#{search_text.upcase}%"
             end
           when 'orders.id'
-            conditions << ["#{field} = ?",search_text.upcase]
+            conditions << "#{field} = ?"
+            bind_variables << search_text.upcase
             active_productions_only = false
           when 'orders.status'
-            conditions << ["#{field} = ?",search_text] unless search_text.eql?('any')
+            unless search_text.eql?('any')
+              conditions << "#{field} = ?"
+              bind_variables << search_text
+            end
           else
             # conditions << "/* unknown #{field} */"
           end
         end
       }
-      conditions << ["(productions.status != ? || (orders.type != 'TicketOrder'))", Production::INACTIVE] if active_productions_only
-      if @current_user.is_theater_user?
-        conditions << ["productions.theater_id in (select id from theaters where id in (?))", @current_user.theater_ids]
+      if active_productions_only then
+        conditions << "(productions.status != ? || (orders.type != 'TicketOrder'))"
+        bind_variables << Production::INACTIVE
       end
-      bind_variables = []
-      sql = conditions.map {|condition|
-        if condition.is_a?(Array)
-          text = condition[0]
-          if condition[1].kind_of?(Array)
-            condition[1].each { |c| bind_variables << c }
-          else
-            bind_variables << condition[1]
-          end
-        else
-          text = condition
-        end
-        "(#{text})"
-      }.join(' AND ')
+      if @current_user.is_theater_user? then
+        conditions << "productions.theater_id in (select id from theaters where id in (?))"
+        bind_variables << @current_user.theater_ids
+      end
+      sql = conditions.each { |condition| "(#{condition})" }.join(' AND ')
       [sql, bind_variables]
     else
       ['0=1',Array.new]
