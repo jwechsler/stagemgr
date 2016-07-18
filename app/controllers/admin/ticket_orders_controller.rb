@@ -103,7 +103,7 @@ class Admin::TicketOrdersController < Admin::OrdersController
   def create
     @ticket_order = TicketOrder.new(params[:ticket_order])
     @ticket_order.status = Order::NEW if @ticket_order.status.nil?
-    time_cutoff = @ticket_order.performance.to_datetime - ($SERVER_CONFIG['minutes_before_performance_close_to_third_party_sales'] || 0).minutes
+    time_cutoff = @ticket_order.performance.to_time_with_zone - ($SERVER_CONFIG['minutes_before_performance_close_to_third_party_sales'] || 0).minutes
     if permitted_to?(:order_anytime, :admin_orders) || (Time.now < time_cutoff)
       @ticket_order = process_order(@ticket_order,:edit_admin_ticket_order_path)
     else
