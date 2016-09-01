@@ -700,8 +700,8 @@ class Admin::ReportsController < Admin::ApplicationController
     row[:status] = order.status
     row[:description] = order.description
     row[:order_total] = order.total
-    row[:num_tickets]  = order.number_of_tickets
-    row[:num_seats] = order.number_of_seats
+    row[:num_tickets]  = order.kind_of?(TicketOrder) ? order.number_of_tickets : 0
+    row[:num_seats] = order.kind_of?(TicketOrder) ? order.number_of_seats : 0
     row
   end
 
