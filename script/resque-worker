@@ -22,7 +22,7 @@ case "$1" in
       echo "Resque worker #2 (printing) stopped"
     fi
     kill `cat ./resque-maint.pid`
-    if [ $? -eq 0]; then
+    if [ $? -eq 0 ]; then
       rm ./resque-maint.pid
       echo "Resque worker #3 (maintentance) stopped"
     fi
