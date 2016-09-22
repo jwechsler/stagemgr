@@ -13,7 +13,7 @@ class TicketClassAllocation < ActiveRecord::Base
 
 
   def trigger_satisfied?(seats_currently_held = nil)
-    self.shiftable? && (self.trigger_satisfied_by_capacity?(seats_currently_held) || self.trigger_satisifed_by_current_date?)
+    self.shiftable? && (self.trigger_satisfied_by_capacity?(seats_currently_held) || self.trigger_satisifed_by_current_date?) && !self.shift_to_code.eql?(self.ticket_class.class_code)
   end
 
   def trigger_satisifed_by_current_date?
