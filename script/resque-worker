@@ -3,8 +3,9 @@
 case "$1" in
   start)
     if [[ "$RAILS_ENV" == "production" ]] ; then
-      nohup bundle exec rake environment resque:work PIDFILE=./resque.pid QUEUE=notification,printing,report,maintenance,import >> log/resque.log 2>&1 &
-      nohup bundle exec rake environment resque:work PIDFILE=./resque-sync.pid QUEUE=printing,sync >> log/sync.log 2>&1 &
+      nohup bundle exec rake environment resque:work PIDFILE=./resque.pid QUEUE=notification,report,import,sync >> log/resque.log 2>&1 &
+      nohup bundle exec rake environment resque:work PIDFILE=./resque-printing.pid QUEUE=printing >> log/printing_queue.log 2>&1 &
+      nohup bundle exec rake environment resque:work PIDFILE=./resque-maint.pid QUEUE=maintenance >> log/maintenance_queue.log 2>&1 &
     else
       nohup bundle exec rake environment resque:work PIDFILE=./resque.pid QUEUE="*" >> log/resque.log 2>&1 &
     fi
@@ -15,11 +16,15 @@ case "$1" in
       rm ./resque.pid
       echo "Resque worker #1 stopped"
     fi
-    kill `cat ./resque-sync.pid`
+    kill `cat ./resque-printing.pid`
     if [ $? -eq 0 ]; then
-      rm ./resque-sync.pid
-      echo "Resque worker #2 stopped"
+      rm ./resque-printing.pid
+      echo "Resque worker #2 (printing) stopped"
     fi
-
+    kill `cat ./resque-maint.pid`
+    if [ $? -eq 0]; then
+      rm ./resque-maint.pid
+      echo "Resque worker #3 (maintentance) stopped"
+    fi
     ;;
 esac
