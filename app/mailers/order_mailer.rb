@@ -119,13 +119,13 @@ class OrderMailer < ActionMailer::Base
          :tag=>"First Time Followup")
   end
 
-  def membership_friend_pass(order,address=nil,action_by=nil)
+  def membership_friend_pass(order,address=nil,action_by=nil,expiration_date=nil)
     @order = order
     @membership = order.membership
     @special_offer = TicketClassSpecialOffer.new
     @special_offer.create_code("MF",6)
     @special_offer.number_of_uses = 1
-    @special_offer.auto_expire = Date.today + 6.months
+    @special_offer.auto_expire = expiration_date.nil? ? Date.today + 6.months : expiration_date
     @special_offer.max_tickets_per_order = 1
     @special_offer.system_generated = true
     @special_offer.change_ticket_class_code = @membership.membership_offer.use_member_friend_code

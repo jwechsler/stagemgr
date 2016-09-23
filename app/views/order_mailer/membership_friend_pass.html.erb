@@ -9,7 +9,7 @@
   To use it, you'll need to make two reservations (our software doesn't allow us to combine membership reservations
   with other offers yet). After you make your member reservation, make a second one for a general admission
   ticket using the special offer code <b><%= @special_offer.code %></b>.  Just leave the credit card section blank.
-  Your code is good for the next six months so no rush!
+  Your code is good through <%= @special_offer.auto_expire.strftime('%D') %> so no rush!
 </p>
 <p>
   As part of your membership, you'll get one of the these passes every six months as a thank you. But hey,

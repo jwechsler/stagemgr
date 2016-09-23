@@ -47,12 +47,15 @@ class Performance < ActiveRecord::Base
   end
 
   def scan_ticket_allocation_triggers
+    max_scans = 15
     scan_required = true # we need to rescan if any performance allocation has shifted in case it cascades up
-    while scan_required
+    while (scan_required && max_scans > 0)
       new_scan = false
+      max_scans -= 1
       seats_currently_held = self.seats_held
       self.ticket_class_allocations.select{|tca| tca.shiftable? && tca.available?}.each do |tca|
         if tca.trigger_satisfied?(seats_currently_held)
+          logger.info("Promoting #{p.to_s}, ticket class #{tca.ticket_class.class_code} to #{tca.shift_to_code}")
           tca.available = false
           allocation = self.allocation(tca.shift_to_code)
           allocation.available = true
@@ -98,10 +101,8 @@ class Performance < ActiveRecord::Base
   end
 
   def populate_ticket_class_allocations
-    Rails.logger.debug("*** ALLOCATION")
     self.ticket_class_allocations.each{|tca|tca.performance=self}
     (self.production.ticket_classes - self.ticket_class_allocations.map{|tca|tca.ticket_class}).map do |ticket_class|
-      Rails.logger.debug("   #{ticket_class.class_code}")
       self.ticket_class_allocations.build({:ticket_class=>ticket_class, :available=>ticket_class.auto_attach, :performance=>self})
     end
   end
