@@ -15,9 +15,9 @@ GIT
 
 GIT
   remote: https://github.com/jwechsler/my_emma.git
-  revision: 2c0d79434446478dc388211d2255f2ab84e44855
+  revision: 098a8df292cb1d0e9dc85fc2bd90cd6b9088ae9f
   specs:
-    my_emma (0.0.5)
+    my_emma (0.0.6)
       activemodel
       crack
       httparty (= 0.7.8)
@@ -210,7 +210,7 @@ GEM
       thor (>= 0.14, < 2.0)
     jquery-ui-rails (5.0.0)
       railties (>= 3.2.16)
-    json (1.8.1)
+    json (1.8.3)
     launchy (2.4.2)
       addressable (~> 2.3)
     mail (2.5.4)
@@ -236,7 +236,7 @@ GEM
       daemons (~> 1.0.10)
       gem_plugin (~> 0.2.3)
     mono_logger (1.1.0)
-    multi_json (1.10.1)
+    multi_json (1.12.1)
     multi_test (0.0.3)
     multipart-post (1.2.0)
     mysql2 (0.3.14)
@@ -462,7 +462,7 @@ DEPENDENCIES
   money
   money-rails
   mongrel (= 1.2.0.pre2)
-  my_emma (~> 0.0.5)!
+  my_emma (~> 0.0.6)!
   mysql2
   namecase (~> 1.1.0)
   nifty-generators
