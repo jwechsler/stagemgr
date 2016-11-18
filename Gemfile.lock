@@ -14,16 +14,6 @@ GIT
     ri_cal (0.8.8)
 
 GIT
-  remote: https://github.com/jwechsler/my_emma.git
-  revision: b1b5fdd49fb71210fbd92b867fd53c072becedbe
-  specs:
-    my_emma (0.1.0)
-      activemodel
-      crack
-      httparty (= 0.7.8)
-      json
-
-GIT
   remote: https://github.com/jwechsler/rails3-jquery-autocomplete.git
   revision: a27846d7f590bd73a2e9246614d92f22a4443831
   specs:
@@ -36,6 +26,15 @@ GIT
   specs:
     rails_config (0.4.2)
       activesupport (>= 3.0)
+
+PATH
+  remote: ~/dev/my_emma
+  specs:
+    my_emma (0.1.1)
+      activemodel
+      crack
+      httparty (= 0.7.8)
+      json
 
 GEM
   remote: http://rubygems.org/
@@ -462,7 +461,7 @@ DEPENDENCIES
   money
   money-rails
   mongrel (= 1.2.0.pre2)
-  my_emma (~> 0.1.0)!
+  my_emma!
   mysql2
   namecase (~> 1.1.0)
   nifty-generators

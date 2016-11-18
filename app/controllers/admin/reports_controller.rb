@@ -298,7 +298,7 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def address_hash_from_my_emma_member(member)
-    Hash[MyEmma::Member.api_attributes.to_a.map {
+    Hash[MyEmma::Member.api_attributes.to_a.select{ |a| MyEmma.legal?(a) }.map {
       |a| key = case a
         when :name_first
           :first_name
