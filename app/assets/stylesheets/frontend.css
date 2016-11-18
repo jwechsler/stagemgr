@@ -53,6 +53,9 @@
   font-size: 1em;
 }
 
+.production_credit {
+  font-size: .8em;
+}
 
 #flash_notice, .flash_error {
   padding: 5px 8px;
