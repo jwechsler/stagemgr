@@ -11,6 +11,9 @@ class Admin::SpecialOffersController < Admin::ApplicationController
     if @special_offer.save
       redirect_to admin_special_offers_path, :notice=>"Created new special offer '#{@special_offer.code}"
     else
+      @special_offer.errors.each do |attr, error|
+        flash[:error] = error
+      end
       render :action => 'new'
     end
 
