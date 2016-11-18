@@ -15,9 +15,9 @@ GIT
 
 GIT
   remote: https://github.com/jwechsler/my_emma.git
-  revision: 95608489c2e192fdc3a1fa665aba85ee8917f378
+  revision: 7dbe4a58af9176b8e15d4a989c70a6bf18986340
   specs:
-    my_emma (0.0.7)
+    my_emma (0.0.8)
       activemodel
       crack
       httparty (= 0.7.8)
@@ -462,7 +462,7 @@ DEPENDENCIES
   money
   money-rails
   mongrel (= 1.2.0.pre2)
-  my_emma (~> 0.0.7)!
+  my_emma (~> 0.0.8)!
   mysql2
   namecase (~> 1.1.0)
   nifty-generators
