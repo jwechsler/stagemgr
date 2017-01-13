@@ -148,19 +148,18 @@ class SpecialOffer < ActiveRecord::Base
   end
 
   def self.find_all_by_performance(performance, code, starts_with = false)
-    logger.debug("*** find_all_by_performance start")
     perf_id = performance.id
     prod_id = performance.production.id
     theater_id = performance.production.theater.id
     offers = SpecialOffer.all(
-        :conditions => ["trim(lower(code)) #{starts_with ? 'LIKE' : '='} trim(lower(?)) and (performance_id = ? or production_id = ? or theater_id = ? or (performance_id is null and production_id is null and theater_id is null)) and status = 'Active' and (auto_expire is null or auto_expire >= ?)",
+        :conditions => ["trim(lower(code)) #{starts_with ? 'LIKE' : '='} trim(lower(?)) and (performance_id = ? or production_id = ? or theater_id = ? or (performance_id is null and production_id is null and theater_id is null)) and status = 'Active' and (auto_expire is null or auto_expire >= ?) and (auto_start is null or auto_start <= ?)",
                         starts_with ? "#{code}%" : code,
                         perf_id,
                         prod_id,
                         theater_id,
-                        Time.now.to_date],
+                        Time.now.to_date,
+                        Time.now],
         :order=>"performance_id desc, production_id desc, theater_id desc")
-    logger.debug("*** find_all_by_performance end. #{offers.to_yaml}")
 
     offers
   end
@@ -168,6 +167,8 @@ class SpecialOffer < ActiveRecord::Base
   def self.find_by_order(order)
     offers = SpecialOffer.find_all_by_performance(order.performance, order.special_offer_code)
     offers.select { |o|
+      (o.performance_start_range.nil? || o.performance_start_range <= order.performance.performance_date) &&
+      (o.performance_end_range.nil? || o.performance_end_range >= order.performance.performance_date) &&
       (o.ticket_class_code.blank? || order.ticket_line_items.select { |li|
         li.ticket_class.class_code.starts_with?(o.ticket_class_code) }.size > 0) &&
           (!o.exhausted?)
@@ -178,7 +179,7 @@ class SpecialOffer < ActiveRecord::Base
     expiration_delay = Date.today - 3.months
     offers = SpecialOffer.where("not exists (select * from line_items where special_offer_id = special_offers.id) and
       ((production_id in (select id from productions where closing_at < ?)) or
-       (performance_id in (select performances.id from performances,productions where performances.production_id = production_id and productions.closing_at < ?)) or
+       (performance_id in (select performances.id from performances,productions where performances.production_id = productions.id and productions.closing_at < ?)) or
        (auto_expire < CURRENT_DATE ) or
        (status = 'Expired') or
        (status = 'Inactive'))
