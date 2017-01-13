@@ -67,4 +67,29 @@ describe "a special offer" do
 
   end
 
+    it "can be limited to performances on or before a certain date" do
+    o = FactoryGirl.create(:ticket_order_for_a_pair_of_tickets)
+    o.total.should eq(10)
+    offer = FactoryGirl.create(:percent_off_special_offer)
+    offer.performance_end_range = o.performance.performance_date - 1.day
+    offer.save!
+    o.special_offer_code = offer.code
+    expect {
+      o.transition_to!(Order::PROCESSING)
+    }.to raise_error(RuntimeError)
+    offer.performance_end_range = o.performance.performance_date
+    offer.save!
+    o.transition_to!(Order::PROCESSING)
+    o.total.should eq(5)
+    o = FactoryGirl.create(:ticket_order_for_a_pair_of_tickets)
+    o.total.should eq(10)
+    offer = FactoryGirl.create(:percent_off_special_offer)
+    offer.performance_end_range = o.performance.performance_date + 1.day
+    offer.save!
+    o.special_offer_code = offer.code
+    o.transition_to!(Order::PROCESSING)
+    o.total.should eq(5)
+
+  end
+
 end
