@@ -67,7 +67,7 @@ describe "a special offer" do
 
   end
 
-    it "can be limited to performances on or before a certain date" do
+  it "can be limited to performances on or before a certain date" do
     o = FactoryGirl.create(:ticket_order_for_a_pair_of_tickets)
     o.total.should eq(10)
     offer = FactoryGirl.create(:percent_off_special_offer)
@@ -87,6 +87,22 @@ describe "a special offer" do
     offer.performance_end_range = o.performance.performance_date + 1.day
     offer.save!
     o.special_offer_code = offer.code
+    o.transition_to!(Order::PROCESSING)
+    o.total.should eq(5)
+  end
+
+  it "can be restricted by the day of the week" do
+    o = FactoryGirl.create(:ticket_order_for_a_pair_of_tickets)
+    o.total.should eq(10)
+    offer = FactoryGirl.create(:percent_off_special_offer)
+    offer.day_restrictions = (1 << 6) | (1 << 5) | (1 << 4) | (1 << 3) | (1 << 2) | (1 << 1) | (1 << 0)
+    offer.save!
+    o.special_offer_code = offer.code
+    expect {
+      o.transition_to!(Order::PROCESSING)
+    }.to raise_error(RuntimeError)
+    offer.day_restrictions &= ~(1 << o.performance.performance_date.wday)
+    offer.save!
     o.transition_to!(Order::PROCESSING)
     o.total.should eq(5)
 

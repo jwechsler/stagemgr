@@ -167,6 +167,7 @@ class SpecialOffer < ActiveRecord::Base
   def self.find_by_order(order)
     offers = SpecialOffer.find_all_by_performance(order.performance, order.special_offer_code)
     offers.select { |o|
+      (o.day_restrictions & (1 << order.performance.performance_date.wday)).equal?(0) &&
       (o.performance_start_range.nil? || o.performance_start_range <= order.performance.performance_date) &&
       (o.performance_end_range.nil? || o.performance_end_range >= order.performance.performance_date) &&
       (o.ticket_class_code.blank? || order.ticket_line_items.select { |li|
