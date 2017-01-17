@@ -13,6 +13,7 @@ class SpecialOffer < ActiveRecord::Base
 
   attr_accessor :limiting_model_type
   attr_accessor :limiting_id
+
   #models to limit this special offer to
   belongs_to :theater
   belongs_to :production
@@ -20,6 +21,8 @@ class SpecialOffer < ActiveRecord::Base
 
   before_validation :find_limiting_object
   before_validation :fix_case
+
+
 
   def find_limiting_object
     t, i = limiting_model_type, limiting_id
@@ -75,6 +78,90 @@ class SpecialOffer < ActiveRecord::Base
         self.theater.nil_or.name ||
             self.production.nil_or.production_code ||
             self.performance.nil_or.performance_code
+  end
+
+  def restricted_sunday=(restricted)
+    if restricted.to_i == 1 then
+      self.day_restrictions |= 1
+    else
+      self.day_restrictions &= ~1
+    end
+  end
+
+  def restricted_sunday
+    self.day_restrictions & 1 > 0 ? 1 : 0
+  end
+
+  def restricted_monday=(restricted)
+    if restricted.to_i == 1 then
+      self.day_restrictions |=  1 << 1
+    else
+      self.day_restrictions &=  ~(1 << 1)
+    end
+  end
+
+  def restricted_monday
+    self.day_restrictions & (1 << 1) > 0 ? 1 : 0
+  end
+
+  def restricted_tuesday=(restricted)
+    if restricted.to_i == 1 then
+      self.day_restrictions |=  1 << 2
+    else
+      self.day_restrictions &=  ~(1 << 2)
+    end
+  end
+
+  def restricted_tuesday
+    self.day_restrictions & (1 << 2) > 0 ? 1 : 0
+  end
+
+  def restricted_wednesday=(restricted)
+    if restricted.to_i == 1 then
+      self.day_restrictions |=  1 << 3
+    else
+      self.day_restrictions &=  ~(1 << 3)
+    end
+  end
+
+  def restricted_wednesday
+    self.day_restrictions & (1 << 3) > 0
+  end
+
+  def restricted_thursday=(restricted)
+    if restricted.to_i == 1 then
+      self.day_restrictions |=  1 << 4
+    else
+      self.day_restrictions &=  ~(1 << 4)
+    end
+  end
+
+  def restricted_thursday
+    self.day_restrictions & (1 << 4) > 0 ? 1 : 0
+  end
+
+  def restricted_friday=(restricted)
+    if restricted.to_i == 1 then
+      self.day_restrictions |=  1 << 5
+    else
+      self.day_restrictions &=  ~(1 << 5)
+    end
+  end
+
+  def restricted_friday
+    self.day_restrictions & (1 << 5) > 0 ? 1 : 0
+  end
+
+  def restricted_saturday=(restricted)
+    if restricted.to_i == 1 then
+      self.day_restrictions |=  1 << 6
+    else
+      self.day_restrictions &=  ~(1 << 6)
+    end
+  end
+
+  def restricted_saturday
+    (self.day_restrictions & (1 << 6) > 0) ? 1 : 0
   end
 
   def applicable_line_items(order, modify=true)
@@ -181,10 +268,9 @@ class SpecialOffer < ActiveRecord::Base
     offers = SpecialOffer.where("not exists (select * from line_items where special_offer_id = special_offers.id) and
       ((production_id in (select id from productions where closing_at < ?)) or
        (performance_id in (select performances.id from performances,productions where performances.production_id = productions.id and productions.closing_at < ?)) or
-       (auto_expire < CURRENT_DATE ) or
-       (status = 'Expired') or
-       (status = 'Inactive'))
-      ", expiration_delay, expiration_delay )
+       (auto_expire < ? ) or
+       (status = 'Expired'))
+      ", expiration_delay, expiration_delay, expiration_delay )
     delete_count = 0
     offers.each { |offer| offer.destroy
       delete_count += 1 }

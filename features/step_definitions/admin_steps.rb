@@ -24,6 +24,12 @@ Given /^I enter a complete production with code "(.*?)"$/ do |code|
   select "Active", :from=>"Status"
 end
 
+Given /^I enter a special offer with code "(.*?)" for (\d+)% off$/ do |code, percent|
+  fill_in "special_offer_code", with:code
+  select "% Off", from:"special_offer_type"
+  fill_in "special_offer_amount", with:percent
+end
+
 When /^all production status values are presented$/ do
   Production::PRODUCTION_STATUSES.each {|status| select status,:from=>"Status"}
 end

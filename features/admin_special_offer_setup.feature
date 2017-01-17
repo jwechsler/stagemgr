@@ -5,8 +5,40 @@ Feature: Administer Special Offers
   Background:
   Given I am a box office user
     And I am logged in
+    And a sample theater exists
 
-  Scenario: Create special offer
-    When I go to the admin special offers page
-     And I
-     And I
+  Scenario: There is a 'Special Offers' menu link for box office users
+    Given I go to the home page
+     Then "Special Offers" should link to "the admin special offers page"
+
+  Scenario: There is not a 'Special Offers' menu link for non-admins
+    Given I am not a box office user
+      And I am logged in
+      And I go to the home page
+     Then I should not see "Special Offers"
+
+  Scenario: Box Office Users can create special offers
+    Given I go to the admin special offers page
+      And show me the page
+      And I follow "Add special offer"
+      And I enter a special offer with code "TEST" for 50% off
+      And I press "Create Special offer"
+     Then a special offer with code "TEST" for 50% off is found
+      And I should see "Created new special offer 'TEST'"
+
+  Scenario: Box Office Users can set day of the week filters
+    Given a special offer with code "TEST" for 50% off exists
+      And I go to the edit page for special offer "TEST"
+      And I follow "TEST"
+      And I check "Thursdays"
+      And I check "Fridays"
+      And I press "Update Percent off special offer"
+      And I go to the edit page for special offer "TEST"
+     Then the checkbox "Thursdays" should be checked
+      And the checkbox "Fridays" should be checked
+      And the checkbox "Mondays" should not be checked
+      And the checkbox "Tuesdays" should not be checked
+      And the checkbox "Wednesdays" should not be checked
+      And the checkbox "Saturdays" should not be checked
+      And the checkbox "Sundays" should not be checked
+
