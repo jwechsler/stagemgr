@@ -4,7 +4,7 @@ Feature: Web ordering
 
   Background:
     Given a sample theater exists
-    And a special offer exists with code "1DollarOff" for $1 off
+    And a special offer with code "1DollarOff" for $1 off exists
   Scenario: Create an order
     Given I go to new web order for production "Production One" and performance "PERF"
     And I enter my contact information

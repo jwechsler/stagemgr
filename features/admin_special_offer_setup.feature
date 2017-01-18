@@ -19,7 +19,6 @@ Feature: Administer Special Offers
 
   Scenario: Box Office Users can create special offers
     Given I go to the admin special offers page
-      And show me the page
       And I follow "Add special offer"
       And I enter a special offer with code "TEST" for 50% off
       And I press "Create Special offer"
@@ -34,11 +33,11 @@ Feature: Administer Special Offers
       And I check "Fridays"
       And I press "Update Percent off special offer"
       And I go to the edit page for special offer "TEST"
-     Then the checkbox "Thursdays" should be checked
-      And the checkbox "Fridays" should be checked
-      And the checkbox "Mondays" should not be checked
-      And the checkbox "Tuesdays" should not be checked
-      And the checkbox "Wednesdays" should not be checked
-      And the checkbox "Saturdays" should not be checked
-      And the checkbox "Sundays" should not be checked
+     Then the "Thursdays" checkbox should be checked
+      And the "Fridays" checkbox should be checked
+      And the "Mondays" checkbox should not be checked
+      And the "Tuesdays" checkbox should not be checked
+      And the "Wednesdays" checkbox should not be checked
+      And the "Saturdays" checkbox should not be checked
+      And the "Sundays" checkbox should not be checked
 
