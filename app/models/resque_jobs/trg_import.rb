@@ -27,8 +27,8 @@ class TrgImport
           if headers.nil? then
             _index = 0
             headers = Hash[row.map {|header| _index += 1; [header, _index]}]
-            ['OrgPatronID','FirstName','MiddleName','LastName','Prefix','FullName','Address','City','StateCode','PostalCode','Zip4','Email'].each do |t|
-                raise "Missing expected header #{t}" if headers[t].nil? 
+            ['OrgPatronID','FirstName','MiddleName','LastName','Prefix','FullName','Address','City','StateCode','PostalCode','Zip4','EmailAddress1'].each do |t|
+                raise "Missing expected header #{t}" if headers[t].nil?
             end
 
             client_patron_id_idx = headers['OrgPatronID'] - 1
