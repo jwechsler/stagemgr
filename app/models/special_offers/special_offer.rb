@@ -125,7 +125,7 @@ class SpecialOffer < ActiveRecord::Base
   end
 
   def restricted_wednesday
-    self.day_restrictions & (1 << 3) > 0
+    self.day_restrictions & (1 << 3) > 0 ? 1 : 0
   end
 
   def restricted_thursday=(restricted)
@@ -204,14 +204,32 @@ class SpecialOffer < ActiveRecord::Base
 
   def description(order)
     count = self.applicable_count(order)
-    "on #{count} ticket#{'s' if count != 0}"
+    "on #{count} ticket#{'s' unless count > 0}"
   end
 
   def to_s
-    code = self.limiting_model_type || ""
-    code += (!self.limiting_code.blank? ? "'#{self.limiting_code}'" : '')
+    code = self.limiting_model_type.nil? ? ""  : self.limiting_model_type.downcase
+    code += (!self.limiting_code.blank? ? " '#{self.limiting_code}'" : '')
     code += " for ticket classes starting with '#{self.ticket_class_code}'" unless self.ticket_class_code.blank?
-    code.blank? ? "Any" : code
+    code = code.blank? ? "*any* performance" : code
+    days_restricted = self.restricted_monday==1 ? ["Mondays"] : Array.new
+    days_restricted += ["Tuesdays"] if self.restricted_tuesday==1
+    days_restricted += ["Wednesdays"] if self.restricted_wednesday==1
+    days_restricted += ["Thursdays"] if self.restricted_thursday==1
+    days_restricted += ["Fridays"] if self.restricted_friday==1
+    days_restricted += ["Saturdays"] if self.restricted_saturday==1
+    days_restricted += ["Sundays"] if self.restricted_sunday==1
+    code += ", except on " + days_restricted.join(',') if days_restricted.size > 0
+    range_text = ""
+    if !self.performance_start_range.nil?
+      range_text = "for performances on or #{self.performance_end_range.nil? ? "after" : "between"} #{self.performance_start_range}"
+    end
+    if !self.performance_end_range.nil?
+      range_text += range_text.blank? ? "for performances on or before " : " and "
+      range_text += "#{self.performance_end_range}"
+    end
+    code += " #{range_text}" unless range_text.blank?
+    code
   end
 
   def calculate_discount(order)
