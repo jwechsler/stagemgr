@@ -109,6 +109,16 @@ Then /^a membership order exists with a gift recipient "(.*?)"$/ do |name|
   raise "No membership with gift recipient \"#{name}\" found. Only found #{Address.all.map{|a| a.full_name}}" if order.nil?;
 end
 
+Then(/^a special offer with code "(.*?)" for (\d+)% off is found$/) do |code, percent|
+  count = PercentOffSpecialOffer.find_all_by_code(code).select! {|offer| offer.code == code}
+  raise "No percent off special offer called \"#{code}\" found" if count == 0
+end
+
+Then /^a special offer called ['"](.*?)["'] is found$/ do |code|
+  count = SpecialOffer.find_all_by_code(code).count
+  raise "More than one special offer called #{code} found" if count > 1
+  raise "No special offer called \"#{code}\" found" if count == 0
+end
 
 Then /^an address "(.*?)" exists$/ do |name|
   Address.where('full_name = ?',name).count == 1
@@ -146,8 +156,12 @@ Given /^the system accepts flex passes$/ do
 end
 
 
-Given /^a special offer exists with code "(.*?)" for \$(\d+) off$/ do |offer_code, amount|
-  FactoryGirl.create(:amount_off_special_offer, :code=>offer_code, :amount=>amount)
+Given /^a special offer with code "(.*?)" for \$(\d+) off exists$/ do |offer_code, amount|
+  @special_offer = FactoryGirl.create(:amount_off_special_offer, :code=>offer_code, :amount=>amount)
+end
+
+Given /^a special offer with code "(.*?)" for (\d+)% off exists$/ do |offer_code, percent|
+  @special_offer = FactoryGirl.create(:percent_off_special_offer, :code=>offer_code, :amount=>percent)
 end
 
 Given /^a ticket order for performance "(.*?)" paid with flex pass "(.*?)" exists$/ do |perf_code, pass_code|

@@ -1,0 +1,70 @@
+.row
+  .small-12.columns
+    .row
+      .small-4.columns
+        =f.input :code
+      .small-4.columns
+        =f.input :type, :collection=>{"$ Off"=>AmountOffSpecialOffer,"% Off"=>PercentOffSpecialOffer, 'TktClass'=>TicketClassSpecialOffer}, :include_blank=>false
+      .small-4.columns
+        =f.input :status, :collection=>SpecialOffer::OFFER_STATUSES, :include_blank=>false
+    .row
+      .small-6.columns
+        %fieldset
+          %legend Criteria
+          =f.input :limiting_model_type, :label=>"Restrict To", :include_blank=>false,
+            :collection=>[ ['Any', nil],
+              ['Theater', Theater.to_s],
+        	    ['Production', Production.to_s],
+        	    ['Performance', Performance.to_s] ]
+
+          =f.input :limiting_id, :label=>"Limiting Code"
+
+
+
+      .small-6.columns
+        %fieldset
+          %legend Action
+          =f.input :amount, :label=>"Discount"
+          =f.input :change_ticket_class_code, :label=>"Set ticket class code"
+    .row
+      .small-12.columns
+        %fieldset
+          %legend Filters
+          .row
+            .small-12.medium-6.columns
+              =f.input :ticket_class_code, :label=>"Ticket Classes starting with"
+              .row
+                .small-6.columns
+                  =f.input :performance_start_range, :as=>:date_picker, :label=>"Performances on or after"
+                .small-6.columns
+                  =f.input :performance_end_range, :as=>:date_picker, :label=>"Performances on or before"
+
+            .small-12.medium-6.columns
+              %fieldset
+                %legend Restrict by Day of Week
+                .row
+                  .columns.small-6
+                    =f.input :restricted_monday, label:"Mondays", as: :boolean
+                    =f.input :restricted_tuesday, label:"Tuesdays", as: :boolean
+                    =f.input :restricted_wednesday, label:"Wednesdays", as: :boolean
+                  .columns.small-6
+                    =f.input :restricted_thursday, label:"Thursdays", as: :boolean
+                    =f.input :restricted_friday, label:"Fridays", as: :boolean
+                    =f.input :restricted_saturday, label:"Saturdays", as: :boolean
+                    =f.input :restricted_sunday, label:"Sundays", as: :boolean
+    .row
+      .small-12.columns
+        %fieldset
+          %legend Use restrictions
+          .small-6.columns
+            =f.input :auto_start, :as=>:datetime_picker, :label=>"Activate at"
+          .small-6.columns
+            =f.input :auto_expire, :as=>:date_picker, :label=>"Expire on"
+
+          .small-12.medium-6.columns
+            =f.input :number_of_uses, :label=>"Maximum uses"
+          .small-12.medium-6.columns
+            =f.input :max_tickets_per_order, :label=>"Max tickets/order"
+    .row
+      .small-12.columns
+        =f.button :submit

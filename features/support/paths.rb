@@ -98,6 +98,9 @@ module NavigationHelpers
       when /^the existing orders page$/
         @using_admin_interface=true
         admin_orders_path
+      when /^the edit page for special offer ['"](.*?)['"]$/
+        @using_admin_interface=true
+        edit_admin_special_offer_path(SpecialOffer.find_by_code($1))
 
       # Add more mappings here.
       # Here is an example that pulls values out of the Regexp:

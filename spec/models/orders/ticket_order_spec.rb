@@ -187,7 +187,6 @@ describe "a ticket order" do
       o.save.should eq true
       o.hold_under.should eq('Another Name')
       o.hold_under = 'bad@email.com'
-      puts "hi"
       o.save.should eq false
     end
 

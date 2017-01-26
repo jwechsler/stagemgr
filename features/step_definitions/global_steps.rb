@@ -23,14 +23,15 @@ Given /^I am (|not |)a [bB]ox [oO]ffice [uU]ser$/ do |inverse|
   @current_test_user ||= FactoryGirl.build(:user)
   @current_test_user.is_box_office_user = inverse.empty?
   @current_test_user.save_without_session_maintenance
-  Rails.logger.debug "Saved #{@current_test_user.to_yaml}"
 
 end
 
-Given /^I am a [tT]heater [Uu]ser$/ do
+Given /^I am (|not |)a [tT]heat[er][re] [uU]ser$/ do |inverse|
 
   @current_test_user ||= FactoryGirl.build(:user)
-  @current_test_user.theaters << Theater.first
+  if inverse.empty?
+    @current_test_user.theaters << Theater.first
+  end
   @current_test_user.save_without_session_maintenance
 
 end

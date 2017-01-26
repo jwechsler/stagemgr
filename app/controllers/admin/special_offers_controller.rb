@@ -9,7 +9,7 @@ class Admin::SpecialOffersController < Admin::ApplicationController
     @special_offer = SpecialOffer.new(params[:special_offer])
     @special_offer.type = params[:special_offer][:type]
     if @special_offer.save
-      redirect_to admin_special_offers_path, :notice=>"Created new special offer '#{@special_offer.code}"
+      redirect_to admin_special_offers_path, :notice=>"Created new special offer '#{@special_offer.code}'"
     else
       @special_offer.errors.each do |attr, error|
         flash[:error] = error
@@ -21,7 +21,6 @@ class Admin::SpecialOffersController < Admin::ApplicationController
 
   def edit
     @special_offer = SpecialOffer.find(params[:id])
-
   end
 
   def update

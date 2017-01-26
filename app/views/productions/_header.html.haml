@@ -1,7 +1,7 @@
 %p
   = link_to image_tag(production.best_image_url_available(:medium)), production_performances_path(production.id, :anchor=>"top"), :id=>production_image_id(production) unless production.best_image_url_available(:medium).nil?
   %div.production_name= link_to production.name, production_performances_path(production.id, :anchor=>"top")
-  %div.production_credit= raw(production.credit_lines.gsub("\n","<br/>"))
+  %div.production_credit= production.credit_lines.nil? ? "" : raw(production.credit_lines.gsub("\n","<br/>"))
   %div.venue= production.venue.name
   - unless production.production_class == Production::PLAY
     %div.production_class= production.production_class
