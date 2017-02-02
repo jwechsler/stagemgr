@@ -32,5 +32,4 @@ class MembershipPayment < PassPayment
     super
   end
 
-
 end
