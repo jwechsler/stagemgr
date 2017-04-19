@@ -4,57 +4,48 @@ class TrgImport
 
   def self.perform(filestore_id, production_id)
     begin
-        headers = nil
-        client_patron_id_idx = 0
-        total = 0
-        merged = 0
-        first_name_idx = 0
-        middle_name_idx = 0
-        last_name_idx = 0
-        prefix_idx = 0
-        full_name_idx = 0
-        address2_idx = 0
-        city_idx = 0
-        state_idx = 0
-        zip_idx = 0
-        zip4_idx = 0
-        email1_idx = 0
-        filestore = FileStore.find(filestore_id)
-        production = Production.find(production_id) unless production_id == 0
-        filestore.notes = "Importing #{production.nil? ? '' : production.name + ' '}attendees..."
-        filestore.save
-        CSV.foreach(filestore.data.path) do |row|
-          if headers.nil? then
-            _index = 0
-            headers = Hash[row.map {|header| _index += 1; [header, _index]}]
-            ['OrgPatronID','FirstName','MiddleName','LastName','Prefix','FullName','Address','City','StateCode','PostalCode','Zip4','EmailAddress1'].each do |t|
-                raise "Missing expected header #{t}" if headers[t].nil?
-            end
+      headers = nil
+      client_patron_id_idx = 0
+      total = 0
+      merged = 0
+      first_name_idx = 0
+      middle_name_idx = 0
+      last_name_idx = 0
+      prefix_idx = 0
+      full_name_idx = 0
+      address2_idx = 0
+      city_idx = 0
+      state_idx = 0
+      zip_idx = 0
+      zip4_idx = 0
+      email1_idx = 0
+      filestore = FileStore.find(filestore_id)
+      production = Production.find(production_id) unless production_id == 0
+      filestore.notes = "Importing #{production.nil? ? '' : production.name + ' '}attendees..."
+      filestore.save
+      CSV.foreach(filestore.data.path) do |row|
+        if headers.nil? then
+          _index = 0
+          headers = Hash[row.map {|header| _index += 1; [header, _index]}]
+          ['FirstName','MiddleName','LastName','Prefix','FullName','Address','City','StateCode','PostalCode','Zip4','EmailAddress1'].each do |t|
+            raise "Missing expected header #{t}" if headers[t].nil?
+          end
 
-            client_patron_id_idx = headers['OrgPatronID'] - 1
-            first_name_idx = headers['FirstName'] - 1
-            middle_name_idx = headers['MiddleName'] - 1
-            last_name_idx = headers['LastName'] - 1
-            prefix_idx = headers['Prefix'] - 1
-            full_name_idx = headers['FullName'] - 1
-            address2_idx = headers['Address'] - 1
-            city_idx = headers['City'] - 1
-            state_idx = headers['StateCode'] - 1
-            zip_idx = headers['PostalCode'] - 1
-            zip4_idx = headers['Zip4'] - 1
-            email1_idx = headers['Email'] - 1
-            else
-            total += 1
-            merge_id = row[client_patron_id_idx]
-            if merge_id.blank? then
-              address_choices = Address.where('email = ?', row[email1_idx]).order('id DESC')
-            else
-              if merge_id =~ /\A[-+]?[0-9]*\.?[0-9]+\Z/ then
-                a = Address.find(merge_id.to_i)
-              else
-                a = Address.find_by_sf_contact_id(merge_id)
-              end
-            end
+          first_name_idx = headers['FirstName'] - 1
+          middle_name_idx = headers['MiddleName'] - 1
+          last_name_idx = headers['LastName'] - 1
+          prefix_idx = headers['Prefix'] - 1
+          full_name_idx = headers['FullName'] - 1
+          address2_idx = headers['Address'] - 1
+          city_idx = headers['City'] - 1
+          state_idx = headers['StateCode'] - 1
+          zip_idx = headers['PostalCode'] - 1
+          zip4_idx = headers['Zip4'] - 1
+          email1_idx = headers['EmailAddress1'] - 1
+          else
+          total += 1
+
+          unless row[last_name_idx].blank? && row[full_name_idx].blank?
             a = Address.new if a.nil?
             a.first_name = row[first_name_idx]
             a.middle_name = row[middle_name_idx]
@@ -84,16 +75,17 @@ class TrgImport
                 merge_check.merge_and_purge(a)
             end
           end
-
         end
-        filestore.notes = "Imported #{total} contacts, merged #{merged} as attendees#{production.nil? ? '' : ' ' + production.name}."
-        filestore.save
+
+      end
+      filestore.notes = "Imported #{total} contacts, merged #{merged} as attendees#{production.nil? ? '' : ' ' + production.name}."
+      filestore.save
     rescue => e
-        puts e.backtrace
-        Rails.logger.error e.message
-        e.backtrace.each { |line| Rails.logger.error line }
-        filestore.notes = "Error: #{e.message}"
-        filestore.save
+      puts e.backtrace
+      Rails.logger.error e.message
+      e.backtrace.each { |line| Rails.logger.error line }
+      filestore.notes = "Error: #{e.message}"
+      filestore.save
     end
   end
 
