@@ -52,11 +52,11 @@ Stagemgr::Application.configure do
 
   config.external_site_root = 'file:///Users/jeremyw/dev/site'
 
-  $DATABASEDOTCOM = SalesforceSync.load_from_yaml_file('development',"#{::Rails.root.to_s}/config/databasedotcom.yml")
   $TKTPRINT =  YAML::load(File.open("#{::Rails.root.to_s}/config/ticket_print.yml"))['development']
   $EMAIL_ADDRESS = YAML::load(File.open("#{::Rails.root.to_s}/config/emails.yml"))['development']
   config_data = YAML::load(File.open("#{::Rails.root.to_s}/config/server.yml"))
   $SERVER_CONFIG = config_data['all'].merge(config_data['development'])
+  $EMAIL_ADDRESS = $SERVER_CONFIG['email_addresses']
 
   config.action_mailer.default_url_options = { host: $SERVER_CONFIG['host'], protocol: $SERVER_CONFIG['host_protocol'] }
 
