@@ -90,6 +90,10 @@ class Membership < ActiveRecord::Base
     true
   end
 
+  def to_s
+    "Membership #{member_code}"
+  end
+
 end
 
 # my_emma add on
@@ -159,6 +163,9 @@ class Membership
     membership_order.payments.sort{|p1,p2|p1.processed_on<=>p2.processed_on}.last
   end
 
+  def notify_on_suspension
+    raise "RecurringProfile\#notify_on_suspension not yet implemented"
+  end
 end
 
 

@@ -1,0 +1,24 @@
+%p
+  Recurring payments for @order.to_s have been suspended.
+%p
+  %table
+    %tr
+      %th
+        Owner
+      %th
+        Profile
+    %tr
+      %td
+        =render :partial=>"/admin/addresses/address_contact_info", :locals=>{:address=>@order.address}
+      %td
+        %p
+          @order.description
+        %p
+          Profile ID:
+          %a{:href=>"https://www.paypal.com/us/cgi-bin/webscr?cmd=_profile-recurring-payments&encrypted_profile_id=#{@order.recurring_profile.profile_id}&mp_id=#{membership.profile_id}&return_to=merchant&flag_flow=merchant#name1"} #{@order.recurring_profile.profile_id}
+          %br
+          Billing Date:
+          =@order.recurring_profile.next_billing_date.to_s
+          %br
+          Amount:
+          =@order.recurring_profile.outstanding_balance
