@@ -1,24 +1,54 @@
 %p
-  Recurring payments for @order.to_s have been suspended.
+  Recurring payments for Order #{link_to @order.id, admin_order_url(@order), :only_path=>false} have been suspended.
 %p
   %table
     %tr
-      %th
+      %th{:width=>"40%"}
         Owner
-      %th
+      }
+      %th{:width=>"20%"}
+      %th{:width=>"30%"}
         Profile
+      }
     %tr
-      %td
-        =render :partial=>"/admin/addresses/address_contact_info", :locals=>{:address=>@order.address}
-      %td
+      %td{:width=>"40%",:valign=>"top"}
+        %div.row
+          %div.small-12.columns
+            - address = @order.address
+            -if address.nil?
+              %b UNKNOWN ADDRESS
+            - else
+              %p
+                = link_to address.full_name, admin_address_url(address)
+                %br
+                - unless address.line1.blank?
+                  = address.line1
+                  - unless address.line2.blank?
+                    %br
+                    = address.line2
+                  %br
+                - unless address.city.blank?
+                  = "#{address.city}, #{address.state} #{address.zipcode}"
+                - unless address.email.blank?
+                  = mail_to address.email
+                - unless address.phone.blank?
+                  Phone: #{address.phone}
+                  %br
+                - memberships = Membership.find_all_by_address_id(address.id).select{|m| m.active?}
+                - unless memberships.count == 0
+                  %i Member ID:
+                  = memberships.map {|m| m.member_code }.join(',')
+      %td{:width=>"20%"}
+
+      %td{:width=>"30%",:valign=>"top"}
         %p
-          @order.description
+          = @order.description
         %p
           Profile ID:
-          %a{:href=>"https://www.paypal.com/us/cgi-bin/webscr?cmd=_profile-recurring-payments&encrypted_profile_id=#{@order.recurring_profile.profile_id}&mp_id=#{membership.profile_id}&return_to=merchant&flag_flow=merchant#name1"} #{@order.recurring_profile.profile_id}
+          %a{:href=>"https://www.paypal.com/us/cgi-bin/webscr?cmd=_profile-recurring-payments&encrypted_profile_id=#{@order.recurring_profile.profile_id}&mp_id=#{@order.recurring_profile.profile_id}&return_to=merchant&flag_flow=merchant#name1"} #{@order.recurring_profile.profile_id}
           %br
-          Billing Date:
+          Last Billing Date:
           =@order.recurring_profile.next_billing_date.to_s
           %br
-          Amount:
+          Outstanding Amount:
           =@order.recurring_profile.outstanding_balance

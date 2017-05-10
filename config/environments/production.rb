@@ -68,7 +68,6 @@ Stagemgr::Application.configure do
     MyEmma.set_credentials_from_yaml("#{self.root.to_s}/config/my_emma_credentials.yml")
   end
 
-  $EMAIL_ADDRESS = YAML::load(File.open("#{::Rails.root.to_s}/config/emails.yml"))['production']
   $DATABASEDOTCOM = SalesforceSync.load_from_yaml_file('production',"#{::Rails.root.to_s}/config/databasedotcom.yml")
   config_data = YAML::load(File.open("#{::Rails.root.to_s}/config/server.yml"))
   $SERVER_CONFIG = config_data['all'].merge(config_data['production'])
