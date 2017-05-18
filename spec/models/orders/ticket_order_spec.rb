@@ -191,4 +191,27 @@ describe "a ticket order" do
     end
 
   end
+
+
+  context "to an event that is not a performance" do
+    before(:each) do
+      @ticket_order = FactoryGirl.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
+      @ticket_order.performance.production.production_class = Production::CLASS
+      @ticket_order.performance.production.save
+    end
+
+    it "sends a simplified confirmation email" do
+      Authorization.ignore_access_control(true)
+      mail = OrderMailer.ticket_confirmation(@ticket_order)
+      expect(mail.body.encoded).not_to match("Dining")
+      expect(mail.body.encoded).not_to match("seating")
+      expect(mail.body.encoded).to match("reservation")
+    end
+
+    it "does not send an automatic followup" do
+      followups = @ticket_order.tasks.select{|t| t.method_symbol.include?('followup')}
+      followups.count.should == 0
+    end
+
+  end
 end

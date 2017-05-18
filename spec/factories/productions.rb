@@ -25,4 +25,9 @@ FactoryGirl.define do
     end
 
   end
+
+  factory :production_with_custom_label, class: Production, parent: :production do
+    custom_label "special secret class"
+  end
+
 end

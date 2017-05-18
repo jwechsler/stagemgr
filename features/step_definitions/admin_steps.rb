@@ -30,6 +30,10 @@ Given /^I enter a special offer with code "(.*?)" for (\d+)% off$/ do |code, per
   fill_in "special_offer_amount", with:percent
 end
 
+Given (/^I enter a custom label "(.*?)"$/) do |label|
+  fill_in "production_custom_label", with: label
+end
+
 When /^all production status values are presented$/ do
   Production::PRODUCTION_STATUSES.each {|status| select status,:from=>"Status"}
 end

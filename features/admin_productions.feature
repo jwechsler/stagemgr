@@ -2,6 +2,7 @@ Feature: An administrator can perform privileged production operations
   Given a theater has been created
   As an Administrator
   I want to delete production records
+  I want to create a custom label for productions
 
   Background:
     Given a theater "Theater One" exists
@@ -18,3 +19,11 @@ Feature: An administrator can perform privileged production operations
     And I should see "Production One"
     When I follow "Destroy"
     Then I should not see "Production One"
+
+  Scenario: Create a custom labelled production
+   Given a production "Seminar" exists
+     And I go to the admin detail page for theater "Theater One"
+     And I follow "Edit"
+     And I enter a custom label "Master Class"
+     And I press "Update Production"
+    Then I should see "Master Class"

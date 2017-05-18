@@ -1,4 +1,7 @@
 class ProductionPerformanceOrdersController < ApplicationController
+
+  include OrdersHelper
+  
   def new
     @production = Production.find(params[:production_id])
     @performance = @production.performances.find(params[:performance_id]) unless @production.nil?
@@ -7,12 +10,7 @@ class ProductionPerformanceOrdersController < ApplicationController
         format.html { render '/orders/not_available', :layout=>'ext_site_wrapper'}
       end
     else
-      @available_ticket_classes = @performance.ticket_class_allocations.select { |tca| tca.available }.map { |tca| tca.ticket_class }.select { |tc| tc.web_visible unless tc.nil? }
-      @order = @performance.orders.build(:status=>Order::NEW)
-      @order.status = Order::NEW
-      @order.address = Address.new
-      @available_ticket_classes.each { |tc| @order.ticket_line_items.build(:ticket_class=>tc) }
-      # @order.donation_line_items.build(:donation_amount=>0)
+      @order = create_ticket_order_for_performance(@performance)
       @order_for_to_s = @production.name + ' on ' + @performance.performance_date.to_formatted_s(:long_ordinal) +
           ' at ' + @performance.performance_time.to_formatted_s(:hour_min)
 
@@ -21,6 +19,5 @@ class ProductionPerformanceOrdersController < ApplicationController
       end
     end
   end
-
 
 end

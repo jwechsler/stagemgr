@@ -1,29 +1,26 @@
  <%- content_for :email_title do %>
- We have <%= @order.number_of_seats %> ticket<%= "s" unless @order.number_of_seats== 1 %> reserved under the name <%= @order.hold_under.blank? ? @order.address.full_name : @order.hold_under %> for the
-  <%= @order.performance.performance_time.strftime('%l:%M %p') %> performance
-  of <i><%= @order.performance.production.name %></i><%- if @order.theater.theater_class != "Default" %>, presented by <%= @order.theater.name %>
+ We have <%= order.number_of_seats %> ticket<%= "s" unless order.number_of_seats== 1 %> reserved under the name <%= order.hold_under.blank? ? order.address.full_name : order.hold_under %> for the
+  <%= order.performance.performance_time.strftime('%l:%M %p') %> performance
+  of <i><%= order.performance.production.name %></i><%- if order.theater.theater_class != "Default" %>, presented by <%= order.theater.name %>
   <%- end %>
-  on <%= @order.performance.performance_date.strftime('%A, %B %d') %>
+  on <%= order.performance.performance_date.strftime('%A, %B %d') %>
 <%- end %>
 
-<p>Thanks so much for your order. Your tickets will be waiting at the Theater Wit box office under <%= @order.hold_under.blank? ? 'your name' : @order.hold_under %>
-  <%- member_payments = @order.membership_payments
+<p>Thanks so much for your order. Your tickets will be waiting at the Theater Wit box office under <%= order.hold_under.blank? ? 'your name' : order.hold_under %>
+  <%- member_payments = order.membership_payments
       if member_payments.size > 0 %>
     and were purchased with your <%= member_payments.first.membership.membership_offer.name %>.
   <%- else %>
-    and the total charge was $<%= '%0.2f' % @order.customer_visible_total %>.
+    and the total charge was $<%= '%0.2f' % order.customer_visible_total %>.
   <%- end %>
-  <%- unless @order.performance.production.allow_late_seating %>
+  <%- unless order.performance.production.allow_late_seating %>
     <b>
       Please note, there is no late seating available for this performance.  Latecomers will be issued a voucher to attend a subsequent performance, if available.
     </b>
   <%- end %>
 </p>
 
-<%= raw @markdown_renderer.render(@order.performance.production.confirmation_message) unless @order.performance.production.confirmation_message.blank? %>
-
-<%= render :partial=>"ticket_annotations", :locals=>{:order=>@order} %>
-<%= render :partial=>"special_features", :locals=>{:order=>@order} %>
+<%= render :partial=>"confirmation_ticket_details", :locals=>{:order=>order} %>
 
 <h3>Here's some handy stuff you'll want to know:</h3>
 
@@ -38,6 +35,8 @@
 </h4>
 
 <p><a href="http://www.cooperschicago.com/">Cooper's</a> (773.929.2667) is directly across the street, and features an excellent bbq and sandwich menu, along with some tasty soup and beer options.</p>
+
+<p><a href="http://www.fahlstromsfreshfish.com/">Fahlstrom's Fresh Fish Market</a> (773.281.6000) is on the same block as Theater Wit. Fresh seafood + breakfast, lunch and dinner options all day. Glenn Fahlstrom has acted on our stages, so check out his restaurant!</p>
 
 <h4>Seating and Admission</h4>
 

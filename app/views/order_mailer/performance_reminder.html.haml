@@ -1,0 +1,4 @@
+- if @order.performance.production.use_ticket_email_templates?
+  = render :partial=>'performance_reminder', :locals=>{:order=>@order}
+- else
+  = render :partial=>'generic_reminder', :locals=>{:order=>@order}

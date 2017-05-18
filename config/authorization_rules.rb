@@ -2,7 +2,6 @@ authorization do
 
   role :guest do
     has_permission_on :theaters, :to=>:read
-    has_permission_on :productions, :to=>:read
     has_permission_on :performances, :to=>:read
     has_permission_on :flex_pass_offers, :to=>:read
     has_permission_on :orders, :to=>[:create,:read,:update,:delete]
@@ -15,6 +14,7 @@ authorization do
 
   role :theater_user do
     has_permission_on :admin_performances, :to=>[:view]
+    has_permission_on :admin_productions, :to=>[:view]
     has_permission_on :flex_pass_orders, :to=>[:create,:read,:update]
     has_permission_on :admin_ticket_classes, :to=>[:view]
     has_permission_on :admin_theaters, :to=>[:view]
@@ -47,6 +47,7 @@ authorization do
   role :box_office do
     includes :theater_user
     has_permission_on :admin_performances, :to=>[:make, :manage,:delete,:duplicate]
+    has_permission_on :admin_productions, :to=>[:make, :manage, :duplicate]
     has_permission_on :system_options, :to=>[:view]
     has_permission_on :admin_payment_types, :to=>[:view]
     has_permission_on :admin_theaters, :to=>[:manage]
@@ -72,6 +73,7 @@ authorization do
   role :admin do
     includes :box_office
     has_permission_on :theaters, :to=>[:delete,:make]
+    has_permission_on :admin_productions, :to=>[:delete]
     has_permission_on :admin_payment_types, :to=>[:manage, :make, :destroy]
     has_permission_on :system_options, :to=>[:manage]
     has_permission_on :admin_theaters, :to=>[:make]

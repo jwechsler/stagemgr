@@ -1,0 +1,15 @@
+- content_for :email_title do
+  We have
+  = order.number_of_seats
+  = "reservation#{'s' unless order.number_of_seats== 1}"
+  held under the name
+  = order.hold_under.blank? ? order.address.full_name : order.hold_under
+  for
+  = order.performance.production.name
+  starting at
+  = order.performance.performance_time.strftime('%l:%M %p')
+  on
+  = order.performance.performance_date.strftime('%A, %B %d')
+
+= render :partial=>"charge_information", :locals=>{:order=>order}
+= render :partial=>"confirmation_ticket_details", :locals=>{:order=>order}

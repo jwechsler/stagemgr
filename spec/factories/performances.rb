@@ -1,8 +1,13 @@
 FactoryGirl.define do
 
-
   factory :performance do
+
     association :production, :factory => :production
+
+    trait :with_custom_label do
+      association :production, :factory => :production_with_custom_label
+    end
+
     status Performance::PERFORMANCE_STATUSES.first
     sequence(:performance_code) { |n| "PF#{'%02d' % n}" }
     after(:create) { |perf| perf.ticket_class_allocations << FactoryGirl.create(:ticket_class_allocation, :performance=>perf, :available=>true)
@@ -11,6 +16,5 @@ FactoryGirl.define do
     performance_date Date.today
     sequence (:performance_time) { |n| Time.now + 1.second}
   end
-
 
 end

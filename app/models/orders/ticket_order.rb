@@ -429,7 +429,7 @@ class TicketOrder < Order
 
 
   def create_performance_followup_task
-    if self.contains_tickets? && !self.performance.suppress_notification
+    if self.contains_tickets? && !self.performance.suppress_notification && self.performance.production.use_ticket_email_templates?
       monday_following = self.performance.performance_date.end_of_week + 1.day
       case
         when self.address.current_member?

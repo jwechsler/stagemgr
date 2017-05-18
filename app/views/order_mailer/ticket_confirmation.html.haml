@@ -1,0 +1,4 @@
+- if @order.performance.production.use_ticket_email_templates?
+  = render :partial=>'performance_confirmation', :locals=>{:order=>@order}
+- else
+  = render :partial=>'other_ticketed_confirmation', :locals=>{:order=>@order}

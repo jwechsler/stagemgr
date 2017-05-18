@@ -134,5 +134,14 @@ module OrdersHelper
     text
   end
 
+  def create_ticket_order_for_performance(performance)
+    available_ticket_classes = performance.ticket_class_allocations.select { |tca| tca.available }.map { |tca| tca.ticket_class }.select { |tc| tc.web_visible unless tc.nil? }
+    order = performance.orders.build(:status=>Order::NEW)
+    order.status = Order::NEW
+    order.address = Address.new
+    available_ticket_classes.each { |tc| order.ticket_line_items.build(:ticket_class=>tc) }
+    @order = order
+  end
+
 end
 

@@ -1,0 +1,9 @@
+- content_for :email_title do
+  See you
+  = Date::DAYNAMES[order.performance.performance_date.wday]
+  at
+  = order.performance.performance_time.strftime('%l:%M %p')
+  for
+  = order.performance.production.production_name
+
+= render :partial=>"confirmation_ticket_details", :locals=>{:order=>order}

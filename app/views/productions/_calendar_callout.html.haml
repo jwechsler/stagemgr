@@ -1,0 +1,3 @@
+- unless production.calendar_callout.blank?
+  %div.calendar-callout
+    = raw markdown_renderer.render(production.calendar_callout)

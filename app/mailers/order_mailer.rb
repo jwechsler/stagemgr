@@ -72,7 +72,7 @@ class OrderMailer < ActionMailer::Base
       @order = order
       @markdown_renderer = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)
       mail(:to=>@order.address.email, :from=>"\"Theater Wit Box Office\" <boxoffice@theaterwit.org>",
-           :subject=>"Don't forget you have tickets to #{@order.performance.production.name}",
+           :subject=>"Don't forget you have a reservation for #{@order.performance.production.name}",
            :tag=>"Ticket Reminder")
     else
       true

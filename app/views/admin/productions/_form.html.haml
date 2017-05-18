@@ -20,6 +20,7 @@
           = f.input :status, :as=>:select, :collection=>Production::PRODUCTION_STATUSES, :include_blank=>false
           = f.input :season, :as=>:string
           = f.association :venue, include_blank: false
+          = f.input :custom_label
 
       %div.row
         %div.small-3.columns

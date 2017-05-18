@@ -29,4 +29,11 @@ describe "a production" do
     end
   end
 
+  it "always stores custom label as lowercase" do
+    @production = FactoryGirl.create(:production)
+    @production.custom_label = "BiGLabel"
+    @production.save
+    @production.custom_label.should.eql? "biglabel"
+  end
+
 end

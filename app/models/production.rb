@@ -1,13 +1,12 @@
 class Production < ActiveRecord::Base
-  using_access_control
 
   PRODUCTION_STATUSES = (
   ACTIVE, PRIVATE, INACTIVE, PRESALE =
       'Active', 'Private', 'Inactive', 'Presale')
 
   PRODUCTION_CLASSES = (
-  PLAY, SPECIAL_EVENT, PRIVATE_PARTY, CONFERENCE, OFF_TIME =
-      'Primetime', 'Special Event', 'Private Party', 'Conference', 'Off/Late night'
+  PLAY, SPECIAL_EVENT, PRIVATE_PARTY, CONFERENCE, OFF_TIME, CLASS =
+      'Primetime', 'Special Event', 'Private Party', 'Conference', 'Off/Late night', 'Class'
   )
 
   validates_inclusion_of :status, :in => PRODUCTION_STATUSES
@@ -26,7 +25,7 @@ class Production < ActiveRecord::Base
   has_many :line_items
   has_many :ticket_orders, :source=>:orders, :through=>:performances
   has_one :production_stat
-  before_validation :clean_values
+  before_validation :clean_values, :downcase_for_db
   before_save :assign_default_ticket_classes
   before_save :queue_statistics_recalc
   belongs_to :flex_pass_offer
@@ -96,6 +95,10 @@ class Production < ActiveRecord::Base
 
   def self.performing_classes
     [PLAY, SPECIAL_EVENT, OFF_TIME]
+  end
+
+  def use_ticket_email_templates?
+    return Production.performing_classes.include?(self.production_class)
   end
 
   def price_range
@@ -211,6 +214,9 @@ class Production < ActiveRecord::Base
     "#{self.production_code} [#{prod.name}, #{prod.theater.name}]"
   end
 
+  def downcase_for_db
+    self.custom_label.downcase! unless self.custom_label.nil?
+  end
 end
 
 # Non-engine code
@@ -249,12 +255,6 @@ class Production
     members_by_email
   end
 
-
 end
 
 # @todo extract to MyEmma engine
-
-class Production < ActiveRecord::Base
-
-
-end

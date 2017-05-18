@@ -3,8 +3,11 @@
   %div.production_name= link_to production.name, production_performances_path(production.id, :anchor=>"top")
   %div.production_credit= production.credit_lines.nil? ? "" : raw(production.credit_lines.gsub("\n","<br/>"))
   %div.venue= production.venue.name
-  - unless production.production_class == Production::PLAY
-    %div.production_class= production.production_class
+  - if production.custom_label.blank?
+    - unless production.production_class == Production::PLAY
+      %div.production_class= production.production_class
+  - else
+    %div.production_class= production.custom_label.titlecase
   %div.producing_company= production.theater.name
   - unless production.theater.is_default?
     %div.company_class= production.theater.theater_class

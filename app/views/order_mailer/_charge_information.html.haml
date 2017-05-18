@@ -1,0 +1,14 @@
+- case
+  - when (order.membership_payments.size > 0)
+    %p
+      Thanks for being a member!
+  - when (order.flex_pass_payments.size > 0)
+    %p
+      You used your flexpass for this event. You have
+      = remain = order.flex_pass_payments.first.flex_pass.uses_remaining
+      = "use#{'s' if (remain != 1)}"
+      remaining.
+  - when (order.customer_visible_total > 0)
+    %p
+      The total charge was
+      = "$#{'%0.2f' % order.customer_visible_total}."
