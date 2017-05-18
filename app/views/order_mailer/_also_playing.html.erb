@@ -13,6 +13,7 @@
           <% unless prod.best_image_url_available(:thumb).blank? %>
             <a href="<%=url_for(controller:'performances',:production_id=>prod.id, :only_path=>false)%>">
               <img src="<%="http://www.theaterwit.org#{prod.best_image_url_available(:thumb)}" %> width="100%"></a>
+            <br/>
             <% unless prod.theater.is_default? %>
               <span class="producing_company"><%= prod.theater.name %></span><br>
             <% end %>
