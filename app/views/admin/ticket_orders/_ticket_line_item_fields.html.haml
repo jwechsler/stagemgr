@@ -6,7 +6,7 @@
       = f.input_field :ticket_count, :class=>'ticket_count', :as=>:numeric
     %div.small-3.columns
       %span.price
-        = f.object.try(:ticket_class).try(:ticket_type)=='Donation' ? f.input_field(:price_override, :class=>'price_override price', label: 'Override') : f.input_field(:price_override, :class=>'price', :value=>f.object.ticket_class.nil? ? 0.00 : f.object.ticket_class.ticket_price, :disabled=>'disabled')
+        = f.object.try(:ticket_class).try(:ticket_type)=='Donation' ? f.input_field(:price_override, :class=>'price_override price', label: 'Override') : f.input_field(:price_override, :class=>'price', :value=>f.object.ticket_class.nil? ? 0.00 : f.object.ticket_class.ticket_price, :disabled=>(f.object.try(:ticket_class).try(:ticket_type)=='Donation' ? nil : 'disabled'))
     %div.small-3.columns
       %div.total{ :style=>'margin-top: .5em' }
         = to_currency f.object.total
