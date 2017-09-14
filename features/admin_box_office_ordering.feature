@@ -6,7 +6,7 @@ Feature: Box office ordering
     And I am a box office user
     And I am logged in
     And the system accepts checks
-  @wip
+
   Scenario: Create a credit card order
     Given I go to new admin ticket order
       And I enter production code "TEST" and performance code "PERF"
@@ -14,7 +14,6 @@ Feature: Box office ordering
       And I enter my contact information
       And I enter a valid credit card as payment
       And I press "Place Order"
-    Then show me the page
     Then I should see "Order was successfully saved and is now Processed"
 
   Scenario: Create a personal check order
