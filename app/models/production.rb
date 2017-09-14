@@ -10,7 +10,7 @@ class Production < ActiveRecord::Base
   )
 
   validates_inclusion_of :status, :in => PRODUCTION_STATUSES
-  validates_presence_of :theater, :name, :venue, :season, :production_code
+  validates_presence_of :theater, :name, :venue, :season, :production_code, :opening_at, :closing_at
   validates_uniqueness_of :production_code
   validates_length_of :production_code, :in=>1..8
   validates_numericality_of :capacity
@@ -46,7 +46,11 @@ class Production < ActiveRecord::Base
   end
 
   def running_dates
-    self.first_preview_at.strftime('%B %d, %Y') + " through " + self.closing_at.strftime('%B %d, %Y')
+    self.first_performance_at.strftime('%B %d, %Y') + " through " + self.closing_at.strftime('%B %d, %Y')
+  end
+
+  def first_performance_at
+    self.first_playing_date
   end
 
   def <=>(other)

@@ -7,6 +7,7 @@ FactoryGirl.define do
     association :venue, :factory => :venue
     capacity 100
     closing_at Date.today + 1.week
+    opening_at Date.today
     season Date.today.year
 
     ignore do

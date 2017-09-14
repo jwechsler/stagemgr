@@ -58,7 +58,7 @@ Given /^a?\s?venue "(.*?)" exists$/ do |venue|
 end
 
 Given /^a production "(.*?)" exists$/ do |name|
-  @production = FactoryGirl.create(:production, :name=>name, :theater=>@theater)
+  @production = FactoryGirl.create(:production, :name=>name, :theater=>@theater, :opening_at=>Date.today, :closing_at=>Date.today)
 end
 
 Given /^a membership offer "(.*?)" exists$/ do |offer_name|
