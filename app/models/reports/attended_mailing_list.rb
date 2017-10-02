@@ -14,7 +14,7 @@ class AttendedMailingList < MailingList
 
     self.extract_addresses_from_ticket_orders(orders)
 
-    file_name = "/tmp/attendees_#{self.starting_date.strftime('%y%m%d')}_#{self.ending_date.strftime('%y%m%d')}.csv"
+    file_name = "/tmp/attendees_#{self.starting_date.to_date.strftime('%y%m%d')}_#{self.ending_date.to_date.strftime('%y%m%d')}.csv"
     self.save_report_to_filestore(file_name)
 
   end
