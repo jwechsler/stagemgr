@@ -82,6 +82,10 @@ class DonationOrder
       sf_user = $DATABASEDOTCOM['user_id'] if sf_user.nil?
       sf_donationtype = $DATABASEDOTCOM['donation_record_type_id'] if sf_donationtype.nil?
       c = self.address.sf
+      if c.nil?
+        self.address.sync_to_salesforce!(true)
+        c = self.address.sf
+      end
 
       donation = SalesforceData::Opportunity.find_by_stagemgr_id__c(self.id.to_s)
       if donation.nil?
