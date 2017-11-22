@@ -191,6 +191,15 @@ class Admin::ReportsController < Admin::ApplicationController
 
   end
 
+  def self.trg_dump_all(user_id, season)
+    productions = Production.find_all_by_season(season)
+    productions.each { |p|
+      puts "Building #{p.name}..."
+      TrgExport.perform(p.id, user_id, true)
+      puts "Complete!"
+    }
+  end
+
   def attended_dump
     starting_date = params[:starting_date].to_date
     ending_date = params[:ending_date].to_date

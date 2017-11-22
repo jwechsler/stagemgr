@@ -1,7 +1,7 @@
 class MailingList < Report
 
   TRG_IMPORT_HEADERS = [:Segment, :Season, :Title, :FirstName, :LastName, :FullName, :CompanyName, :Email, :Address1, :Address2,
-               :Address3, :City, :State, :Zip, :HomePhone, :BusinessPhone, :ClientPatronID]
+               :Address3, :City, :State, :Zip, :HomePhone, :BusinessPhone, :ClientPatronID, :StagemgrPatronID]
 
   def initialize(reporting_user_id = nil)
     super(TRG_IMPORT_HEADERS, reporting_user_id)
@@ -49,11 +49,12 @@ class MailingList < Report
                :City=>address.city, :State => address.state,
                :Zip => address.zipcode,
                :HomePhone => address.phone, :BusinessPhone => '',
-               :ClientPatronID => address.sf_contact_id ]
+               :ClientPatronID => address.sf_contact_id,
+               :StagemgrPatronID => address.id ]
   end
 
   def self.trg_hash_from_myemma(member)
-
+    existing_address = Address.find_by_email(member.email)
     Hash[:FirstName=> member.name_first, :LastName=>member.name_last,
                :FullName => "#{member.name_first} #{member.name_last}" , :CompanyName => '',
                :Email => member.email, :Address1 => member.address,
@@ -61,7 +62,8 @@ class MailingList < Report
                :City=>member.city, :State => member.state,
                :Zip => member.postal_code,
                :HomePhone => '', :BusinessPhone => '',
-               :ClientPatronID => '' ]
+               :ClientPatronID => '',
+               :StagemgrPatronId => existing_address.nil? ? '' : existing_address.id ]
   end
 
 end

@@ -249,16 +249,17 @@ class Production
     members_by_email = Hash.new
     unless MyEmma.disabled? || self.myemma_attendee_group.nil?
       grp = MyEmma::Group.find(self.myemma_attendee_group)
-      members = grp.members
+      unless grp.group_name.blank?
+        members = grp.members
 
-      members.each do |m|
-        members_by_email[m.email.downcase] = m unless m.email.nil?
+        members.each do |m|
+          members_by_email[m.email.downcase] = m unless m.email.nil?
+        end
       end
-
     end
     members_by_email
   end
 
 end
 
-# @todo extract to MyEmma engine
+# @todo exaact to MyEmma engine

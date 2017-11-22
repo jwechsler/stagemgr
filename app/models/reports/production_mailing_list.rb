@@ -20,7 +20,7 @@ class ProductionMailingList < MailingList
     order_set = orders.to_set
 
     consolidation_code = self.production.theater.is_default? ? 'ALL' : 'REN'
-    all_attendees.each do |address|
+    all_attendees.select{|a| !a.line1.blank?}.each do |address|
       hash = MailingList.mailing_hash_from_buyer(address)
       unless hash[:Email].nil?
         unless self.allow_email_exports? || members_by_email.has_key?(hash[:Email].downcase)
@@ -44,7 +44,7 @@ class ProductionMailingList < MailingList
       self.data[buyer_type] << hash unless buyer_type.nil?
     end
 
-    members_by_email.each do |member_record|
+    members_by_email.select{|member_record| !member_record[1].address.blank? }.each do |member_record|
       hash = MailingList.trg_hash_from_myemma(member_record[1])
       hash[:Title] = self.production.name
       hash[:Season] = season_tag
