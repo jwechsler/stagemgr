@@ -18,6 +18,10 @@
         = link_to production.name, production_performances_path(production.id), :target=>'_blank'
       - else
         = link_to(production.name, production_performances_path(production.id, :anchor=>"top"))
+    - unless production.short_description.blank?
+      = "#{production.short_description}"
+      <br>
+
     - if !production.theater.is_default?
       %div.presenter= "presented by #{production.theater.name}"
     - else
