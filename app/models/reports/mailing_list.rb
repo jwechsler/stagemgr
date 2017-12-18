@@ -62,7 +62,7 @@ class MailingList < Report
                :City=>member.city, :State => member.state,
                :Zip => member.postal_code,
                :HomePhone => '', :BusinessPhone => '',
-               :ClientPatronID => '',
+               :ClientPatronID => existing_address.nil? ? '' : existing_address.sf_contact_id,
                :StagemgrPatronId => existing_address.nil? ? '' : existing_address.id ]
   end
 
