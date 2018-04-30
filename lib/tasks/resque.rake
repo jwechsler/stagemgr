@@ -1,5 +1,5 @@
 require 'resque/tasks'
-require 'resque_scheduler/tasks'
+require 'resque/scheduler/tasks'
 
 #require 'resque/tasks'
 #require 'resque_scheduler/tasks'
@@ -9,7 +9,6 @@ require 'resque_scheduler/tasks'
 namespace :resque do
   task :setup do
     require 'resque'
-    require 'resque_scheduler'
     require 'resque/scheduler'
     require 'resque-retry'
     require 'resque/failure/redis'

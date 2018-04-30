@@ -79,7 +79,8 @@ module Stagemgr
     # Configure sensitive parameters which will be filtered from the log file.
     config.filter_parameters += [:password, :password_confirmation]
 
-    config.action_view.javascript_expansions[:defaults] = %w(prototype rails)
+    # removed below with 4.2 update
+    # config.action_view.javascript_expansions[:defaults] = %w(prototype rails)
 
     initializer :after_append_asset_paths,
             :group => :all,

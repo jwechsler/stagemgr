@@ -1,6 +1,6 @@
 require 'resque/server'
-require 'resque_scheduler'
-require 'resque_scheduler/server'
+require 'resque/scheduler'
+require 'resque/scheduler/server'
 require 'resque-retry'
 require 'resque/failure/Redis'
 require 'resque-retry/server'

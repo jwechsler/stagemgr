@@ -24,6 +24,9 @@ Stagemgr::Application.configure do
   #config.assets.compile = true
   #config.assets.digest = true
 
+
+  config.eager_load = false
+
   # Log error messages when you accidentally call methods on nil.
   config.whiny_nils = true
 
