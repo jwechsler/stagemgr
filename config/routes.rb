@@ -30,10 +30,10 @@ Stagemgr::Application.routes.draw do
 
   # paypal IPN routes
 
-  match '/pay_pal/notify' => 'pay_pal#notify'
-  match '/pay_pal/show' => 'pay_pal#show'
-  match '/pay_pal/cancel' => 'pay_pal#cancel'
-  match '/paypal/ipn' => 'pay_pal#paypal_ipn'
+  post '/pay_pal/notify' => 'pay_pal#notify'
+  post '/pay_pal/show' => 'pay_pal#show'
+  post '/pay_pal/cancel' => 'pay_pal#cancel'
+  post '/paypal/ipn' => 'pay_pal#paypal_ipn'
 
   # resque admin page
   mount Resque::Server.new, :at => "/admin/resque"

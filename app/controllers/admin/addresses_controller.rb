@@ -67,7 +67,7 @@ class Admin::AddressesController < Admin::ApplicationController
   # PUT /admin/addresses/1
   # PUT /admin/addresses/1.xml
   def update
-    @address.update_attributes(params[:address])
+    @address.update_attributes(address_params)
   #  @address.address_tags = Array.new
   #  params[:address][:address_tags_attributes].each_pair {
   #      |k, v|
@@ -166,4 +166,10 @@ class Admin::AddressesController < Admin::ApplicationController
     #end
     render :json=>AddressTag.order(:tag_label).select('DISTINCT tag_label');
   end
+
+  private
+  def address_params
+    params.require(:address).permit(:full_name, :line1, :line2, :city, :state, :zipcode, :email, :phone, :street_number, :address_tags_attributes)
+  end
+
 end

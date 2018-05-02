@@ -1,4 +1,4 @@
-FactoryGirl.define do
+FactoryBot.define do
 
   factory :membership do
     profile_id PaymentProcessing::BogusResponse::PROFILE_ID

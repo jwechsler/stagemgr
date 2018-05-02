@@ -1,5 +1,5 @@
 Given (/^a theater user "(.*?)" exists$/) do |username|
-  user = FactoryGirl.create(:user, email: username)
+  user = FactoryBot.create(:user, email: username)
   user.theaters << Theater.first
   user.save
 end

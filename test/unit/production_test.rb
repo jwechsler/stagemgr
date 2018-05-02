@@ -5,9 +5,9 @@ class ProductionTest < ActiveSupport::TestCase
   context "with a sample production and two default ticket classes" do
     setup do
       without_access_control do
-        @default_ticket_class1 = FactoryGirl.create(:default_ticket_class, :class_code=>'GEN', :class_name=>'Test General', :ticket_type=>'Fixed', :ticket_price=>20, :ticketing_fee=>1)
-        @default_ticket_class2 = FactoryGirl.create(:default_ticket_class, :class_code=>'COMP', :class_name=>'Test Comp', :ticket_type=>'Fixed', :ticket_price=>0, :ticketing_fee=>0)
-        @production = FactoryGirl.create(:production, :theater=>theaters(:theater_wit))
+        @default_ticket_class1 = FactoryBot.create(:default_ticket_class, :class_code=>'GEN', :class_name=>'Test General', :ticket_type=>'Fixed', :ticket_price=>20, :ticketing_fee=>1)
+        @default_ticket_class2 = FactoryBot.create(:default_ticket_class, :class_code=>'COMP', :class_name=>'Test Comp', :ticket_type=>'Fixed', :ticket_price=>0, :ticketing_fee=>0)
+        @production = FactoryBot.create(:production, :theater=>theaters(:theater_wit))
       end
     end
     should "have defaults assigned when created" do

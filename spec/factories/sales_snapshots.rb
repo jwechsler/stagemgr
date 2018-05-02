@@ -1,6 +1,6 @@
 # Read about factories at https://github.com/thoughtbot/factory_girl
 
-FactoryGirl.define do
+FactoryBot.define do
   factory :sales_snapshot do
     as_of_date "2013-10-18"
     production_stat_id 1

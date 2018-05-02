@@ -1,4 +1,4 @@
-FactoryGirl.define do
+FactoryBot.define do
 
   trait :order do
     status Order::ORDER_STATUSES.first
@@ -16,7 +16,7 @@ FactoryGirl.define do
       association :payment_type, :factory=>:credit_card_payment_type
       after(:create) do |ticket_order, evaluator|
         num_tix = TicketLineItem.sum(:ticket_count, :conditions=>['id = ?', ticket_order.id])
-        ticket_order.payments << FactoryGirl.create(:credit_card_payment,
+        ticket_order.payments << FactoryBot.create(:credit_card_payment,
                             :order=>ticket_order,
                             :number_of_tickets=>num_tix,
                             :amount=>(num_tix * ticket_order.ticket_line_items.inject(0){ |total, tli| total += tli.ticket_class.ticket_price }),
@@ -32,7 +32,7 @@ FactoryGirl.define do
     trait :for_a_pair_of_tickets do
 
       after(:create) do |ticket_order, evaluator|
-        ticket_order.ticket_line_items << FactoryGirl.create(:ticket_line_item,
+        ticket_order.ticket_line_items << FactoryBot.create(:ticket_line_item,
           :ticket_class=>ticket_order.performance.ticket_class_allocations.select{|tca| tca.available }.first.ticket_class,
           :ticket_count=>2,
           :order=>ticket_order)
@@ -42,7 +42,7 @@ FactoryGirl.define do
 
     trait :for_an_expensive_pair_of_tickets do
       after(:create) do |ticket_order, evaluator|
-        ticket_order.ticket_line_items << FactoryGirl.create(:ticket_line_item,
+        ticket_order.ticket_line_items << FactoryBot.create(:ticket_line_item,
           :ticket_class=>ticket_order.performance.ticket_class_allocations.select{|tca| tca.available }.sort{|tca1, tca2| tca2.ticket_class.ticket_price <=> tca1.ticket_class.ticket_price}.first.ticket_class,
           :ticket_count=>2,
           :order=>ticket_order)
@@ -51,7 +51,7 @@ FactoryGirl.define do
     end
 
     trait :paid_with_flex_pass do
-      ignore do
+      transient do
         flex_pass_code 'TESTPASS'
       end
       association :payment_type, :factory=>:flex_pass_payment_type
@@ -64,7 +64,7 @@ FactoryGirl.define do
           tli.save!
         end
         num_tix = ticket_order.ticket_line_items.inject(0){|sum, tli| sum += tli.ticket_count }
-        ticket_order.payments << FactoryGirl.create(:flex_pass_payment,
+        ticket_order.payments << FactoryBot.create(:flex_pass_payment,
                             :order=>ticket_order,
                             :number_of_tickets=>num_tix,
                             :flex_pass_id => FlexPass.find_by_code(evaluator.flex_pass_code).id,
@@ -79,7 +79,7 @@ FactoryGirl.define do
       association :payment_type, :factory=>:cash_payment_type
       after(:create) do |ticket_order, evaluator|
         num_tix = ticket_order.ticket_line_items.inject(0){|sum, tli| sum += tli.ticket_count }
-        ticket_order.payments << FactoryGirl.create(:cash_payment,
+        ticket_order.payments << FactoryBot.create(:cash_payment,
                             :order=>ticket_order,
                             :number_of_tickets=>num_tix,
                             :amount=>(num_tix * ticket_order.ticket_line_items.inject(0){ |total, tli| total += tli.ticket_class.ticket_price }))
@@ -101,9 +101,9 @@ FactoryGirl.define do
     order
     association :payment_type, :factory=>:credit_card_payment_type
     after(:create) do |membership_order, evaluator|
-      membership = FactoryGirl.create(:membership, :address=>membership_order.address)
-      membership_order.membership_line_items << FactoryGirl.create(:membership_line_item, :order=>membership_order, :address=>membership_order.address, :membership=>membership)
-      membership_order.payments << FactoryGirl.build(:credit_card_payment,
+      membership = FactoryBot.create(:membership, :address=>membership_order.address)
+      membership_order.membership_line_items << FactoryBot.create(:membership_line_item, :order=>membership_order, :address=>membership_order.address, :membership=>membership)
+      membership_order.payments << FactoryBot.build(:credit_card_payment,
                           :amount=>membership_order.membership_line_items.first.membership_offer.recurring_cost,
                           :transaction_id => 'TEST_TRANSACTION',
                           :confirmation_code => 'CONFIRMED',
@@ -117,7 +117,7 @@ FactoryGirl.define do
   trait :one_thousand_dollar_donation do
     association :payment_type, :factory=>:credit_card_payment_type
       after(:create) do |donation_order, evaluator|
-        donation_order.donation_line_items << FactoryGirl.create(:donation_line_item, :donation_amount=>1000.00)
+        donation_order.donation_line_items << FactoryBot.create(:donation_line_item, :donation_amount=>1000.00)
         donation_order.save!
       end
   end

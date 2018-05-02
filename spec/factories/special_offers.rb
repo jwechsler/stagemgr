@@ -1,4 +1,4 @@
-FactoryGirl.define do
+FactoryBot.define do
   trait :special_offer do
     sequence(:code) { |n| "OFFER#{'%02d' % n}" }
   end

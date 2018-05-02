@@ -7,12 +7,12 @@ class OrderTaskTest < ActiveSupport::TestCase
   context "given a new order" do
     setup do
       without_access_control do
-        @cash_payment_type = FactoryGirl.create(:cash_payment_type)
-        @flex_pass_payment_type = FactoryGirl.create(:flex_pass_payment_type)
+        @cash_payment_type = FactoryBot.create(:cash_payment_type)
+        @flex_pass_payment_type = FactoryBot.create(:flex_pass_payment_type)
 
-        performance = FactoryGirl.create(:performance)
+        performance = FactoryBot.create(:performance)
 
-        @order = FactoryGirl.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
+        @order = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
 
       end
     end
@@ -42,7 +42,7 @@ class OrderTaskTest < ActiveSupport::TestCase
     should "generate a different followup task for the second order" do
       @order.transition_to!(Order::PROCESSING)
       @order.transition_to!(Order::PROCESSED)
-      @order2 = FactoryGirl.create(:ticket_order, :address => addresses(:jeremy), :payment_type => CashPaymentType.first, :status => Order::NEW,
+      @order2 = FactoryBot.create(:ticket_order, :address => addresses(:jeremy), :payment_type => CashPaymentType.first, :status => Order::NEW,
                                :performance => performances(:macbeth_matinee))
       @order2.ticket_line_items << TicketLineItem.new({:ticket_class => ticket_classes(:macbeth_general_admission), :ticket_count => 1})
 

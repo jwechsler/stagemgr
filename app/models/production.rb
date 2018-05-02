@@ -36,6 +36,8 @@ class Production < ActiveRecord::Base
   has_attached_file :promo, :styles => {:medium => "250x375>", :thumb => "125x186>"},
                     :path => ":rails_root/public/system/:attachment/:id/:style/:filename",
                     :url => "#{Rails.application.config.action_controller.relative_url_root}/system/:attachment/:id/:style/:filename"
+  validates_attachment_content_type :promo, :content_type => ["image/jpg", "image/jpeg", "image/png", "image/gif"]
+
 
   def to_s
     "#{self.name}, #{self.theater.name}"

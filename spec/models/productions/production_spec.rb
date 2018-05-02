@@ -3,7 +3,7 @@ require_relative "../../spec_helper.rb"
 describe "a production" do
   context "with one order" do
     before(:each) do
-      @ticket_order = FactoryGirl.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
+      @ticket_order = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
     end
 
     after(:each) do
@@ -30,7 +30,7 @@ describe "a production" do
   end
 
   it "always stores custom label as lowercase" do
-    @production = FactoryGirl.create(:production)
+    @production = FactoryBot.create(:production)
     @production.custom_label = "BiGLabel"
     @production.save
     @production.custom_label.should.eql? "biglabel"

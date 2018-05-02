@@ -2,8 +2,8 @@ require_relative "../../spec_helper.rb"
 
 describe "an exchanged ticket order" do
   it "should have an offset payment" do
-    original_order = FactoryGirl.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
-    exchange_order = FactoryGirl.create(:ticket_order)
+    original_order = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
+    exchange_order = FactoryBot.create(:ticket_order)
     ticket_line_item = original_order.ticket_line_items.first.dup
     ticket_line_item.ticket_class = exchange_order.performance.ticket_class_allocations.first.ticket_class
     exchange_order.ticket_line_items << ticket_line_item

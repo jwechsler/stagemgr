@@ -1,5 +1,5 @@
 class Venue < ActiveRecord::Base
-  attr_accessible :name, :ordinal_sort
+
   validates_presence_of :name, :ordinal_sort
   has_many :productions
 

@@ -2,7 +2,7 @@ ENV["RAILS_ENV"] = "test"
 require File.expand_path('../../config/environment', __FILE__)
 require 'flexmock/test_unit'
 require 'flexmock/rails'
-require 'factory_girl'
+require 'factory_bot'
 #Factory.find_definitions
 require 'rails/test_help'
 require 'declarative_authorization/maintenance'
@@ -20,9 +20,9 @@ class ActiveSupport::TestCase
     {
       "full_name"=>"Joe Schmoe",
       "email"=>"jshmoe@example.com",
-      "line1"=>"123 Swift St", 
-      "line2"=>"", 
-      "city"=>"Anytown", 
+      "line1"=>"123 Swift St",
+      "line2"=>"",
+      "city"=>"Anytown",
       "state"=>"il",
       "zipcode"=>"60606",
       "phone"=>"312-555-5555"

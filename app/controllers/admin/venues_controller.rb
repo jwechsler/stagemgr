@@ -12,7 +12,7 @@ class Admin::VenuesController < ApplicationController
   end
 
   def create
-    @venue = Venue.new(params[:venue])
+    @venue = Venue.new(venue_params)
     if @venue.save
       redirect_to [:admin, @venue], :notice => "Successfully created venue."
     else
@@ -26,7 +26,7 @@ class Admin::VenuesController < ApplicationController
 
   def update
     @venue = Venue.find(params[:id])
-    if @venue.update_attributes(params[:venue])
+    if @venue.update_attributes(venue_params)
       redirect_to [:admin, @venue], :notice  => "Successfully updated venue."
     else
       render :action => 'edit'
@@ -37,5 +37,10 @@ class Admin::VenuesController < ApplicationController
     @venue = Venue.find(params[:id])
     @venue.destroy
     redirect_to admin_venues_url, :notice => "Successfully destroyed venue."
+  end
+
+  private
+  def venue_params
+    params.require(:venue).permit(:name, :ordinal_sort)
   end
 end

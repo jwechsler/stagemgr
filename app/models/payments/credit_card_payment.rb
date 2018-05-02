@@ -5,8 +5,6 @@ end
 
 class CreditCardPayment < CurrencyPayment
 
-  acts_as_audited
-
   belongs_to :address
 
   attr_accessor :card_number

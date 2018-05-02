@@ -5,11 +5,11 @@ describe "a donation order" do
   context "when a single donation" do
 
     it "should process a one-time payment accurately" do
-      @donation = FactoryGirl.create(:donation_order_for_one_thousand_dollars)
+      @donation = FactoryBot.create(:donation_order_for_one_thousand_dollars)
       @donation.status.should eq(Order::HOLD)
       @donation.total.should eq(1000.00)
       @donation.value_of_all_payments.should eq(0.0)
-      @donation.payment_type = FactoryGirl.create(:cash_payment_type)
+      @donation.payment_type = FactoryBot.create(:cash_payment_type)
       @donation.transition_to!(Order::PROCESSED)
 
       @donation.value_of_all_payments.should eq(1000.0)
@@ -18,12 +18,12 @@ describe "a donation order" do
     end
 
     it "should allow a monthly pledge" do
-      @donation = FactoryGirl.create(:donation_pledge_order_for_one_thousand_dollars)
+      @donation = FactoryBot.create(:donation_pledge_order_for_one_thousand_dollars)
       @donation.status.should eq(Order::HOLD)
       @donation.total.should eq(1000.00)
       @donation.value_of_all_payments.should eq(0.0)
       @donation.pledge.should be(nil)
-      @donation.payment_type = FactoryGirl.create(:credit_card_payment_type)
+      @donation.payment_type = FactoryBot.create(:credit_card_payment_type)
       @donation.credit_card_number = '4111111111111111'
       @donation.credit_card_type = 'Visa'
       @donation.credit_card_expiration_year = Date.today.year+1
@@ -40,8 +40,8 @@ describe "a donation order" do
 
 # This is no longer the desired behavior.  Leads to race conditions for remote updates...  Needs further thought
 #    it "should update address aggregate donations" do
-#      @donation = FactoryGirl.create(:donation_order_for_one_thousand_dollars)
-#      @donation.payment_type = FactoryGirl.create(:cash_payment_type)
+#      @donation = FactoryBot.create(:donation_order_for_one_thousand_dollars)
+#      @donation.payment_type = FactoryBot.create(:cash_payment_type)
 #      @donation.transition_to!(Order::PROCESSED)
 #      @donation.address.donated_this_year.should eq(Money.new(100000))
 #      @donation.address.donated_last_n_days.should eq(Money.new(100000))

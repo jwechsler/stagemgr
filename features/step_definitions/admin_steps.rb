@@ -76,7 +76,7 @@ end
 Given /^the performance "(.*?)" has a ticket class code "(.*?)"$/ do |perf_code, ticket_class_code|
   @performance = Performance.find_by_performance_code(perf_code)
   without_access_control do
-    @performance.ticket_class_allocations << FactoryGirl.create(:ticket_class_allocation, :available=>true, :ticket_class=>TicketClass.find_by_class_code(ticket_class_code))
+    @performance.ticket_class_allocations << FactoryBot.create(:ticket_class_allocation, :available=>true, :ticket_class=>TicketClass.find_by_class_code(ticket_class_code))
     @performance.save!
   end
 

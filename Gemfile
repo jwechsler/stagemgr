@@ -44,7 +44,7 @@ gem 'safe_attributes', :require=> 'safe_attributes/base'  # Used to support lega
 gem "my_emma",  "~>0.1.1", :git=>"https://github.com/jwechsler/my_emma.git"
 # or develop against "~/dev/my_emma"
 #gem "my_emma", :path=>"~/dev/my_emma"
-gem 'cocaine'
+gem 'terrapin'
 gem "paperclip"
 gem "htmldiff"
 gem "StreetAddress"
@@ -65,7 +65,7 @@ gem 'jquery-datatables-rails', git: 'https://github.com/rweng/jquery-datatables-
 gem 'ajax-datatables-rails'
 # gem 'jqgrid-rails3', :git=>"https://github.com/davebaldwin/jqgrid-rails3.git"
 #gem "name_parse", "~> 0.0.5"
-gem "people"
+gem "people", :git=>'https://github.com/williamatodd/people.git'
 gem "jquery-rails"
 gem "jquery-ui-rails"
 gem "ri_cal", :git=>"https://github.com/ctide/ri_cal.git"
@@ -84,6 +84,7 @@ group :development do
   gem 'map_by_method'
   gem 'bond'
   gem 'g'
+  gem 'terminal-notifier'
 #  gem 'mongrel'
   gem 'capistrano-rails'
   gem 'capistrano-rbenv'
@@ -99,7 +100,7 @@ end
 
 group :development,:test,:cucumber do
   gem 'rspec-rails'
-  gem 'factory_girl_rails'
+  gem 'factory_bot_rails'
   gem 'database_cleaner'
   gem 'byebug'
 end

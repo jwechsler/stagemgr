@@ -48,7 +48,7 @@ Stagemgr::Application.configure do
   $PAYMENT_CONFIG = YAML::load(File.open("#{::Rails.root.to_s}/config/payment_processing.yml"))['development']
 
   config.after_initialize do
-    ActiveMerchant::Billing::Base.gateway_mode = :test
+    ActiveMerchant::Billing::Base.mode = :test
     PaymentProcessing.after_initialize
     MyEmma.set_credentials_from_yaml("#{self.root.to_s}/config/my_emma_credentials.yml")
   end
@@ -63,6 +63,9 @@ Stagemgr::Application.configure do
   config.action_mailer.default_url_options = { host: $SERVER_CONFIG['host'], protocol: $SERVER_CONFIG['host_protocol'] }
 
   Paperclip.options[:log] = true
+  HttpLog.configure do |config|
+    config.logger = Rails.logger
+  end
 
 end
 

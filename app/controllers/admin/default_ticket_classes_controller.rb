@@ -38,4 +38,10 @@ class Admin::DefaultTicketClassesController < ApplicationController
     @default_ticket_class.destroy
     redirect_to admin_default_ticket_classes_url, :notice => "Successfully destroyed default ticket class."
   end
+
+  private
+  def default_ticket_class_params
+    params.require(:default_ticket_class).permit(:class_code, :class_name, :minutes_before_show, :ticket_price, :ticket_type, :ticketing_fee, :web_visible, :auto_attach, :software_managed, :holds_seats, :purchase_page_annotation, :purchase_email_annotation)
+  end
+
 end

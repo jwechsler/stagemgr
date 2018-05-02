@@ -82,6 +82,9 @@ module Stagemgr
     # removed below with 4.2 update
     # config.action_view.javascript_expansions[:defaults] = %w(prototype rails)
 
+    # use new error propogation methods
+    config.active_record.raise_in_transactional_callbacks = true
+
     initializer :after_append_asset_paths,
             :group => :all,
             :after => :append_assets_path do
@@ -91,5 +94,8 @@ module Stagemgr
         $TRUSTED_MARKDOWN = Redcarpet::MarkdownExtension.new(Redcarpet::Render::HTML, :autolink => true, :space_after_headers => true)
 
     end
+
+    #limit Audits to 25 changes
+    Audited.max_audits = 25
   end
 end

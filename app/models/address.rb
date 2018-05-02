@@ -32,8 +32,7 @@ class Address < ActiveRecord::Base
 
   SEARCHABLE_REGEXP = /[\d+\s+\.!,]/
 
-  attr_accessible :full_name, :line1, :line2, :city, :state, :zipcode, :email, :phone, :street_number, :address_tags_attributes
-  acts_as_audited :protect=>false, :except=>['street_number', 'street', 'street_type', 'unit', 'unit_prefix', 'search_name']
+  # audited :protect=>false, :except=>['street_number', 'street', 'street_type', 'unit', 'unit_prefix', 'search_name']
   attr_accessor :sf_object
 
   def self.parse_name(full_name)

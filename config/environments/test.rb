@@ -49,7 +49,7 @@ Stagemgr::Application.configure do
   $TEST_CREDIT_CARD = $PAYMENT_CONFIG['test_credit_card']
 
   config.after_initialize do
-    ActiveMerchant::Billing::Base.gateway_mode = :test
+    ActiveMerchant::Billing::Base.mode = :test
     PaymentProcessing.after_initialize
     MyEmma.set_credentials_from_yaml("#{self.root.to_s}/config/my_emma_credentials.yml")
     MyEmma.disable

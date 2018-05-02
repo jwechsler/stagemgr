@@ -8,11 +8,11 @@ Given /^I disallow ([^\s]*) payments for the public$/ do |payment_type|
 end
 
 Given /^an external payment type "([^\"]*?)" restricted to ticket classes starting with "([^\"]*?)" exists$/ do |external_payment_name, restrict_to|
-  FactoryGirl.create(:external_payment_type, :display_name=>external_payment_name, :allow_for_public=>false, :allow_for_box_office=>true, :restrict_to_ticket_classes=>'CHEAP')
+  FactoryBot.create(:external_payment_type, :display_name=>external_payment_name, :allow_for_public=>false, :allow_for_box_office=>true, :restrict_to_ticket_classes=>'CHEAP')
 end
 
 Given /^an external payment type "([^\"]*?)" exists$/ do |external_payment_name|
-  FactoryGirl.create(:external_payment_type, :display_name=>external_payment_name, :allow_for_public=>false, :allow_for_box_office=>true)
+  FactoryBot.create(:external_payment_type, :display_name=>external_payment_name, :allow_for_public=>false, :allow_for_box_office=>true)
 end
 
 Given(/^I suppress the "(.*?)" method for "(.*?)"$/) do |method_name, task_type|

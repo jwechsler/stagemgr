@@ -59,7 +59,7 @@ class Order < ActiveRecord::Base
       "Email", "Mail", "Cast/Staff/Production Team", "Review/Feature", "Radio", "Newspaper Ad", "Facebook", "Twitter", "Word of Mouth", "Attended previous production", "Other"
   ]
 
-  acts_as_audited
+  audited
 
 
   before_validation :cascade_address_to_nested_items
@@ -124,7 +124,7 @@ class Order < ActiveRecord::Base
   end
 
   def value_of_all_payments
-    self.payments.sum { |p| p.amount }
+    self.payments.sum(:amount)
   end
 
 

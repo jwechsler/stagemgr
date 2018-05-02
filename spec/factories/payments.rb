@@ -1,4 +1,4 @@
-FactoryGirl.define do
+FactoryBot.define do
   sequence :transaction_id do |n|
     "TXN#{n}"
   end
