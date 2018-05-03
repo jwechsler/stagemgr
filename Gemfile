@@ -36,6 +36,8 @@ gem 'restforce', '~> 2.5.3'
 gem "declarative_authorization"
 gem "activeresource"
 gem "activemerchant"
+gem "braintree"
+gem "braintree-rails"
 gem "mysql2", "0.4.10"
 gem "authlogic"
 gem "audited", "~> 4.7"

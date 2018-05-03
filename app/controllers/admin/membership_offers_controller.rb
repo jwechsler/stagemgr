@@ -14,7 +14,7 @@ class Admin::MembershipOffersController < ApplicationController
   end
 
   def create
-    @membership_offer = MembershipOffer.new(params[:membership_offer])
+    @membership_offer = MembershipOffer.new(membership_offer_params)
     if @membership_offer.save
       redirect_to [:admin, @membership_offer], :notice => "Successfully created membership offer."
     else
@@ -28,7 +28,7 @@ class Admin::MembershipOffersController < ApplicationController
 
   def update
     @membership_offer = MembershipOffer.find(params[:id])
-    if @membership_offer.update_attributes(params[:membership_offer])
+    if @membership_offer.update_attributes(membership_offer_params)
       redirect_to [:admin, @membership_offer], :notice  => "Successfully updated membership offer."
     else
       render :action => 'edit'
@@ -40,4 +40,11 @@ class Admin::MembershipOffersController < ApplicationController
     @membership_offer.destroy
     redirect_to admin_membership_offers_url, :notice => "Successfully destroyed membership offer."
   end
+
+  private
+  def membership_offer_params
+    params.require(:membership_offer).permit(:name, :recurring_cost, :email_html, :html_description, :use_ticket_class_code,
+                  :use_member_friend_code, :tickets_per_performance,
+                  :billing_agreement, :myemma_group, :on_sale, :trial_period, :trial_price,
+                  :restricted_to_first_time, :max_cycles_if_gift, :status)
 end

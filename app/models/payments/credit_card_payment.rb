@@ -92,16 +92,6 @@ class CreditCardPayment < CurrencyPayment
 
 
     CreditCardPayment.transaction do
-      # Create a gateway object for the TrustCommerce service
-      #      gateway_options = {
-      #        :login=>ACTIVE_MERCHANT_LOGIN,
-      #        :password=>ACTIVE_MERCHANT_PASSWORD,
-      #        :test=>ACTIVE_MERCHANT_TEST_MODE}
-      #
-      #      # Create a gateway object for the TrustCommerce service
-      #      gateway = ActiveMerchant::Billing::AuthorizeNetGateway.new(
-      #        gateway_options
-      #      )
 
       gateway = PaymentProcessing.gateway
 

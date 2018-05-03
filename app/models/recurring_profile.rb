@@ -13,7 +13,7 @@ module RecurringProfile
       record.status_changed? && record.canceled?
     }
 
-    after_save :notify_on_suspension, :if=>Proc.new { |record|
+    before_save :notify_on_suspension, :if=>Proc.new { |record|
       record.status_changed? && record.suspended?
     }
 
@@ -142,6 +142,7 @@ module RecurringProfile
 
   def notify_on_suspension
     self.recurring_order.notify_suspended
+    self.recurring_order.save
   end
 
 

@@ -31,4 +31,12 @@ RSpec.configure do |config|
 
   config.include FactoryBot::Syntax::Methods
 
+  # fail after first spec failure
+  config.fail_fast = true
+
+  config.before(:suite) do
+    # Prevent Braintree from logging to standard out during tests
+    Braintree::Configuration.logger = Logger.new("/dev/null")
+  end
+
 end
