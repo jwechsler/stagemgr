@@ -3,11 +3,13 @@ require 'payment_form_fields'
 InvalidSpecialOfferCode = Class.new(StandardError)
 
 class Order < ActiveRecord::Base
+
   @using_access_control
 
   include PaymentFormFields
   include Admin::ReportsHelper
   include ActionView::Helpers::NumberHelper
+  include EmailValidatable
 
   extend HTMLDiff
 

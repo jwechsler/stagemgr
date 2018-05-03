@@ -28,6 +28,11 @@ module Stagemgr
     # config.autoload_paths += %W(#{config.root}/extras)
     config.autoload_paths += %W( #{config.root}/app/models/orders #{config.root}/app/models/payments #{config.root}/app/models/special_offers #{config.root}/app/models/line_items #{config.root}/app/models/payment_types #{config.root}/app/models/order_tasks #{config.root}/app/models/tktprint #{config.root}/app/models/resque_jobs #{config.root}/app/models/reports)
     config.autoload_paths += %W( #{config.root}/lib )
+    config.autoload_paths += %W(
+          #{config.root}/app/controllers/concerns
+          #{config.root}/app/models/concerns
+        )
+
     # Only load the plugins named here, in the order given (default is alphabetical).
     # :all can be used as a placeholder for all plugins not explicitly named.
     # config.plugins = [ :exception_notification, :ssl_requirement, :all ]

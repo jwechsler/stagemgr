@@ -488,7 +488,7 @@ class TicketOrder < Order
   end
 
   def is_unique_visit?(prod)
-    Order.includes(:performance).where("performances.production_id = ? and orders.id != ? and orders.status = ? and orders.address_id = ?",
+    Order.joins(:performance).where("performances.production_id = ? and orders.id != ? and orders.status = ? and orders.address_id = ?",
       prod.id,
       self.id,
       Order::FULFILLED,

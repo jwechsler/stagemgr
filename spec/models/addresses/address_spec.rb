@@ -13,7 +13,7 @@ describe "a customer record" do
     purge_address.save
     o2.address = purge_address
     o2.transition_to!(Order::FULFILLED)
-    purge_address.productions.count.should == 1
+    expect(purge_address.productions.count).to eq(1)
     original_address.merge_and_purge(purge_address)
     expect(original_address.last_name).to match(/(.*)-Updated/)
     expect(original_address.productions.size).to equal(2)

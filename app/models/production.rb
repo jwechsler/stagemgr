@@ -29,7 +29,7 @@ class Production < ActiveRecord::Base
   before_save :assign_default_ticket_classes
   before_save :queue_statistics_recalc
   belongs_to :flex_pass_offer
-  has_and_belongs_to_many :attendees, class_name: "Address", uniq: true
+  has_and_belongs_to_many :attendees, class_name: "Address", uniq:true
 
   attr_accessor :sf_object
 

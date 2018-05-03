@@ -61,9 +61,11 @@ describe "a ticket order" do
     o2.address = a
     o2.save!
     o2.transition_to!(Order::FULFILLED)
-    o2.performance.production.attendees.count.should == 1
+
+    expect(o2.performance.production.attendees.uniq.size).to eq(1)
+
     o2.transition_to!(Order::UNCLAIMED)
-    o2.performance.production.attendees.count.should == 1
+    expect(o2.performance.production.attendees.uniq.size).to eq (1)
   end
 
   it "does not block off seats when unclaimed" do
@@ -180,14 +182,14 @@ describe "a ticket order" do
 
     end
 
-    it "can be held under a different name but not under an email", :wip=>true do
+    it "can be held under a different name but not under an email" do
 
       o = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
       o.hold_under = "Another Name"
-      o.save.should eq true
-      o.hold_under.should eq('Another Name')
+      expect(o.save).to equal(true)
+      expect(o.hold_under).to eq('Another Name')
       o.hold_under = 'bad@email.com'
-      o.save.should eq false
+      expect(o.save).to equal(false)
     end
 
   end
