@@ -15,7 +15,7 @@ FactoryBot.define do
 
       association :payment_type, :factory=>:credit_card_payment_type
       after(:create) do |ticket_order, evaluator|
-        num_tix = TicketLineItem.sum(:ticket_count, :conditions=>['id = ?', ticket_order.id])
+        num_tix = TicketLineItem.where(order_id:ticket_order.id).sum(:ticket_count)
         ticket_order.payments << FactoryBot.create(:credit_card_payment,
                             :order=>ticket_order,
                             :number_of_tickets=>num_tix,

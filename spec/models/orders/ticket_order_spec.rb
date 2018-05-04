@@ -24,9 +24,9 @@ describe "a ticket order" do
 
   it "can be refunded" do
     o = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
-    o.total.should > 0
+    expect(o.total).to be > 0
     o.refund!
-    o.total.should == 0.0
+    expect(o.total).to eq(0)
   end
 
   it "should mark its holder has having attended the production when fulfilled" do
@@ -40,7 +40,7 @@ describe "a ticket order" do
     o.transition_to!(Order::FULFILLED)
     production = o.performance.production
     o.refund!
-    o.performance.production.attendees.count.should == 0
+    expect(o.performance.production.attendees.size).to eq(0)
   end
 
    it "should unmark the holder has having attended when unclaimed" do
@@ -49,14 +49,14 @@ describe "a ticket order" do
     o.transition_to!(Order::UNCLAIMED)
     production = o.performance.production
     o.refund!
-    o.performance.production.attendees.count.should == 0
+    expect(o.performance.production.attendees.count).to eq(0)
   end
 
   it "should preserve the attendance when cancelling one of multiple reservations" do
     o = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
     a = o.address
     o.transition_to!(Order::FULFILLED)
-    o.performance.production.attendees.count.should == 1
+    expect(o.performance.production.attendees.count).to eq(1)
     o2 = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash, :performance=>o.performance)
     o2.address = a
     o2.save!

@@ -22,7 +22,7 @@ class FlexPass < ActiveRecord::Base
   end
 
   def uses_remaining
-    used = FlexPassPayment.sum(:number_of_tickets,:conditions=>["flex_pass_id = ?", self.id])
+    used = FlexPassPayment.where("flex_pass_id = ?", self.id).sum(:number_of_tickets)
     self.flex_pass_offer.number_of_tickets - used
   end
 

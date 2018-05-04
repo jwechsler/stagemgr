@@ -400,11 +400,18 @@ class Admin::ReportsController < Admin::ApplicationController
           cutoff_max = cutoff_min + 1.month
           cycles_in_window = 1
         end
-        total_payout = MembershipPayment.sum(:amount, :include=>[:order, [:order=>:performance]], :conditions=>["membership_id = ? and orders.id = payments.order_id and orders.performance_id = performances.id and performances.performance_date <= ? and performances.performance_date >= ?", membership.id, cutoff_max, cutoff_min])
-        num_attended = MembershipPayment.count(:include=>[:order, [:order=>:performance]], :conditions=>["membership_id = ? and orders.id = payments.order_id and orders.performance_id = performances.id and performances.performance_date <= ? and performances.performance_date >= ?", membership.id, cutoff_max, cutoff_min])
-        total_payout = RecurringPayment.sum(:amount, :include=>[:order, [:order=>:performance]], :conditions=>["membership_id = ? and orders.id = payments.order_id and orders.performance_id = performances.id and performances.performance_date <= ? and performances.performance_date >= ?", membership.id, cutoff_max, cutoff_min])
+        total_payout = MembershipPayment.joins(order: [:performance, :payments]).where(
+          "membership_id = ? and performances.performance_date <= ? and performances.performance_date >= ?",
+          membership.id, cutoff_max, cutoff_min
+          ).sum(:amount)
+        num_attended = MembershipPayment.joins(order: [:performance, :payments]).where(
+          "membership_id = ? and performances.performance_date <= ? and performances.performance_date >= ?",
+          membership.id, cutoff_max, cutoff_min).count
+        total_payout = RecurringPayment.joins(order: [:performance, :payments]).where(
+          "membership_id = ? and performances.performance_date <= ? and performances.performance_date >= ?",
+          membership.id, cutoff_max, cutoff_min).sum(:amount)
 
-        aggregate_amount = RecurringPayment.sum(:amount, :conditions=>["order_id = ? and processed_on > ? and processed_on < ?", membership.membership_line_item.order_id, cutoff_min, cutoff_max])
+        aggregate_amount = RecurringPayment.where("order_id = ? and processed_on > ? and processed_on < ?", membership.membership_line_item.order_id, cutoff_min, cutoff_max).sum(:amount)
         avg_revenue_month = "0".to_money
         avg_performances_month = 0.0
         avg_revenue_month = ((aggregate_amount-total_payout)/cycles_in_window).to_money
@@ -551,7 +558,7 @@ class Admin::ReportsController < Admin::ApplicationController
       status = flex_pass.available? ?  o.status : flex_pass.expiration_date.to_s
       used = FlexPassPayment.find_all_by_flex_pass_id(flex_pass.id)
       if offer.flat_payout.blank? || offer.flat_payout == 0
-        payout = FlexPassPayment.sum(:amount, :conditions=>['flex_pass_id = ?',flex_pass.id]).to_money
+        payout = FlexPassPayment.where('flex_pass_id = ?',flex_pass.id).sum(:amount).to_money
       else
         payout = (offer.flat_payout.nil? ? 0 : offer.flat_payout).to_money
       end

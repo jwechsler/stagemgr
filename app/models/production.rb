@@ -170,7 +170,6 @@ class Production < ActiveRecord::Base
         production.season__c=self.season
 
       end
-      puts "  saving production data to salesforce"
       production.save
       self.sf_last_sync_at = DateTime.now + 15.seconds
       self.save!

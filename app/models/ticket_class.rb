@@ -38,14 +38,14 @@ class TicketClass < ActiveRecord::Base
 
   def number_taken(performance, exclude_order = nil)
     if exclude_order.nil?
-      LineItem.sum(:ticket_count, :conditions=>{:ticket_class_id=>self.id,:performance_id=>performance.id})
+      LineItem.where(ticket_class_id:self.id,performance_id:performance.id).sum(:ticket_count)
     else
       LineItem.where('ticket_class_id = ? and performance_id = ? and order_id != ?',self.id, performance.id, order.id).sum(:ticket_count)
     end
   end
 
   def number_allocated(performance)
-    sum = TicketClassAllocation.sum(:ticket_limit, :conditions=>{:ticket_class_id=>self.id,:performance_id=>performance.id})
+    sum = TicketClassAllocation.where(ticket_class_id:self.id, performance_id:performance.id).sum(:ticket_limit)
     return nil if sum == 0
     sum
   end
