@@ -2,9 +2,6 @@ class Admin::AutoCompleteController < Admin::ApplicationController
   respond_to :xml, :json
 
   def production_code
-    find_options = {
-      :conditions => ["LOWER(production_code) LIKE ? and status != 'Inactive'", '%'+params[:q].to_s.downcase + '%']
-    }
     productions = Production.with_permissions_to(:read).where(["LOWER(production_code) LIKE ? and status != 'Inactive'", '%'+params[:q].to_s.downcase + '%'])
     render :json => productions.map { |production|
       {:code=>production.production_code, :name=>production.name, :theater=>production.theater.name} }

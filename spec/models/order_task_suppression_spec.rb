@@ -7,9 +7,9 @@ describe OrderTaskSuppression do
     payment_type = o.payment_type
     payment_type.order_task_suppressions << FactoryBot.create(:order_task_suppression,task_type:t.type,method_name:t.method_symbol)
     payment_type.save!
-    t.status.should eq(OrderTask::UNTRIED)
+    expect(t.status).to eq(OrderTask::UNTRIED)
     t.run!
-    t.status.should eq(OrderTask::CANCELLED)
+    expect(t.status).to eq(OrderTask::CANCELLED)
   end
 
 end

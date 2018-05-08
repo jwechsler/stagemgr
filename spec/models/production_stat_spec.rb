@@ -1,6 +1,6 @@
 require "spec_helper.rb"
 
-describe ProductionStat, wip:true do
+describe ProductionStat do
   before(:each) do
     @production = FactoryBot.create(:production)
     @production_stat = FactoryBot.create(:production_stat, :production=>@production)

@@ -34,6 +34,9 @@ RSpec.configure do |config|
   # fail after first spec failure
   config.fail_fast = true
 
+  # fail with deprecations
+  config.raise_errors_for_deprecations!
+
   config.before(:suite) do
     # Prevent Braintree from logging to standard out during tests
     Braintree::Configuration.logger = Logger.new("/dev/null")

@@ -10,13 +10,15 @@ describe "an exchanged ticket order" do
     ticket_line_item.ticket_class = performance2.ticket_class_allocations.first.ticket_class
     exchange_order.ticket_line_items << ticket_line_item
     exchange_order.exchange_and_process_from! original_order
-    exchange_order.payments.count.should == 1
-    original_order.payments.count.should == 2
-    original_order.status.should == Order::EXCHANGED
-    original_order.total.should == 0.0
-    exchange_order.total.should == 10.0
-    original_order.payments.select {|p| p.is_a? ExchangePayment}.each{|p| p.payment_id.should == exchange_order.payments.first.id}
-    exchange_order.payments.each {|p| p.payment_id.should be_in(original_order.payments.map{|op| op.id})}
+    expect(exchange_order.payments.size).to eq(1)
+    expect(original_order.payments.size).to eq(2)
+    expect(original_order.status).to eq(Order::EXCHANGED)
+    expect(original_order.total).to eq(0.0)
+    expect(exchange_order.total).to eq(10.0)
+    original_order.payments.select {|p| p.is_a? ExchangePayment}.each{ |p|
+      expect(p.payment_id).to eq(exchange_order.payments.first.id)}
+    exchange_order.payments.each {|p|
+      expect(p.payment_id).to be_in(original_order.payments.map{|op| op.id})}
   end
 end
 
