@@ -8,8 +8,8 @@ describe "a default ticket class" do
     ticket_class = production.ticket_classes.select{|tc| tc.class_code == default_ticket_class.class_code}.first
     default_attributes = default_ticket_class.to_hash
     default_attributes.keys.each {|key|
-      ticket_class.attributes.should include(key)
-      ticket_class[key].should eq(default_attributes[key])
+      expect(ticket_class.attributes).to include(key)
+      expect(ticket_class[key]).to eq(default_attributes[key])
     }
   end
 

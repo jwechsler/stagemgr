@@ -11,9 +11,9 @@ describe "a production" do
     end
 
     it "should have one attendee when fulfilled" do
-      @ticket_order.performance.production.attendees.count.should == 0
+      expect(@ticket_order.performance.production.attendees.count).to eq(0)
       @ticket_order.transition_to!(Order::FULFILLED)
-      @ticket_order.performance.production.attendees.count.should == 1
+      expect(@ticket_order.performance.production.attendees.count).to eq(1)
     end
     it "can override the email links for surveys and mailing list solicitation" do
       Authorization.ignore_access_control(true)
@@ -33,7 +33,7 @@ describe "a production" do
     @production = FactoryBot.create(:production)
     @production.custom_label = "BiGLabel"
     @production.save
-    @production.custom_label.should.eql? "biglabel"
+    expect(@production.custom_label).to eq("biglabel")
   end
 
 end

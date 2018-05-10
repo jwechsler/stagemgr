@@ -10,7 +10,7 @@ describe "a performance" do
 
   it "returns an allocation given a ticket class code" do
     allocation = @performance.ticket_class_allocations.last
-    @performance.allocation(allocation.ticket_class.class_code).should eq(allocation)
+    expect(@performance.allocation(allocation.ticket_class.class_code)).to eq(allocation)
   end
 
   it "populates ticket class allocations on demand" do
@@ -21,8 +21,8 @@ describe "a performance" do
     @production.reload
     @performance.reload
     @performance.populate_ticket_class_allocations
-    @performance.ticket_class_allocations.map{|tca| tca.ticket_class }.should include(ticket_class)
-    @performance.ticket_class_allocations.map{|tca| tca.ticket_class }.should include(ticket_class2)
+    expect(@performance.ticket_class_allocations.map{|tca| tca.ticket_class }).to include(ticket_class)
+    expect(@performance.ticket_class_allocations.map{|tca| tca.ticket_class }).to include(ticket_class2)
   end
 
   it "cascades availability based on triggered sales targets" do
@@ -51,7 +51,7 @@ describe "a performance" do
     allocation3.available = false
     allocation3.save
     @performance.scan_ticket_allocation_triggers
-    [ticket_class, ticket_class2].each {|tc| @performance.allocation(tc.class_code).available.should == false }
-    @performance.allocation(ticket_class3.class_code).available.should == true
+    [ticket_class, ticket_class2].each {|tc| expect(@performance.allocation(tc.class_code).available).to be false }
+    expect(@performance.allocation(ticket_class3.class_code).available).to be true
   end
 end
