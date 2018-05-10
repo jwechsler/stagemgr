@@ -14,7 +14,6 @@ class User < ActiveRecord::Base
 
 
   acts_as_authentic do |c|
-    c.maintain_sessions = false   if Rails.env == "test"   # authlogic/issues/262
     c.logged_in_timeout = 8.hours
   end
 

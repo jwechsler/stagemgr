@@ -19,7 +19,7 @@ module FactoryBot
                           :production_code=>"TEST", :opening_at=>Date.today, :closing_at=>Date.today)
       FactoryBot.create(:ticket_class, :class_code=>'PASS', :class_name=>"Pass Ticket",
                           :ticket_price=>1.00, :web_visible=>false, :software_managed=>true,
-                          :production=>production) if TicketClass.count(:class_code, :conditions=>["production_id = ? and class_code = 'PASS'",production.id]) == 0
+                          :production=>production) if TicketClass.where("production_id = ? and class_code = 'PASS'",production.id).count(:class_code) == 0
       FactoryBot.create(:ticket_class, :class_code=>'PASSFRIEND', :class_name=>"Pass Ticket",
                           :ticket_price=>0.00, :web_visible=>false, :software_managed=>true,
                           :production=>production)

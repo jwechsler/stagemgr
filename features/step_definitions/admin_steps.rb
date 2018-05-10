@@ -82,10 +82,10 @@ Given /^the performance "(.*?)" has a ticket class code "(.*?)"$/ do |perf_code,
 
 end
 
-
-Transform /^the (\d+)(?:st|nd|rd|th) address tag$/ do |num|
-  "ul.address_tags li:nth-child(#{num})"
-end
+# Delete the below
+#Transform /^the (\d+)(?:st|nd|rd|th) address tag$/ do |num|
+#  "ul.address_tags li:nth-child(#{num})"
+#end
 
 #Transform /^the first address tag label$/ do
 #  "$(\"#address_tags input\")[0]"
