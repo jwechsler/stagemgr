@@ -15,6 +15,8 @@ class User < ActiveRecord::Base
 
   acts_as_authentic do |c|
     c.logged_in_timeout = 8.hours
+    c.transition_from_crypto_providers = [Authlogic::CryptoProviders::Sha512]
+    c.crypto_provider = Authlogic::CryptoProviders::SCrypt
   end
 
   before_validation :set_defaults, :on => :create

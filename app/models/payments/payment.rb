@@ -1,5 +1,5 @@
 class Payment < ActiveRecord::Base
-  audited
+  # rake audited
 
   belongs_to :order
   belongs_to :payment_type
