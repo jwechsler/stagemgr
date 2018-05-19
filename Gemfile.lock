@@ -15,13 +15,6 @@ GIT
       json
 
 GIT
-  remote: https://github.com/jwechsler/rails3-jquery-autocomplete.git
-  revision: a27846d7f590bd73a2e9246614d92f22a4443831
-  specs:
-    rails3-jquery-autocomplete (1.0.14)
-      rails (>= 3.0)
-
-GIT
   remote: https://github.com/railsconfig/config.git
   revision: 2439d5a41061cf303aa912ce7f03b8b7e69ada4d
   specs:
@@ -389,6 +382,8 @@ GEM
       rails-deprecated_sanitizer (>= 1.0.1)
     rails-html-sanitizer (1.0.4)
       loofah (~> 2.2, >= 2.2.2)
+    rails-jquery-autocomplete (1.0.3)
+      rails (>= 3.2)
     rails-observers (0.1.5)
       activemodel (>= 4.0)
     railties (4.2.10)
@@ -599,7 +594,7 @@ DEPENDENCIES
   pry
   pry-rails
   rails (= 4.2.10)
-  rails3-jquery-autocomplete!
+  rails-jquery-autocomplete
   rb-readline
   rbx-require-relative
   redcarpet

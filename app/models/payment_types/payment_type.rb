@@ -11,9 +11,9 @@ class PaymentType < ActiveRecord::Base
 
   def self.valid_payment_types_for(current_user)
     if (!current_user.nil? && (current_user.is_administrator? || current_user.is_box_office_user?))
-      valid_payment_types = PaymentType.find_all_by_allow_for_box_office(true)
+      valid_payment_types = PaymentType.where(allow_for_box_office:true).all
     else
-      valid_payment_types = PaymentType.find_all_by_allow_for_public(true)
+      valid_payment_types = PaymentType.where(allow_for_public:true).all
     end
     valid_payment_types
   end

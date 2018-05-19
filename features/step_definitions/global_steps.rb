@@ -1,12 +1,9 @@
-require "authlogic/test_case"
-Before do
-  activate_authlogic
-end
-
-
 Given /^(?:|I )(?:|am |is )log(?:|ged)? in$/ do
   @current_test_user ||= Factory(:user)
-  UserSession.create(@current_test_user) # logs a user in
+  visit path_to('the login page')
+  fill_in('Email', :with=>@current_test_user.email)
+  fill_in('Password', :with=>'password')
+  click_button('Login')
 end
 
 Given /^I am (|not )an [aA]dministrator$/ do |inverse|
