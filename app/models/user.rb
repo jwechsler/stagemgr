@@ -4,9 +4,9 @@ class User < ActiveRecord::Base
   validates_presence_of :email
   validates_uniqueness_of :email
 
-  PRIVILEGE_LEVELS                                   = (
-  ADMIN, BOXOFFICE, THEATERUSER  =
-  "Administrator","Box Office Operator",  "Producer"   )
+  ROLES                                 = (
+  ADMIN, BOXOFFICE, THEATERUSER  = "Administrator", "Box Office", "Producer"
+  )
 
   STATUSES = (
   ACTIVE, INACTIVE =

@@ -1,5 +1,5 @@
 class Admin::ImportsController < Admin::ApplicationController
-  filter_access_to :all
+  load_and_authorize_resource
   include ProductionsHelper
 
   def index

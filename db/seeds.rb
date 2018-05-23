@@ -5,9 +5,6 @@
 #
 #   cities = City.create([{ :name => 'Chicago' }, { :name => 'Copenhagen' }])
 #   Major.create(:name => 'Daley', :city => cities.first)
-require "declarative_authorization/maintenance"
-include Authorization::Maintenance
-without_access_control do
 
 user        = User.create!({
       :email                 => 'admin@yoursite.com',
@@ -101,4 +98,4 @@ credit_card_order = Order.create!(        :payment_type=>CreditCardPaymentType.f
                                           :status=>Order::NEW,
                                           :address=>address,
                                           :performance=>performance)
-end
+

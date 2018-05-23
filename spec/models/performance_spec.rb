@@ -3,7 +3,6 @@ require "spec_helper.rb"
 describe "a performance" do
 
   before (:each) do
-    Authorization.ignore_access_control(true)
     @production = FactoryBot.create(:production, :capacity=>10)
     @performance = FactoryBot.create(:performance, :production=>@production)
   end

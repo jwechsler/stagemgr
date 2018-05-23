@@ -30,7 +30,7 @@
 
 %div.row
   %div.small-12.columns
-    - permitted_to? :fulfill, :admin_ticket_orders do
+    - can? :fulfill, TicketOrder do
       = order_form.submit 'Print Tickets', :class=>'button', :disable_with => 'Printing...' if order_form.object.printable?
 
     - if [Order::NEW, Order::HOLD, Order::PROCESSING].include? order_form.object.status
@@ -38,7 +38,7 @@
     - else
       = order_form.submit 'Place Order'
 
-    - permitted_to? :hold, :admin_orders do
+    - can? :hold, TicketOrder do
       = order_form.submit 'Hold', :disable_with => 'Holding...', :class=>'button' if order_form.object.holdable?
 
     - if order_form.object.status == Order::HOLD || order_form.object.status == Order::PROCESSING

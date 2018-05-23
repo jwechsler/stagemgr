@@ -121,6 +121,7 @@ GEM
       braintree (>= 2.28.0, < 3)
     builder (3.2.3)
     byebug (10.0.2)
+    cancancan (2.2.0)
     capistrano (3.10.2)
       airbrussh (>= 1.0.0)
       i18n
@@ -188,7 +189,6 @@ GEM
       activesupport
       json
       multipart-post (~> 2.0.0)
-    declarative_authorization (0.5.7)
     deep_merge (1.2.1)
     diff-lcs (1.3)
     docile (1.3.0)
@@ -547,6 +547,7 @@ DEPENDENCIES
   braintree
   braintree-rails
   byebug
+  cancancan
   capistrano-rails
   capistrano-rbenv
   capybara
@@ -558,7 +559,6 @@ DEPENDENCIES
   cucumber-rails
   database_cleaner
   databasedotcom
-  declarative_authorization
   dynamic_form
   exception_notification
   factory_bot_rails

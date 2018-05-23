@@ -2,6 +2,7 @@
 ENV["RAILS_ENV"] ||= 'test'
 require File.expand_path("../../config/environment", __FILE__)
 require 'rspec/rails'
+require 'factory_bot'
 
 # Requires supporting ruby files with custom matchers and macros, etc,
 # in spec/support/ and its subdirectories.
@@ -42,4 +43,24 @@ RSpec.configure do |config|
     Braintree::Configuration.logger = Logger.new("/dev/null")
   end
 
+  config.include FactoryBot::Syntax::Methods
+
+end
+
+# Authlogic integration
+
+ActiveRecord::Migration.maintain_test_schema!
+
+RSpec.configure do |config|
+  # Load Capybara
+  require 'capybara/rspec'
+
+  # Load AuthLogic
+  require 'authlogic/test_case'
+  config.include Authlogic::TestCase
+
+  config.fixture_path = "#{::Rails.root}/spec/fixtures"
+  config.use_transactional_fixtures = true
+  config.infer_spec_type_from_file_location!
+  config.filter_rails_from_backtrace!
 end

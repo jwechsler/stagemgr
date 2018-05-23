@@ -71,7 +71,6 @@ describe "a ticket order" do
   end
 
   it "does not block off seats when unclaimed" do
-    Authorization.ignore_access_control(true)
     o = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
     o2 = o.dup
     o2.status = Order::NEW
@@ -92,13 +91,6 @@ describe "a ticket order" do
   end
 
   context "when overselling" do
-    before (:each) do
-      Authorization.ignore_access_control
-    end
-
-    after (:each) do
-      Authorization.ignore_access_control(false)
-    end
 
     it "cannot processes if it would oversell a particular ticket class" do
       production = FactoryBot.create(:production, :capacity=>4)
@@ -114,7 +106,6 @@ describe "a ticket order" do
     end
 
     it "cannot processes if it would oversell a performance" do
-      Authorization.ignore_access_control
       production = FactoryBot.create(:production, :capacity=>2)
       tc_1 = FactoryBot.create(:ticket_class, :production=>production, :class_code=>'CODEA')
       tc_2 = FactoryBot.create(:ticket_class, :production=>production, :class_code=>'CODEB')
@@ -205,7 +196,6 @@ describe "a ticket order" do
     end
 
     it "sends a simplified confirmation email" do
-      Authorization.ignore_access_control(true)
       mail = OrderMailer.ticket_confirmation(@ticket_order)
       expect(mail.body.encoded).not_to match("Dining")
       expect(mail.body.encoded).not_to match("seating")

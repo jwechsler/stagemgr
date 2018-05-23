@@ -1,6 +1,5 @@
 class FixProductionVenueAndSeason < ActiveRecord::Migration
   def self.up
-    Authorization.ignore_access_control(true)
     Production.all.each { |p|
       unless p.opening_at.nil?
         opening_year = p.opening_at.year
@@ -15,7 +14,6 @@ class FixProductionVenueAndSeason < ActiveRecord::Migration
         p.save!
       end
     }
-    Authorization.ignore_access_control(false)
   end
 
   def self.down

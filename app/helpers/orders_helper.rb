@@ -2,6 +2,7 @@ module OrdersHelper
 
   SWIPE_REGEX =/^(%B)([0-9]{16})[\^]([a-zA-Z ]*)(\/)([a-zA-Z ]*)\^([0-9]{2})([0-9]{2})(.*)\?$/
 
+
   def convert_button_label_to_state(button_label)
     case button_label
       when 'Checkout', 'Review Order'
@@ -39,6 +40,15 @@ module OrdersHelper
   end
 
   private
+
+  def common_params(class_symbol)
+    params.require(:class_symbol).permit(:special_offer_code, :hold_under, :payment_type_id, :credit_card_type,
+      :credit_card_number, :credit_card_expiration_month, :credit_card_expiration_year,
+      :credit_card_verification_number, :credit_card_swipe, :credit_card_confirmation_code,
+      :flex_pass_code, :member_code, :check_number, :add_to_email_list, :marketing_source, :notes,
+      address: [:full_name, :email, :phone, :line1, :line2, :city, :state, :zipcode])
+  end
+
   def process_order(order, on_success_redirect_to)
     begin
       unless order.credit_card_swipe.blank?

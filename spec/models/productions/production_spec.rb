@@ -6,17 +6,12 @@ describe "a production" do
       @ticket_order = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
     end
 
-    after(:each) do
-      Authorization.ignore_access_control(false)
-    end
-
     it "should have one attendee when fulfilled" do
       expect(@ticket_order.performance.production.attendees.count).to eq(0)
       @ticket_order.transition_to!(Order::FULFILLED)
       expect(@ticket_order.performance.production.attendees.count).to eq(1)
     end
     it "can override the email links for surveys and mailing list solicitation" do
-      Authorization.ignore_access_control(true)
       mail = OrderMailer.standard_followup(@ticket_order)
       expect(mail.body.encoded).to match("SURVEYLINK.TEST")
       expect(mail.body.encoded).to match("MAILINGLINK.TEST")

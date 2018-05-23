@@ -1,16 +1,23 @@
 class Admin::TicketOrdersController < Admin::OrdersController
+  load_and_authorize_resource
 
-  filter_resource_access :additional_collection=>{
-    :autocomplete_production_production_code=>:index,
-    :autocomplete_performance_performance_code=>:index,
-    :autocomplete_ticket_line_item_ticket_class_code=>:index,
-    :autocomplete_special_offer_special_offer_code=>:index
-  }
+  helper TicketOrdersHelper
 
-  autocomplete :production, :production_code, :extra_data => [:production_code], :display_value=>:production_code_autocomplete_display
+  autocomplete :production, :production_code
+
+  def autocomplete_production_production_code
+    production = Production.accessible_by(current_ability).where('(production_code like :code_term or name like :name_term) and status in (:visible_status_list)',
+     code_term:"#{params[:term]}%", name_term:"%#{params[:term]}%", visible_status_list:Production.on_sale_statuses,
+     )
+    render :json => production.map { |prod|
+      { id:prod.id,
+        label:"#{prod.production_code} - #{prod.name}",
+        value:prod.production_code }
+    }
+  end
 
   def autocomplete_performance_performance_code
-    production = Production.with_permissions_to(:read).find_by_production_code(params[:production_code])
+    production = Production.accessible_by(current_ability).find_by_production_code(params[:production_code])
     if production.nil?
       render :json=>Array.new
     else
@@ -96,12 +103,12 @@ class Admin::TicketOrdersController < Admin::OrdersController
   end
 
   def update
-    @ticket_order.attributes=params[:ticket_order]
+    @ticket_order.attributes=params[ticket_order_params]
     @ticket_order = process_order(@ticket_order,:edit_admin_order_path)
   end
 
   def create
-    @ticket_order = TicketOrder.new(params[:ticket_order])
+    @ticket_order = TicketOrder.new(ticket_order_params)
     @ticket_order.status = Order::NEW if @ticket_order.status.nil?
     time_cutoff = @ticket_order.performance.to_time_with_zone - ($SERVER_CONFIG['minutes_before_performance_close_to_third_party_sales'] || 0).minutes
     if permitted_to?(:order_anytime, :admin_orders) || (Time.now < time_cutoff)
@@ -123,6 +130,11 @@ class Admin::TicketOrdersController < Admin::OrdersController
           redirect_to(admin_ticket_order_path(@ticket_order))
        end
      end
+   end
+
+   private
+   def searched_productions
+
    end
 
 end

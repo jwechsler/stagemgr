@@ -2,14 +2,9 @@ require "spec_helper.rb"
 
 describe "a ticket class" do
   before (:each) do
-    Authorization.ignore_access_control(true)
     @production = FactoryBot.create(:production, :capacity=>10)
     @performance = FactoryBot.create(:performance, :production=>@production)
 
-  end
-
-  after(:each) do
-    Authorization.ignore_access_control(false)
   end
 
   it "knows how many tickets are left for a performance" do

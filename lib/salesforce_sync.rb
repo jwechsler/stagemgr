@@ -93,7 +93,6 @@ class SalesforceSync
     orders = Order.where("type in ('TicketOrder','MembershipOrder') and sf_last_sync_at is null or sf_last_sync_at < updated_at and status in (?)",
      Order.syncable_statuses).order("created_at desc").limit(2250)
     o_id = 0
-    Authorization.ignore_access_control(true)
     begin
       orders.each do |o|
         o_id = o.id
@@ -103,7 +102,6 @@ class SalesforceSync
       puts "Sync of #{o_id} failed, #{e}"
       puts e.backtrace
     end
-    Authorization.ignore_access_control(false)
   end
 
 

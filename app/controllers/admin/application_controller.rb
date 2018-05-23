@@ -1,5 +1,4 @@
 class Admin::ApplicationController < ApplicationController
-  before_filter { |c| Authorization.current_user = c.current_user }
 
   protected
 

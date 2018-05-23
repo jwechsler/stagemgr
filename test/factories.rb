@@ -1,5 +1,3 @@
-require 'declarative_authorization/maintenance'
-include Authorization::Maintenance
 
 # FactoryBot.duplicate_attribute_assignment_from_initialize_with = false
 
@@ -8,9 +6,7 @@ module FactoryBot
     alias_method :original_create, :create
 
     def create(name, overrides = {})
-      without_access_control do
-        original_create(name, overrides)
-      end
+      original_create(name, overrides)
     end
 
     def create_test_theater
@@ -68,6 +64,10 @@ FactoryBot.define do
     sequence(:email) { |n| "stagemgr#{n}@example.com" }
     password 'password'
     password_confirmation 'password'
+    is_administrator 0
+    factory :admin_user do
+      is_administrator 1
+    end
   end
 
   factory :address do

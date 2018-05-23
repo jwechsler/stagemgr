@@ -1,6 +1,7 @@
 class TicketOrdersController < ApplicationController
   layout 'ext_site_wrapper'
   include OrdersHelper
+  include TicketOrdersHelper
 
   append_before_filter :find_order, :only => [:show, :edit, :update, :destroy, :confirm]
   append_before_filter :redirect_to_proper_action, :only => [:edit, :show]
@@ -50,6 +51,7 @@ class TicketOrdersController < ApplicationController
   end
 
   private
+
   def find_order
     @order = TicketOrder.find(params[:id])
   end

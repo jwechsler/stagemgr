@@ -1,8 +1,8 @@
 class Admin::OrdersController < Admin::ApplicationController
-
-  filter_resource_access :attribute_check => true, :additional_new=>{:create => :new}, :additional_member=>{:refund => :refund, :update_notes=>:update_notes}, :additional_collection=>{:fulfill_selected=>:index, :unclaim_selected=>:index}
+  load_and_authorize_resource
 
   include OrdersHelper
+
   #append_before_filter :find_order, :only => [:show, :edit, :update, :destroy, :refund, :cancel, :fulfill]
   #append_before_filter :filter_by_allowed, :only => [:show, :edit, :update, :destroy, :refund, :cancel, :fulfill]
   append_before_filter :redirect_to_proper_action, :only => [:edit, :show]

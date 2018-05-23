@@ -20,22 +20,22 @@
               - Theater.where("id in (?)",current_user.theater_ids).each do |t|
                 %li
                   =link_to t.name, admin_theater_path(t)
-        - elsif permitted_to? :view, :admin_theaters then
+        - elsif can? :read, Theater then
           %li
             =link_to('Theaters',admin_theaters_path)
 
-        - permitted_to? :view, :admin_orders do
+        - can? :read, Order do
           %li
             =link_to('Existing Orders', admin_orders_path)
-        - if permitted_to?(:view,:admin_membership_offers) || permitted_to?(:view,:admin_flex_pass_offers)
+        - if can?(:read, MembershipOffer) || can?(:read, FlexPassOffer)
           %li.has-dropdown
             %a{:href=>"#"} Passes
             %ul.dropdown
-              - permitted_to? :view, :admin_membership_offers do
+              - can? :read, MembershipOffer do
                 %li
                   =link_to('Membership Offers', admin_membership_offers_path)
 
-              - permitted_to? :view, :admin_flex_pass_offers do
+              - can? :read, FlexPassOffer do
                 %li
                   =link_to('Flex Pass Offers', admin_flex_pass_offers_path)
         %li
@@ -43,27 +43,28 @@
         %li.has-dropdown
           %a{:href=>"#"} Options
           %ul.dropdown
-            - permitted_to? :view, :admin_special_offers do
+            - can? :read, SpecialOffer do
               %li
                 =link_to('Special Offers', admin_special_offers_path)
-            - permitted_to? :view, :system_options do
+            - if (can? :read, User) || (can? :read, SpecialFeature) || (can? :read, DefaultTicketClass) || (can? :read, PaymentType) || (can? :read, FileStore)
               %li
                 %label System Config
-              - permitted_to? :manage, :admin_users do
-                %li
-                  =link_to('Administer Users', admin_users_path)
-              - permitted_to? :manage, :admin_special_features do
-                %li
-                  =link_to('Performance Features', admin_special_features_path)
-              - permitted_to? :view, :admin_default_ticket_classes do
-                %li
-                  =link_to 'Default Ticket Classes', admin_default_ticket_classes_path
-              %li
-                =link_to "Manage Payment Types", admin_payment_types_path
-              - permitted_to? :view, :admin_imports do
-                %li.divider
-                %li
-                  =link_to "Import data", admin_imports_path
+                - can? :read, User do
+                  %li
+                    =link_to('Administer Users', admin_users_path)
+                - can? :read, SpecialFeature do
+                  %li
+                    =link_to('Performance Features', admin_special_features_path)
+                - can? :read, DefaultTicketClass do
+                  %li
+                    =link_to 'Default Ticket Classes', admin_default_ticket_classes_path
+                - can? :read, PaymentType do
+                  %li
+                  =link_to "Manage Payment Types", admin_payment_types_path
+                - can? :read, FileStore do
+                  %li.divider
+                  %li
+                    =link_to "Import data", admin_imports_path
         %li
           =link_to('My Account', current_user_account_path)
         %li

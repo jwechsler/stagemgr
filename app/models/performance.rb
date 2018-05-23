@@ -1,5 +1,4 @@
 class Performance < ActiveRecord::Base
-  using_access_control
 
   PERFORMANCE_STATUSES = (ACTIVE, INACTIVE, PRIVATE = 'Active',  'Inactive', 'Private')
 

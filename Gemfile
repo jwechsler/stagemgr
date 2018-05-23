@@ -33,7 +33,7 @@ gem "simple_form"
 gem "databasedotcom"
 gem 'restforce', '~> 2.5.3'
 # gem "validation_reflection"
-gem "declarative_authorization"
+gem "cancancan"
 gem "activeresource"
 gem "activemerchant"
 gem "braintree"
@@ -62,14 +62,15 @@ gem "haml"
 gem "postmark-rails"
 gem "validates_formatting_of"
 gem "namecase"
+gem "jquery-rails"
+gem "jquery-ui-rails"
 gem 'jquery-datatables-rails', git: 'https://github.com/rweng/jquery-datatables-rails.git', branch: 'master'
 # gem 'autonumeric-rails'
 gem 'ajax-datatables-rails'
 # gem 'jqgrid-rails3', :git=>"https://github.com/davebaldwin/jqgrid-rails3.git"
 #gem "name_parse", "~> 0.0.5"
 gem "people", :git=>'https://github.com/williamatodd/people.git'
-gem "jquery-rails"
-gem "jquery-ui-rails"
+
 gem "ri_cal", :git=>"https://github.com/ctide/ri_cal.git"
 gem 'resque', :require => 'resque/server'
 gem 'resque-scheduler'
