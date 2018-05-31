@@ -126,13 +126,8 @@ class Performance < ActiveRecord::Base
     self.status == Performance::INACTIVE
   end
 
-  def self.search_by_code(code)
-    result = where("LOWER(performance_code) LIKE ?", '%'+code.to_s.downcase + '%').
-      where("status != 'Inactive'").
-      where(Authorization.current_user.is_administrator? ? "1 = 1" : "performance_date >= curdate()")
-      order("performance_code ASC").
-      limit(10)
-    result
+  def self.sellable_statuses
+    return [Performance::ACTIVE, Performance::PRIVATE]
   end
 
   def self.visible_statuses

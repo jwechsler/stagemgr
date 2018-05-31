@@ -1,6 +1,6 @@
 class Admin::PaymentTypesController < Admin::ApplicationController
 
-  filter_resource_access :additional_new=>{:new_external_payment => :new,:create_external_payment=>:create}
+  load_and_authorize_resource
 
   def index
     @payment_types = PaymentType.order(:display_name).all

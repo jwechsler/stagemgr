@@ -103,8 +103,8 @@ jQuery(document).ready(function() {
   });
 
   <%  buttons =  '<a id="select-all-button" href="#" class="tiny button">Select all</a>'
-      buttons += '<a id="print-tickets-button" href="#" class="tiny button disabled">Fulfill Orders</a>' if permitted_to?(:fulfill, :admin_orders)
-      buttons += '<a id="unclaimed-tickets-button" href="#" class="tiny button disabled">Mark Unclaimed</a>' if permitted_to?(:unclaimed, :admin_orders) %>
+      buttons += '<a id="print-tickets-button" href="#" class="tiny button disabled">Fulfill Orders</a>' if can?(:fulfill, Order)
+      buttons += '<a id="unclaimed-tickets-button" href="#" class="tiny button disabled">Mark Unclaimed</a>' if can?(:mark_unclaimed, Order) %>
   $("div.toolbar").html('<%= raw(buttons) %>');
   $('#orders-table thead th.searchy').each( function () {
       var title = $('#orders-table thead th').eq( $(this).index() ).text();

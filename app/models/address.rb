@@ -501,7 +501,6 @@ class Address
         puts "syncing address id ##{self.id}"
         if sf_contact.nil?
           sf_contact = create_salesforce_contact
-          puts "*** #{sf_contact.AccountId}"
         else
           if self.field_changed_after?(:first_name, self.sf_last_sync_at)
             sf_contact.FirstName = self.first_name unless self.first_name.blank?

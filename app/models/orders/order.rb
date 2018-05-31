@@ -173,6 +173,10 @@ class Order < ActiveRecord::Base
     [Order::PROCESSED, Order::FULFILLED]
   end
 
+  def new?
+    self.status == Order::NEW
+  end
+
   def refundable?
     self.exchangeable?
   end

@@ -23,11 +23,11 @@
           %div.small-3.columns
             = f.input_field :credit_card_verification_number, :size=>4
     %div.row
-      - can? :swipe_card, Order do
+      - if can? :swipe_card, Order
         %div.small-6.columns
 
           = f.input :credit_card_swipe, :size=>25, :label=>"Swipe", :as=>:password, :input_html=>{ :autocomplete=>"new-password"}
-      - can? :confirm_credit_card, Order do
+      - if can? :confirm_credit_card, Order
         %div.small-6.columns
           = f.input :credit_card_confirmation_code, :label=>'Manual authorization'
 

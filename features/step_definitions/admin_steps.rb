@@ -52,7 +52,7 @@ When /^I enter production code "([^\"]*)" and performance code "([^\"]*)"$/ do |
 end
 
 When /^I enter (\d+) "([^\"]*)" tickets$/ do |qty, ticket_class_code|
-  fill_in "ticket_order_ticket_line_items_attributes_0_ticket_class_code", :with=>ticket_class_code
+  fill_in "ticket_order_ticket_line_items_attributes_0_ticket_class_code", :with =>  ticket_class_code
   fill_in "ticket_order_ticket_line_items_attributes_0_ticket_count", :with=>qty
 end
 

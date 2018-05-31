@@ -1,6 +1,5 @@
 class Admin::AddressesController < Admin::ApplicationController
-
-  filter_resource_access :additional_collection=>{:autocomplete_address=>:index, :autocomplete_tag=>:index, :autocomplete_address_tag_tag_label=>:index}
+  load_and_authorize_resource
 
   autocomplete :address_tag,:tag_label
 

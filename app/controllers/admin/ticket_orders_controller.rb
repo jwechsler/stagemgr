@@ -1,9 +1,13 @@
+require 'http_logger'
 class Admin::TicketOrdersController < Admin::OrdersController
   load_and_authorize_resource
 
+
   helper TicketOrdersHelper
+  helper Admin::TicketOrdersHelper
 
   autocomplete :production, :production_code
+  autocomplete :ticket_class, :ticket_class_code
 
   def autocomplete_production_production_code
     production = Production.accessible_by(current_ability).where('(production_code like :code_term or name like :name_term) and status in (:visible_status_list)',
@@ -21,7 +25,7 @@ class Admin::TicketOrdersController < Admin::OrdersController
     if production.nil?
       render :json=>Array.new
     else
-      performances = production.performances.search_by_code(params[:term])
+      performances = self.sellable_performances_with_partial_code(production, params[:term])
       render :json => performances.map { |performance|
         {:id=>performance.id, :label=>"#{performance.performance_code} [#{performance.performance_date.to_formatted_s(:show_date)} #{performance.performance_time.to_formatted_s(:hour_min)} (#{performance.number_of_seats_left} remaining)]",
           :value=>performance.performance_code }
@@ -30,7 +34,7 @@ class Admin::TicketOrdersController < Admin::OrdersController
   end
 
   def autocomplete_ticket_line_item_ticket_class_code
-    performance = Performance.find_by_performance_code(params[:performance_code])
+    performance = Performance.accessible_by(current_ability).find_by_performance_code(params[:performance_code])
     if performance.nil?
       render :json => Array.new
     else
@@ -59,7 +63,6 @@ class Admin::TicketOrdersController < Admin::OrdersController
   end
 
   def new
-    @ticket_order = TicketOrder.new
     @ticket_order.address = Address.new
     @ticket_order.ticket_line_items.build
     @ticket_order.status = Order::NEW
@@ -81,7 +84,6 @@ class Admin::TicketOrdersController < Admin::OrdersController
   end
 
   def edit
-
   end
 
   def resend_confirmation
@@ -92,6 +94,7 @@ class Admin::TicketOrdersController < Admin::OrdersController
       format.html { render 'show', :layout=>true}
     end
   end
+
   def reprint
     if @ticket_order.fulfilled?
       @ticket_order.send_to_printer
@@ -103,15 +106,19 @@ class Admin::TicketOrdersController < Admin::OrdersController
   end
 
   def update
-    @ticket_order.attributes=params[ticket_order_params]
+    @ticket_order.payment_type = PaymentType.find(params[:ticket_order][:payment_type_id])
+    set_ticket_classes_for_line_items
     @ticket_order = process_order(@ticket_order,:edit_admin_order_path)
   end
 
   def create
-    @ticket_order = TicketOrder.new(ticket_order_params)
+    @ticket_order.payment_type = PaymentType.find(params[:ticket_order_params][:payment_type_id]) if @ticket_order.payment_type.nil?
+    @ticket_order.performance=Performance.find_by performance_code:params[:ticket_order][:performance_code]
     @ticket_order.status = Order::NEW if @ticket_order.status.nil?
+
+    set_ticket_classes_for_line_items
     time_cutoff = @ticket_order.performance.to_time_with_zone - ($SERVER_CONFIG['minutes_before_performance_close_to_third_party_sales'] || 0).minutes
-    if permitted_to?(:order_anytime, :admin_orders) || (Time.now < time_cutoff)
+    if can?(:order_anytime, TicketOrder) || (Time.now < time_cutoff)
       @ticket_order = process_order(@ticket_order,:edit_admin_ticket_order_path)
     else
       flash[:error] = "Orders for this performance must be placed through the box office after #{time_cutoff.strftime('%H:%M%p')} on #{time_cutoff.strftime('%m/%d/%y')}"
@@ -119,7 +126,23 @@ class Admin::TicketOrdersController < Admin::OrdersController
     end
   end
 
+  def set_ticket_classes_for_line_items
+    Rails.logger.debug("*** Updating from #{params[:ticket_order][:ticket_line_items_attributes].values.count}")
+    params[:ticket_order][:ticket_line_items_attributes].values.each{ |tlia|
+      Rails.logger.debug("**** Looking for ID #{tlia[:id]} code of #{tlia[:ticket_class_code]}")
+      code = tlia[:ticket_class_code]
+      found = @ticket_order.ticket_line_items.select { |tli| tli.id == tlia[:id].to_i}
+      found.each {|tli|
+        Rails.logger.debug("  **** FOUND IT")
+        use_class = @ticket_order.performance.ticket_class_allocations.select {|tca| tca.ticket_class.class_code == code && tca.available?}
+
+        tli.ticket_class = use_class.first.ticket_class unless use_class.empty?
+      }
+    }
+  end
+
   def redirect_to_proper_action
+    @ticket_order = TicketOrder.find(params[:id])
     flash.keep
      if @ticket_order.editable?
        if params[:action] != 'edit'
@@ -132,8 +155,21 @@ class Admin::TicketOrdersController < Admin::OrdersController
      end
    end
 
+   def sellable_performances_with_partial_code(production, search_term)
+    where_clause = "production_id = :production_id and LOWER(performance_code) LIKE :search_term and status in (:sellable_statuses)"
+    cannot? :sell_past_performances, TicketOrder do
+      where_clause >> ' and performance_date >= curdate()'
+    end
+    result = Performance.accessible_by(current_ability).where(where_clause,
+       production_id:production.id,
+       search_term:"%#{search_term.to_s.downcase}%",
+       sellable_statuses: Performance.sellable_statuses).order("performance_code ASC")
+   end
+
    private
-   def searched_productions
+   def ticket_order_params
+    params.require(:ticket_order).permit(*common_params, :production_code, :performance_code, :special_request,
+      ticket_line_items_attributes: [:ticket_class, :ticket_class_id, :ticket_class_code, :ticket_count] )
 
    end
 

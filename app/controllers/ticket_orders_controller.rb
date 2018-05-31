@@ -1,7 +1,7 @@
 class TicketOrdersController < ApplicationController
   layout 'ext_site_wrapper'
   include OrdersHelper
-  include TicketOrdersHelper
+
 
   append_before_filter :find_order, :only => [:show, :edit, :update, :destroy, :confirm]
   append_before_filter :redirect_to_proper_action, :only => [:edit, :show]
@@ -18,7 +18,6 @@ class TicketOrdersController < ApplicationController
 
   def create
     @order = TicketOrder.new(params[:ticket_order])
-    Rails.logger.debug('*** ' + @order.ticket_line_items.to_yaml)
     @order.ip_address = request.remote_ip
     process_order(@order,:confirm_ticket_order_path) if validate_web_order(@order)
   end
@@ -67,5 +66,11 @@ class TicketOrdersController < ApplicationController
         redirect_to(ticket_order_path(@order))
       end
     end
+  end
+
+  private
+  def ticket_order_params
+    params(:ticket_order).permit( *common_params, :performance_id, :special_request,
+      ticket_line_items: [:ticket_class_code, :ticket_count])
   end
 end

@@ -12,7 +12,7 @@ class SalesforceSync
   end
 
   def self.enabled?
-    $DATABASEDOTCOM['sync_to_salesforce']
+    $DATABASEDOTCOM.nil? ? false : $DATABASEDOTCOM['sync_to_salesforce']
   end
 
   def SalesforceSync.connect_client(client_id=nil, client_secret=nil, username=nil, password=nil, host=nil)

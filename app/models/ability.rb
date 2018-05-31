@@ -10,6 +10,7 @@ class Ability
     alias_action :flexpass_sales, :weekly_box_office, to: :reconciliation_reports
     alias_action :membership_usage, to: :membership_reports
 
+
     return if user.nil?
     # theater-specific staff
     can :read, Order
@@ -21,7 +22,7 @@ class Ability
     can [:read,:update], Theater, id: user.theater_ids
     can :read, Production, theater_id: user.theater_ids
     can :read, FlexPassOffer, theater_id: user.theater_ids
-    can :cru, Address
+    can [:cru, :autocomplete_address], Address
     can :exchange, TicketOrder
     can [:read, :show_reports], Report
     can [:autocomplete_production_production_code,
@@ -40,12 +41,13 @@ class Ability
     can :read, PaymentType
     can :manage, Theater
     can :cru, DonationOrder
-    can [:swipe_card, :confirm_credit_card,:hold,:unclaimed,:fulfill,:resent_confirmation], TicketOrder
+    can [:swipe_card, :confirm_credit_card,:hold,:mark_unclaimed,:fulfill,:resend_confirmation], TicketOrder
+    can :resend_confirmation, [TicketOrder]
     can :cru, FlexPassOrder
     can :manage, TicketClass
     can :manage, FlexPassOffer
     can :view_email, Address
-    can [:box_office_reports, :house_management_reports, :membership_reports], Report
+    can [:box_office_reports, :house_management_reports, :membership_reports, :reconciliation_reports], Report
     can [:cru,:reactivate, :cancel], MembershipOrder
     can [:read,:cru], MembershipOffer
     can :manage, SpecialFeature
@@ -55,7 +57,7 @@ class Ability
     can :read, MembershipOffer
     can :read, FlexPassOffer
     can :manage, SpecialOffer
-    can [:cancel, :reprint], TicketOrder
+    can [:cancel, :reprint, :refund, :sell_past_performances, :order_anytime], TicketOrder
     return if user.is_box_office_user?
 
     # below is for admins
@@ -63,11 +65,11 @@ class Ability
     can :delete, Production
     can :manage, PaymentType
     can :manage_system_options
-    can [:delete, :refund], [TicketOrder, DonationOrder, FlexPassOrder, MembershipOrder]
+    can [:delete], [TicketOrder, DonationOrder, FlexPassOrder, MembershipOrder]
     can [:manage, :fulfill, :refund], DonationOrder
     can :manage, User
     can :manage, MembershipOffer
-    can [:reconciliation_reports, :membership_reports, :fulfill_donations, :mine_customer_data], Report
+    can [:membership_reports, :fulfill_donations, :mine_customer_data], Report
     can :manage, DefaultTicketClass
 
   end

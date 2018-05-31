@@ -8,7 +8,7 @@ class TicketOrder < Order
   attr_accessor :selected_production
 
   has_many :ticket_line_items, :foreign_key => :order_id
-  accepts_nested_attributes_for :ticket_line_items, :allow_destroy => true
+  accepts_nested_attributes_for :ticket_line_items, allow_destroy: true
 
   SEATING_REQUESTS = (
     WHEELCHAIR, STAIRS =

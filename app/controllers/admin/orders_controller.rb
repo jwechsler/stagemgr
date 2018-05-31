@@ -1,11 +1,10 @@
 class Admin::OrdersController < Admin::ApplicationController
-  load_and_authorize_resource
+  # load_and_authorize_resource
 
   include OrdersHelper
 
-  #append_before_filter :find_order, :only => [:show, :edit, :update, :destroy, :refund, :cancel, :fulfill]
-  #append_before_filter :filter_by_allowed, :only => [:show, :edit, :update, :destroy, :refund, :cancel, :fulfill]
-  append_before_filter :redirect_to_proper_action, :only => [:edit, :show]
+  before_action :find_order, :only => [:show, :edit, :update, :destroy, :refund, :cancel, :fulfill]
+  before_action :redirect_to_proper_action, :only => [:edit, :show]
 
   VALID_SEARCH_COLUMNS = [
       'orders.id',
@@ -105,13 +104,6 @@ class Admin::OrdersController < Admin::ApplicationController
     end
   end
 
-
-  def create
-    old_status = Order::NEW
-    @order = Order.new(params[:order])
-    @order = process_order(@order,:edit_admin_order_path)
-  end
-
   def update
     @order.attributes=params[:order]
     @order = process_order(@order,:edit_admin_order_path)
@@ -165,9 +157,7 @@ class Admin::OrdersController < Admin::ApplicationController
   private
 
   def filter_by_allowed
-    @order = Order.find(params[:id])
-    permission_denied unless (Authorization.current_user.is_administrator? || Authorization.current_user.is_box_office? || Authorization.current_user.theater_ids.include?(@order.theater_id))
-
+    @order = Order.accessible_by(current_ability).find(params[:id])
   end
 
   def store_search_and_pagination_state

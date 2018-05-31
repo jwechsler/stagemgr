@@ -6,7 +6,6 @@ Feature: Box office ordering
     And I am a box office user
     And I am logged in
     And the system accepts checks
-  @wip
   Scenario: Create a credit card order
     Given I go to new admin ticket order
       And I enter production code "TEST" and performance code "PERF"
@@ -36,7 +35,7 @@ Feature: Box office ordering
       And I choose "Goldstar" as payment
       And I press "Place Order"
      Then I should see "Order was successfully saved and is now Processed"
-
+  @wip
   Scenario: Enforce ticket class requirements from external payment orders
     Given an external payment type "Goldstar" restricted to ticket classes starting with "CHEAP" exists
       And I go to new admin ticket order

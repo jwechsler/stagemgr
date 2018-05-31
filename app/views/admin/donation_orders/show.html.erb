@@ -11,9 +11,7 @@
 	<% if @donation_order.status == 'Processing' || @donation_order.status == 'Hold' || @donation_order.status == Order::NEW %>
 	<%= link_to 'Cancel Order', cancel_admin_order_path(@donation_order), :confirm => "Are you sure?", :method=>:post %>
 	<% end %>
-  <% permitted_to? :unclaimed, :admin_orders do %>
-    <%= link_to 'Unclaimed', unclaimed_admin_order_path(@donation_order) if @donation_order.fulfilled? %>
-  <%- end %>
+
 </p>
 
 <%= render :partial => '/admin/orders/audit_show', :locals=>{:order_form=>@donation_order} %>

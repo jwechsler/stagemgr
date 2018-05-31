@@ -19,7 +19,7 @@ class Admin::AutoCompleteController < Admin::ApplicationController
     if production.nil?
       render :json=>Array.new
     else
-      performances = production.performances.search_by_code(params[:q])
+      performances = sellable_performances_by_partial_code(production, params[:q])
       render :json => performances.map { |performance|
         {:code=>performance.performance_code, :name=>performance.to_s,
           :fdate=>performance.performance_date.to_formatted_s(:show_date),

@@ -13,7 +13,6 @@
 
 
 $(document).ready(function() {
-  $(document).foundation();
 
   $("input.date_picker").fdatetimepicker({
     format: 'yyyy-mm-dd',
@@ -40,5 +39,8 @@ $(document).ready(function() {
 
 });
 
+$(document).ready(function(){
+    $(".fader").hide(0).delay(500).fadeIn(3000)
+});
 
 $(function(){ $(document).foundation(); });
