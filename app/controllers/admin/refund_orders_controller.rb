@@ -1,5 +1,5 @@
 class Admin::RefundOrdersController < Admin::ApplicationController
-  filter_access_to :all
+  authorize_resource :class=>'Order'
 
   def new
     @original_order = Order.find(params[:order_id])

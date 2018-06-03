@@ -127,13 +127,10 @@ class Admin::TicketOrdersController < Admin::OrdersController
   end
 
   def set_ticket_classes_for_line_items
-    Rails.logger.debug("*** Updating from #{params[:ticket_order][:ticket_line_items_attributes].values.count}")
     params[:ticket_order][:ticket_line_items_attributes].values.each{ |tlia|
-      Rails.logger.debug("**** Looking for ID #{tlia[:id]} code of #{tlia[:ticket_class_code]}")
       code = tlia[:ticket_class_code]
       found = @ticket_order.ticket_line_items.select { |tli| tli.id == tlia[:id].to_i}
       found.each {|tli|
-        Rails.logger.debug("  **** FOUND IT")
         use_class = @ticket_order.performance.ticket_class_allocations.select {|tca| tca.ticket_class.class_code == code && tca.available?}
 
         tli.ticket_class = use_class.first.ticket_class unless use_class.empty?
@@ -142,7 +139,6 @@ class Admin::TicketOrdersController < Admin::OrdersController
   end
 
   def redirect_to_proper_action
-    @ticket_order = TicketOrder.find(params[:id])
     flash.keep
      if @ticket_order.editable?
        if params[:action] != 'edit'

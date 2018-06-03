@@ -1,5 +1,5 @@
 class Admin::OrdersController < Admin::ApplicationController
-  # load_and_authorize_resource
+  load_and_authorize_resource
 
   include OrdersHelper
 
@@ -94,13 +94,16 @@ class Admin::OrdersController < Admin::ApplicationController
   end
 
   def edit
+    debugger
     if @order.is_a? TicketOrder
       flash.keep
       redirect_to(:controller=>:ticket_orders, :action=>:show, :id=>@order.id)
     elsif @order.is_a? FlexPassOrder
       flash.keep
       redirect_to(:controller=>:flex_pass_orders, :action=>:show, :id=>@order.id)
-
+    elsif @order.is_a? DonationOrder
+      flash.keep
+      redirect_to(:controller=>:donation_orders, :action=>:show, :id=>@order.id)
     end
   end
 
