@@ -1,7 +1,7 @@
 class Admin::RefundOrdersController < Admin::ApplicationController
-  authorize_resource :class=>'Order'
 
   def new
+    authorize! :refund, Order
     @original_order = Order.find(params[:order_id])
     @refund_order = Order.new
     @refund_order.payments.build
@@ -12,6 +12,7 @@ class Admin::RefundOrdersController < Admin::ApplicationController
   end
 
   def create
+    authorize! :refund, Order
     @original_order = Order.find(params[:order_id])
     @original_order.notes = params[:order][:notes] unless params[:order].nil?
     @original_order.refund!

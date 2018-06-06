@@ -3,7 +3,7 @@ class Ability
 
   def initialize(user)
     alias_action :create, :new, to: :make
-    alias_action :read, :create, :update, to: :cru
+    alias_action :read, :create, :update, :edit, to: :cru
     alias_action :attended_dump, :daily_box_office_receipts, :fulfill_tickets, to: :box_office_reports
     alias_action :trg_dump, :production_sales_by_performance, :order_dump, to: :show_reports
     alias_action :house_management_seating, to: :house_management_reports
@@ -40,7 +40,7 @@ class Ability
     can :view_system_options
     can :read, PaymentType
     can :manage, Theater
-    can :cru, DonationOrder
+    can [:manage, :fulfill], DonationOrder
     can [:swipe_card, :confirm_credit_card,:hold,:mark_unclaimed,:fulfill,:resend_confirmation], TicketOrder
     can :resend_confirmation, [TicketOrder]
     can :cru, FlexPassOrder
@@ -57,16 +57,16 @@ class Ability
     can :read, MembershipOffer
     can :read, FlexPassOffer
     can :manage, SpecialOffer
-    can [:cancel, :reprint, :refund, :sell_past_performances, :order_anytime], TicketOrder
+    can [:cancel, :reprint, :refund, :sell_past_performances, :order_anytime], [Order, TicketOrder]
     return if user.is_box_office_user?
 
     # below is for admins
     can :delete, Theater
     can :delete, Production
     can :manage, PaymentType
+    can [:refund], [Order, DonationOrder]
     can :manage_system_options
     can [:delete], [TicketOrder, DonationOrder, FlexPassOrder, MembershipOrder]
-    can [:manage, :fulfill, :refund], DonationOrder
     can :manage, User
     can :manage, MembershipOffer
     can [:membership_reports, :fulfill_donations, :mine_customer_data], Report

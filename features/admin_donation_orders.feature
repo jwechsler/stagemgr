@@ -1,4 +1,3 @@
-@wip
 Feature: Administer donation orders
   In order manage donations
   As an administrator
