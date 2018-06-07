@@ -24,7 +24,6 @@ class PerformancesController < ApplicationController
 
         end
         @footnotes << "_custom#{p.id}" unless p.special_feature_display_markdown.blank?
-        Rails.logger.debug(@footnotes.to_yaml)
       }
       @footnotes = @footnotes.uniq
       render :index, :layout=>'ext_site_wrapper'

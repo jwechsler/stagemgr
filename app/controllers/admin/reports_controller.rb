@@ -97,8 +97,6 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def daily_box_office_receipts
-     Rails.logger.debug(params.to_yaml)
-
     @start_day = params[:start_day].to_date
     @end_day = params[:end_day].to_date
     if @start_day > @end_day then

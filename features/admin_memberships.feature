@@ -1,3 +1,4 @@
+@wip
 Feature: Membership Administration
   In order to manage memberships on the back end
   As a box office user and administrator

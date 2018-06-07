@@ -59,7 +59,7 @@ FactoryBot.define do
         find_code = FlexPass.find_by_code(evaluator.flex_pass_code).flex_pass_offer.use_ticket_class_code
         new_ticket_class = ticket_order.performance.ticket_class_allocations.select {|tca|
           tca.ticket_class.class_code == find_code }.first.ticket_class
-        TicketLineItem.find_all_by_order_id(ticket_order.id).each do |tli|
+        TicketLineItem.where(order_id: ticket_order.id).each do |tli|
           tli.ticket_class = new_ticket_class
           tli.save!
         end

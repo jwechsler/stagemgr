@@ -112,7 +112,6 @@ class Admin::AddressesController < Admin::ApplicationController
   def autocomplete_address
     cleaned_name, first_name, middle_name, last_name, first_name_2 = Address.parse_name(params[:term])
     last_name = first_name if last_name.blank?
-    Rails.logger.debug [cleaned_name, first_name, middle_name, last_name].to_yaml
     # val = params[:q].gsub(Address::SEARCHABLE_REGEXP,'').upcase
 
     #addresses = Address.where("search_name like :search_expr and id in (select address_id from orders)", {:search_expr=>'%' + val + '%'}).limit(10).order(

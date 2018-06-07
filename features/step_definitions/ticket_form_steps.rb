@@ -84,7 +84,6 @@ Given /^I enter (\d+) tickets for performance "(.*?)"$/ do |num_tix, perf_code|
   performance = Performance.find_by_performance_code(perf_code)
   @performance_code = perf_code
   ticket_class = performance.ticket_class_allocations.select{|tca| tca.ticket_class.web_visible}.first.ticket_class
-  fill_in "ticket_order_ticket_line_items_attributes_0_ticket_class_id", :with =>  ticket_class.id
   fill_in "ticket_order_ticket_line_items_attributes_0_ticket_class_code", :with =>  ticket_class.class_code
   fill_in "ticket_order_ticket_line_items_attributes_0_ticket_count", :with => num_tix
 end

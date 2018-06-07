@@ -39,6 +39,10 @@ class FlexPassOrdersController < ApplicationController
     end
 
     private
+    def flex_pass_order_params
+      params.require[:flex_pass_order].permit(*common_params)
+    end
+
     def find_order
       @order = FlexPassOrder.find(params[:id])
     end

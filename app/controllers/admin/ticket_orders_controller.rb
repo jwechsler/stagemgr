@@ -164,9 +164,7 @@ class Admin::TicketOrdersController < Admin::OrdersController
 
    private
    def ticket_order_params
-    params.require(:ticket_order).permit(*common_params, :production_code, :performance_code, :special_request,
-      ticket_line_items_attributes: [:ticket_class, :ticket_class_id, :ticket_class_code, :ticket_count] )
-
+    params.require(:ticket_order).permit(*common_params, *common_ticket_order_params)
    end
 
 end
