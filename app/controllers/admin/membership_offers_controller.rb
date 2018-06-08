@@ -2,7 +2,13 @@ class Admin::MembershipOffersController < ApplicationController
   load_and_authorize_resource
 
   def index
-
+    respond_to do |format|
+      format.html
+      format.json {
+        params.permit!
+        render json: MembershipOfferDatatable.new(params, view_context: view_context )
+      }
+    end
   end
 
   def show
@@ -38,6 +44,7 @@ class Admin::MembershipOffersController < ApplicationController
   end
 
   private
+
   def membership_offer_params
     params.require(:membership_offer).permit(:name, :recurring_cost, :email_html, :html_description, :use_ticket_class_code,
                   :use_member_friend_code, :tickets_per_performance,

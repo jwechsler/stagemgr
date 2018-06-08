@@ -4,8 +4,6 @@
 @import 'jquery/cupertino/jquery-ui-1.8.24.custom';
 @import 'font-awesome';
 @import 'foundation-icons';
-@import 'dataTables/jquery.dataTables.foundation';
-@import 'dataTables/extras/dataTables.tableTools';
 @import 'jquery.timepicker.css';
 @import 'jquery.autocomplete.css';
 
@@ -86,3 +84,4 @@ select[size], select[multiple] {
   font-weight: bold;
   font-size: 150%;
 }
+@import "datatables";

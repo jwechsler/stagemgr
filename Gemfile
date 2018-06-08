@@ -41,6 +41,7 @@ gem "braintree-rails"
 gem "mysql2", "0.4.10"
 gem "authlogic"
 gem "audited", "~> 4.7"
+gem "will_paginate"
 gem 'safe_attributes', :require=> 'safe_attributes/base'  # Used to support legacy rails 2 schema names for TrgExport model
 gem "my_emma",  "~>0.1.1", :git=>"https://github.com/jwechsler/my_emma.git"
 # or develop against "~/dev/my_emma"
@@ -153,5 +154,6 @@ end
   gem 'bourbon'
   gem 'foundation-rails'
   gem 'foundation-icons-sass-rails'
+  gem 'autoprefixer-rails'
 
 

@@ -4,8 +4,6 @@
 //= require jquery-ui/widgets/autocomplete
 //= require autocomplete-rails
 //= require dataTables/jquery.dataTables
-//= require dataTables/jquery.dataTables.foundation
-//= require dataTables/extras/dataTables.tableTools.js
 
 // setup dataTable with standard active switch selector. Call from ready state
 function setupActiveSwitchOnDataTable(table_selector, status_column_idx) {

@@ -24,17 +24,6 @@ GIT
       dry-validation (>= 0.10.4)
 
 GIT
-  remote: https://github.com/rweng/jquery-datatables-rails.git
-  revision: d486b31b192a2924b1913e080ad23460e6b96d31
-  branch: master
-  specs:
-    jquery-datatables-rails (3.4.0)
-      actionpack (>= 3.1)
-      jquery-rails
-      railties (>= 3.1)
-      sass-rails
-
-GIT
   remote: https://github.com/williamatodd/people.git
   revision: 497e903c951747301e3f9a1008025adea206a3cd
   specs:
@@ -108,6 +97,8 @@ GEM
       activesupport (>= 4.2, < 5.3)
       request_store (~> 1.0)
       scrypt (>= 1.2, < 4.0)
+    autoprefixer-rails (8.6.1)
+      execjs
     backports (3.11.3)
     bond (0.5.1)
     bourbon (5.0.0)
@@ -285,6 +276,7 @@ GEM
     i18n (0.9.5)
       concurrent-ruby (~> 1.0)
     inflecto (0.0.2)
+    jquery-datatables (1.10.16)
     jquery-rails (4.3.3)
       rails-dom-testing (>= 1, < 3)
       railties (>= 4.2.0)
@@ -542,6 +534,7 @@ DEPENDENCIES
   ajax-datatables-rails
   audited (~> 4.7)
   authlogic
+  autoprefixer-rails
   bond
   bourbon
   braintree
@@ -576,7 +569,7 @@ DEPENDENCIES
   http_logger
   httplog
   i18n
-  jquery-datatables-rails!
+  jquery-datatables
   jquery-rails
   jquery-ui-rails
   launchy
