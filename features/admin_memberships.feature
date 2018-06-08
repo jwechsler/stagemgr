@@ -1,4 +1,3 @@
-@wip
 Feature: Membership Administration
   In order to manage memberships on the back end
   As a box office user and administrator
@@ -20,11 +19,11 @@ Feature: Membership Administration
       And I go to the home page
      Then I should not see "Membership Offers"
 
-  Scenario: Non-administrators can't create membership offers
-    Given I am a box office user
+  Scenario: Non-box office staff can't create membership offers
+    Given I am a theater user
       And I am logged in
       And I go to the new admin membership offer page
-     Then I should see "You are not allowed to access this action"
+     Then I should see "You are not authorized to access this page"
 
   Scenario: Only administrators can create membership offers
     Given I am an Administrator
@@ -36,6 +35,7 @@ Feature: Membership Administration
      Then I should see "Monthly Alternate"
       And I should see "Successfully created"
 
+  @wip
   Scenario: Box office users can only view and add orders
     Given I am a box office user
       And I am logged in
@@ -46,6 +46,7 @@ Feature: Membership Administration
       And I should not see "Destroy"
       And I should not see "New Membership Offer"
 
+  @wip
   Scenario: Box office personnel can place membership orders from the offers page
     Given I am a box office user
       And I am logged in
@@ -56,6 +57,7 @@ Feature: Membership Administration
       And I press "Place Order"
      Then I should see "Customer successfully set up for the Monthly Membership payment plan"
 
+  @wip
   Scenario: Administrators can create trial memberships
     Given I am an administrator
       And I am logged in
@@ -86,6 +88,7 @@ Feature: Membership Administration
       And an address "Gift Getter" exists
     And I should see "Customer successfully set up for the Monthly Membership payment plan"
 
+  @wip
   Scenario: Members can specify requested seating
     Given I am a box office user
       And I am logged in

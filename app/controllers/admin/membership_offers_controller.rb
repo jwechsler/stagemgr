@@ -2,7 +2,7 @@ class Admin::MembershipOffersController < ApplicationController
   load_and_authorize_resource
 
   def index
-    @membership_offers = MembershipOffer.order(:status, :name).all
+
   end
 
   def show

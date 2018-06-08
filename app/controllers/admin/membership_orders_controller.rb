@@ -1,10 +1,10 @@
 class Admin::MembershipOrdersController < Admin::ApplicationController
-  filter_resource_access :additional_member=>{:reactivate=>:reactivate, :cancel=>:cancel}
+  load_and_authorize_resource
   include ::OrdersHelper
   include ::MembershipOrdersHelper
 
   def show
-    @order = MembershipOrder.find(params[:id])
+    @order = @membership_order
     begin
       @order.membership.update_from_profile!
     rescue SocketError => e
@@ -13,7 +13,7 @@ class Admin::MembershipOrdersController < Admin::ApplicationController
   end
 
   def reactivate
-    @order = MembershipOrder.find(params[:id])
+    @order = @membership_order
     begin
       result = @order.reactivate
       unless result.success?
@@ -26,7 +26,7 @@ class Admin::MembershipOrdersController < Admin::ApplicationController
   end
 
   def cancel
-    @order = MembershipOrder.find(params[:id])
+    @order = @membership_order
     begin
       result = @order.cancel
       unless result.success?
@@ -57,7 +57,9 @@ class Admin::MembershipOrdersController < Admin::ApplicationController
 
   end
 
-
-
+  private
+  def membership_order_params
+    params.require(:membership_order).permit(*common_params, *common_membership_order_params)
+  end
 
 end

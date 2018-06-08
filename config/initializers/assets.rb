@@ -1,2 +1,2 @@
 
-Rails.application.config.assets.precompile += %w( backend.css admin_application.js )
+Rails.application.config.assets.precompile += %w( backend.css admin_application.js frontend.css )

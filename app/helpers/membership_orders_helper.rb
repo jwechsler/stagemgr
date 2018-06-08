@@ -45,6 +45,11 @@ module MembershipOrdersHelper
     success
   end
 
+  def common_membership_order_params
+    [:membership_offer_id]
+  end
+
+
   private
   def recurring_response(membership_offer, credit_card, ip, order_id, email, start_date = Date.today)
     start_date ||= Date.today

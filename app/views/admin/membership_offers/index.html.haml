@@ -4,7 +4,6 @@
   %ul.breadcrumbs
     %li.current
       %a{:href=>'#'} Membership Offers
-
 .row
   .small-12.columns
     %table#membership-offer-listing.hide.display
@@ -16,7 +15,7 @@
           %th.hide Status
           %th
       %tbody
-        - for membership_offer in @membership_offers
+        - @membership_offers.each do |membership_offer|
           %tr
             %td= link_to membership_offer.name, [:admin, membership_offer]
             %td.currency= number_to_currency(membership_offer.recurring_cost)
@@ -25,14 +24,14 @@
             %td
               .button-bar
                 %ul.button-group
-                  %li= link_to("Edit", edit_admin_membership_offer_path(membership_offer), :class=>"tiny button") if permitted_to? :edit, :admin_membership_offers
-                  %li= link_to("Destroy", [:admin, membership_offer], :confirm => 'Are you sure?', :method => :delete, :class=>"tiny alert button") if permitted_to? :destroy, :admin_membership_offers
+                  %li= link_to("Edit", edit_admin_membership_offer_path(membership_offer), :class=>"tiny button") if can? :edit, MembershipOffer
+                  %li= link_to("Destroy", [:admin, membership_offer], :confirm => 'Are you sure?', :method => :delete, :class=>"tiny alert button") if can? :delete, MembershipOffer
                 %ul.button-group
                   - if membership_offer.active?
                     = link_to "Create Order", new_admin_membership_offer_order_path(membership_offer), :class=>'tiny button'
                   - else
                     %a.tiny.button.disabled{:href=>'#'} Create Order
-    = link_to "New Membership Offer", new_admin_membership_offer_path, :class=>'button' if permitted_to? :create, :admin_membership_offers
+    = link_to "New Membership Offer", new_admin_membership_offer_path, :class=>'button' if can? :create, MembershipOffer
 
 = content_for :js do
   :javascript
