@@ -25,7 +25,10 @@
         "processing": true,
         "serverSide": true,
         "ajax": $('#membership-offer-listing').data('source'),
-        pagingType: 'full_numbers',
+        "pagingType": 'full_numbers',
+        "language": {
+          "lengthMenu" : "_MENU_ entries"
+        },
         columns: [
           {data: 'name'},
           {data: 'cost'},

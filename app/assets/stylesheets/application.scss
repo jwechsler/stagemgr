@@ -6,6 +6,7 @@
 @import 'foundation-icons';
 @import 'jquery.timepicker.css';
 @import 'jquery.autocomplete.css';
+@import 'datatables';
 
 .strike {
     text-decoration: line-through;
@@ -38,7 +39,6 @@ form > .vertical-center {
   margin-left:auto;
   margin-right:auto;
   display:block
-
 }
 
 select {
