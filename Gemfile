@@ -111,7 +111,7 @@ end
 
 group :test,:cucumber do
   gem 'capybara'
-  gem 'capybara-webkit'
+  gem 'capybara-webkit', :git=>'https://github.com/thoughtbot/capybara-webkit.git', :ref=>'778ec7f43cd1e8de272c2fc7023ce9d52fa74f9d'
   gem 'sqlite3'
   gem 'cucumber-rails', :require=>false
   gem 'test-unit'

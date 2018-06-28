@@ -35,7 +35,6 @@ Feature: Membership Administration
      Then I should see "Monthly Alternate"
       And I should see "Successfully created"
 
-  @wip
   Scenario: Box office users can only view and add orders
     Given I am a box office user
       And I am logged in
@@ -46,7 +45,7 @@ Feature: Membership Administration
       And I should not see "Destroy"
       And I should not see "New Membership Offer"
 
-  @wip
+  @wip @javascript
   Scenario: Box office personnel can place membership orders from the offers page
     Given I am a box office user
       And I am logged in
@@ -55,9 +54,10 @@ Feature: Membership Administration
       And I enter my contact information
       And I enter a valid credit card as payment
       And I press "Place Order"
+      And show me the page
      Then I should see "Customer successfully set up for the Monthly Membership payment plan"
 
-  @wip
+  
   Scenario: Administrators can create trial memberships
     Given I am an administrator
       And I am logged in

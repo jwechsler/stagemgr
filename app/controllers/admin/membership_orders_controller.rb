@@ -39,8 +39,9 @@ class Admin::MembershipOrdersController < Admin::ApplicationController
   end
 
   def create
-
-    success = create_membership
+    Rails.logger.debug ("*** Passed order ***")
+    Rails.logger.debug(@membership_order.to_yaml)
+    success = create_membership(@membership_order)
 
     if success
       flash[:notice] = raw "Customer successfully set up for the <strong>#{@order.membership_offer.name}</strong> payment plan."

@@ -49,7 +49,7 @@ class Ability
     can :view_email, Address
     can [:box_office_reports, :house_management_reports, :membership_reports, :reconciliation_reports], Report
     can [:create, :read, :reactivate, :cancel], MembershipOrder
-    can [:read,:cru], MembershipOffer
+    can [:read,:edit], MembershipOffer
     can :manage, SpecialFeature
     can :manage, SpecialOffer
     can :cru, DonationOrder
@@ -63,6 +63,7 @@ class Ability
     # below is for admins
     can :delete, Theater
     can :delete, Production
+    can :manage, MembershipOffer
     can :manage, PaymentType
     can [:refund], [Order, DonationOrder]
     can :manage_system_options

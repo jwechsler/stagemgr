@@ -26,8 +26,8 @@ class MembershipOfferDatatable < AjaxDatatablesRails::Base
         id: record.id,
         name: link_to(record.name, [:admin, record]),
         cost: number_to_currency(record.recurring_cost),
-        on_sale: record.on_sale,
-        status: record.status,
+        on_sale: record.on_sale? ? '√' : '',
+        status: record.active? ? link_to("Create Order", [:new, :admin, record, :order] ) : '(Inactive)',
         DT_RowID: record.id,
      }
     end

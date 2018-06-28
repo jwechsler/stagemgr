@@ -115,7 +115,7 @@ Then(/^a special offer with code "(.*?)" for (\d+)% off is found$/) do |code, pe
 end
 
 Then /^a special offer called ['"](.*?)["'] is found$/ do |code|
-  count = SpecialOffer.find_all_by_code(code).count
+  count = SpecialOffer.where(code: code).count
   raise "More than one special offer called #{code} found" if count > 1
   raise "No special offer called \"#{code}\" found" if count == 0
 end
@@ -125,7 +125,7 @@ Then /^an address "(.*?)" exists$/ do |name|
 end
 
 Then /^a membership_offer should exist with trial_period of (\d+)$/ do |period|
-  MembershipOffer.find_all_by_trial_period(period).count == 1
+  MembershipOffer.where(period: period).count == 1
 end
 
 Then /^a membership exists with "(.*?)" as preferred seating$/ do |preferred_seating|
