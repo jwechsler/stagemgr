@@ -1,5 +1,3 @@
-require "active_merchant/billing/rails"
-
 module PaymentProcessing
 
 
@@ -7,22 +5,16 @@ module PaymentProcessing
 
     PROFILE_ID = 'TEST_PROFILE_ID'
 
-
-    def authorization
-      '12345'
-    end
-
   end
 
   class BogusGateway < ActiveMerchant::Billing::BogusGateway
     class_attribute :profiles
 
-    def purchase(money, creditcard, options = {})
-      response = super(money, creditcard, options)
-    end
+
 
     def recurring(money, credit_card, options={})
-      response = self.purchase(money, credit_card, options)
+      response = purchase(money, credit_card, options)
+      # response = BogusResponse.new(true, "", options)
       response.params['profile_id'] = BogusResponse::PROFILE_ID
       response.params['profile_status'] = 'ActiveProfile'
       BogusGateway.profiles = Hash.new if BogusGateway.profiles.nil?
@@ -37,11 +29,12 @@ module PaymentProcessing
           'final_payment_due_date'=>(options[:start_date].to_date + options[:total_billing_cycles].to_i.months)
         }).merge(options)
       end
+      Rails.logger.debug("*** #{response.to_yaml}")
       response
     end
 
     def status_recurring(profile_id)
-      r = ActiveMerchant::Billing::Response.new(true, "Forced Response", {}, {})
+      r = BogusResponse.new(true, "Forced Response")
       r.params['profile_id'] = profile_id
       r.params['profile_status'] = 'ActiveProfile'
       r.params.merge!(BogusGateway.profiles[profile_id])

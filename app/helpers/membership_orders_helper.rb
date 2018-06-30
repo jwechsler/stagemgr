@@ -6,7 +6,7 @@ module MembershipOrdersHelper
     begin
       MembershipOrder.transaction do
         # order = MembershipOrder.new(membership_order_params)
-       
+
         order.ip_address = request.remote_ip
         order.transition_to!(Order::PROCESSING)
 
@@ -20,8 +20,9 @@ module MembershipOrdersHelper
                                :trial_cycles    => membership_offer.trial_period
                              }
         membership = order.membership
+
         response = RecurringProfile.create_recurring_profile(order,
-                                            order.gift? ? order.gift_date : Date.today,
+                                            (order.gift? && !order.gift_date.blank?) ?  order.gift_date : Date.today,
                                             membership_offer.recurring_cost,
                                             membership_offer.billing_agreement, 1,
                                             additional_options)
@@ -40,13 +41,14 @@ module MembershipOrdersHelper
     rescue Exception=> e
       success = false
       flash[:error] = e.message
-      Rails.logger.error(e.backtrace)
+      Rails.logger.error("Membership Order failed: #{e.message}")
+      Rails.logger.error(e.backtrace.join('/n'))
     end
     success
   end
 
   def common_membership_order_params
-    [:membership_offer_id, :special_request, :gift, :recipient_name, :recipient_email, :gift_date, membership_line_items_attributes: [:membership_offer_id] ] << common_params 
+    [:membership_offer_id, :special_request, :gift, :recipient_name, :recipient_email, :gift_date, membership_line_items_attributes: [:membership_offer_id] ] << common_params
   end
 
 

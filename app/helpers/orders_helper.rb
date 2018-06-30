@@ -39,13 +39,12 @@ module OrdersHelper
     result
   end
 
-  private
-
+  public
   def common_params
     [:special_offer_code, :hold_under, :payment_type_id, :credit_card_type,
       :credit_card_number, :credit_card_expiration_month, :credit_card_expiration_year,
       :credit_card_verification_number, :credit_card_swipe, :credit_card_confirmation_code,
-      :flex_pass_code, :member_code, :check_number, :add_to_email_list, :marketing_source, :notes,
+      :flex_pass_code, :member_code, :check_number, :add_to_email_list, :marketing_source, :notes, :status,
       address_attributes: [:full_name, :email, :phone, :line1, :line2, :city, :state, :zipcode]]
   end
 

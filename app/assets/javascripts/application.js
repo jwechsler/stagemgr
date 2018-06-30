@@ -1,7 +1,7 @@
 //= require jquery
 //= require jquery_ujs
 //= require datatables
-//= require jquery-ui
+//= require jquery-ui/widgets/datepicker
 //= require foundation
 //= require foundation/foundation.topbar
 //= require foundation-datetimepicker
@@ -15,11 +15,15 @@
 
 $(document).ready(function() {
 
-  $("input.date_picker").fdatetimepicker({
-    format: 'yyyy-mm-dd',
-    minView: 2,
-    pickTime: false
-  })
+  $(function() {
+    $('.datepicker').datepicker({ dateFormat: 'yy-mm-dd' });
+  });
+
+  // $("input.date_picker").fdatetimepicker({
+  //   format: 'yyyy-mm-dd',
+  //   minView: 2,
+  //   pickTime: false
+  // })
 
   $('input.time_picker').timepicker({
     step:15,

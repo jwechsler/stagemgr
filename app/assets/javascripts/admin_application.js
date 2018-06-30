@@ -2,6 +2,7 @@
 //= require admin/orders_common
 //= require cocoon
 //= require jquery-ui/widgets/autocomplete
+//= require jquery-ui/widgets/datepicker
 //= require autocomplete-rails
 //= require dataTables/jquery.dataTables
 

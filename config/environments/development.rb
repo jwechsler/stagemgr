@@ -51,6 +51,10 @@ Stagemgr::Application.configure do
     ActiveMerchant::Billing::Base.mode = :test
     PaymentProcessing.after_initialize
     MyEmma.set_credentials_from_yaml("#{self.root.to_s}/config/my_emma_credentials.yml")
+    HttpLog.configure do |config|
+      config.logger = Rails.logger
+    end
+
   end
 
   config.external_site_root = 'file:///Users/jeremyw/dev/site'
@@ -64,9 +68,6 @@ Stagemgr::Application.configure do
   config.action_mailer.default_url_options = { host: $SERVER_CONFIG['host'], protocol: $SERVER_CONFIG['host_protocol'] }
 
   Paperclip.options[:log] = true
-  HttpLog.configure do |config|
-    config.logger = Rails.logger
-  end
 
 end
 

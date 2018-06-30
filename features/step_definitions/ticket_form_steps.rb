@@ -31,6 +31,7 @@ end
 Given /^I enter a gift recipient$/ do
   fill_in "Recipient name", :with=>"Gift Getter"
   fill_in "Recipient email", :with=>"test@theaterwit.org"
+  fill_in :membership_order_gift_date, :with=>Date.today
 end
 
 When /^I prefer "(.*?)" seating$/ do |seating_preference|

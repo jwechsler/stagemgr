@@ -6,6 +6,7 @@ Feature: Box office ordering
     And I am a box office user
     And I am logged in
     And the system accepts checks
+  @wip
   Scenario: Create a credit card order
     Given I go to new admin ticket order
       And I enter production code "TEST" and performance code "PERF"

@@ -2,9 +2,7 @@ require 'http_logger'
 class Admin::TicketOrdersController < Admin::OrdersController
   load_and_authorize_resource
 
-
   helper TicketOrdersHelper
-  helper Admin::TicketOrdersHelper
 
   autocomplete :production, :production_code
   autocomplete :ticket_class, :ticket_class_code
@@ -162,9 +160,14 @@ class Admin::TicketOrdersController < Admin::OrdersController
        sellable_statuses: Performance.sellable_statuses).order("performance_code ASC")
    end
 
-   private
-   def ticket_order_params
-    params.require(:ticket_order).permit(*common_params, *common_ticket_order_params)
-   end
+  protected
+
+  private
+  def ticket_order_params
+    params.require(:ticket_order).permit(*(
+      common_params+[:production_code, :performance_code, :special_request,
+        ticket_line_items_attributes: [:ticket_class, :ticket_class_id, :ticket_class_code, :ticket_count]])
+    )
+  end
 
 end

@@ -84,16 +84,17 @@ Then /^the order should have an email task$/ do
   raise "Expected one email task, got #{count}" if count != 1
 end
 
-Then /^an? membership order exists for "(.*?)"$/ do |name|
-  raise "No order found for #{name}" if Order.includes(:address).where('addresses.full_name = ?', name).count == 0
+Then /^a membership order exists for "(.*?)"$/ do |name|
+  address = Address.where(full_name: name).reload.first
+  puts address.to_yaml
+  orders = MembershipOrder.where(address_id: address.id)
+  puts orders.to_yaml
+  raise "No order found for #{name}" unless orders.size > 0
 end
 
 
 Then /^a membership exists with status "(.*?)"$/ do |status|
-  count = Membership.count
-  raise "More than one membership found" if count > 1
-  raise "No memberships created" if count == 0
-  membership = Membership.find_by_status(status)
+  membership = Membership.where(status: status)
   raise "No such membership \"#{status}\" found.  Found only #{Membership.all.map { |m| m.status}.join(',')}" if membership.nil?
 end
 
@@ -105,7 +106,7 @@ Then /^a membership exists with current status "(.*?)"$/ do |status|
 end
 
 Then /^a membership order exists with a gift recipient "(.*?)"$/ do |name|
-  order = MembershipOrder.find_by_recipient_name(name)
+  order = MembershipOrder.where(recipient_name: name)
   raise "No membership with gift recipient \"#{name}\" found. Only found #{Address.all.map{|a| a.full_name}}" if order.nil?;
 end
 
@@ -125,11 +126,16 @@ Then /^an address "(.*?)" exists$/ do |name|
 end
 
 Then /^a membership_offer should exist with trial_period of (\d+)$/ do |period|
-  MembershipOffer.where(period: period).count == 1
+  MembershipOffer.where(trial_period: period).count == 1
 end
 
 Then /^a membership exists with "(.*?)" as preferred seating$/ do |preferred_seating|
-  raise "Found #{Membership.find_all_by_preferred_seating(preferred_seating).count} memberships with #{preferred_seating} preferred seating" unless Membership.find_all_by_preferred_seating(preferred_seating).count == 1
+
+    seats = Membership.where("1=1")
+    puts seats.to_yaml
+    seats.each {|s| puts s.preferred_seating}
+    seats = seats.select{|m| m.preferred_seating.eql?(preferred_seating)}
+    raise "Found #{seats.size} memberships with \'#{preferred_seating}\' seating" if seats.size == 0
 end
 
 Given /^the system accepts currency$/ do
