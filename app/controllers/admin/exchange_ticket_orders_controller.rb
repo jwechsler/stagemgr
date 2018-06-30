@@ -40,6 +40,6 @@ class Admin::ExchangeTicketOrdersController < Admin::ApplicationController
 
   private
   def ticket_order_params
-    params.require(:ticket_order).permit(*common_params, *common_ticket_order_params)
+    params.require(:ticket_order).permit(*common_params, *ticket_order_params_list)
   end
 end

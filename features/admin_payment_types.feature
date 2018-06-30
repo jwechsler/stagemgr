@@ -6,6 +6,7 @@ Feature: Payment Types Administration
     And I am an Administrator
     And I am logged in
 
+
   Scenario: Payment Types exists under the System Options page
     Given I go to the system options page
     Then I should see "Manage Payment Types"

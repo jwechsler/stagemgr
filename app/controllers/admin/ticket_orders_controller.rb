@@ -2,7 +2,7 @@ require 'http_logger'
 class Admin::TicketOrdersController < Admin::OrdersController
   load_and_authorize_resource
 
-  helper TicketOrdersHelper
+  include TicketOrdersHelper
 
   autocomplete :production, :production_code
   autocomplete :ticket_class, :ticket_class_code
@@ -165,8 +165,7 @@ class Admin::TicketOrdersController < Admin::OrdersController
   private
   def ticket_order_params
     params.require(:ticket_order).permit(*(
-      common_params+[:production_code, :performance_code, :special_request,
-        ticket_line_items_attributes: [:ticket_class, :ticket_class_id, :ticket_class_code, :ticket_count]])
+      common_params+ticket_order_params_list)
     )
   end
 

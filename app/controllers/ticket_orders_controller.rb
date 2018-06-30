@@ -1,7 +1,6 @@
 class TicketOrdersController < ApplicationController
   layout 'ext_site_wrapper'
   include OrdersHelper
-  includce TicketOrdersHelper
 
   append_before_filter :find_order, :only => [:show, :edit, :update, :destroy, :confirm]
   append_before_filter :redirect_to_proper_action, :only => [:edit, :show]
@@ -71,8 +70,7 @@ class TicketOrdersController < ApplicationController
   private
   def ticket_order_params
     params(:ticket_order).permit(*(
-            common_params+[:production_code, :performance_code, :special_request,
-              ticket_line_items_attributes: [:ticket_class, :ticket_class_id, :ticket_class_code, :ticket_count]])
+            common_params+ticket_order_params_list)
     )
   end
 end
