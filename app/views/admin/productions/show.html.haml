@@ -27,8 +27,8 @@
           .small-12.columns
             %h3 Performances
             = render :partial => 'performance_listing'
-
-            - permitted_to? :create, :performances do
+            Hello!
+            - can? :create, Performance do
               = link_to 'Add performance', new_admin_theater_production_performance_path(@production.theater, @production), class: 'small button right'
 
 
@@ -98,6 +98,6 @@
               %h5 No custom notifications defined
 
   .small-12.columns
-    - if permitted_to? :update, :productions
+    - if can? :update, Production
       = link_to 'Edit', edit_admin_theater_production_path(@production.theater, @production), :class=>'button'
 

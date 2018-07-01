@@ -1,19 +1,21 @@
 class Admin::TheatersController < Admin::ApplicationController
   before_filter :remove_empty_logo
-
-  filter_resource_access      # also sets up @theater object
+  load_and_authorize_resource
 
   before_filter :find_context, :only=>:show
   def index
-    @theaters = Theater.find(:all).sort_by{|t| [t.status, t.theater_class, t.name]}
+    @theaters = @theaters.sort_by{|t| [t.status, t.theater_class, t.name]}
 
-    if Authorization.current_user.is_theater_user?
-      @theaters = @theaters.select{|t| Authorization.current_user.theaters.include?(t)}
+    if current_user.is_theater_user?
+      @theaters = @theaters.select{|t| current_user.theaters.include?(t)}
     end
 
     respond_to do |format|
       format.html # index.html.erb
-      format.xml  { render :xml => @theaters }
+      format.json {
+        params.permit!
+        render json: TheaterDatatable.new(params, view_context: view_context, current_user: current_user )
+      }
     end
   end
 

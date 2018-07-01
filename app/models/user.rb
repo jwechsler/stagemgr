@@ -3,6 +3,8 @@ class User < ActiveRecord::Base
   has_many :file_stores
   validates_presence_of :email
   validates_uniqueness_of :email
+  # proxy ability queries to user objects
+  delegate :can?, :cannot?, :to => :ability
 
   ROLES                                 = (
   ADMIN, BOXOFFICE, THEATERUSER  = "Administrator", "Box Office", "Producer"
@@ -65,6 +67,12 @@ class User < ActiveRecord::Base
       allowed += tags
     end
     allowed
+  end
+
+  # cancancan delegator for testing privileges in non-controllers
+
+  def ability
+    @ability ||= Ability.new(self)
   end
 
 end

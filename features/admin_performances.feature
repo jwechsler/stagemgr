@@ -12,8 +12,10 @@ Feature: Box office users can manage performances
     Given I go to the admin production detail page for "Production One"
     Then I should see "PERF"
 
+  @wip
   Scenario: There is a New Performance link on the Performance Listing Page
     Given I go to the admin production detail page for "Production One"
+     And show me the page
     Then I should see "Add performance"
 
   Scenario: Add a performance (All fields)

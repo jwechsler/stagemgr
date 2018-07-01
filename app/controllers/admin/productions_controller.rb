@@ -2,7 +2,7 @@ class Admin::ProductionsController < Admin::ApplicationController
   prepend_before_filter :find_theater
   append_before_filter :find_production, :only => [:show, :edit, :update, :destroy]
   append_before_filter :find_context, :only => [:show]
-  filter_resource_access
+  load_and_authorize_resource
 
   # GET /productions/1
   # GET /productions/1.xml

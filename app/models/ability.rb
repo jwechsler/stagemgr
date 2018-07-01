@@ -24,6 +24,7 @@ class Ability
     can :read, FlexPassOffer, theater_id: user.theater_ids
     can [:cru, :autocomplete_address], Address
     can :exchange, TicketOrder
+    can :read, Performance
     can [:read, :show_reports], Report
     can [:autocomplete_production_production_code,
             :autocomplete_performance_performance_code,
@@ -35,7 +36,7 @@ class Ability
 
     # below is for box office staff
     can :cru, FlexPassOrder
-    can [:manage, :duplicate], Performance
+    can [:manage, :duplicate, :create], Performance
     can [:manage, :duplicate], Production
     can :view_system_options
     can :read, PaymentType
@@ -58,6 +59,7 @@ class Ability
     can :read, FlexPassOffer
     can :manage, SpecialOffer
     can [:cancel, :reprint, :refund, :sell_past_performances, :order_anytime], [Order, TicketOrder]
+
     return if user.is_box_office_user?
 
     # below is for admins

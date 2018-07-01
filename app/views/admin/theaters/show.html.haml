@@ -32,5 +32,5 @@
   .small-12.columns
     %ul.button-group
       %li= link_to 'Back', admin_theaters_path, class: 'button'
-      - permitted_to? :update, :theaters do
+      - can? :update, Theater do
         %li= link_to 'Edit Theater', edit_admin_theater_path, class: 'button'

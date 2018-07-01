@@ -101,6 +101,11 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  # delegates current_abillity for cancancan to current_user
+  def current_ability
+    current_user.ability
+  end
+
   private
     def current_user_session
       return @current_user_session if defined?(@current_user_session)
@@ -122,4 +127,5 @@ class ApplicationController < ActionController::Base
       redirect_to(session[:return_to] || default)
       session[:return_to] = nil
     end
+
 end
