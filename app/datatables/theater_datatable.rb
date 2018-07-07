@@ -16,27 +16,17 @@ class TheaterDatatable < AjaxDatatablesRails::Base
 
   def additional_data
     {
-      actions: 'Hello'
+      actions: ''
     }
   end
 
-  def allowed_buttons(theater)
-    actions = ""
-    if current_user.can? :edit, Theater then
-      actions += link_to('Edit', [:edit, :admin, theater], :id=>"edit_#{theater.name.downcase.gsub(' ','_')}", :class=>'small button')
-    end
-    if current_user.can? :destroy, Theater
-      actions += link_to('Destroy', [:admin, theater], :confirm => 'Are you sure?', :method => :delete, :class=>'small button')
-    end
-    actions
-  end
 
   def data
     records.map do |record|
       {
         id: record.id,
         name: link_to(record.name, [:admin, record]),
-        home: link_to(record.url),
+        home: link_to("web",record.url),
         theater_class: record.theater_class,
         actions:
           (current_user.can?(:edit, record) ? link_to('Edit', [:edit, :admin, record], :id=>"edit_#{record.name.downcase.gsub(' ','_')}", :class=>'tiny  button') + " " : "") +
@@ -55,7 +45,8 @@ class TheaterDatatable < AjaxDatatablesRails::Base
 
   def get_raw_records
     theaters = Theater.all
-    # insert query here
+    theaters = theaters.select{|t| current_user.theaters.include?(t)} if current_user.is_theater_user?
+    theaters
   end
 
   def current_user

@@ -27,9 +27,7 @@
           .small-12.columns
             %h3 Performances
             = render :partial => 'performance_listing'
-            Hello!
-            - can? :create, Performance do
-              = link_to 'Add performance', new_admin_theater_production_performance_path(@production.theater, @production), class: 'small button right'
+            = link_to('Add performance', new_admin_theater_production_performance_path(@production.theater, @production), class: 'small button right') if can? :create, Performance
 
 
         #prodpanel-2.content

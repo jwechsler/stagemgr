@@ -40,3 +40,8 @@ Given /^I log out$/ do
   page.driver.submit :delete, path_to("the logout page"), {}
 end
 
+Given "debugger" do
+  byebug
+  true
+end
+

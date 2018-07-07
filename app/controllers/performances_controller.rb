@@ -15,7 +15,7 @@ class PerformancesController < ApplicationController
       ).where(
         'performances.status in (?) and performances.performance_date >= ? and performances.performance_date <= ?',
         Performance.visible_statuses, @start_date, @end_date
-      ).order(:performance_date: :asc, :performance_time: :asc)
+      ).order(:performance_date=>:asc, :performance_time=>:asc)
       @footnotes = Array.new
       @performances.each {|p|
         unless p.special_features.empty?

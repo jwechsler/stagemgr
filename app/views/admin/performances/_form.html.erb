@@ -25,7 +25,7 @@
       <%= f.input :order_url_override, :hint=>"Process sales for this performance outside stagemgr" %>
     </div>
     <div class="small-6 medium-4 columns">
-      <%= f.association :special_features, :as=>:check_boxes, :collection=>SpecialFeature.find_all_by_status(SpecialFeature::ACTIVE, :order=>:short_name), :member_label=>:short_name %>
+      <%= f.association :special_features, :as=>:check_boxes, :collection=>SpecialFeature.where(status:SpecialFeature::ACTIVE).order(:short_name), :member_label=>:short_name %>
       <%= f.input :special_feature_display_markdown, :label=>"Custom Special Feature" ,:input_html => {:rows => 3}, :hint=>"For web site display, markdown enabled" %>
       <%= f.input :special_feature_email_markdown, :label=>"Custom Email", :input_html => {:rows => 4}, :hint=>"Custom text to override feature information in emails, markdown enabled" %>
     </div>

@@ -6,6 +6,7 @@
 //= require autocomplete-rails
 //= require dataTables/jquery.dataTables
 
+
 // setup dataTable with standard active switch selector. Call from ready state
 function setupActiveSwitchOnDataTable(table_selector, status_column_idx) {
   $("div.toolbar-buttons").html('<a style="margin-right:6px; width:10em;" id="active-switch" href="#" class="tiny button right" >Active</a>');
