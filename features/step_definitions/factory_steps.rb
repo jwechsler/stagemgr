@@ -111,7 +111,7 @@ Then /^a membership order exists with a gift recipient "(.*?)"$/ do |name|
 end
 
 Then(/^a special offer with code "(.*?)" for (\d+)% off is found$/) do |code, percent|
-  count = PercentOffSpecialOffer.find_all_by_code(code).select! {|offer| offer.code == code}
+  count = PercentOffSpecialOffer.where(code:code).size
   raise "No percent off special offer called \"#{code}\" found" if count == 0
 end
 

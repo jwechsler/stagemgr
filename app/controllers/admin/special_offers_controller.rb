@@ -1,12 +1,12 @@
 class Admin::SpecialOffersController < Admin::ApplicationController
-  filter_resource_access
+  authorize_resource
 
   def new
     @special_offer = SpecialOffer.new
   end
 
   def create
-    @special_offer = SpecialOffer.new(params[:special_offer])
+    @special_offer = SpecialOffer.new(special_offer_params)
     @special_offer.type = params[:special_offer][:type]
     if @special_offer.save
       redirect_to admin_special_offers_path, :notice=>"Created new special offer '#{@special_offer.code}'"
@@ -27,7 +27,7 @@ class Admin::SpecialOffersController < Admin::ApplicationController
     @special_offer = SpecialOffer.find(params[:id])
     key = :special_offer
     object_type = [:percent_off_special_offer, :amount_off_special_offer, :ticket_class_special_offer].select {|t| params.has_key?(t)}.first
-    @special_offer.attributes=params[object_type].dup.slice!(:type)
+    @special_offer.update_attributes(special_offer_params(object_type))
     @special_offer.limiting_model_type=params[object_type][:limiting_model_type]
     @special_offer.limiting_id = params[object_type][:limiting_id]
 
@@ -38,19 +38,28 @@ class Admin::SpecialOffersController < Admin::ApplicationController
       render :edit
     end
 
-
   end
 
   def show
-    @special_offer = SpecialOffer.find(params[:id])
   end
 
   def index
-    t_ids = Theater.where("status != 'Inactive'").map {|x| x.id}
-    prod_ids = Production.where("status != 'Inactive'").map {|x| x.id}
-    perf_ids = Performance.where("status != 'Inactive' and production_id in (?)",prod_ids).map {|x| x.id}
+    respond_to do |format|
+      format.html
+      format.json {
+        params.permit!
+        render json: SpecialOfferDatatable.new(params, view_context: view_context )
+      }
+    end
+  end
 
-    @special_offers = SpecialOffer.where("system_generated = 0 and (theater_id in (?) or performance_id in (?)  or production_id in (?) or (theater_id is null and performance_id is null and production_id is null))",t_ids,perf_ids,prod_ids).order("code, performance_id, production_id, theater_id")
-    render :index
+  private
+  def special_offer_params(object_type=:special_offer)
+    params.require(object_type).permit(
+      :code, :type, :status, :limiting_model_type, :limiting_id, :amount,
+      :change_ticket_class_code, :ticket_class_code, :performance_start_range, :performance_end_range,
+      :restricted_monday, :restricted_tuesday, :restricted_wednesday, :restricted_thursday, :restricted_friday,
+      :restricted_saturday, :restricted_sunday, :auto_start, :auto_expire, :number_of_uses,
+      :max_tickets_per_order)
   end
 end

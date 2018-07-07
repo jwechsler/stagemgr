@@ -43,10 +43,10 @@
         %li.has-dropdown
           %a{:href=>"#"} Options
           %ul.dropdown
-            - if can? :read, SpecialOffer
+            - if can? :edit, SpecialOffer
               %li
                 =link_to('Special Offers', admin_special_offers_path)
-            - if (can? :read, User) || (can? :read, SpecialFeature) || (can? :read, DefaultTicketClass) || (can? :read, PaymentType) || (can? :read, FileStore)
+            - if (can? :edit, User) || (can? :edit, SpecialFeature) || (can? :edit, DefaultTicketClass) || (can? :edit, PaymentType) || (can? :read, FileStore)
               %li
                 %label System Config
                 - if can? :read, User

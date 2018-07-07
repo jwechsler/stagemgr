@@ -57,7 +57,6 @@ class Ability
     can [:read, :cru, :mailing_cards], FileStore
     can :read, MembershipOffer
     can :read, FlexPassOffer
-    can :manage, SpecialOffer
     can [:cancel, :reprint, :refund, :sell_past_performances, :order_anytime], [Order, TicketOrder]
 
     return if user.is_box_office_user?

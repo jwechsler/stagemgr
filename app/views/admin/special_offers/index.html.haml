@@ -1,0 +1,49 @@
+= content_for :title do
+  Special Offers
+= content_for :breadcrumbs do
+  %ul.breadcrumbs
+    %li.current
+      %a{:href=>'#'} Special Offers
+
+.row
+  .small-12.columns
+    %table#special_offer_listing{:data=>{:source=>"#{admin_special_offers_path(format: :json)}"}}
+      %thead
+        %tr
+          %th Code
+          %th Description
+          %th # Uses
+          %th Status
+          %th Expires
+      %tbody
+
+.row
+  .small-12.columns
+    = link_to 'Add special offer', new_admin_special_offer_path, class: 'small button right'
+
+= content_for :js do
+  :javascript
+    $(document).ready(function() {
+      $('#special_offer_listing').dataTable({
+        // dom: 'lf<"toolbar-buttons">rtip',
+
+        "processing": true,
+        "serverSide": true,
+        "stateSave": true,
+        "ajax": $('#special_offer_listing').data('source'),
+        "pagingType": 'full_numbers',
+        "language": {
+          "lengthMenu" : "_MENU_"
+        },
+        columns: [
+          {data: 'code'},
+          {data: 'description'},
+          {data: 'number_of_uses'},
+          {data: 'status'},
+          {data: 'expires'},
+        ]
+      });
+
+      // setupActiveSwitchOnDataTable('#special-offer-listing',3)
+
+    });
