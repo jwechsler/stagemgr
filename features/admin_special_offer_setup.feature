@@ -1,4 +1,3 @@
-@wip
 Feature: Administer Special Offers
   In order manage special offers
   As an box office user
