@@ -37,7 +37,7 @@ class Ability
     # below is for box office staff
     can :cru, FlexPassOrder
     can [:manage, :duplicate, :create], Performance
-    can [:manage, :duplicate], Production
+    can [:read, :create, :edit, :update, :duplicate], Production
     can :view_system_options
     can :read, PaymentType
     can :manage, Theater
@@ -62,8 +62,6 @@ class Ability
     return if user.is_box_office_user?
 
     # below is for admins
-    can :delete, Theater
-    can :delete, Production
     can :manage, MembershipOffer
     can :manage, PaymentType
     can [:refund], [Order, DonationOrder]

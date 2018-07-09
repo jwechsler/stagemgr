@@ -1,7 +1,9 @@
+@javascript
 Feature: An administrator can add production details to a theater
   Given a theater has been created
   As a StageMgr box office user
   I want to create / edit and delete production records
+
 
   Background:
     Given a theater "Theater One" exists
