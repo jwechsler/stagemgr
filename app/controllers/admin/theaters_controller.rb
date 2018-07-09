@@ -56,7 +56,7 @@ class Admin::TheatersController < Admin::ApplicationController
   def update
 
     respond_to do |format|
-      if @theater.update_attributes(params[:theater])
+      if @theater.update_attributes(theater_params)
         flash[:notice] = 'Theater was successfully updated.'
         format.html { redirect_to(admin_theaters_path) }
         format.xml  { head :ok }
@@ -84,4 +84,10 @@ class Admin::TheatersController < Admin::ApplicationController
       params[:theater].delete(:logo) if self.params[:theater][:logo].blank?
     end
   end
+
+  private
+  def theater_params
+    params.require(:theater).permit(:name, :url, :theater_class, :status)
+  end
+
 end

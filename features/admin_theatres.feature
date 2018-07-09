@@ -3,18 +3,23 @@ Feature: The Administrator can manage theater records
   As a StageMgr Admin user
   I want to create / edit and delete theater records
 
+  Background:
+    Given a sample theater exists
+
   Scenario: There is a 'Theaters' menu link for admins
     Given I am an Administrator
       And I am logged in
       And I go to the home page
      Then "Theaters" should link to "the admin theater page"
 
+
   Scenario: There is not a 'Theaters' menu link for non-admins
-  	Given I am not an Administrator
+  	Given I am a theater user
       And I am logged in
       And I go to the home page
-     Then I should not see "Theaters"
+     Then I should see "Your Theaters"
 
+  @javascript
   Scenario: List theaters as admin
     Given a theater "ABC Theater" exists
       And a theater "DEF Theater" exists
@@ -26,6 +31,7 @@ Feature: The Administrator can manage theater records
       And I should see "DEF Theater"
       And each theater name is a link to a theater detail page
 
+  @javascript
   Scenario: Add a theater
     Given I am an Administrator
       And I am logged in
@@ -36,6 +42,7 @@ Feature: The Administrator can manage theater records
      Then I should be on the admin/theater page
       And I should see "Theater Number One"
 
+  @javascript
   Scenario: Edit a theater
     Given I am an Administrator
       And a theater "ABC Theater" exists
