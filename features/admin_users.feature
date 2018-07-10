@@ -7,6 +7,7 @@ Feature: User Administration
     And I am an Administrator
     And I am logged in
 
+  @javascript
   Scenario: Admins can make a user inactive
     Given: I am an administrator
        And a theater user "test@test.com" exists

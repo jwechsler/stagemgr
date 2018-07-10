@@ -63,6 +63,7 @@ class Ability
 
     # below is for admins
     can :manage, MembershipOffer
+    can :destroy, Production
     can :manage, PaymentType
     can [:refund], [Order, DonationOrder]
     can :manage_system_options

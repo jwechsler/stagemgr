@@ -8,37 +8,16 @@
 .row
   .small-12.columns
 
-    %table#user-listing.hide.display
+    %table#user-listing{:data=>{:source=>"#{admin_users_path(format: :json)}"}}
       %thead
         %tr
           %th Email
-          %th Last request
+          %th Last Access Date
           %th Logins
           %th Failed Logins
-          %th.hide Status
-          %th Privs
+          %th
           %th
       %tbody
-        - @users.each do |user|
-
-          %tr
-            %td
-              - if user.inactive?
-                %span.strike= user.email
-              - else
-                = user.email
-            %td= user.last_request_at
-            %td= user.login_count
-            %td= user.failed_login_count
-            %td.hide= user.status
-            %td
-              - if user.is_administrator?
-                %span.label.success Administrator
-              - if user.is_box_office_user?
-                %span.label.success Box Office
-              - user.theaters.each do |t|
-                %span.label.secondary= t
-            %td= link_to 'Edit', edit_admin_user_path(user), :class=>'tiny button'
 
     = link_to 'New user', new_admin_user_path, :class=>'button'
 
@@ -46,23 +25,26 @@
   :javascript
     $(document).ready(function() {
       $('#user-listing').dataTable({
-
         dom: 'lf<"toolbar-buttons">rtip',
         stateSave: true,
         pageLength: 25,
-        order: [[4, "asc"],[0, 'asc']],
-        pagingType: "foundation",
-        columnDefs: [
-          {targets: "_all", orderable:false},
-          {targets: [1,2,3,5,6], searchable:false},
-          {targets: 6, width:"220px"}
-             ],
-        fnInitComplete:function() {
-          $("#user-listing").show();
-          this.fnAdjustColumnSizing();
+        "processing": true,
+        "serverSide": true,
+        "ajax": $('#user-listing').data('source'),
+        "pagingType": 'full_numbers',
+        "language": {
+          "lengthMenu" : "_MENU_",
+          "search": "_INPUT_"
         },
+        columns: [
+          {data: 'email'},
+          {data: 'last_request'},
+          {data: 'logins'},
+          {data: 'failed_logins'},
+          {data: 'privs'},
+          {data: 'actions'},
+
+        ]
       });
-
-      setupActiveSwitchOnDataTable('#user-listing',4)
-
+      // setupActiveSwitchOnDataTable('#user-listing',4)
     });

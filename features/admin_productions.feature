@@ -12,6 +12,7 @@ Feature: An administrator can perform privileged production operations
     And I go to the home page
     And I follow "Theaters"
     And I follow "Theater One"
+
   @javascript
   Scenario: Delete a production
   Given a production "Production One" exists

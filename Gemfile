@@ -79,6 +79,7 @@ gem 'foundation-datetimepicker-rails'
 
 gem 'rails-jquery-autocomplete' # :git=>"https://github.com/jwechsler/rails3-jquery-autocomplete.git" #:path=>'/Users/jeremyw/dev/rails3-jquery-autocomplete'
 gem 'config', :git=>'https://github.com/railsconfig/config.git'
+gem 'responders'
 
 group :development do
   gem 'wirble'
