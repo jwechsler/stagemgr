@@ -45,6 +45,6 @@ class Admin::DonationOrdersController < Admin::OrdersController
 
   private
   def donation_order_params
-   params.require(:donation_order).permit(*common_params, donation_line_params: [:donation_amount])
+   params.require(:donation_order).permit(*donation_order_common_params)
   end
 end

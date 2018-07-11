@@ -48,6 +48,10 @@ module OrdersHelper
       address_attributes: [:full_name, :email, :phone, :line1, :line2, :city, :state, :zipcode]]
   end
 
+  def donation_order_common_params
+    common_params + [:campaign, donation_line_items_attributes: [:donation_amount, :donation_level]]
+  end
+
   def process_order(order, on_success_redirect_to)
     begin
       unless order.credit_card_swipe.blank?

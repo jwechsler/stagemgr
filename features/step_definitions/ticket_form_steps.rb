@@ -53,7 +53,7 @@ When /^I enter a valid credit card as payment( through the backend)?$/ do |backe
     fill_in "MM", :with=>Date.today.month.to_s
   end
   unless @using_admin_interface
-    select "2018", :from=>"#{@_current_form}_credit_card_expiration_year"
+    select "2020", :from=>"#{@_current_form}_credit_card_expiration_year"
   else
     fill_in "YY", :with=>'18'
   end

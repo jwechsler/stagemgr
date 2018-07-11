@@ -46,7 +46,7 @@ class DonationPledgeOrdersController < ApplicationController
   end
 
   def create
-    @order = DonationPledgeOrder.new(params[:donation_pledge_order])
+    @order = DonationPledgeOrder.new(donation_pledge_order_params)
     @order.donation_line_items.each { |dli|
       if dli.donation_amount.blank? || dli.donation_amount == 0
         dli.donation_amount = dli.donation_level
@@ -58,7 +58,7 @@ class DonationPledgeOrdersController < ApplicationController
   end
 
   def update
-    @order.attributes=params[:donation_pledge_order]
+    @order.update_attributes(donation_pledge_order_params)
     @order.ip_address = request.remote_ip
     validate_web_order(@order)
     process_order(@order, :edit_donation_pledge_order_path)
@@ -85,4 +85,9 @@ class DonationPledgeOrdersController < ApplicationController
       end
     end
   end
+
+  def donation_pledge_order_params
+    params.require(:donation_pledge_order).permit(*donation_order_common_params)
+  end
+
 end
