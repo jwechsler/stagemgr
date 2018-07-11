@@ -140,7 +140,7 @@ class TicketOrder < Order
       tcs = self.ticket_line_items.map { |li| li.ticket_class_id }
       available = self.performance.ticket_class_allocations.select { |tca| tca.available && !tcs.include?(tca.ticket_class.id) }.map { |tca| tca.ticket_class }.select { |tc| tc.web_visible unless tc.nil? }
       available.each { |tc| self.ticket_line_items.build(:ticket_class => tc, :ticket_count => 0) }
-      self.ticket_line_items.sort! { |a, b| a.ticket_class_id <=> b.ticket_class_id }
+      self.ticket_line_items.order(:ticket_class_id)
     end
   end
 

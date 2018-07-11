@@ -52,6 +52,11 @@ module OrdersHelper
     common_params + [:campaign, donation_line_items_attributes: [:donation_amount, :donation_level]]
   end
 
+  def ticket_order_common_params
+    common_params + [:production_code, :performance_code, :special_request,
+            ticket_line_items_attributes: [:ticket_class, :ticket_class_id, :ticket_class_code, :ticket_count]]
+  end
+
   def process_order(order, on_success_redirect_to)
     begin
       unless order.credit_card_swipe.blank?

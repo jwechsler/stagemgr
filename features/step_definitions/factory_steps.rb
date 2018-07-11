@@ -86,9 +86,7 @@ end
 
 Then /^a membership order exists for "(.*?)"$/ do |name|
   address = Address.where(full_name: name).reload.first
-  puts address.to_yaml
   orders = MembershipOrder.where(address_id: address.id)
-  puts orders.to_yaml
   raise "No order found for #{name}" unless orders.size > 0
 end
 
@@ -132,7 +130,6 @@ end
 Then /^a membership exists with "(.*?)" as preferred seating$/ do |preferred_seating|
 
     seats = Membership.where("1=1")
-    puts seats.to_yaml
     seats.each {|s| puts s.preferred_seating}
     seats = seats.select{|m| m.preferred_seating.eql?(preferred_seating)}
     raise "Found #{seats.size} memberships with \'#{preferred_seating}\' seating" if seats.size == 0

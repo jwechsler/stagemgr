@@ -24,15 +24,6 @@ GIT
       dry-validation (>= 0.10.4)
 
 GIT
-  remote: https://github.com/thoughtbot/capybara-webkit.git
-  revision: 778ec7f43cd1e8de272c2fc7023ce9d52fa74f9d
-  ref: 778ec7f43cd1e8de272c2fc7023ce9d52fa74f9d
-  specs:
-    capybara-webkit (1.15.0)
-      capybara (>= 2.3, < 4.0)
-      json
-
-GIT
   remote: https://github.com/williamatodd/people.git
   revision: 497e903c951747301e3f9a1008025adea206a3cd
   specs:
@@ -136,13 +127,16 @@ GEM
     capistrano-rbenv (2.1.3)
       capistrano (~> 3.1)
       sshkit (~> 1.3)
-    capybara (3.2.1)
+    capybara (3.3.1)
       addressable
       mini_mime (>= 0.1.3)
       nokogiri (~> 1.8)
       rack (>= 1.6.0)
       rack-test (>= 0.6.3)
       xpath (~> 3.1)
+    capybara-webkit (1.15.0)
+      capybara (>= 2.3, < 4.0)
+      json
     chronic (0.10.2)
     climate_control (0.2.0)
     cocoon (1.2.11)
@@ -335,7 +329,7 @@ GEM
     net-scp (1.2.1)
       net-ssh (>= 2.6.5)
     net-ssh (4.2.0)
-    nokogiri (1.8.3)
+    nokogiri (1.8.4)
       mini_portile2 (~> 2.3.0)
     paperclip (6.0.0)
       activemodel (>= 4.2.0)
@@ -553,7 +547,7 @@ DEPENDENCIES
   capistrano-rails
   capistrano-rbenv
   capybara
-  capybara-webkit!
+  capybara-webkit
   cocoon
   coffee-rails
   config!

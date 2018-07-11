@@ -450,7 +450,6 @@ class Address
   end
 
   def create_salesforce_contact
-    puts "  creating new sf record"
     SalesforceData::Contact.create "LastName"=>self.last_name, "FirstName"=>self.first_name, "stagemgr_id__c"=>"#{self.id}",
       "MailingStreet"=>"#{self.line1}\r\n#{self.line2}", "MailingCity"=>self.city,
       "Email"=>self.email, "Phone"=>self.phone,

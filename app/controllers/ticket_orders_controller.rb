@@ -16,13 +16,13 @@ class TicketOrdersController < ApplicationController
   end
 
   def create
-    @order = TicketOrder.new(params[:ticket_order])
+    @order = TicketOrder.new(ticket_order_params)
     @order.ip_address = request.remote_ip
     process_order(@order,:confirm_ticket_order_path) if validate_web_order(@order)
   end
 
   def update
-    @order.attributes=params[:ticket_order]
+    @order.update_attributes(ticket_order_params)
     @order.ip_address = request.remote_ip
     @order.preset_line_items
     unless @order.special_offer_line_items.empty?
@@ -69,8 +69,6 @@ class TicketOrdersController < ApplicationController
 
   private
   def ticket_order_params
-    params(:ticket_order).permit(*(
-            common_params+ticket_order_params_list)
-    )
+    params.require(:ticket_order).permit(*ticket_order_common_params)
   end
 end
