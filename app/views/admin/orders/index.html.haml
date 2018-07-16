@@ -1,0 +1,129 @@
+= content_for :title do
+  Existing Orders
+= content_for :breadcrumbs do
+  %ul.breadcrumbs
+    %li.current
+      %a{:href=>'#'} Orders
+
+.row
+  .small-12.columns
+    %table#order-listing{:data=>{:source=>"#{admin_orders_path(format: :json)}"}}
+      %thead
+        %tr
+          %th#foot_ID.searchy
+          %th#footer-code.searchy
+          %th#footer-name.searchy
+          %th#status-search.option-search
+          %th#visits
+          %th#total
+          %th#description
+        %tr
+          %th ID
+          %th Code
+          %th Name
+          %th Status
+          %th Visits
+          %th Total
+          %th Description
+        %tr.filters
+          %th
+            %input
+          %th
+            %input
+          %th
+            %input
+          %th
+            = collection_select(:search, :status, [""] + Order::ORDER_STATUSES, :to_s, :to_s)
+          %th
+          %th
+          %th
+      %tbody
+
+= content_for :js do
+  :javascript
+    function update_order_selection_buttons() {
+      rows = new $.fn.dataTable.TableTools( $('#orders-table').DataTable() ).fnGetSelected();
+      if (rows.length == 0) {
+        $('#print-tickets-button,#unclaimed-tickets-button').addClass('disabled');
+      } else {
+        $('#print-tickets-button,#unclaimed-tickets-button').removeClass('disabled');
+      }
+    }
+
+    $(document).ready(function() {
+      $('#order-listing').dataTable({
+        "processing": true,
+        "serverSide": true,
+        deferRender: true,
+        lengthMenu: [10, 25, 50, 100],
+        "ajax": $('#order-listing').data('source'),
+        "pagingType": 'full_numbers',
+        "language": {
+          "lengthMenu" : "_MENU_",
+          "search": ""
+        },
+        columns: [
+          {data: 'id'},
+          {data: 'code'},
+          {data: 'name'},
+          {data: 'status'},
+          {data: 'visits'},
+          {data: 'total'},
+          {data: 'description'},
+        ],
+        initComplete: function() {
+          return $('.filters input, .filters select', this).on('change', (e) => {
+            var th;
+            th = $(e.target).closest("th");
+            return this.api().column(th.index()).search($(e.target).val()).draw();
+          });
+        },
+      });
+
+    });
+
+    // Setup - add a text input to each footer cell
+
+      // tableTools:{
+      //   "aButtons": [ ],
+      //   "searchable": true,
+      //   "sRowSelect": "os",
+      //   "fnRowSelected": function ( nodes ) {
+      //     update_order_selection_buttons();
+      //   },
+      //   "fnRowDeselected": function ( nodes ) {
+      //     rows = new $.fn.dataTable.TableTools( $('#orders-table').DataTable() ).fnGetSelected();
+      //     update_order_selection_buttons();
+      //   }
+      // },
+      //processing: true,
+      //language: {
+      //  "processing": '<div class="small-4 small-centered columns"><data-alert class="alert-box" //style="z-index:1000">Processing...</div></div>'
+      //},
+      //order: [[0, "desc"]],
+      //ordering: true,
+      //serverSide: true,
+      //stateSave: true,
+      //// ajax: $('#orders-table').data('data-source'),
+      //pagingType: "foundation",
+      //columns: [
+      //  {searchable: true},
+      //  null,
+      //  null,
+      //  null,
+      //  {type:"numeric",
+      //   className: "text-right",
+      //   orderable: false,
+      //   searchable: false},
+      //  {type:"numeric_fmt",
+      //   className: "text-right",
+      //   orderable: false},
+      //  {searchable: false,
+      //   orderable: false},
+      //  {visible:false}],
+      //fnInitComplete:function() {
+      //  // $("#orders-table").show();
+      //  this.fnAdjustColumnSizing();
+      //}
+
+

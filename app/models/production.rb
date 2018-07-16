@@ -14,11 +14,13 @@ class Production < ActiveRecord::Base
   validates_uniqueness_of :production_code
   validates_length_of :production_code, :in=>1..8
   validates_numericality_of :capacity
+  validates_inclusion_of :seat_map, in: lambda{ |production| production.venue.seat_maps }, unless: Proc.new {|production| production.seat_map.nil?}
   validates_formatting_of :survey_link, :using => :url, :allow_blank=>true
   validates_formatting_of :mailing_list_link, :using => :url, :allow_blank=>true
 
   belongs_to :venue
   belongs_to :theater
+  belongs_to :seat_map
   has_many :special_offers
   has_many :performances
   has_many :ticket_classes

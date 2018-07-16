@@ -17,3 +17,4 @@
 // require datatables/extensions/RowReorder/dataTables.rowReorder
 // require datatables/extensions/Scroller/dataTables.scroller
 // require datatables/extensions/Select/dataTables.select
+

@@ -48,6 +48,7 @@ module FactoryBot
   end
 
 
+
 end
 
 FactoryBot.define do
@@ -116,6 +117,8 @@ FactoryBot.define do
   factory :venue do
     sequence(:name) { |n| "Space #{n}" }
     sequence(:ordinal_sort) { |n| "#{n}" }
+
+
   end
 
   factory :theater do
@@ -196,6 +199,7 @@ FactoryBot.define do
     use_ticket_class_code 'PASS'
     tickets_per_performance 1
   end
+
 
 end
 

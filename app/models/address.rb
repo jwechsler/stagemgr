@@ -364,12 +364,11 @@ class Address < ActiveRecord::Base
 
   def orders_processed(for_theaters = nil)
     if for_theaters.nil?
-      TicketOrder.count( :conditions=>["orders.address_id = ? and orders.status in ( ? )",
-                                       self.id, Order.attended_statuses])
+      TicketOrder.where("orders.address_id = ? and orders.status in ( ? )",
+                                       self.id, Order.attended_statuses).count
     else
-      TicketOrder.count(
-        :conditions=>["orders.address_id = ? and orders.status in (?) and orders.performance_id in (select id from performances where production_id in (select id from productions where theater_id in (?)))",
-                      self.id, Order.attended_statuses, for_theaters])
+      TicketOrder.where("orders.address_id = ? and orders.status in (?) and orders.performance_id in (select id from performances where production_id in (select id from productions where theater_id in (?)))",
+                      self.id, Order.attended_statuses, for_theaters).count
     end
   end
 
