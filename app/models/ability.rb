@@ -3,7 +3,7 @@ class Ability
 
   def initialize(user)
     alias_action :create, :new, to: :make
-    alias_action :read, :create, :update, :edit, to: :cru
+    alias_action :read, :make, :update, :edit, to: :cru
     alias_action :attended_dump, :daily_box_office_receipts, :fulfill_tickets, to: :box_office_reports
     alias_action :trg_dump, :production_sales_by_performance, :order_dump, to: :show_reports
     alias_action :house_management_seating, to: :house_management_reports
@@ -58,11 +58,14 @@ class Ability
     can :read, MembershipOffer
     can :read, FlexPassOffer
     can [:cancel, :reprint, :refund, :sell_past_performances, :order_anytime], [Order, TicketOrder]
+    can :cru, Venue
+    can :cru, SeatMap
 
     return if user.is_box_office_user?
 
     # below is for admins
     can :manage, MembershipOffer
+    can :destroy, SeatMap
     can :destroy, Production
     can :manage, PaymentType
     can [:refund], [Order, DonationOrder]

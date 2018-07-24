@@ -1,18 +1,23 @@
 class Admin::VenuesController < ApplicationController
+  load_and_authorize_resource
+
   def index
-    @venues = Venue.all
+    respond_to do |format|
+      format.html # index.html.erb
+      format.json {
+        params.permit!
+        render json: VenueDatatable.new(params, view_context: view_context, current_user: current_user )
+      }
+    end
   end
 
   def show
-    @venue = Venue.find(params[:id])
   end
 
   def new
-    @venue = Venue.new
   end
 
   def create
-    @venue = Venue.new(venue_params)
     if @venue.save
       redirect_to [:admin, @venue], :notice => "Successfully created venue."
     else
@@ -25,7 +30,7 @@ class Admin::VenuesController < ApplicationController
   end
 
   def update
-    @venue = Venue.find(params[:id])
+    
     if @venue.update_attributes(venue_params)
       redirect_to [:admin, @venue], :notice  => "Successfully updated venue."
     else

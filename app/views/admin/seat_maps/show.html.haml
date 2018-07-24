@@ -1,0 +1,16 @@
+= content_for :title do
+  Seat Map
+= content_for :breadcrumbs do
+  %ul.breadcrumbs
+    %li
+      %a{:href=>"#{admin_venues_path}"} Venues
+    %li
+      %a{:href=>"#{admin_venue_path(@venue)}"}= @seat_map.venue.name
+    %li.current
+      %a{:href=>'#'}= "Seat Map #{@seat_map.label}"
+
+.row
+  .columns.small-12
+    %img{:src=>"@seat_map.base_image_map.url"}
+
+

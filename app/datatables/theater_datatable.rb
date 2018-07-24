@@ -1,8 +1,6 @@
-class TheaterDatatable < AjaxDatatablesRails::Base
+class TheaterDatatable < DatatableBase
   extend Forwardable
   include ActionView::Helpers::NumberHelper
-
-  def_delegator :@view, :link_to
 
   def view_columns
     # Declare strings in this format: ModelName.column_name
@@ -36,21 +34,12 @@ class TheaterDatatable < AjaxDatatablesRails::Base
     end
   end
 
-  def initialize(params, opts={})
-    super(params, opts)
-    @view = opts[:view_context]
-  end
-
   private
 
   def get_raw_records
     theaters = Theater.all
     theaters = theaters.select{|t| current_user.theaters.include?(t)} if current_user.is_theater_user?
     theaters
-  end
-
-  def current_user
-    @current_user ||= options[:current_user]
   end
 
   # ==== These methods represent the basic operations to perform on records

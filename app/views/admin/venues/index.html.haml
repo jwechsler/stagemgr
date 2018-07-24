@@ -1,31 +1,30 @@
 - content_for :title do
-  Productions
+  Venues
 - content_for :breadcrumbs do
   %ul.breadcrumbs
     %li.current
-      %a{:href=>'#'} Productions
+      %a{:href=>'#'} Venues
 
 .row
   .small-12.columns
-    %table#theater-listing{:data=>{:source=>"#{admin_theaters_path(format: :json)}"}}
+    %table#venue-listing{:data=>{:source=>"#{admin_venues_path(format: :json)}"}}
       %thead
         %tr
           %th Name
-          %th Home
-          %th Theater Class
           %th
+      %tbody
 
 .row
   .small-12.columns
-    =link_to 'New theater', new_admin_theater_path, :class=>'small button right'
+    = link_to "New Venue", new_admin_venue_path, :class=>'small button right'
 
 = content_for :js do
   :javascript
     $(document).ready(function() {
-      $('#theater-listing').dataTable({
+      $('#venue-listing').dataTable({
         "processing": true,
         "serverSide": true,
-        "ajax": $('#theater-listing').data('source'),
+        "ajax": $('#venue-listing').data('source'),
         "pagingType": 'full_numbers',
         "language": {
           "lengthMenu" : "_MENU_",
@@ -33,8 +32,6 @@
         },
         columns: [
           {data: 'name'},
-          {data: 'home'},
-          {data: 'theater_class'},
           {data: 'actions'},
         ]
       });

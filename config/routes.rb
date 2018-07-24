@@ -38,9 +38,7 @@ Stagemgr::Application.routes.draw do
   # resque admin page
   mount Resque::Server.new, :at => "/admin/resque"
 
-  namespace(:admin){ resources :venues }
-
-   namespace(:admin){ resources :memberships }
+  namespace(:admin){ resources :memberships }
 
   namespace(:admin){ resources :default_ticket_classes }
 
@@ -270,9 +268,16 @@ Stagemgr::Application.routes.draw do
         resources :ticket_classes
       end
     end
+
+    resources :venues do
+      resources :seat_maps
+    end
+
     resources :users do
       resources :theaters
     end
+
+
 
     get '/system_options', :controller=>'system_options', :action=>'index'
 

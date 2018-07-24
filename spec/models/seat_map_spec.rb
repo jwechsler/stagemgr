@@ -6,7 +6,7 @@ RSpec.describe SeatMap, type: :model do
   context "creation" do
 
     it "can be assigned to a venue" do
-      @venue = FactoryBot.create(:venue)      
+      @venue = FactoryBot.create(:venue)
       seatmap = FactoryBot.create(:seat_map, venue:@venue)
       seatmap.venue = @venue
       seatmap.save
@@ -22,7 +22,7 @@ RSpec.describe SeatMap, type: :model do
        # seat.seat_map = seatmap
        seatmap.seats << seat
       end
-      
+
       expect(seatmap.seats.count).to eq(8)
       expect(seatmap.seats.first.location).to eq("AA1")
       expect(seatmap.seats.last.location).to eq("AA8")
@@ -44,14 +44,18 @@ RSpec.describe SeatMap, type: :model do
       expect(production.save).to be false
     end
 
+    it "stores a jpg for the purchase imagemap" do
+      seat_map = FactoryBot.create(:seat_map)
+      image
+
   end
 
   context "inventory management" do
     before(:each) do
       @seat_map = FactoryBot.create(:seat_map_with_seats)
-      
+
     end
-# 
+#
     it "automatically creates seating inventory on performance save if necessary" do
       production = FactoryBot.create(:production, venue: @seat_map.venue)
       performance = FactoryBot.create(:performance, production: production)

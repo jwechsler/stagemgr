@@ -46,7 +46,7 @@
             - if can? :edit, SpecialOffer
               %li
                 =link_to('Special Offers', admin_special_offers_path)
-            - if (can? :edit, User) || (can? :edit, SpecialFeature) || (can? :edit, DefaultTicketClass) || (can? :edit, PaymentType) || (can? :read, FileStore)
+            - if (can? :edit, User) || (can? :edit, SpecialFeature) || (can? :edit, DefaultTicketClass) || (can? :edit, PaymentType) || (can? :read, FileStore) || (can? :edit, Venue)
               %li
                 %label System Config
                 - if can? :read, User
@@ -61,10 +61,13 @@
                 - if can? :read, PaymentType
                   %li
                     =link_to "Manage Payment Types", admin_payment_types_path
+                - if (can? :edit, Venue) then
+                  %li= link_to('Venues', admin_venues_path)
                 - if can? :read, FileStore
                   %li.divider
                   %li
                     =link_to "Import data", admin_imports_path
+
         %li
           =link_to('My Account', current_user_account_path)
         %li
