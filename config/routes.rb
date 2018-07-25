@@ -92,7 +92,19 @@ Stagemgr::Application.routes.draw do
     end
   end
 
+
+
   resources :performances, :only=>:index do
+    defaults format: :json do
+
+      resources :seat_assignments, :only=>:index, :controller=>'seat_assignments' do
+        member do
+          post :reserve
+          post :release
+        end
+      end
+
+    end
     collection do
       get :by_date
     end

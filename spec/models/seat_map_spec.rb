@@ -1,8 +1,6 @@
 require 'spec_helper.rb'
 
 RSpec.describe SeatMap, type: :model do
-
-
   context "creation" do
 
     it "can be assigned to a venue" do
@@ -47,7 +45,7 @@ RSpec.describe SeatMap, type: :model do
     it "stores a jpg for the purchase imagemap" do
       seat_map = FactoryBot.create(:seat_map)
       image
-
+    end
   end
 
   context "inventory management" do
@@ -55,7 +53,7 @@ RSpec.describe SeatMap, type: :model do
       @seat_map = FactoryBot.create(:seat_map_with_seats)
 
     end
-#
+
     it "automatically creates seating inventory on performance save if necessary" do
       production = FactoryBot.create(:production, venue: @seat_map.venue)
       performance = FactoryBot.create(:performance, production: production)
@@ -68,13 +66,5 @@ RSpec.describe SeatMap, type: :model do
     end
 
   end
-
-  # pending "add some examples to (or delete) #{__FILE__}"
 end
 
-
-
-describe "a seat map" do
-
-
-end

@@ -1,5 +1,5 @@
 class SeatAssignment < ActiveRecord::Base
-  
+
   belongs_to :order
   belongs_to :seat_map
   belongs_to :seat
@@ -8,9 +8,13 @@ class SeatAssignment < ActiveRecord::Base
   SEAT_STATUSES = (
   AVAILABLE, ASSIGNED, TEMPORARY, BROKEN =
       "Available", "Assigned", "Held", "N/A")
-  
+
   def available?
     status.eql?(AVAILABLE)
   end
-  
+
+  def temporary?
+    status.eql?(TEMPORARY)
+  end
+
 end
