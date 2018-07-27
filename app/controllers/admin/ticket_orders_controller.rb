@@ -167,4 +167,5 @@ class Admin::TicketOrdersController < Admin::OrdersController
     params.require(:ticket_order).permit(*ticket_order_common_params)
   end
 
+
 end

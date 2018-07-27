@@ -11,6 +11,14 @@
 
 .row
   .columns.small-12
-    %img{:src=>"@seat_map.base_image_map.url"}
+    %h4 Seating Geometry
+    %img{:src=>@seat_map.base_image_map.url, :alt => "", :usemap=> '#seatingmap', :class=>'seatingmap'}
+    %map{name:'seatingmap'}
+      - @seat_map.seats.each do |seat|
+        %area{shape:"rect", coords:"#{seat.origin_x},#{seat.origin_y},#{seat.origin_x+seat.width},#{seat.origin_y+seat.height}", href:"#?loc=#{seat.location}",alt:"#{seat.location}"}
 
-
+= content_for :js do
+  :javascript
+    $(document).ready(function() {
+      $('img#seatingmap').mapster();
+    });

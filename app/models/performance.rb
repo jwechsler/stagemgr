@@ -152,6 +152,8 @@ class Performance < ActiveRecord::Base
     end
   end
 
+
+
   private
 
   def clean_values

@@ -8,6 +8,7 @@ class TicketOrder < Order
   attr_accessor :selected_production
 
   has_many :ticket_line_items, :foreign_key => :order_id
+  has_many :seats, foreign_key: :order_id, class_name: 'SeatAssignment'
   accepts_nested_attributes_for :ticket_line_items, allow_destroy: true
 
   SEATING_REQUESTS = (

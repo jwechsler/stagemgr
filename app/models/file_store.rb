@@ -13,8 +13,8 @@ class FileStore < ActiveRecord::Base
     )
 
   FILE_FORMATS = (
-    TRG_LIST_IMPORT_FORMAT, MAILING_CARD_IMPORT_FORMAT =
-    "TRGArts List Import", "Mailing Card Format")
+    TRG_LIST_IMPORT_FORMAT, MAILING_CARD_IMPORT_FORMAT, SEATMAP_GEOMETRY =
+    "TRGArts List Import", "Mailing Card Format", "Seatmap Geometry")
 
   def is_trg_list_format?
     true

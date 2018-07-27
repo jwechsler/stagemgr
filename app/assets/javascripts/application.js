@@ -5,7 +5,9 @@
 //= require foundation
 //= require foundation/foundation.topbar
 //= require foundation-datetimepicker
-//= require jquery.timepicker.js
+//= require jquery.timepicker
+//= require jquery.imagemapster.min
+//= require seat_assignment
 
 
 //= require utility

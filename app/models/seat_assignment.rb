@@ -9,12 +9,26 @@ class SeatAssignment < ActiveRecord::Base
   AVAILABLE, ASSIGNED, TEMPORARY, BROKEN =
       "Available", "Assigned", "Held", "N/A")
 
-  def available?
-    status.eql?(AVAILABLE)
+  def available?(check_order=nil)
+    a = status.eql?(AVAILABLE)
+    a ||= assigned?(check_order) unless check_order.nil?
+    a
+  end
+
+  def assigned?(check_order)
+    (status.eql?(TEMPORARY) || status.eql?(ASSIGNED)) && order_id.eql?(check_order.id)
   end
 
   def temporary?
     status.eql?(TEMPORARY)
+  end
+
+  def self.available_seat_assignments(performance, order)
+    if performance.seat_assignments.empty? and performance.production.has_reserved_seating? then
+      performance.seat_assignments << performance.production.seat_map.create_inventory_for_performance(performance)
+      Rails.logger.debug ("assigned inventory")
+    end
+    performance.seat_assignments.select{|sa| sa.available?(order) }
   end
 
 end

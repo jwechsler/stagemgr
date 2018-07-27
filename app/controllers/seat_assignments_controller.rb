@@ -1,4 +1,6 @@
 class SeatAssignmentsController < ApplicationController
+  helper SeatAssignmentHelper
+
   before_filter :load_performance_and_seat_assignments
   def index
     respond_to do |format|
@@ -17,15 +19,15 @@ class SeatAssignmentsController < ApplicationController
         raise "Action not allowed"
       }
       format.json {
-        order = Order.find(params[:seat_assignment][:order_id])
+        order = Order.find(params[:order_id])
         sa = SeatAssignment.find(params[:id])
         if sa.available? && ((current_user.nil? && order.processing?) || !current_user.nil?) then
           sa.status = SeatAssignment::TEMPORARY
           sa.order = order
-          sa.save
-          sa.reload
+          sa.reload if !sa.save
         end
-        render json: {id: sa.id, seat_id:sa.seat_id, status:sa.status, order_id: sa.order_id }
+        status = view_context.assignment_keys(sa, order)
+        render json: {id: sa.id, status:status, order_id: sa.order_id }
       }
     end
   end
@@ -36,15 +38,16 @@ class SeatAssignmentsController < ApplicationController
         raise "Action not allowed"
       }
       format.json {
-        order = Order.find(params[:seat_assignment][:order_id])
+        order = Order.find(params[:order_id])
         sa = SeatAssignment.find(params[:id])
         if sa.temporary? && (sa.order_id = order.id) && ((current_user.nil? && order.processing?) || !current_user.nil?) then
           sa.status = SeatAssignment::AVAILABLE
           sa.order = nil
-          sa.save
-          sa.reload
+          sa.reload if !sa.save
+
         end
-        render json: {id: sa.id, seat_id:sa.seat_id, status:sa.status, order_id: sa.order_id }
+        status = view_context.assignment_keys(sa, order)
+        render json: {id: sa.id, status:status, order_id: sa.order_id }
       }
     end
   end

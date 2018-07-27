@@ -190,6 +190,10 @@ class Production < ActiveRecord::Base
     self.sf_object
   end
 
+  def has_reserved_seating?
+    !self.seat_map.nil?
+  end
+
   private
   def clean_values
     self.production_code.upcase! unless self.production_code.nil?
@@ -198,8 +202,8 @@ class Production < ActiveRecord::Base
    def assign_default_ticket_classes
     defaults = DefaultTicketClass.all
     defaults.each { |tcd| tc = TicketClass.new
-    tc.attributes=tcd.to_hash
-    self.ticket_classes << tc}
+      tc.attributes=tcd.to_hash
+      self.ticket_classes << tc}
     self
   end
 
