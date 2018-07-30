@@ -49,7 +49,7 @@
         </thead>
         <tbody>
           <% ticket_class_list = f.object.production.ticket_classes.map {|tc| tc.class_code} %>
-          <%= f.fields_for(:ticket_class_allocations, performance.ticket_class_allocations.sort_by {|tca| tca.ticket_class.class_code}) do |ticket_class_allocation_form| %>
+          <%= f.fields_for(:ticket_class_allocations, performance.ticket_class_allocations.select{|tca| !tca.ticket_class.nil? }.sort_by {|tca| tca.ticket_class.class_code}) do |ticket_class_allocation_form| %>
             <tr id='ticket_class_allocation_<%= ticket_class_allocation_form.object.ticket_class.id %>'>
 
               <td>

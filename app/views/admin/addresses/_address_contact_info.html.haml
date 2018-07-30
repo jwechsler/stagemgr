@@ -23,4 +23,4 @@
         - unless memberships.count == 0
           %li
             %i Member ID:
-            = memberships.map {|m| m.member_code }.join(',')
+            = memberships.select{|m| m.active? }.map {|m| m.member_code }.join(',')

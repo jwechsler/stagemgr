@@ -6,9 +6,7 @@
 //= require foundation/foundation.topbar
 //= require foundation-datetimepicker
 //= require jquery.timepicker
-//= require jquery.imagemapster.min
 //= require seat_assignment
-
 
 //= require utility
 //= require orders_common
@@ -47,7 +45,7 @@ $(document).ready(function() {
 });
 
 $(document).ready(function(){
-    $(".fader").hide(0).delay(500).fadeIn(3000)
+    $(".fader").hide(0).fadeIn('fast')
 });
 
 $(function(){ $(document).foundation(); });

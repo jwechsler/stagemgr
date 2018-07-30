@@ -54,6 +54,7 @@
       $('#order-listing').dataTable({
         "processing": true,
         "serverSide": true,
+        stateSave: true,
         deferRender: true,
         lengthMenu: [10, 25, 50, 100],
         "ajax": $('#order-listing').data('source'),

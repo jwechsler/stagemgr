@@ -4,16 +4,16 @@ module OrdersHelper
 
 
   def convert_button_label_to_state(button_label)
-    case button_label
-      when 'Checkout', 'Review Order'
+    case button_label.downcase
+      when 'checkout', 'review order', 'assign seats'
         Order::PROCESSING
-      when 'Place Order', 'Order Tickets', 'Make a donation', 'Order FlexPass', 'Make a pledge'
+      when 'place order', 'order tickets', 'make a donation', 'order flexpass', 'make a pledge'
         Order::PROCESSED
-      when 'Hold'
+      when 'hold'
         Order::HOLD
-      when 'Fulfill','Print Tickets'
+      when 'fulfill','print tickets'
         Order::FULFILLED
-      when 'Update note'
+      when 'update note'
       else
         raise "Don't know what to do with button '#{button_label}'"
     end
@@ -75,8 +75,13 @@ module OrdersHelper
         if !on_success_redirect_to.nil?
           respond_to do |format|
             if order.status == Order::PROCESSING
-
-              format.html { render "/ticket_orders/confirm", :locals=>{:order=>order} }
+              Rails.logger.debug("*** #{on_success_redirect_to}")
+              # @todo terrible hack here.  Please fix this jw when you figure out how :)
+              if on_success_redirect_to.eql?(:confirm_admin_ticket_order_path)
+                format.html { render "/admin/ticket_orders/confirm", :locals=>{order: order} }
+              else
+                format.html { render "/ticket_orders/confirm", :locals=>{:order=>order} }
+              end
             else
               format.html {
                 redirect_to send(on_success_redirect_to, order.id), notice:"Order was successfully saved and is now #{order.status_display}"

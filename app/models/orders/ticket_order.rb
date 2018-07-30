@@ -1,9 +1,12 @@
 class TicketOrder < Order
 
   before_validation :set_tickets_for_pass_redemption
+  before_validation :unassign_seats_when_performance_changes, if: :performance_id_changed?
+
   before_save :set_theater
   before_save :remove_empty_ticket_lines
   after_save :update_attendance_record
+  before_destroy :unassign_seats
 
   attr_accessor :selected_production
 
@@ -21,6 +24,8 @@ class TicketOrder < Order
   #before_validation :tickets_available?, :if=>[:processed?, :status_changed?]
 
   validate :ticket_stock_available
+  validate :seat_assignments_complete, if: -> { performance.production.has_reserved_seating? }
+
   validates_each :status do |record, attr, value|
 
     if value == PROCESSED
@@ -60,6 +65,28 @@ class TicketOrder < Order
       end
       seats_left = self.performance.number_of_seats_left(self)
       errors.add :base, "There are #{seats_left == 1 ? "is" : "are"} only #{seats_left} reservation#{"s" unless seats_left == 1} remaining for this performance." if self.holding_seats? && seats_left < self.number_of_seats
+    end
+  end
+
+  def unassign_seats
+    self.seats.reload.each {|seat| seat.unassign_from_order!(this) }
+    self.seats.reload
+  end
+
+  def unassign_seats_when_performance_changes
+    self.seats.reload.each {|seat|
+      unless seat.performance_id.eql?(self.performance_id)
+        seat.unassign_from_order!(this)
+      end
+    }
+    self.seats.reload
+  end
+
+  def seat_assignments_complete
+    if self.performance.production.has_reserved_seating? && (status.eql?(Order::PROCESSED) || status.eql?(Order::FULFILLED)) then
+      if (self.seats.reload.size != self.number_of_seats) then
+        errors.add :base, "You must select #{self.number_of_seats} before finalizing this order"
+      end
     end
   end
 
@@ -369,6 +396,14 @@ class TicketOrder < Order
 
   def transition_processing_to_processing!(redirect_to = nil)
     self.transition_new_to_processing!(redirect_to)
+  end
+
+  def transition_processing_to_processed!(redirect_to = nil)
+    Order.transaction do
+      self.seats.reload
+      self.seats.each {|sa| sa.status = SeatAssignment::ASSIGNED}
+      super(redirect_to)
+    end
   end
 
   def transition_processed_to_fulfilled!(redirect_to = nil)

@@ -5,6 +5,10 @@
 /* production display css */
 
 
+fieldset legend {
+  background:none !important;
+}
+
 .production_list {
 }
 

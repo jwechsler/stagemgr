@@ -14,7 +14,8 @@ class Admin::TicketOrdersController < Admin::OrdersController
     render :json => production.map { |prod|
       { id:prod.id,
         label:"#{prod.production_code} - #{prod.name}",
-        value:prod.production_code }
+        value:prod.production_code,
+        has_reserved_seats: prod.has_reserved_seating? }
     }
   end
 
@@ -84,6 +85,12 @@ class Admin::TicketOrdersController < Admin::OrdersController
   def edit
   end
 
+  def confirm
+    respond_to do |format|
+      format.html { render '/admin/ticket_orders/confirm', :layout=>true}
+    end
+  end
+
   def resend_confirmation
     confirmation_task = @ticket_order.tasks.select{|t| t.method_symbol == 'ticket_confirmation'}.first
     confirmation_task.run!
@@ -106,7 +113,7 @@ class Admin::TicketOrdersController < Admin::OrdersController
   def update
     @ticket_order.payment_type = PaymentType.find(params[:ticket_order][:payment_type_id])
     set_ticket_classes_for_line_items
-    @ticket_order = process_order(@ticket_order,:edit_admin_order_path)
+    @ticket_order = process_order(@ticket_order,@ticket_order.performance.production.has_reserved_seating? ? :confirm_admin_ticket_order_path : :edit_admin_order_path)
   end
 
   def create
@@ -117,7 +124,7 @@ class Admin::TicketOrdersController < Admin::OrdersController
     set_ticket_classes_for_line_items
     time_cutoff = @ticket_order.performance.to_time_with_zone - ($SERVER_CONFIG['minutes_before_performance_close_to_third_party_sales'] || 0).minutes
     if can?(:order_anytime, TicketOrder) || (Time.now < time_cutoff)
-      @ticket_order = process_order(@ticket_order,:edit_admin_ticket_order_path)
+      @ticket_order = process_order(@ticket_order,@ticket_order.performance.production.has_reserved_seating? ? :confirm_admin_ticket_order_path : :edit_admin_ticket_order_path)
     else
       flash[:error] = "Orders for this performance must be placed through the box office after #{time_cutoff.strftime('%H:%M%p')} on #{time_cutoff.strftime('%m/%d/%y')}"
       render 'edit', layout: true
@@ -125,15 +132,17 @@ class Admin::TicketOrdersController < Admin::OrdersController
   end
 
   def set_ticket_classes_for_line_items
-    params[:ticket_order][:ticket_line_items_attributes].values.each{ |tlia|
-      code = tlia[:ticket_class_code]
-      found = @ticket_order.ticket_line_items.select { |tli| tli.id == tlia[:id].to_i}
-      found.each {|tli|
-        use_class = @ticket_order.performance.ticket_class_allocations.select {|tca| tca.ticket_class.class_code == code && tca.available?}
+    unless params[:ticket_order][:ticket_line_items_attributes].nil?
+      params[:ticket_order][:ticket_line_items_attributes].values.each{ |tlia|
+        code = tlia[:ticket_class_code]
+        found = @ticket_order.ticket_line_items.select { |tli| tli.id == tlia[:id].to_i}
+        found.each {|tli|
+          use_class = @ticket_order.performance.ticket_class_allocations.select {|tca| tca.ticket_class.class_code == code && tca.available?}
 
-        tli.ticket_class = use_class.first.ticket_class unless use_class.empty?
+          tli.ticket_class = use_class.first.ticket_class unless use_class.empty?
+        }
       }
-    }
+    end
   end
 
   def redirect_to_proper_action

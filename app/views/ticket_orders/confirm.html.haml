@@ -67,20 +67,11 @@
             %td
             %td
               %a.tiny.button.right{:href=>"javascript: submitForm()"} Edit your order
-
-      = order_form.input :payment_type_id, :as=>:hidden, :input_html=>{:value=>order.payment_type_id}
-      = order_form.input :credit_card_number, :as=>:hidden, :input_html=>{:value=>order.credit_card_number }
-      = order_form.input :credit_card_type, :as=>:hidden, :input_html=>{:value=>order.credit_card_type }
-      = order_form.input :credit_card_expiration_year, :as=>:hidden, :input_html=>{:value=>order.credit_card_expiration_year }
-      = order_form.input :credit_card_expiration_month, :as=>:hidden, :input_html=>{:value=>order.credit_card_expiration_month }
-      = order_form.input :credit_card_verification_number, :as=>:hidden, :input_html=>{:value=>order.credit_card_verification_number }
-      = order_form.input :flex_pass_code, :as=>:hidden, :input_html=>{:value=>order.flex_pass_code}
-      = order_form.input :member_code, :as=>:hidden, :input_html=>{:value=>order.member_code }
-      = order_form.input :status, :as=>:hidden, :input_html=>{:value=>order.status }
-      = order_form.input :special_offer_code, :as=>:hidden, :input_html=>{:value=>order.special_offer_code }
-      = order_form.input :additional_donation, :as=>:hidden, :input_html=>{:value=>order.additional_donation }
-      = order_form.input :add_to_email_list, :as=>:hidden, :input_html=>{:value=>order.add_to_email_list }
-      %br
+      - if order.performance.production.has_reserved_seating?
+        .row
+          .small-12.columns
+            = render partial: '/ticket_orders/seating', locals: {ticket_order: order}
+      = render partial: 'pass_through_fields', locals:{order_form: order_form}
       %p
         = payment_text_for order if total > 0
         Please note that all ticket purchases are
@@ -91,7 +82,7 @@
 
       .row
         .small-3.small-centered.columns
-          = order_form.button :submit, 'Order Tickets'
+          = order_form.button :submit, 'Order Tickets', id:'place-order-button'
 
       .row
         .small-12.columns

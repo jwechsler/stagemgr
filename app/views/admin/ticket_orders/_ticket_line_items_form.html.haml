@@ -31,3 +31,16 @@
   %div.row
     %div.small-9.columns
       = render '/admin/orders/special_offer_form', :f => order_form
+
+= content_for :js do
+  :javascript
+    $('#ticket_order_production_code').bind('railsAutocomplete.select', function(event, data){
+      /* Do something here */
+      if (data.item.has_reserved_seats) {
+        $('.seating-required').show()
+        $('.seating-not-required').hide()
+      } else {
+        $('.seating-required').hide()
+        $('.seating-not-required').show()
+      }
+    });

@@ -166,7 +166,7 @@ class Order < ActiveRecord::Base
   end
 
   def time_to_hold_in_transition
-    15.minutes
+    10.minutes
   end
 
   def self.attending_statuses

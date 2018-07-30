@@ -22,9 +22,11 @@ class SeatAssignmentsController < ApplicationController
         order = Order.find(params[:order_id])
         sa = SeatAssignment.find(params[:id])
         if sa.available? && ((current_user.nil? && order.processing?) || !current_user.nil?) then
-          sa.status = SeatAssignment::TEMPORARY
-          sa.order = order
-          sa.reload if !sa.save
+          number_assigned = SeatAssignment.where(status: [SeatAssignment::TEMPORARY, SeatAssignment::ASSIGNED], order_id:order.id).size
+          unless number_assigned >= order.number_of_seats
+            SeatAssignment.where("id = :id and (order_id is null or order_id = :order_id)",id:sa.id, order_id: order.id).update_all(order_id: order.id, status: SeatAssignment::TEMPORARY)
+            sa.reload
+          end
         end
         status = view_context.assignment_keys(sa, order)
         render json: {id: sa.id, status:status, order_id: sa.order_id }

@@ -1,0 +1,12 @@
+- if can? :fulfill, TicketOrder
+  = order_form.submit 'Print Tickets', :class=>'button', :disable_with => 'Printing...' if order_form.object.printable?
+
+- if [Order::NEW, Order::HOLD, Order::PROCESSING].include? order_form.object.status
+  = order_form.submit 'Assign Seats', :class=>'hide button seating-required', data:{:disable_with => 'Seating...'}
+  = order_form.submit 'Place Order', :class=>'button seating-not-required', data:{:disable_with => 'Processing...', :confirm => "Process this order?"}
+
+- if can? :hold, TicketOrder
+  = order_form.submit 'Hold', data:{:disable_with => 'Holding...'}, :class=>'button' if order_form.object.holdable?
+
+- if order_form.object.status == Order::HOLD || order_form.object.status == Order::PROCESSING
+  = link_to 'Cancel Order', cancel_admin_order_path(order_form.object), data:{:confirm=>"Are you sure?"}, :method=>:post, :class=>'button'

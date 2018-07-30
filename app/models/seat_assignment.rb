@@ -28,7 +28,15 @@ class SeatAssignment < ActiveRecord::Base
       performance.seat_assignments << performance.production.seat_map.create_inventory_for_performance(performance)
       Rails.logger.debug ("assigned inventory")
     end
-    performance.seat_assignments.select{|sa| sa.available?(order) }
+    performance.seat_assignments
+  end
+
+  def unassign_from_order!(ticket_order)
+    if seat.order_id.eql?(ticket_order.id)
+      seat.order_id = nil
+      seat.status = SeatAssignment::AVAILABLE
+      seat.save!
+    end
   end
 
 end

@@ -1,0 +1,174 @@
+%fieldset
+  %legend Seating
+  .row
+    .columns.small-12.medium-9
+      %img{:src => ticket_order.performance.production.seat_map.base_image_map.url, :alt => "", :usemap=> '#seatingmap', :class=>'seatingmap'}
+      %map{name:'seatingmap', id:'seatingmap'}
+        - SeatAssignment.available_seat_assignments(ticket_order.performance, ticket_order).each do |sa|
+          - sa_key = sa.available? || (sa.assigned?(ticket_order)) ? "#{sa.id}" : "unavailable"
+          %area{shape:"rect", coords:"#{sa.seat.origin_x},#{sa.seat.origin_y},#{sa.seat.origin_x+sa.seat.width},#{sa.seat.origin_y+sa.seat.height}", id:"sa-#{sa.id}", href:"#?id=#{sa.seat.location}",alt:"#{sa.seat.location}", 'data-location':"#{sa.seat.location}", 'data-status': "#{assignment_keys(sa,ticket_order)}", 'data-assignment-id':"#{sa.id}", 'data-key':"#{sa_key}"}
+    .columns.small-12.medium-3
+      %fieldset
+        %legend Reserved
+        %span#seatinglist
+          = ticket_order.seats.map{|sa| sa.seat.location}.sort.join(',')
+        %br
+        %span#seating-remaining
+
+          - seats_remaining = ticket_order.number_of_seats - ticket_order.seats.size
+          = "#{seats_remaining} of #{ticket_order.number_of_seats} remaining" unless seats_remaining  == 0
+
+= content_for :js do
+  :javascript
+    $(document).ready(function() {
+
+      function count_assigned() {
+        count = 0
+        $("#seatingmap area").each(function () {
+          if ($(this).data('status') == 'assigned') {
+            count = count + 1
+          }
+        });
+        return count;
+      }
+
+
+      $('.seating-required').removeClass('hide')
+      $('.seating-not-required').addClass('hide')
+
+      function update_seating_submit_button(seating_complete) {
+        $('.seating-required').prop('disabled',!seating_complete)
+        if (seating_complete) {
+          console.log("submit")
+          $('.seating-required').attr('value','Place Order')
+        } else {
+          console.log("assign")
+          $('.seating-required').attr('value','Assign Seats')
+        }
+
+
+
+
+      }
+      function update_informational() {
+        selected_seats = []
+        seating_count=0
+        $( '#seatingmap area' ).each (function() {
+          if ($(this).data('status') == 'assigned') {
+            selected_seats.push($(this).data('location'))
+            seating_count++
+          }
+        });
+        $( '#seatinglist').text(selected_seats.sort().join(','))
+        if (seating_count < max_allowed) {
+          $('#seating-remaining').text((max_allowed - seating_count) + " of " + max_allowed + " remaining")
+        } else {
+          $('#seating-remaining').text(" ")
+        }
+        update_seating_submit_button(seating_count == max_allowed)
+
+      }
+
+      is_fully_seated = (count_assigned() >= #{ticket_order.number_of_tickets})
+      max_assignable = #{ticket_order.number_of_tickets}
+
+      update_seating_submit_button(is_fully_seated)
+
+      $('img.seatingmap').mapster({
+        mapKey: 'data-key',
+        fillColor: '00ff00',
+        fillOpacity: 0.5,
+
+        areas: [{
+                  key: 'assigned',
+                  staticState: true,
+                  render_select: {
+                    fillColor: '00ff00',
+                  }
+
+                },{
+                  key: 'unavailable',
+                  staticState: true,
+                  isSelectable: false,
+                  render_highlight: {
+                    fillColor: '000000',
+                    fillOpacity: 0
+                  },
+                  render_select: {
+                    fillColor: '222222',
+                    fillOpacity: 0.3
+                  }
+                },
+                {
+                  key: 'available',
+                  isSelectable: true,
+
+                }
+              ]
+            }
+          );
+
+        #{
+          raw(ticket_order.seats.map {|sa|
+            data_key = "#{sa.id},#{assignment_keys(sa, ticket_order)}"
+            "$('#seatingmap area[data-assignment-id=#{sa.id}]').data('assignment_keys','#{data_key}')\n" +
+            "$('#seatingmap area[data-assignment-id=#{sa.id}]').mapster('set', true, '#{data_key}')\n" +
+            "$('#seatingmap area[data-assignment-id=#{sa.id}]').mapster('#{sa.assigned?(ticket_order) ? 'select' : 'deselect'}\')\n" +
+            ''
+          }.join(';\n'))
+        }
+
+
+        // assign keys
+
+
+        $('#seatingmap area').click( function(e) {
+
+          starting_status = $(this).data('status')
+          data_key = $(this).data('key')
+          starting_assigned = count_assigned()
+
+          e_reference = '[data-assignment-id=' + $(this).data('assignment-id') + ']'
+          seating_count = 0
+          max_allowed = #{ticket_order.number_of_seats}
+          if ((starting_status == 'available') && (starting_assigned < #{ticket_order.number_of_tickets})) {
+            $.post( '#{reserve_performance_seat_assignments_url(ticket_order.performance_id)}',
+              { 'id': $( this ).data('assignment-id'),
+                 'order_id': '#{ticket_order.id}'
+              }, function( response, status ) {
+                e_reference = '[data-assignment-id='+response['id']+']'
+                data_key = response['id']+','+response['status']
+                $( e_reference ).data('key',data_key);
+                $( e_reference ).data('status',response['status'])
+                $( e_reference ).mapster('set', true, data_key)
+                $( e_reference ).mapster('select')
+                $( e_reference ).mapster('highlight', false)
+                update_informational()
+
+              });
+          } else if (starting_status == 'assigned') {
+            $.post( '#{release_performance_seat_assignments_url(ticket_order.performance_id)}',
+              { 'id': $( this ).data('assignment-id'),
+                 'order_id': '#{ticket_order.id}'
+              }, function( response, status ) {
+                e_reference = '[data-assignment-id='+response['id']+']'
+                data_key = (response['status']=='unavailable')? 'unavailable' : response['id']+','+response['status'];
+                $( e_reference ).data('key',data_key);
+                $( e_reference ).data('status',response['status'])
+
+                $( e_reference ).mapster('set', false, data_key);
+                $( e_reference ).mapster('deselect')
+                update_informational()
+
+            });
+          }
+
+
+          $( e_reference ).mapster('highlight', false)
+          $( e_reference ).mapster('deselect')
+
+
+        });
+      });
+
+

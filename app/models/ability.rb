@@ -14,7 +14,7 @@ class Ability
     return if user.nil?
     # theater-specific staff
     can :read, Order
-    can [:read, :create, :update, :update_notes], TicketOrder
+    can [:read, :create, :update, :update_notes, :confirm], TicketOrder
     can [:read, :create, :hold_existing], TicketOrder
     can :auto_complete, Production
     can :auto_complete, Performance
