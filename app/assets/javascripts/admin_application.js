@@ -5,6 +5,7 @@
 //= require jquery-ui/widgets/datepicker
 //= require autocomplete-rails
 //= require dataTables/jquery.dataTables
+//= require jquery.dataTables.yadcf
 
 
 // setup dataTable with standard active switch selector. Call from ready state

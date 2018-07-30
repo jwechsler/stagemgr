@@ -1,5 +1,6 @@
 class OrdersDatatable < AjaxDatatablesRails::Base
   extend Forwardable
+  def_delegator :@view, :number_to_currency
   def_delegator :@view, :link_to
   def_delegator :@view, :raw
   def_delegator :@view, :order_status_severity_class
@@ -10,9 +11,9 @@ class OrdersDatatable < AjaxDatatablesRails::Base
     # Declare strings in this format: ModelName.column_name
     # or in aliased_join_table.column_name format
     @view_columns ||= {
-      id: { source: 'Order.id'},
-      code: { source: 'Performance.performance_code' },
-      name: { source: 'Address.full_name'},
+      id: { source: 'Order.id', orderable: false},
+      code: { source: 'Performance.performance_code', orderable: false},
+      name: { source: 'Address.full_name', orderable: false},
       status: { source: 'Order.status', orderable: false },
     }
   end
@@ -33,8 +34,8 @@ class OrdersDatatable < AjaxDatatablesRails::Base
         code: order.display_code,
         name: format_name_for_table(order),
         status: raw("<span class=\"label #{order_status_severity_class(order.status)}\">#{order.status}</span>"),
-        visits: order.address.nil? ? "n/a" : (current_user.can?(:view_full_history,:admin_orders) ? order.address.orders_processed : order.address.orders_processed(@current_user.theater_ids)),
-        total: order.total,
+        visits: order.address.nil? ? "n/a" : (current_user.is_theater_user? ? order.address.orders_processed(@current_user.theater_ids) : order.address.orders_processed ),
+        total: number_to_currency(order.total),
         description: order.description,
         DT_RowID: order.id
      }
@@ -52,7 +53,7 @@ private
 private
 
   def get_raw_records
-    Order.joins(:address, :payments, performance: :production).distinct
+    Order.includes(:address, :payments, performance: :production).references(:address,:payments,:performance).where('performances.status in (:searchable) or productions.status in (:searchable)', searchable: Performance.sellable_statuses)
   end
 
   def sort_records(records)

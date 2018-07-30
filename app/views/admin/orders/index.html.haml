@@ -7,63 +7,39 @@
 
 .row
   .small-12.columns
-    %table#order-listing{:data=>{:source=>"#{admin_orders_path(format: :json)}"}}
+    %table#order-listing{:data=>{:source=>"#{raw admin_orders_path(format: :json)}"}}
       %thead
-        %tr
-          %th#foot_ID.searchy
-          %th#footer-code.searchy
-          %th#footer-name.searchy
-          %th#status-search.option-search
-          %th#visits
-          %th#total
-          %th#description
-        %tr
-          %th ID
-          %th Code
-          %th Name
-          %th Status
-          %th Visits
-          %th Total
-          %th Description
-        %tr.filters
-          %th
-            %input
-          %th
-            %input
-          %th
-            %input
-          %th
-            = collection_select(:search, :status, [""] + Order::ORDER_STATUSES, :to_s, :to_s)
-          %th
-          %th
-          %th
+      
+        %th ID
+        %th Code
+        %th Name
+        %th Status
+        %th Visits
+        %th Total
+        %th Description
+      %tr.filters
       %tbody
 
 = content_for :js do
   :javascript
-    function update_order_selection_buttons() {
-      rows = new $.fn.dataTable.TableTools( $('#orders-table').DataTable() ).fnGetSelected();
-      if (rows.length == 0) {
-        $('#print-tickets-button,#unclaimed-tickets-button').addClass('disabled');
-      } else {
-        $('#print-tickets-button,#unclaimed-tickets-button').removeClass('disabled');
-      }
-    }
-
+    'use strict';
+    
     $(document).ready(function() {
-      $('#order-listing').dataTable({
+      var oListing;
+
+      oListing = $('#order-listing').DataTable({
+        "stateSave": true,
+        "responsive": true,
         "processing": true,
         "serverSide": true,
-        stateSave: true,
-        deferRender: true,
-        lengthMenu: [10, 25, 50, 100],
+        "searching": false,
+
         "ajax": $('#order-listing').data('source'),
-        "pagingType": 'full_numbers',
+        "lengthMenu": [10, 25, 50, 100],
         "language": {
           "lengthMenu" : "_MENU_",
-          "search": ""
         },
-        columns: [
+        "columns": [
           {data: 'id'},
           {data: 'code'},
           {data: 'name'},
@@ -72,14 +48,25 @@
           {data: 'total'},
           {data: 'description'},
         ],
-        initComplete: function() {
-          return $('.filters input, .filters select', this).on('change', (e) => {
-            var th;
-            th = $(e.target).closest("th");
-            return this.api().column(th.index()).search($(e.target).val()).draw();
-          });
-        },
       });
+    
+      yadcf.init(oListing, [
+        { column_number: 0, filter_type: "text", filter_delay: 500 },
+        { column_number: 1, filter_type: "text", filter_delay: 500, orderable: false },
+        { column_number: 2, filter_type: "text", filter_delay: 500, orderable: false },
+        { column_number: 3, filter_type: "select", data: [#{raw Order::ORDER_STATUSES.map{|s| "'#{s}'"}.join(',')}] },
+      ]);
+      //$('#order-listing').dataTable({
+        
+        // "pagingType": 'full_numbers',
+        
+        //initComplete: function() {
+        //  return $('.filters input, .filters select', this).on('change', (e) => {
+        //    var th;
+        //    th = $(e.target).closest("th");
+        //    return this.api().column(th.index()).search($(e.target).val()).draw();
+        //  });
+
 
     });
 

@@ -1,0 +1,9 @@
+.yadcf-filter-wrapper {
+  display: inline-block;
+}
+
+.yadcf-filter-reset-button {
+  padding: 2px;
+  display: inline-block;
+  font-size: 11px;
+}
