@@ -29,20 +29,22 @@ RSpec.describe SeatAssignmentsController, type: :controller do
     it "holds a seat for an order in processing mode" do
       reservation_id = @inventory[0]['id']
       @ticket_order.transition_to!(Order::PROCESSING)
-      post :reserve, performance_id: @ticket_order.performance_id, id:reservation_id, format: :json, :seat_assignment=>{ :order_id=>@ticket_order.id }
+      post :reserve, performance_id: @ticket_order.performance_id, format: :json, id:reservation_id, order_id: @ticket_order.id
       result = JSON.parse response.body
       expect(result['order_id']).to eq(@ticket_order.id)
-      expect(result['status']).to eq(SeatAssignment::TEMPORARY)
+      expect(result['status']).to eq('assigned')
+      expect(SeatAssignment.find(reservation_id).status).to eq(SeatAssignment::TEMPORARY)
     end
 
     it "releases a seat for an order in processing mode", wip:true do
       reservation_id = @inventory[0]['id']
       @ticket_order.transition_to!(Order::PROCESSING)
-      post :reserve, performance_id: @ticket_order.performance_id, id:reservation_id, format: :json, :seat_assignment=>{ :order_id=>@ticket_order.id }
-      post :release, performance_id: @ticket_order.performance_id, id:reservation_id, format: :json, :seat_assignment=>{ :order_id=>@ticket_order.id }
+      post :reserve, performance_id: @ticket_order.performance_id, id:reservation_id, format: :json,  :order_id=>@ticket_order.id 
+      post :release, performance_id: @ticket_order.performance_id, id:reservation_id, format: :json,  :order_id=>@ticket_order.id 
       result = JSON.parse response.body
       expect(result['order_id']).to be_nil
-      expect(result['status']).to eq(SeatAssignment::AVAILABLE)
+      expect(result['status']).to eq('available')
+      expect(SeatAssignment.find(reservation_id).status).to eq(SeatAssignment::AVAILABLE)
     end
 
   end

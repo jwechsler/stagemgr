@@ -22,8 +22,6 @@ RSpec.describe SeatMap, type: :model do
       end
 
       expect(seatmap.seats.count).to eq(8)
-      expect(seatmap.seats.first.location).to eq("AA1")
-      expect(seatmap.seats.last.location).to eq("AA8")
 
     end
 
@@ -42,10 +40,7 @@ RSpec.describe SeatMap, type: :model do
       expect(production.save).to be false
     end
 
-    it "stores a jpg for the purchase imagemap" do
-      seat_map = FactoryBot.create(:seat_map)
-      image
-    end
+    
   end
 
   context "inventory management" do
