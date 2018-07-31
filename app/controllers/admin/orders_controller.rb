@@ -29,10 +29,8 @@ class Admin::OrdersController < Admin::ApplicationController
       #   @total_pages = @total_records/@orders.per_page+1
       #   render :partial => 'admin_orders_index_grid_data.xml.builder', :layout => false
       # end
-      format.json { 
-        Rails.logger.debug("*** JSON parameters: #{params.to_yaml}")
-        @orders = OrdersDatatable.new(params, view_context: view_context, current_user: current_user) 
-        render json: @orders
+      format.json {  
+        render json: OrdersDatatable.new(params, view_context: view_context, current_user: current_user)
       }
     end
   end

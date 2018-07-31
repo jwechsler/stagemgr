@@ -71,8 +71,8 @@ class ProductionDatatable < AjaxDatatablesRails::Base
   # ==== These methods represent the basic operations to perform on records
   # and feel free to override them
 
-  # def filter_records(records)
-  # end
+  #def filter_records(records)
+  #end
 
   # def sort_records(records)
   # end

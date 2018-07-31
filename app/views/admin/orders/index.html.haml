@@ -17,7 +17,6 @@
         %th Visits
         %th Total
         %th Description
-      %tr.filters
       %tbody
 
 = content_for :js do
@@ -32,7 +31,7 @@
         "responsive": true,
         "processing": true,
         "serverSide": true,
-        "searching": false,
+        
 
         "ajax": $('#order-listing').data('source'),
         "lengthMenu": [10, 25, 50, 100],
@@ -52,20 +51,34 @@
     
       yadcf.init(oListing, [
         { column_number: 0, filter_type: "text", filter_delay: 500 },
-        { column_number: 1, filter_type: "text", filter_delay: 500, orderable: false },
-        { column_number: 2, filter_type: "text", filter_delay: 500, orderable: false },
-        { column_number: 3, filter_type: "select", data: [#{raw Order::ORDER_STATUSES.map{|s| "'#{s}'"}.join(',')}] },
+        { column_number: 1, filter_type: "text", filter_delay: 500 },
+        { column_number: 2, filter_type: "text", filter_delay: 500 },
+        { column_number: 3, filter_type: "select", data: [#{raw Order::ORDER_STATUSES.map{|s| "'#{s}'"}.join(',')}], filter_default_label: "Any" },
       ]);
-      //$('#order-listing').dataTable({
-        
-        // "pagingType": 'full_numbers',
-        
-        //initComplete: function() {
-        //  return $('.filters input, .filters select', this).on('change', (e) => {
-        //    var th;
-        //    th = $(e.target).closest("th");
-        //    return this.api().column(th.index()).search($(e.target).val()).draw();
-        //  });
+
+      $('#order-listing_filter').hide();
+
+      var table = $('#example').DataTable();
+       
+      $('#order-listing tbody').on( 'click', 'tr', function () {
+          $(this).toggleClass('selected');
+      } );
+
+      // @todo make these buttons
+      
+      $('#fulfill-button').click( function () {
+          alert( table.rows('.selected').data().length +' row(s) selected' );
+      } );
+
+      $('#print-button').click( function () {
+          alert( table.rows('.selected').data().length +' row(s) selected' );
+      } );
+
+      $('#unclaimed-button').click( function () {
+          alert( table.rows('.selected').data().length +' row(s) selected' );
+      } );
+
+
 
 
     });

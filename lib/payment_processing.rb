@@ -30,7 +30,6 @@ module PaymentProcessing
           'final_payment_due_date'=>(options[:start_date].to_date + options[:total_billing_cycles].to_i.months)
         }).merge(options)
       end
-      Rails.logger.debug("*** #{response.to_yaml}")
       response
     end
 

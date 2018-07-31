@@ -75,7 +75,6 @@ module OrdersHelper
         if !on_success_redirect_to.nil?
           respond_to do |format|
             if order.status == Order::PROCESSING
-              Rails.logger.debug("*** #{on_success_redirect_to}")
               # @todo terrible hack here.  Please fix this jw when you figure out how :)
               if on_success_redirect_to.eql?(:confirm_admin_ticket_order_path)
                 format.html { render "/admin/ticket_orders/confirm", :locals=>{order: order} }

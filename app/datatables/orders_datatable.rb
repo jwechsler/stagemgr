@@ -11,10 +11,10 @@ class OrdersDatatable < AjaxDatatablesRails::Base
     # Declare strings in this format: ModelName.column_name
     # or in aliased_join_table.column_name format
     @view_columns ||= {
-      id: { source: 'Order.id', orderable: false},
-      code: { source: 'Performance.performance_code', orderable: false},
-      name: { source: 'Address.full_name', orderable: false},
-      status: { source: 'Order.status', orderable: false },
+      id: { source: 'Order.id' },
+      code: { source: 'Performance.performance_code', cond: filter_by_code },
+      name: { source: 'Address.full_name' },
+      status: { source: 'Order.status' },
     }
   end
 
@@ -53,11 +53,25 @@ private
 private
 
   def get_raw_records
-    Order.includes(:address, :payments, performance: :production).references(:address,:payments,:performance).where('performances.status in (:searchable) or productions.status in (:searchable)', searchable: Performance.sellable_statuses)
+    Order.includes(:address, :payments, performance: :production).references(:address,:payments,:performance).where('performances.status is null or performances.status in (:searchable) or productions.status in (:searchable)', searchable: Performance.sellable_statuses)
   end
 
   def sort_records(records)
     records.order(id: :desc)
+  end
+
+  def filter_by_code
+    ->(column) { case column.downcase
+                  when 'donation'
+                    ::Arel::Nodes::SqlLiteral.new('orders.type').eq('DonationOrder')
+                  when 'flexpass'
+                    ::Arel::Nodes::SqlLiteral.new('orders.type').eq('FlexPassOrder')
+                  when 'membership', 'member'
+                    ::Arel::Nodes::SqlLiteral.new('orders.type').eq('MembershipOrder')
+                  else
+                    ::Arel::Nodes::SqlLiteral.new('performances.performance_code').matches("#{column}%")
+                  end
+                }
   end
 
   def current_user
@@ -106,7 +120,7 @@ private
   #   unless params[:order].nil?
   #     sort_list = params[:order].keys.map{|key|
   #       if params[:order][key].has_key?("column")
-  #         use_c = columns[params[:order][key]["column"].to_i]
+  #         use_c = columns[params[:order][ke                                                                                                                      ["column"].to_i]
   #         use_c = case use_c
   #           when 'addresses.full_name'
   #             "ifnull(addresses.last_name, ifnull(addresses.first_name, addresses.full_name))"
