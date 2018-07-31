@@ -7,8 +7,7 @@ class TicketOrdersController < ApplicationController
 
   respond_to :html, :xml, :json
 
-  def edit;
-    i = 1
+  def edit
   end
 
   def show

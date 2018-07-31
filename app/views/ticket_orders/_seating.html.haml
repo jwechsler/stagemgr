@@ -1,22 +1,23 @@
 %fieldset
-  %legend Seating
+  %legend Seat Reservations
   .row
-    .columns.small-12.medium-9
+    .columns.small-12
+
+      %span#seatinglist{style:"font-size':'200%"}
+        = ticket_order.seats.map{|sa| sa.seat.location}.sort.join(',')
+      &nbsp;
+      %span#seating-remaining.hint
+
+        - seats_remaining = ticket_order.number_of_seats - ticket_order.seats.size
+        = "#{seats_remaining} of #{ticket_order.number_of_seats} remaining" unless seats_remaining  == 0
+
+    .columns.small-12
       %img{:src => ticket_order.performance.production.seat_map.base_image_map.url, :alt => "", :usemap=> '#seatingmap', :class=>'seatingmap'}
       %map{name:'seatingmap', id:'seatingmap'}
         - SeatAssignment.available_seat_assignments(ticket_order.performance, ticket_order).each do |sa|
-          - sa_key = sa.available? || (sa.assigned?(ticket_order)) ? "#{sa.id}" : "unavailable"
+          - sa_key = sa.available?(ticket_order) ? "#{sa.id}" : "unavailable"
           %area{shape:"rect", coords:"#{sa.seat.origin_x},#{sa.seat.origin_y},#{sa.seat.origin_x+sa.seat.width},#{sa.seat.origin_y+sa.seat.height}", id:"sa-#{sa.id}", href:"#?id=#{sa.seat.location}",alt:"#{sa.seat.location}", 'data-location':"#{sa.seat.location}", 'data-status': "#{assignment_keys(sa,ticket_order)}", 'data-assignment-id':"#{sa.id}", 'data-key':"#{sa_key}"}
-    .columns.small-12.medium-3
-      %fieldset
-        %legend Reserved
-        %span#seatinglist
-          = ticket_order.seats.map{|sa| sa.seat.location}.sort.join(',')
-        %br
-        %span#seating-remaining
 
-          - seats_remaining = ticket_order.number_of_seats - ticket_order.seats.size
-          = "#{seats_remaining} of #{ticket_order.number_of_seats} remaining" unless seats_remaining  == 0
 
 = content_for :js do
   :javascript
@@ -69,8 +70,7 @@
       max_assignable = #{ticket_order.number_of_tickets}
 
       update_seating_submit_button(is_fully_seated)
-
-      $('img.seatingmap').mapster({
+      mapster_options = {
         mapKey: 'data-key',
         fillColor: '00ff00',
         fillOpacity: 0.5,
@@ -102,17 +102,12 @@
                 }
               ]
             }
+      $('img.seatingmap').mapster(mapster_options
           );
 
-        #{
-          raw(ticket_order.seats.map {|sa|
-            data_key = "#{sa.id},#{assignment_keys(sa, ticket_order)}"
-            "$('#seatingmap area[data-assignment-id=#{sa.id}]').data('assignment_keys','#{data_key}')\n" +
-            "$('#seatingmap area[data-assignment-id=#{sa.id}]').mapster('set', true, '#{data_key}')\n" +
-            "$('#seatingmap area[data-assignment-id=#{sa.id}]').mapster('#{sa.assigned?(ticket_order) ? 'select' : 'deselect'}\')\n" +
-            ''
-          }.join(';\n'))
-        }
+
+        $('#seatingmap').mapster('resize',$('img#seatingmap').width(),$('img#seatingmap').height());
+
 
 
         // assign keys
@@ -132,12 +127,26 @@
               { 'id': $( this ).data('assignment-id'),
                  'order_id': '#{ticket_order.id}'
               }, function( response, status ) {
+
                 e_reference = '[data-assignment-id='+response['id']+']'
                 data_key = response['id']+','+response['status']
-                $( e_reference ).data('key',data_key);
-                $( e_reference ).data('status',response['status'])
-                $( e_reference ).mapster('set', true, data_key)
-                $( e_reference ).mapster('select')
+                $.each(response['unavailable'], function(index,value) {
+                  $('[data-assignment-id='+value+']').data('key','unavailable')
+                  $('[data-assignment-id='+value+']').data('status','unavailable')
+                  $('[data-assignment-id='+value+']').attr('data-key','unavailable')
+                  $('[data-assignment-id='+value+']').attr('data-status','unavailable')
+
+                });
+                $('img.seatingmap').mapster('rebind',mapster_options);
+                console.log($('[data-assignment-id=28]').data());
+                if (response['status'] == 'unavailable') {
+                  alert("Sorry, that seat is no longer available")
+                } else {
+                  $( e_reference ).data('key',data_key);
+                  $( e_reference ).data('status',response['status'])
+                  $( e_reference ).mapster('set', true, data_key)
+                  $( e_reference ).mapster('select')
+                }
                 $( e_reference ).mapster('highlight', false)
                 update_informational()
 

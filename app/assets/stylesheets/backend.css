@@ -1,9 +1,14 @@
-.yadcf-filter-wrapper {
-  display: inline-block;
-}
+/*
+ *= require main
+*/
 
 .yadcf-filter-reset-button {
   padding: 2px;
   display: inline-block;
   font-size: 11px;
+}
+
+table#order-listing thead .yadcf-filter {
+  display:inline-block;
+  width:90%;
 }

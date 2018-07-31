@@ -3,7 +3,7 @@ class SeatMap < ActiveRecord::Base
   has_many :seats
   has_many :productions
   validates_presence_of :venue
-  has_attached_file :base_image_map, styles: { medium: "800x600>", thumb: "200x150>" }, default_url: "/images/:style/missing.png"
+  has_attached_file :base_image_map, styles: { medium: "800x800>", thumb: "200x200>" }, default_url: "/images/:style/missing.png"
 
   validates_attachment_content_type :base_image_map, content_type: /\Aimage\/.*\z/
   before_destroy :prevent_deletion_when_assigned_to_production

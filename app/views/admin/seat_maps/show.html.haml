@@ -12,7 +12,7 @@
 .row
   .columns.small-12
     %h4 Seating Geometry
-    %img{:src=>@seat_map.base_image_map.url, :alt => "", :usemap=> '#seatingmap', :class=>'seatingmap'}
+    %img{:src=>@seat_map.base_image_map.url, :alt => "", :usemap=> '#seatingmap', :class=>'seatingmap', id:'seatingmap'}
     %map{name:'seatingmap'}
       - @seat_map.seats.each do |seat|
         %area{shape:"rect", coords:"#{seat.origin_x},#{seat.origin_y},#{seat.origin_x+seat.width},#{seat.origin_y+seat.height}", href:"#?loc=#{seat.location}",alt:"#{seat.location}"}
@@ -20,5 +20,8 @@
 = content_for :js do
   :javascript
     $(document).ready(function() {
-      $('img#seatingmap').mapster();
+      $('img#seatingmap').mapster({
+      });
+      $('#seatingmap').mapster('resize',$('img#seatingmap').width(),$('img#seatingmap').height());
+
     });

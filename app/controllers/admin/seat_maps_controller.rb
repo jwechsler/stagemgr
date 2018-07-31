@@ -57,7 +57,6 @@ class Admin::SeatMapsController < ApplicationController
     end
   end
 
-
   private
 
   def update_geometry(geometry_import)

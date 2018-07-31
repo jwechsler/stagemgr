@@ -9,7 +9,6 @@
   .small-12.columns
     %table#order-listing{:data=>{:source=>"#{raw admin_orders_path(format: :json)}"}}
       %thead
-      
         %th ID
         %th Code
         %th Name
@@ -22,21 +21,50 @@
 = content_for :js do
   :javascript
     'use strict';
-    
-    $(document).ready(function() {
-      var oListing;
 
-      oListing = $('#order-listing').DataTable({
+    function update_order_selection_buttons() {
+      rows = new $.fn.dataTable.TableTools( $('#orders-table').DataTable() ).fnGetSelected();
+      if (rows.length == 0) {
+        $('#print-tickets-button,#unclaimed-tickets-button').addClass('disabled');
+      } else {
+        $('#print-tickets-button,#unclaimed-tickets-button').removeClass('disabled');
+      }
+    }
+
+    function update_buttons(table) {
+      var selectedRows = table.rows( { selected: true } ).count();
+
+      table.button( 0 ).enable( selectedRows > 0 );
+    }
+
+
+    $(document).ready(function() {
+      var oListing = $('#order-listing').DataTable({
         "stateSave": true,
         "responsive": true,
         "processing": true,
         "serverSide": true,
-        
+        dom: 'lfrBtip',
+        buttons: [
+                {
+                  text: 'Fulfill Selected',
+                  action: function(e, dt, node, config) {
+                    alert('Function being worked on... not yet available')
+                    $.each(dt.rows( {selected:true}).data(), function(index, value) {
+                      console.log(value.DT_RowID)
+                    });
+                    //dt.ajax.reload();
+
+                  }
+                }
+            ],
 
         "ajax": $('#order-listing').data('source'),
+        "select": true,
         "lengthMenu": [10, 25, 50, 100],
         "language": {
           "lengthMenu" : "_MENU_",
+          "processing": '<div class="small-4 small-centered columns"><data-alert class="alert-box" style="z-index:1000">Processing...</div></div>'
         },
         "columns": [
           {data: 'id'},
@@ -48,27 +76,29 @@
           {data: 'description'},
         ],
       });
-    
+
+      update_buttons(oListing);
+      oListing.on( 'select deselect', function() {
+        update_buttons(oListing)
+      });
+
       yadcf.init(oListing, [
-        { column_number: 0, filter_type: "text", filter_delay: 500 },
-        { column_number: 1, filter_type: "text", filter_delay: 500 },
-        { column_number: 2, filter_type: "text", filter_delay: 500 },
+        { column_number: 0, filter_type: "text", filter_delay: 600 },
+        { column_number: 1, filter_type: "text", filter_delay: 600 },
+        { column_number: 2, filter_type: "text", filter_delay: 600 },
         { column_number: 3, filter_type: "select", data: [#{raw Order::ORDER_STATUSES.map{|s| "'#{s}'"}.join(',')}], filter_default_label: "Any" },
       ]);
 
       $('#order-listing_filter').hide();
 
       var table = $('#example').DataTable();
-       
-      $('#order-listing tbody').on( 'click', 'tr', function () {
-          $(this).toggleClass('selected');
-      } );
+
+      // $('#order-listing tbody').on( 'click', 'tr', function () {
+      //     $(this).toggleClass('selected');
+      // } );
 
       // @todo make these buttons
-      
-      $('#fulfill-button').click( function () {
-          alert( table.rows('.selected').data().length +' row(s) selected' );
-      } );
+
 
       $('#print-button').click( function () {
           alert( table.rows('.selected').data().length +' row(s) selected' );

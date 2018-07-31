@@ -29,7 +29,7 @@ class SeatAssignmentsController < ApplicationController
           end
         end
         status = view_context.assignment_keys(sa, order)
-        render json: {id: sa.id, status:status, order_id: sa.order_id }
+        render json: {id: sa.id, status:status, order_id: sa.order_id, unavailable: unavailable_seating_report(order)}
       }
     end
   end
@@ -49,9 +49,16 @@ class SeatAssignmentsController < ApplicationController
 
         end
         status = view_context.assignment_keys(sa, order)
-        render json: {id: sa.id, status:status, order_id: sa.order_id }
+        render json: {id: sa.id, status:status, order_id: sa.order_id, unavailable: unavailable_seating_report(order) }
       }
     end
+  end
+
+  def unavailable_seating_report(order)
+    performance_id = order.performance_id
+    SeatAssignment.where("performance_id = :performance_id and order_id <> :order_id and status not in(:available_status)",
+      performance_id: performance_id, order_id: order.id, available_status: SeatAssignment::AVAILABLE).all.map {|sa|
+      sa.id }
   end
 
   private
