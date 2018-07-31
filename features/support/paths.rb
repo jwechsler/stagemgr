@@ -75,6 +75,10 @@ module NavigationHelpers
         @_current_form='membership_order'
         @using_admin_interface = true
         admin_membership_offers_path
+      when /^the new admin membership order page for offer "(.*)"$/
+        @_current_form='membership_order'
+        @using_admin_interface = true
+        new_admin_membership_offer_order_path(MembershipOffer.find_by_name("#{$1}"))
       when /^the new admin membership offer page$/
         @using_admin_interface = true
         new_admin_membership_offer_path

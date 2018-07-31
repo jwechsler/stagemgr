@@ -7,24 +7,24 @@
 
 function setup_admin_payment_form() {
   $('#payment_forms').children('div').each(function() {
-    $(this).addClass('hide');
+    $(this).hide()
 
   });
   switch ($('.payment_type_choice select option:selected').text()) {
     case 'Credit Card':
-      $('#credit_card_payment_form').removeClass('hide');
+      $('#credit_card_payment_form').show();
       break;
     case 'Cash':
-      $('#cash_payment_form').removeClass('hide');
+      $('#cash_payment_form').show();
       break;
     case 'FlexPass':
-      $('#flex_pass_payment_form').removeClass('hide');
+      $('#flex_pass_payment_form').show();
       break;
     case 'Membership':
-      $('#membership_payment_form').removeClass('hide');
+      $('#membership_payment_form').show();
       break;
     case 'Check':
-      $('#check_payment_form').removeClass('hide');
+      $('#check_payment_form').show();
       break;
   }
 

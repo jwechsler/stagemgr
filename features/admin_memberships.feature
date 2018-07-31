@@ -46,12 +46,10 @@ Feature: Membership Administration
       And I should not see "Destroy"
       And I should not see "New Membership Offer"
 
-  @javascript @wip
-  Scenario: Box office personnel can place membership orders from the offers page
+  Scenario: Box office personnel can place membership orders
     Given I am a box office user
       And I am logged in
-     When I go to the admin membership offers page
-      And I follow "Create Order"
+      And I go to the new admin membership order page for offer "Monthly Membership"
       And I enter my contact information
       And I enter a valid credit card as payment
       And I press "Place Order"
@@ -70,12 +68,10 @@ Feature: Membership Administration
       And I should see "Successfully created"
       And a membership_offer should exist with trial_period of 1
 
-  @javascript
-  Scenario: Box office personnel can place membership gift orders from the offers page
+  Scenario: Box office personnel can place membership gift orders
     Given I am a box office user
       And I am logged in
-     When I go to the admin membership offers page
-      And I follow "Create Order"
+     When I go to the new admin membership order page for offer "Monthly Membership"
       And I enter my contact information
       And I enter a valid credit card as payment
       And I check "Give as a gift"
@@ -88,12 +84,11 @@ Feature: Membership Administration
       And an address "Gift Getter" exists
     And I should see "Customer successfully set up for the Monthly Membership payment plan"
 
-  @javascript
+  @wip
   Scenario: Members can specify requested seating
     Given I am a box office user
       And I am logged in
-     When I go to the admin membership offers page
-      And I follow "Create Order"
+     When I go to the new admin membership order page for offer "Monthly Membership"
       And I enter my contact information
       And I enter a valid credit card as payment
       And I prefer "Front row" seating
