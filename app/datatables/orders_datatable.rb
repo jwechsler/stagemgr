@@ -53,7 +53,7 @@ private
 private
 
   def get_raw_records
-    Order.includes(:address, :payments, performance: :production).references(:address,:payments,:performance).where('performances.status is null or performances.status in (:searchable) or productions.status in (:searchable)', searchable: Performance.sellable_statuses)
+    sort_records(Order.includes(:address, :payments, performance: :production).references(:address,:payments,:performance).where('performances.status is null or performances.status in (:searchable) or productions.status in (:searchable)', searchable: Performance.sellable_statuses))
   end
 
   def sort_records(records)

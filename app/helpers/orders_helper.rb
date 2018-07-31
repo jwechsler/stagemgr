@@ -76,7 +76,8 @@ module OrdersHelper
           respond_to do |format|
             if order.status == Order::PROCESSING
               # @todo terrible hack here.  Please fix this jw when you figure out how :)
-              if on_success_redirect_to.eql?(:confirm_admin_ticket_order_path)
+              admin_seating_required = (!order.performance.nil?) ? order.performance.production.has_reserved_seating? : false
+              if on_success_redirect_to.eql?(:confirm_admin_ticket_order_path) && admin_seating_required
                 format.html { render "/admin/ticket_orders/confirm", :locals=>{order: order} }
               else
                 format.html { render "/ticket_orders/confirm", :locals=>{:order=>order} }

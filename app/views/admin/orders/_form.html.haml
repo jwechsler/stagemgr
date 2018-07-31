@@ -28,6 +28,6 @@
   .small-12.columns
     = order_form.input :notes, :input_html => {:rows => 4}
   .small-12.columns
-    = render partial:'confirm_button', locals:{order_form:order_form}
+    = render partial:'/admin/orders/confirm_button', locals:{order_form:order_form}
   .small-12.columns
     = render '/admin/orders/audit_show', :order_form=>order_form.object

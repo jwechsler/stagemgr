@@ -10,7 +10,8 @@
 %div.row
   %div.small-12.columns
     = render :partial => '/admin/orders/payments', :locals=>{:order=>ticket_order}
-    = render :partial => '/ticket_orders/seating', :locals=>{:ticket_order=>ticket_order}
+    - if ticket_order.performance.production.has_reserved_seating?
+      = render :partial => '/ticket_orders/seating', :locals=>{:ticket_order=>ticket_order}
     = render :partial => '/admin/orders/referral', :locals=>{:order=>ticket_order}
 %div.row
   %div.small-12.columns

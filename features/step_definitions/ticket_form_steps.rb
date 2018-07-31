@@ -42,11 +42,11 @@ When /^I enter a valid credit card as payment( through the backend)?$/ do |backe
   @_current_form = 'ticket_order' if @_current_form.blank?
 
   if @using_admin_interface
-    select "Credit Card", :from=>"Pay using"
+    select "Credit Card", :from=>"#{@_current_form}_payment_type_id"
   else
     choose "Credit Card"
   end
-  select "Visa", :from=>"Card Type"
+  select "Visa", :from=>"#{@_current_form}_credit_card_type"
   unless @using_admin_interface
     select "01", :from=>"#{@_current_form}_credit_card_expiration_month"
   else

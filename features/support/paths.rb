@@ -72,6 +72,7 @@ module NavigationHelpers
         page_type = "#{$1}".gsub(' ','_')
         admin_order_path(eval "@#{page_type}.id")
       when /^the admin membership offers page$/
+        @_current_form='membership_order'
         @using_admin_interface = true
         admin_membership_offers_path
       when /^the new admin membership offer page$/

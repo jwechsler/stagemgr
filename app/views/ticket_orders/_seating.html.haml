@@ -39,14 +39,10 @@
       function update_seating_submit_button(seating_complete) {
         $('.seating-required').prop('disabled',!seating_complete)
         if (seating_complete) {
-          console.log("submit")
           $('.seating-required').attr('value','Place Order')
         } else {
-          console.log("assign")
           $('.seating-required').attr('value','Assign Seats')
         }
-
-
 
 
       }

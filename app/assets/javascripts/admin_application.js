@@ -19,8 +19,6 @@ function setupActiveSwitchOnDataTable(table_selector, status_column_idx) {
       activeSwitch.text('Show Active')
     } else {
       activeSwitch.text('Show All')
-      console.log('log')
-      console.log(settings.aoPreSearchCols[status_column_idx])
     }
     activeSwitch.prop('checked',true);
     activeSwitch.on('click', function () {

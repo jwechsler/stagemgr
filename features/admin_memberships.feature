@@ -46,7 +46,7 @@ Feature: Membership Administration
       And I should not see "Destroy"
       And I should not see "New Membership Offer"
 
-  @javascript
+  @javascript @wip
   Scenario: Box office personnel can place membership orders from the offers page
     Given I am a box office user
       And I am logged in
