@@ -91,9 +91,7 @@ $(document).ready(function() {
     areas: [{
               key: 'assigned',
               staticState: true,
-              render_select: {
-                fillColor: '00ff00',
-              }
+
 
             },{
               key: 'unavailable',
@@ -112,6 +110,10 @@ $(document).ready(function() {
               key: 'available',
               isSelectable: true,
               staticState: false,
+              render_select: {
+                fillColor: '000000',
+                fillOpacity: 0.0
+              }
 
             }
           ]
