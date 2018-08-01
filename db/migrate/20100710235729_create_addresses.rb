@@ -14,9 +14,12 @@ class CreateAddresses < ActiveRecord::Migration
       t.timestamps
     end
     add_column :orders, :address_id, :integer
+    add_index :orders, :address_id
+
   end
 
   def self.down
     drop_table :addresses
   end
+
 end

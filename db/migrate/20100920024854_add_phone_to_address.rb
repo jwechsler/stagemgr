@@ -4,6 +4,7 @@ class AddPhoneToAddress < ActiveRecord::Migration
   end
 
   def self.down
-    remove_column :addresses, :phone
+    drop_column :addresses, :phone
   end
+
 end

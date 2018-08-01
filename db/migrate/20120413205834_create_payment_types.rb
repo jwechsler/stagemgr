@@ -5,7 +5,6 @@ class CreatePaymentTypes < ActiveRecord::Migration
 
       t.timestamps
     end
-    ["Credit Card", "Cash", "FlexPass", "Price Override", "Membership"].each { |p| PaymentType.create :display_name=>p }
   end
 
   def self.down

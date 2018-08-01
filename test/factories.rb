@@ -104,8 +104,9 @@ FactoryBot.define do
   end
 
   factory :external_payment_type do
-    display_name 'External Payment'
-    initialize_with { ExternalPaymentType.find_or_create_by(id:5)}
+    initialize_with { ExternalPaymentType.find_or_create_by(id:5) do |p|
+      p.display_name = 'External Payment'
+    end}
   end
 
   factory :check_payment_type do
