@@ -398,6 +398,11 @@ class TicketOrder < Order
     self.transition_new_to_processing!(redirect_to)
   end
 
+  def transition_processing_to_hold!(redirect_to = nil)
+    self.transition_new_to_hold!(redirect_to)
+  end
+
+
   def transition_processing_to_processed!(redirect_to = nil)
     Order.transaction do
       self.seats.reload

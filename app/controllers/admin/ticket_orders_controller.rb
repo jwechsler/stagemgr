@@ -73,11 +73,12 @@ class Admin::TicketOrdersController < Admin::OrdersController
 
   def show
     respond_to do |format|
-      format.html { if @ticket_order.editable?
-                      render 'edit'
-                    else
-                      render 'show'
-                    end
+      format.html {
+        if @ticket_order.editable?
+          render 'edit'
+        else
+          render 'show'
+        end
       }
     end
   end
@@ -122,8 +123,8 @@ class Admin::TicketOrdersController < Admin::OrdersController
   def update
     @ticket_order.payment_type = PaymentType.find(params[:ticket_order][:payment_type_id])
     set_ticket_classes_for_line_items
-    next_action = (@ticket_order.transitory? && @ticket_order.performance.production.has_reserved_seating?) ? :confirm_admin_ticket_order_path : :edit_admin_order_path
-    @ticket_order = process_order(@ticket_order,:edit_admin_ticket_order_path)
+    next_action = params[:commit].eql?('Assign Seats') && (@ticket_order.transitory? && @ticket_order.performance.production.has_reserved_seating?) ? :confirm_admin_ticket_order_path : :edit_admin_order_path
+    @ticket_order = process_order(@ticket_order,next_action)
   end
 
   def create

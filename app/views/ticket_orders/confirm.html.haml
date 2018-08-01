@@ -71,7 +71,7 @@
         .row
           .small-12.columns
             = render partial: '/ticket_orders/seating', locals: {ticket_order: order}
-      = render partial: 'pass_through_fields', locals:{order_form: order_form}
+      = render partial: '/ticket_orders/pass_through_fields', locals:{order_form: order_form}
       %p
         = payment_text_for order if total > 0
         Please note that all ticket purchases are

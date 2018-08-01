@@ -699,6 +699,11 @@ class Order < ActiveRecord::Base
     redirect_to
   end
 
+  def transition_processed_to_processed!(redirect_to)
+    self.save!
+    redirect_to
+  end
+
   def transition_new_to_processed!(redirect_to = nil)
       transition_new_to_processing!(redirect_to)
       transition_processing_to_processed!(redirect_to)
