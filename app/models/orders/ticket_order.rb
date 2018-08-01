@@ -69,14 +69,14 @@ class TicketOrder < Order
   end
 
   def unassign_seats
-    self.seats.reload.each {|seat| seat.unassign_from_order!(this) }
+    self.seats.reload.each {|seat| seat.unassign_from_order(self) }
     self.seats.reload
   end
 
   def unassign_seats_when_performance_changes
     self.seats.reload.each {|seat|
       unless seat.performance_id.eql?(self.performance_id)
-        seat.unassign_from_order!(this)
+        seat.unassign_from_order(self)
       end
     }
     self.seats.reload

@@ -148,7 +148,7 @@ class Admin::TicketOrdersController < Admin::OrdersController
         code = tlia[:ticket_class_code]
         found = @ticket_order.ticket_line_items.select { |tli| tli.id == tlia[:id].to_i}
         found.each {|tli|
-          use_class = @ticket_order.performance.ticket_class_allocations.select {|tca| tca.ticket_class.class_code == code && tca.available?}
+          use_class = @ticket_order.performance.ticket_class_allocations.select {|tca| !tca.ticket_class.nil? && tca.ticket_class.class_code == code && tca.available?}
 
           tli.ticket_class = use_class.first.ticket_class unless use_class.empty?
         }

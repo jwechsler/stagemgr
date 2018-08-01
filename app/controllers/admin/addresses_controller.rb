@@ -18,10 +18,12 @@ class Admin::AddressesController < Admin::ApplicationController
   # GET /admin/addresses/1
   # GET /admin/addresses/1.xml
   def show
-    @visible_orders = @address.orders.select{|o| current_user.is_administrator? or current_user.is_box_office_user?|| current_user.theater_ids.include?(o.theater_id) }
     respond_to do |format|
       format.html # show.html.erb
-      format.xml  { render :xml => @address }
+      format.json  {
+        params.permit!
+        render json: AddressesOrdersDatatable.new(params, view_context: view_context, current_user: current_user, address: @address)
+      }
     end
   end
 

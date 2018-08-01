@@ -31,11 +31,11 @@ class SeatAssignment < ActiveRecord::Base
     performance.seat_assignments
   end
 
-  def unassign_from_order!(ticket_order)
-    if seat.order_id.eql?(ticket_order.id)
-      seat.order_id = nil
-      seat.status = SeatAssignment::AVAILABLE
-      seat.save!
+  def unassign_from_order(ticket_order)
+    if self.order_id.eql?(ticket_order.id)
+      self.order_id = nil
+      self.status = SeatAssignment::AVAILABLE
+      self.save
     end
   end
 

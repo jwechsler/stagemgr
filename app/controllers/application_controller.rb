@@ -101,11 +101,6 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  # delegates current_abillity for cancancan to current_user
-  def current_ability
-    self.current_user.ability
-  end
-
   def current_user_session
     return @current_user_session if defined?(@current_user_session)
     @current_user_session = UserSession.find
