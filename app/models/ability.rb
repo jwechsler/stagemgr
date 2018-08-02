@@ -14,6 +14,9 @@ class Ability
     return if user.nil?
     # theater-specific staff
     can :read, Order
+    can :read, Production, ["theater_id in (?)", user.theater_ids] do |prod|
+        current_user.theater_ids.include?(prod.theater_id)
+    end
     can [:read, :create, :update, :update_notes, :confirm], TicketOrder
     can [:read, :create, :hold_existing], TicketOrder
     can :auto_complete, Production

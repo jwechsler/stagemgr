@@ -1,7 +1,7 @@
 require 'csv'
 
 class Admin::ReportsController < Admin::ApplicationController
-  filter_access_to :all
+  authorize_resource
   # filter_access_to :trg_dump,:index
 
 
@@ -14,12 +14,13 @@ class Admin::ReportsController < Admin::ApplicationController
     is_theater_user = !current_user.nil? && current_user.is_theater_user?
     @generated_reports = FileStore.where("worker = ? and user_id = ?", FileStore::REPORT, current_user.id).order('created_at desc')
     @generated_reports.select {|r| r.data.exists? }
-    @productions = Production.with_permissions_to(:read).where(is_theater_user ? "1=1" : "(status != 'Inactive' and exists (select * from theaters where theaters.status != 'Inactive' and theaters.id = productions.theater_id)) or productions.theater_id = 1")
     if is_theater_user then
-      @productions.sort! { |p1, p2| (p2.press_opening_at || Date.today-10.years) <=> (p1.press_opening_at || Date.today-10.years)}
+      order_clause = {press_opening_at: :desc}
     else
-      @productions.sort! { |p1, p2| p1.name <=> p2.name }
+      order_clause = :name
     end
+
+    @productions = Production.order(order_clause).accessible_by(current_ability,:read).where(status: Production.visible_statuses)
 
     if is_theater_user then
       @flex_pass_offers = @productions.select { |p| !p.flex_pass_offer.nil? }.map { |p| p.flex_pass_offer }
@@ -183,7 +184,7 @@ class Admin::ReportsController < Admin::ApplicationController
 
   def trg_dump
     production = Production.find(params[:report][:production_id])
-    Resque.enqueue(TrgExport, production.nil? ? 0 : production.id, current_user.id, permitted_to?(:view_email, :admin_addresses))
+    Resque.enqueue(TrgExport, production.nil? ? 0 : production.id, current_user.id, can?(:view_email, Address))
     flash[:notice] = 'Your export is queued for generation. You\'ll recieve notification when the process is complete.'
     redirect_to admin_reports_path
 
@@ -545,7 +546,7 @@ class Admin::ReportsController < Admin::ApplicationController
     report = Array.new
     headers = [:order_date, :last_name, :first_name]
     headers += [:street_address, :street_address_2, :state, :city, :state, :postal_code, :phone] unless display_only
-    headers += [:email] if permitted_to?(:view_email, :admin_addresses)
+    headers += [:email] if can?(:view_email, :admin_addresses)
     headers += [:collected, :payout, :facility_fee, :tickets_remaining, :converted_balance, :status]
 
     fee = (offer.facility_fee.nil? ? 0 : offer.facility_fee).to_money
@@ -699,7 +700,7 @@ class Admin::ReportsController < Admin::ApplicationController
   def columns_for_orders(build_for_dumpfile, include_emails = false)
     keys = [:order_date]
     keys += [:id, :first_name, :last_name, :street_address, :street_address_2, :city, :state, :postal_code, :phone] if build_for_dumpfile
-    keys += [:email] if (build_for_dumpfile && (permitted_to?(:view_email, :admin_addresses) || include_emails))
+    keys += [:email] if (build_for_dumpfile && (can?(:view_email, Address) || include_emails))
     keys += [:performance_code, :special_offer_code, :status, :description] if build_for_dumpfile
     keys
   end
@@ -810,7 +811,7 @@ class Admin::ReportsController < Admin::ApplicationController
             if members_by_email.has_key?(row[:email].downcase)
                members_by_email.delete(row[:email].downcase)
             else
-              row[:email] = nil unless permitted_to?(:view_email, :admin_addresses)
+              row[:email] = nil unless can?(:view_email, Address)
             end
           end
           report << row
