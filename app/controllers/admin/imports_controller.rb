@@ -50,6 +50,21 @@ class Admin::ImportsController < Admin::ApplicationController
 
   end
 
+  def external_contacts
+    @card_external_import = FileStore.create(params[:file_store])
+    @theater = Theater.find(params[:theater][:theater_id])
+    @card_external_import.user = current_user
+    @card_external_import.format = FileStore::EXTERNAL_CONTACT_FORMAT
+    @card_external_import.worker = FileStore::IMPORT
+    @card_external_import.notes = "#{@theater.name} contact import"
+    if @card_external_import.save then
+      Resque.enqueue(ExternalAddressIMport, @card_external_import.id, @theater.nil? ? Theater.first.id, @theater.id)
+      flash[:notice] = 'Your contact list is importing'
+    else
+      flash[:error] = 'Invalid format'
+    end
+    redirect_back_or_default admin_imports_path
+  end
 
 
 
