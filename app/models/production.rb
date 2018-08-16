@@ -17,6 +17,12 @@ class Production < ActiveRecord::Base
   validates_inclusion_of :seat_map, in: lambda{ |production| production.venue.seat_maps }, unless: Proc.new {|production| production.seat_map.nil?}
   validates_formatting_of :survey_link, :using => :url, :allow_blank=>true
   validates_formatting_of :mailing_list_link, :using => :url, :allow_blank=>true
+  with_options if: :is_visible? do |visible_prod|
+    visible_prod.validates_presence_of :opening_at
+    visible_prod.validates_presence_of :closing_at
+    visible_prod.validates_presence_of :press_opening_at
+    visible_prod.validates_presence_of :first_preview_at
+  end
 
   belongs_to :venue
   belongs_to :theater
