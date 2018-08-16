@@ -56,6 +56,6 @@ class Admin::UsersController < Admin::ApplicationController
   end
 
   def user_params
-    params.require(:user).permit(:email,:password,:status,:is_administrator,:is_box_office_user, :user_theater_ids=>[])
+    params.require(:user).permit(:email,:password,:password_confirmation,:status,:is_administrator,:is_box_office_user, :user_theater_ids=>[])
   end
 end

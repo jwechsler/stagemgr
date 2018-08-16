@@ -73,8 +73,13 @@ class PerformanceDatatable < AjaxDatatablesRails::Base
 
 
   def address
-    @address ||= options[:production]
+    @address ||= options[:address]
   end
+
+  def production
+    @production ||= options[:production]
+  end
+
 
   # ==== These methods represent the basic operations to perform on records
   # and feel free to override them

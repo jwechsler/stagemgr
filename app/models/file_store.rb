@@ -6,6 +6,7 @@ class FileStore < ActiveRecord::Base
     :url=>"#{Rails.application.config.action_controller.relative_url_root}/system/filestore/:hash/:filename",
     :hash_secret => $SERVER_CONFIG['filestore_hash']
   }
+  validates_attachment_content_type :data, content_type: "text/plain"
 
   FILE_WORKERS = (
     IMPORT, REPORT =

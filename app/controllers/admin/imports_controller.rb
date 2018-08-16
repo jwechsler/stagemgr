@@ -1,23 +1,26 @@
 class Admin::ImportsController < Admin::ApplicationController
-  load_and_authorize_resource
+  skip_authorize_resource
   include ProductionsHelper
 
   def index
+    authorize! :read, :import_operations
     @imports = FileStore.where("worker = ? and user_id = ?", FileStore::IMPORT, current_user.id)
     @trg_basic_import = FileStore.new
     @trg_basic_import.format = FileStore::TRG_LIST_IMPORT_FORMAT
     @card_basic_import = FileStore.new
     @card_basic_import.format = FileStore::MAILING_CARD_IMPORT_FORMAT
+    @card_external_import = FileStore.new
+    @card_external_import.format = FileStore::EXTERNAL_CONTACT_FORMAT
     @productions = productions_visible_to_operations
+    @theaters = Theater.all.accessible_by(current_ability).where(status: Theater::ACTIVE)
     respond_to do |format|
       format.html # index.html.erb
       format.xml  { render :xml => @theaters }
     end
-
   end
 
   def create
-    @trg_basic_import = FileStore.create(params[:file_store])
+    @trg_basic_import = FileStore.create(file_store_params)
     @production = Production.find(params[:production][:production_id]) unless params[:production][:production_id].blank?
     @trg_basic_import.user = current_user
     @trg_basic_import.format = FileStore::TRG_LIST_IMPORT_FORMAT
@@ -34,7 +37,7 @@ class Admin::ImportsController < Admin::ApplicationController
   end
 
   def mailing_cards
-    @card_basic_import = FileStore.create(params[:file_store])
+    @card_basic_import = FileStore.create(file_store_params)
     @production = Production.find(params[:production][:production_id])
     @card_basic_import.user = current_user
     @card_basic_import.format = FileStore::MAILING_CARD_IMPORT_FORMAT
@@ -51,14 +54,14 @@ class Admin::ImportsController < Admin::ApplicationController
   end
 
   def external_contacts
-    @card_external_import = FileStore.create(params[:file_store])
+    @card_external_import = FileStore.create(file_store_params)
     @theater = Theater.find(params[:theater][:theater_id])
     @card_external_import.user = current_user
     @card_external_import.format = FileStore::EXTERNAL_CONTACT_FORMAT
     @card_external_import.worker = FileStore::IMPORT
     @card_external_import.notes = "#{@theater.name} contact import"
     if @card_external_import.save then
-      Resque.enqueue(ExternalAddressIMport, @card_external_import.id, @theater.nil? ? Theater.first.id, @theater.id)
+      Resque.enqueue(ExternalAddressesImport, @card_external_import.id, @theater.id)
       flash[:notice] = 'Your contact list is importing'
     else
       flash[:error] = 'Invalid format'
@@ -66,6 +69,12 @@ class Admin::ImportsController < Admin::ApplicationController
     redirect_back_or_default admin_imports_path
   end
 
+  private
+  def file_store_params
+    params.require(:file_store).permit!
+  end
 
-
+  def theater_params
+    params.require(:theater).permit(:theater_id)
+  end
 end

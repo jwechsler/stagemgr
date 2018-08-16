@@ -40,4 +40,20 @@
             = form.file_field :data
         = submit_tag "Import Mailing List", :class=>'button'
 
+    %br
+    %fieldset
+      %legend Import External Address Data
+      = form_for @card_basic_import, :url=> external_contacts_admin_imports_path, :html=>{:multipart=>true} do |form|
+        .row
+          .small-3.columns
+            = label_tag :theater, 'Associate to Theater', :class=>'left inline'
+          .small-9.columns
+            = collection_select :theater, :theater_id, @theaters, :id, :name
+        .row
+          .small-3.columns
+            = label_tag :data, 'From file', :class=>'left inline'
+          .small-9.columns
+            = form.file_field :data
+        = submit_tag "Import Mailing List", :class=>'button'
+
     = render '/file_stores/current_files', :file_stores=>@imports

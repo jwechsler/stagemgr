@@ -9,7 +9,6 @@ class SpecialOfferDatatable < AjaxDatatablesRails::Base
     # or in aliased_join_table.column_name format
     @view_columns ||= {
       code: { source: 'SpecialOffer.code' },
-      description: { source: 'SpecialOffer.to_s' },
       number_of_uses: { source: 'SpecialOffer.number_of_uses' },
       status: { source: 'SpecialOffer.status' },
       expires: {source: 'SpecialOffer.auto_expire'}
@@ -18,6 +17,7 @@ class SpecialOfferDatatable < AjaxDatatablesRails::Base
 
   def additional_data
     {
+      description: '',
       actions: ''
     }
   end

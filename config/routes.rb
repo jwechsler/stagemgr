@@ -269,6 +269,7 @@ Stagemgr::Application.routes.draw do
 
     resources :imports do
       post :mailing_cards, :on=>:collection
+      post :external_contacts, :on=>:collection
     end
 
     resources :amount_off_special_offers, :only=>[:edit,:index]

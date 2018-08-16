@@ -20,10 +20,15 @@ require 'csv'
 # City          :  city
 # StateCode     :  state (2 letter abbreviation)
 # PostalCode    :  Postal Code (zip)
+# Tag1          :  Tag
+# TagValue1     :  Tag value
+# Tag2          :  Tag #2
+# TagValue2     :  Tag value #2
+
 #
 # Note that, if present, the two users will create two different records in the ticketing system
 
-class ExternaAddressesImport
+class ExternalAddressesImport
   @queue = :import
 
   def self.perform(filestore_id, theater_id)
@@ -32,25 +37,46 @@ class ExternaAddressesImport
       client_patron_id_idx = 0
       total = 0
       merged = 0
-      first_name_idx = 0
+      external_id_idx = 0
+      first_name_idx  = 0
       middle_name_idx = 0
       last_name_idx = 0
-      prefix_idx = 0
       full_name_idx = 0
+      first_name2_idx = 0
+      middle_name2_idx = 0
+      last_name2_idx = 0
+      full_name2_idx = 0
+      address1_idx = 0
       address2_idx = 0
-      city_idx = 0
+      city_idx  = 0
       state_idx = 0
-      zip_idx = 0
-      zip4_idx = 0
+      zip_idx  = 0
+      phone_idx = 0
       email1_idx = 0
+      email2_idx = 0
+      tag1_idx  = 0
+      tag_value1_idx  = 0
+      tag2_idx  = 0
+      tag_value2_idx  = 0
+
       filestore = FileStore.find(filestore_id)
       theater = Theater.find(theater_id) unless (theater_id.blank? || theater_id == 0)
-      filestore.notes = "Importing #{production.nil? ? '' : production.name + ' '}attendees..."
+      filestore.notes = "Importing contact list for #{theater.name}..."
       filestore.save
       CSV.foreach(filestore.data.path) do |row|
         if headers.nil? then
           _index = 0
           headers = Hash[row.map {|header| _index += 1; [header, _index]}]
+          headers.keys.each {|key|
+            encoding_options = {
+            :invalid           => :replace,  # Replace invalid byte sequences
+              :undef             => :replace,  # Replace anything not defined in ASCII
+              :replace           => '',        # Use a blank for those replacements
+              :universal_newline => true       # Always break lines with \n
+            }
+            stripped_key = key.encode(Encoding.find('ASCII'), encoding_options)
+            headers[stripped_key] = headers.delete(key)
+          }
 
           ['ExternalId',
           'FirstName',
@@ -68,7 +94,11 @@ class ExternaAddressesImport
           'Address2',
           'City',
           'StateCode',
-          'PostalCode'].each do |t|
+          'PostalCode',
+          'Tag1',
+          'TagValue1',
+          'Tag2',
+          'TagValue2' ].each do |t|
             raise "Missing required header #{t}" if headers[t].nil?
           end
 
@@ -89,12 +119,18 @@ class ExternaAddressesImport
           phone_idx = headers['Phone'] - 1
           email1_idx = headers['EmailAddress1'] - 1
           email2_idx = headers['EmailAddress2'] - 1
+          tag1_idx = headers['Tag1'] - 1
+          tag_value1_idx = headers['TagValue1'] - 1
+          tag2_idx = headers['Tag2'] - 1
+          tag_value2_idx = headers['TagValue2'] - 1
+
         else
           total += 1
 
           unless row[last_name_idx].blank? && row[full_name_idx].blank?
             a = Address.new
-            a = build_name(a, row[full_name_idx], row[first_name_idx], row[middle_name_idx], row[last_name_idx])
+            a = ExternalAddressesImport.build_name(a, row[full_name_idx], row[first_name_idx], row[middle_name_idx], row[last_name_idx])
+
             a.line1 = row[address1_idx]
             a.line2 = row[address2_idx]
             a.city = row[city_idx]
@@ -102,25 +138,43 @@ class ExternaAddressesImport
             a.zipcode = row[zip_idx]
             a.email = row[email1_idx]
             unless row[external_id_idx].blank?
+              sub_tag = AddressTag.new
               sub_tag.address = a
               sub_tag.tag_label = 'External ID'
               sub_tag.tag_value = row[external_id_idx]
               sub_tag.theater_id = theater_id
               a.address_tags << sub_tag
             end
+            unless row[tag1_idx].blank?
+              sub_tag = AddressTag.new
+              sub_tag.address = a
+              sub_tag.tag_label = row[tag1_idx]
+              sub_tag.tag_value = row[tag_value1_idx]
+              sub_tag.theater_id = theater_id
+              a.address_tags << sub_tag
+            end
+            unless row[tag2_idx].blank?
+              sub_tag = AddressTag.new
+              sub_tag.address = a
+              sub_tag.tag_label = row[tag2_idx]
+              sub_tag.tag_value = row[tag_value2_idx]
+              sub_tag.theater_id = theater_id
+              a.address_tags << sub_tag
+            end
+
             a.save!
-            a, merge_occurred = merge_imported_address(a)
+            a, merge_occurred = ExternalAddressesImport.merge_imported_address(a)
             merged += 1 if merge_occurred
 
             unless row[full_name2_idx].blank? && row[last_name2_idx].blank?
               a2 = a.dup
-              a2 = build_name(a2, row[full_name2_idx], row[first_name2_idx], row[middle_name2_idx], row[last_name2_idx])
+              a2 = ExternalAddressesImport.build_name(a2, row[full_name2_idx], row[first_name2_idx], row[middle_name2_idx], row[last_name2_idx])
               a.address_tags.each {|tag|
                 a2.address_tags << tag.dup
               }
               a2.email = row[email2_idx]
               a2.save!
-              a2, merge_occurred = merge_imported_address(a2)
+              a2, merge_occurred = ExternalAddressesImport.merge_imported_address(a2)
               merged += 1 if merge_occurred
             end
 
@@ -140,7 +194,7 @@ class ExternaAddressesImport
   end
 
   private
-  def build_name(address, full_name, first_name, middle_name, last_name)
+  def self.build_name(address, full_name, first_name, middle_name, last_name)
     address.first_name = first_name
     address.middle_name = middle_name
     address.last_name = last_name
@@ -154,7 +208,7 @@ class ExternaAddressesImport
     address
   end
 
-  def merge_imported_address(address)
+  def self.merge_imported_address(address)
     merge_check = address.find_original
     merge_occurred = !merge_check.nil?
 
@@ -165,6 +219,8 @@ class ExternaAddressesImport
       address.save!
     end
     [address, merge_occurred]
+  end
+
 end
 
 

@@ -13,10 +13,13 @@ class Ability
 
     return if user.nil?
     # theater-specific staff
-    can :read, Order
-    can :read, Production, ["theater_id in (?)", user.theater_ids] do |prod|
-        current_user.theater_ids.include?(prod.theater_id)
+    can [:read, :update], Order, Order.visible_order_for_theater_user(user) do |order|
+        user.theater_ids.include?(order.production.theater_id)
     end
+    can :read, Production, ["theater_id in (?)", user.theater_ids] do |prod|
+        user.theater_ids.include?(prod.theater_id)
+    end
+    can :update_notes, Order
     can [:read, :create, :update, :update_notes, :confirm], TicketOrder
     can [:read, :create, :hold_existing], TicketOrder
     can :auto_complete, Production
@@ -38,6 +41,7 @@ class Ability
     return if user.is_theater_user?
 
     # below is for box office staff
+    can :read, :update, Order
     can :cru, FlexPassOrder
     can [:manage, :duplicate, :create], Performance
     can [:read, :create, :edit, :update, :duplicate], Production
@@ -63,6 +67,7 @@ class Ability
     can [:cancel, :reprint, :refund, :sell_past_performances, :order_anytime], [Order, TicketOrder]
     can :cru, Venue
     can :cru, SeatMap
+    can :read, :import_operations
 
     return if user.is_box_office_user?
 

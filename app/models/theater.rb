@@ -2,7 +2,9 @@
   #@todo setup access control
 
   THEATER_CLASSES  = ['Default', 'Resident Company', 'Visiting Company', 'Guest Artist']
-  THEATER_STATUSES = ['Active',  'Inactive']
+  THEATER_STATUSES = (
+    ACTIVE, INACTIVE = 'Active',  'Inactive'
+  )
   validates_inclusion_of :theater_class, :in => THEATER_CLASSES
   validates_inclusion_of :status,        :in => THEATER_STATUSES
   validates_uniqueness_of :name

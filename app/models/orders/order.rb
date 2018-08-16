@@ -127,7 +127,6 @@ class Order < ActiveRecord::Base
     self.payments.sum(:amount)
   end
 
-
   def value_of_all_line_items
     a = self.all_line_items.to_a.sum { |line_item|
         line_item.respond_to?(:total) ? line_item.total : 0
@@ -429,6 +428,15 @@ class Order < ActiveRecord::Base
 
   def to_s
     "Unknown Order"
+  end
+
+  def self.visible_order_for_theater_user(user)
+    if user.is_theater_user?
+      joins(performance: :production).where('productions.theater_id in (?)', user.theater_ids)
+    else
+      where('1=1')
+    end
+
   end
 
   def sf

@@ -13,7 +13,7 @@ module ProductionsHelper
   end
 
   def productions_visible_to_operations
-    Production.with_permissions_to(:read).where(current_user.is_theater_user? ? "1=1" : "(status != 'Inactive' and exists (select * from theaters where theaters.status != 'Inactive' and theaters.id = productions.theater_id)) or productions.theater_id = 1").order('name')
+    Production.accessible_by(current_ability).where(current_user.is_theater_user? ? "1=1" : "(status != 'Inactive' and exists (select * from theaters where theaters.status != 'Inactive' and theaters.id = productions.theater_id)) or productions.theater_id = 1").order('name')
   end
 
   def production_image_id(production)
