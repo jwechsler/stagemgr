@@ -84,7 +84,6 @@ Feature: Membership Administration
       And an address "Gift Getter" exists
     And I should see "Customer successfully set up for the Monthly Membership payment plan"
 
-  @wip
   Scenario: Members can specify requested seating
     Given I am a box office user
       And I am logged in

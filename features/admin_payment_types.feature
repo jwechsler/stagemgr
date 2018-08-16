@@ -40,7 +40,7 @@ Feature: Payment Types Administration
       And I go to new web order for production "Production One" and performance "PERF"
       And the payment option should not include "Cash"
 
-  @javascript @wip
+  @javascript @pending
   Scenario: Set up suppression rules
     Given I go to the edit page for payment type "Cash"
       And I allow cash payments for the public

@@ -17,8 +17,8 @@ end
 
 Given(/^I suppress the "(.*?)" method for "(.*?)"$/) do |method_name, task_type|
   click_link("add suppression")
-  find('.new_order_task_suppression_task_type select').find(:option,task_type,{}).select_option
-  find('.new_order_task_suppression_task_method select').find(:option,method_name,{}).select_option
+  find('.new_order_task_suppression_task_type select', :visible=>:all).find(:option,task_type,:visible=>:all).select_option
+  find('.new_order_task_suppression_task_method select', :visible=>:all).find(:option,method_name,:visible=>:all).select_option
 end
 
 Then(/^I delete the first order task suppression$/) do
