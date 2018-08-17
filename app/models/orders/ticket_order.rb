@@ -5,7 +5,15 @@ class TicketOrder < Order
 
   before_save :set_theater
   before_save :remove_empty_ticket_lines
+  before_save do
+    if status_changed? && (refunded? || unclaimed?) && performance.production.has_reserved_seating?
+      unassign_seats
+    end
+
+  end
+
   after_save :update_attendance_record
+
   before_destroy :unassign_seats
 
   attr_accessor :selected_production
@@ -88,6 +96,10 @@ class TicketOrder < Order
         errors.add :base, "You must select #{self.number_of_seats} before finalizing this order"
       end
     end
+  end
+
+  def seatable?
+    [Order::NEW, Order::PROCESSED, Order::PROCESSING, Order::HOLD].include?(self.status) && performance.production.has_reserved_seating?
   end
 
   def theater_ids

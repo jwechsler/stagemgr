@@ -17,7 +17,7 @@
           %li= link_to 'Fulfill Order', fulfill_admin_order_path(@ticket_order), :class=>'small button' if @ticket_order.fulfillable?
 
         - if can? :resend_confirmation, TicketOrder
-          - if @ticket_order.settled? && !@ticket_order.address.nil? && !@ticket_order.address.email.blank?
+          - if @ticket_order.settled? && !@ticket_order.address.nil? && !@ticket_order.address.email.blank? && !@ticket_order.refunded?
             %li= link_to 'Resend Confirmation', resend_confirmation_admin_ticket_order_path(@ticket_order), :confirm=>"Resend confirmation email?", :class=>'small button'
         - if can? :reprint, TicketOrder
           %li= link_to 'Reprint', reprint_admin_ticket_order_path(@ticket_order), :class=>'small button' if @ticket_order.fulfilled?
