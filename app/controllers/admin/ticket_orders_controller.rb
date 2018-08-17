@@ -120,6 +120,7 @@ class Admin::TicketOrdersController < Admin::OrdersController
   end
 
   def update
+    set_payment_accessors_from_params(@ticket_order, params[:ticket_order])
     @ticket_order.payment_type = PaymentType.find(params[:ticket_order][:payment_type_id])
     set_ticket_classes_for_line_items
     next_action = params[:commit].eql?('Assign Seats') && (@ticket_order.transitory? && @ticket_order.performance.production.has_reserved_seating?) ? :confirm_admin_ticket_order_path : :edit_admin_order_path
@@ -130,7 +131,7 @@ class Admin::TicketOrdersController < Admin::OrdersController
     @ticket_order.payment_type = PaymentType.find(params[:ticket_order_params][:payment_type_id]) if @ticket_order.payment_type.nil?
     @ticket_order.performance=Performance.find_by performance_code:params[:ticket_order][:performance_code]
     @ticket_order.status = Order::NEW if @ticket_order.status.nil?
-
+    set_payment_accessors_from_params(@ticket_order, params[:ticket_order])
     set_ticket_classes_for_line_items
     time_cutoff = @ticket_order.performance.to_time_with_zone - ($SERVER_CONFIG['minutes_before_performance_close_to_third_party_sales'] || 0).minutes
     if can?(:order_anytime, TicketOrder) || (Time.now < time_cutoff)
@@ -185,5 +186,6 @@ class Admin::TicketOrdersController < Admin::OrdersController
   def ticket_order_params
     params.require(:ticket_order).permit(*ticket_order_common_params)
   end
+
 
 end

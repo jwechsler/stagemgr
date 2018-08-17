@@ -48,6 +48,21 @@ module OrdersHelper
       address_attributes: [:full_name, :email, :phone, :line1, :line2, :city, :state, :zipcode]]
   end
 
+  def set_payment_accessors_from_params(order, order_params)
+    order.special_offer_code = order_params[:special_offer_code]
+    order.additional_donation = order_params[:additional_donation]
+    order.credit_card_number = order_params[:credit_card_number]
+    order.credit_card_type = order_params[:credit_card_type]
+    order.credit_card_expiration_year = order_params[:credit_card_expiration_year]
+    order.credit_card_expiration_month = order_params[:credit_card_expiration_month]
+    order.credit_card_verification_number = order_params[:credit_card_verification_number]
+    order.credit_card_confirmation_code = order_params[:credit_card_confirmation_code]
+    order.credit_card_swipe = order_params[:credit_card_swipe]
+    order.flex_pass_code = order_params[:flex_pass_code]
+    order.member_code = order_params[:member_code]
+    order.check_number = order_params[:check_number]
+  end
+
   def donation_order_common_params
     common_params + [:campaign, donation_line_items_attributes: [:donation_amount, :donation_level]]
   end
