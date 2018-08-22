@@ -1,4 +1,4 @@
-//= require jquery.imagemapster.min
+//= require seat_map
 
 $(document).ready(function() {
   function count_assigned() {
@@ -73,9 +73,6 @@ $(document).ready(function() {
     update_selected()
   }
 
-
-
-
   $('.seating-required').removeClass('hide')
   $('.seating-not-required').addClass('hide')
 
@@ -115,14 +112,8 @@ $(document).ready(function() {
                 fillOpacity: 0.0
               }
 
-            }
-          ]
-        }
-  $('img.seatingmap').mapster(mapster_options);
-
-
-  $('#seatingmap').mapster('resize',$('img#seatingmap').width(),$('img#seatingmap').height());
-
+            }]
+  };
 
   update_informational()
   // assign keys

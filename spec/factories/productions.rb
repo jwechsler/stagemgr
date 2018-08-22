@@ -8,6 +8,8 @@ FactoryBot.define do
     capacity 100
     closing_at Date.today + 1.week
     opening_at Date.today
+    press_opening_at Date.today
+    first_preview_at Date.today
     season Date.today.year
 
     transient do

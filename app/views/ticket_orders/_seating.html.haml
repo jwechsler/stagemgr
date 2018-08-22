@@ -16,7 +16,7 @@
       %map{name:'seatingmap', id:'seatingmap'}
         - SeatAssignment.available_seat_assignments(ticket_order.performance, ticket_order).each do |sa|
           - sa_key = sa.available?(ticket_order) ? "#{sa.id}" : "unavailable"
-          %area{shape:"rect", coords:"#{sa.seat.origin_x},#{sa.seat.origin_y},#{sa.seat.origin_x+sa.seat.width},#{sa.seat.origin_y+sa.seat.height}", id:"sa-#{sa.id}", href:"#?id=#{sa.seat.location}",alt:"#{sa.seat.location}", 'data-location':"#{sa.seat.location}", 'data-status': "#{assignment_keys(sa,ticket_order)}", 'data-assignment-id':"#{sa.id}", 'data-key':"#{sa_key}"}
+          %area{shape:"circle", coords:"#{sa.seat.origin_x},#{sa.seat.origin_y},#{sa.seat.width}", id:"sa-#{sa.id}", href:"#?id=#{sa.seat.location}",alt:"#{sa.seat.location}", 'data-location':"#{sa.seat.location}", 'data-status': "#{assignment_keys(sa,ticket_order)}", 'data-assignment-id':"#{sa.id}", 'data-key':"#{sa_key}"}
 
 
 = content_for :js do

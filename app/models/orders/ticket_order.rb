@@ -468,7 +468,7 @@ class TicketOrder < Order
 
 
   def create_receipt_task
-    self.tasks << OutreachTask.new(:execute_at => Time.now + 5.minutes, :method_symbol => :ticket_confirmation) unless self.performance.suppress_notification
+    self.tasks << OutreachTask.new(:execute_at => Time.now + 5.minutes, :method_symbol => :ticket_confirmation) unless (self.performance.suppress_notification || self.suppress_receipt?)
 
     super
   end
@@ -496,6 +496,10 @@ class TicketOrder < Order
     end
   end
 
+  def suppress_receipt?
+    self.performance.suppress_notification || self.ticket_line_items.map { |tli|
+      tli.ticket_class.suppress_receipt? }.all?
+  end
 
   def set_theater
     self.theater_id = self.performance.production.theater_id

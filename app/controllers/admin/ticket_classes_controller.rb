@@ -69,7 +69,7 @@ class Admin::TicketClassesController < Admin::ApplicationController
     params.require(:ticket_class).permit(:class_code, :class_name, :production_id, :ticket_type,
       :ticket_price, :ticketing_fee, :web_visible, :software_managed, :holds_seats, :assigns_seats,
       :show_in_pricing_range, :auto_attach, :minutes_before_show, :purchase_page_annotation,
-      :purchase_email_annotation)
+      :purchase_email_annotation, :suppress_receipt)
   end
 
 

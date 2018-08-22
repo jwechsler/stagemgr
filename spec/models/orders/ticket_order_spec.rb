@@ -90,6 +90,22 @@ describe "a ticket order" do
     expect(o2.performance.number_of_seats_left).to eq(8)
   end
 
+  it "can prevent receipt emails from being generated for ticket classes that disallow receipts" do
+    expect(OutreachTask.where(method_symbol: :ticket_confirmation).count).to eq(0)
+    o = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
+    expect(OutreachTask.where(method_symbol: :ticket_confirmation).count).to eq(1)
+    o.ticket_line_items.first.ticket_class.suppress_receipt=true
+    o.ticket_line_items.first.ticket_class.save!
+    o2 = o.dup
+    o2.status = Order::NEW
+    o2.ticket_line_items << o.ticket_line_items.first.dup
+    o2.payment_type = FactoryBot.create(:cash_payment_type)
+    o2.save!
+    o2.transition_to!(Order::PROCESSED)
+    expect(OutreachTask.where(method_symbol: :ticket_confirmation).count).to eq(1)
+
+  end
+
   context "when overselling" do
 
     it "cannot processes if it would oversell a particular ticket class" do
