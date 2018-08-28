@@ -12,6 +12,7 @@ Stagemgr::Application.configure do
   # Specifies the header that your server uses for sending files
   config.action_dispatch.x_sendfile_header = "X-Sendfile"
 
+  config.log_level = :info
   # set this to any SubURI you may have running in passenger or its ilk, or blank if not
 
 
