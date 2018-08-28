@@ -1,8 +1,7 @@
 class Admin::FlexPassOffersController < Admin::ApplicationController
-  filter_resource_access
+  load_and_authorize_resource
 
   def index
-    @flex_pass_offers = FlexPassOffer.all
     @flex_pass_offers = @flex_pass_offers.select {|o|
       backend_user? || current_user.theater_ids.include?(o.theater_id) }
   end
@@ -29,7 +28,6 @@ class Admin::FlexPassOffersController < Admin::ApplicationController
 
   # GET /flex_pass_offers/1/edit
   def edit
-    @flex_pass_offer = FlexPassOffer.find(params[:id])
   end
 
   # POST /flex_pass_offers
