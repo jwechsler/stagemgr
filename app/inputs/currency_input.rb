@@ -5,6 +5,6 @@ class CurrencyInput < SimpleForm::Inputs::Base
     input_html_options[:type] = :number
 
     template.content_tag(:span, "$", class: "add-on") +
-      @builder.text_field(attribute_name, merge_wrapper_options(input_html_options, wrapper_options)
+      @builder.text_field(attribute_name, merge_wrapper_options(input_html_options, wrapper_options))
   end
 end
