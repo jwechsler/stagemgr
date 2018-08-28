@@ -7,7 +7,7 @@ class PayPalController < ApplicationController
 
   protect_from_forgery :except => :paypal_ipn
 
-  include ActiveMerchant::Billing::Integrations
+  # include ActiveMerchant::Billing::Integrations
 
   protect_from_forgery :except => :paypal_ipn
 
