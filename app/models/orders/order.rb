@@ -3,11 +3,11 @@ require 'payment_form_fields'
 InvalidSpecialOfferCode = Class.new(StandardError)
 
 class Order < ActiveRecord::Base
-  @using_access_control
 
   include PaymentFormFields
   include Admin::ReportsHelper
   include ActionView::Helpers::NumberHelper
+  include EmailValidatable
 
   extend HTMLDiff
 
@@ -59,7 +59,7 @@ class Order < ActiveRecord::Base
       "Email", "Mail", "Cast/Staff/Production Team", "Review/Feature", "Radio", "Newspaper Ad", "Facebook", "Twitter", "Word of Mouth", "Attended previous production", "Other"
   ]
 
-  acts_as_audited
+  audited
 
 
   before_validation :cascade_address_to_nested_items
@@ -124,9 +124,8 @@ class Order < ActiveRecord::Base
   end
 
   def value_of_all_payments
-    self.payments.sum { |p| p.amount }
+    self.payments.sum(:amount)
   end
-
 
   def value_of_all_line_items
     a = self.all_line_items.to_a.sum { |line_item|
@@ -166,11 +165,15 @@ class Order < ActiveRecord::Base
   end
 
   def time_to_hold_in_transition
-    15.minutes
+    10.minutes
   end
 
   def self.attending_statuses
     [Order::PROCESSED, Order::FULFILLED]
+  end
+
+  def new?
+    self.status == Order::NEW
   end
 
   def refundable?
@@ -425,6 +428,15 @@ class Order < ActiveRecord::Base
 
   def to_s
     "Unknown Order"
+  end
+
+  def self.visible_order_for_theater_user(user)
+    if user.is_theater_user?
+      joins(performance: :production).where('productions.theater_id in (?)', user.theater_ids)
+    else
+      where('1=1')
+    end
+
   end
 
   def sf
@@ -691,6 +703,11 @@ class Order < ActiveRecord::Base
 
   def transition_new_to_hold!(redirect_to = nil)
     self.status = Order::HOLD
+    self.save!
+    redirect_to
+  end
+
+  def transition_processed_to_processed!(redirect_to)
     self.save!
     redirect_to
   end

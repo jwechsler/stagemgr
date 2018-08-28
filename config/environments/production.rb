@@ -14,6 +14,9 @@ Stagemgr::Application.configure do
 
   # set this to any SubURI you may have running in passenger or its ilk, or blank if not
 
+
+  config.eager_load = true
+
   config.action_controller.relative_url_root = '/tickets'
 
   # For nginx:

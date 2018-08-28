@@ -27,23 +27,25 @@ class ProductionStat < ActiveRecord::Base
     end
     if snapshots.empty?
       snapshot = self.sales_snapshots.create(:as_of_date=>as_of_date,
-        :advance_sales=>Payment.sum(:amount,
-          :conditions => ['order_id in (select id from orders where status in (?) and performance_id in (select id from performances where production_id=? and performance_date >= ?)) and payments.processed_on < ?',
-                         Order.settled_statuses, self.production_id, as_of_date, as_of_date + 1.day]),
-        :advance_seats=>TicketLineItem.sum(:ticket_count, :include=>[:ticket_class],
-          :conditions => ['ticket_classes.holds_seats=? and order_id in (select orders.id from orders where orders.status in (?) and performance_id in (select id from performances where production_id=? and performance_date >= ?)) and line_items.created_at < ?',
+        :advance_sales=>Payment.joins(order: [:performance]).where(
+            'orders.status in (?) and production_id = ? and performance_date >= ? and payments.processed_on < ?',
+            Order.settled_statuses, self.production_id, as_of_date, as_of_date + 1.day
+          ).sum(:amount),
+        :advance_seats=>TicketLineItem.joins(:ticket_class, order: [:performance]).where(
+          'ticket_classes.holds_seats=? and orders.status in (?) and performance_date >= ? and line_items.created_at < ?',
+          true, Order.settled_statuses, as_of_date, as_of_date + 1.day
+          ).sum(:ticket_count),
+        :daily_sales=>Payment.where(
+          'order_id in (select id from orders where status in (?) and performance_id in (select id from performances where production_id=?)) and payments.processed_on >= ? and payments.processed_on < ?',
+          Order.settled_statuses, self.production_id, as_of_date, as_of_date + 1.day
+          ).sum(:amount),
+        :sales_to_date=>Payment.where('order_id in (select id from orders where status in (?) and performance_id in (select id from performances where production_id=?)) and payments.processed_on < ?',
+                         Order.settled_statuses, self.production_id, as_of_date + 1.day).sum(:amount),
+        :seats_to_date=>TicketLineItem.joins(:ticket_class).where('ticket_classes.holds_seats=? and order_id in (select orders.id from orders where orders.status in (?) and performance_id in (select id from performances where production_id=?)) and line_items.created_at < ?',
                          true,
-                         Order.settled_statuses, self.production_id, as_of_date, as_of_date + 1.day]),
-        :daily_sales=>Payment.sum(:amount,
-          :conditions => ['order_id in (select id from orders where status in (?) and performance_id in (select id from performances where production_id=?)) and payments.processed_on >= ? and payments.processed_on < ?',
-                          Order.settled_statuses, self.production_id, as_of_date, as_of_date + 1.day]),
-        :sales_to_date=>Payment.sum(:amount,
-          :conditions => ['order_id in (select id from orders where status in (?) and performance_id in (select id from performances where production_id=?)) and payments.processed_on < ?',
-                         Order.settled_statuses, self.production_id, as_of_date + 1.day]),
-        :seats_to_date=>TicketLineItem.sum(:ticket_count, :include=>[:ticket_class],
-          :conditions => ['ticket_classes.holds_seats=? and order_id in (select orders.id from orders where orders.status in (?) and performance_id in (select id from performances where production_id=?)) and line_items.created_at < ?',
-                         true,
-                         Order.settled_statuses, self.production_id, as_of_date + 1.day]))
+                         Order.settled_statuses, self.production_id, as_of_date + 1.day
+                        ).sum(:ticket_count)
+        )
     else
       snapshot = snapshots.first
     end

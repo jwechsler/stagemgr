@@ -27,7 +27,7 @@ class TicketClass < ActiveRecord::Base
 
   def prevent_price_changes_after_sales
     unless self.ticket_type == DONATION
-      if (self.ticket_price_was != self.ticket_price) && TicketLineItem.count(:conditions=>['ticket_class_id = ?',self.id]) > 0
+      if (self.ticket_price_was != self.ticket_price) && TicketLineItem.where(ticket_class_id:self.id).size > 0
         errors.add :base,"Cannot change ticket price from #{self.ticket_price_was} to #{self.ticket_price} if sales have already occurred"
         return false
       end
@@ -38,14 +38,14 @@ class TicketClass < ActiveRecord::Base
 
   def number_taken(performance, exclude_order = nil)
     if exclude_order.nil?
-      LineItem.sum(:ticket_count, :conditions=>{:ticket_class_id=>self.id,:performance_id=>performance.id})
+      LineItem.where(ticket_class_id:self.id,performance_id:performance.id).sum(:ticket_count)
     else
       LineItem.where('ticket_class_id = ? and performance_id = ? and order_id != ?',self.id, performance.id, order.id).sum(:ticket_count)
     end
   end
 
   def number_allocated(performance)
-    sum = TicketClassAllocation.sum(:ticket_limit, :conditions=>{:ticket_class_id=>self.id,:performance_id=>performance.id})
+    sum = TicketClassAllocation.where(ticket_class_id:self.id, performance_id:performance.id).sum(:ticket_limit)
     return nil if sum == 0
     sum
   end

@@ -4,56 +4,39 @@
   %ul.breadcrumbs
     %li.current
       %a{:href=>'#'} Membership Offers
-
 .row
   .small-12.columns
-    %table#membership-offer-listing.hide.display
+    %table#membership-offer-listing{:data=>{:source=>"#{admin_membership_offers_path(format: :json)}"}}
       %thead
         %tr
           %th Name
           %th Recurring Cost
-          %th On Sale
-          %th.hide Status
+          %th On Sale to Public
+          %th Create Order
           %th
       %tbody
-        - for membership_offer in @membership_offers
-          %tr
-            %td= link_to membership_offer.name, [:admin, membership_offer]
-            %td.currency= number_to_currency(membership_offer.recurring_cost)
-            %td= membership_offer.on_sale
-            %td.hide= membership_offer.status
-            %td
-              .button-bar
-                %ul.button-group
-                  %li= link_to("Edit", edit_admin_membership_offer_path(membership_offer), :class=>"tiny button") if permitted_to? :edit, :admin_membership_offers
-                  %li= link_to("Destroy", [:admin, membership_offer], :confirm => 'Are you sure?', :method => :delete, :class=>"tiny alert button") if permitted_to? :destroy, :admin_membership_offers
-                %ul.button-group
-                  - if membership_offer.active?
-                    = link_to "Create Order", new_admin_membership_offer_order_path(membership_offer), :class=>'tiny button'
-                  - else
-                    %a.tiny.button.disabled{:href=>'#'} Create Order
-    = link_to "New Membership Offer", new_admin_membership_offer_path, :class=>'button' if permitted_to? :create, :admin_membership_offers
+
+    = link_to "New Membership Offer", new_admin_membership_offer_path, :class=>'button' if can? :create, MembershipOffer
 
 = content_for :js do
   :javascript
     $(document).ready(function() {
       $('#membership-offer-listing').dataTable({
-
-        dom: 'lf<"toolbar-buttons">rtip',
-        stateSave: true,
-        pageLength: 25,
-        order: [[3, "asc"],[0, 'asc']],
-        pagingType: "foundation",
-        columnDefs: [
-          {targets: "_all", orderable:false},
-          {targets: [1,2], searchable:false},
-             ],
-        fnInitComplete:function() {
-          $("#membership-offer-listing").show();
-          this.fnAdjustColumnSizing();
+        "processing": true,
+        "serverSide": true,
+        "ajax": $('#membership-offer-listing').data('source'),
+        "pagingType": 'full_numbers',
+        "language": {
+          "lengthMenu" : "_MENU_ entries"
         },
+        columns: [
+          {data: 'name'},
+          {data: 'cost'},
+          {data: 'on_sale'},
+          {data: 'status'},
+        ]
       });
 
-      setupActiveSwitchOnDataTable('#membership-offer-listing',3)
 
     });
+

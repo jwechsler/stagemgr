@@ -13,7 +13,7 @@ class TicketLineItem < LineItem
 
   def ticket_class_allocation_available?
     unless self.order.nil? || self.order.performance_id.nil?
-      number_available = TicketClassAllocation.sum(:ticket_limit, :conditions=>{:ticket_class_id=>self.id,:performance_id=>performance.id})
+      number_available = TicketClassAllocation.where(ticket_class_id:self.id, performance_id:performance.id).sum(:ticket_limit)
     end
 
   end

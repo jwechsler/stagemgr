@@ -1,6 +1,8 @@
 class Admin::MembershipOfferOrdersController < Admin::ApplicationController
 
- def new
+  load_and_authorize_resource :membership_order, parent: false
+
+  def new
     @membership_order = MembershipOrder.new
     @membership_order.status = Order::NEW
     @membership_order.address = Address.new
@@ -11,14 +13,14 @@ class Admin::MembershipOfferOrdersController < Admin::ApplicationController
     end
     @membership_order.membership_line_items.build(:membership_offer_id=>params[:membership_offer_id])
 
-  
+
     render '/admin/membership_orders/edit', :layout=>true
   end
 
   def create
 
   end
-  
+
 
 
 end

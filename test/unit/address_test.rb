@@ -4,7 +4,7 @@ class AddressTest < ActiveSupport::TestCase
 
   context "with a valid address" do
     setup do
-      @new_address = FactoryGirl.create(:address, :full_name=>"Test Guy", :line1=>"1229 W Belmont Ave Unit #3", :city=>"Chicago", :state=>"IL", :zipcode=>"60657", :email=>"test@matches.com")
+      @new_address = FactoryBot.create(:address, :full_name=>"Test Guy", :line1=>"1229 W Belmont Ave Unit #3", :city=>"Chicago", :state=>"IL", :zipcode=>"60657", :email=>"test@matches.com")
     end
     should "be able to parse street address" do
       @new_address.regularize!
@@ -25,7 +25,7 @@ class AddressTest < ActiveSupport::TestCase
     end
 
     should "gracefully accept missing address" do
-      @bad_address = FactoryGirl.create(:address, :full_name=>"hi", :line1=>'', :city=>'')
+      @bad_address = FactoryBot.create(:address, :full_name=>"hi", :line1=>'', :city=>'')
       @bad_address.save!
       assert_nil @bad_address.street_number
     end
@@ -34,9 +34,9 @@ class AddressTest < ActiveSupport::TestCase
   context "with a set of preexisting addresses" do
 
     setup do
-      @first_customer = FactoryGirl.create(:address, :full_name=>"Test Guy", :line1=>"1229 W Belmont", :city=>"Chicago", :state=>"IL", :zipcode=>"60657", :email=>"test@matches.com")
-      @same_name_different_email = FactoryGirl.create(:address, :full_name=>"First Guy", :line1=>"1229 W Belmont", :city=>"Chicago", :state=>"IL", :zipcode=>"60657", :email=>"test@different.com")
-      @different_name_no_email = FactoryGirl.create(:address, :full_name=>"Second Guy", :line1=>"1229 W Belmont", :city=>"Chicago", :state=>"IL", :zipcode=>"60657")
+      @first_customer = FactoryBot.create(:address, :full_name=>"Test Guy", :line1=>"1229 W Belmont", :city=>"Chicago", :state=>"IL", :zipcode=>"60657", :email=>"test@matches.com")
+      @same_name_different_email = FactoryBot.create(:address, :full_name=>"First Guy", :line1=>"1229 W Belmont", :city=>"Chicago", :state=>"IL", :zipcode=>"60657", :email=>"test@different.com")
+      @different_name_no_email = FactoryBot.create(:address, :full_name=>"Second Guy", :line1=>"1229 W Belmont", :city=>"Chicago", :state=>"IL", :zipcode=>"60657")
 
     end
 
@@ -165,11 +165,11 @@ class AddressTest < ActiveSupport::TestCase
   context "with a new matching address and related tags" do
     setup do
       without_access_control do
-        @address_1 = FactoryGirl.create(:address, :full_name => "Bob Smith", :first_name=>"bob", :last_name=>"Smith", :email=>"bob@smith.com", :search_name => "BOB SMITH")
-        @address_1.address_tags.build([{:tag_label=>"Subscription ID", :tag_value=>"9393", :theater => FactoryGirl.create(:theater)}])
+        @address_1 = FactoryBot.create(:address, :full_name => "Bob Smith", :first_name=>"bob", :last_name=>"Smith", :email=>"bob@smith.com", :search_name => "BOB SMITH")
+        @address_1.address_tags.build([{:tag_label=>"Subscription ID", :tag_value=>"9393", :theater => FactoryBot.create(:theater)}])
         @address_1.save
-        @address_2 = FactoryGirl.create(:address, :first_name=>"bob", :last_name=>"Smith", :email=>"bob@smith.com", :full_name => "bob Smith")
-        @address_2.address_tags.build([{:tag_label=>"Subscription ID", :tag_value=>"4444", :theater => FactoryGirl.create(:theater)}])
+        @address_2 = FactoryBot.create(:address, :first_name=>"bob", :last_name=>"Smith", :email=>"bob@smith.com", :full_name => "bob Smith")
+        @address_2.address_tags.build([{:tag_label=>"Subscription ID", :tag_value=>"4444", :theater => FactoryBot.create(:theater)}])
         @address_2.save
       end
 

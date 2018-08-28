@@ -5,7 +5,6 @@ class OrderTask < ActiveRecord::Base
   TASK_STATUSES = (
       UNTRIED, COMPLETED, FAILED, CANCELLED = "Untried", "Completed", "Failed", "Cancelled"
   )
-  acts_as_audited
 
   belongs_to :order
 

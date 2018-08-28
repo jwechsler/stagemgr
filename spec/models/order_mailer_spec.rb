@@ -1,12 +1,11 @@
 require 'spec_helper'
 
+
 describe OrderMailer do
-  before (:each) do
-    Authorization.ignore_access_control(true)
-  end
 
   describe 'confirmation' do
-  	let (:ticket_order) { FactoryGirl.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash) }
+
+  	let (:ticket_order) { FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash) }
   	let (:mail) { OrderMailer.ticket_confirmation(ticket_order) }
 
   	it 'renders the order specific subject' do

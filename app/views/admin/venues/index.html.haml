@@ -1,0 +1,38 @@
+- content_for :title do
+  Venues
+- content_for :breadcrumbs do
+  %ul.breadcrumbs
+    %li.current
+      %a{:href=>'#'} Venues
+
+.row
+  .small-12.columns
+    %table#venue-listing{:data=>{:source=>"#{admin_venues_path(format: :json)}"}}
+      %thead
+        %tr
+          %th Name
+          %th
+      %tbody
+
+.row
+  .small-12.columns
+    = link_to "New Venue", new_admin_venue_path, :class=>'small button right'
+
+= content_for :js do
+  :javascript
+    $(document).ready(function() {
+      $('#venue-listing').dataTable({
+        "processing": true,
+        "serverSide": true,
+        "ajax": $('#venue-listing').data('source'),
+        "pagingType": 'full_numbers',
+        "language": {
+          "lengthMenu" : "_MENU_",
+          "search": "_INPUT_"
+        },
+        columns: [
+          {data: 'name'},
+          {data: 'actions'},
+        ]
+      });
+    });

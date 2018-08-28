@@ -1,23 +1,14 @@
 class CreateAddressTags < ActiveRecord::Migration
 
-  def self.up
+  def change
     create_table :address_tags do |t|
-      t.integer :address_id
-      t.integer :theater_id
       t.string :tag_label
       t.string :tag_value
 
       t.timestamps
     end
-    execute "alter table address_tags engine = InnoDB"
-    execute "alter table address_tags add constraint address_tags_to_theater foreign key (theater_id) references theaters(id) on delete cascade"
-    execute "alter table address_tags add constraint address_tags_to_address foreign key (address_id) references addresses(id) on delete cascade"
+    add_reference :address_tags, :theater, index:true, on_delete: :cascade
+    add_reference :address_tags, :address, index:true, on_delete: :cascade
 
-  end
-
-  def self.down
-    #execute "alter table address_tags drop foreign key address_tags_to_theater"
-    #execute "alter table address_tags drop foreign_key address_tags_to_address"
-    drop_table :address_tags
   end
 end

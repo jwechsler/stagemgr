@@ -1,6 +1,6 @@
 class UserSession < Authlogic::Session::Base
   validate :is_active?
-  logout_on_timeout true
+  logout_on_timeout false # Rails.env.production?
 
   private
   def is_active?
@@ -9,4 +9,5 @@ class UserSession < Authlogic::Session::Base
       errors.add(:login, "#{self.attempted_record.email} is currently inactive") if self.attempted_record.status.eql? User::INACTIVE
     end
   end
+
 end

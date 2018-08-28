@@ -6,6 +6,7 @@ class FileStore < ActiveRecord::Base
     :url=>"#{Rails.application.config.action_controller.relative_url_root}/system/filestore/:hash/:filename",
     :hash_secret => $SERVER_CONFIG['filestore_hash']
   }
+  validates_attachment_content_type :data, content_type: "text/plain"
 
   FILE_WORKERS = (
     IMPORT, REPORT =
@@ -13,8 +14,8 @@ class FileStore < ActiveRecord::Base
     )
 
   FILE_FORMATS = (
-    TRG_LIST_IMPORT_FORMAT, MAILING_CARD_IMPORT_FORMAT =
-    "TRGArts List Import", "Mailing Card Format")
+    TRG_LIST_IMPORT_FORMAT, MAILING_CARD_IMPORT_FORMAT, SEATMAP_GEOMETRY, EXTERNAL_CONTACT_FORMAT  =
+    "TRGArts List Import", "Mailing Card Format", "Seatmap Geometry", "External Contact Format")
 
   def is_trg_list_format?
     true

@@ -1,8 +1,17 @@
 class Admin::ProductionsController < Admin::ApplicationController
   prepend_before_filter :find_theater
-  append_before_filter :find_production, :only => [:show, :edit, :update, :destroy]
   append_before_filter :find_context, :only => [:show]
-  filter_resource_access
+  load_and_authorize_resource
+
+  def index
+    respond_to do |format|
+      format.json {
+        params.permit!
+        render json: ProductionDatatable.new(params, view_context: view_context, current_user: current_user, current_theater: @theater )
+      }
+
+    end
+  end
 
   # GET /productions/1
   # GET /productions/1.xml
@@ -23,7 +32,8 @@ class Admin::ProductionsController < Admin::ApplicationController
     end
   end
 
-  def edit; end
+  def edit
+  end
 
   # POST /productions
   # POST /productions.xml
@@ -31,7 +41,7 @@ class Admin::ProductionsController < Admin::ApplicationController
     if params[:production][:promo].respond_to? :empty?
       params[:production].delete(:promo) if params[:production].has_key?(:promo) && params[:production][:promo].empty?
     end
-    @production = Production.new(params[:production])
+    @production = Production.new(production_params)
     @production.theater = @theater
 
     respond_to do |format|
@@ -54,7 +64,7 @@ class Admin::ProductionsController < Admin::ApplicationController
     params[:production].delete(:promo) if params[:production].has_key?(:promo) && (params[:production][:promo].respond_to? :empty?) && params[:production][:promo].empty?
     respond_to do |format|
 
-      if @production.update_attributes(params[:production])
+      if @production.update_attributes(production_params)
         flash[:notice] =  raw "<i>#{@production.name}</i> was successfully updated."
         format.html { redirect_to(admin_theater_path(@production.theater)) }
         format.xml  { head :ok }
@@ -82,8 +92,14 @@ class Admin::ProductionsController < Admin::ApplicationController
     @theater=Theater.find(params[:theater_id])
   end
 
-  def find_production
-    @production = @theater.productions.find(params[:id])
+
+  def production_params
+    params.require(:production).permit(:name, :first_preview_at, :press_opening_at, :opening_at,
+      :closing_at, :production_code, :production_class, :status, :season, :venue_id, :custom_label,
+      :credit_lines, :short_description, :show_description, :running_time, :intermission,
+      :allow_late_seating, :capacity, :additional_information_link, :calendar_callout, :conversion_pixel_code,
+      :flex_pass_offer_id, :myemma_attendee_group, :survey_link, :mailing_list_link,
+      :follow_up_message_2, :confirmation_message, :seat_map_id)
   end
 
 end

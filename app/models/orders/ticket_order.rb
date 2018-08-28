@@ -1,14 +1,26 @@
 class TicketOrder < Order
 
   before_validation :set_tickets_for_pass_redemption
+  before_validation :unassign_seats_when_performance_changes, if: :performance_id_changed?
+
   before_save :set_theater
   before_save :remove_empty_ticket_lines
+  before_save do
+    if status_changed? && (refunded? || unclaimed?) && performance.production.has_reserved_seating?
+      unassign_seats
+    end
+
+  end
+
   after_save :update_attendance_record
+
+  before_destroy :unassign_seats
 
   attr_accessor :selected_production
 
   has_many :ticket_line_items, :foreign_key => :order_id
-  accepts_nested_attributes_for :ticket_line_items, :allow_destroy => true
+  has_many :seats, foreign_key: :order_id, class_name: 'SeatAssignment'
+  accepts_nested_attributes_for :ticket_line_items, allow_destroy: true
 
   SEATING_REQUESTS = (
     WHEELCHAIR, STAIRS =
@@ -20,6 +32,8 @@ class TicketOrder < Order
   #before_validation :tickets_available?, :if=>[:processed?, :status_changed?]
 
   validate :ticket_stock_available
+  validate :seat_assignments_complete, if: -> { performance.production.has_reserved_seating? }
+
   validates_each :status do |record, attr, value|
 
     if value == PROCESSED
@@ -60,6 +74,32 @@ class TicketOrder < Order
       seats_left = self.performance.number_of_seats_left(self)
       errors.add :base, "There are #{seats_left == 1 ? "is" : "are"} only #{seats_left} reservation#{"s" unless seats_left == 1} remaining for this performance." if self.holding_seats? && seats_left < self.number_of_seats
     end
+  end
+
+  def unassign_seats
+    self.seats.reload.each {|seat| seat.unassign_from_order(self) }
+    self.seats.reload
+  end
+
+  def unassign_seats_when_performance_changes
+    self.seats.reload.each {|seat|
+      unless seat.performance_id.eql?(self.performance_id)
+        seat.unassign_from_order(self)
+      end
+    }
+    self.seats.reload
+  end
+
+  def seat_assignments_complete
+    if self.performance.production.has_reserved_seating? && (status.eql?(Order::PROCESSED) || status.eql?(Order::FULFILLED)) then
+      if (self.seats.reload.size != self.number_of_seats) then
+        errors.add :base, "You must select #{self.number_of_seats} before finalizing this order"
+      end
+    end
+  end
+
+  def seatable?
+    [Order::NEW, Order::PROCESSED, Order::PROCESSING, Order::HOLD].include?(self.status) && performance.production.has_reserved_seating?
   end
 
   def theater_ids
@@ -140,7 +180,7 @@ class TicketOrder < Order
       tcs = self.ticket_line_items.map { |li| li.ticket_class_id }
       available = self.performance.ticket_class_allocations.select { |tca| tca.available && !tcs.include?(tca.ticket_class.id) }.map { |tca| tca.ticket_class }.select { |tc| tc.web_visible unless tc.nil? }
       available.each { |tc| self.ticket_line_items.build(:ticket_class => tc, :ticket_count => 0) }
-      self.ticket_line_items.sort! { |a, b| a.ticket_class_id <=> b.ticket_class_id }
+      self.ticket_line_items.order(:ticket_class_id)
     end
   end
 
@@ -302,7 +342,6 @@ class TicketOrder < Order
       self.set_email_confirmation
       self.payments(true)
       self.save!
-      Rails.logger.debug(original_order.payments.to_yaml)
       original_order.save!
     end
   end
@@ -371,6 +410,19 @@ class TicketOrder < Order
     self.transition_new_to_processing!(redirect_to)
   end
 
+  def transition_processing_to_hold!(redirect_to = nil)
+    self.transition_new_to_hold!(redirect_to)
+  end
+
+
+  def transition_processing_to_processed!(redirect_to = nil)
+    Order.transaction do
+      self.seats.reload
+      self.seats.each {|sa| sa.status = SeatAssignment::ASSIGNED}
+      super(redirect_to)
+    end
+  end
+
   def transition_processed_to_fulfilled!(redirect_to = nil)
     Resque.enqueue(PrintTicketOrder, self.id)
     super
@@ -416,7 +468,7 @@ class TicketOrder < Order
 
 
   def create_receipt_task
-    self.tasks << OutreachTask.new(:execute_at => Time.now + 5.minutes, :method_symbol => :ticket_confirmation) unless self.performance.suppress_notification
+    self.tasks << OutreachTask.new(:execute_at => Time.now + 5.minutes, :method_symbol => :ticket_confirmation) unless (self.performance.suppress_notification || self.suppress_receipt?)
 
     super
   end
@@ -444,6 +496,10 @@ class TicketOrder < Order
     end
   end
 
+  def suppress_receipt?
+    self.performance.suppress_notification || self.ticket_line_items.map { |tli|
+      tli.ticket_class.suppress_receipt? }.all?
+  end
 
   def set_theater
     self.theater_id = self.performance.production.theater_id
@@ -488,7 +544,7 @@ class TicketOrder < Order
   end
 
   def is_unique_visit?(prod)
-    Order.includes(:performance).where("performances.production_id = ? and orders.id != ? and orders.status = ? and orders.address_id = ?",
+    Order.joins(:performance).where("performances.production_id = ? and orders.id != ? and orders.status = ? and orders.address_id = ?",
       prod.id,
       self.id,
       Order::FULFILLED,

@@ -9,7 +9,13 @@ class PerformancesController < ApplicationController
 
       @start_date = params[:start_date].nil? ? (@production.first_preview_at.nil? ? Date.today.beginning_of_month : ((@production.first_preview_at.beginning_of_month < Date.today.beginning_of_month) ? Date.today.beginning_of_month : @production.first_preview_at.beginning_of_month)) : Date.parse(params[:start_date])
       @end_date = @start_date.end_of_month;
-      @performances = @production.performances.find(:all, :include=>[:ticket_class_allocations, :orders, :special_features, :production, {:orders=>:ticket_line_items}], :conditions=>['performances.status in (?) and performances.performance_date >= ? and performances.performance_date <= ?', Performance.visible_statuses, @start_date, @end_date], :order=>'performances.performance_date, performances.performance_time asc')
+      @performances = @production.performances.includes(
+        :ticket_class_allocations, :orders, :special_features, :production,
+        {:orders=>:ticket_line_items}
+      ).where(
+        'performances.status in (?) and performances.performance_date >= ? and performances.performance_date <= ?',
+        Performance.visible_statuses, @start_date, @end_date
+      ).order(:performance_date=>:asc, :performance_time=>:asc)
       @footnotes = Array.new
       @performances.each {|p|
         unless p.special_features.empty?
@@ -18,7 +24,6 @@ class PerformancesController < ApplicationController
 
         end
         @footnotes << "_custom#{p.id}" unless p.special_feature_display_markdown.blank?
-        Rails.logger.debug(@footnotes.to_yaml)
       }
       @footnotes = @footnotes.uniq
       render :index, :layout=>'ext_site_wrapper'

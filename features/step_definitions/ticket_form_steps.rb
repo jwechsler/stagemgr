@@ -31,6 +31,7 @@ end
 Given /^I enter a gift recipient$/ do
   fill_in "Recipient name", :with=>"Gift Getter"
   fill_in "Recipient email", :with=>"test@theaterwit.org"
+  fill_in :membership_order_gift_date, :with=>Date.today
 end
 
 When /^I prefer "(.*?)" seating$/ do |seating_preference|
@@ -41,18 +42,18 @@ When /^I enter a valid credit card as payment( through the backend)?$/ do |backe
   @_current_form = 'ticket_order' if @_current_form.blank?
 
   if @using_admin_interface
-    select "Credit Card", :from=>"Pay using"
+    select "Credit Card", :from=>"#{@_current_form}_payment_type_id"
   else
     choose "Credit Card"
   end
-  select "Visa", :from=>"Card Type"
+  select "Visa", :from=>"#{@_current_form}_credit_card_type"
   unless @using_admin_interface
     select "01", :from=>"#{@_current_form}_credit_card_expiration_month"
   else
     fill_in "MM", :with=>Date.today.month.to_s
   end
   unless @using_admin_interface
-    select "2018", :from=>"#{@_current_form}_credit_card_expiration_year"
+    select "2020", :from=>"#{@_current_form}_credit_card_expiration_year"
   else
     fill_in "YY", :with=>'18'
   end
@@ -82,8 +83,9 @@ end
 
 Given /^I enter (\d+) tickets for performance "(.*?)"$/ do |num_tix, perf_code|
   performance = Performance.find_by_performance_code(perf_code)
-  ticket_class_code = performance.ticket_class_allocations.select{|tca| tca.ticket_class.web_visible}.first.ticket_class.class_code
-  fill_in "ticket_order_ticket_line_items_attributes_0_ticket_class_code", :with =>  ticket_class_code
+  @performance_code = perf_code
+  ticket_class = performance.ticket_class_allocations.select{|tca| tca.ticket_class.web_visible}.first.ticket_class
+  fill_in "ticket_order_ticket_line_items_attributes_0_ticket_class_code", :with =>  ticket_class.class_code
   fill_in "ticket_order_ticket_line_items_attributes_0_ticket_count", :with => num_tix
 end
 

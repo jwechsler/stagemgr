@@ -17,5 +17,5 @@
     = link_to 'Edit', edit_admin_address_path(@address), :class=>'small button'
 
 - if !@address.orders.nil? && @address.orders.size > 0
-  = render :partial=>"/admin/addresses/order_history", :locals=>{:orders=>@visible_orders}
+  = render :partial=>"/admin/addresses/order_history", :locals=>{:orders=>@visible_orders, address: @address}
 

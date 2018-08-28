@@ -14,11 +14,19 @@ class Production < ActiveRecord::Base
   validates_uniqueness_of :production_code
   validates_length_of :production_code, :in=>1..8
   validates_numericality_of :capacity
+  validates_inclusion_of :seat_map, in: lambda{ |production| production.venue.seat_maps }, unless: Proc.new {|production| production.seat_map.nil?}
   validates_formatting_of :survey_link, :using => :url, :allow_blank=>true
   validates_formatting_of :mailing_list_link, :using => :url, :allow_blank=>true
+  with_options if: :is_visible? do |visible_prod|
+    visible_prod.validates_presence_of :opening_at
+    visible_prod.validates_presence_of :closing_at
+    visible_prod.validates_presence_of :press_opening_at
+    visible_prod.validates_presence_of :first_preview_at
+  end
 
   belongs_to :venue
   belongs_to :theater
+  belongs_to :seat_map
   has_many :special_offers
   has_many :performances
   has_many :ticket_classes
@@ -29,13 +37,15 @@ class Production < ActiveRecord::Base
   before_save :assign_default_ticket_classes
   before_save :queue_statistics_recalc
   belongs_to :flex_pass_offer
-  has_and_belongs_to_many :attendees, class_name: "Address", uniq: true
+  has_and_belongs_to_many :attendees, class_name: "Address", uniq:true
 
   attr_accessor :sf_object
 
   has_attached_file :promo, :styles => {:medium => "250x375>", :thumb => "125x186>"},
                     :path => ":rails_root/public/system/:attachment/:id/:style/:filename",
                     :url => "#{Rails.application.config.action_controller.relative_url_root}/system/:attachment/:id/:style/:filename"
+  validates_attachment_content_type :promo, :content_type => ["image/jpg", "image/jpeg", "image/png", "image/gif"]
+
 
   def to_s
     "#{self.name}, #{self.theater.name}"
@@ -168,7 +178,6 @@ class Production < ActiveRecord::Base
         production.season__c=self.season
 
       end
-      puts "  saving production data to salesforce"
       production.save
       self.sf_last_sync_at = DateTime.now + 15.seconds
       self.save!
@@ -187,6 +196,10 @@ class Production < ActiveRecord::Base
     self.sf_object
   end
 
+  def has_reserved_seating?
+    !self.seat_map.nil?
+  end
+
   private
   def clean_values
     self.production_code.upcase! unless self.production_code.nil?
@@ -195,8 +208,8 @@ class Production < ActiveRecord::Base
    def assign_default_ticket_classes
     defaults = DefaultTicketClass.all
     defaults.each { |tcd| tc = TicketClass.new
-    tc.attributes=tcd.to_hash
-    self.ticket_classes << tc}
+      tc.attributes=tcd.to_hash
+      self.ticket_classes << tc}
     self
   end
 

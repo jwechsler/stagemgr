@@ -52,7 +52,7 @@ When /^I enter production code "([^\"]*)" and performance code "([^\"]*)"$/ do |
 end
 
 When /^I enter (\d+) "([^\"]*)" tickets$/ do |qty, ticket_class_code|
-  fill_in "ticket_order_ticket_line_items_attributes_0_ticket_class_code", :with=>ticket_class_code
+  fill_in "ticket_order_ticket_line_items_attributes_0_ticket_class_code", :with =>  ticket_class_code
   fill_in "ticket_order_ticket_line_items_attributes_0_ticket_count", :with=>qty
 end
 
@@ -75,17 +75,14 @@ end
 
 Given /^the performance "(.*?)" has a ticket class code "(.*?)"$/ do |perf_code, ticket_class_code|
   @performance = Performance.find_by_performance_code(perf_code)
-  without_access_control do
-    @performance.ticket_class_allocations << FactoryGirl.create(:ticket_class_allocation, :available=>true, :ticket_class=>TicketClass.find_by_class_code(ticket_class_code))
-    @performance.save!
-  end
-
+  @performance.ticket_class_allocations << FactoryBot.create(:ticket_class_allocation, :available=>true, :ticket_class=>TicketClass.find_by_class_code(ticket_class_code))
+  @performance.save!
 end
 
-
-Transform /^the (\d+)(?:st|nd|rd|th) address tag$/ do |num|
-  "ul.address_tags li:nth-child(#{num})"
-end
+# Delete the below
+#Transform /^the (\d+)(?:st|nd|rd|th) address tag$/ do |num|
+#  "ul.address_tags li:nth-child(#{num})"
+#end
 
 #Transform /^the first address tag label$/ do
 #  "$(\"#address_tags input\")[0]"

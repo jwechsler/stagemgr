@@ -32,8 +32,7 @@ class Address < ActiveRecord::Base
 
   SEARCHABLE_REGEXP = /[\d+\s+\.!,]/
 
-  attr_accessible :full_name, :line1, :line2, :city, :state, :zipcode, :email, :phone, :street_number, :address_tags_attributes
-  acts_as_audited :protect=>false, :except=>['street_number', 'street', 'street_type', 'unit', 'unit_prefix', 'search_name']
+  # audited :protect=>false, :except=>['street_number', 'street', 'street_type', 'unit', 'unit_prefix', 'search_name']
   attr_accessor :sf_object
 
   def self.parse_name(full_name)
@@ -365,12 +364,11 @@ class Address < ActiveRecord::Base
 
   def orders_processed(for_theaters = nil)
     if for_theaters.nil?
-      TicketOrder.count( :conditions=>["orders.address_id = ? and orders.status in ( ? )",
-                                       self.id, Order.attended_statuses])
+      TicketOrder.where("orders.address_id = ? and orders.status in ( ? )",
+                                       self.id, Order.attended_statuses).count
     else
-      TicketOrder.count(
-        :conditions=>["orders.address_id = ? and orders.status in (?) and orders.performance_id in (select id from performances where production_id in (select id from productions where theater_id in (?)))",
-                      self.id, Order.attended_statuses, for_theaters])
+      TicketOrder.where("orders.address_id = ? and orders.status in (?) and orders.performance_id in (select id from performances where production_id in (select id from productions where theater_id in (?)))",
+                      self.id, Order.attended_statuses, for_theaters).count
     end
   end
 
@@ -406,18 +404,20 @@ class Address < ActiveRecord::Base
   def update_donor_levels_from_donation_orders
     one_year_ago = Date.today - 1.year
 
-    self.donated_last_n_days = Payment.sum(:amount,
-                        :include=>[:order],
-                        :conditions=>["orders.type = 'DonationOrder' and orders.address_id = ? and orders.status in (?) and processed_on >= ? ",
-                                      self.id, Order.finalized_statuses, one_year_ago])
-    self.donated_this_year = Payment.sum(:amount,
-                        :include=>[:order],
-                        :conditions=>["orders.type = 'DonationOrder' and orders.address_id = ? and orders.status in (?) and (processed_on between ? and ?) ",
-                                      self.id, Order.finalized_statuses, Date.parse("#{Date.today.year}-01-01"), Date.parse("#{Date.today.year+1}-01-01") ])
-    self.donated_last_year = Payment.sum(:amount,
-                        :include=>[:order],
-                        :conditions=>["orders.type = 'DonationOrder' and orders.address_id = ? and orders.status in (?) and (processed_on between ? and ?) ",
-                                      self.id, Order.finalized_statuses, Date.parse("#{Date.today.year-1}-01-01"), Date.parse("#{Date.today.year}-01-01")])
+    self.donated_last_n_days = Payment.joins(:order).where(
+      "orders.type = 'DonationOrder' and orders.address_id = ? and orders.status in (?) and processed_on >= ? ",
+      self.id, Order.finalized_statuses, one_year_ago).sum(:amount)
+    self.donated_this_year = Payment.joins(:order).where(
+      "orders.type = 'DonationOrder' and orders.address_id = ? and orders.status in (?) and (processed_on between ? and ?) ",
+                                            self.id, Order.finalized_statuses,
+                                            Date.parse("#{Date.today.year}-01-01"),
+                                            Date.parse("#{Date.today.year+1}-01-01")
+      ).sum(:amount)
+    self.donated_last_year = Payment.joins(:order).where(
+      "orders.type = 'DonationOrder' and orders.address_id = ? and orders.status in (?) and (processed_on between ? and ?) ",
+                        self.id, Order.finalized_statuses, Date.parse("#{Date.today.year-1}-01-01"),
+                        Date.parse("#{Date.today.year}-01-01")
+      ).sum(:amount)
   end
 
   private
@@ -449,7 +449,6 @@ class Address
   end
 
   def create_salesforce_contact
-    puts "  creating new sf record"
     SalesforceData::Contact.create "LastName"=>self.last_name, "FirstName"=>self.first_name, "stagemgr_id__c"=>"#{self.id}",
       "MailingStreet"=>"#{self.line1}\r\n#{self.line2}", "MailingCity"=>self.city,
       "Email"=>self.email, "Phone"=>self.phone,
@@ -464,10 +463,10 @@ class Address
       sf_contact.instance_variable_set("@productions_attended_#{season}__c".to_s,
         Production.where('season = ? and id in (?)',season, self.orders.select{|o| !o.performance_id.nil?}.map {|o| o.performance.production_id }).count)
       order_ids = self.orders.map {|o| o.id }
-      ticket_payments_for_season = Payment.includes({:order => {:performance => :production}}).where(
+      ticket_payments_for_season = Payment.joins({:order => {:performance => :production}}).where(
         'order_id in (?) and orders.type = \'TicketOrder\' and productions.season = ?',
           order_ids,season).sum('payments.amount')
-      other_sales_for_season = Payment.includes(:order).where(
+      other_sales_for_season = Payment.joins(:order).where(
         'order_id in (?) and orders.type not in (\'TicketOrder\',\'DonationOrder\') and payments.processed_on between ? and ?',
         order_ids, "01-01-#{season}".to_date + 8.months,
         "01-01-#{season}".to_date + 20.months).sum('payments.amount')
@@ -500,7 +499,6 @@ class Address
         puts "syncing address id ##{self.id}"
         if sf_contact.nil?
           sf_contact = create_salesforce_contact
-          puts "*** #{sf_contact.AccountId}"
         else
           if self.field_changed_after?(:first_name, self.sf_last_sync_at)
             sf_contact.FirstName = self.first_name unless self.first_name.blank?

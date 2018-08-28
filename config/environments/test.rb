@@ -7,12 +7,16 @@ Stagemgr::Application.configure do
   # and recreated between test runs.  Don't rely on the data there!
   config.cache_classes = true
 
+
   # Log error messages when you accidentally call methods on nil.
   config.whiny_nils = true
+
+  config.eager_load = false
 
   # Show full error reports and disable caching
   config.consider_all_requests_local       = true
   config.action_controller.perform_caching = false
+  config.cache_store = :null_store
 
   config.action_controller.relative_url_root = ""
 
@@ -47,7 +51,7 @@ Stagemgr::Application.configure do
   $TEST_CREDIT_CARD = $PAYMENT_CONFIG['test_credit_card']
 
   config.after_initialize do
-    ActiveMerchant::Billing::Base.gateway_mode = :test
+    ActiveMerchant::Billing::Base.mode = :test
     PaymentProcessing.after_initialize
     MyEmma.set_credentials_from_yaml("#{self.root.to_s}/config/my_emma_credentials.yml")
     MyEmma.disable

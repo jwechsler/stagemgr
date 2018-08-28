@@ -3,20 +3,15 @@ require_relative "../../spec_helper.rb"
 describe "a production" do
   context "with one order" do
     before(:each) do
-      @ticket_order = FactoryGirl.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
-    end
-
-    after(:each) do
-      Authorization.ignore_access_control(false)
+      @ticket_order = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
     end
 
     it "should have one attendee when fulfilled" do
-      @ticket_order.performance.production.attendees.count.should == 0
+      expect(@ticket_order.performance.production.attendees.count).to eq(0)
       @ticket_order.transition_to!(Order::FULFILLED)
-      @ticket_order.performance.production.attendees.count.should == 1
+      expect(@ticket_order.performance.production.attendees.count).to eq(1)
     end
     it "can override the email links for surveys and mailing list solicitation" do
-      Authorization.ignore_access_control(true)
       mail = OrderMailer.standard_followup(@ticket_order)
       expect(mail.body.encoded).to match("SURVEYLINK.TEST")
       expect(mail.body.encoded).to match("MAILINGLINK.TEST")
@@ -30,10 +25,10 @@ describe "a production" do
   end
 
   it "always stores custom label as lowercase" do
-    @production = FactoryGirl.create(:production)
+    @production = FactoryBot.create(:production)
     @production.custom_label = "BiGLabel"
     @production.save
-    @production.custom_label.should.eql? "biglabel"
+    expect(@production.custom_label).to eq("biglabel")
   end
 
 end

@@ -13,6 +13,7 @@ Feature: Box office ordering
       And I enter 2 "CHEAP" tickets
       And I enter my contact information
       And I enter a valid credit card as payment
+
       And I press "Place Order"
     Then I should see "Order was successfully saved and is now Processed"
 

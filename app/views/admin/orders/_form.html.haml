@@ -24,25 +24,10 @@
       - if order_form.object.is_a? TicketOrder
         = order_form.input :marketing_source, :collection=>Order::REFERRALS, :label=>"How did you hear about the show?"
 
-%div.row
-  %div.small-12.columns
+.row
+  .small-12.columns
     = order_form.input :notes, :input_html => {:rows => 4}
-
-%div.row
-  %div.small-12.columns
-    - permitted_to? :fulfill, :admin_ticket_orders do
-      = order_form.submit 'Print Tickets', :class=>'button', :disable_with => 'Printing...' if order_form.object.printable?
-
-    - if [Order::NEW, Order::HOLD, Order::PROCESSING].include? order_form.object.status
-      = order_form.submit 'Place Order', :class=>'button', :disable_with => 'Processing...', :confirm => "Process this order?"
-    - else
-      = order_form.submit 'Place Order'
-
-    - permitted_to? :hold, :admin_orders do
-      = order_form.submit 'Hold', :disable_with => 'Holding...', :class=>'button' if order_form.object.holdable?
-
-    - if order_form.object.status == Order::HOLD || order_form.object.status == Order::PROCESSING
-      = link_to 'Cancel Order', cancel_admin_order_path(order_form.object), :confirm=>"Are you sure?", :method=>:post, :class=>'button'
-
-  %div.small-12.columns
+  .small-12.columns
+    = render partial:'/admin/orders/confirm_button', locals:{order_form:order_form}
+  .small-12.columns
     = render '/admin/orders/audit_show', :order_form=>order_form.object

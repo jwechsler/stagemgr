@@ -1,22 +1,24 @@
 class Admin::UsersController < Admin::ApplicationController
-  filter_resource_access
+  load_and_authorize_resource
   # prepend_before_filter :find_user, :only => [:show, :edit, :update, :destroy]
-  
+
   # GET /users
   def index
     @users = User.all
 
     respond_to do |format|
       format.html # index.html.erb
+      format.json {
+        params.permit!
+        render json: UserDatatable.new(params, view_context: view_context, current_user: current_user )
+      }
     end
   end
-  
+
   def new
-    @user = User.new
   end
-  
+
   def create
-    @user = User.new(params[:user])
     if @user.save
       flash[:notice] = "Account registered!"
       redirect_back_or_default admin_users_path
@@ -24,13 +26,13 @@ class Admin::UsersController < Admin::ApplicationController
       render :action => :new
     end
   end
-  
+
   def show; end
- 
+
   def edit; end
-  
+
   def update
-    if @user.update_attributes(params[:user])
+    if @user.update_attributes(user_params)
       flash[:notice] = "Account updated!"
       redirect_to admin_users_path
     else
@@ -46,11 +48,14 @@ class Admin::UsersController < Admin::ApplicationController
     end
     redirect_to root_path
   end
-  
+
   private
-  
+
   def find_user
     @user = User.find(params[:id])
   end
 
+  def user_params
+    params.require(:user).permit(:email,:password,:password_confirmation,:status,:is_administrator,:is_box_office_user, :user_theater_ids=>[])
+  end
 end

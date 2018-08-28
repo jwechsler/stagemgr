@@ -1,47 +1,43 @@
-require 'declarative_authorization/maintenance'
-include Authorization::Maintenance
 
-# FactoryGirl.duplicate_attribute_assignment_from_initialize_with = false
+# FactoryBot.duplicate_attribute_assignment_from_initialize_with = false
 
-module FactoryGirl
+module FactoryBot
   class << self
     alias_method :original_create, :create
 
     def create(name, overrides = {})
-      without_access_control do
-        original_create(name, overrides)
-      end
+      original_create(name, overrides)
     end
 
     def create_test_theater
-      theater = FactoryGirl.create(:theater, :name=>"Test Theater")
-      production = FactoryGirl.create(:production, :theater=>theater, :name=>"Production One",
+      theater = FactoryBot.create(:theater, :name=>"Test Theater")
+      production = FactoryBot.create(:production, :theater=>theater, :name=>"Production One",
                           :production_code=>"TEST", :opening_at=>Date.today, :closing_at=>Date.today)
-      FactoryGirl.create(:ticket_class, :class_code=>'PASS', :class_name=>"Pass Ticket",
+      FactoryBot.create(:ticket_class, :class_code=>'PASS', :class_name=>"Pass Ticket",
                           :ticket_price=>1.00, :web_visible=>false, :software_managed=>true,
-                          :production=>production) if TicketClass.count(:class_code, :conditions=>["production_id = ? and class_code = 'PASS'",production.id]) == 0
-      FactoryGirl.create(:ticket_class, :class_code=>'PASSFRIEND', :class_name=>"Pass Ticket",
+                          :production=>production) if TicketClass.where("production_id = ? and class_code = 'PASS'",production.id).count(:class_code) == 0
+      FactoryBot.create(:ticket_class, :class_code=>'PASSFRIEND', :class_name=>"Pass Ticket",
                           :ticket_price=>0.00, :web_visible=>false, :software_managed=>true,
                           :production=>production)
-      FactoryGirl.create(:ticket_class, :class_code=>'CHEAP', :class_name=>"Cheap Ticket",
+      FactoryBot.create(:ticket_class, :class_code=>'CHEAP', :class_name=>"Cheap Ticket",
                           :ticket_price=>5.00, :web_visible=>true, :software_managed=>false,
                           :production=>production)
-      FactoryGirl.create(:ticket_class, :class_code=>'RICH', :class_name=>"Expensive Ticket",
+      FactoryBot.create(:ticket_class, :class_code=>'RICH', :class_name=>"Expensive Ticket",
                           :ticket_price=>10.00, :web_visible=>true, :software_managed=>false,
                           :production=>production)
-      FactoryGirl.create(:ticket_class, :class_code=>'SECRET', :class_name=>"Secret Ticket",
+      FactoryBot.create(:ticket_class, :class_code=>'SECRET', :class_name=>"Secret Ticket",
                           :ticket_price=>20.00, :web_visible=>false, :software_managed=>false,
                           :production=>production)
-      FactoryGirl.create(:cash_payment_type, :allow_for_public=>false)
-      FactoryGirl.create(:credit_card_payment_type, :allow_for_public=>true)
-      FactoryGirl.create(:flex_pass_payment_type, :allow_for_public=>true)
-      FactoryGirl.create(:membership_payment_type, :allow_for_public=>true)
-      FactoryGirl.create(:default_ticket_class, :class_code=>'PASS', :class_name=>"Pass Ticket",
+      FactoryBot.create(:cash_payment_type, :allow_for_public=>false)
+      FactoryBot.create(:credit_card_payment_type, :allow_for_public=>true)
+      FactoryBot.create(:flex_pass_payment_type, :allow_for_public=>true)
+      FactoryBot.create(:membership_payment_type, :allow_for_public=>true)
+      FactoryBot.create(:default_ticket_class, :class_code=>'PASS', :class_name=>"Pass Ticket",
                           :ticket_price=>1.00, :web_visible=>false, :software_managed=>true, :auto_attach=>true)
-      FactoryGirl.create(:default_ticket_class, :class_code=>'PASSFRIEND', :class_name=>"Pass Ticket",
+      FactoryBot.create(:default_ticket_class, :class_code=>'PASSFRIEND', :class_name=>"Pass Ticket",
                           :ticket_price=>0.00, :web_visible=>false, :software_managed=>true, :auto_attach=>true)
       production.reload
-      performance = FactoryGirl.create(:performance, :production=>production, :performance_code=>'PERF', :performance_time=>"#{Date.today} 18:00".to_time)
+      performance = FactoryBot.create(:performance, :production=>production, :performance_code=>'PERF', :performance_time=>"#{Date.today} 18:00".to_time)
 
       performance.ticket_class_allocations.each do |tca|
         tca.available = true
@@ -52,9 +48,10 @@ module FactoryGirl
   end
 
 
+
 end
 
-FactoryGirl.define do
+FactoryBot.define do
 
 
   factory :default_ticket_class do
@@ -68,6 +65,10 @@ FactoryGirl.define do
     sequence(:email) { |n| "stagemgr#{n}@example.com" }
     password 'password'
     password_confirmation 'password'
+    is_administrator 0
+    factory :admin_user do
+      is_administrator 1
+    end
   end
 
   factory :address do
@@ -83,39 +84,42 @@ FactoryGirl.define do
 
   factory :credit_card_payment_type do
     display_name "Credit Card"
-    initialize_with { CreditCardPaymentType.find_or_create_by_id(1)}
+    initialize_with { CreditCardPaymentType.find_or_create_by(id:1)}
   end
 
   factory :cash_payment_type do
     display_name "Cash"
-    initialize_with { CashPaymentType.find_or_create_by_id(2)}
+    initialize_with { CashPaymentType.find_or_create_by(id:2)}
   end
 
   factory :membership_payment_type do
     display_name "Membership"
-    initialize_with { MembershipPaymentType.find_or_create_by_id(3)}
+    initialize_with { MembershipPaymentType.find_or_create_by(id:3)}
    end
 
   factory :flex_pass_payment_type do
-    initialize_with { FlexPassPaymentType.find_or_create_by_id(4) do |p|
+    initialize_with { FlexPassPaymentType.find_or_create_by(id:4) do |p|
       p.display_name = 'Flex Pass'
     end}
   end
 
   factory :external_payment_type do
-    display_name 'External Payment'
-    initialize_with { ExternalPaymentType.find_or_create_by_id(5)}
+    initialize_with { ExternalPaymentType.find_or_create_by(id:5) do |p|
+      p.display_name = 'External Payment'
+    end}
   end
 
   factory :check_payment_type do
     display_name 'Check'
-    initialize_with { CheckPaymentType.find_or_create_by_id(6)}
+    initialize_with { CheckPaymentType.find_or_create_by(id:6)}
   end
 
 
   factory :venue do
     sequence(:name) { |n| "Space #{n}" }
     sequence(:ordinal_sort) { |n| "#{n}" }
+
+
   end
 
   factory :theater do
@@ -126,7 +130,7 @@ FactoryGirl.define do
     logo nil
 
     factory :theater_with_venues do
-      ignore do
+      transient do
         venue_count 1
       end
     end
@@ -196,6 +200,7 @@ FactoryGirl.define do
     use_ticket_class_code 'PASS'
     tickets_per_performance 1
   end
+
 
 end
 

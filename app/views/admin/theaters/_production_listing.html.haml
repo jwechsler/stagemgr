@@ -1,0 +1,38 @@
+.row
+  .columns.small-12
+    %table#production-listing{:data=>{:source=>"#{admin_theater_productions_path(theater_id:@theater.id, format: :json)}"}}
+      %thead
+        %tr
+          %th Name
+          %th Season
+          %th Status
+          %th Actions
+      %tbody
+  .columns.small-12
+    - can? :create, Production do
+      =link_to 'Add production', new_admin_theater_production_path(@theater), class: 'button right small'
+
+= content_for :js do
+  :javascript
+    $(document).ready(function() {
+      $('#production-listing').dataTable({
+        "dom": 'lf<"toolbar-buttons">rtip',
+        "stateSave": true,
+        "processing": true,
+        "serverSide": true,
+        "ajax": $("#production-listing").data('source'),
+        "pagingType": 'full_numbers',
+        "language": {
+          "lengthMenu" : "_MENU_",
+          "search": "_INPUT_"
+        },
+        columns: [
+          {data: 'name'},
+          {data: 'season'},
+          {data: 'status'},
+          {data: 'actions'},
+        ]
+      });
+    });
+
+    // setupActiveSwitchOnDataTable('#production-listing',2)

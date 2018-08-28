@@ -3,7 +3,7 @@ require 'test_helper'
 class Admin::DefaultTicketClassesControllerTest < ActionController::TestCase
 
   def setup
-    @sample_record = FactoryGirl.create(:default_ticket_class)
+    @sample_record = FactoryBot.create(:default_ticket_class)
     @sample_record.save!
   end
 

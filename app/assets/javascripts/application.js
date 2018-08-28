@@ -1,27 +1,28 @@
 //= require jquery
-//= require jquery-ui
+//= require jquery_ujs
+//= require datatables
+//= require jquery-ui/widgets/datepicker
 //= require foundation
 //= require foundation/foundation.topbar
 //= require foundation-datetimepicker
-//= require jquery.timepicker.js
-//= require jquery_ujs
-//= require autocomplete-rails
-//= require dataTables/jquery.dataTables
-//= require dataTables/jquery.dataTables.foundation
-//= require dataTables/extras/dataTables.tableTools.js
+//= require jquery.timepicker
+
 //= require utility
 //= require orders_common
 //= require_this
 
 
 $(document).ready(function() {
-  $(document).foundation();
 
-  $("input.date_picker").fdatetimepicker({
-    format: 'yyyy-mm-dd',
-    minView: 2,
-    pickTime: false
-  })
+  $(function() {
+    $('.datepicker').datepicker({ dateFormat: 'yy-mm-dd' });
+  });
+
+  // $("input.date_picker").fdatetimepicker({
+  //   format: 'yyyy-mm-dd',
+  //   minView: 2,
+  //   pickTime: false
+  // })
 
   $('input.time_picker').timepicker({
     step:15,
@@ -42,5 +43,8 @@ $(document).ready(function() {
 
 });
 
+$(document).ready(function(){
+    $(".fader").hide(0).fadeIn('fast')
+});
 
 $(function(){ $(document).foundation(); });

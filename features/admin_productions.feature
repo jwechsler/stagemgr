@@ -13,6 +13,7 @@ Feature: An administrator can perform privileged production operations
     And I follow "Theaters"
     And I follow "Theater One"
 
+  @javascript
   Scenario: Delete a production
   Given a production "Production One" exists
     And I go to the admin detail page for theater "Theater One"
@@ -20,6 +21,7 @@ Feature: An administrator can perform privileged production operations
     When I follow "Destroy"
     Then I should not see "Production One"
 
+  @javascript
   Scenario: Create a custom labelled production
    Given a production "Seminar" exists
      And I go to the admin detail page for theater "Theater One"

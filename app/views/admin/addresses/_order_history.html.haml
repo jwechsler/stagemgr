@@ -1,6 +1,6 @@
 %div.row
   %div.small-12.columns
-    %table#order-history-listing.hide.display
+    %table#order-history-listing{'data-source':admin_address_path(address, format: :json)}
       %thead
         Order History
         %tr
@@ -10,43 +10,33 @@
           %th Amount
           %th Status
       %tbody
-        - total = 0.0
-        - orders.sort { |a, b| b.id <=> a.id }.each do |o|
-          - amt = o.total
-          - total += amt unless amt.nil?
-          %tr
-            %td= link_to o.id, [:admin, o]
-            %td= o.created_at
-            %td= o.description
-            %td.currency= number_to_currency(amt)
-            %td
-              %span.label{:class=>order_status_severity_class(o.status)}= o.status
-      %tfoot
-        %tr.summary
-          %th
-          %th
-          %th
-          %th.summary.currency= number_to_currency(total)
-          %th
 
-=content_for :js do
+
+= content_for :js do
   :javascript
-    $(document).ready(function() {
+    jQuery(document).ready(function() {
+
+      // Setup - add a text input to each footer cell
+
       $('#order-history-listing').dataTable({
-
-        dom: 'lf<"toolbar-buttons">rtip',
-        stateSave: false,
+        stateSave: true,
         order: [[0,"desc"]],
-        pagingType: "foundation",
-        columnDefs: [
-          {targets: "_all", orderable:false},
-          {targets: "1,3", searchable:false},
-             ],
-        fnInitComplete:function() {
-          $("#order-history-listing").show();
-          this.fnAdjustColumnSizing();
+        processing: true,
+        ajax: $('#order-history-listing').data('source'),
+        "pagingType": 'full_numbers',
+        "processing": true,
+        "serverSide": true,
+        "language": {
+          "lengthMenu" : "_MENU_",
+          "search": "_INPUT_"
         },
+        columns: [
+          {data: 'order'},
+          {data: 'created'},
+          {data: 'description'},
+          {data: 'amount'},
+          {data: 'status'},
+        ]
+
       });
-
-
     });

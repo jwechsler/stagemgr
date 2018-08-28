@@ -6,7 +6,6 @@ class SpecialFeature < ActiveRecord::Base
 
   before_destroy :reassign_feature_to_custom
 
-  attr_accessible :short_name, :description,:status
   has_and_belongs_to_many :performances
 
   validates_presence_of :short_name, :description

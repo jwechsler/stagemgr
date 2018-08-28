@@ -43,7 +43,7 @@
     %span.report_title Production Attendees
     %span.help_text
       Download a copy of all orders with attendee contact information as production_attendee.csv.
-      - if permitted_to?(:view_email, :admin_addresses)
+      - if can?(:view_email, Address)
         %br
         %strong Warning: confidential email records included. DO NOT DISTRIBUTE.
   .small-6.columns
@@ -57,7 +57,7 @@
       TRGArts Production Export
     %span.help_text
       Download a copy of all attendees contact information for import into TRGArts.
-      - if permitted_to?(:view_email, :admin_addresses)
+      - if can?(:view_email, Address)
         %br
         %strong Warning: confidential email records included. DO NOT DISTRIBUTE.
   .small-6.columns
@@ -65,14 +65,14 @@
       = collection_select(:report, :production_id, @productions, :id, :name)
       = submit_tag "Generate", :name=>'generate_csv', :class=>'tiny button'
 
-- if permitted_to? :attended_dump, :admin_reports
+- if can? :attended_dump, Report
   .row
     .small-6.columns
       %span.report_title
         TRGArts Export by Performance Date
       %span.help_text
         Download buyers contact information by date attended for import into TRGArts.
-        - if permitted_to?(:view_email, :admin_addresses)
+        - if can?(:view_email, Address)
           %br
           %strong Warning: confidential email records included. DO NOT DISTRIBUTE.
     .small-6.columns
@@ -89,7 +89,7 @@
           .small-12.columns
             = submit_tag "Generate", :name=>'generate_csv', :class=>'tiny button'
 
-- if permitted_to? :house_management_reports, :admin_reports then
+- if can? :house_management_reports, Report then
   .row
     .small-6.columns
       %span.report_title House Management Seating Report
@@ -102,7 +102,7 @@
           .small-4.columns
             = submit_tag "Show", :class=>'tiny button postfix action'
 
-- if permitted_to? :box_office_reports, :admin_reports then
+- if can? :box_office_reports, Report then
   .row
     .small-6.columns
       %span.report_title Weekly Box Office
@@ -116,7 +116,7 @@
           .small-2.columns
             = submit_tag "Download", :name=>'download_csv', :class=>'tiny button postfix'
 
-- if permitted_to? :fulfill, :admin_orders then
+- if can? :fulfill, Order then
   .row
     .small-6.columns
       %span.report_title
@@ -137,7 +137,7 @@
           .small-4.columns
             = submit_tag $TKTPRINT['service'].blank? ? "Fulfill" : "Print", :name=>'download_csv', :confirm =>"This will fulfill tickets.  Are you sure?", :class=>'tiny button postfix'
 
-- if permitted_to? :reconciliation_reports, :admin_reports then
+- if can? :reconciliation_reports, Report then
   .row
     .small-6.columns
       %span.report_title Daily Receipts
@@ -145,7 +145,7 @@
     .small-6.columns
       = form_tag(daily_box_office_receipts_admin_reports_path, :method=>"post") do
         =render 'date_range_picker', :default_start=>Date.today, :default_end=>Date.today
-- if permitted_to? :membership_reports, :admin_reports then
+- if can? :membership_reports, Report then
   .row
     .small-6.columns
       %span.report_title Membership Usage
@@ -154,7 +154,7 @@
       = form_tag(membership_usage_admin_reports_path, :method=>"post") do
         =render 'date_range_picker', :default_start=>Date.today.beginning_of_month, :default_end=>Date.today.end_of_month
 
-- if permitted_to? :mine_customer_data, :admin_reports then
+- if can? :mine_customer_data, Report then
   .row
     .small-6.columns{:valign=>'top'}
       %span.report_title Mine Customer Data
@@ -174,7 +174,7 @@
         .row
           .small-12.columns
             %label{:for=>:required_theaters} Must have attended
-            = select_tag(:required_theaters,  options_from_collection_for_select(Theater.all(:order=>:name), "id", "name"), :multiple=>true, :size=>8)
+            = select_tag(:required_theaters,  options_from_collection_for_select(Theater.all.order(:name), "id", "name"), :multiple=>true, :size=>8)
             = submit_tag "Download", :name=>'download_csv', :class=>'tiny button postfix'
 
 .row

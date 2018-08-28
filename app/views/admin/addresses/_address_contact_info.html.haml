@@ -16,11 +16,11 @@
           %li.locality
             = "#{address.city}, #{address.state} #{address.zipcode}"
         - unless address.email.blank?
-          %li.email= mail_to address.email, permitted_to?(:view_email, :admin_addresses) ? address.email : "[send e-mail]"
+          %li.email= mail_to address.email, can?(:view_email, Address) ? address.email : "[send e-mail]"
         - unless address.phone.blank?
           %li.phone= address.phone
-        - memberships = Membership.find_all_by_address_id(address.id).select{|m| m.active?}
+        - memberships = Membership.where(address_id:address.id).select{|m| m.active?}
         - unless memberships.count == 0
           %li
             %i Member ID:
-            = memberships.map {|m| m.member_code }.join(',')
+            = memberships.select{|m| m.active? }.map {|m| m.member_code }.join(',')

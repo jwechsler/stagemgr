@@ -2,7 +2,7 @@ require 'test_helper'
 
 class Admin::AddressesControllerTest < ActionController::TestCase
   setup do
-    @address = FactoryGirl.create(:address, :full_name=>"Controller Test")
+    @address = FactoryBot.create(:address, :full_name=>"Controller Test")
   end
 
   test "should get index" do
@@ -22,7 +22,7 @@ class Admin::AddressesControllerTest < ActionController::TestCase
   end
 
   test "should create admin_address" do
-    address2 = FactoryGirl.build(:address, :full_name=>"New User")
+    address2 = FactoryBot.build(:address, :full_name=>"New User")
     without_access_control do
       assert_difference('Address.count') do
         post :create, :address => address2.attributes

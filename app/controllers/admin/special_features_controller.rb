@@ -1,20 +1,16 @@
 class Admin::SpecialFeaturesController < ApplicationController
-  filter_resource_access
+  load_and_authorize_resource
 
   def index
-    @special_features = SpecialFeature.all
   end
 
   def show
-    @special_feature = SpecialFeature.find(params[:id])
   end
 
   def new
-    @special_feature = SpecialFeature.new
   end
 
   def create
-    @special_feature = SpecialFeature.new(params[:special_feature])
     if @special_feature.save
       redirect_to [:admin, :special_features], :notice => "Successfully created special feature."
     else
@@ -23,12 +19,10 @@ class Admin::SpecialFeaturesController < ApplicationController
   end
 
   def edit
-    @special_feature = SpecialFeature.find(params[:id])
   end
 
   def update
-    @special_feature = SpecialFeature.find(params[:id])
-    if @special_feature.update_attributes(params[:special_feature])
+    if @special_feature.update_attributes(special_feature_params)
       redirect_to [:admin, :special_features], :notice  => "Successfully updated special feature."
     else
       render :action => 'edit'
@@ -36,8 +30,13 @@ class Admin::SpecialFeaturesController < ApplicationController
   end
 
   def destroy
-    @special_feature = SpecialFeature.find(params[:id])
     @special_feature.destroy
     redirect_to admin_special_features_url, :notice => "Successfully destroyed special feature."
   end
+
+  private
+  def special_feature_params
+    params.require(:special_feature).permit(:short_name, :description,:status)
+  end
+
 end

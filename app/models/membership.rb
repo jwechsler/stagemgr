@@ -5,8 +5,6 @@ class Membership < ActiveRecord::Base
     BEST_AVAILABLE, FRONT_ROW, TOWARDS_REAR, ON_AISLE, WHEELCHAIR, STAIRS =
     'Best available (center)', 'Front row', 'Towards rear', 'On aisle', 'Wheelchair', 'No stairs')
 
-  attr_accessible :membership_offer_id, :member_since, :member_code, :status, :preferred_seating
-
   has_one :membership_order, :through=>:membership_line_item
   has_one :membership_line_item, :foreign_key=>:membership_id
   has_many :special_offers, :dependent=>:destroy

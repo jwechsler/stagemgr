@@ -1,17 +1,19 @@
 class Performance < ActiveRecord::Base
-  using_access_control
 
   PERFORMANCE_STATUSES = (ACTIVE, INACTIVE, PRIVATE = 'Active',  'Inactive', 'Private')
 
   belongs_to               :production
   has_many                 :ticket_classes, :through=>:ticket_class_allocations
   has_many                 :line_items, :through=>:orders
+  has_many                 :seat_assignments
+  has_many                 :seats, :through=>:seat_assignments
+  has_one                  :seat_map, :through=>:production
   has_many                 :orders, :class_name=>'TicketOrder'
   has_many                 :ticket_class_allocations
   has_many                 :payment_restrictions, :dependent=>:destroy
   has_many                 :restricted_payment_types, :source=>:payment_type, :through=>:payment_restrictions
   has_and_belongs_to_many      :special_features
-  default_scope            includes(:ticket_class_allocations)
+  default_scope            { includes(:ticket_class_allocations) }
   validates_inclusion_of   :status,            :in => PERFORMANCE_STATUSES
   validates_uniqueness_of  :performance_code
   validates_uniqueness_of  :performance_time, :scope=>[:performance_date, :production_id]
@@ -31,6 +33,7 @@ class Performance < ActiveRecord::Base
 
   before_validation              :clean_values
   before_validation              :populate_ticket_class_allocations
+  after_save                     :manage_seat_inventory
 
   accepts_nested_attributes_for  :ticket_class_allocations
 
@@ -127,13 +130,8 @@ class Performance < ActiveRecord::Base
     self.status == Performance::INACTIVE
   end
 
-  def self.search_by_code(code)
-    result = where("LOWER(performance_code) LIKE ?", '%'+code.to_s.downcase + '%').
-      where("status != 'Inactive'").
-      where(Authorization.current_user.is_administrator? ? "1 = 1" : "performance_date >= curdate()")
-      order("performance_code ASC").
-      limit(10)
-    result
+  def self.sellable_statuses
+    return [Performance::ACTIVE, Performance::PRIVATE]
   end
 
   def self.visible_statuses
@@ -143,6 +141,18 @@ class Performance < ActiveRecord::Base
   def visible?
     Performance.visible_statuses.include?(self.status)
   end
+
+  def manage_seat_inventory
+    unless self.seat_map.nil? then
+      new_seats = Seat.where("id not in (select seat_id from seat_assignments where performance_id = :performance_id and seat_map_id = :seat_map_id)",
+        performance_id: self.id, seat_map_id: seat_map.id)
+      new_seats.each{|seat|
+        seat_assignments << SeatAssignment.new(seat: seat)
+      }
+    end
+  end
+
+
 
   private
 
@@ -161,4 +171,6 @@ class Performance < ActiveRecord::Base
                                   :usec  => 0)
     self.performance_code.upcase! if self.performance_code
   end
+
+
 end

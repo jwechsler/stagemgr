@@ -1,31 +1,25 @@
 class Admin::TicketClassesController < Admin::ApplicationController
-  filter_resource_access
+  load_and_authorize_resource
 
   prepend_before_filter :find_production
   append_before_filter :find_ticket_class, :only => [:edit, :update, :destroy]
 
   def index
-    @ticket_classes = @production.ticket_classes.all.sort_by {|tc| tc.class_code }
-
     respond_to do |format|
       format.html # index.html.erb
-      format.xml  { render :xml => @ticket_classes }
+      format.json {
+        params.permit!
+        render json: TicketClassDatatable.new(params, view_context: view_context, current_user: current_user, theater: @production.theater, production: @production )
+      }
     end
   end
 
   def new
-    @ticket_class = @production.ticket_classes.build
-
-    respond_to do |format|
-      format.html # new.html.erb
-    end
   end
 
   def edit; end
 
   def create
-    @ticket_class = TicketClass.new(params[:ticket_class])
-
     respond_to do |format|
       if @ticket_class.save
         flash[:notice] = 'TicketClass was successfully created.'
@@ -40,7 +34,7 @@ class Admin::TicketClassesController < Admin::ApplicationController
 
   def update
     respond_to do |format|
-      if @ticket_class.update_attributes(params[:ticket_class])
+      if @ticket_class.update_attributes(ticket_class_params)
         flash[:notice] = 'TicketClass was successfully updated.'
         format.html { redirect_to(admin_theater_production_ticket_classes_path(@theater,@production)) }
         format.xml  { head :ok }
@@ -70,5 +64,13 @@ class Admin::TicketClassesController < Admin::ApplicationController
   def find_ticket_class
     @ticket_class = @production.ticket_classes.find(params[:id])
   end
+
+  def ticket_class_params
+    params.require(:ticket_class).permit(:class_code, :class_name, :production_id, :ticket_type,
+      :ticket_price, :ticketing_fee, :web_visible, :software_managed, :holds_seats, :assigns_seats,
+      :show_in_pricing_range, :auto_attach, :minutes_before_show, :purchase_page_annotation,
+      :purchase_email_annotation, :suppress_receipt)
+  end
+
 
 end

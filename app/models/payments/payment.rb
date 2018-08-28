@@ -1,12 +1,12 @@
 class Payment < ActiveRecord::Base
-  acts_as_audited
+  # rake audited
 
   belongs_to :order
   belongs_to :payment_type
 
   validates_numericality_of :amount, :unless => :number_of_tickets
   validates_numericality_of :number_of_tickets, :unless => :amount
-  default_scope :order=>'created_at asc'
+  default_scope { order(created_at: :asc )}
   before_save :set_processed_on
 
   def customer_visible_amount

@@ -24,6 +24,9 @@ Stagemgr::Application.configure do
   #config.assets.compile = true
   #config.assets.digest = true
 
+
+  config.eager_load = false
+
   # Log error messages when you accidentally call methods on nil.
   config.whiny_nils = true
 
@@ -45,13 +48,18 @@ Stagemgr::Application.configure do
   $PAYMENT_CONFIG = YAML::load(File.open("#{::Rails.root.to_s}/config/payment_processing.yml"))['development']
 
   config.after_initialize do
-    ActiveMerchant::Billing::Base.gateway_mode = :test
+    ActiveMerchant::Billing::Base.mode = :test
     PaymentProcessing.after_initialize
     MyEmma.set_credentials_from_yaml("#{self.root.to_s}/config/my_emma_credentials.yml")
+    HttpLog.configure do |config|
+      config.logger = Rails.logger
+    end
+
   end
 
   config.external_site_root = 'file:///Users/jeremyw/dev/site'
 
+  $DATABASEDOTCOM = SalesforceSync.load_from_yaml_file('development',"#{::Rails.root.to_s}/config/databasedotcom.yml")
   $TKTPRINT =  YAML::load(File.open("#{::Rails.root.to_s}/config/ticket_print.yml"))['development']
   config_data = YAML::load(File.open("#{::Rails.root.to_s}/config/server.yml"))
   $SERVER_CONFIG = config_data['all'].merge(config_data['development'])

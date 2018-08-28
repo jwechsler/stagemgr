@@ -28,6 +28,11 @@ module Stagemgr
     # config.autoload_paths += %W(#{config.root}/extras)
     config.autoload_paths += %W( #{config.root}/app/models/orders #{config.root}/app/models/payments #{config.root}/app/models/special_offers #{config.root}/app/models/line_items #{config.root}/app/models/payment_types #{config.root}/app/models/order_tasks #{config.root}/app/models/tktprint #{config.root}/app/models/resque_jobs #{config.root}/app/models/reports)
     config.autoload_paths += %W( #{config.root}/lib )
+    config.autoload_paths += %W(
+          #{config.root}/app/controllers/concerns
+          #{config.root}/app/models/concerns
+        )
+
     # Only load the plugins named here, in the order given (default is alphabetical).
     # :all can be used as a placeholder for all plugins not explicitly named.
     # config.plugins = [ :exception_notification, :ssl_requirement, :all ]
@@ -37,8 +42,8 @@ module Stagemgr
     # Set Time.zone default to the specified zone and make Active Record auto-convert to this zone.
     # Run "rake -D time" for a list of tasks for finding time zone names. Default is UTC.
     config.time_zone = 'Central Time (US & Canada)'
-    config.active_record.default_timezone = :utc
-
+    config.active_record.default_timezone = :local
+    config.active_record.time_zone_aware_attributes = false
     # The default locale is :en and all translations from config/locales/*.rb,yml are auto loaded.
     # config.i18n.load_path += Dir[Rails.root.join('my', 'locales', '*.{rb,yml}').to_s]
     # config.i18n.default_locale = :de
@@ -79,7 +84,11 @@ module Stagemgr
     # Configure sensitive parameters which will be filtered from the log file.
     config.filter_parameters += [:password, :password_confirmation]
 
-    config.action_view.javascript_expansions[:defaults] = %w(prototype rails)
+    # removed below with 4.2 update
+    # config.action_view.javascript_expansions[:defaults] = %w(prototype rails)
+
+    # use new error propogation methods
+    config.active_record.raise_in_transactional_callbacks = true
 
     initializer :after_append_asset_paths,
             :group => :all,
@@ -90,5 +99,8 @@ module Stagemgr
         $TRUSTED_MARKDOWN = Redcarpet::MarkdownExtension.new(Redcarpet::Render::HTML, :autolink => true, :space_after_headers => true)
 
     end
+
+    #limit Audits to 25 changes
+    Audited.max_audits = 25
   end
 end

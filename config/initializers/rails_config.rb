@@ -1,3 +1,3 @@
-RailsConfig.setup do |config|
+Settings.setup do |config|
   config.const_name = "Settings"
 end

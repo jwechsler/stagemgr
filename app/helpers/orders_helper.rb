@@ -2,17 +2,18 @@ module OrdersHelper
 
   SWIPE_REGEX =/^(%B)([0-9]{16})[\^]([a-zA-Z ]*)(\/)([a-zA-Z ]*)\^([0-9]{2})([0-9]{2})(.*)\?$/
 
+
   def convert_button_label_to_state(button_label)
-    case button_label
-      when 'Checkout', 'Review Order'
+    case button_label.downcase
+      when 'checkout', 'review order', 'assign seats'
         Order::PROCESSING
-      when 'Place Order', 'Order Tickets', 'Make a donation', 'Order FlexPass', 'Make a pledge'
+      when 'place order', 'order tickets', 'make a donation', 'order flexpass', 'make a pledge'
         Order::PROCESSED
-      when 'Hold'
+      when 'hold'
         Order::HOLD
-      when 'Fulfill','Print Tickets'
+      when 'fulfill','print tickets'
         Order::FULFILLED
-      when 'Update note'
+      when 'update note'
       else
         raise "Don't know what to do with button '#{button_label}'"
     end
@@ -38,7 +39,39 @@ module OrdersHelper
     result
   end
 
-  private
+  public
+  def common_params
+    [:special_offer_code, :hold_under, :payment_type_id, :credit_card_type, :additional_donation,
+      :credit_card_number, :credit_card_expiration_month, :credit_card_expiration_year,
+      :credit_card_verification_number, :credit_card_swipe, :credit_card_confirmation_code,
+      :flex_pass_code, :member_code, :check_number, :add_to_email_list, :marketing_source, :notes, :status,
+      address_attributes: [:full_name, :email, :phone, :line1, :line2, :city, :state, :zipcode]]
+  end
+
+  def set_payment_accessors_from_params(order, order_params)
+    order.special_offer_code = order_params[:special_offer_code]
+    order.additional_donation = order_params[:additional_donation]
+    order.credit_card_number = order_params[:credit_card_number]
+    order.credit_card_type = order_params[:credit_card_type]
+    order.credit_card_expiration_year = order_params[:credit_card_expiration_year]
+    order.credit_card_expiration_month = order_params[:credit_card_expiration_month]
+    order.credit_card_verification_number = order_params[:credit_card_verification_number]
+    order.credit_card_confirmation_code = order_params[:credit_card_confirmation_code]
+    order.credit_card_swipe = order_params[:credit_card_swipe]
+    order.flex_pass_code = order_params[:flex_pass_code]
+    order.member_code = order_params[:member_code]
+    order.check_number = order_params[:check_number]
+  end
+
+  def donation_order_common_params
+    common_params + [:campaign, donation_line_items_attributes: [:donation_amount, :donation_level]]
+  end
+
+  def ticket_order_common_params
+    common_params + [:production_code, :performance_code, :special_request,
+            ticket_line_items_attributes: [:ticket_class, :ticket_class_id, :ticket_class_code, :ticket_count]]
+  end
+
   def process_order(order, on_success_redirect_to)
     begin
       unless order.credit_card_swipe.blank?
@@ -57,8 +90,13 @@ module OrdersHelper
         if !on_success_redirect_to.nil?
           respond_to do |format|
             if order.status == Order::PROCESSING
-
-              format.html { render "/ticket_orders/confirm", :locals=>{:order=>order} }
+              # @todo terrible hack here.  Please fix this jw when you figure out how :)
+              admin_seating_required = (!order.performance.nil?) ? order.performance.production.has_reserved_seating? : false
+              if on_success_redirect_to.eql?(:confirm_admin_ticket_order_path) && admin_seating_required
+                format.html { render "/admin/ticket_orders/confirm", :locals=>{order: order} }
+              else
+                format.html { render "/ticket_orders/confirm", :locals=>{:order=>order} }
+              end
             else
               format.html {
                 redirect_to send(on_success_redirect_to, order.id), notice:"Order was successfully saved and is now #{order.status_display}"

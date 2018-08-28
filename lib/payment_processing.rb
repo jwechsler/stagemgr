@@ -1,30 +1,21 @@
+require "active_merchant/billing/rails"
 module PaymentProcessing
 
 
   class BogusResponse < ActiveMerchant::Billing::Response
 
     PROFILE_ID = 'TEST_PROFILE_ID'
-    def initialize(original_response)
-      super(original_response.success?, original_response.message, original_response.params)
-      @custom_fields = {}
-    end
-
-    def authorization
-      '12345'
-    end
 
   end
 
   class BogusGateway < ActiveMerchant::Billing::BogusGateway
     class_attribute :profiles
 
-    def purchase(money, creditcard, options = {})
-      response = BogusResponse.new(super(money, creditcard, options))
-    end
+
 
     def recurring(money, credit_card, options={})
-      response = super(money, credit_card, options)
-      response = BogusResponse.new(super(money, credit_card, options))
+      response = purchase(money, credit_card, options)
+      # response = BogusResponse.new(true, "", options)
       response.params['profile_id'] = BogusResponse::PROFILE_ID
       response.params['profile_status'] = 'ActiveProfile'
       BogusGateway.profiles = Hash.new if BogusGateway.profiles.nil?
@@ -43,7 +34,7 @@ module PaymentProcessing
     end
 
     def status_recurring(profile_id)
-      r = BogusResponse.new(ActiveMerchant::Billing::Response.new(true, "Forced Response"))
+      r = BogusResponse.new(true, "Forced Response")
       r.params['profile_id'] = profile_id
       r.params['profile_status'] = 'ActiveProfile'
       r.params.merge!(BogusGateway.profiles[profile_id])

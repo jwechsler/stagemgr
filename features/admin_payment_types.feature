@@ -6,6 +6,7 @@ Feature: Payment Types Administration
     And I am an Administrator
     And I am logged in
 
+
   Scenario: Payment Types exists under the System Options page
     Given I go to the system options page
     Then I should see "Manage Payment Types"
@@ -39,7 +40,7 @@ Feature: Payment Types Administration
       And I go to new web order for production "Production One" and performance "PERF"
       And the payment option should not include "Cash"
 
-  @javascript
+  @javascript @pending
   Scenario: Set up suppression rules
     Given I go to the edit page for payment type "Cash"
       And I allow cash payments for the public

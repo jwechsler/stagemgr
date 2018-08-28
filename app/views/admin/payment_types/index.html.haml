@@ -23,12 +23,12 @@
             %td.text-center= checkmark(payment_type.allow_for_box_office)
 
             %td
-              - permitted_to? :manage, :admin_payment_types do
+              - if can? :manage, PaymentType
                 - if payment_type.is_a? ExternalPaymentType
                   = link_to 'Destroy', admin_payment_type_path(payment_type), :confirm=>'Are you sure?', :method=>:delete, :class=>"alert tiny button"
                 - else
                   %a.alert.disabled.tiny.button{:href=>'#'} Destroy
-              = link_to 'Edit', edit_admin_payment_type_path(payment_type), :class=>'tiny button' if permitted_to?(:edit,:admin_payment_types)
+              = link_to 'Edit', edit_admin_payment_type_path(payment_type), :class=>'tiny button' if can?(:edit,PaymentType)
 
 
     = link_to 'Create External Payment', new_external_payment_admin_payment_types_path, :class=>'button'

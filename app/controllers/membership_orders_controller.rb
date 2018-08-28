@@ -9,7 +9,8 @@ class MembershipOrdersController < ApplicationController
   end
 
   def create
-    success = self.create_membership
+    @order = MembershipOrder.new(membership_order_params)
+    success = self.create_membership(@order)
 
     if success
       flash[:notice] = raw "You've been successfully set up for the <strong>#{@order.membership_offer.name}</strong> payment plan."
@@ -20,7 +21,7 @@ class MembershipOrdersController < ApplicationController
   end
 
   def update
-    @order = MembershipOrder.new(params[:membership_order])
+    @order = MembershipOrder.update_attributes(membership_order_params)
     process_order(@order,:confirm_membership_order_path)
   end
 
@@ -36,5 +37,9 @@ class MembershipOrdersController < ApplicationController
   def checkout
   end
 
+  private
+  def membership_order_params
+    params.require(:membership_order).permit(*common_params, *common_membership_order_params)
+  end
 
 end

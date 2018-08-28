@@ -29,7 +29,7 @@ class CreateUsers < ActiveRecord::Migration
     add_index :users, :perishable_token
     add_index :users, :email
 
-    User.create(email:"youremail@yourtheater.com",is_administrator:true,password:"changemeimmediately",password_confirmation:"changemeimmediately")
+#    User.create(email:"youremail@yourtheater.com",is_administrator:true,password:"changemeimmediately",password_confirmation:"changemeimmediately")
 
   end
 

@@ -1,6 +1,8 @@
 class Admin::ExchangeTicketOrdersController < Admin::ApplicationController
-  filter_access_to :all
+  authorize_resource class: TicketOrder
+
   include OrdersHelper
+  include TicketOrdersHelper
 
   def new
     @original_order = TicketOrder.find(params[:ticket_order_id])
@@ -19,7 +21,7 @@ class Admin::ExchangeTicketOrdersController < Admin::ApplicationController
     error = nil
     begin
       @original_order = TicketOrder.find(params[:ticket_order_id])
-      @exchange_order = TicketOrder.new(params[:ticket_order])
+      @exchange_order = TicketOrder.new(ticket_order_params)
       @exchange_order.regularize_credit_card_expiration
       @exchange_order.special_offer_code = params[:ticket_order][:special_offer_code]
       @exchange_order.exchange_and_process_from! @original_order
@@ -34,5 +36,10 @@ class Admin::ExchangeTicketOrdersController < Admin::ApplicationController
       flash[:error] = "There was a problem with the exchange. #{e.message}"
       redirect_to new_admin_ticket_order_exchange_ticket_order_path(@original_order.id)
     end
+  end
+
+  private
+  def ticket_order_params
+    params.require(:ticket_order).permit(*ticket_order_common_params)
   end
 end

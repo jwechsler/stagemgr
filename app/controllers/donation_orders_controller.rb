@@ -44,13 +44,13 @@ class DonationOrdersController < ApplicationController
   end
 
   def create
-    @order = DonationOrder.new(params[:donation_order])
+    @order = DonationOrder.new(donation_order_params)
     @order.ip_address = request.remote_ip
     process_order(@order, :edit_donation_order_path) if validate_web_order(@order)
   end
 
   def update
-    @order.attributes=params[:donation_order]
+    @order.update_attributes(donation_order_params)
     @order.ip_address = request.remote_ip
     validate_web_order(@order)
     process_order(@order, :edit_donation_order_path)
@@ -82,5 +82,9 @@ class DonationOrdersController < ApplicationController
         redirect_to(donation_order_path(@order))
       end
     end
+  end
+
+  def donation_order_params
+    params.require(:donation_order).permit(*donation_order_common_params)
   end
 end

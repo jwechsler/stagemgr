@@ -1,0 +1,28 @@
+.row
+  .small-12.columns
+    %table#seat-map-listing{:data=>{:source=>"#{admin_venue_seat_maps_path(@venue, format: :json)}"}}
+      %thead
+        %tr
+          %th Label
+          %th Image
+          %th
+
+= content_for :js do
+  :javascript
+    $(document).ready(function() {
+      $('#seat-map-listing').dataTable({
+        "processing": true,
+        "serverSide": true,
+        "ajax": $('#seat-map-listing').data('source'),
+        "pagingType": 'full_numbers',
+        "language": {
+          "lengthMenu" : "_MENU_",
+          "search": "_INPUT_"
+        },
+        columns: [
+          {data: 'label'},
+          {data: 'base_image_map'},
+          {data: 'actions'}
+        ]
+      });
+    });

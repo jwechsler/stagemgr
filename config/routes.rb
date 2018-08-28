@@ -30,17 +30,15 @@ Stagemgr::Application.routes.draw do
 
   # paypal IPN routes
 
-  match '/pay_pal/notify' => 'pay_pal#notify'
-  match '/pay_pal/show' => 'pay_pal#show'
-  match '/pay_pal/cancel' => 'pay_pal#cancel'
-  match '/paypal/ipn' => 'pay_pal#paypal_ipn'
+  post '/pay_pal/notify' => 'pay_pal#notify'
+  post '/pay_pal/show' => 'pay_pal#show'
+  post '/pay_pal/cancel' => 'pay_pal#cancel'
+  post '/paypal/ipn' => 'pay_pal#paypal_ipn'
 
   # resque admin page
   mount Resque::Server.new, :at => "/admin/resque"
 
-  namespace(:admin){ resources :venues }
-
-   namespace(:admin){ resources :memberships }
+  namespace(:admin){ resources :memberships }
 
   namespace(:admin){ resources :default_ticket_classes }
 
@@ -94,7 +92,19 @@ Stagemgr::Application.routes.draw do
     end
   end
 
+
+
   resources :performances, :only=>:index do
+    defaults format: :json do
+
+      resources :seat_assignments, :only=>:index, :controller=>'seat_assignments' do
+        collection do
+          post :reserve
+          post :release
+        end
+      end
+
+    end
     collection do
       get :by_date
     end
@@ -245,6 +255,7 @@ Stagemgr::Application.routes.draw do
         get  :fulfill
         get :reprint
         get :unclaimed
+        get :confirm
         get :resend_confirmation
       end
       resources :exchange_ticket_orders, :only=>[:new,:create]
@@ -258,6 +269,7 @@ Stagemgr::Application.routes.draw do
 
     resources :imports do
       post :mailing_cards, :on=>:collection
+      post :external_contacts, :on=>:collection
     end
 
     resources :amount_off_special_offers, :only=>[:edit,:index]
@@ -270,9 +282,16 @@ Stagemgr::Application.routes.draw do
         resources :ticket_classes
       end
     end
+
+    resources :venues do
+      resources :seat_maps
+    end
+
     resources :users do
       resources :theaters
     end
+
+
 
     get '/system_options', :controller=>'system_options', :action=>'index'
 

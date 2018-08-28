@@ -1,4 +1,4 @@
-FactoryGirl.define do
+FactoryBot.define do
 
   factory :performance do
 
@@ -11,7 +11,7 @@ FactoryGirl.define do
     status Performance::PERFORMANCE_STATUSES.first
     sequence(:performance_code) { |n| "PF#{'%02d' % n}" }
     after(:create) {
-      |perf| perf.ticket_class_allocations << FactoryGirl.create(:ticket_class_allocation, :performance=>perf, :available=>true)
+      |perf| perf.ticket_class_allocations << FactoryBot.create(:ticket_class_allocation, :performance=>perf, :available=>true)
       perf.populate_ticket_class_allocations
     }
     performance_date Date.today

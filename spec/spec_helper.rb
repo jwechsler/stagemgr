@@ -1,8 +1,9 @@
 # This file is copied to spec/ when you run 'rails generate rspec:install'
 ENV["RAILS_ENV"] ||= 'test'
+
 require File.expand_path("../../config/environment", __FILE__)
 require 'rspec/rails'
-require 'rspec/autorun'
+require 'factory_bot'
 
 # Requires supporting ruby files with custom matchers and macros, etc,
 # in spec/support/ and its subdirectories.
@@ -30,6 +31,37 @@ RSpec.configure do |config|
   # rspec-rails.
   config.infer_base_class_for_anonymous_controllers = false
 
-  config.include FactoryGirl::Syntax::Methods
+  config.include FactoryBot::Syntax::Methods
 
+  # fail after first spec failure
+  config.fail_fast = true
+
+  # fail with deprecations
+  config.raise_errors_for_deprecations!
+
+  config.before(:suite) do
+    # Prevent Braintree from logging to standard out during tests
+    Braintree::Configuration.logger = Logger.new("/dev/null")
+  end
+
+  config.include FactoryBot::Syntax::Methods
+
+end
+
+# Authlogic integration
+
+ActiveRecord::Migration.maintain_test_schema!
+
+RSpec.configure do |config|
+  # Load Capybara
+  require 'capybara/rspec'
+
+  # Load AuthLogic
+  require 'authlogic/test_case'
+  config.include Authlogic::TestCase
+
+  config.fixture_path = "#{::Rails.root}/spec/fixtures"
+  config.use_transactional_fixtures = true
+  config.infer_spec_type_from_file_location!
+  config.filter_rails_from_backtrace!
 end

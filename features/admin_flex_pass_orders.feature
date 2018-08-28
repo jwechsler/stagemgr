@@ -7,16 +7,9 @@ Feature: Flex Pass Ticket Order administration
     Given a sample theater exists
       And a flex pass exists for 2 tickets with code "TESTFLEX"
 
-  Scenario: Box office users cannot refund a ticket order paid with a flex pass
+  Scenario: Box Office can refund a ticket order paid with a flex pass
     Given a ticket order for performance "PERF" paid with flex pass "TESTFLEX" exists
       And I am a box office user
-      And I am logged in
-      And I go to the admin order page for the ticket order
-     Then I should not see "Refund Order"
-
-  Scenario: Admins can refund a ticket order paid with a flex pass
-    Given a ticket order for performance "PERF" paid with flex pass "TESTFLEX" exists
-      And I am an administrator
       And I am logged in
       And I go to the admin order page for the ticket order
       And I follow "Refund Order"

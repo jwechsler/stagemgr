@@ -47,4 +47,7 @@ class Admin::FlexPassOrdersController < Admin::OrdersController
      end
    end
 
+   def flex_pass_order_params
+     params(:flex_pass_order).permit( *common_params)
+   end
 end

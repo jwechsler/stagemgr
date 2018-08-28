@@ -3,10 +3,12 @@ class User < ActiveRecord::Base
   has_many :file_stores
   validates_presence_of :email
   validates_uniqueness_of :email
+  # proxy ability queries to user objects
+  delegate :can?, :cannot?, :to => :ability
 
-  PRIVILEGE_LEVELS                                   = (
-  ADMIN, BOXOFFICE, THEATERUSER  =
-  "Administrator","Box Office Operator",  "Producer"   )
+  ROLES                                 = (
+  ADMIN, BOXOFFICE, THEATERUSER  = "Administrator", "Box Office", "Producer"
+  )
 
   STATUSES = (
   ACTIVE, INACTIVE =
@@ -14,8 +16,9 @@ class User < ActiveRecord::Base
 
 
   acts_as_authentic do |c|
-    c.maintain_sessions = false   if Rails.env == "test"   # authlogic/issues/262
     c.logged_in_timeout = 8.hours
+    c.transition_from_crypto_providers = [Authlogic::CryptoProviders::Sha512]
+    c.crypto_provider = Authlogic::CryptoProviders::SCrypt
   end
 
   before_validation :set_defaults, :on => :create
@@ -64,6 +67,12 @@ class User < ActiveRecord::Base
       allowed += tags
     end
     allowed
+  end
+
+  # cancancan delegator for testing privileges in non-controllers
+
+  def ability
+    @ability ||= Ability.new(self)
   end
 
 end

@@ -7,8 +7,7 @@ class TicketOrdersController < ApplicationController
 
   respond_to :html, :xml, :json
 
-  def edit;
-    i = 1
+  def edit
   end
 
   def show
@@ -16,14 +15,13 @@ class TicketOrdersController < ApplicationController
   end
 
   def create
-    @order = TicketOrder.new(params[:ticket_order])
-    Rails.logger.debug('*** ' + @order.ticket_line_items.to_yaml)
+    @order = TicketOrder.new(ticket_order_params)
     @order.ip_address = request.remote_ip
     process_order(@order,:confirm_ticket_order_path) if validate_web_order(@order)
   end
 
   def update
-    @order.attributes=params[:ticket_order]
+    @order.update_attributes(ticket_order_params)
     @order.ip_address = request.remote_ip
     @order.preset_line_items
     unless @order.special_offer_line_items.empty?
@@ -50,6 +48,7 @@ class TicketOrdersController < ApplicationController
   end
 
   private
+
   def find_order
     @order = TicketOrder.find(params[:id])
   end
@@ -65,5 +64,10 @@ class TicketOrdersController < ApplicationController
         redirect_to(ticket_order_path(@order))
       end
     end
+  end
+
+  private
+  def ticket_order_params
+    params.require(:ticket_order).permit(*ticket_order_common_params)
   end
 end

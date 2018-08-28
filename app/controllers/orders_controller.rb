@@ -3,38 +3,16 @@ class OrdersController < ApplicationController
   layout 'ext_site_wrapper'
   include OrdersHelper
 
-  append_before_filter :find_order, :only => [:show, :edit, :update, :destroy]
-  append_before_filter :redirect_to_proper_action, :only => [:edit, :show]
+  before_action :find_order, :only => [:show, :edit, :update, :destroy]
+  before_action :redirect_to_proper_action, :only => [:edit, :show]
 
   respond_to :html, :xml, :json
 
-  def edit;
-    i = 1
-  end
-
-  def show; end
-
-  def create
-    old_status = Order::NEW
-    @order = Order.new(params[:order])
-    @order.ip_address = request.remote_ip
-    process_order(@order,:edit_order_path)
-  end
-
-  def update
-    @order.attributes=params[:order]
-    @order.ip_address = request.remote_ip
-    process_order(@order,:edit_order_path)
-  end
-
-  def confirm
-  end
-
-  def donate
-
-  end
-
   private
+  def klass
+    Object.const_get params[:controller].classify
+  end
+
   def find_order
     @order = Order.find(params[:id])
   end
@@ -50,6 +28,5 @@ class OrdersController < ApplicationController
       end
     end
   end
-
 
 end

@@ -1,6 +1,3 @@
-require 'declarative_authorization/maintenance'
-World(Authorization::Maintenance)
-
 module WebRatHelpers
 
   def select_date_by_id(the_date, id)

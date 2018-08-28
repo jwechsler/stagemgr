@@ -83,7 +83,7 @@ describe PayPalControllerHelper do
   end
   context "when recieving 'web_accept' ipn" do
     before (:each) do
-      @order = FactoryGirl.create(:ticket_order_for_a_pair_of_tickets_paid_with_credit_card)
+      @order = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_credit_card)
       @paypal_callback.merge!({'invoice'=>@order.id.to_s,
                          'txn_id'=>@order.payments.first.transaction_id,
                          'amount'=>@order.payments.first.amount.to_s,
@@ -91,7 +91,7 @@ describe PayPalControllerHelper do
     end
 
     it "should enqueue update of payment for a placed order" do
-      @order = FactoryGirl.create(:ticket_order_for_a_pair_of_tickets_paid_with_credit_card)
+      @order = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_credit_card)
       Resque.should_receive(:enqueue_in).with(
         5.seconds,
         ProcessPaypalPayment,
@@ -114,7 +114,7 @@ describe PayPalControllerHelper do
     context "for memberships" do
 
       before(:each) do
-        @order = FactoryGirl.create(:membership_order)
+        @order = FactoryBot.create(:membership_order)
       end
 
       it_behaves_like RecurringProfile
@@ -123,7 +123,7 @@ describe PayPalControllerHelper do
 
     context "for pledges" do
       before(:each) do
-        @order = FactoryGirl.create(:donation_pledge_order_for_one_thousand_dollars_using_credit_card)
+        @order = FactoryBot.create(:donation_pledge_order_for_one_thousand_dollars_using_credit_card)
       end
 
       it_behaves_like RecurringProfile

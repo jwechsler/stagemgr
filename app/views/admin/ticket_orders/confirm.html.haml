@@ -1,0 +1,18 @@
+= render '/admin/orders/header_bar', :order=>@ticket_order
+= simple_form_for [:admin, @ticket_order], :html=>{:id=>'admin_ticket_order_form'} do |order_form|
+  %div.row
+    %div.small-12.medium-6.columns
+      %h4
+        %i= @ticket_order.performance.production.name
+      %h5= "#{@ticket_order.performance.performance_date.to_s(:long_with_day_of_week)} #{@ticket_order.performance.performance_time.to_s(:hour_min)}"
+      =render '/admin/addresses/info', :address=>@ticket_order.address, :breadcrumb_order=>@ticket_order
+    %div.small-12.medium-6.columns
+      = render '/admin/ticket_line_items/table', :order=>@ticket_order
+  .row
+    .small-12.columns
+      = render partial:'/admin/ticket_orders/seating', locals:{:ticket_order=>@ticket_order}
+  .row
+    .small-12.columns
+      = order_form.input :notes, :input_html => {:rows => 4}
+      = render partial: '/ticket_orders/pass_through_fields', locals:{order_form: order_form}
+      = render partial:'/admin/orders/confirm_button', locals:{order_form:order_form}

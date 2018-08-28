@@ -1,26 +1,33 @@
 .row
   .small-12.columns
     = simple_form_for([:admin, production.theater, production], :html=>{:multipart=>true}) do |f|
-      %div.row
-        %div.small-8.columns
-          = f.input :name
-          %fieldset
-            %legend Run Dates
-            .row
-              .small-6.columns
-                = f.input :first_preview_at, :as=>:date_picker
-                = f.input :press_opening_at, :as=>:date_picker
+      .row
+        .small-8.columns
+          .row
+            .columns.small-12
+              = f.input :name
+              %fieldset
+                %legend Run Dates
+                .row
+                  .small-6.columns
+                    = f.input :first_preview_at, :as=>:date_picker
+                    = f.input :press_opening_at, :as=>:date_picker
 
-              .small-6.columns
-                = f.input :opening_at, :as=>:date_picker
-                = f.input :closing_at, :as=>:date_picker
+                  .small-6.columns
+                    = f.input :opening_at, :as=>:date_picker
+                    = f.input :closing_at, :as=>:date_picker
+          .row
+            .columns.small-6
+              = f.input :season, :as=>:string
+            .columns.small-6
+              = f.input :custom_label
         %div.small-4.columns
           = f.input :production_code
           = f.input :production_class, :collection=>Production::PRODUCTION_CLASSES, :include_blank=>false
           = f.input :status, :as=>:select, :collection=>Production::PRODUCTION_STATUSES, :include_blank=>false
-          = f.input :season, :as=>:string
           = f.association :venue, include_blank: false
-          = f.input :custom_label
+          = f.association :seat_map, include_blank: true, label_method: :label
+
 
       %div.row
         %div.small-3.columns
@@ -49,7 +56,7 @@
 
             %div.row
               %div.small-6.columns
-                - festival_passes = FlexPassOffer.find_all_by_treat_as_festival_pass(true).select do |pass|
+                - festival_passes = FlexPassOffer.where(treat_as_festival_pass:true).select do |pass|
                   - pass.theater_id.nil? || (pass.theater_id == f.object.theater_id && !pass.exclude_theater) || (pass.theater_id != f.object.theater_id && pass.exclude_theater)
                 = f.association :flex_pass_offer, :collection=>festival_passes, :label=>"Festival Pass Offer"
 

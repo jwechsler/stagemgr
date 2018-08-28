@@ -12,7 +12,7 @@ class Admin::MembershipsController < ApplicationController
   end
 
   def create
-    @membership = Membership.new(params[:membership])
+    @membership = Membership.new(membership_params)
     if @membership.save
       redirect_to [:admin, @membership], :notice => "Successfully created membership."
     else
@@ -26,7 +26,7 @@ class Admin::MembershipsController < ApplicationController
 
   def update
     @membership = Membership.find(params[:id])
-    if @membership.update_attributes(params[:membership])
+    if @membership.update_attributes(membership_params)
       redirect_to [:admin, @membership], :notice  => "Successfully updated membership."
     else
       render :action => 'edit'
@@ -38,4 +38,11 @@ class Admin::MembershipsController < ApplicationController
     @membership.destroy
     redirect_to admin_memberships_url, :notice => "Successfully destroyed membership."
   end
+
+  private
+
+  def membership_params
+    params.require(:membership).permit(:membership_offer_id, :member_since, :member_code, :status, :preferred_seating)
+  end
+
 end

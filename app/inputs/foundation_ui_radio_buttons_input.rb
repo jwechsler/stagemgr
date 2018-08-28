@@ -2,7 +2,7 @@ class FoundationUiRadioButtonsInput < SimpleForm::Inputs::CollectionRadioButtons
 
   # Creates a radio button set for use with Foundation UI
 
-  def input
+  def input(wrapper_options)
     label_method, value_method = detect_collection_methods
     iopts = {
       :checked => 1,

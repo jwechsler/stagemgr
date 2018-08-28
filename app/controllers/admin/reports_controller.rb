@@ -1,7 +1,7 @@
 require 'csv'
 
 class Admin::ReportsController < Admin::ApplicationController
-  filter_access_to :all
+  authorize_resource
   # filter_access_to :trg_dump,:index
 
 
@@ -14,12 +14,13 @@ class Admin::ReportsController < Admin::ApplicationController
     is_theater_user = !current_user.nil? && current_user.is_theater_user?
     @generated_reports = FileStore.where("worker = ? and user_id = ?", FileStore::REPORT, current_user.id).order('created_at desc')
     @generated_reports.select {|r| r.data.exists? }
-    @productions = Production.with_permissions_to(:read).where(is_theater_user ? "1=1" : "(status != 'Inactive' and exists (select * from theaters where theaters.status != 'Inactive' and theaters.id = productions.theater_id)) or productions.theater_id = 1")
     if is_theater_user then
-      @productions.sort! { |p1, p2| (p2.press_opening_at || Date.today-10.years) <=> (p1.press_opening_at || Date.today-10.years)}
+      order_clause = {press_opening_at: :desc}
     else
-      @productions.sort! { |p1, p2| p1.name <=> p2.name }
+      order_clause = :name
     end
+
+    @productions = Production.order(order_clause).accessible_by(current_ability,:read).where(status: Production.visible_statuses)
 
     if is_theater_user then
       @flex_pass_offers = @productions.select { |p| !p.flex_pass_offer.nil? }.map { |p| p.flex_pass_offer }
@@ -85,7 +86,7 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def order_dump
-    @production = Production.with_permissions_to(:read).find(params[:report][:production_id])
+    @production = Production.accessible_by(current_ability, :read).find(params[:report][:production_id])
     @headers, @report_data = build_order_dump(@production)
     if params['download_csv'].nil? then
       respond_to do |format|
@@ -97,8 +98,6 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def daily_box_office_receipts
-     Rails.logger.debug(params.to_yaml)
-
     @start_day = params[:start_day].to_date
     @end_day = params[:end_day].to_date
     if @start_day > @end_day then
@@ -185,7 +184,7 @@ class Admin::ReportsController < Admin::ApplicationController
 
   def trg_dump
     production = Production.find(params[:report][:production_id])
-    Resque.enqueue(TrgExport, production.nil? ? 0 : production.id, current_user.id, permitted_to?(:view_email, :admin_addresses))
+    Resque.enqueue(TrgExport, production.nil? ? 0 : production.id, current_user.id, can?(:view_email, Address))
     flash[:notice] = 'Your export is queued for generation. You\'ll recieve notification when the process is complete.'
     redirect_to admin_reports_path
 
@@ -400,11 +399,18 @@ class Admin::ReportsController < Admin::ApplicationController
           cutoff_max = cutoff_min + 1.month
           cycles_in_window = 1
         end
-        total_payout = MembershipPayment.sum(:amount, :include=>[:order, [:order=>:performance]], :conditions=>["membership_id = ? and orders.id = payments.order_id and orders.performance_id = performances.id and performances.performance_date <= ? and performances.performance_date >= ?", membership.id, cutoff_max, cutoff_min])
-        num_attended = MembershipPayment.count(:include=>[:order, [:order=>:performance]], :conditions=>["membership_id = ? and orders.id = payments.order_id and orders.performance_id = performances.id and performances.performance_date <= ? and performances.performance_date >= ?", membership.id, cutoff_max, cutoff_min])
-        total_payout = RecurringPayment.sum(:amount, :include=>[:order, [:order=>:performance]], :conditions=>["membership_id = ? and orders.id = payments.order_id and orders.performance_id = performances.id and performances.performance_date <= ? and performances.performance_date >= ?", membership.id, cutoff_max, cutoff_min])
+        total_payout = MembershipPayment.joins(order: [:performance, :payments]).where(
+          "membership_id = ? and performances.performance_date <= ? and performances.performance_date >= ?",
+          membership.id, cutoff_max, cutoff_min
+          ).sum(:amount)
+        num_attended = MembershipPayment.joins(order: [:performance, :payments]).where(
+          "membership_id = ? and performances.performance_date <= ? and performances.performance_date >= ?",
+          membership.id, cutoff_max, cutoff_min).count
+        total_payout = RecurringPayment.joins(order: [:performance, :payments]).where(
+          "membership_id = ? and performances.performance_date <= ? and performances.performance_date >= ?",
+          membership.id, cutoff_max, cutoff_min).sum(:amount)
 
-        aggregate_amount = RecurringPayment.sum(:amount, :conditions=>["order_id = ? and processed_on > ? and processed_on < ?", membership.membership_line_item.order_id, cutoff_min, cutoff_max])
+        aggregate_amount = RecurringPayment.where("order_id = ? and processed_on > ? and processed_on < ?", membership.membership_line_item.order_id, cutoff_min, cutoff_max).sum(:amount)
         avg_revenue_month = "0".to_money
         avg_performances_month = 0.0
         avg_revenue_month = ((aggregate_amount-total_payout)/cycles_in_window).to_money
@@ -540,7 +546,7 @@ class Admin::ReportsController < Admin::ApplicationController
     report = Array.new
     headers = [:order_date, :last_name, :first_name]
     headers += [:street_address, :street_address_2, :state, :city, :state, :postal_code, :phone] unless display_only
-    headers += [:email] if permitted_to?(:view_email, :admin_addresses)
+    headers += [:email] if can?(:view_email, :admin_addresses)
     headers += [:collected, :payout, :facility_fee, :tickets_remaining, :converted_balance, :status]
 
     fee = (offer.facility_fee.nil? ? 0 : offer.facility_fee).to_money
@@ -551,7 +557,7 @@ class Admin::ReportsController < Admin::ApplicationController
       status = flex_pass.available? ?  o.status : flex_pass.expiration_date.to_s
       used = FlexPassPayment.find_all_by_flex_pass_id(flex_pass.id)
       if offer.flat_payout.blank? || offer.flat_payout == 0
-        payout = FlexPassPayment.sum(:amount, :conditions=>['flex_pass_id = ?',flex_pass.id]).to_money
+        payout = FlexPassPayment.where('flex_pass_id = ?',flex_pass.id).sum(:amount).to_money
       else
         payout = (offer.flat_payout.nil? ? 0 : offer.flat_payout).to_money
       end
@@ -694,7 +700,7 @@ class Admin::ReportsController < Admin::ApplicationController
   def columns_for_orders(build_for_dumpfile, include_emails = false)
     keys = [:order_date]
     keys += [:id, :first_name, :last_name, :street_address, :street_address_2, :city, :state, :postal_code, :phone] if build_for_dumpfile
-    keys += [:email] if (build_for_dumpfile && (permitted_to?(:view_email, :admin_addresses) || include_emails))
+    keys += [:email] if (build_for_dumpfile && (can?(:view_email, Address) || include_emails))
     keys += [:performance_code, :special_offer_code, :status, :description] if build_for_dumpfile
     keys
   end
@@ -805,7 +811,7 @@ class Admin::ReportsController < Admin::ApplicationController
             if members_by_email.has_key?(row[:email].downcase)
                members_by_email.delete(row[:email].downcase)
             else
-              row[:email] = nil unless permitted_to?(:view_email, :admin_addresses)
+              row[:email] = nil unless can?(:view_email, Address)
             end
           end
           report << row

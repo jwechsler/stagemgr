@@ -1,11 +1,10 @@
 class Admin::OrdersController < Admin::ApplicationController
-
-  filter_resource_access :attribute_check => true, :additional_new=>{:create => :new}, :additional_member=>{:refund => :refund, :update_notes=>:update_notes}, :additional_collection=>{:fulfill_selected=>:index, :unclaim_selected=>:index}
+  load_and_authorize_resource
 
   include OrdersHelper
-  #append_before_filter :find_order, :only => [:show, :edit, :update, :destroy, :refund, :cancel, :fulfill]
-  #append_before_filter :filter_by_allowed, :only => [:show, :edit, :update, :destroy, :refund, :cancel, :fulfill]
-  append_before_filter :redirect_to_proper_action, :only => [:edit, :show]
+
+  before_action :find_order, :only => [:show, :edit, :update, :destroy, :refund, :cancel, :fulfill]
+  before_action :redirect_to_proper_action, :only => [:edit, :show]
 
   VALID_SEARCH_COLUMNS = [
       'orders.id',
@@ -30,7 +29,9 @@ class Admin::OrdersController < Admin::ApplicationController
       #   @total_pages = @total_records/@orders.per_page+1
       #   render :partial => 'admin_orders_index_grid_data.xml.builder', :layout => false
       # end
-      format.json { render json: OrdersDatatable.new(view_context, current_user) }
+      format.json {  
+        render json: OrdersDatatable.new(params, view_context: view_context, current_user: current_user)
+      }
     end
   end
 
@@ -95,21 +96,17 @@ class Admin::OrdersController < Admin::ApplicationController
   end
 
   def edit
+    debugger
     if @order.is_a? TicketOrder
       flash.keep
       redirect_to(:controller=>:ticket_orders, :action=>:show, :id=>@order.id)
     elsif @order.is_a? FlexPassOrder
       flash.keep
       redirect_to(:controller=>:flex_pass_orders, :action=>:show, :id=>@order.id)
-
+    elsif @order.is_a? DonationOrder
+      flash.keep
+      redirect_to(:controller=>:donation_orders, :action=>:show, :id=>@order.id)
     end
-  end
-
-
-  def create
-    old_status = Order::NEW
-    @order = Order.new(params[:order])
-    @order = process_order(@order,:edit_admin_order_path)
   end
 
   def update
@@ -165,9 +162,7 @@ class Admin::OrdersController < Admin::ApplicationController
   private
 
   def filter_by_allowed
-    @order = Order.find(params[:id])
-    permission_denied unless (Authorization.current_user.is_administrator? || Authorization.current_user.is_box_office? || Authorization.current_user.theater_ids.include?(@order.theater_id))
-
+    @order = Order.accessible_by(current_ability).find(params[:id])
   end
 
   def store_search_and_pagination_state

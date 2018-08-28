@@ -1,0 +1,39 @@
+%table#performance_listing{:data=>{:source=>"#{admin_theater_production_performances_path(theater_id:@theater.id, production_id:@production.id, format: :json)}"}}
+  %thead
+    %tr
+      %th Code
+      %th Date
+      %th Time
+      %th Status
+      %th
+
+  %tbody
+
+= content_for :js do
+  :javascript
+
+    $(document).ready(function() {
+      $('#performance_listing').dataTable({
+        "dom": 'lf<"toolbar-buttons">rtip',
+        "stateSave": true,
+        "processing": true,
+        "serverSide": true,
+        "ajax": $("#performance_listing").data('source'),
+        "pagingType": 'full_numbers',
+        "language": {
+          "lengthMenu" : "_MENU_",
+          "search": "_INPUT_"
+        },
+        columns: [
+          {data: 'code'},
+          {data: 'date'},
+          {data: 'time'},
+          {data: 'status'},
+          {data: 'actions'}
+        ]
+      });
+    });
+
+    // setupActiveSwitchOnDataTable('#performance-listing',2)
+
+  });

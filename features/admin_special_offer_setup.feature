@@ -3,22 +3,25 @@ Feature: Administer Special Offers
   As an box office user
   I want to create and edit special offers
   Background:
-  Given I am a box office user
-    And I am logged in
-    And a sample theater exists
+    Given a sample theater exists
 
   Scenario: There is a 'Special Offers' menu link for box office users
-    Given I go to the home page
+    Given I am a box office user
+      And I am logged in
+      And I go to the home page
      Then "Special Offers" should link to "the admin special offers page"
 
+
   Scenario: There is not a 'Special Offers' menu link for non-admins
-    Given I am not a box office user
+    Given I am a theater user
       And I am logged in
       And I go to the home page
      Then I should not see "Special Offers"
 
   Scenario: Box Office Users can create special offers
-    Given I go to the admin special offers page
+    Given I am a box office user
+      And I am logged in
+      And I go to the admin special offers page
       And I follow "Add special offer"
       And I enter a special offer with code "TEST" for 50% off
       And I press "Create Special offer"
@@ -26,7 +29,9 @@ Feature: Administer Special Offers
       And I should see "Created new special offer 'TEST'"
 
   Scenario: Box Office Users can set day of the week filters
-    Given a special offer with code "TEST" for 50% off exists
+    Given I am a box office user
+      And I am logged in
+      And a special offer with code "TEST" for 50% off exists
       And I go to the edit page for special offer "TEST"
       And I follow "TEST"
       And I check "Thursdays"

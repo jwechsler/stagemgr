@@ -1,0 +1,23 @@
+%fieldset
+  %legend Seat Reservations
+  .row
+    .columns.small-12
+      %span{id:"seating-config", class:'hide', 'data-max-quantity':ticket_order.number_of_tickets, 'data-order-id':ticket_order.id, 'data-reserve-url':reserve_performance_seat_assignments_url(ticket_order.performance_id), 'data-release-url':release_performance_seat_assignments_url(ticket_order.performance_id)}
+      %span#seatinglist{style:"font-size':'200%"}
+        = ticket_order.seats.map{|sa| sa.seat.location}.sort.join(',')
+      &nbsp;
+      %span#seating-remaining.hint
+
+        - seats_remaining = ticket_order.number_of_seats - ticket_order.seats.size
+        = "#{seats_remaining} of #{ticket_order.number_of_seats} remaining" unless seats_remaining  == 0
+
+    .columns.small-12
+      %img{:src => ticket_order.performance.production.seat_map.base_image_map.url, :alt => "", :usemap=> '#seatingmap', :class=>'seatingmap'}
+      %map{name:'seatingmap', id:'seatingmap'}
+        - SeatAssignment.available_seat_assignments(ticket_order.performance, ticket_order).each do |sa|
+          - sa_key = sa.available?(ticket_order) ? "#{sa.id}" : "unavailable"
+          %area{shape:"circle", coords:"#{sa.seat.origin_x},#{sa.seat.origin_y},#{sa.seat.width}", id:"sa-#{sa.id}", href:"#?id=#{sa.seat.location}",alt:"#{sa.seat.location}", 'data-location':"#{sa.seat.location}", 'data-status': "#{assignment_keys(sa,ticket_order)}", 'data-assignment-id':"#{sa.id}", 'data-key':"#{sa_key}"}
+
+
+= content_for :js do
+  = javascript_include_tag 'seat_assignment'

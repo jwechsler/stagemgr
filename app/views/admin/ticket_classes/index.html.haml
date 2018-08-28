@@ -1,0 +1,54 @@
+/ admin/ticket_classes/index.html.erb
+= content_for :title do
+  @production.name Ticket Classes
+= content_for :breadcrumbs do
+  %ul.breadcrumbs
+    %li= link_to "Theaters", admin_theaters_path
+    %li= link_to @production.theater.name, admin_theater_path(@production.theater)
+    %li= link_to @production.name, admin_theater_production_path(@production.theater, @production)
+    %li.current
+      %a{:href=>'#'}
+        Ticket Classes
+.row
+  .small-12.columns
+    %h3= "#{@production.name} Ticket Classes"
+    %table#ticket-class-listing{:data=>{:source=>"#{admin_theater_production_ticket_classes_path(@production.theater, @production, format: :json)}"}}
+      %thead
+        %tr
+          %th Class code
+          %th Class name
+          %th Price
+          %th Fee
+          %th Web Visible?
+          %th Type
+          %th
+      %tbody
+
+
+    = link_to 'Back', [:admin, @production.theater, @production], class: 'button'
+    - if can? :create, TicketClass then
+      = link_to 'New Ticket Class', new_admin_theater_production_ticket_class_path(@theater,@production), class: 'button right'
+
+= content_for :js do
+  :javascript
+    $(document).ready(function() {
+      $('#ticket-class-listing').dataTable({
+        "processing": true,
+        "serverSide": true,
+        "ajax": $('#ticket-class-listing').data('source'),
+        "pagingType": 'full_numbers',
+        "language": {
+          "lengthMenu" : "_MENU_",
+          "search": "_INPUT_"
+        },
+        columns: [
+          {data: 'class_code'},
+          {data: 'class_name'},
+          {data: 'ticket_price'},
+          {data: 'ticketing_fee'},
+          {data: 'web_visible'},
+          {data: 'ticket_type'},
+          {data: 'actions'},
+        ]
+      });
+    });

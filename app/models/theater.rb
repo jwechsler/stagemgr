@@ -1,8 +1,10 @@
  class Theater < ActiveRecord::Base
-  using_access_control
+  #@todo setup access control
 
   THEATER_CLASSES  = ['Default', 'Resident Company', 'Visiting Company', 'Guest Artist']
-  THEATER_STATUSES = ['Active',  'Inactive']
+  THEATER_STATUSES = (
+    ACTIVE, INACTIVE = 'Active',  'Inactive'
+  )
   validates_inclusion_of :theater_class, :in => THEATER_CLASSES
   validates_inclusion_of :status,        :in => THEATER_STATUSES
   validates_uniqueness_of :name
@@ -19,6 +21,8 @@
                     :path => ":rails_root/public/system/:attachment/:id/:style/:filename",
                     :url => "#{Rails.application.config.action_controller.relative_url_root}/system/:attachment/:id/:style/:filename",
                     :styles => {:medium => "250x250>", :small => "125x125>", :thumbnail => "125x125>"}
+  validates_attachment_content_type :logo, :content_type => ["image/jpg", "image/jpeg", "image/png", "image/gif"]
+
 
 
   def class_display

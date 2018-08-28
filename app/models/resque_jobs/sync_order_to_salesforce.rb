@@ -6,13 +6,10 @@ class SyncOrderToSalesforce
 
   def self.perform(order_id)
     begin
-      Authorization.ignore_access_control(true)
       syncable = Order.find(order_id)
       syncable.sf_disable_sync_on_commit = true
       syncable.sync_to_salesforce!()
     rescue ActiveRecord::RecordNotFound
-    ensure
-      Authorization.ignore_access_control(false)
     end
   end
 

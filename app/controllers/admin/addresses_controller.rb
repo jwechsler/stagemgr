@@ -1,6 +1,5 @@
 class Admin::AddressesController < Admin::ApplicationController
-
-  filter_resource_access :additional_collection=>{:autocomplete_address=>:index, :autocomplete_tag=>:index, :autocomplete_address_tag_tag_label=>:index}
+  load_and_authorize_resource
 
   autocomplete :address_tag,:tag_label
 
@@ -19,10 +18,12 @@ class Admin::AddressesController < Admin::ApplicationController
   # GET /admin/addresses/1
   # GET /admin/addresses/1.xml
   def show
-    @visible_orders = @address.orders.select{|o| current_user.is_administrator? or current_user.is_box_office_user?|| current_user.theater_ids.include?(o.theater_id) }
     respond_to do |format|
       format.html # show.html.erb
-      format.xml  { render :xml => @address }
+      format.json  {
+        params.permit!
+        render json: AddressesOrdersDatatable.new(params, view_context: view_context, current_user: current_user, address: @address)
+      }
     end
   end
 
@@ -67,7 +68,7 @@ class Admin::AddressesController < Admin::ApplicationController
   # PUT /admin/addresses/1
   # PUT /admin/addresses/1.xml
   def update
-    @address.update_attributes(params[:address])
+    @address.update_attributes(address_params)
   #  @address.address_tags = Array.new
   #  params[:address][:address_tags_attributes].each_pair {
   #      |k, v|
@@ -113,7 +114,6 @@ class Admin::AddressesController < Admin::ApplicationController
   def autocomplete_address
     cleaned_name, first_name, middle_name, last_name, first_name_2 = Address.parse_name(params[:term])
     last_name = first_name if last_name.blank?
-    Rails.logger.debug [cleaned_name, first_name, middle_name, last_name].to_yaml
     # val = params[:q].gsub(Address::SEARCHABLE_REGEXP,'').upcase
 
     #addresses = Address.where("search_name like :search_expr and id in (select address_id from orders)", {:search_expr=>'%' + val + '%'}).limit(10).order(
@@ -166,4 +166,10 @@ class Admin::AddressesController < Admin::ApplicationController
     #end
     render :json=>AddressTag.order(:tag_label).select('DISTINCT tag_label');
   end
+
+  private
+  def address_params
+    params.require(:address).permit(:full_name, :line1, :line2, :city, :state, :zipcode, :email, :phone, :street_number, :address_tags_attributes)
+  end
+
 end

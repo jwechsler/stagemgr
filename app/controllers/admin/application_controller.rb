@@ -1,11 +1,25 @@
 class Admin::ApplicationController < ApplicationController
-  before_filter { |c| Authorization.current_user = c.current_user }
+
+  rescue_from CanCan::AccessDenied do |exception|
+      respond_to do |format|
+        format.json { head :forbidden, content_type: 'text/html' }
+        format.html { redirect_to main_app.root_url, notice: exception.message }
+        format.js   { head :forbidden, content_type: 'text/html' }
+      end
+    end
 
   protected
 
   def permission_denied
     flash[:error] = "Sorry, you are not allowed to access that page."
     redirect_to root_url
+  end
+
+  def current_ability
+    if self.current_user.nil?
+      raise CanCan::AccessDenied
+    end
+    self.current_user.ability
   end
 
 

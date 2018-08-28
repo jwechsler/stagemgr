@@ -1,0 +1,14 @@
+= content_for :title do
+  Venue
+= content_for :breadcrumbs do
+  %ul.breadcrumbs
+    %li
+      %a{:href=>"#{admin_venues_path}"} Venues
+    %li.current
+      %a{:href=>'#'}= @venue.name
+
+.row
+  .columns.small-12
+    %h3 Seat Maps
+    = render partial: 'seat_maps'
+    = link_to("New Seat Map", [:new, :admin, @venue, :seat_map], class:'small button')

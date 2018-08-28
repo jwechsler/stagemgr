@@ -1,15 +1,16 @@
 module MembershipOrdersHelper
+  include OrdersHelper
 
-
-  def create_membership
+  def create_membership(order)
     success = false
     begin
       MembershipOrder.transaction do
-        @order = MembershipOrder.new(params['membership_order'])
-        @order.ip_address = request.remote_ip
-        @order.transition_to!(Order::PROCESSING)
+        # order = MembershipOrder.new(membership_order_params)
 
-        membership_offer = @order.membership_offer
+        order.ip_address = request.remote_ip
+        order.transition_to!(Order::PROCESSING)
+
+        membership_offer = order.membership_offer
 
         trial_amount = membership_offer.trial_amount
         trial_amount = (trial_amount*100).to_i unless trial_amount.nil?
@@ -18,9 +19,10 @@ module MembershipOrdersHelper
                                :trial_period    => 'Month',
                                :trial_cycles    => membership_offer.trial_period
                              }
-        membership = @order.membership
-        response = RecurringProfile.create_recurring_profile(@order,
-                                            @order.gift? ? @order.gift_date : Date.today,
+        membership = order.membership
+
+        response = RecurringProfile.create_recurring_profile(order,
+                                            (order.gift? && !order.gift_date.blank?) ?  order.gift_date : Date.today,
                                             membership_offer.recurring_cost,
                                             membership_offer.billing_agreement, 1,
                                             additional_options)
@@ -29,23 +31,33 @@ module MembershipOrdersHelper
           profile_id = response.params["profile_id"]
           membership.profile_id = profile_id
           membership.status = response.params["profile_status"][0..-8]
-          membership.preferred_seating = @order.special_request
+          membership.preferred_seating = order.special_request
           membership.save!
-          @order.transition_to!(Order::PROCESSED)
+          order.transition_to!(Order::PROCESSED)
         else
           flash[:error] = raw "There was a problem setting up your account for the <strong>#{membership_offer.name}</strong> payment plan. #{response.message}"
         end
       end
     rescue Exception=> e
       success = false
-
       flash[:error] = e.message
-      Rails.logger.error(e.backtrace)
+      Rails.logger.error("Membership Order failed: #{e.message}")
+      Rails.logger.error(e.backtrace.join('/n'))
     end
     success
   end
 
+  def common_membership_order_params
+    [:membership_offer_id, :special_request, :gift, :recipient_name, :recipient_email, :gift_date, membership_line_items_attributes: [:membership_offer_id] ] << common_params
+  end
+
+
   private
+
+  def membership_order_params
+    params.require(:membership_order).permit(*common_memberhsip_order_params)
+  end
+
   def recurring_response(membership_offer, credit_card, ip, order_id, email, start_date = Date.today)
     start_date ||= Date.today
     gateway ||= PaymentProcessing.recurring_gateway

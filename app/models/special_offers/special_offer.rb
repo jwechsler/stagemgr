@@ -256,16 +256,15 @@ class SpecialOffer < ActiveRecord::Base
     perf_id = performance.id
     prod_id = performance.production.id
     theater_id = performance.production.theater.id
-    offers = SpecialOffer.all(
-        :conditions => ["trim(lower(code)) #{starts_with ? 'LIKE' : '='} trim(lower(?)) and (performance_id = ? or production_id = ? or theater_id = ? or (performance_id is null and production_id is null and theater_id is null)) and status = 'Active' and (auto_expire is null or auto_expire >= ?) and (auto_start is null or auto_start <= ?)",
-                        starts_with ? "#{code}%" : code,
-                        perf_id,
-                        prod_id,
-                        theater_id,
-                        Time.now.to_date,
-                        Time.now],
-        :order=>"performance_id desc, production_id desc, theater_id desc")
-
+    offers = SpecialOffer.where(
+      "trim(lower(code)) #{starts_with ? 'LIKE' : '='} trim(lower(?)) and (performance_id = ? or production_id = ? or theater_id = ? or (performance_id is null and production_id is null and theater_id is null)) and status = 'Active' and (auto_expire is null or auto_expire >= ?) and (auto_start is null or auto_start <= ?)",
+      starts_with ? "#{code}%" : code,
+      perf_id,
+      prod_id,
+      theater_id,
+      Time.now.to_date,
+      Time.now
+    ).order(performance_id: :desc, production_id: :desc, theater_id: :desc)
     offers
   end
 

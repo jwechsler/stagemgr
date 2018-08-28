@@ -1,8 +1,0 @@
-<div class="row">
-  <div class="small-12 columns">
-  <%= simple_form_for([:admin,theater,production,ticket_class]) do |f| %>
-    <%= f.hidden_field :production_id %>
-    <%= render :partial=>'fields', :locals=>{:f=>f} %>
-  <%- end %>
-  </div>
-</div>
