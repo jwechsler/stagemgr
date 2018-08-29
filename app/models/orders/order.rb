@@ -505,6 +505,13 @@ class Order < ActiveRecord::Base
     [Order::HOLD] + self.transitory_statuses
   end
 
+  def unprocessed_statuses
+    Order.unprocessed_statuses
+  end
+
+  def unprocessed?
+    self.unprocessed_statuses.include? self.status
+  end
 
   def self.delete_unprocessed_orders
     orders = Order.where("status in (:transitory_status) and updated_at < :window and type != 'MembershipOrder'",

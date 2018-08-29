@@ -49,7 +49,8 @@
                 {
                   text: 'Fulfill Selected',
                   action: function(e, dt, node, config) {
-                    alert('Function being worked on... not yet available')
+                    //alert('Logging select')
+
                     $.each(dt.rows( {selected:true}).data(), function(index, value) {
                       console.log(value.DT_RowID)
                     });
