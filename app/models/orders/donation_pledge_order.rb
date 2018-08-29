@@ -33,7 +33,6 @@ class DonationPledgeOrder < DonationOrder
                                 'Theater Wit Monthly Pledge',2,{:total_billing_cycles=>self.cycles.to_i}
                     )
       success = response.success?
-      Rails.logger.debug("RESPONSE: #{response.to_yaml}")
       if success
         profile_id = response.params["profile_id"]
         self.pledge = Pledge.create(:profile_id => profile_id,

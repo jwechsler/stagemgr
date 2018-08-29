@@ -83,6 +83,7 @@ class Admin::TicketOrdersController < Admin::OrdersController
   end
 
   def edit
+
     respond_to do |format|
       format.html {
         if @ticket_order.editable?
@@ -120,6 +121,7 @@ class Admin::TicketOrdersController < Admin::OrdersController
   end
 
   def update
+    update_ticket_line_items(params[:ticket_order][:ticket_line_items_attributes].values)
     set_payment_accessors_from_params(@ticket_order, params[:ticket_order])
     @ticket_order.payment_type = PaymentType.find(params[:ticket_order][:payment_type_id])
     set_ticket_classes_for_line_items
@@ -142,6 +144,16 @@ class Admin::TicketOrdersController < Admin::OrdersController
     end
   end
 
+  def update_ticket_line_items(ticket_lines)
+    ticket_lines.each {|tli|
+      c_id = tli['id']
+      @ticket_order.ticket_line_items.select{|mli| mli.id == c_id.to_i}.each {|mli|
+        mli.ticket_class_id = tli['ticket_class_id'].to_i unless tli['ticket_class_id'].blank?
+        mli.ticket_count = tli['ticket_count'].to_i unless tli['ticket_count'].blank?
+      }
+    }
+  end
+
   def set_ticket_classes_for_line_items
     unless params[:ticket_order][:ticket_line_items_attributes].nil?
       params[:ticket_order][:ticket_line_items_attributes].values.each{ |tlia|
@@ -149,7 +161,6 @@ class Admin::TicketOrdersController < Admin::OrdersController
         found = @ticket_order.ticket_line_items.select { |tli| tli.id == tlia[:id].to_i}
         found.each {|tli|
           use_class = @ticket_order.performance.ticket_class_allocations.select {|tca| !tca.ticket_class.nil? && tca.ticket_class.class_code == code && tca.available?}
-
           tli.ticket_class = use_class.first.ticket_class unless use_class.empty?
         }
       }

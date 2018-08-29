@@ -26,7 +26,6 @@ class SeatAssignment < ActiveRecord::Base
   def self.available_seat_assignments(performance, order)
     if performance.seat_assignments.empty? and performance.production.has_reserved_seating? then
       performance.seat_assignments << performance.production.seat_map.create_inventory_for_performance(performance)
-      Rails.logger.debug ("assigned inventory")
     end
     performance.seat_assignments
   end

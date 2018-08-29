@@ -740,7 +740,6 @@ class Admin::ReportsController < Admin::ApplicationController
 
     payments = Payment.order("processed_on").where("processed_on >=:start_day and processed_on < :end_day", {:start_day=>start_day.to_time(:local), :end_day=>(end_day + 1.day).to_time(:local)})
     payments.each { |p|
-      Rails.logger.debug("processed_on = #{p.processed_on.to_s(:long)}")
       c_day = p.processed_on.to_s
       if c_day != current_date then
         current_date = c_day
