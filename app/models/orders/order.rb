@@ -457,8 +457,10 @@ class Order < ActiveRecord::Base
         redirect_to = self.send "transition_#{self.status.underscore}_to_#{new_status.underscore}!".to_sym, redirect_to
         raise "Transition from #{old_status} to #{new_status} unsuccessful. Current status is #{self.status}." unless self.status == new_status
       rescue Exception=>e
+        Rails.logger.error "ORDER #{self.id} NOT PROCESSED #{e.to_s}"
         self.reload
-        raise e
+        errors.add :error, e.to_s
+        redirect_to = nil
       end
     end
     redirect_to
@@ -661,7 +663,8 @@ class Order < ActiveRecord::Base
 
   def prevent_status_rollbacks
     if self.status_changed? && !self.status_was.blank?
-      raise "Cannot reprocess orders" if Order.unprocessed_statuses.include?(self.status) && !Order.unprocessed_statuses.include?(self.status_was)
+      self.errors.add(:error, "Cannot reprocess orders") if Order.unprocessed_statuses.include?(self.status) && !Order.unprocessed_statuses.include?(self.status_was)
+      return false
     end
     true
   end

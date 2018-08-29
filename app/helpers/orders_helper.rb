@@ -103,6 +103,13 @@ module OrdersHelper
               }
             end
           end
+        else
+
+          flash[:error] = order.errors[:error].first
+
+          respond_to do |format|
+            format.html { render 'edit', :order=>@order, :layout=>true }
+          end
         end
       else
         respond_to do |format|

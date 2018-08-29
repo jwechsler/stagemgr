@@ -1,4 +1,4 @@
-%h3= raw @order_for_to_s
+%h3= @order.flex_pass_line_items[0].flex_pass_offer.name
 
 %p= @order.flex_pass_line_items[0].flex_pass_offer.description
 
@@ -42,7 +42,7 @@
       %emp non-exchangeable.
       Once you've reviewed your order above, you can click the Order button below.
 
-  = order_form.submit @submit_text, :action => :confirm, :disable_with => 'Processing...', :class=>'button' if order_form.object.status == Order::NEW || order_form.object.status == Order::HOLD
+  = order_form.submit @submit_text, :action => :confirm, :disable_with => 'Processing...', :class=>'button' if order_form.object.status == Order::NEW || Order::PROCESSING || order_form.object.status == Order::HOLD
   %br/
   %p If you are having any troubles, please call our box office at 773-975-8150 and we'll help you out!
 

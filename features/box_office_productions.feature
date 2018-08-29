@@ -17,6 +17,10 @@ Feature: An administrator can add production details to a theater
   Scenario: Add a production (Minimum Required fields)
   Given I follow "Add production"
     And I enter a production with code "TEST" and a capacity of "300"
+    And I fill in "2020-01-01" for "First preview at"
+    And I fill in "2020-01-01" for "Opening at"
+    And I fill in "2020-01-01" for "Press opening at"
+    And I fill in "2020-01-01" for "Closing at"
    When I press "Create"
    Then I should see "Production was successfully created."
 

@@ -36,7 +36,6 @@ Feature: Box office ordering
       And I choose "Goldstar" as payment
       And I press "Place Order"
      Then I should see "Order was successfully saved and is now Processed"
-
   Scenario: Enforce ticket class requirements from external payment orders
     Given an external payment type "Goldstar" restricted to ticket classes starting with "CHEAP" exists
       And I go to new admin ticket order

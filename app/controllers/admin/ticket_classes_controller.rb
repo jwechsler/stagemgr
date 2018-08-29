@@ -15,6 +15,7 @@ class Admin::TicketClassesController < Admin::ApplicationController
   end
 
   def new
+    @ticket_class.production = @production
   end
 
   def edit; end

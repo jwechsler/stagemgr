@@ -1,6 +1,7 @@
 class FlexPassOrdersController < ApplicationController
   layout 'ext_site_wrapper'
     include OrdersHelper
+    include FlexPassOrdersHelper
 
     append_before_filter :find_order, :only => [:show, :edit, :update, :destroy]
     append_before_filter :redirect_to_proper_action, :only => [:edit, :show]
@@ -23,16 +24,16 @@ class FlexPassOrdersController < ApplicationController
     end
 
     def create
-      @order = FlexPassOrder.new(params[:flex_pass_order])
+      @order = FlexPassOrder.new(flex_pass_order_params)
       @order.ip_address = request.remote_ip
-      process_order(@order, :edit_flex_pass_order_path) if validate_web_order(@order)
+      result = process_order(@order, :flex_pass_order_path) if validate_web_order(@order)
     end
 
     def update
-      @order.attributes=params[:flex_pass_order]
+      @order.update_attributes(flex_pass_order_params)
       @order.ip_address = request.remote_ip
       validate_web_order(@order)
-      process_order(@order, :edit_flex_pass_order_path)
+      process_order(@order, :flex_pass_order_path)
     end
 
     def confirm
@@ -40,7 +41,7 @@ class FlexPassOrdersController < ApplicationController
 
     private
     def flex_pass_order_params
-      params.require[:flex_pass_order].permit(*common_params)
+      params.require(:flex_pass_order).permit(*common_flex_pass_order_params)
     end
 
     def find_order
