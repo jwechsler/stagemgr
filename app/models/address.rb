@@ -357,9 +357,8 @@ class Address < ActiveRecord::Base
   end
 
   def performances_attended(since_when = 5.years.ago)
-    TicketOrder.count(:include=>[:performance],
-                      :conditions=>["orders.address_id = ? and orders.status = ? and performances.performance_date >= ? and performances.performance_date <= ?",
-                                    self.id, Order::FULFILLED, since_when, Date.today])
+    TicketOrder.includes(:performance).where("orders.address_id = ? and orders.status = ? and performances.performance_date >= ? and performances.performance_date <= ?",
+                                    self.id, Order::FULFILLED, since_when, Date.today)
   end
 
   def orders_processed(for_theaters = nil)

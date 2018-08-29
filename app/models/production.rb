@@ -32,9 +32,9 @@ class Production < ActiveRecord::Base
   has_many :ticket_classes
   has_many :line_items
   has_many :ticket_orders, :source=>:orders, :through=>:performances
-  has_one :production_stat
+  has_one :psaveroduction_stat
   before_validation :clean_values, :downcase_for_db
-  before_save :assign_default_ticket_classes
+  before_create :assign_default_ticket_classes
   before_save :queue_statistics_recalc
   belongs_to :flex_pass_offer
   has_and_belongs_to_many :attendees, class_name: "Address", uniq:true
@@ -109,6 +109,10 @@ class Production < ActiveRecord::Base
 
   def self.performing_classes
     [PLAY, SPECIAL_EVENT, OFF_TIME]
+  end
+
+  def inactive?
+    self.status == Production::INACTIVE
   end
 
   def use_ticket_email_templates?

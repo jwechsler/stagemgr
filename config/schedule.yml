@@ -52,4 +52,8 @@ PurgeExpiredSpecialOffers:
   description: 'Purge expired special offers'
   queue: maintenance
 
+MarkInactiveShows:
+  every: "1d"
+  description: 'Productions/Theaters that have been inactive for over 6 months and not updated since then are marked as ''Inactive''.'
+  queue: maintenance
 

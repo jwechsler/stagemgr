@@ -121,7 +121,7 @@ class Admin::TicketOrdersController < Admin::OrdersController
   end
 
   def update
-    update_ticket_line_items(params[:ticket_order][:ticket_line_items_attributes].values)
+    update_ticket_line_items(params[:ticket_order][:ticket_line_items_attributes].values) unless params[:ticket_order][:ticket_line_items_attributes].nil?
     set_payment_accessors_from_params(@ticket_order, params[:ticket_order])
     @ticket_order.payment_type = PaymentType.find(params[:ticket_order][:payment_type_id])
     set_ticket_classes_for_line_items
