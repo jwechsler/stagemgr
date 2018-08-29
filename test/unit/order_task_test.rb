@@ -1,5 +1,4 @@
 require 'test_helper'
-include Authorization::Maintenance
 
 class OrderTaskTest < ActiveSupport::TestCase
 

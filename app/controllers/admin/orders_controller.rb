@@ -18,18 +18,7 @@ class Admin::OrdersController < Admin::ApplicationController
     # store_search_and_pagination_state unless !session[:existing_box_office_orders_state].nil?
     respond_to do |format|
       format.html
-       # index.html.erb
-      # format.xml do
-      #   store_search_and_pagination_state
-      #   @options_hash = get_search_conditions_from_params
-      #   @options_hash.merge!(get_pagination_options_from_params)
-      #   @options_hash.merge!(:include=>[{:performance=>:production}, :address, :payments])
-      #   @orders = Order.paginate @options_hash
-      #   @total_records = @orders.total_entries
-      #   @total_pages = @total_records/@orders.per_page+1
-      #   render :partial => 'admin_orders_index_grid_data.xml.builder', :layout => false
-      # end
-      format.json {  
+      format.json {
         render json: OrdersDatatable.new(params, view_context: view_context, current_user: current_user)
       }
     end
@@ -178,66 +167,6 @@ class Admin::OrdersController < Admin::ApplicationController
     session[:existing_box_office_orders_state] = state_to_store
   end
 
-  def get_search_conditions_from_params
-    conditions_sql = Array.new
-    conditions_params = Array.new
-    # Hide orders that we couldn't figure out how to obscure in declarative_authorizations because of paginate block
-    # @todo this is probably fixable...
-
-    if !(Authorization.current_user.is_administrator? || Authorization.current_user.is_box_office_user?)
-      conditions_sql += ['orders.theater_id is not null and orders.theater_id in (?)']
-      conditions_params << Authorization.current_user.theater_ids
-    end
-
-    restrict_to_active = true
-    remove_active_restrict_on_columns = ['orders.id', 'addresses.last_name', 'addresses.first_name']
-
-    if params['_search']=='true'
-      VALID_SEARCH_COLUMNS.each do |column_name|
-        if params[column_name] && !params[column_name].empty?
-          restrict_to_active &&= !remove_active_restrict_on_columns.include?(column_name)
-          case column_name
-            when 'display_code' then
-              case params[column_name].downcase
-                when 'membership' then
-                  conditions_sql << "orders.type = 'MembershipOrder'"
-                when 'donation' then
-                  conditions_sql << "orders.type = 'DonationOrder'"
-                when 'flexpass' then
-                  conditions_sql << "orders.type = 'FlexPassOrder'"
-                  conditions_sql << "(orders.id in (select order_id from flex_passes where active = 1))" if restrict_to_active
-                else
-                  conditions_sql << "orders.type = 'TicketOrder' and lower(performances.performance_code) like '%' ? '%'"
-                  conditions_params << params[column_name].downcase
-              end
-            when 'orders.id' then
-              conditions_sql << "#{column_name} = ?"
-              conditions_params << params[column_name]
-
-            else
-              conditions_sql << "lower(#{column_name}) like '%' ? '%'"
-              conditions_params << params[column_name].downcase
-          end
-        end
-      end
-    end
-
-    if restrict_to_active
-      conditions_sql << '(productions.status <> ? or productions.status is null)' << '(performances.status <> ? or performances.status is null)'
-      conditions_params << Production::INACTIVE << Performance::INACTIVE
-    end
-
-    {:conditions=>([conditions_sql.join(' and ')] + conditions_params)}
-  end
-
-  def get_pagination_options_from_params
-    sort_column = params[:sidx]
-    sort_column = 'orders.id' if sort_column.empty?
-    sort_column = "case orders.type when 'TicketOrder' then performances.performance_code when 'Order' then null else orders.type end" if sort_column == 'display_code'
-    sort_order = params[:sord]
-    sort_order 'DESC' if sort_order.empty?
-    {:page => params[:page], :order => "#{sort_column} #{sort_order}"}
-  end
 
 
 end

@@ -1,7 +1,7 @@
 .nested-fields
   %div.row
     %div.small-6.columns= f.input_field :tag_label, :url=> autocomplete_tag_admin_addresses_path
-    %div.small-6.columns= f.collection_select(:theater_id, Theater.allowed, :id, :name)
+    %div.small-6.columns= f.collection_select(:theater_id, Theater.allowed(current_user), :id, :name)
   %div.row
     %div.small-2.columns= f.label 'Additional', :class=>'inline'
     %div.small-8.columns= f.input_field :tag_value
