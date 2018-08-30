@@ -18,7 +18,7 @@
         %th
       %tbody
 
-    = link_to 'New Flex Pass Offer', new_admin_flex_pass_offer_path, :class=>'button' if can? :create, :admin_flex_pass_offers
+    = link_to 'New Flex Pass Offer', new_admin_flex_pass_offer_path, :class=>'button' if can? :create, FlexPassOffer
 
 
 = content_for :js do
