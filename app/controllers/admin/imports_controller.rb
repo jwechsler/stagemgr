@@ -74,7 +74,4 @@ class Admin::ImportsController < Admin::ApplicationController
     params.require(:file_store).permit!
   end
 
-  def theater_params
-    params.require(:theater).permit(:theater_id)
-  end
 end

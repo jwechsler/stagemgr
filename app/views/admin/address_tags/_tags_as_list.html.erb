@@ -1,6 +1,6 @@
 <div id="address_tags">
   <%= raw(current_user.allowed_tags(address_tags).map{|tag|
-    r = "<i><font size=\"-1\" >#{tag.tag_label}"
+    r = "<i><span class=\"label\" >#{tag.tag_label}"
     r += " [#{tag.theater.name}]" unless (tag.theater_id.nil? || tag.theater.is_default?)
     r += " (#{tag.tag_value})" unless tag.tag_value.blank?
     r += "</font></i>"

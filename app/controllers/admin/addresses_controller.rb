@@ -132,7 +132,7 @@ class Admin::AddressesController < Admin::ApplicationController
         value = a.full_name
         member_code = a.is_current_member? ? a.current_membership.member_code : nil
         tags = current_user.allowed_tags(a.address_tags).map {|t|
-          "<div class=\"small-6 columns quick-lookup-history\">#{t.tag_label}</div><div class=\"small-6 columns quick-lookup-history\">#{t.tag_value}</div>"
+          "<div class=\"small-6 columns quick-lookup-history label\">#{t.tag_label}</div><div class=\"small-6 columns quick-lookup-history\">#{t.tag_value}</div>"
           }.join(" ")
         label = a.full_name
         label += " [MEMBER]" unless member_code.nil?

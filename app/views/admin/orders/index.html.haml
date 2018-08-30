@@ -50,9 +50,13 @@
                   text: 'Fulfill Selected',
                   action: function(e, dt, node, config) {
                     //alert('Logging select')
-
+                    $.ajax({
+                      url: '#{fulfill_selected_admin_orders_path}',
+                      data: dt.rows( {selected:true}).data().map(value.DT_RowId)
+                    });
                     $.each(dt.rows( {selected:true}).data(), function(index, value) {
                       console.log(value.DT_RowID)
+
                     });
                     //dt.ajax.reload();
 

@@ -14,6 +14,7 @@ function autofillAddress(order_type, event, ui) {
   t = $("#quick-lookup #attended_shows").html(ui.item.attended)
 
   $("#quick-lookup #tags").html(ui.item.tags);
+
   $("#purchaser-name").text(' [' + ui.item.value + ']');
   $('div#full-name-input-column').addClass('small-10');
   $('div#full-name-input-column').removeClass('small-12');
