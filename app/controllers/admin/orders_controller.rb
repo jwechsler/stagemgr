@@ -43,7 +43,7 @@ class Admin::OrdersController < Admin::ApplicationController
     statuses = {}
     orders.each do |order|
       if order.status == 'Processed'
-        order.transition_to!(Order::FULFILLED)
+        # order.transition_to!(Order::FULFILLED)
         statuses[order.id]={:success=>true}
       else
         statuses[order.id]={:success=>false, :message=>"Only 'Processed' orders can be fulfilled"}

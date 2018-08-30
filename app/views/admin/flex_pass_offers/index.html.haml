@@ -8,61 +8,38 @@
 .row
   .small-12.columns
 
-    %table#flex-pass-offer-listing.hide.display
+    %table#flex-pass-offer-listing.display{:data=>{:source=>"#{admin_flex_pass_offers_path(format: :json)}"}}
       %thead
         %th Offer
         %th Price
         %th Qty
         %th Public?
         %th Restrictions
-        %th.hide Status
         %th
       %tbody
-        - @flex_pass_offers.each do |flex_pass_offer|
-          %tr
-            %td= link_to flex_pass_offer.name, admin_flex_pass_offer_path(flex_pass_offer)
-            %td.currency= number_to_currency(flex_pass_offer.price)
-            %td.text-center= flex_pass_offer.number_of_tickets
-            %td.text-center= flex_pass_offer.active? ? 'Y' : 'N'
-            %td= flex_pass_restrictions(flex_pass_offer)
-            %td.hide= flex_pass_offer.active? ? "Active" : "Inactive"
-            %td
-              %div.button-bar
-                %ul.button-group
-                  %li= link_to 'Destroy', destroy_admin_flex_pass_offer_path(flex_pass_offer), :class=>'tiny alert button' if permitted_to? :destroy, :admin_flex_pass_offers
 
-                  %li= link_to 'Edit', edit_admin_flex_pass_offer_path(flex_pass_offer), :class=>'tiny button' if permitted_to? :manage, :admin_flex_pass_offers
-                %ul.button-group
-                  - if flex_pass_offer.active?
-                    %li= link_to 'Create Order', new_admin_flex_pass_offer_order_path(flex_pass_offer), :class=>'tiny button' if permitted_to? :create, :admin_orders
-                  - else
-                    %li
-                      %a.tiny.button.disabled{:href=>'#'} Create Order
-
-    = link_to 'New Flex Pass Offer', new_admin_flex_pass_offer_path, :class=>'button' if permitted_to? :create, :admin_flex_pass_offers
+    = link_to 'New Flex Pass Offer', new_admin_flex_pass_offer_path, :class=>'button' if can? :create, :admin_flex_pass_offers
 
 
 = content_for :js do
   :javascript
     $(document).ready(function() {
       $('#flex-pass-offer-listing').dataTable({
-
-        dom: 'lf<"toolbar-buttons">rtip',
-        stateSave: true,
-        pageLength: 25,
-        order: [[5, "asc"],[0, 'asc']],
-        pagingType: "foundation",
-        columnDefs: [
-          {targets: "_all", orderable:false},
-          {targets: [1,2,3,6], searchable:false},
-          {targets: 6, width:"220px"}
-             ],
-        fnInitComplete:function() {
-          $("#flex-pass-offer-listing").show();
-          this.fnAdjustColumnSizing();
+        "processing": true,
+        "serverSide": true,
+        "ajax": $('#flex-pass-offer-listing').data('source'),
+        "pagingType": 'full_numbers',
+        "language": {
+          "lengthMenu" : "_MENU_",
+          "search": "_INPUT_"
         },
+        columns: [
+          {data: 'offer'},
+          {data: 'price'},
+          {data: 'qty'},
+          {data: 'public'},
+          {data: 'restrictions'},
+          {data: 'actions'},
+        ]
       });
-
-      setupActiveSwitchOnDataTable('#flex-pass-offer-listing',5)
-
     });

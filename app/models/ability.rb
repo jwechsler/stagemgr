@@ -20,6 +20,10 @@ class Ability
         user.theater_ids.include?(prod.theater_id)
     end
     can :update_notes, Order
+    can :read, FlexPassOffer, ["theater_id in (?)", user.theater_ids] do |flex_pass_offer|
+        user.theater_ids.include?(flex_pass_offer.theater_id)
+    end
+
     can [:read, :create, :update, :update_notes, :confirm], TicketOrder
     can [:read, :create, :hold_existing], TicketOrder
     can :auto_complete, Production

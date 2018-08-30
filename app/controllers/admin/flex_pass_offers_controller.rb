@@ -2,8 +2,13 @@ class Admin::FlexPassOffersController < Admin::ApplicationController
   load_and_authorize_resource
 
   def index
-    @flex_pass_offers = @flex_pass_offers.select {|o|
-      backend_user? || current_user.theater_ids.include?(o.theater_id) }
+    respond_to do |format|
+      format.html
+      format.json {
+        params.permit!
+        render json: FlexPassOfferDatatable.new(params, view_context: view_context, current_user: current_user )
+      }
+    end
   end
 
   # GET /flex_pass_offers/1
@@ -49,7 +54,7 @@ class Admin::FlexPassOffersController < Admin::ApplicationController
   def update
 
     respond_to do |format|
-      if @flex_pass_offer.update_attributes(params[:flex_pass_offer])
+      if @flex_pass_offer.update_attributes(flex_pass_offer_params)
         flash[:notice] = 'FlexPassOffer was successfully updated.'
         format.html { redirect_to([:admin,@flex_pass_offer]) }
         format.xml  { head :ok }
@@ -72,6 +77,12 @@ class Admin::FlexPassOffersController < Admin::ApplicationController
       }
       format.xml  { head :ok }
     end
+  end
+
+  private
+  def flex_pass_offer_params
+    params.require(:flex_pass_offer).permit(:name, :price, :number_of_tickets, :use_ticket_class_code, :flat_payout, :spiff, :facility_fee,
+      :short_description, :description, :active, :months_till_expiration, :treat_as_festival_pass, :theater_id, :exclude_theater, :redeem_immediately)
   end
 
 end

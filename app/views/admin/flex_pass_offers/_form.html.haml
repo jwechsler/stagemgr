@@ -11,7 +11,7 @@
   = f.input :active, :label=>"Web Visible"
   = f.input :months_till_expiration
   = f.input :treat_as_festival_pass
-  = f.association :theater, :label=>"Restrict redemption to", :as=>:select, :collection=>Theater.find_all_by_status(['Active', 'Private'])
+  = f.association :theater, :label=>"Restrict redemption to", :as=>:select, :collection=>Theater.where("status in (?)", ['Active', 'Private'])
   = f.input :exclude_theater, :label=>"Exclude selected theater"
   = f.input :redeem_immediately, :label=>"Redeem immediately"
   = f.button :submit, :class=>'button'
