@@ -1,5 +1,8 @@
 class Admin::FlexPassOrdersController < Admin::OrdersController
+  load_and_authorize_resource
+
   include OrdersHelper
+  include FlexPassOrdersHelper
 
   #def new
   #  @flex_pass_order = FlexPassOrder.new
@@ -28,7 +31,6 @@ class Admin::FlexPassOrdersController < Admin::OrdersController
 
     def create
       old_status = Order::NEW
-      @flex_pass_order = FlexPassOrder.new(params[:flex_pass_order])
       process_order(@flex_pass_order,:edit_admin_flex_pass_order_path)
     end
 
@@ -48,6 +50,6 @@ class Admin::FlexPassOrdersController < Admin::OrdersController
    end
 
    def flex_pass_order_params
-     params(:flex_pass_order).permit( *common_params)
+     params.require(:flex_pass_order).permit(*common_flex_pass_order_params)
    end
 end
