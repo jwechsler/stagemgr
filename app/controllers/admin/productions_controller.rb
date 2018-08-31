@@ -43,13 +43,15 @@ class Admin::ProductionsController < Admin::ApplicationController
     end
     @production = Production.new(production_params)
     @production.theater = @theater
-
-    respond_to do |format|
-      if @production.save
-        flash[:notice] = 'Production was successfully created.'
+    Rails.logger.debug("**** PROMO: @production.promo")
+    if @production.save
+      flash[:notice] = 'Production was successfully created.'
+      respond_to do |format|
         format.html { redirect_to(admin_theater_path(@theater)) }
         format.xml  { render :xml => @production, :status => :created, :location => @production }
-      else
+      end
+    else
+      respond_to do |format|
         format.html { render :action => "new" }
         format.xml  { render :xml => @production.errors, :status => :unprocessable_entity }
       end
@@ -60,11 +62,12 @@ class Admin::ProductionsController < Admin::ApplicationController
   # PUT /productions/1
   # PUT /productions/1.xml
   def update
-
-    params[:production].delete(:promo) if params[:production].has_key?(:promo) && (params[:production][:promo].respond_to? :empty?) && params[:production][:promo].empty?
+    Rails.logger.debug("*** promo= #{@production.promo.url(:thumb)}")
+    @production.update_attributes(production_params)
+    Rails.logger.debug("*** promo= #{@production.promo.url(:thumb)}")
     respond_to do |format|
 
-      if @production.update_attributes(production_params)
+      if @production.save
         flash[:notice] =  raw "<i>#{@production.name}</i> was successfully updated."
         format.html { redirect_to(admin_theater_path(@production.theater)) }
         format.xml  { head :ok }
@@ -99,7 +102,7 @@ class Admin::ProductionsController < Admin::ApplicationController
       :credit_lines, :short_description, :show_description, :running_time, :intermission,
       :allow_late_seating, :capacity, :additional_information_link, :calendar_callout, :conversion_pixel_code,
       :flex_pass_offer_id, :myemma_attendee_group, :survey_link, :mailing_list_link,
-      :follow_up_message_2, :confirmation_message, :seat_map_id)
+      :follow_up_message_2, :confirmation_message, :seat_map_id, :promo)
   end
 
 end
