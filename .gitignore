@@ -9,7 +9,6 @@ config/pay_pal_credentials.yml
 *.pid
 db/*.sqlite3
 log
-bin
 log/*.log
 tmp/**/*
 .DS_Store
