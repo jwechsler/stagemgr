@@ -138,7 +138,7 @@ class Admin::AddressesController < Admin::ApplicationController
         label += " [MEMBER]" unless member_code.nil?
         label += " #{a.line1} #{a.city} #{a.zipcode}" unless a.line1.blank?
         label += " #{a.email}" unless a.email.blank?
-        attended = a.productions.sort {|a,b| b.closing_at <=> a.closing_at}[0..9].map{|p| "<div class=\"small-6 columns quick-lookup-history\">#{p.name}</div>" }.join(' ')
+        attended = a.productions.uniq.sort {|a,b| b.closing_at <=> a.closing_at}[0..9].map{|p| "<div class=\"small-6 columns quick-lookup-history\">#{p.name}</div>" }.join(' ')
         { :id => a.id,
           :label=>label,
           :value=>a.full_name,
