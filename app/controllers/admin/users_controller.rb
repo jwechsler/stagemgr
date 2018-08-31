@@ -32,7 +32,8 @@ class Admin::UsersController < Admin::ApplicationController
   def edit; end
 
   def update
-    if @user.update_attributes(user_params)
+    @user.update_attributes(user_params)
+    if @user.save
       flash[:notice] = "Account updated!"
       redirect_to admin_users_path
     else
@@ -56,6 +57,6 @@ class Admin::UsersController < Admin::ApplicationController
   end
 
   def user_params
-    params.require(:user).permit(:email,:password,:password_confirmation,:status,:is_administrator,:is_box_office_user, :user_theater_ids=>[])
+    params.require(:user).permit(:email,:password,:password_confirmation,:status,:is_administrator,:is_box_office_user, :theater_ids=>[])
   end
 end
