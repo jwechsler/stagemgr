@@ -33,7 +33,7 @@ class User < ActiveRecord::Base
   end
 
   def theater_ids
-    return theaters.map{|t| t.id.to_i}
+    allowed = theaters.map{|t| t.id.to_i}
   end
 
   def set_defaults
@@ -43,7 +43,7 @@ class User < ActiveRecord::Base
   end
 
   def is_theater_user?
-    !self.theaters.empty? && !self.is_administrator? && !self.is_box_office_user?
+    !self.is_administrator? && !self.is_box_office_user?
   end
 
   def username
