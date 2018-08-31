@@ -20,7 +20,7 @@ class Admin::ReportsController < Admin::ApplicationController
       order_clause = :name
     end
 
-    @productions = Production.order(order_clause).accessible_by(current_ability,:read).where(status: Production.visible_statuses)
+    @productions = Production.accessible_by(current_ability,:read).where("status in (?)", Production.visible_statuses).order(order_clause)
 
     if is_theater_user then
       @flex_pass_offers = @productions.select { |p| !p.flex_pass_offer.nil? }.map { |p| p.flex_pass_offer }
@@ -221,7 +221,7 @@ class Admin::ReportsController < Admin::ApplicationController
 
   def production_sales_by_performance
 
-    @production = Production.find(params[:report][:production_id])
+    @production = Production.accessible_by(current_ability, :read).find(params[:report][:production_id])
     @headers, @report_data = build_production_sales_by_performance(@production, !params['download_csv'].nil?)
     if params['download_csv'].nil? then
       respond_to do |format|
