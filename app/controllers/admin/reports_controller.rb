@@ -330,7 +330,6 @@ class Admin::ReportsController < Admin::ApplicationController
             :first_name=>'',
             :street_address=>'',
             :street_address_2=>'',
-            :state=>'',
             :city=>'',
             :state=>'',
             :postal_code=>'',
