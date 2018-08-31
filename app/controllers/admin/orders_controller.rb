@@ -15,7 +15,6 @@ class Admin::OrdersController < Admin::ApplicationController
   ]
 
   def index
-    # store_search_and_pagination_state unless !session[:existing_box_office_orders_state].nil?
     respond_to do |format|
       format.html
       format.json {
@@ -152,20 +151,6 @@ class Admin::OrdersController < Admin::ApplicationController
   def filter_by_allowed
     @order = Order.accessible_by(current_ability).find(params[:id])
   end
-
-  def store_search_and_pagination_state
-    state_to_store = {}
-    if params['_search']=='true'
-      VALID_SEARCH_COLUMNS.each do |column_name|
-        state_to_store[column_name]=params[column_name] if params[column_name] && !params[column_name].empty?
-      end
-    end
-    ['page', 'rows', 'sidx', 'sord'].each do |column_name|
-      state_to_store[column_name]=params[column_name] if params[column_name] && !params[column_name].empty?
-    end
-    session[:existing_box_office_orders_state] = state_to_store
-  end
-
 
 
 end

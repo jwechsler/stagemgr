@@ -67,13 +67,14 @@ select[size], select[multiple] {
 
 .quick-lookup-history {
   color: gray;
+  font-size: 12px;
   font-family: italic;
   font: {
     family: italic;
   }
 }
 
-.quick-lookup-history .label {
+.quick-lookup-history.label {
   color: white;
   font-family: plain;
 }
