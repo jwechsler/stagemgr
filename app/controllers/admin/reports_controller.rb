@@ -340,9 +340,11 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def build_fulfill_labels(through_date)
-    orders = TicketOrder.order("performances.performance_date, productions.production_code, performances.performance_code, addresses.last_name").all(:include=>[:ticket_line_items, {:performance=>:production}, :address],
-                                                                    :conditions=>["orders.status = ? and performances.status = 'Active' and performances.performance_date <= ? and performances.performance_date > ? and productions.status in (?)",
-                                                                                  Order::PROCESSED, through_date, through_date - 1.day, Production.visible_statuses])
+    orders = TicketOrder.joins(:performance).joins(performance: :production).joins(:address).includes(:ticket_line_items).where(
+        "orders.status = ? and performances.status = 'Active' and performances.performance_date <= ? and performances.performance_date > ? and productions.status in (?)",
+        Order::PROCESSED, through_date, through_date - 1.day, Production.visible_statuses
+      ).order("performances.performance_date, productions.production_code, performances.performance_code, addresses.last_name")
+
     orders = orders.sort_by{|o| [o.performance.performance_code, o.hold_under.blank? ? o.address.last_name : Address.parse_name(o.hold_under)[3] ]}
     report = Array.new
     headers = [:reserved_under, :performance_code, :tickets, :order_id, :profile, :member_id, :first_time, :last_24_months, :donor]
@@ -350,11 +352,12 @@ class Admin::ReportsController < Admin::ApplicationController
         if o.contains_tickets?
           logger.info("Fulfilling order #{o.id}")
           is_donor = o.address.is_donor?
+
           last24 = o.address.performances_attended(2.years.ago)
           member_id = o.membership_payments.size > 0 ? o.membership_payments.to_a.map { |mp| mp.membership.member_code }.join(',') + ' ' : ''
           attendance_code = member_id
           attendance_code += o.address.first_time_paying?(o) ? 'N' : 'R'
-          attendance_code += ("%03d" % last24).reverse
+#          attendance_code += ("%03d" % last24).reverse
           attendance_code += "A" if is_donor
           if o.hold_under.blank?
             ticket_name = "#{o.address.last_name}" + ((o.address.last_name.blank? || o.address.first_name.blank?) ? '' : ', ') + (o.address.first_name.blank? ? '' : o.address.first_name.first)

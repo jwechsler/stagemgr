@@ -116,26 +116,20 @@
           .small-2.columns
             = submit_tag "Download", :name=>'download_csv', :class=>'tiny button postfix'
 
-- if can? :fulfill, Order then
+- if can?(:fulfill, TicketOrder) && !$TKTPRINT['service'].blank? then
   .row
     .small-6.columns
       %span.report_title
-        - unless $TKTPRINT['service'].blank?
-          Print Tickets
-        - else
-          Fulfill Tickets
+        Print Tickets
       %span.help_text
-        - unless $TKTPRINT['service'].blank?
-          Print all unfulfilled tickets through specified date
-        - else
-          Returns label file for all unfulfilled orders
+        Print all unfulfilled tickets through specified date
     .small-6.columns
       = form_tag(fulfill_tickets_admin_reports_path, :method=>"post") do
         .row.collapse
           .small-8.columns
             = text_field_tag(:through_day, Date.today, :default=>Time.now, :class=>'date_picker')
           .small-4.columns
-            = submit_tag $TKTPRINT['service'].blank? ? "Fulfill" : "Print", :name=>'download_csv', :confirm =>"This will fulfill tickets.  Are you sure?", :class=>'tiny button postfix'
+            = submit_tag "Print", :confirm =>"This will fulfill tickets.  Are you sure?", :class=>'tiny button postfix'
 
 - if can? :reconciliation_reports, Report then
   .row
