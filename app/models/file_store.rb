@@ -14,8 +14,8 @@ class FileStore < ActiveRecord::Base
     )
 
   FILE_FORMATS = (
-    TRG_LIST_IMPORT_FORMAT, MAILING_CARD_IMPORT_FORMAT, SEATMAP_GEOMETRY, EXTERNAL_CONTACT_FORMAT  =
-    "TRGArts List Import", "Mailing Card Format", "Seatmap Geometry", "External Contact Format")
+    TRG_LIST_IMPORT_FORMAT, MAILING_CARD_IMPORT_FORMAT, SEATMAP_GEOMETRY, EXTERNAL_CONTACT_FORMAT, BULK_ORDER_FORMAT  =
+    "TRGArts List Import", "Mailing Card Format", "Seatmap Geometry", "External Contact Format", "Bulk Order Format")
 
   def is_trg_list_format?
     true

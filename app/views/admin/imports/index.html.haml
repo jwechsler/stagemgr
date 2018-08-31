@@ -56,4 +56,24 @@
             = form.file_field :data
         = submit_tag "Import Mailing List", :class=>'button'
 
+    %fieldset
+      %legend Import Bulk Orders
+      = form_for @bulk_orders_import, :url=> bulk_orders_admin_imports_path, :html=>{:multipart=>true} do |form|
+        .row
+          .small-3.columns
+            = label_tag :theater, 'Associate to Theater', :class=>'left inline'
+          .small-9.columns
+            = collection_select :theater, :theater_id, @theaters, :id, :name
+        .row
+          .small-3.columns
+            = label_tag :payment_type, 'Use Payment Type', :class=>'left inline'
+          .small-9.columns
+            = collection_select :payment_type, :payment_type_id, @payment_types, :id, :display_name, :include_blank=>"None"
+        .row
+          .small-3.columns
+            = label_tag :data, 'From file', :class=>'left inline'
+          .small-9.columns
+            = form.file_field :data
+        = submit_tag "Import Orders", :class=>'button'
+
     = render '/file_stores/current_files', :file_stores=>@imports
