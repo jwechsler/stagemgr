@@ -33,10 +33,10 @@ class Report
           csv << headers.map { |h| h == :Segment ? key : Report.tidy_output(row[h]) } unless row.nil? }
       }
     end
-    self.write_file_data(file_path,csv_string)
+    self.write_file_data(file_path, filestore, csv_string)
   end
 
-  def write_file_data(file_path, data)
+  def write_file_data(file_path, filestore, data)
     f = File.new(file_path,'w')
     f.puts(data)
     f.close

@@ -29,53 +29,89 @@ class BulkOrderImport
       filestore.notes = "Importing subscriber seating chart"
       filestore.save
 
-      problems = FileStore.new
-      problems.worker = FileStore::REPORT
-      problems.user = filestore.user
+      problems = BulkOrderImportIssues.new(filestore.user.id)
 
       productions = Production.where(theater_id: theater_id).pluck(:id, :production_code).to_h
+      production_seat_maps = Production.where("theater_id = :theater_id and seat_map_id is not null",
+        theater_id: theater_id).pluck(:id, :seat_map_id).to_h
+      seat_locations = Hash.new
+      production_seat_maps.each {|production_id, seat_map_id|
+        seats = Seat.where(seat_map_id: seat_map_id).pluck(:location, :id).to_h
+        seat_locations[production_id] = seats
+      }
       performances = Performance.where("production_id in (select id from productions where theater_id = ?)", theater_id).map{|perf| [perf.performance_code, perf]}.to_h
       address_ids = AddressTag.where(tag_label: 'External Id',theater_id: theater_id).pluck(:tag_value, :address_id).to_h # Get a list of all addresses with these external tags
       ticket_classes = TicketClass.where("production_id in (select id from productions where theater_id = ?)", theater_id).map{ |tc|
         [productions[tc.production_id]+"-"+tc.class_code, tc]}.to_h
       payment_type = payment_type_id.blank? ? nil : PaymentType.find(payment_type_id.to_i)
-      orders = []
+      issues = []
 
 
       CSV.foreach(filestore.data.path, headers:true) do |row|
+        begin
+          total += 1
+          puts "*** Finding #{row['ExternalId']}"
+          puts "*** is address_ids[row['ExternalId']]"
+          a = Address.find(address_ids[row['ExternalId']].to_i)
 
-        total += 1
-        puts "*** Finding #{row['ExternalId']}"
-        puts "*** is address_ids[row['ExternalId']]"
-        a = Address.find(address_ids[row['ExternalId']].to_i)
+          Order.transaction do
+            o = TicketOrder.new
+            o.status = TicketOrder::NEW
+            perf_code = row['PerformanceCode']
+            puts("*** PERFORMANCE: #{perf_code} #{performances[perf_code]}")
+            o.performance = performances[perf_code]
+            o.address = a
 
-        o = TicketOrder.new
-        o.status = TicketOrder::NEW
-        perf_code = row['PerformanceCode']
-        puts("*** PERFORMANCE: #{perf_code} #{performances[perf_code]}")
-        o.performance = performances[perf_code]
-        o.address = a
+            puts("*** Performance allocations: #{o.performance.ticket_class_allocations.count}")
 
-        puts("*** Performance allocations: #{o.performance.ticket_class_allocations}")
+            ticket_class = ticket_classes[row['ProductionCode']+'-'+row['TicketClass']]
+            seats = row['Seating'].split(',')
+            o.ticket_line_items.build(ticket_count: seats.count, ticket_class: ticket_class)
 
-        seats = row['Seating'].split(',')
-        ticket_class = ticket_classes[row['ProductionCode']+'-'+row['TicketClass']]
-        o.ticket_line_items.build(ticket_count: seats.count, ticket_class: ticket_class)
-        puts("*** Ticket Class =  #{ticket_class}")
+            puts("*** Ticket Class =  #{ticket_class}")
 
-        o.save!
-        puts("*** Transition")
-        if payment_type.nil?
-          o.transition_to!(Order::HOLD)
-        else
-          o.payment_type = payment_type
-          o.transition_to!(Order::PROCESSED)
-          o.payments.each{|p| p.note = "Imported from #{filestore.data_file_name} by #{filestore.user.email}"; p.save }
+            unless seats.empty?
+              o.save!
+              seats.each{|seat|
+
+                raise RuntimeError, "Production #{o.performance.production.name} does not allow for assigned seating" if seat_locations[o.performance.production_id].nil?
+                seat_id = seat_locations[o.performance.production_id][seat]
+                sa = SeatAssignment.find_by(performance_id: o.performance_id, seat_id: seat_id)
+                raise RuntimeError, "Seat map does not include seat '#{seat}'" if sa.nil?
+                puts("*** Seating in #{seat}, assignment id: #{sa.id}")
+                raise RuntimeError, "Seat #{seat} is not available for seating" unless sa.assign_to_order(o)
+              }
+              puts "*** Seating complete"
+              o.reload
+            end
+
+            if payment_type.nil?
+
+              o.transition_to!(Order::HOLD)
+              puts("*** Order is #{Order::HOLD}")
+            else
+              o.payment_type = payment_type
+              o.transition_to!(Order::PROCESSED)
+              o.payments.each{|p| p.note = "Imported from #{filestore.data_file_name} by #{filestore.user.email}"; p.save }
+              puts("*** Order is #{Order::PROCESSED}")
+            end
+          end
+        rescue => e
+          puts e.message
+          # puts e.backtrace
+          problems.append_issue(id:row['ExternalId'],
+            customer_name: row['LastName'],
+            performance_code: row['PerformanceCode'],
+            seating: row['Seating'],
+            ticket_class: row['TicketClass'],
+            message: e.message)
         end
 
+
       end
-      filestore.notes = "Imported #{total} orders"
+      filestore.notes = "Imported #{total} orders, #{problems.count} errors"
       filestore.save
+      problems.create if problems.any_issues?
     rescue => e
       puts "*** Could not save "
       Rails.logger.error e.message

@@ -7,5 +7,9 @@ module Exceptions
   # Membership exceptions
   class UnknownMembershipCode < StandardError; end
 
+  # seating exceptions
+  class SeatUnavailableError < StandardError; end
+
+  class SeatingNotAllowedForProduction < StandardError; end
 
 end

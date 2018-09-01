@@ -111,6 +111,14 @@ class Admin::SeatMapsController < ApplicationController
         @seat_map.seats << seat
       end
     end
+
+    productions = Production.find_by(seat_map_id: self.id)
+    productions.each do |prod|
+      prod.performances.each do |perf|
+        @seat_map.create_inventory_for_performance(perf)
+      end
+    end
+
   end
 
   def seat_map_params

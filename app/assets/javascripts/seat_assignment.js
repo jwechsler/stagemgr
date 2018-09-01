@@ -106,7 +106,7 @@ $(document).ready(function() {
             {
               key: 'available',
               isSelectable: true,
-              staticState: false,
+              staticState: true,
               render_select: {
                 fillColor: '000000',
                 fillOpacity: 0.0
