@@ -86,7 +86,6 @@ class BulkOrderImport
             end
 
             if payment_type.nil?
-
               o.transition_to!(Order::HOLD)
               puts("*** Order is #{Order::HOLD}")
             else
