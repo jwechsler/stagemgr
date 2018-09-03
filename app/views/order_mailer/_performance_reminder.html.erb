@@ -14,20 +14,10 @@
 <%= render :partial=>"ticket_annotations", :locals=>{:order=>order} %>
 <%= render :partial=>"special_features", :locals=>{:order=>order} %>
 
-<h3>Getting Here</h3>
-<p>Theater Wit is located at 1229 W Belmont, between Southport and Racine.  We are accessible by "L" at the Belmont stop for the red, brown and purple lines four blocks east of us.  The 77 CTA bus also drops you on our doorstep.  If you will be driving, there is often street parking, and we offer self parking in our large lot behind Cooper's restaurant, directly across the street for $8.</p>
-<h3>
-Pre-show Dining Recommendations
-</h3>
+<%= render :partial=>"transportation_instructions", :locals=>{:order=>order} %>
 
-<p><a href="http://www.kubochicago.com">Kubo</a> (773-857-1408) is some of the best Filipino food we've had in Chicago. If you aren't looking for Pancit or Pork Ribs Adobo, there are a variety of fusion dishes, like NY Strip or a Longanisa burger.</p>
-
-<p><a href="http://www.fahlstromsfreshfish.com">Fahlstrom's Fish Market</a> (773-281-6000) is a terrfic seafood diner, complete with fishmonger, also just steps away from Theater Wit's front door. Glenn Fahlstrom has acted on our stages, so check out his restaurant!</p>
-
-<h3>Seating and Admission</h3>
-<p>All seating is general admission.  Each show opens its doors 25 minutes before curtain time. Our houses are intimate with excellent sightlines, but if you are concerned, you may want to show up on the earlier side for your pick of seats.  If you have any special seating needs (handicapped/wheelchair accessible, groups over 15), please call us at 773-975-8150 and we'll make sure you're taken care of.
-<i>Please note that late seating is often <b>not available</b> for shows.</i> Please make plans to be at the theater at least ten minutes before curtain to avoid tears and recriminations.
-</p>
+<% render :partial=>"dining_recommendations", :locals=>{order: order} %>
+<% render :partial=>"seating_policy", :locals=>{order: order} %>
 
 <h3>Bar</h3>
 <p>Theater Wit has a full cocktail, beer, wine and snack bar.  We feature handmade chocolates by local artisans and a variety of top-shelf liquors, including local micro brews. All drinks may be taken into the performance.</p>

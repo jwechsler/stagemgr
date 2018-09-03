@@ -1,0 +1,12 @@
+- if order.performance.production.has_reserved_seating?
+  %p
+    You have reserved seating for this performance.
+    - seat_list = order.seats.map {|sa| sa.seat.location}.join(',')
+    - features = order.seats.map {|sa| sa.seat.feature}.uniq.join(',')
+    = "Your #{(order.seats.size == 1 ? 'seat is' : 'seats are')} #{seat_list}#{features.blank? ? '.' : ' ('+features+').'}"
+- else
+  - unless order.special_request.blank?
+    %p
+      = "You have requested #{order.special_request}."
+
+

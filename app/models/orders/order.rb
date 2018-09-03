@@ -458,6 +458,7 @@ class Order < ActiveRecord::Base
         raise "Transition from #{old_status} to #{new_status} unsuccessful. Current status is #{self.status}." unless self.status == new_status
       rescue Exception=>e
         Rails.logger.error "ORDER #{self.id} NOT PROCESSED #{e.to_s}"
+        Rails.logger.debug e.backtrace
         self.reload
         errors.add :error, e.to_s
         redirect_to = nil

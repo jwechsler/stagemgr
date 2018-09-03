@@ -11,8 +11,11 @@ class Admin::ImportsController < Admin::ApplicationController
     @card_basic_import.format = FileStore::MAILING_CARD_IMPORT_FORMAT
     @card_external_import = FileStore.new
     @card_external_import.format = FileStore::EXTERNAL_CONTACT_FORMAT
+    @bulk_orders_import = FileStore.new
+    @bulk_orders_import.format = FileStore::BULK_ORDER_FORMAT
     @productions = productions_visible_to_operations
     @theaters = Theater.all.accessible_by(current_ability).where(status: Theater::ACTIVE)
+    @payment_types = ExternalPaymentType.all.order(:display_name)
     respond_to do |format|
       format.html # index.html.erb
       format.xml  { render :xml => @theaters }
@@ -63,6 +66,22 @@ class Admin::ImportsController < Admin::ApplicationController
     if @card_external_import.save then
       Resque.enqueue(ExternalAddressesImport, @card_external_import.id, @theater.id)
       flash[:notice] = 'Your contact list is importing'
+    else
+      flash[:error] = 'Invalid format'
+    end
+    redirect_back_or_default admin_imports_path
+  end
+
+  def bulk_orders
+    @bulk_orders_import = FileStore.create(file_store_params)
+    @theater = Theater.find(params[:theater][:theater_id])
+    @bulk_orders_import.user = current_user
+    @bulk_orders_import.format = FileStore::BULK_ORDER_FORMAT
+    @bulk_orders_import.worker = FileStore::IMPORT
+    @bulk_orders_import.notes = "Order import"
+    if @bulk_orders_import.save then
+      Resque.enqueue(BulkOrderImport, @bulk_orders_import.id, @theater.id, params[:payment_type][:payment_type_id])
+      flash[:notice] = 'Your subscribers are being seated'
     else
       flash[:error] = 'Invalid format'
     end

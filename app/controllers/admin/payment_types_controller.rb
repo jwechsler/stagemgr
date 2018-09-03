@@ -1,11 +1,13 @@
 class Admin::PaymentTypesController < Admin::ApplicationController
 
-  load_and_authorize_resource
+  authorize_resource
 
   def index
+    @payment_types = PaymentType.all
   end
 
   def edit
+    @payment_type = PaymentType.find(params[:id])
   end
 
   def new_external_payment
@@ -17,6 +19,7 @@ class Admin::PaymentTypesController < Admin::ApplicationController
   end
 
   def update
+    @payment_type = PaymentType.find(params[:id])
     @payment_type.update_attributes(payment_type_params)
     respond_to do |format|
       if (@payment_type.save)
@@ -31,7 +34,7 @@ class Admin::PaymentTypesController < Admin::ApplicationController
   end
 
   def create_external_payment
-    @payment_type = ExternalPaymentType.create(params[:payment_type])
+    @payment_type = ExternalPaymentType.create(payment_type_params)
     respond_to do |format|
       if @payment_type.save
         flash[:notice] =  raw "<i>#{@payment_type.display_name}</i> was successfully created."

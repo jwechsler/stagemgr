@@ -15,13 +15,13 @@ class Report
   end
 
 
-  def save_report_to_filestore(file_name)
+  def save_report_to_filestore(file_name, notes='Report')
     # now, output the various production reports
     # @todo refactor for new delf.data format.
     file_store = FileStore.new
     file_store.worker = FileStore::REPORT
     file_store.user_id = self.reporting_user_id
-    file_store.notes = 'TRGarts csv export format'
+    file_store.notes = notes
     file_store.save!
     self.save_report_as_csv(file_name, file_store)
   end
@@ -33,8 +33,12 @@ class Report
           csv << headers.map { |h| h == :Segment ? key : Report.tidy_output(row[h]) } unless row.nil? }
       }
     end
+    self.write_file_data(file_path, filestore, csv_string)
+  end
+
+  def write_file_data(file_path, filestore, data)
     f = File.new(file_path,'w')
-    f.puts(csv_string)
+    f.puts(data)
     f.close
     unless filestore.nil?
       filestore.data = File.open(file_path)

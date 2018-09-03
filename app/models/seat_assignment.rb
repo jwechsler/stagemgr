@@ -4,7 +4,7 @@ class SeatAssignment < ActiveRecord::Base
   belongs_to :seat_map
   belongs_to :seat
   belongs_to :performance
-
+  validates_presence_of :order, :if=>:assigned?
   SEAT_STATUSES = (
   AVAILABLE, ASSIGNED, TEMPORARY, BROKEN =
       "Available", "Assigned", "Held", "N/A")
@@ -28,6 +28,15 @@ class SeatAssignment < ActiveRecord::Base
       performance.seat_assignments << performance.production.seat_map.create_inventory_for_performance(performance)
     end
     performance.seat_assignments
+  end
+
+  def assign_to_order(order)
+    number_assigned = SeatAssignment.where(status: [SeatAssignment::TEMPORARY, SeatAssignment::ASSIGNED], order_id:order.id).size
+    unless number_assigned >= order.number_of_seats
+      SeatAssignment.where("id = :id and (order_id is null or order_id = :order_id)",id:self.id, order_id: order.id).update_all(order_id: order.id, status: SeatAssignment::ASSIGNED)
+      self.reload
+    end
+    (self.order_id == order.id)
   end
 
   def unassign_from_order(ticket_order)

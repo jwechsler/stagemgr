@@ -8,9 +8,8 @@ class SeatMap < ActiveRecord::Base
   validates_attachment_content_type :base_image_map, content_type: /\Aimage\/.*\z/
   before_destroy :prevent_deletion_when_assigned_to_production
 
-
   def create_inventory_for_performance(performance)
-    if productions.include? (performance.production) then
+    if self.productions.map{|p| p.id}.include? (performance.production_id) and performance.seat_assignments.empty? and performance.production.has_reserved_seating? then
       SeatMap.transaction do
         seats.each { |seat|
           assignment = SeatAssignment.new(seat: seat, performance:performance, seat_map: self)

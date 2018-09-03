@@ -93,7 +93,7 @@ class TicketOrder < Order
   def seat_assignments_complete
     if self.performance.production.has_reserved_seating? && (status.eql?(Order::PROCESSED) || status.eql?(Order::FULFILLED)) then
       if (self.seats.reload.size != self.number_of_seats) then
-        errors.add :base, "You must select #{self.number_of_seats} before finalizing this order"
+        errors.add :base, "You must select #{self.number_of_seats} #{pluralize(self.number_of_seats, 'seat')} before finalizing this order"
       end
     end
   end
