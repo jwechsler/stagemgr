@@ -112,7 +112,7 @@ class Admin::SeatMapsController < ApplicationController
       end
     end
 
-    productions = Production.find_by(seat_map_id: self.id)
+    productions = Production.where(seat_map_id: @seat_map.id)
     productions.each do |prod|
       prod.performances.each do |perf|
         @seat_map.create_inventory_for_performance(perf)
