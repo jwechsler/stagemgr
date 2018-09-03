@@ -1,0 +1,48 @@
+= content_for :email_title do
+  Your tickets for
+  = "#{order.performance.production.name}#{order.theater.theater_class != 'Default' ? ', presented by ' + order.theater.name : ''}"
+
+%h3
+  Thanks for your order!
+%p
+  We have
+  = pluralize(order.number_of_seats, 'ticket')
+  reserved under the name
+  = order.hold_under.blank? ? order.address.full_name : order.hold_under
+  for the
+  = order.performance.performance_time.strftime('%l:%M %p')
+  performance of
+  %i= "#{order.performance.production.name}#{order.theater.theater_class != 'Default' ? ',' : ''}"
+  = "presented by #{order.theater.name}" if order.theater.theater_class != 'Default'
+  on
+  = "#{order.performance.performance_date.strftime('%A, %B %_d')}."
+  Your tickets will be waiting at the box office under
+  - display_payment = order.hold_under.blank? ? 'your name' : order.hold_under
+  - if !order.membership_payments.empty?
+    = display_payment + " and were purchased with your #{order.membership_payments.first.membership.membership_offer.name}."
+  - elsif !order.flex_pass_payments.empty?
+    = display_payment + " and were purchased with your flex pass."
+  - elsif order.customer_visible_total == 0
+    = display_payment + "."
+  - else
+    = display_payment + " and the total charge was $#{'%0.2f' % order.customer_visible_total}."
+  - unless order.performance.production.allow_late_seating?
+    %b Please note, there is no late seating available for this performance.  Latecomers will be issued a voucher to attend a subsequent performance, if available.
+
+= render :partial=>"confirmation_ticket_details", :locals=>{:order=>order}
+
+%h3 Here's some handy stuff you'll want to know:
+
+= render :partial=>"transportation_instructions", :locals=>{:order=>order}
+
+= render :partial=>"dining_recommendations", :locals=>{order: order}
+= render :partial=>"seating_policy", :locals=>{order: order}
+
+%h4 Bar
+
+%p
+  Theater Wit has a full cocktail, wine and beer bar. We feature handmade chocolates and baked goods by local artisans and a variety of top-shelf liquors, including local micro brews. All drinks may be taken into the performance.
+
+%h4 And The Obligatory Legal Speak at the End of Emails
+%p
+  Please remember that your tickets are NON-REFUNDABLE and NON-EXCHANGEABLE. We will do our best to accommodate last-minute changes but we reserve the right to let your seats wither on the vine, as it were.

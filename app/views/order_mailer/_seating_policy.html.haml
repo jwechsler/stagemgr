@@ -1,0 +1,19 @@
+%h4 Seating and Admission
+- unless order.performance.production.has_reserved_seating?
+  %p
+    All seating is general admission. Each show opens its doors 25 minutes before curtain time. Our houses are intimate with excellent sightlines, but if you are concerned, you may want to show up on the earlier side for your pick of seats.
+    - if order.special_requests.blank?
+      If you have any special seating requests (wheelchair accessibility, stairs, etc.), please call us at 773-975-8150 and we'll do our best to make sure you're taken care of.
+    - else
+      We have your request for
+      = order.special_requests
+      seating.  We will reserve those seats for you.  Look for your name on the seat :)
+%p
+  %i
+    Please note that late seating is
+    %b
+      not
+      = 'necessarily' if order.performance.production.allow_late_seating?
+      available.
+  Please make plans to be at the theater at least ten minutes before curtain to avoid tears and recriminations.
+</p>
