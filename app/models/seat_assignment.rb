@@ -15,8 +15,8 @@ class SeatAssignment < ActiveRecord::Base
     a
   end
 
-  def assigned?(check_order)
-    (status.eql?(TEMPORARY) || status.eql?(ASSIGNED)) && order_id.eql?(check_order.id)
+  def assigned?(check_order = nil)
+    (status.eql?(TEMPORARY) || status.eql?(ASSIGNED)) && (check_order.nil? ? !self.order_id.nil? : order_id.eql?(check_order.id))
   end
 
   def temporary?

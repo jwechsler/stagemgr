@@ -456,11 +456,12 @@ class Order < ActiveRecord::Base
         old_status = self.status
         redirect_to = self.send "transition_#{self.status.underscore}_to_#{new_status.underscore}!".to_sym, redirect_to
         raise "Transition from #{old_status} to #{new_status} unsuccessful. Current status is #{self.status}." unless self.status == new_status
-      rescue Exception=>e
+      rescue StandardError=>e
         Rails.logger.error "ORDER #{self.id} NOT PROCESSED #{e.to_s}"
         Rails.logger.debug e.backtrace
         self.reload
         errors.add :error, e.to_s
+        raise e if redirect_to.nil?
         redirect_to = nil
       end
     end

@@ -36,7 +36,7 @@ class SeatAssignmentsController < ApplicationController
       format.json {
         order = Order.find(params[:order_id])
         sa = SeatAssignment.find(params[:id])
-        if sa.temporary? && (sa.order_id = order.id) && ((current_user.nil? && order.processing?) || !current_user.nil?) then
+        if sa.assigned? && (sa.order_id = order.id) && ((current_user.nil? && order.processing?) || !current_user.nil?) then
           sa.status = SeatAssignment::AVAILABLE
           sa.order = nil
           sa.reload if !sa.save

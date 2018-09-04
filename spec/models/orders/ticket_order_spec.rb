@@ -118,6 +118,8 @@ describe "a ticket order" do
 
       expect(lambda { order = FactoryBot.create(:ticket_order_for_a_pair_of_tickets, :performance=>performance )
                   order.transition_to!(Order::PROCESSING)
+                  puts order.status
+                  order.errors.each {|key, data| puts data.to_yaml }
             }).to raise_error(ActiveRecord::RecordInvalid)
     end
 
