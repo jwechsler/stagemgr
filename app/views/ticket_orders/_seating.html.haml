@@ -12,7 +12,7 @@
         = "#{seats_remaining} of #{ticket_order.number_of_seats} remaining" unless seats_remaining  == 0
 
     .columns.small-12
-      %img{:src => "#{request.protocol}#{request.host_with_port}#{ticket_order.performance.production.seat_map.base_image_map.url}", :alt => "", :usemap=> '#seatingmap', :class=>'seatingmap'}
+      %img{:src => "#{root_url}#{ticket_order.performance.production.seat_map.base_image_map.url}", :alt => "", :usemap=> '#seatingmap', :class=>'seatingmap'}
       %map{name:'seatingmap', id:'seatingmap'}
         - SeatAssignment.available_seat_assignments(ticket_order.performance, ticket_order).each do |sa|
           - sa_key = sa.available?(ticket_order) ? "#{sa.id}" : "unavailable"
