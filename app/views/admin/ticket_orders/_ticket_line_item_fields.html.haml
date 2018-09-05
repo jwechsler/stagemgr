@@ -14,3 +14,6 @@
         = to_currency f.object.total
     %div.small-1.columns
       = link_to_remove_association "Remove", f, :class=>'tiny alert button right'
+
+= content_for :js do
+  :javascript

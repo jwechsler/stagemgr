@@ -15,7 +15,7 @@ class SeatMapDatatable < DatatableBase
     records.map do |record|
       {
         label: link_to(record.label,[:admin, venue, record]),
-        base_image_map: raw("<img src=\"#{record.base_image_map.url(:thumb)}\" />"),
+        base_image_map: raw("<img src=\"#{request.protocol}#{request.host_with_port}#{record.base_image_map.url(:thumb)}\" />"),
         actions: raw(allowed_actions(record))
         # example:
         # id: record.id,
@@ -52,6 +52,10 @@ class SeatMapDatatable < DatatableBase
 
   def venue
     @venue ||= options[:venue]
+  end
+
+  def request
+    @request ||= options[:request]
   end
 
   def allowed_actions(seat_map)
