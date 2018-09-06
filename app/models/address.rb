@@ -5,6 +5,8 @@ require 'people'
 
 class Address < ActiveRecord::Base
 
+  audited only:[:first_name, :last_name, :line1, :line2, :email, :city, :state, :zipcode, :phone], max_audits: 30
+
   include AddressImports
 
   monetize :donated_this_year_cents
@@ -24,6 +26,7 @@ class Address < ActiveRecord::Base
   has_and_belongs_to_many :productions, uniq: true
   accepts_nested_attributes_for :address_tags, :reject_if => proc { |attributes| attributes['tag_label'].blank? }, :allow_destroy => true
   before_save :set_search_name
+  before_save :purge_duplicate_tags
 
 
   MAILLIST_STATUS = (
@@ -395,10 +398,27 @@ class Address < ActiveRecord::Base
                                                                          start_date, end_date).map{|o| o.performance.production}.uniq
   end
 
+
+  def purge_duplicate_tags
+    unique_tags = self.address_tags.map{|a| {tag_label: a.tag_label, tag_value: a.tag_value, theater_id: a.theater_id} }.uniq
+    unique_tags.each do |tag|
+      save_me = true
+      self.address_tags.each do |address_tag|
+        if {tag_label: address_tag.tag_label, tag_value: address_tag.tag_value, theater_id: address_tag.theater_id}.eql?(tag)
+          self.address_tags.delete(AddressTag.find(address_tag.id)) unless save_me
+          save_me = false
+        end
+      end
+
+    end
+
+  end
+
   protected
   def set_search_name
     self.search_name = self.full_name.gsub(/[\d+\s+\.!,]/,'').upcase
   end
+
 
   def update_donor_levels_from_donation_orders
     one_year_ago = Date.today - 1.year
