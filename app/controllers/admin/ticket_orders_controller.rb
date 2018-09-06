@@ -125,7 +125,11 @@ class Admin::TicketOrdersController < Admin::OrdersController
     set_payment_accessors_from_params(@ticket_order, params[:ticket_order])
     @ticket_order.payment_type = PaymentType.find(params[:ticket_order][:payment_type_id])
     set_ticket_classes_for_line_items
-    next_action = params[:commit].eql?('Assign Seats') && (@ticket_order.transitory? && @ticket_order.performance.production.has_reserved_seating?) ? :confirm_admin_ticket_order_path : :edit_admin_order_path
+    if params[:commit].eql?("Assign Seats") then
+      next_action = @ticket_order.performance.production.has_reserved_seating? ? :confirm_admin_ticket_order_path : :edit_admin_ticket_order_path
+    else
+      next_action = :edit_admin_ticket_order_path
+    end
     @ticket_order = process_order(@ticket_order,next_action)
   end
 
