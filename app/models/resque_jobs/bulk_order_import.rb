@@ -4,6 +4,7 @@ require 'csv'
 # == Allowed Headers
 #
 # ExternalId      :  An alphanumeric value attached to an address with this record called "ExternalId"
+# Id              :  The address ID (supercedes ExternalId if present)
 # ProductionCode  :  Production Code for ticket class associations
 # PerformanceCode :  Performance code to seat in
 # Seating         :  A comma-delimited list of seats

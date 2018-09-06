@@ -271,6 +271,7 @@ Stagemgr::Application.routes.draw do
       post :mailing_cards, :on=>:collection
       post :external_contacts, :on=>:collection
       post :bulk_orders, :on=>:collection
+      post :bulk_flex_orders, :on=>:collection
     end
 
     resources :amount_off_special_offers, :only=>[:edit,:index]

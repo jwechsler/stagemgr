@@ -25,7 +25,7 @@ class Admin::FlexPassOrdersController < Admin::OrdersController
   end
 
   def update
-    @flex_pass_order.attributes=params[:flex_pass_order]
+    @flex_pass_order.update_attributes(flex_pass_order_params)
     process_order(@flex_pass_order,:edit_admin_order_path)
   end
 
