@@ -109,7 +109,7 @@ class BulkOrderImport
             customer_name: "#{row['FirstName']} #{row['LastName']}",
             performance_code: row['PerformanceCode'],
             seating: row['Seating'],
-            ticket_class: row['TicketClass'],
+            order_detail: row['TicketClass'],
             message: e.message)
         end
 

@@ -89,7 +89,6 @@ class Admin::ImportsController < Admin::ApplicationController
     redirect_back_or_default admin_imports_path
   end
 
-
   def bulk_flex_pass_orders
     @bulk_flex_pass_orders_import = FileStore.create(file_store_params)
     @theater = Theater.find(params[:theater][:theater_id])

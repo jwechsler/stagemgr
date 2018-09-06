@@ -169,7 +169,7 @@ class Admin::AddressesController < Admin::ApplicationController
 
   private
   def address_params
-    params.require(:address).permit(:full_name, :line1, :line2, :city, :state, :zipcode, :email, :phone, :street_number, :address_tags_attributes)
+    params.require(:address).permit(:full_name, :line1, :line2, :city, :state, :zipcode, :email, :phone, :street_number, :address_tags_attributes, :_destroy)
   end
 
 end
