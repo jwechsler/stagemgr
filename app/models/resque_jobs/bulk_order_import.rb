@@ -48,12 +48,18 @@ class BulkOrderImport
 
 
       CSV.foreach(filestore.data.path, headers:true) do |row|
+        current_address_id = 0
         begin
           total += 1
-          puts "*** Finding #{row['ExternalId']}"
-          puts "*** is address_ids[row['ExternalId']]"
-          a = Address.find(address_ids[row['ExternalId']].to_i)
-
+          if row['ExternalId'].blank?
+            puts "*** Getting address #{row['Id']}"
+            current_address_id = row['Id'].to_i
+            a = Address.find(current_address_id)
+          else
+            current_address_id = row['ExternalId'].to_i
+            puts "*** Finding external id #{current_address_id} as #{address_ids[row['ExternalId']]}"
+            a = Address.find(address_ids[current_address_id])
+          end
           Order.transaction do
             o = TicketOrder.new
             o.status = TicketOrder::NEW
@@ -65,7 +71,7 @@ class BulkOrderImport
             puts("*** Performance allocations: #{o.performance.ticket_class_allocations.count}")
 
             ticket_class = ticket_classes[row['ProductionCode']+'-'+row['TicketClass']]
-            seats = row['Seating'].split(',')
+            seats = row['Seating'].blank? ? [] : row['Seating'].split(',')
             o.ticket_line_items.build(ticket_count: seats.count, ticket_class: ticket_class)
 
             puts("*** Ticket Class =  #{ticket_class}")
@@ -98,8 +104,8 @@ class BulkOrderImport
         rescue => e
           puts e.message
           # puts e.backtrace
-          problems.append_issue(id:row['ExternalId'],
-            customer_name: row['LastName'],
+          problems.append_issue(id:current_address_id,
+            customer_name: "#{row['FirstName']} #{row['LastName']}",
             performance_code: row['PerformanceCode'],
             seating: row['Seating'],
             ticket_class: row['TicketClass'],
