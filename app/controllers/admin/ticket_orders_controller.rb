@@ -1,4 +1,3 @@
-require 'http_logger'
 class Admin::TicketOrdersController < Admin::OrdersController
   load_and_authorize_resource
   include TicketOrdersHelper
@@ -19,8 +18,8 @@ class Admin::TicketOrdersController < Admin::OrdersController
   end
 
   def autocomplete_performance_performance_code
-    production = Production.accessible_by(current_ability).find_by_production_code(params[:production_code])
-    if production.nil?
+    production = Production.accessible_by(current_ability).find(params[:production_id].to_i) unless params[:production_id].blank?
+    if params[:production_id].blank? || production.nil?
       render :json=>Array.new
     else
       performances = self.sellable_performances_with_partial_code(production, params[:term])
