@@ -8,7 +8,7 @@
     - if f.object.ticket_class.ticket_type == 'Donation'
       = f.input_field :price_override, :class=>'price_override', :placeholder=>"Suggested #{number_to_currency(f.object.ticket_class.ticket_price)}"
     -else
-      - if f.object.ticket_class.software_managed
+      - if f.object.ticket_class.software_managed? || f.object.ticket_class.hide_pricing?
         n/a
       -else
         = number_to_currency(f.object.ticket_class.ticket_price)

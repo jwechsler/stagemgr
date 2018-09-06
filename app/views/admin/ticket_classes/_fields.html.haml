@@ -22,7 +22,8 @@
       %fieldset
         %legend Ticket Class Options
         = f.input :web_visible, :hint=>"Make this ticket class end-user purchasable"
-        = f.input :software_managed, :hint=>"Hide the actual price from the customer"
+        = f.input :software_managed, :hint=>"Not for box office sales"
+        = f.input :hide_pricing, :hint=>"Hide the actual price from the customer"
         = f.input :suppress_receipt, :hint=>"Suppress automatic confirmation email"
         = f.input :holds_seats, :default=>true, :hint=>"Reserve seats from inventory"
         = f.input :assigns_seats, :default=>false, :hint=>"Creates a seat assignment"
