@@ -557,14 +557,14 @@ class Admin::ReportsController < Admin::ApplicationController
     orders.select { |o| !o.nil? && o.settled? }.sort { |o1, o2| o2.created_at <=> o1.created_at }.each { |o|
       flex_pass = FlexPass.find_by_order_id(o.id)
       status = flex_pass.available? ?  o.status : flex_pass.expiration_date.to_s
-      used = FlexPassPayment.find_all_by_flex_pass_id(flex_pass.id)
+      used = FlexPassPayment.where(flex_pass_id:flex_pass.id)
       if offer.flat_payout.blank? || offer.flat_payout == 0
         payout = FlexPassPayment.where('flex_pass_id = ?',flex_pass.id).sum(:amount).to_money
       else
         payout = (offer.flat_payout.nil? ? 0 : offer.flat_payout).to_money
       end
       converted_balance = flex_pass.available? ? 0.to_money : offer.price.to_money - fee.to_money - payout
-      tickets_remaining = flex_pass.available? ? offer.number_of_tickets - used.sum { |p| p.number_of_tickets } : 0
+      tickets_remaining = flex_pass.available? ? (offer.number_of_tickets - used.inject(0){|sum,p| sum + p.number_of_tickets }) : 0
       report << {:order_date=>o.created_at.to_date,
                  :payout=>payout,
                  :collected=>offer.price.to_money,
