@@ -41,7 +41,7 @@ class BulkOrderImport
         seat_locations[production_id] = seats
       }
       performances = Performance.where("production_id in (select id from productions where theater_id = ?)", theater_id).map{|perf| [perf.performance_code, perf]}.to_h
-      address_ids = AddressTag.where(tag_label: 'External Id',theater_id: theater_id).pluck(:tag_value, :address_id).to_h # Get a list of all addresses with these external tags
+      address_ids = AddressTag.where("tag_label = 'External Id' and theater_id = :theater_id and address_id is not null",theater_id: theater_id).pluck(:tag_value, :address_id).to_h # Get a list of all addresses with these external tags
       ticket_classes = TicketClass.where("production_id in (select id from productions where theater_id = ?)", theater_id).map{ |tc|
         [productions[tc.production_id]+"-"+tc.class_code, tc]}.to_h
       payment_type = payment_type_id.blank? ? nil : PaymentType.find(payment_type_id.to_i)

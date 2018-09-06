@@ -29,7 +29,7 @@ class BulkFlexOrderImport
       problems = BulkOrderImportIssues.new(filestore.user.id)
 
       flex_pass_offer_lookup = FlexPassOffer.where("theater_id = :theater_id or theater_id is null", theater_id: theater_id).pluck(:name, :id).to_h
-      address_ids = AddressTag.where(tag_label: 'External Id',theater_id: theater_id).pluck(:tag_value, :address_id).to_h # Get a list of all addresses with these external tags
+      address_ids = AddressTag.where("tag_label = 'External Id' and theater_id = :theater_id and address_id is not null",theater_id: theater_id).pluck(:tag_value, :address_id).to_h # Get a list of all addresses with these external tags
       payment_type = payment_type_id.blank? ? nil : PaymentType.find(payment_type_id.to_i)
       issues = []
 
