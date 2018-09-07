@@ -46,7 +46,9 @@ class DonationOrdersController < ApplicationController
   def create
     @order = DonationOrder.new(donation_order_params)
     @order.ip_address = request.remote_ip
-    process_order(@order, :edit_donation_order_path) if validate_web_order(@order)
+    redirect_to = :edit_donation_order_path
+    redirect_to = process_order(@order, redirect_to) if validate_web_order(@order)
+
   end
 
   def update

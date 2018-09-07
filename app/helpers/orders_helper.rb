@@ -69,7 +69,7 @@ module OrdersHelper
 
   def ticket_order_common_params
     common_params + [:production_code, :performance_code, :special_request,
-            ticket_line_items_attributes: [:ticket_class, :ticket_class_id, :ticket_class_code, :ticket_count]]
+            ticket_line_items_attributes: [:id, :ticket_class, :ticket_class_id, :ticket_class_code, :ticket_count]]
   end
 
   def process_order(order, on_success_redirect_to)
@@ -82,7 +82,7 @@ module OrdersHelper
         order.credit_card_number = parsed[1]
       end
       order.regularize_credit_card_expiration
-      order.save!
+
       old_status = order.status
       unless (params[:commit].blank? && order.status == Order::PROCESSING)
         on_success_redirect_to = order.transition_to!(convert_button_label_to_state(params[:commit]), on_success_redirect_to)

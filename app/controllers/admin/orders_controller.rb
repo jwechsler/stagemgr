@@ -97,7 +97,7 @@ class Admin::OrdersController < Admin::ApplicationController
   end
 
   def update
-    @order.attributes=params[:order]
+    @order.update_attributes(common_order_params)
     @order = process_order(@order,:edit_admin_order_path)
   end
 

@@ -62,9 +62,7 @@ class Admin::ProductionsController < Admin::ApplicationController
   # PUT /productions/1
   # PUT /productions/1.xml
   def update
-    Rails.logger.debug("*** promo= #{@production.promo.url(:thumb)}")
     @production.update_attributes(production_params)
-    Rails.logger.debug("*** promo= #{@production.promo.url(:thumb)}")
     respond_to do |format|
 
       if @production.save

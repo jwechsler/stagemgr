@@ -177,8 +177,8 @@ class TicketOrder < Order
   def preset_line_items
     super
     unless self.finalized?
-      tcs = self.ticket_line_items.map { |li| li.ticket_class_id }
-      available = self.performance.ticket_class_allocations.select { |tca| tca.available && !tcs.include?(tca.ticket_class.id) }.map { |tca| tca.ticket_class }.select { |tc| tc.web_visible unless tc.nil? }
+      tcs = self.ticket_line_items.map { |li| li.ticket_class_id }.uniq
+      available = self.performance.ticket_class_allocations.select { |tca| tca.available? && !tcs.include?(tca.ticket_class.id) && tca.ticket_class.web_visible? }.map { |tca| tca.ticket_class }
       available.each { |tc| self.ticket_line_items.build(:ticket_class => tc, :ticket_count => 0) }
       self.ticket_line_items.order(:ticket_class_id)
     end
@@ -506,10 +506,11 @@ class TicketOrder < Order
   end
 
   def remove_empty_ticket_lines
-    self.ticket_line_items.each { |li| self.ticket_line_items.delete(li) if li.ticket_count == 0 }
+    ticket_classes = self.ticket_line_items.map{|li| li.ticket_class.id }.uniq
+    self.ticket_line_items.each do |li|
+      self.ticket_line_items.delete(TicketLineItem.find(li.id)) if (li.ticket_count == 0 && !li.id.nil?)
+    end
   end
-
-
 
   private
   def set_ticket_classes_using_offer(offer)
