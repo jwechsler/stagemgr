@@ -49,11 +49,11 @@ class FlexPassOfferDatatable < DatatableBase
     end
 
     if current_user.can? :create, FlexPassOrder then
-      if flex_pass_offer.active?
+      #if flex_pass_offer.active?
         actions << link_to('Create Order', [:new, :admin, flex_pass_offer, :order], :class=>'tiny button')
-      else
-        actions << link_to('Create Order', '#', :class=> 'tiny button disabled')
-      end
+      #else
+      #  actions << link_to('Create Order', '#', :class=> 'tiny button disabled')
+      #end
     end
 
     actions.join(' ')
