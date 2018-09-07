@@ -69,7 +69,7 @@ gem "jquery-datatables"
 gem 'ajax-datatables-rails'
 # gem 'jqgrid-rails3', :git=>"https://github.com/davebaldwin/jqgrid-rails3.git"
 #gem "name_parse", "~> 0.0.5"
-gem "people", :git=>'https://github.com/williamatodd/people.git'
+gem "people"
 
 gem "ri_cal", :git=>"https://github.com/ctide/ri_cal.git"
 gem 'resque', :require => 'resque/server'

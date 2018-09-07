@@ -23,12 +23,6 @@ GIT
       deep_merge (~> 1.2.1)
       dry-validation (>= 0.10.4)
 
-GIT
-  remote: https://github.com/williamatodd/people.git
-  revision: 497e903c951747301e3f9a1008025adea206a3cd
-  specs:
-    people (0.4.6)
-
 GEM
   remote: http://rubygems.org/
   remote: https://rails-assets.org/
@@ -337,6 +331,7 @@ GEM
       mime-types
       mimemagic (~> 0.3.0)
       terrapin (~> 0.6.0)
+    people (0.2.1)
     postmark (1.11.0)
       json
       rake
@@ -585,7 +580,7 @@ DEPENDENCIES
   mysql2 (= 0.4.10)
   namecase
   paperclip
-  people!
+  people
   postmark-rails
   pry
   pry-rails
