@@ -453,7 +453,6 @@ class Order < ActiveRecord::Base
       begin
         old_status = self.status
         redirect_to = self.send "transition_#{self.status.underscore}_to_#{new_status.underscore}!".to_sym
-        redirect_to = self.send "transition_#{self.status.underscore}_to_#{new_status.underscore}!".to_sym
         raise "Transition from #{old_status} to #{new_status} unsuccessful. Current status is #{self.status}." unless self.status == new_status
       rescue StandardError=>e
         Rails.logger.error "Order #{self.id} could not transition from #{old_status} to #{new_status}:"

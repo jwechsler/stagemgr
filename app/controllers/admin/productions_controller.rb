@@ -43,7 +43,6 @@ class Admin::ProductionsController < Admin::ApplicationController
     end
     @production = Production.new(production_params)
     @production.theater = @theater
-    Rails.logger.debug("**** PROMO: @production.promo")
     if @production.save
       flash[:notice] = 'Production was successfully created.'
       respond_to do |format|

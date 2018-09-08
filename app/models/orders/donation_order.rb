@@ -10,7 +10,7 @@ class DonationOrder < Order
   # after_save :update_address_aggregates
 
   def refundable?
-    self.status == Order::PROCESSED || self.status == Order::FULFILLED
+    [Order::PROCESSED, Order::FULFILLED].include?(self.status)
   end
 
   def display_code()

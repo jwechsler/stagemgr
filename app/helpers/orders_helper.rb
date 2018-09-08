@@ -20,7 +20,6 @@ module OrdersHelper
   end
 
   def validate_web_order(order)
-    result = true
     begin
       raise "Email required" if order.address.email.blank?
       raise "Name required" if order.address.full_name.blank?
@@ -35,8 +34,14 @@ module OrdersHelper
     rescue StandardError => e
       result = false
       rescue_error(e)
+      return false
     end
-    result
+    result = true
+    unless order.errors.empty?
+      flash[:error] = order.errors.first
+      result = false
+    end
+    return result
   end
 
   public
@@ -89,13 +94,14 @@ module OrdersHelper
         order.credit_card_number = parsed[1]
       end
       order.regularize_credit_card_expiration
-
+      Rails.logger.debug('*** Transitioning to #{change_to_state}')
       order.transition_to!(change_to_state)
+
     rescue StandardError => e
       if order.errors.empty?
         rescue_error(e)
       else
-        flash.now[:error] = order.errors[:error].first
+        flash.now[:error] = order.errors.full_messages.first
       end
       return false
     end
@@ -106,19 +112,17 @@ module OrdersHelper
   end
 
   def rescue_error(e)
-    respond_to do |format|
-      case e
-        when InvalidCreditCard
-          flash.now[:error] = "The credit card you entered was invalid. Reason: #{e.message}"
-        when CannotProcessPayment
-          flash.now[:error] = "There was an error while processing your credit card. #{e.message}"
-        when ActiveRecord::RecordInvalid
-          flash.now[:error] = "There was an error creating your order. #{e.message}"
-        else
-          flash.now[:error] = "There was a problem with your order. #{e.message}"
-          Rails.logger.error "There was an error creating order. #{e.message}"
-          Rails.logger.info e.backtrace
-      end
+    case e
+      when InvalidCreditCard
+        flash.now[:error] = "The credit card you entered was invalid. Reason: #{e.message}"
+      when CannotProcessPayment
+        flash.now[:error] = "There was an error while processing your credit card. #{e.message}"
+      when ActiveRecord::RecordInvalid
+        flash.now[:error] = "There was an error creating your order. #{e.message}"
+      else
+        flash.now[:error] = "There was a problem with your order. #{e.message}"
+        Rails.logger.error "There was an error creating order. #{e.message}"
+        Rails.logger.debug e.backtrace
     end
   end
 

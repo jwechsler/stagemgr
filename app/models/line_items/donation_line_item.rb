@@ -12,7 +12,7 @@ class DonationLineItem < LineItem
 
   private
   def set_donation_amount_from_level
-    if self.donation_amount.blank? || self.donation_amount == 0
+    if !self.donation_level.blank? && self.donation_level.to_i > 0 then
       self.donation_amount = self.donation_level
     end
   end

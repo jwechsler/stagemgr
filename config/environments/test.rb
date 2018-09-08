@@ -49,6 +49,7 @@ Stagemgr::Application.configure do
 
   $PAYMENT_CONFIG = YAML::load(File.open("#{::Rails.root.to_s}/config/payment_processing.yml"))['test']
   $TEST_CREDIT_CARD = $PAYMENT_CONFIG['test_credit_card']
+  $ADDITIONAL_CARD_TYPES = ['bogus']
 
   config.after_initialize do
     ActiveMerchant::Billing::Base.mode = :test

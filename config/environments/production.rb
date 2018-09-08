@@ -77,7 +77,7 @@ Stagemgr::Application.configure do
   $SERVER_CONFIG = config_data['all'].merge(config_data['production'])
   $EMAIL_ADDRESS = $SERVER_CONFIG['email_addresses']
   $TKTPRINT =  YAML::load(File.open("#{::Rails.root.to_s}/config/ticket_print.yml"))['production']
-
+  $ADDITIONAL_CARD_TYPES = []
   config.action_mailer.default_url_options = { host: $SERVER_CONFIG['host'], protocol: $SERVER_CONFIG['host_protocol'] }
 
   # Set up notification for issues

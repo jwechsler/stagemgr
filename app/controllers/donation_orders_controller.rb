@@ -6,7 +6,7 @@ class DonationOrdersController < ApplicationController
   append_before_filter :redirect_to_proper_action, :only => [:edit, :show]
   append_before_filter :set_donation_levels
 
-  respond_to :html, :xml, :json
+  respond_to :html
 
   def set_donation_levels
     @levels = ActiveSupport::OrderedHash.new
@@ -16,6 +16,7 @@ class DonationOrdersController < ApplicationController
     @levels["Directors' Circle ($500)"] = 500
     @levels["Founders' Circle ($1000)"] = 1000
     @levels["Leadership Circle ($5000)"] = 5000
+    @levels["Other Amount (below)"] = -1
     @levels
   end
 
@@ -27,7 +28,29 @@ class DonationOrdersController < ApplicationController
     @order.donation_line_items.build(:donation_amount=>0)
     # @todo Replace donation levels with user controlled donation level code
     respond_to do |format|
-      format.html { render '/donation_orders/edit', :layout=>'ext_site_wrapper' }
+      format.html { render '/donation_orders/edit' }
+    end
+  end
+
+  def create
+    @order = DonationOrder.new(donation_order_params)
+    @order.ip_address = request.remote_ip
+    create_or_update
+  end
+
+  def update
+    @order.update_attributes(donation_order_params)
+    @order.ip_address = request.remote_ip
+    create_or_update
+  end
+
+  def create_or_update
+    respond_to do |format|
+      if validate_web_order(@order) && process_order(@order, Order::PROCESSED)
+        format.html { render '/donation_orders/show' }
+      else
+        format.html { render '/donation_orders/edit' }
+      end
     end
   end
 
@@ -40,32 +63,13 @@ class DonationOrdersController < ApplicationController
   def edit
   end
 
-  def show;
-  end
-
-  def create
-    @order = DonationOrder.new(donation_order_params)
-    @order.ip_address = request.remote_ip
-    redirect_to = :edit_donation_order_path
-    redirect_to = process_order(@order, redirect_to) if validate_web_order(@order)
-
-  end
-
-  def update
-    @order.update_attributes(donation_order_params)
-    @order.ip_address = request.remote_ip
-    validate_web_order(@order)
-    process_order(@order, :edit_donation_order_path)
-  end
-
-  def confirm
+  def show
   end
 
   def payment_types_for(order, frontend = true)
     types = super
     types.select{|t| t.is_a? CreditCardPaymentType}
   end
-
 
   private
   def find_order

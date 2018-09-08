@@ -5,6 +5,7 @@ end
 
 class CreditCardPayment < CurrencyPayment
 
+
   belongs_to :address
 
   attr_accessor :card_number
@@ -125,6 +126,10 @@ class CreditCardPayment < CurrencyPayment
 
   def processing_fee
     0.22 + self.amount * 0.04
+  end
+
+  def self.card_types
+    @@credit_card_types ||= ActiveRecord::Validations::ClassMethods::DEFAULT_CREDIT_CARD_TYPES.values.sort - ['invalid'] + $ADDITIONAL_CARD_TYPES
   end
 
   protected
