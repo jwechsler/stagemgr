@@ -73,7 +73,6 @@ class Order < ActiveRecord::Base
   before_save :set_theater
   before_save :cancel_pending_tasks, :if=>:newly_canceled?
   after_save :set_tasks_after_save
-  after_commit :delete_abandoned, :if=>:transitory?
 
   validates_inclusion_of :status, :in => ORDER_STATUSES, :if=>:status_is_provided?
 
@@ -207,11 +206,6 @@ class Order < ActiveRecord::Base
   def ticketing_fee
     BigDecimal.new("0", 2)
   end
-
-  def delete_abandoned
-    Resque.enqueue_in(self.time_to_hold_in_transition, DeleteAbandonedOrder, self.id)
-  end
-
 
   def customer_visible_total(reload_line_items = false)
     self.payments.to_a.sum { |payment| payment.respond_to?(:customer_visible_amount) ? payment.customer_visible_amount : 0 }

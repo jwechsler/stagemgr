@@ -57,3 +57,12 @@ MarkInactiveShows:
   description: 'Productions/Theaters that have been inactive for over 6 months and not updated since then are marked as ''Inactive''.'
   queue: maintenance
 
+LinkHistoricPerformanceHoldsToAddressOfRecord:
+  every: "1d"
+  description: "Once a performance is in the past, link the hold to the address card of record"
+  queue: maintenance
+
+DeleteAbandonedOrders:
+  every: "8m"
+  description: "An order can only existing in PROCESSING state for 8 minutes"
+  queue: maintenance
