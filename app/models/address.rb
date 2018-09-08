@@ -116,6 +116,10 @@ class Address < ActiveRecord::Base
 
   end
 
+  def customer?
+    !self.placeholder?
+  end
+
   def ensure_no_finalized_orders
     raise "Cannot delete an address with finalized orders" unless orders(true).select{|o| o.finalized? }.count == 0
   end
@@ -131,7 +135,8 @@ class Address < ActiveRecord::Base
     self.state = newer.state unless newer.state.blank?
     self.zipcode = newer.zipcode unless newer.zipcode.blank?
     self.phone = newer.phone unless newer.phone.blank?
-
+    self.vip ||= newer.vip?
+    self.placeholder ||= newer.placeholder?
     newer.address_tags.each do |tag|
       existing_tag = self.address_tags.select { |t|
         (t.tag_label == tag.tag_label) && (t.theater_id == tag.theater_id) }.first
@@ -419,7 +424,6 @@ class Address < ActiveRecord::Base
     self.search_name = self.full_name.gsub(/[\d+\s+\.!,]/,'').upcase
   end
 
-
   def update_donor_levels_from_donation_orders
     one_year_ago = Date.today - 1.year
 
@@ -459,7 +463,7 @@ class Address
   after_commit :queue_sf_sync, :if=>:syncable?
 
   def syncable?
-    SalesforceSync.enabled? && !self.sf_disable_sync_on_commit? && ( !self.sf_contact_id.nil? || self.orders.count > 0 || !self.sf_purge.blank?)
+    SalesforceSync.enabled? && !self.sf_disable_sync_on_commit? && ( !self.sf_contact_id.nil? || self.orders.count > 0 || !self.sf_purge.blank?) && self.customer?
   end
 
   def queue_sf_sync(delay = nil)

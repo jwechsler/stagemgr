@@ -862,7 +862,7 @@ class Order
   end
 
   def syncable?
-    self.syncable_statuses.include?(self.status)
+    self.syncable_statuses.include?(self.status) && self.address.customer?
   end
 
 end

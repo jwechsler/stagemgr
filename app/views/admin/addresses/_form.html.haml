@@ -12,6 +12,11 @@
               %div.small-6.columns= f.input :city, :required=>false
               %div.small-3.columns= f.input :state, :required=>false
               %div.small-3.columns= f.input :zipcode, :label=>"Zip Code", :required=>false
+      %div.row
+        %div.small-6.columns
+          = f.input :vip, :label=>"VIP Customer"
+        %div.small-6.columns
+          = f.input :placeholder, :label=>"Not a ticket buyer"
     %div.row
       %div.small-12.medium-6.columns
         = f.input :email
