@@ -319,7 +319,6 @@ GEM
     multi_test (0.1.2)
     multipart-post (2.0.0)
     mysql2 (0.4.10)
-    namecase (2.0.0)
     net-scp (1.2.1)
       net-ssh (>= 2.6.5)
     net-ssh (4.2.0)
@@ -578,7 +577,6 @@ DEPENDENCIES
   money-rails
   my_emma (~> 0.1.1)!
   mysql2 (= 0.4.10)
-  namecase
   paperclip
   people
   postmark-rails
