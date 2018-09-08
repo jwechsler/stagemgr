@@ -84,7 +84,7 @@ GEM
     ajax-datatables-rails (0.4.0)
       railties (>= 4.0)
     arel (6.0.4)
-    audited (4.7.1)
+    audited (4.8.0)
       activerecord (>= 4.0, < 5.3)
     authlogic (4.1.0)
       activerecord (>= 4.2, < 5.3)
@@ -530,7 +530,7 @@ DEPENDENCIES
   activerecord-session_store
   activeresource
   ajax-datatables-rails
-  audited (~> 4.7)
+  audited (~> 4.8)
   authlogic
   autoprefixer-rails
   bond
