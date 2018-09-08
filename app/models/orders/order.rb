@@ -444,22 +444,27 @@ class Order < ActiveRecord::Base
     self.sf_object
   end
 
-  def transition_to!(new_status, redirect_to = nil)
+  # using introspection, transition current status to new_status
+  # Throws an exception if object cannot be transitioned, and sets error in the object
+  # @new_status  [String]  New status (as defined in order.rb)
+
+  def transition_to!(new_status)
     Order.transaction do
       begin
         old_status = self.status
-        redirect_to = self.send "transition_#{self.status.underscore}_to_#{new_status.underscore}!".to_sym, redirect_to
+        redirect_to = self.send "transition_#{self.status.underscore}_to_#{new_status.underscore}!".to_sym
+        redirect_to = self.send "transition_#{self.status.underscore}_to_#{new_status.underscore}!".to_sym
         raise "Transition from #{old_status} to #{new_status} unsuccessful. Current status is #{self.status}." unless self.status == new_status
       rescue StandardError=>e
-        Rails.logger.error "ORDER #{self.id} NOT PROCESSED #{e.to_s}"
+        Rails.logger.error "Order #{self.id} could not transition from #{old_status} to #{new_status}:"
+        Rails.logger.error "   #{e.to_s}"
         Rails.logger.debug e.backtrace
         self.reload
         errors.add :error, e.to_s
-        raise e if redirect_to.nil?
-        redirect_to = nil
+        raise e
       end
     end
-    redirect_to
+    self
   end
 
   def status_display

@@ -72,7 +72,14 @@ module OrdersHelper
             ticket_line_items_attributes: [:id, :ticket_class, :ticket_class_id, :ticket_class_code, :ticket_count]]
   end
 
-  def process_order(order, on_success_redirect_to)
+  # prep order for status change.
+  # Returns true if order converted with no errors, false if processing interrupted
+  # Params:
+  # @order           [Order]  Order object to alter
+  # @change_to_state [String] Transition state as defined in order.rb (Order::PROCESSING, etc)
+  #
+  # @return true if state change succeeded, false if not.  errors are stored in order object
+  def process_order(order, change_to_state)
     begin
       unless order.credit_card_swipe.blank?
         parsed = order.credit_card_swipe.scan(SWIPE_REGEX)[0]
@@ -83,52 +90,20 @@ module OrdersHelper
       end
       order.regularize_credit_card_expiration
 
-      old_status = order.status
-      unless (params[:commit].blank? && order.status == Order::PROCESSING)
-        on_success_redirect_to = order.transition_to!(convert_button_label_to_state(params[:commit]), on_success_redirect_to)
-
-        if !on_success_redirect_to.nil?
-          respond_to do |format|
-            if order.status == Order::PROCESSING
-              # @todo terrible hack here.  Please fix this jw when you figure out how :)
-              admin_seating_required = (!order.performance.nil?) ? order.performance.production.has_reserved_seating? : false
-              if on_success_redirect_to.eql?(:confirm_admin_ticket_order_path) && admin_seating_required
-                format.html { render "/admin/ticket_orders/confirm", :locals=>{order: order} }
-              else
-                format.html { render "/ticket_orders/confirm", :locals=>{:order=>order} }
-              end
-            else
-              format.html {
-                redirect_to send(on_success_redirect_to, order.id), notice:"Order was successfully saved and is now #{order.status_display}"
-              }
-            end
-          end
-        else
-
-          flash[:error] = order.errors[:error].first
-
-          respond_to do |format|
-            format.html { render 'edit', :order=>@order, :layout=>true }
-          end
-        end
-      else
-        respond_to do |format|
-          format.html { render 'edit' }
-        end
-      end
+      order.transition_to!(change_to_state)
     rescue StandardError => e
-      Rails.logger.error(e.message)
-      order.status = old_status unless old_status.nil?
-      if order.status == Order::PROCESSING && !@order.nil?
-        @order.reload
-        @order.reload_associated
-        @order.attributes.merge!(order.payment_attributes)
+      if order.errors.empty?
+        rescue_error(e)
+      else
+        flash.now[:error] = order.errors[:error].first
       end
-      rescue_error(e)
+      return false
     end
 
-  end
+    flash[:notice] = "Order was successfully saved and is now #{order.status_display.downcase}"
+    return true
 
+  end
 
   def rescue_error(e)
     respond_to do |format|
@@ -141,10 +116,9 @@ module OrdersHelper
           flash.now[:error] = "There was an error creating your order. #{e.message}"
         else
           flash.now[:error] = "There was a problem with your order. #{e.message}"
-          logger.error "There was an error creating the order. #{e.message} #{e.backtrace}"
+          Rails.logger.error "There was an error creating order. #{e.message}"
+          Rails.logger.info e.backtrace
       end
-
-      format.html { render 'edit', :order=>@order, :layout=>true }
     end
   end
 
