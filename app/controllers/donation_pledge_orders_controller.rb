@@ -54,18 +54,30 @@ class DonationPledgeOrdersController < ApplicationController
       end
     }
     @order.ip_address = request.remote_ip
-    process_order(@order, :edit_donation_pledge_order_path) if validate_web_order(@order)
+    create_or_update
   end
 
   def update
     @order.update_attributes(donation_pledge_order_params)
     @order.ip_address = request.remote_ip
     validate_web_order(@order)
-    process_order(@order, :edit_donation_pledge_order_path)
+    create_or_update
   end
 
   def confirm
   end
+
+  protected
+  def create_or_update
+    respond_to do |format|
+      if validate_web_order(@order) && process_order(@order, Order::PROCESSED)
+        format.html { render '/donation_pledge_orders/show' }
+      else
+        format.html { render '/donation_pledge_orders/edit' }
+      end
+    end
+  end
+
 
   private
   def find_order
