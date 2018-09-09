@@ -10,19 +10,13 @@ class MembershipOrdersController < ApplicationController
 
   def create
     @order = MembershipOrder.new(membership_order_params)
-    success = self.create_membership(@order)
-
-    if success
-      flash[:notice] = raw "You've been successfully set up for the <strong>#{@order.membership_offer.name}</strong> payment plan."
-    else
-      render '/membership_orders/edit'
-    end
-
+    update_or_create
   end
 
   def update
-    @order = MembershipOrder.update_attributes(membership_order_params)
-    process_order(@order,:confirm_membership_order_path)
+    @order = MembershipOrder.find(params[:id].to_i)
+    @order.update_attributes(membership_order_params)
+    update_or_create
   end
 
   def show
@@ -32,12 +26,27 @@ class MembershipOrdersController < ApplicationController
     @order = MembershipOrder.find(params[:id])
   end
 
+  def new
+    @order = build_membership_order(params[:membership_offer_id].to_i)
+  end
+
 
 
   def checkout
   end
 
   private
+  def update_or_create
+    respond_to do |format|
+      if validate_web_order(@order) && process_order(@order, Order::PROCESSING) && process_order(@order, Order::PROCESSED)
+        flash[:notice] = raw "You've been successfully set up for the <strong>#{@order.membership_offer.name}</strong> membership"
+        format.html { render '/membership_orders/confirm' }
+      else
+        format.html { render '/membership_orders/edit' }
+      end
+    end
+  end
+
   def membership_order_params
     params.require(:membership_order).permit(*common_params, *common_membership_order_params)
   end

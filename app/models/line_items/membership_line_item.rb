@@ -6,10 +6,12 @@ class MembershipLineItem < LineItem
   belongs_to :membership
   belongs_to :address
   belongs_to :membership_order, :foreign_key=>:order_id
-  before_validation :create_membership
-  after_save :save_membership
-  before_destroy :delete_membership
 
+  accepts_nested_attributes_for :membership
+
+  after_initialize :create_membership
+  before_save :save_membership
+  before_destroy :delete_membership
 
   private
   def create_membership
@@ -18,13 +20,13 @@ class MembershipLineItem < LineItem
       self.membership = Membership.new
       self.membership.member_since=Date.today
       self.membership.membership_offer=self.membership_offer
-      self.membership.status=Membership::ACTIVE
+      self.membership.status=Membership::PENDING
       self.membership.address=self.address
     end
   end
 
   def save_membership
-    membership.save!
+    membership.save! unless membership.nil?
   end
 
   def delete_membership

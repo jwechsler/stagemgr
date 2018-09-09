@@ -402,7 +402,7 @@ class Order < ActiveRecord::Base
       if special_offer
         self.special_offer_line_items.create!(:special_offer=>special_offer)
       else
-        raise "Unknown or expired special offer code \"#{self.special_offer_code}\""
+        raise RuntimeError, "Unknown or expired special offer code \"#{self.special_offer_code}\""
       end
     end
   end
@@ -604,7 +604,7 @@ class Order < ActiveRecord::Base
 
       end
 
-      orders = MembershipOrder.includes(:address, {:membership_line_items=>:membership})
+      orders = MembershipOrder.includes(:address, {:membership_line_item=>:membership})
 
       orders.each do |order|
         description = "#{order.membership.member_since.year} MEM: #{order.membership.membership_offer.name}"
@@ -638,7 +638,8 @@ class Order < ActiveRecord::Base
   end
 
   def all_line_items(reload_line_items = false)
-    self.special_offer_line_items(reload_line_items)
+    result = Array.new
+    result += self.special_offer_line_items(reload_line_items)
   end
 
 

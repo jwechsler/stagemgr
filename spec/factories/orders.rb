@@ -102,9 +102,9 @@ FactoryBot.define do
     association :payment_type, :factory=>:credit_card_payment_type
     after(:create) do |membership_order, evaluator|
       membership = FactoryBot.create(:membership, :address=>membership_order.address)
-      membership_order.membership_line_items << FactoryBot.create(:membership_line_item, :order=>membership_order, :address=>membership_order.address, :membership=>membership)
+      membership_order.membership_line_item = FactoryBot.create(:membership_line_item, :order=>membership_order, :address=>membership_order.address, :membership=>membership)
       membership_order.payments << FactoryBot.build(:credit_card_payment,
-                          :amount=>membership_order.membership_line_items.first.membership_offer.recurring_cost,
+                          :amount=>membership_order.membership.membership_offer.recurring_cost,
                           :transaction_id => 'TEST_TRANSACTION',
                           :confirmation_code => 'CONFIRMED',
                           :card_type=>'Visa',

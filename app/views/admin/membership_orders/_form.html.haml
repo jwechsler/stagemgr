@@ -3,7 +3,7 @@
 
   %div.row
     %div.columns.small-12.medium-8
-      = order_form.simple_fields_for :membership_line_items do |mlif|
+      = order_form.simple_fields_for :membership_line_item do |mlif|
         = mlif.input :membership_offer_id, :as=>:hidden
         %h3= mlif.object.membership_offer.name
       = render :partial=>'/membership_orders/preferred_seating', :locals=>{:f => order_form}

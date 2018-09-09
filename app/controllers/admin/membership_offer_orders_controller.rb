@@ -11,7 +11,7 @@ class Admin::MembershipOfferOrdersController < Admin::ApplicationController
       render '/orders/not_available', :layout=>'ext_site_wrapper'
       return
     end
-    @membership_order.membership_line_items.build(:membership_offer_id=>params[:membership_offer_id])
+    @membership_order.build_membership_line_item(:membership_offer_id=>params[:membership_offer_id])
 
 
     render '/admin/membership_orders/edit', :layout=>true

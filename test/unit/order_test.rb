@@ -271,11 +271,11 @@ class OrderTest < ActiveSupport::TestCase
 
     should "create a valid new membership order" do
       @order = MembershipOrder.create!(:status=>Order::NEW, :address=>@address)
-      @order.set_membership_offer(@offer)
+      @order.membership_offer = @offer
       @order.payments << FactoryBot.create(:cash_payment, :amount=>15)
       @order.transition_to!(Order::PROCESSING)
       @order.save!
-      assert_equal(1, @order.membership_line_items.size)
+      assert_not_nil(@order.membership)
       membership = Membership.find_by_member_code(@order.membership.member_code)
       assert_not_nil(membership)
       assert_not_nil(membership.member_code)
@@ -295,7 +295,7 @@ class OrderTest < ActiveSupport::TestCase
                               :recurring_cost=>BigDecimal.new("15.00"), :use_ticket_class_code=>"MEMBER", :tickets_per_performance=>1)
 
       @order = MembershipOrder.create!(:status=>Order::NEW, :address=>@address)
-      @order.set_membership_offer(@offer)
+      @order.membership_offer = @offer
       @order.payments << FactoryBot.create(:cash_payment, :amount=>15)
       @order.transition_to!(Order::PROCESSING)
       @order.membership.status = Membership::ACTIVE

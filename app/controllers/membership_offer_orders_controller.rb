@@ -1,19 +1,14 @@
 class MembershipOfferOrdersController < ApplicationController
-
+  include MembershipOrdersHelper
   def new
-     @order = MembershipOrder.new
-     @order.status = Order::NEW
-     @order.address = Address.new
-     membership_offer = MembershipOffer.where(:id => params[:membership_offer_id])
-
-     if membership_offer.first.blank? || !membership_offer.first.on_sale_to_public?
-       render '/general/unavailable', :layout=>'ext_site_wrapper'
-       return
-     end
-     @order.membership_line_items.build(:membership_offer_id=>params[:membership_offer_id])
-
-     render '/membership_orders/edit', :layout=>'ext_site_wrapper'
+    @order = build_membership_order(params[:membership_offer_id].to_i)
+    if @order.membership_offer.nil? || !@order.membership_offer.on_sale_to_public?
+      render '/general/unavailable', :layout=>'ext_site_wrapper'
+      return
+    end
+    render '/membership_orders/edit', :layout=>'ext_site_wrapper'
    end
+
 
 
 end

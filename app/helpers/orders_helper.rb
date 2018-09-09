@@ -85,6 +85,7 @@ module OrdersHelper
   #
   # @return true if state change succeeded, false if not.  errors are stored in order object
   def process_order(order, change_to_state)
+    Rails.logger.info("Transitioning order #{order.id.nil? ? '(new)' : order.id} to #{change_to_state}")
     begin
       unless order.credit_card_swipe.blank?
         parsed = order.credit_card_swipe.scan(SWIPE_REGEX)[0]
@@ -105,7 +106,7 @@ module OrdersHelper
       return false
     end
 
-    flash[:notice] = "Order was successfully #{order.status_display.downcase}"
+    flash[:notice] = "Order was successfully #{order.status_display.downcase}" if order.finalized?
     return true
 
   end

@@ -5,11 +5,14 @@ class Membership < ActiveRecord::Base
     BEST_AVAILABLE, FRONT_ROW, TOWARDS_REAR, ON_AISLE, WHEELCHAIR, STAIRS =
     'Best available (center)', 'Front row', 'Towards rear', 'On aisle', 'Wheelchair', 'No stairs')
 
+
   has_one :membership_order, :through=>:membership_line_item
   has_one :membership_line_item, :foreign_key=>:membership_id
   has_many :special_offers, :dependent=>:destroy
-  before_destroy :cancel_future_reservations
   belongs_to :membership_offer
+
+  before_destroy :cancel_future_reservations
+  validates_presence_of :membership_offer
   before_validation :create_code, :on=>:create
   has_many :membership_payments
   before_save :release_reservations_on_cancel
@@ -47,7 +50,7 @@ class Membership < ActiveRecord::Base
   def last_effective_date
     lp = self.membership_payments.max_by{|payment| payment.processed_on.to_date}
     if lp.nil?
-      self.created_at.to_date
+      self.created_at.nil? ? Date.today : self.created_at.to_date
     else
       lp.processed_on + 1.month
     end

@@ -15,15 +15,16 @@ module PaymentProcessing
 
     def recurring(money, credit_card, options={})
       response = purchase(money, credit_card, options)
+      profile_id = "#{BogusResponse::PROFILE_ID}#{Time.now.strftime('%Y%m%d%H%H%S')}"
       # response = BogusResponse.new(true, "", options)
-      response.params['profile_id'] = BogusResponse::PROFILE_ID
+      response.params['profile_id'] = profile_id
       response.params['profile_status'] = 'ActiveProfile'
       BogusGateway.profiles = Hash.new if BogusGateway.profiles.nil?
-      if BogusGateway.profiles[BogusResponse::PROFILE_ID].nil?
+      if BogusGateway.profiles[profile_id].nil?
         balance = money
         balance = balance*options['total_billing_cycles'] if options.has_key?('cycles')
         balance = balance*options[:total_billing_cycles] if options.has_key?(:cycles)
-        BogusGateway.profiles[BogusResponse::PROFILE_ID] = response.params.merge({
+        BogusGateway.profiles[profile_id] = response.params.merge({
           'outstanding_balance'=>balance,
           'aggregate_amount'=>0,
           'number_cycles_completed'=>0,
@@ -34,6 +35,7 @@ module PaymentProcessing
     end
 
     def status_recurring(profile_id)
+
       r = BogusResponse.new(true, "Forced Response")
       r.params['profile_id'] = profile_id
       r.params['profile_status'] = 'ActiveProfile'

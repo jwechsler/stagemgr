@@ -488,7 +488,7 @@ class Admin::ReportsController < Admin::ApplicationController
 
     end
 
-    orders = MembershipOrder.includes(:address,[:membership_line_items,:membership])
+    orders = MembershipOrder.includes(:address,[:membership_line_item,:membership])
 
     orders.each do |order|
       description = "#{order.membership.member_since.year} MEM: #{order.membership.membership_offer.name}"

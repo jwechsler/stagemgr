@@ -1,12 +1,40 @@
 class MembershipOrder < Order
   include RecurringOrder
-  belongs_to :membership_offer
-  has_many :membership_line_items, :foreign_key=>:order_id, :dependent => :destroy
-  validates_associated :membership_line_items
-  accepts_nested_attributes_for :membership_offer, :membership_line_items, :recurring_payments, :allow_destroy=>true
+
+  has_one :membership_line_item, :foreign_key=>:order_id, :dependent => :destroy
+
+  validates_associated :membership_line_item
+  accepts_nested_attributes_for :membership_line_item, :recurring_payments, :allow_destroy=>true
+
+  after_initialize :ensure_membership_line_item_exists
 
   # after_commit :update_membership_profile, :if=>:has_membership?
 
+  def transition_processing_to_processed!(redirect_to = nil)
+    self.build_membership_line_item(membership_offer:membership_offer) if membership_line_item.nil?
+    trial_amount = membership_offer.trial_amount.nil? ? 0 : (membership_offer.trial_amount*100).to_i
+    success = false
+    additional_options = { :trial_amount    => trial_amount,
+                           :trial_frequency => 1,
+                           :trial_period    => 'Month',
+                           :trial_cycles    => membership_offer.trial_period
+                         }
+    response = RecurringProfile.create_recurring_profile(self,
+                                        (self.gift? && !self.gift_date.blank?) ?  self.gift_date : Date.today,
+                                        membership_offer.recurring_cost,
+                                        membership_offer.billing_agreement, 1,
+                                        additional_options)
+    if response.success?
+      profile_id = response.params["profile_id"]
+      membership_line_item.membership.profile_id = profile_id
+      membership_line_item.membership.status = response.params["profile_status"][0..-8]
+      membership_line_item.membership.preferred_seating = self.special_request
+      membership_line_item.membership.save!
+      super
+    else
+      raise RuntimeError, raw("There was a problem setting up your account for the <strong>#{membership_offer.name}</strong> payment plan. #{response.message}")
+    end
+  end
 
   def display_code()
     "MEMBERSHIP"
@@ -18,10 +46,6 @@ class MembershipOrder < Order
 
   def number_of_tickets
     BigDecimal.new("0", 2)
-  end
-
-  def membership_offer
-    self.membership_line_items.first.membership_offer if !self.membership_line_items.empty?
   end
 
   def recurring_profile
@@ -40,18 +64,12 @@ class MembershipOrder < Order
     self.membership.nil? ? "Unknown" : "#{self.membership.current_status} #{self.months_active}"
   end
 
-  def set_membership_offer(offer)
-    li = MembershipLineItem.create(:membership_offer=>offer, :address=>self.address)
-
-    self.membership_line_items << li
+  def membership
+    self.membership_line_item.membership
   end
 
-  def membership
-    if (!self.membership_line_items.first.nil?)
-      self.membership_line_items.first.membership
-    else
-      nil
-    end
+  def membership_offer
+    self.membership_line_item.membership_offer
   end
 
   def has_membership?
@@ -69,19 +87,20 @@ class MembershipOrder < Order
 
   def link_to_address_of_record
     super
-    self.membership_line_items.each do |li|
-      unless li.membership.nil?
-        li.membership.address = self.address
-        li.membership.save!
-      end
+    unless self.membership_line_item.membership.nil?
+      self.membership_line_item.membership.address = self.address
+      self.membership_line_item.membership.save!
     end
+
     self
   end
 
   def set_defaults
     super
-    self.membership_line_items.each { |di| di.order=self
-    di.membership.address = self.address if !di.membership.nil? }
+    unless self.membership_line_item.nil?
+      self.membership_line_item.order=self
+      self.membership_line_item.membership.address = self.address if !self.membership_line_item.membership.nil?
+    end
   end
 
 
@@ -94,7 +113,6 @@ class MembershipOrder < Order
     self.value_of_all_payments
   end
 
-
   def create_proper_payment_in_amount_of!(amount, payment_options = {})
     self.membership.update_from_profile!
     if self.membership.active? && self.membership.number_cycles_completed > 0
@@ -103,11 +121,15 @@ class MembershipOrder < Order
   end
 
   def unique_line_items(reload_line_items=false)
-    (super + self.membership_line_items(reload_line_items)).uniq
+    result = super
+    result << self.membership_line_item unless self.membership_line_item.nil?
+    result
   end
 
   def all_line_items(reload_line_items = false)
-    super(reload_line_items) + self.membership_line_items
+    result = super(reload_line_items)
+    result << self.membership_line_item unless self.membership_line_item.nil?
+    result
   end
 
 
@@ -115,18 +137,22 @@ class MembershipOrder < Order
     8.hours
   end
 
+
+
   protected
+  def ensure_membership_line_item_exists
+    self.build_membership_line_item if self.membership_line_item.nil?
+  end
 
 
   def cascade_address_to_nested_items
     super
-    membership_line_items.each { |li| li.address = self.address }
+    membership_line_item.address = self.address unless membership_line_item.nil?
   end
 
 
   def transition_new_to_processing!(redirect_to = nil)
     super
-
   end
 
   def transition_processing_to_processing!(redirect_to = nil)

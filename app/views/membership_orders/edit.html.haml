@@ -2,8 +2,8 @@
   - if @order.membership_offer.on_sale then
     = render :partial=>'/membership_offers/info', :locals=>{:membership_offer=>@order.membership_offer}
     = simple_form_for @order do |order_form|
-      = order_form.error_messages
-      = order_form.simple_fields_for :membership_line_items do |mlif|
+      -# = order_form.error_messages
+      = order_form.simple_fields_for :membership_line_item do |mlif|
         = mlif.input :membership_offer_id, :as=>:hidden
       = order_form.hidden_field :status
       = render :partial=>'/orders/address', :locals=>{:order_form=>order_form}
