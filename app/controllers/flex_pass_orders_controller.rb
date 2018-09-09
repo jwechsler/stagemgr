@@ -26,20 +26,31 @@ class FlexPassOrdersController < ApplicationController
     def create
       @order = FlexPassOrder.new(flex_pass_order_params)
       @order.ip_address = request.remote_ip
-      result = process_order(@order, :flex_pass_order_path) if validate_web_order(@order)
+      @order.save
+      create_or_update
     end
 
     def update
       @order.update_attributes(flex_pass_order_params)
       @order.ip_address = request.remote_ip
-      validate_web_order(@order)
-      process_order(@order, :flex_pass_order_path)
+      create_or_update
     end
 
     def confirm
     end
 
     private
+    def create_or_update
+      respond_to do |format|
+        if validate_web_order(@order) && process_order(@order, Order::PROCESSED)
+          format.html { render '/flex_pass_orders/show' }
+        else
+          format.html { redirect_to @order }
+        end
+      end
+    end
+
+
     def flex_pass_order_params
       params.require(:flex_pass_order).permit(*common_flex_pass_order_params)
     end
