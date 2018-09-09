@@ -38,7 +38,7 @@ module OrdersHelper
     end
     result = true
     unless order.errors.empty?
-      flash[:error] = order.errors.first
+      flash[:error] = order.errors.full_messages.first
       result = false
     end
     return result
@@ -94,19 +94,18 @@ module OrdersHelper
         order.credit_card_number = parsed[1]
       end
       order.regularize_credit_card_expiration
-      Rails.logger.debug('*** Transitioning to #{change_to_state}')
       order.transition_to!(change_to_state)
 
     rescue StandardError => e
       if order.errors.empty?
         rescue_error(e)
       else
-        flash.now[:error] = order.errors.full_messages.first
+        flash[:error] = order.errors.full_messages.first
       end
       return false
     end
 
-    flash[:notice] = "Order was successfully saved and is now #{order.status_display.downcase}"
+    flash[:notice] = "Order was successfully #{order.status_display.downcase}"
     return true
 
   end
@@ -114,13 +113,13 @@ module OrdersHelper
   def rescue_error(e)
     case e
       when InvalidCreditCard
-        flash.now[:error] = "The credit card you entered was invalid. Reason: #{e.message}"
+        flash[:error] = "The credit card you entered was invalid. Reason: #{e.message}"
       when CannotProcessPayment
-        flash.now[:error] = "There was an error while processing your credit card. #{e.message}"
+        flash[:error] = "There was an error while processing your credit card. #{e.message}"
       when ActiveRecord::RecordInvalid
-        flash.now[:error] = "There was an error creating your order. #{e.message}"
+        flash[:error] = "There was an error creating your order. #{e.message}"
       else
-        flash.now[:error] = "There was a problem with your order. #{e.message}"
+        flash[:error] = e.message
         Rails.logger.error "There was an error creating order. #{e.message}"
         Rails.logger.debug e.backtrace
     end

@@ -39,12 +39,12 @@ class BulkFlexOrderImport
         begin
           total += 1
           if row['ExternalId'].blank?
-            puts "*** Getting address #{row['Id']}"
+            puts "IMPORT: Getting address #{row['Id']}"
             current_address_id = row['Id']
             a = Address.find(current_address_id.to_i)
           else
             current_address_id = row['ExternalId']
-            puts "*** Finding external id #{current_address_id} as #{address_ids[current_address_id]}"
+            puts ("IMPORT:  Finding external id #{current_address_id} as #{address_ids[current_address_id]}"
             a = Address.find(address_ids[current_address_id].to_i)
           end
           Order.transaction do
@@ -53,7 +53,7 @@ class BulkFlexOrderImport
             offer_code = row['FlexPassOffer']
             raise RuntimeError, "FlexPassOffer #{offer_code} not defined in import file" if offer_code.blank?
             flex_pass_offer_id = flex_pass_offer_lookup[offer_code].to_i
-            puts("*** Offer: #{offer_code} #{flex_pass_offer_id}")
+            puts("IMPORT: Offer: #{offer_code} #{flex_pass_offer_id}")
 
             raise RuntimeError, "Can't find flex pass offer '#{offer_code}'" if flex_pass_offer_id.nil?
 
@@ -65,7 +65,7 @@ class BulkFlexOrderImport
             o.payment_type = payment_type
             o.transition_to!(Order::PROCESSED)
             o.payments.each{|p| p.note = "Imported from #{filestore.data_file_name} by #{filestore.user.email}"; p.save }
-            puts("*** Order is #{Order::PROCESSED}")
+            puts("IMPORT: Order is #{Order::PROCESSED}")
             flex_pass = o.flex_passes.first
             flex_pass.code = row['Code'] unless row['Code'].blank?
             flex_pass.save!
@@ -87,7 +87,7 @@ class BulkFlexOrderImport
       filestore.save
       problems.create if problems.any_issues?
     rescue => e
-      puts "*** Could not save "
+      puts ("IMPORT: Could not save "
       Rails.logger.error e.message
       e.backtrace.each { |line| Rails.logger.error line }
       filestore.notes = "Error: #{e.message}"

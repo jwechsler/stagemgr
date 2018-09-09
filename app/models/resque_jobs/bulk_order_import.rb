@@ -53,29 +53,29 @@ class BulkOrderImport
         begin
           total += 1
           if row['ExternalId'].blank?
-            puts "*** Getting address #{row['Id']}"
+            puts "IMPORT: Getting address #{row['Id']}"
             current_address_id = row['Id'].to_i
             a = Address.find(current_address_id)
           else
             current_address_id = row['ExternalId'].to_i
-            puts "*** Finding external id #{current_address_id} as #{address_ids[row['ExternalId']]}"
+            puts "IMPORT: Finding external id #{current_address_id} as #{address_ids[row['ExternalId']]}"
             a = Address.find(address_ids[current_address_id])
           end
           Order.transaction do
             o = TicketOrder.new
             o.status = TicketOrder::NEW
             perf_code = row['PerformanceCode']
-            puts("*** PERFORMANCE: #{perf_code} #{performances[perf_code]}")
+            puts("IMPORT: PERFORMANCE: #{perf_code} #{performances[perf_code]}")
             o.performance = performances[perf_code]
             o.address = a
 
-            puts("*** Performance allocations: #{o.performance.ticket_class_allocations.count}")
+            puts("IMPORT: Performance allocations: #{o.performance.ticket_class_allocations.count}")
 
             ticket_class = ticket_classes[row['ProductionCode']+'-'+row['TicketClass']]
             seats = row['Seating'].blank? ? [] : row['Seating'].split(',')
             o.ticket_line_items.build(ticket_count: seats.count, ticket_class: ticket_class)
 
-            puts("*** Ticket Class =  #{ticket_class}")
+            puts("IMPORT: Ticket Class =  #{ticket_class}")
 
             unless seats.empty?
               o.save!
@@ -85,21 +85,21 @@ class BulkOrderImport
                 seat_id = seat_locations[o.performance.production_id][seat]
                 sa = SeatAssignment.find_by(performance_id: o.performance_id, seat_id: seat_id)
                 raise RuntimeError, "Seat map does not include seat '#{seat}'" if sa.nil?
-                puts("*** Seating in #{seat}, assignment id: #{sa.id}")
+                puts("IMPORT: Seating in #{seat}, assignment id: #{sa.id}")
                 raise RuntimeError, "Seat #{seat} is not available for seating" unless sa.assign_to_order(o)
               }
-              puts "*** Seating complete"
+              puts "IMPORT: Seating complete"
               o.reload
             end
 
             if payment_type.nil?
               o.transition_to!(Order::HOLD)
-              puts("*** Order is #{Order::HOLD}")
+              puts("IMPORT: Order is #{Order::HOLD}")
             else
               o.payment_type = payment_type
               o.transition_to!(Order::PROCESSED)
               o.payments.each{|p| p.note = "Imported from #{filestore.data_file_name} by #{filestore.user.email}"; p.save }
-              puts("*** Order is #{Order::PROCESSED}")
+              puts("IMPORT: Order is #{Order::PROCESSED}")
             end
           end
         rescue => e
@@ -119,7 +119,7 @@ class BulkOrderImport
       filestore.save
       problems.create if problems.any_issues?
     rescue => e
-      puts "*** Could not save "
+      puts "IMPORT: Could not save "
       Rails.logger.error e.message
       e.backtrace.each { |line| Rails.logger.error line }
       filestore.notes = "Error: #{e.message}"
