@@ -3,8 +3,7 @@ class Admin::OrdersController < Admin::ApplicationController
 
   include OrdersHelper
 
-  before_action :find_order, :only => [:show, :edit, :update, :destroy, :refund, :cancel, :fulfill]
-  before_action :redirect_to_proper_action, :only => [:edit, :show]
+  before_action :redirect_edits_to_proper_action, :only => [:edit]
 
   VALID_SEARCH_COLUMNS = [
       'orders.id',
@@ -72,17 +71,6 @@ class Admin::OrdersController < Admin::ApplicationController
     @order = process_order(@order,:admin_order_path)
   end
 
-  def new
-    @order = Order.new
-    @order.address = Address.new
-    @order.ticket_line_items.build
-    @order.status = Order::NEW
-
-    respond_to do |format|
-      format.html { render 'edit', :layout=>true }
-    end
-  end
-
   def edit
     if @order.is_a? TicketOrder
       flash.keep
@@ -94,11 +82,6 @@ class Admin::OrdersController < Admin::ApplicationController
       flash.keep
       redirect_to(:controller=>:donation_orders, :action=>:show, :id=>@order.id)
     end
-  end
-
-  def update
-    @order.update_attributes(common_order_params)
-    @order = process_order(@order,:edit_admin_order_path)
   end
 
   def update_notes
@@ -129,21 +112,55 @@ class Admin::OrdersController < Admin::ApplicationController
 
   protected
 
-  def redirect_to_proper_action
-    flash.keep
-    if @order.editable?
-      if params[:action] != 'edit'
-        redirect_to(edit_admin_order_path(@order))
-      end
+  # for non-editable orders, redirect to 'show' when edit requested
+  def redirect_edits_to_proper_action
+    if !@donation_order.editable? && params[:action] != 'edit' then
+      flash.keep
+      redirect_to(admin_donation_order_path(@donation_order))
+    end
+  end
+
+  # after setting up the record, run the processing based on commit.
+  # If no :commit value, and order status has not changed, then just save
+  #
+  # The new status is determiend by params[:commit], which maps to a status
+  # template_by_order_status is called to determine which template to display post-processing
+  #
+  # @order [Order] order to process
+  def create_or_update(order)
+    new_state = convert_button_label_to_state(params[:commit])
+    if new_state.blank? then
+      simple_save(order)
     else
-      if params[:action] != 'show'
-        redirect_to(admin_order_path(@order))
+      process_order(order,new_state) # Either way the process goes, we pick the display by current status
+      respond_to do |format|
+        format.html { render template_by_order_status(order) }
       end
     end
   end
 
-  def find_order
-    @order = Order.find(params[:id])
+  # render the template refered to by template_by_order_status for the order
+  #
+  # @order [Order] order to evaluate
+  def render_by_status(order)
+    respond_to do |format|
+      format.html { render template_by_order_status(order) }
+    end
+  end
+
+  # attempts a save, then displays the allowed edit or show page
+  def simple_save(order)
+    order.save
+    render_by_status(order)
+  end
+
+  # override if there are more states to determine (like confirmation pages)
+  def template_by_order_status(order)
+    if order.editable?
+      'edit'
+    else
+      'show'
+    end
   end
 
   private
