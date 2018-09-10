@@ -2,7 +2,7 @@
 %input{:id=>"fake_safari_email", :name=>"fake_safari[email]", :style=>"position:absolute; left: -9000px; top:-1000px;",:type=>"text",:value=>"Safari Autofill Me",:type=>"email"}
 %div.row
   %div.small-4.columns
-    = f.input :credit_card_type, :label=>"Card Type", :required=>true,  :include_blank=>false, :collection=>ActiveRecord::Validations::ClassMethods::DEFAULT_CREDIT_CARD_TYPES.values.sort - ['invalid']
+    = f.input :credit_card_type, :label=>"Card Type", :required=>true,  :include_blank=>false, :collection=>CreditCardPayment.card_types
   %div.small-8.columns
     %div.row
       %div.small-12.columns
