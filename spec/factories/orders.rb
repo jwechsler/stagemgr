@@ -100,9 +100,10 @@ FactoryBot.define do
   factory :membership_order do
     order
     association :payment_type, :factory=>:credit_card_payment_type
-    after(:create) do |membership_order, evaluator|
-      membership = FactoryBot.create(:membership, :address=>membership_order.address)
-      membership_order.membership_line_item = FactoryBot.create(:membership_line_item, :order=>membership_order, :address=>membership_order.address, :membership=>membership)
+    before(:create) do |membership_order, evaluator|
+      membership_offer = FactoryBot.create(:membership_offer)
+      membership = FactoryBot.create(:membership, :address=>membership_order.address, membership_offer: membership_offer)
+      membership_order.membership_line_item = FactoryBot.create(:membership_line_item, :order=>membership_order, :address=>membership_order.address, membership_offer: membership_offer, :membership=>membership)
       membership_order.payments << FactoryBot.build(:credit_card_payment,
                           :amount=>membership_order.membership.membership_offer.recurring_cost,
                           :transaction_id => 'TEST_TRANSACTION',
