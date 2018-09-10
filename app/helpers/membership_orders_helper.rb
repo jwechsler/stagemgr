@@ -14,12 +14,8 @@ module MembershipOrdersHelper
     begin
       membership_offer = MembershipOffer.find(offer_id)
     rescue ActiveRecord::RecordNotFound => e
-      Rails.logger.debug("*** Could not find offer id #{offer_id}")
     end
     order.membership_line_item.membership_offer = membership_offer
-    Rails.logger.debug("*** found #{order.membership_line_item.membership_offer.name}")
-    Rails.logger.debug("*** found #{order.membership_offer.name}")
-
     order
   end
 

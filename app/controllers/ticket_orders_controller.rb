@@ -51,7 +51,6 @@ class TicketOrdersController < ApplicationController
         if @order.finalized?
           format.html { render '/ticket_orders/show '}
         else
-          Rails.logger.debug("*** Order status is #{@order.status}")
           preset_line_items_for_display(@order)
           format.html { render '/ticket_orders/edit' }
         end
