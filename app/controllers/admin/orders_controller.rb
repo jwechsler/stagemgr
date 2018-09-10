@@ -1,9 +1,9 @@
 class Admin::OrdersController < Admin::ApplicationController
-  load_and_authorize_resource
+  authorize_resource
 
   include OrdersHelper
-
-  before_action :redirect_edits_to_proper_action, :only => [:edit]
+  before_action :find_order
+  before_action :redirect_edits_to_proper_action, :only => [:show]
 
   VALID_SEARCH_COLUMNS = [
       'orders.id',
@@ -117,9 +117,9 @@ class Admin::OrdersController < Admin::ApplicationController
 
   # for non-editable orders, redirect to 'show' when edit requested
   def redirect_edits_to_proper_action
-    if !@donation_order.editable? && params[:action] != 'edit' then
+    if @order.editable? && params[:action].eql?('show') then
       flash.keep
-      redirect_to(admin_donation_order_path(@donation_order))
+      redirect_to action:'edit', id:@order.id
     end
   end
 
@@ -130,14 +130,14 @@ class Admin::OrdersController < Admin::ApplicationController
   # template_by_order_status is called to determine which template to display post-processing
   #
   # @order [Order] order to process
-  def create_or_update(order)
+  def create_or_update(order, commit_action=nil)
     new_state = convert_button_label_to_state(params[:commit])
     if new_state.blank? then
       simple_save(order)
     else
       process_order(order,new_state) # Either way the process goes, we pick the display by current status
       respond_to do |format|
-        format.html { render template_by_order_status(order) }
+        format.html { render template_by_order_status(order, commit_action) }
       end
     end
   end
@@ -145,9 +145,9 @@ class Admin::OrdersController < Admin::ApplicationController
   # render the template refered to by template_by_order_status for the order
   #
   # @order [Order] order to evaluate
-  def render_by_status(order)
+  def render_by_status(order, commit_action = nil)
     respond_to do |format|
-      format.html { render template_by_order_status(order) }
+      format.html { render template_by_order_status(order, commit_action) }
     end
   end
 
@@ -158,7 +158,7 @@ class Admin::OrdersController < Admin::ApplicationController
   end
 
   # override if there are more states to determine (like confirmation pages)
-  def template_by_order_status(order)
+  def template_by_order_status(order, commit_action = nil)
     if order.editable?
       'edit'
     else
@@ -172,5 +172,8 @@ class Admin::OrdersController < Admin::ApplicationController
     @order = Order.accessible_by(current_ability).find(params[:id])
   end
 
+  def find_order
+    @order = Order.find(params[:id]) unless params[:id].blank?
+  end
 
 end

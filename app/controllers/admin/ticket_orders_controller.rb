@@ -70,33 +70,14 @@ class Admin::TicketOrdersController < Admin::OrdersController
   end
 
   def show
-    respond_to do |format|
-      format.html {
-        if @ticket_order.editable?
-          render 'edit'
-        else
-          render 'show'
-        end
-      }
-    end
   end
 
   def edit
-
-    respond_to do |format|
-      format.html {
-        if @ticket_order.editable?
-          render 'edit'
-        else
-          render 'show'
-        end
-      }
-    end
   end
 
   def confirm
     respond_to do |format|
-      format.html { render '/admin/ticket_orders/confirm', :layout=>true}
+      format.html { render 'confirm', :layout=>true}
     end
   end
 
@@ -120,81 +101,75 @@ class Admin::TicketOrdersController < Admin::OrdersController
   end
 
   def update
-    update_ticket_line_items(params[:ticket_order][:ticket_line_items_attributes].values) unless params[:ticket_order][:ticket_line_items_attributes].nil?
-    set_payment_accessors_from_params(@ticket_order, params[:ticket_order])
-    @ticket_order.payment_type = PaymentType.find(params[:ticket_order][:payment_type_id])
-    set_ticket_classes_for_line_items
-    if params[:commit].eql?("Assign Seats") then
-      next_action = @ticket_order.performance.production.has_reserved_seating? ? :confirm_admin_ticket_order_path : :edit_admin_ticket_order_path
-    else
-      next_action = :edit_admin_ticket_order_path
-    end
-    @ticket_order = process_order(@ticket_order,next_action)
+    @ticket_order.update_attributes(ticket_order_params)
+    # update_ticket_line_items(params[:ticket_order][:ticket_line_items_attributes].values) unless params[:ticket_order][:ticket_line_items_attributes].nil?
+    # @ticket_order.payment_type = PaymentType.find(params[:ticket_order][:payment_type_id])
+    create_or_update(@ticket_order, params[:commit])
   end
 
   def create
-    @ticket_order.payment_type = PaymentType.find(params[:ticket_order_params][:payment_type_id]) if @ticket_order.payment_type.nil?
     @ticket_order.performance=Performance.find_by performance_code:params[:ticket_order][:performance_code]
     @ticket_order.status = Order::NEW if @ticket_order.status.nil?
-    set_payment_accessors_from_params(@ticket_order, params[:ticket_order])
-    set_ticket_classes_for_line_items
     time_cutoff = @ticket_order.performance.to_time_with_zone - ($SERVER_CONFIG['minutes_before_performance_close_to_third_party_sales'] || 0).minutes
-    if can?(:order_anytime, TicketOrder) || (Time.now < time_cutoff)
-      @ticket_order = process_order(@ticket_order,@ticket_order.performance.production.has_reserved_seating? ? :confirm_admin_ticket_order_path : :edit_admin_ticket_order_path)
-    else
+    unless can?(:order_anytime, TicketOrder) || (Time.now < time_cutoff)
       flash[:error] = "Orders for this performance must be placed through the box office after #{time_cutoff.strftime('%H:%M%p')} on #{time_cutoff.strftime('%m/%d/%y')}"
-      render 'edit', layout: true
+      render 'edit'
+    else
+      create_or_update(@ticket_order, params[:commit])
     end
   end
 
-  def update_ticket_line_items(ticket_lines)
-    ticket_lines.each {|tli|
-      c_id = tli['id']
-      @ticket_order.ticket_line_items.select{|mli| mli.id == c_id.to_i}.each {|mli|
-        mli.ticket_class_id = tli['ticket_class_id'].to_i unless tli['ticket_class_id'].blank?
-        mli.ticket_count = tli['ticket_count'].to_i unless tli['ticket_count'].blank?
-      }
-    }
-  end
+  # def update_ticket_line_items(ticket_lines)
+  #   ticket_lines.each {|tli|
+  #     c_id = tli['id']
+  #     @ticket_order.ticket_line_items.select{|mli| mli.id == c_id.to_i}.each {|mli|
+  #       mli.ticket_class_id = tli['ticket_class_id'].to_i unless tli['ticket_class_id'].blank?
+  #       mli.ticket_count = tli['ticket_count'].to_i unless tli['ticket_count'].blank?
+  #     }
+  #   }
+  # end
 
-  def set_ticket_classes_for_line_items
+  def set_ticket_classes_for_line_items(order)
     unless params[:ticket_order][:ticket_line_items_attributes].nil?
       params[:ticket_order][:ticket_line_items_attributes].values.each{ |tlia|
         code = tlia[:ticket_class_code]
-        found = @ticket_order.ticket_line_items.select { |tli| tli.id == tlia[:id].to_i}
+        found = order.ticket_line_items.select { |tli| tli.id == tlia[:id].to_i}
         found.each {|tli|
-          use_class = @ticket_order.performance.ticket_class_allocations.select {|tca| !tca.ticket_class.nil? && tca.ticket_class.class_code == code && tca.available?}
+          use_class = order.performance.ticket_class_allocations.select {|tca| !tca.ticket_class.nil? && tca.ticket_class.class_code == code && tca.available?}
           tli.ticket_class = use_class.first.ticket_class unless use_class.empty?
         }
       }
     end
   end
 
-  def redirect_to_proper_action
-    flash.keep
-     if @ticket_order.editable?
-       if params[:action] != 'edit'
-          redirect_to(edit_admin_ticket_order_path(@ticket_order))
-       end
-     else
-       if params[:action] != 'show'
-          redirect_to(admin_ticket_order_path(@ticket_order))
-       end
-     end
+  def sellable_performances_with_partial_code(production, search_term)
+   where_clause = "production_id = :production_id and LOWER(performance_code) LIKE :search_term and status in (:sellable_statuses)"
+   cannot? :sell_past_performances, TicketOrder do
+     where_clause >> ' and performance_date >= curdate()'
    end
-
-   def sellable_performances_with_partial_code(production, search_term)
-    where_clause = "production_id = :production_id and LOWER(performance_code) LIKE :search_term and status in (:sellable_statuses)"
-    cannot? :sell_past_performances, TicketOrder do
-      where_clause >> ' and performance_date >= curdate()'
-    end
-    result = Performance.accessible_by(current_ability).where(where_clause,
-       production_id:production.id,
-       search_term:"%#{search_term.to_s.downcase}%",
-       sellable_statuses: Performance.sellable_statuses).order("performance_code ASC")
-   end
+   result = Performance.accessible_by(current_ability).where(where_clause,
+      production_id:production.id,
+      search_term:"%#{search_term.to_s.downcase}%",
+      sellable_statuses: Performance.sellable_statuses).order("performance_code ASC")
+  end
 
   protected
+
+  def create_or_update(order, commit_action = nil)
+
+    set_payment_accessors_from_params(order, params[:ticket_order])
+    set_ticket_classes_for_line_items(order)
+
+    super(order, commit_action)
+  end
+
+  def template_by_order_status(order, commit_action = nil)
+    if order.editable? && (!commit_action.nil? && commit_action.downcase.eql?('assign seats') && order.performance.production.has_reserved_seating?)
+      'confirm'
+    else
+      super(order,commit_action)
+    end
+  end
 
   private
   def ticket_order_params
