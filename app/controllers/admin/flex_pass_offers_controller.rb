@@ -82,7 +82,7 @@ class Admin::FlexPassOffersController < Admin::ApplicationController
   private
   def flex_pass_offer_params
     params.require(:flex_pass_offer).permit(:name, :price, :number_of_tickets, :use_ticket_class_code, :flat_payout, :spiff, :facility_fee,
-      :short_description, :description, :active, :months_till_expiration, :treat_as_festival_pass, :theater_id, :exclude_theater, :redeem_immediately)
+      :short_description, :description, :active, :on_sale_to_public, :months_till_expiration, :treat_as_festival_pass, :theater_id, :exclude_theater, :redeem_immediately)
   end
 
 end
