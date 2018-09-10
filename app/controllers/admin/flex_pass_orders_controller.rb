@@ -1,55 +1,29 @@
 class Admin::FlexPassOrdersController < Admin::OrdersController
   load_and_authorize_resource
+  before_action :redirect_edits_to_proper_action, :only => [:edit]
 
   include OrdersHelper
   include FlexPassOrdersHelper
 
-  #def new
-  #  @flex_pass_order = FlexPassOrder.new
-  #  @flex_pass_order.address = Address.new
-  #  @flex_pass_order.flex_pass_line_items.build
-  #  @flex_pass_order.status = Order::NEW
-  #
-  #  respond_to do |format|
-  #    format.html { render 'edit', :layout=>true }
-  #  end
-  #end
-
   def show
-
   end
 
   def edit
-    order = @flex_pass_order
-    order
   end
 
   def update
     @flex_pass_order.update_attributes(flex_pass_order_params)
-    process_order(@flex_pass_order,:edit_admin_order_path)
+    create_or_update(@flex_pass_order)
   end
 
-    def create
-      old_status = Order::NEW
-      process_order(@flex_pass_order,:edit_admin_flex_pass_order_path)
-    end
+  def create
+    create_or_update(@flex_pass_order)
+  end
 
+  private
 
-  def redirect_to_proper_action
-     if @flex_pass_order.editable?
-       if params[:action] != 'edit'
-          flash.keep
-          redirect_to(edit_admin_flex_pass_order_path(@flex_pass_order))
-       end
-     else
-       if params[:action] != 'show'
-          flash.keep
-          redirect_to(admin_flex_pass_order_path(@flex_pass_order))
-       end
-     end
-   end
+  def flex_pass_order_params
+    params.require(:flex_pass_order).permit(*common_flex_pass_order_params)
+  end
 
-   def flex_pass_order_params
-     params.require(:flex_pass_order).permit(*common_flex_pass_order_params)
-   end
 end

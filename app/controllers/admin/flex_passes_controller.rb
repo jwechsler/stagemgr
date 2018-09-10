@@ -1,7 +1,6 @@
 class Admin::FlexPassesController < Admin::ApplicationController
 
   def new
-    @flex_pass_order = FlexPassOrder.new
     @flex_pass_order.address = Address.new
     @flex_pass_order.flex_pass_line_items.build
     @flex_pass_order.status = Order::NEW
@@ -27,19 +26,5 @@ class Admin::FlexPassesController < Admin::ApplicationController
     @flex_pass_order = TicketOrder.new(params[:flex_pass_order])
     process_order(@flex_pass_order,:edit_admin_flex_pass_order_path)
   end
-
-
-  def redirect_to_proper_action
-    flash.keep
-     if @ticket_order.editable?
-       if params[:action] != 'edit'
-          redirect_to(edit_admin_flex_pass_order_path(@flex_pass_order))
-       end
-     else
-       if params[:action] != 'show'
-          redirect_to(admin_flex_pass_order_path(@flex_pass_order))
-       end
-     end
-   end
 
 end
