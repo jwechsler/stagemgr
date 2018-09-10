@@ -87,9 +87,10 @@ class BulkFlexOrderImport
       filestore.save
       problems.create if problems.any_issues?
     rescue => e
-      puts ("IMPORT: Could not save "
+      puts "IMPORT: Could not save "
       Rails.logger.error e.message
-      e.backtrace.each { |line| Rails.logger.error line }
+      Rails.logger.error e.backtrace.join('\n')
+      # e.backtrace.each { |line| Rails.logger.error line }
       filestore.notes = "Error: #{e.message}"
       filestore.save
     end

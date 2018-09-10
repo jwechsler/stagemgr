@@ -20,12 +20,12 @@ class Order < ActiveRecord::Base
   has_many :price_override_payments
   has_many :tasks, :class_name=>'OrderTask', :dependent=>:destroy
 
-  has_many :special_offer_line_items
+  has_one :special_offer_line_item
 
   belongs_to :address
   belongs_to :recipient_address, :class_name=>:address, :foreign_key=>:recipient_address_id
 
-  accepts_nested_attributes_for :special_offer_line_items,
+  accepts_nested_attributes_for :special_offer_line_item,
                                 :address,
                                 :allow_destroy => true
   attr_accessor :special_offer_code
@@ -63,7 +63,6 @@ class Order < ActiveRecord::Base
 
 
   before_validation :cascade_address_to_nested_items
-  before_validation :initialize_nested_line_items, :on => :create
   before_validation :set_defaults
   before_validation :create_recipient_address, :if=>:gift?
 
@@ -79,7 +78,7 @@ class Order < ActiveRecord::Base
   validates_presence_of :address
   validates_associated :address,
                        :payments,
-                       :special_offer_line_items
+                       :special_offer_line_item
   validates :hold_under, not_email: true
 
   before_save :is_balanced_transaction?, :if=>[:status_changed?, :processed?]
@@ -340,13 +339,13 @@ class Order < ActiveRecord::Base
   end
 
   def special_offer_code_used
-    self.special_offer_line_items.empty? ? '' : self.special_offer_line_items.first.special_offer.code
+    self.special_offer_line_item.nil? ? '' : self.special_offer_line_item.special_offer.code
   end
 
   def reload_associated
     self.payments(true)
     self.tasks(true)
-    self.special_offer_line_items(true)
+    self.special_offer_line_item(true)
   end
 
 
@@ -395,12 +394,15 @@ class Order < ActiveRecord::Base
     #end
   end
 
-  def update_special_offer_line_items_from_code!
-    if !self.special_offer_code.blank?
-      self.special_offer_line_items.clear
+  def update_special_offer_line_item_from_code!
+    unless self.special_offer_code.blank?
       special_offer = SpecialOffer.find_by_order(self)
-      if special_offer
-        self.special_offer_line_items.create!(:special_offer=>special_offer)
+      unless special_offer.nil?
+        if self.special_offer_line_item.nil?
+          self.build_special_offer_line_item(:special_offer=>special_offer)
+        else
+          self.special_offer_line_item.special_offer=special_offer
+        end
       else
         raise RuntimeError, "Unknown or expired special offer code \"#{self.special_offer_code}\""
       end
@@ -457,8 +459,7 @@ class Order < ActiveRecord::Base
       rescue StandardError=>e
         Rails.logger.error "Order #{self.id} could not transition from #{old_status} to #{new_status}:"
         Rails.logger.error "   #{e.to_s}"
-        Rails.logger.debug e.backtrace
-        self.reload
+        Rails.logger.debug e.backtrace.join("\n")
         errors.add :error, e.to_s
         raise e
       end
@@ -627,19 +628,16 @@ class Order < ActiveRecord::Base
   end
 
   def unique_line_items(reload_line_items = false)
-    hack = self.special_offer_line_items(reload_line_items)
-    found_so = false
-    hack.each do |li|
-      hack.delete(li) if found_so
-      found_so = true
-
+    hack = Array.new
+    unless special_offer_line_item.nil?
+      hack << self.special_offer_line_item(reload_line_items)
     end
     hack
   end
 
   def all_line_items(reload_line_items = false)
     result = Array.new
-    result += self.special_offer_line_items(reload_line_items)
+    result << self.special_offer_line_item(reload_line_items)
   end
 
 
@@ -732,7 +730,7 @@ class Order < ActiveRecord::Base
     Order.transaction do
       self.status = Order::PROCESSING
       self.save!
-      self.update_special_offer_line_items_from_code! unless self.special_offer_code.blank?
+      self.update_special_offer_line_item_from_code! unless self.special_offer_code.blank?
       self.save!
     end
     redirect_to
@@ -755,12 +753,12 @@ class Order < ActiveRecord::Base
 
   def transition_processing_to_processed!(redirect_to = nil)
     Order.transaction do
-      self.update_special_offer_line_items_from_code! unless self.special_offer_code.blank? || !self.special_offer_line_items.empty?
-      self.special_offer_line_items.each { |li| li.special_offer.apply_to_order(self) }
+      self.update_special_offer_line_item_from_code! unless (self.special_offer_code.blank? || !self.special_offer_line_item.nil?)
+      self.special_offer_line_item.special_offer.apply_to_order(self) unless special_offer_line_item.nil?
       create_proper_payment_in_amount_of!(self.total)
       self.status = Order::PROCESSED
       self.set_email_confirmation
-      self.special_offer_line_items.each { |li| li.mark_redeemed }
+      self.special_offer_line_item.special_offer.mark_redeemed unless self.special_offer_line_item.nil?
       self.save!
       save_additional_donation_order unless (self.additional_donation.blank? || self.additional_donation.to_i == 0)
     end
@@ -831,10 +829,6 @@ class Order < ActiveRecord::Base
     if status == Order::PROCESSED then
       link_to_address_of_record
     end
-  end
-
-  def initialize_nested_line_items
-    all_line_items.each { |li| li.order = self }
   end
 
   def save_additional_donation_order

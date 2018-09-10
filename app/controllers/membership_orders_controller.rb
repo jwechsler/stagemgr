@@ -38,7 +38,7 @@ class MembershipOrdersController < ApplicationController
   private
   def update_or_create
     respond_to do |format|
-      if validate_web_order(@order) && process_order(@order, Order::PROCESSING) && process_order(@order, Order::PROCESSED)
+      if validate_web_order(@order) && process_order(@order, Order::PROCESSED)
         flash[:notice] = raw "You've been successfully set up for the <strong>#{@order.membership_offer.name}</strong> membership"
         format.html { render '/membership_orders/confirm' }
       else

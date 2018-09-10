@@ -1,7 +1,8 @@
 class ProductionPerformanceOrdersController < ApplicationController
 
   include OrdersHelper
-  
+  include TicketOrdersHelper
+
   def new
     @production = Production.find(params[:production_id])
     @performance = @production.performances.find(params[:performance_id]) unless @production.nil?

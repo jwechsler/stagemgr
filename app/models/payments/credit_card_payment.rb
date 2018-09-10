@@ -120,6 +120,7 @@ class CreditCardPayment < CurrencyPayment
   end
 
   def create_credit_card
+    self.address.regularize!
     PaymentProcessing.credit_card(self.card_type, self.address.first_name, self.address.last_name, self.card_number,
      self.card_expiration_month, self.card_expiration_year, self.card_verification_number)
   end

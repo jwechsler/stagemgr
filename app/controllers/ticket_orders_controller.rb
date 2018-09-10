@@ -1,53 +1,63 @@
 class TicketOrdersController < ApplicationController
   layout 'ext_site_wrapper'
   include OrdersHelper
+  include TicketOrdersHelper
 
   append_before_filter :find_order, :only => [:show, :edit, :update, :destroy, :confirm]
   append_before_filter :redirect_to_proper_action, :only => [:edit, :show]
 
-  respond_to :html, :xml, :json
+  respond_to :html
 
   def edit
-  end
-
-  def show
+    @order = TicketOrder.find(params[:id].to_i)
+    preset_line_items_for_display(@order)
 
   end
 
   def create
     @order = TicketOrder.new(ticket_order_params)
     @order.ip_address = request.remote_ip
-    process_order(@order,:confirm_ticket_order_path) if validate_web_order(@order)
+    update_or_create
   end
 
   def update
+    @order = TicketOrder.find(params[:id].to_i)
     @order.update_attributes(ticket_order_params)
     @order.ip_address = request.remote_ip
-    @order.preset_line_items
-    unless @order.special_offer_line_items.empty?
-        @order.special_offer_line_items.each {|so|
-          so.destroy
-          @order.special_offer_line_items.delete(so)
-        }
-      @order.special_offer_line_items.delete
-    end
-      # @order.donation_line_items.build(:donation_amount=>0)
-    @order_for_to_s = @order.performance.production.name + ' on ' + @order.performance.performance_date.to_formatted_s(:long_ordinal) +
-          ' at ' + @order.performance.performance_time.to_formatted_s(:hour_min)
-    process_order(@order,:edit_ticket_order_path) if validate_web_order(@order)
+    # @order_for_to_s = @order.performance.production.name + ' on ' + @order.performance.performance_date.to_formatted_s(:long_ordinal) +
+    #      ' at ' + @order.performance.performance_time.to_formatted_s(:hour_min)
+    update_or_create
   end
 
   def confirm
-    @order = @ticket_order
-
+    @order = TicketOrder.find(params[:id].to_i)
   end
 
-  def donate
-    @order = @ticket_order
-
-  end
+#  def donate
+#    @order = TicketOrder.new(ticket_order_params)
+#  end
 
   private
+  def update_or_create
+    respond_to do |format|
+      if !params[:commit].blank? && validate_web_order(@order) && process_order(@order, convert_button_label_to_state(params[:commit]))
+        if @order.processing?
+          format.html { render '/ticket_orders/confirm' }
+        else
+          format.html { render '/ticket_orders/show' }
+        end
+
+      else
+        if @order.finalized?
+          format.html { render '/ticket_orders/show '}
+        else
+          Rails.logger.debug("*** Order status is #{@order.status}")
+          preset_line_items_for_display(@order)
+          format.html { render '/ticket_orders/edit' }
+        end
+      end
+    end
+  end
 
   def find_order
     @order = TicketOrder.find(params[:id])

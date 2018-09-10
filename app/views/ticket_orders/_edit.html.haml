@@ -17,7 +17,7 @@
 
 
     =simple_form_for order do |order_form|
-      = order_form.error_messages
+      -# = order_form.error_messages
       = order_form.hidden_field :status, :value=>(order_form.object.status.blank? ? Order::NEW : order_form.object.status )
       = render '/ticket_orders/tickets', :order_form => order_form, :order => order
 

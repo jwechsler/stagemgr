@@ -19,7 +19,9 @@
     </p>
     <p>
       We will see you at the show on <%= @order.performance.performance_date.to_formatted_s(:long_ordinal) %> at
-      <%= @order.performance.performance_time.to_formatted_s(:hour_min) %>. Seating is general admission. If you have any questions, please
+      <%= @order.performance.performance_time.to_formatted_s(:hour_min) %>.
+      <%- unless @order.performance.production.has_reserved_seating %>Seating is general admission.<% end %>
+      If you have any questions, please
       don't hesitate to call us at 773-975-8150 or email us at <a href="mailto:boxoffice@theaterwit.org">boxoffice@theaterwit.org</a>.  Thanks for your support and we'll see
       you at the theatre.  Enjoy the show!
     </p>

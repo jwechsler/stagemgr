@@ -1,12 +1,18 @@
-<%- if order.special_offer_line_items.size > 0 -%>
+<%- unless order.special_offer_line_item.nil? -%>
   <fieldset>
     <legend>Special Offer</legend>
-    <table id='special_offer_line_items'>
+    <table id='special_offer_line_item'>
       <thead>
       <th>Code</th>
       <th>Type</th>
       </thead>
-      <%= render :partial=> order.special_offer_line_items %>
+      <tbody>
+        <tr>
+          <td><%=h order.special_offer_line_item.special_offer.code %></td>
+          <td><%=h order.special_offer_line_item.special_offer.to_s %></td>
+        </tr>
+      </tbody>
+
     </table>
   </fieldset>
 <%- end -%>

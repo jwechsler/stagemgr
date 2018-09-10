@@ -96,7 +96,7 @@ module PaymentProcessing
       :year => card_expiration_year,
       :verification_value => verification_number
     )
-    raise InvalidCreditCard, credit_card.errors.full_messages.join("\n") unless credit_card.valid?
+    raise InvalidCreditCard, credit_card.errors.full_messages.join(", ") unless credit_card.valid?
     credit_card
   end
 

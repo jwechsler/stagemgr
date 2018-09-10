@@ -72,11 +72,6 @@ module OrdersHelper
     common_params + [:campaign, donation_line_items_attributes: [:donation_amount, :donation_level]]
   end
 
-  def ticket_order_common_params
-    common_params + [:production_code, :performance_code, :special_request,
-            ticket_line_items_attributes: [:id, :ticket_class, :ticket_class_id, :ticket_class_code, :ticket_count]]
-  end
-
   # prep order for status change.
   # Returns true if order converted with no errors, false if processing interrupted
   # Params:
@@ -122,7 +117,7 @@ module OrdersHelper
       else
         flash[:error] = e.message
         Rails.logger.error "There was an error creating order. #{e.message}"
-        Rails.logger.debug e.backtrace
+        Rails.logger.debug e.backtrace.join("\n")
     end
   end
 
@@ -154,15 +149,6 @@ module OrdersHelper
     end
     text <<= raw "<sup>[#{@footnotes.find_index("_custom#{performance.id}")+1}]&nbsp;</sup>" unless @footnotes.find_index("_custom#{performance.id}").nil? || performance.special_feature_display_markdown.blank?
     text
-  end
-
-  def create_ticket_order_for_performance(performance)
-    available_ticket_classes = performance.ticket_class_allocations.select { |tca| tca.available }.map { |tca| tca.ticket_class }.select { |tc| tc.web_visible unless tc.nil? }
-    order = performance.orders.build(:status=>Order::NEW)
-    order.status = Order::NEW
-    order.address = Address.new
-    available_ticket_classes.each { |tc| order.ticket_line_items.build(:ticket_class=>tc) }
-    @order = order
   end
 
 end

@@ -17,7 +17,7 @@ class Address < ActiveRecord::Base
 
   validates_presence_of :full_name
   validates :email, :email=>true, :allow_blank=>true
-  before_validation :regularize!
+  before_validation :regularize!, :if=>:changed?
   has_many :orders
   has_many :orders_as_recipient, :class_name=>:order, :foreign_key=>:recipient_address_id
   has_many :address_tags
@@ -61,36 +61,35 @@ class Address < ActiveRecord::Base
   end
 
   def regularize!
-    if self.changed?
-      self.first_name, self.middle_name, self.last_name = parse_full_name
 
-      self.email.strip! unless self.email.nil?
-      self.line1.strip! unless self.line1.nil?
-      self.city = self.city.titlecase.strip unless self.city.nil?
-      self.line2.strip! unless self.line2.nil?
-      if (!self.line1.nil? || !self.line2.nil?) then
-        parsed_address = StreetAddress::US.parse_address("#{self.line1}\n#{self.line2}")
-        if !parsed_address.nil? then
-          self.street_number = parsed_address.number
-          self.street = parsed_address.street
-          self.street_type = parsed_address.street_type
-          self.unit = parsed_address.unit
-          self.unit_prefix = parsed_address.unit_prefix
-        end
-      else
-        self.street_number = nil
-        self.street = nil
-        self.street_type = nil
-        self.unit = nil
-        self.unit_prefix = nil
+    self.first_name, self.middle_name, self.last_name = parse_full_name
+
+    self.email.strip! unless self.email.nil?
+    self.line1.strip! unless self.line1.nil?
+    self.city = self.city.titlecase.strip unless self.city.nil?
+    self.line2.strip! unless self.line2.nil?
+    if (!self.line1.nil? || !self.line2.nil?) then
+      parsed_address = StreetAddress::US.parse_address("#{self.line1}\n#{self.line2}")
+      if !parsed_address.nil? then
+        self.street_number = parsed_address.number
+        self.street = parsed_address.street
+        self.street_type = parsed_address.street_type
+        self.unit = parsed_address.unit
+        self.unit_prefix = parsed_address.unit_prefix
       end
-      self.email.downcase! unless self.email.nil?
-      self.street_number.upcase! unless self.street_number.nil?
-      self.street.upcase! unless self.street.nil?
-      self.street_type.upcase! unless self.street_type.nil?
-      self.unit_prefix.upcase! unless self.unit_prefix.nil?
-      self.search_name = name_as_searchable
+    else
+      self.street_number = nil
+      self.street = nil
+      self.street_type = nil
+      self.unit = nil
+      self.unit_prefix = nil
     end
+    self.email.downcase! unless self.email.nil?
+    self.street_number.upcase! unless self.street_number.nil?
+    self.street.upcase! unless self.street.nil?
+    self.street_type.upcase! unless self.street_type.nil?
+    self.unit_prefix.upcase! unless self.unit_prefix.nil?
+    self.search_name = name_as_searchable
 
     self
   end

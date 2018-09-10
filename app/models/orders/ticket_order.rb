@@ -324,7 +324,7 @@ class TicketOrder < Order
       original_order.status = Order::EXCHANGED
       self.status = Order::NEW
       self.save!
-      self.update_special_offer_line_items_from_code!
+      self.update_special_offer_line_item_from_code!
       original_order.release_tickets!
       exchange_payments_on_original_order = original_order.payments.map {|p| p.create_exchange_offset_payment}
       exchange_payments_toward_exchange_order = self.payment_type.apply_exchange_offset_payments(exchange_payments_on_original_order)
