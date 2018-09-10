@@ -31,7 +31,7 @@ module OrdersHelper
         raise "Credit card type required" if order.credit_card_type.blank?
         raise "Credit card verification number required" if order.credit_card_verification_number.blank?
       end
-    rescue StandardError => e
+    rescue RuntimeError => e
       result = false
       rescue_error(e)
       return false

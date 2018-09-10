@@ -1,10 +1,12 @@
 = render 'full_order', :order=>@donation_order
-%p
-  - if can? :refund, DonationOrder
-    = link_to 'Refund Order', new_admin_order_refund_order_path(@donation_order) if @donation_order.refundable?
-  - if can? :fulfull, DonationOrder
-    = link_to 'Fulfill Order', fulfill_admin_order_path(@donation_order) if @donation_order.fulfillable?
-  - if @donation_order.status == 'Processing' || @donation_order.status == 'Hold' || @donation_order.status == Order::NEW
-    = link_to 'Cancel Order', cancel_admin_order_path(@donation_order), :confirm => "Are you sure?", :method=>:post
+.row
+  .columns.small-12
+    %p
+      - if can? :refund, DonationOrder
+        = link_to 'Refund Donation', new_admin_order_refund_order_path(@donation_order), :confirm => "Are you sure?", :class=>"button"
+      - if can? :fulfull, DonationOrder
+        = link_to 'Fulfill Order', fulfill_admin_order_path(@donation_order) if @donation_order.fulfillable?
+      - if @donation_order.status == 'Processing' || @donation_order.status == 'Hold' || @donation_order.status == Order::NEW
+        = link_to 'Cancel Order', cancel_admin_order_path(@donation_order), :confirm => "Are you sure?", :method=>:post
 
-= render '/admin/orders/audit_show', :order_form=>@donation_order
+    = render '/admin/orders/audit_show', :order_form=>@donation_order

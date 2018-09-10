@@ -78,6 +78,7 @@ class DonationOrdersController < ApplicationController
   end
 
   def redirect_to_proper_action
+
     if @order.editable?
       if params[:action] != 'edit'
         flash.keep
