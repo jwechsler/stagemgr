@@ -25,7 +25,7 @@ class FlexPassOfferDatatable < DatatableBase
         offer: link_to(flex_pass_offer.name, [:admin, flex_pass_offer]),
         price: number_to_currency(flex_pass_offer.price),
         qty: flex_pass_offer.number_of_tickets,
-        public: flex_pass_offer.active? ? '√' : raw('&nbsp;'),
+        public: flex_pass_offer.on_sale_to_public? ? '√' : raw('&nbsp;'),
         restrictions: flex_pass_restrictions(flex_pass_offer),
         actions: raw(allowed_actions(flex_pass_offer)),
         # example:
@@ -49,11 +49,11 @@ class FlexPassOfferDatatable < DatatableBase
     end
 
     if current_user.can? :create, FlexPassOrder then
-      #if flex_pass_offer.active?
+      if flex_pass_offer.active?
         actions << link_to('Create Order', [:new, :admin, flex_pass_offer, :order], :class=>'tiny button')
-      #else
-      #  actions << link_to('Create Order', '#', :class=> 'tiny button disabled')
-      #end
+      else
+        actions << link_to('Create Order', '#', :class=> 'tiny button disabled')
+      end
     end
 
     actions.join(' ')

@@ -8,7 +8,8 @@
   = f.input :facility_fee
   = f.input :short_description
   = f.input :description, :input_html=>{ :rows=>6}
-  = f.input :active, :label=>"Web Visible"
+  = f.input :active
+  = f.input :on_sale_to_public
   = f.input :months_till_expiration
   = f.input :treat_as_festival_pass
   = f.association :theater, :label=>"Restrict redemption to", :as=>:select, :collection=>Theater.where("status in (?)", ['Active', 'Private'])

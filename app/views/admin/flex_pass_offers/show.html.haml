@@ -1,0 +1,29 @@
+.row
+  .small-12.columns
+    = content_for :title do
+      Flex Pass Offer
+    = content_for :breadcrumbs do
+      %ul.breadcrumbs
+        %li= link_to 'Flex Pass Offers', admin_flex_pass_offers_path
+        %li.current= @flex_pass_offer.name
+
+.row
+  .small-12.columns
+
+    %h2= @flex_pass_offer.name
+
+    %p
+      - unless @flex_pass_offer.theater.nil?
+        %b Only for Theater:
+        =h @flex_pass_offer.theater.name
+        %br
+      %b Price:
+      =h @flex_pass_offer.price
+      %br
+      %b= "Number of tickets (redeemed as #{@flex_pass_offer.use_ticket_class_code}): "
+      =h @flex_pass_offer.number_of_tickets
+.row
+  .small-12.columns
+    = link_to 'Edit', edit_admin_flex_pass_offer_path(@flex_pass_offer)
+  </div>
+</div>
