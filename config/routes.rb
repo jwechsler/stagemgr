@@ -207,8 +207,6 @@ Stagemgr::Application.routes.draw do
       end
     end
 
-    resources :flex_passes
-
     resources :orders do
       collection do
         post :unclaim_selected
