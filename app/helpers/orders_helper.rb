@@ -68,10 +68,6 @@ module OrdersHelper
     order.check_number = order_params[:check_number]
   end
 
-  def donation_order_common_params
-    common_params + [:campaign, donation_line_items_attributes: [:donation_amount, :donation_level]]
-  end
-
   # prep order for status change.
   # Returns true if order converted with no errors, false if processing interrupted
   # Params:
