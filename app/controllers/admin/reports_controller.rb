@@ -239,7 +239,7 @@ class Admin::ReportsController < Admin::ApplicationController
 
     respond_to do |format|
       if @admin_report.save
-        format.html { redirect_to(@admin_report, :notice => 'Report was successfully created.') }
+        format.html { redirect_to(@admin_report, :success => 'Report was successfully created.') }
         format.xml { render :xml => @admin_report, :status => :created, :location => @admin_report }
       else
         format.html { render :action => "new" }
@@ -255,7 +255,7 @@ class Admin::ReportsController < Admin::ApplicationController
 
     respond_to do |format|
       if @admin_report.update_attributes(params[:admin_report])
-        format.html { redirect_to(@admin_report, :notice => 'Report was successfully updated.') }
+        format.html { redirect_to(@admin_report, :success => 'Report was successfully updated.') }
         format.xml { head :ok }
       else
         format.html { render :action => "edit" }

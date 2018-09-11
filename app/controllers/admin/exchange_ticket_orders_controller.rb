@@ -13,7 +13,6 @@ class Admin::ExchangeTicketOrdersController < Admin::ApplicationController
     @allowed_payment_types = @original_order.payment_type.allowed_payment_types_for_exchange(current_user)
     respond_to do |format|
       format.html # new.html.erb
-      format.xml { render :xml => @exchange_order }
     end
   end
 
@@ -26,15 +25,20 @@ class Admin::ExchangeTicketOrdersController < Admin::ApplicationController
       @exchange_order.special_offer_code = params[:ticket_order][:special_offer_code]
       @exchange_order.exchange_and_process_from! @original_order
       respond_to do |format|
-        flash[:notice] = 'Order was successfully exchanged.'
-        format.html { redirect_to(edit_admin_ticket_order_path(@exchange_order.id)) }
-        format.xml { render :xml => @exchange_order, :status => :created, :location => @exchange_order }
+
+        if @exchange_order.performance.production.has_reserved_seating?
+          flash[:warning] = 'Please seat this exchange'
+          format.html { redirect_to(confirm_admin_ticket_order_path(@exchange_order)) }
+        else
+          flash[:notice] = 'Order was successfully exchanged.'
+          format.html { redirect_to(admin_ticket_order_path(@exchange_order)) }
+        end
       end
     rescue Exception => e
       Rails.logger.error("There was a problem with the exchange. #{e.message}")
       Rails.logger.error(e.backtrace.join("\n"))
       flash[:error] = "There was a problem with the exchange. #{e.message}"
-      redirect_to new_admin_ticket_order_exchange_ticket_order_path(@original_order.id)
+      redirect_to admin_ticket_order_path(@original_order.id)
     end
   end
 

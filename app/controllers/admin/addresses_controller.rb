@@ -55,7 +55,7 @@ class Admin::AddressesController < Admin::ApplicationController
       if @address.save
         format.html {
           flash.keep
-          redirect_to(admin_address_path(@address), :notice => notice)
+          redirect_to(admin_address_path(@address), :success => notice)
         }
         format.xml  { render :xml => :admin_address, :status => :created, :location => @address }
       else
@@ -89,7 +89,7 @@ class Admin::AddressesController < Admin::ApplicationController
 
         format.html {
           flash.keep
-          redirect_to(:admin_address, :notice => notice)
+          redirect_to(:admin_address, :success => notice)
         }
         format.xml  { head :ok }
       else

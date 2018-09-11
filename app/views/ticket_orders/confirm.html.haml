@@ -1,16 +1,16 @@
 .row
   .small-12.columns.order
-    = simple_form_for @order, :html=>{:name=>"confirm_form"} do |order_form|
+    = simple_form_for @ticket_order, :html=>{:name=>"confirm_form"} do |order_form|
       - total = Money.new(0)
 
-      %h2= "#{@order.address.first_name}, please confirm your ticket reservation"
+      %h2= "#{@ticket_order.address.first_name}, please confirm your ticket reservation"
 
       %h3
         You are purchasing the following tickets for
-        %span.production_name= @order.performance.production.name
-        = @order.performance.performance_date.to_formatted_s(:long_ordinal)
+        %span.production_name= @ticket_order.performance.production.name
+        = @ticket_order.performance.performance_date.to_formatted_s(:long_ordinal)
         at
-        = "#{@order.performance.performance_time.to_formatted_s(:hour_min)}."
+        = "#{@ticket_order.performance.performance_time.to_formatted_s(:hour_min)}."
 
       %table{:style=>"background:none;width:100%"}
         %thead
@@ -22,13 +22,13 @@
           - qty = 0
           - old_items = Array.new
           - new_items = Array.new
-          - unless @order.special_offer_line_item.nil?
+          - unless @ticket_order.special_offer_line_item.nil?
 
-            - new2, old2 = @order.special_offer_line_item.special_offer.modified_line_items_in_order(@order)
+            - new2, old2 = @ticket_order.special_offer_line_item.special_offer.modified_line_items_in_order(@ticket_order)
             - old_items += old2
             - new_items += new2
 
-          - tickets = @order.ticket_line_items.to_a
+          - tickets = @ticket_order.ticket_line_items.to_a
           - tickets -= old_items
           - tickets += new_items
           - tickets.each do |tli|
@@ -39,17 +39,17 @@
               %td= tli.ticket_class.class_name
               %td= "$ #{tli.receipt_total.to_money}" unless tli.ticket_class.software_managed
 
-          - unless @order.special_offer_line_item.nil?
-            - discount = (-1*@order.special_offer_line_item.special_offer.calculate_discount(order)).to_money
+          - unless @ticket_order.special_offer_line_item.nil?
+            - discount = (-1*@ticket_order.special_offer_line_item.special_offer.calculate_discount(@ticket_order)).to_money
             - total -= discount
             %tr
-              %td= @order.special_offer_line_item.special_offer.code.upcase
-              %td= @order.special_offer_line_item.special_offer.description
+              %td= @ticket_order.special_offer_line_item.special_offer.code.upcase
+              %td= @ticket_order.special_offer_line_item.special_offer.description(@ticket_order)
               %td
-                = "$ #{discount}" unless so.special_offer.is_a? TicketClassSpecialOffer
+                = "$ #{discount}" unless @ticket_order.special_offer_line_item.special_offer.is_a? TicketClassSpecialOffer
 
-          - unless @order.additional_donation.blank?
-            - donation = @order.additional_donation.to_f.to_money
+          - unless @ticket_order.additional_donation.blank?
+            - donation = @ticket_order.additional_donation.to_f.to_money
             - total += donation
             %tr
               %td
@@ -67,13 +67,13 @@
             %td
             %td
               %a.tiny.button.right{:href=>"javascript: submitForm()"} Edit your order
-      - if @order.performance.production.has_reserved_seating?
+      - if @ticket_order.performance.production.has_reserved_seating?
         .row
           .small-12.columns
-            = render partial: '/ticket_orders/seating', locals: {ticket_order: @order}
+            = render partial: '/ticket_orders/seating', locals: {ticket_order: @ticket_order}
       = render partial: '/ticket_orders/pass_through_fields', locals:{order_form: order_form}
       %p
-        = payment_text_for @order if total > 0
+        = payment_text_for @ticket_order if total > 0
         Please note that all ticket purchases are
         %strong NON-REFUNDABLE
         and

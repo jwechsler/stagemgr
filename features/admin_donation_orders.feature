@@ -10,7 +10,7 @@ Feature: Administer donation orders
 
 Scenario: The administrator can refund an order
   When I go to the admin order page for the donation
-   And I follow "Refund Order"
+   And I follow "Refund Donation"
    And I press "Process Refund"
 
   Then I should see "-$10.00"

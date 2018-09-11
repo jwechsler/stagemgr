@@ -40,7 +40,7 @@
     %ul.button-group.right
       - if membership.suspended?
         %li
-          =link_to 'Reactivate', reactivate_admin_membership_order_path(@order), class:"tiny button"
+          =link_to 'Reactivate', reactivate_admin_membership_order_path(membership.membership_order), class:"tiny button"
       - unless membership.canceled?
         %li
-          =link_to 'Cancel', cancel_admin_membership_order_path(@order), class: "tiny button alert", confirm: "Cancel this payment PERMANENTLY?"
+          =link_to 'Cancel', cancel_admin_membership_order_path(membership.membership_order), class: "tiny button alert", confirm: "Cancel this payment PERMANENTLY?"

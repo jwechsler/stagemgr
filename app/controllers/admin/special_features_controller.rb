@@ -23,7 +23,7 @@ class Admin::SpecialFeaturesController < ApplicationController
 
   def update
     if @special_feature.update_attributes(special_feature_params)
-      redirect_to [:admin, :special_features], :notice  => "Successfully updated special feature."
+      redirect_to [:admin, :special_features], :success  => "Successfully updated special feature."
     else
       render :action => 'edit'
     end

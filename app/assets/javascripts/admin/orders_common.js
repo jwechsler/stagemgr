@@ -30,12 +30,21 @@ function setup_admin_payment_form() {
 
 }
 
+
 jQuery(document).ready(function($) {
 
   setup_admin_payment_form();
-   $(".payment_type_choice select").change(function() {
-      setup_admin_payment_form();
-    });
+  $(".payment_type_choice select").change(function() {
+     setup_admin_payment_form();
+   });
+
+
+  $(window).keydown(function(event){
+    if(event.keyCode == 13) {
+      event.preventDefault();
+      return false;
+    }
+  });
 
   $('#disassociate-address').on('click', function() {
       $('#linked_to_address_id').val('');

@@ -2,7 +2,7 @@ class Admin::OrdersController < Admin::ApplicationController
   authorize_resource
 
   include OrdersHelper
-  before_action :find_order
+  before_action :find_order, :except=>[:index, :new, :create, :update ]
   before_action :redirect_edits_to_proper_action, :only => [:show]
 
   VALID_SEARCH_COLUMNS = [
@@ -94,7 +94,7 @@ class Admin::OrdersController < Admin::ApplicationController
     if @order.save
       flash[:notice] = 'Note updated.'
     end
-    self.redirect_to_proper_action
+    redirect_to action:'show', id:@order.id
   end
 
   def refund

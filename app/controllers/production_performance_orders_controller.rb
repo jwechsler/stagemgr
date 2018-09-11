@@ -11,7 +11,7 @@ class ProductionPerformanceOrdersController < ApplicationController
         format.html { render '/orders/not_available', :layout=>'ext_site_wrapper'}
       end
     else
-      @order = create_ticket_order_for_performance(@performance)
+      @ticket_order = create_ticket_order_for_performance(@performance)
       @order_for_to_s = @production.name + ' on ' + @performance.performance_date.to_formatted_s(:long_ordinal) +
           ' at ' + @performance.performance_time.to_formatted_s(:hour_min)
 

@@ -32,7 +32,7 @@ class Admin::MembershipOffersController < ApplicationController
 
   def update
     if @membership_offer.update_attributes(membership_offer_params)
-      redirect_to [:admin, @membership_offer], :notice  => "Successfully updated membership offer."
+      redirect_to [:admin, @membership_offer], :success  => "Successfully updated membership offer."
     else
       render :action => 'edit'
     end

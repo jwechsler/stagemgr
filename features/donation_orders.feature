@@ -11,7 +11,7 @@ Feature: Donations
       And I enter a valid credit card as payment
       And I choose the "Wit Club" donation level
       And I press "Make a donation"
-     Then I should see "Order was successfully saved"
+     Then I should see "Order was successfully processed"
       And I should see "$50.00"
 
   Scenario: Make a custom donation
@@ -38,7 +38,7 @@ Feature: Donations
       And I enter a valid credit card as payment
       And I enter "10" as a monthly pledge amount
       And I press "Make a pledge"
-      And I should see "There was a problem"
+      And I should see "Email required"
       And I enter my contact information
       And I press "Make a pledge"
      Then I should see "$120.00 over the coming year ($10.00/month)"

@@ -50,8 +50,8 @@ class Order < ActiveRecord::Base
 
 
   ORDER_STATUSES = (
-  HOLD, NEW, PROCESSING, PROCESSED, REFUNDED, EXCHANGED, FULFILLED, CANCELED, UNCLAIMED =
-      "Hold", "New", "Processing", "Processed", "Refunded", "Exchanged", "Fulfilled", "Canceled", "Unclaimed")
+  HOLD, NEW, PROCESSING, PROCESSED, REFUNDED, EXCHANGED, EXCHANGING, RELEASING, FULFILLED, CANCELED, UNCLAIMED =
+      "Hold", "New", "Processing", "Processed", "Refunded", "Exchanged", "Exchanging", "Releasing", "Fulfilled", "Canceled", "Unclaimed")
 
   HOLDING_SEAT_STATUSES = [HOLD, PROCESSING, PROCESSED, FULFILLED]
 
@@ -135,6 +135,10 @@ class Order < ActiveRecord::Base
 
   def exchangeable?
     false
+  end
+
+  def exchanging?
+    self.status.eql?(Order::EXCHANGING)
   end
 
   def holdable?
@@ -758,7 +762,7 @@ class Order < ActiveRecord::Base
       create_proper_payment_in_amount_of!(self.total)
       self.status = Order::PROCESSED
       self.set_email_confirmation
-      self.special_offer_line_item.special_offer.mark_redeemed unless self.special_offer_line_item.nil?
+      self.special_offer_line_item.mark_redeemed unless self.special_offer_line_item.nil?
       self.save!
       save_additional_donation_order unless (self.additional_donation.blank? || self.additional_donation.to_i == 0)
     end

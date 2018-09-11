@@ -80,7 +80,7 @@ class ApplicationController < ActionController::Base
       respond_to do |format|
       format.html {
         session[:return_to] = request.url
-        flash[:notice] = "You must be logged in to access this page"
+        flash[:error] = "You must be logged in to access this page"
         redirect_to new_user_session_path
       }
       format.xml {

@@ -20,6 +20,7 @@ class TicketOrder < Order
 
   has_many :ticket_line_items, :foreign_key => :order_id
   has_many :seats, foreign_key: :order_id, class_name: 'SeatAssignment'
+  belongs_to :exchange_source, class_name: "TicketOrder", foreign_key: "exchange_source_id"
   accepts_nested_attributes_for :ticket_line_items, allow_destroy: true
 
   SEATING_REQUESTS = (
@@ -99,7 +100,7 @@ class TicketOrder < Order
   end
 
   def seatable?
-    [Order::NEW, Order::PROCESSED, Order::PROCESSING, Order::HOLD].include?(self.status) && performance.production.has_reserved_seating?
+    [Order::NEW, Order::PROCESSED, Order::PROCESSING, Order::EXCHANGING, Order::HOLD].include?(self.status) && performance.production.has_reserved_seating?
   end
 
   def theater_ids
@@ -317,32 +318,44 @@ class TicketOrder < Order
     self.ticket_line_items.select { |li| li.ticket_count > 0 }.size > 0
   end
 
+  def begin_exchange!(original_order)
+    self.exchange_source = original_order
+    exchange_source.status = Order::RELEASING
+    exchange_source.save!
+    self.address = original_order.address
+    self.status = Order::EXCHANGING
+    self.update_special_offer_line_item_from_code!
+    self.save!
+  end
 
-  def exchange_and_process_from!(original_order)
+  def transition_exchanging_to_processed!
     Order.transaction do
-      self.address = original_order.address
+      original_order = self.exchange_source
       original_order.status = Order::EXCHANGED
-      self.status = Order::NEW
-      self.save!
-      self.update_special_offer_line_item_from_code!
-      original_order.release_tickets!
       exchange_payments_on_original_order = original_order.payments.map {|p| p.create_exchange_offset_payment}
       exchange_payments_toward_exchange_order = self.payment_type.apply_exchange_offset_payments(exchange_payments_on_original_order)
       exchange_payments_on_original_order.each {|p| original_order.payments << p unless p.nil? }
       exchange_payments_toward_exchange_order.each { |p| self.payments << p unless p.nil? }
-
       payment_difference = self.total_ticket_face_value - exchange_payments_toward_exchange_order.inject(0){|sum, x| sum = sum + x.amount }
       if payment_difference < 0
         self.price_override_payments.create!(:amount => payment_difference)
       elsif payment_difference > 0
         self.create_proper_payment_in_amount_of!(payment_difference)
       end
-
       self.status=Order::PROCESSED
       self.set_email_confirmation
       self.payments(true)
       self.save!
+      original_order.release_tickets!
       original_order.save!
+    end
+  end
+
+
+  def exchange_and_process_from!(original_order)
+    Order.transaction do
+      self.begin_exchange!(original_order)
+      self.transition_exchanging_to_processed! unless self.performance.production.has_reserved_seating?
     end
   end
 

@@ -9,14 +9,13 @@ class SpecialOfferLineItem < LineItem
   def total
     price
   end
-  
+
   def ticket_count
     0
   end
 
   def mark_redeemed
     special_offer.redeem_one_use!
-
   end
 
   def receipt_total

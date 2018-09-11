@@ -154,7 +154,6 @@ class Admin::TicketOrdersController < Admin::OrdersController
   end
 
   protected
-
   def create_or_update(order, commit_action = nil)
 
     set_payment_accessors_from_params(order, params[:ticket_order])
@@ -171,6 +170,15 @@ class Admin::TicketOrdersController < Admin::OrdersController
     end
   end
 
+  # for non-editable orders, redirect to 'show' when edit requested
+  def redirect_edits_to_proper_action
+    if @order.exchanging? then
+      flash.keep
+      redirect_to action:'confirm', id:@order.id
+    else
+      super
+    end
+  end
   private
   def ticket_order_params
     params.require(:ticket_order).permit(*ticket_order_common_params)

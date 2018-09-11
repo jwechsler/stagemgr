@@ -11,7 +11,7 @@ Feature: Membership Ordering
     And I enter a valid credit card as payment
     And I prefer "Best available (center)" seating
     And I press "Checkout"
-    Then I should see "You've been successfully set up for the Test Membership payment plan."
+    Then I should see "You've been successfully set up for your Test Membership."
      And a membership exists with status "Active"
      And a membership exists with "Best available (center)" as preferred seating
 

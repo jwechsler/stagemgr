@@ -35,7 +35,7 @@ a {
   margin: 2px 0px 5px 0px;
 }
 
-#flash_notice, #flash_error {
+#flash_notice, #flash_error, #flash_warning {
   padding: 5px 8px;
   margin: 10px 0;
 }
@@ -50,6 +50,10 @@ a {
   border: solid 1px #C66;
 }
 
+#flash_warning {
+  background-color: yellow;
+  border: solid 1px #C66;
+}
 .clear {
   clear: both;
 }

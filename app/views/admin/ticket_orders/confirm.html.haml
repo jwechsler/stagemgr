@@ -8,7 +8,7 @@
       =render '/admin/addresses/info', :address=>@ticket_order.address, :breadcrumb_order=>@ticket_order
     %div.small-12.medium-6.columns
       = render '/admin/ticket_line_items/table', :order=>@ticket_order
-      = render '/admin/orders/billing_form', :order_form=>order_form
+      = render '/admin/orders/billing_form', :order_form=>order_form unless @ticket_order.exchanging?
   .row
     .small-12.columns
     = render partial:'/admin/ticket_orders/seating', locals:{:ticket_order=>@ticket_order}

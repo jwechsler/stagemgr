@@ -66,9 +66,9 @@ class CurrentUser::ProductionsController < CurrentUser::ApplicationController
       format.xml  { head :ok }
     end
   end
-  
+
   private
-  
+
   def find_theater
     @theater=Theater.find(params[:theater_id])
   end
@@ -76,5 +76,5 @@ class CurrentUser::ProductionsController < CurrentUser::ApplicationController
   def find_production
     @production = @theater.productions.find(params[:id])
   end
-  
+
 end

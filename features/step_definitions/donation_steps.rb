@@ -9,6 +9,7 @@ Given /^I enter "(.*?)" as a monthly pledge amount$/ do |amount|
 end
 
 Given /^I enter "(.*?)" as a donation amount$/ do |amt|
-  fill_in 'other amount', :with=>amt
+  choose "Other Amount (below)"
+  fill_in 'donation_order_donation_line_items_attributes_0_donation_amount', :with=>amt
 end
 

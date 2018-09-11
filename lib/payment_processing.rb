@@ -39,6 +39,11 @@ module PaymentProcessing
       r = BogusResponse.new(true, "Forced Response")
       r.params['profile_id'] = profile_id
       r.params['profile_status'] = 'ActiveProfile'
+      BogusGateway.profiles ||= Hash.new
+      if BogusGateway.profiles[profile_id].nil? then
+        BogusGateway.profiles[profile_id]={'balance': 9900, 'outstanding_balance': 9900, 'aggregate_amount':0,
+          'number_cycles_completed':0, 'final_payment_due_date': Date.today + 1.year }
+      end
       r.params.merge!(BogusGateway.profiles[profile_id])
       r
     end

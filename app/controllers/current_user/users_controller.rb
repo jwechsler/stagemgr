@@ -1,6 +1,6 @@
 class CurrentUser::UsersController < CurrentUser::ApplicationController
   prepend_before_filter :find_user, :only => [:show, :edit, :update, :destroy]
-  
+
   # GET /users
   def index
     @users = User.all
@@ -9,11 +9,11 @@ class CurrentUser::UsersController < CurrentUser::ApplicationController
       format.html # index.html.erb
     end
   end
-  
+
   def new
     @user = User.new
   end
-  
+
   def create
     @user = User.new(params[:user])
     if @user.save
@@ -23,15 +23,15 @@ class CurrentUser::UsersController < CurrentUser::ApplicationController
       render :action => :new
     end
   end
-  
+
   def show
     @user = current_user
   end
- 
+
   def edit
     @user = current_user
   end
-  
+
   def update
     @user = current_user # makes our views "cleaner" and more consistent
     if @user.update_attributes(params[:user])
@@ -51,9 +51,9 @@ class CurrentUser::UsersController < CurrentUser::ApplicationController
 
     redirect_to root_path
   end
-  
+
   private
-  
+
   def find_user
     @is_my_account = params[:id].nil?
     @user = @is_my_account ? current_user : User.find(params[:id])

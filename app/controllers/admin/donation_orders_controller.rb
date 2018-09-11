@@ -1,4 +1,5 @@
 class Admin::DonationOrdersController < Admin::OrdersController
+  load_and_authorize_resource
 
   def new
 
