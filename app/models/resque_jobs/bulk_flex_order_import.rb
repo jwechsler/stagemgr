@@ -44,7 +44,7 @@ class BulkFlexOrderImport
             a = Address.find(current_address_id.to_i)
           else
             current_address_id = row['ExternalId']
-            puts ("IMPORT:  Finding external id #{current_address_id} as #{address_ids[current_address_id]}"
+            puts "IMPORT:  Finding external id #{current_address_id} as #{address_ids[current_address_id]}"
             a = Address.find(address_ids[current_address_id].to_i)
           end
           Order.transaction do
