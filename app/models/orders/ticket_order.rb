@@ -139,7 +139,7 @@ class TicketOrder < Order
   end
 
   def editable?
-    self.status == Order::EXCHANGING ||= super
+    (self.status == Order::EXCHANGING) || super
   end
 
 
