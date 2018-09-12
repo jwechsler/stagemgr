@@ -326,20 +326,22 @@ class TicketOrder < Order
   def begin_exchange!(original_order)
     Order.transaction do
       self.exchange_source = original_order
+      self.address = original_order.address
+      self.status = Order::EXCHANGING
       exchange_source.status = Order::RELEASING
       exchange_payments_on_original_order = original_order.payments.map {|p| p.create_exchange_offset_payment}
       exchange_payments_toward_exchange_order = self.payment_type.apply_exchange_offset_payments(exchange_payments_on_original_order)
       exchange_payments_on_original_order.each {|p| original_order.payments << p unless p.nil? }
       exchange_payments_toward_exchange_order.each { |p| self.payments << p unless p.nil? }
       payment_difference = self.total_ticket_face_value - exchange_payments_toward_exchange_order.inject(0){|sum, x| sum = sum + x.amount }
+      self.save!
       if payment_difference < 0
-        self.price_override_payments.create!(:amount => payment_difference)
+        self.price_override_payments.create(:amount => payment_difference)
       elsif payment_difference > 0
+        Rails.logger.debug("*** Creating payment difference of #{payment_difference}")
         self.create_proper_payment_in_amount_of!(payment_difference)
       end
-      exchange_source.save!
-      self.address = original_order.address
-      self.status = Order::EXCHANGING
+
       self.update_special_offer_line_item_from_code!
       self.save!
     end
@@ -353,12 +355,11 @@ class TicketOrder < Order
   def transition_exchanging_to_processed!
     Order.transaction do
       original_order = self.exchange_source
-      original_order.status = Order::EXCHANGED
-
       self.status=Order::PROCESSED
       self.set_email_confirmation
       self.payments(true)
       self.save!
+      original_order.status = Order::EXCHANGED
       original_order.release_tickets!
       original_order.save!
     end
