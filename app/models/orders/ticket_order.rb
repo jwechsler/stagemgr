@@ -138,6 +138,11 @@ class TicketOrder < Order
     true
   end
 
+  def editable?
+    self.status == Order::EXCHANGING ||= super
+  end
+
+
   def holding_seats?
     ![Order::UNCLAIMED, Order::CANCELED].include?(self.status)
   end
@@ -319,19 +324,9 @@ class TicketOrder < Order
   end
 
   def begin_exchange!(original_order)
-    self.exchange_source = original_order
-    exchange_source.status = Order::RELEASING
-    exchange_source.save!
-    self.address = original_order.address
-    self.status = Order::EXCHANGING
-    self.update_special_offer_line_item_from_code!
-    self.save!
-  end
-
-  def transition_exchanging_to_processed!
     Order.transaction do
-      original_order = self.exchange_source
-      original_order.status = Order::EXCHANGED
+      self.exchange_source = original_order
+      exchange_source.status = Order::RELEASING
       exchange_payments_on_original_order = original_order.payments.map {|p| p.create_exchange_offset_payment}
       exchange_payments_toward_exchange_order = self.payment_type.apply_exchange_offset_payments(exchange_payments_on_original_order)
       exchange_payments_on_original_order.each {|p| original_order.payments << p unless p.nil? }
@@ -342,6 +337,24 @@ class TicketOrder < Order
       elsif payment_difference > 0
         self.create_proper_payment_in_amount_of!(payment_difference)
       end
+      exchange_source.save!
+      self.address = original_order.address
+      self.status = Order::EXCHANGING
+      self.update_special_offer_line_item_from_code!
+      self.save!
+    end
+  end
+
+
+  def transition_processing_to_exchanging!
+    self.transition_processing_to_processing!
+  end
+
+  def transition_exchanging_to_processed!
+    Order.transaction do
+      original_order = self.exchange_source
+      original_order.status = Order::EXCHANGED
+
       self.status=Order::PROCESSED
       self.set_email_confirmation
       self.payments(true)

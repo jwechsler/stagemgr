@@ -3,7 +3,7 @@ class Admin::OrdersController < Admin::ApplicationController
 
   include OrdersHelper
   before_action :find_order, :except=>[:index, :new, :create, :update ]
-  before_action :redirect_edits_to_proper_action, :only => [:show]
+  before_action :redirect_edits_to_proper_action, :only => [:show,:edit]
 
   VALID_SEARCH_COLUMNS = [
       'orders.id',
@@ -120,6 +120,9 @@ class Admin::OrdersController < Admin::ApplicationController
     if @order.editable? && params[:action].eql?('show') then
       flash.keep
       redirect_to action:'edit', id:@order.id
+    elsif !@order.editable? && params[:action].eql?('edit') then
+      flash.keep
+      redirect_to action:'show', id:@order.id
     end
   end
 
