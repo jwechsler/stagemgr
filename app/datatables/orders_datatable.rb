@@ -14,6 +14,7 @@ class OrdersDatatable < AjaxDatatablesRails::Base
       id: { source: 'Order.id' },
       code: { source: 'Performance.performance_code', cond: filter_by_code },
       name: { source: 'Address.full_name' },
+      seats: { source: 'Seat.location'},
       status: { source: 'Order.status' },
     }
   end
@@ -33,6 +34,7 @@ class OrdersDatatable < AjaxDatatablesRails::Base
         id: link_to(order.id, [:admin, order]),
         code: order.display_code,
         name: format_name_for_table(order),
+        seats: order.seats.map { |s| s.seat.location }.join(','),
         status: raw("<span class=\"label #{order_status_severity_class(order.status)}\">#{order.status}</span>"),
         visits: order.address.nil? ? "n/a" : (current_user.is_theater_user? ? order.address.orders_processed(@current_user.theater_ids) : order.address.orders_processed ),
         total: number_to_currency(order.total),
@@ -47,13 +49,11 @@ class OrdersDatatable < AjaxDatatablesRails::Base
     @view = opts[:view_context]
   end
 
-
-private
-
+#
 private
 
   def get_raw_records
-    Order.accessible_by(current_user.ability).includes(:address, :payments, performance: :production).references(:address,:payments,:performance).where('performances.status is null or performances.status in (:searchable) or productions.status in (:searchable)', searchable: Performance.sellable_statuses)
+    Order.accessible_by(current_user.ability).includes(:address, :payments, seats: :seat, performance: :production).references(:address,:payments,:performance, :seats, :seat)
   end
 
   def sort_records(records)

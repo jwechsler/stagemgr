@@ -19,7 +19,7 @@ class Order < ActiveRecord::Base
   has_many :exchange_payments
   has_many :price_override_payments
   has_many :tasks, :class_name=>'OrderTask', :dependent=>:destroy
-
+  has_many :seats, foreign_key: :order_id, class_name: 'SeatAssignment'
   has_one :special_offer_line_item
 
   belongs_to :address

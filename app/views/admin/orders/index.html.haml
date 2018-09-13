@@ -12,6 +12,7 @@
         %th ID
         %th Code
         %th Name
+        %th Seats
         %th Status
         %th Visits
         %th Total
@@ -75,6 +76,7 @@
           {data: 'id'},
           {data: 'code'},
           {data: 'name'},
+          {data: 'seats'},
           {data: 'status'},
           {data: 'visits'},
           {data: 'total'},
@@ -91,7 +93,8 @@
         { column_number: 0, filter_type: "text", filter_delay: 600 },
         { column_number: 1, filter_type: "text", filter_delay: 600 },
         { column_number: 2, filter_type: "text", filter_delay: 600 },
-        { column_number: 3, filter_type: "select", data: [#{raw Order::ORDER_STATUSES.map{|s| "'#{s}'"}.join(',')}], filter_default_label: "Any" },
+        { column_number: 3, filter_type: "text", filter_delay: 600 },
+        { column_number: 4, filter_type: "select", data: [#{raw Order::ORDER_STATUSES.map{|s| "'#{s}'"}.join(',')}], filter_default_label: "Any" },
       ]);
 
       $('#order-listing_filter').hide();
