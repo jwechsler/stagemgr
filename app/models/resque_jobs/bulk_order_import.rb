@@ -50,17 +50,25 @@ class BulkOrderImport
 
       CSV.foreach(filestore.data.path, headers:true) do |row|
         current_address_id = 0
+        a = nil
         begin
           total += 1
-          if row['ExternalId'].blank?
-            puts "IMPORT: Getting address #{row['Id']}"
-            current_address_id = row['Id'].to_i
-            a = Address.find(current_address_id)
-          else
-            current_address_id = row['ExternalId'].to_i
-            puts "IMPORT: Finding external id #{current_address_id} as #{address_ids[row['ExternalId']]}"
-            a = Address.find(address_ids[current_address_id])
+          begin
+            case
+            when !row['ExternalId'].blank?
+              current_address_id = row['ExternalId'].to_i
+              a = Address.find(address_ids[current_address_id])
+            when !row['Id'].blank?
+              current_address_id = row['Id'].to_i
+              a = Address.find(current_address_id)
+            else
+              a = Address.new
+            end
+          rescue ActiveRecord::RecordNotFound
+            puts "IMPORT: Creating new record for found id: #{current_address_id}"
+            a = Address.new
           end
+
           Order.transaction do
             o = TicketOrder.new
             o.status = TicketOrder::NEW
