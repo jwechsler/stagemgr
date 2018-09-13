@@ -1,8 +1,8 @@
 class ExchangePayment < Payment
 
   def receipt_description
-    unless self.payment_id.nil?
-      source_payment = "Exchg ##{Payment.find(self.payment_id).order_id}"
+    unless self.order.nil? || self.order.exchange_source.nil?
+      source_payment = "Exchg ##{Payment.find(self.order.exchange_source.id)}"
     else
       source_payment = "Exchg"
     end

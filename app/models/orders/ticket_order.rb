@@ -72,8 +72,8 @@ class TicketOrder < Order
           end
         end
       end
-      seats_left = self.performance.number_of_seats_left(self)
-      errors.add :base, "There are #{seats_left == 1 ? "is" : "are"} only #{seats_left} reservation#{"s" unless seats_left == 1} remaining for this performance." if self.holding_seats? && seats_left < self.number_of_seats
+      seats_left = self.performance.number_of_seats_left
+      errors.add :base, "There are #{seats_left == 1 ? "is" : "are"} only #{seats_left} reservation#{"s" unless seats_left == 1} remaining for the #{self.performance.performance_date.to_s} performance at #{self.performance.performance_time.to_formatted_s(:standard_time)}." if self.holding_seats? && seats_left < self.number_of_seats
     end
   end
 
@@ -128,6 +128,10 @@ class TicketOrder < Order
 
   def exchangeable?
     self.status == Order::PROCESSED || self.status == Order::FULFILLED || self.status == Order::UNCLAIMED
+  end
+
+  def exchanged?
+    self.status == Order::EXCHANGED
   end
 
   def refundable?
@@ -323,20 +327,28 @@ class TicketOrder < Order
     self.ticket_line_items.select { |li| li.ticket_count > 0 }.size > 0
   end
 
+  def exchanged_for
+    o = Order.where(exchange_source_id: self.id)
+    if o.empty?
+      nil
+    else
+      o.first
+    end
+  end
+
   def begin_exchange!(original_order)
     Order.transaction do
       self.exchange_source = original_order
       self.address = original_order.address
       self.status = Order::EXCHANGING
       exchange_source.status = Order::RELEASING
-      exchange_payments_on_original_order = original_order.payments.map {|p| p.create_exchange_offset_payment}
-      exchange_payments_toward_exchange_order = self.payment_type.apply_exchange_offset_payments(exchange_payments_on_original_order)
+      exchange_payments_on_original_order = original_order.payments.map {|p| p.new_exchange_offset_payment}
+      exchange_payments_toward_exchange_order = self.payment_type.build_exchange_offset_payments(exchange_payments_on_original_order)
       exchange_payments_on_original_order.each {|p| original_order.payments << p unless p.nil? }
       exchange_payments_toward_exchange_order.each { |p| self.payments << p unless p.nil? }
       payment_difference = self.total_ticket_face_value - exchange_payments_toward_exchange_order.inject(0){|sum, x| sum = sum + x.amount }
-      self.save!
       if payment_difference < 0
-        self.price_override_payments.create(:amount => payment_difference)
+        self.price_override_payments.build(:amount => payment_difference)
       elsif payment_difference > 0
         Rails.logger.debug("*** Creating payment difference of #{payment_difference}")
         self.create_proper_payment_in_amount_of!(payment_difference)

@@ -9,7 +9,7 @@ class MembershipPaymentType < PassPaymentType
     super + [MembershipPayment.class]
   end
 
-  def create_payment!(amount, order, payment_details={})
+  def build_payment(amount, order, payment_details={})
 
     membership = Membership.find_by_member_code(order.member_code)
     raise "No current membership with that code exists" unless membership
@@ -20,6 +20,8 @@ class MembershipPaymentType < PassPaymentType
     new_payment = MembershipPayment.new(:number_of_tickets => order.number_of_tickets, :membership => membership,
                                         :amount => total_amount, :payment_type=>self)
     new_payment.process!(order)
+
+    new_payment
   end
 
 end

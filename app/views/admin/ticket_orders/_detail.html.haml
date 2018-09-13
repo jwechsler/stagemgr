@@ -5,6 +5,21 @@
     %h5= "#{ticket_order.performance.performance_date.to_s(:long_with_day_of_week)} #{ticket_order.performance.performance_time.to_s(:hour_min)}"
     =render '/admin/addresses/info', :address=>ticket_order.address, :breadcrumb_order=>ticket_order
   %div.small-12.medium-6.columns
+    - if ticket_order.exchanged? || !ticket_order.exchange_source_id.nil?
+      %div.row
+        %div.small-12.columns
+          %fieldset
+            %legend Exchange History
+            - target = ticket_order.exchanged_for
+            - unless target.nil?
+              %p
+                Exchanged for order #
+                = link_to target.id, [:admin, target]
+            - unless ticket_order.exchange_source.nil?
+              %p
+                Exchanged from order #
+                = link_to ticket_order.exchange_source_id, [:admin, ticket_order.exchange_source]
+
     = render '/admin/ticket_line_items/table', :order=>ticket_order
     = render '/admin/special_offer_line_items/table', :order=>ticket_order
 %div.row

@@ -47,11 +47,4 @@ class FlexPassPayment < PassPayment
     "#{self.number_of_tickets} FlexPass"
   end
 
-  def create_exchange_offset_payment
-    offset_payment = super
-    offset_payment.number_of_tickets = 0 - offset_payment.number_of_tickets
-    offset_payment.payment_id = self.id
-    offset_payment
-  end
-
 end

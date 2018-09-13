@@ -1,6 +1,6 @@
 class CreditCardPaymentType < CurrencyPaymentType
 
-  def create_payment!(amount, order, payment_details={})
+  def build_payment(amount, order, payment_details={})
 
     if (amount != 0) then
 
@@ -18,7 +18,7 @@ class CreditCardPaymentType < CurrencyPaymentType
         :payment_type=>self
       )
     else
-      new_payment = CashPaymentType.first.create_payment!(0, order)
+      new_payment = CashPaymentType.first.build_payment(0, order)
     end
 
     new_payment.process!

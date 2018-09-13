@@ -28,11 +28,14 @@ class Payment < ActiveRecord::Base
     ""
   end
 
-  def create_exchange_offset_payment
-    # ExchangePayment.new(:amount => -1*self.order.payments(true).to_a.sum { |p| p.amount }, :note => self.order.description)
-
+  # creates an exchange payment to offset the current payment
+  def new_exchange_offset_payment
+    ExchangePayment.new(
+      amount: -1*self.amount,
+      order: self.order,
+      note: "Exchange offset for #{self.order.id}"
+    )
   end
-
 
   def process!(order = nil)
     self.processed_on = Time.now

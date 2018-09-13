@@ -1,6 +1,6 @@
 class ExternalPaymentType < PaymentType
 
-  def create_payment!(amount, order, payment_details={})
+  def build_payment(amount, order, payment_details={})
     unless self.restrict_to_ticket_classes.blank?
       if order.respond_to?(:ticket_line_items) then
         order.ticket_line_items.map {|tli| raise "This payment type is restricted to #{self.restrict_to_ticket_classes.upcase} tickets" unless tli.ticket_class.class_code.start_with?(self.restrict_to_ticket_classes.upcase) }

@@ -53,7 +53,7 @@ class Order < ActiveRecord::Base
   HOLD, NEW, PROCESSING, PROCESSED, REFUNDED, EXCHANGED, EXCHANGING, RELEASING, FULFILLED, CANCELED, UNCLAIMED =
       "Hold", "New", "Processing", "Processed", "Refunded", "Exchanged", "Exchanging", "Releasing", "Fulfilled", "Canceled", "Unclaimed")
 
-  HOLDING_SEAT_STATUSES = [HOLD, PROCESSING, PROCESSED, FULFILLED]
+  HOLDING_SEAT_STATUSES = [HOLD, PROCESSING, PROCESSED, EXCHANGING, RELEASING, FULFILLED]
 
   REFERRALS = [
       "Email", "Mail", "Cast/Staff/Production Team", "Review/Feature", "Radio", "Newspaper Ad", "Facebook", "Twitter", "Word of Mouth", "Attended previous production", "Other"
@@ -386,7 +386,7 @@ class Order < ActiveRecord::Base
   public
 
   def create_proper_payment_in_amount_of!(amount, payment_options = {})
-    new_payment = self.payment_type.create_payment!(amount, self, payment_options)
+    new_payment = self.payment_type.build_payment(amount, self, payment_options)
     self.payments << new_payment
     new_payment
   end

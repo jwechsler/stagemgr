@@ -23,16 +23,8 @@ class PaymentType < ActiveRecord::Base
     self.instance_of? another_payment_type.class
   end
 
-  def create_payment!(amount, order, payment_details={})
+  def build_payment(amount, order, payment_details={})
     raise 'New payment type not yet implemented.'
-    case self.payment_type
-
-      when PRICE_OVERRIDE
-        new_payment = self.price_override_payments.create!(:amount => amount)
-      else
-
-    end
-    new_payment
   end
 
 

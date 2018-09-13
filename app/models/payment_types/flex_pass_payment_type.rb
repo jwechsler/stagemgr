@@ -8,11 +8,7 @@ class FlexPassPaymentType < PassPaymentType
     super + FlexPassPaymentType.all
   end
 
-  def apply_exchange_offset_payments(source_payments)
-    Array.new
-  end
-
-  def create_payment!(amount, order, payment_details={})
+  def build_payment(amount, order, payment_details={})
     flex_pass = FlexPass.find_by_code(order.flex_pass_code)
     raise 'No FlexPass with that code exists' unless flex_pass
 
@@ -27,5 +23,6 @@ class FlexPassPaymentType < PassPaymentType
             :payment_type=>self
         )
     new_payment.process!(order)
+    new_payment
   end
 end

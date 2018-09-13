@@ -70,6 +70,7 @@ $(document).ready(function() {
       $('#seating-remaining').text(" ")
     }
     update_seating_submit_button(seating_count == max_assigned)
+
     update_selected()
   }
 
@@ -78,6 +79,8 @@ $(document).ready(function() {
 
   is_fully_seated = (count_assigned() >= max_assignable())
 
+  console.log(count_assigned())
+  console.log(max_assignable())
   update_seating_submit_button(is_fully_seated)
 
   mapster_options = {
