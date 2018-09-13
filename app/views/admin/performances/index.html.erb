@@ -14,7 +14,7 @@
     <td><%=h performance.production %></td>
     <td><%= link_to 'Show', [performance.production.theater, performance.production, performance] %></td>
     <td><%= link_to('Edit', edit_theater_production_performance_path(performance.production.theater, performance.production, performance)) if permitted_to(:edit,:performance) %></td>
-    <td><%= link_to('Destroy', [performance.production.theater, performance.production, performance], :confirm => 'Are you sure?', :method => :delete) if permitted_to?(:delete, :performance) %></td>
+    <td><%= link_to('Destroy', [performance.production.theater, performance.production, performance], :confirm => 'Are you sure?', :method => :delete) if can?(:delete,Performance) %></td>
   </tr>
 <% end %>
 </table>

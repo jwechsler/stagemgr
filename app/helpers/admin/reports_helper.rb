@@ -113,7 +113,7 @@ module Admin::ReportsHelper
           end
           # members_by_email.delete(hash[:Email].downcase) unless hash[:Email].nil?
 
-          # hash[:Email] = nil unless permitted_to?(:view_email, :admin_addresses)
+          hash[:Email] = nil unless can?(:view_email, Address)
           master_lists['BLDG'] << hash # Add to season master list
           master_lists[production.theater.name] = Array.new unless master_lists.has_key?(production.theater.name)
           master_lists[production.theater.name] << hash

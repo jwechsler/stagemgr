@@ -1,5 +1,5 @@
 class AddressesDatatable
-  delegate :permitted_to?, :params, :h, :raw, :link_to, :number_to_currency, to: :@view
+  delegate :params, :h, :raw, :link_to, :number_to_currency, to: :@view
 
   def initialize(view)
     @view = view
