@@ -6,5 +6,10 @@ class FlexPassOffer < ActiveRecord::Base
   has_many :flex_passes
   validates_presence_of :name, :price, :number_of_tickets, :use_ticket_class_code
   has_one :production
+  before_validation :set_public_sale_by_active
 
+  private
+  def set_public_sale_by_active
+    self.active ||= self.on_sale_to_public?
+  end
 end
