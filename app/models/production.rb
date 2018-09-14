@@ -36,6 +36,7 @@ class Production < ActiveRecord::Base
   before_validation :clean_values, :downcase_for_db
   before_create :assign_default_ticket_classes
   before_save :queue_statistics_recalc
+  before_save :update_performance_codes, :if=>:production_code_changed?
   belongs_to :flex_pass_offer
   has_and_belongs_to_many :attendees, class_name: "Address", uniq:true
 
@@ -205,6 +206,15 @@ class Production < ActiveRecord::Base
   end
 
   private
+
+  # When a production code is changed, performance codes are made to match
+  def update_performance_codes
+    self.performances.select{|perf| perf.performance_code.starts_with?(self.production_code_was)}.each { |perf|
+        perf.performance_code = perf.performance_code.sub(self.production_code_was, self.production_code)
+        perf.save!
+    }
+  end
+
   def clean_values
     self.production_code.upcase! unless self.production_code.nil?
   end

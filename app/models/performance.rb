@@ -33,6 +33,7 @@ class Performance < ActiveRecord::Base
 
   before_validation              :clean_values
   before_validation              :populate_ticket_class_allocations
+  before_validation              :performance_code_must_match_production
   after_save                     :manage_seat_inventory
 
   accepts_nested_attributes_for  :ticket_class_allocations
@@ -156,6 +157,10 @@ class Performance < ActiveRecord::Base
 
 
   private
+
+  def performance_code_must_match_production
+    errors.add(:performance_code, "must start with #{production.production_code}") unless performance_code.starts_with?(production.production_code)
+  end
 
   def clean_values
     self.performance_date = Date.today if self.performance_date.nil?
