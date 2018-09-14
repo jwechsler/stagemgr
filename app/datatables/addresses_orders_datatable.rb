@@ -37,8 +37,7 @@ class AddressesOrdersDatatable < DatatableBase
 
 
   def get_raw_records
-    result = Order.includes(:payments, performance: :production).where(address_id: address.id)
-    result = result.where("productions.theater_id in (:theater_ids)", theater_ids:current_user.theater_ids) if current_user.is_theater_user?
+    result = Order.accessible_by(current_user.ability,:read).includes(:payments, performance: :production).references(performance: :production).where(address_id:address.id)
     result
   end
 
