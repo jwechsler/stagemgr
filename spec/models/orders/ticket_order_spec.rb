@@ -1,27 +1,5 @@
 require "spec_helper.rb"
 
-describe "an exchanged ticket order" do
-  it "should have an offset payment" do
-    performance = FactoryBot.create(:performance)
-    performance2 = FactoryBot.create(:performance)
-    original_order = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash, :performance=>performance)
-    exchange_order = FactoryBot.create(:ticket_order, :performance=>performance2)
-    ticket_line_item = original_order.ticket_line_items.first.dup
-    ticket_line_item.ticket_class = performance2.ticket_class_allocations.first.ticket_class
-    exchange_order.ticket_line_items << ticket_line_item
-    exchange_order.exchange_and_process_from! original_order
-    expect(exchange_order.payments.size).to eq(1)
-    expect(original_order.payments.size).to eq(2)
-    expect(original_order.status).to eq(Order::EXCHANGED)
-    expect(original_order.total).to eq(0.0)
-    expect(exchange_order.total).to eq(10.0)
-    original_order.payments.select {|p| p.is_a? ExchangePayment}.each{ |p|
-      expect(p.payment_id).to eq(exchange_order.payments.first.id)}
-    exchange_order.payments.each {|p|
-      expect(p.payment_id).to be_in(original_order.payments.map{|op| op.id})}
-  end
-end
-
 describe "a ticket order" do
 
   it "can be refunded" do

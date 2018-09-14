@@ -667,7 +667,7 @@ class Order < ActiveRecord::Base
 
   def check_for_settled_payments
     paid_amt = self.total_paid || 0
-    raise "Cannot destroy orders with settled payments" if paid_amt > 0
+    raise "Cannot destroy orders with settled payments" if (paid_amt > 0 && self.payments.select{|p| !p.can_cancel?}.size > 0)
     true
   end
 

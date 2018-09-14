@@ -1,7 +1,7 @@
 FactoryBot.define do
   factory :production do
     sequence(:name) { |n| "Production \##{n}" }
-    sequence(:production_code) { |n| "PRO#{'%02d' % n}" }
+    sequence(:production_code) { |n| "PRD#{'%02d' % n}" }
     status Production::PRODUCTION_STATUSES.first
     association :theater, :factory => :theater
     association :venue, :factory => :venue

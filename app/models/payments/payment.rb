@@ -53,6 +53,10 @@ class Payment < ActiveRecord::Base
 
   end
 
+  def can_cancel?
+    false
+  end
+
   def create_refund_payment(cc_number = nil, note = nil)
     refund_payment = self.dup
     refund_payment.amount = refund_payment.amount*-1

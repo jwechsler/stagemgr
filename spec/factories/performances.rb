@@ -9,7 +9,7 @@ FactoryBot.define do
     end
 
     status Performance::PERFORMANCE_STATUSES.first
-    sequence(:performance_code) { |n| "PF#{'%02d' % n}" }
+    sequence(:performance_code) { |n| "#{production.production_code}#{'%02d' % n}" }
     after(:create) {
       |perf| perf.ticket_class_allocations << FactoryBot.create(:ticket_class_allocation, :performance=>perf, :available=>true)
       perf.populate_ticket_class_allocations

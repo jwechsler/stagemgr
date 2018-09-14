@@ -9,4 +9,8 @@ class ExchangePayment < Payment
     source_payment
   end
 
+  def can_cancel?
+    true
+  end
+
 end

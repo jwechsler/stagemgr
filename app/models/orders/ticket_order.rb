@@ -15,6 +15,7 @@ class TicketOrder < Order
   after_save :update_attendance_record
 
   before_destroy :unassign_seats
+  before_destroy :reverse_source_exchange_payments, if: :exchanging?
 
   attr_accessor :selected_production
 
@@ -135,6 +136,10 @@ class TicketOrder < Order
 
   def exchanged?
     self.status == Order::EXCHANGED
+  end
+
+  def exchanging?
+    self.status.eql?(Order::EXCHANGING)
   end
 
   def refundable?
@@ -585,6 +590,14 @@ class TicketOrder < Order
       end
 
     end
+  end
+
+  def reverse_source_exchange_payments
+    exchange_source.payments.select{|p| p.can_cancel? }.each{|p|
+      p.destroy!
+    }
+    exchange_source.status = Order::PROCESSED
+    exchange_source.save!
   end
 
   def is_unique_visit?(prod)

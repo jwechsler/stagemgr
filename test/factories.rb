@@ -37,7 +37,7 @@ module FactoryBot
       FactoryBot.create(:default_ticket_class, :class_code=>'PASSFRIEND', :class_name=>"Pass Ticket",
                           :ticket_price=>0.00, :web_visible=>false, :software_managed=>true, :auto_attach=>true)
       production.reload
-      performance = FactoryBot.create(:performance, :production=>production, :performance_code=>'PERF', :performance_time=>"#{Date.today} 18:00".to_time)
+      performance = FactoryBot.create(:performance, :production=>production, :performance_code=>'TEST01', :performance_time=>"#{Date.today} 18:00".to_time)
 
       performance.ticket_class_allocations.each do |tca|
         tca.available = true
