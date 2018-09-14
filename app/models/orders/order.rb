@@ -211,7 +211,8 @@ class Order < ActiveRecord::Base
   end
 
   def customer_visible_total(reload_line_items = false)
-    self.payments.to_a.sum { |payment| payment.respond_to?(:customer_visible_amount) ? payment.customer_visible_amount : 0 }
+    total = self.payments.to_a.sum { |payment| payment.customer_visible_amount }
+    total = 0 if o.total < 0
   end
 
 
@@ -504,6 +505,10 @@ class Order < ActiveRecord::Base
 
   def transitory?
     self.transitory_statuses.include? self.status
+  end
+
+  def in_transactional_state?
+    status.eql?(Order::PROCESSING)
   end
 
   def self.unprocessed_statuses

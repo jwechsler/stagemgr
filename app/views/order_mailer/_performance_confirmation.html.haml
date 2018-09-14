@@ -22,7 +22,7 @@
     = display_payment + " and were purchased with your #{order.membership_payments.first.membership.membership_offer.name}."
   - elsif !order.flex_pass_payments.empty?
     = display_payment + " and were purchased with your flex pass."
-  - elsif order.customer_visible_total == 0
+  - elsif order.customer_visible_total <= 0
     = display_payment + "."
   - else
     = display_payment + " and the total charge was $#{'%0.2f' % order.customer_visible_total}."

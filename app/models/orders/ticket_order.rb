@@ -9,7 +9,6 @@ class TicketOrder < Order
     if status_changed? && (refunded? || unclaimed?) && performance.production.has_reserved_seating?
       unassign_seats
     end
-
   end
 
   after_save :update_attendance_record
@@ -140,6 +139,10 @@ class TicketOrder < Order
 
   def exchanging?
     self.status.eql?(Order::EXCHANGING)
+  end
+
+  def in_transactional_state?
+    super || [Order::RELEASING, Order::EXCHANGING].include?(status)
   end
 
   def refundable?
