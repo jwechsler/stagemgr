@@ -57,6 +57,7 @@ class Ability
     can :manage, Theater
     can [:manage], DonationOrder
     can :unclaimed, Order
+    can :swipe_card, Order
     can [:swipe_card, :confirm_credit_card,:hold,:mark_unclaimed,:resend_confirmation], TicketOrder
     can :fulfill, [Order, TicketOrder, FlexPassOrder, MembershipOrder]
     can [:hold,:resend_confirmation], TicketOrder
