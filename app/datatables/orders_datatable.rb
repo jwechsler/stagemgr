@@ -34,7 +34,7 @@ class OrdersDatatable < AjaxDatatablesRails::Base
         id: link_to(order.id, [:admin, order]),
         code: order.display_code,
         name: format_name_for_table(order),
-        seats: order.seats.map { |s| s.seat.location }.join(','),
+        seats: order.seats.map { |s| s.seat.location }.sort.join(', '),
         status: raw("<span class=\"label #{order_status_severity_class(order.status)}\">#{order.status}</span>"),
         visits: order.address.nil? ? "n/a" : (current_user.is_theater_user? ? order.address.orders_processed(@current_user.theater_ids) : order.address.orders_processed ),
         total: number_to_currency(order.total),
