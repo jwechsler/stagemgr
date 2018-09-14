@@ -22,4 +22,5 @@ class ExternalPaymentType < PaymentType
  def payment_classes
     super + [ExternalPayment.class]
   end
+
 end
