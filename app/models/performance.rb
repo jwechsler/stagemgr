@@ -46,7 +46,8 @@ class Performance < ActiveRecord::Base
     TicketLineItem.where('ticket_classes.holds_seats = ? and orders.status in (?) and orders.performance_id = ? and order_id != ?',
                             true,
                             Order::HOLDING_SEAT_STATUSES,
-                            self.id,(exclude_order.nil? ? 0 : exclude_order.id)).includes(:order, :ticket_class).sum(:ticket_count)
+                            id,
+                            (exclude_order.nil? ? 0 : exclude_order.id)).includes(:order, :ticket_class).sum(:ticket_count)
   end
 
   def scan_ticket_allocation_triggers
