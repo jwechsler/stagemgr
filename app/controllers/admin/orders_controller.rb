@@ -69,9 +69,7 @@ class Admin::OrdersController < Admin::ApplicationController
   def fulfill
     params[:commit] = 'Fulfill'
     process_order(@order,Order::FULFILLED)
-    respond_to do |format|
-      format.html { render @order }
-    end
+    show
   end
 
   def edit

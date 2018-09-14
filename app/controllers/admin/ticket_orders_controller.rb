@@ -100,8 +100,8 @@ class Admin::TicketOrdersController < Admin::OrdersController
   def reprint
     if @ticket_order.fulfilled?
       @ticket_order.send_to_printer
+      flash[:notice] = 'Ticket reprinted'
     end
-    flash[:notice] = 'Ticket reprinted'
     respond_to do |format|
       format.html { render 'show', :layout=>true}
     end

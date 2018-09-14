@@ -55,8 +55,9 @@ class Ability
     can :view_system_options
     can :read, PaymentType
     can :manage, Theater
-    can [:manage, :fulfill], DonationOrder
-    can [:swipe_card, :confirm_credit_card,:hold,:mark_unclaimed,:fulfill,:resend_confirmation], TicketOrder
+    can [:manage], DonationOrder
+    can [:swipe_card, :confirm_credit_card,:hold,:mark_unclaimed,:resend_confirmation], TicketOrder
+    can :fulfill, [Order, TicketOrder, FlexPassOrder, MembershipOrder]
     can [:hold,:resend_confirmation], TicketOrder
     can :cru, FlexPassOrder
     can :manage, TicketClass
