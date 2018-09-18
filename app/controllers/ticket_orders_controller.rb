@@ -49,7 +49,7 @@ class TicketOrdersController < ApplicationController
 
       else
         if @ticket_order.finalized?
-          format.html { render 'show '}
+          format.html { render 'show'}
         else
           preset_line_items_for_display(@ticket_order)
           format.html { render 'edit' }
