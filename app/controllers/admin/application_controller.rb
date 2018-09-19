@@ -8,6 +8,8 @@ class Admin::ApplicationController < ApplicationController
       end
     end
 
+  before_filter :prepare_exception_notifier
+
   protected
 
   def permission_denied
@@ -42,6 +44,14 @@ class Admin::ApplicationController < ApplicationController
       nil
     end
     raise ActiveRecord::RecordNotFound if @context.nil?
+  end
+
+  private
+  private
+  def prepare_exception_notifier
+    request.env["exception_notifier.exception_data"] = {
+      :current_user => current_user
+    }
   end
 
 
