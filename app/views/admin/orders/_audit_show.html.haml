@@ -9,9 +9,9 @@
       %div.small-6.columns
         - if revision.action == "create"
           - revision.audited_changes.each do |fld,changes|
-            = raw "#{fld} is #{changes}<br/>" if !changes.blank?
+            = raw "#{fld} is #{changes}<br/>" unless changes.nil? || changes.blank?
         - else
           - revision.audited_changes.each do |fld,changes|
-            = raw "#{fld} changed to #{changes[1]}<br/>" if !changes.nil?
+            = raw "#{fld} changed to #{changes}<br/>" unless changes.nil?
       %div.small-4.columns
   %br
