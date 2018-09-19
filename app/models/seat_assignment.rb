@@ -1,7 +1,6 @@
 class SeatAssignment < ActiveRecord::Base
 
   belongs_to :order
-  belongs_to :seat_map
   belongs_to :seat
   belongs_to :performance
   validates_presence_of :order, :if=>:assigned?

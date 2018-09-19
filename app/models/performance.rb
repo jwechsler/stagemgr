@@ -146,15 +146,32 @@ class Performance < ActiveRecord::Base
 
   def manage_seat_inventory
     unless self.seat_map.nil? then
-      new_seats = Seat.where("id not in (select seat_id from seat_assignments where performance_id = :performance_id and seat_map_id = :seat_map_id)",
-        performance_id: self.id, seat_map_id: seat_map.id)
-      new_seats.each{|seat|
-        seat_assignments << SeatAssignment.new(seat: seat)
+      seats = Seat.where(seat_map_id: self.seat_map.id)
+      known_seats = self.seat_assignments.map {|sa| sa.seat}
+      missing_seats = seats.map{|s| s} - known_seats
+
+      missing_seats.each{|seat|
+        seat_assignments << SeatAssignment.new(seat: seat )
       }
     end
   end
 
-
+  def remove_illegal_seat_assignments
+    unless self.seat_map.nil? then
+      seats = Seat.where(seat_map_id: self.seat_map.id)
+      known_seats = self.seat_assignments.map {|sa| sa.seat}
+      problem_seats = known_seats - seats.map{|s| s}
+      problem_seats.each {|s|
+        self.seat_assignments.select { |sa| sa.seat_id == s.id }.each { |sa|
+          if sa.order_id.nil? && sa.status == "Available"
+            sa.destroy
+          else
+            puts "*** Seat Assignment #{sa.id} is for seat map #{sa.seat.seat_map_id}, location #{sa.seat.location} and is #{sa.status} to order #{sa.order_id}"
+          end
+        }
+      }
+    end
+  end
 
   private
 
