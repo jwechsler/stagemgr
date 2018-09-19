@@ -11,6 +11,6 @@
     .small-6.columns
       = f.input :is_administrator
       = f.input :is_box_office_user
+      = f.button :submit
     .small-6.columns
-      = f.association :theaters, :label=>"Associated Theaters"
-  = f.button :submit
+      = f.association :theaters, :label=>"Associated Theaters", :as=>:select, :input_html=>{:style=>'height: 120px'}
