@@ -1,5 +1,5 @@
-source 'http://rubygems.org'
-source 'https://rails-assets.org'
+# source 'http://rubygems.org'
+# source 'https://rails-assets.org'
 
 gem 'rails', '4.2.10'
 
@@ -80,6 +80,7 @@ gem 'foundation-datetimepicker-rails'
 gem 'rails-jquery-autocomplete' # :git=>"https://github.com/jwechsler/rails3-jquery-autocomplete.git" #:path=>'/Users/jeremyw/dev/rails3-jquery-autocomplete'
 gem 'config', :git=>'https://github.com/railsconfig/config.git'
 gem 'responders'
+gem 'mini_magick'
 #
 
 group :development do

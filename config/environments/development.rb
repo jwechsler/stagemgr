@@ -18,6 +18,10 @@ Stagemgr::Application.configure do
   #Expand the lines which load the assets
   config.assets.debug = true
 
+
+  # continue to serve public folder on request
+  config.serve_static_files = true
+
   # test assets
   #config.assets.compress = true
   #config.assets.js_compressor = :uglifier

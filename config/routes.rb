@@ -291,6 +291,9 @@ Stagemgr::Application.routes.draw do
       resources :theaters
     end
 
+    resources :performances do
+      get :seating_quickview, :on=>:member
+    end
 
 
     get '/system_options', :controller=>'system_options', :action=>'index'

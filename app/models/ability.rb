@@ -27,7 +27,7 @@ class Ability
         user.theater_ids.include?(flex_pass_offer.theater_id)
     end
 
-    can [:read, :create, :update, :update_notes, :confirm], TicketOrder
+    can [:read, :create, :update, :update_notes, :confirm, :quickview], TicketOrder
     can [:read, :create, :hold_existing], TicketOrder
     can :auto_complete, Production
     can :auto_complete, Performance
