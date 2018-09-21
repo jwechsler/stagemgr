@@ -96,12 +96,13 @@ class Admin::PerformancesController < Admin::ApplicationController
   def seating_quickview
     if @performance.production.has_reserved_seating? then
       file_name = @performance.performance_code+'_seating.png'
-      file_path=Rails.root.join('app','assets','images','qv',file_name).to_s
+      file_path=Rails.root.join('public','static','qv',file_name).to_s
       if !File.exist?(file_path) || (File.mtime(file_path) < @performance.seat_assignments.maximum(:updated_at))
         dots = SeatAssignment.joins(:seat).includes(:seat).where(performance_id: @performance.id, status: SeatAssignment::AVAILABLE).pluck(:origin_x, :origin_y, :width)
         result = MiniMagick::Image.open(@performance.seat_map.base_image_map.path)
         image = 'available_seat.png'
         available_dot = MiniMagick::Image.open(Rails.root.to_s + "/app/assets/images/available_seat.png")
+        availables = Hash.new
         dots.each { |dot|
           result = result.composite(available_dot.resize("#{dot[2]*2}x#{dot[2]*2}")) do |c|
             c.compose('over')
@@ -110,7 +111,7 @@ class Admin::PerformancesController < Admin::ApplicationController
         }
         result.resize("180x180").write(file_path)
       end
-      @qv = 'qv/' + file_name
+      @qv = '/static/qv/' + file_name
     else
       @qv = ''
     end
