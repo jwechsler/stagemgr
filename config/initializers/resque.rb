@@ -10,3 +10,6 @@ Resque::Failure.backend = Resque::Failure::MultipleWithRetrySuppression
 
 class Stagemgr::Resque < Resque::Server
 end
+
+Resque::Scheduler.dynamic = true
+Resque.schedule = YAML.load_file("#{::Rails.root.to_s}/config/schedule.yml")
