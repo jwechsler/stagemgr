@@ -190,8 +190,8 @@ class Performance < ActiveRecord::Base
         available_dot = MiniMagick::Image.open(Rails.root.to_s + "/app/assets/images/available_seat.png")
         availables = Hash.new
         dots.each { |dot|
-          availables[dot[2]] = available_dot.resize("#{dot[2]*2}x#{dot[2]*2}") if availables[dot[2]].nil?
-          result = result.composite(available_dot.resize("#{dot[2]*2}x#{dot[2]*2}")) do |c|
+          availables[dot[2]] = MiniMagick::Image.open(Rails.root.to_s + "/app/assets/images/available_seat.png").resize("#{dot[2]*2}x#{dot[2]*2}") if availables[dot[2]].nil?
+          result = result.composite(availables[dot[2]]) do |c|
             c.compose('over')
             c.geometry("+#{dot[0]-dot[2]}+#{dot[1]-dot[2]}")
           end
