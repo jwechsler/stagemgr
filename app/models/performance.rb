@@ -173,6 +173,38 @@ class Performance < ActiveRecord::Base
     end
   end
 
+  # generates a png based on the current seating chart for a seating preview for this performance
+  #
+  # if the thumbnail exists and no further reservations have been made, returns the cached image
+  # all images are stored in public/qv as PERFORMANCECODE_seating.png
+  #
+  # @return image_path to generated image, empty string if the production is not reserved seating
+  def generate_seating_thumbnail
+    if production.has_reserved_seating? then
+      file_name = performance_code+'_seating.png'
+      file_path=Rails.root.join('public','static','qv',file_name).to_s
+      if !File.exist?(file_path) || (File.mtime(file_path) < seat_assignments.maximum(:updated_at))
+        dots = SeatAssignment.joins(:seat).includes(:seat).where(performance_id: self.id, status: SeatAssignment::AVAILABLE).pluck(:origin_x, :origin_y, :width)
+        result = MiniMagick::Image.open(seat_map.base_image_map.path)
+        image = 'available_seat.png'
+        available_dot = MiniMagick::Image.open(Rails.root.to_s + "/app/assets/images/available_seat.png")
+        availables = Hash.new
+        dots.each { |dot|
+          availables[dot[2]] = available_dot.resize("#{dot[2]*2}x#{dot[2]*2}") if availables[dot[2]].nil?
+          result = result.composite(available_dot.resize("#{dot[2]*2}x#{dot[2]*2}")) do |c|
+            c.compose('over')
+            c.geometry("+#{dot[0]-dot[2]}+#{dot[1]-dot[2]}")
+          end
+        }
+        result.resize("180x180").write(file_path)
+      end
+      image_path = '/static/qv/' + file_name
+    else
+      image_path = ''
+    end
+    image_path
+  end
+
   private
 
   def performance_code_must_match_production
