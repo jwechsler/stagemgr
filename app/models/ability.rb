@@ -30,7 +30,7 @@ class Ability
     can [:read, :create, :update, :update_notes, :confirm, :quickview], TicketOrder
     can [:read, :create, :hold_existing], TicketOrder
     can :auto_complete, Production
-    can :auto_complete, Performance
+    can [:seating_quickview,:auto_complete], Performance
     can :auto_complete, SpecialOffer
     can [:read,:update], Theater, id: user.theater_ids
     can :read, Production, theater_id: user.theater_ids
