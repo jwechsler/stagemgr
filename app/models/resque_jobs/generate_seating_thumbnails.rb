@@ -1,4 +1,5 @@
 class GenerateSeatingThumbnails
+  @queue = :maintenance
 
   def self.perform
     prod_ids_with_seating = Production.where.not(seat_map_id: nil).where(status: Production.on_sale_statuses).pluck(:id)
