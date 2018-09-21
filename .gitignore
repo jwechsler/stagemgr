@@ -31,7 +31,7 @@ public/system/
 public/assets/
 config/initializers/active_merchant.rb
 app/views/layouts/ext_site_wrapper.html.erb
-
+app/assets/images/qv/*
 config/settings.local.yml
 config/settings/*.local.yml
 config/environments/*.local.yml

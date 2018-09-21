@@ -1,30 +1,35 @@
-%div.row
-  %div.small-6.columns
-    = hidden_field_tag :production_id, value: order_form.object.performance.nil? ? "" : order_form.object.performance.production_id
-    = order_form.input :production_code, label: 'Production', url:  autocomplete_production_production_code_admin_ticket_orders_path, as: :autocomplete, id_element: '#production_id', input_html: {'data-auto-focus'=>true, 'data-has_reserved_seats'=>(order_form.object.performance.nil? ? false : order_form.object.performance.production.has_reserved_seating?)}
-    -# = order_form.label :production_code, 'Production'
-    -# = order_form.input_field :production_code, class: 'autocomplete_prcode',
-    -#:label=>'Production',
-    -#:input_html=>{:autocomplete_url=>production_code_admin_auto_complete_index_path}
-  %div.small-6.columns
-    = order_form.input :performance_code, :label=>'Performance', url: autocomplete_performance_performance_code_admin_ticket_orders_path, as: :autocomplete, :fields => {:production_id => '#production_id'}, id_element: '#performance_id', input_html: {'data-auto-focus'=>true  }
+.row
+  .small-10.columns
+    .row
+      .small-6.columns
+        = hidden_field_tag :production_id, value: order_form.object.performance.nil? ? "" : order_form.object.performance.production_id
+        = order_form.input :production_code, label: 'Production', url:  autocomplete_production_production_code_admin_ticket_orders_path, as: :autocomplete, id_element: '#production_id', input_html: {'data-auto-focus'=>true, 'data-has_reserved_seats'=>(order_form.object.performance.nil? ? false : order_form.object.performance.production.has_reserved_seating?)}
+        -# = order_form.label :production_code, 'Production'
+        -# = order_form.input_field :production_code, class: 'autocomplete_prcode',
+        -#:label=>'Production',
+        -#:input_html=>{:autocomplete_url=>production_code_admin_auto_complete_index_path}
+      .small-6.columns
+        = hidden_field_tag :performance_id, value: order_form.object.performance.nil? ? "" : order_form.object.performance.id
+        = order_form.input :performance_code, :label=>'Performance', url: autocomplete_performance_performance_code_admin_ticket_orders_path, as: :autocomplete, :fields => {:production_id => '#production_id'}, id_element: '#performance_id', input_html: {'data-auto-focus'=>true  }
+    .row
+      #ticket_line_items.small-12.columns
+        = order_form.simple_fields_for :ticket_line_items do |tlif|
+          %div.row
+            %div.small-3.columns
+              = tlif.label 'Ticket Class'
+            %div.small-2.columns
+              = tlif.label "\# Tix"
+            %div.small-3.columns
+              = tlif.label 'Price'
+            %div.small-3.columns
+              = tlif.label 'Total'
+            %div.small-1.columns
+              %span
+                &nbsp;
 
-#ticket_line_items
-  = order_form.simple_fields_for :ticket_line_items do |tlif|
-    %div.row
-      %div.small-3.columns
-        = tlif.label 'Ticket Class'
-      %div.small-2.columns
-        = tlif.label "\# Tix"
-      %div.small-3.columns
-        = tlif.label 'Price'
-      %div.small-3.columns
-        = tlif.label 'Total'
-      %div.small-1.columns
-        %span
-          &nbsp;
-
-    = render '/admin/ticket_orders/ticket_line_item_fields', :f=>tlif, :production_selector=>'#ticket_order_production_code', :performance_selector=>'#ticket_order_performance_code',input_html: {'data-auto-focus'=>true}
+          = render '/admin/ticket_orders/ticket_line_item_fields', :f=>tlif, :production_selector=>'#ticket_order_production_code', :performance_selector=>'#ticket_order_performance_code',input_html: {'data-auto-focus'=>true}
+  .small-2.columns
+    #seating_quickview
   %div.row
     %div.small-12.columns
       .links
@@ -35,6 +40,10 @@
 
 = content_for :js do
   :javascript
+    function setup_seating_quickview_panel() {
+      $('#seating_quickview').empty()
+      $('#seating_quickview').load("#{root_url}/admin/performances/" + $('#performance_id').val() + '/seating_quickview' )
+    }
     $(document).ready(function() {
 
       function setup_submit_button(use_reserved_seats) {
@@ -49,6 +58,9 @@
 
       setup_submit_button($('#ticket_order_production_code').data('has_reserved_seats'))
 
+      $('#ticket_order_performance_code').bind('railsAutocomplete.select', function(event, data){
+        setup_seating_quickview_panel()
+      })
       $('#ticket_order_production_code').bind('railsAutocomplete.select', function(event, data){
         /* Do something here */
         setup_submit_button(data.item.has_reserved_seats)
