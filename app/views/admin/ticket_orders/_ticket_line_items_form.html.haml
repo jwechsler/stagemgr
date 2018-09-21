@@ -1,5 +1,5 @@
 .row
-  .small-10.columns
+  .small-8.columns
     .row
       .small-6.columns
         = hidden_field_tag :production_id, value: order_form.object.performance.nil? ? "" : order_form.object.performance.production_id
@@ -28,12 +28,13 @@
                 &nbsp;
 
           = render '/admin/ticket_orders/ticket_line_item_fields', :f=>tlif, :production_selector=>'#ticket_order_production_code', :performance_selector=>'#ticket_order_performance_code',input_html: {'data-auto-focus'=>true}
-  .small-2.columns
+    %div.row
+      %div.small-12.columns
+        .links
+          = link_to_add_association 'Add tickets', order_form, :ticket_line_items, :class=>'small button', :partial=>'admin/ticket_orders/ticket_line_item_fields'
+  .small-4.columns
     #seating_quickview
-  %div.row
-    %div.small-12.columns
-      .links
-        = link_to_add_association 'Add tickets', order_form, :ticket_line_items, :class=>'small button', :partial=>'admin/ticket_orders/ticket_line_item_fields'
+
   %div.row
     %div.small-9.columns
       = render '/admin/orders/special_offer_form', :f => order_form

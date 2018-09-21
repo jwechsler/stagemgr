@@ -66,3 +66,8 @@ DeleteAbandonedOrders:
   every: "8m"
   description: "An order can only existing in PROCESSING state for 8 minutes"
   queue: maintenance
+
+GenerateSeatingThumbnails:
+  every: "10m"
+  descripton: "Refresh seating thumbnails as necessary"
+  queue: maintenance

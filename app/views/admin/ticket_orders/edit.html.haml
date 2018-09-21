@@ -2,9 +2,9 @@
 
 = simple_form_for [:admin, @ticket_order], :html=>{:id=>'admin_ticket_order_form'} do |order_form|
   %div.row
-    %div.columns.small-12.medium-9
+    %div.columns.small-12.medium-8
       = render 'ticket_line_items_form', :order_form=>order_form
-    %div.columns.small-12.medium-3.hide-for-small-only
+    %div.columns.small-12.medium-4.hide-for-small-only
       = render '/admin/addresses/quick_lookup', :f=>order_form
   %div.row
     %div.columns.small-12
