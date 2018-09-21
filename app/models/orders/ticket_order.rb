@@ -213,7 +213,7 @@ class TicketOrder < Order
 
   def ticket_detail_description
     self.ticket_line_items.map { |li|
-      if li.ticket_count > 0
+      if (li.ticket_count.nil? 0 : li.ticket_count) > 0
         li.to_s
       else
         ""
