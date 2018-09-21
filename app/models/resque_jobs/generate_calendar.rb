@@ -10,7 +10,7 @@ class GenerateCalendar
       cal.add_x_property 'X-WR-TIMEZONE', 'VALUE=TEXT:America/Chicago'
 
       #cal.default_tzid = 'America/Chicago'
-      Performance.where('productions.status = ? and performances.status in (?) and performance_date > ?',Production::ACTIVE,Performance.visible_statuses,Date.today.beginning_of_month).includes(:production).each do |perf|
+      Performance.joins(:production).references(:production).where('productions.status = ? and performances.status in (?) and performance_date > ?',Production::ACTIVE,Performance.visible_statuses,Date.today.beginning_of_month).includes(:production).each do |perf|
 
         # = { "X-WR-CALNAME"=>"", "X_WR_TIMEZONE"=>"VALUE=TEXT:America/Chicago", "X-ALT_DESC"=>"FMTTYPE=text/html:<!DOCTYPE HTMLS PUBLIC \"-//W3C//DTD HTMLS 3.2//EN\"\n<HTML><BODY>#{$MARKDOWN.render(perf.production.show_description)}</BODY></HTML>"}
         desc = perf.production.show_description
