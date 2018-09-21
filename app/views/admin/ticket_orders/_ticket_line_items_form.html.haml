@@ -42,6 +42,9 @@
   :javascript
     function setup_seating_quickview_panel() {
       $('#seating_quickview').empty()
+      $.ajaxSetup({
+          timeout: 30000
+      });
       $('#seating_quickview').load("#{root_url}/admin/performances/" + $('#performance_id').val() + '/seating_quickview' )
     }
     $(document).ready(function() {
