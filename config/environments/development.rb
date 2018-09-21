@@ -41,6 +41,9 @@ Stagemgr::Application.configure do
   # Don't care if the mailer can't send
   config.action_mailer.raise_delivery_errors = true
 
+  # fresh development log daily
+  config.logger = Logger.new(config.paths["log"].first, 1, 20.megabytes)
+
   # Print deprecation notices to the Rails logger
   config.active_support.deprecation = :log
   config.log_level = :debug
