@@ -91,7 +91,7 @@ class Admin::TicketOrdersController < Admin::OrdersController
   def resend_confirmation
     confirmation_task = @ticket_order.tasks.select{|t| t.method_symbol == 'ticket_confirmation'}.first
     unless confirmation_task.nil?
-      confirmation_task.run!
+      confirmation_task.retry.run!
       flash[:notice] = 'Confirmation email resent'
     else
       flash[:warning] = 'No customer receipt available for this order'

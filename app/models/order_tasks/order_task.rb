@@ -79,4 +79,9 @@ class OrderTask < ActiveRecord::Base
     true
   end
 
+  def retry
+    self.status = UNTRIED
+    self
+  end
+
 end
