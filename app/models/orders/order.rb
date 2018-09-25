@@ -213,6 +213,7 @@ class Order < ActiveRecord::Base
   def customer_visible_total(reload_line_items = false)
     total = self.payments.to_a.sum { |payment| payment.customer_visible_amount }
     total = 0 if (total.nil? || total < 0)
+    total
   end
 
 
