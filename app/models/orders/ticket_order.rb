@@ -33,7 +33,7 @@ class TicketOrder < Order
   #before_validation :tickets_available?, :if=>[:processed?, :status_changed?]
 
   validate :ticket_stock_available
-  validate :seat_assignments_complete, if: -> { performance.production.has_reserved_seating? }
+  validate :verify_fully_seated, if: -> { performance.production.has_reserved_seating? && (status.eql?(Order::PROCESSED) || status.eql?(Order::FULFILLED))}
 
   validates_each :status do |record, attr, value|
 
@@ -94,12 +94,19 @@ class TicketOrder < Order
     self.seats.reload
   end
 
-  def seat_assignments_complete
-    if self.performance.production.has_reserved_seating? && (status.eql?(Order::PROCESSED) || status.eql?(Order::FULFILLED)) then
+  def verify_fully_seated
+    unless seat_assignments_complete?
+      errors.add :base, "You must select #{self.number_of_seats} #{'seat'.pluralize(self.number_of_seats)} before finalizing this order"
+    end
+  end
+
+  def seat_assignments_complete?
+    if self.performance.production.has_reserved_seating? then
       if (self.seats.reload.size != self.number_of_seats) then
-        errors.add :base, "You must select #{self.number_of_seats} #{'seat'.pluralize(self.number_of_seats)} before finalizing this order"
+        return false
       end
     end
+    return true
   end
 
   def seatable?
@@ -470,11 +477,17 @@ class TicketOrder < Order
 
 
   def transition_processing_to_processed!(redirect_to = nil)
-    Order.transaction do
-      self.seats.reload
-      self.seats.each {|sa| sa.status = SeatAssignment::ASSIGNED}
-      super(redirect_to)
+    if seat_assignments_complete? then
+      Order.transaction do
+
+        self.seats.reload
+        self.seats.each {|sa| sa.status = SeatAssignment::ASSIGNED}
+        super(redirect_to)
+      end
+    else
+      errors.add :base, "You must select #{self.number_of_seats} #{'seat'.pluralize(self.number_of_seats)} before finalizing this order"
     end
+
   end
 
   def transition_processed_to_fulfilled!(redirect_to = nil)
