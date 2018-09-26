@@ -245,7 +245,7 @@ class Address < ActiveRecord::Base
 
   def customer_tag(order = nil)
     attendance_code = self.revenue_collected(18.months.ago).truncate.to_s.reverse.rjust(4, '0')
-    attendance_code += self.performances_attended(18.months.ago).to_s.reverse.rjust(2, '0')
+    attendance_code += self.performances_attended(18.months.ago).size.to_s.reverse.rjust(2, '0')
     attendance_code += "A" if self.is_donor?
     attendance_code += "M" if self.is_current_member?
     attendance_code
@@ -364,7 +364,7 @@ class Address < ActiveRecord::Base
   end
 
   def performances_attended(since_when = 5.years.ago)
-    TicketOrder.includes(:performance).where("orders.address_id = ? and orders.status = ? and performances.performance_date >= ? and performances.performance_date <= ?",
+    TicketOrder.includes(:performance).joins(:performance).where("orders.address_id = ? and orders.status = ? and performances.performance_date >= ? and performances.performance_date <= ?",
                                     self.id, Order::FULFILLED, since_when, Date.today)
   end
 
