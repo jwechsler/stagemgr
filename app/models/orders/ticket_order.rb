@@ -286,12 +286,15 @@ class TicketOrder < Order
             print_order.payments_attributes << receipt_payment
           end
         }
+        tli_index = 0
         self.ticket_line_items.each do |tli|
           tli.ticket_count.times do
             ticket = Ticket.new(:order_id => self.print_order_id,
                                 :ticket_class => tli.ticket_class.class_code,
-                                :type => 'Ticket'
+                                :type => 'Ticket',
+                                :seat => seats[tli_index].nil? ? "" : seats[tli_index].seat.location
             )
+            tli_index += 1
             print_order.tickets_attributes << ticket
             #ticket.save!
           end

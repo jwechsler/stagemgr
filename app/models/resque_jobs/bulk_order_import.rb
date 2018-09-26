@@ -75,6 +75,7 @@ class BulkOrderImport
             perf_code = row['PerformanceCode']
             puts("IMPORT: PERFORMANCE: #{perf_code} #{performances[perf_code]}")
             o.performance = performances[perf_code]
+            raise RuntimeError, "Unknown performance '#{performances[perf_code]}'" if o.performances.nil?
             o.address = a
 
             puts("IMPORT: Performance allocations: #{o.performance.ticket_class_allocations.count}")
@@ -112,7 +113,9 @@ class BulkOrderImport
           end
         rescue => e
           puts e.message
-          # puts e.backtrace
+          puts e.backtrace
+          Rails.logger.error e.message
+          Rails.logger.error e.backtrace.join('\n')
           problems.append_issue(id:current_address_id,
             customer_name: "#{row['FirstName']} #{row['LastName']}",
             performance_code: row['PerformanceCode'],
