@@ -1,2 +1,2 @@
 - unless @qv.blank?
-  %img{src:@qv}
+  %img{src:@qv+"?rev=#{Time.now.to_i}"}
