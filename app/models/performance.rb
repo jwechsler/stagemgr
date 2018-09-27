@@ -183,7 +183,7 @@ class Performance < ActiveRecord::Base
     if production.has_reserved_seating? then
       file_name = performance_code+'_seating.png'
       file_path=Rails.root.join('public','static','qv',file_name).to_s
-      if !File.exist?(file_path) || (File.mtime(file_path) < seat_assignments.maximum(:updated_at))
+      if !File.exist?(file_path) || (File.mtime(file_path) < seat_assignments.maximum(:updated_at)+5.minutes)
         dots = SeatAssignment.joins(:seat).includes(:seat).where(performance_id: self.id, status: SeatAssignment::AVAILABLE).pluck(:origin_x, :origin_y, :width)
         result = MiniMagick::Image.open(seat_map.base_image_map.path)
         image = 'available_seat.png'
