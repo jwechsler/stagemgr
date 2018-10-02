@@ -25,9 +25,9 @@ class PerformanceDatatable < AjaxDatatablesRails::Base
 
   def allowed_actions(performance)
     actions = []
-    if current_user.can? :delete, Performance then
-      actions << link_to('Destroy', [:admin, performance.production.theater, performance.production, performance], :confirm => 'Are you sure?', :method => :delete, class: 'tiny alert button')
-    end
+    #if current_user.can? :delete, Performance then
+    #  actions << link_to('Destroy', [:admin, performance.production.theater, performance.production, performance], :confirm => 'Are you sure?', :method => :delete, class: 'tiny alert button')
+    #end
     if current_user.can? :update, Performance then
       actions << link_to('Edit', [:edit,:admin, production.theater, production, performance], :id=>"edit_#{performance.performance_code.gsub(' ','_')}", class: 'tiny button')
     end
