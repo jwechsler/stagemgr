@@ -12,7 +12,7 @@ class SeatMap < ActiveRecord::Base
     if self.productions.map{|p| p.id}.include? (performance.production_id) and performance.seat_assignments.empty? and performance.production.has_reserved_seating? then
       SeatMap.transaction do
         seats.each { |seat|
-          assignment = SeatAssignment.new(seat: seat, performance:performance, seat_map: self)
+          assignment = SeatAssignment.new(seat: seat, performance:performance)
           assignment.save
         }
       end
