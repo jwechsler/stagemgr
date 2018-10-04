@@ -27,8 +27,9 @@ gem 'rails', '4.2.10'
 # end
 
 gem 'activerecord-session_store'
+# Markdown
 gem "redcarpet"
-gem "whenever", :require=>false
+
 gem "simple_form"
 gem "databasedotcom"
 gem 'restforce', '~> 2.5.3'
@@ -67,15 +68,18 @@ gem "jquery-ui-rails"
 # gem 'autonumeric-rails'
 gem "jquery-datatables"
 gem 'ajax-datatables-rails'
+gem 'foundation-datetimepicker-rails'
 # gem 'jqgrid-rails3', :git=>"https://github.com/davebaldwin/jqgrid-rails3.git"
 #gem "name_parse", "~> 0.0.5"
 gem "people"
 
 gem "ri_cal", :git=>"https://github.com/ctide/ri_cal.git"
+
+# scheduling and crons
+gem "whenever", :require=>false
 gem 'resque', :require => 'resque/server'
 gem 'resque-scheduler'
 gem 'resque-retry'  #, :git=>"https://github.com/jwechsler/resque-retry.git"
-gem 'foundation-datetimepicker-rails'
 
 gem 'rails-jquery-autocomplete' # :git=>"https://github.com/jwechsler/rails3-jquery-autocomplete.git" #:path=>'/Users/jeremyw/dev/rails3-jquery-autocomplete'
 gem 'config', :git=>'https://github.com/railsconfig/config.git'
@@ -101,7 +105,7 @@ group :development do
   gem "haml-rails"
   gem 'httplog'
   gem 'single_test'
-  gem 'ruby_parser'  # for declarative authorization eager loading for resque tasks
+  # gem 'ruby_parser'  # for declarative authorization eager loading for resque tasks
 end
 
 group :development,:test,:cucumber do
