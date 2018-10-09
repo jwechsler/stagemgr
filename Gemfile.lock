@@ -598,7 +598,6 @@ DEPENDENCIES
   ri_cal!
   rspec
   rspec-rails
-  ruby_parser
   safe_attributes
   sass
   sass-rails
