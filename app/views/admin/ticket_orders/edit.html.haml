@@ -1,3 +1,4 @@
+
 = render '/admin/orders/header_bar', :order=>@ticket_order
 
 = simple_form_for [:admin, @ticket_order], :html=>{:id=>'admin_ticket_order_form'} do |order_form|
@@ -9,3 +10,7 @@
   %div.row
     %div.columns.small-12
       = render :partial=>'/admin/orders/form', :locals=>{:order_form=>order_form}
+
+= content_for :js do
+  = javascript_include_tag 'order_entry'
+end

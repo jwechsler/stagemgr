@@ -1,4 +1,5 @@
 = render '/admin/orders/header_bar', :order=>@ticket_order
+
 = simple_form_for [:admin, @ticket_order], :html=>{:id=>'admin_ticket_order_form'} do |order_form|
   %div.row
     %div.small-12.medium-6.columns
@@ -17,3 +18,7 @@
       = order_form.input :notes, :input_html => {:rows => 4}
       = render partial: '/ticket_orders/pass_through_non_billing_fields', locals:{order_form: order_form}
       = render partial:'/admin/orders/confirm_button', locals:{order_form:order_form}
+
+= content_for :js do
+  = javascript_include_tag 'order_entry'
+end
