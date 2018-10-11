@@ -1,4 +1,7 @@
 class AddressTag < ActiveRecord::Base
+
+  EXTERNAL_ID = 'External ID' # Special tag for order matchups
+
   validates_presence_of :address
 
   belongs_to :theater

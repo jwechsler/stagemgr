@@ -707,6 +707,15 @@ class Admin::ReportsController < Admin::ApplicationController
     keys
   end
 
+  def payment_bucket(payment)
+    if payment.payment_type.nil?
+      payment.class.to_s[0..-8]
+    else
+      payment.payment_type.display_name
+    end
+  end
+
+
   def create_hash_from_order_fields(order)
     row = Hash.new
     row[:order_date] = order.created_at.to_formatted_s(:long) unless order.created_at.nil?
@@ -719,15 +728,10 @@ class Admin::ReportsController < Admin::ApplicationController
     row[:order_total] = order.total
     row[:num_tickets]  = order.kind_of?(TicketOrder) ? order.number_of_tickets : 0
     row[:num_seats] = order.kind_of?(TicketOrder) ? order.number_of_seats : 0
-    row
-  end
-
-  def payment_bucket(payment)
-    if payment.payment_type.nil?
-      payment.class.to_s[0..-8]
-    else
-      payment.payment_type.display_name
+    if order.performance.production.has_reserved_seating?
+      row[:seat_assignments] = order.seats.map {|sa| sa.seat.location}.sort.join(', ')
     end
+    row
   end
 
   def build_daily_box_office_receipts(start_day, end_day, build_for_dumpfile = false)
@@ -800,14 +804,22 @@ class Admin::ReportsController < Admin::ApplicationController
   def build_order_dump(production)
     report = Array.new
     keys = columns_for_orders(true,true)
-    keys += [:order_total, :num_tickets, :num_seats]
+    keys += [:order_total, :num_tickets, :num_seats, :external_id]
+    if production.has_reserved_seating?
+      keys += [:seat_assignments]
+    end
     members_by_email = Admin::ReportsHelper.attendees_on_email_list(production)
     production.performances.each { |performance|
       orders = TicketOrder.joins(:ticket_line_items).where("performance_id = :performance_id", {:performance_id=>performance.id})
 
       orders.each { |o|
-        if o.attended? then
+        if o.finalized? then
           row = create_hash_from_order_fields(o)
+          if current_user.is_theater_user?
+            row[:external_id] = o.address.external_id(current_user.theater_ids)
+          else
+            row[:external_id] = o.address.sf_contact_id
+          end
           unless row[:email].nil?
             if members_by_email.has_key?(row[:email].downcase)
                members_by_email.delete(row[:email].downcase)

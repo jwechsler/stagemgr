@@ -140,7 +140,7 @@ class ExternalAddressesImport
             unless row[external_id_idx].blank?
               sub_tag = AddressTag.new
               sub_tag.address = a
-              sub_tag.tag_label = 'External ID'
+              sub_tag.tag_label = AddressTag::EXTERNAL_ID
               sub_tag.tag_value = row[external_id_idx]
               sub_tag.theater_id = theater_id
               a.address_tags << sub_tag

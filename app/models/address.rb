@@ -402,6 +402,14 @@ class Address < ActiveRecord::Base
                                                                          start_date, end_date).map{|o| o.performance.production}.uniq
   end
 
+  def external_id(theater_ids)
+    found = address_tags.select{|tag| theater_ids.include?(tag.theater_id) && tag.tag_label.eql?(AddressTag::EXTERNAL_ID) }
+    if found.empty?
+      return ""
+    else
+      return found[0].tag_value
+    end
+  end
 
   def purge_duplicate_tags
     unique_tags = self.address_tags.map{|a| {tag_label: a.tag_label, tag_value: a.tag_value, theater_id: a.theater_id} }.uniq
