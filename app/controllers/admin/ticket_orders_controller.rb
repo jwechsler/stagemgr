@@ -9,6 +9,7 @@ class Admin::TicketOrdersController < Admin::OrdersController
     production = Production.accessible_by(current_ability).where('(production_code like :code_term or name like :name_term) and status in (:visible_status_list)',
      code_term:"#{params[:term]}%", name_term:"%#{params[:term]}%", visible_status_list:Production.on_sale_statuses,
      )
+    Rails.logger.debug("*** STEP 1")
     render :json => production.map { |prod|
       { id:prod.id,
         label:"#{prod.production_code} - #{prod.name}",

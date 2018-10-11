@@ -19,9 +19,10 @@ class Ability
     can [:read, :update], Order, Order.visible_order_for_theater_user(user) do |order|
         user.theater_ids.include?(order.production.theater_id)
     end
-    can :read, Production, ["theater_id in (?)", user.theater_ids] do |prod|
-        user.theater_ids.include?(prod.theater_id)
+    can :read, Production, ["theater_id in (?)", user.theater_ids] do |production|
+        user.theater_ids.include?(production.id)
     end
+
     can :update_notes, Order
     can :read, FlexPassOffer, ["theater_id in (?)", user.theater_ids] do |flex_pass_offer|
         user.theater_ids.include?(flex_pass_offer.theater_id)

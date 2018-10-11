@@ -434,7 +434,7 @@ class Order < ActiveRecord::Base
 
   def self.visible_order_for_theater_user(user)
     if user.is_theater_user?
-      joins(performance: :production).where('productions.theater_id in (?)', user.theater_ids)
+      joins(performance: :production).where(productions: { theater_id:  user.theater_ids}).references(:productions)
     else
       where('1=1')
     end
