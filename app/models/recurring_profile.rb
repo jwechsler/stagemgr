@@ -56,19 +56,23 @@ module RecurringProfile
   end
 
   def update_from_profile(response = nil)
-    response = self.get_profile_data if response.nil?
-    self.number_cycles_completed = response["number_cycles_completed"] unless response["number_cycles_completed"].blank?
-    self.number_cycles_remaining = response["number_cycles_remaining"] unless response["number_cycles_remaining"].blank?
-    self.total_billing_cycles = response["total_billing_cycles"] unless response["total_billing_cycles"].blank?
-    self.recurring_amount = response["amount"] unless response["amount"].blank?
-    self.next_billing_date = response["next_billing_date"].to_date  unless response["next_billing_date"].blank?
-    self.aggregate_amount = response["aggregate_amount"]  unless response["aggregate_amount"].blank?
-    self.failed_payment_count = response["failed_payment_count"] unless response["failed_payment_count"].blank?
-    self.outstanding_balance = response["outstanding_balance"].to_f unless response["outstanding_balance"].blank?
-    self.final_payment_due_date = response['final_payment_due_date'].to_date unless response['final_payment_due_date'].blank?
-    cycles = self.number_cycles_completed
-    cycles ||=0
-    profile_status = response["profile_status"][0..-8]  unless response["profile_status"].blank?
+    unless self.profile_id.blank?
+      response = self.get_profile_data if response.nil?
+      self.number_cycles_completed = response["number_cycles_completed"] unless response["number_cycles_completed"].blank?
+      self.number_cycles_remaining = response["number_cycles_remaining"] unless response["number_cycles_remaining"].blank?
+      self.total_billing_cycles = response["total_billing_cycles"] unless response["total_billing_cycles"].blank?
+      self.recurring_amount = response["amount"] unless response["amount"].blank?
+      self.next_billing_date = response["next_billing_date"].to_date  unless response["next_billing_date"].blank?
+      self.aggregate_amount = response["aggregate_amount"]  unless response["aggregate_amount"].blank?
+      self.failed_payment_count = response["failed_payment_count"] unless response["failed_payment_count"].blank?
+      self.outstanding_balance = response["outstanding_balance"].to_f unless response["outstanding_balance"].blank?
+      self.final_payment_due_date = response['final_payment_due_date'].to_date unless response['final_payment_due_date'].blank?
+      cycles = self.number_cycles_completed
+      cycles ||=0
+      profile_status = response["profile_status"][0..-8]  unless response["profile_status"].blank?
+    else
+      profile_status = 'PENDING'
+    end
     self.status = case
       when (profile_status == ACTIVE)
         ACTIVE
@@ -79,7 +83,7 @@ module RecurringProfile
       when (profile_status == SUSPENDED)
         profile_status
       else
-        "Other"
+        "Unknown"
     end
   end
 

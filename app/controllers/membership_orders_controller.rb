@@ -37,6 +37,7 @@ class MembershipOrdersController < ApplicationController
 
   protected
   def update_or_create
+    Rails.logger.debug("*** Transition to #{status}")
     respond_to do |format|
       if validate_web_order(@order) && process_order(@order, Order::PROCESSED)
         flash[:info] = raw "You've been successfully set up for your #{@order.membership_offer.name}."

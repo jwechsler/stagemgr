@@ -11,6 +11,7 @@ class MembershipOrder < Order
   # after_commit :update_membership_profile, :if=>:has_membership?
 
   def transition_processing_to_processed!(redirect_to = nil)
+    Rails.logger.debug("PROCESSING TO PROCESSED")
     self.build_membership_line_item(membership_offer:membership_offer) if membership_line_item.nil?
     trial_amount = membership_offer.trial_amount.nil? ? 0 : (membership_offer.trial_amount*100).to_i
     success = false
@@ -25,6 +26,7 @@ class MembershipOrder < Order
                                         membership_offer.billing_agreement, 1,
                                         additional_options)
     if response.success?
+      Rails.logger.debug("*** RECURRING PROFILE #{response.to_yaml}")
       profile_id = response.params["profile_id"]
       membership_line_item.membership.profile_id = profile_id
       membership_line_item.membership.status = response.params["profile_status"][0..-8]

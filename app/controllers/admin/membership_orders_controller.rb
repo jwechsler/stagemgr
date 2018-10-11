@@ -35,22 +35,31 @@ class Admin::MembershipOrdersController < Admin::ApplicationController
       render '/admin/membership_orders/show'
     end
   end
-
   def create
-    success = @membership_order.save
-    if success
-      flash[:notice] = raw "Customer successfully set up for the <strong>#{@membership_order.membership_offer.name}</strong> payment plan."
-    else
-      render '/admin/membership_orders/edit'
-      return
-    end
-
-    render '/admin/membership_orders/show'
-
+    update_or_create
   end
+
+  def update
+    @membership_order.update_attributes(membership_order_params)
+    update_or_create
+  end
+
 
   def edit
 
+  end
+
+  protected
+  def update_or_create
+    Rails.logger.debug("*** Transition to #{status}")
+    respond_to do |format|
+      if validate_web_order(@membership_order) && process_order(@membership_order, Order::PROCESSED)
+        flash[:info] = raw "Customer successfully set up for the <strong>#{@membership_order.membership_offer.name}</strong> payment plan."
+        format.html { render 'show' }
+      else
+        format.html { render 'edit' }
+      end
+    end
   end
 
   private
