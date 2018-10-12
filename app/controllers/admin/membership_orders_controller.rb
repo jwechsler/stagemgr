@@ -2,6 +2,7 @@ class Admin::MembershipOrdersController < Admin::ApplicationController
   load_and_authorize_resource
   include ::OrdersHelper
   include ::MembershipOrdersHelper
+  include ActionView::Helpers::OutputSafetyHelper
 
   def show
     begin
