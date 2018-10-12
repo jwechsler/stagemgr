@@ -5,8 +5,9 @@ Feature: Web ordering
   Background:
     Given a sample theater exists
     And a special offer with code "1DollarOff" for $1 off exists
+
   Scenario: Create an order
-    Given I go to new web order for production "Production One" and performance "PERF"
+    Given I go to new web order for production "Production One" and performance "TEST01"
     And I enter my contact information
     And I select "2" from "ticket_order_ticket_line_items_attributes_0_ticket_count"
     And I enter a valid credit card as payment
@@ -16,7 +17,7 @@ Feature: Web ordering
     Then I should see "Your ticket reservation has been made"
 
   Scenario: Create an order with a special offer
-    Given I go to new web order for production "Production One" and performance "PERF"
+    Given I go to new web order for production "Production One" and performance "TEST01"
     And I enter my contact information
     And I select "1" from "ticket_order_ticket_line_items_attributes_1_ticket_count"
     And I enter a valid credit card as payment
@@ -47,7 +48,7 @@ Feature: Web ordering
 
 
   Scenario: Sign up for the mailing list
-    Given I go to new web order for production "Production One" and performance "PERF"
+    Given I go to new web order for production "Production One" and performance "TEST01"
     And I enter my contact information
     And I select "1" from "ticket_order_ticket_line_items_attributes_1_ticket_count"
     And I enter a valid credit card as payment

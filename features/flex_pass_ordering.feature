@@ -8,7 +8,7 @@ Feature: Flex Pass Ordering
     And a flex pass exists for 2 tickets with code "TESTFLEX"
 
   Scenario: Purchase tickets with a flex pass code
-    Given I go to new web order for production "Production One" and performance "PERF"
+    Given I go to new web order for production "Production One" and performance "TEST01"
       And I enter my contact information
       And I select "2" from "ticket_order_ticket_line_items_attributes_0_ticket_count"
       And I enter flex pass code "TESTFLEX" as payment
@@ -18,7 +18,7 @@ Feature: Flex Pass Ordering
       Then I should see "Your ticket reservation has been made"
 
   Scenario: Limit tickets to flex pass maximum
-    Given I go to new web order for production "Production One" and performance "PERF"
+    Given I go to new web order for production "Production One" and performance "TEST01"
       And I enter my contact information
       And I select "3" from "ticket_order_ticket_line_items_attributes_0_ticket_count"
       And I enter flex pass code "TESTFLEX" as payment

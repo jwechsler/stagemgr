@@ -20,6 +20,7 @@ Feature: Payment Types Administration
       And I should see "Flex Pass"
       And I should see "Edit"
 
+  @wip
   Scenario: Make a payment type active for the public
     Given I go to the edit page for payment type "Cash"
       And I allow cash payments for the public
@@ -28,7 +29,7 @@ Feature: Payment Types Administration
       And I go to new admin ticket order
       And the payment option should include "Cash"
       And I log out
-      And I go to new web order for production "Production One" and performance "PERF"
+      And I go to new web order for production "Production One" and performance "TEST01"
       And the payment option should include "Cash"
       And I log in
       And I go to the edit page for payment type "Cash"
@@ -37,7 +38,7 @@ Feature: Payment Types Administration
       And I go to new admin ticket order
       And the payment option should include "Cash"
       And I log out
-      And I go to new web order for production "Production One" and performance "PERF"
+      And I go to new web order for production "Production One" and performance "TEST01"
       And the payment option should not include "Cash"
 
 #  @javascript @pending
