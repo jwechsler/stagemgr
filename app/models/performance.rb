@@ -34,7 +34,7 @@ class Performance < ActiveRecord::Base
   before_validation              :clean_values
   before_validation              :populate_ticket_class_allocations
   before_validation              :performance_code_must_match_production
-#  after_save                     :manage_seat_inventory
+  before_save                     :manage_seat_inventory
 
   accepts_nested_attributes_for  :ticket_class_allocations
 
@@ -151,7 +151,7 @@ class Performance < ActiveRecord::Base
       missing_seats = seats.map{|s| s} - known_seats
 
       missing_seats.each{|seat|
-        seat_assignments << SeatAssignment.new(seat: seat )
+        seat_assignments << SeatAssignment.new(seat: seat)
       }
     end
   end
