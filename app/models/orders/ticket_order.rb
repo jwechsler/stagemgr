@@ -101,9 +101,11 @@ class TicketOrder < Order
   end
 
   def seat_assignments_complete?
-    if self.performance.production.has_reserved_seating? then
-      if (self.seats.reload.size != self.number_of_seats) then
-        return false
+    unless self.performance.nil?
+      if self.performance.production.has_reserved_seating? then
+        if (self.seats.reload.size != self.number_of_seats) then
+          return false
+        end
       end
     end
     return true
