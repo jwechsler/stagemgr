@@ -34,7 +34,7 @@ class MembershipOrder < Order
       membership_line_item.membership.save!
       super
     else
-      raise RuntimeError, "There was a problem setting up your account for the #{membership_offer.name} payment plan. #{response.message}")
+      raise RuntimeError, "There was a problem setting up your account for the #{membership_offer.name} payment plan. #{response.message}"
     end
   end
 
