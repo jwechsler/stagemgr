@@ -72,25 +72,26 @@
           .small-12.columns
             = render partial: '/ticket_orders/seating', locals: {ticket_order: @ticket_order}
       = render partial: '/ticket_orders/pass_through_fields', locals:{order_form: order_form}
-      %p
-        = payment_text_for @ticket_order if total > 0
-        Please note that all ticket purchases are
-        %strong NON-REFUNDABLE
-        and
-        %strong NON-EXCHANGEABLE.
-        When you are ready to purchase your tickets, click "Order Tickets".
+      #submit-control
+        %p
+          = payment_text_for @ticket_order if total > 0
+          Please note that all ticket purchases are
+          %strong NON-REFUNDABLE
+          and
+          %strong NON-EXCHANGEABLE.
+          When you are ready to purchase your tickets, click "Order Tickets".
 
-      .row
-        .small-3.small-centered.columns
-          = order_form.button :submit, 'Order Tickets', id:'place-order-button'
+        .row
+          #submit-control.small-3.small-centered.columns
+            = order_form.button :submit, 'Order Tickets', id:'place-order-button'
 
-      .row
-        .small-12.columns
-          %p
-            %strong
-              PLEASE NOTE: Processing your order can take a minute.  Once you order your tickets, please don't refresh your browser or use the back button or you may be charged twice.
-          %p.text-center
-            Problems? Give us a call at 773-975-8150.
+        .row
+          .small-12.columns
+            %p
+              %strong
+                PLEASE NOTE: Processing your order can take a minute.  Once you order your tickets, please don't refresh your browser or use the back button or you may be charged twice.
+            %p.text-center
+              Problems? Give us a call at 773-975-8150.
 
 :javascript
   function submitForm() {

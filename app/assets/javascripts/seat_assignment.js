@@ -62,12 +62,15 @@ $(document).ready(function() {
         seating_count++
       });
 
-    $( '#seatinglist').text(selected_seats.sort().join(','))
+    $( '.seatinglist').text(selected_seats.sort().join(','))
     max_assigned = max_assignable()
     if (seating_count < max_assigned) {
+      console.log("display reminder")
       $('#seating-remaining').text((max_assigned - seating_count) + " of " + max_assigned + " remaining")
+      $('#submit-control').addClass('hide')
     } else {
-      $('#seating-remaining').text(" ")
+      $('#seating-remaining').text("Seating complete!")
+      $('#submit-control').removeClass('hide')
     }
     update_seating_submit_button(seating_count == max_assigned)
 
@@ -118,7 +121,7 @@ $(document).ready(function() {
             }]
   };
 
-  update_informational()
+  update_informational();
   // assign keys
 
 
@@ -187,6 +190,17 @@ $(document).ready(function() {
 
 
   });
+  seating_still_required = $("#seating-status").text().trim()
+  if (seating_still_required == 'false') {
+    $("#seating-block").removeClass('hide')
+  } else {
+    $("#seating-control").addClass('hide')
+  }
+  $("#seating-control").on('click', function() {
+    $("#seating-block").removeClass('hide')
+    $("#seating-control").addClass('hide')
+  });
+
 });
 
 

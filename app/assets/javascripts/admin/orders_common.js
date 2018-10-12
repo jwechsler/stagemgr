@@ -33,6 +33,7 @@ function setup_admin_payment_form() {
 
 jQuery(document).ready(function($) {
 
+
   setup_admin_payment_form();
   $(".payment_type_choice select").change(function() {
      setup_admin_payment_form();

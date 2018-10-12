@@ -190,6 +190,10 @@ class Order < ActiveRecord::Base
     '???'
   end
 
+  def seat_assignments_complete?
+    true
+  end
+
   def total(reload_line_items=false)
     if (self.payments.nil?) || (self.payments.size == 0) then
       a = self.all_line_items.to_a.sum { |line_item|

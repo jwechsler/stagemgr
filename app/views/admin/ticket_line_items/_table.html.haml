@@ -16,4 +16,7 @@
 								%i Total
 							%td{:align=>"right"}
 								%i= order.ticket_line_items.sum(:ticket_count)
-
+				- if order.performance.production.has_reserved_seating?
+					Reserved Seating:
+					%span.seatinglist
+						= order.seats.map{|sa| sa.seat.location}.sort.join(',')
