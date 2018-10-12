@@ -467,6 +467,8 @@ class Order < ActiveRecord::Base
         Rails.logger.error "   #{e.to_s}"
         Rails.logger.debug e.backtrace.join("\n")
         errors.add :error, e.to_s
+        self.status = old_status
+        self.id = nil if self.status.eql?(Order::NEW)
         raise e
       end
     end
