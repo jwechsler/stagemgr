@@ -1,5 +1,9 @@
 class ExchangePayment < Payment
 
+  def customer_visible_amount
+    return -1*super
+  end
+
   def receipt_description
     unless self.order.nil? || self.order.exchange_source.nil?
       source_payment = "Exchg ##{Payment.find(self.order.exchange_source.id)}"
