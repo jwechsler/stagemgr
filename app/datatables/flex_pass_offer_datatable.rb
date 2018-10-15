@@ -20,7 +20,7 @@ class FlexPassOfferDatatable < DatatableBase
   end
 
   def data
-    records.map do |flex_pass_offer|
+    (records || []).map do |flex_pass_offer|
       {
         offer: link_to(flex_pass_offer.name, [:admin, flex_pass_offer]),
         price: number_to_currency(flex_pass_offer.price),
