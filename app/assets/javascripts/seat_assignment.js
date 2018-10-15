@@ -193,8 +193,10 @@ $(document).ready(function() {
   seating_still_required = $("#seating-status").text().trim()
   if (seating_still_required == 'false') {
     $("#seating-block").removeClass('hide')
-  } else {
     $("#seating-control").addClass('hide')
+  } else {
+    $("#seating-block").addClass('hide')
+    $("#seating-control").removeClass('hide')
   }
   $("#seating-control").on('click', function() {
     $("#seating-block").removeClass('hide')
