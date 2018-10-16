@@ -30,6 +30,29 @@ function setup_admin_payment_form() {
 
 }
 
+jQuery.fn.extend({
+    disable: function(state) {
+        return this.each(function() {
+            this.disabled = state;
+        });
+    }
+});
+
+function set_button_state_for_autocompletes() {
+  allow_submit = true
+  $('.ticket_class_ids').each(function(index) {
+    if ($(this).val() == "") {
+      allow_submit = false
+    }
+    console.log("Is " + allow_submit)
+    allow_submit &= ($('#'+this.id.replace('ticket_class_id','ticket_count')).val() > 0)
+    console.log("Now " + allow_submit)
+
+  });
+
+  console.log(allow_submit);
+  $('input[type="submit"].order-submit-button, button').disable(!allow_submit);
+}
 
 jQuery(document).ready(function($) {
 
@@ -48,21 +71,32 @@ jQuery(document).ready(function($) {
       $('div#full-name-clear-column').addClass('hide');
     });
 
+  //$('input[type="submit"]).addClass('disabled');
+
+  console.log("checking...")
+  $('input[type="submit"].order-submit-button, button').disable(true);
+  set_button_state_for_autocompletes();
+  $('body').on('click', 'button.disabled', function(event) {
+      event.preventDefault();
+  });
 
   $('#admin_ticket_order_form').each(function() {
 
     $.fn.setup_code_input = function() {
 
       $(this).on('railsAutocomplete.select',function(event,ui) {
+        set_button_state_for_autocompletes();
         price = this.id.replace('ticket_class_code','price_override')
         price_field = $('#'+price);
         price_field.val(Number(ui.item.ticket_price).toFixed(2));
+
         recalculate_row_total('ticket_order',$(this).parents('.line_item'));
       });
     }
 
     $.fn.setup_recalculate_row = function() {
       $(this).on('blur',function() {
+        set_button_state_for_autocompletes();
         recalculate_row_total('ticket_order',$(this).parents('.line_item'));
       });
     }

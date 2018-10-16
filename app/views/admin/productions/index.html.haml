@@ -24,7 +24,8 @@
     $(document).ready(function() {
       $('#theater-listing').dataTable({
         "processing": true,
-        "serverSide": true,
+        "stateSave": true,
+        "saveState": true,
         "ajax": $('#theater-listing').data('source'),
         "pagingType": 'full_numbers',
         "language": {
