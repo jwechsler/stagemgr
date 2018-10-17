@@ -43,7 +43,7 @@ RSpec.describe SeatMap, type: :model do
 
   end
 
-  context "inventory management", :wip=>true do
+  context "inventory management" do
     before(:each) do
       @seat_map = FactoryBot.create(:seat_map_with_seats)
 

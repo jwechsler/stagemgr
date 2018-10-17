@@ -20,7 +20,6 @@ Feature: Payment Types Administration
       And I should see "Flex Pass"
       And I should see "Edit"
 
-  @wip
   Scenario: Make a payment type active for the public
     Given I go to the edit page for payment type "Cash"
       And I allow cash payments for the public
@@ -40,6 +39,13 @@ Feature: Payment Types Administration
       And I log out
       And I go to new web order for production "Production One" and performance "TEST01"
       And the payment option should not include "Cash"
+  @wip
+  Scenario: Payment Types can be marked as not reportable as sales
+     Given I go to the edit page for payment type "Cash"
+       And I should see "Report as sales income"
+       And I disallow reporting sales
+       And I press "Update"
+      Then I should see "sucessfully updated"
 
 #  @javascript @pending
 #  Scenario: Set up suppression rules

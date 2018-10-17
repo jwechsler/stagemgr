@@ -15,11 +15,7 @@
           <tr>
             <td width="20%"><%= payment.processed_on.to_formatted_s(:short_date_and_time) %></td>
             <td width="10%">
-                <%- if payment.payment_type.nil? %>
-                  <%=h "#{payment.type[0..-8]}" %>
-                <%- else %>
-                  <%=h "#{payment.payment_type.display_name}" %>
-                <%- end %>
+              <%=h payment.display_name %>
             </td>
             <td width="10%" align="right"><%= h to_currency(payment.amount) %></td>
             <td width="10%" align="right"><%= h payment.payment_info %></td>

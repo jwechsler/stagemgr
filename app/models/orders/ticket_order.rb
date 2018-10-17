@@ -365,7 +365,7 @@ class TicketOrder < Order
       self.address = original_order.address
       self.status = Order::EXCHANGING
       exchange_source.status = Order::RELEASING
-      exchange_payments_on_original_order = original_order.payments.map {|p| p.new_exchange_offset_payment}
+      exchange_payments_on_original_order = original_order.payments.map {|p| p.new_exchange_offset_payment}.select{|p| p.amount != 0}
       exchange_payments_toward_exchange_order = self.payment_type.build_exchange_offset_payments(exchange_payments_on_original_order)
       exchange_payments_on_original_order.each {|p| original_order.payments << p unless p.nil? }
       exchange_payments_toward_exchange_order.each { |p| self.payments << p unless p.nil? }

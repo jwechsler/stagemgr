@@ -1,6 +1,6 @@
 require_relative "../../spec_helper.rb"
 
-describe "an exchanged ticket order", wip:true do
+describe "an exchanged ticket order" do
   it "should have an offset payment" do
     original_order = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
     exchange_order = FactoryBot.create(:ticket_order)
@@ -15,6 +15,5 @@ describe "an exchanged ticket order", wip:true do
     expect(exchange_order.total).to eq(10.0)
     expect(exchange_order.exchange_source_id).to eq(original_order.id)
   end
-
 
 end

@@ -13,6 +13,10 @@ class ExchangePayment < Payment
     source_payment
   end
 
+  def display_name
+    "#{super} #{self.amount >= 0 ? '' : 'Offset'}"
+  end
+
   def can_cancel?
     true
   end

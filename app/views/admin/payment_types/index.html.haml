@@ -13,6 +13,7 @@
           %th Restrict to
           %th Allow for Public
           %th Allow for Box Office
+          %th Report Sales Revenue
           %th
       %tbody
         - @payment_types.each do |payment_type|
@@ -21,6 +22,7 @@
             %td.text-center= payment_type.restrict_to_ticket_classes
             %td.text-center= checkmark(payment_type.allow_for_public)
             %td.text-center= checkmark(payment_type.allow_for_box_office)
+            %td.text-center= checkmark(payment_type.report_as_sales_income)
 
             %td
               - if can? :manage, PaymentType

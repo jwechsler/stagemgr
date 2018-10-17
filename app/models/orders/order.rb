@@ -121,8 +121,14 @@ class Order < ActiveRecord::Base
      :check_number=>self.check_number}
   end
 
-  def value_of_all_payments
-    self.payments.sum(:amount)
+  def value_of_all_payments(income_payment_types_only = false)
+    if income_payment_types_only then
+      sum_payments = self.payments.select{|p| p.report_as_sales_income?}
+      total = sum_payments.empty? ? 0 : sum_payments.sum{|p| p.amount}
+    else
+      total = self.payments.sum(:amount)
+    end
+    total
   end
 
   def value_of_all_line_items
@@ -204,6 +210,11 @@ class Order < ActiveRecord::Base
     end
     a = 0.0 if a < 0.0
     a
+  end
+
+  # returns the total amount of reported income for this order, based on payment type
+  def sales_total
+    self.value_of_all_payments(false)
   end
 
   def number_of_tickets

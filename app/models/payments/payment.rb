@@ -33,7 +33,9 @@ class Payment < ActiveRecord::Base
     ExchangePayment.new(
       amount: -1*self.amount,
       order: self.order,
-      note: "Exchange offset for #{self.order.id}"
+      note: "Exchange for order #{self.order.id}",
+      payment_type: self.payment_type,
+      payment_id: self.id
     )
   end
 
@@ -69,6 +71,18 @@ class Payment < ActiveRecord::Base
     Payment.transaction do
       refund_payment = create_refund_payment(cc_number, note)
       refund_payment.save!
+    end
+  end
+
+  def report_as_sales_income?
+    payment_type_id.nil? ? true : self.payment_type.report_as_sales_income?
+  end
+
+  def display_name
+    if payment_type.nil?
+      self.type[0..-8]
+    else
+      payment_type.display_name
     end
   end
 
