@@ -716,7 +716,7 @@ class Admin::ReportsController < Admin::ApplicationController
     end
     members_by_email = Admin::ReportsHelper.attendees_on_email_list(production)
     production.performances.each { |performance|
-      orders = TicketOrder.joins(:ticket_line_items).where("performance_id = :performance_id", {:performance_id=>performance.id})
+      orders = performance.orders.includes(:ticket_line_items, :payments)
 
       orders.each { |o|
         if o.finalized? then
