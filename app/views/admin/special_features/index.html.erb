@@ -6,8 +6,14 @@
 <% end %>
 <div class="row">
   <div class="small-12 columns">
-
-    <table id="special-feature-listing" class="hide display">
+    %table#theater-listing{:data=>{:source=>"#{admin_theaters_path(format: :json)}"}}
+      %thead
+        %tr
+          %th Name
+          %th Home
+          %th Theater Class
+          %th Actions
+    <table id="special-feature-listing" class="display" >
       <thead>
         <tr>
           <th width="20%">Short&nbsp;Name</th>
@@ -44,27 +50,30 @@
 
 <%= content_for :js do %>
 <script type="text/javascript">
-
   $(document).ready(function() {
     $('#special-feature-listing').dataTable({
+          "processing": true,
+          "serverSide": true,
+          "stateSave": true,
+          "ajax": $('#theater-listing').data('source'),
+          "pagingType": 'full_numbers',
+          "language": {
+            "lengthMenu" : "_MENU_",
+            "search": "_INPUT_"
+          },
+          columns: [
+            {data: 'name'},
+            {data: 'description'},
+            {data: 'status'},
+            {data: 'actions'},
+          ]
+        });
+      });
 
-      dom: 'lf<"toolbar-buttons">rtip',
-      stateSave: true,
-      pagingType: "foundation",
-      columnDefs: [
-
-        {targets: "1,2,3", orderable:false},
-        {targets: "2,3", searchable:false},
-           ],
-      fnInitComplete:function() {
-        $("#special-feature-listing").show();
-        this.fnAdjustColumnSizing();
-      },
-    });
-    setupActiveSwitchOnDataTable('#special-feature-listing',2)
+    // setupActiveSwitchOnDataTable('#special-feature-listing',2)
 
 
   });
 
-  </script>
+</script>
 <% end %>
