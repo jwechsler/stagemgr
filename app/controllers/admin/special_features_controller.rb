@@ -2,6 +2,13 @@ class Admin::SpecialFeaturesController < ApplicationController
   load_and_authorize_resource
 
   def index
+    respond_to do |format|
+      format.html # index.html.erb
+      format.json {
+        params.permit!
+        render json: SpecialFeatureDatatable.new(params, view_context: view_context, current_user: current_user )
+      }
+    end
   end
 
   def show
