@@ -397,7 +397,16 @@ class Order < ActiveRecord::Base
   end
 
   def cancel!
+    self.allow_deletion!
     self.destroy
+  end
+
+  def allow_deletion!
+    @allow_destroy = true
+  end
+
+  def allow_deletion?
+    @allow_destroy || false
   end
 
   public
