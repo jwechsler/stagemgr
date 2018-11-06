@@ -60,6 +60,16 @@ class Address < ActiveRecord::Base
     [f_name, m_name, l_name]
   end
 
+  def set_full_name(full_name, first_name = nil, middle_name = nil, last_name = nil)
+    if full_name.blank?
+      address.full_name = address.first_name unless address.first_name.blank?
+      address.full_name += address.full_name.blank? ? " #{address.middle_name}" : address.middle_name unless address.middle_name.blank?
+      address.full_name += address.full_name.blank? ? address.last_name : " #{address.last_name}"  unless address.last_name.blank?
+    else
+      address.full_name = full_name
+    end
+  end
+
   def regularize!
 
     self.first_name, self.middle_name, self.last_name = parse_full_name
@@ -313,50 +323,6 @@ class Address < ActiveRecord::Base
 
   def first_time_paying? (current_order)
     self.orders.select { |o| (o.id != current_order.id) && o.settled? }.size ==0
-  end
-
-
-  def self.import_timeline_csv(filepath)
-    num_read = 0
-    num_merged = 0
-    timeline = Theater.find_by_name('TimeLine Theatre Company')
-    FasterCSV.foreach(filepath) do |row|
-      a=Address.new
-      a.first_name = row[1]
-      a.last_name = row[2]
-      a.line1 = row[3]
-      a.line2 = row[4]
-      a.city = row[5]
-      a.state = row[6]
-      a.zipcode = row[7]
-      a.phone = row[10]
-      a.phone = row[8] if a.phone.blank?
-      a.phone = row[9] if a.phone.blank?
-
-      a.email = row[11]
-      a.regularize!
-      sub_tag = AddressTag.new
-      sub_tag.address = a
-      sub_tag.tag_label = 'Subscriber ID'
-      sub_tag.tag_value = row[0]
-      sub_tag.theater_id = timeline.id
-      a.address_tags << sub_tag
-      type_tag = AddressTag.new
-      type_tag.address = a
-      type_tag.tag_label = 'Subscriber Type'
-      type_tag.tag_value = row[13]
-      type_tag.theater_id = timeline.id
-      a.address_tags << type_tag
-      existing = a.find_original
-      if !existing.nil?
-        num_merged += 1
-        existing.update_from(a)
-        a = existing
-      end
-      num_read += 1
-      a.save!
-    end
-    puts "CSV Import Successful,  #{num_read} records loaded, #{num_merged} merged"
   end
 
   def revenue_collected(since_when = 18.months.ago)

@@ -136,6 +136,10 @@ class Performance < ActiveRecord::Base
     return [Performance::ACTIVE, Performance::PRIVATE]
   end
 
+  def self.sellable
+    Performance.where("status in (:sellable)", sellable: Performance.sellable_statuses)
+  end
+
   def self.visible_statuses
     return [Performance::ACTIVE]
   end

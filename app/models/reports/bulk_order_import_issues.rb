@@ -1,7 +1,7 @@
 class BulkOrderImportIssues < Report
 
   def initialize(reporting_user_id = nil)
-    super([:Id,:Name,:PerformanceCode,:Seating,:OrderDetail,:Message], reporting_user_id)
+    super([], reporting_user_id)
     @data['issue'] = Array.new
   end
 
@@ -14,6 +14,16 @@ class BulkOrderImportIssues < Report
               Message: message}
   end
 
+  def add_problem_row(row:, message:)
+    puts "#{@headers} #{@headers.size}"
+    if @headers.empty? then
+      @headers = row.keys + ['Error']
+    end
+    original_row = row.dup
+    original_row['Error'] = message
+    @data['issue'] << original_row
+  end
+
   def any_issues?
     @data.size > 0
   end
@@ -23,8 +33,11 @@ class BulkOrderImportIssues < Report
   end
 
   def create
-    file_name = "/tmp/bulk_order_import_issues#{self.reporting_user_id}.csv"
-    self.save_report_to_filestore(file_name)
+    unless !@headers.empty?
+      notes = "#{@data.size} error#{@data.size > 1 ? 's' : ''}"
+      file_name = "/tmp/bulk_order_import_issues#{self.reporting_user_id}.csv"
+      self.save_report_to_filestore(file_name, notes)
+    end
   end
 
 end

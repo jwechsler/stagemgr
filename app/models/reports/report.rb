@@ -45,7 +45,9 @@ class Report
       filestore.worker = FileStore::REPORT
       filestore.save
       File.delete(file_path)
+      # @todo notify user that report is generated
       filestore
+
     else
       file_path
     end

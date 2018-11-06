@@ -1,5 +1,10 @@
 require 'csv'
-# Imports a csv file into seating.  The subscriber records must already exist.  Like other imports, headers are very important
+# Imports a csv file into seating.
+# Matching is done by headers or traditionally by email/name/address de-duping.
+# For IDs alone, the customer records must already exist.  Like other imports, headers are *very* important
+# Although this is a flexible import, it cannot import mutliple ticket class type orders.  ie., all the tickets
+# must be of the same allowed type.
+# Since the import is by theater, the productioncode must belong to the requisite theater
 #
 # == Allowed Headers
 #
@@ -7,11 +12,24 @@ require 'csv'
 # Id              :  The address ID (supercedes ExternalId if present)
 # ProductionCode  :  Production Code for ticket class associations
 # PerformanceCode :  Performance code to seat in
-# Seating         :  A comma-delimited list of seats
+# Seating         :  A comma-delimited list of seats (optional)
+# NumberOfTickets :  How many seats (overridden by 'Seating', if present)
 # TicketClass     :  What ticket class to process the order under
-
-#
-# Note that, if present, the two users will create two different records in the ticketing system
+# FirstName       :  User first name
+# MiddleName      :  User middle name
+# LastName        :  User last name
+# FullName        :  If present, overwrites the above name values
+# EmailAddress1   :  Email address
+# Phone           :  Contact phone number
+# Address         :  street address
+# Address2        :  street address line 2
+# City            :  city
+# State           :  state (2 letter abbreviation)
+# ZipCode         :  Postal Code (zip)
+# Tag1            :  Tag
+# TagValue1       :  Tag value
+# Tag2            :  Tag #2
+# TagValue2       :  Tag value #2
 
 class BulkOrderImport
   @queue = :import
@@ -27,23 +45,21 @@ class BulkOrderImport
       ticket_class_idx = 0
 
       filestore = FileStore.find(filestore_id)
-      filestore.notes = "Importing subscriber seating chart"
+      filestore.notes = "Importing Orders"
       filestore.save
 
       problems = BulkOrderImportIssues.new(filestore.user.id)
 
-      productions = Production.where(theater_id: theater_id).pluck(:id, :production_code).to_h
       production_seat_maps = Production.where("theater_id = :theater_id and seat_map_id is not null",
-        theater_id: theater_id).pluck(:id, :seat_map_id).to_h
+        theater_id: theater_id).sellable.pluck(:id, :seat_map_id).to_h
+      production_ids = Production.where(theater_id: theater_id).sellable.pluck(:id)
       seat_locations = Hash.new
       production_seat_maps.each {|production_id, seat_map_id|
         seats = Seat.where(seat_map_id: seat_map_id).pluck(:location, :id).to_h
         seat_locations[production_id] = seats
       }
-      performances = Performance.where("production_id in (select id from productions where theater_id = ?)", theater_id).map{|perf| [perf.performance_code, perf]}.to_h
-      address_ids = AddressTag.where("tag_label = 'External Id' and theater_id = :theater_id and address_id is not null",theater_id: theater_id).pluck(:tag_value, :address_id).to_h # Get a list of all addresses with these external tags
-      ticket_classes = TicketClass.where("production_id in (select id from productions where theater_id = ?)", theater_id).map{ |tc|
-        [productions[tc.production_id]+"-"+tc.class_code, tc]}.to_h
+      performances = Performance.where(production_id: production_ids).sellable.map{|perf| [perf.performance_code, perf]}.to_h
+      external_address_ids = AddressTag.where("tag_label = 'External Id' and theater_id = :theater_id and address_id is not null",theater_id: theater_id).pluck(:tag_value, :address_id).to_h # Get a list of all addresses with the theaters external tags
       payment_type = payment_type_id.blank? ? nil : PaymentType.find(payment_type_id.to_i)
       issues = []
 
@@ -51,41 +67,51 @@ class BulkOrderImport
       CSV.foreach(filestore.data.path, headers:true) do |row|
         current_address_id = 0
         a = nil
-        begin
-          total += 1
-          begin
-            case
-            when !row['ExternalId'].blank?
-              current_address_id = row['ExternalId'].to_i
-              a = Address.find(address_ids[current_address_id])
-            when !row['Id'].blank?
-              current_address_id = row['Id'].to_i
-              a = Address.find(current_address_id)
-            else
-              a = Address.new
-            end
-          rescue ActiveRecord::RecordNotFound
-            puts "IMPORT: Creating new record for found id: #{current_address_id}"
-            a = Address.new
-          end
+        total += 1
+        case
+        when !row['Id'].blank? # if ID is present, use that as the match criteria
+          current_address_id = row['Id']
+          a = Address.find_by(id:row['Id'].to_i)
 
-          Order.transaction do
-            o = TicketOrder.new
-            o.status = TicketOrder::NEW
-            perf_code = row['PerformanceCode']
-            puts("IMPORT: PERFORMANCE: #{perf_code} #{performances[perf_code]}")
-            o.performance = performances[perf_code]
-            raise RuntimeError, "Unknown performance '#{performances[perf_code]}'" if o.performances.nil?
-            o.address = a
+        when !row['ExternalId'].blank?
+          current_address_id = row['ExternalId']
+          a = Address.find_by(id:address_ids[current_address_id])
+          a ||= Address.new
 
-            puts("IMPORT: Performance allocations: #{o.performance.ticket_class_allocations.count}")
+        else
+          current_address_id = "NEW"
+          a = Address.new
+        end
+        a ||= Address.new
+        Order.transaction do
+          # Update Address-specific records
+          a.set_full_name(row['FullName'],row['FirstName'],row['MiddleName'],row['LastName']) unless row['FullName'].blank? || row['LastName'].blank?
+          a.line1 = row['Address'] unless row['Address'].blank?
+          a.line2 = row['Address2'] unless row['Address'].blank?
+          a.email = row['EmailAddress'] unless row['EmailAddress'].blank?
+          a.city = row['City'] unless row['City'].blank?
+          a.zipcode = row['ZipCode'] unless row['ZipCode'].blank?
+          a.phone = row['Phone'] unless row['Phone'].blank?
+          a.address_tags << make_address_tag(theater_id, row['Tag1'], row['TagValue1']) unless row['Tag1'].blank?
+          a.address_tags << make_address_tag(theater_id, row['Tag2'], row['TagValue2']) unless row['Tag2'].blank?
+          a.address_tags << make_address_tag(theater_id, 'ExternalId', row['ExternalId']) unless row['ExternalId'].blank?
+          a.regularize!
+          a.save!
+          # build the ticket order
+          o = TicketOrder.new
+          o.status = TicketOrder::NEW
+          perf_code = row['PerformanceCode']
+          puts("IMPORT: PERFORMANCE: #{perf_code} #{performances[perf_code]}")
+          o.performance = performances[perf_code]
+          raise RuntimeError, "Unknown performance '#{performances[perf_code]}'" if o.performance.nil?
+          o.address = a
 
-            ticket_class = ticket_classes[row['ProductionCode']+'-'+row['TicketClass']]
+          puts("IMPORT: Performance allocations: #{o.performance.ticket_class_allocations.count}")
+          ticket_class = TicketClass.find_by(production_id: o.performance.production_id, class_code: row['TicketClass'])
+          unless row['Seating'].blank?
+            puts "IMPORT: Attempting seating for #{row['Seating']}"
             seats = row['Seating'].blank? ? [] : row['Seating'].split(',')
             o.ticket_line_items.build(ticket_count: seats.count, ticket_class: ticket_class)
-
-            puts("IMPORT: Ticket Class =  #{ticket_class}")
-
             unless seats.empty?
               o.save!
               seats.each{|seat|
@@ -100,31 +126,29 @@ class BulkOrderImport
               puts "IMPORT: Seating complete"
               o.reload
             end
+          else
+            raise "NumberOfTickets required for non-reserved seating" if row['NumberOfTickets'].to_i == 0
+            o.ticket_line_items.build(ticket_count: row['NumberOfTickets'].to_i, ticket_class: ticket_class)
+            puts "Seating complete for #{o.ticket_line_items.first.ticket_count} #{o.ticket_line_items.first.ticket_class} Tix"
+          end
+          puts("IMPORT: Ticket Class =  #{ticket_class}")
 
-            if payment_type.nil?
-              o.transition_to!(Order::HOLD)
-              puts("IMPORT: Order is #{Order::HOLD}")
-            else
-              o.payment_type = payment_type
-              o.transition_to!(Order::PROCESSED)
-              o.payments.each{|p| p.note = "Imported from #{filestore.data_file_name} by #{filestore.user.email}"; p.save }
-              puts("IMPORT: Order is #{Order::PROCESSED}")
-            end
+          if payment_type.nil?
+            o.transition_to!(Order::HOLD)
+            puts("IMPORT: Order is #{Order::HOLD}")
+          else
+            o.payment_type = payment_type
+            o.transition_to!(Order::PROCESSED)
+            o.payments.each{|p| p.note = "Imported from #{filestore.data_file_name} by #{filestore.user.email}"; p.save }
+            puts("IMPORT: Order is #{Order::PROCESSED}")
           end
         rescue => e
           puts e.message
           puts e.backtrace
           Rails.logger.error e.message
-          Rails.logger.error e.backtrace.join('\n')
-          problems.append_issue(id:current_address_id,
-            customer_name: "#{row['FirstName']} #{row['LastName']}",
-            performance_code: row['PerformanceCode'],
-            seating: row['Seating'],
-            order_detail: row['TicketClass'],
-            message: e.message)
+          e.backtrace.each {|m| Rails.logger.error m }
+          problems.add_problem_row(row: row.to_h, message: e.message)
         end
-
-
       end
       filestore.notes = "Imported #{total} orders, #{problems.count} errors"
       filestore.save
@@ -138,6 +162,14 @@ class BulkOrderImport
     end
   end
 
+  private
+  def new_address_tag(theater_id, tag_label, tag_value)
+    sub_tag = AddressTag.new
+    sub_tag.address = a
+    sub_tag.tag_label = tag_label
+    sub_tag.tag_value = tag_value
+    sub_tag.theater_id = theater_id
+  end
 end
 
 

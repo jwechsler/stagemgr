@@ -108,6 +108,11 @@ class Production < ActiveRecord::Base
     [ACTIVE, PRIVATE]
   end
 
+  def self.sellable
+    Production.where(status: Production.on_sale_statuses)
+  end
+
+
   def self.performing_classes
     [PLAY, SPECIAL_EVENT, OFF_TIME]
   end
