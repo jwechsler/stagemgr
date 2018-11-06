@@ -32,17 +32,18 @@ class TicketOrder < Order
 
   #before_validation :tickets_available?, :if=>[:processed?, :status_changed?]
 
-  validate :ticket_stock_available
-  validate :verify_fully_seated, if: -> { performance.production.has_reserved_seating? && (status.eql?(Order::PROCESSED) || status.eql?(Order::FULFILLED))}
+  validate :ticket_stock_available, :unless=>:allow_deletion?
+  validate :verify_fully_seated, if: -> { !self.allow_deletion? && performance.production.has_reserved_seating? && (status.eql?(Order::PROCESSED) || status.eql?(Order::FULFILLED))}
 
   validates_each :status do |record, attr, value|
-
-    if value == PROCESSED
-      unless record.ticket_line_items.empty? || record.number_of_tickets > 0
-        record.errors.add :ticket_line_items, "must contain at least one ticket."
-      end
-      if (!record.performance.nil? && record.performance.restricted_payment_types.include?(record.payment_type))
-        record.errors.add :payment_type, "is not allowed for this event"
+    unless record.allow_deletion?
+      if value == PROCESSED
+        unless record.ticket_line_items.empty? || record.number_of_tickets > 0
+          record.errors.add :ticket_line_items, "must contain at least one ticket."
+        end
+        if (!record.performance.nil? && record.performance.restricted_payment_types.include?(record.payment_type))
+          record.errors.add :payment_type, "is not allowed for this event"
+        end
       end
     end
   end
@@ -73,10 +74,7 @@ class TicketOrder < Order
         end
       end
       seats_left = self.performance.number_of_seats_left(self)
-      errors.add :base, "There #{seats_left == 1 ? "is" : "are"} only
-        #{seats_left} reservation#{"s" unless seats_left == 1} remaining for the
-        #{self.performance.performance_date.to_s} performance at
-        #{self.performance.performance_time.to_formatted_s(:standard_time)}." if self.holding_seats? && seats_left < self.number_of_seats
+      errors.add :base, "There #{seats_left == 1 ? "is" : "are"} only #{seats_left} reservation#{"s" unless seats_left == 1} remaining for the #{self.performance.performance_date.to_s} performance at #{self.performance.performance_time.to_formatted_s(:standard_time)}." if self.holding_seats? && seats_left < self.number_of_seats
     end
   end
 
