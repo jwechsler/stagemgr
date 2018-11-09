@@ -85,7 +85,7 @@ class BulkOrderImport
         a ||= Address.new
         Order.transaction do
           # Update Address-specific records
-          a.set_full_name(row['FullName'],row['FirstName'],row['MiddleName'],row['LastName']) unless row['FullName'].blank? || row['LastName'].blank?
+          a.set_full_name(row['FullName'],row['FirstName'],row['MiddleName'],row['LastName']) unless row['FullName'].blank? && row['LastName'].blank?
           a.line1 = row['Address'] unless row['Address'].blank?
           a.line2 = row['Address2'] unless row['Address'].blank?
           a.email = row['EmailAddress'] unless row['EmailAddress'].blank?
