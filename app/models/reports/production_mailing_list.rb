@@ -14,9 +14,9 @@ class ProductionMailingList < MailingList
 
   def create
     begin
-      season_tag = self.production.season.to_i + 1
+      season_tag = self.production.season.to_i
       all_attendees = self.production.attendees
-      orders = TicketOrder.includes(:address, :payments, :theater, {:performance=>:production}).references(:performance).where('performances.production_id = ?', self.production.id)
+      orders = TicketOrder.joins(:performance, :address).references(:performance, :address).where('performances.production_id = ? and addresses.placeholder <> ?', self.production.id,true).includes(:address, :payments, :theater, {:performance=>:production})
       members_by_email = self.production.attendees_on_email_list
       order_set = orders.to_set
 

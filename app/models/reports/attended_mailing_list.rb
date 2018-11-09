@@ -10,8 +10,8 @@ class AttendedMailingList < MailingList
   end
 
   def create
-    orders = TicketOrder.includes(:address, :payments, :theater, {:performance=>:production}).where('performances.performance_date >= ? and performances.performance_date <= ?', self.starting_date, self.ending_date)
-
+    orders = TicketOrder.joins(:performance, :address).references(:performance,:address).where('performances.performance_date >= ? and performances.performance_date <= ? and addresses.placeholder <> ?', self.starting_date, self.ending_date,true).includes(:address, :payments, :theater, {:performance=>:production})
+    Rails.logger.error("*** DONE")
     self.extract_addresses_from_ticket_orders(orders)
 
     file_name = "/tmp/attendees_#{self.starting_date.to_date.strftime('%y%m%d')}_#{self.ending_date.to_date.strftime('%y%m%d')}.csv"

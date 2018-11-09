@@ -14,17 +14,13 @@ class Admin::ReportsController < Admin::ApplicationController
     is_theater_user = !current_user.nil? && current_user.is_theater_user?
     @generated_reports = FileStore.where("worker = ? and user_id = ?", FileStore::REPORT, current_user.id).order('created_at desc')
     @generated_reports.select {|r| r.data.exists? }
-    if is_theater_user then
-      order_clause = {press_opening_at: :desc}
-    else
-      order_clause = :name
-    end
 
-    @productions = Production.accessible_by(current_ability,:read).where("status in (?)", Production.visible_statuses).order(order_clause)
 
     if is_theater_user then
+      @productions = Production.accessible_by(current_ability,:read).order(press_opening_at: :desc)
       @flex_pass_offers = @productions.select { |p| !p.flex_pass_offer.nil? }.map { |p| p.flex_pass_offer }
     else
+      @productions = Production.accessible_by(current_ability, :read).sellable.order(:name)
       @flex_pass_offers = FlexPassOffer.all
     end
 
