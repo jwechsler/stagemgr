@@ -39,19 +39,23 @@ class Address < ActiveRecord::Base
   attr_accessor :sf_object
 
   def self.parse_name(full_name)
-    parsed = People::NameParser.new(:couples=>true).parse(full_name)
-    cleaned_name = parsed[:clean]
-    if parsed[:parsed]
-      f_name = parsed[:first]
-      f_name2 = parsed[:first2]
-      l_name = parsed[:last]
-      m_name = parsed[:middle]
+    unless full_name.blank? do
+      parsed = People::NameParser.new(:couples=>true).parse(full_name)
+      cleaned_name = parsed[:clean]
+      if parsed[:parsed]
+        f_name = parsed[:first]
+        f_name2 = parsed[:first2]
+        l_name = parsed[:last]
+        m_name = parsed[:middle]
+      else
+        f_name = ""
+        l_name = parsed[:clean]
+        m_name = ""
+      end
+      [cleaned_name, f_name, m_name, l_name, f_name2]
     else
-      f_name = ""
-      l_name = parsed[:clean]
-      m_name = ""
+      ["","","","",""]
     end
-    [cleaned_name, f_name, m_name, l_name, f_name2]
   end
 
   def parse_full_name
@@ -62,11 +66,11 @@ class Address < ActiveRecord::Base
 
   def set_full_name(full_name, first_name = nil, middle_name = nil, last_name = nil)
     if full_name.blank?
-      address.full_name = address.first_name unless address.first_name.blank?
-      address.full_name += address.full_name.blank? ? " #{address.middle_name}" : address.middle_name unless address.middle_name.blank?
-      address.full_name += address.full_name.blank? ? address.last_name : " #{address.last_name}"  unless address.last_name.blank?
+      self.full_name = first_name unless first_name.blank?
+      self.full_name += self.full_name.blank? ? " #{middle_name}" : middle_name unless middle_name.blank?
+      self.full_name += self.full_name.blank? ? last_name : " #{last_name}"  unless last_name.blank?
     else
-      address.full_name = full_name
+      self.full_name = full_name
     end
   end
 
