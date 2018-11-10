@@ -176,7 +176,9 @@ class TicketOrder < Order
   end
 
   def seat_assignments
-    if self.assigned_seats?
+    if self.performance.production.has_reserved_seating?
+      self.seats.map { |s| s.seat.location }.sort.join(', ')
+    elsif self.assigned_seats?
       "#{self.ticket_detail_description}"
     else
       ""

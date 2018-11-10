@@ -18,18 +18,22 @@ class HouseManagementReport < Report
     HouseManagementReport.ticket_orders(self.for_date)
   end
 
+  def house_tags(address)
+    address.address_tags.select {|tag| tag.theater_id.blank? || tag.theater.is_default?}
+  end
+
   def create
     orders = self.ticket_orders
     report = Array.new
     headers = [:production_name, :performance_code, :patron_name, :seats, :special_requests, :notes, :is_member, :is_donor]
     orders.each do |o|
       seat_assignments = o.seat_assignments
-        
-      if !o.special_request.blank? || !o.notes.blank? || o.address.is_current_member? || o.address.is_donor? || !o.address.address_tags.empty? || !seat_assignments.blank?
+      print_tags = house_tags(o.address)
+      if !o.special_request.blank? || !o.notes.blank? || o.address.is_current_member? || o.address.is_donor? || !print_tags.empty?
         note_column = o.notes.blank? ? "" : o.notes
-        unless o.address.address_tags.empty?
+        unless print_tags.empty?
           note_column += "<br/>" unless note_column.blank?
-          note_column += "Patron Notes: " + o.address.address_tags.map{|tag|
+          note_column += "Patron Notes: " + print_tags.map{|tag|
             r = "<i><font size=\"-1\" >#{tag.tag_label}"
             r += " [#{tag.theater.name}]" unless (tag.theater_id.nil? || tag.theater.is_default?)
             r += " (#{tag.tag_value})" unless tag.tag_value.blank?
