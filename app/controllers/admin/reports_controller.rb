@@ -397,18 +397,14 @@ class Admin::ReportsController < Admin::ApplicationController
           cutoff_max = cutoff_min + 1.month
           cycles_in_window = 1
         end
-        total_payout = MembershipPayment.joins(order: [:performance, :payments]).where(
-          "membership_id = ? and performances.performance_date <= ? and performances.performance_date >= ?",
-          membership.id, cutoff_max, cutoff_min
-          ).sum(:amount)
         num_attended = MembershipPayment.joins(order: [:performance, :payments]).where(
-          "membership_id = ? and performances.performance_date <= ? and performances.performance_date >= ?",
+          "payments.membership_id = ? and performances.performance_date <= ? and performances.performance_date >= ?",
           membership.id, cutoff_max, cutoff_min).count
         total_payout = RecurringPayment.joins(order: [:performance, :payments]).where(
-          "membership_id = ? and performances.performance_date <= ? and performances.performance_date >= ?",
+          "payments.membership_id = ? and performances.performance_date <= ? and performances.performance_date >= ?",
           membership.id, cutoff_max, cutoff_min).sum(:amount)
 
-        aggregate_amount = RecurringPayment.where("order_id = ? and processed_on > ? and processed_on < ?", membership.membership_line_item.order_id, cutoff_min, cutoff_max).sum(:amount)
+        aggregate_amount = RecurringPayment.where("order_id = ? and processed_on >= ? and processed_on <= ?", membership.membership_line_item.order_id, cutoff_min, cutoff_max).sum(:amount)
         avg_revenue_month = "0".to_money
         avg_performances_month = 0.0
         avg_revenue_month = ((aggregate_amount-total_payout)/cycles_in_window).to_money
