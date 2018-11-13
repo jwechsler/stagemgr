@@ -12,3 +12,11 @@ table#order-listing thead .yadcf-filter {
   display:inline-block;
   width:90%;
 }
+
+select {
+    height: auto;
+}
+
+select[size], select[multiple] {
+    background-image: none;
+}
