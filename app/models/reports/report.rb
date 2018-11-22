@@ -29,6 +29,7 @@ class Report
   def save_report_as_csv(file_path, filestore=nil)
     csv_string = CSV.generate do |csv|
       csv << self.headers
+      byebug
       self.data.each { |key, rows| rows.each { |row|
           csv << headers.map { |h| h == :Segment ? key : Report.tidy_output(row[h]) } unless row.nil? }
       }

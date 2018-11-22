@@ -47,4 +47,12 @@ function refresh_window(){
   window.location = location.href;
 };
 
-
+jQuery(document).ready(function($) {
+  console.log('Hi');
+        $('.date_picker').datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: "yy/mm/dd",
+            yearRange:  "1900:+0"
+    });
+});

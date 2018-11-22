@@ -168,7 +168,7 @@
         .row
           .small-12.columns
             %label{:for=>:required_theaters} Must have attended
-            = select_tag(:required_theaters,  options_from_collection_for_select(Theater.all.order(:name), "id", "name"), :multiple=>true, :size=>8)
+            = select_tag(:required_theaters,  options_from_collection_for_select(Theater.all.order(:name), "id", "name"), :multiple=>true, :height=>"400px")
             = submit_tag "Download", :name=>'download_csv', :class=>'tiny button postfix'
 
 .row

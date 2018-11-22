@@ -3,7 +3,7 @@ class ProductionMailingList < MailingList
   attr_accessor :production, :allow_email_exports
 
   def initialize(production, reporting_user_id = nil, allow_email_exports = false)
-    super(reporting_user_id)
+    super([], reporting_user_id)
     @production = production
     @allow_email_exports = allow_email_exports
   end

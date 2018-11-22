@@ -126,7 +126,13 @@ class CreditCardPayment < CurrencyPayment
   end
 
   def processing_fee
-    0.22 + self.amount * 0.04
+    # changed processing fee due to paypal renegotiation -- this certainly shouldn't be in the code... :)
+    if created_at < Date.new(2018,11,16) then
+      fee = 0.22 + self.amount * 0.04
+    else
+      fee = 0.30 + self.amount * 0.035
+    end
+    fee.round(2)
   end
 
   def self.card_types
