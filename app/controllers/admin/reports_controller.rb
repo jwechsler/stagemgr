@@ -286,7 +286,13 @@ class Admin::ReportsController < Admin::ApplicationController
         csv << headers.map { |h| Admin::ReportsHelper.tidy_output(r[h]) } unless r.nil?
       end
     end
-    f = File.new('/tmp/debug.csv','w  def address_hash(a)
+    f = File.new('/tmp/debug.csv','w')
+    f.puts(csv_string)
+    f.close
+    send_data csv_string, :type => "text/csv", :filename=>"#{title}.csv", :disposition=>'attachment'
+  end
+
+  def address_hash(a)
     {:last_name=>a.last_name,
                 :first_name=>a.first_name,
                 :street_address=>a.line1,
@@ -297,13 +303,7 @@ class Admin::ReportsController < Admin::ApplicationController
                 :phone=>a.phone,
                 :email=>a.email,
                 :address_id=>a.id}
-  end')
-    f.puts(csv_string)
-    f.close
-    send_data csv_string, :type => "text/csv", :filename=>"#{title}.csv", :disposition=>'attachment'
   end
-
-
 
   def address_hash_from_my_emma_member(member)
     Hash[MyEmma::Member.api_attributes.to_a.select{ |a| MyEmma.legal?(a) }.map {
