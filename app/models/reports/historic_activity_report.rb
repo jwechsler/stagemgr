@@ -35,7 +35,7 @@ class HistoricActivityReport < MailingList
       end
       }.map{|p| "#{p.name} [#{p.theater.name}]"}
       prodlist = prods.join(", ")
-          self.data["ALL"] = MailingList.mailing_hash_from_buyer(address).merge({:PrimaryTheatreAttendee=>primary_attendee ? "*" : "",
+          self.data['ALL'] << MailingList.mailing_hash_from_buyer(address).merge({:PrimaryTheatreAttendee=>primary_attendee ? "*" : "",
                                                  :FullName=>address.full_name,
                                                  :LastAttended=>address.last_attendance_date,
                                                  :AttendedInPeriod => prods.size,
