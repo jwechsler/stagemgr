@@ -365,12 +365,11 @@ class Address < ActiveRecord::Base
     TicketOrder.joins(:performance).maximum('performance_date',:conditions=>["orders.address_id = ?", self.id])
   end
 
-  def productions_attended(start_date = 10.years.ago, end_date =Date.today)
-    Production.joins({performances: :orders}).references(:performances, :orders).where('orders.address_id = :address_id and orders.status in (:attended_statuses) and performances.performance_date between :start_date And :end_date',
-      address_id: self.id,
-      attended_statuses: Order.attended_statuses,
-      start_date: start_date,
-      end_date: end_date)
+  def productions_attended(start_date = 10.years.ago, end_date = Time.now)
+    TicketOrder.includes(:performance,{:performance=>:production}).where("orders.address_id = ? and orders.status in (?) and performances.performance_date >= ? and performances.performance_date <= ?",
+                                                                         self.id,
+                                                                         Order.attended_statuses,
+                                                                         start_date, end_date).map{|o| o.performance.production}.uniq
   end
 
   def external_id(theater_ids)

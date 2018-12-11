@@ -3,8 +3,8 @@ class MailingList < Report
   TRG_IMPORT_HEADERS = [:Segment, :Season, :Title, :FirstName, :LastName, :FullName, :CompanyName, :Email, :Address1, :Address2,
                :Address3, :City, :State, :Zip, :HomePhone, :BusinessPhone, :ClientPatronID, :StagemgrPatronID]
 
-  def initialize(headers = [], reporting_user_id = nil)
-    super((TRG_IMPORT_HEADERS + headers) - (TRG_IMPORT_HEADERS & headers), reporting_user_id)
+  def initialize(reporting_user_id = nil)
+    super(TRG_IMPORT_HEADERS, reporting_user_id)
     @data['ALL'] = Array.new
     @data['MEM'] = Array.new
     @data['STB'] = Array.new
