@@ -75,7 +75,7 @@ class Payment < ActiveRecord::Base
   end
 
   def report_as_sales_income?
-    payment_type_id.nil? ? true : self.payment_type.report_as_sales_income?
+    self.payment_type_id.nil? ? true : self.payment_type.report_as_sales_income?
   end
 
   def display_name
