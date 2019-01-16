@@ -19,7 +19,7 @@ class MailingList < Report
     order_address_set = orders.map{|o| o.address}.to_set
 
     order_set.each do |order|
-      consolidation_code = order.performance.production.theater.is_default? ? 'ALL' : 'REN'
+      consolidation_code = (order.performance.production.theater.producing?) ? 'ALL' : 'REN'
       season_tag = order.performance.production.season.to_i
       address = order.address
       hash = MailingList.mailing_hash_from_buyer(address)

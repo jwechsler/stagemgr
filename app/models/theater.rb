@@ -1,7 +1,9 @@
  class Theater < ActiveRecord::Base
   #@todo setup access control
 
-  THEATER_CLASSES  = ['Default', 'Resident Company', 'Visiting Company', 'Guest Artist']
+  THEATER_CLASSES  = (
+    DEFAULT, COPRO, RESIDENT, VISITING, GUESTARTIST =
+    'Default', 'Co-production', 'Resident Company', 'Visiting Company', 'Guest Artist')
   THEATER_STATUSES = (
     ACTIVE, INACTIVE = 'Active',  'Inactive'
   )
@@ -37,12 +39,21 @@
     (current_user.respond_to?('is_theater_user?') && current_user.is_theater_user?) ? Theater.where("status != 'Inactive' and id in (?)",[current_user.theater_ids]) : Theater.where("status != 'Inactive'")
   end
 
-  def is_default?
-    self.theater_class == 'Default'
+  def producing?
+    self.is_default? || self.is_copro?
   end
 
+  def is_default?
+    self.theater_class == DEFAULT
+  end
+
+  def is_copro?
+    self.theater_class == COPRO
+  end
+
+
   def is_resident?
-    self.theater_class == 'Resident Company'
+    self.theater_class == RESIDENT
   end
 
   def inactive?

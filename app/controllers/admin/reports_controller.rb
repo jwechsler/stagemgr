@@ -452,7 +452,7 @@ class Admin::ReportsController < Admin::ApplicationController
       buyer_type = case
         when order.paid_with_membership?
           'MEM'
-        when order.theater.is_default?
+        when (order.theater.producing?)
           order.total == 0 ? 'CMP' : 'STB'
         else
           'REN'
@@ -472,7 +472,7 @@ class Admin::ReportsController < Admin::ApplicationController
         report << trg_hash(buyer_type, order.performance.production.season, description, order.address)
       end
 
-      if order.theater.is_default?
+      if order.theater.producing?
         description = "#{season_text} FULL: #{order.theater.name} Attendee"
         report << trg_hash(buyer_type, order.performance.production.season, description, order.address)
       end

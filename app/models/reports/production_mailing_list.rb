@@ -20,7 +20,7 @@ class ProductionMailingList < MailingList
       members_by_email = self.production.attendees_on_email_list
       order_set = orders.to_set
 
-      consolidation_code = self.production.theater.is_default? ? 'ALL' : 'REN'
+      consolidation_code = self.production.theater.producing? ? 'ALL' : 'REN'
       all_attendees.select{|a| !a.line1.blank?}.each do |address|
         hash = MailingList.mailing_hash_from_buyer(address)
         unless hash[:Email].nil?

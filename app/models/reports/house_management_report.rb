@@ -19,7 +19,7 @@ class HouseManagementReport < Report
   end
 
   def house_tags(address)
-    address.address_tags.select {|tag| tag.theater_id.blank? || tag.theater.is_default?}
+    address.address_tags.select {|tag| tag.theater_id.blank? || tag.theater.producing?}
   end
 
   def create
@@ -35,7 +35,7 @@ class HouseManagementReport < Report
           note_column += "<br/>" unless note_column.blank?
           note_column += "Patron Notes: " + print_tags.map{|tag|
             r = "<i><font size=\"-1\" >#{tag.tag_label}"
-            r += " [#{tag.theater.name}]" unless (tag.theater_id.nil? || tag.theater.is_default?)
+            r += " [#{tag.theater.name}]" unless (tag.theater_id.nil? || tag.theater.producing?)
             r += " (#{tag.tag_value})" unless tag.tag_value.blank?
             r += "</font></i>"
             r

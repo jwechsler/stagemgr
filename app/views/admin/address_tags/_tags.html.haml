@@ -8,6 +8,6 @@
     %tr
       %td
         = tag.tag_label
-        = " [#{tag.theater.name}]" unless (tag.theater.nil? || tag.theater.is_default?)
+        = " [#{tag.theater.name}]" unless (tag.theater.nil? || tag.theater.producing?)
       %td
         = tag.tag_value

@@ -19,7 +19,7 @@
         <%- end -%>
         <%- unless production.additional_information_link.blank?  %>
           <p>
-    		<a href="<%= production.additional_information_link %>" <%= "target=\"_blank\"" unless production.theater.is_default? %>>
+    		<a href="<%= production.additional_information_link %>" <%= "target=\"_blank\"" unless production.theater.producing? %>>
     			For more information, click here
     		</a>
     	  </p>
