@@ -29,7 +29,7 @@ class HouseManagementReport < Report
     orders.each do |o|
       seat_assignments = o.seat_assignments
       print_tags = house_tags(o.address)
-      if !o.special_request.blank? || !o.notes.blank? || o.address.is_current_member? || o.address.is_donor? || !print_tags.empty?
+      if !o.special_request.blank? || !o.notes.blank? || o.address.is_current_member? || o.address.is_donor? || !print_tags.empty? || o.assigned_seats?
         note_column = o.notes.blank? ? "" : o.notes
         unless print_tags.empty?
           note_column += "<br/>" unless note_column.blank?
