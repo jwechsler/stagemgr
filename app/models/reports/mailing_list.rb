@@ -3,8 +3,8 @@ class MailingList < Report
   TRG_IMPORT_HEADERS = [:Segment, :Season, :Title, :FirstName, :LastName, :FullName, :CompanyName, :Email, :Address1, :Address2,
                :Address3, :City, :State, :Zip, :HomePhone, :BusinessPhone, :ClientPatronID, :StagemgrPatronID]
 
-  def initialize(headers = [], reporting_user_id = nil)
-    super((TRG_IMPORT_HEADERS + headers) - (TRG_IMPORT_HEADERS & headers), reporting_user_id)
+  def initialize(reporting_user_id = nil)
+    super(TRG_IMPORT_HEADERS, reporting_user_id)
     @data['ALL'] = Array.new
     @data['MEM'] = Array.new
     @data['STB'] = Array.new
@@ -19,7 +19,7 @@ class MailingList < Report
     order_address_set = orders.map{|o| o.address}.to_set
 
     order_set.each do |order|
-      consolidation_code = order.performance.production.theater.is_default? ? 'ALL' : 'REN'
+      consolidation_code = (order.performance.production.theater.producing?) ? 'ALL' : 'REN'
       season_tag = order.performance.production.season.to_i
       address = order.address
       hash = MailingList.mailing_hash_from_buyer(address)

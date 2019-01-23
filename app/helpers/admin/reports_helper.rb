@@ -106,7 +106,7 @@ module Admin::ReportsHelper
           buyer_type = case
             when order.paid_with_membership?
               'MEM'
-            when order.theater.is_default?
+            when (order.theater.producing?)
               order.total == 0 ? 'CMP' : 'STB'
             else
               'REN'

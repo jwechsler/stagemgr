@@ -8,10 +8,13 @@
           - if default_text
             I wish to offer additional support
           - else
-            Make a donation to Theater Wit
+            Make a donation to
+            = t.name
         %p.inline
-          - if default_text
-            Yes! I love Theater Wit. Please add a tax-deductible contribution to this order of $
+          - if t.producing?
+            Yes! I love
+            = "#{t.name}."
+            Please add a tax-deductible contribution to this order of $
             = order_form.input_field :additional_donation, :size => 7, :style=>"display:inline; width:auto"
           - else
             In addition to its own award-winning programming, Theater Wit subsidizes facilities and  support for groups like

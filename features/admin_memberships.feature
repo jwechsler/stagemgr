@@ -68,6 +68,7 @@ Feature: Membership Administration
       And I should see "Successfully created"
       And a membership_offer should exist with trial_period of 1
 
+  @wip @javascript
   Scenario: Box office personnel can place membership gift orders
     Given I am a box office user
       And I am logged in
