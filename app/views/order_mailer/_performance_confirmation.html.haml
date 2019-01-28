@@ -1,6 +1,6 @@
 = content_for :email_title do
   Your tickets for
-  = "#{order.performance.production.name}#{order.theater.theater_class != 'Default' ? ', presented by ' + order.theater.name : ''}"
+  = "#{order.performance.production.name}#{!order.theater.is_default? ? ', presented by ' + order.theater.name : ''}"
 
 %h3
   Thanks for your order!
@@ -12,8 +12,8 @@
   for the
   = order.performance.performance_time.strftime('%l:%M %p')
   performance of
-  %i= "#{order.performance.production.name}#{order.theater.theater_class != 'Default' ? ',' : ''}"
-  = "presented by #{order.theater.name}" if order.theater.theater_class != 'Default'
+  %i= "#{order.performance.production.name}#{!order.theater.is_default? ? ',' : ''}"
+  = "presented by #{order.theater.name}" unless order.theater.is_default?
   on
   = "#{order.performance.performance_date.strftime('%A, %B %_d')}."
   Your tickets will be waiting at the box office under
