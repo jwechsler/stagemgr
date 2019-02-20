@@ -31,7 +31,7 @@
         = f.input :auto_attach, :hint=>"Automatically attach to every performance"
         = f.input :minutes_before_show, :hint=>"Reveal timed tickets at this point before showtime"
         = f.input :purchase_page_annotation, :as=>:text, :hint=>'Additional detail text for purchase page', input_html: {rows: 2}
-        = f.input :purchase_email_annotation, :hint=>'Additional text to include in purchase emails', input_html: {rows: 4}
+        = f.input :purchase_email_annotation, :hint=>'Additional text to include in purchase emails.  Markdown enabled', input_html: {rows: 4}
   .row
     .small-12.columns
     = f.button :submit
