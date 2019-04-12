@@ -33,11 +33,11 @@
           - tickets += new_items
           - tickets.each do |tli|
             - qty += tli.ticket_count
-            - total += tli.receipt_total.to_money unless tli.ticket_class.software_managed
+            - total += tli.receipt_total.to_money unless tli.ticket_class.hide_pricing?
             %tr
               %td= tli.ticket_count
               %td= tli.ticket_class.class_name
-              %td= "$ #{tli.receipt_total.to_money}" unless tli.ticket_class.software_managed
+              %td= "$ #{tli.receipt_total.to_money}" unless tli.ticket_class.hide_pricing?
 
           - unless @ticket_order.special_offer_line_item.nil?
             - discount = (-1*@ticket_order.special_offer_line_item.special_offer.calculate_discount(@ticket_order)).to_money

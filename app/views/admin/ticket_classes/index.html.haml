@@ -1,6 +1,6 @@
 / admin/ticket_classes/index.html.erb
 = content_for :title do
-  @production.name Ticket Classes
+  = "#{@production.name} Ticket Classes"
 = content_for :breadcrumbs do
   %ul.breadcrumbs
     %li= link_to "Theaters", admin_theaters_path
