@@ -2,7 +2,7 @@ class Admin::OrdersController < Admin::ApplicationController
   authorize_resource
 
   include OrdersHelper
-  before_action :find_order, :except=>[:index, :new, :create, :update ]
+  before_action :find_order, :except=>[:index, :new, :create, :update, :fulfill_selected ]
   before_action :redirect_edits_to_proper_action, :only => [:show,:edit]
 
   VALID_SEARCH_COLUMNS = [
@@ -37,7 +37,9 @@ class Admin::OrdersController < Admin::ApplicationController
 
   def fulfill_selected
     params[:commit] = 'Fulfill'
-    orders = Order.find(params[:ids])
+    ids = params[:ids]
+    orders = Order.where(id:params[:ids])
+    logger.debug("Fulfill #{ids.to_s}")
     statuses = {}
     orders.each do |order|
       if order.status == 'Processed'

@@ -38,7 +38,6 @@
       table.button( 0 ).enable( selectedRows > 0 );
     }
 
-
     $(document).ready(function() {
       var oListing = $('#order-listing').DataTable({
         "stateSave": true,
@@ -50,14 +49,19 @@
                 {
                   text: 'Fulfill Selected',
                   action: function(e, dt, node, config) {
-                    //alert('Logging select')
+                    //console.log($.map(dt.rows( {selected:true} ).data(), function(r) { return r.DT_RowId }))
+                    //console.log('Fullfilling Selected');
+                    var ids = $.map(dt.rows({selected:true}).data(), function(r) {return r.DT_RowID })
+                    //console.log(ids)
                     $.ajax({
                       url: '#{fulfill_selected_admin_orders_path}',
-                      data: dt.rows( {selected:true}).data().map(value.DT_RowId)
-                    });
-                    $.each(dt.rows( {selected:true}).data(), function(index, value) {
-                      console.log(value.DT_RowID)
-
+                      dataType: 'json',
+                      data: {ids: ids},
+                      type: "POST",
+                      success: function(data) {
+                       dt.rows().invalidate()
+                       dt.draw()
+                      }
                     });
                     //dt.ajax.reload();
 
