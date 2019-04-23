@@ -13,7 +13,7 @@ class OrdersDatatable < AjaxDatatablesRails::Base
     @view_columns ||= {
       id: { source: 'Order.id' },
       code: { source: 'Performance.performance_code', cond: filter_by_code },
-      name: { source: 'Address.full_name' },
+      name: { source: 'Address.last_first_name' },
       seats: { source: 'Seat.location'},
       status: { source: 'Order.status' },
     }
@@ -22,6 +22,7 @@ class OrdersDatatable < AjaxDatatablesRails::Base
   def additional_data
     {
       code: '',
+      name: '',
       visits: '',
       total: '',
       description: '',
@@ -83,7 +84,7 @@ private
       "???"
     else
       display = ""
-      display += "<br/>(h/u #{order.hold_under})" unless order.hold_under.blank?
+      display += "<br/>(h/u #{order.hold_under})" unless (order.hold_under.blank? || order.hold_under.eql?(order.address.full_name) || order.display_code.eql?("DONATION"))
       link_to(order.address.full_name, [:admin, order.address]) + raw(display)
     end
   end

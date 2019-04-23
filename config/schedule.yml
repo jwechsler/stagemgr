@@ -32,6 +32,11 @@ SendFlexPassReminders:
   description: 'Send flex pass fulfillment reminders'
   queue: notification
 
+SendMembershipReminders:
+  every: '1d'
+  description: 'Send flex pass fulfillment reminders'
+  queue: notification
+
 GenerateProductionSalesStatistics:
   cron: '30 0 * * *'
   description: 'Generate statistics for previous days sales'

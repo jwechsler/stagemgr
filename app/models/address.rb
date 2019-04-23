@@ -399,6 +399,7 @@ class Address < ActiveRecord::Base
   protected
   def set_search_name
     self.search_name = self.full_name.gsub(/[\d+\s+\.!,]/,'').upcase
+    self.last_first_name = "#{self.last_name}#{self.first_name}#{self.middle_name}".gsub(/[\d+\s+\.!,]/,'').upcase
   end
 
   def update_donor_levels_from_donation_orders
