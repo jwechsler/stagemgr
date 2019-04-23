@@ -149,7 +149,7 @@ class OrderMailer < ActionMailer::Base
     unless membership_orders.empty?
       @membership_orders = membership_orders
       mail(:to=>$EMAIL_ADDRESS['membership_notifications'], :from=>"\"Theater Wit Box Office\" <boxoffice@theaterwit.org>",
-           :subject=>"Unprocessed Mmeberships",
+           :subject=>"Unprocessed Memberships",
            :tag=>"Internal Notification") do |format|
         format.html { render layout: 'internal_mail'}
       end
