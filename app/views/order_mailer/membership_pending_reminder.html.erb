@@ -1,13 +1,13 @@
-<h2>Unfulfilled Flex Pass orders</h2>
+<h2>Unfulfilled Membership orders</h2>
 <table border="1">
   <thead>
     <tr>
       <th>Order ID</th>
       <th>Name</th>
-      <th>Flex Pass Code</th>
+      <th>Member Code</th>
     </tr>
   </thead>
-  <%- @flex_pass_orders.each do |order| %>
+  <%- @membership_orders.each do |order| %>
     <tr>
       <td><%= order.id %></td>
       <td><%= order.address.first_name %> <%= order.address.last_name %>
@@ -21,7 +21,7 @@
         <%= order.address.city %>, <%= order.address.state %>  <%= order.address.zipcode %>
       </td>
 
-      <td><%= FlexPass.where(order_id: order.id).pluck(:code).join(', ') %></td>
+      <td><%= order.membership.member_code %></td>
     </tr>
   <%- end %>
 

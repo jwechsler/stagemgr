@@ -145,4 +145,15 @@ class OrderMailer < ActionMailer::Base
     end
   end
 
+  def membership_pending_reminder(membership_orders,address=nil,action_by=nil)
+    unless membership_orders.empty?
+      @membership_orders = membership_orders
+      mail(:to=>$EMAIL_ADDRESS['membership_notifications'], :from=>"\"Theater Wit Box Office\" <boxoffice@theaterwit.org>",
+           :subject=>"Unprocessed Mmeberships",
+           :tag=>"Internal Notification") do |format|
+        format.html { render layout: 'internal_mail'}
+      end
+    end
+  end
+
 end
