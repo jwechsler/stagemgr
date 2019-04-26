@@ -113,7 +113,7 @@ class Performance < ActiveRecord::Base
   end
 
   def allocation(class_code)
-    self.ticket_class_allocations.select{|tca| tca.ticket_class.class_code == class_code}.first
+    self.ticket_class_allocations.select{|tca| !tca.ticket_class.nil? && tca.ticket_class.class_code.eql?(class_code)}.first
   end
 
   def to_s
