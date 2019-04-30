@@ -38,6 +38,7 @@ class PerformancesController < ApplicationController
     @start_date = params[:start_date].nil? ? Date.today.beginning_of_week : Date.parse(params[:start_date])
     @end_date = params[:end_date].nil? ? Date.today.beginning_of_week + 1.week - 1 : Date.parse(params[:end_date])
     @performances = Performance.where('performances.performance_date >= ? and performances.performance_date <= ?',@start_date,@end_date).order(:performance_date, :performance_time)
+    @performances.select!{|p| p.production.visible? && p.production.sellable_to_public?}
     @performances.each {|p|
       unless p.special_features.empty?
         @footnotes += p.special_features.map {|f| f.short_name}
@@ -51,7 +52,6 @@ class PerformancesController < ApplicationController
   private
 
   def find_production
-    @production = Production.find(params[:production_id])
-    @production = nil if @production.status == Production::INACTIVE
+    @production = Production.find(params[:production_id]).sellable_to_public
   end
 end

@@ -51,7 +51,7 @@ class BulkOrderImport
       problems = BulkOrderImportIssues.new(filestore.user.id)
 
       production_seat_maps = Production.where("theater_id = :theater_id and seat_map_id is not null",
-        theater_id: theater_id).sellable.pluck(:id, :seat_map_id).to_h
+        theater_id: theater_id).where_sellable.pluck(:id, :seat_map_id).to_h
       production_ids = Production.where(theater_id: theater_id).sellable.pluck(:id)
       seat_locations = Hash.new
       production_seat_maps.each {|production_id, seat_map_id|

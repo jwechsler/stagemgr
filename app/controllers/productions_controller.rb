@@ -28,9 +28,8 @@ class ProductionsController < ApplicationController
 
   def upcoming
     @current_date = Date.today.end_of_week + 1
-    @productions = Production.where(
-      'ifnull(productions.first_preview_at,productions.opening_at) > ? and productions.status = \'Active\'',@current_date
-    ).order('case theater_id when 1 then 0 else 1 end, productions.first_preview_at')
+    @productions = Production.opening_after(@current_date).visible.sellable_to_public.order(
+      'case theater_id when 1 then 0 else 1 end, productions.first_preview_at')
     render :upcoming
   end
 
@@ -38,10 +37,9 @@ class ProductionsController < ApplicationController
     @current_date = Date.today.beginning_of_week
     @end_of_week = Date.today.end_of_week
     @second_date = Date.today
-    @productions = Production.where(
-      'ifnull(productions.first_preview_at,productions.opening_at) <= ? and productions.closing_at >= ? and productions.status in (?)',
-      @end_of_week,@second_date,Production.visible_statuses
-      ).order('case theater_id when 1 then 0 else 1 end, productions.name')
+    @productions = Production.running_week_of(Date.today).visible.sellable_to_public.order(
+      'case theater_id when 1 then 0 else 1 end, productions.name'
+    )
     render :now_playing
   end
 
@@ -50,7 +48,8 @@ class ProductionsController < ApplicationController
     @now_playing = now_playing_by_venue(Production::PLAY) + now_playing_by_venue(Production::OFF_TIME) + now_playing_by_venue(Production::SPECIAL_EVENT)
     end_of_week = Date.today.end_of_week
     three_months_from_now = (end_of_week+2.months).end_of_month
-    upcoming_shows = Production.where('ifnull(first_preview_at,opening_at) > :end_of_week and status in (:visible_status)', {:end_of_week=>end_of_week, :visible_status=>Production.visible_statuses}).order("case when promo_file_name is null then 1 else 0 end, first_preview_at ")
+    upcoming_shows = Production.opening_after(end_of_week).visible.sellable_to_public.order(
+      "case when promo_file_name is null then 1 else 0 end, first_preview_at")
     @coming_soon = Array.new
     @long_term = Array.new
     upcoming_shows.each do |prod|

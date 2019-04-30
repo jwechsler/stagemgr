@@ -1,13 +1,21 @@
+# A production is a show with one or more performances.  Items common to performances are grouped here.
+
 class Production < ActiveRecord::Base
+
+  # :section: Production Constants
+  #
+  # These are common constants for production dataa
 
   PRODUCTION_STATUSES = (
   ACTIVE, PRIVATE, INACTIVE, PRESALE =
-      'Active', 'Private', 'Inactive', 'Presale')
+      'Active', 'Private', 'Inactive', 'Presale', 'Seating')
 
   PRODUCTION_CLASSES = (
   PLAY, SPECIAL_EVENT, PRIVATE_PARTY, CONFERENCE, OFF_TIME, CLASS =
       'Primetime', 'Special Event', 'Private Party', 'Conference', 'Off/Late night', 'Class'
   )
+
+  # :section:
 
   validates_inclusion_of :status, :in => PRODUCTION_STATUSES
   validates_presence_of :theater, :name, :venue, :season, :production_code, :opening_at, :closing_at
@@ -17,7 +25,7 @@ class Production < ActiveRecord::Base
   validates_inclusion_of :seat_map, in: lambda{ |production| production.venue.seat_maps }, unless: Proc.new {|production| production.seat_map.nil?}
   validates_formatting_of :survey_link, :using => :url, :allow_blank=>true
   validates_formatting_of :mailing_list_link, :using => :url, :allow_blank=>true
-  with_options if: :is_visible? do |visible_prod|
+  with_options if: :visible? do |visible_prod|
     visible_prod.validates_presence_of :opening_at
     visible_prod.validates_presence_of :closing_at
     visible_prod.validates_presence_of :press_opening_at
@@ -56,6 +64,9 @@ class Production < ActiveRecord::Base
     [self.theater, self]
   end
 
+  # :section: Production dates
+
+  #
   def running_dates
     self.first_performance_at.strftime('%B %d, %Y') + " through " + self.closing_at.strftime('%B %d, %Y')
   end
@@ -64,6 +75,16 @@ class Production < ActiveRecord::Base
     self.first_playing_date
   end
 
+
+  def first_playing_date
+    self.first_preview_at || self.press_opening_at || self.opening_at || Date.today + 10.years
+  end
+
+  # :section:
+
+  # default sort for productions
+  #
+  # by status (positional by PRODUCTION_STATUSES, opening_at
   def <=>(other)
     [PRODUCTION_STATUSES.index(self.status) || 0, self.opening_at || Date.today, self.name || ''] <=>
         [PRODUCTION_STATUSES.index(other.status) || 0, other.opening_at || Date.today, other.name || '']
@@ -74,47 +95,23 @@ class Production < ActiveRecord::Base
     self.first_playing_date <= through && (self.closing_at.nil? ? true : (self.closing_at >= Date.today))
   end
 
-  def first_playing_date
-    self.first_preview_at || self.press_opening_at || self.opening_at || Date.today + 10.years
-  end
-
-  def is_visible?
+  def visible?
     Production.visible_statuses.include?(self.status)
   end
 
-  # placeholder for email list management through plugin engine
-  def attendees_on_email_list
-    Hash.new
+  def sellable_to_public?
+    Production.on_sale_to_public_statues.include?(self.status)
   end
 
-  def add_hold_to_every_performance(address, number_of_tickets, ticket_class_code)
-    ticket_class=ticket_classes.select { |tc| tc.class_code == ticket_class_code }.first
-    self.performances.each { |p|
-      o = TicketOrder.create(:status=>Order::HOLD, :address=>address, :performance=>p, :payment_type=>CashPaymentType.first)
-      li = o.ticket_line_items.build(:ticket_class=>ticket_class, :ticket_count=>number_of_tickets)
-      if !o.save
-        o.destroy
-        puts "Couldn't create hold for #{p.performance_code}"
-      end
-    }
-    nil
+  # does this production have reserved seating?
+  # true if a seatmap is defined
+
+  def has_reserved_seating?
+    !self.seat_map.nil?
   end
 
-  def self.visible_statuses
-    [ACTIVE, PRESALE]
-  end
-
-  def self.on_sale_statuses
-    [ACTIVE, PRIVATE]
-  end
-
-  def self.sellable
-    Production.where(status: Production.on_sale_statuses)
-  end
-
-
-  def self.performing_classes
-    [PLAY, SPECIAL_EVENT, OFF_TIME]
+  def has_general_admission?
+    self.seat_map.nil?
   end
 
   def inactive?
@@ -124,6 +121,54 @@ class Production < ActiveRecord::Base
   def use_ticket_email_templates?
     return Production.performing_classes.include?(self.production_class)
   end
+
+  # placeholder for email list management through plugin engine
+  def attendees_on_email_list
+    Hash.new
+  end
+
+  def self.visible_statuses
+    [ACTIVE, PRESALE]
+  end
+
+  def self.on_sale_statuses
+    Production.on_sale_to_public_statues + [SEATING]
+  end
+
+  def self.on_sale_to_public_statues
+    [ACTIVE, PRIVATE]
+  end
+
+  def self.performing_classes
+    [PLAY, SPECIAL_EVENT, OFF_TIME]
+  end
+
+  def self.sellable
+    Production.where(status: Production.on_sale_statuses)
+  end
+
+  def self.sellable_to_public
+    Production.where(status: Production.on_sale_to_public_statuses)
+  end
+
+  def self.visible
+    Production.where(status: Production.visible_statuses)
+  end
+
+  def self.opening_after(after_date)
+    Production.where('ifnull(productions.first_preview_at,productions.opening_at) > ?', after_date)
+  end
+
+  def self.running_week_of(check_date)
+    start_of_week = check_date.beginning_of_week
+    end_of_week = check_date.end_of_week
+    Production.where(
+          'ifnull(productions.first_preview_at,productions.opening_at) <= ? and productions.closing_at >= ?',
+          end_of_week,
+          start_of_week)
+  end
+
+
 
   def price_range
     min_price = nil
@@ -204,10 +249,6 @@ class Production < ActiveRecord::Base
       end
     end
     self.sf_object
-  end
-
-  def has_reserved_seating?
-    !self.seat_map.nil?
   end
 
   private
@@ -291,6 +332,24 @@ class Production
     end
     members_by_email
   end
+
+  # utility to add a set of holds to every performance
+  #
+  # <b>DEPRECATED:</b> Use bulk order import function instead
+
+  def add_hold_to_every_performance(address, number_of_tickets, ticket_class_code)
+    ticket_class=ticket_classes.select { |tc| tc.class_code == ticket_class_code }.first
+    self.performances.each { |p|
+      o = TicketOrder.create(:status=>Order::HOLD, :address=>address, :performance=>p, :payment_type=>CashPaymentType.first)
+      li = o.ticket_line_items.build(:ticket_class=>ticket_class, :ticket_count=>number_of_tickets)
+      if !o.save
+        o.destroy
+        puts "Couldn't create hold for #{p.performance_code}"
+      end
+    }
+    nil
+  end
+
 
 end
 
