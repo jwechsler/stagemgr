@@ -113,20 +113,31 @@ class Admin::TicketOrdersController < Admin::OrdersController
 
   def update
     @ticket_order.update_attributes(ticket_order_params)
-    # update_ticket_line_items(params[:ticket_order][:ticket_line_items_attributes].values) unless params[:ticket_order][:ticket_line_items_attributes].nil?
-    # @ticket_order.payment_type = PaymentType.find(params[:ticket_order][:payment_type_id])
-    create_or_update(@ticket_order, params[:commit])
+    if @ticket_order.held? && !(can?(:hold, TicketOrder) || @ticket_order.payment_type.allow_theater_user_holds?)
+      flash[:error] = "You don't have permissions to put this order on hold with a payment type of #{@ticket_order.payment_type.display_name}"
+      render 'edit'
+    else
+      # update_ticket_line_items(params[:ticket_order][:ticket_line_items_attributes].values) unless params[:ticket_order][:ticket_line_items_attributes].nil?
+      # @ticket_order.payment_type = PaymentType.find(params[:ticket_order][:payment_type_id])
+      create_or_update(@ticket_order, params[:commit])
+    end
   end
 
   def create
     @ticket_order.performance=Performance.find_by performance_code:params[:ticket_order][:performance_code]
     @ticket_order.status = Order::NEW if @ticket_order.status.nil?
     time_cutoff = @ticket_order.performance.to_time_with_zone - ($SERVER_CONFIG['minutes_before_performance_close_to_third_party_sales'] || 0).minutes
-    unless can?(:order_anytime, TicketOrder) || (Time.now < time_cutoff)
-      flash[:error] = "Orders for this performance must be placed through the box office after #{time_cutoff.strftime('%H:%M%p')} on #{time_cutoff.strftime('%m/%d/%y')}"
+
+    if params[:commit].eql?(Order::HOLD) && !(can?(:hold, TicketOrder) || @ticket_order.payment_type.allow_theater_user_holds?)
+      flash[:error] = "You don't have permissions to put this order on hold with a payment type of #{@ticket_order.payment_type.display_name}"
       render 'edit'
     else
-      create_or_update(@ticket_order, params[:commit])
+      unless can?(:order_anytime, TicketOrder) || (Time.now < time_cutoff)
+        flash[:error] = "Orders for this performance must be placed through the box office after #{time_cutoff.strftime('%H:%M%p')} on #{time_cutoff.strftime('%m/%d/%y')}"
+        render 'edit'
+      else
+        create_or_update(@ticket_order, params[:commit])
+      end
     end
   end
 

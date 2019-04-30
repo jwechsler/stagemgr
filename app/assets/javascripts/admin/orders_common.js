@@ -44,14 +44,15 @@ function set_button_state_for_autocompletes() {
     if ($(this).val() == "") {
       allow_submit = false
     }
-    console.log("Is " + allow_submit)
+    // console.log("Is " + allow_submit)
     allow_submit &= ($('#'+this.id.replace('ticket_class_id','ticket_count')).val() > 0)
-    console.log("Now " + allow_submit)
+    // console.log("Now " + allow_submit)
 
   });
 
-  console.log(allow_submit);
+  // console.log(allow_submit);
   $('input[type="submit"].order-submit-button, button').disable(!allow_submit);
+  $('#hold_button').disable(!allow_submit);
 }
 
 jQuery(document).ready(function($) {
@@ -73,7 +74,7 @@ jQuery(document).ready(function($) {
 
   //$('input[type="submit"]).addClass('disabled');
 
-  console.log("checking...")
+  // console.log("checking...")
   $('input[type="submit"].order-submit-button, button').disable(true);
   set_button_state_for_autocompletes();
   $('body').on('click', 'button.disabled', function(event) {

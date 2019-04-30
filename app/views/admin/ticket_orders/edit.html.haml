@@ -8,7 +8,7 @@
       = render '/admin/addresses/quick_lookup', :f=>order_form
   %div.row
     %div.columns.small-12
-      = render :partial=>'/admin/orders/form', :locals=>{:order_form=>order_form}
+      = render :partial=>'/admin/ticket_orders/form', :locals=>{:order_form=>order_form}
 
 = content_for :js do
   = javascript_include_tag 'order_entry'

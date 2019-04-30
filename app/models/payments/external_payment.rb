@@ -14,4 +14,5 @@ class ExternalPayment < Payment
     self.payment_type.display_name
   end
 
+
 end

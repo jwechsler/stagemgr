@@ -62,7 +62,7 @@ class Admin::PaymentTypesController < Admin::ApplicationController
 
   private
   def payment_type_params
-    params.require(:payment_type).permit(:display_name, :allow_for_public, :allow_for_box_office, :report_as_sales_income,
+    params.require(:payment_type).permit(:display_name, :allow_for_public, :allow_for_box_office, :allow_theater_user_holds, :report_as_sales_income,
       :restrict_to_ticket_classes, order_task_suppressions_attributes: [:task_type,
         :method_name])
   end

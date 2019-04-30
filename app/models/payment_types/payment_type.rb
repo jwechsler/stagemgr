@@ -60,4 +60,5 @@ class PaymentType < ActiveRecord::Base
     true
   end
 
+
 end

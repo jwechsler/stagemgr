@@ -477,6 +477,11 @@ class TicketOrder < Order
     self.transition_new_to_hold!(redirect_to)
   end
 
+  def transition_new_to_hold!(redirect_to = nil)
+    self.status = Order::HOLD
+    self.save!
+    redirect_to
+  end
 
   def transition_processing_to_processed!(redirect_to = nil)
     if seat_assignments_complete? then

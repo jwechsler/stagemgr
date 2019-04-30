@@ -11,8 +11,9 @@
         %tr
           %th Display Name
           %th Restrict to
-          %th Allow for Public
-          %th Allow for Box Office
+          %th Public
+          %th Box Office
+          %th Theater user
           %th Report Sales Revenue
           %th
       %tbody
@@ -22,8 +23,8 @@
             %td.text-center= payment_type.restrict_to_ticket_classes
             %td.text-center= checkmark(payment_type.allow_for_public)
             %td.text-center= checkmark(payment_type.allow_for_box_office)
+            %td.text-center= checkmark(payment_type.allow_theater_user_holds)
             %td.text-center= checkmark(payment_type.report_as_sales_income)
-
             %td
               - if can? :manage, PaymentType
                 - if payment_type.is_a? ExternalPaymentType

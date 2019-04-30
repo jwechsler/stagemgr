@@ -30,6 +30,9 @@ class Ability
 
     can [:read, :create, :update, :update_notes, :confirm, :quickview], TicketOrder
     can [:read, :create, :hold_existing], TicketOrder
+    can :prehold, TicketOrder do |order|
+        order.performance.production.season_seating?
+    end
     can :auto_complete, Production
     can [:seating_quickview,:auto_complete], Performance
     can :auto_complete, SpecialOffer

@@ -7,8 +7,8 @@ class Production < ActiveRecord::Base
   # These are common constants for production dataa
 
   PRODUCTION_STATUSES = (
-  ACTIVE, PRIVATE, INACTIVE, PRESALE =
-      'Active', 'Private', 'Inactive', 'Presale', 'Seating')
+  ACTIVE, PRIVATE, INACTIVE, PRESALE, SEASONSEATING =
+      'Active', 'Private', 'Inactive', 'Presale', 'Season Seating')
 
   PRODUCTION_CLASSES = (
   PLAY, SPECIAL_EVENT, PRIVATE_PARTY, CONFERENCE, OFF_TIME, CLASS =
@@ -132,7 +132,7 @@ class Production < ActiveRecord::Base
   end
 
   def self.on_sale_statuses
-    Production.on_sale_to_public_statues + [SEATING]
+    Production.on_sale_to_public_statues + [SEASONSEATING]
   end
 
   def self.on_sale_to_public_statues
