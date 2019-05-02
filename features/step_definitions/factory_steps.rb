@@ -73,7 +73,7 @@ end
 
 When /^a donation of "\$(.*)" exists$/ do |amount|
   @donation = FactoryBot.create(:donation_order, :payment_type=>CashPaymentType.first)
-  @donation.donation_line_items << FactoryBot.create(:donation_line_item, :donation_amount=>amount)
+  @donation.donation_line_items << FactoryBot.create(:donation_line_item, :amount=>amount)
   @donation.transition_to!(Order::PROCESSED)
 end
 

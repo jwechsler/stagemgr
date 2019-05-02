@@ -42,10 +42,6 @@ class MembershipOrder < Order
     "MEMBERSHIP"
   end
 
-  def ticketing_fee
-    BigDecimal.new("0", 2)
-  end
-
   def number_of_tickets
     BigDecimal.new("0", 2)
   end

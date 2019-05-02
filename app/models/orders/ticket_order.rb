@@ -343,7 +343,7 @@ class TicketOrder < Order
   end
 
   def ticketing_fee
-    BigDecimal.new(self.ticket_line_items.to_a.sum{|li| li.ticket_class.ticketing_fee * li.ticket_count }.to_s, 2)
+    super + BigDecimal.new(self.ticket_line_items.to_a.sum{|li| li.ticket_class.ticketing_fee * li.ticket_count }.to_s, 2)
   end
 
   def contains_tickets?

@@ -9,6 +9,22 @@ describe "a ticket order" do
     expect(o.total).to eq(0)
   end
 
+  it "can have multiple order processing fees"  do
+    o = FactoryBot.create(:ticket_order_for_a_pair_of_tickets)
+    initial_cost = o.total
+    initial_fee = o.ticketing_fee
+    service_line_item = FactoryBot.create(:service_line_item, :facility_fee=>2.00, :amount=>20.0, :order=>o)
+    o.service_line_items << service_line_item
+    expect(o.total).to eq(service_line_item.amount + initial_cost)
+    service2 = FactoryBot.create(:service_line_item, :facility_fee=>1.00, :amount=>5.0, :order=>o)
+    o.service_line_items << service2
+    expect(o.total).to eq(service_line_item.amount + initial_cost + 5)
+
+    o.transition_to!(Order::PROCESSED)
+    expect(o.sales_total).to eq(service_line_item.amount + initial_cost + 5)
+    expect(o.ticketing_fee).to eq(initial_fee + 3)
+  end
+
   it "should mark its holder has having attended the production when fulfilled" do
     original_order = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
     original_order.transition_to!(Order::FULFILLED)
@@ -204,4 +220,7 @@ describe "a ticket order" do
     end
 
   end
+
+
+
 end

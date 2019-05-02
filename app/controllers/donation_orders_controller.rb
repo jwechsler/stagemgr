@@ -26,7 +26,7 @@ class DonationOrdersController < ApplicationController
     @order.status = Order::NEW
     @order.address = Address.new
     @order.campaign = params[:campaign] if params.has_key?(:campaign)
-    @order.donation_line_items.build(:donation_amount=>0)
+    @order.donation_line_items.build(:amount=>0)
     # @todo Replace donation levels with user controlled donation level code
     respond_to do |format|
       format.html { render '/donation_orders/edit' }

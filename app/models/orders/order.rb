@@ -21,6 +21,7 @@ class Order < ActiveRecord::Base
   has_many :tasks, :class_name=>'OrderTask', :dependent=>:destroy
   has_many :seats, foreign_key: :order_id, class_name: 'SeatAssignment'
   has_one :special_offer_line_item
+  has_many :service_line_items
 
   belongs_to :address
   belongs_to :recipient_address, :class_name=>:address, :foreign_key=>:recipient_address_id
@@ -222,7 +223,7 @@ class Order < ActiveRecord::Base
   end
 
   def ticketing_fee
-    BigDecimal.new("0", 2)
+    BigDecimal.new(self.service_line_items.to_a.sum{|li| li.facility_fee }.to_s, 2)
   end
 
   def customer_visible_total(reload_line_items = false)
@@ -674,6 +675,7 @@ class Order < ActiveRecord::Base
   def all_line_items(reload_line_items = false)
     result = Array.new
     result << self.special_offer_line_item(reload_line_items)
+    result + self.service_line_items(reload_line_items)
   end
 
 
@@ -872,7 +874,7 @@ class Order < ActiveRecord::Base
     donation.copy_payment_information(self)
     donation.save!
 
-    donation.donation_line_items.build(:donation_amount => self.additional_donation)
+    donation.donation_line_items.build(:amount => self.additional_donation)
     donation.transition_to!(Order::PROCESSED)
 
   end

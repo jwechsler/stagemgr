@@ -22,7 +22,7 @@ class DonationPledgeOrdersController < ApplicationController
     @order.status = Order::NEW
     @order.address = Address.new
     @order.campaign = params[:campaign] if params.has_key?(:campaign)
-    @order.donation_line_items.build(:donation_amount=>0)
+    @order.donation_line_items.build(:amount=>0)
     # @todo Replace donation levels with user controlled donation level code
     respond_to do |format|
       format.html { render :edit, :layout=>'ext_site_wrapper' }
@@ -48,8 +48,8 @@ class DonationPledgeOrdersController < ApplicationController
   def create
     @order = DonationPledgeOrder.new(donation_pledge_order_params)
     @order.donation_line_items.each { |dli|
-      if dli.donation_amount.blank? || dli.donation_amount == 0
-        dli.donation_amount = dli.donation_level
+      if dli.amount.blank? || dli.amount == 0
+        dli.amount = dli.donation_level
         dli.save
       end
     }

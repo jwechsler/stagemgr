@@ -118,7 +118,7 @@ FactoryBot.define do
   trait :one_thousand_dollar_donation do
     association :payment_type, :factory=>:credit_card_payment_type
       after(:create) do |donation_order, evaluator|
-        donation_order.donation_line_items << FactoryBot.create(:donation_line_item, :donation_amount=>1000.00)
+        donation_order.donation_line_items << FactoryBot.create(:donation_line_item, :amount=>1000.00)
         donation_order.save!
       end
   end

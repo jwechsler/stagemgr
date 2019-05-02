@@ -39,7 +39,7 @@ class DonationPledgeOrder < DonationOrder
                                     :status =>response.params["profile_status"][0..-8],
                                     :address=>self.address)
         self.pledge.update_from_profile!
-        self.donation_line_items.first.donation_amount = amount*12.0
+        self.donation_line_items.first.amount = amount*12.0
       else
         self.pledge=nil?
       end

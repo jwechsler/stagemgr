@@ -10,6 +10,6 @@ end
 
 Given /^I enter "(.*?)" as a donation amount$/ do |amt|
   choose "Other Amount (below)"
-  fill_in 'donation_order_donation_line_items_attributes_0_donation_amount', :with=>amt
+  fill_in 'donation_order_donation_line_items_attributes_0_amount', :with=>amt
 end
 

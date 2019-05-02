@@ -22,7 +22,7 @@ class DonationOrder < Order
   end
 
   def total
-    self.donation_line_items.sum(:donation_amount)
+    self.donation_line_items.sum(:amount)
   end
 
 

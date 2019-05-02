@@ -22,9 +22,9 @@
                   = donation.input_field :donation_level, :as=>:radio_buttons, :collection=>@levels, :label=>"Contribution level:", :required=>false
                   .row
                     .small-4.columns
-                      = donation.label :donation_amount, "... I'd like to contribute $", :class=>'right inline'
+                      = donation.label :amount, "... I'd like to contribute $", :class=>'right inline'
                     .small-8.columns
-                      = donation.input_field :donation_amount, :required=>false
+                      = donation.input_field :amount, :required=>false
 
         = render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form}
         - label_value = "Join the Theater Wit mailing list.<br/>Get company news, special offers, ticket discounts and more delivered twice monthly. Your email will not be shared. :) "

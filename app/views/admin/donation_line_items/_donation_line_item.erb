@@ -1,2 +1,2 @@
-<tr><td><b>Donated <%=h to_currency(donation_line_item.donation_amount) %>
+<tr><td><b>Donated <%=h to_currency(donation_line_item.amount) %>
 <%= "as #{donation_line_item.order.hold_under}" unless donation_line_item.order.hold_under.blank? %></b></td></tr>

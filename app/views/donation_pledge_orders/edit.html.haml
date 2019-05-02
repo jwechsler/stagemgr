@@ -15,9 +15,9 @@
             = donation.input_field :donation_level, :as=>:radio_buttons, :collection=>@levels, :required=>false
             .row
               .small-4.columns
-                = donation.label :donation_amount, raw("... or other monthly amount ($7 minimum)"), :class=>'right inline'
+                = donation.label :amount, raw("... or other monthly amount ($7 minimum)"), :class=>'right inline'
               .small-8.columns
-                = donation.input_field :donation_amount, :required=>false
+                = donation.input_field :amount, :required=>false
 
       = render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form}
       = order_form.input :hold_under, :label=>'Acknowledge my pledge as',
