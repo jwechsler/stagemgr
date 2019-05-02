@@ -1,3 +1,6 @@
+#
+#  Basic utility routines to create/export data for TRG / direct mail uses
+#
 class MailingList < Report
 
   TRG_IMPORT_HEADERS = [:Segment, :Season, :Title, :FirstName, :LastName, :FullName, :CompanyName, :Email, :Address1, :Address2,

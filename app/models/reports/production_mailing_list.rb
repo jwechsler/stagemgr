@@ -36,7 +36,7 @@ class ProductionMailingList < MailingList
           nil
         when address_orders.select{|o| o.paid_with_membership?}.size > 0
           'MEM'
-        when address_orders.inject(0) { |t,o| t + o.total}  == 0
+        when address_orders.select{|o| o.ticket_line_items.select{|tli| !tli.ticket_class.complimentary?}.size > 0}.size == 0
           'CMP'
         else
           'STB'

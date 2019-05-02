@@ -5,6 +5,6 @@ class AddLastFirstNameToAddress < ActiveRecord::Migration
     add_index :addresses, :last_first_name
   end
   def down
-    drop_column :addresses, :last_first_name
+    remove_column :addresses, :last_first_name
   end
 end
