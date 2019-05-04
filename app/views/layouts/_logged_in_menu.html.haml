@@ -63,6 +63,8 @@
                     =link_to "Manage Payment Types", admin_payment_types_path
                 - if (can? :edit, Venue) then
                   %li= link_to('Venues', admin_venues_path)
+                - if (can? :edit, ServiceItemTemplate) then
+                  %li= link_to('Service Items', admin_service_item_templates_path)
                 - if can? :read, FileStore
                   %li.divider
                   %li

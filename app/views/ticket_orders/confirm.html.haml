@@ -55,6 +55,16 @@
               %td
               %td Additional donation to Theater Wit (yay!)
               %td= donation
+          -unless @ticket_order.service_line_items.empty?
+            - keys = @ticket_order.service_line_items.map{|sli| sli.description}.uniq
+            - aggregate_service = Hash[keys.map {|k| [k,0]}]
+            - @ticket_order.service_line_items.each {|sli| aggregate_service[sli.description] += sli.amount}
+            - aggregate_service.each do |description,amt|
+              %tr
+                %td
+                %td= description
+                %td.currency= amt.to_money
+
           %tr.total
             %td
             %td

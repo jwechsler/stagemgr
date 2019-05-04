@@ -60,4 +60,22 @@
     self.status == 'Inactive'
   end
 
+  def service_item_templates_new
+    ServiceItemTemplate.where(name: service_item_template_list(self.default_service_items))
+  end
+
+  def service_item_templates_first_exchange
+    ServiceItemTemplate.where(name: service_item_template_list(self.default_first_exchange_items))
+
+  end
+
+  def service_item_templates_addl_exchange
+    ServiceItemTemplate.where(name: service_item_template_list(self.default_addl_exchange_items))
+  end
+
+  private
+  def service_item_template_list(service_item_list)
+    itm = service_item_list.nil? ? '' : service_item_list
+    itm.split(',').map{|a| a.strip}
+  end
 end

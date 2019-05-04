@@ -294,6 +294,37 @@ class Production < ActiveRecord::Base
   def downcase_for_db
     self.custom_label.downcase! unless self.custom_label.nil?
   end
+
+  def service_item_templates_new
+    unless override_service_items.empty?
+      ServiceItemTemplate.where(name: service_item_template_list(self.override_service_items))
+    else
+      self.theater.service_item_templates_new
+    end
+  end
+
+  def service_item_templates_first_exchange
+    unless override_service_items.empty?
+      ServiceItemTemplate.where(name: service_item_template_list(self.override_first_exchange_items))
+    else
+      self.theater.service_item_templates_new
+    end
+  end
+
+  def service_item_templates_addl_exchange
+    unless override_first_exchange_items.empty?
+      ServiceItemTemplate.where(name: service_item_template_list(self.override_addl_exchange_items))
+    else
+      self.theater.service_item_templates_new
+    end
+  end
+
+  private
+  def service_item_template_list(service_item_list)
+    itm = service_item_list.nil? ? '' : service_item_list
+    itm.split(',').map{|a| a.strip}
+  end
+
 end
 
 # Non-engine code

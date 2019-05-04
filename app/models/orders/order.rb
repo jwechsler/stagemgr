@@ -233,10 +233,6 @@ class Order < ActiveRecord::Base
   end
 
 
-  def status_is_provided?
-    !self.status.blank?
-  end
-
   def membership_payments
     payments.select { |p| p.is_a? MembershipPayment }
   end
@@ -409,8 +405,6 @@ class Order < ActiveRecord::Base
   def allow_deletion?
     @allow_destroy || false
   end
-
-  public
 
   def create_proper_payment_in_amount_of!(amount, payment_options = {})
     new_payment = self.payment_type.build_payment(amount, self, payment_options)
@@ -600,66 +594,6 @@ class Order < ActiveRecord::Base
     end
   end
 
-  def self.export_trg_dump
-    FasterCSV.open("/tmp/trg_dump.csv", "w") do |csv|
-      orders = TicketOrder.order(:performance_id).includes(:address, :theater, :payments, {:performance=>:production})
-      report = Array.new
-      headers = [:buyer_type, :year, :description, :first, :last, :full_name, :company, :email, :address1, :address2,
-                 :address3, :city, :state, :zip, :home_phone, :business_phone, :patron_id]
-      csv << headers
-      orders.each do |order|
-        puts "Processing order ##{order.id}"
-        if order.performance.performance_date <= Date.today && order.paid? && order.address.contactable?
-
-          buyer_type = case
-            when order.paid_with_membership?
-              'MEM'
-            when (order.theater.producing?)
-              order.total == 0 ? 'CMP' : 'STB'
-            else
-              'REN'
-          end
-
-          season_tag = order.performance.production.season - 1 unless order.performance.production.season.blank?
-          season_text = "#{season_tag.to_s[2..3]}-#{(season_tag+1).to_s[2..3]}"
-
-          description = "#{season_text} #{buyer_type}: #{order.performance.production.name}"
-          csv << trg_row(buyer_type, order.performance.production.season, description, order.address)
-
-          description = "#{season_text} FULL: Building Attendee"
-          csv << trg_row(buyer_type, order.performance.production.season, description, order.address)
-
-          if order.theater.is_resident?
-            description = "#{season_text} FULL: Resident Company Attendee"
-            csv << trg_row(buyer_type, order.performance.production.season, description, order.address)
-          end
-
-          if order.theater.producing?
-            description = "#{season_text} FULL: #{order.theater.name} Attendee"
-            csv << trg_row(buyer_type, order.performance.production.season, description, order.address)
-          end
-        end
-
-      end
-
-      orders = MembershipOrder.includes(:address, {:membership_line_item=>:membership})
-
-      orders.each do |order|
-        description = "#{order.membership.member_since.year} MEM: #{order.membership.membership_offer.name}"
-        csv << trg_row('DNT', order.membership.member_since.year, description, order.address)
-      end
-
-      orders = DonationOrder.includes(:address)
-
-      orders.each do |order|
-        description = "#{order.created_at.year} Donor"
-        csv << trg_row('DNT', order.created_at.year, description, order.address)
-      end
-    end
-
-    nil
-  end
-
   def last_processed_on
     self.payments.map {|p| p.processed_on}.max
   end
@@ -683,8 +617,6 @@ class Order < ActiveRecord::Base
     self.tasks.select { |t| t.uncompleted? }.each { |t| t.cancel! }
   end
 
-
-
   private
 
   def self.trg_row(buyer_type, season, description, address)
@@ -694,9 +626,12 @@ class Order < ActiveRecord::Base
 
   protected
 
-
   def set_theater
 
+  end
+
+  def status_is_provided?
+    !self.status.blank?
   end
 
   def check_for_settled_payments

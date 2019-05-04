@@ -87,7 +87,7 @@ class Admin::TheatersController < Admin::ApplicationController
 
   private
   def theater_params
-    params.require(:theater).permit(:name, :url, :theater_class, :status)
+    params.require(:theater).permit(:name, :url, :theater_class, :status, :default_service_items, :default_first_exchange_items,:default_addl_exchange_items)
   end
 
 end

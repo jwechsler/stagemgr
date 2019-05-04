@@ -1,0 +1,31 @@
+.row
+  .columns.small-12
+    = simple_form_for([:admin, theater], :html => { :multipart => true }) do |f|
+      .row
+        .columns.medium-6.small-12
+          = f.input :name
+          .row.collapse
+            .columns.small-3.large-2
+              %span.prefix link
+            .columns.small-9.large-10
+              = f.input :url,  placeholder:"Enter a URL...", label:false
+
+        .columns.medium-6.small-12
+          = f.input :logo
+      .row
+        .columns.medium-6.small-12
+          = f.input :theater_class, :as => :select, :collection => Theater::THEATER_CLASSES
+        .columns.medium-6.small-12
+          = f.input :status, :as=>:select, :collection=>Theater::THEATER_STATUSES, :selected=>Theater::THEATER_STATUSES.first
+      .row
+        .columns.small-12
+          = f.input :default_service_items, label:"Default Service Template Names", hint:"Comma-separated list of service items to be applied to each ticket order"
+        .columns.medium-6.small-12
+          = f.input :default_service_items, label:"Exchange Service Template Names", hint:"Comma-separated list of service items to be applied to intial ticket exchange"
+        .columns.medium-6.small-12
+          = f.input :default_service_items, label:"Additional Exchange Service Template Names", hint:"Comma-separated list of service items to be applied to each subsequent ticket exchange"
+
+
+      .row
+        .columns.small-12
+          = f.button :submit

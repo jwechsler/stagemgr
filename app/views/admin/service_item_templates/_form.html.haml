@@ -1,0 +1,10 @@
+= simple_form_for [:admin, service_item_template] do |f|
+  = f.input :name
+  = f.input :description
+  .row
+    .columns.medium-6.small-12
+      = f.input :amount
+    .columns.medium-6.small-12
+      = f.input :facility_fee
+
+  = f.button :submit, :class=>'button'

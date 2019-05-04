@@ -42,6 +42,7 @@ class Ability
     can [:cru, :autocomplete_address], Address
     can :exchange, TicketOrder
     can :read, Performance
+    can :read, ServiceItemTemplate
     can [:read, :show_reports], Report
     can [:autocomplete_production_production_code,
             :autocomplete_performance_performance_code,
@@ -81,6 +82,7 @@ class Ability
     can :read, FlexPassOffer
     can [:cancel, :reprint, :refund, :sell_past_performances, :order_anytime], [Order, TicketOrder]
     can :cru, Venue
+    can :cru, ServiceItemTemplate
     can :cru, SeatMap
     can :read, :import_operations
 

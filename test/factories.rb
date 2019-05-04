@@ -181,11 +181,6 @@ FactoryBot.define do
     association :ticket_class, :factory => :ticket_class
   end
 
-  factory :service_line_item do
-    amount 5.00
-    facility_fee 2.00
-    description "Test Service Charge"
-  end
 
   factory :membership_line_item do
     association :membership_offer, :factory => :membership_offer

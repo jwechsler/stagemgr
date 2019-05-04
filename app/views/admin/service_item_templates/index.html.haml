@@ -1,0 +1,43 @@
+= content_for :title do
+  Service Item Templates
+= content_for :breadcrumbs do
+  %ul.breadcrumbs
+    %li.current
+      %a{:href=>'#'} Service Item Templates
+
+.row
+  .small-12.columns
+
+    %table#service-item-template-listing.display{:data=>{:source=>"#{admin_service_item_templates_path(format: :json)}"}}
+      %thead
+        %th Name
+        %th Description
+        %th Amount
+        %th Facility Fee
+        %th
+      %tbody
+
+    = link_to 'New Service Item Template', new_admin_service_item_template_path, :class=>'button' if can? :create, ServiceItemTemplate
+
+
+= content_for :js do
+  :javascript
+    $(document).ready(function() {
+      $('#service-item-template-listing').dataTable({
+        "processing": true,
+        "serverSide": true,
+        "ajax": $('#service-item-template-listing').data('source'),
+        "pagingType": 'full_numbers',
+        "language": {
+          "lengthMenu" : "_MENU_",
+          "search": "_INPUT_"
+        },
+        columns: [
+          {data: 'name'},
+          {data: 'description'},
+          {data: 'amount'},
+          {data: 'facility_fee'},
+          {data: 'actions'},
+        ]
+      });
+    });
