@@ -52,6 +52,6 @@ class PerformancesController < ApplicationController
   private
 
   def find_production
-    @production = Production.find(params[:production_id]).sellable_to_public
+    @production = Production.sellable_to_public.find(params[:production_id])
   end
 end

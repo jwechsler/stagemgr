@@ -59,6 +59,7 @@ gem "gemcutter"
 gem 'font-awesome-rails'
 gem "dynamic_form"
 gem "cocoon"
+gem "nested_form_fields"
 gem "haml"
 gem "postmark-rails"
 gem "validates_formatting_of"

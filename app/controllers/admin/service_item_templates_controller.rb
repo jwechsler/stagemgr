@@ -1,8 +1,7 @@
 class Admin::ServiceItemTemplatesController < Admin::ApplicationController
 
   load_and_authorize_resource
-
-  def index
+   def index
     respond_to do |format|
       format.html
       format.json {
@@ -41,11 +40,21 @@ class Admin::ServiceItemTemplatesController < Admin::ApplicationController
     end
   end
 
+  def show
+    respond_to do |format|
+      format.html {
+        render :action => "show"
+      }
+      format.json {
+        render json: @service_item_template.to_json
+      }
+    end
+  end
+
 
   private
   def service_item_template_params
-    params.require(:service_item_template).permit(:name, :description, :amount, :facility_fee)
+    params.require(:service_item_template).permit(:name, :description, :internal_description, :user_selectable, :amount, :facility_fee)
   end
-
 
 end

@@ -63,7 +63,7 @@ class Admin::TicketOrdersController < Admin::OrdersController
     @ticket_order.address = Address.new
     @ticket_order.ticket_line_items.build
     @ticket_order.status = Order::NEW
-
+    @ticket_order.create_default_service_fees
     respond_to do |format|
       format.html { render 'edit', :layout=>true }
     end

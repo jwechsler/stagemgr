@@ -37,7 +37,7 @@
             %tr
               %td= tli.ticket_count
               %td= tli.ticket_class.class_name
-              %td= "$ #{tli.receipt_total.to_money}" unless tli.ticket_class.hide_pricing?
+              %td.currency= number_to_currency(tli.receipt_total) unless tli.ticket_class.hide_pricing?
 
           - unless @ticket_order.special_offer_line_item.nil?
             - discount = (-1*@ticket_order.special_offer_line_item.special_offer.calculate_discount(@ticket_order)).to_money
@@ -45,8 +45,8 @@
             %tr
               %td= @ticket_order.special_offer_line_item.special_offer.code.upcase
               %td= @ticket_order.special_offer_line_item.special_offer.description(@ticket_order)
-              %td
-                = "$ #{discount}" unless @ticket_order.special_offer_line_item.special_offer.is_a? TicketClassSpecialOffer
+              %td.currency
+                = number_to_currency(discount) unless @ticket_order.special_offer_line_item.special_offer.is_a? TicketClassSpecialOffer
 
           - unless @ticket_order.additional_donation.blank?
             - donation = @ticket_order.additional_donation.to_f.to_money
@@ -54,7 +54,7 @@
             %tr
               %td
               %td Additional donation to Theater Wit (yay!)
-              %td= donation
+              %td.currency = number_to_currency(donation)
           -unless @ticket_order.service_line_items.empty?
             - keys = @ticket_order.service_line_items.map{|sli| sli.description}.uniq
             - aggregate_service = Hash[keys.map {|k| [k,0]}]
@@ -63,15 +63,14 @@
               %tr
                 %td
                 %td= description
-                %td.currency= amt.to_money
+                %td.currency= number_to_currency(amt)
+                - total += amt.to_money
 
           %tr.total
             %td
             %td
               %strong.right Total Charge
-            %td.currency
-              $
-              = total
+            %td.currency= number_to_currency(total)
           %td
             %td
             %td
@@ -92,9 +91,8 @@
           When you are ready to purchase your tickets, click "Order Tickets".
 
         .row
-          #submit-control.small-3.small-centered.columns
+          .small-3.small-centered.columns
             = order_form.button :submit, 'Order Tickets', id:'place-order-button'
-
         .row
           .small-12.columns
             %p

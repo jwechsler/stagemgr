@@ -373,7 +373,6 @@ class TicketOrder < Order
       if payment_difference < 0
         self.price_override_payments.build(:amount => payment_difference)
       elsif payment_difference > 0
-        Rails.logger.debug("*** Creating payment difference of #{payment_difference}")
         self.create_proper_payment_in_amount_of!(payment_difference)
       end
 
@@ -381,7 +380,6 @@ class TicketOrder < Order
       self.save!
     end
   end
-
 
   def transition_processing_to_exchanging!
     self.transition_processing_to_processing!
@@ -455,6 +453,29 @@ class TicketOrder < Order
 
   def production_ticket_class_from_offer(offer)
     self.performance.production.ticket_classes.select { |tc| tc.class_code == offer.use_ticket_class_code }.first
+  end
+
+  def create_default_service_fees
+    unless self.performance.nil?
+      self.performance.production.service_item_templates_new.each do |template|
+        self.service_line_items.build(template.attributes_for_service_item)
+      end
+    end
+    self.service_line_items
+  end
+
+  def create_exchange_service_fees(original_order)
+    templates = Array.new
+
+    if original_order.exchange_source.nil?
+      templates = original_order.performance.production.service_item_templates_first_exchange
+    else
+      templates = original_order.performance.production.service_item_templates_addl_exchange
+    end
+    templates.each do |template|
+      self.service_line_items.build(template.attributes_for_service_item)
+    end
+    self.service_line_items
   end
 
   protected

@@ -174,7 +174,6 @@ GEM
       activesupport
       json
       multipart-post (~> 2.0.0)
-    debug_inspector (0.0.3)
     deep_merge (1.2.1)
     diff-lcs (1.3)
     docile (1.3.0)
@@ -321,6 +320,10 @@ GEM
     multi_test (0.1.2)
     multipart-post (2.0.0)
     mysql2 (0.4.10)
+    nested_form_fields (0.8.2)
+      coffee-rails (>= 3.2.1)
+      jquery-rails
+      rails (>= 3.2.0)
     net-scp (1.2.1)
       net-ssh (>= 2.6.5)
     net-ssh (4.2.0)
@@ -510,10 +513,6 @@ GEM
       activemodel
     vegas (0.1.11)
       rack (>= 1.0.0)
-    web-console (3.3.0)
-      activemodel (>= 4.2)
-      debug_inspector
-      railties (>= 4.2)
     webrat (0.7.3)
       nokogiri (>= 1.2.0)
       rack (>= 1.0)
@@ -584,6 +583,7 @@ DEPENDENCIES
   money-rails
   my_emma (~> 0.1.1)!
   mysql2 (= 0.4.10)
+  nested_form_fields
   paperclip
   people
   postmark-rails
@@ -617,7 +617,6 @@ DEPENDENCIES
   test-unit
   uglifier
   validates_formatting_of
-  web-console
   webrat
   what_methods
   whenever

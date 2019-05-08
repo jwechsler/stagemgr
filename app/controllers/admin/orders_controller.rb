@@ -2,8 +2,9 @@ class Admin::OrdersController < Admin::ApplicationController
   authorize_resource
 
   include OrdersHelper
-  before_action :find_order, :except=>[:index, :new, :create, :update, :fulfill_selected ]
+  before_action :find_order, :except=>[:index, :new, :create, :update, :fulfill_selected, :autocomplete_service_item_templates_name ]
   before_action :redirect_edits_to_proper_action, :only => [:show,:edit]
+
 
   VALID_SEARCH_COLUMNS = [
       'orders.id',

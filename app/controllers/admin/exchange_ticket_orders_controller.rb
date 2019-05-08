@@ -7,6 +7,7 @@ class Admin::ExchangeTicketOrdersController < Admin::ApplicationController
   def new
     @original_order = TicketOrder.find(params[:ticket_order_id])
     @exchange_order = TicketOrder.new
+    @exchange_order.create_exchange_service_fees(@original_order)
     @exchange_order.ticket_line_items.build
     @exchange_order.status = Order::NEW
 

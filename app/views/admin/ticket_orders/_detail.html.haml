@@ -21,6 +21,7 @@
                 = link_to ticket_order.exchange_source_id, [:admin, ticket_order.exchange_source]
 
     = render '/admin/ticket_line_items/table', :order=>ticket_order
+    = render '/admin/service_line_items/table', :order=>ticket_order
     = render '/admin/special_offer_line_items/table', :order=>ticket_order
 %div.row
   %div.small-12.columns

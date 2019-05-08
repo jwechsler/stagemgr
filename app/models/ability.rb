@@ -9,6 +9,7 @@ class Ability
     alias_action :house_management_seating, to: :house_management_reports
     alias_action :flexpass_sales, :weekly_box_office, to: :reconciliation_reports
     alias_action :membership_usage, to: :membership_reports
+    alias_action :autocomplete_service_item_template_name, to: :modify_service_items
 
     can :read, FlexPassOffer, ["on_sale_to_public = ?", true] do |offer|
         offer.on_sale_to_public?
@@ -85,6 +86,7 @@ class Ability
     can :cru, ServiceItemTemplate
     can :cru, SeatMap
     can :read, :import_operations
+    can :modify_service_items, Order
 
     return if user.is_box_office_user?
 

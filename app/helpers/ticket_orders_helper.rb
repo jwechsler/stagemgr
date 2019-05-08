@@ -1,5 +1,14 @@
 module TicketOrdersHelper
 
+
+  def set_exchange_service_fees_for_order(order)
+    order.performance.production.service_item_templates_new.each do |template|
+      sli = ServiceLineItem.new(template.attributes_for_service_item)
+      sli.order = @ticket_order
+      order.ticket_order.service_line_items << sli
+    end
+  end
+
   def create_ticket_order_for_performance(performance)
     available_ticket_classes = performance.ticket_class_allocations.select { |tca| tca.available }.map { |tca| tca.ticket_class }.select { |tc| tc.web_visible unless tc.nil? }
     order = performance.orders.build(:status=>Order::NEW)

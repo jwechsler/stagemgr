@@ -42,7 +42,9 @@ Stagemgr::Application.routes.draw do
 
   namespace(:admin){ resources :default_ticket_classes }
 
-  namespace(:admin){ resources :service_item_templates }
+  namespace(:admin){
+    resources :service_item_templates
+  }
 
   #get "donations/new"
 

@@ -4,9 +4,9 @@
 
 = content_for :breadcrumbs do
   %ul.breadcrumbs
-    %li== link_to 'Theaters', admin_theaters_path
-    %li= link_to @production.theater.name, admin_theaters_path(@production.theater)
-    %li== link_to @production.name, admin_theater_production_path(@production.theater, @production)
+    %li= link_to 'Theaters', admin_theaters_path
+    %li= link_to @production.theater.name, admin_theater_path(@production.theater)
+    %li= link_to @production.name, admin_theater_production_path(@production.theater, @production)
     %li.current
       %a{href:'#'} Edit
 

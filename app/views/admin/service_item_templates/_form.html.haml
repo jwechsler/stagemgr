@@ -1,10 +1,18 @@
 = simple_form_for [:admin, service_item_template] do |f|
-  = f.input :name
-  = f.input :description
   .row
-    .columns.medium-6.small-12
-      = f.input :amount
-    .columns.medium-6.small-12
+    .columns.small-8
+      = f.input :name
+    .columns.small-4
+      = f.input :user_selectable
+  .row
+    .columns.small-12
+      = f.input :description
+      = f.input :internal_description
+  .row
+    .columns.medium-4.small-12
+      = f.input :amount, hint: "Negative values allow back-end user to modify this value"
+    .columns.medium-4.small-12
       = f.input :facility_fee
+
 
   = f.button :submit, :class=>'button'

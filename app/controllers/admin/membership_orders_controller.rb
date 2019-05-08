@@ -52,7 +52,6 @@ class Admin::MembershipOrdersController < Admin::ApplicationController
 
   protected
   def update_or_create
-    Rails.logger.debug("*** Transition to #{status}")
     respond_to do |format|
       if validate_web_order(@membership_order) && process_order(@membership_order, Order::PROCESSED)
         flash[:info] = raw "Customer successfully set up for the <strong>#{@membership_order.membership_offer.name}</strong> payment plan."

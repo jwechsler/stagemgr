@@ -21,14 +21,17 @@ class Order < ActiveRecord::Base
   has_many :tasks, :class_name=>'OrderTask', :dependent=>:destroy
   has_many :seats, foreign_key: :order_id, class_name: 'SeatAssignment'
   has_one :special_offer_line_item
-  has_many :service_line_items
+  has_many :service_line_items, :dependent=>:destroy
 
   belongs_to :address
   belongs_to :recipient_address, :class_name=>:address, :foreign_key=>:recipient_address_id
 
   accepts_nested_attributes_for :special_offer_line_item,
                                 :address,
+                                :service_line_items,
                                 :allow_destroy => true
+
+
   attr_accessor :special_offer_code
   attr_accessor :door_sale
   attr_accessor :additional_donation
@@ -64,6 +67,7 @@ class Order < ActiveRecord::Base
 
 
   before_validation :cascade_address_to_nested_items
+  before_validation :associate_service_line_items
   before_validation :set_defaults
   before_validation :create_recipient_address, :if=>:gift?
 
@@ -633,6 +637,16 @@ class Order < ActiveRecord::Base
   def status_is_provided?
     !self.status.blank?
   end
+
+  # something about all the overloaded order/line items breaks the normal
+  # pattern of << for service_line_item association
+  # so we explicitly attach servie line items to the order
+  def associate_service_line_items
+    self.service_line_items.each do |sli|
+      sli.order = self
+    end
+  end
+
 
   def check_for_settled_payments
     paid_amt = self.total_paid || 0

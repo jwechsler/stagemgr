@@ -66,7 +66,6 @@
 
   def service_item_templates_first_exchange
     ServiceItemTemplate.where(name: service_item_template_list(self.default_first_exchange_items))
-
   end
 
   def service_item_templates_addl_exchange

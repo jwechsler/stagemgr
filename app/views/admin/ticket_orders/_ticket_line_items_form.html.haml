@@ -1,5 +1,5 @@
 .row
-  .small-8.columns
+  .small-12.columns
     .row
       .small-6.columns
         = hidden_field_tag :production_id, value: order_form.object.performance.nil? ? "" : order_form.object.performance.production_id
@@ -15,29 +15,26 @@
       #ticket_line_items.small-12.columns
         = order_form.simple_fields_for :ticket_line_items do |tlif|
           %div.row
-            %div.small-3.columns
+            .small-6.medium-3.columns
               = tlif.label 'Ticket Class'
-            %div.small-2.columns
+            .small-6.medium-3.columns
               = tlif.label "\# Tix"
-            %div.small-3.columns
+            .small-6.medium-2.columns
               = tlif.label 'Price'
-            %div.small-3.columns
+            .small-3.medium-2.columns
               = tlif.label 'Total'
-            %div.small-1.columns
-              %span
-                &nbsp;
+            .small-3.medium-2.columns
+              &nbsp;
 
           = render '/admin/ticket_orders/ticket_line_item_fields', :f=>tlif, :production_selector=>'#ticket_order_production_code', :performance_selector=>'#ticket_order_performance_code',input_html: {'data-auto-focus'=>true}
-    %div.row
-      %div.small-12.columns
+    .row
+      %div.small-4.columns
         .links
           = link_to_add_association 'Add tickets', order_form, :ticket_line_items, :class=>'small button', :partial=>'admin/ticket_orders/ticket_line_item_fields'
+      .small-8.columns
+        = render '/admin/orders/special_offer_form', :f => order_form
   .small-4.columns
     #seating_quickview
-
-  %div.row
-    %div.small-9.columns
-      = render '/admin/orders/special_offer_form', :f => order_form
 
 = content_for :js do
   :javascript

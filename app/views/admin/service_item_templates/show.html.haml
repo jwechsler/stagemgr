@@ -1,0 +1,20 @@
+= content_for :title do
+  New Service Item Template
+= content_for :breadcrumbs do
+  %ul.breadcrumbs
+    %li= link_to 'Service Item Templates', admin_service_item_templates_path
+    %li.current
+      %a{:href=>'#'}= @service_item_template.name
+
+.row
+  .columns.small-12
+    @service_item_template.name
+    %br
+    @service_item_template.description
+.row
+  .columns.small-6
+    Price
+    = number_to_currency(@service_item_template.amount)
+  .columns.small-6
+    Facility Fee
+    = number_to_currency(@service_item_template.facility_fee)

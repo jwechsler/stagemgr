@@ -17,10 +17,8 @@ class TicketOrdersController < ApplicationController
   def create
     @ticket_order = TicketOrder.new(ticket_order_params)
     @ticket_order.ip_address = request.remote_ip
-    @ticket_order.performance.production.service_item_templates_new.each do |template|
-      @ticket_order.service_line_items << ServiceLineItem.new(template.attributes_for_service_item)
-    end
-
+    @ticket_order.create_default_service_fees
+    set_default_service_fees_for_order(@ticket_order)
     update_or_create
   end
 

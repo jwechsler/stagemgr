@@ -51,7 +51,7 @@ module OrdersHelper
       :credit_card_verification_number, :credit_card_swipe, :credit_card_confirmation_code,
       :flex_pass_code, :member_code, :check_number, :add_to_email_list, :marketing_source, :notes, :status,
       address_attributes: [:full_name, :email, :phone, :line1, :line2, :city, :state, :zipcode],
-      service_line_items_attributes: [:description, :facility_fee, :amount]
+      service_line_items_attributes: [:id, :description, :facility_fee, :amount, :_destroy]
     ]
   end
 

@@ -23,6 +23,7 @@
       %legend Exchange Order
       = simple_form_for [:admin, @original_order, @exchange_order], :html=>{:id=>'admin_ticket_order_form'}, :url=>admin_ticket_order_exchange_ticket_orders_path(@original_order) do |order_form|
         = render '/admin/ticket_orders/ticket_line_items_form', :order_form=>order_form, :allow_internal=>true
+        = render '/admin/service_line_items/form', :order_form=>order_form
         = render '/admin/orders/billing_form', :order_form=>order_form, :allowed_payment_types=>@allowed_payment_types
         = order_form.input :notes, :input_html=>{:rows => 4}
         - if order_form.object.status == Order::NEW || order_form.object.status == Order::HOLD

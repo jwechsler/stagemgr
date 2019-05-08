@@ -21,11 +21,9 @@
         .columns.small-12
           = f.input :default_service_items, label:"Default Service Template Names", hint:"Comma-separated list of service items to be applied to each ticket order"
         .columns.medium-6.small-12
-          = f.input :default_service_items, label:"Exchange Service Template Names", hint:"Comma-separated list of service items to be applied to intial ticket exchange"
+          = f.input :default_first_exchange_items, label:"Exchange Service Template Names", hint:"Comma-separated list of service items to be applied to intial ticket exchange"
         .columns.medium-6.small-12
-          = f.input :default_service_items, label:"Additional Exchange Service Template Names", hint:"Comma-separated list of service items to be applied to each subsequent ticket exchange"
-
-
+          = f.input :default_addl_exchange_items, label:"Additional Exchange Service Template Names", hint:"Comma-separated list of service items to be applied to each subsequent ticket exchange"
       .row
         .columns.small-12
           = f.button :submit

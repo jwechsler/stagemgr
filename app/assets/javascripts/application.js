@@ -6,7 +6,7 @@
 //= require foundation/foundation.topbar
 //= require foundation-datetimepicker
 //= require jquery.timepicker
-
+//= require nested_form_fields
 //= require utility
 //= require orders_common
 //= require_this

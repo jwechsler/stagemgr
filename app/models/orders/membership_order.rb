@@ -26,7 +26,6 @@ class MembershipOrder < Order
                                         membership_offer.billing_agreement, 1,
                                         additional_options)
     if response.success?
-      Rails.logger.debug("*** RECURRING PROFILE #{response.to_yaml}")
       profile_id = response.params["profile_id"]
       membership_line_item.membership.profile_id = profile_id
       membership_line_item.membership.status = response.params["profile_status"][0..-8]
