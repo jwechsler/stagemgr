@@ -601,7 +601,7 @@ class Admin::ReportsController < Admin::ApplicationController
     keys = [:order_date]
     keys += [:id, :first_name, :last_name, :street_address, :street_address_2, :city, :state, :postal_code, :phone] if build_for_dumpfile
     keys += [:email] if (build_for_dumpfile && (can?(:view_email, Address) || include_emails))
-    keys += [:performance_code, :special_offer_code, :status, :description] if build_for_dumpfile
+    keys += [:performance_code, :special_offer_code, :status, :description, :facility_fee] if build_for_dumpfile
     keys
   end
 
@@ -629,6 +629,7 @@ class Admin::ReportsController < Admin::ApplicationController
     if order.performance.production.has_reserved_seating?
       row[:seat_assignments] = order.seats.map {|sa| sa.seat.location}.sort.join(', ')
     end
+    row[:facility_fee] = order.ticketing_fee
     row
   end
 
@@ -711,7 +712,7 @@ class Admin::ReportsController < Admin::ApplicationController
       orders = performance.orders.includes(:ticket_line_items, :payments)
 
       orders.each { |o|
-        if o.finalized? then
+        if o.settled? then
           row = create_hash_from_order_fields(o)
           if current_user.is_theater_user?
             row[:external_id] = o.address.external_id(current_user.theater_ids)
