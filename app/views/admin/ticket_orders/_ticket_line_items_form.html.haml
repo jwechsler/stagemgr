@@ -3,7 +3,8 @@
     .row
       .small-6.columns
         = hidden_field_tag :production_id, value: order_form.object.performance.nil? ? "" : order_form.object.performance.production_id
-        = order_form.input :production_code, label: 'Production', url:  autocomplete_production_production_code_admin_ticket_orders_path, as: :autocomplete, id_element: '#production_id', input_html: {'data-auto-focus'=>true, 'data-has_reserved_seats'=>(order_form.object.performance.nil? ? false : order_form.object.performance.production.has_reserved_seating?)}
+        = hidden_field_tag :production_status, value: order_form.object.performance.nil? ? "" : order_form.object.performance.production.status
+        = order_form.input :production_code, label: 'Production', url:  autocomplete_production_production_code_admin_ticket_orders_path, as: :autocomplete, id_element: '#production_id', input_html: {'data-auto-focus'=>true, 'data-has_reserved_seats'=>(order_form.object.performance.nil? ? false : order_form.object.performance.production.has_reserved_seating?), 'data-production_status'=>(order_form.object.performance.nil? ? '' : order_form.object.performance.production.status)}
         -# = order_form.label :production_code, 'Production'
         -# = order_form.input_field :production_code, class: 'autocomplete_prcode',
         -#:label=>'Production',
@@ -55,6 +56,11 @@
           $('.seating-required').hide()
           $('.seating-not-required').show()
         }
+        if ($('#production_status').val() == "Season Seating") {
+          $('#hold_control').show();
+        } else {
+          $('#hold_control').hide();
+        }
       }
 
       setup_submit_button($('#ticket_order_production_code').data('has_reserved_seats'))
@@ -64,6 +70,7 @@
       })
       $('#ticket_order_production_code').bind('railsAutocomplete.select', function(event, data){
         /* Do something here */
+        $('#production_status').val(data.item.production_status)
         setup_submit_button(data.item.has_reserved_seats)
 
 

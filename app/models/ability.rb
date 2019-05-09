@@ -67,7 +67,6 @@ class Ability
     can [:swipe_card, :confirm_credit_card,:hold,:mark_unclaimed,:resend_confirmation], TicketOrder
     can :fulfill, [Order, TicketOrder, FlexPassOrder, MembershipOrder]
     can :confirm_credit_card, [Order, TicketOrder, FlexPassOrder, MembershipOrder]
-    can [:hold,:resend_confirmation], TicketOrder
     can :cru, FlexPassOrder
     can :manage, TicketClass
     can :manage, FlexPassOffer

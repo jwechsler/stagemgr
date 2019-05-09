@@ -13,7 +13,8 @@ class Admin::TicketOrdersController < Admin::OrdersController
       { id:prod.id,
         label:"#{prod.production_code} - #{prod.name}",
         value:prod.production_code,
-        has_reserved_seats: prod.has_reserved_seating? }
+        has_reserved_seats: prod.has_reserved_seating?,
+        production_status: prod.status }
     }
   end
 

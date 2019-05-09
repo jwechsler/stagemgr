@@ -10,8 +10,13 @@ class PaymentType < ActiveRecord::Base
   validates_uniqueness_of :display_name
 
   def self.valid_payment_types_for(current_user)
-    if (!current_user.nil? && (current_user.is_administrator? || current_user.is_box_office_user?))
-      valid_payment_types = PaymentType.where(allow_for_box_office:true).all
+    if (!current_user.nil?)
+      if (current_user.is_administrator? || current_user.is_box_office_user?)
+        valid_payment_types = PaymentType.where(allow_for_box_office:true).all
+      elsif (current_user.is_theater_user?)
+        valid_payment_types = PaymentType.where(
+          "allow_theater_user_holds = ? OR allow_for_public = ?", true, true).all
+      end
     else
       valid_payment_types = PaymentType.where(allow_for_public:true).all
     end
