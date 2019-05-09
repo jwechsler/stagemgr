@@ -73,7 +73,7 @@
             $("[name*='[service_line_items_attributes]["+indx.toString()+"][amount]'").closest('.columns').find("span.noneditable").show()
           }
           $("[name*='[service_line_items_attributes]["+indx.toString()+"][amount]'").val(amount)
-          $("[name*='[service_line_items_attributes]["+indx.toString()+"][amount]'").closest('.columns').find("span.noneditable").text(amount)
+          $("[name*='[service_line_items_attributes]["+indx.toString()+"][amount]'").closest('.columns').find("span.noneditable").html("Amount<br>" + amount_v.toFixed(2))
           $("[name*='[service_line_items_attributes]["+indx.toString()+"][facility_fee]'").val(fee)
           $("[name*='[service_line_items_attributes]["+indx.toString()+"][facility_fee]'").closest('.columns').find("span.noneditable").text(fee)
         });

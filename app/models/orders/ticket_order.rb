@@ -359,13 +359,30 @@ class TicketOrder < Order
     end
   end
 
+  def create_offset_payments
+    sorted = self.payments.sort{ |a,b| b.amount <=> a.amount }
+    service_fee = self.service_line_items.sum(:amount)
+    offsets = Array.new
+    offsets = sorted.map do |p|
+      offset = p.new_exchange_offset_payment
+      if service_fee > 0 then
+        diff = [-service_fee, offset.amount].max
+        offset.amount -= diff
+        service_fee += diff
+      end
+      offset
+    end
+    offsets.select{|p|  (p.amount != 0)}
+  end
+
   def begin_exchange!(original_order)
     Order.transaction do
       self.exchange_source = original_order
       self.address = original_order.address
       self.status = Order::EXCHANGING
-      exchange_source.status = Order::RELEASING
-      exchange_payments_on_original_order = original_order.payments.map {|p| p.new_exchange_offset_payment}.select{|p| p.amount != 0}
+      self.exchange_source.status = Order::RELEASING
+
+      exchange_payments_on_original_order = original_order.create_offset_payments
       exchange_payments_toward_exchange_order = self.payment_type.build_exchange_offset_payments(exchange_payments_on_original_order)
       exchange_payments_on_original_order.each {|p| original_order.payments << p unless p.nil? }
       exchange_payments_toward_exchange_order.each { |p| self.payments << p unless p.nil? }
