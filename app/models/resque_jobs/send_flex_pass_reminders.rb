@@ -8,6 +8,7 @@ class SendFlexPassReminders
       flex_pass_orders = FlexPassOrder.where(status:Order::PROCESSED)
       OrderMailer.send(:flex_pass_pending_reminder, flex_pass_orders).deliver
     end
+    nil
   end
 
 end
