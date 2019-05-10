@@ -18,7 +18,7 @@
     .small-12.columns
       = order_form.input :notes, :input_html => {:rows => 4}
       = render partial: '/ticket_orders/pass_through_non_billing_fields', locals:{order_form: order_form}
-      = render partial:'/admin/orders/confirm_button', locals:{order_form:order_form}
+      = render partial:'/admin/ticket_orders/order_actions', locals:{order_form:order_form}
 
 = content_for :js do
   = javascript_include_tag 'order_entry'

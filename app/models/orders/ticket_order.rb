@@ -415,7 +415,6 @@ class TicketOrder < Order
     end
   end
 
-
   def exchange_and_process_from!(original_order)
     Order.transaction do
       self.begin_exchange!(original_order)
@@ -522,6 +521,7 @@ class TicketOrder < Order
   end
 
   def transition_processing_to_processed!(redirect_to = nil)
+
     if seat_assignments_complete? then
       Order.transaction do
 

@@ -42,6 +42,7 @@ class Ability
     can :read, FlexPassOffer, theater_id: user.theater_ids
     can [:cru, :autocomplete_address], Address
     can :exchange, TicketOrder
+    can :cancel_held_during_seating, TicketOrder
     can :read, Performance
     can :read, ServiceItemTemplate
     can [:read, :show_reports], Report
@@ -86,6 +87,7 @@ class Ability
     can :cru, SeatMap
     can :read, :import_operations
     can :modify_service_items, Order
+    can :process_orders_in_season_seating, TicketOrder
 
     return if user.is_box_office_user?
 

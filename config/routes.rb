@@ -253,6 +253,7 @@ Stagemgr::Application.routes.draw do
       end
       member do
         post :cancel
+        post :cancel_held_during_seating
         post :refund
         get  :fulfill
         get :reprint

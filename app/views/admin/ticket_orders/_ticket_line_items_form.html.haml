@@ -2,15 +2,15 @@
   .small-9.columns
     .row
       .small-6.columns
-        = hidden_field_tag :production_id, value: order_form.object.performance.nil? ? "" : order_form.object.performance.production_id
-        = hidden_field_tag :production_status, value: order_form.object.performance.nil? ? "" : order_form.object.performance.production.status
+        = hidden_field_tag :production_id, (order_form.object.performance.nil? ? "" : order_form.object.performance.production_id)
+        = hidden_field_tag :production_status, (order_form.object.performance.nil? ? "" : order_form.object.performance.production.status)
         = order_form.input :production_code, label: 'Production', url:  autocomplete_production_production_code_admin_ticket_orders_path, as: :autocomplete, id_element: '#production_id', input_html: {'data-auto-focus'=>true, 'data-has_reserved_seats'=>(order_form.object.performance.nil? ? false : order_form.object.performance.production.has_reserved_seating?), 'data-production_status'=>(order_form.object.performance.nil? ? '' : order_form.object.performance.production.status)}
         -# = order_form.label :production_code, 'Production'
         -# = order_form.input_field :production_code, class: 'autocomplete_prcode',
         -#:label=>'Production',
         -#:input_html=>{:autocomplete_url=>production_code_admin_auto_complete_index_path}
       .small-6.columns
-        = hidden_field_tag :performance_id, value: order_form.object.performance.nil? ? "" : order_form.object.performance.id
+        = hidden_field_tag :performance_id, order_form.object.performance.nil? ? "" : order_form.object.performance.id
         = order_form.input :performance_code, :label=>'Performance', url: autocomplete_performance_performance_code_admin_ticket_orders_path, as: :autocomplete, :fields => {:production_id => '#production_id'}, id_element: '#performance_id', input_html: {'data-auto-focus'=>true  }
     .row
       #ticket_line_items.small-12.columns

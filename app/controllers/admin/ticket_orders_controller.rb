@@ -89,6 +89,13 @@ class Admin::TicketOrdersController < Admin::OrdersController
     end
   end
 
+  def cancel_held_during_seating
+    raise "You can only cancel unsettled orders" if @ticket_order.settled?
+    raise "You can only cancel held orders for shows in season seating status" if @ticket_order.performance.production.season_seating?
+    self.cancel
+  end
+
+
   def resend_confirmation
     confirmation_task = @ticket_order.tasks.select{|t| t.method_symbol == 'ticket_confirmation'}.first
     unless confirmation_task.nil?
@@ -177,12 +184,17 @@ class Admin::TicketOrdersController < Admin::OrdersController
   end
 
   protected
+
+
   def create_or_update(order, commit_action = nil)
-
-    set_payment_accessors_from_params(order, params[:ticket_order])
-    set_ticket_classes_for_line_items(order)
-
-    super(order, commit_action)
+    if (convert_button_label_to_state(commit_action).eql?(Order::PROCESSED) && order.performance.production.season_seating? && current_user.cannot?(:process_orders_in_season_seating, TicketOrder)) then
+      flash[:error] = "Orders for productions in Season Seating status cannot be placed"
+      render 'edit'
+    else
+      set_payment_accessors_from_params(order, params[:ticket_order])
+      set_ticket_classes_for_line_items(order)
+      super(order, commit_action)
+    end
   end
 
   def template_by_order_status(order, commit_action = nil)

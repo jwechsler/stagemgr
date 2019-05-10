@@ -8,9 +8,11 @@
 - if ((can?(:hold, TicketOrder) || (can?(:hold_existing, TicketOrder) && !order_form.object.id.nil?)) && order_form.object.unprocessed?)
   = order_form.submit 'Hold', data:{:disable_with => 'Holding...'}, :class=>'button', :id=>'hold_button' if order_form.object.holdable?
 - else
-  %span#hold_control{:class=>"#{(order_form.object.performance.nil? ? 'hide' : (order_form.performance.production.status.eql?(Production::SEATING)) ? 'show' : 'hide')}"}
+  %span#hold_control{:class=>"#{(order_form.object.performance.nil? ? 'hide' : (order_form.object.performance.production.status.eql?(Production::SEASONSEATING)) ? 'show' : 'hide')}"}
     = order_form.submit 'Hold', data:{:disable_with => 'Holding...'}, :class=>'button', :id=>'hold_button' if order_form.object.holdable?
 
 
-- if !order_form.object.id.nil? && (order_form.object.status == Order::HOLD || order_form.object.status == Order::PROCESSING || order_form.object.status == Order::EXCHANGING)
+- if can?(:cancel, TicketOrder) && (!order_form.object.id.nil? && (order_form.object.held? || order_form.object.processing? || order_form.object.status == Order::EXCHANGING))
   = link_to 'Cancel Order', cancel_admin_order_path(order_form.object), data:{:confirm=>"Are you sure?"}, :method=>:post, :class=>'button alert'
+- elsif can?(:cancel_held_during_seating, TicketOrder) && (order_form.object.held? || order_form.object.processing?)
+  = link_to 'Cancel Order', cancel_held_admin_ticket_order_path(order_form.object), data:{:confirm=>"Are you sure?"}, :method=>:post, :class=>'button alert'

@@ -118,6 +118,10 @@ class Production < ActiveRecord::Base
     self.status == Production::INACTIVE
   end
 
+  def season_seating?
+    self.status.eql?(Production::SEASONSEATING)
+  end
+
   def use_ticket_email_templates?
     return Production.performing_classes.include?(self.production_class)
   end
