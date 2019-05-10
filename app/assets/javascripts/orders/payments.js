@@ -2,23 +2,23 @@
 
 function show_proper_payment_form() {
   $('#payment_forms').children('div').each(function() {
-    $(this).addClass('hide');
+    $(this).hide();
   });
-  switch ($('.payment_type_choice input:checked').val()) {
+  switch ($("[name*='payment_type_id']").val()) {
     case "1":
-      $('#credit_card_payment_form').removeClass('hide');
+      $('#credit_card_payment_form').show();
       break;
     case "2":
-      $('#cash_payment_form').removeClass('hide');
+      $('#cash_payment_form').show();
       break;
     case "3":
-      $('#flex_pass_payment_form').removeClass('hide');
+      $('#flex_pass_payment_form').show();
       break;
     case "5":
-      $('#membership_payment_form').removeClass('hide');
+      $('#membership_payment_form').show();
       break;
     case "6":
-      $('#check_payment_form').removeClass('hide');
+      $('#check_payment_form').show();
       break;
   }
 }
