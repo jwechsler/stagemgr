@@ -10,11 +10,14 @@ class TicketClassSpecialOffer < SpecialOffer
 
   def modified_line_items_in_order(order)
     ticket_class = TicketClass.where("production_id = ? and class_code = ?",order.performance.production.id,self.change_ticket_class_code).first
-        raise "Non applicable offer to this order" if ticket_class.nil?
-        ticket_line_ids = self.applicable_line_items(order).map{|l| l.id}
-
-        new_items = Array.new
-        old_items = Array.new
+    if ticket_class.nil?
+      self.errors.add(:special_offer_code, "is not applicable to this order")
+      ticket_line_ids = Array.new
+    else
+      ticket_line_ids = self.applicable_line_items(order).map{|l| l.id}
+    end
+    new_items = Array.new
+    old_items = Array.new
     order.ticket_line_items.select{|li|  ticket_line_ids.include?(li.id)}.each do |li|
       new_item = TicketLineItem.new(:order_id=>order.id,
                                     :ticket_class=>ticket_class,

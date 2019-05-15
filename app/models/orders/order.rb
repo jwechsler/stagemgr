@@ -433,7 +433,7 @@ class Order < ActiveRecord::Base
           self.special_offer_line_item.special_offer=special_offer
         end
       else
-        raise RuntimeError, "Unknown or expired special offer code \"#{self.special_offer_code}\""
+        raise RuntimeError, "Unknown or inapplicable special offer code \"#{self.special_offer_code}\""
       end
     end
   end
