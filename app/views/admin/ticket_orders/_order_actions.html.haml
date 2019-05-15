@@ -15,4 +15,4 @@
 - if can?(:cancel, TicketOrder) && (!order_form.object.id.nil? && (order_form.object.held? || order_form.object.processing? || order_form.object.status == Order::EXCHANGING))
   = link_to 'Cancel Order', cancel_admin_order_path(order_form.object), data:{:confirm=>"Are you sure?"}, :method=>:post, :class=>'button alert'
 - elsif can?(:cancel_held_during_seating, TicketOrder) && (order_form.object.held? || order_form.object.processing?)
-  = link_to 'Cancel Order', cancel_held_admin_ticket_order_path(order_form.object), data:{:confirm=>"Are you sure?"}, :method=>:post, :class=>'button alert'
+  = link_to 'Cancel Order', cancel_held_during_seating_admin_ticket_order_path(order_form.object), data:{:confirm=>"Are you sure?"}, :method=>:post, :class=>'button alert'
