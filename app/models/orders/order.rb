@@ -457,11 +457,15 @@ class Order < ActiveRecord::Base
 
   def self.visible_order_for_theater_user(user)
     if user.is_theater_user?
-      joins(performance: :production).where(productions: { theater_id:  user.theater_ids}).references(:productions)
+      includes(performance: :production).where("(productions.theater_id in (:theater_ids)) OR orders.id in (select orders.id from orders, line_items, flex_pass_offers where line_items.order_id = orders.id and orders.type = 'FlexPassOrder' and line_items.flex_pass_offer_id = flex_pass_offers.id and flex_pass_offers.theater_id in (:theater_ids))", theater_ids: user.theater_ids).references(:productions)
     else
       where('1=1')
     end
 
+  end
+
+  def associated_theater_id
+    nil
   end
 
   def sf

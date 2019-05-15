@@ -235,6 +235,14 @@ class TicketOrder < Order
     [self.performance]
   end
 
+  def associated_theater_id
+    if self.performance.nil?
+      super
+    else
+      self.performance.production.theater_id
+    end
+  end
+
   def send_to_printer
     unless PrintOrder.site.to_s.blank?
       unless self.print_order_id.nil?

@@ -24,7 +24,7 @@
           %li
             =link_to('Theaters',admin_theaters_path)
 
-        - if can? :read, Order
+        - if (can? :read, Order) || (can? :read, FlexPassOrder) || (can? :read, MembershipOrder) || (can? :read, TicketOrder)
           %li
             =link_to('Existing Orders', admin_orders_path)
         - if can?(:read, MembershipOffer) || can?(:read, FlexPassOffer)

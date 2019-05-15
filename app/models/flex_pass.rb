@@ -34,6 +34,10 @@ class FlexPass < ActiveRecord::Base
     self.expiration_date = Time.now + flex_pass_offer.months_till_expiration.months
   end
 
+  def used_on_orders
+    self.flex_pass_payments.map { |fpp| fpp.order}
+  end
+
   def queue_expiration
     Resque.enqueue_in(flex_pass_offer.months_till_expiration.months, ExpireFlexPass, self.id)
   end

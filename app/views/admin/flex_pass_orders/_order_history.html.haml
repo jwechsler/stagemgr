@@ -1,15 +1,16 @@
 %div.row
   %div.small-12.columns
-    %table#order-history-listing{'data-source':admin_address_path(address, format: :json)}
-      %thead
-        Order History
-        %tr
-          %th Order
-          %th Created
-          %th Description
-          %th Amount
-          %th Status
-      %tbody
+    %fieldset
+      %legend Order History
+      %table#order-history-listing{'data-source':admin_flex_pass_order_path(order, format: :json)}
+        %thead
+          %tr
+            %th Order
+            %th Created
+            %th Description
+            %th Amount
+            %th Status
+        %tbody
 
 
 = content_for :js do
@@ -21,6 +22,7 @@
       $('#order-history-listing').dataTable({
         stateSave: true,
         searching: false,
+        lengthChange: false,
         order: [[0,"desc"]],
         processing: true,
         ajax: $('#order-history-listing').data('source'),

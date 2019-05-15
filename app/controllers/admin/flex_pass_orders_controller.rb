@@ -6,6 +6,13 @@ class Admin::FlexPassOrdersController < Admin::OrdersController
   include FlexPassOrdersHelper
 
   def show
+    respond_to do |format|
+      format.html # show.html.erb
+      format.json  {
+        params.permit!
+        render json: FlexPassOrdersDatatable.new(params, view_context: view_context, current_user: current_user, flex_pass: @order.flex_pass)
+      }
+    end
   end
 
   def edit

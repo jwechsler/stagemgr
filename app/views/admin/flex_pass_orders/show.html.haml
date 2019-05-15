@@ -14,7 +14,7 @@
   .small-12.columns
     = render '/admin/orders/payments', :order=>@flex_pass_order
     = render '/admin/orders/referral', :order=>@flex_pass_order
-    = render '/admin/orders/notes', :order=>@flex_pass_order
+    = render '/admin/flex_pass_orders/order_history', :order=>@flex_pass_order
     = render '/admin/orders/audit_show', :order_form=>@flex_pass_order
     - if can? :new, :admin_refund_orders
       = link_to 'Refund Order', new_admin_order_refund_order_path(@flex_pass_order), :class=>'small alert button' if @flex_pass_order.refundable?

@@ -8,6 +8,13 @@ class FlexPassOrder < Order
     FlexPassOffer.find(self.flex_pass_line_items[0].flex_pass_offer_id) unless self.flex_pass_line_items.size == 0
   end
 
+  def associated_theater_id
+    if flex_pass_line_items.size > 0
+      flex_pass_line_items[0].flex_pass_offer.theater_id
+    else
+      super
+    end
+  end
 
   def display_code()
     "FLEXPASS"
@@ -32,6 +39,10 @@ class FlexPassOrder < Order
 
   def flex_passes
     self.flex_pass_line_items.map { |fli| fli.flex_passes }.flatten
+  end
+
+  def flex_pass
+    self.flex_passes.first
   end
 
 
