@@ -122,7 +122,6 @@ $(document).ready(function() {
   update_informational();
   // assign keys
 
-
   $('#seatingmap area').click( function(e) {
 
     starting_status = $(this).data('status')

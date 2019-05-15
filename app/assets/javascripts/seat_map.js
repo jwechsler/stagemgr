@@ -36,8 +36,9 @@ $(document).ready(function() {
   };
 
   $('img.seatingmap').mapster(mapster_options);
-
+  console.log ("dimension");
+  console.log($('img.seatingmap').width());
+  console.log($('img.seatingmap').height());
   $('#seatingmap').mapster('resize',$('img#seatingmap').width(),$('img#seatingmap').height());
-
 });
 
