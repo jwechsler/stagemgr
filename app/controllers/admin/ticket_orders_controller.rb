@@ -90,9 +90,13 @@ class Admin::TicketOrdersController < Admin::OrdersController
   end
 
   def cancel_held_during_seating
-    raise "You can only cancel unsettled orders" if @ticket_order.settled?
-    raise "You can only cancel held orders for shows in season seating status" if @ticket_order.performance.production.season_seating?
-    self.cancel
+    @ticket_order.errors.add("You can only cancel unsettled orders") if @ticket_order.settled?
+    @ticket_order.errors.add("You can only cancel held orders for shows in season seating status") unless @ticket_order.performance.production.season_seating?
+    if @ticket_order.settled? || !@ticket_order.performance.production.season_seating? then
+      self.edit
+    else
+      self.cancel
+    end
   end
 
 
