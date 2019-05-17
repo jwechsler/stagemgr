@@ -14,4 +14,15 @@ class NotificationMailer < ActionMailer::Base
          :tag=>"Recurring Payment")
   end
 
+  def file_generated(filestore)
+    if File.file?(filestore.data.path)
+      @filestore = filestore
+      attachments[filestore.data_file_name] = File.read(filestore.data.path)
+      mail(:to => filestore.user.email,
+           :from => $EMAIL_ADDRESS['software_address'],
+           :subject => "Your download is ready",
+           :tag=>"File Generation Complete")
+    end
+  end
+
 end

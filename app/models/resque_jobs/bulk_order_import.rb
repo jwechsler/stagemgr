@@ -32,6 +32,7 @@ require 'csv'
 # TagValue2       :  Tag value #2
 
 class BulkOrderImport
+  include NotifyOnCompletion
   @queue = :import
 
   def self.perform(filestore_id, theater_id, payment_type_id)
@@ -51,7 +52,7 @@ class BulkOrderImport
       problems = BulkOrderImportIssues.new(filestore.user.id)
 
       production_seat_maps = Production.where("theater_id = :theater_id and seat_map_id is not null",
-        theater_id: theater_id).where_sellable.pluck(:id, :seat_map_id).to_h
+        theater_id: theater_id).sellable.pluck(:id, :seat_map_id).to_h
       production_ids = Production.where(theater_id: theater_id).sellable.pluck(:id)
       seat_locations = Hash.new
       production_seat_maps.each {|production_id, seat_map_id|
@@ -133,11 +134,11 @@ class BulkOrderImport
           end
           puts("IMPORT: Ticket Class =  #{ticket_class}")
 
-          if payment_type.nil?
+          o.payment_type = payment_type
+          if (payment_type.nil? || o.performance.production.season_seating?)
             o.transition_to!(Order::HOLD)
             puts("IMPORT: Order is #{Order::HOLD}")
           else
-            o.payment_type = payment_type
             o.transition_to!(Order::PROCESSED)
             o.payments.each{|p| p.note = "Imported from #{filestore.data_file_name} by #{filestore.user.email}"; p.save }
             puts("IMPORT: Order is #{Order::PROCESSED}")
@@ -160,6 +161,7 @@ class BulkOrderImport
       filestore.notes = "Error: #{e.message}"
       filestore.save
     end
+    notify_user_on_completion(FileStore.find(filestore_id))
   end
 
   private
