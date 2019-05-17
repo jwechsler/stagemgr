@@ -59,7 +59,7 @@ class Ability
     # below is for box office staff
     can :read, :update, Order
     can :cru, FlexPassOrder
-    can [:manage, :duplicate, :create], Performance
+    can [:manage, :duplicate, :create, :delete], Performance
     can [:read, :create, :edit, :update, :duplicate], Production
     can :view_system_options
     can :read, PaymentType

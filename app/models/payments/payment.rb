@@ -5,6 +5,7 @@ class Payment < ActiveRecord::Base
 
   validates_numericality_of :amount, :unless => :number_of_tickets
   validates_numericality_of :number_of_tickets, :unless => :amount
+  validates_presence_of :order
   default_scope { order(created_at: :asc )}
   before_save :set_processed_on
 

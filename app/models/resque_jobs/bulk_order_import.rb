@@ -36,6 +36,9 @@ class BulkOrderImport
   @queue = :import
 
   def self.perform(filestore_id, theater_id, payment_type_id)
+    filestore = FileStore.find(filestore_id)
+    filestore.notes = "Importing Orders"
+    problems = BulkOrderImportIssues.new(filestore.user.id)
     begin
       headers = nil
       total = 0
@@ -45,11 +48,9 @@ class BulkOrderImport
       seating_list_idx = 0
       ticket_class_idx = 0
 
-      filestore = FileStore.find(filestore_id)
-      filestore.notes = "Importing Orders"
+
       filestore.save
 
-      problems = BulkOrderImportIssues.new(filestore.user.id)
 
       production_seat_maps = Production.where("theater_id = :theater_id and seat_map_id is not null",
         theater_id: theater_id).sellable.pluck(:id, :seat_map_id).to_h
@@ -62,7 +63,7 @@ class BulkOrderImport
       performances = Performance.where(production_id: production_ids).sellable.map{|perf| [perf.performance_code, perf]}.to_h
       external_address_ids = AddressTag.where("tag_label = 'External Id' and theater_id = :theater_id and address_id is not null",theater_id: theater_id).pluck(:tag_value, :address_id).to_h # Get a list of all addresses with the theaters external tags
       payment_type = payment_type_id.blank? ? nil : PaymentType.find(payment_type_id.to_i)
-      issues = []
+
 
 
       CSV.foreach(filestore.data.path, headers:true) do |row|
@@ -76,7 +77,7 @@ class BulkOrderImport
 
         when !row['ExternalId'].blank?
           current_address_id = row['ExternalId']
-          a = Address.find_by(id:address_ids[current_address_id])
+          a = Address.find_by(id:external_address_ids[current_address_id])
           a ||= Address.new
 
         else
@@ -93,9 +94,9 @@ class BulkOrderImport
           a.city = row['City'] unless row['City'].blank?
           a.zipcode = row['ZipCode'] unless row['ZipCode'].blank?
           a.phone = row['Phone'] unless row['Phone'].blank?
-          a.address_tags << make_address_tag(theater_id, row['Tag1'], row['TagValue1']) unless row['Tag1'].blank?
-          a.address_tags << make_address_tag(theater_id, row['Tag2'], row['TagValue2']) unless row['Tag2'].blank?
-          a.address_tags << make_address_tag(theater_id, 'ExternalId', row['ExternalId']) unless row['ExternalId'].blank?
+          a.address_tags << new_address_tag(theater_id, a, row['Tag1'], row['TagValue1']) unless row['Tag1'].blank?
+          a.address_tags << new_address_tag(theater_id, a, row['Tag2'], row['TagValue2']) unless row['Tag2'].blank?
+          a.address_tags << new_address_tag(theater_id, a, 'External ID', row['ExternalId']) unless row['ExternalId'].blank?
           a.regularize!
           a.save!
           # build the ticket order
@@ -153,7 +154,7 @@ class BulkOrderImport
       end
       filestore.notes = "Imported #{total} orders, #{problems.count} errors"
       filestore.save
-      problems.create if problems.any_issues?
+
     rescue => e
       puts "IMPORT: Could not save "
       Rails.logger.error e.message
@@ -161,16 +162,20 @@ class BulkOrderImport
       filestore.notes = "Error: #{e.message}"
       filestore.save
     end
-    notify_user_on_completion(FileStore.find(filestore_id))
+    if problems.any_issues?
+      fs = problems.create
+      notify_user_on_completion(fs) unless fs.nil?
+    end
   end
 
   private
-  def new_address_tag(theater_id, tag_label, tag_value)
+  def self.new_address_tag(theater_id, address, tag_label, tag_value)
     sub_tag = AddressTag.new
-    sub_tag.address = a
+    sub_tag.address = address
     sub_tag.tag_label = tag_label
     sub_tag.tag_value = tag_value
     sub_tag.theater_id = theater_id
+    sub_tag
   end
 end
 

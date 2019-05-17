@@ -284,6 +284,7 @@ Stagemgr::Application.routes.draw do
       resources :productions do
         resources :performances do
           get 'duplicate', :on => :member
+
         end
         resources :ticket_classes
       end
@@ -301,6 +302,7 @@ Stagemgr::Application.routes.draw do
       get :seating_quickview, :on=>:member
     end
 
+    resources :performance, only: [:destroy]
 
     get '/system_options', :controller=>'system_options', :action=>'index'
 

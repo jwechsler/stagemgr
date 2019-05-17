@@ -30,8 +30,6 @@ class MembershipOrdersController < ApplicationController
     @order = build_membership_order(params[:membership_offer_id].to_i)
   end
 
-
-
   def checkout
   end
 

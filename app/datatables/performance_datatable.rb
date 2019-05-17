@@ -34,7 +34,9 @@ class PerformanceDatatable < AjaxDatatablesRails::Base
     if current_user.can? :create, Performance then
       actions << link_to('Duplicate', [:duplicate, :admin, production.theater, production, performance], :id=>"duplicate_#{performance.performance_code.gsub(' ','_')}", class: 'tiny button' )
     end
-
+    if current_user.can? :delete, Performance then
+      # actions << link_to('Delete', [:destroy, :admin, performance], :id=>"delete_#{performance.performance_code.gsub(' ','_')}", :confirm=> "Are you sure?" , class: 'tiny button alert' )
+    end
     actions.join(' ')
   end
 

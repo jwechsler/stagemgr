@@ -35,6 +35,7 @@ class Performance < ActiveRecord::Base
   before_validation              :populate_ticket_class_allocations
   before_validation              :performance_code_must_match_production
   before_save                     :manage_seat_inventory
+  before_destroy                  :protect_performances_with_orders
 
   accepts_nested_attributes_for  :ticket_class_allocations
 
@@ -230,6 +231,11 @@ class Performance < ActiveRecord::Base
                                   :sec   => 0,
                                   :usec  => 0)
     self.performance_code.upcase! if self.performance_code
+  end
+
+  def protect_performances_with_orders
+    errors.add(:performance_code, " has associated ticket orders and cannot be deleted") if self.orders.size > 0
+    return self.orders.size.eql?(0)
   end
 
 

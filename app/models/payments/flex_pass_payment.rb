@@ -3,16 +3,28 @@ class FlexPassPayment < PassPayment
   belongs_to :flex_pass
 
   validates_each :number_of_tickets do |record, attr, value|
-    old_number_of_tickets = 0
-    unless record.new_record?
-      old_number_of_tickets = FlexPassPayment.find(record.id).number_of_tickets
+    # check for number of tickets allowed
+    if record.number_of_tickets > 0 then
+      old_number_of_tickets = 0
+      unless record.new_record?
+        old_number_of_tickets = FlexPassPayment.find(record.id).number_of_tickets
+      end
+      flex_pass = FlexPass.find(record.flex_pass_id)
+      number_of_tickets_left_after_save = flex_pass.number_of_tickets -
+                                          flex_pass.flex_pass_payments.sum(:number_of_tickets) -
+                                          record.number_of_tickets +
+                                          old_number_of_tickets
+      Rails.logger.debug("*** CHECK: #{number_of_tickets_left_after_save}")
+      record.errors.add attr, "cannot be more than the number of tickets left on flex pass." if number_of_tickets_left_after_save < 0
+
+      offer = flex_pass.flex_pass_offer
+      unless offer.maximum_uses_per_production.nil? || offer.maximum_uses_per_production.eql?(0)
+        production = record.order.performance.production
+        already = FlexPassPayment.includes(order: [:performance=>:production]).references(order: [:performance=>:production]).where("flex_pass_id = :flex_pass_id and performances.production_id = :production_id AND orders.status NOT IN (:unprocessed_statuses) and orders.id <> :order_id",flex_pass_id: record.flex_pass_id, production_id: production.id, unprocessed_statuses: Order.unprocessed_statuses, order_id: record.order.id ).sum(:number_of_tickets)
+        Rails.logger.debug("*** CHECK / performance: #{already} needed, #{record.number_of_tickets} requested")
+        record.errors.add attr, " has been exceeded for #{record.order.performance.production.name}.  This flex pass can only be redeemed for #{offer.maximum_uses_per_production} ticket(s)/production, #{record.number_of_tickets + already} requested" if (already + record.number_of_tickets) > offer.maximum_uses_per_production
+      end
     end
-    flex_pass = FlexPass.find(record.flex_pass_id)
-    number_of_tickets_left_after_save = flex_pass.number_of_tickets -
-                                        flex_pass.flex_pass_payments.sum(:number_of_tickets) -
-                                        record.number_of_tickets +
-                                        old_number_of_tickets
-    record.errors.add attr, "cannot be more than the number of tickets left on flex pass." if number_of_tickets_left_after_save < 0
   end
 
   def customer_visible_amount

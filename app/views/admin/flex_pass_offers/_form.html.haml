@@ -1,18 +1,56 @@
 = simple_form_for [:admin, flex_pass_offer] do |f|
-  = f.input :name
-  = f.input :price
-  = f.input :number_of_tickets
-  = f.input :use_ticket_class_code, :as=>:select, :collection=>DefaultTicketClass.all.map{|tc| tc.class_code}
-  = f.input :flat_payout
-  = f.input :spiff
-  = f.input :facility_fee
-  = f.input :short_description
-  = f.input :description, :input_html=>{ :rows=>6}
-  = f.input :active
-  = f.input :on_sale_to_public
-  = f.input :months_till_expiration
-  = f.input :treat_as_festival_pass
-  = f.association :theater, :label=>"Restrict redemption to", :as=>:select, :collection=>Theater.where("status in (?)", ['Active', 'Private'])
-  = f.input :exclude_theater, :label=>"Exclude selected theater"
-  = f.input :redeem_immediately, :label=>"Redeem immediately"
-  = f.button :submit, :class=>'button'
+  .row
+    .columns.small-12
+      = f.input :name
+  .row
+    .columns.small-6.medium-3
+      = f.input :price
+    .columns.small-6.medium-3
+      = f.input :number_of_tickets
+    .columns.small-6.medium-3
+      = f.input :use_ticket_class_code, :as=>:select, :collection=>DefaultTicketClass.all.map{|tc| tc.class_code}
+    .columns.small-6.medium-3
+      = f.input :maximum_uses_per_production
+
+  .row
+    .columns.small-12.medium-6
+      = f.input :short_description
+    .columns.small-12.medium-6
+      = f.input :code_prefix
+  .row
+    .columns.small-12
+      %fieldset
+        %legend Payout Info
+        .row
+          .columns.small-12.medium-4
+            = f.input :flat_payout
+          .columns.small-12.medium-4
+            = f.input :spiff
+          .columns.small-12.medium-4
+            = f.input :facility_fee
+
+  .row
+    .columns.small-12
+
+      = f.input :description, :input_html=>{ :rows=>6}
+  .row
+    .columns.small-6
+      = f.input :active
+    .columns.small-6
+      = f.input :on_sale_to_public
+  .row
+    .columns.small-12
+      %fieldset
+        %legend Use Restrictions
+        .row
+          .columns.small-12.medium-4
+            = f.input :months_till_expiration
+          .columns.small-12.medium-4
+            = f.input :treat_as_festival_pass
+          .columns.small-12.medium-4
+            = f.association :theater, :label=>"Restrict redemption to", :as=>:select, :collection=>Theater.where("status in (?)", ['Active', 'Private'])
+            = f.input :exclude_theater, :label=>"Exclude selected theater"
+  .row
+    .columns.small-12
+      = f.input :redeem_immediately, :label=>"Redeem immediately"
+      = f.button :submit, :class=>'button'
