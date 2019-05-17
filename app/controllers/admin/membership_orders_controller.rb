@@ -50,6 +50,13 @@ class Admin::MembershipOrdersController < Admin::ApplicationController
 
   end
 
+  def fulfill
+    @membership_order.transition_to(Order::FULFILLED)
+    respond_to do |format|
+      format.html { render 'show' }
+    end
+  end
+
   protected
   def update_or_create
     respond_to do |format|

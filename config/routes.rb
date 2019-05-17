@@ -222,6 +222,7 @@ Stagemgr::Application.routes.draw do
         post :cancel
         post :refund
         get  :fulfill
+        post :fulfill
         get :unclaimed
         post :update_notes
       end
