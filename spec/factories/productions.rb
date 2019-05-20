@@ -19,7 +19,6 @@ FactoryBot.define do
     end
 
     after(:create) do |production, evaluator|
-      puts "*** #{production.theater.name}"
       if production.ticket_classes.empty?
         FactoryBot.create_list(:ticket_class, evaluator.ticket_class_count, :production=>production)
       end
@@ -27,7 +26,7 @@ FactoryBot.define do
       #  production.ticket_classes << FactoryBot.create(:ticket_class)
       #end
       #FactoryBot.create_list(:ticket_class, evaluator.ticket_class_count, :production=>production)
-      FactoryBot.create(:software_managed_ticket_class, :class_code=>'PASS', :production=>production )
+      FactoryBot.create(:ticket_class, :software_managed, :class_code=>'PASS', :production=>production )
     end
     initialize_with { Production.find_or_create_by(production_code: production_code) }
 

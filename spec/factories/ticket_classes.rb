@@ -5,6 +5,7 @@ FactoryBot.define do
     ticket_price    { 0 }
     ticketing_fee   { 0 }
     holds_seats     { true }
+    initialize_with { DefaultTicketClass.find_or_create_by(class_code: class_code) }
   end
 
   factory :ticket_class do
@@ -18,7 +19,7 @@ FactoryBot.define do
     software_managed  { false }
     sequence(:class_code) { |n| "GEN#{'%02d' % n}" }
 
-    factory :software_managed_ticket_class do
+    trait :software_managed do
       software_managed   { true }
       web_visible        { false }
     end
