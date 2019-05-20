@@ -1,8 +1,10 @@
 FactoryBot.define do
   factory :seat do
+    row     { "AA" }
+    zone    { "" }
+
     sequence(:seat_number) { |n| n }
-    row "AA"
     sequence(:location) { |n| "AA#{n}" }
-    zone ""
+
   end
 end

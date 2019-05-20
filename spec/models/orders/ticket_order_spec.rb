@@ -1,13 +1,31 @@
 require "spec_helper.rb"
 
-describe "a ticket order" do
-
+RSpec.shared_examples "a paid ticket order" do |ticket_order|
+  let(:o) {ticket_order}
   it "can be refunded" do
-    o = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
     expect(o.total).to be > 0
     o.refund!
     expect(o.total).to eq(0)
   end
+end
+
+describe TicketOrder, :wip=>true do
+
+  #it_behaves_like "a paid ticket order" do
+  #  let(:ticket_order) { FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash) }
+  #end
+
+  #it_behaves_like "a paid ticket order" do
+  #  let(:ticket_order) { FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_credit_card) }
+  #end
+
+  # include_examples "a paid ticket order", FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
+  # include_examples "paid with payment type", FactoryBot.create(:cash_payment_type)
+  # include_examples "paid with payment type", FactoryBot.create(:credit_card_payment_type)
+  # include_examples "paid with payment type", FactoryBot.create(:membership_payment_type)
+  # include_examples "paid with payment type", FactoryBot.create(:flex_pass_payment_type)
+  # include_examples "paid with payment type", FactoryBot.create(:external_payment_type)
+
 
   it "should mark its holder has having attended the production when fulfilled" do
     original_order = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)

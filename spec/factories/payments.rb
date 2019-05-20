@@ -3,7 +3,7 @@ FactoryBot.define do
     "TXN#{n}"
   end
   factory :payment do
-    amount 0
+    amount { 0.0 }
 
     factory :cash_payment, :parent=>:payment, :class=>'CashPayment' do
     end

@@ -5,7 +5,13 @@ FactoryBot.define do
 
   factory :percent_off_special_offer do
     special_offer
-    amount 50
+    amount            { 50 }
+  end
+
+
+  factory :amount_off_special_offer do
+    amount            { 1 }
+    sequence(:code) { |n| "SpecialOffer#{n}" }
   end
 
 end

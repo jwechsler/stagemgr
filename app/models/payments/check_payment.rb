@@ -1,7 +1,7 @@
 class CheckPayment < CurrencyPayment
 
   def create_refund_payment(cc_number = nil, note = nil)
-    refund_payment = ReversalPayment.create(:amount=>self.amount * -1, :order=>order, :payment_id=>self.id)
+    refund_payment = ReversalPayment.create(:amount=>self.amount * -1, :order=>self.order, :payment_id=>self.id)
     self.order.payments << refund_payment
     refund_payment
   end

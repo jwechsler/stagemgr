@@ -4,8 +4,10 @@ RSpec.describe SeatAssignmentsController, type: :controller do
 
   before(:each) do
     venue = FactoryBot.create(:venue)
-    seat_map = FactoryBot.create(:seat_map_with_seats, venue:venue)
+    seat_map = FactoryBot.create(:seat_map, :with_seats, venue: venue)
+
     production = FactoryBot.create(:production, venue:venue, seat_map:seat_map)
+    puts '*** hi'
     performance = FactoryBot.create(:performance, production:production)
     @ticket_order = FactoryBot.create(:ticket_order_for_a_pair_of_tickets, performance:performance)
   end

@@ -1,5 +1,3 @@
-require 'spec_helper.rb'
-
 RSpec.describe SeatMap, type: :model do
   context "creation" do
 

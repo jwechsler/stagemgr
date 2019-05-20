@@ -18,7 +18,7 @@ class MembershipPaymentType < PassPaymentType
     total_amount = order.ticket_line_items.inject(0) { |total_amount, li| total_amount += PassPaymentType.applicable_price(li.ticket_class, pass_ticket_class)* li.ticket_count }
 
     new_payment = MembershipPayment.new(:number_of_tickets => order.number_of_tickets, :membership => membership,
-                                        :amount => total_amount, :payment_type=>self)
+                                        :amount => total_amount, :order=>order, :payment_type=>self)
     new_payment.process!(order)
 
     new_payment

@@ -1,19 +1,19 @@
 FactoryBot.define do
 
   trait :order do
-    status Order::ORDER_STATUSES.first
-    association :address, :factory => :address
-    association :payment_type, :factory=>:cash_payment_type
+    status                  { Order::ORDER_STATUSES.first }
+    association             :address, :factory => :address
+    association             :payment_type, :factory=>:cash_payment_type
   end
 
 
   factory :ticket_order do
     order
-    association :performance, :factory => :performance
+    association             :performance, :factory => :performance
 
     trait :paid_with_credit_card do
 
-      association :payment_type, :factory=>:credit_card_payment_type
+      association           :payment_type, :factory=>:credit_card_payment_type
       after(:create) do |ticket_order, evaluator|
         num_tix = TicketLineItem.where(order_id:ticket_order.id).sum(:ticket_count)
         ticket_order.payments << FactoryBot.create(:credit_card_payment,
@@ -52,7 +52,7 @@ FactoryBot.define do
 
     trait :paid_with_flex_pass do
       transient do
-        flex_pass_code 'TESTPASS'
+        flex_pass_code      { 'TESTPASS' }
       end
       association :payment_type, :factory=>:flex_pass_payment_type
       after(:create) do |ticket_order, evaluator|
@@ -76,7 +76,7 @@ FactoryBot.define do
 
     trait :paid_with_cash do
 
-      association :payment_type, :factory=>:cash_payment_type
+      association             :payment_type, :factory=>:cash_payment_type
       after(:create) do |ticket_order, evaluator|
         num_tix = ticket_order.ticket_line_items.inject(0){|sum, tli| sum += tli.ticket_count }
         ticket_order.payments << FactoryBot.create(:cash_payment,
@@ -88,8 +88,6 @@ FactoryBot.define do
       end
     end
 
-
-
     factory :ticket_order_for_a_pair_of_tickets_paid_with_flexpass, :traits=>[:for_a_pair_of_tickets, :paid_with_flex_pass]
     factory :ticket_order_for_a_pair_of_tickets_paid_with_cash, :traits=>[:for_a_pair_of_tickets, :paid_with_cash]
     factory :ticket_order_for_a_pair_of_tickets, :traits=>[:for_a_pair_of_tickets]
@@ -97,23 +95,6 @@ FactoryBot.define do
     factory :ticket_order_for_a_pair_of_tickets_paid_with_credit_card, :traits=>[:for_a_pair_of_tickets, :paid_with_credit_card]
   end
 
-  factory :membership_order do
-    order
-    association :payment_type, :factory=>:credit_card_payment_type
-    before(:create) do |membership_order, evaluator|
-      membership_offer = FactoryBot.create(:membership_offer)
-      membership = FactoryBot.create(:membership, :address=>membership_order.address, membership_offer: membership_offer)
-      membership_order.membership_line_item = FactoryBot.create(:membership_line_item, :order=>membership_order, :address=>membership_order.address, membership_offer: membership_offer, :membership=>membership)
-      membership_order.payments << FactoryBot.build(:credit_card_payment,
-                          :amount=>membership_order.membership.membership_offer.recurring_cost,
-                          :transaction_id => 'TEST_TRANSACTION',
-                          :confirmation_code => 'CONFIRMED',
-                          :card_type=>'Visa',
-                          :card_last_four=>'1111')
-      membership_order.status = Order::PROCESSED
-      membership_order.save!
-    end
-  end
 
   trait :one_thousand_dollar_donation do
     association :payment_type, :factory=>:credit_card_payment_type
@@ -135,11 +116,11 @@ FactoryBot.define do
 
 
       trait :paid_with_credit_card do
-        credit_card_type 'Visa'
-        credit_card_number  '4111111111111111'
-        credit_card_expiration_month '12'
-        credit_card_expiration_year Date.today.year.to_s
-        credit_card_verification_number '999'
+        credit_card_type                    { 'bogus' }
+        credit_card_number                  { '4111111111111111' }
+        credit_card_expiration_month        { '12' }
+        credit_card_expiration_year         { Date.today.year.to_s }
+        credit_card_verification_number     { '999' }
         after(:create) do |order, evaluator|
           order.create_proper_payment_in_amount_of!(order.value_of_all_line_items)
         end
@@ -149,6 +130,11 @@ FactoryBot.define do
       factory :donation_pledge_order_for_one_thousand_dollars, :traits=>[:one_thousand_dollar_donation]
       factory :donation_pledge_order_for_one_thousand_dollars_using_credit_card, :traits=>[:one_thousand_dollar_donation, :paid_with_credit_card]
     end
+
+
+  factory :special_offer_line_item do
+    association :order, :factory => :order
+  end
 
 
 end

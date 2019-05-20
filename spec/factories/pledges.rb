@@ -2,8 +2,8 @@
 
 FactoryBot.define do
   factory :pledge do
-    order_id ""
-    profile_id "MyString"
-    address_id ""
+    order_id    { "" }
+    profile_id  { "MyString" }
+    address_id  { "" }
   end
 end
