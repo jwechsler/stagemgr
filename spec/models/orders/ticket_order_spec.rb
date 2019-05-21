@@ -13,8 +13,8 @@ RSpec.describe TicketOrder do
 
   include_examples "a paid ticket order", FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
   include_examples "a paid ticket order", FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_credit_card)
-  include_examples "a paid ticket order", FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_membership)
-  include_examples "a paid ticket order", FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_flex_pass)
+  # include_examples "a paid ticket order", FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_membership)
+  # include_examples "a paid ticket order", FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_flex_pass)
   include_examples "a paid ticket order", FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_external)
 
 

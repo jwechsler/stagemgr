@@ -58,9 +58,11 @@ FactoryBot.define do
       association :payment_type, :factory=>:flex_pass_payment_type
       after(:create) do |ticket_order, evaluator|
         flex_pass = FactoryBot.create(:flex_pass)
+
         fc_code = evaluator.flex_pass_code.blank? ?  flex_pass.code : evaluator.flex_pass_code
         flex_pass.code = fc_code
         find_code = flex_pass.flex_pass_offer.use_ticket_class_code
+
         new_ticket_class = ticket_order.performance.ticket_class_allocations.select {|tca|
           tca.ticket_class.class_code == find_code }.first.ticket_class
         TicketLineItem.where(order_id: ticket_order.id).each do |tli|
@@ -82,11 +84,20 @@ FactoryBot.define do
 
       association :payment_type, :factory=>:membership_payment_type
 
+      before(:create) do |ticket_order, evaluator|
+
+      end
+
       after(:create) do |ticket_order, evaluator|
         membership = FactoryBot.create(:membership, member_code:evaluator.member_code)
+        if (ticket_order.performance.production.ticket_classes.select{|tc| tc.class_code.eql?(membership.member_code)}.size == 0)
+          ticket_order.performance.production.ticket_classes << FactoryBot.create(:ticket_class, :class_code=>'PASS', :class_name=>"Pass Ticket",
+                          :ticket_price=>0.00, :web_visible=>false, :software_managed=>true,
+                          :production=>ticket_order.performance.production, :auto_attach=>true)
+
+        end
 
         ticket_order.member_code=membership.member_code
-
         find_code = membership.membership_offer.use_ticket_class_code
         new_ticket_class = ticket_order.performance.ticket_class_allocations.select {|tca|
           tca.ticket_class.class_code == find_code }.first.ticket_class
