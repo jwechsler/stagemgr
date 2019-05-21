@@ -3,7 +3,7 @@ require_relative "../../spec_helper.rb"
 describe "a production" do
   context "with one order" do
     before(:each) do
-      @ticket_order = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
+      @ticket_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
     end
 
     it "should have one attendee when fulfilled" do

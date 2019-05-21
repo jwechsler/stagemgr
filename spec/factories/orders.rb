@@ -9,7 +9,7 @@ FactoryBot.define do
 
   factory :ticket_order do
     order
-    association             :performance, :factory => :performance
+    performance
 
     trait :paid_with_credit_card do
 
@@ -22,7 +22,7 @@ FactoryBot.define do
                             :amount=>(num_tix * ticket_order.ticket_line_items.inject(0){ |total, tli| total += tli.ticket_class.ticket_price }),
                             :transaction_id => 'TEST_TRANSACTION',
                             :confirmation_code => 'CONFIRMED',
-                            :card_type=>'Visa',
+                            :card_type=>'bogus',
                             :card_last_four=>'1111')
         ticket_order.status = Order::PROCESSED
         ticket_order.save!
@@ -31,7 +31,7 @@ FactoryBot.define do
 
     trait :for_a_pair_of_tickets do
 
-      after(:create) do |ticket_order, evaluator|
+      before(:create) do |ticket_order, evaluator|
         ticket_order.ticket_line_items << FactoryBot.create(:ticket_line_item,
           :ticket_class=>ticket_order.performance.ticket_class_allocations.select{|tca| tca.available }.first.ticket_class,
           :ticket_count=>2,
@@ -40,8 +40,9 @@ FactoryBot.define do
 
     end
 
+
     trait :for_an_expensive_pair_of_tickets do
-      after(:create) do |ticket_order, evaluator|
+      before(:create) do |ticket_order, evaluator|
         ticket_order.ticket_line_items << FactoryBot.create(:ticket_line_item,
           :ticket_class=>ticket_order.performance.ticket_class_allocations.select{|tca| tca.available }.sort{|tca1, tca2| tca2.ticket_class.ticket_price <=> tca1.ticket_class.ticket_price}.first.ticket_class,
           :ticket_count=>2,
@@ -52,11 +53,14 @@ FactoryBot.define do
 
     trait :paid_with_flex_pass do
       transient do
-        flex_pass_code      { 'TESTPASS' }
+        flex_pass_code      { '' }
       end
       association :payment_type, :factory=>:flex_pass_payment_type
       after(:create) do |ticket_order, evaluator|
-        find_code = FlexPass.find_by_code(evaluator.flex_pass_code).flex_pass_offer.use_ticket_class_code
+        flex_pass = FactoryBot.create(:flex_pass)
+        fc_code = evaluator.flex_pass_code.blank? ?  flex_pass.code : evaluator.flex_pass_code
+        flex_pass.code = fc_code
+        find_code = flex_pass.flex_pass_offer.use_ticket_class_code
         new_ticket_class = ticket_order.performance.ticket_class_allocations.select {|tca|
           tca.ticket_class.class_code == find_code }.first.ticket_class
         TicketLineItem.where(order_id: ticket_order.id).each do |tli|
@@ -67,11 +71,42 @@ FactoryBot.define do
         ticket_order.payments << FactoryBot.create(:flex_pass_payment,
                             :order=>ticket_order,
                             :number_of_tickets=>num_tix,
-                            :flex_pass_id => FlexPass.find_by_code(evaluator.flex_pass_code).id,
+                            :flex_pass_id => FlexPass.find_by_code(fc_code).id,
                             :amount=>(num_tix * new_ticket_class.ticket_price))
         ticket_order.status = Order::PROCESSED
         ticket_order.save!
       end
+    end
+
+    trait :paid_with_membership do
+
+      association :payment_type, :factory=>:membership_payment_type
+
+      after(:create) do |ticket_order, evaluator|
+        membership = FactoryBot.create(:membership, member_code:evaluator.member_code)
+
+        ticket_order.member_code=membership.member_code
+
+        find_code = membership.membership_offer.use_ticket_class_code
+        new_ticket_class = ticket_order.performance.ticket_class_allocations.select {|tca|
+          tca.ticket_class.class_code == find_code }.first.ticket_class
+        TicketLineItem.where(order_id: ticket_order.id).each do |tli|
+          tli.ticket_class = new_ticket_class
+          tli.save!
+        end
+
+        num_tix = ticket_order.ticket_line_items.inject(0){|sum, tli| sum += tli.ticket_count }
+        payment = FactoryBot.create(:membership_payment,
+                            :order=>ticket_order,
+                            :number_of_tickets=>num_tix,
+                            :membership => membership,
+                            :amount=>(num_tix * new_ticket_class.ticket_price))
+        ticket_order.payments << payment
+        ticket_order.status = Order::PROCESSED
+        ticket_order.save!
+
+      end
+
     end
 
     trait :paid_with_cash do
@@ -88,11 +123,19 @@ FactoryBot.define do
       end
     end
 
-    factory :ticket_order_for_a_pair_of_tickets_paid_with_flexpass, :traits=>[:for_a_pair_of_tickets, :paid_with_flex_pass]
-    factory :ticket_order_for_a_pair_of_tickets_paid_with_cash, :traits=>[:for_a_pair_of_tickets, :paid_with_cash]
-    factory :ticket_order_for_a_pair_of_tickets, :traits=>[:for_a_pair_of_tickets]
-    factory :ticket_order_for_an_expensive_pair_of_tickets, :traits=>[:for_an_expensive_pair_of_tickets]
-    factory :ticket_order_for_a_pair_of_tickets_paid_with_credit_card, :traits=>[:for_a_pair_of_tickets, :paid_with_credit_card]
+    trait :paid_with_external do
+      association               :payment_type, :factory=>:external_payment_type
+      after(:create) do |ticket_order, evaluator|
+        num_tix = ticket_order.ticket_line_items.inject(0){|sum, tli| sum += tli.ticket_count }
+        ticket_order.payments << FactoryBot.create(:cash_payment,
+                            :order=>ticket_order,
+                            :number_of_tickets=>num_tix,
+                            :amount=>(num_tix * ticket_order.ticket_line_items.inject(0){ |total, tli| total += tli.ticket_class.ticket_price }))
+        ticket_order.status = Order::PROCESSED
+        ticket_order.save!
+      end
+    end
+
   end
 
 

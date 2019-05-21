@@ -8,7 +8,7 @@ module RecurringProfile
     belongs_to :address
 
     validates_presence_of :address
-    validates_uniqueness_of :profile_id, allow_nil: true, allow_blank:true
+    validates_uniqueness_of :profile_id, allow_nil: true, allow_blank:true, :unless=>Proc.new {|profile| profile.profile_id.eql?(PaymentProcessing::BogusResponse::PROFILE_ID)}
     after_save :cancel_reconciliation_checks, :if=>Proc.new { |record|
       record.status_changed? && record.canceled?
     }

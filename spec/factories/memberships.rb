@@ -5,13 +5,17 @@ FactoryBot.define do
     name                    { 'Test membership' }
     recurring_cost          { BigDecimal.new("5.00") }
     use_ticket_class_code   { 'PASS' }
-    tickets_per_performance { 1 }
+    tickets_per_performance { 2 }
+
   end
 
   factory :membership do
+    member_code     { 'TESTMEM' }
     profile_id      { PaymentProcessing::BogusResponse::PROFILE_ID }
     status          { Membership::ACTIVE }
+    address
     membership_offer
+
   end
 
   factory :membership_order do
@@ -25,7 +29,7 @@ FactoryBot.define do
                           :amount=>membership_order.membership.membership_offer.recurring_cost,
                           :transaction_id => 'TEST_TRANSACTION',
                           :confirmation_code => 'CONFIRMED',
-                          :card_type=>'Visa',
+                          :card_type=>'bogus',
                           :card_last_four=>'1111')
       membership_order.status = Order::PROCESSED
       membership_order.save!

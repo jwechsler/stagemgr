@@ -3,7 +3,7 @@ require "spec_helper.rb"
 describe "order with service line items" do
 
   it "can have multiple order processing fees"  do
-    o = FactoryBot.create(:ticket_order_for_a_pair_of_tickets)
+    o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets)
     initial_cost = o.total
     initial_fee = o.ticketing_fee
     service_line_item = FactoryBot.create(:service_line_item, :facility_fee=>2.00, :amount=>20.0, :order=>o)

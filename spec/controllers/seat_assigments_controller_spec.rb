@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 RSpec.describe SeatAssignmentsController, type: :controller do
 
   before(:each) do
@@ -7,9 +5,8 @@ RSpec.describe SeatAssignmentsController, type: :controller do
     seat_map = FactoryBot.create(:seat_map, :with_seats, venue: venue)
 
     production = FactoryBot.create(:production, venue:venue, seat_map:seat_map)
-    puts '*** hi'
     performance = FactoryBot.create(:performance, production:production)
-    @ticket_order = FactoryBot.create(:ticket_order_for_a_pair_of_tickets, performance:performance)
+    @ticket_order = FactoryBot.create(:ticket_order,:for_a_pair_of_tickets, performance:performance)
   end
 
   describe "GET index" do
@@ -38,7 +35,7 @@ RSpec.describe SeatAssignmentsController, type: :controller do
       expect(SeatAssignment.find(reservation_id).status).to eq(SeatAssignment::ASSIGNED)
     end
 
-    it "releases a seat for an order in processing mode", wip:true do
+    it "releases a seat for an order in processing mode" do
       reservation_id = @inventory[0]['id']
       @ticket_order.transition_to!(Order::PROCESSING)
       post :reserve, performance_id: @ticket_order.performance_id, id:reservation_id, format: :json,  :order_id=>@ticket_order.id

@@ -3,7 +3,9 @@ require "spec_helper.rb"
 RSpec.shared_examples "a paid ticket order" do |ticket_order|
   let(:o) {ticket_order}
   it "can be refunded" do
-    expect(o.total).to be > 0
+    puts "*** #{o.id} #{o.payments.size} #{o.ticket_line_items.first.ticket_count}"
+    o.payments.each{|p| puts "*** PAYMENT: #{p.amount}"}
+    expect(o.total).to be > 0.0
     o.refund!
     expect(o.total).to eq(0)
   end
@@ -11,30 +13,21 @@ end
 
 describe TicketOrder, :wip=>true do
 
-  #it_behaves_like "a paid ticket order" do
-  #  let(:ticket_order) { FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash) }
-  #end
-
-  #it_behaves_like "a paid ticket order" do
-  #  let(:ticket_order) { FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_credit_card) }
-  #end
-
-  # include_examples "a paid ticket order", FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
-  # include_examples "paid with payment type", FactoryBot.create(:cash_payment_type)
-  # include_examples "paid with payment type", FactoryBot.create(:credit_card_payment_type)
-  # include_examples "paid with payment type", FactoryBot.create(:membership_payment_type)
-  # include_examples "paid with payment type", FactoryBot.create(:flex_pass_payment_type)
-  # include_examples "paid with payment type", FactoryBot.create(:external_payment_type)
+  include_examples "a paid ticket order", FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
+  include_examples "a paid ticket order", FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_credit_card)
+  include_examples "a paid ticket order", FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_membership)
+  include_examples "a paid ticket order", FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_flex_pass)
+  include_examples "a paid ticket order", FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_external)
 
 
   it "should mark its holder has having attended the production when fulfilled" do
-    original_order = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
+    original_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
     original_order.transition_to!(Order::FULFILLED)
     expect(original_order.performance.production.attendees.size).to eq(1)
   end
 
   it "should unmark the holder has having attended when refunded" do
-    o = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
+    o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
     o.transition_to!(Order::FULFILLED)
     production = o.performance.production
     o.refund!
@@ -42,7 +35,7 @@ describe TicketOrder, :wip=>true do
   end
 
    it "should unmark the holder has having attended when unclaimed" do
-    o = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
+    o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
     o.transition_to!(Order::FULFILLED)
     o.transition_to!(Order::UNCLAIMED)
     production = o.performance.production
@@ -51,11 +44,11 @@ describe TicketOrder, :wip=>true do
   end
 
   it "should preserve the attendance when cancelling one of multiple reservations" do
-    o = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
+    o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
     a = o.address
     o.transition_to!(Order::FULFILLED)
     expect(o.performance.production.attendees.count).to eq(1)
-    o2 = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash, :performance=>o.performance)
+    o2 = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash, :performance=>o.performance)
     o2.address = a
     o2.save!
     o2.transition_to!(Order::FULFILLED)
@@ -67,7 +60,7 @@ describe TicketOrder, :wip=>true do
   end
 
   it "does not block off seats when unclaimed" do
-    o = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
+    o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
     o2 = o.dup
     o2.status = Order::NEW
     o2.save!
@@ -87,9 +80,9 @@ describe TicketOrder, :wip=>true do
   end
 
   it "can prevent receipt emails from being generated for ticket classes that disallow receipts" do
-    expect(OutreachTask.where(method_symbol: :ticket_confirmation).count).to eq(0)
-    o = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
-    expect(OutreachTask.where(method_symbol: :ticket_confirmation).count).to eq(1)
+    start_count = OutreachTask.where(method_symbol: :ticket_confirmation).count
+    o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
+    expect(OutreachTask.where(method_symbol: :ticket_confirmation).count).to eq(start_count+1)
     o.ticket_line_items.first.ticket_class.suppress_receipt=true
     o.ticket_line_items.first.ticket_class.save!
     o2 = o.dup
@@ -98,7 +91,7 @@ describe TicketOrder, :wip=>true do
     o2.payment_type = FactoryBot.create(:cash_payment_type)
     o2.save!
     o2.transition_to!(Order::PROCESSED)
-    expect(OutreachTask.where(method_symbol: :ticket_confirmation).count).to eq(1)
+    expect(OutreachTask.where(method_symbol: :ticket_confirmation).count).to eq(start_count+1)
 
   end
 
@@ -108,13 +101,12 @@ describe TicketOrder, :wip=>true do
       production = FactoryBot.create(:production, :capacity=>4)
       performance = FactoryBot.create(:performance, :production=>production)
       expect(performance.number_of_seats_left).to eq(4)
-      o = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash, :performance=>performance)
-      o2 = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash, :performance=>performance)
+      o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash, :performance=>performance)
+      o2 = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash, :performance=>performance)
       expect(performance.number_of_seats_left).to eq(0)
 
-      expect(lambda { order = FactoryBot.create(:ticket_order_for_a_pair_of_tickets, :performance=>performance )
+      expect(lambda { order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :performance=>performance )
                   order.transition_to!(Order::PROCESSING)
-                  puts order.status
                   order.errors.each {|key, data| puts data.to_yaml }
             }).to raise_error(ActiveRecord::RecordInvalid)
     end
@@ -165,8 +157,8 @@ describe TicketOrder, :wip=>true do
     it "can mark an order in a sold-out performance as unclaimed" do
       production = FactoryBot.create(:production, :capacity=>4)
       performance = FactoryBot.create(:performance, :production=>production)
-      o = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash, :performance=>performance)
-      o2 = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash, :performance=>performance)
+      o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash, :performance=>performance)
+      o2 = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash, :performance=>performance)
       o.transition_to!(Order::FULFILLED)
       o2.transition_to!(Order::FULFILLED)
       expect(performance.number_of_seats_left).to eq(0)
@@ -175,13 +167,13 @@ describe TicketOrder, :wip=>true do
     end
 
     it "creates tasks for asynchronous post-operation, except where prohibited by the payment type" do
-      o = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
+      o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
       task_count = o.tasks.count
       expect(task_count).to be > 0
       payment_type = o.payment_type
       payment_type.order_task_suppressions << FactoryBot.create(:order_task_suppression, task_type:o.tasks.first.type, method_name:o.tasks.first.method_symbol)
       payment_type.save
-      o2 = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
+      o2 = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
       expect(o2.tasks.count).to eq(task_count)
       t = o2.tasks.first
       t.run!
@@ -191,7 +183,7 @@ describe TicketOrder, :wip=>true do
 
     it "can be held under a different name but not under an email" do
 
-      o = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
+      o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
       o.hold_under = "Another Name"
       expect(o.save).to equal(true)
       expect(o.hold_under).to eq('Another Name')
@@ -204,7 +196,7 @@ describe TicketOrder, :wip=>true do
 
   context "to an event that is not a performance" do
     before(:each) do
-      @ticket_order = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
+      @ticket_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
       @ticket_order.performance.production.production_class = Production::CLASS
       @ticket_order.performance.production.save
     end

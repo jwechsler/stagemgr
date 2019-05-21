@@ -110,9 +110,7 @@ group :development do
 end
 
 group :development,:test,:cucumber do
-  gem 'rspec-rails'
-  gem 'factory_bot_rails'
-  gem 'database_cleaner'
+
   gem 'byebug'
 end
 
@@ -124,6 +122,9 @@ group :test,:cucumber do
   gem 'cucumber-rails', :require=>false
   gem 'test-unit'
   gem 'simplecov'
+  gem 'rspec-rails'
+  gem 'factory_bot_rails'
+  gem 'database_cleaner'
 end
 
 group :test do

@@ -52,7 +52,7 @@ class TicketOrder < Order
     unless self.ticket_line_items.empty?
       ticket_counts_by_class = Hash.new
       self.ticket_line_items.each do |tli|
-        errors.add :base, "Missing allocation for #{self.performance.performance_code} / #{tli.ticket_class.class_code}" unless self.performance.ticket_class_allocations.map{|tla| tla.ticket_class }.include?(tli.ticket_class)
+        errors.add :base, "Missing allocation for #{self.performance.performance_code} / #{tli.ticket_class.nil? ? "NIL" : tli.ticket_class.class_code}" unless self.performance.ticket_class_allocations.map{|tla| tla.ticket_class }.include?(tli.ticket_class)
         if ticket_counts_by_class.has_key?(tli.ticket_class_id)
           ticket_counts_by_class[tli.ticket_class_id] += tli.ticket_count
         else
@@ -328,7 +328,8 @@ class TicketOrder < Order
   end
 
   def number_of_seats
-    self.ticket_line_items.inject(0) { |sum, li| sum + (li.ticket_class.holds_seats? ? li.ticket_count : 0)}
+
+    self.ticket_line_items.select {|tli| !tli.nil? && !tli.ticket_class.nil? }.inject(0) { |sum, li| sum + (li.ticket_class.holds_seats? ? li.ticket_count : 0)}
   end
 
   def performance_code=(string)
@@ -681,21 +682,19 @@ class TicketOrder < Order
   end
 
   def set_tickets_for_pass_redemption
-    if self.status_changed? && self.status == Order::PROCESSED
-      if self.paid_with_flexpass?
-        flex_pass = self.paid_with_flexpass
-        offer = flex_pass.flex_pass_offer
-        set_ticket_classes_using_offer(offer)
-      end
-      if self.paid_with_membership?
-        membership = Membership.find_by_member_code(self.member_code)
-        offer = membership.membership_offer
-        set_ticket_classes_using_offer(offer)
-        self.ticket_line_items
-
-      end
-
-    end
+   if self.status_changed? && self.status == Order::PROCESSED
+     if self.paid_with_flexpass?
+       flex_pass = self.paid_with_flexpass
+       offer = flex_pass.flex_pass_offer
+       set_ticket_classes_using_offer(offer)
+     end
+     if self.paid_with_membership?
+       membership = Membership.find_by_member_code(self.member_code)
+       offer = membership.membership_offer
+       set_ticket_classes_using_offer(offer)
+       self.ticket_line_items
+     end
+   end
   end
 
 

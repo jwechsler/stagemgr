@@ -1,6 +1,6 @@
 require "spec_helper.rb"
 
-describe "a ticket class" do
+describe TicketClass do
   before (:each) do
     @production = FactoryBot.create(:production, :capacity=>10)
     @performance = FactoryBot.create(:performance, :production=>@production)
@@ -26,7 +26,7 @@ describe "a ticket class" do
 
   it "should allow ticket types which do not hold seats for performances" do
     ticket_class = FactoryBot.create(:ticket_class, :production=>@production, :holds_seats=>false)
-    o = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
+    o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
     expect(o.performance.number_of_seats_left).not_to eq(o.performance.production.capacity)
     o.ticket_line_items.first.ticket_class = ticket_class
     o.ticket_line_items.first.save

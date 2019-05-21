@@ -19,7 +19,7 @@ class Production < ActiveRecord::Base
 
   validates_inclusion_of :status, :in => PRODUCTION_STATUSES
   validates_presence_of :theater, :name, :venue, :season, :production_code, :opening_at, :closing_at
-  validates_uniqueness_of :production_code
+  validates_uniqueness_of :production_code, :message=>"%{value} is already in use"
   validates_length_of :production_code, :in=>1..8
   validates_numericality_of :capacity
   validates_inclusion_of :seat_map, in: lambda{ |production| production.venue.seat_maps }, unless: Proc.new {|production| production.seat_map.nil?}

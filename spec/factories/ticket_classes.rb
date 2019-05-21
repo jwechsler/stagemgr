@@ -12,7 +12,7 @@ FactoryBot.define do
     ticket_type       { 'Fixed' }
     ticket_price      { 5.0 }
     ticketing_fee     { 0.0 }
-    association       :production
+    production
     auto_attach       { true }
     web_visible       { true }
     holds_seats       { true }

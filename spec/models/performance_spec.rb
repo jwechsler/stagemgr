@@ -1,6 +1,4 @@
-require "spec_helper.rb"
-
-describe "a performance" do
+RSpec.describe "a performance" do
 
   before (:each) do
     @production = FactoryBot.create(:production, :capacity=>10)

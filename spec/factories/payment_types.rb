@@ -2,7 +2,6 @@ FactoryBot.define do
 
   factory :credit_card_payment_type do
     display_name     { "Credit Card" }
-    card_type        { "bogus" }
     initialize_with  { CreditCardPaymentType.find_or_create_by(id:1) }
 
   end

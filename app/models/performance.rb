@@ -18,7 +18,7 @@ class Performance < ActiveRecord::Base
   validates_uniqueness_of  :performance_code
   validates_uniqueness_of  :performance_time, :scope=>[:performance_date, :production_id]
   validates_each           :performance_time do |record, attr, value|
-    if record.production.performances.any? do |p|
+    if !record.production.nil? && record.production.performances.any? do |p|
         p.id != record.id &&
         p.performance_date==record.performance_date &&
         p.performance_time.hour==record.performance_time.hour &&
@@ -27,17 +27,18 @@ class Performance < ActiveRecord::Base
       record.errors.add attr, 'has already been taken'
     end
   end
-  validates_presence_of    :performance_code
-  validates_presence_of    :performance_date
-  validates_presence_of    :performance_time
+  validates_presence_of           :performance_code
+  validates_presence_of           :performance_date
+  validates_presence_of           :performance_time
+  validates_presence_of           :production
 
-  before_validation              :clean_values
-  before_validation              :populate_ticket_class_allocations
-  before_validation              :performance_code_must_match_production
-  before_save                     :manage_seat_inventory
+  before_validation               :clean_values
+  before_validation               :populate_ticket_class_allocations, :unless=>Proc.new { |p| p.production.nil? }
+  before_validation               :performance_code_must_match_production, :unless=>Proc.new { |p| p.production.nil? }
+  before_save                     :manage_seat_inventory, :unless=>Proc.new { |p| p.production.nil? }
   before_destroy                  :protect_performances_with_orders
 
-  accepts_nested_attributes_for  :ticket_class_allocations
+  accepts_nested_attributes_for   :ticket_class_allocations
 
   def number_of_seats_left(exclude_order = nil)
     self.production.capacity - self.seats_held(exclude_order)
@@ -111,6 +112,7 @@ class Performance < ActiveRecord::Base
     (self.production.ticket_classes - self.ticket_class_allocations.map{|tca|tca.ticket_class}).map do |ticket_class|
       self.ticket_class_allocations.build({:ticket_class=>ticket_class, :available=>ticket_class.auto_attach, :performance=>self})
     end
+
   end
 
   def allocation(class_code)

@@ -1,6 +1,4 @@
-require "spec_helper.rb"
-
-describe ProductionStat do
+RSpec.describe ProductionStat do
   before(:each) do
     @production = FactoryBot.create(:production)
     @production_stat = FactoryBot.create(:production_stat, :production=>@production)
@@ -14,7 +12,7 @@ describe ProductionStat do
       @performance1 = FactoryBot.create(:performance, :production=>@production, :performance_date=>Date.today - 1.day)
       @orders = Array.new
       3.times do
-        order = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash, :performance=>@performance1)
+        order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash, :performance=>@performance1)
         order.payments.each {|payment| payment.processed_on = @performance1.to_datetime - 1.day
           payment.save
         }
@@ -26,7 +24,7 @@ describe ProductionStat do
       end
       @performance2 = FactoryBot.create(:performance, :production=>@production, :performance_date=>Date.today + 2.days)
       2.times do
-        order = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash, :performance=>@performance2)
+        order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash, :performance=>@performance2)
         @cheap_price = order.ticket_line_items.first.ticket_class.ticket_price
         order.payments.each {|payment| payment.processed_on = @performance2.to_datetime - 1.day
           payment.save

@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 shared_examples_for RecurringProfile do
   before(:each) do
     @paypal_callback.merge!({'recurring_payment_id' => PaymentProcessing::BogusResponse::PROFILE_ID})

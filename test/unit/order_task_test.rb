@@ -11,7 +11,7 @@ class OrderTaskTest < ActiveSupport::TestCase
 
         performance = FactoryBot.create(:performance)
 
-        @order = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
+        @order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
 
       end
     end

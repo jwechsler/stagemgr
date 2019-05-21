@@ -1,0 +1,15 @@
+example_id                                                      | status  | run_time |
+--------------------------------------------------------------- | ------- | -------- |
+./spec/controllers/seat_assigments_controller_spec.rb[1:1:1]    | unknown |          |
+./spec/controllers/seat_assigments_controller_spec.rb[1:2:1]    | unknown |          |
+./spec/controllers/seat_assigments_controller_spec.rb[1:2:2]    | unknown |          |
+./spec/helpers/admin/seat_maps_helper_spec.rb[1:1]              | unknown |          |
+./spec/helpers/admin/service_item_templates_helper_spec.rb[1:1] | unknown |          |
+./spec/helpers/seat_assignment_helper_spec.rb[1:1]              | unknown |          |
+./spec/models/seat_map_spec.rb[1:1:1]                           | unknown |          |
+./spec/models/seat_map_spec.rb[1:1:2]                           | unknown |          |
+./spec/models/seat_map_spec.rb[1:1:3]                           | unknown |          |
+./spec/models/seat_map_spec.rb[1:1:4]                           | unknown |          |
+./spec/models/seat_map_spec.rb[1:2:1]                           | unknown |          |
+./spec/models/service_item_template_spec.rb[1:1]                | unknown |          |
+./spec/models/service_item_template_spec.rb[1:2]                | unknown |          |

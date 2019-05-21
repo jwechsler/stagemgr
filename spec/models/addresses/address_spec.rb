@@ -2,11 +2,11 @@ require "spec_helper.rb"
 
 describe "a customer record" do
   it "should merge/purge production attendance records" do
-    o = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
+    o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
     o.transition_to!(Order::FULFILLED)
     original_address = o.address
     expect(original_address.productions.size).to equal(1)
-    o2 = FactoryBot.create(:ticket_order_for_a_pair_of_tickets_paid_with_cash)
+    o2 = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
     expect(o2.performance.production_id).not_to equal(o.performance.production_id)
     purge_address = original_address.dup
     purge_address.full_name = purge_address.full_name + "-updated"

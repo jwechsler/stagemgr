@@ -1,5 +1,3 @@
-require 'spec_helper.rb'
-
 describe MembershipOrder do
 
   it 'should automatically notify management when the embedded recurring profile is suspended' do
