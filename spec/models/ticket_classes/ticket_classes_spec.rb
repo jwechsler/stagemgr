@@ -1,6 +1,6 @@
-require "spec_helper.rb"
+require 'rails_helper'
 
-describe TicketClass do
+RSpec.describe TicketClass do
   before (:each) do
     @production = FactoryBot.create(:production, :capacity=>10)
     @performance = FactoryBot.create(:performance, :production=>@production)

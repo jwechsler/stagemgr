@@ -1,6 +1,6 @@
-require "spec_helper.rb"
+require 'rails_helper'
 
-describe "a donation order" do
+RSpec.describe "a donation order" do
 
   context "when a single donation" do
 

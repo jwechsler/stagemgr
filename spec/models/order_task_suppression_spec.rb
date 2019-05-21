@@ -1,4 +1,6 @@
-describe OrderTaskSuppression do
+require 'rails_helper'
+
+RSpec.describe OrderTaskSuppression do
   it "prevents order tasks associated with it from firing" do
     o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
     t = o.tasks.first

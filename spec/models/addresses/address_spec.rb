@@ -1,6 +1,6 @@
-require "spec_helper.rb"
+require "rails_helper"
 
-describe "a customer record" do
+RSpec.describe "a customer record" do
   it "should merge/purge production attendance records" do
     o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
     o.transition_to!(Order::FULFILLED)

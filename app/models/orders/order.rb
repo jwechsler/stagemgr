@@ -131,7 +131,7 @@ class Order < ActiveRecord::Base
       sum_payments = self.payments.select{|p| p.report_as_sales_income?}
       total = sum_payments.empty? ? 0 : sum_payments.sum{|p| p.amount}
     else
-      total =  self.payments.to_a.sum(&:amount)
+      total =  self.payments.sum(:amount)
     end
     total
   end

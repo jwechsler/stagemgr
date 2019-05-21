@@ -1,4 +1,6 @@
-describe MembershipOrder do
+require 'rails_helper'
+
+RSpec.describe MembershipOrder do
 
   it 'should automatically notify management when the embedded recurring profile is suspended' do
     recurring_order = FactoryBot.create(:membership_order)

@@ -1,6 +1,6 @@
-require "spec_helper.rb"
+require 'rails_helper'
 
-describe "a payment type"  do
+RSpec.describe "a payment type"  do
   it "can save tasks and methods that should be suppressed" do
     @payment_type = FactoryBot.create(:external_payment_type)
     suppress_order_spec = FactoryBot.create(:order_task_suppression, task_type:'OutreachTask',method_name:'ticket_confirmation')

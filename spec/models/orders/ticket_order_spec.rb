@@ -1,17 +1,15 @@
-require "spec_helper.rb"
+require 'rails_helper'
 
 RSpec.shared_examples "a paid ticket order" do |ticket_order|
   let(:o) {ticket_order}
   it "can be refunded" do
-    puts "*** #{o.id} #{o.payments.size} #{o.ticket_line_items.first.ticket_count}"
-    o.payments.each{|p| puts "*** PAYMENT: #{p.amount}"}
     expect(o.total).to be > 0.0
     o.refund!
     expect(o.total).to eq(0)
   end
 end
 
-describe TicketOrder, :wip=>true do
+RSpec.describe TicketOrder do
 
   include_examples "a paid ticket order", FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
   include_examples "a paid ticket order", FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_credit_card)

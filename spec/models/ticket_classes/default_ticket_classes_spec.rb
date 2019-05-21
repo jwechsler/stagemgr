@@ -1,4 +1,6 @@
-describe DefaultTicketClass, :wip=>true do
+require 'rails_helper'
+
+RSpec.describe DefaultTicketClass, :wip=>true do
   it "should create an identical copy of itself as an associated ticket class when a production is created" do
     default_ticket_class = FactoryBot.create(:default_ticket_class, :class_code=>'TEST')
     default_ticket_class.save

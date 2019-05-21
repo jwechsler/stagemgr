@@ -1,3 +1,5 @@
+require 'rails_helper'
+
 shared_examples_for RecurringProfile do
   before(:each) do
     @paypal_callback.merge!({'recurring_payment_id' => PaymentProcessing::BogusResponse::PROFILE_ID})
@@ -72,7 +74,7 @@ shared_examples_for RecurringProfile do
   end
 end
 
-describe PayPalControllerHelper do
+RSpec.describe PayPalControllerHelper do
   before (:each) do
     @paypal_callback = {'ipn_track_id'=>'IPNTRACK1',
                         'payment_date'=>DateTime.now.to_formatted_s(:paypal),

@@ -1,4 +1,6 @@
-describe "an exchanged ticket order" do
+require 'rails_helper'
+
+RSpec.describe "an exchanged ticket order" do
   it "should have an offset payment" do
     original_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
     exchange_order = FactoryBot.create(:ticket_order)

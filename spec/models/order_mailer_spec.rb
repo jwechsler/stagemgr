@@ -1,4 +1,6 @@
-describe OrderMailer do
+require 'rails_helper'
+
+RSpec.describe OrderMailer do
 
   describe 'confirmation' do
 

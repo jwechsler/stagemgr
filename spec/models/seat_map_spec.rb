@@ -1,3 +1,5 @@
+require 'rails_helper'
+
 RSpec.describe SeatMap, type: :model do
   context "creation" do
 
@@ -43,7 +45,7 @@ RSpec.describe SeatMap, type: :model do
 
   context "inventory management" do
     before(:each) do
-      @seat_map = FactoryBot.create(:seat_map_with_seats)
+      @seat_map = FactoryBot.create(:seat_map, :with_seats)
 
     end
 

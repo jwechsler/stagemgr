@@ -1,3 +1,5 @@
+require 'rails_helper'
+
 RSpec.describe ProductionStat do
   before(:each) do
     @production = FactoryBot.create(:production)
@@ -35,7 +37,7 @@ RSpec.describe ProductionStat do
         end
         @orders << order
       end
-      order = FactoryBot.create(:ticket_order_for_an_expensive_pair_of_tickets, :performance=>@performance2)
+      order = FactoryBot.create(:ticket_order, :for_an_expensive_pair_of_tickets, :performance=>@performance2)
       @expensive_price = order.ticket_line_items.first.ticket_class.ticket_price
       order.payments.each {|payment| payment.processed_on = @performance2.to_datetime - 1.day
           payment.save!

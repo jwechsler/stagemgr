@@ -1,6 +1,6 @@
-require "spec_helper.rb"
+require 'rails_helper'
 
-describe "a special offer" do
+RSpec.describe "a special offer" do
 
   it "can change the price of a ticket order" do
     o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets)

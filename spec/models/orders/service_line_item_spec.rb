@@ -1,6 +1,6 @@
-require "spec_helper.rb"
+require 'rails_helper'
 
-describe "order with service line items" do
+RSpec.describe "order with service line items" do
 
   it "can have multiple order processing fees"  do
     o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets)
