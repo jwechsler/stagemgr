@@ -8,6 +8,12 @@ def enter_patron_information
   fill_in "Phone", :with=>"555-555-1212"
 end
 
+When /^I place the order$/ do
+  click_button('Place Order')
+  page.driver.browser.switch_to.alert.accept
+end
+
+
 Given /^I create a ticket order$/ do
   fill_in "ticket_order_production_code", :with => "ABC12"
   fill_in "ticket_order_performance_code", :with => "PERF"
@@ -38,26 +44,25 @@ When /^I prefer "(.*?)" seating$/ do |seating_preference|
   select seating_preference, :from=>"Preferred Seating"
 end
 
-When /^I enter a valid credit card as payment( through the backend)?$/ do |backend|
+When /^I enter a valid credit card as payment through the backend?$/ do
   @_current_form = 'ticket_order' if @_current_form.blank?
 
-  if @using_admin_interface
-    select "Credit Card", :from=>"#{@_current_form}_payment_type_id"
-  else
-    choose "Credit Card"
-  end
-  select "Visa", :from=>"#{@_current_form}_credit_card_type"
-  unless @using_admin_interface
-    select "01", :from=>"#{@_current_form}_credit_card_expiration_month"
-  else
-    fill_in "MM", :with=>Date.today.month.to_s
-  end
-  unless @using_admin_interface
-    select "2020", :from=>"#{@_current_form}_credit_card_expiration_year"
-  else
-    fill_in "YY", :with=>'18'
-  end
-  fill_in @using_admin_interface ? 'Credit card number' : 'Card #', :with=>"4111111111111111"
+  select "Credit Card", from: "#{@_current_form}_payment_type_id"
+  select 'bogus', from:"#{@_current_form}_credit_card_type"
+  # select "Visa", :from=>"#{@_current_form}_credit_card_type"
+  fill_in "#{@_current_form}_credit_card_expiration_month", :with=>"01"
+  fill_in "#{@_current_form}_credit_card_expiration_year", :with=>'21'
+  fill_in 'Credit card number', :with=>"4111111111111111"
+  fill_in "CVV", :with=>"581"
+end
+
+Given("I enter a valid credit card as payment") do
+
+  select 'Visa', from: "Card"
+  # select "Visa", :from=>"#{@_current_form}_credit_card_type"
+  select "01", from: "Month"
+  select (Date.current.year+1).to_s, from: "Year"
+  fill_in 'Card #', :with=>"4111111111111111"
   fill_in "CVV", :with=>"581"
 end
 

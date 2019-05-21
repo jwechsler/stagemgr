@@ -6,6 +6,7 @@
 //= require autocomplete-rails
 //= require datatables
 //= require jquery.dataTables.yadcf
+//= require_this
 
 
 // setup dataTable with standard active switch selector. Call from ready state

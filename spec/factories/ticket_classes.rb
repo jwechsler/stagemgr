@@ -18,7 +18,7 @@ FactoryBot.define do
     holds_seats       { true }
     software_managed  { false }
     sequence(:class_code) { |n| "GEN#{'%02d' % n}" }
-
+    sequence(:class_name) { |n| "General #{n}"}
     trait :software_managed do
       software_managed   { true }
       web_visible        { false }

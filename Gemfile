@@ -117,23 +117,22 @@ end
 
 group :test,:cucumber do
   gem 'capybara'
-  gem 'capybara-webkit'
+  gem 'puma'
+  # gem 'poltergeist'
+  gem 'selenium-webdriver'
   gem 'sqlite3'
   gem 'cucumber-rails', :require=>false
-  gem 'test-unit'
   gem 'simplecov'
-  gem 'rspec-rails'
   gem 'factory_bot_rails'
   gem 'database_cleaner'
 end
 
 group :test do
   gem 'syntax'
-  gem 'webrat'
-  gem 'rspec'
+
+  gem 'rspec-rails'
   gem "mocha", :require => false
   gem 'flexmock'
-  gem 'shoulda-context'
   gem 'fakeredis', :require => "fakeredis/rspec"
 end
 

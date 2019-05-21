@@ -12,15 +12,15 @@ Given /^I enter a performance date of "(.*?)"$/ do |perf_date|
 end
 
 Given /^I enter a trigger to "(.*?)" based on "(.*?)" days before for the (\d+)(?:st|nd|rd|th) ticket class$/ do |code, value, num|
-  fill_in "performance_ticket_class_allocations_attributes_#{num}_shift_days_before_performance", :with=>value
-  select code, :from=>"performance_ticket_class_allocations_attributes_#{num}_shift_to_code"
-  check "performance_ticket_class_allocations_attributes_#{num}_shiftable"
+  fill_in "performance_ticket_class_allocations_attributes_#{num-1}_shift_days_before_performance", :with=>value
+  select code, :from=>"performance_ticket_class_allocations_attributes_#{num-1}_shift_to_code"
+  check "performance_ticket_class_allocations_attributes_#{num-1}_shiftable"
 end
 
 Given /^I enter a trigger to "(.*?)" based on capacity of "(.*?)" for the (\d+)(?:st|nd|rd|th) ticket class$/ do |code, value, num|
-  fill_in "performance_ticket_class_allocations_attributes_#{num}_shift_when_capacity_over", :with=>value
-  select code, :from=>"performance_ticket_class_allocations_attributes_#{num}_shift_to_code"
-  check "performance_ticket_class_allocations_attributes_#{num}_shiftable"
+  fill_in "performance_ticket_class_allocations_attributes_#{num-1}_shift_when_capacity_over", :with=>value
+  select code, :from=>"performance_ticket_class_allocations_attributes_#{num-1}_shift_to_code"
+  check "performance_ticket_class_allocations_attributes_#{num-1}_shiftable"
 end
 
 Given /^I enter a custom feature description of "(.*?)"$/ do |description|

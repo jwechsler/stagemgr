@@ -51,7 +51,7 @@ Feature: Membership Administration
       And I am logged in
       And I go to the new admin membership order page for offer "Monthly Membership"
       And I enter my contact information
-      And I enter a valid credit card as payment
+      And I enter a valid credit card as payment through the backend
       And I press "Place Order"
      Then I should see "Customer successfully set up for the Monthly Membership payment plan"
 
@@ -68,29 +68,30 @@ Feature: Membership Administration
       And I should see "Successfully created"
       And a membership_offer should exist with trial_period of 1
 
-  @wip @javascript
+  @javascript
   Scenario: Box office personnel can place membership gift orders
     Given I am a box office user
       And I am logged in
      When I go to the new admin membership order page for offer "Monthly Membership"
       And I enter my contact information
-      And I enter a valid credit card as payment
+      And I enter a valid credit card as payment through the backend
       And I check "Give as a gift"
       And I enter a gift recipient
-      And I press "Place Order"
+      And I place the order
     Then a membership exists with status "Active"
       And a membership order exists with a gift recipient "Gift Getter"
       # And a membership order exists for "Ticket Buyer"
       And an address "Ticket Buyer" exists
       And an address "Gift Getter" exists
-    And I should see "Customer successfully set up for the Monthly Membership payment plan"
+      And I should see "Customer successfully set up"
+      And I should see "Monthly Membership"
 
   Scenario: Members can specify requested seating
     Given I am a box office user
       And I am logged in
      When I go to the new admin membership order page for offer "Monthly Membership"
       And I enter my contact information
-      And I enter a valid credit card as payment
+      And I enter a valid credit card as payment through the backend
       And I prefer "Front row" seating
       And I press "Place Order"
      Then a membership exists with status "Active"

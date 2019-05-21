@@ -3,6 +3,16 @@ Given /^I allow ([^\s]*) payments for the public$/ do |payment_type|
   check "payment_type_allow_for_public"
 end
 
+Given("I disallow reporting sales") do
+  uncheck "payment_type_report_as_sales_income"
+end
+
+Given("I allow reporting sales") do
+  check "payment_type_report_as_sales_income"
+end
+
+
+
 Given /^I disallow ([^\s]*) payments for the public$/ do |payment_type|
   uncheck "payment_type_allow_for_public"
 end

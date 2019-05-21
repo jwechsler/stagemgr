@@ -49,7 +49,7 @@ class CurrentUser::UsersController < CurrentUser::ApplicationController
       flash[:notice] = "User #{user.login} deleted!"
     end
 
-    redirect_to root_path
+    redirect_to root_url
   end
 
   private

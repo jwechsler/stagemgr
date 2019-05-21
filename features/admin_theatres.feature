@@ -49,7 +49,7 @@ Feature: The Administrator can manage theater records
       And I am logged in
       And I go to the admin/theater page
       And I follow "edit_abc_theater"
-     When I change "Name" to "ABD Theater"
+     When I change "theater_name" to "ABD Theater"
       And I press "Update"
      Then I should be on the admin/theater page
       And I should see "ABD Theater"

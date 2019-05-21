@@ -12,15 +12,16 @@ module NavigationHelpers
       when /the home\s?page/
         '/'
       when /^the login page$/
-        url_for(:controller => 'user_sessions', :action => 'new', :only_path => true)
+        new_user_session_path
       when /^the logout page$/
         logout_path
       when /^the admin[\/| ]theaters? page$/
         @using_admin_interface = true
-        url_for(:controller => 'admin/theaters', :action => 'index', :only_path => true)
+        admin_theaters_path
       when /^the admin detail page for theater ["'](.*)['"]$/
         @using_admin_interface = true
-        url_for(:controller => 'admin/theaters', :action => 'show', :id => Theater.find_by_name($1).id, :only_path => true)
+        admin_theater_path(Theater.find_by_name($1).id)
+        #url_for(:controller => 'admin/theaters', :action => 'show', :id => Theater.find_by_name($1).id, :only_path => true)
       when /^the admin edit page for user ["'](.*)['"]$/
         @using_admin_interface = true
         url_for(controller: 'admin/users', action: 'edit', id: User.find_by_email($1), only_path:true)
@@ -46,27 +47,27 @@ module NavigationHelpers
       when /^New Box Office Order$/
         url_for(:controller => 'admin/ticket_orders', :action => 'new', :only_path => true)
       when /^new web order for production "([^"]*)" and performance "([^"]*)"/
-        new_production_performance_order_url(Production.find_by_name($1).id, Performance.find_by_performance_code($2).id)
+        new_production_performance_order_path(Production.find_by_name($1).id, Performance.find_by_performance_code($2).id)
       when /^the box office calendar for production "([^"]*)"/
         production_performances_path(Production.find_by_name($1))
       when /^(the )?new membership order for membership offer "([^"]*)"/
         @_current_form='membership_order'
-        new_membership_offer_order_url(MembershipOffer.find_by_name($2).id)
+        new_membership_offer_order_path(MembershipOffer.find_by_name($2).id)
       when /^the admin edit page for membership offer "([^"]*)"/
         @using_admin_interface = true
-        edit_admin_membership_offer_url(MembershipOffer.find_by_name($1))
+        edit_admin_membership_offer_path(MembershipOffer.find_by_name($1))
       when /^(the )?new donation order$/
         @_current_form='donation_order'
-        new_donation_order_url
+        new_donation_order_path
       when /^(the |a )?new monthly pledge$/
         @_current_form='donation_pledge_order'
-        new_donation_pledge_order_url
+        new_donation_pledge_order_path
       when /^new admin ticket order$/
         @using_admin_interface = true
-        new_admin_ticket_order_url
+        new_admin_ticket_order_path
       when /^the admin ticket order detail page$/
         @using_admin_interface = true
-        admin_ticket_order_url(TicketOrder.last)
+        admin_ticket_order_path(TicketOrder.last)
       when /^the admin order page for the (.*)$/
         @using_admin_interface = true
         page_type = "#{$1}".gsub(' ','_')

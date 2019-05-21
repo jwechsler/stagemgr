@@ -1,3 +1,14 @@
+# Admin page navigation shortcuts
+
+Given("I visit the new admin ticket order page") do
+  visit new_admin_ticket_order_path
+end
+
+Given("I wait {int} seconds") do |int|
+  sleep(int)
+end
+
+
 def enter_base_production(code, capacity = 99)
   fill_in "Production code", :with=>code
   fill_in "Name", :with=>"Production #{code}"
@@ -42,18 +53,23 @@ When /^all production status values are presented$/ do
 end
 
 When /^I enter a theater called "([^\"]*)"$/ do |name|
-  fill_in "Name", :with=>name
+  fill_in "theater_name", :with=>name
   select Theater::THEATER_CLASSES.first, :from=>"Theater class"
 end
 
 When /^I enter production code "([^\"]*)" and performance code "([^\"]*)"$/ do |prod_code, perf_code|
+
   fill_in "ticket_order_production_code", :with=>prod_code
   fill_in "ticket_order_performance_code", :with=>perf_code
+  page.execute_script "$('#production_id').val('#{Production.find_by(production_code:prod_code).id}')"
+  page.execute_script "$('#performance_id').val('#{Performance.find_by(performance_code:perf_code).id}')"
+
 end
 
 When /^I enter (\d+) "([^\"]*)" tickets$/ do |qty, ticket_class_code|
   fill_in "ticket_order_ticket_line_items_attributes_0_ticket_class_code", :with =>  ticket_class_code
   fill_in "ticket_order_ticket_line_items_attributes_0_ticket_count", :with=>qty
+  page.execute_script "$('.ticket_class_ids').val('1')"
 end
 
 When /^I enter a membership offer "(.*?)"$/ do |offer_name|
@@ -90,7 +106,6 @@ end
 
 
 Given /^I add a tag "(.*?)" to the first address tag label$/ do |label|
-  save_and_open_page
   click_link("Add a tag")
 
   fill_in "#address_tags input:nth-of-type(1)", :with=>label
