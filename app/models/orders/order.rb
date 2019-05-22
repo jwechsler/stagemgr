@@ -379,13 +379,13 @@ class Order < ActiveRecord::Base
   end
 
   def refund!
-
     Order.transaction do
       refund_payments = []
       create_notify_refund_task if self.fulfilled?
       build_refunds = self.payments.dup
       build_refunds.each { |payment| payment.refund!(nil, self.notes) if payment.respond_to? :refund! }
-      self.unique_line_items.each { |li| self.refund_line_items (li.refund!) if li.respond_to? :refund!  }
+
+      self.all_line_items.each { |li| self.refund_line_items (li.refund!) if li.respond_to? :refund!  }
       self.status = REFUNDED
       self.save!
     end
@@ -616,8 +616,9 @@ class Order < ActiveRecord::Base
 
   def all_line_items(reload_line_items = false)
     result = Array.new
-    result << self.special_offer_line_item(reload_line_items)
-    result + self.service_line_items(reload_line_items)
+    result << self.special_offer_line_item(reload_line_items) unless self.special_offer_line_item.nil?
+    result += self.service_line_items(reload_line_items)
+    result.select{|r| !r.nil?}
   end
 
 

@@ -1,45 +1,44 @@
 require 'rails_helper'
 
-RSpec.shared_examples "a paid ticket order" do |ticket_order|
-  let(:o) {ticket_order}
+RSpec.shared_examples "a paid ticket order" do |payment_type|
+  let(:pay_method) {payment_type}
   it "can be refunded" do
+    o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, pay_method)
     expect(o.total).to be > 0.0
     o.refund!
     expect(o.total).to eq(0)
   end
-end
-
-RSpec.describe TicketOrder do
-
-  include_examples "a paid ticket order", FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
-  include_examples "a paid ticket order", FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_credit_card)
-  # include_examples "a paid ticket order", FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_membership)
-  # include_examples "a paid ticket order", FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_flex_pass)
-  include_examples "a paid ticket order", FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_external)
-
-
   it "should mark its holder has having attended the production when fulfilled" do
-    original_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
-    original_order.transition_to!(Order::FULFILLED)
-    expect(original_order.performance.production.attendees.size).to eq(1)
+    o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, pay_method)
+    o.transition_to!(Order::FULFILLED)
+    expect(o.performance.production.attendees.size).to eq(1)
   end
-
   it "should unmark the holder has having attended when refunded" do
-    o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
+    o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, pay_method)
     o.transition_to!(Order::FULFILLED)
     production = o.performance.production
     o.refund!
     expect(o.performance.production.attendees.size).to eq(0)
   end
-
    it "should unmark the holder has having attended when unclaimed" do
-    o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
+    o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, pay_method)
     o.transition_to!(Order::FULFILLED)
     o.transition_to!(Order::UNCLAIMED)
-    production = o.performance.production
-    o.refund!
     expect(o.performance.production.attendees.count).to eq(0)
   end
+
+end
+
+RSpec.describe TicketOrder do
+
+  include_examples "a paid ticket order", :paid_with_cash
+  include_examples "a paid ticket order", :paid_with_credit_card
+  include_examples "a paid ticket order", :paid_with_membership
+  include_examples "a paid ticket order", :paid_with_flex_pass
+  include_examples "a paid ticket order", :paid_with_external
+
+
+
 
   it "should preserve the attendance when cancelling one of multiple reservations" do
     o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)

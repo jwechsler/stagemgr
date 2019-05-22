@@ -64,9 +64,12 @@ class TicketClass < ActiveRecord::Base
 
   private
   def update_auto_attached_performances
-    self.production.performances.each {| perf|
-      perf.populate_ticket_class_allocations
-      perf.save! } if self.auto_attach?
+    if self.auto_attach?
+      Performance.where(production_id: self.production_id).each {| perf|
+        perf.populate_ticket_class_allocations
+        perf.save!
+      }
+    end
   end
 
   private

@@ -26,6 +26,7 @@ class TicketLineItem < LineItem
     if self.ticket_count > 0
       refund_lineitem = self.dup
       refund_lineitem.ticket_count = refund_lineitem.ticket_count*-1
+      refund_lineitem.ticket_class = self.ticket_class
       [refund_lineitem]
     else
       []

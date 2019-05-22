@@ -20,19 +20,24 @@ class Membership < ActiveRecord::Base
 
   def verify_applicable_for(order)
     unless self.membership_offer.tickets_per_performance.nil?
-      perfs = Order.where("performance_id = ? and id in (select order_id from payments where type = 'MembershipPayment' and membership_id = ?)", order.performance_id, self.id)
+      perfs = Order.where("performance_id = ? and id <> ? and id in (select order_id from payments where type = 'MembershipPayment' and membership_id = ?)", order.id,order.performance_id, self.id)
       raise Exceptions::TooManyTicketsForMembership.new("This membership allows you #{self.membership_offer.tickets_per_performance} seat#{'s' if self.membership_offer.tickets_per_performance > 1} per performance") if self.membership_offer.tickets_per_performance < perfs.inject(0) { |sum, o1| sum += o1.membership_payments.inject(0) { |sum, p| sum += p.number_of_tickets } }
     end
     if order.membership_payments.sum{|li| li.number_of_tickets} > 0
-      prods = Production.where("exists (select * from performances, orders orders_old, orders, payments, line_items, ticket_classes
-        where line_items.order_id = orders.id and payments.type = 'MembershipPayment' and
-            ticket_classes.id = line_items.ticket_class_id and ticket_classes.class_code = ? and
-            payments.order_id = orders.id and orders.performance_id = performances.id and
-            performances.production_id = productions.id and payments.membership_id = ? and
-            orders.id != ? and productions.id = ? and orders.status in (?))",
-                                           self.membership_offer.use_ticket_class_code,
-                                           self.id, order.id, order.performance.production_id, Order.attending_statuses).count
-    raise Exceptions::RepeatVisitsAtDoorOnly.new("Tickets for repeat trips to the same show are based on availability at the door on the day of performance.  To see this show again, just come to the box office with your member pass on #{order.performance.performance_date.strftime("%B %d")} at #{(order.performance.performance_time-30.minutes).strftime("%I:%M%p")}.") if prods > 0
+      prod_count = Performance.includes(
+        orders: [[ticket_line_items: :ticket_class], :payments]
+        ).references(:orders, :payments, :ticket_classes
+        ).where(
+          'payments.type = \'MembershipPayment\' and payments.membership_id = :membership_id and
+          orders.id != :order_id and performances.production_id = :production_id and
+          ticket_classes.class_code = :class_code and orders.status in (:attending)',
+          class_code:self.membership_offer.use_ticket_class_code,
+          membership_id: self.id,
+          order_id: order.id,
+          production_id: order.performance.production_id,
+          attending:Order.attending_statuses
+        ).count
+    raise Exceptions::RepeatVisitsAtDoorOnly.new("Tickets for repeat trips to the same show are based on availability at the door on the day of performance.  To see this show again, just come to the box office with your member pass on #{order.performance.performance_date.strftime("%B %d")} at #{(order.performance.performance_time-30.minutes).strftime("%I:%M%p")}.") if prod_count > 0
     end
   end
 

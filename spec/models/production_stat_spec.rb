@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe ProductionStat, :wip=>true do
+RSpec.describe ProductionStat do
   before(:each) do
     @production = FactoryBot.create(:production)
     @production_stat = FactoryBot.create(:production_stat, :production=>@production)

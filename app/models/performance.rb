@@ -62,7 +62,7 @@ class Performance < ActiveRecord::Base
       seats_currently_held = self.seats_held
       self.ticket_class_allocations.select{|tca| tca.shiftable? && tca.available?}.each do |tca|
         if tca.trigger_satisfied?(seats_currently_held)
-          logger.info("Promoting #{p.to_s}, ticket class #{tca.ticket_class.class_code} to #{tca.shift_to_code}")
+          Rails.logger.info("Promoting #{self.to_s}, ticket class #{tca.ticket_class.class_code} to #{tca.shift_to_code}")
           tca.available = false
           allocation = self.allocation(tca.shift_to_code)
           allocation.available = true
@@ -72,7 +72,7 @@ class Performance < ActiveRecord::Base
         end
       end
       scan_required = new_scan
-      self.ticket_class_allocations(true) if new_scan
+      self.ticket_class_allocations.reload
     end
 
   end
@@ -173,7 +173,7 @@ class Performance < ActiveRecord::Base
           if sa.order_id.nil? && sa.status == "Available"
             sa.destroy
           else
-            puts "*** Seat Assignment #{sa.id} is for seat map #{sa.seat.seat_map_id}, location #{sa.seat.location} and is #{sa.status} to order #{sa.order_id}"
+            Rails.logger.error "Seat Assignment #{sa.id} is for seat map #{sa.seat.seat_map_id}, location #{sa.seat.location} and is #{sa.status} to order #{sa.order_id}"
           end
         }
       }
