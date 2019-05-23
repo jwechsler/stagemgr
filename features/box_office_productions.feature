@@ -1,4 +1,4 @@
-@javascript
+@javascript @wip
 Feature: An administrator can add production details to a theater
   Given a theater has been created
   As a StageMgr box office user
@@ -44,7 +44,7 @@ Feature: An administrator can add production details to a theater
   Given a production "Production One" exists
     And I go to the admin detail page for theater "Theater One"
     And I follow "Edit"
-    And I change "Name" to "Production One (Changed)"
+    And I change "production_name" to "Production One (Changed)"
    When I press "Update"
    Then I should see "Production One (Changed)"
 
