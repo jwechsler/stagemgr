@@ -31,7 +31,7 @@ require 'csv'
 # Tag2            :  Tag #2
 # TagValue2       :  Tag value #2
 
-class BulkOrderImport
+class BulkOrderImport < OrderImport
   include NotifyOnCompletion
   @queue = :import
 
@@ -169,14 +169,7 @@ class BulkOrderImport
   end
 
   private
-  def self.new_address_tag(theater_id, address, tag_label, tag_value)
-    sub_tag = AddressTag.new
-    sub_tag.address = address
-    sub_tag.tag_label = tag_label
-    sub_tag.tag_value = tag_value
-    sub_tag.theater_id = theater_id
-    sub_tag
-  end
+
 end
 
 

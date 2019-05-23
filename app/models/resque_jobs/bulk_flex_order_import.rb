@@ -5,15 +5,21 @@ require 'csv'
 #
 # ExternalId      :  An alphanumeric value attached to an address with this record called "ExternalId"
 # Id              :  The address ID (supercedes ExternalId if present)
-# FlexPassCode    :  Production Code for ticket class associations
+# FlexPassOffer   :  The Flex Pass Offer Name
 
 #
 # Note that, if present, the two users will create two different records in the ticketing system
 
-class BulkFlexOrderImport
+class BulkFlexOrderImport < OrderImport
+  include NotifyOnCompletion
   @queue = :import
 
   def self.perform(filestore_id, theater_id, payment_type_id)
+    filestore = FileStore.find(filestore_id)
+    filestore.notes = "Importing flex pass orders"
+    filestore.save
+
+    problems = BulkOrderImportIssues.new(filestore.user.id)
     begin
       headers = nil
       total = 0
@@ -22,32 +28,47 @@ class BulkFlexOrderImport
       performance_code_idx = 0
       seating_list_idx = 0
 
-      filestore = FileStore.find(filestore_id)
-      filestore.notes = "Importing flex pass orders"
-      filestore.save
-
-      problems = BulkOrderImportIssues.new(filestore.user.id)
 
       flex_pass_offer_lookup = FlexPassOffer.where("theater_id = :theater_id or theater_id is null", theater_id: theater_id).pluck(:name, :id).to_h
-      address_ids = AddressTag.where("tag_label = 'External Id' and theater_id = :theater_id and address_id is not null",theater_id: theater_id).pluck(:tag_value, :address_id).to_h # Get a list of all addresses with these external tags
+      external_address_ids = AddressTag.where("tag_label = 'External Id' and theater_id = :theater_id and address_id is not null",theater_id: theater_id).pluck(:tag_value, :address_id).to_h # Get a list of all addresses with these external tags
       payment_type = payment_type_id.blank? ? nil : PaymentType.find(payment_type_id.to_i)
       issues = []
 
 
       CSV.foreach(filestore.data.path, headers:true) do |row|
         current_address_id = 0
+        a = nil
+        total += 1
+        case
+        when !row['Id'].blank? # if ID is present, use that as the match criteria
+          current_address_id = row['Id']
+          a = Address.find_by(id:row['Id'].to_i)
+
+        when !row['ExternalId'].blank?
+          current_address_id = row['ExternalId']
+          a = Address.find_by(id:external_address_ids[current_address_id])
+          a ||= Address.new
+
+        else
+          current_address_id = "NEW"
+          a = Address.new
+        end
+        a ||= Address.new
         begin
           total += 1
-          if row['ExternalId'].blank?
-            puts "IMPORT: Getting address #{row['Id']}"
-            current_address_id = row['Id']
-            a = Address.find(current_address_id.to_i)
-          else
-            current_address_id = row['ExternalId']
-            puts "IMPORT:  Finding external id #{current_address_id} as #{address_ids[current_address_id]}"
-            a = Address.find(address_ids[current_address_id].to_i)
-          end
           Order.transaction do
+            a.set_full_name(row['FullName'],row['FirstName'],row['MiddleName'],row['LastName']) unless row['FullName'].blank? && row['LastName'].blank?
+            a.line1 = row['Address'] unless row['Address'].blank?
+            a.line2 = row['Address2'] unless row['Address'].blank?
+            a.email = row['EmailAddress'] unless row['EmailAddress'].blank?
+            a.city = row['City'] unless row['City'].blank?
+            a.zipcode = row['ZipCode'] unless row['ZipCode'].blank?
+            a.phone = row['Phone'] unless row['Phone'].blank?
+            a.address_tags << new_address_tag(theater_id, a, row['Tag1'], row['TagValue1']) unless row['Tag1'].blank?
+            a.address_tags << new_address_tag(theater_id, a, row['Tag2'], row['TagValue2']) unless row['Tag2'].blank?
+            a.address_tags << new_address_tag(theater_id, a, 'External ID', row['ExternalId']) unless row['ExternalId'].blank?
+            a.regularize!
+            a.save!
             o = FlexPassOrder.new
             o.status = FlexPassOrder::NEW
             offer_code = row['FlexPassOffer']
@@ -73,19 +94,14 @@ class BulkFlexOrderImport
         rescue => e
           puts e.message
           puts e.backtrace
-          problems.append_issue(id:current_address_id,
-            customer_name: "#{row['FirstName']} #{row['LastName']}",
-            performance_code: '',
-            seating: row['Seating'],
-            order_detail: row['FlexPassOffer'],
-            message: e.message)
+          problems.add_problem_row(row: row.to_h, message: e.message)
         end
 
 
       end
       filestore.notes = "Imported #{total} orders, #{problems.count} errors"
       filestore.save
-      problems.create if problems.any_issues?
+
     rescue => e
       puts "IMPORT: Could not save "
       Rails.logger.error e.message
@@ -93,6 +109,10 @@ class BulkFlexOrderImport
       # e.backtrace.each { |line| Rails.logger.error line }
       filestore.notes = "Error: #{e.message}"
       filestore.save
+    end
+    if problems.any_issues?
+      fs = problems.create
+      notify_user_on_completion(fs) unless fs.nil?
     end
   end
 
