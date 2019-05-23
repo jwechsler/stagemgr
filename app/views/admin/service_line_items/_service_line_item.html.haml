@@ -1,4 +1,4 @@
 %tr
-  %td= service_line_item.internal_description
+  %td= service_line_item.internal_description.blank? ? service_line_item.description : service_line_item.internal_description
   %td.currency= number_to_currency(service_line_item.amount)
   %td.currency= number_to_currency(service_line_item.facility_fee)
