@@ -336,6 +336,10 @@ class Order < ActiveRecord::Base
     self.payment_type.is_a? CurrencyPaymentType
   end
 
+  def paid_with_external?
+    self.payment_type.is_a? ExternalPaymentType
+  end
+
   def paid_with_flexpass?
     self.payment_type.is_a?(FlexPassPaymentType) && !self.flex_pass_payments.empty?
   end
