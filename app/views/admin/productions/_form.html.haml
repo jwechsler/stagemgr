@@ -46,6 +46,11 @@
             = f.input :intermission
             = f.input :allow_late_seating
             = f.input :capacity
+          %fieldset
+            %legend Service Fee Overrides
+            = f.input :override_service_items, label:"Override Service Template Names", hint:"Comma-separated list of service items to be applied to each ticket order"
+            = f.input :override_first_exchange_items, label:"Override First Exchange Service Template Names", hint:"Comma-separated list of service items to be applied to intial ticket exchange"
+            = f.input :override_addl_exchange_items, label:"Override Additional Exchange Service Template Names", hint:"Comma-separated list of service items to be applied to each subsequent ticket exchange"
 
         %div.small-6.columns
           %fieldset
