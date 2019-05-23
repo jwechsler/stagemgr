@@ -54,28 +54,29 @@
         data_url = "#{admin_service_item_template_path('a')}".slice(0,-1) + $("#choice_service_template").val() + ".json";
         var query = $.getJSON(data_url, function (data) {
           console.log(data)
+          console.log("modify service items = " + allow_sli_edits)
           var description = data['internal_description']
           var amount_v = parseFloat(data['amount'],0)
           var amount = Math.max(amount_v.toFixed(2),0)
           var fee_v = parseFloat(data['facility_fee'])
           var fee = fee_v.toFixed(2)
-          $("[name*='[service_line_items_attributes]["+indx.toString()+"][description]'").val(description);
-          $("[name*='[service_line_items_attributes]["+indx.toString()+"][description]'").closest('.columns').find("span.noneditable").text(description)
+          $("[name*=\"[service_line_items_attributes]["+indx.toString()+"][description]\"]").val(description);
+          $("[name*=\"[service_line_items_attributes]["+indx.toString()+"][description]\"]").closest('.columns').find("span.noneditable").text(description)
           console.log ("Amount = "+ amount_v)
           if (amount_v < 0) {
             console.log("Input");
-            console.log($("[name*='[service_line_items_attributes]["+indx.toString()+"][amount]'").closest('.amount_field'));
-            $("[name*='[service_line_items_attributes]["+indx.toString()+"][amount]'").closest('.amount_field').show()
+            console.log($("[name*=\"[service_line_items_attributes]["+indx.toString()+"][amount]\"]").closest('.amount_field'));
+            $("[name*=\"[service_line_items_attributes]["+indx.toString()+"][amount]\"]").closest('.amount_field').show()
             console.log("Hiding span")
-            $("[name*='[service_line_items_attributes]["+indx.toString()+"][amount]'").closest('.columns').find("span.noneditable").hide()
+            $("[name*=\"[service_line_items_attributes]["+indx.toString()+"][amount]\"]").closest('.columns').find("span.noneditable").hide()
           } else {
-            $("[name*='[service_line_items_attributes]["+indx.toString()+"][amount]'").closest('span').hide()
-            $("[name*='[service_line_items_attributes]["+indx.toString()+"][amount]'").closest('.columns').find("span.noneditable").show()
+            $("[name*=\"[service_line_items_attributes]["+indx.toString()+"][amount]\"]").closest('span').hide()
+            $("[name*=\"[service_line_items_attributes]["+indx.toString()+"][amount]\"]").closest('.columns').find("span.noneditable").show()
           }
-          $("[name*='[service_line_items_attributes]["+indx.toString()+"][amount]'").val(amount)
-          $("[name*='[service_line_items_attributes]["+indx.toString()+"][amount]'").closest('.columns').find("span.noneditable").html("Amount<br>" + amount_v.toFixed(2))
-          $("[name*='[service_line_items_attributes]["+indx.toString()+"][facility_fee]'").val(fee)
-          $("[name*='[service_line_items_attributes]["+indx.toString()+"][facility_fee]'").closest('.columns').find("span.noneditable").text(fee)
+          $("[name*=\"[service_line_items_attributes]["+indx.toString()+"][amount]\"]").val(amount)
+          $("[name*=\"[service_line_items_attributes]["+indx.toString()+"][amount]\"]").closest('.columns').find("span.noneditable").html("Amount<br>" + amount_v.toFixed(2))
+          $("[name*=\"[service_line_items_attributes]["+indx.toString()+"][facility_fee]\"]").val(fee)
+          $("[name*=\"[service_line_items_attributes]["+indx.toString()+"][facility_fee]\"]").closest('.columns').find("span.noneditable").text(fee)
         });
       }
     });
