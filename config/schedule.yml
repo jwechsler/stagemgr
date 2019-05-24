@@ -28,12 +28,12 @@ GenerateCalendar:
   args: 'performance_schedule.ics'
 
 SendFlexPassReminders:
-  every: '1d'
+  cron: "45 8 * * WED,THU,FRI,SAT,SUN"
   description: 'Send flex pass fulfillment reminders'
   queue: notification
 
 SendMembershipReminders:
-  every: '1d'
+  cron: "50 8 * * WED,THU,FRI,SAT,SUN"
   description: 'Send flex pass fulfillment reminders'
   queue: notification
 
