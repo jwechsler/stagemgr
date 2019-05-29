@@ -11,7 +11,7 @@ end
 
 def enter_base_production(code, capacity = 99)
   fill_in "Production code", :with=>code
-  fill_in "Name", :with=>"Production #{code}"
+  fill_in "production_name", :with=>"Production #{code}"
   fill_in "Capacity", :with=>capacity
   fill_in "Season", :with=>Date.today.year
   fill_in "production_opening_at", :with=>"#{Date.today}"

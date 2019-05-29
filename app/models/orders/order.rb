@@ -600,7 +600,7 @@ class Order < ActiveRecord::Base
           a = self.address
           self.address = merge
           merge.save!
-          a.destroy unless a.nil? || a.has_finalized_orders?
+          a.destroy unless a.nil? || (Order.where("id <> :id AND address_id = :address_id", id:self.id, address_id: a.id).count > 0)
         end
       end
     end
