@@ -44,5 +44,4 @@
   Theater Wit has a full cocktail, wine and beer bar. We feature handmade chocolates and baked goods by local artisans and a variety of top-shelf liquors, including local micro brews. All drinks may be taken into the performance.
 
 %h4 And The Obligatory Legal Speak at the End of Emails
-%p
-  Please remember that your tickets are NON-REFUNDABLE and NON-EXCHANGEABLE. We will do our best to accommodate last-minute changes but we reserve the right to let your seats wither on the vine, as it were.
+= render :partial=>'refunds_and_exchanges', locals: {order: order}

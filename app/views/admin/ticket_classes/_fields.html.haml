@@ -22,6 +22,7 @@
       %fieldset
         %legend Ticket Class Options
         = f.input :web_visible, :hint=>"Make this ticket class end-user purchasable"
+        = f.input :exchangeable, :hint=>"Override software default exchange policy communications?"
         = f.input :software_managed, :hint=>"Not for box office sales"
         = f.input :hide_pricing, :hint=>"Hide the actual price from the customer"
         = f.input :suppress_receipt, :hint=>"Suppress automatic confirmation email"

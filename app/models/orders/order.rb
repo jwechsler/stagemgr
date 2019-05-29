@@ -177,6 +177,10 @@ class Order < ActiveRecord::Base
     false
   end
 
+  def contains_exchangeable_tickets?
+    false
+  end
+
   def time_to_hold_in_transition
     10.minutes
   end

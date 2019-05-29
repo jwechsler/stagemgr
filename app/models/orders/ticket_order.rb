@@ -136,6 +136,10 @@ class TicketOrder < Order
 
   end
 
+  def contains_exchangeable_tickets?
+    self.ticket_line_items.select{|tli| tli.ticket_class.exchangeable?}.count > 0
+  end
+
   def exchangeable?
     self.status == Order::PROCESSED || self.status == Order::FULFILLED || self.status == Order::UNCLAIMED
   end

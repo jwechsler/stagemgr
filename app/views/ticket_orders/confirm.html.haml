@@ -85,9 +85,10 @@
         %p
           = payment_text_for @ticket_order if total > 0
           Please note that all ticket purchases are
-          %strong NON-REFUNDABLE
-          and
-          %strong NON-EXCHANGEABLE.
+          - unless @ticket_order.contains_exchangeable_tickets?
+            %strong NON-EXCHANGEABLE and
+          %strong NON-REFUNDABLE.
+
           When you are ready to purchase your tickets, click "Order Tickets".
 
         .row

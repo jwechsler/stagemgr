@@ -65,8 +65,8 @@ class OrderMailer < ActionMailer::Base
          :tag=>"Test Message")
   end
 
-  def performance_reminder(order,address=nil,action_by=nil)
-    if order.performance.performance_date > Date.today+1.day
+  def performance_reminder(order,address=nil,action_by=nil,testing=false)
+    if (testing || (order.performance.performance_date > Date.today+1.day))
       @order = order
       @markdown_renderer = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)
       mail(:to=>@order.address.email, :from=>"\"Theater Wit Box Office\" <boxoffice@theaterwit.org>",
