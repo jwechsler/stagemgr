@@ -28,12 +28,12 @@
     .small-12.medium-6.columns.small-centered.panel
       .row
         .small-1.columns
-          = order_form.check_box :add_to_email_list, :checked => 1
+          = order_form.check_box :add_to_email_list, :input_html=>{:checked => 1}
         .small-11.columns
           %p
             Join the Theater Wit mailing list
           %p{:style=>"font-size: 80%"}
-            Get company news, special offers, ticket discounts and more delivered twice monthly. Keep abreast of everything happening so your flex pass doesn't get bored. Your email will not be shared. :)
+            Get company news, special offers, show announcements and more. Keep abreast of everything happening so your flex pass doesn't get bored. Your email will not be shared. :)
 
     %p#non-exchange-notice
       Please note that all ticket and flex pass purchases are

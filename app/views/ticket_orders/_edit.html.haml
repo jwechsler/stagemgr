@@ -48,9 +48,9 @@
               and #{order.performance.production.theater.name} mailing lists.
             - else
               mailing list.
-            Get company news, special offers, ticket discounts and more delivered twice monthly. Your email will not be shared. :)
+            Get company news, special offers, ticket discounts and more delivered occasionally to your inbox. Your email will not be shared. :)
         .small-6.columns
-          = order_form.input :add_to_email_list, :as=>:boolean, :label=>"Sure, sign me up!"
+          = order_form.input :add_to_email_list, :as=>:boolean, :label=>"Sure, sign me up!", input_html:{checked: true}
       %br
       = order_form.button :submit, @submit_text, :action=>:confirm, :disable_with => 'Processing...' if (order_form.object.status.blank? || [Order::NEW, Order::HOLD, Order::PROCESSING].include?(order_form.object.status))
 
