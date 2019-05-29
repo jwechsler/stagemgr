@@ -42,7 +42,9 @@ class Admin::DefaultTicketClassesController < ApplicationController
 
   private
   def default_ticket_class_params
-    params.require(:default_ticket_class).permit(:class_code, :class_name, :minutes_before_show, :ticket_price, :ticket_type, :ticketing_fee, :web_visible, :auto_attach, :software_managed, :holds_seats, :purchase_page_annotation, :purchase_email_annotation, :suppress_receipt, :hide_pricing)
+    params.require(:default_ticket_class).permit(:class_code, :class_name, :minutes_before_show, :ticket_price,
+      :ticket_type, :ticketing_fee, :web_visible, :auto_attach, :software_managed, :holds_seats, :purchase_page_annotation,
+      :purchase_email_annotation, :suppress_receipt, :hide_pricing, :exchangeable)
   end
 
 end
