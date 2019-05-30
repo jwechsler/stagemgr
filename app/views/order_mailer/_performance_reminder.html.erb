@@ -5,7 +5,7 @@
       <%= order.performance.performance_time.strftime('%l:%M %p') %> this <%= Date::DAYNAMES[order.performance.performance_date.wday] %>.  We look forward to seeing you!
     <%- unless order.performance.production.allow_late_seating %>
     <b>
-      Please note, there is no late seating available for this performance.  Latecomers will be issued a voucher to attend a subsequent performance, if available.
+      Please note, there is no late seating available for this performance.
     </b>
   <%- end %>
 

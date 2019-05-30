@@ -27,7 +27,7 @@
   - else
     = display_payment + " and the total charge was $#{'%0.2f' % order.customer_visible_total}."
   - unless order.performance.production.allow_late_seating?
-    %b Please note, there is no late seating available for this performance.  Latecomers will be issued a voucher to attend a subsequent performance, if available.
+    %b Please note, there is no late seating available for this performance.
 
 = render :partial=>"confirmation_ticket_details", :locals=>{:order=>order}
 
