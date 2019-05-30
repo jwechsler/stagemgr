@@ -14,10 +14,18 @@
   .small-12.columns
     = render '/admin/orders/payments', :order=>@flex_pass_order
     = render '/admin/orders/referral', :order=>@flex_pass_order
+.row.hide-for-small-only
+  .medium-12.columns
     = render '/admin/flex_pass_orders/order_history', :order=>@flex_pass_order
-    = render '/admin/orders/audit_show', :order_form=>@flex_pass_order
+
+.row
+  .small-12.columns
     - if can? :new, :admin_refund_orders
       = link_to 'Refund Order', new_admin_order_refund_order_path(@flex_pass_order), :class=>'small alert button' if @flex_pass_order.refundable?
     = link_to 'Fulfill Order', fulfill_admin_order_path(@flex_pass_order), :class=>'small button' if @flex_pass_order.fulfillable?
-    - if @flex_pass_order.status == 'Processing' || @flex_pass_order.status == 'Hold' || @flex_pass_order.status == Order::NEW
+    - if @flex_pass_order.status == 'Processing' || @flex_pass_order.status == 'Hold' || @flex_pass_order.status == Order::NEW || can?(:cancel, FlexPassOrder)
       = link_to 'Cancel Order', cancel_admin_order_path(@flex_pass_order), :class=>'small alert button', :confirm => "Are you sure?", :method=>:post
+
+.row
+  .small-12.columns
+    = render '/admin/orders/audit_show', :order_form=>@flex_pass_order

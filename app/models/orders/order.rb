@@ -406,8 +406,15 @@ class Order < ActiveRecord::Base
   end
 
   def cancel!
-    self.allow_deletion!
-    self.destroy
+
+    if self.payments.select{|p| !p.can_cancel?}.size > 0
+      errors.add(:error, "Cannot cancel orders with payments")
+      false
+    else
+      self.allow_deletion!
+      self.destroy
+      true
+    end
   end
 
   def allow_deletion!

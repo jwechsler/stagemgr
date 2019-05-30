@@ -57,7 +57,7 @@ class Payment < ActiveRecord::Base
   end
 
   def can_cancel?
-    false
+    self.amount == 0
   end
 
   def create_refund_payment(cc_number = nil, note = nil)

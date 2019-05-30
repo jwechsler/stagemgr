@@ -1,4 +1,4 @@
-@javascript @wip
+@javascript
 Feature: An administrator can add production details to a theater
   Given a theater has been created
   As a StageMgr box office user

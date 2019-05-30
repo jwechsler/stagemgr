@@ -11,5 +11,22 @@
         .small-12.medium-4.columns
           = render '/admin/addresses/quick_lookup', :f=>order_form
 
-      = render :partial => '/admin/orders/form', :locals=>{:order_form=>order_form}
-
+      = order_form.hidden_field :status
+      %div.row
+        %div.small-6.columns
+          = order_form.simple_fields_for :address do |address_form|
+            = render '/admin/orders/name_form', :f => address_form
+            = order_form.input :hold_under, :label=>'Hold reservation under'
+        %div.small-6.columns
+          = render '/admin/orders/billing_form', :order_form=>order_form
+      %div.row
+        %div.small-12.medium-6.columns
+          = order_form.simple_fields_for :address do |address_form|
+            = render '/admin/orders/address_form', :f => address_form
+      .row
+        .small-12.columns
+          = render partial:'/admin/orders/input_notes', locals:{order_form: order_form}
+        .small-12.columns
+          = render partial:'/admin/orders/confirm_button', locals:{order_form:order_form}
+        .small-12.columns
+          = render '/admin/orders/audit_show', :order_form=>order_form.object

@@ -1,8 +1,9 @@
 class FlexPassOrder < Order
 
-  has_many :flex_pass_line_items, :foreign_key=>:order_id
+  has_many :flex_pass_line_items, :foreign_key=>:order_id, dependent: :destroy
   accepts_nested_attributes_for :flex_pass_line_items
   validates_associated :flex_pass_line_items
+  before_destroy :has_no_placed_orders?
 
   def flex_pass_offer
     FlexPassOffer.find(self.flex_pass_line_items[0].flex_pass_offer_id) unless self.flex_pass_line_items.size == 0
@@ -70,6 +71,14 @@ class FlexPassOrder < Order
       used ||= li.flex_pass.uses_remaining == li.flex_pass.flex_pass_offer.number_of_tickets
     }
     used
+  end
+
+  def has_placed_orders?
+    FlexPassPayment.where(flex_pass_id: self.flex_passes.map{|fp| fp.id}).count > 0
+  end
+
+  def has_no_placed_orders?
+    !self.has_placed_orders?
   end
 
   protected

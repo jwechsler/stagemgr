@@ -109,9 +109,12 @@ class Admin::OrdersController < Admin::ApplicationController
   end
 
   def cancel
-    raise "Cannot cancel orders with payments" if @order.payments.select{|p| !p.can_cancel?}.size > 0
-    @order.cancel!
-    redirect_to :action=>"index", :controller=>"admin/orders"
+    if @order.cancel!
+      redirect_to :action=>"index", :controller=>"admin/orders"
+    else
+      flash[:error]= @order.errors.full_messages.to_sentence
+      redirect_to action:'edit', id:@order.id
+    end
   end
 
   protected

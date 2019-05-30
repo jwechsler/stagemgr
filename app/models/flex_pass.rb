@@ -6,6 +6,7 @@ class FlexPass < ActiveRecord::Base
   has_many :flex_pass_payments
   before_create :set_expiration_date
   after_create :queue_expiration
+  before_destroy :has_no_placed_orders?
 
   validates_presence_of :address, :flex_pass_offer, :flex_pass_line_item, :order, :code
 
@@ -61,6 +62,14 @@ class FlexPass < ActiveRecord::Base
       p.expiration_date = p.created_at.to_date + p.flex_pass_offer.months_till_expiration.months
       p.save!
      }; ""
+  end
+
+  def has_placed_orders?
+    FlexPassPayment.where(flex_pass_id: self.id).count > 0
+  end
+
+  def has_no_placed_orders?
+    !self.has_placed_orders?
   end
 
 end
