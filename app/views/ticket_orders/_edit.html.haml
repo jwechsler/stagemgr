@@ -30,11 +30,12 @@
       = render '/orders/special_offer_form', :f => order_form, :special_offer_code=>order.special_offer_code
 
       = render '/orders/additional_donation', :order_form => order_form, :order => order
-      .row
-        .small-4.columns
-          =order_form.label :special_request, 'Special seating requirements?', :class=>'right inline'
-        .small-8.columns
-          = order_form.input_field :special_request, :as=>:select, :collection=>TicketOrder::SEATING_REQUESTS
+      - unless order.performance.production.has_reserved_seating?
+        .row
+          .small-4.columns
+            =order_form.label :special_request, 'Special seating requirements?', :class=>'right inline'
+          .small-8.columns
+            = order_form.input_field :special_request, :as=>:select, :collection=>TicketOrder::SEATING_REQUESTS
       .row
         .small-4.columns
           =order_form.label :marketing_source, "How did you hear about the show?", :class=>'right inline'
