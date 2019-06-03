@@ -401,7 +401,7 @@ class TicketOrder < Order
       exchange_payments_toward_exchange_order.each { |p| self.payments << p unless p.nil? }
       payment_difference = self.total_ticket_face_value - exchange_payments_toward_exchange_order.inject(0){|sum, x| sum = sum + x.amount }
       if payment_difference < 0
-        self.price_override_payments.build(:amount => payment_difference)
+        self.price_override_payments.build(:amount => payment_difference, :order=>self)
       elsif payment_difference > 0
         self.create_proper_payment_in_amount_of!(payment_difference)
       end

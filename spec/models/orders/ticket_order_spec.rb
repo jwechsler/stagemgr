@@ -212,6 +212,26 @@ RSpec.describe TicketOrder do
 
   end
 
+  context "when exchanging", wip:true  do
+
+    it "allows an exchange with an external payment to a performance that is cheaper" do
+      ticket_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_external)
+      performance2 = ticket_order.performance.dup
+      ticket_class = FactoryBot.create(:ticket_class, :ticket_price=>1.0,  class_code: 'EXCH', production:ticket_order.performance.production)
+      performance2.performance_date=ticket_order.performance.performance_date+1.day
+      performance2.performance_code = "PRD0107"
+      performance2.save
+      performance2.reload
+
+      exchange_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, performance:performance2)
+      exchange_order.ticket_line_items[0].ticket_class = ticket_class
+      exchange_order.exchange_and_process_from!(ticket_order)
+      amt = exchange_order.payments.inject(0.0) {|sum, p| sum += p.is_a?(PriceOverridePayment) ? p.amount : 0.0}
+      expect(amt).to eq(-8.0)
+      expect(exchange_order.total).to eq(2.0)
+    end
+  end
+
 
 
 end
