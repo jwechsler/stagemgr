@@ -54,7 +54,7 @@ fieldset legend {
 }
 
 .production_name {
-  font-weight: bold;
+  font-style: italic;
   font-size: 1em;
 }
 
@@ -218,15 +218,15 @@ background-dark {
 .special_offer {
   text-align: center;
   text-decoration: underline;
-
 }
 
 .month_navigation {
-  font-size: .5em;
+  font-size: .7em;
   font-weight: bold;
 }
+
 .price_range {
-  font-size: .5em;
+  font-size: .7em;
 }
 
 #content {
@@ -245,10 +245,6 @@ background-dark {
 
 p .company_class {
  margin-bottom: 1em;
-}
-
-.production_name {
-  font-weight: bold;
 }
 
 .production_credits {

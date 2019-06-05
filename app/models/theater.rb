@@ -72,6 +72,14 @@
     ServiceItemTemplate.where(name: service_item_template_list(self.default_addl_exchange_items))
   end
 
+  def best_logo_url_available(render)
+    unless self.logo.nil?
+      self.logo.url(render)
+    else
+      nil
+    end
+  end
+
   private
   def service_item_template_list(service_item_list)
     itm = service_item_list.nil? ? '' : service_item_list

@@ -164,6 +164,15 @@ class Production < ActiveRecord::Base
     Production.where('ifnull(productions.first_preview_at,productions.opening_at) > ?', after_date)
   end
 
+  def self.additional_upcoming(order)
+    Production.where("closing_at > :after_date and opening_at < :future_date and status in (:visible) and production_class in (:visible_classes) and not exists (select * from performances where status!='Inactive' and performances.production_id = productions.id and performances.id in (select performance_id from orders where address_id = :order_address))",
+                                     {:visible=>Production.visible_statuses,
+                                      :visible_classes=>[Production::PLAY],
+                                      :after_date=>Time.now.end_of_week,
+                                      :future_date=>(Time.now + 3.month),
+                                      :order_address=>order.address.id}).order("random()").limit(3)
+  end
+
   def self.running_week_of(check_date)
     start_of_week = check_date.beginning_of_week
     end_of_week = check_date.end_of_week

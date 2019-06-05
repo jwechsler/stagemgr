@@ -1,0 +1,15 @@
+- unless order.performance.special_features.empty?
+  %table.callout
+    %tr
+      %th.callout-inner.secondary
+        - order.performance.special_features.each do |feature|
+          - unless feature.description.blank?
+            = display_markdown(feature.description)
+          - else
+            = display_markdown(feature.short_name)
+
+        - unless order.performance.special_feature_email_markdown.blank?
+          = display_markdown(order.performance.special_feature_email_markdown)
+        - else
+          = display_markdown(order.performance.special_feature_display_markdown) unless order.performance.special_feature_display_markdown.blank?
+

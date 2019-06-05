@@ -1,15 +1,13 @@
 = content_for :email_title do
   Your tickets for
-  = "#{order.performance.production.name}#{!order.theater.is_default? ? ', presented by ' + order.theater.name : ''}"
+  = raw("<i>#{order.performance.production.name}#{!order.theater.is_default? ? ',</i> presented by ' + order.theater.name : '</i>'}")
 
 %h3
   Thanks for your order!
 %p
   We have
   = pluralize(order.number_of_seats, 'ticket')
-  reserved under the name
-  = order.hold_under.blank? ? order.address.full_name : order.hold_under
-  for the
+  reserved for the
   = order.performance.performance_time.strftime('%l:%M %p')
   performance of
   %i= "#{order.performance.production.name}#{!order.theater.is_default? ? ',' : ''}"
@@ -31,17 +29,17 @@
 
 = render :partial=>"confirmation_ticket_details", :locals=>{:order=>order}
 
-%h3 Here's some handy stuff you'll want to know:
+%h4 Here's some handy stuff you'll want to know:
 
 = render :partial=>"transportation_instructions", :locals=>{:order=>order}
 
 = render :partial=>"dining_recommendations", :locals=>{order: order}
 = render :partial=>"seating_policy", :locals=>{order: order}
 
-%h4 Bar
+%h5 Bar
 
 %p
   Theater Wit has a full cocktail, wine and beer bar. We feature handmade chocolates and baked goods by local artisans and a variety of top-shelf liquors, including local micro brews. All drinks may be taken into the performance.
 
-%h4 And The Obligatory Legal Speak at the End of Emails
+%h6 And The Obligatory Legal Speak at the End of Emails
 = render :partial=>'refunds_and_exchanges', locals: {order: order}
