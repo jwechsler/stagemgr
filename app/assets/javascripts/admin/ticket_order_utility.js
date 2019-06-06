@@ -5,7 +5,7 @@ function recalculate_row_total(order_type, row) {
   var ticket_class_code_input = tds.find('input.code-input');
   var price_input = tds.find('input.price');
   var ticket_class_code = '';
-  var ticket_type = ticket_class_code_input.attr('data-q-ticket_type');
+  var ticket_type = tds.find('input.ticket_types').val();
   line_price = 0;
   var performance_code;
   if (production_code.length < 1) {
@@ -19,10 +19,10 @@ function recalculate_row_total(order_type, row) {
     ticket_class_code = ticket_class_code_input.val();
   }
   if (ticket_class_code.length > 0) {
-    var price_override_input = tds.children('input.price_override');
+    var price_override_input = row.find('input.price');
     if (ticket_type != 'Donation') {
       price_override_input.attr('disabled', 'disabled');
-      price_override_input.val('');
+      // price_override_input.val('');
     } else {
       price_override_input.removeAttr('disabled');
     }

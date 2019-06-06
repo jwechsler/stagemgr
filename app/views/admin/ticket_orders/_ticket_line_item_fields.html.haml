@@ -3,7 +3,8 @@
     .small-6.medium-3.columns
       - @it=f.options[:child_index]
       = f.input_field :ticket_class_id, as: :hidden, class: 'ticket_class_ids'
-      = f.input_field :ticket_class_code, as: :autocomplete, url: autocomplete_ticket_line_item_ticket_class_code_admin_ticket_orders_path, class: 'code-input', fields: {performance_code: '#ticket_order_performance_code'}, 'data-auto-focus'=>true, id_element: "#ticket_order_ticket_line_items_attributes_#{@it}_ticket_class_id"
+      = hidden_field_tag "ticket_type_#{@it}", '', {class: 'ticket_types'}
+      = f.input_field :ticket_class_code, as: :autocomplete, url: autocomplete_ticket_line_item_ticket_class_code_admin_ticket_orders_path, class: 'code-input', fields: {performance_code: '#ticket_order_performance_code'}, 'data-auto-focus'=>true , update_elements: {id: "#ticket_order_ticket_line_items_attributes_#{@it}_ticket_class_id", ticket_type: "#ticket_type_#{@it}"}
     .small-6.medium-3.columns
       = f.input_field :ticket_count, :class=>'ticket_count', :as=>:numeric
     .small-6.medium-2.columns

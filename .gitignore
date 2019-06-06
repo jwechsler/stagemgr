@@ -9,6 +9,7 @@ config/pay_pal_credentials.yml
 .bundle
 *.pid
 db/*.sqlite3
+db/test.sqlite3-journal
 log
 log/*.log
 tmp/**/*

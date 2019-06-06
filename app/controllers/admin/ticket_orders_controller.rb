@@ -37,6 +37,14 @@ class Admin::TicketOrdersController < Admin::OrdersController
       render :json => Array.new
     else
       ticket_classes = performance.production.ticket_classes.search_by_code_and_performance_id(params[:term], performance.id)
+      Rails.logger.debug("*** AUTOCOMPLETE")
+      Rails.logger.debug(ticket_classes.select { |tc| !tc.software_managed }.map { |ticket_class|
+        { :id=>ticket_class.id,
+          :value=>ticket_class.class_code,
+          :label=>"#{ticket_class.class_code} [#{ticket_class.to_s} (#{ticket_class.number_left(performance)} Tickets Left)]",
+          :ticket_type=>ticket_class.ticket_type,
+          :ticket_price=>ticket_class.ticket_price
+        }})
       render :json => ticket_classes.select { |tc| !tc.software_managed }.map { |ticket_class|
         { :id=>ticket_class.id,
           :value=>ticket_class.class_code,

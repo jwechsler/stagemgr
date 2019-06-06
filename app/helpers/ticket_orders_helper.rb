@@ -28,6 +28,6 @@ module TicketOrdersHelper
 
   def ticket_order_common_params
     common_params + [:production_code, :performance_code, :special_request,
-            ticket_line_items_attributes: [:id, :ticket_class, :ticket_class_id, :ticket_class_code, :ticket_count, :_destroy]]
+            ticket_line_items_attributes: [:id, :ticket_class, :ticket_class_id, :ticket_class_code, :ticket_count, :price_override, :_destroy]]
   end
 end

@@ -23,7 +23,6 @@ function show_proper_payment_form() {
 
 function setup_payment_form() {
 
-  console.log('setup_payment_form')
   show_proper_payment_form();
   jQuery(document).ready(function($) {
     $(".payment_type_choice input").change(function() {

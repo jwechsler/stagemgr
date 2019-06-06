@@ -42,21 +42,16 @@ function set_button_state_for_autocompletes() {
   allow_submit = true
 
   $('.ticket_class_ids').each(function(index) {
-    console.log(index + " is " + $(this).val())
     if ($(this).val() == "") {
       allow_submit = false
     }
     allow_submit &= ($('#'+this.id.replace('ticket_class_id','ticket_count')).val() > 0)
 
   });
-  console.log("button state!");
-  console.log(allow_submit);
   if (allow_submit) {
-    console.log('enabling')
     $('input[type="submit"].order-submit-button, button').prop('disabled', false);
     $('#hold_button').prop('disabled', false);
   } else {
-    console.log('disabling')
     $('input[type="submit"].order-submit-button, button').prop('disabled', true);
     $('#hold_button').prop('disabled', true);
   }
@@ -82,7 +77,6 @@ jQuery(document).ready(function($) {
 
   //$('input[type="submit"]).addClass('disabled');
 
-  console.log("checking state...")
   $('input[type="submit"].order-submit-button, button').disable(true);
   set_button_state_for_autocompletes();
   $('body').on('click', 'button.disabled', function(event) {
@@ -102,6 +96,10 @@ jQuery(document).ready(function($) {
         recalculate_row_total('ticket_order',$(this).parents('.line_item'));
       });
     }
+
+    $("input.price").blur(function(event,ui) {
+      recalculate_row_total('ticket_order',$(this).parents('.line_item'));
+    });
 
     $.fn.setup_recalculate_row = function() {
       $(this).on('blur',function() {
