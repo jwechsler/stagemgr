@@ -61,23 +61,11 @@
                     %table.row
                       %tbody
                         %tr
-                          %th.small-12.large-8.columns.first
+                          %th.small-12.columns.first
                             %table
                               %tr
                                 %th
 
                                   =yield
-
-                          %th.sidebar.small-12.large-4.columns.last
-                            %table
-                              %tr
-                                %th
-                                  %table.callout
-                                    %tr
-                                      %th.callout-inner.secondary
-                                        = render :partial=>'also_playing', :locals=>{:order=>@order}
-                                      %th.expander
-
-                                  =render partial: 'contact_information'
 
 

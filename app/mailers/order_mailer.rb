@@ -36,19 +36,19 @@ class OrderMailer < ActionMailer::Base
     mail(:to => order.address.email,
          :from => "\"Jeremy Wechsler\" <jeremy@theaterwit.org>",
          :subject => "Thank you for your donation (you are AWESOME)!",
-         :tag=>"Donation Thank You")
+         :tag=>"Donation Thank You") do |format|
+      format.html { render layout: 'order_mailer_no_sidebar'}
+    end
   end
 
   def flexpass_confirmation(order,address=nil,action_by=nil)
     @order = order
-    @order.flex_pass_line_items.each { |li|
-      @flex_pass_offer = li.flex_pass_offer
-      @flex_passes = li.flex_passes
-      mail(:to => order.address.email,
-           :from => "\"Theater Wit Box Office\" <boxoffice@theaterwit.org>",
-           :subject => "Your #{@flex_pass_offer.name} order",
-           :tag=>"Flex Pass Confirmation")
-    }
+    mail(:to => order.address.email,
+         :from => "\"Theater Wit Box Office\" <boxoffice@theaterwit.org>",
+         :subject => "Your #{@order.flex_pass.flex_pass_offer.name} [Order ##{@order.id}]",
+         :tag=>"Flex Pass Confirmation") do |format|
+      format.html { render layout: 'order_mailer_no_sidebar'}
+    end
   end
 
   def refunded_fulfilled_item_alert(order, email, action_by)

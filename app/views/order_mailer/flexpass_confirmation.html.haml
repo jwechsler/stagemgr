@@ -1,0 +1,33 @@
+= content_for :email_title do
+  Your
+  = "#{@order.flex_pass.flex_pass_offer.name}"
+
+%h3
+  Your flex pass
+  - if @order.flex_pass.flex_pass_offer.redeem_immediately? || @order.fulfilled?
+
+    code is
+    %strong
+      = @order.flex_pass.code
+  - else
+    is being processed…
+
+- unless @order.flex_pass.flex_pass_offer.redeem_immediately? || @order.fulfilled?
+  %p
+    We are processing your request and you should receive your FlexPass in the mail in the next 5-7 business days. Once you get your FlexPass, you'll see a code you can use online and at our box office to get tickets to performances
+    - unless @order.flex_pass.flex_pass_offer.theater_id.nil?
+      produced by
+      = "#{@order.flex_pass.flex_pass_offer.theater.name},"
+    - else
+      here at Theater Wit
+    subject to ticket availability.
+%h4 About your Flex Pass
+%p
+  =raw display_markdown(@order.flex_pass.flex_pass_offer.description)
+
+%h4 Redeeming tickets with your Flex Pass
+%ul
+  %li Online, you can choose "FlexPass" as your payment type and just enter your code.
+  %li At our box office or by phone, you can present your card or tell us the code and we will be happy to redeem it for tickets.
+
+=render partial: 'contact_information'

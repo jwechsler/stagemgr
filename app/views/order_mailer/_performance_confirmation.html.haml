@@ -27,19 +27,4 @@
   - unless order.performance.production.allow_late_seating?
     %b Please note, there is no late seating available for this performance.
 
-= render :partial=>"confirmation_ticket_details", :locals=>{:order=>order}
-
-%h4 Here's some handy stuff you'll want to know:
-
-= render :partial=>"transportation_instructions", :locals=>{:order=>order}
-
-= render :partial=>"dining_recommendations", :locals=>{order: order}
-= render :partial=>"seating_policy", :locals=>{order: order}
-
-%h5 Bar
-
-%p
-  Theater Wit has a full cocktail, wine and beer bar. We feature handmade chocolates and baked goods by local artisans and a variety of top-shelf liquors, including local micro brews. All drinks may be taken into the performance.
-
-%h6 And The Obligatory Legal Speak at the End of Emails
-= render :partial=>'refunds_and_exchanges', locals: {order: order}
+= render partial: 'performance_info', locals: {order: order}
