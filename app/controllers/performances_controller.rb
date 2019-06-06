@@ -6,8 +6,13 @@ class PerformancesController < ApplicationController
 
   def index
     if !@production.nil?
+      begin
+        valid_date = params[:start_date].nil? ? nil : Date.parse(params[:start_date])
+      rescue ArgumentError
+        valid_date = nil
+      end
 
-      @start_date = params[:start_date].nil? ? (@production.first_preview_at.nil? ? Date.today.beginning_of_month : ((@production.first_preview_at.beginning_of_month < Date.today.beginning_of_month) ? Date.today.beginning_of_month : @production.first_preview_at.beginning_of_month)) : Date.parse(params[:start_date])
+      @start_date = valid_date.nil? ? (@production.first_preview_at.nil? ? Date.today.beginning_of_month : ((@production.first_preview_at.beginning_of_month < Date.today.beginning_of_month) ? Date.today.beginning_of_month : @production.first_preview_at.beginning_of_month)) : Date.parse(valid_date)
       @end_date = @start_date.end_of_month;
       @performances = @production.performances.includes(
         :ticket_class_allocations, :orders, :special_features, :production,
