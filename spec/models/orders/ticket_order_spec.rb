@@ -219,8 +219,8 @@ RSpec.describe TicketOrder do
       performance2 = ticket_order.performance.dup
       ticket_class = FactoryBot.create(:ticket_class, :ticket_price=>1.0,  class_code: 'EXCH', production:ticket_order.performance.production)
       performance2.performance_date=ticket_order.performance.performance_date+1.day
-      performance2.performance_code = "PRD0107"
-      performance2.save
+      performance2.performance_code += "A"
+      performance2.save!
       performance2.reload
 
       exchange_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, performance:performance2)
