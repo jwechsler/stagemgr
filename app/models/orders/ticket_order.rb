@@ -626,9 +626,6 @@ class TicketOrder < Order
       tli.ticket_class.suppress_receipt? }.all?
   end
 
-  def set_theater
-    self.theater_id = self.performance.production.theater_id
-  end
 
   def remove_empty_ticket_lines
     ticket_classes = self.ticket_line_items.map{|li| li.ticket_class.id }.uniq

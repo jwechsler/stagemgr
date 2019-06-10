@@ -18,9 +18,7 @@ class Ability
     return if user.nil?
     # theater-specific staff
 
-    can [:read, :update], Order, Order.visible_order_for_theater_user(user) do |order|
-        user.theater_ids.include?(order.associated_theater_id)
-    end
+    can [:read, :update], Order, theater_id: user.theater_ids
 
     can :read, Production, ["theater_id in (?)", user.theater_ids] do |production|
         user.theater_ids.include?(production.id)

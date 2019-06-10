@@ -651,7 +651,7 @@ class Order < ActiveRecord::Base
   protected
 
   def set_theater
-
+    self.theater_id = self.associated_theater_id
   end
 
   def status_is_provided?
