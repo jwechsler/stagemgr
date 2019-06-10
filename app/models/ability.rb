@@ -18,7 +18,7 @@ class Ability
     return if user.nil?
     # theater-specific staff
 
-    can [:read, :update], Order, theater_id: user.theater_ids
+    can [:read, :update], Order, theater_id: user.theater_ids if user.is_theater_user?
 
     can :read, Production, ["theater_id in (?)", user.theater_ids] do |production|
         user.theater_ids.include?(production.id)
@@ -55,7 +55,7 @@ class Ability
     return if user.is_theater_user?
 
     # below is for box office staff
-    can :read, :update, Order
+    can [:read, :update], Order
     can [:cancel, :cru], FlexPassOrder
     can [:manage, :duplicate, :create, :delete], Performance
     can [:read, :create, :edit, :update, :duplicate], Production
