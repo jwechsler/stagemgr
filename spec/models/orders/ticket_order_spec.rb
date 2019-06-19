@@ -212,7 +212,7 @@ RSpec.describe TicketOrder do
 
   end
 
-  context "when exchanging", wip:true  do
+  context "when exchanging"  do
 
     it "allows an exchange with an external payment to a performance that is cheaper" do
       ticket_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_external)

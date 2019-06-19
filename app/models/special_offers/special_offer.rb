@@ -21,7 +21,7 @@ class SpecialOffer < ActiveRecord::Base
 
   before_validation :find_limiting_object
   before_validation :fix_case
-
+  validate :performances_date_range_valid
 
 
   def find_limiting_object
@@ -271,6 +271,7 @@ class SpecialOffer < ActiveRecord::Base
   def self.find_by_order(order)
     offers = SpecialOffer.find_all_by_performance(order.performance, order.special_offer_code)
     offers.select { |o|
+
       (o.day_restrictions & (1 << order.performance.performance_date.wday)).equal?(0) &&
       (o.performance_start_range.nil? || o.performance_start_range <= order.performance.performance_date) &&
       (o.performance_end_range.nil? || o.performance_end_range >= order.performance.performance_date) &&
@@ -297,6 +298,11 @@ class SpecialOffer < ActiveRecord::Base
   def redeem_one_use!
     self.number_of_uses -= 1 if !self.number_of_uses.blank? && self.number_of_uses >= 0
     self.save!
+  end
+
+  protected
+  def performances_date_range_valid
+    errors.add(:base,"Performance date range end is less than start") if !self.performance_start_range.nil? && !self.performance_end_range.nil? && self.performance_end_range < self.performance_start_range
   end
 
   private

@@ -91,6 +91,24 @@ RSpec.describe "a special offer" do
     expect(o.total).to eq(5)
   end
 
+  it "can be limited to performances within a range of dates", wip: true do
+    o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets)
+    expect(o.total).to eq(10)
+    offer = FactoryBot.create(:percent_off_special_offer)
+    offer.performance_start_range = o.performance.performance_date + 1.day
+    offer.performance_end_range = o.performance.performance_date - 1.day
+    expect {
+        offer.save!
+    }.to raise_error(ActiveRecord::RecordInvalid)
+
+    offer.performance_start_range = o.performance.performance_date - 1.day
+    offer.performance_end_range = o.performance.performance_date + 1.day
+    offer.save!
+    o.special_offer_code = offer.code
+    o.transition_to!(Order::PROCESSING)
+    expect(o.total).to eq(5)
+  end
+
   it "can be restricted by the day of the week" do
     o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets)
     expect(o.total).to eq(10)
