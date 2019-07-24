@@ -47,7 +47,17 @@ FactoryBot.define do
           :ticket_class=>ticket_order.performance.ticket_class_allocations.select{|tca| tca.available }.sort{|tca1, tca2| tca2.ticket_class.ticket_price <=> tca1.ticket_class.ticket_price}.first.ticket_class,
           :ticket_count=>2,
           :order=>ticket_order)
+      end
+
     end
+
+    trait :for_a_cheap_pair_of_tickets do
+      before(:create) do |ticket_order, evaluator|
+        ticket_order.ticket_line_items << FactoryBot.create(:ticket_line_item,
+          :ticket_class=>ticket_order.performance.ticket_class_allocations.select{|tca| tca.available }.sort{|tca1, tca2| tca1.ticket_class.ticket_price <=> tca2.ticket_class.ticket_price}.first.ticket_class,
+          :ticket_count=>2,
+          :order=>ticket_order)
+      end
 
     end
 

@@ -32,4 +32,19 @@ RSpec.describe "a payment type"  do
     expect(@report_data[0][:gross].to_f).to eq(10.0)
   end
 
+  it "can restrict purchases based on a comma-delimited set of ticket class strings", :wip=>true do
+    payment_type = FactoryBot.create(:external_payment_type, :display_name=>'TEST', :allow_for_public=>false, :allow_for_box_office=>true, :restrict_to_ticket_classes=>'HOTTIX,CHEAP')
+    production = FactoryBot.create(:production, :capacity=>4)
+    production.ticket_classes << FactoryBot.create(:ticket_class, class_code: "CHEAP", ticket_price: 1.0, auto_attach:true)
+    performance = FactoryBot.create(:performance, :production=>production)
+    order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :performance=>performance )
+    order.payment_type = payment_type
+    expect { order.transition_to!(Order::PROCESSED)}.to raise_error(RuntimeError)
+    order = FactoryBot.create(:ticket_order, :for_a_cheap_pair_of_tickets, :performance=>performance )
+    order.payment_type = payment_type
+    order.transition_to!(Order::PROCESSED)
+    expect(order.status).to eq(Order::PROCESSED)
+
+  end
+
 end

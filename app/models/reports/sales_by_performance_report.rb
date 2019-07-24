@@ -49,6 +49,7 @@ class SalesByPerformanceReport < Report
           x.performance_time <=>y.performance_time :
           x.performance_date <=> y.performance_date
       }.each { |perf|
+        reporting_orders = perf.production.theater.producing? ? perf.orders : perf.orders.select{|o| o.payment_}
         paid_orders = perf.orders.select { |o| o.paid? }
         held_orders = perf.orders.select { |o| o.held? }
         paid_tickets = paid_orders.sum { |o| o.number_of_tickets }

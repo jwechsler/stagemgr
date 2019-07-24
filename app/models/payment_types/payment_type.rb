@@ -32,7 +32,6 @@ class PaymentType < ActiveRecord::Base
     raise 'New payment type not yet implemented.'
   end
 
-
   def to_label
    self.display_name
   end

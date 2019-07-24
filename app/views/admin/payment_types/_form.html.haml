@@ -8,7 +8,7 @@
     .columns.small-12.medium-4
       = f.input :allow_theater_user_holds, :label=>"Expand theater user permissions", :hint=>"If checked, orders with this payment type can be placed on hold or exchanged"
   = f.input :report_as_sales_income
-  = f.input :restrict_to_ticket_classes, :label=>"Only apply to ticket classes starting with"
+  = f.input :restrict_to_ticket_classes, :label=>"Only apply to ticket class codes starting with", :hint=>"You can make a comma-delimited list here to restrict by multiple class codes"
 
   %fieldset
     %legend Order Task Suppressions
