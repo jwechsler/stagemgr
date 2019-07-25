@@ -4,7 +4,7 @@ class PriceOverridePayment < Payment
     true
   end
 
-  def report_as_sales_income?
+  def report_as_sales_collected?
     false
   end
 

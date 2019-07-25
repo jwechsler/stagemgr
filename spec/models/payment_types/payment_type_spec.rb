@@ -10,7 +10,7 @@ RSpec.describe "a payment type"  do
     expect(saved_order_specs.size).to eq(1)
   end
 
-  it "can specify if it should be used in sales reporting" do
+  it "can specify if it should be used in sales collected reporting" do
     production = FactoryBot.create(:production, :capacity=>4)
     performance = FactoryBot.create(:performance, :production=>production)
     production.reload
@@ -22,7 +22,30 @@ RSpec.describe "a payment type"  do
     expect(@report_data[0][:gross].to_f).to eq(10.0)
     order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :performance=>performance )
     payment_type = FactoryBot.create(:external_payment_type)
-    payment_type.report_as_sales_income = false
+    payment_type.report_as_sales_collected = false
+    payment_type.save!
+    order.payment_type = payment_type
+    order.transition_to!(Order::PROCESSED)
+    production.reload
+    report = SalesByPerformanceReport.new([production], false)
+    @headers, @report_data = report.create
+    expect(@report_data[0][:gross].to_f).to eq(10.0)
+  end
+
+  it "can specify if it should be used in production revenue reporting" do
+    production = FactoryBot.create(:production, :capacity=>4)
+    performance = FactoryBot.create(:performance, :production=>production)
+    production.reload
+    order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :performance=>performance )
+    order.payment_type = CashPaymentType.first
+    order.transition_to!(Order::PROCESSED)
+    report = SalesByPerformanceReport.new([production], false)
+    @headers, @report_data = report.create
+    expect(@report_data[0][:gross].to_f).to eq(10.0)
+    order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :performance=>performance )
+    payment_type = FactoryBot.create(:external_payment_type)
+    payment_type.report_as_sales_collected = false
+    payment_type.report_as_production_revenue = true
     payment_type.save!
     order.payment_type = payment_type
     order.transition_to!(Order::PROCESSED)

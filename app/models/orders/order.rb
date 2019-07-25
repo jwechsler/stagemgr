@@ -126,9 +126,9 @@ class Order < ActiveRecord::Base
      :check_number=>self.check_number}
   end
 
-  def value_of_all_payments(income_payment_types_only = false)
-    if income_payment_types_only then
-      sum_payments = self.payments.select{|p| p.report_as_sales_income?}
+  def value_of_all_payments(sales_collected_payment_types_only = false)
+    if sales_collected_payment_types_only then
+      sum_payments = self.payments.select{|p| p.report_as_sales_collected?}
       total = sum_payments.empty? ? 0 : sum_payments.sum{|p| p.amount}
     else
       total =  self.payments.sum(:amount)
@@ -143,6 +143,33 @@ class Order < ActiveRecord::Base
     a = 0.0 if a < 0.0
     a
   end
+
+  # returns the total amount of reported income for this order, based on payment type
+  def sales_total
+    self.value_of_all_payments(false)
+  end
+
+  def total_paid
+    sum = self.payments.map{|p| p.amount}.inject(0) { |sum, x| sum + (x.nil? ? 0 : x) }
+    sum unless sum.nil?
+  end
+
+  def total_amount
+    self.total_paid
+  end
+
+  def total(reload_line_items=false)
+    if (self.payments.nil?) || (self.payments.size == 0) then
+      a = self.all_line_items.to_a.sum { |line_item|
+        line_item.respond_to?(:total) ? line_item.total : 0
+      }
+    else
+      a = self.value_of_all_payments
+    end
+    a = 0.0 if a < 0.0
+    a
+  end
+
 
   def exchangeable?
     false
@@ -207,23 +234,6 @@ class Order < ActiveRecord::Base
 
   def seat_assignments_complete?
     true
-  end
-
-  def total(reload_line_items=false)
-    if (self.payments.nil?) || (self.payments.size == 0) then
-      a = self.all_line_items.to_a.sum { |line_item|
-        line_item.respond_to?(:total) ? line_item.total : 0
-      }
-    else
-      a = self.value_of_all_payments
-    end
-    a = 0.0 if a < 0.0
-    a
-  end
-
-  # returns the total amount of reported income for this order, based on payment type
-  def sales_total
-    self.value_of_all_payments(false)
   end
 
   def number_of_tickets
@@ -457,14 +467,7 @@ class Order < ActiveRecord::Base
     "Unknown"
   end
 
-  def total_paid
-    sum = self.payments.map{|p| p.amount}.inject(0) { |sum, x| sum + (x.nil? ? 0 : x) }
-    sum unless sum.nil?
-  end
 
-  def total_amount
-    self.total_paid
-  end
 
   def to_s
     "Unknown Order"

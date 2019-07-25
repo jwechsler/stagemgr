@@ -14,7 +14,8 @@
           %th Public
           %th Box Office
           %th Theater user
-          %th Report Sales Revenue
+          %th Report Sales Collected
+          %th Report Production Revenue
           %th
       %tbody
         - @payment_types.each do |payment_type|
@@ -24,7 +25,8 @@
             %td.text-center= checkmark(payment_type.allow_for_public)
             %td.text-center= checkmark(payment_type.allow_for_box_office)
             %td.text-center= checkmark(payment_type.allow_theater_user_holds)
-            %td.text-center= checkmark(payment_type.report_as_sales_income)
+            %td.text-center= checkmark(payment_type.report_as_sales_collected)
+            %td.text-center= checkmark(payment_type.report_as_production_revenue)
             %td
               - if can? :manage, PaymentType
                 - if payment_type.is_a? ExternalPaymentType

@@ -7,7 +7,11 @@
       = f.input :allow_for_box_office
     .columns.small-12.medium-4
       = f.input :allow_theater_user_holds, :label=>"Expand theater user permissions", :hint=>"If checked, orders with this payment type can be placed on hold or exchanged"
-  = f.input :report_as_sales_income
+    .columns.small-12.medium-4
+      = f.input :report_as_sales_collected
+    .columns.small-12.medium-4
+      = f.input :report_as_production_revenue
+  .row
   = f.input :restrict_to_ticket_classes, :label=>"Only apply to ticket class codes starting with", :hint=>"You can make a comma-delimited list here to restrict by multiple class codes"
 
   %fieldset

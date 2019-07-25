@@ -60,7 +60,7 @@ class PaymentType < ActiveRecord::Base
     }
   end
 
-  def report_as_sales_income?
+  def report_as_sales_collected?
     true
   end
 
