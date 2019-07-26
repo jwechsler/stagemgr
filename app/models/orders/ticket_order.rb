@@ -388,6 +388,12 @@ class TicketOrder < Order
     offsets.select{|p|  (p.amount != 0)}
   end
 
+  def total_ticket_face_value(reload_line_items=false)
+    a = self.all_line_items.to_a.sum { |line_item| line_item.respond_to?(:total) ? line_item.total : 0 }
+    a = 0.0 if a < 0.0
+    a
+  end
+
   def begin_exchange!(original_order)
     Order.transaction do
       self.exchange_source = original_order
@@ -399,7 +405,7 @@ class TicketOrder < Order
       exchange_payments_toward_exchange_order = self.payment_type.build_exchange_offset_payments(exchange_payments_on_original_order)
       exchange_payments_on_original_order.each {|p| original_order.payments << p unless p.nil? }
       exchange_payments_toward_exchange_order.each { |p| self.payments << p unless p.nil? }
-      payment_difference = self.total_ticket_face_value - exchange_payments_toward_exchange_order.inject(0){|sum, x| sum = sum + x.amount }
+      payment_difference = self.value_of_all_line_items - exchange_payments_toward_exchange_order.inject(0){|sum, x| sum = sum + x.amount }
       if payment_difference < 0
         self.price_override_payments.build(:amount => payment_difference, :order=>self, :source_payment_type=>original_order.payment_type)
       elsif payment_difference > 0
@@ -462,13 +468,6 @@ class TicketOrder < Order
   def performance_code=(string)
     self.performance=Performance.find_by_performance_code(string)
   end
-
-  def total_ticket_face_value(reload_line_items=false)
-    a = self.all_line_items.to_a.sum { |line_item| line_item.respond_to?(:total) ? line_item.total : 0 }
-    a = 0.0 if a < 0.0
-    a
-  end
-
 
   def performance_code()
     self.performance.try(:performance_code)
@@ -734,13 +733,13 @@ class TicketOrder
             "Name" => self.performance.production.name,
             "Attendee__c" => contact.Id,
             "number_of_tickets__c" => self.number_of_tickets,
-            "spent__c" => self.total_amount,
+            "spent__c" => self.total_paid,
             "attended_on__c" => showtime)
         else
           event.Attendee__c = contact.Id
           event.Name = self.performance.production.name
           event.number_of_tickets__c = self.number_of_tickets
-          event.spent__c = self.total_amount
+          event.spent__c = self.total_paid
           event.attended_on__c = showtime
         end
         event.save

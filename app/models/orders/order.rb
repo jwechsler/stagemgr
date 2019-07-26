@@ -144,18 +144,15 @@ class Order < ActiveRecord::Base
     a
   end
 
-  # returns the total amount of reported income for this order, based on payment type
   def sales_total
     self.value_of_all_payments(false)
   end
 
+  # returns the total amount paid
   def total_paid
-    sum = self.payments.map{|p| p.amount}.inject(0) { |sum, x| sum + (x.nil? ? 0 : x) }
-    sum unless sum.nil?
-  end
-
-  def total_amount
-    self.total_paid
+    sum = self.payments.map{|p| p.amount}.inject(0) { |sum, x| sum + (x.nil? ? 0.0 : x) }
+    sum = 0.0 if sum.nil?
+    sum
   end
 
   def total(reload_line_items=false)

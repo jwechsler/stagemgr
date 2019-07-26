@@ -14,7 +14,7 @@ RSpec.describe "order with service line items" do
     expect(o.total).to eq(service_line_item.amount + initial_cost + 5)
 
     o.transition_to!(Order::PROCESSED)
-    expect(o.sales_total).to eq(service_line_item.amount + initial_cost + 5)
+    expect(o.total_paid).to eq(service_line_item.amount + initial_cost + 5)
     expect(o.ticketing_fee).to eq(initial_fee + 3)
   end
 

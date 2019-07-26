@@ -22,7 +22,7 @@ class ExternalPaymentType < PaymentType
     self.instance_of?(another_payment_type.class) && self.display_name == another_payment_type.display_name
   end
 
- def payment_classes
+  def payment_classes
     super + [ExternalPayment.class]
   end
 
