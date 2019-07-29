@@ -8,11 +8,11 @@ RSpec.describe "a donation order" do
       @donation = FactoryBot.create(:donation_order_for_one_thousand_dollars)
       expect(@donation.status).to eq(Order::HOLD)
       expect(@donation.total).to eq(1000.00)
-      expect(@donation.value_of_all_payments).to eq(0.0)
+      expect(@donation.total_paid).to eq(0.0)
       @donation.payment_type = FactoryBot.create(:cash_payment_type)
       @donation.transition_to!(Order::PROCESSED)
 
-      expect(@donation.value_of_all_payments).to eq(1000.0)
+      expect(@donation.total_paid).to eq(1000.0)
       expect(@donation.total).to eq(1000.00)
 
     end
@@ -21,7 +21,7 @@ RSpec.describe "a donation order" do
       @donation = FactoryBot.create(:donation_pledge_order_for_one_thousand_dollars)
       expect(@donation.status).to eq(Order::HOLD)
       expect(@donation.total).to eq(1000.00)
-      expect(@donation.value_of_all_payments).to eq(0.0)
+      expect(@donation.total_paid).to eq(0.0)
       expect(@donation.pledge).to be_nil
       @donation.payment_type = FactoryBot.create(:credit_card_payment_type)
       @donation.credit_card_number = '4111111111111111'
@@ -35,7 +35,7 @@ RSpec.describe "a donation order" do
       expect(@donation.total).to eq(expected)
 
       expect(@donation.pledge.final_payment_due_date).to eq(Date.today+12.months)
-      expect(@donation.value_of_all_payments).to eq(0.0)
+      expect(@donation.total_paid).to eq(0.0)
     end
 
 # This is no longer the desired behavior.  Leads to race conditions for remote updates...  Needs further thought

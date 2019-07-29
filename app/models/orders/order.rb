@@ -126,16 +126,6 @@ class Order < ActiveRecord::Base
      :check_number=>self.check_number}
   end
 
-  def value_of_all_payments(sales_collected_payment_types_only = false)
-    if sales_collected_payment_types_only then
-      sum_payments = self.payments.select{|p| p.report_as_sales_collected?}
-      total = sum_payments.empty? ? 0 : sum_payments.sum{|p| p.amount}
-    else
-      total =  self.payments.sum(:amount)
-    end
-    total
-  end
-
   def value_of_all_line_items
     a = self.all_line_items.to_a.sum { |line_item|
         line_item.respond_to?(:total) ? line_item.total : 0
@@ -144,8 +134,16 @@ class Order < ActiveRecord::Base
     a
   end
 
-  def sales_total
-    self.value_of_all_payments(false)
+  # total revenue collected by box office
+  def total_collected
+    sum_payments = self.payments.select{|p| p.report_as_sales_collected?}
+    total = sum_payments.empty? ? 0.0 : sum_payments.sum{|p| p.amount}
+  end
+
+  # total revenue reported for the production
+  def total_revenue
+    sum_payments = self.payments.select{|p| p.report_as_production_revenue?}
+    total = sum_payments.empty? ? 0.0 : sum_payments.sum{|p| p.amount}
   end
 
   # returns the total amount paid
@@ -155,18 +153,24 @@ class Order < ActiveRecord::Base
     sum
   end
 
-  def total(reload_line_items=false)
+  #returns the total payments visible to the customer
+  def customer_visible_total
+    total = self.payments.to_a.sum { |payment| payment.customer_visible_amount }
+    total = 0 if (total.nil? || total < 0)
+    total
+  end
+
+  # returns the actual total of the order by either total payments made (if there are any payments),
+  # or the line items as a fallback
+  def total
     if (self.payments.nil?) || (self.payments.size == 0) then
-      a = self.all_line_items.to_a.sum { |line_item|
-        line_item.respond_to?(:total) ? line_item.total : 0
-      }
+      a = value_of_all_line_items
     else
       a = self.value_of_all_payments
     end
     a = 0.0 if a < 0.0
     a
   end
-
 
   def exchangeable?
     false
@@ -240,13 +244,6 @@ class Order < ActiveRecord::Base
   def ticketing_fee
     BigDecimal.new(self.service_line_items.to_a.sum{|li| li.facility_fee }.to_s, 2)
   end
-
-  def customer_visible_total(reload_line_items = false)
-    total = self.payments.to_a.sum { |payment| payment.customer_visible_amount }
-    total = 0 if (total.nil? || total < 0)
-    total
-  end
-
 
   def membership_payments
     payments.select { |p| p.is_a? MembershipPayment }
@@ -656,6 +653,16 @@ class Order < ActiveRecord::Base
 
   def status_is_provided?
     !self.status.blank?
+  end
+
+  def value_of_all_payments(sales_collected_payment_types_only = false)
+    if sales_collected_payment_types_only then
+      sum_payments = self.payments.select{|p| p.report_as_sales_collected?}
+      total = sum_payments.empty? ? 0 : sum_payments.sum{|p| p.amount}
+    else
+      total =  self.payments.sum(:amount)
+    end
+    total
   end
 
   # something about all the overloaded order/line items breaks the normal

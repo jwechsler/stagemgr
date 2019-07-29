@@ -105,9 +105,9 @@ class MembershipOrder < Order
     true
   end
 
-
-  def total(reload_line_items=false)
-    self.value_of_all_payments
+  # membership orders only have a value based on payments
+  def total
+    self.total_paid
   end
 
   def create_proper_payment_in_amount_of!(amount, payment_options = {})

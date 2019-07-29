@@ -26,8 +26,4 @@ class ExternalPaymentType < PaymentType
     super + [ExternalPayment.class]
   end
 
-  def report_as_sales_collected?
-    self.report_as_sales_collected
-  end
-
 end

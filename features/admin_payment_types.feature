@@ -42,7 +42,7 @@ Feature: Payment Types Administration
 
   Scenario: Payment Types can be marked as not reportable as sales
      Given I go to the edit page for payment type "Cash"
-       And I should see "Report as sales income"
+       And I should see "Report as sales collected"
        And I disallow reporting sales
        And I press "Update"
       Then I should see "successfully updated"

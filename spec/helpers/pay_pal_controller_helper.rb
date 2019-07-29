@@ -22,7 +22,7 @@ shared_examples_for RecurringProfile do
 
     it "should update the order payments" do
       start_num_payments = @order.payments.count
-      old_total = @order.value_of_all_payments
+      old_total = @order.total_collected
       ProcessRecurringPaypalPayment.perform(@paypal_callback)
       @order.payments(true)
       @order.payments.count.should eq(start_num_payments+1)

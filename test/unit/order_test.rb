@@ -85,7 +85,7 @@ class OrderTest < ActiveSupport::TestCase
         @exchange_order.ticket_line_items.build(:order=>@exchange_order, :ticket_class=>@ticket_class2, :ticket_count=>1).save!
         @exchange_order.exchange_and_process_from! @original_order
         assert_equal 0, @original_order.payments(true).to_a.sum { |p| p.amount }
-        assert_equal 5, @exchange_order.total(true)
+        assert_equal 5, @exchange_order.total
         assert_equal 5, @exchange_order.payments(true).to_a.sum { |p| p.amount }
         assert_equal Order::EXCHANGED, @original_order.status
         assert_equal Order::PROCESSED, @exchange_order.status

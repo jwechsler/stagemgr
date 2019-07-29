@@ -16,7 +16,7 @@ class SalesByPerformanceReport < Report
     headers = Array.new
     headers = [:performance_code, :performance_date, :performance_time]
     @productions.first.ticket_classes.each { |tc| headers << tc.class_code } if @breakdown_by_ticket_class
-    headers += [:paid, :holds, :max_ticket, :gross, :facility, :processing, :net]
+    headers += [:paid, :holds, :max_ticket, :gross, :collected, :facility, :processing, :net]
     super(headers, reporting_user_id)
   end
 
@@ -25,6 +25,7 @@ class SalesByPerformanceReport < Report
     report = Array.new
     total_tickets = Hash.new
     total_tickets[:gross] = Money.new(0)
+    total_tickets[:collected] = Money.new(0)
     total_tickets[:facility] = Money.new(0)
     total_tickets[:processing] = Money.new(0)
     total_tickets[:paid] = 0
@@ -37,6 +38,7 @@ class SalesByPerformanceReport < Report
       ticket_classes = production.ticket_classes.sort { |t1, t2| t2.ticket_price <=> t1.ticket_price }
       ticket_classes.each { |tc| total_tickets[tc.class_code] = 0 }
       subtotal[:gross] = Money.new(0)
+      subtotal[:collected] = Money.new(0)
       subtotal[:facility] = Money.new(0)
       subtotal[:processing] = Money.new(0)
       subtotal[:paid] = 0
@@ -49,16 +51,18 @@ class SalesByPerformanceReport < Report
           x.performance_time <=>y.performance_time :
           x.performance_date <=> y.performance_date
       }.each { |perf|
-        reporting_orders = perf.production.theater.producing? ? perf.orders : perf.orders.select{|o| o.payment_}
+        reporting_orders = perf.orders
         paid_orders = perf.orders.select { |o| o.paid? }
         held_orders = perf.orders.select { |o| o.held? }
         paid_tickets = paid_orders.sum { |o| o.number_of_tickets }
         held_tickets = held_orders.sum { |o| o.number_of_tickets }
         max_ticket_price = perf.ticket_class_allocations.select{|tca| tca.available? }.max_by{|tca| tca.ticket_class.ticket_price}.ticket_class.ticket_price
-        gross = paid_orders.sum { |o| o.value_of_all_payments(true) }.to_money
+        gross = paid_orders.sum { |o| o.total_revenue }.to_money
+        collected = paid_orders.sum { |o| o.total_collected }.to_money
         ticketing_fee = paid_orders.sum { |o| o.ticketing_fee }.to_money
         credit_card_processing_fee = paid_orders.sum { |o| o.credit_card_processing_fee }.to_money
         subtotal[:gross] += gross
+        subtotal[:collected] += collected
         subtotal[:facility] += ticketing_fee
         subtotal[:processing] += credit_card_processing_fee
         subtotal[:paid] += paid_tickets
@@ -80,13 +84,14 @@ class SalesByPerformanceReport < Report
         row[:paid] = paid_tickets
         row[:holds] = held_tickets
         row[:gross] = gross
+        row[:collected] = collected
         row[:facility] = ticketing_fee
         row[:processing] = credit_card_processing_fee
-        row[:net] = gross - (ticketing_fee + credit_card_processing_fee)
+        row[:net] = collected - (ticketing_fee + credit_card_processing_fee)
         report << row
 
       }
-      subtotal[:net] = subtotal[:gross] - (subtotal[:facility] + subtotal[:processing])
+      subtotal[:net] = subtotal[:collected] - (subtotal[:facility] + subtotal[:processing])
 
       report << subtotal
       total_tickets[:gross] += subtotal[:gross]
@@ -97,7 +102,7 @@ class SalesByPerformanceReport < Report
 
     }
 
-    total_tickets[:net] = total_tickets[:gross] - (total_tickets[:facility] + total_tickets[:processing])
+    total_tickets[:net] = total_tickets[:collected] - (total_tickets[:facility] + total_tickets[:processing])
     total_tickets[:performance_code] = "TOTAL"
     if productions.size > 1
       report << total_tickets

@@ -623,7 +623,8 @@ class Admin::ReportsController < Admin::ApplicationController
     row[:special_offer_code] = order.special_offer_code_used
     row[:status] = order.status
     row[:description] = order.description
-    row[:order_total] = order.value_of_all_payments(true)
+    row[:order_total] = order.total_collected
+    row[:order_revenue] = order.total_revenue
     row[:num_tickets]  = order.kind_of?(TicketOrder) ? order.number_of_tickets : 0
     row[:num_seats] = order.kind_of?(TicketOrder) ? order.number_of_seats : 0
     if order.performance.production.has_reserved_seating?
@@ -703,7 +704,7 @@ class Admin::ReportsController < Admin::ApplicationController
   def build_order_dump(production)
     report = Array.new
     keys = columns_for_orders(true,true)
-    keys += [:order_total, :num_tickets, :num_seats, :external_id]
+    keys += [:order_total, :order_revenue, :num_tickets, :num_seats, :external_id]
     if production.has_reserved_seating?
       keys += [:seat_assignments]
     end

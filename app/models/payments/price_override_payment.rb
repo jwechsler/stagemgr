@@ -1,7 +1,7 @@
 class PriceOverridePayment < Payment
   attr_accessor :override_type
 
-  belongs_to :source_payment_type, :class_name=>'Payment'
+  belongs_to :source_payment_type, :class_name=>'PaymentType'
 
   def payment_type
     if self.override_type.nil?
@@ -18,10 +18,6 @@ class PriceOverridePayment < Payment
 
   def can_cancel?
     true
-  end
-
-  def report_as_sales_collected?
-    false
   end
 
 end
