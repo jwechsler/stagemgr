@@ -4,6 +4,8 @@ class PriceOverridePaymentType < PaymentType
     'Carryover'
   end
 
-
+  def display_name
+    'Carryover'
+  end
 
 end
