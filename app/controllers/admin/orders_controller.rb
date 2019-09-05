@@ -90,7 +90,7 @@ class Admin::OrdersController < Admin::ApplicationController
 
   def update_notes
     @order=Order.find(params[:id])
-    @order.hold_under=params[:ticket_order][:hold_under]
+    @order.hold_under=params[@order.class.name.underscore.to_sym][:hold_under]
     @order.notes=params[:notes]
     if @order.save
       flash[:notice] = 'Note updated.'
