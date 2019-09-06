@@ -557,6 +557,12 @@ class Order < ActiveRecord::Base
     [Order::HOLD] + self.transitory_statuses
   end
 
+  # All statuses that can be considered as "used" by a purchase
+  # (used for determining flex pass availability for limited-by-production flex passes)
+  def self.reserving_statuses
+    [Order::REFUNDED] + self.transitory_statuses
+  end
+
   def unprocessed_statuses
     Order.unprocessed_statuses
   end
