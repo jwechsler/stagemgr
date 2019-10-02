@@ -1,5 +1,9 @@
 Hold reservation under (name, not email)
 = order_form.text_field :hold_under
+Special Seating Request
+- if order_form.object.performance.nil? || !order_form.object.performance.production.has_reserved_seating?
+  Special Seating Request
+  = order_form.select_tag :special_request, options_for_select(TicketOrder::SEATING_REQUESTS + ['See Notes'], order_form.object.special_request), :include_blank=>true
 Notes
 = text_area_tag(:notes, order_form.object.notes, :size=>"150x4", :id=>'notes')
 
