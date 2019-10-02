@@ -1,25 +1,27 @@
 = order_form.hidden_field :status
 .row
-  .small-6.columns
-    = order_form.simple_fields_for :address do |address_form|
-      = render '/admin/orders/name_form', :f => address_form
-      - unless order_production.has_reserved_seating?
-        = order_form.input :special_request, :as=>:select, :collection=>TicketOrder::SEATING_REQUESTS + ['See Notes'], :label=>"Special seating requirements?"
-      = order_form.input :hold_under, :label=>'Hold reservation under'
-  %div.small-6.columns
+  = order_form.simple_fields_for :address do |address_form|
+    = render '/admin/orders/name_form', :f => address_form
+  .small-12.columns
+    - unless order_production.has_reserved_seating?
+      = order_form.input :special_request, :as=>:select, :collection=>TicketOrder::SEATING_REQUESTS + ['See Notes'], :label=>"Special seating requirements?"
+    = order_form.input :hold_under, :label=>'Hold reservation under'
+.row
+  .small-12.medium-6.columns
     = render '/admin/orders/billing_form', :order_form=>order_form
-%div.row
-  %div.small-12.medium-6.columns
+  .small-12.medium-6.columns
     = order_form.simple_fields_for :address do |address_form|
       = render '/admin/orders/address_form', :f => address_form
-  %div.small-12.medium-6.columns
+.row
+  .columns.small-12.medium-6
     %fieldset
       %legend Marketing
       = order_form.input :add_to_email_list, :as=>:boolean, :label=>'Add to email list?', :default=>false
       = order_form.input :marketing_source, :collection=>Order::REFERRALS, :label=>"How did you hear about the show?"
-.row
-  .small-12.columns
+  .small-12.columns.medium-6
     = order_form.input :notes, :input_html => {:rows => 4}
+.row
+
   .small-12.columns
     = render partial:'order_actions', locals:{order_form:order_form}
   .small-12.columns

@@ -1,9 +1,12 @@
-= f.label :full_name, "Name"
-%div.row.collapse
-  %div#full-name-input-column.small-12.columns
-    = f.input_field :full_name, :label=>"Name", :as=>:autocomplete, :url=>autocomplete_address_admin_addresses_path, :id_element=>'#linked_to_address_id'
-    %hidden_field_tag{:id=>"linked_to_address_id"}
-  %div#full-name-clear-column.small-2.columns.hide
-    %a#disassociate-address.postfix.button{:href=>'#'} Clear
-= f.input :email
-= f.input :phone
+.columns.small-12.medium-6
+  = f.label :full_name, "Name"
+  %div.row.collapse
+    %div#full-name-input-column.small-12.columns
+      = f.input_field :full_name, :label=>"Name", :as=>:autocomplete, :url=>autocomplete_address_admin_addresses_path, :id_element=>'#linked_to_address_id'
+      %hidden_field_tag{:id=>"linked_to_address_id"}
+    %div#full-name-clear-column.small-2.columns.hide
+      %a#disassociate-address.postfix.button{:href=>'#'} Clear
+  = f.input :email
+  = f.input :phone
+.columns.small-12.medium-6.hide-for-small-only
+  = render '/admin/addresses/quick_lookup', :f=>f
