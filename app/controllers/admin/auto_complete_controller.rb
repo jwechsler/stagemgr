@@ -29,7 +29,6 @@ class Admin::AutoCompleteController < Admin::ApplicationController
     end
   end
 
-
   def ticket_class_code
     performance = Performance.find_by_performance_code(params[:performance_code])
     if performance.nil?

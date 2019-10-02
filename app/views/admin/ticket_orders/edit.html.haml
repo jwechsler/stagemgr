@@ -1,18 +1,22 @@
 = render '/admin/orders/header_bar', :order=>@ticket_order
 
 = simple_form_for [:admin, @ticket_order], :html=>{:id=>'admin_ticket_order_form'} do |order_form|
+
+  = render partial: '/ticket_orders/ticket_order_javascript_fields', locals:{order_form: order_form}
+
   %div.row
-    %div.columns.small-12.medium-8
+
+    %div.columns.small-12
       = render 'ticket_line_items_form', :order_form=>order_form
     %div.columns.small-12.medium-4.hide-for-small-only
       = render '/admin/addresses/quick_lookup', :f=>order_form
-
-  %div.row
-    %div.small-12.medium-8.columns
+  .row
+    .small-12.medium-8.columns
       = render '/admin/service_line_items/form', order_form: order_form
-
-
-    %div.columns.small-12
+    .small-12.medium-4.columns
+      = render '/admin/orders/special_offer_form', :f => order_form
+  .row
+    .columns.small-12
       = render :partial=>'/admin/ticket_orders/form', :locals=>{:order_form=>order_form}
 
 = content_for :js do

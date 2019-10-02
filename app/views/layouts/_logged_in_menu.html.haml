@@ -76,6 +76,6 @@
           =link_to('Logout',logout_path, :method => :delete, :confirm => "Are you sure you want to logout?")
       %ul.right
         %li.has_form
-          =link_to('New Ticket Order', new_admin_ticket_order_path, class:"button")
+          =render partial:"/admin/ticket_orders/new_order_button"
 
 

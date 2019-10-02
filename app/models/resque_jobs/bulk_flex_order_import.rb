@@ -38,7 +38,6 @@ class BulkFlexOrderImport < OrderImport
       CSV.foreach(filestore.data.path, headers:true) do |row|
         current_address_id = 0
         a = nil
-        total += 1
         case
         when !row['Id'].blank? # if ID is present, use that as the match criteria
           current_address_id = row['Id']

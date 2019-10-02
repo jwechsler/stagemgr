@@ -10,12 +10,12 @@ class NotificationTask < OrderTask
     result = true
     begin
       self.notifications.split(',').each { |address|
-        NotificationMailer.send(self.method_symbol,self.order,address,Authorization.current_user).deliver
+        NotificationMailer.send(self.method_symbol,self.order,address).deliver
       }
 
     rescue => detail
       result = false
-      self.result = detail.backtrace.join("\n")
+      self.result = detail.message + '\n' + detail.backtrace.join("\n")
     end
     return result
   end

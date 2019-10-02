@@ -29,7 +29,7 @@ class Ability
         user.theater_ids.include?(flex_pass_offer.theater_id)
     end
 
-    can [:read, :create, :update, :update_notes, :confirm, :quickview], TicketOrder
+    can [:read, :create, :update, :update_notes, :confirm, :quickview, :new_for_production], TicketOrder
     can [:read, :create, :hold_existing], TicketOrder
     can :prehold, TicketOrder do |order|
         order.performance.production.season_seating?
@@ -45,6 +45,7 @@ class Ability
     can :cancel_held_during_seating, TicketOrder
     can :read, Performance
     can :read, ServiceItemTemplate
+    can :view_backend_classes, TicketClassAllocation
     can [:read, :show_reports], Report
     can [:autocomplete_production_production_code,
             :autocomplete_performance_performance_code,

@@ -86,6 +86,7 @@ gem 'rails-jquery-autocomplete' # :git=>"https://github.com/jwechsler/rails3-jqu
 gem 'config', :git=>'https://github.com/railsconfig/config.git'
 gem 'responders'
 gem 'mini_magick'
+gem 'decent_exposure'
 #
 
 group :development do

@@ -1,25 +1,11 @@
-%fieldset
-  %legend Choose Seating
-  .row
-    .columns.small-12.medium-3
-      %span{id:"seating-config", class:'hide', 'data-max-quantity':ticket_order.number_of_tickets, 'data-order-id':ticket_order.id, 'data-reserve-url':reserve_performance_seat_assignments_url(ticket_order.performance_id), 'data-release-url':release_performance_seat_assignments_url(ticket_order.performance_id)}
-      .row
-
-      %span.seatinglist{style:"font-size':'200%"}
-        = ticket_order.seats.map{|sa| sa.seat.location}.sort.join(',')
-      &nbsp;
-    .columns.small-12.medium-4
-      - seats_remaining = ticket_order.number_of_seats - ticket_order.seats.size
-      %span#seating-remaining
-        = "#{seats_remaining} of #{ticket_order.number_of_seats} remaining" unless seats_remaining == 0
-
-    .columns.small-12.medium-5
-      %img{:src => "#{root_url}#{ticket_order.performance.production.seat_map.base_image_map.url}", :alt => "", :usemap=> '#seatingmap', :class=>'seatingmap'}
-      %map{name:'seatingmap', id:'seatingmap'}
-        - SeatAssignment.available_seat_assignments(ticket_order.performance, ticket_order).each do |sa|
-          - sa_key = sa.available?(ticket_order) ? "#{sa.id}" : "unavailable"
-          %area{shape:"circle", coords:"#{sa.seat.origin_x},#{sa.seat.origin_y},#{sa.seat.width}", id:"sa-#{sa.id}", href:"#?id=#{sa.seat.location}",alt:"#{sa.seat.location}", 'data-location':"#{sa.seat.location}", 'data-status': "#{assignment_keys(sa,ticket_order)}", 'data-assignment-id':"#{sa.id}", 'data-key':"#{sa_key}"}
-
+<!--Creates the popup body-->
+= render partial:'/seat_assignments/ticket_class_selector', locals: {order_form: order_form}
+- unavailable_data = raw '{"alwaysOn": true, "fillColor":"000000"}'
+.row
+  .columns.small-12.medium-6
+    = render partial:'/ticket_orders/ticket_line_items', locals:{order_form: order_form}
+  .columns.small-12.medium-6
+    =render partial:'/admin/ticket_orders/seatmap', locals:{ticket_order:ticket_order}
 
 = content_for :js do
   = javascript_include_tag 'seat_assignment'

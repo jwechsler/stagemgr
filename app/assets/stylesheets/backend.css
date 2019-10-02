@@ -20,3 +20,9 @@ select {
 select[size], select[multiple] {
     background-image: none;
 }
+
+.ui-autocomplete { position: absolute; cursor: default;z-index:2000 !important;}
+
+.front-facing {
+  color: #0000ff;
+}

@@ -19,3 +19,4 @@ production:
 
 all:
   minutes_before_performance_close_to_third_party_sales: 30
+  order_expiration_in_minutes: 5

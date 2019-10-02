@@ -1,0 +1,32 @@
+= render partial:'/seat_assignments/ticket_class_selector', locals: {order_form: order_form}
+#ticket-items{'data-line-items':'[]'}
+.row
+  .columns.small-12.medium-6
+    = render partial:'/admin/ticket_orders/reserved_ticket_line_items', locals:{order_form: order_form, show_web_visible_only: false}
+  .columns.small-12.medium-6
+    %div#seatmap-area
+      - unless order_form.object.performance_id.nil?
+        = render partial:"/seat_assignments/available_seatmap", locals:{ticket_order_uuid: order_form.object.uuid, performance: order_form.object.performance}
+      - else
+        %img{:src => "#{root_url}#{order_production.seat_map.base_image_map.url}"}
+
+= content_for :js do
+  = javascript_include_tag 'seat_assignment'
+  :javascript
+
+    $(document).ready(function() {
+
+      $('#ticket_order_performance_code').bind('railsAutocomplete.select', function(event, data){
+        update_ticketing_panel()
+        // setup_seating_quickview_panel()
+      })
+    });
+
+- unless order_form.object.performance_id.blank?
+  = content_for :js do
+    :javascript
+      $(document).ready(function() {
+        setTimeout(function() {
+          update_ticketing_panel();
+        }, 600);
+      });

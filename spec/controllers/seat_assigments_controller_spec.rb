@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe SeatAssignmentsController, type: :controller do
+RSpec.describe SeatAssignmentsController, type: :controller, wip: true do
 
   before(:each) do
     venue = FactoryBot.create(:venue)
@@ -30,21 +30,21 @@ RSpec.describe SeatAssignmentsController, type: :controller do
     it "holds a seat for an order in processing mode" do
       reservation_id = @inventory[0]['id']
       @ticket_order.transition_to!(Order::PROCESSING)
-      post :reserve, performance_id: @ticket_order.performance_id, format: :json, id:reservation_id, order_id: @ticket_order.id
+      post :reserve, performance_id: @ticket_order.performance_id, format: :json, id:reservation_id, order_uuid: @ticket_order.uuid
       result = JSON.parse response.body
-      expect(result['order_id']).to eq(@ticket_order.id)
+      expect(result['order_uuid']).to eq(@ticket_order.uuid)
       expect(result['status']).to eq('assigned')
-      expect(SeatAssignment.find(reservation_id).status).to eq(SeatAssignment::ASSIGNED)
+      expect(SeatAssignment.find(reservation_id).status).to eq(SeatAssignment::TEMPORARY)
     end
 
     it "releases a seat for an order in processing mode" do
       reservation_id = @inventory[0]['id']
       @ticket_order.transition_to!(Order::PROCESSING)
-      post :reserve, performance_id: @ticket_order.performance_id, id:reservation_id, format: :json,  :order_id=>@ticket_order.id
-      post :release, performance_id: @ticket_order.performance_id, id:reservation_id, format: :json,  :order_id=>@ticket_order.id
+      post :reserve, performance_id: @ticket_order.performance_id, id:reservation_id, format: :json,  :order_uuid=>@ticket_order.uuid
+      post :release, performance_id: @ticket_order.performance_id, id:reservation_id, format: :json,  :order_uuid=>@ticket_order.uuid
       result = JSON.parse response.body
       expect(result['status']).to eq('available')
-      expect(result['order_id']).to be_nil
+      expect(result['order_uuid']).to be_nil
       expect(SeatAssignment.find(reservation_id).status).to eq(SeatAssignment::AVAILABLE)
     end
 

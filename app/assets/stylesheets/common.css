@@ -1,5 +1,7 @@
 /*
-*/
+ *= require frontend
+ *= require_self
+ */
 
 body {
   font-family: Verdana, Helvetica, Arial;

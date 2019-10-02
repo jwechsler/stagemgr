@@ -66,6 +66,7 @@ class Address < ActiveRecord::Base
 
   def set_full_name(full_name, first_name = nil, middle_name = nil, last_name = nil)
     if full_name.blank? then
+      self.full_name = ""
       self.full_name = first_name unless first_name.blank?
       self.full_name += self.full_name.blank? ? " #{middle_name}" : middle_name unless middle_name.blank?
       self.full_name += self.full_name.blank? ? last_name : " #{last_name}"  unless last_name.blank?

@@ -38,25 +38,6 @@ jQuery.fn.extend({
     }
 });
 
-function set_button_state_for_autocompletes() {
-  allow_submit = true
-
-  $('.ticket_class_ids').each(function(index) {
-    if ($(this).val() == "") {
-      allow_submit = false
-    }
-    allow_submit &= ($('#'+this.id.replace('ticket_class_id','ticket_count')).val() > 0)
-
-  });
-  if (allow_submit) {
-    $('input[type="submit"].order-submit-button, button').prop('disabled', false);
-    $('#hold_button').prop('disabled', false);
-  } else {
-    $('input[type="submit"].order-submit-button, button').prop('disabled', true);
-    $('#hold_button').prop('disabled', true);
-  }
-
-}
 
 jQuery(document).ready(function($) {
 

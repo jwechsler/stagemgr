@@ -1,0 +1,6 @@
+%div{id:"ticket-line-item-merge", "data-seat-assignments":ticket_order.seat_assignments}
+  - ticket_order.ticket_line_items.select{|tli| !tli.ticket_count.nil? && tli.ticket_count > 0}.each do |tli|
+    %div{id:"ticket-line-item-merge-#{tli.ticket_class_id}", 'data-ticket-count':tli.ticket_count, 'data-ticket-line-item-id':tli.id, 'data-price-override':tli.price_override}
+  /
+    SEAT DATA
+    =ticket_order.ticket_line_items.size()

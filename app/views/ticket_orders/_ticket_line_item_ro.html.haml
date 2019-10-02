@@ -1,0 +1,17 @@
+.row.ticket_line_item.line_item{:price=>f.object.ticket_class.try(:ticket_price), :ticket_type=>f.object.ticket_class.try(:ticket_type)}
+  .small-6.columns.vertical-center
+    = f.hidden_field :ticket_class_id
+    = f.object.ticket_class.class_name
+    - unless f.object.ticket_class.purchase_page_annotation.blank?
+      .span.ticket_class_annotation
+        = display_markdown(f.object.ticket_class.purchase_page_annotation)
+  .small-6.medium-3.columns
+    - f.object.ticket_count = 0 if f.object.ticket_count.nil?
+    = f.hidden_field :ticket_count, :class=>"ticket_count_control ticket_class_count_#{f.object.ticket_class_id}"
+    %span{id:"ticket_class_qty_display_#{f.object.ticket_class_id}", class:'ticket_count'}
+      = f.object.ticket_count
+  .small-12.medium-3.columns.vertical-center
+    - if f.object.ticket_class.software_managed? || f.object.ticket_class.hide_pricing?
+      n/a
+    -else
+      %span.ticket_price= number_to_currency(f.object.ticket_class.ticket_price)

@@ -1,0 +1,13 @@
+.row
+  .small-12.columns
+    %fieldset
+      %legend Tickets
+      .row
+        .small-12.medium-12.columns
+          = render partial: '/ticket_orders/seating', locals: {ticket_order: order, order_form: order_form}
+        .small-12.medium-6.columns
+          TICKET INFO
+      .row
+        .small-12.columns
+          = render '/orders/special_offer_form', :f => order_form, :special_offer_code=>order.special_offer_code
+

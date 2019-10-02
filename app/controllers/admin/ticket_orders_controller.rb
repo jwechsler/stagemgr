@@ -1,6 +1,17 @@
 class Admin::TicketOrdersController < Admin::OrdersController
   load_and_authorize_resource
-  include TicketOrdersHelper
+  include Admin::TicketOrdersHelper
+
+  expose :order_production_id, ->{
+    case
+      when (!@ticket_order.nil? && !@ticket_order.performance.nil?) then @ticket_order.performance.production_id
+      when !params[:new_production_id].nil? then params[:new_production_id]
+      when !params[:production_id].nil? then params[:production_id]
+      else ""
+    end
+  }
+
+  expose :order_production,  ->{ Production.find(order_production_id) }
 
   autocomplete :production, :production_code
   autocomplete :ticket_class, :ticket_class_code
@@ -37,14 +48,6 @@ class Admin::TicketOrdersController < Admin::OrdersController
       render :json => Array.new
     else
       ticket_classes = performance.production.ticket_classes.search_by_code_and_performance_id(params[:term], performance.id)
-      Rails.logger.debug("*** AUTOCOMPLETE")
-      Rails.logger.debug(ticket_classes.select { |tc| !tc.software_managed }.map { |ticket_class|
-        { :id=>ticket_class.id,
-          :value=>ticket_class.class_code,
-          :label=>"#{ticket_class.class_code} [#{ticket_class.to_s} (#{ticket_class.number_left(performance)} Tickets Left)]",
-          :ticket_type=>ticket_class.ticket_type,
-          :ticket_price=>ticket_class.ticket_price
-        }})
       render :json => ticket_classes.select { |tc| !tc.software_managed }.map { |ticket_class|
         { :id=>ticket_class.id,
           :value=>ticket_class.class_code,
@@ -68,8 +71,10 @@ class Admin::TicketOrdersController < Admin::OrdersController
     end
   end
 
-  def new
+  def new_for_production
+    @ticket_order = TicketOrder.new
     @ticket_order.address = Address.new
+    @production = Production.find(params[:new_production_id])
     @ticket_order.ticket_line_items.build
     @ticket_order.status = Order::NEW
     @ticket_order.create_default_service_fees
@@ -78,16 +83,16 @@ class Admin::TicketOrdersController < Admin::OrdersController
     end
   end
 
+  def new
+    render '/general/unavailable'
+  end
+
   def show
   end
 
   def edit
     respond_to do |format|
-      if @ticket_order.exchanging?
-        format.html { render 'confirm' }
-      else
-        format.html { render 'edit' }
-      end
+      format.html { render 'edit' }
     end
   end
 
@@ -106,7 +111,6 @@ class Admin::TicketOrdersController < Admin::OrdersController
       self.cancel
     end
   end
-
 
   def resend_confirmation
     confirmation_task = @ticket_order.tasks.select{|t| t.method_symbol == 'ticket_confirmation'}.first
@@ -133,6 +137,10 @@ class Admin::TicketOrdersController < Admin::OrdersController
 
   def update
     @ticket_order.update_attributes(ticket_order_params)
+    Rails.logger.debug("*** SIZE = #{@ticket_order.ticket_line_items.size.to_s}")
+    @ticket_order.ticket_line_items.select{|tli| !tli.ticket_count.nil? && tli.ticket_count > 0}.each {|tli|
+      Rails.logger.debug("*** COUNT FOR #{tli.ticket_class_id}: #{tli.ticket_class.class_name} is #{tli.ticket_count}")
+    }
     if @ticket_order.held? && !(can?(:hold, TicketOrder) || @ticket_order.payment_type.allow_theater_user_holds?)
       flash[:error] = "You don't have permissions to put this order on hold with a payment type of #{@ticket_order.payment_type.display_name}"
       render 'edit'
@@ -144,6 +152,7 @@ class Admin::TicketOrdersController < Admin::OrdersController
   end
 
   def create
+    @ticket_order.uuid = params[:uuid] unless params[:uuid].blank?
     @ticket_order.performance=Performance.find_by performance_code:params[:ticket_order][:performance_code]
     @ticket_order.status = Order::NEW if @ticket_order.status.nil?
     time_cutoff = @ticket_order.performance.to_time_with_zone - ($SERVER_CONFIG['minutes_before_performance_close_to_third_party_sales'] || 0).minutes
@@ -197,7 +206,6 @@ class Admin::TicketOrdersController < Admin::OrdersController
 
   protected
 
-
   def create_or_update(order, commit_action = nil)
     if (convert_button_label_to_state(commit_action).eql?(Order::PROCESSED) && order.performance.production.season_seating? && current_user.cannot?(:process_orders_in_season_seating, TicketOrder)) then
       flash[:error] = "Orders for productions in Season Seating status cannot be placed"
@@ -216,6 +224,10 @@ class Admin::TicketOrdersController < Admin::OrdersController
       super(order,commit_action)
     end
   end
+
+
+
+
 
   private
   def ticket_order_params

@@ -54,7 +54,7 @@ class OrdersDatatable < AjaxDatatablesRails::Base
 private
 
   def get_raw_records
-    Order.accessible_by(current_user.ability).includes(:address, :payments, seats: :seat, performance: :production).references(:address,:payments,:performance, :seats, :seat)
+    Order.accessible_by(current_user.ability).includes(:address, seats: :seat, performance: :production).references(:address, :performance, seats: :seat)
   end
 
   def sort_records(records)

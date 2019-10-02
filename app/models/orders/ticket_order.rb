@@ -2,14 +2,15 @@ class TicketOrder < Order
 
   before_validation :set_tickets_for_pass_redemption
   before_validation :unassign_seats_when_performance_changes, if: :performance_id_changed?
-
-  before_save :set_theater
-  before_save :remove_empty_ticket_lines
-  before_save do
+  after_validation do
     if status_changed? && (refunded? || unclaimed?) && performance.production.has_reserved_seating?
       unassign_seats
     end
   end
+
+  before_save :set_theater
+  before_save :remove_empty_ticket_lines
+  before_save :finalize_seat_assignments
 
   after_save :update_attendance_record
 
@@ -24,8 +25,8 @@ class TicketOrder < Order
   accepts_nested_attributes_for :ticket_line_items, allow_destroy: true
 
   SEATING_REQUESTS = (
-    WHEELCHAIR, STAIRS =
-    'Wheelchair seating', 'No stairs')
+    WHEELCHAIR, WHEELCHAIR_TRANSFER, STAIRS =
+    'Wheelchair (no transfer)', 'Wheelchair (can transfer)', 'No stairs')
 
   validates_associated :ticket_line_items
   validates_presence_of :performance
@@ -33,7 +34,8 @@ class TicketOrder < Order
   #before_validation :tickets_available?, :if=>[:processed?, :status_changed?]
 
   validate :ticket_stock_available, :unless=>:allow_deletion?
-  validate :verify_fully_seated, if: -> { !self.allow_deletion? && performance.production.has_reserved_seating? && (status.eql?(Order::PROCESSED) || status.eql?(Order::FULFILLED))}
+  # validate :verify_fully_seated, if: -> { !self.allow_deletion? && performance.production.has_reserved_seating? && (status.eql?(Order::PROCESSED) || status.eql?(Order::FULFILLED))}
+  validates :uuid, presence: true
 
   validates_each :status do |record, attr, value|
     unless record.allow_deletion?
@@ -79,8 +81,9 @@ class TicketOrder < Order
   end
 
   def unassign_seats
-    self.seats.reload.each {|seat| seat.unassign_from_order(self) }
-    self.seats.reload
+    Rails.logger.debug("*** Releasing seats for Order #{self.id} [#{self.status}] [#{self.seats.map{|s| s.seat.location}.join(',')}]")
+    self.seats.each {|seat| seat.unassign_from_order(self.uuid); seat.save! }
+    Rails.logger.debug("*** Seats released for Order #{self.id} [#{self.status}] [#{self.seats.map{|s| s.seat.location}.join(',')}]")
   end
 
   def unassign_seats_when_performance_changes
@@ -92,11 +95,11 @@ class TicketOrder < Order
     self.seats.reload
   end
 
-  def verify_fully_seated
-    unless seat_assignments_complete?
-      errors.add :base, "You must select #{self.number_of_seats} #{'seat'.pluralize(self.number_of_seats)} before finalizing this order"
-    end
-  end
+  # def verify_fully_seated
+  #   unless seat_assignments_complete?
+  #     errors.add :base, "You must select #{self.number_of_seats} #{'seat'.pluralize(self.number_of_seats)} before finalizing this order"
+  #   end
+  # end
 
   def seat_assignments_complete?
     unless self.performance.nil?
@@ -179,16 +182,37 @@ class TicketOrder < Order
     result
   end
 
-  def seat_assignments
-    if self.performance.production.has_reserved_seating?
-      self.seats.map { |s| s.seat.location }.sort.join(', ')
-    elsif self.assigned_seats?
-      "#{self.ticket_detail_description}"
-    else
-      ""
+  def wheelchair_requested?
+    case
+      when [WHEELCHAIR, WHEELCHAIR_TRANSFER].include?(self.special_request) then true
+      when self.seats.select{|sa| !sa.accessibility.blank?}.size > 0 then true
+      else false
     end
   end
 
+  def seat_assignments(assignment_types = [])
+    unless self.performance.nil?
+      if self.performance.production.has_reserved_seating?
+        show_seats = assignment_types.size.eql?(0) ? self.seats : self.seats.select {|s| assignment_types.include?(s.status)}
+        r = show_seats.map { |s| s.seat.location }.sort.join(', ')
+      elsif self.assigned_seats?
+        r = "#{self.ticket_detail_description}"
+      else
+        r = ""
+      end
+    else
+      r = ""
+    end
+    r
+  end
+
+  # when an order is saved to any status besides "EXCHANGING", any temporary seat assignments
+  # are also associated with the newly generated order_id
+  def finalize_seat_assignments
+    if status_changed? and self.processed? and self.performance.production.has_reserved_seating? and !self.uuid.nil?
+      SeatAssignment.assign_seats_to_saved_order(self.uuid) unless self.exchanging?
+    end
+  end
 
   def display_code
     self.performance.try(:performance_code)
@@ -225,7 +249,7 @@ class TicketOrder < Order
   end
 
   def ticket_detail_description
-    self.ticket_line_items.map { |li|
+    self.ticket_line_items.select{|tli| !tli.ticket_count.nil? && tli.ticket_count> 0}.map { |li|
       if (li.ticket_count.nil? ? 0 : li.ticket_count) > 0
         li.to_s
       else
@@ -328,12 +352,20 @@ class TicketOrder < Order
   end
 
   def number_of_tickets
-    self.ticket_line_items.inject(0) { |sum, li| sum + li.ticket_count }
+    if self.ticket_line_items.empty?
+      result = 0
+    else
+      result = self.ticket_line_items.inject(0) { |sum, li| sum + (li.ticket_count.nil? ? 0 : li.ticket_count) }
+    end
+    return result || 0
   end
 
   def number_of_seats
-
-    self.ticket_line_items.select {|tli| !tli.nil? && !tli.ticket_class.nil? }.inject(0) { |sum, li| sum + (li.ticket_class.holds_seats? ? li.ticket_count : 0)}
+    if self.ticket_line_items.empty?
+      0
+    else
+      self.ticket_line_items.select {|tli| !tli.nil? && !tli.ticket_class.nil? && tli.ticket_class.holds_seats?}.inject(0) { |sum, li| sum + (li.ticket_count.nil? ? 0 : li.ticket_count)}
+    end
   end
 
   def performance_code=(string)
@@ -437,7 +469,7 @@ class TicketOrder < Order
   def exchange_and_process_from!(original_order)
     Order.transaction do
       self.begin_exchange!(original_order)
-      self.transition_exchanging_to_processed! unless self.performance.production.has_reserved_seating?
+      self.transition_exchanging_to_processed!
     end
   end
 
@@ -532,21 +564,6 @@ class TicketOrder < Order
     redirect_to
   end
 
-  def transition_processing_to_processed!(redirect_to = nil)
-
-    if seat_assignments_complete? then
-      Order.transaction do
-
-        self.seats.reload
-        self.seats.each {|sa| sa.status = SeatAssignment::ASSIGNED}
-        super(redirect_to)
-      end
-    else
-      errors.add :base, "You must select #{self.number_of_seats} #{'seat'.pluralize(self.number_of_seats)} before finalizing this order"
-    end
-
-  end
-
   def transition_processed_to_fulfilled!(redirect_to = nil)
     Resque.enqueue(PrintTicketOrder, self.id)
     super
@@ -593,7 +610,11 @@ class TicketOrder < Order
 
   def create_receipt_task
     self.tasks << OutreachTask.new(:execute_at => Time.now + 5.minutes, :method_symbol => :ticket_confirmation) unless (self.performance.suppress_notification || self.suppress_receipt?)
-
+    if !$EMAIL_ADDRESS.nil? && !$EMAIL_ADDRESS['wheelchair_conversion_notifications'].blank? && self.wheelchair_requested?
+      self.tasks << NotificationTask.new(:execute_at => Time.now + 15.minutes,
+                                        :notifications => $EMAIL_ADDRESS['wheelchair_conversion_notifications'],
+                                        :method_symbol => :wheelchair_conversion_alert)
+    end
     super
   end
 

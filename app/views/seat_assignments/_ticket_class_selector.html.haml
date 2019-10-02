@@ -1,0 +1,76 @@
+#ticket-modal.full.reveal-modal(data-reveal aria-labelledby="modalTitle" aria-hidden="true" role="dialog" data-assignment-id="none")
+  %p.lead
+    Select the ticket type for seat
+    %span#seat-location &nbsp;
+  #accessible.hide
+    This seat can be utilized by guests with or without a wheelchair.
+    %div{style:"display:inline-block; vertical-align:middle;"}
+      %label{for:'convert-accessible', style:"word-wrap:break-word"}
+        If you utilize a wheelchair and would like to remain in it during the performance, check here:
+        &nbsp;
+        %input#convert-accessible{type:'checkbox', value:"wheelchair", name:"convert-accessible"}
+
+  .row{:style=>'margin-bottom: 8px'}
+    .small-6.columns
+      %strong Type
+    .small-3.columns
+      %strong Price/ticket
+    .small-3.columns
+      &nbsp;
+    - if order_form.object.performance.nil?
+      #ticket-selector
+    - else
+      - order_form.object.performance.ticket_class_allocations.each do |tca|
+        -if tca.available? && !tca.ticket_class.software_managed && (tca.ticket_class.web_visible?)
+          - tc = tca.ticket_class
+          .row
+            .small-6.columns.vertical-center
+              = tc.class_name
+              - unless tc.purchase_page_annotation.blank?
+                %span.ticket_class_annotation
+                  = display_markdown(f.object.ticket_class.purchase_page_annotation)
+            .small-3.columns
+              - if tc.software_managed? || tc.hide_pricing?
+                n/a
+              -else
+                %span.ticket_price= number_to_currency(tc.ticket_price)
+            .small-3.columns
+              %a.button.tiny.ticket-class-select-button{href:'#',"data-ticket-class":tc.id} Select
+
+  %a.close-reveal-modal(aria-label="Close") &#215;
+= render partial: "/seat_assignments/seating_config", locals: {performance_id: order_form.object.performance_id, order_uuid: order_form.object.uuid }
+
+= content_for :js do
+  :javascript
+    function populate_ticket_selector() {
+      data = $.parseJSON($("#ticket-items").data('line-items'))
+      $.each( data, function( key, val ) {
+        ticket_class_id = val['id']
+        var visible_style
+        if (val['web_visible']) {
+          visible_style = "front-facing"
+        } else {
+          visible_style = ""
+        }
+        var row = document.createElement("div")
+        row.setAttribute("class", "row " + visible_style)
+        col = create_column("6",val['class_name'])
+        if (val['purchase_page_annotation']) {
+          span = document.createElement('span')
+          span.setAttribute("ticket_class_annotation")
+          span.appendChild(document.createTextNode(val['purchase_page_annotation']))
+          col.appendChild(span)
+        }
+        row.appendChild(col)
+        row.appendChild(create_column("3",val['ticket_price']))
+        button = document.createElement("a")
+        button.setAttribute("class","tiny ticket-class-select-button button")
+        button.setAttribute("href","#")
+        button.setAttribute("data-ticket-class",ticket_class_id)
+        button.appendChild(document.createTextNode('Select'))
+        row.appendChild(create_column("3","",button))
+        $("#ticket-selector").append(row)
+      });
+
+
+    }

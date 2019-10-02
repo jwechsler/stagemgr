@@ -28,7 +28,7 @@
             - old_items += old2
             - new_items += new2
 
-          - tickets = @ticket_order.ticket_line_items.to_a
+          - tickets = @ticket_order.ticket_line_items.select{|tli| tli.ticket_count > 0}.to_a
           - tickets -= old_items
           - tickets += new_items
           - tickets.each do |tli|
@@ -71,19 +71,9 @@
             %td
               %strong.right Total Charge
             %td.currency= number_to_currency(total)
-          %td
-            %td
-            %td
-            %td
-              %a.tiny.button.right{:href=>"javascript: submitForm()"} Edit your order
-      - if @ticket_order.performance.production.has_reserved_seating?
-        .row
-          .small-12.columns
-            = render partial: '/ticket_orders/seating', locals: {ticket_order: @ticket_order}
       = render partial: '/ticket_orders/pass_through_fields', locals:{order_form: order_form}
       #submit-control
         %p
-          = payment_text_for @ticket_order if total > 0
           Please note that all ticket purchases are
           - unless @ticket_order.contains_exchangeable_tickets?
             %strong NON-EXCHANGEABLE and
@@ -106,3 +96,8 @@
   function submitForm() {
     document.forms["confirm_form"].submit();
   }
+
+<!-- custom javascript -->
+= content_for :js do
+  = javascript_include_tag 'orders_common'
+

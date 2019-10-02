@@ -15,9 +15,6 @@
 
         - if can? :fulfill, TicketOrder
           %li= link_to 'Fulfill Order', fulfill_admin_order_path(@ticket_order), :class=>'small button' if @ticket_order.fulfillable?
-        - if @ticket_order.performance.production.has_reserved_seating?
-          %li
-            %a#seating-control.button.small{:href => "#"} Update Seating
         - if can? :resend_confirmation, TicketOrder
           - if @ticket_order.settled? && !@ticket_order.address.nil? && !@ticket_order.address.email.blank? && !@ticket_order.refunded?
             %li= link_to 'Resend Confirmation', resend_confirmation_admin_ticket_order_path(@ticket_order), :confirm=>"Resend confirmation email?", :class=>'small button'

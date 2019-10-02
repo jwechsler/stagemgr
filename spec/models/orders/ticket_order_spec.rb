@@ -60,6 +60,7 @@ RSpec.describe TicketOrder do
     o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
     o2 = o.dup
     o2.status = Order::NEW
+    o2.uuid = SecureRandom.uuid
     o2.save!
     o2.ticket_line_items << o.ticket_line_items.first.dup
     o2.payment_type = FactoryBot.create(:cash_payment_type)
@@ -86,6 +87,7 @@ RSpec.describe TicketOrder do
     o2.status = Order::NEW
     o2.ticket_line_items << o.ticket_line_items.first.dup
     o2.payment_type = FactoryBot.create(:cash_payment_type)
+    o2.uuid = SecureRandom.uuid
     o2.save!
     o2.transition_to!(Order::PROCESSED)
     expect(OutreachTask.where(method_symbol: :ticket_confirmation).count).to eq(start_count+1)

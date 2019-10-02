@@ -14,6 +14,7 @@ module TicketOrdersHelper
     order = performance.orders.build(:status=>Order::NEW)
     order.status = Order::NEW
     order.address = Address.new
+    order.uuid = SecureRandom.uuid if order.uuid.blank?
     available_ticket_classes.each { |tc| order.ticket_line_items.build(:ticket_class=>tc) }
     @order = order
   end
@@ -23,6 +24,7 @@ module TicketOrdersHelper
     available = order.performance.ticket_class_allocations.select { |tca| !tca.ticket_class.nil? && tca.available? && !tcs.include?(tca.ticket_class.id) && tca.ticket_class.web_visible? }.map { |tca| tca.ticket_class }
     available.each { |tc| order.ticket_line_items.build(:ticket_class => tc, :ticket_count => 0) }
     order.ticket_line_items.order(:ticket_class_id)
+    Rails.logger.debug("*** Built ticket_line_items : size is #{order.ticket_line_items.size}")
     order
   end
 

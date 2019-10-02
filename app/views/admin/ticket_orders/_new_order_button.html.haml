@@ -1,0 +1,37 @@
+#production-selection.reveal-modal(data-reveal aria-labelledby="modalTitle" aria-hidden="true" role="dialog" data-assignment-id="none")
+  = form_tag new_for_production_admin_ticket_orders_path, id: 'production-form', method: :post do
+    = hidden_field_tag :new_production_id
+    %label Create order for production Code
+    = autocomplete_field_tag 'production_code', '', autocomplete_production_production_code_admin_ticket_orders_path, id_element: '#new_production_id', 'data-auto-focus'=>true
+    // %a.button.tiny.ticket-class-select-button{href:'#'} Select
+  %a.close-reveal-modal(aria-label="Close") &#215;
+
+=link_to('New Ticket Order', new_admin_ticket_order_path, class:"button", id:'new-ticket-order')
+
+= content_for :js do
+  :javascript
+    $('#new-ticket-order').click( function(e) {
+
+      $('#production-selection').foundation('reveal', 'open');
+      $('#production_code').val('');
+      var ctl = $('#production_code')
+      setTimeout(function() {
+          // this focus on last character if input isn't empty
+          tmp = ctl.val();
+          ctl.focus().val("").blur().focus().val(tmp);
+        }, 200);
+      e.preventDefault();
+    });
+
+    $('#production_code').bind('railsAutocomplete.select', function(event, data) {
+
+      var production_id = $("#new_production_id").val();
+
+      if (production_id != "") {
+        setTimeout(function() {
+            // this focus on last character if input isn't empty
+            document.getElementById("production-form").submit();
+            $('#production-selection').foundation('reveal', 'close');
+          }, 200);
+        }
+    });

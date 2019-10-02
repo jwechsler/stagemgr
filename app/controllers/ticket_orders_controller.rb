@@ -4,26 +4,29 @@ class TicketOrdersController < ApplicationController
   include TicketOrdersHelper
 
   append_before_filter :find_order, :only => [:show, :edit, :update, :destroy, :confirm]
-  append_before_filter :redirect_to_proper_action, :only => [:edit, :show]
+  append_before_filter :redirect_to_proper_action, :only => [:edit]
 
   respond_to :html
 
   def edit
-    @ticket_order = TicketOrder.find(params[:id].to_i)
+    # @ticket_order = TicketOrder.find(params[:id].to_i)
     preset_line_items_for_display(@ticket_order)
 
   end
 
   def create
     @ticket_order = TicketOrder.new(ticket_order_params)
+    @ticket_order.uuid = params[:ticket_order][:uuid]
     @ticket_order.ip_address = request.remote_ip
     @ticket_order.create_default_service_fees
+    @ticket_order.status = Order::NEW
     set_exchange_service_fees_for_order(@ticket_order)
+
     update_or_create
   end
 
   def update
-    @ticket_order = TicketOrder.find(params[:id].to_i)
+    # @ticket_order = TicketOrder.find(params[:id].to_i)
     @ticket_order.update_attributes(ticket_order_params)
     @ticket_order.ip_address = request.remote_ip
     # @ticket_order_for_to_s = @ticket_order.performance.production.name + ' on ' + @ticket_order.performance.performance_date.to_formatted_s(:long_ordinal) +
@@ -32,7 +35,14 @@ class TicketOrdersController < ApplicationController
   end
 
   def confirm
+    # @ticket_order = TicketOrder.find(params[:id].to_i)
+  end
+
+  def show
     @ticket_order = TicketOrder.find(params[:id].to_i)
+    respond_to do |format|
+      format.html { render '/general/unavailable'}
+    end
   end
 
 #  def donate
@@ -54,14 +64,18 @@ class TicketOrdersController < ApplicationController
           format.html { render 'show'}
         else
           preset_line_items_for_display(@ticket_order)
-          format.html { render 'edit' }
+          if @ticket_order.processing? || @ticket_order.new?
+            format.html { render '/ticket_orders/edit' }
+          else
+            format.html { render '/general/unavailable' }
+          end
         end
       end
     end
   end
 
   def find_order
-    @ticket_order = TicketOrder.find(params[:id])
+    @ticket_order = TicketOrder.find(params[:id].to_i)
   end
 
   def redirect_to_proper_action

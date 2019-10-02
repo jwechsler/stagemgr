@@ -4,8 +4,20 @@ class Admin::ExchangeTicketOrdersController < Admin::ApplicationController
   include OrdersHelper
   include TicketOrdersHelper
 
+  expose :order_production_id, ->{
+    case
+      when (!@original_order.nil? && !@original_order.performance.nil?) then @original_order.performance.production_id
+      when !params[:new_production_id].nil? then params[:new_production_id]
+      when !params[:production_id].nil? then params[:production_id]
+      else ""
+    end
+  }
+
+  expose :order_production,  ->{ Production.find(order_production_id) }
+
   def new
     @original_order = TicketOrder.find(params[:ticket_order_id])
+    @original_order.status = Order::EXCHANGING
     @exchange_order = TicketOrder.new
     @exchange_order.create_exchange_service_fees(@original_order)
     @exchange_order.ticket_line_items.build
@@ -24,16 +36,11 @@ class Admin::ExchangeTicketOrdersController < Admin::ApplicationController
       @exchange_order = TicketOrder.new(ticket_order_params)
       @exchange_order.regularize_credit_card_expiration
       @exchange_order.special_offer_code = params[:ticket_order][:special_offer_code]
+      @exchange_order.uuid = params[:uuid]
       @exchange_order.exchange_and_process_from! @original_order
       respond_to do |format|
-
-        if @exchange_order.performance.production.has_reserved_seating?
-          flash[:warning] = 'Please seat this exchange'
-          format.html { redirect_to(confirm_admin_ticket_order_path(@exchange_order)) }
-        else
-          flash[:notice] = 'Order was successfully exchanged.'
-          format.html { redirect_to(admin_ticket_order_path(@exchange_order)) }
-        end
+        flash[:notice] = 'Order was successfully exchanged.'
+        format.html { redirect_to(admin_ticket_order_path(@exchange_order)) }
       end
     rescue Exception => e
       Rails.logger.error("There was a problem with the exchange. #{e.message}")

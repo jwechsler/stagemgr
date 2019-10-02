@@ -25,7 +25,8 @@ function autofillAddress(order_type, event, ui) {
       //may want to use $.trim in here
       return $(this).text() == 'Membership';
     }).prop('selected', true);
-    show_proper_payment_form()
+    $("[name*='payment_type_id']").val("5");
+    show_proper_admin_payment_form();
   }
   $('#quick-lookup').removeClass('hide');
 }

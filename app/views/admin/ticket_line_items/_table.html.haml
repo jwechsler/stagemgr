@@ -1,4 +1,31 @@
 - if order.ticket_line_items.size > 0
+	- if order.performance.production.has_reserved_seating? && order.exchangeable?
+		#change-seats.reveal-modal(data-reveal aria-labelledby="modalTitle" aria-hidden="true" role="dialog" data-assignment-id="none")
+			= render partial: "/seat_assignments/seating_config", locals: {performance_id: order.performance_id, order_uuid: order.uuid }
+
+			.row
+				.columns.small-12
+					%h3 Change Seating
+				.columns.medium-3.hide-for-small-only
+					%h4 Original
+					%span#number-of-tickets.hide= order.number_of_tickets
+					%p
+						%span#original-seat-list= order.seat_assignments([SeatAssignment::ASSIGNED,SeatAssignment::RELEASING])
+					%h4 New
+					%span#updated-seat-list= order.seat_assignments([SeatAssignment::ASSIGNED, SeatAssignment::TEMPORARY])
+				.columns.small-12.medium-6
+					=render partial:'/admin/ticket_orders/seatmap', locals:{ticket_order:order}
+				.columns.medium-3.hide-for-small-only
+					&nbsp;
+			.row
+				.columns.small-6
+					&nbsp;
+					-# %p.text-center
+						-# %a.button.centered.warning Cancel
+				.columns.small-6
+					%p.text-center
+						%a.disabled.button#finalize-seating Reseat
+			%a.close-reveal-modal(aria-label="Close") &#215;
 	%div.row
 		%div.small-12.columns
 			%fieldset
@@ -16,7 +43,14 @@
 								%i Total
 							%td{:align=>"right"}
 								%i= order.ticket_line_items.sum(:ticket_count)
-				- if order.performance.production.has_reserved_seating?
-					Reserved Seating:
-					%span.seatinglist
-						= order.seats.map{|sa| sa.seat.location}.sort.join(',')
+				- if order.performance.production.has_reserved_seating? && order.exchangeable?
+					.row
+						.columns.small-8
+							Reserved Seating:
+							%span#seatinglist
+								= order.seats.map{|sa| sa.seat.location}.sort.join(',')
+						.columns.small-4
+						- unless order.exchanging?
+							= content_for :js do
+								= javascript_include_tag 'reseating'
+							%a#seating-control.button.tiny{:href => "#"} Update seating

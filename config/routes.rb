@@ -79,7 +79,7 @@ Stagemgr::Application.routes.draw do
   end
 
   resources :ticket_orders do
-    get :confirm, :on=> :member
+    post :confirm, :on=> :member
   end
 
   resources :flex_pass_orders do
@@ -96,22 +96,31 @@ Stagemgr::Application.routes.draw do
     end
   end
 
-
-
   resources :performances, :only=>:index do
-    defaults format: :json do
-
-      resources :seat_assignments, :only=>:index, :controller=>'seat_assignments' do
-        collection do
-          post :reserve
-          post :release
-        end
+    resources :seat_assignments, :only=>:index, :controller=>'seat_assignments' do
+      collection do
+        post :reserve, format: :json
+        post :release, format: :json
       end
-
     end
+
+    member do
+      get :ticket_classes, constraints: lambda { |req| req.format == :json }
+    end
+
     collection do
       get :by_date
     end
+
+  end
+
+  resources :seat_assignments, :only=>:index do |variable|
+    collection do
+      post :release_temporary, format: :json
+      post :commit_reseating, format: :json
+      post :rollback_reseating, format: :json
+    end
+
   end
 
   resources :flex_pass_offers, :only => :index do
@@ -151,7 +160,6 @@ Stagemgr::Application.routes.draw do
         get :cancel
       end
     end
-
 
     resources :flex_pass_orders
 
@@ -247,6 +255,7 @@ Stagemgr::Application.routes.draw do
         post :fulfill_selected
         post :credit_card_payment_form
         post :cash_payment_form
+        post :new_for_production
         get :autocomplete_production_production_code
         get :autocomplete_performance_performance_code
         get :autocomplete_ticket_line_item_ticket_class_code
@@ -259,8 +268,9 @@ Stagemgr::Application.routes.draw do
         get  :fulfill
         get :reprint
         get :unclaimed
-        get :confirm
+        post :confirm
         get :resend_confirmation
+
       end
       resources :exchange_ticket_orders, :only=>[:new,:create]
       resources :refund_orders, :only=>[:new,:create]

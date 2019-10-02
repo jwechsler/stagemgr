@@ -4,3 +4,7 @@
   *= require foundation_and_overrides
   *= frontend
 */
+
+.dataTables_Processing {
+  background-color: aqua;
+}

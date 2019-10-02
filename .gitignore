@@ -1,6 +1,7 @@
 spec/examples.txt
 config/pay_pal_credentials.yml
 .rbenv-version
+.sync/*
 .powrc
 .rvmrc
 .byebug_history

@@ -19,15 +19,12 @@
               %p
                 Exchanged from order #
                 = link_to ticket_order.exchange_source_id, [:admin, ticket_order.exchange_source]
-
-    = render '/admin/ticket_line_items/table', :order=>ticket_order
+    = render partial:'/admin/ticket_line_items/table', locals:{:order=>ticket_order}
     = render '/admin/service_line_items/table', :order=>ticket_order
     = render '/admin/special_offer_line_items/table', :order=>ticket_order
 %div.row
   %div.small-12.columns
     = render :partial => '/admin/orders/payments', :locals=>{:order=>ticket_order}
-    - if ticket_order.seatable?
-      = render :partial => '/admin/ticket_orders/seating', :locals=>{:ticket_order=>ticket_order}
     = render :partial => '/admin/orders/referral', :locals=>{:order=>ticket_order}
 %div.row
   %div.small-12.columns

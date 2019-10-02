@@ -4,6 +4,15 @@ class NotificationMailer < ActionMailer::Base
 
   layout "notification_mailer"
 
+  def wheelchair_conversion_alert(order, recipient)
+    @order = order
+    subject = "#{order.display_code} wheelchair requested / #{order.address.full_name}"
+    mail(:to => recipient,
+         :from => $EMAIL_ADDRESS['software_address'],
+         :subject => subject,
+         :tag=>"Wheelchair request")
+  end
+
   def suspension_alert(order,recipient,action_by=nil)
     @order = order
 

@@ -19,15 +19,15 @@ class Order < ActiveRecord::Base
   has_many :exchange_payments
   has_many :price_override_payments
   has_many :tasks, :class_name=>'OrderTask', :dependent=>:destroy
-  has_many :seats, foreign_key: :order_id, class_name: 'SeatAssignment'
+  has_many :seats, foreign_key: :order_uuid, primary_key: :uuid, class_name: 'SeatAssignment'
   has_one :special_offer_line_item
   has_many :service_line_items, :dependent=>:destroy
 
   belongs_to :address
   belongs_to :recipient_address, :class_name=>:address, :foreign_key=>:recipient_address_id
 
+  accepts_nested_attributes_for :address
   accepts_nested_attributes_for :special_offer_line_item,
-                                :address,
                                 :service_line_items,
                                 :allow_destroy => true
 
@@ -65,7 +65,7 @@ class Order < ActiveRecord::Base
 
   audited
 
-
+  after_initialize :set_uuid_on_create
   before_validation :cascade_address_to_nested_items
   before_validation :associate_service_line_items
   before_validation :set_defaults
@@ -81,8 +81,8 @@ class Order < ActiveRecord::Base
   validates_inclusion_of :status, :in => ORDER_STATUSES, :if=>:status_is_provided?
 
   validates_presence_of :address
-  validates_associated :address,
-                       :payments,
+  validates_associated :address, unless: :new?
+  validates_associated :payments,
                        :special_offer_line_item
   validates :hold_under, not_email: true
 
@@ -654,6 +654,7 @@ class Order < ActiveRecord::Base
 
   protected
 
+
   def set_theater
     self.theater_id = self.associated_theater_id
   end
@@ -843,6 +844,12 @@ class Order < ActiveRecord::Base
       end
     end
 
+  end
+
+  def set_uuid_on_create
+    if new_record?
+      self.uuid ||= SecureRandom.uuid
+    end
   end
 
   private

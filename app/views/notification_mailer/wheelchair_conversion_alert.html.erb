@@ -1,0 +1,13 @@
+<h2>A wheelchair request has been received</h2>
+<p>
+  Order #<%= @order.id %> (<%= @order.address.full_name %>) has requested a wheelchair conversion.  Please make sure any appropriate holds are maintained.
+</p>
+<p>
+  <b>Seating Assignments</b><br/>
+  <%= @order.seat_assignments %>
+
+  <%- if @order.performance.production.has_reserved_seating? %>
+    <br/>Wheelchair requested at: <%= @order.seats.select{|s| !s.accessibility.blank?}.map{|s| s.seat.location}.join(',') %>
+
+  <%- end %>
+</p>

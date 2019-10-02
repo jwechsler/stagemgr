@@ -1,9 +1,2 @@
-= order_form.input :payment_type_id, :as=>:hidden, :input_html=>{:value=>order_form.object.payment_type_id}
-= order_form.input :credit_card_number, :as=>:hidden, :input_html=>{:value=>order_form.object.credit_card_number }
-= order_form.input :credit_card_type, :as=>:hidden, :input_html=>{:value=>order_form.object.credit_card_type }
-= order_form.input :credit_card_expiration_year, :as=>:hidden, :input_html=>{:value=>order_form.object.credit_card_expiration_year }
-= order_form.input :credit_card_expiration_month, :as=>:hidden, :input_html=>{:value=>order_form.object.credit_card_expiration_month }
-= order_form.input :credit_card_verification_number, :as=>:hidden, :input_html=>{:value=>order_form.object.credit_card_verification_number }
-= order_form.input :flex_pass_code, :as=>:hidden, :input_html=>{:value=>order_form.object.flex_pass_code}
-= order_form.input :member_code, :as=>:hidden, :input_html=>{:value=>order_form.object.member_code }
+= render 'pass_through_billing_fields', order_form: order_form
 = render 'pass_through_non_billing_fields', order_form: order_form

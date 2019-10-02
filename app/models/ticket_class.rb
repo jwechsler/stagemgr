@@ -12,6 +12,7 @@ class TicketClass < ActiveRecord::Base
   validates_numericality_of :ticket_price
   validates_numericality_of :minutes_before_show, :allow_nil => true
   validates_presence_of :ticket_price
+  validates_presence_of :class_name
   validates_presence_of :ticketing_fee
   validates_presence_of :production
   before_validation :prevent_price_changes_after_sales

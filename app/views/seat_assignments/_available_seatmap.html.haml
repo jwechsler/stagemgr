@@ -1,0 +1,8 @@
+= render partial: "/seat_assignments/seating_config", locals: {performance_id: performance.id, order_uuid: ticket_order_uuid }
+- unavailable_data = raw '{"alwaysOn": true, "fillColor":"000000"}'
+%img{:src => "#{root_url}#{performance.production.seat_map.base_image_map.url}", :alt => "", :usemap=> '#seatingmap', :class=>'seatingmap'}
+%map{name:'seatingmap', id:'seatingmap'}
+  - SeatAssignment.available_seat_assignments(performance).each do |sa|
+    - state = assignment_keys(sa, ticket_order_uuid)
+    - sa_key = "#{sa.id}, #{state}"
+    %area{shape:"circle", coords:"#{sa.seat.origin_x},#{sa.seat.origin_y},#{sa.seat.width}", id:"sa-#{sa.id}", href:"#?id=#{sa.seat.location}",alt:"#{sa.seat.location}", 'data-location':"#{sa.seat.location}", 'data-status': "#{assignment_keys(sa,ticket_order_uuid)}", 'data-assignment-id':"#{sa.id}", 'data-key':"#{sa_key}", 'data-accessible':"#{sa.seat.accessible?}"}

@@ -1,79 +1,27 @@
 .row
-  .small-9.columns
-    .row
-      .small-6.columns
-        = hidden_field_tag :production_id, (order_form.object.performance.nil? ? "" : order_form.object.performance.production_id)
-        = hidden_field_tag :production_status, (order_form.object.performance.nil? ? "" : order_form.object.performance.production.status)
-        = order_form.input :production_code, label: 'Production', url:  autocomplete_production_production_code_admin_ticket_orders_path, as: :autocomplete, id_element: '#production_id', input_html: {'data-auto-focus'=>true, 'data-has_reserved_seats'=>(order_form.object.performance.nil? ? false : order_form.object.performance.production.has_reserved_seating?), 'data-production_status'=>(order_form.object.performance.nil? ? '' : order_form.object.performance.production.status)}
-        -# = order_form.label :production_code, 'Production'
-        -# = order_form.input_field :production_code, class: 'autocomplete_prcode',
-        -#:label=>'Production',
-        -#:input_html=>{:autocomplete_url=>production_code_admin_auto_complete_index_path}
-      .small-6.columns
-        = hidden_field_tag :performance_id, order_form.object.performance.nil? ? "" : order_form.object.performance.id
-        = order_form.input :performance_code, :label=>'Performance', url: autocomplete_performance_performance_code_admin_ticket_orders_path, as: :autocomplete, :fields => {:production_id => '#production_id'}, id_element: '#performance_id', input_html: {'data-auto-focus'=>true  }
-    .row
-      #ticket_line_items.small-12.columns
-        = order_form.simple_fields_for :ticket_line_items do |tlif|
-          %div.row
-            .small-6.medium-3.columns
-              = tlif.label 'Ticket Class'
-            .small-6.medium-3.columns
-              = tlif.label "\# Tix"
-            .small-6.medium-2.columns
-              = tlif.label 'Price'
-            .small-3.medium-2.columns
-              = tlif.label 'Total'
-            .small-3.medium-2.columns
-              &nbsp;
+  .columns.small-12
+    %h4= order_production.name
+  .columns.small-12
+    = order_form.input :performance_code, :label=>'Performance', url: autocomplete_performance_performance_code_admin_ticket_orders_path, as: :autocomplete, :fields => {:production_id => '#production_id'}, id_element: '#performance_id', input_html: {'data-auto-focus'=>true  }
+.row
+  #ticket_line_items.small-12.columns
+    -if order_production.has_reserved_seating?
+      =render partial:"/admin/ticket_orders/reserved_tickets", locals: {order_form: order_form}
 
-          = render '/admin/ticket_orders/ticket_line_item_fields', :f=>tlif, :production_selector=>'#ticket_order_production_code', :performance_selector=>'#ticket_order_performance_code',input_html: {'data-auto-focus'=>true}
-          .links
-            = link_to_add_association 'Add tickets', order_form, :ticket_line_items, :class=>'small button', :partial=>'admin/ticket_orders/ticket_line_item_fields'
-    .row
-      %div.small-4.columns
+    -else
+      =render partial:"/admin/ticket_orders/general_admission_tickets", locals: {order_form: order_form}
 
-      .small-8.columns
-        = render '/admin/orders/special_offer_form', :f => order_form
-  .small-3.columns
-    #seating_quickview
 
 = content_for :js do
   :javascript
-    function setup_seating_quickview_panel() {
-      $('#seating_quickview').empty()
-      $.ajaxSetup({
-          timeout: 30000
-      });
-      $('#seating_quickview').load("#{root_url}/admin/performances/" + $('#performance_id').val() + '/seating_quickview' )
-    }
-    $(document).ready(function() {
-
-      function setup_submit_button(use_reserved_seats) {
-        if (use_reserved_seats) {
-          $('.seating-required').show()
-          $('.seating-not-required').hide()
-        } else {
-          $('.seating-required').hide()
-          $('.seating-not-required').show()
-        }
-        if ($('#production_status').val() == "Season Seating") {
-          $('#hold_control').show();
-        } else {
-          $('#hold_control').hide();
-        }
+    function setup_submit_button(use_reserved_seats = "") {
+      if ($('#production_status').val() == "Season Seating") {
+        $('#hold_control').show();
+      } else {
+        $('#hold_control').hide();
       }
+    }
 
-      setup_submit_button($('#ticket_order_production_code').data('has_reserved_seats'))
-
-      $('#ticket_order_performance_code').bind('railsAutocomplete.select', function(event, data){
-        setup_seating_quickview_panel()
-      })
-      $('#ticket_order_production_code').bind('railsAutocomplete.select', function(event, data){
-        /* Do something here */
-        $('#production_status').val(data.item.production_status)
-        setup_submit_button(data.item.has_reserved_seats)
-
-
-      });
+    $(document).ready(function() {
+      setup_submit_button()
     });
