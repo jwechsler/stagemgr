@@ -1,4 +1,4 @@
-#ticket-modal.full.reveal-modal(data-reveal aria-labelledby="modalTitle" aria-hidden="true" role="dialog" data-assignment-id="none")
+#ticket-modal.xlarge.reveal-modal(data-reveal aria-labelledby="modalTitle" aria-hidden="true" role="dialog" data-assignment-id="none")
   %p.lead
     Select the ticket type for seat
     %span#seat-location &nbsp;
@@ -44,6 +44,7 @@
   :javascript
     function populate_ticket_selector() {
       data = $.parseJSON($("#ticket-items").data('line-items'))
+      $("#ticket-selector").empty()
       $.each( data, function( key, val ) {
         ticket_class_id = val['id']
         var visible_style
@@ -69,6 +70,7 @@
         button.setAttribute("data-ticket-class",ticket_class_id)
         button.appendChild(document.createTextNode('Select'))
         row.appendChild(create_column("3","",button))
+
         $("#ticket-selector").append(row)
       });
 
