@@ -2,8 +2,6 @@
   = order_form.submit 'Print Tickets', :class=>'button', :disable_with => 'Printing...' if order_form.object.printable?
 
 - if [Order::NEW, Order::HOLD, Order::EXCHANGING, Order::PROCESSING].include? order_form.object.status
-  = order_form.submit 'Assign Seats', :class=>'hide button seating-required order-submit-button', data:{:disable_with => 'Seating...'}
-
   = order_form.submit 'Place Order', :class=>'button seating-not-required order-submit-button', data:{:disable_with => 'Processing...', :confirm => "Process this order?"}
 
 - if can?(:hold, TicketOrder) && order_form.object.unprocessed?

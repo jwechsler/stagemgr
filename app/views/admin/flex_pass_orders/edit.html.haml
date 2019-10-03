@@ -1,32 +1,26 @@
 = render '/admin/orders/header_bar', :order=>@flex_pass_order
 
-.row
-  .small-12.columns
-
-    = simple_form_for [:admin, @flex_pass_order], :html=>{:id=>'admin_flex_pass_order_form'} do |order_form|
-      .row
-        .small-12.medium-8.columns
-          = order_form.simple_fields_for :flex_pass_line_items do |flex_pass_line_item_form|
-            = render '/admin/flex_pass_orders/flex_pass_line_item_form', :f => flex_pass_line_item_form
-        .small-12.medium-4.columns
-          = render '/admin/addresses/quick_lookup', :f=>order_form
-
+= simple_form_for [:admin, @flex_pass_order], :html=>{:id=>'admin_flex_pass_order_form'} do |order_form|
+  .row
+    .small-12.medium-12.columns
+      = order_form.simple_fields_for :flex_pass_line_items do |flex_pass_line_item_form|
+        = render '/admin/flex_pass_orders/flex_pass_line_item_form', :f => flex_pass_line_item_form
       = order_form.hidden_field :status
-      %div.row
-        %div.small-6.columns
-          = order_form.simple_fields_for :address do |address_form|
-            = render '/admin/orders/name_form', :f => address_form
-            = order_form.input :hold_under, :label=>'Hold reservation under'
-        %div.small-6.columns
-          = render '/admin/orders/billing_form', :order_form=>order_form
-      %div.row
-        %div.small-12.medium-6.columns
-          = order_form.simple_fields_for :address do |address_form|
-            = render '/admin/orders/address_form', :f => address_form
+      = order_form.simple_fields_for :address do |address_form|
+        = render '/admin/orders/name_form', :f => address_form
+    .small-12.columns
       .row
         .small-12.columns
-          = render partial:'/admin/orders/input_notes', locals:{order_form: order_form}
-        .small-12.columns
-          = render partial:'/admin/orders/confirm_button', locals:{order_form:order_form}
-        .small-12.columns
-          = render '/admin/orders/audit_show', :order_form=>order_form.object
+          = order_form.input :hold_under, :label=>'Hold reservation under'
+    %div.small-12.medium-6.columns
+      = render '/admin/orders/billing_form', :order_form=>order_form
+    %div.small-12.medium-6.columns
+      = order_form.simple_fields_for :address do |address_form|
+        = render '/admin/orders/address_form', :f => address_form
+  .row
+    .small-12.columns
+      = render partial:'/admin/orders/input_notes', locals:{order_form: order_form}
+    .small-12.columns
+      = order_form.submit 'Place Order', :class=>'button', data:{:disable_with => 'Processing...', :confirm => "Process this order?"}
+    .small-12.columns
+      = render '/admin/orders/audit_show', :order_form=>order_form.object
