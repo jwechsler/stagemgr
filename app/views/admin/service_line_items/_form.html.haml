@@ -1,5 +1,9 @@
 .row
   .small-8.columns
+    = label("service_template", "Service Charge")
+  .small-4.columns
+    &nbsp;
+  .small-8.columns
     = collection_select("choice", "service_template", ServiceItemTemplate.selectable, :id, :name_and_description)
   .small-4.columns
     = order_form.add_nested_fields_link :service_line_items, "Add Service Charge", :class=>"button tiny"

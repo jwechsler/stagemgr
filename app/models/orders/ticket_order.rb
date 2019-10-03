@@ -34,6 +34,7 @@ class TicketOrder < Order
   #before_validation :tickets_available?, :if=>[:processed?, :status_changed?]
 
   validate :ticket_stock_available, :unless=>:allow_deletion?
+  validate :seat_assignments_complete?, :if=>:processed_or_fulfilled?
   # validate :verify_fully_seated, if: -> { !self.allow_deletion? && performance.production.has_reserved_seating? && (status.eql?(Order::PROCESSED) || status.eql?(Order::FULFILLED))}
   validates :uuid, presence: true
 
@@ -105,6 +106,7 @@ class TicketOrder < Order
     unless self.performance.nil?
       if self.performance.production.has_reserved_seating? then
         if (self.seats.reload.size != self.number_of_seats) then
+          self.errors.add :seats, " do not match order (#{self.number_of_seats} required"
           return false
         end
       end
@@ -174,6 +176,10 @@ class TicketOrder < Order
 
   def holding_seats?
     ![Order::UNCLAIMED, Order::CANCELED].include?(self.status)
+  end
+
+  def processed_or_fulfilled?
+    self.processed? || self.fulfilled?
   end
 
   def assigned_seats?

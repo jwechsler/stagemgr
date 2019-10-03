@@ -45,7 +45,6 @@ class Admin::MembershipOrdersController < Admin::ApplicationController
     update_or_create
   end
 
-
   def edit
 
   end
