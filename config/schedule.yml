@@ -67,7 +67,7 @@ LinkHistoricPerformanceHoldsToAddressOfRecord:
   description: "Once a performance is in the past, link the hold to the address card of record"
   queue: maintenance
 
-ReleaseExpiredSeatAssignments:
+DeleteAbandonedOrders:
   every: "8m"
   description: "An order can only existing in PROCESSING state for 8 minutes"
   queue: maintenance
