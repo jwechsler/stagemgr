@@ -115,7 +115,6 @@ class BulkOrderImport < OrderImport
             seats = row['Seating'].blank? ? [] : row['Seating'].split(',')
             o.ticket_line_items.build(ticket_count: seats.count, ticket_class: ticket_class)
             unless seats.empty?
-              o.save!
               seats.each{|seat|
 
                 raise RuntimeError, "Production #{o.performance.production.name} does not allow for assigned seating" if seat_locations[o.performance.production_id].nil?
@@ -123,10 +122,10 @@ class BulkOrderImport < OrderImport
                 sa = SeatAssignment.find_by(performance_id: o.performance_id, seat_id: seat_id)
                 raise RuntimeError, "Seat map does not include seat '#{seat}'" if sa.nil?
                 puts("IMPORT: Seating in #{seat}, assignment id: #{sa.id}")
-                raise RuntimeError, "Seat #{seat} is not available for seating" unless sa.assign_to_order(o)
+                raise RuntimeError, "Seat #{seat} is not available for seating" unless sa.assign_to_order(o.uuid)
               }
+              o.save!
               puts "IMPORT: Seating complete"
-              o.reload
             end
           else
             raise "NumberOfTickets required for non-reserved seating" if row['NumberOfTickets'].to_i == 0

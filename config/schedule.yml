@@ -77,7 +77,3 @@ DeleteExpiredSeatingRequests:
   description: "Release temporary seating holds that have been held for too long"
   queue: maintenance
 
-GenerateSeatingThumbnails:
-  every: "10m"
-  descripton: "Refresh seating thumbnails as necessary"
-  queue: maintenance

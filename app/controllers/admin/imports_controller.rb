@@ -82,7 +82,7 @@ class Admin::ImportsController < Admin::ApplicationController
     @bulk_orders_import.notes = "Order import"
     if @bulk_orders_import.save then
       Resque.enqueue(BulkOrderImport, @bulk_orders_import.id, @theater.id, params[:payment_type][:payment_type_id])
-      flash[:notice] = 'Your subscribers are being seated'
+      flash[:notice] = 'Your orders are being imported.'
     else
       flash[:error] = 'Invalid format'
     end

@@ -86,7 +86,7 @@ class SeatAssignment < ActiveRecord::Base
   end
 
   def self.release_expired_temporary_holds
-    SeatAssignment.where("updated_at < :expire_time and status = :temp_status and order_uuid is null",
+    SeatAssignment.where("updated_at < :expire_time and status = :temp_status",
       expire_time: Time.now - $SERVER_CONFIG['order_expiration_in_minutes'].to_i.minutes,
       temp_status: TEMPORARY).update_all(updated_at: Time.now, status: AVAILABLE,
       order_uuid: nil, accessibility:nil)
