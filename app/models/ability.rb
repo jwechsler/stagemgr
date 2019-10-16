@@ -35,6 +35,7 @@ class Ability
         order.performance.production.season_seating?
     end
     can :auto_complete, Production
+    can :autocomplete_tag, Address
     can [:seating_quickview,:auto_complete], Performance
     can :auto_complete, SpecialOffer
     can [:read,:update], Theater, id: user.theater_ids

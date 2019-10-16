@@ -36,7 +36,7 @@
   end
 
   def self.allowed(current_user)
-    (current_user.respond_to?('is_theater_user?') && current_user.is_theater_user?) ? Theater.where("status != 'Inactive' and id in (?)",[current_user.theater_ids]) : Theater.where("status != 'Inactive'")
+    (current_user.respond_to?('is_theater_user?') && current_user.is_theater_user?) ? Theater.where("status != 'Inactive' and id in (?)",current_user.theater_ids) : Theater.where("status != 'Inactive'")
   end
 
   def producing?

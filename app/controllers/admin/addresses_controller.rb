@@ -164,7 +164,8 @@ class Admin::AddressesController < Admin::ApplicationController
     #render :json => tags.map do |tag|
     #  { :id=>tag.tag_label, :label=>tag.tag_label, :value=>tag.tag_label }
     #end
-    render :json=>AddressTag.order(:tag_label).select('DISTINCT tag_label');
+    tags = AddressTag.order(:tag_label).select('tag_label').where("tag_label like :tl", tl:"#{params[:term]}%").uniq
+    render :json=>tags.map{|t| t.tag_label}
   end
 
   private
