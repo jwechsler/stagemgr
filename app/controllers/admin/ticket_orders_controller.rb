@@ -60,7 +60,7 @@ class Admin::TicketOrdersController < Admin::OrdersController
   end
 
   def autocomplete_special_offer_special_offer_code
-    performance = Performance.find_by_performance_code(params[:performance_code])
+    performance = Performance.find_by(id:params[:performance_id])
     if performance.nil?
       render :json=>Array.new
     else

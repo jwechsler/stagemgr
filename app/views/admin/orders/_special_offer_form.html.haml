@@ -2,4 +2,4 @@
   %div.row.collapse
     %div.small-12.columns.collapse
       = label(:special_offer_code, 'Offer code')
-      = f.input_field :special_offer_code, label: 'Offer code', url: autocomplete_special_offer_special_offer_code_admin_ticket_orders_path, as: :autocomplete, input_html: {'data-autocomplete-fields'=>'{"performance_code":"#ticket_order_performance_code"}', 'data-auto-focus'=>true}
+      = f.input_field :special_offer_code, label: 'Offer code', url: autocomplete_special_offer_special_offer_code_admin_ticket_orders_path, as: :autocomplete, 'data-auto-focus'=>true, :fields => {:performance_id => '#performance_id'}
