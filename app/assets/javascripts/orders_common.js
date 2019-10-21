@@ -41,7 +41,7 @@ function calculate_ticket_totals() {
     currency: 'USD',
   });
   $('.ticket_line_item').each(function(idx) {
-    tc = $(this).find('.ticket_count').val()
+    tc = $(this).find('.ticket_count').text()
     line_qty = parseInt(tc)
     qty += line_qty
     var price_input = parseFloat($(this).find('span.ticket_price').text().replace(/^\$/g,''));
