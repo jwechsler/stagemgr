@@ -41,7 +41,7 @@ function calculate_ticket_totals() {
     currency: 'USD',
   });
   $('.ticket_line_item').each(function(idx) {
-    tc = $(this).find('.ticket_count').text()
+    tc = $(this).find('.ticket_count').val()
     line_qty = parseInt(tc)
     qty += line_qty
     var price_input = parseFloat($(this).find('span.ticket_price').text().replace(/^\$/g,''));
@@ -56,7 +56,7 @@ function calculate_ticket_totals() {
 
 function recalculate_all_row_totals(order_type) {
   jQuery('.line_item').each(function() {
-    recalculate_row_total(order_type,this);
+    recalculate_row_total(order_type,$(this));
   });
 }
 
@@ -70,9 +70,7 @@ function set_button_state_for_autocompletes() {
         found_one = false
       }
       found_one = found_one && ($('#'+this.id.replace('ticket_class_id','ticket_count')).val() > 0)
-      if (found_one) { console.log("found one") }
       allow_submit = allow_submit || found_one
-      if (allow_submit) { console.log("allow submit!") }
     }
   });
 
