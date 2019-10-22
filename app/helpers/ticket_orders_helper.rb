@@ -5,7 +5,7 @@ module TicketOrdersHelper
     order.performance.production.service_item_templates_new.each do |template|
       sli = ServiceLineItem.new(template.attributes_for_service_item)
       sli.order = @ticket_order
-      order.ticket_order.service_line_items << sli
+      order.service_line_items << sli
     end
   end
 
