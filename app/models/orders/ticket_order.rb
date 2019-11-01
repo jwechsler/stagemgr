@@ -281,9 +281,16 @@ class TicketOrder < Order
     unless PrintOrder.site.to_s.blank?
       unless self.print_order_id.nil?
         print_order = PrintOrder.find(self.print_order_id)
-        if print_order.status == 'Printed'
-          print_order.status = 'Unprinted'
-          print_order.reprints += 1
+
+        print_order.status = 'Unprinted'
+        print_order.reprints += 1
+        seat_index = 0
+        if self.performance.production.has_reserved_seating? then
+          print_order.tickets.each do |ticket|
+            ticket.seat = self.seats[seat_index].seat.location
+            seat_index += 1
+            ticket.save!
+          end
           print_order.save!
         end
       else

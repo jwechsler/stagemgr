@@ -1,5 +1,6 @@
 class Ticket < ActiveResource::Base
   self.site = $TKTPRINT['service']
-  self.format = :xml
-  self.ssl_options={:verify_mode=>OpenSSL::SSL::VERIFY_NONE}
+  self.format = :json
+  self.element_name = "ticket"
+  belongs_to :print_order
 end

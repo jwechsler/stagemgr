@@ -6,4 +6,5 @@ class PrintOrder < ActiveResource::Base
   self.element_name = "order"
   # self.ssl_options={:verify_mode=>OpenSSL::SSL::VERIFY_NONE}
   self.timeout = 120
+  has_many :tickets
 end
