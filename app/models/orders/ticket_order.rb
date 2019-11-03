@@ -291,8 +291,8 @@ class TicketOrder < Order
             seat_index += 1
             ticket.save!
           end
-          print_order.save!
-        end
+         end
+        print_order.save!
       else
         unless self.performance.production.credit_lines.blank?
           credit_lines = self.performance.production.credit_lines.split("\n")
