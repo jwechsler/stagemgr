@@ -88,7 +88,6 @@ class MembershipOrder < Order
       self.membership_line_item.membership.address = self.address
       self.membership_line_item.membership.save!
     end
-
     self
   end
 
@@ -99,7 +98,6 @@ class MembershipOrder < Order
       self.membership_line_item.membership.address = self.address if !self.membership_line_item.membership.nil?
     end
   end
-
 
   def is_balanced_transaction?
     true
@@ -134,7 +132,9 @@ class MembershipOrder < Order
     8.hours
   end
 
-
+  def transition_processing_to_processing!(redirect_to = nil)
+    self.transition_new_to_processing!(redirect_to)
+  end
 
   protected
   def ensure_membership_line_item_exists
@@ -152,11 +152,7 @@ class MembershipOrder < Order
     super
   end
 
-  def transition_processing_to_processing!(redirect_to = nil)
-    self.transition_new_to_processing!(redirect_to)
-  end
-
-  def starting_at
+   def starting_at
     [Time.now, self.gift_date.nil? ? Time.now : self.gift_date.to_datetime].max
   end
 
