@@ -5,6 +5,7 @@
   .columns.small-12.medium-6
     = render partial:'/ticket_orders/ticket_line_items', locals:{order_form: order_form}
   .columns.small-12.medium-6
+    <!-- Seating Map -->
     =render partial:'/admin/ticket_orders/seatmap', locals:{ticket_order:ticket_order}
 
 = content_for :js do

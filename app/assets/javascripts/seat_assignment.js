@@ -71,8 +71,7 @@ function initialize_seating_assignment() {
     e.preventDefault();
     var data = $('#seatingmap').data('maphilight') || {};
     data.alwaysOn = true;
-    console.log("assignment_id = " + $(this).data('assignment-id'));
-    //console.log($(this).data('location'));
+    console.log("assignment_id on click = " + $(this).data('assignment-id'));
     e_reference = '[data-assignment-id=' + $(this).data('assignment-id') + ']'
 
     starting_status = String($(this).data('status'));
@@ -93,7 +92,6 @@ function initialize_seating_assignment() {
         $('#ticket-modal').foundation('reveal', 'open');
         break;
       case "assigned":
-        console.log("releasing seat to " + ticket_order_id() + " at " + release_url())
         $.post( release_url(),
           { 'id': $( this ).data('assignment-id'),
              'order_uuid': ticket_order_id()
@@ -101,8 +99,6 @@ function initialize_seating_assignment() {
             e_reference = '[data-assignment-id='+response['id']+']'
 
             if (response['status'] == 'available') {
-              console.log('releasing ' + e_reference)
-              console.log($(e_reference))
               ticket_class_id = response['ticket_class_id']
               data_key = response['id'] + ',' + response['status']
 
@@ -141,7 +137,6 @@ function initialize_seating_assignment() {
           });
           break;
       default:
-        console.log("unavailable")
         $(this).mapster('deselect')
         $(this).mapster('set',false)
     };

@@ -32,7 +32,7 @@
             %td.text-center= checkmark(default_ticket_class.holds_seats)
             %td
               = link_to "Edit", edit_admin_default_ticket_class_path(default_ticket_class), :class=>'tiny button'
-
+              = link_to 'Destroy', [:admin, default_ticket_class], "data-confirm" => 'Are you sure?', :method => :delete, :class=>'tiny alert button'
   = link_to "New Default Ticket Class", new_admin_default_ticket_class_path, :class=>'button'
 
 = content_for :js do

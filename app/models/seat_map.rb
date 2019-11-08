@@ -1,6 +1,6 @@
 class SeatMap < ActiveRecord::Base
   belongs_to :venue
-  has_many :seats
+  has_many :seats, :dependent=>:destroy
   has_many :productions
   validates_presence_of :venue
   has_attached_file :base_image_map, styles: { medium: "800x800>", thumb: "200x200>" }, default_url: "/images/:style/missing.png"

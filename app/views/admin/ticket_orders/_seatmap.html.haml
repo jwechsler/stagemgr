@@ -3,4 +3,4 @@
   - SeatAssignment.available_seat_assignments(ticket_order.performance, ticket_order).each do |sa|
     - state = assignment_keys(sa,ticket_order.uuid)
     - sa_key = "#{sa.id}, #{state}"
-    %area{shape:"circle", coords:"#{sa.seat.origin_x},#{sa.seat.origin_y},#{sa.seat.width}", id:"sa-#{sa.id}", href:"#?id=#{sa.seat.location}",alt:"#{sa.seat.location}", 'data-location':"#{sa.seat.location}", 'data-status': "#{state}", 'data-assignment-id':"#{sa.id}", 'data-key':"#{sa_key}"}
+    %area{shape:"circle", coords:"#{sa.seat.origin_x},#{sa.seat.origin_y},#{sa.seat.width}", id:"sa-#{sa.id}", href:"#?id=#{sa.seat.location}",alt:"#{sa.seat.location}", 'data-location':"#{sa.seat.location}", 'data-status': "#{state}", 'data-assignment-id':"#{sa.id}", 'data-key':"#{sa_key}", 'data-accessible':"#{sa.seat.accessible?}"}
