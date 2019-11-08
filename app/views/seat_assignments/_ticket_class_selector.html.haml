@@ -46,7 +46,6 @@
     function populate_ticket_selector() {
       data = $.parseJSON($("#ticket-items").data('line-items'))
       $("#ticket-selector").empty()
-      console.log(data)
       $.each( data, function( key, val ) {
         ticket_class_id = val['id']
         var visible_style
@@ -74,9 +73,6 @@
         row.appendChild(create_column("3","",button))
 
         $("#ticket-selector").append(row)
-        console.log("Appending")
-        console.log(row)
-        console.log($("#ticket-selector").size())
 
       });
 
