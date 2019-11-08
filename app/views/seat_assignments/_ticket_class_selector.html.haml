@@ -20,22 +20,23 @@
     - if order_form.object.performance.nil?
       #ticket-selector
     - else
-      - order_form.object.performance.ticket_class_allocations.each do |tca|
-        -if tca.available? && !tca.ticket_class.software_managed && (tca.ticket_class.web_visible?)
-          - tc = tca.ticket_class
-          .row
-            .small-6.columns.vertical-center
-              = tc.class_name
-              - unless tc.purchase_page_annotation.blank?
-                %span.ticket_class_annotation
-                  = display_markdown(f.object.ticket_class.purchase_page_annotation)
-            .small-3.columns
-              - if tc.software_managed? || tc.hide_pricing?
-                n/a
-              -else
-                %span.ticket_price= number_to_currency(tc.ticket_price)
-            .small-3.columns
-              %a.button.tiny.ticket-class-select-button{href:'#',"data-ticket-class":tc.id} Select
+      #ticket-selector
+        - order_form.object.performance.ticket_class_allocations.each do |tca|
+          -if tca.available? && !tca.ticket_class.software_managed && (tca.ticket_class.web_visible?)
+            - tc = tca.ticket_class
+            .row
+              .small-6.columns.vertical-center
+                = tc.class_name
+                - unless tc.purchase_page_annotation.blank?
+                  %span.ticket_class_annotation
+                    = display_markdown(f.object.ticket_class.purchase_page_annotation)
+              .small-3.columns
+                - if tc.software_managed? || tc.hide_pricing?
+                  n/a
+                -else
+                  %span.ticket_price= number_to_currency(tc.ticket_price)
+              .small-3.columns
+                %a.button.tiny.ticket-class-select-button{href:'#',"data-ticket-class":tc.id} Select
 
   %a.close-reveal-modal(aria-label="Close") &#215;
 = render partial: "/seat_assignments/seating_config", locals: {performance_id: order_form.object.performance_id, order_uuid: order_form.object.uuid }
@@ -45,6 +46,7 @@
     function populate_ticket_selector() {
       data = $.parseJSON($("#ticket-items").data('line-items'))
       $("#ticket-selector").empty()
+      console.log(data)
       $.each( data, function( key, val ) {
         ticket_class_id = val['id']
         var visible_style
@@ -72,6 +74,10 @@
         row.appendChild(create_column("3","",button))
 
         $("#ticket-selector").append(row)
+        console.log("Appending")
+        console.log(row)
+        console.log($("#ticket-selector").size())
+
       });
 
 
