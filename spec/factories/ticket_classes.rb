@@ -5,6 +5,9 @@ FactoryBot.define do
     ticket_price    { 0 }
     ticketing_fee   { 0 }
     holds_seats     { true }
+    sequence(:class_code) { |n| "GEN#{'%02d' %n}" }
+    sequence(:class_name) { |n| "General #{n}"}
+    ticket_type      { 'Fixed' }
     initialize_with { DefaultTicketClass.find_or_create_by(class_code: class_code) }
   end
 
