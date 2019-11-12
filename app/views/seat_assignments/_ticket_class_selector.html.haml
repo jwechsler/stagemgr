@@ -29,7 +29,7 @@
                 = tc.class_name
                 - unless tc.purchase_page_annotation.blank?
                   %span.ticket_class_annotation
-                    = display_markdown(f.object.ticket_class.purchase_page_annotation)
+                    = display_markdown(tc.purchase_page_annotation)
               .small-3.columns
                 - if tc.software_managed? || tc.hide_pricing?
                   n/a
