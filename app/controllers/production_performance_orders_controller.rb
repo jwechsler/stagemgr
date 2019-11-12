@@ -6,7 +6,7 @@ class ProductionPerformanceOrdersController < ApplicationController
   def new
     @production = Production.find(params[:production_id])
     @performance = @production.performances.find(params[:performance_id]) unless @production.nil?
-    if @production.nil? || @performance.nil? || @performance.inactive?
+    if @production.nil? || @performance.nil? || @performance.inactive? || @production.inactive? || @performance.performance_date.past?
       respond_to do |format|
         format.html { render '/orders/not_available', :layout=>'ext_site_wrapper'}
       end
