@@ -14,7 +14,6 @@ class Report
     Admin::ReportsHelper.tidy_output(f)
   end
 
-
   def save_report_to_filestore(file_name, notes='Report')
     # now, output the various production reports
     # @todo refactor for new delf.data format.

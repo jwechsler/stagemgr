@@ -15,7 +15,7 @@
 $(document).ready(function() {
 
   $(function() {
-    $('.datepicker').datepicker({ dateFormat: 'yy-mm-dd' });
+    $('.date_picker').datepicker({ dateFormat: 'yy-mm-dd' });
   });
 
   // $("input.date_picker").fdatetimepicker({

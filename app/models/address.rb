@@ -268,7 +268,7 @@ class Address < ActiveRecord::Base
   end
 
   def is_current_member?
-    self.orders.select { |o| (o.is_a? MembershipOrder) && !o.membership.nil? && (o.membership.status == Membership::ACTIVE) }.count > 0
+    MembershipLineItem.joins(:order,:membership).references(:order, :membership).where("orders.address_id = :address_id AND memberships.status = :active", address_id:self.id, active: Membership::ACTIVE).size > 0
   end
 
   def active_memberships
@@ -309,7 +309,7 @@ class Address < ActiveRecord::Base
   end
 
   def has_flex_pass?
-    !FlexPass.find_by_address_id(self.id).nil?
+    FlexPassLineItem.joins(:order, :flex_passes).references(:order, :flex_passes).where("orders.address_id = :address_id AND flex_passes.active = :active", address_id:self.id, active: true).size > 0
   end
 
   # @todo Flex pass programs can't be hard coded.
@@ -366,12 +366,38 @@ class Address < ActiveRecord::Base
     TicketOrder.joins(:performance).maximum('performance_date',:conditions=>["orders.address_id = ?", self.id])
   end
 
-  def productions_attended(start_date = 10.years.ago, end_date = Time.now)
-    TicketOrder.includes(:performance,{:performance=>:production}).where("orders.address_id = ? and orders.status in (?) and performances.performance_date >= ? and performances.performance_date <= ?",
-                                                                         self.id,
-                                                                         Order.attended_statuses,
-                                                                         start_date, end_date).map{|o| o.performance.production}.uniq
+  def productions_attended(start_date = 25.years.ago.to_date, end_date = Date.today)
+    Production.joins(:performances=>:orders).references(:orders).where("orders.address_id = :address_id and orders.status in (:attended_status) and performances.performance_date between :start_date AND :end_date",
+      address_id: self.id,
+      start_date: start_date,
+      end_date: end_date,
+      attended_status: Order.attended_statuses).distinct
   end
+
+  def theaters_attended(start_date = 25.years.ago.to_date, end_date = Date.today)
+    Theater.joins(:productions=>[:performances=>:orders]).references(:orders).where("orders.address_id = :address_id and orders.status in (:attended_status) and performances.performance_date between :start_date AND :end_date",
+      address_id: self.id,
+      start_date: start_date,
+      end_date: end_date,
+      attended_status: Order.attended_statuses).distinct
+  end
+
+  def number_of_productions_attended(start_date = 25.years.ago.to_date, end_date = Date.today)
+    self.productions_attended(start_date, end_date).size
+  end
+
+  def names_of_productions_attended(start_date = 25.years.ago.to_date, end_date =  Date.today)
+    self.productions_attended(start_date,end_date).pluck(:name)
+  end
+
+  def number_of_theaters_attended(start_date = 25.years.ago.to_date, end_date =  Date.today)
+    self.theaters_attended(start_date, end_date).size
+  end
+
+  def names_of_theaters_attended(start_date = 25.years.ago.to_date, end_date =  Date.today)
+    self.theaters_attended(start_date,end_date).pluck(:name)
+  end
+
 
   def external_id(theater_ids)
     found = address_tags.select{|tag| theater_ids.include?(tag.theater_id) && tag.tag_label.eql?(AddressTag::EXTERNAL_ID) }

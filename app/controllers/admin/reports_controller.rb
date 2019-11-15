@@ -141,17 +141,17 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def mine_customer_data
-    minimum_attended = 0,required_theaters = nil,minimum_revenue = 0.0
-    @start_day = grab_from_date_select(:from_day, params[:report])
+    minimum_attended = params[:minimum_attended].to_i || 0
+    minimum_revenue = params[:minimum_revenue].to_f || 0.0
+    start_day = params[:from_day].to_date
     if params[:required_theaters].nil?
       required_theaters = []
     else
       required_theaters = params[:required_theaters].map{|t| t.to_i}
     end
-    minimum_attended = params[:minimum_attended].to_i
-    minimum_revenue = params[:minimum_revenue].to_i
-    @headers, @report_data = build_telemarketing_dump(@start_day, minimum_attended, required_theaters, minimum_revenue)
-    send_report_as_csv('customer', @headers, @report_data)
+    Resque.enqueue(TrgMinedExport, minimum_attended, minimum_revenue, start_day, required_theaters, current_user.id)
+    flash[:notice] = 'Your export is queued for generation. You\'ll recieve notification when the process is complete.'
+    redirect_to admin_reports_path
   end
 
   def house_management_seating
@@ -182,7 +182,6 @@ class Admin::ReportsController < Admin::ApplicationController
     Resque.enqueue(TrgExport, production.nil? ? 0 : production.id, current_user.id, can?(:view_email, Address))
     flash[:notice] = 'Your export is queued for generation. You\'ll recieve notification when the process is complete.'
     redirect_to admin_reports_path
-
   end
 
   def self.trg_dump_all(user_id, season)
@@ -498,41 +497,6 @@ class Admin::ReportsController < Admin::ApplicationController
 
   end
 
-  def build_telemarketing_dump(start_day, minimum_attended = 0,required_theaters = nil,minimum_revenue = 0.0)
-    orders = TicketOrder.includes(:address).where("orders.status in (?) and orders.created_at >= ?",Order.attended_statuses, start_day)
-    orders = orders.select {|o| required_theaters.include?(o.performance.production.theater_id)} unless (required_theaters.nil? || required_theaters.empty?)
-    addresses = orders.map{|o| o.address}.uniq.select{|a| !a.nil? && a.productions_attended(start_day).size >= minimum_attended && a.revenue_collected(start_day) >= minimum_revenue}.sort{|a,b| a.last_name <=> b.last_name}
-
-    report = Array.new
-    headers = [:address_id, :primary_theatre_attendee, :full_name, :phone, :email, :last_attended, :attended_in_period, :total_attended, :companies_attended_in_period, :total_companies_attended, :is_member, :is_flex_pass_holder, :production_history, :street_address, :city, :state, :postal_code ]
-    addresses.each do |address|
-      all_prods = address.productions_attended
-      primary_attendee = all_prods.map {|p| p.theater_id}.uniq.include?(1)
-      requested_prods = address.productions_attended(start_day)
-      prods = requested_prods.sort{|a,b| if b.opening_at.nil?
-        false
-      elsif a.opening_at.nil?
-        true
-      else
-        b.opening_at <=> a.opening_at
-      end
-      }.map{|p| "#{p.name} [#{p.theater.name}]"}
-      prodlist = prods.join(", ")
-          report << address_hash(address).merge({:primary_theatre_attendee=>primary_attendee ? "*" : "",
-                                                 :full_name=>address.full_name,
-                                                 :last_attended=>address.last_attendance_date,
-                                                 :attended_in_period => prods.size,
-                                                 :total_attended => all_prods.size,
-                                                 :companies_attended_in_period => requested_prods.map {|p| p.theater_id}.uniq.size,
-                                                 :total_companies_attended => all_prods.map {|p| p.theater_id}.uniq.size,
-                                                 :production_history=>prodlist,
-                                                 :is_member=>address.is_current_member? ? "Y" : "N",
-                                                 :is_flex_pass_holder=>address.is_current_flex_pass_holder? ? "Y" : "N"})
-    end
-
-    [headers, report]
-
-  end
 
   def build_flexpass_sales(offer, display_only = true)
     orders = offer.flex_passes.map { |f| f.order }.select{|o| !o.nil?}
