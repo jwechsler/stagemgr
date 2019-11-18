@@ -68,6 +68,7 @@ Stagemgr::Application.configure do
   config_data = YAML::load(File.open("#{::Rails.root.to_s}/config/server.yml"))
   $SERVER_CONFIG = config_data['all'].merge(config_data['test'])
   $EMAIL_ADDRESS = $SERVER_CONFIG['email_addresses']
+  config.action_mailer.default_url_options = { host: $SERVER_CONFIG['host'], protocol: $SERVER_CONFIG['host_protocol'] }
 
   config.action_mailer.delivery_method = :test
 

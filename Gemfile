@@ -39,8 +39,9 @@ gem "activeresource"
 gem "activemerchant"
 gem "braintree"
 gem "braintree-rails"
-gem "mysql2", "0.4.10"
-gem "authlogic"
+gem 'mysql2', '~> 0.4.0'
+gem "scrypt", '~> 3.0.6'
+gem "authlogic", '~> 4.4'
 gem "audited", "~> 4.8"
 gem "will_paginate"
 gem 'safe_attributes', :require=> 'safe_attributes/base'  # Used to support legacy rails 2 schema names for TrgExport model

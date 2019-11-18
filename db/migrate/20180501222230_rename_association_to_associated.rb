@@ -1,5 +1,4 @@
 class RenameAssociationToAssociated < ActiveRecord::Migration
-class RenameAssociationToAssociated < ActiveRecord::Migration
   def self.up
     if index_exists? :audits, [:association_id, :association_type], :name => 'association_index'
       remove_index :audits, :name => 'association_index'

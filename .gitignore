@@ -19,6 +19,7 @@ tmp/**
 config/ticket_print.yml
 config/database.yml
 config/databasedotcom.yml
+config/email_credentials.yml
 config/newrelic.yml
 config/server.yml
 config/payment_processing.yml
