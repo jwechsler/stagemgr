@@ -640,3 +640,22 @@ class Address
 
 
 end
+
+#MyEmma code
+
+class Address
+  def self.sync_ids_to_my_emma
+    members = MyEmma::Member.all
+    members.each {|m|
+      unless (m.email.blank?)
+        a = Address.find_by(email: m.email)
+        unless (a.nil? || a.email.blank? || (m.remoteid.eql?(a.id.to_s)))
+          m.remoteid = a.id.to_s
+          m.save
+        end
+      end
+    }
+  end
+end
+
+
