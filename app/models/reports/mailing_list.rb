@@ -53,12 +53,22 @@ class MailingList < Report
                :City=>address.city, :State => address.state,
                :Zip => address.zipcode,
                :HomePhone => address.phone, :BusinessPhone => '',
-               :ClientPatronID => address.sf_contact_id,
                :StagemgrPatronID => address.id ]
   end
 
   def self.trg_hash_from_myemma(member)
-    existing_address = Address.find_by_email(member.email)
+    existing_address = Address.find_by(email: member.email)
+    if existing_address.nil?
+      existing_address = Address.new(email: member.email, first_name: member.name_first, last_name: member.name_last,
+        line1: member.address, city: member.city, state: member.state, zipcode: member.postal_code)
+      existing_address = nil unless existing_address.save
+    end
+    unless existing_address.nil? then
+      if member.remoteid != existing_address.id.to_s then
+        member.remoteid =  existing_address.id.to_s
+        member.save
+      end
+    end
     Hash[:FirstName=> member.name_first, :LastName=>member.name_last,
                :FullName => "#{member.name_first} #{member.name_last}" , :CompanyName => '',
                :Email => member.email, :Address1 => member.address,
@@ -66,8 +76,7 @@ class MailingList < Report
                :City=>member.city, :State => member.state,
                :Zip => member.postal_code,
                :HomePhone => '', :BusinessPhone => '',
-               :ClientPatronID => existing_address.nil? ? '' : existing_address.sf_contact_id,
-               :StagemgrPatronId => existing_address.nil? ? '' : existing_address.id ]
+               :StagemgrPatronID => existing_address.nil? ? '' : existing_address.id ]
   end
 
 end

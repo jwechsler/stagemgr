@@ -6,9 +6,9 @@ GIT
 
 GIT
   remote: https://github.com/jwechsler/my_emma.git
-  revision: 010fa9fb4c8a3efa60b43c9516d7661d20ac4bc2
+  revision: 105952202ed3c2f39edf673b2cf4c56fbf344f42
   specs:
-    my_emma (0.1.1)
+    my_emma (0.1.2)
       activemodel
       crack
       httparty (= 0.7.8)
@@ -581,7 +581,7 @@ DEPENDENCIES
   monetize
   money
   money-rails
-  my_emma (~> 0.1.1)!
+  my_emma (~> 0.1.2)!
   mysql2 (~> 0.4.0)
   nested_form_fields
   paperclip

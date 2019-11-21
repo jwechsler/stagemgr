@@ -369,6 +369,21 @@ class Production
     "#{self.season} #{self.name} Attendee"
   end
 
+  def sync_attendees_on_email_list
+    email_members = attendees_on_email_list
+    email_members.each do |email,member|
+      puts "Syncing #{email}"
+      if member.remoteid.blank? then
+        a = Address.find_by(email: email)
+        unless a.nil?
+          member.remoteid = a.id.to_s
+          member.save
+        end
+      end
+    end
+    email_members
+  end
+
   def attendees_on_email_list
     members_by_email = Hash.new
     unless MyEmma.disabled? || self.myemma_attendee_group.nil?

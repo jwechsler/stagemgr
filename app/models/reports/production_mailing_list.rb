@@ -45,8 +45,8 @@ class ProductionMailingList < MailingList
         self.data[buyer_type] << hash unless buyer_type.nil?
       end
 
-      members_by_email.each do |member_record|
-        hash = MailingList.trg_hash_from_myemma(member_record[1])
+      members_by_email.each do |key,member_record|
+        hash = MailingList.trg_hash_from_myemma(member_record)
         hash[:Title] = self.production.name
         hash[:Season] = season_tag
         self.data['EMA'] << hash
