@@ -36,9 +36,10 @@ class SeatAssignmentsController < ApplicationController
         max_tickets = params[:max_tickets]
         accessible_setting = params[:accessible]
         unless order_uuid.nil?
+          max_seatable = can?(:seat_unlimited,SeatAssignment) ? 9999 : 20
           sa = SeatAssignment.find(params[:id])
           unless (!max_tickets.nil? && current_assignment_count(order_uuid,sa.id) >= max_tickets.to_i)
-            sa.assign_to_order(order_uuid, 20, ticket_class_id.to_i, accessible_setting) if sa.available?(order_uuid)
+            sa.assign_to_order(order_uuid, max_seatable, ticket_class_id.to_i, accessible_setting) if sa.available?(order_uuid)
           end
           status = view_context.assignment_keys(sa, order_uuid)
           render json: {id: sa.id, status:status, order_uuid: sa.order_uuid,

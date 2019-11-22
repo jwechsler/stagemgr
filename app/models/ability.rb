@@ -30,6 +30,7 @@ class Ability
     end
 
     can [:read, :create, :update, :update_notes, :confirm, :quickview, :new_for_production], TicketOrder
+    can :seat_unlimited, SeatAssignment
     can [:read, :create, :hold_existing], TicketOrder
     can :prehold, TicketOrder do |order|
         order.performance.production.season_seating?
