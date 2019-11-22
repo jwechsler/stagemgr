@@ -12,7 +12,7 @@
       </div>
       <div class="row">
         <div class="small-6 columns">
-          <%= f.input :performance_date, :as=>:date_picker, :label=>"Date" %>
+          <%= f.input :performance_date,  :label=>"Date", input_html: {:class=>'date_picker'}, as: :string %>
         </div>
         <div class="small-6 columns">
           <%= f.input :performance_time, :as=>:time_picker, input_html: {:value=>performance.performance_time.nil? ? '' : performance.performance_time.to_s(:hour_min) }, :label=>"Time" %>

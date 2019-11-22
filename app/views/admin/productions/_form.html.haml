@@ -10,13 +10,12 @@
                 %legend Run Dates
                 .row
                   .small-6.columns
-                    = f.input :first_preview_at, :as=>:date_picker
-                    = f.input :press_opening_at, :as=>:date_picker
+                    = f.input :first_preview_at, input_html: {class: 'date_picker'}, as: :string
+                    = f.input :press_opening_at, input_html: {class: 'date_picker'}, as: :string
 
                   .small-6.columns
-                    = f.input :opening_at, :as=>:date_picker
-                    = f.input :closing_at, :as=>:date_picker
-          .row
+                    = f.input :opening_at, input_html: {class: 'date_picker'}, as: :string
+                    = f.input :closing_at, input_html: {class: 'date_picker'}, as: :string
             .columns.small-6
               = f.input :season, :as=>:string
             .columns.small-6
