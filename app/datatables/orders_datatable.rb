@@ -63,8 +63,10 @@ private
 
   def filter_by_code
     ->(column) { case column.downcase
+                  when 'pledge'
+                    ::Arel::Nodes::SqlLiteral.new('orders.type').eq('DonationPledgeOrder')
                   when 'donation'
-                    ::Arel::Nodes::SqlLiteral.new('orders.type').eq('DonationOrder')
+                    ::Arel::Nodes::SqlLiteral.new('orders.type').matches('Donation%Order')
                   when 'flexpass'
                     ::Arel::Nodes::SqlLiteral.new('orders.type').eq('FlexPassOrder')
                   when 'membership', 'member'
