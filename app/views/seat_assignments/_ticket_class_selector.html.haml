@@ -22,10 +22,11 @@
     - else
       #ticket-selector
         - order_form.object.performance.ticket_class_allocations.each do |tca|
-          -if tca.available? && !tca.ticket_class.software_managed && (tca.ticket_class.web_visible?)
+          -if tca.available? && !tca.ticket_class.software_managed? && (tca.ticket_class.web_visible?)
             - tc = tca.ticket_class
             .row
               .small-6.columns.vertical-center
+
                 = tc.class_name
                 - unless tc.purchase_page_annotation.blank?
                   %span.ticket_class_annotation

@@ -12,8 +12,10 @@
       .small-3.columns
         %strong Price/ticket
     = order_form.simple_fields_for :ticket_line_items do |line_item_form|
-      - unless line_item_form.object.ticket_class.software_managed || line_item_form.object.ticket_class.hide_pricing? || !line_item_form.object.ticket_class.web_visible?
-        = render :partial => '/ticket_orders/ticket_line_item_ro', :locals => {:f => line_item_form,}
+      - tca = order_form.object.performance.ticket_class_allocations.select{|tca| tca.ticket_class.id.eql?(line_item_form.object.ticket_class.id)}
+      - available = tca.size.eql?(0) ? false : tca.first.available?
+      - unless line_item_form.object.ticket_class.software_managed? || line_item_form.object.ticket_class.hide_pricing? || !line_item_form.object.ticket_class.web_visible? || !available
+        = render :partial => '/ticket_orders/ticket_line_item_ro', :locals => {:f => line_item_form}
     .row{:style=>'margin-bottom: 8px'}
       .small-6.columns
         %strong.right Total
