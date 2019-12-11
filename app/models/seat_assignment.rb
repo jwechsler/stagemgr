@@ -90,9 +90,6 @@ class SeatAssignment < ActiveRecord::Base
       expire_time: Time.now - $SERVER_CONFIG['order_expiration_in_minutes'].to_i.minutes,
       temp_status: TEMPORARY).update_all(updated_at: Time.now, status: AVAILABLE,
       order_uuid: nil, accessibility:nil)
-    SeatAssignment.where("updated_at < :expire_time and status = :temp_status and order_uuid is not null",
-      expire_time: Time.now - $SERVER_CONFIG['order_expiration_in_minutes'].to_i.minutes,
-      temp_status: RELEASING).update_all(updated_at: Time.now, status: ASSIGNED)
   end
 
   def unassign_from_order(ticket_order_uuid)
