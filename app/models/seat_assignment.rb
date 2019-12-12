@@ -1,5 +1,7 @@
 class SeatAssignment < ActiveRecord::Base
 
+  before_destroy :verify_unused
+
   belongs_to :order, foreign_key: :order_uuid, primary_key: :uuid
   belongs_to :seat
   belongs_to :performance
@@ -114,6 +116,11 @@ class SeatAssignment < ActiveRecord::Base
         uuid: order_uuid,
         sa_id: exclude_sa_id)
     end
+  end
+
+  private
+  def verify_unused
+    return (order_uuid.blank?)
   end
 
 end
