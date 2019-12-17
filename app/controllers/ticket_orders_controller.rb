@@ -1,6 +1,5 @@
 class TicketOrdersController < ApplicationController
   layout 'ext_site_wrapper'
-  include OrdersHelper
   include TicketOrdersHelper
 
   append_before_filter :find_order, :only => [:show, :edit, :update, :destroy, :confirm]

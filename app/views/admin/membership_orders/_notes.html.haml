@@ -1,0 +1,20 @@
+%div.row
+  %div.small-12.columns
+    %div#note_control
+      %div.row
+        %div.small-12.columns
+          %fieldset
+            %legend Membership Seating
+            %p
+              %b= order.membership.preferred_seating
+      %div.row
+        %div.small-12.columns
+          %a{:href=>'#', :id=>'update_note', :class=>'small button right'} Update Seating
+
+    %div#update_note_control.hide
+      -#
+      = form_for( order, :url=>update_seating_admin_membership_order_path(order), :method=>'post') do |f|
+        %fieldset
+          %legend Membership Seating
+          = render partial:'/admin/membership_orders/input_notes', locals: {order_form: f}
+          = f.submit 'Save update', :class=>'right small button'

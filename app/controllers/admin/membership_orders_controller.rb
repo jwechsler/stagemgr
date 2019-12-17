@@ -45,6 +45,14 @@ class Admin::MembershipOrdersController < Admin::ApplicationController
     update_or_create
   end
 
+  def update_seating
+    @membership_order.membership.preferred_seating = params[:membership_order][:membership][:preferred_seating]
+    @membership_order.membership.save!
+    respond_to do |format|
+      format.html { render 'show' }
+    end
+  end
+
   def edit
 
   end

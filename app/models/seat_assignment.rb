@@ -43,6 +43,11 @@ class SeatAssignment < ActiveRecord::Base
       assignment_types: assignment_types).all.map {|sa| sa.seat.location}.sort.join(", ")
   end
 
+  # Proxy for seat location
+  #
+  def location
+
+  end
 
   def assign_to_order(order_uuid, limit_seats = 20, ticket_class_id = nil, accessibility=nil)
     number_assigned = SeatAssignment.where(status: [SeatAssignment::TEMPORARY, SeatAssignment::ASSIGNED], order_uuid:order_uuid).size

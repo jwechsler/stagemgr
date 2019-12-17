@@ -76,7 +76,7 @@ class Ability
     can :manage, FlexPassOffer
     can :view_email, Address
     can [:box_office_reports, :house_management_reports, :membership_reports, :reconciliation_reports], Report
-    can [:create, :read, :reactivate, :cancel], MembershipOrder
+    can [:create, :read, :reactivate, :cancel, :update_seating], MembershipOrder
     can [:read,:edit], MembershipOffer
     can :manage, SpecialFeature
     can :manage, SpecialOffer

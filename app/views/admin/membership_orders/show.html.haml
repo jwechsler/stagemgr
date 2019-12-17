@@ -14,7 +14,7 @@
     .small-12.columns
       = render '/admin/orders/payments', :order=>@membership_order
       = render '/admin/orders/referral', :order=>@membership_order
-      = render '/admin/orders/notes', :order=>@membership_order
+      = render '/admin/membership_orders/notes', :order=>@membership_order
   .row
     .small-12.columns
       - if !@membership_order.id.nil? && (@membership_order.status != Order::FULFILLED) && (can? :fulfill, Order)

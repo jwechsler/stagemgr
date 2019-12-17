@@ -1,5 +1,5 @@
 module TicketOrdersHelper
-
+  include ::OrdersHelper
 
   def set_exchange_service_fees_for_order(order)
     order.performance.production.service_item_templates_new.each do |template|

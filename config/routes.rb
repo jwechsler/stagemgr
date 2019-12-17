@@ -158,6 +158,7 @@ Stagemgr::Application.routes.draw do
       member do
         get :reactivate
         get :cancel
+        post :update_seating
       end
     end
 
@@ -270,7 +271,7 @@ Stagemgr::Application.routes.draw do
         get :unclaimed
         post :confirm
         get :resend_confirmation
-
+        post :update_notes
       end
       resources :exchange_ticket_orders, :only=>[:new,:create]
       resources :refund_orders, :only=>[:new,:create]

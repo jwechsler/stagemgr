@@ -204,6 +204,17 @@ class Admin::TicketOrdersController < Admin::OrdersController
       sellable_statuses: Performance.sellable_statuses).order("performance_code ASC")
   end
 
+  def update_notes
+    @order=TicketOrder.find(params[:id])
+    update_order_notes_from_params(@order, params)
+    @order.special_request=order_params[:special_request]
+
+    if @order.save
+      flash[:notice] = 'Note updated.'
+    end
+    redirect_to action:'show', id:@order.id
+  end
+
   protected
 
   def create_or_update(order, commit_action = nil)
@@ -224,10 +235,6 @@ class Admin::TicketOrdersController < Admin::OrdersController
       super(order,commit_action)
     end
   end
-
-
-
-
 
   private
   def ticket_order_params

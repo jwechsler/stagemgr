@@ -44,6 +44,11 @@ module OrdersHelper
     return result
   end
 
+  def update_order_notes_from_params(order, order_params)
+    order.hold_under=order_params[order.class.name.underscore.to_sym][:hold_under]
+    order.notes=order_params[:notes]
+  end
+
   public
   def common_params
     [ :special_offer_code, :hold_under, :payment_type_id, :credit_card_type, :additional_donation,

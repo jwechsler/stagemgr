@@ -1,0 +1,4 @@
+- wc_seating = ticket_order.seats.select{|sa| !sa.accessibility.blank?}.map{|sa| sa.location}.join(',')
+- unless wc_seating.blank?
+  Wheelchair conversion requested:
+  = ticket_order.seats.select{|sa| !sa.accessibility.blank?}.map{|sa| sa.location}.join(',')
