@@ -775,14 +775,16 @@ class Order < ActiveRecord::Base
 
   def transition_processing_to_processed!(redirect_to = nil)
     Order.transaction do
-      self.update_special_offer_line_item_from_code! unless (self.special_offer_code.blank? || !self.special_offer_line_item.nil?)
-      self.special_offer_line_item.special_offer.apply_to_order(self) unless special_offer_line_item.nil?
-      create_proper_payment_in_amount_of!(self.total)
-      self.status = Order::PROCESSED
-      self.set_email_confirmation
-      self.special_offer_line_item.mark_redeemed unless self.special_offer_line_item.nil?
-      self.save!
-      save_additional_donation_order unless (self.additional_donation.blank? || self.additional_donation.to_i == 0)
+      if self.valid?
+        self.update_special_offer_line_item_from_code! unless (self.special_offer_code.blank? || !self.special_offer_line_item.nil?)
+        self.special_offer_line_item.special_offer.apply_to_order(self) unless special_offer_line_item.nil?
+        create_proper_payment_in_amount_of!(self.total)
+        self.status = Order::PROCESSED
+        self.set_email_confirmation
+        self.special_offer_line_item.mark_redeemed unless self.special_offer_line_item.nil?
+        self.save!
+        save_additional_donation_order unless (self.additional_donation.blank? || self.additional_donation.to_i == 0)
+      end
     end
     redirect_to
   end

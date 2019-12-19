@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe SeatAssignmentsController, type: :controller, wip: true do
+RSpec.describe SeatAssignmentsController, type: :controller do
 
   before(:each) do
     venue = FactoryBot.create(:venue)
@@ -29,7 +29,6 @@ RSpec.describe SeatAssignmentsController, type: :controller, wip: true do
     end
     it "holds a seat for an order in processing mode" do
       reservation_id = @inventory[0]['id']
-      @ticket_order.transition_to!(Order::PROCESSING)
       post :reserve, performance_id: @ticket_order.performance_id, format: :json, id:reservation_id, order_uuid: @ticket_order.uuid
       result = JSON.parse response.body
       expect(result['order_uuid']).to eq(@ticket_order.uuid)
@@ -39,7 +38,6 @@ RSpec.describe SeatAssignmentsController, type: :controller, wip: true do
 
     it "releases a seat for an order in processing mode" do
       reservation_id = @inventory[0]['id']
-      @ticket_order.transition_to!(Order::PROCESSING)
       post :reserve, performance_id: @ticket_order.performance_id, id:reservation_id, format: :json,  :order_uuid=>@ticket_order.uuid
       post :release, performance_id: @ticket_order.performance_id, id:reservation_id, format: :json,  :order_uuid=>@ticket_order.uuid
       result = JSON.parse response.body

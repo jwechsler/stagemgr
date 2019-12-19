@@ -15,7 +15,7 @@ class TicketOrdersController < ApplicationController
 
   def create
     @ticket_order = TicketOrder.new(ticket_order_params)
-    @ticket_order.uuid = params[:ticket_order][:uuid]
+    @ticket_order.uuid = params[:ticket_order][:uuid] unless params[:ticket_order][:uuid].blank?
     @ticket_order.ip_address = request.remote_ip
     @ticket_order.create_default_service_fees
     @ticket_order.status = Order::NEW
