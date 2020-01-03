@@ -49,7 +49,7 @@ class SeatAssignment < ActiveRecord::Base
 
   end
 
-  def assign_to_order(order_uuid, limit_seats = 20, ticket_class_id = nil, accessibility=nil)
+  def assign_to_order(order_uuid, limit_seats = 999, ticket_class_id = nil, accessibility=nil)
     number_assigned = SeatAssignment.where(status: [SeatAssignment::TEMPORARY, SeatAssignment::ASSIGNED], order_uuid:order_uuid).size
     unless number_assigned >= limit_seats
       SeatAssignment.where("id = :id and (order_uuid is null or order_uuid = '' or order_uuid = :order_uuid)",id:self.id, order_uuid: order_uuid).update_all(order_uuid: order_uuid, ticket_class_id: ticket_class_id, updated_at: Time.now, status: SeatAssignment::TEMPORARY, accessibility:accessibility)
