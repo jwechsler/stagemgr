@@ -122,7 +122,7 @@ class BulkOrderImport < OrderImport
                 sa = SeatAssignment.find_by(performance_id: o.performance_id, seat_id: seat_id)
                 raise RuntimeError, "Seat map does not include seat '#{seat}'" if sa.nil?
                 puts("IMPORT: Seating in #{seat}, assignment id: #{sa.id}")
-                raise RuntimeError, "Seat #{seat} is not available for seating" unless sa.assign_to_order(o.uuid)
+                raise RuntimeError, "Seat #{seat} is not available for seating" unless sa.assign_to_order(o.uuid, 1000, ticket_class.id)
               }
               o.save!
               puts "IMPORT: Seating complete"
