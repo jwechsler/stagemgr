@@ -15,6 +15,7 @@ class MailingList < Report
     @data['REN'] = Array.new
     @data['CMP'] = Array.new
     @data['LST'] = Array.new
+    @data['DON'] = Array.new
   end
 
   def extract_addresses_from_ticket_orders(orders)

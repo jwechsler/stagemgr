@@ -99,6 +99,7 @@ class Ability
     can :destroy, SeatMap
     can :destroy, Production
     can :manage, PaymentType
+    can :donation_dump, Report
     can [:refund], [Order, DonationOrder]
     can :manage_system_options
     can [:delete], [TicketOrder, DonationOrder, FlexPassOrder, MembershipOrder]

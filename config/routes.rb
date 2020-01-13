@@ -207,6 +207,7 @@ Stagemgr::Application.routes.draw do
         get :house_management_seating, :action=>:index
         post :trg_dump
         post :attended_dump
+        post :donation_dump
       end
 
     end

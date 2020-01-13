@@ -1,0 +1,42 @@
+class DonationList < MailingList
+
+  attr_reader :starting_date, :ending_date
+
+  def initialize(starting_date, ending_date, reporting_user_id = nil)
+    super(reporting_user_id)
+    @starting_date = starting_date
+    @ending_date = ending_date
+    @headers += [:CloseDate, :Amount]
+
+  end
+
+  def extract_donor_addresses(orders)
+
+    order_set = orders.to_set
+    order_address_set = orders.map{|o| o.address}.to_set
+
+    order_set.each do |order|
+      consolidation_code = 'DON'
+      season_tag = order.created_at.year
+      address = order.address
+      hash = MailingList.mailing_hash_from_buyer(address)
+      hash[:Title] = 'All Donors'
+      hash[:Season] = season_tag
+      hash[:CloseDate] = order.created_at.to_date
+      hash[:Amount] = order.total_paid
+      self.data[consolidation_code] << hash
+
+    end
+
+  end
+
+
+  def create
+    orders = DonationOrder.joins(:address).references(:address).where('(orders.created_at between :start_date and :end_date) and orders.status in (:finalized) and addresses.placeholder <> :is_pl', start_date: self.starting_date, end_date: self.ending_date, finalized: Order.finalized_statuses, is_pl: true).includes(:address, :payments)
+    self.extract_donor_addresses(orders)
+
+    file_name = "/tmp/donors_#{self.starting_date.to_date.strftime('%y%m%d')}_#{self.ending_date.to_date.strftime('%y%m%d')}.csv"
+    self.save_report_to_filestore(file_name)
+
+  end
+end

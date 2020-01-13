@@ -201,6 +201,14 @@ class Admin::ReportsController < Admin::ApplicationController
     redirect_to admin_reports_path
   end
 
+  def donation_dump
+    starting_date = params[:starting_date].to_date
+    ending_date = params[:ending_date].to_date
+    Resque.enqueue(DonorListExport, starting_date, ending_date, current_user.id)
+    flash[:notice] = 'Your export is queued for generation. You\'ll recieve notification when the process is complete.'
+    redirect_to admin_reports_path
+  end
+
 
   def fulfill_tickets
     @through_day = params[:through_day].to_date

@@ -89,6 +89,31 @@
           .small-12.columns
             = submit_tag "Generate", :name=>'generate_csv', :class=>'tiny button'
 
+- if can? :donation_dump, Report
+  .row
+    .small-6.columns
+      %span.report_title
+        Donor export by Donation Date
+      %span.help_text
+        Download donors contact information by date given for import into TRGArts.
+        - if can?(:view_email, Address)
+          %br
+          %strong Warning: confidential email records included. DO NOT DISTRIBUTE.
+    .small-6.columns
+      = form_tag(donation_dump_admin_reports_path, :method=>"post") do
+        .row
+          .small-6.columns
+            %label{:for=>:starting_date} Gave On or after
+            = text_field_tag( :starting_date, Date.today, :default=>Date.today-7.days, :class=>'date_picker')
+          .small-6.columns
+            %label{:for=>:starting_date} Gave Before or on
+            = text_field_tag( :ending_date, Date.today, :default=>Date.today, :class=>'date_picker')
+
+        .row
+          .small-12.columns
+            = submit_tag "Generate", :name=>'generate_csv', :class=>'tiny button'
+
+
 - if can? :house_management_reports, Report then
   .row
     .small-6.columns
