@@ -13,10 +13,12 @@
         .columns.medium-6.small-12
           = f.input :logo
       .row
-        .columns.medium-6.small-12
+        .columns.medium-4.small-12
           = f.input :theater_class, :as => :select, :collection => Theater::THEATER_CLASSES
-        .columns.medium-6.small-12
+        .columns.medium-4.small-12
           = f.input :status, :as=>:select, :collection=>Theater::THEATER_STATUSES, :selected=>Theater::THEATER_STATUSES.first
+        .columns.medium-4.small-12
+          = f.input :myemma_attendee_group
       .row
         .columns.small-12
           = f.input :default_service_items, label:"Default Service Template Names", hint:"Comma-separated list of service items to be applied to each ticket order"

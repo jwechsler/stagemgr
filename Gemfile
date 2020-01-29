@@ -45,7 +45,7 @@ gem "authlogic", '~> 4.4'
 gem "audited", "~> 4.8"
 gem "will_paginate"
 gem 'safe_attributes', :require=> 'safe_attributes/base'  # Used to support legacy rails 2 schema names for TrgExport model
-gem "my_emma",  "~>0.1.2", :git=>"https://github.com/jwechsler/my_emma.git"
+gem "my_emma",  "~>0.1.3", :git=>"https://github.com/jwechsler/my_emma.git"
 # or develop against "~/dev/my_emma"
 #gem "my_emma", :path=>"~/dev/my_emma"
 gem 'terrapin'

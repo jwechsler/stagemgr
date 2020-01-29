@@ -4,6 +4,17 @@ development:
   static_cache_dir: "/Users/jeremyw/tmp"
   filestore_hash: "yoursecrethere"
   resque_admin_password: "yourpassword"
+  my_emma:
+    create_production_groups: false
+    create_theater_groups: false
+  email_addresses:
+      box_office: boxoffice@yourtheater.org
+      online_errors: boxoffice@yourtheater.org
+      flex_pass_notifications: boxoffice@yourtheater.org
+      membership_notifications: boxoffice@yourtheater.org
+      supervisor_notifications: boxoffice@yourtheater.org
+      wheelchair_conversion_notifications: bboxoffice@yourtheater.org
+      software_address: boxoffice@yourtheater.org
 
 test:
   root_url:  ""

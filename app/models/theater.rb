@@ -80,9 +80,39 @@
     end
   end
 
+
   private
   def service_item_template_list(service_item_list)
     itm = service_item_list.nil? ? '' : service_item_list
     itm.split(',').map{|a| a.strip}
   end
+end
+
+class Theater
+
+  before_save :create_my_emma_group # unless :my_emma_disabled?
+
+  def my_emma_disabled?
+    MyEmma.disabled?
+  end
+
+  def create_my_emma_group
+    unless MyEmma.disabled? 
+      if self.myemma_attendee_group.blank? then
+        grp = MyEmma::Group.find_by_group_name(self.my_emma_group_name)
+        if grp.nil? && $SERVER_CONFIG['my_emma']['create_theater_groups']
+          grp = MyEmma::Group.new
+          grp.group_name = self.my_emma_group_name
+          self.myemma_attendee_group = grp.id if grp.save
+        else
+          self.myemma_attendee_group = grp.id unless grp.nil?
+        end
+      end
+    end
+  end
+
+  def my_emma_group_name
+    "#{self.name} Attendee"
+  end
+
 end

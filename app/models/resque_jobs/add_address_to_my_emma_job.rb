@@ -20,7 +20,7 @@ class AddAddressToMyEmmaJob
 
       groups = [AddAddressToMyEmmaJob.newsletter_id]
       additional_groups.each{|grp| groups << grp unless grp.blank?} unless additional_groups.nil?
-      groups << production.myemma_attendee_group unless production.nil? || production.myemma_attendee_group.blank?
+      groups << production.use_myemma_attendee_group unless production.nil? || production.use_myemma_attendee_group.blank?
       member.name_first = address.first_name
       member.name_last = address.last_name
       member.email = address.email

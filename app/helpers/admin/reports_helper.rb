@@ -45,8 +45,8 @@ module Admin::ReportsHelper
 
   def self.attendees_on_email_list(production)
     members_by_email = Hash.new
-    unless MyEmma.disabled? || production.myemma_attendee_group.nil?
-      grp = MyEmma::Group.find(production.myemma_attendee_group)
+    unless MyEmma.disabled? || production.use_myemma_attendee_group.nil?
+      grp = MyEmma::Group.find(production.use_myemma_attendee_group)
       members = grp.members
 
       members.each do |m|

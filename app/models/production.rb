@@ -349,20 +349,12 @@ end
 
 # Non-engine code
 class Production
-  before_save :create_my_emma_group # unless :my_emma_disabled?
+  def use_myemma_attendee_group
+    return self.myemma_attendee_group || (self.theater.nil? ? nil : self.theater.myemma_attendee_group)
+  end
 
   def my_emma_disabled?
     MyEmma.disabled?
-  end
-
-  def create_my_emma_group
-    unless MyEmma.disabled? || !$SERVER_CONFIG['my_emma']['create_production_groups']
-      if self.myemma_attendee_group.blank? then
-        new_group = MyEmma::Group.new
-        new_group.group_name = self.my_emma_group_name
-        self.myemma_attendee_group = new_group.id if new_group.save
-      end
-    end
   end
 
   def my_emma_group_name
@@ -386,8 +378,8 @@ class Production
 
   def attendees_on_email_list
     members_by_email = Hash.new
-    unless MyEmma.disabled? || self.myemma_attendee_group.nil?
-      grp = MyEmma::Group.find(self.myemma_attendee_group)
+    unless MyEmma.disabled? || self.use_myemma_attendee_group.nil?
+      grp = MyEmma::Group.find(self.use_myemma_attendee_group)
       unless grp.group_name.blank?
         members = grp.members
 
@@ -397,6 +389,23 @@ class Production
       end
     end
     members_by_email
+  end
+
+  def copy_myemma_attendees_to_theater
+    result = false
+    unless self.myemma_attendee_group.nil? || self.theater.myemma_attendee_group.nil?
+      grp = MyEmma::Group.find(self.myemma_attendee_group)
+      if grp.nil?
+        throw "Group #{self.myemma_attendee_group} not found.  Skipping migration"
+      else
+        result = grp.copy_members_to_group(self.theater.myemma_attendee_group)
+        if result then
+          self.myemma_attendee_group = nil
+          result = self.save
+        end
+      end
+    end
+    result
   end
 
   # utility to add a set of holds to every performance
