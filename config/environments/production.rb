@@ -91,6 +91,6 @@ Stagemgr::Application.config.middleware.use ExceptionNotification::Rack,
                           :email_prefix=>"[Stagemgr Exception] ",
                           :sender_address=>%{"Exception Notifier" <bugs@theaterwit.org>},
                           :exception_recipients=>%w{bugs@theaterwit.org},
-                          delivery_method: :sendmail
+                          :delivery_method=>:sendmail
                         },
                         error_grouping: true

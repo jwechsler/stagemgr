@@ -350,7 +350,7 @@ end
 # Non-engine code
 class Production
   def use_myemma_attendee_group
-    return self.myemma_attendee_group || (self.theater.nil? ? nil : self.theater.myemma_attendee_group)
+    return self.myemma_attendee_group.blank? ? (self.theater.nil? ? nil : self.theater.myemma_attendee_group) : self.myemma_attendee_group
   end
 
   def my_emma_disabled?
