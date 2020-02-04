@@ -86,8 +86,11 @@ Stagemgr::Application.configure do
 end
 
 Stagemgr::Application.config.middleware.use ExceptionNotification::Rack,
+                        ignore_exceptions: ['ActiveRecord::RecordNotFound'] + ExceptionNotifier.ignored_exceptions,
                         :email=> {
                           :email_prefix=>"[Stagemgr Exception] ",
                           :sender_address=>%{"Exception Notifier" <bugs@theaterwit.org>},
-                          :exception_recipients=>%w{bugs@theaterwit.org}
-                        }
+                          :exception_recipients=>%w{bugs@theaterwit.org},
+                          delivery_method: :sendmail
+                        },
+                        error_grouping: true
