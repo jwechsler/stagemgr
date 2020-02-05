@@ -1,13 +1,40 @@
 = simple_form_for [:admin, @membership_order], :html=>{:id=>'admin_membership_order_form'} do |order_form|
-
   %div.row
     %div.columns.small-12.medium-8
       = order_form.simple_fields_for :membership_line_item do |mlif|
         = mlif.input :membership_offer_id, :as=>:hidden
         %h3= mlif.object.membership_offer.name
-      = render :partial=>'/membership_orders/preferred_seating', :locals=>{:f => order_form}
-    %div.columns.small-12.medium-4
-      = render '/admin/addresses/quick_lookup', :f=>order_form
+  .row
+    = order_form.hidden_field :status
+    = order_form.simple_fields_for :address do |address_form|
+      = render '/admin/orders/name_form', :f => address_form
   %div.row
-    %div.columns.small-12
-      = render :partial=>'/admin/orders/form', :locals=>{:order_form=>order_form}
+    %div.small-6.columns
+      = render :partial=>'/membership_orders/preferred_seating', :locals=>{:f => order_form}
+    %div.small-6.columns
+      = render '/membership_orders/third_party', :order_form=>order_form
+
+  .row
+    %div.small-12.columns
+      = render '/admin/orders/billing_form', :order_form=>order_form
+
+  %div.row
+    %div.small-12.medium-6.columns
+      = order_form.simple_fields_for :address do |address_form|
+        = render '/admin/orders/address_form', :f => address_form
+    %div.small-12.medium-6.columns
+      %fieldset
+        %legend Marketing
+        = order_form.input :add_to_email_list, :as=>:boolean, :label=>'Add to email list?', :default=>false
+        - if order_form.object.is_a? TicketOrder
+          = order_form.input :marketing_source, :collection=>Order::REFERRALS, :label=>"How did you hear about the show?"
+
+  .row
+    .small-12.columns
+      = order_form.input :notes, :input_html => {:rows => 4}
+    .small-12.columns
+      - if [Order::NEW, Order::HOLD, Order::EXCHANGING, Order::PROCESSING].include? order_form.object.status
+        = order_form.submit 'Place Order', :class=>'button', data:{:disable_with => 'Processing...', :confirm => "Process this order?"}
+
+    .small-12.columns
+      = render '/admin/orders/audit_show', :order_form=>order_form.object
