@@ -52,7 +52,6 @@ module Admin::ReportsHelper
       members.each do |m|
         members_by_email[m.email.downcase] = m unless m.email.nil?
       end
-
     end
     members_by_email
   end
@@ -69,18 +68,6 @@ module Admin::ReportsHelper
                :ClientPatronID => address.sf_contact_id ]
   end
 
-  def self.trg_hash_from_myemma(member)
-
-    Hash[:FirstName=> member.name_first, :LastName=>member.name_last,
-               :FullName => "#{member.name_first} #{member.name_last}" , :CompanyName => '',
-               :Email => member.email, :Address1 => member.address,
-               :Address2=>'', :Address3=>'',
-               :City=>member.city, :State => member.state,
-               :Zip => member.postal_code,
-               :HomePhone => '', :BusinessPhone => '',
-               :ClientPatronID => '' ]
-  end
-
   def self.build_new_trg_dump(season)
     productions = Production.find_all_by_season(season)
 
@@ -90,7 +77,7 @@ module Admin::ReportsHelper
     master_lists = Hash['MEM' => Array.new, 'BLDG' => Array.new, 'DNT' => Array.new]
     productions.each do |production|
       season_tag = production.season.to_i + 1
-      members_by_email = attendees_on_email_list(production)
+      additional_attendees = production.attendees
       orders = TicketOrder.includes(:address, :payments, :theater, {:performance=>:production}).where('performances.production_id = ?', production.id)
 
       reports = Hash['ALL' => Array.new,
@@ -121,12 +108,12 @@ module Admin::ReportsHelper
           reports[buyer_type] << hash
         end
       end
-      members_by_email.each do |member_record|
-        hash = trg_hash_from_myemma(member_record[1])
+      additional_attendees.each do |member_record|
+        hash = trg_hash(member_record)
         master_lists['BLDG'] << hash
         master_lists[production.theater.name] = Array.new unless master_lists.has_key?(production.theater.name)
         master_lists[production.theater.name] << hash
-        reports['ALL'] << hash
+        reports[production.theater.producing? ? 'ALL' : 'REN'] << hash
         reports['EMA'] << hash
       end
 

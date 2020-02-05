@@ -308,23 +308,6 @@ class Admin::ReportsController < Admin::ApplicationController
                 :address_id=>a.id}
   end
 
-  def address_hash_from_my_emma_member(member)
-    Hash[MyEmma::Member.api_attributes.to_a.select{ |a| MyEmma.legal?(a) }.map {
-      |a| key = case a
-        when :name_first
-          :first_name
-        when :name_last
-          :last_name
-        when :address
-          :street_address
-        else
-          a
-        end
-        [key.to_sym, member.instance_variable_get("@#{a.to_sym}") ]
-    }]
-  end
-
-
   def address_hash_from_order(o)
     unless o.address.blank?
       address_hash(o.address)
@@ -704,9 +687,11 @@ class Admin::ReportsController < Admin::ApplicationController
       }
     }
 
-    members_by_email.each {|email, m|
-      if m.active?
-        row =  address_hash_from_my_emma_member(m)
+    additional_attendees = production.attendees.uniq
+
+    additional_attendees.each {|address|
+      if !address.email.nil? && members_by_email.has_key?(address.email.downcase)
+        row =  address_hash(address)
         row[:id] = 'email'
         report << row
       end

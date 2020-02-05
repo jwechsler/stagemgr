@@ -15,9 +15,9 @@ class ProductionMailingList < MailingList
   def create
     begin
       season_tag = self.production.season.to_i
-      all_attendees = self.production.attendees
+      all_attendees = self.production.attendees.uniq
       orders = TicketOrder.joins(:performance, :address).references(:performance, :address).where('performances.production_id = ? and addresses.placeholder <> ?', self.production.id,true).includes(:address, :payments, :theater, {:performance=>:production})
-      members_by_email = self.production.attendees_on_email_list
+      members_by_email = self.production.attendees_on_email_list unless self.allow_email_exports?
       order_set = orders.to_set
 
       consolidation_code = self.production.theater.producing? ? 'ALL' : 'REN'
@@ -43,13 +43,6 @@ class ProductionMailingList < MailingList
         end
         self.data[consolidation_code] << hash
         self.data[buyer_type] << hash unless buyer_type.nil?
-      end
-
-      members_by_email.each do |key,member_record|
-        hash = MailingList.trg_hash_from_myemma(member_record)
-        hash[:Title] = self.production.name
-        hash[:Season] = season_tag
-        self.data['EMA'] << hash
       end
 
       file_name = "/tmp/#{Admin::ReportsHelper.safe_title(self.production.name)}.csv"
