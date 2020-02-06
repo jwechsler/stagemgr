@@ -19,7 +19,7 @@ RSpec.describe "a payment type"  do
     order.transition_to!(Order::PROCESSED)
     report = SalesByPerformanceReport.new([production], false)
     @headers, @report_data = report.create
-    expect(@report_data[0][:collected].to_f).to eq(10.0)
+    expect(@report_data[0][:collected].to_f).to eq(12.0)
     order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :performance=>performance )
     payment_type = FactoryBot.create(:external_payment_type)
     payment_type.report_as_sales_collected = false
@@ -29,7 +29,7 @@ RSpec.describe "a payment type"  do
     production.reload
     report = SalesByPerformanceReport.new([production], false)
     @headers, @report_data = report.create
-    expect(@report_data[0][:collected].to_f).to eq(10.0)
+    expect(@report_data[0][:collected].to_f).to eq(12.0)
   end
 
   it "can specify if it should be used in production revenue reporting" do
@@ -41,7 +41,7 @@ RSpec.describe "a payment type"  do
     order.transition_to!(Order::PROCESSED)
     report = SalesByPerformanceReport.new([production], false)
     @headers, @report_data = report.create
-    expect(@report_data[0][:gross].to_f).to eq(10.0)
+    expect(@report_data[0][:gross].to_f).to eq(12.0)
     order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :performance=>performance )
     payment_type = FactoryBot.create(:external_payment_type)
     payment_type.report_as_sales_collected = false
@@ -52,18 +52,21 @@ RSpec.describe "a payment type"  do
     production.reload
     report = SalesByPerformanceReport.new([production], false)
     @headers, @report_data = report.create
-    expect(@report_data[0][:gross].to_f).to eq(20.0)
-    expect(@report_data[0][:collected].to_f).to eq(10.0)
+    expect(@report_data[0][:gross].to_f).to eq(24.0)
+    expect(@report_data[0][:collected].to_f).to eq(12.0)
   end
 
-  it "can restrict purchases based on a comma-delimited set of ticket class strings", :wip=>true do
+  it "can restrict purchases based on a comma-delimited set of ticket class strings" do
     payment_type = FactoryBot.create(:external_payment_type, :display_name=>'TEST', :allow_for_public=>false, :allow_for_box_office=>true, :restrict_to_ticket_classes=>'HOTTIX,CHEAP')
     production = FactoryBot.create(:production, :capacity=>4)
-    production.ticket_classes << FactoryBot.create(:ticket_class, class_code: "CHEAP", ticket_price: 1.0, auto_attach:true)
     performance = FactoryBot.create(:performance, :production=>production)
     order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :performance=>performance )
     order.payment_type = payment_type
-    expect { order.transition_to!(Order::PROCESSED)}.to raise_error(RuntimeError)
+    expect { raise "Hi" }.to raise_error
+    expect { order.transition_to!(Order::PROCESSED) }.to raise_error(RuntimeError)
+    cheap_tc = FactoryBot.create(:ticket_class, class_code: "CHEAP", ticket_price: 0.50, auto_attach:true)
+    production.ticket_classes << cheap_tc
+    order.performance.ticket_class_allocations << FactoryBot.create(:ticket_class_allocation, ticket_class: cheap_tc, available: true)
     order = FactoryBot.create(:ticket_order, :for_a_cheap_pair_of_tickets, :performance=>performance )
     order.payment_type = payment_type
     order.transition_to!(Order::PROCESSED)

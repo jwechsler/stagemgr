@@ -5,7 +5,7 @@ class TicketLineItem < LineItem
   validates_presence_of :ticket_class, :ticket_count
 
   validates_each :price_override do |record, attr, value|
-    if record.ticket_class && record.ticket_class.ticket_type != 'Donation'
+    if record.ticket_class && record.ticket_class.ticket_type != 'Donation' && !record.generated_from_split?
       record.errors.add attr, "cannot be used on ticket class type #{record.ticket_class.ticket_type}" unless value.nil?
     end
   end
@@ -20,7 +20,7 @@ class TicketLineItem < LineItem
   end
 
   def price
-    (self.price_override || self.ticket_class.try(:ticket_price)) || 0
+    self.price_override || self.ticket_class.try(:ticket_price) || BigDecimal(0,2)
   end
 
   def refund!

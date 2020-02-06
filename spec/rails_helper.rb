@@ -69,6 +69,6 @@ RSpec.configure do |config|
         example.run
       end
     end
-
+  RSpec::Expectations.configuration.on_potential_false_positives = :nothing
 end
 

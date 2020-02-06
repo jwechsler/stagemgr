@@ -71,10 +71,9 @@ RSpec.describe ProductionStat do
     it "should calculate advance sales and seats sold by date" do
       stat = @production.production_stat
       advance = stat.snapshot(@performance1.performance_date - 1.day)
-      expect(advance.advance_sales).to eq(30)
-      expect(advance.advance_seats).to eq(10)
+      expect(advance.advance_sales).to eq(36.0)
       advance = stat.snapshot(@performance2.performance_date - 1.day)
-      expect(advance.advance_sales).to eq(20)
+      expect(advance.advance_sales).to eq(24.0)
       expect(advance.advance_seats).to eq(4)
     end
 

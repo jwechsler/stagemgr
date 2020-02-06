@@ -14,12 +14,7 @@ RSpec.describe SeatMap, type: :model do
     end
 
     it "can be assigned seats" do
-      seatmap = FactoryBot.create(:seat_map)
-      8.times do
-       seat = FactoryBot.create(:seat)
-       # seat.seat_map = seatmap
-       seatmap.seats << seat
-      end
+      seatmap = FactoryBot.create(:seat_map, seat_count:8)
 
       expect(seatmap.seats.count).to eq(8)
 
@@ -45,7 +40,7 @@ RSpec.describe SeatMap, type: :model do
 
   context "inventory management" do
     before(:each) do
-      @seat_map = FactoryBot.create(:seat_map, :with_seats)
+      @seat_map = FactoryBot.create(:seat_map)
 
     end
 

@@ -137,7 +137,6 @@ class Admin::TicketOrdersController < Admin::OrdersController
 
   def update
     @ticket_order.update_attributes(ticket_order_params)
-    Rails.logger.debug("*** SIZE = #{@ticket_order.ticket_line_items.size.to_s}")
     @ticket_order.ticket_line_items.select{|tli| !tli.ticket_count.nil? && tli.ticket_count > 0}.each {|tli|
       Rails.logger.debug("*** COUNT FOR #{tli.ticket_class_id}: #{tli.ticket_class.class_name} is #{tli.ticket_count}")
     }
@@ -213,6 +212,52 @@ class Admin::TicketOrdersController < Admin::OrdersController
       flash[:notice] = 'Note updated.'
     end
     redirect_to action:'show', id:@order.id
+  end
+
+  def split
+    @tickets = @ticket_order.flatten_ticket_line_items
+    respond_to do |format|
+      format.html { render 'split', :layout=>true}
+    end
+  end
+
+  def finalize_split
+    index = 0
+    order1, order2 = nil, nil
+    TicketOrder.transaction do
+      split_instructions = params[:splits]
+      seat_assignments = @ticket_order.performance.seat_assignments.select{|sa| sa.order_uuid.eql?(@ticket_order.uuid)}.map{|sa| sa}
+
+      ticket_class_ids = params[:ticket_classes].map{|tci| tci.to_i}
+      tlids = params[:tlis].map{|tli| tli.to_i}
+      seat_ids = params[:seats].map{|seat_id| seat_id.to_i}
+      flattened_ticket_line_items = @ticket_order.flatten_ticket_line_items
+      new_tickets = []
+      flattened_tickets = []
+      split_instructions.size.times do |index|
+        if @ticket_order.performance.production.has_reserved_seating? then
+          seat_assignment = seat_assignments.select{|sa| sa.seat_id.eql?(seat_ids[index])}.first
+          seat_assignments.delete_at(seat_assignments.index(seat_assignment))
+          # we've found the correct seat assignment.  Now we need to adjust the ticket class
+          seat_assignment.ticket_class_id = ticket_class_ids[index]
+          seat_assignment.save!
+        else
+          seat_assignment = nil
+        end
+        original_ticket_line_item = @ticket_order.ticket_line_items.select{|tli| tli.id.eql?(tlids[index])}.first
+        new_flattened_tli = TicketOrder.create_ticket_line_item_for_split(original_ticket_line_item, ticket_class_ids[index], seat_assignment)
+        flattened_tickets << new_flattened_tli
+        new_tickets << new_flattened_tli if split_instructions[index].eql?("Order 2")
+      end
+      order1, order2 = @ticket_order.split(new_tickets, flattened_tickets)
+    end
+    if order1.nil? || order2.nil?
+      flash[:error] = @ticket_order.errors.full_messages.to_sentence
+      redirect_to action:'split'
+    else
+      flash[:notice] = "Order split into orders ##{order1.id} and ##{order2.id}"
+      redirect_to action:'show'
+    end
   end
 
   protected

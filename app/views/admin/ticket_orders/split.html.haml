@@ -1,0 +1,118 @@
+= render '/admin/orders/header_bar', :order=>@ticket_order
+%div.row
+  %div.small-12.columns
+    %h2 Select tickets to split
+    =simple_form_for [:admin, @ticket_order], url: finalize_split_admin_ticket_order_path(@ticket_order) do |f|
+      =f.input :id, as: :hidden
+      -if @ticket_order.performance.production.has_reserved_seating?
+        -all_seats = @tickets.map{|t| [t[:seat].seat.location, t[:seat].seat.id]}
+        -index = 0
+        .row
+          .column.small-2
+            %strong Split To
+          .column.small-6
+            %strong Ticket Type
+          .column.small-2
+            %strong Face value
+          .column.small-2
+            %strong Seat
+        -@tickets.each do |ticket|
+
+          -tc = TicketClass.find(ticket[:ticket_class_id])
+          -tli = ticket[:source]
+          .row
+            .column.small-2
+              =select_tag 'splits[]', options_for_select(['Order 1','Order 2']), {id:"target_line_#{index}"}
+            .column.small-6
+              -# =check_box_tag 'split_ticket_classes[]', "#{ticket[:source].id}:::#{ticket[:seat].seat.id}", false, {id: "tli_line#{index}"}
+              =hidden_field_tag 'seat_assignments[]', ticket[:seat].id, {id: "seat_assignment_#{index}"}
+              =hidden_field_tag 'tlis[]', tli.id, {id: "tli_#{index}"}
+              =hidden_field_tag 'ticket_classes[]', tc.id, {id: "ticket_class_#{index}"}
+              ="#{tc.class_name} (#{tc.class_code})"
+            .column.small-2
+
+              =number_to_currency(tli.price_override || tc.ticket_price)
+
+            .column.small-2
+              =select_tag 'seats[]', options_for_select(all_seats, all_seats[index]), {include_blank: true, id:"line#{index}", class: 'seat-selector'}
+          -index += 1
+        = f.submit 'Split Order', :disable_with=>'Processing...', :class=>'alert button disabled', confirm:"Are you sure?", id: "split_button"
+      -else
+        .row
+          .column.small-2
+            %strong Split To
+          .column.small-6
+            %strong Ticket Type
+          .column.small-2
+            %strong Face value
+          .column.small-2
+            %strong Seat
+        -index = 0
+        -@tickets.each do |ticket|
+
+          -tc = TicketClass.find(ticket[:ticket_class_id])
+          -tli = ticket[:source]
+
+          .row
+            .column.small-2
+              =select_tag 'splits[]', options_for_select(['Order 1','Order 2']), {id:"target_line_#{index}"}
+            .column.small-6
+              -# =check_box_tag 'split_ticket_classes[]', "#{ticket[:source].id}:::#{ticket[:seat].seat.id}", false, {id: "tli_line#{index}"}
+              =hidden_field_tag 'seat_assignments[]', 0, {id: "seat_assignment_#{index}"}
+              =hidden_field_tag 'tlis[]', tli.id, {id: "tli_#{index}"}
+              =hidden_field_tag 'ticket_classes[]', tc.id, {id: "ticket_class_#{index}"}
+              ="#{tc.class_name} (#{tc.class_code})"
+            .column.small-2
+
+              =number_to_currency(tli.price_override || tc.ticket_price)
+
+            .column.small-2
+              =hidden_field_tag 'seats[]', 0, {id:"line#{index}", class: 'seat-selector'}
+              GA
+          -index += 1
+        = f.submit 'Split Order', :disable_with=>'Processing...', :class=>'alert button', confirm:"Are you sure?", id: "split_button"
+= content_for :js do
+  :javascript
+    function replicate_seat_selector_value(selector_id, new_seat) {
+      checkbox_id = "#tli_" + selector_id
+      regex = /\:\:\:\d+/g
+      new_id = $(checkbox_id).val().replace(regex,':::' + new_seat);
+      $(checkbox_id).val(new_id)
+    }
+
+    function check_ready_to_submit() {
+      
+      target_vals = new Set();
+      $('[name="splits[]"').each(function() {
+        console.log($(this).val());
+        target_vals.add($(this).val())
+      });
+      submit_allowed = (target_vals.size > 1)
+      console.log('first check = ' + submit_allowed)
+      $('.seat-selector').each(function() {
+        console.log('"' + $(this).val() +'"');
+        submit_allowed = submit_allowed && ($(this).val().length > 0)
+      });
+      if (submit_allowed) {
+        $("#split_button").show();
+      } else {
+        $("#split_button").hide();
+      }
+    }
+
+    $(document).ready(function() {
+      check_ready_to_submit();
+      $('.seat-selector').change(function(){
+        var seat= $(this).val();
+        clear_seats = $('option:selected[value="'+$(this).val()+'"]').parent('.seat-selector').not('#'+$(this).attr('id'))
+        clear_seats.each(function() {
+          $(this).val('');
+          // replicate_seat_selector_value($(this).attr('id'),'0');
+        });
+        check_ready_to_submit()
+        // replicate_seat_selector_value($(this).attr('id'),$(this).val());
+      });
+      $('[name="splits[]"').change(function(){
+        check_ready_to_submit();
+      });
+    });

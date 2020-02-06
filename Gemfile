@@ -39,7 +39,6 @@ gem "activeresource"
 gem "activemerchant"
 gem "braintree"
 gem "braintree-rails"
-gem 'mysql2', '~> 0.4.0'
 gem "scrypt", '~> 3.0.6'
 gem "authlogic", '~> 4.4'
 gem "audited", "~> 4.8"
@@ -141,6 +140,7 @@ end
 group :production do
 #  gem 'newrelic_rpm'
   gem 'exception_notification'
+  gem 'mysql2', "~> 0.4.10"
 end
 
 group :development,:production do
@@ -165,5 +165,4 @@ end
   gem 'foundation-rails'
   gem 'foundation-icons-sass-rails'
   gem 'autoprefixer-rails'
-
 

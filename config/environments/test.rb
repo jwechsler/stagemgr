@@ -71,5 +71,11 @@ Stagemgr::Application.configure do
   config.action_mailer.default_url_options = { host: $SERVER_CONFIG['host'], protocol: $SERVER_CONFIG['host_protocol'] }
 
   config.action_mailer.delivery_method = :test
+  $APP_DISPLAY_NAME = $SERVER_CONFIG['app_name'] || 'StageMgr'
+  unless $SERVER_CONFIG['payment_processing'].nil? || $SERVER_CONFIG['payment_processing']['additional_card_types'].blank?
+    $ADDITIONAL_CARD_TYPES = $SERVER_CONFIG['payment_processing']['additional_card_types'].split(',').map{|ct| ct.strip}
+  else
+    $ADDITIONAL_CARD_TYPES = []
+  end
 
 end

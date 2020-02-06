@@ -1,5 +1,5 @@
-= render '/admin/orders/header_bar', :order=>@ticket_order
 
+= render '/admin/orders/header_bar', :order=>@ticket_order
 %div.row
   %div.small-12.columns
     = render 'detail', :ticket_order=>@ticket_order
@@ -12,21 +12,23 @@
       %ul.button-group
         - if can? :exchange, TicketOrder
           %li= link_to 'Exchange Order', new_admin_ticket_order_exchange_ticket_order_path(@ticket_order), :class=>'small button' if (@ticket_order.exchangeable? && (!current_user.is_theater_user? || (current_user.is_theater_user? && @ticket_order.status!=Order::FULFILLED)))
+        -if can? :split, TicketOrder
+          %li= link_to 'Split Order', split_admin_ticket_order_path(@ticket_order), :class=>'small button' if @ticket_order.splittable?
 
-        - if can? :fulfill, TicketOrder
+        -if can? :fulfill, TicketOrder
           %li= link_to 'Fulfill Order', fulfill_admin_order_path(@ticket_order), :class=>'small button' if @ticket_order.fulfillable?
-        - if can? :resend_confirmation, TicketOrder
-          - if @ticket_order.settled? && !@ticket_order.address.nil? && !@ticket_order.address.email.blank? && !@ticket_order.refunded?
+        -if can? :resend_confirmation, TicketOrder
+          -if @ticket_order.settled? && !@ticket_order.address.nil? && !@ticket_order.address.email.blank? && !@ticket_order.refunded?
             %li= link_to 'Resend Confirmation', resend_confirmation_admin_ticket_order_path(@ticket_order), :confirm=>"Resend confirmation email?", :class=>'small button'
-        - if can? :reprint, TicketOrder
+        -if can? :reprint, TicketOrder
           %li= link_to 'Reprint', reprint_admin_ticket_order_path(@ticket_order), :class=>'small button' if @ticket_order.fulfilled?
-        - if can? :mark_unclaimed, TicketOrder
+        -if can? :mark_unclaimed, TicketOrder
           %li= link_to 'Unclaimed', unclaimed_admin_order_path(@ticket_order),:id => 'unclaimed_link', :class=>'small button' if @ticket_order.fulfilled?
       %ul.button-group
-        - if can? :refund, TicketOrder
+        -if can? :refund, TicketOrder
           %li= link_to 'Refund Order', new_admin_order_refund_order_path(@ticket_order), :class=>'alert small button' if @ticket_order.refundable?
 
-        - if @ticket_order.status == 'Processing' || @ticket_order.status == 'Hold' || @ticket_order.status == Order::NEW
+        -if @ticket_order.status == 'Processing' || @ticket_order.status == 'Hold' || @ticket_order.status == Order::NEW
           %li= link_to 'Cancel Order', cancel_admin_order_path(@ticket_order), :confirm => "Are you sure?", :method=>:post, :class=>'alert small button'
 
 %div.row

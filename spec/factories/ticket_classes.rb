@@ -2,7 +2,7 @@ FactoryBot.define do
 
   factory :default_ticket_class do
     web_visible     { false }
-    ticket_price    { 0 }
+    sequence(:ticket_price) { |n| (2%n).eql?(0) ? 6 : 2.50}
     ticketing_fee   { 0 }
     holds_seats     { true }
     sequence(:class_code) { |n| "GEN#{'%02d' %n}" }
@@ -13,7 +13,7 @@ FactoryBot.define do
 
   factory :ticket_class do
     ticket_type       { 'Fixed' }
-    ticket_price      { 5.0 }
+    sequence(:ticket_price) { |n| (2%n).eql?(0) ? 6 : 2.50}
     ticketing_fee     { 0.0 }
     production
     auto_attach       { true }

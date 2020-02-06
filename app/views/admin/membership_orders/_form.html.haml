@@ -26,9 +26,6 @@
       %fieldset
         %legend Marketing
         = order_form.input :add_to_email_list, :as=>:boolean, :label=>'Add to email list?', :default=>false
-        - if order_form.object.is_a? TicketOrder
-          = order_form.input :marketing_source, :collection=>Order::REFERRALS, :label=>"How did you hear about the show?"
-
   .row
     .small-12.columns
       = order_form.input :notes, :input_html => {:rows => 4}

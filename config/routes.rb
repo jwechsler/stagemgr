@@ -267,6 +267,8 @@ Stagemgr::Application.routes.draw do
         post :cancel
         post :cancel_held_during_seating
         post :refund
+        get :split
+        patch :finalize_split
         get  :fulfill
         get :reprint
         get :unclaimed

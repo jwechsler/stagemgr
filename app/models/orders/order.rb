@@ -17,7 +17,6 @@ class Order < ActiveRecord::Base
 
   has_many :payments
   has_many :exchange_payments
-  has_many :price_override_payments
   has_many :tasks, :class_name=>'OrderTask', :dependent=>:destroy
   has_many :seats, foreign_key: :order_uuid, primary_key: :uuid, class_name: 'SeatAssignment'
   has_one :special_offer_line_item
@@ -54,8 +53,8 @@ class Order < ActiveRecord::Base
 
 
   ORDER_STATUSES = (
-  HOLD, NEW, PROCESSING, PROCESSED, REFUNDED, EXCHANGED, EXCHANGING, RELEASING, FULFILLED, CANCELED, UNCLAIMED =
-      "Hold", "New", "Processing", "Processed", "Refunded", "Exchanged", "Exchanging", "Releasing", "Fulfilled", "Canceled", "Unclaimed")
+  HOLD, NEW, PROCESSING, PROCESSED, REFUNDED, EXCHANGED, EXCHANGING, RELEASING, FULFILLED, CANCELED, UNCLAIMED, SPLIT =
+      "Hold", "New", "Processing", "Processed", "Refunded", "Exchanged", "Exchanging", "Releasing", "Fulfilled", "Canceled", "Unclaimed", "Split")
 
   HOLDING_SEAT_STATUSES = [HOLD, PROCESSING, PROCESSED, EXCHANGING, RELEASING, FULFILLED]
 
@@ -96,7 +95,7 @@ class Order < ActiveRecord::Base
 
   def is_balanced_transaction?
     li_total = self.value_of_all_line_items
-    pay_total = self.value_of_all_payments
+    pay_total = self.value_of_all_payments(:include_override_payments)
     unless li_total == pay_total
       errors.add :status, "cannot be set to #{self.status} if the total ($#{li_total}) isn't countered by a payment (currently $#{pay_total})."
     end
@@ -128,47 +127,47 @@ class Order < ActiveRecord::Base
 
   def value_of_all_line_items
     a = self.all_line_items.to_a.sum { |line_item|
-        line_item.respond_to?(:total) ? line_item.total : 0
+        line_item.respond_to?(:total) ? line_item.total : BigDecimal.new(0,2)
       }
-    a = 0.0 if a < 0.0
+    a = BigDecimal.new(0.0,2) if a < 0
     a
   end
 
   # total revenue collected by box office
   def total_collected
     sum_payments = self.payments.select{|p| p.report_as_sales_collected?}
-    total = sum_payments.empty? ? 0.0 : sum_payments.sum{|p| p.amount}
+    total = sum_payments.empty? ? BigDecimal(0.0,2) : sum_payments.sum{|p| p.amount}
   end
 
   # total revenue reported for the production
   def total_revenue
     sum_payments = self.payments.select{|p| p.report_as_production_revenue?}
-    total = sum_payments.empty? ? 0.0 : sum_payments.sum{|p| p.amount}
+    total = sum_payments.empty? ? BigDecimal(0.0,2) : sum_payments.sum{|p| p.amount }
   end
 
   # returns the total amount paid
   def total_paid
-    sum = self.payments.map{|p| p.amount}.inject(0) { |sum, x| sum + (x.nil? ? 0.0 : x) }
-    sum = 0.0 if sum.nil?
+    sum = self.payments.map{|p| p.amount}.inject(BigDecimal.new(0,2)) { |sum, x| sum + (x.nil? ? BigDecimal.new(0,2) : x) }
+    sum = BigDecimal(0.0,2) if sum.nil?
     sum
   end
 
   #returns the total payments visible to the customer
   def customer_visible_total
     total = self.payments.to_a.sum { |payment| payment.customer_visible_amount }
-    total = 0 if (total.nil? || total < 0)
+    total = BigDecimal(0,2) if (total.nil? || total < 0)
     total
   end
 
   # returns the actual total of the order by either total payments made (if there are any payments),
   # or the line items as a fallback
-  def total
+  def total(*options)
     if (self.payments.nil?) || (self.payments.size == 0) then
       a = value_of_all_line_items
     else
-      a = self.value_of_all_payments
+      a = self.value_of_all_payments(options)
     end
-    a = 0.0 if a < 0.0
+    a = BigDecimal(0,2) if a < 0
     a
   end
 
@@ -352,6 +351,14 @@ class Order < ActiveRecord::Base
     self.payment_type.is_a?(FlexPassPaymentType) && !self.flex_pass_payments.empty?
   end
 
+  def paid_with_membership?
+    !self.membership_payments.empty?
+  end
+
+  def paid_with_pass?
+    self.paid_with_flexpass? || self.paid_with_membership?
+  end
+
   def paid_with_flexpass
     unless flex_pass_payments.empty?
       FlexPass.find(flex_pass_payments.first.flex_pass_id)
@@ -443,7 +450,7 @@ class Order < ActiveRecord::Base
   end
 
   def update_special_offer_line_item_from_code!
-    unless self.special_offer_code.blank?
+    unless self.special_offer_code.blank? || !self.paid_with_currency?
       special_offer = SpecialOffer.find_by_order(self)
       unless special_offer.nil?
         if self.special_offer_line_item.nil?
@@ -589,10 +596,6 @@ class Order < ActiveRecord::Base
 
   end
 
-  def paid_with_membership?
-    !self.membership_payments.empty?
-  end
-
   def self.fix_expiration_year(expiration_year)
     unless expiration_year.blank? || expiration_year.length > 2
       expiration_year = "20" + expiration_year
@@ -640,7 +643,6 @@ class Order < ActiveRecord::Base
     result.select{|r| !r.nil?}
   end
 
-
   def cancel_pending_tasks
     self.tasks.select { |t| t.uncompleted? }.each { |t| t.cancel! }
   end
@@ -663,16 +665,24 @@ class Order < ActiveRecord::Base
     !self.status.blank?
   end
 
-  def value_of_all_payments(sales_collected_payment_types_only = false)
-    if sales_collected_payment_types_only then
-      sum_payments = self.payments.select{|p| p.report_as_sales_collected?}
-      total = sum_payments.empty? ? 0 : sum_payments.sum{|p| p.amount}
-    else
-      total =  self.payments.sum(:amount)
+  # returns value of all payments
+  # options is a hash with following optoins
+  #    :sales_collected_payment_types_only : set to true if you only are including payment types
+  #    :ignore_override_payments : set to true to exclude all override payments
+  def value_of_all_payments(*options)
+    options = options.flatten
+    total = BigDecimal.new(0,2)
+    sum_payments = self.payments
+    sum_payments = sum_payments.select{|p| p.report_as_sales_collected?} if options.include?(:sales_collected_payment_types_only)
+    unless options.include?(:include_override_payments)
+      sum_payments = sum_payments.select{|p| !p.kind_of?(PriceOverridePayment)}
     end
-    total
+    total = sum_payments.map{|p| p.amount}.inject(BigDecimal.new(0,2)) { |sum, x| sum + (x.nil? ? BigDecimal.new(0,2) : x) }
+
+    total.floor(2)
   end
 
+  protected
   # something about all the overloaded order/line items breaks the normal
   # pattern of << for service_line_item association
   # so we explicitly attach servie line items to the order
@@ -722,12 +732,6 @@ class Order < ActiveRecord::Base
     new_payment.process!
   end
 
-  def unique_payments
-    (self.payments.to_a +
-    self.exchange_payments +
-        self.price_override_payments).uniq
-  end
-
   def preset_line_items
 
   end
@@ -738,7 +742,7 @@ class Order < ActiveRecord::Base
     redirect_to
   end
 
-  def transition_processed_to_processed!(redirect_to)
+  def transition_processed_to_processed!(redirect_to = nil)
     self.save!
     redirect_to
   end
@@ -817,7 +821,7 @@ class Order < ActiveRecord::Base
   end
 
   def create_mail_list_task
-    if (self.add_to_email_list == "1")
+    if self.do_not_create_tasks.nil? && self.add_to_email_list == "1"
       self.tasks << MyEmmaTask.new(:execute_at=>Time.now + 5.minutes) if !self.address.email.nil?
     end
   end
@@ -870,8 +874,6 @@ class Order < ActiveRecord::Base
     donation.transition_to!(Order::PROCESSED)
 
   end
-
-
 end
 
 # Salesforce extension

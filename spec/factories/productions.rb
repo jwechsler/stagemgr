@@ -7,7 +7,7 @@ FactoryBot.define do
     press_opening_at        { Date.today }
     first_preview_at        { Date.today }
     season                  { Date.today.year }
-
+    seat_map                { nil }
     theater
     venue
 
@@ -15,12 +15,13 @@ FactoryBot.define do
     sequence(:production_code) { |n| "PRD#{'%02d' % n}" }
 
     transient do
-      ticket_class_count    { 1 }
+      ticket_class_count    { 2 }
     end
 
     after(:create) do |production, evaluator|
       if production.ticket_classes.empty?
-        list = FactoryBot.create_list(:ticket_class, evaluator.ticket_class_count, :production=>production)
+        FactoryBot.create(:ticket_class, ticket_price: BigDecimal(2.50,2), :production=>production)
+        FactoryBot.create(:ticket_class, ticket_price: BigDecimal(6,2), :production=>production)
       end
       #evaluator.ticket_class_count.times do
       #  production.ticket_classes << FactoryBot.create(:ticket_class)
@@ -33,10 +34,17 @@ FactoryBot.define do
     end
 
     initialize_with  { Production.find_or_create_by(production_code: production_code) }
-  end
 
-  factory :production_with_custom_label, class: Production, parent: :production do
-    custom_label      { "special secret class" }
+    factory :production_with_custom_label do
+      custom_label      { "special secret class" }
+    end
+
+    factory :production_with_reserved_seating do
+      before(:create) do |production, evaluator|
+        production.seat_map = production.venue.seat_maps.first
+      end
+    end
+
   end
 
 end

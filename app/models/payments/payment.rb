@@ -3,9 +3,9 @@ class Payment < ActiveRecord::Base
   belongs_to :order
   belongs_to :payment_type
 
-  validates_numericality_of :amount, :unless => :number_of_tickets
+  # validates_numericality_of :amount, :unless => :number_of_tickets
   # validates_numericality_of :number_of_tickets, :unless => :amount
-  validates_presence_of :order
+  # validates_presence_of :order
   default_scope { order(created_at: :asc )}
   before_save :set_processed_on
 
@@ -38,6 +38,13 @@ class Payment < ActiveRecord::Base
       payment_type: self.payment_type,
       payment_id: self.id
     )
+  end
+
+  def new_offset_payment(partial_amount = nil, number_of_tickets = nil)
+    partial_amount = self.amount if partial_amount.nil?
+    new_payment = self.dup
+    new_payment.amount = 0-partial_amount
+    new_payment
   end
 
   def process!(order = nil)

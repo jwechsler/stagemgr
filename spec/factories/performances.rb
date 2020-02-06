@@ -2,18 +2,28 @@ FactoryBot.define do
 
   factory :performance do
 
-    production
+    association :production, :factory=> :production
 
     trait :with_custom_label do
       association :production, :factory => :production_with_custom_label
     end
 
+    factory :reserved_seating do
+      association :production, factory: :production_with_reserved_seating
+    end
+
+    factory :general_admission do
+    end
+
+
     status { Performance::PERFORMANCE_STATUSES.first }
     sequence(:performance_code) { |n| "#{production.production_code}#{'%02d' % n}" }
     after(:create) {|perf|
 
-      perf.ticket_class_allocations << FactoryBot.create(:ticket_class_allocation, :performance=>perf, :available=>true)
+      perf.production.ticket_classes.each { |tc|
 
+        perf.ticket_class_allocations << FactoryBot.create(:ticket_class_allocation, :performance=>perf, :available=>true, ticket_class: tc) unless perf.ticket_class_allocations.map{|tca| tca.ticket_class}.include?(tc)
+      }
       perf.populate_ticket_class_allocations
     }
 
