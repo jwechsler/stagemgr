@@ -21,7 +21,7 @@
           -if @ticket_order.settled? && !@ticket_order.address.nil? && !@ticket_order.address.email.blank? && !@ticket_order.refunded?
             %li= link_to 'Resend Confirmation', resend_confirmation_admin_ticket_order_path(@ticket_order), :confirm=>"Resend confirmation email?", :class=>'small button'
         -if can? :reprint, TicketOrder
-          %li= link_to 'Reprint', reprint_admin_ticket_order_path(@ticket_order), :class=>'small button' if @ticket_order.fulfilled?
+          %li= link_to 'Reprint', reprint_admin_ticket_order_path(@ticket_order), :class=>'small button' if (@ticket_order.fulfilled? && @ticket_order.split_source_id.blank?)
         -if can? :mark_unclaimed, TicketOrder
           %li= link_to 'Unclaimed', unclaimed_admin_order_path(@ticket_order),:id => 'unclaimed_link', :class=>'small button' if @ticket_order.fulfilled?
       %ul.button-group

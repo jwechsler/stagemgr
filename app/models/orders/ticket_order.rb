@@ -156,7 +156,7 @@ class TicketOrder < Order
   end
 
   def splittable?
-    self.number_of_tickets > 1 && [Order::PROCESSED, Order::UNCLAIMED].include?(self.status) && !self.paid_with_membership?
+    self.number_of_tickets > 1 && [Order::PROCESSED, Order::UNCLAIMED, Order::FULFILLED].include?(self.status) && !self.paid_with_membership?
   end
 
   def exchanged?
@@ -413,7 +413,7 @@ class TicketOrder < Order
         if seat_assignments.map{|sa| sa.ticket_class_id}.include?(tli.ticket_class_id)
           seat = seat_assignments.select{|sa| sa.ticket_class_id == tli.ticket_class_id}.first
           seat_assignments.delete_at(seat_assignments.index(seat))
-        end     
+        end
         item = {source: tli, seat:seat, ticket_class_id: tli.ticket_class_id}
         tickets << item
       }
@@ -451,7 +451,7 @@ class TicketOrder < Order
     dup_tli.price_override = order_face_value.eql?(0.0) ? BigDecimal.new(0.0, 2) : (dup_tli.price/order_face_value*transfer_amount)
     dup_tli.generated_from_split = true
     total = dup_tli.price_override
-    
+
     loop do
 
       source_payment_key = original_payments.keys[0]
@@ -514,6 +514,8 @@ class TicketOrder < Order
       order1_payments.each_value {|p| order1.payments << p }
       order2_payments.each_value {|p| order2.payments << p }
       order1.payments[0].save!
+      order1.print_order_id = nil
+      order2.print_order_id = nil
       order1.save!
       order2.save!
       return [order1, order2]
@@ -715,7 +717,7 @@ class TicketOrder < Order
   def adjust_seating_to_match_ticket_line_items(new_tlis = nil, old_tlis =nil)
     if self.performance.production.has_reserved_seating?
       ticket_classes_to_shift = Hash.new
-      if new_tlis.nil? 
+      if new_tlis.nil?
         tli_ticket_class_ids = Set.new(self.ticket_line_items.map{|tli| tli.ticket_class_id})
       else
         new_tlis = [new_tlis] unless new_tlis.kind_of?(Array)
@@ -732,7 +734,7 @@ class TicketOrder < Order
       end
       tc_ids_to_fix = tli_ticket_class_ids - seat_ticket_class_ids # ticket_class_ids that don't exist in seat
       new_tlis = self.ticket_line_items.select{|tli| tc_ids_to_fix.include?(tli.ticket_class_id)} if new_tlis.nil?
-      
+
       tc_id_pool = []
       new_tlis.each do |tli|
         tli.ticket_count.times do
@@ -837,7 +839,7 @@ class TicketOrder < Order
 
   def create_notify_refund_task
     self.tasks << NotificationTask.new(:execute_at => Time.now, :notifications => [$EMAIL_ADDRESS['box_office'], $EMAIL_ADDRESS['supervisor_notifications']].join(','),
-                                       :method_symbol => :refunded_fulfilled_item_alert) unless ($EMAIL_ADDRESS.nil? || !self.do_not_create_tasks.nil?) 
+                                       :method_symbol => :refunded_fulfilled_item_alert) unless ($EMAIL_ADDRESS.nil? || !self.do_not_create_tasks.nil?)
     super
   end
 
