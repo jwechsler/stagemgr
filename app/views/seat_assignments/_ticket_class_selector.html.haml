@@ -60,7 +60,7 @@
         col = create_column("6",val['class_name'])
         if (val['purchase_page_annotation']) {
           span = document.createElement('span')
-          span.setAttribute("ticket_class_annotation")
+          span.setAttribute("class","ticket_class_annotation")
           span.appendChild(document.createTextNode(val['purchase_page_annotation']))
           col.appendChild(span)
         }
