@@ -9,6 +9,7 @@ RSpec.describe TicketClass do
 
   it "knows how many tickets are left for a performance" do
     ticket_class = FactoryBot.create(:ticket_class, :production=>@production)
+    @performance.ticket_class_allocations.create(:ticket_class=>ticket_class)
     expect(ticket_class.number_left(@performance)).to eq(10)
   end
 

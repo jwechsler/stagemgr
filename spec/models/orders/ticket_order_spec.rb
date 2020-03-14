@@ -333,7 +333,7 @@ RSpec.describe TicketOrder do
     end
   end
 
-  context "when splitting", wip:true do
+  context "when splitting" do
     it "replicates existing tasks and state" do
       original_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
       expect(original_order.tasks.size).to eql(1)

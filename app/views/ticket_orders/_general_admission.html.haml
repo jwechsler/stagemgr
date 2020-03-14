@@ -11,7 +11,7 @@
           %strong Price/ticket
       = order_form.simple_fields_for :ticket_line_items do |line_item_form|
         - unless line_item_form.object.ticket_class.software_managed || line_item_form.object.ticket_class.hide_pricing? || !line_item_form.object.ticket_class.web_visible?
-          = render :partial => '/orders/line_item', :locals => {:f => line_item_form,}
+          = render :partial => '/orders/line_item', :locals => {:f => line_item_form, performance: order.performance}
       .row{:style=>'margin-bottom: 8px'}
         .small-6.columns
           %strong.right Total

@@ -82,7 +82,7 @@ class Performance < ActiveRecord::Base
   end
 
   def sold_out?
-    self.number_of_seats_left <= 0
+    self.number_of_seats_left <= 0 && self.ticket_class_allocations.select{|tca| tca.available? && tca.ticket_class.web_visible? && !tca.ticket_class.holds_seats?}.size.eql?(0)
   end
 
   def happening_soon?
