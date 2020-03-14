@@ -208,7 +208,7 @@ class TicketOrder < Order
   def wheelchair_requested?
     case
       when [WHEELCHAIR, WHEELCHAIR_TRANSFER].include?(self.special_request) then true
-      when self.seats.select{|sa| !sa.accessibility.blank?}.size > 0 then true
+      when self.performance.production.has_reserved_seating? && self.seats.select{|sa| !sa.accessibility.blank?}.size > 0 then true
       else false
     end
   end
@@ -367,7 +367,7 @@ class TicketOrder < Order
             ticket = Ticket.new(:order_id => self.print_order_id,
                                 :ticket_class => tli.ticket_class.class_code,
                                 :type => 'Ticket',
-                                :seat => seats[tli_index].nil? ? "" : seats[tli_index].seat.location
+                                :seat => seats[tli_index].nil? ? "" : (self.performance.production.has_reserved_seating? ? seats[tli_index].seat.location : "")
             )
             tli_index += 1
             print_order.tickets_attributes << ticket

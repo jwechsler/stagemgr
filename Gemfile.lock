@@ -581,7 +581,7 @@ DEPENDENCIES
   monetize
   money
   money-rails
-  my_emma (~> 0.1.3)
+  my_emma (~> 0.1.3)!
   mysql2 (~> 0.4.10)
   nested_form_fields
   paperclip
