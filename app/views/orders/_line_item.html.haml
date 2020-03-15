@@ -6,7 +6,7 @@
     - if f.object.ticket_class.holds_seats?
       - number_left = f.object.ticket_class.number_left(performance)
       - if number_left <= 9
-        = f.hidden_field :ticket_count🛕
+        = f.hidden_field :ticket_count
         - if number_left == 0
           Sold Out
         - elsif number_left <= 9
