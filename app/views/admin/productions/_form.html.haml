@@ -70,9 +70,16 @@
         %div.small-12.columns
           %fieldset
             %legend Notification
-            = f.input :survey_link, as: :url, label: "Custom survey link", hint: "Custom survey link for production"
-            = f.input :mailing_list_link, label: "Custom Mailing List link", hint: "Used when soliciting email list signups"
-            = f.input :follow_up_message_2, :input_html=>{:rows => 4}, :label=>"Additional follow up message", :hint=>"Markdown-enabled second paragraph follow up email."
-            = f.input :confirmation_message, :input_html=>{ :rows=>4}, :label=>"Additional Confirmation Message", :hint=>"Markdown-enabled section to be embedded in receipt."
+            .row
+              .columns.small-12.medium-6
+                = f.input :survey_link, as: :url, label: "Custom survey link", hint: "Custom survey link for production"
+                = f.input :mailing_list_link, as: :url, label: "Custom Mailing List link", hint: "Used when soliciting email list signups"
+              .columns.small-12.medium-6
+                = f.input :custom1, label: 'Custom field #1', hint: "Custom field for use in communications"
+                = f.input :custom2, label: 'Custom field #2', hint: "Custom field for use in communications"
+            .row
+              .columns.small-12
+                = f.input :follow_up_message_2, :input_html=>{:rows => 4}, :label=>"Additional follow up message", :hint=>"Markdown-enabled second paragraph follow up email."
+                = f.input :confirmation_message, :input_html=>{ :rows=>4}, :label=>"Additional Confirmation Message", :hint=>"Markdown-enabled section to be embedded in receipt."
 
       = f.button :submit

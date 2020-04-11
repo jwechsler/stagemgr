@@ -100,7 +100,7 @@ class Admin::ProductionsController < Admin::ApplicationController
       :allow_late_seating, :capacity, :additional_information_link, :calendar_callout, :conversion_pixel_code,
       :flex_pass_offer_id, :myemma_attendee_group, :survey_link, :mailing_list_link,
       :follow_up_message_2, :confirmation_message, :seat_map_id, :promo, :override_service_items, :override_first_exchange_items,
-      :override_addl_exchange_items)
+      :override_addl_exchange_items, :custom1, :custom2)
   end
 
 end

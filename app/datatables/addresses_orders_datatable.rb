@@ -23,15 +23,19 @@ class AddressesOrdersDatatable < DatatableBase
   end
 
   def data
-    records.map do |order|
-      {
-        order: raw(link_to(order.id, [:admin, order])),
-        created: order.created_at,
-        description: order.description,
-        amount: number_to_currency(order.total_paid),
-        status: raw("<span class=\"label #{order_status_severity_class(order.status)}\">#{order.status}</span>"),
-        DT_RowID: order.id,
-     }
+    unless records.nil?
+      records.map do |order|
+        {
+          order: raw(link_to(order.id, [:admin, order])),
+          created: order.created_at,
+          description: order.description,
+          amount: number_to_currency(order.total_paid),
+          status: raw("<span class=\"label #{order_status_severity_class(order.status)}\">#{order.status}</span>"),
+          DT_RowID: order.id,
+       }
+      else
+        Array.new
+      end
     end
   end
 
