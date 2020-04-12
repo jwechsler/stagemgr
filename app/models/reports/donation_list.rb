@@ -32,7 +32,7 @@ class DonationList < MailingList
 
 
   def create
-    orders = DonationOrder.joins(:address).references(:address).where('(orders.created_at between :start_date and :end_date) and orders.status in (:finalized) and addresses.placeholder <> :is_pl', start_date: self.starting_date, end_date: self.ending_date, finalized: Order.finalized_statuses, is_pl: true).includes(:address, :payments)
+    orders = DonationOrder.joins(:address).references(:address).where('(orders.created_at between :start_date and :end_date) and orders.status in (:finalized) and (addresses.placeholder is null OR addresses.placeholder <> :is_pl)', start_date: self.starting_date.to_date, end_date: self.ending_date.to_date, finalized: Order.finalized_statuses, is_pl: true).includes(:address, :payments)
     self.extract_donor_addresses(orders)
 
     file_name = "/tmp/donors_#{self.starting_date.to_date.strftime('%y%m%d')}_#{self.ending_date.to_date.strftime('%y%m%d')}.csv"
