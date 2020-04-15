@@ -19,21 +19,18 @@ function setup_gift_form() {
     show_gift_form();
 }
 
-function setup_totals() {
+function setup_totals(for_general_admission = false) {
   $('.ticket_line_item select').change(function() {
-    calculate_ticket_totals();
+    calculate_ticket_totals(for_general_admission);
   });
-  calculate_ticket_totals();
+  $('.price_override').change(function() {
+    calculate_ticket_totals(for_general_admission);
+  });
+  
+  calculate_ticket_totals(for_general_admission);
 }
 
-jQuery(document).ready(function($) {
-  setup_payment_form();
-  setup_gift_form();
-  setup_totals();
-});
-
-
-function calculate_ticket_totals() {
+function calculate_ticket_totals(for_general_admission = false) {
   var qty = 0
   var total = 0.0
   var formatter = new Intl.NumberFormat('en-US', {
@@ -41,10 +38,22 @@ function calculate_ticket_totals() {
     currency: 'USD',
   });
   $('.ticket_line_item').each(function(idx) {
-    tc = $(this).find('.ticket_count').text()
+    tc = for_general_admission ? $(this).find('.ticket_count').val() : $(this).find('.ticket_count').text()
     line_qty = parseInt(tc)
     qty += line_qty
-    var price_input = parseFloat($(this).find('span.ticket_price').text().replace(/^\$/g,''));
+    var price_input = 0.0
+    var price_input_ctl = $(this).find('span.ticket_price')
+    if (price_input_ctl.length==0) { // this is a donation ticket class
+      price_input = $(this).find('.price_override').val()
+      if (price_input == "") {
+        price_input = $(this).find('.default_price_override').val();
+      }
+      price_input = parseFloat(price_input)
+    }
+    else {
+      price_input = parseFloat(price_input_ctl.text().replace(/^\$/g,''));
+    }
+    
     if (!isNaN(price_input)) { total += price_input*line_qty }
   });
 
@@ -83,3 +92,11 @@ function set_button_state_for_autocompletes() {
   }
 
 }
+
+
+jQuery(document).ready(function($) {
+  setup_payment_form();
+  setup_gift_form();
+  
+});
+

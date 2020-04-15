@@ -11,3 +11,11 @@
         .small-12.columns
           = render '/orders/special_offer_form', :f => order_form, :special_offer_code=>order.special_offer_code
 
+<!-- custom javascript -->
+= content_for :js do
+  = javascript_include_tag 'orders_common'
+  :javascript
+    jQuery(document).ready(function($) {
+      setup_totals(false);
+    });
+
