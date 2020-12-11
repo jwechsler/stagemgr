@@ -6,7 +6,7 @@ class DonationList < MailingList
     super(reporting_user_id)
     @starting_date = starting_date
     @ending_date = ending_date
-    @headers += [:CloseDate, :Amount]
+    @headers += [:CloseDate, :Amount, :Campaign]
 
   end
 
@@ -24,6 +24,7 @@ class DonationList < MailingList
       hash[:Season] = season_tag
       hash[:CloseDate] = order.created_at.to_date
       hash[:Amount] = order.total_paid
+      hash[:Campaign] = order.campaign
       self.data[consolidation_code] << hash
 
     end
