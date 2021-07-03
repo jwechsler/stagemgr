@@ -868,6 +868,7 @@ class Order < ActiveRecord::Base
   def save_additional_donation_order
     donation = DonationOrder.new(:address => self.address, :payment_type => self.payment_type, :status => Order::NEW)
     donation.copy_payment_information(self)
+    donation.campaign = self.performance.production.name unless self.performance.nil?
     donation.save!
 
     donation.donation_line_items.build(:amount => self.additional_donation)

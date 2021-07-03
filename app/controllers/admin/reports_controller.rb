@@ -639,13 +639,14 @@ class Admin::ReportsController < Admin::ApplicationController
   def build_donations_dump(start_day, end_day, build_for_dumpfile = false)
     donations = Order.all(:include=>[:address, :donation_line_items, :payments], :conditions=>["orders.status in (?) and payments.processed_on >= ? and payments.processed_on <= ?", Order::PROCESSED, start_day, end_day])
     report = Array.new
-    keys = columns_for_orders(true) + [:total]
+    keys = columns_for_orders(true) + [:total,:campaign]
     Order.transaction do
       donations.each { |o|
         total = o.total
         if total > 0
           row = create_hash_from_order_fields(o)
-          row[:total] = o.total
+          row[:total] = total
+          row[:campaign] = o.campaign
           report << row
         end
         o.transition_to!(Order::FULFILLED)
