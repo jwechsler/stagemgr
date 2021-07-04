@@ -35,8 +35,18 @@ class SalesforceSync
 
   def SalesforceSync.load_from_yaml_file(environment, yaml_file)
 
-    databasedotcom_config = YAML::load(File.open(yaml_file))
-    salesforcesync = databasedotcom_config[environment]
+    salesforcesync = nil
+    begin
+      databasedotcom_config = YAML::load(File.open(yaml_file))
+      salesforcesync = databasedotcom_config[environment]
+    rescue Errno::ENOENT
+      salesforcesync = { 'sync_to_salesforce' => 'false'}
+    rescue Exception => e
+      salesforcesync = { 'sync_to_salesforce' => 'false'}
+      logger = Rails.logger
+      logger.warn ("SalesforceSync could not be started:  #{e.message}")
+    end
+    
     if salesforcesync['sync_to_salesforce']
       begin
         client = SalesforceSync.materialize_all(salesforcesync['client_id'],
