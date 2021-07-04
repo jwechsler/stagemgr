@@ -1,5 +1,6 @@
-.row
-  .columns.small-12
+
+.grid-x
+  .cell
     %table#production-listing{:data=>{:source=>"#{admin_theater_productions_path(theater_id:@theater.id, format: :json)}"}}
       %thead
         %tr
@@ -8,7 +9,7 @@
           %th Status
           %th Actions
       %tbody
-  .columns.small-12
+  .cell
     - can? :create, Production do
       =link_to 'Add production', new_admin_theater_production_path(@theater), class: 'button right small'
 
@@ -34,5 +35,3 @@
         ]
       });
     });
-
-    // setupActiveSwitchOnDataTable('#production-listing',2)

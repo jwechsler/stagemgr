@@ -3,8 +3,9 @@
     %li= link_to 'Theaters', admin_theaters_path
     %li.current
       %a{:href=>'#'}= @theater.name
-.row
-  .small-10.columns.left
+
+.grid-x
+  .small-10.cell.left
     .row
       - if @theater.logo.exists?
         - colsize = 8
@@ -20,18 +21,14 @@
 
 
 
-    .small-2.columns.right
-      %span.secondary.label= @theater.theater_class
-      %span.secondary.label= @theater.status
+  .small-2.cell.right
+    %span.secondary.label= @theater.theater_class
+    %span.secondary.label= @theater.status
 
-.row
-  .small-12.columns
+  .cell
     %h4 Productions
     = render :partial => 'production_listing'
-.row
-  .small-12.columns
-    %ul.button-group
-      %li= link_to 'Back', admin_theaters_path, class: 'button'
-      - if can? :create, Production then
-        %li= link_to 'Add production', [:new, :admin, @theater, :production], class: 'button'
 
+
+  - if can? :create, Production then
+    = link_to 'Add production', [:new, :admin, @theater, :production], class: 'button'

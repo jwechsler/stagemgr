@@ -1,32 +1,31 @@
-%div.row
-  %div.small-12.columns
-    -if address.nil?
-      %b UNKNOWN ADDRESS
-    - else
-      - breadcrumb_order = nil unless (defined? breadcrumb_order)
-      %ul.vcard
-        %li.fn= link_to address.full_name, [:admin, address], :breadcrumb_order=>breadcrumb_order
-        - unless address.line1.blank?
-          %li.street-address
-            = address.line1
-            - unless address.line2.blank?
-              %br
-              = address.line2
-        - unless address.city.blank?
-          %li.locality
-            = "#{address.city}, #{address.state} #{address.zipcode}"
-        - unless address.email.blank?
-          %li.email= mail_to address.email, can?(:view_email, Address) ? address.email : "[send e-mail]"
-        - unless address.phone.blank?
-          %li.phone= address.phone
-        - memberships = Membership.where(address_id:address.id, status:RecurringProfile::ACTIVE)
-        - unless memberships.count == 0
-          %li
-            %i Member ID:
-            = memberships.map {|m| m.member_code }.join(',')
-        - if address.vip? || address.placeholder?
-          %li
-            - if address.vip?
-              %span.label VIP
-            - if address.placeholder?
-              %span.label Placeholder
+%div.small-12.cell
+  -if address.nil?
+    %b UNKNOWN ADDRESS
+  - else
+    - breadcrumb_order = nil unless (defined? breadcrumb_order)
+    %ul.vcard
+      %li.fn= link_to address.full_name, [:admin, address], :breadcrumb_order=>breadcrumb_order
+      - unless address.line1.blank?
+        %li.street-address
+          = address.line1
+          - unless address.line2.blank?
+            %br
+            = address.line2
+      - unless address.city.blank?
+        %li.locality
+          = "#{address.city}, #{address.state} #{address.zipcode}"
+      - unless address.email.blank?
+        %li.email= mail_to address.email, can?(:view_email, Address) ? address.email : "[send e-mail]"
+      - unless address.phone.blank?
+        %li.phone= address.phone
+      - memberships = Membership.where(address_id:address.id, status:RecurringProfile::ACTIVE)
+      - unless memberships.count == 0
+        %li
+          %i Member ID:
+          = memberships.map {|m| m.member_code }.join(',')
+      - if address.vip? || address.placeholder?
+        %li
+          - if address.vip?
+            %span.label VIP
+          - if address.placeholder?
+            %span.label Placeholder

@@ -1,8 +1,8 @@
 .nested-fields
+  %div.grid-x
+    %div.small-6.cell= f.input_field :tag_label, :as=>:autocomplete, :url=> autocomplete_tag_admin_addresses_path
+    %div.small-6.cell= f.collection_select(:theater_id, Theater.allowed(current_user), :id, :name)
   %div.row
-    %div.small-6.columns= f.input_field :tag_label, :as=>:autocomplete, :url=> autocomplete_tag_admin_addresses_path
-    %div.small-6.columns= f.collection_select(:theater_id, Theater.allowed(current_user), :id, :name)
-  %div.row
-    %div.small-2.columns= f.label 'Additional', :class=>'inline'
-    %div.small-8.columns= f.input_field :tag_value
-    %div.small-2.columns= link_to_remove_association "remove", f, :class=>'tiny button'
+    %div.small-2.cell= f.label 'Additional', :class=>'inline'
+    %div.small-8.cell= f.input_field :tag_value
+    %div.small-2.cell= link_to_remove_association "remove", f, :class=>'tiny button'

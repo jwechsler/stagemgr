@@ -1,13 +1,12 @@
 = content_for :title do
   = @address.full_name
 = content_for :breadcrumbs do
-  %div.row
-    %div.small-12.columns
-      %ul.breadcrumbs
-        %li
-          = link_to 'Addresses', admin_addresses_path
-        %li
-          = link_to @address.full_name, admin_address_path(@address)
-        %li.current
-          = link_to 'Edit', edit_admin_address_path(@address)
+  .small-12.cell
+    %ul.breadcrumbs
+      %li
+        = link_to 'Addresses', admin_addresses_path
+      %li
+        = link_to @address.full_name, admin_address_path(@address)
+      %li.current
+        = link_to 'Edit', edit_admin_address_path(@address)
 = render '/admin/addresses/form', :address => @address

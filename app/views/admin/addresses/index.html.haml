@@ -1,27 +1,26 @@
-%div.row
-  %div.small-12.columns
-    %h4 Listing Audience Members
+.cell
+  %h4 Listing Audience Members
 
-    %table{:id=>"addresses-table",'data-source'=>"#{admin_addresses_path(format: :json)}"}
-      %thead
-        %tr
-          %th Name
-          %th Email
-          %th Visits
-      %tbody
+  %table{:id=>"addresses-table",'data-source'=>"#{admin_addresses_path(format: :json)}"}
+    %thead
+      %tr
+        %th Name
+        %th Email
+        %th Visits
+    %tbody
 
-    = content_for :js do
-      :javascript
-        jQuery(document).ready(function() {
+= content_for :js do
+  :javascript
+    jQuery(document).ready(function() {
 
-          // Setup - add a text input to each footer cell
+      // Setup - add a text input to each footer cell
 
-          $('#addresses-table').dataTable({
-            serverSide: true,
-            stateSave: false,
-            processing: true,
-            ajax: $('#address-table').data('source'),
-            pagingType: "foundation",
+      $('#addresses-table').dataTable({
+        serverSide: true,
+        stateSave: false,
+        processing: true,
+        ajax: $('#address-table').data('source'),
+        pagingType: "foundation",
 
-          });
-        });
+      });
+    });

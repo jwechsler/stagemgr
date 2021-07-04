@@ -1,27 +1,27 @@
 = simple_form_for [:admin, address] do |f|
-  %div.row
-    %div.small-12.medium-6.columns
-      %div.row
-        %div.small-12.columns
+  %div.grid-x
+    %div.small-12.medium-6.cell
+      %div.grid-x
+        %div.small-12.cell
           = f.input :full_name
           %fieldset
             %legend Address
             = f.input :line1, :label=>"Street (line 1)", :required=>false
             = f.input_field :line2, :required=>false
-            %div.row
-              %div.small-6.columns= f.input :city, :required=>false
-              %div.small-3.columns= f.input :state, :required=>false
-              %div.small-3.columns= f.input :zipcode, :label=>"Zip Code", :required=>false
-      %div.row
-        %div.small-6.columns
+            %div.grid-x
+              %div.small-6.cell= f.input :city, :required=>false
+              %div.small-3.cell= f.input :state, :required=>false
+              %div.small-3.cell= f.input :zipcode, :label=>"Zip Code", :required=>false
+      %div.grid-x
+        %div.small-6.cell
           = f.input :vip, :label=>"VIP Customer"
-        %div.small-6.columns
+        %div.small-6.cell
           = f.input :placeholder, :label=>"Not a ticket buyer"
-    %div.row
-      %div.small-12.medium-6.columns
+    %div.grid-x
+      %div.small-12.medium-6.cell
         = f.input :email
         = f.input :phone
         = render :partial=>'/admin/addresses/tags', :locals=>{:f=>f}
-  %div.row
-    %div.small-12.columns
+  %div.grid-x
+    %div.small-12.cell
       = f.button :submit, :class=>"button"

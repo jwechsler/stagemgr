@@ -7,14 +7,12 @@
     %li.current
       %a{:href=>'#'}= @address.full_name
 
-%div.row
-  %div.small-12.medium-6.columns
-    = render :partial=>"/admin/addresses/address_contact_info", :locals=>{:address=>@address}
-  %div.small-12.medium-6.columns
-    = render(:partial=>"/admin/address_tags/tags", :locals=>{:address_tags=>@address.address_tags})
-%div.row
-  %div.small-12.columns.right
-    = link_to 'Edit', edit_admin_address_path(@address), :class=>'small button'
+.small-12.medium-6.cell
+  = render :partial=>"/admin/addresses/address_contact_info", :locals=>{:address=>@address}
+.small-12.medium-6.cell
+  = render(:partial=>"/admin/address_tags/tags", :locals=>{:address_tags=>@address.address_tags})
+.small-12.cell.right
+  = link_to 'Edit', edit_admin_address_path(@address), :class=>'small button'
 
 - if !@address.orders.nil? && @address.orders.size > 0
   = render :partial=>"/admin/addresses/order_history", :locals=>{:orders=>@visible_orders, address: @address}
