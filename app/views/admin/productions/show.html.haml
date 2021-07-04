@@ -7,31 +7,28 @@
     %li.current
       %a{:href=>"#"}= @production.name
 
-.row
-  .small-4.columns
+.grid-x.grid-padding-x
+  .small-4.cell
     = render :partial=>'/productions/info', :locals=>{:production=>@production}
 
-  .small-8.columns
-    .row
+  .small-8.cell
+    %ul.tabs#prodtabs(data-tabs)
+      %li.tabs-title.is-active
+        %a{:href=>"#prodpanel-1", 'aria-selected'=>"true"} Performances
+      %li.tabs-title
+        %a{:href=>"#prodpanel-2"} Settings
+      %li.tabs-title
+        %a{:href=>"#prodpanel-3"} Custom Notifications
 
-      %ul.tabs{'data-tab'=>'data-tab'}
-        %li.tab-title.active
-          %a{:href=>"#prodpanel-1"} Performances
-        %li.tab-title
-          %a{:href=>"#prodpanel-2"} Settings
-        %li.tab-title
-          %a{:href=>"#prodpanel-3"} Custom Notifications
-
-      .tabs-content
-        #prodpanel-1.content.active
-          .small-12.columns
-            %h3 Performances
-            = render :partial => 'performance_listing'
-            = link_to('Add performance', new_admin_theater_production_performance_path(@production.theater, @production), class: 'small button right') if can? :create, Performance
+    .tabs-content{'data-tabs-content'=>'prodtabs'}
+      #prodpanel-1.tabs-panel.is-active   
+        = render :partial => 'performance_listing'
+        = link_to('Add performance', new_admin_theater_production_performance_path(@production.theater, @production), class: 'small button right') if can? :create, Performance
 
 
-        #prodpanel-2.content
-          .small-8.columns
+      #prodpanel-2.tabs-panel
+        .grid-x
+          .small-8.cell
             %p
               %b Production code:
               = @production.production_code
@@ -52,7 +49,7 @@
                 %strong Closing at:
                 = @production.closing_at.to_s(:long_with_day_of_week)
 
-          .small-4.columns
+          .small-4.cell
             %p
               %strong Status:
               = @production.status
@@ -67,35 +64,36 @@
               = @production.capacity
             - unless @production.additional_information_link.blank?
               %p
+                %strong Addl Info:
                 = link_to @production.additional_information_link, @production.additional_information_link
 
-        #prodpanel-3.content
-          .small-12.columns
-            - no_displayed_confirmation = true
-            - unless @production.confirmation_message.blank?
-              - no_displayed_confirmation = false
-              %h5 Confirmation Message
-              = display_markdown(@production.confirmation_message)
-            - unless @production.follow_up_message.blank?
-              - no_displayed_confirmation = false
-              %h5 Followup Message
-              = display_markdown(@production.follow_up_message)
-            - unless @production.follow_up_message_2.blank?
-              - no_displayed_confirmation = false
-              %h5 Followup Message #2
-              = display_markdown(@production.follow_up_message_2)
-            - unless @production.survey_link.blank?
-              %h5 Custom Survey Link
-              - no_displayed_confirmation = false
-              %a{:href=>@production.survey_link}= @production.survey_link
-            - unless @production.mailing_list_link.blank?
-              - no_displayed_confirmation = false
-              %h5 Custom Mailing List Solicitation
-              %a{:href=>@production.mailing_list_link}= @production.mailing_list_link
-            - if no_displayed_confirmation
-              %h5 No custom notifications defined
+      #prodpanel-3.tabs-panel
+      
+        - no_displayed_confirmation = true
+        - unless @production.confirmation_message.blank?
+          - no_displayed_confirmation = false
+          %h5 Confirmation Message
+          = display_markdown(@production.confirmation_message)
+        - unless @production.follow_up_message.blank?
+          - no_displayed_confirmation = false
+          %h5 Followup Message
+          = display_markdown(@production.follow_up_message)
+        - unless @production.follow_up_message_2.blank?
+          - no_displayed_confirmation = false
+          %h5 Followup Message #2
+          = display_markdown(@production.follow_up_message_2)
+        - unless @production.survey_link.blank?
+          %h5 Custom Survey Link
+          - no_displayed_confirmation = false
+          %a{:href=>@production.survey_link}= @production.survey_link
+        - unless @production.mailing_list_link.blank?
+          - no_displayed_confirmation = false
+          %h5 Custom Mailing List Solicitation
+          %a{:href=>@production.mailing_list_link}= @production.mailing_list_link
+        - if no_displayed_confirmation
+          %h5 No custom notifications defined
 
-  .small-12.columns
+  .small-12.cell
     - if can? :update, Production
       = link_to 'Edit', edit_admin_theater_production_path(@production.theater, @production), :class=>'button'
 

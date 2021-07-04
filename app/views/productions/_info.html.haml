@@ -1,0 +1,22 @@
+- unless production.best_image_url_available(:medium).blank? then
+  = production.best_image_url_available(:medium)
+  %img(class="production_logo" src="#{production.best_image_url_available(:medium)}" width="250")
+%div(class="production_information #{(defined? layout_style) ? layout_style : ''}")
+  = render :partial=>'/productions/header', :locals=>{:production=>production}
+  .production_description
+    %p= raw $MARKDOWN.render(production.show_description)
+    - unless production.running_time.blank? then
+      - hour = "#{(production.running_time / 60).to_i} hour#{(production.running_time/60).to_i > 1 ? 's' : ''}"
+      - hour = hour + " #{production.running_time % 60} minute#{(production.running_time % 60 > 1) ? 's' : ''}" if (production.running_time % 60) != 0
+      
+      %p.running_time
+        Running Time: 
+        = hour
+        with 
+        = "no " unless production.intermission? 
+        intermission
+    - unless production.additional_information_link.blank?
+      %p
+        For more information,
+        %a(href="#{production.additional_information_link}" target="#{'_blank' unless production.theater.producing?}") click here
+  %br(clear="all")

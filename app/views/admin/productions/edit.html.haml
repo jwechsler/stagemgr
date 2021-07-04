@@ -1,14 +1,15 @@
-= content_for :title do
-  Editing
-  = @production.name
+.grid-x.grid-padding-x
+  = content_for :title do
+    Editing
+    = @production.name
 
-= content_for :breadcrumbs do
-  %ul.breadcrumbs
-    %li= link_to 'Theaters', admin_theaters_path
-    %li= link_to @production.theater.name, admin_theater_path(@production.theater)
-    %li= link_to @production.name, admin_theater_production_path(@production.theater, @production)
-    %li.current
-      %a{href:'#'} Edit
+  = content_for :breadcrumbs do
+    %ul.breadcrumbs
+      %li= link_to 'Theaters', admin_theaters_path
+      %li= link_to @production.theater.name, admin_theater_path(@production.theater)
+      %li= link_to @production.name, admin_theater_production_path(@production.theater, @production)
+      %li.current
+        Edit
 
-= render :partial => '/admin/productions/form', :locals=>{:production=>@production}
+  = render :partial => '/admin/productions/form', :locals=>{:production=>@production}
 
