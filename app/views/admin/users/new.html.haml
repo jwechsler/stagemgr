@@ -5,7 +5,6 @@
     %li= link_to 'Users', admin_users_path
     %li.current New
 
-.row
-  .small-12.columns
+.grid-x
+  .small-12.cell
     = render 'form', :user=>@user
-

@@ -3,7 +3,6 @@
 //= require datatables
 //= require jquery-ui/widgets/datepicker
 //= require foundation
-//= require foundation/foundation.topbar
 //= require foundation-datetimepicker
 //= require jquery.timepicker
 //= require nested_form_fields

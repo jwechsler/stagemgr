@@ -1,36 +1,25 @@
-.sticky
-  %nav(class="top-bar" data-topbar data-options="sticky_on: large")
-    %ul.title-area
-      %li.name
-        %h1
-          %a{:href=>"#"}
-            =$APP_DISPLAY_NAME
-      -# Remove the class "menu-icon" to get rid of menu icon. Take out "Menu" to just have icon alone
-      %li.toggle-topbar.menu-icon
-        %a{:href=>"#"}>
-          %span Menu
-
-    %section.top-bar-section
-      / Right Nav Section
-      %ul.left
-        - if current_user.is_theater_user? then
-          %li.has-dropdown
-            %a{:href=>"#"} Your Theaters
-            %ul.dropdown
-              - Theater.where("id in (?)",current_user.theater_ids).each do |t|
-                %li
-                  =link_to t.name, admin_theater_path(t)
+.top-bar#app-menu
+  .top-bar-left
+    %ul.dropdown.menu(data-dropdown-menu)
+      %li.menu-text
+        =$APP_DISPLAY_NAME
+      %li
+        - if current_user.is_theater_user? then  
+          %a{:href=>"#"} Your Theaters
+          %ul.menu.vertical
+            - Theater.where("id in (?)",current_user.theater_ids).each do |t|
+              %li
+                =link_to t.name, admin_theater_path(t)
         - elsif can? :read, Theater then
           %li
             =link_to('Theaters',admin_theaters_path)
-
         - if (can? :read, Order) || (can? :read, FlexPassOrder) || (can? :read, MembershipOrder) || (can? :read, TicketOrder)
           %li
             =link_to('Existing Orders', admin_orders_path)
         - if can?(:read, MembershipOffer) || can?(:read, FlexPassOffer)
           %li.has-dropdown
             %a{:href=>"#"} Passes
-            %ul.dropdown
+            %ul.menu.vertical
               - if can? :read, MembershipOffer
                 %li
                   =link_to('Membership Offers', admin_membership_offers_path)
@@ -40,9 +29,9 @@
                   =link_to('Flex Pass Offers', admin_flex_pass_offers_path)
         %li
           =link_to('Reports', admin_reports_path)
-        %li.has-dropdown
+        %li
           %a{:href=>"#"} Options
-          %ul.dropdown
+          %ul.menu.vertical
             - if can? :edit, SpecialOffer
               %li
                 =link_to('Special Offers', admin_special_offers_path)
@@ -76,8 +65,9 @@
           =link_to('My Account', current_user_account_path)
         %li
           =link_to('Logout',logout_path, :method => :delete, :confirm => "Are you sure you want to logout?")
-      %ul.right
-        %li.has_form
-          =render partial:"/admin/ticket_orders/new_order_button"
+  .top-bar-right
+    %ul.menu
+      %li
+        =render partial:"/admin/ticket_orders/new_order_button"
 
 

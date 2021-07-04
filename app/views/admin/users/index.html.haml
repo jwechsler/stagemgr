@@ -5,8 +5,8 @@
     %li.current
       %a{:href=>'#'} Users
 
-.row
-  .small-12.columns
+.grid-x
+  .small-12.cell
 
     %table#user-listing{:data=>{:source=>"#{admin_users_path(format: :json)}"}}
       %thead

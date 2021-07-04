@@ -62,7 +62,7 @@ class Ability
     can [:cancel, :cru], FlexPassOrder
     can [:manage, :duplicate, :create, :delete], Performance
     can [:read, :create, :edit, :update, :duplicate], Production
-    can :view_system_options
+    can :view_system_options, UserSession
     can :read, PaymentType
     can :manage, Theater
     can [:manage], DonationOrder
@@ -102,7 +102,7 @@ class Ability
     can :manage, PaymentType
     can :donation_dump, Report
     can [:refund], [Order, DonationOrder]
-    can :manage_system_options
+    can :manage_system_options, UserSession
     can [:delete], [TicketOrder, DonationOrder, FlexPassOrder, MembershipOrder]
     can :manage, User
     can :manage, MembershipOffer

@@ -1,5 +1,5 @@
 !!! 5
-%html{ :lang => "en"}
+%html{ :lang => "en" }
   %head
     %meta{ :charset => "utf-8" }
 
@@ -9,19 +9,18 @@
 
     = stylesheet_link_tag "application"
     = stylesheet_link_tag "backend"
-    = javascript_include_tag "vendor/modernizr"
+    = javascript_include_tag "application", "data-turbolinks-track" => true
     = csrf_meta_tag
     = yield(:head)
   %body
     = render "layouts/menu"
-    .row
-      .columns.small-12
+    .grid-padding-x
+      .cell.small-12
         =h yield(:breadcrumbs)
-    .row
-      .columns.small-12
+      .cell.small-12
         = render :partial=>'/flash_notice'
-
-    = yield
+      .cell
+        = yield
 
     = javascript_include_tag 'admin_application'
     = yield(:js)
