@@ -40,7 +40,7 @@ class ProductionDatatable < AjaxDatatablesRails::Base
       {
         id: production.id,
         name: link_to(production.name, [:admin, production.theater, production]) +
-          (production.custom_label.blank? ? "" : "<br/><span class=\"label\">#{production.custom_label.titlecase}</span>"),
+          (production.custom_label.blank? ? "" : raw("<br/><span class=\"label\">#{production.custom_label.titlecase}</span>")),
         season: production.season,
         status: raw("<span class=\"label\">#{production.status}</span>"),
         actions: raw(allowed_actions(production)),
