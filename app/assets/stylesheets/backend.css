@@ -26,3 +26,8 @@ select[size], select[multiple] {
 .front-facing {
   color: #0000ff;
 }
+
+.alert-box {
+  background-color: aqua;
+  padding:  20px 30px;
+}

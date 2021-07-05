@@ -5,8 +5,8 @@
     %li.current
       %a{:href=>'#'} Orders
 
-.row
-  .small-12.columns
+.grid-x.grid-padding-x
+  .small-12.cell
     %table#order-listing{:data=>{:source=>"#{raw admin_orders_path(format: :json)}"}}
       %thead
         %th ID

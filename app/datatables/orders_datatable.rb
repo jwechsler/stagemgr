@@ -54,7 +54,8 @@ class OrdersDatatable < AjaxDatatablesRails::Base
 private
 
   def get_raw_records
-    Order.accessible_by(current_user.ability).includes(:address, seats: :seat, performance: :production).references(:address, :performance, seats: :seat)
+    use_conditions = current_user.ability.model_adapter(Order, :read).conditions.except('type')
+    Order.where(use_conditions).includes(:address, seats: :seat, performance: :production).references(:address, :performance, seats: :seat)
   end
 
   def sort_records(records)
@@ -62,7 +63,7 @@ private
   end
 
   def filter_by_code
-    ->(column) { case column.downcase
+    ->(column, formatted_value) { case formatted_value.downcase
                   when 'pledge'
                     ::Arel::Nodes::SqlLiteral.new('orders.type').eq('DonationPledgeOrder')
                   when 'donation'
