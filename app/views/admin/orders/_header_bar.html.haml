@@ -1,13 +1,13 @@
+
 = content_for :title do
   = order.id.nil? ? "New Order" : "Order \##{order.id}"
 = content_for :breadcrumbs do
-  %div.row.collapse
-    %div.small-10.columns
+  .grid-x
+    .small-10.cell
       %ul.breadcrumbs
         %li
-          = link_to 'Existing Orders', admin_orders_path
+          = link_to 'Orders', admin_orders_path
         %li.current
-          %a{:href=>'#'}
-            = order.id.nil? ? "New" : "Order \##{order.id}"
-    %div.small-2.columns
+          = order.id.nil? ? "New Order" : "Order \##{order.id}"
+    .small-2.cell
       = render '/admin/orders/status_bar', :order=>order

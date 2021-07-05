@@ -1,31 +1,31 @@
-%div.row
-  %div.small-4.columns
+.grid-x.grid-padding-x
+  %div.small-4.cell
     = f.input :credit_card_type, :label=>"Card Type", :required=>true,  :include_blank=>false, :collection=>CreditCardPayment.card_types
-  %div.small-8.columns
+  %div.small-8.cell
     %div.row
-      %div.small-12.columns
+      %div.small-12.cell
         = f.input :credit_card_number, :required=>true, :input_html => { :maxlength=>16 }
-        %div.row.collapse
-          %div.small-1.columns
+        %div.grid-x.collapse
+          %div.small-1.cell
             = f.label :credit_card_expiration_month, "MM", :class=>"prefix "
-          %div.small-2.columns
+          %div.small-2.cell
             = f.input_field :credit_card_expiration_month, :cols=>2, :maxlength=>2
-          %div.small-1.columns
+          %div.small-1.cell
             = f.label :credit_card_expiration_year, "YY", :class=>"prefix"
-          %div.small-2.columns
+          %div.small-2.cell
             = f.input_field :credit_card_expiration_year, :cols=>2, :maxlength=>2
-          %div.small-1.columns
+          %div.small-1.cell
             &nbsp;
-          %div.small-2.columns
+          %div.small-2.cell
             = f.label :credit_card_verification_number, "CVV", :class=>"prefix"
-          %div.small-3.columns
+          %div.small-3.cell
             = f.input_field :credit_card_verification_number, :size=>4
-    %div.row
+    %div.grid-x
       - if can? :swipe_card, Order
-        %div.small-6.columns
+        %div.small-6.cell
 
           = f.input :credit_card_swipe, :size=>25, :label=>"Swipe"
       - if can? :confirm_credit_card, Order
-        %div.small-6.columns
+        %div.small-6.cell
           = f.input :credit_card_confirmation_code, :label=>'Manual authorization'
 

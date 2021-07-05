@@ -13,7 +13,7 @@ function recalculate_ga_total() {
 
 function recalculate_row_total(order_type, row) {
   console.log("Row total called")
-  var tds = row.children('.columns');
+  var tds = row.children('.cell');
   var performance_code_input = jQuery('#' + order_type + '_performance_code');
   var ticket_class_code_input = tds.find('input.code-input');
   var price_input = tds.find('input.price');

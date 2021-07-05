@@ -1,10 +1,12 @@
-#production-selection.reveal-modal(data-reveal aria-labelledby="modalTitle" aria-hidden="true" role="dialog" data-assignment-id="none")
+#production-selection.reveal(data-reveal aria-labelledby="modalTitle" aria-hidden="true" role="dialog" data-assignment-id="none")
   = form_tag new_for_production_admin_ticket_orders_path, id: 'production-form', method: :post do
     = hidden_field_tag :new_production_id
-    %label Create order for production Code
+    %label Enter Production Code
     = autocomplete_field_tag 'production_code', '', autocomplete_production_production_code_admin_ticket_orders_path, id_element: '#new_production_id', 'data-auto-focus'=>true
+  %button.close-button(data-close aria-label="Close modal" type="button")
+    %span(aria-hidden="true")
+      &times;
     // %a.button.tiny.ticket-class-select-button{href:'#'} Select
-  %a.close-reveal-modal(aria-label="Close") &#215;
 
 =link_to('New Ticket Order', new_admin_ticket_order_path, class:"button", id:'new-ticket-order')
 
@@ -12,7 +14,7 @@
   :javascript
     $('#new-ticket-order').click( function(e) {
 
-      $('#production-selection').foundation('reveal', 'open');
+      $('#production-selection').foundation('open');
       $('#production_code').val('');
       var ctl = $('#production_code')
       setTimeout(function() {

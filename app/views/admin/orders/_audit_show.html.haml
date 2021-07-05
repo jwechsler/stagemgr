@@ -1,17 +1,18 @@
 - if !order_form.audits.empty?
   %h4 Change history
   - order_form.audits.each do |revision|
-    %div.row
-      %div.small-3.columns
+    .grid-x.grid-padding-x
+      .small-3.cell
         = revision.user_id.nil? ? "Web" : "#{User.find_by_id(revision.user_id).username}"
-      %div.small-3.columns
+      .small-3.cell
         = distance_of_time_in_words_to_now revision.created_at
-      %div.small-6.columns
+      .small-6.cell
         - if revision.action == "create"
           - revision.audited_changes.each do |fld,changes|
             = raw "#{fld} is #{changes}<br/>" unless changes.nil? || changes.blank?
         - else
           - revision.audited_changes.each do |fld,changes|
             = raw "#{fld} changed to #{changes}<br/>" unless changes.nil?
-      %div.small-4.columns
+      .small-4.cell
   %br
+  

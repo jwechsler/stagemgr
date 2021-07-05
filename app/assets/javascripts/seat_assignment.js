@@ -89,7 +89,7 @@ function initialize_seating_assignment() {
         }
 
         $("#ticket-modal").data('assignment-id', $( this ).data('assignment-id'));
-        $('#ticket-modal').foundation('reveal', 'open');
+        $('#ticket-modal').foundation('open');
         break;
       case "assigned":
         $.post( release_url(),

@@ -11,7 +11,7 @@ function rollback_reseating_url() {
 
 $(document).ready(function() {
   $("#seating-control").click(function() {
-    $('#change-seats').foundation('reveal', 'open');
+    $('#change-seats').foundation('open');
 
     setTimeout(function() {
       initialize_seatingmap()
@@ -111,7 +111,7 @@ $(document).ready(function() {
         console.log('response is ' + response['status'])
         if (response['status'] == 'success') {
           $("#seating-config").data('finalized','true')
-          $('#change-seats').foundation('reveal', 'close')
+          $('#change-seats').foundation('close')
           console.log("success")
           setTimeout(function () {
             $("#seatinglist").text(response['current_seat_assignments'])

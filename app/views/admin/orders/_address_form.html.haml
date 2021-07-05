@@ -1,14 +1,13 @@
-%div.row
-  %fieldset
-    %legend
-      Billing Address
-    %div.small-12.columns
+%fieldset.fieldset
+  %legend
+    Billing Address
+  .grid-x.grid-padding-x
+    .cell
       = f.input :line1, :label=>'Street'
       = f.input_field :line2
-    %div.small-12.medium-6.columns
+    .small-12.medium-6.cell
       = f.input :city, :label=>'City'
-    %div.small-6.medium-3.columns
+    .small-6.medium-3.cell
       = f.input :state, :label=>'State'
-    %div.small-6.medium-3.columns
+    .small-6.medium-3.cell
       = f.input :zipcode, :label=>"Zip/Postal"
-
