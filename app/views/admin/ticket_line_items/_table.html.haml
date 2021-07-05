@@ -28,7 +28,7 @@
 			%a.close-reveal-modal(aria-label="Close") &#215;
 	%div.row
 		%div.small-12.columns
-			%fieldset
+			%fieldset.fieldset
 				%legend Tickets
 				%table{:id=>'ticket_line_items_display',:width=>"100%"}
 					%thead
@@ -41,7 +41,7 @@
 						%tr
 							%td
 								%i Total
-							%td{:align=>"right"}
+							%td.float-right
 								%i= order.ticket_line_items.sum(:ticket_count)
 				- if order.performance.production.has_reserved_seating? && order.exchangeable?
 					.row

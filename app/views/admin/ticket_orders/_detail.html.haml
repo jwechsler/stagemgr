@@ -1,14 +1,18 @@
-%div.row
-  %div.small-12.medium-6.columns
+.grid-x.grid-padding-x
+  .small-12.medium-6.cell
     %h4
       %i= ticket_order.performance.production.name
+  .small-12.medium-6.cell
     %h5= "#{ticket_order.performance.performance_date.to_s(:long_with_day_of_week)} #{ticket_order.performance.performance_time.to_s(:hour_min)}"
-    =render '/admin/addresses/info', :address=>ticket_order.address, :breadcrumb_order=>ticket_order
-  %div.small-12.medium-6.columns
+  .small-12.medium-6.cell
+    %fieldset.fieldset
+      %legend Buyer
+      =render '/admin/addresses/info', :address=>ticket_order.address, :breadcrumb_order=>ticket_order
+  .small-12.medium-6.cell
     - if ticket_order.exchanged? || !ticket_order.exchange_source_id.nil?
       %div.row
-        %div.small-12.columns
-          %fieldset
+        %div.small-12.cell
+          %fieldset.fieldset
             %legend Exchange History
             - target = ticket_order.exchanged_for
             - unless target.nil?
@@ -20,9 +24,9 @@
                 Exchanged from order #
                 = link_to ticket_order.exchange_source_id, [:admin, ticket_order.exchange_source]
     - if ticket_order.split? || !ticket_order.split_source.nil?
-      %div.row
-        .div.small-12.columns
-          %fieldset
+      %div.grid-x.grid-padding-x
+        .div.small-12.cell
+          %fieldset.fieldset
             %legend Split Order
             - unless ticket_order.split_source.nil?
               Split from order #
@@ -38,12 +42,10 @@
     = render partial:'/admin/ticket_line_items/table', locals:{:order=>ticket_order}
     = render '/admin/service_line_items/table', :order=>ticket_order
     = render '/admin/special_offer_line_items/table', :order=>ticket_order
-%div.row
-  %div.small-12.columns
+  %div.small-12.cell
     = render :partial => '/admin/orders/payments', :locals=>{:order=>ticket_order}
     = render :partial => '/admin/orders/referral', :locals=>{:order=>ticket_order}
-%div.row
-  %div.small-12.columns
+  %div.small-12.cell
     - if !ticket_order.marketing_source.blank?
       Heard about the show via
       %b= ticket_order.marketing_source

@@ -11,6 +11,8 @@
 //= require_this
 
 
+$(function(){ $(document).foundation(); });
+
 $(document).ready(function() {
 
   $(function() {
@@ -45,5 +47,3 @@ $(document).ready(function() {
 $(document).ready(function(){
     $(".fader").hide(0).fadeIn('fast')
 });
-
-$(function(){ $(document).foundation(); });

@@ -1,46 +1,46 @@
-.row
-  .small-8.columns
+.grid-x
+  .small-8.cell
     = label("service_template", "Service Charge")
-  .small-4.columns
+  .small-4.cell
     &nbsp;
-  .small-8.columns
+  .small-8.cell
     = collection_select("choice", "service_template", ServiceItemTemplate.selectable, :id, :name_and_description)
-  .small-4.columns
+  .small-4.cell
     = order_form.add_nested_fields_link :service_line_items, "Add Service Charge", :class=>"button tiny"
 
 
 = order_form.nested_fields_for :service_line_items do |slif|
-
-  .small-6.columns
-    Description
-    %br
-    = slif.input :internal_description, wrapper_html: { class: 'hide' }
-    = slif.input :description, wrapper_html: { class: 'hide' }
-    %span.noneditable= slif.object.internal_description
-  .small-2.columns
-    - amt = slif.object.amount.nil? ? -1 : slif.object.amount
-    - edit_amt = (amt < 0)
-    - amt = 0 if edit_amt
-    %span.amount_field.hide
-      = slif.input :amount
-    - if (!edit_amt) then
-      %span.noneditable.show
-        Amount
-        %br
-        = number_to_currency([0,amt].max)
-    - else
-      %span.noneditable.hide
-        Amount
-        %br
-        = number_to_currency([0,amt].max)
-  .small-2.columns.total
-    Fee
-    %br
-    = slif.input :facility_fee, wrapper_html: { class: 'hide' }
-    %span.noneditable.show= number_to_currency(slif.object.facility_fee)
-  .small-2.columns
-    - if can? :modify_service_items, Order
-      = slif.remove_nested_fields_link "Remove", :class=>'tiny alert button right',  legend: "Service charge", wrapper_options: { class: 'row'}
+  .grid-x
+    .small-6.cell
+      Description
+      %br
+      = slif.input :internal_description, wrapper_html: { class: 'hide' }
+      = slif.input :description, wrapper_html: { class: 'hide' }
+      %span.noneditable= slif.object.internal_description
+    .small-2.cell
+      - amt = slif.object.amount.nil? ? -1 : slif.object.amount
+      - edit_amt = (amt < 0)
+      - amt = 0 if edit_amt
+      %span.amount_field.hide
+        = slif.input :amount
+      - if (!edit_amt) then
+        %span.noneditable.show
+          Amount
+          %br
+          = number_to_currency([0,amt].max)
+      - else
+        %span.noneditable.hide
+          Amount
+          %br
+          = number_to_currency([0,amt].max)
+    .small-2.cell.total
+      Fee
+      %br
+      = slif.input :facility_fee, wrapper_html: { class: 'hide' }
+      %span.noneditable.show= number_to_currency(slif.object.facility_fee)
+    .small-2.cell
+      - if can? :modify_service_items, Order
+        = slif.remove_nested_fields_link "Remove", :class=>'tiny alert button right',  legend: "Service charge", wrapper_options: { class: 'grid-x'}
 
 = content_for :js do
   :javascript
@@ -63,18 +63,18 @@
           var fee_v = parseFloat(data['facility_fee'])
           var fee = fee_v.toFixed(2)
           $("[name*=\"[service_line_items_attributes]["+indx.toString()+"][description]\"]").val(description);
-          $("[name*=\"[service_line_items_attributes]["+indx.toString()+"][description]\"]").closest('.columns').find("span.noneditable").text(description)
+          $("[name*=\"[service_line_items_attributes]["+indx.toString()+"][description]\"]").closest('.cell').find("span.noneditable").text(description)
           if (amount_v < 0) {
             $("[name*=\"[service_line_items_attributes]["+indx.toString()+"][amount]\"]").closest('.amount_field').show()
-            $("[name*=\"[service_line_items_attributes]["+indx.toString()+"][amount]\"]").closest('.columns').find("span.noneditable").hide()
+            $("[name*=\"[service_line_items_attributes]["+indx.toString()+"][amount]\"]").closest('.cell').find("span.noneditable").hide()
           } else {
             $("[name*=\"[service_line_items_attributes]["+indx.toString()+"][amount]\"]").closest('span').hide()
-            $("[name*=\"[service_line_items_attributes]["+indx.toString()+"][amount]\"]").closest('.columns').find("span.noneditable").show()
+            $("[name*=\"[service_line_items_attributes]["+indx.toString()+"][amount]\"]").closest('.cell').find("span.noneditable").show()
           }
           $("[name*=\"[service_line_items_attributes]["+indx.toString()+"][amount]\"]").val(amount)
-          $("[name*=\"[service_line_items_attributes]["+indx.toString()+"][amount]\"]").closest('.columns').find("span.noneditable").html("Amount<br>" + amount_v.toFixed(2))
+          $("[name*=\"[service_line_items_attributes]["+indx.toString()+"][amount]\"]").closest('.cell').find("span.noneditable").html("Amount<br>" + amount_v.toFixed(2))
           $("[name*=\"[service_line_items_attributes]["+indx.toString()+"][facility_fee]\"]").val(fee)
-          $("[name*=\"[service_line_items_attributes]["+indx.toString()+"][facility_fee]\"]").closest('.columns').find("span.noneditable").text(fee)
+          $("[name*=\"[service_line_items_attributes]["+indx.toString()+"][facility_fee]\"]").closest('.cell').find("span.noneditable").text(fee)
         });
       }
     });

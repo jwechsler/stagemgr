@@ -1,22 +1,17 @@
-%div.row
-  %div.small-12.columns
-    %div#note_control
-      - unless order.notes.blank? && order.special_request.blank? && order.hold_under.blank?
-        %div.row
-          %div.small-12.columns
-            %fieldset
-              %legend Notes
-              %p{:class=>'hold-under'}= "Hold under \"#{order.hold_under}\"" unless order.hold_under.blank?
-              %p= order.notes unless order.notes.blank?
-        %div.row
-          %div.small-12.columns
-            %a{:href=>'#', :id=>'update_note', :class=>'small button right'} Update Note
-      - else
-        %a{:href=>'#', :id=>'update_note', :class=>'small button right'} Add note
-    %div#update_note_control.hide
-      -#
-      = form_for( order, :url=>update_notes_admin_order_path(order), :method=>'post') do |f|
-        %fieldset
-          %legend Notes
-          = render partial:'/admin/orders/input_notes', locals: {order_form: f}
-          = f.submit 'Save update', :class=>'right small button'
+#note_control
+  - unless order.notes.blank? && order.special_request.blank? && order.hold_under.blank?
+    
+    %fieldset.fieldset
+      %legend Notes
+      %p{:class=>'hold-under'}= "Hold under \"#{order.hold_under}\"" unless order.hold_under.blank?
+      %p= order.notes unless order.notes.blank?
+      %a{:href=>'#', :id=>'update_note', :class=>'small button right'} Update Note
+  - else
+    %a{:href=>'#', :id=>'update_note', :class=>'small button right'} Add note
+%div#update_note_control.hide
+  -#
+  = form_for( order, :url=>update_notes_admin_order_path(order), :method=>'post') do |f|
+    %fieldset.fieldset
+      %legend Notes
+      = render partial:'/admin/orders/input_notes', locals: {order_form: f}
+      = f.submit 'Save update', :class=>'right small button'
