@@ -1,18 +1,18 @@
 %div#box-office
   - unless @now_playing.nil? || @now_playing.empty?
-    .row
-      .small-12.columns
+    .grid-x.grid-padding-x
+      .small-12.cell
         %h2 Now Playing
         = render :partial=>'list_in_row', :locals=>{:productions=>@now_playing, :across=>3}
   - unless @coming_soon.nil? || @coming_soon.empty?
-    .row
-      .small-12.columns
+    .grid-x.grid-padding-x
+      .small-12.cell
         %a{:name=>"coming_soon", :href=>'#'}
         %h2 Coming Soon
         = render :partial=>'list_in_row', :locals=>{:productions=>@coming_soon, :across=>3}
   - unless @long_term.nil? || @long_term.empty?
-    .row
-      .small-12.columns
+    .grid-x.grid-padding-x
+      .small-12.cell
         %h2 Later This Season
         = render :partial=>'list_in_row', :locals=>{:productions=>@long_term, :across=>3}
 

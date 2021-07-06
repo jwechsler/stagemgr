@@ -1,14 +1,14 @@
-%div.row
-  %div.small-12.columns
+%div.grid-x.grid-padding-x
+  %div.small-12.cell
     %div#note_control
-      %div.row
-        %div.small-12.columns
+      %div.grid-x.grid-padding-x
+        %div.small-12.cell
           %fieldset
             %legend Membership Seating
             %p
               %b= order.membership.preferred_seating
-      %div.row
-        %div.small-12.columns
+      %div.grid-x.grid-padding-x
+        %div.small-12.cell
           %a{:href=>'#', :id=>'update_note', :class=>'small button right'} Update Seating
 
     %div#update_note_control.hide

@@ -1,25 +1,25 @@
-.row
-  .small-12.columns
+.grid-x.grid-padding-x
+  .small-12.cell
     %h4
       Selected Seats
       %span#seatlocations
         = order_form.object.seat_assignments unless order_form.object.performance.nil?
-    .row{:style=>'margin-bottom: 8px'}
-      .small-7.columns
+    .grid-x.grid-padding-x{:style=>'margin-bottom: 8px'}
+      .small-7.cell
         %strong Type
-      .small-2.columns
+      .small-2.cell
         %strong Qty
-      .small-3.columns
+      .small-3.cell
         %strong Price/ticket
     = render partial: "/admin/ticket_orders/ticket_line_item_table", locals:{ticket_order: order_form.object}
     #ticket-display
-    .row{:style=>'margin-bottom: 8px'}
-      .small-6.columns
+    .grid-x.grid-padding-x{:style=>'margin-bottom: 8px'}
+      .small-6.cell
         %strong.right Total
-      .small-3.columns
+      .small-3.cell
         %strong.right
           %span#ticket_quantity.right
-      .small-3.columns
+      .small-3.cell
         %strong
           %span#order_total.right
             0.0

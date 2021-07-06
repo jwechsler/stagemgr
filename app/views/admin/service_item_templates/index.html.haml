@@ -5,8 +5,8 @@
     %li.current
       %a{:href=>'#'} Service Item Templates
 
-.row
-  .small-12.columns
+.grid-x.grid-padding-x
+  .small-12.cell
 
     %table#service-item-template-listing.display{:data=>{:source=>"#{admin_service_item_templates_path(format: :json)}"}}
       %thead

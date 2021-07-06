@@ -1,30 +1,30 @@
-.row
-  .small-12.columns
+.grid-x.grid-padding-x
+  .small-12.cell
     %fieldset
       %legend Tickets
-      .row{:style=>'margin-bottom: 8px'}
-        .small-7.columns
+      .grid-x.grid-padding-x{:style=>'margin-bottom: 8px'}
+        .small-7.cell
           %strong Type
-        .small-2.columns
+        .small-2.cell
           %strong Qty?
-        .small-3.columns
+        .small-3.cell
           %strong Price/ticket
       = order_form.simple_fields_for :ticket_line_items do |line_item_form|
         - unless line_item_form.object.ticket_class.software_managed || line_item_form.object.ticket_class.hide_pricing? || !line_item_form.object.ticket_class.web_visible?
           = render :partial => '/orders/line_item', :locals => {:f => line_item_form, performance: order.performance}
-      .row{:style=>'margin-bottom: 8px'}
-        .small-6.columns
+      .grid-x.grid-padding-x{:style=>'margin-bottom: 8px'}
+        .small-6.cell
           %strong.right Total
-        .small-3.columns
+        .small-3.cell
           %strong.right
             %span#ticket_quantity
               = order_form.object.number_of_tickets
-        .small-3.columns
+        .small-3.cell
           %strong
             %span#order_total
               = number_to_currency(order_form.object.total_ticket_face_value)
-      .row
-        .small-12.columns
+      .grid-x.grid-padding-x
+        .small-12.cell
           = render '/orders/special_offer_form', :f => order_form, :special_offer_code=>order.special_offer_code
 
 <!-- custom javascript -->

@@ -1,16 +1,16 @@
-%div.row
-  %div.small-12.columns
+%div.grid-x.grid-padding-x
+  %div.small-12.cell
     %div#note_control
       - unless order.notes.blank? && order.special_request.blank? && order.hold_under.blank?
-        %div.row
-          %div.small-12.columns
+        %div.grid-x.grid-padding-x
+          %div.small-12.cell
             %fieldset
               %legend Notes/Special Seating
               %p{:class=>'hold-under'}= "Hold under \"#{order.hold_under}\"" unless order.hold_under.blank?
               %p= order.notes unless order.notes.blank?
               %p= order.special_request unless order.special_request.blank?
-        %div.row
-          %div.small-12.columns
+        %div.grid-x.grid-padding-x
+          %div.small-12.cell
             %a{:href=>'#', :id=>'update_note', :class=>'small button right'} Update Note
       - else
         %a{:href=>'#', :id=>'update_note', :class=>'small button right'} Add note

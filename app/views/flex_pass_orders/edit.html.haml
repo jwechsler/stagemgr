@@ -15,21 +15,21 @@
   %fieldset
     %legend Make an additional donation
 
-    .row.collapse
-      .small-8.medium-10.columns
+    .grid-x.grid-padding-x.collapse
+      .small-8.medium-10.cell
         = order_form.label :additional_donation, 'I love Theater Wit! I\'d like to make an additional tax-deductible contribution of $', :class=>'inline'
-      .small-4.medium-2.columns
+      .small-4.medium-2.cell
         = order_form.text_field :additional_donation, :size => 7, :class=>'left'
 
 
   = render :partial => '/orders/billing_form', :locals => {:order_form => order_form}
 
-  .row
-    .small-12.medium-6.columns.small-centered.panel
-      .row
-        .small-1.columns
+  .grid-x.grid-padding-x
+    .small-12.medium-6.cell.small-centered.panel
+      .grid-x.grid-padding-x
+        .small-1.cell
           = order_form.check_box :add_to_email_list, :input_html=>{:checked => 1}
-        .small-11.columns
+        .small-11.cell
           %p
             Join the Theater Wit mailing list
           %p{:style=>"font-size: 80%"}

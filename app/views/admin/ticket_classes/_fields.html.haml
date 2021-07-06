@@ -1,39 +1,39 @@
-.row
-  .small-4.columns
+.grid-x.grid-padding-x
+  .small-4.cell
     = f.input :class_code
-  .small-8.columns
+  .small-8.cell
     = f.input :ticket_type, :as=>:select, :collection=>TicketClass::TICKET_TYPES
 
-  .small-12.columns
+  .small-12.cell
     = f.input :class_name
 
-  .row
-    .small-12.medium-6.columns
-      %fieldset
-        %legend Pricing
+  .small-12.medium-6.cell
+    %fieldset.fieldset
+      %legend Pricing
 
-        = f.label :ticket_price
-        = f.input_field :ticket_price, :type=>:number, :value=>number_with_precision(f.object.ticket_price, :precision => 2), step: 0.25
-        = f.label :ticketing_fee
-        = f.input_field :ticketing_fee, :type=>:number, :value=>number_with_precision(f.object.ticketing_fee, :precision => 2), step: 0.25
+      = f.label :ticket_price
+      = f.input_field :ticket_price, :type=>:number, :value=>number_with_precision(f.object.ticket_price, :precision => 2), step: 0.25
+      = f.label :ticketing_fee
+      = f.input_field :ticketing_fee, :type=>:number, :value=>number_with_precision(f.object.ticketing_fee, :precision => 2), step: 0.25
 
 
-    .small-12.medium-6.columns
-      %fieldset
-        %legend Ticket Class Options
-        = f.input :web_visible, :hint=>"Make this ticket class end-user purchasable"
-        = f.input :exchangeable, :hint=>"Override software default exchange policy communications?"
-        = f.input :software_managed, :hint=>"Not for box office sales"
-        = f.input :hide_pricing, :hint=>"Hide the actual price from the customer"
-        = f.input :suppress_receipt, :hint=>"Suppress automatic confirmation email"
-        = f.input :complimentary, :label=>"Treat as comp ticket", :hint=>"Comp tickets are separately inventoried and reported. Not the same as a $0 ticket"
-        = f.input :holds_seats, :default=>true, :hint=>"Reserve seats from inventory"
-        = f.input :assigns_seats, :default=>false,  :label=>"Manual seat assignment required", :hint=>"Requires house management seating"
-        = f.input :show_in_pricing_range, :default=>true, :hint=>"Show in pricing overview"
-        = f.input :auto_attach, :hint=>"Automatically attach to every performance"
-        = f.input :minutes_before_show, :hint=>"Reveal timed tickets at this point before showtime"
-        = f.input :purchase_page_annotation, :as=>:text, :hint=>'Additional detail text for purchase page', input_html: {rows: 2}
-        = f.input :purchase_email_annotation, :hint=>'Additional text to include in purchase emails.  Markdown enabled', input_html: {rows: 4}
-  .row
-    .small-12.columns
+  .small-12.medium-6.cell
+    %fieldset
+      %legend Ticket Class Options
+      = f.input :web_visible, :hint=>"Make this ticket class end-user purchasable"
+      = f.input :exchangeable, :hint=>"Override software default exchange policy communications?"
+      = f.input :software_managed, :hint=>"Not for box office sales"
+      = f.input :hide_pricing, :hint=>"Hide the actual price from the customer"
+      = f.input :suppress_receipt, :hint=>"Suppress automatic confirmation email"
+      = f.input :complimentary, :label=>"Treat as comp ticket", :hint=>"Comp tickets are separately inventoried and reported. Not the same as a $0 ticket"
+      = f.input :holds_seats, :default=>true, :hint=>"Reserve seats from inventory"
+      = f.input :assigns_seats, :default=>false,  :label=>"Manual seat assignment required", :hint=>"Requires house management seating"
+      = f.input :show_in_pricing_range, :default=>true, :hint=>"Show in pricing overview"
+      = f.input :auto_attach, :hint=>"Automatically attach to every performance"
+      = f.input :minutes_before_show, :hint=>"Reveal timed tickets at this point before showtime"
+      = f.input :purchase_page_annotation, :as=>:text, :hint=>'Additional detail text for purchase page', input_html: {rows: 2}
+      = f.input :purchase_email_annotation, :hint=>'Additional text to include in purchase emails.  Markdown enabled', input_html: {rows: 4}
+  
+  .small-12.cell
     = f.button :submit
+    

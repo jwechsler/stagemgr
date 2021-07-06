@@ -1,18 +1,18 @@
-.row.membership_detail
-  .small-12.columns
-    .row
-      .small-6.columns
+.grid-x.grid-padding-x.membership_detail
+  .small-12.cell
+    .grid-x.grid-padding-x
+      .small-6.cell
         = link_to membership.membership_offer.name, admin_membership_offer_path(membership.membership_offer.id)
 
 
-      .small-6.columns
+      .small-6.cell
         %span.label.success.right= "Membership #{membership.current_status}"
 
-    .row
-      .small-6.columns
+    .grid-x.grid-padding-x
+      .small-6.cell
         %strong Member ID:
         = membership.member_code
-      .small-6.columns
+      .small-6.cell
         %span.right
           %strong # Tix
           = membership.membership_offer.tickets_per_performance

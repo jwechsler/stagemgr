@@ -6,6 +6,6 @@
     %li.current
       %a{:href=>'#'}= @flex_pass_offer.name
 
-.row
-  .small-12.columns
+.grid-x.grid-padding-x
+  .small-12.cell
     = render 'form', :flex_pass_offer=>@flex_pass_offer

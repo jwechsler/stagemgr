@@ -9,7 +9,7 @@
     %li.current
       %a{:href=>'#'} Editing Seat Map
 
-.row
-  .columns.small-12
+.grid-x.grid-padding-x
+  .cell.small-12
     = simple_form_for [:admin, @venue, @seat_map] do |f|
       = render partial:"form", :locals => {:f => f}

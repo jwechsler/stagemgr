@@ -5,6 +5,6 @@
   %ul.breadcrumbs
     %li= link_to 'Payment Types', admin_payment_types_path
     %li.current= link_to @payment_type.display_name, admin_payment_types_path(@payment_type)
-.row
-  .small-12.columns
+.grid-x.grid-padding-x
+  .small-12.cell
     = render :partial=>"form", :locals=>{:payment_type=>@payment_type, :url=>:admin_payment_type}

@@ -25,22 +25,22 @@
                     %tbody
                       %tr
                         %td
-                          %table.row.collapse
+                          %table.grid-x.grid-padding-x.collapse
                             %tbody
                               %tr
                                 - if @order.theater.nil? || @order.theater.producing? || @order.theater.best_logo_url_available(:medium).blank?
-                                  %th.small-12.columns.first{:valign=>'middle'}
+                                  %th.small-12.cell.first{:valign=>'middle'}
                                     %table
                                       %tr
                                         %td.vhcenter
                                           %img{:src=>"https://www.theaterwit.org/static/img/logo_color_small_tagless.png"}
                                 - else
-                                  %th.small-6.large-6.columns.first{:valign=>"middle"}
+                                  %th.small-6.large-6.cell.first{:valign=>"middle"}
                                     %table
                                       %tr
                                         %td.vhcenter
                                           %img{:src=>"https://www.theaterwit.org#{@order.theater.best_logo_url_available(:medium)}"}
-                                  %th.small-6.large-6.columns.last{:valign=>"middle"}
+                                  %th.small-6.large-6.cell.last{:valign=>"middle"}
                                     %table
                                       %tr
                                         %th.vhcenter
@@ -58,10 +58,10 @@
                           %td{:style=>"padding:0px 8px 0px 8px"}
                             %h1
                               =yield :email_title
-                    %table.row
+                    %table.grid-x.grid-padding-x
                       %tbody
                         %tr
-                          %th.small-12.columns.first
+                          %th.small-12.cell.first
                             %table
                               %tr
                                 %th

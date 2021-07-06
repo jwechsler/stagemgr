@@ -5,8 +5,8 @@
     %li.current
       %a{:href=>'#'} Flex Pass Offers
 
-.row
-  .small-12.columns
+.grid-x.grid-padding-x
+  .small-12.cell
 
     %table#flex-pass-offer-listing.display{:data=>{:source=>"#{admin_flex_pass_offers_path(format: :json)}"}}
       %thead

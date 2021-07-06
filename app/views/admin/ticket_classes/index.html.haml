@@ -9,8 +9,8 @@
     %li.current
       %a{:href=>'#'}
         Ticket Classes
-.row
-  .small-12.columns
+.grid-x.grid-padding-x
+  .small-12.cell
     %h3= "#{@production.name} Ticket Classes"
     %table#ticket-class-listing{:data=>{:source=>"#{admin_theater_production_ticket_classes_path(@production.theater, @production, format: :json)}"}}
       %thead

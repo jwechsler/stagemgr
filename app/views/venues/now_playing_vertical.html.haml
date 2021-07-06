@@ -1,11 +1,11 @@
 #now_playing_shows_by_venue.production_list.text-center
   - unless @now_playing_productions.empty? && @offtime_productions.empty?
     - @now_playing_productions.each do |venue_production|
-      .row
-        .small-12.columns
+      .grid-x.grid-padding-x
+        .small-12.cell
           = render 'show_thumb', :slice=>100, :production=>venue_production, :background=>@background
   - unless @offtime_productions.empty?
     - @offtime_productions.each do |production|
-      .row
-        .small-12.columns
+      .grid-x.grid-padding-x
+        .small-12.cell
           = render 'show_thumb', :slice=>100, :production=>production, :background=>@background

@@ -6,16 +6,16 @@
 
 .grid-x
   .small-10.cell.left
-    .row
+    .grid-x.grid-padding-x
       - if @theater.logo.exists?
         - colsize = 8
-        .small-2.medium-2.columns.hide-for-small-only
+        .small-2.medium-2.cell.hide-for-small-only
           = image_tag(@theater.logo.url(:thumbnail), style:"max-height:120px;") if @theater.logo.exists?
 
       - else
         - colsize = 10
 
-      .small.columns{:class=>"small-#{colsize} medium-#{colsize}"}
+      .small.cell{:class=>"small-#{colsize} medium-#{colsize}"}
         %h3= @theater.name
         = link_to(@theater.url, @theater.url) unless @theater.url.blank?
 

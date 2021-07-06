@@ -6,6 +6,6 @@
     %li.current
       %a{:href=>'#'}= @service_item_template.name
 
-.row
-  .small-12.columns
+.grid-x.grid-padding-x
+  .small-12.cell
     = render 'form', :service_item_template=>@service_item_template

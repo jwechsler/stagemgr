@@ -5,8 +5,8 @@
     %li.current
       %a{:href=>'#'} Special Features
 
-.row
-  .small-12.columns
+.grid-x.grid-padding-x
+  .small-12.cell
     %table#special-feature-listing{:data=>{:source=>"#{admin_special_features_path(format: :json)}"}}
       %thead
         %tr
@@ -15,8 +15,8 @@
           %th Status
           %th Actions
 
-.row
-  .small-12.columns
+.grid-x.grid-padding-x
+  .small-12.cell
     = link_to "New Special Feature", new_admin_special_feature_path, class: 'small button right'
 
 = content_for :js do

@@ -6,8 +6,8 @@
     %li= link_to 'Ticket Classes', admin_theater_production_ticket_classes_path(@theater,@production)
     %li.current
       %a{:href=>'#'}= @ticket_class.class_code
-.row
-  .columns.small-12
+.grid-x.grid-padding-x
+  .cell.small-12
     = content_for :title do
       Editing Ticket Class
       = @ticket_class.class_code

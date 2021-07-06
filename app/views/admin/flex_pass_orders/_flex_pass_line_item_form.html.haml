@@ -1,8 +1,8 @@
-.row
-  .small-4.columns
+.grid-x.grid-padding-x
+  .small-4.cell
     = f.input_field :ticket_count, :as=>:select, :collection=>1.upto(20), :label=>"Quantity", :required=>false, :include_blank=>false
-  .small-5.columns
+  .small-5.cell
     %p= f.object.flex_pass_offer.name
-  .small-3.columns
+  .small-3.cell
     %p= number_to_currency(f.object.flex_pass_offer.price)
     = f.input :flex_pass_offer_id, :as=>:hidden

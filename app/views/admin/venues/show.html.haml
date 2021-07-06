@@ -7,8 +7,8 @@
     %li.current
       %a{:href=>'#'}= @venue.name
 
-.row
-  .columns.small-12
+.grid-x.grid-padding-x
+  .cell.small-12
     %h3 Seat Maps
     = render partial: 'seat_maps'
     = link_to("New Seat Map", [:new, :admin, @venue, :seat_map], class:'small button')

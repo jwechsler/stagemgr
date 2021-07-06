@@ -1,4 +1,2 @@
-.row
-  .small-12.columns
-    = simple_form_for [:admin, @default_ticket_class] do |f|
-      = render '/admin/ticket_classes/fields', :f=>f
+= simple_form_for [:admin, @default_ticket_class] do |f|
+  = render '/admin/ticket_classes/fields', :f=>f

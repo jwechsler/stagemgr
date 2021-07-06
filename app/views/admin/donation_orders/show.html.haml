@@ -1,6 +1,7 @@
-= render 'full_order', :order=>@donation_order
-.row
-  .columns.small-12
+.grid-x.grid-padding-x
+  .cell
+    = render 'full_order', :order=>@donation_order
+  .cell.small-12
     %p
       - if can? :refund, DonationOrder
         = link_to 'Refund Donation', new_admin_order_refund_order_path(@donation_order), :confirm => "Are you sure?", :class=>"button"

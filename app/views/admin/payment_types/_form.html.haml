@@ -1,17 +1,17 @@
 = simple_form_for [:admin, payment_type], :as=>:payment_type, :url=>url do |f|
   = f.input :display_name
-  .row
-    .columns.small-12.medium-4
+  .grid-x.grid-padding-x
+    .cell.small-12.medium-4
       = f.input :allow_for_public
-    .columns.small-12.medium-4
+    .cell.small-12.medium-4
       = f.input :allow_for_box_office
-    .columns.small-12.medium-4
+    .cell.small-12.medium-4
       = f.input :allow_theater_user_holds, :label=>"Expand theater user permissions", :hint=>"If checked, orders with this payment type can be placed on hold or exchanged"
-    .columns.small-12.medium-4
+    .cell.small-12.medium-4
       = f.input :report_as_sales_collected
-    .columns.small-12.medium-4
+    .cell.small-12.medium-4
       = f.input :report_as_production_revenue
-  .row
+  .grid-x.grid-padding-x
   = f.input :restrict_to_ticket_classes, :label=>"Only apply to ticket class codes starting with", :hint=>"You can make a comma-delimited list here to restrict by multiple class codes"
 
   %fieldset

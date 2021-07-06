@@ -10,12 +10,12 @@
         &nbsp;
         %input#convert-accessible{type:'checkbox', value:"wheelchair", name:"convert-accessible"}
 
-  .row{:style=>'margin-bottom: 8px'}
-    .small-6.columns
+  .grid-x.grid-padding-x{:style=>'margin-bottom: 8px'}
+    .small-6.cell
       %strong Type
-    .small-3.columns
+    .small-3.cell
       %strong Price/ticket
-    .small-3.columns
+    .small-3.cell
       &nbsp;
     - if order_form.object.performance.nil?
       #ticket-selector
@@ -24,19 +24,19 @@
         - order_form.object.performance.ticket_class_allocations.each do |tca|
           -if tca.available? && !tca.ticket_class.software_managed? && (tca.ticket_class.web_visible?)
             - tc = tca.ticket_class
-            .row
-              .small-6.columns.vertical-center
+            .grid-x.grid-padding-x
+              .small-6.cell.vertical-center
 
                 = tc.class_name
                 - unless tc.purchase_page_annotation.blank?
                   %span.ticket_class_annotation
                     = display_markdown(tc.purchase_page_annotation)
-              .small-3.columns
+              .small-3.cell
                 - if tc.software_managed? || tc.hide_pricing?
                   n/a
                 -else
                   %span.ticket_price= number_to_currency(tc.ticket_price)
-              .small-3.columns
+              .small-3.cell
                 %a.button.tiny.ticket-class-select-button{href:'#',"data-ticket-class":tc.id} Select
 
   %a.close-reveal-modal(aria-label="Close") &#215;

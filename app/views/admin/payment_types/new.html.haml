@@ -5,6 +5,6 @@
     %li= link_to 'Payment Types', admin_payment_types_path
     %li.current
       %a{:href=>'#'} New
-.row
-  .small-12.columns
+.grid-x.grid-padding-x
+  .small-12.cell
     = render 'form', :payment_type=>@payment_type, :url=>:create_external_payment_admin_payment_types

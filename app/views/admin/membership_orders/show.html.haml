@@ -1,24 +1,24 @@
-.row
-  .small-12.columns
+.grid-x.grid-padding-x
+  .small-12.cell
     = render '/admin/orders/header', :order=>@membership_order
-  .row
-    .small-12.medium-6.columns
+  .grid-x.grid-padding-x
+    .small-12.medium-6.cell
       %fieldset
         %legend Member Info
         =render '/admin/addresses/info', :address=>@membership_order.address, :breadcrumb_order=>@membership_order
-    .small-12.medium-6.columns
+    .small-12.medium-6.cell
       %fieldset
         %legend Membership Information
         = render '/admin/memberships/detail', :membership=>@membership_order.membership
-  .row
-    .small-12.columns
+  .grid-x.grid-padding-x
+    .small-12.cell
       = render '/admin/orders/payments', :order=>@membership_order
       = render '/admin/orders/referral', :order=>@membership_order
       = render '/admin/membership_orders/notes', :order=>@membership_order
-  .row
-    .small-12.columns
+  .grid-x.grid-padding-x
+    .small-12.cell
       - if !@membership_order.id.nil? && (@membership_order.status != Order::FULFILLED) && (can? :fulfill, Order)
         = link_to 'Fulfill', fulfill_admin_order_path(@membership_order), data:{:confirm=>"Are you sure?"}, :method=>:post, :class=>'button'
-  .row
-    .small-12.columns
+  .grid-x.grid-padding-x
+    .small-12.cell
       = render '/admin/orders/audit_show', :order_form=>@membership_order

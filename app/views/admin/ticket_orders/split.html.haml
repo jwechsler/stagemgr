@@ -1,13 +1,13 @@
 = render '/admin/orders/header_bar', :order=>@ticket_order
-%div.row
-  %div.small-12.columns
+%div.grid-x.grid-padding-x
+  %div.small-12.cell
     %h2 Select tickets to split
     =simple_form_for [:admin, @ticket_order], url: finalize_split_admin_ticket_order_path(@ticket_order) do |f|
       =f.input :id, as: :hidden
       -if @ticket_order.performance.production.has_reserved_seating?
         -all_seats = @tickets.map{|t| [t[:seat].seat.location, t[:seat].seat.id]}
         -index = 0
-        .row
+        .grid-x.grid-padding-x
           .column.small-2
             %strong Split To
           .column.small-6
@@ -20,7 +20,7 @@
 
           -tc = TicketClass.find(ticket[:ticket_class_id])
           -tli = ticket[:source]
-          .row
+          .grid-x.grid-padding-x
             .column.small-2
               =select_tag 'splits[]', options_for_select(['Order 1','Order 2']), {id:"target_line_#{index}"}
             .column.small-6
@@ -38,7 +38,7 @@
           -index += 1
         = f.submit 'Split Order', :disable_with=>'Processing...', :class=>'alert button disabled', confirm:"Are you sure?", id: "split_button"
       -else
-        .row
+        .grid-x.grid-padding-x
           .column.small-2
             %strong Split To
           .column.small-6
@@ -53,7 +53,7 @@
           -tc = TicketClass.find(ticket[:ticket_class_id])
           -tli = ticket[:source]
 
-          .row
+          .grid-x.grid-padding-x
             .column.small-2
               =select_tag 'splits[]', options_for_select(['Order 1','Order 2']), {id:"target_line_#{index}"}
             .column.small-6

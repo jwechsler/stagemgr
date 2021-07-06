@@ -12,8 +12,8 @@
       }
     %tr
       %td{:width=>"40%",:valign=>"top"}
-        %div.row
-          %div.small-12.columns
+        %div.grid-x.grid-padding-x
+          %div.small-12.cell
             - address = @order.address
             -if address.nil?
               %b UNKNOWN ADDRESS

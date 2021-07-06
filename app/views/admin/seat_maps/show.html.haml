@@ -9,8 +9,8 @@
     %li.current
       %a{:href=>'#'}= "Seat Map #{@seat_map.label}"
 
-.row
-  .columns.small-12
+.grid-x.grid-padding-x
+  .cell.small-12
     %h4 Seating Geometry
     %img{:src=>"#{root_url}#{@seat_map.base_image_map.url}", :alt => "", :usemap=> '#seatingmap', :class=>'seatingmap'}
     %map{name:'seatingmap', id:'seatingmap'}

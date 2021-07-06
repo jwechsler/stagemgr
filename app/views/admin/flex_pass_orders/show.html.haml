@@ -1,31 +1,31 @@
-.row
-  .small-12.columns
+.grid-x.grid-padding-x
+  .small-12.cell
     = render '/admin/orders/header', :order=>@flex_pass_order
-.row
-  .small-12.medium-6.columns
+.grid-x.grid-padding-x
+  .small-12.medium-6.cell
     %fieldset
       %legend Holder Info
       =render '/admin/addresses/info', :address=>@flex_pass_order.address, :breadcrumb_order=>@flex_pass_order
-  .small-12.medium-6.columns
+  .small-12.medium-6.cell
     %fieldset
       %legend Flex Pass
       = render :partial => '/admin/flex_pass_line_items/table', :locals=>{:order=>@flex_pass_order}
-.row
-  .small-12.columns
+.grid-x.grid-padding-x
+  .small-12.cell
     = render '/admin/orders/payments', :order=>@flex_pass_order
     = render '/admin/orders/referral', :order=>@flex_pass_order
-.row.hide-for-small-only
-  .medium-12.columns
+.grid-x.grid-padding-x.hide-for-small-only
+  .medium-12.cell
     = render '/admin/flex_pass_orders/order_history', :order=>@flex_pass_order
 
-.row
-  .small-12.columns
+.grid-x.grid-padding-x
+  .small-12.cell
     - if can? :new, :admin_refund_orders
       = link_to 'Refund Order', new_admin_order_refund_order_path(@flex_pass_order), :class=>'small alert button' if @flex_pass_order.refundable?
     = link_to 'Fulfill Order', fulfill_admin_order_path(@flex_pass_order), :class=>'small button' if @flex_pass_order.fulfillable?
     - if @flex_pass_order.status == 'Processing' || @flex_pass_order.status == 'Hold' || @flex_pass_order.status == Order::NEW || can?(:cancel, FlexPassOrder)
       = link_to 'Cancel Order', cancel_admin_order_path(@flex_pass_order), :class=>'small alert button', :confirm => "Are you sure?", :method=>:post
 
-.row
-  .small-12.columns
+.grid-x.grid-padding-x
+  .small-12.cell
     = render '/admin/orders/audit_show', :order_form=>@flex_pass_order

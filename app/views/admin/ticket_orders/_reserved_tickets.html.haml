@@ -1,9 +1,9 @@
 = render partial:'/seat_assignments/ticket_class_selector', locals: {order_form: order_form}
 #ticket-items{'data-line-items':'[]'}
-.row
-  .columns.small-12.medium-6
+.grid-x.grid-padding-x
+  .cell.small-12.medium-6
     = render partial:'/admin/ticket_orders/reserved_ticket_line_items', locals:{order_form: order_form, show_web_visible_only: false}
-  .columns.small-12.medium-6
+  .cell.small-12.medium-6
     %div#seatmap-area
       - unless order_form.object.performance_id.nil?
         = render partial:"/seat_assignments/available_seatmap", locals:{ticket_order_uuid: order_form.object.uuid, performance: order_form.object.performance}

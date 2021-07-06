@@ -1,10 +1,10 @@
 <!--Creates the popup body-->
 = render partial:'/seat_assignments/ticket_class_selector', locals: {order_form: order_form}
 - unavailable_data = raw '{"alwaysOn": true, "fillColor":"000000"}'
-.row
-  .columns.small-12.medium-6
+.grid-x.grid-padding-x
+  .cell.small-12.medium-6
     = render partial:'/ticket_orders/ticket_line_items', locals:{order_form: order_form}
-  .columns.small-12.medium-6
+  .cell.small-12.medium-6
     <!-- Seating Map -->
     =render partial:'/admin/ticket_orders/seatmap', locals:{ticket_order:ticket_order}
 

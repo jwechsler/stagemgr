@@ -1,5 +1,5 @@
-.row
-  .small-12.columns.order
+.grid-x.grid-padding-x
+  .small-12.cell.order
     = simple_form_for @ticket_order, :html=>{:name=>"confirm_form"} do |order_form|
       - total = Money.new(0)
 
@@ -81,11 +81,11 @@
 
           When you are ready to purchase your tickets, click "Order Tickets".
 
-        .row
-          .small-3.small-centered.columns
+        .grid-x.grid-padding-x
+          .small-3.small-centered.cell
             = order_form.button :submit, 'Order Tickets', id:'place-order-button'
-        .row
-          .small-12.columns
+        .grid-x.grid-padding-x
+          .small-12.cell
             %p
               %strong
                 PLEASE NOTE: Processing your order can take a minute.  Once you order your tickets, please don't refresh your browser or use the back button or you may be charged twice.

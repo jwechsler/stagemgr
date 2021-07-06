@@ -1,10 +1,10 @@
-.row
-  .small-6.columns
+.grid-x.grid-padding-x
+  .small-6.cell
     %p
       %strong Email
       = @user.email
     = link_to 'Edit', edit_current_user_account_path, :class=>'button'
-  .small-6.columns
+  .small-6.cell
     %fieldset
       %legend Login statistics
       %p

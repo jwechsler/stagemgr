@@ -1,5 +1,5 @@
-.row
-  .small-12.columns
+.grid-x.grid-padding-x
+  .small-12.cell
     = content_for :title do
       Flex Pass Offer
     = content_for :breadcrumbs do
@@ -7,8 +7,8 @@
         %li= link_to 'Flex Pass Offers', admin_flex_pass_offers_path
         %li.current= @flex_pass_offer.name
 
-.row
-  .small-12.columns
+.grid-x.grid-padding-x
+  .small-12.cell
 
     %h2= @flex_pass_offer.name
 
@@ -23,8 +23,8 @@
       %b= "Number of tickets (redeemed as #{@flex_pass_offer.use_ticket_class_code}): "
       =h @flex_pass_offer.number_of_tickets
       %b M
-.row
-  .small-12.columns
+.grid-x.grid-padding-x
+  .small-12.cell
     = link_to 'Edit', edit_admin_flex_pass_offer_path(@flex_pass_offer)
   </div>
 </div>

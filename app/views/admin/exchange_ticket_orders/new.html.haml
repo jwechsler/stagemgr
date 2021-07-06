@@ -1,8 +1,8 @@
 = content_for :title do
   = "Exchange Order \##{@original_order.id}"
 = content_for :breadcrumbs do
-  %div.row.collapse
-    %div.small-10.columns
+  %div.grid-x.grid-padding-x.collapse
+    %div.small-10.cell
       %ul.breadcrumbs
         %li
           = link_to 'Existing Orders', admin_orders_path
@@ -10,15 +10,15 @@
           = link_to "Order \##{@original_order.id}"
         %li.current
           %a{:href=>'#'}= "Exchange"
-    %div.small-2.columns
+    %div.small-2.cell
       = render '/admin/orders/status_bar', :order=>@original_order
 
-%div.row
+%div.grid-x.grid-padding-x
   %fieldset
     %legend Original Order
     = render '/admin/ticket_orders/detail', :ticket_order=>@original_order
-%div.row
-  %div.small-12.columns
+%div.grid-x.grid-padding-x
+  %div.small-12.cell
     %fieldset
       %legend Exchange Order
       = simple_form_for [:admin, @original_order, @exchange_order], :html=>{:id=>'admin_ticket_order_form'}, :url=>admin_ticket_order_exchange_ticket_orders_path(@original_order) do |order_form|

@@ -11,10 +11,10 @@
       = render :partial=>'/membership_orders/preferred_seating', :locals=>{:f => order_form}
       = render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form}
 
-      .row
-        .small-1.columns
+      .grid-x.grid-padding-x
+        .small-1.cell
           = order_form.check_box :add_to_email_list, :checked=>true
-        .small-11.columns
+        .small-11.cell
           Join our mailing list to take full advantage of your membership.
           %br
           %span{:style=>"font-size: 80%"}

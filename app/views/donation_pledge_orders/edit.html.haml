@@ -1,5 +1,5 @@
-.row
-  .small-12.columns
+.grid-x.grid-padding-x
+  .small-12.cell
     = render partial:'description'
     = simple_form_for @order do |order_form|
       = order_form.hidden_field :status
@@ -8,15 +8,15 @@
 
       - @submit_text = "Make a pledge"
       = order_form.simple_fields_for :donation_line_items do |donation|
-        .row
-          .small-2.columns
+        .grid-x.grid-padding-x
+          .small-2.cell
             =donation.label :donation_level, "Contribution Level:", :class=>'left'
-          .small-10.columns
+          .small-10.cell
             = donation.input_field :donation_level, :as=>:radio_buttons, :collection=>@levels, :required=>false
-            .row
-              .small-4.columns
+            .grid-x.grid-padding-x
+              .small-4.cell
                 = donation.label :amount, raw("... or other monthly amount ($7 minimum)"), :class=>'right inline'
-              .small-8.columns
+              .small-8.cell
                 = donation.input_field :amount, :required=>false
 
       = render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form}

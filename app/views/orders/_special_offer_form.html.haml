@@ -3,11 +3,11 @@
 - else
   - special_offer_code = f.object.special_offer_code
 
-.row
-  .small-6.columns
+.grid-x.grid-padding-x
+  .small-6.cell
     = f.label :special_offer_code, 'Discount code (applied at checkout)', :class=>'left inline'
-  .small-3.columns
+  .small-3.cell
     = f.input_field :special_offer_code, :label=>'Special Offer Code', :input_html=>{:value=>special_offer_code}
-  .small-3.columns
+  .small-3.cell
     &nbsp;
 

@@ -1,18 +1,18 @@
 = order_form.simple_fields_for :address do |address_form|
-  .row
-    .small-12.columns
+  .grid-x.grid-padding-x
+    .small-12.cell
       = address_form.input :full_name, :label=>"Your Name", :required=>true
-    .small-12.medium-7.columns
+    .small-12.medium-7.cell
       = address_form.input :email, :required=>true
-    .small-12.medium-5.columns
+    .small-12.medium-5.cell
       = address_form.input :phone, :label=>"Phone", :required=>true
-  .row
-    .small-12.columns
+  .grid-x.grid-padding-x
+    .small-12.cell
       = address_form.input :line1, :label=>"Street Address", :required=>true
       = address_form.input_field :line2
-    .small-12.medium-4.columns
+    .small-12.medium-4.cell
       = address_form.input :city, :required=>true
-    .small-12.medium-3.columns
+    .small-12.medium-3.cell
       = address_form.input :state, :size=>3, :required=>true
-    .small-12.medium-5.columns
+    .small-12.medium-5.cell
       = address_form.input :zipcode, :size=>11, :required=>true, :label=>'Zip'

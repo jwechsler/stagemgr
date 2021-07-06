@@ -6,15 +6,15 @@
     %li.current
       %a{:href=>'#'}= @service_item_template.name
 
-.row
-  .columns.small-12
+.grid-x.grid-padding-x
+  .cell.small-12
     @service_item_template.name
     %br
     @service_item_template.description
-.row
-  .columns.small-6
+.grid-x.grid-padding-x
+  .cell.small-6
     Price
     = number_to_currency(@service_item_template.amount)
-  .columns.small-6
+  .cell.small-6
     Facility Fee
     = number_to_currency(@service_item_template.facility_fee)
