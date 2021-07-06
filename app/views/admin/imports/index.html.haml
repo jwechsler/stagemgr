@@ -4,95 +4,95 @@
   %ul.breadcrumbs
     %li.current= link_to 'Imports', admin_imports_path
 
-.row
-  .small-12.columns
-    %fieldset
+.grid-x.grid-padding-x
+  .small-12.cell
+    %fieldset.fieldset
       %legend Import TRGarts Order File
       = form_for @trg_basic_import, :url=> admin_imports_path, :html=>{:multipart=>true} do |form|
-        .row
-          .small-3.columns
+        .grid-x.grid-padding-x
+          .small-3.cell
             = label_tag :production, 'Update attendees', :class=>'left inline'
-          .small-9.columns
+          .small-9.cell
             = collection_select :production, :production_id, @productions, :id, :name, :include_blank=>true
 
-        .row
-          .small-3.columns
+        .grid-x.grid-padding-x
+          .small-3.cell
             =label_tag :data, 'From file', :class=>'left inline'
-          .small-9.columns
+          .small-9.cell
             = form.file_field :data
         %br
         = submit_tag "Import Attendees", :class=>'button'
 
-
+ 
     %br
-    %fieldset
+    %fieldset.fieldset
       %legend Import Mailing List Signup Cards
       = form_for @card_basic_import, :url=> mailing_cards_admin_imports_path, :html=>{:multipart=>true} do |form|
-        .row
-          .small-3.columns
+        .grid-x.grid-padding-x
+          .small-3.cell
             = label_tag :production, 'Update attendees', :class=>'left inline'
-          .small-9.columns
+          .small-9.cell
             = collection_select :production, :production_id, @productions, :id, :name
-        .row
-          .small-3.columns
+        .grid-x.grid-padding-x
+          .small-3.cell
             = label_tag :data, 'From file', :class=>'left inline'
-          .small-9.columns
+          .small-9.cell
             = form.file_field :data
         = submit_tag "Import Mailing List", :class=>'button'
 
     %br
-    %fieldset
+    %fieldset.fieldset
       %legend Import External Address Data
       = form_for @card_basic_import, :url=> external_contacts_admin_imports_path, :html=>{:multipart=>true} do |form|
-        .row
-          .small-3.columns
+        .grid-x.grid-padding-x
+          .small-3.cell
             = label_tag :theater, 'Associate to Theater', :class=>'left inline'
-          .small-9.columns
+          .small-9.cell
             = collection_select :theater, :theater_id, @theaters, :id, :name
-        .row
-          .small-3.columns
+        .grid-x.grid-padding-x
+          .small-3.cell
             = label_tag :data, 'From file', :class=>'left inline'
-          .small-9.columns
+          .small-9.cell
             = form.file_field :data
         = submit_tag "Import Mailing List", :class=>'button'
 
-    %fieldset
+    %fieldset.fieldset
       %legend Import Bulk Orders
       = form_for @bulk_orders_import, :url=> bulk_orders_admin_imports_path, :html=>{:multipart=>true} do |form|
-        .row
-          .small-3.columns
+        .grid-x.grid-padding-x
+          .small-3.cell
             = label_tag :theater, 'Associate to Theater', :class=>'left inline'
-          .small-9.columns
+          .small-9.cell
             = collection_select :theater, :theater_id, @theaters, :id, :name
-        .row
-          .small-3.columns
+        .grid-x.grid-padding-x
+          .small-3.cell
             = label_tag :payment_type, 'Use Payment Type', :class=>'left inline'
-          .small-9.columns
+          .small-9.cell
             = collection_select :payment_type, :payment_type_id, @payment_types, :id, :display_name, :include_blank=>"None"
-        .row
-          .small-3.columns
+        .grid-x.grid-padding-x
+          .small-3.cell
             = label_tag :data, 'From file', :class=>'left inline'
-          .small-9.columns
+          .small-9.cell
             = form.file_field :data
         = submit_tag "Import Orders", :class=>'button'
-      %fieldset
-        %legend Import Flex Pass Orders
-        = form_for @bulk_flex_pass_orders_import, :url=> bulk_flex_pass_orders_admin_imports_path, :html=>{:multipart=>true} do |form|
-          .row
-            .small-3.columns
-              = label_tag :theater, 'Associate to Theater', :class=>'left inline'
-            .small-9.columns
-              = collection_select :theater, :theater_id, @theaters, :id, :name
-          .row
-            .small-3.columns
-              = label_tag :payment_type, 'Use Payment Type', :class=>'left inline'
-            .small-9.columns
-              = collection_select :payment_type, :payment_type_id, @payment_types, :id, :display_name, :include_blank=>"None"
-          .row
-            .small-3.columns
-              = label_tag :data, 'From file', :class=>'left inline'
-            .small-9.columns
-              = form.file_field :data
-          = submit_tag "Import Flex Pass Orders", :class=>'button'
+    %fieldset.fieldset
+      %legend Import Flex Pass Orders
+      = form_for @bulk_flex_pass_orders_import, :url=> bulk_flex_pass_orders_admin_imports_path, :html=>{:multipart=>true} do |form|
+        .grid-x.grid-padding-x
+          .small-3.cell
+            = label_tag :theater, 'Associate to Theater', :class=>'left inline'
+          .small-9.cell
+            = collection_select :theater, :theater_id, @theaters, :id, :name
+        .grid-x.grid-padding-x
+          .small-3.cell
+            = label_tag :payment_type, 'Use Payment Type', :class=>'left inline'
+          .small-9.cell
+            = collection_select :payment_type, :payment_type_id, @payment_types, :id, :display_name, :include_blank=>"None"
+        .grid-x.grid-padding-x
+          .small-3.cell
+            = label_tag :data, 'From file', :class=>'left inline'
+          .small-9.cell
+            = form.file_field :data
+        = submit_tag "Import Flex Pass Orders", :class=>'button'
 
     = render '/file_stores/current_files', :file_stores=>@imports

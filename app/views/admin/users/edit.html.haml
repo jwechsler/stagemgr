@@ -6,7 +6,5 @@
     %li= link_to 'Users', admin_users_path
     %li.current= @user.email
 
-.row
-  .small-12.columns
-    = render 'form', :user=>@user
+= render 'form', :user=>@user
 

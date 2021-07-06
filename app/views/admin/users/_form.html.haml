@@ -1,16 +1,20 @@
 = simple_form_for [:admin,user] do |f|
-  .grid-padding-x
+  .grid-x.grid-padding-x
     .small-8.cell
       = f.input :email, :as=>:email
     .small-4.cell
       = f.input :status, :as=>:select, :collection=>User::STATUSES, :include_blank=>false
-
-    = f.input :password, :as=>:password
-    = f.input :password_confirmation, :as=>:password
-    .grid-x
-      .small-6.cell
-        = f.input :is_administrator
-        = f.input :is_box_office_user
-        = f.button :submit
-      .small-6.cell
-        = f.association :theaters, :label=>"Associated Theaters", :as=>:select, :input_html=>{:style=>'height: 120px'}
+    .small-8.cell
+      .grid-x.grid-padding-x
+        .cell.small-6
+          = f.input :password, :as=>:password
+        .cell.small-6
+          = f.input :password_confirmation, :as=>:password
+      = f.association :theaters, collection: Theater.where(status: Theater::ACTIVE).order(:name), :label=>"Associated Theaters", :as=>:select, :input_html=>{:style=>'height: 120px'}
+    .small-4.cell
+      = f.input :is_administrator
+      = f.input :is_box_office_user
+      
+    .cell
+      = f.button :submit
+    
