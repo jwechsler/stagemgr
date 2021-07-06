@@ -33,7 +33,7 @@
     }
 
     function update_buttons(table) {
-      var selectedRows = table.rows( { selected: true } ).count();
+      var selectedRows = table.grid-x.grid-padding-xs( { selected: true } ).count();
 
       table.button( 0 ).enable( selectedRows > 0 );
     }
@@ -49,9 +49,9 @@
                 {
                   text: 'Fulfill Selected',
                   action: function(e, dt, node, config) {
-                    //console.log($.map(dt.rows( {selected:true} ).data(), function(r) { return r.DT_RowId }))
+                    //console.log($.map(dt.grid-x.grid-padding-xs( {selected:true} ).data(), function(r) { return r.DT_RowId }))
                     //console.log('Fullfilling Selected');
-                    var ids = $.map(dt.rows({selected:true}).data(), function(r) {return r.DT_RowID })
+                    var ids = $.map(dt.grid-x.grid-padding-xs({selected:true}).data(), function(r) {return r.DT_RowID })
                     //console.log(ids)
                     $.ajax({
                       url: '#{fulfill_selected_admin_orders_path}',
@@ -59,7 +59,7 @@
                       data: {ids: ids},
                       type: "POST",
                       success: function(data) {
-                       dt.rows().invalidate()
+                       dt.grid-x.grid-padding-xs().invalidate()
                        dt.draw()
                       }
                     });
@@ -114,11 +114,11 @@
 
 
       $('#print-button').click( function () {
-          alert( table.rows('.selected').data().length +' row(s) selected' );
+          alert( table.grid-x.grid-padding-xs('.selected').data().length +' row(s) selected' );
       } );
 
       $('#unclaimed-button').click( function () {
-          alert( table.rows('.selected').data().length +' row(s) selected' );
+          alert( table.grid-x.grid-padding-xs('.selected').data().length +' row(s) selected' );
       } );
 
 

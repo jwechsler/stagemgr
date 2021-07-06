@@ -28,6 +28,6 @@
       -if @ticket_order.status == 'Processing' || @ticket_order.status == 'Hold' || @ticket_order.status == Order::NEW
         = link_to 'Cancel Order', cancel_admin_order_path(@ticket_order), :confirm => "Are you sure?", :method=>:post, :class=>'alert small button'
 
-%div.row
+%div.grid-x.grid-padding-x
   %div.small-12.cell
     = render :partial => '/admin/orders/audit_show', :locals=>{:order_form=>@ticket_order}

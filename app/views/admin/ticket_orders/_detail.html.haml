@@ -10,7 +10,7 @@
       =render '/admin/addresses/info', :address=>ticket_order.address, :breadcrumb_order=>ticket_order
   .small-12.medium-6.cell
     - if ticket_order.exchanged? || !ticket_order.exchange_source_id.nil?
-      %div.row
+      %div.grid-x.grid-padding-x
         %div.small-12.cell
           %fieldset.fieldset
             %legend Exchange History

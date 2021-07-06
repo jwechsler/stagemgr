@@ -2,7 +2,7 @@
   %div.small-4.cell
     = f.input :credit_card_type, :label=>"Card Type", :required=>true,  :include_blank=>false, :collection=>CreditCardPayment.card_types
   %div.small-8.cell
-    %div.row
+    %div.grid-x.grid-padding-x
       %div.small-12.cell
         = f.input :credit_card_number, :required=>true, :input_html => { :maxlength=>16 }
         %div.grid-x.collapse

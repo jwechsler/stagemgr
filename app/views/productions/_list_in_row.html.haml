@@ -1,5 +1,5 @@
 .production_list
-  .row
+  .grid-x.grid-padding-x
     - num_pieces = productions.size
     - slice = 12 / across
     - current_production_index=0
@@ -7,7 +7,7 @@
       - content_for(:head) do
         = production_image_style(production)
       - if current_production_index % across == 0
-        %div.row
+        %div.grid-x.grid-padding-x
         = render 'list_item', :production=>production, :slice=>slice
       - else
         = render 'list_item', :production=>production, :slice=>slice
