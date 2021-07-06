@@ -4,55 +4,55 @@
   %ul.breadcrumbs
     %li.current= link_to 'Reports', admin_reports_path
 
-.row
-  .small-6.columns
+.grid-x.grid-padding-x
+  .small-4.cell
     %span.report_title Production Sales By Performance
     %span.help_text
       Returns ticket counts and revenue by performance for specified productions.
       %br
       Downloadable version [production_totals.csv] includes counts by ticket class.
-  .small-6.columns
+  .small-8.cell
     = form_tag(production_sales_by_performance_admin_reports_path, :method=>"post") do
-      .row.collapse
-        .small-8.columns
+      .grid-x.grid-padding-x.collapse
+        .small-8.cell
           = collection_select(:report, :production_id, @productions, :id, :name)
-        .small-2.columns
+        .small-2.cell
           = submit_tag "Show", :class=>'tiny button postfix'
-        .small-2.columns
+        .small-2.cell
           = submit_tag "Download", :name=>'download_csv', :class=>'tiny button postfix'
 - if !@flex_pass_offers.nil? && @flex_pass_offers.size > 0 then
-  .row
-    .small-6.columns
+  .grid-x.grid-padding-x
+    .small-4.cell
       %span.report_title FlexPass Redemptions
       %span.help_text
         Returns Sales Info for specified FlexPass offer.
         %br
         Downloadable version [flexpass_sales.csv] includes contact information for pass holders
-    .small-6.columns
+    .small-8.cell
       = form_tag(flexpass_sales_admin_reports_path, :method=>"post") do
-        .row.collapse
-          .small-8.columns
+        .grid-x.grid-padding-x.collapse
+          .small-8.cell
             = collection_select(:report, :flex_pass_offer_id, @flex_pass_offers, :id, :name)
-          .small-2.columns
+          .small-2.cell
             = submit_tag "Show", :class=>'tiny button postfix'
-          .small-2.columns
+          .small-2.cell
             = submit_tag "Download", :name=>'download_csv', :class=>'tiny button postfix'
 
-.row
-  .small-6.columns
+.grid-x.grid-padding-x
+  .small-4.cell
     %span.report_title Production Attendees
     %span.help_text
       Download a copy of all orders with attendee contact information as production_attendee.csv.
       - if can?(:view_email, Address)
         %br
         %strong Warning: confidential email records included. DO NOT DISTRIBUTE.
-  .small-6.columns
+  .small-8.cell
     = form_tag(order_dump_admin_reports_path, :method=>"post") do
       = collection_select(:report, :production_id, @productions, :id, :name)
       = submit_tag "Download", :name=>'download_csv', :class=>'tiny button'
 
-.row
-  .small-6.columns
+.grid-x.grid-padding-x
+  .small-4.cell
     %span.report_title
       TRGArts Production Export
     %span.help_text
@@ -60,14 +60,14 @@
       - if can?(:view_email, Address)
         %br
         %strong Warning: confidential email records included. DO NOT DISTRIBUTE.
-  .small-6.columns
+  .small-8.cell
     = form_tag(trg_dump_admin_reports_path, :method=>"post") do
       = collection_select(:report, :production_id, @productions, :id, :name)
       = submit_tag "Generate", :name=>'generate_csv', :class=>'tiny button'
 
 - if can? :attended_dump, Report
-  .row
-    .small-6.columns
+  .grid-x.grid-padding-x
+    .small-4.cell
       %span.report_title
         TRGArts Export by Performance Date
       %span.help_text
@@ -75,23 +75,23 @@
         - if can?(:view_email, Address)
           %br
           %strong Warning: confidential email records included. DO NOT DISTRIBUTE.
-    .small-6.columns
+    .small-8.cell
       = form_tag(attended_dump_admin_reports_path, :method=>"post") do
-        .row
-          .small-6.columns
+        .grid-x.grid-padding-x
+          .small-6.cell
             %label{:for=>:starting_date} Attended On or after
             = text_field_tag( :starting_date, Date.today, :default=>Date.today-7.days, :class=>'date_picker')
-          .small-6.columns
+          .small-6.cell
             %label{:for=>:starting_date} Attended Before or on
             = text_field_tag( :ending_date, Date.today, :default=>Date.today, :class=>'date_picker')
 
-        .row
-          .small-12.columns
+        .grid-x.grid-padding-x
+          .small-12.cell
             = submit_tag "Generate", :name=>'generate_csv', :class=>'tiny button'
 
 - if can? :donation_dump, Report
-  .row
-    .small-6.columns
+  .grid-x.grid-padding-x
+    .small-4.cell
       %span.report_title
         Donor export by Donation Date
       %span.help_text
@@ -99,105 +99,103 @@
         - if can?(:view_email, Address)
           %br
           %strong Warning: confidential email records included. DO NOT DISTRIBUTE.
-    .small-6.columns
+    .small-8.cell
       = form_tag(donation_dump_admin_reports_path, :method=>"post") do
-        .row
-          .small-6.columns
+        .grid-x.grid-padding-x
+          .small-6.cell
             %label{:for=>:starting_date} Gave On or after
             = text_field_tag( :starting_date, Date.today, :default=>Date.today-7.days, :class=>'date_picker')
-          .small-6.columns
+          .small-6.cell
             %label{:for=>:starting_date} Gave Before or on
             = text_field_tag( :ending_date, Date.today, :default=>Date.today, :class=>'date_picker')
-
-        .row
-          .small-12.columns
+          .small-12.cell
             = submit_tag "Generate", :name=>'generate_csv', :class=>'tiny button'
 
 
 - if can? :house_management_reports, Report then
-  .row
-    .small-6.columns
+  .grid-x.grid-padding-x
+    .small-4.cell
       %span.report_title House Management Seating Report
       %span.help_text House management requests for special seating
-    .small-6.columns
+    .small-8.cell
       = form_tag(house_management_seating_admin_reports_path, :method=>"post") do
-        .row.collapse
-          .small-8.columns
+        .grid-x.grid-padding-x.collapse
+          .small-8.cell
             = text_field_tag( :performance_day, Date.today, :default=>Time.now.end_of_month, :class=>'date_picker')
-          .small-4.columns
+          .small-4.cell
             = submit_tag "Show", :class=>'tiny button postfix action'
 
 - if can? :box_office_reports, Report then
-  .row
-    .small-6.columns
+  .grid-x.grid-padding-x
+    .small-4.cell
       %span.report_title Weekly Box Office
       %span.help_text Returns aggregate numbers for performance sales during specified week
-    .small-6.columns
+    .small-8.cell
       = form_tag(weekly_box_office_admin_reports_path, :method=>"post") do
-        .row.collapse
-          .small-8.columns= collection_select(:report, :week_ending, select_week_of, :display, :value)
-          .small-2.columns
+        .grid-x.grid-padding-x.collapse
+          .small-8.cell= collection_select(:report, :week_ending, select_week_of, :display, :value)
+          .small-4.cell
             = submit_tag "Show", :class=>'tiny button postfix'
-          .small-2.columns
             = submit_tag "Download", :name=>'download_csv', :class=>'tiny button postfix'
 
 - if can?(:fulfill, TicketOrder) && !$TKTPRINT['service'].blank? then
-  .row
-    .small-6.columns
+  .grid-x.grid-padding-x
+    .small-4.cell
       %span.report_title
         Print Tickets
       %span.help_text
         Print all unfulfilled tickets through specified date
-    .small-6.columns
+    .small-8.cell
       = form_tag(fulfill_tickets_admin_reports_path, :method=>"post") do
-        .row.collapse
-          .small-8.columns
+        .grid-x.grid-padding-x.collapse
+          .small-8.cell
             = text_field_tag(:through_day, Date.today, :default=>Time.now, :class=>'date_picker')
-          .small-4.columns
+          .small-4.cell
             = submit_tag "Print", :confirm =>"This will fulfill tickets.  Are you sure?", :class=>'tiny button postfix'
 
 - if can? :reconciliation_reports, Report then
-  .row
-    .small-6.columns
+  .grid-x.grid-padding-x
+    .small-4.cell
       %span.report_title Daily Receipts
       %span.help_text Returns daily sales for specified range.  Order information included in download version
-    .small-6.columns
+    .small-8.cell
       = form_tag(daily_box_office_receipts_admin_reports_path, :method=>"post") do
         =render 'date_range_picker', :default_start=>Date.today, :default_end=>Date.today
 - if can? :membership_reports, Report then
-  .row
-    .small-6.columns
+  .grid-x.grid-padding-x
+    .small-4.cell
       %span.report_title Membership Usage
       %span.help_text Returns membership usage data by member.
-    .small-6.columns
+    .small-8.cell
       = form_tag(membership_usage_admin_reports_path, :method=>"post") do
         =render 'date_range_picker', :default_start=>Date.today.beginning_of_month, :default_end=>Date.today.end_of_month
 
 - if can? :mine_customer_data, Report then
-  .row
-    .small-6.columns{:valign=>'top'}
+  .grid-x.grid-padding-x
+    .small-4.cell{:valign=>'top'}
       %span.report_title Mine Customer Data
       %span.help_text Download a copy of customers with tracking and aggregate criteria
-    .small-6.columns
+    .small-8.cell
       = form_tag(mine_customer_data_admin_reports_path, :method=>"post") do
-        .row.collapse
-          .small-4.columns
+        .grid-x.grid-padding-x.collapse
+          .small-4.cell
             %label{:for=>:from_day} Activity After
             = text_field_tag(:from_day, nil, :default=>Time.now, :end_year=>Time.now.year, :class=>'date_picker')
-          .small-4.columns
+          .small-4.cell
             %label{:for=>:minimum_revenue} Min. Revenue
             = number_field_tag(:minimum_revenue, 0)
-          .small-4.columns
+          .small-4.cell
             %label{:for=>:minimum_attended} Min. Perf.
             = number_field_tag(:minimum_attended, 0)
-        .row
-          .small-12.columns
+        .grid-x.grid-padding-x
+          .small-12.cell
             %label{:for=>:required_theaters} Must have attended
             = select_tag(:required_theaters,  options_from_collection_for_select(Theater.all.order(:name), "id", "name"), :multiple=>true, :size=>8)
             = submit_tag "Download", :name=>'download_csv', :class=>'tiny button postfix'
 
-.row
-  .small-12.columns
-    %fieldset
-      %legend Generated reports
-      = render '/file_stores/current_files', :file_stores=>@generated_reports
+-if @generated_reports.size > 0
+  .grid-x.grid-padding-x
+    .small-12.cell
+      %fieldset.fieldset
+        %legend Generated reports
+        = render '/file_stores/current_files', :file_stores=>@generated_reports

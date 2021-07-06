@@ -1,14 +1,14 @@
-.row
-  .small-12.columns
-    .row
-      .small-4.columns
+.grid-x.grid-padding-x
+  .small-12.cell
+    .grid-x.grid-padding-x
+      .small-4.cell
         =f.input :code
-      .small-4.columns
+      .small-4.cell
         =f.input :type, :collection=>{"$ Off"=>AmountOffSpecialOffer,"% Off"=>PercentOffSpecialOffer, 'TktClass'=>TicketClassSpecialOffer}, :include_blank=>false
-      .small-4.columns
+      .small-4.cell
         =f.input :status, :collection=>SpecialOffer::OFFER_STATUSES, :include_blank=>false
-    .row
-      .small-6.columns
+    .grid-x.grid-padding-x
+      .small-6.cell
         %fieldset
           %legend Criteria
           =f.input :limiting_model_type, :label=>"Restrict To", :include_blank=>false,
@@ -21,50 +21,50 @@
 
 
 
-      .small-6.columns
+      .small-6.cell
         %fieldset
           %legend Action
           =f.input :amount, :label=>"Discount"
           =f.input :change_ticket_class_code, :label=>"Set ticket class code"
-    .row
-      .small-12.columns
+    .grid-x.grid-padding-x
+      .small-12.cell
         %fieldset
           %legend Filters
-          .row
-            .small-12.medium-6.columns
+          .grid-x.grid-padding-x
+            .small-12.medium-6.cell
               =f.input :ticket_class_code, :label=>"Ticket Classes starting with"
-              .row
-                .small-6.columns
+              .grid-x.grid-padding-x
+                .small-6.cell
                   =f.input :performance_start_range, input_html: {:class=>'date_picker'}, as: :string, :label=>"Performances on or after"
-                .small-6.columns
+                .small-6.cell
                   =f.input :performance_end_range, input_html: {:class=>'date_picker'}, as: :string, :label=>"Performances on or before"
 
-            .small-12.medium-6.columns
+            .small-12.medium-6.cell
               %fieldset
                 %legend Restrict by Day of Week
-                .row
-                  .columns.small-6
+                .grid-x.grid-padding-x
+                  .cell.small-6
                     =f.input :restricted_monday, label:"Mondays", as: :boolean
                     =f.input :restricted_tuesday, label:"Tuesdays", as: :boolean
                     =f.input :restricted_wednesday, label:"Wednesdays", as: :boolean
-                  .columns.small-6
+                  .cell.small-6
                     =f.input :restricted_thursday, label:"Thursdays", as: :boolean
                     =f.input :restricted_friday, label:"Fridays", as: :boolean
                     =f.input :restricted_saturday, label:"Saturdays", as: :boolean
                     =f.input :restricted_sunday, label:"Sundays", as: :boolean
-    .row
-      .small-12.columns
+    .grid-x.grid-padding-x
+      .small-12.cell
         %fieldset
           %legend Use restrictions
-          .small-6.columns
-            =f.input :auto_start, :as=>:datetime_picker, :label=>"Activate at"
-          .small-6.columns
+          .small-6.cell
+            =f.input :auto_start, :as=>:datetime_picker, :label=>"Activate at", input_html: {:class=>'date_picker'}
+          .small-6.cell
             =f.input :auto_expire, input_html: {:class=>'date_picker'}, as: :string, :label=>"Expire on"
 
-          .small-12.medium-6.columns
+          .small-12.medium-6.cell
             =f.input :number_of_uses, :label=>"Maximum uses"
-          .small-12.medium-6.columns
+          .small-12.medium-6.cell
             =f.input :max_tickets_per_order, :label=>"Max tickets/order"
-    .row
-      .small-12.columns
+    .grid-x.grid-padding-x
+      .small-12.cell
         =f.button :submit

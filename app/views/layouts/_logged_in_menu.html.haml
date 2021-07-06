@@ -33,33 +33,34 @@
           %a{:href=>"#"} Options
           %ul.menu.vertical
             - if can? :edit, SpecialOffer
-              %li
-                =link_to('Special Offers', admin_special_offers_path)
+              %li= link_to('Special Offers', admin_special_offers_path)
+            -if can? :read, FileStore 
+              %li= link_to "Import data", admin_imports_path
             - if (can? :edit, User) || (can? :edit, SpecialFeature) || (can? :edit, DefaultTicketClass) || (can? :edit, PaymentType) || (can? :read, FileStore) || (can? :edit, Venue)
               %li
-                %label System Config
-                - if can? :read, User
+                %li.menu-text System Config
+                %ul.nested.vertical.menu
+                  - if can? :read, User
+                    %li
+                      =link_to('Administer Users', admin_users_path)
+                  - if can? :read, SpecialFeature
+                    %li
+                      =link_to('Performance Features', admin_special_features_path)
+                  - if can? :read, DefaultTicketClass
+                    %li
+                      =link_to 'Default Ticket Classes', admin_default_ticket_classes_path
+                  - if can? :read, PaymentType
+                    %li
+                      =link_to "Manage Payment Types", admin_payment_types_path
+                  - if (can? :edit, Venue) then
+                    %li= link_to('Venues', admin_venues_path)
+                  - if (can? :edit, ServiceItemTemplate) then
+                    %li= link_to('Service Items', admin_service_item_templates_path)
+                  - if can? :read, FileStore
+                    %li.divider
+                    
                   %li
-                    =link_to('Administer Users', admin_users_path)
-                - if can? :read, SpecialFeature
-                  %li
-                    =link_to('Performance Features', admin_special_features_path)
-                - if can? :read, DefaultTicketClass
-                  %li
-                    =link_to 'Default Ticket Classes', admin_default_ticket_classes_path
-                - if can? :read, PaymentType
-                  %li
-                    =link_to "Manage Payment Types", admin_payment_types_path
-                - if (can? :edit, Venue) then
-                  %li= link_to('Venues', admin_venues_path)
-                - if (can? :edit, ServiceItemTemplate) then
-                  %li= link_to('Service Items', admin_service_item_templates_path)
-                - if can? :read, FileStore
-                  %li.divider
-                  %li
-                    =link_to "Import data", admin_imports_path
-                %li
-                  %a{href:"#{$SERVER_CONFIG['root_url']}/admin/resque"} Job Queue
+                    %a{href:"#{$SERVER_CONFIG['root_url']}/admin/resque"} Job Queue
 
         %li
           =link_to('My Account', current_user_account_path)

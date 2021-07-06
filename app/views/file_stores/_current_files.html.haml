@@ -1,16 +1,14 @@
 - if file_stores.size > 0
-  .row
-    .small-12.colums
-      %table
-        %thead
-          %th Created On
-          %th File Name
-          %th Size
-          %th Status
-        %tbody
-          - file_stores.each do |file|
-            %tr
-              %td= file.created_at.to_s
-              %td= link_to file.data_file_name, file.data.url, :target=>"_blank"
-              %td= file.data_file_size.nil? ? '' : "#{file.data_file_size/1024} KB"
-              %td= file.notes
+  %table
+    %thead
+      %th Created On
+      %th File Name
+      %th Size
+      %th Status
+    %tbody
+      - file_stores.each do |file|
+        %tr
+          %td= file.created_at.to_s
+          %td= link_to file.data_file_name, file.data.url, :target=>"_blank"
+          %td= file.data_file_size.nil? ? '' : "#{file.data_file_size/1024} KB"
+          %td= file.notes

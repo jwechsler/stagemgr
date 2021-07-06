@@ -3,7 +3,6 @@
 //= require datatables
 //= require jquery-ui/widgets/datepicker
 //= require foundation
-//= require foundation-datetimepicker
 //= require jquery.timepicker
 //= require nested_form_fields
 //= require utility
@@ -29,17 +28,6 @@ $(document).ready(function() {
     step:15,
     minTime:"9:00am",
     maxTime:"11:30pm",
-  });
-
-  $('input.datetime_picker').fdatetimepicker({
-      autoclose: true,
-      todayBtn: 'linked',
-      format: "mm/dd/yy H:iiP",
-
-      setStartDate: '2000-01-01',
-      minuteStep: 15,
-      pickerPosition: "bottom-left"
-
   });
 
 });

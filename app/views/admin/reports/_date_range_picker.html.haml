@@ -1,11 +1,10 @@
-.row.collapse
-  .small-4.columns
+.grid-x.grid-padding-x
+  .small-4.cell
     %label{:for=>:start_day} From
     = text_field_tag(:start_day, default_start, :type=>"date", :class=>'date_picker')
-  .small-4.columns
+  .small-4.cell
     %label{:for=>:end_day} To
     = text_field_tag(:end_day, default_end, :type=>"date", :class=>'date_picker')
-  .small-2.columns
+  .small-4.cell.float-right
     = submit_tag "Show", :class=>'tiny button postfix', :style=>'margin-top:21px'
-  .small-2.columns
     = submit_tag "Download", :name=>'download_csv', :class=>'tiny button postfix', :style=>'margin-top:21px'
