@@ -31,3 +31,8 @@ select[size], select[multiple] {
   background-color: aqua;
   padding:  20px 30px;
 }
+
+.dataTables_processing {
+  background-color: aqua !important;
+  padding:  20px 30px;
+}

@@ -6,58 +6,55 @@
     %li.current
       %a{:href=>'#'}=@membership_offer.name
 
-.row
-  .small-12.medium-6.columns
+.grid-x.grid-padding-x
+  .small-12.medium-6.cell
     = render '/membership_offers/info', :membership_offer=>@membership_offer
-  .small-12.medium-6.columns
-    .row
-      .small-12.columns
-        %span.label.right= @membership_offer.on_sale? ? 'On Sale' : 'Private'
-        %span.label.right.alert= @membership_offer.status 
+  .small-12.medium-6.cell
+    %span.label.float-right= @membership_offer.on_sale? ? 'On Sale' : 'Private'
+    %span.label.float-right.alert= @membership_offer.status 
         
-    .row
-      .small-12.columns
-        %ul.tabs{'data-tab'=>true}
-          %li.tab-title.active
-            %a{:href=>"#mo-panel-1"} Offer Details
-          %li.tab-title
-            %a{:href=>'#mo-panel-2'} Notification
-        .tabs-content
-          #mo-panel-1.content.active
-            .row
-              .small-12.columns
-                %p
-                  %strong Recurring Cost:
-                  = "#{number_to_currency(@membership_offer.recurring_cost)}/month"
-                  - unless @membership_offer.trial_period.blank? || @membership_offer.trial_period == 0
-                    %br
-                    ="(Trial Period: #{@membership_offer.trial_period} months @ #{@membership_offer.trial_price}/month"
-                %p
-                  %strong Tickets/performance:
-                  = @membership_offer.tickets_per_performance
-              .small-6.columns
-                %p
-                  %strong Use Ticket Class
-                  %br
-                  = @membership_offer.use_ticket_class_code
-              .small-6.columns
-                %p
-                  %strong Use Friend Class
-                  %br
-                  = @membership_offer.use_member_friend_code
-            .row
-              .small-12.columns
-                - if @membership_offer.restricted_to_first_time?
-                  %p
-                    %i Available to first time members only
-                - unless @membership_offer.max_cycles_if_gift.blank?
-                  %p
-                    %i= "#{@membership_offer.max_cycles_if_gift} months duration when given as gift"
-          #mo-panel-2.content
-            .row
-              .small-12.columns
-                = display_markdown @membership_offeremail_html
 
-.row
-  .small-12.colunns
+    %ul.tabs#offertab(data-tabs)
+      %li.tabs-title.is-active
+        %a{:href=>"#mo-panel-1", 'aria-selected'=>"true"} Offer Details
+      -unless @membership_offer.email_html.blank?
+        %li.tabs-title
+          %a{:href=>'#mo-panel-2', 'data-tabs-target'=>'mo-panel-2'} Notification
+    .tabs-content
+      #mo-panel-1.tabs-panel.is-active
+        .grid-x.grid-padding-x
+          .small-12.cell
+            %p
+              %strong Recurring Cost:
+              = "#{number_to_currency(@membership_offer.recurring_cost)}/month"
+              - unless @membership_offer.trial_period.blank? || @membership_offer.trial_period == 0
+                %br
+                ="(Trial Period: #{@membership_offer.trial_period} months @ #{@membership_offer.trial_price}/month"
+            %p
+              %strong Tickets/performance:
+              = @membership_offer.tickets_per_performance
+          .small-6.cell
+            %p
+              %strong Use Ticket Class
+              %br
+              = @membership_offer.use_ticket_class_code
+          .small-6.cell
+            %p
+              %strong Use Friend Class
+              %br
+              = @membership_offer.use_member_friend_code
+        .grid-x.grid-padding-x
+          .small-12.cell
+            - if @membership_offer.restricted_to_first_time?
+              %p
+                %i Available to first time members only
+            - unless @membership_offer.max_cycles_if_gift.blank?
+              %p
+                %i= "#{@membership_offer.max_cycles_if_gift} months duration when given as gift"
+      #mo-panel-2.tabs-panel
+        .grid-x.grid-padding-x
+          .small-12.cell
+            = display_markdown @membership_offer.email_html
+
+  .small-12.cell
     = link_to "Edit", edit_admin_membership_offer_path(@membership_offer), :class=>'button'

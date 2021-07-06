@@ -8,8 +8,8 @@
     %li.current
       %a{:href=>"#"}= @performance.performance_code
 
-.row
-  .small-12.columns
+.grid-x.grid-padding-x
+  .small-12.cell
     %h3
       %i= @performance.production.name
       on
@@ -20,12 +20,11 @@
     Performance Code:
     = @performance.performance_code
     %br
-    %br
     Status:
     = @performance.status
     %br
     - unless @performance.special_features.empty? && @performance.special_feature_display_markdown.blank?
-      %fieldset
+      %fieldset.fieldset
         %legend Special Features
         %ul
           - unless @performance.special_features.empty?
@@ -41,11 +40,11 @@
 
 
     %h3 Available ticket classes
-    %fieldset
+    %fieldset.fieldset
       %legend On Sale to Public
       - allocations = @performance.ticket_class_allocations.select { |tca| tca.available? && tca.ticket_class.web_visible? }.sort{|a,b| a.ticket_class.class_code <=> b.ticket_class.class_code }
       = render partial: 'ticket_class_allocations', locals: {allocations: allocations}
-    %fieldset
+    %fieldset.fieldset
       %legend Backend
       - allocations = @performance.ticket_class_allocations.select{|tca| tca.available? && !tca.ticket_class.web_visible? }.sort{ |a,b| a.ticket_class.class_code <=> b.ticket_class.class_code }
       = render partial: 'ticket_class_allocations', locals: {allocations: allocations}
