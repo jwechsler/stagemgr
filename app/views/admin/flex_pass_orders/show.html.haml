@@ -3,11 +3,11 @@
     = render '/admin/orders/header', :order=>@flex_pass_order
 .grid-x.grid-padding-x
   .small-12.medium-6.cell
-    %fieldset
+    %fieldset.fieldset
       %legend Holder Info
       =render '/admin/addresses/info', :address=>@flex_pass_order.address, :breadcrumb_order=>@flex_pass_order
   .small-12.medium-6.cell
-    %fieldset
+    %fieldset.fieldset
       %legend Flex Pass
       = render :partial => '/admin/flex_pass_line_items/table', :locals=>{:order=>@flex_pass_order}
 .grid-x.grid-padding-x

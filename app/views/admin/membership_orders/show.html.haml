@@ -3,11 +3,11 @@
     = render '/admin/orders/header', :order=>@membership_order
   .grid-x.grid-padding-x
     .small-12.medium-6.cell
-      %fieldset
+      %fieldset.fieldset
         %legend Member Info
         =render '/admin/addresses/info', :address=>@membership_order.address, :breadcrumb_order=>@membership_order
     .small-12.medium-6.cell
-      %fieldset
+      %fieldset.fieldset
         %legend Membership Information
         = render '/admin/memberships/detail', :membership=>@membership_order.membership
   .grid-x.grid-padding-x

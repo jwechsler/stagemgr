@@ -14,12 +14,12 @@
       = render '/admin/orders/status_bar', :order=>@original_order
 
 %div.grid-x.grid-padding-x
-  %fieldset
+  %fieldset.fieldset
     %legend Original Order
     = render '/admin/ticket_orders/detail', :ticket_order=>@original_order
 %div.grid-x.grid-padding-x
   %div.small-12.cell
-    %fieldset
+    %fieldset.fieldset
       %legend Exchange Order
       = simple_form_for [:admin, @original_order, @exchange_order], :html=>{:id=>'admin_ticket_order_form'}, :url=>admin_ticket_order_exchange_ticket_orders_path(@original_order) do |order_form|
         = render partial: '/ticket_orders/ticket_order_javascript_fields', locals:{order_form: order_form}

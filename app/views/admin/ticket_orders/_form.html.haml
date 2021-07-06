@@ -14,7 +14,7 @@
     = order_form.simple_fields_for :address do |address_form|
       = render '/admin/orders/address_form', :f => address_form
   .cell.small-12.medium-6
-    %fieldset
+    %fieldset.fieldset
       %legend Marketing
       = order_form.input :add_to_email_list, :as=>:boolean, :label=>'Add to email list?', :default=>false
       = order_form.input :marketing_source, :collection=>Order::REFERRALS, :label=>"How did you hear about the show?"

@@ -4,7 +4,7 @@
       - unless order.notes.blank? && order.special_request.blank? && order.hold_under.blank?
         %div.grid-x.grid-padding-x
           %div.small-12.cell
-            %fieldset
+            %fieldset.fieldset
               %legend Notes/Special Seating
               %p{:class=>'hold-under'}= "Hold under \"#{order.hold_under}\"" unless order.hold_under.blank?
               %p= order.notes unless order.notes.blank?
@@ -17,7 +17,7 @@
     %div#update_note_control.hide
       -#
       = form_for( order, :url=>update_notes_admin_ticket_order_path(order), :method=>'post') do |f|
-        %fieldset
+        %fieldset.fieldset
           %legend Notes
           = render partial:'/admin/ticket_orders/input_notes', locals: {order_form: f}
           = f.submit 'Save update', :class=>'right small button'

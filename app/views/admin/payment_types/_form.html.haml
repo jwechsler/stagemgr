@@ -14,7 +14,7 @@
   .grid-x.grid-padding-x
   = f.input :restrict_to_ticket_classes, :label=>"Only apply to ticket class codes starting with", :hint=>"You can make a comma-delimited list here to restrict by multiple class codes"
 
-  %fieldset
+  %fieldset.fieldset
     %legend Order Task Suppressions
     = render 'order_task_suppressions', :f=>f
   = f.button :submit

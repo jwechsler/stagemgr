@@ -3,7 +3,7 @@
     %div#note_control
       %div.grid-x.grid-padding-x
         %div.small-12.cell
-          %fieldset
+          %fieldset.fieldset
             %legend Membership Seating
             %p
               %b= order.membership.preferred_seating
@@ -14,7 +14,7 @@
     %div#update_note_control.hide
       -#
       = form_for( order, :url=>update_seating_admin_membership_order_path(order), :method=>'post') do |f|
-        %fieldset
+        %fieldset.fieldset
           %legend Membership Seating
           = render partial:'/admin/membership_orders/input_notes', locals: {order_form: f}
           = f.submit 'Save update', :class=>'right small button'
