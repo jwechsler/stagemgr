@@ -1,10 +1,12 @@
-<div class="row"><div class="small-12 columns">
-<h3>Box Office week ending <%= @week_ending.end_of_week.to_s(:long) %></h3>
+<div class="grid-x grid-padding-x">
+  <div class="small-12 cell">
+    <h3>Box Office week ending <%= @week_ending.end_of_week.to_s(:long) %></h3>
 
-<table id="weekly_box_office" class="report">
-  <caption>
-    <i>Weekly receipts, generated at <%= Time.now.to_s(:hour_min) %> on <%= Time.now %></i>
-  </caption>
-  <%= render :partial=>"generic", :locals=>{:headers=>@headers, :report_body=>@report_data, :summary=>@totals} %>
-</table>
-</div></div>
+    <table id="weekly_box_office" class="report">
+      <caption>
+        <i>Weekly receipts, generated at <%= Time.now.to_s(:hour_min) %> on <%= Time.now %></i>
+      </caption>
+      <%= render :partial=>"generic", :locals=>{:headers=>@headers, :report_body=>@report_data, :summary=>@totals} %>
+    </table>
+  </div>
+</div>
