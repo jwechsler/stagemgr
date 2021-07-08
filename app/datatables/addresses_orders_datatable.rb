@@ -33,9 +33,9 @@ class AddressesOrdersDatatable < DatatableBase
           status: raw("<span class=\"label #{order_status_severity_class(order.status)}\">#{order.status}</span>"),
           DT_RowID: order.id,
        }
-      else
-        Array.new
       end
+    else
+      Array.new
     end
   end
 
