@@ -146,7 +146,7 @@ function initialize_seating_assignment() {
   $(".ticket-class-select-button").click(function() {
     var ticket_class_id = $(this).data("ticket-class")
 
-    $('#ticket-modal').foundation('reveal', 'close');
+    $('#ticket-modal').foundation('close');
     accessible_setting = ($("#convert-accessible").is(":checked") && $("#accessible").is(":visible")) ? $("#convert-accessible").val() : ""
     console.log("accessible is " + accessible_setting)
     $.post( reserve_url(),

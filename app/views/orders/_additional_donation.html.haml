@@ -3,7 +3,7 @@
     - t = order_form.object.performance.production.theater unless order_form.object.performance.nil?
     - default_text = t.blank? || t.theater_class == 'Default'
     - unless t.name.eql?('Remy Bumppo Theatre Company')
-      %fieldset.panel
+      %fieldset.panel.fieldset
         %legend
           - if default_text
             I wish to offer additional support

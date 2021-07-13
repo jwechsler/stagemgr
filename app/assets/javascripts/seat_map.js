@@ -1,4 +1,6 @@
+//= require application
 //= require jquery.imagemapster
+//= require foundation
 
 function count_assigned() {
   count = 0
@@ -109,7 +111,7 @@ function mapster_options() {
 }
 
 function initialize_seatingmap() {
-
+  $("#ticket-modal").foundation();
   $('img.seatingmap').mapster(mapster_options());
   $('#seatingmap').mapster('resize',$('img.seatingmap').width(),$('img.seatingmap').height());
 }

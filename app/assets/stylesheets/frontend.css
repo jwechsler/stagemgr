@@ -5,6 +5,9 @@
 
 /* production display css */
 
+.magic-export-data {
+
+}
 
 fieldset legend {
   background:none !important;
@@ -221,7 +224,7 @@ background-dark {
 }
 
 .month_navigation {
-  font-size: .7em;
+  font-size: .6em;
   font-weight: bold;
 }
 
