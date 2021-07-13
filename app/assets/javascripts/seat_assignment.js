@@ -197,7 +197,7 @@ function initialize_seating_assignment() {
 
 function create_column(size, text_content = "", additionalContent = null) {
   col = document.createElement("div")
-  col.setAttribute("class","columns small-" + size)
+  col.setAttribute("class","cell small-" + size)
   col.appendChild(document.createTextNode(text_content))
   if (!(additionalContent == null)) {
     col.appendChild(additionalContent)
@@ -237,7 +237,7 @@ function populate_ticket_order(data) {
       visible_style = ""
     }
     var row = document.createElement("div")
-    row.setAttribute("class", "row ticket_line_item line_item " + visible_style)
+    row.setAttribute("class", "grid-x grid-padding-x ticket_line_item line_item " + visible_style)
     row.setAttribute("price", val['ticket_price'])
     row.setAttribute("ticket_type", val['ticket_type'])
     tli_id = $("#ticket-line-item-merge-" + ticket_class_id).data("ticket-line-item-id")

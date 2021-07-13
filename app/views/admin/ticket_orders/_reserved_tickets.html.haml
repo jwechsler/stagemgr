@@ -15,9 +15,9 @@
   :javascript
 
     $(document).ready(function() {
-
-      $('#ticket_order_performance_code').bind('railsAutocomplete.select', function(event, data){
-        update_ticketing_panel()
+      $('#ticket_order_performance_code').focusout(function(event, data){
+        console.log("updating ticketing panel");
+        update_ticketing_panel();
       })
     });
 
