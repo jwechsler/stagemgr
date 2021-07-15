@@ -4,7 +4,7 @@
   - when @production.status == Production::PRESALE
     %p
       Tickets are not on sale yet for this event. Join our mailing list to be kept up to date on when tickets will be available.
-  - when (@production.performances.count{|p| p.visible?} > 1 || @production.performances.count{|p| !p.order_url_override.blank?} > 0)
+  - when ((@production.performances.count{|p| p.visible?} > 1 || @production.performances.count{|p| !p.order_url_override.blank?} > 0))  && (@production.closing_at >= Date.today)
     %table.performance_calendar
       %caption
         - if !@production.flex_pass_offer.blank?
@@ -17,9 +17,19 @@
             for one low monthly subscription, or purchase tickets for an individual show below
 
         %h3
-          %span.month_navigation= link_to raw("&laquo;#{Date::MONTHNAMES[(@start_date-1.month).month]}&nbsp;"), :action=>:index, :start_date=>@start_date.prev_month, :end_date=>@start_date-1
+          %span.month_navigation
+
+            -if (@start_date-1.month >= @production.first_playing_date.beginning_of_month ) && (@start_date-1.month >= Date.today)
+              = link_to raw("&laquo;#{Date::MONTHNAMES[(@start_date-1.month).month]}&nbsp;"), :action=>:index, :start_date=>@start_date.prev_month, :end_date=>@start_date-1
+            -else
+              = raw("#{Date::MONTHNAMES[(@start_date-1.month).month]}&nbsp;")
+
           = Date::MONTHNAMES[@start_date.month]
-          %span.month_navigation= link_to raw(Date::MONTHNAMES[(@start_date+1.month).month] + '&raquo;'), :action=>:index, :start_date=>@end_date+1, :end_date=>@end_date+1.week
+          %span.month_navigation
+            -if @start_date+1.month <= @production.closing_at.end_of_month
+              = link_to raw(Date::MONTHNAMES[(@start_date+1.month).month] + '&raquo;'), :action=>:index, :start_date=>@end_date+1, :end_date=>@end_date+1.week
+            -else
+              =Date::MONTHNAMES[(@start_date+1.month).month]
       %thead
         %tr
           %th{:scope=>"col",:abbr=>"Sunday",:title=>"Sunday"} Sun
@@ -100,5 +110,5 @@
 
     = render :partial=>'/ticket_orders/edit', :locals=>{:order=>create_ticket_order_for_performance(@production.performances.select{|perf| perf.visible?}.first)}
   - else
-    %p
+    %p.centered
       This event has no performances available for sale.
