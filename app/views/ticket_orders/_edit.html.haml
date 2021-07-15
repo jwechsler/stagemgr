@@ -1,61 +1,64 @@
 .grid-x.grid-padding-x
   .small-12.cell
-    - if !order.updated_at.nil? && order.updated_at < Time.now - 8.minutes
-      %p
-        This order has been inactive for more than 8 minutes.  For privacy protection, you'll have to
-        = link_to "restart",new_production_performance_order_path(order.performance.production.id,order.performance.id)
-        it.  Sorry!
-    - else
-      %a{:name=>"top",:style=>"text-decoration:none"}
-        %h3= raw order.performance.production.name + ' on ' + order.performance.performance_date.to_formatted_s(:long_ordinal) + ' at ' + order.performance.performance_time.to_formatted_s(:hour_min)
+    -if order.performance.nil? || order.performance.withhold_from_public? || order.performance.performance_date < Date.today
+      %p This performance is currently not available. Sorry!
+    -else
+      - if !order.updated_at.nil? && order.updated_at < Time.now - 8.minutes
+        %p
+          This order has been inactive for more than 8 minutes.  For privacy protection, you'll have to
+          = link_to "restart",new_production_performance_order_path(order.performance.production.id,order.performance.id)
+          it.  Sorry!
+      - else
+        %a{:name=>"top",:style=>"text-decoration:none"}
+          %h3= raw order.performance.production.name + ' on ' + order.performance.performance_date.to_formatted_s(:long_ordinal) + ' at ' + order.performance.performance_time.to_formatted_s(:hour_min)
 
-    - order.performance.special_features.each do |feature|
-      .special_feature= display_markdown(feature.description)
+      - order.performance.special_features.each do |feature|
+        .special_feature= display_markdown(feature.description)
 
-    - unless order.performance.special_feature_display_markdown.blank?
-      .special_feature= display_markdown(order.performance.special_feature_display_markdown)
+      - unless order.performance.special_feature_display_markdown.blank?
+        .special_feature= display_markdown(order.performance.special_feature_display_markdown)
 
 
-    =simple_form_for order do |order_form|
-      -# = order_form.error_messages
-      = order_form.hidden_field :status, :value=>(order_form.object.status.blank? ? Order::NEW : order_form.object.status )
-      = order_form.hidden_field :uuid, :value=>(order_form.object.uuid)
-      = render '/ticket_orders/tickets', :order_form => order_form, :order => order
-      - unless order.performance.production.has_reserved_seating?
+      =simple_form_for order do |order_form|
+        -# = order_form.error_messages
+        = order_form.hidden_field :status, :value=>(order_form.object.status.blank? ? Order::NEW : order_form.object.status )
+        = order_form.hidden_field :uuid, :value=>(order_form.object.uuid)
+        = render '/ticket_orders/tickets', :order_form => order_form, :order => order
+        - unless order.performance.production.has_reserved_seating?
+          .grid-x.grid-padding-x
+            .small-4.cell
+              =order_form.label :special_request, 'Special seating requirements?', :class=>'right inline'
+            .small-8.cell
+              = order_form.input_field :special_request, :as=>:select, :collection=>TicketOrder::SEATING_REQUESTS
+
+        = render '/orders/address', :order_form => order_form
+        - @submit_text = "Review Order"
+        = order_form.hidden_field :production_code
+        = order_form.hidden_field :performance_code
+
         .grid-x.grid-padding-x
-          .small-4.cell
-            =order_form.label :special_request, 'Special seating requirements?', :class=>'right inline'
-          .small-8.cell
-            = order_form.input_field :special_request, :as=>:select, :collection=>TicketOrder::SEATING_REQUESTS
-
-      = render '/orders/address', :order_form => order_form
-      - @submit_text = "Review Order"
-      = order_form.hidden_field :production_code
-      = order_form.hidden_field :performance_code
-
-      .grid-x.grid-padding-x
-        .small-12.cell
-          = render '/orders/billing_form', :order_form=>order_form
-        .small-12.cell
-          = render '/orders/additional_donation', :order_form => order_form, :order => order
-        .grid-x.grid-padding-x
-          .small-4.cell
-            =order_form.label :marketing_source, "How did you hear about the show?", :class=>'right inline'
-          .small-8.cell
-            = order_form.input_field :marketing_source, :collection=>Order::REFERRALS
-        .grid-x.grid-padding-x.panel
-          .small-6.cell
-            %p
-              Join the Theater Wit
-              - if order.performance.production.theater.id != 1
-                and #{order.performance.production.theater.name} mailing lists.
-              - else
-                mailing list.
-              Get company news, special offers, ticket discounts and more delivered occasionally to your inbox. Your email will not be shared. :)
-          .small-6.cell
-            = order_form.input :add_to_email_list, :as=>:boolean, :label=>"Sure, sign me up!", input_html:{checked: true}
-        %br
-        = order_form.button :submit, @submit_text, :action=>:confirm, :disable_with => 'Processing...' if (order_form.object.status.blank? || [Order::NEW, Order::HOLD, Order::PROCESSING].include?(order_form.object.status))
+          .small-12.cell
+            = render '/orders/billing_form', :order_form=>order_form
+          .small-12.cell
+            = render '/orders/additional_donation', :order_form => order_form, :order => order
+          .grid-x.grid-padding-x
+            .small-4.cell
+              =order_form.label :marketing_source, "How did you hear about the show?", :class=>'right inline'
+            .small-8.cell
+              = order_form.input_field :marketing_source, :collection=>Order::REFERRALS
+          .grid-x.grid-padding-x.panel
+            .small-6.cell
+              %p
+                Join the Theater Wit
+                - if order.performance.production.theater.id != 1
+                  and #{order.performance.production.theater.name} mailing lists.
+                - else
+                  mailing list.
+                Get company news, special offers, ticket discounts and more delivered occasionally to your inbox. Your email will not be shared. :)
+            .small-6.cell
+              = order_form.input :add_to_email_list, :as=>:boolean, :label=>"Sure, sign me up!", input_html:{checked: true}
+          %br
+          = order_form.button :submit, @submit_text, :action=>:confirm, :disable_with => 'Processing...' if (order_form.object.status.blank? || [Order::NEW, Order::HOLD, Order::PROCESSING].include?(order_form.object.status))
 
     %p
       If you are having any troubles, please call our box office at 773-975-8150 and we'll help you out!

@@ -9,8 +9,6 @@
         <div class="small-6 cell">
           <%= f.input :status, :as=>:select, :collection=>Performance::PERFORMANCE_STATUSES, include_blank:false %>
         </div>
-      </div>
-      <div class="grid-x grid-padding-x">
         <div class="small-6 cell">
           <%= f.input :performance_date,  :label=>"Date", input_html: {:class=>'date_picker'}, as: :string %>
         </div>
@@ -18,10 +16,12 @@
           <%= f.input :performance_time, :as=>:time_picker, input_html: {:value=>performance.performance_time.nil? ? '' : performance.performance_time.to_s(:hour_min) }, :label=>"Time" %>
         </div>
       </div>
+      
     </div>
     <div class="small-6 medium-4 cell">
       <%= f.association :restricted_payment_types, :as=>:select, :collection=>PaymentType.all, :member_label=>:display_name, :hint=>"Prevent sales with these payment types" %>
       <%= f.input :suppress_notification, :label=>"Suppress notification e-mails" %>
+      <%= f.input :withhold_from_public, :label=>"Block sales to public" %>
       <%= f.input :order_url_override, :hint=>"Process sales for this performance outside stagemgr" %>
     </div>
     <div class="small-6 medium-4 cell">

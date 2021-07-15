@@ -47,7 +47,7 @@ class PerformanceDatatable < AjaxDatatablesRails::Base
         date: performance.performance_date,
         time: performance.performance_time.to_s(:hour_min),
         code: link_to(performance.performance_code, [:admin, production.theater, production, performance]),
-        status: raw("<span class=\"label\">#{performance.status}</span>"),
+        status: raw("<span class=\"label\">#{performance.status}</span>" + (performance.withhold_from_public? ? " <span class=\"label alert\">Blocked</span>" : "")),
         actions: raw(allowed_actions(performance)),
         DT_RowID: production.id
      }

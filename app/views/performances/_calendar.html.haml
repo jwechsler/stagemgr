@@ -49,9 +49,9 @@
 
                   %span.vertical_center
                     .show-info
-                      - if (performance.performance_date<Date.today) || performance.sold_out?
+                      - if (performance.performance_date<Date.today) || performance.sold_out? || performance.withhold_from_public?
                         %del= raw title
-                        - if performance.sold_out?
+                        - if performance.sold_out? || performance.withhold_from_public?
                           - found_sold_out = true
                           %br
                           %font{:size=>"-2"} Sold out!

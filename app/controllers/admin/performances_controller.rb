@@ -115,7 +115,7 @@ class Admin::PerformancesController < Admin::ApplicationController
 
   def performance_params
     params.require(:performance).permit(:performance_date, :production_id, :performance_code, :status,
-      :performance_time,  :suppress_notification, :order_url_override,
+      :performance_time,  :suppress_notification, :withhold_from_public, :order_url_override,
       :special_feature_display_markdown,
       :special_feature_email_markdown,
       :ticket_class_allocations_attributes=>[:id, :available, :ticket_limit, :shiftable, :shift_to_code,
