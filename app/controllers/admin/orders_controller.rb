@@ -137,7 +137,7 @@ class Admin::OrdersController < Admin::ApplicationController
   #
   # @order [Order] order to process
   def create_or_update(order, commit_action=nil)
-    new_state = convert_button_label_to_state(params[:commit])
+    new_state = convert_button_label_to_state(params[:submit_action] || params[:commit])
     if new_state.blank? then
       simple_save(order)
     else

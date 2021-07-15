@@ -146,7 +146,7 @@ class Admin::TicketOrdersController < Admin::OrdersController
     else
       # update_ticket_line_items(params[:ticket_order][:ticket_line_items_attributes].values) unless params[:ticket_order][:ticket_line_items_attributes].nil?
       # @ticket_order.payment_type = PaymentType.find(params[:ticket_order][:payment_type_id])
-      create_or_update(@ticket_order, params[:commit])
+      create_or_update(@ticket_order, params[:submit_action])
     end
   end
 
@@ -155,8 +155,8 @@ class Admin::TicketOrdersController < Admin::OrdersController
     @ticket_order.performance=Performance.find_by performance_code:params[:ticket_order][:performance_code]
     @ticket_order.status = Order::NEW if @ticket_order.status.nil?
     time_cutoff = @ticket_order.performance.to_time_with_zone - ($SERVER_CONFIG['minutes_before_performance_close_to_third_party_sales'] || 0).minutes
-
-    if params[:commit].eql?(Order::HOLD) && !(can?(:hold, TicketOrder) || @ticket_order.payment_type.allow_theater_user_holds?)
+    action = params[:submit_action] || params[:commit]
+    if action.eql?(Order::HOLD) && !(can?(:hold, TicketOrder) || @ticket_order.payment_type.allow_theater_user_holds?)
       flash[:error] = "You don't have permissions to put this order on hold with a payment type of #{@ticket_order.payment_type.display_name}"
       render 'edit'
     else
@@ -164,10 +164,11 @@ class Admin::TicketOrdersController < Admin::OrdersController
         flash[:error] = "Orders for this performance must be placed through the box office after #{time_cutoff.strftime('%H:%M%p')} on #{time_cutoff.strftime('%m/%d/%y')}"
         render 'edit'
       else
-        create_or_update(@ticket_order, params[:commit])
+        create_or_update(@ticket_order, params[:submit_action])
       end
     end
   end
+
 
   # def update_ticket_line_items(ticket_lines)
   #   ticket_lines.each {|tli|
@@ -263,6 +264,7 @@ class Admin::TicketOrdersController < Admin::OrdersController
   protected
 
   def create_or_update(order, commit_action = nil)
+    Rails.logger.debug("*** Commit action on ticket_order is #{commit_action}")
     if (convert_button_label_to_state(commit_action).eql?(Order::PROCESSED) && order.performance.production.season_seating? && current_user.cannot?(:process_orders_in_season_seating, TicketOrder)) then
       flash[:error] = "Orders for productions in Season Seating status cannot be placed"
       render 'edit'

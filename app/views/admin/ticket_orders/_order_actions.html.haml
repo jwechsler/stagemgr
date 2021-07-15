@@ -1,18 +1,40 @@
+= hidden_field_tag :submit_action, ""
 - if can? :fulfill, TicketOrder
-  = order_form.submit 'Print Tickets', :class=>'button', :disable_with => 'Printing...' if order_form.object.printable?
+  = order_form.submit 'Print Tickets', :class=>'button' if order_form.object.printable?
 
 - if [Order::NEW, Order::HOLD, Order::EXCHANGING, Order::PROCESSING].include? order_form.object.status
-  = order_form.submit 'Assign Seats', :class=>'hide button seating-required order-submit-button', data:{:disable_with => 'Seating...'}
-  = order_form.submit 'Place Order', :class=>'button seating-not-required order-submit-button', data:{:disable_with => 'Processing...', :confirm => "Process this order?"}
+  = link_to 'Assign Seats', '#', :class=>'submit-button hide button seating-required order-submit-button', :onclick=>"submitForm('Assign Seats')"
+  = link_to 'Place Order', "#", :class=>'submit-button button seating-not-required order-submit-button', :onclick=>"confirmSubmit('Process this order?','Place Order')"
 
 - if ((can?(:hold, TicketOrder) || (can?(:hold_existing, TicketOrder) && !order_form.object.id.nil?)) && order_form.object.unprocessed?)
-  = order_form.submit 'Hold', data:{:disable_with => 'Holding...'}, :class=>'button', :id=>'hold_button' if order_form.object.holdable?
+  = link_to 'Hold', "#", :onclick=>"submitForm('Hold')", class: 'submit-button button', :id=>'hold_button'
+  -# = order_form.submit 'Hold', data:{:disable_with => 'Holding...'}, :class=>'button', :id=>'hold_button' if order_form.object.holdable?
 - else
   %span#hold_control{:class=>"#{(order_form.object.performance.nil? ? 'hide' : (order_form.object.performance.production.status.eql?(Production::SEASONSEATING)) ? 'show' : 'hide')}"}
-    = order_form.submit 'Hold', data:{:disable_with => 'Holding...'}, :class=>'button', :id=>'hold_button' if order_form.object.holdable?
-
-
+    -# = order_form.submit 'Hold', data:{:disable_with => 'Holding...'}, :class=>'button', :id=>'hold_button' if order_form.object.holdable?
 - if can?(:cancel, TicketOrder) && (!order_form.object.id.nil? && (order_form.object.held? || order_form.object.processing? || order_form.object.status == Order::EXCHANGING))
-  = link_to 'Cancel Order', cancel_admin_order_path(order_form.object), data:{:confirm=>"Are you sure?"}, :method=>:post, :class=>'button alert'
+  = link_to 'Cancel Order', cancel_admin_order_path(order_form.object), data:{:confirm=>"Are you sure?"}, :method=>:post, :class=>'submit-button button alert'
 - elsif can?(:cancel_held_during_seating, TicketOrder) && (order_form.object.held? || order_form.object.processing?)
   = link_to 'Cancel Order', cancel_held_during_seating_admin_ticket_order_path(order_form.object), data:{:confirm=>"Are you sure?"}, :method=>:post, :class=>'button alert'
+
+=content_for :js do
+  :javascript
+    function confirmSubmit(prompt, val) {
+      if (confirm(prompt)) {
+        $('.submit-button').prop('disabled', true);
+        $('#submit_action').val(val);
+        console.log("submit action should be " + val);
+        console.log($("#submit_action").val())
+        $('#admin_ticket_order_form').submit();
+        return true;
+        // @todo disable button with processing instructions
+      } else {
+        return false;
+      };
+    };
+
+    function submitForm(val) {
+      $('#submit_action').val(val);
+      $('#admin_ticket_order_form').submit();
+    };
+

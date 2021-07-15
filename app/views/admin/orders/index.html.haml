@@ -33,7 +33,7 @@
     }
 
     function update_buttons(table) {
-      var selectedRows = table.grid-x.grid-padding-xs( { selected: true } ).count();
+      var selectedRows = table.rows( { selected: true } ).count();
 
       table.button( 0 ).enable( selectedRows > 0 );
     }
