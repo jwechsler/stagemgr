@@ -1,5 +1,4 @@
 require 'salesforce_sync'
-#require 'httplog'
 
 Stagemgr::Application.configure do
   # Settings specified here will take precedence over those in config/environment.rb
@@ -59,10 +58,6 @@ Stagemgr::Application.configure do
     ActiveMerchant::Billing::Base.mode = :test
     PaymentProcessing.after_initialize
     MyEmma.set_credentials_from_yaml("#{self.root.to_s}/config/my_emma_credentials.yml")
-    HttpLog.configure do |config|
-      config.logger = Rails.logger
-    end
-
   end
 
   config.external_site_root = 'file:///Users/jeremyw/dev/site'

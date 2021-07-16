@@ -66,10 +66,7 @@ class CreditCardPayment < CurrencyPayment
         :phone => self.address.phone
       }
 
-      # Create paypal gateway
-
       gateway = PaymentProcessing.gateway
-
 
       response = gateway.purchase(self.charge_amount, credit_card, :ip=>self.ip_address, :billing_address=>billing_address, :email => self.address.email, :order_id => self.order_id, :description => self.order.description)
 

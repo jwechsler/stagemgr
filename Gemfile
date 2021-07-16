@@ -37,8 +37,9 @@ gem 'restforce', '~> 2.5.3'
 gem "cancancan"
 gem "activeresource"
 gem "activemerchant"
-gem "braintree"
-gem "braintree-rails"
+gem "stripe"
+#gem "braintree"
+#gem "braintree-rails"
 gem "scrypt", '~> 3.0.6'
 gem "authlogic", '~> 4.4'
 gem "audited", "~> 4.8"
@@ -105,7 +106,6 @@ group :development do
   gem 'http_logger'
   gem 'rb-readline'
   gem "haml-rails"
-  gem 'httplog'
   gem 'single_test'
   # gem 'ruby_parser'  # for declarative authorization eager loading for resque tasks
 end

@@ -1,6 +1,6 @@
 require "active_merchant/billing/rails"
+require 'json'
 module PaymentProcessing
-
 
   class BogusResponse < ActiveMerchant::Billing::Response
 
@@ -86,6 +86,10 @@ module PaymentProcessing
     when 'paypal_express'
       ActiveMerchant::Billing::PaypalExpressGateway.new(:login=>$PAYMENT_CONFIG['paypal_express']['login'],
         :password=>$PAYMENT_CONFIG['paypal_express']['password'])
+    when 'stripe'
+      Stripe.api_key=
+      ActiveMerchant::Billing::StripePaymentIntentsGateway.new(:login=>$PAYMENT_CONFIG['stripe']['secret_key'])
+      
     when 'bogus'
         PaymentProcessing::BogusGateway.new
     end
