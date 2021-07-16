@@ -14,6 +14,9 @@ class VenuesController < ApplicationController
   def now_playing
     self.set_now_playing_productions
     @max_pieces = 4
+    respond_to do |format|
+      format.html { render :layout => false } # your-action.html.erb
+    end
   end
 
   def now_playing_vertical

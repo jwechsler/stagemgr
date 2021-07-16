@@ -14,7 +14,7 @@
           %td
             .show-info
               - unless p.performance_date<Date.today
-                - if p.sold_out?
+                - if p.sold_out? || p.withhold_from_public?
                   - found_sold_out = true
                   %strong Sold out!
                 - elsif p.happening_soon? && p.order_url_override.blank?

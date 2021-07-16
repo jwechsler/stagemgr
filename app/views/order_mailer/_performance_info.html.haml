@@ -1,6 +1,29 @@
 
 = render :partial=>"confirmation_ticket_details", :locals=>{:order=>order}
 
+%h4 COVID-19 Safety Guidelines
+%p
+  We couldn't be more excited to open our doors again after 529 days and we are taking the following steps to support safe attendance during your visit.
+
+  %ul
+    %li
+      %b Everyone (including audience members) at Theater Wit is required to be vaccincated to enter the building.
+        %ul
+          %li Each audience member over 11 years of age must show proof of vaccination at the door for admittance.
+          %li Please present your vaccination card (electronic photos and copies are acceptable) when you arrive.
+          %li If you are unable to be vaccinated for any reason, you may show negative results from a PCR test for COVID-19 administered in the last 48 hours as an alternative.
+          %li If you forget proof of vaccination, we will reschedule your tickets at no charge.
+    %li 
+      %b Free Exchanges due to illness
+      %ul
+        %li If you are feeling unwell, please do not attend :)
+        %li Contact our box office on the day of performance and we will reschedule your ticket at no charge.
+
+    %li All high-touch surfaces are cleaned throughout the evening.
+    %li Masking is not required for vaccinated audiences or staff.
+    %li Our HVAC systems have been upgraded to increase the number of hourly air exchanges in each space to remove aerosoled droplets.
+
+
 %h4 Handy stuff you'll want to know
 
 = render :partial=>"transportation_instructions", :locals=>{:order=>order}
