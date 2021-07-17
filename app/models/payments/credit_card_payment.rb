@@ -75,7 +75,8 @@ class CreditCardPayment < CurrencyPayment
 
       if response.success?
         self.confirmation_code = response.authorization
-        self.transaction_id = response.params["transaction_id"] # Returned transaction id from paypal
+        self.transaction_id = response.params["transaction_id"] || self.confirmation_code # Returned transaction id from paypal
+
       end
 
       unless response.success?
@@ -101,7 +102,7 @@ class CreditCardPayment < CurrencyPayment
       refund_amount = (self.amount*100).to_i
 
 
-      response = gateway.credit(refund_amount, self.transaction_id, :note => note)
+      response = gateway.refund(refund_amount, self.transaction_id || self.confirmation_code, :note => note)
 
       unless response.success?
         raise CannotProcessPayment, response.message
@@ -123,7 +124,11 @@ class CreditCardPayment < CurrencyPayment
   end
 
   def processing_fee
-    0.22 + self.amount * 0.04
+    if self.created_at > Date.parse("16-07-2021")
+      (self.amount) > 0 ? 0.30 + self.amount * 0.035 : 0
+    else
+      (self.amount) > 0 ? 0.22+ + self.amount * 0.04 : 0
+    end
   end
 
   def self.card_types
