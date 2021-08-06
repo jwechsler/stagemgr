@@ -6,7 +6,7 @@ module RecurringProfile
   extend ActiveSupport::Concern
   included do
     belongs_to :address
-    
+
     validates_presence_of :address
     validates_uniqueness_of :profile_id, allow_nil: true, allow_blank:true, :unless=>Proc.new {|profile| profile.profile_id.eql?(PaymentProcessing::BogusResponse::PROFILE_ID)}
 
@@ -58,7 +58,7 @@ module RecurringProfile
     unless self.profile_id.blank?
       subscription = get_profile_data
       self.start_date = Time.at(subscription.start_date).to_date unless subscription.start_date.nil?
-      self.ended_at = Time.at(subscripton.ended_at).to_date unless subscription.ended_at.nil?
+      self.ended_at = Time.at(subscription.ended_at).to_date unless subscription.ended_at.nil?
       self.recurring_amount = subscription.items.data.first['price'].unit_amount.to_f / 100.0
       self.next_billing_date = Time.at(subscription.current_period_end).to_date unless subscription.current_period_end.nil?
       self.cancel_at_period_end = subscription.cancel_at_period_end

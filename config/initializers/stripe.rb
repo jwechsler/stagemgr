@@ -21,6 +21,14 @@ StripeEvent.configure do |events|
     end
   end
 
+  events.subscribe 'customer.subscription.updated' do |event|
+    Membership.find_by(profile_id:event.data['object']['id']).update_from_profile!
+  end
+
+  events.subscribe 'customer.subscription.deleted' do |event|
+    Membership.find_by(profile_id:event.data['object']['id']).update_from_profile!
+  end
+
   events.all do |event|
     Rails.logger.debug("STRIPE CALLBACK: #{event.type}\n\t#{event.data.object}")
   end
