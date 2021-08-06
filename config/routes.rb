@@ -1,6 +1,7 @@
 require 'resque/server'
 
 Stagemgr::Application.routes.draw do
+  mount StripeEvent::Engine, at: '/stripecb' # provide a custom path
 
   namespace(:admin){ resources :memberships }
 

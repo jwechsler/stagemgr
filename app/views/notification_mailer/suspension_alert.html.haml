@@ -45,10 +45,8 @@
           = @order.description
         %p
           Profile ID:
-          %a{:href=>"https://www.paypal.com/us/cgi-bin/webscr?cmd=_profile-recurring-payments&encrypted_profile_id=#{@order.recurring_profile.profile_id}&mp_id=#{@order.recurring_profile.profile_id}&return_to=merchant&flag_flow=merchant#name1"} #{@order.recurring_profile.profile_id}
+          %a{:href=>PaymentProcessing.subscription_url(@order.recurring_profile.profile_id)} #{@order.recurring_profile.profile_id}
           %br
           Last Billing Date:
           =@order.recurring_profile.next_billing_date.to_s
-          %br
-          Outstanding Amount:
-          =@order.recurring_profile.outstanding_balance
+          

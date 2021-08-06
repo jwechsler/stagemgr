@@ -518,6 +518,9 @@ GEM
       net-scp (>= 1.1.2)
       net-ssh (>= 2.8.0)
     stripe (5.37.0)
+    stripe_event (2.3.1)
+      activesupport (>= 3.1)
+      stripe (>= 2.8, < 6)
     syntax (1.2.2)
     sys-uname (1.2.2)
       ffi (~> 1.1)
@@ -634,6 +637,7 @@ DEPENDENCIES
   single_test
   sqlite3
   stripe
+  stripe_event
   syntax
   terminal-notifier
   terrapin

@@ -38,6 +38,7 @@ gem "cancancan"
 gem "activeresource"
 gem "activemerchant"
 gem "stripe"
+gem "stripe_event"
 #gem "braintree"
 #gem "braintree-rails"
 gem "scrypt", '~> 3.0.6'

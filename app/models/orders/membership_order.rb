@@ -11,29 +11,19 @@ class MembershipOrder < Order
   # after_commit :update_membership_profile, :if=>:has_membership?
 
   def transition_processing_to_processed!(redirect_to = nil)
-    Rails.logger.debug("PROCESSING TO PROCESSED")
     self.build_membership_line_item(membership_offer:membership_offer) if membership_line_item.nil?
-    trial_amount = membership_offer.trial_amount.nil? ? 0 : (membership_offer.trial_amount*100).to_i
-    success = false
-    additional_options = { :trial_amount    => trial_amount,
-                           :trial_frequency => 1,
-                           :trial_period    => 'Month',
-                           :trial_cycles    => membership_offer.trial_period
-                         }
-    response = RecurringProfile.create_recurring_profile(self,
-                                        (self.gift? && !self.gift_date.blank?) ?  self.gift_date : Date.today,
-                                        membership_offer.recurring_cost,
-                                        membership_offer.billing_agreement, 1,
-                                        additional_options)
-    if response.success?
-      profile_id = response.params["profile_id"]
-      membership_line_item.membership.profile_id = profile_id
-      membership_line_item.membership.status = response.params["profile_status"][0..-8]
+    subcription_id = nil
+    begin
+      subscription_id = PaymentProcessing.create_subscription(self)
+
+      membership_line_item.membership.profile_id = subscription_id
+      membership_line_item.membership.update_from_profile
+
       membership_line_item.membership.preferred_seating = self.special_request
       membership_line_item.membership.save!
       super
-    else
-      raise RuntimeError, "There was a problem setting up your account for the #{membership_offer.name} payment plan. #{response.message}"
+    rescue StandardError => e
+      raise RuntimeError, "There was a problem setting up your account for the #{membership_offer.name} payment plan. #{e.message}"
     end
   end
 
@@ -54,7 +44,7 @@ class MembershipOrder < Order
   end
 
   def description
-    "Membership " + (self.months_active.blank? ? "" : "[#{self.months_active}]")
+    "Member for #{self.months_active}"
   end
 
   def to_s
@@ -110,7 +100,7 @@ class MembershipOrder < Order
 
   def create_proper_payment_in_amount_of!(amount, payment_options = {})
     self.membership.update_from_profile!
-    if self.membership.active? && self.membership.number_cycles_completed > 0
+    if self.membership.active?
       create_recurring_payment
     end
   end
@@ -180,15 +170,30 @@ class MembershipOrder < Order
     super
   end
 
+
+  def self.register_payment_to_profile(profile_id, amount)
+    order = nil
+    membership = Membership.find_by(profile_id: profile_id)
+    unless membership.nil?
+      order = membership.membership_order.create_recurring_payment!('Webhook Payment', amount: amount)
+    end
+    order
+  end
+
   protected
   def months_active
     if self.membership.nil?
       "ERROR. Membership data missing"
     else
-      if (self.membership.number_cycles_completed || 0) == 0
-        ""
+      Rails.logger.debug("*** Membership: #{self.membership.start_date}")
+      member_start_date = membership.start_date || membership.created_at.to_date
+      end_date = [Date.today, self.membership.ended_at.nil? ? Date.today : self.membership.ended_at].min
+      months = (end_date.year * 12 + end_date.month) - (member_start_date.year * 12 + member_start_date.month)
+      if months == 0
+        days = (end_date - member_start_date).to_i
+        "#{days} day#{'s' if days != 1}"
       else
-        "#{self.membership.number_cycles_completed} month#{'s' if self.membership.number_cycles_completed > 1}"
+        "#{months} month#{'s' if months != 1}"
       end
     end
   end

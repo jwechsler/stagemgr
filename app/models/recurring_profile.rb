@@ -6,12 +6,9 @@ module RecurringProfile
   extend ActiveSupport::Concern
   included do
     belongs_to :address
-
+    
     validates_presence_of :address
     validates_uniqueness_of :profile_id, allow_nil: true, allow_blank:true, :unless=>Proc.new {|profile| profile.profile_id.eql?(PaymentProcessing::BogusResponse::PROFILE_ID)}
-    after_save :cancel_reconciliation_checks, :if=>Proc.new { |record|
-      record.status_changed? && record.canceled?
-    }
 
     before_save :notify_on_suspension, :if=>Proc.new { |record|
       record.status_changed? && record.suspended?
@@ -19,12 +16,9 @@ module RecurringProfile
 
   end
 
-  def cancel_reconciliation_checks
-    self.recurring_order.stop_sanity_checks
-  end
-
   def self.create_recurring_profile(order,start_date, recurring_amount, profile_description,
                                max_failed_payments, additional_options = Hash.new)
+    raise "This functionality has been deprecated"
     gateway ||= PaymentProcessing.recurring_gateway
     f_name, m_name, l_name = order.address.parse_full_name
     order.credit_card_expiration_year = Order.fix_expiration_year(order.credit_card_expiration_year.to_s)
@@ -48,42 +42,40 @@ module RecurringProfile
     response
   end
 
+  protected
   def get_profile_data
-    gateway ||= PaymentProcessing.recurring_gateway
-
-    response = gateway.status_recurring(self.profile_id)
-    response.params
+    if self.profile_id.starts_with?('sub_') then # stripe @todo remove at transition
+      subscription = PaymentProcessing.gateway.subscription(self.profile_id)
+    else
+      response = gateway.status_recurring(self.profile_id)
+      response.params
+    end
   end
 
-  def update_from_profile(response = nil)
+  public
+  def update_from_profile(subscription_id = nil)
+    self.profile_id = subscription_id if (self.profile_id.blank? && !subscription_id.blank?)
     unless self.profile_id.blank?
-      response = self.get_profile_data if response.nil?
-      self.number_cycles_completed = response["number_cycles_completed"] unless response["number_cycles_completed"].blank?
-      self.number_cycles_remaining = response["number_cycles_remaining"] unless response["number_cycles_remaining"].blank?
-      self.total_billing_cycles = response["total_billing_cycles"] unless response["total_billing_cycles"].blank?
-      self.recurring_amount = response["amount"] unless response["amount"].blank?
-      self.next_billing_date = response["next_billing_date"].to_date  unless response["next_billing_date"].blank?
-      self.aggregate_amount = response["aggregate_amount"]  unless response["aggregate_amount"].blank?
-      self.failed_payment_count = response["failed_payment_count"] unless response["failed_payment_count"].blank?
-      self.outstanding_balance = response["outstanding_balance"].to_f unless response["outstanding_balance"].blank?
-      self.final_payment_due_date = response['final_payment_due_date'].to_date unless response['final_payment_due_date'].blank?
-      cycles = self.number_cycles_completed
-      cycles ||=0
-      profile_status = response["profile_status"][0..-8]  unless response["profile_status"].blank?
+      subscription = get_profile_data
+      self.start_date = Time.at(subscription.start_date).to_date unless subscription.start_date.nil?
+      self.ended_at = Time.at(subscripton.ended_at).to_date unless subscription.ended_at.nil?
+      self.recurring_amount = subscription.items.data.first['price'].unit_amount.to_f / 100.0
+      self.next_billing_date = Time.at(subscription.current_period_end).to_date unless subscription.current_period_end.nil?
+      self.cancel_at_period_end = subscription.cancel_at_period_end
+      profile_status = subscription.status
     else
-      profile_status = 'PENDING'
+      profile_status = PENDING
     end
     self.status = case
-      when (profile_status == ACTIVE)
+      when ['active','trialing'].include?(profile_status)
         ACTIVE
-      when (profile_status == PENDING) || (profile_status == ACTIVE && cycles == 0)
-        PENDING
+      when [CANCELED, 'canceled', 'unpaid'].include?(profile_status)
+        CANCELED
+      when ()
       when (['Cancelled',CANCELED].include?(profile_status))
         CANCELED
-      when (profile_status == SUSPENDED)
-        profile_status
       else
-        "Unknown"
+        SUSPENDED
     end
   end
 
@@ -116,7 +108,6 @@ module RecurringProfile
   def pending?
     self.status == PENDING
   end
-
 
   def inactive?
     [Membership::CANCELED, Membership::SUSPENDED].include?(self.status)

@@ -22,14 +22,12 @@
     %br
     %strong Next Billing Date:
     = membership.next_billing_date
+    - if membership.cancel_at_period_end?
+      %span.label.warning= "Cancel pending"
+
     %br
-    %strong Profile ID:
-    %a{:href=>"https://www.paypal.com/us/cgi-bin/webscr?cmd=_profile-recurring-payments&encrypted_profile_id=#{membership.profile_id}&mp_id=#{membership.profile_id}&return_to=merchant&flag_flow=merchant#name1"} #{membership.profile_id}
+    %a.button{:href=>PaymentProcessing.subscription_url(membership.profile_id)} Manage Subscription
     %br
-    - unless membership.failed_payment_count.blank? || membership.failed_payment_count == 0
-      %strong Failed Payment Count:
-      =  "#{membership.failed_payment_count} (#{number_to_currency(membership.outstanding_balance)})"
-      %br
     - linked_offers = membership.special_offers
     - codes = []
     - linked_offers.each do |offer|
@@ -37,10 +35,4 @@
     - unless codes.empty?
       %strong Current Offers:
       = raw codes.join(',')
-    %ul.button-group.right
-      - if membership.suspended?
-        %li
-          =link_to 'Reactivate', reactivate_admin_membership_order_path(membership.membership_order), class:"tiny button"
-      - unless membership.canceled?
-        %li
-          =link_to 'Cancel', cancel_admin_membership_order_path(membership.membership_order), class: "tiny button alert", confirm: "Cancel this payment PERMANENTLY?"
+      

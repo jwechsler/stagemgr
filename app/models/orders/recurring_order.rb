@@ -4,7 +4,6 @@ module RecurringOrder
   included do
     has_many :recurring_payments, :foreign_key=>:order_id
     accepts_nested_attributes_for :recurring_payments
-    after_create :queue_next_sanity_check
   end
 
   def reactivate
@@ -39,6 +38,11 @@ module RecurringOrder
     payment
   end
 
+  def create_recurring_payment!(note = nil, additional_info = {})
+    self.create_recurring_payment(note, additional_info)
+    self.save!
+  end
+  
   def create_missing_recurring_payment(payment_date, amount)
     payment = RecurringPayment.new
     payment.amount = amount
@@ -46,80 +50,6 @@ module RecurringOrder
     payment.processed_on = payment_date
     self.recurring_payments <<  payment
     payment
-  end
-
-  def queue_next_sanity_check
-
-    case
-    when self.recurring_profile.nil? || self.recurring_profile.pending?
-      Resque.enqueue_in(10.minutes, UpdateRecurringProfile, self.id)
-    when self.recurring_profile.active?
-      Resque.enqueue_at(((self.recurring_profile.next_billing_date || Date.today)+ 1.day).to_time,
-                        UpdateRecurringProfile,
-                        self.id)
-    when self.recurring_profile.suspended?
-      Resque.enqueue_in(8.hours,UpdateRecurringProfile,
-                        self.id)
-    end
-
-  end
-
-  def stop_sanity_checks
-    Resque::Job.destroy('maintenance','UpdateRecurringProfile',self.id)
-  end
-
-  def reconcile_to_payment_service
-    unless self.recurring_profile.profile_id.nil?
-      self.recurring_profile.update_from_profile!
-      total_expected = self.recurring_profile.aggregate_amount.to_f
-      total_collected = self.recurring_payments.map(&:amount).reduce(:+) || 0
-
-      if total_collected < total_expected
-        self.create_missing_recurring_payment(Date.today, total_expected - total_collected)
-      end
-
-      self.save!
-    end
-  end
-
-  # decide if we have missing monthly payments
-  def payment_sanity_check
-
-    self.recurring_profile.get_profile_data
-    self.recurring_profile.save!
-    expected_payments = self.recurring_profile.number_cycles_completed - (self.recurring_profile.failed_payment_count || 0)
-    if self.recurring_payments.count < expected_payments then
-      total_collected = self.recurring_payments.map(&:amount).reduce(:+) || 0
-      total_expected = self.recurring_profile.aggregate_amount
-      fill_date = self.recurring_profile.next_billing_date
-      known_dates = self.recurring_payments.map { |p| "#{p.processed_on.month}/#{p.processed_on.year}" }
-      while fill_date > Date.today do
-        fill_date -= 1.month
-      end
-      while total_collected < total_expected.to_f do
-        amount = self.recurring_profile.recurring_amount || self.recurring_offer.recurring_cost
-        amount = total_expected.to_f - total_collected if (total_expected.to_f - total_collected < amount)
-        # now we have the payment amount, back place it
-        found = false
-        new_date = fill_date
-        bottom_limit = self.recurring_profile.created_at.to_date
-        begin
-          check_month = "#{new_date.month}/#{new_date.year}"
-          found = known_dates.include?(check_month)
-          new_date -= 1.month if found
-        end until !found || new_date < bottom_limit
-
-        if new_date < self.recurring_profile.created_at.to_date then
-          fill_date = self.recurring_profile.created_at.to_date + 1.day
-        else
-          fill_date = new_date
-        end
-        known_dates << "#{fill_date.month}/#{fill_date.year}"
-        self.create_missing_recurring_payment(fill_date, amount)
-        total_collected += amount
-      end
-    end
-    self.save!
   end
 
   def notify_suspended

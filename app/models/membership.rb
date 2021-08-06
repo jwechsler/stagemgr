@@ -61,7 +61,6 @@ class Membership < ActiveRecord::Base
     end
   end
 
-
   def recurring_order
     self.membership_order
   end

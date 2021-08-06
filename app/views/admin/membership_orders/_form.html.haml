@@ -1,13 +1,14 @@
 = simple_form_for [:admin, @membership_order], :html=>{:id=>'admin_membership_order_form'} do |order_form|
   %div.grid-x.grid-padding-x
     %div.cell.small-12.medium-8
+      = order_form.simple_fields_for :address do |address_form|
+        = render '/admin/orders/name_form', :f => address_form
+    .cell.small-12.medium-4.hide-for-small-only
       = order_form.simple_fields_for :membership_line_item do |mlif|
         = mlif.input :membership_offer_id, :as=>:hidden
         %h3= mlif.object.membership_offer.name
-  .grid-x.grid-padding-x
-    = order_form.hidden_field :status
-    = order_form.simple_fields_for :address do |address_form|
-      = render '/admin/orders/name_form', :f => address_form
+      = order_form.hidden_field :status
+      
   %div.grid-x.grid-padding-x
     %div.small-6.cell
       = render :partial=>'/membership_orders/preferred_seating', :locals=>{:f => order_form}

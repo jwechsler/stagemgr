@@ -16,7 +16,8 @@
         %legend Membership Details
         .grid-x.grid-padding-x
           .small-6.medium-3.cell
-            = f.input :recurring_cost
+            = f.input :price_id, :label=>"Price ID"
+            -# = f.input :recurring_cost
           .small-6.medium-3.cell
             = f.input :tickets_per_performance
           .small-6.medium-3.cell
