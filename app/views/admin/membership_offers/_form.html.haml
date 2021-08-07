@@ -17,7 +17,6 @@
         .grid-x.grid-padding-x
           .small-6.medium-3.cell
             = f.input :price_id, :label=>"Price ID"
-            -# = f.input :recurring_cost
           .small-6.medium-3.cell
             = f.input :tickets_per_performance
           .small-6.medium-3.cell
@@ -25,10 +24,6 @@
           .small-6.medium-3.cell
             = f.input :use_member_friend_code, :as=>:select, :collection=>DefaultTicketClass.all.map{|tc| tc.class_code}
         .grid-x.grid-padding-x
-          .small-6.medium-3.cell
-            = f.input :trial_period, :label=>"Trial Periods"
-          .small-6.medium-3.cell
-            = f.input :trial_price, :label=>"Trial Price"
           .small-6.medium-3.cell
             = f.label :restricted_to_first_time, "First time members only"
             = f.input_field :restricted_to_first_time

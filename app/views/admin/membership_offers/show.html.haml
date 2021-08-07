@@ -25,11 +25,8 @@
         .grid-x.grid-padding-x
           .small-12.cell
             %p
-              %strong Recurring Cost:
-              = "#{number_to_currency(@membership_offer.recurring_cost)}/month"
-              - unless @membership_offer.trial_period.blank? || @membership_offer.trial_period == 0
-                %br
-                ="(Trial Period: #{@membership_offer.trial_period} months @ #{@membership_offer.trial_price}/month"
+              %strong Price ID:
+              = @membership_offer.price_id
             %p
               %strong Tickets/performance:
               = @membership_offer.tickets_per_performance

@@ -28,7 +28,7 @@ module RecurringOrder
 
   def create_recurring_payment(note = nil, additional_info = {})
     payment = RecurringPayment.new
-    payment.amount = additional_info[:amount] || self.membership.membership_offer.recurring_cost
+    payment.amount = additional_info[:amount] unless additional_info[:amount].blank?
     payment.note = note || "Automatically created"
     payment.transaction_id = additional_info[:transaction_id] || self.recurring_profile.profile_id
     payment.ipn_track_id = additional_info[:ipn_track_id]

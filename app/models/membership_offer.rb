@@ -2,10 +2,9 @@ require 'exceptions.rb'
 
 class MembershipOffer < ActiveRecord::Base
 
-  validates_presence_of :name,:use_ticket_class_code,:recurring_cost,:tickets_per_performance
+  validates_presence_of :name,:use_ticket_class_code,:tickets_per_performance
   validates_presence_of :price_id, :if=>:active?
-  validates_numericality_of :tickets_per_performance, :recurring_cost
-  validates_numericality_of :trial_price, :if=>:has_trial?
+  validates_numericality_of :tickets_per_performance
   before_save :take_inactive_off_sale, :unless=>:active?
   
   OFFER_STATUSES = (ACTIVE, INACTIVE = 'Active',  'Inactive')

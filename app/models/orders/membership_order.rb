@@ -175,7 +175,7 @@ class MembershipOrder < Order
     order = nil
     membership = Membership.find_by(profile_id: profile_id)
     unless membership.nil?
-      order = membership.membership_order.create_recurring_payment!('Webhook Payment', amount: amount)
+      order = membership.membership_order.create_recurring_payment!('Subscription Payment', amount: amount)
     end
     order
   end

@@ -25,24 +25,4 @@ module MembershipOrdersHelper
     params.require(:membership_order).permit(*common_memberhsip_order_params)
   end
 
-  def recurring_response(membership_offer, credit_card, ip, order_id, email, start_date = Date.today)
-    start_date ||= Date.today
-    gateway ||= PaymentProcessing.recurring_gateway
-
-    trial_amt = membership_offer.trial_amount
-    trial_amt = (trial_amt*100).to_i unless trial_amt.nil?
-
-    response = gateway.recurring((membership_offer.recurring_cost * 100).to_i, credit_card,
-                                   :ip=>ip, :order_id =>order_id, :email=>email,
-                                   :description => membership_offer.billing_agreement,
-                                   :start_date=>start_date,
-                                   :period=>'Month', :frequency=>1, :max_failed_payments=>1,
-                                   :auto_bill_outstanding=> true,
-                                   :trial_amount => trial_amt,
-                                   :trial_frequency=>1,
-                                   :trial_period => 'Month',
-                                   :trial_cycles => membership_offer.trial_period)
-    response
-  end
-
 end

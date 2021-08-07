@@ -8,7 +8,6 @@ class MembershipOfferDatatable < AjaxDatatablesRails::Base
     # or in aliased_join_table.column_name format
     @view_columns ||= {
       name: { source: 'MembershipOffer.name' },
-      cost: { source: 'MembershipOffer.recurring_cost' },
       on_sale: { source: 'MembershipOffer.on_sale' },
       status: { source: 'MembershipOffer.status' }
     }
@@ -25,7 +24,6 @@ class MembershipOfferDatatable < AjaxDatatablesRails::Base
       {
         id: record.id,
         name: link_to(record.name, [:admin, record]),
-        cost: number_to_currency(record.recurring_cost),
         on_sale: record.on_sale? ? '√' : '',
         status: record.active? ? link_to("Create Order", [:new, :admin, record, :order] ) : '(Inactive)',
         DT_RowID: record.id,
@@ -41,7 +39,7 @@ class MembershipOfferDatatable < AjaxDatatablesRails::Base
   private
 
   def get_raw_records
-    MembershipOffer.all
+    MembershipOffer.all.order(on_sale: :desc, name: :asc)
     # insert query here
   end
 

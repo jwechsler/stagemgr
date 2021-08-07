@@ -3,7 +3,6 @@ FactoryBot.define do
 
   factory :membership_offer do
     name                    { 'Test membership' }
-    recurring_cost          { BigDecimal.new("5.00") }
     use_ticket_class_code   { 'PASS' }
     tickets_per_performance { 2 }
 
@@ -26,7 +25,7 @@ FactoryBot.define do
       membership = FactoryBot.create(:membership, :address=>membership_order.address, membership_offer: membership_offer)
       membership_order.membership_line_item = FactoryBot.create(:membership_line_item, :order=>membership_order, :address=>membership_order.address, membership_offer: membership_offer, :membership=>membership)
       membership_order.payments << FactoryBot.build(:credit_card_payment,
-                          :amount=>membership_order.membership.membership_offer.recurring_cost,
+                          :amount=>5.00,
                           :transaction_id => 'TEST_TRANSACTION',
                           :confirmation_code => 'CONFIRMED',
                           :card_type=>'bogus',

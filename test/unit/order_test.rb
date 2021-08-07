@@ -292,7 +292,7 @@ class OrderTest < ActiveSupport::TestCase
       @membership_payment_type = FactoryBot.create :membership_payment_type
       @address = addresses(:jeremy)
       @offer = FactoryBot.create(:membership_offer, :name=>"Test Offer",
-                              :recurring_cost=>BigDecimal.new("15.00"), :use_ticket_class_code=>"MEMBER", :tickets_per_performance=>1)
+                               :use_ticket_class_code=>"MEMBER", :tickets_per_performance=>1)
 
       @order = MembershipOrder.create!(:status=>Order::NEW, :address=>@address)
       @order.membership_offer = @offer
