@@ -108,6 +108,15 @@ module PaymentProcessing
       end
       "#{base_url}#{subscription_id}"
     end
+
+    def product_url(price_id)
+      if Stripe.api_key.starts_with?('sk_test')
+        base_url = "https://dashboard.stripe.com/test/prices/"
+      else 
+        base_url = "https://dashboard.stripe.com/prices/"
+      end
+      "#{base_url}#{price_id}"
+    end
   end
 
   class BogusGateway < ActiveMerchant::Billing::BogusGateway
@@ -226,6 +235,10 @@ module PaymentProcessing
 
   def self.subscription_url(subscription_id)
     gateway.subscription_url(subscription_id)
+  end
+
+  def self.product_url(price_id)
+    gateway.product_url(price_id)
   end
 
   def self.credit_card_type(ctype)
