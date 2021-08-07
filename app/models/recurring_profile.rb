@@ -55,7 +55,7 @@ module RecurringProfile
   public
   def update_from_profile(subscription_id = nil)
     self.profile_id = subscription_id if (self.profile_id.blank? && !subscription_id.blank?)
-    unless self.profile_id.blank?
+    unless self.profile_id.blank? || !self.profile_id.starts_with?('sub') # second condition is to wean off of paypal.  Remove it eventually
       subscription = get_profile_data
       self.start_date = Time.at(subscription.start_date).to_date unless subscription.start_date.nil?
       self.ended_at = Time.at(subscription.ended_at).to_date unless subscription.ended_at.nil?
@@ -71,9 +71,8 @@ module RecurringProfile
         ACTIVE
       when [CANCELED, 'canceled', 'unpaid'].include?(profile_status)
         CANCELED
-      when ()
-      when (['Cancelled',CANCELED].include?(profile_status))
-        CANCELED
+      when  profile_status.eql?(PENDING)
+        PENDING
       else
         SUSPENDED
     end

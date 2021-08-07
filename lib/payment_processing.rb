@@ -97,10 +97,14 @@ module PaymentProcessing
     end
 
     def subscription_url(subscription_id)
-      if Stripe.api_key.starts_with?('sk_test')
-        base_url = "https://dashboard.stripe.com/test/subscriptions/"
-      else 
-        base_url = "https://dashboard.stripe.com/subscriptions/"
+      if subscription_id.starts_with?('sub')
+        if Stripe.api_key.starts_with?('sk_test')
+          base_url = "https://dashboard.stripe.com/test/subscriptions/"
+        else 
+          base_url = "https://dashboard.stripe.com/subscriptions/"
+        end
+      else
+        base_url = "https://www.paypal.com/billing/subscriptions/"
       end
       "#{base_url}#{subscription_id}"
     end
