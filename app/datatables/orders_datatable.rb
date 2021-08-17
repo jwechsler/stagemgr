@@ -73,7 +73,7 @@ private
                   when 'membership', 'member'
                     ::Arel::Nodes::SqlLiteral.new('orders.type').eq('MembershipOrder')
                   else
-                    ::Arel::Nodes::SqlLiteral.new('performances.performance_code').matches("%#{column}%")
+                    ::Arel::Nodes::SqlLiteral.new('performances.performance_code').matches("%#{formatted_value.upcase}%")
                   end
                 }
   end
