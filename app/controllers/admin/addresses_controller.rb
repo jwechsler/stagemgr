@@ -131,9 +131,9 @@ class Admin::AddressesController < Admin::ApplicationController
       render :json => addresses.map { |a|
         value = a.full_name
         member_code = a.is_current_member? ? a.current_membership.member_code : nil
-        tags = current_user.allowed_tags(a.address_tags).map {|t|
-          "<div class=\"small-6 columns quick-lookup-history label\">#{t.tag_label}</div><div class=\"small-6 columns quick-lookup-history\">#{t.tag_value}</div>"
-          }.join(" ")
+        # tags = current_user.allowed_tags(a.address_tags).map {|t|
+        #  "<div class=\"small-6 columns quick-lookup-history label\">#{t.tag_label}</div><div class=\"small-6 columns quick-lookup-history\">#{t.tag_value}</div>"
+        #  }.join(" ")
         label = a.full_name
         label += " [MEMBER]" unless member_code.nil?
         label += " #{a.line1} #{a.city} #{a.zipcode}" unless a.line1.blank?
@@ -151,7 +151,7 @@ class Admin::AddressesController < Admin::ApplicationController
           :zipcode=>a.zipcode,
           :phone=>a.phone,
           :member_code=>member_code,
-          :tags=>tags,
+          :tags=>[],
           :attended=>attended
         }
 
