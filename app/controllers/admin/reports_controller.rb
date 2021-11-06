@@ -163,20 +163,6 @@ class Admin::ReportsController < Admin::ApplicationController
     end
   end
 
-  def membership_usage
-    days = [params[:start_day].to_date,params[:end_day].to_date]
-    @start_day = days.min
-    @end_day = days.max
-    @headers, @report_data = build_membership_usage(@start_day, @end_day, params['download_csv'].nil?)
-    unless params['download_csv'].nil? then
-      send_report_as_csv('membership_usage', @headers, @report_data)
-    else
-      respond_to do |format|
-        format.html
-      end
-    end
-  end
-
   def trg_dump
     production = Production.find(params[:report][:production_id])
     Resque.enqueue(TrgExport, production.nil? ? 0 : production.id, current_user.id, can?(:view_email, Address))
@@ -368,70 +354,6 @@ class Admin::ReportsController < Admin::ApplicationController
         [headers, report]
   end
 
-  def build_membership_usage(start_day, end_day, display_only = true)
-    memberships = Membership.order(:member_since)
-    report = Array.new
-    sums = {:collected=>Money.new(0), :payout=>Money.new(0), :performances_attended=>0, :number_cycles=>0, :tickets_per_performance=>0}
-    headers = [:member_since, :last_name, :first_name, :member_code]
-    headers += [:email, :street_address, :street_address_2, :state, :city, :state, :postal_code, :phone] unless display_only
-    headers += [:status, :number_cycles, :tickets_per_performance, :collected, :performances_attended, :payout, :net_revenue, :avg_revenue_month, :avg_performances_month]
-    memberships.each do |membership|
-      number_cycles_completed = membership.number_cycles_completed || 1
-      unless membership.member_since > end_day || (membership.member_since + number_cycles_completed.months) < start_day
-        # cutoff_max = [membership.next_billing_date, end_day].min
-        cutoff_max = end_day
-        cutoff_min = start_day
-        # cutoff_min = [membership.member_since, start_day].max
-        cycles_in_window = ((cutoff_max.year*12+cutoff_max.month)-(cutoff_min.year*12+cutoff_min.month))
-        if cycles_in_window == 0
-          cutoff_max = cutoff_min + 1.month
-          cycles_in_window = 1
-        end
-        num_attended = MembershipPayment.joins(order: [:performance, :payments]).where(
-          "payments.membership_id = ? and performances.performance_date <= ? and performances.performance_date >= ?",
-          membership.id, cutoff_max, cutoff_min).count
-        total_payout = RecurringPayment.joins(order: [:performance, :payments]).where(
-          "payments.membership_id = ? and performances.performance_date <= ? and performances.performance_date >= ?",
-          membership.id, cutoff_max, cutoff_min).sum(:amount)
-
-        aggregate_amount = RecurringPayment.where("order_id = ? and processed_on >= ? and processed_on <= ?", membership.membership_line_item.order_id, cutoff_min, cutoff_max).sum(:amount)
-        avg_revenue_month = "0".to_money
-        avg_performances_month = 0.0
-        avg_revenue_month = ((aggregate_amount-total_payout)/cycles_in_window).to_money
-        avg_performances_month = ((0.0 + num_attended)/cycles_in_window).round(1)
-        # aggregate_amount = membership.aggregate_amount.nil? ? 0.0 : membership.aggregate_amount
-        report << {:member_since=>membership.member_since.strftime("%D"),
-                   :last_name=>membership.membership_line_item.order.address.last_name,
-                   :first_name=>membership.membership_line_item.order.address.first_name,
-                   :member_code=>membership.member_code,
-                   :status=>membership.status,
-                   :number_cycles=>cycles_in_window,
-                   :tickets_per_performance=>membership.membership_offer.tickets_per_performance,
-                   :collected=>aggregate_amount.to_money,
-                   :performances_attended=>num_attended,
-                   :payout=>total_payout.to_money,
-                   :net_revenue => (aggregate_amount-total_payout).to_money,
-                   :avg_revenue_month=>avg_revenue_month,
-                   :avg_performances_month=>avg_performances_month
-        }.merge(address_hash_from_order(membership.membership_line_item.order))
-        sums[:collected] += aggregate_amount.to_money
-        sums[:payout] += total_payout.to_money
-        sums[:performances_attended] += num_attended
-        sums[:number_cycles] += cycles_in_window
-        sums[:tickets_per_performance] += membership.membership_offer.tickets_per_performance
-      end
-    end
-    if sums[:number_cycles] > 0
-      sums[:net_revenue] = sums[:collected] - sums[:payout]
-      sums[:avg_revenue_month] = (sums[:net_revenue])/sums[:number_cycles]
-      sums[:new_revenue] = sums[:collected] - sums[:payout]
-      sums[:avg_performances_month] = ((0.0 + sums[:performances_attended]) / sums[:number_cycles]).round(1)
-    end
-    report << sums
-    [headers, report]
-  end
-
-
   def build_original_trg_dump #deprecated.  please look at this if you think you need to do an initial upload - jw
     orders = TicketOrder.order(:performance_id).includes(:address,:theater, {:performance=>:production})
     report = Array.new
@@ -487,7 +409,6 @@ class Admin::ReportsController < Admin::ApplicationController
     [headers,report]
 
   end
-
 
   def build_flexpass_sales(offer, display_only = true)
     orders = offer.flex_passes.map { |f| f.order }.select{|o| !o.nil?}

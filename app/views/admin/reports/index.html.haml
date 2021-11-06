@@ -161,15 +161,6 @@
     .small-8.cell
       = form_tag(daily_box_office_receipts_admin_reports_path, :method=>"post") do
         =render 'date_range_picker', :default_start=>Date.today, :default_end=>Date.today
-- if can? :membership_reports, Report then
-  .grid-x.grid-padding-x
-    .small-4.cell
-      %span.report_title Membership Usage
-      %span.help_text Returns membership usage data by member.
-    .small-8.cell
-      = form_tag(membership_usage_admin_reports_path, :method=>"post") do
-        =render 'date_range_picker', :default_start=>Date.today.beginning_of_month, :default_end=>Date.today.end_of_month
-
 - if can? :mine_customer_data, Report then
   .grid-x.grid-padding-x
     .small-4.cell{:valign=>'top'}
