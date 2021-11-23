@@ -94,12 +94,20 @@ class SeatAssignment < ActiveRecord::Base
 
   def self.release_expired_temporary_holds
 
-    result = SeatAssignment.where("updated_at < :expire_time and status = :temp_status and (order_uuid is null or not exists (select * from orders where uuid=order_uuid))",
-      expire_time: Time.now - $SERVER_CONFIG['order_expiration_in_minutes'].to_i.minutes,
-      temp_status: TEMPORARY).update_all(updated_at: Time.now, status: AVAILABLE,
-      order_uuid: nil, accessibility:nil)
-
-    Rails.logger.info("Released #{result} expired seat assignments") unless result.eql?(0)
+    SeatAssignment.transaction do
+      results = SeatAssignment.where("updated_at < :expire_time and status = :temp_status and (order_uuid is null or not exists (select * from orders where uuid=order_uuid))",
+        expire_time: Time.now - $SERVER_CONFIG['order_expiration_in_minutes'].to_i.minutes,
+        temp_status: SeatAssignment::TEMPORARY)
+      count = 0
+      results.each do |sa|
+        sa.order_uuid = nil
+        sa.accessibility = nil
+        sa.status = SeatAssignment::AVAILABLE
+        sa.save!
+        count = count + 1
+      end
+    end
+    Rails.logger.info("Released #{result} expired seat assignments") unless count.eql?(0)
     result
   end
 
