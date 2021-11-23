@@ -108,7 +108,7 @@ class SeatAssignment < ActiveRecord::Base
       end
     end
     Rails.logger.info("Released #{result} expired seat assignments") unless count.eql?(0)
-    result
+    count
   end
 
   def unassign_from_order(ticket_order_uuid)
