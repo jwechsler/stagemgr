@@ -110,11 +110,18 @@ class TicketOrder < Order
 
   def seat_assignments_complete?
     unless self.performance.nil?
-      if self.performance.production.has_reserved_seating? then
+      if self.number_of_tickets > 0 && self.performance.production.has_reserved_seating? then
         if (self.seats.reload.size != self.number_of_seats) then
           self.errors.add :seats, " do not match tickets in order (#{self.number_of_seats} required)"
           return false
         end
+        if self.seats.size.eql?(0) then 
+          self.errors.add :base, "You must select at least one seat"
+          return false 
+        end
+      elsif self.number_of_tickets.eql?(0) then 
+        self.errors.add :base, "You must purchase at least one ticket"
+        return false
       end
     end
     return true
