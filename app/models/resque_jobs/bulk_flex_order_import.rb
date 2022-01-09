@@ -6,9 +6,19 @@ require 'csv'
 # ExternalId      :  An alphanumeric value attached to an address with this record called "ExternalId"
 # Id              :  The address ID (supercedes ExternalId if present)
 # FlexPassOffer   :  The Flex Pass Offer Name
-
+# Code            :  Optional flex pass code to be created (otherwise generated)
+# EmailAddress    :  Email Address
+# FullName        :  Contact Full Name
+# LastName        :  Contact last name (either FullName or LastName, FirstName required)
+# FirstName       :  Contact first name (either FullName or LastName, FirstName required)
+# MiddleName      :  Contact Middle Name (optional)
+# Address         :  Street address
+# Address2        :  Street address line 2
+# City
+# State
+# ZipCode
+# Phone
 #
-# Note that, if present, the two users will create two different records in the ticketing system
 
 class BulkFlexOrderImport < OrderImport
   include NotifyOnCompletion
@@ -36,6 +46,7 @@ class BulkFlexOrderImport < OrderImport
 
 
       CSV.foreach(filestore.data.path, headers:true) do |row|
+        puts("As Hash #{row.to_hash.to_yaml}")
         current_address_id = 0
         a = nil
         case
@@ -58,7 +69,7 @@ class BulkFlexOrderImport < OrderImport
           Order.transaction do
             a.set_full_name(row['FullName'],row['FirstName'],row['MiddleName'],row['LastName']) unless row['FullName'].blank? && row['LastName'].blank?
             a.line1 = row['Address'] unless row['Address'].blank?
-            a.line2 = row['Address2'] unless row['Address'].blank?
+            a.line2 = row['Address2'] unless row['Address2'].blank?
             a.email = row['EmailAddress'] unless row['EmailAddress'].blank?
             a.city = row['City'] unless row['City'].blank?
             a.zipcode = row['ZipCode'] unless row['ZipCode'].blank?
@@ -67,6 +78,7 @@ class BulkFlexOrderImport < OrderImport
             a.address_tags << new_address_tag(theater_id, a, row['Tag2'], row['TagValue2']) unless row['Tag2'].blank?
             a.address_tags << new_address_tag(theater_id, a, 'External ID', row['ExternalId']) unless row['ExternalId'].blank?
             a.regularize!
+
             a.save!
             o = FlexPassOrder.new
             o.status = FlexPassOrder::NEW
@@ -83,12 +95,15 @@ class BulkFlexOrderImport < OrderImport
 
 
             o.payment_type = payment_type
+            o.suppress_receipt = true
             o.transition_to!(Order::PROCESSED)
             o.payments.each{|p| p.note = "Imported from #{filestore.data_file_name} by #{filestore.user.email}"; p.save }
             puts("IMPORT: Order is #{Order::PROCESSED}")
             flex_pass = o.flex_passes.first
-            flex_pass.code = row['Code'] unless row['Code'].blank?
-            flex_pass.save!
+            unless row['Code'].blank?
+              flex_pass.code = row['Code'] 
+              flex_pass.save!
+            end
           end
         rescue => e
           puts e.message

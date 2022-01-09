@@ -86,7 +86,9 @@ class FlexPassOrder < Order
 
   def create_receipt_task
     super
-    self.tasks << OutreachTask.new(:execute_at=>Time.now + 5.minutes, :method_symbol=>:flexpass_confirmation)
+    unless self.suppress_receipt
+      self.tasks << OutreachTask.new(:execute_at=>Time.now + 5.minutes, :method_symbol=>:flexpass_confirmation)
+    end
   end
 
 
