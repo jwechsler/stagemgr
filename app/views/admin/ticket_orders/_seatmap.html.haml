@@ -1,3 +1,5 @@
+%svg{ :version=>"1.1", :xmlns=>"http://www.w3.org/2000/svg", "xmlns:xlink" =>"http://www.w3.org/1999/xlink", :viewBox=>"0 0 1055 1365", :preserveAspectRatio=>"xMinYMin meet" }
+<image width="1055" height="1365" xlink:href="/assets/img/Theater1_seating_new.jpg">
 %img{:src => "#{root_url}#{ticket_order.performance.production.seat_map.base_image_map.url}", :alt => "", :usemap=> '#seatingmap', :class=>'seatingmap'}
 %map{name:'seatingmap', id:'seatingmap'}
   - SeatAssignment.available_seat_assignments(ticket_order.performance, ticket_order).each do |sa|
