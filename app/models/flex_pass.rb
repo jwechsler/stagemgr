@@ -8,7 +8,7 @@ class FlexPass < ActiveRecord::Base
   after_create :queue_expiration
   before_destroy :has_no_placed_orders?
 
-  validates_presence_of :address, :flex_pass_offer, :flex_pass_line_item, :order, :code
+  validates_presence_of :flex_pass_offer, :flex_pass_line_item, :order, :code
 
   before_validation :create_code, :on => :create
 
@@ -68,8 +68,22 @@ class FlexPass < ActiveRecord::Base
     FlexPassPayment.where(flex_pass_id: self.id).count > 0
   end
 
+  #
+  # get all orders placed with this flexpass
+  #
+  def ticket_orders 
+    orders = TicketOrder.joins(:payments).where("payments.type = 'FlexPassPayment' and flex_pass_id = :fp_id", {fp_id: self.id})
+  end
+
+  def upcoming_ticket_orders
+    self.ticket_orders.joins(:performance).where("performance_date >= ? and orders.status in (?)", Date.today, Order.finalized_statuses)
+  end
+
   def has_no_placed_orders?
     !self.has_placed_orders?
   end
 
+  def has_no_outstanding_orders?
+    FlexPassPayment.joins(:order).where(flex_pass_id: self.id).count > 0
+  end
 end

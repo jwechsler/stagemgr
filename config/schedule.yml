@@ -77,3 +77,9 @@ DeleteExpiredSeatingRequests:
   description: "Release temporary seating holds that have been held for too long"
   queue: maintenance
 
+InactivateUnusedProductions:
+  every: "1w"
+  description: "Mark productions over three years old and not modified recently as Inactive"
+  queue: maintenance
+
+

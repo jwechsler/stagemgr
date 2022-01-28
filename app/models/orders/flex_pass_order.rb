@@ -46,7 +46,6 @@ class FlexPassOrder < Order
     self.flex_passes.first
   end
 
-
   def flex_pass_payments
     payments.select { |p| p.is_a? FlexPassPayment }
   end
@@ -63,6 +62,20 @@ class FlexPassOrder < Order
   def reload_associated
     super
     self.flex_pass_line_items(true)
+  end
+
+  def cancel!
+    if flex_pass.upcoming_ticket_orders.count > 0 then
+      errors.add(:error, "Cannot cancel a flex_pass with upcoming ticket orders")
+      false
+    else
+      flex_pass.active=false 
+      flex_pass.save!
+      self.status = CANCELED
+      self.save!
+      errors.add(:info, "Flex Pass #{flex_pass.code} inactive")
+      true
+    end
   end
 
   def refundable?

@@ -39,10 +39,18 @@ class OrdersDatatable < AjaxDatatablesRails::Base
         status: raw("<span class=\"label #{order_status_severity_class(order.status)}\">#{order.status}</span>"),
         visits: order.address.nil? ? "n/a" : (current_user.is_theater_user? ? order.address.orders_processed(@current_user.theater_ids) : order.address.orders_processed ),
         total: number_to_currency(order.total),
-        description: order.description,
+        description: raw(order_description(order)),
         DT_RowID: order.id
      }
     end
+  end
+
+  def order_description(order)
+    result = ""
+    if (order.is_a? FlexPassOrder) && (!order.flex_pass.nil?) then
+      result = "<span class=\"label warning\">Expired</span> " if !order.flex_pass.active?
+    end
+    result += order.description
   end
 
   def initialize(params, opts={})

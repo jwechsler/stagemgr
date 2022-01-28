@@ -544,6 +544,7 @@ class Order < ActiveRecord::Base
     }
   end
 
+
   def self.transitory_statuses
     [Order::NEW, Order::PROCESSING]
   end

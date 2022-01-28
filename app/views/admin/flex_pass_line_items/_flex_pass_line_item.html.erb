@@ -1,5 +1,0 @@
-<ul>
-	<% flex_pass_line_item.flex_passes.each do |flex_pass| %>
-    <li><%= flex_pass_line_item.flex_pass_offer.name %> [<%= flex_pass.code %>], <%= flex_pass.uses_remaining %> remaining. <%= flex_pass.available? ? "Expires #{flex_pass.expiration_date.to_s}" : "Expired"%>
-	<% end %>
-</ul>

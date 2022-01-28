@@ -182,7 +182,17 @@ class Production < ActiveRecord::Base
           start_of_week)
   end
 
-
+  #
+  # Flush out old unused productions from status
+  #
+  def self.inactivate_unused
+    productions = Production.where("status = :active_status and closing_at < :closing_date and updated_at <= :last_mod_check",
+      {closing_date: Date.today - 3.years, active_status: Production::ACTIVE, last_mod_check: Time.now - 14.days})
+    productions.each do |prod|
+      prod.status = INACTIVE 
+      prod.save
+    end
+  end
 
   def price_range
     min_price = nil
