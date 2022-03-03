@@ -53,7 +53,7 @@ $(document).ready(function() {
                 if (response['status'] == 'unavailable') {
                   alert("Sorry, that seat is no longer available")
                 } else if (response['status'] == 'assigned') {
-                  update_mapster_attributes(e_reference, data_key, response['status'])
+                  update_seating_attributes(e_reference, response['status'])
                   // $( e_reference ).mapster('set', true, data_key)
                 } else {
                   alert("You can only assign " + max_tix + ((max_tix==1) ? " seat" : " seats"))

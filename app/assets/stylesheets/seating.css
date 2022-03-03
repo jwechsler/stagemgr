@@ -1,7 +1,6 @@
- .seating_svg {
+ #seatingmap {
   position: relative;
   width: 100%;
-  padding-bottom: 77%;
   vertical-align: middle;
   margin: 0;
   overflow: hidden;
@@ -23,9 +22,14 @@
   stroke:  black;
 }
 
-.seat.available:hover {
+.seat.available:hover,.seat.assigned:hover {
+  fill: yellow;
+  fill-opacity:  .3;
+}
+
+.seat.assigned {
   fill:  #00ff00;
-  fill-opacity:  1;
+  fill-opacity:  .8;
 }
 
 .seat.held {

@@ -67,15 +67,15 @@ function initialize_seating_assignment() {
 
   });
 
-  $('#seatingmap area').click( function(e) {
+  $('#seatingmap circle').click( function(e) {
     e.preventDefault();
-    var data = $('#seatingmap').data('maphilight') || {};
-    data.alwaysOn = true;
+    // var data = $('#seatingmap').data('maphilight') || {};
+    // data.alwaysOn = true;
     console.log("assignment_id on click = " + $(this).data('assignment-id'));
     e_reference = '[data-assignment-id=' + $(this).data('assignment-id') + ']'
 
     starting_status = String($(this).data('status'));
-    //console.log("starting status is " + starting_status)
+    console.log("starting status is " + starting_status)
 
     data_key = $(this).data('key')
     switch (starting_status) {
@@ -102,8 +102,8 @@ function initialize_seating_assignment() {
               ticket_class_id = response['ticket_class_id']
               data_key = response['id'] + ',' + response['status']
 
-              update_mapster_attributes(e_reference, data_key, response['status'])
-              $( e_reference ).mapster('deselect')
+              update_seating_attributes(e_reference, response['status'])
+              
               current_count = $("#ticket_class_qty_display_"+ticket_class_id).text()
 
               if (current_count===undefined) {
@@ -125,20 +125,11 @@ function initialize_seating_assignment() {
 
               calculate_ticket_totals();
               set_button_state_for_autocompletes();
-              // $('img.seatingmap').mapster('rebind',mapster_options());
-              // $('img.seatingmap').mapster('rebind',mapster_options);
-              // $( e_reference ).mapster('set',true,data_key)
-              // $( e_reference ).mapster('highlight', false)
-              // $('img.seatingmap').mapster('unbind')
-              // $('img.seatingmap').mapster('rebind',mapster_options);
-
+             
             }
 
           });
           break;
-      default:
-        $(this).mapster('deselect')
-        $(this).mapster('set',false)
     };
 
   });
@@ -163,7 +154,6 @@ function initialize_seating_assignment() {
           $('[data-assignment-id='+value+']').attr('data-status','unavailable')
           $('[data-assignment-id='+value+']').data('key',unavail_key)
           $('[data-assignment-id='+value+']').data('status','unavailable')
-          $( '[data-assignment-id='+value+']').mapster('deselect')
         });
         console.log("result = " + response['status'])
         if (response['status'] == 'unavailable') {
@@ -185,7 +175,7 @@ function initialize_seating_assignment() {
           calculate_ticket_totals();
           set_button_state_for_autocompletes();
 
-          update_mapster_attributes(e_reference, data_key, response['status'])
+          update_seating_attributes(e_reference, response['status'])
           // $( e_reference ).mapster('set', true, data_key)
         } else {
           $( e_reference ).mapster('deselect')

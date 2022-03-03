@@ -12,7 +12,7 @@ class SeatMap < ActiveRecord::Base
   def save_image_dimensions
     geo = Paperclip::Geometry.from_file(base_image_map.queued_for_write[:original])
     self.original_width = geo.width
-    self.orignal_height = geo.height
+    self.original_height = geo.height
   end
 
   def create_inventory_for_performance(performance)
