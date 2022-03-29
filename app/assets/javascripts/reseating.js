@@ -20,7 +20,7 @@ $(document).ready(function() {
   });
 
   // reseating click handler
-  $('#seatingmap area').click( function(e) {
+  $('#seatingmap circle').click( function(e) {
     e.preventDefault();
     var data = $('#seatingmap').data('maphilight') || {};
     data.alwaysOn = true;
@@ -48,18 +48,17 @@ $(document).ready(function() {
                   $('[data-assignment-id='+value+']').attr('data-status','unavailable')
                   $('[data-assignment-id='+value+']').data('key',unavail_key)
                   $('[data-assignment-id='+value+']').data('status','unavailable')
-                  $( '[data-assignment-id='+value+']').mapster('deselect')
+                  // $( '[data-assignment-id='+value+']').mapster('deselect')
                 });
                 if (response['status'] == 'unavailable') {
                   alert("Sorry, that seat is no longer available")
                 } else if (response['status'] == 'assigned') {
                   update_seating_attributes(e_reference, response['status'])
-                  // $( e_reference ).mapster('set', true, data_key)
                 } else {
                   alert("You can only assign " + max_tix + ((max_tix==1) ? " seat" : " seats"))
-                  $( e_reference ).mapster('deselect')
+                  // $( e_reference ).mapster('deselect')
                 }
-                $('img.seatingmap').mapster('rebind',mapster_options())
+                // $('img.seatingmap').mapster('rebind',mapster_options())
                 $("#updated-seat-list").text(response['current_seat_assignments'])
                 num_tix = parseInt(response['ticket_count'])
 
@@ -91,13 +90,11 @@ $(document).ready(function() {
               } else {
                 $("#finalize-seating").addClass("disabled")
               }
-              $( e_reference ).mapster('deselect')
-              update_mapster_attributes(e_reference, data_key, response['status'])
+              
             }
           });
           break;
-        default:
-          $(this).mapster('deselect')
+        
     };
 
   });
@@ -129,7 +126,6 @@ $(document).ready(function() {
       { 'order_uuid': ticket_order_id()
       }, function(response, status) {
       });
-    $('img.seatingmap').mapster('rebind',mapster_options());
   });
 
 });
