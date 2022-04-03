@@ -100,7 +100,10 @@ class Admin::SeatMapsController < ApplicationController
         total += 1
         seat = @seat_map.seats.select{|s|
           s.location.eql?(row[location_idx])}.first
-        seat ||= Seat.new(location: row[location_idx])
+        if seat.nil?
+          seat ||= Seat.new(location: row[location_idx])
+          @seat_map.seats << seat
+        end
         seat.row = row[row_idx]
         seat.seat_number = row[sequence_idx]
         seat.origin_x = row[origin_x_idx]
@@ -108,7 +111,8 @@ class Admin::SeatMapsController < ApplicationController
         seat.width = row[width_idx]
         seat.height = row[height_idx]
         seat.feature = row[feature_idx]
-        @seat_map.seats << seat
+        seat.save
+        
       end
     end
 

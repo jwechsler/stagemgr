@@ -1,3 +1,6 @@
+- if $APP_DISPLAY_NAME.eql?('DEV')
+  /= __FILE__.split("/").last.sub(/^_/, "")
+
 .grid-x.grid-padding-x
   .small-12.cell
     %h4

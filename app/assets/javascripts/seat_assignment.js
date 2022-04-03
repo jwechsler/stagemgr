@@ -290,6 +290,7 @@ function update_ticketing_panel(perf_id) {
       populate_ticket_selector()
       initialize_seatingmap()
       initialize_seating_assignment()
+      console.log("seatmap updated")
     }
   });
 

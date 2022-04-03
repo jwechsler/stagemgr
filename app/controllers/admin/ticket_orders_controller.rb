@@ -137,9 +137,6 @@ class Admin::TicketOrdersController < Admin::OrdersController
 
   def update
     @ticket_order.update_attributes(ticket_order_params)
-    @ticket_order.ticket_line_items.select{|tli| !tli.ticket_count.nil? && tli.ticket_count > 0}.each {|tli|
-      Rails.logger.debug("*** COUNT FOR #{tli.ticket_class_id}: #{tli.ticket_class.class_name} is #{tli.ticket_count}")
-    }
     if @ticket_order.held? && !(can?(:hold, TicketOrder) || @ticket_order.payment_type.allow_theater_user_holds?)
       flash[:error] = "You don't have permissions to put this order on hold with a payment type of #{@ticket_order.payment_type.display_name}"
       render 'edit'
@@ -264,7 +261,6 @@ class Admin::TicketOrdersController < Admin::OrdersController
   protected
 
   def create_or_update(order, commit_action = nil)
-    Rails.logger.debug("*** Commit action on ticket_order is #{commit_action}")
     if (convert_button_label_to_state(commit_action).eql?(Order::PROCESSED) && order.performance.production.season_seating? && current_user.cannot?(:process_orders_in_season_seating, TicketOrder)) then
       flash[:error] = "Orders for productions in Season Seating status cannot be placed"
       render 'edit'

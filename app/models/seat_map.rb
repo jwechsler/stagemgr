@@ -16,10 +16,11 @@ class SeatMap < ActiveRecord::Base
   end
 
   def create_inventory_for_performance(performance)
-    if self.productions.map{|p| p.id}.include? (performance.production_id) and performance.seat_assignments.empty? and performance.production.has_reserved_seating? then
+    if self.productions.map{|p| p.id}.include? (performance.production_id) and performance.production.has_reserved_seating? then
       SeatMap.transaction do
         seats.each { |seat|
-          assignment = SeatAssignment.new(seat: seat, performance:performance)
+          assignment = performance.seat_assignments.select{|sa| sa.seat_id.eql?(seat.id)}.first
+          assignment ||= SeatAssignment.new(seat: seat, performance:performance)
           assignment.save
         }
       end

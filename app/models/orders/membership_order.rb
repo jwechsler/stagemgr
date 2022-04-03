@@ -185,7 +185,6 @@ class MembershipOrder < Order
     if self.membership.nil?
       "ERROR. Membership data missing"
     else
-      Rails.logger.debug("*** Membership: #{self.membership.start_date}")
       member_start_date = membership.start_date || membership.created_at.to_date
       end_date = [Date.today, self.membership.ended_at.nil? ? Date.today : self.membership.ended_at].min
       months = (end_date.year * 12 + end_date.month) - (member_start_date.year * 12 + member_start_date.month)
