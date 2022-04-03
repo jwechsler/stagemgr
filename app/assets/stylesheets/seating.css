@@ -20,6 +20,7 @@
   stroke-opacity: .7;
   stroke-width:  3;
   stroke:  black;
+  fill:  grey;
 }
 
 .seat.available:hover,.seat.assigned:hover {
