@@ -1,5 +1,4 @@
 //= require application
-//= require jquery.imagemapster
 //= require foundation
 
 function count_assigned() {
@@ -37,9 +36,17 @@ function update_seating_submit_button(seating_complete) {
   }
 }
 
+function update_seating_attributes(e_reference, status) {
+  
+  old_status = $(e_reference).data('status')
+  $(e_reference).removeClass(old_status)
+  $(e_reference).data('status', status)
+  $(e_reference).addClass(status)
+  console.log('Updating ' + $( e_reference ).data('assignment-id') + ' from ' + old_status + ' to ' + status)
+}
+
 function update_mapster_attributes(e_reference, data_key, status) {
   console.log('setting key to ' + data_key)
-  console.log('')
   if (data_key != '') {
     $( e_reference ).attr('data-key', data_key)
     $( e_reference ).data('key', data_key)
@@ -112,8 +119,6 @@ function mapster_options() {
 
 function initialize_seatingmap() {
   $("#ticket-modal").foundation();
-  $('img.seatingmap').mapster(mapster_options());
-  $('#seatingmap').mapster('resize',$('img.seatingmap').width(),$('img.seatingmap').height());
 }
 
 

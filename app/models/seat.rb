@@ -4,6 +4,7 @@ class Seat < ActiveRecord::Base
   validates_presence_of :location, :row, :seat_number
   before_validation :set_standard_location
   before_destroy :verify_unassigned
+  validates_uniqueness_of :location, scope: [:seat_map_id]
 
   has_many :seat_assignments, dependent: :destroy
 

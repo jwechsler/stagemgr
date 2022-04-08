@@ -7,12 +7,20 @@ class SeatMap < ActiveRecord::Base
 
   validates_attachment_content_type :base_image_map, content_type: /\Aimage\/.*\z/
   before_destroy :prevent_deletion_when_assigned_to_production
+  after_post_process :save_image_dimensions
+
+  def save_image_dimensions
+    geo = Paperclip::Geometry.from_file(base_image_map.queued_for_write[:original])
+    self.original_width = geo.width
+    self.original_height = geo.height
+  end
 
   def create_inventory_for_performance(performance)
-    if self.productions.map{|p| p.id}.include? (performance.production_id) and performance.seat_assignments.empty? and performance.production.has_reserved_seating? then
+    if self.productions.map{|p| p.id}.include? (performance.production_id) and performance.production.has_reserved_seating? then
       SeatMap.transaction do
         seats.each { |seat|
-          assignment = SeatAssignment.new(seat: seat, performance:performance)
+          assignment = performance.seat_assignments.select{|sa| sa.seat_id.eql?(seat.id)}.first
+          assignment ||= SeatAssignment.new(seat: seat, performance:performance)
           assignment.save
         }
       end

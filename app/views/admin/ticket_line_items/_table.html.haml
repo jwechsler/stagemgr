@@ -1,6 +1,6 @@
 - if order.ticket_line_items.size > 0
 	- if order.performance.production.has_reserved_seating? && order.exchangeable?
-		#change-seats.reveal-modal(data-reveal aria-labelledby="modalTitle" aria-hidden="true" role="dialog" data-assignment-id="none")
+		#change-seats.reveal.large(data-reveal)
 			= render partial: "/seat_assignments/seating_config", locals: {performance_id: order.performance_id, order_uuid: order.uuid }
 
 			.grid-x.grid-padding-x
@@ -15,17 +15,11 @@
 					%span#updated-seat-list= order.seat_assignments([SeatAssignment::ASSIGNED, SeatAssignment::TEMPORARY])
 				.cell.small-12.medium-6
 					=render partial:'/admin/ticket_orders/seatmap', locals:{ticket_order:order}
-				.cell.medium-3.hide-for-small-only
-					&nbsp;
-			.grid-x.grid-padding-x
-				.cell.small-6
-					&nbsp;
-					-# %p.text-center
-						-# %a.button.centered.warning Cancel
-				.cell.small-6
 					%p.text-center
 						%a.disabled.button#finalize-seating Reseat
-			%a.close-reveal-modal(aria-label="Close") &#215;
+				.cell.medium-3.hide-for-small-only
+					&nbsp;
+			
 	%div.grid-x.grid-padding-x
 		%div.small-12.cell
 			%fieldset.fieldset
