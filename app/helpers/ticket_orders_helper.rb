@@ -2,11 +2,11 @@ module TicketOrdersHelper
   include ::OrdersHelper
 
   def set_exchange_service_fees_for_order(order)
-    order.performance.production.service_item_templates_new.each do |template|
-      sli = ServiceLineItem.new(template.attributes_for_service_item)
-      sli.order = @ticket_order
-      order.service_line_items << sli
-    end
+    #order.performance.production.service_item_templates_new.each do |template|
+    #  sli = ServiceLineItem.new(template.attributes_for_service_item)
+    #  sli.order = @ticket_order
+    #  order.service_line_items << sli
+    #end
   end
 
   def create_ticket_order_for_performance(performance)

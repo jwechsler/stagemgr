@@ -77,7 +77,7 @@ class Admin::TicketOrdersController < Admin::OrdersController
     @production = Production.find(params[:new_production_id])
     @ticket_order.ticket_line_items.build
     @ticket_order.status = Order::NEW
-    @ticket_order.create_default_service_fees
+    @ticket_order.create_default_service_fees(@production)
     respond_to do |format|
       format.html { render 'edit', :layout=>true }
     end

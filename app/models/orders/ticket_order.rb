@@ -691,8 +691,12 @@ class TicketOrder < Order
     self.performance.production.ticket_classes.select { |tc| tc.class_code == offer.use_ticket_class_code }.first
   end
 
-  def create_default_service_fees
-    unless self.performance.nil?
+  def create_default_service_fees(for_production = nil)
+    if !for_production.nil? 
+      for_production.service_item_templates_new.each do |template|
+        self.service_line_items.build(template.attributes_for_service_item)
+      end
+    elsif !self.performance.nil?
       self.performance.production.service_item_templates_new.each do |template|
         self.service_line_items.build(template.attributes_for_service_item)
       end

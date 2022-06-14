@@ -19,8 +19,6 @@ class TicketOrdersController < ApplicationController
     @ticket_order.ip_address = request.remote_ip
     @ticket_order.create_default_service_fees
     @ticket_order.status = Order::NEW
-    set_exchange_service_fees_for_order(@ticket_order)
-
     update_or_create
   end
 
