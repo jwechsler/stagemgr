@@ -56,9 +56,10 @@
               %td Additional donation to Theater Wit (yay!)
               %td.currency= number_to_currency(donation)
           -unless @ticket_order.service_line_items.empty?
-            - keys = @ticket_order.service_line_items.map{|sli| sli.description}.uniq
+            - slis = @ticket_order.service_line_items.select{|sli| !sli.suppress_for_pass_payments? || (sli.suppress_for_pass_payments? && !@ticket_order.payment_type.is_a?(PassPaymentType))}
+            - keys = slis.map{|sli| sli.description}.uniq
             - aggregate_service = Hash[keys.map {|k| [k,0]}]
-            - @ticket_order.service_line_items.each {|sli| aggregate_service[sli.description] += sli.amount}
+            - slis.each {|sli| aggregate_service[sli.description] += sli.amount}
             - aggregate_service.each do |description,amt|
               %tr
                 %td

@@ -54,7 +54,8 @@ class Admin::ServiceItemTemplatesController < Admin::ApplicationController
 
   private
   def service_item_template_params
-    params.require(:service_item_template).permit(:name, :description, :internal_description, :user_selectable, :amount, :facility_fee)
+    params.require(:service_item_template).permit(:name, :description, :internal_description, 
+      :user_selectable, :amount, :facility_fee,:suppress_for_pass_payments)
   end
 
 end

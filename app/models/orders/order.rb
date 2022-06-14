@@ -788,6 +788,7 @@ class Order < ActiveRecord::Base
         self.set_email_confirmation
         self.special_offer_line_item.mark_redeemed unless self.special_offer_line_item.nil?
         self.save!
+        self.remove_suppressed_service_items
         save_additional_donation_order unless (self.additional_donation.blank? || self.additional_donation.to_i == 0)
       end
     end
@@ -807,6 +808,15 @@ class Order < ActiveRecord::Base
     self.status = Order::FULFILLED
     self.save!
     redirect_to
+  end
+
+  #
+  # delete service items that are suppressed for pass payments
+  #
+  def remove_suppressed_service_items
+    if self.payment_type.is_a? PassPaymentType
+      self.service_line_items.select{|sli| sli.suppress_for_pass_payments?}.each{|sli| sli.destroy}
+    end
   end
 
   def create_recipient_address

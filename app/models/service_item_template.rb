@@ -8,7 +8,8 @@ class ServiceItemTemplate < ActiveRecord::Base
 
   def attributes_for_service_item
     {description: self.description, internal_description: self.internal_description,
-     amount: self.amount, facility_fee: self.facility_fee}
+     amount: self.amount, facility_fee: self.facility_fee, 
+     suppress_for_pass_payments: self.suppress_for_pass_payments}
   end
 
   def self.selectable

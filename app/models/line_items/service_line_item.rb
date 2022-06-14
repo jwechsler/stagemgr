@@ -6,6 +6,12 @@ class ServiceLineItem < LineItem
  attr_accessor :name
 
   def total
-    return self.amount
+    if (self.order.nil? || self.order.payment_type.nil?)
+      return self.amount
+    elsif (self.suppress_for_pass_payments? && self.order.payment_type.is_a?(PassPaymentType))
+      return 0.0
+    else
+      return self.amount
+    end
   end
 end
