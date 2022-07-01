@@ -82,7 +82,7 @@ class OrderMailer < ActionMailer::Base
     @markdown_renderer = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)
     if !@order.performance.nil?
       @follow_up_message = ERB.new(@order.performance.production.follow_up_message).result if !@order.performance.production.follow_up_message.blank?
-      @follow_up_message_2 = ERB.new(@order.performance.production.follow_up_message).result if !@order.performance.production.follow_up_message_2.blank?
+      @follow_up_message_2 = ERB.new(@order.performance.production.follow_up_message_2).result if !@order.performance.production.follow_up_message_2.blank?
     end
     unless @order.performance.suppress_notification?
       mail(:to=>order.address.email, :from=>"\"Jeremy Wechsler\" <jeremy@theaterwit.org>",
