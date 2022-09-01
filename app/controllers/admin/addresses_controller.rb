@@ -111,7 +111,7 @@ class Admin::AddressesController < Admin::ApplicationController
     end
   end
 
-  def autocomplete_address
+def autocomplete_address
     cleaned_name, first_name, middle_name, last_name, first_name_2 = Address.parse_name(params[:term])
     last_name = first_name if last_name.blank?
     # val = params[:q].gsub(Address::SEARCHABLE_REGEXP,'').upcase
@@ -123,12 +123,12 @@ class Admin::AddressesController < Admin::ApplicationController
         "#{first_name}%",
         "#{last_name}%").order("addresses.last_name, addresses.first_name, addresses.id").limit(15)
     else
-      addresses = Address.where("first_name like ? or last_name like ?", last_name+'%', last_name+'%').includes({:orders=>{:performance=>:production}}).order("addresses.last_name, addresses.first_name, addresses.id").limit(15)
+      addresses = Address.where("search_name like ? or last_first_name like ?", (first_name+last_name+'%').upcase, (last_name+first_name+'%').upcase).order("addresses.last_name, addresses.first_name, addresses.id").limit(7)
     end
     if addresses.nil?
       render :json=>Array.new
     else
-      render :json => addresses.map { |a|
+      render :json => addresses.to_a.uniq{|a| [a.first_name, a.last_name, a.email]}.map { |a|
         value = a.full_name
         member_code = a.is_current_member? ? a.current_membership.member_code : nil
         # tags = current_user.allowed_tags(a.address_tags).map {|t|
