@@ -122,7 +122,7 @@ group :test,:cucumber do
   gem 'puma'
   # gem 'poltergeist'
   gem 'selenium-webdriver'
-  gem 'sqlite3'
+  gem 'sqlite3', '~> 1.3', '< 1.4'
   gem 'cucumber-rails', :require=>false
   gem 'simplecov'
   gem 'factory_bot_rails'

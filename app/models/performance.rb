@@ -87,7 +87,7 @@ class Performance < ActiveRecord::Base
 
   def happening_soon?
     at = self.performance_at
-    (Time.now < at) && (Time.now + 3.hours > at)
+    (Time.now < at) && (Time.now + 2.hours > at)
   end
 
   def performance_at

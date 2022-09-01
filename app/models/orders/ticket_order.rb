@@ -455,7 +455,7 @@ class TicketOrder < Order
     dup_tli.ticket_count = 1
     offset = dup_tli.dup
     offset.ticket_count = -1
-    dup_tli.price_override = order_face_value.eql?(0.0) ? BigDecimal.new(0.0, 2) : (dup_tli.price/order_face_value*transfer_amount)
+    dup_tli.price_override = order_face_value.eql?(0.0) ? BigDecimal('0.00') : (dup_tli.price/order_face_value*transfer_amount)
     dup_tli.generated_from_split = true
     total = dup_tli.price_override
 
@@ -563,7 +563,7 @@ class TicketOrder < Order
   end
 
   def ticketing_fee
-    super + BigDecimal.new(self.ticket_line_items.to_a.sum{|li| li.ticket_class.ticketing_fee * li.ticket_count }.to_s, 2)
+    super + BigDecimal(self.ticket_line_items.to_a.sum{|li| li.ticket_class.ticketing_fee * li.ticket_count }.to_s)
   end
 
   def contains_tickets?

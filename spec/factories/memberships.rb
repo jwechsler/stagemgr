@@ -5,6 +5,7 @@ FactoryBot.define do
     name                    { 'Test membership' }
     use_ticket_class_code   { 'PASS' }
     tickets_per_performance { 2 }
+    price_id                { 'TEST' }
 
   end
 

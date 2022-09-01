@@ -16,5 +16,14 @@ Date::DATE_FORMATS.merge!(
   :show_date => "%A, %B %e"
 )
 
+# Currency gem settings
+
+Money.locale_backend = :i18n
+
+# example (using default localization from rails-i18n):
+I18n.locale = :en
+Money.rounding_mode=BigDecimal::ROUND_HALF_UP
+Money.default_currency=Money::Currency.new("USD")
+
 require 'htmldiff'
 require 'monetize/core_extensions'

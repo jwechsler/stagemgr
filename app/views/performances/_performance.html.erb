@@ -16,7 +16,7 @@
 elsif performance.sold_out?
   raw "<del>#{title}</del><br/><font size=\"-2\">Sold out!</font>"
 elsif performance.happening_soon?
-  raw "#{title}<br/><font size=\"-2\">Door available</font>"
+  raw "#{title}<br/><font size=\"-2\">Online sales closed. Tickets available in person</font>"
 elsif performance.near_capacity?
   raw "#{title}<br/><font size=\"-2\">Limited seats remaining. Call box office</font>"
 else

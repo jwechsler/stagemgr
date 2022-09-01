@@ -147,7 +147,7 @@ class Order < ActiveRecord::Base
 
   # returns the total amount paid
   def total_paid
-    sum = self.payments.map{|p| p.amount}.inject(BigDecimal.new(0,2)) { |sum, x| sum + (x.nil? ? BigDecimal.new(0,2) : x) }
+    sum = self.payments.map{|p| p.amount}.inject(BigDecimal('0.00')) { |sum, x| sum + (x.nil? ? BigDecimal.new(0,2) : x) }
     sum = BigDecimal(0.0,2) if sum.nil?
     sum
   end
@@ -241,7 +241,7 @@ class Order < ActiveRecord::Base
   end
 
   def ticketing_fee
-    BigDecimal.new(self.service_line_items.to_a.sum{|li| li.facility_fee }.to_s, 2)
+    BigDecimal(self.service_line_items.to_a.sum{|li| li.facility_fee }.to_s)
   end
 
   def membership_payments
@@ -672,13 +672,13 @@ class Order < ActiveRecord::Base
   #    :ignore_override_payments : set to true to exclude all override payments
   def value_of_all_payments(*options)
     options = options.flatten
-    total = BigDecimal.new(0,2)
+    total = BigDecimal('0.00')
     sum_payments = self.payments
     sum_payments = sum_payments.select{|p| p.report_as_sales_collected?} if options.include?(:sales_collected_payment_types_only)
     unless options.include?(:include_override_payments)
       sum_payments = sum_payments.select{|p| !p.kind_of?(PriceOverridePayment)}
     end
-    total = sum_payments.map{|p| p.amount}.inject(BigDecimal.new(0,2)) { |sum, x| sum + (x.nil? ? BigDecimal.new(0,2) : x) }
+    total = sum_payments.map{|p| p.amount}.inject(BigDecimal("0.00")) { |sum, x| sum + (x.nil? ? BigDecimal.new(0,2) : x) }
 
     total.floor(2)
   end

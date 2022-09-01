@@ -61,7 +61,7 @@ Stagemgr::Application.configure do
 
   # $TEST_CREDIT_CARD = paypal_config['test']['test_credit_card']
 
-  $DATABASEDOTCOM = SalesforceSync.load_from_yaml_file('test',"#{::Rails.root.to_s}/config/databasedotcom.yml")
+  # $DATABASEDOTCOM = SalesforceSync.load_from_yaml_file('test',"#{::Rails.root.to_s}/config/databasedotcom.yml")
 
   $TKTPRINT =  YAML::load(File.open("#{::Rails.root.to_s}/config/ticket_print.yml"))['test']
 
