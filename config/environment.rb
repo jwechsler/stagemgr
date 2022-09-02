@@ -1,8 +1,8 @@
-# Load the rails application
-require File.expand_path('../application', __FILE__)
+# Load the Rails application.
+require_relative 'application'
 
-# Initialize the rails application
-Stagemgr::Application.initialize!
+# Initialize the Rails application.
+Rails.application.initialize!
 
 Time::DATE_FORMATS.merge!(
   :default => '%m/%d/%Y',
@@ -27,3 +27,4 @@ Money.default_currency=Money::Currency.new("USD")
 
 require 'htmldiff'
 require 'monetize/core_extensions'
+

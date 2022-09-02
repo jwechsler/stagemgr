@@ -1,13 +1,10 @@
-require File.expand_path('../boot', __FILE__)
+require_relative 'boot'
 
 require 'rails/all'
 
-require "#{File.dirname(__FILE__)}/../lib/salesforce_sync"
-require "#{File.dirname(__FILE__)}/../lib/my_emma_patches"
-
-# If you have a Gemfile, require the gems listed there, including any gems
+# Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
-Bundler.require(:default, :assets, Rails.env) if defined?(Bundler)
+Bundler.require(*Rails.groups)
 
 # load resque front end
 require 'resque/server'
@@ -15,7 +12,12 @@ require 'resque/server'
 module Stagemgr
   class Application < Rails::Application
 
-    # Set the i18n default to false to accomodate old default behavior (in old credit card validator)
+    config.action_controller.relative_url_root = '/tickets'
+    
+    # Settings in config/environments/* take precedence over those specified here.
+    # Application configuration should go into files in config/initializers
+    # -- all .rb files in that directory are automatically loaded.
+        # Set the i18n default to false to accomodate old default behavior (in old credit card validator)
     # @todo once this gem has been updated, remove this
 
     config.i18n.enforce_available_locales = false
@@ -102,5 +104,6 @@ module Stagemgr
 
     #limit Audits to 25 changes
     Audited.max_audits = 25
+    
   end
 end
