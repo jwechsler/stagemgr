@@ -1,7 +1,7 @@
 source 'http://rubygems.org'
 # source 'https://rails-assets.org'
 
-gem 'rails', '4.2.10'
+gem 'rails', '>= 5.0.7', '< 5.0.8'
 
 # Bundle edge Rails instead:
 # gem 'rails', :git => 'git://github.com/rails/rails.git'
@@ -140,7 +140,7 @@ end
 
 group :production do
 #  gem 'newrelic_rpm'
-  gem 'exception_notification'
+  gem 'exception_notification', '< 4.5' # rails 5.0
   gem 'mysql2', "~> 0.4.10"
 end
 
