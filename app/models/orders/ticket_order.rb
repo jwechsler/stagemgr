@@ -634,7 +634,7 @@ class TicketOrder < Order
       original_order = self.exchange_source
       self.status=Order::PROCESSED
       self.set_email_confirmation
-      self.payments(true)
+      self.payments.reload
       self.save!
       original_order.status = Order::EXCHANGED
       original_order.release_tickets!

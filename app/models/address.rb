@@ -135,7 +135,7 @@ class Address < ActiveRecord::Base
   end
 
   def ensure_no_finalized_orders
-    raise "Cannot delete an address with finalized orders" unless orders(true).select{|o| o.finalized? }.count == 0
+    raise "Cannot delete an address with finalized orders" unless orders.reload.select{|o| o.finalized? }.count == 0
   end
 
   def update_from(newer)

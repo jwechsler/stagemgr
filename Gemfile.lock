@@ -181,6 +181,7 @@ GEM
       cucumber-core (~> 8.0, >= 8.0.1)
       cucumber-cucumber-expressions (~> 10.3, >= 10.3.0)
       cucumber-messages (~> 13.0, >= 13.0.1)
+    dante (0.2.0)
     database_cleaner (1.99.0)
     databasedotcom (1.3.5)
       activesupport
@@ -189,7 +190,7 @@ GEM
     decent_exposure (3.0.4)
       activesupport (>= 4.0)
     deep_merge (1.2.1)
-    diff-lcs (1.4.4)
+    diff-lcs (1.5.0)
     docile (1.3.5)
     dry-configurable (0.12.1)
       concurrent-ruby (~> 1.0)
@@ -413,7 +414,7 @@ GEM
     rb-readline (0.5.5)
     rbx-require-relative (0.0.9)
     redcarpet (3.5.1)
-    redis (4.8.0)
+    redis (4.7.1)
     redis-namespace (1.9.0)
       redis (>= 4)
     regexp_parser (2.0.3)
@@ -447,15 +448,15 @@ GEM
       faraday_middleware (>= 0.8.8, <= 1.0)
       hashie (>= 1.2.0, < 4.0)
       json (>= 1.7.5)
-    rspec-core (3.10.1)
-      rspec-support (~> 3.10.0)
-    rspec-expectations (3.10.1)
+    rspec-core (3.11.0)
+      rspec-support (~> 3.11.0)
+    rspec-expectations (3.11.0)
       diff-lcs (>= 1.2.0, < 2.0)
-      rspec-support (~> 3.10.0)
-    rspec-mocks (3.10.2)
+      rspec-support (~> 3.11.0)
+    rspec-mocks (3.11.1)
       diff-lcs (>= 1.2.0, < 2.0)
-      rspec-support (~> 3.10.0)
-    rspec-rails (4.0.2)
+      rspec-support (~> 3.11.0)
+    rspec-rails (4.1.2)
       actionpack (>= 4.2)
       activesupport (>= 4.2)
       railties (>= 4.2)
@@ -463,7 +464,7 @@ GEM
       rspec-expectations (~> 3.10)
       rspec-mocks (~> 3.10)
       rspec-support (~> 3.10)
-    rspec-support (3.10.2)
+    rspec-support (3.11.0)
     ruby2_keywords (0.0.5)
     ruby_parser (3.19.1)
       sexp_processor (~> 4.16)
@@ -493,9 +494,9 @@ GEM
       childprocess (>= 0.5, < 4.0)
       rubyzip (>= 1.2.2)
     sexp_processor (4.16.1)
-    simple_form (4.0.0)
-      actionpack (> 4)
-      activemodel (> 4)
+    simple_form (5.0.3)
+      actionpack (>= 5.0)
+      activemodel (>= 5.0)
     simplecov (0.21.2)
       docile (~> 1.1)
       simplecov-html (~> 0.11)
@@ -525,6 +526,10 @@ GEM
       net-scp (>= 1.1.2)
       net-ssh (>= 2.8.0)
     stripe (5.37.0)
+    stripe-ruby-mock (3.0.1)
+      dante (>= 0.2.0)
+      multi_json (~> 1.0)
+      stripe (> 5, < 6)
     stripe_event (2.3.1)
       activesupport (>= 3.1)
       stripe (>= 2.8, < 6)
@@ -627,6 +632,7 @@ DEPENDENCIES
   rb-readline
   rbx-require-relative
   redcarpet
+  redis (< 4.8.0)
   responders
   resque
   resque-retry
@@ -634,7 +640,7 @@ DEPENDENCIES
   resque-web
   restforce (~> 2.5.3)
   ri_cal!
-  rspec-rails
+  rspec-rails (< 5.0)
   safe_attributes
   sass
   sass-rails
@@ -645,6 +651,7 @@ DEPENDENCIES
   single_test
   sqlite3 (~> 1.3, < 1.4)
   stripe
+  stripe-ruby-mock
   stripe_event
   syntax
   terminal-notifier

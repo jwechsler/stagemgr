@@ -1,8 +1,13 @@
 require 'rails_helper'
+require 'stripe_mock'
 
 RSpec.shared_examples "a paid ticket order" do |pay_method_type, seating_type|
   let(:pay_method) { pay_method_type}
   let(:seating) { seating_type }
+  let(:stripe_helper) { StripeMock.create_test_helper }
+  before { StripeMock.start }
+  after { StripeMock.stop }
+
   it "can be refunded" do
     o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, pay_method, seating)
     unless o.paid_with_pass?
@@ -12,6 +17,7 @@ RSpec.shared_examples "a paid ticket order" do |pay_method_type, seating_type|
     end
   end
   it "should mark its holder has having attended the production when fulfilled" do
+    
     o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, pay_method, seating)
     o.transition_to!(Order::FULFILLED)
     expect(o.performance.production.attendees.size).to eq(1)

@@ -76,9 +76,11 @@ class Payment < ActiveRecord::Base
   end
 
   def refund!(cc_number = nil, note = nil)
-    Payment.transaction do
-      refund_payment = create_refund_payment(cc_number, note)
-      refund_payment.save!
+    if self.amount > 0 then
+      Payment.transaction do
+        refund_payment = create_refund_payment(cc_number, note)
+        refund_payment.save!
+      end
     end
   end
 

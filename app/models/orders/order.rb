@@ -399,16 +399,17 @@ class Order < ActiveRecord::Base
 
   def refund!
     Order.transaction do
-      refund_payments = []
-      create_notify_refund_task if self.fulfilled?
-      build_refunds = self.payments.dup
-      build_refunds.each { |payment| payment.refund!(nil, self.notes) if ((payment.respond_to? :refund!) && payment.report_as_sales_collected?) }
-
+      refund_payments = payments.select{|p| p.amount > 0 }.to_a 
+      refund_payments.each do |payment|
+        if ((payment.respond_to? :refund!) && payment.report_as_sales_collected?)
+          payment.refund!(nil, self.notes)
+        end
+      end
       self.all_line_items.each { |li| self.refund_line_items (li.refund!) if li.respond_to? :refund!  }
       self.status = REFUNDED
+      create_notify_refund_task if self.fulfilled?
       self.save!
     end
-
   end
 
   def unclaimed!

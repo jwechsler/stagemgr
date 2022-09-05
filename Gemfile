@@ -75,6 +75,7 @@ gem 'foundation-datetimepicker-rails'
 # gem 'jqgrid-rails3', :git=>"https://github.com/davebaldwin/jqgrid-rails3.git"
 #gem "name_parse", "~> 0.0.5"
 gem "people"
+gem "redis", "< 4.8.0"
 
 gem "ri_cal", :git=>"https://github.com/ctide/ri_cal.git"
 
@@ -127,12 +128,13 @@ group :test,:cucumber do
   gem 'simplecov'
   gem 'factory_bot_rails'
   gem 'database_cleaner'
+  gem 'stripe-ruby-mock'
 end
 
 group :test do
   gem 'syntax'
 
-  gem 'rspec-rails'
+  gem 'rspec-rails', "< 5.0" # for rails 5.0
   gem "mocha", :require => false
   gem 'flexmock'
   gem 'fakeredis', :require => "fakeredis/rspec"

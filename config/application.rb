@@ -89,8 +89,8 @@ module Stagemgr
     # removed below with 4.2 update
     # config.action_view.javascript_expansions[:defaults] = %w(prototype rails)
 
-    # use new error propogation methods
-    config.active_record.raise_in_transactional_callbacks = true
+    # use new error propogation methods. Removed in rails 5 update
+    # config.active_record.raise_in_transactional_callbacks = true
 
     initializer :after_append_asset_paths,
             :group => :all,
