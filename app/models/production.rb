@@ -43,7 +43,8 @@ class Production < ApplicationRecord
   has_one :production_stat
   before_validation :clean_values, :downcase_for_db
   before_create :assign_default_ticket_classes
-  before_save :queue_statistics_recalc
+  # removed until we fix/expose statistics
+  # before_save :queue_statistics_recalc
   before_save :finalize_season_seating, :if=>:status_changed?
   before_save :update_performance_codes, :if=>:production_code_changed?
   belongs_to :flex_pass_offer
