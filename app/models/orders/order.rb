@@ -85,7 +85,7 @@ class Order < ApplicationRecord
   end
 
   before_save :link_to_address_of_record, :if=>[:status_changed?, :processed?]
-  before_save :set_theater
+
   before_save :cancel_pending_tasks, :if=>:newly_canceled?
   before_save :is_balanced_transaction?, :if=>[:status_changed?, :processed?]
   
@@ -660,10 +660,6 @@ class Order < ApplicationRecord
 
   protected
 
-
-  def set_theater
-    self.theater_id = self.associated_theater_id
-  end
 
   def status_is_provided?
     !self.status.blank?

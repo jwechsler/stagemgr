@@ -954,58 +954,9 @@ class TicketOrder < Order
     @@debug_logger ||= Logger.new("#{Rails.root}/log/debug.log")
   end
 
-
-end
-
-
-# Salesforce engine bits
-
-class TicketOrder
-
-  def queue_sf_sync(delay = nil)
-    delay = 2.minutes if delay.nil?
-    Resque.enqueue_in(delay, SyncOrderToSalesforce, self.id)
-    super
+  def set_theater
+    self.theater_id = self.associated_theater_id
   end
 
-  def sync_to_salesforce!(sf_cache = nil)
-    if sf_cache.nil?
-      sf_cache = SyncCache.new
-    end
-    if self.syncable?
-      event = SalesforceData::OrderActivity__c.find_by_stagemgr_order_id__c(self.id)
-      # is delete needed?
-      if self.returned?
-        event.delete unless event.nil?
-      elsif
-        contact = sf_cache.address(self.address_id)  # May update/create address on salesforce as this point
-        showtime = Time.local(self.performance.performance_date.year,
-                                self.performance.performance_date.month,
-                                self.performance.performance_date.day,
-                                self.performance.performance_time.hour,
-                                self.performance.performance_time.min,
-                                self.performance.performance_time.sec)
-        if event.nil?
-          event = SalesforceData::OrderActivity__c.create("stagemgr_order_id__c" => self.id.to_s,
-            "Name" => self.performance.production.name,
-            "Attendee__c" => contact.Id,
-            "number_of_tickets__c" => self.number_of_tickets,
-            "spent__c" => self.total_paid,
-            "attended_on__c" => showtime)
-        else
-          event.Attendee__c = contact.Id
-          event.Name = self.performance.production.name
-          event.number_of_tickets__c = self.number_of_tickets
-          event.spent__c = self.total_paid
-          event.attended_on__c = showtime
-        end
-        event.save
-      end
-      self.sf_object = event
-      self.sf_order_id = nil || (self.sf_object.Id unless self.sf_object.nil?)
-      self.sf_last_sync_at = DateTime.now
-      self.save!
-    end
-  end
 
 end
