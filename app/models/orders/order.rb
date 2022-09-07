@@ -699,14 +699,17 @@ class Order < ApplicationRecord
 
   def check_for_settled_payments
     paid_amt = self.total_paid || 0
-    raise "Cannot destroy orders with settled payments" if (paid_amt > 0 && self.payments.select{|p| !p.can_cancel?}.size > 0)
-    true
+    if (paid_amt > 0 && self.payments.select{|p| !p.can_cancel?}.size > 0)
+      errors.add(:order,"Cannot destroy orders with settled payments") 
+      return false
+    else
+      return true
+    end
   end
 
   def prevent_status_rollbacks
     if self.status_changed? && !self.status_was.blank?
       self.errors.add(:error, "Cannot reprocess orders") if Order.unprocessed_statuses.include?(self.status) && !Order.unprocessed_statuses.include?(self.status_was)
-      throw(:abort)
     end
     true
   end
