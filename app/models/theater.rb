@@ -1,4 +1,4 @@
- class Theater < ActiveRecord::Base
+ class Theater < ApplicationRecord
   #@todo setup access control
 
   THEATER_CLASSES  = (

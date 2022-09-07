@@ -1,4 +1,4 @@
-class AddMembershipToSpecialOffer < ActiveRecord::Migration
+class AddMembershipToSpecialOffer < ActiveRecord::Migration[4.2]
   def self.up
     add_column :special_offers, :membership_id, :integer
   end

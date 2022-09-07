@@ -1,4 +1,4 @@
-class Seat < ActiveRecord::Base
+class Seat < ApplicationRecord
   belongs_to :seat_map
 
   validates_presence_of :location, :row, :seat_number

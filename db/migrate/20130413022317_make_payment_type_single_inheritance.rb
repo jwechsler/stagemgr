@@ -1,4 +1,4 @@
-class MakePaymentTypeSingleInheritance < ActiveRecord::Migration
+class MakePaymentTypeSingleInheritance < ActiveRecord::Migration[4.2]
   def up
     add_column :payment_types, :type, :string
     execute "update payment_types set type = 'CashPaymentType' where display_name = 'Cash'"

@@ -1,4 +1,4 @@
-class RemovePrimaryKeyFromThtrUsr < ActiveRecord::Migration
+class RemovePrimaryKeyFromThtrUsr < ActiveRecord::Migration[4.2]
   def self.up
     begin
       remove_column :theaters_users, :id

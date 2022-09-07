@@ -1,4 +1,4 @@
-class CreateFlexPasses < ActiveRecord::Migration
+class CreateFlexPasses < ActiveRecord::Migration[4.2]
   def self.up
     create_table :flex_passes do |t|
       t.string     :code

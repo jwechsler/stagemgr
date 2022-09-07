@@ -1,4 +1,4 @@
-class TicketClass < ActiveRecord::Base
+class TicketClass < ApplicationRecord
   include ActionView::Helpers::NumberHelper
   include ApplicationHelper
   TICKET_TYPES = ['Fixed', 'Donation', 'Timed']

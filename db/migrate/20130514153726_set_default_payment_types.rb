@@ -1,4 +1,4 @@
-class SetDefaultPaymentTypes < ActiveRecord::Migration
+class SetDefaultPaymentTypes < ActiveRecord::Migration[4.2]
   def up
   end
 

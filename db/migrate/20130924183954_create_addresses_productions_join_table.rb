@@ -1,4 +1,4 @@
-class CreateAddressesProductionsJoinTable < ActiveRecord::Migration
+class CreateAddressesProductionsJoinTable < ActiveRecord::Migration[4.2]
   def up
     create_table :addresses_productions, :id => false do |t|
       t.integer :address_id

@@ -1,4 +1,4 @@
-class AddNotifyListToOrderTask < ActiveRecord::Migration
+class AddNotifyListToOrderTask < ActiveRecord::Migration[4.2]
   def self.up
     add_column :order_tasks, :notifications, :string
   end

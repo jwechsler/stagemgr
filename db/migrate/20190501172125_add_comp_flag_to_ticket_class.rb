@@ -1,4 +1,4 @@
-class AddCompFlagToTicketClass < ActiveRecord::Migration
+class AddCompFlagToTicketClass < ActiveRecord::Migration[4.2]
   def up
     add_column :ticket_classes, :complimentary, :boolean, :default=>false
     add_column :default_ticket_classes, :complimentary, :boolean, :default=>false

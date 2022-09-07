@@ -1,4 +1,4 @@
-class AddAddressParseToAddresses < ActiveRecord::Migration
+class AddAddressParseToAddresses < ActiveRecord::Migration[4.2]
   def self.up
     add_column :addresses, :street_number, :string
     add_column :addresses, :street, :string

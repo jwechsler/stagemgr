@@ -1,8 +1,8 @@
 class Admin::TicketClassesController < Admin::ApplicationController
   load_and_authorize_resource
 
-  prepend_before_filter :find_production
-  append_before_filter :find_ticket_class, :only => [:edit, :update, :destroy]
+  prepend_before_action :find_production
+  before_action :find_ticket_class, :only => [:edit, :update, :destroy]
 
   def index
     respond_to do |format|

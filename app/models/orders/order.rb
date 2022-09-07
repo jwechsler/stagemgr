@@ -2,7 +2,7 @@ require 'payment_form_fields'
 
 InvalidSpecialOfferCode = Class.new(StandardError)
 
-class Order < ActiveRecord::Base
+class Order < ApplicationRecord
 
   include PaymentFormFields
   include Admin::ReportsHelper
@@ -29,7 +29,6 @@ class Order < ActiveRecord::Base
   accepts_nested_attributes_for :special_offer_line_item,
                                 :service_line_items,
                                 :allow_destroy => true
-
 
   attr_accessor :special_offer_code
   attr_accessor :door_sale
@@ -69,14 +68,8 @@ class Order < ActiveRecord::Base
   before_validation :associate_service_line_items
   before_validation :set_defaults
   before_validation :create_recipient_address, :if=>:gift?
-
-  before_save :link_to_address_of_record, :if=>[:status_changed?, :processed?]
   after_validation :prevent_status_rollbacks
-  before_destroy :check_for_settled_payments
-  before_save :set_theater
-  before_save :cancel_pending_tasks, :if=>:newly_canceled?
-  after_save :set_tasks_after_save
-
+ 
   validates_inclusion_of :status, :in => ORDER_STATUSES, :if=>:status_is_provided?
 
   validates_presence_of :address
@@ -84,14 +77,23 @@ class Order < ActiveRecord::Base
   validates_associated :payments,
                        :special_offer_line_item
   validates :hold_under, not_email: true
-
-  before_save :is_balanced_transaction?, :if=>[:status_changed?, :processed?]
   validates_each :status do |record, attr, value|
     if value == PROCESSED
       m_payments = record.payments.select{|p| p.is_a? MembershipPayment}
       m_payments.each { |p| p.membership.verify_applicable_for(record) }
     end
   end
+
+  before_save :link_to_address_of_record, :if=>[:status_changed?, :processed?]
+  before_save :set_theater
+  before_save :cancel_pending_tasks, :if=>:newly_canceled?
+  before_save :is_balanced_transaction?, :if=>[:status_changed?, :processed?]
+  
+  after_save :set_tasks_after_save
+
+  before_destroy :check_for_settled_payments
+  
+  # implementation
 
   def is_balanced_transaction?
     li_total = self.value_of_all_line_items
@@ -127,35 +129,35 @@ class Order < ActiveRecord::Base
 
   def value_of_all_line_items
     a = self.all_line_items.to_a.sum { |line_item|
-        line_item.respond_to?(:total) ? line_item.total : BigDecimal.new(0,2)
+        line_item.respond_to?(:total) ? line_item.total : BigDecimal('0',2)
       }
-    a = BigDecimal.new(0.0,2) if a < 0
+    a = BigDecimal('0',2) if a < 0
     a
   end
 
   # total revenue collected by box office
   def total_collected
     sum_payments = self.payments.select{|p| p.report_as_sales_collected?}
-    total = sum_payments.empty? ? BigDecimal(0.0,2) : sum_payments.sum{|p| p.amount}
+    total = sum_payments.empty? ? BigDecimal('0',2) : sum_payments.sum{|p| p.amount}
   end
 
   # total revenue reported for the production
   def total_revenue
     sum_payments = self.payments.select{|p| p.report_as_production_revenue?}
-    total = sum_payments.empty? ? BigDecimal(0.0,2) : sum_payments.sum{|p| p.amount }
+    total = sum_payments.empty? ? BigDecimal('0',2) : sum_payments.sum{|p| p.amount }
   end
 
   # returns the total amount paid
   def total_paid
-    sum = self.payments.map{|p| p.amount}.inject(BigDecimal('0.00')) { |sum, x| sum + (x.nil? ? BigDecimal.new(0,2) : x) }
-    sum = BigDecimal(0.0,2) if sum.nil?
+    sum = self.payments.map{|p| p.amount}.inject(BigDecimal('0',2)) { |sum, x| sum + (x.nil? ? BigDecimal('0',2) : x) }
+    sum = BigDecimal('0',2) if sum.nil?
     sum
   end
 
   #returns the total payments visible to the customer
   def customer_visible_total
     total = self.payments.to_a.sum { |payment| payment.customer_visible_amount }
-    total = BigDecimal(0,2) if (total.nil? || total < 0)
+    total = BigDecimal('0',2) if (total.nil? || total < 0)
     total
   end
 
@@ -167,7 +169,7 @@ class Order < ActiveRecord::Base
     else
       a = self.value_of_all_payments(options)
     end
-    a = BigDecimal(0,2) if a < 0
+    a = BigDecimal('0',2) if a < 0
     a
   end
 
@@ -241,7 +243,7 @@ class Order < ActiveRecord::Base
   end
 
   def ticketing_fee
-    BigDecimal(self.service_line_items.to_a.sum{|li| li.facility_fee }.to_s)
+    BigDecimal(self.service_line_items.to_a.sum{|li| li.facility_fee }.to_s,2)
   end
 
   def membership_payments
@@ -673,13 +675,13 @@ class Order < ActiveRecord::Base
   #    :ignore_override_payments : set to true to exclude all override payments
   def value_of_all_payments(*options)
     options = options.flatten
-    total = BigDecimal('0.00')
+    total = BigDecimal('0',2)
     sum_payments = self.payments
     sum_payments = sum_payments.select{|p| p.report_as_sales_collected?} if options.include?(:sales_collected_payment_types_only)
     unless options.include?(:include_override_payments)
       sum_payments = sum_payments.select{|p| !p.kind_of?(PriceOverridePayment)}
     end
-    total = sum_payments.map{|p| p.amount}.inject(BigDecimal("0.00")) { |sum, x| sum + (x.nil? ? BigDecimal.new(0,2) : x) }
+    total = sum_payments.map{|p| p.amount}.inject(BigDecimal('0',2)) { |sum, x| sum + (x.nil? ? BigDecimal('0',2)) : x) }
 
     total.floor(2)
   end
@@ -704,7 +706,7 @@ class Order < ActiveRecord::Base
   def prevent_status_rollbacks
     if self.status_changed? && !self.status_was.blank?
       self.errors.add(:error, "Cannot reprocess orders") if Order.unprocessed_statuses.include?(self.status) && !Order.unprocessed_statuses.include?(self.status_was)
-      return false
+      throw(:abort)
     end
     true
   end
@@ -887,27 +889,5 @@ class Order < ActiveRecord::Base
     donation.transition_to!(Order::PROCESSED)
 
   end
-end
-
-# Salesforce extension
-
-class Order
-
-  attr_writer :sf_disable_sync_on_commit
-
-  def sf_disable_sync_on_commit?
-    @sf_disable_sync_on_commit.nil? ? false : @sf_disable_sync_on_commit
-  end
-
-  after_commit :queue_sf_sync, :if=>Proc.new { |syncable| self.syncable? && !syncable.sf_disable_sync_on_commit? && SalesforceSync.enabled? }
-
-  def queue_sf_sync(delay = nil)
-
-  end
-
-  def syncable?
-    self.syncable_statuses.include?(self.status) && self.address.customer?
-  end
-
 end
 

@@ -1,4 +1,4 @@
-class Venue < ActiveRecord::Base
+class Venue < ApplicationRecord
 
   validates_presence_of :name, :ordinal_sort
   has_many :productions

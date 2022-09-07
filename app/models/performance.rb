@@ -1,4 +1,4 @@
-class Performance < ActiveRecord::Base
+class Performance < ApplicationRecord
 
   PERFORMANCE_STATUSES = (ACTIVE, INACTIVE, PRIVATE = 'Active',  'Inactive', 'Private')
 

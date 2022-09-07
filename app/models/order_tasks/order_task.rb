@@ -1,4 +1,4 @@
-class OrderTask < ActiveRecord::Base
+class OrderTask < ApplicationRecord
 
   after_initialize :init
 

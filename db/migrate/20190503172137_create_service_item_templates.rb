@@ -1,4 +1,4 @@
-class CreateServiceItemTemplates < ActiveRecord::Migration
+class CreateServiceItemTemplates < ActiveRecord::Migration[4.2]
   def change
     create_table :service_item_templates do |t|
       t.string :name

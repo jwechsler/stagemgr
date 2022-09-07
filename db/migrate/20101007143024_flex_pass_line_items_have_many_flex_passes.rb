@@ -1,4 +1,4 @@
-class FlexPassLineItemsHaveManyFlexPasses < ActiveRecord::Migration
+class FlexPassLineItemsHaveManyFlexPasses < ActiveRecord::Migration[4.2]
   def self.up
     remove_column :line_items, :flex_pass_id
     add_column :flex_passes, :flex_pass_line_item_id, :integer

@@ -1,4 +1,4 @@
-class AddSearchNameToAddresses < ActiveRecord::Migration
+class AddSearchNameToAddresses < ActiveRecord::Migration[4.2]
   def self.up
     add_column :addresses, :search_name, :string
   end

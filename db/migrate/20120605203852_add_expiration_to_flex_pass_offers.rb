@@ -1,4 +1,4 @@
-class AddExpirationToFlexPassOffers < ActiveRecord::Migration
+class AddExpirationToFlexPassOffers < ActiveRecord::Migration[4.2]
   def self.up
     add_column :flex_pass_offers, :months_till_expiration, :integer, :default=>18
   end

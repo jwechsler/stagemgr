@@ -1,4 +1,4 @@
-class PaymentType < ActiveRecord::Base
+class PaymentType < ApplicationRecord
 
   has_many :payments
   has_many :payment_restrictions, :dependent=>:destroy

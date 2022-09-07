@@ -1,4 +1,4 @@
-class TidyUpOrders < ActiveRecord::Migration
+class TidyUpOrders < ActiveRecord::Migration[4.2]
   def self.up
     add_column :orders, :payment_type, :string
     

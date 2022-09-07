@@ -1,4 +1,4 @@
-class SpecialFeature < ActiveRecord::Base
+class SpecialFeature < ApplicationRecord
 
   SPECIAL_FEATURE_STATUSES = (
       ACTIVE, INACTIVE = 'Active', 'Inactive'

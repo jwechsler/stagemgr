@@ -1,4 +1,4 @@
-class AddVenueToProductions < ActiveRecord::Migration
+class AddVenueToProductions < ActiveRecord::Migration[4.2]
   def self.up
     add_column :productions, :venue_id, :integer
   end

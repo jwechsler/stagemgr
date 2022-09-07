@@ -3,8 +3,8 @@ class FlexPassOrdersController < ApplicationController
     include OrdersHelper
     include FlexPassOrdersHelper
 
-    append_before_filter :find_order, :only => [:show, :edit, :update, :destroy]
-    append_before_filter :redirect_to_proper_action, :only => [:edit, :show]
+    before_action :find_order, :only => [:show, :edit, :update, :destroy]
+    before_action :redirect_to_proper_action, :only => [:edit, :show]
 
     respond_to :html, :xml, :json
 

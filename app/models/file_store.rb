@@ -1,4 +1,4 @@
-class FileStore < ActiveRecord::Base
+class FileStore < ApplicationRecord
   include SafeAttributes::Base
   belongs_to :user
   has_attached_file :data, {

@@ -1,4 +1,4 @@
-class InvalidateDisassociatedFlexPasses < ActiveRecord::Migration
+class InvalidateDisassociatedFlexPasses < ActiveRecord::Migration[4.2]
   def up
     execute "update flex_passes set active=0 where flex_passes.order_id not in (select id from orders where type = 'FlexPassOrder')
     or flex_passes.flex_pass_line_item_id not in (select id from line_items where type = 'FlexPassLineItem')"

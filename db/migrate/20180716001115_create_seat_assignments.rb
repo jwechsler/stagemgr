@@ -1,4 +1,4 @@
-class CreateSeatAssignments < ActiveRecord::Migration
+class CreateSeatAssignments < ActiveRecord::Migration[4.2]
   def change
     create_table :seat_assignments do |t|
       t.references :order, index:true

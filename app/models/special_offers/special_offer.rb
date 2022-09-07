@@ -1,4 +1,4 @@
-class SpecialOffer < ActiveRecord::Base
+class SpecialOffer < ApplicationRecord
 
   SPECIAL_OFFER_TYPES = ()
   belongs_to :membership

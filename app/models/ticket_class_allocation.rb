@@ -1,4 +1,4 @@
-class TicketClassAllocation < ActiveRecord::Base
+class TicketClassAllocation < ApplicationRecord
   belongs_to :performance
   belongs_to :ticket_class
   default_scope { includes(:ticket_class) }

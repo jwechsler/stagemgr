@@ -1,4 +1,4 @@
-class CreateSeatMaps < ActiveRecord::Migration
+class CreateSeatMaps < ActiveRecord::Migration[4.2]
   def change
     create_table :seat_maps do |t|
       t.string :label

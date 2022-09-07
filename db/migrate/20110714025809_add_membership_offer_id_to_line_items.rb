@@ -1,4 +1,4 @@
-class AddMembershipOfferIdToLineItems < ActiveRecord::Migration
+class AddMembershipOfferIdToLineItems < ActiveRecord::Migration[4.2]
   def self.up
     add_column :line_items, :membership_offer_id, :integer
   end

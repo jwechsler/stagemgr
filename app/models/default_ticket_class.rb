@@ -1,4 +1,4 @@
-class DefaultTicketClass < ActiveRecord::Base
+class DefaultTicketClass < ApplicationRecord
   validates_uniqueness_of :class_code
   validates_length_of :class_code, :minimum => 1
   validates_presence_of :ticket_price

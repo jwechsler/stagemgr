@@ -1,4 +1,4 @@
-class AddSalesforceSyncToOrders < ActiveRecord::Migration
+class AddSalesforceSyncToOrders < ActiveRecord::Migration[4.2]
   def self.up
     add_column :orders, :sf_last_sync_at, :datetime
   end

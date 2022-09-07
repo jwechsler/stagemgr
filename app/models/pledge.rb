@@ -1,4 +1,4 @@
-class Pledge < ActiveRecord::Base
+class Pledge < ApplicationRecord
   include RecurringProfile
 
   belongs_to :donation_pledge_order, :foreign_key=>'order_id'

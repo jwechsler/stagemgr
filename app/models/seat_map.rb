@@ -1,4 +1,4 @@
-class SeatMap < ActiveRecord::Base
+class SeatMap < ApplicationRecord
   belongs_to :venue
   has_many :seats, :dependent=>:destroy
   has_many :productions

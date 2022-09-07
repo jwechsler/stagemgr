@@ -1,4 +1,4 @@
-class MoveLineItemsToDecimal < ActiveRecord::Migration
+class MoveLineItemsToDecimal < ActiveRecord::Migration[4.2]
   def change
     rename_column :line_items, :price_override, :price_override_old
     rename_column :line_items, :amount, :amount_old 

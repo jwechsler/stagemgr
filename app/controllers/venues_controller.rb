@@ -1,6 +1,6 @@
 class VenuesController < ApplicationController
   layout 'ext_site_wrapper'
-  before_filter :set_background
+  before_action :set_background
 
   def now_playing_fb
     self.set_now_playing_productions

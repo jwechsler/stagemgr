@@ -1,4 +1,4 @@
-class RenameHeardAboutToMarketingSource < ActiveRecord::Migration
+class RenameHeardAboutToMarketingSource < ActiveRecord::Migration[4.2]
   def self.up
     rename_column :orders, :heard_about, :marketing_source
   end

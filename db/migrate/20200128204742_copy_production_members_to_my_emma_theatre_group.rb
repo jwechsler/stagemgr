@@ -1,4 +1,4 @@
-class CopyProductionMembersToMyEmmaTheatreGroup < ActiveRecord::Migration
+class CopyProductionMembersToMyEmmaTheatreGroup < ActiveRecord::Migration[4.2]
   def up
     unless MyEmma.disabled?
       Production.all.select{|prod| !prod.myemma_attendee_group.nil? }.each do |prod|

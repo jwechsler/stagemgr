@@ -1,5 +1,5 @@
 class CurrentUser::UsersController < CurrentUser::ApplicationController
-  prepend_before_filter :find_user, :only => [:show, :edit, :update, :destroy]
+  prepend_before_action :find_user, :only => [:show, :edit, :update, :destroy]
 
   # GET /users
   def index

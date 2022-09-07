@@ -1,4 +1,4 @@
-class AddSpecialFeatureToPerformances < ActiveRecord::Migration
+class AddSpecialFeatureToPerformances < ActiveRecord::Migration[4.2]
   def self.up
     add_column :performances, :special_feature_id, :integer
   end

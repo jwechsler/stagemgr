@@ -1,4 +1,4 @@
-class AddTicketsPerPerformanceToMembershipOffers < ActiveRecord::Migration
+class AddTicketsPerPerformanceToMembershipOffers < ActiveRecord::Migration[4.2]
   def self.up
     add_column :membership_offers, :tickets_per_performance, :integer
   end

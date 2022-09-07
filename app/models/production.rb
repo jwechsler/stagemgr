@@ -1,6 +1,6 @@
 # A production is a show with one or more performances.  Items common to performances are grouped here.
 
-class Production < ActiveRecord::Base
+class Production < ApplicationRecord
 
   # :section: Production Constants
   #
@@ -48,8 +48,6 @@ class Production < ActiveRecord::Base
   before_save :update_performance_codes, :if=>:production_code_changed?
   belongs_to :flex_pass_offer
   has_and_belongs_to_many :attendees, class_name: "Address", uniq:true
-
-  attr_accessor :sf_object
 
   has_attached_file :promo, :styles => {:medium => "250x375>", :thumb => "125x186>"},
                     :path => ":rails_root/public/system/:attachment/:id/:style/:filename",
@@ -264,45 +262,6 @@ class Production < ActiveRecord::Base
   end
 
   # @todo the below are hooks for markdown feature as planned
-
-  def sync_to_salesforce!(user = nil, record_type_id = nil)
-    record_type_id = $DATABASEDOTCOM['production_record_type_id'] if record_type_id.nil?
-    if self.sf_last_sync_at.nil? || self.sf_last_sync_at <= self.updated_at
-      puts "syncing production #{self.id}"
-      production = SalesforceData::Product2.find_by_stagemgr_id__c(self.id.to_s)
-      if production.nil?
-        puts "  creating production on salesforce"
-        production = SalesforceData::Product2.create("Name"=>self.name,
-                                                 "ProductCode"=>self.production_code,
-                                                 "RecordTypeId"=>record_type_id,
-                                                 "Producing_Theater__c"=>self.theater.name,
-                                                 "season__c"=>self.season.to_s,
-                                                 "stagemgr_id__c"=>self.id.to_s,
-                                                 "IsActive"=>true)
-      else
-        production.Name = self.name
-        production.ProductCode=self.production_code
-        production.Producing_Theater__c=self.theater.name
-        production.season__c=self.season
-
-      end
-      production.save
-      self.sf_last_sync_at = DateTime.now + 15.seconds
-      self.save!
-      self.sf_object = production
-    end
-  end
-
-  def sf
-    if self.sf_object.nil?
-      self.sf_object = SalesforceData::Product2.find_by_stagemgr_id__c(self.id.to_s)
-      if self.sf_object.nil?
-        self.sf_last_sync_at = nil
-        self.sync_to_salesforce!
-      end
-    end
-    self.sf_object
-  end
 
   private
 

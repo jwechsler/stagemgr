@@ -1,7 +1,7 @@
 source 'http://rubygems.org'
 # source 'https://rails-assets.org'
 
-gem 'rails', '>= 5.0.7', '< 5.0.8'
+gem 'rails', '~> 5.2.8.1'
 
 # Bundle edge Rails instead:
 # gem 'rails', :git => 'git://github.com/rails/rails.git'
@@ -41,7 +41,7 @@ gem "stripe"
 gem "stripe_event"
 #gem "braintree"
 #gem "braintree-rails"
-gem "scrypt", '~> 3.0.6'
+gem "scrypt"
 gem "authlogic", '~> 4.4'
 gem "audited", "~> 4.8"
 gem "will_paginate"
@@ -109,21 +109,21 @@ group :development do
   gem 'rb-readline'
   gem "haml-rails"
   gem 'single_test'
+
   # gem 'ruby_parser'  # for declarative authorization eager loading for resque tasks
 end
 
 group :development,:test,:cucumber do
-
+  gem 'sqlite3', '~> 1.4.0'
+  gem 'rails-controller-testing'
   gem 'byebug'
 end
-
 
 group :test,:cucumber do
   gem 'capybara'
   gem 'puma'
   # gem 'poltergeist'
   gem 'selenium-webdriver'
-  gem 'sqlite3', '~> 1.3', '< 1.4'
   gem 'cucumber-rails', :require=>false
   gem 'simplecov'
   gem 'factory_bot_rails'
@@ -134,7 +134,7 @@ end
 group :test do
   gem 'syntax'
 
-  gem 'rspec-rails', "< 5.0" # for rails 5.0
+  gem 'rspec-rails', '< 6.0'
   gem "mocha", :require => false
   gem 'flexmock'
   gem 'fakeredis', :require => "fakeredis/rspec"

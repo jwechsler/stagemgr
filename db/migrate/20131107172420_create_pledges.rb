@@ -1,4 +1,4 @@
-class CreatePledges < ActiveRecord::Migration
+class CreatePledges < ActiveRecord::Migration[4.2]
   def change
     create_table :pledges do |t|
       t.integer :order_id

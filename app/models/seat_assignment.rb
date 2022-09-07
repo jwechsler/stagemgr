@@ -1,4 +1,4 @@
-class SeatAssignment < ActiveRecord::Base
+class SeatAssignment < ApplicationRecord
 
   before_destroy :verify_unused
 

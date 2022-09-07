@@ -1,4 +1,4 @@
-class AddIpToOrder < ActiveRecord::Migration
+class AddIpToOrder < ActiveRecord::Migration[4.2]
   def self.up
     add_column :orders,:ip_address,:string
   end

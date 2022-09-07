@@ -1,4 +1,4 @@
-class CreateProductionAdvanceSales < ActiveRecord::Migration
+class CreateProductionAdvanceSales < ActiveRecord::Migration[4.2]
   def change
     create_table :sales_snapshots do |t|
       t.date :as_of_date, null: false

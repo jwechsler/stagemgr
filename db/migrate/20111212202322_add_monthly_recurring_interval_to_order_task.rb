@@ -1,4 +1,4 @@
-class AddMonthlyRecurringIntervalToOrderTask < ActiveRecord::Migration
+class AddMonthlyRecurringIntervalToOrderTask < ActiveRecord::Migration[4.2]
   def self.up
     add_column :order_tasks, :repeat_monthly_interval, :integer
   end

@@ -1,4 +1,4 @@
-class FlexPass < ActiveRecord::Base
+class FlexPass < ApplicationRecord
   belongs_to :address
   belongs_to :flex_pass_offer
   belongs_to :flex_pass_line_item

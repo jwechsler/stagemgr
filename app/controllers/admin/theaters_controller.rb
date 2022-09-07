@@ -1,8 +1,8 @@
 class Admin::TheatersController < Admin::ApplicationController
-  before_filter :remove_empty_logo
+  before_action :remove_empty_logo
   load_and_authorize_resource
 
-  before_filter :find_context, :only=>:show
+  before_action :find_context, :only=>:show
   def index
     @theaters = @theaters.sort_by{|t| [t.status, t.theater_class, t.name]}
 

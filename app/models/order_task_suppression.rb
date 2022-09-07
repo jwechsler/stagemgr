@@ -1,4 +1,4 @@
-class OrderTaskSuppression < ActiveRecord::Base
+class OrderTaskSuppression < ApplicationRecord
 
   belongs_to :payment_method
 end

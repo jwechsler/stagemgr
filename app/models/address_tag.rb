@@ -1,4 +1,4 @@
-class AddressTag < ActiveRecord::Base
+class AddressTag < ApplicationRecord
 
   EXTERNAL_ID = 'External ID' # Special tag for order matchups
 

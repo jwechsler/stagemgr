@@ -1,4 +1,4 @@
-class AddBillingCyclesToPledge < ActiveRecord::Migration
+class AddBillingCyclesToPledge < ActiveRecord::Migration[4.2]
   def change
     add_column :pledges, :number_cycles_remaining, :integer
     add_column :pledges, :total_billing_cycles, :integer

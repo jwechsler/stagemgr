@@ -1,4 +1,4 @@
-class CreatePaymentRestriction < ActiveRecord::Migration
+class CreatePaymentRestriction < ActiveRecord::Migration[4.2]
   def self.up
     create_table :payment_restrictions do |t|
           t.integer :performance_id

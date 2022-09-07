@@ -1,6 +1,6 @@
 class Admin::ProductionsController < Admin::ApplicationController
-  prepend_before_filter :find_theater
-  append_before_filter :find_context, :only => [:show]
+  prepend_before_action :find_theater
+  before_action :find_context, :only => [:show]
   load_and_authorize_resource
 
   def index

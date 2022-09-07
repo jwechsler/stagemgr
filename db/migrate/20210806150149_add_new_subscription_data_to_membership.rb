@@ -1,4 +1,4 @@
-class AddNewSubscriptionDataToMembership < ActiveRecord::Migration
+class AddNewSubscriptionDataToMembership < ActiveRecord::Migration[4.2]
   def change
     add_column :memberships, :start_date, :date
     add_column :memberships, :ended_at, :date

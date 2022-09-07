@@ -1,4 +1,4 @@
-class AddPayoutPerTicketToFlexPassOffer < ActiveRecord::Migration
+class AddPayoutPerTicketToFlexPassOffer < ActiveRecord::Migration[4.2]
   def self.up
     add_column :flex_pass_offers, :payout_per_ticket, :float
   end

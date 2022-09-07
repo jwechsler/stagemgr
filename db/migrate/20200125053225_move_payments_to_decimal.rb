@@ -1,4 +1,4 @@
-class MovePaymentsToDecimal < ActiveRecord::Migration
+class MovePaymentsToDecimal < ActiveRecord::Migration[4.2]
   def change
     rename_column :payments, :amount, :amount_old
     rename_column :payments, :payment_fee, :payment_fee_old

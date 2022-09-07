@@ -1,4 +1,4 @@
-class ProductionStat < ActiveRecord::Base
+class ProductionStat < ApplicationRecord
 
   belongs_to :production
   has_many :sales_snapshots

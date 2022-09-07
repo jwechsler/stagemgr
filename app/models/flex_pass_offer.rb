@@ -1,4 +1,4 @@
-class FlexPassOffer < ActiveRecord::Base
+class FlexPassOffer < ApplicationRecord
 
   belongs_to :theater
   validates_numericality_of :price, :number_of_tickets, :null=>false

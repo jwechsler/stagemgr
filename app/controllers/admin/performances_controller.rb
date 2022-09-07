@@ -1,6 +1,6 @@
 class Admin::PerformancesController < Admin::ApplicationController
-  prepend_before_filter :find_production, :except=>[:seating_quickview]
-  # append_before_filter :find_performance, :only => [:show, :edit, :update, :destroy, :duplicate]
+  prepend_before_action :find_production, :except=>[:seating_quickview]
+  # before_action :find_performance, :only => [:show, :edit, :update, :destroy, :duplicate]
 
   load_and_authorize_resource
 

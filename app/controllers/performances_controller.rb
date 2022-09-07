@@ -2,7 +2,7 @@ class PerformancesController < ApplicationController
   helper PerformancesHelper
   layout 'ext_site_wrapper'
 
-  append_before_filter :find_production, :except=>[:by_date, :ticket_classes]
+  before_action :find_production, :except=>[:by_date, :ticket_classes]
 
   def index
     if !@production.nil?

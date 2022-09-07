@@ -1,4 +1,4 @@
-class AddWebVisibleToFlexPassOffer < ActiveRecord::Migration
+class AddWebVisibleToFlexPassOffer < ActiveRecord::Migration[4.2]
   def self.up
     add_column :flex_pass_offers, :web_visible, :boolean
     add_column :flex_pass_offers, :description, :text

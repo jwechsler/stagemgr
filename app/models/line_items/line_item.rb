@@ -1,4 +1,4 @@
-class LineItem < ActiveRecord::Base
+class LineItem < ApplicationRecord
   belongs_to :order
   attr_accessor :ticket_class_code
 

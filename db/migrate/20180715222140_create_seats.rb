@@ -1,4 +1,4 @@
-class CreateSeats < ActiveRecord::Migration
+class CreateSeats < ActiveRecord::Migration[4.2]
   def change
     create_table :seats do |t|
       t.string :location, null: false

@@ -3,9 +3,9 @@ class DonationOrdersController < ApplicationController
   include OrdersHelper
   include DonationOrdersHelper
 
-  append_before_filter :find_order, :only => [:show, :edit, :update, :destroy]
-  append_before_filter :redirect_to_proper_action, :only => [:edit, :show]
-  append_before_filter :set_donation_levels
+  before_action :find_order, :only => [:show, :edit, :update, :destroy]
+  before_action :redirect_to_proper_action, :only => [:edit, :show]
+  before_action :set_donation_levels
 
   respond_to :html
 

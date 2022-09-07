@@ -1,5 +1,5 @@
 class Admin::SeatMapsController < ApplicationController
-  prepend_before_filter :find_venue
+  prepend_before_action :find_venue
   load_and_authorize_resource
 
   def index

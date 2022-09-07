@@ -1,4 +1,4 @@
-class CreateOrderTaskSuppressions < ActiveRecord::Migration
+class CreateOrderTaskSuppressions < ActiveRecord::Migration[4.2]
   def change
     create_table :order_task_suppressions do |t|
       t.string :task_type

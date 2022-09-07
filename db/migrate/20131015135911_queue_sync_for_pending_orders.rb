@@ -1,4 +1,4 @@
-class QueueSyncForPendingOrders < ActiveRecord::Migration
+class QueueSyncForPendingOrders < ActiveRecord::Migration[4.2]
   def up
   end
 

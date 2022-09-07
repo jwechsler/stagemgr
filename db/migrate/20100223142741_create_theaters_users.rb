@@ -1,4 +1,4 @@
-class CreateTheatersUsers < ActiveRecord::Migration
+class CreateTheatersUsers < ActiveRecord::Migration[4.2]
   def self.up
     create_table :theaters_users, :id => false do |t|
       t.references :theater

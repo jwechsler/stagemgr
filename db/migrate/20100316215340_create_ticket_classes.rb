@@ -1,4 +1,4 @@
-class CreateTicketClasses < ActiveRecord::Migration
+class CreateTicketClasses < ActiveRecord::Migration[4.2]
   def self.up
     begin 
       drop_table :ticket_classes

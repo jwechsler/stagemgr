@@ -1,4 +1,4 @@
-class ChangeReportingNames < ActiveRecord::Migration
+class ChangeReportingNames < ActiveRecord::Migration[4.2]
   def change
     rename_column :payment_types, :report_as_sales_income, :report_as_sales_collected
     rename_column :payment_types, :report_as_production_income, :report_as_production_revenue

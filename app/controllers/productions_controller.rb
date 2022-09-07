@@ -2,8 +2,8 @@ class ProductionsController < ApplicationController
 
   layout 'ext_site_wrapper'
 
-  prepend_before_filter :find_theater, :except => [:index, :upcoming, :now_playing, :box_office, :by_date, :show]
-  append_before_filter :find_production, :only => [:edit, :update, :destroy]
+  prepend_before_action :find_theater, :except => [:index, :upcoming, :now_playing, :box_office, :by_date, :show]
+  before_action :find_production, :only => [:edit, :update, :destroy]
 
   def by_date
     @start_date = params[:start_date].nil? ? Date.today.beginning_of_week : Date.parse(params[:start_date])

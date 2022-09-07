@@ -1,6 +1,6 @@
 class CurrentUser::ProductionsController < CurrentUser::ApplicationController
-  prepend_before_filter :find_theater
-  append_before_filter :find_production, :only => [:show, :edit, :update, :destroy]
+  prepend_before_action :find_theater
+  before_action :find_production, :only => [:show, :edit, :update, :destroy]
 
   # GET /productions/1
   # GET /productions/1.xml

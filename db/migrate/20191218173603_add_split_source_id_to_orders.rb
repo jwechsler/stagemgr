@@ -1,4 +1,4 @@
-class AddSplitSourceIdToOrders < ActiveRecord::Migration
+class AddSplitSourceIdToOrders < ActiveRecord::Migration[4.2]
   def change
     add_column :orders, :split_source_id, :integer
     add_index :orders, :split_source_id

@@ -1,4 +1,4 @@
-class AddExcludeTheaterToFlexPass < ActiveRecord::Migration
+class AddExcludeTheaterToFlexPass < ActiveRecord::Migration[4.2]
   def self.up
     add_column  :flex_pass_offers,:exclude_theater,:boolean,{:default=>false, :null=>false}
   end
