@@ -660,7 +660,8 @@ class TicketOrder < Order
   end
 
   def all_line_items(reload_line_items = false)
-    super(reload_line_items) + self.ticket_line_items(reload_line_items)
+    self.ticket_line_items.reload if reload_line_items
+    super(reload_line_items) + self.ticket_line_items
   end
 
 # for form processing
@@ -818,7 +819,7 @@ class TicketOrder < Order
   end
 
   def set_tasks_after_save
-    if self.do_not_create_tasks.nil? && self.status_changed?
+    if self.do_not_create_tasks.nil? && (self.new_record? || self.saved_change_to_status?)
       super
       case self.status
         when PROCESSED
@@ -904,7 +905,7 @@ class TicketOrder < Order
   end
 
   def update_attendance_record
-    if self.status_changed?
+    if self.saved_change_to_status?
       case self.status
       when Order::FULFILLED
         attendee = self.address

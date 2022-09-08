@@ -246,6 +246,7 @@ FactoryBot.define do
                             :amount=>ticket_order.value_of_all_line_items)
         ticket_order.status = Order::PROCESSED
         ticket_order.save!
+        
       end
     end
 

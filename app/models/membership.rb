@@ -5,9 +5,8 @@ class Membership < ApplicationRecord
     BEST_AVAILABLE, FRONT_ROW, TOWARDS_REAR, ON_AISLE, WHEELCHAIR, STAIRS =
     'Best available (center)', 'Front row', 'Towards rear', 'On aisle', 'Wheelchair', 'No stairs')
 
-
-  has_one :membership_order, :through=>:membership_line_item
   has_one :membership_line_item, :foreign_key=>:membership_id
+  has_one :membership_order, :through=>:membership_line_item
   has_many :special_offers, :dependent=>:destroy
   belongs_to :membership_offer
 
@@ -107,7 +106,7 @@ class Membership
   after_save :update_membership_list_subscription, :if => :status_changed_for_myemma?
 
   def status_changed_for_myemma?
-    self.status_changed? && !MyEmma.disabled?
+    (self.status_changed? || self.saved_change_to_status?) && !MyEmma.disabled?
   end
 
   def update_my_emma_membership

@@ -642,8 +642,12 @@ class Order < ApplicationRecord
 
   def all_line_items(reload_line_items = false)
     result = Array.new
-    result << self.special_offer_line_item(reload_line_items) unless self.special_offer_line_item.nil?
-    result += self.service_line_items(reload_line_items)
+    if reload_line_items
+      special_offer_line_item.reload
+      service_line_item.reload
+    end
+    result << self.special_offer_line_item unless self.special_offer_line_item.nil?
+    result += self.service_line_items
     result.select{|r| !r.nil?}
   end
 
@@ -677,7 +681,7 @@ class Order < ApplicationRecord
     unless options.include?(:include_override_payments)
       sum_payments = sum_payments.select{|p| !p.kind_of?(PriceOverridePayment)}
     end
-    total = sum_payments.map{|p| p.amount}.inject(BigDecimal('0',2)) { |sum, x| sum + (x.nil? ? BigDecimal('0',2)) : x) }
+    total = sum_payments.map{|p| p.amount}.inject(BigDecimal('0',2)) { |sum, x| sum + (x.nil? ? BigDecimal('0',2) : x) }
 
     total.floor(2)
   end
@@ -854,7 +858,7 @@ class Order < ApplicationRecord
   end
 
   def set_tasks_after_save
-    if self.do_not_create_tasks.nil? && self.status_changed?
+    if self.do_not_create_tasks.nil? && (self.new_record? || self.saved_change_to_status?)
       case self.status
         when PROCESSED
           create_mail_list_task

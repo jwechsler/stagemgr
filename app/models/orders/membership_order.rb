@@ -162,7 +162,7 @@ class MembershipOrder < Order
   end
 
   def set_tasks_after_save
-    if self.do_not_create_tasks.nil? && self.status_changed? && self.status == PROCESSED
+    if self.do_not_create_tasks.nil? && self.saved_change_to_status? && self.status == PROCESSED
           self.tasks << OutreachTask.new(:execute_at=>self.starting_at + 4.months,
                                          :method_symbol=>:membership_friend_pass,
                                          :repeat_monthly_interval => 6) unless self.membership_offer.use_member_friend_code.blank?

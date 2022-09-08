@@ -39,6 +39,7 @@ class Production < ApplicationRecord
   has_many :performances
   has_many :ticket_classes
   has_many :line_items
+  has_many :ticket_orders, :source=>:orders
   has_many :ticket_orders, :source=>:orders, :through=>:performances
   has_one :production_stat
   before_validation :clean_values, :downcase_for_db
@@ -288,13 +289,13 @@ class Production < ApplicationRecord
 
 
   def manage_after_save_active
-    if self.status == ACTIVE && self.status.changed?
+    if self.status == ACTIVE && self.saved_change_to_status?
       run_callbacks :save_active
     end
   end
 
   def manage_after_save_private
-    if self.status == PRIVATE && self.status.changed?
+    if self.status == PRIVATE && self.saved_change_to_status?
       run_callbacks :save_private
     end
   end

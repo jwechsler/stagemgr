@@ -3,13 +3,13 @@ class Performance < ApplicationRecord
   PERFORMANCE_STATUSES = (ACTIVE, INACTIVE, PRIVATE = 'Active',  'Inactive', 'Private')
 
   belongs_to               :production
+  has_many                 :ticket_class_allocations, -> { includes :ticket_class }
   has_many                 :ticket_classes, :through=>:ticket_class_allocations
   has_many                 :line_items, :through=>:orders
   has_many                 :seat_assignments, -> { includes :seat }
   has_many                 :seats, :through=>:seat_assignments
   has_one                  :seat_map, :through=>:production
   has_many                 :orders, :class_name=>'TicketOrder'
-  has_many                 :ticket_class_allocations, -> { includes :ticket_class }
   has_many                 :payment_restrictions, :dependent=>:destroy
   has_many                 :restricted_payment_types, :source=>:payment_type, :through=>:payment_restrictions
   has_and_belongs_to_many      :special_features
