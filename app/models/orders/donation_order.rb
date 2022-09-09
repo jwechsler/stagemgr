@@ -31,8 +31,9 @@ class DonationOrder < Order
   end
 
   def all_line_items(reload_line_items = false)
+    self.donation_line_items.reload if reload_line_items
     super(reload_line_items) +
-        self.donation_line_items(reload_line_items)
+        self.donation_line_items
   end
 
   def valid_payment_types_for(current_user)
