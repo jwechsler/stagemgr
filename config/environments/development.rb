@@ -61,6 +61,7 @@ Rails.application.configure do
   # fresh development log daily
   config.logger = Logger.new(config.paths["log"].first, 1, 20.megabytes)
 
+    
 # Setup paypal module
 
   $PAYMENT_CONFIG = YAML::load(File.open("#{::Rails.root.to_s}/config/payment_processing.yml"))['development']

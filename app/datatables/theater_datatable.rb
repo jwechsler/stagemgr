@@ -1,5 +1,5 @@
 class TheaterDatatable < DatatableBase
-  extend Forwardable
+
   include ActionView::Helpers::NumberHelper
 
   def view_columns
@@ -17,7 +17,6 @@ class TheaterDatatable < DatatableBase
       actions: ''
     }
   end
-
 
   def data
     records.map do |record|

@@ -3,18 +3,23 @@ class Admin::TheatersController < Admin::ApplicationController
   load_and_authorize_resource
 
   before_action :find_context, :only=>:show
+
+  respond_to :html, :json
   def index
     @theaters = @theaters.sort_by{|t| [t.status, t.theater_class, t.name]}
 
     if current_user.is_theater_user?
       @theaters = @theaters.select{|t| current_user.theaters.include?(t)}
     end
-
     respond_to do |format|
       format.html # index.html.erb
       format.json {
+        Rails.logger.debug "****AND,,.."
+        Rails.logger.debug(TheaterDatatable.new(params, view_context: view_context, current_user: current_user ).to_json)
+        Rails.logger.debug ("**** DONE")
         params.permit!
         render json: TheaterDatatable.new(params, view_context: view_context, current_user: current_user )
+        
       }
     end
   end

@@ -1,5 +1,7 @@
-class DatatableBase < AjaxDatatablesRails::Base
-
+require 'forwardable'
+class DatatableBase < AjaxDatatablesRails::ActiveRecord
+  extend Forwardable
+  
   def_delegator :@view, :raw
   def_delegator :@view, :link_to
 

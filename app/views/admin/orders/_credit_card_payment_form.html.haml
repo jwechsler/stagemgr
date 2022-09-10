@@ -1,6 +1,6 @@
 .grid-x.grid-padding-x
   %div.small-4.cell
-    = f.input :credit_card_type, :label=>"Card Type", :required=>true,  :include_blank=>false, :collection=>CreditCardPayment.card_types
+    = f.input :credit_card_type, :label=>"Card Type", :required=>true,  :prompt=>'', :collection=>CreditCardPayment.card_types
   %div.small-8.cell
     %div.grid-x.grid-padding-x
       %div.small-12.cell

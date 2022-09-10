@@ -70,7 +70,7 @@ gem "jquery-rails"
 gem "jquery-ui-rails"
 # gem 'autonumeric-rails'
 gem "jquery-datatables"
-gem 'ajax-datatables-rails', "~> 0.4.0"
+gem 'ajax-datatables-rails'
 gem 'foundation-datetimepicker-rails'
 # gem 'jqgrid-rails3', :git=>"https://github.com/davebaldwin/jqgrid-rails3.git"
 #gem "name_parse", "~> 0.0.5"
