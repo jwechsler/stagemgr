@@ -7,7 +7,7 @@ class TheaterDatatable < DatatableBase
       name: { source: 'Theater.name' },
       home: { source: 'Theater.url', :searchable=>false },
       theater_class: { source: 'Theater.theater_class' },
-      actions: { searchable: false, sortable: false}
+      actions: { searchable: false, orderable: false}
     }
   end
 

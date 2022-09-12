@@ -455,7 +455,7 @@ class TicketOrder < Order
     dup_tli.ticket_count = 1
     offset = dup_tli.dup
     offset.ticket_count = -1
-    dup_tli.price_override = order_face_value.eql?(0.0) ? BigDecimal('0.00') : (dup_tli.price/order_face_value*transfer_amount)
+    dup_tli.price_override = order_face_value.eql?(0.0) ? BigDecimal('0.00',2) : (dup_tli.price/order_face_value*transfer_amount)
     dup_tli.generated_from_split = true
     total = dup_tli.price_override
 

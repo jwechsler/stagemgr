@@ -7,7 +7,7 @@ class ProductionDatatable < DatatableBase
       name: { source: 'Production.name' },
       season: { source: 'Production.season', :searchable=>false },
       status: { source: 'Production.status' },
-      actions: { searchable: false, sortable: false}
+      actions: { searchable: false, orderable: false}
     }
   end
 
