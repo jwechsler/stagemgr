@@ -1,7 +1,5 @@
 class TheaterDatatable < DatatableBase
 
-  include ActionView::Helpers::NumberHelper
-
   def view_columns
     # Declare strings in this format: ModelName.column_name
     # or in aliased_join_table.column_name format
@@ -13,16 +11,10 @@ class TheaterDatatable < DatatableBase
     }
   end
 
-  def additional_data
-    {
-      actions: ''
-    }
-  end
-
   def data
     records.map do |record|
       {
-        id: record.id,
+        id: record.decorate.id,
         name: record.decorate.name,
         home: record.decorate.url,
         theater_class: record.decorate.theater_class,
@@ -48,8 +40,11 @@ class TheaterDatatable < DatatableBase
   # def filter_records(records)
   # end
 
-  # def sort_records(records)
-  # end
+  def sort_records(records)
+    records.order("CASE WHEN status='#{Theater::ACTIVE}' THEN 0 WHEN status='#{Theater::INACTIVE}' THEN 1 END",
+      "CASE WHEN theater_class='#{Theater::DEFAULT}' THEN 0 WHEN theater_class = '#{Theater::COPRO}' THEN 2 ELSE 3 END", 
+      :name)
+  end
 
   # def paginate_records(records)
   # end
