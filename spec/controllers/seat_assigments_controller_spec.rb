@@ -14,10 +14,9 @@ RSpec.describe SeatAssignmentsController, type: :controller do
   describe "GET index" do
     it "returns seating inventory as index" do
       get :index, params: { performance_id: @ticket_order.performance.id }, format: :json
-      expect(response).to be_success
+      expect(response).to be_successful
       result = JSON.parse response.body
       expect(result.count).to eq(8) # we get all 16 sample seats back
-
     end
   end
 

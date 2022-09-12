@@ -26,6 +26,7 @@ gem 'rails', '~> 5.2.8.1'
 #   gem 'webrat'
 # end
 
+gem 'bootsnap'
 gem 'activerecord-session_store'
 # Markdown
 gem "redcarpet"
@@ -71,6 +72,8 @@ gem "jquery-ui-rails"
 # gem 'autonumeric-rails'
 gem "jquery-datatables"
 gem 'ajax-datatables-rails'
+gem 'draper'
+gem 'yajl-ruby', require: 'yajl'
 gem 'foundation-datetimepicker-rails'
 # gem 'jqgrid-rails3', :git=>"https://github.com/davebaldwin/jqgrid-rails3.git"
 #gem "name_parse", "~> 0.0.5"
@@ -93,6 +96,7 @@ gem 'decent_exposure'
 #
 
 group :development do
+  gem 'listen'
   gem 'wirble'
 #  gem "nifty-generators"
   gem 'what_methods'

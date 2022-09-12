@@ -1,9 +1,6 @@
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
 
-  # removed during migration to 5.0
-  # config.action_controller.relative_url_root = "/tickets"
-
   # In the development environment your application's code is reloaded on
   # every request. This slows down response time but is perfect for development
   # since you don't have to restart the web server when you make code changes.
@@ -16,18 +13,22 @@ Rails.application.configure do
   config.consider_all_requests_local = true
 
   # Enable/disable caching. By default caching is disabled.
-  if Rails.root.join('tmp/caching-dev.txt').exist?
+  # Run rails dev:cache to toggle caching.
+  if Rails.root.join('tmp', 'caching-dev.txt').exist?
     config.action_controller.perform_caching = true
 
     config.cache_store = :memory_store
     config.public_file_server.headers = {
-      'Cache-Control' => 'public, max-age=172800'
+      'Cache-Control' => "public, max-age=#{2.days.to_i}"
     }
   else
     config.action_controller.perform_caching = false
 
     config.cache_store = :null_store
   end
+
+  # Store uploaded files on the local file system (see config/storage.yml for options)
+  config.active_storage.service = :local
 
   # Don't care if the mailer can't send.
   config.action_mailer.raise_delivery_errors = false
@@ -39,6 +40,9 @@ Rails.application.configure do
 
   # Raise an error on page load if there are pending migrations.
   config.active_record.migration_error = :page_load
+
+  # Highlight code that triggered database queries in logs.
+  config.active_record.verbose_query_logs = true
 
   # Debug mode disables concatenation and preprocessing of assets.
   # This option may cause significant delays in view rendering with a large
@@ -53,16 +57,13 @@ Rails.application.configure do
 
   # Use an evented file watcher to asynchronously detect changes in source code,
   # routes, locales, etc. This feature depends on the listen gem.
-  # config.file_watcher = ActiveSupport::EventedFileUpdateChecker
+  config.file_watcher = ActiveSupport::EventedFileUpdateChecker
 
-  # Log error messages when you accidentally call methods on nil.
+    # Log error messages when you accidentally call methods on nil.
   config.whiny_nils = true
 
-  # fresh development log daily
-  config.logger = Logger.new(config.paths["log"].first, 1, 20.megabytes)
-
     
-# Setup paypal module
+  # Setup paypal module
 
   $PAYMENT_CONFIG = YAML::load(File.open("#{::Rails.root.to_s}/config/payment_processing.yml"))['development']
 
@@ -74,7 +75,6 @@ Rails.application.configure do
 
   config.external_site_root = 'file:///Users/jeremyw/dev/site'
 
-  $DATABASEDOTCOM = SalesforceSync.load_from_yaml_file('development',"#{::Rails.root.to_s}/config/databasedotcom.yml")
   $TKTPRINT =  YAML::load(File.open("#{::Rails.root.to_s}/config/ticket_print.yml"))['development']
   config_data = YAML::load(File.open("#{::Rails.root.to_s}/config/server.yml"))
   $SERVER_CONFIG = config_data['all'].merge(config_data['development'])

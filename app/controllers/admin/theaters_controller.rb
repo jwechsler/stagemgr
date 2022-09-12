@@ -14,9 +14,6 @@ class Admin::TheatersController < Admin::ApplicationController
     respond_to do |format|
       format.html # index.html.erb
       format.json {
-        Rails.logger.debug "****AND,,.."
-        Rails.logger.debug(TheaterDatatable.new(params, view_context: view_context, current_user: current_user ).to_json)
-        Rails.logger.debug ("**** DONE")
         params.permit!
         render json: TheaterDatatable.new(params, view_context: view_context, current_user: current_user )
         

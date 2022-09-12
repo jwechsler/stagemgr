@@ -6,47 +6,13 @@ require 'rails/all'
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
 
-# load resque front end
-require 'resque/server'
-
 module Stagemgr
   class Application < Rails::Application
+    # Initialize configuration defaults for originally generated Rails version.
+    config.load_defaults 5.0
 
-    config.action_controller.relative_url_root = '/tickets'
+    config.autoload_paths += Dir[Rails.root.join('app', 'models', '**/')]
     
-    # Logger problem with silence in passenger
-    logger           = ActiveSupport::Logger.new(STDOUT)
-    logger.formatter = config.log_formatter
-    config.logger = ActiveSupport::TaggedLogging.new(logger)# Settings in config/environments/* take precedence over those specified here.
-    
-    # Application configuration should go into files in config/initializers
-    # -- all .rb files in that directory are automatically loaded.
-        # Set the i18n default to false to accomodate old default behavior (in old credit card validator)
-    # @todo once this gem has been updated, remove this
-
-    config.i18n.enforce_available_locales = false
-
-    # New default behavior for sqllite test db.
-    config.active_record.sqlite3.represent_boolean_as_integer = true
-    # Settings in config/environments/* take precedence over those specified here.
-    # Application configuration should go into files in config/initializers
-    # -- all .rb files in that directory are automatically loaded.
-
-    # Custom directories with classes and modules you want to be autoloadable.
-    # config.autoload_paths += %W(#{config.root}/extras)
-    config.autoload_paths += %W( #{config.root}/app/models/orders #{config.root}/app/models/payments #{config.root}/app/models/special_offers #{config.root}/app/models/line_items #{config.root}/app/models/payment_types #{config.root}/app/models/order_tasks #{config.root}/app/models/tktprint #{config.root}/app/models/resque_jobs #{config.root}/app/models/reports)
-    config.autoload_paths += %W( #{config.root}/lib )
-    config.autoload_paths += %W(
-          #{config.root}/app/controllers/concerns
-          #{config.root}/app/models/concerns
-        )
-
-    # Only load the plugins named here, in the order given (default is alphabetical).
-    # :all can be used as a placeholder for all plugins not explicitly named.
-    # config.plugins = [ :exception_notification, :ssl_requirement, :all ]
-
-    # Activate observers that should always be running.
-
     # Set Time.zone default to the specified zone and make Active Record auto-convert to this zone.
     # Run "rake -D time" for a list of tasks for finding time zone names. Default is UTC.
     config.time_zone = 'Central Time (US & Canada)'
@@ -103,13 +69,13 @@ module Stagemgr
             :after => :append_assets_path do
         config.assets.paths.unshift Rails.root.join("app", "assets", "stylesheets", "jquery", "cupertino").to_s
 
-        $MARKDOWN = Redcarpet::MarkdownExtension.new(Redcarpet::Render::HTML, :autolink => true, :space_after_headers => true, :filter_html=>true)
-        $TRUSTED_MARKDOWN = Redcarpet::MarkdownExtension.new(Redcarpet::Render::HTML, :autolink => true, :space_after_headers => true)
+        $MARKDOWN = Redcarpet::Markdown.new(Redcarpet::Render::HTML, :autolink => true, :space_after_headers => true, :filter_html=>true)
+        $TRUSTED_MARKDOWN = Redcarpet::Markdown.new(Redcarpet::Render::HTML, :autolink => true, :space_after_headers => true)
 
     end
 
     #limit Audits to 25 changes
     Audited.max_audits = 25
-    
+
   end
 end

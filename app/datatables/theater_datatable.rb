@@ -9,6 +9,7 @@ class TheaterDatatable < DatatableBase
       name: { source: 'Theater.name' },
       home: { source: 'Theater.url', :searchable=>false },
       theater_class: { source: 'Theater.theater_class' },
+      actions: { searchable: false, sortable: false}
     }
   end
 
@@ -22,13 +23,11 @@ class TheaterDatatable < DatatableBase
     records.map do |record|
       {
         id: record.id,
-        name: link_to(record.name, [:admin, record]),
-        home: link_to("web",record.url),
-        theater_class: record.theater_class,
-        actions:
-          (current_user.can?(:edit, record) ? link_to('Edit', [:edit, :admin, record], :id=>"edit_#{record.name.downcase.gsub(' ','_')}", :class=>'tiny  button') + " " : "") +
-          (current_user.can?(:destroy, record) ? link_to('Destroy', [:admin, record], :confirm => 'Are you sure?', :method => :delete, :class=>'tiny alert button') : ""),
-        DT_RowID: record.id,
+        name: record.decorate.name,
+        home: record.decorate.url,
+        theater_class: record.decorate.theater_class,
+        actions: record.decorate.dt_actions(current_user),
+        _RowID: record.id,
      }
     end
   end
@@ -36,9 +35,11 @@ class TheaterDatatable < DatatableBase
   private
 
   def get_raw_records
-    theaters = Theater.all
-    theaters = theaters.select{|t| current_user.theaters.include?(t)} if current_user.is_theater_user?
-    theaters
+    if current_user.is_theater_user?
+      Theater.where(id: current_user.theater_ids)
+    else
+      Theater.all
+    end
   end
 
   # ==== These methods represent the basic operations to perform on records

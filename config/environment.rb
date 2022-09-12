@@ -27,4 +27,3 @@ Money.default_currency=Money::Currency.new("USD")
 
 require 'htmldiff'
 require 'monetize/core_extensions'
-
