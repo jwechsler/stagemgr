@@ -20,23 +20,6 @@ module ApplicationHelper
 
   end
 
-  def order_status_severity_class(status)
-    case status
-    when Order::FULFILLED
-      "success"
-    when Order::REFUNDED
-      "alert"
-    when Order::CANCELED
-      "alert"
-    when Order::HOLD
-      "alert"
-    when Order::PROCESSING
-      "alert"
-    else
-      "secondary"
-    end
-  end
-
   def display_markdown(markdown_text, trusted = false)
     if trusted
       raw($TRUSTED_MARKDOWN.render(markdown_text))

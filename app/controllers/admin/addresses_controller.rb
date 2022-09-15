@@ -22,7 +22,7 @@ class Admin::AddressesController < Admin::ApplicationController
       format.html # show.html.erb
       format.json  {
         params.permit!
-        render json: AddressesOrdersDatatable.new(params, view_context: view_context, current_user: current_user, address: @address)
+        render json: AddressesOrdersDatatable.new(params, current_user: current_user, address: @address)
       }
     end
   end

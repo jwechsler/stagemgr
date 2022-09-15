@@ -1,4 +1,4 @@
-class AddressesDatatable
+class AddressesDatatable < DatatableBase
   delegate :params, :h, :raw, :link_to, :number_to_currency, to: :@view
 
   def initialize(view)
