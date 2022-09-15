@@ -16,7 +16,7 @@ class TicketClassDecorator < ApplicationDecorator
   end
 
   def web_visible?
-    object.web_visible? ? h.raw("<span class=\"fa fa-check\" />") : ""
+    object.web_visible? ? show_as_checkmark : ""
   end
 
   def ticket_type

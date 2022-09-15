@@ -5,4 +5,9 @@ class ApplicationDecorator < Draper::Decorator
   #   def percent_amount
   #     h.number_to_percentage object.amount, precision: 2
   #   end
+
+  def show_as_checkmark
+    h.raw("<span class=\"fa fa-check\" />")
+  end
+
 end
