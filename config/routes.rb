@@ -167,6 +167,7 @@ Rails.application.routes.draw do
 
     resources :addresses do
       collection do
+        post :merge_selected, format: :json
         get :autocomplete_address
         get :autocomplete_tag
         get :autocomplete_address_tag_tag_label

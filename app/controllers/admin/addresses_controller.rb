@@ -3,18 +3,20 @@ class Admin::AddressesController < Admin::ApplicationController
 
   autocomplete :address_tag,:tag_label
 
+  respond_to :html, :json
+
   # GET /admin/addresses
   # GET /admin/addresses.xml
   def index
-    @addresses = Address.all
-
     respond_to do |format|
       format.html # index.html.erb
-      format.xml  { render :xml => @addresses }
-      format.json { render json: AddressesDatatable.new(view_context) }
+      format.json {
+        params.permit!
+        render json: AddressDatatable.new(params, current_user: current_user )
+      }
     end
   end
-
+  
   # GET /admin/addresses/1
   # GET /admin/addresses/1.xml
   def show
@@ -110,6 +112,19 @@ class Admin::AddressesController < Admin::ApplicationController
       format.xml  { head :ok }
     end
   end
+
+def merge_selected
+  ids = params[:ids]
+  address = Address.find(ids[0])
+  Address.transaction do 
+    ids.drop(1).each do |id|
+      address2 = Address.find(id)
+      address.merge_and_purge(address2)
+    end
+  end
+
+  render :json => { result: true }
+end
 
 def autocomplete_address
     cleaned_name, first_name, middle_name, last_name, first_name_2 = Address.parse_name(params[:term])

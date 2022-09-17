@@ -172,14 +172,8 @@ class Address < ApplicationRecord
       self.flex_passes << from_address.flex_passes
       self.productions << from_address.productions
       self.save!
-      if from_address.sf_last_sync_at.nil?
-        from_address.reload
-        from_address.destroy
-      else
-        from_address.reload
-        from_address.sf_purge = self.id
-        from_address.save!
-      end
+      from_address.reload
+      from_address.destroy
     end
   end
 

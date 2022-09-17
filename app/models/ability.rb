@@ -97,6 +97,7 @@ class Ability
 
     # below is for admins
     can :manage, MembershipOffer
+    can :merge_selected, Address
     can :destroy, SeatMap
     can :destroy, Production
     can :manage, PaymentType

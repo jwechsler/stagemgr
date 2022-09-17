@@ -25,7 +25,7 @@ class OrdersDatatable < DatatableBase
         name: order.decorate.address,
         seats: order.decorate.seats,
         status: order.decorate.status,
-        visits: order.address.nil? ? "n/a" : (current_user.is_theater_user? ? order.address.orders_processed(@current_user.theater_ids) : order.address.orders_processed ),
+        visits: order.address.nil? ? "n/a" : order.address.decorate.orders_processed,
         total: order.decorate.total_paid,
         description: order.decorate.description,
         DT_RowID: order.id
@@ -38,7 +38,7 @@ private
 
   def get_raw_records
     use_conditions = current_user.ability.model_adapter(Order, :read).conditions.except('type')
-    Order.where(use_conditions)
+    Order.joins(:address).left_outer_joins(:seats, :payments).where(use_conditions)
   end
 
   def sort_records(records)
