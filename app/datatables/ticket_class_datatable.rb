@@ -24,7 +24,7 @@ class TicketClassDatatable < DatatableBase
         ticketing_fee: ticket_class.decorate.ticketing_fee,
         web_visible: ticket_class.decorate.web_visible?,
         ticket_type: ticket_class.decorate.ticket_type,
-        actions: ticket_class.decorate.dt_actions(current_user),
+        actions: ticket_class.decorate.dt_actions,
         DT_RowID: ticket_class.id,
      }
     end

@@ -18,7 +18,7 @@ class ProductionDatatable < DatatableBase
         name: record.decorate.name,
         season: record.decorate.season,
         status: record.decorate.status,
-        actions: record.decorate.dt_actions(current_user),
+        actions: record.decorate.dt_actions,
         DT_RowID: record.id
      }
     end

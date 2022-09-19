@@ -18,7 +18,7 @@ class TheaterDatatable < DatatableBase
         name: record.decorate.name,
         home: record.decorate.url,
         theater_class: record.decorate.theater_class,
-        actions: record.decorate.dt_actions(current_user),
+        actions: record.decorate.dt_actions,
         _RowID: record.id,
      }
     end

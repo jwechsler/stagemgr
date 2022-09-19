@@ -19,7 +19,7 @@ class PerformanceDatatable < DatatableBase
         time: performance.decorate.performance_time,
         code: performance.decorate.performance_code,
         status: performance.decorate.status,
-        actions: performance.decorate.dt_actions(current_user),
+        actions: performance.decorate.dt_actions,
         DT_RowID: performance.id
       }
     end

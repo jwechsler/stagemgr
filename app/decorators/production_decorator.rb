@@ -1,15 +1,15 @@
 class ProductionDecorator < ApplicationDecorator
   delegate_all
 
-  def dt_actions(current_user)
+  def dt_actions
     actions = []
-    if current_user.can? :destroy, Production then
+    if h.current_user.can? :destroy, Production then
       actions <<  h.link_to('Destroy', [:admin, object.theater, object], :confirm=>'Are you sure?', :method=>:delete, :class=>'alert tiny button')
     end
-    if current_user.can? :edit, Production then
+    if h.current_user.can? :edit, Production then
       actions << h.link_to('Edit', [:edit, :admin, object.theater, object], :class=> "tiny button")
     end
-    if current_user.can? :read, TicketClass then
+    if h.current_user.can? :read, TicketClass then
       actions << h.link_to('Ticket Classes', [:admin, object.theater, object, :ticket_classes], class: 'tiny button')
     end
     h.safe_join(actions,' ')

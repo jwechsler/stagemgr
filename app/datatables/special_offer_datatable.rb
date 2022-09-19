@@ -15,9 +15,9 @@ class SpecialOfferDatatable < DatatableBase
   def data
     records.map do |special_offer|
       {
-        id: special_offer.id,
+        id: special_offer.decorate.id,
         code: special_offer.decorate.code,
-        description: special_offer.to_s,
+        description: special_offer.decorate.description,
         number_of_uses: special_offer.number_of_uses,
         status: special_offer.status,
         expires: (special_offer.auto_expire.nil? ? "n/a" : special_offer.auto_expire.to_s),

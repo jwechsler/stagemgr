@@ -1,10 +1,10 @@
 class TheaterDecorator < ApplicationDecorator
   delegate_all
 
-  def dt_actions(current_user)
+  def dt_actions
     links = []
-    links << (current_user.can?(:edit, object) ? h.link_to('Edit', [:edit, :admin, object], :id=>"edit_#{object.name.downcase.gsub(' ','_')}", :class=>'tiny button') : '')
-    links << (current_user.can?(:destroy, object) ? h.link_to('Destroy', [:admin, object], :confirm => 'Are you sure?', :method => :delete, :class=>'tiny alert button') : '')
+    links << (h.current_user.can?(:edit, object) ? h.link_to('Edit', [:edit, :admin, object], :id=>"edit_#{object.name.downcase.gsub(' ','_')}", :class=>'tiny button') : '')
+    links << (h.current_user.can?(:destroy, object) ? h.link_to('Destroy', [:admin, object], :confirm => 'Are you sure?', :method => :delete, :class=>'tiny alert button') : '')
     h.safe_join(links, ' ')
   end
 
