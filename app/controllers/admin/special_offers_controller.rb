@@ -48,7 +48,7 @@ class Admin::SpecialOffersController < Admin::ApplicationController
       format.html
       format.json {
         params.permit!
-        render json: SpecialOfferDatatable.new(params, view_context: view_context )
+        render json: SpecialOfferDatatable.new(params)
       }
     end
   end

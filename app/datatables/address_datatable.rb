@@ -34,9 +34,5 @@ class AddressDatatable < DatatableBase
     records.order(:last_name, :first_name)
   end
 
-  def filter_by_name
-    ->(column, formatted_value) {
-      ::Arel::Nodes::SqlLiteral.new('full_name').matches('#{formatted_value}%').or(::Arel::Nodes::SqlLiteral.new('last_name').matches("#{formatted_value}%"))
-    }
-  end
+  
 end

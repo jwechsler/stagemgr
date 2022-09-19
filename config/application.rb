@@ -74,6 +74,10 @@ module Stagemgr
 
     end
 
+    # manage yaml deserialization of audit records for ruby type safety workaround
+    config.active_record.yaml_column_permitted_classes =
+      %w[String Integer NilClass Float Time Date FalseClass Hash Array DateTime TrueClass BigDecimal
+        ActiveSupport::TimeWithZone ActiveSupport::TimeZone ActiveSupport::HashWithIndifferentAccess]
     #limit Audits to 25 changes
     Audited.max_audits = 25
 

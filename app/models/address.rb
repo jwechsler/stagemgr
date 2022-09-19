@@ -164,10 +164,10 @@ class Address < ApplicationRecord
   end
 
   def merge_and_purge(from_address)
+    Rails.logger.debug("Merging address \##{from_address.id} into \##{self.id}")
     Address.transaction do
       self.update_from(from_address)
       self.orders << from_address.orders
-      self.address_tags << from_address.address_tags
       self.memberships << from_address.memberships
       self.flex_passes << from_address.flex_passes
       self.productions << from_address.productions

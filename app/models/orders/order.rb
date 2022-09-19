@@ -11,9 +11,9 @@ class Order < ApplicationRecord
 
   extend HTMLDiff
 
-  belongs_to :performance
-  belongs_to :theater
-  belongs_to :payment_type
+  belongs_to :performance, required: false
+  belongs_to :theater, required: false
+  belongs_to :payment_type, required:  false
 
   has_many :payments
   has_many :exchange_payments
@@ -23,7 +23,7 @@ class Order < ApplicationRecord
   has_many :service_line_items, :dependent=>:destroy
 
   belongs_to :address
-  belongs_to :recipient_address, :class_name=>:address, :foreign_key=>:recipient_address_id
+  belongs_to :recipient_address, :class_name=>:address, :foreign_key=>:recipient_address_id, required: false
 
   accepts_nested_attributes_for :address
   accepts_nested_attributes_for :special_offer_line_item,

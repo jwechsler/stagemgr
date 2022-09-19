@@ -44,7 +44,8 @@ gem "stripe_event"
 #gem "braintree-rails"
 gem "scrypt"
 gem "authlogic", '~> 4.4'
-gem "audited", "~> 4.8"
+gem "audited"
+gem "psych", '3.3.3'
 gem "will_paginate"
 gem 'safe_attributes', :require=> 'safe_attributes/base'  # Used to support legacy rails 2 schema names for TrgExport model
 gem "my_emma",  "~>0.1.3", :git=>"https://github.com/jwechsler/my_emma.git"
@@ -72,7 +73,7 @@ gem "jquery-rails"
 gem "jquery-ui-rails"
 # gem 'autonumeric-rails'
 gem "jquery-datatables"
-gem 'ajax-datatables-rails'
+gem 'ajax-datatables-rails', '> 1.0.0'
 gem 'draper'
 gem 'yajl-ruby', require: 'yajl'
 gem 'foundation-datetimepicker-rails'

@@ -1,9 +1,4 @@
 class FlexPassOrdersDatatable < DatatableBase
-  def_delegator :@view, :link_to
-  def_delegator :@view, :raw
-  def_delegator :@view, :number_to_currency
-  def_delegator :@view, :order_status_severity_class
-
   def view_columns
     # Declare strings in this format: ModelName.column_name
     # or in aliased_join_table.column_name format
@@ -37,8 +32,7 @@ class FlexPassOrdersDatatable < DatatableBase
 
 
   def get_raw_records
-    result = Order.accessible_by(current_user.ability,:read).includes(:payments, performance: :production).references(performance: :production).references(:payments).where("payments.flex_pass_id = :flex_pass_id", :flex_pass_id=>flex_pass.id)
-    result
+    Order.accessible_by(current_user.ability,:read).includes(:payments, performance: :production).references(performance: :production).references(:payments).where("payments.flex_pass_id = :flex_pass_id", :flex_pass_id=>flex_pass.id)
   end
 
   def flex_pass

@@ -49,17 +49,13 @@
                 {
                   text: 'Fulfill Selected',
                   action: function(e, dt, node, config) {
-                    //console.log($.map(dt.grid-x.grid-padding-xs( {selected:true} ).data(), function(r) { return r.DT_RowId }))
-                    //console.log('Fullfilling Selected');
-                    var ids = $.map(dt.grid-x.grid-padding-xs({selected:true}).data(), function(r) {return r.DT_RowID })
-                    //console.log(ids)
+                    var ids = $.map(dt.rows({selected:true}).data(), function(r) { return r.id })
                     $.ajax({
                       url: '#{fulfill_selected_admin_orders_path}',
                       dataType: 'json',
                       data: {ids: ids},
                       type: "POST",
                       success: function(data) {
-                       dt.grid-x.grid-padding-xs().invalidate();
                        dt.draw();
                       }
                     });
@@ -84,8 +80,8 @@
           {data: 'seats'},
           {data: 'status'},
           {data: 'visits'},
-          {data: 'total'},
-          {data: 'description'},
+          {data: 'total', orderable: false},
+          {data: 'description', orderable: false},
         ],
       });
 
@@ -95,7 +91,7 @@
       });
 
       yadcf.init(oListing, [
-        { column_number: 0, filter_type: "text", filter_delay: 600 },
+        { column_number: 0, filter_type: "text", filter_delay: 800 },
         { column_number: 1, filter_type: "text", filter_delay: 600 },
         { column_number: 2, filter_type: "text", filter_delay: 600 },
         { column_number: 3, filter_type: "text", filter_delay: 600 },
@@ -103,8 +99,6 @@
       ]);
 
       $('#order-listing_filter').hide();
-
-      var table = $('#example').DataTable();
 
       // $('#order-listing tbody').on( 'click', 'tr', function () {
       //     $(this).toggleClass('selected');
@@ -114,60 +108,14 @@
 
 
       $('#print-button').click( function () {
-          alert( table.grid-x.grid-padding-xs('.selected').data().length +' row(s) selected' );
+          alert( $("#address-listing").DataTable().rows('.selected').data().length +' row(s) selected' );
       } );
 
       $('#unclaimed-button').click( function () {
-          alert( table.grid-x.grid-padding-xs('.selected').data().length +' row(s) selected' );
+          alert( $("#address-listing").DataTable().rows('.selected').data().length +' row(s) selected' );
       } );
 
 
 
 
     });
-
-    // Setup - add a text input to each footer cell
-
-      // tableTools:{
-      //   "aButtons": [ ],
-      //   "searchable": true,
-      //   "sRowSelect": "os",
-      //   "fnRowSelected": function ( nodes ) {
-      //     update_order_selection_buttons();
-      //   },
-      //   "fnRowDeselected": function ( nodes ) {
-      //     rows = new $.fn.dataTable.TableTools( $('#orders-table').DataTable() ).fnGetSelected();
-      //     update_order_selection_buttons();
-      //   }
-      // },
-      //processing: true,
-      //language: {
-      //  "processing": '<div class="small-4 small-centered columns"><data-alert class="alert-box" //style="z-index:1000">Processing...</div></div>'
-      //},
-      //order: [[0, "desc"]],
-      //ordering: true,
-      //serverSide: true,
-      //stateSave: true,
-      //// ajax: $('#orders-table').data('data-source'),
-      //pagingType: "foundation",
-      //columns: [
-      //  {searchable: true},
-      //  null,
-      //  null,
-      //  null,
-      //  {type:"numeric",
-      //   className: "text-right",
-      //   orderable: false,
-      //   searchable: false},
-      //  {type:"numeric_fmt",
-      //   className: "text-right",
-      //   orderable: false},
-      //  {searchable: false,
-      //   orderable: false},
-      //  {visible:false}],
-      //fnInitComplete:function() {
-      //  // $("#orders-table").show();
-      //  this.fnAdjustColumnSizing();
-      //}
-
-

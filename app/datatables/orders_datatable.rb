@@ -1,16 +1,15 @@
 class OrdersDatatable < DatatableBase
   
+
   def view_columns
     # Declare strings in this format: ModelName.column_name
     # or in aliased_join_table.column_name format
     @view_columns ||= {
       id: { source: 'Order.id' },
       code: { source: 'Performance.performance_code', cond: filter_by_code },
-      name: { source: 'Address.last_first_name' },
-      seats: { source: 'Seat.location'},
+      name: { source: 'Address.full_name', cond: filter_by_name },
+      seats: { source: 'Seat.location' },
       status: { source: 'Order.status' },
-      code: { searchable: false, orderable: false},
-      name: { searchable: false, orderable: false},
       visits: { searchable: false, orderable: false},
       total: { searchable: false, orderable: false},
       description: { searchable: false, orderable: false},
@@ -38,7 +37,7 @@ private
 
   def get_raw_records
     use_conditions = current_user.ability.model_adapter(Order, :read).conditions.except('type')
-    Order.joins(:address).left_outer_joins(:seats, :payments).where(use_conditions)
+    Order.includes(:address, seats: :seat, :performance=>:production).where(use_conditions).references(:address, :performance=>:production, seats: :seat)
   end
 
   def sort_records(records)
@@ -46,19 +45,20 @@ private
   end
 
   def filter_by_code
-    ->(column, formatted_value) { case formatted_value.downcase
-                  when 'pledge'
-                    ::Arel::Nodes::SqlLiteral.new('orders.type').eq('DonationPledgeOrder')
-                  when 'donation'
-                    ::Arel::Nodes::SqlLiteral.new('orders.type').matches('Donation%Order')
-                  when 'flexpass'
-                    ::Arel::Nodes::SqlLiteral.new('orders.type').eq('FlexPassOrder')
-                  when 'membership', 'member'
-                    ::Arel::Nodes::SqlLiteral.new('orders.type').eq('MembershipOrder')
-                  else
-                    ::Arel::Nodes::SqlLiteral.new('performances.performance_code').matches("%#{formatted_value.upcase}%")
-                  end
-                }
+    ->(column, value) {
+      case value.downcase
+        when 'pledge'
+          ::Arel::Nodes::SqlLiteral.new('orders.type').eq('DonationPledgeOrder')
+        when 'donation'
+          ::Arel::Nodes::SqlLiteral.new('orders.type').matches('Donation%Order')
+        when 'flexpass'
+          ::Arel::Nodes::SqlLiteral.new('orders.type').eq('FlexPassOrder')
+        when 'membership', 'member'
+          ::Arel::Nodes::SqlLiteral.new('orders.type').eq('MembershipOrder')
+        else
+          ::Arel::Nodes::SqlLiteral.new('performances.performance_code').matches("%#{column.search.value.upcase}%")
+      end
+    }
   end
 
   def current_user
@@ -67,7 +67,7 @@ private
 
 
   def filter_column_condition
-    ->(column) { column.table[column.field].eq(column.search.value) }
+    ->(column, value) { column.table[column.field].eq(column.search.value) }
   end
 
 end

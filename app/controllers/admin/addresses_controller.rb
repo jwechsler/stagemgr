@@ -114,13 +114,11 @@ class Admin::AddressesController < Admin::ApplicationController
   end
 
 def merge_selected
-  ids = params[:ids]
+  ids = params[:ids].sort {|a,b| a.to_i <=> b.to_i }
   address = Address.find(ids[0])
-  Address.transaction do 
-    ids.drop(1).each do |id|
-      address2 = Address.find(id)
-      address.merge_and_purge(address2)
-    end
+  ids.drop(1).each do |id|
+    address2 = Address.find(id)
+    address.merge_and_purge(address2)
   end
 
   render :json => { result: true }

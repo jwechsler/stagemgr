@@ -10,5 +10,11 @@ class DatatableBase < AjaxDatatablesRails::ActiveRecord
     @current_user ||= options[:current_user]
   end
 
+  def filter_by_name
+    ->(column, formatted_value) {
+      ::Arel::Nodes::SqlLiteral.new('full_name').matches('#{formatted_value}%').or(::Arel::Nodes::SqlLiteral.new('last_name').matches("#{formatted_value}%"))
+    }
+  end
+  
 end
 

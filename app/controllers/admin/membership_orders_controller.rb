@@ -7,8 +7,8 @@ class Admin::MembershipOrdersController < Admin::ApplicationController
   def show
     begin
       @membership_order.membership.update_from_profile!
-    rescue SocketError => e
-      Rails.logger.warn("Recurring Payment for order #{params[:id]} not updated.  Socket Error")
+    rescue Exception => e
+      Rails.logger.warn("Recurring Payment for order #{params[:id]} not updated. #{e.message}")
     end
   end
 
