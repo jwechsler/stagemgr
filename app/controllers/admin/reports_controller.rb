@@ -13,8 +13,7 @@ class Admin::ReportsController < Admin::ApplicationController
   def index
     is_theater_user = !current_user.nil? && current_user.is_theater_user?
     @generated_reports = FileStore.where("worker = ? and user_id = ?", FileStore::REPORT, current_user.id).order('created_at desc')
-    @generated_reports.select {|r| r.data.exists? }
-
+    @generated_reports.select {|r| r.data.attached? }
 
     if is_theater_user then
       @productions = Production.accessible_by(current_ability,:read).order(press_opening_at: :desc)
@@ -165,7 +164,7 @@ class Admin::ReportsController < Admin::ApplicationController
 
   def trg_dump
     production = Production.find(params[:report][:production_id])
-    Resque.enqueue(TrgExport, production.nil? ? 0 : production.id, current_user.id, can?(:view_email, Address))
+    TrgExportJob.perform_later production.nil? ? 0 : production.id, current_user.id, can?(:view_email, Address)
     flash[:notice] = 'Your export is queued for generation. You\'ll recieve notification when the process is complete.'
     redirect_to admin_reports_path
   end
@@ -173,9 +172,7 @@ class Admin::ReportsController < Admin::ApplicationController
   def self.trg_dump_all(user_id, season)
     productions = Production.find_all_by_season(season)
     productions.each { |p|
-      puts "Building #{p.name}..."
       TrgExport.perform(p.id, user_id, true)
-      puts "Complete!"
     }
   end
 

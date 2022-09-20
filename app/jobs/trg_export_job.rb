@@ -1,5 +1,5 @@
-class TrgExport
-  @queue = :report
+class TrgExportJob < ApplicationJob
+  queue_as :report
   include Admin::ReportsHelper
   include NotifyOnCompletion
 

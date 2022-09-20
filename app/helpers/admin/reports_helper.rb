@@ -36,7 +36,7 @@ module Admin::ReportsHelper
     f.puts(csv_string)
     f.close
     unless filestore.nil?
-      filestore.data = File.open(file_path)
+      filestore.data.attach(io: File.open(file_path), filename: File.basename(file_path), content_type: "text/plain")
       filestore.worker = FileStore::REPORT
       filestore.save
       File.delete(file_path)

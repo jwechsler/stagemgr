@@ -1,13 +1,8 @@
 class FileStore < ApplicationRecord
   include SafeAttributes::Base
   belongs_to :user
-  has_attached_file :data, {
-    :path=>":rails_root/public/system/filestore/:hash/:filename",
-    :url=>"#{Rails.application.config.action_controller.relative_url_root}/system/filestore/:hash/:filename",
-    :hash_secret => $SERVER_CONFIG['filestore_hash']
-  }
-  validates_attachment_content_type :data, content_type: "text/plain"
-
+  has_one_attached :data
+  
   FILE_WORKERS = (
     IMPORT, REPORT =
     "import", "report"
@@ -25,4 +20,11 @@ class FileStore < ApplicationRecord
     true
   end
 
+  def path
+    ActiveStorage::Blob.service.path_for(self.data.key)
+  end
+
+  def file_name
+    File.basename(self.path)
+  end
 end

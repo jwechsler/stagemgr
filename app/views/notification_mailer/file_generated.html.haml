@@ -1,6 +1,6 @@
 %p
   You have a report ready for download from Stagemgr:
 %p
-  %b= @filestore.data_file_name
+  %b= @filestore.file_name
   - unless @filestore.notes.blank?
     %i= @filestore.notes
