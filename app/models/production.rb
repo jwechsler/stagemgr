@@ -56,8 +56,8 @@ class Production < ApplicationRecord
   belongs_to :flex_pass_offer
   has_and_belongs_to_many :attendees, class_name: "Address", uniq:true
 
-  has_attached_file :promo, :path=>":rails_root/public/system/:attachment/:id/:style/:filename"
-  #has_one_attached :promo
+  #has_attached_file :promo, :path=>":rails_root/public/system/:attachment/:id/:style/:filename"
+  has_one_attached :promo
   #, :styles => {:medium => "250x375>", :thumb => "125x186>"},
   #                  :path => ":rails_root/public/system/:attachment/:id/:style/:filename",
   #                  :url => "#{Rails.application.config.action_controller.relative_url_root}/system/:attachment/:id/:style/:filename"

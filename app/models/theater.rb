@@ -19,12 +19,13 @@
   has_many :address_tags
   has_and_belongs_to_many :users#, :as=>:owners
 
-  has_attached_file :logo,
-                    :path => ":rails_root/public/system/:attachment/:id/:style/:filename",
-                    :url => "#{Rails.application.config.action_controller.relative_url_root}/system/:attachment/:id/:style/:filename",
-                    :styles => {:medium => "250x250>", :small => "125x125>", :thumbnail => "125x125>"}
-  validates_attachment_content_type :logo, :content_type => ["image/jpg", "image/jpeg", "image/png", "image/gif"]
-
+  has_one_attached :logo
+  #has_attached_file :logo,
+  #                  :path => ":rails_root/public/system/:attachment/:id/:style/:filename",
+  #                  :url => "#{Rails.application.config.action_controller.relative_url_root}/system/:attachment/:id/:style/:filename",
+  #                  :styles => {:medium => "250x250>", :small => "125x125>", :thumbnail => "125x125>"}
+  #validates_attachment_content_type :logo, :content_type => ["image/jpg", "image/jpeg", "image/png", "image/gif"]
+  validates :logo, blob: { content_type: :image }
 
 
   def class_display
