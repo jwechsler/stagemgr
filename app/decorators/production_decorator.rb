@@ -24,6 +24,24 @@ class ProductionDecorator < ApplicationDecorator
     h.raw("<span class=\"label\">#{production.status}</span>")
   end
 
+  def promo_url(*dimensions)
+    if dimensions.nil?
+      h.url_for(object.promo)
+    else
+      width, height = dimensions[0] if dimensions[0].class.eql?(Array)
+      h.url_for(object.promo.variant(resize_and_pad: [width, height, gravity: 'north', background: :transparent]))
+    end
+  end
+
+  def promo(*dimensions)
+    if dimensions.nil?
+      h.image_tag(object.promo)
+    else
+      width, height = dimensions[0] if dimensions[0].class.eql?(Array)
+      h.image_tag(object.promo.variant(resize_and_pad: [width, height, gravity: 'north', background: :transparent]))
+    end
+  end
+
   # Define presentation-specific methods here. Helpers are accessed through
   # `helpers` (aka `h`). You can override attributes, for example:
   #

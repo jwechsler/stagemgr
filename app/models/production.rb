@@ -15,6 +15,11 @@ class Production < ApplicationRecord
       'Primetime', 'Special Event', 'Private Party', 'Conference', 'Off/Late night', 'Class'
   )
 
+  PROMO_SIZES = (
+    MEDIUM, THUMB =
+      [275, 350], [125, 186]
+  )
+
   # :section:
 
   validates_inclusion_of :status, :in => PRODUCTION_STATUSES
@@ -51,11 +56,13 @@ class Production < ApplicationRecord
   belongs_to :flex_pass_offer
   has_and_belongs_to_many :attendees, class_name: "Address", uniq:true
 
-  has_attached_file :promo, :styles => {:medium => "250x375>", :thumb => "125x186>"},
-                    :path => ":rails_root/public/system/:attachment/:id/:style/:filename",
-                    :url => "#{Rails.application.config.action_controller.relative_url_root}/system/:attachment/:id/:style/:filename"
-  validates_attachment_content_type :promo, :content_type => ["image/jpg", "image/jpeg", "image/png", "image/gif"]
-
+  has_attached_file :promo, :path=>":rails_root/public/system/:attachment/:id/:style/:filename"
+  #has_one_attached :promo
+  #, :styles => {:medium => "250x375>", :thumb => "125x186>"},
+  #                  :path => ":rails_root/public/system/:attachment/:id/:style/:filename",
+  #                  :url => "#{Rails.application.config.action_controller.relative_url_root}/system/:attachment/:id/:style/:filename"
+  #validates_attachment_content_type :promo, :content_type => ["image/jpg", "image/jpeg", "image/png", "image/gif"]
+  validates :promo, blob: { content_type: :image }
 
   def to_s
     "#{self.name}, #{self.theater.name}"
@@ -208,17 +215,6 @@ class Production < ApplicationRecord
       end
     }
     [min_price, max_price]
-  end
-
-  def best_image_url_available(render)
-    case
-      when self.promo.exists?
-        self.promo.url(render)
-      when !self.logo_url.blank?
-        self.logo_url
-      else
-        nil
-    end
   end
 
   def update_stats

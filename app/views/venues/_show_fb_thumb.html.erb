@@ -1,7 +1,11 @@
 <div class="show-listing background-<%= background %>" style="width: <%= slice %>%">
   <p class="venue"><%= production.venue.name %></p>
-  <%= image_url = production.best_image_url_available(:thumb)
-      link_to(image_tag(image_url, anchor:'top'), production_performances_path(production.id, :anchor=>"top"), id:"nowplaying_thumb_#{production.id}") unless image_url.nil? %>
+  <%= if production.promo.attached?
+        image_url = 
+        link_to(production.decorate.promo(Production::THUMB), production_performances_path(production.id), id:"nowplaying_thumb_#{production.id}") %>
+      else
+        ''
+      end
   <p>
           <span class="production_name"><%=
               if (defined? new_window_link) && new_window_link

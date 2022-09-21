@@ -1,6 +1,6 @@
 :css
   #nowplaying_thumb_#{production.id} {
-    background: url(#{production.best_image_url_available(:thumb)}) no-repeat center center;
+    background: url(#{production.decorate.promo_url(Production::THUMB)}) no-repeat center center;
     display:block;
     overflow:hidden;
     white-space:nowrap;
@@ -11,8 +11,7 @@
 %div{:class=>"show-listing background-#{background} cell small-12 medium-#{(slice*12.0/100).round}"}
   %p
     %div.venue= production.venue.name
-    - image_url = production.best_image_url_available(:thumb)
-    = link_to("showtitle", production_performances_path(production.id, :anchor=>"top"), id:"nowplaying_thumb_#{production.id}") unless image_url.nil?
+    - link_to("showtitle", production_performances_path(production.id, :anchor=>"top"), id:"nowplaying_thumb_#{production.id}") if production.promo.attached?
     %div.production_name
       - if (defined? new_window_link) && new_window_link
         = link_to production.name, production_performances_path(production.id), :target=>'_blank'

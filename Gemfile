@@ -95,6 +95,7 @@ gem 'config', :git=>'https://github.com/railsconfig/config.git'
 gem 'responders'
 gem 'mini_magick'
 gem 'decent_exposure'
+gem 'activestorage-validator'
 #
 
 group :development do
