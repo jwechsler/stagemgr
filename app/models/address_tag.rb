@@ -4,7 +4,7 @@ class AddressTag < ApplicationRecord
 
   validates_presence_of :address
 
-  belongs_to :theater
+  belongs_to :theater, optional: true
   belongs_to :address
 
   def to_s

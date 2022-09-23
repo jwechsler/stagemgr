@@ -7,6 +7,7 @@
 //= require nested_form_fields
 //= require utility
 //= require orders_common
+//= require activestorage
 //= require_this
 
 

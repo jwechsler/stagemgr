@@ -1,6 +1,6 @@
 class FlexPassOffer < ApplicationRecord
 
-  belongs_to :theater
+  belongs_to :theater, optional: true
   validates_numericality_of :price, :number_of_tickets, :null=>false
   validates_presence_of :months_till_expiration
   has_many :flex_passes

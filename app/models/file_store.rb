@@ -1,6 +1,6 @@
 class FileStore < ApplicationRecord
   include SafeAttributes::Base
-  belongs_to :user
+  belongs_to :user, optional: true
   has_one_attached :data
   #has_attached_file :data
 

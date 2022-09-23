@@ -20,7 +20,11 @@ class TheaterDecorator < ApplicationDecorator
   def name
     h.link_to(object.name, [:admin, object])
   end
-  
+
+  def logo(*dimensions)
+    make_image_tag(object.logo, dimensions)
+  end
+
   # Define presentation-specific methods here. Helpers are accessed through
   # `helpers` (aka `h`). You can override attributes, for example:
   #

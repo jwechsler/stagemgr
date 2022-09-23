@@ -2,10 +2,10 @@ class SeatAssignment < ApplicationRecord
 
   before_destroy :verify_unused
 
-  belongs_to :order, foreign_key: :order_uuid, primary_key: :uuid
+  belongs_to :order, foreign_key: :order_uuid, primary_key: :uuid, optional: true
   belongs_to :seat
   belongs_to :performance
-  belongs_to :ticket_class
+  belongs_to :ticket_class, optional: true
 
   SEAT_STATUSES = (
   AVAILABLE, ASSIGNED, TEMPORARY, RELEASING, BROKEN =

@@ -28,8 +28,8 @@
         = f.association :seat_map, include_blank: true, label_method: :label
 
       .small-3.cell
-        = f.input :promo, :label=>"Production Image", as: :file
-        = =f.object.decorate.promo(Production::THUMB)) if f.object.promo.attached?
+        = f.input :promo, :label=>"Production Image", as: :file, direct_upload: true, input_html: { data: { direct_upload_url: rails_direct_uploads_url } }
+        = f.object.decorate.promo(Production::THUMB) if f.object.promo.attached?
       .small-9.cell
         = f.input :credit_lines, :input_html=>{rows:3}
       .cell

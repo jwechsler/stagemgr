@@ -192,7 +192,7 @@ class Performance < ApplicationRecord
       file_path=Rails.root.join('public','static','qv',file_name).to_s
       if !File.exist?(file_path) || (File.mtime(file_path) < (seat_assignments.maximum(:updated_at) || Time.now) +5.minutes)
         dots = SeatAssignment.joins(:seat).includes(:seat).where(performance_id: self.id, status: SeatAssignment::AVAILABLE).pluck(:origin_x, :origin_y, :width)
-        result = MiniMagick::Image.open(seat_map.base_image_map.path)
+        result = MiniMagick::Image.open(seat_map.base_image_map_file)
         image = 'available_seat.png'
         available_dot = MiniMagick::Image.open(Rails.root.to_s + "/app/assets/images/available_seat.png")
         availables = Hash.new

@@ -1,7 +1,7 @@
 class Pledge < ApplicationRecord
   include RecurringProfile
 
-  belongs_to :donation_pledge_order, :foreign_key=>'order_id'
+  belongs_to :donation_pledge_order, :foreign_key=>'order_id', optional: true
 
   def total
     self.aggregate_amount ||= 0.0

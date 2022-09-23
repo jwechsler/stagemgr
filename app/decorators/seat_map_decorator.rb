@@ -5,8 +5,12 @@ class SeatMapDecorator < ApplicationDecorator
     h.link_to(object.label,[:admin, object.venue, object])
   end
 
-  def base_image_map
-    h.raw("<img src=\"#{h.root_url}#{object.base_image_map.url(:thumb)}\" />")
+  def base_image_map(*dimensions)
+    make_image_tag(object.base_image_map,dimensions)
+  end
+
+  def base_image_map_url(*dimensions)
+    make_image_url(dimensions)
   end
 
   def dt_actions

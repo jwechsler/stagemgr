@@ -16,8 +16,8 @@ class Production < ApplicationRecord
   )
 
   PROMO_SIZES = (
-    MEDIUM, THUMB =
-      [275, 350], [125, 186]
+    LARGE, MEDIUM, THUMB =
+      [550, 700], [275, 350], [125, 186]
   )
 
   # :section:
@@ -39,7 +39,7 @@ class Production < ApplicationRecord
 
   belongs_to :venue
   belongs_to :theater
-  belongs_to :seat_map
+  belongs_to :seat_map, optional: true
   has_many :special_offers
   has_many :performances
   has_many :ticket_classes
@@ -53,7 +53,7 @@ class Production < ApplicationRecord
   # before_save :queue_statistics_recalc
   before_save :finalize_season_seating, :if=>:status_changed?
   before_save :update_performance_codes, :if=>:production_code_changed?
-  belongs_to :flex_pass_offer
+  belongs_to :flex_pass_offer, optional: true
   has_and_belongs_to_many :attendees, class_name: "Address", uniq:true
 
   #has_attached_file :promo, :path=>":rails_root/public/system/:attachment/:id/:style/:filename"

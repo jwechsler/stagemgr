@@ -1,19 +1,30 @@
 class SeatMap < ApplicationRecord
+  SEAT_MAP_SIZES = (
+    THUMB, MEDIUM = ["800x800>","200x200>"]
+    )
   belongs_to :venue
   has_many :seats, :dependent=>:destroy
   has_many :productions
   validates_presence_of :venue
   #has_attached_file :base_image_map, styles: { medium: "800x800>", thumb: "200x200>" }, default_url: "/images/:style/missing.png"
   has_one_attached :base_image_map
-  
-  validates_attachment_content_type :base_image_map, content_type: /\Aimage\/.*\z/
+  validates :base_image_map, blob: { content_type: :image }
+  #validates_attachment_content_type :base_image_map, content_type: /\Aimage\/.*\z/
   before_destroy :prevent_deletion_when_assigned_to_production
-  after_post_process :save_image_dimensions
+  before_save :save_image_dimensions
 
   def save_image_dimensions
-    geo = Paperclip::Geometry.from_file(base_image_map.queued_for_write[:original])
-    self.original_width = geo.width
-    self.original_height = geo.height
+    if base_image_map.attached? && base_image_map.changed? then
+      base_image_map.analyze     
+    end
+  end
+
+  def original_width
+    base_image_map.metadata['width'].to_i
+  end
+
+  def original_height
+    base_image_map.metadata['height'].to_i
   end
 
   def create_inventory_for_performance(performance)
@@ -27,6 +38,10 @@ class SeatMap < ApplicationRecord
       end
     end
     SeatAssignment.where(performance_id: performance.id)
+  end
+
+  def base_image_map_file
+    ActiveStorage::Blob.service.path_for(base_image_map.key)
   end
 
   private

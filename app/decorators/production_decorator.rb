@@ -25,21 +25,11 @@ class ProductionDecorator < ApplicationDecorator
   end
 
   def promo_url(*dimensions)
-    if dimensions.nil?
-      h.url_for(object.promo)
-    else
-      width, height = dimensions[0] if dimensions[0].class.eql?(Array)
-      h.url_for(object.promo.variant(resize_and_pad: [width, height, gravity: 'north', background: :transparent]))
-    end
+    make_image_url(object.promo, dimensions)
   end
 
   def promo(*dimensions)
-    if dimensions.nil?
-      h.image_tag(object.promo)
-    else
-      width, height = dimensions[0] if dimensions[0].class.eql?(Array)
-      h.image_tag(object.promo.variant(resize_and_pad: [width, height, gravity: 'north', background: :transparent]))
-    end
+    make_image_tag(object.promo, dimensions)
   end
 
   # Define presentation-specific methods here. Helpers are accessed through

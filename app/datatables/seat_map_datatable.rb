@@ -16,7 +16,7 @@ class SeatMapDatatable < DatatableBase
     records.map do |record|
       {
         label: record.decorate.label,
-        base_image_map: record.decorate.base_image_map,
+        base_image_map: record.decorate.base_image_map(SeatMap::THUMB),
         actions: record.decorate.dt_actions
         # example:
         # id: record.id,

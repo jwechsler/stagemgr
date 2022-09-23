@@ -7,6 +7,9 @@
   THEATER_STATUSES = (
     ACTIVE, INACTIVE = 'Active',  'Inactive'
   )
+  LOGO_SIZES = (
+    MEDIUM, THUMB = [250,250],[125,125]
+  )
   validates_inclusion_of :theater_class, :in => THEATER_CLASSES
   validates_inclusion_of :status,        :in => THEATER_STATUSES
   validates_uniqueness_of :name
@@ -72,15 +75,6 @@
   def service_item_templates_addl_exchange
     ServiceItemTemplate.where(name: service_item_template_list(self.default_addl_exchange_items))
   end
-
-  def best_logo_url_available(render)
-    unless self.logo.nil?
-      self.logo.url(render)
-    else
-      nil
-    end
-  end
-
 
   private
   def service_item_template_list(service_item_list)
