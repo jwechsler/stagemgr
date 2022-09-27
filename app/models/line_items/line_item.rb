@@ -1,5 +1,5 @@
 class LineItem < ApplicationRecord
-  belongs_to :order
+  belongs_to :order, optional: true
   attr_accessor :ticket_class_code
 
   before_validation :assign_from_attr_accessors

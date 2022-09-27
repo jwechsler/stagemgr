@@ -96,6 +96,7 @@ gem 'mini_magick'
 gem 'decent_exposure'
 gem 'activestorage-validator'
 #
+gem 'paperclip'
 
 group :development do
   gem 'listen'

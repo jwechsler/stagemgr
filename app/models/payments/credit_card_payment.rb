@@ -6,7 +6,7 @@ end
 class CreditCardPayment < CurrencyPayment
 
 
-  belongs_to :address
+  belongs_to :address, optional: true
 
   attr_accessor :card_number
   attr_accessor :card_verification_number

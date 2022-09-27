@@ -39,8 +39,7 @@ Rails.application.configure do
   config.action_mailer.delivery_method = :test
 
   # Print deprecation notices to the stderr.
-  config.active_support.deprecation = :stderr
-
+  #config.active_support.deprecation = :stderr
   # Raises error for missing translations
   # config.action_view.raise_on_missing_translations = true
 
@@ -74,7 +73,5 @@ Rails.application.configure do
   else
     $ADDITIONAL_CARD_TYPES = []
   end
-
-end
 
 end

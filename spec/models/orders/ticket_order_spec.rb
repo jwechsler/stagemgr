@@ -208,10 +208,10 @@ RSpec.describe TicketOrder do
       o2 = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash, :performance=>performance)
       expect(performance.number_of_seats_left).to eq(0)
 
-      expect(lambda { order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :performance=>performance )
+      expect{ order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :performance=>performance )
                   order.transition_to!(Order::PROCESSING)
                   order.errors.each {|key, data| puts data.to_yaml }
-            }).to raise_error(ActiveRecord::RecordInvalid)
+            }.to raise_error(ActiveRecord::RecordInvalid)
     end
 
     it "cannot processes if it would oversell a performance" do
@@ -254,7 +254,7 @@ RSpec.describe TicketOrder do
       expect(o.number_of_seats).to eq(3)
 
 
-      expect(lambda { o.transition_to!(Order::PROCESSING) }).to raise_error(ActiveRecord::RecordInvalid)
+      expect{ o.transition_to!(Order::PROCESSING) }.to raise_error(ActiveRecord::RecordInvalid)
     end
 
     it "can mark an order in a sold-out performance as unclaimed" do

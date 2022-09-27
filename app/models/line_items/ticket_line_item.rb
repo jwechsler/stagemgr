@@ -1,8 +1,8 @@
 class TicketLineItem < LineItem
-  belongs_to :ticket_order, :foreign_key => :order_id
+  belongs_to :ticket_order, :foreign_key => :order_id, optional: true
   belongs_to :ticket_class
 
-  validates_presence_of :ticket_class, :ticket_count
+  validates_presence_of :ticket_count
 
   validates_each :price_override do |record, attr, value|
     if record.ticket_class && record.ticket_class.ticket_type != 'Donation' && !record.generated_from_split?

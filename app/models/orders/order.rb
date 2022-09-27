@@ -25,6 +25,7 @@ class Order < ApplicationRecord
   belongs_to :address
   belongs_to :recipient_address, :class_name=>:address, :foreign_key=>:recipient_address_id, required: false
 
+  accepts_nested_attributes_for :payments
   accepts_nested_attributes_for :address
   accepts_nested_attributes_for :special_offer_line_item,
                                 :service_line_items,

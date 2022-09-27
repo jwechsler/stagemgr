@@ -1,6 +1,6 @@
 class Payment < ApplicationRecord
 
-  belongs_to :order
+  belongs_to :order, optional: true
   belongs_to :payment_type
 
   # validates_numericality_of :amount, :unless => :number_of_tickets
@@ -77,6 +77,7 @@ class Payment < ApplicationRecord
 
   def refund!(cc_number = nil, note = nil)
     if self.amount > 0 then
+
       Payment.transaction do
         refund_payment = create_refund_payment(cc_number, note)
         refund_payment.save!

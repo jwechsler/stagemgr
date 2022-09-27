@@ -14,7 +14,6 @@ class TicketClass < ApplicationRecord
   validates_presence_of :ticket_price
   validates_presence_of :class_name
   validates_presence_of :ticketing_fee
-  validates_presence_of :production
   before_validation :prevent_price_changes_after_sales
   after_save :update_auto_attached_performances
 
