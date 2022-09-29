@@ -5,6 +5,7 @@ FactoryBot.define do
     name                    { 'Flex Pass' }
     use_ticket_class_code   { 'PASS' }
     active                  { true }
+    on_sale_to_public       { true }
   end
 
   factory :flex_pass do
