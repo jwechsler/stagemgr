@@ -35,7 +35,7 @@ class Admin::TicketClassesController < Admin::ApplicationController
 
   def update
     respond_to do |format|
-      if @ticket_class.update_attributes(ticket_class_params)
+      if @ticket_class.update(ticket_class_params)
         flash[:notice] = 'TicketClass was successfully updated.'
         format.html { redirect_to(admin_theater_production_ticket_classes_path(@theater,@production)) }
         format.xml  { head :ok }

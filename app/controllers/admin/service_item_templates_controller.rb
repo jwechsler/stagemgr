@@ -29,7 +29,7 @@ class Admin::ServiceItemTemplatesController < Admin::ApplicationController
   end
 
   def update
-    @service_item_template.update_attributes(service_item_template_params)
+    @service_item_template.update(service_item_template_params)
     respond_to do |format|
       if @service_item_template.save
         flash[:notice] =  raw "<i>#{@service_item_template.name}</i> was updated."

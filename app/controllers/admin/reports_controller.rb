@@ -240,7 +240,7 @@ class Admin::ReportsController < Admin::ApplicationController
     @admin_report = Admin::Report.find(params[:id])
 
     respond_to do |format|
-      if @admin_report.update_attributes(params[:admin_report])
+      if @admin_report.update(params[:admin_report])
         format.html { redirect_to(@admin_report, :success => 'Report was successfully updated.') }
         format.xml { head :ok }
       else

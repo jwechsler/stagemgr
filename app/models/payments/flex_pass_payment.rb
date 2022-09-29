@@ -14,13 +14,13 @@ class FlexPassPayment < PassPayment
                                           flex_pass.flex_pass_payments.sum(:number_of_tickets) -
                                           record.number_of_tickets +
                                           old_number_of_tickets
-      record.errors.add attr, "cannot be more than the number of tickets left on flex pass." if number_of_tickets_left_after_save < 0
+      record.errors.add(attr, "cannot be more than the number of tickets left on flex pass.") if number_of_tickets_left_after_save < 0
 
       offer = flex_pass.flex_pass_offer
       unless offer.maximum_uses_per_production.nil? || offer.maximum_uses_per_production.eql?(0)
         production = record.order.performance.production
         already = FlexPassPayment.includes(order: [:performance=>:production]).references(order: [:performance=>:production]).where("flex_pass_id = :flex_pass_id and performances.production_id = :production_id AND orders.status NOT IN (:non_reserving_statuses) and orders.id <> :order_id",flex_pass_id: record.flex_pass_id, production_id: production.id, non_reserving_statuses: Order.non_reserving_statuses, order_id: record.order.id ).sum(:number_of_tickets)
-        record.errors.add attr, " has been exceeded for #{record.order.performance.production.name}.  This flex pass can only be redeemed for #{offer.maximum_uses_per_production} ticket(s)/production, #{record.number_of_tickets + already} requested" if (already + record.number_of_tickets) > offer.maximum_uses_per_production
+        record.errors.add(attr, " has been exceeded for #{record.order.performance.production.name}.  This flex pass can only be redeemed for #{offer.maximum_uses_per_production} ticket(s)/production, #{record.number_of_tickets + already} requested") if (already + record.number_of_tickets) > offer.maximum_uses_per_production
       end
     end
   end

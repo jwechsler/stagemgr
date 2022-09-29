@@ -1,10 +1,13 @@
+require "active_support/core_ext/integer/time"
+
+# The test environment is used exclusively to run your application's
+# test suite. You never need to work with it otherwise. Remember that
+# your test database is "scratch space" for the test suite and is wiped
+# and recreated between test runs. Don't rely on the data there!
+
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
 
-  # The test environment is used exclusively to run your application's
-  # test suite. You never need to work with it otherwise. Remember that
-  # your test database is "scratch space" for the test suite and is wiped
-  # and recreated between test runs. Don't rely on the data there!
   config.cache_classes = true
 
   # Do not eager load code on boot. This avoids loading your whole application
@@ -21,6 +24,7 @@ Rails.application.configure do
   # Show full error reports and disable caching.
   config.consider_all_requests_local       = true
   config.action_controller.perform_caching = false
+  config.cache_store = :null_store
 
   # Raise exceptions instead of rendering exception templates.
   config.action_dispatch.show_exceptions = false
@@ -28,7 +32,7 @@ Rails.application.configure do
   # Disable request forgery protection in test environment.
   config.action_controller.allow_forgery_protection = false
 
-  # Store uploaded files on the local file system in a temporary directory
+  # Store uploaded files on the local file system in a temporary directory.
   config.active_storage.service = :test
 
   config.action_mailer.perform_caching = false
@@ -40,15 +44,24 @@ Rails.application.configure do
 
   # Print deprecation notices to the stderr.
   #config.active_support.deprecation = :stderr
-  # Raises error for missing translations
-  # config.action_view.raise_on_missing_translations = true
+  config.active_support.deprecation = :log
 
-    # Setup payment methods
+  # Raise exceptions for disallowed deprecations.
+  config.active_support.disallowed_deprecation = :raise
+
+  # Tell Active Support which deprecation messages to disallow.
+  config.active_support.disallowed_deprecation_warnings = []
+
+  # ActiveSupport::Deprecation.debug = true
+  # Raises error for missing translations.
+  # config.i18n.raise_on_missing_translations = true
+
+  # Annotate rendered view with file names.
+  # config.action_view.annotate_rendered_view_with_filenames = true
 
   $PAYMENT_CONFIG = YAML::load(File.open("#{::Rails.root.to_s}/config/payment_processing.yml"))['test']
   $TEST_CREDIT_CARD = $PAYMENT_CONFIG['test_credit_card']
-  $ADDITIONAL_CARD_TYPES = ['bogus']
-
+  
   config.after_initialize do
     ActiveMerchant::Billing::Base.mode = :test
     PaymentProcessing.after_initialize
@@ -64,14 +77,15 @@ Rails.application.configure do
   config_data = YAML::load(File.open("#{::Rails.root.to_s}/config/server.yml"))
   $SERVER_CONFIG = config_data['all'].merge(config_data['test'])
   $EMAIL_ADDRESS = $SERVER_CONFIG['email_addresses']
+  $SERVER_CONFIG['ext_site_wrapper']='ext_test_wrapper'
   config.action_mailer.default_url_options = { host: $SERVER_CONFIG['host'], protocol: $SERVER_CONFIG['host_protocol'] }
 
   config.action_mailer.delivery_method = :test
-  $APP_DISPLAY_NAME = $SERVER_CONFIG['app_name'] || 'StageMgr'
+  $APP_DISPLAY_NAME = ($SERVER_CONFIG['app_name'] || 'StageMgr') + " TEST"
   unless $SERVER_CONFIG['payment_processing'].nil? || $SERVER_CONFIG['payment_processing']['additional_card_types'].blank?
     $ADDITIONAL_CARD_TYPES = $SERVER_CONFIG['payment_processing']['additional_card_types'].split(',').map{|ct| ct.strip}
   else
     $ADDITIONAL_CARD_TYPES = []
   end
-
+  
 end

@@ -47,7 +47,7 @@ class PaymentType < ApplicationRecord
 
   def prevent_orphans
     if self.payments.count > 0
-      self.errors[:base] << "#{self.display_name} has payments associated with it.  Cannot be deleted"
+      self.errors.where(:base) << "#{self.display_name} has payments associated with it.  Cannot be deleted"
       false
     else
       true

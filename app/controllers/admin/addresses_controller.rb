@@ -70,7 +70,7 @@ class Admin::AddressesController < Admin::ApplicationController
   # PUT /admin/addresses/1
   # PUT /admin/addresses/1.xml
   def update
-    @address.update_attributes(address_params)
+    @address.update(address_params)
   #  @address.address_tags = Array.new
   #  params[:address][:address_tags_attributes].each_pair {
   #      |k, v|

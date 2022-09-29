@@ -1,0 +1,32 @@
+.nested-fields
+  .grid-x
+    .small-6.cell
+      Description
+      %br
+      = f.input :internal_description, wrapper_html: { class: 'hide' }
+      = f.input :description, wrapper_html: { class: 'hide' }
+      %span.noneditable= f.object.internal_description
+    .small-2.cell
+      - amt = f.object.amount.nil? ? -1 : f.object.amount
+      - edit_amt = (amt < 0)
+      - amt = 0 if edit_amt
+      %span.amount_field.hide
+        = f.input :amount
+      - if (!edit_amt) then
+        %span.noneditable.show
+          Amount
+          %br
+          = number_to_currency([0,amt].max)
+      - else
+        %span.noneditable.hide
+          Amount
+          %br
+          = number_to_currency([0,amt].max)
+    .small-2.cell.total
+      Fee
+      %br
+      = f.input :facility_fee, wrapper_html: { class: 'hide' }
+      %span.noneditable.show= number_to_currency(f.object.facility_fee)
+    .small-2.cell
+      - if can? :modify_service_items, Order
+        = link_to_remove_association "Remove", f, :class=>'tiny alert button right',  legend: "Service charge", wrapper_options: { class: 'grid-x'}

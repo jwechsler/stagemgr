@@ -44,3 +44,10 @@ public/*
 storage/*
 app/views/layouts/ext_site_wrapper.html
 l
+
+/public/packs
+/public/packs-test
+/node_modules
+/yarn-error.log
+yarn-debug.log*
+.yarn-integrity

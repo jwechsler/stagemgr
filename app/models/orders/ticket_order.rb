@@ -44,10 +44,10 @@ class TicketOrder < Order
     unless record.allow_deletion?
       if value == PROCESSED
         unless record.ticket_line_items.empty? || record.number_of_tickets > 0
-          record.errors.add :ticket_line_items, "must contain at least one ticket."
+          record.errors.add(:ticket_line_items, "must contain at least one ticket.")
         end
         if (!record.performance.nil? && record.performance.restricted_payment_types.include?(record.payment_type))
-          record.errors.add :payment_type, "is not allowed for this event"
+          record.errors.add(:payment_type, "is not allowed for this event")
         end
       end
     end
@@ -57,7 +57,7 @@ class TicketOrder < Order
     unless self.ticket_line_items.empty?
       ticket_counts_by_class = Hash.new
       self.ticket_line_items.each do |tli|
-        errors.add :base, "Missing allocation for #{self.performance.performance_code} / #{tli.ticket_class.nil? ? "NIL" : tli.ticket_class.class_code}" unless self.performance.ticket_class_allocations.map{|tla| tla.ticket_class }.include?(tli.ticket_class)
+        errors.add(:base, "Missing allocation for #{self.performance.performance_code} / #{tli.ticket_class.nil? ? "NIL" : tli.ticket_class.class_code}") unless self.performance.ticket_class_allocations.map{|tla| tla.ticket_class }.include?(tli.ticket_class)
         if ticket_counts_by_class.has_key?(tli.ticket_class_id)
           ticket_counts_by_class[tli.ticket_class_id] += tli.ticket_count
         else
@@ -71,15 +71,15 @@ class TicketOrder < Order
           if (!allocation.ticket_limit.nil? && (ticket_counts_by_class[key] + number_of_tickets_already_used > allocation.ticket_limit)) then
             remainder = allocation.ticket_limit - number_of_tickets_already_used
             if remainder > 0
-              errors.add :base, "There are only #{allocation.ticket_limit - number_of_tickets_already_used} '#{TicketClass.find(key).class_name}' tickets remaining."
+              errors.add(:base, "There are only #{allocation.ticket_limit - number_of_tickets_already_used} '#{TicketClass.find(key).class_name}' tickets remaining.")
             else
-              errors.add :base, "Sorry, there are no '#{TicketClass.find(key).class_name}' tickets left."
+              errors.add(:base, "Sorry, there are no '#{TicketClass.find(key).class_name}' tickets left.")
             end
           end
         end
       end
       seats_left = self.performance.number_of_seats_left(self)
-      errors.add :base, "There #{seats_left == 1 ? "is" : "are"} only #{seats_left} reservation#{"s" unless seats_left == 1} remaining for the #{self.performance.performance_date.to_s} performance at #{self.performance.performance_time.to_formatted_s(:standard_time)}." if self.holding_seats? && seats_left < self.number_of_seats
+      errors.add(:base, "There #{seats_left == 1 ? "is" : "are"} only #{seats_left} reservation#{"s" unless seats_left == 1} remaining for the #{self.performance.performance_date.to_s} performance at #{self.performance.performance_time.to_formatted_s(:standard_time)}.") if self.holding_seats? && seats_left < self.number_of_seats
     end
   end
 
@@ -112,15 +112,15 @@ class TicketOrder < Order
     unless self.performance.nil?
       if self.number_of_tickets > 0 && self.performance.production.has_reserved_seating? then
         if (self.seats.reload.size != self.number_of_seats) then
-          self.errors.add :seats, " do not match tickets in order (#{self.number_of_seats} required)"
+          self.errors.add(:seats, " do not match tickets in order (#{self.number_of_seats} required)")
           return false
         end
         if self.seats.size.eql?(0) then 
-          self.errors.add :base, "You must select at least one seat"
+          self.errors.add(:base, "You must select at least one seat")
           return false 
         end
       elsif self.number_of_tickets.eql?(0) then 
-        self.errors.add :base, "You must purchase at least one ticket"
+        self.errors.add(:base, "You must purchase at least one ticket")
         return false
       end
     end
@@ -495,6 +495,7 @@ class TicketOrder < Order
   # params:
   # new_tlis -- an array of hashes from the original order with ticket_line_item and seat (see flatten_ticket_items)
   def split(new_tlis, all_tlis = nil)
+    result = [nil, nil]
     TicketOrder.transaction do
       total_transfer_amount = self.total - self.service_line_items.sum(:amount)
       face_value_of_tickets = self.total_ticket_face_value
@@ -525,12 +526,12 @@ class TicketOrder < Order
       order2.print_order_id = nil
       order1.save!
       order2.save!
-      return [order1, order2]
+      result = [order1, order2]
     rescue ActiveRecord::RecordInvalid => e
       self.errors.add(:base, "Could not split order: #{e.message}")
       Rails.logger.debug(e)
     end
-    return [nil, nil]
+    return result
   end
 
   # Returns orders that this was split to

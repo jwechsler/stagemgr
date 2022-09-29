@@ -1,5 +1,5 @@
 class DonationOrdersController < ApplicationController
-  layout 'ext_site_wrapper'
+  layout $SERVER_CONFIG['ext_site_wrapper']
   include OrdersHelper
   include DonationOrdersHelper
 
@@ -40,7 +40,7 @@ class DonationOrdersController < ApplicationController
   end
 
   def update
-    @order.update_attributes(donation_order_params)
+    @order.update(donation_order_params)
     @order.ip_address = request.remote_ip
     create_or_update
   end

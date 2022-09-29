@@ -31,7 +31,7 @@ class MembershipOfferDatatable < DatatableBase
   end
 
   def sort_records(records)
-    records.order("case when status='#{MembershipOffer::ACTIVE}' then 1 else 2 end, on_sale desc, name")
+    records.order(Arel.sql("case when status='#{MembershipOffer::ACTIVE}' then 1 else 2 end, on_sale desc, name"))
   end
   # ==== These methods represent the basic operations to perform on records
   # and feel free to override them

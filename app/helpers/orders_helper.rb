@@ -38,7 +38,7 @@ module OrdersHelper
     end
     result = true
     unless order.errors.empty?
-      flash[:error] = order.errors.full_messages.first
+      flash[:error] = order.errors.first.full_message
       result = false
     end
     return result
@@ -99,7 +99,7 @@ module OrdersHelper
       if order.errors.empty?
         rescue_error(e)
       else
-        flash[:error] = order.errors.full_messages.first
+        flash[:error] = order.errors.first.full_message
       end
       return false
     end

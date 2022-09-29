@@ -1,6 +1,6 @@
 class ProductionsController < ApplicationController
 
-  layout 'ext_site_wrapper'
+  layout $SERVER_CONFIG['ext_site_wrapper']
 
   prepend_before_action :find_theater, :except => [:index, :upcoming, :now_playing, :box_office, :by_date, :show]
   before_action :find_production, :only => [:edit, :update, :destroy]
@@ -107,7 +107,7 @@ class ProductionsController < ApplicationController
   # PUT /productions/1.xml
   def update
     respond_to do |format|
-      if @production.update_attributes(params[:production])
+      if @production.update(params[:production])
         flash[:notice] = 'Production was successfully updated.'
         format.html { redirect_to(theater_path(@production.theater)) }
         format.xml  { head :ok }

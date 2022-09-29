@@ -44,7 +44,7 @@ class Production < ApplicationRecord
   has_many :performances
   has_many :ticket_classes
   has_many :line_items
-  has_many :ticket_orders, :source=>:orders
+  has_many :ticket_orders, :through=>:orders, :source=>:orders
   has_many :ticket_orders, :source=>:orders, :through=>:performances
   has_one :production_stat
   before_validation :clean_values, :downcase_for_db

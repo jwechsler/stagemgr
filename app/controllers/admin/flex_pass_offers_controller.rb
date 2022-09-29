@@ -52,7 +52,7 @@
   # PUT /flex_pass_offers/1
   # PUT /flex_pass_offers/1.xml
   def update
-    @flex_pass_offer.update_attributes(flex_pass_offer_params)
+    @flex_pass_offer.update(flex_pass_offer_params)
     respond_to do |format|
       if @flex_pass_offer.save
         flash[:notice] = 'FlexPassOffer was successfully updated.'

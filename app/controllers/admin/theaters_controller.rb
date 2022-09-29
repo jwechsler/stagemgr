@@ -58,7 +58,7 @@ class Admin::TheatersController < Admin::ApplicationController
   def update
 
     respond_to do |format|
-      if @theater.update_attributes(theater_params)
+      if @theater.update(theater_params)
         flash[:notice] = 'Theater was successfully updated.'
         format.html { redirect_to(admin_theaters_path) }
         format.xml  { head :ok }

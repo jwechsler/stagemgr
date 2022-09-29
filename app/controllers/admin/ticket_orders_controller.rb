@@ -136,7 +136,7 @@ class Admin::TicketOrdersController < Admin::OrdersController
   end
 
   def update
-    @ticket_order.update_attributes(ticket_order_params)
+    @ticket_order.update(ticket_order_params)
     if @ticket_order.held? && !(can?(:hold, TicketOrder) || @ticket_order.payment_type.allow_theater_user_holds?)
       flash[:error] = "You don't have permissions to put this order on hold with a payment type of #{@ticket_order.payment_type.display_name}"
       render 'edit'
@@ -187,6 +187,10 @@ class Admin::TicketOrdersController < Admin::OrdersController
           tli.ticket_class = use_class.first.ticket_class unless use_class.empty?
         }
       }
+      order.ticket_line_items.select{|tli| tli.ticket_class.nil?}.each do 
+        order.ticket_line_items.delete(tli)
+        Rails.logger.debug("**** Deleting #{tli.id} for lack of ticket class")
+      end
     end
   end
 
@@ -250,7 +254,7 @@ class Admin::TicketOrdersController < Admin::OrdersController
       order1, order2 = @ticket_order.split(new_tickets, flattened_tickets)
     end
     if order1.nil? || order2.nil?
-      flash[:error] = @ticket_order.errors.full_messages.to_sentence
+      flash[:error] = @ticket_order.errors.map{|e| e.full_message.to_sentence}.join(',')
       redirect_to action:'split'
     else
       flash[:notice] = "Order split into orders ##{order1.id} and ##{order2.id}"

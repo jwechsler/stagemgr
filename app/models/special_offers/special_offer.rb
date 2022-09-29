@@ -33,21 +33,21 @@ class SpecialOffer < ApplicationRecord
     case t
       when 'Theater'
         (self.theater = Theater.find(i)) ||
-          errors[:base] << "Can't find Theater with id: #{i}"
+          errors.add(:base,"Can't find Theater with id: #{i}")
         !theater.nil?
       when 'Production'
         (self.production = Production.find_by_production_code(i)) ||
-            errors[:base] << "Can't find Production with code: #{i}"
+          errors.add(:base,"Can't find Production with code: #{i}")
         !production.nil?
       when 'Performance'
         (self.performance = Performance.find_by_performance_code(i)) ||
-            errors[:base] << "Can't find Performance with code: #{i}"
+            errors.add(:base,"Can't find Performance with code: #{i}")
         !performance.nil?
       when '', nil
-        errors[:base] << "You didn't pick the type but you entered the id of: #{i}"
+        errors.add(:base,"You didn't pick the type but you entered the id of: #{i}")
         false
       else
-        errors[:base] << 'You tried to use an unknown type'
+        errors.add(:base,'You tried to use an unknown type')
         false
     end
     return true

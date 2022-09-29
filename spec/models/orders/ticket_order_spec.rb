@@ -210,7 +210,9 @@ RSpec.describe TicketOrder do
 
       expect{ order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :performance=>performance )
                   order.transition_to!(Order::PROCESSING)
-                  order.errors.each {|key, data| puts data.to_yaml }
+                  order.errors.each do |error|
+                    puts "#{error.message}, #{error.attribute.to_yaml}" 
+                  end
             }.to raise_error(ActiveRecord::RecordInvalid)
     end
 

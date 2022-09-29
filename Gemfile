@@ -1,7 +1,7 @@
 source 'http://rubygems.org'
 # source 'https://rails-assets.org'
 
-gem 'rails', '~> 5.2.8.1'
+gem 'rails', '~> 6.0'
 
 # Bundle edge Rails instead:
 # gem 'rails', :git => 'git://github.com/rails/rails.git'
@@ -26,14 +26,16 @@ gem 'rails', '~> 5.2.8.1'
 #   gem 'webrat'
 # end
 
+gem 'webpacker'
 gem 'bootsnap'
 gem 'activerecord-session_store'
 # Markdown
 gem "redcarpet"
 
 gem "simple_form"
-gem "databasedotcom"
-gem 'restforce', '~> 2.5.3'
+gem 'simple-form-datepicker'
+# gem "databasedotcom"
+# gem 'restforce', '~> 2.5.3'
 # gem "validation_reflection"
 gem "cancancan"
 gem "activeresource"
@@ -43,11 +45,11 @@ gem "stripe_event"
 #gem "braintree"
 #gem "braintree-rails"
 gem "scrypt"
-gem "authlogic", '~> 4.4'
+gem "authlogic"
 gem "audited"
 gem "psych", '3.3.3'
 gem "will_paginate"
-gem 'safe_attributes', :require=> 'safe_attributes/base'  # Used to support legacy rails 2 schema names for TrgExport model
+#gem 'safe_attributes', :require=> 'safe_attributes/base'  # Used to support legacy rails 2 schema names for TrgExport model
 gem "my_emma",  "~>0.1.3", :git=>"https://github.com/jwechsler/my_emma.git"
 # or develop against "~/dev/my_emma"
 #gem "my_emma", :path=>"~/dev/my_emma"
@@ -60,10 +62,10 @@ gem "money-rails"
 gem "monetize"
 gem "gemcutter"
 gem 'font-awesome-rails'
-gem "dynamic_form"
+# gem "dynamic_form"
 gem "cocoon"
-gem "bigdecimal", '1.4.4'
-gem "nested_form_fields"
+gem "bigdecimal" # , '1.4.4'
+# gem "nested_form_fields" # cocoon seems to do this 
 gem "haml"
 gem "postmark-rails"
 gem "validates_formatting_of"
@@ -75,6 +77,7 @@ gem "jquery-datatables"
 gem 'ajax-datatables-rails', '> 1.0.0'
 gem 'draper'
 gem 'yajl-ruby', require: 'yajl'
+gem 'jquery-timepicker-rails'
 gem 'foundation-datetimepicker-rails'
 # gem 'jqgrid-rails3', :git=>"https://github.com/davebaldwin/jqgrid-rails3.git"
 #gem "name_parse", "~> 0.0.5"
@@ -96,7 +99,8 @@ gem 'mini_magick'
 gem 'decent_exposure'
 gem 'activestorage-validator'
 #
-gem 'paperclip'
+# gem 'paperclip'
+gem 'dotenv-rails', groups: [:development, :test]
 
 group :development do
   gem 'listen'
@@ -131,7 +135,7 @@ group :test,:cucumber do
   gem 'puma'
   # gem 'poltergeist'
   gem 'selenium-webdriver'
-  gem 'cucumber-rails', :require=>false
+  gem 'cucumber-rails', '2.5.1', :require=>false
   gem 'simplecov'
   gem 'factory_bot_rails'
   gem 'database_cleaner'
@@ -149,8 +153,8 @@ end
 
 group :production do
 #  gem 'newrelic_rpm'
-  gem 'exception_notification', '< 4.5' # rails 5.0
-  gem 'mysql2', "~> 0.4.10"
+  gem 'exception_notification' #, '< 4.5' # rails 5.0
+  gem 'mysql2'
 end
 
 group :development,:production do
@@ -159,8 +163,6 @@ end
 
 
 group :cucumber do
-  gem 'cucumber'
-
   gem 'launchy'
   gem "rbx-require-relative"
 end

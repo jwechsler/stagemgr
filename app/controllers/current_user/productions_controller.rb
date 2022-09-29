@@ -45,7 +45,7 @@ class CurrentUser::ProductionsController < CurrentUser::ApplicationController
   # PUT /productions/1.xml
   def update
     respond_to do |format|
-      if @production.update_attributes(params[:production])
+      if @production.update(params[:production])
         flash[:notice] = 'Production was successfully updated.'
         format.html { redirect_to(edit_theater_path(@production.theater)) }
         format.xml  { head :ok }

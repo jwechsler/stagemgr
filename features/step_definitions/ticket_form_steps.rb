@@ -9,10 +9,15 @@ def enter_patron_information
 end
 
 When /^I place the order$/ do
-  click_button('Place Order')
+  click_link('Place Order')
   page.driver.browser.switch_to.alert.accept
 end
 
+When('I submit the order') do
+  accept_confirm do 
+    click_button("Place Order")
+  end
+end
 
 Given /^I create a ticket order$/ do
   fill_in "ticket_order_production_code", :with => "ABC12"
@@ -51,7 +56,7 @@ When /^I enter a valid credit card as payment through the backend?$/ do
   select 'bogus', from:"#{@_current_form}_credit_card_type"
   # select "Visa", :from=>"#{@_current_form}_credit_card_type"
   fill_in "#{@_current_form}_credit_card_expiration_month", :with=>"01"
-  fill_in "#{@_current_form}_credit_card_expiration_year", :with=>'21'
+  fill_in "#{@_current_form}_credit_card_expiration_year", :with=>(Date.today.year+1).to_s[2..3]
   fill_in 'Credit card number', :with=>"4111111111111111"
   fill_in "CVV", :with=>"581"
 end
@@ -94,8 +99,16 @@ Given /^I enter (\d+) tickets for performance "(.*?)"$/ do |num_tix, perf_code|
   fill_in "ticket_order_ticket_line_items_attributes_0_ticket_count", :with => num_tix
 end
 
+
+When /^I enter (\d+) "([^\"]*)" tickets$/ do |qty, ticket_class_code|
+  fill_in "ticket_order_ticket_line_items_attributes_0_ticket_class_code", :with =>  ticket_class_code
+  page.execute_script("document.getElementById('ticket_order_ticket_line_items_attributes_0_ticket_class_id').value='#{TicketClass.find_by(class_code: ticket_class_code).id}'")
+  
+  fill_in "ticket_order_ticket_line_items_attributes_0_ticket_count", :with=>qty
+  
+end
+
 Given /^I enter an exchange for the order to performance "(.*?)"$/ do |perf_code|
-  fill_in "ticket_order_production_code", :with => Performance.find_by_performance_code(perf_code).production.production_code
   fill_in "ticket_order_performance_code", :with => perf_code
 end
 

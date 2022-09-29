@@ -19,7 +19,7 @@ class Admin::FlexPassOrdersController < Admin::OrdersController
   end
 
   def update
-    @flex_pass_order.update_attributes(flex_pass_order_params)
+    @flex_pass_order.update(flex_pass_order_params)
     create_or_update(@flex_pass_order)
   end
 

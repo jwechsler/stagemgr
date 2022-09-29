@@ -11,7 +11,6 @@ Feature: Administer Special Offers
       And I go to the home page
      Then "Special Offers" should link to "the admin special offers page"
 
-
   Scenario: There is not a 'Special Offers' menu link for non-admins
     Given I am a theater user
       And I am logged in

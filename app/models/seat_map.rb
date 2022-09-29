@@ -47,7 +47,7 @@ class SeatMap < ApplicationRecord
   private
   def prevent_deletion_when_assigned_to_production
     return true if productions.count == 0
-      errors.add :base, "Cannot delete seat map with existing production assignments"
+      errors.add(:base, "Cannot delete seat map with existing production assignments")
       false
   end
 

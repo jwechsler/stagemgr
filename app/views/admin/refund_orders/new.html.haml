@@ -5,7 +5,7 @@
       %div
         = render :partial=>"/admin/#{@original_order.class.to_s.underscore.pluralize}/full_order", :locals=>{:order=>@original_order}
 
-    = error_messages_for :order
+    = render :partial=>'/error_messages', locals: {object: @original_order}
 
     - case
     - when (!@original_order.refundable?)

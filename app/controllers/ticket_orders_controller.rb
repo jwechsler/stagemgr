@@ -1,5 +1,5 @@
 class TicketOrdersController < ApplicationController
-  layout 'ext_site_wrapper'
+  layout $SERVER_CONFIG['ext_site_wrapper']
   include TicketOrdersHelper
 
   before_action :find_order, :only => [:show, :edit, :update, :destroy, :confirm]
@@ -24,7 +24,7 @@ class TicketOrdersController < ApplicationController
 
   def update
     # @ticket_order = TicketOrder.find(params[:id].to_i)
-    @ticket_order.update_attributes(ticket_order_params)
+    @ticket_order.update(ticket_order_params)
     @ticket_order.ip_address = request.remote_ip
     # @ticket_order_for_to_s = @ticket_order.performance.production.name + ' on ' + @ticket_order.performance.performance_date.to_formatted_s(:long_ordinal) +
     #      ' at ' + @ticket_order.performance.performance_time.to_formatted_s(:hour_min)

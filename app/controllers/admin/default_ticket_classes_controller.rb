@@ -27,7 +27,7 @@ class Admin::DefaultTicketClassesController < ApplicationController
 
   def update
     @default_ticket_class = DefaultTicketClass.find(params[:id])
-    if @default_ticket_class.update_attributes(default_ticket_class_params)
+    if @default_ticket_class.update(default_ticket_class_params)
       redirect_to admin_default_ticket_classes_url, :success  => "Successfully updated default ticket class #{@default_ticket_class.class_code}."
     else
       render :action => 'edit'

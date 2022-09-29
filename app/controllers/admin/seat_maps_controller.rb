@@ -30,7 +30,7 @@ class Admin::SeatMapsController < ApplicationController
   def update
     respond_to do |format|
       update_geometry(params[:seat_map][:geometry_import]) unless params[:seat_map][:geometry_import].nil?
-      if @seat_map.update_attributes(seat_map_params)
+      if @seat_map.update(seat_map_params)
         flash[:notice] = "SeatMap '#{@seat_map.label}' was successfully updated."
         format.html { redirect_to(admin_venue_path(@venue)) }
       else

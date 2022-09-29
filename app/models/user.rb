@@ -5,7 +5,16 @@ class User < ApplicationRecord
   validates_uniqueness_of :email
   # proxy ability queries to user objects
   delegate :can?, :cannot?, :to => :ability
-
+  validates :email,
+    format: {
+        with: /@/,
+        message: "should look like an email address."
+      },
+      length: { maximum: 100 },
+      uniqueness: {
+        case_sensitive: false,
+        if: :will_save_change_to_email?
+      }
   ROLES                                 = (
   ADMIN, BOXOFFICE, THEATERUSER  = "Administrator", "Box Office", "Producer"
   )

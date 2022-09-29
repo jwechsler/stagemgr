@@ -5,8 +5,9 @@ class TicketLineItem < LineItem
   validates_presence_of :ticket_count
 
   validates_each :price_override do |record, attr, value|
-    if record.ticket_class && record.ticket_class.ticket_type != 'Donation' && !record.generated_from_split?
-      record.errors.add attr, "cannot be used on ticket class type #{record.ticket_class.ticket_type}" unless value.nil?
+    record.price_override = nil if record.price_override.eql?(0)
+    if !record.price_override.nil? && record.ticket_class && record.ticket_class.ticket_type != 'Donation' && !record.generated_from_split?
+      record.errors.add(attr, "cannot be used on ticket class type #{record.ticket_class.ticket_type}")
     end
   end
 

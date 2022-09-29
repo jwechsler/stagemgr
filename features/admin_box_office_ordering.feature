@@ -10,7 +10,7 @@ Feature: Box office ordering
 
   Scenario: Create a credit card order
     Given I visit the new admin ticket order page
-      And I enter production code "TEST" and performance code "TEST01"
+      And I enter performance code "TEST01"
       And I enter 2 "CHEAP" tickets
       And I enter my contact information
       And I enter a valid credit card as payment through the backend

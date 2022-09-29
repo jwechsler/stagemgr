@@ -61,7 +61,7 @@ class Admin::ProductionsController < Admin::ApplicationController
   # PUT /productions/1
   # PUT /productions/1.xml
   def update
-    @production.update_attributes(production_params)
+    @production.update(production_params)
     respond_to do |format|
 
       if @production.save

@@ -1,6 +1,6 @@
 
 class OrdersController < ApplicationController
-  layout 'ext_site_wrapper'
+  layout $SERVER_CONFIG['ext_site_wrapper']
   include OrdersHelper
 
   before_action :find_order, :only => [:show, :edit, :update, :destroy]

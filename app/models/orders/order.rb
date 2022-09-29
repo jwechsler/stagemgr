@@ -100,7 +100,7 @@ class Order < ApplicationRecord
     li_total = self.value_of_all_line_items
     pay_total = self.value_of_all_payments(:include_override_payments)
     unless li_total == pay_total
-      errors.add :status, "cannot be set to #{self.status} if the total ($#{li_total}) isn't countered by a payment (currently $#{pay_total})."
+      errors.add(:status, "cannot be set to #{self.status} if the total ($#{li_total}) isn't countered by a payment (currently $#{pay_total}).")
     end
   end
 
@@ -516,7 +516,7 @@ class Order < ApplicationRecord
         Rails.logger.error "Order #{self.id} could not transition from #{old_status} to #{new_status}:"
         Rails.logger.error "   #{e.to_s}"
         Rails.logger.debug e.backtrace.join("\n")
-        errors.add :error, e.to_s
+        errors.add(:error, e.to_s)
         self.status = old_status
         self.id = nil if self.status.eql?(Order::NEW)
         raise e

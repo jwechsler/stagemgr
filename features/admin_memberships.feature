@@ -55,13 +55,12 @@ Feature: Membership Administration
       And I press "Place Order"
      Then I should see "Customer successfully set up for the Monthly Membership payment plan"
 
+
   Scenario: Administrators can create trial memberships
     Given I am an administrator
       And I am logged in
       And I go to the new admin membership offer page
       And I enter a membership offer "Trial Membership"
-      And I fill in "Trial Periods" with "1"
-      And I fill in "Trial Price" with "0.00"
       And I check "First time members only"
       And I press "Create Membership offer"
      Then I should see "Trial Membership"
@@ -77,8 +76,8 @@ Feature: Membership Administration
       And I enter a valid credit card as payment through the backend
       And I check "Give as a gift"
       And I enter a gift recipient
-      And I place the order
-    Then a membership exists with status "Active"
+      And I submit the order
+     Then a membership exists with status "Active"
       And a membership order exists with a gift recipient "Gift Getter"
       # And a membership order exists for "Ticket Buyer"
       And an address "Ticket Buyer" exists

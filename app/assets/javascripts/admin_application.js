@@ -1,13 +1,4 @@
-//= require application
-//= require admin/orders_common
-//= require cocoon
-//= require jquery-ui/widgets/autocomplete
-//= require autocomplete-rails
-//= require datatables
-//= require jquery.dataTables.yadcf
 //= require_this
-
-
 // setup dataTable with standard active switch selector. Call from ready state
 function setupActiveSwitchOnDataTable(table_selector, status_column_idx) {
   $("div.toolbar-buttons").html('<a style="margin-right:6px; width:10em;" id="active-switch" href="#" class="tiny button right" >Active</a>');
@@ -37,8 +28,6 @@ function setupActiveSwitchOnDataTable(table_selector, status_column_idx) {
     });
 }
 
-
-$(function(){ $(document).foundation(); });
 
 //
 setInterval("refresh_window();",28805000);

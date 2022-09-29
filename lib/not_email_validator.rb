@@ -20,7 +20,7 @@ def validate_each(record, attribute, value)
       rescue Exception => e
         r = true
       end
-      record.errors[attribute] << (options[:message] || "cannot be an email address") unless r
+      record.errors.add(attribute,options[:message] || "cannot be an email address") unless r
     end
   end
 

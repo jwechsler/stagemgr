@@ -6,13 +6,13 @@ class FlexPassOfferOrdersController < ApplicationController
     @order.address = Address.new
     flex_pass_offer = FlexPassOffer.accessible_by(current_ability).find_by(:id => params[:flex_pass_offer_id], :active => true)
     if flex_pass_offer.nil? || !flex_pass_offer.on_sale_to_public?
-      render '/orders/not_available', :layout=>'ext_site_wrapper'
+      render '/orders/not_available', :layout=>$SERVER_CONFIG['ext_site_wrapper']
       return
     end
     @order.flex_pass_line_items.build(:flex_pass_offer_id=>params[:flex_pass_offer_id])
 
     @order_for_to_s = flex_pass_offer.name
-    render '/flex_pass_orders/edit', :layout=>'ext_site_wrapper'
+    render '/flex_pass_orders/edit', :layout=>$SERVER_CONFIG['ext_site_wrapper']
   end
 
 end

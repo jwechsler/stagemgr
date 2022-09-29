@@ -85,7 +85,7 @@ class ApplicationController < ActionController::Base
       }
       format.xml {
         user = User.new
-        user.errors[:base] << "Authentication is required."
+        user.errors.add(:base, "Authentication is required.")
         render :xml => user.errors, :status => 401
       }
       end

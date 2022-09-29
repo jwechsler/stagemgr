@@ -121,6 +121,7 @@ module PaymentProcessing
 
   class BogusGateway < ActiveMerchant::Billing::BogusGateway
     class_attribute :profiles
+    attr_accessor :price_id
 
     def recurring(money, credit_card, options={})
       response = purchase(money, credit_card, options)
@@ -155,6 +156,17 @@ module PaymentProcessing
       r
     end
 
+    def product_url(price_id)
+      self.price_id = price_id
+    end
+
+    def create_subscription(order)
+      return 'TESTSUBSCRIPTION'
+    end
+
+    def subscription_url(subscription_id)
+      return Rails.root + "TESTSUBSCRIPTION"
+    end
   end
 
   def self.after_initialize
@@ -219,7 +231,7 @@ module PaymentProcessing
       :year => card_expiration_year,
       :verification_value => verification_number
     )
-    raise InvalidCreditCard, credit_card.errors.full_messages.join(", ") unless credit_card.valid?
+    raise InvalidCreditCard, credit_card.errors.map{|field, message| "#{field} #{message}"}.join(", ") unless credit_card.valid?
     credit_card
   end
 

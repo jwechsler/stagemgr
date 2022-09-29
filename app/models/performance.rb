@@ -24,7 +24,7 @@ class Performance < ApplicationRecord
         p.performance_time.hour==record.performance_time.hour &&
         p.performance_time.min==record.performance_time.min
       end
-      record.errors.add attr, 'has already been taken'
+      record.errors.add(attr, 'has already been taken')
     end
   end
   validates_presence_of           :performance_code

@@ -1,7 +1,6 @@
-require_relative 'boot'
+require_relative "boot"
 
-require 'rails/all'
-require "active_storage/engine"
+require "rails/all"
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
@@ -10,7 +9,7 @@ Bundler.require(*Rails.groups)
 module Stagemgr
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 5.0
+    config.load_defaults 6.0
 
     config.autoload_paths += Dir[Rails.root.join('app', 'models', '**/')]
     
@@ -23,9 +22,7 @@ module Stagemgr
     # config.i18n.load_path += Dir[Rails.root.join('my', 'locales', '*.{rb,yml}').to_s]
     # config.i18n.default_locale = :de
 
-    # hide credit card parameters.
-
-    config.filter_parameters << :password << :credit_card_number << :card_number << :credit_card_verification_number << :credit_card_expiration_month << :credit_card_expiration_year
+    
 
     # If you want to use gmail for deliver...
     #config.action_mailer.delivery_method = :smtp

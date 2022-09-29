@@ -19,7 +19,7 @@ class Admin::DonationOrdersController < Admin::OrdersController
   end
 
   def update
-    @donation_order.update_attributes(donation_order_params)
+    @donation_order.update(donation_order_params)
     create_or_update(@donation_order)
   end
 

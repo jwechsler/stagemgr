@@ -41,7 +41,7 @@ class Admin::MembershipOrdersController < Admin::ApplicationController
   end
 
   def update
-    @membership_order.update_attributes(membership_order_params)
+    @membership_order.update(membership_order_params)
     update_or_create
   end
 

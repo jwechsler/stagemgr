@@ -1,0 +1,10 @@
+<html>
+  <head>
+  </head>
+  <body>
+    <%- unless flash.empty? %>
+      <%= render :partial=>'/flash_notice' %>
+    <%- end %>
+    <%= yield %>
+  </body>
+</html>
