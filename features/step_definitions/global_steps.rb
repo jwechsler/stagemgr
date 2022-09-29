@@ -37,7 +37,7 @@ Given /^I am (|not |)a [tT]heat[er][re] [uU]ser$/ do |inverse|
 end
 
 Given /^I log out$/ do
-  page.driver.submit :delete, path_to("the logout page"), {}
+  click_link 'Logout'
 end
 
 Given "debugger" do

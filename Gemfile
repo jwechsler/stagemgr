@@ -101,6 +101,7 @@ gem 'activestorage-validator'
 #
 # gem 'paperclip'
 gem 'dotenv-rails', groups: [:development, :test]
+gem 'image_processing'
 
 group :development do
   gem 'listen'

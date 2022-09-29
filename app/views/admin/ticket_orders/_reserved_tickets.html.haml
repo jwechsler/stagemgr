@@ -8,7 +8,7 @@
       - unless order_form.object.performance_id.nil?
         = render partial:"/seat_assignments/available_seatmap", locals:{ticket_order_uuid: order_form.object.uuid, performance: order_form.object.performance}
       - else
-        %img{:src => "#{root_url}#{order_production.seat_map.base_image_map.url}"}
+        %img{:src => "#{order_production.seat_map.decorate.base_image_map}"}
 
 = content_for :js do
   = javascript_include_tag 'seat_assignment'
