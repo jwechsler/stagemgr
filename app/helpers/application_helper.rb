@@ -21,10 +21,12 @@ module ApplicationHelper
   end
 
   def display_markdown(markdown_text, trusted = false)
+    return "" if markdown_text.nil?
+    
     if trusted
       raw($TRUSTED_MARKDOWN.render(markdown_text))
     else
-      raw($MARKDOWN.render(markdown_text))
+      raw($MARKDOWN.render(markdown_text)) 
     end
   end
 
