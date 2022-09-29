@@ -3,7 +3,7 @@ class Performance < ApplicationRecord
   PERFORMANCE_STATUSES = (ACTIVE, INACTIVE, PRIVATE = 'Active',  'Inactive', 'Private')
 
   belongs_to               :production
-  has_many                 :ticket_class_allocations, -> { includes :ticket_class }
+  has_many                 :ticket_class_allocations, -> { includes :ticket_class }, inverse_of: :performance
   has_many                 :ticket_classes, :through=>:ticket_class_allocations
   has_many                 :line_items, :through=>:orders
   has_many                 :seat_assignments, -> { includes :seat }

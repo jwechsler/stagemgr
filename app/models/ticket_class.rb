@@ -7,7 +7,8 @@ class TicketClass < ApplicationRecord
   validates_uniqueness_of :class_code,        :scope => :production_id
   validates_length_of :class_code,            :minimum => 1
   belongs_to :production
-  has_many :ticket_line_items
+  has_many :ticket_line_items, inverse_of: :ticket_class
+  has_many :ticket_class_allocations, inverse_of: :ticket_class
   before_validation :clean_values
   validates_numericality_of :ticket_price
   validates_numericality_of :minutes_before_show, :allow_nil => true

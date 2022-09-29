@@ -1,6 +1,6 @@
 class TicketClassAllocation < ApplicationRecord
-  belongs_to :performance
-  belongs_to :ticket_class
+  belongs_to :performance, inverse_of: :ticket_class_allocations
+  belongs_to :ticket_class, inverse_of: :ticket_class_allocations
   default_scope { includes(:ticket_class) }
   validates_numericality_of :ticket_limit, :allow_nil => true
   validates_numericality_of :shift_days_before_performance, :allow_nil=>true

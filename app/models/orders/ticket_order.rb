@@ -1,5 +1,9 @@
 class TicketOrder < Order
 
+  SEATING_REQUESTS = (
+    WHEELCHAIR, WHEELCHAIR_TRANSFER, STAIRS =
+    'Wheelchair (no transfer)', 'Wheelchair (can transfer)', 'No stairs')
+
   before_validation :set_tickets_for_pass_redemption
   before_validation :unassign_seats_when_performance_changes, if: :performance_id_changed?
   after_validation do
@@ -19,25 +23,17 @@ class TicketOrder < Order
 
   attr_accessor :selected_production
 
-  has_many :ticket_line_items, :foreign_key => :order_id
-
+  has_many :ticket_line_items, :foreign_key => :order_id, inverse_of: :ticket_order
   belongs_to :exchange_source, class_name: "TicketOrder", foreign_key: "exchange_source_id", optional: true
   belongs_to :split_source, class_name: "TicketOrder", foreign_key: "split_source_id", optional: true
   accepts_nested_attributes_for :ticket_line_items, allow_destroy: true
 
-  SEATING_REQUESTS = (
-    WHEELCHAIR, WHEELCHAIR_TRANSFER, STAIRS =
-    'Wheelchair (no transfer)', 'Wheelchair (can transfer)', 'No stairs')
-
+  
   validates_associated :ticket_line_items
   validates_presence_of :performance
-
-  #before_validation :tickets_available?, :if=>[:processed?, :status_changed?]
-
   validate :ticket_stock_available, :unless=>:allow_deletion?
   validate :seat_assignments_complete?, :if=>:seating_check_required?
   validate :payments_exist?, :if=>:processed?
-  # validate :verify_fully_seated, if: -> { !self.allow_deletion? && performance.production.has_reserved_seating? && (status.eql?(Order::PROCESSED) || status.eql?(Order::FULFILLED))}
   validates :uuid, presence: true
 
   validates_each :status do |record, attr, value|

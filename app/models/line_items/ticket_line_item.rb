@@ -1,6 +1,6 @@
 class TicketLineItem < LineItem
-  belongs_to :ticket_order, :foreign_key => :order_id, optional: true
-  belongs_to :ticket_class
+  belongs_to :ticket_order, :foreign_key => :order_id, inverse_of: :ticket_line_items
+  belongs_to :ticket_class, inverse_of: :ticket_line_items
 
   validates_presence_of :ticket_count
 
