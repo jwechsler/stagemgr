@@ -1,6 +1,6 @@
 class Payment < ApplicationRecord
 
-  belongs_to :order, optional: true
+  belongs_to :order, inverse_of: :payments
   belongs_to :payment_type
 
   # validates_numericality_of :amount, :unless => :number_of_tickets

@@ -15,7 +15,7 @@ class Order < ApplicationRecord
   belongs_to :theater, required: false
   belongs_to :payment_type, required:  false
 
-  has_many :payments
+  has_many :payments, inverse_of: :order
   has_many :exchange_payments
   has_many :tasks, :class_name=>'OrderTask', :dependent=>:destroy
   has_many :seats, foreign_key: :order_uuid, primary_key: :uuid, class_name: 'SeatAssignment'
