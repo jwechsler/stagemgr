@@ -45,3 +45,9 @@ Given "debugger" do
   true
 end
 
+Given('I wait for the datatable to load') do 
+  sleep(1.0/2.0)
+  expect(page).to have_no_css('.dataTables_processing', :visible=>true)
+end
+
+

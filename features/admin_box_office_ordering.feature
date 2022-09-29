@@ -37,10 +37,11 @@ Feature: Box office ordering
       And I place the order
      Then I should see "Order was successfully processed"
 
+  @wip
   Scenario: Enforce ticket class requirements from external payment orders
     Given an external payment type "Goldstar" restricted to ticket classes starting with "CHEAP" exists
-      And I go to new admin ticket order
-      And I enter production code "TEST" and performance code "TEST01"
+      And I visit the new admin ticket order page
+      And I enter performance code "TEST01"
       And I enter 2 "RICH" tickets
       And I enter my contact information
       And I choose "Goldstar" as payment
@@ -48,7 +49,9 @@ Feature: Box office ordering
      Then I should see "This payment type is restricted to CHEAP tickets"
       And I enter 2 "CHEAP" tickets
       And I place the order
+      And show me the page
       And I should see "Order was successfully processed"
+
 
   Scenario: Update note on existing order
     Given a ticket order for performance "TEST01" paid with cash exists
@@ -60,8 +63,8 @@ Feature: Box office ordering
       And I should see "Magic Update"
 
   Scenario: Hold order under name
-    Given I go to new admin ticket order
-      And I enter production code "TEST" and performance code "TEST01"
+    Given I visit the new admin ticket order page
+      And I enter performance code "TEST01"
       And I enter 2 "CHEAP" tickets
       And I enter my contact information
       And I enter a check number "1224" as payment

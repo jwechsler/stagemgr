@@ -62,9 +62,6 @@ module NavigationHelpers
       when /^(the |a )?new monthly pledge$/
         @_current_form='donation_pledge_order'
         new_donation_pledge_order_path
-      when /^new admin ticket order$/
-        @using_admin_interface = true
-        new_admin_ticket_order_path
       when /^the admin ticket order detail page$/
         @using_admin_interface = true
         admin_ticket_order_path(TicketOrder.last)

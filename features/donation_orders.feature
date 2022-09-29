@@ -11,10 +11,9 @@ Feature: Donations
       And I enter a valid credit card as payment
       And I choose the "Wit Club" donation level
       And I press "Make a donation"
-      And show me the page
      Then I should see "Order was successfully processed"
       And I should see "$50.00"
-  @wip
+      
   Scenario: Make a custom donation
     Given I go to new donation order
       And I enter my contact information

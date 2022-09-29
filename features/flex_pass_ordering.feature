@@ -7,10 +7,8 @@ Feature: Flex Pass Ordering
     And the system accepts flex passes
     And a flex pass exists for 2 tickets with code "TESTFLEX"
 
-  @wip
   Scenario: Purchase tickets with a flex pass code
     Given I go to new web order for production "Production One" and performance "TEST01"
-      And show me the page
       And I enter my contact information
       And I select "2" from "ticket_order_ticket_line_items_attributes_0_ticket_count"
       And I enter flex pass code "TESTFLEX" as payment

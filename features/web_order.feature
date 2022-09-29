@@ -9,7 +9,7 @@ Feature: Web ordering
   Scenario: Create an order
     Given I go to new web order for production "Production One" and performance "TEST01"
     And I enter my contact information
-    And I select "2" from "ticket_order_ticket_line_items_attributes_0_ticket_count"
+    And I select "2" from "ticket_order_ticket_line_items_attributes_2_ticket_count"
     And I enter a valid credit card as payment
     And I press "Review Order"
     And I press "Order Tickets"
@@ -19,7 +19,7 @@ Feature: Web ordering
   Scenario: Create an order with a special offer
     Given I go to new web order for production "Production One" and performance "TEST01"
     And I enter my contact information
-    And I select "1" from "ticket_order_ticket_line_items_attributes_1_ticket_count"
+    And I select "1" from "ticket_order_ticket_line_items_attributes_2_ticket_count"
     And I enter a valid credit card as payment
     And I fill in "Discount code" with "1DollarOff"
     And I press "Review Order"

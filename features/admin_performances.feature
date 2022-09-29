@@ -79,7 +79,6 @@ Feature: Box office users can manage performances
       And I enter an override URL of "http://testsite.com/specialperformance"
       And I press "Update"
       And I go to the box office calendar for production "Production One"
-      And show me the page
      Then I should see a link "6:00PM" to "http://testsite.com/specialperformance"
 
 
