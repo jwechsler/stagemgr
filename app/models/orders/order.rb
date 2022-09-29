@@ -9,8 +9,6 @@ class Order < ApplicationRecord
   include ActionView::Helpers::NumberHelper
   include EmailValidatable
 
-  extend HTMLDiff
-
   belongs_to :performance, required: false
   belongs_to :theater, required: false
   belongs_to :payment_type, required:  false
@@ -20,9 +18,9 @@ class Order < ApplicationRecord
   has_many :tasks, :class_name=>'OrderTask', :dependent=>:destroy, inverse_of: :order
   has_many :seats, foreign_key: :order_uuid, primary_key: :uuid, class_name: 'SeatAssignment', inverse_of: :order
   has_one :special_offer_line_item, inverse_of: :order
-  has_many :service_line_items, :dependent=>:destroy
+  has_many :service_line_items, :dependent=>:destroy, inverse_of: :order
 
-  belongs_to :address
+  belongs_to :address, inverse_of: :orders
   belongs_to :recipient_address, :class_name=>:address, :foreign_key=>:recipient_address_id, required: false
 
   accepts_nested_attributes_for :payments

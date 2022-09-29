@@ -18,7 +18,7 @@ class Address < ApplicationRecord
   validates_presence_of :full_name
   validates :email, :email=>true, :allow_blank=>true
   before_validation :regularize!, :if=>:changed?
-  has_many :orders
+  has_many :orders, inverse_of: :address
   has_many :orders_as_recipient, :class_name=>:order, :foreign_key=>:recipient_address_id
   has_many :address_tags
   has_many :memberships
