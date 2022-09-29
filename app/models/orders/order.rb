@@ -17,7 +17,7 @@ class Order < ApplicationRecord
 
   has_many :payments, inverse_of: :order
   has_many :exchange_payments
-  has_many :tasks, :class_name=>'OrderTask', :dependent=>:destroy
+  has_many :tasks, :class_name=>'OrderTask', :dependent=>:destroy, inverse_of: :order
   has_many :seats, foreign_key: :order_uuid, primary_key: :uuid, class_name: 'SeatAssignment'
   has_one :special_offer_line_item
   has_many :service_line_items, :dependent=>:destroy

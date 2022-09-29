@@ -6,7 +6,7 @@ class OrderTask < ApplicationRecord
       UNTRIED, COMPLETED, FAILED, CANCELLED = "Untried", "Completed", "Failed", "Cancelled"
   )
 
-  belongs_to :order
+  belongs_to :order, inverse_of: :tasks
 
   validates_presence_of :order
 
