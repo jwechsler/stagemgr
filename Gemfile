@@ -54,7 +54,7 @@ gem "my_emma",  "~>0.1.3", :git=>"https://github.com/jwechsler/my_emma.git"
 # or develop against "~/dev/my_emma"
 #gem "my_emma", :path=>"~/dev/my_emma"
 gem 'terrapin'
-gem "htmldiff"
+#gem "htmldiff"
 gem "StreetAddress"
 gem "i18n"
 gem "money"
