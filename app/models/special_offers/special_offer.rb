@@ -2,6 +2,7 @@ class SpecialOffer < ApplicationRecord
 
   SPECIAL_OFFER_TYPES = ()
   belongs_to :membership, optional: true
+  has_many :special_offer_line_items, inverse_of: :special_offer
 
   validates_presence_of :type, :code
   validates_numericality_of :amount, :allow_nil=>true
@@ -22,7 +23,6 @@ class SpecialOffer < ApplicationRecord
   before_validation :find_limiting_object
   before_validation :fix_case
   validate :performances_date_range_valid
-
 
   def find_limiting_object
     t, i = limiting_model_type, limiting_id
