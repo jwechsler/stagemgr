@@ -6,7 +6,7 @@ class Seat < ApplicationRecord
   before_destroy :verify_unassigned
   validates_uniqueness_of :location, scope: [:seat_map_id]
 
-  has_many :seat_assignments, dependent: :destroy
+  has_many :seat_assignments, dependent: :destroy, inverse_of: :seat
 
   # returns true if the seat is convertable to a wheelchair seat
   def accessible?

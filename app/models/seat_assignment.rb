@@ -2,8 +2,8 @@ class SeatAssignment < ApplicationRecord
 
   before_destroy :verify_unused
 
-  belongs_to :order, foreign_key: :order_uuid, primary_key: :uuid, optional: true
-  belongs_to :seat
+  belongs_to :order, foreign_key: :order_uuid, primary_key: :uuid, optional: true, inverse_of: :seats
+  belongs_to :seat, inverse_of: :seat_assignments
   belongs_to :performance
   belongs_to :ticket_class, optional: true
 
