@@ -56,7 +56,7 @@ class SalesByPerformanceReport < Report
         held_orders = perf.orders.select { |o| o.held? }
         paid_tickets = paid_orders.sum { |o| o.number_of_tickets }
         held_tickets = held_orders.sum { |o| o.number_of_tickets }
-        max_ticket_price = perf.ticket_class_allocations.select{|tca| tca.available? }.max_by{|tca| tca.ticket_class.ticket_price}.ticket_class.ticket_price
+        max_ticket_price = perf.ticket_class_allocations.select{|tca| tca.available? && !tca.ticket_class.nil? }.max_by{|tca| tca.ticket_class.ticket_price}.ticket_class.ticket_price
         gross = paid_orders.sum { |o| o.total_revenue }.to_money
         collected = paid_orders.sum { |o| o.total_collected }.to_money
         ticketing_fee = paid_orders.sum { |o| o.ticketing_fee }.to_money
