@@ -1,6 +1,6 @@
 class DonationOrder < Order
 
-  has_many :donation_line_items, :foreign_key=>:order_id
+  has_many :donation_line_items, :foreign_key=>:order_id, inverse_of: :donation_order
 
   accepts_nested_attributes_for :donation_line_items,
                                 :allow_destroy => true

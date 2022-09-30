@@ -6,7 +6,7 @@ class TicketClass < ApplicationRecord
   validates_inclusion_of :ticket_type,        :in => TICKET_TYPES
   validates_uniqueness_of :class_code,        :scope => :production_id
   validates_length_of :class_code,            :minimum => 1
-  belongs_to :production
+  belongs_to :production, inverse_of: :ticket_classes
   has_many :ticket_line_items, inverse_of: :ticket_class
   has_many :ticket_class_allocations, inverse_of: :ticket_class
   before_validation :clean_values

@@ -40,11 +40,9 @@ class Production < ApplicationRecord
   belongs_to :venue
   belongs_to :theater
   belongs_to :seat_map, optional: true
-  has_many :special_offers
-  has_many :performances
-  has_many :ticket_classes
-  has_many :line_items
-  has_many :ticket_orders, :through=>:orders, :source=>:orders
+  has_many :special_offers, inverse_of: :production
+  has_many :performances, inverse_of: :production
+  has_many :ticket_classes, inverse_of: :production
   has_many :ticket_orders, :source=>:orders, :through=>:performances
   has_one :production_stat
   before_validation :clean_values, :downcase_for_db

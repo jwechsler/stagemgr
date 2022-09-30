@@ -17,7 +17,7 @@ class SpecialOffer < ApplicationRecord
 
   #models to limit this special offer to
   belongs_to :theater, optional: true
-  belongs_to :production, optional: true
+  belongs_to :production, optional: true, inverse_of: :special_offers
   belongs_to :performance, optional: true
 
   before_validation :find_limiting_object

@@ -26,6 +26,7 @@ class TicketOrder < Order
   has_many :ticket_line_items, :foreign_key => :order_id, inverse_of: :ticket_order
   belongs_to :exchange_source, class_name: "TicketOrder", foreign_key: "exchange_source_id", optional: true
   belongs_to :split_source, class_name: "TicketOrder", foreign_key: "split_source_id", optional: true
+  delegate :production, to: :performance
   accepts_nested_attributes_for :ticket_line_items, allow_destroy: true
 
   

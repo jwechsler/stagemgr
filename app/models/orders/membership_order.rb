@@ -1,7 +1,7 @@
 class MembershipOrder < Order
   include RecurringOrder
 
-  has_one :membership_line_item, :foreign_key=>:order_id, :dependent => :destroy
+  has_one :membership_line_item, :foreign_key=>:order_id, :dependent => :destroy, inverse_of: :membership_order
 
   validates_associated :membership_line_item
   accepts_nested_attributes_for :membership_line_item, :recurring_payments, :allow_destroy=>true
