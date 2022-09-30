@@ -26,5 +26,4 @@ class TicketClassAllocation < ApplicationRecord
     seats_currently_held.to_f / self.performance.production.capacity * 100.0 >= self.shift_when_capacity_over
   end
 
-
 end

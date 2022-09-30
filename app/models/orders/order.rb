@@ -21,7 +21,7 @@ class Order < ApplicationRecord
   has_many :service_line_items, :dependent=>:destroy, inverse_of: :order
 
   belongs_to :address, inverse_of: :orders
-  belongs_to :recipient_address, :class_name=>:address, :foreign_key=>:recipient_address_id, required: false
+  belongs_to :recipient_address, :class_name=>:address, :foreign_key=>:recipient_address_id, required: false, inverse_of: :orders_as_recipient
 
   accepts_nested_attributes_for :payments
   accepts_nested_attributes_for :address

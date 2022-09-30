@@ -9,6 +9,7 @@ class Membership < ApplicationRecord
   has_one :membership_order, :through=>:membership_line_item
   has_many :special_offers, :dependent=>:destroy
   belongs_to :membership_offer
+  belongs_to :address, inverse_of: :memberships
 
   before_destroy :cancel_future_reservations
   validates_presence_of :membership_offer

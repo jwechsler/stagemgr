@@ -13,30 +13,26 @@ class Address < ApplicationRecord
   monetize :donated_last_year_cents
   monetize :donated_last_n_days_cents
 
-  before_destroy :ensure_no_finalized_orders
-
   validates_presence_of :full_name
   validates :email, :email=>true, :allow_blank=>true
   before_validation :regularize!, :if=>:changed?
   has_many :orders, inverse_of: :address
-  has_many :orders_as_recipient, :class_name=>:order, :foreign_key=>:recipient_address_id
-  has_many :address_tags
-  has_many :memberships
-  has_many :flex_passes
+  has_many :orders_as_recipient, :class_name=>:order, :foreign_key=>:recipient_address_id, inverse_of: :recipient_address
+  has_many :address_tags, inverse_of: :address
+  has_many :memberships, inverse_of: :address
+  has_many :flex_passes, inverse_of: :address
   has_and_belongs_to_many :productions, uniq: true
+
   accepts_nested_attributes_for :address_tags, :reject_if => proc { |attributes| attributes['tag_label'].blank? }, :allow_destroy => true
   before_save :set_search_name
   before_save :purge_duplicate_tags
-
+  before_destroy :ensure_no_finalized_orders
 
   MAILLIST_STATUS = (
     REQUESTED, SAVED =
   "Requested", "Saved")
 
   SEARCHABLE_REGEXP = /[\d+\s+\.!,]/
-
-  # audited :protect=>false, :except=>['street_number', 'street', 'street_type', 'unit', 'unit_prefix', 'search_name']
-  attr_accessor :sf_object
 
   def self.parse_name(full_name)
     unless full_name.blank?
