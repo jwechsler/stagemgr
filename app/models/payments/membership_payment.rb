@@ -1,7 +1,5 @@
 class MembershipPayment < PassPayment
-  validates_presence_of :membership
-  belongs_to :membership
-
+  belongs_to :membership, inverse_of: :membership_payments
 
   def member_code
     self.membership.member_code

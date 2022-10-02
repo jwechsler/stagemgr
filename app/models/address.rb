@@ -295,7 +295,7 @@ class Address < ApplicationRecord
   end
 
   def is_current_flex_pass_holder?
-    self.orders.select { |o| (o.is_a? FlexPassOrder) && (o.flex_pass_line_items.first.flex_pass.available?) }.count > 0
+    self.orders.select { |o| (o.is_a? FlexPassOrder) && (o.flex_pass_line_item.flex_pass.available?) }.count > 0
   end
 
   def has_flex_pass?

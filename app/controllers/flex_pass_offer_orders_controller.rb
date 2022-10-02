@@ -9,7 +9,7 @@ class FlexPassOfferOrdersController < ApplicationController
       render '/orders/not_available', :layout=>$SERVER_CONFIG['ext_site_wrapper']
       return
     end
-    @order.flex_pass_line_items.build(:flex_pass_offer_id=>params[:flex_pass_offer_id])
+    @order.build_flex_pass_line_item(:flex_pass_offer_id=>params[:flex_pass_offer_id])
 
     @order_for_to_s = flex_pass_offer.name
     render '/flex_pass_orders/edit', :layout=>$SERVER_CONFIG['ext_site_wrapper']

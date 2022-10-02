@@ -3,17 +3,19 @@ class Performance < ApplicationRecord
   PERFORMANCE_STATUSES = (ACTIVE, INACTIVE, PRIVATE = 'Active',  'Inactive', 'Private')
 
   belongs_to               :production, inverse_of: :performances
+  has_many                 :special_offers, inverse_of: :performance
   has_many                 :ticket_class_allocations, -> { includes :ticket_class }, inverse_of: :performance
-  has_many                 :ticket_classes, :through=>:ticket_class_allocations
-  has_many                 :line_items, :through=>:orders
-  has_many                 :seat_assignments, -> { includes :seat }
+  has_many                 :ticket_classes, :through=>:ticket_class_allocations, inverse_of: :performances 
+  has_many                 :seat_assignments, -> { includes :seat }, inverse_of: :performance
   has_many                 :seats, :through=>:seat_assignments
   has_one                  :seat_map, :through=>:production
-  has_many                 :orders, :class_name=>'TicketOrder'
-  has_many                 :payment_restrictions, :dependent=>:destroy
+  has_many                 :orders, :class_name=>'TicketOrder', inverse_of: :performance
+  has_many                 :payment_restrictions, :dependent=>:destroy, inverse_of: :performance
   has_many                 :restricted_payment_types, :source=>:payment_type, :through=>:payment_restrictions
-  has_and_belongs_to_many      :special_features
+  has_and_belongs_to_many  :special_features
+
   default_scope            { includes(:ticket_class_allocations) }
+
   validates_inclusion_of   :status,            :in => PERFORMANCE_STATUSES
   validates_uniqueness_of  :performance_code
   validates_uniqueness_of  :performance_time, :scope=>[:performance_date, :production_id]

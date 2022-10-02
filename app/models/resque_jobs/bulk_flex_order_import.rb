@@ -91,8 +91,7 @@ class BulkFlexOrderImport < OrderImport
 
             o.address = a
 
-            o.flex_pass_line_items.build(ticket_count:1, flex_pass_offer_id:flex_pass_offer_id)
-
+            o.build_flex_pass_line_item(flex_pass_offer_id:flex_pass_offer_id)
 
             o.payment_type = payment_type
             o.suppress_receipt = true

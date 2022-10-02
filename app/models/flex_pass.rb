@@ -1,9 +1,9 @@
 class FlexPass < ApplicationRecord
   belongs_to :address, inverse_of: :flex_passes
-  belongs_to :flex_pass_offer
-  belongs_to :flex_pass_line_item
+  belongs_to :flex_pass_offer, inverse_of: :flex_passes
+  belongs_to :flex_pass_line_item, inverse_of: :flex_pass
   belongs_to :order
-  has_many :flex_pass_payments
+  has_many :flex_pass_payments, inverse_of: :flex_pass
   before_create :set_expiration_date
   after_create :queue_expiration
   before_destroy :has_no_placed_orders?

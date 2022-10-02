@@ -23,7 +23,7 @@ class Production < ApplicationRecord
   # :section:
 
   validates_inclusion_of :status, :in => PRODUCTION_STATUSES
-  validates_presence_of :theater, :name, :venue, :season, :production_code, :opening_at, :closing_at
+  validates_presence_of :name, :season, :production_code, :opening_at, :closing_at
   validates_uniqueness_of :production_code, :message=>"%{value} is already in use"
   validates_length_of :production_code, :in=>1..8
   validates_numericality_of :capacity
@@ -37,21 +37,21 @@ class Production < ApplicationRecord
     visible_prod.validates_presence_of :first_preview_at
   end
 
-  belongs_to :venue
-  belongs_to :theater
-  belongs_to :seat_map, optional: true
+  belongs_to :venue, inverse_of: :productions
+  belongs_to :theater, inverse_of: :productions
+  belongs_to :seat_map, optional: true, inverse_of: :productions
   has_many :special_offers, inverse_of: :production
   has_many :performances, inverse_of: :production
   has_many :ticket_classes, inverse_of: :production
   has_many :ticket_orders, :source=>:orders, :through=>:performances
-  has_one :production_stat
+  has_one :production_stat, inverse_of: :production, dependent: :destroy
   before_validation :clean_values, :downcase_for_db
   before_create :assign_default_ticket_classes
   # removed until we fix/expose statistics
   # before_save :queue_statistics_recalc
   before_save :finalize_season_seating, :if=>:status_changed?
   before_save :update_performance_codes, :if=>:production_code_changed?
-  belongs_to :flex_pass_offer, optional: true
+  belongs_to :flex_pass_offer, optional: true, inverse_of: :production
   has_and_belongs_to_many :attendees, class_name: "Address", uniq:true
 
   #has_attached_file :promo, :path=>":rails_root/public/system/:attachment/:id/:style/:filename"

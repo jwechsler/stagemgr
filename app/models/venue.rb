@@ -1,8 +1,8 @@
 class Venue < ApplicationRecord
 
   validates_presence_of :name, :ordinal_sort
-  has_many :productions
-  has_many :seat_maps
+  has_many :productions, inverse_of: :venue
+  has_many :seat_maps, inverse_of: :venue
 
   def now_playing(production_class, through = nil)
     self.productions.select{|p| p.now_playing?(through) && p.visible? && p.production_class == production_class}

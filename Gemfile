@@ -99,7 +99,6 @@ gem 'mini_magick'
 gem 'decent_exposure'
 gem 'activestorage-validator'
 #
-# gem 'paperclip'
 gem 'dotenv-rails', groups: [:development, :test]
 gem 'image_processing'
 

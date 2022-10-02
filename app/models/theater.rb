@@ -15,11 +15,11 @@
   validates_uniqueness_of :name
   validates_presence_of :name
 
-  has_many :productions
-  has_many :special_offers
-  has_many :flex_pass_offers
-  has_many :orders
-  has_many :address_tags
+  has_many :productions, inverse_of: :theater
+  has_many :special_offers, inverse_of: :theaters
+  has_many :flex_pass_offers, inverse_of: :theater
+  has_many :orders, inverse_of: :theater
+  
   has_and_belongs_to_many :users#, :as=>:owners
 
   has_one_attached :logo

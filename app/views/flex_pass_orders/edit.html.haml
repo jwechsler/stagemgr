@@ -1,6 +1,6 @@
-%h3= @order.flex_pass_line_items[0].flex_pass_offer.name
+%h3= @order.flex_pass_line_item.flex_pass_offer.name
 
-%p= @order.flex_pass_line_items[0].flex_pass_offer.description
+%p= @order.flex_pass_line_item.flex_pass_offer.description
 
 = simple_form_for @order do |order_form|
 
@@ -9,7 +9,7 @@
 
   %br
   - @submit_text = "Order FlexPass"
-  = order_form.simple_fields_for :flex_pass_line_items do |f|
+  = order_form.simple_fields_for :flex_pass_line_item do |f|
     = render '/flex_pass_orders/flex_pass', :f => f
 
   %fieldset.fieldset

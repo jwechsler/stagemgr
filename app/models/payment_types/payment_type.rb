@@ -1,8 +1,11 @@
 class PaymentType < ApplicationRecord
 
   has_many :payments
-  has_many :payment_restrictions, :dependent=>:destroy
+  has_many :payment_restrictions, :dependent=>:destroy, inverse_of: :payment_type
   has_many :order_task_suppressions, :dependent=>:destroy
+  has_many :performances, :through=>:payment_restrictions, inverse_of: :restricted_payment_types
+  
+
   accepts_nested_attributes_for :order_task_suppressions, :reject_if => proc { |attributes| attributes['task_type'].blank? }, :allow_destroy=>true
 
   before_destroy :prevent_orphans

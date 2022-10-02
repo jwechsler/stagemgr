@@ -1,6 +1,6 @@
 class User < ApplicationRecord
   has_and_belongs_to_many :theaters #, :as => :owned_theaters
-  has_many :file_stores
+  has_many :file_stores, inverse_of: :user
   validates_presence_of :email
   validates_uniqueness_of :email
   # proxy ability queries to user objects

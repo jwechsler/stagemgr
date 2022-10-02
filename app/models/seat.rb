@@ -1,5 +1,5 @@
 class Seat < ApplicationRecord
-  belongs_to :seat_map
+  belongs_to :seat_map, inverse_of: :seats
 
   validates_presence_of :location, :row, :seat_number
   before_validation :set_standard_location

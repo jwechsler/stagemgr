@@ -9,8 +9,8 @@ class Order < ApplicationRecord
   include ActionView::Helpers::NumberHelper
   include EmailValidatable
 
-  belongs_to :performance, required: false
-  belongs_to :theater, required: false
+  belongs_to :performance, required: false, inverse_of: :orders
+  belongs_to :theater, required: false, inverse_of: :orders
   belongs_to :payment_type, required:  false
 
   has_many :payments, inverse_of: :order

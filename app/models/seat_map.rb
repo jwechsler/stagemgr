@@ -2,11 +2,10 @@ class SeatMap < ApplicationRecord
   SEAT_MAP_SIZES = (
     THUMB, MEDIUM = ["800x800>","200x200>"]
     )
-  belongs_to :venue
-  has_many :seats, :dependent=>:destroy
-  has_many :productions
-  validates_presence_of :venue
-  #has_attached_file :base_image_map, styles: { medium: "800x800>", thumb: "200x200>" }, default_url: "/images/:style/missing.png"
+  belongs_to :venue, inverse_of: :seat_maps
+  has_many :seats, :dependent=>:destroy, inverse_of: :seat_map
+  has_many :productions, inverse_of: :seat_map
+  
   has_one_attached :base_image_map
   validates :base_image_map, blob: { content_type: :image }
   #validates_attachment_content_type :base_image_map, content_type: /\Aimage\/.*\z/

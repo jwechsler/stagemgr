@@ -1,6 +1,6 @@
 class FlexPassPayment < PassPayment
   validates_presence_of :flex_pass
-  belongs_to :flex_pass
+  belongs_to :flex_pass, inverse_of: :flex_pass_payments
 
   validates_each :number_of_tickets do |record, attr, value|
     # check for number of tickets allowed

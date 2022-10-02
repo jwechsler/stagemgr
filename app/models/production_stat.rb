@@ -1,7 +1,8 @@
 class ProductionStat < ApplicationRecord
 
-  belongs_to :production
-  has_many :sales_snapshots
+  belongs_to :production, inverse_of: :production_stat
+  has_many :sales_snapshots, inverse_of: :production_stat, dependent: :destroy
+
   def update
     self.total_ticket_sales = 0
     self.number_of_tickets = 0

@@ -11,7 +11,7 @@ class OrderTest < ActiveSupport::TestCase
       @flex_pass_payment_type = FactoryBot.create(:flex_pass_payment_type)
       @order = FactoryBot.create(:flex_pass_order, :address=>addresses(:jeremy), :payment_type => @cash_payment_type)
 
-      @order.flex_pass_line_items.build(:flex_pass_offer=> flex_pass_offers(:flexpass_5_offer), :ticket_count=>1)
+      @order.build_flex_pass_line_item(:flex_pass_offer=> flex_pass_offers(:flexpass_5_offer), :ticket_count=>1)
       @order.transition_to!(Order::PROCESSING)
       @order.transition_to!(Order::PROCESSED)
       @order.transition_to!(Order::FULFILLED)
@@ -19,14 +19,12 @@ class OrderTest < ActiveSupport::TestCase
       assert_equal Order::FULFILLED, @order.status
     end
     should 'generate a flex pass' do
-      assert_equal 1, @order.flex_pass_line_items.count
-      assert_not_nil @order.flex_pass_line_items.first.flex_passes
-      assert_equal 1, @order.flex_pass_line_items.first.flex_passes.count
-      assert_not_nil @order.flex_pass_line_items.first.flex_passes[0].code
+      assert_not_nil @order.flex_pass_line_item.flex_pass
+      assert_not_nil @order.flex_pass_line_item.flex_pass.code
 
     end
     should 'allow you to buy a ticket' do
-      flex_pass = @order.flex_pass_line_items.first.flex_passes[0]
+      flex_pass = @order.flex_pass_line_item.flex_pass
       @ticket_order = FactoryBot.create(:ticket_order, :address=>addresses(:jeremy),
                                      :payment_type=>@flex_pass_payment_type,
                                      :performance=>performances(:macbeth_opening))
@@ -40,7 +38,7 @@ class OrderTest < ActiveSupport::TestCase
     end
 
     should 'not allow you to buy too many tickets' do
-      flex_pass = @order.flex_pass_line_items.first.flex_passes[0]
+      flex_pass = @order.flex_pass_line_item.flex_pass
       @ticket_order = FactoryBot.create(:ticket_order, :address=>addresses(:jeremy),
                                      :payment_type=>@flex_pass_payment_type,
                                      :performance=>performances(:macbeth_opening))

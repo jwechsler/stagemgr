@@ -1,7 +1,6 @@
 class FileStore < ApplicationRecord
-  belongs_to :user, optional: true
+  belongs_to :user, optional: true, inverse_of: :file_stores
   has_one_attached :data
-  #has_attached_file :data
 
   FILE_WORKERS = (
     IMPORT, REPORT =

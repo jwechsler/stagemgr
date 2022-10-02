@@ -7,14 +7,14 @@ class Membership < ApplicationRecord
 
   has_one :membership_line_item, :foreign_key=>:membership_id
   has_one :membership_order, :through=>:membership_line_item
-  has_many :special_offers, :dependent=>:destroy
+  has_many :special_offers, :dependent=>:destroy, inverse_of: :membership
   belongs_to :membership_offer
   belongs_to :address, inverse_of: :memberships
+  has_many :membership_payments, inverse_of: :membership
 
   before_destroy :cancel_future_reservations
   validates_presence_of :membership_offer
   before_validation :create_code, :on=>:create
-  has_many :membership_payments
   before_save :release_reservations_on_cancel
   before_save :release_pending_tasks_on_cancel
 

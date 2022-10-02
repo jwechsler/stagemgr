@@ -3,7 +3,7 @@
 = simple_form_for [:admin, @flex_pass_order], :html=>{:id=>'admin_flex_pass_order_form'} do |order_form|
   .grid-x.grid-padding-x
     .small-12.medium-12.cell
-      = order_form.simple_fields_for :flex_pass_line_items do |flex_pass_line_item_form|
+      = order_form.simple_fields_for :flex_pass_line_item do |flex_pass_line_item_form|
         = render '/admin/flex_pass_orders/flex_pass_line_item_form', :f => flex_pass_line_item_form
       = order_form.hidden_field :status
       = order_form.simple_fields_for :address do |address_form|

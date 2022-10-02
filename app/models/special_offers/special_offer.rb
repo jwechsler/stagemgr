@@ -1,7 +1,7 @@
 class SpecialOffer < ApplicationRecord
 
   SPECIAL_OFFER_TYPES = ()
-  belongs_to :membership, optional: true
+  belongs_to :membership, optional: true, inverse_of: :special_offers
   has_many :special_offer_line_items, inverse_of: :special_offer
 
   validates_presence_of :type, :code
@@ -16,9 +16,9 @@ class SpecialOffer < ApplicationRecord
   attr_accessor :limiting_id
 
   #models to limit this special offer to
-  belongs_to :theater, optional: true
+  belongs_to :theater, optional: true, inverse_of: :special_offers
   belongs_to :production, optional: true, inverse_of: :special_offers
-  belongs_to :performance, optional: true
+  belongs_to :performance, optional: true, inverse_of: :special_offers
 
   before_validation :find_limiting_object
   before_validation :fix_case
