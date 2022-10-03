@@ -11,6 +11,7 @@
 %div{:class=>"show-listing background-#{background} cell small-12 medium-#{(slice*12.0/100).round}"}
   %p
     %div.venue= production.venue.name
+    %p.centered= production.decorate.promo(Production::THUMB)
     - link_to("showtitle", production_performances_path(production.id, :anchor=>"top"), id:"nowplaying_thumb_#{production.id}") if production.promo.attached?
     %div.production_name
       - if (defined? new_window_link) && new_window_link

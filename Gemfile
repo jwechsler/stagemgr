@@ -101,6 +101,7 @@ gem 'activestorage-validator'
 #
 gem 'dotenv-rails', groups: [:development, :test]
 gem 'image_processing'
+gem 'ruby-vips'
 
 group :development do
   gem 'listen'

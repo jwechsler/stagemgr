@@ -1,4 +1,4 @@
-'exclass VenuesController < ApplicationController
+class VenuesController < ApplicationController
   layout $SERVER_CONFIG['ext_site_wrapper']
   before_action :set_background
 

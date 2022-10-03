@@ -311,7 +311,6 @@ GEM
       activesupport (>= 5.1)
       haml (>= 4.0.6)
       railties (>= 5.1)
-    htmldiff (0.0.1)
     http_logger (0.7.0)
     httparty (0.7.8)
       crack (= 0.1.8)
@@ -643,7 +642,6 @@ DEPENDENCIES
   gemcutter
   haml
   haml-rails
-  htmldiff
   http_logger
   i18n
   image_processing
@@ -681,6 +679,7 @@ DEPENDENCIES
   resque-web
   ri_cal!
   rspec-rails (< 6.0)
+  ruby-vips
   sass
   sass-rails
   scrypt

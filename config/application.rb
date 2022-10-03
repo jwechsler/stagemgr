@@ -79,5 +79,7 @@ module Stagemgr
     #limit Audits to 25 changes
     Audited.max_audits = 25
 
+    config.active_storage.variant_processor = :vips 
+
   end
 end
