@@ -596,7 +596,7 @@ GEM
     xpath (3.2.0)
       nokogiri (~> 1.8)
     yajl-ruby (1.4.3)
-    zeitwerk (2.6.0)
+    zeitwerk (2.6.1)
 
 PLATFORMS
   ruby
@@ -662,7 +662,7 @@ DEPENDENCIES
   pry-rails
   psych (= 3.3.3)
   puma
-  rails (~> 6.0)
+  rails (~> 6.1)
   rails-controller-testing
   rails-jquery-autocomplete
   rb-readline
