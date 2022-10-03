@@ -298,7 +298,6 @@ GEM
     fugit (1.7.1)
       et-orbi (~> 1, >= 1.2.7)
       raabro (~> 1.4)
-    g (1.7.2)
     gemcutter (0.7.1)
     globalid (1.0.0)
       activesupport (>= 5.0)
@@ -564,7 +563,6 @@ GEM
     sys-uname (1.2.2)
       ffi (~> 1.1)
     temple (0.8.2)
-    terminal-notifier (2.0.0)
     terrapin (0.6.0)
       climate_control (>= 0.0.3, < 1.0)
     thor (1.2.1)
@@ -638,7 +636,6 @@ DEPENDENCIES
   foundation-datetimepicker-rails
   foundation-icons-sass-rails
   foundation-rails
-  g
   gemcutter
   haml
   haml-rails
@@ -693,7 +690,6 @@ DEPENDENCIES
   stripe-ruby-mock
   stripe_event
   syntax
-  terminal-notifier
   terrapin
   uglifier
   validates_formatting_of

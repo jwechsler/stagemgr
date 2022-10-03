@@ -95,12 +95,12 @@ gem 'resque-retry'  #, :git=>"https://github.com/jwechsler/resque-retry.git"
 gem 'rails-jquery-autocomplete' # :git=>"https://github.com/jwechsler/rails3-jquery-autocomplete.git" #:path=>'/Users/jeremyw/dev/rails3-jquery-autocomplete'
 gem 'config', :git=>'https://github.com/railsconfig/config.git'
 gem 'responders'
-gem 'mini_magick'
 gem 'decent_exposure'
 gem 'activestorage-validator'
 #
 gem 'dotenv-rails', groups: [:development, :test]
 gem 'image_processing'
+gem 'mini_magick'
 gem 'ruby-vips'
 
 group :development do
@@ -110,8 +110,8 @@ group :development do
   gem 'what_methods'
   gem 'map_by_method'
   gem 'bond'
-  gem 'g'
-  gem 'terminal-notifier'
+#  gem 'g'
+#  gem 'terminal-notifier'
 #  gem 'mongrel'
   gem 'capistrano-rails'
   gem 'capistrano-rbenv'
