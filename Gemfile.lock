@@ -158,7 +158,6 @@ GEM
       xpath (~> 3.2)
     childprocess (4.1.0)
     chronic (0.10.2)
-    climate_control (0.2.0)
     cocoon (1.2.15)
     coderay (1.1.3)
     coffee-rails (5.0.0)
@@ -298,7 +297,6 @@ GEM
     fugit (1.7.1)
       et-orbi (~> 1, >= 1.2.7)
       raabro (~> 1.4)
-    gemcutter (0.7.1)
     globalid (1.0.0)
       activesupport (>= 5.0)
     haml (6.0.1)
@@ -390,7 +388,6 @@ GEM
       method_source (~> 1.0)
     pry-rails (0.3.9)
       pry (>= 0.10.4)
-    psych (3.3.3)
     public_suffix (5.0.0)
     puma (5.6.5)
       nio4r (~> 2.0)
@@ -563,8 +560,6 @@ GEM
     sys-uname (1.2.2)
       ffi (~> 1.1)
     temple (0.8.2)
-    terrapin (0.6.0)
-      climate_control (>= 0.0.3, < 1.0)
     thor (1.2.1)
     tilt (2.0.11)
     twitter-bootstrap-rails (5.0.0)
@@ -591,7 +586,6 @@ GEM
     what_methods (1.0.1)
     whenever (1.0.0)
       chronic (>= 0.6.3)
-    will_paginate (3.3.1)
     wirble (0.1.3)
     xpath (3.2.0)
       nokogiri (~> 1.8)
@@ -636,7 +630,6 @@ DEPENDENCIES
   foundation-datetimepicker-rails
   foundation-icons-sass-rails
   foundation-rails
-  gemcutter
   haml
   haml-rails
   http_logger
@@ -649,7 +642,6 @@ DEPENDENCIES
   launchy
   listen
   map_by_method
-  mini_magick
   mocha
   monetize
   money
@@ -660,7 +652,6 @@ DEPENDENCIES
   postmark-rails
   pry
   pry-rails
-  psych (= 3.3.3)
   puma
   rails (~> 6.1)
   rails-controller-testing
@@ -690,13 +681,11 @@ DEPENDENCIES
   stripe-ruby-mock
   stripe_event
   syntax
-  terrapin
   uglifier
   validates_formatting_of
   webpacker
   what_methods
   whenever
-  will_paginate
   wirble
   yajl-ruby
 

@@ -3,34 +3,11 @@ source 'http://rubygems.org'
 
 gem 'rails', '~> 6.1'
 
-# Bundle edge Rails instead:
-# gem 'rails', :git => 'git://github.com/rails/rails.git'
-
-
-# Use unicorn as the web server
-# gem 'unicorn'
-
-# Deploy with Capistrano
-# gem 'capistrano'
-
-# Bundle the extra gems:
-# gem 'bj'
-# gem 'nokogiri'
-# gem 'sqlite3-ruby', :require => 'sqlite3'
-# gem 'aws-s3', :require => 'aws/s3'
-
-# Bundle gems for the local environment. Make sure to
-# put test-only gems in this group so their generators
-# and rake tasks are available in development mode:
-# group :development, :test do
-#   gem 'webrat'
-# end
-
 gem 'webpacker'
 gem 'bootsnap'
 gem 'activerecord-session_store'
-# Markdown
-gem "redcarpet"
+
+gem "redcarpet" # Markdown
 
 gem "simple_form"
 gem 'simple-form-datepicker'
@@ -38,43 +15,49 @@ gem 'simple-form-datepicker'
 # gem 'restforce', '~> 2.5.3'
 # gem "validation_reflection"
 gem "cancancan"
-gem "activeresource"
+gem "activeresource"  
 gem "activemerchant"
 gem "stripe"
 gem "stripe_event"
-#gem "braintree"
-#gem "braintree-rails"
 gem "scrypt"
 gem "authlogic"
 gem "audited"
-gem "psych", '3.3.3'
-gem "will_paginate"
+# gem "psych", '3.3.3'
+# gem "will_paginate"
 #gem 'safe_attributes', :require=> 'safe_attributes/base'  # Used to support legacy rails 2 schema names for TrgExport model
 gem "my_emma",  "~>0.1.3", :git=>"https://github.com/jwechsler/my_emma.git"
 # or develop against "~/dev/my_emma"
-#gem "my_emma", :path=>"~/dev/my_emma"
-gem 'terrapin'
-#gem "htmldiff"
-gem "StreetAddress"
-gem "i18n"
+# gem "my_emma", :path=>"~/dev/my_emma"
+# gem 'terrapin'
+# gem "htmldiff"
+gem "StreetAddress" # parses street addresses for matching checks
+gem "i18n"          # i18n exposes for dates and money gem
 gem "money"
 gem "money-rails"
 gem "monetize"
-gem "gemcutter"
+# gem "gemcutter"
 gem 'font-awesome-rails'
-# gem "dynamic_form"
 gem "cocoon"
 gem "bigdecimal" # , '1.4.4'
-# gem "nested_form_fields" # cocoon seems to do this 
 gem "haml"
 gem "postmark-rails"
 gem "validates_formatting_of"
-# gem "namecase"
 gem "jquery-rails"
 gem "jquery-ui-rails"
-# gem 'autonumeric-rails'
 gem "jquery-datatables"
 gem 'ajax-datatables-rails', '> 1.0.0'
+gem 'rails-jquery-autocomplete' # :git=>"https://github.com/jwechsler/rails3-jquery-autocomplete.git" #:path=>'/Users/jeremyw/dev/rails3-jquery-autocomplete'
+
+gem 'sass'
+gem 'sass-rails'
+gem 'coffee-rails'
+gem 'uglifier'
+# Add Foundation Here
+gem 'bourbon'
+gem 'foundation-rails'
+gem 'foundation-icons-sass-rails'
+gem 'autoprefixer-rails'
+
 gem 'draper'
 gem 'yajl-ruby', require: 'yajl'
 gem 'jquery-timepicker-rails'
@@ -92,15 +75,14 @@ gem 'resque', :require => 'resque/server'
 gem 'resque-scheduler'
 gem 'resque-retry'  #, :git=>"https://github.com/jwechsler/resque-retry.git"
 
-gem 'rails-jquery-autocomplete' # :git=>"https://github.com/jwechsler/rails3-jquery-autocomplete.git" #:path=>'/Users/jeremyw/dev/rails3-jquery-autocomplete'
 gem 'config', :git=>'https://github.com/railsconfig/config.git'
 gem 'responders'
 gem 'decent_exposure'
-gem 'activestorage-validator'
-#
+gem 'activestorage-validator' # validates blobs for activestorage
+
 gem 'dotenv-rails', groups: [:development, :test]
 gem 'image_processing'
-gem 'mini_magick'
+# gem 'mini_magick'
 gem 'ruby-vips'
 
 group :development do
@@ -129,6 +111,8 @@ group :development,:test,:cucumber do
   gem 'sqlite3', '~> 1.4.0'
   gem 'rails-controller-testing'
   gem 'byebug'
+  gem 'factory_bot_rails'
+  
 end
 
 group :test,:cucumber do
@@ -138,7 +122,6 @@ group :test,:cucumber do
   gem 'selenium-webdriver'
   gem 'cucumber-rails', '2.5.1', :require=>false
   gem 'simplecov'
-  gem 'factory_bot_rails'
   gem 'database_cleaner'
   gem 'stripe-ruby-mock'
 end
@@ -169,13 +152,4 @@ group :cucumber do
 end
 
 # assets
-  gem 'sass'
-  gem 'sass-rails'
-  gem 'coffee-rails'
-  gem 'uglifier'
-  # Add Foundation Here
-  gem 'bourbon'
-  gem 'foundation-rails'
-  gem 'foundation-icons-sass-rails'
-  gem 'autoprefixer-rails'
-
+  
