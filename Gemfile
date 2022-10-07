@@ -88,7 +88,6 @@ gem 'ruby-vips'
 group :development do
   gem 'listen'
   gem 'wirble'
-#  gem "nifty-generators"
   gem 'what_methods'
   gem 'map_by_method'
   gem 'bond'
