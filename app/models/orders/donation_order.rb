@@ -25,7 +25,6 @@ class DonationOrder < Order
     self.donation_line_items.sum(:amount)
   end
 
-
   def description
     self.to_s
   end
@@ -61,6 +60,5 @@ class DonationOrder < Order
   def update_address_aggregates
     self.address.update_donor_levels!
   end
-
 
 end

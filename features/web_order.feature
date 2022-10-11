@@ -4,6 +4,7 @@ Feature: Web ordering
 
   Background:
     Given a sample theater exists
+    Given a rental theater exists
     And a special offer with code "1DollarOff" for $1 off exists
 
   Scenario: Create an order
@@ -11,6 +12,19 @@ Feature: Web ordering
     And I enter my contact information
     And I select "2" from "ticket_order_ticket_line_items_attributes_2_ticket_count"
     And I enter a valid credit card as payment
+    And I press "Review Order"
+    And I press "Order Tickets"
+    Then I should see "$10.00"
+    Then I should see "Your ticket reservation has been made"
+
+  @wip
+  Scenario: Create an order
+    Given I go to new web order for production "Production One" and performance "TEST01"
+    And I enter my contact information
+    And I select "2" from "ticket_order_ticket_line_items_attributes_2_ticket_count"
+    And I enter a valid credit card as payment
+    And show me the page
+    And I enter an "11.00" as an additional donation
     And I press "Review Order"
     And I press "Order Tickets"
     Then I should see "$10.00"

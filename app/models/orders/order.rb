@@ -32,6 +32,7 @@ class Order < ApplicationRecord
   attr_accessor :special_offer_code
   attr_accessor :door_sale
   attr_accessor :additional_donation
+  attr_accessor :additional_donation_for_other
   attr_accessor :email_confirmation
   attr_accessor :add_to_email_list
   attr_accessor :do_not_create_tasks
@@ -794,7 +795,8 @@ class Order < ApplicationRecord
         self.special_offer_line_item.mark_redeemed unless self.special_offer_line_item.nil?
         self.save!
         self.remove_suppressed_service_items
-        save_additional_donation_order unless (self.additional_donation.blank? || self.additional_donation.to_i == 0)
+        save_additional_donation_order(self.additional_donation) unless (self.additional_donation.blank? || self.additional_donation.to_i == 0)
+        save_additional_donation_order(self.additional_donation_for_other) unless (self.additional_donation_for_other.blank? || self.additional_donation_for_other.to_i == 0)
       end
     end
     redirect_to
@@ -881,13 +883,13 @@ class Order < ApplicationRecord
     end
   end
 
-  def save_additional_donation_order
+  def save_additional_donation_order(donation_amount)
     donation = DonationOrder.new(:address => self.address, :payment_type => self.payment_type, :status => Order::NEW)
     donation.copy_payment_information(self)
     donation.campaign = self.performance.production.name unless self.performance.nil?
+    donation.theater = self.theater
     donation.save!
-
-    donation.donation_line_items.build(:amount => self.additional_donation)
+    donation.donation_line_items.build(:amount => donation_amount)
     donation.transition_to!(Order::PROCESSED)
 
   end
