@@ -48,13 +48,22 @@
               %td.currency
                 = number_to_currency(discount) unless @ticket_order.special_offer_line_item.special_offer.is_a? TicketClassSpecialOffer
 
+          - unless @ticket_order.theater.is_default? || @ticket_order.theater.is_copro? || @ticket_order.additional_donation_for_other.blank?
+            - donation2 = @ticket_order.additional_donation_for_other.to_f.to_money
+            - total += donation2
+            %tr
+              %td
+              %td Additional donation to #{@ticket_order.theater.name} (yay!)
+              %td.currency= number_to_currency(donation2)
+              
           - unless @ticket_order.additional_donation.blank?
             - donation = @ticket_order.additional_donation.to_f.to_money
             - total += donation
             %tr
               %td
-              %td Additional donation to Theater Wit (yay!)
+              %td Additional donation to #{@ticket_order.theater.is_copro? ? @ticket_order.theater.name : Theater.default_theater.name} (yay!)
               %td.currency= number_to_currency(donation)
+          
           -unless @ticket_order.service_line_items.empty?
             - slis = @ticket_order.service_line_items.select{|sli| !sli.suppress_for_pass_payments? || (sli.suppress_for_pass_payments? && !@ticket_order.payment_type.is_a?(PassPaymentType))}
             - keys = slis.map{|sli| sli.description}.uniq

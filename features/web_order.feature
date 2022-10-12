@@ -16,6 +16,24 @@ Feature: Web ordering
     Then I should see "$10.00"
     Then I should see "Your ticket reservation has been made"
 
+  Scenario: Create an order with additional donations
+    Given I go to new web order for production "Production One" and performance "TEST01"
+    And I enter my contact information
+    And I select "2" from "ticket_order_ticket_line_items_attributes_2_ticket_count"
+    And I enter a valid credit card as payment
+    And I enter "11.11" as an additional donation
+    And I enter "50.55" as a visiting company donation
+    And I press "Review Order"
+    And I should see "11.11"
+    And I should see "50.55"
+    And I should see "71.66"
+    And I press "Order Tickets"
+    Then I should see "$10.00"
+    Then I should see "Your ticket reservation has been made"
+     And I should see "61.66"
+     And a donation order for "50.55" exists
+     And a donation order for "11.11" exists
+
   Scenario: Create an order with a special offer
     Given I go to new web order for production "Production One" and performance "TEST01"
     And I enter my contact information

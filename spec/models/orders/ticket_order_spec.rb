@@ -16,6 +16,7 @@ RSpec.shared_examples "a paid ticket order" do |pay_method_type, seating_type|
       expect(o.total).to eq(0)
     end
   end
+
   it "should mark its holder has having attended the production when fulfilled" do
     
     o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, pay_method, seating)
@@ -197,6 +198,25 @@ RSpec.describe TicketOrder do
     expect(OutreachTask.where(method_symbol: :ticket_confirmation).count).to eq(start_count+1)
 
   end
+
+
+  it "can create up to two additional donation orders", :wip do
+    o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets)
+    expect(DonationOrder.all.count).to eq(0)
+    o.additional_donation = 50.00
+    o.additional_donation_for_other = 1.66
+    expect(o.total).to eq(12.00)
+    o.transition_to!(Order::PROCESSED)
+    donation_orders = DonationOrder.all.order(amount: :desc)
+    expect(donation_orders.count).to eq(2)
+    expect(donation_orders[0].total).to eq(50.00)
+    expect(donation_orders[1].total).to eq(1.66)
+    expect(donation_orders[0].campaign).not_to be_blank
+    expect(donation_orders[1].campaign).not_to be_blank
+    expect(donation_orders[1].theater).to eq(Theater.first)
+    expect(donation_orders[0].theater).to eq(Theater.first)
+  end
+
 
   context "when overselling" do
 

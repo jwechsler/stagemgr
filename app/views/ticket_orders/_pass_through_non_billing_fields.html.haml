@@ -1,5 +1,7 @@
 = order_form.input :status, :as=>:hidden, :input_html=>{:value=>order_form.object.status }
 = order_form.input :special_offer_code, :as=>:hidden, :input_html=>{:value=>order_form.object.special_offer_code }
 = order_form.input :additional_donation, :as=>:hidden, :input_html=>{:value=>order_form.object.additional_donation }
+= order_form.input :additional_donation_for_other, :as=>:hidden, :input_html=>{:value=>order_form.object.additional_donation_for_other }
+
 = order_form.input :add_to_email_list, :as=>:hidden, :input_html=>{:value=>order_form.object.add_to_email_list }
 = order_form.input :uuid, :as=>:hidden, :input_html=>{:value=>order_form.object.uuid}

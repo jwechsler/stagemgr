@@ -178,3 +178,4 @@ Given /^a ticket order for performance "(.*)" paid with cash exists$/ do |perf_c
   @ticket_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash, :performance=>perf)
 end
 
+

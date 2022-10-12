@@ -126,3 +126,14 @@ Given(/^I mark the order as held under "(.*?)"$/) do |hold_under_name|
   fill_in "ticket_order_hold_under", :with=> hold_under_name
 end
 
+
+Given('I enter {string} as an additional donation') do |string|
+  fill_in "ticket_order_additional_donation", with: string
+end
+
+
+Given('I enter {string} as a visiting company donation') do |string|
+  fill_in "ticket_order_additional_donation_for_other", with: string
+
+end
+  

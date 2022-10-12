@@ -76,6 +76,10 @@
     ServiceItemTemplate.where(name: service_item_template_list(self.default_addl_exchange_items))
   end
 
+  def self.default_theater
+    Theater.find_by(theater_class: Theater::DEFAULT)
+  end
+
   private
   def service_item_template_list(service_item_list)
     itm = service_item_list.nil? ? '' : service_item_list

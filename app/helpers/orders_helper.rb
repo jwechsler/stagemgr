@@ -51,7 +51,7 @@ module OrdersHelper
 
   public
   def common_params
-    [ :special_offer_code, :hold_under, :payment_type_id, :credit_card_type, :additional_donation,
+    [ :special_offer_code, :hold_under, :payment_type_id, :credit_card_type, :additional_donation, :additional_donation_for_other,
       :credit_card_number, :credit_card_expiration_month, :credit_card_expiration_year,
       :credit_card_verification_number, :credit_card_swipe, :credit_card_confirmation_code,
       :flex_pass_code, :member_code, :check_number, :add_to_email_list, :marketing_source, :notes, :status,
@@ -63,6 +63,7 @@ module OrdersHelper
   def set_payment_accessors_from_params(order, order_params)
     order.special_offer_code = order_params[:special_offer_code]
     order.additional_donation = order_params[:additional_donation]
+    order.additional_donation_for_other = order_params[:additional_donation_for_other]
     order.credit_card_number = order_params[:credit_card_number]
     order.credit_card_type = order_params[:credit_card_type]
     order.credit_card_expiration_year = order_params[:credit_card_expiration_year]
