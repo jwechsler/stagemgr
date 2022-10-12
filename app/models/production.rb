@@ -23,7 +23,7 @@ class Production < ApplicationRecord
   # :section:
 
   validates_inclusion_of :status, :in => PRODUCTION_STATUSES
-  validates_presence_of :name, :season, :production_code, :opening_at, :closing_at
+  validates_presence_of :name, :season, :production_code
   validates_uniqueness_of :production_code, :message=>"%{value} is already in use"
   validates_length_of :production_code, :in=>1..8
   validates_numericality_of :capacity

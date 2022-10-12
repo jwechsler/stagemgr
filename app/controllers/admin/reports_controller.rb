@@ -179,6 +179,7 @@ class Admin::ReportsController < Admin::ApplicationController
   def attended_dump
     starting_date = params[:starting_date].to_date
     ending_date = params[:ending_date].to_date
+
     Resque.enqueue(AttendedMailingListExport, starting_date, ending_date, current_user.id)
     flash[:notice] = 'Your export is queued for generation. You\'ll recieve notification when the process is complete.'
     redirect_to admin_reports_path
@@ -187,7 +188,8 @@ class Admin::ReportsController < Admin::ApplicationController
   def donation_dump
     starting_date = params[:starting_date].to_date
     ending_date = params[:ending_date].to_date
-    Resque.enqueue(DonorListExport, starting_date, ending_date, current_user.id)
+    theater_id = params[:theater_id].to_i
+    Resque.enqueue(DonorListExport, starting_date, ending_date, theater_id, current_user.id)
     flash[:notice] = 'Your export is queued for generation. You\'ll recieve notification when the process is complete.'
     redirect_to admin_reports_path
   end

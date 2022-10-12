@@ -93,12 +93,12 @@
   .grid-x.grid-padding-x
     .small-4.cell
       %span.report_title
-        Donor export by Donation Date
+        Donor export
       %span.help_text
         Download donors contact information by date given for import into TRGArts.
         - if can?(:view_email, Address)
           %br
-          %strong Warning: confidential email records included. DO NOT DISTRIBUTE.
+          %strong Warning: confidential email records included.
     .small-8.cell
       = form_tag(donation_dump_admin_reports_path, :method=>"post") do
         .grid-x.grid-padding-x
@@ -108,6 +108,9 @@
           .small-6.cell
             %label{:for=>:starting_date} Gave Before or on
             = text_field_tag( :ending_date, Date.today, :default=>Date.today, :class=>'date_picker')
+          .small-12.cell
+            %label{:for=>:theater_id} Theater 
+            = select_tag(:theater_id, options_from_collection_for_select(current_user.allowed_theaters.order(:name), :id, :name))
           .small-12.cell
             = submit_tag "Generate", :name=>'generate_csv', :class=>'tiny button'
 

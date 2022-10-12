@@ -45,6 +45,14 @@ class User < ApplicationRecord
     allowed = theaters.map{|t| t.id.to_i}
   end
 
+  def allowed_theaters
+    if self.is_theater_user? 
+      self.theaters
+    else
+      Theater.where(status: Theater::ACTIVE)
+    end
+  end
+  
   def set_defaults
     self.is_administrator = false if self.is_administrator.nil?
     self.is_box_office_user = false if self.is_box_office_user.nil?
