@@ -8,7 +8,6 @@ Feature: Box office ordering
     And I am logged in
     And the system accepts checks
 
-  @wip
   Scenario: Create a credit card order
     Given I visit the new admin ticket order page
       And I enter performance code "TEST01"
