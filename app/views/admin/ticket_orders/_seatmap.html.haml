@@ -1,6 +1,6 @@
 %figure#seatingmap
   %svg{:version=>"1.1", :xmlns=>"http://www.w3.org/2000/svg", 'xmlns:xlink'=>"http://www.w3.org/1999/xlink", viewBox: "0 0 #{ticket_order.performance.production.seat_map.original_width} #{ticket_order.performance.production.seat_map.original_height}", preserveAspectRatio: "xMinYMin meet"}
-    %image{width: "#{ticket_order.performance.production.seat_map.original_width}", height: "#{ticket_order.performance.production.seat_map.original_height}", 'xlink:href': "#{root_url}#{ticket_order.performance.production.seat_map.base_image_map.url}" }
+    %image{width: "#{ticket_order.performance.production.seat_map.original_width}", height: "#{ticket_order.performance.production.seat_map.original_height}", 'xlink:href': "#{root_url}#{ticket_order.performance.production.seat_map.decorate.base_image_map_url}" }
     - SeatAssignment.available_seat_assignments(ticket_order.performance, ticket_order).each do |sa|
       - state = assignment_keys(sa,ticket_order.uuid)
       - sa_key = "#{sa.id}, #{state}"

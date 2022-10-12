@@ -13,3 +13,8 @@ Given /^I enter "(.*?)" as a donation amount$/ do |amt|
   fill_in 'donation_order_donation_line_items_attributes_0_amount', :with=>amt
 end
 
+Then('a donation order for {string} exists') do |string|
+  count = DonationLineItem.where(amount: string.to_f).count
+  raise "A donation for #{string} can't be found" if count.eql?(0)
+end
+

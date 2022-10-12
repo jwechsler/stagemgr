@@ -888,10 +888,8 @@ class Order < ApplicationRecord
     donation.copy_payment_information(self)
     donation.campaign = self.performance.production.name unless self.performance.nil?
     donation.theater = self.theater
-    donation.save!
     donation.donation_line_items.build(:amount => donation_amount)
     donation.transition_to!(Order::PROCESSED)
-
   end
 end
 

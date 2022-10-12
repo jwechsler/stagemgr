@@ -11,7 +11,12 @@
       - elsif (@ticket_order.total > 0) && (@ticket_order.paid_with_currency?)
         made and your credit card has been charged
         = number_to_currency( @ticket_order.total)
-        for those tickets.  If you've made a donation, look for a separate email with our thanks.
+        for those tickets.  
+        - if (!@ticket_order.additional_donation.blank? || !@ticket_order.additional_donation_for_other.blank?)
+          %strong
+            And thank you for your donation of
+            = "$#{((@ticket_order.additional_donation.blank? ? 0.00 : @ticket_order.additional_donation.to_f) + (@ticket_order.additional_donation_for_other.blank? ? 0.00 : @ticket_order.additional_donation_for_other.to_f)).to_money}."
+          Look for a separate email with our thanks.
       - elsif @ticket_order.paid_with_flexpass?
         made and your FlexPass has
         = pluralize(@ticket_order.paid_with_flexpass.uses_remaining,'ticket')

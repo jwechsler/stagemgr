@@ -10,7 +10,7 @@ class SeatMapDecorator < ApplicationDecorator
   end
 
   def base_image_map_url(*dimensions)
-    make_image_url(dimensions)
+    make_image_url(object.base_image_map,dimensions)
   end
 
   def dt_actions
