@@ -12,6 +12,7 @@ function setup_admin_payment_form() {
   });
   switch ($('.payment_type_choice select option:selected').text()) {
     case 'Credit Card':
+    case '':
       $('#credit_card_payment_form').show();
       break;
     case 'Cash':
