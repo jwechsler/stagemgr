@@ -1,6 +1,6 @@
 class FileStore < ApplicationRecord
   belongs_to :user, optional: true, inverse_of: :file_stores
-  has_one_attached :data
+  has_one_attached :datafile
 
   FILE_WORKERS = (
     IMPORT, REPORT =
@@ -20,7 +20,7 @@ class FileStore < ApplicationRecord
   end
 
   def path
-    ActiveStorage::Blob.service.path_for(self.data.key)
+    ActiveStorage::Blob.service.path_for(self.datafile.key)
   end
 
   def file_name

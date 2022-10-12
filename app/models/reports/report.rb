@@ -21,7 +21,6 @@ class Report
     file_store.worker = FileStore::REPORT
     file_store.user_id = self.reporting_user_id
     file_store.notes = notes
-    file_store.save!
     self.save_report_as_csv(file_name, file_store)
   end
 
@@ -36,11 +35,12 @@ class Report
   end
 
   def write_file_data(file_path, filestore, data)
+    byebug
     f = File.new(file_path,'w')
     f.puts(data)
     f.close
     unless filestore.nil?
-      filestore.data.attach(io: File.open(file_path), filename: File.basename(file_path), content_type: "text/plain")
+      filestore.datafile.attach(io: File.open(file_path), filename: File.basename(file_path), content_type: "text/plain")
       filestore.worker = FileStore::REPORT
       filestore.save
       File.delete(file_path)
