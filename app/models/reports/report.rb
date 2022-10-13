@@ -35,7 +35,6 @@ class Report
   end
 
   def write_file_data(file_path, filestore, data)
-    byebug
     f = File.new(file_path,'w')
     f.puts(data)
     f.close

@@ -10,7 +10,7 @@ class FileStoreDecorator < ApplicationDecorator
   #     end
   #   end
 
-  def data
-    h.url_for(object.data)
+  def datafile_url
+    h.rails_blob_url(object.datafile)
   end
 end

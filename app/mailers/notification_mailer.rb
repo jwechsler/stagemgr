@@ -26,7 +26,10 @@ class NotificationMailer < ActionMailer::Base
   def file_generated(filestore)
     unless filestore.datafile.nil?
       @filestore = filestore
-      # attachments[filestore.file_name] = File.read(filestore.data.path)
+      attachments[filestore.file_name] = {
+        mime_type: filestore.datafile.content_type,
+        content: filestore.datafile.download
+      }
       mail(:to => filestore.user.email,
            :from => $EMAIL_ADDRESS['software_address'],
            :subject => "Your download is ready",

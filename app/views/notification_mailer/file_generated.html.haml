@@ -2,6 +2,5 @@
   You have a report ready for download from Stagemgr:
 %p
   %b= @filestore.file_name
-  = rails_blob_url(@filestore.datafile, disposition: "attachment")
   - unless @filestore.notes.blank?
     %i= @filestore.notes
