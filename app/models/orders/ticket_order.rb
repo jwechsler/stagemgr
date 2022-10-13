@@ -957,5 +957,4 @@ class TicketOrder < Order
     self.theater_id = self.associated_theater_id
   end
 
-
 end

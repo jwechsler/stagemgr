@@ -36,8 +36,7 @@ class OrdersDatatable < DatatableBase
 private
 
   def get_raw_records
-    use_conditions = current_user.ability.model_adapter(Order, :read).conditions.except('type')
-    Order.includes(:address, seats: :seat, :performance=>:production).where(use_conditions).references(:address, :performance=>:production, seats: :seat)
+    Order.allowed_for(current_user).includes(:address, seats: :seat, :performance=>:production).references(:address, :performance=>:production, seats: :seat)
   end
 
   def sort_records(records)

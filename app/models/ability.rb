@@ -18,8 +18,8 @@ class Ability
     return if user.nil?
     # theater-specific staff
 
-    can [:read, :update], Order, theater_id: user.theater_ids if user.is_theater_user?
-
+    can :read, [TicketOrder, DonationOrder]
+    
     can :read, Production, ["theater_id in (?)", user.theater_ids] do |production|
         user.theater_ids.include?(production.id)
     end
@@ -29,9 +29,9 @@ class Ability
         user.theater_ids.include?(flex_pass_offer.theater_id)
     end
 
-    can [:read, :create, :update, :update_notes, :confirm, :quickview, :new_for_production], TicketOrder
+    can [:create, :update, :update_notes, :confirm, :quickview, :new_for_production], TicketOrder
     can :seat_unlimited, SeatAssignment
-    can [:read, :create, :hold_existing], TicketOrder
+    can [:create, :hold_existing], TicketOrder
     can :prehold, TicketOrder do |order|
         order.performance.production.season_seating?
     end
