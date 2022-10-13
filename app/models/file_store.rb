@@ -24,7 +24,7 @@ class FileStore < ApplicationRecord
   end
 
   def file_name
-    File.basename(self.path)
+    self.datafile.filename.to_s
   end
-  
+
 end
