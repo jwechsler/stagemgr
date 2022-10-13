@@ -1,5 +1,5 @@
 class FileStore < ApplicationRecord
-  belongs_to :user, optional: true, inverse_of: :file_stores
+  belongs_to :user, inverse_of: :file_stores
   has_one_attached :datafile
 
   FILE_WORKERS = (
@@ -26,4 +26,5 @@ class FileStore < ApplicationRecord
   def file_name
     File.basename(self.path)
   end
+  
 end
