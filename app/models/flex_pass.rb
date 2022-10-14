@@ -2,17 +2,18 @@ class FlexPass < ApplicationRecord
   belongs_to :address, inverse_of: :flex_passes
   belongs_to :flex_pass_offer, inverse_of: :flex_passes
   belongs_to :flex_pass_line_item, inverse_of: :flex_pass
-  belongs_to :order
+  
   has_many :flex_pass_payments, inverse_of: :flex_pass
   before_create :set_expiration_date
   after_create :queue_expiration
   before_destroy :has_no_placed_orders?
-
-  validates_presence_of :flex_pass_offer, :flex_pass_line_item, :order, :code
+  
+  validates_presence_of :address, :expiration_date, :flex_pass_offer, :flex_pass_line_item, :order, :code
 
   before_validation :create_code, :on => :create
 
   delegate :number_of_tickets, :to => :flex_pass_offer
+  delegate :order, to: :flex_pass_line_item
 
   # Generates a random string from a set of easily readable characters
   def create_code(size = 6)
@@ -33,6 +34,10 @@ class FlexPass < ApplicationRecord
 
   def set_expiration_date
     self.expiration_date = Time.now + flex_pass_offer.months_till_expiration.months
+  end
+
+  def expired?
+    self.expiration_date < Date.today
   end
 
   def used_on_orders
@@ -86,4 +91,5 @@ class FlexPass < ApplicationRecord
   def has_no_outstanding_orders?
     FlexPassPayment.joins(:order).where(flex_pass_id: self.id).count > 0
   end
+
 end

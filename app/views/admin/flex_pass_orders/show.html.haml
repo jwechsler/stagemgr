@@ -9,7 +9,7 @@
   .small-12.medium-6.cell
     %fieldset.fieldset
       %legend Flex Pass
-      = render :partial => '/admin/flex_pass_line_items/table', :locals=>{:order=>@flex_pass_order}
+      = render :partial => '/admin/flex_pass_line_items/flex_pass_line_item', :locals=>{flex_pass: @flex_pass_order.flex_pass_line_item.flex_pass}
 .grid-x.grid-padding-x
   .small-12.cell
     = render '/admin/orders/payments', :order=>@flex_pass_order

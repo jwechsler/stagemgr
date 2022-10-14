@@ -4,8 +4,11 @@
     - unless f.object.address_tags.empty?
       = f.simple_fields_for :address_tags do |tag|
         %div.grid-x
-          %div.small-6.cell= tag.label :tag_label, 'Tag'
-          %div.small-6.cell= tag.label :theater, 'Visibility'
+          %div.small-3.cell= tag.label :tag_label, 'Tag'
+          %div.small-3.cell= tag.label :theater, 'Visibility'
+          %div.small-4.cell= tag.label :tag_value, 'Value'
+          %div.small-2.cell
+            &nbsp;
         #address-tags
           = render 'address_tag_fields', :f=>tag
     .small-12.cell

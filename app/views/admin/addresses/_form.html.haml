@@ -1,8 +1,8 @@
 = simple_form_for [:admin, address] do |f|
-  %div.grid-x
-    %div.small-12.medium-6.cell
-      %div.grid-x
-        %div.small-12.cell
+  .grid-x.grid-padding-x
+    .small-12.medium-6.cell
+      .grid-x
+        .small-12.cell
           = f.input :full_name
           %fieldset.fieldset
             %legend Address
@@ -12,16 +12,13 @@
               %div.small-6.cell= f.input :city, :required=>false
               %div.small-3.cell= f.input :state, :required=>false
               %div.small-3.cell= f.input :zipcode, :label=>"Zip Code", :required=>false
-      %div.grid-x
-        %div.small-6.cell
+        .small-6.cell
           = f.input :vip, :label=>"VIP Customer"
-        %div.small-6.cell
+        .small-6.cell
           = f.input :placeholder, :label=>"Not a ticket buyer"
-    %div.grid-x
-      %div.small-12.medium-6.cell
-        = f.input :email
-        = f.input :phone
-        = render :partial=>'/admin/addresses/tags', :locals=>{:f=>f}
-  %div.grid-x
-    %div.small-12.cell
-      = f.button :submit, :class=>"button"
+    .small-12.medium-6.cell
+      = f.input :email
+      = f.input :phone
+      = render :partial=>'/admin/addresses/tags', :locals=>{:f=>f}
+    .small-12.cell
+      = f.button :submit, 'Save Customer', :class=>"button"

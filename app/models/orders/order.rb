@@ -818,7 +818,7 @@ class Order < ApplicationRecord
   end
 
   def self.allowed_for(user)
-    result = Order.accessible_by(user.ability)
+    result = Order.all
     result = result.where("orders.theater_id in (?)", user.theater_ids) if user.is_theater_user?
     result
   end

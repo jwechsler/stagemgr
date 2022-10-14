@@ -21,12 +21,6 @@
     - unless address.phone.blank?
       = address.phone
       %br
-    - memberships = Membership.where(address_id:address.id, status:RecurringProfile::ACTIVE)
-    - unless memberships.count == 0
-      
-      %i Member ID:
-      = memberships.map {|m| m.member_code }.join(',')
-      %br
     - if address.vip? || address.placeholder?
       - if address.vip?
         %span.label.info VIP
