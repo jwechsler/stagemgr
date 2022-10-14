@@ -1,0 +1,281 @@
+
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <link rel="stylesheet" href="#{Rails.root}/assets/css/app.css" />
+  <link rel="styelsheet" href="/tickets/assets/stylesheets/frontend.css" />
+  <link rel="icon" type="image/x-icon" href="/assets/img/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/img/favicon-16x16.png">
+  <link rel="manifest" href="/assets/img/site.webmanifest">
+  
+  <script src="https://kit.fontawesome.com/d3cae00bae.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
+  <!-- Add the slick-theme.css if you want default styling -->
+  <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
+  <title>Theater Wit: Box Office</title>
+  <%= stylesheet_link_tag "frontend" %>
+  
+</head>
+<body>
+  <div id="page-container">
+    <div id="content-wrap">
+      
+      <div class="grid-container fixed">
+        
+        <div class="grid-x">
+          <div class="cell">
+            <div class="title-bar" data-responsive-toggle="main-menu" data-hide-for="medium">
+              <button class="menu-icon" type="button" data-toggle="main-menu"></button>
+              <div class="title-bar-title">Menu</div>
+            </div>
+            
+            <div class="top-bar" id="main-menu">
+            
+              <div class="top-bar-left" >
+                <ul class="menu dropdown medium-horizontal" data-dropdown-menu>
+                    
+                  <li class="has-submenu" >
+                    <a href="#" >The Wit</a>
+                    <ul class="submenu menu">
+                      <li>
+                        <a href="#">About Us</a>
+                        <ul class="nested vertical menu">
+                          <li>
+                            <a href="/about/index.html" rel="self">Company Statement</a>
+                          </li>
+                          <li>
+                            <a href="/about/antiracism.html" rel="self">Anti-racism Statement</a>
+                          </li>
+                          <li>
+                            <a href="/about/directory.html" rel="self">Staff Directory</a>
+                          </li>
+                          <li>
+                            <a href="/about/artistic.html" rel="self">Artistic Statement</a>
+                          </li>
+                          <li>
+                            <a href="/plays/2021/index.html" rel="self">Company History</a>
+                          </li>
+                          
+                        </ul>
+                      </li>
+                      <!-- li>
+                        <a href="http://theaterwit.tumblr.com" rel="self">Blog</a>
+                      </li -->
+                      <li>
+                        <a href="/about/audience.html" rel="self">Audience Design</a>
+                      </li>
+                      <li>
+                        <a href="#">Space</a>
+                        <ul class="nested vertical menu">
+                          <li>
+                            <a href="/space">Renting Space</a>
+                          </li>
+                          <li>
+                            <a href="https://www.surveymonkey.com/r/spaceassist">Space Assistance Grants 2021/22</a>
+                          </li>
+                          <li>
+                            <a href="/about/community.html">Community Organizer Hosting</a>
+                          </li>
+                        </ul>
+                      </li>
+                      <li>
+                        <a href="/jobs">Working Here</a>
+                      </li>
+                      <li>
+                        <a href="/about/covid.html" rel="self">Health and Safety</a>
+                      </li>
+                    </ul>
+                  </li>
+                  
+                  <li class="has-submenu">
+                    <a href="#">Box Office</a>
+                    <ul class="menu vertical">
+                      <li>
+                        <a href="/tickets/productions/box_office" rel="self">Now Playing</a>
+                      </li>
+                      <li>
+                        <a href="/boxoffice/membership/index.html" rel="self">Membership</a>
+                      </li><li>
+                        <a href="/boxoffice/flexpass/index.html" rel="self">FlexPass</a>
+                      </li><li>
+                        <!-- a href="/tickets/productions/box_office#coming_soon" rel="self">Coming Up</a> -->
+                        <a href="/tickets/productions/box_office/#coming_soon">Coming Up</a>
+                      </li>
+                    </ul>
+                  </li>
+                  <li class="has-submenu">
+                    <a href="#" rel="self">Your Visit</a>
+                    <ul class="menu vertical">
+                      <li>
+                        <a href="/visit/location/index.html" rel="self">Location and Parking</a>
+                      </li><li>
+                        <a href="/visit/dining/index.html" rel="self">Food and Drink</a>
+                      </li><li>
+                        <a href="/visit/policies/index.html" rel="self">Reservation Policies</a>
+                      </li>
+                      <li>
+                        <a href="/about/covid.html" rel="self">Health and Safety Guidelines</a>
+                      </li>
+                    </ul>
+                  </li>
+                  <li class="show-for-small-only">
+                    <a href="/donate">Donate</a>
+                  </li>
+                </ul>
+              </div>
+              <div class="top-bar-right hide-for-small-only align-right">
+            
+                <ul class="menu icons align-right">
+                  <li>
+                    <a href="/mailing/" id="mailing-list-button" class="button">Newsletter</a>
+                  </li>
+                  <li>
+                    <a href="/donate/" class="button success">Donate</a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <div class="cell show-for-small-only">
+              <div class="logo">
+                  <p class="centered"><a href="/"><img src="/assets/img/logo_side_tag.png" ></a></p>
+                </div>
+            </div>
+            <div class="cell small-12 medium-12">
+              <a href="#" class="button success expanded" data-toggle="health-dropdown">
+                <span style="color: black">Vaccination required. Click to read about Health and Safety Guidelines for your visit</span>
+              </a>
+              <div class="reveal" id="health-dropdown" data-reveal data-overlay="false">
+                <div class="callout" style="background-color: none;">
+                    <h4>Protecting audiences and actors</h4>
+                    <p>
+                        We are taking the following steps to support safe attendance for artists, staff and audience during your visit.
+                    </p>
+                    <ul>
+                        <li><b>Everyone (including audience members) at Theater Wit is required to be vaccincated to enter the building.</b>
+                            <ul>
+                                <li>To comply with union health and safety guidelienes, each audience member must show proof of vaccination at the door for admittance.</li>
+                                <li>Please present your <strong>vaccination card</strong> (electronic photos and copies are acceptable). Only fully vaccinated members of the public may be admitted. Negative PCR and rapid test results are not valid for admittance.</li>
+                                <li>Patrons with medical or religious exemptions may be admitted but must <a href="mailto:boxoffice@theaterwit.org">contact the box office</a> <i>a minimum of 48 hours before the performance</i> for additional review and guidance. Masks are required for medical and religious exemptions.</li>
+                                <li>If you forget proof of vaccination, we will reschedule your tickets at no charge.</li>
+                            </ul>
+                        </li>
+                        <li><b>Free Exchanges due to illness</b>
+                            <ul>
+                                <li>
+                                    If you are feeling unwell, please do not attend :)
+                                </li>
+                                <li>
+                                    Contact our box office on the day of performance and we will reschedule your ticket at no charge.
+                                </li>
+                            </ul>
+                        </li>
+                        <li>Please note that masking is required at <strong>some performances</strong> for patrons with health concerns. Please check your ticket confirmation to verify policy for your performance.</li>
+                        <li>Our <strong>upgraded HVAC systems</strong> increase the number of air exchanges to remove aerosolized droplets and provide updated filtering to meet CDC and city standards.</li>
+                        <li>On behalf of the producers, staff and performers, we issue a heartfelt <strong>thank you</strong> to our audiences who make these generous accomodations for the health of all.</li>
+                    </ul>
+                </div>
+                <button class="close-button" data-close aria-label="Close modal" type="button">
+                <span aria-hidden="true">&times;</span>
+              </button>
+              </div>
+            </div>          </div>
+          <div class="cell">
+            
+            <div class="grid-padding-x paper">
+              <%- unless flash.empty? %>
+                  <%= render :partial=>'/flash_notice' %>
+              <%- end %>
+            
+              <div class="small-12 cell">
+                <%= yield %>
+              </div>
+              
+            </div>
+            
+          </div>
+          
+        </div>
+      </div>
+      
+      <footer id="footer" class="copyright text-center contrast">
+          <p class="text-center">Theater Wit&nbsp;|&nbsp;1229 W Belmont, Chicago IL 60657&nbsp;|&nbsp;773-975-8150&nbsp;|&nbsp;<!-- Facebook Badge START --><a href="http://www.facebook.com/theaterwit" title="Theater Wit" target="_blank" >Facebook</a><!-- Facebook Badge END -->&nbsp;|&nbsp; <a href="#" id="rw_email_contact">Email Us!</a><script type="text/javascript">var _rwObsfuscatedHref0 = "mai";var _rwObsfuscatedHref1 = "lto";var _rwObsfuscatedHref2 = ":in";var _rwObsfuscatedHref3 = "fo@";var _rwObsfuscatedHref4 = "the";var _rwObsfuscatedHref5 = "ate";var _rwObsfuscatedHref6 = "rwi";var _rwObsfuscatedHref7 = "t.o";var _rwObsfuscatedHref8 = "rg";var _rwObsfuscatedHref = _rwObsfuscatedHref0+_rwObsfuscatedHref1+_rwObsfuscatedHref2+_rwObsfuscatedHref3+_rwObsfuscatedHref4+_rwObsfuscatedHref5+_rwObsfuscatedHref6+_rwObsfuscatedHref7+_rwObsfuscatedHref8; document.getElementById('rw_email_contact').href = _rwObsfuscatedHref;</script><br/>
+              Theater Wit is a 501(c)(3) charitable organization&nbsp;|&nbsp;<a href="/about/privacy.html">Privacy Policy</a>
+          </p>
+      </footer>    </div>
+  </div>
+  
+  <script type="text/javascript" src="/assets/js/app.js"></script>
+  <script type="text/javascript" src="//cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
+  <script>
+  
+  $('.slick-autoplay-h').slick({
+      arrows: false,
+      slidesToShow: 1,
+      slidesToScroll: 1,
+      autoplay: true,
+      autoplaySpeed: 4000,
+      pauseOnHover: true,
+      adaptiveHeight: false,
+      });
+    
+    $('.2wide-slideshow').slick({
+      lazyload: 'ondemand',
+      arrows: false,
+      dots: false,
+      infinite: true,
+      speed: 500,
+      autoplay: true,
+      slidesToShow: 2,
+      slidesToScroll: 1,
+      responsive: [
+      {
+        breakpoint: 1024,
+        settings: {
+        slidesToShow: 3,
+        slidesToScroll: 1,
+        infinite: true,
+        }
+      },
+      {
+        breakpoint: 600,
+        settings: {
+        slidesToShow: 2,
+        slidesToScroll: 1
+        }
+      },
+      {
+        breakpoint: 480,
+        settings: {
+        slidesToShow: 1,
+        slidesToScroll: 1
+        }
+      }
+      ]
+    });
+    
+    $('.1wide-slideshow').slick({
+      lazyload: 'ondemand',
+      arrows: false,
+      dots: false,
+      infinite: true,
+      speed: 500,
+      autoplay: true,
+      slidesToShow: 1,
+      slidesToScroll: 1,
+    });
+    
+    $('.basic-slideshow').slick();
+  </script>
+  
+  HELLO
+  <%= javascript_include_tag :seat_assignment %>
+   
+</body>
+</html>
