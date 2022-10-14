@@ -16,7 +16,6 @@ FactoryBot.define do
     association :flex_pass_line_item, :factory=>:flex_pass_line_item
 
     after(:build) { |flex_pass|
-      flex_pass.order = flex_pass.flex_pass_line_item.order
       flex_pass.address = flex_pass.order.address
     }
   end

@@ -23,7 +23,7 @@ class FlexPassLineItem < LineItem
 
   private
   def ensure_flex_pass
-    self.build_flex_pass(:flex_pass_offer=>self.flex_pass_offer,:order=>self.order,:address=>self.order.address,expiration_date: Date.today + self.flex_pass_offer.months_till_expiration.months) if self.flex_pass.nil?
+    self.build_flex_pass(:flex_pass_offer=>self.flex_pass_offer,:address=>self.order.address,expiration_date: Date.today + self.flex_pass_offer.months_till_expiration.months) if self.flex_pass.nil?
   end
 
 end
