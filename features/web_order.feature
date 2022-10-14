@@ -5,7 +5,7 @@ Feature: Web ordering
   Background:
     Given a sample theater exists
     And a special offer with code "1DollarOff" for $1 off exists
-  @wip
+  
   Scenario: Create an order
     Given I go to new web order for production "Production One" and performance "TEST01"
     And I enter my contact information
