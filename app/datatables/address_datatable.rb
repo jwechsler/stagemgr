@@ -25,9 +25,7 @@ class AddressDatatable < DatatableBase
   end
 
   def get_raw_records
-    Address.all
-
-    # User.all
+    Address.accessible_by(current_user.ability)
   end
 
   def sort_records(records)
