@@ -12,7 +12,7 @@ class ApplicationDecorator < Draper::Decorator
 
   protected
   def make_image_url(img, dimensions)
-    if dimensions.nil?
+    if dimensions.nil? || dimensions.empty?
       h.url_for(img)
     else
       width, height = dimensions[0] if dimensions[0].class.eql?(Array)
