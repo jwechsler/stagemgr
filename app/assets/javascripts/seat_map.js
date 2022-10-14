@@ -42,11 +42,11 @@ function update_seating_attributes(e_reference, status) {
   $(e_reference).removeClass(old_status)
   $(e_reference).data('status', status)
   $(e_reference).addClass(status)
-  console.log('Updating ' + $( e_reference ).data('assignment-id') + ' from ' + old_status + ' to ' + status)
+  // console.log('Updating ' + $( e_reference ).data('assignment-id') + ' from ' + old_status + ' to ' + status)
 }
 
 function update_mapster_attributes(e_reference, data_key, status) {
-  console.log('setting key to ' + data_key)
+  console.log('why is mapster still running? (update_mapster_attributes)')
   if (data_key != '') {
     $( e_reference ).attr('data-key', data_key)
     $( e_reference ).data('key', data_key)
@@ -66,6 +66,7 @@ function update_selected() {
 }
 
 function mapster_options() {
+  console.log('why is mapster still running? (mapster_options)')
   return {
     mapKey: 'data-key',
     fillColor: '00ff00',
