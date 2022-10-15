@@ -89,7 +89,7 @@ class Performance < ApplicationRecord
 
   def happening_soon?
     at = self.performance_at
-    (Time.now < at) && (Time.now + 2.hours > at)
+    (Time.now < at + self.production.running_time.minutes) && (Time.now + $SERVER_CONFIG['restrict_sales_due_to_time_at_minutes_before'].minutes > at)
   end
 
   def performance_at
@@ -106,7 +106,7 @@ class Performance < ApplicationRecord
 
 
   def near_capacity?
-    self.number_of_seats_left <= 9
+    self.number_of_seats_left <= $SERVER_CONFIG['restrict_sales_due_to_capacity_at']
   end
 
   def populate_ticket_class_allocations
