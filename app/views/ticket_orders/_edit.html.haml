@@ -1,16 +1,20 @@
 .grid-x.grid-padding-x
   .small-12.cell
-    -if order.performance.nil? || order.performance.withhold_from_public? || order.performance.performance_date < Date.today
+    - if order.performance.nil? || order.performance.withhold_from_public? || order.performance.performance_date < Date.today
       %p This performance is currently not available. Sorry!
-    -else
-      - if !order.updated_at.nil? && order.updated_at < Time.now - 8.minutes
-        %p
-          This order has been inactive for more than 8 minutes.  For privacy protection, you'll have to
-          = link_to "restart",new_production_performance_order_path(order.performance.production.id,order.performance.id)
-          it.  Sorry!
-      - else
-        %a{:name=>"top",:style=>"text-decoration:none"}
-          %h3= raw order.performance.production.name + ' on ' + order.performance.performance_date.to_formatted_s(:long_ordinal) + ' at ' + order.performance.performance_time.to_formatted_s(:hour_min)
+    - elsif !order.updated_at.nil? && order.updated_at < Time.now - 8.minutes
+      %p
+        This order has been inactive for more than 8 minutes.  For privacy protection, you'll have to
+        = link_to "restart",new_production_performance_order_path(order.performance.production.id,order.performance.id)
+        it.  Sorry!
+    - elsif order.performance.happening_soon?
+      %p
+        Sales for this performance are currently being handled 
+        %i in person only
+        at our theater, located at 1229 W Belmont.
+    - else
+      %a{:name=>"top",:style=>"text-decoration:none"}
+        %h3= raw order.performance.production.name + ' on ' + order.performance.performance_date.to_formatted_s(:long_ordinal) + ' at ' + order.performance.performance_time.to_formatted_s(:hour_min)
 
       - order.performance.special_features.each do |feature|
         .special_feature= display_markdown(feature.description)
