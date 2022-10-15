@@ -7,19 +7,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   
-  <link rel="stylesheet" href="#{Rails.root}/assets/css/app.css" />
-  <link rel="styelsheet" href="/tickets/assets/stylesheets/frontend.css" />
-  <link rel="icon" type="image/x-icon" href="/assets/img/favicon.ico">
-  <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/assets/img/favicon-16x16.png">
-  <link rel="manifest" href="/assets/img/site.webmanifest">
-  
   <script src="https://kit.fontawesome.com/d3cae00bae.js" crossorigin="anonymous"></script>
-  <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
-  <!-- Add the slick-theme.css if you want default styling -->
-  <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
-  <title>Theater Wit: Box Office</title>
+  <title>Test Theater: Box Office</title>
   <%= stylesheet_link_tag "frontend" %>
   
 </head>
@@ -142,11 +131,6 @@
                 </ul>
               </div>
             </div>
-            <div class="cell show-for-small-only">
-              <div class="logo">
-                  <p class="centered"><a href="/"><img src="/assets/img/logo_side_tag.png" ></a></p>
-                </div>
-            </div>
             <div class="cell small-12 medium-12">
               <a href="#" class="button success expanded" data-toggle="health-dropdown">
                 <span style="color: black">Vaccination required. Click to read about Health and Safety Guidelines for your visit</span>
@@ -210,72 +194,6 @@
           </p>
       </footer>    </div>
   </div>
-  
-  <script type="text/javascript" src="/assets/js/app.js"></script>
-  <script type="text/javascript" src="//cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
-  <script>
-  
-  $('.slick-autoplay-h').slick({
-      arrows: false,
-      slidesToShow: 1,
-      slidesToScroll: 1,
-      autoplay: true,
-      autoplaySpeed: 4000,
-      pauseOnHover: true,
-      adaptiveHeight: false,
-      });
     
-    $('.2wide-slideshow').slick({
-      lazyload: 'ondemand',
-      arrows: false,
-      dots: false,
-      infinite: true,
-      speed: 500,
-      autoplay: true,
-      slidesToShow: 2,
-      slidesToScroll: 1,
-      responsive: [
-      {
-        breakpoint: 1024,
-        settings: {
-        slidesToShow: 3,
-        slidesToScroll: 1,
-        infinite: true,
-        }
-      },
-      {
-        breakpoint: 600,
-        settings: {
-        slidesToShow: 2,
-        slidesToScroll: 1
-        }
-      },
-      {
-        breakpoint: 480,
-        settings: {
-        slidesToShow: 1,
-        slidesToScroll: 1
-        }
-      }
-      ]
-    });
-    
-    $('.1wide-slideshow').slick({
-      lazyload: 'ondemand',
-      arrows: false,
-      dots: false,
-      infinite: true,
-      speed: 500,
-      autoplay: true,
-      slidesToShow: 1,
-      slidesToScroll: 1,
-    });
-    
-    $('.basic-slideshow').slick();
-  </script>
-  
-  HELLO
-  <%= javascript_include_tag :seat_assignment %>
-   
 </body>
 </html>
