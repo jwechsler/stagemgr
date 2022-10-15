@@ -187,7 +187,7 @@ class Admin::TicketOrdersController < Admin::OrdersController
           tli.ticket_class = use_class.first.ticket_class unless use_class.empty?
         }
       }
-      order.ticket_line_items.select{|tli| tli.ticket_class.nil?}.each do 
+      order.ticket_line_items.select{|tli| tli.ticket_class.nil?}.each do |tli|
         order.ticket_line_items.delete(tli)
         Rails.logger.debug("**** Deleting #{tli.id} for lack of ticket class")
       end

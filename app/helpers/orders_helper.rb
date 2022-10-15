@@ -1,6 +1,6 @@
 module OrdersHelper
 
-  SWIPE_REGEX =/^(%B)([0-9]{16})[\^]([a-zA-Z ]*)(\/)([a-zA-Z ]*)\^([0-9]{2})([0-9]{2})(.*)\?$/
+  SWIPE_REGEX =/^/d?(%B)([0-9]{16})[\^]([a-zA-Z ]*)(\/)([a-zA-Z ]*)\^([0-9]{2})([0-9]{2})(.*)\?$/
 
 
   def convert_button_label_to_state(button_label)

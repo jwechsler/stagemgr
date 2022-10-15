@@ -105,4 +105,7 @@ Rails.application.configure do
   $APP_DISPLAY_NAME = $SERVER_CONFIG['app_name'] || 'StageMgr'
   Rails.application.routes.default_url_options[:host] = $SERVER_CONFIG['host']
 
+  # Allow binding from ngrok.io for remote testing
+  config.hosts << /.*\.ngrok\.io/
+
 end
