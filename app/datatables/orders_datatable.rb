@@ -12,6 +12,7 @@ class OrdersDatatable < DatatableBase
       visits: { searchable: false, orderable: false},
       total: { searchable: false, orderable: false},
       description: { searchable: false, orderable: false},
+      order_id: {searchable: false, orderable: false},
     }
   end
 
@@ -26,6 +27,7 @@ class OrdersDatatable < DatatableBase
         visits: order.address.nil? ? "n/a" : order.address.decorate.orders_processed,
         total: order.decorate.total_paid,
         description: order.decorate.description,
+        order_id: order.id,
         DT_RowID: order.id
      }
     end

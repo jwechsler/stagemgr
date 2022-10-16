@@ -49,7 +49,7 @@
                 {
                   text: 'Fulfill Selected',
                   action: function(e, dt, node, config) {
-                    var ids = $.map(dt.rows({selected:true}).data(), function(r) { return r.id })
+                    var ids = $.map(dt.rows({selected:true}).data(), function(r) { return r.order_id })
                     $.ajax({
                       url: '#{fulfill_selected_admin_orders_path}',
                       dataType: 'json',
@@ -82,6 +82,7 @@
           {data: 'visits'},
           {data: 'total', orderable: false},
           {data: 'description', orderable: false},
+          {data: 'order_id', visible: false},
         ],
       });
 

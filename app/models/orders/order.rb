@@ -754,6 +754,10 @@ class Order < ApplicationRecord
     redirect_to
   end
 
+  def transition_fulfilled_to_fulfilled!(redirect_to = nil)
+    redirect_to
+  end
+
   def transition_new_to_processed!(redirect_to = nil)
       self.transition_new_to_processing!(redirect_to)
       self.transition_processing_to_processed!(redirect_to)

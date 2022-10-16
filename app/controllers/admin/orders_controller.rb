@@ -43,11 +43,11 @@ class Admin::OrdersController < Admin::ApplicationController
     logger.debug("Fulfill #{ids.to_s}")
     statuses = {}
     orders.each do |order|
-      if order.status == 'Processed'
+      if [Order::PROCESSED, Order::FULFILLED].include?(order.status)
         order.transition_to!(Order::FULFILLED)
         statuses[order.id]={:success=>true}
       else
-        statuses[order.id]={:success=>false, :message=>"Only 'Processed' orders can be fulfilled"}
+        statuses[order.id]={success: false}
       end
     end
     render :json=>statuses.to_json

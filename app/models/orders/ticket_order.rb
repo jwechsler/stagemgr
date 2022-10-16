@@ -798,6 +798,11 @@ class TicketOrder < Order
     super
   end
 
+  def transition_fulfilled_to_fulfilled!(redirect_to = nil)
+    self.transition_processed_to_fulfilled!(redirect_to)
+  end
+
+
   def transition_fulfilled_to_unclaimed!(redirect_to = nil)
     self.transition_processed_to_unclaimed!(redirect_to = nil)
   end
