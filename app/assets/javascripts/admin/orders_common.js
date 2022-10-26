@@ -1,8 +1,8 @@
 //= require utility
 //= require orders/payments
 //= require admin/address_utility
-/* //= require admin/ticket_order_utility */
 //= require admin/ticket_orders/CardReader
+//= require credit_card_track_parser
 //= require_self
 
 function setup_admin_payment_form() {
@@ -137,14 +137,14 @@ jQuery(document).ready(function($) {
 
 });
 
-
 jQuery(function () {
     // Create a new reader instance
     var reader = new CardReader();
-
+    
     // Feed it an object to observe (this could also be a textbox)
     reader.observe($(".credit_card_swipe"));
 
+    log.console('monitoring for card swipe')
     // Errback in case of a reading error
     reader.cardError(function () {
         alert("A read error occurred");
@@ -152,7 +152,9 @@ jQuery(function () {
 
     // Callback in case of a successful reading operation
     reader.cardRead(function (value) {
-        $('.credit_card_swipe').val(value);
-        $('form').submit();
+        var data = CreditCardTrackData(value)
+        console.log(data);
+        // $('.credit_card_swipe').val(value);
+        // $('form').submit();
     });
 });
