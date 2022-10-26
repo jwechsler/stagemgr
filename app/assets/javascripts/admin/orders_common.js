@@ -144,7 +144,7 @@ jQuery(function () {
     // Feed it an object to observe (this could also be a textbox)
     reader.observe($(".credit_card_swipe"));
 
-    log.console('monitoring for card swipe')
+    console.log('monitoring for card swipe')
     // Errback in case of a reading error
     reader.cardError(function () {
         alert("A read error occurred");
