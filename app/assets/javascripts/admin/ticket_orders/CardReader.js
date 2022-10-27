@@ -11,11 +11,11 @@ var CardReader = function (error_start, track_start, track_end, timeout) {
 	this.track_start = track_start || "%";
 	this.track_end = track_end || "_";
 	this.timeout = timeout || 100;
-
+	
 	this.error_start = this.error_start.charCodeAt(0);
 	this.track_start = this.track_start.charCodeAt(0);
 	this.track_end = this.track_end.charCodeAt(0);
-
+	
 	this.started = false;
 	this.finished = false;
 	this.isError = false;
@@ -37,7 +37,7 @@ CardReader.prototype = {
 				}
 			}
 		}
-
+	
 		if (this.isDispatching) {
 			if (isError) {
 				console.log("Immediate error!");
@@ -46,14 +46,14 @@ CardReader.prototype = {
 				clearTimeout(this.isDispatching);
 			}
 		}
-
-		reader = this;
-
+	
+		var reader = this;
+	
 		this.isDispatching = setTimeout(function () {
 			console.log("Error timeout cleared");
 			reader.isDispatching = false;
 		}, 200);
-
+	
 		if (isError) {
 			for (var cb in this.errbacks) {
 				this.errbacks[cb](this.input);
@@ -64,17 +64,17 @@ CardReader.prototype = {
 			}
 		}
 	},
-
+	
 	readObserver: function (e) {
 		var ob = this;
-
+		
 		if (!this.started && (e.which === this.track_start || e.which === this.error_start)) {
 			e.stopImmediatePropagation();
 			e.preventDefault();
-
+		
 			this.started = true;
 			this.isError = e.which === this.error_start;
-
+		
 			this.timer = setTimeout(function () {
 				ob.started = false;
 				ob.finished = false;
@@ -84,9 +84,9 @@ CardReader.prototype = {
 		} else if (this.started && e.which === this.track_end) {
 			e.stopImmediatePropagation();
 			e.preventDefault();
-
+		
 			this.finished = true;
-
+		
 			clearTimeout(this.timer);
 			this.timer = setTimeout(function () {
 				ob.started = false;
@@ -97,22 +97,22 @@ CardReader.prototype = {
 		} else if (this.started && this.finished && e.which === 13) {
 			e.stopImmediatePropagation();
 			e.preventDefault();
-
+		
 			this.dispatch(this.input, this.isError);
 
 			this.started = false;
 			this.finished = false;
 			this.isError = false;
 			this.input = "";
-
+		
 			clearTimeout(this.timer);
-
+		
 		} else if (this.started) {
 			e.stopImmediatePropagation();
 			e.preventDefault();
-
+		
 			this.input += String.fromCharCode(e.which);
-
+		
 			clearTimeout(this.timer);
 			this.timer = setTimeout(function () {
 				ob.started = false;
@@ -122,24 +122,24 @@ CardReader.prototype = {
 			}, this.timeout);
 		}
 	},
-
+	
 	observe: function (element) {
 		var func = this;
-
+	
 		$(element).keypress(function (e) {
 			CardReader.prototype.readObserver.apply(func, arguments);
 		});
 	},
-
+	
 	validate: function (validator) {
 		this.validators.push(validator);
 	},
-
+	
 	cardRead: function (callback) {
 		this.callbacks.push(callback);
 	},
-
+	
 	cardError: function (errback) {
 		this.errbacks.push(errback);
-	}
+	},
 }

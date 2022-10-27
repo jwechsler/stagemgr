@@ -1,6 +1,10 @@
 # Methods added to this helper will be available to all templates in the application.
 module ApplicationHelper
 
+  def html_comment(comment)
+    raw("// #{comment}\n") if Rails.env.eql?("development")
+  end
+
   def to_currency(val)
     number_to_currency(val,:delimiter => ",", :unit => "$",:separator => ".", :precision => 2)
   end
