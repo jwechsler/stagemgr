@@ -1,5 +1,7 @@
-
 .small-12.cell
+  - production.errors.each do |e|
+    %span.error= "#{e.attribute} #{e.message}"
+    %br
   = simple_form_for([:admin, production.theater, production], :html=>{:multipart=>true}) do |f|
     .grid-x.grid-padding-x
       .small-8.cell
