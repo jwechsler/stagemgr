@@ -24,7 +24,7 @@ class FlexPassOrder < Order
   end
 
   def all_line_items(reload_line_items = false)
-    super(reload_line_items) + self.flex_pass_line_item
+    super(reload_line_items) << self.flex_pass_line_item
   end
 
   def valid_payment_types_for(current_user)
