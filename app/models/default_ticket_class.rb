@@ -1,9 +1,10 @@
 class DefaultTicketClass < ApplicationRecord
-  validates :class_code, :presence, uniqueness: true
-  validate :ticket_price, :presence
-  validate :class_name, :presence
-  validate :ticketing_fee, :presence
-  validates :ticket_type, inclusion: { in: TicketClass::TICKET_TYPES, message: 'Invalid ticket type' }
+  validates_presence_of :class_code
+  validates_uniqueness_of :class_code
+  validates_presence_of :ticket_price
+  validates_presence_of :class_name
+  validates_presence_of :ticketing_fee
+  validates_inclusion_of :ticket_type, in: TicketClass::TICKET_TYPES, message: 'Invalid ticket type'
 
   def to_hash
     h = self.attributes
