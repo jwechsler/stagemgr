@@ -2,11 +2,11 @@
   .cell.small-12.medium-6
     = f.label :full_name, "Name"
     #full-name-input-column.small-10.cell
-      = f.input_field :full_name, :label=>"Name", :as=>:autocomplete, :url=>autocomplete_address_admin_addresses_path, :id_element=>'#linked_to_address_id'
+      = f.input_field :full_name, :label=>"Name", :as=>:autocomplete, :url=>autocomplete_address_admin_addresses_path, :id_element=>'#linked_to_address_id', class: 'full_name'
       %hidden_field_tag{:id=>"linked_to_address_id"}
     #full-name-clear-column.small-2.cell.hide
       %a#disassociate-address.postfix.button{:href=>'#'} Clear
-    = f.input :email
+    = f.input :email, input_html: { class: 'email' }
     = f.input :phone
   .cell.small-12.medium-6.hide-for-small-only
     = render '/admin/addresses/quick_lookup', :f=>f

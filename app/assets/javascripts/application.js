@@ -11,6 +11,8 @@
 //= require cocoon
 //= require jquery-ui/widgets/autocomplete
 //= require autocomplete-rails
+//= require credit_card_track_parser
+//= require jquery.creditCardValidator
 //= require_this
 
 

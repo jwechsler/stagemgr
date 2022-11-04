@@ -139,22 +139,35 @@ jQuery(document).ready(function($) {
 
 jQuery(function () {
     // Create a new reader instance
-    var reader = new CardReader();
     
-    // Feed it an object to observe (this could also be a textbox)
-    reader.observe($(".credit_card_swipe"));
-
-    console.log('monitoring for card swipe')
-    // Errback in case of a reading error
-    reader.cardError(function () {
-        alert("A read error occurred");
-    });
-
-    // Callback in case of a successful reading operation
-    reader.cardRead(function (value) {
-        var data = CreditCardTrackData(value)
-        console.log(data);
-        // $('.credit_card_swipe').val(value);
-        // $('form').submit();
+    $(document).ready(function(){
+      
+      $(".credit_card_swipe").change(function() {
+        track_data = new CreditCardTrackData($(".credit_card_swipe").val())
+        $(".full_name").val(track_data["first_name"].trim() + " " + track_data["last_name"].trim());
+        $(".credit_card_number").val(track_data["number"]);
+        $(".expiration_month").val(track_data["expiration"].substring(2,4));
+        $(".expiration_year").val(track_data["expiration"].substring(0,2));
+        $(".credit_card_number").validateCreditCard(function(result) {
+          console.log("CC type: " + result.card_type.name);
+          switch( result.card_type.name ) {
+            case 'mastercard': 
+              $(".credit_card_type").val('MasterCard').change();
+              break;
+            case 'amex':
+              $(".credit_card_type").val('American Express').change();
+              break;
+            case 'visa':
+              $(".credit_card_type").val('Visa').change();
+              break;
+            case 'discover':
+              $(".credit_card_type").val('Discover').change();
+              break;
+          }
+        });
+        $(".credit_card_swipe").val("").change();
+        console.log(track_data);
+      });
+    
     });
 });
