@@ -6,6 +6,7 @@ gem 'rails', '~> 6.1'
 gem 'webpacker'
 gem 'bootsnap'
 gem 'activerecord-session_store'
+gem "i18n-js"
 
 gem "redcarpet" # Markdown
 
