@@ -37,3 +37,19 @@ function refresh_window(){
 };
 
 
+function confirmSubmit(prompt, val) {
+  if (confirm(prompt)) {
+    $('.submit-button').prop('disabled', true);
+    $('#submit_action').val(val);
+    $('.simple_form').submit();
+    return true;
+    // @todo disable button with processing instructions
+  } else {
+    return false;
+  };
+};
+
+function submitForm(val) {
+  $('#submit_action').val(val);
+  $('#admin_ticket_order_form').submit();
+};

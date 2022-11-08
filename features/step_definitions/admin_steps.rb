@@ -7,6 +7,11 @@ Given("I visit the new admin ticket order page") do
   page.execute_script("document.getElementById('production-form').submit()")
 end
 
+Given("I visit the admin flex pass offer page") do
+  click_link "Passes"
+  click_link "Flex Pass Offers"
+end
+
 Given("I wait {int} seconds") do |int|
   sleep(int)
 end
