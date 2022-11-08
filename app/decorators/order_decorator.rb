@@ -43,7 +43,7 @@ class OrderDecorator < ApplicationDecorator
   def description
     result = ""
     if (object.is_a? FlexPassOrder) && (!object.flex_pass.nil?) then
-      result = "<span class=\"label warning\">Expired</span> " if !order.flex_pass.active?
+      result = h.raw("<span class=\"label warning\">Expired</span> ") if !order.flex_pass.active?
     end
     result += order.description
   end
