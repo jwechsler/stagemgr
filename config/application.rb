@@ -12,7 +12,10 @@ module Stagemgr
     config.load_defaults 6.0
 
     config.autoload_paths += Dir[Rails.root.join('app', 'models', '**/')]
-    
+    config.autoload_paths << "#{config.root}/lib"
+    config.eager_load_paths << "#{config.root}/lib"
+
+    Rails.autoloaders.main.ignore("#{config.root}/lib/tasks")
     # Set Time.zone default to the specified zone and make Active Record auto-convert to this zone.
     # Run "rake -D time" for a list of tasks for finding time zone names. Default is UTC.
     config.time_zone = 'Central Time (US & Canada)'
