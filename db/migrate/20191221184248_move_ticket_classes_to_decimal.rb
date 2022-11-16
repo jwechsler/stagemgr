@@ -1,4 +1,4 @@
-class MoveTicketClassesToDecimal < ActiveRecord::Migration
+class MoveTicketClassesToDecimal < ActiveRecord::Migration[4.2]
   def change
     rename_column :ticket_classes, :ticketing_fee, :ticketing_fee_old
     rename_column :ticket_classes, :ticket_price, :ticket_price_old

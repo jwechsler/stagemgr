@@ -1,4 +1,4 @@
-class FixExchangedTicketOrders < ActiveRecord::Migration
+class FixExchangedTicketOrders < ActiveRecord::Migration[4.2]
   def self.up
     execute "update orders set type = 'TicketOrder' where status = 'Exchanged'"
   end

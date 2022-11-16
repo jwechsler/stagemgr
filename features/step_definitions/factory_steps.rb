@@ -156,8 +156,8 @@ end
 
 Given /^the system accepts flex passes$/ do
   @membership_payment_type = FactoryBot.create(:flex_pass_payment_type, :allow_for_public=>true)
+  @flex_pass_offer = FactoryBot.create(:flex_pass_offer)
 end
-
 
 Given /^a special offer with code "(.*?)" for \$(\d+) off exists$/ do |offer_code, amount|
   @special_offer = FactoryBot.create(:amount_off_special_offer, :code=>offer_code, :amount=>amount)
@@ -177,4 +177,5 @@ Given /^a ticket order for performance "(.*)" paid with cash exists$/ do |perf_c
   perf = Performance.find_by_performance_code(perf_code)
   @ticket_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash, :performance=>perf)
 end
+
 

@@ -15,7 +15,10 @@
             =link_to('Theaters',admin_theaters_path)
         - if (can? :read, Order) || (can? :read, FlexPassOrder) || (can? :read, MembershipOrder) || (can? :read, TicketOrder)
           %li
-            =link_to('Existing Orders', admin_orders_path)
+            =link_to('Orders', admin_orders_path)
+        - if (can? :read, Address)
+          %li
+            =link_to('Customers', admin_addresses_path)
         - if can?(:read, MembershipOffer) || can?(:read, FlexPassOffer)
           %li.has-dropdown
             %a{:href=>"#"} Passes

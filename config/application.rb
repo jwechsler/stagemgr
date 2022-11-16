@@ -1,44 +1,23 @@
-require File.expand_path('../boot', __FILE__)
+require_relative "boot"
 
-require 'rails/all'
+require "rails/all"
 
-require "#{File.dirname(__FILE__)}/../lib/salesforce_sync"
-require "#{File.dirname(__FILE__)}/../lib/my_emma_patches"
-
-# If you have a Gemfile, require the gems listed there, including any gems
+# Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
-Bundler.require(:default, :assets, Rails.env) if defined?(Bundler)
-
-# load resque front end
-require 'resque/server'
+Bundler.require(*Rails.groups)
 
 module Stagemgr
   class Application < Rails::Application
+    # Initialize configuration defaults for originally generated Rails version.
+    config.load_defaults 6.0
 
-    # Set the i18n default to false to accomodate old default behavior (in old credit card validator)
-    # @todo once this gem has been updated, remove this
+    config.autoload_paths += Dir[Rails.root.join('app', 'models', '**/')]
+    config.autoload_paths << "#{config.root}/lib"
+    config.eager_load_paths << "#{config.root}/lib"
 
-    config.i18n.enforce_available_locales = false
-
-    # Settings in config/environments/* take precedence over those specified here.
-    # Application configuration should go into files in config/initializers
-    # -- all .rb files in that directory are automatically loaded.
-
-    # Custom directories with classes and modules you want to be autoloadable.
-    # config.autoload_paths += %W(#{config.root}/extras)
-    config.autoload_paths += %W( #{config.root}/app/models/orders #{config.root}/app/models/payments #{config.root}/app/models/special_offers #{config.root}/app/models/line_items #{config.root}/app/models/payment_types #{config.root}/app/models/order_tasks #{config.root}/app/models/tktprint #{config.root}/app/models/resque_jobs #{config.root}/app/models/reports)
-    config.autoload_paths += %W( #{config.root}/lib )
-    config.autoload_paths += %W(
-          #{config.root}/app/controllers/concerns
-          #{config.root}/app/models/concerns
-        )
-
-    # Only load the plugins named here, in the order given (default is alphabetical).
-    # :all can be used as a placeholder for all plugins not explicitly named.
-    # config.plugins = [ :exception_notification, :ssl_requirement, :all ]
-
-    # Activate observers that should always be running.
-
+    Rails.autoloaders.main.ignore("#{config.root}/lib/tasks")
+    Rails.autoloaders.main.ignore(Rails.root.join('lib/my_emma_patches.rb'))
+    Rails.autoloaders.main.ignore(Rails.root.join('lib/validates_credit_card.rb'))
     # Set Time.zone default to the specified zone and make Active Record auto-convert to this zone.
     # Run "rake -D time" for a list of tasks for finding time zone names. Default is UTC.
     config.time_zone = 'Central Time (US & Canada)'
@@ -48,9 +27,7 @@ module Stagemgr
     # config.i18n.load_path += Dir[Rails.root.join('my', 'locales', '*.{rb,yml}').to_s]
     # config.i18n.default_locale = :de
 
-    # hide credit card parameters.
-
-    config.filter_parameters << :password << :credit_card_number << :card_number << :credit_card_verification_number << :credit_card_expiration_month << :credit_card_expiration_year
+    
 
     # If you want to use gmail for deliver...
     #config.action_mailer.delivery_method = :smtp
@@ -87,20 +64,28 @@ module Stagemgr
     # removed below with 4.2 update
     # config.action_view.javascript_expansions[:defaults] = %w(prototype rails)
 
-    # use new error propogation methods
-    config.active_record.raise_in_transactional_callbacks = true
+    # use new error propogation methods. Removed in rails 5 update
+    # config.active_record.raise_in_transactional_callbacks = true
 
     initializer :after_append_asset_paths,
             :group => :all,
             :after => :append_assets_path do
         config.assets.paths.unshift Rails.root.join("app", "assets", "stylesheets", "jquery", "cupertino").to_s
 
-        $MARKDOWN = Redcarpet::MarkdownExtension.new(Redcarpet::Render::HTML, :autolink => true, :space_after_headers => true, :filter_html=>true)
-        $TRUSTED_MARKDOWN = Redcarpet::MarkdownExtension.new(Redcarpet::Render::HTML, :autolink => true, :space_after_headers => true)
+        $MARKDOWN = Redcarpet::Markdown.new(Redcarpet::Render::HTML, :autolink => true, :space_after_headers => true, :filter_html=>true)
+        $TRUSTED_MARKDOWN = Redcarpet::Markdown.new(Redcarpet::Render::HTML, :autolink => true, :space_after_headers => true)
 
     end
 
+    # manage yaml deserialization of audit records for ruby type safety workaround
+    config.active_record.yaml_column_permitted_classes =
+      %w[String Integer NilClass Float Time Date FalseClass Hash Array DateTime TrueClass BigDecimal
+        ActiveSupport::TimeWithZone ActiveSupport::TimeZone ActiveSupport::HashWithIndifferentAccess]
     #limit Audits to 25 changes
     Audited.max_audits = 25
+
+    config.active_storage.variant_processor = :vips 
+    config.active_storage.queue = :maintenance
+
   end
 end

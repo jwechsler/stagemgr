@@ -1,4 +1,4 @@
-class AddNoteToPayments < ActiveRecord::Migration
+class AddNoteToPayments < ActiveRecord::Migration[4.2]
   def self.up
     add_column :payments, :note, :string
   end

@@ -1,4 +1,4 @@
-class ServiceItemTemplate < ActiveRecord::Base
+class ServiceItemTemplate < ApplicationRecord
 
   validates :name, uniqueness:true
   validates_numericality_of :amount

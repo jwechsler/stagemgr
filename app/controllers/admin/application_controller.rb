@@ -8,7 +8,7 @@ class Admin::ApplicationController < ApplicationController
       end
     end
 
-  before_filter :prepare_exception_notifier
+  before_action :prepare_exception_notifier
 
   protected
 

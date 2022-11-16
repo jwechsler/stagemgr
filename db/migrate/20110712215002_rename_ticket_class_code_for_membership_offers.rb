@@ -1,4 +1,4 @@
-class RenameTicketClassCodeForMembershipOffers < ActiveRecord::Migration
+class RenameTicketClassCodeForMembershipOffers < ActiveRecord::Migration[4.2]
   def self.up
     rename_column :membership_offers, :ticket_class_code, :use_ticket_class_code
   end

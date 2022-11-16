@@ -1,4 +1,4 @@
-class AddIndicesToSpecialOffers < ActiveRecord::Migration
+class AddIndicesToSpecialOffers < ActiveRecord::Migration[4.2]
   def change
     add_index :special_offers, :production_id
     add_index :special_offers, :performance_id

@@ -1,4 +1,4 @@
-class AddFlexPassPayments < ActiveRecord::Migration
+class AddFlexPassPayments < ActiveRecord::Migration[4.2]
   def self.up
     add_column :payments, :flex_pass_id, :integer
     add_column :payments, :number_of_tickets, :integer

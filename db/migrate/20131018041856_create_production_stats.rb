@@ -1,4 +1,4 @@
-class CreateProductionStats < ActiveRecord::Migration
+class CreateProductionStats < ActiveRecord::Migration[4.2]
   def change
     create_table :production_stats do |t|
       t.integer :production_id

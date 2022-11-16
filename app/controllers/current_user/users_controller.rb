@@ -1,5 +1,5 @@
 class CurrentUser::UsersController < CurrentUser::ApplicationController
-  prepend_before_filter :find_user, :only => [:show, :edit, :update, :destroy]
+  prepend_before_action :find_user, :only => [:show, :edit, :update, :destroy]
 
   # GET /users
   def index
@@ -34,7 +34,7 @@ class CurrentUser::UsersController < CurrentUser::ApplicationController
 
   def update
     @user = current_user # makes our views "cleaner" and more consistent
-    if @user.update_attributes(params[:user])
+    if @user.update(params[:user])
       flash[:notice] = "Account updated!"
       redirect_to account_url
     else

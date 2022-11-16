@@ -24,8 +24,6 @@ $(document).ready(function() {
     e.preventDefault();
     var data = $('#seatingmap').data('maphilight') || {};
     data.alwaysOn = true;
-    console.log("assignment_id = " + $(this).data('assignment-id'));
-    //console.log($(this).data('location'));
     e_reference = '[data-assignment-id=' + $(this).data('assignment-id') + ']'
 
     starting_status = String($(this).data('status'));
@@ -79,10 +77,12 @@ $(document).ready(function() {
             e_reference = '[data-assignment-id='+response['id']+']'
 
             if ((response['status'] == 'available') || (response['status'] == 'releasing'))  {
-              console.log('releasing ' + $(e_reference).data('id'))
+              update_seating_attributes(e_reference, response['status'])
               ticket_class_id = response['ticket_class_id']
               //data_key = (response['status']=='unavailable')? 'unavailable' : response['id']+','+response['status'];
               data_key = response['id'] + ',' + response['status']
+              console.log('status = ' + response['status'])
+              console.log(response)
               $("#updated-seat-list").text(response['current_seat_assignments'])
               num_tix = parseInt(response['ticket_count'])
               if (num_tix == parseInt($("#number-of-tickets").text())) {

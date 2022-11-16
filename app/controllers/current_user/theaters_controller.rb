@@ -49,7 +49,7 @@ class CurrentUser::TheatersController < CurrentUser::ApplicationController
     @theater = Theater.find(params[:id])
 
     respond_to do |format|
-      if @theater.update_attributes(params[:theater])
+      if @theater.update(params[:theater])
         flash[:notice] = 'Theater was successfully updated.'
         format.html { redirect_to(current_user_theaters_path) }
         format.xml  { head :ok }

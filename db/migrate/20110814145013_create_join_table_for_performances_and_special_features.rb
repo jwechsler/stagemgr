@@ -1,4 +1,4 @@
-class CreateJoinTableForPerformancesAndSpecialFeatures < ActiveRecord::Migration
+class CreateJoinTableForPerformancesAndSpecialFeatures < ActiveRecord::Migration[4.2]
   def self.up
     remove_column :performances, :special_feature_id
     remove_column :performances, :footnote

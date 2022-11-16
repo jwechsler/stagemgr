@@ -1,4 +1,4 @@
-class FixAddressNameCase < ActiveRecord::Migration
+class FixAddressNameCase < ActiveRecord::Migration[4.2]
   def self.up
     Address.all.each do |address|
       address.first_name = NameCase(address.first_name)

@@ -1,4 +1,4 @@
-class AddSalesforceSyncDateToProductions < ActiveRecord::Migration
+class AddSalesforceSyncDateToProductions < ActiveRecord::Migration[4.2]
   def self.up
     add_column :productions, :sf_last_sync_at, :datetime
   end

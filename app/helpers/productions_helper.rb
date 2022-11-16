@@ -23,7 +23,7 @@ module ProductionsHelper
   def production_image_style(production)
     raw "<style>
     #{production_image_id(production)} {
-            background: url(#{production.best_image_url_available(:medium)}) no-repeat center center;
+            background: #{production.decorate.promo_url(Production::MEDIUM)} no-repeat center center;
             display:block;
             overflow:hidden;
             white-space:nowrap;

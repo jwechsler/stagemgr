@@ -1,4 +1,4 @@
-class AddStatusToSpecialFeature < ActiveRecord::Migration
+class AddStatusToSpecialFeature < ActiveRecord::Migration[4.2]
   def self.up
     add_column :special_features, :status, :string, :default=>'Active'
   end

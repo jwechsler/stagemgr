@@ -1,20 +1,22 @@
 class Admin::TheatersController < Admin::ApplicationController
-  before_filter :remove_empty_logo
+  before_action :remove_empty_logo
   load_and_authorize_resource
 
-  before_filter :find_context, :only=>:show
+  before_action :find_context, :only=>:show
+
+  respond_to :html, :json
   def index
     @theaters = @theaters.sort_by{|t| [t.status, t.theater_class, t.name]}
 
     if current_user.is_theater_user?
       @theaters = @theaters.select{|t| current_user.theaters.include?(t)}
     end
-
     respond_to do |format|
       format.html # index.html.erb
       format.json {
         params.permit!
         render json: TheaterDatatable.new(params, view_context: view_context, current_user: current_user )
+        
       }
     end
   end
@@ -56,7 +58,7 @@ class Admin::TheatersController < Admin::ApplicationController
   def update
 
     respond_to do |format|
-      if @theater.update_attributes(theater_params)
+      if @theater.update(theater_params)
         flash[:notice] = 'Theater was successfully updated.'
         format.html { redirect_to(admin_theaters_path) }
         format.xml  { head :ok }

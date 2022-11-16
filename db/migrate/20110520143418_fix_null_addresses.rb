@@ -1,4 +1,4 @@
-class FixNullAddresses < ActiveRecord::Migration
+class FixNullAddresses < ActiveRecord::Migration[4.2]
   def self.up
   end
 

@@ -1,4 +1,4 @@
-class AddAutoAttachToTicketClasses < ActiveRecord::Migration
+class AddAutoAttachToTicketClasses < ActiveRecord::Migration[4.2]
   def self.up
     add_column :ticket_classes, :auto_attach, :boolean
     add_column :default_ticket_classes, :auto_attach, :boolean

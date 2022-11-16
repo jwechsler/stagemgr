@@ -1,4 +1,4 @@
-class AddShortDescriptionToFlexPassOffer < ActiveRecord::Migration
+class AddShortDescriptionToFlexPassOffer < ActiveRecord::Migration[4.2]
   def self.up
     add_column :flex_pass_offers, :short_description, :string
   end

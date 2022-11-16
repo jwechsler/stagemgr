@@ -3,7 +3,7 @@ require 'address_imports'
 require 'csv'
 require 'people'
 
-class Address < ActiveRecord::Base
+class Address < ApplicationRecord
 
   audited only:[:first_name, :last_name, :line1, :line2, :email, :city, :state, :zipcode, :phone], max_audits: 30
 
@@ -13,30 +13,26 @@ class Address < ActiveRecord::Base
   monetize :donated_last_year_cents
   monetize :donated_last_n_days_cents
 
-  before_destroy :ensure_no_finalized_orders
-
   validates_presence_of :full_name
   validates :email, :email=>true, :allow_blank=>true
   before_validation :regularize!, :if=>:changed?
-  has_many :orders
-  has_many :orders_as_recipient, :class_name=>:order, :foreign_key=>:recipient_address_id
-  has_many :address_tags
-  has_many :memberships
-  has_many :flex_passes
+  has_many :orders, inverse_of: :address
+  has_many :orders_as_recipient, :class_name=>:order, :foreign_key=>:recipient_address_id, inverse_of: :recipient_address
+  has_many :address_tags, inverse_of: :address
+  has_many :memberships, inverse_of: :address
+  has_many :flex_passes, inverse_of: :address
   has_and_belongs_to_many :productions, uniq: true
+
   accepts_nested_attributes_for :address_tags, :reject_if => proc { |attributes| attributes['tag_label'].blank? }, :allow_destroy => true
   before_save :set_search_name
   before_save :purge_duplicate_tags
-
+  before_destroy :ensure_no_finalized_orders
 
   MAILLIST_STATUS = (
     REQUESTED, SAVED =
   "Requested", "Saved")
 
   SEARCHABLE_REGEXP = /[\d+\s+\.!,]/
-
-  # audited :protect=>false, :except=>['street_number', 'street', 'street_type', 'unit', 'unit_prefix', 'search_name']
-  attr_accessor :sf_object
 
   def self.parse_name(full_name)
     unless full_name.blank?
@@ -135,7 +131,7 @@ class Address < ActiveRecord::Base
   end
 
   def ensure_no_finalized_orders
-    raise "Cannot delete an address with finalized orders" unless orders(true).select{|o| o.finalized? }.count == 0
+    raise "Cannot delete an address with finalized orders" unless orders.reload.select{|o| o.finalized? }.count == 0
   end
 
   def update_from(newer)
@@ -164,22 +160,16 @@ class Address < ActiveRecord::Base
   end
 
   def merge_and_purge(from_address)
+    Rails.logger.debug("Merging address \##{from_address.id} into \##{self.id}")
     Address.transaction do
       self.update_from(from_address)
       self.orders << from_address.orders
-      self.address_tags << from_address.address_tags
       self.memberships << from_address.memberships
       self.flex_passes << from_address.flex_passes
       self.productions << from_address.productions
       self.save!
-      if from_address.sf_last_sync_at.nil?
-        from_address.reload
-        from_address.destroy
-      else
-        from_address.reload
-        from_address.sf_purge = self.id
-        from_address.save!
-      end
+      from_address.reload
+      from_address.destroy
     end
   end
 
@@ -305,7 +295,7 @@ class Address < ActiveRecord::Base
   end
 
   def is_current_flex_pass_holder?
-    self.orders.select { |o| (o.is_a? FlexPassOrder) && (o.flex_pass_line_items.first.flex_pass.available?) }.count > 0
+    self.orders.select { |o| (o.is_a? FlexPassOrder) && (o.flex_pass_line_item.flex_pass.available?) }.count > 0
   end
 
   def has_flex_pass?
@@ -452,192 +442,6 @@ class Address < ActiveRecord::Base
   def name_as_searchable
     full_name.gsub(SEARCHABLE_REGEXP,'').upcase
   end
-
-end
-
-# Salesforce extraction
-
-class Address
-
-  attr_writer :sf_disable_sync_on_commit
-
-  def sf_disable_sync_on_commit?
-    @sf_disable_sync_on_commit.nil? ? false : @sf_disable_sync_on_commit
-  end
-
-  after_commit :queue_sf_sync, :if=>:syncable?
-
-  def syncable?
-    SalesforceSync.enabled? && !self.sf_disable_sync_on_commit? && ( !self.sf_contact_id.nil? || self.orders.count > 0 || !self.sf_purge.blank?) && self.customer?
-  end
-
-  def queue_sf_sync(delay = nil)
-    delay = 2.minutes if delay.nil?
-    Resque.enqueue_in(delay, SyncAddressToSalesforce, self.id) if self.changed?
-  end
-
-  def create_salesforce_contact
-    SalesforceData::Contact.create "LastName"=>self.last_name, "FirstName"=>self.first_name, "stagemgr_id__c"=>"#{self.id}",
-      "MailingStreet"=>"#{self.line1}\r\n#{self.line2}", "MailingCity"=>self.city,
-      "Email"=>self.email, "Phone"=>self.phone,
-      "MailingState"=>self.state, "MailingPostalCode"=>self.zipcode, "stagemgr_last_sync_at__c"=>DateTime.now
-    SalesforceData::Contact.find_by_stagemgr_id__c("#{self.id}")
-  end
-
-  def update_attendance_data(sf_contact)
-    seasons = Production.group("season").map{|p| p.season}.select{|season| SalesforceData::Contact.attributes.include?("productions_attended_#{season}__c")}
-
-    seasons.each do |season|
-      sf_contact.instance_variable_set("@productions_attended_#{season}__c".to_s,
-        Production.where('season = ? and id in (?)',season, self.orders.select{|o| !o.performance_id.nil?}.map {|o| o.performance.production_id }).count)
-      order_ids = self.orders.map {|o| o.id }
-      ticket_payments_for_season = Payment.joins({:order => {:performance => :production}}).where(
-        'order_id in (?) and orders.type = \'TicketOrder\' and productions.season = ?',
-          order_ids,season).sum('payments.amount')
-      other_sales_for_season = Payment.joins(:order).where(
-        'order_id in (?) and orders.type not in (\'TicketOrder\',\'DonationOrder\') and payments.processed_on between ? and ?',
-        order_ids, "01-01-#{season}".to_date + 8.months,
-        "01-01-#{season}".to_date + 20.months).sum('payments.amount')
-      reported_revenue = 0.0
-      reported_revenue += other_sales_for_season unless other_sales_for_season.nil?
-      reported_revenue += ticket_payments_for_season unless ticket_payments_for_season.nil?
-      sf_contact.instance_variable_set("@gross_sales_#{season}__c".to_s,reported_revenue)
-
-    end
-    sf_contact
-  end
-
-  def update_membership_data(sf_contact)
-    unless self.memberships.empty?
-      sf_contact.current_member__c = self.current_member?
-    end
-    sf_contact
-  end
-
-  def has_syncable_orders?
-    self.orders.select { |o| o.syncable? }.size > 0
-  end
-
-  def sync_to_salesforce!(force_sync = false)
-    if self.has_syncable_orders?
-      if (self.sf_purge.blank?) && (self.sf_last_sync_at.nil? || (self.sf_last_sync_at + 2.seconds < self.updated_at) || force_sync)
-        sf_contact = SalesforceData::Contact.find_by_stagemgr_id__c("#{self.id}")
-        sf_attributes = SalesforceData::Contact.attributes
-        sync_time = DateTime.now
-        puts "syncing address id ##{self.id}"
-        if sf_contact.nil?
-          sf_contact = create_salesforce_contact
-        else
-          if self.field_changed_after?(:first_name, self.sf_last_sync_at)
-            sf_contact.FirstName = self.first_name unless self.first_name.blank?
-          else
-            self.first_name = sf_contact.FirstName unless sf_contact.FirstName.blank?
-          end
-          if self.field_changed_after?(:last_name, self.sf_last_sync_at)
-            sf_contact.LastName = self.last_name unless self.last_name.blank?
-          else
-            self.last_name = sf_contact.LastName unless sf_contact.LastName.blank?
-          end
-
-          if self.field_changed_after?(:email, self.sf_last_sync_at)
-            sf_contact.Email = self.email unless self.email.blank?
-          else
-            self.email = sf_contact.Email unless sf_contact.Email.blank?
-          end
-
-
-          if [:line1, :line2].select { |f| self.field_changed_after?(f, self.sf_last_sync_at) }.size > 0
-            sf_contact.MailingStreet="#{self.line1}\r\n#{self.line2}" unless self.line1.blank?
-          else
-            unless sf_contact.MailingStreet.blank?
-              lines = sf_contact.MailingStreet.split("\r\n")
-              if lines.size > 0
-                self.line1 = lines[0]
-                if lines.size > 1
-                  self.line2 = lines[1]
-                end
-              end
-            end
-          end
-
-          if self.field_changed_after?(:city, self.sf_last_sync_at)
-            sf_contact.MailingCity = self.city unless self.city.blank?
-          else
-            self.city = sf_contact.MailingCity unless sf_contact.MailingCity.blank?
-          end
-
-          if self.field_changed_after?(:state, self.sf_last_sync_at)
-            sf_contact.MailingState = self.state unless self.state.blank?
-          else
-            self.state = sf_contact.MailingState unless sf_contact.MailingCity.blank?
-          end
-
-          if self.field_changed_after?(:zipcode, self.sf_last_sync_at)
-            sf_contact.MailingPostalCode = self.zipcode unless self.zipcode.blank?
-          else
-            self.zipcode = sf_contact.MailingPostalCode unless sf_contact.MailingPostalCode.blank?
-          end
-
-          if self.field_changed_after?(:phone, self.sf_last_sync_at)
-            sf_contact.Phone = self.phone unless self.phone.blank?
-          else
-            self.phone = sf_contact.Phone unless sf_contact.Phone.blank?
-          end
-          sf_contact.stagemgr_last_sync_at__c = sync_time
-
-        end
-        sf_contact = self.update_attendance_data(sf_contact)
-        sf_contact = self.update_membership_data(sf_contact)
-        sf_contact.save
-        self.sf_contact_id = sf_contact.Id
-        self.sf_last_sync_at = DateTime.now
-        self.sf_object = sf_contact
-        self.sf_disable_sync_on_commit = true
-        self.update_donor_levels!
-      else
-        self.sf_object = SalesforceData::Contact.find_by_stagemgr_id__c("#{self.id}")
-      end
-    end
-  end
-
-  def sf
-    if self.sf_object.nil?
-      self.sync_to_salesforce!
-    end
-    self.sf_object
-  end
-
-  def has_orphaned_sf_records?
-    donations = SalesforceData::Opportunity.find_all_by_AccountId(self.sf.AccountId)
-    donations.select{|d| d.stagemgr_id__c.blank?}.size > 0
-  end
-
-  def delete_sf_record(force_check = true)
-    unless (force_check && !self.sf_record_exists?) || self.sf_last_sync_at.nil?
-      raise SalesforceData::SalesForceIntegrityException, "Cannot delete contact from salesforce without orphaning records" if self.has_orphaned_sf_records?
-      self.sf.delete
-      self.sf_last_sync_at = nil;
-    end
-  end
-
-  def sf_record_exists?
-    self.sf_object = SalesforceData::Contact.find_by_stagemgr_id__c("#{self.id}")
-    !self.sf_object.nil?
-  end
-
-  def update_donor_levels!
-    if  SalesforceSync.enabled?
-      account = SalesforceData::Account.find(self.sf.AccountId)
-      self.donated_this_year = account.npo02__OppAmountThisYear__c
-      self.donated_last_year = account.npo02__OppAmountLastYear__c
-      self.donated_last_n_days = account.npo02__OppAmountLastNDays__c
-      self.sf_disable_sync_on_commit = true
-    else
-      self.update_donor_levels_from_donation_orders
-    end
-    self.save!
-  end
-
 
 end
 

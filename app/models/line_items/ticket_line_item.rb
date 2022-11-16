@@ -1,12 +1,13 @@
 class TicketLineItem < LineItem
-  belongs_to :ticket_order, :foreign_key => :order_id
-  belongs_to :ticket_class
+  belongs_to :ticket_order, :foreign_key => :order_id, inverse_of: :ticket_line_items
+  belongs_to :ticket_class, inverse_of: :ticket_line_items
 
-  validates_presence_of :ticket_class, :ticket_count
+  validates_presence_of :ticket_count
 
   validates_each :price_override do |record, attr, value|
-    if record.ticket_class && record.ticket_class.ticket_type != 'Donation' && !record.generated_from_split?
-      record.errors.add attr, "cannot be used on ticket class type #{record.ticket_class.ticket_type}" unless value.nil?
+    record.price_override = nil if record.price_override.eql?(0)
+    if !record.price_override.nil? && record.ticket_class && record.ticket_class.ticket_type != 'Donation' && !record.generated_from_split?
+      record.errors.add(attr, "cannot be used on ticket class type #{record.ticket_class.ticket_type}")
     end
   end
 

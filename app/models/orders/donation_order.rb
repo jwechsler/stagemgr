@@ -1,6 +1,6 @@
 class DonationOrder < Order
 
-  has_many :donation_line_items, :foreign_key=>:order_id
+  has_many :donation_line_items, :foreign_key=>:order_id, inverse_of: :donation_order
 
   accepts_nested_attributes_for :donation_line_items,
                                 :allow_destroy => true
@@ -25,14 +25,14 @@ class DonationOrder < Order
     self.donation_line_items.sum(:amount)
   end
 
-
   def description
     self.to_s
   end
 
   def all_line_items(reload_line_items = false)
+    self.donation_line_items.reload if reload_line_items
     super(reload_line_items) +
-        self.donation_line_items(reload_line_items)
+        self.donation_line_items
   end
 
   def valid_payment_types_for(current_user)
@@ -61,55 +61,4 @@ class DonationOrder < Order
     self.address.update_donor_levels!
   end
 
-
 end
-
-class DonationOrder
-
-  def self.syncable_statuses
-    self.finalized_statuses
-  end
-
-  def queue_sf_sync(delay=nil)
-    delay ||= 2.minutes
-    Resque.enqueue_in(delay, SyncDonationToSalesforce, self.id)
-    Resque.enqueue_in(delay + 2.day, SyncAddressToSalesforce, self.address_id)
-    super(delay)
-  end
-
-  def sync_to_salesforce!(sf_user = nil, sf_donationtype = nil)
-    if self.finalized?
-      sf_user = $DATABASEDOTCOM['user_id'] if sf_user.nil?
-      sf_donationtype = $DATABASEDOTCOM['donation_record_type_id'] if sf_donationtype.nil?
-      c = self.address.sf
-      if c.nil?
-        self.address.sync_to_salesforce!(true)
-        c = self.address.sf
-      end
-
-      donation = SalesforceData::Opportunity.find_by_stagemgr_id__c(self.id.to_s)
-      if donation.nil?
-        donation = SalesforceData::Opportunity.create("Probability"=>100.0, "StageName"=>"Posted",
-                                                  "Name"=>"#{self.hold_under.blank? ? self.address.full_name : self.hold_under}", "Amount"=>self.total,
-                                                  "CloseDate"=>self.last_processed_on,
-                                                  "AccountId"=>c.AccountId,
-                                                  "npe01__Contact_Id_for_Role__c"=>c.Id,
-                                                  "stagemgr_id__c"=>self.id.to_s,
-                                                  "OwnerId"=>sf_user,
-                                                  "RecordTypeId"=>sf_donationtype,
-                                                  "IsPrivate"=>false)
-
-      else
-        donation.Amount = self.total
-        donation.CloseDate = self.last_processed_on
-        donation.AccountId = self.address.sf.AccountId
-        donation.npe01__Contact_Id_for_Role__c = self.address.sf.Id
-	      donation.save
-      end
-      self.sf_last_sync_at = DateTime.now
-      self.save!
-    end
-  end
-
-end
-

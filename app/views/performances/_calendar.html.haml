@@ -54,33 +54,14 @@
 
                 - performances = @performances.select { |per| per.performance_date==current_day }
                 - performances.each do |performance|
-                  - title = "#{performance.performance_time.to_s(:hour_min)}"
+                  - title = "#{performance.performance_time.to_s(:hour_min).lstrip}"
                   - title << special_feature_footnotes_for(performance,@footnotes)
-
+                  - found_sold_out ||= performance.sold_out?
                   %span.vertical_center
                     .show-info
-                      - if (performance.performance_date<Date.today) || performance.sold_out? || performance.withhold_from_public?
-                        %del= raw title
-                        - if performance.sold_out? || performance.withhold_from_public?
-                          - found_sold_out = true
-                          %br
-                          %font{:size=>"-2"} Sold out!
-                      - else
-                        = link_to raw(title), new_order_path(performance)
-                        -if performance.near_capacity?
-                          = raw title
-                          %br
-                          = price_range(performance)
-                          %br
-                          %font{:size=>"-2"}
-                            - if performance.number_of_seats_left == 1
-                              1 ticket
-                            - else
-                              Limited seats
-                            remaining. Call box office
-                        
+                      =performance.decorate.order_link(title)
                       %br
-                        = price_range(performance)
+                      = price_range(performance)
           - current_week_start = current_week_start + 7
       %tfoot
         %tr

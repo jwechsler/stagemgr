@@ -1,4 +1,4 @@
-class AddTicketClassToSpecialOffer < ActiveRecord::Migration
+class AddTicketClassToSpecialOffer < ActiveRecord::Migration[4.2]
   def self.up
     add_column :special_offers, :system_generated, :boolean, :default=>false
     add_column :special_offers, :change_ticket_class_code, :string

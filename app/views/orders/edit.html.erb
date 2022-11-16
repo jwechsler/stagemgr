@@ -2,8 +2,8 @@
 
 <a name="top" style="text-decoration:none;"><h3><%= raw @order_for_to_s %>&nbsp;</h3></a>
 
-<%- if @order.flex_pass_line_items.size > 0 -%>
-  <p><%= @order.flex_pass_line_items[0].flex_pass_offer.description %></p>
+<%- unless @order.flex_pass_line_item.nil? -%>
+  <p><%= @order.flex_pass_line_item.flex_pass_offer.description %></p>
 <%- end -%>
 
 <%= semantic_form_for @order do |order_form| %>
@@ -13,11 +13,11 @@
     <%= render :partial => '/orders/address', :locals => {:order_form => order_form} %>
 
     <!-- Flex Pass Order -->
-    <%- if @order.flex_pass_line_items.size > 0 -%>
+    <%- unless @order.flex_pass_line_item.nil? -%>
       <br/>
       <%- @submit_text = "Order FlexPass" -%>
 
-      <%= order_form.semantic_fields_for :flex_pass_line_items do |f| %>
+      <%= order_form.semantic_fields_for :flex_pass_line_item do |f| %>
         <%= render :partial => '/orders/flex_pass', :locals => {:f => f} %>
       <%- end -%>
       <%= render :partial => '/orders/additional_donation', :locals => {:order_form => order_form, :order => @order} %>
@@ -32,8 +32,8 @@
           <%= order_form.check_box :add_to_email_list, :checked=>1 %>
         <td>
           Join the Theater
-          Wit <%= if @order.flex_pass_line_items.size > 0 && !@order.flex_pass_line_items[0].flex_pass_offer.theater_id.blank?
-                    "and #{Theater.find(@order.flex_pass_line_items[0].flex_pass_offer.theater_id).name} mailing lists"
+          Wit <%= if !@order.flex_pass_line_item.nil? && !@order.flex_pass_line_item.flex_pass_offer.theater_id.blank?
+                    "and #{Theater.find(@order.flex_pass_line_item.flex_pass_offer.theater_id).name} mailing lists"
                   else
                     "mailing list"
                   end
@@ -44,7 +44,7 @@
       </tr>
     </table>
 
-    <%- if @order.flex_pass_line_items.size > 0 -%>
+    <%- unless @order.flex_pass_line_item.nil? -%>
       <p id="non-exchange-notice">
         Please note that all ticket purchases are
         <emp>non-refundable</emp>

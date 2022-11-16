@@ -1,4 +1,4 @@
-class TicketClass < ActiveRecord::Base
+class TicketClass < ApplicationRecord
   include ActionView::Helpers::NumberHelper
   include ApplicationHelper
   TICKET_TYPES = ['Fixed', 'Donation', 'Timed']
@@ -6,17 +6,20 @@ class TicketClass < ActiveRecord::Base
   validates_inclusion_of :ticket_type,        :in => TICKET_TYPES
   validates_uniqueness_of :class_code,        :scope => :production_id
   validates_length_of :class_code,            :minimum => 1
-  belongs_to :production
-  has_many :ticket_line_items
+  belongs_to :production, inverse_of: :ticket_classes
+  has_many :ticket_line_items, inverse_of: :ticket_class
+  has_many :ticket_class_allocations, inverse_of: :ticket_class, dependent: :destroy
+  has_many :performances, through: :ticket_class_allocations, inverse_of: :ticket_classes
+  
   before_validation :clean_values
   validates_numericality_of :ticket_price
   validates_numericality_of :minutes_before_show, :allow_nil => true
   validates_presence_of :ticket_price
   validates_presence_of :class_name
   validates_presence_of :ticketing_fee
-  validates_presence_of :production
   before_validation :prevent_price_changes_after_sales
   after_save :update_auto_attached_performances
+  before_destroy :check_for_processed_tickets
 
   def number_left(performance, exclude_order=nil)
     ticket_class_capacity_left = production_capacity_left = performance.number_of_tickets_left
@@ -31,7 +34,7 @@ class TicketClass < ActiveRecord::Base
   def prevent_price_changes_after_sales
     unless self.ticket_type == DONATION
       if (self.ticket_price_was != self.ticket_price) && TicketLineItem.where(ticket_class_id:self.id).size > 0
-        errors.add :base,"Cannot change ticket price from #{self.ticket_price_was} to #{self.ticket_price} if sales have already occurred"
+        errors.add(:base,"Cannot change ticket price from #{self.ticket_price_was} to #{self.ticket_price} if sales have already occurred")
         return false
       end
     end
@@ -55,6 +58,15 @@ class TicketClass < ActiveRecord::Base
       where("id IN (SELECT ticket_class_id from ticket_class_allocations where performance_id = ? and available = 1)",  performance_id ).
       order("class_code ASC").
       limit(10)
+  end
+
+  def check_for_processed_tickets
+    status = true
+    if self.ticket_class_items.count > 0
+      self.errors.add(:deletion_status, 'Cannot delete a ticket class with processed orders')
+      status = false
+    end
+    status
   end
 
   private

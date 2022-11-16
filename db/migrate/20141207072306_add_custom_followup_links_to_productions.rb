@@ -1,4 +1,4 @@
-class AddCustomFollowupLinksToProductions < ActiveRecord::Migration
+class AddCustomFollowupLinksToProductions < ActiveRecord::Migration[4.2]
   def change
     add_column :productions, :survey_link, :string
     add_column :productions, :mailing_list_link, :string

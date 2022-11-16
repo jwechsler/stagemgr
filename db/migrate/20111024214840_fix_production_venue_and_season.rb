@@ -1,4 +1,4 @@
-class FixProductionVenueAndSeason < ActiveRecord::Migration
+class FixProductionVenueAndSeason < ActiveRecord::Migration[4.2]
   def self.up
     Production.all.each { |p|
       unless p.opening_at.nil?

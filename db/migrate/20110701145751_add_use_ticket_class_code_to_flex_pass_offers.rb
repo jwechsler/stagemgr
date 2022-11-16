@@ -1,4 +1,4 @@
-class AddUseTicketClassCodeToFlexPassOffers < ActiveRecord::Migration
+class AddUseTicketClassCodeToFlexPassOffers < ActiveRecord::Migration[4.2]
   def self.up
     add_column :flex_pass_offers, :use_ticket_class_code, :string
   end

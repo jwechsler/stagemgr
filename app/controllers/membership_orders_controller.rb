@@ -1,5 +1,5 @@
 class MembershipOrdersController < ApplicationController
-  layout 'ext_site_wrapper'
+  layout $SERVER_CONFIG['ext_site_wrapper']
   include OrdersHelper
   include MembershipOrdersHelper
 
@@ -15,7 +15,7 @@ class MembershipOrdersController < ApplicationController
 
   def update
     @order = MembershipOrder.find(params[:id].to_i)
-    @order.update_attributes(membership_order_params)
+    @order.update(membership_order_params)
     update_or_create
   end
 

@@ -31,7 +31,7 @@ class Admin::VenuesController < ApplicationController
 
   def update
 
-    if @venue.update_attributes(venue_params)
+    if @venue.update(venue_params)
       redirect_to [:admin, @venue], :success  => "Successfully updated venue."
     else
       render :action => 'edit'

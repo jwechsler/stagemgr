@@ -1,4 +1,4 @@
-class MigrateOldUuids < ActiveRecord::Migration
+class MigrateOldUuids < ActiveRecord::Migration[4.2]
   def up
     execute "UPDATE ORDERS SET UUID = CAST(ID AS CHAR)"
     assignments = SeatAssignment.where.not(order_id:nil)

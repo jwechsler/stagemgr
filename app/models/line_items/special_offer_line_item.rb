@@ -1,7 +1,6 @@
 class SpecialOfferLineItem < LineItem
-  validates_presence_of :special_offer
-  belongs_to            :special_offer
-
+  belongs_to            :special_offer, inverse_of: :special_offer_line_items
+  belongs_to            :order, inverse_of: :special_offer_line_item
   def price
     self.special_offer.calculate_discount(self.order)
   end

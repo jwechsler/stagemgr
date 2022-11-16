@@ -1,9 +1,9 @@
 class ProductionsController < ApplicationController
 
-  layout 'ext_site_wrapper'
+  layout $SERVER_CONFIG['ext_site_wrapper']
 
-  prepend_before_filter :find_theater, :except => [:index, :upcoming, :now_playing, :box_office, :by_date, :show]
-  append_before_filter :find_production, :only => [:edit, :update, :destroy]
+  prepend_before_action :find_theater, :except => [:index, :upcoming, :now_playing, :box_office, :by_date, :show]
+  before_action :find_production, :only => [:edit, :update, :destroy]
 
   def by_date
     @start_date = params[:start_date].nil? ? Date.today.beginning_of_week : Date.parse(params[:start_date])
@@ -49,7 +49,7 @@ class ProductionsController < ApplicationController
     end_of_week = Date.today.end_of_week
     three_months_from_now = (end_of_week+2.months).end_of_month
     upcoming_shows = Production.opening_after(end_of_week).visible.sellable_to_public.order(
-      "case when promo_file_name is null then 1 else 0 end, first_preview_at")
+      :first_preview_at)
     @coming_soon = Array.new
     @long_term = Array.new
     upcoming_shows.each do |prod|
@@ -107,7 +107,7 @@ class ProductionsController < ApplicationController
   # PUT /productions/1.xml
   def update
     respond_to do |format|
-      if @production.update_attributes(params[:production])
+      if @production.update(params[:production])
         flash[:notice] = 'Production was successfully updated.'
         format.html { redirect_to(theater_path(@production.theater)) }
         format.xml  { head :ok }

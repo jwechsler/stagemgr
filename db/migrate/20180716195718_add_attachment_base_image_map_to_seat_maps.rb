@@ -1,4 +1,4 @@
-class AddAttachmentBaseImageMapToSeatMaps < ActiveRecord::Migration
+class AddAttachmentBaseImageMapToSeatMaps < ActiveRecord::Migration[4.2]
   def self.up
     change_table :seat_maps do |t|
       t.attachment :base_image_map

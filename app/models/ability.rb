@@ -18,8 +18,8 @@ class Ability
     return if user.nil?
     # theater-specific staff
 
-    can [:read, :update], Order, theater_id: user.theater_ids if user.is_theater_user?
-
+    can :read, [TicketOrder, DonationOrder]
+    
     can :read, Production, ["theater_id in (?)", user.theater_ids] do |production|
         user.theater_ids.include?(production.id)
     end
@@ -29,9 +29,9 @@ class Ability
         user.theater_ids.include?(flex_pass_offer.theater_id)
     end
 
-    can [:read, :create, :update, :update_notes, :confirm, :quickview, :new_for_production], TicketOrder
+    can [:create, :update, :update_notes, :confirm, :quickview, :new_for_production], TicketOrder
     can :seat_unlimited, SeatAssignment
-    can [:read, :create, :hold_existing], TicketOrder
+    can [:create, :hold_existing], TicketOrder
     can :prehold, TicketOrder do |order|
         order.performance.production.season_seating?
     end
@@ -42,7 +42,11 @@ class Ability
     can [:read,:update], Theater, id: user.theater_ids
     can :read, Production, theater_id: user.theater_ids
     can :read, FlexPassOffer, theater_id: user.theater_ids
-    can [:cru, :autocomplete_address], Address
+    can :read, Address, ["addresses.id in (select orders.address_id from orders where orders.theater_id in (?))", user.theater_ids] do |address|
+        address.orders.map{|o| o.theater_id}.intersection(user.theater_ids).size > 0
+    end
+
+    can [:make, :update, :edit, :autocomplete_address], Address
     can :exchange, TicketOrder
     can :cancel_held_during_seating, TicketOrder
     can :read, Performance
@@ -61,6 +65,7 @@ class Ability
     can [:read, :update], Order
     can [:cancel, :cru], FlexPassOrder
     can [:manage, :duplicate, :create, :delete], Performance
+    can :read, Address
     can [:read, :create, :edit, :update, :duplicate], Production
     can :view_system_options, UserSession
     can :read, PaymentType
@@ -69,7 +74,7 @@ class Ability
     can [:unclaimed, :fulfill_selected], Order
     can :swipe_card, Order
     can [:swipe_card, :confirm_credit_card,:hold,:mark_unclaimed,:resend_confirmation], TicketOrder
-    can :fulfill, [Order, TicketOrder, FlexPassOrder, MembershipOrder]
+    can :fulfill, :read, [Order, TicketOrder, FlexPassOrder, MembershipOrder]
     can :confirm_credit_card, [Order, TicketOrder, FlexPassOrder, MembershipOrder]
     can :cru, FlexPassOrder
     can :manage, TicketClass
@@ -97,6 +102,7 @@ class Ability
 
     # below is for admins
     can :manage, MembershipOffer
+    can :merge_selected, Address
     can :destroy, SeatMap
     can :destroy, Production
     can :manage, PaymentType

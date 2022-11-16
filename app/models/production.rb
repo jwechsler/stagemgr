@@ -1,6 +1,6 @@
 # A production is a show with one or more performances.  Items common to performances are grouped here.
 
-class Production < ActiveRecord::Base
+class Production < ApplicationRecord
 
   # :section: Production Constants
   #
@@ -15,10 +15,15 @@ class Production < ActiveRecord::Base
       'Primetime', 'Special Event', 'Private Party', 'Conference', 'Off/Late night', 'Class'
   )
 
+  PROMO_SIZES = (
+    LARGE, MEDIUM, THUMB =
+      [550, 700], [275, 350], [125, 186]
+  )
+
   # :section:
 
   validates_inclusion_of :status, :in => PRODUCTION_STATUSES
-  validates_presence_of :theater, :name, :venue, :season, :production_code, :opening_at, :closing_at
+  validates_presence_of :name, :season, :production_code
   validates_uniqueness_of :production_code, :message=>"%{value} is already in use"
   validates_length_of :production_code, :in=>1..8
   validates_numericality_of :capacity
@@ -32,30 +37,30 @@ class Production < ActiveRecord::Base
     visible_prod.validates_presence_of :first_preview_at
   end
 
-  belongs_to :venue
-  belongs_to :theater
-  belongs_to :seat_map
-  has_many :special_offers
-  has_many :performances
-  has_many :ticket_classes
-  has_many :line_items
+  belongs_to :venue, inverse_of: :productions
+  belongs_to :theater, inverse_of: :productions
+  belongs_to :seat_map, optional: true, inverse_of: :productions
+  has_many :special_offers, inverse_of: :production
+  has_many :performances, inverse_of: :production
+  has_many :ticket_classes, inverse_of: :production
   has_many :ticket_orders, :source=>:orders, :through=>:performances
-  has_one :production_stat
+  has_one :production_stat, inverse_of: :production, dependent: :destroy
   before_validation :clean_values, :downcase_for_db
   before_create :assign_default_ticket_classes
-  before_save :queue_statistics_recalc
+  # removed until we fix/expose statistics
+  # before_save :queue_statistics_recalc
   before_save :finalize_season_seating, :if=>:status_changed?
   before_save :update_performance_codes, :if=>:production_code_changed?
-  belongs_to :flex_pass_offer
+  belongs_to :flex_pass_offer, optional: true, inverse_of: :production
   has_and_belongs_to_many :attendees, class_name: "Address", uniq:true
 
-  attr_accessor :sf_object
-
-  has_attached_file :promo, :styles => {:medium => "250x375>", :thumb => "125x186>"},
-                    :path => ":rails_root/public/system/:attachment/:id/:style/:filename",
-                    :url => "#{Rails.application.config.action_controller.relative_url_root}/system/:attachment/:id/:style/:filename"
-  validates_attachment_content_type :promo, :content_type => ["image/jpg", "image/jpeg", "image/png", "image/gif"]
-
+  #has_attached_file :promo, :path=>":rails_root/public/system/:attachment/:id/:style/:filename"
+  has_one_attached :promo
+  #, :styles => {:medium => "250x375>", :thumb => "125x186>"},
+  #                  :path => ":rails_root/public/system/:attachment/:id/:style/:filename",
+  #                  :url => "#{Rails.application.config.action_controller.relative_url_root}/system/:attachment/:id/:style/:filename"
+  #validates_attachment_content_type :promo, :content_type => ["image/jpg", "image/jpeg", "image/png", "image/gif"]
+  validates :promo, blob: { content_type: :image }
 
   def to_s
     "#{self.name}, #{self.theater.name}"
@@ -170,7 +175,7 @@ class Production < ActiveRecord::Base
                                       :visible_classes=>[Production::PLAY],
                                       :after_date=>Time.now.end_of_week,
                                       :future_date=>(Time.now + 3.month),
-                                      :order_address=>order.address.id}).order("random()").limit(3)
+                                      :order_address=>order.address.id}).order(Arel.sql('random()')).limit(3)
   end
 
   def self.running_week_of(check_date)
@@ -208,17 +213,6 @@ class Production < ActiveRecord::Base
       end
     }
     [min_price, max_price]
-  end
-
-  def best_image_url_available(render)
-    case
-      when self.promo.exists?
-        self.promo.url(render)
-      when !self.logo_url.blank?
-        self.logo_url
-      else
-        nil
-    end
   end
 
   def update_stats
@@ -265,45 +259,6 @@ class Production < ActiveRecord::Base
 
   # @todo the below are hooks for markdown feature as planned
 
-  def sync_to_salesforce!(user = nil, record_type_id = nil)
-    record_type_id = $DATABASEDOTCOM['production_record_type_id'] if record_type_id.nil?
-    if self.sf_last_sync_at.nil? || self.sf_last_sync_at <= self.updated_at
-      puts "syncing production #{self.id}"
-      production = SalesforceData::Product2.find_by_stagemgr_id__c(self.id.to_s)
-      if production.nil?
-        puts "  creating production on salesforce"
-        production = SalesforceData::Product2.create("Name"=>self.name,
-                                                 "ProductCode"=>self.production_code,
-                                                 "RecordTypeId"=>record_type_id,
-                                                 "Producing_Theater__c"=>self.theater.name,
-                                                 "season__c"=>self.season.to_s,
-                                                 "stagemgr_id__c"=>self.id.to_s,
-                                                 "IsActive"=>true)
-      else
-        production.Name = self.name
-        production.ProductCode=self.production_code
-        production.Producing_Theater__c=self.theater.name
-        production.season__c=self.season
-
-      end
-      production.save
-      self.sf_last_sync_at = DateTime.now + 15.seconds
-      self.save!
-      self.sf_object = production
-    end
-  end
-
-  def sf
-    if self.sf_object.nil?
-      self.sf_object = SalesforceData::Product2.find_by_stagemgr_id__c(self.id.to_s)
-      if self.sf_object.nil?
-        self.sf_last_sync_at = nil
-        self.sync_to_salesforce!
-      end
-    end
-    self.sf_object
-  end
-
   private
 
   # When a production code is changed, performance codes are made to match
@@ -328,13 +283,13 @@ class Production < ActiveRecord::Base
 
 
   def manage_after_save_active
-    if self.status == ACTIVE && self.status.changed?
+    if self.status == ACTIVE && self.saved_change_to_status?
       run_callbacks :save_active
     end
   end
 
   def manage_after_save_private
-    if self.status == PRIVATE && self.status.changed?
+    if self.status == PRIVATE && self.saved_change_to_status?
       run_callbacks :save_private
     end
   end

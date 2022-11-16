@@ -7,17 +7,24 @@
 
     .cell.small-12
       = f.input :logo
-    .cell.medium-4.small-12
+    .cell.medium-6.small-12
       = f.input :theater_class, :as => :select, :collection => Theater::THEATER_CLASSES
-    .cell.medium-4.small-12
+    .cell.medium-6.small-12
       = f.input :status, :as=>:select, :collection=>Theater::THEATER_STATUSES, :selected=>Theater::THEATER_STATUSES.first
-    .cell.medium-4.small-12
-      = f.input :myemma_attendee_group
-    .cell.small-12
-      = f.input :default_service_items, label:"Default Service Template Names", hint:"Comma-separated list of service items to be applied to each ticket order"
-    .cell.medium-6.small-12
-      = f.input :default_first_exchange_items, label:"Exchange Service Template Names", hint:"Comma-separated list of service items to be applied to intial ticket exchange"
-    .cell.medium-6.small-12
-      = f.input :default_addl_exchange_items, label:"Additional Exchange Service Template Names", hint:"Comma-separated list of service items to be applied to each subsequent ticket exchange"
+    
+    .cell.small-12.medium-6
+      .grid-padding-x.grid-x
+        .cell.small-12
+          = f.input :default_service_items, label:"Default Service Template Names", hint:"Comma-separated list of service items to be applied to each ticket order"
+        .cell.small-12
+          = f.input :default_first_exchange_items, label:"Exchange Service Template Names", hint:"Comma-separated list of service items to be applied to intial ticket exchange"
+        .cell.small-12
+          = f.input :default_addl_exchange_items, label:"Additional Exchange Service Template Names", hint:"Comma-separated list of service items to be applied to each subsequent ticket exchange"
+    .cell.small-12.medium-6
+      .grid-padding-x.grid-x
+        .cell.small-12
+          = f.input :myemma_attendee_group
+        .cell.small-12
+          = f.input :accepts_donations, label: "Is 501(c)(3)", as: :boolean
     .cell.small-12
       = f.button :submit

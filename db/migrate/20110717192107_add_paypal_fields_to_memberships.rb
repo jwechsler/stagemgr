@@ -1,4 +1,4 @@
-class AddPaypalFieldsToMemberships < ActiveRecord::Migration
+class AddPaypalFieldsToMemberships < ActiveRecord::Migration[4.2]
   def self.up
     add_column :memberships, :profile_id, :string
     add_column :membership_offers, :billing_agreement, :text

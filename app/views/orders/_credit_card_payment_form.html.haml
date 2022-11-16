@@ -3,7 +3,7 @@
     .small-4.medium-1.cell
       = f.label :credit_card_type, :label=>"Card Type", :class=>'left prefix'
     .small-8.medium-3.cell
-      = f.input_field :credit_card_type, :label=>"Card Type", :required=>true,  :include_blank=>false, :as=>:select, :collection=>CreditCardPayment.card_types
+      = f.input_field :credit_card_type, :label=>"Card Type", :required=>true, :as=>:select, :collection=>CreditCardPayment.card_types
     .small-4.medium-2.cell
       = f.label :credit_card_number, 'Card #', :required=>true, :class=>'left prefix'
     .small-8.medium-6.cell

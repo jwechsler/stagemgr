@@ -1,4 +1,4 @@
-class FixMembershipRecurringPayments < ActiveRecord::Migration
+class FixMembershipRecurringPayments < ActiveRecord::Migration[4.2]
   def self.up
     memberships = Membership.all
     unless memberships.nil?

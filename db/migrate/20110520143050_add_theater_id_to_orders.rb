@@ -1,4 +1,4 @@
-class AddTheaterIdToOrders < ActiveRecord::Migration
+class AddTheaterIdToOrders < ActiveRecord::Migration[4.2]
   def self.up
     add_column :orders, :theater_id, :integer
     execute <<EOF

@@ -6,7 +6,7 @@
     <% content_for(:head) do %>
       <style>
         #showimage_<%=production.id %>{
-          background: url(<%= production.best_image_url_available(:medium)%>) no-repeat center center;
+          background: url(<%= production.decorate.promo_url(Production::MEDIUM)%>) no-repeat center center;
           display:block;
           overflow:hidden;
           white-space:nowrap;
@@ -22,9 +22,8 @@
       <br style="clear: both"/>
     <%- end %>
     <div class="show_listing" style=<%= raw "\"width: #{slice}%\"" %>>
-      <%= image_url = production.best_image_url_available(:medium)
-          link_to(production.name, production_performances_path(production.id, :anchor=>"top"),
-                  :id=>"showimage_#{production.id}") unless image_url.nil? %>
+      <%= link_to(production.name, production_performances_path(production.id),
+                  :id=>"showimage_#{production.id}") if production.promo.attached? %>
       <p class="production_name">
         <%= link_to(production.name, production_performances_path(production.id, :anchor=>"top")) %>
       </p>

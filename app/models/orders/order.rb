@@ -2,38 +2,37 @@ require 'payment_form_fields'
 
 InvalidSpecialOfferCode = Class.new(StandardError)
 
-class Order < ActiveRecord::Base
+class Order < ApplicationRecord
 
   include PaymentFormFields
   include Admin::ReportsHelper
   include ActionView::Helpers::NumberHelper
   include EmailValidatable
 
-  extend HTMLDiff
+  belongs_to :performance, required: false, inverse_of: :orders
+  belongs_to :theater, required: false, inverse_of: :orders
+  belongs_to :payment_type, required:  false
 
-  belongs_to :performance
-  belongs_to :theater
-  belongs_to :payment_type
-
-  has_many :payments
+  has_many :payments, inverse_of: :order
   has_many :exchange_payments
-  has_many :tasks, :class_name=>'OrderTask', :dependent=>:destroy
-  has_many :seats, foreign_key: :order_uuid, primary_key: :uuid, class_name: 'SeatAssignment'
-  has_one :special_offer_line_item
-  has_many :service_line_items, :dependent=>:destroy
+  has_many :tasks, :class_name=>'OrderTask', :dependent=>:destroy, inverse_of: :order
+  has_many :seats, foreign_key: :order_uuid, primary_key: :uuid, class_name: 'SeatAssignment', inverse_of: :order
+  has_one :special_offer_line_item, inverse_of: :order
+  has_many :service_line_items, :dependent=>:destroy, inverse_of: :order
 
-  belongs_to :address
-  belongs_to :recipient_address, :class_name=>:address, :foreign_key=>:recipient_address_id
+  belongs_to :address, inverse_of: :orders
+  belongs_to :recipient_address, :class_name=>:address, :foreign_key=>:recipient_address_id, required: false, inverse_of: :orders_as_recipient
 
+  accepts_nested_attributes_for :payments
   accepts_nested_attributes_for :address
   accepts_nested_attributes_for :special_offer_line_item,
                                 :service_line_items,
                                 :allow_destroy => true
 
-
   attr_accessor :special_offer_code
   attr_accessor :door_sale
   attr_accessor :additional_donation
+  attr_accessor :additional_donation_for_other
   attr_accessor :email_confirmation
   attr_accessor :add_to_email_list
   attr_accessor :do_not_create_tasks
@@ -69,14 +68,8 @@ class Order < ActiveRecord::Base
   before_validation :associate_service_line_items
   before_validation :set_defaults
   before_validation :create_recipient_address, :if=>:gift?
-
-  before_save :link_to_address_of_record, :if=>[:status_changed?, :processed?]
   after_validation :prevent_status_rollbacks
-  before_destroy :check_for_settled_payments
-  before_save :set_theater
-  before_save :cancel_pending_tasks, :if=>:newly_canceled?
-  after_save :set_tasks_after_save
-
+ 
   validates_inclusion_of :status, :in => ORDER_STATUSES, :if=>:status_is_provided?
 
   validates_presence_of :address
@@ -84,8 +77,6 @@ class Order < ActiveRecord::Base
   validates_associated :payments,
                        :special_offer_line_item
   validates :hold_under, not_email: true
-
-  before_save :is_balanced_transaction?, :if=>[:status_changed?, :processed?]
   validates_each :status do |record, attr, value|
     if value == PROCESSED
       m_payments = record.payments.select{|p| p.is_a? MembershipPayment}
@@ -93,11 +84,22 @@ class Order < ActiveRecord::Base
     end
   end
 
+  before_save :link_to_address_of_record, :if=>[:status_changed?, :processed?]
+
+  before_save :cancel_pending_tasks, :if=>:newly_canceled?
+  before_save :is_balanced_transaction?, :if=>[:status_changed?, :processed?]
+  
+  after_save :set_tasks_after_save
+
+  before_destroy :check_for_settled_payments
+  
+  # implementation
+
   def is_balanced_transaction?
     li_total = self.value_of_all_line_items
     pay_total = self.value_of_all_payments(:include_override_payments)
     unless li_total == pay_total
-      errors.add :status, "cannot be set to #{self.status} if the total ($#{li_total}) isn't countered by a payment (currently $#{pay_total})."
+      errors.add(:status, "cannot be set to #{self.status} if the total ($#{li_total}) isn't countered by a payment (currently $#{pay_total}).")
     end
   end
 
@@ -127,35 +129,35 @@ class Order < ActiveRecord::Base
 
   def value_of_all_line_items
     a = self.all_line_items.to_a.sum { |line_item|
-        line_item.respond_to?(:total) ? line_item.total : BigDecimal.new(0,2)
+        line_item.respond_to?(:total) ? line_item.total : BigDecimal('0',2)
       }
-    a = BigDecimal.new(0.0,2) if a < 0
+    a = BigDecimal('0',2) if a < 0
     a
   end
 
   # total revenue collected by box office
   def total_collected
     sum_payments = self.payments.select{|p| p.report_as_sales_collected?}
-    total = sum_payments.empty? ? BigDecimal(0.0,2) : sum_payments.sum{|p| p.amount}
+    total = sum_payments.empty? ? BigDecimal('0',2) : sum_payments.sum{|p| p.amount}
   end
 
   # total revenue reported for the production
   def total_revenue
     sum_payments = self.payments.select{|p| p.report_as_production_revenue?}
-    total = sum_payments.empty? ? BigDecimal(0.0,2) : sum_payments.sum{|p| p.amount }
+    total = sum_payments.empty? ? BigDecimal('0',2) : sum_payments.sum{|p| p.amount }
   end
 
   # returns the total amount paid
   def total_paid
-    sum = self.payments.map{|p| p.amount}.inject(BigDecimal('0.00')) { |sum, x| sum + (x.nil? ? BigDecimal.new(0,2) : x) }
-    sum = BigDecimal(0.0,2) if sum.nil?
+    sum = self.payments.map{|p| p.amount}.inject(BigDecimal('0',2)) { |sum, x| sum + (x.nil? ? BigDecimal('0',2) : x) }
+    sum = BigDecimal('0',2) if sum.nil?
     sum
   end
 
   #returns the total payments visible to the customer
   def customer_visible_total
     total = self.payments.to_a.sum { |payment| payment.customer_visible_amount }
-    total = BigDecimal(0,2) if (total.nil? || total < 0)
+    total = BigDecimal('0',2) if (total.nil? || total < 0)
     total
   end
 
@@ -167,7 +169,7 @@ class Order < ActiveRecord::Base
     else
       a = self.value_of_all_payments(options)
     end
-    a = BigDecimal(0,2) if a < 0
+    a = BigDecimal('0',2) if a < 0
     a
   end
 
@@ -241,7 +243,7 @@ class Order < ActiveRecord::Base
   end
 
   def ticketing_fee
-    BigDecimal(self.service_line_items.to_a.sum{|li| li.facility_fee }.to_s)
+    BigDecimal(self.service_line_items.to_a.sum{|li| li.facility_fee }.to_s,2)
   end
 
   def membership_payments
@@ -399,16 +401,17 @@ class Order < ActiveRecord::Base
 
   def refund!
     Order.transaction do
-      refund_payments = []
-      create_notify_refund_task if self.fulfilled?
-      build_refunds = self.payments.dup
-      build_refunds.each { |payment| payment.refund!(nil, self.notes) if ((payment.respond_to? :refund!) && payment.report_as_sales_collected?) }
-
+      refund_payments = payments.select{|p| p.amount > 0 }.to_a 
+      refund_payments.each do |payment|
+        if ((payment.respond_to? :refund!) && payment.report_as_sales_collected?)
+          payment.refund!(nil, self.notes)
+        end
+      end
       self.all_line_items.each { |li| self.refund_line_items (li.refund!) if li.respond_to? :refund!  }
       self.status = REFUNDED
+      create_notify_refund_task if self.fulfilled?
       self.save!
     end
-
   end
 
   def unclaimed!
@@ -512,7 +515,7 @@ class Order < ActiveRecord::Base
         Rails.logger.error "Order #{self.id} could not transition from #{old_status} to #{new_status}:"
         Rails.logger.error "   #{e.to_s}"
         Rails.logger.debug e.backtrace.join("\n")
-        errors.add :error, e.to_s
+        errors.add(:error, e.to_s)
         self.status = old_status
         self.id = nil if self.status.eql?(Order::NEW)
         raise e
@@ -639,8 +642,12 @@ class Order < ActiveRecord::Base
 
   def all_line_items(reload_line_items = false)
     result = Array.new
-    result << self.special_offer_line_item(reload_line_items) unless self.special_offer_line_item.nil?
-    result += self.service_line_items(reload_line_items)
+    if reload_line_items
+      special_offer_line_item.reload
+      service_line_item.reload
+    end
+    result << self.special_offer_line_item unless self.special_offer_line_item.nil?
+    result += self.service_line_items
     result.select{|r| !r.nil?}
   end
 
@@ -658,10 +665,6 @@ class Order < ActiveRecord::Base
   protected
 
 
-  def set_theater
-    self.theater_id = self.associated_theater_id
-  end
-
   def status_is_provided?
     !self.status.blank?
   end
@@ -672,13 +675,13 @@ class Order < ActiveRecord::Base
   #    :ignore_override_payments : set to true to exclude all override payments
   def value_of_all_payments(*options)
     options = options.flatten
-    total = BigDecimal('0.00')
+    total = BigDecimal('0',2)
     sum_payments = self.payments
     sum_payments = sum_payments.select{|p| p.report_as_sales_collected?} if options.include?(:sales_collected_payment_types_only)
     unless options.include?(:include_override_payments)
       sum_payments = sum_payments.select{|p| !p.kind_of?(PriceOverridePayment)}
     end
-    total = sum_payments.map{|p| p.amount}.inject(BigDecimal("0.00")) { |sum, x| sum + (x.nil? ? BigDecimal.new(0,2) : x) }
+    total = sum_payments.map{|p| p.amount}.inject(BigDecimal('0',2)) { |sum, x| sum + (x.nil? ? BigDecimal('0',2) : x) }
 
     total.floor(2)
   end
@@ -696,14 +699,17 @@ class Order < ActiveRecord::Base
 
   def check_for_settled_payments
     paid_amt = self.total_paid || 0
-    raise "Cannot destroy orders with settled payments" if (paid_amt > 0 && self.payments.select{|p| !p.can_cancel?}.size > 0)
-    true
+    if (paid_amt > 0 && self.payments.select{|p| !p.can_cancel?}.size > 0)
+      errors.add(:order,"Cannot destroy orders with settled payments") 
+      return false
+    else
+      return true
+    end
   end
 
   def prevent_status_rollbacks
     if self.status_changed? && !self.status_was.blank?
       self.errors.add(:error, "Cannot reprocess orders") if Order.unprocessed_statuses.include?(self.status) && !Order.unprocessed_statuses.include?(self.status_was)
-      return false
     end
     true
   end
@@ -748,6 +754,10 @@ class Order < ActiveRecord::Base
     redirect_to
   end
 
+  def transition_fulfilled_to_fulfilled!(redirect_to = nil)
+    redirect_to
+  end
+
   def transition_new_to_processed!(redirect_to = nil)
       self.transition_new_to_processing!(redirect_to)
       self.transition_processing_to_processed!(redirect_to)
@@ -789,7 +799,8 @@ class Order < ActiveRecord::Base
         self.special_offer_line_item.mark_redeemed unless self.special_offer_line_item.nil?
         self.save!
         self.remove_suppressed_service_items
-        save_additional_donation_order unless (self.additional_donation.blank? || self.additional_donation.to_i == 0)
+        save_additional_donation_order(self.additional_donation) unless (self.additional_donation.blank? || self.additional_donation.to_i == 0)
+        save_additional_donation_order(self.additional_donation_for_other) unless (self.additional_donation_for_other.blank? || self.additional_donation_for_other.to_i == 0)
       end
     end
     redirect_to
@@ -808,6 +819,12 @@ class Order < ActiveRecord::Base
     self.status = Order::FULFILLED
     self.save!
     redirect_to
+  end
+
+  def self.allowed_for(user)
+    result = Order.all
+    result = result.where("orders.theater_id in (?)", user.theater_ids) if user.is_theater_user?
+    result
   end
 
   #
@@ -852,7 +869,7 @@ class Order < ActiveRecord::Base
   end
 
   def set_tasks_after_save
-    if self.do_not_create_tasks.nil? && self.status_changed?
+    if self.do_not_create_tasks.nil? && (self.new_record? || self.saved_change_to_status?)
       case self.status
         when PROCESSED
           create_mail_list_task
@@ -876,37 +893,13 @@ class Order < ActiveRecord::Base
     end
   end
 
-  def save_additional_donation_order
+  def save_additional_donation_order(donation_amount)
     donation = DonationOrder.new(:address => self.address, :payment_type => self.payment_type, :status => Order::NEW)
     donation.copy_payment_information(self)
     donation.campaign = self.performance.production.name unless self.performance.nil?
-    donation.save!
-
-    donation.donation_line_items.build(:amount => self.additional_donation)
+    donation.theater = self.theater
+    donation.donation_line_items.build(:amount => donation_amount)
     donation.transition_to!(Order::PROCESSED)
-
   end
-end
-
-# Salesforce extension
-
-class Order
-
-  attr_writer :sf_disable_sync_on_commit
-
-  def sf_disable_sync_on_commit?
-    @sf_disable_sync_on_commit.nil? ? false : @sf_disable_sync_on_commit
-  end
-
-  after_commit :queue_sf_sync, :if=>Proc.new { |syncable| self.syncable? && !syncable.sf_disable_sync_on_commit? && SalesforceSync.enabled? }
-
-  def queue_sf_sync(delay = nil)
-
-  end
-
-  def syncable?
-    self.syncable_statuses.include?(self.status) && self.address.customer?
-  end
-
 end
 

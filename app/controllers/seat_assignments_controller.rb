@@ -1,4 +1,5 @@
 class SeatAssignmentsController < ApplicationController
+  protect_from_forgery with: :null_session
   helper SeatAssignmentHelper
 
   expose :performance, ->{
@@ -13,7 +14,7 @@ class SeatAssignmentsController < ApplicationController
     sa
   }
 
-  # before_filter :load_performance_and_seat_assignments
+  # before_action :load_performance_and_seat_assignments
   def index
     respond_to do |format|
       format.html {

@@ -1,6 +1,6 @@
 class Admin::PerformancesController < Admin::ApplicationController
-  prepend_before_filter :find_production, :except=>[:seating_quickview]
-  # append_before_filter :find_performance, :only => [:show, :edit, :update, :destroy, :duplicate]
+  prepend_before_action :find_production, :except=>[:seating_quickview]
+  # before_action :find_performance, :only => [:show, :edit, :update, :destroy, :duplicate]
 
   load_and_authorize_resource
 
@@ -70,7 +70,7 @@ class Admin::PerformancesController < Admin::ApplicationController
   # PUT /performances/1.xml
   def update
     respond_to do |format|
-      if @performance.update_attributes(performance_params)
+      if @performance.update(performance_params)
         flash[:notice] = "Performance #{@performance.performance_code} was successfully updated."
         format.html { redirect_to([:admin,@performance.production.theater,@performance.production]) }
         format.xml  { head :ok }

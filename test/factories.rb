@@ -3,7 +3,8 @@
 module FactoryBot
   class << self
     def create_test_theater
-      theater = FactoryBot.create(:theater, :name=>"Test Theater")
+      theater = FactoryBot.create(:theater, :name=>"Test Theater", theater_class: Theater::VISITING)
+      org_theater = FactoryBot.create(:theater, :name=>"Box Office Theater",theater_class: Theater::DEFAULT)
       production = FactoryBot.create(:production, :theater=>theater, :name=>"Production One",
                           :production_code=>"TEST", :opening_at=>Date.today, :closing_at=>Date.today)
       FactoryBot.create(:ticket_class, :class_code=>'PASS', :class_name=>"Pass Ticket",
@@ -46,7 +47,6 @@ FactoryBot.define do
   factory :user do
     sequence(:email) { |n| "stagemgr#{n}@example.com" }
     password              { 'password' }
-    password_confirmation { 'password' }
     is_administrator      { 0 }
     factory :admin_user do
       is_administrator  { 1 }

@@ -1,6 +1,6 @@
-class Payment < ActiveRecord::Base
+class Payment < ApplicationRecord
 
-  belongs_to :order
+  belongs_to :order, inverse_of: :payments
   belongs_to :payment_type
 
   # validates_numericality_of :amount, :unless => :number_of_tickets
@@ -76,9 +76,12 @@ class Payment < ActiveRecord::Base
   end
 
   def refund!(cc_number = nil, note = nil)
-    Payment.transaction do
-      refund_payment = create_refund_payment(cc_number, note)
-      refund_payment.save!
+    if self.amount > 0 then
+
+      Payment.transaction do
+        refund_payment = create_refund_payment(cc_number, note)
+        refund_payment.save!
+      end
     end
   end
 

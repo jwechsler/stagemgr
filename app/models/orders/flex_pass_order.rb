@@ -1,17 +1,19 @@
 class FlexPassOrder < Order
 
-  has_many :flex_pass_line_items, :foreign_key=>:order_id, dependent: :destroy
-  accepts_nested_attributes_for :flex_pass_line_items
-  validates_associated :flex_pass_line_items
+  has_one :flex_pass_line_item, :foreign_key=>:order_id, dependent: :destroy, inverse_of: :flex_pass_order
+  
+  delegate :flex_pass, to: :flex_pass_line_item
+  delegate :flex_pass_offer, to: :flex_pass_line_item
+
+  accepts_nested_attributes_for :flex_pass_line_item
+  
+  validates_associated :flex_pass_line_item
+  
   before_destroy :has_no_placed_orders?
 
-  def flex_pass_offer
-    FlexPassOffer.find(self.flex_pass_line_items[0].flex_pass_offer_id) unless self.flex_pass_line_items.size == 0
-  end
-
   def associated_theater_id
-    if flex_pass_line_items.size > 0
-      flex_pass_line_items[0].flex_pass_offer.theater_id
+    unless flex_pass_line_item.nil?
+      flex_pass_offer.theater_id
     else
       super
     end
@@ -22,7 +24,7 @@ class FlexPassOrder < Order
   end
 
   def all_line_items(reload_line_items = false)
-    super(reload_line_items) + self.flex_pass_line_items(reload_line_items)
+    super(reload_line_items) << self.flex_pass_line_item
   end
 
   def valid_payment_types_for(current_user)
@@ -31,19 +33,11 @@ class FlexPassOrder < Order
   end
 
   def description
-    self.flex_pass_line_items[0].flex_pass_offer.name
+    self.flex_pass_offer.name
   end
 
   def to_s
     self.description
-  end
-
-  def flex_passes
-    self.flex_pass_line_items.map { |fli| fli.flex_passes }.flatten
-  end
-
-  def flex_pass
-    self.flex_passes.first
   end
 
   def flex_pass_payments
@@ -57,11 +51,6 @@ class FlexPassOrder < Order
       flex_pass_orders = FlexPassOrder.find_all_by_status(Order::PROCESSED)
       OrderMailer.send(:flex_pass_pending_reminder, flex_pass_orders).deliver
     end
-  end
-
-  def reload_associated
-    super
-    self.flex_pass_line_items(true)
   end
 
   def cancel!
@@ -79,11 +68,7 @@ class FlexPassOrder < Order
   end
 
   def refundable?
-    used = false
-    self.flex_pass_line_items.each {|li|
-      used ||= li.flex_pass.uses_remaining == li.flex_pass.flex_pass_offer.number_of_tickets
-    }
-    used
+    self.flex_pass_line_item.flex_pass.uses_remaining == self.flex_pass_line_item.flex_pass.flex_pass_offer.number_of_tickets
   end
 
   def has_placed_orders?
@@ -95,20 +80,11 @@ class FlexPassOrder < Order
   end
 
   protected
-
-
   def create_receipt_task
     super
     unless self.suppress_receipt
       self.tasks << OutreachTask.new(:execute_at=>Time.now + 5.minutes, :method_symbol=>:flexpass_confirmation)
     end
   end
-
-
-  def set_defaults
-    super
-    self.flex_pass_line_items.each { |tli| tli.order=self }
-  end
-
 
 end

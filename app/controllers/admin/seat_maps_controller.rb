@@ -1,5 +1,5 @@
 class Admin::SeatMapsController < ApplicationController
-  prepend_before_filter :find_venue
+  prepend_before_action :find_venue
   load_and_authorize_resource
 
   def index
@@ -7,7 +7,7 @@ class Admin::SeatMapsController < ApplicationController
       format.html # index.html.erb
       format.json {
         params.permit!
-        render json: SeatMapDatatable.new(params, view_context: view_context, current_user: current_user, root_url: root_url, venue: @venue  )
+        render json: SeatMapDatatable.new(params, venue: @venue  )
       }
     end
   end
@@ -30,7 +30,7 @@ class Admin::SeatMapsController < ApplicationController
   def update
     respond_to do |format|
       update_geometry(params[:seat_map][:geometry_import]) unless params[:seat_map][:geometry_import].nil?
-      if @seat_map.update_attributes(seat_map_params)
+      if @seat_map.update(seat_map_params)
         flash[:notice] = "SeatMap '#{@seat_map.label}' was successfully updated."
         format.html { redirect_to(admin_venue_path(@venue)) }
       else

@@ -1,4 +1,4 @@
-class CreateAddressTags < ActiveRecord::Migration
+class CreateAddressTags < ActiveRecord::Migration[4.2]
 
   def change
     create_table :address_tags do |t|

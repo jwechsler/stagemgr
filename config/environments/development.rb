@@ -1,55 +1,83 @@
-require 'salesforce_sync'
+require "active_support/core_ext/integer/time"
 
-Stagemgr::Application.configure do
-  # Settings specified here will take precedence over those in config/environment.rb
+Rails.application.configure do
+  # Settings specified here will take precedence over those in config/application.rb.
 
-  config.action_controller.relative_url_root = "/tickets"
-
-  # In the development environment your application's code is reloaded on
-  # every request.  This slows down response time but is perfect for development
-  # since you don't have to restart the webserver when you make code changes.
+  # In the development environment your application's code is reloaded any time
+  # it changes. This slows down response time but is perfect for development
+  # since you don't have to restart the web server when you make code changes.
   config.cache_classes = false
 
-  # Asset management
-  config.assets.compress = false
-  #config.assets.compress = true
+  # Do not eager load code on boot.
+  config.eager_load = false
 
-  #Expand the lines which load the assets
+  # Show full error reports.
+  config.consider_all_requests_local = true
+
+  # Enable/disable caching. By default caching is disabled.
+  # Run rails dev:cache to toggle caching.
+  if Rails.root.join('tmp', 'caching-dev.txt').exist?
+    config.action_controller.perform_caching = true
+    config.action_controller.enable_fragment_cache_logging = true
+
+    config.cache_store = :memory_store
+    config.public_file_server.headers = {
+      'Cache-Control' => "public, max-age=#{2.days.to_i}"
+    }
+  else
+    config.action_controller.perform_caching = false
+
+    config.cache_store = :null_store
+  end
+
+  # Store uploaded files on the local file system (see config/storage.yml for options).
+  config.active_storage.service = :local
+
+  # Don't care if the mailer can't send.
+  config.action_mailer.raise_delivery_errors = false
+
+  config.action_mailer.perform_caching = false
+
+  # Print deprecation notices to the Rails logger.
+  config.active_support.deprecation = :log
+
+  # Raise exceptions for disallowed deprecations.
+  config.active_support.disallowed_deprecation = :raise
+
+  # Tell Active Support which deprecation messages to disallow.
+  config.active_support.disallowed_deprecation_warnings = []
+
+  # Raise an error on page load if there are pending migrations.
+  config.active_record.migration_error = :page_load
+
+  # Highlight code that triggered database queries in logs.
+  config.active_record.verbose_query_logs = true
+
+  # Debug mode disables concatenation and preprocessing of assets.
+  # This option may cause significant delays in view rendering with a large
+  # number of complex assets.
   config.assets.debug = true
 
+  # Suppress logger output for asset requests.
+  config.assets.quiet = true
 
-  # continue to serve public folder on request
-  config.serve_static_files = true
+  # Raises error for missing translations.
+  # config.i18n.raise_on_missing_translations = true
 
-  # test assets
-  #config.assets.compress = true
-  #config.assets.js_compressor = :uglifier
-  #config.assets.compile = true
-  #config.assets.digest = true
+  # Annotate rendered view with file names.
+  # config.action_view.annotate_rendered_view_with_filenames = true
 
+  # Use an evented file watcher to asynchronously detect changes in source code,
+  # routes, locales, etc. This feature depends on the listen gem.
+  config.file_watcher = ActiveSupport::EventedFileUpdateChecker
 
-  config.eager_load = false
+  # Uncomment if you wish to allow Action Cable access from any origin.
+  # config.action_cable.disable_request_forgery_protection = true
 
   # Log error messages when you accidentally call methods on nil.
   config.whiny_nils = true
 
-  # Show full error reports and disable caching
-  config.consider_all_requests_local       = true
-  config.action_controller.perform_caching = false
-
-  # Don't care if the mailer can't send
-  config.action_mailer.raise_delivery_errors = true
-
-  # fresh development log daily
-  config.logger = Logger.new(config.paths["log"].first, 1, 20.megabytes)
-
-  # Print deprecation notices to the Rails logger
-  config.active_support.deprecation = :log
-  config.log_level = :debug
-
-  # Only use best-standards-support built into browsers
-  config.action_dispatch.best_standards_support = :builtin
-
+    
   # Setup paypal module
 
   $PAYMENT_CONFIG = YAML::load(File.open("#{::Rails.root.to_s}/config/payment_processing.yml"))['development']
@@ -62,35 +90,22 @@ Stagemgr::Application.configure do
 
   config.external_site_root = 'file:///Users/jeremyw/dev/site'
 
-  $DATABASEDOTCOM = SalesforceSync.load_from_yaml_file('development',"#{::Rails.root.to_s}/config/databasedotcom.yml")
   $TKTPRINT =  YAML::load(File.open("#{::Rails.root.to_s}/config/ticket_print.yml"))['development']
   config_data = YAML::load(File.open("#{::Rails.root.to_s}/config/server.yml"))
   $SERVER_CONFIG = config_data['all'].merge(config_data['development'])
+  $SERVER_CONFIG['ext_site_wrapper']=$SERVER_CONFIG['ext_site_wrapper'] || 'ext_site_wrapper'
   $EMAIL_ADDRESS = $SERVER_CONFIG['email_addresses']
   config.action_mailer.default_url_options = { host: $SERVER_CONFIG['host'], protocol: $SERVER_CONFIG['host_protocol'] }
+  
   unless $SERVER_CONFIG['payment_processing'].nil? || $SERVER_CONFIG['payment_processing']['additional_card_types'].blank?
     $ADDITIONAL_CARD_TYPES = $SERVER_CONFIG['payment_processing']['additional_card_types'].split(',').map{|ct| ct.strip}
   else
     $ADDITIONAL_CARD_TYPES = []
   end
   $APP_DISPLAY_NAME = $SERVER_CONFIG['app_name'] || 'StageMgr'
+  Rails.application.routes.default_url_options[:host] = $SERVER_CONFIG['host']
 
-  Paperclip.options[:log] = true
+  # Allow binding from ngrok.io for remote testing
+  config.hosts << /.*\.ngrok\.io/
 
 end
-
-# unless $rails_rake_task
-#   require 'ruby-debug'
-#
-#   Debugger.settings[:autoeval] = true
-#   Debugger.settings[:autolist] = 1
-#   Debugger.settings[:reload_source_on_change] = true
-#   begin
-#     Debugger.start_remote
-#   rescue Exception => e
-#     puts "Cannot start remote debugger - #{e.message}"
-#   end
-
-# end
-
-

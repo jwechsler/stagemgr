@@ -1,4 +1,4 @@
-class CreateTransactionIdIndexOnPayments < ActiveRecord::Migration
+class CreateTransactionIdIndexOnPayments < ActiveRecord::Migration[4.2]
   def up
     add_index :payments, :transaction_id
   end

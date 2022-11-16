@@ -2,7 +2,6 @@
   .small-12.cell
     %table
       - performances.select{|p| p.visible? && p.performance_date >= Date.today}.sort_by{|p| [p.performance_date, p.performance_time]}.each do |p|
-
         %tr
           %td
             = p.performance_date.to_s(:long)
@@ -13,17 +12,8 @@
             = price_range(p)
           %td
             .show-info
-              - unless p.performance_date<Date.today
-                - if p.sold_out? || p.withhold_from_public?
-                  - found_sold_out = true
-                  %strong Sold out!
-                - elsif p.happening_soon? && p.order_url_override.blank?
-                  Tickets available at door
-                - elsif p.near_capacity? && p.order_url_override.blank?
-                  %strong Limited availability. Call box office
-                - else
-                  = link_to 'Buy Tickets', new_order_path(p), :class=>'button tiny', :style=>'margin-bottom:0em'
-
+              = p.decorate.order_link('Buy Tickets', ['button','tiny'], 'margin-bottom:0em')
+              
     - unless @footnotes.empty?
       .grid-x.grid-padding-x
         .small-12.cell

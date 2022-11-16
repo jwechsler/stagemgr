@@ -1,9 +1,4 @@
-class SpecialOfferDatatable < AjaxDatatablesRails::Base
-  extend Forwardable
-  include ActionView::Helpers::NumberHelper
-
-  def_delegator :@view, :link_to
-  def_delegator :@view, :edit_admin_special_offer_path
+class SpecialOfferDatatable < DatatableBase
   def view_columns
     # Declare strings in this format: ModelName.column_name
     # or in aliased_join_table.column_name format
@@ -11,23 +6,18 @@ class SpecialOfferDatatable < AjaxDatatablesRails::Base
       code: { source: 'SpecialOffer.code' },
       number_of_uses: { source: 'SpecialOffer.number_of_uses' },
       status: { source: 'SpecialOffer.status' },
-      expires: {source: 'SpecialOffer.auto_expire'}
-    }
-  end
-
-  def additional_data
-    {
-      description: '',
-      actions: ''
+      expires: {source: 'SpecialOffer.auto_expire'},
+      description: { searchable: false },
+      actions: { searchable: false },
     }
   end
 
   def data
     records.map do |special_offer|
       {
-        id: special_offer.id,
-        code: link_to(special_offer.code, edit_admin_special_offer_path(special_offer)),
-        description: special_offer.to_s,
+        id: special_offer.decorate.id,
+        code: special_offer.decorate.code,
+        description: special_offer.decorate.description,
         number_of_uses: special_offer.number_of_uses,
         status: special_offer.status,
         expires: (special_offer.auto_expire.nil? ? "n/a" : special_offer.auto_expire.to_s),

@@ -1,4 +1,4 @@
-class AddRunningTimeToProduction < ActiveRecord::Migration
+class AddRunningTimeToProduction < ActiveRecord::Migration[4.2]
   def self.up
     add_column :productions, :running_time, :integer
     add_column :productions, :intermission, :boolean, {:default=>true}

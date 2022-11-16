@@ -1,12 +1,6 @@
-class FileStore < ActiveRecord::Base
-  include SafeAttributes::Base
-  belongs_to :user
-  has_attached_file :data, {
-    :path=>":rails_root/public/system/filestore/:hash/:filename",
-    :url=>"#{Rails.application.config.action_controller.relative_url_root}/system/filestore/:hash/:filename",
-    :hash_secret => $SERVER_CONFIG['filestore_hash']
-  }
-  validates_attachment_content_type :data, content_type: "text/plain"
+class FileStore < ApplicationRecord
+  belongs_to :user, inverse_of: :file_stores
+  has_one_attached :datafile
 
   FILE_WORKERS = (
     IMPORT, REPORT =
@@ -23,6 +17,14 @@ class FileStore < ActiveRecord::Base
 
   def is_mailing_card_format?
     true
+  end
+
+  def path
+    ActiveStorage::Blob.service.path_for(self.datafile.key)
+  end
+
+  def file_name
+    self.datafile.filename.to_s
   end
 
 end

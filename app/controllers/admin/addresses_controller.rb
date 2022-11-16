@@ -3,18 +3,20 @@ class Admin::AddressesController < Admin::ApplicationController
 
   autocomplete :address_tag,:tag_label
 
+  respond_to :html, :json
+
   # GET /admin/addresses
   # GET /admin/addresses.xml
   def index
-    @addresses = Address.all
-
     respond_to do |format|
       format.html # index.html.erb
-      format.xml  { render :xml => @addresses }
-      format.json { render json: AddressesDatatable.new(view_context) }
+      format.json {
+        params.permit!
+        render json: AddressDatatable.new(params, current_user: current_user )
+      }
     end
   end
-
+  
   # GET /admin/addresses/1
   # GET /admin/addresses/1.xml
   def show
@@ -22,7 +24,7 @@ class Admin::AddressesController < Admin::ApplicationController
       format.html # show.html.erb
       format.json  {
         params.permit!
-        render json: AddressesOrdersDatatable.new(params, view_context: view_context, current_user: current_user, address: @address)
+        render json: AddressesOrdersDatatable.new(params, current_user: current_user, address: @address)
       }
     end
   end
@@ -68,7 +70,7 @@ class Admin::AddressesController < Admin::ApplicationController
   # PUT /admin/addresses/1
   # PUT /admin/addresses/1.xml
   def update
-    @address.update_attributes(address_params)
+    @address.update(address_params)
   #  @address.address_tags = Array.new
   #  params[:address][:address_tags_attributes].each_pair {
   #      |k, v|
@@ -110,6 +112,17 @@ class Admin::AddressesController < Admin::ApplicationController
       format.xml  { head :ok }
     end
   end
+
+def merge_selected
+  ids = params[:ids].sort {|a,b| a.to_i <=> b.to_i }
+  address = Address.find(ids[0])
+  ids.drop(1).each do |id|
+    address2 = Address.find(id)
+    address.merge_and_purge(address2)
+  end
+
+  render :json => { result: true }
+end
 
 def autocomplete_address
     cleaned_name, first_name, middle_name, last_name, first_name_2 = Address.parse_name(params[:term])

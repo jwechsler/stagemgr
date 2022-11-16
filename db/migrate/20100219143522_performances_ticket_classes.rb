@@ -1,4 +1,4 @@
-class PerformancesTicketClasses < ActiveRecord::Migration
+class PerformancesTicketClasses < ActiveRecord::Migration[4.2]
   def self.up
     create_table :performances_ticket_classes do |t|
       t.references :performance

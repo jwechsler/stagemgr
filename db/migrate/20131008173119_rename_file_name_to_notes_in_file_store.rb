@@ -1,4 +1,4 @@
-class RenameFileNameToNotesInFileStore < ActiveRecord::Migration
+class RenameFileNameToNotesInFileStore < ActiveRecord::Migration[4.2]
   def up
     rename_column :file_stores, :name, :notes
   end

@@ -1,7 +1,6 @@
 module OrdersHelper
 
-  SWIPE_REGEX =/^(%B)([0-9]{16})[\^]([a-zA-Z ]*)(\/)([a-zA-Z ]*)\^([0-9]{2})([0-9]{2})(.*)\?$/
-
+  SWIPE_REGEX = /^%(?<FC>.)\$(?<PAN>[\d]{1,19}+)\^(?<NM>.{2,26})\^\@(?<YY>[\d]{0,2}|\^)(?<MM>[\d]{0,2}|\^)(?<SC>[\d]{0,3}|\^)(?<DD>.*)\?;(?<PAN>[\d]{1,19}+)=(?<YY>[\d]{0,2}|\^)(?<MM>[\d]{0,2}|\^)(?<SC>[\d]{0,3}|\^)(?<DD>.*)\?/
 
   def convert_button_label_to_state(button_label)
     case button_label.downcase
@@ -38,7 +37,7 @@ module OrdersHelper
     end
     result = true
     unless order.errors.empty?
-      flash[:error] = order.errors.full_messages.first
+      flash[:error] = order.errors.first.full_message
       result = false
     end
     return result
@@ -51,7 +50,7 @@ module OrdersHelper
 
   public
   def common_params
-    [ :special_offer_code, :hold_under, :payment_type_id, :credit_card_type, :additional_donation,
+    [ :special_offer_code, :hold_under, :payment_type_id, :credit_card_type, :additional_donation, :additional_donation_for_other,
       :credit_card_number, :credit_card_expiration_month, :credit_card_expiration_year,
       :credit_card_verification_number, :credit_card_swipe, :credit_card_confirmation_code,
       :flex_pass_code, :member_code, :check_number, :add_to_email_list, :marketing_source, :notes, :status,
@@ -63,6 +62,7 @@ module OrdersHelper
   def set_payment_accessors_from_params(order, order_params)
     order.special_offer_code = order_params[:special_offer_code]
     order.additional_donation = order_params[:additional_donation]
+    order.additional_donation_for_other = order_params[:additional_donation_for_other]
     order.credit_card_number = order_params[:credit_card_number]
     order.credit_card_type = order_params[:credit_card_type]
     order.credit_card_expiration_year = order_params[:credit_card_expiration_year]
@@ -99,7 +99,7 @@ module OrdersHelper
       if order.errors.empty?
         rescue_error(e)
       else
-        flash[:error] = order.errors.full_messages.first
+        flash[:error] = order.errors.first.full_message
       end
       return false
     end

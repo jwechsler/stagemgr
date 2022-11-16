@@ -1,4 +1,4 @@
-class CreateDefaultTicketClasses < ActiveRecord::Migration
+class CreateDefaultTicketClasses < ActiveRecord::Migration[4.2]
   def self.up
     create_table :default_ticket_classes do |t|
       t.string :class_code

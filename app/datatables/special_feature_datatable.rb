@@ -1,7 +1,5 @@
 class SpecialFeatureDatatable < DatatableBase
-  extend Forwardable
-  include ActionView::Helpers::NumberHelper
-
+  
   def view_columns
     # Declare strings in this format: ModelName.column_name
     # or in aliased_join_table.column_name format
@@ -9,26 +7,18 @@ class SpecialFeatureDatatable < DatatableBase
       name: { source: 'SpecialFeature.short_name' },
       description: { source: 'SpecialFeature.description' },
       status: { source: 'SpecialFeature.status' },
+      actions: { searchable: false }
     }
   end
-
-  def additional_data
-    {
-      actions: ''
-    }
-  end
-
 
   def data
     records.map do |record|
       {
-        id: record.id,
-        name: link_to(record.short_name, [:admin, record]),
-        description: raw($MARKDOWN.render(record.description)),
-        status: raw("<span class=\"label\">#{record.status}</span>"),
-        actions:
-          (current_user.can?(:edit, record) ? link_to('Edit', [:edit, :admin, record], :id=>"edit_#{record.short_name.downcase.gsub(' ','_')}", :class=>'tiny button') + " " : "") +
-          (current_user.can?(:destroy, record) ? link_to('Destroy', [:admin, record], :confirm => 'Are you sure?', :method => :delete, :class=>'tiny alert button') : ""),
+        id: record.decorate.id,
+        name: record.decorate.short_name,
+        description: record.decorate.description,
+        status: record.decorate.status,
+        actions: record.decorate.dt_actions,
         DT_RowID: record.id,
      }
     end
@@ -37,7 +27,7 @@ class SpecialFeatureDatatable < DatatableBase
   private
 
   def get_raw_records
-    special_features = SpecialFeature.all.order(:short_name)
+    special_features = SpecialFeature.all
   end
 
   # ==== These methods represent the basic operations to perform on records
@@ -46,8 +36,9 @@ class SpecialFeatureDatatable < DatatableBase
   # def filter_records(records)
   # end
 
-  # def sort_records(records)
-  # end
+  def sort_records(records)
+    records.order(:short_name)
+  end
 
   # def paginate_records(records)
   # end

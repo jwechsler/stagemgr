@@ -1,4 +1,4 @@
-class AddServiceItemsToTheatre < ActiveRecord::Migration
+class AddServiceItemsToTheatre < ActiveRecord::Migration[4.2]
   def change
     add_column :theaters, :default_service_items, :string
     add_column :theaters, :default_first_exchange_items, :string

@@ -10,7 +10,7 @@ Feature: Box office ordering
 
   Scenario: Create a credit card order
     Given I visit the new admin ticket order page
-      And I enter production code "TEST" and performance code "TEST01"
+      And I enter performance code "TEST01"
       And I enter 2 "CHEAP" tickets
       And I enter my contact information
       And I enter a valid credit card as payment through the backend
@@ -19,7 +19,7 @@ Feature: Box office ordering
 
   Scenario: Create a personal check order
     Given I visit the new admin ticket order page
-      And I enter production code "TEST" and performance code "TEST01"
+      And I enter performance code "TEST01"
       And I enter 2 "CHEAP" tickets
       And I enter my contact information
       And I enter a check number "1224" as payment
@@ -29,26 +29,28 @@ Feature: Box office ordering
 
   Scenario: Create an external payment order
     Given an external payment type "Goldstar" exists
-      And I go to new admin ticket order
-      And I enter production code "TEST" and performance code "TEST01"
+      And I visit the new admin ticket order page
+      And I enter performance code "TEST01"
       And I enter 2 "CHEAP" tickets
       And I enter my contact information
       And I choose "Goldstar" as payment
       And I place the order
      Then I should see "Order was successfully processed"
 
-  Scenario: Enforce ticket class requirements from external payment orders
-    Given an external payment type "Goldstar" restricted to ticket classes starting with "CHEAP" exists
-      And I go to new admin ticket order
-      And I enter production code "TEST" and performance code "TEST01"
-      And I enter 2 "RICH" tickets
-      And I enter my contact information
-      And I choose "Goldstar" as payment
-      And I place the order
-     Then I should see "This payment type is restricted to CHEAP tickets"
-      And I enter 2 "CHEAP" tickets
-      And I place the order
-      And I should see "Order was successfully processed"
+  # @pending
+  # Scenario: Enforce ticket class requirements from external payment orders
+  #   Given an external payment type "Goldstar" restricted to ticket classes starting with # "CHEAP" exists
+  #     And I visit the new admin ticket order page
+  #     And I enter performance code "TEST01"
+  #     And I enter 2 "RICH" tickets
+  #     And I enter my contact information
+  #     And I choose "Goldstar" as payment
+  #     And I place the order
+  #    Then I should see "This payment type is restricted to CHEAP tickets"
+  #     And I enter 2 "CHEAP" tickets
+  #     And I place the order
+  #     And I should see "Order was successfully processed"
+
 
   Scenario: Update note on existing order
     Given a ticket order for performance "TEST01" paid with cash exists
@@ -60,8 +62,8 @@ Feature: Box office ordering
       And I should see "Magic Update"
 
   Scenario: Hold order under name
-    Given I go to new admin ticket order
-      And I enter production code "TEST" and performance code "TEST01"
+    Given I visit the new admin ticket order page
+      And I enter performance code "TEST01"
       And I enter 2 "CHEAP" tickets
       And I enter my contact information
       And I enter a check number "1224" as payment

@@ -1,8 +1,13 @@
 require 'rails_helper'
+require 'stripe_mock'
 
 RSpec.shared_examples "a paid ticket order" do |pay_method_type, seating_type|
   let(:pay_method) { pay_method_type}
   let(:seating) { seating_type }
+  let(:stripe_helper) { StripeMock.create_test_helper }
+  before { StripeMock.start }
+  after { StripeMock.stop }
+
   it "can be refunded" do
     o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, pay_method, seating)
     unless o.paid_with_pass?
@@ -11,7 +16,9 @@ RSpec.shared_examples "a paid ticket order" do |pay_method_type, seating_type|
       expect(o.total).to eq(0)
     end
   end
+
   it "should mark its holder has having attended the production when fulfilled" do
+    
     o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, pay_method, seating)
     o.transition_to!(Order::FULFILLED)
     expect(o.performance.production.attendees.size).to eq(1)
@@ -192,6 +199,25 @@ RSpec.describe TicketOrder do
 
   end
 
+
+  it "can create up to two additional donation orders", :wip do
+    o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets)
+    expect(DonationOrder.all.count).to eq(0)
+    o.additional_donation = 50.00
+    o.additional_donation_for_other = 1.66
+    expect(o.total).to eq(12.00)
+    o.transition_to!(Order::PROCESSED)
+    donation_orders = DonationOrder.all.order(amount: :desc)
+    expect(donation_orders.count).to eq(2)
+    expect(donation_orders[0].total).to eq(50.00)
+    expect(donation_orders[1].total).to eq(1.66)
+    expect(donation_orders[0].campaign).not_to be_blank
+    expect(donation_orders[1].campaign).not_to be_blank
+    expect(donation_orders[1].theater).to eq(Theater.first)
+    expect(donation_orders[0].theater).to eq(Theater.first)
+  end
+
+
   context "when overselling" do
 
     it "cannot processes if it would oversell a particular ticket class" do
@@ -202,10 +228,12 @@ RSpec.describe TicketOrder do
       o2 = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash, :performance=>performance)
       expect(performance.number_of_seats_left).to eq(0)
 
-      expect(lambda { order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :performance=>performance )
+      expect{ order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :performance=>performance )
                   order.transition_to!(Order::PROCESSING)
-                  order.errors.each {|key, data| puts data.to_yaml }
-            }).to raise_error(ActiveRecord::RecordInvalid)
+                  order.errors.each do |error|
+                    puts "#{error.message}, #{error.attribute.to_yaml}" 
+                  end
+            }.to raise_error(ActiveRecord::RecordInvalid)
     end
 
     it "cannot processes if it would oversell a performance" do
@@ -248,7 +276,7 @@ RSpec.describe TicketOrder do
       expect(o.number_of_seats).to eq(3)
 
 
-      expect(lambda { o.transition_to!(Order::PROCESSING) }).to raise_error(ActiveRecord::RecordInvalid)
+      expect{ o.transition_to!(Order::PROCESSING) }.to raise_error(ActiveRecord::RecordInvalid)
     end
 
     it "can mark an order in a sold-out performance as unclaimed" do

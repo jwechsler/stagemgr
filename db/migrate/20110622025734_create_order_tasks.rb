@@ -1,4 +1,4 @@
-class CreateOrderTasks < ActiveRecord::Migration
+class CreateOrderTasks < ActiveRecord::Migration[4.2]
   def self.up
     create_table :order_tasks do |t|
       t.datetime :execute_at

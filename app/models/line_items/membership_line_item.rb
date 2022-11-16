@@ -5,7 +5,7 @@ class MembershipLineItem < LineItem
   belongs_to :membership_offer
   belongs_to :membership
   belongs_to :address
-  belongs_to :membership_order, :foreign_key=>:order_id
+  belongs_to :membership_order, :foreign_key=>:order_id, optional: true, inverse_of: :membership_line_item
 
   accepts_nested_attributes_for :membership
 

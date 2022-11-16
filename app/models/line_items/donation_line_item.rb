@@ -1,5 +1,5 @@
 class DonationLineItem < LineItem
-  belongs_to :donation_order, :foreign_key=>:order_id
+  belongs_to :donation_order, :foreign_key=>:order_id, inverse_of: :donation_line_items
   validates_numericality_of :amount, :greater_than_or_equal_to=>1.0
 
   attr_accessor :donation_level

@@ -1,6 +1,6 @@
 require 'resque/server'
 
-Stagemgr::Application.routes.draw do
+Rails.application.routes.draw do
   mount StripeEvent::Engine, at: '/stripecb' # provide a custom path
 
   namespace(:admin){ resources :memberships }
@@ -28,14 +28,6 @@ Stagemgr::Application.routes.draw do
 
   get "venue/offnight_up_next"
 
-
-  # paypal IPN routes
-
-  post '/pay_pal/notify' => 'pay_pal#notify'
-  post '/pay_pal/show' => 'pay_pal#show'
-  post '/pay_pal/cancel' => 'pay_pal#cancel'
-  post '/paypal/ipn' => 'pay_pal#paypal_ipn'
-
   # resque admin page
   mount Resque::Server.new, :at => "/admin/resque"
 
@@ -54,8 +46,7 @@ Stagemgr::Application.routes.draw do
   #get "donations/show"
 
   resources :donations, :controller => "donation_orders"
-  resources :donation_pledge_orders
-
+  
   resources :membership_orders do
     member do
       get :confirm
@@ -167,6 +158,7 @@ Stagemgr::Application.routes.draw do
 
     resources :addresses do
       collection do
+        post :merge_selected, format: :json
         get :autocomplete_address
         get :autocomplete_tag
         get :autocomplete_address_tag_tag_label
@@ -250,8 +242,6 @@ Stagemgr::Application.routes.draw do
         get  :fulfill
       end
     end
-
-    resources :donation_pledge_orders, :path=>:donation_orders
 
     resources :ticket_orders do
       collection do

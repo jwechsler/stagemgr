@@ -1,8 +1,8 @@
 class PerformancesController < ApplicationController
   helper PerformancesHelper
-  layout 'ext_site_wrapper'
+  layout $SERVER_CONFIG['ext_site_wrapper']
 
-  append_before_filter :find_production, :except=>[:by_date, :ticket_classes]
+  before_action :find_production, :except=>[:by_date, :ticket_classes]
 
   def index
     if !@production.nil?
@@ -31,7 +31,7 @@ class PerformancesController < ApplicationController
         @footnotes << "_custom#{p.id}" unless p.special_feature_display_markdown.blank?
       }
       @footnotes = @footnotes.uniq
-      render :index, :layout=>'ext_site_wrapper'
+      render :index, :layout=>$SERVER_CONFIG['ext_site_wrapper']
     else
       super
     end
@@ -50,7 +50,7 @@ class PerformancesController < ApplicationController
         @footnotes << "_custom#{p.id}"
       end
     }
-    render :by_date, :layout=>'ext_site_wrapper'
+    render :by_date, :layout=>$SERVER_CONFIG['ext_site_wrapper']
   end
 
   def ticket_classes

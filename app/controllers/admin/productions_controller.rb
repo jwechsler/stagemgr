@@ -1,6 +1,6 @@
 class Admin::ProductionsController < Admin::ApplicationController
-  prepend_before_filter :find_theater
-  append_before_filter :find_context, :only => [:show]
+  prepend_before_action :find_theater
+  before_action :find_context, :only => [:show]
   load_and_authorize_resource
 
   def index
@@ -26,6 +26,7 @@ class Admin::ProductionsController < Admin::ApplicationController
   # GET /productions/new.xml
   def new
     @production = @theater.productions.build
+    @production.theater = @theater
      respond_to do |format|
       format.html # new.html.erb
       format.xml  { render :xml => @production }
@@ -38,9 +39,6 @@ class Admin::ProductionsController < Admin::ApplicationController
   # POST /productions
   # POST /productions.xml
   def create
-    if params[:production][:promo].respond_to? :empty?
-      params[:production].delete(:promo) if params[:production].has_key?(:promo) && params[:production][:promo].empty?
-    end
     @production = Production.new(production_params)
     @production.theater = @theater
     if @production.save
@@ -51,17 +49,17 @@ class Admin::ProductionsController < Admin::ApplicationController
       end
     else
       respond_to do |format|
+        Rails.logger.debug("*** NEW Production failed. #{@production.ticket_classes.to_yaml}")
         format.html { render :action => "new" }
         format.xml  { render :xml => @production.errors, :status => :unprocessable_entity }
       end
     end
   end
 
-
   # PUT /productions/1
   # PUT /productions/1.xml
   def update
-    @production.update_attributes(production_params)
+    @production.update(production_params)
     respond_to do |format|
 
       if @production.save

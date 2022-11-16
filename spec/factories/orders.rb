@@ -37,11 +37,11 @@ FactoryBot.define do
 
     trait :for_three_tickets do
       before(:create) do |ticket_order, evaluator|
-        ticket_order.ticket_line_items << [FactoryBot.create(:ticket_line_item,
+        ticket_order.ticket_line_items << [FactoryBot.build(:ticket_line_item,
           :ticket_class=>ticket_order.performance.ticket_class_allocations.select{|tca| tca.available && !tca.ticket_class.software_managed? && tca.ticket_class.ticket_price > 0 }.sort{|tca1, tca2| tca2.ticket_class.ticket_price <=> tca1.ticket_class.ticket_price}.first.ticket_class,
           :ticket_count=>2,
           :order=>ticket_order),
-        FactoryBot.create(:ticket_line_item,
+        FactoryBot.build(:ticket_line_item,
           :ticket_class=>ticket_order.performance.ticket_class_allocations.select{|tca| tca.available }.sort{|tca1, tca2| tca1.ticket_class.ticket_price <=> tca2.ticket_class.ticket_price}.first.ticket_class,
           :ticket_count=>1,
           :order=>ticket_order)]
@@ -51,7 +51,7 @@ FactoryBot.define do
 
     trait :for_a_pair_of_tickets do
       before(:create) do |ticket_order, evaluator|
-        ticket_order.ticket_line_items << FactoryBot.create(:ticket_line_item,
+        ticket_order.ticket_line_items << FactoryBot.build(:ticket_line_item,
           :ticket_class=>ticket_order.performance.ticket_class_allocations.select{|tca| tca.available && !tca.ticket_class.software_managed? && tca.ticket_class.ticket_price > 0 }.sort {|tca1, tca2| tca2.ticket_class.ticket_price <=> tca1.ticket_class.ticket_price}.first.ticket_class,
           :ticket_count=>2,
           :order=>ticket_order) 
@@ -60,7 +60,7 @@ FactoryBot.define do
 
     trait :for_an_expensive_pair_of_tickets do
       before(:create) do |ticket_order, evaluator|
-        ticket_order.ticket_line_items << FactoryBot.create(:ticket_line_item,
+        ticket_order.ticket_line_items << FactoryBot.build(:ticket_line_item,
           :ticket_class=>ticket_order.performance.ticket_class_allocations.select{|tca| tca.available }.sort{|tca1, tca2| tca2.ticket_class.ticket_price <=> tca1.ticket_class.ticket_price}.first.ticket_class,
           :ticket_count=>2,
           :order=>ticket_order)
@@ -69,7 +69,7 @@ FactoryBot.define do
 
     trait :for_a_cheap_pair_of_tickets do
       before(:create) do |ticket_order, evaluator|
-        ticket_order.ticket_line_items << FactoryBot.create(:ticket_line_item,
+        ticket_order.ticket_line_items << FactoryBot.build(:ticket_line_item,
           :ticket_class=>ticket_order.performance.ticket_class_allocations.select{|tca| tca.available }.sort{|tca1, tca2| tca1.ticket_class.ticket_price <=> tca2.ticket_class.ticket_price}.first.ticket_class,
           :ticket_count=>2,
           :order=>ticket_order)
@@ -140,21 +140,17 @@ FactoryBot.define do
 
 
         find_code = flex_pass.flex_pass_offer.use_ticket_class_code
-        if (ticket_order.performance.production.ticket_classes.select{|tc| tc.class_code.eql?(find_code)}.size == 0)
-          ticket_order.performance.production.ticket_classes << FactoryBot.create(:ticket_class, :class_code=>find_code, :class_name=>"Pass Ticket",
+        ticket_order.performance.production.ticket_classes << (pass_class = FactoryBot.create(:ticket_class, :class_code=>find_code, :class_name=>"Pass Ticket",
                           :ticket_price=>0.00, :web_visible=>false, :software_managed=>true,
-                          :production=>ticket_order.performance.production, :auto_attach=>true)
-          ticket_order.performance.production.save
-          ticket_order.reload
-
-        end
+                          :production=>ticket_order.performance.production, :auto_attach=>true))
+        
+        ticket_order.performance.ticket_class_allocations << FactoryBot.build(:ticket_class_allocation, available: true, ticket_class: pass_class)
         ticket_order.flex_pass_code = flex_pass.code
       end
 
       after(:create) do |ticket_order, evaluator|
         flex_pass = FlexPass.find_by(code:ticket_order.flex_pass_code)
         find_code = flex_pass.flex_pass_offer.use_ticket_class_code
-
         new_ticket_class = ticket_order.performance.ticket_class_allocations.select {|tca|
           tca.ticket_class.class_code.eql?(find_code) }.first.ticket_class
         ticket_order.ticket_line_items.each do |tli|
@@ -246,6 +242,7 @@ FactoryBot.define do
                             :amount=>ticket_order.value_of_all_line_items)
         ticket_order.status = Order::PROCESSED
         ticket_order.save!
+        
       end
     end
 

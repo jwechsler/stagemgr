@@ -1,4 +1,4 @@
-class AddPhoneToAddress < ActiveRecord::Migration
+class AddPhoneToAddress < ActiveRecord::Migration[4.2]
   def self.up
     add_column :addresses, :phone, :string
   end

@@ -1,8 +1,8 @@
 %div(class="production_information #{(defined? layout_style) ? layout_style : ''}")
   = render :partial=>'/productions/header', :locals=>{:production=>production}
-
+  
   .production_description
-    %p= raw $MARKDOWN.render(production.show_description)
+    %p= raw $MARKDOWN.render(production.show_description) unless production.show_description.blank?
     - unless production.running_time.blank? then
       - hour = "#{(production.running_time / 60).to_i} hour#{(production.running_time/60).to_i > 1 ? 's' : ''}"
       - hour = hour + " #{production.running_time % 60} minute#{(production.running_time % 60 > 1) ? 's' : ''}" if (production.running_time % 60) != 0

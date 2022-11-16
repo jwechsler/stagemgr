@@ -1,7 +1,15 @@
 # Admin page navigation shortcuts
 
 Given("I visit the new admin ticket order page") do
-  visit new_admin_ticket_order_path
+  click_link "New Ticket Order"
+  fill_in 'production_code', :with=>Production.first.production_code
+  page.execute_script("document.getElementById('new_production_id').value='#{Production.first.id}'")
+  page.execute_script("document.getElementById('production-form').submit()")
+end
+
+Given("I visit the admin flex pass offer page") do
+  click_link "Passes"
+  click_link "Flex Pass Offers"
 end
 
 Given("I wait {int} seconds") do |int|
@@ -57,23 +65,17 @@ When /^I enter a theater called "([^\"]*)"$/ do |name|
   select Theater::THEATER_CLASSES.first, :from=>"Theater class"
 end
 
-When /^I enter production code "([^\"]*)" and performance code "([^\"]*)"$/ do |prod_code, perf_code|
+When /^I enter performance code "([^\"]*)"$/ do |perf_code|
 
-  fill_in "ticket_order_production_code", :with=>prod_code
   fill_in "ticket_order_performance_code", :with=>perf_code
-  page.execute_script "$('#production_id').val('#{Production.find_by(production_code:prod_code).id}')"
   page.execute_script "$('#performance_id').val('#{Performance.find_by(performance_code:perf_code).id}')"
 
 end
 
-When /^I enter (\d+) "([^\"]*)" tickets$/ do |qty, ticket_class_code|
-  fill_in "ticket_order_ticket_line_items_attributes_0_ticket_class_code", :with =>  ticket_class_code
-  fill_in "ticket_order_ticket_line_items_attributes_0_ticket_count", :with=>qty
-  page.execute_script "$('.ticket_class_ids').val('1')"
-end
 
 When /^I enter a membership offer "(.*?)"$/ do |offer_name|
   fill_in "Name", :with => offer_name
+  fill_in "Price ID", :with=> "TESTREMOTE"
   # fill_in "membership_offer_recurring_cost", :with=>"10.00"  What is equivalent when we do test structures?
   fill_in "Tickets per performance", :with=>"1"
   select "PASS", :from=>"Use ticket class code"

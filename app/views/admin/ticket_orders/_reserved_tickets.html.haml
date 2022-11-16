@@ -1,3 +1,4 @@
+/= /admin/ticket_orders/reserved_tickets
 = render partial:'/seat_assignments/ticket_class_selector', locals: {order_form: order_form}
 #ticket-items{'data-line-items':'[]'}
 .grid-x.grid-padding-x
@@ -8,14 +9,29 @@
       - unless order_form.object.performance_id.nil?
         = render partial:"/seat_assignments/available_seatmap", locals:{ticket_order_uuid: order_form.object.uuid, performance: order_form.object.performance}
       - else
-        %img{:src => "#{root_url}#{order_production.seat_map.base_image_map.url}"}
+        = order_production.seat_map.decorate.base_image_map
 
 = content_for :js do
   = javascript_include_tag 'seat_assignment'
   :javascript
+    MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
+
+    var trackChange = function(element) {
+      var observer = new MutationObserver(function(mutations, observer) {
+        if(mutations[0].attributeName == "value") {
+            $(element).trigger("change");
+        }
+      });
+      observer.observe(element, {
+        attributes: true
+      });
+    }
+
+    // Just pass an element to the function to start tracking
+    trackChange( $("#performance_id")[0] );
 
     $(document).ready(function() {
-      $('#ticket_order_performance_code').focusout(function(event, data){
+      $('#performance_id').change(function(event, data){
         console.log("updating ticketing panel");
         update_ticketing_panel();
       })

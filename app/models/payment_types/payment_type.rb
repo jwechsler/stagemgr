@@ -1,8 +1,11 @@
-class PaymentType < ActiveRecord::Base
+class PaymentType < ApplicationRecord
 
   has_many :payments
-  has_many :payment_restrictions, :dependent=>:destroy
+  has_many :payment_restrictions, :dependent=>:destroy, inverse_of: :payment_type
   has_many :order_task_suppressions, :dependent=>:destroy
+  has_many :performances, :through=>:payment_restrictions, inverse_of: :restricted_payment_types
+  
+
   accepts_nested_attributes_for :order_task_suppressions, :reject_if => proc { |attributes| attributes['task_type'].blank? }, :allow_destroy=>true
 
   before_destroy :prevent_orphans
@@ -47,7 +50,7 @@ class PaymentType < ActiveRecord::Base
 
   def prevent_orphans
     if self.payments.count > 0
-      self.errors[:base] << "#{self.display_name} has payments associated with it.  Cannot be deleted"
+      self.errors.where(:base) << "#{self.display_name} has payments associated with it.  Cannot be deleted"
       false
     else
       true

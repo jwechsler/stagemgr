@@ -37,12 +37,14 @@ Feature: An administrator can add production details to a theater
   Scenario: Don't delete productions
   Given a production "Production One" exists
     And I go to the admin detail page for theater "Theater One"
+    And I wait for the datatable to load
     And I should see "Production One"
     Then I should not see "Destroy"
 
   Scenario: Edit a production
   Given a production "Production One" exists
     And I go to the admin detail page for theater "Theater One"
+    And I wait for the datatable to load
     And I follow "Edit"
     And I change "production_name" to "Production One (Changed)"
    When I press "Update"

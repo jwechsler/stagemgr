@@ -1,11 +1,20 @@
-class User < ActiveRecord::Base
+class User < ApplicationRecord
   has_and_belongs_to_many :theaters #, :as => :owned_theaters
-  has_many :file_stores
+  has_many :file_stores, inverse_of: :user
   validates_presence_of :email
   validates_uniqueness_of :email
   # proxy ability queries to user objects
   delegate :can?, :cannot?, :to => :ability
-
+  validates :email,
+    format: {
+        with: /@/,
+        message: "should look like an email address."
+      },
+      length: { maximum: 100 },
+      uniqueness: {
+        case_sensitive: false,
+        if: :will_save_change_to_email?
+      }
   ROLES                                 = (
   ADMIN, BOXOFFICE, THEATERUSER  = "Administrator", "Box Office", "Producer"
   )
@@ -36,6 +45,14 @@ class User < ActiveRecord::Base
     allowed = theaters.map{|t| t.id.to_i}
   end
 
+  def allowed_theaters
+    if self.is_theater_user? 
+      self.theaters
+    else
+      Theater.where(status: Theater::ACTIVE)
+    end
+  end
+  
   def set_defaults
     self.is_administrator = false if self.is_administrator.nil?
     self.is_box_office_user = false if self.is_box_office_user.nil?

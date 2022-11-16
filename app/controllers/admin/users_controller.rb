@@ -1,6 +1,6 @@
 class Admin::UsersController < Admin::ApplicationController
   load_and_authorize_resource
-  # prepend_before_filter :find_user, :only => [:show, :edit, :update, :destroy]
+  # prepend_before_action :find_user, :only => [:show, :edit, :update, :destroy]
 
   # GET /users
   def index
@@ -32,7 +32,7 @@ class Admin::UsersController < Admin::ApplicationController
   def edit; end
 
   def update
-    @user.update_attributes(user_params)
+    @user.update(user_params)
     if @user.save
       flash[:notice] = "Account updated!"
       redirect_to admin_users_path
@@ -57,6 +57,6 @@ class Admin::UsersController < Admin::ApplicationController
   end
 
   def user_params
-    params.require(:user).permit(:email,:password,:password_confirmation,:status,:is_administrator,:is_box_office_user, :theater_ids=>[])
+    params.require(:user).permit(:email,:password,:status,:is_administrator,:is_box_office_user, :theater_ids=>[])
   end
 end

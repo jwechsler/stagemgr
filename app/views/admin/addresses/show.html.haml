@@ -3,16 +3,28 @@
 = content_for :breadcrumbs do
   %ul.breadcrumbs
     %li
-      = link_to 'Addresses', admin_addresses_path
+      = link_to 'Customers', admin_addresses_path
     %li.current
       %a{:href=>'#'}= @address.full_name
 
-.small-12.medium-6.cell
-  = render :partial=>"/admin/addresses/address_contact_info", :locals=>{:address=>@address}
-.small-12.medium-6.cell
-  = render(:partial=>"/admin/address_tags/tags", :locals=>{:address_tags=>@address.address_tags})
-.small-12.cell.right
-  = link_to 'Edit', edit_admin_address_path(@address), :class=>'small button'
+.grid-x.grid-padding-x
+  .small-12.medium-6.cell
+    = render :partial=>"/admin/addresses/address_contact_info", :locals=>{:address=>@address}
+  .small-12.medium-6.cell
+    - if @address.is_current_member?
+      %fieldset.fieldset
+        %legend Active Memberships
+        = @address.memberships.select{|membership| membership.active?}.map {|m| m.member_code }.join(', ')
+    - if @address.is_current_flex_pass_holder?
+      %fieldset.fieldset
+        %legend Active Flex Passes
+        - @address.flex_passes.select{|fp| !fp.expired?}.each do |fp|
+          = fp.decorate.description
+          %br
+    
+    = render(:partial=>"/admin/address_tags/tags", :locals=>{:address_tags=>@address.address_tags})
+  .small-12.cell.right
+    = link_to 'Edit', edit_admin_address_path(@address), :class=>'small button'
 
 - if !@address.orders.nil? && @address.orders.size > 0
   = render :partial=>"/admin/addresses/order_history", :locals=>{:orders=>@visible_orders, address: @address}

@@ -1,19 +1,21 @@
-class Performance < ActiveRecord::Base
+class Performance < ApplicationRecord
 
   PERFORMANCE_STATUSES = (ACTIVE, INACTIVE, PRIVATE = 'Active',  'Inactive', 'Private')
 
-  belongs_to               :production
-  has_many                 :ticket_classes, :through=>:ticket_class_allocations
-  has_many                 :line_items, :through=>:orders
-  has_many                 :seat_assignments, -> { includes :seat }
+  belongs_to               :production, inverse_of: :performances
+  has_many                 :special_offers, inverse_of: :performance
+  has_many                 :ticket_class_allocations, -> { includes :ticket_class }, inverse_of: :performance
+  has_many                 :ticket_classes, :through=>:ticket_class_allocations, inverse_of: :performances 
+  has_many                 :seat_assignments, -> { includes :seat }, inverse_of: :performance
   has_many                 :seats, :through=>:seat_assignments
   has_one                  :seat_map, :through=>:production
-  has_many                 :orders, :class_name=>'TicketOrder'
-  has_many                 :ticket_class_allocations, -> { includes :ticket_class }
-  has_many                 :payment_restrictions, :dependent=>:destroy
+  has_many                 :orders, :class_name=>'TicketOrder', inverse_of: :performance
+  has_many                 :payment_restrictions, :dependent=>:destroy, inverse_of: :performance
   has_many                 :restricted_payment_types, :source=>:payment_type, :through=>:payment_restrictions
-  has_and_belongs_to_many      :special_features
+  has_and_belongs_to_many  :special_features
+
   default_scope            { includes(:ticket_class_allocations) }
+
   validates_inclusion_of   :status,            :in => PERFORMANCE_STATUSES
   validates_uniqueness_of  :performance_code
   validates_uniqueness_of  :performance_time, :scope=>[:performance_date, :production_id]
@@ -24,7 +26,7 @@ class Performance < ActiveRecord::Base
         p.performance_time.hour==record.performance_time.hour &&
         p.performance_time.min==record.performance_time.min
       end
-      record.errors.add attr, 'has already been taken'
+      record.errors.add(attr, 'has already been taken')
     end
   end
   validates_presence_of           :performance_code
@@ -87,7 +89,7 @@ class Performance < ActiveRecord::Base
 
   def happening_soon?
     at = self.performance_at
-    (Time.now < at) && (Time.now + 2.hours > at)
+    (Time.now < at + self.production.running_time.minutes) && (Time.now + $SERVER_CONFIG['restrict_sales_due_to_time_at_minutes_before'].minutes > at)
   end
 
   def performance_at
@@ -104,7 +106,7 @@ class Performance < ActiveRecord::Base
 
 
   def near_capacity?
-    self.number_of_seats_left <= 9
+    self.number_of_seats_left <= $SERVER_CONFIG['restrict_sales_due_to_capacity_at']
   end
 
   def populate_ticket_class_allocations
@@ -192,7 +194,7 @@ class Performance < ActiveRecord::Base
       file_path=Rails.root.join('public','static','qv',file_name).to_s
       if !File.exist?(file_path) || (File.mtime(file_path) < (seat_assignments.maximum(:updated_at) || Time.now) +5.minutes)
         dots = SeatAssignment.joins(:seat).includes(:seat).where(performance_id: self.id, status: SeatAssignment::AVAILABLE).pluck(:origin_x, :origin_y, :width)
-        result = MiniMagick::Image.open(seat_map.base_image_map.path)
+        result = MiniMagick::Image.open(seat_map.base_image_map_file)
         image = 'available_seat.png'
         available_dot = MiniMagick::Image.open(Rails.root.to_s + "/app/assets/images/available_seat.png")
         availables = Hash.new

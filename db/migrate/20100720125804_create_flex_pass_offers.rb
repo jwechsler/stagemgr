@@ -1,4 +1,4 @@
-class CreateFlexPassOffers < ActiveRecord::Migration
+class CreateFlexPassOffers < ActiveRecord::Migration[4.2]
   def self.up
     create_table :flex_pass_offers do |t|
       t.references :theater

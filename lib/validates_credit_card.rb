@@ -6,7 +6,7 @@ module ActiveRecord::Validations::ClassMethods
     with = options[:with] || DEFAULT_CREDIT_CARD_TYPES
     validates_each(card_number, options) do |record, attr_name, value|
       type = record.send(card_type)
-      record.errors.add attr_name, "is not a valid #{type.humanize} card" unless passes_luhn?(value) and with[card_bin(value)] == type
+      record.errors.add(attr_name, "is not a valid #{type.humanize} card") unless passes_luhn?(value) and with[card_bin(value)] == type
     end
   end
 
@@ -24,13 +24,13 @@ module ActiveRecord::Validations::ClassMethods
     validates_each(card_type) do |record, attr_name, value|
       card_number = record.send against
       type = card_bin(card_number)
-      record.errors.add attr_name, " is #{value.humanize} but it looks more like a #{with[type].humanize} card." if value != with[type]
+      record.errors.add(attr_name, " is #{value.humanize} but it looks more like a #{with[type].humanize} card.") if value != with[type]
     end
   end
 
   def validates_credit_card_number(*attr_names)
     validates_each(attr_names) do |record, attr_name, value|
-      record.errors.add attr_name, 'is not a valid credit card number.' unless passes_luhn?(value)
+      record.errors.add(attr_name, 'is not a valid credit card number.') unless passes_luhn?(value)
     end
   end
 

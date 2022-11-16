@@ -13,23 +13,22 @@ RSpec.describe SeatAssignmentsController, type: :controller do
 
   describe "GET index" do
     it "returns seating inventory as index" do
-      get :index, performance_id: @ticket_order.performance.id, format: :json
-      expect(response).to be_success
+      get :index, params: { performance_id: @ticket_order.performance.id }, format: :json
+      expect(response).to be_successful
       result = JSON.parse response.body
       expect(result.count).to eq(8) # we get all 16 sample seats back
-
     end
   end
 
   describe "POST holds" do
     before(:each) do
-      get :index, performance_id: @ticket_order.performance.id, format: :json
+      get :index, params: { performance_id: @ticket_order.performance.id }, format: :json
       @inventory = JSON.parse response.body
 
     end
     it "holds a seat for an order in processing mode" do
       reservation_id = @inventory[0]['id']
-      post :reserve, performance_id: @ticket_order.performance_id, format: :json, id:reservation_id, order_uuid: @ticket_order.uuid
+      post :reserve, params: {performance_id: @ticket_order.performance_id, id:reservation_id, order_uuid: @ticket_order.uuid}, format: :json
       result = JSON.parse response.body
       expect(result['order_uuid']).to eq(@ticket_order.uuid)
       expect(result['status']).to eq('assigned')
@@ -38,8 +37,8 @@ RSpec.describe SeatAssignmentsController, type: :controller do
 
     it "releases a seat for an order in processing mode" do
       reservation_id = @inventory[0]['id']
-      post :reserve, performance_id: @ticket_order.performance_id, id:reservation_id, format: :json,  :order_uuid=>@ticket_order.uuid
-      post :release, performance_id: @ticket_order.performance_id, id:reservation_id, format: :json,  :order_uuid=>@ticket_order.uuid
+      post :reserve, params: {performance_id: @ticket_order.performance_id, id:reservation_id, :order_uuid=>@ticket_order.uuid }, format: :json
+      post :release, params: {performance_id: @ticket_order.performance_id, id:reservation_id, :order_uuid=>@ticket_order.uuid }, format: :json
       result = JSON.parse response.body
       expect(result['status']).to eq('available')
       expect(result['order_uuid']).to be_nil

@@ -1,3 +1,3 @@
 class CurrentUser::ApplicationController < ApplicationController
-  append_before_filter :require_login
+  before_action :require_login
 end

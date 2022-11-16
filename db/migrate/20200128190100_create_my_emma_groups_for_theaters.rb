@@ -1,4 +1,4 @@
-class CreateMyEmmaGroupsForTheaters < ActiveRecord::Migration
+class CreateMyEmmaGroupsForTheaters < ActiveRecord::Migration[4.2]
   def up
     unless MyEmma.disabled?
       Theater.all.each {|t|

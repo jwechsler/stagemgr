@@ -1,4 +1,4 @@
-class AddFootnoteToPerformances < ActiveRecord::Migration
+class AddFootnoteToPerformances < ActiveRecord::Migration[4.2]
   def self.up
     add_column :performances, :footnote, :string
   end

@@ -1,8 +1,8 @@
 class Admin::TicketClassesController < Admin::ApplicationController
   load_and_authorize_resource
 
-  prepend_before_filter :find_production
-  append_before_filter :find_ticket_class, :only => [:edit, :update, :destroy]
+  prepend_before_action :find_production
+  before_action :find_ticket_class, :only => [:edit, :update, :destroy]
 
   def index
     respond_to do |format|
@@ -35,7 +35,7 @@ class Admin::TicketClassesController < Admin::ApplicationController
 
   def update
     respond_to do |format|
-      if @ticket_class.update_attributes(ticket_class_params)
+      if @ticket_class.update(ticket_class_params)
         flash[:notice] = 'TicketClass was successfully updated.'
         format.html { redirect_to(admin_theater_production_ticket_classes_path(@theater,@production)) }
         format.xml  { head :ok }

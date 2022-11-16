@@ -7,10 +7,10 @@
 .grid-x
   .small-10.cell.left
     .grid-x.grid-padding-x
-      - if @theater.logo.exists?
+      - if @theater.logo.attached?
         - colsize = 8
         .small-2.medium-2.cell.hide-for-small-only
-          = image_tag(@theater.logo.url(:thumbnail), style:"max-height:120px;") if @theater.logo.exists?
+          = @theater.decorate.logo(Theater::MEDIUM)
 
       - else
         - colsize = 10

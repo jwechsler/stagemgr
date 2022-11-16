@@ -1,4 +1,4 @@
- class Theater < ActiveRecord::Base
+ class Theater < ApplicationRecord
   #@todo setup access control
 
   THEATER_CLASSES  = (
@@ -7,24 +7,28 @@
   THEATER_STATUSES = (
     ACTIVE, INACTIVE = 'Active',  'Inactive'
   )
+  LOGO_SIZES = (
+    MEDIUM, THUMB = [250,250],[125,125]
+  )
   validates_inclusion_of :theater_class, :in => THEATER_CLASSES
   validates_inclusion_of :status,        :in => THEATER_STATUSES
   validates_uniqueness_of :name
   validates_presence_of :name
 
-  has_many :productions
-  has_many :special_offers
-  has_many :flex_pass_offers
-  has_many :orders
-  has_many :address_tags
+  has_many :productions, inverse_of: :theater
+  has_many :special_offers, inverse_of: :theaters
+  has_many :flex_pass_offers, inverse_of: :theater
+  has_many :orders, inverse_of: :theater
+  
   has_and_belongs_to_many :users#, :as=>:owners
 
-  has_attached_file :logo,
-                    :path => ":rails_root/public/system/:attachment/:id/:style/:filename",
-                    :url => "#{Rails.application.config.action_controller.relative_url_root}/system/:attachment/:id/:style/:filename",
-                    :styles => {:medium => "250x250>", :small => "125x125>", :thumbnail => "125x125>"}
-  validates_attachment_content_type :logo, :content_type => ["image/jpg", "image/jpeg", "image/png", "image/gif"]
-
+  has_one_attached :logo
+  #has_attached_file :logo,
+  #                  :path => ":rails_root/public/system/:attachment/:id/:style/:filename",
+  #                  :url => "#{Rails.application.config.action_controller.relative_url_root}/system/:attachment/:id/:style/:filename",
+  #                  :styles => {:medium => "250x250>", :small => "125x125>", :thumbnail => "125x125>"}
+  #validates_attachment_content_type :logo, :content_type => ["image/jpg", "image/jpeg", "image/png", "image/gif"]
+  validates :logo, blob: { content_type: :image }
 
 
   def class_display
@@ -72,14 +76,9 @@
     ServiceItemTemplate.where(name: service_item_template_list(self.default_addl_exchange_items))
   end
 
-  def best_logo_url_available(render)
-    unless self.logo.nil?
-      self.logo.url(render)
-    else
-      nil
-    end
+  def self.default_theater
+    Theater.find_by(theater_class: Theater::DEFAULT)
   end
-
 
   private
   def service_item_template_list(service_item_list)

@@ -4,6 +4,7 @@ FactoryBot.define do
     theater_class   { Theater::THEATER_CLASSES.first }
     status          { Theater::THEATER_STATUSES.first }
     logo            { nil }
+    accepts_donations { false }
 
     sequence(:name) { |n| "Theater \##{n}" }
 

@@ -1,4 +1,4 @@
-class AddPromoToProductions < ActiveRecord::Migration
+class AddPromoToProductions < ActiveRecord::Migration[4.2]
   def self.up
     add_column :productions, :promo_file_name, :string
     add_column :productions, :promo_content_type, :string

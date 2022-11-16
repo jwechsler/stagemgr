@@ -1,4 +1,4 @@
-class CreateSpecialOffers < ActiveRecord::Migration
+class CreateSpecialOffers < ActiveRecord::Migration[4.2]
   def self.up
     create_table :special_offers do |t|
       t.references   :ticket_class

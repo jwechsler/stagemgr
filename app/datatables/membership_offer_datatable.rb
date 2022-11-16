@@ -1,48 +1,38 @@
-class MembershipOfferDatatable < AjaxDatatablesRails::Base
-  extend Forwardable
-  include ActionView::Helpers::NumberHelper
-
-  def_delegator :@view, :link_to
+class MembershipOfferDatatable < DatatableBase
   def view_columns
     # Declare strings in this format: ModelName.column_name
     # or in aliased_join_table.column_name format
     @view_columns ||= {
       name: { source: 'MembershipOffer.name' },
       on_sale: { source: 'MembershipOffer.on_sale' },
-      status: { source: 'MembershipOffer.status' }
+      status: { source: 'MembershipOffer.status' },
+      actions: { searchable: false, orderable: false}
     }
   end
 
-  def additional_data
-    {
-      actions: 'Hello'
-    }
-  end
 
   def data
     records.map do |record|
       {
-        id: record.id,
-        name: link_to(record.name, [:admin, record]),
-        on_sale: record.on_sale? ? '√' : '',
-        status: record.active? ? link_to("Create Order", [:new, :admin, record, :order] ) : '(Inactive)',
+        id: record.decorate.id,
+        name: record.decorate.name,
+        on_sale: record.decorate.on_sale?,
+        status: record.decorate.dt_actions,
         DT_RowID: record.id,
      }
     end
   end
 
-  def initialize(params, opts={})
-    super(params, opts)
-    @view = opts[:view_context]
-  end
-
   private
 
   def get_raw_records
-    MembershipOffer.all.order(on_sale: :desc, name: :asc)
+    MembershipOffer.all
     # insert query here
   end
 
+  def sort_records(records)
+    records.order(Arel.sql("case when status='#{MembershipOffer::ACTIVE}' then 1 else 2 end, on_sale desc, name"))
+  end
   # ==== These methods represent the basic operations to perform on records
   # and feel free to override them
 

@@ -1,5 +1,9 @@
 class TicketOrder < Order
 
+  SEATING_REQUESTS = (
+    WHEELCHAIR, WHEELCHAIR_TRANSFER, STAIRS =
+    'Wheelchair (no transfer)', 'Wheelchair (can transfer)', 'No stairs')
+
   before_validation :set_tickets_for_pass_redemption
   before_validation :unassign_seats_when_performance_changes, if: :performance_id_changed?
   after_validation do
@@ -19,35 +23,28 @@ class TicketOrder < Order
 
   attr_accessor :selected_production
 
-  has_many :ticket_line_items, :foreign_key => :order_id
-
-  belongs_to :exchange_source, class_name: "TicketOrder", foreign_key: "exchange_source_id"
-  belongs_to :split_source, class_name: "TicketOrder", foreign_key: "split_source_id"
+  has_many :ticket_line_items, :foreign_key => :order_id, inverse_of: :ticket_order
+  belongs_to :exchange_source, class_name: "TicketOrder", foreign_key: "exchange_source_id", optional: true
+  belongs_to :split_source, class_name: "TicketOrder", foreign_key: "split_source_id", optional: true
+  delegate :production, to: :performance
   accepts_nested_attributes_for :ticket_line_items, allow_destroy: true
 
-  SEATING_REQUESTS = (
-    WHEELCHAIR, WHEELCHAIR_TRANSFER, STAIRS =
-    'Wheelchair (no transfer)', 'Wheelchair (can transfer)', 'No stairs')
-
+  
   validates_associated :ticket_line_items
   validates_presence_of :performance
-
-  #before_validation :tickets_available?, :if=>[:processed?, :status_changed?]
-
   validate :ticket_stock_available, :unless=>:allow_deletion?
   validate :seat_assignments_complete?, :if=>:seating_check_required?
   validate :payments_exist?, :if=>:processed?
-  # validate :verify_fully_seated, if: -> { !self.allow_deletion? && performance.production.has_reserved_seating? && (status.eql?(Order::PROCESSED) || status.eql?(Order::FULFILLED))}
   validates :uuid, presence: true
 
   validates_each :status do |record, attr, value|
     unless record.allow_deletion?
       if value == PROCESSED
         unless record.ticket_line_items.empty? || record.number_of_tickets > 0
-          record.errors.add :ticket_line_items, "must contain at least one ticket."
+          record.errors.add(:ticket_line_items, "must contain at least one ticket.")
         end
         if (!record.performance.nil? && record.performance.restricted_payment_types.include?(record.payment_type))
-          record.errors.add :payment_type, "is not allowed for this event"
+          record.errors.add(:payment_type, "is not allowed for this event")
         end
       end
     end
@@ -57,7 +54,7 @@ class TicketOrder < Order
     unless self.ticket_line_items.empty?
       ticket_counts_by_class = Hash.new
       self.ticket_line_items.each do |tli|
-        errors.add :base, "Missing allocation for #{self.performance.performance_code} / #{tli.ticket_class.nil? ? "NIL" : tli.ticket_class.class_code}" unless self.performance.ticket_class_allocations.map{|tla| tla.ticket_class }.include?(tli.ticket_class)
+        errors.add(:base, "Missing allocation for #{self.performance.performance_code} / #{tli.ticket_class.nil? ? "NIL" : tli.ticket_class.class_code}") unless self.performance.ticket_class_allocations.map{|tla| tla.ticket_class }.include?(tli.ticket_class)
         if ticket_counts_by_class.has_key?(tli.ticket_class_id)
           ticket_counts_by_class[tli.ticket_class_id] += tli.ticket_count
         else
@@ -71,15 +68,15 @@ class TicketOrder < Order
           if (!allocation.ticket_limit.nil? && (ticket_counts_by_class[key] + number_of_tickets_already_used > allocation.ticket_limit)) then
             remainder = allocation.ticket_limit - number_of_tickets_already_used
             if remainder > 0
-              errors.add :base, "There are only #{allocation.ticket_limit - number_of_tickets_already_used} '#{TicketClass.find(key).class_name}' tickets remaining."
+              errors.add(:base, "There are only #{allocation.ticket_limit - number_of_tickets_already_used} '#{TicketClass.find(key).class_name}' tickets remaining.")
             else
-              errors.add :base, "Sorry, there are no '#{TicketClass.find(key).class_name}' tickets left."
+              errors.add(:base, "Sorry, there are no '#{TicketClass.find(key).class_name}' tickets left.")
             end
           end
         end
       end
       seats_left = self.performance.number_of_seats_left(self)
-      errors.add :base, "There #{seats_left == 1 ? "is" : "are"} only #{seats_left} reservation#{"s" unless seats_left == 1} remaining for the #{self.performance.performance_date.to_s} performance at #{self.performance.performance_time.to_formatted_s(:standard_time)}." if self.holding_seats? && seats_left < self.number_of_seats
+      errors.add(:base, "There #{seats_left == 1 ? "is" : "are"} only #{seats_left} reservation#{"s" unless seats_left == 1} remaining for the #{self.performance.performance_date.to_s} performance at #{self.performance.performance_time.to_formatted_s(:standard_time)}.") if self.holding_seats? && seats_left < self.number_of_seats
     end
   end
 
@@ -112,15 +109,15 @@ class TicketOrder < Order
     unless self.performance.nil?
       if self.number_of_tickets > 0 && self.performance.production.has_reserved_seating? then
         if (self.seats.reload.size != self.number_of_seats) then
-          self.errors.add :seats, " do not match tickets in order (#{self.number_of_seats} required)"
+          self.errors.add(:seats, " do not match tickets in order (#{self.number_of_seats} required)")
           return false
         end
         if self.seats.size.eql?(0) then 
-          self.errors.add :base, "You must select at least one seat"
+          self.errors.add(:base, "You must select at least one seat")
           return false 
         end
       elsif self.number_of_tickets.eql?(0) then 
-        self.errors.add :base, "You must purchase at least one ticket"
+        self.errors.add(:base, "You must purchase at least one ticket")
         return false
       end
     end
@@ -455,7 +452,7 @@ class TicketOrder < Order
     dup_tli.ticket_count = 1
     offset = dup_tli.dup
     offset.ticket_count = -1
-    dup_tli.price_override = order_face_value.eql?(0.0) ? BigDecimal('0.00') : (dup_tli.price/order_face_value*transfer_amount)
+    dup_tli.price_override = order_face_value.eql?(0.0) ? BigDecimal('0.00',2) : (dup_tli.price/order_face_value*transfer_amount)
     dup_tli.generated_from_split = true
     total = dup_tli.price_override
 
@@ -495,6 +492,7 @@ class TicketOrder < Order
   # params:
   # new_tlis -- an array of hashes from the original order with ticket_line_item and seat (see flatten_ticket_items)
   def split(new_tlis, all_tlis = nil)
+    result = [nil, nil]
     TicketOrder.transaction do
       total_transfer_amount = self.total - self.service_line_items.sum(:amount)
       face_value_of_tickets = self.total_ticket_face_value
@@ -525,12 +523,12 @@ class TicketOrder < Order
       order2.print_order_id = nil
       order1.save!
       order2.save!
-      return [order1, order2]
+      result = [order1, order2]
     rescue ActiveRecord::RecordInvalid => e
       self.errors.add(:base, "Could not split order: #{e.message}")
       Rails.logger.debug(e)
     end
-    return [nil, nil]
+    return result
   end
 
   # Returns orders that this was split to
@@ -634,7 +632,7 @@ class TicketOrder < Order
       original_order = self.exchange_source
       self.status=Order::PROCESSED
       self.set_email_confirmation
-      self.payments(true)
+      self.payments.reload
       self.save!
       original_order.status = Order::EXCHANGED
       original_order.release_tickets!
@@ -660,7 +658,8 @@ class TicketOrder < Order
   end
 
   def all_line_items(reload_line_items = false)
-    super(reload_line_items) + self.ticket_line_items(reload_line_items)
+    self.ticket_line_items.reload if reload_line_items
+    super(reload_line_items) + self.ticket_line_items
   end
 
 # for form processing
@@ -799,6 +798,11 @@ class TicketOrder < Order
     super
   end
 
+  def transition_fulfilled_to_fulfilled!(redirect_to = nil)
+    self.transition_processed_to_fulfilled!(redirect_to)
+  end
+
+
   def transition_fulfilled_to_unclaimed!(redirect_to = nil)
     self.transition_processed_to_unclaimed!(redirect_to = nil)
   end
@@ -818,7 +822,7 @@ class TicketOrder < Order
   end
 
   def set_tasks_after_save
-    if self.do_not_create_tasks.nil? && self.status_changed?
+    if self.do_not_create_tasks.nil? && (self.new_record? || self.saved_change_to_status?)
       super
       case self.status
         when PROCESSED
@@ -904,7 +908,7 @@ class TicketOrder < Order
   end
 
   def update_attendance_record
-    if self.status_changed?
+    if self.saved_change_to_status?
       case self.status
       when Order::FULFILLED
         attendee = self.address
@@ -954,58 +958,8 @@ class TicketOrder < Order
     @@debug_logger ||= Logger.new("#{Rails.root}/log/debug.log")
   end
 
-
-end
-
-
-# Salesforce engine bits
-
-class TicketOrder
-
-  def queue_sf_sync(delay = nil)
-    delay = 2.minutes if delay.nil?
-    Resque.enqueue_in(delay, SyncOrderToSalesforce, self.id)
-    super
-  end
-
-  def sync_to_salesforce!(sf_cache = nil)
-    if sf_cache.nil?
-      sf_cache = SyncCache.new
-    end
-    if self.syncable?
-      event = SalesforceData::OrderActivity__c.find_by_stagemgr_order_id__c(self.id)
-      # is delete needed?
-      if self.returned?
-        event.delete unless event.nil?
-      elsif
-        contact = sf_cache.address(self.address_id)  # May update/create address on salesforce as this point
-        showtime = Time.local(self.performance.performance_date.year,
-                                self.performance.performance_date.month,
-                                self.performance.performance_date.day,
-                                self.performance.performance_time.hour,
-                                self.performance.performance_time.min,
-                                self.performance.performance_time.sec)
-        if event.nil?
-          event = SalesforceData::OrderActivity__c.create("stagemgr_order_id__c" => self.id.to_s,
-            "Name" => self.performance.production.name,
-            "Attendee__c" => contact.Id,
-            "number_of_tickets__c" => self.number_of_tickets,
-            "spent__c" => self.total_paid,
-            "attended_on__c" => showtime)
-        else
-          event.Attendee__c = contact.Id
-          event.Name = self.performance.production.name
-          event.number_of_tickets__c = self.number_of_tickets
-          event.spent__c = self.total_paid
-          event.attended_on__c = showtime
-        end
-        event.save
-      end
-      self.sf_object = event
-      self.sf_order_id = nil || (self.sf_object.Id unless self.sf_object.nil?)
-      self.sf_last_sync_at = DateTime.now
-      self.save!
-    end
+  def set_theater
+    self.theater_id = self.associated_theater_id
   end
 
 end

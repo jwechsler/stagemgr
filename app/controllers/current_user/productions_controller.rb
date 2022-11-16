@@ -1,6 +1,6 @@
 class CurrentUser::ProductionsController < CurrentUser::ApplicationController
-  prepend_before_filter :find_theater
-  append_before_filter :find_production, :only => [:show, :edit, :update, :destroy]
+  prepend_before_action :find_theater
+  before_action :find_production, :only => [:show, :edit, :update, :destroy]
 
   # GET /productions/1
   # GET /productions/1.xml
@@ -45,7 +45,7 @@ class CurrentUser::ProductionsController < CurrentUser::ApplicationController
   # PUT /productions/1.xml
   def update
     respond_to do |format|
-      if @production.update_attributes(params[:production])
+      if @production.update(params[:production])
         flash[:notice] = 'Production was successfully updated.'
         format.html { redirect_to(edit_theater_path(@production.theater)) }
         format.xml  { head :ok }

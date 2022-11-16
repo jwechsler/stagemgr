@@ -1,4 +1,4 @@
-class AddTransactionIdToCreditPayment < ActiveRecord::Migration
+class AddTransactionIdToCreditPayment < ActiveRecord::Migration[4.2]
   def self.up
     add_column :payments,:transaction_id,:string
   end

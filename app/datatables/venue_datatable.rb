@@ -1,35 +1,19 @@
-class VenueDatatable < AjaxDatatablesRails::Base
-
-  def_delegator :@view, :raw
-  def_delegator :@view, :link_to
-
-  def initialize(params, opts={})
-    super(params, opts)
-    @view = opts[:view_context]
-  end
-
+class VenueDatatable < DatatableBase
 
   def view_columns
     # Declare strings in this format: ModelName.column_name
     # or in aliased_join_table.column_name format
     @view_columns ||= {
       name: { source: 'Venue.name', cond: :like},
-
-    }
-  end
-
-
-  def additional_data
-    {
-      actions: '',
+      actions: { serachable: false }
     }
   end
 
   def data
     records.map do |venue|
       {
-        name: link_to(venue.name, [:admin, venue]),
-        actions: raw(allowed_actions(venue)),
+        name: venue.decorate.name,
+        actions: venue.decorate.dt_actions
         # example:
         # id: record.id,
         # name: record.name
@@ -59,13 +43,6 @@ class VenueDatatable < AjaxDatatablesRails::Base
 
   def current_user
     @current_user ||= options[:current_user]
-  end
-
-  def allowed_actions(record)
-    actions = []
-    actions << ("<li>" +link_to('Edit', [:edit, :admin, record], :id=>"edit_#{record.name.downcase.gsub(' ','_')}", :class=>'tiny button')+"</li>") if current_user.can?(:edit, record)
-    actions << ("<li>" +link_to('Destroy', [:admin, record], :confirm => 'Are you sure?', :method => :delete, :class=>'tiny alert button') + "</li>") if current_user.can?(:destroy, record)
-    '<ul class="button-group">' + actions.join(' ') + '</ul>'
   end
 
 end

@@ -47,11 +47,6 @@ CheckPerformanceAllocationTriggers:
   description: 'Run any existing allocation triggers'
   queue: maintenance
 
-UpdateAttendeesFromSalesforce:
-  cron: '0 10 * * *'
-  description: 'Update today''s attendee records from Salesforce'
-  queue: sync
-
 PurgeExpiredSpecialOffers:
   cron: '0 1 * * 0'
   description: 'Purge expired special offers'
@@ -82,4 +77,13 @@ InactivateUnusedProductions:
   description: "Mark productions over three years old and not modified recently as Inactive"
   queue: maintenance
 
-
+RemoveUnusedAddresses:
+  every: "1w"
+  description: "Remove addresesses unassociated with any records or notes"
+  queue: maintenance
+  
+InactivateUnusedProductions:
+  every: "1w"
+  description: "Inactivate productions older than 3 years"
+  queue: maintenance
+  

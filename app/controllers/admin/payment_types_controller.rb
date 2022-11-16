@@ -20,7 +20,7 @@ class Admin::PaymentTypesController < Admin::ApplicationController
 
   def update
     @payment_type = PaymentType.find(params[:id])
-    @payment_type.update_attributes(payment_type_params)
+    @payment_type.update(payment_type_params)
     respond_to do |format|
       if (@payment_type.save)
         flash[:notice] =  raw "<i>#{@payment_type.type}</i> was successfully updated."
@@ -53,9 +53,7 @@ class Admin::PaymentTypesController < Admin::ApplicationController
     if @payment_type.destroyed?
       flash[:notice] = raw "<i>#{@payment_type.display_name} deleted"
     else
-      @payment_type.errors.full_messages.each { |m|
-        flash[:error] = m
-      }
+      flash[:error] = @payment_type.errors.first.full_message unless @payment_type.errors.empty?
     end
     redirect_to :action=>'index'
   end

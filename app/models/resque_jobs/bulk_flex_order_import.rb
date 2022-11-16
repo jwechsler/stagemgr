@@ -45,7 +45,7 @@ class BulkFlexOrderImport < OrderImport
       issues = []
 
 
-      CSV.foreach(filestore.data.path, headers:true) do |row|
+      CSV.foreach(filestore.path, headers:true) do |row|
         puts("As Hash #{row.to_hash.to_yaml}")
         current_address_id = 0
         a = nil
@@ -91,13 +91,12 @@ class BulkFlexOrderImport < OrderImport
 
             o.address = a
 
-            o.flex_pass_line_items.build(ticket_count:1, flex_pass_offer_id:flex_pass_offer_id)
-
+            o.build_flex_pass_line_item(flex_pass_offer_id:flex_pass_offer_id)
 
             o.payment_type = payment_type
             o.suppress_receipt = true
             o.transition_to!(Order::PROCESSED)
-            o.payments.each{|p| p.note = "Imported from #{filestore.data_file_name} by #{filestore.user.email}"; p.save }
+            o.payments.each{|p| p.note = "Imported from #{File.basename(filestore.path)} by #{filestore.user.email}"; p.save }
             puts("IMPORT: Order is #{Order::PROCESSED}")
             flex_pass = o.flex_passes.first
             unless row['Code'].blank?

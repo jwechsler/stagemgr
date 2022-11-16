@@ -1,10 +1,9 @@
 class FlexPassLineItem < LineItem
-  validates_presence_of :flex_pass_offer, :ticket_count
-  belongs_to :flex_pass_offer
-  belongs_to :donation_order, :foreign_key=>:order_id
-  has_many :flex_passes, dependent: :destroy
-
-  after_create :create_flex_passes
+  
+  belongs_to :flex_pass_offer, inverse_of: :flex_pass_line_items
+  has_one :flex_pass, dependent: :destroy, inverse_of: :flex_pass_line_item
+  belongs_to :flex_pass_order, :foreign_key => :order_id, inverse_of: :flex_pass_line_item
+  before_save :ensure_flex_pass
 
   def price
     self.flex_pass_offer.price
@@ -14,18 +13,17 @@ class FlexPassLineItem < LineItem
     price * ticket_count
   end
 
-  def create_flex_passes
-    self.ticket_count.times do
-      self.flex_passes.create!(:flex_pass_offer=>self.flex_pass_offer,:order=>self.order,:address=>self.order.address)
-    end
+  def ticket_count
+    1
   end
-
-  def flex_pass
-    self.flex_passes.first
-  end
-
+  
   def to_s
     "#{self.ticket_count} #{self.flex_pass_offer.name}"
+  end
+
+  private
+  def ensure_flex_pass
+    self.build_flex_pass(:flex_pass_offer=>self.flex_pass_offer,:address=>self.order.address,expiration_date: Date.today + self.flex_pass_offer.months_till_expiration.months) if self.flex_pass.nil?
   end
 
 end

@@ -1,9 +1,5 @@
 class AddressesOrdersDatatable < DatatableBase
-  def_delegator :@view, :link_to
-  def_delegator :@view, :raw
-  def_delegator :@view, :number_to_currency
-  def_delegator :@view, :order_status_severity_class
-
+  
   def view_columns
     # Declare strings in this format: ModelName.column_name
     # or in aliased_join_table.column_name format
@@ -11,14 +7,8 @@ class AddressesOrdersDatatable < DatatableBase
       order: { source: 'Order.id' },
       created: { source: 'Order.created_at' },
       status: { source: 'Order.status' },
-    }
-  end
-
-  def additional_data
-    {
-      description: '',
-      amount: ''
-
+      description: { searchable: false, orderable: false},
+      amount: { searchable: false, orderable: false}
     }
   end
 
@@ -26,11 +16,11 @@ class AddressesOrdersDatatable < DatatableBase
     unless records.nil?
       records.map do |order|
         {
-          order: raw(link_to(order.id, [:admin, order])),
-          created: order.created_at,
-          description: order.description,
-          amount: number_to_currency(order.total_paid),
-          status: raw("<span class=\"label #{order_status_severity_class(order.status)}\">#{order.status}</span>"),
+          order: order.decorate.id ,
+          created: order.decorate.created_at,
+          description: order.decorate.description,
+          amount: order.decorate.total_paid,
+          status: order.decorate.status,
           DT_RowID: order.id,
        }
       end
@@ -39,10 +29,9 @@ class AddressesOrdersDatatable < DatatableBase
     end
   end
 
-
   def get_raw_records
-    result = Order.accessible_by(current_user.ability,:read).includes(:payments, performance: :production).references(performance: :production).where(address_id:address.id)
-    result
+    use_conditions = current_user.ability.model_adapter(Order, :read).conditions.except('type')
+    Order.where(use_conditions).where(address_id: address.id)
   end
 
   def address

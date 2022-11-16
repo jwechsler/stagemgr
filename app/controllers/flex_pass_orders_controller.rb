@@ -1,10 +1,10 @@
 class FlexPassOrdersController < ApplicationController
-  layout 'ext_site_wrapper'
+  layout $SERVER_CONFIG['ext_site_wrapper']
     include OrdersHelper
     include FlexPassOrdersHelper
 
-    append_before_filter :find_order, :only => [:show, :edit, :update, :destroy]
-    append_before_filter :redirect_to_proper_action, :only => [:edit, :show]
+    before_action :find_order, :only => [:show, :edit, :update, :destroy]
+    before_action :redirect_to_proper_action, :only => [:edit, :show]
 
     respond_to :html, :xml, :json
 
@@ -31,7 +31,7 @@ class FlexPassOrdersController < ApplicationController
     end
 
     def update
-      @order.update_attributes(flex_pass_order_params)
+      @order.update(flex_pass_order_params)
       @order.ip_address = request.remote_ip
       create_or_update
     end

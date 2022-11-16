@@ -6,6 +6,7 @@ class SeatMapDatatable < DatatableBase
     @view_columns ||= {
       label: { source: "SeatMap.label"},
       base_image_map: { source: "SeatMap.base_image_map", :searchable=>false},
+      actions: { searchable: false }
       # id: { source: "User.id", cond: :eq },
       # name: { source: "User.name", cond: :like }
     }
@@ -14,20 +15,14 @@ class SeatMapDatatable < DatatableBase
   def data
     records.map do |record|
       {
-        label: link_to(record.label,[:admin, venue, record]),
-        base_image_map: raw("<img src=\"#{root_url}#{record.base_image_map.url(:thumb)}\" />"),
-        actions: raw(allowed_actions(record))
+        label: record.decorate.label,
+        base_image_map: record.decorate.base_image_map(SeatMap::THUMB),
+        actions: record.decorate.dt_actions
         # example:
         # id: record.id,
         # name: record.name
       }
     end
-  end
-
-  def additional_data
-    {
-      actions: ''
-    }
   end
 
   private
@@ -58,11 +53,6 @@ class SeatMapDatatable < DatatableBase
     @root_url ||= options[:root_url]
   end
 
-  def allowed_actions(seat_map)
-    actions = []
-    actions << link_to("Edit", [:edit,:admin, venue, seat_map], class: 'tiny button') if current_user.can?(:edit, SeatMap)
-    actions << ("<li>" +link_to('Destroy', [:admin, venue, seat_map], :confirm => 'Are you sure?', :method => :delete, :class=>'tiny alert button') + "</li>") if current_user.can?(:destroy, SeatMap)
-    "<ul class=\"button-group\"><li>#{actions.join('</li><li>')}</li></ul>"
-  end
+  
 
 end

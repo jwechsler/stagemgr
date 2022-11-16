@@ -1,7 +1,7 @@
 @import 'foundation_and_overrides';
+@import 'jquery/cupertino/jquery-ui-1.8.24.custom';
 @import 'bourbon';
 @import 'common';
-@import 'jquery/cupertino/jquery-ui-1.8.24.custom';
 @import 'font-awesome';
 @import 'foundation-icons';
 @import 'jquery.timepicker.css';
@@ -98,5 +98,10 @@ select[size], select[multiple] {
 #seating-remaining {
   font-weight: bold;
   font-size: 120%;
+}
+
+.prefix {
+  text-align: right;
+  padding-right: 5px;
 }
 

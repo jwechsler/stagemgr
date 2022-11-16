@@ -17,6 +17,7 @@ Feature: An administrator can perform privileged production operations
   Scenario: Delete a production
   Given a production "Production One" exists
     And I go to the admin detail page for theater "Theater One"
+    And I wait for the datatable to load
     And I should see "Production One"
     When I follow "Destroy"
     Then I should not see "Production One"
@@ -25,6 +26,7 @@ Feature: An administrator can perform privileged production operations
   Scenario: Create a custom labelled production
    Given a production "Seminar" exists
      And I go to the admin detail page for theater "Theater One"
+     And I wait for the datatable to load
      And I follow "Edit"
      And I enter a custom label "Master Class"
      And I press "Update Production"
