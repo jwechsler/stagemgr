@@ -1,0 +1,37 @@
+.seat.available {
+  fill:  #0000FF;
+  fill-opacity:  .5;
+}
+
+.seat {
+  stroke-opacity: .7;
+  stroke-width:  3;
+  stroke:  black;
+  fill:  grey;
+}
+
+.seat.available:hover,.seat.assigned:hover {
+  fill: yellow;
+  fill-opacity:  .3;
+}
+
+.seat.assigned {
+  fill:  #00ff00;
+  fill-opacity:  .8;
+}
+
+.seat.held {
+  fill:  #00ff00;
+  fill-opacity:  1;
+}
+
+.seat.held:hover {
+  fill-opacity:  0.5;
+}
+
+.seat.na {
+  fill:  #000;
+  fill-opacity:  .25;
+  stroke-opacity:  .25;
+}
+
