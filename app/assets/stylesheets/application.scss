@@ -104,19 +104,6 @@ select[size], select[multiple] {
   padding-right: 5px;
 }
 
- #seatingmap {
-  position: relative;
-  width: 100%;
-  vertical-align: middle;
-  margin: 0;
-  overflow: hidden;
-}
-.se svg { 
-  display: inline-block;
-  position: absolute;
-  top: 0; left: 0;
-}
-
 .seat.available {
   fill:  #0000FF;
   fill-opacity:  .5;
@@ -154,5 +141,17 @@ select[size], select[multiple] {
   stroke-opacity:  .25;
 }
 
+#seatingmap {
+  position: relative;
+  width: 100%;
+  vertical-align: middle;
+  margin: 0;
+  overflow: hidden;
+}
 
+.se svg { 
+  display: inline-block;
+  position: absolute;
+  top: 0; left: 0;
+}
 
