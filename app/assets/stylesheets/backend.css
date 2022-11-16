@@ -1,5 +1,7 @@
 /*
  *= require application
+ *= require seating
+ *= require_self
 */
 
 .yadcf-filter-reset-button {
