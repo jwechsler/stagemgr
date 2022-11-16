@@ -682,7 +682,7 @@ class TicketOrder < Order
 
   def unique_line_items(reload_line_items = false)
     (super +
-        self.ticket_line_items(reload_line_items)
+        self.ticket_line_items
     ).uniq
   end
 
