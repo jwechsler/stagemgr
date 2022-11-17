@@ -635,7 +635,7 @@ class Order < ApplicationRecord
   def unique_line_items(reload_line_items = false)
     hack = Array.new
     unless special_offer_line_item.nil?
-      hack << self.special_offer_line_item(reload_line_items)
+      hack << self.special_offer_line_item
     end
     hack
   end
