@@ -13,7 +13,7 @@ class Admin::ReportsController < Admin::ApplicationController
   def index
     is_theater_user = !current_user.nil? && current_user.is_theater_user?
     @generated_reports = FileStore.where("worker = ? and user_id = ?", FileStore::REPORT, current_user.id).order('created_at desc')
-    @generated_reports.select {|r| r.data.attached? }
+    @generated_reports.select {|r| r.datafile.attached? }
 
     if is_theater_user then
       @productions = Production.accessible_by(current_ability,:read).order(press_opening_at: :desc)
