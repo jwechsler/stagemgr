@@ -27,4 +27,7 @@ class FileStore < ApplicationRecord
     self.datafile.filename.to_s
   end
 
+  def file_size
+    self.datafile.byte_size
+  end
 end

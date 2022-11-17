@@ -13,4 +13,9 @@ class FileStoreDecorator < ApplicationDecorator
   def datafile_url
     h.rails_blob_url(object.datafile)
   end
+
+  def datafile
+    h.link_to(object.file_name, datafile_url)
+  end
+
 end
