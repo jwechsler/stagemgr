@@ -5,7 +5,7 @@ require 'people'
 
 class Address < ApplicationRecord
 
-  audited only:[:first_name, :last_name, :line1, :line2, :email, :city, :state, :zipcode, :phone], max_audits: 30
+  # audited only:[:first_name, :last_name, :line1, :line2, :email, :city, :state, :zipcode, :phone], max_audits: 30
 
   include AddressImports
 
@@ -411,6 +411,19 @@ class Address < ApplicationRecord
 
     end
 
+  end
+
+  def self.unattached
+
+  end
+
+  def self.delete_unattached
+    unassociated = Address.where("addresses.id not in (select address_id from orders union select address_id from addresses_productions)")
+    unassociated.each do |address|
+      if !address.vip? && !address.placeholder? && address.address_tags.empty? && address.updated_at < Time.now - 1.week
+        address.destroy
+      end
+    end
   end
 
   protected
