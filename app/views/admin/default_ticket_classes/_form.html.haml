@@ -1,2 +1,4 @@
 = simple_form_for [:admin, @default_ticket_class] do |f|
+  = render '/error_messages', f: f
+
   = render '/admin/ticket_classes/fields', :f=>f

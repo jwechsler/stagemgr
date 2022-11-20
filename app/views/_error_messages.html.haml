@@ -1,10 +1,5 @@
--if object.errors.any?
-  #error_explanation
-    .alert.alert-error
-      = "#{pluralize(object.errors.count, "error")}."
-    %ul
-      - object.errors.each do |error|
-        %li
-          *
-          = error.message
-  
+- unless f.object.errors.empty?
+  = f.error_notification
+  %div.alert-box.alert{style: "padding-top: 0px"}
+    - f.object.errors.full_messages.each do |msg|
+      %li= msg

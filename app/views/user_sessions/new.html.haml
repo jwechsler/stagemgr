@@ -4,7 +4,7 @@
     %h3 Login
 
     = simple_form_for @user_session, :as => :user_session, :url => user_session_path do |f|
-      = render partial: '/error_messages', locals: {object: @user_session}
+      = render partial: '/error_messages', locals: {f: f}
       = f.input :email
       = f.input :password
       = f.input :remember_me, :as=>:boolean 
