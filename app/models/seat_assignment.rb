@@ -107,7 +107,7 @@ class SeatAssignment < ApplicationRecord
         count = count + 1
       end
     end
-    Rails.logger.info("Released #{result} expired seat assignments") unless count.eql?(0)
+    Rails.logger.info("Released #{count} expired seat assignments") unless count.eql?(0)
     count
   end
 
