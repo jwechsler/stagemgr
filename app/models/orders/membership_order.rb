@@ -2,7 +2,7 @@ class MembershipOrder < Order
   include RecurringOrder
 
   has_one :membership_line_item, :foreign_key=>:order_id, :dependent => :destroy, inverse_of: :membership_order
-
+  delegate :membership, to: :membership_line_item
   validates_associated :membership_line_item
   accepts_nested_attributes_for :membership_line_item, :recurring_payments, :allow_destroy=>true
 
@@ -49,10 +49,6 @@ class MembershipOrder < Order
 
   def to_s
     self.membership.nil? ? "Unknown" : "#{self.membership.current_status} #{self.months_active}"
-  end
-
-  def membership
-    self.membership_line_item.membership
   end
 
   def membership_offer

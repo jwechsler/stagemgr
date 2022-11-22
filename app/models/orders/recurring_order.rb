@@ -31,7 +31,7 @@ module RecurringOrder
     payment.amount = additional_info[:amount] unless additional_info[:amount].blank?
     payment.note = note || "Automatically created"
     payment.transaction_id = additional_info[:transaction_id] || self.recurring_profile.profile_id
-    payment.ipn_track_id = additional_info[:ipn_track_id]
+    payment.ipn_track_id = additional_info[:id]
     payment.processed_on = additional_info[:processed_on]
     payment.payment_fee = additional_info[:payment_fee]
     payment.payment_type = CreditCardPaymentType.first
