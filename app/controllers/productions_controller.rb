@@ -37,8 +37,8 @@ class ProductionsController < ApplicationController
     @current_date = Date.today.beginning_of_week
     @end_of_week = Date.today.end_of_week
     @second_date = Date.today
-    @productions = Production.running_week_of(Date.today).visible.sellable_to_public.order(
-      'case theater_id when 1 then 0 else 1 end, productions.name'
+    @productions = Production.running_week_of(Date.today).visible.sellable_to_public.order(Arel.sql(
+      'case theater_id when 1 then 0 else 1 end, productions.name')
     )
     render :now_playing
   end
