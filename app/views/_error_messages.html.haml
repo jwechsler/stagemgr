@@ -1,5 +1,7 @@
-- unless f.object.errors.empty?
-  = f.error_notification
-  %div.alert-box.alert{style: "padding-top: 0px"}
+- if defined? f
+  - object = f.object
+  = f.error_notification unless object.errors.empty?
+%div.alert-box.alert{style: "padding-top: 0px"}
+  - unless object.errors.empty?
     - f.object.errors.full_messages.each do |msg|
       %li= msg
