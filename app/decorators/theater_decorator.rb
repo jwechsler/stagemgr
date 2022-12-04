@@ -25,6 +25,10 @@ class TheaterDecorator < ApplicationDecorator
     make_image_tag(object.logo, dimensions)
   end
 
+  def logo_url(*dimensions)
+    make_image_url(object.logo, dimensions)
+  end
+
   # Define presentation-specific methods here. Helpers are accessed through
   # `helpers` (aka `h`). You can override attributes, for example:
   #
