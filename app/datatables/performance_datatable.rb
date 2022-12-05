@@ -3,9 +3,9 @@ class PerformanceDatatable < DatatableBase
     # Declare strings in this format: ModelName.column_name
     # or in aliased_join_table.column_name format
     @view_columns ||= {
-      code: { source: 'Performance.performance_code'},
-      date: { source: 'Performance.performance_date' },
-      time: { source: 'Performance.performance_time', :searchable=>false },
+      code: { source: 'Performance.performance_code', orderable: false},
+      date: { source: 'Performance.performance_date', orderable: false },
+      time: { source: 'Performance.performance_time', :searchable=>false, orderable: false },
       status: { source: 'Performance.status', orderable: false },
       actions: { orderable: false, searchable: false }
     }
@@ -29,10 +29,6 @@ class PerformanceDatatable < DatatableBase
 
   def get_raw_records
     Performance.where(production: production)
-  end
-
-  def sort_records(records)
-    records.order(:performance_date, :performance_time)
   end
 
   def production

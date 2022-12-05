@@ -36,9 +36,6 @@ class SpecialFeatureDatatable < DatatableBase
   # def filter_records(records)
   # end
 
-  def sort_records(records)
-    records.order(:short_name)
-  end
 
   # def paginate_records(records)
   # end

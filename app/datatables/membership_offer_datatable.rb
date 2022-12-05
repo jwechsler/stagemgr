@@ -3,9 +3,9 @@ class MembershipOfferDatatable < DatatableBase
     # Declare strings in this format: ModelName.column_name
     # or in aliased_join_table.column_name format
     @view_columns ||= {
-      name: { source: 'MembershipOffer.name' },
-      on_sale: { source: 'MembershipOffer.on_sale' },
-      status: { source: 'MembershipOffer.status' },
+      name: { source: 'MembershipOffer.name', orderable: false },
+      on_sale: { source: 'MembershipOffer.on_sale', orderable: false },
+      status: { source: 'MembershipOffer.status', orderable: false },
       actions: { searchable: false, orderable: false}
     }
   end

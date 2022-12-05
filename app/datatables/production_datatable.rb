@@ -4,9 +4,9 @@ class ProductionDatatable < DatatableBase
     # Declare strings in this format: ModelName.column_name
     # or in aliased_join_table.column_name format
     @view_columns ||= {
-      name: { source: 'Production.name' },
-      season: { source: 'Production.season', :searchable=>false },
-      status: { source: 'Production.status' },
+      name: { source: 'Production.name', orderable: false },
+      season: { source: 'Production.season', searchable: false, orderable: false },
+      status: { source: 'Production.status', orderable: false },
       actions: { searchable: false, orderable: false}
     }
   end
@@ -27,7 +27,7 @@ class ProductionDatatable < DatatableBase
   private
 
   def get_raw_records
-    current_theater.productions
+    Production.where(theater_id: current_theater.id).order(opening_at: :desc)
   end
 
   def current_theater
@@ -39,10 +39,6 @@ class ProductionDatatable < DatatableBase
 
   #def filter_records(records)
   #end
-
-  def sort_records(records)
-    records.order(opening_at: :desc)
-  end
 
   # def paginate_records(records)
   # end

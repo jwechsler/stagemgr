@@ -28,9 +28,5 @@ class AddressDatatable < DatatableBase
     Address.accessible_by(current_user.ability)
   end
 
-  def sort_records(records)
-    records.order(:last_name, :first_name)
-  end
-
   
 end
