@@ -8,6 +8,7 @@ FactoryBot.define do
     first_preview_at        { Date.today }
     season                  { Date.today.year }
     seat_map                { nil }
+    running_time            { 120 }
     theater
     venue
 

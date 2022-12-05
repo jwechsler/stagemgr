@@ -28,7 +28,7 @@ FactoryBot.define do
     }
 
     performance_date { Date.today }
-    sequence (:performance_time) { |n| Time.now + 1.second}
+    sequence (:performance_time) { |n| Time.now + 1.minute}
     initialize_with  { Performance.find_or_create_by(performance_code: performance_code) }
   end
 
