@@ -139,6 +139,7 @@ Rails.application.configure do
 
   $APP_DISPLAY_NAME = $SERVER_CONFIG['app_name'] || 'StageMgr'
   Rails.application.routes.default_url_options[:host] = $SERVER_CONFIG['host']
+  config.action_mailer.default_url_options = { host: $SERVER_CONFIG['host'], protocol: $SERVER_CONFIG['host_protocol'] }
   
   # Set up notification for issues
 
