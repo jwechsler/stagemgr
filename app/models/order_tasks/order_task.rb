@@ -81,6 +81,7 @@ class OrderTask < ApplicationRecord
 
   def retry
     self.status = UNTRIED
+    self.attempts = 0
     self
   end
 
