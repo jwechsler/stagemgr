@@ -4,6 +4,7 @@
     %h3 Login
 
     = simple_form_for @user_session, :as => :user_session, :url => user_session_path do |f|
+      = token_tag
       = render partial: '/error_messages', locals: {f: f}
       = f.input :email
       = f.input :password

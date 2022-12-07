@@ -24,6 +24,7 @@
 
 
       =simple_form_for order do |order_form|
+        = token_tag
         -# = order_form.error_messages
         = order_form.hidden_field :status, :value=>(order_form.object.status.blank? ? Order::NEW : order_form.object.status )
         = order_form.hidden_field :uuid, :value=>(order_form.object.uuid)

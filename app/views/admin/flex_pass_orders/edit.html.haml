@@ -1,6 +1,7 @@
 = render '/admin/orders/header_bar', :order=>@flex_pass_order
 
 = simple_form_for [:admin, @flex_pass_order], :html=>{:id=>'admin_flex_pass_order_form'} do |order_form|
+  = token_tag
   = hidden_field_tag :submit_action, "Place Order"
   .grid-x.grid-padding-x
     .small-12.medium-12.cell

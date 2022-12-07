@@ -1,4 +1,5 @@
 <%%= simple_form_for(@<%= singular_table_name %>) do |f| %>
+  <%= token_tag %>
   <%%= f.error_notification %>
 
   <div class="form-inputs">

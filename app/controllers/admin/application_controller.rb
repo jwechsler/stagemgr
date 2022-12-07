@@ -47,7 +47,6 @@ class Admin::ApplicationController < ApplicationController
   end
 
   private
-  private
   def prepare_exception_notifier
     request.env["exception_notifier.exception_data"] = {
       :current_user => current_user

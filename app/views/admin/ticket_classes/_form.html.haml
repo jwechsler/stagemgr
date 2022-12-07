@@ -1,3 +1,4 @@
 = simple_form_for([:admin,theater,production,ticket_class]) do |f|
+  = token_tag
   = f.hidden_field :production_id
   = render :partial=>'fields', :locals=>{:f=>f}

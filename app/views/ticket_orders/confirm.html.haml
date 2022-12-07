@@ -1,6 +1,7 @@
 .grid-x.grid-padding-x
   .small-12.cell.order
     = simple_form_for @ticket_order, :html=>{:name=>"confirm_form"} do |order_form|
+      = token_tag
       - total = Money.new(0)
 
       %h2= "#{@ticket_order.address.first_name}, please confirm your ticket reservation"
