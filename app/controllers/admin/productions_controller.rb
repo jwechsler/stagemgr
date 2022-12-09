@@ -49,7 +49,6 @@ class Admin::ProductionsController < Admin::ApplicationController
       end
     else
       respond_to do |format|
-        Rails.logger.debug("*** NEW Production failed. #{@production.ticket_classes.to_yaml}")
         format.html { render :action => "new" }
         format.xml  { render :xml => @production.errors, :status => :unprocessable_entity }
       end
