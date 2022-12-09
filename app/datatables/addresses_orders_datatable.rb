@@ -30,8 +30,7 @@ class AddressesOrdersDatatable < DatatableBase
   end
 
   def get_raw_records
-    use_conditions = current_user.ability.model_adapter(Order, :read).conditions.except('type')
-    Order.where(use_conditions).where(address_id: address.id)
+    Order.allowed_for(current_user).where(address_id: address.id)
   end
 
   def address
