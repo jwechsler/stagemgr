@@ -17,7 +17,6 @@ Feature: Flex Pass Ordering
       Then I should see "0 tickets remaining"
       Then I should see "Your ticket reservation has been made"
 
-  @wip
   Scenario: Limit tickets to flex pass maximum
     Given I go to new web order for production "Production One" and performance "TEST01"
       And I enter my contact information

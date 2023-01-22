@@ -2,7 +2,7 @@
 
 <table id='donation_line_items'>
 	<th>
-		To <%= order.theater.name %> <%= "(#{order.campaign})" unless order.campaign.blank?%>
+		<%= "To #{order.theater.nil? ? 'Unattached!' : order.theater.name}" %> <%="(#{order.campaign})" unless order.campaign.blank?%>
 	</th>
 	<%= render :partial=> order.donation_line_items %>
 

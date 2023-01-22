@@ -12,7 +12,7 @@ Scenario: The administrator can refund an order
   When I go to the admin order page for the donation
    And I follow "Refund Donation"
    And I press "Process Refund"
-
+   And show me the page
   Then I should see "-$10.00"
    And I should see "successfully refunded"
 
