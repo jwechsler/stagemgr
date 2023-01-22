@@ -1,5 +1,5 @@
 <%= simple_form_for [:admin, @venue] do |f| %>
-
+    <%= token_tag %>
     <%= f.input :name %>
     <%= f.input :ordinal_sort %>
     <%= f.button :submit %>

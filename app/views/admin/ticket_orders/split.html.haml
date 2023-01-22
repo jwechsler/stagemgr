@@ -3,6 +3,7 @@
   %div.small-12.cell
     %h2 Select tickets to split
     =simple_form_for [:admin, @ticket_order], url: finalize_split_admin_ticket_order_path(@ticket_order) do |f|
+      = token_tag
       =f.input :id, as: :hidden
       -if @ticket_order.performance.production.has_reserved_seating?
         -all_seats = @tickets.map{|t| [t[:seat].seat.location, t[:seat].seat.id]}

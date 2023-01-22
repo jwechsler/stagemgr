@@ -1,10 +1,7 @@
-require 'payment_form_fields'
-
 InvalidSpecialOfferCode = Class.new(StandardError)
 
 class Order < ApplicationRecord
 
-  include PaymentFormFields
   include Admin::ReportsHelper
   include ActionView::Helpers::NumberHelper
   include EmailValidatable

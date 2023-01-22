@@ -71,7 +71,7 @@ class TicketClass < ApplicationRecord
 
   private
   def update_auto_attached_performances
-    if self.auto_attach?
+    if self.auto_attach? && self.auto_attach_changed?
       Performance.where(production_id: self.production_id).each {| perf|
         perf.populate_ticket_class_allocations
         perf.save!

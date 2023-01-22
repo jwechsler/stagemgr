@@ -16,20 +16,13 @@ class ProductionsController < ApplicationController
   end
 
   def index
-    @current_date = Date.today
-    @b_week = Date.today.beginning_of_week
-    @e_week = Date.today.end_of_week
-    @productions = Production.where(
-      'ifnull(productions.first_preview_at,productions.opening_at) >= ? and productions.status in (?) and productions.production_class in (?)',
-      @b_week, Production.visible_statuses, Production.performing_classes
-    ).order('case when date(productions.first_preview_at) <= date(current_date) then 0 else 1 end, case theater_id when 1 then 0 else 1 end, case when date(productions.first_preview_at) <= date(current_date) then productions.name else productions.first_preview_at end')
-    render :upcoming
+    now_playing
   end
 
   def upcoming
     @current_date = Date.today.end_of_week + 1
     @productions = Production.opening_after(@current_date).visible.sellable_to_public.order(
-      'case theater_id when 1 then 0 else 1 end, productions.first_preview_at')
+      Arel.sql('case theater_id when 1 then 0 else 1 end, productions.first_preview_at'))
     render :upcoming
   end
 
@@ -38,7 +31,7 @@ class ProductionsController < ApplicationController
     @end_of_week = Date.today.end_of_week
     @second_date = Date.today
     @productions = Production.running_week_of(Date.today).visible.sellable_to_public.order(Arel.sql(
-      'case theater_id when 1 then 0 else 1 end, productions.name')
+      Arel.sql('case theater_id when 1 then 0 else 1 end, productions.name'))
     )
     render :now_playing
   end

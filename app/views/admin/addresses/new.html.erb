@@ -2,6 +2,7 @@
 <h1>New Audience Member</h1>
 
 <%= simple_form_for [:admin, @address] do |f| %>
+    <%= token_tag %>
     <%= render :partial => '/admin/addresses/form', :locals => {:f => f} %>
     <%= f.action :submit, :value => "Create" %>
 

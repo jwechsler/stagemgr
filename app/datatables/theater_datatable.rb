@@ -28,10 +28,13 @@ class TheaterDatatable < DatatableBase
 
   def get_raw_records
     if current_user.is_theater_user?
-      Theater.where(id: current_user.theater_ids)
+      result = Theater.where(id: current_user.theater_ids)
     else
-      Theater.all
+      result = Theater.all
     end
+    result.order(Arel.sql("CASE WHEN status='#{Theater::ACTIVE}' THEN 0 WHEN status='#{Theater::INACTIVE}' THEN 1 END"),
+      Arel.sql("CASE WHEN theater_class='#{Theater::DEFAULT}' THEN 0 WHEN theater_class = '#{Theater::COPRO}' THEN 2 ELSE 3 END"), 
+      :name)
   end
 
   # ==== These methods represent the basic operations to perform on records
@@ -40,11 +43,6 @@ class TheaterDatatable < DatatableBase
   # def filter_records(records)
   # end
 
-  def sort_records(records)
-    records.order(Arel.sql("CASE WHEN status='#{Theater::ACTIVE}' THEN 0 WHEN status='#{Theater::INACTIVE}' THEN 1 END"),
-      Arel.sql("CASE WHEN theater_class='#{Theater::DEFAULT}' THEN 0 WHEN theater_class = '#{Theater::COPRO}' THEN 2 ELSE 3 END"), 
-      :name)
-  end
 
   # def paginate_records(records)
   # end

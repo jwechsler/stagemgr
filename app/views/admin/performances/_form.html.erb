@@ -1,4 +1,5 @@
 <%= simple_form_for([:admin,performance.production.theater,performance.production,performance]) do |f| %>
+  <%= token_tag %>
   <div class="grid-x grid-padding-x">
     <%= f.hidden_field :production_id %>
     <div class="small-6 medium-4 cell">

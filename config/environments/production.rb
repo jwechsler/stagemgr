@@ -148,7 +148,7 @@ end
 # Exception notifications
 
 Stagemgr::Application.config.middleware.use ExceptionNotification::Rack,
-                        ignore_exceptions: ['ActiveRecord::RecordNotFound'] + ExceptionNotifier.ignored_exceptions,
+                        ignore_exceptions: ['ActionController::InvalidAuthenticityToken','ActiveRecord::RecordNotFound'] + ExceptionNotifier.ignored_exceptions,
                         :email=> {
                           :email_prefix=>"[Stagemgr Exception] ",
                           :sender_address=>%{"Exception Notifier" <bugs@theaterwit.org>},

@@ -1,13 +1,10 @@
 require 'street_address'
-require 'address_imports'
 require 'csv'
 require 'people'
 
 class Address < ApplicationRecord
 
   # audited only:[:first_name, :last_name, :line1, :line2, :email, :city, :state, :zipcode, :phone], max_audits: 30
-
-  include AddressImports
 
   monetize :donated_this_year_cents
   monetize :donated_last_year_cents

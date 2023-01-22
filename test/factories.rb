@@ -3,8 +3,8 @@
 module FactoryBot
   class << self
     def create_test_theater
-      theater = FactoryBot.create(:theater, :name=>"Test Theater", theater_class: Theater::VISITING)
-      org_theater = FactoryBot.create(:theater, :name=>"Box Office Theater",theater_class: Theater::DEFAULT)
+      theater = FactoryBot.create(:theater, :name=>"Test Theater", theater_class: Theater::VISITING, accepts_donations: true)
+      org_theater = FactoryBot.create(:theater, :name=>"Box Office Theater",theater_class: Theater::DEFAULT, accepts_donations: true)
       production = FactoryBot.create(:production, :theater=>theater, :name=>"Production One",
                           :production_code=>"TEST", :opening_at=>Date.today, :closing_at=>Date.today)
       FactoryBot.create(:ticket_class, :class_code=>'PASS', :class_name=>"Pass Ticket",

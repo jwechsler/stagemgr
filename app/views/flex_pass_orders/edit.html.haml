@@ -3,7 +3,7 @@
 %p= @order.flex_pass_line_item.flex_pass_offer.description
 
 = simple_form_for @order do |order_form|
-
+  = token_tag
   = order_form.hidden_field :status
   = render :partial => '/orders/address', :locals => {:order_form => order_form}
 

@@ -1,4 +1,5 @@
 = simple_form_for [:admin, payment_type], :as=>:payment_type, :url=>url do |f|
+  = token_tag
   = f.input :display_name
   .grid-x.grid-padding-x
     .cell.small-12.medium-4

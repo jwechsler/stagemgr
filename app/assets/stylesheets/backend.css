@@ -2,37 +2,3 @@
  *= require_self
  */
 
-.yadcf-filter-reset-button {
-  padding: 2px;
-  display: inline-block;
-  font-size: 11px;
-}
-
-table#order-listing thead .yadcf-filter {
-  display:inline-block;
-  width:90%;
-}
-
-select {
-    height: auto;
-}
-
-select[size], select[multiple] {
-    background-image: none;
-}
-
-.ui-autocomplete { position: absolute; cursor: default;z-index:2000 !important;}
-
-.front-facing {
-  color: #0000ff;
-}
-
-.alert-box {
-  background-color: aqua;
-  padding:  20px 30px;
-}
-
-.dataTables_processing {
-  background-color: aqua !important;
-  padding:  20px 30px;
-}

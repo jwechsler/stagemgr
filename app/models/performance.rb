@@ -37,7 +37,7 @@ class Performance < ApplicationRecord
   before_validation               :clean_values
   before_validation               :populate_ticket_class_allocations, :unless=>Proc.new { |p| p.production.nil? }
   before_validation               :performance_code_must_match_production, :unless=>Proc.new { |p| p.production.nil? }
-  before_save                     :manage_seat_inventory, :unless=>Proc.new { |p| p.production.nil? }
+  before_save                     :manage_seat_inventory, :unless=>Proc.new { |p| p.production.nil? || p.production.seat_map.nil? }
   before_destroy                  :protect_performances_with_orders
 
   accepts_nested_attributes_for   :ticket_class_allocations
@@ -110,7 +110,6 @@ class Performance < ApplicationRecord
   end
 
   def populate_ticket_class_allocations
-    self.ticket_class_allocations.each{|tca|tca.performance=self}
     (self.production.ticket_classes - self.ticket_class_allocations.map{|tca|tca.ticket_class}).map do |ticket_class|
       self.ticket_class_allocations.build({:ticket_class=>ticket_class, :available=>ticket_class.auto_attach, :performance=>self})
     end

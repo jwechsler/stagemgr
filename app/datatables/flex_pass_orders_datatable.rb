@@ -33,9 +33,5 @@ class FlexPassOrdersDatatable < DatatableBase
     @flex_pass ||= options[:flex_pass]
   end
 
-  def sort_records(records)
-    records.order(id: :desc)
-  end
-
 
 end

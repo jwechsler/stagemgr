@@ -28,7 +28,7 @@
                           %table.grid-x.grid-padding-x.collapse
                             %tbody
                               %tr
-                                - if @order.theater.nil? || @order.theater.producing? || @order.theater.decorate.logo.attached?
+                                - if @order.theater.nil? || @order.theater.producing? || @order.theater.logo.attached?
                                   %th.small-12.cell.first{:valign=>'middle'}
                                     %table
                                       %tr
@@ -39,7 +39,8 @@
                                     %table
                                       %tr
                                         %td.vhcenter
-                                          %img{:src=>"https://www.theaterwit.org#{@order.theater.decorate.logo_url(Theater::MEDIUM)}"}
+                                          - if @order.theater.logo.attached?
+                                            %img{:src=>"https://www.theaterwit.org#{@order.theater.decorate.logo_url(Theater::MEDIUM)}"}
                                   %th.small-6.large-6.cell.last{:valign=>"middle"}
                                     %table
                                       %tr

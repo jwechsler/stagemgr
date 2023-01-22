@@ -17,9 +17,10 @@
 
         .grid-x.grid-padding-x
           .small-3.cell
-            =label_tag :data, 'From file', :class=>'left inline'
+            =label_tag :datafile, 'From file', :class=>'left inline'
           .small-9.cell
-            = form.file_field :data
+            = form.file_field :datafile, :label=>"From File", as: :file, direct_upload: true, input_html: { data: { direct_upload_url: rails_direct_uploads_url } }
+
         %br
         = submit_tag "Import Attendees", :class=>'button'
 
@@ -35,9 +36,9 @@
             = collection_select :production, :production_id, @productions, :id, :name
         .grid-x.grid-padding-x
           .small-3.cell
-            = label_tag :data, 'From file', :class=>'left inline'
+            = label_tag :datafile, 'From file', :class=>'left inline'
           .small-9.cell
-            = form.file_field :data
+            = form.file_field :datafile
         = submit_tag "Import Mailing List", :class=>'button'
 
     %br
@@ -51,9 +52,9 @@
             = collection_select :theater, :theater_id, @theaters, :id, :name
         .grid-x.grid-padding-x
           .small-3.cell
-            = label_tag :data, 'From file', :class=>'left inline'
+            = label_tag :datafile, 'From file', :class=>'left inline'
           .small-9.cell
-            = form.file_field :data
+            = form.file_field :datafile
         = submit_tag "Import Mailing List", :class=>'button'
 
     %fieldset.fieldset
@@ -71,9 +72,9 @@
             = collection_select :payment_type, :payment_type_id, @payment_types, :id, :display_name, :include_blank=>"None"
         .grid-x.grid-padding-x
           .small-3.cell
-            = label_tag :data, 'From file', :class=>'left inline'
+            = label_tag :datafile, 'From file', :class=>'left inline'
           .small-9.cell
-            = form.file_field :data
+            = form.file_field :datafile
         = submit_tag "Import Orders", :class=>'button'
     %fieldset.fieldset
       %legend Import Flex Pass Orders
@@ -90,9 +91,9 @@
             = collection_select :payment_type, :payment_type_id, @payment_types, :id, :display_name, :include_blank=>"None"
         .grid-x.grid-padding-x
           .small-3.cell
-            = label_tag :data, 'From file', :class=>'left inline'
+            = label_tag :datafile, 'From file', :class=>'left inline'
           .small-9.cell
-            = form.file_field :data
+            = form.file_field :datafile, :label=>"From file", as: :file, direct_upload: true, input_html: { data: { direct_upload_url: rails_direct_uploads_url } }
         = submit_tag "Import Flex Pass Orders", :class=>'button'
 
     = render '/file_stores/current_files', :file_stores=>@imports

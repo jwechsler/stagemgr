@@ -40,10 +40,6 @@ private
     Order.allowed_for(current_user).includes(:address, seats: :seat, :performance=>:production).references(:address, :performance=>:production, seats: :seat)
   end
 
-  def sort_records(records)
-    records.order(id: :desc)
-  end
-
   def filter_by_code
     ->(column, value) {
       case value.downcase

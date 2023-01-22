@@ -3,6 +3,7 @@
     %h3 Support Theater Wit
 
     = simple_form_for @order do |order_form|
+      = token_tag
       .order
         = order_form.hidden_field :status
         = order_form.hidden_field :campaign

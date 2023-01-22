@@ -2,7 +2,7 @@
 <%= error_messages_for :order %>
 
 <%= simple_form_for [:admin, @order] do |order_form| -%>
-
+    <%= token_tag %>
     <%= render :partial => '/admin/orders/form', :locals=>{:order_form=>order_form} %>
 
 <%- end -%>
