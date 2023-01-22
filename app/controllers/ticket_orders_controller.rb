@@ -4,6 +4,7 @@ class TicketOrdersController < ApplicationController
 
   before_action :find_order, :only => [:show, :edit, :update, :destroy, :confirm]
   before_action :redirect_to_proper_action, :only => [:edit]
+  # skip_before_action :verify_authenticity_token, :only => [:create]
 
   respond_to :html
 

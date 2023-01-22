@@ -7,7 +7,7 @@ class DonationList < MailingList
     @starting_date = starting_date
     @ending_date = ending_date
     @theater = Theater.find(theater_id)
-    @headers += [:CloseDate, :Amount, :Campaign]
+    @headers += [:CloseDate, :Amount, :Processing, :Campaign]
   end
 
   def extract_donor_addresses(orders)
@@ -25,6 +25,7 @@ class DonationList < MailingList
       hash[:CloseDate] = order.created_at.to_date
       hash[:Amount] = order.total_paid
       hash[:Campaign] = order.campaign
+      hash[:Processing] = order.credit_card_processing_fee
       self.data[consolidation_code] << hash
 
     end
@@ -34,6 +35,7 @@ class DonationList < MailingList
 
   def create
     orders = DonationOrder.joins(:address).references(:address).where('(orders.created_at between :start_date and :end_date) and orders.status in (:finalized) and orders.theater_id = :theater_id and (addresses.placeholder is null OR addresses.placeholder <> :is_pl)', start_date: self.starting_date.to_date, end_date: self.ending_date.to_date, finalized: Order.finalized_statuses, is_pl: true, theater_id: self.theater.id).includes(:address, :payments)
+    Rails.logger.debug("Pulled #{orders.count} orders for DonationList")
     self.extract_donor_addresses(orders)
 
     file_name = "/tmp/donors_#{self.starting_date.to_date.strftime('%y%m%d')}_#{self.ending_date.to_date.strftime('%y%m%d')}.csv"

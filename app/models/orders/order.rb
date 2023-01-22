@@ -254,10 +254,14 @@ class Order < ApplicationRecord
     payments.select { |p| p.is_a? FlexPassPayment }
   end
 
-  def credit_card_processing_fee
+  def processing_fee
     fee = 0
     self.payments.each { |p| fee += p.processing_fee unless p.processing_fee.nil? }
     fee
+  end
+
+  def credit_card_processing_fee
+    self.processing_fee
   end
 
   def valid_payment_types_for(current_user)

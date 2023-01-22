@@ -186,8 +186,8 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def donation_dump
-    starting_date = params[:starting_date].to_date
-    ending_date = params[:ending_date].to_date
+    starting_date = params[:starting_date_donor].to_date
+    ending_date = params[:ending_date_donor].to_date
     theater_id = params[:theater_id].to_i
     Resque.enqueue(DonorListExport, starting_date, ending_date, theater_id, current_user.id)
     flash[:notice] = 'Your export is queued for generation. You\'ll recieve notification when the process is complete.'

@@ -1,6 +1,9 @@
 <%- if order.donation_line_items.size > 0 -%>
-<table id='donation_line_items'>
 
+<table id='donation_line_items'>
+	<th>
+		To <%= order.theater.name %> <%= "(#{order.campaign})" unless order.campaign.blank?%>
+	</th>
 	<%= render :partial=> order.donation_line_items %>
 
 </table>

@@ -82,7 +82,7 @@
             %label{:for=>:starting_date} Attended On or after
             = text_field_tag( :starting_date, Date.today, :default=>Date.today-7.days, :class=>'date_picker')
           .small-6.cell
-            %label{:for=>:starting_date} Attended Before or on
+            %label{:for=>:ending_date} Attended Before or on
             = text_field_tag( :ending_date, Date.today, :default=>Date.today, :class=>'date_picker')
 
         .grid-x.grid-padding-x
@@ -95,7 +95,7 @@
       %span.report_title
         Donor export
       %span.help_text
-        Download donors contact information by date given for import into TRGArts.
+        Download donors contact information by date given for import into external systems.
         - if can?(:view_email, Address)
           %br
           %strong Warning: confidential email records included.
@@ -103,11 +103,11 @@
       = form_tag(donation_dump_admin_reports_path, :method=>"post") do
         .grid-x.grid-padding-x
           .small-6.cell
-            %label{:for=>:starting_date} Gave On or after
-            = text_field_tag( :starting_date, Date.today, :default=>Date.today-7.days, :class=>'date_picker')
+            %label{:for=>:starting_date_donor} Gave On or after
+            = text_field_tag(:starting_date_donor, Date.today, :default=>Date.today.at_beginning_of_month, :class=>'date_picker')
           .small-6.cell
-            %label{:for=>:starting_date} Gave Before or on
-            = text_field_tag( :ending_date, Date.today, :default=>Date.today, :class=>'date_picker')
+            %label{:for=>:ending_date_donor} Gave Before or on
+            = text_field_tag( :ending_date_donor, Date.today, :default=>Date.today, :class=>'date_picker')
           .small-12.cell
             %label{:for=>:theater_id} Theater 
             = select_tag(:theater_id, options_from_collection_for_select(current_user.allowed_theaters.order(:name), :id, :name))

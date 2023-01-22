@@ -125,9 +125,9 @@ class CreditCardPayment < CurrencyPayment
 
   def processing_fee
     if self.created_at > Date.parse("16-07-2021")
-      (self.amount) > 0 ? 0.30 + self.amount * 0.035 : 0
+      (self.amount) > 0 ? (0.30 + self.amount * 0.035).round(2) : 0
     else
-      (self.amount) > 0 ? 0.22+ + self.amount * 0.04 : 0
+      (self.amount) > 0 ? (0.22 + self.amount * 0.04).round(2) : 0
     end
   end
 

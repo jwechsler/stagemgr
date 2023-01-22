@@ -189,7 +189,6 @@ class Admin::TicketOrdersController < Admin::OrdersController
       }
       order.ticket_line_items.select{|tli| tli.ticket_class.nil?}.each do |tli|
         order.ticket_line_items.delete(tli)
-        Rails.logger.debug("**** Deleting #{tli.id} for lack of ticket class")
       end
     end
   end
