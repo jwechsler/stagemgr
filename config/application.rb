@@ -12,9 +12,9 @@ module Stagemgr
     config.load_defaults 6.0
     
     config.autoload_paths += Dir[Rails.root.join('app', 'models', '**/')]
-    # config.autoload_paths << "#{config.root}/lib"
+    config.autoload_paths << "#{config.root}/lib"
     # config.eager_load_paths << "#{config.root}/lib"
-
+    
     Rails.autoloaders.main.ignore("#{config.root}/lib/tasks")
     Rails.autoloaders.main.ignore(Rails.root.join('lib/my_emma_patches.rb'))
     Rails.autoloaders.main.ignore(Rails.root.join('lib/validates_credit_card.rb'))

@@ -1,5 +1,3 @@
-require 'exceptions.rb'
-
 class MembershipOffer < ApplicationRecord
 
   validates_presence_of :name,:use_ticket_class_code,:tickets_per_performance
