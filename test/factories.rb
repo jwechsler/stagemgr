@@ -6,7 +6,7 @@ module FactoryBot
       theater = FactoryBot.create(:theater, :name=>"Test Theater", theater_class: Theater::VISITING, accepts_donations: true)
       org_theater = FactoryBot.create(:theater, :name=>"Box Office Theater",theater_class: Theater::DEFAULT, accepts_donations: true)
       production = FactoryBot.create(:production, :theater=>theater, :name=>"Production One",
-                          :production_code=>"TEST", :opening_at=>Date.today, :closing_at=>Date.today)
+                          :production_code=>"TEST", :opening_at=>Date.today+1.day, :closing_at=>Date.today+1.day)
       FactoryBot.create(:ticket_class, :class_code=>'PASS', :class_name=>"Pass Ticket",
                           :ticket_price=>0.00, :web_visible=>false, :software_managed=>true,
                           :production=>production, :auto_attach=>true)
