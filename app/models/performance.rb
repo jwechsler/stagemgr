@@ -110,7 +110,7 @@ class Performance < ApplicationRecord
   end
 
   def populate_ticket_class_allocations
-    (self.production.ticket_classes - self.ticket_class_allocations.map{|tca|tca.ticket_class}).map do |ticket_class|
+    (self.production.ticket_classes - self.ticket_class_allocations.map{|tca|tca.ticket_class}).each do |ticket_class|
       self.ticket_class_allocations.build({:ticket_class=>ticket_class, :available=>ticket_class.auto_attach, :performance=>self})
     end
 
