@@ -86,6 +86,8 @@ gem 'image_processing'
 # gem 'mini_magick'
 gem 'ruby-vips'
 
+gem 'whiny_validation'
+
 group :development do
   gem 'listen'
   gem 'wirble'
