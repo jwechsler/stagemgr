@@ -70,12 +70,12 @@ class Admin::PerformancesController < Admin::ApplicationController
   # PUT /performances/1.xml
   def update
     respond_to do |format|
-      if @performance.update!(performance_params)
+      if @performance.update(performance_params)
         flash[:notice] = "Performance #{@performance.performance_code} was successfully updated."
         format.html { redirect_to([:admin,@performance.production.theater,@performance.production]) }
         format.xml  { head :ok }
       else
-        flash[:error] = "Update Error"
+        flash.now[:error] = @performance.errors.full_messages[0]
         format.html { render :action => "edit" }
         format.xml  { render :xml => @performance.errors, :status => :unprocessable_entity }
       end
