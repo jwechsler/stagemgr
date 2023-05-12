@@ -800,7 +800,7 @@ class Order < ApplicationRecord
         self.special_offer_line_item.mark_redeemed unless self.special_offer_line_item.nil?
         self.save!
         self.remove_suppressed_service_items
-        save_additional_donation_order(self.additional_donation) unless (self.additional_donation.blank? || self.additional_donation.to_i == 0)
+        save_additional_donation_order(self.additional_donation, Theater.default_theater) unless (self.additional_donation.blank? || self.additional_donation.to_i == 0)
         save_additional_donation_order(self.additional_donation_for_other) unless (self.additional_donation_for_other.blank? || self.additional_donation_for_other.to_i == 0)
       end
     end
@@ -894,11 +894,11 @@ class Order < ApplicationRecord
     end
   end
 
-  def save_additional_donation_order(donation_amount)
+  def save_additional_donation_order(donation_amount, credit_to_theater = nil)
     donation = DonationOrder.new(:address => self.address, :payment_type => self.payment_type, :status => Order::NEW)
     donation.copy_payment_information(self)
     donation.campaign = self.performance.production.name unless self.performance.nil?
-    donation.theater = self.theater
+    donation.theater = credit_to_theater.nil? ? self.theater : credit_to_theater
     donation.donation_line_items.build(:amount => donation_amount)
     donation.transition_to!(Order::PROCESSED)
   end
