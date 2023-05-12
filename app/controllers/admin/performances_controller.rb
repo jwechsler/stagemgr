@@ -75,6 +75,7 @@ class Admin::PerformancesController < Admin::ApplicationController
         format.html { redirect_to([:admin,@performance.production.theater,@performance.production]) }
         format.xml  { head :ok }
       else
+        flash.now[:error] = @performance.errors.full_messages[0]
         format.html { render :action => "edit" }
         format.xml  { render :xml => @performance.errors, :status => :unprocessable_entity }
       end

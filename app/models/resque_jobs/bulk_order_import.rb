@@ -66,7 +66,7 @@ class BulkOrderImport < OrderImport
 
 
 
-      CSV.foreach(filestore.data.path, headers:true) do |row|
+      CSV.foreach(filestore.path, headers:true) do |row|
         current_address_id = 0
         a = nil
         total += 1
@@ -140,7 +140,7 @@ class BulkOrderImport < OrderImport
             puts("IMPORT: Order is #{Order::HOLD}")
           else
             o.transition_to!(Order::PROCESSED)
-            o.payments.each{|p| p.note = "Imported from #{filestore.data_file_name} by #{filestore.user.email}"; p.save }
+            o.payments.each{|p| p.note = "Imported from #{filestore.file_name} by #{filestore.user.email}"; p.save }
             puts("IMPORT: Order is #{Order::PROCESSED}")
           end
         rescue => e

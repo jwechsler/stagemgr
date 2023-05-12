@@ -24,7 +24,7 @@ class MailingCardImport
         production = Production.find(production_id) unless production_id == 0
         filestore.notes = "Importing #{production.nil? ? '' : production.name + ' '}attendees..."
         filestore.save
-        CSV.foreach(filestore.data.path) do |row|
+        CSV.foreach(filestore.path) do |row|
           if headers.nil? then
             _index = 0
             headers = Hash[row.map {|header| _index += 1; [header, _index]}]

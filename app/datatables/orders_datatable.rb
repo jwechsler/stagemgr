@@ -6,7 +6,7 @@ class OrdersDatatable < DatatableBase
     @view_columns ||= {
       id: { source: 'Order.id' },
       code: { source: 'Performance.performance_code', cond: filter_by_code },
-      name: { source: 'Address.full_name', cond: filter_by_name },
+      name: { source: 'Address.last_first_name', cond: filter_by_name },
       seats: { source: 'Seat.location' },
       status: { source: 'Order.status' },
       visits: { searchable: false, orderable: false},
