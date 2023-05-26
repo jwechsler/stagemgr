@@ -46,7 +46,7 @@ module Admin::ReportsHelper
   def self.attendees_on_email_list(production)
     members_by_email = Hash.new
     # @todo fix MyEmma for this error on attendees Mr. Burns
-    unless MyEmma.disabled? || true || production.use_myemma_attendee_group.nil?
+    unless MyEmma.disabled? || production.use_myemma_attendee_group.nil?
       grp = MyEmma::Group.find(production.use_myemma_attendee_group)
       members = grp.members
 

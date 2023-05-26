@@ -63,6 +63,10 @@ class User < ApplicationRecord
     !self.is_administrator? && !self.is_box_office_user?
   end
 
+  def is_resident?
+    is_theater_user? && self.theaters.map{|t| t.theater_class}.include?(Theater::RESIDENT)
+  end
+
   def username
     self.email
   end

@@ -580,7 +580,7 @@ class Admin::ReportsController < Admin::ApplicationController
   def build_order_dump(production)
     report = Array.new
     keys = columns_for_orders(true,true)
-    keys += [:order_total, :order_revenue, :num_tickets, :num_seats, :external_id]
+    keys += [:order_total, :order_revenue, :num_tickets, :num_seats, :external_id, :opted_in_for_email]
     if production.has_reserved_seating?
       keys += [:seat_assignments]
     end
@@ -598,7 +598,8 @@ class Admin::ReportsController < Admin::ApplicationController
           end
           unless row[:email].nil?
             if members_by_email.has_key?(row[:email].downcase)
-               members_by_email.delete(row[:email].downcase)
+              row[:opted_in_for_email] = "Y"
+              members_by_email.delete(row[:email].downcase)
             else
               row[:email] = nil unless can?(:view_email, Address)
             end

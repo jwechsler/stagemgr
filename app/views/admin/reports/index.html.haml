@@ -42,10 +42,7 @@
   .small-4.cell
     %span.report_title Production Attendees
     %span.help_text
-      Download a copy of all orders with attendee contact information as production_attendee.csv.
-      - if can?(:view_email, Address)
-        %br
-        %strong Warning: confidential email records included. DO NOT DISTRIBUTE.
+      Download a copy of all orders with attendee contact information as production_attendee.csv
   .small-8.cell
     = form_tag(order_dump_admin_reports_path, :method=>"post") do
       = collection_select(:report, :production_id, @productions, :id, :name)

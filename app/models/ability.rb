@@ -58,7 +58,8 @@ class Ability
             :autocomplete_ticket_line_item_ticket_class_code,
             :autocomplete_special_offer_special_offer_code],
         TicketOrder
-
+    return if user.is_theater_user? && !user.is_resident?
+    can :view_email, Address
     return if user.is_theater_user?
 
     # below is for box office staff
