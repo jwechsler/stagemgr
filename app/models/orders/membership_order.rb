@@ -44,7 +44,14 @@ class MembershipOrder < Order
   end
 
   def description
-    "Member for #{self.months_active}"
+    if membership.active?
+      "Member for #{self.months_active}"
+    else
+      member_start_date = membership.start_date || membership.created_at.to_date
+      end_date = [Date.today, self.membership.ended_at.nil? ? Date.today : self.membership.ended_at].min
+      
+      "#{member_start_date} -> #{member_start_date + months_active_i.months}"
+    end
   end
 
   def to_s
@@ -190,6 +197,16 @@ class MembershipOrder < Order
       else
         "#{months} month#{'s' if months != 1}"
       end
+    end
+  end
+
+  def months_active_i
+    if self.membership.nil?
+      0
+    else
+      member_start_date = membership.start_date || membership.created_at.to_date
+      end_date = [Date.today, self.membership.ended_at.nil? ? Date.today : self.membership.ended_at].min
+      months = (end_date.year * 12 + end_date.month) - (member_start_date.year * 12 + member_start_date.month)
     end
   end
 end

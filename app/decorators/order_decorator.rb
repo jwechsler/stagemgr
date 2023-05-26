@@ -23,7 +23,17 @@ class OrderDecorator < ApplicationDecorator
   end
 
   def status
-    h.raw("<span class=\"label #{order_status_severity_class}\">#{order.status}</span>")
+    if (object.is_a? MembershipOrder) && (!object.membership.nil?) then
+      if object.membership.active?
+        h.raw("<span class=\"label #{order_status_severity_class}\">#{order.status}</span>")
+      elsif object.membership.pending?
+        h.raw("<span class=\"label secondary\">#{object.membership.status}</span>")
+      else
+        h.raw("<span class=\"label alert\">#{object.membership.status}</span>")
+      end
+    else  
+      h.raw("<span class=\"label #{order_status_severity_class}\">#{order.status}</span>")
+    end
   end
 
   def address

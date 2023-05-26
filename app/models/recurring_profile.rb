@@ -16,6 +16,14 @@ module RecurringProfile
 
   end
 
+  def active?
+    self.status.eql?(ACTIVE)
+  end
+
+  def pending?
+    self.status.eql?(PENDING)
+  end
+
   def self.create_recurring_profile(order,start_date, recurring_amount, profile_description,
                                max_failed_payments, additional_options = Hash.new)
     raise "This functionality has been deprecated"
