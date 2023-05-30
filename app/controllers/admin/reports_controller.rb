@@ -410,7 +410,7 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def build_flexpass_sales(offer, display_only = true)
-    orders = offer.flex_passes.map { |f| f.order }.select{|o| !o.nil?}
+    orders = offer.flex_passes.select{|fp| !fp.flex_pass_line_item.nil? }.map{|fp| fp.order}
     orders.sort! { |a,b| a.created_at <=> b.created_at }
     report = Array.new
     headers = [:order_date, :last_name, :first_name]
@@ -422,7 +422,7 @@ class Admin::ReportsController < Admin::ApplicationController
     totals = {:payout=>Money.new(0), :facility_fee=>Money.new(0), :display_class=>:report_summary_row,
       :converted_balance=>Money.new(0), :tickets_remaining=>0}
     orders.select { |o| !o.nil? && o.settled? }.sort { |o1, o2| o2.created_at <=> o1.created_at }.each { |o|
-      flex_pass = FlexPass.find_by_order_id(o.id)
+      flex_pass = o.flex_pass
       status = flex_pass.available? ?  o.status : flex_pass.expiration_date.to_s
       used = FlexPassPayment.where(flex_pass_id:flex_pass.id)
       if offer.flat_payout.blank? || offer.flat_payout == 0
