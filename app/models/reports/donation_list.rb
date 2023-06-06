@@ -34,7 +34,7 @@ class DonationList < MailingList
 
 
   def create
-    orders = DonationOrder.joins(:address).references(:address).where('(orders.created_at between :start_date and :end_date) and orders.status in (:finalized) and orders.theater_id = :theater_id and (addresses.placeholder is null OR addresses.placeholder <> :is_pl)', start_date: self.starting_date.to_date, end_date: self.ending_date.to_date, finalized: Order.finalized_statuses, is_pl: true, theater_id: self.theater.id).includes(:address, :payments)
+    orders = DonationOrder.joins(:address).references(:address).where('(CAST(orders.created_at AS DATE) between :start_date and :end_date) and orders.status in (:finalized) and orders.theater_id = :theater_id and (addresses.placeholder is null OR addresses.placeholder <> :is_pl)', start_date: self.starting_date.to_date, end_date: self.ending_date.to_date, finalized: Order.finalized_statuses, is_pl: true, theater_id: self.theater.id).includes(:address, :payments)
     Rails.logger.debug("Pulled #{orders.count} orders for DonationList")
     self.extract_donor_addresses(orders)
 
