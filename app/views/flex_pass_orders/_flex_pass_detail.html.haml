@@ -3,12 +3,12 @@
   - if flex_pass_offer.redeem_immediately?
     Your
     = flex_pass_offer.name
-    - single_pass= flex_passes.count == 1
-    = raw "#{single_pass ? 'code is' : 'codes are'} <b>#{flex_passes.collect{|p| p.code}.to_sentence}</b>."
-    You can use
-    = "#{single_pass ? 'this code' : 'these codes'}"
+    code is
+    %b
+      = "#{flex_pass.code}."
+    You can use this code immediately
   - else
-    We are processing your request and you should receive your FlexPass in the mail in the next 5-7 business days. Once you get your FlexPass, you'll see a code you can use
+    We are processing your request and you should receive your FlexPass in the mail in the next 5-7 business days. Once you get your FlexPass, you'll see a code you can use 
   online and at our box office to get tickets to any performance
   - unless flex_pass_offer.theater_id.nil?
     produced by

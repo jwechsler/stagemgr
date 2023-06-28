@@ -72,7 +72,7 @@ class FlexPassOrder < Order
   end
 
   def has_placed_orders?
-    FlexPassPayment.where(flex_pass_id: self.flex_passes.map{|fp| fp.id}).count > 0
+    FlexPassPayment.where(flex_pass_id: self.flex_pass).count > 0
   end
 
   def has_no_placed_orders?

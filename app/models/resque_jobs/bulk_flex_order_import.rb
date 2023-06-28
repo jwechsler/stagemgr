@@ -98,7 +98,7 @@ class BulkFlexOrderImport < OrderImport
             o.transition_to!(Order::PROCESSED)
             o.payments.each{|p| p.note = "Imported from #{File.basename(filestore.path)} by #{filestore.user.email}"; p.save }
             puts("IMPORT: Order is #{Order::PROCESSED}")
-            flex_pass = o.flex_passes.first
+            flex_pass = o.flex_pass
             unless row['Code'].blank?
               flex_pass.code = row['Code'] 
               flex_pass.save!

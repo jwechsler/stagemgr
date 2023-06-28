@@ -12,7 +12,7 @@ require 'csv'
 # MiddleName2   :  Second household middle name
 # LastName2     :  Second household last name
 # FullName2     :  If present, overwrites the above name values for the second household user
-# EmailAddress1  :  Email address
+# EmailAddress1 :  Email address
 # EmailAddress2 :  2nd Household member email address
 # Phone         :  Contact phone number
 # Address       :  street address
