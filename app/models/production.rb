@@ -11,8 +11,8 @@ class Production < ApplicationRecord
       'Active', 'Private', 'Inactive', 'Presale', 'Season Seating')
 
   PRODUCTION_CLASSES = (
-  PLAY, SPECIAL_EVENT, PRIVATE_PARTY, CONFERENCE, OFF_TIME, CLASS =
-      'Primetime', 'Special Event', 'Private Party', 'Conference', 'Off/Late night', 'Class'
+  PLAY, SPECIAL_EVENT, PRIVATE_PARTY, CONFERENCE, OFF_TIME, CLASS, EXTERNAL =
+      'Primetime', 'Special Event', 'Private Party', 'Conference', 'Off/Late night', 'Class', 'External'
   )
 
   PROMO_SIZES = (

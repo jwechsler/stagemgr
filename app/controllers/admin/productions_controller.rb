@@ -62,7 +62,7 @@ class Admin::ProductionsController < Admin::ApplicationController
     respond_to do |format|
 
       if @production.save
-        flash[:notice] =  raw "<i>#{@production.name}</i> was successfully updated."
+        flash[:notice] =   "#{@production.name} was successfully updated."
         format.html { redirect_to(admin_theater_path(@production.theater)) }
         format.xml  { head :ok }
       else
