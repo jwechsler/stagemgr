@@ -35,4 +35,21 @@ RSpec.describe TicketClass do
     expect(o.performance.number_of_seats_left).to eq(o.performance.production.capacity)
   end
 
+  it "should only attach to performances when auto attach is checked" do
+    ticket_class = FactoryBot.create(:ticket_class, production: @production, auto_attach: false)
+    @performance.reload
+    tca_for_performance = @performance.ticket_class_allocations.select{|tca| tca.ticket_class.eql? ticket_class}
+    expect(tca_for_performance.count).to eq(1)
+    expect(tca_for_performance.map{|tca| tca.ticket_class}).to include(ticket_class)
+    expect(tca_for_performance.first.available?).to be false
+    ticket_class.auto_attach = true
+    expect(ticket_class.save).to be true
+    @performance.reload
+    tca_for_performance = @performance.ticket_class_allocations.select{|tca| tca.ticket_class.eql? ticket_class}
+    expect(tca_for_performance.count).to eq(1)
+    expect(tca_for_performance.map{|tca| tca.ticket_class}).to include(ticket_class)
+    expect(tca_for_performance.first.available?).to be true
+    
+
+  end
 end

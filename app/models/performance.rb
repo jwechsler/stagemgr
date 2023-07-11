@@ -113,6 +113,9 @@ class Performance < ApplicationRecord
     (self.production.ticket_classes - self.ticket_class_allocations.map{|tca|tca.ticket_class}).each do |ticket_class|
       self.ticket_class_allocations.build({:ticket_class=>ticket_class, :available=>ticket_class.auto_attach, :performance=>self})
     end
+    self.ticket_class_allocations.each do |tca|
+      tca.available = true if tca.ticket_class.auto_attach?
+    end
 
   end
 
