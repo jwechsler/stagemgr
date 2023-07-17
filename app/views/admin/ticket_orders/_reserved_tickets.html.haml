@@ -31,9 +31,16 @@
     trackChange( $("#performance_id")[0] );
 
     $(document).ready(function() {
-      $('#performance_id').change(function(event, data){
-        console.log("updating ticketing panel");
-        update_ticketing_panel();
+      var original_performance_id=$('#performance_id').val();
+      $("#ticket_order_performance_code").on('focusin', function() {
+
+      });
+      $("#performance_id").change(function(event, data){
+        console.log("DBG: change event registered: updating ticketing panel");
+        if ($('#performance_id').val() != original_performance_id) {
+          update_ticketing_panel();
+          original_performance_id = $('#performance_id').val()
+        }
       })
     });
 
@@ -42,6 +49,7 @@
     :javascript
       $(document).ready(function() {
         setTimeout(function() {
+          console.log("DEBUG: performance_id set")
           update_ticketing_panel();
         }, 600);
       });

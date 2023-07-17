@@ -2,7 +2,7 @@
 .cell.small-12
   %h4= order_production.name
 .cell.small-12
-  = order_form.input :performance_code, :label=>'Performance', url: autocomplete_performance_performance_code_admin_ticket_orders_path, as: :autocomplete, :fields => {:production_id => '#production_id'}, id_element: '#performance_id', input_html: {'data-auto-focus'=>true  }
+  = order_form.input :performance_code, :label=>'Performance', url: autocomplete_performance_performance_code_admin_ticket_orders_path, as: :autocomplete, :fields => {:production_id => '#production_id'}, id_element: '#performance_id', input_html: {'data-auto-focus'=>false  }
 #ticket_line_items.small-12.cell
   -if order_production.has_reserved_seating?
     =render partial:"/admin/ticket_orders/reserved_tickets", locals: {order_form: order_form}
