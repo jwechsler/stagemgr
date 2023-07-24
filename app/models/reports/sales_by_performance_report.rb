@@ -95,6 +95,7 @@ class SalesByPerformanceReport < Report
 
       report << subtotal
       total_tickets[:gross] += subtotal[:gross]
+      total_tickets[:collected] += subtotal[:collected]
       total_tickets[:facility] += subtotal[:facility]
       total_tickets[:processing] += subtotal[:processing]
       total_tickets[:paid] += subtotal[:paid]
