@@ -18,7 +18,6 @@
 
 $(document).ready(function() {
 
-  
   $("input.date_picker").each(function(input) {
     $(this).datepicker({
       dateFormat: "yy-mm-dd",
@@ -37,8 +36,10 @@ $(document).ready(function() {
   });
   */
 
+  $('.disabled').click(function(e){
+    return false;
+  });
 });
-
 
 
 $(document).ready(function(){
