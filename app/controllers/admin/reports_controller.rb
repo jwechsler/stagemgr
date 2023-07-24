@@ -459,7 +459,7 @@ class Admin::ReportsController < Admin::ApplicationController
 
 
   def build_weekly_box_office(week_ending)
-    performances = Performance.where("performance_date >= ? and performance_date <= ?",
+    performances = Performance.where("performance_date >= ? and performance_date <= ? and exists (select * from productions where production_id = productions.id)",
                                      week_ending.beginning_of_week, week_ending.end_of_week)
     productions = performances.map { |p| p.production }.uniq
     report = SalesByPerformanceReport.new(productions.map{|prod| prod.id}, false, performances.map{|perf| perf.id})

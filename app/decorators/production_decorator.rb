@@ -4,7 +4,11 @@ class ProductionDecorator < ApplicationDecorator
   def dt_actions
     actions = []
     if h.current_user.can? :destroy, Production then
-      actions <<  h.link_to('Destroy', [:admin, object.theater, object], :confirm=>'Are you sure?', :method=>:delete, :class=>'alert tiny button')
+      if object.performances.count != 0
+        actions <<  h.link_to('Destroy', '#', :method=>:get, :class=>"disabled alert tiny button")
+      else
+        actions <<  h.link_to('Destroy', [:admin, object.theater, object], :confirm=>'Are you sure?', :method=>:delete, :class=>"alert tiny button")
+      end
     end
     if h.current_user.can? :edit, Production then
       actions << h.link_to('Edit', [:edit, :admin, object.theater, object], :class=> "tiny button")

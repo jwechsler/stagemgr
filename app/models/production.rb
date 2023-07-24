@@ -37,6 +37,7 @@ class Production < ApplicationRecord
     visible_prod.validates_presence_of :first_preview_at
   end
 
+  before_destroy :ensure_no_performances
   belongs_to :venue, inverse_of: :productions
   belongs_to :theater, inverse_of: :productions
   belongs_to :seat_map, optional: true, inverse_of: :productions
@@ -68,6 +69,13 @@ class Production < ApplicationRecord
 
   def rest_path
     [self.theater, self]
+  end
+
+  def ensure_no_performances
+    unless self.performances.count == 0
+      errors.add(:base, " cannot be deleted due to associated performances")
+      throw(:abort)
+    end
   end
 
   # :section: Production dates
