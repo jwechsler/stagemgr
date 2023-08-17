@@ -64,9 +64,6 @@ class DonationOrdersController < ApplicationController
   def edit
   end
 
-  def show
-  end
-
   def payment_types_for(order, frontend = true)
     types = super
     types.select{|t| t.is_a? CreditCardPaymentType}

@@ -2,7 +2,12 @@
   <td><%=link_to production.name, admin_theater_production_path(production.theater, production) %></td>
   <td><%=h production.season %></td>
   <td><%=h production.status %></td>
-  <td><% can? :edit, Production do %><%=link_to 'Edit', edit_admin_theater_production_path(production.theater, production) %><% end %></td>
+  <td>
+    <% can? :edit, Production do %>
+      <%=link_to 'Edit', edit_admin_theater_production_path(production.theater, production) %>
+    <% end %>
+  </td>
+  
   <td><% can? :delete, Production do %>
     <%= link_to 'Destroy', [:admin,production.theater, production], :confirm => 'Are you sure?', :method => :delete %>
   <% end %></td>

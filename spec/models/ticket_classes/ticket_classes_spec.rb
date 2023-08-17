@@ -49,7 +49,6 @@ RSpec.describe TicketClass do
     expect(tca_for_performance.count).to eq(1)
     expect(tca_for_performance.map{|tca| tca.ticket_class}).to include(ticket_class)
     expect(tca_for_performance.first.available?).to be true
-    
-
   end
+  
 end

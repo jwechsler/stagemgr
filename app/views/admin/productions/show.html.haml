@@ -6,11 +6,9 @@
     %li= link_to @production.theater.name, admin_theater_path(@production.theater)
     %li.current
       %a{:href=>"#"}= @production.name
-
 .grid-x.grid-padding-x
   .small-4.cell
     = render :partial=>'/productions/info', :locals=>{:production=>@production}
-
   .small-8.cell
     %ul.tabs#prodtabs(data-tabs)
       %li.tabs-title.is-active
@@ -96,4 +94,6 @@
   .small-12.cell
     - if can? :update, Production
       = link_to 'Edit', edit_admin_theater_production_path(@production.theater, @production), :class=>'button'
-
+    - if can? :read, TicketClass
+      %td
+        = link_to('Ticket Classes', [:admin, @production.theater, @production, :ticket_classes], class: 'button')

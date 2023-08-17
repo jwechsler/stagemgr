@@ -36,25 +36,26 @@ a {
   margin: 2px 0px 5px 0px;
 }
 
-#flash_notice, #flash_error, #flash_warning {
+.flash_notice, .flash_error, .flash_warning {
   padding: 5px 8px;
   margin: 10px 0;
 }
 
-#flash_notice {
+.flash_notice {
   background-color: #CFC;
   border: solid 1px #6C6;
 }
 
-#flash_error {
+.flash_error {
   background-color: #FCC;
   border: solid 1px #C66;
 }
 
-#flash_warning {
+.flash_warning {
   background-color: yellow;
   border: solid 1px #C66;
 }
+
 .clear {
   clear: both;
 }

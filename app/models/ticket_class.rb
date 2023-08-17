@@ -20,6 +20,7 @@ class TicketClass < ApplicationRecord
   before_validation :prevent_price_changes_after_sales
   after_save :update_auto_attached_performances
   before_destroy :check_for_processed_tickets
+  before_destroy :check_for_shift_to_codes
 
   def number_left(performance, exclude_order=nil)
     ticket_class_capacity_left = production_capacity_left = performance.number_of_tickets_left
@@ -60,13 +61,20 @@ class TicketClass < ApplicationRecord
       limit(10)
   end
 
+  def destroy
+    super if check_for_processed_tickets || check_for_shift_to_codes
+  end
+
   def check_for_processed_tickets
-    status = true
-    if self.ticket_class_items.count > 0
-      self.errors.add(:deletion_status, 'Cannot delete a ticket class with processed orders')
-      status = false
-    end
-    status
+    return true if self.ticket_line_items.count > 0
+    self.errors.add(:deletion_status, 'Cannot delete a ticket class with processed orders')
+    throw :abort
+  end
+
+  def check_for_shift_to_codes
+    return true if TicketClassAllocation.joins(:performance).where("performances.production_id = :prod_id and shift_to_code = :shift_to", prod_id: self.production_id, shift_to: self.class_code).count > 0
+    self.errors.add(:deletion_status, 'Cannot delete a ticket class that can be shifted to for dynamic pricing')
+    throw :abort
   end
 
   private
