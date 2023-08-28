@@ -4,13 +4,8 @@ class TicketLineItem < LineItem
 
   validates_presence_of :ticket_count
 
-  validates_each :price_override do |record, attr, value|
-    record.price_override = nil if record.price_override.eql?(0) || !record.ticket_class.ticket_type.eql?('Donation')
-    if !record.price_override.blank? && record.ticket_class && record.ticket_class.ticket_type != 'Donation' && !record.generated_from_split?
-      record.errors.add(attr, "cannot be used on ticket class type #{record.ticket_class.ticket_type}")
-    end
-  end
-
+  before_save :check_price_override
+  
   validates_numericality_of :price_override, :allow_nil => true
 
   def ticket_class_allocation_available?
@@ -51,5 +46,11 @@ class TicketLineItem < LineItem
   def ticketing_fee
     self.ticket_class.ticketing_fee * self.ticket_count
   end
+
+  def check_price_override
+    self.price_override = nil if !self.generated_from_split? && (self.price_override.eql?(0) || !self.ticket_class.ticket_type.eql?('Donation'))
+  end
+
+
 
 end
