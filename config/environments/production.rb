@@ -137,6 +137,7 @@ Rails.application.configure do
     $ADDITIONAL_CARD_TYPES = []
   end
 
+  $RAND_CLAUSE = Arel.sql('RAND()')
   $APP_DISPLAY_NAME = $SERVER_CONFIG['app_name'] || 'StageMgr'
   config.action_mailer.default_url_options = { host: "#{$SERVER_CONFIG['host']}#{$SERVER_CONFIG['sub_uri']}", protocol: $SERVER_CONFIG['host_protocol'] }
   Rails.application.routes.default_url_options[:host] = $SERVER_CONFIG['host']

@@ -96,6 +96,7 @@ Rails.application.configure do
   $SERVER_CONFIG['ext_site_wrapper']=$SERVER_CONFIG['ext_site_wrapper'] || 'ext_site_wrapper'
   $EMAIL_ADDRESS = $SERVER_CONFIG['email_addresses']
   config.action_mailer.default_url_options = { host: $SERVER_CONFIG['host'], protocol: $SERVER_CONFIG['host_protocol'] }
+  $RAND_CLAUSE = Arel.sql('RAND()')
   
   unless $SERVER_CONFIG['payment_processing'].nil? || $SERVER_CONFIG['payment_processing']['additional_card_types'].blank?
     $ADDITIONAL_CARD_TYPES = $SERVER_CONFIG['payment_processing']['additional_card_types'].split(',').map{|ct| ct.strip}

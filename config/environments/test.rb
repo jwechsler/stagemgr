@@ -78,6 +78,7 @@ Rails.application.configure do
   $SERVER_CONFIG = config_data['all'].merge(config_data['test'])
   $EMAIL_ADDRESS = $SERVER_CONFIG['email_addresses']
   $SERVER_CONFIG['ext_site_wrapper']='ext_test_wrapper'
+  $RAND_CLAUSE = 1
   config.action_mailer.default_url_options = { host: $SERVER_CONFIG['host'], protocol: $SERVER_CONFIG['host_protocol'] }
 
   config.action_mailer.delivery_method = :test
