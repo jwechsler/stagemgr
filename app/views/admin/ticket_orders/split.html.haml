@@ -37,7 +37,7 @@
             .column.small-2
               =select_tag 'seats[]', options_for_select(all_seats, all_seats[index]), {include_blank: true, id:"line#{index}", class: 'seat-selector'}
           -index += 1
-        = f.submit 'Split Order', :disable_with=>'Processing...', :class=>'alert button disabled', confirm:"Are you sure?", id: "split_button"
+        = f.submit 'Split Order', :disable_with=>'Processing...', :class=>'alert button', confirm:"Are you sure?", id: "split_button"
       -else
         .grid-x.grid-padding-x
           .column.small-2
