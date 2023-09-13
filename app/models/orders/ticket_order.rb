@@ -472,9 +472,9 @@ class TicketOrder < Order
           # split_payments[source_payment_key] = offset_payment.new_offset_payment
 
         end
+        original_payments.delete(source_payment_key) if ((!source_payment.nil? || source_payment.amount == 0 ) && (original_payments.size > 1))
         total -= credit
       end
-      original_payments.delete(source_payment_key) if ((!source_payment.nil? || source_payment.amount == 0 ) && (original_payments.size > 1))
       break if total.eql?(0.0)
     end
     dup_tli.order = split_order
@@ -518,7 +518,7 @@ class TicketOrder < Order
       self.save!
       order1_payments.each_value {|p| order1.payments << p }
       order2_payments.each_value {|p| order2.payments << p }
-      order1.payments[0].save!
+      order1.payments[0].save! unless order1.payments.nil? || order1.payments.empty?
       order1.print_order_id = nil
       order2.print_order_id = nil
       order1.save!
