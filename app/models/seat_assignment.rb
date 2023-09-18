@@ -95,7 +95,7 @@ class SeatAssignment < ApplicationRecord
   def self.release_expired_temporary_holds
 
     SeatAssignment.transaction do
-      results = SeatAssignment.where("updated_at < :expire_time and status = :temp_status and (order_uuid is null or not exists (select * from orders where uuid=order_uuid))",
+      results = SeatAssignment.where("updated_at < :expire_time and status = :temp_status and (order_uuid is null or not exists (select * from orders where id=order_id))",
         expire_time: Time.now - $SERVER_CONFIG['order_expiration_in_minutes'].to_i.minutes,
         temp_status: SeatAssignment::TEMPORARY)
       count = 0
