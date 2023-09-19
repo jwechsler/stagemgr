@@ -18,7 +18,7 @@ class DonationOrder < Order
   end
 
   def to_s
-    "Donation (#{self.campaign})"
+    "Donation (#{self.theater.name unless self.theater.nil?})"
   end
 
   def total
