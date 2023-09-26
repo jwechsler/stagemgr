@@ -14,8 +14,8 @@ class TicketOrder < Order
 
   before_save :set_theater
   before_save :remove_empty_ticket_lines
-  before_save :finalize_seat_assignments
-
+  
+  after_save :finalize_seat_assignments
   after_save :update_attendance_record
 
   before_destroy :unassign_seats
@@ -236,7 +236,7 @@ class TicketOrder < Order
   # when an order is saved to any status besides "EXCHANGING", any temporary seat assignments
   # are also associated with the newly generated order_id
   def finalize_seat_assignments
-    if status_changed? and self.processed? and self.performance.production.has_reserved_seating? and !self.uuid.nil?
+    if (self.processed? or self.held?) and self.performance.production.has_reserved_seating? and !self.uuid.nil?
       SeatAssignment.assign_seats_to_saved_order(self.uuid) unless self.exchanging?
     end
   end
