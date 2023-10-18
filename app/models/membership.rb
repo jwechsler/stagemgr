@@ -122,7 +122,7 @@ class Membership
   end
 
   def add_to_membership_list
-    unless self.membership_offer.myemma_group.nil?
+    unless self.membership_offer.myemma_group.nil? 
       begin
         member = MyEmma::Member.new
         member.name_first = self.address.first_name

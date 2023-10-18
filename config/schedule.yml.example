@@ -1,0 +1,89 @@
+delete_generated_reports:
+  every: "1h"
+  args:
+  - report
+  - 24
+  description: 'Deletes generated reports older than 24 hours'
+  queue: maintenance
+  custom_job_class: AgeOutFileStore
+
+delete_completed_imports:
+  every: "1h"
+  args:
+  - import
+  - 24
+  description: 'Deletes imported raw data files after 24 hours'
+  queue: maintenance
+  custom_job_class: AgeOutFileStore
+
+RunPendingOrderTasks:
+  every: "5m"
+  description: 'Run queued order tasks'
+  queue: maintenance
+
+GenerateCalendar:
+  every: "4h"
+  description: 'Write performance calendar to static cache'
+  queue: sync
+  args: 'performance_schedule.ics'
+
+SendFlexPassReminders:
+  cron: "45 8 * * WED,THU,FRI,SAT,SUN"
+  description: 'Send flex pass fulfillment reminders'
+  queue: notification
+
+SendMembershipReminders:
+  cron: "50 8 * * WED,THU,FRI,SAT,SUN"
+  description: 'Send flex pass fulfillment reminders'
+  queue: notification
+
+GenerateProductionSalesStatistics:
+  cron: '30 0 * * *'
+  description: 'Generate statistics for previous days sales'
+  queue: maintenance
+
+CheckPerformanceAllocationTriggers:
+  cron: '0 1 * * *'
+  description: 'Run any existing allocation triggers'
+  queue: maintenance
+
+PurgeExpiredSpecialOffers:
+  cron: '0 1 * * 0'
+  description: 'Purge expired special offers'
+  queue: maintenance
+
+MarkInactiveShows:
+  every: "1d"
+  description: 'Productions/Theaters that have been inactive for over 6 months and not updated since then are marked as ''Inactive''.'
+  queue: maintenance
+
+LinkHistoricPerformanceHoldsToAddressOfRecord:
+  every: "1d"
+  description: "Once a performance is in the past, link the hold to the address card of record"
+  queue: maintenance
+
+DeleteAbandonedOrders:
+  every: "8m"
+  description: "An order can only existing in PROCESSING state for 8 minutes"
+  queue: maintenance
+
+DeleteExpiredSeatingRequests:
+  every: "4m"
+  description: "Release temporary seating holds that have been held for too long"
+  queue: maintenance
+
+InactivateUnusedProductions:
+  every: "1w"
+  description: "Mark productions over three years old and not modified recently as Inactive"
+  queue: maintenance
+
+RemoveUnusedAddresses:
+  every: "1w"
+  description: "Remove addresesses unassociated with any records or notes"
+  queue: maintenance
+  
+InactivateUnusedProductions:
+  every: "1w"
+  description: "Inactivate productions older than 3 years"
+  queue: maintenance
+  

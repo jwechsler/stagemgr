@@ -59,23 +59,16 @@ module PaymentProcessing
   end
 
   def self.after_initialize
-    if $PAYMENT_CONFIG.has_key?('paypal') then
-      if $PAYMENT_CONFIG['paypal'].has_key?('pem_file') then
-        pem_file = File.read(::Rails.root.to_s+"/config/#{$PAYMENT_CONFIG['paypal']['pem_file']}")
+    if $PAYMENT_CONFIG['default_gateway'].eql?('paypal') || $PAYMENT_CONFIG['default_recurring_gateway'].eql?('paypal') then
+      unless Rails.credentials.dig(:paypal,:pem_file).nil? 
+        pem_file = File.read(::Rails.root.to_s+"/config/#{Rails.credentials.dig(:paypal,:pem_file)}")
         ActiveMerchant::Billing::PaypalGateway.pem_file = pem_file
       end
     end
-    if $PAYMENT_CONFIG.has_key?('paypal_express') then
-      if $PAYMENT_CONFIG['paypal_express'].has_key?('pem_file') then
-        pem_file = File.read(::Rails.root.to_s+"/config/#{$PAYMENT_CONFIG['paypal_express']['pem_file']}")
-        ActiveMerchant::Billing::PaypalExpressGateway.pem_file = pem_file
-      end
-    end
-    if $PAYMENT_CONFIG.has_key?('stripe') then
-      Stripe.api_key=$PAYMENT_CONFIG['stripe']['secret_key']
+    if $PAYMENT_CONFIG['default_gateway'].eql?('stripe') || $PAYMENT_CONFIG['default_recurring_gateway'].eql?('stripe') then
+      Stripe.api_key=Rails.application.credentials.dig(:stripe,:secret_key)
     end
   end
-
 
   def self.recurring_gateway(requested_gateway = nil)
     requested_gateway ||= default_recurring_gateway
@@ -86,20 +79,20 @@ module PaymentProcessing
     requested_gateway ||= default_gateway
     case requested_gateway
     when 'paypal'
-      if $PAYMENT_CONFIG['paypal']['signature'].nil? then
-        ActiveMerchant::Billing::PaypalGateway.new(:login=>$PAYMENT_CONFIG['paypal']['login'],
-          :password=>$PAYMENT_CONFIG['paypal']['password'])
+      if Rails.credentials.dig(:paypal,:signature).nil? then
+        ActiveMerchant::Billing::PaypalGateway.new(:login=>Rails.credentials.dig(:paypal,:login),
+          :password=>Rails.credentials.dig(:paypal,:password))
       else
-        ActiveMerchant::Billing::PaypalGateway.new(:login=>$PAYMENT_CONFIG['paypal']['login'],
-          :password=>$PAYMENT_CONFIG['paypal']['password'],
-          :signature=>$PAYMENT_CONFIG['paypal']['signature'])
+        ActiveMerchant::Billing::PaypalGateway.new(:login=>Rails.credentials.dig(:paypal,:login),
+          :password=>Rails.credentials.dig(:paypal,:password),
+          :signature=>Rails.credentials.dig(:paypal,:signature))
       end
     when 'paypal_express'
-      ActiveMerchant::Billing::PaypalExpressGateway.new(:login=>$PAYMENT_CONFIG['paypal_express']['login'],
-        :password=>$PAYMENT_CONFIG['paypal_express']['password'])
+      ActiveMerchant::Billing::PaypalExpressGateway.new(:login=>Rails.credentials.dig(:paypal_express,:login),
+        :password=>Rails.credentials.dig(:paypal,:password))
     when 'stripe'
-      Stripe.api_key=$PAYMENT_CONFIG['stripe']['secret_key']
-      StripeGateway.new(:login=>$PAYMENT_CONFIG['stripe']['secret_key'])
+      Stripe.api_key=Rails.application.credentials.dig(:stripe,:secret_key)
+      StripeGateway.new(:login=>Stripe.api_key)
       
     when 'bogus'
         PaymentProcessing::BogusGateway.new

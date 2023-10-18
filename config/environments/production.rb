@@ -119,22 +119,30 @@ Rails.application.configure do
   # config.active_record.database_resolver_context = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
 # Setup payments
 
-  $PAYMENT_CONFIG = YAML::load(File.open("#{::Rails.root.to_s}/config/payment_processing.yml"))['production']
-
   config.after_initialize do
     PaymentProcessing.after_initialize
-    MyEmma.set_credentials_from_yaml("#{self.root.to_s}/config/my_emma_credentials.yml")
+    unless Rails.application.credentials.dig(:my_emma,:account_id).nil?
+      MyEmma.set_credentials(Rails.application.credentials.dig(:my_emma,:username), Rails.application.credentials.dig(:my_emma, :password), Rails.application.credentials.dig(:my_emma,:account_id)) 
+    else
+      MyEmma.disable
+    end
   end
 
   config_data = YAML::load(File.open("#{::Rails.root.to_s}/config/server.yml"))
   $SERVER_CONFIG = config_data['all'].merge(config_data['production'])
   $EMAIL_ADDRESS = $SERVER_CONFIG['email_addresses']
+  $PAYMENT_CONFIG = $SERVER_CONFIG['payment_processing']
   $SERVER_CONFIG['ext_site_wrapper']=$SERVER_CONFIG['ext_site_wrapper'] || 'ext_site_wrapper'
   $TKTPRINT =  YAML::load(File.open("#{::Rails.root.to_s}/config/ticket_print.yml"))['production']
   unless $SERVER_CONFIG['payment_processing'].nil? || $SERVER_CONFIG['payment_processing']['additional_card_types'].blank?
     $ADDITIONAL_CARD_TYPES = $SERVER_CONFIG['payment_processing']['additional_card_types'].split(',').map{|ct| ct.strip}
   else
     $ADDITIONAL_CARD_TYPES = []
+  end
+
+  config.action_mailer.delivery_method   = $SERVER_CONFIG['email']['delvery_method']
+  if $SERVER_CONFIG['email']['delvery_method'].eql?('postmark')
+    config.action_mailer.postmark_settings = { :api_key=>Rails.application.credentials.dig(:postmark_api_token) }
   end
 
   $RAND_CLAUSE = Arel.sql('RAND()')

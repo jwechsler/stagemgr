@@ -4,9 +4,6 @@ development:
   static_cache_dir: "/Users/jeremyw/tmp"
   filestore_hash: "yoursecrethere"
   resque_admin_password: "yourpassword"
-  my_emma:
-    create_production_groups: false
-    create_theater_groups: false
   email_addresses:
       box_office: boxoffice@yourtheater.org
       online_errors: boxoffice@yourtheater.org
@@ -15,18 +12,34 @@ development:
       supervisor_notifications: boxoffice@yourtheater.org
       wheelchair_conversion_notifications: bboxoffice@yourtheater.org
       software_address: boxoffice@yourtheater.org
+  payment_processing:
+    default_gateway: bogus
+    default_recurring_gateway: bogus
+    test_credit_card: 1
+    test_card_brand: bogus
+  
 
 test:
   root_url:  ""
   secure_root_url:  ""
   filestore_hash: "yoursecrethere"
   resque_admin_password: "yourpassword"
+  payment_processing:
+    default_recurring_gateway: bogus
+    default_gateway: bogus
+    test_credit_card: 1
+    test_card_brand: bogus
+
 
 production:
   root_url:  "http://configure.yourserver.here/tickets"
   secure_rooturl: "https://configure.yourserver.here/tickets"
   filestore_hash: "yoursecrethere"
   resque_admin_password: "yourpassword"
+  payment_processing:
+    default_gateway: stripe
+    default_recurring_gateway: stripe
+
 
 all:
   app_name: "StageMgr"

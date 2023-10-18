@@ -1,4 +1,4 @@
-StripeEvent.signing_secret = $PAYMENT_CONFIG['stripe']['signing_secret'] unless $PAYMENT_CONFIG['stripe'].nil? # e.g. whsec_...
+StripeEvent.signing_secret = Rails.application.credentials.dig(:stripe,:signing_secret) 
 
 StripeEvent.configure do |events|
   events.subscribe 'charge.failed' do |event|
