@@ -22,15 +22,15 @@ class CreateUsers < ActiveRecord::Migration[4.2]
       t.string    :last_login_ip                                      # optional, see Authlogic::Session::MagicColumns
 
       t.timestamps
+
+      t.string    :status, :default=>User::ACTIVE
     end
     #
     # Add indexes
     #
     add_index :users, :perishable_token
     add_index :users, :email
-
-#    User.create(email:"youremail@yourtheater.com",is_administrator:true,password:"changemeimmediately",password_confirmation:"changemeimmediately")
-
+    
   end
 
   def self.down

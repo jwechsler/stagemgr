@@ -9,7 +9,7 @@ class CurrentUser::AccountsController < CurrentUser::ApplicationController
 
   def update
     @user = current_user # makes our views "cleaner" and more consistent
-    if @user.update(params[:user])
+    if @user.update(user_params[:user])
       flash[:notice] = "Account updated!"
       redirect_to current_user_account_url
     else
@@ -17,4 +17,7 @@ class CurrentUser::AccountsController < CurrentUser::ApplicationController
     end
   end
 
+  def user_params
+    params.permit(user:[:email,:password,:status,:is_administrator,:is_box_office_user, :theater_ids=>[]])
+  end
 end
