@@ -38,7 +38,6 @@ class BulkFlexOrderImport < OrderImport
       performance_code_idx = 0
       seating_list_idx = 0
 
-
       flex_pass_offer_lookup = FlexPassOffer.where("theater_id = :theater_id or theater_id is null", theater_id: theater_id).pluck(:name, :id).to_h
       external_address_ids = AddressTag.where("tag_label = 'External Id' and theater_id = :theater_id and address_id is not null",theater_id: theater_id).pluck(:tag_value, :address_id).to_h # Get a list of all addresses with these external tags
       payment_type = payment_type_id.blank? ? nil : PaymentType.find(payment_type_id.to_i)

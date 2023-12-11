@@ -281,6 +281,7 @@ Rails.application.routes.draw do
       post :external_contacts, :on=>:collection
       post :bulk_orders, :on=>:collection
       post :bulk_flex_pass_orders, :on=>:collection
+      post :donation_levels, :on=>:collection
     end
 
     resources :amount_off_special_offers, :only=>[:edit,:index]

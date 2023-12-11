@@ -6,10 +6,6 @@ class Address < ApplicationRecord
 
   # audited only:[:first_name, :last_name, :line1, :line2, :email, :city, :state, :zipcode, :phone], max_audits: 30
 
-  monetize :donated_this_year_cents
-  monetize :donated_last_year_cents
-  monetize :donated_last_n_days_cents
-
   validates_presence_of :full_name
   validates :email, :email=>true, :allow_blank=>true
   before_validation :regularize!, :if=>:changed?
@@ -144,6 +140,10 @@ class Address < ApplicationRecord
     self.phone = newer.phone unless newer.phone.blank?
     self.vip ||= newer.vip?
     self.placeholder ||= newer.placeholder?
+    if self.donor_tier_updated_on.nil? || (self.donor_tier_updated_on < newer.donor_tier_updated_on)
+      self.donor_tier_for_last_fiscal_year = newer.donor_tier_for_last_fiscal_year
+      self.donor_tier_for_current_fiscal_year = newer.donor_tier_for_current_fiscal_year
+    end
     newer.address_tags.each do |tag|
       existing_tag = self.address_tags.select { |t|
         (t.tag_label == tag.tag_label) && (t.theater_id == tag.theater_id) }.first
@@ -336,13 +336,28 @@ class Address < ApplicationRecord
     end
   end
 
-  def update_donor_levels!
-    self.update_donor_levels_from_donation_orders
-    self.save!
+  def is_donor?
+    return self.donated_this_year? || self.donated_last_year?
   end
 
-  def is_donor?
-    ((self.donated_last_year || 0) + (self.donated_this_year || 0)) > 0
+  def most_recent_donation_tier
+    return donor_tier_for_current_fiscal_year || donor_tier_for_last_fiscal_year
+  end
+
+  def donated_year
+    self.donor_tier_updated_on.year
+  end
+
+  def donated_this_year?
+    return !self.donor_tier_updated_on.nil? && ((self.donor_tier_updated_on.year == Date.today.year && !self.donor_tier_for_current_fiscal_year.nil?))
+  end
+
+  def donated_last_year?
+    if !self.donor_tier_updated_on.nil?
+      return true if (self.donor_tier_updated_on.year == Date.today.year-1 && !self.donor_tier_for_current_fiscal_year.nil?)
+      return true if (self.donor_tier_updated_on.year = Date.today.year && !self.donor_tier_for_previous_fiscal_year.nil?)
+    end
+    return false
   end
 
   def to_s
@@ -427,25 +442,6 @@ class Address < ApplicationRecord
   def set_search_name
     self.search_name = self.full_name.gsub(/[\d+\s+\.!,]/,'').upcase
     self.last_first_name = "#{self.last_name}#{self.first_name}#{self.middle_name}".gsub(/[\d+\s+\.!,]/,'').upcase
-  end
-
-  def update_donor_levels_from_donation_orders
-    one_year_ago = Date.today - 1.year
-
-    self.donated_last_n_days = Payment.joins(:order).where(
-      "orders.type = 'DonationOrder' and orders.address_id = ? and orders.status in (?) and processed_on >= ? ",
-      self.id, Order.finalized_statuses, one_year_ago).sum(:amount)
-    self.donated_this_year = Payment.joins(:order).where(
-      "orders.type = 'DonationOrder' and orders.address_id = ? and orders.status in (?) and (processed_on between ? and ?) ",
-                                            self.id, Order.finalized_statuses,
-                                            Date.parse("#{Date.today.year}-01-01"),
-                                            Date.parse("#{Date.today.year+1}-01-01")
-      ).sum(:amount)
-    self.donated_last_year = Payment.joins(:order).where(
-      "orders.type = 'DonationOrder' and orders.address_id = ? and orders.status in (?) and (processed_on between ? and ?) ",
-                        self.id, Order.finalized_statuses, Date.parse("#{Date.today.year-1}-01-01"),
-                        Date.parse("#{Date.today.year}-01-01")
-      ).sum(:amount)
   end
 
   private

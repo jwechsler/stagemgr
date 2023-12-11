@@ -53,7 +53,7 @@ class HouseManagementReport < Report
           :special_requests =>  (o.special_request.blank? ? nil : o.special_request) || (o.address.is_current_member? ? o.address.current_membership.preferred_seating : ''),
           :notes => note_column,
           :is_member => o.address.is_current_member?,
-          :is_donor => ((o.address.donated_last_n_days || 0) == 0) ? nil : o.address.donated_last_n_days,
+          :is_donor => o.address.is_donor? ? o.address.most_recent_donation_tier : "",
           :seats => o.number_of_seats
         }
       end

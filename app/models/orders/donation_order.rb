@@ -7,8 +7,6 @@ class DonationOrder < Order
 
   validates_associated :donation_line_items
 
-  # after_save :update_address_aggregates
-
   def refundable?
     [Order::PROCESSED, Order::FULFILLED].include?(self.status)
   end
@@ -55,10 +53,6 @@ class DonationOrder < Order
   def create_receipt_task
     super
     self.tasks << OutreachTask.new(:execute_at=>Time.now + 5.minutes, :method_symbol=>:donation_thank_you)
-  end
-
-  def update_address_aggregates
-    self.address.update_donor_levels!
   end
 
 end

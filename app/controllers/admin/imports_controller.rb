@@ -14,6 +14,8 @@ class Admin::ImportsController < Admin::ApplicationController
     @bulk_orders_import = FileStore.new
     @bulk_orders_import.format = FileStore::BULK_ORDER_FORMAT
     @bulk_flex_pass_orders_import = FileStore.new
+    @donor_import = FileStore.new
+    @donor_import.format = FileStore::DONATION_LEVELS_IMPORT_FORMAT
     @productions = productions_visible_to_operations
     @theaters = Theater.all.accessible_by(current_ability).where(status: Theater::ACTIVE)
     @payment_types = ExternalPaymentType.all.order(:display_name)
@@ -103,6 +105,21 @@ class Admin::ImportsController < Admin::ApplicationController
     end
     redirect_back_or_default admin_imports_path
   end
+
+  def donation_levels
+    @donation_levels_import = FileStore.create(file_store_params)
+    @donation_levels_import.user = current_user
+    @donation_levels_import.worker = FileStore::IMPORT
+    @donation_levels_import.notes = "Donation Level Import"
+    if @donation_levels_import.save then
+      Resque.enqueue(LglDonorImport, @donation_levels_import.id)
+      flash[:notice] = 'Your current and previous fiscal year donation tiers are being imported'
+    else
+      flash[:error] = 'Invalid format'
+    end
+    redirect_back_or_default admin_imports_path
+  end
+
 
   private
   def file_store_params

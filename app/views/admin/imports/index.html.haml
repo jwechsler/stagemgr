@@ -58,6 +58,15 @@
         = submit_tag "Import Mailing List", :class=>'button'
 
     %fieldset.fieldset
+      %legend Import Donor Levels from LGL
+      =form_for @donor_import, url: donation_levels_admin_imports_path, html: {multipart: true} do |form|
+        .grid-x.grid-padding-x
+          .small-3.cell
+            = label_tag :datafile, 'From file', :class=>'left inline'
+          .small-9.cell
+            = form.file_field :datafile
+        = submit_tag "Import Donor levels", :class=>'button'
+    %fieldset.fieldset
       %legend Import Bulk Orders
       = form_for @bulk_orders_import, :url=> bulk_orders_admin_imports_path, :html=>{:multipart=>true} do |form|
         .grid-x.grid-padding-x

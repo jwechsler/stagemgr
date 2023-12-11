@@ -14,16 +14,6 @@ class BulkOrderImportIssues < Report
               Message: message}
   end
 
-  def add_problem_row(row:, message:)
-    puts "#{@headers} #{@headers.size}"
-    if @headers.empty? then
-      @headers = row.keys + ['Error']
-    end
-    original_row = row.dup
-    original_row['Error'] = message
-    @data['issue'] << original_row
-  end
-
   def any_issues?
     @data.size > 0
   end

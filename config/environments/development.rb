@@ -101,7 +101,8 @@ Rails.application.configure do
   config.action_mailer.default_url_options = { host: $SERVER_CONFIG['host'], protocol: $SERVER_CONFIG['host_protocol'] }
   $RAND_CLAUSE = Arel.sql('RAND()')
   
-  config.action_mailer.delivery_method = $SERVER_CONFIG['email']['delvery_method']
+
+  config.action_mailer.delivery_method = $SERVER_CONFIG['email']['delivery_method'].to_sym
   if $SERVER_CONFIG['email']['delvery_method'].eql?('postmark')
     config.action_mailer.postmark_settings = { :api_key=>Rails.application.credentials.dig(:postmark_api_token)}
   end

@@ -140,7 +140,7 @@ Rails.application.configure do
     $ADDITIONAL_CARD_TYPES = []
   end
 
-  config.action_mailer.delivery_method   = $SERVER_CONFIG['email']['delvery_method']
+  config.action_mailer.delivery_method   = $SERVER_CONFIG['email']['delivery_method'].to_sym
   if $SERVER_CONFIG['email']['delvery_method'].eql?('postmark')
     config.action_mailer.postmark_settings = { :api_key=>Rails.application.credentials.dig(:postmark_api_token) }
   end

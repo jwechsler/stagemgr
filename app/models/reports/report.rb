@@ -1,5 +1,7 @@
 class Report
 
+  include NotifyOnCompletion
+  
   attr_accessor :headers
   attr_accessor :data
   attr_reader :reporting_user_id
@@ -45,7 +47,6 @@ class Report
       File.delete(file_path)
       # @todo notify user that report is generated
       filestore
-
     else
       file_path
     end
