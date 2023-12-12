@@ -59,14 +59,12 @@ Rails.application.configure do
   # Annotate rendered view with file names.
   # config.action_view.annotate_rendered_view_with_filenames = true
 
-  $TEST_CREDIT_CARD = $PAYMENT_CONFIG['test_credit_card']
-  
+
   config.after_initialize do
     ActiveMerchant::Billing::Base.mode = :test
     PaymentProcessing.after_initialize
     MyEmma.disable
   end
-
 
   # $TEST_CREDIT_CARD = paypal_config['test']['test_credit_card']
 
@@ -75,6 +73,7 @@ Rails.application.configure do
   config_data = YAML::load(File.open("#{::Rails.root.to_s}/config/server.yml"))
   $SERVER_CONFIG = config_data['all'].merge(config_data['test'])
   $PAYMENT_CONFIG = $SERVER_CONFIG['payment_processing']
+  $TEST_CREDIT_CARD = $PAYMENT_CONFIG['test_credit_card']
   $EMAIL_ADDRESS = $SERVER_CONFIG['email_addresses']
   $SERVER_CONFIG['ext_site_wrapper']='ext_test_wrapper'
   $RAND_CLAUSE = 1

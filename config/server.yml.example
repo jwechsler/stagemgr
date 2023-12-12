@@ -20,16 +20,28 @@ development:
   
 
 test:
-  root_url:  ""
-  secure_root_url:  ""
   filestore_hash: "yoursecrethere"
   resque_admin_password: "yourpassword"
+  host: "127.0.0.1"
+  root_url:  "http://127.0.0.1"
+  secure_root_url:  ""
+  external_site_wrapper: http://site.test
+  survey_link: "https://SURVEYLINK.TEST"
+  mailing_list_link: "http://MAILINGLINK.TEST"
+  my_emma:
+    create_production_groups: false
+  email_addresses:
+      box_office: boxoffice@yourtheater.org
+      online_errors: boxoffice@yourtheater.org
+      flex_pass_notifications: boxoffice@yourtheater.org
+      membership_notifications: boxoffice@yourtheater.org
+      supervisor_notifications: boxoffice@yourtheater.org
   payment_processing:
+    additional_card_types: bogus
     default_recurring_gateway: bogus
     default_gateway: bogus
     test_credit_card: 1
     test_card_brand: bogus
-
 
 production:
   root_url:  "http://configure.yourserver.here/tickets"

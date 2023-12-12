@@ -1,3 +1,9 @@
+ENV['RAILS_ENV'] = 'test'
+
+require 'database_cleaner/active_record'
+
+DatabaseCleaner.strategy = :truncation
+
 #
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 RSpec.configure do |config|

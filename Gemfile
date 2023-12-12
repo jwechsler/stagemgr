@@ -124,7 +124,7 @@ group :test,:cucumber do
   gem 'selenium-webdriver'
   gem 'cucumber-rails', '2.5.1', :require=>false
   gem 'simplecov'
-  gem 'database_cleaner'
+  gem 'database_cleaner-active_record'
   gem 'stripe-ruby-mock'
 end
 
