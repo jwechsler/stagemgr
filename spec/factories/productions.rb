@@ -23,6 +23,7 @@ FactoryBot.define do
       if production.ticket_classes.empty?
         FactoryBot.create(:ticket_class, ticket_price: BigDecimal(2.50,2), :production=>production)
         FactoryBot.create(:ticket_class, ticket_price: BigDecimal(6,2), :production=>production)
+        FactoryBot.create(:ticket_class, class_code: 'PASS', ticket_price: BigDecimal(6,2), production: production)
       end
       #evaluator.ticket_class_count.times do
       #  production.ticket_classes << FactoryBot.create(:ticket_class)

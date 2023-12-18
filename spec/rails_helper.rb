@@ -61,15 +61,15 @@ RSpec.configure do |config|
 
   config.include Authlogic::TestCase
   config.before(:suite) do
-      DatabaseCleaner.strategy = :transaction
-      DatabaseCleaner.clean_with(:truncation)
-    end
+    DatabaseCleaner.strategy = :transaction
+    DatabaseCleaner.clean_with(:truncation)
+  end
 
-    config.around(:each) do |example|
-      DatabaseCleaner.cleaning do
-        example.run
-      end
+  config.around(:each) do |example|
+    DatabaseCleaner.cleaning do
+      example.run
     end
+  end
+  
   RSpec::Expectations.configuration.on_potential_false_positives = :nothing
 end
-

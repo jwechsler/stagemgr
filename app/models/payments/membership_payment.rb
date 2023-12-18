@@ -27,6 +27,7 @@ class MembershipPayment < PassPayment
       raise 'Member ID does not match provided email address'
     end
     raise 'That member ID is not active. Please call the box office for assistance.' unless membership.active?
+    self.membership.verify_applicable_for(self.order || order)
     super
   end
 

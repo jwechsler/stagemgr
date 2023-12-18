@@ -6,7 +6,6 @@ FactoryBot.define do
     use_ticket_class_code   { 'PASS' }
     tickets_per_performance { 2 }
     price_id                { 'TEST' }
-
   end
 
   factory :membership do

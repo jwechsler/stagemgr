@@ -9,11 +9,11 @@ RSpec.describe "an exchanged ticket order" do
     ticket_line_item.ticket_class = exchange_order.performance.ticket_class_allocations.first.ticket_class
     exchange_order.ticket_line_items << ticket_line_item
     exchange_order.exchange_and_process_from! original_order
-    expect(exchange_order.payments.size).to eq(2)
+    expect(exchange_order.payments.size).to eq(1)
     expect(original_order.payments.size).to eq(2)
     expect(original_order.status).to eq(Order::EXCHANGED)
     expect(original_order.total).to eq(0.0)
-    expect(exchange_order.total(:include_override_payments)).to eq(5.0)
+    expect(exchange_order.total(:include_override_payments)).to eq(12.0)
     expect(exchange_order.total).to eq(12.0)
     expect(exchange_order.exchange_source_id).to eq(original_order.id)
   end

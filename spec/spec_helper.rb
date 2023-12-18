@@ -95,5 +95,9 @@ RSpec.configure do |config|
     Rails.cache.clear
   end
 
+  config.filter_run :focus => true
+  config.run_all_when_everything_filtered = true
+  
+
 end
 

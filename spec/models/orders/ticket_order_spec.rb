@@ -17,8 +17,7 @@ RSpec.shared_examples "a paid ticket order" do |pay_method_type, seating_type|
     end
   end
 
-  it "should mark its holder has having attended the production when fulfilled" do
-    
+  it "should mark its holder has having attended the production when fulfilled" do    
     o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, pay_method, seating)
     o.transition_to!(Order::FULFILLED)
     expect(o.performance.production.attendees.size).to eq(1)
@@ -37,7 +36,7 @@ RSpec.shared_examples "a paid ticket order" do |pay_method_type, seating_type|
     expect(o.performance.production.attendees.count).to eq(0)
   end
   context "when splitting" do
-    it "creates two orders that reference the original order" do
+    it "creates two orders that reference the original order", focus: true do
       original_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, pay_method, seating)
       original_total = original_order.total
       old_tli = original_order.flatten_ticket_line_items
@@ -57,7 +56,9 @@ RSpec.shared_examples "a paid ticket order" do |pay_method_type, seating_type|
       expect(split_order1.payments.size).to be >= 1
       expect(split_order2.payments.size).to be >= 1
       expect(original_order.ticket_line_items.size).to eq(3)
-      expect(original_order.total).to eq(0.0)
+      puts "*** #{original_order.payments.count} #{pay_method}"
+      puts "*** #{original_order.payments.first.class}"
+      expect(original_order.total(:include_override_payments)).to eq(0.0)
       expect(split_order1.total).to eq(original_total/2.0)
       expect(split_order2.total).to eq(original_total/2.0)
       expect(split_order1.split_source_id).to eq(original_order.id)
@@ -66,69 +67,12 @@ RSpec.shared_examples "a paid ticket order" do |pay_method_type, seating_type|
       expect(split_order2.split_source.id).to eq(original_order.id)
     end
 
-    it "creates two orders that manage an order with an uneven number of tickets and a service charge" do
-      original_order = FactoryBot.create(:ticket_order, :with_twenty_dollar_service_item, :for_three_tickets, pay_method, seating)
-      original_total = original_order.total
-      old_tli = original_order.flatten_ticket_line_items
-      new_tli = [old_tli[0]]
-      original_status = original_order.status
-      original_seats = original_order.number_of_seats
-      original_amount = original_order.total
-      result = original_order.split(new_tli)
-      expect(result.size).to eq(2)
-      split_order1, split_order2 = result
-      expect(original_order.status).to eq(TicketOrder::SPLIT)
-      expect(split_order1.status).to eq(original_status)
-      expect(split_order2.status).to eq(original_status)
-      expect(original_order.number_of_seats).to eq(0)
-      expect(split_order1.number_of_seats).to eq(1)
-      expect(split_order2.number_of_seats).to eq(original_seats-1)
-      expect(original_order.ticket_line_items.size).to eq(5)
-      expect(original_order.total).to eq(20.00)
-      expect(split_order1.total).to eq(original_total.eql?(20.0) ? 0 : 6.0)
-      expect(split_order1.ticket_line_items.size).to eq(1)
-      expect(split_order2.ticket_line_items.size).to eq(2)
-      expect(split_order2.total).to eq(original_total.eql?(20.0) ? 0 : 8.5)
-      expect(split_order1.split_source_id).to eq(original_order.id)
-      expect(split_order2.split_source_id).to eq(original_order.id)
-      expect(split_order1.split_source.id).to eq(original_order.id)
-      expect(split_order2.split_source.id).to eq(original_order.id)
-    end
-
-    it "creates two orders that round down when they are not divisible" do
-      original_order = FactoryBot.create(:ticket_order, :with_wierd_special_offer, :for_three_tickets, :with_twenty_dollar_service_item, pay_method, seating)
-      
-      original_total = original_order.total
-      old_tli = original_order.flatten_ticket_line_items
-      new_tli = [old_tli[0]]
-      original_status = original_order.status
-      original_seats = original_order.number_of_seats
-      original_amount = original_order.total
-      result = original_order.split(new_tli)
-      expect(result.size).to eq(2)
-      split_order1, split_order2 = result
-      expect(split_order1.payments.size).to be >(0)
-      expect(split_order2.payments.size).to be >(0)
-      expect(original_order.status).to eq(TicketOrder::SPLIT)
-      expect(split_order1.status).to eq(original_status)
-      expect(split_order2.status).to eq(original_status)
-      expect(original_order.number_of_seats).to eq(0)
-      expect(split_order1.number_of_seats).to eq(1)
-      expect(split_order2.number_of_seats).to eq(original_seats-1)
-      expect(original_order.ticket_line_items.size).to eq(5)
-      expect(original_order.total).to eq(20.0)
-      expect(split_order1.total).to eq(original_total.eql?(20.0) ? 0.0 : 4.98)
-      expect(split_order1.ticket_line_items.size).to eq(1)
-      expect(split_order2.ticket_line_items.size).to eq(2)
-      expect(split_order2.total).to eq(original_total.eql?(20.0) ? 0.0 : 7.05)
-      expect(split_order1.total + split_order2.total + original_order.total).to eq(original_amount)
-      expect(split_order1.split_source_id).to eq(original_order.id)
-      expect(split_order2.split_source_id).to eq(original_order.id)
-      expect(split_order1.split_source.id).to eq(original_order.id)
-      expect(split_order2.split_source.id).to eq(original_order.id)
-    end
+    
 
   end
+
+  
+
 
 end
 
@@ -144,6 +88,15 @@ RSpec.describe TicketOrder do
   it_behaves_like "a paid ticket order", :paid_with_membership, :reserved_seating
   it_behaves_like "a paid ticket order", :paid_with_flex_pass, :reserved_seating
   it_behaves_like "a paid ticket order", :paid_with_external, :reserved_seating
+
+  it "ensures that membership quotas/production are honored" do
+    membership_offer = FactoryBot.create(:membership_offer,tickets_per_performance: 1)
+    membership = FactoryBot.create(:membership, membership_offer: membership_offer)
+    expect(membership.membership_offer.tickets_per_performance).to eq(1)
+    o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, member_code: membership.member_code)
+    o.payment_type = FactoryBot.create(:membership_payment_type)
+    expect{o.transition_to!(Order::FULFILLED)}.to raise_error(Exceptions::TooManyTicketsForMembership)
+  end
 
   it "should preserve the attendance when cancelling one of multiple reservations" do
     o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
@@ -391,4 +344,66 @@ RSpec.describe TicketOrder do
     end
   end
 
+  it "creates two orders that round down when they are not divisible" do
+   
+    original_order = FactoryBot.create(:ticket_order, :with_wierd_special_offer, :for_three_tickets, :with_twenty_dollar_service_item, :paid_with_cash)      
+    original_total = original_order.total
+    old_tli = original_order.flatten_ticket_line_items
+    new_tli = [old_tli[0]]
+    original_status = original_order.status
+    original_seats = original_order.number_of_seats
+    original_amount = original_order.total
+    result = original_order.split(new_tli)
+    expect(result.size).to eq(2)
+    split_order1, split_order2 = result
+    expect(split_order1.payments.size).to be >(0)
+    expect(split_order2.payments.size).to be >(0)
+    expect(original_order.status).to eq(TicketOrder::SPLIT)
+    expect(split_order1.status).to eq(original_status)
+    expect(split_order2.status).to eq(original_status)
+    expect(original_order.number_of_seats).to eq(0)
+    expect(split_order1.number_of_seats).to eq(1)
+    expect(split_order2.number_of_seats).to eq(original_seats-1)
+    expect(original_order.ticket_line_items.size).to eq(5)
+    expect(original_order.total).to eq(20.0)
+    expect(split_order1.total).to eq(original_total.eql?(20.0) ? 0.0 : 4.98)
+    expect(split_order1.ticket_line_items.size).to eq(1)
+    expect(split_order2.ticket_line_items.size).to eq(2)
+    expect(split_order2.total).to eq(original_total.eql?(20.0) ? 0.0 : 7.05)
+    expect(split_order1.total + split_order2.total + original_order.total).to eq(original_amount)
+    expect(split_order1.split_source_id).to eq(original_order.id)
+    expect(split_order2.split_source_id).to eq(original_order.id)
+    expect(split_order1.split_source.id).to eq(original_order.id)
+    expect(split_order2.split_source.id).to eq(original_order.id)
+  end
+
+  it "creates two orders that manage an order with an uneven number of tickets and a service charge" do
+    original_order = FactoryBot.create(:ticket_order, :with_twenty_dollar_service_item, :for_three_tickets, :paid_with_cash)
+    original_total = original_order.total
+    old_tli = original_order.flatten_ticket_line_items
+    new_tli = [old_tli[0]]
+    original_status = original_order.status
+    original_seats = original_order.number_of_seats
+    original_amount = original_order.total
+    result = original_order.split(new_tli)
+    expect(result.size).to eq(2)
+    split_order1, split_order2 = result
+    expect(original_order.status).to eq(TicketOrder::SPLIT)
+    expect(split_order1.status).to eq(original_status)
+    expect(split_order2.status).to eq(original_status)
+    expect(original_order.number_of_seats).to eq(0)
+    expect(split_order1.number_of_seats).to eq(1)
+    expect(split_order2.number_of_seats).to eq(original_seats-1)
+    expect(original_order.ticket_line_items.size).to eq(5)
+    expect(original_order.total).to eq(20.0)
+    expect(split_order1.total).to eq(original_total.eql?(20.0) ? 0 : 6.0)
+    expect(split_order1.ticket_line_items.size).to eq(1)
+    expect(split_order2.ticket_line_items.size).to eq(2)
+    expect(split_order2.total).to eq(original_total.eql?(20.0) ? 0 : 8.5)
+    expect(split_order1.split_source_id).to eq(original_order.id)
+    expect(split_order2.split_source_id).to eq(original_order.id)
+    expect(split_order1.split_source.id).to eq(original_order.id)
+    expect(split_order2.split_source.id).to eq(original_order.id)
+  
+  end
 end

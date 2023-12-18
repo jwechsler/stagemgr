@@ -20,8 +20,10 @@ class Membership < ApplicationRecord
 
   def verify_applicable_for(order)
     unless self.membership_offer.tickets_per_performance.nil?
-      perfs = Order.where("performance_id = ? and id <> ? and id in (select order_id from payments where type = 'MembershipPayment' and membership_id = ?)", order.id,order.performance_id, self.id)
-      raise Exceptions::TooManyTicketsForMembership.new("This membership allows you #{self.membership_offer.tickets_per_performance} seat#{'s' if self.membership_offer.tickets_per_performance > 1} per performance") if self.membership_offer.tickets_per_performance < perfs.inject(0) { |sum, o1| sum += o1.membership_payments.inject(0) { |sum, p| sum += p.number_of_tickets } }
+      perfs = Order.where("performance_id = ? and id <> ? and id in (select order_id from payments where type = 'MembershipPayment' and membership_id = ?)", order.id, order.performance_id, self.id)
+      
+      raise Exceptions::TooManyTicketsForMembership.new("This membership only allows #{self.membership_offer.tickets_per_performance} seat#{'s' if self.membership_offer.tickets_per_performance > 1} per performance") if order.number_of_seats > self.membership_offer.tickets_per_performance
+      raise Exceptions::TooManyTicketsForMembership.new("This membership allows you #{self.membership_offer.tickets_per_performance} seat#{'s' if self.membership_offer.tickets_per_performance > 1} per production") if self.membership_offer.tickets_per_performance < perfs.inject(0) { |sum, o1| sum += o1.membership_payments.inject(0) { |sum, p| sum += p.number_of_tickets } }
     end
     if order.membership_payments.sum{|li| li.number_of_tickets} > 0
       prod_count = Performance.includes(
