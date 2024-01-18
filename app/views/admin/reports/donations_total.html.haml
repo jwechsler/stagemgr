@@ -1,0 +1,17 @@
+-# Path: app/views/admin/reports/donations_total.html.haml
+.grid-x.grid-padding-x
+  .small-12.cell
+    %h3
+      Donations between 
+      = @start_day.to_s(:long)
+      and
+      = @end_day.to_s(:long)
+    %table#donation_totals.report
+      %caption
+        %i
+          Donation amounts by theater, generated at
+          = Time.now.to_s(:hour_min)
+          on
+          = Time.now
+      = render :partial=>"generic", :locals=>{:headers=>@headers, :report_body=>@report_data, :summary=>@totals}
+

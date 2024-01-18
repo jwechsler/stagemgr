@@ -86,6 +86,25 @@
           .small-12.cell
             = submit_tag "Generate", :name=>'generate_csv', :class=>'tiny button'
 
+- if can? :box_office_reports, Report
+  .grid-x.grid-padding-x
+    .small-4.cell
+      %span.report_title
+        Donation Totals
+      %span.help_text
+        Download donation totals by theater for a time period
+    .small-8.cell
+      = form_tag(donations_total_admin_reports_path, method: "post") do
+        .grid-x.grid-padding-x
+          .small-6.cell
+            %label{:for=>:start_day} Gave On or after
+            = text_field_tag(:start_day, Date.today.at_beginning_of_month, :class=>'date_picker')
+          .small-6.cell
+            %label{:for=>:end_day} Gave Before or on
+            = text_field_tag(:end_day, Date.today, :class=>'date_picker')
+          .small-12.cell
+            = submit_tag "Show", :class=>'tiny button'
+
 - if can? :donation_dump, Report
   .grid-x.grid-padding-x
     .small-4.cell
@@ -101,7 +120,7 @@
         .grid-x.grid-padding-x
           .small-6.cell
             %label{:for=>:starting_date_donor} Gave On or after
-            = text_field_tag(:starting_date_donor, Date.today, :default=>Date.today.at_beginning_of_month, :class=>'date_picker')
+            = text_field_tag(:starting_date_donor, Date.today.at_beginning_of_month, :class=>'date_picker')
           .small-6.cell
             %label{:for=>:ending_date_donor} Gave Before or on
             = text_field_tag( :ending_date_donor, Date.today, :default=>Date.today, :class=>'date_picker')

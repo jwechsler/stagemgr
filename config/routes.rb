@@ -201,6 +201,8 @@ Rails.application.routes.draw do
         post :trg_dump
         post :attended_dump
         post :donation_dump
+        post :donations_total
+        
       end
 
     end
