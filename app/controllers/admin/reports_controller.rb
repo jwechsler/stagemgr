@@ -153,8 +153,6 @@ class Admin::ReportsController < Admin::ApplicationController
       send_report_as_csv('donations', @headers, @report_data)
 
     end
-
-
   end
 
   def mine_customer_data
@@ -185,13 +183,6 @@ class Admin::ReportsController < Admin::ApplicationController
     TrgExportJob.perform_later production.nil? ? 0 : production.id, current_user.id, can?(:view_email, Address)
     flash[:notice] = 'Your export is queued for generation. You\'ll recieve notification when the process is complete.'
     redirect_to admin_reports_path
-  end
-
-  def self.trg_dump_all(user_id, season)
-    productions = Production.find_all_by_season(season)
-    productions.each { |p|
-      TrgExport.perform(p.id, user_id, true)
-    }
   end
 
   def attended_dump
@@ -368,63 +359,7 @@ class Admin::ReportsController < Admin::ApplicationController
           o.save!
         end
       }
-        [headers, report]
-  end
-
-  def build_original_trg_dump #deprecated.  please look at this if you think you need to do an initial upload - jw
-    orders = TicketOrder.order(:performance_id).includes(:address,:theater, {:performance=>:production})
-    report = Array.new
-    headers = [:buyer_type, :year, :description, :first, :last, :full_name, :company, :email, :address1, :address2,
-               :address3, :city, :state, :zip, :home_phone, :business_phone, :patron_id]
-    orders.each do |order|
-
-      buyer_type = case
-        when order.paid_with_membership?
-          'MEM'
-        when (order.theater.producing?)
-          order.total == 0 ? 'CMP' : 'STB'
-        else
-          'REN'
-      end
-
-      season_tag = order.performance.production.season.to_i - 1
-      season_text = "#{season_tag.to_s[2..3]}-#{order.performance.production.season[2..3]}"
-
-      description = "#{season_text} #{buyer_type}: #{order.performance.production.name}"
-      report << trg_hash(buyer_type, order.performance.production.season, description, order.address)
-
-      description = "#{season_text} FULL: Building Attendee"
-      report << trg_hash(buyer_type, order.performance.production.season, description, order.address)
-
-      if order.theater.is_resident?
-        description = "#{season_text} FULL: Resident Company Attendee"
-        report << trg_hash(buyer_type, order.performance.production.season, description, order.address)
-      end
-
-      if order.theater.producing?
-        description = "#{season_text} FULL: #{order.theater.name} Attendee"
-        report << trg_hash(buyer_type, order.performance.production.season, description, order.address)
-      end
-
-
-    end
-
-    orders = MembershipOrder.includes(:address,[:membership_line_item,:membership])
-
-    orders.each do |order|
-      description = "#{order.membership.member_since.year} MEM: #{order.membership.membership_offer.name}"
-      report << trg_hash('DNT', order.membership.member_since.year, description, order.address)
-    end
-
-    orders = DonationOrder.include(:address)
-
-    orders.each do |order|
-      description = "#{order.created_at.year} Donor"
-      report << trg_hash('DNT', order.created_at.year, description, order.address)
-    end
-
-    [headers,report]
-
+      [headers, report]
   end
 
   def build_flexpass_sales(offer, display_only = true)
@@ -490,6 +425,14 @@ class Admin::ReportsController < Admin::ApplicationController
              params["#{field_name.to_s}(3i)"].to_i)
   end
 
+  # columns_for_orders
+  #
+  # utility to generate internal list of keys for report generation
+  #
+  # @param build_for_dumpfile True if exporting to file
+  # @param include_emails Include emails if user has permissions.  Defaults to false
+  #
+  # @return array of keys common to orders
   def columns_for_orders(build_for_dumpfile, include_emails = false)
     keys = [:order_date]
     keys += [:id, :first_name, :last_name, :street_address, :street_address_2, :city, :state, :postal_code, :phone] if build_for_dumpfile
@@ -506,7 +449,7 @@ class Admin::ReportsController < Admin::ApplicationController
     end
   end
 
-
+  protected
   def create_hash_from_order_fields(order)
     row = Hash.new
     row[:order_date] = order.created_at.to_formatted_s(:long) unless order.created_at.nil?
@@ -526,6 +469,7 @@ class Admin::ReportsController < Admin::ApplicationController
     row[:facility_fee] = order.ticketing_fee
     row
   end
+
 
   def build_daily_box_office_receipts(start_day, end_day, build_for_dumpfile = false)
 
@@ -595,7 +539,7 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def build_donation_totals_dump(start_day, end_day, build_for_dumpfile = false)
-    orders = DonationOrder.joins(:theater, :payments).includes([:theater, :payments]).where("orders.status in (?) and payments.processed_on >= ? and payments.processed_on <= ?", Order::PROCESSED, start_day, end_day)
+    orders = DonationOrder.joins(:theater, :payments).includes([:theater, :payments]).where("orders.status in (?) and orders.created_at >= ? and orders.created_at < ?", Order::PROCESSED, start_day, end_day+1.day)
     reportdata = Array.new
     theater_ids = orders.pluck(:theater_id).uniq
     theaters = Theater.find(theater_ids)
@@ -613,49 +557,5 @@ class Admin::ReportsController < Admin::ApplicationController
     [[:theater, :total_amount, :processing_fee, :due],reportdata]
   end
 
-  public
-  def build_order_dump(production)
-    report = Array.new
-    keys = columns_for_orders(true,true)
-    keys += [:order_total, :order_revenue, :num_tickets, :num_seats, :external_id, :opted_in_for_email]
-    if production.has_reserved_seating?
-      keys += [:seat_assignments]
-    end
-    members_by_email = Admin::ReportsHelper.attendees_on_email_list(production)
-    production.performances.each { |performance|
-      orders = performance.orders.includes(:ticket_line_items, :payments)
-
-      orders.each { |o|
-        if o.settled? then
-          row = create_hash_from_order_fields(o)
-          if current_user.is_theater_user?
-            row[:external_id] = o.address.external_id(current_user.theater_ids)
-          else
-            row[:external_id] = o.address.sf_contact_id
-          end
-          unless row[:email].nil?
-            if members_by_email.has_key?(row[:email].downcase)
-              row[:opted_in_for_email] = "Y"
-              members_by_email.delete(row[:email].downcase)
-            else
-              row[:email] = nil unless can?(:view_email, Address)
-            end
-          end
-          report << row
-        end
-      }
-    }
-
-    additional_attendees = production.attendees.uniq
-
-    additional_attendees.each {|address|
-      if !address.email.nil? && members_by_email.has_key?(address.email.downcase)
-        row =  address_hash(address)
-        row[:id] = 'email'
-        report << row
-      end
-    }
-    [keys, report]
-  end
 
 end
