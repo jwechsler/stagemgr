@@ -145,4 +145,50 @@ module Admin::ReportsHelper
 
   end
 
+  # build_order_dump
+#
+# builds a large export of orders with the following columns add
+# @param production The production to pull the orders from
+#
+# @return array [keys, value hashed by key] for each order
+def build_order_dump(production)
+  report = []
+  keys = columns_for_orders(true, true)
+  keys += [:order_total, :order_revenue, :num_tickets, :num_seats, :external_id, :opted_in_for_email]
+  keys += [:seat_assignments] if production.has_reserved_seating?
+
+  members_by_email = Admin::ReportsHelper.attendees_on_email_list(production)
+  
+  export_emails_allowed = can?(:view_email, Address)
+  theater_ids = current_user.theater_ids
+
+  TicketOrder.joins(:performance)
+       .includes(:ticket_line_items, :payments, :address)
+       .where(performances: { production_id: production.id }, status: Order.settled_statuses)
+       .find_each(batch_size: 1000) do |o|  # Adjust batch_size as needed
+
+    row = create_hash_from_order_fields(o)
+    row[:external_id] = o.address.external_id(theater_ids)
+    unless row[:email].nil?
+      if members_by_email.has_key?(row[:email].downcase)
+        row[:opted_in_for_email] = "Y"
+        members_by_email.delete(row[:email].downcase)
+      else
+        row[:email] = nil unless export_emails_allowed
+      end
+    end
+    report << row
+  end
+
+  production.attendees.uniq.each do |address|
+    if address.email.present? && members_by_email.has_key?(address.email.downcase)
+      row = address_hash(address)
+      row[:id] = 'email'
+      report << row
+    end
+  end
+
+  [keys, report]
+end
+
 end

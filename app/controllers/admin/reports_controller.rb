@@ -437,7 +437,7 @@ class Admin::ReportsController < Admin::ApplicationController
     keys = [:order_date]
     keys += [:id, :first_name, :last_name, :street_address, :street_address_2, :city, :state, :postal_code, :phone] if build_for_dumpfile
     keys += [:email] if (build_for_dumpfile && (can?(:view_email, Address) || include_emails))
-    keys += [:performance_code, :special_offer_code, :status, :description, :facility_fee] if build_for_dumpfile
+    keys += [:performance_code, :special_offer_code, :status, :description, :facility_fee, :processing_fee] if build_for_dumpfile
     keys
   end
 
@@ -459,14 +459,15 @@ class Admin::ReportsController < Admin::ApplicationController
     row[:special_offer_code] = order.special_offer_code_used
     row[:status] = order.status
     row[:description] = order.description
-    row[:order_total] = order.total_collected
-    row[:order_revenue] = order.total_revenue
+    row[:order_total] = Money.from_amount(order.total_collected)
+    row[:order_revenue] = Money.from_amount(order.total_revenue) - Money.from_amount(order.processing_fee) - Money.from_amount(order.ticketing_fee)
     row[:num_tickets]  = order.kind_of?(TicketOrder) ? order.number_of_tickets : 0
     row[:num_seats] = order.kind_of?(TicketOrder) ? order.number_of_seats : 0
     if order.performance.production.has_reserved_seating?
       row[:seat_assignments] = order.seats.map {|sa| sa.seat.location}.sort.join(', ')
     end
-    row[:facility_fee] = order.ticketing_fee
+    row[:facility_fee] = Money.from_amount(order.ticketing_fee)
+    row[:processing_fee] = Money.from_amount(order.processing_fee)
     row
   end
 
