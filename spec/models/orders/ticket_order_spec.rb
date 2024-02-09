@@ -36,7 +36,7 @@ RSpec.shared_examples "a paid ticket order" do |pay_method_type, seating_type|
     expect(o.performance.production.attendees.count).to eq(0)
   end
   context "when splitting" do
-    it "creates two orders that reference the original order", focus: true do
+    it "creates two orders that reference the original order" do
       original_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, pay_method, seating)
       original_total = original_order.total
       old_tli = original_order.flatten_ticket_line_items
@@ -153,7 +153,7 @@ RSpec.describe TicketOrder do
   end
 
 
-  it "can create up to two additional donation orders", :wip do
+  it "can create up to two additional donation orders" do
     o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets)
     expect(DonationOrder.all.count).to eq(0)
     o.additional_donation = 50.00

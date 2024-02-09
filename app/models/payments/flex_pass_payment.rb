@@ -46,7 +46,14 @@ class FlexPassPayment < PassPayment
 
   def release_tickets!
     self.number_of_tickets = 0
+    self.flex_pass = nil
     self.save!
+  end
+
+  def create_refund_payment(cc_number = nil, note = nil)
+    refund_payment = super
+    refund_payment.flex_pass = self.flex_pass
+    refund_payment
   end
 
   def note

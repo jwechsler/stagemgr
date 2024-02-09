@@ -22,4 +22,9 @@ class PassPayment < Payment
     new_payment
   end
 
+  protected
+  def create_refund_payment?
+    self.number_of_tickets > 0
+  end
+
 end

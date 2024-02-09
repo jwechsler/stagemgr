@@ -402,8 +402,7 @@ class Order < ApplicationRecord
 
   def refund!
     Order.transaction do
-      refund_payments = payments.select{|p| p.amount > 0 }.to_a 
-      refund_payments.each do |payment|
+      payments.each do |payment|
         if ((payment.respond_to? :refund!) && payment.report_as_sales_collected?)
           payment.refund!(nil, self.notes)
         end

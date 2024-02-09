@@ -76,14 +76,14 @@ class Payment < ApplicationRecord
   end
 
   def refund!(cc_number = nil, note = nil)
-    if self.amount > 0 then
-
+    if self.create_refund_payment? then
       Payment.transaction do
         refund_payment = create_refund_payment(cc_number, note)
         refund_payment.save!
       end
     end
   end
+
 
   def report_as_sales_collected?
     self.payment_type_id.nil? ? true : self.payment_type.report_as_sales_collected?
@@ -104,6 +104,10 @@ class Payment < ApplicationRecord
   protected
   def set_processed_on
     self.processed_on = self.processed_on || Time.now if self.new_record?
+  end
+
+  def create_refund_payment?
+    self.amount > 0
   end
 
 end
