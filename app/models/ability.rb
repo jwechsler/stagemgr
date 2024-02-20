@@ -47,7 +47,7 @@ class Ability
     end
 
     can [:make, :update, :edit, :autocomplete_address], Address
-    can :exchange, TicketOrder
+    
     can :cancel_held_during_seating, TicketOrder
     can :read, Performance
     can :read, ServiceItemTemplate
@@ -72,6 +72,7 @@ class Ability
     can :read, PaymentType
     can :manage, Theater
     can [:manage], DonationOrder
+
     can [:unclaimed, :fulfill_selected], Order
     can :swipe_card, Order
     can [:swipe_card, :confirm_credit_card,:hold,:mark_unclaimed,:resend_confirmation], TicketOrder
@@ -91,6 +92,7 @@ class Ability
     can :read, MembershipOffer
     can :read, FlexPassOffer
     can [:cancel, :reprint, :refund, :sell_past_performances, :order_anytime], [Order, TicketOrder]
+    can :exchange, TicketOrder
     can [:split, :finalize_split], TicketOrder
     can :cru, Venue
     can :cru, ServiceItemTemplate
