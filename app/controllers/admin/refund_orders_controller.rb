@@ -15,10 +15,14 @@ class Admin::RefundOrdersController < Admin::ApplicationController
     authorize! :refund, Order
     @original_order = Order.find(params[:order_id])
     @original_order.notes = params[:order][:notes] unless params[:order].nil?
-    @original_order.refund!
-
-    respond_to do |format|
+    begin
+      @original_order.refund!
       flash[:notice] = 'Order was successfully refunded.'
+    rescue CannotProcessPayment => e
+      flash[:error] = "Refund failed: #{e.message}"
+    end
+    respond_to do |format|
+      
       format.html { redirect_to(edit_admin_order_path(@original_order.id)) }
     end
 

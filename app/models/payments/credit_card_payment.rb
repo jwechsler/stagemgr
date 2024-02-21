@@ -88,28 +88,26 @@ class CreditCardPayment < CurrencyPayment
   end
 
   def refund!(cc_number = nil, note = nil)
+    if self.create_refund_payment?
+      CreditCardPayment.transaction do
 
+        gateway = PaymentProcessing.gateway
 
-    CreditCardPayment.transaction do
+        refund_payment = self.dup
+        refund_payment.amount = 0.0-self.amount
+        refund_payment.ipn_track_id = nil
+        self.order.payments << refund_payment
 
-      gateway = PaymentProcessing.gateway
+        refund_amount = self.charge_amount
 
-      refund_payment = self.dup
-      refund_payment.amount = self.amount*-1
-      refund_payment.ipn_track_id = nil
-      self.order.payments << refund_payment
+        response = gateway.refund(refund_amount, self.transaction_id || self.confirmation_code, :note => note)
 
-      refund_amount = (self.amount*100).to_i
+        unless response.success?
+          raise CannotProcessPayment, response.message
+        end
 
-
-      response = gateway.refund(refund_amount, self.transaction_id || self.confirmation_code, :note => note)
-
-      unless response.success?
-        raise CannotProcessPayment, response.message
+        refund_payment.save!
       end
-
-      refund_payment.save!
-
     end
   end
 
@@ -137,7 +135,7 @@ class CreditCardPayment < CurrencyPayment
 
   protected
   def charge_amount
-    (self.amount*100).to_i
+    (self.amount*100.0).to_i
   end
 
   private
