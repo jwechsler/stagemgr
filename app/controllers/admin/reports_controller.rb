@@ -229,6 +229,24 @@ class Admin::ReportsController < Admin::ApplicationController
     end
   end
 
+  def membership_usage
+    @starting_date = params[:starting_date].to_date.at_beginning_of_month
+    @ending_date = params[:ending_date].to_date.at_end_of_month
+    current_user_id = params[:download].blank? ? nil : current_user.id
+
+    unless params[:download].blank?
+      Resque.enqueue(MembershipUsageExport, @starting_date, @ending_date, current_user_id)
+      flash[:notice] = "Your export is queued for generation. You'll recieve notification when the process is complete."
+      redirect_to admin_reports_path
+    else
+      report = MembershipUsageReport.new(@starting_date, @ending_date, nil)
+      @headers, @report_data = report.create
+      respond_to do |format|
+        format.html
+      end
+    end
+  end
+
   # POST /admin/reports
   # POST /admin/reports.xml
   def create

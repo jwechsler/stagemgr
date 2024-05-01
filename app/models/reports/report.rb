@@ -1,3 +1,5 @@
+require 'csv'
+
 class Report
 
   include NotifyOnCompletion
@@ -29,9 +31,15 @@ class Report
   def save_report_as_csv(file_path, filestore=nil)
     csv_string = CSV.generate do |csv|
       csv << self.headers
-      self.data.each { |key, rows| rows.each { |row|
-          csv << headers.map { |h| h == :Segment ? key : Report.tidy_output(row[h]) } unless row.nil? }
-      }
+      if self.is_a? Hash
+        self.data.each { |key, rows| rows.each { |row|
+            csv << headers.map { |h| h == :Segment ? key : Report.tidy_output(row[h]) } unless row.nil? }
+
+      } else # if simple array, then dump array into csv
+        self.data.each { |row|
+          csv << headers.map { |h| Report.tidy_output(row[h]) }
+        }
+      end
     end
     self.write_file_data(file_path, filestore, csv_string)
   end
@@ -52,5 +60,13 @@ class Report
     end
   end
 
+  protected
+  def report_data(file_name = nil)
+    unless reporting_user_id.nil?
+      self.save_report_to_filestore(file_name)
+    else
+      return [self.headers,self.data]
+    end
+  end
 
 end

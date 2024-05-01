@@ -98,37 +98,33 @@
         .grid-x.grid-padding-x
           .small-6.cell
             %label{:for=>:start_day} Gave On or after
-            = text_field_tag(:start_day, Date.today.at_beginning_of_month, :class=>'date_picker')
+            = text_field_tag(:start_day, (Date.today-1.month).at_beginning_of_month, :class=>'date_picker')
           .small-6.cell
             %label{:for=>:end_day} Gave Before or on
-            = text_field_tag(:end_day, Date.today, :class=>'date_picker')
+            = text_field_tag(:end_day, (Date.today-1.month).at_end_of_month, :class=>'date_picker')
           .small-12.cell
             = submit_tag "Show", :class=>'tiny button'
 
-- if can? :donation_dump, Report
+- if can? :reconciliation_reports, Report
   .grid-x.grid-padding-x
     .small-4.cell
       %span.report_title
-        Donor export
+        Membership Usage
       %span.help_text
-        Download donors contact information by date given for import into external systems.
-        - if can?(:view_email, Address)
-          %br
-          %strong Warning: confidential email records included.
+        View membership counts and income for selected range by month
     .small-8.cell
-      = form_tag(donation_dump_admin_reports_path, :method=>"post") do
+      = form_tag(membership_usage_admin_reports_path, :method=>"post") do
         .grid-x.grid-padding-x
           .small-6.cell
-            %label{:for=>:starting_date_donor} Gave On or after
-            = text_field_tag(:starting_date_donor, Date.today.at_beginning_of_month, :class=>'date_picker')
+            %label{:for=>:starting_date} Starting Date (inclusive)
+            = text_field_tag(:starting_date, (Date.today-1.month).at_beginning_of_month, :class=>'date_picker')
           .small-6.cell
-            %label{:for=>:ending_date_donor} Gave Before or on
-            = text_field_tag( :ending_date_donor, Date.today, :default=>Date.today, :class=>'date_picker')
+            %label{:for=>:ending_date} Ending Date (inclusive)
+            = text_field_tag( :ending_date, (Date.today-1.month).at_end_of_month, :default=>Date.today.at_end_of_month, :class=>'date_picker')
           .small-12.cell
-            %label{:for=>:theater_id} Theater 
-            = select_tag(:theater_id, options_from_collection_for_select(current_user.allowed_theaters.order(:name), :id, :name))
+            = submit_tag "Show", :name=>'show', :class=>'tiny button'
           .small-12.cell
-            = submit_tag "Generate", :name=>'generate_csv', :class=>'tiny button'
+            = submit_tag "Download", :name=>'download', :class=>'tiny button'
 
 - if can? :house_management_reports, Report then
   .grid-x.grid-padding-x

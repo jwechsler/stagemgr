@@ -8,6 +8,7 @@ class MailingList < Report
 
   def initialize(reporting_user_id = nil)
     super(TRG_IMPORT_HEADERS, reporting_user_id)
+    @data = Hash.new
     @data['ALL'] = Array.new
     @data['MEM'] = Array.new
     @data['STB'] = Array.new
