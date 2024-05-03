@@ -1,0 +1,3 @@
+class InvalidSpecialOfferCode < StandardError
+
+end

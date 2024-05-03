@@ -80,18 +80,6 @@ class Admin::ReportsController < Admin::ApplicationController
 
   end
 
-  def order_dump
-    @production = Production.accessible_by(current_ability, :read).find(params[:report][:production_id])
-    @headers, @report_data = build_order_dump(@production)
-    if params['download_csv'].nil? then
-      respond_to do |format|
-        format.html
-      end
-    else
-      send_report_as_csv('production_attendee', @headers, @report_data)
-    end
-  end
-
   def daily_box_office_receipts
     @start_day = params[:start_day].to_date
     @end_day = params[:end_day].to_date
@@ -247,6 +235,13 @@ class Admin::ReportsController < Admin::ApplicationController
     end
   end
 
+  def order_dump
+    production = Production.accessible_by(current_ability, :read).find(params[:report][:production_id])
+    Resque.enqueue(ProductionAttendeeExport, production.id, can?(:view_email, Address), current_user.id)
+    flash[:notice] = "Your export is queued for generation. You'll recieve notification when the process is complete."
+    redirect_to admin_reports_path
+  end
+
   # POST /admin/reports
   # POST /admin/reports.xml
   def create
@@ -307,35 +302,7 @@ class Admin::ReportsController < Admin::ApplicationController
     send_data csv_string, :type => "text/csv", :filename=>"#{title}.csv", :disposition=>'attachment'
   end
 
-  def address_hash(a)
-    {:last_name=>a.last_name,
-                :first_name=>a.first_name,
-                :street_address=>a.line1,
-                :street_address_2=>a.line2,
-                :city=>a.city,
-                :state=>a.state,
-                :postal_code=>a.zipcode,
-                :phone=>a.phone,
-                :email=>a.email,
-                :address_id=>a.id}
-  end
 
-  def address_hash_from_order(o)
-    unless o.address.blank?
-      address_hash(o.address)
-    else
-         {:last_name=>'',
-            :first_name=>'',
-            :street_address=>'',
-            :street_address_2=>'',
-            :city=>'',
-            :state=>'',
-            :postal_code=>'',
-            :phone=>'',
-            :email=>''}
-    end
-
-  end
 
   def build_fulfill_labels(through_date)
     orders = TicketOrder.joins(:performance).joins(performance: :production).joins(:address).includes(:ticket_line_items).where(
@@ -410,7 +377,7 @@ class Admin::ReportsController < Admin::ApplicationController
                  :tickets_remaining=>tickets_remaining,
                  :converted_balance=>converted_balance,
                  :status=>status,
-                 :display_class=>:report_detail_row}.merge(address_hash_from_order(o))
+                 :display_class=>:report_detail_row}.merge(OrderReport.address_hash_from_order(o))
       totals[:payout] += payout
       totals[:facility_fee] += fee
       totals[:converted_balance] += converted_balance
@@ -451,13 +418,6 @@ class Admin::ReportsController < Admin::ApplicationController
   # @param include_emails Include emails if user has permissions.  Defaults to false
   #
   # @return array of keys common to orders
-  def columns_for_orders(build_for_dumpfile, include_emails = false)
-    keys = [:order_date]
-    keys += [:id, :first_name, :last_name, :street_address, :street_address_2, :city, :state, :postal_code, :phone] if build_for_dumpfile
-    keys += [:email] if (build_for_dumpfile && (can?(:view_email, Address) || include_emails))
-    keys += [:performance_code, :special_offer_code, :status, :description, :facility_fee, :processing_fee] if build_for_dumpfile
-    keys
-  end
 
   def payment_bucket(payment)
     if payment.payment_type.nil?
@@ -468,26 +428,7 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   protected
-  def create_hash_from_order_fields(order)
-    row = Hash.new
-    row[:order_date] = order.created_at.to_formatted_s(:long) unless order.created_at.nil?
-    row[:id] = order.id
-    row = row.merge(address_hash_from_order(order))
-    row[:performance_code] = order.performance.performance_code if !order.performance.blank?
-    row[:special_offer_code] = order.special_offer_code_used
-    row[:status] = order.status
-    row[:description] = order.description
-    row[:order_total] = Money.from_amount(order.total_collected)
-    row[:order_revenue] = Money.from_amount(order.total_revenue) - Money.from_amount(order.processing_fee) - Money.from_amount(order.ticketing_fee)
-    row[:num_tickets]  = order.kind_of?(TicketOrder) ? order.number_of_tickets : 0
-    row[:num_seats] = order.kind_of?(TicketOrder) ? order.number_of_seats : 0
-    if order.performance.production.has_reserved_seating?
-      row[:seat_assignments] = order.seats.map {|sa| sa.seat.location}.sort.join(', ')
-    end
-    row[:facility_fee] = Money.from_amount(order.ticketing_fee)
-    row[:processing_fee] = Money.from_amount(order.processing_fee)
-    row
-  end
+
 
 
   def build_daily_box_office_receipts(start_day, end_day, build_for_dumpfile = false)
@@ -495,7 +436,7 @@ class Admin::ReportsController < Admin::ApplicationController
     report = Array.new
     day_total = Hash.new
     zero_dollars = Money.new(0)
-    keys = columns_for_orders(build_for_dumpfile) - [:order_date] + [:processed_on]
+    keys = OrderReport.columns_for_orders(build_for_dumpfile) - [:order_date] + [:processed_on]
     payment_types = []
 
     current_date = start_day - 1.week
@@ -523,7 +464,7 @@ class Admin::ReportsController < Admin::ApplicationController
       end
 
       if build_for_dumpfile then
-        row = create_hash_from_order_fields(p.order)
+        row = OrderReport.create_hash_from_order_fields(p.order)
 
         row[p.class.to_s] = amt
         row[:display_class] = :report_detail_row
@@ -540,7 +481,7 @@ class Admin::ReportsController < Admin::ApplicationController
   def build_donations_dump(start_day, end_day, build_for_dumpfile = false)
     donations = Order.all(:include=>[:address, :donation_line_items, :payments], :conditions=>["orders.status in (?) and payments.processed_on >= ? and payments.processed_on <= ?", Order::PROCESSED, start_day, end_day])
     report = Array.new
-    keys = columns_for_orders(true) + [:total,:campaign]
+    keys = OrderReport.columns_for_orders(true) + [:total,:campaign]
     Order.transaction do
       donations.each { |o|
         total = o.total

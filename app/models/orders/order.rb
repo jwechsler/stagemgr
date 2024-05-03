@@ -1,5 +1,3 @@
-InvalidSpecialOfferCode = Class.new(StandardError)
-
 class Order < ApplicationRecord
 
   include Admin::ReportsHelper
