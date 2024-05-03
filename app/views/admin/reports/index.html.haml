@@ -20,23 +20,6 @@
           = submit_tag "Show", :class=>'tiny button postfix'
         .small-2.cell
           = submit_tag "Download", :name=>'download_csv', :class=>'tiny button postfix'
-- if !@flex_pass_offers.nil? && @flex_pass_offers.size > 0 then
-  .grid-x.grid-padding-x
-    .small-4.cell
-      %span.report_title FlexPass Redemptions
-      %span.help_text
-        Returns Sales Info for specified FlexPass offer.
-        %br
-        Downloadable version [flexpass_sales.csv] includes contact information for pass holders
-    .small-8.cell
-      = form_tag(flexpass_sales_admin_reports_path, :method=>"post") do
-        .grid-x.grid-padding-x.collapse
-          .small-8.cell
-            = collection_select(:report, :flex_pass_offer_id, @flex_pass_offers, :id, :name)
-          .small-2.cell
-            = submit_tag "Show", :class=>'tiny button postfix'
-          .small-2.cell
-            = submit_tag "Download", :name=>'download_csv', :class=>'tiny button postfix'
 
 .grid-x.grid-padding-x
   .small-4.cell
@@ -123,8 +106,27 @@
             = text_field_tag( :ending_date, (Date.today-1.month).at_end_of_month, :default=>Date.today.at_end_of_month, :class=>'date_picker')
           .small-12.cell
             = submit_tag "Show", :name=>'show', :class=>'tiny button'
-          .small-12.cell
             = submit_tag "Download", :name=>'download', :class=>'tiny button'
+
+- if can? :reconciliation_reports, Report then
+  .grid-x.grid-padding-x
+    .small-4.cell
+      %span.report_title FlexPass Sales
+      %span.help_text
+        Flex Pass Usage by Month
+    .small-8.cell
+      = form_tag(flexpass_sales_admin_reports_path, :method=>"post") do
+        .grid-x.grid-padding-x
+          .small-6.cell
+            %label{:for=>:starting_date} Starting Date (inclusive)
+            = text_field_tag(:starting_date, (Date.today-1.month).at_beginning_of_month, :class=>'date_picker')
+          .small-6.cell
+            %label{:for=>:ending_date} Ending Date (inclusive)
+            = text_field_tag( :ending_date, (Date.today-1.month).at_end_of_month, :default=>Date.today.at_end_of_month, :class=>'date_picker')
+          .small-12.cell
+            = submit_tag "Show", :name=>'show', :class=>'tiny button'
+            = submit_tag "Download", :name=>'download', :class=>'tiny button'
+
 
 - if can? :house_management_reports, Report then
   .grid-x.grid-padding-x

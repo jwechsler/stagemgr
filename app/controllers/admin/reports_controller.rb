@@ -68,16 +68,21 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def flexpass_sales
-    @flex_pass_offer = FlexPassOffer.find(params[:report][:flex_pass_offer_id])
-    @headers, @report_data = build_flexpass_sales(@flex_pass_offer, params['download_csv'].nil?)
-    if params['download_csv'].nil? then
+    @starting_date = params[:starting_date].to_date.at_beginning_of_month
+    @ending_date = params[:ending_date].to_date.at_end_of_month
+    current_user_id = params[:download].blank? ? nil : current_user.id
+
+    unless params[:download].blank?
+      Resque.enqueue(FlexPassUsageExport, @starting_date, @ending_date, current_user_id)
+      flash[:notice] = "Your export is queued for generation. You'll recieve notification when the process is complete."
+      redirect_to admin_reports_path
+    else
+      report = FlexPassUsageReport.new(@starting_date, @ending_date, nil)
+      @headers, @report_data = report.create
       respond_to do |format|
         format.html
       end
-    else
-      send_report_as_csv('flexpass_sales_by_date', @headers, @report_data)
     end
-
   end
 
   def daily_box_office_receipts
@@ -346,49 +351,6 @@ class Admin::ReportsController < Admin::ApplicationController
       }
       [headers, report]
   end
-
-  def build_flexpass_sales(offer, display_only = true)
-    orders = offer.flex_passes.select{|fp| !fp.flex_pass_line_item.nil? }.map{|fp| fp.order}
-    orders.sort! { |a,b| a.created_at <=> b.created_at }
-    report = Array.new
-    headers = [:order_date, :last_name, :first_name]
-    headers += [:street_address, :street_address_2, :state, :city, :state, :postal_code, :phone] unless display_only
-    headers += [:email] if can?(:view_email, :admin_addresses)
-    headers += [:collected, :payout, :facility_fee, :tickets_remaining, :converted_balance, :status]
-
-    fee = (offer.facility_fee.nil? ? 0 : offer.facility_fee).to_money
-    totals = {:payout=>Money.new(0), :facility_fee=>Money.new(0), :display_class=>:report_summary_row,
-      :converted_balance=>Money.new(0), :tickets_remaining=>0}
-    orders.select { |o| !o.nil? && o.settled? }.sort { |o1, o2| o2.created_at <=> o1.created_at }.each { |o|
-      flex_pass = o.flex_pass
-      status = flex_pass.available? ?  o.status : flex_pass.expiration_date.to_s
-      used = FlexPassPayment.where(flex_pass_id:flex_pass.id)
-      if offer.flat_payout.blank? || offer.flat_payout == 0
-        payout = FlexPassPayment.where('flex_pass_id = ?',flex_pass.id).sum(:amount).to_money
-      else
-        payout = (offer.flat_payout.nil? ? 0 : offer.flat_payout).to_money
-      end
-      converted_balance = flex_pass.available? ? 0.to_money : offer.price.to_money - fee.to_money - payout
-      tickets_remaining = flex_pass.available? ? (offer.number_of_tickets - used.inject(0){|sum,p| sum + p.number_of_tickets }) : 0
-      report << {:order_date=>o.created_at.to_date,
-                 :payout=>payout,
-                 :collected=>offer.price.to_money,
-                 :facility_fee=>fee,
-                 :tickets_remaining=>tickets_remaining,
-                 :converted_balance=>converted_balance,
-                 :status=>status,
-                 :display_class=>:report_detail_row}.merge(OrderReport.address_hash_from_order(o))
-      totals[:payout] += payout
-      totals[:facility_fee] += fee
-      totals[:converted_balance] += converted_balance
-      totals[:tickets_remaining] += tickets_remaining
-
-    }
-    report << totals
-    [headers, report]
-
-  end
-
 
   def build_production_sales_by_performance(productions, include_classes = true, perfs = nil)
     report = SalesByPerformanceReport.new(productions.map{|prod| prod.id}, include_classes, perfs.nil? ? nil : perfs.map{|perf| perf.id})

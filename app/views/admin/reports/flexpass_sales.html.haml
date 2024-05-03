@@ -1,15 +1,15 @@
--# Path: app/views/admin/reports/membership_usage.html.haml
+-# Path: app/views/admin/reports/flexpass_sales.html.haml
 .grid-x.grid-padding-x
   .small-12.cell
     %h3
-      Membership Usage:  
+      FlexPass Usage:  
       = @starting_date.to_s(:long)
       through
       = @ending_date.to_s(:long)
-    %table#donation_totals.report
+    %table#flexpass_usage.report
       %caption
         %i
-          Membership Usage by Month, generated at
+          FlexPass Usage by Month, generated at
           = Time.now.to_s(:hour_min)
           on
           = Time.now
