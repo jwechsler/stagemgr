@@ -64,4 +64,9 @@ class FlexPassPayment < PassPayment
     "#{self.number_of_tickets} FlexPass"
   end
 
+   def new_exchange_offset_payment
+    offset_payment = super
+    offset_payment.flex_pass = self.flex_pass
+    offset_payment
+  end
 end

@@ -31,4 +31,9 @@ class MembershipPayment < PassPayment
     super
   end
 
+  def new_exchange_offset_payment
+    offset_payment = super
+    offset_payment.membership = self.membership
+    offset_payment
+  end
 end
