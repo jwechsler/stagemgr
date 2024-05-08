@@ -53,7 +53,7 @@ class MailingCardImport
           if row[full_name_idx].blank?
             a.full_name = ""
             a.full_name = a.first_name unless a.first_name.blank?
-            a.full_name += a.full_name.blank? ?  a.last_name : " #{a.last_name}"  unless a.last_name.blank?
+            a.full_name += a.last_name.blank? ?  a.last_name : " #{a.last_name}"  unless a.last_name.blank?
           else
             a.full_name = row[full_name_idx]
           end
@@ -65,6 +65,7 @@ class MailingCardImport
           a.phone = row[phone_idx] unless row[phone_idx].blank?
           merge_check = a.find_original
           merged += 1 if !a.new_record? || !merge_check.nil?
+          puts "Importing: #{a.first_name} as #{a.full_name}"
           a.save!
           a.productions << production unless production.nil?
 

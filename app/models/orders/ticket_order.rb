@@ -298,6 +298,15 @@ class TicketOrder < Order
     end
   end
 
+  ##
+  # Check if there is any ticket line item whose ticket class is not complementary
+    
+  def all_tickets_complimentary?
+    self.ticket_line_items.joins(:ticket_class).where.not(ticket_classes: { complimentary: false }).exists?
+  end
+    
+
+
   def send_to_printer
     unless PrintOrder.site.to_s.blank?
       unless self.print_order_id.nil?

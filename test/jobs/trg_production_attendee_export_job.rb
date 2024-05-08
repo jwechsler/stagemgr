@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class TrgExportJobTest < ActiveJob::TestCase
+class TrgProductionAttendeeExportJob < ActiveJob::TestCase
   # test "the truth" do
   #   assert true
   # end

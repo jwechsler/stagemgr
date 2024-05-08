@@ -171,13 +171,15 @@ class Admin::ReportsController < Admin::ApplicationController
     end
   end
 
+  # Exports production attendees segmented for TRG Arts. Includes email opt-in attendees
   def trg_dump
     production = Production.find(params[:report][:production_id])
-    TrgExportJob.perform_later production.nil? ? 0 : production.id, current_user.id, can?(:view_email, Address)
+    Resque.enqueue(TrgProductionAttendeeExportJob, production.nil? ? 0 : production.id, current_user.id, can?(:view_email, Address))
     flash[:notice] = 'Your export is queued for generation. You\'ll recieve notification when the process is complete.'
     redirect_to admin_reports_path
   end
 
+  # Trg Export by attended date.  Includes 
   def attended_dump
     starting_date = params[:starting_date].to_date
     ending_date = params[:ending_date].to_date
@@ -307,8 +309,6 @@ class Admin::ReportsController < Admin::ApplicationController
     send_data csv_string, :type => "text/csv", :filename=>"#{title}.csv", :disposition=>'attachment'
   end
 
-
-
   def build_fulfill_labels(through_date)
     orders = TicketOrder.joins(:performance).joins(performance: :production).joins(:address).includes(:ticket_line_items).where(
         "orders.status = ? and performances.status = 'Active' and performances.performance_date <= ? and performances.performance_date > ? and productions.status in (?)",
@@ -390,8 +390,6 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   protected
-
-
 
   def build_daily_box_office_receipts(start_day, end_day, build_for_dumpfile = false)
 
@@ -478,6 +476,5 @@ class Admin::ReportsController < Admin::ApplicationController
     end
     [[:theater, :total_amount, :processing_fee, :due],reportdata]
   end
-
 
 end

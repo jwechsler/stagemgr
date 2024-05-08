@@ -16,37 +16,49 @@
       .grid-x.grid-padding-x.collapse
         .small-8.cell
           = collection_select(:report, :production_id, @productions, :id, :name)
-        .small-2.cell
+        .small-4.cell
           = submit_tag "Show", :class=>'tiny button postfix'
-        .small-2.cell
+          &nbsp;
           = submit_tag "Download", :name=>'download_csv', :class=>'tiny button postfix'
 
 .grid-x.grid-padding-x
+  .small-12.cell
+    &nbsp;
   .small-4.cell
     %span.report_title Production Attendees
     %span.help_text
-      Download a copy of all orders with attendee contact information as production_attendee.csv
+      Download a copy of all orders with attendee contact information as production_attendee.csv. Includes email opt-in information.
   .small-8.cell
     = form_tag(order_dump_admin_reports_path, :method=>"post") do
-      = collection_select(:report, :production_id, @productions, :id, :name)
-      = submit_tag "Download", :name=>'download_csv', :class=>'tiny button'
-
-.grid-x.grid-padding-x
-  .small-4.cell
-    %span.report_title
-      TRGArts Production Export
-    %span.help_text
-      Download a copy of all attendees contact information for import into TRGArts.
-      - if can?(:view_email, Address)
-        %br
-        %strong Warning: confidential email records included. DO NOT DISTRIBUTE.
-  .small-8.cell
-    = form_tag(trg_dump_admin_reports_path, :method=>"post") do
-      = collection_select(:report, :production_id, @productions, :id, :name)
-      = submit_tag "Generate", :name=>'generate_csv', :class=>'tiny button'
+      .grid-x.grid-padding-x.collapse
+        .small-8.cell
+          = collection_select(:report, :production_id, @productions, :id, :name)
+        .small-4.cell
+          = submit_tag "Download", :name=>'download_csv', :class=>'tiny button'
 
 - if can? :attended_dump, Report
   .grid-x.grid-padding-x
+    .small-12.cell
+      &nbsp;  
+    .small-4.cell
+      %span.report_title
+        TRGArts Production Export
+      %span.help_text
+        Download a copy of all attendees contact information for import into TRGArts. 
+        - if can?(:view_email, Address)
+          %br
+          %strong Warning: confidential email records included. DO NOT DISTRIBUTE.
+    .small-8.cell
+      = form_tag(trg_dump_admin_reports_path, :method=>"post") do
+        .grid-x.grid-padding-x.collapse
+          .cell.small-8
+            = collection_select(:report, :production_id, @productions, :id, :name)
+          .cell.small-4
+            = submit_tag "Generate", :name=>'generate_csv', :class=>'tiny button'
+
+  .grid-x.grid-padding-x
+    .small-12.cell
+      &nbsp;
     .small-4.cell
       %span.report_title
         TRGArts Export by Performance Date
@@ -58,19 +70,20 @@
     .small-8.cell
       = form_tag(attended_dump_admin_reports_path, :method=>"post") do
         .grid-x.grid-padding-x
-          .small-6.cell
-            %label{:for=>:starting_date} Attended On or after
+          .small-4.cell
+            %label{:for=>:starting_date} On or after
             = text_field_tag( :starting_date, Date.today, :default=>Date.today-7.days, :class=>'date_picker')
-          .small-6.cell
-            %label{:for=>:ending_date} Attended Before or on
+          .small-4.cell
+            %label{:for=>:ending_date} On or before
             = text_field_tag( :ending_date, Date.today, :default=>Date.today, :class=>'date_picker')
-
-        .grid-x.grid-padding-x
-          .small-12.cell
+          .small-4.cell
+            %br
             = submit_tag "Generate", :name=>'generate_csv', :class=>'tiny button'
 
 - if can? :box_office_reports, Report
   .grid-x.grid-padding-x
+    .small-12.cell
+      &nbsp;  
     .small-4.cell
       %span.report_title
         Donation Totals
@@ -79,17 +92,20 @@
     .small-8.cell
       = form_tag(donations_total_admin_reports_path, method: "post") do
         .grid-x.grid-padding-x
-          .small-6.cell
-            %label{:for=>:start_day} Gave On or after
+          .small-4.cell
+            %label{:for=>:start_day} On or after
             = text_field_tag(:start_day, (Date.today-1.month).at_beginning_of_month, :class=>'date_picker')
-          .small-6.cell
-            %label{:for=>:end_day} Gave Before or on
+          .small-4.cell
+            %label{:for=>:end_day} On or before
             = text_field_tag(:end_day, (Date.today-1.month).at_end_of_month, :class=>'date_picker')
-          .small-12.cell
+          .small-4.cell
+            %br
             = submit_tag "Show", :class=>'tiny button'
 
 - if can? :reconciliation_reports, Report
   .grid-x.grid-padding-x
+    .small-12.cell
+      &nbsp;  
     .small-4.cell
       %span.report_title
         Membership Usage
@@ -98,18 +114,21 @@
     .small-8.cell
       = form_tag(membership_usage_admin_reports_path, :method=>"post") do
         .grid-x.grid-padding-x
-          .small-6.cell
-            %label{:for=>:starting_date} Starting Date (inclusive)
+          .small-4.cell
+            %label{:for=>:starting_date} On or after
             = text_field_tag(:starting_date, (Date.today-1.month).at_beginning_of_month, :class=>'date_picker')
-          .small-6.cell
-            %label{:for=>:ending_date} Ending Date (inclusive)
+          .small-4.cell
+            %label{:for=>:ending_date} On or before
             = text_field_tag( :ending_date, (Date.today-1.month).at_end_of_month, :default=>Date.today.at_end_of_month, :class=>'date_picker')
-          .small-12.cell
+          .small-4.cell
+            %br
             = submit_tag "Show", :name=>'show', :class=>'tiny button'
             = submit_tag "Download", :name=>'download', :class=>'tiny button'
 
 - if can? :reconciliation_reports, Report then
   .grid-x.grid-padding-x
+    .small-12.cell
+      &nbsp;  
     .small-4.cell
       %span.report_title FlexPass Sales
       %span.help_text
@@ -117,19 +136,21 @@
     .small-8.cell
       = form_tag(flexpass_sales_admin_reports_path, :method=>"post") do
         .grid-x.grid-padding-x
-          .small-6.cell
-            %label{:for=>:starting_date} Starting Date (inclusive)
+          .small-4.cell
+            %label{:for=>:starting_date} On or after
             = text_field_tag(:starting_date, (Date.today-1.month).at_beginning_of_month, :class=>'date_picker')
-          .small-6.cell
-            %label{:for=>:ending_date} Ending Date (inclusive)
+          .small-4.cell
+            %label{:for=>:ending_date} On or before
             = text_field_tag( :ending_date, (Date.today-1.month).at_end_of_month, :default=>Date.today.at_end_of_month, :class=>'date_picker')
-          .small-12.cell
+          .small-4.cell
+            %br
             = submit_tag "Show", :name=>'show', :class=>'tiny button'
             = submit_tag "Download", :name=>'download', :class=>'tiny button'
 
-
 - if can? :house_management_reports, Report then
   .grid-x.grid-padding-x
+    .small-12.cell
+      &nbsp;  
     .small-4.cell
       %span.report_title House Management Seating Report
       %span.help_text House management requests for special seating
@@ -143,6 +164,9 @@
 
 - if can? :box_office_reports, Report then
   .grid-x.grid-padding-x
+    .small-12.cell
+      &nbsp;  
+
     .small-4.cell
       %span.report_title Weekly Box Office
       %span.help_text Returns aggregate numbers for performance sales during specified week
@@ -156,6 +180,8 @@
 
 - if can?(:fulfill, TicketOrder) && !$TKTPRINT['service'].blank? then
   .grid-x.grid-padding-x
+    .small-12.cell
+      &nbsp;  
     .small-4.cell
       %span.report_title
         Print Tickets
@@ -171,6 +197,9 @@
 
 - if can? :reconciliation_reports, Report then
   .grid-x.grid-padding-x
+    .small-12.cell
+      &nbsp;  
+
     .small-4.cell
       %span.report_title Daily Receipts
       %span.help_text Returns daily sales for specified range.  Order information included in download version
@@ -179,6 +208,8 @@
         =render 'date_range_picker', :default_start=>Date.today, :default_end=>Date.today
 - if can? :mine_customer_data, Report then
   .grid-x.grid-padding-x
+    .small-12.cell
+      &nbsp;  
     .small-4.cell{:valign=>'top'}
       %span.report_title Mine Customer Data
       %span.help_text Download a copy of customers with tracking and aggregate criteria

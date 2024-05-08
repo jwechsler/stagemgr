@@ -11,9 +11,14 @@ class AttendedMailingList < MailingList
 
   def create
     orders = TicketOrder.joins(:performance, :address).references(:performance,:address).where('performances.performance_date >= ? and performances.performance_date <= ? and addresses.placeholder <> ?', self.starting_date, self.ending_date,true).includes(:address, :payments, :theater, {:performance=>:production})
-    self.extract_addresses_from_ticket_orders(orders)
+    self.extract_addresses_from_ticket_orders(orders, true)
+    productions = Production.joins(:performances).where("performances.performance_date >= :starting_date and performances.performance_date <= :ending_date", starting_date: starting_date, ending_date: ending_date).uniq
+    productions.each do |production|
+      self.extract_production_attendees(production, true)
+    end
 
     file_name = "/tmp/attendees_#{self.starting_date.to_date.strftime('%y%m%d')}_#{self.ending_date.to_date.strftime('%y%m%d')}.csv"
+    
     self.save_report_to_filestore(file_name)
 
   end
