@@ -25,7 +25,12 @@
     = render(:partial=>"/admin/address_tags/tags", :locals=>{:address_tags=>@address.address_tags})
   .small-12.cell.right
     = link_to 'Edit', edit_admin_address_path(@address), :class=>'small button'
+- productions_attended = @address.productions.order(opening_at: :desc).uniq
+%fieldset.fieldset
+  %legend
+    = "#{pluralize(productions_attended.size,'Production')} Attended"
+  %i= productions_attended.map(&:name).join(', ')
 
 - if !@address.orders.nil? && @address.orders.size > 0
-  = render :partial=>"/admin/addresses/order_history", :locals=>{:orders=>@visible_orders, address: @address}
+  = render :partial=>"/admin/addresses/order_history", :locals=>{address: @address}
 

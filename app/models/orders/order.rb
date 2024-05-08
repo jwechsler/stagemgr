@@ -98,6 +98,10 @@ class Order < ApplicationRecord
     end
   end
 
+  def production
+    nil
+  end
+
   def copy_payment_information(from_order)
     self.credit_card_number = from_order.credit_card_number
     self.credit_card_type = from_order.credit_card_type
