@@ -57,25 +57,28 @@ class MailingCardImport
           else
             a.full_name = row[full_name_idx]
           end
-          a.line1 = row[address1_idx] unless row[address1_idx].blank?
-          a.city = row[city_idx] unless row[city_idx].blank?
-          a.state = row[state_idx] unless row[state_idx].blank?
-          a.zipcode = row[zip_idx] unless row[zip_idx].blank?
-          a.email = row[email_idx] if a.email.blank?
-          a.phone = row[phone_idx] unless row[phone_idx].blank?
-          merge_check = a.find_original
-          merged += 1 if !a.new_record? || !merge_check.nil?
-          puts "Importing: #{a.first_name} as #{a.full_name}"
-          a.save!
-          a.productions << production unless production.nil?
-
-          if merge_check.nil? then
+          unless a.full_name.blank?
+            a.line1 = row[address1_idx] unless row[address1_idx].blank?
+            a.city = row[city_idx] unless row[city_idx].blank?
+            a.state = row[state_idx] unless row[state_idx].blank?
+            a.zipcode = row[zip_idx] unless row[zip_idx].blank?
+            a.email = row[email_idx] if a.email.blank?
+            a.phone = row[phone_idx] unless row[phone_idx].blank?
+            merge_check = a.find_original
+            merged += 1 if !a.new_record? || !merge_check.nil?
+            puts "Importing: #{a.first_name} as #{a.full_name}"
             a.save!
-          else
-            merge_check.merge_and_purge(a)
-            a = merge_check
+            a.productions << production unless production.nil?
+
+            if merge_check.nil? then
+              a.save!
+            else
+              merge_check.merge_and_purge(a)
+              a = merge_check
+            end
+            Resque.enqueue(AddAddressToMyEmmaJob, a.id, production_id)
           end
-          Resque.enqueue(AddAddressToMyEmmaJob, a.id, production_id)
+          
         end
 
       end

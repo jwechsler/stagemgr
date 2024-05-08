@@ -19,6 +19,7 @@ class TrgProductionAttendeeReport < MailingList
       orders = TicketOrder.joins(:performance, :address).references(:performance, :address).where('performances.production_id = ? and addresses.placeholder <> ?', self.production.id,true).includes(:address, :payments, :theater, {:performance=>:production})
       members_by_email = self.production.attendees_on_email_list
       self.extract_addresses_from_ticket_orders(orders,allow_email_exports,members_by_email)
+      self.extract_production_attendees(production, true)
       file_name = "/tmp/#{Admin::ReportsHelper.safe_title(self.production.name)}.csv"
       self.save_report_to_filestore(file_name)
     rescue StandardError=>e
