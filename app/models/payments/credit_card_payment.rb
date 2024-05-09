@@ -68,7 +68,16 @@ class CreditCardPayment < CurrencyPayment
 
       gateway = PaymentProcessing.gateway
 
-      response = gateway.purchase(self.charge_amount, credit_card, :ip=>self.ip_address, :billing_address=>billing_address, :email => self.address.email, :order_id => self.order_id, :description => self.order.description)
+      order = order || self.order
+      options = {
+        ip: self.ip_address, 
+        billing_address: billing_address, 
+        email: self.address.email, 
+        order_id: order_id, 
+        description: order.description,
+        idempotency_key: order.uuid
+      }
+      response = gateway.purchase(self.charge_amount, credit_card, options)
 
 # Authorize for the amount
 #     response = gateway.purchase(self.charge_amount, credit_card)
