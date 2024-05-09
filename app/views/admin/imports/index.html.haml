@@ -77,8 +77,12 @@
         .grid-x.grid-padding-x
           .small-3.cell
             = label_tag :payment_type, 'Use Payment Type', :class=>'left inline'
-          .small-9.cell
+          .small-4.cell
             = collection_select :payment_type, :payment_type_id, @payment_types, :id, :display_name, :include_blank=>"None"
+          .small-5.cell
+            = check_box_tag :add_to_email_list, '1', true
+            = label_tag :add_to_email_list, "Add to mailing lists",  :class=>'left inline'
+           
         .grid-x.grid-padding-x
           .small-3.cell
             = label_tag :datafile, 'From file', :class=>'left inline'
