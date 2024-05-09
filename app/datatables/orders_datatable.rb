@@ -34,7 +34,16 @@ class OrdersDatatable < DatatableBase
   end
 
 #
-private
+
+  def filter_by_name
+    super_proc = super()
+    ->(column, formatted_value) {
+      super_proc.call(column, formatted_value)
+        .or(::Arel::Nodes::SqlLiteral.new('hold_under').matches("%#{formatted_value}%"))
+    }
+  end
+
+  private
 
   def get_raw_records
     Order.allowed_for(current_user).includes(:address, seats: :seat, :performance=>:production).references(:address, :performance=>:production, seats: :seat)
