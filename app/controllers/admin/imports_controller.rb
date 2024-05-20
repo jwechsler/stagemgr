@@ -2,6 +2,11 @@ class Admin::ImportsController < Admin::ApplicationController
   skip_authorize_resource
   include ProductionsHelper
 
+  rescue_from ActionController::ParameterMissing do |exception|
+    flash[:error] = "You must choose a file to import"
+    redirect_to action: :index
+  end
+
   def index
     authorize! :read, :import_operations
     @imports = FileStore.where("worker = ? and user_id = ?", FileStore::IMPORT, current_user.id)
@@ -83,7 +88,7 @@ class Admin::ImportsController < Admin::ApplicationController
     @bulk_orders_import.worker = FileStore::IMPORT
     @bulk_orders_import.notes = "Order import"
     if @bulk_orders_import.save then
-      Resque.enqueue(BulkOrderImport, @bulk_orders_import.id, @theater.id, params[:payment_type][:payment_type_id])
+      Resque.enqueue(BulkOrderImport, @bulk_orders_import.id, @theater.id, params[:payment_type][:payment_type_id], params[:add_to_email_list])
       flash[:notice] = 'Your orders are being imported.'
     else
       flash[:error] = 'Invalid format'

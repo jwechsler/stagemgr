@@ -35,7 +35,7 @@ class BulkOrderImport < OrderImport
   include NotifyOnCompletion
   @queue = :import
 
-  def self.perform(filestore_id, theater_id, payment_type_id)
+  def self.perform(filestore_id, theater_id, payment_type_id, add_to_email_list)
     filestore = FileStore.find(filestore_id)
     filestore.notes = "Importing Orders"
     problems = BulkOrderImportIssues.new(filestore.user.id)
@@ -102,6 +102,7 @@ class BulkOrderImport < OrderImport
           # build the ticket order
           o = TicketOrder.new
           o.status = TicketOrder::NEW
+          o.add_to_email_list = add_to_email_list
           perf_code = row['PerformanceCode']
           puts("IMPORT: PERFORMANCE: #{perf_code} #{performances[perf_code]}")
           o.performance = performances[perf_code]
