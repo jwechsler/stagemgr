@@ -81,6 +81,6 @@ module Stagemgr
 
     config.active_storage.variant_processor = :vips 
     config.active_storage.queue = :maintenance
-
+    config.middleware.use 'CatchExceptions'
   end
 end

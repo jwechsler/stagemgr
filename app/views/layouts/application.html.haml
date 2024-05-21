@@ -19,8 +19,9 @@
     .grid-padding-x
       .cell.small-12
         =h yield(:breadcrumbs)
-      .cell.small-12
-        = render :partial=>'/flash_notice'
+      unless flash.empty?
+        .cell.small-12
+          = render :partial=>'/flash_notice'
       .cell
         = yield
     = yield(:js)
