@@ -3,6 +3,18 @@ class ApplicationController < ActionController::Base
   helper :all
   helper_method :current_user_session, :current_user, :logged_in?, :current_user_is_admin?, :payment_types_for, :backend_user?
 
+  rescue_from CanCan::AccessDenied do |exception|
+    respond_to do |format|
+      format.json { head :forbidden, content_type: 'text/html' }
+      format.html { redirect_to main_app.root_url, notice: exception.message }
+      format.js   { head :forbidden, content_type: 'text/html' }
+    end
+  end
+
+  unless Rails.env.development?
+    rescue_from StandardError, with: :handle_exception
+  end
+
   attr_accessor :markdown
 
   def payment_types_for(order, frontend = true)
@@ -93,14 +105,7 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  rescue_from CanCan::AccessDenied do |exception|
-    respond_to do |format|
-      format.json { head :forbidden, content_type: 'text/html' }
-      format.html { redirect_to main_app.root_url, notice: exception.message }
-      format.js   { head :forbidden, content_type: 'text/html' }
-    end
-  end
-
+ 
   def current_user_session
     return @current_user_session if defined?(@current_user_session)
     @current_user_session = UserSession.find
@@ -108,21 +113,44 @@ class ApplicationController < ActionController::Base
 
   private
 
+   def handle_exception(exception)
+    # Log the exception
+    Rails.logger.error "Exception: #{exception.message}"
+    Rails.logger.error exception.backtrace.join("\n")
 
-    def store_location
-      case
-      when self.is_a?(UserSessionsController)
-        #don't store
-      when request.format == :json
-        #don't store
-      else
-        session[:return_to] = request.url
-      end
-    end
+    # Notify an external service (optional)
+    ExceptionNotifier.notify_exception(exception, env: request.env)
 
-    def redirect_back_or_default(default)
-      redirect_to(session[:return_to] || default)
-      session[:return_to] = nil
+    # Set the flash message with the exception
+    flash[:error] = raw "An unexpected error occurred at #{request.fullpath}: #{exception.message}. An error report has been filed with the administrator"
+
+    # Prevent redirect loop by checking if referer is the same as current request path
+    referer = request.referer
+    current_path = request.fullpath
+
+    if referer && URI(referer).path != current_path
+      redirect_to referer
+    else
+      # Fallback to a safe path if referer is not available or matches the current path
+      redirect_to root_path
     end
+  end
+
+
+  def store_location
+    case
+    when self.is_a?(UserSessionsController)
+      #don't store
+    when request.format == :json
+      #don't store
+    else
+      session[:return_to] = request.url
+    end
+  end
+
+  def redirect_back_or_default(default)
+    redirect_to(session[:return_to] || default)
+    session[:return_to] = nil
+  end
 
 end

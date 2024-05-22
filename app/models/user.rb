@@ -52,6 +52,10 @@ class User < ApplicationRecord
       Theater.where(status: Theater::ACTIVE)
     end
   end
+
+  def allowed_productions
+    Production.where(theater: allowed_theaters)
+  end
   
   def set_defaults
     self.is_administrator = false if self.is_administrator.nil?

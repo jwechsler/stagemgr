@@ -569,6 +569,14 @@ class TicketOrder < Order
 
   end
 
+  def ticket_quantity
+    ticket_line_items.sum(:ticket_count)
+  end
+
+  def complimentary_ticket_count
+    ticket_line_items.select(&:complimentary?).sum(&:ticket_count)
+  end
+
   def ticketing_fee
     super + BigDecimal(self.ticket_line_items.to_a.sum{|li| li.ticket_class.ticketing_fee * li.ticket_count }.to_s)
   end

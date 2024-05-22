@@ -1,6 +1,16 @@
 class CurrentUser::AccountsController < CurrentUser::ApplicationController
   def show
     @user = current_user
+    @rate_of_sales = RateOfSale.where(day_of_sale: 7.days.ago.to_date..Date.today, production: current_user.allowed_productions)
+      .includes(:production)
+      .order(:day_of_sale, 'productions.name')
+    @gross_sales_data = @rate_of_sales.group_by(&:production).map do |production, sales|
+      {
+        name: production.name,
+        data: sales.group_by(&:day_of_sale).map { |day, sales_for_day| [day.strftime('%Y-%m-%d'), sales_for_day.sum(&:gross_sales)] }.to_h
+      }
+    end
+    @rate_of_sales = nil
   end
 
   def edit

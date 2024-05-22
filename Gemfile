@@ -88,6 +88,9 @@ gem 'ruby-vips'
 
 gem 'whiny_validation'
 
+#reports
+gem 'chartkick'
+
 group :development do
   gem 'listen'
   gem 'wirble'

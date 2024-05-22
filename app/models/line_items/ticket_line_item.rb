@@ -51,6 +51,8 @@ class TicketLineItem < LineItem
     self.price_override = nil if !self.generated_from_split? && (self.price_override.eql?(0) || !self.ticket_class.ticket_type.eql?('Donation'))
   end
 
-
+  def complimentary?
+    ticket_class.complimentary?
+  end
 
 end

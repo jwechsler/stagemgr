@@ -43,6 +43,15 @@ module FactoryBot
 end
 
 FactoryBot.define do
+  factory :rate_of_sale do
+    day_of_sale { "2024-05-21" }
+    production { nil }
+    total_single_tickets { 1 }
+    total_complimentary_tickets { 1 }
+    gross_sales { "9.99" }
+    processing_fees { "9.99" }
+  end
+
 
   factory :user do
     sequence(:email) { |n| "stagemgr#{n}@example.com" }

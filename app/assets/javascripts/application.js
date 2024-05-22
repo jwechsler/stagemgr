@@ -1,9 +1,11 @@
+//= require chartkick
+//= require Chart.bundle
 //= require jquery
 //= require jquery-ui
 //= require jquery_ujs
 //= require datatables
-//= require jquery.dataTables.yadcf
 //= require foundation
+//= require jquery.dataTables.yadcf
 //= require utility
 //= require orders_common
 //= require activestorage
@@ -13,6 +15,8 @@
 //= require autocomplete-rails
 //= require credit_card_track_parser
 //= require jquery.creditCardValidator
+//= require chartkick
+//= require Chart.bundle
 //= require_this
 
 

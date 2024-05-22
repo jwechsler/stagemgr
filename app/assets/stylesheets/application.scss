@@ -245,3 +245,12 @@ select[size], select[multiple] {
   padding:  20px 30px;
 }
 
+table tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+table tr:nth-child(odd) {
+  background-color: #ffffff;
+}
+
+

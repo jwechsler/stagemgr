@@ -1,7 +1,7 @@
 require_relative "boot"
 
 require "rails/all"
-
+require_relative '../lib/middleware/catch_exceptions'
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
@@ -81,6 +81,6 @@ module Stagemgr
 
     config.active_storage.variant_processor = :vips 
     config.active_storage.queue = :maintenance
-    config.middleware.use 'CatchExceptions'
+    
   end
 end

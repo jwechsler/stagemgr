@@ -26,7 +26,7 @@ class CurrentUser::UsersController < CurrentUser::ApplicationController
 
   def show
     @user = current_user
-  end
+   end
 
   def edit
     @user = current_user
