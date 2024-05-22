@@ -1,38 +1,17 @@
-.grid-x.grid-padding-x
-  -unless @rate_of_sales.empty?
-    .small-8.cell
-      %h5 Rate of Sale: Past Seven Days
+-unless @user.is_box_office_user?
+  =render partial: "producer_dailys", locals: {user: @user, rate_of_sales: @rate_of_sales, gross_sales_data: @gross_sales_data, theater_sales_data: @theater_sales_data}
+-if @user.is_box_office_user? || @user.is_administrator?
+  =render partial: "box_office_dailys", locals: {user: @user, rate_of_sales: @rate_of_sales, gross_sales_data: @gross_sales_data, theater_sales_data: @theater_sales_data}
 
-      %table
-        %thead
-          %tr
-            %th Sale Date
-            %th Theater
-            %th Production
-            %th Total Tickets
-            %th Total Comps
-            %th Gross $
-            %th Processing Fees
-        %tbody
-          - @rate_of_sales.each_with_index do |rate_of_sale, index|
-            %tr{ class: (index.even? ? 'even' : 'odd') }
-              %td= rate_of_sale.day_of_sale.strftime("%a, %d %b")
-              %td= rate_of_sale.production.theater.name
-              %td= rate_of_sale.production.name
-              %td= rate_of_sale.total_single_tickets
-              %td= rate_of_sale.total_complimentary_tickets
-              %td= number_to_currency(rate_of_sale.gross_sales)
-              %td= number_to_currency(rate_of_sale.processing_fees)
+%fieldset.fieldset
+  %legend User Info
+  .grid-x.grid-padding-x
+    .small-8.cell
+      %p
+        %strong Email
+        = @user.email
+      = link_to 'Edit', edit_current_user_account_path, :class=>'button'
     .small-4.cell
-      = column_chart @gross_sales_data, xtitle: "Date", ytitle: "Gross Sales"
-  .small-8.cell
-    %p
-      %strong Email
-      = @user.email
-    = link_to 'Edit', edit_current_user_account_path, :class=>'button'
-  .small-4.cell
-    %fieldset.fieldset
-      %legend Login statistics
       .grid-x.grid-padding-x
         .cell.small-6
           %strong Login count:

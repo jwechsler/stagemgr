@@ -14,7 +14,7 @@ class RateOfSalesJob
       total_single_tickets = orders.sum(&:ticket_quantity) - orders.sum(&:complimentary_ticket_count)
       total_complimentary_tickets = orders.sum(&:complimentary_ticket_count)
       gross_sales = orders.sum(&:total_revenue)
-      processing_fees = orders.sum(&:processing_fee)
+      processing_total = orders.sum(&:processing_fee)+orders.sum(&:ticketing_fee)
 
       rate_of_sale = RateOfSale.find_or_initialize_by(day_of_sale: date, production: production)
 
@@ -22,13 +22,13 @@ class RateOfSalesJob
         theater: production.theater,
         total_single_tickets: total_single_tickets,
         total_complimentary_tickets: total_complimentary_tickets,
-        gross_sales: gross_sales,
-        processing_fees: processing_fees
+        gross_sales: BigDecimal(gross_sales,2),
+        processing_fees: BigDecimal(processing_total,2)
       )
     end
   end
 
-  def self.back_calculate_last_30_days
+  def self.calculate_last_30_days
     (1..30).each do |i|
       calculate_for_day(Date.today - i)
     end

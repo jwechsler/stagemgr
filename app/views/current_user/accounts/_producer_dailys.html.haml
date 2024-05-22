@@ -1,0 +1,37 @@
+-unless rate_of_sales&.empty?
+  .grid-x.grid-padding-x
+    .small-12.cell
+      %h5 Rate of Sale: Past Seven Days
+    .small-8.cell
+    
+      %table
+        %thead
+          %tr
+            %th Sale Date
+            %th Theater
+            %th Production
+            %th Total Tickets
+            %th Total Comps
+            %th Net $
+        %tbody
+          - last_index = 0
+          - rate_of_sales.each_with_index do |rate_of_sale, index|
+            -last_index = index
+            %tr{ class: (index.even? ? 'even' : 'odd') }
+              %td= rate_of_sale.day_of_sale.strftime("%a, %d %b")
+              %td= rate_of_sale.production.theater.name
+              %td= rate_of_sale.production.name
+              %td= rate_of_sale.total_single_tickets
+              %td= rate_of_sale.total_complimentary_tickets
+              %td= number_to_currency(rate_of_sale.gross_sales-rate_of_sale.processing_fees)
+        %tfoot
+          - theater_sales_data.select{|t| current_user.is_theater_user? ? true : t[:producing]}.each_with_index do |theater_sales_data, index|
+            %tr{ class: ((index+last_index).even? ? 'even' : 'odd') }
+              %td Total
+              %td= theater_sales_data[:name]
+              %td
+              %td= theater_sales_data[:total_tickets]
+              %td= theater_sales_data[:total_comps]
+              %td= number_to_currency(theater_sales_data[:total_gross_sales]-theater_sales_data[:total_processing_fee])
+    .small-4.cell
+      = column_chart gross_sales_data, xtitle: "Date", ytitle: "Net Sales"
