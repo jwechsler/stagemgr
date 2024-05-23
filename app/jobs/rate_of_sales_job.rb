@@ -3,6 +3,7 @@ class RateOfSalesJob
 
   def self.perform
     calculate_for_day(Date.yesterday)
+    RateOfSale.export_to_file(RateOfSale.export_records, RateOfSale.export_columns, File.join($SERVER_CONFIG['hud_export_directory'],'rate_of_sales.txt'))
   end
 
   def self.calculate_for_day(date)

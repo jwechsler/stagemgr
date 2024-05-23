@@ -57,5 +57,6 @@ all:
   app_name: "StageMgr"
   minutes_before_performance_close_to_third_party_sales: 30
   order_expiration_in_minutes: 8
+  hud_export_directory: "/tmp"
   payment_processing:
     additional_card_types:

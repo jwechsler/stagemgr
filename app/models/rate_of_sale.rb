@@ -1,4 +1,4 @@
-class RateOfSale < ApplicationRecord
+class RateOfSale < Metric
   belongs_to :production
   has_one :theater, through: :production
 
@@ -8,5 +8,16 @@ class RateOfSale < ApplicationRecord
   validates :total_complimentary_tickets, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :gross_sales, numericality: { greater_than_or_equal_to: 0 }
   validates :processing_fees, numericality: { greater_than_or_equal_to: 0 }
+
+  def self.export_columns
+    {day_of_sale: "Date", production: "Production", total_single_tickets: "Tickets", 
+      total_complimentary_tickets: "Comps", gross_sales: "Total", processing_fees: "Fees"}
+  end
+
+  def self.export_records
+    eight_days_ago = Date.today - 8
+    yesterday = Date.yesterday
+    RateOfSale.where(day_of_sale: eight_days_ago..yesterday)
+  end
 
 end
