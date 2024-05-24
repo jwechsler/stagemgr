@@ -46,7 +46,8 @@ a {
   border: solid 1px #6C6;
 }
 
-.flash_error {
+
+.flash_error, .error {
   background-color: #FCC;
   border: solid 1px #C66;
 }
