@@ -1,4 +1,5 @@
 class RateOfSale < Metric
+
   belongs_to :production
   has_one :theater, through: :production
 
@@ -15,7 +16,7 @@ class RateOfSale < Metric
   end
 
   def self.export_records
-    eight_days_ago = Date.today - 8
+    eight_days_ago = Date.yesterday - 7.days
     yesterday = Date.yesterday
     RateOfSale.where(day_of_sale: eight_days_ago..yesterday)
   end
