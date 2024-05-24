@@ -41,7 +41,11 @@ class MembershipUsageReport < Report
       self.data << {Month: month, Memberships: membership_count, Collected: collected.to_money, Paid: paid.to_money}
 
     end
-    return self.report_data("/tmp/membership_usage_report_#{self.starting_date.to_date.strftime('%y%m%d')}_#{self.ending_date.to_date.strftime('%y%m%d')}.csv")
+    unless reporting_user_id.nil?
+      return self.report_data("/tmp/membership_usage_report_#{self.starting_date.to_date.strftime('%y%m%d')}_#{self.ending_date.to_date.strftime('%y%m%d')}.csv")
+    else
+      return self.report_data
+    end
   end
 
 end
