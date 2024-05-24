@@ -17,7 +17,7 @@ class ApplicationDecorator < Draper::Decorator
     else
       width, height = dimensions[0] if dimensions[0].class.eql?(Array)
       # replace with version 6
-      h.url_for(img.variant(format: 'png', resize_and_pad: [width, height, gravity: 'centre', alpha: true]).processed)
+      h.url_for(img.variant(format: 'png', resize_and_pad: [width, height, gravity: 'centre', alpha: true])&.processed)
       #h.url_for(img.variant(resize: "#{width}x#{height}"))
     end
   end
@@ -28,7 +28,7 @@ class ApplicationDecorator < Draper::Decorator
     else
       width, height = dimensions[0] if dimensions[0].class.eql?(Array)
       # replace with version 6:
-      h.image_tag(img.variant(format: 'png', resize_and_pad: [width, height, gravity: 'centre', alpha: true]).processed)
+      h.image_tag(img.variant(format: 'png', resize_and_pad: [width, height, gravity: 'centre', alpha: true])&.processed)
       #h.image_tag(img.variant(resize: "#{width}x#{height}>"))
     end
   end
