@@ -36,6 +36,7 @@ class Production < ApplicationRecord
     visible_prod.validates_presence_of :press_opening_at
     visible_prod.validates_presence_of :first_preview_at
   end
+  validate :correct_promo_mime_type
 
   before_destroy :ensure_no_performances
   belongs_to :venue, inverse_of: :productions
@@ -399,7 +400,11 @@ class Production
     nil
   end
 
-
+  private def correct_promo_mime_type
+    if promo.attached? && !promo.content_type.in?(%w(image/jpeg image/png))
+      errors.add(:promo, 'must be a JPEG or PNG')
+    end
+  end
 end
 
 # @todo exaact to MyEmma engine
