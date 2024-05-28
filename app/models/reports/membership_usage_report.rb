@@ -4,8 +4,8 @@ class MembershipUsageReport < Report
 
   def initialize(starting_date, ending_date, reporting_user_id = nil)
     super([:Month, :Memberships, :Collected, :Paid], reporting_user_id)
-    @starting_date = starting_date
-    @ending_date = ending_date
+    @starting_date = starting_date.to_date
+    @ending_date = ending_date.to_date + 1.day
     @data = Array.new
   end
 
@@ -13,18 +13,18 @@ class MembershipUsageReport < Report
     ActiveRecord::Base.connection.execute("SET sql_mode=(SELECT REPLACE(@@sql_mode, 'ONLY_FULL_GROUP_BY', ''));")
   
     paid_amount = MembershipPayment.where(
-      'processed_on >= :start and processed_on <= :end', start: starting_date, end: ending_date
+      'processed_on >= :start and processed_on < :end', start: starting_date, end: ending_date
     ).select("DATE_FORMAT(processed_on, '%Y-%m'), amount").group(
       "DATE_FORMAT(processed_on, '%Y-%m')"
     ).reorder(:processed_on).sum('amount')
     
     collected_amount = MembershipOrder.joins(:payments).where(
-      'payments.processed_on >= :starting_date AND payments.processed_on <= :ending_date',
+      'payments.processed_on >= :starting_date AND payments.processed_on < :ending_date',
       starting_date: starting_date, ending_date: ending_date
     ).group("DATE_FORMAT(payments.processed_on, '%Y-%m')").sum('payments.amount')
 
     distinct_membership_count = MembershipLineItem.joins(membership_order: :payments).where(
-        'payments.processed_on >= :starting_date AND payments.processed_on <= :ending_date',
+        'payments.processed_on >= :starting_date AND payments.processed_on < :ending_date',
         starting_date: starting_date, ending_date: ending_date
       ).distinct.group("DATE_FORMAT(payments.processed_on, '%Y-%m')").count('line_items.membership_id')
 
