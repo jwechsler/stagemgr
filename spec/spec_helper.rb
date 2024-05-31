@@ -1,6 +1,7 @@
 ENV['RAILS_ENV'] = 'test'
 
 require 'database_cleaner/active_record'
+require 'active_support/testing/time_helpers'
 
 DatabaseCleaner.strategy = :truncation
 
@@ -97,7 +98,8 @@ RSpec.configure do |config|
 
   config.filter_run :focus => true
   config.run_all_when_everything_filtered = true
-  
+  config.include ActiveSupport::Testing::TimeHelpers
+
 
 end
 

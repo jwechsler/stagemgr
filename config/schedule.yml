@@ -24,7 +24,7 @@ RunPendingOrderTasks:
 GenerateCalendar:
   every: "4h"
   description: 'Write performance calendar to static cache'
-  queue: sync
+  queue: report
   args: 'performance_schedule.ics'
 
 SendFlexPassReminders:
@@ -36,11 +36,6 @@ SendMembershipReminders:
   cron: "50 8 * * WED,THU,FRI,SAT,SUN"
   description: 'Send flex pass fulfillment reminders'
   queue: notification
-
-GenerateProductionSalesStatistics:
-  cron: '30 0 * * *'
-  description: 'Generate statistics for previous days sales'
-  queue: maintenance
 
 CheckPerformanceAllocationTriggers:
   cron: '0 1 * * *'
@@ -79,7 +74,7 @@ InactivateUnusedProductions:
 
 RemoveUnusedAddresses:
   every: "1w"
-  description: "Remove addresesses unassociated with any records or notes"
+  description: "Remove addresses not associated with any records or notes"
   queue: maintenance
   
 InactivateUnusedProductions:
@@ -90,6 +85,17 @@ InactivateUnusedProductions:
 RateOfSalesJob:
   cron: "30 0 * * 0"
   description: "Calculate previous rate of day sales"
-  queue: maintenance
+  queue: report
+
+ExportHouseCountsJob:
+  every: "10m"
+  description: "Export current House Count calculations for HUD displays"
+  queue: report
+
+CalculateHouseCountsJob:
+  queue: sync
+  every: "5m"
+  description: "Calculate current house counts for modified ticket orders"
+
 
   

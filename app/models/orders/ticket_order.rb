@@ -195,6 +195,10 @@ class TicketOrder < Order
     ![Order::UNCLAIMED, Order::CANCELED].include?(self.status)
   end
 
+  def sold?
+    self.exchangeable?
+  end
+
   def processed_or_fulfilled?
     self.processed? || self.fulfilled?
   end
