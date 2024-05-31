@@ -3,7 +3,8 @@
 
 %h4 Handy stuff you'll want to know
 
-= render :partial=>"transportation_instructions", :locals=>{:order=>order}
+- unless order.performance.production.venue.eql?("Cervantes Institute")
+  = render :partial=>"transportation_instructions", :locals=>{:order=>order}
 
 = render :partial=>"dining_recommendations", :locals=>{order: order}
 = render :partial=>"seating_policy", :locals=>{order: order}
