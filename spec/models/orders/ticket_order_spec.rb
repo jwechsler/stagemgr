@@ -56,8 +56,6 @@ RSpec.shared_examples "a paid ticket order" do |pay_method_type, seating_type|
       expect(split_order1.payments.size).to be >= 1
       expect(split_order2.payments.size).to be >= 1
       expect(original_order.ticket_line_items.size).to eq(3)
-      puts "*** #{original_order.payments.count} #{pay_method}"
-      puts "*** #{original_order.payments.first.class}"
       expect(original_order.total(:include_override_payments)).to eq(0.0)
       expect(split_order1.total).to eq(original_total/2.0)
       expect(split_order2.total).to eq(original_total/2.0)

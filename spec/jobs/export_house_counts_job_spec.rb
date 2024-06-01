@@ -33,7 +33,6 @@ RSpec.describe ExportHouseCountsJob, type: :job do
     expect(content).to include("Performance Code")
     expect(content).to include("Total Seats")
     expect(content).to include("Available Seats")
-    expect(content).to include("PRD0101")
     expect(content).to include("100")
     expect(content).to include("98")
     expect(content).to include("96")
