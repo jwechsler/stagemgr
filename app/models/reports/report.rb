@@ -63,8 +63,9 @@ class Report
   end
 
   
-
-  def Report.report_filename(filename)
+  protected
+  
+  def report_filename(filename)
 
     dir_name = File.dirname(filename)
     base_filename = File.basename(filename, File.extname(filename))
@@ -83,7 +84,6 @@ class Report
 
   end 
 
-  protected
   def report_data(file_name = nil)
     unless reporting_user_id.nil?
       self.save_report_to_filestore(file_name)
