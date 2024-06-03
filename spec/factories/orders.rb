@@ -35,6 +35,17 @@ FactoryBot.define do
       performance factory: :reserved_seating
     end
 
+    trait :for_a_single_ticket do
+      before(:create) do |ticket_order, evaluator|
+        # Assume there is a method to find a suitable ticket class
+        ticket_class = ticket_order.performance.ticket_class_allocations.select{|tca| tca.available}.first.ticket_class
+        ticket_order.ticket_line_items << FactoryBot.build(:ticket_line_item,
+          ticket_class: ticket_class,
+          ticket_count: 1,  # Only 1 ticket in this order
+          order: ticket_order)
+      end
+    end
+
     trait :for_three_tickets do
       before(:create) do |ticket_order, evaluator|
         ticket_order.ticket_line_items << [FactoryBot.build(:ticket_line_item,

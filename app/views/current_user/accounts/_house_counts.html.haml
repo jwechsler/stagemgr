@@ -1,0 +1,23 @@
+-unless house_counts&.empty?
+  .grid-x.grid-padding-x
+    .small-12.cell
+      %h5 Upcoming House Counts
+    .small-6.cell
+      %table
+        %thead
+          %tr
+            %th Performance
+            %th Sold Tickets
+            %th Held Tickets
+            %th Remaining
+            %th % booked
+        %tbody
+          - house_counts.each_with_index do |house_count, index|
+            %tr{ class: ((index).even? ? 'even' : 'odd') }
+              %td= house_count.performance.performance_code
+              %td{align: "right"}= house_count.sold_seats
+              %td{align: "right"}= house_count.total_seats - house_count.available_seats - house_count.sold_seats
+              %td{align: "right"}= house_count.available_seats
+              %td{align: "right"}= "#{number_with_precision(100.0 -(house_count.available_seats.to_f/house_count.total_seats.to_f*100.0),precision: 2)}%"
+    .small-6.cell
+      -# bar_chart @theater_sales_data, xtitle: "Gross Sales", ytitle: "Theater", legend: false, stacked:true

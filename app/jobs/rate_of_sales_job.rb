@@ -1,4 +1,4 @@
-class RateOfSalesJob
+class RateOfSalesJob < ApplicationJob
   @queue = :maintenance
 
   def self.perform

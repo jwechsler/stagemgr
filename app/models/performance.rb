@@ -13,8 +13,11 @@ class Performance < ApplicationRecord
   has_many                 :payment_restrictions, :dependent=>:destroy, inverse_of: :performance
   has_many                 :restricted_payment_types, :source=>:payment_type, :through=>:payment_restrictions
   has_and_belongs_to_many  :special_features
+  has_one                  :house_count, dependent: :destroy
 
   default_scope            { includes(:ticket_class_allocations) }
+
+  scope                    :sellable, -> { where("status in (:sellable)", sellable: Performance.sellable_statuses)}
 
   validates_inclusion_of   :status,            :in => PERFORMANCE_STATUSES
   validates_uniqueness_of  :performance_code
@@ -39,7 +42,7 @@ class Performance < ApplicationRecord
   before_validation               :performance_code_must_match_production, :unless=>Proc.new { |p| p.production.nil? }
   before_save                     :manage_seat_inventory, :unless=>Proc.new { |p| p.production.nil? || p.production.seat_map.nil? }
   before_destroy                  :protect_performances_with_orders
-
+  after_create                    :create_metrics
   accepts_nested_attributes_for   :ticket_class_allocations
 
   def number_of_seats_left(exclude_order = nil)
@@ -143,10 +146,6 @@ class Performance < ApplicationRecord
     return [Performance::ACTIVE, Performance::PRIVATE]
   end
 
-  def self.sellable
-    Performance.where("status in (:sellable)", sellable: Performance.sellable_statuses)
-  end
-
   def self.visible_statuses
     return [Performance::ACTIVE]
   end
@@ -244,5 +243,8 @@ class Performance < ApplicationRecord
     return self.orders.size.eql?(0)
   end
 
+  def create_metrics
+    self.create_house_count(total_seats: self.production.capacity, available_seats: self.production.capacity)
+  end
 
 end

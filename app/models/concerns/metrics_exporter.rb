@@ -40,7 +40,7 @@ module MetricsExporter
       end
 
       header = format_line(column_headers.map { |col| format_header(col, columns) }, column_widths)
-      separator = '-' * (column_widths.sum + column_headers.size * 3 + 1) # +3 for each delimiter space and cell padding
+      separator = '-' * (column_widths.sum + column_headers.size + 1) # +3 for each delimiter space and cell padding
 
       formatted_records = records.map do |record|
         values = column_headers.map do |column|

@@ -52,7 +52,8 @@ class ProductionAttendeeReport < OrderReport
       end
     end
 
-    return self.report_data("/tmp/production_attendee_#{self.production.id}_#{self.reporting_user_id}.csv")
+    report_filename = "#{production.name}-attendees-#{self.reporting_user_id}.csv"
+    return self.report_data(report_filename)
   end
 
 end

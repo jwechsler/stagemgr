@@ -43,6 +43,11 @@ module FactoryBot
 end
 
 FactoryBot.define do
+  factory :job_metadatum do
+    job_name { "MyString" }
+    last_run_at { "2024-05-30 09:27:36" }
+  end
+
   factory :rate_of_sale do
     day_of_sale { "2024-05-21" }
     production { nil }

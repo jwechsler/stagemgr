@@ -75,6 +75,7 @@ gem "whenever", :require=>false
 gem 'resque', :require => 'resque/server'
 gem 'resque-scheduler'
 gem 'resque-retry'  #, :git=>"https://github.com/jwechsler/resque-retry.git"
+gem 'resque-lock-timeout'
 
 gem 'config', :git=>'https://github.com/railsconfig/config.git'
 gem 'responders'

@@ -35,7 +35,19 @@ class CurrentUser::AccountsController < CurrentUser::ApplicationController
       @rate_of_sales = @rate_of_sales.select{|sale| sale.production.theater.producing?}
     end
 
-
+    if current_user.is_theater_user?
+      @house_counts = HouseCount.joins(performance: :production)
+                         .where(performances: {
+                            performance_date: Date.today..(Date.today + 30.days),
+                            production: @user.allowed_productions
+                         }).limit(14*@user.allowed_productions.count).order('performances.performance_date, performances.performance_code')
+    else
+      @house_counts = HouseCount.joins(performance: :production)
+                         .where(performances: {
+                            performance_date: Date.today..(Date.today + 7.days),
+                            production: @user.allowed_productions
+                         }).order('performances.performance_date, performances.performance_code')
+    end
   end
 
   def edit
