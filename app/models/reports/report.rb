@@ -62,6 +62,27 @@ class Report
     end
   end
 
+  
+
+  def Report.report_filename(filename)
+
+    dir_name = File.dirname(filename)
+    base_filename = File.basename(filename, File.extname(filename))
+    extension = File.extname(filename)
+    extension = ".csv" if extension.blank?
+    sanitized_filename = "#{base_filename.parameterize}#{extension}"
+  
+    # Use tmpdir if no directory is specified or if the directory is "."
+    if dir_name == '.' || dir_name.empty?
+      dir_name = Dir.tmpdir
+    end
+  
+    full_path = File.join(dir_name, sanitized_filename)
+
+    return full_path.to_s
+
+  end 
+
   protected
   def report_data(file_name = nil)
     unless reporting_user_id.nil?
