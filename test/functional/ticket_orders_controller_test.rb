@@ -43,7 +43,7 @@ class TicketOrdersControllerTest < ActionController::TestCase
       end
     end
     new_order = Order.last
-    assert_equal 15, new_order.total
+    assert_equal 15, new_order.total_paid
     assert_equal 1, new_order.payments.count
     assert_equal CreditCardPayment, new_order.payments.first.class
     assert_equal 15, new_order.payments.first.amount

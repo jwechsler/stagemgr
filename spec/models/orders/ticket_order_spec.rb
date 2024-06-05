@@ -11,9 +11,9 @@ RSpec.shared_examples "a paid ticket order" do |pay_method_type, seating_type|
   it "can be refunded" do
     o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, pay_method, seating)
     unless o.paid_with_pass?
-      expect(o.total).to be > 0.0
+      expect(o.total_paid).to be > 0.0
       o.refund!
-      expect(o.total).to eq(0)
+      expect(o.total_paid).to eq(0)
     end
   end
 
@@ -38,12 +38,13 @@ RSpec.shared_examples "a paid ticket order" do |pay_method_type, seating_type|
   context "when splitting" do
     it "creates two orders that reference the original order" do
       original_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, pay_method, seating)
-      original_total = original_order.total
+      original_total = original_order.total_paid
+      expect(original_total).to eq(12)
       old_tli = original_order.flatten_ticket_line_items
       new_tli = [old_tli[0]]
       original_status = original_order.status
       original_seats = original_order.number_of_seats
-      original_amount = original_order.total
+      original_amount = original_order.total_paid
       result = original_order.split(new_tli)
       expect(result.size).to eq(2)
       split_order1, split_order2 = result
@@ -56,17 +57,17 @@ RSpec.shared_examples "a paid ticket order" do |pay_method_type, seating_type|
       expect(split_order1.payments.size).to be >= 1
       expect(split_order2.payments.size).to be >= 1
       expect(original_order.ticket_line_items.size).to eq(3)
-      expect(original_order.total(:include_override_payments)).to eq(0.0)
-      expect(split_order1.total).to eq(original_total/2.0)
-      expect(split_order2.total).to eq(original_total/2.0)
+      
+      
+      expect(original_order.total_paid).to eq(0)
+      expect(original_order.customer_visible_total).to eq(0.0)
+      expect(split_order1.total_paid).to eq(original_total/2.0)
+      expect(split_order2.total_paid).to eq(original_total/2.0)
       expect(split_order1.split_source_id).to eq(original_order.id)
       expect(split_order2.split_source_id).to eq(original_order.id)
       expect(split_order1.split_source.id).to eq(original_order.id)
       expect(split_order2.split_source.id).to eq(original_order.id)
     end
-
-    
-
   end
 
   
@@ -156,12 +157,12 @@ RSpec.describe TicketOrder do
     expect(DonationOrder.all.count).to eq(0)
     o.additional_donation = 50.00
     o.additional_donation_for_other = 1.66
-    expect(o.total).to eq(12.00)
+    expect(o.total_due).to eq(12.00)
     o.transition_to!(Order::PROCESSED)
     donation_orders = DonationOrder.all.order(amount: :desc)
     expect(donation_orders.count).to eq(2)
-    expect(donation_orders[0].total).to eq(50.00)
-    expect(donation_orders[1].total).to eq(1.66)
+    expect(donation_orders[0].total_paid).to eq(50.00)
+    expect(donation_orders[1].total_paid).to eq(1.66)
     expect(donation_orders[0].campaign).not_to be_blank
     expect(donation_orders[1].campaign).not_to be_blank
     expect(donation_orders[1].theater).to eq(Theater.first)
@@ -295,7 +296,7 @@ RSpec.describe TicketOrder do
 
     it "allows an exchange with an external payment to a performance that is cheaper" do
       ticket_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_external)
-      original_price = ticket_order.total
+      original_price = ticket_order.total_paid
       performance2 = ticket_order.performance.dup
       ticket_class = FactoryBot.create(:ticket_class, :ticket_price=>1.0,  class_code: 'EXCH', production:ticket_order.performance.production)
       performance2.performance_date=ticket_order.performance.performance_date+1.day
@@ -307,8 +308,8 @@ RSpec.describe TicketOrder do
       exchange_order.exchange_and_process_from!(ticket_order)
       amt = exchange_order.payments.inject(0.0) {|sum, p| sum += p.is_a?(PriceOverridePayment) ? p.amount : 0.0}
       expect(amt).to eq(2.0 - original_price)
-      expect(exchange_order.total).to eq(12.0)
-      expect(exchange_order.total(:include_override_payments)).to eq(2.0)
+      expect(exchange_order.total_paid).to eq(2.0)
+      expect(exchange_order.total_override_payments).to eq(-10.0)
     end
   end
 
@@ -343,14 +344,14 @@ RSpec.describe TicketOrder do
   end
 
   it "creates two orders that round down when they are not divisible" do
-   
     original_order = FactoryBot.create(:ticket_order, :with_wierd_special_offer, :for_three_tickets, :with_twenty_dollar_service_item, :paid_with_cash)      
-    original_total = original_order.total
+    original_total = original_order.total_paid
+    expect(original_total).to eq(32.03)
     old_tli = original_order.flatten_ticket_line_items
     new_tli = [old_tli[0]]
     original_status = original_order.status
     original_seats = original_order.number_of_seats
-    original_amount = original_order.total
+    original_amount = original_order.total_paid
     result = original_order.split(new_tli)
     expect(result.size).to eq(2)
     split_order1, split_order2 = result
@@ -363,12 +364,12 @@ RSpec.describe TicketOrder do
     expect(split_order1.number_of_seats).to eq(1)
     expect(split_order2.number_of_seats).to eq(original_seats-1)
     expect(original_order.ticket_line_items.size).to eq(5)
-    expect(original_order.total).to eq(20.0)
-    expect(split_order1.total).to eq(original_total.eql?(20.0) ? 0.0 : 4.98)
+    expect(original_order.total_paid).to eq(20.0)
+    expect(split_order1.total_paid).to eq(4.01)
     expect(split_order1.ticket_line_items.size).to eq(1)
     expect(split_order2.ticket_line_items.size).to eq(2)
-    expect(split_order2.total).to eq(original_total.eql?(20.0) ? 0.0 : 7.05)
-    expect(split_order1.total + split_order2.total + original_order.total).to eq(original_amount)
+    expect(split_order2.total_paid).to eq(8.02)
+    expect(split_order1.total_paid + split_order2.total_paid + original_order.total_paid).to eq(original_amount)
     expect(split_order1.split_source_id).to eq(original_order.id)
     expect(split_order2.split_source_id).to eq(original_order.id)
     expect(split_order1.split_source.id).to eq(original_order.id)
@@ -377,12 +378,12 @@ RSpec.describe TicketOrder do
 
   it "creates two orders that manage an order with an uneven number of tickets and a service charge" do
     original_order = FactoryBot.create(:ticket_order, :with_twenty_dollar_service_item, :for_three_tickets, :paid_with_cash)
-    original_total = original_order.total
+    original_total = original_order.total_paid
     old_tli = original_order.flatten_ticket_line_items
     new_tli = [old_tli[0]]
     original_status = original_order.status
     original_seats = original_order.number_of_seats
-    original_amount = original_order.total
+    original_amount = original_order.total_paid
     result = original_order.split(new_tli)
     expect(result.size).to eq(2)
     split_order1, split_order2 = result
@@ -393,11 +394,11 @@ RSpec.describe TicketOrder do
     expect(split_order1.number_of_seats).to eq(1)
     expect(split_order2.number_of_seats).to eq(original_seats-1)
     expect(original_order.ticket_line_items.size).to eq(5)
-    expect(original_order.total).to eq(20.0)
-    expect(split_order1.total).to eq(original_total.eql?(20.0) ? 0 : 6.0)
+    expect(original_order.total_paid).to eq(20.01)
+    expect(split_order1.total_paid).to eq(4.83)
     expect(split_order1.ticket_line_items.size).to eq(1)
     expect(split_order2.ticket_line_items.size).to eq(2)
-    expect(split_order2.total).to eq(original_total.eql?(20.0) ? 0 : 8.5)
+    expect(split_order2.total_paid).to eq(9.66)
     expect(split_order1.split_source_id).to eq(original_order.id)
     expect(split_order2.split_source_id).to eq(original_order.id)
     expect(split_order1.split_source.id).to eq(original_order.id)

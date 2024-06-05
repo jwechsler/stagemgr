@@ -302,10 +302,9 @@ class Address < ApplicationRecord
   # @todo Flex pass programs can't be hard coded.
   def flex_pass_candidate?
     if !has_flex_pass?
-
       recent_orders = self.orders.select { |o| o.created_at > 1.year.ago }
-      total_spent = recent_orders.sum { |o| o.total }
-      num_paid_tickets = recent_orders.sum { |o| o.total > 0 ? o.number_of_tickets : 0 }
+      total_spent = recent_orders.sum { |o| o.total_paid }
+      num_paid_tickets = recent_orders.sum { |o| o.total_paid > 0 ? o.number_of_tickets : 0 }
       candidate = recent_orders.size > 2 && total_spent/num_paid_tickets > 20
     else
       candidate = false

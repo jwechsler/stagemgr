@@ -95,7 +95,7 @@ module Admin::ReportsHelper
             when order.paid_with_membership?
               'MEM'
             when (order.theater.producing?)
-              order.total == 0 ? 'CMP' : 'STB'
+              order.all_tickets_complimentary? ? 'CMP' : 'STB'
             else
               'REN'
           end

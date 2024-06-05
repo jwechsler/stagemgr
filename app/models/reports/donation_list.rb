@@ -25,7 +25,7 @@ class DonationList < MailingList
       hash[:CloseDate] = order.created_at.to_date
       hash[:Amount] = order.total_paid
       hash[:Campaign] = order.campaign
-      hash[:Processing] = order.credit_card_processing_fee
+      hash[:Processing] = order.processing_fee
       self.data[consolidation_code] << hash
 
     end

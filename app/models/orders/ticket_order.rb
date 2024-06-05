@@ -353,7 +353,7 @@ class TicketOrder < Order
                                      :patron_code => self.address.customer_tag,
                                      :performance_date => self.performance.performance_date,
                                      :performance_time => self.performance.performance_time,
-                                     :amount => self.total,
+                                     :amount => self.total_paid,
                                      :remote_id => self.id)
 
         # print_order.save!
@@ -459,13 +459,13 @@ class TicketOrder < Order
   end
 
   # utility routine for ticket splits
-  def move_ticket_to_split(tli_hash, split_order, order_face_value, transfer_amount,  original_payments, split_payments)
+  def move_ticket_to_split(tli_hash, split_order, value_per_ticket,  original_payments, split_payments)
     dup_tli = tli_hash[:source].dup
     dup_tli.order_id = nil
     dup_tli.ticket_count = 1
     offset = dup_tli.dup
     offset.ticket_count = -1
-    dup_tli.price_override = order_face_value.eql?(0.0) ? BigDecimal('0.00',2) : (dup_tli.price/order_face_value*transfer_amount)
+    dup_tli.price_override = value_per_ticket
     dup_tli.generated_from_split = true
     total = dup_tli.price_override
 
@@ -507,8 +507,8 @@ class TicketOrder < Order
   def split(new_tlis, all_tlis = nil)
     result = [nil, nil]
     TicketOrder.transaction do
-      total_transfer_amount = self.total - self.service_line_items.sum(:amount)
-      face_value_of_tickets = self.total_ticket_face_value
+      total_transfer_amount = BigDecimal(self.total_paid - self.service_line_items.sum(:amount),2)
+      split_value_per_ticket = (BigDecimal(total_transfer_amount,2) / BigDecimal(self.number_of_tickets,2)).floor(2)
       original_payment_hash = self.flatten_payments
 
       order1 = self.fork_order_into_split
@@ -520,18 +520,17 @@ class TicketOrder < Order
       new_tlis.each do |tli_hash|
         find_index = remaining_tickets.find_index(tli_hash)
         throw "Can't split order because request for seats improperly generated" if find_index.nil?
-        self.move_ticket_to_split(tli_hash, order1, face_value_of_tickets, total_transfer_amount, original_payment_hash, order1_payments)
+        self.move_ticket_to_split(tli_hash, order1, split_value_per_ticket, original_payment_hash, order1_payments)
         remaining_tickets.delete_at(find_index)
       end
       remaining_tickets.each do |tli_hash|
-        self.move_ticket_to_split(tli_hash, order2, face_value_of_tickets, total_transfer_amount, original_payment_hash, order2_payments)
+        self.move_ticket_to_split(tli_hash, order2, split_value_per_ticket, original_payment_hash, order2_payments)
       end
       self.status = SPLIT
       self.cancel_pending_tasks
       self.save!
       order1_payments.each_value {|p| order1.payments << p }
       order2_payments.each_value {|p| order2.payments << p }
-      order1.payments[0].save! unless order1.payments.nil? || order1.payments.empty?
       order1.print_order_id = nil
       order2.print_order_id = nil
       order1.save!
@@ -631,7 +630,7 @@ class TicketOrder < Order
       exchange_payments_toward_exchange_order = self.payment_type.build_exchange_offset_payments(exchange_payments_on_original_order)
       exchange_payments_on_original_order.each {|p| original_order.payments << p unless p.nil? }
       exchange_payments_toward_exchange_order.each { |p| self.payments << p unless p.nil? }
-      payment_difference = self.value_of_all_line_items - exchange_payments_toward_exchange_order.inject(0){|sum, x| sum = sum + x.amount }
+      payment_difference = self.total_due - exchange_payments_toward_exchange_order.inject(0){|sum, x| sum = sum + x.amount }
       if payment_difference < 0
         self.payments << PriceOverridePayment.new(:amount => payment_difference, :order=>self, :source_payment_type=>original_order.payment_type)
       elsif payment_difference > 0

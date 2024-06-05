@@ -28,7 +28,7 @@ class CreditCardPayment < CurrencyPayment
 
   def default_from_order
     self.address ||= self.order.address
-    self.amount ||= self.order.total
+    self.amount ||= self.order.current_total
     self.ip_address ||= self.order.ip_address
   end
 

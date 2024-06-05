@@ -46,8 +46,8 @@ class OrderReport < Report
     row[:special_offer_code] = order.special_offer_code_used
     row[:status] = order.status
     row[:description] = order.description
-    row[:order_total] = Money.from_amount(order.total_collected)
-    row[:order_revenue] = Money.from_amount(order.total_revenue) - Money.from_amount(order.processing_fee) - Money.from_amount(order.ticketing_fee)
+    row[:order_total] = Money.from_amount(order.total_paid)
+    row[:order_revenue] = Money.from_amount(order.total_paid) - Money.from_amount(order.processing_fee) - Money.from_amount(order.ticketing_fee)
     row[:num_tickets]  = order.kind_of?(TicketOrder) ? order.number_of_tickets : 0
     row[:num_seats] = order.kind_of?(TicketOrder) ? order.number_of_seats : 0
     if order.performance.production.has_reserved_seating?

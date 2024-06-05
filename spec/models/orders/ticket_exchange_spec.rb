@@ -12,9 +12,10 @@ RSpec.describe "an exchanged ticket order" do
     expect(exchange_order.payments.size).to eq(1)
     expect(original_order.payments.size).to eq(2)
     expect(original_order.status).to eq(Order::EXCHANGED)
-    expect(original_order.total).to eq(0.0)
-    expect(exchange_order.total(:include_override_payments)).to eq(12.0)
-    expect(exchange_order.total).to eq(12.0)
+    expect(original_order.total_paid).to eq(0.0)
+    total_exchange_payments = exchange_order.payments.select{|p| p.is_a? ExchangePayment}.sum(&:amount)
+    expect(total_exchange_payments).to eq(12.0)
+    expect(exchange_order.total_paid).to eq(12.0)
     expect(exchange_order.exchange_source_id).to eq(original_order.id)
   end
 

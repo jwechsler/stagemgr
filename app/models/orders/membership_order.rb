@@ -121,9 +121,7 @@ class MembershipOrder < Order
   end
 
 
-  def time_to_hold_in_transition
-    8.hours
-  end
+
 
   def transition_processing_to_processing!(redirect_to = nil)
     self.transition_new_to_processing!(redirect_to)
@@ -208,5 +206,11 @@ class MembershipOrder < Order
       end_date = [Date.today, self.membership.ended_at.nil? ? Date.today : self.membership.ended_at].min
       months = (end_date.year * 12 + end_date.month) - (member_start_date.year * 12 + member_start_date.month)
     end
+  end
+
+  private # ... might be ghost methods
+
+  def time_to_hold_in_transition
+    8.hours
   end
 end

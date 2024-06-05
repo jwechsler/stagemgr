@@ -126,7 +126,7 @@ FactoryBot.define do
         ticket_order.payments << FactoryBot.create(:credit_card_payment,
                             :order=>ticket_order,
                             :number_of_tickets=>num_tix,
-                            :amount=>ticket_order.value_of_all_line_items,
+                            :amount=>ticket_order.total_due,
                             :transaction_id => 'TEST_TRANSACTION',
                             :confirmation_code => 'CONFIRMED',
                             :card_type=>'bogus',
@@ -250,7 +250,7 @@ FactoryBot.define do
         ticket_order.payments << FactoryBot.create(:cash_payment,
                             :order=>ticket_order,
                             :number_of_tickets=>num_tix,
-                            :amount=>ticket_order.value_of_all_line_items)
+                            :amount=>ticket_order.total_due)
         ticket_order.status = Order::PROCESSED
         ticket_order.save!
         
@@ -265,7 +265,7 @@ FactoryBot.define do
                             :order=>ticket_order,
                             :number_of_tickets=>num_tix,
                             :payment_type_id => ticket_order.payment_type_id,
-                            :amount=>ticket_order.value_of_all_line_items)
+                            :amount=>ticket_order.total_due)
         ticket_order.status = Order::PROCESSED
         ticket_order.save!
       end

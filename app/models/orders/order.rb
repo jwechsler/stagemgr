@@ -91,85 +91,76 @@ class Order < ApplicationRecord
   # implementation
 
   def is_balanced_transaction?
-    li_total = self.value_of_all_line_items
-    pay_total = self.value_of_all_payments(:include_override_payments)
-    unless li_total == pay_total
+    li_total = self.total_due
+    pay_total = self.total_paid
+    unless li_total.eql?(pay_total)
       errors.add(:status, "cannot be set to #{self.status} if the total ($#{li_total}) isn't countered by a payment (currently $#{pay_total}).")
+      return false
+    else
+      return true
     end
   end
 
+  # Only ticket orders have a production
   def production
     nil
   end
 
-  def copy_payment_information(from_order)
-    self.credit_card_number = from_order.credit_card_number
-    self.credit_card_type = from_order.credit_card_type
-    self.credit_card_expiration_year = from_order.credit_card_expiration_year
-    self.credit_card_expiration_month = from_order.credit_card_expiration_month
-    self.credit_card_confirmation_code = from_order.credit_card_confirmation_code
-    self.credit_card_verification_number = from_order.credit_card_verification_number
-    self.flex_pass_code = from_order.flex_pass_code
-    self.member_code = from_order.member_code
-  end
+  # Payment and total utility methods
 
-  def payment_attributes
-    {:credit_card_number=>self.credit_card_number,
-     :credit_card_type=>self.credit_card_type,
-     :credit_card_expiration_year=>self.credit_card_expiration_year,
-     :credit_card_expiration_month=>self.credit_card_expiration_month,
-     :credit_card_confirmation_code=>self.credit_card_confirmation_code,
-     :card_verification_number => self.credit_card_verification_number,
-     :flex_pass_code=>self.flex_pass_code,
-     :ip_address => self.ip_address,
-     :member_code=>self.member_code,
-     :check_number=>self.check_number}
-  end
-
-  def value_of_all_line_items
-    a = self.all_line_items.to_a.sum { |line_item|
-        line_item.respond_to?(:total) ? line_item.total : BigDecimal('0',2)
-      }
-    a = BigDecimal('0',2) if a < 0
-    a
-  end
-
-  # total revenue collected by box office
+  # total recorded revenue collected by box office
   def total_collected
-    sum_payments = self.payments.select{|p| p.report_as_sales_collected?}
-    total = sum_payments.empty? ? BigDecimal('0',2) : sum_payments.sum{|p| p.amount}
+    sum_payments = self.payments.reported_as_sales_collected.sum(:amount)
+    BigDecimal(sum_payments,2)
   end
 
-  # total revenue reported for the production
+  # total recorded revenue for the order
   def total_revenue
-    sum_payments = self.payments.select{|p| p.report_as_production_revenue?}
-    total = sum_payments.empty? ? BigDecimal('0',2) : sum_payments.sum{|p| p.amount }
+    Rails.logger.warn "Deprecated method 'total_revenue' called from #{caller.join("\n")}"
+    self.total_paid
   end
 
-  # returns the total amount paid
+  # returns the total amount, regardless of reporting status
   def total_paid
-    sum = self.payments.map{|p| p.amount}.inject(BigDecimal('0',2)) { |sum, x| sum + (x.nil? ? BigDecimal('0',2) : x) }
-    sum = BigDecimal('0',2) if sum.nil?
-    sum
+    sum_payments = payments.loaded? ? payments.to_a.sum(&:amount) : payments.sum(:amount)
+    BigDecimal(sum_payments, 2)
   end
 
-  #returns the total payments visible to the customer
+  # total amount due from existing line items (not necessarily paid)
+  def total_due
+    line_items_sum = all_line_items.to_a.sum(&:total)
+    line_items_sum < 0 ? BigDecimal('0', 2) : BigDecimal(line_items_sum, 2)
+  end
+
+  def total_override_payments
+    sum = self.payments.override_payments_only.sum(:amount)
+    BigDecimal(sum,2)
+  end
+
+  #returns the total payments visible to the customer, negative payment offsets
+  # are never visible
   def customer_visible_total
     total = self.payments.to_a.sum { |payment| payment.customer_visible_amount }
-    total = BigDecimal('0',2) if (total.nil? || total < 0)
-    total
+    (total.nil? || total < 0) ?  BigDecimal('0',2) : BigDecimal(total,2)
   end
 
   # returns the actual total of the order by either total payments made (if there are any payments),
   # or the line items as a fallback
-  def total(*options)
-    if (self.payments.nil?) || (self.payments.size == 0) then
-      a = value_of_all_line_items
-    else
-      a = self.value_of_all_payments(options)
-    end
-    a = BigDecimal('0',2) if a < 0
-    a
+  def total
+    a = payments.empty? ? total_due : total_paid
+    a < 0 ? BigDecimal('0', 2) : a
+  end
+
+  def processing_fee
+    BigDecimal(self.payments.to_a.sum(&:processing_fee),2)
+  end
+
+  def membership_payments
+    self.payments.select { |p| p.is_a? MembershipPayment }
+  end
+
+  def flex_pass_payments
+    self.payments.select { |p| p.is_a?(FlexPassPayment) }
   end
 
   def exchangeable?
@@ -187,7 +178,6 @@ class Order < ApplicationRecord
   def holding_seats?
     false
   end
-
 
   def fulfillable?
     self.status == Order::PROCESSED || self.status == Order::UNCLAIMED
@@ -209,9 +199,6 @@ class Order < ApplicationRecord
     false
   end
 
-  def time_to_hold_in_transition
-    10.minutes
-  end
 
   def self.attending_statuses
     [Order::PROCESSED, Order::FULFILLED]
@@ -243,24 +230,6 @@ class Order < ApplicationRecord
 
   def ticketing_fee
     BigDecimal(self.service_line_items.to_a.sum{|li| li.facility_fee }.to_s,2)
-  end
-
-  def membership_payments
-    payments.select { |p| p.is_a? MembershipPayment }
-  end
-
-  def flex_pass_payments
-    payments.select { |p| p.is_a? FlexPassPayment }
-  end
-
-  def processing_fee
-    fee = 0
-    self.payments.each { |p| fee += p.processing_fee unless p.processing_fee.nil? }
-    fee
-  end
-
-  def credit_card_processing_fee
-    self.processing_fee
   end
 
   def valid_payment_types_for(current_user)
@@ -503,9 +472,26 @@ class Order < ApplicationRecord
     self.sf_object
   end
 
-  # using introspection, transition current status to new_status
-  # Throws an exception if object cannot be transitioned, and sets error in the object
-  # @new_status  [String]  New status (as defined in order.rb)
+  # Transitions the order to the specified status.
+  #
+  # The method reflects a sequence of transitions, moving from one status
+  # to another  in a predefined workflow. Each transition may involve specific
+  # actions that need to be performed, such as sending notifications, updating
+  # timestamps, or performing validations.
+  #
+  # @param new_status [Symbol] The desired status to transition to.
+  # @raise [RuntimeError] If the transition is not allowed or fails.
+  # @return [Boolean] True if the transition succeeds, false otherwise.
+  #
+  # @example Transition an order to :processed
+  #   order = Order.find(1)
+  #   order.transition_to!(Order::PROCESSED)
+  #
+  # Note: The method assumes that there is a logical sequence of statuses
+  # and that each individual transition method 
+  # (e.g., transition_new_to_processing! followed by transition_processing_to_processed!)
+  # is defined to handle the specific logic required to move from one status to
+  # the next in the sequence.
 
   def transition_to!(new_status)
     Order.transaction do
@@ -664,28 +650,12 @@ class Order < ApplicationRecord
             address.line1, address.line2, nil, address.city, address.state, address.zipcode, address.phone, address.id]
   end
 
+
   protected
 
 
   def status_is_provided?
     !self.status.blank?
-  end
-
-  # returns value of all payments
-  # options is a hash with following optoins
-  #    :sales_collected_payment_types_only : set to true if you only are including payment types
-  #    :ignore_override_payments : set to true to exclude all override payments
-  def value_of_all_payments(*options)
-    options = options.flatten
-    total = BigDecimal('0',2)
-    sum_payments = self.payments
-    sum_payments = sum_payments.select{|p| p.report_as_sales_collected?} if options.include?(:sales_collected_payment_types_only)
-    unless options.include?(:include_override_payments)
-      sum_payments = sum_payments.select{|p| !p.kind_of?(PriceOverridePayment)}
-    end
-    total = sum_payments.map{|p| p.amount}.inject(BigDecimal('0',2)) { |sum, x| sum + (x.nil? ? BigDecimal('0',2) : x) }
-
-    total.floor(2)
   end
 
   protected
@@ -888,6 +858,17 @@ class Order < ApplicationRecord
     end
   end
 
+  def copy_payment_information(from_order)
+    self.credit_card_number = from_order.credit_card_number
+    self.credit_card_type = from_order.credit_card_type
+    self.credit_card_expiration_year = from_order.credit_card_expiration_year
+    self.credit_card_expiration_month = from_order.credit_card_expiration_month
+    self.credit_card_confirmation_code = from_order.credit_card_confirmation_code
+    self.credit_card_verification_number = from_order.credit_card_verification_number
+    self.flex_pass_code = from_order.flex_pass_code
+    self.member_code = from_order.member_code
+  end
+
   private
   def auto_link_processed_to_address_of_record
     if status == Order::PROCESSED then
@@ -903,5 +884,26 @@ class Order < ApplicationRecord
     donation.donation_line_items.build(:amount => donation_amount)
     donation.transition_to!(Order::PROCESSED)
   end
+
+  private # these might be ghost methods...
+
+  def payment_attributes
+    {:credit_card_number=>self.credit_card_number,
+     :credit_card_type=>self.credit_card_type,
+     :credit_card_expiration_year=>self.credit_card_expiration_year,
+     :credit_card_expiration_month=>self.credit_card_expiration_month,
+     :credit_card_confirmation_code=>self.credit_card_confirmation_code,
+     :card_verification_number => self.credit_card_verification_number,
+     :flex_pass_code=>self.flex_pass_code,
+     :ip_address => self.ip_address,
+     :member_code=>self.member_code,
+     :check_number=>self.check_number}
+  end
+
+  def time_to_hold_in_transition
+    10.minutes
+  end
+
+
 end
 
