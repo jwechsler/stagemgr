@@ -193,9 +193,9 @@ FactoryBot.define do
 
       before(:create) do |ticket_order, evaluator|
         if evaluator.member_code.blank?
-          membership = FactoryBot.create(:membership)
+          membership = FactoryBot.create(:membership, address: ticket_order.address)
         else
-          membership = FactoryBot.create(:membership,member_code:evaluator.member_code)
+          membership = FactoryBot.create(:membership, address: ticket_order.address, member_code:evaluator.member_code)
         end
         find_code = membership.membership_offer.use_ticket_class_code
 
@@ -237,7 +237,6 @@ FactoryBot.define do
         end
         ticket_order.status = Order::PROCESSED
         ticket_order.save!
-
       end
 
     end

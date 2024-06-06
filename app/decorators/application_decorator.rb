@@ -28,7 +28,11 @@ class ApplicationDecorator < Draper::Decorator
     else
       width, height = dimensions[0] if dimensions[0].class.eql?(Array)
       # replace with version 6:
-      h.image_tag(img.variant(format: 'png', resize_and_pad: [width, height, gravity: 'centre', alpha: true])&.processed)
+      begin
+        h.image_tag(img.variant(format: 'png', resize_and_pad: [width, height, gravity: 'centre', alpha: true])&.processed)
+      rescue ActiveStorage::FileNotFoundError
+        ""
+      end
       #h.image_tag(img.variant(resize: "#{width}x#{height}>"))
     end
   end

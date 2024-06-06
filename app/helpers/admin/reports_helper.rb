@@ -78,7 +78,7 @@ module Admin::ReportsHelper
     master_lists = Hash['MEM' => Array.new, 'BLDG' => Array.new, 'DNT' => Array.new]
     productions.each do |production|
       season_tag = production.season.to_i + 1
-      additional_attendees = production.attendees
+      additional_attendees = production.addresses
       orders = TicketOrder.includes(:address, :payments, :theater, {:performance=>:production}).where('performances.production_id = ?', production.id)
 
       reports = Hash['ALL' => Array.new,

@@ -19,21 +19,30 @@ RSpec.shared_examples "a paid ticket order" do |pay_method_type, seating_type|
 
   it "should mark its holder has having attended the production when fulfilled" do    
     o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, pay_method, seating)
-    o.transition_to!(Order::FULFILLED)
-    expect(o.performance.production.attendees.size).to eq(1)
+    # There is something weird about the setup for membership ticket facotries that screws up this test.
+      expect(o.production.addresses.size).to eq(0)
+      
+      expect(o.address.productions.size).to eq(0)
+      total_records = ActiveRecord::Base.connection.execute("SELECT COUNT(*) FROM addresses_productions").first[0]
+      o.transition_to!(Order::FULFILLED)
+      o.production.reload
+      o.address.reload
+      expect(o.address.productions.size).to eq(1)
+      expect(o.production.addresses.size).to eq(1)
+    
   end
   it "should unmark the holder has having attended when refunded" do
     o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, pay_method, seating)
     o.transition_to!(Order::FULFILLED)
     production = o.performance.production
     o.refund!
-    expect(o.performance.production.attendees.size).to eq(0)
+    expect(o.performance.production.addresses.size).to eq(0)
   end
   it "should unmark the holder has having attended when unclaimed" do
     o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, pay_method, seating)
     o.transition_to!(Order::FULFILLED)
     o.transition_to!(Order::UNCLAIMED)
-    expect(o.performance.production.attendees.count).to eq(0)
+    expect(o.performance.production.addresses.count).to eq(0)
   end
   context "when splitting" do
     it "creates two orders that reference the original order" do
@@ -89,10 +98,11 @@ RSpec.describe TicketOrder do
   it_behaves_like "a paid ticket order", :paid_with_external, :reserved_seating
 
   it "ensures that membership quotas/production are honored" do
+    address = FactoryBot.create(:address)
     membership_offer = FactoryBot.create(:membership_offer,tickets_per_performance: 1)
-    membership = FactoryBot.create(:membership, membership_offer: membership_offer)
+    membership = FactoryBot.create(:membership, address: address, membership_offer: membership_offer)
     expect(membership.membership_offer.tickets_per_performance).to eq(1)
-    o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, member_code: membership.member_code)
+    o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, address: address, member_code: membership.member_code)
     o.payment_type = FactoryBot.create(:membership_payment_type)
     expect{o.transition_to!(Order::FULFILLED)}.to raise_error(Exceptions::TooManyTicketsForMembership)
   end
@@ -101,16 +111,16 @@ RSpec.describe TicketOrder do
     o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
     a = o.address
     o.transition_to!(Order::FULFILLED)
-    expect(o.performance.production.attendees.count).to eq(1)
+    expect(o.performance.production.addresses.count).to eq(1)
     o2 = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash, :performance=>o.performance)
     o2.address = a
     o2.save!
     o2.transition_to!(Order::FULFILLED)
 
-    expect(o2.performance.production.attendees.uniq.size).to eq(1)
+    expect(o2.performance.production.addresses.uniq.size).to eq(1)
 
     o2.transition_to!(Order::UNCLAIMED)
-    expect(o2.performance.production.attendees.uniq.size).to eq (1)
+    expect(o2.performance.production.addresses.uniq.size).to eq (1)
   end
 
   it "does not block off seats when unclaimed" do

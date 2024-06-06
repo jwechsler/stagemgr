@@ -175,7 +175,7 @@ class TicketOrder < Order
     self.status.eql?(Order::SPLIT)
   end
 
-  def in_transactional_state?
+  def in_multi_transactional_state?
     super || [Order::RELEASING, Order::EXCHANGING].include?(status)
   end
 
@@ -192,7 +192,7 @@ class TicketOrder < Order
   end
 
   def holding_seats?
-    ![Order::UNCLAIMED, Order::CANCELED].include?(self.status)
+    HOLDING_SEAT_STATUSES.include?(self.status)
   end
 
   def sold?
@@ -926,19 +926,24 @@ class TicketOrder < Order
       }
     end
   end
-
+  
   def update_attendance_record
     if self.saved_change_to_status?
-      case self.status
-      when Order::FULFILLED
-        attendee = self.address
-        attendee.productions << self.performances.map {|perf| perf.production}
-      when Order::REFUNDED, Order::UNCLAIMED
-          self.performances.map { |perf| perf.production }.select {|p| is_unique_visit?(p) }.each {|p|
-            self.address.productions.delete(p)
-          }
+      begin
+        case self.status
+        when Order::FULFILLED
+          # In a Rails console or in your Rails application code
+          total_records = ActiveRecord::Base.connection.execute("SELECT COUNT(*) FROM addresses_productions").first[0]
+          prod = self.performance.production
+          self.production.addresses << self.address
+          # In a Rails console or in your Rails application code
+          
+        when Order::REFUNDED, Order::UNCLAIMED
+          self.address.productions.delete(self.production) if self.is_unique_visit?
+        end
+      rescue StandardError => e
+        Rails.logger.error "Failed to update attendee status for order #{self.id}"
       end
-
     end
   end
 
@@ -950,8 +955,9 @@ class TicketOrder < Order
     exchange_source.save!
   end
 
-  def is_unique_visit?(prod)
-    Order.joins(:performance).where("performances.production_id = ? and orders.id != ? and orders.status = ? and orders.address_id = ?",
+  def is_unique_visit?(prod = nil)
+    prod = prod || self.production
+    TicketOrder.joins(:performance).where("performances.production_id = ? and orders.id != ? and orders.status = ? and orders.address_id = ?",
       prod.id,
       self.id,
       Order::FULFILLED,

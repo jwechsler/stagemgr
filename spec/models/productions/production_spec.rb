@@ -7,9 +7,9 @@ RSpec.describe "a production" do
     end
 
     it "should have one attendee when fulfilled" do
-      expect(@ticket_order.performance.production.attendees.count).to eq(0)
+      expect(@ticket_order.performance.production.addresses.count).to eq(0)
       @ticket_order.transition_to!(Order::FULFILLED)
-      expect(@ticket_order.performance.production.attendees.count).to eq(1)
+      expect(@ticket_order.performance.production.addresses.count).to eq(1)
     end
     it "can override the email links for surveys and mailing list solicitation" do
       mail = OrderMailer.standard_followup(@ticket_order)

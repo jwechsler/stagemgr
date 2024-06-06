@@ -10,7 +10,7 @@ class HouseManagementReport < Report
   def self.ticket_orders(for_date)
     TicketOrder.includes(:address, {:performance=>:production}).where(
       "performances.performance_date = :performance_date and orders.status in (:attending)",
-      {:performance_date=>for_date, :attending=>Order.attending_statuses + Order.held_statuses}).
+      {:performance_date=>for_date, :attending=>(Order::ATTENDING_STATUSES + Order::HELD_STATUSES)}).
       order('productions.venue_id, performances.performance_time, addresses.last_name, addresses.first_name')
   end
 

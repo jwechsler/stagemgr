@@ -22,14 +22,13 @@ class CustomerMailingList < MailingList
   def create
 
     begin
-      addresses = Address.joins(:orders=>:performance).references(:order=>:performance).where("orders.status in (:attended_statuses) and (performances.performance_date between :start_date and :end_date) and addresses.line1 <> '' and addresses.line1 is not null and exists (select * from line_items, ticket_classes where line_items.order_id = orders.id and line_items.ticket_class_id = ticket_classes.id and ticket_classes.complimentary = 0)",attended_statuses: Order.attended_statuses, start_date: start_date, end_date: Date.today).distinct
-      #orders = TicketOrder.preload(:address).joins(:performance,:address).references(:performance,:address).where("orders.status in (:attended_statuses) and performance.performance_date > :start_date and addresses.line1 <> \"\" and addresses.line1 is not null",
-      #  attended_statuses: Order.attended_statuses, start_date: start_date)
+      addresses = Address.joins(:orders=>:performance).references(:order=>:performance).where(
+        "orders.status in (:attended_statuses) and (performances.performance_date between :start_date and :end_date) and addresses.line1 <> '' and addresses.line1 is not null and exists (select * from line_items, ticket_classes where line_items.order_id = orders.id and line_items.ticket_class_id = ticket_classes.id and ticket_classes.complimentary = 0)",
+        attended_statuses: Order::ATTENDING_STATUSES, start_date: start_date, end_date: Date.today).distinct
       unless required_theater_ids.empty?
         addresses = addresses.where("exists (select * from productions where productions.id = performances.production_id and productions.theater_id in (:theater_ids))",theater_ids: required_theater_ids)
       end
-         # orders = TicketOrder.joins(:address).preload(:address,:performance=>:production).references(:performance=>:production).where("orders.status in (?) and orders.created_at >= ? and addresses.line1 is not null and addresses.line1 <> \"\"",Order.attended_statuses, start_date)
-
+         
       consolidation_code = 'LST'
 
       addresses.each do |address|

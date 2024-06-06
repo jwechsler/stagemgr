@@ -30,7 +30,7 @@ class OrderTask < ApplicationRecord
         if self.order.payment_type.order_task_suppressions.map{|s| [s.task_type, self.method_symbol.blank? ? 'NIL' : (s.method_name || 'NIL')]}.include?([self.type, self.method_symbol || 'NIL'])
           self.cancel!
         else
-          if self.order.in_transactional_state?
+          if self.order.in_multi_transactional_state?
             self.execute_at = self.execute_at + 5.minutes
             self.save!
           else

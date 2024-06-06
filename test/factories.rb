@@ -68,14 +68,14 @@ FactoryBot.define do
   end
 
   factory :address do
-    last_name     { 'Test' }
-    full_name     { 'Jeremy Test' }
+    sequence(:last_name)     { |n| "Test#{n}" }
+    sequence(:full_name)     { |n| "Jeremy Test#{n}" }
     first_name    { 'Jeremy' }
     line1         { '123 swift st' }
     city          { 'hoboken' }
     state         { 'ct' }
     zipcode       { '90210' }
-    email         { 'jeremy@test.com' }
+    sequence(:email)         {|n| "jeremy#{n}@test.com" }
   end
 
   factory :flex_pass_order do

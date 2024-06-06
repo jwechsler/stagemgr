@@ -12,7 +12,7 @@ FactoryBot.define do
     member_code     { 'TESTMEM' }
     profile_id      { PaymentProcessing::BogusResponse::PROFILE_ID }
     status          { Membership::ACTIVE }
-    address
+    association     :address
     membership_offer
 
   end

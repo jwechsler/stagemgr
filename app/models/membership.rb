@@ -37,7 +37,7 @@ class Membership < ApplicationRecord
           membership_id: self.id,
           order_id: order.id,
           production_id: order.performance.production_id,
-          attending:Order.attending_statuses
+          attending: Order::ATTENDING_STATUSES
         ).count
     raise Exceptions::RepeatVisitsAtDoorOnly.new("Tickets for repeat trips to the same show are based on availability at the door on the day of performance.  To see this show again, just come to the box office with your member pass on #{order.performance.performance_date.strftime("%B %d")} at #{(order.performance.performance_time-30.minutes).strftime("%I:%M%p")}.") if prod_count > 0
     end

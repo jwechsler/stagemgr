@@ -92,7 +92,7 @@ class MembershipOrder < Order
     end
   end
 
-  def is_balanced_transaction?
+  def balanced_transaction?
     true
   end
 
