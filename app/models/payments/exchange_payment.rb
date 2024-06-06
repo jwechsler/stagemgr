@@ -1,4 +1,6 @@
 class ExchangePayment < Payment
+  belongs_to :flex_pass
+  belongs_to :membership
 
   def customer_visible_amount
     return -1*super

@@ -85,7 +85,7 @@ Then /^the order should have an email task$/ do
 end
 
 Then /^a membership order exists for "(.*?)"$/ do |name|
-  address = Address.where(full_name: name).reload.first
+  address = Address.find_by(full_name: name)
   orders = MembershipOrder.where(address_id: address.id)
   raise "No order found for #{name}" unless orders.size > 0
 end

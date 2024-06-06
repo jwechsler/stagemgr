@@ -847,8 +847,9 @@ class Order < ApplicationRecord
   def create_recipient_address
     return unless gift?
 
-    new_owner = Address.new(full_name: recipient_name, email: recipient_email).find_original || new_owner
+    new_owner = Address.new(full_name: recipient_name, email: recipient_email)
     new_owner.save!
+    new_owner = new_owner.find_original || new_owner
     self.recipient_address_id = new_owner.id
   end
 

@@ -1,5 +1,5 @@
 class FlexPassPayment < PassPayment
-  validates_presence_of :flex_pass
+  validates :flex_pass, presence: true, if: -> { number_of_tickets != 0 }
   belongs_to :flex_pass, inverse_of: :flex_pass_payments
 
   validates_each :number_of_tickets do |record, attr, value|
@@ -46,7 +46,6 @@ class FlexPassPayment < PassPayment
 
   def release_tickets!
     self.number_of_tickets = 0
-    self.flex_pass = nil
     self.save!
   end
 

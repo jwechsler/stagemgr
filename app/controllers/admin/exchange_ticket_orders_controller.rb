@@ -43,7 +43,7 @@ class Admin::ExchangeTicketOrdersController < Admin::ApplicationController
         format.html { redirect_to(admin_ticket_order_path(@exchange_order)) }
       end
     rescue Exception => e
-      Rails.logger.error("There was a problem with the exchange. #{e.message}")
+      Rails.logger.error("There was a problem with an exchange. #{e.message}")
       Rails.logger.error(e.backtrace.join("\n"))
       flash[:error] = "There was a problem with the exchange. #{e.message}"
       redirect_to admin_ticket_order_path(@original_order.id)

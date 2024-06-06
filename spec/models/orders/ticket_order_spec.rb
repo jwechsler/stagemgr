@@ -79,9 +79,6 @@ RSpec.shared_examples "a paid ticket order" do |pay_method_type, seating_type|
     end
   end
 
-  
-
-
 end
 
 RSpec.describe TicketOrder do

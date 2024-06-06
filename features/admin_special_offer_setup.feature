@@ -1,5 +1,5 @@
 Feature: Administer Special Offers
-  In order manage special offers
+  In order to manage special offers
   As an box office user
   I want to create and edit special offers
   Background:
