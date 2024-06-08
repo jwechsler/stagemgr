@@ -4,14 +4,6 @@ development:
   static_cache_dir: "/Users/jeremyw/tmp"
   filestore_hash: "yoursecrethere"
   resque_admin_password: "yourpassword"
-  email_addresses:
-      box_office: boxoffice@yourtheater.org
-      online_errors: boxoffice@yourtheater.org
-      flex_pass_notifications: boxoffice@yourtheater.org
-      membership_notifications: boxoffice@yourtheater.org
-      supervisor_notifications: boxoffice@yourtheater.org
-      wheelchair_conversion_notifications: bboxoffice@yourtheater.org
-      software_address: boxoffice@yourtheater.org
   payment_processing:
     default_gateway: bogus
     default_recurring_gateway: bogus
@@ -60,3 +52,14 @@ all:
   hud_export_directory: "/tmp"
   payment_processing:
     additional_card_types:
+  email:
+    delivery_method: postmark
+    addresses:
+      box_office: boxoffice@theaterwit.org
+      online_errors: bugs@theaterwit.org
+      software_address: stagemgr@theaterwit.org
+      flex_pass_notifications: boxoffice@theaterwit.org
+      membership_notifications: boxoffice@theaterwit.org
+      supervisor_notifications: jeremy@theaterwit.org
+      wheelchair_conversion_notifications: stagemgr@theaterwit.org
+
