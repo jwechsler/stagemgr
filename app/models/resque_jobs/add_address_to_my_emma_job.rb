@@ -16,7 +16,7 @@ class AddAddressToMyEmmaJob
 
     unless address.email.blank?
 
-      member = MyEmma::Member.new
+      member = MyEmma::Member.find_by_email(address.email) || MyEmma::Member.new
 
       groups = [AddAddressToMyEmmaJob.newsletter_id]
       additional_groups.each{|grp| groups << grp unless grp.blank?} unless additional_groups.nil?
