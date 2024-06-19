@@ -117,5 +117,5 @@ Rails.application.configure do
 
   # Allow binding from ngrok.io for remote testing
   config.hosts << /.*\.ngrok\.io/
-
+  config.hosts << /.*\.ngrok\.app/
 end
