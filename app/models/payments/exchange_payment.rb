@@ -1,6 +1,6 @@
 class ExchangePayment < Payment
-  belongs_to :flex_pass
-  belongs_to :membership
+  belongs_to :flex_pass, optional: true
+  belongs_to :membership, optional: true
 
   def customer_visible_amount
     return -1*super
