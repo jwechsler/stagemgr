@@ -39,7 +39,7 @@ class MailingList < Report
   end
 
   def extract_production_attendees(production, allow_email_export = false, email_attendees = nil)
-    attendees = production.attendees
+    attendees = production.addresses
     attendees.each do |address|
       consolidation_code = production.theater.producing? ? 'ALL' : 'REN'
       self.add_hash_to_data(consolidation_code, address, production, consolidation_code, production.closing_at + 1.day, allow_email_export, email_attendees)

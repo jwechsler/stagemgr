@@ -50,4 +50,20 @@ Given('I wait for the datatable to load') do
   expect(page).to have_no_css('.dataTables_processing', :visible=>true)
 end
 
-
+# Utility method to dump text to the console
+Then("output database content") do
+  puts "*** DEBUGGING INFO:"
+  addresses = Address.all
+  if addresses.count.eql?(0)
+    puts "  NO ADDRESSES IN DB!"
+  else
+    Address.all.each {|a| puts "  #{a.to_s}"}
+  end
+  memberships = Membership.all
+  if memberships.count.eql?(0) then
+    puts "  Memberships: None"
+  else
+    memberships.each { |m| puts "  #{m.to_s}"}
+  end
+  puts "*** END"
+end

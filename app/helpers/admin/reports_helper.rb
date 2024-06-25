@@ -78,7 +78,7 @@ module Admin::ReportsHelper
     master_lists = Hash['MEM' => Array.new, 'BLDG' => Array.new, 'DNT' => Array.new]
     productions.each do |production|
       season_tag = production.season.to_i + 1
-      additional_attendees = production.attendees
+      additional_attendees = production.addresses
       orders = TicketOrder.includes(:address, :payments, :theater, {:performance=>:production}).where('performances.production_id = ?', production.id)
 
       reports = Hash['ALL' => Array.new,
@@ -95,7 +95,7 @@ module Admin::ReportsHelper
             when order.paid_with_membership?
               'MEM'
             when (order.theater.producing?)
-              order.total == 0 ? 'CMP' : 'STB'
+              order.all_tickets_complimentary? ? 'CMP' : 'STB'
             else
               'REN'
           end

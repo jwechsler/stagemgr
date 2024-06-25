@@ -15,7 +15,7 @@ class TrgProductionAttendeeReport < MailingList
   def create
     begin
       season_tag = self.production.season.to_i
-      all_attendees = self.production.attendees.uniq
+      all_attendees = self.production.addresses.uniq
       orders = TicketOrder.joins(:performance, :address).references(:performance, :address).where('performances.production_id = ? and addresses.placeholder <> ?', self.production.id,true).includes(:address, :payments, :theater, {:performance=>:production})
       members_by_email = self.production.attendees_on_email_list
       self.extract_addresses_from_ticket_orders(orders,allow_email_exports,members_by_email)

@@ -56,14 +56,14 @@ class WeeklyBoxOfficeReport < Report
         paid_tickets = paid_orders.sum { |o| o.number_of_tickets }
         held_tickets = held_orders.sum { |o| o.number_of_tickets }
         max_ticket_price = perf.ticket_class_allocations.select{|tca| tca.available? }.max_by{|tca| tca.ticket_class.ticket_price}.ticket_class.ticket_price
-        gross = paid_orders.sum { |o| o.total_revenue }.to_money
+        gross = paid_orders.sum { |o| o.total_paid }.to_money
         collected = paid_orders.sum { |o| o.total_collected }.to_money
         ticketing_fee = paid_orders.sum { |o| o.ticketing_fee }.to_money
-        credit_card_processing_fee = paid_orders.sum { |o| o.credit_card_processing_fee }.to_money
+        processing_fee = paid_orders.sum { |o| o.processing_fee }.to_money
         subtotal[:gross] += gross
         subtotal[:collected] += collected
         subtotal[:facility] += ticketing_fee
-        subtotal[:processing] += credit_card_processing_fee
+        subtotal[:processing] += processing_fee
         subtotal[:paid] += paid_tickets
         subtotal[:holds] += held_tickets
         row = {:performance_code => perf.performance_code,
@@ -85,8 +85,8 @@ class WeeklyBoxOfficeReport < Report
         row[:gross] = gross
         row[:collected] = collected
         row[:facility] = ticketing_fee
-        row[:processing] = credit_card_processing_fee
-        row[:net] = collected - (ticketing_fee + credit_card_processing_fee)
+        row[:processing] = processing_fee
+        row[:net] = collected - (ticketing_fee + processing_fee)
         report << row
 
       }

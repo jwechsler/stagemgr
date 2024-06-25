@@ -81,7 +81,7 @@ class FlexPass < ApplicationRecord
   end
 
   def upcoming_ticket_orders
-    self.ticket_orders.joins(:performance).where("performance_date >= ? and orders.status in (?)", Date.today, Order.finalized_statuses)
+    self.ticket_orders.finalized.joins(:performance).where("performance_date >= ?", Date.today)
   end
 
   def has_no_placed_orders?

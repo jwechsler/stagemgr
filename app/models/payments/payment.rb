@@ -9,16 +9,33 @@ class Payment < ApplicationRecord
   default_scope { order(created_at: :asc )}
   before_save :set_processed_on
 
+  # Scope to filter payments by payment types that should be reported as sales collected.
+  scope :reported_as_sales_collected, -> {
+    joins(:payment_type).where(payment_types: { report_as_sales_collected: true })
+  }
+
+  # Scope to filter payments by payment types that should be reported as sales collected.
+  scope :reported_as_production_revenue, -> {
+    joins(:payment_type).where(payment_types: { report_as_production_revenue: true })
+  }
+
+  # Scope to filter payments by override payment types. Used for testing.
+  scope :override_payments_only, -> {
+    where(type: 'PriceOverridePayment')
+  }
+
+  # Most payments are visible to customer by default, but membership payments and flex pass payments
+  # are not, as those numbers are for internal revenue tracking only
   def customer_visible_amount
     self.amount
   end
 
   def receipt_description
-    ''
+    raise NotImplementedError, 'Receipt Descriptions must be defined by subclasses'
   end
 
   def processing_fee
-    return 0
+    return BigDecimal(0,2)
   end
 
   def to_s
@@ -59,9 +76,11 @@ class Payment < ApplicationRecord
     result
   end
 
+  # null method for payments that don't release associated tickets
   def release_tickets!
-
   end
+
+  # Only allows $0 payments to be cancelled by default
 
   def can_cancel?
     self.amount == 0
@@ -112,9 +131,9 @@ class Payment < ApplicationRecord
 
 end
 
-class Class
-  def subclasses
-    ObjectSpace.each_object(Class).select { |klass| klass < self }
-  end
-end
+#class Class
+#  def subclasses
+#    ObjectSpace.each_object(Class).select { |klass| klass < self }
+#  end
+#end
 

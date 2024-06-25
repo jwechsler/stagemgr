@@ -444,7 +444,7 @@ class Admin::ReportsController < Admin::ApplicationController
     keys = OrderReport.columns_for_orders(true) + [:total,:campaign]
     Order.transaction do
       donations.each { |o|
-        total = o.total
+        total = o.total_paid
         if total > 0
           row = create_hash_from_order_fields(o)
           row[:total] = total

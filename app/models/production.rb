@@ -54,7 +54,7 @@ class Production < ApplicationRecord
   before_save :finalize_season_seating, :if=>:status_changed?
   before_save :update_performance_codes, :if=>:production_code_changed?
   belongs_to :flex_pass_offer, optional: true, inverse_of: :production
-  has_and_belongs_to_many :attendees, class_name: "Address", uniq:true
+  has_and_belongs_to_many :addresses
   has_many :rate_of_sales
   
   #has_attached_file :promo, :path=>":rails_root/public/system/:attachment/:id/:style/:filename"

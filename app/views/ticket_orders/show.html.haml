@@ -8,9 +8,9 @@
       - if member_payments.size > 0
         made with your
         = "#{member_payments.first.membership.membership_offer.name}."
-      - elsif (@ticket_order.total > 0) && (@ticket_order.paid_with_currency?)
+      - elsif (@ticket_order.customer_visible_total > 0) && (@ticket_order.paid_with_currency?)
         made and your credit card has been charged
-        = number_to_currency( @ticket_order.total)
+        = number_to_currency( @ticket_order.customer_visible_total)
         for those tickets.  
         - if (!@ticket_order.additional_donation.blank? || !@ticket_order.additional_donation_for_other.blank?)
           %strong

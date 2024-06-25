@@ -27,9 +27,9 @@ class ProductionAttendeeReport < OrderReport
   
     theater_ids = User.find(reporting_user_id).theater_ids
 
-    TicketOrder.joins(:performance)
+    TicketOrder.settled.joins(:performance)
        .includes(:ticket_line_items, :payments, :address)
-       .where(performances: { production_id: production.id }, status: Order.settled_statuses)
+       .where(performances: { production_id: production.id })
        .find_each(batch_size: 1000) do |o|  # Adjust batch_size as needed
 
       row = OrderReport.create_hash_from_order_fields(o)
@@ -44,7 +44,7 @@ class ProductionAttendeeReport < OrderReport
       self.data << row
     end
 
-    production.attendees.uniq.each do |address|
+    production.addresses.uniq.each do |address|
       if address.email.present? && members_by_email.has_key?(address.email.downcase)
         row = OrderReport.address_hash(address)
         row[:id] = 'email'

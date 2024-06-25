@@ -14,7 +14,7 @@ class RateOfSalesJob < ApplicationJob
 
       total_single_tickets = orders.sum(&:ticket_quantity) - orders.sum(&:complimentary_ticket_count)
       total_complimentary_tickets = orders.sum(&:complimentary_ticket_count)
-      gross_sales = orders.sum(&:total_revenue)
+      gross_sales = orders.sum(&:total_paid)
       processing_total = orders.sum(&:processing_fee)+orders.sum(&:ticketing_fee)
 
       rate_of_sale = RateOfSale.find_or_initialize_by(day_of_sale: date, production: production)

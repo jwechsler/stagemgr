@@ -14,7 +14,7 @@ class Address < ApplicationRecord
   has_many :address_tags, inverse_of: :address
   has_many :memberships, inverse_of: :address
   has_many :flex_passes, inverse_of: :address
-  has_and_belongs_to_many :productions, uniq: true
+  has_and_belongs_to_many :productions
 
   accepts_nested_attributes_for :address_tags, :reject_if => proc { |attributes| attributes['tag_label'].blank? }, :allow_destroy => true
   before_save :set_search_name
@@ -302,10 +302,9 @@ class Address < ApplicationRecord
   # @todo Flex pass programs can't be hard coded.
   def flex_pass_candidate?
     if !has_flex_pass?
-
       recent_orders = self.orders.select { |o| o.created_at > 1.year.ago }
-      total_spent = recent_orders.sum { |o| o.total }
-      num_paid_tickets = recent_orders.sum { |o| o.total > 0 ? o.number_of_tickets : 0 }
+      total_spent = recent_orders.sum { |o| o.total_paid }
+      num_paid_tickets = recent_orders.sum { |o| o.total_paid > 0 ? o.number_of_tickets : 0 }
       candidate = recent_orders.size > 2 && total_spent/num_paid_tickets > 20
     else
       candidate = false
@@ -318,7 +317,7 @@ class Address < ApplicationRecord
   end
 
   def revenue_collected(since_when = 18.months.ago)
-    Payment.includes(:order).where('orders.status in (?) and payments.processed_on >= ?', Order.settled_statuses, since_when).sum(:amount)
+    Payment.includes(:order).where('orders.status in (?) and payments.processed_on >= ?', Order::SETTLED_STATUSES, since_when).sum(:amount)
   end
 
   def performances_attended(since_when = 5.years.ago)
@@ -328,11 +327,11 @@ class Address < ApplicationRecord
 
   def orders_processed(for_theaters = nil)
     if for_theaters.nil?
-      TicketOrder.where("orders.address_id = ? and orders.status in ( ? )",
-                                       self.id, Order.attended_statuses).count
+      TicketOrder.attending.where("orders.address_id = ?",
+                                       self.id).count
     else
-      TicketOrder.where("orders.address_id = ? and orders.status in (?) and orders.performance_id in (select id from performances where production_id in (select id from productions where theater_id in (?)))",
-                      self.id, Order.attended_statuses, for_theaters).count
+      TicketOrder.attending.where("orders.address_id = ? and orders.performance_id in (select id from performances where production_id in (select id from productions where theater_id in (?)))",
+                      self.id, for_theaters).count
     end
   end
 
@@ -373,7 +372,7 @@ class Address < ApplicationRecord
       address_id: self.id,
       start_date: start_date,
       end_date: end_date,
-      attended_status: Order.attended_statuses).distinct
+      attended_status: Order::ATTENDING_STATUSES).distinct
   end
 
   def theaters_attended(start_date = 25.years.ago.to_date, end_date = Date.today)
@@ -381,7 +380,7 @@ class Address < ApplicationRecord
       address_id: self.id,
       start_date: start_date,
       end_date: end_date,
-      attended_status: Order.attended_statuses).distinct
+      attended_status: Order::ATTENDING_STATUSES).distinct
   end
 
   def number_of_productions_attended(start_date = 25.years.ago.to_date, end_date = Date.today)

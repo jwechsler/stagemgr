@@ -17,7 +17,7 @@ class HistoricActivityReport < MailingList
   end
 
   def create
-    orders = TicketOrder.where("orders.status in (?) and orders.created_at >= ?",Order.attended_statuses, start_day).includes(:address, :payments, {performance: :production})
+    orders = TicketOrder.where("orders.status in (?) and orders.created_at >= ?",Order::ATTENDING_STATUSES, start_day).includes(:address, :payments, {performance: :production})
     orders = orders.select {|o| required_theater_ids.include?(o.performance.production.theater_id)} unless (required_theater_ids.nil? || required_theater_ids.empty?)
     addresses = orders.map{|o| o.address}.uniq.select{|a| !a.nil? && a.productions_attended(start_day).size >= minimum_attended && a.revenue_collected(start_day) >= minimum_revenue}.sort{|a,b| a.last_name <=> b.last_name}
 

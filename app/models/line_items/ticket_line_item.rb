@@ -4,6 +4,7 @@ class TicketLineItem < LineItem
 
   validates_presence_of :ticket_count
 
+  before_validation :assign_from_attr_accessors
   before_save :check_price_override
   
   validates_numericality_of :price_override, :allow_nil => true
@@ -54,5 +55,12 @@ class TicketLineItem < LineItem
   def complimentary?
     ticket_class.complimentary?
   end
+
+  private
+  def assign_from_attr_accessors
+    return unless self.order && self.order.performance && self.order.performance.ticket_classes.count > 0
+    self.ticket_class = self.order.performance.ticket_classes.find_by_class_code @ticket_class_code if @ticket_class_code
+  end
+
 
 end

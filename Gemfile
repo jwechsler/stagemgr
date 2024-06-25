@@ -141,7 +141,7 @@ group :test do
   gem 'fakeredis', :require => "fakeredis/rspec"
 end
 
-group :production do
+group :production, :test do
 #  gem 'newrelic_rpm'
   gem 'exception_notification' #, '< 4.5' # rails 5.0
   gem 'mysql2'
