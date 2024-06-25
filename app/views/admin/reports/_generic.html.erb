@@ -25,7 +25,7 @@
             'boolean'
           end %>">
           <%= if row[h].is_a?(Money)
-                number_to_currency(row[h])
+                row[h].formatted_with_symbol
               elsif row[h].is_a?(Time)
                 row[h].to_s(:hour_min)
               elsif row[h].is_a?(TrueClass) || row[h].is_a?(FalseClass)
