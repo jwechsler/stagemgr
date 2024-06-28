@@ -86,6 +86,31 @@
       &nbsp;  
     .small-4.cell
       %span.report_title
+        Donor export
+      %span.help_text
+        Download donors contact information by date given for import into external systems.
+        %strong Warning: confidential email records included.
+    .small-8.cell
+      = form_tag(donation_dump_admin_reports_path, :method=>"post") do
+        .grid-x.grid-padding-x
+          .small-6.cell
+            %label{:for=>:starting_date_donor} Gave On or after
+            = text_field_tag(:starting_date_donor, Date.today.at_beginning_of_month, :class=>'date_picker')
+          .small-6.cell
+            %label{:for=>:ending_date_donor} Gave Before or on
+            = text_field_tag( :ending_date_donor, Date.today, :default=>Date.today, :class=>'date_picker')
+          .small-12.cell
+            %label{:for=>:theater_id} Theater 
+            = select_tag(:theater_id, options_from_collection_for_select(current_user.allowed_theaters.order(:name), :id, :name))
+          .small-12.cell
+            = submit_tag "Generate", :name=>'generate_csv', :class=>'tiny button'
+
+- if can? :donations_total, Report
+  .grid-x.grid-padding-x
+    .small-12.cell
+      &nbsp;  
+    .small-4.cell
+      %span.report_title
         Donation Totals
       %span.help_text
         Download donation totals by theater for a time period
@@ -124,6 +149,34 @@
             %br
             = submit_tag "Show", :name=>'show', :class=>'tiny button'
             = submit_tag "Download", :name=>'download', :class=>'tiny button'
+
+- if can? :membership_export, Report
+  .grid-x.grid-padding-x
+    .small-12.cell
+      &nbsp;  
+    .small-4.cell
+      %span.report_title
+        Membership Orders
+      %span.help_text
+        Download membership order information for specified time range
+    .small-8.cell
+      = form_tag(membership_export_admin_reports_path, method: "post") do
+        .grid-x.grid-padding-x
+          .small-8.cell
+            .grid-x.grid-padding-x
+              .small-4.cell
+                %label{:for=>:starting_date} On or after
+                = text_field_tag(:starting_date, (Date.today-1.month).at_beginning_of_month, :class=>'date_picker')
+              .small-4.cell
+                %label{:for=>:ending_date} On or before
+                = text_field_tag(:ending_date, (Date.today-1.month).at_end_of_month, :class=>'date_picker')
+              .small-4.cell
+                %label{:for=>:trg_lists} Include TRG lists
+                = check_box_tag(:trg_lists)
+          .small-4.cell
+            %br
+            = submit_tag "Generate", :name=>'generate_csv', :class=>'tiny button'
+
 
 - if can? :reconciliation_reports, Report then
   .grid-x.grid-padding-x

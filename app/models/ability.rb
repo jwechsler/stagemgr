@@ -4,7 +4,7 @@ class Ability
   def initialize(user)
     alias_action :create, :new, to: :make
     alias_action :read, :make, :update, :edit, to: :cru
-    alias_action :attended_dump, :daily_box_office_receipts, :fulfill_tickets, :donations_total, to: :box_office_reports
+    alias_action :attended_dump, :daily_box_office_receipts, :fulfill_tickets, :donations_total, :membership_export, to: :box_office_reports
     alias_action :trg_dump, :donation_dump, :production_sales_by_performance, :order_dump, to: :show_reports
     alias_action :house_management_seating, to: :house_management_reports
     alias_action :flexpass_sales, :weekly_box_office, to: :reconciliation_reports

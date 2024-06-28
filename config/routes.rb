@@ -193,6 +193,7 @@ Rails.application.routes.draw do
         post :membership_usage
         get :membership_usage, :action=>:index
         post :donations_dump
+        post :membership_export
         post :membership_usage
         get :donations_dump, :action=>:index
         post :mine_customer_data

@@ -234,12 +234,23 @@ class Admin::ReportsController < Admin::ApplicationController
       flash[:notice] = "Your export is queued for generation. You'll recieve notification when the process is complete."
       redirect_to admin_reports_path
     else
-      report = MembershipUsageReport.new(@starting_date, @ending_date, nil)
+      report = MembershipUsageReport.new(@starting_date, @ending_date, current_user_id)
       @headers, @report_data = report.create
       respond_to do |format|
         format.html
       end
     end
+  end
+
+  def membership_export
+    @starting_date = params[:starting_date].to_date.at_beginning_of_month
+    @ending_date = params[:ending_date].to_date.at_end_of_month
+    trg_lists = params[:trg_lists]
+
+    Resque.enqueue(MembershipOrderMailingListExport, @starting_date, @ending_date, trg_lists, current_user.id)
+    flash[:notice] = "Your export is queued for generation. You'll recieve notification when the process is complete."
+    redirect_to admin_reports_path
+
   end
 
   def order_dump
