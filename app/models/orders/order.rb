@@ -590,6 +590,9 @@ class Order < ApplicationRecord
             address.line1, address.line2, nil, address.city, address.state, address.zipcode, address.phone, address.id]
   end
 
+  def cancel_pending_tasks
+    tasks.select(&:uncompleted?).each(&:cancel!)
+  end
 
   protected
 
@@ -801,10 +804,6 @@ class Order < ApplicationRecord
     self.credit_card_verification_number = from_order.credit_card_verification_number
     self.flex_pass_code = from_order.flex_pass_code
     self.member_code = from_order.member_code
-  end
-
-  def cancel_pending_tasks
-    tasks.select(&:uncompleted?).each(&:cancel!)
   end
 
   private
