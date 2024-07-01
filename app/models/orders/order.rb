@@ -583,10 +583,6 @@ class Order < ApplicationRecord
     result.select{|r| !r.nil?}
   end
 
-  def cancel_pending_tasks
-    self.tasks.select { |t| t.uncompleted? }.each { |t| t.cancel! }
-  end
-
   private
 
   def self.trg_row(buyer_type, season, description, address)
@@ -807,6 +803,10 @@ class Order < ApplicationRecord
     self.member_code = from_order.member_code
   end
 
+  def cancel_pending_tasks
+    tasks.select(&:uncompleted?).each(&:cancel!)
+  end
+
   private
   def auto_link_processed_to_address_of_record
     if status == Order::PROCESSED then
@@ -873,9 +873,6 @@ class Order < ApplicationRecord
     end
   end
 
-  def cancel_pending_tasks
-    tasks.select(&:uncompleted?).each(&:cancel!)
-  end
 
   def set_tasks_after_save
     return unless do_not_create_tasks.nil? && (new_record? || saved_change_to_status?)
