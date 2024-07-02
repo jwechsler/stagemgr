@@ -583,6 +583,10 @@ class Order < ApplicationRecord
     result.select{|r| !r.nil?}
   end
 
+  def cancel_pending_tasks
+    tasks.select(&:uncompleted?).each(&:cancel!)
+  end
+
   private
 
   def self.trg_row(buyer_type, season, description, address)
@@ -590,9 +594,6 @@ class Order < ApplicationRecord
             address.line1, address.line2, nil, address.city, address.state, address.zipcode, address.phone, address.id]
   end
 
-  def cancel_pending_tasks
-    tasks.select(&:uncompleted?).each(&:cancel!)
-  end
 
   protected
 
