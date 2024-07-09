@@ -1,10 +1,9 @@
 
 = render :partial=>"confirmation_ticket_details", :locals=>{:order=>order}
 
-- unless order.performance.production.venue.name.eql?("Cervantes Institute")
+- unless order.performance.production.status.eql?(Production::EXTERNAL)
   %h4 Handy stuff you'll want to know
 
-- unless order.performance.production.venue.eql?("Cervantes Institute")
   = render :partial=>"transportation_instructions", :locals=>{:order=>order}
   = render :partial=>"dining_recommendations", :locals=>{order: order}
   = render :partial=>"seating_policy", :locals=>{order: order}
