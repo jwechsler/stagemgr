@@ -33,7 +33,7 @@ class ProductionAttendeeReport < OrderReport
        .find_each(batch_size: 1000) do |o|  # Adjust batch_size as needed
 
       row = OrderReport.create_hash_from_order_fields(o)
-      row[:external_id] = o.address.external_id(theater_ids)
+      row[:external_id] = o.address.external_id(theater_ids) unless o.address.nil?
       unless row[:email].nil?
         if members_by_email.has_key?(row[:email].downcase)
           row[:opted_in_for_email] = "Y"
