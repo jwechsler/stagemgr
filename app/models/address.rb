@@ -1,6 +1,6 @@
 require 'street_address'
 require 'csv'
-require 'people'
+require 'namae'
 
 class Address < ApplicationRecord
 
@@ -29,27 +29,31 @@ class Address < ApplicationRecord
 
   def self.parse_name(full_name)
     unless full_name.blank?
-      parsed = People::NameParser.new(:couples=>true).parse(full_name)
-      cleaned_name = parsed[:clean]
-      if parsed[:parsed]
-        f_name = parsed[:first]
-        f_name2 = parsed[:first2]
-        l_name = parsed[:last]
-        m_name = parsed[:middle]
+      names = Namae.parse(full_name)
+      if names.any?
+        primary_name = names.first
+        secondary_name = names.length > 1 ? names.second : nil
+
+        f_name = primary_name.given
+        l_name = primary_name.family
+
+        # If there's a second name and it has the same last name, append its given name to the first name
+        if secondary_name && secondary_name.family == l_name
+          f_name += " and #{secondary_name.given}"
+        end
+
+        [full_name, f_name, l_name]
       else
-        f_name = ""
-        l_name = parsed[:clean]
-        m_name = ""
+        ["", "", ""]
       end
-      [cleaned_name, f_name, m_name, l_name, f_name2]
     else
-      ["","","","",""]
+      ["", "", ""]
     end
   end
 
+
   def parse_full_name
     cleaned_name, f_name, m_name, l_name, f_name2 = Address.parse_name(self.full_name)
-    self.full_name = cleaned_name
     [f_name, m_name, l_name]
   end
 
@@ -57,7 +61,6 @@ class Address < ApplicationRecord
     if full_name.blank? then
       self.full_name = ""
       self.full_name = first_name unless first_name.blank?
-      self.full_name += self.full_name.blank? ? " #{middle_name}" : middle_name unless middle_name.blank?
       self.full_name += self.full_name.blank? ? last_name : " #{last_name}"  unless last_name.blank?
     else
       self.full_name = full_name
@@ -66,7 +69,7 @@ class Address < ApplicationRecord
 
   def regularize!
 
-    self.first_name, self.middle_name, self.last_name = parse_full_name
+    self.first_name, self.last_name = parse_full_name
 
     self.email.strip! unless self.email.nil?
     self.line1.strip! unless self.line1.nil?

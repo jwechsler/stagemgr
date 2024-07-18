@@ -47,8 +47,8 @@ Feature: An administrator can add production details to a theater
     And I wait for the datatable to load
     And I follow "Edit"
     And I change "production_name" to "Production One (Changed)"
-   When I press "Update"
-   Then I should see "Production One (Changed)"
+    When I press "Update"
+    Then I should see "Production One (Changed)"
 
   Scenario: Production calls to action
   Given a production "Production One" exists

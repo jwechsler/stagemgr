@@ -10,6 +10,8 @@ class Order < ApplicationRecord
 
   belongs_to :payment_type, required: false
   belongs_to :address, inverse_of: :orders
+  validates :address, presence: true
+  
   belongs_to :recipient_address, class_name: 'Address', foreign_key: :recipient_address_id, required: false, inverse_of: :orders_as_recipient
 
   has_many :payments, inverse_of: :order

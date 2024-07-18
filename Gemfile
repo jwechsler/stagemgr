@@ -65,7 +65,7 @@ gem 'jquery-timepicker-rails'
 gem 'foundation-datetimepicker-rails'
 # gem 'jqgrid-rails3', :git=>"https://github.com/davebaldwin/jqgrid-rails3.git"
 #gem "name_parse", "~> 0.0.5"
-gem "people"
+gem "namae"
 gem "redis", "< 4.8.0"
 
 gem "ri_cal", :git=>"https://github.com/ctide/ri_cal.git"
@@ -106,7 +106,6 @@ group :development do
   gem 'pry-rails'
   gem 'pry'
   gem 'http_logger'
-  gem 'rb-readline'
   gem "haml-rails"
   gem 'single_test'
 

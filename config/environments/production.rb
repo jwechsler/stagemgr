@@ -55,6 +55,9 @@ Rails.application.configure do
   # Prepend all log lines with the following tags.
   config.log_tags = [ :request_id ]
 
+  # Rotate logs when they reach 100 MB, with a history of 10 logs
+  config.logger = Logger.new(config.paths['log'].first, 10, 100.megabytes)
+
   # Use a different cache store in production.
   # config.cache_store = :mem_cache_store
 

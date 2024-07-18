@@ -64,7 +64,6 @@ Feature: Web ordering
   #   Then I should see "Your ticket reservation has been made"
   #   And I should see "$10.00"
 
-
   Scenario: Sign up for the mailing list
     Given I go to new web order for production "Production One" and performance "TEST01"
     And I enter my contact information
