@@ -160,7 +160,7 @@ p
   end
 
   def self.performing_classes
-    [PLAY, SPECIAL_EVENT, OFF_TIME]
+    [PLAY, SPECIAL_EVENT, OFF_TIME, EXTERNAL]
   end
 
   def self.sellable
