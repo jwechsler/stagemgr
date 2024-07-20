@@ -28,7 +28,7 @@ module RecurringProfile
                                max_failed_payments, additional_options = Hash.new)
     raise "This functionality has been deprecated"
     gateway ||= PaymentProcessing.recurring_gateway
-    f_name, m_name, l_name = order.address.parse_full_name
+    f_name, l_name = order.address.parse_full_name
     order.credit_card_expiration_year = Order.fix_expiration_year(order.credit_card_expiration_year.to_s)
     credit_card = PaymentProcessing.credit_card(  order.credit_card_type,
                                                   f_name,

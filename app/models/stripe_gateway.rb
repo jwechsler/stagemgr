@@ -30,7 +30,7 @@ class StripeGateway < ActiveMerchant::Billing::StripePaymentIntentsGateway
     price_id = order.recurring_offer.price_id
     price = Stripe::Price.retrieve(price_id)
     product = Stripe::Product.retrieve(price.product)
-    f_name, m_name, l_name = order.address.parse_full_name
+    f_name, l_name = order.address.parse_full_name
     order.credit_card_expiration_year = Order.fix_expiration_year(order.credit_card_expiration_year.to_s)
     credit_card = PaymentProcessing.credit_card(  order.credit_card_type,
                                                 f_name,

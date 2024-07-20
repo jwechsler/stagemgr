@@ -53,8 +53,8 @@ class Address < ApplicationRecord
 
 
   def parse_full_name
-    cleaned_name, f_name, m_name, l_name, f_name2 = Address.parse_name(self.full_name)
-    [f_name, m_name, l_name]
+    cleaned_name, f_name, l_name = Address.parse_name(self.full_name)
+    [f_name, l_name]
   end
 
   def set_full_name(full_name, first_name = nil, middle_name = nil, last_name = nil)

@@ -127,17 +127,24 @@ end
 def autocomplete_address
     cleaned_name, first_name, last_name = Address.parse_name(params[:term])
     last_name = first_name if last_name.blank?
-    first_name = "" if last_name.eql?(first_name)
+    first_name = "" if first_name.nil?
     # val = params[:q].gsub(Address::SEARCHABLE_REGEXP,'').upcase
 
     #addresses = Address.where("search_name like :search_expr and id in (select address_id from orders)", {:search_expr=>'%' + val + '%'}).limit(10).order(
     #    'last_name', 'first_name', 'id');
     unless first_name.blank? || (last_name.eql?(first_name))
-      addresses = Address.where("(first_name like ?) and (last_name like ?)",
+      Rails.logger.debug("**** last_name = #{last_name} and first_name = #{first_name}")
+      addresses = Address.where("(first_name like ?) AND (last_name like ?)",
         "#{first_name}%",
         "#{last_name}%").order("addresses.last_name, addresses.first_name, addresses.id").limit(15)
     else
-      addresses = Address.where("search_name like ? or last_first_name like ?", (first_name+last_name+'%').upcase, (last_name+first_name+'%').upcase).order("addresses.last_name, addresses.first_name, addresses.id").limit(7)
+      Rails.logger.debug("**** CASE 2 last_name = #{last_name} and first_name = #{first_name}")
+      
+      if last_name.eql?(first_name)
+        addresses = Address.where("search_name like ? or last_first_name like ?", (last_name+'%').upcase, (last_name+'%').upcase).order("addresses.last_name, addresses.first_name, addresses.id").limit(7)
+      else
+        addresses = Address.where("search_name like ? or last_first_name like ?", (first_name+last_name+'%').upcase, (last_name+first_name+'%').upcase).order("addresses.last_name, addresses.first_name, addresses.id").limit(7)
+      end
     end
     if addresses.nil?
       render :json=>Array.new
