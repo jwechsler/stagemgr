@@ -125,13 +125,14 @@ def merge_selected
 end
 
 def autocomplete_address
-    cleaned_name, first_name, middle_name, last_name, first_name_2 = Address.parse_name(params[:term])
+    cleaned_name, first_name, last_name = Address.parse_name(params[:term])
     last_name = first_name if last_name.blank?
+    first_name = "" if last_name.eql?(first_name)
     # val = params[:q].gsub(Address::SEARCHABLE_REGEXP,'').upcase
 
     #addresses = Address.where("search_name like :search_expr and id in (select address_id from orders)", {:search_expr=>'%' + val + '%'}).limit(10).order(
     #    'last_name', 'first_name', 'id');
-    unless first_name.blank? || (last_name == first_name)
+    unless first_name.blank? || (last_name.eql?(first_name))
       addresses = Address.where("(first_name like ?) and (last_name like ?)",
         "#{first_name}%",
         "#{last_name}%").order("addresses.last_name, addresses.first_name, addresses.id").limit(15)
