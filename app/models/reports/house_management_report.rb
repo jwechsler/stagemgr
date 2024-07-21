@@ -23,6 +23,8 @@
       address.address_tags.select {|tag| tag.theater_id.blank? || tag.theater.producing?}
     else
       Array.new
+    end
+
   end
 
   def create
