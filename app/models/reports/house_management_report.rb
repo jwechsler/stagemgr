@@ -1,4 +1,4 @@
-class HouseManagementReport < Report
+122class HouseManagementReport < Report
 
   attr_accessor :for_date
 
@@ -19,7 +19,10 @@ class HouseManagementReport < Report
   end
 
   def house_tags(address)
-    address.address_tags.select {|tag| tag.theater_id.blank? || tag.theater.producing?}
+    unless address.nil? 
+      address.address_tags.select {|tag| tag.theater_id.blank? || tag.theater.producing?}
+    else
+      Array.new
   end
 
   def create
