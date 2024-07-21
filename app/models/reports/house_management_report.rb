@@ -1,4 +1,4 @@
-122class HouseManagementReport < Report
+class HouseManagementReport < Report
 
   attr_accessor :for_date
 
