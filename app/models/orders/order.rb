@@ -555,8 +555,11 @@ class Order < ApplicationRecord
           merge.update_from(self.address)
           a = self.address
           self.address = merge
-          merge.save!
-          a.destroy unless a.nil? || (Order.where("id <> :id AND address_id = :address_id", id:self.id, address_id: a.id).count > 0)
+          unless address.save
+            self.address = a
+          else
+            a.destroy unless a.nil? || (Order.where("id <> :id AND address_id = :address_id", id:self.id, address_id: a.id).count > 0)
+          end
         end
       end
     end

@@ -47,7 +47,7 @@ class OrderDecorator < ApplicationDecorator
   end
 
   def seats
-    object.seats.map { |s| s.seat.location }.sort.join(', ')
+    object.seats.map { |s| s.seat.location }.sort.join(', ') unless object.seats.empty?
   end
 
   def description

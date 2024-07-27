@@ -71,14 +71,16 @@ class Admin::ReportsController < Admin::ApplicationController
     @starting_date = params[:starting_date].to_date.at_beginning_of_month
     @ending_date = params[:ending_date].to_date.at_end_of_month
     current_user_id = params[:download].blank? ? nil : current_user.id
+    flex_pass_offer_id = params[:flex_pass_offer_id].presence
 
     unless params[:download].blank?
       Resque.enqueue(FlexPassUsageExport, @starting_date, @ending_date, current_user_id)
       flash[:notice] = "Your export is queued for generation. You'll recieve notification when the process is complete."
       redirect_to admin_reports_path
     else
-      report = FlexPassUsageReport.new(@starting_date, @ending_date, nil)
+      report = FlexPassUsageReport.new(@starting_date, @ending_date, flex_pass_offer_id, nil)
       @headers, @report_data = report.create
+      @flex_pass_offer_name = FlexPassOffer.find(flex_pass_offer_id).name unless flex_pass_offer_id.nil?
       respond_to do |format|
         format.html
       end
@@ -256,7 +258,7 @@ class Admin::ReportsController < Admin::ApplicationController
   def order_dump
     production = Production.accessible_by(current_ability, :read).find(params[:report][:production_id])
     Resque.enqueue(ProductionAttendeeExport, production.id, can?(:view_email, Address), current_user.id)
-    flash[:notice] = "Your export is queued for generation. You'll recieve notification when the process is complete."
+    flash[:notice] = "Your export is queued for generation. #{"EMAIL" if can?(:view_email, Address)} You'll recieve notification when the process is complete."
     redirect_to admin_reports_path
   end
 
@@ -407,7 +409,7 @@ class Admin::ReportsController < Admin::ApplicationController
     report = Array.new
     day_total = Hash.new
     zero_dollars = Money.new(0)
-    keys = OrderReport.columns_for_orders(build_for_dumpfile) - [:order_date] + [:processed_on]
+    keys = OrderReport.columns_for_orders(build_for_dumpfile, can?(:view_email, Address)) - [:order_date] + [:processed_on]
     payment_types = []
 
     current_date = start_day - 1.week
