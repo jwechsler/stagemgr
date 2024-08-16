@@ -46,7 +46,12 @@ class OrdersDatatable < DatatableBase
   private
 
   def get_raw_records
-    Order.allowed_for(current_user).includes(:address, seats: :seat, :performance=>:production).references(:address, :performance=>:production, seats: :seat)
+    begin
+      Order.allowed_for(current_user).includes(:address, seats: :seat, :performance=>:production).references(:address, :performance=>:production, seats: :seat)
+    rescue => e
+      Rails.logger.error("error in Orders Datatable query: #{e.message}")
+      Order.none
+    end
   end
 
   def filter_by_code
