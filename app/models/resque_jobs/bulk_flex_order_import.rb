@@ -20,7 +20,7 @@ require 'csv'
 # Phone
 #
 
-class BulkFlexOrderImport < OrderImport
+class BulkFlexOrderImport < ImportIssuesReport
   include NotifyOnCompletion
   @queue = :import
 

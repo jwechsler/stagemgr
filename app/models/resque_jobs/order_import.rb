@@ -1,4 +1,4 @@
-class OrderImport
+class OrderImport < ImportIssuesReport
   protected
   def self.new_address_tag(theater_id, address, tag_label, tag_value)
     sub_tag = AddressTag.new

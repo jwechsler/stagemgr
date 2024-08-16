@@ -15,7 +15,7 @@ require 'csv'
 # The donor_tier_updated_on datestamp will be updated for the record as well, to assist the house
 # management report in pulling current donor information
 
-class LglDonorImport
+class LglDonorImport < ImportIssuesReport
 
   LGL_DONOR_FIELDS = ['External Constituent Id', 'First Name', 'Last Name', 'Pref. Email', 'TG Tier Last Fiscal',
                       'TG Tier This Fiscal']

@@ -150,6 +150,13 @@ module PaymentProcessing
     end
   end
 
+  def self.external_url(transaction_id)
+    gateway.external_url(transaction_id)
+  end
+
+  def self.external_type(transaction_id)
+    gateway.external_type(transaction_id)
+  end
 end
 
 

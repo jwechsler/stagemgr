@@ -1,0 +1,27 @@
+.grid-x.grid-padding-x
+  .small-12.cell
+    %fieldset
+      %legend Payment information
+      %table#payments
+        %thead
+          %th On
+          %th Using
+          %th{:align=>"center"} Amount
+          %th Payment Info
+          %th Confirmation
+          %th{:align=>"center"} Note
+        - order.payments.each do |p|
+          - payment = p.decorate
+          %tr
+            %td{:width=>"20%"}
+              = payment.processed_on
+            %td{:width=>"10%"}
+              =h payment.display_name
+            %td{:width=>"10%",:align=>"right"}
+              =h to_currency(payment.amount)
+            %td{:width=>"10%",:align=>"right"}
+              = h payment.payment_info
+            %td{:width=>"15%",:align=>"center"}
+              = h payment.confirmation_code
+            %td{:width=>"25%",:align=>"left"}
+              = h payment.note

@@ -172,11 +172,11 @@ class MembershipOrder < Order
   end
 
 
-  def self.register_payment_to_profile(profile_id, amount)
+  def self.register_payment_to_profile(profile_id, amount, invoice_id = nil)
     order = nil
     membership = Membership.find_by(profile_id: profile_id)
     unless membership.nil?
-      order = membership.membership_order.create_recurring_payment!('Subscription Payment', amount: amount)
+      order = membership.membership_order.create_recurring_payment!('Subscription Payment', amount: amount, invoice_id: invoice_id)
     end
     order
   end

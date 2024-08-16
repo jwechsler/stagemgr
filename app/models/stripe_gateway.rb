@@ -107,4 +107,27 @@ class StripeGateway < ActiveMerchant::Billing::StripePaymentIntentsGateway
     end
     "#{base_url}#{price_id}"
   end
+
+  def external_url(transaction_id)
+    if Stripe.api_key.starts_with?('sk_test')
+      base_url = "https://dashboard.stripe.com/test/#{external_type(transaction_id)}s/"
+    else 
+      base_url = "https://dashboard.stripe.com/#{external_type(transaction_id)}s/"
+    end
+
+    "#{base_url}#{transaction_id}"
+  end
+
+  def external_type(transaction_id)
+    case
+    when transaction_id.starts_with?("in_")
+      "invoice"
+    when transaction_id.starts_with?("sub_")
+      "subscription"
+    when transaction_id.starts_with?("pm_")
+      "payment"
+    else
+      "unknown"
+    end
+  end
 end
