@@ -120,6 +120,8 @@ class StripeGateway < ActiveMerchant::Billing::StripePaymentIntentsGateway
 
   def external_type(transaction_id)
     case
+    when transaction_id.nil?
+      "unknown"
     when transaction_id.starts_with?("in_")
       "invoice"
     when transaction_id.starts_with?("sub_")
