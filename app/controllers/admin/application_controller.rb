@@ -49,8 +49,8 @@ class Admin::ApplicationController < ApplicationController
   private
   def prepare_exception_notifier
     request.env["exception_notifier.exception_data"] = {
-      user_id: current_user.id,
-      user_email: current_user.email
+      user_id: current_user&.id,
+      user_email: current_user&.email
     }
   end
 
