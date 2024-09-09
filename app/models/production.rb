@@ -46,7 +46,6 @@ class Production < ApplicationRecord
   has_many :performances, inverse_of: :production
   has_many :ticket_classes, inverse_of: :production
   has_many :ticket_orders, :source=>:orders, :through=>:performances
-  has_one :production_stat, inverse_of: :production, dependent: :destroy
   before_validation :clean_values, :downcase_for_db
   before_create :assign_default_ticket_classes
   # removed until we fix/expose statistics
@@ -223,19 +222,6 @@ p
       end
     }
     [min_price, max_price]
-  end
-
-  def update_stats
-    self.build_production_stat if self.production_stat.nil?
-    self.production_stat.update
-    self.production_stat.save!
-    self.production_stat
-  end
-
-  def queue_statistics_recalc
-    if self.status_changed? and !Production.on_sale_statuses.include?(self.status)
-      Resque.enqueue_in(1.day, GenerateProductionSalesStatistics, self.id)
-    end
   end
 
   def service_item_templates_new
