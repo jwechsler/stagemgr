@@ -132,7 +132,7 @@ Rails.application.configure do
   end
 
   config_data = YAML::load(File.open("#{::Rails.root.to_s}/config/server.yml"))
-  $SERVER_CONFIG = config_data['all'].merge(config_data['production'])
+  $SERVER_CONFIG = config_data['all'].deep_merge(config_data['production'])
   $EMAIL_ADDRESS = $SERVER_CONFIG['email']['addresses']
   $PAYMENT_CONFIG = $SERVER_CONFIG['payment_processing']
   $SERVER_CONFIG['ext_site_wrapper']=$SERVER_CONFIG['ext_site_wrapper'] || 'ext_site_wrapper'

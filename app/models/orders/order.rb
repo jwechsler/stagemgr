@@ -21,6 +21,8 @@ class Order < ApplicationRecord
   has_one :special_offer_line_item, inverse_of: :order
   has_many :service_line_items, dependent: :destroy, inverse_of: :order
 
+  accepts_nested_attributes_for :address
+  accepts_nested_attributes_for :tasks, allow_destroy: true
   accepts_nested_attributes_for :payments, :address
   accepts_nested_attributes_for :special_offer_line_item,
                                 :service_line_items,
@@ -67,14 +69,14 @@ class Order < ApplicationRecord
   before_validation :cascade_address_to_nested_items, :associate_service_line_items, :set_defaults
   before_validation :create_recipient_address, if: :gift?
   after_validation :prevent_status_rollbacks
-  before_save :link_to_address_of_record, if: [:status_changed?, :processed?]
+  before_save :ensure_address_exists
   before_save :cancel_pending_tasks, if: :newly_canceled?
   before_save :balanced_transaction?, if: [:status_changed?, :processed?]
   before_destroy :check_for_settled_payments
 
+  after_save :create_address_of_record_task, if: [:status_changed?, :processed?]
   after_save :set_tasks_after_save
 
-  
   # Validations
   validates_inclusion_of :status, :in => ORDER_STATUSES, :if=>:status_is_provided?
   validates_presence_of :address
@@ -410,8 +412,6 @@ class Order < ApplicationRecord
     "Unknown"
   end
 
-
-
   def to_s
     "Unknown Order"
   end
@@ -489,20 +489,6 @@ class Order < ApplicationRecord
     end
   end
 
-  def self.regularize_addresses
-    orders = Order.all
-    orders.each { |o|
-      o.link_to_address_of_record
-      if o.address_id_changed?
-        begin
-          o.save!
-        rescue Exception => e
-          puts(e)
-        end
-      end
-    }
-  end
-
   def transitory?
     TRANSITORY_STATUSES.include? self.status
   end
@@ -545,25 +531,27 @@ class Order < ApplicationRecord
     expiration_year
   end
 
-  def link_to_address_of_record
-    if !self.address.nil? then
 
-      merge = self.address.find_original
-      if !merge.nil? then
-        comparison_id = self.address.id.nil? ? -1 : self.address.id
-        if comparison_id != merge.id then
-          merge.update_from(self.address)
-          a = self.address
-          self.address = merge
-          unless address.save
-            self.address = a
-          else
-            a.destroy unless a.nil? || (Order.where("id <> :id AND address_id = :address_id", id:self.id, address_id: a.id).count > 0)
-          end
-        end
+
+  def link_to_address_of_record
+    if paid_with_membership?
+      merge = membership_payments.first.membership.address
+    else
+      merge = address.find_original
+    end
+    if !merge.nil? then
+      comparison_id = self.address.id.nil? ? -1 : self.address.id
+      if comparison_id != merge.id then
+        merge.update_from(self.address)
+        a = self.address
+        self.address = merge
+        self.address.save
+        self.save
+        a.destroy unless a.nil? || (Order.where("id <> :id AND address_id = :address_id", id:self.id, address_id: a.id).count > 0)
       end
     end
   end
+
 
   def last_processed_on
     self.payments.map {|p| p.processed_on}.max
@@ -594,11 +582,17 @@ class Order < ApplicationRecord
 
   private
 
+  def ensure_address_exists
+    unless Address.exists?(self.address_id)
+      errors.add(:address_id, "is invalid or has been deleted")
+      throw(:abort) # Prevents the record from being saved
+    end
+  end
+
   def self.trg_row(buyer_type, season, description, address)
     return [buyer_type, season, description, address.first_name, address.last_name, address.full_name, '', address.email,
             address.line1, address.line2, nil, address.city, address.state, address.zipcode, address.phone, address.id]
   end
-
 
   protected
 
@@ -769,13 +763,18 @@ class Order < ApplicationRecord
   end
 
   def create_mail_list_task
-    if self.do_not_create_tasks.nil? && self.add_to_email_list == "1"
-      self.tasks << MyEmmaTask.new(:execute_at=>Time.now + 5.minutes) if !self.address.email.nil?
+    if self.add_to_email_list == "1" && !self.address.email.blank?
+      task = MyEmmaTask.new(:execute_at=>Time.now + 5.minutes, order: self)
+      task.save! 
     end
   end
 
-  def create_receipt_task
+  def create_address_of_record_task
+    task = LinkToAddressOfRecordTask.new(order: self, execute_at: Time.now + 5.minutes)
+    task.save!
+  end
 
+  def create_receipt_task
   end
 
   def create_transfer_ownership_task
@@ -789,7 +788,7 @@ class Order < ApplicationRecord
   end
 
   def set_tasks_after_save
-    if self.do_not_create_tasks.nil? && (self.new_record? || self.saved_change_to_status?)
+    if self.do_not_create_tasks.nil? && self.saved_change_to_status?
       case self.status
         when PROCESSED
           create_mail_list_task
@@ -813,12 +812,7 @@ class Order < ApplicationRecord
   end
 
   private
-  def auto_link_processed_to_address_of_record
-    if status == Order::PROCESSED then
-      link_to_address_of_record
-    end
-  end
-
+  
   def save_additional_donation_order(donation_amount, credit_to_theater = nil)
     donation = DonationOrder.new(:address => self.address, :payment_type => self.payment_type, :status => Order::NEW)
     donation.copy_payment_information(self)
@@ -858,28 +852,7 @@ class Order < ApplicationRecord
     self.recipient_address_id = new_owner.id
   end
 
-  def link_to_address_of_record
-    return unless status == PROCESSED
-
-    if paid_with_membership?
-      merge = membership_payments.first.membership.address
-    else
-      merge = address.find_original
-    end
-
-    return if merge.nil?
-
-    comparison_id = address.id.nil? ? -1 : address.id
-    if comparison_id != merge.id
-      merge.update_from(address)
-      self.address = merge
-      merge.save!
-      address.destroy unless address.nil? || Order.where.not(id: id).where(address_id: address.id).exists?
-    end
-  end
-
-
-  def set_tasks_after_save
+  def set_tasks_on_save
     return unless do_not_create_tasks.nil? && (new_record? || saved_change_to_status?)
 
     case status

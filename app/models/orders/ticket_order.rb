@@ -841,7 +841,7 @@ class TicketOrder < Order
 
   end
 
-  def set_tasks_after_save
+  def set_tasks_on_save
     if self.do_not_create_tasks.nil? && (self.new_record? || self.saved_change_to_status?)
       super
       case self.status

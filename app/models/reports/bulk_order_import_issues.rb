@@ -1,17 +1,16 @@
-class BulkOrderImportIssues < Report
+class BulkOrderImportIssues < ImportIssuesReport
 
   def initialize(reporting_user_id = nil)
-    super([], reporting_user_id)
-    @data['issue'] = Array.new
+    super([], reporting_user_id)    
   end
 
   def append_issue(id:, customer_name:, performance_code:, seating:, order_detail:, message:)
-    @data['issue'] << {:Id=>id,
+    @data << {:Id=>id,
               Name:customer_name,
               PerformanceCode: performance_code,
               Seating:seating,
               OrderDetail:order_detail,
-              Message: message}
+              Error: message}
   end
 
   def any_issues?

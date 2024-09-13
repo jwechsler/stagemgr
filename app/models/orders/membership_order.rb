@@ -159,18 +159,22 @@ class MembershipOrder < Order
 
 
   def create_mail_list_task
-    self.tasks << MyEmmaTask.new(:execute_at=>Time.now + 5.minutes, :additional_groups=>[self.membership_offer.myemma_group]) if !self.address.email.nil?
+    unless self.address.email.blank?
+      task = MyEmmaTask.new(:execute_at=>Time.now + 5.minutes, order: self, :additional_groups=>[self.membership_offer.myemma_group]) 
+      task.save!
+    end
   end
 
   def set_tasks_after_save
-    if self.do_not_create_tasks.nil? && self.saved_change_to_status? && self.status == PROCESSED
-          self.tasks << OutreachTask.new(:execute_at=>self.starting_at + 4.months,
-                                         :method_symbol=>:membership_friend_pass,
-                                         :repeat_monthly_interval => 6) unless self.membership_offer.use_member_friend_code.blank?
+    if self.do_not_create_tasks.nil? && self.saved_change_to_status? && self.processed? && !self.membership_offer.use_member_friend_code.blank?
+      task = OutreachTask.new(:execute_at=>self.starting_at + 4.months,
+        :method_symbol=>:membership_friend_pass,
+        :repeat_monthly_interval => 6, 
+        order: self)
+      task.save!
     end
     super
   end
-
 
   def self.register_payment_to_profile(profile_id, amount, invoice_id = nil)
     order = nil

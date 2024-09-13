@@ -15,7 +15,7 @@ RSpec.describe "a customer record" do
     o2.transition_to!(Order::FULFILLED)
     expect(purge_address.productions.count).to eq(1)
     original_address.merge_and_purge(purge_address)
-    expect(original_address.last_name).to match(/(.*)-Updated/)
+    expect(original_address.last_name).to match(/(.*)-updated/)
     expect(original_address.productions.size).to equal(2)
   end
 end

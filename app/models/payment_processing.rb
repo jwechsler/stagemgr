@@ -56,6 +56,14 @@ module PaymentProcessing
     def subscription_url(subscription_id)
       return Rails.root + "TESTSUBSCRIPTION"
     end
+
+    def external_type(transaction_id)
+      return "test"
+    end
+
+    def external_url(transaction_id)
+      return "http://localhost"
+    end
   end
 
   def self.after_initialize

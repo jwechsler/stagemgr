@@ -10,8 +10,8 @@ module RecurringProfile
     validates_presence_of :address
     validates_uniqueness_of :profile_id, allow_nil: true, allow_blank:true, :unless=>Proc.new {|profile| profile.profile_id.eql?(PaymentProcessing::BogusResponse::PROFILE_ID)}
 
-    before_save :notify_on_suspension, :if=>Proc.new { |record|
-      record.status_changed? && record.suspended?
+    after_save :notify_on_suspension, :if=>Proc.new { |record|
+      record.saved_change_to_attribute?(:status) && record.suspended?
     }
 
   end
@@ -126,10 +126,6 @@ module RecurringProfile
 
   def recurring_order
     raise "RecurringProfile\#recurring_order not yet implemented"
-  end
-
-  def notify_on_suspension
-    raise "RecurringProfile\#notify_on_suspension not yet implemented"
   end
 
   def reactivate

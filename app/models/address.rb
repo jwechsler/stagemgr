@@ -127,7 +127,7 @@ class Address < ApplicationRecord
   end
 
   def ensure_no_finalized_orders
-    raise "Cannot delete an address with finalized orders" unless orders.reload.select{|o| o.finalized? }.count == 0
+    raise "Cannot delete an address associated with orders" if orders.reload.any? 
   end
 
   def update_from(newer)

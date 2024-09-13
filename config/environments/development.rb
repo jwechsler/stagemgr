@@ -94,7 +94,7 @@ Rails.application.configure do
 
   $TKTPRINT =  YAML::load(File.open("#{::Rails.root.to_s}/config/ticket_print.yml"))['development']
   config_data = YAML::load(File.open("#{::Rails.root.to_s}/config/server.yml"))
-  $SERVER_CONFIG = config_data['all'].merge(config_data['development'])
+  $SERVER_CONFIG = config_data['all'].deep_merge(config_data['development'])
   $PAYMENT_CONFIG = $SERVER_CONFIG['payment_processing']
   $SERVER_CONFIG['ext_site_wrapper']=$SERVER_CONFIG['ext_site_wrapper'] || 'ext_site_wrapper'
   $EMAIL_ADDRESS = $SERVER_CONFIG['email']['addresses']

@@ -71,10 +71,10 @@ Rails.application.configure do
   $TKTPRINT =  YAML::load(File.open("#{::Rails.root.to_s}/config/ticket_print.yml"))['test']
 
   config_data = YAML::load(File.open("#{::Rails.root.to_s}/config/server.yml"))
-  $SERVER_CONFIG = config_data['all'].merge(config_data['test'])
+  $SERVER_CONFIG = config_data['all'].deep_merge(config_data['test'])
   $PAYMENT_CONFIG = $SERVER_CONFIG['payment_processing']
   $TEST_CREDIT_CARD = $PAYMENT_CONFIG['test_credit_card']
-  $EMAIL_ADDRESS = $SERVER_CONFIG['email_addresses']
+  $EMAIL_ADDRESS = $SERVER_CONFIG['email']['addresses']
   $SERVER_CONFIG['ext_site_wrapper']='ext_test_wrapper'
   $RAND_CLAUSE = 1
   config.action_mailer.default_url_options = { host: $SERVER_CONFIG['host'], protocol: $SERVER_CONFIG['host_protocol'] }
