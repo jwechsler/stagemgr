@@ -1,7 +1,7 @@
 StripeEvent.signing_secret = Rails.application.credentials.dig(:stripe,:signing_secret) 
 
 StripeEvent.configure do |events|
-  events.subscribe 'charge.failed' do |event|
+  #events.subscribe 'charge.failed' do |event|
     # Define subscriber behavior based on the event object
     #event.class       #=> Stripe::Event
     #event.type        #=> "charge.failed"
@@ -12,7 +12,7 @@ StripeEvent.configure do |events|
     #      # MembershipOrder.register_payment_to_profile(line['subscription'], line['amount'])
     #    end
     #  end
-  end
+  #end
   
   events.subscribe 'invoice.paid' do |event| 
     # Rails.logger.debug("STRIPE for #{event.data['subscription']}")
