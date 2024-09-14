@@ -6,9 +6,11 @@ StripeEvent.configure do |events|
     event.class       #=> Stripe::Event
     event.type        #=> "charge.failed"
     event.data.object #=> #<Stripe::Charge:0x3fcb34c115f8>
-    event.data['object']['lines'].each  do |line| 
-      unless line['subscription'].blank?
-        # MembershipOrder.register_payment_to_profile(line['subscription'], line['amount'])
+    unless event.data['object']['lines'].nil? do
+      event.data['object']['lines'].each  do |line| 
+        unless line['subscription'].blank?
+          # MembershipOrder.register_payment_to_profile(line['subscription'], line['amount'])
+        end
       end
     end
   end
