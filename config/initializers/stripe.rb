@@ -8,12 +8,11 @@ StripeEvent.configure do |events|
     event.data.object #=> #<Stripe::Charge:0x3fcb34c115f8>
     unless event.data['object']['lines'].nil? do
       event.data['object']['lines'].each  do |line| 
-        unless line['subscription'].blank?
-          # MembershipOrder.register_payment_to_profile(line['subscription'], line['amount'])
-        end
+    #    unless line['subscription'].blank?
+    #      # MembershipOrder.register_payment_to_profile(line['subscription'], line['amount'])
+    #    end
       end
     end
-  end
   
   events.subscribe 'invoice.paid' do |event| 
     # Rails.logger.debug("STRIPE for #{event.data['subscription']}")
