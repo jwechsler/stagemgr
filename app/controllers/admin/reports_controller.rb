@@ -328,7 +328,7 @@ class Admin::ReportsController < Admin::ApplicationController
         Order::PROCESSED, through_date, through_date - 1.day, Production.visible_statuses
       ).order("performances.performance_date, productions.production_code, performances.performance_code, addresses.last_name")
 
-    orders = orders.sort_by{|o| [o.performance.performance_code, o.hold_under.blank? ? o.address.last_name : Address.parse_name(o.hold_under)[3] ]}
+    orders = orders.sort_by{|o| [o.performance.performance_code, o.hold_under.blank? ? o.address.last_name : Address.parse_name(o.hold_under)[2] ]}
     report = Array.new
     headers = [:reserved_under, :performance_code, :tickets, :order_id, :profile, :member_id, :first_time, :last_24_months, :donor]
       orders.each { |o|
