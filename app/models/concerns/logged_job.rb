@@ -1,9 +1,10 @@
 module LoggedJob
+  extend ActiveSupport::Concern
 
-  def after_perform_update_metadata(*args)
-    JobMetadata.record_last_run(self.class.name)
-    Rails.logger.info("Job completed: #{self.class.name} [#{JobMetadata.last_run(self.class.name).strftime('%Y-%m-%d %H:%M:%S')}]")
-    true
+  included do
+    after_perform do |job|
+      JobMetadata.record_last_run(self.class.name)
+    end
   end
 
 end

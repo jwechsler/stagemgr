@@ -1,16 +1,19 @@
 class RateOfSalesJob < ApplicationJob
-  @queue = :maintenance
 
-  def self.perform
+  @queue = :maintenance
+  
+  include LoggedJob
+
+  def perform
     calculate_for_day(Date.yesterday)
     RateOfSale.export_to_file(RateOfSale.export_records, RateOfSale.export_columns, File.join($SERVER_CONFIG['hud_export_directory'],'rate_of_sales.txt'))
   end
 
-  def self.calculate_for_day(date)
-    productions_with_sales = Production.joins(performances: :orders).where(orders: { created_at: date.all_day })
+  def calculate_for_day(date)
+    productions_with_sales = Production.includes(performances: :orders).where(orders: { created_at: date.all_day, status: Order::SETTLED_STATUSES })
 
     productions_with_sales.each do |production|
-      orders = TicketOrder.joins(:performance).where(performance: { production: production }, created_at: date.all_day)
+      orders = TicketOrder.includes(:payments, :ticket_line_items).joins(:performance).where(performance: { production: production }, created_at: date.all_day, status: Order::SETTLED_STATUSES)
 
       total_single_tickets = orders.sum(&:ticket_quantity) - orders.sum(&:complimentary_ticket_count)
       total_complimentary_tickets = orders.sum(&:complimentary_ticket_count)
@@ -31,7 +34,7 @@ class RateOfSalesJob < ApplicationJob
 
   def self.calculate_last_30_days
     (1..30).each do |i|
-      calculate_for_day(Date.today - i)
+      RateOfSalesJob.new.calculate_for_day(Date.today - i)
     end
   end
 end
