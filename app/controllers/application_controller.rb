@@ -108,7 +108,7 @@ class ApplicationController < ActionController::Base
     ExceptionNotifier.notify_exception(exception, env: request.env)
 
     # Set the flash message with the exception
-    flash[:error] = raw "An unexpected error occurred at #{request.fullpath}: #{exception.message}. An error report has been filed with the administrator"
+    flash[:error] = "An unexpected error occurred at #{request.fullpath}: #{exception.message}. An error report has been filed with the administrator"
 
     # Prevent redirect loop by checking if referer is the same as current request path
     referer = request.referer
