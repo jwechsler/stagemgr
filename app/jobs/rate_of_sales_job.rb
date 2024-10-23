@@ -4,12 +4,12 @@ class RateOfSalesJob < ApplicationJob
   
   include LoggedJob
 
-  def perform
+  def self.perform
     calculate_for_day(Date.yesterday)
     RateOfSale.export_to_file(RateOfSale.export_records, RateOfSale.export_columns, File.join($SERVER_CONFIG['hud_export_directory'],'rate_of_sales.txt'))
   end
 
-  def calculate_for_day(date)
+  def self.calculate_for_day(date)
     productions_with_sales = Production.includes(performances: :orders).where(orders: { created_at: date.all_day, status: Order::SETTLED_STATUSES })
 
     productions_with_sales.each do |production|

@@ -96,6 +96,5 @@ CalculateHouseCountsJob:
   queue: sync
   every: "5m"
   description: "Calculate current house counts for modified ticket orders"
-
-
+  
   

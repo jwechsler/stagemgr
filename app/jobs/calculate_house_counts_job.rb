@@ -6,12 +6,16 @@ class CalculateHouseCountsJob < ApplicationJob
   
   include LoggedJob
   extend Resque::Plugins::LockTimeout
-  @queue =  :maintenance
+  @queue = :sync
+
+  
   @loner = true # only one house counts job can be queued at a time
   @lock_timeout = 900 # timeout the lock after 15 minutes
   @lock_after_execution = true # Optional: lock throughout the job execution
 
-  def perform
+  # Manage conflicting resque/activejob setups during transition
+
+  def self.perform
     # Fetch the last run time of this job from JobMetadata
     last_run_at = JobMetadata.last_run(self.class.name)
     last_run_at = Date.today - 2.days
@@ -34,7 +38,7 @@ class CalculateHouseCountsJob < ApplicationJob
 
   private
 
-  def update_or_create_house_count(performance)
+  def self.update_or_create_house_count(performance)
     if performance.house_count
       performance.house_count.calculate!
       Rails.logger.info("CalculateHouseCountsJob: updated counts for #{performance.performance_code} at #{Time.current.strftime('%Y-%m-%d %H:%M:%S')}")

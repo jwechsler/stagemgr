@@ -16,15 +16,17 @@ case "$1" in
       rm ./resque.pid
       echo "Resque worker #1 stopped"
     fi
-    kill `cat ./resque-printing.pid`
-    if [ $? -eq 0 ]; then
-      rm ./resque-printing.pid
-      echo "Resque worker #2 (printing) stopped"
-    fi
-    kill `cat ./resque-maint.pid`
-    if [ $? -eq 0 ]; then
-      rm ./resque-maint.pid
-      echo "Resque worker #3 (maintentance) stopped"
+    if [[ "$RAILS_ENV" == "production" ]] ; then 
+      kill `cat ./resque-printing.pid`
+      if [ $? -eq 0 ]; then
+        rm ./resque-printing.pid
+        echo "Resque worker #2 (printing) stopped"
+      fi
+      kill `cat ./resque-maint.pid`
+      if [ $? -eq 0 ]; then
+        rm ./resque-maint.pid
+        echo "Resque worker #3 (maintentance) stopped"
+      fi
     fi
     ;;
 esac

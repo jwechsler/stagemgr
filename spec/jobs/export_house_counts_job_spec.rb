@@ -14,7 +14,7 @@ RSpec.describe ExportHouseCountsJob, type: :job do
     FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash, performance: performance1)
     FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash, performance: performance1)
     FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, performance: performance2)
-    CalculateHouseCountsJob.new.perform
+    CalculateHouseCountsJob.perform
   end
 
   after do
@@ -24,7 +24,7 @@ RSpec.describe ExportHouseCountsJob, type: :job do
   it 'creates a file with the correct contents' do
     # Assuming the job writes specific content to the file
     # Trigger the job
-    ExportHouseCountsJob.new.perform(file_path)
+    ExportHouseCountsJob.perform(file_path)
 
     # Read the file
     content = File.read(file_path)

@@ -25,7 +25,7 @@ RSpec.describe CalculateHouseCountsJob, type: :job do
       it 'updates and/or creates house count data from last run' do
         expect(performance.house_count.total_seats).to eq(performance.production.capacity)
         expect(performance.house_count.available_seats).to eq(performance.production.capacity)
-        CalculateHouseCountsJob.new.perform
+        CalculateHouseCountsJob.perform
         performance.reload
         expect(performance.house_count.available_seats).to eq(performance.production.capacity-2)
       
@@ -41,7 +41,7 @@ RSpec.describe CalculateHouseCountsJob, type: :job do
 
       it "recalculates house count data" do
         expect(performance.house_count.total_seats).to eq(100)
-        CalculateHouseCountsJob.new.perform
+        CalculateHouseCountsJob.perform
         performance.reload
         expect(performance.house_count.total_seats).to eq(50)
         expect(performance.house_count.available_seats).to eq(performance.production.capacity-2)
@@ -51,7 +51,7 @@ RSpec.describe CalculateHouseCountsJob, type: :job do
     context 'when there are no updated ticket orders since the last run' do
       it 'does not create or update any house counts' do
         expect(HouseCount).not_to receive(:create)
-        CalculateHouseCountsJob.new.perform
+        CalculateHouseCountsJob.perform
         expect_any_instance_of(HouseCount).not_to receive(:calculate!)
       end
     end

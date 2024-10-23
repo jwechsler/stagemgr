@@ -1,5 +1,5 @@
 class FlexPass < ApplicationRecord
-  belongs_to :address, inverse_of: :flex_passes
+  belongs_to :address, inverse_of: :flex_passes, optional: true 
   belongs_to :flex_pass_offer, inverse_of: :flex_passes
   belongs_to :flex_pass_line_item, inverse_of: :flex_pass
   
@@ -8,8 +8,9 @@ class FlexPass < ApplicationRecord
   after_create :queue_expiration
   before_destroy :has_no_placed_orders?
   
-  validates_presence_of :address, :expiration_date, :flex_pass_offer, :flex_pass_line_item, :order, :code
-
+  validates_presence_of :expiration_date, :flex_pass_offer, :flex_pass_line_item, :order, :code
+  validates :address, presence: true, unless: -> { address.blank? }
+  
   before_validation :create_code, :on => :create
 
   delegate :number_of_tickets, :to => :flex_pass_offer
