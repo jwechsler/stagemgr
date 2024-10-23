@@ -1,6 +1,5 @@
 require 'street_address'
 require 'csv'
-require 'namae'
 
 class Address < ApplicationRecord
 
@@ -36,12 +35,17 @@ class Address < ApplicationRecord
 
         f_name = primary_name.given
         l_name = primary_name.family
+        l_name = secondary_name.family if l_name.blank? && !secondary_name&.family.blank?
 
         # If there's a second name and it has the same last name, append its given name to the first name
         if secondary_name && secondary_name.family == l_name
           f_name += " and #{secondary_name.given}"
         end
-
+        l_name = secondary_name.family if l_name.blank? && !secondary_name&.family.blank?
+        if l_name.blank?
+          l_name = f_name 
+          f_name = ""
+        end
         [full_name, f_name, l_name]
       else
         ["", "", ""]
