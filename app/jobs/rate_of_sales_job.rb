@@ -34,7 +34,7 @@ class RateOfSalesJob < ApplicationJob
 
   def self.calculate_last_30_days
     (1..30).each do |i|
-      RateOfSalesJob.new.calculate_for_day(Date.today - i)
+      RateOfSalesJob.calculate_for_day(Date.today - i)
     end
   end
 end
