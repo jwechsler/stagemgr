@@ -1,6 +1,6 @@
 class UserSession < Authlogic::Session::Base
   validate :is_active?
-  logout_on_timeout false # Rails.env.production?
+  logout_on_timeout  true
 
   private
   def is_active?

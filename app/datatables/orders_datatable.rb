@@ -47,10 +47,14 @@ class OrdersDatatable < DatatableBase
 
   def get_raw_records
     begin
-      Order.allowed_for(current_user).includes(:address, seats: :seat, :performance=>:production).references(:address, :performance=>:production, seats: :seat)
+      if current_user.present? && current_user.persisted?
+        Order.allowed_for(current_user).includes(:address, seats: :seat, :performance=>:production).references(:address, :performance, seats: :seat)
+      else
+        Order.references(:address, :performance, seats: :seat).none
+      end
     rescue => e
       Rails.logger.error("error in Orders Datatable query: #{e.message}")
-      Order.none
+      Order.references(:address, :performance, seats: :seat).none
     end
   end
 

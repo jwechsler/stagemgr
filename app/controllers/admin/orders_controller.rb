@@ -6,6 +6,7 @@ class Admin::OrdersController < Admin::ApplicationController
   before_action :redirect_edits_to_proper_action, :only => [:show,:edit]
 
 
+
   VALID_SEARCH_COLUMNS = [
       'orders.id',
       'display_code',
