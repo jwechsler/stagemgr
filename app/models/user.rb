@@ -25,7 +25,7 @@ class User < ApplicationRecord
 
 
   acts_as_authentic do |c|
-    c.logged_in_timeout = 10.minutes
+    c.logged_in_timeout = 4.hours
     c.transition_from_crypto_providers = [Authlogic::CryptoProviders::Sha512]
     c.crypto_provider = Authlogic::CryptoProviders::SCrypt
   end
