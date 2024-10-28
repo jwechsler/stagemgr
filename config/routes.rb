@@ -132,9 +132,7 @@ Rails.application.routes.draw do
           :controller => 'productions',
           :action => 'now_playing'
 
-  get '/productions/box_office',
-      :controller => 'productions',
-      :action => 'box_office'
+  get '/productions/box_office', to: 'productions#box_office', as: 'box_office_productions'
 
   get '/productions/by_date',
           :controller => 'productions',
