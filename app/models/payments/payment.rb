@@ -31,7 +31,8 @@ class Payment < ApplicationRecord
   end
 
   def receipt_description
-    raise NotImplementedError, 'Receipt Descriptions must be defined by subclasses'
+    Rails.logger.info("WARNING: Payment #{self.id} does not have a defined receipt description")
+    "Payment"
   end
 
   def processing_fee
