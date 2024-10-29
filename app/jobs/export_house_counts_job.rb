@@ -2,7 +2,7 @@
 class ExportHouseCountsJob 
   @queue = :report
 
-  def file_path
+  def self.file_path
     File.join($SERVER_CONFIG['hud_export_directory'],'house_count.txt')
   end
 
