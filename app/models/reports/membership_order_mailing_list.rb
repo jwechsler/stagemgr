@@ -14,13 +14,13 @@ class MembershipOrderMailingList < MailingList
     # Adjusted to correctly join with :address instead of :member
     orders = MembershipOrder.joins(:address).
       references(:address,membership_line_item: :membership).
-      where('memberships.member_since >= ? AND memberships.member_since <= ? AND addresses.placeholder <> ?', 
-                                   starting_date, ending_date, true).
+      where('memberships.member_since >= ? AND memberships.member_since <= ? AND addresses.placeholder = ?', 
+                                   starting_date, ending_date, false).
       includes(:address,membership_line_item: :membership).distinct
   
     current_member_ids = Address.joins(:memberships).where(memberships: {status: Membership::ACTIVE}).distinct.pluck(:id)
 
-    orders.each do |order|      
+    orders.each do |order| address     
       self.add_hash_to_data('MEM', order.address, order.membership.member_since, order.membership.membership_offer.name, 
         current_member_ids.include?(order.address.id), true)
     end
