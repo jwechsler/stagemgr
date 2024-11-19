@@ -71,10 +71,9 @@ class Order < ApplicationRecord
   after_validation :prevent_status_rollbacks
   before_save :ensure_address_exists
   before_save :cancel_pending_tasks, if: :newly_canceled?
-  before_save :balanced_transaction?, if: [:status_changed?, :processed?]
+  before_save :balanced_transaction?, if: [:saved_change_to_status?, :processed?]
   before_destroy :check_for_settled_payments
 
-  after_save :create_address_of_record_task, if: [:status_changed?, :processed?]
   after_save :set_tasks_after_save
 
   # Validations
@@ -795,6 +794,9 @@ class Order < ApplicationRecord
           create_receipt_task
           create_transfer_ownership_task if self.gift?
       end
+    end
+    if self.saved_change_to_status? && self.status.eql?(Order::PROCESSED)
+      create_address_of_record_task
     end
 
   end

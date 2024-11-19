@@ -942,7 +942,8 @@ class TicketOrder < Order
           self.address.productions.delete(self.production) if self.is_unique_visit?
         end
       rescue StandardError => e
-        Rails.logger.error "Failed to update attendee status for order #{self.id}"
+        Rails.logger.error "Failed to update attendee status for order #{self.id}: #{e.message}"
+        Rails.logger.error "Backtrace:\n#{e.backtrace.join("\n")}"
       end
     end
   end
