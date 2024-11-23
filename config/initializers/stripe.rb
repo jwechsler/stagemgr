@@ -38,7 +38,7 @@ StripeEvent.configure do |events|
     # only handle refund charges for subscriptions — others are handled from the app
     unless payment.nil?
       refund_payment = payment.dup
-      refund_payment.amount = BigDecimal(event.data['object']['amount_refunded'])/-100.0
+      refund_payment.amount = CurrencyUtils.float_to_currency_decimal(BigDecimal(event.data['object']['amount_refunded'].to_s)/-100.0)
       refund_payment.note = "Refund"
       refund_payment.save!
       Rails.logger.debug("REFUNDED payment from STRIPE #{refund_payment.id}")

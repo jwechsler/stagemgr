@@ -8,7 +8,7 @@ class LineItem < ApplicationRecord
   end
 
   def total
-    BigDecimal(0.0,2)
+    BigDecimal('0')
   end
 
   def receipt_total
@@ -22,7 +22,6 @@ class LineItem < ApplicationRecord
   def ticket?
     return false;
   end
-
 
 end
 

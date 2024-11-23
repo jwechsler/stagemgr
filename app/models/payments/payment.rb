@@ -36,7 +36,7 @@ class Payment < ApplicationRecord
   end
 
   def processing_fee
-    return BigDecimal(0,2)
+    return BigDecimal('0')
   end
 
   def to_s

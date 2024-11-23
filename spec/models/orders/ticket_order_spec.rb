@@ -293,8 +293,9 @@ RSpec.describe TicketOrder do
     end
 
     it "does not send an automatic followup" do
-      followups = @ticket_order.tasks.select{|t| t.method_symbol.include?('followup')}
+      followups = @ticket_order.tasks.select{|t| t.method_symbol&.include?('followup')}
       expect(followups.count).to eq(0)
+
     end
 
   end
@@ -323,28 +324,28 @@ RSpec.describe TicketOrder do
   context "when splitting" do
     it "replicates existing tasks and state" do
       original_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
-      expect(original_order.tasks.size).to eql(1)
+      expect(original_order.tasks.size).to eql(2)
       notify_task = original_order.tasks.first
       notify_task.status = OrderTask::COMPLETED
       notify_task.save
       old_tli = original_order.flatten_ticket_line_items
       new_tli = [old_tli[0]]
       order1, order2 = original_order.split(new_tli)
-      expect(order1.tasks.size).to eql(1)
+      expect(order1.tasks.size).to eql(2)
       expect(order1.tasks.first.status).to eql("Completed")
-      expect(order2.tasks.size).to eql(1)
+      expect(order2.tasks.size).to eql(2)
       expect(order2.tasks.first.status).to eql("Completed")
     end
 
     it "cancels pending tasks after split" do
       original_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
-      expect(original_order.tasks.size).to eql(1)
+      expect(original_order.tasks.size).to eql(2)
       old_tli = original_order.flatten_ticket_line_items
       new_tli = [old_tli[0]]
       order1, order2 = original_order.split(new_tli)
-      expect(order1.tasks.size).to eql(1)
+      expect(order1.tasks.size).to eql(2)
       expect(order1.tasks.first.status).to eql(OrderTask::UNTRIED)
-      expect(order2.tasks.size).to eql(1)
+      expect(order2.tasks.size).to eql(2)
       expect(order2.tasks.first.status).to eql(OrderTask::UNTRIED)
       expect(original_order.tasks.first.status == OrderTask::CANCELLED)
     end

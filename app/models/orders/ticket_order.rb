@@ -507,8 +507,8 @@ class TicketOrder < Order
   def split(new_tlis, all_tlis = nil)
     result = [nil, nil]
     TicketOrder.transaction do
-      total_transfer_amount = BigDecimal(self.total_paid - self.service_line_items.sum(:amount),2)
-      split_value_per_ticket = (BigDecimal(total_transfer_amount,2) / BigDecimal(self.number_of_tickets,2)).floor(2)
+      total_transfer_amount = CurrencyUtils.float_to_currency_decimal(self.total_paid - self.service_line_items.sum(:amount))
+      split_value_per_ticket = CurrencyUtils.float_to_currency_decimal((total_transfer_amount / self.number_of_tickets).floor(2))
       original_payment_hash = self.flatten_payments
 
       order1 = self.fork_order_into_split
@@ -581,7 +581,7 @@ class TicketOrder < Order
   end
 
   def ticketing_fee
-    super + BigDecimal(self.ticket_line_items.to_a.sum{|li| li.ticket_class.ticketing_fee * li.ticket_count }.to_s)
+    super + CurrencyUtils.float_to_currency_decimal(self.ticket_line_items.to_a.sum{|li| li.ticket_class.ticketing_fee * li.ticket_count })
   end
 
   def contains_tickets?
