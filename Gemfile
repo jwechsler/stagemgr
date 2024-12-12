@@ -112,19 +112,16 @@ group :development do
   # gem 'ruby_parser'  # for declarative authorization eager loading for resque tasks
 end
 
-group :development,:test,:cucumber do
+# was also :cucumber, but I don't know why...
+group :test do
   gem 'sqlite3', '~> 1.4.0'
   gem 'rails-controller-testing'
   gem 'byebug'
   gem 'factory_bot_rails'
-  
-end
-
-group :test,:cucumber do
   gem 'capybara'
   gem 'puma'
   # gem 'poltergeist'
-  gem 'selenium-webdriver'
+  gem 'selenium-webdriver', '< 3.2.5'
   gem 'cucumber-rails', '2.5.1', :require=>false
   gem 'simplecov'
   gem 'database_cleaner-active_record'
@@ -157,4 +154,7 @@ group :cucumber do
 end
 
 # assets
+
+gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby, :ruby]
+
   
