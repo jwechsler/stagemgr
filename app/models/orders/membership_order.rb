@@ -32,7 +32,7 @@ class MembershipOrder < Order
   end
 
   def number_of_tickets
-    BigDecimal("0", 2)
+    BigDecimal('0')
   end
 
   def recurring_profile

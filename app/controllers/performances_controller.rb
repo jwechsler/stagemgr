@@ -74,6 +74,11 @@ class PerformancesController < ApplicationController
   private
 
   def find_production
-    @production = Production.sellable_to_public.find(params[:production_id])
+    @production = Production.sellable_to_public.find_by(id: params[:production_id])
+    unless @production
+      flash[:notice] = "The production you are looking for is not currently on sale."
+      redirect_to box_office_productions_path
+    end
   end
+
 end

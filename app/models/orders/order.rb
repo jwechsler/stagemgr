@@ -71,10 +71,9 @@ class Order < ApplicationRecord
   after_validation :prevent_status_rollbacks
   before_save :ensure_address_exists
   before_save :cancel_pending_tasks, if: :newly_canceled?
-  before_save :balanced_transaction?, if: [:status_changed?, :processed?]
+  before_save :balanced_transaction?, if: [:saved_change_to_status?, :processed?]
   before_destroy :check_for_settled_payments
 
-  after_save :create_address_of_record_task, if: [:status_changed?, :processed?]
   after_save :set_tasks_after_save
 
   # Validations
@@ -122,7 +121,7 @@ class Order < ApplicationRecord
   # total recorded revenue collected by box office
   def total_collected
     sum_payments = self.payments.reported_as_sales_collected.sum(:amount)
-    BigDecimal(sum_payments,2)
+    CurrencyUtils.float_to_currency_decimal(sum_payments)
   end
 
   # total recorded revenue for the order
@@ -134,36 +133,36 @@ class Order < ApplicationRecord
   # returns the total amount, regardless of reporting status
   def total_paid
     sum_payments = payments.loaded? ? payments.to_a.sum(&:amount) : payments.sum(:amount)
-    BigDecimal(sum_payments, 2)
+    CurrencyUtils.float_to_currency_decimal(sum_payments)
   end
 
   # total amount due from existing line items (not necessarily paid)
   def total_due
     line_items_sum = all_line_items.to_a.sum(&:total)
-    line_items_sum < 0 ? BigDecimal('0', 2) : BigDecimal(line_items_sum, 2)
+    line_items_sum < 0 ? BigDecimal('0') : CurrencyUtils.float_to_currency_decimal(line_items_sum)
   end
 
   def total_override_payments
     sum = self.payments.override_payments_only.sum(:amount)
-    BigDecimal(sum,2)
+    CurrencyUtils.float_to_currency_decimal(sum)
   end
 
   #returns the total payments visible to the customer, negative payment offsets
   # are never visible
   def customer_visible_total
     total = self.payments.to_a.sum { |payment| payment.customer_visible_amount }
-    (total.nil? || total < 0) ?  BigDecimal('0',2) : BigDecimal(total,2)
+    (total.nil? || total < 0) ?  BigDecimal('0') : CurrencyUtils.float_to_currency_decimal(total)
   end
 
   # returns the actual total of the order by either total payments made (if there are any payments),
   # or the line items as a fallback
   def total
     a = payments.empty? ? total_due : total_paid
-    a < 0 ? BigDecimal('0', 2) : a
+    a < 0 ? BigDecimal('0') : a
   end
 
   def processing_fee
-    BigDecimal(self.payments.to_a.sum(&:processing_fee),2)
+    CurrencyUtils.float_to_currency_decimal(self.payments.to_a.sum(&:processing_fee))
   end
 
   def membership_payments
@@ -235,7 +234,7 @@ class Order < ApplicationRecord
   end
 
   def ticketing_fee
-    BigDecimal(self.service_line_items.to_a.sum{|li| li.facility_fee }.to_s,2)
+    CurrencyUtils.float_to_currency_decimal(self.service_line_items.to_a.sum{|li| li.facility_fee })
   end
 
   def valid_payment_types_for(current_user)
@@ -795,6 +794,9 @@ class Order < ApplicationRecord
           create_receipt_task
           create_transfer_ownership_task if self.gift?
       end
+    end
+    if self.saved_change_to_status? && self.status.eql?(Order::PROCESSED)
+      create_address_of_record_task
     end
 
   end

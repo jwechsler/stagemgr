@@ -1,5 +1,4 @@
 class RateOfSalesJob < ApplicationJob
-
   @queue = :maintenance
   
   include LoggedJob
@@ -26,8 +25,8 @@ class RateOfSalesJob < ApplicationJob
         theater: production.theater,
         total_single_tickets: total_single_tickets,
         total_complimentary_tickets: total_complimentary_tickets,
-        gross_sales: BigDecimal(gross_sales,2),
-        processing_fees: BigDecimal(processing_total,2)
+        gross_sales: CurrencyUtils.float_to_currency_decimal(gross_sales),
+        processing_fees: CurrencyUtils.float_to_currency_decimal(processing_total)
       )
     end
   end

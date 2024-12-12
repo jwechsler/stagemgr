@@ -17,7 +17,7 @@ class TicketLineItem < LineItem
   end
 
   def price
-    self.price_override || self.ticket_class.try(:ticket_price) || BigDecimal(0,2)
+    self.price_override || self.ticket_class.try(:ticket_price) || BigDecimal('0')
   end
 
   def refund!

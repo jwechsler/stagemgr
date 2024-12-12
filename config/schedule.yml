@@ -83,7 +83,7 @@ InactivateUnusedProductions:
   queue: maintenance
 
 RateOfSalesJob:
-  cron: "30 0 * * 0"
+  cron: "30 0 * * *"
   description: "Calculate previous rate of day sales"
   queue: report
 

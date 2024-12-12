@@ -39,67 +39,81 @@
     }
 
     $(document).ready(function() {
-      var oListing = $('#order-listing').DataTable({
-        "stateSave": true,
-        "responsive": true,
-        "processing": true,
-        "serverSide": true,
-        dom: 'lfrBtip',
-        buttons: [
-                {
-                  text: 'Fulfill Selected',
-                  action: function(e, dt, node, config) {
-                    var ids = $.map(dt.rows({selected:true}).data(), function(r) { return r.order_id })
-                    $.ajax({
-                      url: '#{fulfill_selected_admin_orders_path}',
-                      dataType: 'json',
-                      data: {ids: ids},
-                      type: "POST",
-                      success: function(data) {
-                       dt.draw();
-                      }
-                    });
-                    //dt.ajax.reload();
+     var oListing = $('#order-listing').DataTable({
+       "stateSave": true,
+       "responsive": true,
+       "processing": true,
+       "serverSide": true,
+       dom: 'lfrBtip',
+       buttons: [
+         {
+           text: 'Fulfill Selected',
+           action: function(e, dt, node, config) {
+             var ids = $.map(dt.rows({selected:true}).data(), function(r) { return r.order_id });
+             $.ajax({
+               url: '#{fulfill_selected_admin_orders_path}',
+               dataType: 'json',
+               data: {ids: ids},
+               type: "POST",
+               success: function(data) {
+                 dt.draw();
+               }
+             });
+           }
+         }
+       ],
+       "ajax": {
+         url: $('#order-listing').data('source'),
+         dataSrc: function(json) {
+           // Check if there's an error in the JSON response
+           if (json.error) {
+             // Return an empty array to prevent DataTables from processing further
+             return [];
+           }
+           return json.data; // Return the data array to DataTables if no error
+         }
+       },
+       "select": true,
+       "order": [[ 0, "desc" ]],
+       "lengthMenu": [25, 50, 100],
+       "language": {
+         "lengthMenu" : "_MENU_",
+         "processing": '<div class="small-4 small-centered columns"><data-alert class="alert-box" style="z-index:1000">Processing...</div></div>'
+       },
+       "columns": [
+         {data: 'id'},
+         {data: 'code'},
+         {data: 'name'},
+         {data: 'seats'},
+         {data: 'status'},
+         {data: 'visits'},
+         {data: 'total', orderable: false},
+         {data: 'description', orderable: false},
+         {data: 'order_id', visible: false},
+       ],
+     });
 
-                  }
-                }
-            ],
+     // Handle global DataTables errors
+     $('#order-listing').on('error.dt', function(e, settings, techNote, message) {
+       // Display a custom alert message with a page reload
+       alert("An error occurred while loading the data. The page will now reload.");
+       location.reload();
+     });
 
-        "ajax": $('#order-listing').data('source'),
-        "select": true,
-        "order": [[ 0, "desc" ]],
-        "lengthMenu": [25, 50, 100],
-        "language": {
-          "lengthMenu" : "_MENU_",
-          "processing": '<div class="small-4 small-centered columns"><data-alert class="alert-box" style="z-index:1000">Processing...</div></div>'
-        },
-        "columns": [
-          {data: 'id'},
-          {data: 'code'},
-          {data: 'name'},
-          {data: 'seats'},
-          {data: 'status'},
-          {data: 'visits'},
-          {data: 'total', orderable: false},
-          {data: 'description', orderable: false},
-          {data: 'order_id', visible: false},
-        ],
-      });
+     update_buttons(oListing);
+     oListing.on('select deselect', function() {
+       update_buttons(oListing);
+     });
 
-      update_buttons(oListing);
-      oListing.on( 'select deselect', function() {
-        update_buttons(oListing)
-      });
+     yadcf.init(oListing, [
+       { column_number: 0, filter_type: "text", filter_delay: 800 },
+       { column_number: 1, filter_type: "text", filter_delay: 600 },
+       { column_number: 2, filter_type: "text", filter_delay: 600 },
+       { column_number: 3, filter_type: "text", filter_delay: 600 },
+       { column_number: 4, filter_type: "select", data: [#{raw Order::ORDER_STATUSES.map{|s| "'#{s}'"}.join(',')}], filter_default_label: "Any" },
+     ]);
 
-      yadcf.init(oListing, [
-        { column_number: 0, filter_type: "text", filter_delay: 800 },
-        { column_number: 1, filter_type: "text", filter_delay: 600 },
-        { column_number: 2, filter_type: "text", filter_delay: 600 },
-        { column_number: 3, filter_type: "text", filter_delay: 600 },
-        { column_number: 4, filter_type: "select", data: [#{raw Order::ORDER_STATUSES.map{|s| "'#{s}'"}.join(',')}], filter_default_label: "Any" },
-      ]);
-
-      $('#order-listing_filter').hide();
+     $('#order-listing_filter').hide();
 
       // $('#order-listing tbody').on( 'click', 'tr', function () {
       //     $(this).toggleClass('selected');

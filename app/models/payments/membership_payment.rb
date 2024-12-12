@@ -1,6 +1,10 @@
 class MembershipPayment < PassPayment
   belongs_to :membership, inverse_of: :membership_payments
 
+  def receipt_description
+    'Membership'
+  end
+  
   def member_code
     self.membership.member_code
   end

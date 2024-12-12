@@ -3,18 +3,20 @@
     = f.hidden_field :ticket_class_id
     = f.object.ticket_class.class_name
   .small-6.medium-3.cell
+    - max_count = 20
     - if f.object.ticket_class.holds_seats?
-      - number_left = f.object.ticket_class.number_left(performance)
-      - if number_left <= 9
+      - number_left = performance.number_of_seats_left
+      - max_count = [f.object.ticket_class.number_left(performance), number_left].min
+      - if  number_left <= $SERVER_CONFIG[:ticket_line_item_fields].to_i
         = f.hidden_field :ticket_count
         - if number_left == 0
           Sold Out
-        - elsif number_left <= 9
+        - elsif f.object.ticket_class.limit_tickets > 0
           Call
       - else
-        = f.input_field :ticket_count, collection: 0.upto(20).map{|x| x}, include_blank:false, :class=>'ticket_count'
+        = f.input_field :ticket_count, collection: 0.upto(max_count).map{|x| x}, include_blank:false, :class=>'ticket_count'
     - else
-      = f.input_field :ticket_count, collection: 0.upto(20).map{|x| x}, include_blank:false, :class=>'ticket_count'
+      = f.input_field :ticket_count, collection: 0.upto(max_count).map{|x| x}, include_blank:false, :class=>'ticket_count'
   .small-12.medium-3.cell
     - if f.object.ticket_class.ticket_type == 'Donation'
       = f.input_field :price_override, :class=>'price_override', :placeholder=>"Suggested #{number_to_currency(f.object.ticket_class.ticket_price)}"

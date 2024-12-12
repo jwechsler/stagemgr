@@ -27,7 +27,8 @@ class TicketClass < ApplicationRecord
 
     ticket_allocation = performance.ticket_class_allocations.select{|tc| tc.ticket_class_id.eql? self.id}.first
     unless ticket_allocation.ticket_limit.nil? || ticket_allocation.ticket_limit.eql?(0)
-      ticket_class_capacity_left = ticket_allocation.ticket_limit - number_taken(performance) - self.ticket_line_items.sum(:ticket_count)
+      Rails.logger.debug("*** ticket limit = #{ticket_allocation.ticket_limit}\nnumber_take = #{number_taken(performance)}\nsum = #{self.ticket_line_items.sum(:ticket_count)}")
+      ticket_class_capacity_left = ticket_allocation.ticket_limit - number_taken(performance)
     end
     return [ticket_class_capacity_left,production_capacity_left].min
   end
@@ -44,9 +45,9 @@ class TicketClass < ApplicationRecord
 
   def number_taken(performance, exclude_order = nil)
     if exclude_order.nil?
-      TicketLineItem.where("ticket_class_id = :tc_id and exists (select * from orders where performance_id = :performance_id)" , tc_id: self.id, performance_id: performance.id).sum(:ticket_count)
+      TicketLineItem.where("ticket_class_id = :tc_id and exists (select * from orders where orders.id = order_id and performance_id = :performance_id)" , tc_id: self.id, performance_id: performance.id).sum(:ticket_count)
     else
-      TicketLineItem.where('ticket_class_id = :tc_id and exists (select * from orders where performance_id = <:performance_></:performance_>id) and order_id != :order_id', tc_id: self.id, performance_id: performance.id, order_id: exclude_order.id).sum(:ticket_count)
+      TicketLineItem.where('ticket_class_id = :tc_id and exists (select * from orders where orders.id = order_id and performance_id = <:performance_></:performance_>id) and order_id != :order_id', tc_id: self.id, performance_id: performance.id, order_id: exclude_order.id).sum(:ticket_count)
     end
   end
 

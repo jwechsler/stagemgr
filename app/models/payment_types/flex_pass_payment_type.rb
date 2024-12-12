@@ -1,5 +1,6 @@
 class FlexPassPaymentType < PassPaymentType
 
+  
   def payment_classes
     super + [FlexPassPayment.class]
   end

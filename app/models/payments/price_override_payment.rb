@@ -20,4 +20,8 @@ class PriceOverridePayment < Payment
     true
   end
 
+  def receipt_description
+    'Payment'
+  end
+  
 end

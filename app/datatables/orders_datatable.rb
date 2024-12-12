@@ -17,19 +17,24 @@ class OrdersDatatable < DatatableBase
   end
 
   def data
-    records.map do |order|
-      {
-        id: order.decorate.id,
-        code: order.decorate.display_code,
-        name: order.decorate.address,
-        seats: order.decorate.seats,
-        status: order.decorate.status,
-        visits: order.address.nil? ? "n/a" : order.address.decorate.orders_processed,
-        total: order.decorate.total_paid,
-        description: order.decorate.description,
-        order_id: order.id,
-        DT_RowID: order.id
-     }
+    begin
+      records.map do |order|
+        {
+          id: order.decorate.id,
+          code: order.decorate.display_code,
+          name: order.decorate.address,
+          seats: order.decorate.seats,
+          status: order.decorate.status,
+          visits: order.address.nil? ? "n/a" : order.address.decorate.orders_processed,
+          total: order.decorate.total_paid,
+          description: order.decorate.description,
+          order_id: order.id,
+          DT_RowID: order.id
+       }
+      end
+    rescue => e
+      Rails.logger.error("Error generating datatable data: #{e.message}")
+      [{ error: true, message: "An error occurred while processing the datatable data. Please refresh the page."}]
     end
   end
 
@@ -47,10 +52,14 @@ class OrdersDatatable < DatatableBase
 
   def get_raw_records
     begin
-      Order.allowed_for(current_user).includes(:address, seats: :seat, :performance=>:production).references(:address, :performance=>:production, seats: :seat)
+      if current_user.present? && current_user.persisted?
+        Order.allowed_for(current_user).includes(:address, seats: :seat, :performance=>:production).references(:address, :performance, seats: :seat)
+      else
+        Order.references(:address, :performance, seats: :seat).none
+      end
     rescue => e
       Rails.logger.error("error in Orders Datatable query: #{e.message}")
-      Order.none
+      Order.references(:address, :performance, seats: :seat).none
     end
   end
 
