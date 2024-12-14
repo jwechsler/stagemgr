@@ -114,14 +114,14 @@ end
 
 # was also :cucumber, but I don't know why...
 group :test do
-  gem 'sqlite3', '~> 1.4.0'
+  gem 'sqlite3', '~> 1.6.0'
   gem 'rails-controller-testing'
   gem 'byebug'
   gem 'factory_bot_rails'
   gem 'capybara'
   gem 'puma'
   # gem 'poltergeist'
-  gem 'selenium-webdriver', '< 3.2.5'
+  gem 'selenium-webdriver', '~> 4.0'
   gem 'cucumber-rails', '2.5.1', :require=>false
   gem 'simplecov'
   gem 'database_cleaner-active_record'
@@ -132,6 +132,7 @@ group :test do
   gem 'syntax'
 
   gem 'rspec-rails', '< 6.0'
+  gem 'rspec-core'
   gem "mocha", :require => false
   gem 'flexmock'
   gem 'fakeredis', :require => "fakeredis/rspec"
@@ -156,5 +157,8 @@ end
 # assets
 
 gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby, :ruby]
+
+gem 'ffi', '1.17.0'
+gem 'nio4r', '~> 2.5.9'
 
   

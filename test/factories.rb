@@ -23,10 +23,10 @@ module FactoryBot
       FactoryBot.create(:ticket_class, :class_code=>'SECRET', :class_name=>"Secret Ticket",
                           :ticket_price=>20.00, :web_visible=>false, :software_managed=>false,
                           :production=>production)
-      FactoryBot.create(:cash_payment_type, :allow_for_public=>false)
+      #FactoryBot.create(:cash_payment_type, :allow_for_public=>false)
       FactoryBot.create(:credit_card_payment_type, :allow_for_public=>true)
-      FactoryBot.create(:flex_pass_payment_type, :allow_for_public=>true)
-      FactoryBot.create(:membership_payment_type, :allow_for_public=>true)
+      #FactoryBot.create(:flex_pass_payment_type, :allow_for_public=>true)
+     # FactoryBot.create(:membership_payment_type, :allow_for_public=>true)
       FactoryBot.create(:default_ticket_class, :class_code=>'PASS', :class_name=>"Pass Ticket",
                           :ticket_price=>1.00, :web_visible=>false, :software_managed=>true, :auto_attach=>true)
       FactoryBot.create(:default_ticket_class, :class_code=>'PASSFRIEND', :class_name=>"Pass Ticket",
