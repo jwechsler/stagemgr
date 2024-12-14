@@ -8,14 +8,14 @@ gem 'bootsnap'
 gem 'activerecord-session_store'
 gem "i18n-js"
 
-gem "redcarpet" # Markdown
+gem "redcarpet", '~> 3.6' # Markdown
 
-gem "simple_form"
+gem "simple_form", '~> 5.1'
 gem 'simple-form-datepicker'
 # gem "databasedotcom"
 # gem 'restforce', '~> 2.5.3'
 # gem "validation_reflection"
-gem "cancancan"
+gem "cancancan", '~> 3.3'
 gem "activeresource"  
 gem "activemerchant"
 gem "stripe"
@@ -26,7 +26,7 @@ gem "audited"
 # gem "psych", '3.3.3'
 # gem "will_paginate"
 #gem 'safe_attributes', :require=> 'safe_attributes/base'  # Used to support legacy rails 2 schema names for TrgExport model
-gem "my_emma",  "~>0.1.3", :git=>"https://github.com/jwechsler/my_emma.git"
+gem "my_emma", :git=>"https://github.com/jwechsler/my_emma.git"
 # or develop against "~/dev/my_emma"
 # gem "my_emma", :path=>"~/dev/my_emma"
 # gem 'terrapin'
@@ -36,10 +36,10 @@ gem "i18n"          # i18n exposes for dates and money gem
 gem "money"
 gem "money-rails"
 gem "monetize"
+gem 'base64', '0.1.1', platforms: :ruby
 # gem "gemcutter"
 gem 'font-awesome-rails'
 gem "cocoon"
-gem "bigdecimal" # , '1.4.4'
 gem "haml"
 gem "postmark-rails"
 gem "validates_formatting_of"
@@ -49,13 +49,14 @@ gem "jquery-datatables"
 gem 'ajax-datatables-rails', '> 1.0.0'
 gem 'rails-jquery-autocomplete' # :git=>"https://github.com/jwechsler/rails3-jquery-autocomplete.git" #:path=>'/Users/jeremyw/dev/rails3-jquery-autocomplete'
 
-gem 'sass'
-gem 'sass-rails'
+gem 'sassc-rails'
+# gem 'sass'  # Remove this line as we're using sassc
+# gem 'sass-rails'  # Remove this line as we're using sassc-rails
 gem 'coffee-rails'
 gem 'uglifier'
 # Add Foundation Here
 gem 'bourbon'
-gem 'foundation-rails'
+gem 'foundation-rails', '~> 6.6.2.0'  # This version uses older Sass syntax
 gem 'foundation-icons-sass-rails'
 gem 'autoprefixer-rails'
 
@@ -66,7 +67,7 @@ gem 'foundation-datetimepicker-rails'
 # gem 'jqgrid-rails3', :git=>"https://github.com/davebaldwin/jqgrid-rails3.git"
 #gem "name_parse", "~> 0.0.5"
 gem "namae"
-gem "redis", "< 4.8.0"
+gem "redis", "~> 4.2.0"
 
 gem "ri_cal", :git=>"https://github.com/ctide/ri_cal.git"
 
@@ -80,7 +81,7 @@ gem 'resque-lock-timeout'
 gem 'config', :git=>'https://github.com/railsconfig/config.git'
 gem 'responders'
 gem 'decent_exposure'
-gem 'activestorage-validator' # validates blobs for activestorage
+gem 'activestorage-validator', '0.4.0' # validates blobs for activestorage
 
 gem 'dotenv-rails', groups: [:development, :test]
 gem 'image_processing'
@@ -91,6 +92,8 @@ gem 'whiny_validation'
 
 #reports
 gem 'chartkick'
+
+gem "nio4r", "~> 2.5"
 
 group :development do
   gem 'listen'
