@@ -9,9 +9,7 @@ class TicketOrdersController < ApplicationController
   respond_to :html
 
   def edit
-    # @ticket_order = TicketOrder.find(params[:id].to_i)
     preset_line_items_for_display(@ticket_order)
-
   end
 
   def create
@@ -20,6 +18,12 @@ class TicketOrdersController < ApplicationController
     @ticket_order.ip_address = request.remote_ip
     @ticket_order.create_default_service_fees
     @ticket_order.status = Order::NEW
+    
+    # Set special offer code from cookie if not provided in params
+    if @ticket_order.special_offer_code.blank? && cookies['spofrcode'].present?
+      @ticket_order.special_offer_code = cookies['spofrcode']
+    end
+    
     update_or_create
   end
 
@@ -51,6 +55,11 @@ class TicketOrdersController < ApplicationController
   def update_or_create
     respond_to do |format|
       if !params[:commit].blank? && validate_web_order(@ticket_order) && process_order(@ticket_order, convert_button_label_to_state(params[:commit]))
+        # Clear the special offer cookie if order is processed
+        if @ticket_order.processing? || @ticket_order.processed?
+          cookies.delete(:spofrcode)
+        end
+        
         if @ticket_order.processing?
           format.html { render '/ticket_orders/confirm' }
         else

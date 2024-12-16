@@ -12,6 +12,12 @@ class ProductionPerformanceOrdersController < ApplicationController
       end
     else
       @ticket_order = create_ticket_order_for_performance(@performance)
+      # Set special offer code from cookie if not already set
+      if @ticket_order.special_offer_code.blank? && cookies['spofrcode'].present?
+        @ticket_order.special_offer_code = cookies['spofrcode']
+        @ticket_order.save
+      end
+      
       @order_for_to_s = @production.name + ' on ' + @performance.performance_date.to_formatted_s(:long_ordinal) +
           ' at ' + @performance.performance_time.to_formatted_s(:hour_min)
 
