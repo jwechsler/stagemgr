@@ -1,6 +1,7 @@
 spec/examples.txt
 config/pay_pal_credentials.yml
 
+.windsurfrules
 .rbenv-version
 .sync/*
 .powrc

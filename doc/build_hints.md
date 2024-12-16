@@ -1,31 +1,48 @@
 # Build Hints
 
-## MySQL2 Gem Installation
+## Local Development Setup
 
-When installing the `mysql2` gem on macOS with MySQL 8+ and zstd dependencies, you need to set specific environment variables:
+Before running bundle install locally on macOS, source the environment setup script that is in site/bin:
 
 ```bash
-export LDFLAGS="-L/opt/homebrew/opt/zstd/lib -lzstd"
+source ~/dev/site/bin/setup_local_env.sh
+bundle install
+```
+
+## MySQL2 and SQLite3 Gem Installation
+
+When installing the `mysql2` and `sqlite3` gems on macOS, we use environment variables to configure the build process. The setup_local_env.sh script contains:
+
+```bash
+# Set up zstd dependencies
+export LDFLAGS="-L/opt/homebrew/opt/zstd/lib -lzstd $LDFLAGS"
 export LIBRARY_PATH="/opt/homebrew/opt/zstd/lib:$LIBRARY_PATH"
+
+# SQLite3 build configuration
+export BUNDLE_BUILD__SQLITE3="--with-sqlite3-include=/opt/homebrew/opt/sqlite/include --with-sqlite3-lib=/opt/homebrew/opt/sqlite/lib"
+
+# MySQL2 build configuration
+export BUNDLE_BUILD__MYSQL2="--with-mysql-config=/opt/homebrew/opt/mysql-client/bin/mysql_config"
 ```
 
-Then install the gem with:
-
-```bash
-gem install mysql2 -- --with-mysql-config=/opt/homebrew/opt/mysql-client/bin/mysql_config --verbose
+For Docker environments, these are set in the Dockerfile:
+```dockerfile
+ENV BUNDLE_BUILD__SQLITE3="--with-sqlite3-include=/usr/include --with-sqlite3-lib=/usr/lib"
+ENV BUNDLE_BUILD__MYSQL2="--with-mysql-config=/usr/bin/mysql_config"
 ```
 
-### Common Issues
+### Prerequisites
 
-1. **Missing zstd Library**: If you encounter `ld: library 'zstd' not found`, make sure to:
-   - Install zstd: `brew install zstd`
-   - Set both `LDFLAGS` and `LIBRARY_PATH` as shown above
+Make sure you have the following installed:
 
-2. **MySQL Client**: Ensure MySQL client is installed:
-   - Install: `brew install mysql-client`
-   - Check installation: `ls /opt/homebrew/opt/mysql-client/lib`
+- Homebrew
+- MySQL Client: `brew install mysql-client`
+- SQLite: `brew install sqlite3`
+- zstd: `brew install zstd`
 
-3. **Version Compatibility**: 
+### Version Requirements
+
+For optimal compatibility:
    - MySQL Server: 8.x
    - MySQL Client: 8.x
    - Avoid mixing major versions of MySQL server and client
