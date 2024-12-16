@@ -117,7 +117,7 @@ end
 
 # was also :cucumber, but I don't know why...
 group :test do
-  gem 'sqlite3', '~> 1.4.0'
+  gem 'sqlite3', '~> 1.6.9'
   gem 'rails-controller-testing'
   gem 'byebug'
   gem 'factory_bot_rails'
