@@ -10,6 +10,7 @@ class TicketOrdersController < ApplicationController
 
   def edit
     preset_line_items_for_display(@ticket_order)
+    @has_referral_cookie = cookies['referral_code'].present?
   end
 
   def create

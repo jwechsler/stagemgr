@@ -26,6 +26,8 @@ class ProductionPerformanceOrdersController < ApplicationController
         @ticket_order.marketing_source = cookies['referral_code']
       end
       
+      @has_referral_cookie = cookies['referral_code'].present?
+      
       @order_for_to_s = @production.name + ' on ' + @performance.performance_date.to_formatted_s(:long_ordinal) +
           ' at ' + @performance.performance_time.to_formatted_s(:hour_min)
 
