@@ -53,7 +53,7 @@
               .small-8.cell
                 = order_form.input_field :marketing_source, :collection=>Order::REFERRALS
             - else
-              = order_form.hidden_field :marketing_source
+              = order_form.hidden_field :marketing_source, value: order_form.object.marketing_source
           .grid-x.grid-padding-x.panel
             .small-6.cell
               %p

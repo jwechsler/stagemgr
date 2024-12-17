@@ -11,6 +11,12 @@ class Order < ApplicationRecord
   belongs_to :payment_type, required: false
   belongs_to :address, inverse_of: :orders
   validates :address, presence: true
+
+  # Validates marketing source format if it's not one of the standard referrals
+  validates :marketing_source, format: { with: /\A[a-zA-Z0-9_\s-]*\z/, message: "can only contain letters, numbers, spaces, underscores and hyphens" }, allow_blank: true
+  validate :validate_marketing_source
+
+  
   
   belongs_to :recipient_address, class_name: 'Address', foreign_key: :recipient_address_id, required: false, inverse_of: :orders_as_recipient
 
@@ -90,6 +96,16 @@ class Order < ApplicationRecord
   # Custom validation method
   def validate_membership_payments
     membership_payments.each { |p| p.membership.verify_applicable_for(self)}
+  end
+
+  def validate_marketing_source
+    return if marketing_source.blank?
+    return if REFERRALS.include?(marketing_source)
+    
+    # If it's not a standard referral, ensure it's not too long for the database
+    if marketing_source.length > 255
+      errors.add(:marketing_source, "is too long (maximum is 255 characters)")
+    end
   end
 
   #scopes 
@@ -887,4 +903,3 @@ class Order < ApplicationRecord
 
 
 end
-

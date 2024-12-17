@@ -10,7 +10,19 @@ class TicketOrdersController < ApplicationController
 
   def edit
     preset_line_items_for_display(@ticket_order)
-    @has_referral_cookie = cookies['referral_code'].present?
+    # Check both cookie and URL parameter for referral code
+    @has_referral_cookie = cookies['referral_code'].present? || params[:referral_code].present?
+    
+    # Ensure referral code is stored as string
+    if params[:referral_code].present?
+      cookies['referral_code'] = params[:referral_code].to_s
+    end
+    
+    # Set marketing source from referral_code cookie if present
+    if @has_referral_cookie && @ticket_order.marketing_source.blank?
+      referral = cookies['referral_code'].to_s
+      @ticket_order.marketing_source = referral
+    end
   end
 
   def create
@@ -27,7 +39,8 @@ class TicketOrdersController < ApplicationController
     
     # Set marketing source from referral_code cookie only if not provided in params (including blank)
     if !params[:ticket_order].key?(:marketing_source) && cookies['referral_code'].present?
-      @ticket_order.marketing_source = cookies['referral_code']
+      referral = cookies['referral_code'].to_s
+      @ticket_order.marketing_source = referral if Order::REFERRALS.include?(referral)
     end
     
     update_or_create
