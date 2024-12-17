@@ -60,9 +60,6 @@ class Order < ApplicationRecord
       "Email", "Mail", "Cast/Staff/Production Team", "Review/Feature", "Radio", "Newspaper Ad", "Facebook", "Twitter", "Word of Mouth", "Attended previous production", "Other"
   ].freeze
 
-  # Validates marketing source format if it's not one of the standard referrals
-  validates :marketing_source, format: { with: /\A[a-zA-Z0-9_-]*\z/, message: "can only contain letters, numbers, underscores and hyphens" }, allow_blank: true
-  validate :validate_marketing_source
 
   # Order statuses that are considered transitory
   audited
@@ -639,14 +636,201 @@ class Order < ApplicationRecord
     # code here
   end
 
-  def validate_marketing_source
-    return if marketing_source.blank?
-    return if REFERRALS.include?(marketing_source)
-    
-    # If it's not a standard referral, ensure it's not too long for the database
-    if marketing_source.length > 255
-      errors.add(:marketing_source, "is too long (maximum is 255 characters)")
+  def create_credit_card_payment(amount)
+    new_payment = CreditCardPayment.new(
+        :amount => amount,
+        :address => self.address,
+        :card_number => self.credit_card_number,
+        :card_expiration_month => self.credit_card_expiration_month,
+        :card_expiration_year => self.credit_card_expiration_year,
+        :card_type => self.credit_card_type,
+        :card_verification_number => self.credit_card_verification_number,
+        :confirmation_code => self.credit_card_confirmation_code,
+        :ip_address => self.ip_address
+    )
+    payments << new_payment
+    new_payment.process!
+  end
+
+  def preset_line_items
+
+  end
+
+  def transition_new_to_hold!(redirect_to = nil)
+    self.status = Order::HOLD
+    self.save!
+    redirect_to
+  end
+
+  def transition_processed_to_processed!(redirect_to = nil)
+    self.save!
+    redirect_to
+  end
+
+  def transition_fulfilled_to_fulfilled!(redirect_to = nil)
+    redirect_to
+  end
+
+  def transition_new_to_processed!(redirect_to = nil)
+      self.transition_new_to_processing!(redirect_to)
+      self.transition_processing_to_processed!(redirect_to)
+  end
+
+  def transition_new_to_processing!(redirect_to = nil)
+    Order.transaction do
+      self.status = Order::PROCESSING
+      self.save!
+      self.update_special_offer_line_item_from_code! unless self.special_offer_code.blank?
+      self.save!
     end
+    redirect_to
+  end
+
+
+  def transition_hold_to_processing!(redirect_to = nil)
+    transition_new_to_processing!(redirect_to)
+  end
+
+  def transition_hold_to_processed!(redirect_to = nil)
+    transition_new_to_processing!(redirect_to)
+    transition_processing_to_processed!(redirect_to)
+  end
+
+  def transition_hold_to_hold!(redirect_to = nil)
+    self.save!
+    redirect_to
+  end
+
+  def transition_processing_to_processed!(redirect_to = nil)
+    Order.transaction do
+      if self.valid?
+        self.update_special_offer_line_item_from_code! unless (self.special_offer_code.blank? || !self.special_offer_line_item.nil?)
+        self.special_offer_line_item.special_offer.apply_to_order(self) unless special_offer_line_item.nil?
+        create_proper_payment_in_amount_of!(self.total)
+        self.status = Order::PROCESSED
+        self.set_email_confirmation
+        self.special_offer_line_item.mark_redeemed unless self.special_offer_line_item.nil?
+        self.save!
+        self.remove_suppressed_service_items
+        save_additional_donation_order(self.additional_donation, Theater.default_theater) unless (self.additional_donation.blank? || self.additional_donation.to_i == 0)
+        save_additional_donation_order(self.additional_donation_for_other) unless (self.additional_donation_for_other.blank? || self.additional_donation_for_other.to_i == 0)
+      end
+    end
+    redirect_to
+  end
+
+  def transition_unclaimed_to_fulfilled!(redirect_to = nil)
+    transition_processed_to_fulfilled!(redirect_to)
+  end
+
+  def transition_hold_to_fulfilled!(redirect_to = nil)
+    redirect_to = transition_hold_to_processed!(redirect_to)
+    transition_processed_to_fulfilled!
+  end
+
+  def transition_processed_to_fulfilled!(redirect_to = nil)
+    self.status = Order::FULFILLED
+    self.save!
+    redirect_to
+  end
+
+  def self.allowed_for(user)
+    result = Order.all
+    result = result.where("orders.theater_id in (?)", user.theater_ids) if user.is_theater_user?
+    result
+  end
+
+  #
+  # delete service items that are suppressed for pass payments
+  #
+  def remove_suppressed_service_items
+    if self.payment_type.is_a? PassPaymentType
+      self.service_line_items.select{|sli| sli.suppress_for_pass_payments?}.each{|sli| sli.destroy}
+    end
+  end
+
+  def create_recipient_address
+      new_owner = Address.new(:full_name=>self.recipient_name, :email=>self.recipient_email)
+      new_owner = new_owner.find_original || new_owner
+      new_owner.save!
+      self.recipient_address_id = new_owner.id
+  end
+
+  def set_defaults
+    self.status ||= HOLD
+    self.hold_under = self.address.full_name if self.hold_under.blank?
+  end
+
+  def create_mail_list_task
+    if self.add_to_email_list == "1" && !self.address.email.blank?
+      task = MyEmmaTask.new(:execute_at=>Time.now + 5.minutes, order: self)
+      task.save! 
+    end
+  end
+
+  def create_address_of_record_task
+    task = LinkToAddressOfRecordTask.new(order: self, execute_at: Time.now + 5.minutes)
+    task.save!
+  end
+
+  def create_receipt_task
+  end
+
+  def create_transfer_ownership_task
+  end
+
+  def create_notify_refund_task
+  end
+
+  def newly_canceled?
+    self.status_changed? && [UNCLAIMED, CANCELED, REFUNDED, EXCHANGED].include?(self.status)
+  end
+
+  def set_tasks_after_save
+    if self.do_not_create_tasks.nil? && self.saved_change_to_status?
+      case self.status
+        when PROCESSED
+          create_mail_list_task
+          create_receipt_task
+          create_transfer_ownership_task if self.gift?
+      end
+    end
+    if self.saved_change_to_status? && self.status.eql?(Order::PROCESSED)
+      create_address_of_record_task
+    end
+
+  end
+
+  
+  def copy_payment_information(from_order)
+    self.credit_card_number = from_order.credit_card_number
+    self.credit_card_type = from_order.credit_card_type
+    self.credit_card_expiration_year = from_order.credit_card_expiration_year
+    self.credit_card_expiration_month = from_order.credit_card_expiration_month
+    self.credit_card_confirmation_code = from_order.credit_card_confirmation_code
+    self.credit_card_verification_number = from_order.credit_card_verification_number
+    self.flex_pass_code = from_order.flex_pass_code
+    self.member_code = from_order.member_code
+  end
+
+  private
+  
+  def save_additional_donation_order(donation_amount, credit_to_theater = nil)
+    donation = DonationOrder.new(:address => self.address, :payment_type => self.payment_type, :status => Order::NEW)
+    donation.copy_payment_information(self)
+    donation.campaign = self.performance.production.name unless self.performance.nil?
+    donation.theater = credit_to_theater.nil? ? self.theater : credit_to_theater
+    donation.donation_line_items.build(:amount => donation_amount)
+    donation.transition_to!(Order::PROCESSED)
+  end
+
+  protected # validation methods
+  def set_uuid_on_create
+    self.uuid ||= SecureRandom.uuid if new_record?
+  end
+
+  def cascade_address_to_nested_items
+    # override as necessary in sub classes
   end
 
   # something about all the overloaded order/line items breaks the normal
@@ -665,8 +849,8 @@ class Order < ApplicationRecord
     return unless gift?
 
     new_owner = Address.new(full_name: recipient_name, email: recipient_email)
-    new_owner = new_owner.find_original || new_owner
     new_owner.save!
+    new_owner = new_owner.find_original || new_owner
     self.recipient_address_id = new_owner.id
   end
 
@@ -703,3 +887,4 @@ class Order < ApplicationRecord
 
 
 end
+
