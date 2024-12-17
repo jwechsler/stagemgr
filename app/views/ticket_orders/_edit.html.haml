@@ -47,10 +47,13 @@
           .small-12.cell
             = render '/orders/additional_donation', :order_form => order_form, :order => order
           .grid-x.grid-padding-x
-            .small-4.cell
-              =order_form.label :marketing_source, "How did you hear about the show?", :class=>'right inline'
-            .small-8.cell
-              = order_form.input_field :marketing_source, :collection=>Order::REFERRALS
+            - if !@has_referral_cookie
+              .small-4.cell
+                =order_form.label :marketing_source, "How did you hear about the show?", :class=>'right inline'
+              .small-8.cell
+                = order_form.input_field :marketing_source, :collection=>Order::REFERRALS
+            - else
+              = order_form.hidden_field :marketing_source
           .grid-x.grid-padding-x.panel
             .small-6.cell
               %p
