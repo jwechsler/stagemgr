@@ -19,9 +19,14 @@ class TicketOrdersController < ApplicationController
     @ticket_order.create_default_service_fees
     @ticket_order.status = Order::NEW
     
-    # Set special offer code from cookie if not provided in params
-    if @ticket_order.special_offer_code.blank? && cookies['spofrcode'].present?
+    # Set special offer code from cookie only if not provided in params (including blank)
+    if !params[:ticket_order].key?(:special_offer_code) && cookies['spofrcode'].present?
       @ticket_order.special_offer_code = cookies['spofrcode']
+    end
+    
+    # Set marketing source from referral_code cookie only if not provided in params (including blank)
+    if !params[:ticket_order].key?(:marketing_source) && cookies['referral_code'].present?
+      @ticket_order.marketing_source = cookies['referral_code']
     end
     
     update_or_create

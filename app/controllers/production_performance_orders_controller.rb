@@ -12,10 +12,18 @@ class ProductionPerformanceOrdersController < ApplicationController
       end
     else
       @ticket_order = create_ticket_order_for_performance(@performance)
-      # Set special offer code from cookie if not already set
-      if @ticket_order.special_offer_code.blank? && cookies['spofrcode'].present?
+      # Debug logging
+      Rails.logger.info "Marketing source from params: #{params.dig(:ticket_order, :marketing_source).inspect}"
+      Rails.logger.info "Referral code cookie: #{cookies['referral_code'].inspect}"
+      
+      # Set special offer code from cookie only if not provided in params (including blank)
+      if !params.dig(:ticket_order, :special_offer_code) && cookies['spofrcode'].present?
         @ticket_order.special_offer_code = cookies['spofrcode']
-        @ticket_order.save
+      end
+      
+      # Set marketing source from referral_code cookie only if not provided in params (including blank)
+      if !params.dig(:ticket_order, :marketing_source) && cookies['referral_code'].present?
+        @ticket_order.marketing_source = cookies['referral_code']
       end
       
       @order_for_to_s = @production.name + ' on ' + @performance.performance_date.to_formatted_s(:long_ordinal) +
