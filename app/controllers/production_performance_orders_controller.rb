@@ -19,15 +19,13 @@ class ProductionPerformanceOrdersController < ApplicationController
       # Set special offer code from cookie only if not provided in params (including blank)
       if !params.dig(:ticket_order, :special_offer_code) && cookies['spofrcode'].present?
         @ticket_order.special_offer_code = cookies['spofrcode']
+        cookies.delete('spofrcode')
       end
       
       # Set marketing source from referral_code only if not already set in params
-      if !params.dig(:ticket_order, :marketing_source)
-        if params[:referral_code].present?
-          @ticket_order.marketing_source = params[:referral_code].to_s
-        elsif cookies['referral_code'].present?
-          @ticket_order.marketing_source = cookies['referral_code'].to_s
-        end
+      if !params.dig(:ticket_order, :marketing_source) && (params[:referral_code].present? || cookies['referral_code'].present?)
+        referral = params[:referral_code].presence || cookies['referral_code'].to_s
+        @ticket_order.marketing_source = referral
       end
       
       # Check both cookie and URL parameter for referral code

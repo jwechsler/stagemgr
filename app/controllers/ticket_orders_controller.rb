@@ -35,6 +35,7 @@ class TicketOrdersController < ApplicationController
     # Set special offer code from cookie only if not provided in params (including blank)
     if !params[:ticket_order].key?(:special_offer_code) && cookies['spofrcode'].present?
       @ticket_order.special_offer_code = cookies['spofrcode']
+      cookies.delete('spofrcode')
     end
     
     # Set marketing source from referral_code cookie only if not provided in params (including blank)
