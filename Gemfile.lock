@@ -494,7 +494,7 @@ GEM
       ffi (~> 1.12)
       logger
     ruby2_keywords (0.0.5)
-    rubyzip (1.3.0)
+    rubyzip (2.4.1)
     rufus-scheduler (3.9.2)
       fugit (~> 1.1, >= 1.11.1)
     sass (3.7.4)
@@ -515,11 +515,10 @@ GEM
     scrypt (3.0.8)
       ffi-compiler (>= 1.0, < 2.0)
       rake (>= 9, < 14)
-    selenium-webdriver (2.42.0)
-      childprocess (>= 0.5.0)
-      multi_json (~> 1.0)
-      rubyzip (~> 1.0)
-      websocket (~> 1.0.4)
+    selenium-webdriver (4.16.0)
+      rexml (~> 3.2, >= 3.2.5)
+      rubyzip (>= 1.2.2, < 3.0)
+      websocket (~> 1.0)
     semantic_range (3.1.0)
     simple-form-datepicker (0.1.3)
       simple_form
@@ -594,7 +593,7 @@ GEM
       railties (>= 5.2)
       semantic_range (>= 2.3.0)
     webrick (1.9.1)
-    websocket (1.0.7)
+    websocket (1.2.11)
     websocket-driver (0.7.6)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.5)
@@ -691,7 +690,7 @@ DEPENDENCIES
   ruby-vips
   sassc-rails
   scrypt
-  selenium-webdriver (< 3.2.5)
+  selenium-webdriver (~> 4.15)
   simple-form-datepicker
   simple_form (~> 5.1)
   simplecov

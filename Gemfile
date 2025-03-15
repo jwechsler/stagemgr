@@ -124,7 +124,7 @@ group :test do
   gem 'capybara'
   gem 'puma'
   # gem 'poltergeist'
-  gem 'selenium-webdriver', '< 3.2.5'
+  gem 'selenium-webdriver', '~> 4.15' # Latest stable version
   gem 'cucumber-rails', '2.5.1', :require=>false
   gem 'simplecov'
   gem 'database_cleaner-active_record'

@@ -6,6 +6,26 @@
 
 require 'cucumber/rails'
 
+require 'selenium-webdriver'
+require 'capybara'
+
+Capybara.register_driver :selenium do |app|
+  options = Selenium::WebDriver::Firefox::Options.new
+  options.args << '--headless' # Optional: run in headless mode
+  options.args << '--no-sandbox'
+  options.args << '--disable-dev-shm-usage'
+  options.args << '--ignore-certificate-errors'
+  options.args << '--allow-insecure-localhost'
+
+  # Add this to disable security checks that interfere with WebDriver
+  options.profile = Selenium::WebDriver::Firefox::Profile.new
+  options.profile['network.stricttransportsecurity.preloadlist'] = false
+  options.profile['security.cert_pinning.enforcement_level'] = 0
+
+  Capybara::Selenium::Driver.new(app, browser: :firefox, options: options)
+end
+
+Capybara.default_driver = :selenium
 # Capybara defaults to CSS3 selectors rather than XPath.
 # If you'd prefer to use XPath, just uncomment this line and adjust any
 # selectors in your step definitions to use the XPath syntax.

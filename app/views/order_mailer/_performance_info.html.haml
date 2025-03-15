@@ -1,7 +1,7 @@
 
 = render :partial=>"confirmation_ticket_details", :locals=>{:order=>order}
 
-- unless order.performance.production.production_class.eql?(Production::EXTERNAL) || order.performance.production.production_class.eql?(Production::CONFERENCE)
+- unless order.performance.production.treat_as_special_event?
   %h4 Handy stuff you'll want to know
 
   = render :partial=>"transportation_instructions", :locals=>{:order=>order}
