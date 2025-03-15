@@ -14,16 +14,25 @@
   = "presented by #{order.theater.name}" unless order.theater.is_default?
   on
   = "#{order.performance.performance_date.strftime('%A, %B %_d')}."
-  Your tickets will be waiting at the box office under
-  - display_payment = order.hold_under.blank? ? 'your name' : order.hold_under
-  - if !order.membership_payments.empty?
-    = display_payment + " and were purchased with your #{order.membership_payments.first.membership.membership_offer.name}."
-  - elsif !order.flex_pass_payments.empty?
-    = display_payment + " and were purchased with your flex pass."
-  - elsif order.customer_visible_total <= 0
-    = display_payment + "."
+  - unless order.performance.production.production_class.eql?(Production::EXTERNAL) || order.performance.production.production_class.eql?(Production::CONFERENCE)
+    Your tickets will be waiting at the box office under
+    - display_payment = order.hold_under.blank? ? 'your name' : order.hold_under
+    - if !order.membership_payments.empty?
+      = display_payment + " and were purchased with your #{order.membership_payments.first.membership.membership_offer.name}."
+    - elsif !order.flex_pass_payments.empty?
+      = display_payment + " and were purchased with your flex pass."
+    - elsif order.customer_visible_total <= 0
+      = display_payment + "."
+    - else
+      = display_payment + " and the total charge was $#{'%0.2f' % order.customer_visible_total}."
   - else
-    = display_payment + " and the total charge was $#{'%0.2f' % order.customer_visible_total}."
+    - if !order.membership_payments.empty?
+      They were purchased with your #{order.membership_payments.first.membership.membership_offer.name}.
+    - elsif !order.flex_pass_payments.empty?
+      They were purchased with your flex pass.
+    - elsif order.customer_visible_total > 0
+      The total charge was $#{'%0.2f' % order.customer_visible_total}.
+    
   - unless order.performance.production.allow_late_seating?
     %b Please note, there is no late seating available for this performance.
 

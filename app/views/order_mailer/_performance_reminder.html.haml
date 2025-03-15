@@ -8,8 +8,9 @@
   = order.performance.performance_time.strftime('%l:%M %p')
   this
   = "#{Date::DAYNAMES[order.performance.performance_date.wday]}."
-  We look forward to seeing you! Your tickets will be waiting at the box office under
-  = order.hold_under.blank? ? 'your name' : order.hold_under
+  - unless order.performance.production.production_class.eql?(Production::EXTERNAL) || order.performance.production.production_class.eql?(Production::CONFERENCE)
+    We look forward to seeing you! Your tickets will be waiting at the box office under
+    = order.hold_under.blank? ? 'your name' : order.hold_under
 - unless order.performance.production.allow_late_seating
   %p
     Please note, there is no late seating available for this performance.
@@ -18,4 +19,5 @@
 
 %p
   %i
-    See you at the theater!
+    - unless order.performance.production.production_class.eql?(Production::EXTERNAL) || order.performance.production.production_class.eql?(Production::CONFERENCE)
+      See you at the theater!

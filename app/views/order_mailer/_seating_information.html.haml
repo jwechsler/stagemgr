@@ -1,4 +1,4 @@
-- if order.performance.production.has_reserved_seating?
+- if order.performance.production.has_reserved_seating? && !(order.performance.production.production_class.eql?(Production::EXTERNAL) || order.performance.production.production_class.eql?(Production::CONFERENCE))
   %p
     You have reserved seating for this performance.
     - seat_list = order.seats.map {|sa| sa.seat.location}.sort.join(', ')
