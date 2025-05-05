@@ -47,7 +47,7 @@ class TicketClass < ApplicationRecord
     if exclude_order.nil?
       TicketLineItem.where("ticket_class_id = :tc_id and exists (select * from orders where orders.id = order_id and performance_id = :performance_id)" , tc_id: self.id, performance_id: performance.id).sum(:ticket_count)
     else
-      TicketLineItem.where('ticket_class_id = :tc_id and exists (select * from orders where orders.id = order_id and performance_id = <:performance_></:performance_>id) and order_id != :order_id', tc_id: self.id, performance_id: performance.id, order_id: exclude_order.id).sum(:ticket_count)
+      TicketLineItem.where('ticket_class_id = :tc_id and exists (select * from orders where orders.id = order_id and performance_id = :performance_id) and order_id != :order_id', tc_id: self.id, performance_id: performance.id, order_id: exclude_order.id).sum(:ticket_count)
     end
   end
 

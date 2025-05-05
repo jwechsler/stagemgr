@@ -117,7 +117,7 @@ module PaymentProcessing
       :brand => credit_card_type(card_type),
       :first_name => first_name,
       :last_name => last_name,
-      :number => $PAYMENT_CONFIG.has_key?('test_credit_card') ? $PAYMENT_CONFIG['test_credit_card'] : card_number,
+      :number => $PAYMENT_CONFIG.has_key?('test_credit_card') ? $PAYMENT_CONFIG['test_credit_card'].to_s : card_number,
       :month => card_expiration_month,
       :year => card_expiration_year,
       :verification_value => verification_number
