@@ -1,4 +1,4 @@
-source 'http://rubygems.org'
+source 'https://rubygems.org'
 # source 'https://rails-assets.org'
 
 gem 'rails', '~> 6.1'
@@ -36,7 +36,7 @@ gem "i18n"          # i18n exposes for dates and money gem
 gem "money"
 gem "money-rails"
 gem "monetize"
-gem 'base64', '0.1.1', platforms: :ruby
+# Removed base64 gem as it's part of Ruby 3.2.2 standard library
 # gem "gemcutter"
 gem 'font-awesome-rails'
 gem "cocoon"
@@ -67,7 +67,7 @@ gem 'foundation-datetimepicker-rails'
 # gem 'jqgrid-rails3', :git=>"https://github.com/davebaldwin/jqgrid-rails3.git"
 #gem "name_parse", "~> 0.0.5"
 gem "namae"
-gem "redis", "~> 4.2.0"
+gem "redis", "~> 4.8.0"  # Updated for better Ruby 3.2.2 compatibility
 
 gem "ri_cal", :git=>"https://github.com/ctide/ri_cal.git"
 

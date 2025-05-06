@@ -2,6 +2,7 @@ class TicketOrdersController < ApplicationController
   layout $SERVER_CONFIG['ext_site_wrapper']
   include TicketOrdersHelper
 
+  # No login requirement since this is a public controller
   before_action :find_order, :only => [:show, :edit, :update, :destroy, :confirm]
   before_action :redirect_to_proper_action, :only => [:edit]
   # skip_before_action :verify_authenticity_token, :only => [:create]
@@ -13,15 +14,21 @@ class TicketOrdersController < ApplicationController
     # Check both cookie and URL parameter for referral code
     @has_referral_cookie = cookies['referral_code'].present? || params[:referral_code].present?
     
-    # Ensure referral code is stored as string
+    # Ensure referral code is stored as string with proper security settings
     if params[:referral_code].present?
-      cookies['referral_code'] = params[:referral_code].to_s
+      cookies['referral_code'] = {
+        value: params[:referral_code].to_s,
+        expires: 2.days.from_now,
+        secure: Rails.env.production?,
+        httponly: true
+      }
     end
     
     # Set marketing source from referral_code cookie if present
     if @has_referral_cookie && @ticket_order.marketing_source.blank?
       referral = cookies['referral_code'].to_s
-      @ticket_order.marketing_source = referral
+      # Only set if it's in the allowed REFERRALS list to avoid validation errors
+      @ticket_order.marketing_source = Order::REFERRALS.include?(referral) ? referral : "Other"
     end
   end
 
@@ -35,13 +42,16 @@ class TicketOrdersController < ApplicationController
     # Set special offer code from cookie only if not provided in params (including blank)
     if !params[:ticket_order].key?(:special_offer_code) && cookies['spofrcode'].present?
       @ticket_order.special_offer_code = cookies['spofrcode']
-      cookies.delete('spofrcode')
+      # Delete cookie securely
+      cookies.delete('spofrcode', secure: Rails.env.production?, httponly: true)
     end
     
     # Set marketing source from referral_code cookie only if not provided in params (including blank)
     if !params[:ticket_order].key?(:marketing_source) && cookies['referral_code'].present?
+      # Ensure referral is always a string to avoid =~ error on integers
       referral = cookies['referral_code'].to_s
-      @ticket_order.marketing_source = referral if Order::REFERRALS.include?(referral)
+      # Only set if it's in the allowed REFERRALS list to avoid validation errors
+      @ticket_order.marketing_source = Order::REFERRALS.include?(referral) ? referral : "Other"
     end
     
     update_or_create
@@ -77,7 +87,7 @@ class TicketOrdersController < ApplicationController
       if !params[:commit].blank? && validate_web_order(@ticket_order) && process_order(@ticket_order, convert_button_label_to_state(params[:commit]))
         # Clear the special offer cookie if order is processed
         if @ticket_order.processing? || @ticket_order.processed?
-          cookies.delete(:spofrcode)
+          cookies.delete('spofrcode', secure: Rails.env.production?, httponly: true)
         end
         
         if @ticket_order.processing?
