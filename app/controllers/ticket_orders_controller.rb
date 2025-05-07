@@ -1,3 +1,8 @@
+# This controller handles the public-facing ticket ordering process.
+# It manages the creation and editing of ticket orders, including:
+# - Setting marketing source from referral cookies
+# - Handling special offer codes
+# - Processing order submissions
 class TicketOrdersController < ApplicationController
   layout $SERVER_CONFIG['ext_site_wrapper']
   include TicketOrdersHelper
@@ -14,7 +19,11 @@ class TicketOrdersController < ApplicationController
     # Check both cookie and URL parameter for referral code
     @has_referral_cookie = cookies['referral_code'].present? || params[:referral_code].present?
     
-    # Ensure referral code is stored as string with proper security settings
+    # Store referral code in a secure cookie with proper settings
+    # - Converts to string to avoid type errors
+    # - Sets proper expiration (2 days)
+    # - Uses secure flag in production
+    # - Sets httponly to prevent JavaScript access
     if params[:referral_code].present?
       cookies['referral_code'] = {
         value: params[:referral_code].to_s,
@@ -24,11 +33,13 @@ class TicketOrdersController < ApplicationController
       }
     end
     
-    # Set marketing source from referral_code cookie if present
+    # Set marketing source from referral_code cookie if present and marketing_source isn't already set
+    # This system integrates with external referral tracking systems or campaigns
     if @has_referral_cookie && @ticket_order.marketing_source.blank?
       referral = cookies['referral_code'].to_s
-      # Only set if it's in the allowed REFERRALS list to avoid validation errors
-      @ticket_order.marketing_source = Order::REFERRALS.include?(referral) ? referral : "Other"
+      # Set the marketing source directly - the validation in the model will ensure it's safe
+      # Note: REFERRALS list is for reporting/UI purposes and custom referral codes are also valid
+      @ticket_order.marketing_source = referral
     end
   end
 
@@ -50,8 +61,9 @@ class TicketOrdersController < ApplicationController
     if !params[:ticket_order].key?(:marketing_source) && cookies['referral_code'].present?
       # Ensure referral is always a string to avoid =~ error on integers
       referral = cookies['referral_code'].to_s
-      # Only set if it's in the allowed REFERRALS list to avoid validation errors
-      @ticket_order.marketing_source = Order::REFERRALS.include?(referral) ? referral : "Other"
+      # Set the marketing source directly - the validation in the model will ensure it's safe
+      # Note: REFERRALS list is for reporting/UI purposes and custom referral codes are also valid
+      @ticket_order.marketing_source = referral
     end
     
     update_or_create

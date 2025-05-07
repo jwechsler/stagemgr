@@ -23,7 +23,7 @@ GIT
       ostruct
 
 GEM
-  remote: http://rubygems.org/
+  remote: https://rubygems.org/
   specs:
     StreetAddress (1.0.6)
     actioncable (6.1.7.10)
@@ -440,7 +440,7 @@ GEM
       ffi (~> 1.0)
     rbx-require-relative (0.0.9)
     redcarpet (3.6.0)
-    redis (4.2.5)
+    redis (4.8.1)
     redis-namespace (1.11.0)
       redis (>= 4)
     regexp_parser (2.9.3)
@@ -622,7 +622,6 @@ DEPENDENCIES
   audited
   authlogic
   autoprefixer-rails
-  base64 (= 0.1.1)
   bond
   bootsnap
   bourbon
@@ -678,7 +677,7 @@ DEPENDENCIES
   rails-jquery-autocomplete
   rbx-require-relative
   redcarpet (~> 3.6)
-  redis (~> 4.2.0)
+  redis (~> 4.8.0)
   responders
   resque
   resque-lock-timeout

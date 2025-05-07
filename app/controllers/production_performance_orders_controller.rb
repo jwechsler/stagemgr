@@ -1,3 +1,10 @@
+# This controller handles the creation of ticket orders for specific performances.
+# It serves as an entry point for users browsing productions and selecting performances.
+# It handles:
+# - Creating new ticket orders for specific performances
+# - Setting marketing source from referral cookies or URL parameters
+# - Handling special offer codes from cookies
+# - Setting up the order form for the customer
 class ProductionPerformanceOrdersController < ApplicationController
 
   include OrdersHelper
@@ -17,7 +24,7 @@ class ProductionPerformanceOrdersController < ApplicationController
         Rails.logger.info "Marketing source from params: #{params.dig(:ticket_order, :marketing_source).inspect}"
         Rails.logger.info "Referral code cookie: #{cookies['referral_code'].inspect}"
         
-        # Store any provided referral code in a secure cookie
+        # Store referral code in a secure cookie with proper settings
         if params[:referral_code].present?
           cookies['referral_code'] = {
             value: params[:referral_code].to_s,
@@ -30,15 +37,17 @@ class ProductionPerformanceOrdersController < ApplicationController
         # Set special offer code from cookie only if not provided in params (including blank)
         if !params.dig(:ticket_order, :special_offer_code) && cookies['spofrcode'].present?
           @ticket_order.special_offer_code = cookies['spofrcode']
+          # Clean up the cookie after use with security settings
           cookies.delete('spofrcode', secure: Rails.env.production?, httponly: true)
         end
         
-        # Set marketing source from referral_code only if not already set in params
+        # Set marketing source from referral_code param or cookie if not already set in params
         if !params.dig(:ticket_order, :marketing_source) && (params[:referral_code].present? || cookies['referral_code'].present?)
           # Ensure referral is always a string to avoid =~ error on integers
           referral = (params[:referral_code].presence || cookies['referral_code']).to_s
-          # Only set if it's in the allowed REFERRALS list to avoid validation errors
-          @ticket_order.marketing_source = Order::REFERRALS.include?(referral) ? referral : "Other"
+          # Set the marketing source directly - the validation in the model will ensure it's safe
+          # Note: REFERRALS list is for reporting/UI purposes and custom referral codes are also valid
+          @ticket_order.marketing_source = referral
         end
         
         # Check both cookie and URL parameter for referral code
