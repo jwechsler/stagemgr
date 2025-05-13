@@ -93,7 +93,6 @@ gem 'whiny_validation'
 #reports
 gem 'chartkick'
 
-gem "nio4r", "~> 2.5"
 
 group :development do
   gem 'listen'
