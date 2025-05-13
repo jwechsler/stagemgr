@@ -4,15 +4,26 @@ require 'resque/scheduler/server'
 require 'resque-retry'
 require 'resque/failure/redis'
 require 'resque-retry/server'
+require 'redis'
 
 Resque::Failure::MultipleWithRetrySuppression.classes = [Resque::Failure::Redis]
 Resque::Failure.backend = Resque::Failure::MultipleWithRetrySuppression
 
-# Set the Redis server for Resque
-Resque.redis = ENV['REDIS_URL'] || 'redis://localhost:6379'
+# Set the Redis server for Resque with production-ready configuration
+redis_url = ENV['REDIS_URL'] || 'redis://localhost:6379'
+redis = Redis.new(
+  url: redis_url,
+  timeout: 5.0,               # Connection timeout in seconds
+  reconnect_attempts: 3,      # Number of reconnection attempts
+  reconnect_delay: 0.5,       # Delay between reconnection attempts in seconds
+  connect_timeout: 5.0,       # Timeout for initial connection
+  read_timeout: 5.0,          # Timeout for read operations
+  write_timeout: 5.0          # Timeout for write operations
+)
+Resque.redis = redis
 
-# Optionally set a namespace to prevent collisions
-# Resque.redis.namespace = "resque:stagemgr"
+# Set namespace to prevent Redis key collisions
+Resque.redis.namespace = "resque:stagemgr:#{Rails.env}"
 
 class Stagemgr::Resque < Resque::Server
 end

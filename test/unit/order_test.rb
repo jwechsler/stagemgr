@@ -126,7 +126,6 @@ class OrderTest < ActiveSupport::TestCase
           },
           "notes"=>"",
           "performance_code"=>@performance.performance_code,
-          "referral_code"=>"",
           "payment_type_id"=>@credit_card_payment_type.id,
           "credit_card_expiration_month"=>'09',
           "credit_card_expiration_year"=>'2014',
@@ -160,13 +159,14 @@ class OrderTest < ActiveSupport::TestCase
           },
           "notes"=>"",
           "performance_code"=>@performance2.performance_code,
-          "referral_code"=>"",
           "payment_type_id"=>@credit_card_payment_type.id,
           "credit_card_expiration_month"=>'09',
           "credit_card_expiration_year"=>'2014',
           "credit_card_verification_number"=>'123',
           "credit_card_number"=>'4111111111111111',
           "credit_card_type"=>'Visa',
+          "marketing_source"=>"Email",
+          "credit_card_confirmation_code"=>"",
           "status"=>Order::NEW
         }
         order = TicketOrder.create!(params_order)

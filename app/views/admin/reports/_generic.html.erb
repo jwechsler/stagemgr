@@ -19,7 +19,7 @@
           headers.each { |h| %>
         <td class="<%= if row[h].is_a?(Money)
             'currency'
-          elsif row[h].is_a?(Fixnum) || row[h].is_a?(Float)
+          elsif row[h].is_a?(Integer) || row[h].is_a?(Float)
             'numeric'
           elsif row[h].is_a?(TrueClass) || row[h].is_a?(FalseClass)
             'boolean'

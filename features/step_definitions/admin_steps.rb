@@ -1,7 +1,13 @@
 # Admin page navigation shortcuts
 
 Given("I visit the new admin ticket order page") do
+  # Set admin interface flag
+  @using_admin_interface = true
+  
+  # Click the "New Ticket Order" link which opens a modal dialog
   click_link "New Ticket Order"
+  
+  # Fill in the production code and submit the form
   fill_in 'production_code', :with=>Production.first.production_code
   page.execute_script("document.getElementById('new_production_id').value='#{Production.first.id}'")
   page.execute_script("document.getElementById('production-form').submit()")

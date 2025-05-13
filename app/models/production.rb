@@ -140,6 +140,12 @@ p
   def use_ticket_email_templates?
     return Production.performing_classes.include?(self.production_class)
   end
+  
+  # Indicates whether this production should be treated as a special event
+  # for email notification purposes - avoiding location-specific content
+  def treat_as_special_event?
+    self.production_class.eql?(Production::EXTERNAL) || self.production_class.eql?(Production::CONFERENCE)
+  end
 
   # placeholder for email list management through plugin engine
   def attendees_on_email_list

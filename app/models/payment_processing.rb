@@ -112,11 +112,12 @@ module PaymentProcessing
   end
 
   def self.credit_card(card_type, first_name, last_name, card_number, card_expiration_month, card_expiration_year, verification_number)
+    Rails.logger.debug("Using test credit card number of #{$PAYMENT_CONFIG['test_credit_card']}") if $PAYMENT_CONFIG.has_key?('test_credit_card') 
     credit_card = ActiveMerchant::Billing::CreditCard.new(
       :brand => credit_card_type(card_type),
       :first_name => first_name,
       :last_name => last_name,
-      :number => $PAYMENT_CONFIG.has_key?('test_credit_card') ? $PAYMENT_CONFIG['test_credit_card'] : card_number,
+      :number => $PAYMENT_CONFIG.has_key?('test_credit_card') ? $PAYMENT_CONFIG['test_credit_card'].to_s : card_number,
       :month => card_expiration_month,
       :year => card_expiration_year,
       :verification_value => verification_number
