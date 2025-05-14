@@ -13,8 +13,16 @@ namespace :resque do
     require 'resque-retry'
     require 'resque/failure/redis'
 
-    # you probably already have this somewhere
-    Resque.redis = 'localhost:6379'
+    # Connect to Redis using the same method as in initializers/resque.rb
+    redis_url = ENV["REDIS_URL"] || "redis://localhost:6379"
+    redis = Redis.new(url: redis_url)
+    
+    # Create a namespaced Redis instance
+    require 'redis/namespace'
+    redis_namespace = Redis::Namespace.new("stagemgr:#{Rails.env}", redis: redis)
+    
+    # Set Redis connection for Resque
+    Resque.redis = redis_namespace
 
     # If you want to be able to dynamically change the schedule,
     # uncomment this line.  A dynamic schedule can be updated via the

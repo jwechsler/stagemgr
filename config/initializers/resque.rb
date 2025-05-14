@@ -20,10 +20,13 @@ redis = Redis.new(
   read_timeout: 5.0,          # Timeout for read operations
   write_timeout: 5.0          # Timeout for write operations
 )
-Resque.redis = redis
 
-# Set namespace to prevent Redis key collisions
-Resque.redis.namespace = "resque:stagemgr:#{Rails.env}"
+# Create a namespaced Redis instance
+require 'redis/namespace'
+redis_namespace = Redis::Namespace.new("stagemgr:#{Rails.env}", redis: redis)
+
+# Set Redis connection for Resque
+Resque.redis = redis_namespace
 
 class Stagemgr::Resque < Resque::Server
 end

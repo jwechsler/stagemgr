@@ -73,10 +73,11 @@ gem "ri_cal", :git=>"https://github.com/ctide/ri_cal.git"
 
 # scheduling and crons
 gem "whenever", :require=>false
-gem 'resque', :require => 'resque/server'
+gem 'resque', '~> 2.6.0', :require => 'resque/server'
 gem 'resque-scheduler'
 gem 'resque-retry'  #, :git=>"https://github.com/jwechsler/resque-retry.git"
 gem 'resque-lock-timeout'
+gem 'redis-namespace'
 
 gem 'config', :git=>'https://github.com/railsconfig/config.git'
 gem 'responders'
