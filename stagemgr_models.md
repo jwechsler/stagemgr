@@ -495,28 +495,129 @@ The `AddressTag` class is used to tag addresses with additional information. Key
 - **Methods**: 
   - `has_trial?`, `trial_amount`, `active?`, `take_inactive_off_sale`, `on_sale_to_public?`.
 
-## FlexPass
-- **Inherits From**: `ApplicationRecord`
-- **Associations**: 
-  - Belongs to `address`, `flex_pass_offer`, `flex_pass_line_item`.
-  - Has many `flex_pass_payments`.
-- **Validations**: 
-  - Ensures presence of `expiration_date`, `flex_pass_offer`, `flex_pass_line_item`, `order`, `code`.
-- **Callbacks**: 
-  - Includes `before_create`, `after_create`, `before_destroy`, `before_validation`.
-- **Methods**: 
-  - `create_code`, `uses_remaining`, `available?`, `set_expiration_date`, `expired?`, `used_on_orders`, `queue_expiration`.
+## FlexPass System
 
-## FlexPassOffer
+The FlexPass system provides flexible ticketing options for patrons, allowing them to purchase a bundle of tickets upfront and use them for various performances over time.
+
+### FlexPass
 - **Inherits From**: `ApplicationRecord`
+- **Purpose**: Represents a specific flex pass purchased by a customer
 - **Associations**: 
-  - Belongs to `theater`.
-  - Has one `production`.
-  - Has many `flex_passes`, `flex_pass_line_items`.
+  - Belongs to `address`: The customer who owns the flex pass
+  - Belongs to `flex_pass_offer`: The offer type defining the flex pass rules
+  - Belongs to `flex_pass_line_item`: The line item from the original purchase order
+  - Has many `flex_pass_payments`: Records of tickets purchased using this flex pass
+- **Key Attributes**:
+  - `code`: Unique identifier code for the flex pass (auto-generated)
+  - `expiration_date`: Date when the flex pass expires (calculated from creation date)
+  - `active`: Boolean indicating if the flex pass is active
 - **Validations**: 
-  - Ensures presence of `months_till_expiration`, `name`, `price`, `number_of_tickets`, `use_ticket_class_code`.
-  - Validates numericality of `price`, `number_of_tickets`.
-- **Methods**: 
-  - Private method `set_public_sale_by_active`.
+  - Ensures presence of `expiration_date`, `flex_pass_offer`, `flex_pass_line_item`, `order`, `code`
+- **Callbacks**: 
+  - `before_create`: Sets default values and generates a unique code
+  - `after_create`: Sets the expiration date
+  - `before_destroy`: Validates the flex pass can be safely removed
+  - `before_validation`: Ensures required fields are present
+- **Key Methods**: 
+  - `create_code`: Generates a unique code for the flex pass
+  - `uses_remaining`: Calculates how many tickets are still available to use
+  - `available?`: Checks if the flex pass is valid for use (not expired and has uses left)
+  - `set_expiration_date`: Calculates expiration date based on flex pass offer rules
+  - `expired?`: Checks if the flex pass has expired
+  - `used_on_orders`: Retrieves orders where this flex pass was used
+  - `queue_expiration`: Sets up expiration jobs for later processing
+
+### FlexPassOffer
+- **Inherits From**: `ApplicationRecord`
+- **Purpose**: Defines the rules and pricing for a type of flex pass
+- **Associations**: 
+  - Belongs to `theater`: The theater that offers this flex pass
+  - Has one `production`: A production specifically associated with this offer (optional)
+  - Has many `flex_passes`: Individual flex passes created from this offer
+  - Has many `flex_pass_line_items`: Order line items for this offer type
+- **Key Attributes**:
+  - `name`: Display name of the flex pass offer
+  - `price`: Base price of the flex pass
+  - `number_of_tickets`: Number of tickets included in the flex pass
+  - `facility_fee`: Fee paid to the facility for each flex pass sold
+  - `spiff`: Additional incentive amount (commission)
+  - `flat_payout`: Fixed payout amount
+  - `use_ticket_class_code`: Ticket class code to use when redeeming flex pass tickets
+  - `months_till_expiration`: Number of months before expiration
+  - `active`: Whether the offer is active and available for purchase
+  - `on_sale_to_public`: Whether the offer is publicly available
+  - `redeem_immediately`: Whether tickets are redeemed immediately upon purchase
+- **Validations**: 
+  - Ensures presence of `months_till_expiration`, `name`, `price`, `number_of_tickets`, `use_ticket_class_code`
+  - Validates numericality of `price`, `number_of_tickets`
+- **Key Methods**: 
+  - `set_public_sale_by_active`: Updates public sale status based on active status
+
+### FlexPassPayment
+- **Purpose**: Records when a flex pass is used to "pay" for a ticket purchase
+- **Inherits From**: Payment model
+- **Key Attributes**:
+  - `flex_pass_id`: The flex pass being used to pay
+  - `order_id`: The ticket order being paid for
+  - `amount`: The monetary value of the payment (calculated from ticket price)
+  - `number_of_tickets`: Number of tickets this payment covers
+  - `processed_on`: When the payment was processed
+- **Relationships**:
+  - Belongs to `flex_pass`: The flex pass used for payment
+  - Belongs to `order`: The order being paid for with the flex pass
+
+### FlexPassOrder
+- **Inherits From**: `Order`
+- **Purpose**: Represents an order to purchase a flex pass
+- **Associations**: 
+  - Has one `flex_pass_line_item`: The line item for the flex pass purchase
+- **Validations**: 
+  - Validates associated `flex_pass_line_item`
+- **Key Methods**: 
+  - `associated_theater_id`: Returns the theater ID
+  - `display_code`: Shows a human-readable order code
+  - `all_line_items`: Returns all line items (typically just one for the flex pass)
+  - `flex_pass_payments`: Gets payments made with this flex pass
+
+### FlexPassLineItem
+- **Inherits From**: `LineItem`
+- **Purpose**: Represents a flex pass in an order
+- **Associations**:
+  - Belongs to `flex_pass_offer`: The offer defining this flex pass
+  - Belongs to `flex_pass_order`: The order purchasing this flex pass
+  - Has one `flex_pass`: The flex pass created from this line item
+- **Key Methods**:
+  - `total`: Calculates the total price of the flex pass
+  - `description`: Provides a human-readable description
+
+### FlexPassUsageReport
+- **Inherits From**: `Report`
+- **Purpose**: Generates reports on flex pass usage and financials
+- **Key Functionality**:
+  - Tracks new flex passes purchased during a period
+  - Calculates ticket values redeemed with flex passes
+  - Monitors expired flex passes and recovered amounts
+  - Calculates financial metrics including:
+    - New deposits from flex pass sales
+    - Tickets paid out using flex passes
+    - Facility fees collected
+    - Spiffs and flat payouts
+    - Recovered amounts from expired unused passes
+- **Implementation Details**:
+  - Groups data by month for trend analysis
+  - Allows filtering by specific flex pass offer types
+  - Supports both on-screen viewing and CSV export
+  - Used for financial reconciliation and marketing analysis
+
+### FlexPassUsageExport
+- **Inherits From**: `ReportExport`
+- **Purpose**: Background job to export flex pass usage data
+- **Queue**: Processed in the `report` queue
+- **Key Functionality**:
+  - Generates a CSV report of flex pass usage
+  - Notifies the requesting user upon completion
+  - Uses the NotifyOnCompletion concern for email notifications
+
+The FlexPass system forms a comprehensive solution for managing bundled ticket purchases, providing flexibility for patrons while maintaining accurate financial tracking for theaters. The reporting capabilities enable analysis of flex pass performance, revenue recognition, and usage patterns over time.
 
 These models collectively form the backbone of the Stagemgr application, facilitating the management of theaters, productions, performances, ticket classes, and their allocations.
