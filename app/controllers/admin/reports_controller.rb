@@ -80,7 +80,6 @@ class Admin::ReportsController < Admin::ApplicationController
     else
       report = FlexPassUsageReport.new(@starting_date, @ending_date, flex_pass_offer_id, nil)
       @headers, @report_data = report.create
-      Rails.logger.info("*** FLEXPASSUSAGE INFO: \n" + @report_data.to_yaml)
 
       @flex_pass_offer_name = FlexPassOffer.find(flex_pass_offer_id).name unless flex_pass_offer_id.nil?
       respond_to do |format|

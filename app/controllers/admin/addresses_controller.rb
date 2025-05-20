@@ -133,7 +133,6 @@ def autocomplete_address
     #addresses = Address.where("search_name like :search_expr and id in (select address_id from orders)", {:search_expr=>'%' + val + '%'}).limit(10).order(
     #    'last_name', 'first_name', 'id');
     unless first_name.blank? || (last_name.eql?(first_name))
-      Rails.logger.debug("**** last_name = #{last_name} and first_name = #{first_name}")
       addresses = Address.where("(first_name like ?) AND (last_name like ?)",
         "#{first_name}%",
         "#{last_name}%").order("addresses.last_name, addresses.first_name, addresses.id").limit(15)
