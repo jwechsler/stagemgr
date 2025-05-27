@@ -90,7 +90,7 @@ class LglDonorImport < ImportIssuesReport
           merged += 1 if !merge_check.nil?
           begin
             unless merge_check.nil? then
-              if a.id < merge_check_id then
+              if a.id < merge_check.id then
                 puts "Merging #{merge_check.id} into #{a.id}"
                 a.merge_and_purge(merge_check)
               else
