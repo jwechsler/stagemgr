@@ -90,18 +90,22 @@ class LglDonorImport < ImportIssuesReport
           merged += 1 if !merge_check.nil?
           begin
             unless merge_check.nil? then
-              if a.id < merge_check.id then
+              if a.id.nil? then
+                # New record - save first, then merge into existing
+                a.save!
+                puts "Merging #{a.id} into #{merge_check.id}"
+                merge_check.merge_and_purge(a)
+                a = merge_check
+              elsif a.id < merge_check.id then
                 puts "Merging #{merge_check.id} into #{a.id}"
                 a.merge_and_purge(merge_check)
               else
                 puts "Merging #{a.id} into #{merge_check.id}"
                 merge_check.merge_and_purge(a)
                 a = merge_check
-                puts "Merging #{a.id} into #{merge_check.id}"
-                
               end
             end
-            a.save!
+            a.save! unless a.id.nil?
             puts "Saved address #{a.id}"
           rescue ActiveRecord::RecordInvalid=>e
             data = headers.keys.map {|key| row[headers[key]]}
