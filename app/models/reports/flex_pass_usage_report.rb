@@ -25,21 +25,11 @@ class FlexPassUsageReport < Report
       .reorder(:processed_on)
       .sum('amount')
     paid_amount.each { |key, value| paid_amount[key] = { tickets_paid_out: value } }
-  
-    paid_amount.each{|key, value| paid_amount[key] = {tickets_paid_out: value} }  
 
     collected_amounts = FlexPassOrder.joins(flex_pass_line_item: { flex_pass: :flex_pass_offer }).joins(:payments)
                                      .where('payments.processed_on >= :starting_date AND payments.processed_on <= :ending_date', starting_date: starting_date, ending_date: ending_date)
     collected_amounts = collected_amounts.where(flex_passes: { flex_pass_offer_id: flex_pass_offer_id }) if flex_pass_offer_id.present?
     collected_amounts = collected_amounts.group("DATE_FORMAT(payments.processed_on, '%Y-%m')").select(
-                                      "DATE_FORMAT(payments.processed_on, '%Y-%m') as processed_month",
-                                      "COUNT(*) as new_passes",
-                                      "SUM(payments.amount) as new_deposits",
-                                      "SUM(flex_pass_offers.price) as total_price",
-                                      "SUM(flex_pass_offers.spiff) as total_spiff",
-                                      "SUM(flex_pass_offers.flat_payout) as total_flat_payout",
-                                      "SUM(flex_pass_offers.facility_fee) as total_facility"
-                                    ).select(
                                       "DATE_FORMAT(payments.processed_on, '%Y-%m') as processed_month",
                                       "COUNT(*) as new_passes",
                                       "SUM(payments.amount) as new_deposits",

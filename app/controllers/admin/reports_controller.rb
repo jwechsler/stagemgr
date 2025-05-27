@@ -74,12 +74,13 @@ class Admin::ReportsController < Admin::ApplicationController
     flex_pass_offer_id = params[:flex_pass_offer_id].presence
 
     unless params[:download].blank?
-      Resque.enqueue(FlexPassUsageExport, @starting_date, @ending_date, current_user_id)
+      Resque.enqueue(FlexPassUsageExport, @starting_date, @ending_date, flex_pass_offer_id, current_user_id)
       flash[:notice] = "Your export is queued for generation. You'll recieve notification when the process is complete."
       redirect_to admin_reports_path
     else
       report = FlexPassUsageReport.new(@starting_date, @ending_date, flex_pass_offer_id, nil)
       @headers, @report_data = report.create
+
       @flex_pass_offer_name = FlexPassOffer.find(flex_pass_offer_id).name unless flex_pass_offer_id.nil?
       respond_to do |format|
         format.html

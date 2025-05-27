@@ -13,7 +13,7 @@ class Order < ApplicationRecord
   validates :address, presence: true
 
   # Validates marketing source format if it's not one of the standard referrals
-  validates :marketing_source, format: { with: /\A[a-zA-Z0-9_\s-]*\z/, message: "can only contain letters, numbers, spaces, underscores and hyphens" }, allow_blank: true
+  validates :marketing_source, format: { with: /\A[a-zA-Z0-9_\s\/-]*\z/, message: "can only contain letters, numbers, spaces, forward slashes, underscores and hyphens" }, allow_blank: true
   validate :validate_marketing_source
 
   
