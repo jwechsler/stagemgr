@@ -21,7 +21,7 @@
         <%= order.address.city %>, <%= order.address.state %>  <%= order.address.zipcode %>
       </td>
 
-      <td><%= FlexPass.where(order_id: order.id).pluck(:code).join(', ') %></td>
+      <td><%= order.flex_pass_line_item&.flex_pass&.code %></td>
     </tr>
   <%- end %>
 
