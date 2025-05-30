@@ -26,6 +26,10 @@ class SeatMap < ApplicationRecord
     base_image_map.metadata['height'].to_i
   end
 
+  def capacity
+    seats.count
+  end
+
   def create_inventory_for_performance(performance)
     if self.productions.map{|p| p.id}.include? (performance.production_id) and performance.production.has_reserved_seating? then
       SeatMap.transaction do

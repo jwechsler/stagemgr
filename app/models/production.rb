@@ -63,7 +63,11 @@ class Production < ApplicationRecord
   #                  :url => "#{Rails.application.config.action_controller.relative_url_root}/system/:attachment/:id/:style/:filename"
   #validates_attachment_content_type :promo, :content_type => ["image/jpg", "image/jpeg", "image/png", "image/gif"]
   validates :promo, blob: { content_type: :image }
-p
+
+  def capacity
+    seat_map&.capacity || read_attribute(:capacity)
+  end
+
   def to_s
     "#{self.name}, #{self.theater.name}"
   end
