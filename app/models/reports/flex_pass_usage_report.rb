@@ -23,7 +23,7 @@ class FlexPassUsageReport < Report
     paid_amount = paid_amount.select("DATE_FORMAT(processed_on, '%Y-%m'), amount")
       .group("DATE_FORMAT(processed_on, '%Y-%m')")
       .reorder(:processed_on)
-      .sum('amount')
+      .sum('amount').to_h
     paid_amount.each { |key, value| paid_amount[key] = { tickets_paid_out: value } }
 
     collected_amounts = FlexPassOrder.joins(flex_pass_line_item: { flex_pass: :flex_pass_offer }).joins(:payments)

@@ -1,0 +1,230 @@
+# STAGEMGR DEVELOPMENT GUIDE
+
+## Project Overview
+Stagemgr is a ticketing platform to sell tickets to end users for live events.  It supports multiple theatre venues, multiple producing companies and all necessary backend operations for box office service. 
+
+## Stagemgr development
+
+1. Stagemgr runs under Rails 6 and Ruby 3
+2. The development environment is executed inside a docker container (stagemgr) as described in ../site/docker-compose.yml
+3. Stagemgr has a dedicated git repository. Git commands MUST ALWAYS be executed from the stagemgr directory to reflect changes to stagemgr
+
+
+## Stagemgr Architecture
+Based on analysis of the codebase, Stagemgr consists of these key components:
+
+1. **Core Models**:
+   - Theater, Production, Performance models for event management
+   - Ticket Classes and Ticket Class Allocations for inventory management
+   - Order system with specialized types (TicketOrder, DonationOrder, FlexPassOrder, MembershipOrder)
+   - Line Item models for different purchase types
+   - Address and User models for customer management
+   - SeatMap and SeatAssignment models for reserved seating
+   - FlexPass and Membership models for patron benefits
+   - Payment and Transaction models for financial processing
+
+2. **Inventory Management**:
+   - TicketClassAllocation system tracks availability per performance
+   - HouseCount model provides real-time seat inventory tracking
+   - Reserved seating with seat assignment validation
+   - Wheelchair and accessibility accommodation support
+   - Dynamic pricing with time-based allocations
+   - Performance capacity management with overbooking prevention
+   - Hold and reserved seat functionality
+
+3. **Order Processing Workflow**:
+   - Order state transitions: NEW → PROCESSING → PROCESSED → FULFILLED/UNCLAIMED
+   - Specialized order processors for each order type
+   - Ticket exchange system with payment adjustment
+   - Order splitting functionality for multi-customer orders
+   - UUID tracking throughout the order lifecycle
+   - Seat assignment confirmation during checkout
+   - Fee calculation based on ticket types
+
+4. **Payment Processing**:
+   - Multiple payment gateway support (Stripe primary, PayPal secondary)
+   - Credit card processing with validation
+   - Recurring payments for memberships
+   - Stripe webhook integration
+   - Refund processing with payment reversal
+   - Exchange payment differential handling
+
+5. **Metrics and Reporting**:
+   - RateOfSale model for daily ticket sales analytics
+   - Export framework via MetricsExporter
+   - Specialized reports: Production Attendee, Membership Usage, Flex Pass Usage
+   - Additional reports: Donation List, House Management, Sales by Performance
+   - Weekly Box Office reports with detailed metrics
+   - CSV exports with notification system
+   - Customer mailing list generation
+
+6. **Job Framework**:
+   - LoggedJob and NotifyOnCompletion concerns for tracking and notifications
+   - Background jobs for calculating house counts, exporting data, processing sales
+   - Resque-based job scheduling with lock timeout prevention
+   - JobMetadata for tracking execution history and incremental processing
+   - Queue prioritization for different job types
+   - Automated scheduling for recurring tasks
+
+7. **Notification System**:
+   - OrderMailer handles various types of customer communications
+   - NotificationTask manages email delivery and retry logic
+   - Email templates using HAML with Foundation for styling
+   - Automated confirmations, receipts, and reminders
+   - Customer communication tracking
+
+## Debugging Tips
+- Check Rails logs at `./stagemgr/log/development.log` for errors
+- Use `docker-compose logs stagemgr` to check container logs
+- Inspect Resque jobs with `docker-compose exec stagemgr bash -c "bundle exec rails c"` then `Resque.info`
+- Most ticketing issues relate to inventory allocation or order processing
+- Database-level issues can be debugged by connecting directly to MySQL
+
+## Common Issues and Solutions
+
+### Inventory Management Issues
+- **Seat availability discrepancies**: Check HouseCount calculations via `HouseCount.recalculate_for_performance(performance_id)`
+- **Overbooking errors**: Verify TicketClassAllocation records for the specific performance
+- **Reserved seating conflicts**: Inspect SeatAssignment records for duplicates with `SeatAssignment.where(performance_id: X).group_by(&:seat_id).select{|k,v| v.length > 1}`
+- **Zero inventory errors**: Check if performance has correct TicketClassAllocation with `Performance.find(id).ticket_class_allocations`
+
+### Order Processing Issues
+- **Stuck orders**: Check for orders in PROCESSING state with `Order.where(state: 'PROCESSING')`
+- **Payment failures**: Verify gateway logs and transaction records
+- **Exchange errors**: Check for invalid price differentials or incompatible ticket classes
+- **Email delivery failures**: Check NotificationTask records and mail server logs
+
+### Background Job Issues
+- **Failed jobs**: Inspect `Resque::Failure.all` for stack traces
+- **Stuck jobs**: Look for worker processes or locks with `Resque.workers` and `Resque.redis.keys("*lock*")`
+- **Slow reporting**: Check JobMetadata execution times with `JobMetadata.order(created_at: :desc).limit(10)`
+- **Queue backlog**: Monitor queue sizes with `Resque.size(:high)`, `Resque.size(:low)`, etc.
+
+### Database Troubleshooting
+- **Connection pool exhaustion**: Check for `ActiveRecord::ConnectionTimeoutError` in logs
+- **Deadlocks**: Look for `Deadlock found when trying to get lock` in logs
+- **Slow queries**: Examine logs for queries exceeding 1000ms execution time
+- **Index problems**: Check query plans with `EXPLAIN` for full table scans
+
+### Testing Utilities
+- `Order.last.debug_info` - Provides comprehensive order details
+- `Performance.find(id).recalculate_house_count!` - Forces house count recalculation
+- `TicketClassAllocation.debug_allocation(allocation_id)` - Shows allocation details
+- `Payment.where(state: "error").last(10)` - List recent failed payments
+
+## Core Data Model Relationships
+
+### Performance, Production, and Theater
+```
+Theater
+  └── Productions (many)
+       └── Performances (many)
+            ├── TicketClassAllocations (many)
+            └── SeatAssignments (many)
+```
+
+### Order System
+```
+Order (abstract base class)
+  ├── TicketOrder
+  │    └── TicketLineItems (many)
+  │              └── SeatAssignments (optional)
+  ├── DonationOrder
+  │    └── DonationLineItem (one)
+  ├── FlexPassOrder
+  │    └── FlexPassLineItem (one)
+  ├── MembershipOrder
+  │    └── MembershipLineItem (one)
+  ├── AllLineItems (many). Includes all possible lineitems as well as ServiceFees, SpecialOffers
+  
+Address ──┬── Orders (many)
+          └── AddressTags (many)
+```
+
+### Inventory Management
+```
+TicketClass
+  └── TicketClassAllocations (many)
+       └── Tickets (many)
+
+SeatMap
+  └── Seats (many)
+       └── SeatAssignments (many)
+
+Performance
+  └── HouseCount (one)
+       └── HouseCountSnapshot (many)
+```
+
+### Payment Processing
+```
+Order
+  └── Payments (many)
+       ├── CreditCardPayment
+       ├── ExternalPayment
+       ├── GiftCertificatePayment
+       └── CompPayment
+
+PaymentProcessor ─── PaymentTransaction (many)
+```
+
+### Job Framework
+```
+LoggedJob (concern)
+  └── Various Jobs
+       └── JobMetadata (many)
+
+NotifyOnCompletion (concern)
+  └── Export Jobs
+```
+
+This hierarchical structure illustrates the key relationships in the Stagemgr system, showing how models connect to form the complete ticketing and theater management solution.
+
+## Performance Monitoring and Optimization
+
+### System Health Indicators
+- **Queue depth**: High number of pending jobs in Resque queues (`Resque.info[:pending]`)
+- **Worker status**: Stalled or idle workers (`Resque.workers`)
+- **Failed job count**: Accumulated errors (`Resque::Failure.count`)
+- **Database connections**: Pool utilization (`ActiveRecord::Base.connection_pool.stat`)
+- **Redis health**: Connection status and memory usage (`redis-cli info memory`)
+
+### Performance Bottlenecks
+1. **House Count Calculations**: Especially for performances with many ticket allocations
+   - Solution: Background processing and caching of counts
+   
+2. **Export Jobs**: Can be resource intensive for large datasets
+   - Solution: Incremental processing and time window filtering
+   
+3. **Seat Assignment Processing**: Complex validation during checkout
+   - Solution: Optimized queries and temporary locking
+
+4. **Order Processing During High Volume**: Flash sales can create bottlenecks
+   - Solution: Queue throttling and staggered processing
+
+### Optimization Strategies
+- **Indexing**: Key columns for order lookups, performance queries, and address searches
+- **Caching**: Production statistics, house counts, and frequently accessed lookups
+- **Background Processing**: Move intensive calculations to Resque jobs
+- **Query Optimization**: Eager loading associations, limit column selection
+- **Connection Pooling**: Configure appropriate pool sizes based on worker count
+
+### Monitoring Commands
+```ruby
+# Queue monitoring
+Resque.info
+Resque.size(:high)
+Resque.working.size
+
+# Job failure analysis
+Resque::Failure.all(0, 10)
+Resque::Failure.requeue(failure_id)
+Resque::Failure.clear
+
+# Database monitoring
+ActiveRecord::Base.connection.execute("SHOW PROCESSLIST").each { |p| puts p.inspect }
+ActiveRecord::Base.connection.execute("SHOW ENGINE INNODB STATUS")
+
+# Performance tracking
+JobMetadata.where(job_class: "CalculateHouseCountsJob").order(created_at: :desc).limit(5).pluck(:execution_time)
+```
