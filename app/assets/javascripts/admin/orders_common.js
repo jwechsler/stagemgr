@@ -93,6 +93,22 @@ jQuery(document).ready(function($) {
       autofillAddress('ticket_order',event,ui);
     });
 
+    $('#ticket_order_special_offer_code').on("railsAutocomplete.select", function(event,ui) {
+      if (ui.item && ui.item.label) {
+        var description = ui.item.label.split(': ')[1];
+        if (description) {
+          $('#special_offer_description small').text(description);
+          $('#special_offer_description').removeClass('hide');
+        }
+      }
+    });
+
+    $('#ticket_order_special_offer_code').on("input", function() {
+      if ($(this).val() === '') {
+        $('#special_offer_description').addClass('hide');
+      }
+    });
+
     $('input.code-input').setup_code_input();
 
     $('#ticket_line_items').on('cocoon:after-insert', function(e, insertedItem) {

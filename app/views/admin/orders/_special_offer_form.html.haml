@@ -3,3 +3,5 @@
     %div.small-12.cell.collapse
       = label(:special_offer_code, 'Offer code')
       = f.input_field :special_offer_code, label: 'Offer code', url: autocomplete_special_offer_special_offer_code_admin_ticket_orders_path, as: :autocomplete, 'data-auto-focus'=>true, :fields => {:performance_id => '#performance_id'}
+      %div#special_offer_description.hide
+        %small.muted
