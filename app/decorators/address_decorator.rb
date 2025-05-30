@@ -21,8 +21,10 @@ class AddressDecorator < ApplicationDecorator
   def description
     d = ''
     if object.is_current_flex_pass_holder?
-      passes = object.flex_passes.map do |fp|
-        h.link_to(fp.code, [:admin, fp.flex_pass_line_item.order])
+      passes = object.flex_passes.filter_map do |fp|
+        if fp.flex_pass_line_item&.order
+          h.link_to(fp.code, [:admin, fp.flex_pass_line_item.order])
+        end
       end
       passes = h.safe_join(passes,',')
       d += "FlexPass Holder [#{h.raw(passes)}]"
