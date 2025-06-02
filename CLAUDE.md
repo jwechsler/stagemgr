@@ -31,6 +31,7 @@ Based on analysis of the codebase, Stagemgr consists of these key components:
    - Dynamic pricing with time-based allocations
    - Performance capacity management with overbooking prevention
    - Hold and reserved seat functionality
+   - **Hybrid capacity control**: Productions automatically use seat map capacity when available, falling back to manual capacity for general admission
 
 3. **Order Processing Workflow**:
    - Order state transitions: NEW → PROCESSING → PROCESSED → FULFILLED/UNCLAIMED
@@ -87,6 +88,7 @@ Based on analysis of the codebase, Stagemgr consists of these key components:
 - **Overbooking errors**: Verify TicketClassAllocation records for the specific performance
 - **Reserved seating conflicts**: Inspect SeatAssignment records for duplicates with `SeatAssignment.where(performance_id: X).group_by(&:seat_id).select{|k,v| v.length > 1}`
 - **Zero inventory errors**: Check if performance has correct TicketClassAllocation with `Performance.find(id).ticket_class_allocations`
+- **Capacity logic issues**: Check if production uses seat map capacity with `production.seat_map&.capacity` vs database capacity with `production.read_attribute(:capacity)`
 
 ### Order Processing Issues
 - **Stuck orders**: Check for orders in PROCESSING state with `Order.where(state: 'PROCESSING')`
@@ -111,6 +113,53 @@ Based on analysis of the codebase, Stagemgr consists of these key components:
 - `Performance.find(id).recalculate_house_count!` - Forces house count recalculation
 - `TicketClassAllocation.debug_allocation(allocation_id)` - Shows allocation details
 - `Payment.where(state: "error").last(10)` - List recent failed payments
+- `production.capacity` - Shows effective capacity (seat map count or database value)
+- `production.seat_map&.capacity` - Shows actual seat count for reserved seating
+- `production.read_attribute(:capacity)` - Shows manual capacity setting from database
+
+## Production Capacity Control
+
+Stagemgr implements a sophisticated hybrid capacity system that automatically prevents overselling while supporting both general admission and reserved seating venues:
+
+### Capacity Logic Implementation
+```ruby
+# Production#capacity method (app/models/production.rb:67-69)
+def capacity
+  seat_map&.capacity || read_attribute(:capacity)
+end
+
+# SeatMap#capacity method (app/models/seat_map.rb:29-31)  
+def capacity
+  seats.count
+end
+```
+
+### How It Works
+1. **Reserved Seating Productions**: When a `seat_map` is assigned, capacity automatically equals the live count of actual seats in the seat map (`seat_map.capacity`)
+2. **General Admission Productions**: When no seat map is assigned, capacity uses the manually set database value (`read_attribute(:capacity)`)
+3. **Real-time Updates**: Seat map capacity updates automatically as seats are added/removed from venues
+4. **Safety Mechanism**: Prevents overselling by using actual seat count rather than potentially outdated manual capacity settings
+
+### Business Impact
+- **Prevents Overselling**: Productions with seat maps cannot sell more tickets than physical seats available
+- **Backward Compatibility**: General admission events continue using manual capacity settings
+- **Data Integrity**: Eliminates discrepancies between venue layout and ticket sales capacity
+- **Real-time Accuracy**: Capacity reflects current venue configuration changes
+
+### Usage Throughout Application
+The capacity value is used for:
+- **Availability Calculations**: `performance.number_of_seats_left` subtracts sold seats from capacity
+- **House Count Metrics**: `house_count.total_seats = production.capacity`
+- **Sold-out Detection**: `performance.sold_out?` checks if seats remaining <= 0
+- **Dynamic Pricing**: Triggers pricing changes based on capacity utilization percentage
+- **Near-capacity Warnings**: Alerts when approaching venue limits
+
+### Debugging Capacity Issues
+- Check effective capacity: `production.capacity`
+- Verify seat map capacity: `production.seat_map&.capacity`
+- Check database capacity: `production.read_attribute(:capacity)`
+- Identify capacity type: `production.has_reserved_seating?` vs `production.has_general_admission?`
+- Test seat count changes: Add/remove seats and verify `seat_map.capacity` updates
 
 ## Core Data Model Relationships
 
