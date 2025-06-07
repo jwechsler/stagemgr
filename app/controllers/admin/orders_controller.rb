@@ -112,7 +112,7 @@ class Admin::OrdersController < Admin::ApplicationController
     if @order.cancel!
       redirect_to :action=>"index", :controller=>"admin/orders"
     else
-      flash[:error]= @order.errors.map{|e| e.full_message.to_sentence}.join(',')
+      flash[:error]= @order.errors.full_messages.to_sentence
       redirect_to action:'edit', id:@order.id
     end
   end
