@@ -78,9 +78,6 @@ FactoryBot.define do
     sequence(:email)         {|n| "jeremy#{n}@test.com" }
   end
 
-  factory :flex_pass_order do
-    order
-  end
 
   factory :ticket_line_item do
     association :ticket_class, :factory => :ticket_class

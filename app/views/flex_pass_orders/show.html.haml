@@ -4,4 +4,8 @@
       Thanks for your
       = @order.flex_pass_line_item.flex_pass_offer.name
       order
-    = render 'flex_pass_detail', :flex_pass_offer=>@order.flex_pass_line_item.flex_pass_offer, :flex_pass=>@order.flex_pass
+    - if @order.flex_pass.present?
+      = render 'flex_pass_detail', :flex_pass_offer=>@order.flex_pass_line_item.flex_pass_offer, :flex_pass=>@order.flex_pass
+    - else
+      %p
+        %i No associated flex pass

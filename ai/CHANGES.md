@@ -1,3 +1,109 @@
+# Technical Changes: FlexPass Order Cancellation and Refund Logic
+
+## Overview
+Enhanced the FlexPass order cancellation logic to properly handle refunds and deletions based on redemption status. When a FlexPass has no redemptions, the order is refunded and the FlexPass is deleted. When a FlexPass has redemptions, it is only deactivated without refund. Additionally, fixed view errors that occurred when displaying orders with deleted FlexPasses.
+
+## Changes Made
+
+### 1. Updated FlexPassOrder Cancellation Logic
+Modified the `cancel!` method in the FlexPassOrder model to implement new business rules:
+
+```ruby
+def cancel!
+  if flex_pass.upcoming_ticket_orders.count > 0 then
+    errors.add(:error, "Cannot cancel a flex_pass with upcoming ticket orders")
+    false
+  else
+    Order.transaction do
+      if !flex_pass.has_placed_orders?
+        # No redemptions - refund and delete the flex pass
+        refund!
+        flex_pass.destroy!
+        # Note: refund! already sets status to REFUNDED
+        errors.add(:info, "Flex Pass #{flex_pass.code} has been refunded and deleted")
+      else
+        # Has redemptions - just deactivate the flex pass, leave order status unchanged
+        flex_pass.active=false 
+        flex_pass.save!
+        errors.add(:info, "Flex Pass #{flex_pass.code} inactive")
+      end
+      true
+    end
+  end
+end
+```
+
+#### Key Business Rules:
+- **No redemptions**: Order is refunded (status → REFUNDED), FlexPass is deleted
+- **Has redemptions**: FlexPass is deactivated, order status remains unchanged
+- **Has upcoming orders**: Cancellation is prevented entirely
+
+### 2. Fixed View Errors for Deleted FlexPasses
+Updated views to gracefully handle nil FlexPass references after deletion:
+
+#### Modified Files:
+- `app/views/flex_pass_orders/show.html.haml`
+- `app/views/admin/flex_pass_orders/show.html.haml`
+- `app/views/admin/flex_pass_line_items/_flex_pass_line_item.html.haml`
+
+#### Key Changes:
+- Added presence checks before rendering FlexPass details
+- Used safe navigation operator (`&.`) in decorator calls
+- Display "No associated flex pass" message when FlexPass is nil
+
+### 3. Created FlexPassOrder Factory
+Added a proper factory for FlexPassOrder to support testing:
+
+```ruby
+factory :flex_pass_order do
+  status                  { Order::ORDER_STATUSES.first }
+  association             :address, :factory => :address
+  association             :payment_type, :factory => :cash_payment_type
+  
+  transient do
+    flex_pass_offer { nil }
+    skip_line_item { false }
+  end
+  
+  after(:create) do |flex_pass_order, evaluator|
+    # Creates associated flex_pass_line_item and flex_pass
+  end
+  
+  trait :with_payment do
+    # Adds payment and sets status to PROCESSED
+  end
+end
+```
+
+### 4. Added Comprehensive Test Coverage
+Created full RSpec test suite for the cancellation behavior:
+
+#### Test Scenarios:
+- FlexPass with upcoming ticket orders (cancellation prevented)
+- FlexPass with no redemptions (refunded and deleted)
+- FlexPass with past redemptions (deactivated only)
+- Transaction rollback on errors
+
+## Technical Details
+
+### Design Decisions
+- Used database transaction to ensure atomicity of refund and deletion
+- Leveraged existing `refund!` method which automatically sets order status to REFUNDED
+- Maintained backward compatibility by not changing order status for partially-used FlexPasses
+
+### Factory Structure
+- Resolved circular dependency between `flex_pass` and `flex_pass_line_item` factories
+- Used transient attributes for flexible factory configuration
+- Removed duplicate factory definition in `test/factories.rb`
+
+### View Safety
+- Implemented defensive programming with presence checks
+- Used safe navigation operator to prevent NoMethodError on nil objects
+- Provided user-friendly messaging when FlexPass is missing
+
+## Pull Request
+The changes were committed to the `refund_fp` branch. The implementation includes the updated cancellation logic, view fixes, factory improvements, and comprehensive test coverage.
+
 # Technical Changes: External Events Email Notification
 
 ## Overview

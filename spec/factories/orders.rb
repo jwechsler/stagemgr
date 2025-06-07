@@ -313,5 +313,4 @@ FactoryBot.define do
     association :order, :factory => :order
   end
 
-
 end

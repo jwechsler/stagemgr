@@ -8,6 +8,10 @@ Stagemgr is a ticketing platform to sell tickets to end users for live events.  
 1. Stagemgr runs under Rails 6 and Ruby 3
 2. The development environment is executed inside a docker container (stagemgr) as described in ../site/docker-compose.yml
 3. Stagemgr has a dedicated git repository. Git commands MUST ALWAYS be executed from the stagemgr directory to reflect changes to stagemgr
+4. RSpec tests can be run directly from the stagemgr directory without proxying through Docker:
+   - Run all tests: `cd /Users/jeremyw/dev/site/stagemgr && bundle exec rspec`
+   - Run specific test file: `cd /Users/jeremyw/dev/site/stagemgr && bundle exec rspec spec/models/orders/flex_pass_order_spec.rb`
+   - Run specific test: `cd /Users/jeremyw/dev/site/stagemgr && bundle exec rspec spec/models/orders/flex_pass_order_spec.rb:10`
 
 
 ## Stagemgr Architecture
