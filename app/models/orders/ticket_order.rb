@@ -334,7 +334,7 @@ class TicketOrder < Order
           credit_2 = credit_lines[1] unless credit_lines.size < 2
         end
 
-        cleaned_name, f_name, m_name, l_name, f_name2 = Address.parse_name(self.hold_under.blank? ? self.address.full_name : self.hold_under)
+        cleaned_name, f_name, l_name = Address.parse_name(self.hold_under.blank? ? self.address.full_name : self.hold_under)
         unless cleaned_name == self.address.full_name
           use_last_name = l_name
           use_first_name = f_name
