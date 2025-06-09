@@ -4,6 +4,7 @@ class ProductionAttendeeReport < OrderReport
 
   def initialize(production_id, export_emails_allowed = false, reporting_user_id = nil)
     @production = Production.find(production_id)
+    @export_emails_allowed = export_emails_allowed
     keys = OrderReport.columns_for_orders(true, true) + 
       [:order_total, :order_revenue, :num_tickets, :num_seats, :external_id, 
         :opted_in_for_email]
@@ -35,9 +36,15 @@ class ProductionAttendeeReport < OrderReport
       row = OrderReport.create_hash_from_order_fields(o)
       row[:external_id] = o.address.external_id(theater_ids) unless o.address.nil?
       unless row[:email].nil?
-        if members_by_email.has_key?(row[:email].downcase)
+        # Check if user is on the email opt-in list
+        is_opted_in = members_by_email.has_key?(row[:email].downcase)
+        
+        if is_opted_in
           row[:opted_in_for_email] = "Y"
         else
+          row[:opted_in_for_email] = "N"
+          # Remove email only if user doesn't have email viewing permissions
+          # AND the email is not from someone who opted in
           row[:email] = nil unless export_emails_allowed
         end
       end
