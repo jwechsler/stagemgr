@@ -1,6 +1,10 @@
-# Stagemgr Import Functions Documentation
+# Stagemgr Documentation
 
-This document describes the import functions available to end-users at `/tickets/admin/imports`. These functions allow you to bulk import various types of data into the Stagemgr ticketing system.
+This document describes the import and reporting functions available to end-users in the Stagemgr ticketing system.
+
+## Import Functions
+
+The import functions are available at `/tickets/admin/imports` and allow you to bulk import various types of data into the Stagemgr ticketing system.
 
 ## TRG Arts Order File Import
 
@@ -242,3 +246,53 @@ This document describes the import functions available to end-users at `/tickets
 - CSV files must have proper headers as specified for each import type
 - Character encoding issues are automatically handled where possible
 - Duplicate detection and merging helps maintain data quality across imports
+
+## Reporting Functions
+
+The reporting functions are available at `/tickets/admin/reports` and provide comprehensive data exports for business analysis, marketing, and customer management.
+
+### Production Attendees Report
+
+**Purpose**: Provides a comprehensive export of all ticket buyers for a specific production, including customer contact information, ticket details, and payment data. This report is essential for post-show marketing, customer relationship management, and business analysis.
+
+**Report Contents**:
+
+The report includes the following information for each ticket order:
+- **Customer Information**: Name, address, phone number, and email address
+- **Order Details**: Order ID, date, status, and special offer codes used
+- **Ticket Information**: Performance code, ticket class, number of tickets and seats
+- **Financial Data**: Order total, revenue (excluding fees), processing fees, and facility fees
+- **Seating**: Seat assignments (for productions with reserved seating)
+- **Email Marketing Status**: Whether the customer has opted into the theater's email list
+
+**Email Address Inclusion Rules**:
+
+Email addresses are included in the report based on user permissions and customer opt-in status:
+
+**Users Who Receive All Email Addresses:**
+- **Administrators**: Full access to all customer email addresses
+- **Box Office Staff**: Full access to all customer email addresses  
+- **Resident Company Users**: Full access to all customer email addresses
+
+**Users With Limited Email Access:**
+- **Theater Users (Non-Resident)**: Only receive email addresses for customers who have explicitly opted into the theater's email marketing list
+
+**Email Opt-In Status:**
+Each record includes an `opted_in_for_email` field:
+- **"Y"**: Customer has opted into email marketing and their address is included regardless of user permissions
+- **"N"**: Customer has not opted in; email address is only included for users with full email permissions
+
+**MyEmma Integration**:
+
+The system integrates with MyEmma email marketing platform to determine opt-in status:
+- If MyEmma is enabled and configured, the system checks against the production's designated email group
+- If MyEmma is disabled or not configured, opt-in status defaults to "N" for all customers
+- Email addresses are then filtered based on user permissions as described above
+
+**Access and Generation**:
+
+The report can be generated from the Admin Reports section and is delivered via email as a CSV file attachment. The report respects theater-specific permissions, ensuring users only see data for productions within their authorized theaters.
+
+**Data Privacy**:
+
+This report contains sensitive customer information and should be handled according to your organization's data privacy policies. Email addresses are filtered based on both customer consent (opt-in status) and user authorization levels to protect customer privacy while enabling legitimate business operations.
