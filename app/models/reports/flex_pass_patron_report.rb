@@ -15,7 +15,7 @@ class FlexPassPatronReport < Report
     flex_pass_orders = FlexPassOrder.joins(:flex_pass_line_item => :flex_pass)
                                    .joins(:address)
                                    .includes({:flex_pass_line_item => {:flex_pass => :flex_pass_offer}}, :address)
-                                   .where('orders.created_at >= ? AND orders.created_at <= ?', 
+                                   .where("#{FlexPassOrder.table_name}.created_at >= ? AND #{FlexPassOrder.table_name}.created_at <= ?", 
                                           starting_date.beginning_of_day, ending_date.end_of_day)
                                    .order(:created_at)
 
@@ -35,7 +35,7 @@ class FlexPassPatronReport < Report
         email: address.email,
         phone: phone,
         flex_pass_code: flex_pass.code,
-        expiration_date: flex_pass.expiration_date.strftime('%m/%d/%Y'),
+        expiration_date: flex_pass.expiration_date&.strftime('%m/%d/%Y') || 'N/A',
         admissions_remaining: flex_pass.uses_remaining,
         fulfilled: fulfilled
       }

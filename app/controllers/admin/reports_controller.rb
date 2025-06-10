@@ -257,8 +257,18 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def flex_pass_patron_report
-    @starting_date = params[:starting_date].to_date
-    @ending_date = params[:ending_date].to_date
+    begin
+      @starting_date = params[:starting_date].to_date
+      @ending_date = params[:ending_date].to_date
+    rescue Date::Error
+      flash[:error] = "Invalid date format. Please use MM/DD/YYYY format."
+      redirect_to admin_reports_path and return
+    end
+
+    # Swap dates if start date is after end date
+    if @starting_date > @ending_date
+      @starting_date, @ending_date = @ending_date, @starting_date
+    end
 
     unless params[:download].blank?
       Resque.enqueue(FlexPassPatronReportJob, @starting_date, @ending_date, current_user.id)
