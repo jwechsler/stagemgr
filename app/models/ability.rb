@@ -7,7 +7,7 @@ class Ability
     alias_action :attended_dump, :daily_box_office_receipts, :fulfill_tickets, :donations_total, :membership_export, to: :box_office_reports
     alias_action :trg_dump, :donation_dump, :production_sales_by_performance, :order_dump, to: :show_reports
     alias_action :house_management_seating, to: :house_management_reports
-    alias_action :flexpass_sales, :weekly_box_office, to: :reconciliation_reports
+    alias_action :flexpass_sales, :flex_pass_patron_report, :weekly_box_office, to: :reconciliation_reports
     alias_action :membership_usage, to: :membership_reports
     alias_action :autocomplete_service_item_template_name, to: :modify_service_items
     

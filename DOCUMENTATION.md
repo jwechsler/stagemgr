@@ -296,3 +296,57 @@ The report can be generated from the Admin Reports section and is delivered via 
 **Data Privacy**:
 
 This report contains sensitive customer information and should be handled according to your organization's data privacy policies. Email addresses are filtered based on both customer consent (opt-in status) and user authorization levels to protect customer privacy while enabling legitimate business operations.
+
+### FlexPass Patron Report
+
+**Purpose**: Provides a comprehensive export of FlexPass orders within a specified date range, including patron contact information, FlexPass details, expiration dates, and usage status. This report is essential for FlexPass management, patron communication, and customer service operations.
+
+**Report Contents**:
+
+The report includes the following information for each FlexPass order:
+- **FlexPass Order Number**: Unique identifier for the FlexPass order
+- **Patron Name**: Customer's full name from the order
+- **Email**: Customer's email address
+- **Phone**: Customer's phone number (if available)
+- **FlexPass Code**: The unique code assigned to the FlexPass for redemption
+- **Expiration Date**: When the FlexPass expires (formatted as MM/DD/YYYY)
+- **Admissions Remaining**: Number of ticket redemptions remaining on the FlexPass
+- **Fulfilled**: Whether the FlexPass order has been processed ("Y" for fulfilled, "N" for pending)
+
+**Date Range Selection**:
+
+The report filters FlexPass orders based on the order creation date:
+- **Starting Date**: Include FlexPass orders created on or after this date
+- **Ending Date**: Include FlexPass orders created on or before this date
+- Date range is inclusive of both start and end dates
+
+**Access Requirements**:
+
+This report is available to:
+- **Box Office Staff**: Full access to generate and download the report
+- **Administrators**: Full access to generate and download the report
+
+**Generation Options**:
+
+- **Show**: Displays the report results directly in the browser for immediate viewing
+- **Download**: Generates a CSV file in the background and emails it to the requesting user when complete
+
+**Typical Use Cases**:
+
+- **Customer Service**: Look up FlexPass details when customers call with questions
+- **Expiration Management**: Identify FlexPasses approaching expiration for proactive outreach
+- **Usage Tracking**: Monitor FlexPass utilization and remaining balances
+- **Marketing Communications**: Contact FlexPass holders with targeted promotions
+- **Financial Reconciliation**: Track FlexPass sales and redemption patterns
+- **Order Fulfillment**: Identify pending FlexPass orders requiring processing
+
+**File Naming Convention**:
+
+Downloaded CSV files are automatically named using the format:
+`flex_pass_patron_report_YYYYMMDD_YYYYMMDD.csv`
+
+Where the dates represent the start and end dates of the report range.
+
+**Data Privacy**:
+
+This report contains customer contact information and should be handled according to your organization's data privacy policies. All customer email addresses and phone numbers are included regardless of email opt-in status, as this information is necessary for FlexPass customer service operations.

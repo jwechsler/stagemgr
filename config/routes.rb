@@ -202,6 +202,7 @@ Rails.application.routes.draw do
         post :attended_dump
         post :donation_dump
         post :donations_total
+        post :flex_pass_patron_report
         
       end
 

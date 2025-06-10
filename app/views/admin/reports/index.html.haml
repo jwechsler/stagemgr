@@ -208,6 +208,27 @@
             = submit_tag "Show", :name=>'show', :class=>'tiny button'
             = submit_tag "Download", :name=>'download', :class=>'tiny button'
 
+  .grid-x.grid-padding-x
+    .small-12.cell
+      &nbsp;  
+    .small-4.cell
+      %span.report_title FlexPass Patron Report
+      %span.help_text
+        Download FlexPass order information between two dates including patron details, flexpass codes, expiration dates, and remaining admissions
+    .small-8.cell
+      = form_tag(flex_pass_patron_report_admin_reports_path, :method=>"post") do
+        .grid-x.grid-padding-x
+          .small-4.cell
+            %label{:for=>:starting_date} On or after
+            = text_field_tag(:starting_date, (Date.today-1.month), :class=>'date_picker')
+          .small-4.cell
+            %label{:for=>:ending_date} On or before
+            = text_field_tag(:ending_date, Date.today, :class=>'date_picker')
+          .small-4.cell
+            %br
+            = submit_tag "Show", :class=>'tiny button'
+            = submit_tag "Download", :name=>'download', :class=>'tiny button'
+
 - if can? :house_management_reports, Report then
   .grid-x.grid-padding-x
     .small-12.cell
