@@ -20,7 +20,7 @@ class TicketClassDatatable < DatatableBase
         id: ticket_class.id,
         class_code: ticket_class.decorate.class_code,
         class_name: ticket_class.decorate.class_name,
-        ticket_price: ticket_class.decorate.ticket_class,
+        ticket_price: ticket_class.decorate.ticket_price,
         ticketing_fee: ticket_class.decorate.ticketing_fee,
         web_visible: ticket_class.decorate.web_visible?,
         ticket_type: ticket_class.decorate.ticket_type,
