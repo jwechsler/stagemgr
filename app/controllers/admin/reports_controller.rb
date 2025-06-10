@@ -4,8 +4,8 @@ class Admin::ReportsController < Admin::ApplicationController
   authorize_resource
   # filter_access_to :trg_dump,:index
 
-
   include Admin::ReportsHelper
+  include ReportProcessor
   helper_method :tidy_output
 
   # GET /admin/reports
@@ -68,48 +68,41 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def flexpass_sales
-    @starting_date = params[:starting_date].to_date.at_beginning_of_month
-    @ending_date = params[:ending_date].to_date.at_end_of_month
-    current_user_id = params[:download].blank? ? nil : current_user.id
+    dates = parse_date_params(starting_date: params[:starting_date], ending_date: params[:ending_date])
+    @starting_date = dates[:starting_date].at_beginning_of_month
+    @ending_date = dates[:ending_date].at_end_of_month
     flex_pass_offer_id = params[:flex_pass_offer_id].presence
 
-    unless params[:download].blank?
-      Resque.enqueue(FlexPassUsageExport, @starting_date, @ending_date, flex_pass_offer_id, current_user_id)
-      flash[:notice] = "Your export is queued for generation. You'll recieve notification when the process is complete."
-      redirect_to admin_reports_path
-    else
-      report = FlexPassUsageReport.new(@starting_date, @ending_date, flex_pass_offer_id, nil)
-      @headers, @report_data = report.create
+    # Set flex pass offer name for view
+    @flex_pass_offer_name = FlexPassOffer.find(flex_pass_offer_id).name unless flex_pass_offer_id.nil?
 
-      @flex_pass_offer_name = FlexPassOffer.find(flex_pass_offer_id).name unless flex_pass_offer_id.nil?
-      respond_to do |format|
-        format.html
-      end
-    end
+    process_report(
+      report_class: FlexPassUsageReport,
+      report_params: [@starting_date, @ending_date, flex_pass_offer_id, nil],
+      job_class: FlexPassUsageExport,
+      job_params: [@starting_date, @ending_date, flex_pass_offer_id],
+      csv_filename: 'flexpass_sales',
+      timeout: 60.seconds
+    )
   end
 
   def daily_box_office_receipts
-    @start_day = params[:start_day].to_date
-    @end_day = params[:end_day].to_date
-    if @start_day > @end_day then
-      t = @start_day
-      @start_day = @end_day
-      @end_day = t
+    dates = parse_date_params(starting_date: params[:start_day], ending_date: params[:end_day])
+    @start_day = dates[:starting_date]
+    @end_day = dates[:ending_date]
+
+    # Override default max range - this report has 31-day limit
+    days_span = (@end_day - @start_day).to_i
+    if days_span > 31
+      flash[:error] = "You can only pull up to one month at a time"
+      redirect_to admin_reports_path and return
     end
 
-    if (@end_day - @start_day) > 31 then
-      flash[:error] = "You can only pull up to one month at a time"
-      redirect_to admin_reports_path
-    else
+    process_report(
+      csv_filename: 'daily_boxoffice_receipts',
+      timeout: 30.seconds
+    ) do
       @headers, @report_data = build_daily_box_office_receipts(@start_day, @end_day, !params['download_csv'].nil?)
-      if params['download_csv'].nil? then
-        respond_to do |format|
-          format.html
-        end
-      else
-        send_report_as_csv('daily_boxoffice_receipts', @headers, @report_data)
-
-      end
     end
   end
 
@@ -193,12 +186,14 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def donation_dump
-    starting_date = params[:starting_date_donor].to_date
-    ending_date = params[:ending_date_donor].to_date
+    dates = parse_date_params(starting_date: params[:starting_date_donor], ending_date: params[:ending_date_donor])
     theater_id = params[:theater_id].to_i
-    Resque.enqueue(DonorListExport, starting_date, ending_date, theater_id, current_user.id)
-    flash[:notice] = 'Your export is queued for generation. You\'ll recieve notification when the process is complete.'
-    redirect_to admin_reports_path
+    
+    process_report(
+      job_class: DonorListExport,
+      job_params: [dates[:starting_date], dates[:ending_date], theater_id],
+      force_background: true  # This is always a background job
+    )
   end
 
 
@@ -228,21 +223,18 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def membership_usage
-    @starting_date = params[:starting_date].to_date.at_beginning_of_month
-    @ending_date = params[:ending_date].to_date.at_end_of_month
-    current_user_id = params[:download].blank? ? nil : current_user.id
+    dates = parse_date_params(starting_date: params[:starting_date], ending_date: params[:ending_date])
+    @starting_date = dates[:starting_date].at_beginning_of_month
+    @ending_date = dates[:ending_date].at_end_of_month
 
-    unless params[:download].blank?
-      Resque.enqueue(MembershipUsageExport, @starting_date, @ending_date, current_user_id)
-      flash[:notice] = "Your export is queued for generation. You'll recieve notification when the process is complete."
-      redirect_to admin_reports_path
-    else
-      report = MembershipUsageReport.new(@starting_date, @ending_date, current_user_id)
-      @headers, @report_data = report.create
-      respond_to do |format|
-        format.html
-      end
-    end
+    process_report(
+      report_class: MembershipUsageReport,
+      report_params: [@starting_date, @ending_date, nil],
+      job_class: MembershipUsageExport,
+      job_params: [@starting_date, @ending_date],
+      csv_filename: 'membership_usage',
+      timeout: 60.seconds
+    )
   end
 
   def membership_export
@@ -257,30 +249,18 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def flex_pass_patron_report
-    begin
-      @starting_date = params[:starting_date].to_date
-      @ending_date = params[:ending_date].to_date
-    rescue Date::Error
-      flash[:error] = "Invalid date format. Please use MM/DD/YYYY format."
-      redirect_to admin_reports_path and return
-    end
-
-    # Swap dates if start date is after end date
-    if @starting_date > @ending_date
-      @starting_date, @ending_date = @ending_date, @starting_date
-    end
-
-    unless params[:download].blank?
-      Resque.enqueue(FlexPassPatronReportJob, @starting_date, @ending_date, current_user.id)
-      flash[:notice] = "Your export is queued for generation. You'll receive notification when the process is complete."
-      redirect_to admin_reports_path
-    else
-      report = FlexPassPatronReport.new(@starting_date, @ending_date, nil)
-      @headers, @report_data = report.create
-      respond_to do |format|
-        format.html
-      end
-    end
+    dates = parse_date_params(starting_date: params[:starting_date], ending_date: params[:ending_date])
+    @starting_date = dates[:starting_date]
+    @ending_date = dates[:ending_date]
+    
+    process_report(
+      report_class: FlexPassPatronReport,
+      report_params: [@starting_date, @ending_date, nil],
+      job_class: FlexPassPatronReportJob, 
+      job_params: [@starting_date, @ending_date],
+      csv_filename: 'flex_pass_patron_report',
+      timeout: 60.seconds
+    )
   end
 
   def order_dump
