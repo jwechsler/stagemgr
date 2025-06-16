@@ -18,11 +18,23 @@
         =h @flex_pass_offer.theater.name
         %br
       %b Price:
-      =h @flex_pass_offer.price
+      = @flex_pass_offer.formatted_price
       %br
       %b= "Number of tickets (redeemed as #{@flex_pass_offer.use_ticket_class_code}): "
       =h @flex_pass_offer.number_of_tickets
-      %b M
+      %br
+      - if @flex_pass_offer.facility_fee.present?
+        %b Facility Fee:
+        = @flex_pass_offer.formatted_facility_fee
+        %br
+      - if @flex_pass_offer.spiff.present?
+        %b Spiff:
+        = @flex_pass_offer.formatted_spiff
+        %br
+      - if @flex_pass_offer.flat_payout.present?
+        %b Flat Payout:
+        = @flex_pass_offer.formatted_flat_payout
+        %br
 .grid-x.grid-padding-x
   .small-12.cell
     = link_to 'Edit', edit_admin_flex_pass_offer_path(@flex_pass_offer)

@@ -17,6 +17,18 @@ class FlexPassOfferDecorator < ApplicationDecorator
     h.number_to_currency(object.price)
   end
 
+  def facility_fee
+    h.number_to_currency(object.facility_fee || 0)
+  end
+
+  def spiff
+    h.number_to_currency(object.spiff || 0)
+  end
+
+  def flat_payout
+    h.number_to_currency(object.flat_payout || 0)
+  end
+
   def on_sale_to_public?
     show_as_checkmark if object.on_sale_to_public?
   end

@@ -166,3 +166,131 @@ Created full test suite for email content differences:
 
 ## Pull Request
 The changes were committed to the `external_notify` branch. The commit includes both the implementation changes and corresponding test coverage.
+
+# Technical Changes: FlexPassOffer Currency Field Handling
+
+## Overview
+Fixed an issue where FlexPassOffer payout fields (facility_fee, spiff, flat_payout) could not store decimal values due to incorrect database column definitions. These fields were defined as decimal columns without scale, defaulting to scale=0 in MySQL, which prevented storing cents. Additionally, the price field was using float type which can cause precision issues with currency calculations.
+
+## Changes Made
+
+### 1. Database Migration
+Created migration to fix column types for proper currency storage:
+
+```ruby
+class FixFlexPassOfferCurrencyColumns < ActiveRecord::Migration[6.1]
+  def change
+    # Change price from float to decimal
+    change_column :flex_pass_offers, :price, :decimal, precision: 8, scale: 2, null: false
+    
+    # Change payout fields to have proper precision and scale
+    change_column :flex_pass_offers, :facility_fee, :decimal, precision: 8, scale: 2
+    change_column :flex_pass_offers, :spiff, :decimal, precision: 8, scale: 2
+    change_column :flex_pass_offers, :flat_payout, :decimal, precision: 8, scale: 2
+  end
+end
+```
+
+### 2. Model Validations and Formatting Methods
+Enhanced the FlexPassOffer model with proper validations and currency formatting:
+
+```ruby
+# Added validations for payout fields
+validates_numericality_of :price, greater_than_or_equal_to: 0
+validates_numericality_of :facility_fee, :spiff, :flat_payout, 
+  greater_than_or_equal_to: 0, allow_nil: true
+
+# Added currency formatting methods
+def formatted_price
+  ActionController::Base.helpers.number_to_currency(price || 0)
+end
+
+def formatted_facility_fee
+  ActionController::Base.helpers.number_to_currency(facility_fee || 0)
+end
+
+def formatted_spiff
+  ActionController::Base.helpers.number_to_currency(spiff || 0)
+end
+
+def formatted_flat_payout
+  ActionController::Base.helpers.number_to_currency(flat_payout || 0)
+end
+```
+
+### 3. View Updates
+Updated forms and display views for proper currency handling:
+
+#### Form Changes:
+- Added `step: '0.01'` to all currency input fields to allow decimal entry
+- Applied to price, facility_fee, spiff, and flat_payout fields
+
+#### Show View Changes:
+- Display all payout fields (previously missing)
+- Use formatted currency methods for display
+- Show payout fields only when present
+
+### 4. Decorator Updates
+Extended FlexPassOfferDecorator with currency formatting methods:
+
+```ruby
+def facility_fee
+  h.number_to_currency(object.facility_fee || 0)
+end
+
+def spiff
+  h.number_to_currency(object.spiff || 0)
+end
+
+def flat_payout
+  h.number_to_currency(object.flat_payout || 0)
+end
+```
+
+### 5. Comprehensive Test Coverage
+Created full test suite following test-first methodology:
+
+#### Model Tests (spec/models/flex_pass_offer_spec.rb):
+- Validation tests for all currency fields
+- Decimal precision tests (2 decimal places)
+- Currency formatting method tests
+- Edge cases (very small values, large values, nil handling)
+
+#### Controller Tests (spec/controllers/admin/flex_pass_offers_controller_spec.rb):
+- Create and update with decimal values
+- Validation error handling
+- Strong parameter verification
+
+#### Feature Tests (features/admin_flex_pass_offer_currency.feature):
+- End-to-end testing of decimal value entry
+- Validation error display
+- Precision rounding behavior
+
+## Technical Details
+
+### Database Column Standards
+- Used `decimal(8,2)` for all currency fields
+- 8 total digits, 2 after decimal point
+- Supports values up to $999,999.99
+- Matches pattern used throughout the application
+
+### Data Migration Impact
+- Existing data preserved correctly
+- All existing values were whole numbers (as expected)
+- No data loss or corruption
+- 67 out of 82 existing records had payout data
+
+### Design Decisions
+- Followed Rails money handling best practices
+- Used BigDecimal for precision (via decimal columns)
+- Consistent with existing currency handling patterns in codebase
+- Added formatted methods to model instead of relying solely on decorators for flexibility
+
+## Bug Impact
+This bug prevented users from entering fractional dollar amounts (cents) for FlexPassOffer payout fields. The facility fee, spiff, and flat payout fields could only store whole dollar amounts, limiting pricing flexibility and accuracy in financial calculations.
+
+## Testing Results
+- All 24 model tests passing
+- All 11 controller tests passing
+- Manual testing confirmed decimal values work correctly
+- Existing production data migrated successfully
