@@ -311,13 +311,20 @@ class TicketOrder < Order
     
 
 
-  def send_to_printer
+  def send_to_printer(batch_id = nil, batch_sequence = nil)
     unless PrintOrder.site.to_s.blank?
       unless self.print_order_id.nil?
         print_order = PrintOrder.find(self.print_order_id)
 
         print_order.status = 'Unprinted'
         print_order.reprints += 1
+        
+        # Update batch information if provided
+        if batch_id.present?
+          print_order.batch_id = batch_id
+          print_order.batch_sequence = batch_sequence
+        end
+        
         seat_index = 0
         if self.performance.production.has_reserved_seating? then
           print_order.tickets.each do |ticket|
@@ -342,19 +349,29 @@ class TicketOrder < Order
           use_last_name = self.address.last_name
           use_first_name = self.address.first_name
         end
-        print_order = PrintOrder.new(:last_name => use_last_name,
-                                     :first_name => use_first_name,
-                                     :performance_code => self.performance_code,
-                                     :venue => self.performance.production.venue.name,
-                                     :theater => self.theater.name,
-                                     :title => self.performance.production.name,
-                                     :credit_1 => credit_1,
-                                     :credit_2 => credit_2,
-                                     :patron_code => self.address.customer_tag,
-                                     :performance_date => self.performance.performance_date,
-                                     :performance_time => self.performance.performance_time,
-                                     :amount => self.total_paid,
-                                     :remote_id => self.id)
+        print_order_attrs = {
+          :last_name => use_last_name,
+          :first_name => use_first_name,
+          :performance_code => self.performance_code,
+          :venue => self.performance.production.venue.name,
+          :theater => self.theater.name,
+          :title => self.performance.production.name,
+          :credit_1 => credit_1,
+          :credit_2 => credit_2,
+          :patron_code => self.address.customer_tag,
+          :performance_date => self.performance.performance_date,
+          :performance_time => self.performance.performance_time,
+          :amount => self.total_paid,
+          :remote_id => self.id
+        }
+        
+        # Add batch information if provided
+        if batch_id.present?
+          print_order_attrs[:batch_id] = batch_id
+          print_order_attrs[:batch_sequence] = batch_sequence
+        end
+        
+        print_order = PrintOrder.new(print_order_attrs)
 
         # print_order.save!
 
