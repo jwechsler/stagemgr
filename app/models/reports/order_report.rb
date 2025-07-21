@@ -3,7 +3,7 @@ class OrderReport < Report
   def self.columns_for_orders(build_for_dumpfile = true, include_emails = false)
     keys = [:order_date]
     keys += [:id, :first_name, :last_name, :street_address, :street_address_2, :city, :state, :postal_code, :phone] if build_for_dumpfile
-    keys += [:email] if include_emails
+    keys += [:email] if include_emails && build_for_dumpfile
     keys += [:performance_code, :special_offer_code, :status, :description, :facility_fee, :processing_fee] if build_for_dumpfile
     keys
   end
