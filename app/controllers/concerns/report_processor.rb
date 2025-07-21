@@ -11,7 +11,7 @@ module ReportProcessor
   private
 
   # Main method to process any report with comprehensive error handling
-  def process_report(options = {})
+  def process_report(options = {}, &block)
     log_report_access(options)
     
     begin
@@ -20,7 +20,7 @@ module ReportProcessor
       if should_download?(options)
         queue_background_report(options)
       else
-        generate_inline_report(options)
+        generate_inline_report(options, &block)
       end
     rescue DateParsingError => e
       handle_date_error(e.message)
@@ -80,7 +80,7 @@ module ReportProcessor
   end
 
   # Generate report inline with timeout protection
-  def generate_inline_report(options)
+  def generate_inline_report(options, &block)
     begin
       timeout_seconds = options[:timeout] || $SERVER_CONFIG['report_timeout_seconds'] || 30
       Timeout::timeout(timeout_seconds.seconds) do
@@ -201,7 +201,36 @@ module ReportProcessor
     Rails.logger.error "Report generation error: #{error.class} - #{error.message}"
     Rails.logger.error error.backtrace.join("\n")
     
-    flash[:error] = "An unexpected error occurred while generating the report. Please try again or contact support if the problem persists."
+    # Add report-specific context for debugging
+    report_context = {
+      report_name: action_name,
+      user_id: current_user&.id,
+      user_email: current_user&.email,
+      request_ip: request.remote_ip,
+      parameters: params.except(:authenticity_token).to_hash
+    }
+    
+    # Notify via the existing ExceptionNotifier system
+    if defined?(ExceptionNotifier) && Rails.env.production?
+      ExceptionNotifier.notify_exception(error, 
+        env: request.env, 
+        data: { report_context: report_context }
+      )
+    end
+    
+    # Provide more specific error message based on error type
+    error_message = case error
+    when ActiveRecord::StatementTimeout, Mysql2::Error::TimeoutError
+      "The report is taking too long to generate due to the amount of data. Please try a smaller date range or use the download option."
+    when ActiveRecord::ConnectionNotEstablished, Mysql2::Error::ConnectionError
+      "Database connection issue. Please try again in a few moments."
+    when NoMethodError
+      "Report configuration error occurred. Our development team has been notified and will investigate this issue."
+    else
+      "An unexpected error occurred while generating the report (#{error.class}). Our development team has been notified. Please try again or contact support if the problem persists."
+    end
+    
+    flash[:error] = error_message
     redirect_to admin_reports_path
   end
 end
