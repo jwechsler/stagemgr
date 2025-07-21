@@ -3,15 +3,12 @@ class BatchPrintingService
     def create_and_process_batch(orders)
       return false if orders.empty?
       
-      batch_id = generate_batch_id
       order_ids = orders.map(&:id)
       
-      Rails.logger.info("Creating batch #{batch_id} with orders: #{order_ids}")
+      Rails.logger.info("Creating bulk batch with orders: #{order_ids}")
       
-      # Queue the batch job
-      Resque.enqueue(PrintBatchJob, batch_id, order_ids)
-      
-      batch_id
+      # Use unified PrintingService for batch printing
+      PrintingService.print_orders(order_ids, batch_type: :bulk)
     end
 
     def process_orders_by_performance(performance_id, limit: 50)
@@ -59,10 +56,5 @@ class BatchPrintingService
     end
 
     private
-
-    def generate_batch_id
-      # Generate a unique batch ID using timestamp and random string
-      Time.current.strftime('%Y%m%d_%H%M%S') + '_' + SecureRandom.hex(4)
-    end
   end
 end

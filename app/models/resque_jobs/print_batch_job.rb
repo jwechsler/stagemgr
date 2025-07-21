@@ -16,7 +16,7 @@ class PrintBatchJob
           order = TicketOrder.find(order_id)
           Rails.logger.info("Processing order #{order_id} (sequence #{sequence}) for batch #{batch_id}")
           
-          # Send to printer with batch information
+          # Send to printer with batch information (batch_id and sequence are required)
           order.send_to_printer(batch_id, sequence)
           
           Rails.logger.info("Successfully sent order #{order_id} to printer")
@@ -95,8 +95,8 @@ class PrintBatchJob
     request['Accept'] = 'application/json'
     
     # Add basic auth if configured
-    if $XML_AUTHORIZATION && $XML_AUTHORIZATION['username'] && $XML_AUTHORIZATION['password']
-      request.basic_auth($XML_AUTHORIZATION['username'], $XML_AUTHORIZATION['password'])
+    if uri.user && uri.password
+      request.basic_auth(uri.user, uri.password)
     end
     
     response = http.request(request)

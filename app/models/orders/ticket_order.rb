@@ -311,7 +311,11 @@ class TicketOrder < Order
     
 
 
-  def send_to_printer(batch_id = nil, batch_sequence = nil)
+  def send_to_printer(batch_id, batch_sequence = nil)
+    # batch_id is required, batch_sequence defaults to 1 if not provided
+    raise ArgumentError, "batch_id is required" if batch_id.blank?
+    batch_sequence ||= 1
+    
     unless PrintOrder.site.to_s.blank?
       unless self.print_order_id.nil?
         print_order = PrintOrder.find(self.print_order_id)
@@ -319,11 +323,9 @@ class TicketOrder < Order
         print_order.status = 'Unprinted'
         print_order.reprints += 1
         
-        # Update batch information if provided
-        if batch_id.present?
-          print_order.batch_id = batch_id
-          print_order.batch_sequence = batch_sequence
-        end
+        # Update batch information (always required now)
+        print_order.batch_id = batch_id
+        print_order.batch_sequence = batch_sequence
         
         seat_index = 0
         if self.performance.production.has_reserved_seating? then
@@ -365,11 +367,9 @@ class TicketOrder < Order
           :remote_id => self.id
         }
         
-        # Add batch information if provided
-        if batch_id.present?
-          print_order_attrs[:batch_id] = batch_id
-          print_order_attrs[:batch_sequence] = batch_sequence
-        end
+        # Add batch information (always required now)
+        print_order_attrs[:batch_id] = batch_id
+        print_order_attrs[:batch_sequence] = batch_sequence
         
         print_order = PrintOrder.new(print_order_attrs)
 
@@ -400,7 +400,6 @@ class TicketOrder < Order
           tli.ticket_count.times do
             ticket = Ticket.new(:order_id => self.print_order_id,
                                 :ticket_class => tli.ticket_class.class_code,
-                                :type => 'Ticket',
                                 :seat => seats[tli_index].nil? ? "" : (self.performance.production.has_reserved_seating? ? seats[tli_index].seat.location : "")
             )
             tli_index += 1
@@ -831,7 +830,7 @@ class TicketOrder < Order
   end
 
   def transition_processed_to_fulfilled!(redirect_to = nil)
-    Resque.enqueue(PrintTicketOrder, self.id)
+    PrintingService.print_order(self.id, batch_type: :individual)
     super
   end
 

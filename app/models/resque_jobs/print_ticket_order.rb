@@ -2,13 +2,12 @@ class PrintTicketOrder
   @queue = :printing
 
   def self.perform(order_id)
-    # DEPRECATED: Use PrintBatchJob instead for new implementations
-    # This method is kept for backward compatibility only
+    # DEPRECATED: This job is deprecated in favor of PrintingService
+    # Redirecting to the new unified batch-based printing system
     
-    Rails.logger.warn("DEPRECATED: PrintTicketOrder.perform is deprecated. Use PrintBatchJob instead.")
+    Rails.logger.warn("DEPRECATED: PrintTicketOrder.perform is deprecated. Redirecting to PrintingService.")
     
-    o = TicketOrder.find(order_id)
-    o.send_to_printer  # This will use individual printing without batch
-    o.save!
+    # Use the new unified service instead of direct send_to_printer
+    PrintingService.print_order(order_id, batch_type: :legacy)
   end
 end

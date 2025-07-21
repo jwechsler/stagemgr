@@ -127,8 +127,8 @@ class Admin::TicketOrdersController < Admin::OrdersController
 
   def reprint
     if @ticket_order.fulfilled?
-      @ticket_order.send_to_printer
-      flash[:notice] = 'Ticket reprinted'
+      batch_id = PrintingService.reprint_order(@ticket_order.id)
+      flash[:notice] = "Ticket reprinted (batch: #{batch_id})"
     end
     respond_to do |format|
       format.html { render 'show', :layout=>true}
