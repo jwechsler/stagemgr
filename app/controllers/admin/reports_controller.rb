@@ -87,9 +87,13 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def daily_box_office_receipts
-    dates = parse_date_params(starting_date: params[:start_day], ending_date: params[:end_day])
-    @start_day = dates[:starting_date]
-    @end_day = dates[:ending_date]
+    @start_day = Date.parse(params[:start_day])
+    @end_day = Date.parse(params[:end_day])
+    
+    # Swap dates if start date is after end date
+    if @start_day > @end_day
+      @start_day, @end_day = @end_day, @start_day
+    end
 
     # Override default max range - this report has 31-day limit
     days_span = (@end_day - @start_day).to_i
@@ -98,11 +102,14 @@ class Admin::ReportsController < Admin::ApplicationController
       redirect_to admin_reports_path and return
     end
 
-    process_report(
-      csv_filename: 'daily_boxoffice_receipts',
-      timeout: 30.seconds
-    ) do
-      @headers, @report_data = build_daily_box_office_receipts(@start_day, @end_day, !params['download_csv'].nil?)
+    @headers, @report_data = build_daily_box_office_receipts(@start_day, @end_day, !params['download_csv'].nil?)
+    
+    if params['download_csv'].nil? then
+      respond_to do |format|
+        format.html
+      end
+    else
+      send_report_as_csv('daily_boxoffice_receipts', @headers, @report_data)
     end
   end
 
@@ -418,11 +425,19 @@ class Admin::ReportsController < Admin::ApplicationController
     day_total = Hash.new
     zero_dollars = Money.new(0)
     keys = OrderReport.columns_for_orders(build_for_dumpfile, can?(:view_email, Address)) - [:order_date] + [:processed_on]
-    payment_types = []
 
     current_date = start_day - 1.week
 
     payments = Payment.order("processed_on").where("processed_on >=:start_day and processed_on < :end_day", {:start_day=>start_day.to_time(:local), :end_day=>(end_day + 1.day).to_time(:local)})
+    
+    # Pre-collect all payment types for this date range
+    payment_types = []
+    payments.each { |p|
+      bucket = payment_bucket(p)
+      payment_types << bucket unless payment_types.include?(bucket)
+    }
+    payment_types.sort!
+    
     payments.each { |p|
       c_day = p.processed_on.to_s
       if c_day != current_date then
@@ -434,10 +449,6 @@ class Admin::ReportsController < Admin::ApplicationController
       end
       amt = p.amount.nil? ? zero_dollars : p.amount.to_money
       bucket = payment_bucket(p)
-      unless payment_types.include?(bucket)
-        day_total[bucket] = zero_dollars
-        payment_types << bucket
-      end
       if day_total[bucket].nil?
         day_total[bucket] = amt
       else
@@ -447,14 +458,17 @@ class Admin::ReportsController < Admin::ApplicationController
       if build_for_dumpfile then
         row = OrderReport.create_hash_from_order_fields(p.order)
 
-        row[p.class.to_s] = amt
+        # Initialize all payment type columns to zero
+        payment_types.each { |pt| row[pt] = zero_dollars }
+        # Set the actual payment amount for this payment type
+        row[bucket] = amt
         row[:display_class] = :report_detail_row
         report << row
       end
 
 
     }
-    keys += payment_types.sort
+    keys += payment_types
     report << day_total
     [keys, report]
   end

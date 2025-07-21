@@ -50,7 +50,7 @@ class OrderReport < Report
     row[:order_revenue] = Money.from_amount(order.total_paid) - Money.from_amount(order.processing_fee) - Money.from_amount(order.ticketing_fee)
     row[:num_tickets]  = order.kind_of?(TicketOrder) ? order.number_of_tickets : 0
     row[:num_seats] = order.kind_of?(TicketOrder) ? order.number_of_seats : 0
-    if order.performance.production.has_reserved_seating?
+    if !order.performance.blank? && order.performance.production.has_reserved_seating?
       row[:seat_assignments] = order.seats.map {|sa| sa.seat.location}.sort.join(', ')
     end
     row[:facility_fee] = Money.from_amount(order.ticketing_fee)
