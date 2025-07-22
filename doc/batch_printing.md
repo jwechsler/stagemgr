@@ -169,9 +169,66 @@ end
 ## 8. Integration Points
 
 ### **Stagemgr Integration**
-- **Order Creation**: POST /orders with batch assignment
-- **Batch Closure**: Triggered after order collection complete
-- **Status Monitoring**: Real-time batch status updates
+
+The integration between stagemgr and tktprint uses direct HTTP API calls with proper field mapping:
+
+#### **Print Batch Job Flow**
+```ruby
+# PrintBatchJob processes orders in sequence
+PrintBatchJob.perform(batch_id, order_ids)
+  1. Create print batch in tktprint: POST /print_batches
+  2. For each order: order.send_to_printer_api(batch_id, sequence)  
+  3. Close batch to trigger printing: PUT /print_batches/:id/close
+```
+
+#### **Order Data Mapping**
+The `send_to_printer_api` method maps stagemgr fields to tktprint API format:
+
+**Order Fields:**
+- Customer name parsing with hold_under support
+- Performance and venue information
+- Credit lines from production
+- Batch ID and sequence number
+
+**Nested Attributes:**
+```ruby
+# Line Items
+line_items_attributes: [{
+  description: line_item.receipt_description,  # "1 ADULT"
+  amount: line_item.receipt_total             # "45.0"
+}]
+
+# Payments  
+payments_attributes: [{
+  description: payment.receipt_description,    # "Visa ****1234::AUTH pi_xyz"
+  amount: payment.customer_visible_amount     # "45.0"
+}]
+
+# Tickets
+tickets_attributes: [{
+  ticket_class: ticket_class.class_code,      # "ADULT"
+  seat: seat.location                         # "A-12" or "" for GA
+}]
+```
+
+#### **API Method Deprecation**
+- **`send_to_printer_api`**: Primary method for all printing (recommended)
+- **`send_to_printer`**: Deprecated wrapper that delegates to `send_to_printer_api`
+- Legacy ActiveResource code completely removed in favor of direct HTTP API calls
+
+### **Tktprint Service Integration**
+
+#### **Order Creation Handling**
+The tktprint OrdersController handles nested attributes manually:
+- Maps payment `description` to `transaction_id` and `payment_type`
+- Parses format: `"PaymentType::TransactionID"`
+- Creates associated line_items, payments, and tickets properly
+- Returns 200 OK instead of 500 errors on successful creation
+
+#### **Network Configuration**
+- **Docker networking**: tktprint containers connect to `site_default` network
+- **Host authorization**: Rails accepts requests from `tktprint_web` hostname
+- **Authentication**: HTTP Basic Auth with configured credentials
 
 ### **Printer Integration**
 - **TCP Socket Communication**: Port 9100 standard
@@ -182,11 +239,35 @@ end
 ## 9. Monitoring & Observability
 
 ### **Logging**
+
+The batch printing system provides enhanced logging with customer information:
+
 ```ruby
+# Batch processing logs
 Rails.logger.info("Processing print batch: #{batch.batch_id}")
 Rails.logger.info("Printing #{orders.count} orders in batch #{batch.batch_id}")
-Rails.logger.info("Successfully printed order #{order.id}")
-Rails.logger.error("Failed to print order #{order.id}")
+
+# Enhanced order logging (shows order number and customer name)
+Rails.logger.info("Printing order #{order.remote_id} - #{order.last_name} (sequence #{sequence})")
+Rails.logger.info("Successfully printed order #{order.remote_id} - #{order.last_name}")
+Rails.logger.error("Error printing order #{order_id}: #{error.message}")
+```
+
+#### **Log Locations**
+- **Stagemgr**: `/var/www/stagemgr/log/development.log` (PrintBatchJob execution)
+- **Tktprint**: Worker container logs for batch processing, web container for API calls
+- **SQL logging**: Suppressed in development for cleaner output
+
+#### **Monitoring Commands**
+```bash
+# Watch stagemgr batch job logs
+docker-compose exec stagemgr tail -f log/development.log
+
+# Watch tktprint worker processing  
+docker logs tktprint_worker --tail=20 -f
+
+# Check batch status via API
+curl -u "stagemgr:test" http://tktprint_web:3000/print_batches/BATCH_ID.json
 ```
 
 ### **Metrics Available**
@@ -210,6 +291,79 @@ Delayed::Worker.sleep_delay = 3
 - **Persistent Jobs**: Survives service restarts
 - **Log Rotation**: Prevents disk space issues
 
+## 11. Troubleshooting & Common Issues
+
+### **Order Creation Failures (500 Errors)**
+
+**Problem**: Orders fail to create in tktprint service with 500 Internal Server Error
+**Symptoms**: 
+- Batches show 0 orders after closure
+- ActiveModel::UnknownAttributeError for Payment.description
+- Unpermitted parameter warnings
+
+**Solution**: Fixed in tktprint OrdersController by handling nested attributes manually:
+- Payment `description` mapped to `transaction_id` and `payment_type`
+- Line items and tickets created with proper field mapping
+- Removed nested attributes from `order_params` to prevent unpermitted parameter errors
+
+### **Network Connectivity Issues**
+
+**Problem**: "Failed to open TCP connection to tktprint:3000 (getaddrinfo: Name or service not known)"
+**Symptoms**:
+- Batch jobs fail immediately
+- Cannot reach tktprint service from stagemgr
+
+**Solution**: Docker network configuration:
+- Added tktprint containers to `site_default` network
+- Updated Rails host authorization to accept `tktprint_web` hostname
+- Changed configuration to use container name `tktprint_web:3000`
+
+### **Field Mapping Errors**
+
+**Problem**: ActiveResource field mapping breaking between stagemgr and tktprint
+**Symptoms**:
+- Orders created but with incorrect data
+- Payment and line item information missing or malformed
+
+**Solution**: Replaced ActiveResource with direct API calls:
+- Created `send_to_printer_api` method with proper field mapping
+- Deprecated `send_to_printer` method 
+- Restored original field mapping: `receipt_description` → `description`, etc.
+
+### **Missing Enhanced Logging**
+
+**Problem**: Generic order IDs in logs make debugging difficult
+**Solution**: Updated logging to show customer information:
+- Changed from "Printing order 123" to "Printing order 306081 - Stejskal"
+- Added sequence information for batch tracking
+- Suppressed SQL logging for cleaner output
+
+### **Host Authorization Blocks**
+
+**Problem**: "Blocked host: tktprint_web" errors in Rails 6+
+**Solution**: Added hostname to development environment:
+```ruby
+config.hosts << "tktprint_web"
+```
+
+### **Diagnostic Commands**
+
+```bash
+# Test tktprint connectivity
+docker exec site-stagemgr-1 timeout 5 bash -c "</dev/tcp/tktprint_web/3000"
+
+# Check batch status
+curl -u "stagemgr:test" http://tktprint_web:3000/print_batches/BATCH_ID.json
+
+# Monitor batch processing
+docker logs tktprint_worker --tail=20 -f
+
+# Check Resque job status
+docker-compose exec stagemgr rails console
+> Resque.info
+> Resque.size(:batch_printing)
+```
+
 ## Key Benefits
 
 1. **Reliability**: Batches never get lost, automatic recovery
@@ -218,5 +372,6 @@ Delayed::Worker.sleep_delay = 3
 4. **Monitoring**: Comprehensive logging and status tracking
 5. **Fault Tolerance**: Individual failures don't crash the system
 6. **Consistency**: Guaranteed sequential processing order
+7. **Maintainability**: Clear API-based integration with proper field mapping
 
 This system transforms individual ticket printing into a robust, enterprise-grade batch processing solution that can handle Theater Wit's ticketing demands reliably and efficiently.
