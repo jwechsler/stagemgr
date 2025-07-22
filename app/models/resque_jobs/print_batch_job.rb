@@ -16,8 +16,8 @@ class PrintBatchJob
           order = TicketOrder.find(order_id)
           Rails.logger.info("Processing order #{order_id} (sequence #{sequence}) for batch #{batch_id}")
           
-          # Send to printer with batch information (batch_id and sequence are required)
-          order.send_to_printer(batch_id, sequence)
+          # Send to printer API with batch information (batch_id and sequence are required)
+          order.send_to_printer_api(batch_id, sequence)
           
           Rails.logger.info("Successfully sent order #{order_id} to printer")
         rescue => e

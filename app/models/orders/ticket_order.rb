@@ -414,6 +414,132 @@ class TicketOrder < Order
     end
   end
 
+  # New API-based method for sending orders directly to tktprint service
+  def send_to_printer_api(batch_id, batch_sequence = nil)
+    raise ArgumentError, "batch_id is required" if batch_id.blank?
+    batch_sequence ||= 1
+
+    return unless $TKTPRINT['service'].present?
+
+    # Build customer name
+    cleaned_name, f_name, l_name = Address.parse_name(self.hold_under.blank? ? self.address.full_name : self.hold_under)
+    unless cleaned_name == self.address.full_name
+      use_last_name = l_name
+      use_first_name = f_name
+    else
+      use_last_name = self.address.last_name
+      use_first_name = self.address.first_name
+    end
+
+    # Build credits
+    credit_1 = nil
+    credit_2 = nil
+    unless self.performance.production.credit_lines.blank?
+      credit_lines = self.performance.production.credit_lines.split("\n")
+      credit_1 = credit_lines[0] unless credit_lines.nil?
+      credit_2 = credit_lines[1] unless credit_lines.size < 2
+    end
+
+    # Build main order payload
+    order_payload = {
+      last_name: use_last_name,
+      first_name: use_first_name,
+      performance_code: self.performance_code,
+      venue: self.performance.production.venue.name,
+      theater: self.theater.name,
+      title: self.performance.production.name,
+      credit_1: credit_1,
+      credit_2: credit_2,
+      patron_code: self.address.customer_tag,
+      performance_date: self.performance.performance_date,
+      performance_time: self.performance.performance_time,
+      amount: self.total_paid,
+      remote_id: self.id,
+      batch_id: batch_id,
+      batch_sequence: batch_sequence,
+      line_items_attributes: [],
+      payments_attributes: [],
+      tickets_attributes: []
+    }
+
+    # Add line items using correct field mapping
+    self.unique_line_items.select { |li| !li.special_offer_id.nil? || li.ticket_count > 0 }.each do |oli|
+      order_payload[:line_items_attributes] << {
+        description: oli.receipt_description,
+        amount: oli.receipt_total
+      }
+    end
+
+    # Add payments using correct field mapping
+    self.payments.each do |pay|
+      unless pay.receipt_description.blank?
+        order_payload[:payments_attributes] << {
+          description: pay.receipt_description,
+          amount: pay.customer_visible_amount
+        }
+      end
+    end
+
+    # Add tickets using correct field mapping
+    tli_index = 0
+    self.ticket_line_items.each do |tli|
+      tli.ticket_count.times do
+        seat_location = ""
+        if self.performance.production.has_reserved_seating? && !seats[tli_index].nil?
+          seat_location = seats[tli_index].seat.location
+        end
+
+        order_payload[:tickets_attributes] << {
+          ticket_class: tli.ticket_class.class_code,
+          seat: seat_location
+        }
+        tli_index += 1
+      end
+    end
+
+    # Send to tktprint API
+    send_order_to_tktprint_api(order_payload)
+  end
+
+  private
+
+  def send_order_to_tktprint_api(payload)
+    require 'net/http'
+    require 'uri'
+    require 'json'
+
+    tktprint_url = $TKTPRINT['service']
+    uri = URI("#{tktprint_url}/orders.json")
+    
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = uri.scheme == 'https'
+    
+    request = Net::HTTP::Post.new(uri)
+    request.body = payload.to_json
+    request['Content-Type'] = 'application/json'
+    request['Accept'] = 'application/json'
+    
+    # Add basic auth if configured
+    if uri.user && uri.password
+      request.basic_auth(uri.user, uri.password)
+    end
+    
+    response = http.request(request)
+    
+    if response.code.to_i.between?(200, 299)
+      Rails.logger.info("Successfully sent order #{self.id} to tktprint API")
+    else
+      error_msg = "Failed to send order #{self.id} to tktprint: #{response.code} #{response.body}"
+      Rails.logger.error(error_msg)
+      raise error_msg
+    end
+    
+    response
+  rescue => e
+    Rails.logger.error("Error sending order #{self.id} to tktprint API: #{e.message}")
+    raise e
+  end
+
   def number_of_tickets
     if self.ticket_line_items.empty?
       result = 0
