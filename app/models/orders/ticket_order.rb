@@ -444,6 +444,7 @@ class TicketOrder < Order
     raise e
   end
 
+  public
   def number_of_tickets
     if self.ticket_line_items.empty?
       result = 0
