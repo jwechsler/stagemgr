@@ -89,7 +89,7 @@ class Admin::TheatersController < Admin::ApplicationController
 
   private
   def theater_params
-    params.require(:theater).permit(:name, :url, :theater_class, :logo, :status, :default_service_items, :default_first_exchange_items,:default_addl_exchange_items)
+    params.require(:theater).permit(:name, :url, :theater_class, :logo, :status, :default_service_items, :default_first_exchange_items, :default_addl_exchange_items, :accepts_donations, :myemma_attendee_group)
   end
 
 end
