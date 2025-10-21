@@ -413,20 +413,31 @@ class TicketOrder < Order
     require 'json'
 
     tktprint_url = $TKTPRINT['service']
-    uri = URI("#{tktprint_url}/orders.json")
-    
-    http = Net::HTTP.new(uri.host, uri.port)
-    http.use_ssl = uri.scheme == 'https'
-    
-    request = Net::HTTP::Post.new(uri)
+
+    # Parse the base URL to extract credentials and host
+    base_uri = URI(tktprint_url)
+
+    # Build the HTTP connection (without credentials in URL)
+    http = Net::HTTP.new(base_uri.host, base_uri.port)
+    http.use_ssl = base_uri.scheme == 'https'
+
+    # Create the request with just the path (no host/credentials)
+    request = Net::HTTP::Post.new('/orders.json')
     request.body = payload.to_json
     request['Content-Type'] = 'application/json'
     request['Accept'] = 'application/json'
-    
-    # Add basic auth if configured
-    if uri.user && uri.password
-      request.basic_auth(uri.user, uri.password)
+
+    # Add basic auth if configured (this will add the Authorization header)
+    if base_uri.user && base_uri.password
+      request.basic_auth(base_uri.user, base_uri.password)
+      Rails.logger.debug("TktPrint: Adding Basic Auth for user: #{base_uri.user}")
+    else
+      Rails.logger.warn("TktPrint: No credentials found in service URL")
     end
+
+    # Log the request for debugging
+    Rails.logger.debug("TktPrint: Sending POST to #{base_uri.host}:#{base_uri.port}/orders.json")
+    Rails.logger.debug("TktPrint: Authorization header present: #{!request['Authorization'].nil?}")
     
     response = http.request(request)
     
@@ -861,8 +872,14 @@ class TicketOrder < Order
   end
 
   def transition_processed_to_fulfilled!(redirect_to = nil)
-    PrintingService.print_order(self.id, batch_type: :individual)
-    super
+    # Queue the print job - status will be changed to FULFILLED by the job on success
+    batch_id = PrintingService.print_order(self.id, batch_type: :individual)
+    Rails.logger.info("Order #{self.id} queued for printing in batch #{batch_id}")
+
+    # NOTE: We do NOT call super here because the PrintBatchJob will mark the order
+    # as FULFILLED after successful printing. This prevents orders from being marked
+    # as fulfilled when printing fails.
+    redirect_to
   end
 
   def transition_fulfilled_to_fulfilled!(redirect_to = nil)

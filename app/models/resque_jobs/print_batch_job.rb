@@ -3,36 +3,57 @@ class PrintBatchJob
 
   def self.perform(batch_id, order_ids)
     Rails.logger.info("Starting print batch job: #{batch_id} with #{order_ids.length} orders")
-    
+
+    successful_order_ids = []
+    failed_order_ids = []
+
     begin
       # Create the print batch in tktprint
       create_print_batch(batch_id)
-      
+
       # Send each order to tktprint with batch information
       order_ids.each_with_index do |order_id, index|
         sequence = index + 1
-        
+
         begin
           order = TicketOrder.find(order_id)
           Rails.logger.info("Processing order #{order_id} (sequence #{sequence}) for batch #{batch_id}")
-          
+
           # Send to printer API with batch information (batch_id and sequence are required)
           order.send_to_printer_api(batch_id, sequence)
-          
+
           Rails.logger.info("Successfully sent order #{order_id} to printer")
+          successful_order_ids << order_id
         rescue => e
           Rails.logger.error("Error processing order #{order_id} in batch #{batch_id}: #{e.message}")
+          Rails.logger.error("Backtrace: #{e.backtrace.join("\n")}")
+          failed_order_ids << order_id
           # Continue with other orders even if one fails
         end
       end
-      
+
       # Close the print batch to trigger printing
       close_print_batch(batch_id)
-      
-      Rails.logger.info("Completed print batch job: #{batch_id}")
-      
+
+      # Mark successfully printed orders as FULFILLED
+      successful_order_ids.each do |order_id|
+        begin
+          order = TicketOrder.find(order_id)
+          if order.status == Order::PROCESSED
+            order.status = Order::FULFILLED
+            order.save!
+            Rails.logger.info("Marked order #{order_id} as FULFILLED after successful print")
+          end
+        rescue => e
+          Rails.logger.error("Error updating order #{order_id} to FULFILLED: #{e.message}")
+        end
+      end
+
+      Rails.logger.info("Completed print batch job: #{batch_id} - #{successful_order_ids.length} successful, #{failed_order_ids.length} failed")
+
     rescue => e
       Rails.logger.error("Error in print batch job #{batch_id}: #{e.message}")
+      Rails.logger.error("Backtrace: #{e.backtrace.join("\n")}")
       raise e
     end
   end
@@ -75,33 +96,39 @@ class PrintBatchJob
     tktprint_url = $TKTPRINT['service']
     return OpenStruct.new(success?: false, body: 'Tktprint service not configured') if tktprint_url.blank?
 
-    uri = URI("#{tktprint_url}/#{path}.json")
-    
-    http = Net::HTTP.new(uri.host, uri.port)
-    http.use_ssl = uri.scheme == 'https'
-    
+    # Parse base URI to extract credentials
+    base_uri = URI(tktprint_url)
+    request_path = "/#{path}.json"
+
+    http = Net::HTTP.new(base_uri.host, base_uri.port)
+    http.use_ssl = base_uri.scheme == 'https'
+
+    # Create request with path only (not full URI)
     case method
     when :post
-      request = Net::HTTP::Post.new(uri)
+      request = Net::HTTP::Post.new(request_path)
       request.body = params.to_json
     when :put
-      request = Net::HTTP::Put.new(uri)
+      request = Net::HTTP::Put.new(request_path)
       request.body = params.to_json
     when :get
-      request = Net::HTTP::Get.new(uri)
+      request = Net::HTTP::Get.new(request_path)
     end
-    
+
     request['Content-Type'] = 'application/json'
     request['Accept'] = 'application/json'
-    
+
     # Add basic auth if configured
-    if uri.user && uri.password
-      request.basic_auth(uri.user, uri.password)
+    if base_uri.user && base_uri.password
+      request.basic_auth(base_uri.user, base_uri.password)
+      Rails.logger.debug("TktPrint: Adding Basic Auth for user: #{base_uri.user}")
+    else
+      Rails.logger.warn("TktPrint: No credentials found in service URL")
     end
     
     response = http.request(request)
-    
-    Rails.logger.debug("Tktprint API #{method.upcase} #{uri}: #{response.code} #{response.body}")
+
+    Rails.logger.debug("Tktprint API #{method.upcase} #{base_uri.host}:#{base_uri.port}#{request_path}: #{response.code} #{response.body}")
     
     OpenStruct.new(
       success?: response.code.to_i.between?(200, 299),
