@@ -353,6 +353,18 @@ class TicketOrder < Order
       credit_2 = credit_lines[1] unless credit_lines.size < 2
     end
 
+    # Calculate visible amount (excluding line items with hide_pricing=true)
+    visible_amount = 0
+    self.unique_line_items.select { |li| !li.special_offer_id.nil? || li.ticket_count > 0 }.each do |oli|
+      # Check if this is a TicketLineItem with hide_pricing=true
+      if oli.is_a?(TicketLineItem) && oli.ticket_class&.hide_pricing
+        # Skip this line item when calculating visible total
+        next
+      else
+        visible_amount += oli.receipt_total
+      end
+    end
+
     # Build main order payload
     order_payload = {
       last_name: use_last_name,
@@ -366,7 +378,7 @@ class TicketOrder < Order
       patron_code: self.address.customer_tag,
       performance_date: self.performance.performance_date,
       performance_time: self.performance.performance_time,
-      amount: self.total_paid,
+      amount: visible_amount,
       remote_id: self.id,
       batch_id: batch_id,
       batch_sequence: batch_sequence,
@@ -377,9 +389,15 @@ class TicketOrder < Order
 
     # Add line items using correct field mapping
     self.unique_line_items.select { |li| !li.special_offer_id.nil? || li.ticket_count > 0 }.each do |oli|
+      # Check if this is a TicketLineItem with hide_pricing=true
+      line_item_amount = oli.receipt_total
+      if oli.is_a?(TicketLineItem) && oli.ticket_class&.hide_pricing
+        line_item_amount = 0
+      end
+
       order_payload[:line_items_attributes] << {
         description: oli.receipt_description,
-        amount: oli.receipt_total
+        amount: line_item_amount
       }
     end
 
