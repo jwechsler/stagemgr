@@ -481,7 +481,12 @@ class Order < ApplicationRecord
       begin
         old_status = self.status
         redirect_to = self.send "transition_#{self.status.underscore}_to_#{new_status.underscore}!".to_sym
-        raise "Transition from #{old_status} to #{new_status} unsuccessful. Current status is #{self.status}." unless self.status == new_status
+
+        # Skip validation for TicketOrder transitioning to FULFILLED (asynchronous printing)
+        # The status will be updated to FULFILLED by PrintBatchJob after successful printing
+        unless self.status == new_status || (self.is_a?(TicketOrder) && new_status == Order::FULFILLED)
+          raise "Transition from #{old_status} to #{new_status} unsuccessful. Current status is #{self.status}."
+        end
       rescue StandardError=>e
         Rails.logger.error "Order #{self.id} could not transition from #{old_status} to #{new_status}:"
         Rails.logger.error "   #{e.to_s}"

@@ -319,11 +319,20 @@ class TicketOrder < Order
   end
 
   # New API-based method for sending orders directly to tktprint service
+  # If print_order_id exists, it will reprint the existing order
+  # Otherwise, it will create a new order in tktprint
   def send_to_printer_api(batch_id, batch_sequence = nil)
     raise ArgumentError, "batch_id is required" if batch_id.blank?
     batch_sequence ||= 1
 
     return unless $TKTPRINT['service'].present?
+
+    # If we already have a print_order_id, reprint the existing order
+    if print_order_id.present?
+      return reprint_existing_order(batch_id, batch_sequence)
+    end
+
+    # Otherwise, create a new order in tktprint
 
     # Build customer name
     cleaned_name, f_name, l_name = Address.parse_name(self.hold_under.blank? ? self.address.full_name : self.hold_under)
@@ -401,11 +410,57 @@ class TicketOrder < Order
       end
     end
 
-    # Send to tktprint API
+    # Send to tktprint API and return the tktprint order ID
     send_order_to_tktprint_api(order_payload)
   end
 
   private
+
+  def reprint_existing_order(batch_id, batch_sequence)
+    require 'net/http'
+    require 'uri'
+    require 'json'
+
+    tktprint_url = $TKTPRINT['service']
+    base_uri = URI(tktprint_url)
+
+    # Build the HTTP connection
+    http = Net::HTTP.new(base_uri.host, base_uri.port)
+    http.use_ssl = base_uri.scheme == 'https'
+
+    # Create PUT request to reprint endpoint
+    request = Net::HTTP::Put.new("/orders/#{print_order_id}/reprint.json")
+    request.body = {
+      batch_id: batch_id,
+      batch_sequence: batch_sequence
+    }.to_json
+    request['Content-Type'] = 'application/json'
+    request['Accept'] = 'application/json'
+
+    # Add basic auth if configured
+    if base_uri.user && base_uri.password
+      request.basic_auth(base_uri.user, base_uri.password)
+      Rails.logger.debug("TktPrint: Adding Basic Auth for user: #{base_uri.user}")
+    else
+      Rails.logger.warn("TktPrint: No credentials found in service URL")
+    end
+
+    Rails.logger.info("TktPrint: Reprinting existing order #{self.id} (tktprint ID: #{print_order_id})")
+
+    response = http.request(request)
+
+    if response.code.to_i.between?(200, 299)
+      Rails.logger.info("Successfully marked order #{self.id} for reprint in tktprint")
+      return print_order_id # Return the existing print_order_id
+    else
+      error_msg = "Failed to reprint order #{self.id} in tktprint: #{response.code} #{response.body}"
+      Rails.logger.error(error_msg)
+      raise error_msg
+    end
+  rescue => e
+    Rails.logger.error("Error reprinting order #{self.id} in tktprint API: #{e.message}")
+    raise e
+  end
 
   def send_order_to_tktprint_api(payload)
     require 'net/http'
@@ -440,16 +495,25 @@ class TicketOrder < Order
     Rails.logger.debug("TktPrint: Authorization header present: #{!request['Authorization'].nil?}")
     
     response = http.request(request)
-    
+
     if response.code.to_i.between?(200, 299)
       Rails.logger.info("Successfully sent order #{self.id} to tktprint API")
+
+      # Parse response to extract tktprint order ID
+      begin
+        response_data = JSON.parse(response.body)
+        tktprint_order_id = response_data['id']
+        Rails.logger.info("Tktprint order ID: #{tktprint_order_id}")
+        return tktprint_order_id
+      rescue JSON::ParserError => e
+        Rails.logger.warn("Failed to parse tktprint response: #{e.message}")
+        return nil
+      end
     else
       error_msg = "Failed to send order #{self.id} to tktprint: #{response.code} #{response.body}"
       Rails.logger.error(error_msg)
       raise error_msg
     end
-    
-    response
   rescue => e
     Rails.logger.error("Error sending order #{self.id} to tktprint API: #{e.message}")
     raise e

@@ -20,9 +20,23 @@ class PrintBatchJob
           Rails.logger.info("Processing order #{order_id} (sequence #{sequence}) for batch #{batch_id}")
 
           # Send to printer API with batch information (batch_id and sequence are required)
-          order.send_to_printer_api(batch_id, sequence)
+          tktprint_order_id = order.send_to_printer_api(batch_id, sequence)
 
-          Rails.logger.info("Successfully sent order #{order_id} to printer")
+          # Update both print_order_id and status in a single save
+          if tktprint_order_id.present?
+            order.print_order_id = tktprint_order_id
+          else
+            Rails.logger.warn("Order #{order_id} sent to printer but no tktprint ID returned")
+          end
+
+          # Mark PROCESSED orders as FULFILLED after successful print
+          if order.status == Order::PROCESSED
+            order.status = Order::FULFILLED
+          end
+
+          order.save!
+          Rails.logger.info("Successfully sent order #{order_id} to printer (tktprint ID: #{tktprint_order_id})")
+
           successful_order_ids << order_id
         rescue => e
           Rails.logger.error("Error processing order #{order_id} in batch #{batch_id}: #{e.message}")
@@ -34,20 +48,6 @@ class PrintBatchJob
 
       # Close the print batch to trigger printing
       close_print_batch(batch_id)
-
-      # Mark successfully printed orders as FULFILLED
-      successful_order_ids.each do |order_id|
-        begin
-          order = TicketOrder.find(order_id)
-          if order.status == Order::PROCESSED
-            order.status = Order::FULFILLED
-            order.save!
-            Rails.logger.info("Marked order #{order_id} as FULFILLED after successful print")
-          end
-        rescue => e
-          Rails.logger.error("Error updating order #{order_id} to FULFILLED: #{e.message}")
-        end
-      end
 
       Rails.logger.info("Completed print batch job: #{batch_id} - #{successful_order_ids.length} successful, #{failed_order_ids.length} failed")
 

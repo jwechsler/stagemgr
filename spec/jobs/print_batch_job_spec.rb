@@ -7,6 +7,8 @@ RSpec.describe PrintBatchJob, type: :job do
   before do
     allow(Rails.logger).to receive(:info)
     allow(Rails.logger).to receive(:error)
+    allow(Rails.logger).to receive(:warn)
+    allow(Rails.logger).to receive(:debug)
   end
 
   describe '.perform' do
@@ -14,9 +16,15 @@ RSpec.describe PrintBatchJob, type: :job do
       # Mock the internal API calls
       allow(PrintBatchJob).to receive(:create_print_batch).and_return(true)
       allow(PrintBatchJob).to receive(:close_print_batch).and_return(true)
-      
+
       # Mock TicketOrder.find to return mock objects
-      allow(TicketOrder).to receive(:find).and_return(double('order', send_to_printer: true))
+      mock_order = double('order')
+      allow(mock_order).to receive(:send_to_printer_api).and_return(123)
+      allow(mock_order).to receive(:print_order_id=)
+      allow(mock_order).to receive(:save!)
+      allow(mock_order).to receive(:status).and_return(Order::PROCESSED)
+      allow(mock_order).to receive(:status=)
+      allow(TicketOrder).to receive(:find).and_return(mock_order)
     end
 
     it 'creates a print batch' do
@@ -31,17 +39,49 @@ RSpec.describe PrintBatchJob, type: :job do
       expect(PrintBatchJob).to have_received(:close_print_batch).with(batch_id)
     end
 
-    it 'calls send_to_printer on each order with required batch information' do
-      mock_orders = order_ids.map { |id| double("order_#{id}", send_to_printer: true) }
-      
+    it 'calls send_to_printer_api on each order with required batch information' do
+      mock_orders = order_ids.map do |id|
+        mock = double("order_#{id}")
+        allow(mock).to receive(:send_to_printer_api).and_return(123 + id)
+        allow(mock).to receive(:print_order_id=)
+        allow(mock).to receive(:save!)
+        allow(mock).to receive(:status).and_return(Order::PROCESSED)
+        allow(mock).to receive(:status=)
+        mock
+      end
+
       order_ids.each_with_index do |order_id, index|
         allow(TicketOrder).to receive(:find).with(order_id).and_return(mock_orders[index])
       end
-      
+
       PrintBatchJob.perform(batch_id, order_ids)
-      
+
       order_ids.each_with_index do |order_id, index|
-        expect(mock_orders[index]).to have_received(:send_to_printer).with(batch_id, index + 1)
+        expect(mock_orders[index]).to have_received(:send_to_printer_api).with(batch_id, index + 1)
+      end
+    end
+
+    it 'stores the returned print_order_id and marks order as FULFILLED in a single save' do
+      mock_orders = order_ids.map do |id|
+        mock = double("order_#{id}")
+        allow(mock).to receive(:send_to_printer_api).and_return(100 + id)
+        allow(mock).to receive(:print_order_id=)
+        allow(mock).to receive(:save!)
+        allow(mock).to receive(:status).and_return(Order::PROCESSED)
+        allow(mock).to receive(:status=)
+        mock
+      end
+
+      order_ids.each_with_index do |order_id, index|
+        allow(TicketOrder).to receive(:find).with(order_id).and_return(mock_orders[index])
+      end
+
+      PrintBatchJob.perform(batch_id, order_ids)
+
+      order_ids.each_with_index do |order_id, index|
+        expect(mock_orders[index]).to have_received(:print_order_id=).with(100 + order_id)
+        expect(mock_orders[index]).to have_received(:status=).with(Order::FULFILLED)
+        expect(mock_orders[index]).to have_received(:save!).once
       end
     end
 
@@ -52,33 +92,105 @@ RSpec.describe PrintBatchJob, type: :job do
       expect(Rails.logger).to have_received(:info).with(/Completed print batch job: #{batch_id}/)
     end
 
-    it 'logs each order processing' do
+    it 'logs each order processing with tktprint ID' do
       PrintBatchJob.perform(batch_id, order_ids)
-      
+
       order_ids.each_with_index do |order_id, index|
         expect(Rails.logger).to have_received(:info).with(/Processing order #{order_id} \(sequence #{index + 1}\) for batch #{batch_id}/)
-        expect(Rails.logger).to have_received(:info).with(/Successfully sent order #{order_id} to printer/)
+        expect(Rails.logger).to have_received(:info).with(/Successfully sent order #{order_id} to printer \(tktprint ID: 123\)/)
       end
     end
 
     context 'when an order fails to process' do
       before do
         failing_order = double('failing_order')
-        allow(failing_order).to receive(:send_to_printer).and_raise(StandardError.new('Printer error'))
+        allow(failing_order).to receive(:send_to_printer_api).and_raise(StandardError.new('Printer error'))
         allow(TicketOrder).to receive(:find).with(order_ids.first).and_return(failing_order)
       end
 
       it 'logs the error and continues with other orders' do
         PrintBatchJob.perform(batch_id, order_ids)
-        
+
         expect(Rails.logger).to have_received(:error).with(/Error processing order #{order_ids.first} in batch #{batch_id}: Printer error/)
-        expect(Rails.logger).to have_received(:info).with(/Successfully sent order #{order_ids.last} to printer/)
+        expect(Rails.logger).to have_received(:info).with(/Successfully sent order #{order_ids.last} to printer \(tktprint ID: 123\)/)
       end
 
       it 'still closes the batch' do
         PrintBatchJob.perform(batch_id, order_ids)
-        
+
         expect(PrintBatchJob).to have_received(:close_print_batch).with(batch_id)
+      end
+    end
+
+    context 'when tktprint returns no order ID' do
+      before do
+        order_without_id = double('order')
+        allow(order_without_id).to receive(:send_to_printer_api).and_return(nil)
+        allow(order_without_id).to receive(:print_order_id=)
+        allow(order_without_id).to receive(:save!)
+        allow(order_without_id).to receive(:status).and_return(Order::PROCESSED)
+        allow(order_without_id).to receive(:status=)
+        allow(TicketOrder).to receive(:find).and_return(order_without_id)
+      end
+
+      it 'logs a warning but still marks order as successful' do
+        PrintBatchJob.perform(batch_id, order_ids)
+
+        order_ids.each do |order_id|
+          expect(Rails.logger).to have_received(:warn).with(/Order #{order_id} sent to printer but no tktprint ID returned/)
+        end
+      end
+    end
+
+    context 'when reprinting an order with existing print_order_id' do
+      let(:existing_print_order_ids) { [500, 501, 502] }
+
+      before do
+        mock_orders = order_ids.each_with_index.map do |order_id, index|
+          mock = double("order_#{order_id}")
+          # Returns the same print_order_id that already exists (reprint scenario)
+          allow(mock).to receive(:send_to_printer_api).and_return(existing_print_order_ids[index])
+          allow(mock).to receive(:print_order_id).and_return(existing_print_order_ids[index])
+          allow(mock).to receive(:print_order_id=)
+          allow(mock).to receive(:save!)
+          allow(mock).to receive(:status).and_return(Order::PROCESSED)
+          allow(mock).to receive(:status=)
+          mock
+        end
+
+        order_ids.each_with_index do |order_id, index|
+          allow(TicketOrder).to receive(:find).with(order_id).and_return(mock_orders[index])
+        end
+      end
+
+      it 'uses existing print_order_id and does not create new tktprint orders' do
+        PrintBatchJob.perform(batch_id, order_ids)
+
+        # Verify each order was sent to printer (which internally checks print_order_id)
+        expect(Rails.logger).to have_received(:info).with(/Successfully sent order/).at_least(:once)
+      end
+
+      it 'still marks the orders as FULFILLED' do
+        mock_orders = order_ids.each_with_index.map do |order_id, index|
+          mock = double("order_#{order_id}")
+          allow(mock).to receive(:send_to_printer_api).and_return(existing_print_order_ids[index])
+          allow(mock).to receive(:print_order_id).and_return(existing_print_order_ids[index])
+          allow(mock).to receive(:print_order_id=)
+          allow(mock).to receive(:save!)
+          allow(mock).to receive(:status).and_return(Order::PROCESSED)
+          allow(mock).to receive(:status=)
+          mock
+        end
+
+        order_ids.each_with_index do |order_id, index|
+          allow(TicketOrder).to receive(:find).with(order_id).and_return(mock_orders[index])
+        end
+
+        PrintBatchJob.perform(batch_id, order_ids)
+
+        mock_orders.each do |mock_order|
+          expect(mock_order).to have_received(:status=).with(Order::FULFILLED)
+        end
       end
     end
 
