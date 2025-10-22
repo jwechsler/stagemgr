@@ -104,7 +104,12 @@ module OrdersHelper
       return false
     end
 
-    flash[:notice] = "Order was successfully #{order.status_display.downcase}" if order.finalized?
+    # Special message for ticket orders being fulfilled (print queued asynchronously)
+    if change_to_state == Order::FULFILLED && order.is_a?(TicketOrder)
+      flash[:notice] = "Print request submitted. Order will be marked as Fulfilled after successful printing."
+    elsif order.finalized?
+      flash[:notice] = "Order was successfully #{order.status_display.downcase}"
+    end
     return true
 
   end

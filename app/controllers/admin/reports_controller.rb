@@ -343,41 +343,51 @@ class Admin::ReportsController < Admin::ApplicationController
         Order::PROCESSED, through_date, through_date - 1.day, Production.visible_statuses
       ).order("performances.performance_date, productions.production_code, performances.performance_code, addresses.last_name")
 
-    orders = orders.sort_by{|o| [o.performance.performance_code, o.hold_under.blank? ? o.address.last_name : Address.parse_name(o.hold_under)[2] ]}
+    orders = orders.sort_by{|o| [o.performance.performance_code, (o.hold_under.blank? ? o.address.last_name : Address.parse_name(o.hold_under)[2]).downcase ]}
     report = Array.new
     headers = [:reserved_under, :performance_code, :tickets, :order_id, :profile, :member_id, :first_time, :last_24_months, :donor]
-      orders.each { |o|
-        if o.contains_tickets?
-          logger.info("Fulfilling order #{o.id}")
-          is_donor = o.address.is_donor?
+    order_ids_to_fulfill = []
 
-          last24 = o.address.performances_attended(2.years.ago)
-          member_id = o.membership_payments.size > 0 ? o.membership_payments.to_a.map { |mp| mp.membership.member_code }.join(',') + ' ' : ''
-          attendance_code = member_id
-          attendance_code += o.address.first_time_paying?(o) ? 'N' : 'R'
+    orders.each { |o|
+      if o.contains_tickets?
+        logger.info("Queueing order #{o.id} for fulfillment")
+        is_donor = o.address.is_donor?
+
+        last24 = o.address.performances_attended(2.years.ago)
+        member_id = o.membership_payments.size > 0 ? o.membership_payments.to_a.map { |mp| mp.membership.member_code }.join(',') + ' ' : ''
+        attendance_code = member_id
+        attendance_code += o.address.first_time_paying?(o) ? 'N' : 'R'
 #          attendance_code += ("%03d" % last24).reverse
-          attendance_code += "A" if is_donor
-          if o.hold_under.blank?
-            ticket_name = "#{o.address.last_name}" + ((o.address.last_name.blank? || o.address.first_name.blank?) ? '' : ', ') + (o.address.first_name.blank? ? '' : o.address.first_name.first)
-          else
-            cleaned_name, f_name, m_name, l_name, f_name2 = Address.parse_name(o.hold_under)
-            ticket_name = "#{l_name}" + ((l_name.blank? || f_name.blank?) ? '' : ', ') + (f_name.blank? ? '' : f_name.first)
-          end
-
-          report << {:reserved_under=> ticket_name,
-                     :performance_code => o.performance.performance_code,
-                     :tickets => o.ticket_detail_description,
-                     :profile => attendance_code,
-                     :order_id => o.id,
-                     :member_id => member_id,
-                     :first_time => o.address.first_time_paying?(o),
-                     :last_24_months => last24,
-                     :donor => is_donor}
-          o.transition_to!(Order::FULFILLED)
-          o.save!
+        attendance_code += "A" if is_donor
+        if o.hold_under.blank?
+          ticket_name = "#{o.address.last_name}" + ((o.address.last_name.blank? || o.address.first_name.blank?) ? '' : ', ') + (o.address.first_name.blank? ? '' : o.address.first_name.first)
+        else
+          cleaned_name, f_name, m_name, l_name, f_name2 = Address.parse_name(o.hold_under)
+          ticket_name = "#{l_name}" + ((l_name.blank? || f_name.blank?) ? '' : ', ') + (f_name.blank? ? '' : f_name.first)
         end
-      }
-      [headers, report]
+
+        report << {:reserved_under=> ticket_name,
+                   :performance_code => o.performance.performance_code,
+                   :tickets => o.ticket_detail_description,
+                   :profile => attendance_code,
+                   :order_id => o.id,
+                   :member_id => member_id,
+                   :first_time => o.address.first_time_paying?(o),
+                   :last_24_months => last24,
+                   :donor => is_donor}
+
+        # Collect order IDs for batch printing
+        order_ids_to_fulfill << o.id
+      end
+    }
+
+    # Queue all orders for batch printing instead of synchronous transition
+    unless order_ids_to_fulfill.empty?
+      batch_id = PrintingService.print_orders(order_ids_to_fulfill, batch_type: :bulk)
+      logger.info("Queued #{order_ids_to_fulfill.length} orders for printing in batch #{batch_id}")
+    end
+
+    [headers, report]
   end
 
   def build_production_sales_by_performance(productions, include_classes = true, perfs = nil)
