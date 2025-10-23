@@ -21,11 +21,11 @@ RunPendingOrderTasks:
   description: 'Run queued order tasks'
   queue: maintenance
 
-GenerateCalendar:
-  every: "4h"
-  description: 'Write performance calendar to static cache'
-  queue: report
-  args: 'performance_schedule.ics'
+# GenerateCalendar:
+#   every: "4h"
+#   description: 'Write performance calendar to static cache'
+#   queue: report
+#   args: 'performance_schedule.ics'
 
 SendFlexPassReminders:
   cron: "45 8 * * WED,THU,FRI,SAT,SUN"
