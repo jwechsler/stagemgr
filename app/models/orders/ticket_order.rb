@@ -311,93 +311,233 @@ class TicketOrder < Order
     
 
 
-  def send_to_printer
-    unless PrintOrder.site.to_s.blank?
-      unless self.print_order_id.nil?
-        print_order = PrintOrder.find(self.print_order_id)
-
-        print_order.status = 'Unprinted'
-        print_order.reprints += 1
-        seat_index = 0
-        if self.performance.production.has_reserved_seating? then
-          print_order.tickets.each do |ticket|
-            ticket.seat = self.seats[seat_index].seat.location
-            seat_index += 1
-            ticket.save!
-          end
-         end
-        print_order.save!
-      else
-        unless self.performance.production.credit_lines.blank?
-          credit_lines = self.performance.production.credit_lines.split("\n")
-          credit_1 = credit_lines[0] unless credit_lines.nil?
-          credit_2 = credit_lines[1] unless credit_lines.size < 2
-        end
-
-        cleaned_name, f_name, l_name = Address.parse_name(self.hold_under.blank? ? self.address.full_name : self.hold_under)
-        unless cleaned_name == self.address.full_name
-          use_last_name = l_name
-          use_first_name = f_name
-        else
-          use_last_name = self.address.last_name
-          use_first_name = self.address.first_name
-        end
-        print_order = PrintOrder.new(:last_name => use_last_name,
-                                     :first_name => use_first_name,
-                                     :performance_code => self.performance_code,
-                                     :venue => self.performance.production.venue.name,
-                                     :theater => self.theater.name,
-                                     :title => self.performance.production.name,
-                                     :credit_1 => credit_1,
-                                     :credit_2 => credit_2,
-                                     :patron_code => self.address.customer_tag,
-                                     :performance_date => self.performance.performance_date,
-                                     :performance_time => self.performance.performance_time,
-                                     :amount => self.total_paid,
-                                     :remote_id => self.id)
-
-        # print_order.save!
-
-        print_order.attributes['line_items_attributes'] ||= []
-        print_order.attributes['payments_attributes'] ||= []
-        print_order.attributes['tickets_attributes'] ||= []
-
-        self.unique_line_items.select { |li| !li.special_offer_id.nil? || li.ticket_count > 0 }.each { |oli|
-          print_order.line_items_attributes << PrintLineItem.new(:order_id => print_order.id,
-                                                                 :description => oli.receipt_description,
-                                                                 :amount => oli.receipt_total)
-          # print_line_item.save!
-        }
-        self.payments.size
-
-        self.payments.each { |pay|
-          unless pay.receipt_description.blank?
-            receipt_payment = ReceiptPayment.new(:order_id => self.print_order_id,
-                                                 :description => pay.receipt_description,
-                                                 :amount => pay.customer_visible_amount)
-            print_order.payments_attributes << receipt_payment
-          end
-        }
-        tli_index = 0
-        self.ticket_line_items.each do |tli|
-          tli.ticket_count.times do
-            ticket = Ticket.new(:order_id => self.print_order_id,
-                                :ticket_class => tli.ticket_class.class_code,
-                                :type => 'Ticket',
-                                :seat => seats[tli_index].nil? ? "" : (self.performance.production.has_reserved_seating? ? seats[tli_index].seat.location : "")
-            )
-            tli_index += 1
-            print_order.tickets_attributes << ticket
-            #ticket.save!
-          end
-        end
-        print_order.save!
-        self.print_order_id = print_order.id
-
-      end
-    end
+  def send_to_printer(batch_id, batch_sequence = nil)
+    # DEPRECATED: Use send_to_printer_api instead
+    # This method is deprecated and kept only for backward compatibility
+    Rails.logger.warn("DEPRECATED: send_to_printer is deprecated, use send_to_printer_api instead")
+    send_to_printer_api(batch_id, batch_sequence)
   end
 
+  # New API-based method for sending orders directly to tktprint service
+  # If print_order_id exists, it will reprint the existing order
+  # Otherwise, it will create a new order in tktprint
+  def send_to_printer_api(batch_id, batch_sequence = nil)
+    raise ArgumentError, "batch_id is required" if batch_id.blank?
+    batch_sequence ||= 1
+
+    return unless $TKTPRINT['service'].present?
+
+    # If we already have a print_order_id, reprint the existing order
+    if print_order_id.present?
+      return reprint_existing_order(batch_id, batch_sequence)
+    end
+
+    # Otherwise, create a new order in tktprint
+
+    # Build customer name
+    cleaned_name, f_name, l_name = Address.parse_name(self.hold_under.blank? ? self.address.full_name : self.hold_under)
+    unless cleaned_name == self.address.full_name
+      use_last_name = l_name
+      use_first_name = f_name
+    else
+      use_last_name = self.address.last_name
+      use_first_name = self.address.first_name
+    end
+
+    # Build credits
+    credit_1 = nil
+    credit_2 = nil
+    unless self.performance.production.credit_lines.blank?
+      credit_lines = self.performance.production.credit_lines.split("\n")
+      credit_1 = credit_lines[0] unless credit_lines.nil?
+      credit_2 = credit_lines[1] unless credit_lines.size < 2
+    end
+
+    # Calculate visible amount (excluding line items with hide_pricing=true)
+    visible_amount = 0
+    self.unique_line_items.select { |li| !li.special_offer_id.nil? || li.ticket_count > 0 }.each do |oli|
+      # Check if this is a TicketLineItem with hide_pricing=true
+      if oli.is_a?(TicketLineItem) && oli.ticket_class&.hide_pricing
+        # Skip this line item when calculating visible total
+        next
+      else
+        visible_amount += oli.receipt_total
+      end
+    end
+
+    # Build main order payload
+    order_payload = {
+      last_name: use_last_name,
+      first_name: use_first_name,
+      performance_code: self.performance_code,
+      venue: self.performance.production.venue.name,
+      theater: self.theater.name,
+      title: self.performance.production.name,
+      credit_1: credit_1,
+      credit_2: credit_2,
+      patron_code: self.address.customer_tag,
+      performance_date: self.performance.performance_date,
+      performance_time: self.performance.performance_time,
+      amount: visible_amount,
+      remote_id: self.id,
+      batch_id: batch_id,
+      batch_sequence: batch_sequence,
+      line_items_attributes: [],
+      payments_attributes: [],
+      tickets_attributes: []
+    }
+
+    # Add line items using correct field mapping
+    self.unique_line_items.select { |li| !li.special_offer_id.nil? || li.ticket_count > 0 }.each do |oli|
+      # Check if this is a TicketLineItem with hide_pricing=true
+      line_item_amount = oli.receipt_total
+      if oli.is_a?(TicketLineItem) && oli.ticket_class&.hide_pricing
+        line_item_amount = 0
+      end
+
+      order_payload[:line_items_attributes] << {
+        description: oli.receipt_description,
+        amount: line_item_amount
+      }
+    end
+
+    # Add payments using correct field mapping
+    self.payments.each do |pay|
+      unless pay.receipt_description.blank?
+        order_payload[:payments_attributes] << {
+          description: pay.receipt_description,
+          amount: pay.customer_visible_amount
+        }
+      end
+    end
+
+    # Add tickets using correct field mapping
+    tli_index = 0
+    self.ticket_line_items.each do |tli|
+      tli.ticket_count.times do
+        seat_location = ""
+        if self.performance.production.has_reserved_seating? && !seats[tli_index].nil?
+          seat_location = seats[tli_index].seat.location
+        end
+
+        order_payload[:tickets_attributes] << {
+          ticket_class: tli.ticket_class.class_code,
+          seat: seat_location
+        }
+        tli_index += 1
+      end
+    end
+
+    # Send to tktprint API and return the tktprint order ID
+    send_order_to_tktprint_api(order_payload)
+  end
+
+  private
+
+  def reprint_existing_order(batch_id, batch_sequence)
+    require 'net/http'
+    require 'uri'
+    require 'json'
+
+    tktprint_url = $TKTPRINT['service']
+    base_uri = URI(tktprint_url)
+
+    # Build the HTTP connection
+    http = Net::HTTP.new(base_uri.host, base_uri.port)
+    http.use_ssl = base_uri.scheme == 'https'
+
+    # Create PUT request to reprint endpoint
+    request = Net::HTTP::Put.new("/orders/#{print_order_id}/reprint.json")
+    request.body = {
+      batch_id: batch_id,
+      batch_sequence: batch_sequence
+    }.to_json
+    request['Content-Type'] = 'application/json'
+    request['Accept'] = 'application/json'
+
+    # Add basic auth if configured
+    if base_uri.user && base_uri.password
+      request.basic_auth(base_uri.user, base_uri.password)
+      Rails.logger.debug("TktPrint: Adding Basic Auth for user: #{base_uri.user}")
+    else
+      Rails.logger.warn("TktPrint: No credentials found in service URL")
+    end
+
+    Rails.logger.info("TktPrint: Reprinting existing order #{self.id} (tktprint ID: #{print_order_id})")
+
+    response = http.request(request)
+
+    if response.code.to_i.between?(200, 299)
+      Rails.logger.info("Successfully marked order #{self.id} for reprint in tktprint")
+      return print_order_id # Return the existing print_order_id
+    else
+      error_msg = "Failed to reprint order #{self.id} in tktprint: #{response.code} #{response.body}"
+      Rails.logger.error(error_msg)
+      raise error_msg
+    end
+  rescue => e
+    Rails.logger.error("Error reprinting order #{self.id} in tktprint API: #{e.message}")
+    raise e
+  end
+
+  def send_order_to_tktprint_api(payload)
+    require 'net/http'
+    require 'uri'
+    require 'json'
+
+    tktprint_url = $TKTPRINT['service']
+
+    # Parse the base URL to extract credentials and host
+    base_uri = URI(tktprint_url)
+
+    # Build the HTTP connection (without credentials in URL)
+    http = Net::HTTP.new(base_uri.host, base_uri.port)
+    http.use_ssl = base_uri.scheme == 'https'
+
+    # Create the request with just the path (no host/credentials)
+    request = Net::HTTP::Post.new('/orders.json')
+    request.body = payload.to_json
+    request['Content-Type'] = 'application/json'
+    request['Accept'] = 'application/json'
+
+    # Add basic auth if configured (this will add the Authorization header)
+    if base_uri.user && base_uri.password
+      request.basic_auth(base_uri.user, base_uri.password)
+      Rails.logger.debug("TktPrint: Adding Basic Auth for user: #{base_uri.user}")
+    else
+      Rails.logger.warn("TktPrint: No credentials found in service URL")
+    end
+
+    # Log the request for debugging
+    Rails.logger.debug("TktPrint: Sending POST to #{base_uri.host}:#{base_uri.port}/orders.json")
+    Rails.logger.debug("TktPrint: Authorization header present: #{!request['Authorization'].nil?}")
+    
+    response = http.request(request)
+
+    if response.code.to_i.between?(200, 299)
+      Rails.logger.info("Successfully sent order #{self.id} to tktprint API")
+
+      # Parse response to extract tktprint order ID
+      begin
+        response_data = JSON.parse(response.body)
+        tktprint_order_id = response_data['id']
+        Rails.logger.info("Tktprint order ID: #{tktprint_order_id}")
+        return tktprint_order_id
+      rescue JSON::ParserError => e
+        Rails.logger.warn("Failed to parse tktprint response: #{e.message}")
+        return nil
+      end
+    else
+      error_msg = "Failed to send order #{self.id} to tktprint: #{response.code} #{response.body}"
+      Rails.logger.error(error_msg)
+      raise error_msg
+    end
+  rescue => e
+    Rails.logger.error("Error sending order #{self.id} to tktprint API: #{e.message}")
+    raise e
+  end
+
+  public
   def number_of_tickets
     if self.ticket_line_items.empty?
       result = 0
@@ -814,8 +954,14 @@ class TicketOrder < Order
   end
 
   def transition_processed_to_fulfilled!(redirect_to = nil)
-    Resque.enqueue(PrintTicketOrder, self.id)
-    super
+    # Queue the print job - status will be changed to FULFILLED by the job on success
+    batch_id = PrintingService.print_order(self.id, batch_type: :individual)
+    Rails.logger.info("Order #{self.id} queued for printing in batch #{batch_id}")
+
+    # NOTE: We do NOT call super here because the PrintBatchJob will mark the order
+    # as FULFILLED after successful printing. This prevents orders from being marked
+    # as fulfilled when printing fails.
+    redirect_to
   end
 
   def transition_fulfilled_to_fulfilled!(redirect_to = nil)
