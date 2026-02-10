@@ -29,7 +29,7 @@ Rails.application.routes.draw do
   get "venue/offnight_up_next"
 
   # resque admin page
-  mount Resque::Server.new, :at => "/admin/resque"
+  mount Resque::Server.new, :at => "/admin/resque", :as => "resque_admin"
 
   namespace(:admin){ resources :memberships }
 
