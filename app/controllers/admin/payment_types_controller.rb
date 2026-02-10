@@ -23,7 +23,7 @@ class Admin::PaymentTypesController < Admin::ApplicationController
     @payment_type.update(payment_type_params)
     respond_to do |format|
       if (@payment_type.save)
-        flash[:notice] =  raw "<i>#{@payment_type.type}</i> was successfully updated."
+        flash[:notice] = "#{@payment_type.type} was successfully updated."
         format.html { redirect_to(admin_payment_types_path) }
         format.xml  { head :ok }
       else
@@ -37,7 +37,7 @@ class Admin::PaymentTypesController < Admin::ApplicationController
     @payment_type = ExternalPaymentType.create(payment_type_params)
     respond_to do |format|
       if @payment_type.save
-        flash[:notice] =  raw "<i>#{@payment_type.display_name}</i> was successfully created."
+        flash[:notice] = "#{@payment_type.display_name} was successfully created."
         format.html { redirect_to(admin_payment_types_path) }
         format.xml  { head :ok }
       else
@@ -51,7 +51,7 @@ class Admin::PaymentTypesController < Admin::ApplicationController
   def destroy
     @payment_type.destroy
     if @payment_type.destroyed?
-      flash[:notice] = raw "<i>#{@payment_type.display_name} deleted"
+      flash[:notice] = "#{@payment_type.display_name} deleted."
     else
       flash[:error] = @payment_type.errors.first.full_message unless @payment_type.errors.empty?
     end
@@ -61,8 +61,8 @@ class Admin::PaymentTypesController < Admin::ApplicationController
   private
   def payment_type_params
     params.require(:payment_type).permit(:display_name, :allow_for_public, :allow_for_box_office, :allow_theater_user_holds, :report_as_sales_collected,
-      :report_as_production_revenue, :restrict_to_ticket_classes, order_task_suppressions_attributes: [:task_type,
-        :method_name])
+      :report_as_production_revenue, :restrict_to_ticket_classes, order_task_suppressions_attributes: [:id, :task_type,
+        :method_name, :_destroy])
   end
 
 end
