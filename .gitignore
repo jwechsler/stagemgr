@@ -63,3 +63,5 @@ yarn-debug.log*
 
 
 /config/credentials/development.key
+
+dbhub.toml

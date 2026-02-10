@@ -14,9 +14,7 @@ class MembershipUsageReport < Report
   
     paid_amount = MembershipPayment.where(
       'processed_on >= :start and processed_on < :end', start: starting_date, end: ending_date
-    ).select("DATE_FORMAT(processed_on, '%Y-%m'), amount").group(
-      "DATE_FORMAT(processed_on, '%Y-%m')"
-    ).reorder(:processed_on).sum('amount')
+    ).group("DATE_FORMAT(processed_on, '%Y-%m')").sum('amount')
     
     collected_amount = MembershipOrder.joins(:payments).where(
       'payments.processed_on >= :starting_date AND payments.processed_on < :ending_date',

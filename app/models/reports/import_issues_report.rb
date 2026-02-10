@@ -12,7 +12,12 @@ class ImportIssuesReport < SimpleReport
   end
 
   def add_problem_row(row:, message:)
-    data << row + [message]
+    if row.is_a?(Hash)
+      @headers = row.keys + ['Error'] if @headers == ['Error']
+      data << row.values + [message]
+    else
+      data << row + [message]
+    end
   end
 
   def any_issues?
