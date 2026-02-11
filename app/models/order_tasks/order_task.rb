@@ -27,7 +27,7 @@ class OrderTask < ApplicationRecord
     # if the order is in a transational state (like exchanging), postpone for 5 minutes.
     def run!
       if self.uncompleted? then
-        if self.order.payment_type.order_task_suppressions.map{|s| [s.task_type, self.method_symbol.blank? ? 'NIL' : (s.method_name || 'NIL')]}.include?([self.type, self.method_symbol || 'NIL'])
+        if suppressed?
           self.cancel!
         else
           if self.order.in_multi_transactional_state?
@@ -73,6 +73,15 @@ class OrderTask < ApplicationRecord
 
     }
 
+  end
+
+  def suppressed?
+    self.order.payment_type.order_task_suppressions.any? do |s|
+      next false unless s.task_type == self.type
+      next true if s.method_name == 'ANY'
+      next true if self.method_symbol.blank?
+      s.method_name == self.method_symbol.to_s
+    end
   end
 
   def cancel_with_order?
