@@ -2,6 +2,8 @@
 
 class Production < ApplicationRecord
 
+  attr_accessor :updated_by_user_id
+
   # :section: Production Constants
   #
   # These are common constants for production dataa
@@ -312,7 +314,7 @@ class Production < ApplicationRecord
   # when status changes from SEASON SEATING
   def finalize_season_seating
     if status_was.eql?(SEASONSEATING)
-      Resque.enqueue(FinalizeSeasonSeating, self.id)
+      Resque.enqueue(FinalizeSeasonSeating, self.id, self.updated_by_user_id)
     end
   end
 

@@ -58,7 +58,8 @@ class Admin::ProductionsController < Admin::ApplicationController
   # PUT /productions/1
   # PUT /productions/1.xml
   def update
-    @production.update(production_params)
+    @production.assign_attributes(production_params)
+    @production.updated_by_user_id = current_user.id
     respond_to do |format|
 
       if @production.save
