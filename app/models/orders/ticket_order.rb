@@ -1009,7 +1009,7 @@ class TicketOrder < Order
 
 
   def create_receipt_task
-    self.tasks << OutreachTask.new(:execute_at => Time.now + 5.minutes, :method_symbol => :ticket_confirmation) unless (self.performance.suppress_notification || self.suppress_receipt? || !self.do_not_create_tasks.nil?)
+    self.tasks << OutreachTask.new(:execute_at => Time.now + 5.minutes, :method_symbol => :ticket_confirmation) unless (self.performance.suppress_notification || self.suppress_receipt? || !self.do_not_create_tasks.nil? || self.performance.performance_date < Date.today)
     if !$EMAIL_ADDRESS.nil? && !$EMAIL_ADDRESS['wheelchair_conversion_notifications'].blank? && self.wheelchair_requested?
       self.tasks << NotificationTask.new(:execute_at => Time.now + 15.minutes,
                                         :notifications => $EMAIL_ADDRESS['wheelchair_conversion_notifications'],
