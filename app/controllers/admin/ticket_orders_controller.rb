@@ -114,12 +114,11 @@ class Admin::TicketOrdersController < Admin::OrdersController
 
   def resend_confirmation
     confirmation_task = @ticket_order.tasks.select{|t| t.method_symbol == 'ticket_confirmation'}.first
-    unless confirmation_task.nil?
-      confirmation_task.retry.run!
-      flash[:notice] = 'Confirmation email resent'
-    else
-      flash[:warning] = 'No customer receipt available for this order'
+    if confirmation_task.nil?
+      confirmation_task = OutreachTask.create!(:execute_at => Time.now, :method_symbol => :ticket_confirmation, :order => @ticket_order)
     end
+    confirmation_task.retry.run!
+    flash[:notice] = 'Confirmation email resent'
     respond_to do |format|
       format.html { render 'show', :layout=>true}
     end
