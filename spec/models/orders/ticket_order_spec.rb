@@ -411,6 +411,158 @@ RSpec.describe TicketOrder do
     expect(split_order2.split_source_id).to eq(original_order.id)
     expect(split_order1.split_source.id).to eq(original_order.id)
     expect(split_order2.split_source.id).to eq(original_order.id)
-  
+
+  end
+
+  context "seat assignment validation" do
+    context "for reserved seating orders" do
+
+      it "allows NEW orders to be saved without complete seat assignments" do
+        # Create order with NEW status
+        order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :reserved_seating, status: Order::NEW)
+
+        # Clear seats to simulate user hasn't selected them yet
+        SeatAssignment.where(order_uuid: order.uuid).update_all(
+          order_uuid: nil,
+          status: SeatAssignment::AVAILABLE,
+          ticket_class_id: nil
+        )
+        order.reload
+
+        expect(order.status).to eq(Order::NEW)
+        expect(order.seating_check_required?).to eq(false)
+        expect(order.number_of_tickets).to eq(2)
+        expect(order.seats.count).to eq(0)
+        # Should be valid despite seat mismatch because it's NEW
+        expect(order.valid?).to eq(true)
+      end
+
+      it "fails validation for HOLD orders with mismatched seat/ticket counts" do
+        # Create order with NEW status (factory auto-assigns 2 seats)
+        order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :reserved_seating, status: Order::NEW)
+
+        # Set to HOLD status and add an extra seat to create mismatch (now has 3 seats for 2 tickets)
+        order.update_column(:status, Order::HOLD)
+        extra_seat = order.performance.seat_assignments.where(status: SeatAssignment::AVAILABLE).first
+        extra_seat.update!(
+          order_uuid: order.uuid,
+          status: SeatAssignment::ASSIGNED,
+          ticket_class_id: order.ticket_line_items.first.ticket_class_id
+        )
+        order.reload
+
+        expect(order.status).to eq(Order::HOLD)
+        expect(order.number_of_tickets).to eq(2)
+        expect(order.seats.count).to eq(3)
+        expect(order.seating_check_required?).to eq(true)
+        expect(order.valid?).to eq(false)
+        expect(order.errors.full_messages).to include(match(/seats.*do not match tickets/i))
+      end
+
+      it "fails validation for PROCESSING orders with mismatched seat/ticket counts" do
+        # Create with NEW status (factory auto-assigns 2 seats)
+        order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :reserved_seating, status: Order::NEW)
+
+        # Set to PROCESSING and add extra seat
+        order.update_column(:status, Order::PROCESSING)
+        extra_seat = order.performance.seat_assignments.where(status: SeatAssignment::AVAILABLE).first
+        extra_seat.update!(
+          order_uuid: order.uuid,
+          status: SeatAssignment::ASSIGNED,
+          ticket_class_id: order.ticket_line_items.first.ticket_class_id
+        )
+        order.reload
+
+        expect(order.status).to eq(Order::PROCESSING)
+        expect(order.number_of_tickets).to eq(2)
+        expect(order.seats.count).to eq(3)
+        expect(order.seating_check_required?).to eq(true)
+        expect(order.valid?).to eq(false)
+        expect(order.errors.full_messages).to include(match(/seats.*do not match tickets/i))
+      end
+
+      it "fails validation for PROCESSED orders with mismatched seat/ticket counts" do
+        # Create with NEW status (factory auto-assigns 2 seats)
+        order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :reserved_seating, status: Order::NEW)
+
+        # Set to PROCESSED and add extra seat
+        order.update_column(:status, Order::PROCESSED)
+        extra_seat = order.performance.seat_assignments.where(status: SeatAssignment::AVAILABLE).first
+        extra_seat.update!(
+          order_uuid: order.uuid,
+          status: SeatAssignment::ASSIGNED,
+          ticket_class_id: order.ticket_line_items.first.ticket_class_id
+        )
+        order.reload
+
+        expect(order.status).to eq(Order::PROCESSED)
+        expect(order.number_of_tickets).to eq(2)
+        expect(order.seats.count).to eq(3)
+        expect(order.seating_check_required?).to eq(true)
+        expect(order.valid?).to eq(false)
+        expect(order.errors.full_messages).to include(match(/seats.*do not match tickets/i))
+      end
+
+      it "fails validation for FULFILLED orders with mismatched seat/ticket counts" do
+        # Create with NEW status (factory auto-assigns 2 seats)
+        order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :reserved_seating, status: Order::NEW)
+
+        # Set to FULFILLED and add extra seat
+        order.update_column(:status, Order::FULFILLED)
+        extra_seat = order.performance.seat_assignments.where(status: SeatAssignment::AVAILABLE).first
+        extra_seat.update!(
+          order_uuid: order.uuid,
+          status: SeatAssignment::ASSIGNED,
+          ticket_class_id: order.ticket_line_items.first.ticket_class_id
+        )
+        order.reload
+
+        expect(order.status).to eq(Order::FULFILLED)
+        expect(order.number_of_tickets).to eq(2)
+        expect(order.seats.count).to eq(3)
+        expect(order.seating_check_required?).to eq(true)
+        expect(order.valid?).to eq(false)
+        expect(order.errors.full_messages).to include(match(/seats.*do not match tickets/i))
+      end
+
+      it "passes validation for HOLD orders with matching seat/ticket counts" do
+        # Create with NEW status (factory auto-assigns 2 seats matching 2 tickets)
+        order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :reserved_seating, status: Order::NEW)
+
+        order.update_column(:status, Order::HOLD)
+        order.reload
+
+        expect(order.status).to eq(Order::HOLD)
+        expect(order.number_of_tickets).to eq(2)
+        expect(order.seats.count).to eq(2)
+        expect(order.seating_check_required?).to eq(true)
+        expect(order.valid?).to eq(true)
+      end
+
+      it "passes validation for PROCESSED orders with matching seat/ticket counts" do
+        # Create with NEW status (factory auto-assigns 2 seats matching 2 tickets)
+        order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :reserved_seating, status: Order::NEW)
+
+        order.update_column(:status, Order::PROCESSED)
+        order.reload
+
+        expect(order.status).to eq(Order::PROCESSED)
+        expect(order.number_of_tickets).to eq(2)
+        expect(order.seats.count).to eq(2)
+        expect(order.seating_check_required?).to eq(true)
+        expect(order.valid?).to eq(true)
+      end
+    end
+
+    context "for general admission orders" do
+      it "does not require seat validation regardless of status" do
+        order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :general_admission, :paid_with_cash)
+
+        expect(order.performance.production.has_reserved_seating?).to eq(false)
+        expect(order.number_of_tickets).to eq(2)
+        expect(order.seats.count).to eq(0)
+        expect(order.valid?).to eq(true)
+      end
+    end
   end
 end

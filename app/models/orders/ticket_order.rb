@@ -204,7 +204,10 @@ class TicketOrder < Order
   end
 
   def seating_check_required?
-    self.processing? || processed_or_fulfilled?
+    # NEW orders can be saved without seats selected yet
+    # But HOLD, PROCESSING, PROCESSED, and FULFILLED orders must have seats match tickets
+    return false if self.status == Order::NEW
+    return true
   end
 
   def assigned_seats?
