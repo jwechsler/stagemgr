@@ -564,5 +564,57 @@ RSpec.describe TicketOrder do
         expect(order.valid?).to eq(true)
       end
     end
+
+    context "for terminal order statuses" do
+      it "does not require seat validation for REFUNDED orders with 0 tickets" do
+        order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :reserved_seating, status: Order::NEW)
+        order.update_column(:status, Order::REFUNDED)
+
+        # Simulate refund by setting ticket counts to 0
+        order.ticket_line_items.each { |tli| tli.update_column(:ticket_count, 0) }
+        order.reload
+
+        expect(order.status).to eq(Order::REFUNDED)
+        expect(order.number_of_tickets).to eq(0)
+        expect(order.seating_check_required?).to eq(false)
+        expect(order.valid?).to eq(true)
+      end
+
+      it "does not require seat validation for EXCHANGED orders" do
+        order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :reserved_seating, status: Order::NEW)
+        order.update_column(:status, Order::EXCHANGED)
+        order.reload
+
+        expect(order.status).to eq(Order::EXCHANGED)
+        expect(order.seating_check_required?).to eq(false)
+      end
+
+      it "does not require seat validation for UNCLAIMED orders" do
+        order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :reserved_seating, status: Order::NEW)
+        order.update_column(:status, Order::UNCLAIMED)
+        order.reload
+
+        expect(order.status).to eq(Order::UNCLAIMED)
+        expect(order.seating_check_required?).to eq(false)
+      end
+
+      it "does not require seat validation for SPLIT orders" do
+        order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :reserved_seating, status: Order::NEW)
+        order.update_column(:status, Order::SPLIT)
+        order.reload
+
+        expect(order.status).to eq(Order::SPLIT)
+        expect(order.seating_check_required?).to eq(false)
+      end
+
+      it "does not require seat validation for CANCELED orders" do
+        order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :reserved_seating, status: Order::NEW)
+        order.update_column(:status, Order::CANCELED)
+        order.reload
+
+        expect(order.status).to eq(Order::CANCELED)
+        expect(order.seating_check_required?).to eq(false)
+      end
+    end
   end
 end

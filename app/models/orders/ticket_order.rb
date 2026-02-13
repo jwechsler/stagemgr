@@ -205,8 +205,12 @@ class TicketOrder < Order
 
   def seating_check_required?
     # NEW orders can be saved without seats selected yet
-    # But HOLD, PROCESSING, PROCESSED, and FULFILLED orders must have seats match tickets
+    # HOLD, PROCESSING, PROCESSED, and FULFILLED orders must have seats match tickets
+    # Terminal statuses (REFUNDED, EXCHANGED, UNCLAIMED, CANCELED, SPLIT) should not validate
     return false if self.status == Order::NEW
+    # Exclude terminal/transitional statuses where validation doesn't make sense
+    terminal_statuses = [Order::REFUNDED, Order::EXCHANGED, Order::UNCLAIMED, Order::CANCELED, Order::SPLIT, Order::RELEASING]
+    return false if terminal_statuses.include?(self.status)
     return true
   end
 
