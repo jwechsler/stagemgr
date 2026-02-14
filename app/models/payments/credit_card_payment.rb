@@ -112,7 +112,38 @@ class CreditCardPayment < CurrencyPayment
         response = gateway.refund(refund_amount, self.transaction_id || self.confirmation_code, :note => note)
 
         unless response.success?
-          raise CannotProcessPayment, response.message
+          # Check if charge was already refunded in Stripe
+          if response.message.include?("already been refunded")
+            Rails.logger.warn("Charge #{self.transaction_id || self.confirmation_code} already refunded in Stripe, reconciling order record")
+
+            # Get the actual refunded amount from Stripe
+            actual_refund_amount = get_stripe_refund_amount
+
+            if actual_refund_amount.nil?
+              raise CannotProcessPayment, "Could not retrieve refund amount from Stripe: #{response.message}"
+            end
+
+            # Update refund payment to match actual Stripe refund amount
+            refund_payment.amount = 0.0 - (actual_refund_amount / 100.0)
+            refund_payment.save!
+
+            # If there's a difference between what Stripe refunded and order amount,
+            # create a carryover payment for the difference
+            difference = self.amount - (actual_refund_amount / 100.0)
+            if difference.abs > 0.01 # Allow for rounding errors
+              carryover = PriceOverridePayment.new(
+                amount: -difference,
+                order: self.order,
+                source_payment_type: self.payment_type
+              )
+              carryover.save!
+              Rails.logger.info("Created carryover payment of #{-difference} for difference between order (#{self.amount}) and Stripe refund (#{actual_refund_amount / 100.0})")
+            end
+
+            return # Successfully reconciled
+          else
+            raise CannotProcessPayment, response.message
+          end
         end
 
         refund_payment.save!
@@ -145,6 +176,38 @@ class CreditCardPayment < CurrencyPayment
   protected
   def charge_amount
     (self.amount*100.0).to_i
+  end
+
+  def get_stripe_refund_amount
+    # Query Stripe to get the actual refund amount for this charge
+    begin
+      charge_id = self.transaction_id || self.confirmation_code
+
+      # Stripe charge IDs start with 'ch_', payment intent IDs start with 'pi_'
+      if charge_id.start_with?('pi_')
+        # For payment intents, we need to get the charge from the payment intent
+        payment_intent = Stripe::PaymentIntent.retrieve(charge_id)
+        charge_id = payment_intent.charges.data.first&.id
+        return nil if charge_id.nil?
+      end
+
+      charge = Stripe::Charge.retrieve(charge_id)
+
+      # Check if charge has been refunded
+      if charge.refunded
+        # Return the total amount refunded (in cents)
+        return charge.amount_refunded
+      else
+        Rails.logger.warn("Stripe charge #{charge_id} is not marked as refunded")
+        return nil
+      end
+    rescue Stripe::InvalidRequestError => e
+      Rails.logger.error("Failed to retrieve Stripe charge #{charge_id}: #{e.message}")
+      return nil
+    rescue => e
+      Rails.logger.error("Unexpected error retrieving Stripe refund amount: #{e.message}")
+      return nil
+    end
   end
 
   private
