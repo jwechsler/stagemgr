@@ -120,7 +120,10 @@ class CreditCardPayment < CurrencyPayment
             actual_refund_amount = get_stripe_refund_amount
 
             if actual_refund_amount.nil?
-              raise CannotProcessPayment, "Could not retrieve refund amount from Stripe: #{response.message}"
+              # If we can't retrieve the amount from Stripe, assume it was refunded for the full amount
+              # This can happen if the charge was refunded outside our system or with different API keys
+              Rails.logger.warn("Could not retrieve actual refund amount from Stripe, assuming full refund of #{self.amount}")
+              actual_refund_amount = self.charge_amount # Use the original charge amount
             end
 
             # Update refund payment to match actual Stripe refund amount
@@ -180,32 +183,49 @@ class CreditCardPayment < CurrencyPayment
 
   def get_stripe_refund_amount
     # Query Stripe to get the actual refund amount for this charge
+    charge_id = self.transaction_id || self.confirmation_code
+
     begin
-      charge_id = self.transaction_id || self.confirmation_code
+      Rails.logger.info("Retrieving refund info from Stripe for charge: #{charge_id}")
 
       # Stripe charge IDs start with 'ch_', payment intent IDs start with 'pi_'
-      if charge_id.start_with?('pi_')
+      if charge_id.to_s.start_with?('pi_')
         # For payment intents, we need to get the charge from the payment intent
+        Rails.logger.info("Charge ID is a payment intent, retrieving associated charge")
         payment_intent = Stripe::PaymentIntent.retrieve(charge_id)
         charge_id = payment_intent.charges.data.first&.id
-        return nil if charge_id.nil?
+
+        if charge_id.nil?
+          Rails.logger.error("No charge found for payment intent #{self.transaction_id || self.confirmation_code}")
+          return nil
+        end
+        Rails.logger.info("Found charge #{charge_id} from payment intent")
       end
 
       charge = Stripe::Charge.retrieve(charge_id)
+      Rails.logger.info("Retrieved charge #{charge_id}: refunded=#{charge.refunded}, amount_refunded=#{charge.amount_refunded}, amount=#{charge.amount}")
 
       # Check if charge has been refunded
       if charge.refunded
         # Return the total amount refunded (in cents)
+        Rails.logger.info("Charge has been refunded: #{charge.amount_refunded} cents")
+        return charge.amount_refunded
+      elsif charge.amount_refunded && charge.amount_refunded > 0
+        # Partially refunded
+        Rails.logger.info("Charge has been partially refunded: #{charge.amount_refunded} cents")
         return charge.amount_refunded
       else
-        Rails.logger.warn("Stripe charge #{charge_id} is not marked as refunded")
+        Rails.logger.error("Stripe charge #{charge_id} is not marked as refunded (refunded=#{charge.refunded}, amount_refunded=#{charge.amount_refunded})")
+        Rails.logger.error("Full charge data: #{charge.to_hash.inspect}")
         return nil
       end
     rescue Stripe::InvalidRequestError => e
       Rails.logger.error("Failed to retrieve Stripe charge #{charge_id}: #{e.message}")
+      Rails.logger.error("Backtrace: #{e.backtrace.first(5).join("\n")}")
       return nil
     rescue => e
-      Rails.logger.error("Unexpected error retrieving Stripe refund amount: #{e.message}")
+      Rails.logger.error("Unexpected error retrieving Stripe refund amount for #{charge_id}: #{e.class.name}: #{e.message}")
+      Rails.logger.error("Backtrace: #{e.backtrace.first(5).join("\n")}")
       return nil
     end
   end

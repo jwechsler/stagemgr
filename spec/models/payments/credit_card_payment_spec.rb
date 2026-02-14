@@ -28,7 +28,9 @@ RSpec.describe CreditCardPayment, type: :model do
         double('Stripe::Charge',
           id: 'ch_test123',
           refunded: true,
-          amount_refunded: 5000 # $50.00 in cents
+          amount_refunded: 5000, # $50.00 in cents
+          amount: 5000,
+          to_hash: { id: 'ch_test123', refunded: true, amount_refunded: 5000 }
         )
       end
 
@@ -65,7 +67,9 @@ RSpec.describe CreditCardPayment, type: :model do
         different_stripe_charge = double('Stripe::Charge',
           id: 'ch_test123',
           refunded: true,
-          amount_refunded: 4500 # $45.00 in cents
+          amount_refunded: 4500, # $45.00 in cents
+          amount: 5000,
+          to_hash: { id: 'ch_test123', refunded: true, amount_refunded: 4500 }
         )
         allow(Stripe::Charge).to receive(:retrieve).with('ch_test123').and_return(different_stripe_charge)
 
@@ -108,7 +112,9 @@ RSpec.describe CreditCardPayment, type: :model do
         converted_charge = double('Stripe::Charge',
           id: 'ch_converted_from_pi',
           refunded: true,
-          amount_refunded: 5000
+          amount_refunded: 5000,
+          amount: 5000,
+          to_hash: { id: 'ch_converted_from_pi', refunded: true, amount_refunded: 5000 }
         )
         allow(Stripe::Charge).to receive(:retrieve).with('ch_converted_from_pi').and_return(converted_charge)
 
@@ -127,7 +133,7 @@ RSpec.describe CreditCardPayment, type: :model do
         expect(refund_payment.amount).to eq(-50.00)
       end
 
-      it "raises error if cannot retrieve Stripe refund amount" do
+      it "assumes full refund if cannot retrieve Stripe refund amount" do
         allow(Stripe::Charge).to receive(:retrieve).and_raise(Stripe::InvalidRequestError.new('Not found', 'charge'))
 
         gateway = double('gateway')
@@ -136,9 +142,20 @@ RSpec.describe CreditCardPayment, type: :model do
         response = double('response', success?: false, message: 'Charge ch_test123 has already been refunded')
         allow(gateway).to receive(:refund).and_return(response)
 
+        # Force payment to be loaded before counting
+        payment.reload
+        initial_payment_count = order.payments.reload.count
+
         expect {
           payment.refund!(nil, 'test refund')
-        }.to raise_error(CannotProcessPayment, /Could not retrieve refund amount/)
+        }.not_to raise_error
+
+        order.reload
+        # Should have created one refund payment assuming full amount
+        expect(order.payments.count).to eq(initial_payment_count + 1)
+
+        refund_payment = order.payments.reload.last
+        expect(refund_payment.amount).to eq(-50.00) # Full original amount
       end
     end
 
