@@ -207,11 +207,8 @@ class TicketOrder < Order
     # NEW orders can be saved without seats selected yet
     # HOLD, PROCESSING, PROCESSED, and FULFILLED orders must have seats match tickets
     # Terminal statuses (REFUNDED, EXCHANGED, UNCLAIMED, CANCELED, SPLIT) should not validate
-    return false if self.status == Order::NEW
-    # Exclude terminal/transitional statuses where validation doesn't make sense
-    terminal_statuses = [Order::REFUNDED, Order::EXCHANGED, Order::UNCLAIMED, Order::CANCELED, Order::SPLIT, Order::RELEASING]
-    return false if terminal_statuses.include?(self.status)
-    return true
+    validated_statuses = [Order::HOLD, Order::PROCESSING, Order::PROCESSED, Order::FULFILLED]
+    return validated_statuses.include?(self.status)
   end
 
   def assigned_seats?
@@ -577,6 +574,9 @@ class TicketOrder < Order
         if seat_assignments.map{|sa| sa.ticket_class_id}.include?(tli.ticket_class_id)
           seat = seat_assignments.select{|sa| sa.ticket_class_id == tli.ticket_class_id}.first
           seat_assignments.delete_at(seat_assignments.index(seat))
+        else
+          # Log when we have tickets without matching seat assignments
+          Rails.logger.warn("Order #{self.id}: Ticket without matching seat assignment for ticket_class_id #{tli.ticket_class_id}")
         end
         item = {source: tli, seat:seat, ticket_class_id: tli.ticket_class_id}
         tickets << item

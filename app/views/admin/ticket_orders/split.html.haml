@@ -6,7 +6,7 @@
       = token_tag
       =f.input :id, as: :hidden
       -if @ticket_order.performance.production.has_reserved_seating?
-        -all_seats = @tickets.map{|t| [t[:seat].seat.location, t[:seat].seat.id]}
+        -all_seats = @tickets.select{|t| t[:seat].present?}.map{|t| [t[:seat].seat.location, t[:seat].seat.id]}
         -index = 0
         .grid-x.grid-padding-x
           .column.small-2
