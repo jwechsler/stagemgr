@@ -4,14 +4,18 @@ RSpec.describe 'Batch Printing Workflow', type: :feature do
   include ActiveSupport::Testing::TimeHelpers
 
   let(:performance) { FactoryBot.create(:performance) }
-  let(:orders) { FactoryBot.create_list(:ticket_order, 5, performance: performance, status: Order::PROCESSED) }
+  let(:orders) { FactoryBot.create_list(:ticket_order, 5, :for_a_pair_of_tickets, performance: performance, status: Order::PROCESSED) }
   
   before do
+    # Set up tktprint service configuration for tests
+    $TKTPRINT ||= {}
+    $TKTPRINT['service'] = 'http://test:test@localhost:3000'
+
     # Mock the tktprint service calls
     allow_any_instance_of(Net::HTTP).to receive(:request).and_return(
       double('response', code: '200', body: '{"status": "ok"}')
     )
-    
+
     # Set up print order IDs (would normally be set when orders are processed)
     orders.each_with_index { |order, index| order.update!(print_order_id: index + 1) }
   end
@@ -128,7 +132,7 @@ RSpec.describe 'Batch Printing Workflow', type: :feature do
   end
 
   describe 'Error recovery and resilience' do
-    let(:orders) { FactoryBot.create_list(:ticket_order, 3, performance: performance, status: Order::PROCESSED) }
+    let(:orders) { FactoryBot.create_list(:ticket_order, 3, :for_a_pair_of_tickets, performance: performance, status: Order::PROCESSED) }
 
     before do
       orders.each_with_index { |order, index| order.update!(print_order_id: index + 1) }
@@ -162,20 +166,34 @@ RSpec.describe 'Batch Printing Workflow', type: :feature do
     end
 
     it 'continues processing remaining orders when individual orders fail' do
-      # Mock the second order to fail
-      allow(orders[1]).to receive(:send_to_printer).and_raise(StandardError.new('Network timeout'))
-      
+      # Stub logger to verify error logging
+      allow(Rails.logger).to receive(:info)
+      allow(Rails.logger).to receive(:error)
+
+      # Track which orders were processed
+      processed_orders = []
+
+      # Stub send_to_printer_api to track calls and fail for second order
+      allow_any_instance_of(TicketOrder).to receive(:send_to_printer_api) do |order, batch_id, sequence|
+        if order.id == orders[1].id
+          raise StandardError.new('Network timeout')
+        else
+          processed_orders << order.id
+          "test_#{order.id}"
+        end
+      end
+
       batch_id = BatchPrintingService.create_and_process_batch(orders)
-      
+
       # Should not raise error overall
       expect {
         PrintBatchJob.perform(batch_id, orders.map(&:id))
       }.not_to raise_error
-      
-      # Verify first and third orders were still processed
-      expect(orders[0]).to have_received(:send_to_printer)
-      expect(orders[2]).to have_received(:send_to_printer)
-      
+
+      # Verify first and third orders were processed (but not the second)
+      expect(processed_orders).to include(orders[0].id, orders[2].id)
+      expect(processed_orders).not_to include(orders[1].id)
+
       # Verify error was logged
       expect(Rails.logger).to have_received(:error).with(/Error processing order #{orders[1].id}/)
     end
@@ -221,7 +239,7 @@ RSpec.describe 'Batch Printing Workflow', type: :feature do
   end
 
   describe 'Performance and resource management' do
-    let(:large_order_set) { FactoryBot.create_list(:ticket_order, 100, performance: performance, status: Order::PROCESSED) }
+    let(:large_order_set) { FactoryBot.create_list(:ticket_order, 100, :for_a_pair_of_tickets, performance: performance, status: Order::PROCESSED) }
 
     before do
       large_order_set.each_with_index { |order, index| order.update!(print_order_id: index + 1) }
