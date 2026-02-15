@@ -39,6 +39,10 @@ module NavigationHelpers
         @using_admin_interface = true
         production = Production.find_by_name($1)
         edit_admin_theater_production_path(production.theater, production)
+      when /^the admin performance detail page for "([^"]*)"$/
+        @using_admin_interface = true
+        performance = Performance.find_by_performance_code($1)
+        admin_theater_production_performance_path(performance.production.theater, performance.production, performance)
       when /^the admin performance edit page for production "([^"]*)" and performance "([^"]*)"$/
         @using_admin_interface = true
         production = Production.find_by_name($1)

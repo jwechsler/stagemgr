@@ -3,12 +3,19 @@ class PerformanceDecorator < ApplicationDecorator
 
   def dt_actions
     actions = []
-    
+
     if h.current_user.can? :update, Performance then
       actions << h.link_to('Edit', [:edit,:admin, object.production.theater, object.production, object], :id=>"edit_#{object.performance_code.gsub(' ','_')}", class: 'tiny button')
     end
     if h.current_user.can? :create, Performance then
       actions << h.link_to('Duplicate', [:duplicate, :admin, object.production.theater, object.production, object], :id=>"duplicate_#{object.performance_code.gsub(' ','_')}", class: 'tiny button' )
+    end
+    if h.current_user.can?(:release_held_seats, Performance) && object.production.has_reserved_seating? then
+      actions << h.link_to('Release Held Seats', h.release_held_seats_admin_theater_production_performance_path(object.production.theater, object.production, object),
+        method: :post,
+        data: { confirm: 'Are you sure you want to release all held seats for this performance?' },
+        class: 'tiny button alert',
+        id: "release_seats_#{object.performance_code.gsub(' ','_')}")
     end
     if h.current_user.can? :delete, Performance then
       # actions << h.link_to('Delete', [:destroy, :admin, object], :id=>"delete_#{object.performance_code.gsub(' ','_')}", :confirm=> "Are you sure?" , class: 'tiny button alert' )

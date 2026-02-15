@@ -93,21 +93,32 @@ class SeatAssignment < ApplicationRecord
   end
 
   def self.release_expired_temporary_holds
+    results = SeatAssignment.where(
+      "updated_at < :expire_time and status = :temp_status and " \
+      "(order_uuid is null or not exists (select * from orders where uuid=order_uuid))",
+      expire_time: Time.now - $SERVER_CONFIG['order_expiration_in_minutes'].to_i.minutes,
+      temp_status: SeatAssignment::TEMPORARY
+    )
+    count = release_seat_assignments(results)
+    Rails.logger.info("Released #{count} expired seat assignments") unless count.zero?
+    count
+  end
 
-    SeatAssignment.transaction do
-      results = SeatAssignment.where("updated_at < :expire_time and status = :temp_status and (order_uuid is null or not exists (select * from orders where uuid=order_uuid))",
-        expire_time: Time.now - $SERVER_CONFIG['order_expiration_in_minutes'].to_i.minutes,
-        temp_status: SeatAssignment::TEMPORARY)
-      count = 0
-      results.each do |sa|
-        sa.order_uuid = nil
-        sa.accessibility = nil
-        sa.status = SeatAssignment::AVAILABLE
-        sa.save!
-        count = count + 1
-      end
-    end
-    Rails.logger.info("Released #{count} expired seat assignments") unless count.eql?(0)
+  def self.release_temporary_holds_for_performance(performance_id)
+    # Find TEMPORARY seats for this performance that either:
+    # - Have no order_uuid, OR
+    # - The order no longer exists, OR
+    # - The order is not in a holding status
+    results = SeatAssignment.where(
+      "performance_id = :performance_id and status = :temp_status and " \
+      "(order_uuid is null or " \
+      "not exists (select * from orders where uuid = seat_assignments.order_uuid and status in (:holding_statuses)))",
+      performance_id: performance_id,
+      temp_status: SeatAssignment::TEMPORARY,
+      holding_statuses: Order::HOLDING_SEAT_STATUSES
+    )
+    count = release_seat_assignments(results)
+    Rails.logger.info("Released #{count} temporary holds for performance #{performance_id}") unless count.zero?
     count
   end
 
@@ -136,6 +147,21 @@ class SeatAssignment < ApplicationRecord
   end
 
   private
+
+  def self.release_seat_assignments(seat_assignments)
+    count = 0
+    SeatAssignment.transaction do
+      seat_assignments.each do |sa|
+        sa.order_uuid = nil
+        sa.accessibility = nil
+        sa.status = SeatAssignment::AVAILABLE
+        sa.save!
+        count += 1
+      end
+    end
+    count
+  end
+
   def verify_unused
     return (order_uuid.blank?)
   end

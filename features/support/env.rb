@@ -4,14 +4,19 @@
 # instead of editing this one. Cucumber will automatically load all features/**/*.rb
 # files.
 
+# Ensure we're running in the test environment
+ENV['RAILS_ENV'] = 'test'
+
 require 'cucumber/rails'
 
 require 'selenium-webdriver'
 require 'capybara'
 
+# Configure Selenium driver for JavaScript tests
 Capybara.register_driver :selenium do |app|
   options = Selenium::WebDriver::Firefox::Options.new
-  options.args << '--headless' # Optional: run in headless mode
+  options.binary = "/Applications/Firefox.app/Contents/MacOS/firefox"
+  options.args << '--headless' # Run in headless mode
   options.args << '--no-sandbox'
   options.args << '--disable-dev-shm-usage'
   options.args << '--ignore-certificate-errors'
@@ -25,7 +30,9 @@ Capybara.register_driver :selenium do |app|
   Capybara::Selenium::Driver.new(app, browser: :firefox, options: options)
 end
 
-Capybara.default_driver = :selenium
+# Use rack_test for non-JavaScript tests (fast), Selenium for @javascript tests
+Capybara.default_driver = :rack_test
+Capybara.javascript_driver = :selenium
 # Capybara defaults to CSS3 selectors rather than XPath.
 # If you'd prefer to use XPath, just uncomment this line and adjust any
 # selectors in your step definitions to use the XPath syntax.
@@ -55,10 +62,22 @@ begin
 rescue NameError
   raise "You need to add database_cleaner to your Gemfile (in the :test group) if you wish to use it."
 end
-Capybara.register_driver :selenium do |app|
-  options = Selenium::WebDriver::Firefox::Options.new
-  options.binary = "/Applications/Firefox.app/Contents/MacOS/firefox"
-  Capybara::Selenium::Driver.new(app, browser: :firefox, options: options)
+
+# Configure DatabaseCleaner strategies
+Before('@javascript') do
+  DatabaseCleaner.strategy = :truncation
+end
+
+Before('not @javascript') do
+  DatabaseCleaner.strategy = :transaction
+end
+
+Before do
+  DatabaseCleaner.start
+end
+
+After do
+  DatabaseCleaner.clean
 end
 
 # You may also want to configure DatabaseCleaner to use different strategies for certain features and scenarios.

@@ -293,6 +293,7 @@ Rails.application.routes.draw do
       resources :productions do
         resources :performances do
           get 'duplicate', :on => :member
+          post 'release_held_seats', :on => :member
 
         end
         resources :ticket_classes

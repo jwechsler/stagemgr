@@ -45,6 +45,12 @@ class Admin::PerformancesController < Admin::ApplicationController
     render :action => :new
   end
 
+  def release_held_seats
+    count = SeatAssignment.release_temporary_holds_for_performance(@performance.id)
+    flash[:notice] = "Released #{count} held seat#{'s' unless count == 1} for performance #{@performance.performance_code}."
+    redirect_to admin_theater_production_performance_path(@performance.production.theater, @performance.production, @performance)
+  end
+
   # GET /performances/1/edit
   def edit
     @performance.populate_ticket_class_allocations
