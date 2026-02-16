@@ -119,6 +119,7 @@ Rails.application.configure do
   Rails.application.routes.default_url_options[:host] = $SERVER_CONFIG['host']
 
   # Allow binding from ngrok.io for remote testing
+  config.hosts << "jw-macbook-m4"
   config.hosts << /.*\.ngrok\.io/
   config.hosts << /.*\.ngrok\.app/
 end
