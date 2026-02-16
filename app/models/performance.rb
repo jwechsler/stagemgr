@@ -10,6 +10,7 @@ class Performance < ApplicationRecord
   has_many                 :seats, :through=>:seat_assignments
   has_one                  :seat_map, :through=>:production
   has_many                 :orders, :class_name=>'TicketOrder', inverse_of: :performance
+  has_many                 :broadcasts, class_name: 'PerformanceBroadcast', dependent: :destroy
   has_many                 :payment_restrictions, :dependent=>:destroy, inverse_of: :performance
   has_many                 :restricted_payment_types, :source=>:payment_type, :through=>:payment_restrictions
   has_and_belongs_to_many  :special_features

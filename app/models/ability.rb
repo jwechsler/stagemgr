@@ -65,7 +65,7 @@ class Ability
     # below is for box office staff
     can [:read, :update], Order
     can [:cancel, :cru], FlexPassOrder
-    can [:manage, :duplicate, :create, :delete, :release_held_seats], Performance
+    can [:manage, :duplicate, :create, :delete, :release_held_seats, :email_attendees], Performance
     can :read, Address
     can [:read, :create, :edit, :update, :duplicate], Production
     can :view_system_options, UserSession

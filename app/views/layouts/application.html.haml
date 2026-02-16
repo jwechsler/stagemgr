@@ -13,6 +13,7 @@
     = javascript_pack_tag 'application'
     = javascript_include_tag 'admin_application'
     = csrf_meta_tag
+    %meta{name: "app-root-path", content: Rails.application.config.relative_url_root || ""}
     = yield(:head)
   %body
     = render "layouts/menu"

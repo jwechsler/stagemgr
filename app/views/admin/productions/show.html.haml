@@ -6,7 +6,7 @@
     %li= link_to @production.theater.name, admin_theater_path(@production.theater)
     %li.current
       %a{:href=>"#"}= @production.name
-.grid-x.grid-padding-x
+.grid-x.grid-padding-x{data: {theater_id: @production.theater.id, production_id: @production.id}}
   .small-4.cell
     = render :partial=>'/productions/info', :locals=>{:production=>@production}
   .small-8.cell
@@ -97,3 +97,5 @@
     - if can? :read, TicketClass
       %td
         = link_to('Ticket Classes', [:admin, @production.theater, @production, :ticket_classes], class: 'button')
+
+= render partial: 'email_attendees_modal' if can? :email_attendees, Performance

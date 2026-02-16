@@ -1,0 +1,37 @@
+= content_for :email_title do
+  = @broadcast.subject
+
+%h3
+  Hi #{@order.address.first_name},
+
+.broadcast-body
+  = raw(@body_html)
+
+%hr
+
+%h4 Your Reservation Details
+
+%p
+  You have
+  = pluralize(@order.number_of_seats, 'ticket')
+  reserved for
+  %i= "#{@order.performance.production.name}#{!@order.theater.is_default? ? ',' : ''}"
+  = "presented by #{@order.theater.name}" unless @order.theater.is_default?
+  on
+  = "#{@order.performance.performance_date.strftime('%A, %B %_d')}"
+  at
+  = "#{@order.performance.performance_time.strftime('%l:%M %p')}."
+
+%p
+  Your
+  = pluralize(@order.number_of_seats, 'ticket')
+  will be waiting at the
+  = @order.performance.production.treat_as_special_event? ? "door" : "box office"
+  under
+  - display_payment = @order.hold_under.blank? ? 'your name' : @order.hold_under
+  = display_payment + "."
+
+%p
+  %strong Order ##{@order.id}
+
+= render partial: 'performance_info', locals: {order: @order}

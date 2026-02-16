@@ -162,4 +162,23 @@ class OrderMailer < ActionMailer::Base
     end
   end
 
+  def custom_performance_broadcast(order,address=nil,action_by=nil)
+    @order = order
+    @markdown_renderer = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)
+
+    # Find the most recent broadcast for this performance (sent within last hour)
+    @broadcast = order.performance.broadcasts
+      .where('sent_at > ?', 1.hour.ago)
+      .order(sent_at: :desc)
+      .first
+
+    if @broadcast
+      @body_html = @markdown_renderer.render(@broadcast.body)
+      mail(:to => address || @order.address.email,
+           :from => @broadcast.from_address,
+           :subject => @broadcast.subject,
+           :tag => "Performance Broadcast")
+    end
+  end
+
 end

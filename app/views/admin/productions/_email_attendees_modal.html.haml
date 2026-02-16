@@ -1,0 +1,54 @@
+#email-attendees-modal.reveal{'data-reveal' => '', 'aria-labelledby' => 'emailAttendeesTitle', 'aria-hidden' => 'true', 'role' => 'dialog', 'data-close-on-click' => 'true'}
+  %h2#emailAttendeesTitle Email Performance Attendees
+
+  %p.lead
+    Compose a custom email to send to all ticket holders for this performance.
+
+  %form#email-attendees-form
+    %input#broadcast-performance-id{type: 'hidden', name: 'performance_id', value: ''}
+    %input#broadcast-theater-id{type: 'hidden', name: 'theater_id', value: ''}
+    %input#broadcast-production-id{type: 'hidden', name: 'production_id', value: ''}
+
+    .grid-x.grid-padding-x
+      .cell.small-12
+        %label{for: 'broadcast-subject'}
+          Subject
+          %span.required-field *
+        %input#broadcast-subject{type: 'text', name: 'subject', placeholder: 'Email subject', required: true}
+
+    .grid-x.grid-padding-x
+      .cell.small-12
+        %label{for: 'broadcast-from-address'}
+          From Address
+          %span.required-field *
+        %select#broadcast-from-address{name: 'from_address', required: true}
+          %option{value: ''} Select from address...
+          - if defined?($EMAIL_ADDRESS) && $EMAIL_ADDRESS['box_office']
+            %option{value: $EMAIL_ADDRESS['box_office']}= "Theater Wit Box Office <#{$EMAIL_ADDRESS['box_office']}>"
+          - if current_user&.email.present?
+            %option{value: current_user.email}= current_user.email
+
+    .grid-x.grid-padding-x
+      .cell.small-12
+        %label{for: 'broadcast-body'}
+          Message Body
+          %span.required-field *
+          %small.help-text You can use Markdown formatting in the message body.
+        %textarea#broadcast-body{name: 'body', rows: 10, placeholder: 'Email message body (Markdown supported)', required: true}
+
+    .grid-x.grid-padding-x
+      .cell.small-12
+        #recipient-count-display
+          %p
+            %strong Recipients:
+            %span#recipient-count.label.secondary Loading...
+
+  .button-group
+    %button#confirm-broadcast.button.success{type: 'button', disabled: true}
+      Send Email to
+      %span#send-button-count 0
+      Recipients
+    %button.button.secondary{'data-close' => '', type: 'button', disabled: false} Cancel
+
+  %button.close-button{'data-close' => '', 'aria-label' => 'Close modal', type: 'button', disabled: false}
+    %span{'aria-hidden' => 'true'} &times;

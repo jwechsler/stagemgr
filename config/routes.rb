@@ -294,6 +294,8 @@ Rails.application.routes.draw do
         resources :performances do
           get 'duplicate', :on => :member
           post 'release_held_seats', :on => :member
+          get 'email_attendees_form', :on => :member
+          post 'send_broadcast', :on => :member
 
         end
         resources :ticket_classes

@@ -17,6 +17,17 @@ class PerformanceDecorator < ApplicationDecorator
         class: 'tiny button alert',
         id: "release_seats_#{object.performance_code.gsub(' ','_')}")
     end
+    if h.current_user.can?(:email_attendees, Performance) then
+      actions << h.link_to('Email Attendees', '#',
+        class: 'tiny button secondary email-attendees-btn',
+        data: {
+          performance_id: object.id,
+          performance_code: object.performance_code,
+          theater_id: object.production.theater.id,
+          production_id: object.production.id
+        },
+        id: "email_attendees_#{object.performance_code.gsub(' ','_')}")
+    end
     if h.current_user.can? :delete, Performance then
       # actions << h.link_to('Delete', [:destroy, :admin, object], :id=>"delete_#{object.performance_code.gsub(' ','_')}", :confirm=> "Are you sure?" , class: 'tiny button alert' )
     end

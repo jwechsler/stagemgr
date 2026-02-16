@@ -109,6 +109,42 @@ class Admin::PerformancesController < Admin::ApplicationController
     end
   end
 
+  def email_attendees_form
+    authorize! :email_attendees, Performance
+
+    broadcast = PerformanceBroadcast.new(performance: @performance)
+    recipient_count = broadcast.recipient_orders.count
+
+    render json: {
+      recipient_count: recipient_count,
+      performance_code: @performance.performance_code
+    }
+  end
+
+  def send_broadcast
+    authorize! :email_attendees, Performance
+
+    broadcast = @performance.broadcasts.new(
+      user: current_user,
+      subject: params[:subject],
+      from_address: params[:from_address],
+      body: params[:body]
+    )
+
+    if broadcast.save
+      broadcast.queue_broadcast!
+      render json: {
+        success: true,
+        message: "Email queued for #{broadcast.recipient_count} recipients"
+      }
+    else
+      render json: {
+        success: false,
+        message: broadcast.errors.full_messages.join(', ')
+      }, status: :unprocessable_entity
+    end
+  end
+
   private
 
   def find_production
