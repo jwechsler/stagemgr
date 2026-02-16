@@ -23,6 +23,7 @@
 
 Given /^a sample theater exists$/ do
   FactoryBot.create_test_theater
+  @production = Production.find_by_production_code('TEST')
 end
 
 Given /^a flex pass exists for (\d+) tickets with code "(.*?)"$/ do |number_of_tickets, redemption_code|
