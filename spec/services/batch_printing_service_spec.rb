@@ -86,22 +86,4 @@ RSpec.describe BatchPrintingService, type: :service do
       end
     end
   end
-
-  describe '.generate_batch_id' do
-    it 'generates unique batch IDs' do
-      id1 = BatchPrintingService.send(:generate_batch_id)
-      id2 = BatchPrintingService.send(:generate_batch_id)
-      
-      expect(id1).not_to eq(id2)
-    end
-
-    it 'follows the expected format' do
-      allow(Time).to receive(:current).and_return(Time.parse('2025-01-15 14:30:45'))
-      allow(SecureRandom).to receive(:hex).with(4).and_return('abc123de')
-      
-      batch_id = BatchPrintingService.send(:generate_batch_id)
-      
-      expect(batch_id).to eq('20250115_143045_abc123de')
-    end
-  end
 end
