@@ -79,6 +79,8 @@ $(document).ready(function() {
     var performanceCode = $(this).data('performance-code');
     var theaterId = $(this).data('theater-id');
     var productionId = $(this).data('production-id');
+    var productionName = $(this).data('production-name');
+    var performanceDate = $(this).data('performance-date');
 
     console.log('Performance ID:', performanceId, 'Theater ID:', theaterId, 'Production ID:', productionId);
 
@@ -87,8 +89,8 @@ $(document).ready(function() {
     $('#broadcast-theater-id').val(theaterId);
     $('#broadcast-production-id').val(productionId);
 
-    // Pre-fill subject with performance code
-    $('#broadcast-subject').val('Important update regarding ' + performanceCode);
+    // Pre-fill subject with production name and date
+    $('#broadcast-subject').val('Important update regarding ' + productionName + ' on ' + performanceDate);
 
     // Reset form
     $('#broadcast-body').val('');
@@ -135,19 +137,19 @@ $(document).ready(function() {
   $(document).on('click', '#confirm-broadcast', function(e) {
     e.preventDefault();
 
-    var recipientCount = $('#recipient-count').text();
-
-    if (!confirm('Are you sure you want to send this email to ' + recipientCount + ' recipients?')) {
-      return;
-    }
-
-    // Validate form
+    // Validate form first
     var subject = $('#broadcast-subject').val().trim();
     var fromAddress = $('#broadcast-from-address').val();
     var body = $('#broadcast-body').val().trim();
 
     if (!subject || !fromAddress || !body) {
       alert('Please fill in all required fields.');
+      return;
+    }
+
+    var recipientCount = $('#recipient-count').text();
+
+    if (!confirm('Are you sure you want to send this email to ' + recipientCount + ' recipients?')) {
       return;
     }
 

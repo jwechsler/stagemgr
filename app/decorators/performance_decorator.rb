@@ -24,7 +24,9 @@ class PerformanceDecorator < ApplicationDecorator
           performance_id: object.id,
           performance_code: object.performance_code,
           theater_id: object.production.theater.id,
-          production_id: object.production.id
+          production_id: object.production.id,
+          production_name: object.production.name,
+          performance_date: object.performance_date.strftime('%m/%d')
         },
         id: "email_attendees_#{object.performance_code.gsub(' ','_')}")
     end

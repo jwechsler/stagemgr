@@ -28,9 +28,9 @@ class PerformanceBroadcast < ApplicationRecord
 
     orders.each do |order|
       OutreachTask.create!(
+        execute_at: Time.now,
         order: order,
-        method_symbol: 'custom_performance_broadcast',
-        action_by: user
+        method_symbol: 'custom_performance_broadcast'
       )
     end
   end
