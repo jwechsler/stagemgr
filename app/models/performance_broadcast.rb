@@ -38,25 +38,19 @@ class PerformanceBroadcast < ApplicationRecord
     generate_and_send_log
   end
 
-  # Generates CSV log and sends to all box office users and administrators
+  # Generates CSV log and sends to the broadcast requester
   def generate_and_send_log
     report = PerformanceBroadcastReport.new(self)
     file_store = report.create
 
-    # Get all active box office users and administrators
-    recipients = User.where(status: User::ACTIVE)
-                     .where("is_box_office_user = ? OR is_administrator = ?", true, true)
-
-    recipients.each do |user|
-      next if user.email.blank?
-
+    # Send log only to the user who requested the broadcast
+    if user.email.present?
       begin
         NotificationMailer.broadcast_log_generated(file_store, user.email).deliver_now
+        Rails.logger.info("Broadcast log sent to #{user.email}")
       rescue => e
         Rails.logger.error("Failed to send broadcast log to #{user.email}: #{e.message}")
       end
     end
-
-    Rails.logger.info("Broadcast log sent to #{recipients.count} recipients (box office users and administrators)")
   end
 end

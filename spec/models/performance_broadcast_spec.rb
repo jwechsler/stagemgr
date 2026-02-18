@@ -261,40 +261,8 @@ RSpec.describe PerformanceBroadcast, type: :model do
     end
 
     context 'log generation' do
-      let!(:box_office_user) do
-        FactoryBot.create(:user,
-          email: 'boxoffice@example.com',
-          status: User::ACTIVE,
-          is_box_office_user: true,
-          is_administrator: false)
-      end
-
-      let!(:admin_user) do
-        FactoryBot.create(:user,
-          email: 'admin@example.com',
-          status: User::ACTIVE,
-          is_box_office_user: false,
-          is_administrator: true)
-      end
-
-      let!(:regular_user) do
-        FactoryBot.create(:user,
-          email: 'regular@example.com',
-          status: User::ACTIVE,
-          is_box_office_user: false,
-          is_administrator: false)
-      end
-
-      let!(:inactive_box_office_user) do
-        FactoryBot.create(:user,
-          email: 'inactive@example.com',
-          status: User::INACTIVE,
-          is_box_office_user: true,
-          is_administrator: false)
-      end
-
-      it 'generates and sends log to box office users and administrators' do
-        expect(NotificationMailer).to receive(:broadcast_log_generated).twice.and_call_original
+      it 'generates and sends log to the broadcast requester' do
+        expect(NotificationMailer).to receive(:broadcast_log_generated).once.and_call_original
 
         broadcast.queue_broadcast!
       end
@@ -305,21 +273,18 @@ RSpec.describe PerformanceBroadcast, type: :model do
         }.to change { FileStore.count }.by(1)
       end
 
-      it 'does not send to regular users' do
-        expect(NotificationMailer).not_to receive(:broadcast_log_generated).with(anything, regular_user.email)
+      it 'sends email to the requester' do
+        mailer_double = double('mailer')
+        allow(mailer_double).to receive(:deliver_now)
+
+        expect(NotificationMailer).to receive(:broadcast_log_generated).with(anything, user.email).and_return(mailer_double)
 
         broadcast.queue_broadcast!
       end
 
-      it 'does not send to inactive box office users' do
-        expect(NotificationMailer).not_to receive(:broadcast_log_generated).with(anything, inactive_box_office_user.email)
-
-        broadcast.queue_broadcast!
-      end
-
-      it 'logs the number of recipients' do
+      it 'logs the email sent' do
         allow(Rails.logger).to receive(:info).and_call_original
-        expect(Rails.logger).to receive(:info).with(/Broadcast log sent to 2 recipients/).and_call_original
+        expect(Rails.logger).to receive(:info).with(/Broadcast log sent to #{user.email}/).and_call_original
 
         broadcast.queue_broadcast!
       end
@@ -335,7 +300,15 @@ RSpec.describe PerformanceBroadcast, type: :model do
       it 'logs email delivery errors' do
         allow(NotificationMailer).to receive(:broadcast_log_generated).and_raise(StandardError.new('SMTP error'))
 
-        expect(Rails.logger).to receive(:error).at_least(:once).with(/Failed to send broadcast log/)
+        expect(Rails.logger).to receive(:error).with(/Failed to send broadcast log/)
+
+        broadcast.queue_broadcast!
+      end
+
+      it 'skips sending if user has no email' do
+        broadcast.user.update_columns(email: '')
+
+        expect(NotificationMailer).not_to receive(:broadcast_log_generated)
 
         broadcast.queue_broadcast!
       end
@@ -352,22 +325,6 @@ RSpec.describe PerformanceBroadcast, type: :model do
         body: 'Test body')
     end
 
-    let!(:box_office_user) do
-      FactoryBot.create(:user,
-        email: 'boxoffice@example.com',
-        status: User::ACTIVE,
-        is_box_office_user: true,
-        is_administrator: false)
-    end
-
-    let!(:admin_user) do
-      FactoryBot.create(:user,
-        email: 'admin@example.com',
-        status: User::ACTIVE,
-        is_box_office_user: false,
-        is_administrator: true)
-    end
-
     it 'creates a PerformanceBroadcastReport' do
       expect(PerformanceBroadcastReport).to receive(:new).with(broadcast).and_call_original
 
@@ -380,33 +337,25 @@ RSpec.describe PerformanceBroadcast, type: :model do
       }.to change { FileStore.count }.by(1)
     end
 
-    it 'sends email to each box office user and administrator' do
+    it 'sends email to the broadcast requester' do
       mailer_double = double('mailer')
       allow(mailer_double).to receive(:deliver_now)
 
-      expect(NotificationMailer).to receive(:broadcast_log_generated).twice.and_return(mailer_double)
+      expect(NotificationMailer).to receive(:broadcast_log_generated).once.with(anything, user.email).and_return(mailer_double)
 
       broadcast.generate_and_send_log
     end
 
-    it 'skips users without email addresses' do
-      box_office_user.update_columns(email: '')
+    it 'skips sending if user has no email address' do
+      broadcast.user.update_columns(email: '')
 
-      mailer_double = double('mailer')
-      allow(mailer_double).to receive(:deliver_now)
-
-      expect(NotificationMailer).to receive(:broadcast_log_generated).once.and_return(mailer_double)
+      expect(NotificationMailer).not_to receive(:broadcast_log_generated)
 
       broadcast.generate_and_send_log
     end
 
-    it 'continues sending after individual failures' do
-      allow(NotificationMailer).to receive(:broadcast_log_generated).with(anything, box_office_user.email).and_raise(StandardError.new('SMTP error'))
-
-      mailer_double = double('mailer')
-      allow(mailer_double).to receive(:deliver_now)
-
-      expect(NotificationMailer).to receive(:broadcast_log_generated).with(anything, admin_user.email).and_return(mailer_double)
+    it 'handles email delivery errors gracefully' do
+      allow(NotificationMailer).to receive(:broadcast_log_generated).and_raise(StandardError.new('SMTP error'))
 
       expect {
         broadcast.generate_and_send_log
