@@ -37,4 +37,18 @@ class NotificationMailer < ActionMailer::Base
     end
   end
 
+  def broadcast_log_generated(filestore, recipient_email)
+    if filestore.datafile.attached?
+      @filestore = filestore
+      attachments[filestore.file_name] = {
+        mime_type: filestore.datafile.content_type,
+        content: filestore.datafile.download
+      }
+      mail(:to => recipient_email,
+           :from => $EMAIL_ADDRESS['software_address'],
+           :subject => "Broadcast Email Log Ready",
+           :tag => "Broadcast Log")
+    end
+  end
+
 end

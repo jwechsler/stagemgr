@@ -1,0 +1,9 @@
+%p
+  Your broadcast email log is ready for download:
+%p
+  %b= @filestore.file_name
+  - unless @filestore.notes.blank?
+    %br
+    %i= @filestore.notes
+%p
+  This log contains all orders for the performance, showing which recipients were sent the broadcast email.
