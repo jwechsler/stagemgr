@@ -114,14 +114,16 @@ class Admin::AddressesController < Admin::ApplicationController
   end
 
 def merge_selected
-  ids = params[:ids].sort {|a,b| a.to_i <=> b.to_i }
+  ids = params[:ids].sort { |a, b| a.to_i <=> b.to_i }
   address = Address.find(ids[0])
   ids.drop(1).each do |id|
     address2 = Address.find(id)
     address.merge_and_purge(address2)
   end
-
-  render :json => { result: true }
+  render json: { result: true }
+rescue => e
+  Rails.logger.error("Merge failed: #{e.message}\n#{e.backtrace.join("\n")}")
+  render json: { result: false, error: e.message }, status: :unprocessable_entity
 end
 
 def autocomplete_address

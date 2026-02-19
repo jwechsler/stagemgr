@@ -69,10 +69,13 @@
                       data: {ids: ids},
                       type: "POST",
                       success: function(data) {
-                        
+                        dt.draw();
+                      },
+                      error: function(xhr) {
+                        var msg = (xhr.responseJSON && xhr.responseJSON.error) ? xhr.responseJSON.error : 'Merge failed. See server log.';
+                        alert('Merge error: ' + msg);
                       }
                     });
-                    dt.draw();
                     // dt.ajax.reload();
 
                   }

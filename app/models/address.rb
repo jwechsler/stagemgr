@@ -9,7 +9,7 @@ class Address < ApplicationRecord
   validates :email, :email=>true, :allow_blank=>true
   before_validation :regularize!, :if=>:changed?
   has_many :orders, inverse_of: :address
-  has_many :orders_as_recipient, :class_name=>:order, :foreign_key=>:recipient_address_id, inverse_of: :recipient_address
+  has_many :orders_as_recipient, :class_name=>'Order', :foreign_key=>:recipient_address_id, inverse_of: :recipient_address
   has_many :address_tags, inverse_of: :address
   has_many :memberships, inverse_of: :address
   has_many :flex_passes, inverse_of: :address
@@ -143,7 +143,7 @@ class Address < ApplicationRecord
 
   def update_from(newer)
     self.email = newer.email unless newer.email.blank?
-    self.first_name = newer.first_name unless newer.email.blank?
+    self.first_name = newer.first_name unless newer.first_name.blank?
     self.last_name = newer.last_name unless newer.last_name.blank?
     self.full_name = newer.full_name unless newer.full_name.blank?
     self.line1 = newer.line1 unless newer.line1.blank?
@@ -175,10 +175,13 @@ class Address < ApplicationRecord
     Rails.logger.debug("Merging address \##{from_address.id} into \##{self.id}")
     Address.transaction do
       self.update_from(from_address)
-      self.orders << from_address.orders
-      self.memberships << from_address.memberships
-      self.flex_passes << from_address.flex_passes
-      self.productions << from_address.productions
+      from_address.orders.update_all(address_id: self.id)
+      from_address.orders_as_recipient.update_all(recipient_address_id: self.id)
+      from_address.memberships.update_all(address_id: self.id)
+      from_address.flex_passes.update_all(address_id: self.id)
+      new_production_ids = from_address.production_ids - self.production_ids
+      self.productions << Production.where(id: new_production_ids) unless new_production_ids.empty?
+      from_address.productions.clear
       self.save!
       from_address.reload
       from_address.destroy
