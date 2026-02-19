@@ -29,4 +29,4 @@
             %span.label.info Placeholder
       - if address.photo.attached?
         .cell.shrink.hide-for-small-only
-          = image_tag url_for(address.photo.variant(resize_and_pad: Address::PHOTO_THUMB)), class: "address-photo-thumb"
+          = image_tag url_for(address.photo.variant(resize_and_pad: Address::PHOTO_LARGE)), class: "address-photo"

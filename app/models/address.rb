@@ -17,13 +17,15 @@ class Address < ApplicationRecord
   has_one_attached :photo
   validates :photo, blob: { content_type: :image }, allow_blank: true
 
-  PHOTO_LARGE = [200, 200]
-  PHOTO_THUMB = [75, 75]
+  PHOTO_STORED = [225, 300]
+  PHOTO_LARGE = [150, 200]
+  PHOTO_THUMB = [75, 100]
 
   accepts_nested_attributes_for :address_tags, :reject_if => proc { |attributes| attributes['tag_label'].blank? }, :allow_destroy => true
   before_save :set_search_name
   before_save :purge_duplicate_tags
   before_destroy :ensure_no_finalized_orders
+  after_commit :cap_photo_resolution
 
   MAILLIST_STATUS = (
     REQUESTED, SAVED =
@@ -459,6 +461,37 @@ class Address < ApplicationRecord
   private
   def name_as_searchable
     full_name.gsub(SEARCHABLE_REGEXP,'').upcase
+  end
+
+  def cap_photo_resolution
+    return unless photo.attached?
+    return if photo.blob.metadata['capped']
+
+    original_blob = photo.blob
+    Tempfile.create(['photo_src', ".#{original_blob.filename.extension}"]) do |src|
+      src.binmode
+      original_blob.download { |chunk| src.write(chunk) }
+      src.flush
+
+      result = ImageProcessing::Vips
+        .source(src.path)
+        .resize_to_limit(*PHOTO_STORED)
+        .convert('jpeg')
+        .call
+
+      begin
+        new_blob = ActiveStorage::Blob.create_and_upload!(
+          io: result,
+          filename: "#{File.basename(original_blob.filename.to_s, '.*')}.jpg",
+          content_type: 'image/jpeg',
+          metadata: { 'capped' => true }
+        )
+        photo.attach(new_blob)
+      ensure
+        result.close
+        result.unlink
+      end
+    end
   end
 
 end
