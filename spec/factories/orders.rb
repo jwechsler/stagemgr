@@ -1,7 +1,7 @@
 FactoryBot.define do
 
   trait :order do
-    status                  { Order::ORDER_STATUSES.first }
+    status                  { Order::HOLD }
     association             :address, :factory => :address
     association             :payment_type, :factory=>:cash_payment_type
   end
@@ -9,6 +9,7 @@ FactoryBot.define do
 
   factory :ticket_order do
     order
+    status                  { Order::NEW }
 
     trait :with_twenty_dollar_service_item do
    
@@ -144,9 +145,15 @@ FactoryBot.define do
 
       before(:create) do |ticket_order, evaluator|
         if evaluator.flex_pass_code.blank?
-          flex_pass = FactoryBot.create(:flex_pass)
+          flex_pass_order_instance = FactoryBot.create(:flex_pass_order)
+          flex_pass = flex_pass_order_instance.flex_pass
         else
-          flex_pass = FactoryBot.create(:flex_pass, code:evaluator.flex_pass_code)
+          flex_pass = FlexPass.find_by(code: evaluator.flex_pass_code)
+          if flex_pass.nil?
+            flex_pass_order_instance = FactoryBot.create(:flex_pass_order)
+            flex_pass = flex_pass_order_instance.flex_pass
+            flex_pass.update_column(:code, evaluator.flex_pass_code)
+          end
         end
 
 

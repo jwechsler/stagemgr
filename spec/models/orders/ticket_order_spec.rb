@@ -82,6 +82,7 @@ RSpec.shared_examples "a paid ticket order" do |pay_method_type, seating_type|
 end
 
 RSpec.describe TicketOrder do
+  include_context 'auto-fulfilling print service'
 
   it_behaves_like "a paid ticket order", :paid_with_cash, :general_admission
   it_behaves_like "a paid ticket order", :paid_with_credit_card, :general_admission

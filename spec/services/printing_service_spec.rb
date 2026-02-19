@@ -1,8 +1,8 @@
 require 'rails_helper'
 
 RSpec.describe PrintingService, type: :service do
-  let(:order) { FactoryBot.create(:ticket_order) }
-  let(:orders) { FactoryBot.create_list(:ticket_order, 3) }
+  let(:order) { FactoryBot.create(:ticket_order, :for_a_single_ticket) }
+  let(:orders) { FactoryBot.create_list(:ticket_order, 3, :for_a_single_ticket) }
   let(:order_ids) { orders.map(&:id) }
 
   before do

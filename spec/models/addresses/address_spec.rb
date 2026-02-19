@@ -1,6 +1,8 @@
 require "rails_helper"
 
 RSpec.describe "a customer record" do
+  include_context 'auto-fulfilling print service'
+
   it "should merge/purge production attendance records" do
     o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
     o.transition_to!(Order::FULFILLED)
@@ -12,6 +14,7 @@ RSpec.describe "a customer record" do
     purge_address.full_name = purge_address.full_name + "-updated"
     purge_address.save
     o2.address = purge_address
+    o2.save!
     o2.transition_to!(Order::FULFILLED)
     expect(purge_address.productions.count).to eq(1)
     original_address.merge_and_purge(purge_address)

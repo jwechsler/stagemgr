@@ -2,6 +2,8 @@ require 'rails_helper'
 
 RSpec.describe "a production" do
   context "with one order" do
+    include_context 'auto-fulfilling print service'
+
     before(:each) do
       @ticket_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
     end

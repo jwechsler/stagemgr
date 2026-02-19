@@ -3,7 +3,7 @@ require 'rails_helper'
 RSpec.describe BatchPrintingService, type: :service do
   describe '.create_and_process_batch' do
     let(:performance) { FactoryBot.create(:performance) }
-    let(:orders) { FactoryBot.create_list(:ticket_order, 3, performance: performance) }
+    let(:orders) { FactoryBot.create_list(:ticket_order, 3, :for_a_single_ticket, performance: performance) }
 
     before do
       allow(Resque).to receive(:enqueue)
@@ -27,8 +27,9 @@ RSpec.describe BatchPrintingService, type: :service do
       end
 
       it 'logs the batch creation' do
+        allow(Rails.logger).to receive(:info)
         expect(Rails.logger).to receive(:info).with(/Creating bulk batch with orders:/)
-        
+
         BatchPrintingService.create_and_process_batch(orders)
       end
     end
