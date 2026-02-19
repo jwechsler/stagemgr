@@ -10,6 +10,14 @@ class AddressDecorator < ApplicationDecorator
   #     end
   #   end
 
+  def photo_url(*dimensions)
+    make_image_url(object.photo, dimensions)
+  end
+
+  def photo(*dimensions)
+    make_image_tag(object.photo, dimensions)
+  end
+
   def visits(current_user)
     (current_user.is_theater_user? ? object.orders_processed(current_user.theater_ids) : object.orders_processed )
   end

@@ -6,7 +6,38 @@
       <caption>
         <i>House Management Report, generated at <%= Time.now.to_s(:hour_min) %> on <%= Time.now %></i>
       </caption>
-      <%= render :partial=>"generic", :locals=>{:headers=>@headers, :report_body=>@report_data, :summary=>@totals} %>
+      <% if @report_data.empty? %>
+        <tr><td>No data found</td></tr>
+      <% else %>
+        <thead>
+          <th>Production</th>
+          <th>Perf</th>
+          <th>Patron</th>
+          <th>Photo</th>
+          <th>Seats</th>
+          <th>Special Requests</th>
+          <th>Notes</th>
+          <th>Member</th>
+          <th>Donor</th>
+        </thead>
+        <% @report_data.each_with_index do |row, i| %>
+          <tr class="<%= i.odd? ? 'odd' : '' %>">
+            <td><%= row[:production_name] %></td>
+            <td><%= row[:performance_code] %></td>
+            <td><%= row[:patron_name] %></td>
+            <td>
+              <% if row[:photo]&.attached? %>
+                <%= image_tag url_for(row[:photo].variant(resize_and_pad: Address::PHOTO_THUMB)), class: "patron-photo" %>
+              <% end %>
+            </td>
+            <td class="numeric"><%= row[:seats] %></td>
+            <td><%= raw($TRUSTED_MARKDOWN.render(row[:special_requests].to_s)) %></td>
+            <td><%= raw($TRUSTED_MARKDOWN.render(row[:notes].to_s)) %></td>
+            <td class="boolean"><%= raw("&#x2717") if row[:is_member] %></td>
+            <td><%= row[:is_donor] %></td>
+          </tr>
+        <% end %>
+      <% end %>
     </table>
   </div>
 </div>

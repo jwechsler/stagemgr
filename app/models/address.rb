@@ -14,6 +14,11 @@ class Address < ApplicationRecord
   has_many :memberships, inverse_of: :address
   has_many :flex_passes, inverse_of: :address
   has_and_belongs_to_many :productions
+  has_one_attached :photo
+  validates :photo, blob: { content_type: :image }, allow_blank: true
+
+  PHOTO_LARGE = [200, 200]
+  PHOTO_THUMB = [75, 75]
 
   accepts_nested_attributes_for :address_tags, :reject_if => proc { |attributes| attributes['tag_label'].blank? }, :allow_destroy => true
   before_save :set_search_name
@@ -147,7 +152,7 @@ class Address < ApplicationRecord
     self.phone = newer.phone unless newer.phone.blank?
     self.vip ||= newer.vip?
     self.placeholder ||= newer.placeholder?
-    if self.donor_tier_updated_on.nil? || (self.donor_tier_updated_on < newer.donor_tier_updated_on)
+    if !newer.donor_tier_updated_on.nil? && (self.donor_tier_updated_on.nil? || (self.donor_tier_updated_on < newer.donor_tier_updated_on))
       self.donor_tier_for_last_fiscal_year = newer.donor_tier_for_last_fiscal_year
       self.donor_tier_for_current_fiscal_year = newer.donor_tier_for_current_fiscal_year
     end
@@ -161,6 +166,7 @@ class Address < ApplicationRecord
         existing_tag.theater = tag.theater
       end
     end
+    self.photo.attach(newer.photo.blob) if !self.photo.attached? && newer.photo.attached?
   end
 
   def merge_and_purge(from_address)

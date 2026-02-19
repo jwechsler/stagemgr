@@ -190,7 +190,7 @@ def autocomplete_address
 
   private
   def address_params
-    params.require(:address).permit(:full_name, :line1, :line2, :city, :state, :zipcode, :email, :phone, :street_number, :address_tags_attributes, :_destroy, :vip, :placeholder,
+    params.require(:address).permit(:full_name, :line1, :line2, :city, :state, :zipcode, :email, :phone, :street_number, :address_tags_attributes, :_destroy, :vip, :placeholder, :photo,
         address_tags_attributes: [:tag_label, :theater_id, :tag_value, :_destroy, :id])
   end
 

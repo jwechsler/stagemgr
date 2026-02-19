@@ -30,11 +30,11 @@ class HouseManagementReport < Report
   def create
     orders = self.ticket_orders
     report = Array.new
-    headers = [:production_name, :performance_code, :patron_name, :seats, :special_requests, :notes, :is_member, :is_donor]
+    headers = [:production_name, :performance_code, :patron_name, :seats, :special_requests, :notes, :is_member, :is_donor, :photo]
     orders.each do |o|
       seat_assignments = o.seat_assignments
       print_tags = house_tags(o.address)
-      if !o.special_request.blank? || !o.notes.blank? || o.address.is_current_member? || o.address.is_donor? || !print_tags.empty? || o.assigned_seats?
+      if !o.special_request.blank? || !o.notes.blank? || o.address.is_current_member? || o.address.is_donor? || !print_tags.empty? || o.assigned_seats? || o.address.photo.attached?
         note_column = o.notes.blank? ? "" : o.notes
         unless print_tags.empty?
           note_column += "<br/>" unless note_column.blank?
@@ -59,7 +59,8 @@ class HouseManagementReport < Report
           :notes => note_column,
           :is_member => o.address.is_current_member?,
           :is_donor => o.address.is_donor? ? o.address.most_recent_donation_tier : "",
-          :seats => o.number_of_seats
+          :seats => o.number_of_seats,
+          :photo => o.address.photo
         }
       end
     end

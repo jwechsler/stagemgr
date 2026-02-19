@@ -3,26 +3,30 @@
     %b UNKNOWN ADDRESS
   - else
     - breadcrumb_order = nil unless (defined? breadcrumb_order)
-
-    %strong= link_to address.full_name, [:admin, address], :breadcrumb_order=>breadcrumb_order
-    %br
-    - unless address.line1.blank?
-      = address.line1
-      %br
-      - unless address.line2.blank?
-        = address.line2
+    .grid-x
+      .cell.auto
+        %strong= link_to address.full_name, [:admin, address], :breadcrumb_order=>breadcrumb_order
         %br
-    - unless address.city.blank?
-      = "#{address.city}, #{address.state} #{address.zipcode}"
-      %br
-    - unless address.email.blank?
-      = mail_to address.email, can?(:view_email, Address) ? address.email : "[send e-mail]"
-      %br
-    - unless address.phone.blank?
-      = address.phone
-      %br
-    - if address.vip? || address.placeholder?
-      - if address.vip?
-        %span.label.info VIP
-      - if address.placeholder?
-        %span.label.info Placeholder
+        - unless address.line1.blank?
+          = address.line1
+          %br
+          - unless address.line2.blank?
+            = address.line2
+            %br
+        - unless address.city.blank?
+          = "#{address.city}, #{address.state} #{address.zipcode}"
+          %br
+        - unless address.email.blank?
+          = mail_to address.email, can?(:view_email, Address) ? address.email : "[send e-mail]"
+          %br
+        - unless address.phone.blank?
+          = address.phone
+          %br
+        - if address.vip? || address.placeholder?
+          - if address.vip?
+            %span.label.info VIP
+          - if address.placeholder?
+            %span.label.info Placeholder
+      - if address.photo.attached?
+        .cell.shrink.hide-for-small-only
+          = image_tag url_for(address.photo.variant(resize_and_pad: Address::PHOTO_THUMB)), class: "address-photo-thumb"
