@@ -279,6 +279,12 @@ class Production < ApplicationRecord
 
   def clean_values
     self.production_code.upcase! unless self.production_code.nil?
+    invisible_chars = /[\u200B\u200C\u200D\uFEFF\u00AD]/
+    self.attributes.each do |attr, value|
+      if value.is_a?(String) && value.match?(invisible_chars)
+        self[attr] = value.gsub(invisible_chars, '')
+      end
+    end
   end
 
    def assign_default_ticket_classes

@@ -41,7 +41,13 @@ class Admin::ProductionsController < Admin::ApplicationController
   def create
     @production = Production.new(production_params)
     @production.theater = @theater
-    if @production.save
+    begin
+      saved = @production.save
+    rescue Mysql2::Error => e
+      @production.errors.add(:base, "Could not save: #{e.message}")
+      saved = false
+    end
+    if saved
       flash[:notice] = 'Production was successfully created.'
       respond_to do |format|
         format.html { redirect_to(admin_theater_path(@theater)) }
@@ -60,9 +66,14 @@ class Admin::ProductionsController < Admin::ApplicationController
   def update
     @production.assign_attributes(production_params)
     @production.updated_by_user_id = current_user.id
+    begin
+      saved = @production.save
+    rescue Mysql2::Error => e
+      @production.errors.add(:base, "Could not save: #{e.message}")
+      saved = false
+    end
     respond_to do |format|
-
-      if @production.save
+      if saved
         flash[:notice] =   "#{@production.name} was successfully updated."
         format.html { redirect_to(admin_theater_path(@production.theater)) }
         format.xml  { head :ok }
