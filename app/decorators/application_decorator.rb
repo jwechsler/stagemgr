@@ -12,29 +12,32 @@ class ApplicationDecorator < Draper::Decorator
 
   protected
   def make_image_url(img, dimensions)
+    return "" unless img.respond_to?(:attached?) && img.attached?
     if dimensions.nil? || dimensions.empty?
       h.url_for(img)
     else
-      width, height = dimensions[0] if dimensions[0].class.eql?(Array)
-      # replace with version 6
+      width, height = parse_dimensions(dimensions[0])
       h.url_for(img.variant(format: 'png', resize_and_pad: [width, height, gravity: 'centre', alpha: true])&.processed)
-      #h.url_for(img.variant(resize: "#{width}x#{height}"))
     end
   end
 
   def make_image_tag(img, dimensions)
+    return "" unless img.respond_to?(:attached?) && img.attached?
     if dimensions.nil? || dimensions.empty?
       h.image_tag(img)
     else
-      width, height = dimensions[0] if dimensions[0].class.eql?(Array)
-      # replace with version 6:
+      width, height = parse_dimensions(dimensions[0])
       begin
         h.image_tag(img.variant(format: 'png', resize_and_pad: [width, height, gravity: 'centre', alpha: true])&.processed)
       rescue ActiveStorage::FileNotFoundError
         ""
       end
-      #h.image_tag(img.variant(resize: "#{width}x#{height}>"))
     end
+  end
+
+  def parse_dimensions(dim)
+    return dim if dim.is_a?(Array)
+    dim.to_s.scan(/\d+/).map(&:to_i)
   end
 
 end

@@ -7,7 +7,7 @@ class Admin::SeatMapsController < ApplicationController
       format.html # index.html.erb
       format.json {
         params.permit!
-        render json: SeatMapDatatable.new(params, venue: @venue  )
+        render json: SeatMapDatatable.new(params, venue: @venue, view_context: view_context, current_user: current_user)
       }
     end
   end

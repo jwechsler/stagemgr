@@ -111,6 +111,9 @@ module NavigationHelpers
       when /^the edit page for special offer ['"](.*?)['"]$/
         @using_admin_interface=true
         edit_admin_special_offer_path(SpecialOffer.find_by_code($1))
+      when /^the admin venue page for "([^"]*)"$/
+        @using_admin_interface = true
+        admin_venue_path(Venue.find_by!(name: $1))
 
       # Add more mappings here.
       # Here is an example that pulls values out of the Regexp:

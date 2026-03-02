@@ -12,10 +12,15 @@
 .grid-x.grid-padding-x
   .cell.small-12
     %h4 Seating Geometry
-    %img{:src=>"#{@seat_map.decorate.base_image_map_url}", :alt => "", :usemap=> '#seatingmap', :class=>'seatingmap'}
-    %map{name:'seatingmap', id:'seatingmap'}
-      - @seat_map.seats.each do |seat|
-        %area{shape:"circle", coords:"#{seat.origin_x},#{seat.origin_y},#{seat.width}", id:"sa-#{seat.id}", href:"#?id=#{seat.location}",alt:"#{seat.location}", 'data-location':"#{seat.location}", 'data-status': "available", 'data-assignment-id':"#{seat.id}", 'data-key':"#{seat.id}"}
+    - if @seat_map.base_image_map.attached?
+      %figure#seatingmap
+        %svg{:version=>"1.1", :xmlns=>"http://www.w3.org/2000/svg", 'xmlns:xlink'=>"http://www.w3.org/1999/xlink", viewBox: "0 0 #{@seat_map.original_width} #{@seat_map.original_height}", preserveAspectRatio: "xMinYMin meet"}
+          %image{width: "#{@seat_map.original_width}", height: "#{@seat_map.original_height}", 'xlink:href': "#{@seat_map.decorate.base_image_map_url}"}
+          - @seat_map.seats.each do |seat|
+            %a{"xlink:href":"#?id=#{seat.location}"}
+              %circle{:class=>"seat available", :cx=>"#{seat.origin_x}", :cy=>"#{seat.origin_y}", :r=>"#{seat.width}", 'data-status': "available", 'data-assignment-id':"#{seat.id}", 'data-accessible':"#{seat.accessible?}", 'data-location':"#{seat.location}"}
+    - else
+      %p No base image attached.
 
 = content_for :js do
   = javascript_include_tag 'seat_map'
