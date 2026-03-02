@@ -51,20 +51,24 @@ class PerformanceDecorator < ApplicationDecorator
   def order_link(display_text = nil, link_classes = [], link_style = '', suppress_display_if_unavailable = false)
     display_text ||= object.performance_time.to_s(:hour_min).lstrip
     result = ''
+    unless object.order_url_override.blank?
+      result << h.link_to( h.raw(display_text), object.order_url_override, class: link_classes.join(' '), style: link_style )
+      return h.raw(result)
+    end
     case when (object.performance_at + object.production.running_time.minutes < Time.now) || object.sold_out? || object.withhold_from_public?
       result << "<del>#{display_text}</del><br/>"
       if performance.sold_out? || performance.withhold_from_public?
         result << "<font size=\"-2\">Sold out!</font>"
       end
-    when (object.near_capacity? || object.happening_soon?) 
+    when (object.near_capacity? || object.happening_soon?)
       result << "#{display_text}<br/>" unless suppress_display_if_unavailable
       if object.near_capacity?
         result << "<font size=\"-2\">#{object.number_of_seats_left.eql?(1) ? '1 ticket' : 'Limited seats'} remaining. Call box office</font>"
       else
         result << "<font size=\"-2\">Tickets available at door</font>"
       end
-    when
-      result << h.link_to( h.raw(display_text), (object.order_url_override.blank? ?  h.new_order_path(object) : object.order_url_override), class: link_classes.join(' '), style: link_style )
+    else
+      result << h.link_to( h.raw(display_text), h.new_order_path(object), class: link_classes.join(' '), style: link_style )
     end
     h.raw(result)
   end

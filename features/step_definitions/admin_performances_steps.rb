@@ -136,41 +136,31 @@ Given(/^the performance "(.*?)" has (\d+) held seats with a valid HOLD order$/) 
     street: "123 Main St",
     city: "Chicago",
     state: "IL",
-    zip: "60601"
+    zipcode: "60601"
   )
 
   # Get or create cash payment type
-  payment_type = PaymentType.find_or_create_by!(display_name: "Cash") do |pt|
-    pt.payment_class = "CashPayment"
-    pt.allow_for_public = true
-    pt.allow_for_box_office = true
-  end
+  payment_type = CashPaymentType.find_or_create_by!(display_name: "Cash")
 
-  # Create an order with HOLD status
+  # Create an order with HOLD status (use validate: false to bypass seat-count validation in test setup)
   ticket_class = performance.ticket_class_allocations.first.ticket_class
   @test_order = TicketOrder.new(
     status: Order::HOLD,
     performance: performance,
     address: address,
-    payment_type: payment_type,
-    uuid: SecureRandom.uuid
+    payment_type: payment_type
   )
-
-  # Add ticket line item
-  ticket_line_item = TicketLineItem.new(
+  @test_order.ticket_line_items.build(
     ticket_class: ticket_class,
-    ticket_count: count.to_i,
-    order: @test_order
+    ticket_count: count.to_i
   )
-  @test_order.ticket_line_items << ticket_line_item
+  @test_order.save!(validate: false)
 
-  # Assign seats
+  # Assign seats using the persisted order uuid
   seats = performance.seat_assignments.where(status: SeatAssignment::AVAILABLE).take(count.to_i)
   seats.each do |sa|
     sa.update!(status: SeatAssignment::TEMPORARY, order_uuid: @test_order.uuid)
-    @test_order.seats << sa
   end
-  @test_order.save!
 end
 
 Given(/^the performance "(.*?)" has (\d+) assigned seat(?:s)?$/) do |perf_code, count|
@@ -181,7 +171,7 @@ Given(/^the performance "(.*?)" has (\d+) assigned seat(?:s)?$/) do |perf_code, 
   end
 end
 
-When(/^I follow "(.*?)" and confirm$/) do |link_text|
+When(/^I follow "([^"]*)" and confirm$/) do |link_text|
   accept_confirm do
     click_link link_text
   end
@@ -191,9 +181,7 @@ end
 
 Then(/^I should see "(.*?)" in the datatable for performance "(.*?)"$/) do |link_text, perf_code|
   performance = Performance.find_by_performance_code(perf_code)
-  # Wait for datatable to finish loading
-  expect(page).to have_no_css('.dataTables_processing', visible: true, wait: 10)
-  # Look for the link within the row for this performance (using attribute selector for numeric IDs)
+  expect(page).to have_css("tr[id='#{performance.id}']", wait: 15)
   within("tr[id='#{performance.id}']") do
     expect(page).to have_link(link_text)
   end
@@ -201,9 +189,7 @@ end
 
 Then(/^I should not see "(.*?)" in the datatable for performance "(.*?)"$/) do |link_text, perf_code|
   performance = Performance.find_by_performance_code(perf_code)
-  # Wait for datatable to finish loading
-  expect(page).to have_no_css('.dataTables_processing', visible: true, wait: 10)
-  # Look for the link within the row for this performance (using attribute selector for numeric IDs)
+  expect(page).to have_css("tr[id='#{performance.id}']", wait: 15)
   within("tr[id='#{performance.id}']") do
     expect(page).not_to have_link(link_text)
   end
@@ -211,8 +197,7 @@ end
 
 When(/^I follow "(.*?)" in the datatable for performance "(.*?)" and confirm$/) do |link_text, perf_code|
   performance = Performance.find_by_performance_code(perf_code)
-  # Wait for datatable to finish loading
-  expect(page).to have_no_css('.dataTables_processing', visible: true, wait: 10)
+  expect(page).to have_css("tr[id='#{performance.id}']", wait: 15)
   within("tr[id='#{performance.id}']") do
     accept_confirm do
       click_link link_text
@@ -259,8 +244,8 @@ Given(/^a performance "(.*?)" exists for production "(.*?)"$/) do |perf_code, pr
   @performance = Performance.create!(
     production: production,
     performance_code: perf_code,
-    performance_date: Date.today + 7.days,
-    performance_time: Time.parse("19:00"),
+    performance_date: Date.today + 8.days,
+    performance_time: Time.parse("20:00"),
     status: "Active"
   )
 

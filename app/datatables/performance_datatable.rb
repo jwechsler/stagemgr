@@ -20,7 +20,7 @@ class PerformanceDatatable < DatatableBase
         code: performance.decorate.performance_code,
         status: performance.decorate.status,
         actions: performance.decorate.dt_actions,
-        DT_RowID: performance.id
+        DT_RowId: performance.id
       }
     end
   end

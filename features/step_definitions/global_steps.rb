@@ -1,5 +1,5 @@
 Given /^(?:|I )(?:|am |is )log(?:|ged)? in$/ do
-  @current_test_user ||= Factory(:user)
+  @current_test_user ||= FactoryBot.create(:user)
   visit new_user_session_path
   fill_in('Email', :with=>@current_test_user.email)
   fill_in('Password', :with=>'password')

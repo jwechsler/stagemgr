@@ -27,8 +27,10 @@ Given /^a sample theater exists$/ do
 end
 
 Given /^a flex pass exists for (\d+) tickets with code "(.*?)"$/ do |number_of_tickets, redemption_code|
-  offer = FactoryBot.create(:flex_pass_offer, :number_of_tickets => number_of_tickets)
-  FactoryBot.create(:flex_pass, :flex_pass_offer=>offer, :code=>redemption_code)
+  offer = FactoryBot.create(:flex_pass_offer, number_of_tickets: number_of_tickets.to_i)
+  flex_pass_order = FactoryBot.create(:flex_pass_order, flex_pass_offer: offer)
+  flex_pass = flex_pass_order.reload.flex_pass
+  flex_pass.update_column(:code, redemption_code)
 end
 
 

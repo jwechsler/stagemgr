@@ -98,9 +98,10 @@ Given(/^the performance "(.*?)" has (\d+) order(?:s)? with a placeholder address
 end
 
 Given(/^I am a box office user with email "(.*?)"$/) do |email|
-  user = User.find_by(role: User::BOX_OFFICE) || FactoryBot.create(:user, role: User::BOX_OFFICE)
-  user.update!(email: email)
-  @current_user = user
+  @current_test_user = User.find_by(is_box_office_user: true) || FactoryBot.build(:user)
+  @current_test_user.is_box_office_user = true
+  @current_test_user.email = email
+  @current_test_user.save_without_session_maintenance
 end
 
 Given(/^a performance broadcast exists for performance "(.*?)"$/) do |perf_code|
@@ -118,8 +119,7 @@ end
 
 When(/^I follow "(.*?)" in the datatable for performance "(.*?)"$/) do |link_text, perf_code|
   performance = Performance.find_by_performance_code(perf_code)
-  # Wait for datatable to finish loading
-  expect(page).to have_no_css('.dataTables_processing', visible: true, wait: 10)
+  expect(page).to have_css("tr[id='#{performance.id}']", wait: 15)
   within("tr[id='#{performance.id}']") do
     click_link link_text
   end
@@ -145,25 +145,34 @@ Then(/^the subject field should contain "(.*?)"$/) do |text|
   end
 end
 
-When(/^I select "(.*?)" from "From Address"$/) do |option|
+When(/^I click "([^"]*)" and confirm with alert "([^"]*)"$/) do |button_text, expected_alert|
   within('#email-attendees-modal') do
-    select option, from: 'broadcast-from-address'
+    accept_confirm do
+      click_button button_text
+    end
   end
+  # Accept the success/error alert that appears after the AJAX response
+  @last_alert_message = accept_alert do
+  end
+  expect(@last_alert_message).to include(expected_alert)
 end
 
-When(/^I fill in "Message Body" with "(.*?)"$/) do |text|
-  within('#email-attendees-modal') do
-    fill_in 'broadcast-body', with: text
+When(/^I click "([^"]*)" and accept the validation alert$/) do |button_text|
+  message = accept_alert do
+    within('#email-attendees-modal') do
+      click_button button_text
+    end
   end
+  expect(message).to include('Please fill in all required fields')
 end
 
-When(/^I click "(.*?)"$/) do |button_text|
+When(/^I click "([^"]*)"$/) do |button_text|
   within('#email-attendees-modal') do
     click_button button_text
   end
 end
 
-When(/^I click "(.*?)" and confirm$/) do |button_text|
+When(/^I click "([^"]*)" and confirm$/) do |button_text|
   within('#email-attendees-modal') do
     accept_confirm do
       click_button button_text
@@ -171,7 +180,7 @@ When(/^I click "(.*?)" and confirm$/) do |button_text|
   end
 end
 
-When(/^I click "(.*?)" and cancel$/) do |button_text|
+When(/^I click "([^"]*)" and cancel$/) do |button_text|
   within('#email-attendees-modal') do
     dismiss_confirm do
       click_button button_text

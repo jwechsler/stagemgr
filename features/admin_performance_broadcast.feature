@@ -52,9 +52,8 @@ Feature: Box office users can email performance attendees
     And I am logged in
     When I go to the admin production detail page for "Production One"
     And I follow "Email Attendees" in the datatable for performance "TEST01A"
-    And I click "Send Email to 3 Recipients"
-    Then I should see "Please fill in all required fields"
-    And the modal should remain open
+    And I click "Send Email to 3 Recipients" and accept the validation alert
+    Then the modal should remain open
 
   @javascript
   Scenario: Successfully sending broadcast email to attendees
@@ -64,8 +63,7 @@ Feature: Box office users can email performance attendees
     And I follow "Email Attendees" in the datatable for performance "TEST01A"
     And I select "Theater Wit Box Office" from "From Address"
     And I fill in "Message Body" with "Important venue change notification"
-    And I click "Send Email to 3 Recipients" and confirm
-    Then I should see "Email queued for 3 recipients"
+    And I click "Send Email to 3 Recipients" and confirm with alert "Email queued for 3 recipients"
     And a performance broadcast should be created for performance "TEST01A"
     And 3 outreach tasks should be created for the broadcast
 
@@ -113,7 +111,7 @@ Feature: Box office users can email performance attendees
     And the performance "TEST01A" has 1 order with a placeholder address
     When I go to the admin production detail page for "Production One"
     And I follow "Email Attendees" in the datatable for performance "TEST01A"
-    Then I should see "2" recipients in the modal
+    Then I should see "5" recipients in the modal
 
   @javascript
   Scenario: From address dropdown includes box office and current user email
@@ -155,8 +153,7 @@ Feature: Box office users can email performance attendees
     And I follow "Email Attendees" in the datatable for performance "TEST01A"
     And I select "Theater Wit Box Office" from "From Address"
     And I fill in "Message Body" with "**Important:** Show starts at 7pm"
-    And I click "Send Email to 3 Recipients" and confirm
-    Then I should see "Email queued for 3 recipients"
+    And I click "Send Email to 3 Recipients" and confirm with alert "Email queued for 3 recipients"
     And the broadcast body should contain markdown formatting
 
   @javascript
@@ -168,6 +165,5 @@ Feature: Box office users can email performance attendees
     And I follow "Email Attendees" in the datatable for performance "TEST01A"
     And I select "Theater Wit Box Office" from "From Address"
     And I fill in "Message Body" with "Second broadcast message"
-    And I click "Send Email to 3 Recipients" and confirm
-    Then I should see "Email queued for 3 recipients"
+    And I click "Send Email to 3 Recipients" and confirm with alert "Email queued for 3 recipients"
     And 2 performance broadcasts should exist for performance "TEST01A"

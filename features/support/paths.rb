@@ -84,8 +84,15 @@ module NavigationHelpers
       when /^the new admin membership offer page$/
         @using_admin_interface = true
         new_admin_membership_offer_path
+      when /^the new admin flex pass offer page$/
+        @using_admin_interface = true
+        new_admin_flex_pass_offer_path
+      when /^the edit admin flex pass offer page for "([^"]*)"$/
+        @using_admin_interface = true
+        edit_admin_flex_pass_offer_path(FlexPassOffer.find_by(name: $1))
       when /^the new admin flex pass order page for "(.*)"$/
         @_current_form = 'flex_pass_order'
+        @using_admin_interface = true
         new_admin_flex_pass_offer_order_path(FlexPassOffer.find_by(name: $1))
       when /^the system options page$/
         @using_admin_interface=true
