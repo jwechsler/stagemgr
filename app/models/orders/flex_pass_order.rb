@@ -54,25 +54,26 @@ class FlexPassOrder < Order
   end
 
   def cancel!
-    if flex_pass.upcoming_ticket_orders.count > 0 then
-      errors.add(:error, "Cannot cancel a flex_pass with upcoming ticket orders")
-      false
-    else
-      Order.transaction do
-        if !flex_pass.has_placed_orders?
-          # No redemptions - refund and delete the flex pass
-          refund!
-          flex_pass.destroy!
-          # Note: refund! already sets status to REFUNDED
-          errors.add(:info, "Flex Pass #{flex_pass.code} has been refunded and deleted")
-        else
-          # Has redemptions - just deactivate the flex pass, leave order status unchanged
-          flex_pass.active=false 
-          flex_pass.save!
-          errors.add(:info, "Flex Pass #{flex_pass.code} inactive")
-        end
-        true
+    if flex_pass.attended_ticket_orders.count > 0
+      errors.add(:error, "Cannot cancel a flex pass that has been used for past performances")
+      return false
+    end
+
+    Order.transaction do
+      # Cancel any future ticket orders using this flex pass
+      flex_pass.upcoming_ticket_orders.each do |ticket_order|
+        ticket_order.refund!
       end
+
+      # Refund the flex pass order itself
+      refund!
+
+      # Deactivate the flex pass
+      flex_pass.active = false
+      flex_pass.save!
+
+      errors.add(:info, "Flex Pass #{flex_pass.code} has been refunded")
+      true
     end
   end
 

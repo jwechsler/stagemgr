@@ -110,6 +110,7 @@ class Admin::OrdersController < Admin::ApplicationController
 
   def cancel
     if @order.cancel!
+      flash[:notice] = @order.errors[:info].to_sentence if @order.errors[:info].present?
       redirect_to :action=>"index", :controller=>"admin/orders"
     else
       flash[:error]= @order.errors.full_messages.to_sentence

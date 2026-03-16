@@ -8,14 +8,11 @@ RSpec.describe FlexPassOrder, type: :model do
     let(:flex_pass_order) { FactoryBot.create(:flex_pass_order, :with_payment, address: address, flex_pass_offer: flex_pass_offer) }
     let(:flex_pass) { flex_pass_order.flex_pass }
 
-    context "when flex pass has upcoming ticket orders" do
+    context "when flex pass has attended past ticket orders" do
       before do
-        # Create a future performance and ticket order
         production = FactoryBot.create(:production, theater: theater)
-        performance = FactoryBot.create(:performance, production: production, performance_date: 1.week.from_now)
+        performance = FactoryBot.create(:performance, production: production, performance_date: 1.week.ago)
         ticket_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, performance: performance, address: address, status: Order::PROCESSED)
-        
-        # Create a flex pass payment for the ticket order
         FactoryBot.create(:flex_pass_payment, order: ticket_order, flex_pass: flex_pass, number_of_tickets: 2)
       end
 
@@ -26,11 +23,11 @@ RSpec.describe FlexPassOrder, type: :model do
 
       it "adds an error message" do
         flex_pass_order.cancel!
-        expect(flex_pass_order.errors[:error]).to include("Cannot cancel a flex_pass with upcoming ticket orders")
+        expect(flex_pass_order.errors[:error]).to include("Cannot cancel a flex pass that has been used for past performances")
       end
 
       it "does not change the order status" do
-        expect { flex_pass_order.cancel! }.not_to change { flex_pass_order.status }
+        expect { flex_pass_order.cancel! }.not_to change { flex_pass_order.reload.status }
       end
 
       it "does not deactivate the flex pass" do
@@ -49,10 +46,9 @@ RSpec.describe FlexPassOrder, type: :model do
         flex_pass_order.cancel!
       end
 
-      it "deletes the flex pass" do
-        flex_pass_id = flex_pass.id
+      it "deactivates the flex pass" do
         flex_pass_order.cancel!
-        expect(FlexPass.find_by(id: flex_pass_id)).to be_nil
+        expect(flex_pass.reload.active?).to be false
       end
 
       it "sets the order status to REFUNDED" do
@@ -60,22 +56,20 @@ RSpec.describe FlexPassOrder, type: :model do
         expect(flex_pass_order.reload.status).to eq(Order::REFUNDED)
       end
 
-      it "adds an info message about refund and deletion" do
+      it "adds an info message about refund" do
         flex_pass_code = flex_pass.code
         flex_pass_order.cancel!
-        expect(flex_pass_order.errors[:info]).to include("Flex Pass #{flex_pass_code} has been refunded and deleted")
+        expect(flex_pass_order.errors[:info]).to include("Flex Pass #{flex_pass_code} has been refunded")
       end
     end
 
-    context "when flex pass has past redemptions but no upcoming orders" do
-      before do
-        # Create a past performance and ticket order
+    context "when flex pass has only upcoming ticket orders" do
+      let!(:ticket_order) do
         production = FactoryBot.create(:production, theater: theater)
-        performance = FactoryBot.create(:performance, production: production, performance_date: 1.week.ago)
-        ticket_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, performance: performance, address: address, status: Order::FULFILLED)
-        
-        # Create a flex pass payment for the ticket order
-        FactoryBot.create(:flex_pass_payment, order: ticket_order, flex_pass: flex_pass, number_of_tickets: 2)
+        performance = FactoryBot.create(:performance, production: production, performance_date: 1.week.from_now)
+        to = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, performance: performance, address: address, status: Order::PROCESSED)
+        FactoryBot.create(:flex_pass_payment, order: to, flex_pass: flex_pass, number_of_tickets: 2)
+        to
       end
 
       it "cancels the order successfully" do
@@ -83,38 +77,48 @@ RSpec.describe FlexPassOrder, type: :model do
         expect(result).to be true
       end
 
-      it "does NOT refund the order" do
-        expect(flex_pass_order).not_to receive(:refund!)
+      it "refunds the flex pass order" do
         flex_pass_order.cancel!
+        expect(flex_pass_order.reload.status).to eq(Order::REFUNDED)
       end
 
-      it "does NOT delete the flex pass" do
-        flex_pass_id = flex_pass.id
+      it "refunds the upcoming ticket orders" do
         flex_pass_order.cancel!
-        expect(FlexPass.find_by(id: flex_pass_id)).not_to be_nil
+        expect(ticket_order.reload.status).to eq(Order::REFUNDED)
       end
 
       it "deactivates the flex pass" do
         flex_pass_order.cancel!
         expect(flex_pass.reload.active?).to be false
       end
+    end
 
-      it "does NOT change the order status" do
-        original_status = flex_pass_order.status
-        flex_pass_order.cancel!
-        expect(flex_pass_order.reload.status).to eq(original_status)
+    context "when flex pass has past non-attending orders" do
+      before do
+        production = FactoryBot.create(:production, theater: theater)
+        performance = FactoryBot.create(:performance, production: production, performance_date: 1.week.ago)
+        ticket_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, performance: performance, address: address, status: Order::REFUNDED)
+        FactoryBot.create(:flex_pass_payment, order: ticket_order, flex_pass: flex_pass, number_of_tickets: 2)
       end
 
-      it "adds an info message about deactivation" do
-        flex_pass_code = flex_pass.code
+      it "allows cancellation" do
+        result = flex_pass_order.cancel!
+        expect(result).to be true
+      end
+
+      it "refunds the flex pass order" do
         flex_pass_order.cancel!
-        expect(flex_pass_order.errors[:info]).to include("Flex Pass #{flex_pass_code} inactive")
+        expect(flex_pass_order.reload.status).to eq(Order::REFUNDED)
+      end
+
+      it "deactivates the flex pass" do
+        flex_pass_order.cancel!
+        expect(flex_pass.reload.active?).to be false
       end
     end
 
     context "when an error occurs during cancellation" do
       before do
-        # Mock the refund! method to raise an error
         allow(flex_pass_order).to receive(:refund!).and_raise(ActiveRecord::RecordInvalid)
       end
 
@@ -122,10 +126,9 @@ RSpec.describe FlexPassOrder, type: :model do
         expect { flex_pass_order.cancel! rescue nil }.not_to change { flex_pass_order.reload.status }
       end
 
-      it "does not delete the flex pass" do
-        flex_pass_id = flex_pass.id
+      it "does not deactivate the flex pass" do
         flex_pass_order.cancel! rescue nil
-        expect(FlexPass.find_by(id: flex_pass_id)).not_to be_nil
+        expect(flex_pass.reload.active?).to be true
       end
 
       it "raises the error" do
