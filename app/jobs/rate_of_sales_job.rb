@@ -3,9 +3,17 @@ class RateOfSalesJob < ApplicationJob
   
   include LoggedJob
 
-  def self.perform
-    calculate_for_day(Date.yesterday)
-    RateOfSale.export_to_file(RateOfSale.export_records, RateOfSale.export_columns, File.join($SERVER_CONFIG['hud_export_directory'],'rate_of_sales.txt'))
+  def self.perform(mode = nil)
+    if mode == "today"
+      calculate_for_today
+    else
+      calculate_for_day(Date.yesterday)
+      RateOfSale.export_to_file(RateOfSale.export_records, RateOfSale.export_columns, File.join($SERVER_CONFIG['hud_export_directory'],'rate_of_sales.txt'))
+    end
+  end
+
+  def self.calculate_for_today
+    calculate_for_day(Date.current)
   end
 
   def self.calculate_for_day(date)
@@ -26,7 +34,8 @@ class RateOfSalesJob < ApplicationJob
         total_single_tickets: total_single_tickets,
         total_complimentary_tickets: total_complimentary_tickets,
         gross_sales: CurrencyUtils.float_to_currency_decimal(gross_sales),
-        processing_fees: CurrencyUtils.float_to_currency_decimal(processing_total)
+        processing_fees: CurrencyUtils.float_to_currency_decimal(processing_total),
+        order_count: orders.size
       )
     end
   end

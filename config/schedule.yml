@@ -96,5 +96,33 @@ CalculateHouseCountsJob:
   queue: sync
   every: "5m"
   description: "Calculate current house counts for modified ticket orders"
-  
-  
+
+RateOfSalesJob_intraday:
+  every: "30m"
+  custom_job_class: RateOfSalesJob
+  args:
+  - today
+  description: "Update today's rate of sales for HUD displays"
+  queue: report
+
+ExportTodaysCountsJob:
+  every: "30m"
+  description: "Export today's sales counts for HUD displays"
+  queue: report
+
+ExportSalesCountsJob_last7:
+  cron: "15 1 * * *"
+  custom_job_class: ExportSalesCountsJob
+  args:
+  - last7
+  description: "Export last 7 days sales for HUD displays"
+  queue: report
+
+ExportSalesCountsJob_previous7:
+  cron: "20 1 * * *"
+  custom_job_class: ExportSalesCountsJob
+  args:
+  - previous7
+  description: "Export previous 7 days sales for HUD displays"
+  queue: report
+

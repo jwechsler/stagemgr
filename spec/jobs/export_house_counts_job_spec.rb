@@ -22,19 +22,27 @@ RSpec.describe ExportHouseCountsJob, type: :job do
   end
 
   it 'creates a file with the correct contents' do
-    # Assuming the job writes specific content to the file
-    # Trigger the job
     ExportHouseCountsJob.perform(file_path)
 
-    # Read the file
     content = File.read(file_path)
 
-    # Assert the expected contents
-    expect(content).to include("Performance Code")
-    expect(content).to include("Total Seats")
-    expect(content).to include("Available Seats")
-    expect(content).to include("100")
-    expect(content).to include("98")
+    # HUD-format table headers
+    expect(content).to include("HOUSE COUNTS")
+    expect(content).to include("| Code")
+    expect(content).to include("| Sold")
+    expect(content).to include("| Held")
+    expect(content).to include("| Remaining")
+    expect(content).to include("| Max Price")
+
+    # MySQL-style borders
+    expect(content).to include("+")
+    expect(content).to include("---")
+
+    # Data values
     expect(content).to include("96")
+    expect(content).to include("98")
+
+    # Footer
+    expect(content).to include("Generated")
   end
 end
