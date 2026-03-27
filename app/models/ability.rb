@@ -94,6 +94,7 @@ class Ability
     can [:cancel, :reprint, :refund, :sell_past_performances, :order_anytime], [Order, TicketOrder]
     can :exchange, TicketOrder
     can [:split, :finalize_split], TicketOrder
+    can :convert_to_donation, TicketOrder
     can :cru, Venue
     can :cru, ServiceItemTemplate
     can :cru, SeatMap

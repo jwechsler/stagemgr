@@ -102,6 +102,19 @@ class Admin::TicketOrdersController < Admin::OrdersController
     end
   end
 
+  def convert_to_donation
+    begin
+      donation_order = @ticket_order.convert_to_donation!
+      flash[:notice] = "Order ##{@ticket_order.id} converted to Donation ##{donation_order.id}."
+      redirect_to admin_donation_order_path(donation_order)
+    rescue => e
+      Rails.logger.error("Convert to donation failed for TicketOrder ##{@ticket_order.id}: #{e.message}")
+      Rails.logger.error(e.backtrace.join("\n"))
+      flash[:error] = "Could not convert to donation: #{e.message}"
+      redirect_to admin_ticket_order_path(@ticket_order)
+    end
+  end
+
   def cancel_held_during_seating
     @ticket_order.errors.add(:base, "You can only cancel unsettled orders") if @ticket_order.settled?
     @ticket_order.errors.add(:base, "You can only cancel held orders for shows in season seating status") unless @ticket_order.performance.production.season_seating?

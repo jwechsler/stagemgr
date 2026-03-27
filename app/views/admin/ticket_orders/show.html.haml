@@ -11,7 +11,6 @@
         = link_to 'Exchange Order', new_admin_ticket_order_exchange_ticket_order_path(@ticket_order), :class=>'small button' if (@ticket_order.exchangeable? && (!current_user.is_theater_user? || (current_user.is_theater_user? && @ticket_order.status!=Order::FULFILLED)))
       -if can? :split, TicketOrder
         = link_to 'Split Order', split_admin_ticket_order_path(@ticket_order), :class=>'small button' if @ticket_order.splittable?
-
       -if can? :fulfill, TicketOrder
         = link_to 'Fulfill Order', fulfill_admin_order_path(@ticket_order), :class=>'small button' if @ticket_order.fulfillable?
       -if can? :resend_confirmation, TicketOrder
@@ -25,6 +24,8 @@
     .button-group
       -if can? :refund, TicketOrder
         = link_to 'Refund Order', new_admin_order_refund_order_path(@ticket_order), :class=>'alert small button' if @ticket_order.refundable?
+      -if can? :convert_to_donation, TicketOrder
+        = link_to 'Refund to Donation', convert_to_donation_admin_ticket_order_path(@ticket_order), data: {confirm: "Convert this order to a donation? This will release all seats and move the payment to a new donation order."}, method: :post, class: 'alert small button' if @ticket_order.convertible_to_donation?
 
       -if @ticket_order.status == 'Processing' || @ticket_order.status == 'Hold' || @ticket_order.status == Order::NEW
         = link_to 'Cancel Order', cancel_admin_order_path(@ticket_order), :confirm => "Are you sure?", :method=>:post, :class=>'alert small button'

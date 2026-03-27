@@ -163,6 +163,12 @@ class TicketOrder < Order
     self.number_of_tickets > 1 && [Order::PROCESSED, Order::UNCLAIMED, Order::FULFILLED].include?(self.status) && !self.paid_with_membership?
   end
 
+  def convertible_to_donation?
+    ATTENDING_STATUSES.include?(self.status) &&
+      paid_with_currency? &&
+      theater&.accepts_donations?
+  end
+
   def exchanged?
     self.status == Order::EXCHANGED
   end
@@ -811,6 +817,35 @@ class TicketOrder < Order
     Order.transaction do
       self.begin_exchange!(original_order)
       self.transition_exchanging_to_processed!
+    end
+  end
+
+  def convert_to_donation!
+    raise "Order is not convertible to a donation" unless convertible_to_donation?
+
+    Order.transaction do
+      donation_amount = self.total_paid
+
+      donation = DonationOrder.new(
+        address: self.address,
+        payment_type: self.payment_type,
+        theater: self.theater,
+        campaign: self.performance&.production&.name,
+        status: Order::PROCESSED
+      )
+      donation.donation_line_items.build(amount: donation_amount)
+      donation.save!
+
+      self.payments.each { |payment| payment.update!(order_id: donation.id) }
+
+      self.unassign_seats
+      self.ticket_line_items.each { |tli| tli.destroy! }
+
+      self.status = Order::CANCELED
+      self.notes = [self.notes, "Converted to Donation Order ##{donation.id}"].compact.join("\n")
+      self.save!
+
+      donation
     end
   end
 

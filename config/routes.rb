@@ -261,6 +261,7 @@ Rails.application.routes.draw do
         post :cancel
         post :cancel_held_during_seating
         post :refund
+        post :convert_to_donation
         get :split
         patch :finalize_split
         get  :fulfill
