@@ -1,0 +1,38 @@
+Subject: New Feature: Email Performance Attendees
+
+Hi Team,
+
+We've added a new feature that makes it easy to send custom messages to all ticket holders for a specific performance.
+
+HOW IT WORKS:
+
+1. Go to any production page in the admin interface
+2. Click "Email Attendees" next to the performance
+3. Write your message (supports bold, italic, bullets, etc. using Markdown)
+4. Click send - the system automatically emails everyone with tickets
+
+WHEN TO USE IT:
+
+• Weather-related updates
+• Show Cancellations
+• Modifications to existing show
+• Emergency Parking or arrival information (weather?)
+• Any last-minute, performance-specific updates
+
+WHAT THEY'LL SEE:
+
+Recipients get a clean email with:
+- Personal greeting ("Hi [First Name],")
+- Your custom message
+- Theater branding and contact info
+
+No order details or ticket information - just your message.
+
+The system automatically filters to only send to confirmed orders in Held, Processed or Fulfilled states with valid email addresses, and shows you the recipient count before you send.
+
+Full documentation: /docs/feature-announcements/performance-broadcast-email.md
+
+Questions? Let me know.
+
+Best,
+[Your Name]
