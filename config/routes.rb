@@ -293,6 +293,7 @@ Rails.application.routes.draw do
     resources :theaters do
       resources :productions do
         post 'send_sample_confirmation', on: :member
+        post 'send_sample_followup', on: :member
         resources :performances do
           get 'duplicate', :on => :member
           post 'release_held_seats', :on => :member

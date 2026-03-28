@@ -67,7 +67,7 @@ class Ability
     can [:cancel, :cru], FlexPassOrder
     can [:manage, :duplicate, :create, :delete, :release_held_seats, :email_attendees], Performance
     can :read, Address
-    can [:read, :create, :edit, :update, :duplicate, :send_sample_confirmation], Production
+    can [:read, :create, :edit, :update, :duplicate, :send_sample_confirmation, :send_sample_followup], Production
     can :view_system_options, UserSession
     can :read, PaymentType
     can :manage, Theater

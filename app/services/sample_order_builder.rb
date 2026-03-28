@@ -14,6 +14,7 @@ class SampleOrderBuilder
       theater: theater,
       name: production_attrs[:name].presence || "Sample Production",
       confirmation_message: production_attrs[:confirmation_message],
+      follow_up_message_2: production_attrs[:follow_up_message_2],
       production_code: "SMP#{SecureRandom.hex(2).upcase}",
       production_class: production_attrs[:production_class].presence || Production::PLAY,
       allow_late_seating: production_attrs[:allow_late_seating],
