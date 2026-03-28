@@ -3,7 +3,7 @@ class TicketClass < ApplicationRecord
   include ApplicationHelper
   TICKET_TYPES = ['Fixed', 'Donation', 'Timed']
   FIXED, DONATION, TIMED = 'Fixed', 'Donation', 'Timed'
-  validates_inclusion_of :ticket_type,        :in => TICKET_TYPES
+  validates_inclusion_of :ticket_type,        :in => TICKET_TYPES, :message => "is not an allowed value (must be #{TICKET_TYPES.join(', ')})"
   validates_uniqueness_of :class_code,        :scope => :production_id
   validates_length_of :class_code,            :minimum => 1
   belongs_to :production, inverse_of: :ticket_classes

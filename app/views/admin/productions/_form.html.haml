@@ -81,6 +81,39 @@
             .cell.small-12
               = f.input :follow_up_message_2, :input_html=>{:rows => 4}, :label=>"Additional follow up message", :hint=>"Markdown-enabled second paragraph follow up email."
               = f.input :confirmation_message, :input_html=>{ :rows=>4}, :label=>"Additional Confirmation Message", :hint=>"Markdown-enabled section to be embedded in receipt."
+              - if production.persisted? && can?(:send_sample_confirmation, production)
+                %a.button.small{href: "#", data: {url: send_sample_confirmation_admin_theater_production_path(production.theater, production), email: current_user.email}, onclick: "sendSampleConfirmation(this); return false;"}
+                  Send sample confirmation email
+                :javascript
+                  function sendSampleConfirmation(btn) {
+                    if (!confirm('Send sample confirmation email to ' + btn.dataset.email + '?')) return;
+                    btn.disabled = true;
+                    btn.textContent = 'Sending...';
+                    var token = document.querySelector('meta[name="csrf-token"]').content;
+                    var lateSeatingEl = document.querySelector('input[name="production[allow_late_seating]"][type="checkbox"]');
+                    fetch(btn.dataset.url, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': token, 'Accept': 'application/json' },
+                      body: JSON.stringify({
+                        confirmation_message: document.getElementById('production_confirmation_message').value,
+                        production_name: document.getElementById('production_name').value,
+                        production_class: document.getElementById('production_production_class').value,
+                        allow_late_seating: lateSeatingEl ? lateSeatingEl.checked.toString() : 'false',
+                        venue_id: document.getElementById('production_venue_id').value
+                      })
+                    })
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                      btn.disabled = false;
+                      btn.textContent = 'Send sample confirmation email';
+                      alert(data.success ? data.message : 'Error: ' + data.message);
+                    })
+                    .catch(function(err) {
+                      btn.disabled = false;
+                      btn.textContent = 'Send sample confirmation email';
+                      alert('Error: ' + err.message);
+                    });
+                  }
 
       .cell
         = f.button :submit

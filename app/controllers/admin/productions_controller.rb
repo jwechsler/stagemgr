@@ -84,6 +84,23 @@ class Admin::ProductionsController < Admin::ApplicationController
     end
   end
 
+  def send_sample_confirmation
+    authorize! :send_sample_confirmation, @production
+    production_attrs = {
+      name: params[:production_name].presence || @production.name,
+      confirmation_message: params[:confirmation_message],
+      production_class: params[:production_class].presence || @production.production_class,
+      allow_late_seating: params[:allow_late_seating] == "true",
+      venue_id: params[:venue_id]
+    }
+    SampleOrderBuilder.with_sample_order(@theater, current_user.email, production_attrs) do |order|
+      OrderMailer.ticket_confirmation(order).deliver_now
+    end
+    render json: { success: true, message: "Sample confirmation email sent to #{current_user.email}" }
+  rescue => e
+    render json: { success: false, message: e.message }, status: :unprocessable_entity
+  end
+
   # DELETE /productions/1
   # DELETE /productions/1.xml
   def destroy
