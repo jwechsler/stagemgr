@@ -9,7 +9,7 @@ case "$1" in
       echo $! > ./resque.pid
       echo "Started worker for notification,report,import,sync queues with PID $(cat ./resque.pid)"
       
-      RAILS_ENV=production nohup bundle exec rake environment resque:work PIDFILE=./resque-printing.pid QUEUE=printing >> log/printing_queue.log 2>&1 &
+      RAILS_ENV=production nohup bundle exec rake environment resque:work PIDFILE=./resque-printing.pid QUEUE=printing,batch_printing >> log/printing_queue.log 2>&1 &
       echo $! > ./resque-printing.pid
       echo "Started worker for printing queue with PID $(cat ./resque-printing.pid)"
       
