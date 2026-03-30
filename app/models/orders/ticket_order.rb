@@ -332,6 +332,7 @@ class TicketOrder < Order
   # If print_order_id exists, it will reprint the existing order
   # Otherwise, it will create a new order in tktprint
   def send_to_printer_api(batch_id, batch_sequence = nil)
+    require 'cgi'
     raise ArgumentError, "batch_id is required" if batch_id.blank?
     batch_sequence ||= 1
 
@@ -380,11 +381,11 @@ class TicketOrder < Order
       last_name: use_last_name,
       first_name: use_first_name,
       performance_code: self.performance_code,
-      venue: self.performance.production.venue.name,
-      theater: self.theater.name,
-      title: self.performance.production.name,
-      credit_1: credit_1,
-      credit_2: credit_2,
+      venue: CGI.unescapeHTML(self.performance.production.venue.name.to_s),
+      theater: CGI.unescapeHTML(self.theater.name.to_s),
+      title: CGI.unescapeHTML(self.performance.production.name.to_s),
+      credit_1: credit_1 ? CGI.unescapeHTML(credit_1) : nil,
+      credit_2: credit_2 ? CGI.unescapeHTML(credit_2) : nil,
       patron_code: self.address.customer_tag,
       performance_date: self.performance.performance_date,
       performance_time: self.performance.performance_time,
@@ -494,6 +495,7 @@ class TicketOrder < Order
     require 'net/http'
     require 'uri'
     require 'json'
+    require 'cgi'
 
     tktprint_url = $TKTPRINT['service']
 
