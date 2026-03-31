@@ -344,7 +344,15 @@ class TicketOrder < Order
     end
 
     # Otherwise, create a new order in tktprint
+    order_payload = build_tktprint_payload(batch_id, batch_sequence)
 
+    # Send to tktprint API and return the tktprint order ID
+    send_order_to_tktprint_api(order_payload)
+  end
+
+  private
+
+  def build_tktprint_payload(batch_id, batch_sequence)
     # Build customer name
     cleaned_name, f_name, l_name = Address.parse_name(self.hold_under.blank? ? self.address.full_name : self.hold_under)
     unless cleaned_name == self.address.full_name
@@ -367,9 +375,7 @@ class TicketOrder < Order
     # Calculate visible amount (excluding line items with hide_pricing=true)
     visible_amount = 0
     self.unique_line_items.select { |li| !li.special_offer_id.nil? || li.ticket_count > 0 }.each do |oli|
-      # Check if this is a TicketLineItem with hide_pricing=true
       if oli.is_a?(TicketLineItem) && oli.ticket_class&.hide_pricing
-        # Skip this line item when calculating visible total
         next
       else
         visible_amount += oli.receipt_total
@@ -398,9 +404,8 @@ class TicketOrder < Order
       tickets_attributes: []
     }
 
-    # Add line items using correct field mapping
+    # Add line items
     self.unique_line_items.select { |li| !li.special_offer_id.nil? || li.ticket_count > 0 }.each do |oli|
-      # Check if this is a TicketLineItem with hide_pricing=true
       line_item_amount = oli.receipt_total
       if oli.is_a?(TicketLineItem) && oli.ticket_class&.hide_pricing
         line_item_amount = 0
@@ -412,7 +417,7 @@ class TicketOrder < Order
       }
     end
 
-    # Add payments using correct field mapping
+    # Add payments
     self.payments.each do |pay|
       unless pay.receipt_description.blank?
         order_payload[:payments_attributes] << {
@@ -422,7 +427,7 @@ class TicketOrder < Order
       end
     end
 
-    # Add tickets using correct field mapping
+    # Add tickets with current seat assignments
     tli_index = 0
     self.ticket_line_items.each do |tli|
       tli.ticket_count.times do
@@ -439,11 +444,8 @@ class TicketOrder < Order
       end
     end
 
-    # Send to tktprint API and return the tktprint order ID
-    send_order_to_tktprint_api(order_payload)
+    order_payload
   end
-
-  private
 
   def reprint_existing_order(batch_id, batch_sequence)
     require 'net/http'
@@ -457,12 +459,12 @@ class TicketOrder < Order
     http = Net::HTTP.new(base_uri.host, base_uri.port)
     http.use_ssl = base_uri.scheme == 'https'
 
+    # Send full updated order payload with the reprint request
+    payload = build_tktprint_payload(batch_id, batch_sequence)
+
     # Create PUT request to reprint endpoint
     request = Net::HTTP::Put.new("/orders/#{print_order_id}/reprint.json")
-    request.body = {
-      batch_id: batch_id,
-      batch_sequence: batch_sequence
-    }.to_json
+    request.body = payload.to_json
     request['Content-Type'] = 'application/json'
     request['Accept'] = 'application/json'
 
