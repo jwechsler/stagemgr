@@ -2,7 +2,7 @@
   .grid-x.grid-padding-x
     .small-12.cell
       %h5 Rate of Sale: Past Seven Days
-    .small-8.cell
+    .cell.small-12.medium-8
     
       %table
         %thead
@@ -33,5 +33,5 @@
               %td= theater_sales_data[:total_tickets]
               %td= theater_sales_data[:total_comps]
               %td= number_to_currency(theater_sales_data[:total_gross_sales]-theater_sales_data[:total_processing_fee])
-    .small-4.cell
-      = column_chart gross_sales_data, xtitle: "Date", ytitle: "Net Sales"
+    .cell.small-12.medium-4
+      = column_chart weekly_sales_data, xtitle: "Week of", ytitle: "Net Sales"

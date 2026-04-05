@@ -35,6 +35,43 @@ class CurrentUser::AccountsController < CurrentUser::ApplicationController
       @rate_of_sales = @rate_of_sales.select{|sale| sale.production.theater.producing?}
     end
 
+    # Weekly sales chart data — all historical weeks up through last Sunday
+    last_sunday = Date.today.beginning_of_week(:monday) - 1.day
+    currently_producing = @user.allowed_productions
+      .where(status: [Production::ACTIVE, Production::PRIVATE])
+      .where('closing_at IS NULL OR closing_at >= ?', 30.days.ago.to_date)
+    weekly_raw = RateOfSale
+      .where(production: currently_producing)
+      .where('day_of_sale <= ?', last_sunday)
+    unless current_user.is_theater_user?
+      weekly_raw = weekly_raw.joins(production: :theater)
+        .where(theaters: { theater_class: [Theater::DEFAULT, Theater::COPRO] })
+    end
+    @weekly_sales_data = weekly_raw
+      .includes(:production)
+      .group_by(&:production)
+      .map do |production, sales|
+        presale_cutoff = production.first_preview_at ? (production.first_preview_at - 2.weeks).beginning_of_week(:monday) : nil
+        pre_sales, weekly_sales = if presale_cutoff
+          sales.partition { |s| s.day_of_sale < presale_cutoff }
+        else
+          [[], sales]
+        end
+        data = {}
+        if pre_sales.any?
+          data["pre-#{presale_cutoff.strftime('%-m/%d')}"] =
+            pre_sales.sum(&:gross_sales) - pre_sales.sum(&:processing_fees)
+        end
+        weekly_sales
+          .group_by { |s| s.day_of_sale.beginning_of_week(:monday) }
+          .sort_by(&:first)
+          .each do |week_start, week_data|
+            data[week_start.strftime('%-m/%d')] =
+              week_data.sum(&:gross_sales) - week_data.sum(&:processing_fees)
+          end
+        { name: production.name, data: data }
+      end
+
     if current_user.is_theater_user?
       @house_counts = HouseCount.joins(performance: :production)
                          .where(performances: {

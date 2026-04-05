@@ -1,5 +1,5 @@
 -unless @user.is_box_office_user?
-  =render partial: "producer_dailys", locals: {user: @user, rate_of_sales: @rate_of_sales, gross_sales_data: @gross_sales_data, theater_sales_data: @theater_sales_data}
+  =render partial: "producer_dailys", locals: {user: @user, rate_of_sales: @rate_of_sales, gross_sales_data: @gross_sales_data, theater_sales_data: @theater_sales_data, weekly_sales_data: @weekly_sales_data}
 -if @user.is_box_office_user? || @user.is_administrator?
   =render partial: "box_office_dailys", locals: {user: @user, rate_of_sales: @rate_of_sales, gross_sales_data: @gross_sales_data, theater_sales_data: @theater_sales_data}
 -if @user.is_theater_user? || @user.is_administrator?
