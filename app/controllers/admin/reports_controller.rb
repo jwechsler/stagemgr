@@ -273,7 +273,7 @@ class Admin::ReportsController < Admin::ApplicationController
   def order_dump
     production = Production.accessible_by(current_ability, :read).find(params[:report][:production_id])
     Resque.enqueue(ProductionAttendeeExport, production.id, can?(:view_email, Address), current_user.id)
-    flash[:notice] = "Your export is queued for generation. #{"EMAIL" if can?(:view_email, Address)} You'll recieve notification when the process is complete."
+    flash[:notice] = "Your export is queued for generation. You'll recieve notification when the process is complete."
     redirect_to admin_reports_path
   end
 
