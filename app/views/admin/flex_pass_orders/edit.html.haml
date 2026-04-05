@@ -9,12 +9,20 @@
         = render '/admin/flex_pass_orders/flex_pass_line_item_form', :f => flex_pass_line_item_form
       = order_form.hidden_field :status
       = order_form.simple_fields_for :address do |address_form|
-        = render '/admin/orders/name_form', :f => address_form
-      .grid-x.grid-padding-x
-        .small-12.medium-6.cell
-        .small-12.medium-6.cell
-          %h5= @flex_pass_order.flex_pass_line_item.flex_pass_offer.name
-          = display_markdown(@flex_pass_order.flex_pass_line_item.flex_pass_offer.description)
+        .grid-x.grid-padding-x
+          .cell.small-12.medium-6
+            = address_form.label :full_name, "Name"
+            #full-name-input-column.small-10.cell
+              = address_form.input_field :full_name, :label=>"Name", :as=>:autocomplete, :url=>autocomplete_address_admin_addresses_path, :id_element=>'#linked_to_address_id', class: 'full_name'
+              %hidden_field_tag{:id=>"linked_to_address_id"}
+            #full-name-clear-column.small-2.cell.hide
+              %a#disassociate-address.postfix.button{:href=>'#'} Clear
+            = address_form.input :email, input_html: { class: 'email' }
+            = address_form.input :phone
+          .cell.small-12.medium-6.hide-for-small-only
+            %h5= @flex_pass_order.flex_pass_line_item.flex_pass_offer.name
+            = display_markdown(@flex_pass_order.flex_pass_line_item.flex_pass_offer.description)
+            = render '/admin/addresses/quick_lookup', :f=>address_form
     %div.small-12.medium-6.cell
       = render '/admin/orders/billing_form', :order_form=>order_form
     %div.small-12.medium-6.cell
