@@ -6,8 +6,8 @@ class ProductionAttendeeReport < OrderReport
     @production = Production.find(production_id)
     @export_emails_allowed = export_emails_allowed
     keys = OrderReport.columns_for_orders(true, true) + 
-      [:order_total, :order_revenue, :num_tickets, :num_seats, :external_id, 
-        :opted_in_for_email]
+      [:order_total, :order_revenue, :num_tickets, :num_seats, :external_id,
+        :opted_in_for_email, :marketing_source]
 
     keys += [:seat_assignments] if production.has_reserved_seating?
     super(keys, reporting_user_id)
@@ -34,6 +34,7 @@ class ProductionAttendeeReport < OrderReport
        .find_each(batch_size: 1000) do |o|  # Adjust batch_size as needed
 
       row = OrderReport.create_hash_from_order_fields(o)
+      row[:marketing_source] = o.marketing_source
       row[:external_id] = o.address.external_id(theater_ids) unless o.address.nil?
       unless row[:email].nil?
         # Check if user is on the email opt-in list
