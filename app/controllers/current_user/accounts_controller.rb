@@ -23,7 +23,7 @@ class CurrentUser::AccountsController < CurrentUser::ApplicationController
         total_gross_sales: sales.sum(&:gross_sales),
         total_processing_fee: sales.sum(&:processing_fees)
       }
-    end
+    end.sort_by { |t| -t[:total_gross_sales] }
 
     unless current_user.is_theater_user?
       @gross_sales_data = @rate_of_sales.select{|sales_data| sales_data.production.theater.producing? }.group_by(&:production).map do |production, sales|
