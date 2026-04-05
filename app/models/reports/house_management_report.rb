@@ -10,7 +10,7 @@ class HouseManagementReport < Report
   def self.ticket_orders(for_date)
     TicketOrder.includes(:address, {:performance=>:production}).where(
       "performances.performance_date = :performance_date and orders.status in (:attending)",
-      {:performance_date=>for_date, :attending=>(Order::ATTENDING_STATUSES + Order::HELD_STATUSES)}).
+      {:performance_date=>for_date, :attending=>(Order::FINALIZED_STATUSES + Order::HELD_STATUSES)}).
       order('productions.venue_id, performances.performance_time, addresses.last_name, addresses.first_name')
   end
 
@@ -34,8 +34,12 @@ class HouseManagementReport < Report
     orders.each do |o|
       seat_assignments = o.seat_assignments
       print_tags = house_tags(o.address)
-      if !o.special_request.blank? || !o.notes.blank? || o.address.is_current_member? || o.address.is_donor? || !print_tags.empty? || o.assigned_seats? || o.address.photo.attached?
-        note_column = o.notes.blank? ? "" : o.notes
+      if !o.special_request.blank? || !o.notes.blank? || o.address.is_current_member? || o.address.is_donor? || !print_tags.empty? || o.assigned_seats? || o.address.photo.attached? || o.address.vip?
+        note_column = o.address.vip? ? "VIP" : ""
+        unless o.notes.blank?
+          note_column += "<br/>" unless note_column.blank?
+          note_column += o.notes
+        end
         unless print_tags.empty?
           note_column += "<br/>" unless note_column.blank?
           note_column += "Patron Notes: " + print_tags.map{|tag|
