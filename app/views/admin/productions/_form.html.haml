@@ -36,7 +36,7 @@
       .small-9.cell
         = f.input :credit_lines, :input_html=>{rows:3}
       .cell
-        = f.input :short_description
+        = f.input :short_description, :hint => "255 character max", :input_html => { maxlength: 255 }
         = f.input :show_description, :hint=>"Long description (markdown enabled)" , :input_html=>{rows:4}
 
       .small-6.cell
