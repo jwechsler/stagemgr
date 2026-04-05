@@ -1,6 +1,6 @@
 %h3= @order.flex_pass_line_item.flex_pass_offer.name
 
-%p= @order.flex_pass_line_item.flex_pass_offer.description
+= display_markdown(@order.flex_pass_line_item.flex_pass_offer.description)
 
 = simple_form_for @order do |order_form|
   = token_tag

@@ -10,6 +10,11 @@
       = order_form.hidden_field :status
       = order_form.simple_fields_for :address do |address_form|
         = render '/admin/orders/name_form', :f => address_form
+      .grid-x.grid-padding-x
+        .small-12.medium-6.cell
+        .small-12.medium-6.cell
+          %h5= @flex_pass_order.flex_pass_line_item.flex_pass_offer.name
+          = display_markdown(@flex_pass_order.flex_pass_line_item.flex_pass_offer.description)
     %div.small-12.medium-6.cell
       = render '/admin/orders/billing_form', :order_form=>order_form
     %div.small-12.medium-6.cell
