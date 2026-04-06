@@ -1,0 +1,117 @@
+site_name: Stagemgr User Manual
+site_description: User manual for Stagemgr ticketing platform
+site_url: https://jwechsler.github.io/stagemgr/
+docs_dir: manual
+
+theme:
+  name: material
+  palette:
+    primary: indigo
+    accent: indigo
+  features:
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.highlight
+    - content.tabs.link
+    - toc.integrate
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Overview: getting-started/overview.md
+    - Core Concepts: getting-started/concepts.md
+    - User Roles & Permissions: getting-started/user-roles.md
+  - Setup & Configuration:
+    - Theaters: setup/theaters.md
+    - Venues: setup/venues.md
+    - Seat Maps: setup/seat-maps.md
+    - Payment Types: setup/payment-types.md
+    - System Options: setup/system-options.md
+    - Users: setup/users.md
+    - Email Configuration: setup/email-configuration.md
+  - Productions:
+    - Creating a Production: productions/creating-a-production.md
+    - Production Settings: productions/production-settings.md
+    - General vs Reserved Seating: productions/general-vs-reserved.md
+    - Ticket Classes: productions/ticket-classes.md
+    - Default Ticket Classes: productions/default-ticket-classes.md
+    - Performances: productions/performances.md
+    - Dynamic Pricing: productions/dynamic-pricing.md
+    - Duplicating Performances: productions/duplicating-performances.md
+    - Season Seating: productions/season-seating.md
+  - Offers & Pricing:
+    - Special Offers: offers/special-offers.md
+    - Flex Pass Offers: offers/flex-pass-offers.md
+    - Membership Offers: offers/membership-offers.md
+    - Performance Features: offers/special-features.md
+    - Service Items: offers/service-items.md
+  - Ticketing:
+    - Order Lifecycle: ticketing/order-lifecycle.md
+    - "Ticket Order: General Admission": ticketing/creating-ticket-order-ga.md
+    - "Ticket Order: Reserved Seating": ticketing/creating-ticket-order-rs.md
+    - Seat Selection: ticketing/seat-selection.md
+    - Payment Processing: ticketing/payment-processing.md
+    - Hold Orders: ticketing/hold-orders.md
+    - Exchanges: ticketing/exchanges.md
+    - Refunds: ticketing/refunds.md
+    - Refund to Donation: ticketing/refund-to-donation.md
+    - Split Orders: ticketing/split-orders.md
+    - Order Search: ticketing/order-search.md
+    - Donation Orders: ticketing/donation-orders.md
+    - Flex Pass Orders: ticketing/flex-pass-orders.md
+    - Membership Orders: ticketing/membership-orders.md
+  - Customers:
+    - Managing Patrons: customers/managing-patrons.md
+    - Patron Tags: customers/patron-tags.md
+    - Merging Duplicates: customers/merging-duplicates.md
+    - Patron History: customers/patron-history.md
+  - House Management:
+    - Daily Operations: house-management/daily-operations.md
+    - House Counts: house-management/house-counts.md
+    - Fulfilling Orders: house-management/fulfilling-orders.md
+    - Printing Tickets: house-management/printing-tickets.md
+    - House Management Report: house-management/house-management-report.md
+    - Email Attendees: house-management/email-attendees.md
+    - HUD Display: house-management/hud-display.md
+  - Reports:
+    - Reports Overview: reports/reports-overview.md
+    - Production Sales: reports/production-sales.md
+    - Production Attendees: reports/production-attendees.md
+    - Weekly Box Office: reports/weekly-box-office.md
+    - Daily Receipts: reports/daily-receipts.md
+    - Donation Reports: reports/donation-reports.md
+    - Flex Pass Reports: reports/flex-pass-reports.md
+    - Membership Reports: reports/membership-reports.md
+    - Customer Data Mining: reports/customer-data-mining.md
+    - TRG Exports: reports/trg-exports.md
+  - Imports:
+    - Import Overview: imports/imports-overview.md
+    - TRG Arts Import: imports/trg-arts-import.md
+    - Mailing Cards Import: imports/mailing-cards-import.md
+    - External Contacts Import: imports/external-contacts-import.md
+    - Bulk Orders Import: imports/bulk-orders-import.md
+    - Flex Pass Orders Import: imports/flex-pass-orders-import.md
+    - Donor Levels Import: imports/donor-levels-import.md
+  - Advanced:
+    - Email Templates: advanced/email-templates.md
+    - Dynamic Pricing Strategies: advanced/dynamic-pricing-advanced.md
+    - Capacity Management: advanced/capacity-management.md
+    - Background Jobs: advanced/background-jobs.md
+  - Reference:
+    - Glossary: reference/glossary.md
+    - Permissions Matrix: reference/permissions-matrix.md
+    - FAQ: reference/faq.md
+    - Changelog: reference/changelog.md
