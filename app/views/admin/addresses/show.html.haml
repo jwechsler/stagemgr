@@ -10,6 +10,8 @@
 .grid-x.grid-padding-x
   .small-12.medium-6.cell
     = render :partial=>"/admin/addresses/address_contact_info", :locals=>{:address=>@address}
+    - if @address.is_donor?
+      %b= "Donor Level: #{@address.most_recent_donation_tier}, #{@address.donor_tier_updated_on.strftime('%B %Y')}"
   .small-12.medium-6.cell
     - if @address.is_current_member?
       %fieldset.fieldset
