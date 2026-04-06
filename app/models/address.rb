@@ -358,7 +358,7 @@ class Address < ApplicationRecord
   end
 
   def most_recent_donation_tier
-    return donor_tier_for_current_fiscal_year || donor_tier_for_last_fiscal_year
+    return donor_tier_for_current_fiscal_year.presence || donor_tier_for_last_fiscal_year
   end
 
   def donated_year
@@ -366,13 +366,13 @@ class Address < ApplicationRecord
   end
 
   def donated_this_year?
-    return !self.donor_tier_updated_on.nil? && ((self.donor_tier_updated_on.year == Date.today.year && !self.donor_tier_for_current_fiscal_year.nil?))
+    return !self.donor_tier_updated_on.nil? && self.donor_tier_updated_on.year == Date.today.year && self.donor_tier_for_current_fiscal_year.present?
   end
 
   def donated_last_year?
     if !self.donor_tier_updated_on.nil?
-      return true if (self.donor_tier_updated_on.year == Date.today.year-1 && !self.donor_tier_for_current_fiscal_year.nil?)
-      return true if (self.donor_tier_updated_on.year = Date.today.year && !self.donor_tier_for_previous_fiscal_year.nil?)
+      return true if self.donor_tier_updated_on.year == Date.today.year-1 && self.donor_tier_for_current_fiscal_year.present?
+      return true if self.donor_tier_updated_on.year == Date.today.year && self.donor_tier_for_last_fiscal_year.present?
     end
     return false
   end
