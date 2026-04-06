@@ -15,6 +15,8 @@ The batch printing system generates physical tickets for orders that have been p
 
 ## How Batch Printing Works
 
+![Reports page showing the Print Tickets section with date selector and Print button](../assets/images/screenshots/house-batch-print.png)
+
 The batch printing workflow follows these steps:
 
 1. **Select a date** using the print date selector.

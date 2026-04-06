@@ -11,6 +11,8 @@ Dynamic pricing in Stagemgr allows ticket classes to automatically shift sales f
 
 ## How It Works
 
+![Performance allocation table showing the Trigger, To Code, At %, and Days Before columns for dynamic pricing](../assets/images/screenshots/productions-performance-allocations.png)
+
 Dynamic pricing operates on a per-performance, per-ticket-class basis. Each allocation row can be marked as "shiftable" and given trigger conditions. When a patron attempts to purchase a shiftable ticket class and a trigger is active, the system automatically redirects the sale to the designated target class.
 
 ### The Three Configuration Fields

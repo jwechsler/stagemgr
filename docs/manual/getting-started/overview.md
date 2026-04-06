@@ -84,3 +84,13 @@ Each page includes:
 - **Step-by-step instructions** for completing the task
 - **Field descriptions** explaining each option on a form
 - **Tips and warnings** for important operational notes
+
+## The Public Website
+
+Patrons interact with Stagemgr through the public-facing ticket purchasing pages. The box office page shows current productions with images and descriptions.
+
+![Public box office page showing current productions with images and descriptions](../assets/images/screenshots/public-productions-listing.png)
+
+Clicking a production displays its performance calendar with dates, times, prices, and availability.
+
+![Performance calendar showing dates, times, ticket prices, and sold-out indicators](../assets/images/screenshots/public-performance-calendar.png)

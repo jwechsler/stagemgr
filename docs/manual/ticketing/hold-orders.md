@@ -15,6 +15,8 @@ The process for creating a hold order is nearly identical to creating a standard
 
 ### Step-by-Step
 
+![Order form showing the Hold Reservation Under field and the Hold button at the bottom](../assets/images/screenshots/ticketing-ga-payment.png)
+
 1. **Customer lookup** -- Find or create the patron's address record
 2. **Select performance** -- Choose the performance using the autocomplete field
 3. **Select tickets/seats** -- For general admission, choose ticket class and quantity. For reserved seating, select seats on the seat map.

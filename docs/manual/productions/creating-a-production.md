@@ -20,6 +20,8 @@ When a production is created, Stagemgr automatically assigns the theater's [defa
 
 ## Form Fields: Basic Information
 
+![Production form showing name, run dates, production code, status, venue, and seat map fields](../assets/images/screenshots/productions-form-basic-info.png)
+
 ### Name
 
 The production's title as it appears on the website, in orders, and on all patron communications. This is the primary display name -- make it match your marketing materials.
@@ -112,6 +114,8 @@ A URL to an external page with more information about the production (e.g., a pr
 
 ## Form Fields: Descriptions
 
+![Production form showing descriptions, house management, and sales fields](../assets/images/screenshots/productions-form-descriptions.png)
+
 ### Short Description
 
 A brief summary of the production. Used in list views and calendar entries where space is limited.
@@ -148,6 +152,8 @@ Associate a festival pass offer with this production, allowing flex pass holders
 Paste ad tracking code (e.g., Facebook Pixel or Google Ads snippet) that fires on the order confirmation page for this production. Used for marketing attribution.
 
 ## Form Fields: Notifications and Communications
+
+![Production notification fields including survey link, confirmation message, and follow-up message](../assets/images/screenshots/productions-form-notifications.png)
 
 ### Survey Link
 

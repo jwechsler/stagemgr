@@ -7,6 +7,8 @@
 
 ## Overview
 
+![Payment section of the order form showing Pay Using dropdown, credit card fields, and billing address](../assets/images/screenshots/ticketing-ga-payment.png)
+
 Every order (except hold orders) requires a payment method. The payment section appears at the bottom of the order form after all other details have been entered. Select the appropriate payment type and enter the required information to complete the transaction.
 
 ## Payment Methods

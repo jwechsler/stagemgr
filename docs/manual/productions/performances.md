@@ -18,6 +18,8 @@ A performance represents a single scheduled showing of a production -- one speci
 
 ## Core Fields
 
+![Performance edit form with code, date, time, status, restricted payment types, and special features](../assets/images/screenshots/productions-performance-form.png)
+
 ### Performance Code
 
 A unique identifier for this performance. Must begin with the production's **production code** prefix. Auto-uppercased on save.
@@ -92,6 +94,8 @@ Custom text included in **confirmation emails** for orders on this performance. 
 
 ## Ticket Class Allocations
 
+![Ticket class allocations table with availability checkboxes, limits, and dynamic pricing trigger fields](../assets/images/screenshots/productions-performance-allocations.png)
+
 Below the performance form fields, the **Ticket Class Allocations** table controls which ticket classes are available for this performance and how many tickets of each class can be sold.
 
 Each row in the table represents one ticket class with these fields:
@@ -119,6 +123,8 @@ Once the performance is saved:
 To quickly create additional performances with the same settings, see [Duplicating Performances](duplicating-performances.md).
 
 ## The Performance List
+
+![Production detail page showing the performances tab with codes, dates, times, and action buttons](../assets/images/screenshots/productions-performance-list.png)
 
 The production detail page shows all performances in a table with columns for:
 

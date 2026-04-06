@@ -32,6 +32,8 @@ System (Service Item Templates)
 
 ## Creating a Service Item Template
 
+![Service item templates list showing names, descriptions, amounts, and facility fees](../assets/images/screenshots/offers-service-item-form.png)
+
 ### Fields
 
 | Field | Description |

@@ -22,6 +22,8 @@ Common exchange scenarios:
 
 ### Step 1: Initiate the Exchange
 
+![Order detail page with Exchange Order, Split Order, Fulfill, and Refund action buttons](../assets/images/screenshots/ticketing-order-detail.png)
+
 1. Navigate to the existing ticket order
 2. Click **Exchange Order**
 3. The original order status changes to **Exchanging**

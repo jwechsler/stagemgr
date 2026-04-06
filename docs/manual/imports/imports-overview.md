@@ -13,6 +13,8 @@ The imports page is available at **Options > Imports** and provides access to al
 
 ## Available Import Types
 
+![Imports page showing TRGarts, Mailing List, External Address, and Donor Level import forms](../assets/images/screenshots/imports-overview.png)
+
 | Import Type | Purpose | Key Association |
 |-------------|---------|-----------------|
 | [TRG Arts Order File](trg-arts-import.md) | Update addresses with NCOA corrections; optionally mark attendees | Production (optional) |

@@ -13,6 +13,8 @@ A flex pass is a prepaid ticket package. The patron purchases a set number of ti
 
 ## Creating a Flex Pass Offer
 
+![Flex pass offer form with name, price, number of tickets, ticket class code, and use restrictions](../assets/images/screenshots/offers-flex-pass-form.png)
+
 ### Required Fields
 
 | Field | Description |

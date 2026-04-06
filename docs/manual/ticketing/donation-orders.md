@@ -7,6 +7,8 @@
 
 ## Overview
 
+![Donation order detail showing donor info, theater, amount, payment details, and Refund Donation button](../assets/images/screenshots/ticketing-donation-form.png)
+
 A donation order records a patron's financial contribution to the theater. Unlike ticket orders, donation orders do not reserve seats or have associated performances. They track the donor, amount, campaign, and payment information for financial reporting and tax receipt generation.
 
 ## Prerequisites

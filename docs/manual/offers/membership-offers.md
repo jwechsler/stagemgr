@@ -13,6 +13,8 @@ Memberships are recurring subscription plans that grant patrons a set number of 
 
 ## Creating a Membership Offer
 
+![Membership offer form with name, status, price ID, tickets per performance, and notification fields](../assets/images/screenshots/offers-membership-form.png)
+
 ### Core Fields
 
 | Field | Description |

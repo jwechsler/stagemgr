@@ -17,6 +17,8 @@ Productions from any theater can be assigned to any venue. This allows multiple 
 
 ## Creating a Venue
 
+![The venues list showing all available performance spaces](../assets/images/screenshots/setup-venues-list.png)
+
 1. Go to **Options > Venues**
 2. Click **New Venue**
 3. Fill in the fields:

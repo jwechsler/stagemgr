@@ -11,6 +11,8 @@ Duplicating a performance creates a new performance pre-populated with the setti
 
 ## How to Duplicate
 
+![Performance list with Edit, Duplicate, and Email Attendees action buttons for each performance](../assets/images/screenshots/productions-performance-list.png)
+
 1. Navigate to the production's detail page
 2. Find the performance you want to copy in the Performances list
 3. Click **Duplicate** in the actions column for that performance

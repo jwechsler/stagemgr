@@ -7,6 +7,8 @@
 
 ## Overview
 
+![Orders list with filterable columns for ID, code, name, seats, status, visits, total, and description](../assets/images/screenshots/ticketing-order-list.png)
+
 The orders list page displays all orders in a searchable, sortable data table. You can filter by status, search across multiple fields, and navigate through results to find any order in the system.
 
 ## Accessing the Orders List
@@ -127,6 +129,8 @@ For will-call scenarios:
     For busy will-call periods, pre-sort the list by last name and use the search field for quick lookups. Having the patron spell their last name speeds up the process.
 
 ## Navigating to Order Details
+
+![Order detail page showing buyer info, tickets, payment details, and action buttons](../assets/images/screenshots/ticketing-order-detail.png)
 
 Click on any order row or the order ID to open the full order detail page. From the detail page you can:
 

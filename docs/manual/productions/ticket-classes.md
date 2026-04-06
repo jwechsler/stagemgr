@@ -13,12 +13,16 @@ When a new production is created, it automatically receives copies of the theate
 
 ## Creating a Ticket Class
 
+![Ticket classes list showing class codes, names, prices, fees, and visibility settings](../assets/images/screenshots/productions-ticket-classes-list.png)
+
 1. Navigate to the production's detail page
 2. Click **New ticket class** in the Ticket Classes section
 3. Fill in the fields described below
 4. Click **Create Ticket class**
 
 ## Core Fields
+
+![Ticket class form showing code, name, type, pricing, and options like web visibility and seat holding](../assets/images/screenshots/productions-ticket-class-form.png)
 
 ### Class Code
 

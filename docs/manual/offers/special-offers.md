@@ -9,6 +9,8 @@
 
 ## Overview
 
+![Special offers list showing codes, descriptions, usage counts, status, and expiration dates](../assets/images/screenshots/offers-special-offers-list.png)
+
 Special offers are promo codes that customers enter at checkout to receive a discount or ticket class change. Stagemgr supports three types of special offers, each with distinct behavior:
 
 | Type | Label | Behavior |
@@ -18,6 +20,8 @@ Special offers are promo codes that customers enter at checkout to receive a dis
 | **TicketClassSpecialOffer** | TktClass | Replaces the ticket class with a different class at checkout |
 
 ## Creating a Special Offer
+
+![Special offer form with code, type, status, criteria, action, filters, and use restrictions](../assets/images/screenshots/offers-special-offer-form.png)
 
 ### Required Fields
 

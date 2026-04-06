@@ -26,6 +26,8 @@ The Split Order button appears when **all** of the following conditions are met:
 
 ### Step 1: Initiate the Split
 
+![Order detail page showing the Split Order button among other order actions](../assets/images/screenshots/ticketing-order-detail.png)
+
 1. Navigate to the ticket order you want to split
 2. Click **Split Order**
 3. The split interface appears, showing all tickets on the order

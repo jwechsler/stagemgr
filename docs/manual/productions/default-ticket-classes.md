@@ -13,6 +13,8 @@ When a new production is saved for the first time, Stagemgr copies all current d
 
 ## Managing Default Ticket Classes
 
+![Default ticket classes list with class codes, names, prices, fees, auto-attach, and holds seats columns](../assets/images/screenshots/productions-default-ticket-classes.png)
+
 1. Go to **Options** in the main navigation
 2. Click **Default Ticket Classes**
 3. From here you can:

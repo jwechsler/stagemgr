@@ -9,6 +9,8 @@
 
 ## Searching for Patrons
 
+![Customer list showing names, emails, visit counts, with search and Merge Selected button](../assets/images/screenshots/customers-list.png)
+
 Stagemgr provides an autocomplete search that appears throughout the system wherever a patron needs to be selected (order creation, reports, etc.).
 
 | Search Behavior | Detail |

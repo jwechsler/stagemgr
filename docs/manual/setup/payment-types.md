@@ -17,6 +17,8 @@ Each payment type can be configured with:
 
 ## Viewing Payment Types
 
+![Payment types list showing display names, availability, and reporting configuration](../assets/images/screenshots/setup-payment-types-list.png)
+
 Go to **Options > Manage Payment Types** to see all configured payment types. The list shows each type's display name, availability settings, and reporting flags.
 
 ## Creating an External Payment Type
@@ -29,6 +31,8 @@ Built-in payment types (Credit Card, Cash, Check, etc.) are pre-configured. To a
 4. Click **Create Payment Type**
 
 ## Payment Type Form Fields
+
+![Payment type edit form showing display name, availability checkboxes, reporting flags, and task suppressions](../assets/images/screenshots/setup-payment-type-form.png)
 
 ### Display Name
 

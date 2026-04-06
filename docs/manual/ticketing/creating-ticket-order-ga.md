@@ -13,6 +13,8 @@ General admission ticket orders allow patrons to purchase tickets without select
 
 ### Step 1: Customer Lookup
 
+![New ticket order form showing performance selection, ticket class fields, customer name, and offer code](../assets/images/screenshots/ticketing-ga-patron-lookup.png)
+
 Begin by finding or creating the patron's record.
 
 1. In the **Address** section, start typing the patron's name in the search field
@@ -102,6 +104,8 @@ Select how the patron heard about the show from the **Marketing Source** dropdow
 | **Notes** | Free-text area for any special instructions or information about the order |
 
 ### Step 8: Payment
+
+![Payment section showing credit card fields, billing address, marketing options, and Place Order button](../assets/images/screenshots/ticketing-ga-payment.png)
 
 Select and process payment for the order. See [Payment Processing](payment-processing.md) for full details on each payment method.
 

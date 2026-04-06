@@ -11,6 +11,8 @@ The seat map interface provides a visual representation of the venue layout. It 
 
 ## Seat Map Display
 
+![Seat map display showing the stage and color-coded seats with wheelchair-accessible positions](../assets/images/screenshots/setup-seat-map-display.png)
+
 ### Seat Status Colors
 
 | Color/Indicator | Meaning |

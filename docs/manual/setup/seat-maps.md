@@ -16,6 +16,8 @@ When a seat map is assigned to a production, that production becomes a **reserve
 
 ## Creating a Seat Map
 
+![The seat map edit form with label, image upload, and geometry file fields](../assets/images/screenshots/setup-seat-map-form.png)
+
 1. Navigate to the seat maps list
 2. Click **New Seat Map**
 3. Fill in the form:
@@ -65,6 +67,8 @@ B2,B,2,125,430,20,20,
     If you leave the `location` column blank, Stagemgr will automatically generate it by combining the `row` and `sequence` values (e.g., row `A` + sequence `1` = location `A1`). Each location must be unique within the seat map.
 
 ## How Seat Maps Work
+
+![A seat map showing the stage and seating geometry with wheelchair-accessible positions](../assets/images/screenshots/setup-seat-map-display.png)
 
 ### Capacity
 

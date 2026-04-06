@@ -24,6 +24,8 @@ Duplicate patron records are created when:
 
 ## How to Merge Duplicates
 
+![Customer list with Merge Selected button for combining duplicate patron records](../assets/images/screenshots/customers-list.png)
+
 1. Navigate to **Admin > Addresses**.
 2. Search for the patron whose duplicates you want to consolidate.
 3. Identify all duplicate records in the search results.

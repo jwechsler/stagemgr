@@ -25,6 +25,8 @@ The report includes:
 
 ## Generating the Report
 
+![Reports page showing the House Management Seating Report with date selector and Show button](../assets/images/screenshots/house-mgmt-report.png)
+
 1. Navigate to **Admin > Reports > House Management Report**.
 2. Select the **performance date** for the report.
 3. Click **Generate** or **Run Report**.

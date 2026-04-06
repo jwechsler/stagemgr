@@ -9,6 +9,8 @@
 
 ## Overview
 
+![Special features list showing feature names, descriptions, and status](../assets/images/screenshots/offers-special-features-list.png)
+
 Special features are descriptive tags that can be assigned to individual performances to communicate unique attributes -- such as "ASL Interpreted," "Post-Show Talkback," or "Pay-What-You-Can." When assigned, these features are displayed prominently on the public website calendar and in order confirmation emails.
 
 ## Creating a Special Feature

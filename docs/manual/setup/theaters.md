@@ -24,6 +24,8 @@ Each theater gets its own productions, orders, financial reporting, and staff ac
 
 ## Theater Form Fields
 
+![The theater edit form with name, link, logo, class, status, and service fee fields](../assets/images/screenshots/setup-theater-form.png)
+
 ### Name
 
 The theater company's name as it will appear throughout Stagemgr -- in order records, reports, the public website, and patron communications. Must be unique across all theaters in the system.
@@ -103,6 +105,8 @@ Click any theater name in the Theaters list to view its details page. From here 
 - View the theater's website link and logo
 
 ## The Theaters List
+
+![The Theaters list showing theater names, website links, and theater classes](../assets/images/screenshots/setup-theaters-list.png)
 
 The Theaters list (**Theaters** menu) shows all theaters in a searchable, paginated table with columns for:
 
