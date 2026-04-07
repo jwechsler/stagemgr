@@ -105,6 +105,7 @@ class Ability
     return if user.is_box_office_user?
 
     # below is for admins
+    can :perform_analysis, Analysis
     can :manage, MembershipOffer
     can :merge_selected, Address
     can :destroy, SeatMap

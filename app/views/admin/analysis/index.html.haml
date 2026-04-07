@@ -1,0 +1,189 @@
+= content_for :title do
+  Analysis
+= content_for :breadcrumbs do
+  %ul.breadcrumbs
+    %li.current= link_to 'Analysis', admin_analysis_index_path
+
+= form_tag(rate_of_sales_admin_analysis_index_path, method: :post, id: 'analysis-form') do
+  .grid-x.grid-padding-x
+    .small-12.cell
+      %h4 Compare Show Performance
+
+  .grid-x.grid-padding-x
+    .small-12.medium-6.cell
+      %fieldset.fieldset
+        %legend Current Show
+        %p.help-text Select the show you want to analyze
+        = text_field_tag :target_production_search, nil, id: 'target-production-search', placeholder: 'Type to search productions...', class: 'input-group-field', autocomplete: 'off', style: @target_production ? 'display:none' : nil
+        = hidden_field_tag :target_production_id, @target_production&.id, id: 'target-production-id'
+        - if @target_production
+          #target-production-display.callout.secondary
+            %span#target-production-name= "#{@target_production.season} - #{@target_production.name} (#{@target_production.theater.name})"
+            %a.float-right.remove-target{href: '#'} remove
+        - else
+          #target-production-display.callout.secondary.hide
+            %span#target-production-name
+            %a.float-right.remove-target{href: '#'} remove
+
+    .small-12.medium-6.cell
+      %fieldset.fieldset
+        %legend Analysis Type
+        %p.help-text Select the type of analysis to run
+        = select_tag :analysis_type, options_for_select([['Rate of Sales', 'rate_of_sales']]), class: 'input-group-field'
+
+  .grid-x.grid-padding-x
+    .small-12.cell
+      %fieldset.fieldset
+        %legend Comparison Shows
+        %p.help-text Select shows to aggregate for historical comparison
+        .grid-x
+          .cell.auto
+            = text_field_tag :comparison_production_search, nil, id: 'comparison-production-search', placeholder: 'Type to search productions...', class: 'input-group-field', autocomplete: 'off'
+          .cell.shrink{style: 'padding-left: 0.5rem'}
+            %a#remove-all-comparisons.button.alert.small{href: '#', style: @comparison_productions.present? ? nil : 'display:none'} Remove all
+
+        %table#comparison-productions-table.hover{style: 'margin-top: 1rem'}
+          %thead
+            %tr
+              %th Season
+              %th Production
+              %th Theater
+              %th
+          %tbody
+            - if @comparison_productions.present?
+              - @comparison_productions.each do |p|
+                %tr{data: { production_id: p.id }}
+                  %td= p.season
+                  %td= p.name
+                  %td= p.theater.name
+                  %td
+                    %a.remove-comparison.alert{href: '#'} remove
+                    %input{type: 'hidden', name: 'comparison_production_ids[]', value: p.id}
+
+  .grid-x.grid-padding-x
+    .small-12.cell
+      = submit_tag 'Run Analysis', class: 'button', id: 'run-analysis-btn', disabled: true
+
+:javascript
+  $(document).ready(function() {
+    var targetProductionId = #{@target_production ? @target_production.id : 'null'};
+    var comparisonProductionIds = #{@comparison_productions.present? ? @comparison_productions.map(&:id).to_json : '[]'};
+    var searchUrl = '#{search_productions_admin_analysis_index_path}';
+    var resolveGroupUrl = '#{resolve_group_admin_analysis_index_path}';
+
+    function updateSubmitButton() {
+      var hasTarget = targetProductionId !== null;
+      var hasComparisons = comparisonProductionIds.length > 0;
+      $('#run-analysis-btn').prop('disabled', !(hasTarget && hasComparisons));
+      $('#remove-all-comparisons').toggle(hasComparisons);
+    }
+
+    function addComparisonProduction(item) {
+      if (!item.id || !item.name) return;
+      if (comparisonProductionIds.indexOf(item.id) !== -1) return;
+      if (item.id === targetProductionId) return;
+      comparisonProductionIds.push(item.id);
+      var row = $('<tr data-production-id="' + item.id + '">' +
+        '<td>' + item.season + '</td>' +
+        '<td>' + item.name + '</td>' +
+        '<td>' + item.theater + '</td>' +
+        '<td><a href="#" class="remove-comparison alert">remove</a>' +
+        '<input type="hidden" name="comparison_production_ids[]" value="' + item.id + '">' +
+        '</td></tr>');
+      $('#comparison-productions-table tbody').append(row);
+    }
+
+    // Target production autocomplete
+    $('#target-production-search').autocomplete({
+      source: function(request, response) {
+        $.getJSON(searchUrl, { q: request.term }, function(data) {
+          // Filter out group entries and already-selected comparison productions
+          var filtered = data.filter(function(item) {
+            return !item.type && comparisonProductionIds.indexOf(item.id) === -1;
+          });
+          response(filtered);
+        });
+      },
+      minLength: 2,
+      select: function(event, ui) {
+        targetProductionId = ui.item.id;
+        $('#target-production-id').val(ui.item.id);
+        $('#target-production-name').text(ui.item.label);
+        $('#target-production-display').removeClass('hide');
+        $(this).val('').hide();
+        updateSubmitButton();
+        return false;
+      }
+    });
+
+    // Remove target production
+    $(document).on('click', '.remove-target', function(e) {
+      e.preventDefault();
+      targetProductionId = null;
+      $('#target-production-id').val('');
+      $('#target-production-display').addClass('hide');
+      $('#target-production-search').show().val('');
+      updateSubmitButton();
+    });
+
+    // Comparison productions autocomplete
+    $('#comparison-production-search').autocomplete({
+      source: function(request, response) {
+        $.getJSON(searchUrl, { q: request.term }, function(data) {
+          // Filter out already-selected productions and the target
+          var excluded = comparisonProductionIds.slice();
+          if (targetProductionId) excluded.push(targetProductionId);
+          var filtered = data.filter(function(item) {
+            return excluded.indexOf(item.id) === -1;
+          });
+          response(filtered);
+        });
+      },
+      minLength: 2,
+      select: function(event, ui) {
+        var self = this;
+        if (ui.item.group_key) {
+          // Resolve group shortcut into individual productions
+          $.getJSON(resolveGroupUrl, { group_key: ui.item.group_key }, function(data) {
+            data.forEach(function(prod) { addComparisonProduction(prod); });
+            updateSubmitButton();
+          });
+        } else {
+          addComparisonProduction(ui.item);
+          updateSubmitButton();
+        }
+        $(self).val('');
+        return false;
+      }
+    });
+
+    // Custom rendering for comparison autocomplete to distinguish group entries
+    $('#comparison-production-search').autocomplete('instance')._renderItem = function(ul, item) {
+      if (item.group_key) {
+        return $('<li>').append('<div><strong style="color: #1779ba;">\u25B6 ' + item.label + '</strong></div>').appendTo(ul);
+      }
+      return $('<li>').append('<div>' + item.label + '</div>').appendTo(ul);
+    };
+
+    // Remove comparison production
+    $(document).on('click', '.remove-comparison', function(e) {
+      e.preventDefault();
+      var row = $(this).closest('tr');
+      var prodId = parseInt(row.data('production-id'));
+      comparisonProductionIds = comparisonProductionIds.filter(function(id) { return id !== prodId; });
+      row.remove();
+      updateSubmitButton();
+    });
+
+    // Remove all comparison productions
+    $(document).on('click', '#remove-all-comparisons', function(e) {
+      e.preventDefault();
+      if (!confirm('Remove all comparison shows?')) return;
+      comparisonProductionIds = [];
+      $('#comparison-productions-table tbody').empty();
+      updateSubmitButton();
+    });
+
+    // Enable submit button if returning with pre-populated selections
+    updateSubmitButton();
+  });

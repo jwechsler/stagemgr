@@ -208,6 +208,14 @@ Rails.application.routes.draw do
 
     end
 
+    resources :analysis, only: [:index] do
+      collection do
+        get :search_productions
+        get :resolve_group
+        post :rate_of_sales
+      end
+    end
+
     resources :auto_complete do
       collection do
         get :production_code

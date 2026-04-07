@@ -1,0 +1,115 @@
+= content_for :title do
+  Rate of Sales Analysis
+= content_for :breadcrumbs do
+  %ul.breadcrumbs
+    %li= link_to 'Analysis', admin_analysis_index_path
+    %li.current Rate of Sales
+
+.grid-x.grid-padding-x
+  .small-12.cell
+    %h4 Rate of Sales Analysis
+    %p.lead
+      Comparing
+      %strong= @target_production.name
+      (#{@target_production.season}, #{@target_production.theater.name})
+      against #{@comparison_productions.count} historical #{'production'.pluralize(@comparison_productions.count)}
+
+- if @results[:target_tickets].any?
+  .grid-x.grid-padding-x
+    .small-12.medium-6.cell
+      %fieldset.fieldset
+        %legend
+          Current Show:
+          = @target_production.name
+        - if @results[:target_tickets].size > 1
+          = line_chart [{ name: "Tickets", data: @results[:target_tickets] }, { name: "Revenue", data: @results[:target_revenue] }], xtitle: "Period", ytitle: "% Change Week over Week", suffix: "%", library: { scales: { x: { type: "category" } } }
+        - else
+          .callout.warning
+            Insufficient data to chart. Only #{@results[:target_tickets].size} week(s) of sales data available.
+
+    .small-12.medium-6.cell
+      %fieldset.fieldset
+        %legend
+          Historical Aggregate
+          %small (#{@comparison_productions.count} #{'show'.pluralize(@comparison_productions.count)})
+        - if @results[:aggregate_data].size > 1
+          = line_chart @results[:aggregate_data], xtitle: "Period", ytitle: "Avg % Change in Tickets Sold", suffix: "%", library: { scales: { x: { type: "category" } } }
+        - else
+          .callout.warning
+            Insufficient aggregate data to chart.
+
+  - if @results[:projection].present?
+    .grid-x.grid-padding-x
+      .small-12.cell
+        %fieldset.fieldset
+          %legend Revenue Projection
+          .grid-x.grid-padding-x
+            .small-12.medium-8.cell
+              = line_chart [{ name: "Actual Revenue", data: @results[:projection][:actual_cumulative] }, { name: "Projected Revenue", data: @results[:projection][:projected_cumulative] }], xtitle: "Period", ytitle: "Cumulative Revenue", prefix: "$", library: { scales: { x: { type: "category" } } }
+            .small-12.medium-4.cell
+              %h6 Summary
+              %table
+                %tbody
+                  %tr
+                    %td Revenue to date
+                    %td.text-right= number_to_currency(@results[:projection][:actual_total])
+                  %tr
+                    %td Projected remaining
+                    %td.text-right= number_to_currency(@results[:projection][:projected_remaining])
+                  %tr
+                    %td
+                      %strong Projected total
+                    %td.text-right
+                      %strong= number_to_currency(@results[:projection][:projected_total])
+                  %tr
+                    %td Performance ratio
+                    %td.text-right= "#{(@results[:projection][:performance_ratio] * 100).round(0)}% of historical avg"
+              %p.help-text
+                Projection uses a weighted historical pattern model. The performance ratio compares
+                this show's weekly revenue against the historical aggregate, with recent weeks
+                weighted more heavily. Projected weeks apply this ratio to the historical average
+                revenue for each remaining week.
+
+  .grid-x.grid-padding-x
+    .small-12.cell
+      %h5 Interpretation
+      %p
+        These charts show the week-over-week percentage change in ticket sales, normalized so that
+        %strong Pre-sales
+        includes all activity more than 3 weeks before first preview, and weekly data runs from
+        that point through the end of the run. A positive value means sales increased from the
+        previous week; a negative value means they decreased.
+      %p
+        Compare the shape of the current show's curve against the historical aggregate to
+        identify whether sales are tracking ahead of, behind, or in line with past productions.
+
+- else
+  .grid-x.grid-padding-x
+    .small-12.cell
+      .callout.alert
+        No rate of sale data found for
+        = @target_production.name
+        \. Rate of sale data is calculated daily for active productions.
+
+.grid-x.grid-padding-x
+  .small-12.cell
+    %hr
+    = link_to 'Back to Analysis', admin_analysis_index_path(target_production_id: @target_production.id, comparison_production_ids: @comparison_productions.map(&:id)), class: 'button secondary'
+    %h6 Comparison Shows
+    %table.hover
+      %thead
+        %tr
+          %th Season
+          %th Production
+          %th Theater
+          %th.text-right Total Revenue
+          %th.text-right Weeks (incl. pre-sales)
+      %tbody
+        - @results[:comparison_summaries].each do |summary|
+          - p = summary[:production]
+          %tr
+            %td= p.season
+            %td= p.name
+            %td= p.theater.name
+            %td.text-right= number_to_currency(summary[:total_revenue])
+            %td.text-right= summary[:num_weeks]

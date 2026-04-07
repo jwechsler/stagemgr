@@ -32,6 +32,9 @@
                   =link_to('Flex Pass Offers', admin_flex_pass_offers_path)
         %li
           =link_to('Reports', admin_reports_path)
+        - if can? :perform_analysis, Analysis
+          %li
+            =link_to('Analysis', admin_analysis_index_path)
         %li
           %a{:href=>"#"} Options
           %ul.menu.vertical
