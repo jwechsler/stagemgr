@@ -165,7 +165,8 @@ class CreditCardPayment < CurrencyPayment
   end
 
   def processing_fee
-    if self.created_at > Date.parse("16-07-2021")
+    effective_date = self.created_at || self.order&.created_at
+    if effective_date && effective_date > Date.parse("16-07-2021")
       (self.amount) > 0 ? (0.30 + self.amount * 0.035).round(2) : 0
     else
       (self.amount) > 0 ? (0.22 + self.amount * 0.04).round(2) : 0
