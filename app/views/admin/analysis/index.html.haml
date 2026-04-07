@@ -99,7 +99,7 @@
         $.getJSON(searchUrl, { q: request.term }, function(data) {
           // Filter out group entries and already-selected comparison productions
           var filtered = data.filter(function(item) {
-            return !item.type && comparisonProductionIds.indexOf(item.id) === -1;
+            return !item.group_key && comparisonProductionIds.indexOf(item.id) === -1;
           });
           response(filtered);
         });

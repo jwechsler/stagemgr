@@ -33,8 +33,10 @@ class Admin::AnalysisController < Admin::ApplicationController
       results << { group_key: "season:#{season}", label: "All shows in #{season}" }
     end
 
-    # Add theater group entries for matching theater names
-    matching_theaters = Theater.where("LOWER(name) LIKE :q", q: "%#{query.downcase}%")
+    # Add theater group entries — only theaters with accessible productions
+    accessible_theater_ids = base_scope.distinct.pluck(:theater_id)
+    matching_theaters = Theater.where(id: accessible_theater_ids)
+                               .where("LOWER(name) LIKE :q", q: "%#{query.downcase}%")
     matching_theaters.each do |theater|
       results << { group_key: "theater:#{theater.id}", label: "All shows by #{theater.name}" }
     end
