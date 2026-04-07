@@ -53,6 +53,7 @@ class Ability
     can :read, ServiceItemTemplate
     can :view_backend_classes, TicketClassAllocation
     can [:read, :show_reports], Report
+    can :perform_analysis, Analysis unless user.is_box_office_user?
     can [:autocomplete_production_production_code,
             :autocomplete_performance_performance_code,
             :autocomplete_ticket_line_item_ticket_class_code,
