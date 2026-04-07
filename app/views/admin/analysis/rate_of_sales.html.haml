@@ -38,18 +38,95 @@
           .callout.warning
             Insufficient aggregate data to chart.
 
+  - insights = @results[:insights] || {}
   .grid-x.grid-padding-x
     .small-12.cell
-      %h5 Interpretation
-      %p
-        These charts show the week-over-week percentage change in ticket sales, normalized so that
-        %strong Pre-sales
-        includes all activity more than 3 weeks before first preview, and weekly data runs from
-        that point through the end of the run. A positive value means sales increased from the
-        previous week; a negative value means they decreased.
-      %p
-        Compare the shape of the current show's curve against the historical aggregate to
-        identify whether sales are tracking ahead of, behind, or in line with past productions.
+      %h5 Performance Summary
+      .grid-x.grid-padding-x
+        .small-12.medium-4.cell
+          - if insights[:avg_tickets_per_week] && insights[:hist_avg_tickets_per_week]
+            - ticket_ratio = insights[:avg_tickets_per_week] / insights[:hist_avg_tickets_per_week] * 100
+            - color = ticket_ratio >= 110 ? 'success' : (ticket_ratio >= 90 ? 'warning' : 'alert')
+            .callout{class: color}
+              %h6 Tickets / Week
+              %p
+                %strong= "#{insights[:avg_tickets_per_week].round(0)} tickets"
+                per week vs historical
+                %strong= "#{insights[:hist_avg_tickets_per_week].round(0)}"
+              %p
+                = "#{ticket_ratio.round(0)}% of historical average"
+
+        .small-12.medium-4.cell
+          - if insights[:avg_revenue_per_week] && insights[:hist_avg_revenue_per_week]
+            - rev_ratio = insights[:performance_pct] || 0
+            - color = rev_ratio >= 110 ? 'success' : (rev_ratio >= 90 ? 'warning' : 'alert')
+            .callout{class: color}
+              %h6 Revenue / Week
+              %p
+                %strong= number_to_currency(insights[:avg_revenue_per_week])
+                per week vs historical
+                %strong= number_to_currency(insights[:hist_avg_revenue_per_week])
+              %p
+                = "#{rev_ratio}% of historical average"
+
+        .small-12.medium-4.cell
+          - if insights[:trajectory]
+            - color = insights[:trajectory] == :accelerating ? 'success' : (insights[:trajectory] == :steady ? 'warning' : 'alert')
+            .callout{class: color}
+              %h6 Current Trajectory
+              %p
+                - case insights[:trajectory]
+                - when :accelerating
+                  Sales are
+                  %strong accelerating
+                - when :decelerating
+                  Sales are
+                  %strong decelerating
+                - when :steady
+                  Sales are
+                  %strong holding steady
+              %p
+                Last week:
+                %strong= "#{insights[:last_week_change]}%"
+                change vs
+                %strong= "#{insights[:prev_week_change]}%"
+                prior week
+
+      .grid-x.grid-padding-x
+        .small-12.medium-4.cell
+          - if insights[:ticket_growth_diff]
+            - diff = insights[:ticket_growth_diff]
+            .callout.secondary
+              %h6 Recent Growth Rate
+              %p
+                Ticket sales growing at
+                %strong= "#{insights[:ticket_growth_avg]}%"
+                per week vs historical
+                %strong= "#{insights[:hist_ticket_growth_avg]}%"
+              %p
+                - if diff > 0
+                  = "#{diff} points above historical"
+                - elsif diff < 0
+                  = "#{diff.abs} points below historical"
+                - else
+                  Tracking at historical average
+              %p.help-text= "Based on last #{insights[:growth_window]} weeks"
+
+        .small-12.medium-4.cell
+          - if insights[:lifecycle]
+            .callout.secondary
+              %h6 Lifecycle Position
+              %p
+                This show appears to be in the
+                %strong= insights[:lifecycle].to_s
+                phase of its run
+                - case insights[:lifecycle]
+                - when :growth
+                  \— weekly revenue is still increasing
+                - when :plateau
+                  \— weekly revenue has leveled off
+                - when :decline
+                  \— weekly revenue is decreasing
 
   - if @results[:projection].present?
     .grid-x.grid-padding-x

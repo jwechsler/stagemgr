@@ -21,7 +21,9 @@ class RateOfSalesAnalysis
       { production: p, total_revenue: total_revenue, num_weeks: num_weeks }
     end
 
-    { target_tickets: target_tickets, target_revenue: target_revenue, aggregate_data: aggregate_data, projection: projection, comparison_summaries: comparison_summaries }
+    insights = compute_insights(cutoff, target_tickets, target_revenue, aggregate_data)
+
+    { target_tickets: target_tickets, target_revenue: target_revenue, aggregate_data: aggregate_data, projection: projection, comparison_summaries: comparison_summaries, insights: insights }
   end
 
   private
@@ -107,6 +109,106 @@ class RateOfSalesAnalysis
       actual_total: actual_total.round(2),
       extra_weeks: extra_weeks
     }
+  end
+
+  def compute_insights(cutoff, target_tickets_pct, target_revenue_pct, aggregate_pct)
+    insights = {}
+
+    # Raw weekly totals for the current show
+    target_ticket_totals = weekly_totals_for(target_production, cutoff: cutoff)
+    target_revenue_totals = weekly_totals_for(target_production, cutoff: cutoff, field: :gross_sales)
+
+    # Aggregate raw weekly totals across comparison productions
+    comp_ticket_series = comparison_productions.map { |p| weekly_totals_for(p) }
+    comp_revenue_series = comparison_productions.map { |p| weekly_totals_for(p, field: :gross_sales) }
+    agg_ticket_totals = average_weekly_totals(comp_ticket_series)
+    agg_revenue_totals = average_weekly_totals(comp_revenue_series)
+
+    # 1. Average tickets/week and revenue/week vs historical
+    target_week_keys = target_ticket_totals.keys.grep(/^Week \d+$/)
+    if target_week_keys.any?
+      target_avg_tickets = target_week_keys.sum { |k| target_ticket_totals[k] } / target_week_keys.size.to_f
+      target_avg_revenue = target_week_keys.sum { |k| target_revenue_totals[k] || 0 } / target_week_keys.size.to_f
+
+      overlapping_keys = target_week_keys & agg_ticket_totals.keys
+      if overlapping_keys.any?
+        hist_avg_tickets = overlapping_keys.sum { |k| agg_ticket_totals[k] } / overlapping_keys.size.to_f
+        hist_avg_revenue = overlapping_keys.sum { |k| agg_revenue_totals[k] || 0 } / overlapping_keys.size.to_f
+      else
+        hist_avg_tickets = nil
+        hist_avg_revenue = nil
+      end
+
+      insights[:avg_tickets_per_week] = target_avg_tickets.round(1)
+      insights[:avg_revenue_per_week] = target_avg_revenue.round(2)
+      insights[:hist_avg_tickets_per_week] = hist_avg_tickets&.round(1)
+      insights[:hist_avg_revenue_per_week] = hist_avg_revenue&.round(2)
+    end
+
+    # 2. Ticket growth comparison — use last 3 weeks only to avoid early
+    # spikes (e.g., 500% when going from near-zero to real sales) that
+    # make the full-run average meaningless.
+    overlapping_pct = (target_tickets_pct.keys & aggregate_pct.keys) - ["Pre-sales"]
+    compare_keys = overlapping_pct.sort_by { |k| k[/\d+/].to_i }.last(3)
+    if compare_keys.size >= 2
+      target_avg_pct = compare_keys.sum { |k| target_tickets_pct[k] } / compare_keys.size.to_f
+      hist_avg_pct = compare_keys.sum { |k| aggregate_pct[k] } / compare_keys.size.to_f
+      insights[:ticket_growth_avg] = target_avg_pct.round(1)
+      insights[:hist_ticket_growth_avg] = hist_avg_pct.round(1)
+      insights[:ticket_growth_diff] = (target_avg_pct - hist_avg_pct).round(1)
+      insights[:growth_window] = compare_keys.size
+    end
+
+    # 3. Revenue growth comparison — same recent window
+    overlapping_rev = (target_revenue_pct.keys & aggregate_pct.keys) - ["Pre-sales"]
+    rev_compare_keys = overlapping_rev.sort_by { |k| k[/\d+/].to_i }.last(3)
+    if rev_compare_keys.size >= 2
+      target_rev_avg_pct = rev_compare_keys.sum { |k| target_revenue_pct[k] } / rev_compare_keys.size.to_f
+      hist_rev_avg_pct = rev_compare_keys.sum { |k| aggregate_pct[k] } / rev_compare_keys.size.to_f
+      insights[:revenue_growth_avg] = target_rev_avg_pct.round(1)
+      insights[:revenue_growth_diff] = (target_rev_avg_pct - hist_rev_avg_pct).round(1)
+    end
+
+    # 4. Current trajectory — last two weeks of ticket % change
+    week_keys = target_tickets_pct.keys.grep(/^Week \d+$/).sort_by { |k| k[/\d+/].to_i }
+    if week_keys.size >= 2
+      last_week_pct = target_tickets_pct[week_keys[-1]]
+      prev_week_pct = target_tickets_pct[week_keys[-2]]
+      insights[:last_week_change] = last_week_pct
+      insights[:prev_week_change] = prev_week_pct
+      insights[:trajectory] = if last_week_pct > prev_week_pct
+                                :accelerating
+                              elsif last_week_pct < prev_week_pct
+                                :decelerating
+                              else
+                                :steady
+                              end
+    end
+
+    # 5. Performance ratio (revenue level vs historical)
+    if insights[:hist_avg_revenue_per_week] && insights[:hist_avg_revenue_per_week] > 0
+      insights[:performance_pct] = ((insights[:avg_revenue_per_week] / insights[:hist_avg_revenue_per_week]) * 100).round(0)
+    end
+
+    # 6. Lifecycle position — compare current weekly revenue to historical curve peak
+    if target_week_keys&.any? && agg_revenue_totals.any?
+      hist_peak = agg_revenue_totals.values.max
+      recent_keys = target_week_keys.last(2)
+      recent_avg = recent_keys.sum { |k| target_revenue_totals[k] || 0 } / recent_keys.size.to_f
+      # Compare recent trend to determine phase
+      if recent_keys.size >= 2
+        recent_trend = (target_revenue_totals[recent_keys[-1]] || 0) - (target_revenue_totals[recent_keys[-2]] || 0)
+        insights[:lifecycle] = if recent_trend > 0
+                                 :growth
+                               elsif recent_trend > -(hist_peak * 0.05)
+                                 :plateau
+                               else
+                                 :decline
+                               end
+      end
+    end
+
+    insights
   end
 
   def extract_max_week(weekly_data)
