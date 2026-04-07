@@ -75,8 +75,9 @@ class Admin::AnalysisController < Admin::ApplicationController
     comparison_ids = Array(params[:comparison_production_ids]).reject(&:blank?).map(&:to_i)
     @comparison_productions = Production.accessible_by(current_ability, :read).where(id: comparison_ids)
 
+    @extra_weeks = params[:extra_weeks].to_i
     analysis = RateOfSalesAnalysis.new(@target_production, @comparison_productions)
-    @results = analysis.compute
+    @results = analysis.compute(extra_weeks: @extra_weeks)
 
     respond_to do |format|
       format.html

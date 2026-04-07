@@ -38,6 +38,19 @@
           .callout.warning
             Insufficient aggregate data to chart.
 
+  .grid-x.grid-padding-x
+    .small-12.cell
+      %h5 Interpretation
+      %p
+        These charts show the week-over-week percentage change in ticket sales, normalized so that
+        %strong Pre-sales
+        includes all activity more than 3 weeks before first preview, and weekly data runs from
+        that point through the end of the run. A positive value means sales increased from the
+        previous week; a negative value means they decreased.
+      %p
+        Compare the shape of the current show's curve against the historical aggregate to
+        identify whether sales are tracking ahead of, behind, or in line with past productions.
+
   - if @results[:projection].present?
     .grid-x.grid-padding-x
       .small-12.cell
@@ -61,6 +74,11 @@
                       %strong Projected total
                     %td.text-right
                       %strong= number_to_currency(@results[:projection][:projected_total])
+                  - projected_weeks_count = @results[:projection][:projected_cumulative].size
+                  - if projected_weeks_count > 0
+                    %tr
+                      %td Avg weekly (projected)
+                      %td.text-right= number_to_currency(@results[:projection][:projected_remaining] / projected_weeks_count)
                   %tr
                     %td Performance ratio
                     %td.text-right= "#{(@results[:projection][:performance_ratio] * 100).round(0)}% of historical avg"
@@ -69,19 +87,34 @@
                 this show's weekly revenue against the historical aggregate, with recent weeks
                 weighted more heavily. Projected weeks apply this ratio to the historical average
                 revenue for each remaining week.
+          = form_tag(rate_of_sales_admin_analysis_index_path, method: :post, id: 'extend-form') do
+            = hidden_field_tag :target_production_id, @target_production.id
+            - @comparison_productions.each do |p|
+              = hidden_field_tag 'comparison_production_ids[]', p.id
+            = hidden_field_tag :extra_weeks, @extra_weeks, id: 'extra-weeks-field'
+            .grid-x.grid-padding-x{style: 'margin-top: 0.5rem'}
+              .cell.auto
+                - if @extra_weeks > 0
+                  %span.label.secondary Extended by #{@extra_weeks} #{'week'.pluralize(@extra_weeks)}
+              .cell.shrink
+                - if @extra_weeks > 0
+                  %a#reset-extension.button.secondary.small{href: '#'} Reset
+                %a#extend-week.button.small{href: '#'} Extend by 1 week
 
-  .grid-x.grid-padding-x
-    .small-12.cell
-      %h5 Interpretation
-      %p
-        These charts show the week-over-week percentage change in ticket sales, normalized so that
-        %strong Pre-sales
-        includes all activity more than 3 weeks before first preview, and weekly data runs from
-        that point through the end of the run. A positive value means sales increased from the
-        previous week; a negative value means they decreased.
-      %p
-        Compare the shape of the current show's curve against the historical aggregate to
-        identify whether sales are tracking ahead of, behind, or in line with past productions.
+          :javascript
+            $(document).ready(function() {
+              $('#extend-week').click(function(e) {
+                e.preventDefault();
+                var field = $('#extra-weeks-field');
+                field.val(parseInt(field.val()) + 1);
+                $('#extend-form').submit();
+              });
+              $('#reset-extension').click(function(e) {
+                e.preventDefault();
+                $('#extra-weeks-field').val(0);
+                $('#extend-form').submit();
+              });
+            });
 
 - else
   .grid-x.grid-padding-x
