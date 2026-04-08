@@ -136,6 +136,16 @@ Stagemgr has three staff roles, each building on the permissions of the role bel
 | Fulfill donations report | Yes | -- | -- |
 | Customer data mining | Yes | -- | -- |
 
+## Analysis
+
+| Action | Administrator | Box Office | Theater User |
+|--------|:---:|:---:|:---:|
+| Access analysis section | Yes | -- | Yes (own theaters) |
+| Search all productions | Yes | -- | Own theaters only |
+| Search group shortcuts (season/theater) | Yes | -- | Own theaters only |
+| Run rate of sales analysis | Yes | -- | Yes (own theaters) |
+| Revenue projection and extensions | Yes | -- | Yes (own theaters) |
+
 ## Imports, System Configuration, and Payments
 
 | Action | Administrator | Box Office | Theater User |

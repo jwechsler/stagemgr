@@ -32,6 +32,7 @@ See [Reports](reports/reports-overview.md) for all available reports, or [Import
 | Look up a customer | **Customers** menu |
 | View upcoming house counts | **My Account** (dashboard) |
 | Run a sales report | **Reports** menu |
+| Compare show performance | **Analysis** menu |
 | Set up a special offer | **Options > Special Offers** |
 | Import mailing list data | **Options > Import data** |
 | Manage staff users | **Options > Administer Users** |
@@ -50,6 +51,7 @@ This manual is organized into sections that match how Stagemgr is used:
 - **[Customers](customers/managing-patrons.md)** -- Patron records, tags, and duplicate management
 - **[House Management](house-management/daily-operations.md)** -- Day-of-show operations, fulfillment, and printing
 - **[Reports](reports/reports-overview.md)** -- Sales, attendance, donation, and export reports
+- **[Analysis](analysis/analysis-overview.md)** -- Compare show performance, revenue projections, and run extension modeling
 - **[Imports](imports/imports-overview.md)** -- Bulk data import procedures
 - **[Advanced](advanced/email-templates.md)** -- Email customization, dynamic pricing strategies, capacity management
 - **[Reference](reference/glossary.md)** -- Glossary, permissions matrix, and FAQ

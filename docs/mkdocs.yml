@@ -86,6 +86,9 @@ nav:
     - House Management Report: house-management/house-management-report.md
     - Email Attendees: house-management/email-attendees.md
     - HUD Display: house-management/hud-display.md
+  - Analysis:
+    - Analysis Overview: analysis/analysis-overview.md
+    - Rate of Sales: analysis/rate-of-sales.md
   - Reports:
     - Reports Overview: reports/reports-overview.md
     - Production Sales: reports/production-sales.md
