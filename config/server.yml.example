@@ -53,6 +53,10 @@ all:
   # Report generation configuration
   max_report_date_range_days: 730  # Maximum date range for reports (2 years)
   report_timeout_seconds: 30       # Timeout for inline report generation
+  # Calendar heatmap thresholds (percentage of seats remaining)
+  calendar_display:
+    warning_at: 50
+    critical_at: 30
   payment_processing:
     additional_card_types:
   email:
