@@ -22,8 +22,9 @@ class RateOfSalesAnalysis
     end
 
     insights = compute_insights(cutoff, target_tickets, target_revenue, aggregate_data)
+    daily_rolling = daily_rolling_revenue_for(target_production, cutoff: cutoff)
 
-    { target_tickets: target_tickets, target_revenue: target_revenue, aggregate_data: aggregate_data, projection: projection, comparison_summaries: comparison_summaries, insights: insights }
+    { target_tickets: target_tickets, target_revenue: target_revenue, aggregate_data: aggregate_data, projection: projection, comparison_summaries: comparison_summaries, insights: insights, daily_rolling: daily_rolling }
   end
 
   private
@@ -256,6 +257,33 @@ class RateOfSalesAnalysis
     end
 
     weight_total > 0 ? weighted_sum / weight_total : nil
+  end
+
+  # Returns a hash of { "M/D/YY" => rolling_7day_sum } for the target production's daily revenue
+  def daily_rolling_revenue_for(production, cutoff:)
+    anchor = production.first_playing_date
+    presale_cutoff = anchor - 21.days
+
+    records = production.rate_of_sales
+                        .where("day_of_sale < ?", cutoff)
+                        .pluck(:day_of_sale, :gross_sales)
+
+    return {} if records.empty?
+
+    daily_sales = records.each_with_object({}) do |(day, sales), h|
+      h[day] = sales.to_f
+    end
+
+    start_date = presale_cutoff
+    end_date = cutoff - 1.day
+
+    result = {}
+    (start_date..end_date).each do |date|
+      rolling_sum = (0..6).sum { |i| daily_sales[date - i.days] || 0.0 }
+      result[date.strftime("%-m/%-d/%y")] = rolling_sum.round(2)
+    end
+
+    result
   end
 
   # Returns a hash of { "Pre-sales" => pct, "Week 1" => pct, ... }

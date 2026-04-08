@@ -16,7 +16,18 @@
 
 - if @results[:target_tickets].any?
   .grid-x.grid-padding-x
-    .small-12.medium-6.cell
+    .small-12.medium-4.cell
+      %fieldset.fieldset
+        %legend
+          Daily Average Rate of Sales:
+          = @target_production.name
+        - if @results[:daily_rolling].size > 1
+          = line_chart @results[:daily_rolling], xtitle: "Date", ytitle: "Rolling 7-Day Revenue", prefix: "$", library: { scales: { x: { type: "category" } } }
+        - else
+          .callout.warning
+            Insufficient daily data to chart.
+
+    .small-12.medium-4.cell
       %fieldset.fieldset
         %legend
           Current Show:
@@ -27,7 +38,7 @@
           .callout.warning
             Insufficient data to chart. Only #{@results[:target_tickets].size} week(s) of sales data available.
 
-    .small-12.medium-6.cell
+    .small-12.medium-4.cell
       %fieldset.fieldset
         %legend
           Historical Aggregate
