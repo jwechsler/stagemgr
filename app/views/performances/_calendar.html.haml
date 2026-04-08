@@ -19,7 +19,7 @@
         %h3
           %span.month_navigation
 
-            -if (@start_date-1.month >= @production.first_playing_date.beginning_of_month ) && (@start_date-1.month >= Date.today)
+            -if (@start_date-1.month >= @production.first_playing_date.beginning_of_month ) && (@start_date-1.month >= Date.today.beginning_of_month)
               = link_to raw("&laquo;#{Date::MONTHNAMES[(@start_date-1.month).month]}&nbsp;"), :action=>:index, :start_date=>@start_date.prev_month, :end_date=>@start_date-1
             -else
               = raw("#{Date::MONTHNAMES[(@start_date-1.month).month]}&nbsp;")
