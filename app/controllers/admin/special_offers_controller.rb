@@ -6,8 +6,9 @@ class Admin::SpecialOffersController < Admin::ApplicationController
   end
 
   def create
-    @special_offer = SpecialOffer.new(special_offer_params)
-    @special_offer.type = params[:special_offer][:type]
+    object_type = [:percent_off_special_offer, :amount_off_special_offer, :ticket_class_special_offer].select { |t| params.has_key?(t) }.first || :special_offer
+    @special_offer = SpecialOffer.new(special_offer_params(object_type))
+    @special_offer.type = params[object_type][:type]
     if @special_offer.save
       redirect_to admin_special_offers_path, :notice=>"Created new special offer '#{@special_offer.code}'"
     else
@@ -35,6 +36,25 @@ class Admin::SpecialOffersController < Admin::ApplicationController
       render :edit
     end
 
+  end
+
+  def duplicate
+    @special_offer = SpecialOffer.find(params[:id])
+    object_type = [:percent_off_special_offer, :amount_off_special_offer, :ticket_class_special_offer].select { |t| params.has_key?(t) }.first
+    @special_offer.update(special_offer_params(object_type))
+    @special_offer.limiting_model_type = params[object_type][:limiting_model_type]
+    @special_offer.limiting_id = params[object_type][:limiting_id]
+
+    if @special_offer.save
+      original = @special_offer
+      @special_offer = @special_offer.dup
+      @special_offer.code = nil
+      @special_offer.limiting_model_type = original.limiting_model_type
+      @special_offer.limiting_id = original.limiting_id
+      render :new
+    else
+      render :edit
+    end
   end
 
   def show

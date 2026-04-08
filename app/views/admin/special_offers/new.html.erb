@@ -6,7 +6,7 @@
 </ul>
 <% end %>
 
-<%= simple_form_for [:admin, @special_offer] do |f| %>
+<%= simple_form_for [:admin, @special_offer], url: admin_special_offers_path do |f| %>
   <%= token_tag %>
   <%= render :partial => '/admin/special_offers/form', :locals=>{:f=>f} %>
 <% end %>

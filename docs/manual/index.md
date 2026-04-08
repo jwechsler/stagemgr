@@ -34,6 +34,7 @@ See [Reports](reports/reports-overview.md) for all available reports, or [Import
 | Run a sales report | **Reports** menu |
 | Compare show performance | **Analysis** menu |
 | Set up a special offer | **Options > Special Offers** |
+| Clone an existing special offer | Edit the offer, click **Clone as New Offer** |
 | Import mailing list data | **Options > Import data** |
 | Manage staff users | **Options > Administer Users** |
 | Configure payment types | **Options > Manage Payment Types** |

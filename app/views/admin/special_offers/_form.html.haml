@@ -68,3 +68,5 @@
     .grid-x.grid-padding-x
       .small-12.cell
         =f.button :submit
+        - unless f.object.new_record?
+          %a.secondary.button{href: "#", onclick: "var f=this.closest('form'),m=f.querySelector('input[name=\"_method\"]');if(m)m.remove();f.action='#{duplicate_admin_special_offer_path(f.object)}';f.submit();return false;"} Clone as New Offer

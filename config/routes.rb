@@ -282,7 +282,9 @@ Rails.application.routes.draw do
       resources :exchange_ticket_orders, :only=>[:new,:create]
       resources :refund_orders, :only=>[:new,:create]
     end
-    resources :special_offers
+    resources :special_offers do
+      post 'duplicate', on: :member
+    end
     resources :payment_types  do
       get :new_external_payment, :on=>:collection
       post :create_external_payment, :on=>:collection
