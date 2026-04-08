@@ -55,15 +55,15 @@ class PerformanceDecorator < ApplicationDecorator
       result << h.link_to( h.raw(display_text), object.order_url_override, class: link_classes.join(' '), style: link_style )
       return h.raw(result)
     end
-    case when (object.performance_at + object.production.running_time.minutes < Time.now) || object.sold_out? || object.withhold_from_public?
+    case when (object.performance_at + object.production.running_time.minutes < Time.now) || object.calendar_sold_out? || object.withhold_from_public?
       result << "<del>#{display_text}</del><br/>"
-      if performance.sold_out? || performance.withhold_from_public?
+      if object.calendar_sold_out? || object.withhold_from_public?
         result << "<font size=\"-2\">Sold out!</font>"
       end
-    when (object.near_capacity? || object.happening_soon?)
+    when (object.calendar_near_capacity? || object.happening_soon?)
       result << "#{display_text}<br/>" unless suppress_display_if_unavailable
-      if object.near_capacity?
-        result << "<font size=\"-2\">#{object.number_of_seats_left.eql?(1) ? '1 ticket' : 'Limited seats'} remaining. Call box office</font>"
+      if object.calendar_near_capacity?
+        result << "<font size=\"-2\">#{object.calendar_seats_left.eql?(1) ? '1 ticket' : 'Limited seats'} remaining. Call box office</font>"
       else
         result << "<font size=\"-2\">Tickets available at door</font>"
       end

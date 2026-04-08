@@ -113,6 +113,37 @@ class Performance < ApplicationRecord
     self.number_of_seats_left <= $SERVER_CONFIG['restrict_sales_due_to_capacity_at']
   end
 
+  # Calendar-optimized methods using pre-computed HouseCount data.
+  # Fall back to live queries when HouseCount is not yet available.
+  # Do NOT use these for order processing — use the live methods instead.
+
+  def calendar_sold_out?
+    house_count&.persisted? ? house_count.sold_out? : sold_out?
+  end
+
+  def calendar_near_capacity?
+    house_count&.persisted? ? house_count.near_capacity? : near_capacity?
+  end
+
+  def calendar_seats_left
+    house_count&.persisted? ? house_count.available_seats : number_of_seats_left
+  end
+
+  def calendar_heatmap_level
+    return nil if performance_at + production.running_time.minutes < Time.now
+    return nil if calendar_sold_out? || withhold_from_public?
+    capacity = production.capacity
+    return nil if capacity.nil? || capacity <= 0
+    seats_left = calendar_seats_left
+    pct_remaining = (seats_left.to_f / capacity) * 100
+    thresholds = $SERVER_CONFIG['calendar_display'] || {}
+    if pct_remaining <= (thresholds['critical_at'] || 30)
+      'critical'
+    elsif pct_remaining <= (thresholds['warning_at'] || 50)
+      'warning'
+    end
+  end
+
   def populate_ticket_class_allocations
     (self.production.ticket_classes - self.ticket_class_allocations.map{|tca|tca.ticket_class}).each do |ticket_class|
       self.ticket_class_allocations.build({:ticket_class=>ticket_class, :available=>ticket_class.auto_attach, :performance=>self})

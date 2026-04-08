@@ -42,28 +42,42 @@
 
       %tbody
         - found_sold_out = false
+        - found_heatmap = false
         - current_week_start = @start_date.wday == 0 ? @start_date : @start_date.beginning_of_week - 1
         - while current_week_start.month != (@start_date.month % 12) + 1 do
           %tr
             - 0.upto(6).each do |day|
               - current_day = current_week_start + day
 
-              %td.min100px
+              - performances = @performances.select { |per| per.performance_date==current_day }
+              - heatmap_levels = performances.map { |p| p.calendar_heatmap_level || 'open' }.uniq.sort
+              - if heatmap_levels.length == 1
+                - td_heatmap = heatmap_levels.first == 'open' ? nil : "heatmap-#{heatmap_levels.first}"
+              - else
+                - td_heatmap = "heatmap-stripe-#{heatmap_levels.join('-')}"
+              %td{class: "min100px#{td_heatmap ? " #{td_heatmap}" : ''}"}
                 .day-header
                   = raw current_day<@start_date || current_day > @end_date ? '&nbsp;' : current_day.strftime('%d')
 
-                - performances = @performances.select { |per| per.performance_date==current_day }
                 - performances.each do |performance|
                   - title = "#{performance.performance_time.to_s(:hour_min).lstrip}"
                   - title << special_feature_footnotes_for(performance,@footnotes)
-                  - found_sold_out ||= performance.sold_out?
+                  - found_sold_out ||= performance.calendar_sold_out?
+                  - perf_heatmap = performance.calendar_heatmap_level
+                  - found_heatmap ||= !perf_heatmap.nil?
                   %span.vertical_center
-                    .show-info
+                    %div{class: "show-info#{perf_heatmap ? " heatmap-#{perf_heatmap}" : ''}"}
                       =performance.decorate.order_link(title)
                       %br
                       = price_range(performance)
           - current_week_start = current_week_start + 7
       %tfoot
+        - if found_heatmap
+          %tr
+            %td{:colspan=>"7"}
+              .heatmap-legend
+                %span.heatmap-legend-item.heatmap-warning Popular performance
+                %span.heatmap-legend-item.heatmap-critical Near capacity
         %tr
           %td.boxoffice-message{:colspan=>"7"}  Problems? Call the box office at 773-975-8150 during business hours
         - if found_sold_out and !@production.allow_late_seating

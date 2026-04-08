@@ -15,8 +15,7 @@ class PerformancesController < ApplicationController
       @start_date = valid_date.nil? ? (@production.first_preview_at.nil? ? Date.today.beginning_of_month : ((@production.first_preview_at.beginning_of_month < Date.today.beginning_of_month) ? Date.today.beginning_of_month : @production.first_preview_at.beginning_of_month)) : valid_date
       @end_date = @start_date.end_of_month;
       @performances = @production.performances.includes(
-        :ticket_class_allocations, :orders, :special_features, :production,
-        {:orders=>:ticket_line_items}
+        :house_count, :ticket_class_allocations, :special_features, :production
       ).where(
         'performances.status in (?) and performances.performance_date >= ? and performances.performance_date <= ?',
         Performance.visible_statuses, @start_date, @end_date

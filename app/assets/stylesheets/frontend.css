@@ -180,6 +180,81 @@ background-dark {
   min-height: 24px;
 }
 
+/* Calendar heatmap: solid backgrounds */
+.performance_calendar td.heatmap-warning,
+.show-info.heatmap-warning,
+.heatmap-legend-item.heatmap-warning {
+  background-color: #fff9e6;
+}
+
+.performance_calendar td.heatmap-critical,
+.show-info.heatmap-critical,
+.heatmap-legend-item.heatmap-critical {
+  background-color: #ffe6e6;
+}
+
+/* Calendar heatmap: diagonal stripe backgrounds for mixed-state days */
+.performance_calendar td.heatmap-stripe-open-warning {
+  background: repeating-linear-gradient(
+    -45deg,
+    #ffffff, #ffffff 8px,
+    #fff9e6 8px, #fff9e6 16px
+  );
+}
+
+.performance_calendar td.heatmap-stripe-critical-open {
+  background: repeating-linear-gradient(
+    -45deg,
+    #ffffff, #ffffff 8px,
+    #ffe6e6 8px, #ffe6e6 16px
+  );
+}
+
+.performance_calendar td.heatmap-stripe-critical-warning {
+  background: repeating-linear-gradient(
+    -45deg,
+    #fff9e6, #fff9e6 8px,
+    #ffe6e6 8px, #ffe6e6 16px
+  );
+}
+
+.performance_calendar td.heatmap-stripe-critical-open-warning {
+  /* three-state day: open + warning + critical */
+  background: repeating-linear-gradient(
+    -45deg,
+    #ffffff, #ffffff 6px,
+    #fff9e6 6px, #fff9e6 12px,
+    #ffe6e6 12px, #ffe6e6 18px
+  );
+}
+
+/* Calendar heatmap legend */
+.heatmap-legend {
+  text-align: center;
+  padding: 4px 0;
+}
+
+.heatmap-legend-item {
+  display: inline-block;
+  padding: 3px 10px;
+  margin: 0 8px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* Ensure show-info stands out against striped td */
+.performance_calendar td[class*="heatmap-stripe"] .show-info {
+  background-color: #ffffff;
+}
+
+.performance_calendar td[class*="heatmap-stripe"] .show-info.heatmap-warning {
+  background-color: #fff9e6;
+}
+
+.performance_calendar td[class*="heatmap-stripe"] .show-info.heatmap-critical {
+  background-color: #ffe6e6;
+}
+
 .boxoffice-message {
   text-align: center;
   font-weight: bold;

@@ -13,11 +13,11 @@
       performance.ticket_class_allocations%>
 <%= if performance.performance_date<Date.today
 	raw title
-elsif performance.sold_out?
+elsif performance.calendar_sold_out?
   raw "<del>#{title}</del><br/><font size=\"-2\">Sold out!</font>"
 elsif performance.happening_soon?
   raw "#{title}<br/><font size=\"-2\">Online sales closed. Tickets available in person</font>"
-elsif performance.near_capacity?
+elsif performance.calendar_near_capacity?
   raw "#{title}<br/><font size=\"-2\">Limited seats remaining. Call box office</font>"
 else
   visible = performance.ticket_class_allocations.select { |tca|

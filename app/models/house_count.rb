@@ -11,6 +11,9 @@ class HouseCount < Metric
       self.held_seats = calculate_held_seats
       self.available_seats = performance.production&.capacity - performance.seats_held
       self.max_ticket_price = calculate_max_ticket_price
+      self.min_ticket_price = calculate_min_ticket_price
+      self.sold_out = calculate_sold_out
+      self.near_capacity = calculate_near_capacity
     end
   end
 
@@ -60,10 +63,29 @@ class HouseCount < Metric
   # Find the maximum ticket_price from ticket_classes for this performance where
   # the allocation is available, ticket_class is web_visible, and show_in_pricing_range
   def calculate_max_ticket_price
+    visible_priced_allocations.map { |tca| tca.ticket_class.ticket_price }.max
+  end
+
+  def calculate_min_ticket_price
+    visible_priced_allocations.map { |tca| tca.ticket_class.ticket_price }.min
+  end
+
+  # Mirrors Performance#sold_out? logic: no seats left AND no available
+  # web-visible non-seat-holding ticket classes
+  def calculate_sold_out
+    available_seats <= 0 &&
+      performance.ticket_class_allocations
+        .select { |tca| tca.available? && tca.ticket_class.web_visible? && !tca.ticket_class.holds_seats? }
+        .empty?
+  end
+
+  def calculate_near_capacity
+    available_seats <= $SERVER_CONFIG['restrict_sales_due_to_capacity_at']
+  end
+
+  def visible_priced_allocations
     performance.ticket_class_allocations
       .select { |tca| tca.available? && tca.ticket_class.web_visible? && tca.ticket_class.show_in_pricing_range? }
-      .map { |tca| tca.ticket_class.ticket_price }
-      .max
   end
 
 end
