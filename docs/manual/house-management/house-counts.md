@@ -112,6 +112,7 @@ House count snapshots are saved periodically, creating a historical record of ho
 
 ## Related Pages
 
+- [Calendar Heatmap](calendar-heatmap.md) -- Color-coded availability on the public ticket calendar
 - [Daily Operations](daily-operations.md) -- Day-of-show workflow using house counts
 - [Fulfilling Orders](fulfilling-orders.md) -- How fulfillment affects house counts
 - [HUD Display](hud-display.md) -- Exporting house count data for lobby monitors

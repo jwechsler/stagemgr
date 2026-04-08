@@ -81,6 +81,7 @@ nav:
   - House Management:
     - Daily Operations: house-management/daily-operations.md
     - House Counts: house-management/house-counts.md
+    - Calendar Heatmap: house-management/calendar-heatmap.md
     - Fulfilling Orders: house-management/fulfilling-orders.md
     - Printing Tickets: house-management/printing-tickets.md
     - House Management Report: house-management/house-management-report.md

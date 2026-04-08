@@ -53,6 +53,7 @@ Some system-wide settings are configured at the server level rather than through
 | **Public sales cutoff** | Minutes before showtime when public online sales close (default: 120 minutes / 2 hours) |
 | **Theater user sales cutoff** | Minutes before showtime when third-party/theater user sales close (default: 30 minutes) |
 | **Capacity restriction** | When remaining seats fall below this number, all inventory transfers to box office only (default: 9 seats) |
+| **Calendar heatmap** | Color-coded availability indicators on the public ticket calendar. `calendar_display.warning_at` (default: 50%) highlights popular performances in yellow; `calendar_display.critical_at` (default: 30%) highlights near-capacity performances in red. See [Calendar Heatmap](../house-management/calendar-heatmap.md) |
 | **Email addresses** | System email addresses for box office, error notifications, flex pass notifications, membership notifications, and supervisor notifications |
 | **Payment gateway** | Stripe configuration for credit card processing |
 | **MyEmma integration** | Email marketing platform configuration |
