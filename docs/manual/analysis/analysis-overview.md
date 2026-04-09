@@ -22,6 +22,8 @@ marketing spend, run extensions, and programming.
 Compares week-over-week growth in ticket sales and revenue between a current show and a
 set of historical comparison shows. Includes:
 
+- **Daily Average Rate of Sales** -- Rolling 7-day revenue for the current show, plotted
+  daily for a high-resolution view of sales momentum
 - **Rate of Sales Charts** -- Week-over-week percentage change in tickets and revenue for
   the current show, alongside the historical aggregate average
 - **Performance Insights** -- Computed metrics comparing the current show to historical

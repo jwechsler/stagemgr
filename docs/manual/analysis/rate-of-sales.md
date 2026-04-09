@@ -15,12 +15,40 @@ the run?"*
 
 ![Rate of Sales analysis results](../assets/images/screenshots/analysis-results-full.png)
 
-The analysis page has four sections:
+The analysis page has five sections:
 
-1. [Rate of Sales Charts](#rate-of-sales-charts)
-2. [Performance Summary](#performance-summary)
-3. [Revenue Projection](#revenue-projection)
-4. [Comparison Shows Table](#comparison-shows-table)
+1. [Daily Average Rate of Sales](#daily-average-rate-of-sales)
+2. [Rate of Sales Charts](#rate-of-sales-charts)
+3. [Performance Summary](#performance-summary)
+4. [Revenue Projection](#revenue-projection)
+5. [Comparison Shows Table](#comparison-shows-table)
+
+---
+
+## Daily Average Rate of Sales
+
+![Daily Average Rate of Sales chart](../assets/images/screenshots/analysis-daily-rate-of-sales.png)
+
+A daily line chart showing the **rolling 7-day sum of gross revenue** for the current
+show. Each point on the chart represents the total gross sales for that day plus the
+previous 6 days.
+
+- **X-axis** -- Calendar dates from the start of Week 1 through the most recent
+  completed day
+- **Y-axis** -- Rolling 7-day revenue in dollars
+
+This chart provides a higher-resolution view of revenue momentum than the weekly charts.
+Look for:
+
+- **Sustained upward trends** indicating growing audience demand
+- **Dips followed by recovery** which may correspond to mid-week lulls vs weekend surges
+- **Flattening or declining curves** suggesting the show may be entering a plateau or
+  decline phase
+
+!!! tip "Reading the Ramp-Up"
+    The first few data points will appear lower because the rolling window extends before
+    the start of the sales period (those earlier days count as $0). The chart naturally
+    ramps up as the full 7-day window fills with actual sales data.
 
 ---
 
