@@ -55,21 +55,24 @@ Capybara.javascript_driver = :selenium
 #
 ActionController::Base.allow_rescue = false
 
-# Remove/comment out the lines below if your app doesn't have a database.
-# For some databases (like MongoDB and CouchDB) you may need to use :truncation instead.
+# Share the ActiveRecord connection across threads so Capybara's Puma server
+# thread can see data created inside the test transaction. This lets us use
+# :transaction strategy for all tests (including @javascript), avoiding
+# SQLite locking issues that occur with :truncation.
+class ActiveRecord::Base
+  mattr_accessor :shared_connection
+  @@shared_connection = nil
+
+  def self.connection
+    @@shared_connection || retrieve_connection
+  end
+end
+ActiveRecord::Base.shared_connection = ActiveRecord::Base.connection
+
 begin
   DatabaseCleaner.strategy = :transaction
 rescue NameError
   raise "You need to add database_cleaner to your Gemfile (in the :test group) if you wish to use it."
-end
-
-# Configure DatabaseCleaner strategies
-Before('@javascript') do
-  DatabaseCleaner.strategy = :truncation
-end
-
-Before('not @javascript') do
-  DatabaseCleaner.strategy = :transaction
 end
 
 Before do

@@ -137,6 +137,7 @@ RSpec.describe HouseCount, type: :model do
 
       it 'returns nil when no eligible ticket classes exist' do
         production = FactoryBot.create(:production, capacity: 50)
+        production.ticket_classes.update_all(web_visible: false)
 
         FactoryBot.create(:ticket_class,
           production: production,
