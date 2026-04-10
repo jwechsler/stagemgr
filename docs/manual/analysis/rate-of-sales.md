@@ -141,11 +141,12 @@ to avoid early-run spikes that make full-run averages misleading.
 
 Estimates whether the show is currently in:
 
-- **Growth** -- Weekly revenue is still increasing
-- **Plateau** -- Weekly revenue has leveled off
-- **Decline** -- Weekly revenue is decreasing
+- **Growth** -- Historically, shows at this point in their run are still building revenue
+- **Plateau** -- The show is near the point where historical shows reached peak revenue
+- **Decline** -- The show is past the historical peak revenue period
 
-Based on the direction of recent weekly revenue compared to the historical curve's peak.
+Based on mapping the current show's position (week N of M) against where historical
+comparison shows peaked. Shows the mapped peak week for reference.
 
 ---
 

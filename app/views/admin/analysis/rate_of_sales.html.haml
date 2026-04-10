@@ -134,11 +134,14 @@
                 phase of its run
                 - case insights[:lifecycle]
                 - when :growth
-                  \— weekly revenue is still increasing
+                  \— historically, revenue is still building at this point
                 - when :plateau
-                  \— weekly revenue has leveled off
+                  \— near the historical peak revenue period
                 - when :decline
-                  \— weekly revenue is decreasing
+                  \— past the historical peak revenue period
+              %p.help-text
+                Week #{insights[:lifecycle_week]} of #{insights[:lifecycle_total_weeks]}
+                \— historical peak maps to around week #{insights[:lifecycle_peak_week]}
 
   - if @results[:projection].present?
     .grid-x.grid-padding-x

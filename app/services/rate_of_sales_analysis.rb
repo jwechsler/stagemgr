@@ -196,21 +196,33 @@ class RateOfSalesAnalysis
       insights[:performance_pct] = ((insights[:avg_revenue_per_week] / insights[:hist_avg_revenue_per_week]) * 100).round(0)
     end
 
-    # 6. Lifecycle position — compare current weekly revenue to historical curve peak
-    if target_week_keys&.any? && agg_revenue_totals.any?
-      hist_peak = agg_revenue_totals.values.max
-      recent_keys = target_week_keys.last(2)
-      recent_avg = recent_keys.sum { |k| target_revenue_totals[k] || 0 } / recent_keys.size.to_f
-      # Compare recent trend to determine phase
-      if recent_keys.size >= 2
-        recent_trend = (target_revenue_totals[recent_keys[-1]] || 0) - (target_revenue_totals[recent_keys[-2]] || 0)
-        insights[:lifecycle] = if recent_trend > 0
+    # 6. Lifecycle position — where is the show in its run vs historical peak?
+    if target_week_keys&.any? && agg_revenue_totals.any? && target_production.closing_at.present?
+      current_week = target_week_keys.map { |k| k[/\d+/].to_i }.max
+
+      anchor = target_production.first_playing_date
+      presale_cutoff = anchor - 21.days
+      total_weeks = ((target_production.closing_at - presale_cutoff).to_i / 7) + 1
+
+      # Find historical peak position normalized to fraction of run
+      hist_week_data = agg_revenue_totals.select { |k, _| k =~ /^Week \d+$/ }
+      if hist_week_data.any? && total_weeks > 0
+        peak_week_num = hist_week_data.max_by { |_, v| v }.first[/\d+/].to_i
+        hist_total_weeks = hist_week_data.keys.map { |k| k[/\d+/].to_i }.max
+
+        current_position = current_week.to_f / total_weeks
+        peak_position = peak_week_num.to_f / hist_total_weeks
+
+        insights[:lifecycle] = if current_position < peak_position - 0.05
                                  :growth
-                               elsif recent_trend > -(hist_peak * 0.05)
+                               elsif current_position <= peak_position + 0.10
                                  :plateau
                                else
                                  :decline
                                end
+        insights[:lifecycle_week] = current_week
+        insights[:lifecycle_total_weeks] = total_weeks
+        insights[:lifecycle_peak_week] = (peak_position * total_weeks).round(0).to_i
       end
     end
 
