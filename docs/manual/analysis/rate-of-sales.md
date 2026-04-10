@@ -126,9 +126,10 @@ ratio as a percentage of historical.
 
 ### Current Trajectory
 
-Whether ticket sales are **accelerating** (this week's growth rate is higher than last
-week's), **decelerating** (lower), or **holding steady**. Shows the actual percentage
-change for the last two completed weeks.
+Whether revenue is **trending up**, **trending down**, or **holding steady** based on the
+daily rolling 7-day revenue data. Compares the average rolling revenue over the last 7
+days against the prior 7 days. Shows both averages as dollar amounts and the percentage
+change between them. Requires at least 14 days of sales data to appear.
 
 ### Recent Growth Rate
 

@@ -21,8 +21,8 @@ class RateOfSalesAnalysis
       { production: p, total_revenue: total_revenue, num_weeks: num_weeks }
     end
 
-    insights = compute_insights(cutoff, target_tickets, target_revenue, aggregate_data)
     daily_rolling = daily_rolling_revenue_for(target_production, cutoff: Date.yesterday)
+    insights = compute_insights(cutoff, target_tickets, target_revenue, aggregate_data, daily_rolling)
 
     { target_tickets: target_tickets, target_revenue: target_revenue, aggregate_data: aggregate_data, projection: projection, comparison_summaries: comparison_summaries, insights: insights, daily_rolling: daily_rolling }
   end
@@ -112,7 +112,7 @@ class RateOfSalesAnalysis
     }
   end
 
-  def compute_insights(cutoff, target_tickets_pct, target_revenue_pct, aggregate_pct)
+  def compute_insights(cutoff, target_tickets_pct, target_revenue_pct, aggregate_pct, daily_rolling)
     insights = {}
 
     # Raw weekly totals for the current show
@@ -170,20 +170,25 @@ class RateOfSalesAnalysis
       insights[:revenue_growth_diff] = (target_rev_avg_pct - hist_rev_avg_pct).round(1)
     end
 
-    # 4. Current trajectory — last two weeks of ticket % change
-    week_keys = target_tickets_pct.keys.grep(/^Week \d+$/).sort_by { |k| k[/\d+/].to_i }
-    if week_keys.size >= 2
-      last_week_pct = target_tickets_pct[week_keys[-1]]
-      prev_week_pct = target_tickets_pct[week_keys[-2]]
-      insights[:last_week_change] = last_week_pct
-      insights[:prev_week_change] = prev_week_pct
-      insights[:trajectory] = if last_week_pct > prev_week_pct
-                                :accelerating
-                              elsif last_week_pct < prev_week_pct
-                                :decelerating
-                              else
-                                :steady
-                              end
+    # 4. Current trajectory — compare recent 7-day rolling avg vs prior 7-day rolling avg
+    rolling_values = daily_rolling.values
+    if rolling_values.size >= 14
+      recent_avg = rolling_values.last(7).sum / 7.0
+      prior_avg  = rolling_values[-14..-8].sum / 7.0
+
+      if prior_avg > 0
+        trajectory_pct = ((recent_avg - prior_avg) / prior_avg * 100).round(1)
+        insights[:trajectory] = if trajectory_pct > 2
+                                   :increasing
+                                 elsif trajectory_pct < -2
+                                   :decreasing
+                                 else
+                                   :steady
+                                 end
+        insights[:trajectory_recent_avg] = recent_avg.round(2)
+        insights[:trajectory_prior_avg]  = prior_avg.round(2)
+        insights[:trajectory_pct_change] = trajectory_pct
+      end
     end
 
     # 5. Performance ratio (revenue level vs historical)

@@ -82,26 +82,27 @@
 
         .small-12.medium-4.cell
           - if insights[:trajectory]
-            - color = insights[:trajectory] == :accelerating ? 'success' : (insights[:trajectory] == :steady ? 'warning' : 'alert')
+            - color = insights[:trajectory] == :increasing ? 'success' : (insights[:trajectory] == :steady ? 'warning' : 'alert')
             .callout{class: color}
               %h6 Current Trajectory
               %p
                 - case insights[:trajectory]
-                - when :accelerating
-                  Sales are
-                  %strong accelerating
-                - when :decelerating
-                  Sales are
-                  %strong decelerating
+                - when :increasing
+                  Revenue is
+                  %strong trending up
+                - when :decreasing
+                  Revenue is
+                  %strong trending down
                 - when :steady
-                  Sales are
+                  Revenue is
                   %strong holding steady
               %p
-                Last week:
-                %strong= "#{insights[:last_week_change]}%"
-                change vs
-                %strong= "#{insights[:prev_week_change]}%"
-                prior week
+                Recent 7-day avg:
+                %strong= number_to_currency(insights[:trajectory_recent_avg])
+                vs prior:
+                %strong= number_to_currency(insights[:trajectory_prior_avg])
+              %p
+                = "#{insights[:trajectory_pct_change] > 0 ? '+' : ''}#{insights[:trajectory_pct_change]}% change"
 
       .grid-x.grid-padding-x
         .small-12.medium-4.cell
