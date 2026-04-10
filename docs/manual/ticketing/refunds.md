@@ -86,6 +86,9 @@ The refund method depends on the original payment type:
 !!! warning "Credit Card Refunds"
     Credit card refunds are processed through Stripe and may take 5-10 business days to appear on the patron's statement. Inform the patron of the expected timeline.
 
+!!! note "Processing Fees Are Not Reversed"
+    When a credit card order is refunded, Stripe does not return the processing fee that was charged on the original transaction. The processing fee remains as a cost to the organization and will continue to appear on financial reports. This is standard credit card processor behavior.
+
 ## Notification Behavior
 
 The system sends a refund notification email under specific conditions:

@@ -4,8 +4,8 @@ class RecurringPayment < Payment
     'Payment'
   end
   
-  def processing_fee
-    0.22 + self.amount * 0.022
+  def calculate_processing_fee
+    (0.22 + self.amount * 0.022).round(2)
   end
 
 end

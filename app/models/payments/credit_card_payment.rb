@@ -164,7 +164,7 @@ class CreditCardPayment < CurrencyPayment
      self.card_expiration_month, self.card_expiration_year, self.card_verification_number)
   end
 
-  def processing_fee
+  def calculate_processing_fee
     effective_date = self.created_at || self.order&.created_at
     if effective_date && effective_date > Date.parse("16-07-2021")
       (self.amount) > 0 ? (0.30 + self.amount * 0.035).round(2) : 0

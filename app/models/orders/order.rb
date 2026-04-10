@@ -121,6 +121,10 @@ class Order < ApplicationRecord
     where(status: Order::ATTENDING_STATUSES)
   }
 
+  scope :paid, -> {
+    where(status: Order::FINALIZED_STATUSES)
+  }
+
   scope :finalized, -> {
     where(status: Order::FINALIZED_STATUSES)
   }
@@ -178,7 +182,11 @@ class Order < ApplicationRecord
   end
 
   def processing_fee
-    CurrencyUtils.float_to_currency_decimal(self.payments.to_a.sum(&:processing_fee))
+    if payments.loaded?
+      CurrencyUtils.float_to_currency_decimal(payments.to_a.sum { |p| p.processing_fee || p.calculate_processing_fee })
+    else
+      CurrencyUtils.float_to_currency_decimal(payments.sum(:processing_fee))
+    end
   end
 
   def membership_payments

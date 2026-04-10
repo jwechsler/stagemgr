@@ -33,7 +33,6 @@ module RecurringOrder
     payment.transaction_id = additional_info[:invoice_id]
     payment.ipn_track_id = additional_info[:id]
     payment.processed_on = additional_info[:processed_on]
-    payment.payment_fee = additional_info[:payment_fee]
     payment.payment_type = CreditCardPaymentType.first
     self.payments << payment
     payment

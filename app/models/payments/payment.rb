@@ -8,6 +8,7 @@ class Payment < ApplicationRecord
   # validates_presence_of :order
   default_scope { order(created_at: :asc )}
   before_save :set_processed_on
+  before_save :persist_processing_fee
 
   # Scope to filter payments by payment types that should be reported as sales collected.
   scope :reported_as_sales_collected, -> {
@@ -35,8 +36,8 @@ class Payment < ApplicationRecord
     "Payment"
   end
 
-  def processing_fee
-    return BigDecimal('0')
+  def calculate_processing_fee
+    BigDecimal('0')
   end
 
   def to_s
@@ -124,6 +125,10 @@ class Payment < ApplicationRecord
   protected
   def set_processed_on
     self.processed_on = self.processed_on || Time.now if self.new_record?
+  end
+
+  def persist_processing_fee
+    self.processing_fee = calculate_processing_fee if self.processing_fee.nil?
   end
 
   def create_refund_payment?

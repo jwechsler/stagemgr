@@ -504,7 +504,7 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def build_donation_totals_dump(start_day, end_day, build_for_dumpfile = false)
-    orders = DonationOrder.joins(:theater, :payments).includes([:theater, :payments]).where("orders.status in (?) and orders.created_at >= ? and orders.created_at < ?", Order::PROCESSED, start_day, end_day+1.day)
+    orders = DonationOrder.joins(:theater, :payments).includes([:theater, :payments]).where("orders.status in (?) and orders.created_at >= ? and orders.created_at < ?", Order::SETTLED_STATUSES, start_day, end_day+1.day)
     reportdata = Array.new
     theater_ids = orders.pluck(:theater_id).uniq
     theaters = Theater.find(theater_ids)
