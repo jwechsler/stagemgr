@@ -22,7 +22,7 @@ class RateOfSalesAnalysis
     end
 
     insights = compute_insights(cutoff, target_tickets, target_revenue, aggregate_data)
-    daily_rolling = daily_rolling_revenue_for(target_production, cutoff: cutoff)
+    daily_rolling = daily_rolling_revenue_for(target_production, cutoff: Date.yesterday)
 
     { target_tickets: target_tickets, target_revenue: target_revenue, aggregate_data: aggregate_data, projection: projection, comparison_summaries: comparison_summaries, insights: insights, daily_rolling: daily_rolling }
   end
@@ -265,7 +265,7 @@ class RateOfSalesAnalysis
     presale_cutoff = anchor - 21.days
 
     records = production.rate_of_sales
-                        .where("day_of_sale < ?", cutoff)
+                        .where("day_of_sale <= ?", cutoff)
                         .pluck(:day_of_sale, :gross_sales)
 
     return {} if records.empty?
@@ -275,7 +275,7 @@ class RateOfSalesAnalysis
     end
 
     start_date = presale_cutoff
-    end_date = cutoff - 1.day
+    end_date = cutoff
 
     result = {}
     (start_date..end_date).each do |date|
