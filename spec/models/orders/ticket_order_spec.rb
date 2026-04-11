@@ -618,4 +618,100 @@ RSpec.describe TicketOrder do
       end
     end
   end
+
+  context "royalty_gross" do
+    it "uses ticket_price when royalty_amount is not set" do
+      order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
+      tc = order.ticket_line_items.first.ticket_class
+      expect(tc.royalty_amount).to be_nil
+      # With no royalty_amount and ticketing_fee of 0, royalty_gross = ticket_price * count
+      expected = tc.ticket_price * order.number_of_tickets
+      expect(order.royalty_gross).to eq(expected)
+    end
+
+    it "deducts facility fee when royalty_amount is not set" do
+      order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
+      tc = order.ticket_line_items.first.ticket_class
+      tc.update_column(:ticketing_fee, 1.50)
+      # royalty_gross should deduct facility fee since ticket_price includes it
+      expected = (tc.ticket_price * order.number_of_tickets) - (1.50 * order.number_of_tickets)
+      expect(order.royalty_gross).to eq(expected)
+    end
+
+    it "uses royalty_amount when set on the ticket class" do
+      order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
+      tc = order.ticket_line_items.first.ticket_class
+      tc.update_column(:royalty_amount, 4.00)
+      tc.reload
+      # royalty_amount is exclusive of facility fee, so no deduction
+      expected = 4.00 * order.number_of_tickets
+      expect(order.royalty_gross).to eq(expected)
+    end
+
+    it "does not deduct facility fee when royalty_amount is set" do
+      order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
+      tc = order.ticket_line_items.first.ticket_class
+      tc.update_columns(royalty_amount: 4.00, ticketing_fee: 1.50)
+      tc.reload
+      # royalty_amount already excludes facility fee
+      expected = 4.00 * order.number_of_tickets
+      expect(order.royalty_gross).to eq(expected)
+    end
+
+    it "applies percent-off discount recalculated against royalty prices" do
+      order = FactoryBot.create(:ticket_order, :with_wierd_special_offer, :for_a_pair_of_tickets, :paid_with_cash)
+      tc = order.ticket_line_items.first.ticket_class
+      tc.update_column(:royalty_amount, 5.00)
+      tc.reload
+      # 17% off special offer, 2 tickets at $5 royalty
+      royalty_ticket_total = 5.00 * order.number_of_tickets
+      discount = (royalty_ticket_total * 17 / -100.0).round(2)
+      expected = royalty_ticket_total + discount
+      expect(order.royalty_gross).to eq(expected)
+    end
+
+    it "applies amount-off discount against royalty total" do
+      order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
+      tc = order.ticket_line_items.first.ticket_class
+      tc.update_column(:royalty_amount, 5.00)
+      tc.reload
+      amount_off = FactoryBot.create(:amount_off_special_offer, amount: 1.00)
+      order.build_special_offer_line_item(special_offer: amount_off)
+      order.save!
+      # $1 off per ticket, 2 tickets at $5 royalty
+      expected = (5.00 * 2) - (1.00 * 2)
+      expect(order.royalty_gross).to eq(expected)
+    end
+
+    it "calculates proportional royalty for split orders" do
+      order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
+      tc = order.ticket_line_items.first.ticket_class
+      tc.update_column(:royalty_amount, 4.00)
+      tc.reload
+      original_total = order.total_paid
+      old_tli = order.flatten_ticket_line_items
+      new_tli = [old_tli[0]]
+      split_order1, split_order2 = order.split(new_tli)
+
+      # Each split ticket gets price_override = (total_paid - service_fees) / num_tickets
+      # ratio = price_override / ticket_price
+      # royalty = royalty_amount * ratio * count
+      split_tli = split_order1.ticket_line_items.first
+      expect(split_tli.generated_from_split?).to be true
+      ratio = split_tli.price_override / tc.ticket_price
+      expected = (4.00 * ratio * split_tli.ticket_count).round(2)
+      expect(split_order1.royalty_gross).to eq(expected)
+    end
+
+    it "returns zero for exchanged orders with zero total_paid" do
+      order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
+      tc = order.ticket_line_items.first.ticket_class
+      tc.update_column(:royalty_amount, 5.00)
+      # Simulate an exchanged order with offset payments zeroing out total_paid
+      order.payments.each { |p| p.update_column(:amount, 0) }
+      order.reload
+      expect(order.total_paid).to eq(0)
+      expect(order.royalty_gross).to eq(0)
+    end
+  end
 end
