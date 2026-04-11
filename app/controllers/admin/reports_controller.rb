@@ -229,6 +229,19 @@ class Admin::ReportsController < Admin::ApplicationController
     end
   end
 
+  def royalty_report
+    @production = Production.accessible_by(current_ability, :read).find(params[:report][:production_id])
+    report = RoyaltyReport.new([@production], !params['download_csv'].nil?)
+    @headers, @report_data = report.create
+    if params['download_csv'].nil?
+      respond_to do |format|
+        format.html
+      end
+    else
+      send_report_as_csv('royalty_report', @headers, @report_data)
+    end
+  end
+
   def membership_usage
     dates = parse_date_params(starting_date: params[:starting_date], ending_date: params[:ending_date])
     @starting_date = dates[:starting_date].at_beginning_of_month

@@ -236,6 +236,10 @@ class SpecialOffer < ApplicationRecord
     raise 'Unimplemented'
   end
 
+  def calculate_royalty_discount(order)
+    calculate_discount(order)
+  end
+
   def create_code(prefix = '', size = 6)
     charset = %w{ 2 3 4 6 7 9 A C D E F G H J K L M N P Q R T V W X Y Z}
     while self.code.nil? || !FlexPass.find_by_code(self.code).nil?

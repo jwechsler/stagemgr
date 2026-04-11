@@ -178,6 +178,8 @@ Rails.application.routes.draw do
       collection do
         post :production_sales_by_performance
         get :production_sales_by_performance, :action=>:index
+        post :royalty_report
+        get :royalty_report, action: :index
         post :flexpass_sales
         get :flexpass_sales, :action=>:index
         post :weekly_box_office

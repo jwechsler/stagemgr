@@ -30,8 +30,6 @@ class User < ApplicationRecord
     c.crypto_provider = Authlogic::CryptoProviders::SCrypt
   end
 
-  validates :username, uniqueness: { case_sensitive: false }, allow_blank: true
-
   before_validation :set_defaults, :on => :create
   after_initialize :init
 

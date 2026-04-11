@@ -46,6 +46,7 @@
           = f.input :intermission
           = f.input :allow_late_seating
           = f.input :capacity
+          = f.input :royalty_percent, label: "Royalty %", hint: "Percentage applied to net revenue for royalty calculation", input_html: { step: 0.01 }
         %fieldset.fieldset
           %legend Service Fee Overrides
           = f.input :override_service_items, label:"Override Service Template Names", hint:"Comma-separated list of service items to be applied to each ticket order"

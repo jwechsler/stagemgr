@@ -6,6 +6,10 @@ class AmountOffSpecialOffer < SpecialOffer
     (self.amount || 0) * (self.applicable_line_items(order).to_a.sum{|li| li.respond_to?(:ticket_count) ? li.ticket_count : 0} || 0) * -1
   end
 
+  def calculate_royalty_discount(order)
+    (self.amount || 0) * (self.applicable_line_items(order, false).to_a.sum { |li| li.respond_to?(:ticket_count) ? li.ticket_count : 0 }) * -1
+  end
+
   def description(order)
         unless amount.nil?
           "$#{'%01.2f' % amount} off #{super}"

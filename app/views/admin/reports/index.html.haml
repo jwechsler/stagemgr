@@ -25,6 +25,25 @@
   .small-12.cell
     &nbsp;
   .small-4.cell
+    %span.report_title Royalty Report
+    %span.help_text
+      Royalty calculation by performance using royalty pricing.
+      %br
+      Ticket classes with zero sales are excluded.
+  .small-8.cell
+    = form_tag(royalty_report_admin_reports_path, :method=>"post") do
+      .grid-x.grid-padding-x.collapse
+        .small-8.cell
+          = collection_select(:report, :production_id, @productions, :id, :name)
+        .small-4.cell
+          = submit_tag "Show", :class=>'tiny button postfix'
+          &nbsp;
+          = submit_tag "Download", :name=>'download_csv', :class=>'tiny button postfix'
+
+.grid-x.grid-padding-x
+  .small-12.cell
+    &nbsp;
+  .small-4.cell
     %span.report_title Production Attendees
     %span.help_text
       Download a copy of all orders with attendee contact information as production_attendee.csv. Includes email opt-in information.
@@ -312,6 +331,15 @@
             %label{:for=>:required_theaters} Must have attended
             = select_tag(:required_theaters,  options_from_collection_for_select(Theater.all.order(:name), "id", "name"), :multiple=>true, :size=>8)
             = submit_tag "Download", :name=>'download_csv', :class=>'tiny button postfix'
+
+:javascript
+  $(document).ready(function() {
+    $('input[type="submit"]').prop('disabled', false);
+    $('form').on('submit', function() {
+      var $buttons = $(this).find('input[type="submit"]');
+      setTimeout(function() { $buttons.prop('disabled', false); }, 1000);
+    });
+  });
 
 -if @generated_reports.size > 0
   .grid-x.grid-padding-x

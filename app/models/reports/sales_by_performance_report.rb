@@ -12,12 +12,7 @@ class SalesByPerformanceReport < Report
     @breakdown_by_ticket_class = @productions.size.eql?(1) ? breakdown_by_ticket_class : false
     @restrict_to_performances = restrict_to_performance_ids.nil? ? nil : Performance.where(id: restrict_to_performance_ids)
 
-    # build headers
-    headers = Array.new
-    headers = [:performance_code, :performance_date, :performance_time]
-    @productions.first.ticket_classes.each { |tc| headers << tc.class_code } if @breakdown_by_ticket_class
-    headers += [:paid, :holds, :max_ticket, :gross, :collected, :facility, :processing, :net]
-    super(headers, reporting_user_id)
+    super([], reporting_user_id)
   end
 
   def create
@@ -107,6 +102,15 @@ class SalesByPerformanceReport < Report
     if productions.size > 1
       report << total_tickets
     end
+
+    # Build headers, filtering out ticket classes with zero sales
+    @headers = [:performance_code, :performance_date, :performance_time]
+    if breakdown_by_ticket_class
+      productions.first.ticket_classes
+        .sort { |t1, t2| t2.ticket_price <=> t1.ticket_price }
+        .each { |tc| @headers << tc.class_code if (total_tickets[tc.class_code] || 0) > 0 }
+    end
+    @headers += [:paid, :holds, :max_ticket, :gross, :collected, :facility, :processing, :net]
 
     [headers, report]
 

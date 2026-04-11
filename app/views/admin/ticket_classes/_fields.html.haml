@@ -15,6 +15,7 @@
       = f.input_field :ticket_price, :type=>:number, :value=>number_with_precision(f.object.ticket_price, :precision => 2), step: 0.25
       = f.label :ticketing_fee
       = f.input_field :ticketing_fee, :type=>:number, :value=>number_with_precision(f.object.ticketing_fee, :precision => 2), step: 0.25
+      = f.input :royalty_amount, label: "Royalty Amount", hint: "Exclusive of facility fee. Uses ticket price - facility fee if blank.", input_html: { type: :number, value: number_with_precision(f.object.royalty_amount, precision: 2), step: 0.25 }
 
 
   .small-12.medium-6.cell

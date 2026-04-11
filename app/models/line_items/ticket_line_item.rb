@@ -44,6 +44,20 @@ class TicketLineItem < LineItem
     "#{ticket_count} #{ticket_class.class_code}"
   end
 
+  def royalty_price
+    self.ticket_class.try(:royalty_price) || BigDecimal('0')
+  end
+
+  def royalty_total
+    rp = royalty_price
+    if generated_from_split? && price_override && ticket_class.ticket_price > 0
+      ratio = price_override / ticket_class.ticket_price
+      (rp * ratio * (self.ticket_count || 0)).round(2)
+    else
+      rp * (self.ticket_count || 0)
+    end
+  end
+
   def ticketing_fee
     self.ticket_class.ticketing_fee * self.ticket_count
   end

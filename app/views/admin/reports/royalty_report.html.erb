@@ -1,0 +1,16 @@
+<div class="grid-x grid-padding-x">
+  <div class="small-12 cell">
+    <h3><%= @production.theater.name %></h3>
+    <h4><%= @production.name %> — Royalty Report</h4>
+    <% if @production.royalty_percent.present? %>
+      <p>Royalty rate: <%= @production.royalty_percent %>%</p>
+    <% end %>
+
+    <table id="royalty_report" class="report">
+      <caption>
+        <i><%= @production.name %></i> royalty report as of <%= Time.now.to_s(:hour_min) %> on <%= Time.now %></i>
+      </caption>
+      <%= render partial: "generic", locals: { headers: @headers, report_body: @report_data, summary: @totals } %>
+    </table>
+  </div>
+</div>

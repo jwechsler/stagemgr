@@ -51,6 +51,10 @@ class TicketClass < ApplicationRecord
     end
   end
 
+  def royalty_price
+    royalty_amount || ticket_price
+  end
+
   def to_s
     "#{self.class_name||self.class_code}"
   end
