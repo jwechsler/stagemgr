@@ -743,12 +743,6 @@ class TicketOrder < Order
     if !split? && special_offer_line_item&.special_offer
       ticket_total += special_offer_line_item.special_offer.calculate_royalty_discount(self)
     end
-    # ticket_price includes facility fee; royalty_amount does not.
-    # Deduct facility fees for line items that fell back to ticket_price.
-    facility_deduction = ticket_line_items.to_a.sum { |tli|
-      tli.ticket_class.royalty_amount.nil? ? (tli.ticket_class.ticketing_fee * tli.ticket_count) : 0
-    }
-    ticket_total -= facility_deduction
     ticket_total = BigDecimal('0') if ticket_total < 0
     CurrencyUtils.float_to_currency_decimal(ticket_total)
   end

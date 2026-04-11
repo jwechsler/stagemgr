@@ -52,7 +52,7 @@ class TicketClass < ApplicationRecord
   end
 
   def royalty_price
-    royalty_amount || ticket_price
+    royalty_amount || (ticket_price - ticketing_fee)
   end
 
   def to_s

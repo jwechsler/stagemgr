@@ -97,6 +97,16 @@ class RoyaltyReport < Report
     # Build headers
     build_headers(active_ticket_classes)
 
+    # Insert face value sub-header row for CSV (when ticket class columns are present)
+    if breakdown_by_ticket_class
+      face_value_row = { performance_code: 'Face Value' }
+      productions.first.ticket_classes
+        .select { |tc| active_ticket_classes.include?(tc.id) }
+        .sort { |t1, t2| t2.ticket_price <=> t1.ticket_price }
+        .each { |tc| face_value_row[tc.class_code] = tc.royalty_price.to_money }
+      report.unshift(face_value_row)
+    end
+
     [headers, report]
   end
 
