@@ -18,7 +18,7 @@ you see depend on your user role.
 
 | Permission Group | Reports | Roles |
 |---|---|---|
-| **Show Reports** | Production Sales by Performance, Production Attendees, TRG Dump, Donation Dump, Order Dump | All users |
+| **Show Reports** | Production Sales by Performance, Royalty Report, Production Attendees, TRG Dump, Donation Dump, Order Dump | All users |
 | **Box Office Reports** | Daily Receipts, Fulfill Tickets, Donations Total, Membership Export, FlexPass Patron Report, Attended Dump | Box Office, Admin |
 | **House Management** | House Management Seating | Box Office, Admin |
 | **Reconciliation** | FlexPass Sales, Weekly Box Office | Box Office, Admin |
@@ -92,6 +92,7 @@ Most reports require you to specify a scope before generating:
 ## Related Pages
 
 - [Production Sales by Performance](production-sales.md)
+- [Royalty Report](royalty-report.md)
 - [Production Attendees](production-attendees.md)
 - [Weekly Box Office](weekly-box-office.md)
 - [Daily Receipts](daily-receipts.md)

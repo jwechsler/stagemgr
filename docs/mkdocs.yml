@@ -94,6 +94,7 @@ nav:
   - Reports:
     - Reports Overview: reports/reports-overview.md
     - Production Sales: reports/production-sales.md
+    - Royalty Report: reports/royalty-report.md
     - Production Attendees: reports/production-attendees.md
     - Weekly Box Office: reports/weekly-box-office.md
     - Daily Receipts: reports/daily-receipts.md

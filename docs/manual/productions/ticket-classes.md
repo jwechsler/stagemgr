@@ -56,6 +56,21 @@ The face value of the ticket in dollars. Required. Entered in increments of $0.2
 
 The per-ticket fee charged on top of the ticket price. Required. Entered in increments of $0.25. This fee appears as a separate line item on the patron's receipt.
 
+### Royalty Amount
+
+An optional override price used exclusively for [royalty report](../reports/royalty-report.md) calculations. Exclusive of facility fee. Entered in increments of $0.25.
+
+When blank, the royalty report uses `ticket_price - ticketing_fee` as the royalty basis for that ticket class. When set, the royalty amount is used directly.
+
+**Example:** A subscription ticket class might have a ticket price of $0.00 (subscribers pay through their flex pass), but a royalty amount of $25.00 so that the rights holder is compensated as if a $25 ticket was sold.
+
+!!! tip "When to Set Royalty Amount"
+    Set this field when the ticket price does not accurately reflect the value that should be used for royalty calculations. Common cases include:
+
+    - **Subscription/flex pass tickets** priced at $0 that should count toward royalties at a standard rate
+    - **Supporter tickets** where a portion of the price is a donation -- set the royalty amount to just the ticket portion
+    - **Discount classes** where the royalty agreement specifies a fixed per-ticket rate regardless of what patrons pay
+
 ## Visibility and Access
 
 ### Web Visible

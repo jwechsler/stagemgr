@@ -33,6 +33,7 @@ Default ticket classes have the same fields as production-level ticket classes. 
 | **Ticket Type** | Fixed, Donation, or Timed |
 | **Ticket Price** | Face value in $0.25 increments |
 | **Ticketing Fee** | Per-ticket fee in $0.25 increments |
+| **Royalty Amount** | Override price for royalty calculations (exclusive of facility fee) |
 | **Web Visible** | Whether patrons can purchase online |
 | **Exchangeable** | Whether tickets can be exchanged |
 | **Complimentary** | Whether treated as comp tickets |
