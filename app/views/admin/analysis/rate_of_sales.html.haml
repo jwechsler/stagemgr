@@ -150,7 +150,16 @@
           %legend Revenue Projection
           .grid-x.grid-padding-x
             .small-12.medium-8.cell
-              = line_chart [{ name: "Actual Revenue", data: @results[:projection][:actual_cumulative] }, { name: "Projected Revenue", data: @results[:projection][:projected_cumulative] }], xtitle: "Period", ytitle: "Cumulative Revenue", prefix: "$", library: { scales: { x: { type: "category" } } }
+              - chart_series = [{ name: "Actual Revenue", data: @results[:projection][:actual_cumulative] }, { name: "Projected (Historical-scaled)", data: @results[:projection][:projected_cumulative] }]
+              - if @results[:projection][:alternate_cumulative].present?
+                - chart_series << { name: "Projected (Self-scaled)", data: @results[:projection][:alternate_cumulative] }
+              = line_chart chart_series, xtitle: "Period", ytitle: "Cumulative Revenue", prefix: "$", library: { scales: { x: { type: "category" } } }
+              - if @results[:projection][:capacity_clipped]
+                %p.help-text
+                  %em
+                    One or more projected weeks were capped at remaining seat inventory
+                    (#{@results[:projection][:remaining_seats]} seats × avg price
+                    #{number_to_currency(@results[:projection][:avg_ticket_price])}).
             .small-12.medium-4.cell
               %h6 Summary
               %table
@@ -159,26 +168,47 @@
                     %td Revenue to date
                     %td.text-right= number_to_currency(@results[:projection][:actual_total])
                   %tr
-                    %td Projected remaining
+                    %td Projected remaining (historical)
                     %td.text-right= number_to_currency(@results[:projection][:projected_remaining])
                   %tr
                     %td
-                      %strong Projected total
+                      %strong Projected total (historical)
                     %td.text-right
                       %strong= number_to_currency(@results[:projection][:projected_total])
+                  - if @results[:projection][:alternate_total].present?
+                    %tr
+                      %td Projected remaining (self-scaled)
+                      %td.text-right= number_to_currency(@results[:projection][:alternate_remaining])
+                    %tr
+                      %td
+                        %strong Projected total (self-scaled)
+                      %td.text-right
+                        %strong= number_to_currency(@results[:projection][:alternate_total])
                   - projected_weeks_count = @results[:projection][:projected_cumulative].size
                   - if projected_weeks_count > 0
                     %tr
-                      %td Avg weekly (projected)
+                      %td Avg weekly (historical)
                       %td.text-right= number_to_currency(@results[:projection][:projected_remaining] / projected_weeks_count)
                   %tr
                     %td Performance ratio
                     %td.text-right= "#{(@results[:projection][:performance_ratio] * 100).round(0)}% of historical avg"
               %p.help-text
-                Projection uses a weighted historical pattern model. The performance ratio compares
-                this show's weekly revenue against the historical aggregate, with recent weeks
-                weighted more heavily. Projected weeks apply this ratio to the historical average
-                revenue for each remaining week.
+                %strong Historical-scaled
+                applies a weighted performance ratio to comparison shows' absolute
+                weekly revenue.
+                %strong Self-scaled
+                anchors on this show's 7-day rolling revenue and projects forward
+                at this show's own recent week-over-week pct change — pure
+                momentum, no historical shape. Both are capped by remaining seat
+                inventory × average realized ticket price.
+                - momentum = @results[:projection][:alternate_momentum_pct]
+                - window = @results[:projection][:alternate_momentum_window]
+                - if momentum && window && window > 0
+                  %br
+                  %em
+                    Self-scaled grows at #{momentum >= 0 ? '+' : ''}#{momentum}% per
+                    week (median of the last #{window} week#{'s' if window != 1}'
+                    pct change).
           = form_tag(rate_of_sales_admin_analysis_index_path, method: :post, id: 'extend-form') do
             = hidden_field_tag :target_production_id, @target_production.id
             - @comparison_productions.each do |p|

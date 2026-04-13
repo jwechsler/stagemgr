@@ -35,8 +35,10 @@ class RateOfSalesAnalysis
     anchor = target_production.first_playing_date
     presale_cutoff = anchor - 21.days
 
-    # Total weeks in the run, plus any extension
-    total_weeks = ((target_production.closing_at - presale_cutoff).to_i / 7) + 1 + extra_weeks
+    # Baseline run length (no extension). The body stretch uses this so that
+    # extending the run doesn't retroactively revalue already-projected weeks.
+    baseline_total_weeks = ((target_production.closing_at - presale_cutoff).to_i / 7) + 1
+    total_weeks = baseline_total_weeks + extra_weeks
 
     # Target's actual weekly revenue (through cutoff)
     target_weekly = weekly_totals_for(target_production, cutoff: cutoff, field: :gross_sales)
@@ -63,6 +65,11 @@ class RateOfSalesAnalysis
       running_total += amount
       actual_cumulative[label] = running_total.round(2)
     end
+    actual_total = actual_cumulative.values.last || 0.0
+
+    # Seat-inventory revenue cap shared by both projections
+    avg_price = avg_ticket_price_to_date(target_production)
+    remaining_rev_budget_initial = remaining_revenue_budget(target_production, avg_price)
 
     # Build the historical lifecycle curve and split into body + decline tail.
     # The body (growth + plateau) gets stretched to fill the projected run;
@@ -76,30 +83,55 @@ class RateOfSalesAnalysis
 
     body, decline_tail = split_curve_at_decline(hist_curve)
 
-    # The body fills weeks 1 through (total_weeks - decline_tail.size)
-    # The decline tail fills the final decline_tail.size weeks
-    body_weeks = total_weeks - decline_tail.size
+    # Body mapping is pinned to the baseline run (no extension), so projected
+    # weeks that already existed before the extension keep their values. The
+    # decline tail absorbs the extra weeks by stretching across a longer span.
+    body_weeks = baseline_total_weeks - decline_tail.size
+    extended_tail_weeks = decline_tail.size + extra_weeks
 
-    # Project remaining weeks
+    # Project remaining weeks (historical-scaled)
     projected_cumulative = {}
     projected_remaining = 0.0
+    remaining_budget = remaining_rev_budget_initial
+    capacity_clipped = false
     (last_actual_week + 1..total_weeks).each do |week_num|
       key = "Week #{week_num}"
       if week_num <= body_weeks
-        # Stretch the body (growth+plateau) across body_weeks
+        # Stretch the body (growth+plateau) across body_weeks (baseline only)
         interpolated = interpolate_curve(body, week_num, body_weeks)
+      elsif decline_tail.any?
+        # Stretch the decline tail across (tail.size + extra_weeks) weeks, so
+        # extension weeks interpolate within the tail rather than re-stretching
+        # the body.
+        tail_pos = week_num - body_weeks  # 1-based index into extended tail
+        interpolated = interpolate_curve(decline_tail, tail_pos, extended_tail_weeks)
       else
-        # Map to the decline tail
-        tail_index = week_num - body_weeks - 1
-        interpolated = tail_index < decline_tail.size ? decline_tail[tail_index] : decline_tail.last
+        # No decline tail — plateau at the last body value for extension weeks
+        interpolated = body.last || 0.0
       end
-      projected_week = (interpolated * ratio).round(2)
+      projected_week = interpolated * ratio
+      if projected_week > remaining_budget
+        projected_week = [remaining_budget, 0.0].max
+        capacity_clipped = true
+      end
+      projected_week = projected_week.round(2)
+      remaining_budget -= projected_week
       projected_remaining += projected_week
       running_total += projected_week
       projected_cumulative[key] = running_total.round(2)
     end
 
-    actual_total = actual_cumulative.values.last || 0.0
+    # Self-scaled alternate projection: anchor on current show's last actual
+    # weekly revenue, grow by historical pct-change shape offset by the
+    # target's recent pct-change advantage/deficit vs that shape.
+    alternate = compute_alternate_projection(
+      cutoff: cutoff,
+      target_weekly: target_weekly,
+      last_actual_week: last_actual_week,
+      total_weeks: total_weeks,
+      actual_total: actual_total,
+      remaining_rev_budget_initial: remaining_rev_budget_initial
+    )
 
     {
       actual_cumulative: actual_cumulative,
@@ -108,8 +140,114 @@ class RateOfSalesAnalysis
       projected_remaining: projected_remaining.round(2),
       projected_total: (actual_total + projected_remaining).round(2),
       actual_total: actual_total.round(2),
-      extra_weeks: extra_weeks
+      extra_weeks: extra_weeks,
+      alternate_cumulative: alternate[:alternate_cumulative],
+      alternate_remaining: alternate[:alternate_remaining],
+      alternate_total: alternate[:alternate_total],
+      alternate_momentum_pct: alternate[:alternate_momentum_pct],
+      alternate_momentum_raw_pct: alternate[:alternate_momentum_raw_pct],
+      alternate_momentum_window: alternate[:alternate_momentum_window],
+      alternate_anchor: alternate[:alternate_anchor],
+      alternate_initial_budget: alternate[:alternate_initial_budget],
+      capacity_clipped: capacity_clipped || alternate[:capacity_clipped],
+      avg_ticket_price: avg_price&.round(2),
+      remaining_seats: remaining_seats_across_future_performances(target_production)
     }
+  end
+
+  # Alternate projection (pure momentum): anchor on the target's recent 7-day
+  # rolling revenue and apply the target's own recent week-over-week pct
+  # change forward. No historical-show scaling — the projection reflects the
+  # current show's observed trajectory, capped by remaining seat inventory.
+  def compute_alternate_projection(cutoff:, target_weekly:, last_actual_week:, total_weeks:, actual_total:, remaining_rev_budget_initial:)
+    # Anchor on the 7-day rolling revenue. More stable than the last weekly
+    # bucket, which is typically partial since presale_cutoff week boundaries
+    # don't align with the start-of-week cutoff used for actuals.
+    daily_rolling = daily_rolling_revenue_for(target_production, cutoff: Date.yesterday)
+    anchor_weekly = daily_rolling.values.last.to_f
+    if anchor_weekly <= 0
+      anchor_weekly = target_weekly["Week #{last_actual_week}"].to_f
+    end
+
+    target_rev_pct = weekly_pct_change_for(target_production, cutoff: cutoff, field: :gross_sales)
+    momentum_pct, momentum_window = compute_momentum(target_rev_pct)
+    # Keep the forward rate within plausible bounds so a single early-run
+    # spike doesn't produce runaway growth or decay.
+    momentum_pct_clamped = momentum_pct.clamp(-25.0, 25.0)
+
+    alt_cumulative = {}
+    alt_remaining = 0.0
+    cum = actual_total
+    prev_weekly = anchor_weekly
+    remaining_budget = remaining_rev_budget_initial
+    capacity_clipped = false
+
+    (last_actual_week + 1..total_weeks).each do |_week_num|
+      key = "Week #{_week_num}"
+      weekly = prev_weekly * (1 + momentum_pct_clamped / 100.0)
+      weekly = 0.0 if weekly < 0
+      if weekly > remaining_budget
+        weekly = [remaining_budget, 0.0].max
+        capacity_clipped = true
+      end
+      weekly = weekly.round(2)
+      remaining_budget -= weekly
+      alt_remaining += weekly
+      cum += weekly
+      alt_cumulative[key] = cum.round(2)
+      prev_weekly = weekly
+    end
+
+    {
+      alternate_cumulative: alt_cumulative,
+      alternate_remaining: alt_remaining.round(2),
+      alternate_total: (actual_total + alt_remaining).round(2),
+      alternate_momentum_pct: momentum_pct_clamped.round(1),
+      alternate_momentum_raw_pct: momentum_pct.round(1),
+      alternate_momentum_window: momentum_window,
+      alternate_anchor: anchor_weekly.round(2),
+      alternate_initial_budget: remaining_rev_budget_initial.finite? ? remaining_rev_budget_initial.round(2) : nil,
+      capacity_clipped: capacity_clipped
+    }
+  end
+
+  # Returns [momentum_pct, window_size]. Momentum is the median of the
+  # target's own week-over-week pct changes over the last 3 non-"Pre-sales"
+  # weeks. Median over mean so a single early-week spike (e.g., opening
+  # surge) doesn't dominate. Returns [0.0, 0] if fewer than 2 weeks exist.
+  def compute_momentum(target_rev_pct)
+    keys = target_rev_pct.keys.grep(/^Week \d+$/).sort_by { |k| k[/\d+/].to_i }
+    recent = keys.last(3)
+    return [0.0, 0] if recent.size < 2
+
+    values = recent.map { |k| target_rev_pct[k] }.sort
+    mid = values.size / 2
+    momentum = values.size.odd? ? values[mid] : (values[mid - 1] + values[mid]) / 2.0
+    [momentum, recent.size]
+  end
+
+  # Realized average ticket price across all sales to date.
+  def avg_ticket_price_to_date(production)
+    totals = production.rate_of_sales.pluck(:gross_sales, :total_single_tickets)
+    total_rev = totals.sum { |r, _| r.to_f }
+    total_tix = totals.sum { |_, t| t.to_i }
+    return nil if total_tix <= 0
+    total_rev / total_tix
+  end
+
+  # Sum of seats_left across all performances that have not yet occurred.
+  def remaining_seats_across_future_performances(production)
+    today = Date.today
+    production.performances
+              .select { |p| p.performance_date && p.performance_date >= today }
+              .sum { |p| [p.number_of_seats_left.to_i, 0].max }
+  end
+
+  # Upper bound on remaining revenue = remaining future seats * avg price.
+  # Returns Float::INFINITY when we can't derive a price (no sales yet).
+  def remaining_revenue_budget(production, avg_price)
+    return Float::INFINITY if avg_price.nil? || avg_price <= 0
+    remaining_seats_across_future_performances(production) * avg_price
   end
 
   def compute_insights(cutoff, target_tickets_pct, target_revenue_pct, aggregate_pct, daily_rolling)
