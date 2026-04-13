@@ -21,10 +21,20 @@ class RateOfSalesAnalysis
       { production: p, total_revenue: total_revenue, num_weeks: num_weeks }
     end
 
+    target_weekly_rev = weekly_totals_for(target_production, cutoff: cutoff, field: :gross_sales)
+    target_summary = {
+      production: target_production,
+      total_revenue: target_weekly_rev.values.sum,
+      num_weeks: extract_max_week(target_weekly_rev)
+    }
+
     daily_rolling = daily_rolling_revenue_for(target_production, cutoff: Date.yesterday)
+    comparison_daily_rolling = if comparison_productions.size == 1
+      daily_rolling_revenue_for(comparison_productions.first, cutoff: Date.today)
+    end
     insights = compute_insights(cutoff, target_tickets, target_revenue, aggregate_data, daily_rolling)
 
-    { target_tickets: target_tickets, target_revenue: target_revenue, aggregate_data: aggregate_data, projection: projection, comparison_summaries: comparison_summaries, insights: insights, daily_rolling: daily_rolling }
+    { target_tickets: target_tickets, target_revenue: target_revenue, aggregate_data: aggregate_data, projection: projection, comparison_summaries: comparison_summaries, target_summary: target_summary, insights: insights, daily_rolling: daily_rolling, comparison_daily_rolling: comparison_daily_rolling }
   end
 
   private

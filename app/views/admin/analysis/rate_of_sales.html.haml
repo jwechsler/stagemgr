@@ -15,8 +15,9 @@
       against #{@comparison_productions.count} historical #{'production'.pluralize(@comparison_productions.count)}
 
 - if @results[:target_tickets].any?
+  - single_comparison = @results[:comparison_daily_rolling].present?
   .grid-x.grid-padding-x
-    .small-12.medium-4.cell
+    .cell{class: single_comparison ? 'small-12 medium-6' : 'small-12 medium-4'}
       %fieldset.fieldset
         %legend
           Daily Average Rate of Sales:
@@ -27,27 +28,65 @@
           .callout.warning
             Insufficient daily data to chart.
 
-    .small-12.medium-4.cell
-      %fieldset.fieldset
-        %legend
-          Current Show:
-          = @target_production.name
-        - if @results[:target_tickets].size > 1
-          = line_chart [{ name: "Tickets", data: @results[:target_tickets] }, { name: "Revenue", data: @results[:target_revenue] }], xtitle: "Period", ytitle: "% Change Week over Week", suffix: "%", library: { scales: { x: { type: "category" } } }
-        - else
-          .callout.warning
-            Insufficient data to chart. Only #{@results[:target_tickets].size} week(s) of sales data available.
+    - if single_comparison
+      - comp = @comparison_productions.first
+      .cell.small-12.medium-6
+        %fieldset.fieldset
+          %legend
+            Daily Average Rate of Sales:
+            = comp.name
+          - if @results[:comparison_daily_rolling].size > 1
+            = line_chart @results[:comparison_daily_rolling], xtitle: "Date", ytitle: "Rolling 7-Day Revenue", prefix: "$", library: { scales: { x: { type: "category" } } }
+          - else
+            .callout.warning
+              Insufficient daily data to chart.
 
-    .small-12.medium-4.cell
-      %fieldset.fieldset
-        %legend
-          Historical Aggregate
-          %small (#{@comparison_productions.count} #{'show'.pluralize(@comparison_productions.count)})
-        - if @results[:aggregate_data].size > 1
-          = line_chart @results[:aggregate_data], xtitle: "Period", ytitle: "Avg % Change in Tickets Sold", suffix: "%", library: { scales: { x: { type: "category" } } }
-        - else
-          .callout.warning
-            Insufficient aggregate data to chart.
+    - unless single_comparison
+      .cell.small-12.medium-4
+        %fieldset.fieldset
+          %legend
+            Current Show:
+            = @target_production.name
+          - if @results[:target_tickets].size > 1
+            = line_chart [{ name: "Tickets", data: @results[:target_tickets] }, { name: "Revenue", data: @results[:target_revenue] }], xtitle: "Period", ytitle: "% Change Week over Week", suffix: "%", library: { scales: { x: { type: "category" } } }
+          - else
+            .callout.warning
+              Insufficient data to chart. Only #{@results[:target_tickets].size} week(s) of sales data available.
+
+      .cell.small-12.medium-4
+        %fieldset.fieldset
+          %legend
+            Historical Aggregate
+            %small (#{@comparison_productions.count} #{'show'.pluralize(@comparison_productions.count)})
+          - if @results[:aggregate_data].size > 1
+            = line_chart @results[:aggregate_data], xtitle: "Period", ytitle: "Avg % Change in Tickets Sold", suffix: "%", library: { scales: { x: { type: "category" } } }
+          - else
+            .callout.warning
+              Insufficient aggregate data to chart.
+
+  - if single_comparison
+    .grid-x.grid-padding-x
+      .cell.small-12.medium-6
+        %fieldset.fieldset
+          %legend
+            Current Show:
+            = @target_production.name
+          - if @results[:target_tickets].size > 1
+            = line_chart [{ name: "Tickets", data: @results[:target_tickets] }, { name: "Revenue", data: @results[:target_revenue] }], xtitle: "Period", ytitle: "% Change Week over Week", suffix: "%", library: { scales: { x: { type: "category" } } }
+          - else
+            .callout.warning
+              Insufficient data to chart. Only #{@results[:target_tickets].size} week(s) of sales data available.
+
+      .cell.small-12.medium-6
+        %fieldset.fieldset
+          %legend
+            Historical Aggregate
+            %small (#{@comparison_productions.count} #{'show'.pluralize(@comparison_productions.count)})
+          - if @results[:aggregate_data].size > 1
+            = line_chart @results[:aggregate_data], xtitle: "Period", ytitle: "Avg % Change in Tickets Sold", suffix: "%", library: { scales: { x: { type: "category" } } }
+          - else
+            .callout.warning
+              Insufficient aggregate data to chart.
 
   - insights = @results[:insights] || {}
   .grid-x.grid-padding-x
@@ -260,6 +299,18 @@
           %th.text-right Total Revenue
           %th.text-right Weeks (incl. pre-sales)
       %tbody
+        - ts = @results[:target_summary]
+        - tp = ts[:production]
+        %tr.success
+          %td= tp.season
+          %td
+            %strong= tp.name
+            %small.label.secondary{style: 'margin-left: 0.4rem'} Current
+          %td= tp.theater.name
+          %td.text-right
+            %strong= number_to_currency(ts[:total_revenue])
+          %td.text-right
+            %strong= ts[:num_weeks]
         - @results[:comparison_summaries].each do |summary|
           - p = summary[:production]
           %tr
