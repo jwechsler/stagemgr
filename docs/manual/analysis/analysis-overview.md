@@ -28,8 +28,11 @@ set of historical comparison shows. Includes:
   the current show, alongside the historical aggregate average
 - **Performance Insights** -- Computed metrics comparing the current show to historical
   averages (tickets/week, revenue/week, growth trajectory, lifecycle position)
-- **Revenue Projection** -- Projected cumulative revenue through end of run using a
-  weighted historical pattern model, with support for modeling run extensions
+- **Revenue Projection** -- Two projected cumulative revenue lines through end of run:
+  a **Historical-scaled** line that applies the current show's performance ratio to a
+  comparison-show lifecycle curve, and a **Self-scaled (momentum)** line that extends
+  the current show's own recent growth rate forward. Both lines are capped by remaining
+  seat inventory and support modeling run extensions.
 
 See [Rate of Sales Analysis](rate-of-sales.md) for full details.
 

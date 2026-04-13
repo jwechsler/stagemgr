@@ -154,63 +154,118 @@ comparison shows peaked. Shows the mapped peak week for reference.
 
 ![Revenue Projection chart and summary](../assets/images/screenshots/analysis-revenue-projection.png)
 
-A cumulative revenue chart with two lines:
+A cumulative revenue chart with three lines:
 
-- **Actual Revenue** (solid) -- Cumulative gross revenue through the last completed week
-- **Projected Revenue** (continues from actual) -- Estimated cumulative revenue through
-  end of run
+- **Actual Revenue** -- Cumulative gross revenue through the last completed week
+- **Projected (Historical-scaled)** -- Estimated cumulative revenue through end of run,
+  shaped by the comparison shows' lifecycle curve
+- **Projected (Self-scaled)** -- Estimated cumulative revenue through end of run, driven
+  entirely by the current show's own recent growth rate
 
-### How the Projection Works
+The two projection lines answer different questions. Historical-scaled asks *"If this
+show follows the comparison shows' lifecycle pattern, where does it end up?"* Self-scaled
+asks *"If this show keeps growing at its current rate, where does it end up?"* The gap
+between them indicates how much of the forecast depends on the historical pattern being a
+good match.
 
-The projection uses a **scaled historical pattern model with lifecycle curve fitting**:
+### Historical-scaled Projection
+
+Uses a **scaled historical pattern model with lifecycle curve fitting**:
 
 1. **Performance ratio**: Compares the current show's weekly revenue to the historical
    aggregate's weekly revenue, with recent weeks weighted more heavily (exponential
-   decay factor of 0.7). This ratio indicates how the current show is performing
-   relative to history.
+   decay factor of 0.7).
 
-2. **Lifecycle curve**: The historical aggregate's revenue curve is split into two phases:
-   - **Body** (growth + plateau) -- Detected dynamically from the data as everything
-     up to and including the peak week
-   - **Decline tail** -- The sustained decline from after the peak through end of run
+2. **Lifecycle curve**: The historical aggregate's revenue curve is split into two
+   phases:
+   - **Body** (growth + plateau) -- detected dynamically as everything up to and
+     including the peak week
+   - **Decline tail** -- the sustained decline from after the peak through end of run
 
 3. **Curve stretching**: The body phase is stretched to fill the projected run length.
-   The decline tail is appended at the end unchanged. This ensures that every
-   projection -- regardless of run length -- ends with the natural audience decline
-   pattern from historical data.
+   The decline tail is appended at the end. Extensions stretch only the decline tail,
+   so already-projected weeks keep their values when you extend.
 
 4. **Revenue calculation**: Each projected week's revenue = interpolated historical
    value at that position in the curve, multiplied by the performance ratio.
+
+### Self-scaled (Momentum) Projection
+
+Uses a **pure momentum model** based on the current show's own sales:
+
+1. **Anchor**: The most recent rolling 7-day revenue for the current show. This matches
+   the value shown on the [Daily Average Rate of Sales](#daily-average-rate-of-sales)
+   chart and is more stable than a single weekly bucket.
+
+2. **Momentum rate**: The median week-over-week percentage change in revenue across the
+   current show's last three completed weeks. Median (not mean) is used so a single
+   early-run spike does not dominate the projection. The rate is clamped to ±25% per
+   week for safety.
+
+3. **Revenue calculation**: Each projected week = prior week × (1 + momentum rate). If
+   the show has been growing at 8% per week, the projection keeps growing at 8% per
+   week. If it has been flat, the projection stays flat.
+
+The self-scaled line ignores the comparison shows entirely. It will project continued
+growth when the current show is trending up, and gentle decline when the trend is down,
+regardless of how the comparison shows behaved.
+
+### Seat Inventory Cap
+
+Both projections are capped by the current show's remaining seat inventory to prevent
+implausible revenue totals. The cap is calculated as:
+
+**Remaining seats** (across all future performances) **× average realized ticket price**
+(from sales to date).
+
+When a projected week would imply selling more revenue than is physically possible, the
+week is clipped to the remaining budget and subsequent weeks stay at zero. The help text
+under the chart notes when any week has been capped.
 
 ### Summary Table
 
 | Metric | Description |
 |--------|-------------|
 | **Revenue to date** | Actual cumulative gross revenue through last completed week |
-| **Projected remaining** | Estimated revenue for all remaining weeks |
-| **Projected total** | Revenue to date + projected remaining |
-| **Avg weekly (projected)** | Projected remaining divided by number of projected weeks |
+| **Projected remaining (historical)** | Historical-scaled estimate for all remaining weeks |
+| **Projected total (historical)** | Revenue to date + historical-scaled projected remaining |
+| **Projected remaining (self-scaled)** | Momentum-based estimate for all remaining weeks |
+| **Projected total (self-scaled)** | Revenue to date + self-scaled projected remaining |
+| **Avg weekly (historical)** | Historical-scaled remaining divided by number of projected weeks |
 | **Performance ratio** | Current show's revenue as a percentage of historical average |
+
+The help text below the table reports the momentum rate that drives the self-scaled line
+(for example, *"Self-scaled grows at +4.2% per week (median of the last 3 weeks' pct
+change)"*).
 
 ### Run Extensions
 
 The **Extend by 1 week** button models what happens if the run is extended beyond its
 scheduled closing date. Each click adds one week to the projection and recalculates
-all projected values.
+both projections.
 
 When extending:
 
-- The historical lifecycle curve is stretched to fit the longer run
-- The decline tail (end-of-run audience dropoff) shifts to the new end date
-- Projected remaining revenue and totals update to reflect the extension
-- The **Extended by N weeks** label shows how many weeks have been added
-- Click **Reset** to return to the original run length
+- The historical-scaled projection stretches its decline tail to cover the added weeks;
+  already-projected weeks keep their values.
+- The self-scaled projection adds one more compounding step at the momentum rate.
+- Both projections remain capped by remaining seat inventory.
+- The **Extended by N weeks** label shows how many weeks have been added.
+- Click **Reset** to return to the original run length.
+
+!!! tip "Reading the Two Lines"
+    When the historical-scaled and self-scaled lines **agree**, the current show is
+    tracking the comparison pattern closely and either projection is a reasonable
+    forecast. When they **diverge sharply**, the current show is behaving differently
+    than the comparison set -- use the self-scaled line as a momentum-only sanity check
+    and look at the [Lifecycle Position](#lifecycle-position) and [Current
+    Trajectory](#current-trajectory) cards to understand why.
 
 !!! tip "Extension Modeling"
     Use extensions to evaluate whether adding weeks to a run is likely to generate
-    meaningful additional revenue. If each additional week projects declining returns,
-    it may not justify the additional costs. Compare the projected average weekly
-    revenue against your weekly operating costs to make the decision.
+    meaningful additional revenue. If each additional week projects declining returns
+    under both models, it may not justify the additional costs. Compare the projected
+    average weekly revenue against your weekly operating costs to make the decision.
 
 ---
 
