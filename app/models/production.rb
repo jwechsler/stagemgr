@@ -116,6 +116,10 @@ class Production < ApplicationRecord
     self.first_playing_date <= through && (self.closing_at.nil? ? true : (self.closing_at >= Date.today))
   end
 
+  def closed?
+    closing_at.present? && closing_at < Date.today
+  end
+
   def visible?
     Production.visible_statuses.include?(self.status)
   end

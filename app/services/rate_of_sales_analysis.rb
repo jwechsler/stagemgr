@@ -430,7 +430,8 @@ class RateOfSalesAnalysis
     end
 
     start_date = presale_cutoff
-    end_date = cutoff
+    last_sale = records.map(&:first).max
+    end_date = [cutoff, last_sale].min
 
     result = {}
     (start_date..end_date).each do |date|

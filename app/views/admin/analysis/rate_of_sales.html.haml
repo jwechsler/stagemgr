@@ -81,7 +81,7 @@
                 = "#{rev_ratio}% of historical average"
 
         .small-12.medium-4.cell
-          - if insights[:trajectory]
+          - if insights[:trajectory] && !@target_production.closed?
             - color = insights[:trajectory] == :increasing ? 'success' : (insights[:trajectory] == :steady ? 'warning' : 'alert')
             .callout{class: color}
               %h6 Current Trajectory
@@ -106,7 +106,7 @@
 
       .grid-x.grid-padding-x
         .small-12.medium-4.cell
-          - if insights[:ticket_growth_diff]
+          - if insights[:ticket_growth_diff] && !@target_production.closed?
             - diff = insights[:ticket_growth_diff]
             .callout.secondary
               %h6 Recent Growth Rate
@@ -125,7 +125,7 @@
               %p.help-text= "Based on last #{insights[:growth_window]} weeks"
 
         .small-12.medium-4.cell
-          - if insights[:lifecycle]
+          - if insights[:lifecycle] && !@target_production.closed?
             .callout.secondary
               %h6 Lifecycle Position
               %p
