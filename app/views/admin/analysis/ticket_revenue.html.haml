@@ -158,6 +158,22 @@
 
 :javascript
   (function() {
+    var targetData     = #{target_chart.to_json};
+    var compData       = #{comp_chart.to_json};
+
+    function modeMax(data, m) {
+      if (!data) return 0;
+      var vals = data[m].values;
+      return vals.length ? Math.max.apply(null, vals) : 0;
+    }
+
+    function computeYMax(m) {
+      var raw = Math.max(modeMax(targetData, m), modeMax(compData, m));
+      return Math.max(Math.ceil(raw / 5) * 5, 5);
+    }
+
+    var yMax = { capacity: computeYMax('capacity'), paid: computeYMax('paid') };
+
     function buildChart(canvasId, chartData) {
       var canvas = document.getElementById(canvasId);
       if (!chartData || !canvas) return null;
@@ -182,7 +198,7 @@
           scales: {
             y: {
               min: 0,
-              max: 100,
+              max: yMax[mode],
               ticks: { callback: function(v) { return v + '%'; } }
             }
           },
@@ -217,14 +233,15 @@
         chart.data.labels                      = modeData().labels;
         chart.data.datasets[0].data            = modeData().values;
         chart.data.datasets[0].backgroundColor = modeData().colors;
+        chart.options.scales.y.max             = yMax[newMode];
         chart.update();
       };
 
       return chart;
     }
 
-    var targetChart     = buildChart('target-bucket-chart',     #{target_chart.to_json});
-    var comparisonChart = buildChart('comparison-bucket-chart', #{comp_chart.to_json});
+    var targetChart     = buildChart('target-bucket-chart',     targetData);
+    var comparisonChart = buildChart('comparison-bucket-chart', compData);
 
     $('#toggle-capacity').on('click', function(e) {
       e.preventDefault();
