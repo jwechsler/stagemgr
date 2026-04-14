@@ -22,20 +22,18 @@
     .small-12.cell
       %p.help-text
         Each bar shows what percentage of
-        %strong#denominator-label capacity
+        %strong#denominator-label paid sales
         tickets were in that price bucket.
         %strong ⚑
         indicates a bucket that sold to its allocation limit.
       .button-group
-        %button.button.small#toggle-capacity{type: 'button'} % of Capacity
-        %button.button.small.secondary#toggle-paid{type: 'button'} % of Paid Sales
+        %a.button.small#toggle-paid{href: '#'} % of Paid Sales
+        %a.button.small.secondary#toggle-capacity{href: '#'} % of Capacity
 
   .grid-x.grid-padding-x
     .cell{class: @comparison_result ? 'small-12 medium-6' : 'small-12 medium-8 medium-offset-2'}
       %fieldset.fieldset
-        %legend
-          = @target_production.name
-          %small.label.secondary{style: 'margin-left:0.4rem'} Current
+        %legend= @target_production.name
         %canvas#target-bucket-chart
       - unless @target_production.closed?
         .callout.warning{style: 'margin-top: 0.5rem; padding: 0.5rem; font-size: 0.875rem'}
@@ -160,7 +158,7 @@
       var canvas = document.getElementById(canvasId);
       if (!chartData || !canvas) return null;
 
-      var mode = 'capacity';
+      var mode = 'paid';
 
       function modeData() { return chartData[mode]; }
 
@@ -224,7 +222,8 @@
     var targetChart     = buildChart('target-bucket-chart',     #{target_chart.to_json});
     var comparisonChart = buildChart('comparison-bucket-chart', #{comp_chart.to_json});
 
-    $('#toggle-capacity').on('click', function() {
+    $('#toggle-capacity').on('click', function(e) {
+      e.preventDefault();
       $(this).removeClass('secondary');
       $('#toggle-paid').addClass('secondary');
       $('#denominator-label').text('capacity');
@@ -232,7 +231,8 @@
       if (comparisonChart) comparisonChart.setMode('capacity');
     });
 
-    $('#toggle-paid').on('click', function() {
+    $('#toggle-paid').on('click', function(e) {
+      e.preventDefault();
       $(this).removeClass('secondary');
       $('#toggle-capacity').addClass('secondary');
       $('#denominator-label').text('paid sales');
