@@ -1,0 +1,246 @@
+= content_for :title do
+  Ticket Revenue Analysis
+= content_for :breadcrumbs do
+  %ul.breadcrumbs
+    %li= link_to 'Analysis', admin_analysis_index_path(target_production_id: @target_production.id, comparison_production_id: @comparison_production&.id, analysis_type: 'ticket_revenue')
+    %li.current Ticket Revenue
+
+.grid-x.grid-padding-x
+  .small-12.cell
+    %h4 Ticket Revenue Analysis
+    %p.lead
+      Pricing distribution for
+      %strong= @target_production.name
+      (#{@target_production.season}, #{@target_production.theater.name})
+      - if @comparison_production
+        \vs.
+        %strong= @comparison_production.name
+        (#{@comparison_production.season}, #{@comparison_production.theater.name})
+
+- if @target_result.buckets.any?
+  .grid-x.grid-padding-x
+    .small-12.cell
+      %p.help-text
+        Each bar shows what percentage of
+        %strong#denominator-label paid sales
+        tickets were in that price bucket.
+        %strong ⚑
+        indicates a bucket that sold to its allocation limit.
+      .button-group
+        %a.button.small#toggle-paid{href: '#'} % of Paid Sales
+        %a.button.small.secondary#toggle-capacity{href: '#'} % of Capacity
+
+  .grid-x.grid-padding-x
+    .cell{class: @comparison_result ? 'small-12 medium-6' : 'small-12 medium-8 medium-offset-2'}
+      %fieldset.fieldset
+        %legend= @target_production.name
+        %canvas#target-bucket-chart
+      - unless @target_production.closed?
+        .callout.warning{style: 'margin-top: 0.5rem; padding: 0.5rem; font-size: 0.875rem'}
+          %strong Run in progress &mdash;
+          = "#{@target_result.completed_performance_count} of #{@target_result.performance_count} performances complete."
+    - if @comparison_result && @comparison_result.buckets.any?
+      .small-12.medium-6.cell
+        %fieldset.fieldset
+          %legend= @comparison_production.name
+          %canvas#comparison-bucket-chart
+        - unless @comparison_production.closed?
+          .callout.warning{style: 'margin-top: 0.5rem; padding: 0.5rem; font-size: 0.875rem'}
+            %strong Run in progress &mdash;
+            = "#{@comparison_result.completed_performance_count} of #{@comparison_result.performance_count} performances complete."
+
+  - # Summary table
+  .grid-x.grid-padding-x{style: 'margin-top: 1.5rem'}
+    .small-12.cell
+      %h5 Revenue Summary
+      %table.hover
+        %thead
+          %tr
+            %th
+            %th= @target_production.name
+            - if @comparison_result
+              %th= @comparison_production.name
+        %tbody
+          %tr
+            %td Performances
+            %td= @target_result.performance_count
+            - if @comparison_result
+              %td= @comparison_result.performance_count
+          %tr
+            %td Paid tickets sold
+            %td= @target_result.total_paid
+            - if @comparison_result
+              %td= @comparison_result.total_paid
+          %tr
+            %td Comp tickets
+            %td= @target_result.comp_count
+            - if @comparison_result
+              %td= @comparison_result.comp_count
+          %tr
+            %td Total seats (capacity × perfs)
+            %td= @target_result.total_capacity
+            - if @comparison_result
+              %td= @comparison_result.total_capacity
+          %tr
+            %td Capacity utilization
+            %td= "#{@target_result.capacity_utilization_pct}%"
+            - if @comparison_result
+              %td= "#{@comparison_result.capacity_utilization_pct}%"
+          %tr
+            %td
+              %strong Gross revenue
+            %td
+              %strong= number_to_currency(@target_result.gross_revenue)
+            - if @comparison_result
+              %td
+                %strong= number_to_currency(@comparison_result.gross_revenue)
+          %tr
+            %td Overall avg paid price
+            %td= number_to_currency(@target_result.overall_avg_paid_price)
+            - if @comparison_result
+              %td= number_to_currency(@comparison_result.overall_avg_paid_price)
+      %p.help-text{style: 'margin-top: 0.5rem; font-size: 0.8rem'}
+        Gross revenue figures are derived from ticket line item data, net of ticketing fees.
+        They may not precisely reflect partial discounting or per-ticket pricing when multiple
+        ticket classes are aggregated within a single order.
+
+  - # Per-bucket detail tables
+  .grid-x.grid-padding-x{style: 'margin-top: 1rem'}
+    .cell{class: @comparison_result ? 'small-12 large-6' : 'small-12 medium-8 medium-offset-2'}
+      %h6= @target_production.name
+      = render partial: 'bucket_detail', locals: { summary: @target_result }
+    - if @comparison_result && @comparison_result.buckets.any?
+      .small-12.large-6.cell
+        %h6= @comparison_production.name
+        = render partial: 'bucket_detail', locals: { summary: @comparison_result }
+
+  - # Dynamic lift rollup
+  - target_has_dynamic = @target_result.buckets.any? { |b| b.ticket_class_ids.size > 1 }
+  - comp_has_dynamic   = @comparison_result&.buckets&.any? { |b| b.ticket_class_ids.size > 1 }
+  - if target_has_dynamic || comp_has_dynamic
+    .grid-x.grid-padding-x
+      .small-12.cell
+        %h5 Dynamic Pricing Lift (aggregate)
+        %table.hover
+          %thead
+            %tr
+              %th
+              %th= @target_production.name
+              - if @comparison_result
+                %th= @comparison_production.name
+          %tbody
+            %tr
+              %td Total lift
+              %td= number_to_currency(@target_result.total_dynamic_lift_dollars)
+              - if @comparison_result
+                %td= number_to_currency(@comparison_result.total_dynamic_lift_dollars)
+            %tr
+              %td Lift %
+              %td= @target_result.total_dynamic_lift_pct ? "#{@target_result.total_dynamic_lift_pct}%" : "—"
+              - if @comparison_result
+                %td= @comparison_result.total_dynamic_lift_pct ? "#{@comparison_result.total_dynamic_lift_pct}%" : "—"
+
+- else
+  .grid-x.grid-padding-x
+    .small-12.cell
+      .callout.secondary
+        No ticket sales data found for
+        %strong= @target_production.name
+
+.grid-x.grid-padding-x
+  .small-12.cell
+    %hr
+    = link_to 'Back to Analysis', admin_analysis_index_path(target_production_id: @target_production.id, comparison_production_id: @comparison_production&.id, analysis_type: 'ticket_revenue'), class: 'button secondary'
+
+- # Embed chart data as JSON for JavaScript
+- target_chart  = bucket_chart_data(@target_result)
+- comp_chart    = @comparison_result&.buckets&.any? ? bucket_chart_data(@comparison_result) : nil
+
+:javascript
+  (function() {
+    function buildChart(canvasId, chartData) {
+      var canvas = document.getElementById(canvasId);
+      if (!chartData || !canvas) return null;
+
+      var mode = 'paid';
+
+      function modeData() { return chartData[mode]; }
+
+      var ctx = canvas.getContext('2d');
+      var chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels:   modeData().labels,
+          datasets: [{
+            data:            modeData().values,
+            backgroundColor: modeData().colors,
+            borderRadius:    3
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              min: 0,
+              max: 100,
+              ticks: { callback: function(v) { return v + '%'; } }
+            }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                title: function(items) {
+                  return items[0].label.replace(/\n/g, ' ');
+                },
+                label: function(item) {
+                  var lines = [item.formattedValue + '%'];
+                  var ladder = modeData().ladders[item.dataIndex];
+                  if (ladder && Object.keys(ladder).length > 0) {
+                    lines.push('Price distribution:');
+                    Object.entries(ladder)
+                      .sort(function(a, b) { return parseFloat(a[0]) - parseFloat(b[0]); })
+                      .forEach(function(kv) {
+                        lines.push('  $' + parseFloat(kv[0]).toFixed(0) + ': ' + kv[1] + ' tickets');
+                      });
+                  }
+                  return lines;
+                }
+              }
+            }
+          }
+        }
+      });
+
+      chart.setMode = function(newMode) {
+        mode = newMode;
+        chart.data.labels                      = modeData().labels;
+        chart.data.datasets[0].data            = modeData().values;
+        chart.data.datasets[0].backgroundColor = modeData().colors;
+        chart.update();
+      };
+
+      return chart;
+    }
+
+    var targetChart     = buildChart('target-bucket-chart',     #{target_chart.to_json});
+    var comparisonChart = buildChart('comparison-bucket-chart', #{comp_chart.to_json});
+
+    $('#toggle-capacity').on('click', function(e) {
+      e.preventDefault();
+      $(this).removeClass('secondary');
+      $('#toggle-paid').addClass('secondary');
+      $('#denominator-label').text('capacity');
+      if (targetChart)     targetChart.setMode('capacity');
+      if (comparisonChart) comparisonChart.setMode('capacity');
+    });
+
+    $('#toggle-paid').on('click', function(e) {
+      e.preventDefault();
+      $(this).removeClass('secondary');
+      $('#toggle-capacity').addClass('secondary');
+      $('#denominator-label').text('paid sales');
+      if (targetChart)     targetChart.setMode('paid');
+      if (comparisonChart) comparisonChart.setMode('paid');
+    });
+  })();

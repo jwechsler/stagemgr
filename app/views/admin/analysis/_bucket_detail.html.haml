@@ -1,0 +1,48 @@
+- # summary is a TicketRevenueAnalysis::Summary struct
+- has_dynamic = summary.buckets.any? { |b| b.ticket_class_ids.size > 1 }
+- total_cap   = summary.total_capacity.to_f
+- total_paid  = summary.total_paid.to_f
+%table.hover{style: 'font-size: 0.875rem'}
+  %thead
+    %tr
+      %th Bucket
+      %th.text-right Tickets
+      %th.text-right % of Capacity
+      %th.text-right % of Sold
+      %th.text-right Sell-through
+      %th.text-right Actual Gross
+      - if has_dynamic
+        %th.text-right Flat-base Gross
+        %th.text-right Dynamic Lift $
+        %th.text-right Dynamic Lift %
+  %tbody
+    - summary.buckets.each do |bucket|
+      - pct_cap  = total_cap  > 0 ? (bucket.paid_count.to_f / total_cap  * 100).round(1) : nil
+      - pct_sold = total_paid > 0 ? (bucket.paid_count.to_f / total_paid * 100).round(1) : nil
+      %tr
+        %td
+          = "#{number_to_currency(bucket.avg_paid_price.round)} avg"
+          %small.text-secondary= "(#{bucket_subtitle(bucket)})"
+          - if bucket.allocation_cap_hit
+            %span.label.alert{style: 'margin-left:0.25rem', title: 'Sold to allocation limit'} ⚑
+        %td.text-right= bucket.paid_count
+        %td.text-right= pct_cap  ? "#{pct_cap}%"  : "—"
+        %td.text-right= pct_sold ? "#{pct_sold}%" : "—"
+        %td.text-right= bucket.allocation_from_limit && bucket.sell_through_pct ? "#{bucket.sell_through_pct}%" : "—"
+        %td.text-right= number_to_currency(bucket.actual_gross)
+        - if has_dynamic
+          %td.text-right= bucket.ticket_class_ids.size > 1 ? number_to_currency(bucket.flat_base_gross) : "—"
+          - lift = bucket.ticket_class_ids.size > 1 ? bucket.dynamic_lift_dollars : nil
+          %td.text-right{class: lift && lift > 0 ? 'success' : (lift && lift < 0 ? 'alert' : '')}
+            = lift ? number_to_currency(lift) : "—"
+          %td.text-right= bucket.dynamic_lift_pct ? "#{bucket.dynamic_lift_pct}%" : "—"
+    %tr.secondary
+      %td
+        %strong Comp (#{summary.comp_count} tickets)
+      - comp_pct_cap  = total_cap  > 0 ? (summary.comp_count.to_f / total_cap  * 100).round(1) : nil
+      - comp_pct_sold = total_paid > 0 ? (summary.comp_count.to_f / total_paid * 100).round(1) : nil
+      %td.text-right= summary.comp_count
+      %td.text-right= comp_pct_cap  ? "#{comp_pct_cap}%"  : "—"
+      %td.text-right= comp_pct_sold ? "#{comp_pct_sold}%" : "—"
+      %td.text-right{colspan: has_dynamic ? 5 : 2}
+        %em Excluded from revenue

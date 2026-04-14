@@ -145,6 +145,8 @@ Stagemgr has three staff roles, each building on the permissions of the role bel
 | Search group shortcuts (season/theater) | Yes | -- | Own theaters only |
 | Run rate of sales analysis | Yes | -- | Yes (own theaters) |
 | Revenue projection and extensions | Yes | -- | Yes (own theaters) |
+| Run ticket revenue analysis | Yes | -- | Yes (own theaters) |
+| View dynamic pricing lift | Yes | -- | Yes (own theaters) |
 
 ## Imports, System Configuration, and Payments
 

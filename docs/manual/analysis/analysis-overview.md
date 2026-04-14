@@ -36,16 +36,52 @@ set of historical comparison shows. Includes:
 
 See [Rate of Sales Analysis](rate-of-sales.md) for full details.
 
+### Ticket Revenue
+
+Analyzes how tickets were distributed across price tiers and how that distribution
+affected gross revenue. For each price bucket -- a grouping of related ticket classes --
+it shows ticket counts, capacity and sold percentages, sell-through rate, actual gross,
+and (when dynamic pricing is configured) flat-base gross and dynamic lift.
+
+- **Price Distribution Charts** -- One bar per price bucket, showing its share of total
+  capacity or total paid sales. Comp and Unsold bars fill the remainder.
+- **Revenue Summary** -- Performances, paid tickets, comp tickets, total capacity,
+  capacity utilization, gross revenue, and overall average paid price
+- **Per-Bucket Detail Table** -- Full breakdown by price tier including allocation cap
+  flags (⚑) for buckets that sold to their limit
+- **Dynamic Pricing Lift** -- For productions using dynamic pricing promotion triggers,
+  the revenue earned above the flat entry-price baseline
+
+Unlike Rate of Sales, a historical comparison is optional for Ticket Revenue. You can
+analyze a single show or compare it side-by-side with one historical production.
+
+See [Ticket Revenue Analysis](ticket-revenue.md) for full details.
+
 ![Analysis selection page](../assets/images/screenshots/analysis-selection-empty.png)
 
 ## Setting Up an Analysis
 
-Every analysis requires two selections:
+Selecting **Analysis Type** from the dropdown changes which comparison field is shown:
+
+- **Rate of Sales** -- Shows a multi-show comparison table. At least one comparison show
+  is required.
+- **Ticket Revenue** -- Shows a single historical production field. No comparison is
+  required; you can run the analysis on a single show.
+
+### Rate of Sales
+
+Every Rate of Sales analysis requires two selections:
 
 1. **Current Show** -- The production you want to analyze. Select one show using the
    autocomplete search field.
 2. **Comparison Shows** -- One or more historical productions to aggregate as the baseline.
    You can add shows individually or use bulk shortcuts.
+
+### Ticket Revenue
+
+Ticket Revenue requires only a **Current Show**. Optionally add one **Historical
+Production** to display side-by-side charts and tables. The "Run Analysis" button enables
+as soon as a current show is selected.
 
 ### Searching for Productions
 
@@ -86,16 +122,19 @@ You can:
 
 ### Running the Analysis
 
-Once you have selected a current show, at least one comparison show, and an analysis type,
-click **Run Analysis** to generate results.
+Once you have the required selections for the chosen analysis type, click **Run
+Analysis** to generate results.
 
 ## Tips
 
 - For meaningful comparisons, select shows with similar characteristics (venue size,
   genre, audience demographics). A small fringe show compared against a large-venue
   musical will produce skewed ratios.
-- Include 3-5 comparison shows when possible. A single comparison show reflects that
-  one show's specific trajectory; multiple shows smooth out anomalies.
+- For Rate of Sales, include 3-5 comparison shows when possible. A single comparison
+  show reflects that one show's specific trajectory; multiple shows smooth out anomalies.
+- For Ticket Revenue, choose a comparison show from a prior year's run of the same title
+  or a show with similar pricing structure to see whether your current pricing mix is
+  yielding better or worse results.
 - Season-based selection ("All shows in 2024") is useful for understanding how this
   year's programming compares to a prior season overall.
 - Theater-based selection ("All shows by Theater Wit") is useful for understanding a
