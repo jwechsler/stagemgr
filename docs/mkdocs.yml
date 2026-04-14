@@ -91,6 +91,7 @@ nav:
   - Analysis:
     - Analysis Overview: analysis/analysis-overview.md
     - Rate of Sales: analysis/rate-of-sales.md
+    - Ticket Revenue: analysis/ticket-revenue.md
   - Reports:
     - Reports Overview: reports/reports-overview.md
     - Production Sales: reports/production-sales.md
