@@ -115,8 +115,8 @@
         = render partial: 'bucket_detail', locals: { summary: @comparison_result }
 
   - # Dynamic lift rollup
-  - target_has_dynamic = @target_result.buckets.any? { |b| b.ticket_class_ids.size > 1 }
-  - comp_has_dynamic   = @comparison_result&.buckets&.any? { |b| b.ticket_class_ids.size > 1 }
+  - target_has_dynamic = @target_result.buckets.any? { |b| b.bucket_type == :dynamic }
+  - comp_has_dynamic   = @comparison_result&.buckets&.any? { |b| b.bucket_type == :dynamic }
   - if target_has_dynamic || comp_has_dynamic
     .grid-x.grid-padding-x
       .small-12.cell

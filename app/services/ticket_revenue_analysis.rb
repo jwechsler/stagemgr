@@ -1,6 +1,6 @@
 class TicketRevenueAnalysis
   BucketResult = Struct.new(
-    :name, :ticket_class_ids, :class_codes, :entry_price,
+    :name, :ticket_class_ids, :class_codes, :entry_price, :bucket_type,
     :paid_count, :avg_paid_price, :price_min, :price_max,
     :ladder_distribution, :actual_gross,
     :flat_base_gross, :dynamic_lift_dollars, :dynamic_lift_pct,
@@ -27,7 +27,7 @@ class TicketRevenueAnalysis
   private
 
   def cache_key
-    "ticket_revenue_analysis/#{@production.id}/v1/#{@production.updated_at.to_i}"
+    "ticket_revenue_analysis/#{@production.id}/v2/#{@production.updated_at.to_i}"
   end
 
   def uncached_compute
@@ -39,46 +39,96 @@ class TicketRevenueAnalysis
 
     class_by_code = ticket_classes.index_by(&:class_code)
     class_by_id   = ticket_classes.index_by(&:id)
-    comp_tc_ids   = ticket_classes.select(&:complimentary?).map(&:id).to_set
 
-    edges           = build_promotion_edges(class_by_code)
-    buckets         = union_find_buckets(ticket_classes.map(&:id), edges)
-    entry_prices    = entry_prices_for_buckets(buckets, edges, class_by_id)
+    # Build promotion edges across all allocations for this production
+    edges        = build_promotion_edges(class_by_code)
+    promoted_ids = edges.flat_map { |a, b| [a, b] }.to_set
+
+    # Classify by precedence: Comp > Dynamic > Zero-rev > Singleton
+    comp_tcs     = ticket_classes.select(&:complimentary?)
+    comp_ids     = comp_tcs.map(&:id).to_set
+    remaining    = ticket_classes.reject(&:complimentary?)
+
+    dynamic_tcs = remaining.select { |tc| promoted_ids.include?(tc.id) }
+    dynamic_ids = dynamic_tcs.map(&:id).to_set
+    non_dynamic = remaining.reject { |tc| dynamic_ids.include?(tc.id) }
+
+    zero_rev_tcs  = non_dynamic.select { |tc| effective_class_price(tc) <= 0 }
+    zero_rev_ids  = zero_rev_tcs.map(&:id).to_set
+    singleton_tcs = non_dynamic.reject { |tc| zero_rev_ids.include?(tc.id) }
+
+    # Dynamic groups via union-find; restrict edges to non-comp dynamic classes
+    dynamic_edges  = edges.select { |a, b| dynamic_ids.include?(a) && dynamic_ids.include?(b) }
+    dynamic_groups = union_find_buckets(dynamic_ids.to_a, dynamic_edges)
+
     line_items      = fetch_line_items
     allocation_data = fetch_allocation_data
     fallback_alloc  = (@production.capacity || 0) * perf_count
 
-    comp_count = [
-      line_items.select { |r| comp_tc_ids.include?(r[:tc_id]) }.sum { |r| r[:count] },
-      0
-    ].max
+    bucket_results = []
 
-    bucket_results = buckets.each_with_index.map do |tc_ids, i|
-      paid_rows = line_items.select { |r|
-        tc_ids.include?(r[:tc_id]) && !comp_tc_ids.include?(r[:tc_id])
-      }
-      build_bucket(
+    # Dynamic pricing buckets
+    dynamic_groups.each do |tc_ids|
+      entry_price = entry_price_for_bucket(tc_ids, dynamic_edges, class_by_id)
+      paid_rows   = line_items.select { |r| tc_ids.include?(r[:tc_id]) }
+      result = build_bucket(
         tc_ids:              tc_ids,
         class_by_id:         class_by_id,
-        entry_price:         entry_prices[i],
+        entry_price:         entry_price,
         paid_rows:           paid_rows,
         allocation_data:     allocation_data,
-        fallback_allocation: fallback_alloc
+        fallback_allocation: fallback_alloc,
+        bucket_type:         :dynamic
       )
-    end.compact.sort_by { |b| -(b.avg_paid_price || 0) }
+      bucket_results << result if result
+    end
 
-    bucket_results = merge_same_price_buckets(bucket_results)
+    # Singleton buckets (non-promoted, positive price, non-comp)
+    singleton_tcs.each do |tc|
+      paid_rows = line_items.select { |r| r[:tc_id] == tc.id }
+      result = build_bucket(
+        tc_ids:              [tc.id],
+        class_by_id:         class_by_id,
+        entry_price:         effective_class_price(tc),
+        paid_rows:           paid_rows,
+        allocation_data:     allocation_data,
+        fallback_allocation: fallback_alloc,
+        bucket_type:         :singleton
+      )
+      bucket_results << result if result
+    end
 
-    total_paid    = bucket_results.sum(&:paid_count)
+    # Sort paid buckets by avg price descending
+    bucket_results.sort_by! { |b| -(b.avg_paid_price || 0) }
+
+    # Zero-revenue bucket appended after sorted paid buckets
+    zero_rev_count = 0
+    if zero_rev_tcs.any?
+      zero_rows      = line_items.select { |r| zero_rev_ids.include?(r[:tc_id]) }
+      zero_rev_count = zero_rows.sum { |r| r[:count] }
+      bucket_results << build_zero_rev_bucket(zero_rev_tcs, class_by_id, zero_rows, allocation_data, fallback_alloc)
+    end
+
+    # Comp bucket always last
+    comp_count = 0
+    if comp_tcs.any?
+      comp_rows  = line_items.select { |r| comp_ids.include?(r[:tc_id]) }
+      comp_count = comp_rows.sum { |r| r[:count] }
+      bucket_results << build_comp_bucket(comp_tcs, class_by_id, comp_rows, allocation_data, fallback_alloc)
+    end
+
+    paid_buckets  = bucket_results.select { |b| [:dynamic, :singleton].include?(b.bucket_type) }
+    total_paid    = paid_buckets.sum(&:paid_count)
     total_cap     = (@production.capacity || 0) * perf_count
-    gross_revenue = bucket_results.sum(&:actual_gross)
+    gross_revenue = paid_buckets.sum(&:actual_gross)
     overall_avg   = total_paid > 0 ? gross_revenue / total_paid : BigDecimal('0')
 
-    dynamic_buckets = bucket_results.select { |b| b.ticket_class_ids.size > 1 }
+    dynamic_buckets = bucket_results.select { |b| b.bucket_type == :dynamic }
     total_lift      = dynamic_buckets.sum(&:dynamic_lift_dollars)
     total_flat_base = dynamic_buckets.sum(&:flat_base_gross)
     total_lift_pct  = total_flat_base > 0 ? (total_lift / total_flat_base * 100).round(2) : nil
-    cap_util        = total_cap > 0 ? ((total_paid + comp_count).to_f / total_cap * 100).round(1) : 0
+    issued          = total_paid + comp_count + zero_rev_count
+    cap_util        = total_cap > 0 ? (issued.to_f / total_cap * 100).round(1) : 0
 
     Summary.new(
       production:                  @production,
@@ -123,32 +173,19 @@ class TicketRevenueAnalysis
     all_ids.group_by { |id| find.call(id) }.values
   end
 
-  def entry_prices_for_buckets(buckets, edges, class_by_id)
-    ids_with_incoming = edges.map { |_from, to| to }.to_set
-
-    buckets.map do |tc_ids|
-      entry_tcs = tc_ids
-                    .reject { |id| ids_with_incoming.include?(id) }
-                    .map    { |id| class_by_id[id] }
-                    .compact
-
-      entry_tc = entry_tcs.min_by { |tc| effective_class_price(tc) }
-      if entry_tc
-        effective_class_price(entry_tc)
-      else
-        tc_ids.map { |id| class_by_id[id] }.compact
-              .map { |tc| effective_class_price(tc) }
-              .min || BigDecimal('0')
-      end
-    end
+  def entry_price_for_bucket(tc_ids, _edges, class_by_id)
+    tc_ids.map { |id| class_by_id[id] }.compact
+          .map { |tc| effective_class_price(tc) }
+          .min || BigDecimal('0')
   end
 
   def effective_class_price(ticket_class)
-    if ticket_class.ticket_price == 0 && ticket_class.royalty_amount
+    base = if ticket_class.ticket_price == 0 && ticket_class.royalty_amount
       ticket_class.royalty_amount
     else
       ticket_class.ticket_price
     end
+    base - (ticket_class.ticketing_fee || BigDecimal('0'))
   end
 
   def fetch_line_items
@@ -210,7 +247,22 @@ class TicketRevenueAnalysis
     base - row[:ticketing_fee]
   end
 
-  def build_bucket(tc_ids:, class_by_id:, entry_price:, paid_rows:, allocation_data:, fallback_allocation:)
+  def compute_allocation(tc_ids, allocation_data, fallback_allocation)
+    bucket_alloc = 0
+    from_limit   = false
+    tc_ids.each do |tc_id|
+      data = allocation_data[tc_id]
+      next unless data
+      if data[:has_any_limit] && data[:total_limit].to_i > 0
+        bucket_alloc += data[:total_limit].to_i
+        from_limit = true
+      end
+    end
+    bucket_alloc = fallback_allocation unless from_limit && bucket_alloc > 0
+    [bucket_alloc, from_limit]
+  end
+
+  def build_bucket(tc_ids:, class_by_id:, entry_price:, paid_rows:, allocation_data:, fallback_allocation:, bucket_type:)
     priced_rows = paid_rows.filter_map do |r|
       ep = effective_price(r)
       ep ? { count: r[:count], price: ep } : nil
@@ -228,17 +280,7 @@ class TicketRevenueAnalysis
       h[r[:price].to_f.round(2)] += r[:count]
     end
 
-    bucket_alloc = 0
-    from_limit   = false
-    tc_ids.each do |tc_id|
-      data = allocation_data[tc_id]
-      next unless data
-      if data[:has_any_limit] && data[:total_limit].to_i > 0
-        bucket_alloc += data[:total_limit].to_i
-        from_limit = true
-      end
-    end
-    bucket_alloc = fallback_allocation unless from_limit && bucket_alloc > 0
+    bucket_alloc, from_limit = compute_allocation(tc_ids, allocation_data, fallback_allocation)
 
     sell_through   = bucket_alloc > 0 ? (total_count.to_f / bucket_alloc * 100).round(1) : nil
     cap_hit        = from_limit && bucket_alloc > 0 && total_count >= bucket_alloc
@@ -252,6 +294,7 @@ class TicketRevenueAnalysis
       ticket_class_ids:      tc_ids,
       class_codes:           class_codes,
       entry_price:           entry_price,
+      bucket_type:           bucket_type,
       paid_count:            total_count,
       avg_paid_price:        avg_price,
       price_min:             price_min,
@@ -268,48 +311,62 @@ class TicketRevenueAnalysis
     )
   end
 
-  def merge_same_price_buckets(sorted_buckets)
-    sorted_buckets
-      .group_by { |b| b.avg_paid_price.round }
-      .values
-      .map { |group| group.size == 1 ? group.first : merge_bucket_group(group) }
-      .sort_by { |b| -(b.avg_paid_price || 0) }
-  end
+  def build_comp_bucket(comp_tcs, class_by_id, comp_rows, allocation_data, fallback_allocation)
+    tc_ids      = comp_tcs.map(&:id)
+    class_codes = comp_tcs.map(&:class_code)
+    total_count = comp_rows.sum { |r| r[:count] }
 
-  def merge_bucket_group(group)
-    total_count  = group.sum(&:paid_count)
-    total_gross  = group.sum(&:actual_gross)
-    total_flat   = group.sum(&:flat_base_gross)
-    avg_price    = total_count > 0 ? total_gross / total_count : BigDecimal('0')
-    lift_dollars = total_gross - total_flat
-    flat_base    = total_flat
-    lift_pct     = flat_base > 0 ? (lift_dollars / flat_base * 100).round(2) : nil
-
-    merged_ladder = group.each_with_object(Hash.new(0)) do |b, h|
-      b.ladder_distribution.each { |price, count| h[price] += count }
-    end
-
-    all_prices     = group.flat_map { |b| [b.price_min, b.price_max] }.compact
-    total_alloc    = group.sum(&:bucket_allocation)
-    from_limit     = group.any?(&:allocation_from_limit)
-    sell_through   = total_alloc > 0 ? (total_count.to_f / total_alloc * 100).round(1) : nil
-    cap_hit        = group.any?(&:allocation_cap_hit)
+    bucket_alloc, from_limit = compute_allocation(tc_ids, allocation_data, fallback_allocation)
+    sell_through = bucket_alloc > 0 ? (total_count.to_f / bucket_alloc * 100).round(1) : nil
+    cap_hit      = from_limit && bucket_alloc > 0 && total_count >= bucket_alloc
 
     BucketResult.new(
-      name:                  group.map(&:name).join("/"),
-      ticket_class_ids:      group.flat_map(&:ticket_class_ids),
-      class_codes:           group.flat_map(&:class_codes),
-      entry_price:           group.map(&:entry_price).min,
+      name:                  'Comp',
+      ticket_class_ids:      tc_ids,
+      class_codes:           class_codes,
+      entry_price:           BigDecimal('0'),
+      bucket_type:           :comp,
       paid_count:            total_count,
-      avg_paid_price:        avg_price,
-      price_min:             all_prices.min,
-      price_max:             all_prices.max,
-      ladder_distribution:   merged_ladder,
-      actual_gross:          total_gross,
-      flat_base_gross:       flat_base,
-      dynamic_lift_dollars:  lift_dollars,
-      dynamic_lift_pct:      lift_pct,
-      bucket_allocation:     total_alloc,
+      avg_paid_price:        BigDecimal('0'),
+      price_min:             nil,
+      price_max:             nil,
+      ladder_distribution:   {},
+      actual_gross:          BigDecimal('0'),
+      flat_base_gross:       BigDecimal('0'),
+      dynamic_lift_dollars:  BigDecimal('0'),
+      dynamic_lift_pct:      nil,
+      bucket_allocation:     bucket_alloc,
+      allocation_from_limit: from_limit,
+      sell_through_pct:      sell_through,
+      allocation_cap_hit:    cap_hit
+    )
+  end
+
+  def build_zero_rev_bucket(zero_rev_tcs, class_by_id, zero_rows, allocation_data, fallback_allocation)
+    tc_ids      = zero_rev_tcs.map(&:id)
+    class_codes = zero_rev_tcs.map(&:class_code)
+    total_count = zero_rows.sum { |r| r[:count] }
+
+    bucket_alloc, from_limit = compute_allocation(tc_ids, allocation_data, fallback_allocation)
+    sell_through = bucket_alloc > 0 ? (total_count.to_f / bucket_alloc * 100).round(1) : nil
+    cap_hit      = from_limit && bucket_alloc > 0 && total_count >= bucket_alloc
+
+    BucketResult.new(
+      name:                  'No Revenue',
+      ticket_class_ids:      tc_ids,
+      class_codes:           class_codes,
+      entry_price:           BigDecimal('0'),
+      bucket_type:           :zero_rev,
+      paid_count:            total_count,
+      avg_paid_price:        BigDecimal('0'),
+      price_min:             nil,
+      price_max:             nil,
+      ladder_distribution:   {},
+      actual_gross:          BigDecimal('0'),
+      flat_base_gross:       BigDecimal('0'),
+      dynamic_lift_dollars:  BigDecimal('0'),
+      dynamic_lift_pct:      nil,
+      bucket_allocation:     bucket_alloc,
       allocation_from_limit: from_limit,
       sell_through_pct:      sell_through,
       allocation_cap_hit:    cap_hit

@@ -53,17 +53,11 @@ for Rate of Sales) to a single-production search.
 
 ## Price Distribution Charts
 
-![Chart showing pricing buckets as bars](../assets/images/screenshots/ticket-revenue-results-chart.png)
+![Chart showing pricing buckets as bars in paid sales mode](../assets/images/screenshots/ticket-revenue-results-chart.png)
 
 Each chart shows one bar per **price bucket** -- a grouping of related ticket classes.
 Bar height represents what percentage of tickets (relative to total capacity or total paid
 sales) fell into that price tier.
-
-Two additional bars always appear at the right:
-
-- **Comp** -- Complimentary tickets as a share of capacity. Comp revenue is excluded from
-  gross revenue calculations.
-- **Unsold** -- Seats that were neither sold nor comped (available in capacity mode only).
 
 ### Toggle: % of Paid Sales vs % of Capacity
 
@@ -72,11 +66,16 @@ heights and apply to both charts simultaneously.
 
 | Mode | Denominator | What it shows |
 |------|-------------|---------------|
-| **% of Paid Sales** | Total paid tickets sold | The pricing mix among revenue-generating tickets only |
-| **% of Capacity** | Total seats × performances | How each bucket contributed to filling the house |
+| **% of Paid Sales** (default) | Total paid tickets sold | The pricing mix among revenue-generating tickets only. Comp and No Revenue buckets are hidden. |
+| **% of Capacity** | Total seats × performances | How each bucket contributed to filling the house, including Comp, No Revenue, and Unsold. |
 
-Paid Sales mode is the default. Capacity mode shows the full picture including unsold
-inventory and is useful for evaluating how well each price tier filled the house.
+![Chart in % of Capacity mode showing all buckets including Comp, No Revenue, and Unsold](../assets/images/screenshots/ticket-revenue-results-capacity-mode.png)
+
+In capacity mode, two additional bars always appear at the right:
+
+- **No Revenue** -- Tickets from classes with a configured price of $0 that are not flagged
+  as complimentary (e.g. rush passes, staff tickets). Shown in grey-blue.
+- **Unsold** -- Seats that were neither sold nor comped. Shown in light grey.
 
 ### Allocation Cap Flag
 
@@ -101,8 +100,9 @@ and each banner appears independently under its own chart.
   discounted tickets. Compare to your comparison show to see if this pattern differs.
 - **Large Unsold bar** -- Low overall capacity utilization. Combined with small bars at
   higher price points, this may suggest pricing was too high for the demand level.
-- **Comp bar size** -- How generous complimentary ticketing was relative to capacity.
-  Comps are not revenue, so a very large comp bar reduces effective gross revenue.
+- **Large Comp or No Revenue bar** -- A significant portion of seats were issued without
+  generating revenue. Comp tickets are intentional; a large No Revenue bar may indicate
+  free-ticket classes that were not configured as complimentary.
 
 ---
 
@@ -115,10 +115,10 @@ Scroll below the charts to see a summary table comparing both shows side-by-side
 | Row | Description |
 |-----|-------------|
 | **Performances** | Total number of scheduled performances |
-| **Paid tickets sold** | Total tickets sold through paid orders (excludes comps) |
+| **Paid tickets sold** | Tickets sold through paid orders at a positive price (excludes Comp and No Revenue) |
 | **Comp tickets** | Total complimentary tickets issued |
 | **Total seats (capacity × perfs)** | Venue capacity multiplied by number of performances -- total available seat-slots |
-| **Capacity utilization** | (Paid + Comp) ÷ Total seats, as a percentage |
+| **Capacity utilization** | (Paid + Comp + No Revenue) ÷ Total seats, as a percentage |
 | **Gross revenue** | Total revenue from paid ticket sales, net of ticketing fees |
 | **Overall avg paid price** | Gross revenue ÷ paid tickets sold, net of ticketing fees |
 
@@ -129,26 +129,40 @@ Scroll below the charts to see a summary table comparing both shows side-by-side
 Below the summary, a separate detail table is rendered for each show, listing every
 price bucket with full metrics.
 
+![Per-bucket detail table](../assets/images/screenshots/ticket-revenue-results-bucket-detail.png)
+
 | Column | Description |
 |--------|-------------|
-| **Bucket** | Average paid price (rounded to nearest dollar), ticket class code label, and ⚑ flag if allocation limit was reached |
-| **Tickets** | Total paid tickets sold in this bucket |
+| **Bucket** | Price label, ticket class code label, and ⚑ flag if allocation limit was reached |
+| **Tickets** | Total tickets sold in this bucket |
 | **% of Capacity** | Bucket tickets ÷ total capacity |
 | **% of Sold** | Bucket tickets ÷ total paid tickets sold |
 | **Sell-through** | Bucket tickets ÷ bucket allocation. Only shown when explicit ticket limits are set on the allocations; displays `—` otherwise |
 | **Actual Gross** | Total revenue from this bucket at the prices actually charged, net of ticketing fees |
-| **Flat-base Gross** | *(Dynamic buckets only)* -- What gross would have been if all tickets sold at the entry (base) price |
+| **Flat-base Gross** | *(Dynamic buckets only)* -- What gross would have been if all tickets sold at the lowest price in the bucket |
 | **Dynamic Lift $** | *(Dynamic buckets only)* -- Actual Gross minus Flat-base Gross |
 | **Dynamic Lift %** | *(Dynamic buckets only)* -- Lift as a percentage of Flat-base Gross |
 
-The **Comp** row at the bottom of each table shows how many complimentary tickets were
-issued, their share of capacity and paid sales, and notes that they are excluded from
-revenue.
+The **Comp** and **No Revenue** rows appear at the bottom of each table with muted styling.
+Comp tickets show "Excluded from revenue" in the Actual Gross column. No Revenue tickets
+show $0.00.
 
 ### Bucket Labels
 
-The bucket subtitle shown in parentheses below the average price is derived from the
-ticket class codes in that bucket:
+How a bucket is labeled depends on its type:
+
+- **⇅ $52 avg (GEN)** -- A dynamic pricing bucket. The ⇅ symbol indicates that Stagemgr's
+  dynamic pricing can shift tickets between price classes in this group. The dollar amount
+  is the demand-weighted average paid price; "avg" appears because multiple price points
+  exist within the bucket.
+- **$29 (HOT)** -- A singleton bucket: one ticket class with no promotion links. The dollar
+  amount is the single price for this class; "avg" is omitted because there is only one
+  configured price.
+- **Comp** -- All complimentary ticket classes combined into one row.
+- **No Revenue** -- All non-comp ticket classes with a configured price of $0 combined
+  into one row.
+
+The subtitle in parentheses is derived from the ticket class codes:
 
 - If all class codes share a common prefix (e.g., `GEN35`, `GEN40`, `GEN44` → **GEN**),
   the shared prefix is shown.
@@ -158,8 +172,7 @@ ticket class codes in that bucket:
 
 ## Dynamic Pricing Lift
 
-When any bucket contains multiple linked ticket classes (indicating that Stagemgr's
-dynamic pricing shifted some tickets from one class to another during the run), additional
+When any bucket contains multiple linked ticket classes (a dynamic pricing bucket), additional
 columns appear in the bucket detail table and a **Dynamic Pricing Lift (aggregate)**
 rollup table appears at the bottom of the page.
 
@@ -167,20 +180,25 @@ rollup table appears at the bottom of the page.
 
 ### How Dynamic Buckets Work
 
-Dynamic pricing in Stagemgr works by defining **promotion triggers**: when a ticket
-class's allocation fills past a threshold, available inventory shifts to a higher-priced
-class. Ticket Revenue Analysis traces these promotion links and groups connected classes
-into a single bucket.
+Dynamic pricing in Stagemgr works by defining **promotion triggers** on ticket class
+allocations: when a ticket class fills past a time or capacity threshold, available
+inventory shifts to a higher-priced class. Ticket Revenue Analysis traces these promotion
+links and groups all connected classes into a single bucket, marked with ⇅.
 
 For a dynamic bucket:
 
-- **Entry price** is the lowest price in the promotion chain (the "base" price before
-  any upselling)
-- **Flat-base Gross** is what revenue would have been if every ticket sold at the entry
+- **Floor price** is the lowest configured price (net of ticketing fees) across all classes
+  in the bucket
+- **Flat-base Gross** is what revenue would have been if every ticket sold at the floor
   price
 - **Dynamic Lift $** is the additional revenue earned because some tickets sold at higher
   promoted prices
 - **Dynamic Lift %** is the lift as a fraction of the flat-base
+
+!!! note "Lift and the floor price"
+    Both Flat-base Gross and Actual Gross are calculated net of ticketing fees, so the
+    comparison is consistent. A dynamic lift of $0 means all tickets in the bucket
+    happened to sell at the lowest configured price, even if promotion triggers were active.
 
 ### Aggregate Lift Table
 
@@ -190,7 +208,7 @@ For a dynamic bucket:
 | **Lift %** | Total lift ÷ total flat-base gross across dynamic buckets |
 
 A positive lift percentage means dynamic pricing generated more revenue than a flat
-pricing strategy would have. A zero lift means all tickets sold at the entry price even
+pricing strategy would have. A zero lift means all tickets sold at the floor price even
 though promotion triggers were configured.
 
 !!! tip "Using Lift to Tune Dynamic Pricing"
@@ -204,17 +222,18 @@ though promotion triggers were configured.
 ## Price Buckets Explained
 
 Buckets are determined automatically from the production's ticket class configuration.
-Two ticket classes end up in the same bucket if they are connected by a **dynamic pricing
-promotion link** -- meaning one class can shift available inventory to the other.
+There are four bucket types, applied in order of precedence:
 
-- **Single-class buckets** -- Standalone ticket classes with no promotion links. The
-  dynamic lift columns show `—` for these buckets.
-- **Multi-class (dynamic) buckets** -- Two or more classes linked by promotion triggers.
-  These show Flat-base Gross, Dynamic Lift $, and Dynamic Lift % columns.
+| Bucket type | Symbol | Criteria |
+|-------------|--------|----------|
+| **Dynamic** | ⇅ | Ticket class appears in any promotion link (as source or destination) in any allocation for this production. All transitively connected classes share one bucket. |
+| **Singleton** | *(none)* | Ticket class has no promotion links in any allocation. Each class is its own bucket. |
+| **No Revenue** | *(none)* | Non-complimentary class with a configured price of $0 or less and no promotion links. All such classes are collapsed into one bucket. |
+| **Comp** | *(none)* | Ticket class is flagged complimentary. All comp classes share one bucket, always shown last. |
 
-After bucketing, buckets with the same average paid price (rounded to the nearest dollar)
-are merged into a single row. This prevents clutter from multiple ticket classes that
-happened to sell at identical effective prices.
+When a class participates in promotion links in some performances but appears alone in
+others, it is always treated as **dynamic** (the presence of any promotion link takes
+precedence).
 
 !!! note "Revenue is net of ticketing fees"
     All gross revenue figures have ticketing fees (per-ticket facility fees configured on
@@ -223,8 +242,8 @@ happened to sell at identical effective prices.
 
 !!! note "Revenue includes royalty-priced tickets"
     Some ticket classes have a list price of $0 but a non-zero royalty amount. These
-    tickets are treated as revenue at the royalty amount for purposes of bucket assignment
-    and gross revenue calculation.
+    tickets contribute revenue at the royalty amount for bucket assignment and gross
+    revenue calculation.
 
 !!! note "Refunded tickets excluded"
     Revenue figures reflect the final settled state of all orders. Tickets from refunded
