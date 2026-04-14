@@ -4,7 +4,7 @@
   %ul.breadcrumbs
     %li.current= link_to 'Analysis', admin_analysis_index_path
 
-= form_tag(rate_of_sales_admin_analysis_index_path, method: :post, id: 'analysis-form') do
+= form_tag(rate_of_sales_admin_analysis_index_path, method: :post, id: 'analysis-form', data: { rate_of_sales_url: rate_of_sales_admin_analysis_index_path, ticket_revenue_url: ticket_revenue_admin_analysis_index_path }) do
   .grid-x.grid-padding-x
     .small-12.cell
       %h4 Compare Show Performance
@@ -29,9 +29,25 @@
       %fieldset.fieldset
         %legend Analysis Type
         %p.help-text Select the type of analysis to run
-        = select_tag :analysis_type, options_for_select([['Rate of Sales', 'rate_of_sales']]), class: 'input-group-field'
+        = select_tag :analysis_type, options_for_select([['Rate of Sales', 'rate_of_sales'], ['Ticket Revenue', 'ticket_revenue']], @analysis_type), class: 'input-group-field', id: 'analysis-type-select'
 
-  .grid-x.grid-padding-x
+  .grid-x.grid-padding-x#comparison-single-section{style: 'display:none'}
+    .small-12.cell
+      %fieldset.fieldset
+        %legend Historical Production
+        %p.help-text Select one historical production to compare
+        = text_field_tag :comparison_production_search_single, nil, id: 'comparison-production-search-single', placeholder: 'Type to search productions...', class: 'input-group-field', autocomplete: 'off', style: @comparison_production ? 'display:none' : nil
+        = hidden_field_tag :comparison_production_id, @comparison_production&.id, id: 'comparison-production-id'
+        - if @comparison_production
+          #comparison-single-display.callout.secondary
+            %span#comparison-single-name= "#{@comparison_production.season} - #{@comparison_production.name} (#{@comparison_production.theater.name})"
+            %a.float-right.remove-comparison-single{href: '#'} remove
+        - else
+          #comparison-single-display.callout.secondary.hide
+            %span#comparison-single-name
+            %a.float-right.remove-comparison-single{href: '#'} remove
+
+  .grid-x.grid-padding-x#comparison-multi-section
     .small-12.cell
       %fieldset.fieldset
         %legend Comparison Shows
@@ -66,16 +82,45 @@
 
 :javascript
   $(document).ready(function() {
-    var targetProductionId = #{@target_production ? @target_production.id : 'null'};
+    var targetProductionId      = #{@target_production ? @target_production.id : 'null'};
     var comparisonProductionIds = #{@comparison_productions.present? ? @comparison_productions.map(&:id).to_json : '[]'};
-    var searchUrl = '#{search_productions_admin_analysis_index_path}';
-    var resolveGroupUrl = '#{resolve_group_admin_analysis_index_path}';
+    var comparisonSingleId      = #{@comparison_production ? @comparison_production.id : 'null'};
+    var searchMultiUrl          = '#{search_productions_admin_analysis_index_path}';
+    var searchSingleUrl         = '#{search_production_admin_analysis_index_path}';
+    var resolveGroupUrl         = '#{resolve_group_admin_analysis_index_path}';
+    var $form                   = $('#analysis-form');
+    var rosUrl                  = $form.data('rate-of-sales-url');
+    var trUrl                   = $form.data('ticket-revenue-url');
+
+    function currentAnalysisType() {
+      return $('#analysis-type-select').val();
+    }
+
+    function updateFormAction() {
+      $form.attr('action', currentAnalysisType() === 'ticket_revenue' ? trUrl : rosUrl);
+    }
+
+    function updateSectionVisibility() {
+      if (currentAnalysisType() === 'ticket_revenue') {
+        $('#comparison-multi-section').hide();
+        $('#comparison-single-section').show();
+      } else {
+        $('#comparison-single-section').hide();
+        $('#comparison-multi-section').show();
+      }
+    }
 
     function updateSubmitButton() {
       var hasTarget = targetProductionId !== null;
-      var hasComparisons = comparisonProductionIds.length > 0;
-      $('#run-analysis-btn').prop('disabled', !(hasTarget && hasComparisons));
-      $('#remove-all-comparisons').toggle(hasComparisons);
+      var type      = currentAnalysisType();
+      var ready;
+      if (type === 'ticket_revenue') {
+        ready = hasTarget;
+      } else {
+        ready = hasTarget && comparisonProductionIds.length > 0;
+      }
+      $('#run-analysis-btn').prop('disabled', !ready);
+      $('#remove-all-comparisons').toggle(comparisonProductionIds.length > 0);
     }
 
     function addComparisonProduction(item) {
@@ -93,11 +138,17 @@
       $('#comparison-productions-table tbody').append(row);
     }
 
+    // Analysis type change
+    $('#analysis-type-select').on('change', function() {
+      updateFormAction();
+      updateSectionVisibility();
+      updateSubmitButton();
+    });
+
     // Target production autocomplete
     $('#target-production-search').autocomplete({
       source: function(request, response) {
-        $.getJSON(searchUrl, { q: request.term }, function(data) {
-          // Filter out group entries and already-selected comparison productions
+        $.getJSON(searchMultiUrl, { q: request.term }, function(data) {
           var filtered = data.filter(function(item) {
             return !item.group_key && comparisonProductionIds.indexOf(item.id) === -1;
           });
@@ -126,11 +177,39 @@
       updateSubmitButton();
     });
 
-    // Comparison productions autocomplete
+    // Single-production comparison autocomplete (Ticket Revenue tab)
+    $('#comparison-production-search-single').autocomplete({
+      source: function(request, response) {
+        $.getJSON(searchSingleUrl, { q: request.term, exclude_id: targetProductionId || '' }, function(data) {
+          response(data);
+        });
+      },
+      minLength: 2,
+      select: function(event, ui) {
+        comparisonSingleId = ui.item.id;
+        $('#comparison-production-id').val(ui.item.id);
+        $('#comparison-single-name').text(ui.item.label);
+        $('#comparison-single-display').removeClass('hide');
+        $(this).val('').hide();
+        updateSubmitButton();
+        return false;
+      }
+    });
+
+    // Remove single comparison
+    $(document).on('click', '.remove-comparison-single', function(e) {
+      e.preventDefault();
+      comparisonSingleId = null;
+      $('#comparison-production-id').val('');
+      $('#comparison-single-display').addClass('hide');
+      $('#comparison-production-search-single').show().val('');
+      updateSubmitButton();
+    });
+
+    // Multi-show comparison autocomplete
     $('#comparison-production-search').autocomplete({
       source: function(request, response) {
-        $.getJSON(searchUrl, { q: request.term }, function(data) {
-          // Filter out already-selected productions and the target
+        $.getJSON(searchMultiUrl, { q: request.term }, function(data) {
           var excluded = comparisonProductionIds.slice();
           if (targetProductionId) excluded.push(targetProductionId);
           var filtered = data.filter(function(item) {
@@ -143,7 +222,6 @@
       select: function(event, ui) {
         var self = this;
         if (ui.item.group_key) {
-          // Resolve group shortcut into individual productions
           $.getJSON(resolveGroupUrl, { group_key: ui.item.group_key }, function(data) {
             data.forEach(function(prod) { addComparisonProduction(prod); });
             updateSubmitButton();
@@ -157,7 +235,7 @@
       }
     });
 
-    // Custom rendering for comparison autocomplete to distinguish group entries
+    // Custom rendering for multi-comparison autocomplete to distinguish group entries
     $('#comparison-production-search').autocomplete('instance')._renderItem = function(ul, item) {
       if (item.group_key) {
         return $('<li>').append('<div><strong style="color: #1779ba;">\u25B6 ' + item.label + '</strong></div>').appendTo(ul);
@@ -165,7 +243,7 @@
       return $('<li>').append('<div>' + item.label + '</div>').appendTo(ul);
     };
 
-    // Remove comparison production
+    // Remove comparison production (multi)
     $(document).on('click', '.remove-comparison', function(e) {
       e.preventDefault();
       var row = $(this).closest('tr');
@@ -184,6 +262,8 @@
       updateSubmitButton();
     });
 
-    // Enable submit button if returning with pre-populated selections
+    // Initialize state
+    updateFormAction();
+    updateSectionVisibility();
     updateSubmitButton();
   });
