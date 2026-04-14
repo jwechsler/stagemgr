@@ -3,6 +3,38 @@
 !!! info "Reference"
     Recent feature additions and significant changes to Stagemgr, listed from newest to oldest.
 
+## April 2026
+
+### Ticket Revenue Analysis
+
+**Available to:** Administrator, Theater User
+
+A new analysis type on the Analysis screen that shows how ticket sales distributed across price tiers and how your pricing decisions affected gross revenue. Select it from the Analysis Type dropdown alongside the existing Rate of Sales analysis.
+
+| Detail | Description |
+|--------|-------------|
+| **Where** | Analysis menu > Analysis Type: Ticket Revenue |
+| **Comparison** | Optional -- run on a single show or compare side-by-side with one historical production |
+| **Revenue figures** | Net of ticketing fees |
+
+**What it shows:**
+
+- **Price distribution charts** -- One bar per price tier showing what percentage of paid sales came from each bucket. Bars are sorted high-to-low by average price. A ⚑ flag marks any tier that sold to its allocation limit.
+- **Revenue summary** -- Performances, paid tickets, comp tickets, capacity utilization, gross revenue (net of fees), and overall average paid price
+- **Per-bucket detail table** -- Ticket counts, % of capacity, % of paid sales, sell-through (when explicit allocation limits are configured), and actual gross per tier
+- **Dynamic pricing lift** -- For productions using dynamic pricing, how much additional revenue was earned above the flat entry-price baseline, broken down by bucket and in aggregate
+
+**Key behaviors:**
+
+- Toggle between **% of Paid Sales** (default) and **% of Capacity** to shift between "what did buyers choose?" and "how did each tier fill the house?"
+- When a show is still running, a banner appears below its chart noting how many performances have completed
+- Sell-through percentage only appears for tiers with explicit ticket limits configured -- it displays `—` for general-allocation tiers where no cap was set
+- Ticket classes linked by dynamic pricing promotion triggers are grouped into a single bucket automatically
+
+**Use cases:** Year-over-year pricing strategy comparison (e.g., this year's Who's Holiday vs. last year's). Evaluating whether your dynamic pricing tiers are generating lift or going unused. Understanding what share of your audience is buying at each price point vs. how much of the house each tier fills.
+
+---
+
 ## March 2026
 
 ### Refund to Donation
