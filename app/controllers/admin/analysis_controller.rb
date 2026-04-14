@@ -17,7 +17,8 @@ class Admin::AnalysisController < Admin::ApplicationController
                            .where.not(status: Production::PRESALE)
 
     productions = base_scope
-                    .where("LOWER(productions.name) LIKE :q OR CAST(productions.season AS CHAR) LIKE :q OR LOWER(productions.production_code) LIKE :q",
+                    .left_outer_joins(:theater)
+                    .where("LOWER(productions.name) LIKE :q OR CAST(productions.season AS CHAR) LIKE :q OR LOWER(productions.production_code) LIKE :q OR LOWER(theaters.name) LIKE :q",
                            q: "%#{query.downcase}%")
                     .includes(:theater)
                     .order(season: :desc, name: :asc)
