@@ -44,7 +44,7 @@ module Admin::AnalysisHelper
 
     bucket_labels = summary.buckets.each_with_index.map do |bucket, _i|
       avg_dollar = bucket.avg_paid_price.round
-      flag       = bucket.allocation_cap_hit ? ' \u2691' : ''
+      flag       = bucket.allocation_cap_hit ? " \u2691" : ''
       "$#{avg_dollar} avg#{flag}\n(#{bucket_subtitle(bucket)})"
     end
 

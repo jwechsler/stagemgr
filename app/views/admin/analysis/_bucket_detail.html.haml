@@ -28,7 +28,7 @@
         %td.text-right= bucket.paid_count
         %td.text-right= pct_cap  ? "#{pct_cap}%"  : "—"
         %td.text-right= pct_sold ? "#{pct_sold}%" : "—"
-        %td.text-right= bucket.sell_through_pct ? "#{bucket.sell_through_pct}%" : "—"
+        %td.text-right= bucket.allocation_from_limit && bucket.sell_through_pct ? "#{bucket.sell_through_pct}%" : "—"
         %td.text-right= number_to_currency(bucket.actual_gross)
         - if has_dynamic
           %td.text-right= bucket.ticket_class_ids.size > 1 ? number_to_currency(bucket.flat_base_gross) : "—"

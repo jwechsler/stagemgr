@@ -99,14 +99,18 @@
             %td= number_to_currency(@target_result.overall_avg_paid_price)
             - if @comparison_result
               %td= number_to_currency(@comparison_result.overall_avg_paid_price)
+      %p.help-text{style: 'margin-top: 0.5rem; font-size: 0.8rem'}
+        Gross revenue figures are derived from ticket line item data, net of ticketing fees.
+        They may not precisely reflect partial discounting or per-ticket pricing when multiple
+        ticket classes are aggregated within a single order.
 
   - # Per-bucket detail tables
   .grid-x.grid-padding-x{style: 'margin-top: 1rem'}
-    .cell{class: @comparison_result ? 'small-12 medium-6' : 'small-12 medium-8 medium-offset-2'}
+    .cell{class: @comparison_result ? 'small-12 large-6' : 'small-12 medium-8 medium-offset-2'}
       %h6= @target_production.name
       = render partial: 'bucket_detail', locals: { summary: @target_result }
     - if @comparison_result && @comparison_result.buckets.any?
-      .small-12.medium-6.cell
+      .small-12.large-6.cell
         %h6= @comparison_production.name
         = render partial: 'bucket_detail', locals: { summary: @comparison_result }
 

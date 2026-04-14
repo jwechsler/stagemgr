@@ -164,16 +164,18 @@ class TicketRevenueAnalysis
         "line_items.price_override",
         "tc.ticket_price",
         "tc.royalty_amount",
-        "tc.complimentary"
+        "tc.complimentary",
+        "tc.ticketing_fee"
       )
-      .map do |tc_id, count, override, price, royalty, comp|
+      .map do |tc_id, count, override, price, royalty, comp, ticketing_fee|
         {
-          tc_id:    tc_id,
-          count:    count.to_i,
-          override: override ? BigDecimal(override.to_s) : nil,
-          price:    BigDecimal(price.to_s),
-          royalty:  royalty ? BigDecimal(royalty.to_s) : nil,
-          comp:     comp == 1 || comp == true
+          tc_id:        tc_id,
+          count:        count.to_i,
+          override:     override ? BigDecimal(override.to_s) : nil,
+          price:        BigDecimal(price.to_s),
+          royalty:      royalty ? BigDecimal(royalty.to_s) : nil,
+          comp:         comp == 1 || comp == true,
+          ticketing_fee: ticketing_fee ? BigDecimal(ticketing_fee.to_s) : BigDecimal('0')
         }
       end
   end
@@ -198,13 +200,14 @@ class TicketRevenueAnalysis
 
   def effective_price(row)
     return nil if row[:comp]
-    if row[:price] == 0 && row[:royalty]
+    base = if row[:price] == 0 && row[:royalty]
       row[:royalty]
     elsif row[:override]
       row[:override]
     else
       row[:price]
     end
+    base - row[:ticketing_fee]
   end
 
   def build_bucket(tc_ids:, class_by_id:, entry_price:, paid_rows:, allocation_data:, fallback_allocation:)

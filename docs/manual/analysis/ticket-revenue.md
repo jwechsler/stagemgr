@@ -65,19 +65,18 @@ Two additional bars always appear at the right:
   gross revenue calculations.
 - **Unsold** -- Seats that were neither sold nor comped (available in capacity mode only).
 
-### Toggle: % of Capacity vs % of Paid Sales
+### Toggle: % of Paid Sales vs % of Capacity
 
-The **% of Capacity** / **% of Paid Sales** buttons control the denominator used for bar
+The **% of Paid Sales** / **% of Capacity** buttons control the denominator used for bar
 heights and apply to both charts simultaneously.
 
 | Mode | Denominator | What it shows |
 |------|-------------|---------------|
-| **% of Capacity** | Total seats × performances | How each bucket contributed to filling the house |
 | **% of Paid Sales** | Total paid tickets sold | The pricing mix among revenue-generating tickets only |
+| **% of Capacity** | Total seats × performances | How each bucket contributed to filling the house |
 
-Capacity mode is the default. It shows the full picture including unsold inventory. Paid
-Sales mode is useful for understanding what pricing tiers patrons who actually bought
-tickets chose.
+Paid Sales mode is the default. Capacity mode shows the full picture including unsold
+inventory and is useful for evaluating how well each price tier filled the house.
 
 ### Allocation Cap Flag
 
@@ -120,8 +119,8 @@ Scroll below the charts to see a summary table comparing both shows side-by-side
 | **Comp tickets** | Total complimentary tickets issued |
 | **Total seats (capacity × perfs)** | Venue capacity multiplied by number of performances -- total available seat-slots |
 | **Capacity utilization** | (Paid + Comp) ÷ Total seats, as a percentage |
-| **Gross revenue** | Total actual revenue from paid ticket sales |
-| **Overall avg paid price** | Gross revenue ÷ paid tickets sold |
+| **Gross revenue** | Total revenue from paid ticket sales, net of ticketing fees |
+| **Overall avg paid price** | Gross revenue ÷ paid tickets sold, net of ticketing fees |
 
 ---
 
@@ -136,8 +135,8 @@ price bucket with full metrics.
 | **Tickets** | Total paid tickets sold in this bucket |
 | **% of Capacity** | Bucket tickets ÷ total capacity |
 | **% of Sold** | Bucket tickets ÷ total paid tickets sold |
-| **Sell-through** | Bucket tickets ÷ bucket allocation. Reflects how much of the allocated inventory was used |
-| **Actual Gross** | Total revenue from this bucket at the prices actually charged |
+| **Sell-through** | Bucket tickets ÷ bucket allocation. Only shown when explicit ticket limits are set on the allocations; displays `—` otherwise |
+| **Actual Gross** | Total revenue from this bucket at the prices actually charged, net of ticketing fees |
 | **Flat-base Gross** | *(Dynamic buckets only)* -- What gross would have been if all tickets sold at the entry (base) price |
 | **Dynamic Lift $** | *(Dynamic buckets only)* -- Actual Gross minus Flat-base Gross |
 | **Dynamic Lift %** | *(Dynamic buckets only)* -- Lift as a percentage of Flat-base Gross |
@@ -216,6 +215,11 @@ promotion link** -- meaning one class can shift available inventory to the other
 After bucketing, buckets with the same average paid price (rounded to the nearest dollar)
 are merged into a single row. This prevents clutter from multiple ticket classes that
 happened to sell at identical effective prices.
+
+!!! note "Revenue is net of ticketing fees"
+    All gross revenue figures have ticketing fees (per-ticket facility fees configured on
+    each ticket class) deducted. The figures represent net revenue to the production, not
+    the total amount charged to patrons.
 
 !!! note "Revenue includes royalty-priced tickets"
     Some ticket classes have a list price of $0 but a non-zero royalty amount. These
