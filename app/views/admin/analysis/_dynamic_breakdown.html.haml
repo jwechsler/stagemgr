@@ -1,0 +1,24 @@
+- # summary is a TicketRevenueAnalysis::Summary struct
+- dynamic_buckets = summary.buckets.select { |b| b.bucket_type == :dynamic }
+- dynamic_buckets.each do |bucket|
+  .dynamic-bucket-breakdown{style: 'margin-bottom: 1.25rem'}
+    %p{style: 'margin-bottom: 0.25rem'}
+      %strong= "⇅ #{bucket.name}"
+      %span.text-secondary{style: 'margin-left:0.5rem; font-size: 0.875rem'}
+        = "#{bucket.paid_count} tickets \u00b7 avg #{number_to_currency(bucket.avg_paid_price.round(2))} \u00b7 gross #{number_to_currency(bucket.actual_gross)}"
+    %table.hover{style: 'font-size: 0.875rem'}
+      %thead
+        %tr
+          %th Ticket Class
+          %th.text-right Avg Price
+          %th.text-right Tickets
+          %th.text-right % of Bucket
+          %th.text-right Gross
+      %tbody
+        - bucket.class_breakdown.each do |row|
+          %tr
+            %td= row[:class_code]
+            %td.text-right= number_to_currency(row[:avg_price])
+            %td.text-right= row[:ticket_count]
+            %td.text-right= "#{row[:pct_of_bucket]}%"
+            %td.text-right= number_to_currency(row[:gross])

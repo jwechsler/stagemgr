@@ -211,6 +211,33 @@ A positive lift percentage means dynamic pricing generated more revenue than a f
 pricing strategy would have. A zero lift means all tickets sold at the floor price even
 though promotion triggers were configured.
 
+### Dynamic Bucket Breakdown
+
+Below the aggregate lift table, a per-bucket breakdown shows the mix of ticket classes
+inside each dynamic pricing bucket. This lets you see exactly how tickets distributed
+across the tiers in the promotion chain.
+
+![Dynamic bucket breakdown tables showing per-class splits](../assets/images/screenshots/ticket-revenue-results-dynamic-breakdown.png)
+
+For each dynamic bucket (one table per bucket, per show):
+
+| Column | Description |
+|--------|-------------|
+| **Ticket Class** | The class code (e.g. `GEN36`, `GEN40`, `GEN44`) |
+| **Avg Price** | Demand-weighted average price actually paid for tickets in this class, net of fees |
+| **Tickets** | Tickets sold in this class |
+| **% of Bucket** | This class's share of total tickets in the bucket |
+| **Gross** | Net revenue from this class, net of ticketing fees |
+
+Classes are sorted from highest to lowest average price. The header above each table shows
+the bucket total (tickets, average price, and gross) for quick comparison.
+
+!!! tip "Reading the breakdown"
+    A dynamic bucket where most tickets landed in the lowest-priced class means promotions
+    rarely triggered -- either demand never hit capacity thresholds, or the time-based
+    triggers fired late. A bucket where most tickets landed in the highest-priced class
+    means early tiers filled quickly and patrons paid premium prices for most of the run.
+
 !!! tip "Using Lift to Tune Dynamic Pricing"
     If lift is very low (near 0%), check whether promotion triggers are set too
     aggressively (thresholds never reached) or too conservatively (shifted too late in the

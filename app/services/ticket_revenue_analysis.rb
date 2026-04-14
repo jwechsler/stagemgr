@@ -2,7 +2,7 @@ class TicketRevenueAnalysis
   BucketResult = Struct.new(
     :name, :ticket_class_ids, :class_codes, :entry_price, :bucket_type,
     :paid_count, :avg_paid_price, :price_min, :price_max,
-    :ladder_distribution, :actual_gross,
+    :ladder_distribution, :class_breakdown, :actual_gross,
     :flat_base_gross, :dynamic_lift_dollars, :dynamic_lift_pct,
     :bucket_allocation, :allocation_from_limit, :sell_through_pct, :allocation_cap_hit,
     keyword_init: true
@@ -27,7 +27,7 @@ class TicketRevenueAnalysis
   private
 
   def cache_key
-    "ticket_revenue_analysis/#{@production.id}/v2/#{@production.updated_at.to_i}"
+    "ticket_revenue_analysis/#{@production.id}/v3/#{@production.updated_at.to_i}"
   end
 
   def uncached_compute
@@ -265,7 +265,7 @@ class TicketRevenueAnalysis
   def build_bucket(tc_ids:, class_by_id:, entry_price:, paid_rows:, allocation_data:, fallback_allocation:, bucket_type:)
     priced_rows = paid_rows.filter_map do |r|
       ep = effective_price(r)
-      ep ? { count: r[:count], price: ep } : nil
+      ep ? { tc_id: r[:tc_id], count: r[:count], price: ep } : nil
     end
 
     total_count = priced_rows.sum { |r| r[:count] }
@@ -279,6 +279,8 @@ class TicketRevenueAnalysis
     ladder = priced_rows.each_with_object(Hash.new(0)) do |r, h|
       h[r[:price].to_f.round(2)] += r[:count]
     end
+
+    breakdown = class_breakdown_for(priced_rows, total_count, class_by_id)
 
     bucket_alloc, from_limit = compute_allocation(tc_ids, allocation_data, fallback_allocation)
 
@@ -300,6 +302,7 @@ class TicketRevenueAnalysis
       price_min:             price_min,
       price_max:             price_max,
       ladder_distribution:   ladder,
+      class_breakdown:       breakdown,
       actual_gross:          weighted_sum,
       flat_base_gross:       flat_base,
       dynamic_lift_dollars:  lift_dollars,
@@ -309,6 +312,22 @@ class TicketRevenueAnalysis
       sell_through_pct:      sell_through,
       allocation_cap_hit:    cap_hit
     )
+  end
+
+  def class_breakdown_for(priced_rows, total_count, class_by_id)
+    priced_rows.group_by { |r| r[:tc_id] }.map do |tc_id, rows|
+      count    = rows.sum { |r| r[:count] }
+      gross    = rows.sum { |r| r[:price] * r[:count] }
+      avg      = count > 0 ? gross / count : BigDecimal('0')
+      pct      = total_count > 0 ? (count.to_f / total_count * 100).round(1) : 0
+      {
+        class_code:    class_by_id[tc_id]&.class_code,
+        ticket_count:  count,
+        avg_price:     avg,
+        gross:         gross,
+        pct_of_bucket: pct
+      }
+    end.sort_by { |h| -h[:avg_price] }
   end
 
   def build_comp_bucket(comp_tcs, class_by_id, comp_rows, allocation_data, fallback_allocation)
@@ -331,6 +350,7 @@ class TicketRevenueAnalysis
       price_min:             nil,
       price_max:             nil,
       ladder_distribution:   {},
+      class_breakdown:       [],
       actual_gross:          BigDecimal('0'),
       flat_base_gross:       BigDecimal('0'),
       dynamic_lift_dollars:  BigDecimal('0'),
@@ -362,6 +382,7 @@ class TicketRevenueAnalysis
       price_min:             nil,
       price_max:             nil,
       ladder_distribution:   {},
+      class_breakdown:       [],
       actual_gross:          BigDecimal('0'),
       flat_base_gross:       BigDecimal('0'),
       dynamic_lift_dollars:  BigDecimal('0'),
