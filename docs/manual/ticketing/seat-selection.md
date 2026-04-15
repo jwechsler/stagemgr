@@ -54,12 +54,18 @@ When you select a seat on the map, it is placed in a **temporary hold** for the 
 
 ## Assigning Ticket Classes
 
-After selecting seats, each seat must be assigned a ticket class:
+Ticket classes are assigned **at the moment a seat is clicked**, not as a follow-up step. Clicking an available seat opens a popup that lists the ticket classes available for the performance:
 
-1. Selected seats appear in a list below the seat map
-2. For each seat (or group of seats), choose the appropriate ticket class from the dropdown
-3. Pricing updates automatically based on the selected ticket class
-4. The order total reflects all seat assignments
+![Ticket class popup with classes, prices, and a donation override field](../assets/images/screenshots/ticketing-admin-rs-class-popup.png)
+
+1. Click an available seat on the map.
+2. The popup shows each eligible ticket class, its price, and a **Select** button.
+3. Click **Select** for the appropriate class. The popup closes, the seat is reserved with that class, and a row is added to the **Selected Seats** list.
+4. The total quantity and order total update live as seats are added.
+
+The Selected Seats list shows **one row per seat** -- not one row per ticket class. Each row displays the seat label, the class assigned to it, a quantity of 1, the price, and a remove (**×**) button:
+
+![Selected Seats list with a row per seat, individual prices, and remove buttons](../assets/images/screenshots/ticketing-admin-rs-populated.png)
 
 | Example Ticket Class | Typical Use |
 |----------------------|-------------|
@@ -68,6 +74,29 @@ After selecting seats, each seat must be assigned a ticket class:
 | Student | Discounted rate for students |
 | Child | Discounted rate for children |
 | Comp | Complimentary ticket (no charge) |
+| Donation / Pay-What-You-Can | Buyer-chosen price (see below) |
+
+### Per-Seat Donation Pricing
+
+Ticket classes configured with a **Donation** type (often labeled "Pay-What-You-Can" or similar) display a price input in the popup instead of a fixed price.
+
+1. Type the desired amount in the price field.
+2. Click **Select**. The seat is reserved with that custom price.
+3. The Selected Seats row shows the override price for that specific seat.
+
+Because each seat carries its own donation override, two seats sharing the same Donation class can be priced independently in the same order -- one buyer might pay $15 for their seat while a companion pays $35 for theirs.
+
+!!! tip "Web-Visible vs Back-Office Classes"
+    On the **admin** new-order page, the popup lists every ticket class for the performance, including back-office classes (comps, internal codes, etc.). On the **public** ticketing page, the popup is automatically limited to web-visible classes so buyers never see staff-only options.
+
+### Removing a Seat
+
+Selected seats can be released two ways:
+
+- **Click the seat on the map again** -- it returns to Available and disappears from the list.
+- **Click the × button** on its row in the Selected Seats list -- same effect.
+
+The total quantity and order total update immediately.
 
 ## Wheelchair and Accessible Seating
 

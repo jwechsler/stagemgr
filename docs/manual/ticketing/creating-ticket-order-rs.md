@@ -42,15 +42,31 @@ When a reserved seating performance is selected, the seat map interface will app
 
 The seat map displays the venue layout with available, occupied, and held seats.
 
-1. Click on available seats to **reserve** them for this order
-2. Each selected seat is temporarily held while you complete the order
-3. Selected seats are highlighted on the map
-4. To deselect a seat, click it again to **release** it
+![Empty Selected Seats panel next to the venue seat map](../assets/images/screenshots/ticketing-admin-rs-empty.png)
+
+1. Click an available seat. A **ticket class popup** opens immediately for that seat.
+2. Pick the ticket class to assign. The seat is reserved for this order with that class and the seat appears on the **Selected Seats** list.
+3. Repeat for each seat the patron wants. Each click opens the popup again so the next seat can take a different class.
+4. To remove a seat from the order, either click it again on the seat map or use the **×** button on its row in the Selected Seats list. The hold is released immediately.
 
 For full details on using the seat map interface, see [Seat Selection](seat-selection.md).
 
-!!! tip "Ticket Class Assignment"
-    After selecting seats, you will assign a ticket class (e.g., Adult, Senior, Student) to each seat. The pricing updates automatically based on the assigned ticket class.
+!!! tip "One row per seat"
+    The Selected Seats list now shows **one row per seat**, with that seat's label, ticket class, quantity, and price. This is different from older releases where seats of the same class were aggregated into a single row -- the per-seat layout makes it easier to see exactly what each patron is paying for and to remove individual seats without affecting the rest.
+
+#### Donation (Pay-What-You-Can) Ticket Classes
+
+When a ticket class is configured as a **Donation** type, the popup shows a **price input** instead of a fixed price. This lets staff (or the patron, on the public page) enter any amount the buyer wishes to contribute for that seat.
+
+![Ticket class popup showing a donation class with an editable price input](../assets/images/screenshots/ticketing-admin-rs-class-popup.png)
+
+- Type the donation amount in the price field, then click **Select**.
+- Each seat keeps its own override, so two seats sharing the same donation class can be priced independently (for example, $25 for one seat and $50 for another).
+- Non-donation classes display the standard fixed price and cannot be edited from the popup.
+
+After selecting seats, the Selected Seats list updates live with the per-seat prices and a running total:
+
+![Selected Seats panel showing three seats with different ticket classes and prices, and the seat map highlighting them](../assets/images/screenshots/ticketing-admin-rs-populated.png)
 
 ### Step 4: Special Requests vs. Seat Selection
 
@@ -111,6 +127,8 @@ After successful submission:
 |---------|-------------------|------------------|
 | Seat selection | Not applicable | Interactive seat map |
 | Quantity entry | Dropdown + number field | Click individual seats |
+| Line items | One row per ticket class with a quantity | One row per seat |
+| Donation pricing | Fixed price per ticket class | Editable per seat in the class popup |
 | Special requests | Dropdown menu (Wheelchair, No Stairs) | Select accessible seats directly |
 | Capacity source | Manual capacity setting | Seat map determines capacity |
 | Temporary holds | Not applicable | Seats held during order creation |
