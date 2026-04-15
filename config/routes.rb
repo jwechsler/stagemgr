@@ -93,6 +93,7 @@ Rails.application.routes.draw do
       collection do
         post :reserve, format: :json
         post :release, format: :json
+        post :update_price_override, format: :json
       end
     end
 

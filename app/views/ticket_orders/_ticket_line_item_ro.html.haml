@@ -1,4 +1,7 @@
-.grid-x.grid-padding-x.ticket_line_item.line_item{:price=>f.object.ticket_class.try(:ticket_price), :ticket_type=>f.object.ticket_class.try(:ticket_type)}
+- reserved_seating = f.object.order&.performance&.production&.has_reserved_seating?
+- initial_count = f.object.ticket_count.to_i
+- hide_row = reserved_seating && initial_count <= 0
+.grid-x.grid-padding-x.ticket_line_item.line_item{:price=>f.object.ticket_class.try(:ticket_price), :ticket_type=>f.object.ticket_class.try(:ticket_type), "data-ticket-class-id" => f.object.ticket_class_id, :style => hide_row ? "display:none" : ""}
   .small-6.cell.vertical-center
     = f.hidden_field :ticket_class_id
     = f.object.ticket_class.class_name
@@ -14,4 +17,5 @@
     - if f.object.ticket_class.software_managed? || f.object.ticket_class.hide_pricing?
       n/a
     -else
-      %span.ticket_price= number_to_currency(f.object.ticket_class.ticket_price)
+      - effective_price = f.object.price_override.present? ? f.object.price_override : f.object.ticket_class.ticket_price
+      %span.ticket_price= number_to_currency(effective_price)

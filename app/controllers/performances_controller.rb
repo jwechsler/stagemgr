@@ -66,6 +66,8 @@ class PerformancesController < ApplicationController
       class_name: tca.ticket_class.class_name,
       web_visible: tca.ticket_class.web_visible?,
       ticket_price: (tca.ticket_class.software_managed? || tca.ticket_class.hide_pricing?) ? "n/a" : view_context.number_to_currency(tca.ticket_class.ticket_price),
+      raw_ticket_price: tca.ticket_class.ticket_price,
+      ticket_type: tca.ticket_class.ticket_type,
       purchase_page_annotation: tca.ticket_class.purchase_page_annotation
     } }
   end

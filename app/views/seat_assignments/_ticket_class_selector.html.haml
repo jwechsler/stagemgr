@@ -24,7 +24,7 @@
         - order_form.object.performance.ticket_class_allocations.each do |tca|
           -if tca.available? && !tca.ticket_class.software_managed? && (tca.ticket_class.web_visible?)
             - tc = tca.ticket_class
-            .grid-x.grid-padding-x
+            .grid-x.grid-padding-x{"data-ticket-type" => tc.ticket_type}
               .small-6.cell.vertical-center
 
                 = tc.class_name
@@ -34,10 +34,12 @@
               .small-3.cell
                 - if tc.software_managed? || tc.hide_pricing?
                   n/a
+                - elsif tc.ticket_type == TicketClass::DONATION
+                  %input.donation-price-override{type:"number", step:"0.01", min:"0", value: tc.ticket_price, placeholder: number_to_currency(tc.ticket_price)}
                 -else
                   %span.ticket_price= number_to_currency(tc.ticket_price)
               .small-3.cell
-                %a.button.tiny.ticket-class-select-button{href:'#',"data-ticket-class":tc.id} Select
+                %a.button.tiny.ticket-class-select-button{href:'#',"data-ticket-class":tc.id, "data-ticket-type":tc.ticket_type} Select
 
   %button.close-button(data-close aria-label="Close modal" type="button")
     %span(aria-hidden="true") &times;
@@ -50,6 +52,7 @@
       $("#ticket-selector").empty()
       $.each( data, function( key, val ) {
         ticket_class_id = val['id']
+        var ticket_type = val['ticket_type']
         var visible_style
         if (val['web_visible']) {
           visible_style = "front-facing"
@@ -58,6 +61,7 @@
         }
         var row = document.createElement("div")
         row.setAttribute("class", "grid-x grid-padding-x " + visible_style)
+        row.setAttribute("data-ticket-type", ticket_type || "")
         col = create_column("6",val['class_name'])
         if (val['purchase_page_annotation']) {
           span = document.createElement('span')
@@ -66,11 +70,25 @@
           col.appendChild(span)
         }
         row.appendChild(col)
-        row.appendChild(create_column("3",val['ticket_price']))
+        var price_col = create_column("3", "")
+        if (ticket_type === "Donation") {
+          var priceInput = document.createElement("input")
+          priceInput.setAttribute("type","number")
+          priceInput.setAttribute("step","0.01")
+          priceInput.setAttribute("min","0")
+          priceInput.setAttribute("class","donation-price-override")
+          priceInput.setAttribute("value", val['raw_ticket_price'])
+          priceInput.setAttribute("placeholder", val['ticket_price'])
+          price_col.appendChild(priceInput)
+        } else {
+          price_col.appendChild(document.createTextNode(val['ticket_price']))
+        }
+        row.appendChild(price_col)
         button = document.createElement("a")
         button.setAttribute("class","tiny ticket-class-select-button button")
         button.setAttribute("href","#")
         button.setAttribute("data-ticket-class",ticket_class_id)
+        button.setAttribute("data-ticket-type", ticket_type || "")
         button.appendChild(document.createTextNode('Select'))
         row.appendChild(create_column("3","",button))
 
