@@ -303,7 +303,9 @@ function build_reserved_seat_row(seatInfo, index) {
   // seatInfo: { seat_assignment_id, seat_label, ticket_class_id, ticket_class_name,
   //             ticket_price, price_override, ticket_line_item_id }
   var saId = seatInfo.seat_assignment_id
-  var key = "sa_" + saId
+  // Rails strong parameters silently drops nested-attributes keys that aren't
+  // integer-shaped, so key each TLI group by the numeric SeatAssignment id.
+  var key = String(saId)
   var row = document.createElement("div")
   row.setAttribute("class", "grid-x grid-padding-x ticket_line_item line_item")
   row.setAttribute("data-ticket-class-id", seatInfo.ticket_class_id)
