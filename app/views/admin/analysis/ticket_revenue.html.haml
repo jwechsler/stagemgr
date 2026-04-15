@@ -114,6 +114,22 @@
         %h6= @comparison_production.name
         = render partial: 'bucket_detail', locals: { summary: @comparison_result }
 
+  - # Special offer usage
+  .grid-x.grid-padding-x{style: 'margin-top: 1.5rem'}
+    .small-12.cell
+      %h5 Special Offer Usage
+      %p.help-text
+        Special offer codes applied to finalized orders for this production.
+
+  .grid-x.grid-padding-x
+    .cell{class: @comparison_result ? 'small-12 large-6' : 'small-12 medium-8 medium-offset-2'}
+      %h6= @target_production.name
+      = render partial: 'special_offer_usage', locals: { summary: @target_result }
+    - if @comparison_result
+      .small-12.large-6.cell
+        %h6= @comparison_production.name
+        = render partial: 'special_offer_usage', locals: { summary: @comparison_result }
+
   - # Dynamic lift rollup
   - target_has_dynamic = @target_result.buckets.any? { |b| b.bucket_type == :dynamic }
   - comp_has_dynamic   = @comparison_result&.buckets&.any? { |b| b.bucket_type == :dynamic }

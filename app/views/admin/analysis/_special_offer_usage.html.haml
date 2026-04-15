@@ -1,0 +1,24 @@
+- # summary is a TicketRevenueAnalysis::Summary struct
+- rows = summary.special_offer_usage
+- if rows.any?
+  %table.hover{style: 'font-size: 0.875rem'}
+    %thead
+      %tr
+        %th Code
+        %th Description
+        %th.text-right Uses
+        %th.text-right Total Discount
+    %tbody
+      - rows.each do |row|
+        %tr
+          %td
+            %code= row.code
+          %td{style: 'font-size: 0.8125rem'}= row.description
+          %td.text-right= row.uses
+          %td.text-right
+            - if row.class_swap
+              %em.text-secondary{title: 'Discount realized through ticket class reassignment, not a line item amount'} class swap
+            - else
+              = number_to_currency(row.total_discount)
+- else
+  %p.help-text No special offer codes were used in purchases for this production.

@@ -13,8 +13,11 @@ class TicketRevenueAnalysis
     :total_paid, :capacity_utilization_pct, :gross_revenue,
     :overall_avg_paid_price, :total_dynamic_lift_dollars, :total_dynamic_lift_pct,
     :performance_count, :completed_performance_count,
+    :special_offer_usage,
     keyword_init: true
   )
+
+  OfferUsage = Struct.new(:code, :description, :uses, :total_discount, :class_swap, keyword_init: true)
 
   def initialize(production)
     @production = production
@@ -27,7 +30,7 @@ class TicketRevenueAnalysis
   private
 
   def cache_key
-    "ticket_revenue_analysis/#{@production.id}/v3/#{@production.updated_at.to_i}"
+    "ticket_revenue_analysis/#{@production.id}/v4/#{@production.updated_at.to_i}"
   end
 
   def uncached_compute
@@ -142,8 +145,31 @@ class TicketRevenueAnalysis
       total_dynamic_lift_dollars:  total_lift,
       total_dynamic_lift_pct:      total_lift_pct,
       performance_count:           perf_count,
-      completed_performance_count: completed_perfs
+      completed_performance_count: completed_perfs,
+      special_offer_usage:         compute_special_offer_usage
     )
+  end
+
+  def compute_special_offer_usage
+    items = SpecialOfferLineItem
+              .joins("INNER JOIN orders ON orders.id = line_items.order_id")
+              .joins("INNER JOIN performances ON performances.id = orders.performance_id")
+              .where("performances.production_id = ?", @production.id)
+              .where("orders.status IN (?)", Order::FINALIZED_STATUSES)
+              .includes(:special_offer, :order)
+
+    items.group_by(&:special_offer_id).filter_map do |_offer_id, list|
+      offer = list.first.special_offer
+      next nil unless offer
+      total_discount = list.sum { |li| li.price.to_f.abs }
+      OfferUsage.new(
+        code:           offer.code,
+        description:    offer.to_s,
+        uses:           list.size,
+        total_discount: BigDecimal(total_discount.to_s),
+        class_swap:     offer.is_a?(TicketClassSpecialOffer)
+      )
+    end.sort_by { |u| -u.uses }
   end
 
   def build_promotion_edges(class_by_code)
@@ -407,7 +433,8 @@ class TicketRevenueAnalysis
       total_dynamic_lift_dollars:  BigDecimal('0'),
       total_dynamic_lift_pct:      nil,
       performance_count:           perf_count,
-      completed_performance_count: completed_perfs
+      completed_performance_count: completed_perfs,
+      special_offer_usage:         []
     )
   end
 end

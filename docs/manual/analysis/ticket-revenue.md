@@ -211,6 +211,25 @@ A positive lift percentage means dynamic pricing generated more revenue than a f
 pricing strategy would have. A zero lift means all tickets sold at the floor price even
 though promotion triggers were configured.
 
+### Special Offer Usage
+
+Between the bucket detail tables and the dynamic pricing section, a **Special Offer Usage**
+table lists every special offer code that was applied to finalized orders for the
+production. The table renders once per show when comparing two productions.
+
+![Special offer usage table](../assets/images/screenshots/ticket-revenue-results-special-offer-usage.png)
+
+| Column | Description |
+|--------|-------------|
+| **Code** | The offer code customers entered at checkout |
+| **Description** | Human-readable description generated from the offer's rules (theater/production/performance scope, ticket class filter, day restrictions, date range) |
+| **Uses** | Number of finalized orders that applied the code |
+| **Total Discount** | Sum of discount amounts applied through this offer. Shows `class swap` for ticket-class offers where the discount is realized by reassigning the ticket to a different class rather than as a dollar-value line item. |
+
+Rows are sorted by number of uses, descending.
+
+---
+
 ### Dynamic Bucket Breakdown
 
 Below the aggregate lift table, a per-bucket breakdown shows the mix of ticket classes
