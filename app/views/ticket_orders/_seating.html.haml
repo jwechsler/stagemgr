@@ -14,10 +14,10 @@
   - unless order_form.object.performance_id.blank?
     :javascript
       $(document).ready(function() {
+        // The public popup is already correctly filtered server-side
+        // (web_visible only), so we intentionally skip populate_ticket_selector
+        // here — rebuilding from the ticket_classes JSON would include
+        // back-office classes whenever an admin is browsing the public URL.
         get_ticket_classes();
-        populate_ticket_selector();
         populate_ticket_order();
-        // populate_ticket_selector replaces the server-rendered .ticket-class-select-button
-        // nodes; re-bind click handlers on the fresh copies.
-        initialize_seating_assignment();
       });
