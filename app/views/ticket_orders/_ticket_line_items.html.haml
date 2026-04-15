@@ -1,29 +1,55 @@
+- reserved_seating = order_form.object.performance&.production&.has_reserved_seating?
 .grid-x.grid-padding-x
   .small-12.cell
     %h4
       Selected Seats
       %span#seatlocations
         = order_form.object.seat_assignments unless order_form.object.nil?
-    .grid-x.grid-padding-x{:style=>'margin-bottom: 8px'}
-      .small-7.cell
-        %strong Type
-      .small-2.cell
-        %strong Qty
-      .small-3.cell
-        %strong Price/ticket
-    = order_form.simple_fields_for :ticket_line_items do |line_item_form|
-      - tca = order_form.object.performance.ticket_class_allocations.select{|tca| tca.ticket_class.id.eql?(line_item_form.object.ticket_class.id)}
-      - available = tca.size.eql?(0) ? false : tca.first.available?
-      - unless line_item_form.object.ticket_class.software_managed? || line_item_form.object.ticket_class.hide_pricing? || !line_item_form.object.ticket_class.web_visible? || !available
-        = render :partial => '/ticket_orders/ticket_line_item_ro', :locals => {:f => line_item_form}
-    .grid-x.grid-padding-x{:style=>'margin-bottom: 8px'}
-      .small-6.cell
-        %strong.right Total
-      .small-3.cell
-        %strong.right
-          %span#ticket_quantity
-            = order_form.object.number_of_tickets
-      .small-3.cell
-        %strong
-          %span#order_total
-            = number_to_currency(order_form.object.total_ticket_face_value)
+    - if reserved_seating
+      .grid-x.grid-padding-x{:style=>'margin-bottom: 8px'}
+        .small-6.cell
+          %strong Seat / Type
+        .small-2.cell
+          %strong Qty
+        .small-3.cell
+          %strong Price
+        .small-1.cell
+          &nbsp;
+      = render partial: "/admin/ticket_orders/ticket_line_item_table", locals:{ticket_order: order_form.object}
+      #ticket-display
+      .grid-x.grid-padding-x{:style=>'margin-bottom: 8px'}
+        .small-6.cell
+          %strong.right Total
+        .small-2.cell{:style => 'text-align: right'}
+          %strong
+            %span#ticket_quantity
+        .small-3.cell{:style => 'text-align: right'}
+          %strong
+            %span#order_total
+              = number_to_currency(order_form.object.total_ticket_face_value)
+        .small-1.cell
+          &nbsp;
+    - else
+      .grid-x.grid-padding-x{:style=>'margin-bottom: 8px'}
+        .small-7.cell
+          %strong Type
+        .small-2.cell
+          %strong Qty
+        .small-3.cell
+          %strong Price/ticket
+      = order_form.simple_fields_for :ticket_line_items do |line_item_form|
+        - tca = order_form.object.performance.ticket_class_allocations.select{|tca| tca.ticket_class.id.eql?(line_item_form.object.ticket_class.id)}
+        - available = tca.size.eql?(0) ? false : tca.first.available?
+        - unless line_item_form.object.ticket_class.software_managed? || line_item_form.object.ticket_class.hide_pricing? || !line_item_form.object.ticket_class.web_visible? || !available
+          = render :partial => '/ticket_orders/ticket_line_item_ro', :locals => {:f => line_item_form}
+      .grid-x.grid-padding-x{:style=>'margin-bottom: 8px'}
+        .small-6.cell
+          %strong.right Total
+        .small-3.cell
+          %strong.right
+            %span#ticket_quantity
+              = order_form.object.number_of_tickets
+        .small-3.cell
+          %strong
+            %span#order_total
+              = number_to_currency(order_form.object.total_ticket_face_value)

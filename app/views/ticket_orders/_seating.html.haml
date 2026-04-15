@@ -1,5 +1,6 @@
 <!--Creates the popup body-->
 = render partial:'/seat_assignments/ticket_class_selector', locals: {order_form: order_form}
+#ticket-items{'data-line-items':'[]'}
 - unavailable_data = raw '{"alwaysOn": true, "fillColor":"000000"}'
 .grid-x.grid-padding-x
   .cell.small-12.medium-6
@@ -10,3 +11,13 @@
 
 = content_for :js do
   = javascript_include_tag 'seat_assignment'
+  - unless order_form.object.performance_id.blank?
+    :javascript
+      $(document).ready(function() {
+        get_ticket_classes();
+        populate_ticket_selector();
+        populate_ticket_order();
+        // populate_ticket_selector replaces the server-rendered .ticket-class-select-button
+        // nodes; re-bind click handlers on the fresh copies.
+        initialize_seating_assignment();
+      });
