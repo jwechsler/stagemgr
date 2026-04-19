@@ -287,6 +287,7 @@ Rails.application.routes.draw do
       resources :exchange_ticket_orders, :only=>[:new,:create]
       resources :refund_orders, :only=>[:new,:create]
     end
+    resources :service_line_items, :only=>[:destroy]
     resources :special_offers do
       post 'duplicate', on: :member
     end
