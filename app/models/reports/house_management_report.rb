@@ -30,14 +30,32 @@ class HouseManagementReport < Report
 
   end
 
+  def visits_by_address(address_ids)
+    return {} if address_ids.empty?
+    scope = TicketOrder.attending.joins(:performance)
+      .where(address_id: address_ids)
+      .where("performances.performance_date <= ?", self.for_date)
+    range_days = $SERVER_CONFIG['report_frequent_customer_range_days']
+    scope = scope.where("performances.performance_date >= ?", self.for_date - range_days.to_i) if range_days
+    scope.group(:address_id).count
+  end
+
+  def frequent_customer_threshold
+    $SERVER_CONFIG['report_frequent_customer_at']
+  end
+
   def create
     orders = self.ticket_orders
     report = Array.new
-    headers = [:production_name, :performance_code, :patron_name, :seats, :special_requests, :notes, :is_member, :is_donor, :photo]
+    headers = [:production_name, :performance_code, :patron_name, :seats, :special_requests, :notes, :is_member, :is_donor, :visits, :photo]
+    visit_counts = visits_by_address(orders.map(&:address_id).uniq)
+    threshold = frequent_customer_threshold
     orders.each do |o|
       seat_assignments = o.seat_assignments
       print_tags = house_tags(o.address)
-      if !o.special_request.blank? || !o.notes.blank? || o.address.is_current_member? || o.address.is_donor? || !print_tags.empty? || o.assigned_seats? || o.address.photo.attached? || o.address.vip?
+      visit_count = visit_counts[o.address_id] || 0
+      frequent_attendee = threshold && visit_count >= threshold.to_i
+      if !o.special_request.blank? || !o.notes.blank? || o.address.is_current_member? || o.address.is_donor? || !print_tags.empty? || o.assigned_seats? || o.address.photo.attached? || o.address.vip? || frequent_attendee
         note_column = o.address.vip? ? "VIP" : ""
         unless o.notes.blank?
           note_column += "<br/>" unless note_column.blank?
@@ -67,6 +85,7 @@ class HouseManagementReport < Report
           :is_member => o.address.is_current_member?,
           :is_donor => o.address.is_donor? ? o.address.most_recent_donation_tier : "",
           :seats => o.number_of_seats,
+          :visits => visit_count,
           :photo => o.address.photo
         }
       end
