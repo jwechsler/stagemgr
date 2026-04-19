@@ -19,8 +19,11 @@ class HouseManagementReport < Report
   end
 
   def house_tags(address)
-    unless address.nil? 
-      address.address_tags.select {|tag| tag.theater_id.blank? || tag.theater.producing?}
+    unless address.nil?
+      address.address_tags.select do |tag|
+        next false if tag.tag_label == AddressTag::EXTERNAL_ID
+        tag.theater_id.blank? || tag.theater.producing?
+      end
     else
       Array.new
     end
