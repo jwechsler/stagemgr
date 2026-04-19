@@ -193,6 +193,12 @@ background-dark {
   background-color: #ffe6e6;
 }
 
+/* Mobile list: keep zebra distinction even on consecutive heatmap rows */
+.performance_list tr.heatmap-warning:nth-child(odd) > td  { background-color: #fff9e6; }
+.performance_list tr.heatmap-warning:nth-child(even) > td { background-color: #fff0c2; }
+.performance_list tr.heatmap-critical:nth-child(odd) > td  { background-color: #ffe6e6; }
+.performance_list tr.heatmap-critical:nth-child(even) > td { background-color: #ffd0d0; }
+
 /* Calendar heatmap: diagonal stripe backgrounds for mixed-state days */
 .performance_calendar td.heatmap-stripe-open-warning {
   background: repeating-linear-gradient(
