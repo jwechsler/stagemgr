@@ -30,6 +30,21 @@ class PerformancesController < ApplicationController
         @footnotes << "_custom#{p.id}" unless p.special_feature_display_markdown.blank?
       }
       @footnotes = @footnotes.uniq
+
+      @list_performances = @production.performances.includes(
+        :house_count, :ticket_class_allocations, :special_features, :production
+      ).where(
+        'performances.status in (?) and performances.performance_date >= ?',
+        Performance.visible_statuses, Date.today
+      ).order(performance_date: :asc, performance_time: :asc)
+
+      @list_footnotes = []
+      @list_performances.each do |p|
+        @list_footnotes += p.special_features.map(&:short_name) unless p.special_features.empty?
+        @list_footnotes << "_custom#{p.id}" unless p.special_feature_display_markdown.blank?
+      end
+      @list_footnotes.uniq!
+
       render :index, :layout=>$SERVER_CONFIG['ext_site_wrapper']
     else
       super

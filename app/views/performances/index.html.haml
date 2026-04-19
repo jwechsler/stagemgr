@@ -13,4 +13,4 @@
     .medium-8.cell.hide-for-small-only
       = render 'calendar', :production=>@production
     .small-12.cell.show-for-small-only
-      = render 'list_by_date', :performances=>@production.performances
+      = render 'list_by_date', :performances=>@list_performances, :footnotes=>@list_footnotes

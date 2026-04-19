@@ -150,12 +150,14 @@ module OrdersHelper
 
   def special_feature_footnotes_for(performance, footnotes)
     text = ''
-    unless performance.special_features.empty?
-      performance.special_features.each do |feature|
-        text <<= raw "<sup>[#{@footnotes.find_index(feature.short_name)+1}]&nbsp;</sup>" unless @footnotes.find_index(feature.short_name).nil?
-      end
+    performance.special_features.each do |feature|
+      idx = footnotes.find_index(feature.short_name)
+      text <<= raw "<sup>[#{idx + 1}]&nbsp;</sup>" unless idx.nil?
     end
-    text <<= raw "<sup>[#{@footnotes.find_index("_custom#{performance.id}")+1}]&nbsp;</sup>" unless @footnotes.find_index("_custom#{performance.id}").nil? || performance.special_feature_display_markdown.blank?
+    unless performance.special_feature_display_markdown.blank?
+      idx = footnotes.find_index("_custom#{performance.id}")
+      text <<= raw "<sup>[#{idx + 1}]&nbsp;</sup>" unless idx.nil?
+    end
     text
   end
 
