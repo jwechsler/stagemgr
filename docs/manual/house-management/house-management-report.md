@@ -20,6 +20,8 @@ The report includes:
 | Donor indicators | Patrons tagged as donors, with their giving level if available |
 | VIP guests | Patrons flagged as VIPs in their address record |
 | Notable patron tags | Relevant tags such as Board Member, Press, Artist Guest |
+| Visits | How many times the patron has attended (Processed or Fulfilled ticket orders) on or before the report date |
+| Frequent attendees | Patrons whose visit count meets the configured threshold, even when they have no other notable indicators |
 
 ---
 
@@ -73,6 +75,28 @@ The report flags patrons who are:
 
 This information helps front-of-house staff provide appropriate recognition and service.
 
+### Visits Column
+
+The **Visits** column shows how many times the patron has attended -- that is, how many of their ticket orders are in `Processed` or `Fulfilled` status with a performance date on or before the report date. Held and unclaimed orders are not counted, so the number reflects actual arrivals.
+
+If a lookback window is configured (`report_frequent_customer_range_days`), only visits inside that window are counted. With no window configured, the column reflects the patron's full attendance history.
+
+### Frequent Attendees
+
+A patron who does not appear in the report for any other reason -- no special request, no note, no membership, donor level, patron tag, assigned seat, photo, or VIP flag -- will still be listed when their **Visits** count meets the configured threshold. Use this to spot loyal patrons who might otherwise go unrecognized by front-of-house staff.
+
+The rule is driven by two server-level settings (see [System Options](../setup/system-options.md)):
+
+| Setting | Meaning |
+|---------|---------|
+| `report_frequent_customer_at` | Minimum visit count that qualifies a patron as a frequent attendee |
+| `report_frequent_customer_range_days` | Lookback window in days; leave unset to count full history |
+
+If `report_frequent_customer_at` is not configured, the frequent-attendee rule is disabled and patrons appear only for the traditional reasons listed above.
+
+!!! note "External ID tag is excluded"
+    The **External ID** patron tag is used internally to match imported orders from external systems. It does not influence inclusion on the report and is hidden from the **Patron Notes** column even when a patron is listed for other reasons.
+
 ---
 
 ## Using the Report During a Performance
@@ -104,9 +128,10 @@ The report pulls information from several areas of the system:
 | Data Source | What It Contributes |
 |-------------|-------------------|
 | Address record (VIP flag) | Identifies VIP patrons |
-| Patron tags | Donor levels, seating preferences, special designations |
+| Patron tags | Donor levels, seating preferences, special designations (the internal **External ID** tag is excluded) |
 | Order notes | Special requests entered during ticket purchase |
 | Seat assignments | Reserved seating allocations for the performance |
+| Patron attending order history | Visit count (Processed + Fulfilled ticket orders) and the frequent-attendee determination |
 
 !!! tip
     The quality of this report depends on the data entered into patron records and order notes. Encourage box office staff to record seating preferences and special requests when taking orders, and to maintain accurate patron tags.

@@ -53,6 +53,8 @@ all:
   # Report generation configuration
   max_report_date_range_days: 730  # Maximum date range for reports (2 years)
   report_timeout_seconds: 30       # Timeout for inline report generation
+  report_frequent_customer_at: 12         # Minimum Number of visits from a customer to define a "frequent attendee"
+  report_frequent_customer_range_days: 1460 # Window of time to determine a frequent customer.  Undefined means for all purchase history
   # Calendar heatmap thresholds (percentage of seats remaining)
   calendar_display:
     warning_at: 50

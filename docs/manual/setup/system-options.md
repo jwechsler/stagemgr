@@ -54,6 +54,8 @@ Some system-wide settings are configured at the server level rather than through
 | **Theater user sales cutoff** | Minutes before showtime when third-party/theater user sales close (default: 30 minutes) |
 | **Capacity restriction** | When remaining seats fall below this number, all inventory transfers to box office only (default: 9 seats) |
 | **Calendar heatmap** | Color-coded availability indicators on the public ticket calendar. `calendar_display.warning_at` (default: 50%) highlights popular performances in yellow; `calendar_display.critical_at` (default: 30%) highlights near-capacity performances in red. See [Calendar Heatmap](../house-management/calendar-heatmap.md) |
+| **Frequent attendee threshold** | `report_frequent_customer_at` -- minimum number of attending (Processed/Fulfilled) ticket orders a patron needs to be listed on the House Management Report as a frequent attendee, even without other notable indicators. Leave unset to disable the rule. See [House Management Report](../house-management/house-management-report.md) |
+| **Frequent attendee window** | `report_frequent_customer_range_days` -- lookback window in days used for both the frequent-attendee threshold check and the Visits column on the House Management Report. Leave unset to count a patron's full attendance history |
 | **Email addresses** | System email addresses for box office, error notifications, flex pass notifications, membership notifications, and supervisor notifications |
 | **Payment gateway** | Stripe configuration for credit card processing |
 | **MyEmma integration** | Email marketing platform configuration |
