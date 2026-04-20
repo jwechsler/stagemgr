@@ -7,9 +7,8 @@
     %li.current
       %a{:href=>"#"}= @production.name
 .grid-x.grid-padding-x{data: {theater_id: @production.theater.id, production_id: @production.id}}
-  .small-4.cell
-    = render :partial=>'/productions/info', :locals=>{:production=>@production}
-  .small-8.cell
+  = render :partial=>'/productions/show_detail_column', :locals=>{:production=>@production}
+  .small-12.medium-8.cell
     %ul.tabs#prodtabs(data-tabs)
       %li.tabs-title.is-active
         %a{:href=>"#prodpanel-1", 'aria-selected'=>"true"} Performances
