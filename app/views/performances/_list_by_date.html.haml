@@ -1,27 +1,35 @@
 .grid-x.grid-padding-x
   .small-12.cell
-    %table
-      - performances.select{|p| p.visible? && p.performance_date >= Date.today}.sort_by{|p| [p.performance_date, p.performance_time]}.each do |p|
-        %tr
+    - found_heatmap = false
+    %table.performance_list
+      - performances.each do |p|
+        - perf_heatmap = p.calendar_heatmap_level
+        - found_heatmap ||= !perf_heatmap.nil?
+        %tr{class: perf_heatmap ? "heatmap-#{perf_heatmap}" : nil}
           %td
             = p.performance_date.to_s(:long)
           %td
             = p.performance_time.to_s(:hour_min)
-            = raw special_feature_footnotes_for(p, @footnotes)
+            = raw special_feature_footnotes_for(p, footnotes)
           %td
             = price_range(p)
           %td
             .show-info
               = p.decorate.order_link('Buy Tickets', ['button','tiny'], 'margin-bottom:0em', true)
-              
-    - unless @footnotes.empty?
+
+    - if found_heatmap
+      .grid-x.grid-padding-x
+        .small-12.cell.heatmap-legend
+          %span.heatmap-legend-item.heatmap-warning Popular performance
+          %span.heatmap-legend-item.heatmap-critical Near capacity
+
+    - unless footnotes.empty?
       .grid-x.grid-padding-x
         .small-12.cell
-          - index = 0
-          - @footnotes.each do |note|
-            - index += 1
+          - footnotes.each_with_index do |note, i|
+            - index = i + 1
             %p.text-right
               - if note.start_with?("_custom")
-                = display_markdown(Performance.find(note[7..10]).special_feature_display_markdown)
+                = display_markdown("[#{index}] " + Performance.find(note.sub(/^_custom/, '')).special_feature_display_markdown)
               - else
                 = display_markdown "\[#{index}\] #{SpecialFeature.find_by_short_name(note).description}"

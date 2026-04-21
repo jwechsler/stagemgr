@@ -1,6 +1,7 @@
 class TicketLineItem < LineItem
   belongs_to :ticket_order, :foreign_key => :order_id, inverse_of: :ticket_line_items
   belongs_to :ticket_class, inverse_of: :ticket_line_items
+  belongs_to :seat_assignment, optional: true, inverse_of: :ticket_line_item
 
   validates_presence_of :ticket_count
 
@@ -25,6 +26,9 @@ class TicketLineItem < LineItem
       refund_lineitem = self.dup
       refund_lineitem.ticket_count = refund_lineitem.ticket_count*-1
       refund_lineitem.ticket_class = self.ticket_class
+      # The negative-count reversing entry is an accounting record, not a seat
+      # owner. Clear the FK so the 1:1 uniqueness index isn't violated.
+      refund_lineitem.seat_assignment_id = nil
       [refund_lineitem]
     else
       []

@@ -16,6 +16,7 @@ class TicketOrder < Order
   before_save :remove_empty_ticket_lines
   
   after_save :finalize_seat_assignments
+  after_save :sync_reserved_seat_price_overrides
   after_save :update_attendance_record
 
   before_destroy :unassign_seats
@@ -252,6 +253,41 @@ class TicketOrder < Order
   def finalize_seat_assignments
     if (self.processed? or self.held?) and self.performance.production.has_reserved_seating? and !self.uuid.nil?
       SeatAssignment.assign_seats_to_saved_order(self.uuid) unless self.exchanging?
+    end
+  end
+
+  # For reserved-seating orders, ensure each SeatAssignment with a donation
+  # price override is represented by a dedicated TicketLineItem carrying that
+  # override (seat_assignment_id set, ticket_count=1). When the form was built
+  # in the legacy aggregated-by-class shape, split an aggregated TLI off the
+  # class so totals continue to balance.
+  def sync_reserved_seat_price_overrides
+    return unless performance&.production&.has_reserved_seating?
+    return if exchanging?
+    return unless [NEW, PROCESSING, PROCESSED, HOLD].include?(status)
+
+    priced_seats = seats.where.not(price_override: nil).where.not(ticket_class_id: nil)
+    return if priced_seats.empty?
+
+    priced_seats.each do |sa|
+      next if ticket_line_items.any? { |tli| tli.seat_assignment_id == sa.id }
+
+      aggregated = ticket_line_items.detect { |tli|
+        tli.ticket_class_id == sa.ticket_class_id && tli.seat_assignment_id.nil? && tli.ticket_count.to_i.positive?
+      }
+      next if aggregated.nil?
+
+      if aggregated.ticket_count > 1
+        aggregated.update_columns(ticket_count: aggregated.ticket_count - 1)
+        ticket_line_items.create!(
+          ticket_class_id: sa.ticket_class_id,
+          ticket_count: 1,
+          seat_assignment_id: sa.id,
+          price_override: sa.price_override
+        )
+      else
+        aggregated.update_columns(seat_assignment_id: sa.id, price_override: sa.price_override)
+      end
     end
   end
 
@@ -581,7 +617,15 @@ class TicketOrder < Order
     self.ticket_line_items.each do |tli|
       tli.ticket_count.times {
         seat = nil
-        if seat_assignments.map{|sa| sa.ticket_class_id}.include?(tli.ticket_class_id)
+        if tli.seat_assignment_id.present?
+          # Per-seat TLI: the association is authoritative. Pull the seat directly
+          # out of the pool so later iterations don't double-assign it.
+          seat = seat_assignments.find { |sa| sa.id == tli.seat_assignment_id }
+          seat_assignments.delete_at(seat_assignments.index(seat)) if seat
+        elsif seat_assignments.map{|sa| sa.ticket_class_id}.include?(tli.ticket_class_id)
+          # LEGACY: pre-per-seat-TLI reserved orders (seat_assignment_id is NULL).
+          # Pool-match by ticket_class_id. Do not remove without auditing
+          # historical TicketOrders.
           seat = seat_assignments.select{|sa| sa.ticket_class_id == tli.ticket_class_id}.first
           seat_assignments.delete_at(seat_assignments.index(seat))
         else
@@ -620,8 +664,13 @@ class TicketOrder < Order
     dup_tli = tli_hash[:source].dup
     dup_tli.order_id = nil
     dup_tli.ticket_count = 1
+    # The moved TLI takes ownership of its split seat (if any). The reversing
+    # offset must leave seat_assignment_id NULL so the 1:1 unique index is
+    # never violated by the accounting entry left behind on the source order.
+    dup_tli.seat_assignment_id = tli_hash[:seat]&.id
     offset = dup_tli.dup
     offset.ticket_count = -1
+    offset.seat_assignment_id = nil
     dup_tli.price_override = value_per_ticket
     dup_tli.generated_from_split = true
     total = dup_tli.price_override
@@ -942,6 +991,15 @@ class TicketOrder < Order
   #   If either new_tlis or old_tlis are nil, then the seating is forced to match the existing ticket line items ticket assignments blindly.
   def adjust_seating_to_match_ticket_line_items(new_tlis = nil, old_tlis =nil)
     if self.performance.production.has_reserved_seating?
+      # Reserved-seating orders now maintain 1 TicketLineItem per SeatAssignment
+      # via TicketLineItem#seat_assignment_id. When that invariant holds there is
+      # nothing to reconcile — the association itself guarantees the pairing.
+      if ticket_line_items.any? && ticket_line_items.all? { |tli| tli.seat_assignment_id.present? }
+        return
+      end
+
+      # LEGACY: pre-per-seat-TLI reserved orders (TicketLineItem#seat_assignment_id is NULL).
+      # Do not remove without auditing historical TicketOrders.
       ticket_classes_to_shift = Hash.new
       if new_tlis.nil?
         tli_ticket_class_ids = Set.new(self.ticket_line_items.map{|tli| tli.ticket_class_id})

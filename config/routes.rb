@@ -93,6 +93,7 @@ Rails.application.routes.draw do
       collection do
         post :reserve, format: :json
         post :release, format: :json
+        post :update_price_override, format: :json
       end
     end
 
@@ -286,6 +287,7 @@ Rails.application.routes.draw do
       resources :exchange_ticket_orders, :only=>[:new,:create]
       resources :refund_orders, :only=>[:new,:create]
     end
+    resources :service_line_items, :only=>[:destroy]
     resources :special_offers do
       post 'duplicate', on: :member
     end

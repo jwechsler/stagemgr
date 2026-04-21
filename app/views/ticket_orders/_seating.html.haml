@@ -1,5 +1,6 @@
 <!--Creates the popup body-->
 = render partial:'/seat_assignments/ticket_class_selector', locals: {order_form: order_form}
+#ticket-items{'data-line-items':'[]'}
 - unavailable_data = raw '{"alwaysOn": true, "fillColor":"000000"}'
 .grid-x.grid-padding-x
   .cell.small-12.medium-6
@@ -10,3 +11,13 @@
 
 = content_for :js do
   = javascript_include_tag 'seat_assignment'
+  - unless order_form.object.performance_id.blank?
+    :javascript
+      $(document).ready(function() {
+        // The public popup is already correctly filtered server-side
+        // (web_visible only), so we intentionally skip populate_ticket_selector
+        // here — rebuilding from the ticket_classes JSON would include
+        // back-office classes whenever an admin is browsing the public URL.
+        get_ticket_classes();
+        populate_ticket_order();
+      });

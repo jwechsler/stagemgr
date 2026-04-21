@@ -8,6 +8,34 @@ body {
   font-size: 14px;
 }
 
+.production_name {
+  font-style: italic;
+  font-size: 1em;
+}
+
+.production_credit {
+  font-size: .8em;
+}
+
+.company_class {
+  font-style: italic;
+  font-size: 80%;
+}
+
+.production_information_vertical {
+  clear: both;
+}
+
+.production_information .venue {
+  font-size: 80%;
+  font-style: italic;
+  font-weight: bolder;
+}
+
+#show_detail_column {
+  padding: 0px 25px 0px 0px;
+}
+
 a img {
   border: none;
 }

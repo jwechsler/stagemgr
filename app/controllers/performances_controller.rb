@@ -30,6 +30,21 @@ class PerformancesController < ApplicationController
         @footnotes << "_custom#{p.id}" unless p.special_feature_display_markdown.blank?
       }
       @footnotes = @footnotes.uniq
+
+      @list_performances = @production.performances.includes(
+        :house_count, :ticket_class_allocations, :special_features, :production
+      ).where(
+        'performances.status in (?) and performances.performance_date >= ?',
+        Performance.visible_statuses, Date.today
+      ).order(performance_date: :asc, performance_time: :asc)
+
+      @list_footnotes = []
+      @list_performances.each do |p|
+        @list_footnotes += p.special_features.map(&:short_name) unless p.special_features.empty?
+        @list_footnotes << "_custom#{p.id}" unless p.special_feature_display_markdown.blank?
+      end
+      @list_footnotes.uniq!
+
       render :index, :layout=>$SERVER_CONFIG['ext_site_wrapper']
     else
       super
@@ -66,6 +81,8 @@ class PerformancesController < ApplicationController
       class_name: tca.ticket_class.class_name,
       web_visible: tca.ticket_class.web_visible?,
       ticket_price: (tca.ticket_class.software_managed? || tca.ticket_class.hide_pricing?) ? "n/a" : view_context.number_to_currency(tca.ticket_class.ticket_price),
+      raw_ticket_price: tca.ticket_class.ticket_price,
+      ticket_type: tca.ticket_class.ticket_type,
       purchase_page_annotation: tca.ticket_class.purchase_page_annotation
     } }
   end

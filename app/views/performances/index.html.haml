@@ -7,10 +7,9 @@
     for up-to-date show listings and notifications
 - else
   .grid-x.grid-padding-x
-    #show_detail_column.small-12.medium-4.cell
-      = render :partial=>'/productions/info', :locals=>{:production=>@production, :layout_style=>:production_information_vertical}
+    = render layout: '/productions/show_detail_column', locals: {production: @production} do
       = render :partial=>'/productions/late_seating_notice', :locals=>{:production=>@production}
     .medium-8.cell.hide-for-small-only
       = render 'calendar', :production=>@production
     .small-12.cell.show-for-small-only
-      = render 'list_by_date', :performances=>@production.performances
+      = render 'list_by_date', :performances=>@list_performances, :footnotes=>@list_footnotes

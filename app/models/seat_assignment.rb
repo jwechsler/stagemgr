@@ -6,6 +6,7 @@ class SeatAssignment < ApplicationRecord
   belongs_to :seat, inverse_of: :seat_assignments
   belongs_to :performance, inverse_of: :seat_assignments
   belongs_to :ticket_class, optional: true
+  has_one :ticket_line_item, inverse_of: :seat_assignment
 
   SEAT_STATUSES = (
   AVAILABLE, ASSIGNED, TEMPORARY, RELEASING, BROKEN =

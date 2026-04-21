@@ -8,21 +8,25 @@
       %span#seatlocations
         = order_form.object.seat_assignments unless order_form.object.performance.nil?
     .grid-x.grid-padding-x{:style=>'margin-bottom: 8px'}
-      .small-7.cell
-        %strong Type
+      .small-6.cell
+        %strong Seat / Type
       .small-2.cell
         %strong Qty
       .small-3.cell
-        %strong Price/ticket
+        %strong Price
+      .small-1.cell
+        &nbsp;
     = render partial: "/admin/ticket_orders/ticket_line_item_table", locals:{ticket_order: order_form.object}
     #ticket-display
     .grid-x.grid-padding-x{:style=>'margin-bottom: 8px'}
       .small-6.cell
         %strong.right Total
-      .small-3.cell
-        %strong.right
-          %span#ticket_quantity.right
-      .small-3.cell
+      .small-2.cell{:style => 'text-align: right'}
         %strong
-          %span#order_total.right
+          %span#ticket_quantity
+      .small-3.cell{:style => 'text-align: right'}
+        %strong
+          %span#order_total
             0.0
+      .small-1.cell
+        &nbsp;

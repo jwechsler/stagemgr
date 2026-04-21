@@ -5,6 +5,30 @@
 
 ## April 2026
 
+### House Management Report -- Visits Column and Frequent Attendees
+
+**Available to:** Administrator, Box Office, House Manager
+
+The House Management Report now includes a **Visits** column and a new inclusion rule for frequent attendees.
+
+| Detail | Description |
+|--------|-------------|
+| **Where** | Admin > Reports > House Management Report |
+| **Visits column** | Count of the patron's Processed and Fulfilled ticket orders on or before the report date |
+| **Frequent attendee rule** | Patron is listed if their visit count meets the configured threshold, even with no other signals |
+| **External ID tag** | No longer forces inclusion and is hidden from the Patron Notes column |
+
+**Configured in `server.yml`:**
+
+- `report_frequent_customer_at` -- minimum visits to qualify as a frequent attendee (leave unset to disable)
+- `report_frequent_customer_range_days` -- lookback window in days; leave unset to count full history. The same window is applied to the Visits column.
+
+**Use cases:** Identify loyal patrons during check-in who have no VIP flag or donor tag but have attended many shows. Keep the Patron Notes column focused on front-of-house-relevant tags by suppressing the internal External ID marker from imports.
+
+See [House Management Report](../house-management/house-management-report.md).
+
+---
+
 ### Ticket Revenue Analysis
 
 **Available to:** Administrator, Theater User

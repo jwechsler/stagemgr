@@ -96,7 +96,7 @@
                 - index += 1
                 %p.text-right
                   - if note.start_with?("_custom")
-                    = display_markdown("[#{index}] " + Performance.find(note[7..10]).special_feature_display_markdown)
+                    = display_markdown("[#{index}] " + Performance.find(note.sub(/^_custom/, '')).special_feature_display_markdown)
                   - else
                     = display_markdown "\[#{index}\] #{SpecialFeature.find_by_short_name(note).description}"
   - when (@production.performances.count{|p| p.visible? && (p.performance_date >= Date.today) } == 1)
