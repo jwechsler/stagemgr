@@ -2,6 +2,7 @@
     <%= token_tag %>
     <%= f.input :name %>
     <%= f.input :ordinal_sort %>
+    <%= f.input :external, as: :boolean, label: "External venue" %>
     <%= f.button :submit %>
 
 <%- end %>

@@ -46,6 +46,6 @@ class Admin::VenuesController < ApplicationController
 
   private
   def venue_params
-    params.require(:venue).permit(:name, :ordinal_sort)
+    params.require(:venue).permit(:name, :ordinal_sort, :external)
   end
 end

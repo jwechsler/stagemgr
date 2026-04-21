@@ -7,6 +7,10 @@
     %li.current
       %a{:href=>'#'}= @venue.name
 
+- if @venue.external?
+  .callout.primary
+    %strong External Venue
+
 .grid-x.grid-padding-x
   .cell.small-12
     %h3 Seat Maps
