@@ -46,7 +46,9 @@ and (when dynamic pricing is configured) flat-base gross and dynamic lift.
 - **Price Distribution Charts** -- One bar per price bucket, showing its share of total
   capacity or total paid sales. Comp and Unsold bars fill the remainder.
 - **Revenue Summary** -- Performances, paid tickets, comp tickets, total capacity,
-  capacity utilization, gross revenue, and overall average paid price
+  capacity utilization, **Gross revenue** (total cash collected, matching the Production
+  Sales by Performance report), **Ticket face value (net of ticketing fees)** (derived
+  from the bucket breakdown for pricing analysis), and overall average paid price
 - **Per-Bucket Detail Table** -- Full breakdown by price tier including allocation cap
   flags (⚑) for buckets that sold to their limit
 - **Dynamic Pricing Lift** -- For productions using dynamic pricing promotion triggers,

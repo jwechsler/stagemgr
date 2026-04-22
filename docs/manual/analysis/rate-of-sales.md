@@ -24,11 +24,24 @@ The analysis page has five sections:
 5. [Comparison Shows Table](#comparison-shows-table)
 
 !!! note "Revenue figure consistency"
-    The gross revenue shown here is the same total cash figure used by the Production
-    Sales by Performance report and the Ticket Revenue analysis. Rate of Sales stores
-    daily snapshots keyed on the order's creation date. Each nightly run recomputes the
-    prior 30 days so any refund or exchange applied to an order within that window
-    self-heals back into the snapshot. Drift on orders older than 30 days stays frozen.
+    The gross revenue shown here is the same total cash figure used by the
+    [Production Sales by Performance](../reports/production-sales.md) report and the
+    [Ticket Revenue Analysis](ticket-revenue.md) screen. Rate of Sales stores daily
+    snapshots keyed on the order's creation date, and those snapshots are refreshed by
+    a scheduled background job — the analysis screen itself never recomputes on page
+    load.
+
+    - **Intraday** — an "intraday" run fires every 30 minutes and updates *today's*
+      snapshot so same-day sales show up within half an hour.
+    - **Nightly** — the full nightly run fires at 00:30 and recomputes the **prior 30
+      days**, so any refund or exchange applied to an order within that window
+      self-heals into the snapshot the following night. Drift on orders older than 30
+      days stays frozen (Rate of Sales is used for velocity, not cumulative
+      reconciliation — use the Production Sales by Performance report for an as-of-now
+      cash figure).
+
+    If you need the snapshot refreshed immediately after a large refund, an administrator
+    can trigger `RateOfSalesJob.perform` from the Rails console.
 
 ---
 
