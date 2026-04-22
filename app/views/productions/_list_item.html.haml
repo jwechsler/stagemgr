@@ -2,4 +2,7 @@
   = render 'header', :production=>production
   - unless production.short_description.blank?
     %p.production_short_desc= production.short_description
+  - if production.status == Production::PRESALE
+    %p.production_presale_notice
+      %em Tickets not yet on sale
   = render '/productions/production_dates', :production=>production
