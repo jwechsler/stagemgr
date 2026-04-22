@@ -1,5 +1,8 @@
+- presale_with_info_link = production.status == Production::PRESALE && production.additional_information_link.present?
+- header_link_url = presale_with_info_link ? production.additional_information_link : production_performances_path(production.id, :anchor=>"top")
+- header_link_opts = presale_with_info_link ? {:target=>"_blank"} : {}
 %div.cell.small-12.show-listing{:class=>"medium-#{slice}"}
-  = render 'header', :production=>production
+  = render 'header', :production=>production, :link_url=>header_link_url, :link_html_opts=>header_link_opts
   - unless production.short_description.blank?
     %p.production_short_desc= production.short_description
   - if production.status == Production::PRESALE

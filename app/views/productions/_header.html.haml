@@ -1,6 +1,8 @@
+- link_url = local_assigns.fetch(:link_url, production_performances_path(production.id, :anchor=>"top"))
+- link_html_opts = local_assigns.fetch(:link_html_opts, {})
 %p
-  = link_to production.decorate.promo(Production::LARGE), production_performances_path(production.id, :anchor=>"top"), :id=>production_image_id(production) if production.promo.attached?
-  %div.production_name= link_to production.name, production_performances_path(production.id, :anchor=>"top")
+  = link_to production.decorate.promo(Production::LARGE), link_url, {:id=>production_image_id(production)}.merge(link_html_opts) if production.promo.attached?
+  %div.production_name= link_to production.name, link_url, link_html_opts
   %div.production_credit= production.credit_lines.nil? ? "" : raw(production.credit_lines.gsub("\n","<br/>"))
   %div.venue= production.venue.name
   - if production.custom_label.blank?
