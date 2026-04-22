@@ -23,6 +23,13 @@ The analysis page has five sections:
 4. [Revenue Projection](#revenue-projection)
 5. [Comparison Shows Table](#comparison-shows-table)
 
+!!! note "Revenue figure consistency"
+    The gross revenue shown here is the same total cash figure used by the Production
+    Sales by Performance report and the Ticket Revenue analysis. Rate of Sales stores
+    daily snapshots keyed on the order's creation date. Each nightly run recomputes the
+    prior 30 days so any refund or exchange applied to an order within that window
+    self-heals back into the snapshot. Drift on orders older than 30 days stays frozen.
+
 ---
 
 ## Daily Average Rate of Sales

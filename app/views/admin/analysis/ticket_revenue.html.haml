@@ -90,19 +90,30 @@
             %td
               %strong Gross revenue
             %td
-              %strong= number_to_currency(@target_result.gross_revenue)
+              %strong= number_to_currency(@target_result.cash_collected)
             - if @comparison_result
               %td
-                %strong= number_to_currency(@comparison_result.gross_revenue)
+                %strong= number_to_currency(@comparison_result.cash_collected)
+          %tr
+            %td Ticket face value (net of ticketing fees)
+            %td= number_to_currency(@target_result.gross_revenue)
+            - if @comparison_result
+              %td= number_to_currency(@comparison_result.gross_revenue)
           %tr
             %td Overall avg paid price
             %td= number_to_currency(@target_result.overall_avg_paid_price)
             - if @comparison_result
               %td= number_to_currency(@comparison_result.overall_avg_paid_price)
       %p.help-text{style: 'margin-top: 0.5rem; font-size: 0.8rem'}
-        Gross revenue figures are derived from ticket line item data, net of ticketing fees.
-        They may not precisely reflect partial discounting or per-ticket pricing when multiple
-        ticket classes are aggregated within a single order.
+        %strong Gross revenue
+        is the total cash collected (sum of all order payments) for this production, netted against
+        refund and exchange offsets. It matches the gross column of the Production Sales by Performance report.
+        %br
+        %strong Ticket face value
+        is derived from the ticket line items in the bucket breakdown below, subtracting per-ticket
+        ticketing fees. It excludes processing fees, complimentary tickets, and any line items from
+        refunded or exchanged orders. Customer-facing special offer discounts are reported separately
+        below and are not subtracted here.
 
   - # Per-bucket detail tables
   .grid-x.grid-padding-x{style: 'margin-top: 1rem'}

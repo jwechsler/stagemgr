@@ -51,10 +51,11 @@ class SalesByPerformanceReport < Report
         paid_tickets = settled_orders.sum { |o| o.number_of_tickets }
         held_tickets = held_orders.sum { |o| o.number_of_tickets }
         max_ticket_price = perf.ticket_class_allocations.select{|tca| tca.available? && !tca.ticket_class.nil? }.max_by{|tca| tca.ticket_class.ticket_price}.ticket_class.ticket_price
-        gross = settled_orders.sum { |o| o.total_paid }.to_money
-        collected = settled_orders.sum { |o| o.total_collected }.to_money
-        ticketing_fee = settled_orders.sum { |o| o.ticketing_fee }.to_money
-        processing_fee = settled_orders.sum { |o| o.processing_fee }.to_money
+        revenue = RevenueCalculator.for(settled_orders)
+        gross = revenue.cash_collected.to_money
+        collected = revenue.cash_reportable.to_money
+        ticketing_fee = revenue.ticketing_fees.to_money
+        processing_fee = revenue.processing_fees.to_money
         subtotal[:gross] += gross
         subtotal[:collected] += collected
         subtotal[:facility] += ticketing_fee

@@ -119,8 +119,9 @@ Scroll below the charts to see a summary table comparing both shows side-by-side
 | **Comp tickets** | Total complimentary tickets issued |
 | **Total seats (capacity × perfs)** | Venue capacity multiplied by number of performances -- total available seat-slots |
 | **Capacity utilization** | (Paid + Comp + No Revenue) ÷ Total seats, as a percentage |
-| **Gross revenue** | Total revenue from paid ticket sales, net of ticketing fees |
-| **Overall avg paid price** | Gross revenue ÷ paid tickets sold, net of ticketing fees |
+| **Gross revenue** | Total cash collected across every settled order for this production (credit card, cash, membership, flex pass, and any other payment type), netted against refund and exchange offsets. This figure matches the gross column of the Production Sales by Performance report. |
+| **Ticket face value (net of ticketing fees)** | Sum of the ticket line items in the bucket breakdown below, minus the per-ticket ticketing fee. Processing fees and non-ticket items are excluded; refunded and exchanged orders are not included. Customer-facing special offer discounts are reported separately below and are not subtracted here. Use this to reason about pricing distribution, not cash flow. |
+| **Overall avg paid price** | Ticket face value ÷ paid tickets sold |
 
 ---
 

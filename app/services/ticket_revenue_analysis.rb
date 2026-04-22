@@ -11,6 +11,7 @@ class TicketRevenueAnalysis
   Summary = Struct.new(
     :production, :buckets, :comp_count, :total_capacity,
     :total_paid, :capacity_utilization_pct, :gross_revenue,
+    :cash_collected,
     :overall_avg_paid_price, :total_dynamic_lift_dollars, :total_dynamic_lift_pct,
     :performance_count, :completed_performance_count,
     :special_offer_usage,
@@ -30,7 +31,7 @@ class TicketRevenueAnalysis
   private
 
   def cache_key
-    "ticket_revenue_analysis/#{@production.id}/v4/#{@production.updated_at.to_i}"
+    "ticket_revenue_analysis/#{@production.id}/v5/#{@production.updated_at.to_i}"
   end
 
   def uncached_compute
@@ -141,6 +142,7 @@ class TicketRevenueAnalysis
       total_paid:                  total_paid,
       capacity_utilization_pct:    cap_util,
       gross_revenue:               gross_revenue,
+      cash_collected:              RevenueCalculator.for_production(@production).cash_collected,
       overall_avg_paid_price:      overall_avg,
       total_dynamic_lift_dollars:  total_lift,
       total_dynamic_lift_pct:      total_lift_pct,
@@ -429,6 +431,7 @@ class TicketRevenueAnalysis
       total_paid:                  0,
       capacity_utilization_pct:    0,
       gross_revenue:               BigDecimal('0'),
+      cash_collected:              BigDecimal('0'),
       overall_avg_paid_price:      BigDecimal('0'),
       total_dynamic_lift_dollars:  BigDecimal('0'),
       total_dynamic_lift_pct:      nil,

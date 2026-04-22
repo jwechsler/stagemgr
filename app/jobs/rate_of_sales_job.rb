@@ -1,13 +1,18 @@
 class RateOfSalesJob < ApplicationJob
   @queue = :maintenance
-  
+
   include LoggedJob
+
+  # Each run recomputes the prior 30 days so refunds and exchanges that land
+  # on an older order self-heal the stale snapshot within a month. Older days
+  # stay frozen.
+  SELF_HEAL_WINDOW_DAYS = 30
 
   def self.perform(mode = nil)
     if mode == "today"
       calculate_for_today
     else
-      calculate_for_day(Date.yesterday)
+      calculate_recent_days(Date.yesterday, SELF_HEAL_WINDOW_DAYS)
       RateOfSale.export_to_file(RateOfSale.export_records, RateOfSale.export_columns, File.join($SERVER_CONFIG['hud_export_directory'],'rate_of_sales.txt'))
     end
   end
@@ -16,37 +21,26 @@ class RateOfSalesJob < ApplicationJob
     calculate_for_day(Date.current)
   end
 
+  def self.calculate_recent_days(end_date, window_days)
+    (0...window_days).each { |i| calculate_for_day(end_date - i) }
+  end
+
   def self.calculate_for_day(date)
-    orders_by_production = TicketOrder
-      .joins(performance: :production)
-      .includes(:payments, :ticket_line_items, :service_line_items)
+    production_ids = TicketOrder
+      .joins(:performance)
       .where(created_at: date.all_day, status: Order::SETTLED_STATUSES)
-      .group_by { |o| o.performance.production_id }
+      .distinct
+      .pluck('performances.production_id')
 
-    orders_by_production.each do |production_id, orders|
-      production = orders.first.performance.production
-
-      total_tickets = 0
-      total_comps = 0
-      gross = 0.0
-      fees = 0.0
-
-      orders.each do |o|
-        tlis = o.ticket_line_items.to_a
-        total_tickets += tlis.sum(&:ticket_count)
-        total_comps += tlis.select(&:complimentary?).sum(&:ticket_count)
-        gross += o.payments.to_a.sum(&:amount)
-        fees += o.processing_fee + o.ticketing_fee
-      end
-
-      total_tickets -= total_comps
+    production_ids.each do |production_id|
+      revenue = RevenueCalculator.for_production_on_day(production_id, date)
 
       RateOfSale.find_or_initialize_by(day_of_sale: date, production_id: production_id).update!(
-        total_single_tickets: total_tickets,
-        total_complimentary_tickets: total_comps,
-        gross_sales: CurrencyUtils.float_to_currency_decimal(gross),
-        processing_fees: CurrencyUtils.float_to_currency_decimal(fees),
-        order_count: orders.size
+        total_single_tickets: revenue.ticket_count,
+        total_complimentary_tickets: revenue.comp_count,
+        gross_sales: revenue.cash_collected,
+        processing_fees: revenue.ticketing_fees + revenue.processing_fees,
+        order_count: revenue.order_count
       )
     end
   end
