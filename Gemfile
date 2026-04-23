@@ -68,6 +68,7 @@ gem 'foundation-datetimepicker-rails'
 #gem "name_parse", "~> 0.0.5"
 gem "namae"
 gem "redis", "~> 4.8.0"  # Updated for better Ruby 3.2.2 compatibility
+gem 'rack-attack', require: 'rack/attack'
 
 gem "ri_cal", :git=>"https://github.com/ctide/ri_cal.git"
 

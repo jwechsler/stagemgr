@@ -61,6 +61,13 @@ class ApplicationController < ActionController::Base
     @current_user = current_user_session && current_user_session.record
   end
 
+  def parse_date_param(key, default:)
+    return default if params[key].blank?
+    Date.parse(params[key])
+  rescue ArgumentError, TypeError
+    default
+  end
+
 
   def index
     render '/general/unavailable', :status=>404

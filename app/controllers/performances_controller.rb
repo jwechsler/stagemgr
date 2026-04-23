@@ -54,8 +54,8 @@ class PerformancesController < ApplicationController
 
   def by_date
     @footnotes = Array.new
-    @start_date = params[:start_date].nil? ? Date.today.beginning_of_week : Date.parse(params[:start_date])
-    @end_date = params[:end_date].nil? ? Date.today.beginning_of_week + 1.week - 1 : Date.parse(params[:end_date])
+    @start_date = parse_date_param(:start_date, default: Date.today.beginning_of_week)
+    @end_date = parse_date_param(:end_date, default: Date.today.beginning_of_week + 1.week - 1)
     @performances = Performance.where('performances.performance_date >= ? and performances.performance_date <= ?',@start_date,@end_date).order(:performance_date, :performance_time)
     @performances.select!{|p| p.production.visible? && p.production.sellable_to_public?}
     @performances.each {|p|
