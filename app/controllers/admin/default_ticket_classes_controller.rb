@@ -36,8 +36,11 @@ class Admin::DefaultTicketClassesController < ApplicationController
 
   def destroy
     @default_ticket_class = DefaultTicketClass.find(params[:id])
-    @default_ticket_class.destroy
-    redirect_to admin_default_ticket_classes_url, :notice => "Successfully destroyed default ticket class."
+    if @default_ticket_class.destroy
+      redirect_to admin_default_ticket_classes_url, :notice => "Successfully destroyed default ticket class."
+    else
+      redirect_to admin_default_ticket_classes_url, :flash => { :error => @default_ticket_class.errors.full_messages.to_sentence }
+    end
   end
 
   private
