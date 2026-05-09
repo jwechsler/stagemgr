@@ -350,6 +350,98 @@ RSpec.describe TicketOrder do
       expect(order2.tasks.first.status).to eql(OrderTask::UNTRIED)
       expect(original_order.tasks.first.status == OrderTask::CANCELLED)
     end
+
+    # Regression for the per-seat TLI shape introduced by commit bf0e8cb3:
+    # each seat is its own TLI (ticket_count: 1) carrying a unique
+    # seat_assignment_id FK. The split path used to leave the source TLI's FK
+    # populated, so the split-order dup hit the unique index on
+    # line_items.seat_assignment_id.
+    it "splits reserved-seat orders whose TLIs are per-seat (unique seat_assignment_id)" do
+      original_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash, :reserved_seating)
+      aggregated_tli = original_order.ticket_line_items.first
+      seats = original_order.seats.to_a
+      expect(seats.size).to eq(2)
+
+      # Reshape into one TLI per seat with seat_assignment_id populated, the
+      # shape produced by the post-bf0e8cb3 reserved-seat checkout flow.
+      original_order.ticket_line_items.destroy_all
+      seats.each do |seat|
+        original_order.ticket_line_items << FactoryBot.create(:ticket_line_item,
+          ticket_class: aggregated_tli.ticket_class,
+          ticket_count: 1,
+          order: original_order,
+          seat_assignment_id: seat.id)
+      end
+      original_order.save!
+      original_order.reload
+
+      flat = original_order.flatten_ticket_line_items
+      expect(flat.size).to eq(2)
+      expect(flat.map { |t| t[:seat]&.id }.compact.sort).to eq(seats.map(&:id).sort)
+
+      expect {
+        @result = original_order.split([flat[0]], flat)
+      }.not_to raise_error
+
+      order1, order2 = @result
+      expect(order1).not_to be_nil
+      expect(order2).not_to be_nil
+
+      original_order.reload
+      surviving_originals = original_order.ticket_line_items.where("ticket_count > 0")
+      expect(surviving_originals.pluck(:seat_assignment_id).compact).to eq([])
+
+      [order1, order2].each do |split_order|
+        split_order.reload
+        positive_tlis = split_order.ticket_line_items.where("ticket_count > 0")
+        expect(positive_tlis.size).to eq(1)
+        expect(positive_tlis.first.seat_assignment_id).to be_present
+      end
+
+      assigned_ids = [order1, order2].flat_map { |o| o.ticket_line_items.pluck(:seat_assignment_id) }.compact
+      expect(assigned_ids.sort).to eq(seats.map(&:id).sort)
+    end
+
+    # The split form pairs TLIs and seats by row index. If the user reorders
+    # rows, the source TLI passed in tli_hash[:source] may carry a
+    # seat_assignment_id FK pointing at a *different* seat than the one in
+    # tli_hash[:seat]. Both source FKs must still be released so neither dup
+    # collides with a leftover original on the unique index.
+    it "splits per-seat orders even when the form pairs each TLI with the other TLI's seat" do
+      original_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash, :reserved_seating)
+      aggregated_tli = original_order.ticket_line_items.first
+      seats = original_order.seats.to_a
+      expect(seats.size).to eq(2)
+
+      original_order.ticket_line_items.destroy_all
+      seats.each do |seat|
+        original_order.ticket_line_items << FactoryBot.create(:ticket_line_item,
+          ticket_class: aggregated_tli.ticket_class,
+          ticket_count: 1,
+          order: original_order,
+          seat_assignment_id: seat.id)
+      end
+      original_order.save!
+      original_order.reload
+      tlis = original_order.ticket_line_items.order(:id).to_a
+
+      # Build the flattened list with the seats *swapped* relative to each
+      # TLI's seat_assignment_id, mimicking the index-based form pairing.
+      swapped = [
+        { source: tlis[0], seat: seats[1], ticket_class_id: tlis[0].ticket_class_id },
+        { source: tlis[1], seat: seats[0], ticket_class_id: tlis[1].ticket_class_id },
+      ]
+
+      expect {
+        @result = original_order.split([swapped[0]], swapped)
+      }.not_to raise_error
+
+      order1, order2 = @result
+      expect(order1).not_to be_nil
+      expect(order2).not_to be_nil
+      assigned_ids = [order1, order2].flat_map { |o| o.ticket_line_items.pluck(:seat_assignment_id) }.compact
+      expect(assigned_ids.sort).to eq(seats.map(&:id).sort)
+    end
   end
 
   it "creates two orders that round down when they are not divisible" do

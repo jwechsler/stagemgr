@@ -661,13 +661,15 @@ class TicketOrder < Order
 
   # utility routine for ticket splits
   def move_ticket_to_split(tli_hash, split_order, value_per_ticket,  original_payments, split_payments)
-    dup_tli = tli_hash[:source].dup
+    source_tli = tli_hash[:source]
+    seat = tli_hash[:seat]
+    dup_tli = source_tli.dup
     dup_tli.order_id = nil
     dup_tli.ticket_count = 1
     # The moved TLI takes ownership of its split seat (if any). The reversing
     # offset must leave seat_assignment_id NULL so the 1:1 unique index is
     # never violated by the accounting entry left behind on the source order.
-    dup_tli.seat_assignment_id = tli_hash[:seat]&.id
+    dup_tli.seat_assignment_id = seat&.id
     offset = dup_tli.dup
     offset.ticket_count = -1
     offset.seat_assignment_id = nil
@@ -722,6 +724,24 @@ class TicketOrder < Order
       order1_payments = Hash.new
       order2_payments = Hash.new
       remaining_tickets = all_tlis || self.flatten_ticket_line_items
+      # Per-seat TLIs hold a unique seat_assignment_id FK. The source order is
+      # losing all its seats (each seat's order_uuid is reassigned to a split
+      # order below), so release every FK now — before any dup TLI is saved
+      # to a split order — so the 1:1 unique index doesn't reject the dup.
+      # The seat→TLI pairings are already captured in remaining_tickets, so
+      # clearing the persisted FKs in bulk is safe. The form pairs split rows
+      # by index, which may not match each TLI's original FK, so we cannot
+      # rely on a per-iteration "release only when seat matches" check.
+      self.ticket_line_items.where.not(seat_assignment_id: nil).update_all(seat_assignment_id: nil)
+      # Also clear any orphan line_items (order_id IS NULL) that hold one of
+      # the seat_assignment_ids being moved to a split order. These rows are
+      # dead — they belong to no order — but the unique index still treats
+      # them as live and would reject our dup TLIs. Scoping to seats that are
+      # actually being split keeps this surgical.
+      seat_ids_to_release = remaining_tickets.map { |t| t[:seat]&.id }.compact
+      if seat_ids_to_release.any?
+        LineItem.where(order_id: nil, seat_assignment_id: seat_ids_to_release).delete_all
+      end
       index = 0
       new_tlis.each do |tli_hash|
         find_index = remaining_tickets.find_index(tli_hash)
