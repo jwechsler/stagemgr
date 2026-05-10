@@ -67,89 +67,94 @@ class BulkOrderImport < OrderImport
 
 
       CSV.foreach(filestore.path, headers:true) do |row|
-        current_address_id = 0
-        a = nil
         total += 1
-        case
-        when !row['Id'].blank? # if ID is present, use that as the match criteria
-          current_address_id = row['Id']
-          a = Address.find_by(id:row['Id'].to_i)
+        begin
+          Order.transaction do
+            current_address_id = 0
+            a = nil
+            case
+            when !row['Id'].blank? # if ID is present, use that as the match criteria
+              current_address_id = row['Id']
+              a = Address.find_by(id:row['Id'].to_i)
 
-        when !row['ExternalId'].blank?
-          current_address_id = row['ExternalId']
-          a = Address.find_by(id:external_address_ids[current_address_id])
-          a ||= Address.new
+            when !row['ExternalId'].blank?
+              current_address_id = row['ExternalId']
+              a = Address.find_by(id:external_address_ids[current_address_id])
+              a ||= Address.new
 
-        else
-          current_address_id = "NEW"
-          a = Address.new
-        end
-        a ||= Address.new
-        Order.transaction do
-          # Update Address-specific records
-          a.set_full_name(row['FullName'],row['FirstName'],row['MiddleName'],row['LastName']) unless row['FullName'].blank? && row['LastName'].blank?
-          a.line1 = row['Address'] unless row['Address'].blank?
-          a.line2 = row['Address2'] unless row['Address'].blank?
-          a.email = row['EmailAddress'] unless row['EmailAddress'].blank?
-          a.city = row['City'] unless row['City'].blank?
-          a.zipcode = row['ZipCode'] unless row['ZipCode'].blank?
-          a.phone = row['Phone'] unless row['Phone'].blank?
-          a.address_tags << new_address_tag(theater_id, a, row['Tag1'], row['TagValue1']) unless row['Tag1'].blank?
-          a.address_tags << new_address_tag(theater_id, a, row['Tag2'], row['TagValue2']) unless row['Tag2'].blank?
-          a.address_tags << new_address_tag(theater_id, a, 'External ID', row['ExternalId']) unless row['ExternalId'].blank?
-          a.regularize!
-          a.save!
-          # build the ticket order
-          o = TicketOrder.new
-          o.status = TicketOrder::NEW
-          o.add_to_email_list = add_to_email_list
-          perf_code = row['PerformanceCode']
-          puts("IMPORT: PERFORMANCE: #{perf_code} #{performances[perf_code]}")
-          o.performance = performances[perf_code]
-          raise RuntimeError, "Unknown performance '#{performances[perf_code]}'" if o.performance.nil?
-          o.address = a
-
-          puts("IMPORT: Performance allocations: #{o.performance.ticket_class_allocations.count}")
-          ticket_class = TicketClass.find_by(production_id: o.performance.production_id, class_code: row['TicketClass'])
-          unless row['Seating'].blank?
-            puts "IMPORT: Attempting seating for #{row['Seating']}"
-            seats = row['Seating'].blank? ? [] : row['Seating'].split(',')
-            o.ticket_line_items.build(ticket_count: seats.count, ticket_class: ticket_class)
-            unless seats.empty?
-              seats.each{|seat|
-
-                raise RuntimeError, "Production #{o.performance.production.name} does not allow for assigned seating" if seat_locations[o.performance.production_id].nil?
-                seat_id = seat_locations[o.performance.production_id][seat]
-                sa = SeatAssignment.find_by(performance_id: o.performance_id, seat_id: seat_id)
-                raise RuntimeError, "Seat map does not include seat '#{seat}'" if sa.nil?
-                puts("IMPORT: Seating in #{seat}, assignment id: #{sa.id}")
-                raise RuntimeError, "Seat #{seat} is not available for seating" unless sa.assign_to_order(o.uuid, 1000, ticket_class.id)
-              }
-              o.save!
-              puts "IMPORT: Seating complete"
+            else
+              current_address_id = "NEW"
+              a = Address.new
             end
-          else
-            raise "NumberOfTickets required for non-reserved seating" if row['NumberOfTickets'].to_i == 0
-            o.ticket_line_items.build(ticket_count: row['NumberOfTickets'].to_i, ticket_class: ticket_class)
-            puts "Seating complete for #{o.ticket_line_items.first.ticket_count} #{o.ticket_line_items.first.ticket_class} Tix"
-          end
-          puts("IMPORT: Ticket Class =  #{ticket_class}")
+            a ||= Address.new
+            # Update Address-specific records
+            a.set_full_name(row['FullName'],row['FirstName'],row['MiddleName'],row['LastName']) unless row['FullName'].blank? && row['LastName'].blank?
+            a.line1 = row['Address'] unless row['Address'].blank?
+            a.line2 = row['Address2'] unless row['Address'].blank?
+            a.email = row['EmailAddress'] unless row['EmailAddress'].blank?
+            a.city = row['City'] unless row['City'].blank?
+            a.zipcode = row['ZipCode'] unless row['ZipCode'].blank?
+            a.phone = row['Phone'] unless row['Phone'].blank?
+            a.address_tags << new_address_tag(theater_id, a, row['Tag1'], row['TagValue1']) unless row['Tag1'].blank?
+            a.address_tags << new_address_tag(theater_id, a, row['Tag2'], row['TagValue2']) unless row['Tag2'].blank?
+            a.address_tags << new_address_tag(theater_id, a, 'External ID', row['ExternalId']) unless row['ExternalId'].blank?
+            a.regularize!
+            a.save!
+            # build the ticket order
+            o = TicketOrder.new
+            o.status = TicketOrder::NEW
+            o.add_to_email_list = add_to_email_list
+            perf_code = row['PerformanceCode']
+            puts("IMPORT: PERFORMANCE: #{perf_code} #{performances[perf_code]}")
+            o.performance = performances[perf_code]
+            raise RuntimeError, "Unknown performance '#{perf_code}'" if o.performance.nil?
+            o.address = a
 
-          o.payment_type = payment_type
-          if (payment_type.nil? || o.performance.production.season_seating?)
-            o.transition_to!(Order::HOLD)
-            puts("IMPORT: Order is #{Order::HOLD}")
-          else
-            o.transition_to!(Order::PROCESSED)
-            o.payments.each{|p| p.note = "Imported from #{filestore.file_name} by #{filestore.user.email}"; p.save }
-            puts("IMPORT: Order is #{Order::PROCESSED}")
+            puts("IMPORT: Performance allocations: #{o.performance.ticket_class_allocations.count}")
+            ticket_class = TicketClass.find_by(production_id: o.performance.production_id, class_code: row['TicketClass'])
+            unless row['Seating'].blank?
+              puts "IMPORT: Attempting seating for #{row['Seating']}"
+              seats = row['Seating'].blank? ? [] : row['Seating'].split(',')
+              o.ticket_line_items.build(ticket_count: seats.count, ticket_class: ticket_class)
+              unless seats.empty?
+                seats.each{|seat|
+
+                  raise RuntimeError, "Production #{o.performance.production.name} does not allow for assigned seating" if seat_locations[o.performance.production_id].nil?
+                  seat_id = seat_locations[o.performance.production_id][seat]
+                  sa = SeatAssignment.find_by(performance_id: o.performance_id, seat_id: seat_id)
+                  raise RuntimeError, "Seat map does not include seat '#{seat}'" if sa.nil?
+                  puts("IMPORT: Seating in #{seat}, assignment id: #{sa.id}")
+                  raise RuntimeError, "Seat #{seat} is not available for seating" unless sa.assign_to_order(o.uuid, 1000, ticket_class.id)
+                }
+                o.save!
+                puts "IMPORT: Seating complete"
+              end
+            else
+              raise "NumberOfTickets required for non-reserved seating" if row['NumberOfTickets'].to_i == 0
+              o.ticket_line_items.build(ticket_count: row['NumberOfTickets'].to_i, ticket_class: ticket_class)
+              puts "Seating complete for #{o.ticket_line_items.first.ticket_count} #{o.ticket_line_items.first.ticket_class} Tix"
+            end
+            puts("IMPORT: Ticket Class =  #{ticket_class}")
+
+            o.payment_type = payment_type
+            if (payment_type.nil? || o.performance.production.season_seating?)
+              o.transition_to!(Order::HOLD)
+              puts("IMPORT: Order is #{Order::HOLD}")
+            else
+              o.transition_to!(Order::PROCESSED)
+              o.payments.each{|p| p.note = "Imported from #{filestore.file_name} by #{filestore.user.email}"; p.save }
+              puts("IMPORT: Order is #{Order::PROCESSED}")
+            end
           end
+          # Record every successfully imported row (blank Error column) so the
+          # result file mirrors the input file row-for-row.
+          problems.add_problem_row(row: row.to_h, message: nil)
         rescue => e
           puts e.message
           puts e.backtrace
           Rails.logger.error e.message
           e.backtrace.each {|m| Rails.logger.error m }
-          problems.add_problem_row(row: row.to_h, message: e.message)
+          problems.add_problem_row(row: row.to_h, message: ImportIssuesReport.format_exception(e))
         end
       end
       filestore.notes = "Imported #{total} orders, #{problems.count} errors"
@@ -162,10 +167,11 @@ class BulkOrderImport < OrderImport
       filestore.notes = "Error: #{e.message}"
       filestore.save
     end
-    if problems.any_issues?
-      fs = problems.create
-      notify_user_on_completion(fs) unless fs.nil?
-    end
+    # Always emit a result file mirroring the input rows so the user has a
+    # template for selectively re-running. Notify only when at least one
+    # row had an error to act on.
+    fs = problems.create(import_name: filestore.file_name, result_prefix: 'order_import_results')
+    notify_user_on_completion(fs) if fs && problems.any_issues?
   end
 
   private

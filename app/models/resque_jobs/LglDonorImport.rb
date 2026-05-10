@@ -62,33 +62,34 @@ class LglDonorImport < ImportIssuesReport
         current_fiscal_tier_idx =  headers['TG Tier This Fiscal'] - 1
       else
         total += 1
-        last_fiscal_tier = row[last_fiscal_tier_idx]
-        current_fiscal_tier = row[current_fiscal_tier_idx]
-        a = nil
-        unless last_fiscal_tier.blank? && current_fiscal_tier.blank?
-          begin
-            a = Address.find(row[address_id_idx].to_i) unless row[address_id_idx].blank?
-          rescue (ActiveRecord::RecordNotFound)
+        row_message = nil
+        begin
+          last_fiscal_tier = row[last_fiscal_tier_idx]
+          current_fiscal_tier = row[current_fiscal_tier_idx]
+          a = nil
+          unless last_fiscal_tier.blank? && current_fiscal_tier.blank?
             begin
-              a = Address.find_by_email(row[email_idx]) if !row[email_idx].blank?
-            rescue ActiveRecord::RecordNotFound
-              
+              a = Address.find(row[address_id_idx].to_i) unless row[address_id_idx].blank?
+            rescue (ActiveRecord::RecordNotFound)
+              begin
+                a = Address.find_by_email(row[email_idx]) if !row[email_idx].blank?
+              rescue ActiveRecord::RecordNotFound
+
+              end
             end
-          end
-          puts "Found record #{a.id}" unless a.nil?
-          puts "Creating address record" if a.nil?
-          a = Address.new if a.nil?
-          a.first_name = row[first_name_idx]
-          a.last_name = row[last_name_idx]
-          a.full_name = a.first_name unless a.first_name.blank?
-          a.full_name += a.full_name.blank? ?  a.last_name : " #{a.last_name}"  unless a.last_name.blank?
-          a.email = row[email_idx] if a.email.blank?
-          a.donor_tier_for_last_fiscal_year = last_fiscal_tier
-          a.donor_tier_for_current_fiscal_year = current_fiscal_tier
-          a.donor_tier_updated_on = Date.today
-          merge_check = a.find_original
-          merged += 1 if !merge_check.nil?
-          begin
+            puts "Found record #{a.id}" unless a.nil?
+            puts "Creating address record" if a.nil?
+            a = Address.new if a.nil?
+            a.first_name = row[first_name_idx]
+            a.last_name = row[last_name_idx]
+            a.full_name = a.first_name unless a.first_name.blank?
+            a.full_name += a.full_name.blank? ?  a.last_name : " #{a.last_name}"  unless a.last_name.blank?
+            a.email = row[email_idx] if a.email.blank?
+            a.donor_tier_for_last_fiscal_year = last_fiscal_tier
+            a.donor_tier_for_current_fiscal_year = current_fiscal_tier
+            a.donor_tier_updated_on = Date.today
+            merge_check = a.find_original
+            merged += 1 if !merge_check.nil?
             unless merge_check.nil? then
               if a.id.nil? then
                 # New record - save first, then merge into existing
@@ -107,20 +108,22 @@ class LglDonorImport < ImportIssuesReport
             end
             a.save! unless a.id.nil?
             puts "Saved address #{a.id}"
-          rescue ActiveRecord::RecordInvalid=>e
-            data = headers.keys.map {|key| row[headers[key]]}
-            problems.add_problem_row(row: data, message: e.message)
+            puts "Imported: #{row}"
           end
-          puts "Imported: #{row}"
+        rescue => e
+          Rails.logger.error e.message
+          row_message = ImportIssuesReport.format_exception(e)
         end
+        data = headers.keys.map {|key| row[headers[key]]}
+        problems.add_problem_row(row: data, message: row_message)
       end
     end
     filestore.notes = "Imported #{total} contacts, merged #{merged} as donors."
     filestore.save
-    if problems.any_issues?
-      fs = problems.create
+    fs = problems.create(import_name: filestore.file_name, result_prefix: 'donor_import_results')
+    if fs
       fs.save!
-      ImportIssuesReport.notify_user_on_completion(fs) unless fs.nil?
+      ImportIssuesReport.notify_user_on_completion(fs) if problems.any_issues?
     end
   end
 end

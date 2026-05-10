@@ -46,26 +46,26 @@ class BulkFlexOrderImport < ImportIssuesReport
 
       CSV.foreach(filestore.path, headers:true) do |row|
         puts("As Hash #{row.to_hash.to_yaml}")
-        current_address_id = 0
-        a = nil
-        case
-        when !row['Id'].blank? # if ID is present, use that as the match criteria
-          current_address_id = row['Id']
-          a = Address.find_by(id:row['Id'].to_i)
-
-        when !row['ExternalId'].blank?
-          current_address_id = row['ExternalId']
-          a = Address.find_by(id:external_address_ids[current_address_id])
-          a ||= Address.new
-
-        else
-          current_address_id = "NEW"
-          a = Address.new
-        end
-        a ||= Address.new
+        total += 1
         begin
-          total += 1
           Order.transaction do
+            current_address_id = 0
+            a = nil
+            case
+            when !row['Id'].blank? # if ID is present, use that as the match criteria
+              current_address_id = row['Id']
+              a = Address.find_by(id:row['Id'].to_i)
+
+            when !row['ExternalId'].blank?
+              current_address_id = row['ExternalId']
+              a = Address.find_by(id:external_address_ids[current_address_id])
+              a ||= Address.new
+
+            else
+              current_address_id = "NEW"
+              a = Address.new
+            end
+            a ||= Address.new
             a.set_full_name(row['FullName'],row['FirstName'],row['MiddleName'],row['LastName']) unless row['FullName'].blank? && row['LastName'].blank?
             a.line1 = row['Address'] unless row['Address'].blank?
             a.line2 = row['Address2'] unless row['Address2'].blank?
@@ -99,14 +99,15 @@ class BulkFlexOrderImport < ImportIssuesReport
             puts("IMPORT: Order is #{Order::PROCESSED}")
             flex_pass = o.flex_pass
             unless row['Code'].blank?
-              flex_pass.code = row['Code'] 
+              flex_pass.code = row['Code']
               flex_pass.save!
             end
           end
+          problems.add_problem_row(row: row.to_h, message: nil)
         rescue => e
           puts e.message
           puts e.backtrace
-          problems.add_problem_row(row: row.to_h, message: e.message)
+          problems.add_problem_row(row: row.to_h, message: ImportIssuesReport.format_exception(e))
         end
 
 
@@ -122,10 +123,11 @@ class BulkFlexOrderImport < ImportIssuesReport
       filestore.notes = "Error: #{e.message}"
       filestore.save
     end
-    if problems.any_issues?
-      fs = problems.create
-      notify_user_on_completion(fs) unless fs.nil?
-    end
+    # Always emit a result file mirroring the input rows so the user has a
+    # template for selectively re-running. Notify only when at least one
+    # row had an error to act on.
+    fs = problems.create(import_name: filestore.file_name, result_prefix: 'flex_pass_import_results')
+    notify_user_on_completion(fs) if fs && problems.any_issues?
   end
 
 end

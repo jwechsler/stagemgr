@@ -499,7 +499,6 @@ class Order < ApplicationRecord
         Rails.logger.error "Order #{self.id} could not transition from #{old_status} to #{new_status}:"
         Rails.logger.error "   #{e.to_s}"
         Rails.logger.debug e.backtrace.join("\n")
-        errors.add(:error, e.to_s)
         self.status = old_status
         self.id = nil if self.status.eql?(Order::NEW)
         raise e
