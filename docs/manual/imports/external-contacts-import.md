@@ -105,7 +105,7 @@ The `Tag1`/`TagValue1` and `Tag2`/`TagValue2` fields let you attach arbitrary me
 - External IDs are preserved as tags for cross-system reference
 - Household members receive separate records sharing the same address and tags
 - All contacts are associated with the selected theater
-- An error report is emailed to you if any rows could not be processed
+- If a fatal error halts the import, the imports page status note records the failure (this importer does not produce a per-row result file — see [Result File](imports-overview.md#result-file) for the importers that do)
 
 ## Example CSV
 

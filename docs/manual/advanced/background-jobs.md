@@ -43,7 +43,7 @@ All [import operations](../imports/imports-overview.md) run as background jobs:
 - Flex Pass Orders Import
 - Donor Levels Import
 
-After uploading your CSV, the import is queued for processing. Results and any error reports are emailed to you when the import completes.
+After uploading your CSV, the import is queued for processing. When the import finishes, a per-row result file is generated for Bulk Orders, Flex Pass Orders, and Donor Levels imports, and is emailed to you if any row failed. See [Result File](../imports/imports-overview.md#result-file) for details.
 
 ### House Count Calculations
 
@@ -56,7 +56,7 @@ Patron emails are sent through background jobs, including:
 - Order confirmation emails
 - Follow-up emails after performances
 - Performance broadcast emails (sent to all attendees of a specific performance)
-- Import error reports
+- Import result file notifications
 - Report delivery emails
 
 Emails are queued and sent within minutes. Failed emails are automatically retried up to **8 times** before being marked as permanently failed.
@@ -106,7 +106,7 @@ Higher-priority jobs are processed before lower-priority ones, so patron-facing 
 You will receive an email when:
 
 - A report you requested is ready (with the CSV attached)
-- An import completes (with success count and any error report)
+- An import completes (with success count and, for the importers that support it, a per-row result file when any row failed)
 - A background operation fails and requires attention (Administrators only)
 
 !!! note "No Browser Notification"
@@ -123,7 +123,7 @@ You will receive an email when:
 
 ### "My import seems stuck"
 
-1. **Check your email** -- the import may have completed with errors, and the error report is in your inbox
+1. **Check your email** -- the import may have completed with errors, and the result file is in your inbox
 2. **Return to the imports page** -- status updates appear there when an import finishes
 3. **Contact an administrator** -- if you do not have Job Queue access, an admin can check the queue status
 

@@ -36,16 +36,38 @@ All imports run as **background jobs**. When you upload a CSV file and submit th
 
 See [Background Jobs](../advanced/background-jobs.md) for more about how background processing works in Stagemgr.
 
-### Error Reporting
+### Result File
 
-If any rows in your CSV cannot be processed, Stagemgr generates a detailed **error report** and emails it to the user who initiated the import. The error report identifies:
+Every import that supports per-row error reporting (Bulk Orders, Flex Pass Orders, Donor Levels) produces a **result file** when it finishes. The result file mirrors your original upload row-for-row and adds a single `Error` column:
 
-- Which row(s) failed
-- The reason each row could not be processed
-- Enough detail to correct the data and re-import the failed rows
+- Successful rows have a blank `Error` cell.
+- Failed rows have a description of what went wrong (for example, `ActiveRecord::RecordInvalid: Validation failed: There are only 0 reservations remaining for the 2026-05-08 performance at 07:00pm.`).
+
+The result file is named after your upload, with a prefix that identifies the importer:
+
+| Importer | Result filename pattern |
+|----------|-------------------------|
+| Bulk Orders | `order_import_results_<your-file-name>.csv` |
+| Flex Pass Orders | `flex_pass_import_results_<your-file-name>.csv` |
+| Donor Levels | `donor_import_results_<your-file-name>.csv` |
+
+The `<your-file-name>` portion is your original upload's name with the extension stripped and any spaces, parentheses, ampersands, or other special characters collapsed to a single underscore. Two users (or repeated runs) uploading the same filename produce separate result files — nothing is overwritten.
+
+If at least one row failed, Stagemgr also emails the result file to the user who initiated the import.
+
+### Re-importing Corrected Rows
+
+Failed rows are rolled back entirely — no partial order, customer, or flex pass remains in the database. To retry:
+
+1. Open the result file.
+2. Delete the rows that succeeded (blank `Error`).
+3. Fix the data in the remaining rows.
+4. Re-upload the edited file using the same importer.
+
+The `Error` column itself can be left in place when you re-upload; importers ignore columns they don't recognize.
 
 !!! tip "Check Your Email"
-    Always check your email after an import completes. Even if most rows succeed, a few may fail due to data issues. The error report tells you exactly what to fix.
+    Always check your email after an import completes. Even if most rows succeed, a few may fail due to data issues. The result file tells you exactly what to fix.
 
 ## CSV File Requirements
 
@@ -87,5 +109,5 @@ This helps maintain data quality across repeated imports from different sources.
 5. Choose any required associations (theater, production) and options
 6. Upload the CSV file
 7. Submit the import
-8. Check your email for the completion notification and any error reports
+8. Check your email for the completion notification and the result file (if any rows failed)
 9. Verify a sample of imported records in Stagemgr

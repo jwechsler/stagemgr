@@ -80,7 +80,7 @@ Once imported, donor tier information is used throughout Stagemgr:
 - Customer records are updated with current donor tier information
 - The `donor_tier_updated_on` timestamp records when the update occurred
 - Duplicate customer records are consolidated during processing
-- An error report is emailed to you for any rows that could not be processed
+- A result file (`donor_import_results_<your-file-name>.csv`) listing every row, with an `Error` column populated for any that failed, is emailed to you when one or more rows could not be processed. See [Result File](imports-overview.md#result-file) for the full naming rules and retry workflow.
 
 ## Example CSV
 

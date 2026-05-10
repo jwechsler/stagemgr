@@ -51,7 +51,7 @@ The import identifies customers using the same priority as bulk orders:
 
 ### Flex Pass Offer Validation
 
-The `FlexPassOffer` field must match the **exact name** of a flex pass offer configured for the selected theater. If the offer name does not match, the row fails and appears in the error report.
+The `FlexPassOffer` field must match the **exact name** of a flex pass offer configured for the selected theater. If the offer name does not match, the row fails and appears in the result file with the mismatch described in its `Error` column.
 
 !!! tip "Check Offer Names"
     Before preparing your CSV, go to **Passes > Flex Pass Offers** and note the exact name of each offer. The import matches on the offer name string, so it must be precise -- including capitalization and spacing.
@@ -84,7 +84,7 @@ Custom codes are useful when migrating from another system where patrons already
 - Customers receive active flex passes usable for future ticket purchases
 - Custom flex pass codes are assigned if provided, otherwise system-generated
 - No email receipts are sent during the import
-- An error report is emailed to you for any rows that could not be processed
+- A result file (`flex_pass_import_results_<your-file-name>.csv`) listing every row, with an `Error` column populated for any that failed, is emailed to you when one or more rows could not be processed. Failed rows are rolled back completely. See [Result File](imports-overview.md#result-file) for the full naming rules and retry workflow.
 
 ## Example CSV
 

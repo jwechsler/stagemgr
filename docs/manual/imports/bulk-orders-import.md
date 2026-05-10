@@ -64,7 +64,7 @@ The import identifies customers in this priority order:
 | **Seating column populated** | The system assigns the listed seats. The number of tickets equals the number of seats listed, regardless of `NumberOfTickets`. |
 | **Seating column empty** | The system creates a general admission order using the `NumberOfTickets` value. |
 
-The import validates seat availability and prevents double-booking. If a requested seat is already assigned, the row will fail and appear in the error report.
+The import validates seat availability and prevents double-booking. If a requested seat is already assigned, the row will fail and appear in the result file with the conflict described in its `Error` column.
 
 ### Order Processing Logic
 
@@ -88,12 +88,15 @@ The import handles orders differently depending on whether the production uses s
 
 ### Error Handling
 
-Rows that cannot be processed generate detailed error entries. Common failure reasons include:
+Rows that cannot be processed are rolled back completely — no partial order is saved — and listed in the result file with a per-row description in the `Error` column. Common failure reasons include:
 
 - Invalid `ProductionCode` or `PerformanceCode`
 - Requested seat already assigned to another order
 - Invalid or unrecognized `TicketClass` code
 - Missing required fields
+- Selling more tickets than remain for the performance
+
+The result file is produced as `order_import_results_<your-file-name>.csv` and emailed to you when one or more rows fail. See [Result File](imports-overview.md#result-file) for the full naming rules and retry workflow.
 
 ## Expected Outcome
 
@@ -103,7 +106,7 @@ Rows that cannot be processed generate detailed error entries. Common failure re
 | Regular with payment type | Processed | Confirmation sent | Added if checked |
 | Regular without payment type | HOLD | None | Not added |
 
-An error report is emailed to you for any rows that could not be processed.
+A result file (`order_import_results_<your-file-name>.csv`) listing every row, with an `Error` column populated for any that failed, is emailed to you when one or more rows could not be processed.
 
 ## Example CSV
 

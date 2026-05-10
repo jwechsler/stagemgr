@@ -64,7 +64,7 @@ The import automatically enrolls each contact in the production's designated MyE
 - Customer contact records are created or updated in the address database
 - All contacts are marked as attendees of the selected production
 - All contacts are automatically enrolled in the production's email marketing campaigns
-- An error report is emailed to you if any rows could not be processed
+- If a fatal error halts the import, the imports page status note records the failure (this importer does not produce a per-row result file — see [Result File](imports-overview.md#result-file) for the importers that do)
 
 ## Example CSV
 

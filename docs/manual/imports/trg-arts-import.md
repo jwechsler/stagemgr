@@ -66,7 +66,7 @@ When no production is selected:
 - Contact records are updated with corrected addresses
 - If a production is selected, contacts are marked as attendees for reporting and marketing
 - No ticket orders or financial records are created
-- An error report is emailed to you if any rows could not be processed
+- If a fatal error halts the import, the imports page status note records the failure (this importer does not produce a per-row result file — see [Result File](imports-overview.md#result-file) for the importers that do)
 
 ## Example CSV
 
