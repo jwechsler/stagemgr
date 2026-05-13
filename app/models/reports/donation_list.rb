@@ -19,7 +19,7 @@ class DonationList < MailingList
       consolidation_code = 'DON'
       season_tag = order.created_at.year
       address = order.address
-      hash = MailingList.mailing_hash_from_buyer(address)
+      hash = MailingList.mailing_hash_from_buyer(address, true)
       hash[:Title] = 'All Donors'
       hash[:Season] = season_tag
       hash[:CloseDate] = order.created_at.to_date
