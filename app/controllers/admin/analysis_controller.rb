@@ -46,6 +46,19 @@ class Admin::AnalysisController < Admin::ApplicationController
       results << { group_key: "theater:#{theater.id}", label: "All shows by #{theater.name}" }
     end
 
+    # Add tag group entries — only tags on theaters with accessible productions.
+    # Dedup case-insensitively, preserving the first casing we encounter.
+    matching_tags = TheaterTag.where(theater_id: accessible_theater_ids)
+                              .where("LOWER(name) LIKE :q", q: "%#{query.downcase}%")
+                              .order(:name)
+    seen_tag_keys = {}
+    matching_tags.each do |tag|
+      key = tag.name.to_s.downcase
+      next if key.blank? || seen_tag_keys[key]
+      seen_tag_keys[key] = true
+      results << { group_key: "tag:#{tag.name}", label: "All shows tagged #{tag.name}" }
+    end
+
     # Add individual production results
     productions.each do |p|
       results << { id: p.id, label: "#{p.season} - #{p.name} (#{p.theater.name})", name: p.name, season: p.season, theater: p.theater.name }
@@ -68,6 +81,10 @@ class Admin::AnalysisController < Admin::ApplicationController
                     base_scope.where(season: value.to_i)
                   when "theater"
                     base_scope.where(theater_id: value.to_i)
+                  when "tag"
+                    tagged_theater_ids = TheaterTag.where("LOWER(name) = ?", value.to_s.downcase)
+                                                   .distinct.pluck(:theater_id)
+                    base_scope.where(theater_id: tagged_theater_ids)
                   else
                     Production.none
                   end
