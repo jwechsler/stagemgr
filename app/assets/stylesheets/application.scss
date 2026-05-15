@@ -9,6 +9,7 @@
 @import 'foundation-icons';
 @import 'jquery.timepicker';
 @import 'datatables';
+@import 'tagify';
 
 .button-group, .button-group.disabled, .button-group[disabled], .button-group.disabled:hover, .button-group[disabled]:hover, .button-group.disabled:focus, .button-group[disabled]:focus {
     background-color: transparent !important;
@@ -94,6 +95,41 @@ select[size], select[multiple] {
   font-family: italic;
   font-weight: bold;
   font-size: 150%;
+}
+
+.theater-tags {
+  margin-left: 0.5rem;
+
+  .theater-tag {
+    margin-left: 0.25rem;
+    border-radius: 1rem;
+    padding: 0.15rem 0.6rem;
+    font-size: 0.75rem;
+    font-weight: normal;
+  }
+}
+
+.tag-input-wrap {
+  .tagify {
+    border-radius: 0.25rem;
+    border-color: #cacaca;
+    background: #fefefe;
+    min-height: 2.4rem;
+  }
+  .tagify__tag {
+    --tag-bg: #1779ba;
+    --tag-text-color: #fff;
+    --tag-hover: #14679e;
+    --tag-remove-bg: rgba(255, 255, 255, 0.15);
+    margin: 0.2rem 0.25rem 0.2rem 0.25rem;
+    border-radius: 1rem;
+    font-size: 0.8rem;
+  }
+  .tagify__tag > div { padding: 0.2rem 0.5rem; }
+  .tagify__input {
+    font-size: 0.9rem;
+    padding: 0.25rem 0.4rem;
+  }
 }
 
 

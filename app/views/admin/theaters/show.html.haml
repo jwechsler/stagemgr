@@ -16,7 +16,9 @@
         - colsize = 10
 
       .small.cell{:class=>"small-#{colsize} medium-#{colsize}"}
-        %h3= @theater.name
+        %h3
+          = @theater.name
+          = render 'admin/theater_tags/pills', theater_tags: @theater.theater_tags
         = link_to(@theater.url, @theater.url) unless @theater.url.blank?
 
 

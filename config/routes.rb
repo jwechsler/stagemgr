@@ -307,6 +307,9 @@ Rails.application.routes.draw do
     resources :amount_off_special_offers, :only=>[:edit,:index]
 
     resources :theaters do
+      collection do
+        get :autocomplete_tag
+      end
       resources :productions do
         post 'send_sample_confirmation', on: :member
         post 'send_sample_followup', on: :member

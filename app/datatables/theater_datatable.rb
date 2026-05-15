@@ -15,7 +15,7 @@ class TheaterDatatable < DatatableBase
     records.map do |record|
       {
         id: record.decorate.id,
-        name: record.decorate.name,
+        name: name_with_tags(record),
         home: record.decorate.url,
         theater_class: record.decorate.theater_class,
         actions: record.decorate.dt_actions,
@@ -26,14 +26,35 @@ class TheaterDatatable < DatatableBase
 
   private
 
+  def name_with_tags(record)
+    pills = @view.render(
+      partial: 'admin/theater_tags/pills',
+      formats: [:html],
+      locals: { theater_tags: record.theater_tags.to_a }
+    )
+    (record.decorate.name.to_s + pills.to_s).html_safe
+  end
+
+  def filter_records(records)
+    term = datatable.search.value.to_s
+    return super if term.blank?
+
+    base = build_conditions
+    tag_match = TheaterTag.arel_table[:name].matches("%#{term}%")
+    combined = base ? base.or(tag_match) : tag_match
+
+    records.left_outer_joins(:theater_tags).where(combined).distinct
+  end
+
   def get_raw_records
     if current_user.is_theater_user?
       result = Theater.where(id: current_user.theater_ids)
     else
       result = Theater.all
     end
+    result = result.includes(:theater_tags)
     result.order(Arel.sql("CASE WHEN status='#{Theater::ACTIVE}' THEN 0 WHEN status='#{Theater::INACTIVE}' THEN 1 END"),
-      Arel.sql("CASE WHEN theater_class='#{Theater::DEFAULT}' THEN 0 WHEN theater_class = '#{Theater::COPRO}' THEN 2 ELSE 3 END"), 
+      Arel.sql("CASE WHEN theater_class='#{Theater::DEFAULT}' THEN 0 WHEN theater_class = '#{Theater::COPRO}' THEN 2 ELSE 3 END"),
       :name)
   end
 

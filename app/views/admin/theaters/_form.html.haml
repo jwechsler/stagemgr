@@ -28,4 +28,7 @@
         .cell.small-12
           = f.input :accepts_donations, label: "Is 501(c)(3)", as: :boolean
     .cell.small-12
+      %h5 Tags
+      = render 'admin/theater_tags/tag_input', f: f
+    .cell.small-12
       = f.button :submit

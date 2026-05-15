@@ -95,6 +95,38 @@ Check this box if the theater is a registered 501(c)(3) nonprofit organization. 
 - Donation orders can be created for this theater
 - Donation receipts include appropriate nonprofit tax language
 
+### Tags
+
+Tags are free-form labels you can attach to a theater to group it for analysis and reporting. Unlike Theater Class -- which is a fixed list with built-in behavior -- tags are arbitrary text you define and can change at any time. Typical uses include grouping by neighborhood, genre, partnership type, or any other attribute you want to slice by later.
+
+A theater can have any number of tags. They appear as rounded pill labels in the **Tags** field on the theater form, in the **Name** column of the Theaters list, and at the top of the theater detail page.
+
+#### Adding a tag
+
+1. Click into the **Tags** field on the theater form.
+2. Begin typing. As you type, a dropdown suggests existing tag names already used on other theaters -- click one to apply it, or keep typing to create a brand-new tag.
+3. Press **Enter** (or type a comma) to commit the tag as a pill.
+4. Repeat to add as many tags as you need.
+5. Click **Update Theater** to save.
+
+!!! tip "Reuse existing tags when possible"
+    The autocomplete suggestions help you converge on a consistent vocabulary -- if "Storefront" already exists, accept the suggestion rather than typing "storefront" or "store front" as a new tag. Tags are matched case-insensitively, so "Storefront" and "storefront" are treated as the same tag, with the casing of the first one preserved.
+
+#### Removing a tag
+
+Click the **x** on the right side of any pill to remove that tag, then save the form. The tag is removed from this theater only; it remains available on any other theater that uses it.
+
+#### Where tags appear
+
+| Location | What you see |
+|----------|--------------|
+| Theater edit form | Pills inside the Tags field, with an **x** on each pill |
+| Theaters list | Pills displayed inline after each theater's name |
+| Theater detail page | Pills displayed next to the theater name heading |
+
+!!! note "Future use in analysis"
+    Tags are not yet used as filter criteria in reports, but they are recorded with each theater so future analytical features can group or filter by tag value. Apply tags now in preparation for that work.
+
 ## Viewing a Theater
 
 Click any theater name in the Theaters list to view its details page. From here you can:
@@ -110,7 +142,7 @@ Click any theater name in the Theaters list to view its details page. From here 
 
 The Theaters list (**Theaters** menu) shows all theaters in a searchable, paginated table with columns for:
 
-- **Name** -- Click to view the theater's detail page
+- **Name** -- Click to view the theater's detail page. Any [Tags](#tags) on the theater appear as pills next to the name.
 - **Home** -- Link to the theater's website
 - **Theater Class** -- Default theaters show blank; others show their class
 - **Actions** -- Edit and Destroy links (Destroy is Administrator-only)

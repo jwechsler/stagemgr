@@ -1,10 +1,18 @@
 class Admin::TheatersController < Admin::ApplicationController
   before_action :remove_empty_logo
-  load_and_authorize_resource
+  load_and_authorize_resource except: [:autocomplete_tag]
 
   before_action :find_context, :only=>:show
 
   respond_to :html, :json
+
+  def autocomplete_tag
+    term = params[:term].to_s
+    names = TheaterTag.where('name LIKE ?', "#{term}%")
+                      .order(:name).limit(20).pluck(:name).uniq
+    render json: names
+  end
+
   def index
     @theaters = @theaters.sort_by{|t| [t.status, t.theater_class, t.name]}
 
@@ -89,7 +97,7 @@ class Admin::TheatersController < Admin::ApplicationController
 
   private
   def theater_params
-    params.require(:theater).permit(:name, :url, :theater_class, :logo, :status, :default_service_items, :default_first_exchange_items, :default_addl_exchange_items, :accepts_donations, :myemma_attendee_group)
+    params.require(:theater).permit(:name, :url, :theater_class, :logo, :status, :default_service_items, :default_first_exchange_items, :default_addl_exchange_items, :accepts_donations, :myemma_attendee_group, :tag_names)
   end
 
 end
