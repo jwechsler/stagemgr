@@ -103,10 +103,14 @@ results list, shown with a triangle icon:
 
 - **All shows in [year]** -- Adds every production from that season
 - **All shows by [company]** -- Adds every production by that theater company
+- **All shows tagged [tag]** -- Adds every production whose theater carries that
+  [tag](../setup/theaters.md#tags). Useful for grouping by neighborhood, genre, partnership
+  type, or any other free-form label you've applied across theaters
 
 Selecting a group shortcut expands it into individual productions in the comparison table.
-You can then remove any shows you don't want included. Theater users only see groups for
-their own theaters.
+You can then remove any shows you don't want included. Theater users only see groups whose
+productions belong to a theater they have access to; group shortcuts that would resolve to
+zero accessible productions don't appear.
 
 ![Autocomplete with group shortcuts](../assets/images/screenshots/analysis-autocomplete-groups.png)
 
@@ -141,3 +145,7 @@ Analysis** to generate results.
   year's programming compares to a prior season overall.
 - Theater-based selection ("All shows by Theater Wit") is useful for understanding a
   company's historical sales pattern.
+- Tag-based selection ("All shows tagged Storefront") is useful when you've curated a set
+  of theaters that share an attribute -- venue type, neighborhood, partnership tier --
+  and want every production from any of them in one click. Apply
+  [theater tags](../setup/theaters.md#tags) to build these groupings.
