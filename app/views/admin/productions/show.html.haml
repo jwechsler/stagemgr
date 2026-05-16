@@ -96,5 +96,7 @@
     - if can? :read, TicketClass
       %td
         = link_to('Ticket Classes', [:admin, @production.theater, @production, :ticket_classes], class: 'button')
+    - if can? :perform_analysis, Analysis
+      = link_to 'Audience Analysis', admin_analysis_index_path(target_production_id: @production.id, analysis_type: 'audience'), class: 'button'
 
 = render partial: 'email_attendees_modal' if can? :email_attendees, Performance

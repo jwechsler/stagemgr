@@ -6,6 +6,13 @@
 
 **Navigation:** Admin Menu > Analysis > select "Audience" as the Analysis Type
 
+!!! tip "Shortcut from a production"
+    On any production's admin page (Productions > [Production Name]), click the
+    **Audience Analysis** button next to *Edit* / *Ticket Classes*. This jumps
+    straight to the analysis form with that production pre-selected as the
+    target and the production's own theater seeded as the comparison group.
+    One more click on *Run Analysis* produces the report.
+
 ---
 
 ## What it answers
@@ -41,6 +48,10 @@ You can pick any combination of theaters; at least one is required. The facility
 metrics (every theater in the system) are always shown alongside the comparison-group
 metrics, so there's no separate toggle for "compare against the whole building" -- those
 numbers appear in the lower section of every audience report.
+
+The **Back to Analysis** button on the results page preserves your full comparison-theater
+selection, so you can iterate on the comparison group without re-picking theaters every
+time.
 
 ## Anchor date
 

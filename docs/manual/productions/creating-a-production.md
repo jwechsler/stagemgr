@@ -193,3 +193,20 @@ Once the production is saved:
 1. **Review the default ticket classes** that were automatically assigned. Edit or add classes as needed. See [Ticket Classes](ticket-classes.md).
 2. **Create performances** for each show date and time. See [Performances](performances.md).
 3. **Set the status to Active** (or Presale) when you are ready for the production to appear on the website.
+
+## Action Buttons on the Production Page
+
+Once a production exists, the admin page (Productions > [Production Name]) shows a row
+of action buttons:
+
+![Production show page action buttons](../assets/images/screenshots/productions-show-action-buttons.png)
+
+- **Edit** -- Open the production form to change settings, status, dates, descriptions,
+  and messages. Visible to users with edit permission on Productions.
+- **Ticket Classes** -- Manage the price tiers and inventory allocations for this
+  production. See [Ticket Classes](ticket-classes.md). Visible to users with read
+  permission on Ticket Classes.
+- **Audience Analysis** -- Jump directly to [Audience Analysis](../analysis/audience.md)
+  with this production pre-selected as the target and the production's own theater
+  seeded as the comparison group. Visible to Admin and Theater users (anyone with
+  permission to run analyses). Box Office users do not see this button.

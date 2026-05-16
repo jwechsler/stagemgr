@@ -9,6 +9,10 @@ class Admin::AnalysisController < Admin::ApplicationController
       ids = Array(params[:comparison_production_ids]).reject(&:blank?).map(&:to_i)
       @comparison_productions = Production.accessible_by(current_ability, :read).where(id: ids).includes(:theater)
     end
+    if params[:comparison_theater_ids].present?
+      ids = Array(params[:comparison_theater_ids]).reject(&:blank?).map(&:to_i)
+      @comparison_theaters = Theater.where(id: ids).order(:name).to_a
+    end
     if params[:comparison_production_id].present?
       @comparison_production = Production.accessible_by(current_ability, :read).find_by(id: params[:comparison_production_id])
     end

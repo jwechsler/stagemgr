@@ -92,6 +92,13 @@
               %th Theater
               %th
           %tbody
+            - if @comparison_theaters.present?
+              - @comparison_theaters.each do |t|
+                %tr{data: { theater_id: t.id }}
+                  %td= t.name
+                  %td
+                    %a.remove-comparison-theater.alert{href: '#'} remove
+                    %input{type: 'hidden', name: 'comparison_theater_ids[]', value: t.id}
 
   .grid-x.grid-padding-x
     .small-12.cell
@@ -110,7 +117,7 @@
     var rosUrl                  = $form.data('rate-of-sales-url');
     var trUrl                   = $form.data('ticket-revenue-url');
     var audienceUrl             = $form.data('audience-url');
-    var comparisonTheaterIds    = [];
+    var comparisonTheaterIds    = #{@comparison_theaters.present? ? @comparison_theaters.map(&:id).to_json : '[]'};
     var targetTheaterId         = #{@target_production ? @target_production.theater_id.to_i : 'null'};
     var targetTheaterName       = #{@target_production ? @target_production.theater.name.to_json.html_safe : 'null'};
 

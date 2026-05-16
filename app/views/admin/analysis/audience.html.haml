@@ -134,4 +134,4 @@
 .grid-x.grid-padding-x
   .small-12.cell
     %hr
-    = link_to 'Back to Analysis', admin_analysis_index_path(target_production_id: @target_production.id, analysis_type: 'audience'), class: 'button secondary'
+    = link_to 'Back to Analysis', admin_analysis_index_path(target_production_id: @target_production.id, analysis_type: 'audience', comparison_theater_ids: @comparison_theaters.map(&:id)), class: 'button secondary'

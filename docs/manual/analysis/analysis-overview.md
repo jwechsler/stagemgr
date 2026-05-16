@@ -83,6 +83,14 @@ growth questions and as the precursor to targeted outreach lists.
 
 See [Audience Analysis](audience.md) for full details.
 
+!!! tip "Direct entry from a production"
+    Audience Analysis has a shortcut button on the admin **production** page
+    (Productions > [Production Name]) next to *Edit* and *Ticket Classes*.
+    Clicking it lands you on the analysis form with that production pre-selected
+    and the default comparison theater seeded -- one more click on *Run Analysis*
+    and you're done. Rate of Sales and Ticket Revenue don't have this shortcut
+    yet because they need comparison shows you have to pick by hand.
+
 ![Analysis selection page](../assets/images/screenshots/analysis-selection-empty.png)
 
 ## Setting Up an Analysis
