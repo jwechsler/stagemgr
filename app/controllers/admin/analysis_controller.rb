@@ -212,6 +212,33 @@ class Admin::AnalysisController < Admin::ApplicationController
     end
   end
 
+  FACILITY_SEGMENT_KEYS = %w[first_time_vs_building returning_vs_building three_plus_in_building].freeze
+
+  def audience_export
+    target = Production.accessible_by(current_ability, :read).find(params[:target_production_id])
+    comparison_theater_ids = Array(params[:comparison_theater_ids]).reject(&:blank?).map(&:to_i)
+    segment_key  = params[:segment_key].to_s
+    window_label = params[:window_label].presence
+
+    if FACILITY_SEGMENT_KEYS.include?(segment_key) && !current_user.is_administrator?
+      flash[:error] = "Only administrators can export facility-wide cohorts."
+      redirect_to admin_analysis_index_path(target_production_id: target.id, analysis_type: 'audience', comparison_theater_ids: comparison_theater_ids) and return
+    end
+
+    Resque.enqueue(
+      AudienceCohortExport,
+      target.id,
+      comparison_theater_ids,
+      segment_key,
+      window_label,
+      can?(:view_email, Address),
+      current_user.theater_ids,
+      current_user.id
+    )
+    flash[:notice] = "Your cohort export is queued. You'll receive an email when it's ready, and it will also appear on the reports page."
+    redirect_to admin_analysis_index_path(target_production_id: target.id, analysis_type: 'audience', comparison_theater_ids: comparison_theater_ids)
+  end
+
   def rate_of_sales
     @target_production = Production.accessible_by(current_ability, :read).find(params[:target_production_id])
     comparison_ids = Array(params[:comparison_production_ids]).reject(&:blank?).map(&:to_i)

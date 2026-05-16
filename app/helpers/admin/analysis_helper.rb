@@ -91,4 +91,82 @@ module Admin::AnalysisHelper
     suffix = bucket.bucket_type == :dynamic ? ' avg' : ''
     "#{prefix}$#{price_dollar}#{suffix}#{flag}\n(#{bucket_subtitle(bucket)})"
   end
+
+  # User-facing labels for each cohort segment. These mirror the row labels
+  # rendered in audience.html.haml so the confirmation prompt matches what
+  # the operator was reading when they clicked. "previous_production:<id>"
+  # has no entry here — the view passes the prior production's name via the
+  # display_label: kwarg below.
+  COHORT_UI_LABELS = {
+    "cohort"                   => "Selected production attendees",
+    "returning_any"            => "Returning attendees (any production)",
+    "first_time_vs_comparison" => "First Time visitors (comparison group)",
+    "returning_vs_comparison"  => "Returning visitors (comparison group)",
+    "dedicated_customers"      => "Dedicated customers",
+    "two_plus_in_comparison"   => "2+ visits in comparison",
+    "first_time_vs_building"   => "First Time visitors (facility)",
+    "returning_vs_building"    => "Returning visitors (facility)",
+    "three_plus_in_building"   => "3+ visits in building"
+  }.freeze
+
+  # Natural-language window phrases used in the confirmation prompt.
+  COHORT_WINDOW_PHRASES = {
+    "3 months" => "last 3 months",
+    "6 months" => "last 6 months",
+    "1 year"   => "last year",
+    "3 years"  => "last 3 years",
+    "5 years"  => "last 5 years",
+    "Ever"     => "ever"
+  }.freeze
+
+  # Renders a count value as a clickable export trigger when non-zero. Posts
+  # to admin#audience_export to enqueue an AudienceCohortExport job for the
+  # given (segment_key, window_label) pair. Zero/blank counts render as an
+  # empty string. Facility-scope cohorts are admin-only; non-admins get a
+  # plain non-clickable number.
+  #
+  # display_label: an explicit override for the confirmation prompt label.
+  # Used for previous_production:<id> rows where the prior show's name is
+  # already in the view's locals and we'd rather not re-look-up the record.
+  #
+  # Reads @target_production and @comparison_theaters from the view's
+  # controller context.
+  def cohort_export_cell(count, segment_key:, window_label: nil, facility_scope: false, display_label: nil)
+    n = count.to_i
+    return ''.html_safe if n.zero?
+    # When a segment's count matches the entire cohort, exporting it would
+    # just be the full attendee list — there's no distinct sub-cohort to
+    # report. Suppress the cell (no number, no link). The "cohort" segment
+    # itself is the reference value, so it's always shown.
+    if segment_key.to_s != 'cohort' && @results.present? && n == @results[:cohort_size].to_i
+      return ''.html_safe
+    end
+    if facility_scope && !current_user.is_administrator?
+      return n.to_s
+    end
+    button_to(
+      n.to_s,
+      audience_export_admin_analysis_index_path,
+      method: :post,
+      params: {
+        target_production_id: @target_production.id,
+        comparison_theater_ids: @comparison_theaters.map(&:id),
+        segment_key: segment_key.to_s,
+        window_label: window_label
+      },
+      data: { confirm: cohort_export_confirm_prompt(n, segment_key, window_label, display_label) },
+      class: 'cohort-export-link',
+      form_class: 'cohort-export-form'
+    )
+  end
+
+  def cohort_export_confirm_prompt(count, segment_key, window_label, display_label = nil)
+    label = display_label.presence || COHORT_UI_LABELS[segment_key.to_s] || "this cohort"
+    window_phrase = window_label.present? ? " (#{COHORT_WINDOW_PHRASES[window_label] || window_label})" : ""
+    "Export #{count} #{pluralize_patron(count)} in '#{label}'#{window_phrase}? You'll receive an email when the CSV is ready."
+  end
+
+  def pluralize_patron(n)
+    n == 1 ? 'patron' : 'patrons'
+  end
 end

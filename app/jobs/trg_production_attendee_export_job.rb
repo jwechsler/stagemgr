@@ -3,9 +3,9 @@ class TrgProductionAttendeeExportJob < ApplicationJob
   include Admin::ReportsHelper
   include NotifyOnCompletion
 
-  def self.perform(production_id, reporting_user_id, allow_email_exports)
+  def self.perform(production_id, reporting_user_id, allow_email_exports, theater_ids = [])
     p = Production.find(production_id)
-    report = TrgProductionAttendeeReport.new(p, reporting_user_id,  allow_email_exports)
+    report = TrgProductionAttendeeReport.new(p, reporting_user_id, allow_email_exports, theater_ids: theater_ids)
     fs = report.create
     notify_user_on_completion(fs)
   end

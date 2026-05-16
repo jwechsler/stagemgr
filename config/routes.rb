@@ -220,6 +220,7 @@ Rails.application.routes.draw do
         post :rate_of_sales
         post :ticket_revenue
         post :audience
+        post :audience_export
       end
     end
 

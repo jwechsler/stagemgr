@@ -38,25 +38,24 @@
     .small-12.cell
       %fieldset.fieldset
         %legend Audience Counts
-        - blank_zero = ->(n) { n.to_i.zero? ? '' : n }
         %table.hover
           %tbody
             %tr
               %td
                 %strong Selected production attendees
               %td.text-right{colspan: @results[:window_labels].size}
-                %strong= blank_zero.call(@results[:cohort_size])
+                %strong= cohort_export_cell(@results[:cohort_size], segment_key: :cohort)
             - @results[:previous_productions].each do |prev|
               %tr
                 %td
                   %strong= "Returning attendees (#{prev[:name]})"
                 %td.text-right{colspan: @results[:window_labels].size}
-                  %strong= blank_zero.call(prev[:returning_count])
+                  %strong= cohort_export_cell(prev[:returning_count], segment_key: "previous_production:#{prev[:id]}", display_label: "Returning attendees (#{prev[:name]})")
             %tr
               %td
                 %strong Returning attendees (any production)
               %td.text-right{colspan: @results[:window_labels].size}
-                %strong= blank_zero.call(@results[:returning_attendees_any_count])
+                %strong= cohort_export_cell(@results[:returning_attendees_any_count], segment_key: :returning_any)
             %tr
               %th
               - @results[:window_labels].each do |label|
@@ -70,23 +69,23 @@
                 %em Other productions running in comparison group during window
               - @results[:window_labels].each do |label|
                 %td.text-right
-                  %em= blank_zero.call(@results[:productions_in_comparison][label])
+                  %em= @results[:productions_in_comparison][label].to_i.zero? ? '' : @results[:productions_in_comparison][label]
             %tr
-              %td First Time (by recent months)
+              %td First Time (by previous months)
               - @results[:window_labels].each do |label|
-                %td.text-right= blank_zero.call(@results[:metrics][:first_time_vs_comparison][label])
+                %td.text-right= cohort_export_cell(@results[:metrics][:first_time_vs_comparison][label], segment_key: :first_time_vs_comparison, window_label: label)
             %tr
               %td Returning
               - @results[:window_labels].each do |label|
-                %td.text-right= blank_zero.call(@results[:metrics][:returning_vs_comparison][label])
+                %td.text-right= cohort_export_cell(@results[:metrics][:returning_vs_comparison][label], segment_key: :returning_vs_comparison, window_label: label)
             %tr
               %td Dedicated customers
               - @results[:window_labels].each do |label|
-                %td.text-right= blank_zero.call(@results[:metrics][:dedicated_customers][label])
+                %td.text-right= cohort_export_cell(@results[:metrics][:dedicated_customers][label], segment_key: :dedicated_customers, window_label: label)
             %tr
               %td 2+ visits in comparison
               - @results[:window_labels].each do |label|
-                %td.text-right= blank_zero.call(@results[:metrics][:two_plus_in_comparison][label])
+                %td.text-right= cohort_export_cell(@results[:metrics][:two_plus_in_comparison][label], segment_key: :two_plus_in_comparison, window_label: label)
 
             %tr.audience-subheader
               %td.text-center{colspan: @results[:window_labels].size + 1}
@@ -96,19 +95,19 @@
                 %em Other productions
               - @results[:window_labels].each do |label|
                 %td.text-right
-                  %em= blank_zero.call(@results[:productions_in_building][label])
+                  %em= @results[:productions_in_building][label].to_i.zero? ? '' : @results[:productions_in_building][label]
             %tr
               %td First Time (by previous months)
               - @results[:window_labels].each do |label|
-                %td.text-right= blank_zero.call(@results[:metrics][:first_time_vs_building][label])
+                %td.text-right= cohort_export_cell(@results[:metrics][:first_time_vs_building][label], segment_key: :first_time_vs_building, window_label: label, facility_scope: true)
             %tr
               %td Returning
               - @results[:window_labels].each do |label|
-                %td.text-right= blank_zero.call(@results[:metrics][:returning_vs_building][label])
+                %td.text-right= cohort_export_cell(@results[:metrics][:returning_vs_building][label], segment_key: :returning_vs_building, window_label: label, facility_scope: true)
             %tr
               %td 3+ visits in building
               - @results[:window_labels].each do |label|
-                %td.text-right= blank_zero.call(@results[:metrics][:three_plus_in_building][label])
+                %td.text-right= cohort_export_cell(@results[:metrics][:three_plus_in_building][label], segment_key: :three_plus_in_building, window_label: label, facility_scope: true)
 
         %p.help-text
           %em

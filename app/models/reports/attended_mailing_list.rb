@@ -2,8 +2,8 @@ class AttendedMailingList < MailingList
 
   attr_reader :starting_date, :ending_date
 
-  def initialize(starting_date, ending_date, reporting_user_id = nil)
-    super(reporting_user_id)
+  def initialize(starting_date, ending_date, reporting_user_id = nil, theater_ids: [])
+    super(reporting_user_id, theater_ids: theater_ids)
     @headers += [:AttendedOn]
     @starting_date = starting_date
     @ending_date = ending_date

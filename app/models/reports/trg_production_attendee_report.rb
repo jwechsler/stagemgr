@@ -2,8 +2,8 @@ class TrgProductionAttendeeReport < MailingList
 
   attr_accessor :production, :allow_email_exports
 
-  def initialize(production, reporting_user_id = nil, allow_email_exports = false)
-    super(reporting_user_id)
+  def initialize(production, reporting_user_id = nil, allow_email_exports = false, theater_ids: [])
+    super(reporting_user_id, theater_ids: theater_ids)
     @production = production
     @allow_email_exports = allow_email_exports
   end

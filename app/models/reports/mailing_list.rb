@@ -6,8 +6,16 @@ class MailingList < Report
   TRG_IMPORT_HEADERS = [:Segment, :Season, :Title, :FirstName, :LastName, :FullName, :CompanyName, :Email, :Address1, :Address2,
                :Address3, :City, :State, :Zip, :HomePhone, :BusinessPhone, :ClientPatronID, :StagemgrPatronID]
 
-  def initialize(reporting_user_id = nil)
+  # theater_ids drives the per-theater :ClientPatronID lookup for TRG
+  # exports: `address.external_id(theater_ids)` returns the patron's id in
+  # the external system tagged against any of these theaters. Defaults to
+  # [] so callers that haven't been updated still emit blank ClientPatronID.
+  # :StagemgrPatronID is always populated with address.id.
+  attr_reader :theater_ids
+
+  def initialize(reporting_user_id = nil, theater_ids: [])
     super(TRG_IMPORT_HEADERS, reporting_user_id)
+    @theater_ids = Array(theater_ids).map(&:to_i)
     @data = Hash.new
     @data['ALL'] = Array.new
     @data['MEM'] = Array.new
@@ -46,16 +54,33 @@ class MailingList < Report
     end 
   end
 
-  def self.mailing_hash_from_buyer(address, allow_email_export = false)
+  # Instance wrapper that threads the report's theater_ids context into the
+  # class-level builder. Prefer this form from inside MailingList subclasses
+  # so :ClientPatronID is consistently populated from the right theater
+  # scope.
+  def mailing_hash_from_buyer(address, allow_email_export = false)
+    MailingList.mailing_hash_from_buyer(address, allow_email_export, theater_ids)
+  end
+
+  def self.mailing_hash_from_buyer(address, allow_email_export = false, theater_ids = [])
     Hash[:FirstName => address.first_name, :LastName=>address.last_name,
                :FullName => address.full_name, :CompanyName => '',
-               :Email => address.email, :Address1 => address.line1,
+               :Address1 => address.line1,
                :Address2=>address.line2, :Address3=>'',
                :City=>address.city, :State => address.state,
                :Zip => address.zipcode,
                :Email => (allow_email_export ? address.email : ''),
                :HomePhone => address.phone, :BusinessPhone => '',
+               :ClientPatronID => client_patron_id_for(address, theater_ids),
                :StagemgrPatronID => address.id ]
+  end
+
+  # Patron's id in the theater's external system (TRG, etc.), looked up via
+  # AddressTag. Empty string when no external mapping is tagged for any of
+  # the given theaters.
+  def self.client_patron_id_for(address, theater_ids)
+    ext = address.external_id(Array(theater_ids))
+    ext.to_s.strip
   end
 
   private
@@ -64,12 +89,14 @@ class MailingList < Report
     @processed_addresses[production.id] = Set.new if @processed_addresses[production.id].nil?
     unless @processed_addresses[production.id].include?(address.id)
      season_tag = production.season.to_i
-      hash = MailingList.mailing_hash_from_buyer(address, allow_email_export)
+      hash = self.mailing_hash_from_buyer(address, allow_email_export)
       unless hash[:Email].nil?
         unless allow_email_export || members_by_email.has_key?(hash[:Email].downcase)
           hash[:Email] = nil
         end
       end
+      # :Title in TRG Arts is the segment title — the descriptive label for
+      # the per-row list segment, not the patron's personal salutation.
       hash[:Title] = production.name
       hash[:Season] = season_tag
       hash[:AttendedOn] = performance_date

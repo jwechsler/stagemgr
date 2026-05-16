@@ -2,8 +2,8 @@ class DonationList < MailingList
 
   attr_reader :starting_date, :ending_date, :theater
 
-  def initialize(starting_date, ending_date, theater_id, reporting_user_id = nil)
-    super(reporting_user_id)
+  def initialize(starting_date, ending_date, theater_id, reporting_user_id = nil, theater_ids: [])
+    super(reporting_user_id, theater_ids: theater_ids)
     @starting_date = starting_date
     @ending_date = ending_date
     @theater = Theater.find(theater_id)
@@ -19,7 +19,7 @@ class DonationList < MailingList
       consolidation_code = 'DON'
       season_tag = order.created_at.year
       address = order.address
-      hash = MailingList.mailing_hash_from_buyer(address, true)
+      hash = self.mailing_hash_from_buyer(address, true)
       hash[:Title] = 'All Donors'
       hash[:Season] = season_tag
       hash[:CloseDate] = order.created_at.to_date

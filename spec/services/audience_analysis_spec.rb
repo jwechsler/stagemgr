@@ -345,6 +345,120 @@ RSpec.describe AudienceAnalysis do
     end
   end
 
+  describe "non-order attendance (mailing card entries)" do
+    let(:comparison) { [theater_a.id, theater_b.id, theater_c.id] }
+
+    before do
+      allow(target_production).to receive(:closed?).and_return(true)
+      allow(target_production).to receive(:closing_at).and_return(anchor)
+    end
+
+    it "includes addresses linked via addresses_productions HABTM with no orders" do
+      addr = make_address('cardonly@example.com')
+      target_production.addresses << addr
+      expect(results[:cohort_size]).to eq(1)
+    end
+
+    it "counts HABTM-only cross-attendance for cohort members" do
+      addr = make_address('mixedmode@example.com')
+      # Cohort membership via a paid order to the target
+      make_attended_order(address: addr, performance: @target_performance, ticket_class: @target_paid_class)
+      # Cross-attendance to A_RECENT via HABTM (mailing card, not order)
+      prod_a_recent.addresses << addr
+
+      expect(results[:metrics][:returning_vs_comparison]["3 months"]).to eq(1)
+      expect(results[:metrics][:first_time_vs_comparison]["3 months"]).to eq(0)
+    end
+
+    it "treats a HABTM-only cohort member as first-time when they have no other attendance" do
+      addr = make_address('newcard@example.com')
+      target_production.addresses << addr  # mailing card only
+      expect(results[:metrics][:first_time_vs_comparison]["3 months"]).to eq(1)
+      expect(results[:metrics][:returning_vs_comparison]["3 months"]).to eq(0)
+    end
+
+    it "applies the same placeholder + identifying-info filters to HABTM-only entries" do
+      placeholder = make_address('placeholder@example.com')
+      placeholder.update!(placeholder: true)
+      target_production.addresses << placeholder
+
+      no_contact = Address.create!(first_name: 'X', last_name: 'Y', full_name: 'X Y')
+      target_production.addresses << no_contact
+
+      expect(results[:cohort_size]).to eq(0)
+    end
+  end
+
+  describe "#cohort_for" do
+    let(:comparison) { [theater_a.id, theater_b.id, theater_c.id] }
+
+    before do
+      allow(target_production).to receive(:closed?).and_return(true)
+      allow(target_production).to receive(:closing_at).and_return(anchor)
+    end
+
+    let(:service) { described_class.new(target_production, comparison) }
+
+    it "returns the full cohort for :cohort regardless of window" do
+      a = make_address('alice@example.com')
+      b = make_address('bob@example.com')
+      make_attended_order(address: a, performance: @target_performance, ticket_class: @target_paid_class)
+      make_attended_order(address: b, performance: @target_performance, ticket_class: @target_paid_class)
+      expect(service.cohort_for(:cohort)).to eq(Set.new([a.id, b.id]))
+    end
+
+    it "returns an empty Set when the cohort is empty" do
+      expect(service.cohort_for(:cohort)).to eq(Set.new)
+      expect(service.cohort_for(:first_time_vs_comparison, "3 months")).to eq(Set.new)
+    end
+
+    it "returns address_ids that match the previous-production segment key" do
+      a = make_address('alice@example.com')
+      b = make_address('bob@example.com')
+      make_attended_order(address: a, performance: @target_performance, ticket_class: @target_paid_class)
+      make_attended_order(address: a, performance: @a_recent_perf, ticket_class: @a_recent_class)
+      make_attended_order(address: b, performance: @target_performance, ticket_class: @target_paid_class)
+
+      key = "previous_production:#{prod_a_recent.id}"
+      expect(service.cohort_for(key)).to eq(Set.new([a.id]))
+    end
+
+    it "returns address_ids attending any comparison production for :returning_any" do
+      a = make_address('alice@example.com')
+      b = make_address('bob@example.com')
+      make_attended_order(address: a, performance: @target_performance, ticket_class: @target_paid_class)
+      make_attended_order(address: a, performance: @a_recent_perf, ticket_class: @a_recent_class)
+      make_attended_order(address: b, performance: @target_performance, ticket_class: @target_paid_class)
+
+      expect(service.cohort_for(:returning_any)).to eq(Set.new([a.id]))
+    end
+
+    it "partitions first_time_vs_comparison by window" do
+      a = make_address('alice@example.com')
+      b = make_address('bob@example.com')
+      make_attended_order(address: a, performance: @target_performance, ticket_class: @target_paid_class)
+      make_attended_order(address: a, performance: @a_recent_perf, ticket_class: @a_recent_class)
+      make_attended_order(address: b, performance: @target_performance, ticket_class: @target_paid_class)
+
+      # alice has a comparison visit in the 3mo window → not first-time
+      # bob has no other visits → first-time
+      expect(service.cohort_for(:first_time_vs_comparison, "3 months")).to eq(Set.new([b.id]))
+      expect(service.cohort_for(:returning_vs_comparison, "3 months")).to eq(Set.new([a.id]))
+    end
+
+    it "raises on unknown segment_key" do
+      a = make_address('alice@example.com')
+      make_attended_order(address: a, performance: @target_performance, ticket_class: @target_paid_class)
+      expect { service.cohort_for(:bogus) }.to raise_error(ArgumentError)
+    end
+
+    it "raises when window_label is missing for a per-window segment" do
+      a = make_address('alice@example.com')
+      make_attended_order(address: a, performance: @target_performance, ticket_class: @target_paid_class)
+      expect { service.cohort_for(:first_time_vs_comparison) }.to raise_error(ArgumentError)
+    end
+  end
+
   describe "explicit multi-theater comparison" do
     let(:comparison) { [theater_a.id, theater_b.id, theater_c.id] }
 

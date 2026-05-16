@@ -302,3 +302,31 @@ table tr.audience-subheader td {
   text-transform: uppercase;
   font-size: 0.85rem;
 }
+
+/* Audience cohort export: render the button_to as an inline link that looks
+   like a normal numeric cell value, not a button. */
+form.cohort-export-form {
+  display: inline;
+  margin: 0;
+  padding: 0;
+}
+
+button.cohort-export-link,
+input.cohort-export-link {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: #1779ba;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+button.cohort-export-link:hover,
+button.cohort-export-link:focus,
+input.cohort-export-link:hover,
+input.cohort-export-link:focus {
+  text-decoration: underline;
+  color: #0e5a8a;
+}

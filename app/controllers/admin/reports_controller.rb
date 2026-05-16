@@ -160,7 +160,7 @@ class Admin::ReportsController < Admin::ApplicationController
     else
       required_theaters = params[:required_theaters].map{|t| t.to_i}
     end
-    Resque.enqueue(TrgMinedExport, minimum_attended, minimum_revenue, start_day, required_theaters, current_user.id)
+    Resque.enqueue(TrgMinedExport, minimum_attended, minimum_revenue, start_day, required_theaters, current_user.id, current_user.theater_ids)
     flash[:notice] = 'Your export is queued for generation. You\'ll recieve notification when the process is complete.'
     redirect_to admin_reports_path
   end
@@ -177,7 +177,7 @@ class Admin::ReportsController < Admin::ApplicationController
   # Exports production attendees segmented for TRG Arts. Includes email opt-in attendees
   def trg_dump
     production = Production.find(params[:report][:production_id])
-    Resque.enqueue(TrgProductionAttendeeExportJob, production.nil? ? 0 : production.id, current_user.id, can?(:view_email, Address))
+    Resque.enqueue(TrgProductionAttendeeExportJob, production.nil? ? 0 : production.id, current_user.id, can?(:view_email, Address), current_user.theater_ids)
     flash[:notice] = 'Your export is queued for generation. You\'ll recieve notification when the process is complete.'
     redirect_to admin_reports_path
   end
@@ -187,7 +187,7 @@ class Admin::ReportsController < Admin::ApplicationController
     starting_date = params[:starting_date].to_date
     ending_date = params[:ending_date].to_date
 
-    Resque.enqueue(AttendedMailingListExport, starting_date, ending_date, current_user.id)
+    Resque.enqueue(AttendedMailingListExport, starting_date, ending_date, current_user.id, current_user.theater_ids)
     flash[:notice] = 'Your export is queued for generation. You\'ll recieve notification when the process is complete.'
     redirect_to admin_reports_path
   end
@@ -195,12 +195,10 @@ class Admin::ReportsController < Admin::ApplicationController
   def donation_dump
     dates = parse_date_params(starting_date: params[:starting_date_donor], ending_date: params[:ending_date_donor])
     theater_id = params[:theater_id].to_i
-    
-    process_report(
-      job_class: DonorListExport,
-      job_params: [dates[:starting_date], dates[:ending_date], theater_id],
-      force_background: true  # This is always a background job
-    )
+
+    Resque.enqueue(DonorListExport, dates[:starting_date], dates[:ending_date], theater_id, current_user.id, current_user.theater_ids)
+    flash[:notice] = "Your export is queued for generation. You'll receive notification when the process is complete."
+    redirect_to admin_reports_path
   end
 
 
@@ -262,7 +260,7 @@ class Admin::ReportsController < Admin::ApplicationController
     @ending_date = params[:ending_date].to_date.at_end_of_month
     trg_lists = params[:trg_lists]
 
-    Resque.enqueue(MembershipOrderMailingListExport, @starting_date, @ending_date, trg_lists, current_user.id)
+    Resque.enqueue(MembershipOrderMailingListExport, @starting_date, @ending_date, trg_lists, current_user.id, current_user.theater_ids)
     flash[:notice] = "Your export is queued for generation. You'll recieve notification when the process is complete."
     redirect_to admin_reports_path
 

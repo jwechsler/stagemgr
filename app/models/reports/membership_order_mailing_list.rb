@@ -2,8 +2,8 @@ class MembershipOrderMailingList < MailingList
 
   attr_reader :starting_date, :ending_date, :trg_lists
 
-  def initialize(starting_date, ending_date, trg_lists, reporting_user_id = nil)
-    super(reporting_user_id)
+  def initialize(starting_date, ending_date, trg_lists, reporting_user_id = nil, theater_ids: [])
+    super(reporting_user_id, theater_ids: theater_ids)
     @headers += [:MembershipStartDate,:CurrentMember]
     @starting_date = starting_date
     @ending_date = ending_date
@@ -35,7 +35,7 @@ class MembershipOrderMailingList < MailingList
     season_tag = membership_start_date.year
     @processed_addresses[season_tag] = Set.new if @processed_addresses[season_tag].nil?
     unless @processed_addresses[season_tag].include?(address.id)
-      hash = MailingList.mailing_hash_from_buyer(address, allow_email_export)
+      hash = self.mailing_hash_from_buyer(address, allow_email_export)
       hash[:Email] = nil unless allow_email_export
       hash[:Title] = membership_name
       hash[:Season] = season_tag      

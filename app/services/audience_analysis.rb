@@ -112,6 +112,74 @@ class AudienceAnalysis
     }
   end
 
+  # Returns Set of address_ids belonging to a single cohort segment, suitable
+  # for CSV export. Mirrors the bookkeeping in `roll_up` and the headline
+  # loops in `compute`, but collects address_ids instead of incrementing
+  # counters. Recomputes from source SQL each call.
+  #
+  # segment_key: Symbol or String. One of
+  #   :cohort, :returning_any, "previous_production:<id>",
+  #   :first_time_vs_comparison, :returning_vs_comparison,
+  #   :dedicated_customers, :two_plus_in_comparison,
+  #   :first_time_vs_building, :returning_vs_building,
+  #   :three_plus_in_building.
+  # window_label: one of WINDOWS.keys, or nil for non-windowed segments
+  #   (:cohort, :returning_any, "previous_production:<id>").
+  def cohort_for(segment_key, window_label = nil)
+    key = segment_key.to_s
+    cohort_address_ids = load_cohort_address_ids
+    return Set.new if cohort_address_ids.empty?
+
+    return cohort_address_ids if key == "cohort"
+
+    attended_by_address = load_cohort_attendance(cohort_address_ids)
+    productions_meta = load_productions_meta
+
+    if key == "returning_any"
+      all_comparison_prod_ids = productions_meta.each_with_object(Set.new) do |(prod_id, (_, _, theater_id)), set|
+        set << prod_id if in_comparison?(theater_id)
+      end
+      return cohort_address_ids.select do |address_id|
+        attended = attended_by_address[address_id] || EMPTY_SET
+        (attended & all_comparison_prod_ids).any?
+      end.to_set
+    end
+
+    if key.start_with?("previous_production:")
+      prev_id = key.split(":", 2).last.to_i
+      return cohort_address_ids.select do |address_id|
+        attended = attended_by_address[address_id] || EMPTY_SET
+        attended.include?(prev_id)
+      end.to_set
+    end
+
+    # Per-window segment.
+    raise ArgumentError, "window_label required for segment #{key}" if window_label.nil?
+    duration = WINDOWS.fetch(window_label) { raise ArgumentError, "unknown window #{window_label}" }
+    window_start = duration == :ever ? EVER_FLOOR : (anchor_date - duration)
+
+    comparison_prod_ids = productions_overlapping(productions_meta, window_start, anchor_date, scope: :comparison)
+    building_prod_ids   = productions_overlapping(productions_meta, window_start, anchor_date, scope: :building)
+    comp_count = comparison_prod_ids.size
+
+    cohort_address_ids.select do |address_id|
+      attended = attended_by_address[address_id] || EMPTY_SET
+      comp_visits     = (attended & comparison_prod_ids).size
+      building_visits = (attended & building_prod_ids).size
+      case key
+      when "first_time_vs_comparison" then comp_visits == 0
+      when "returning_vs_comparison"  then comp_visits >= 1
+      when "dedicated_customers"      then comp_count > 0 && comp_visits == comp_count
+      when "two_plus_in_comparison"   then comp_visits >= 2
+      when "first_time_vs_building"   then building_visits == 0
+      when "returning_vs_building"    then building_visits >= 1
+      when "three_plus_in_building"   then building_visits >= 3
+      else
+        raise ArgumentError, "unknown segment_key #{key}"
+      end
+    end.to_set
+  end
+
   private
 
   def anchor_date
@@ -122,32 +190,47 @@ class AudienceAnalysis
     @comparison_theater_id_set ||= Set.new(Array(comparison_theaters).map(&:to_i))
   end
 
-  # Returns Set of address_ids — the deduped cohort. The system already
-  # merges duplicate Address records at the data layer, so address_id is
-  # the canonical "who" key. Addresses without any identifying info (no
-  # email AND no street address) or flagged "Not a ticket buyer"
-  # (placeholder=true) are excluded.
+  # Returns Set of address_ids — the deduped cohort. Two sources are unioned:
+  #   (a) paid (non-comp) TicketOrders to the target production
+  #   (b) the addresses_productions HABTM join, which is populated both by
+  #       order fulfillment AND by manual attendance entries like mailing
+  #       card imports (TicketOrder#update_attendance_record and
+  #       MailingCardImport#perform — see app/models/orders/ticket_order.rb
+  #       and app/models/resque_jobs/mailing_card_import.rb).
+  #
+  # The same identifying-info and placeholder filters apply to both sources:
+  # the system already merges duplicate Address records at the data layer,
+  # so address_id is the canonical "who" key. Addresses without any
+  # identifying info (no email AND no street address) or flagged "Not a
+  # ticket buyer" (placeholder=true) are excluded.
   def load_cohort_address_ids
     cohort_sql = <<~SQL
-      SELECT DISTINCT orders.address_id
-      FROM orders
-      INNER JOIN addresses    ON addresses.id    = orders.address_id
-      INNER JOIN performances ON performances.id = orders.performance_id
-      WHERE orders.type = 'TicketOrder'
-        AND orders.status IN (#{attending_status_sql})
-        AND performances.production_id = #{target_production.id.to_i}
-        AND (addresses.placeholder IS NULL OR addresses.placeholder = FALSE)
+      SELECT DISTINCT combined.address_id
+      FROM (
+        SELECT orders.address_id
+        FROM orders
+        INNER JOIN performances ON performances.id = orders.performance_id
+        WHERE orders.type = 'TicketOrder'
+          AND orders.status IN (#{attending_status_sql})
+          AND performances.production_id = #{target_production.id.to_i}
+          AND EXISTS (
+            SELECT 1 FROM line_items li
+            INNER JOIN ticket_classes tc ON tc.id = li.ticket_class_id
+            WHERE li.order_id = orders.id
+              AND li.type = 'TicketLineItem'
+              AND tc.complimentary = FALSE
+          )
+        UNION
+        SELECT ap.address_id
+        FROM addresses_productions ap
+        WHERE ap.production_id = #{target_production.id.to_i}
+      ) AS combined
+      INNER JOIN addresses ON addresses.id = combined.address_id
+      WHERE (addresses.placeholder IS NULL OR addresses.placeholder = FALSE)
         AND (
           (addresses.email IS NOT NULL AND addresses.email <> '')
           OR (addresses.line1 IS NOT NULL AND addresses.line1 <> ''
               AND addresses.zipcode IS NOT NULL AND addresses.zipcode <> '')
-        )
-        AND EXISTS (
-          SELECT 1 FROM line_items li
-          INNER JOIN ticket_classes tc ON tc.id = li.ticket_class_id
-          WHERE li.order_id = orders.id
-            AND li.type = 'TicketLineItem'
-            AND tc.complimentary = FALSE
         )
     SQL
 
@@ -155,27 +238,37 @@ class AudienceAnalysis
   end
 
   # Returns { address_id => Set[production_id] } — the set of OTHER
-  # productions each cohort address has ever attended (status in
-  # ATTENDING_STATUSES). No date filter: whether a given attendance
-  # "counts" for a window is decided by whether the PRODUCTION'S RUN
-  # overlaps that window (see productions_overlapping), not by when the
-  # order was placed.
-  #
-  # Comp tickets to other shows count as attendance — only the cohort
-  # definition is comp-filtered.
+  # productions each cohort address has ever attended. Unions two sources:
+  #   (a) ATTENDING_STATUSES orders (comp or paid — both count as attendance
+  #       for cross-attendance purposes; only the cohort itself is
+  #       comp-filtered)
+  #   (b) the addresses_productions HABTM, which catches mailing-card and
+  #       other non-order attendance records
+  # No date filter: whether a given attendance "counts" for a window is
+  # decided by whether the PRODUCTION'S RUN overlaps that window (see
+  # productions_overlapping), not by when the order/record was created.
   def load_cohort_attendance(address_ids)
     return {} if address_ids.empty?
 
     quoted_ids = address_ids.to_a.join(",")
+    target_id = target_production.id.to_i
     sql = <<~SQL
-      SELECT DISTINCT orders.address_id, productions.id
-      FROM orders
-      INNER JOIN performances ON performances.id = orders.performance_id
-      INNER JOIN productions  ON productions.id  = performances.production_id
-      WHERE orders.type = 'TicketOrder'
-        AND orders.status IN (#{attending_status_sql})
-        AND orders.address_id IN (#{quoted_ids})
-        AND productions.id <> #{target_production.id.to_i}
+      SELECT DISTINCT combined.address_id, combined.production_id
+      FROM (
+        SELECT orders.address_id, productions.id AS production_id
+        FROM orders
+        INNER JOIN performances ON performances.id = orders.performance_id
+        INNER JOIN productions  ON productions.id  = performances.production_id
+        WHERE orders.type = 'TicketOrder'
+          AND orders.status IN (#{attending_status_sql})
+          AND orders.address_id IN (#{quoted_ids})
+          AND productions.id <> #{target_id}
+        UNION
+        SELECT ap.address_id, ap.production_id
+        FROM addresses_productions ap
+        WHERE ap.address_id IN (#{quoted_ids})
+          AND ap.production_id <> #{target_id}
+      ) AS combined
     SQL
 
     grouped = Hash.new { |h, k| h[k] = Set.new }
