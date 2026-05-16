@@ -61,7 +61,7 @@ class Admin::AnalysisController < Admin::ApplicationController
 
     # Add individual production results
     productions.each do |p|
-      results << { id: p.id, label: "#{p.season} - #{p.name} (#{p.theater.name})", name: p.name, season: p.season, theater: p.theater.name }
+      results << { id: p.id, label: "#{p.season} - #{p.name} (#{p.theater.name})", name: p.name, season: p.season, theater: p.theater.name, theater_id: p.theater_id }
     end
 
     render json: results
@@ -125,6 +125,71 @@ class Admin::AnalysisController < Admin::ApplicationController
         closing_at: p.closing_at
       }
     }
+  end
+
+  def search_theaters
+    query = params[:q].to_s.strip
+    return render(json: []) if query.blank?
+
+    q = "%#{query.downcase}%"
+    name_matches = Theater.where("LOWER(theaters.name) LIKE ?", q).limit(20)
+    tag_matches  = Theater.joins(:theater_tags)
+                          .where("LOWER(theater_tags.name) LIKE ?", q)
+                          .distinct
+                          .limit(20)
+
+    seen_ids = {}
+    results = []
+
+    name_matches.order(:name).each do |t|
+      next if seen_ids[t.id]
+      seen_ids[t.id] = true
+      results << { id: t.id, label: t.name, match_kind: 'name' }
+    end
+
+    # Also surface tag-keyed group entries (one row per matching tag), so the
+    # operator can pick "every theater tagged X" in one click.
+    matching_tags = TheaterTag.where("LOWER(name) LIKE ?", q).order(:name)
+    seen_tag_keys = {}
+    matching_tags.each do |tag|
+      key = tag.name.to_s.downcase
+      next if key.blank? || seen_tag_keys[key]
+      seen_tag_keys[key] = true
+      tag_theaters = Theater.tagged_with(tag.name).order(:name).pluck(:id, :name)
+      next if tag_theaters.empty?
+      results << {
+        group_key: "tag:#{tag.name}",
+        label: "All theaters tagged #{tag.name}",
+        theaters: tag_theaters.map { |id, name| { id: id, name: name } }
+      }
+    end
+
+    tag_matches.order(:name).each do |t|
+      next if seen_ids[t.id]
+      seen_ids[t.id] = true
+      results << { id: t.id, label: t.name, match_kind: 'tag' }
+    end
+
+    render json: results
+  end
+
+  def audience
+    @target_production = Production.accessible_by(current_ability, :read).find(params[:target_production_id])
+
+    requested_ids = Array(params[:comparison_theater_ids]).reject(&:blank?).map(&:to_i)
+    @comparison_theaters = Theater.where(id: requested_ids).to_a
+
+    if requested_ids.empty?
+      flash[:error] = "Select at least one comparison theater before running an audience analysis."
+      redirect_to admin_analysis_index_path(target_production_id: @target_production.id, analysis_type: 'audience')
+      return
+    end
+
+    @results = AudienceAnalysis.new(@target_production, requested_ids).compute
+
+    respond_to do |format|
+      format.html
+    end
   end
 
   def ticket_revenue

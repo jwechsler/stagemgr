@@ -59,6 +59,30 @@ analyze a single show or compare it side-by-side with one historical production.
 
 See [Ticket Revenue Analysis](ticket-revenue.md) for full details.
 
+### Audience
+
+Analyzes who attended a given production: how many are brand-new to your programming,
+how many have repeat-attended a chosen comparison group of theaters, and how many of
+your previous shows' audiences have come back for this one. Useful for retention and
+growth questions and as the precursor to targeted outreach lists.
+
+- **Returning-attendee headline counts** -- One row per recent prior production in the
+  comparison group (named with the production), plus a catch-all "Returning attendees
+  (any production)" row across all comparison productions ever.
+- **Per-window metrics** -- 3-month, 6-month, 1-year, 3-year, 5-year, and Ever lookback
+  columns for first-time-attendee counts, "Dedicated customers" (attended every
+  comparison-group production whose run overlapped the window), 2+-visit repeats in the
+  comparison group, and 3+-visit repeats in the building. The "Ever" column has no lower
+  bound — it counts against every prior production that ran up to the anchor date.
+- **Two scopes** -- The same metrics are computed against the comparison theater group
+  AND against the entire facility, so you can see both narrow (this company's audience)
+  and wide (any show in the building) retention.
+- **Ceiling context** -- Each section shows how many other productions actually ran in
+  the window, so 0-valued cells are obviously explained by "no shows ran" instead of
+  looking like a bug.
+
+See [Audience Analysis](audience.md) for full details.
+
 ![Analysis selection page](../assets/images/screenshots/analysis-selection-empty.png)
 
 ## Setting Up an Analysis
@@ -69,6 +93,11 @@ Selecting **Analysis Type** from the dropdown changes which comparison field is 
   is required.
 - **Ticket Revenue** -- Shows a single historical production field. No comparison is
   required; you can run the analysis on a single show.
+- **Audience** -- Shows a comparison-group picker (theaters, not productions). The
+  current production's own theater is seeded by default. You can add more theaters by
+  name or tag. The facility-wide ("vs. every theater in the system") metrics are
+  always shown alongside, so there's no separate "compare against the whole building"
+  toggle.
 
 ### Rate of Sales
 

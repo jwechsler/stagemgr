@@ -215,9 +215,11 @@ Rails.application.routes.draw do
       collection do
         get :search_productions
         get :search_production
+        get :search_theaters
         get :resolve_group
         post :rate_of_sales
         post :ticket_revenue
+        post :audience
       end
     end
 

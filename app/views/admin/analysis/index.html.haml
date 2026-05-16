@@ -4,7 +4,7 @@
   %ul.breadcrumbs
     %li.current= link_to 'Analysis', admin_analysis_index_path
 
-= form_tag(rate_of_sales_admin_analysis_index_path, method: :post, id: 'analysis-form', data: { rate_of_sales_url: rate_of_sales_admin_analysis_index_path, ticket_revenue_url: ticket_revenue_admin_analysis_index_path }) do
+= form_tag(rate_of_sales_admin_analysis_index_path, method: :post, id: 'analysis-form', data: { rate_of_sales_url: rate_of_sales_admin_analysis_index_path, ticket_revenue_url: ticket_revenue_admin_analysis_index_path, audience_url: audience_admin_analysis_index_path }) do
   .grid-x.grid-padding-x
     .small-12.cell
       %h4 Compare Show Performance
@@ -29,7 +29,7 @@
       %fieldset.fieldset
         %legend Analysis Type
         %p.help-text Select the type of analysis to run
-        = select_tag :analysis_type, options_for_select([['Rate of Sales', 'rate_of_sales'], ['Ticket Revenue', 'ticket_revenue']], @analysis_type), class: 'input-group-field', id: 'analysis-type-select'
+        = select_tag :analysis_type, options_for_select([['Rate of Sales', 'rate_of_sales'], ['Ticket Revenue', 'ticket_revenue'], ['Audience', 'audience']], @analysis_type), class: 'input-group-field', id: 'analysis-type-select'
 
   .grid-x.grid-padding-x#comparison-single-section{style: 'display:none'}
     .small-12.cell
@@ -76,6 +76,23 @@
                     %a.remove-comparison.alert{href: '#'} remove
                     %input{type: 'hidden', name: 'comparison_production_ids[]', value: p.id}
 
+  .grid-x.grid-padding-x#comparison-audience-section{style: 'display:none'}
+    .small-12.cell
+      %fieldset.fieldset
+        %legend Comparison Group
+        %p.help-text Select one or more theaters to compare against. Defaults to the selected production's theater. The facility-wide metrics are always shown alongside.
+        .grid-x
+          .cell.auto
+            = text_field_tag :comparison_theater_search, nil, id: 'comparison-theater-search', placeholder: 'Type a theater name or tag...', class: 'input-group-field', autocomplete: 'off'
+          .cell.shrink{style: 'padding-left: 0.5rem'}
+            %a#remove-all-comparison-theaters.button.alert.small{href: '#', style: 'display:none'} Remove all
+        %table#comparison-theaters-table.hover{style: 'margin-top: 1rem'}
+          %thead
+            %tr
+              %th Theater
+              %th
+          %tbody
+
   .grid-x.grid-padding-x
     .small-12.cell
       = submit_tag 'Run Analysis', class: 'button', id: 'run-analysis-btn', disabled: true
@@ -87,27 +104,33 @@
     var comparisonSingleId      = #{@comparison_production ? @comparison_production.id : 'null'};
     var searchMultiUrl          = '#{search_productions_admin_analysis_index_path}';
     var searchSingleUrl         = '#{search_production_admin_analysis_index_path}';
+    var searchTheatersUrl       = '#{search_theaters_admin_analysis_index_path}';
     var resolveGroupUrl         = '#{resolve_group_admin_analysis_index_path}';
     var $form                   = $('#analysis-form');
     var rosUrl                  = $form.data('rate-of-sales-url');
     var trUrl                   = $form.data('ticket-revenue-url');
+    var audienceUrl             = $form.data('audience-url');
+    var comparisonTheaterIds    = [];
+    var targetTheaterId         = #{@target_production ? @target_production.theater_id.to_i : 'null'};
+    var targetTheaterName       = #{@target_production ? @target_production.theater.name.to_json.html_safe : 'null'};
 
     function currentAnalysisType() {
       return $('#analysis-type-select').val();
     }
 
     function updateFormAction() {
-      $form.attr('action', currentAnalysisType() === 'ticket_revenue' ? trUrl : rosUrl);
+      var t = currentAnalysisType();
+      var action = rosUrl;
+      if (t === 'ticket_revenue') action = trUrl;
+      else if (t === 'audience')  action = audienceUrl;
+      $form.attr('action', action);
     }
 
     function updateSectionVisibility() {
-      if (currentAnalysisType() === 'ticket_revenue') {
-        $('#comparison-multi-section').hide();
-        $('#comparison-single-section').show();
-      } else {
-        $('#comparison-single-section').hide();
-        $('#comparison-multi-section').show();
-      }
+      var t = currentAnalysisType();
+      $('#comparison-single-section').toggle(t === 'ticket_revenue');
+      $('#comparison-multi-section').toggle(t === 'rate_of_sales');
+      $('#comparison-audience-section').toggle(t === 'audience');
     }
 
     function updateSubmitButton() {
@@ -116,11 +139,37 @@
       var ready;
       if (type === 'ticket_revenue') {
         ready = hasTarget;
+      } else if (type === 'audience') {
+        ready = hasTarget && comparisonTheaterIds.length > 0;
       } else {
         ready = hasTarget && comparisonProductionIds.length > 0;
       }
       $('#run-analysis-btn').prop('disabled', !ready);
       $('#remove-all-comparisons').toggle(comparisonProductionIds.length > 0);
+      $('#remove-all-comparison-theaters').toggle(comparisonTheaterIds.length > 0);
+    }
+
+    function addComparisonTheater(theaterId, label) {
+      theaterId = parseInt(theaterId);
+      if (!theaterId) return;
+      if (comparisonTheaterIds.indexOf(theaterId) !== -1) return;
+      comparisonTheaterIds.push(theaterId);
+      var row = $('<tr data-theater-id="' + theaterId + '">' +
+        '<td>' + label + '</td>' +
+        '<td><a href="#" class="remove-comparison-theater alert">remove</a>' +
+        '<input type="hidden" name="comparison_theater_ids[]" value="' + theaterId + '">' +
+        '</td></tr>');
+      $('#comparison-theaters-table tbody').append(row);
+    }
+
+    function seedDefaultComparisonTheater() {
+      // When viewing Audience analysis with a target picked and no theaters
+      // chosen yet, default the comparison group to the target's theater.
+      if (currentAnalysisType() !== 'audience') return;
+      if (comparisonTheaterIds.length > 0) return;
+      if (!targetTheaterId || !targetTheaterName) return;
+      addComparisonTheater(targetTheaterId, targetTheaterName);
+      updateSubmitButton();
     }
 
     function addComparisonProduction(item) {
@@ -142,6 +191,61 @@
     $('#analysis-type-select').on('change', function() {
       updateFormAction();
       updateSectionVisibility();
+      seedDefaultComparisonTheater();
+      updateSubmitButton();
+    });
+
+    // Theater autocomplete (audience comparison)
+    $('#comparison-theater-search').autocomplete({
+      source: function(request, response) {
+        $.getJSON(searchTheatersUrl, { q: request.term }, function(data) {
+          var filtered = data.filter(function(item) {
+            if (item.group_key) return true;
+            return comparisonTheaterIds.indexOf(item.id) === -1;
+          });
+          response(filtered);
+        });
+      },
+      minLength: 2,
+      select: function(event, ui) {
+        var self = this;
+        if (ui.item.group_key && ui.item.theaters) {
+          ui.item.theaters.forEach(function(t) {
+            addComparisonTheater(t.id, t.name);
+          });
+        } else {
+          addComparisonTheater(ui.item.id, ui.item.label);
+        }
+        $(self).val('');
+        updateSubmitButton();
+        return false;
+      }
+    });
+
+    $('#comparison-theater-search').autocomplete('instance')._renderItem = function(ul, item) {
+      if (item.group_key) {
+        return $('<li>').append('<div><strong style="color: #1779ba;">▶ ' + item.label + '</strong></div>').appendTo(ul);
+      }
+      var suffix = item.match_kind === 'tag' ? ' <small>(tag match)</small>' : '';
+      return $('<li>').append('<div>' + item.label + suffix + '</div>').appendTo(ul);
+    };
+
+    // Remove a single comparison theater
+    $(document).on('click', '.remove-comparison-theater', function(e) {
+      e.preventDefault();
+      var row = $(this).closest('tr');
+      var tid = parseInt(row.data('theater-id'));
+      comparisonTheaterIds = comparisonTheaterIds.filter(function(id) { return id !== tid; });
+      row.remove();
+      updateSubmitButton();
+    });
+
+    // Remove all comparison theaters
+    $(document).on('click', '#remove-all-comparison-theaters', function(e) {
+      e.preventDefault();
+      if (!confirm('Remove all comparison theaters?')) return;
+      comparisonTheaterIds = [];
+      $('#comparison-theaters-table tbody').empty();
       updateSubmitButton();
     });
 
@@ -158,10 +262,13 @@
       minLength: 2,
       select: function(event, ui) {
         targetProductionId = ui.item.id;
+        targetTheaterId    = ui.item.theater_id || null;
+        targetTheaterName  = ui.item.theater    || null;
         $('#target-production-id').val(ui.item.id);
         $('#target-production-name').text(ui.item.label);
         $('#target-production-display').removeClass('hide');
         $(this).val('').hide();
+        seedDefaultComparisonTheater();
         updateSubmitButton();
         return false;
       }
@@ -265,5 +372,6 @@
     // Initialize state
     updateFormAction();
     updateSectionVisibility();
+    seedDefaultComparisonTheater();
     updateSubmitButton();
   });

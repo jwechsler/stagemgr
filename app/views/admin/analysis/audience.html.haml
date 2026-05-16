@@ -1,0 +1,137 @@
+= content_for :title do
+  Audience Analysis
+= content_for :breadcrumbs do
+  %ul.breadcrumbs
+    %li= link_to 'Analysis', admin_analysis_index_path
+    %li.current Audience
+
+.grid-x.grid-padding-x
+  .small-12.cell
+    %h4 Audience Analysis
+    %p.lead
+      Attendees of
+      %strong= @target_production.name
+      (#{@target_production.season}, #{@target_production.theater.name})
+    %p.help-text
+      Anchor date:
+      %strong= l(@results[:anchor_date], format: :long)
+      \—
+      - if @target_production.closed?
+        production closed on this date; all windows look backward from closing.
+      - else
+        production is still running; windows look backward from today. Orders to other shows AFTER this date are excluded.
+
+    %p.help-text
+      Comparison group:
+      %strong= @comparison_theaters.map(&:name).join(", ")
+
+- if @results[:cohort_size] == 0
+  .grid-x.grid-padding-x
+    .small-12.cell
+      .callout.warning
+        No paid attendees were found for
+        = @target_production.name
+        \. Audience metrics need at least one paid TicketOrder whose address has either an email or a street address, and is not flagged "Not a ticket buyer".
+
+- else
+  .grid-x.grid-padding-x
+    .small-12.cell
+      %fieldset.fieldset
+        %legend Audience Counts
+        - blank_zero = ->(n) { n.to_i.zero? ? '' : n }
+        %table.hover
+          %tbody
+            %tr
+              %td
+                %strong Selected production attendees
+              %td.text-right{colspan: @results[:window_labels].size}
+                %strong= blank_zero.call(@results[:cohort_size])
+            - @results[:previous_productions].each do |prev|
+              %tr
+                %td
+                  %strong= "Returning attendees (#{prev[:name]})"
+                %td.text-right{colspan: @results[:window_labels].size}
+                  %strong= blank_zero.call(prev[:returning_count])
+            %tr
+              %td
+                %strong Returning attendees (any production)
+              %td.text-right{colspan: @results[:window_labels].size}
+                %strong= blank_zero.call(@results[:returning_attendees_any_count])
+            %tr
+              %th
+              - @results[:window_labels].each do |label|
+                %th.text-right= label
+
+            %tr.audience-subheader
+              %td.text-center{colspan: @results[:window_labels].size + 1}
+                = @comparison_theaters.map(&:name).join(", ")
+            %tr
+              %td
+                %em Other productions running in comparison group during window
+              - @results[:window_labels].each do |label|
+                %td.text-right
+                  %em= blank_zero.call(@results[:productions_in_comparison][label])
+            %tr
+              %td First Time (by recent months)
+              - @results[:window_labels].each do |label|
+                %td.text-right= blank_zero.call(@results[:metrics][:first_time_vs_comparison][label])
+            %tr
+              %td Returning
+              - @results[:window_labels].each do |label|
+                %td.text-right= blank_zero.call(@results[:metrics][:returning_vs_comparison][label])
+            %tr
+              %td Dedicated customers
+              - @results[:window_labels].each do |label|
+                %td.text-right= blank_zero.call(@results[:metrics][:dedicated_customers][label])
+            %tr
+              %td 2+ visits in comparison
+              - @results[:window_labels].each do |label|
+                %td.text-right= blank_zero.call(@results[:metrics][:two_plus_in_comparison][label])
+
+            %tr.audience-subheader
+              %td.text-center{colspan: @results[:window_labels].size + 1}
+                vs. facility
+            %tr
+              %td
+                %em Other productions
+              - @results[:window_labels].each do |label|
+                %td.text-right
+                  %em= blank_zero.call(@results[:productions_in_building][label])
+            %tr
+              %td First Time (by previous months)
+              - @results[:window_labels].each do |label|
+                %td.text-right= blank_zero.call(@results[:metrics][:first_time_vs_building][label])
+            %tr
+              %td Returning
+              - @results[:window_labels].each do |label|
+                %td.text-right= blank_zero.call(@results[:metrics][:returning_vs_building][label])
+            %tr
+              %td 3+ visits in building
+              - @results[:window_labels].each do |label|
+                %td.text-right= blank_zero.call(@results[:metrics][:three_plus_in_building][label])
+
+        %p.help-text
+          %em
+            How to read the columns: each window is a backward lookback from the anchor date. "First-time" counts cohort members with
+            %strong no other attendance during that lookback
+            — so a wider window (e.g., 3 years) typically finds
+            %strong more
+            prior attendance per person and yields
+            %strong fewer
+            first-timers than the 3-month column. Conversely, "3+ visits" rises with wider windows — but it's capped by the number of OTHER productions that ran in the window. If "Other productions running" is 0 or 1 for a window, "3+ visits" is mechanically impossible there.
+          %p.help-text
+            %em
+              "Dedicated customers" counts cohort members who attended
+              %strong every
+              comparison-group production whose run overlapped the window. If only 1 production ran, the count is everyone who attended that 1 show; if 5 ran, only patrons who saw all 5 qualify. When 0 comparison productions ran in the window, the count is 0 by definition.
+          %p.help-text
+            %em
+              A "visit" is a distinct production attendance. Multiple purchases for the same show — across performances or repeat orders — count as one visit.
+              The cohort itself is built from paid (non-comp) orders to the selected production. Each attendee = one Address record (the system already merges duplicates).
+              Addresses flagged "Not a ticket buyer," and addresses with neither an email nor a street address, are excluded.
+              Cross-attendance to OTHER shows counts both paid and comp tickets (a comp recipient still attended).
+
+.grid-x.grid-padding-x
+  .small-12.cell
+    %hr
+    = link_to 'Back to Analysis', admin_analysis_index_path(target_production_id: @target_production.id, analysis_type: 'audience'), class: 'button secondary'

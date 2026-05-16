@@ -21,6 +21,19 @@
   has_many :orders, inverse_of: :theater
   has_many :theater_tags, inverse_of: :theater, dependent: :destroy, autosave: true
 
+  scope :tagged_with, ->(name) {
+    joins(:theater_tags).where("LOWER(theater_tags.name) = ?", name.to_s.downcase).distinct
+  }
+
+  # Returns theaters whose name contains the string OR whose tags contain it.
+  # Case-insensitive substring match.
+  def self.search_by_name_or_tag(string)
+    q = "%#{string.to_s.downcase}%"
+    by_name_ids = where("LOWER(theaters.name) LIKE ?", q).pluck(:id)
+    by_tag_ids  = joins(:theater_tags).where("LOWER(theater_tags.name) LIKE ?", q).distinct.pluck(:id)
+    where(id: (by_name_ids + by_tag_ids).uniq)
+  end
+
   def tag_names
     theater_tags.reject(&:marked_for_destruction?).map(&:name).sort_by { |n| n.to_s.downcase }
   end
