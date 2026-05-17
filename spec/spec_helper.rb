@@ -1,8 +1,10 @@
 ENV['RAILS_ENV'] = 'test'
 
 # ActiveSupport 6.1 reopens stdlib Logger without requiring it; load it first
-# so loading database_cleaner -> active_record -> active_support doesn't blow
-# up with "uninitialized constant ActiveSupport::LoggerThreadSafeLevel::Logger".
+# so the database_cleaner -> active_record -> active_support chain below
+# doesn't blow up with "uninitialized constant ActiveSupport::LoggerThreadSafeLevel::Logger".
+# (spec_helper.rb runs before rails_helper.rb, so config/boot.rb's matching
+# require hasn't fired yet.)
 require 'logger'
 
 require 'database_cleaner/active_record'
