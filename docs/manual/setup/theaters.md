@@ -24,7 +24,7 @@ Each theater gets its own productions, orders, financial reporting, and staff ac
 
 ## Theater Form Fields
 
-![The theater edit form with name, link, logo, class, status, and service fee fields](../assets/images/screenshots/setup-theater-form.png)
+![The theater edit form with name, link, logo, class, status, service fee, and tags fields](../assets/images/screenshots/setup-theater-form.png)
 
 ### Name
 
