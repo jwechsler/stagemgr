@@ -43,6 +43,9 @@ class AudienceCohortReport < MailingList
     @window_label           = window_label.presence
     @allow_email_export     = allow_email_export ? true : false
     @segment_name           = build_segment_name
+    # Append the opt-in indicator to the TRG header set. :Email may still be
+    # blanked per-row based on view_email permission + Emma group membership.
+    self.headers            = TRG_IMPORT_HEADERS + [:OptedInForEmail]
     # TRG :Segment column carries the three-letter list-type code; the
     # descriptive cohort name goes into :Title (the "segment title").
     @data = { TRG_SEGMENT_CODE => [] }
@@ -57,10 +60,21 @@ class AudienceCohortReport < MailingList
     analysis = AudienceAnalysis.new(@target_production, @comparison_theater_ids)
     address_ids = analysis.cohort_for(@segment_key, @window_label)
 
+    opt_in_productions =
+      [@target_production] +
+      Production.where(theater_id: @comparison_theater_ids).to_a
+    email_allowlist =
+      Admin::ReportsHelper.attendees_on_email_list_for_productions(opt_in_productions)
+
     Address.where(id: address_ids.to_a).find_each(batch_size: 1000) do |addr|
-      hash = self.mailing_hash_from_buyer(addr, @allow_email_export)
-      hash[:Title]  = @segment_name
-      hash[:Season] = @target_production.season.to_i
+      email_downcased = addr.email.to_s.downcase
+      is_opted_in    = email_downcased.present? && email_allowlist.key?(email_downcased)
+      include_email  = @allow_email_export || is_opted_in
+
+      hash = self.mailing_hash_from_buyer(addr, include_email)
+      hash[:Title]           = @segment_name
+      hash[:Season]          = @target_production.season.to_i
+      hash[:OptedInForEmail] = is_opted_in ? "Y" : "N"
       @data[TRG_SEGMENT_CODE] << hash
     end
 

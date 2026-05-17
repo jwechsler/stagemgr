@@ -57,6 +57,29 @@ module Admin::ReportsHelper
     members_by_email
   end
 
+  # Union of MyEmma attendee-group members across many productions. Returns
+  # { email_downcased => MyEmma::Member }. Empty when MyEmma is disabled or no
+  # production resolves to a group id. Dedupes Emma group ids so each group is
+  # fetched once even when several productions share a theater-level fallback
+  # group (see Production#use_myemma_attendee_group).
+  def self.attendees_on_email_list_for_productions(productions)
+    return {} if MyEmma.disabled?
+    group_ids = Array(productions)
+                  .filter_map { |p| p&.use_myemma_attendee_group.presence }
+                  .uniq
+    return {} if group_ids.empty?
+
+    members_by_email = {}
+    group_ids.each do |gid|
+      grp = MyEmma::Group.find(gid)
+      next if grp.nil?
+      grp.members.each do |m|
+        members_by_email[m.email.downcase] = m unless m.email.nil?
+      end
+    end
+    members_by_email
+  end
+
 
   def self.trg_hash(address)
     Hash[:FirstName => address.first_name, :LastName=>address.last_name,
