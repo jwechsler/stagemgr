@@ -9,6 +9,11 @@ ENV["BUNDLE_GEMFILE"] ||= File.expand_path("../../Gemfile",
 
 require "bundler/setup"
 
+# stdlib Logger must be loaded before webpacker triggers active_support/logger;
+# this entry point bypasses config/boot.rb and config/application.rb, so the
+# require lives here too.
+require "logger"
+
 require "webpacker"
 require "webpacker/webpack_runner"
 
