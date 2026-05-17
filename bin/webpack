@@ -3,6 +3,11 @@
 ENV["RAILS_ENV"] ||= ENV["RACK_ENV"] || "development"
 ENV["NODE_ENV"]  ||= "development"
 
+# webpack 4 (shipped with webpacker 5.4) uses MD4 for build hashes, which
+# OpenSSL 3 (Node 17+) refuses by default. Restore legacy provider support
+# so the child node process can hash. Idempotent if Node is older.
+ENV["NODE_OPTIONS"] = "#{ENV['NODE_OPTIONS']} --openssl-legacy-provider".strip
+
 require "pathname"
 ENV["BUNDLE_GEMFILE"] ||= File.expand_path("../../Gemfile",
   Pathname.new(__FILE__).realpath)

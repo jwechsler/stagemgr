@@ -3,6 +3,10 @@
 ENV["RAILS_ENV"] ||= ENV["RACK_ENV"] || "development"
 ENV["NODE_ENV"]  ||= "development"
 
+# Same workaround as bin/webpack: webpack 4 needs the OpenSSL 3 legacy
+# provider for its MD4 build hash on Node 17+.
+ENV["NODE_OPTIONS"] = "#{ENV['NODE_OPTIONS']} --openssl-legacy-provider".strip
+
 require "pathname"
 ENV["BUNDLE_GEMFILE"] ||= File.expand_path("../../Gemfile",
   Pathname.new(__FILE__).realpath)
