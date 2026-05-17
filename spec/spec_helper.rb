@@ -1,5 +1,10 @@
 ENV['RAILS_ENV'] = 'test'
 
+# ActiveSupport 6.1 reopens stdlib Logger without requiring it; load it first
+# so loading database_cleaner -> active_record -> active_support doesn't blow
+# up with "uninitialized constant ActiveSupport::LoggerThreadSafeLevel::Logger".
+require 'logger'
+
 require 'database_cleaner/active_record'
 require 'active_support/testing/time_helpers'
 

@@ -87,9 +87,9 @@ Rails.application.configure do
     ActiveMerchant::Billing::Base.mode = :test
     PaymentProcessing.after_initialize
     unless Rails.application.credentials.dig(:my_emma,:account_id).nil?
-      MyEmma.set_credentials(Rails.application.credentials.dig(:my_emma,:username), Rails.application.credentials.dig(:my_emma, :password), Rails.application.credentials.dig(:my_emma,:account_id)) 
+      MyEmma.set_credentials(Rails.application.credentials.dig(:my_emma,:username), Rails.application.credentials.dig(:my_emma, :password), Rails.application.credentials.dig(:my_emma,:account_id))
     else
-      MyEmma.disable
+      MyEmma.read_only!
     end
   end
 
