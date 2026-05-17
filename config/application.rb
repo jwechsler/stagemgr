@@ -1,5 +1,11 @@
 require_relative "boot"
 
+# Belt-and-suspenders: also loaded in config/boot.rb. Repeated here so any
+# entry point that bypasses boot.rb (webpacker:compile invoked outside the
+# normal rails command chain, certain asset precompile flows, etc.) still
+# has stdlib Logger defined before ActiveSupport reopens it.
+require "logger"
+
 require "rails/all"
 
 # Require the gems listed in Gemfile, including any gems
