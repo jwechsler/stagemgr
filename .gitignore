@@ -45,7 +45,9 @@ app/assets/images/qv/*
 config/settings.local.yml
 config/settings/*.local.yml
 config/environments/*.local.yml
-cert_key_pem_dev.txt
+config/cert_key_pem_dev.txt
+config/cert_key_pem_prod.txt
+ai/repomix-output.txt
 public/*
 storage/*
 app/views/layouts/ext_site_wrapper.html

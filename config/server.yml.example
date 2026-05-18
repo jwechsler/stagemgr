@@ -64,11 +64,11 @@ all:
   email:
     delivery_method: postmark
     addresses:
-      box_office: boxoffice@theaterwit.org
-      online_errors: bugs@theaterwit.org
-      software_address: stagemgr@theaterwit.org
-      flex_pass_notifications: boxoffice@theaterwit.org
-      membership_notifications: boxoffice@theaterwit.org
-      supervisor_notifications: jeremy@theaterwit.org
-      wheelchair_conversion_notifications: stagemgr@theaterwit.org
+      box_office: boxoffice@yourtheater.org
+      online_errors: boxoffice@yourtheater.org
+      software_address: stagemgr@yourtheater.org
+      flex_pass_notifications: boxoffice@yourtheater.org
+      membership_notifications: boxoffice@yourtheater.org
+      supervisor_notifications: admin@yourtheater.org
+      wheelchair_conversion_notifications: stagemgr@yourtheater.org
 
