@@ -112,6 +112,8 @@ group :development do
   gem 'http_logger'
   gem "haml-rails"
   gem 'single_test'
+  gem 'ruby-lsp'
+  gem 'ruby-lsp-rails'
 
   # gem 'ruby_parser'  # for declarative authorization eager loading for resque tasks
 end
