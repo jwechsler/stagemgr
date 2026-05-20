@@ -1,0 +1,27 @@
+# Keep the build context small and avoid leaking local state into images.
+.git/
+.gitignore
+.claude/
+.ruby-lsp/
+.zed/
+.idea/
+.vscode/
+.bundle/
+log/
+tmp/
+node_modules/
+vendor/bundle/
+storage/
+coverage/
+public/packs/
+public/packs-test/
+public/system/
+public/assets/
+db/*.sqlite3
+db/*.sqlite3-journal
+.env
+.env.*.local
+*.log
+*.swp
+*~
+.DS_Store

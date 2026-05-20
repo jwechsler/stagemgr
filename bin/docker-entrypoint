@@ -1,0 +1,101 @@
+#!/bin/bash
+# Stagemgr Docker entrypoint.
+#
+# Runs on every container start. Idempotent: re-runs of bundle/yarn/webpacker
+# are cheap on warm caches. Skips work that has already happened.
+#
+# Steps:
+#   1. Scaffold gitignored config files from their .example templates
+#   2. Install Ruby + JS dependencies (vendor/bundle is a named volume)
+#   3. Compile webpack assets
+#   4. Prepare the database (create + migrate; idempotent)
+#   5. Optionally symlink foundation layout if a foundation build is mounted
+#   6. Start Resque worker + scheduler in the background
+#   7. exec into the CMD (typically `/sbin/my_init` → Nginx + Passenger)
+
+set -e
+
+APP_DIR=/var/www/stagemgr
+cd "$APP_DIR"
+
+echo "==> Configuring git safe.directory for bind-mounted source..."
+su - app -c "git config --global --add safe.directory $APP_DIR"
+
+echo "==> Ensuring vendor/bundle ownership..."
+mkdir -p "$APP_DIR/vendor/bundle"
+chown -R app:app "$APP_DIR/vendor"
+
+echo "==> Scaffolding missing config files from .example templates..."
+for example in config/database.yml.example \
+               config/server.yml.example \
+               config/ticket_print.yml.example \
+               config/schedule.yml.example; do
+  target="${example%.example}"
+  if [[ -f "$example" && ! -e "$target" ]]; then
+    echo "    cp $example $target"
+    cp "$example" "$target"
+    chown app:app "$target"
+  fi
+done
+
+echo "==> bundle install..."
+su - app -c "
+  cd $APP_DIR &&
+  source /etc/profile.d/rvm.sh &&
+  rvm use 3.2.2@stagemgr --create &&
+  bundle config set path 'vendor/bundle' &&
+  bundle install --retry 3 --jobs 4
+"
+
+echo "==> yarn install..."
+su - app -c "cd $APP_DIR && yarn install"
+
+echo "==> webpacker:compile..."
+su - app -c "
+  cd $APP_DIR &&
+  source /etc/profile.d/rvm.sh &&
+  rvm use 3.2.2@stagemgr &&
+  bundle exec rails webpacker:compile
+"
+
+if [[ "${DB_PREPARE_ON_BOOT:-true}" == "true" ]]; then
+  echo "==> db:prepare (create database + run migrations if needed)..."
+  su - app -c "
+    cd $APP_DIR &&
+    source /etc/profile.d/rvm.sh &&
+    rvm use 3.2.2@stagemgr &&
+    bundle exec rails db:prepare
+  " || echo "    (db:prepare failed — likely already migrated; continuing)"
+fi
+
+# Optional foundation symlink for the `frontend` compose profile.
+# Only do it if a foundation build is mounted at /var/www/foundation-dist.
+FOUNDATION_LAYOUT="/var/www/foundation-dist/layouts/ext_site_wrapper.html"
+LAYOUT_DEST="$APP_DIR/app/views/layouts/ext_site_wrapper.html.erb"
+if [[ -d /var/www/foundation-dist ]]; then
+  echo "==> Foundation dist mounted; waiting up to 30s for layout file..."
+  for _ in $(seq 1 15); do
+    [[ -f "$FOUNDATION_LAYOUT" ]] && break
+    sleep 2
+  done
+  if [[ -f "$FOUNDATION_LAYOUT" ]]; then
+    mkdir -p "$(dirname "$LAYOUT_DEST")"
+    ln -sf "$FOUNDATION_LAYOUT" "$LAYOUT_DEST"
+    echo "    linked foundation layout"
+  else
+    echo "    (foundation layout not present; continuing without it)"
+  fi
+fi
+
+echo "==> Starting Resque worker..."
+cd "$APP_DIR" && \
+  RAILS_ENV="${RAILS_ENV:-development}" \
+  nohup script/resque-worker start >> log/resque-worker.log 2>&1 &
+
+echo "==> Starting Resque scheduler..."
+cd "$APP_DIR" && \
+  RAILS_ENV="${RAILS_ENV:-development}" \
+  nohup script/scheduler start >> log/resque-scheduler.log 2>&1 &
+
+echo "==> exec $*"
+exec "$@"

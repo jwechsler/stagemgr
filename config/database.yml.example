@@ -1,15 +1,26 @@
-# SQLite version 3.x
-#   gem install sqlite3-ruby (not necessary on OS X Leopard)
-development:
-  adapter: mysql2
-  database: stagemgr_development
-  username: root
-  password:
-  socket: /tmp/mysql.sock
+# Stagemgr database configuration.
+# Copy this file to config/database.yml — the Docker entrypoint does it
+# automatically on first boot. All values read from environment variables,
+# typically supplied via .env at the repo root.
+#
+# Defaults match docker-compose.yml so an unmodified .env works as-is.
 
-# Warning: The database defined as "test" will be erased and
-# re-generated from your development database when you run "rake".
-# Do not set this db to the same as development or production.
+default: &default
+  adapter: mysql2
+  encoding: utf8
+  pool: <%= ENV.fetch("DATABASE_POOL", 5) %>
+  username: <%= ENV.fetch("DATABASE_USER", "stagemgr_dev") %>
+  password: <%= ENV.fetch("DATABASE_PASSWORD", "password") %>
+  host:     <%= ENV.fetch("DATABASE_HOST", "127.0.0.1") %>
+  port:     <%= ENV.fetch("DATABASE_PORT", 3306) %>
+  database: <%= ENV.fetch("DATABASE_NAME", "stagemgr_dev") %>
+  socket:   ""
+
+development:
+  <<: *default
+
+# Test runs against SQLite for speed; override via DATABASE_NAME if you
+# prefer MySQL for tests.
 test: &TEST
   adapter: sqlite3
   database: db/test.sqlite3
@@ -17,10 +28,8 @@ test: &TEST
   timeout: 5000
 
 production:
-  adapter: sqlite3
-  database: db/production.sqlite3
-  pool: 5
-  timeout: 5000
+  <<: *default
+  database: <%= ENV.fetch("DATABASE_NAME", "stagemgr_production") %>
 
 cucumber:
   <<: *TEST

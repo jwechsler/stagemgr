@@ -1,0 +1,85 @@
+# Self-contained Stagemgr development stack.
+#
+# Default services (mysql, redis, stagemgr) bring up a working Rails app at
+# http://localhost:8080. Source is bind-mounted into the stagemgr container
+# so edits in your editor are reflected immediately — Passenger restarts the
+# Rails app process whenever tmp/restart.txt is touched or the entrypoint
+# completes.
+#
+# The optional `frontend` profile brings up a sibling foundation/marketing
+# site at the root path. Activate with:
+#
+#     docker compose --profile frontend up -d
+#
+# Foundation requires a sibling repo cloned at ../foundation (relative to
+# this file). See docs/INSTALL.md for details.
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: stagemgr-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: "${DATABASE_PASSWORD:-password}"
+      MYSQL_DATABASE: "${DATABASE_NAME:-stagemgr_dev}"
+      MYSQL_USER: "${DATABASE_USER:-stagemgr_dev}"
+      MYSQL_PASSWORD: "${DATABASE_PASSWORD:-password}"
+    ports:
+      - "${MYSQL_HOST_PORT:-3306}:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  redis:
+    image: redis:7-alpine
+    container_name: stagemgr-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_HOST_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    command: ["redis-server", "--appendonly", "yes"]
+
+  stagemgr:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: stagemgr-web
+    depends_on:
+      - mysql
+      - redis
+    env_file:
+      - .env
+    environment:
+      # Compose-internal hostnames; override the .env Docker-host defaults
+      # when running inside the compose network.
+      DATABASE_HOST: mysql
+      REDIS_URL: redis://redis:6379/0
+      PASSENGER_APP_ENV: "${RAILS_ENV:-development}"
+    ports:
+      - "${STAGEMGR_HOST_PORT:-8080}:80"
+    volumes:
+      # Bind-mount source for live editing.
+      - .:/var/www/stagemgr:rw
+      # Persist installed gems across rebuilds.
+      - bundle-cache:/var/www/stagemgr/vendor/bundle
+
+  # Optional: serves the Theater Wit foundation marketing site at the root
+  # path with Stagemgr at /tickets. Requires a sibling foundation repo at
+  # ../foundation (override with FOUNDATION_REPO_PATH in .env).
+  foundation:
+    profiles: ["frontend"]
+    build:
+      context: ${FOUNDATION_REPO_PATH:-../foundation}
+      dockerfile: Dockerfile
+    container_name: stagemgr-foundation
+    volumes:
+      - ${FOUNDATION_REPO_PATH:-../foundation}/dist:/usr/src/app/dist
+      - ${FOUNDATION_REPO_PATH:-../foundation}/src:/usr/src/app/src:rw
+    ports:
+      - "${FOUNDATION_HOST_PORT:-8000}:8000"
+    command: ["yarn", "start"]
+
+volumes:
+  mysql-data:
+  redis-data:
+  bundle-cache:
