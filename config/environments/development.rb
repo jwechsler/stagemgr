@@ -86,8 +86,8 @@ Rails.application.configure do
   config.after_initialize do
     ActiveMerchant::Billing::Base.mode = :test
     PaymentProcessing.after_initialize
-    unless Rails.application.credentials.dig(:my_emma,:account_id).nil?
-      MyEmma.set_credentials(Rails.application.credentials.dig(:my_emma,:username), Rails.application.credentials.dig(:my_emma, :password), Rails.application.credentials.dig(:my_emma,:account_id))
+    if ENV['MY_EMMA_ACCOUNT_ID'].present?
+      MyEmma.set_credentials(ENV['MY_EMMA_USERNAME'], ENV['MY_EMMA_PASSWORD'], ENV['MY_EMMA_ACCOUNT_ID'])
     else
       MyEmma.read_only!
     end
@@ -107,7 +107,7 @@ Rails.application.configure do
 
   config.action_mailer.delivery_method = $SERVER_CONFIG['email']['delivery_method'].to_sym
   if $SERVER_CONFIG['email']['delivery_method'].eql?('postmark')
-    config.action_mailer.postmark_settings = { :api_key=>Rails.application.credentials.dig(:postmark_api_token)}
+    config.action_mailer.postmark_settings = { :api_key => ENV['POSTMARK_API_TOKEN'] }
   end
 
   unless $SERVER_CONFIG['payment_processing'].nil? || $SERVER_CONFIG['payment_processing']['additional_card_types'].blank?

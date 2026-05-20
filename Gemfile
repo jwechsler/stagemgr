@@ -85,7 +85,7 @@ gem 'responders'
 gem 'decent_exposure'
 gem 'activestorage-validator', '0.4.0' # validates blobs for activestorage
 
-gem 'dotenv-rails', groups: [:development, :test]
+gem 'dotenv-rails' # loads .env in every environment
 gem 'image_processing'
 # gem 'mini_magick'
 gem 'ruby-vips'
