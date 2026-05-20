@@ -86,10 +86,10 @@ Rails.application.configure do
   config.after_initialize do
     ActiveMerchant::Billing::Base.mode = :test
     PaymentProcessing.after_initialize
-    if ENV['MY_EMMA_ACCOUNT_ID'].present?
+    if ENV['MY_EMMA_USERNAME'].present? && ENV['MY_EMMA_PASSWORD'].present? && ENV['MY_EMMA_ACCOUNT_ID'].present?
       MyEmma.set_credentials(ENV['MY_EMMA_USERNAME'], ENV['MY_EMMA_PASSWORD'], ENV['MY_EMMA_ACCOUNT_ID'])
     else
-      MyEmma.read_only!
+      MyEmma.disable
     end
   end
 
