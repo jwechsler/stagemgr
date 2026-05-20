@@ -126,6 +126,7 @@ Rails.application.configure do
     PaymentProcessing.after_initialize
     if ENV['MY_EMMA_USERNAME'].present? && ENV['MY_EMMA_PASSWORD'].present? && ENV['MY_EMMA_ACCOUNT_ID'].present?
       MyEmma.set_credentials(ENV['MY_EMMA_USERNAME'], ENV['MY_EMMA_PASSWORD'], ENV['MY_EMMA_ACCOUNT_ID'])
+      MyEmma.read_only! if $SERVER_CONFIG.dig('my_emma', 'read_only')
     else
       MyEmma.disable
     end

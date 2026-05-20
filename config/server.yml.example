@@ -9,7 +9,12 @@ development:
     default_recurring_gateway: bogus
     test_credit_card: 1
     test_card_brand: bogus
-  
+  my_emma:
+    # When true (and ENV MY_EMMA_* credentials are set), MyEmma is initialized
+    # in read-only mode so reads work but no writes hit the live account.
+    # Omit, leave blank, or set false to allow full writes.
+    read_only: true
+
 
 test:
   filestore_hash: "yoursecrethere"
