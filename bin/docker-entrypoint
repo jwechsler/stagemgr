@@ -18,8 +18,17 @@ set -e
 APP_DIR=/var/www/stagemgr
 cd "$APP_DIR"
 
+# Helper: run a command as the `app` user with the container's env preserved.
+# `su - app -c ...` would start a login shell that resets the environment,
+# which would strip every variable compose loads from .env (DATABASE_*,
+# STRIPE_*, POSTMARK_*, etc.). /sbin/setuser is the phusion-baseimage
+# helper that switches uid/gid without touching env.
+as_app() {
+  /sbin/setuser app bash -c "$1"
+}
+
 echo "==> Configuring git safe.directory for bind-mounted source..."
-su - app -c "git config --global --add safe.directory $APP_DIR"
+as_app "git config --global --add safe.directory $APP_DIR"
 
 echo "==> Ensuring vendor/bundle ownership..."
 mkdir -p "$APP_DIR/vendor/bundle"
@@ -39,7 +48,7 @@ for example in config/database.yml.example \
 done
 
 echo "==> bundle install..."
-su - app -c "
+as_app "
   cd $APP_DIR &&
   source /etc/profile.d/rvm.sh &&
   rvm use 3.2.2@stagemgr --create &&
@@ -48,10 +57,10 @@ su - app -c "
 "
 
 echo "==> yarn install..."
-su - app -c "cd $APP_DIR && yarn install"
+as_app "cd $APP_DIR && yarn install"
 
 echo "==> webpacker:compile..."
-su - app -c "
+as_app "
   cd $APP_DIR &&
   source /etc/profile.d/rvm.sh &&
   rvm use 3.2.2@stagemgr &&
@@ -60,7 +69,7 @@ su - app -c "
 
 if [[ "${DB_PREPARE_ON_BOOT:-true}" == "true" ]]; then
   echo "==> db:prepare (create database + run migrations if needed)..."
-  su - app -c "
+  as_app "
     cd $APP_DIR &&
     source /etc/profile.d/rvm.sh &&
     rvm use 3.2.2@stagemgr &&
@@ -88,14 +97,22 @@ if [[ -d /var/www/foundation-dist ]]; then
 fi
 
 echo "==> Starting Resque worker..."
-cd "$APP_DIR" && \
-  RAILS_ENV="${RAILS_ENV:-development}" \
-  nohup script/resque-worker start >> log/resque-worker.log 2>&1 &
+as_app "
+  cd $APP_DIR &&
+  source /etc/profile.d/rvm.sh &&
+  rvm use 3.2.2@stagemgr &&
+  RAILS_ENV='${RAILS_ENV:-development}' \
+    nohup script/resque-worker start >> log/resque-worker.log 2>&1 &
+"
 
 echo "==> Starting Resque scheduler..."
-cd "$APP_DIR" && \
-  RAILS_ENV="${RAILS_ENV:-development}" \
-  nohup script/scheduler start >> log/resque-scheduler.log 2>&1 &
+as_app "
+  cd $APP_DIR &&
+  source /etc/profile.d/rvm.sh &&
+  rvm use 3.2.2@stagemgr &&
+  RAILS_ENV='${RAILS_ENV:-development}' \
+    nohup script/scheduler start >> log/resque-scheduler.log 2>&1 &
+"
 
 echo "==> exec $*"
 exec "$@"
