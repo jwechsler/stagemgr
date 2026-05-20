@@ -1,9 +1,6 @@
 <%= content_for :title do %>Edit Special Feature<% end %>
 <% content_for :breadcrumbs do %>
-<ul class="breadcrumbs">
-  <li><%= link_to 'Special Features', admin_special_features_path%></li>
-  <li class="current"><a href='#'>Edit</a></li>
-</ul>
+  <%= render "shared/components/breadcrumb", items: [{ label: 'Special Features', path: admin_special_features_path }, { label: "Edit" }] %>
 <% end %>
 
 <%= render 'form' %>

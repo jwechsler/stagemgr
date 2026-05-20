@@ -2,12 +2,6 @@
   = @address.full_name
 = content_for :breadcrumbs do
   .small-12.cell
-    %ul.breadcrumbs
-      %li
-        = link_to 'Customer', admin_addresses_path
-      %li
-        = link_to @address.full_name, admin_address_path(@address)
-      %li.current
-        = link_to 'Edit', edit_admin_address_path(@address)
+    = render "shared/components/breadcrumb", items: [{ label: 'Customer', path: admin_addresses_path }, { label: @address.full_name, path: admin_address_path(@address) }, { label: 'Edit', path: edit_admin_address_path(@address) }]
 
 = render partial: 'form', locals: {address: @address}

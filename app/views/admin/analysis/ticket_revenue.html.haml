@@ -1,9 +1,7 @@
 = content_for :title do
   Ticket Revenue Analysis
 = content_for :breadcrumbs do
-  %ul.breadcrumbs
-    %li= link_to 'Analysis', admin_analysis_index_path(target_production_id: @target_production.id, comparison_production_id: @comparison_production&.id, analysis_type: 'ticket_revenue')
-    %li.current Ticket Revenue
+  = render "shared/components/breadcrumb", items: [{ label: 'Analysis', path: admin_analysis_index_path(target_production_id: @target_production.id, comparison_production_id: @comparison_production&.id, analysis_type: 'ticket_revenue') }, { label: "Ticket Revenue" }]
 
 .grid-x.grid-padding-x
   .small-12.cell

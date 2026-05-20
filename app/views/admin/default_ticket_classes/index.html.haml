@@ -1,8 +1,7 @@
 = content_for :title do
   Default Ticket Classes
 = content_for :breadcrumbs do
-  %ul.breadcrumbs
-    %li.current= link_to 'Default Ticket Classes', admin_default_ticket_classes_path
+  = render "shared/components/breadcrumb", items: [{ label: 'Default Ticket Classes', path: admin_default_ticket_classes_path }]
 
 .grid-x.grid-padding-x
   .cell

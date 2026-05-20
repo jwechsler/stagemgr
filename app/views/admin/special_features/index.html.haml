@@ -1,9 +1,7 @@
 = content_for :title do
   Special Features
 = content_for :breadcrumbs do
-  %ul.breadcrumbs
-    %li.current
-      %a{:href=>'#'} Special Features
+  = render "shared/components/breadcrumb", items: [{ label: "Special Features" }]
 
 .grid-x.grid-padding-x
   .small-12.cell

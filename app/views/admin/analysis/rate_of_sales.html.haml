@@ -1,8 +1,7 @@
 = content_for :title do
   Rate of Sales Analysis
 = content_for :breadcrumbs do
-  %ul.breadcrumbs
-    %li= link_to 'Analysis', admin_analysis_index_path
+  = render "shared/components/breadcrumb", items: [{ label: 'Analysis', path: admin_analysis_index_path }]
     %li.current Rate of Sales
 
 .grid-x.grid-padding-x

@@ -1,8 +1,7 @@
 = content_for :title do
   Payment Types
 = content_for :breadcrumbs do
-  %ul.breadcrumbs
-    %li.current= link_to 'Payment Types', admin_users_path
+  = render "shared/components/breadcrumb", items: [{ label: 'Payment Types', path: admin_users_path }]
 
 .grid-x.grid-padding-x
   .small-12.cell

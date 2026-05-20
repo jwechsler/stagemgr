@@ -1,9 +1,7 @@
 - content_for :title do
   Venues
 - content_for :breadcrumbs do
-  %ul.breadcrumbs
-    %li.current
-      %a{:href=>'#'} Venues
+  = render "shared/components/breadcrumb", items: [{ label: "Venues" }]
 
 .grid-x.grid-padding-x
   .small-12.cell

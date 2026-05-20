@@ -1,9 +1,6 @@
 = content_for :title do
   New Membership Order
 = content_for :breadcrumbs do
-  %ul.breadcrumbs
-    %li= link_to 'Membership Offers', admin_membership_offers_path
-    %li.current
-      %a{:href=>'#'} New Order
+  = render "shared/components/breadcrumb", items: [{ label: 'Membership Offers', path: admin_membership_offers_path }, { label: "New Order" }]
 
 = render '/admin/membership_orders/form'

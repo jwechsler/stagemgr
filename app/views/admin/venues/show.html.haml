@@ -1,11 +1,7 @@
 = content_for :title do
   Venue
 = content_for :breadcrumbs do
-  %ul.breadcrumbs
-    %li
-      %a{:href=>"#{admin_venues_path}"} Venues
-    %li.current
-      %a{:href=>'#'}= @venue.name
+  = render "shared/components/breadcrumb", items: [{ label: "Venues", path: admin_venues_path }, { label: @venue.name }]
 
 - if @venue.external?
   .callout.primary

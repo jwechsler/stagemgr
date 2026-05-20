@@ -1,9 +1,7 @@
 = content_for :title do
   Membership Offers
 = content_for :breadcrumbs do
-  %ul.breadcrumbs
-    %li.current
-      %a{:href=>'#'} Membership Offers
+  = render "shared/components/breadcrumb", items: [{ label: "Membership Offers" }]
 .grid-x
   .small-12.cell
     %table#membership-offer-listing{:data=>{:source=>"#{admin_membership_offers_path(format: :json)}"}}

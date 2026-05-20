@@ -1,8 +1,7 @@
 = content_for :title do
   Reports
 = content_for :breadcrumbs do
-  %ul.breadcrumbs
-    %li.current= link_to 'Reports', admin_reports_path
+  = render "shared/components/breadcrumb", items: [{ label: 'Reports', path: admin_reports_path }]
 
 .grid-x.grid-padding-x
   .small-4.cell

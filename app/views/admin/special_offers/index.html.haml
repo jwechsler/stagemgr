@@ -1,9 +1,7 @@
 = content_for :title do
   Special Offers
 = content_for :breadcrumbs do
-  %ul.breadcrumbs
-    %li.current
-      %a{:href=>'#'} Special Offers
+  = render "shared/components/breadcrumb", items: [{ label: "Special Offers" }]
 
 .grid-x.grid-padding-x
   .small-12.cell

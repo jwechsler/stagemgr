@@ -1,0 +1,22 @@
+-# Foundation 6 breadcrumb wrapped as a partial.
+-#
+-# Usage:
+-#   = render "shared/components/breadcrumb", items: [
+-#       { label: "Special Features", path: admin_special_features_path },
+-#       { label: "Edit" }
+-#     ]
+-#
+-# The last item in the list is rendered as the current page (with .current
+-# class and an anchor with href='#' to match the existing markup). All other
+-# items are rendered as links to their :path.
+
+%ul.breadcrumbs
+  - items.each_with_index do |item, idx|
+    - if idx == items.length - 1
+      - if item[:path]
+        %li.current= link_to(item[:label], item[:path])
+      - else
+        %li.current
+          %a{href: '#'}= item[:label]
+    - else
+      %li= link_to(item[:label], item[:path])

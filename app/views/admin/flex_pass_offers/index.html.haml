@@ -1,9 +1,7 @@
 = content_for :title do
   Flex Pass Offers
 = content_for :breadcrumbs do
-  %ul.breadcrumbs
-    %li.current
-      %a{:href=>'#'} Flex Pass Offers
+  = render "shared/components/breadcrumb", items: [{ label: "Flex Pass Offers" }]
 
 .grid-x.grid-padding-x
   .small-12.cell

@@ -1,11 +1,7 @@
 = content_for :title do
   = @address.full_name
 = content_for :breadcrumbs do
-  %ul.breadcrumbs
-    %li
-      = link_to 'Customers', admin_addresses_path
-    %li.current
-      %a{:href=>'#'}= @address.full_name
+  = render "shared/components/breadcrumb", items: [{ label: 'Customers', path: admin_addresses_path }, { label: @address.full_name }]
 
 .grid-x.grid-padding-x
   .small-12.medium-6.cell
