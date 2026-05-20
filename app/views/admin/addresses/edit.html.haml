@@ -2,6 +2,6 @@
   = @address.full_name
 = content_for :breadcrumbs do
   .small-12.cell
-    = render "shared/components/breadcrumb", items: [{ label: 'Customer', path: admin_addresses_path }, { label: @address.full_name, path: admin_address_path(@address) }, { label: 'Edit', path: edit_admin_address_path(@address) }]
+    = render "shared/components/breadcrumb", items: [{ label: 'Customer', path: admin_addresses_path }, { label: @address.full_name, path: admin_address_path(@address) }, { label: 'Edit'}]
 
 = render partial: 'form', locals: {address: @address}

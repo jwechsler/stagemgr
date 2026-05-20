@@ -1,8 +1,7 @@
 = content_for :title do
   Audience Analysis
 = content_for :breadcrumbs do
-  = render "shared/components/breadcrumb", items: [{ label: 'Analysis', path: admin_analysis_index_path }]
-    %li.current Audience
+  = render "shared/components/breadcrumb", items: [{ label: 'Analysis', path: admin_analysis_index_path }, { label: "Audience" }]
 
 .grid-x.grid-padding-x
   .small-12.cell

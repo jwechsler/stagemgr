@@ -6,17 +6,15 @@
 -#       { label: "Edit" }
 -#     ]
 -#
--# The last item in the list is rendered as the current page (with .current
--# class and an anchor with href='#' to match the existing markup). All other
--# items are rendered as links to their :path.
+-# Parent items are rendered as real links via their :path.
+-# The last item is always rendered with .current and `<a href='#'>` — the
+-# Foundation convention where `#` marks the current page (a non-functional
+-# anchor). Any :path on the last item is ignored.
 
 %ul.breadcrumbs
   - items.each_with_index do |item, idx|
     - if idx == items.length - 1
-      - if item[:path]
-        %li.current= link_to(item[:label], item[:path])
-      - else
-        %li.current
-          %a{href: '#'}= item[:label]
+      %li.current
+        %a{href: '#'}= item[:label]
     - else
       %li= link_to(item[:label], item[:path])
