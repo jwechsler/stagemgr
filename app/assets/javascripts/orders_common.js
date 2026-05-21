@@ -103,8 +103,8 @@ function calculate_ticket_totals(for_general_admission = false) {
     if (!isNaN(price_input)) { total += price_input*line_qty }
   });
 
-  $('#ticket_quantity').text(qty);
-  $('#order_total').text(formatter.format(total));
+  $('#ticket_quantity').text(isNaN(qty) ? '' : qty);
+  $('#order_total').text(isNaN(total) ? '' : formatter.format(total));
 
 }
 
