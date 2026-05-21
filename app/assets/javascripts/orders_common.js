@@ -130,10 +130,10 @@ function set_button_state_for_autocompletes() {
   });
 
   if (allow_submit) {
-    $('input[type="submit"].order-submit-button, button').prop('disabled', false);
+    $('input[type="submit"].order-submit-button, button.order-submit-button').prop('disabled', false);
     $('#hold_button').prop('disabled', false);
   } else {
-    $('input[type="submit"].order-submit-button, button').prop('disabled', true);
+    $('input[type="submit"].order-submit-button, button.order-submit-button').prop('disabled', true);
     $('#hold_button').prop('disabled', true);
   }
 

@@ -58,7 +58,7 @@ jQuery(document).ready(function($) {
 
   //$('input[type="submit"]).addClass('disabled');
 
-  $('input[type="submit"].order-submit-button, button').disable(true);
+  $('input[type="submit"].order-submit-button, button.order-submit-button').disable(true);
   set_button_state_for_autocompletes();
   $('body').on('click', 'button.disabled', function(event) {
       event.preventDefault();
