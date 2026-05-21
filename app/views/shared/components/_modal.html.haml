@@ -1,0 +1,29 @@
+-# Foundation 6 reveal modal wrapped as a partial.
+-#
+-# This is a content-wrapping partial — call it with `render layout:` and a
+-# block. The block becomes the modal body; the close button is appended.
+-#
+-# Usage:
+-#   = render layout: "shared/components/modal", locals: { id: "my-modal", size: "large", aria_labelledby: "myTitle" } do
+-#     %h2#myTitle  Title
+-#     ...body...
+-#
+-# id              — required DOM id
+-# size            — optional: tiny | small | large | xlarge | full
+-# aria_labelledby — optional id of the element that labels the dialog;
+-#                   when present, aria-hidden and role="dialog" are added too
+-# close_button    — default true; set false to omit the × button
+-# data            — optional hash of extra data-* attributes,
+-#                   e.g. data: { "close-on-click" => "true" }
+
+- size            = local_assigns[:size]
+- aria_labelledby = local_assigns[:aria_labelledby]
+- close_button    = local_assigns.fetch(:close_button, true)
+- attrs = { id: id, class: ["reveal", size].compact.join(" "), "data-reveal" => "" }
+- attrs.merge!("aria-labelledby" => aria_labelledby, "aria-hidden" => "true", "role" => "dialog") if aria_labelledby
+- (local_assigns[:data] || {}).each { |k, v| attrs["data-#{k}"] = v }
+%div{ attrs }
+  = yield
+  - if close_button
+    %button.close-button{ "data-close" => "", "aria-label" => "Close modal", type: "button" }
+      %span{ "aria-hidden" => "true" } &times;
