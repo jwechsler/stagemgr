@@ -19,11 +19,11 @@
 - size            = local_assigns[:size]
 - aria_labelledby = local_assigns[:aria_labelledby]
 - close_button    = local_assigns.fetch(:close_button, true)
-- attrs = { id: id, class: ["reveal", size].compact.join(" "), "data-reveal" => "" }
+- attrs = { id: id, class: ["reveal", size].compact.join(" "), "data-reveal" => true }
 - attrs.merge!("aria-labelledby" => aria_labelledby, "aria-hidden" => "true", "role" => "dialog") if aria_labelledby
 - (local_assigns[:data] || {}).each { |k, v| attrs["data-#{k}"] = v }
 %div{ attrs }
   = yield
   - if close_button
-    %button.close-button{ "data-close" => "", "aria-label" => "Close modal", type: "button" }
+    %button.close-button{ "data-close" => true, "aria-label" => "Close modal", type: "button" }
       %span{ "aria-hidden" => "true" } &times;
