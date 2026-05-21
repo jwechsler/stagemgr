@@ -254,7 +254,7 @@
             .grid-x.grid-padding-x{style: 'margin-top: 0.5rem'}
               .cell.auto
                 - if @extra_weeks > 0
-                  %span.label.secondary Extended by #{@extra_weeks} #{'week'.pluralize(@extra_weeks)}
+                  = ui_label "Extended by #{@extra_weeks} #{'week'.pluralize(@extra_weeks)}", variant: :secondary
               .cell.shrink
                 - if @extra_weeks > 0
                   %a#reset-extension.button.secondary.small{href: '#'} Reset
@@ -286,7 +286,7 @@
 .grid-x.grid-padding-x
   .small-12.cell
     %hr
-    = link_to 'Back to Analysis', admin_analysis_index_path(target_production_id: @target_production.id, comparison_production_ids: @comparison_productions.map(&:id)), class: 'button secondary'
+    = ui_button 'Back to Analysis', admin_analysis_index_path(target_production_id: @target_production.id, comparison_production_ids: @comparison_productions.map(&:id)), variant: :secondary
     %h6 Comparison Shows
     %table.hover
       %thead

@@ -11,4 +11,4 @@
   .cell.small-12
     %h3 Seat Maps
     = render partial: 'seat_maps'
-    = link_to("New Seat Map", [:new, :admin, @venue, :seat_map], class:'small button')
+    = ui_button("New Seat Map", [:new, :admin, @venue, :seat_map], size: :small)

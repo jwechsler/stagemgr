@@ -22,7 +22,7 @@
             %td
               = default_ticket_class.class_code
             %td
-              %span.label.right.secondary= default_ticket_class.ticket_type
+              = ui_label(default_ticket_class.ticket_type, variant: :secondary, class: 'right')
               = default_ticket_class.class_name
             %td.currency= number_to_currency(default_ticket_class.ticket_price)
             %td.currency= number_to_currency(default_ticket_class.ticketing_fee)

@@ -7,8 +7,8 @@
   .small-12.medium-6.cell
     = render '/membership_offers/info', :membership_offer=>@membership_offer
   .small-12.medium-6.cell
-    %span.label.float-right= @membership_offer.on_sale? ? 'On Sale' : 'Private'
-    %span.label.float-right.alert= @membership_offer.status 
+    = ui_label((@membership_offer.on_sale? ? 'On Sale' : 'Private'), variant: nil, class: 'float-right')
+    = ui_label(@membership_offer.status, variant: :alert, class: 'float-right') 
         
 
     %ul.tabs#offertab(data-tabs)

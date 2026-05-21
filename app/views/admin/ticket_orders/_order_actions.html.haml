@@ -7,7 +7,7 @@
   = link_to 'Place Order', "#", :class=>'submit-button button seating-not-required order-submit-button', :onclick=>"confirmSubmit('Process this order?','Place Order')"
 
 - if ((can?(:hold, TicketOrder) || (can?(:hold_existing, TicketOrder) && !order_form.object.id.nil?)) && order_form.object.unprocessed?)
-  = link_to 'Hold', "#", :onclick=>"submitForm('Hold')", class: 'submit-button button', :id=>'hold_button'
+  = ui_button 'Hold', "#", class: 'submit-button', :onclick=>"submitForm('Hold')", :id=>'hold_button'
   -# = order_form.submit 'Hold', data:{:disable_with => 'Holding...'}, :class=>'button', :id=>'hold_button' if order_form.object.holdable?
 - else
   %span#hold_control{:class=>"#{(order_form.object.performance.nil? ? 'hide' : (order_form.object.performance.production.status.eql?(Production::SEASONSEATING)) ? 'show' : 'hide')}"}

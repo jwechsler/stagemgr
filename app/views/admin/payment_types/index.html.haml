@@ -31,7 +31,7 @@
                 - if payment_type.is_a? ExternalPaymentType
                   = link_to 'Destroy', admin_payment_type_path(payment_type), :confirm=>'Are you sure?', :method=>:delete, :class=>"alert tiny button"
                 - else
-                  %a.alert.disabled.tiny.button{:href=>'#'} Destroy
+                  = ui_button "Destroy", "#", size: :tiny, variant: :alert, class: "disabled"
               = link_to 'Edit', edit_admin_payment_type_path(payment_type), :class=>'tiny button' if can?(:edit,PaymentType)
 
 

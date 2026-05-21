@@ -15,7 +15,7 @@
 
 .grid-x.grid-padding-x
   .small-12.cell
-    = link_to "New Special Feature", new_admin_special_feature_path, class: 'small button right'
+    = ui_button "New Special Feature", new_admin_special_feature_path, size: :small, class: 'right'
 
 = content_for :js do
   :javascript

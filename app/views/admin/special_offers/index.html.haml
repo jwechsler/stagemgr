@@ -17,7 +17,7 @@
 
 .grid-x.grid-padding-x
   .small-12.cell
-    = link_to 'Add special offer', new_admin_special_offer_path, class: 'small button right'
+    = ui_button 'Add special offer', new_admin_special_offer_path, size: :small, class: 'right'
 
 = content_for :js do
   :javascript

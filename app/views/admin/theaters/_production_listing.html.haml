@@ -11,7 +11,7 @@
       %tbody
   .cell
     - can? :create, Production do
-      =link_to 'Add production', new_admin_theater_production_path(@theater), class: 'button right small'
+      =ui_button 'Add production', new_admin_theater_production_path(@theater), size: :small, class: 'right'
 
 = content_for :js do
   :javascript

@@ -39,7 +39,7 @@
                 -else
                   %span.ticket_price= number_to_currency(tc.ticket_price)
               .small-3.cell
-                %a.button.tiny.ticket-class-select-button{href:'#',"data-ticket-class":tc.id, "data-ticket-type":tc.ticket_type} Select
+                = ui_button "Select", "#", size: :tiny, class: "ticket-class-select-button", data: { "ticket-class": tc.id, "ticket-type": tc.ticket_type }
 
 = render partial: "/seat_assignments/seating_config", locals: {performance_id: order_form.object.performance_id, order_uuid: order_form.object.uuid }
 

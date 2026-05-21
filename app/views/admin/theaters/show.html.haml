@@ -30,4 +30,4 @@
 
 
   - if can? :create, Production then
-    = link_to 'Add production', [:new, :admin, @theater, :production], class: 'button'
+    = ui_button 'Add production', [:new, :admin, @theater, :production]

@@ -16,7 +16,7 @@
     .tabs-content{'data-tabs-content'=>'prodtabs'}
       #prodpanel-1.tabs-panel.is-active   
         = render :partial => 'performance_listing'
-        = link_to('Add performance', new_admin_theater_production_performance_path(@production.theater, @production), class: 'small button right') if can? :create, Performance
+        = ui_button('Add performance', new_admin_theater_production_performance_path(@production.theater, @production), size: :small, class: 'right') if can? :create, Performance
 
 
       #prodpanel-2.tabs-panel
@@ -91,8 +91,8 @@
       = link_to 'Edit', edit_admin_theater_production_path(@production.theater, @production), :class=>'button'
     - if can? :read, TicketClass
       %td
-        = link_to('Ticket Classes', [:admin, @production.theater, @production, :ticket_classes], class: 'button')
+        = ui_button('Ticket Classes', [:admin, @production.theater, @production, :ticket_classes])
     - if can? :perform_analysis, Analysis
-      = link_to 'Audience Analysis', admin_analysis_index_path(target_production_id: @production.id, analysis_type: 'audience'), class: 'button'
+      = ui_button 'Audience Analysis', admin_analysis_index_path(target_production_id: @production.id, analysis_type: 'audience')
 
 = render partial: 'email_attendees_modal' if can? :email_attendees, Performance

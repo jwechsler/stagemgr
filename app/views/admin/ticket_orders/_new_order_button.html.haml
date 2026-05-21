@@ -4,7 +4,7 @@
     %label Enter Production Code
     = autocomplete_field_tag 'production_code', '', autocomplete_production_production_code_admin_ticket_orders_path, id_element: '#new_production_id', 'data-auto-focus'=>true
 
-=link_to('New Ticket Order', new_admin_ticket_order_path, class:"button", id:'new-ticket-order')
+=ui_button('New Ticket Order', new_admin_ticket_order_path, id: 'new-ticket-order')
 
 = content_for :js do
   :javascript

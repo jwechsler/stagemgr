@@ -25,8 +25,8 @@
         %strong ⚑
         indicates a bucket that sold to its allocation limit.
       .button-group
-        %a.button.small#toggle-paid{href: '#'} % of Paid Sales
-        %a.button.small.secondary#toggle-capacity{href: '#'} % of Capacity
+        = ui_button "% of Paid Sales", "#", size: :small, id: "toggle-paid"
+        = ui_button "% of Capacity", "#", size: :small, variant: :secondary, id: "toggle-capacity"
 
   .grid-x.grid-padding-x
     .cell{class: @comparison_result ? 'small-12 medium-6' : 'small-12 medium-8 medium-offset-2'}
@@ -191,7 +191,7 @@
 .grid-x.grid-padding-x
   .small-12.cell
     %hr
-    = link_to 'Back to Analysis', admin_analysis_index_path(target_production_id: @target_production.id, comparison_production_id: @comparison_production&.id, analysis_type: 'ticket_revenue'), class: 'button secondary'
+    = ui_button 'Back to Analysis', admin_analysis_index_path(target_production_id: @target_production.id, comparison_production_id: @comparison_production&.id, analysis_type: 'ticket_revenue'), variant: :secondary
 
 - # Embed chart data as JSON for JavaScript
 - target_chart  = bucket_chart_data(@target_result)

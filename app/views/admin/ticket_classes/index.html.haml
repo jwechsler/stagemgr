@@ -19,9 +19,9 @@
       %tbody
 
 
-    = link_to 'Back', [:admin, @production.theater, @production], class: 'button'
+    = ui_button 'Back', [:admin, @production.theater, @production]
     - if can? :create, TicketClass then
-      = link_to 'New Ticket Class', new_admin_theater_production_ticket_class_path(@theater,@production), class: 'button right'
+      = ui_button 'New Ticket Class', new_admin_theater_production_ticket_class_path(@theater,@production), class: 'right'
 
 = content_for :js do
   :javascript
