@@ -9,8 +9,10 @@
 -#
 -# variant: secondary | primary | success | warning | alert. May be a dynamic
 -#          value. Defaults to "secondary".
--# style:   optional inline style string (omitted when nil).
+-# style:   optional inline style string (attribute omitted when absent).
 
 - variant = local_assigns.fetch(:variant, "secondary")
-.callout{class: variant, style: local_assigns[:style]}
+- attrs = { class: variant }
+- attrs[:style] = local_assigns[:style] if local_assigns[:style].present?
+.callout{ attrs }
   = yield
