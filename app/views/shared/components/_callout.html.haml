@@ -1,0 +1,16 @@
+-# Foundation 6 callout wrapped as a partial.
+-#
+-# Usage:
+-#   = render "shared/components/callout", variant: "warning" do
+-#     Body content goes here.
+-#
+-#   = render "shared/components/callout", variant: color, style: "margin-top:0.5rem" do
+-#     ...
+-#
+-# variant: secondary | primary | success | warning | alert. May be a dynamic
+-#          value. Defaults to "secondary".
+-# style:   optional inline style string (omitted when nil).
+
+- variant = local_assigns.fetch(:variant, "secondary")
+.callout{class: variant, style: local_assigns[:style]}
+  = yield

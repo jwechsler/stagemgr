@@ -26,7 +26,7 @@
 - if @results[:cohort_size] == 0
   .grid-x.grid-padding-x
     .small-12.cell
-      .callout.warning
+      = render "shared/components/callout", variant: "warning" do
         No paid attendees were found for
         = @target_production.name
         \. Audience metrics need at least one paid TicketOrder whose address has either an email or a street address, and is not flagged "Not a ticket buyer".

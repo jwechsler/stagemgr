@@ -4,7 +4,7 @@
   = render "shared/components/breadcrumb", items: [{ label: "Venues", path: admin_venues_path }, { label: @venue.name }]
 
 - if @venue.external?
-  .callout.primary
+  = render "shared/components/callout", variant: "primary" do
     %strong External Venue
 
 .grid-x.grid-padding-x

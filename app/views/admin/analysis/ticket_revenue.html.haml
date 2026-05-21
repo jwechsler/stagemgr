@@ -34,7 +34,7 @@
         %legend= @target_production.name
         %canvas#target-bucket-chart
       - unless @target_production.closed?
-        .callout.warning{style: 'margin-top: 0.5rem; padding: 0.5rem; font-size: 0.875rem'}
+        = render "shared/components/callout", variant: "warning", style: 'margin-top: 0.5rem; padding: 0.5rem; font-size: 0.875rem' do
           %strong Run in progress &mdash;
           = "#{@target_result.completed_performance_count} of #{@target_result.performance_count} performances complete."
     - if @comparison_result && @comparison_result.buckets.any?
@@ -43,7 +43,7 @@
           %legend= @comparison_production.name
           %canvas#comparison-bucket-chart
         - unless @comparison_production.closed?
-          .callout.warning{style: 'margin-top: 0.5rem; padding: 0.5rem; font-size: 0.875rem'}
+          = render "shared/components/callout", variant: "warning", style: 'margin-top: 0.5rem; padding: 0.5rem; font-size: 0.875rem' do
             %strong Run in progress &mdash;
             = "#{@comparison_result.completed_performance_count} of #{@comparison_result.performance_count} performances complete."
 
@@ -184,7 +184,7 @@
 - else
   .grid-x.grid-padding-x
     .small-12.cell
-      .callout.secondary
+      = render "shared/components/callout", variant: "secondary" do
         No ticket sales data found for
         %strong= @target_production.name
 
