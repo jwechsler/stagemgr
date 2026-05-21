@@ -95,28 +95,30 @@ Rails.application.configure do
 
   config.external_site_root = 'file:///Users/jeremyw/dev/site'
 
-  $TKTPRINT =  YAML::load(File.open("#{::Rails.root.to_s}/config/ticket_print.yml"))['development']
-  config_data = YAML::load(File.open("#{::Rails.root.to_s}/config/server.yml"))
-  $SERVER_CONFIG = config_data['all'].deep_merge(config_data['development'])
+  $TKTPRINT = (YAML::load(File.open("#{::Rails.root.to_s}/config/ticket_print.yml")) || {})['development']
+  config_data = YAML::load(File.open("#{::Rails.root.to_s}/config/server.yml")) || {}
+  $SERVER_CONFIG = (config_data['all'] || {}).deep_merge(config_data['development'] || {})
   $PAYMENT_CONFIG = $SERVER_CONFIG['payment_processing']
-  $SERVER_CONFIG['ext_site_wrapper']=$SERVER_CONFIG['ext_site_wrapper'] || 'ext_site_wrapper'
-  $EMAIL_ADDRESS = $SERVER_CONFIG['email']['addresses']
-  config.action_mailer.default_url_options = { host: $SERVER_CONFIG['host'], protocol: $SERVER_CONFIG['host_protocol'] }
+  $SERVER_CONFIG['ext_site_wrapper'] = $SERVER_CONFIG['ext_site_wrapper'] || 'ext_site_wrapper'
+  $EMAIL_ADDRESS = $SERVER_CONFIG.dig('email', 'addresses')
+  config.action_mailer.default_url_options = { host: $SERVER_CONFIG['host'] || 'localhost', protocol: $SERVER_CONFIG['host_protocol'] || 'http' }
   $RAND_CLAUSE = Arel.sql('RAND()')
-  
 
-  config.action_mailer.delivery_method = $SERVER_CONFIG['email']['delivery_method'].to_sym
-  if $SERVER_CONFIG['email']['delivery_method'].eql?('postmark')
-    config.action_mailer.postmark_settings = { :api_key=>Rails.application.credentials.dig(:postmark_api_token)}
+  email_config = $SERVER_CONFIG['email'] || {}
+  delivery_method = email_config['delivery_method']
+  config.action_mailer.delivery_method = delivery_method&.to_sym || :test
+  if delivery_method&.eql?('postmark')
+    config.action_mailer.postmark_settings = { :api_key => Rails.application.credentials.dig(:postmark_api_token) }
   end
 
-  unless $SERVER_CONFIG['payment_processing'].nil? || $SERVER_CONFIG['payment_processing']['additional_card_types'].blank?
-    $ADDITIONAL_CARD_TYPES = $SERVER_CONFIG['payment_processing']['additional_card_types'].split(',').map{|ct| ct.strip}
+  payment_config = $SERVER_CONFIG['payment_processing'] || {}
+  if payment_config['additional_card_types'].present?
+    $ADDITIONAL_CARD_TYPES = payment_config['additional_card_types'].split(',').map(&:strip)
   else
     $ADDITIONAL_CARD_TYPES = []
   end
   $APP_DISPLAY_NAME = $SERVER_CONFIG['app_name'] || 'StageMgr'
-  Rails.application.routes.default_url_options[:host] = $SERVER_CONFIG['host']
+  Rails.application.routes.default_url_options[:host] = $SERVER_CONFIG['host'] || 'localhost'
 
   # Allow binding from ngrok.io for remote testing
   config.hosts << "jw-macbook-m4"

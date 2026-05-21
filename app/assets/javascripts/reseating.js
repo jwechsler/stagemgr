@@ -121,7 +121,7 @@ $(document).ready(function() {
     }
   });
 
-  $(document).on('closed.fndtn.reveal', '[data-reveal]', function () {
+  $(document).on('closed.zf.reveal', '[data-reveal]', function () {
     $.post(rollback_reseating_url(),
       { 'order_uuid': ticket_order_id()
       }, function(response, status) {

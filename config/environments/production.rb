@@ -131,27 +131,30 @@ Rails.application.configure do
     end
   end
 
-  config_data = YAML::load(File.open("#{::Rails.root.to_s}/config/server.yml"))
-  $SERVER_CONFIG = config_data['all'].deep_merge(config_data['production'])
-  $EMAIL_ADDRESS = $SERVER_CONFIG['email']['addresses']
+  config_data = YAML::load(File.open("#{::Rails.root.to_s}/config/server.yml")) || {}
+  $SERVER_CONFIG = (config_data['all'] || {}).deep_merge(config_data['production'] || {})
+  $EMAIL_ADDRESS = $SERVER_CONFIG.dig('email', 'addresses')
   $PAYMENT_CONFIG = $SERVER_CONFIG['payment_processing']
-  $SERVER_CONFIG['ext_site_wrapper']=$SERVER_CONFIG['ext_site_wrapper'] || 'ext_site_wrapper'
-  $TKTPRINT =  YAML::load(File.open("#{::Rails.root.to_s}/config/ticket_print.yml"))['production']
-  unless $SERVER_CONFIG['payment_processing'].nil? || $SERVER_CONFIG['payment_processing']['additional_card_types'].blank?
-    $ADDITIONAL_CARD_TYPES = $SERVER_CONFIG['payment_processing']['additional_card_types'].split(',').map{|ct| ct.strip}
+  $SERVER_CONFIG['ext_site_wrapper'] = $SERVER_CONFIG['ext_site_wrapper'] || 'ext_site_wrapper'
+  $TKTPRINT = (YAML::load(File.open("#{::Rails.root.to_s}/config/ticket_print.yml")) || {})['production']
+  payment_config = $SERVER_CONFIG['payment_processing'] || {}
+  if payment_config['additional_card_types'].present?
+    $ADDITIONAL_CARD_TYPES = payment_config['additional_card_types'].split(',').map(&:strip)
   else
     $ADDITIONAL_CARD_TYPES = []
   end
 
-  config.action_mailer.delivery_method   = $SERVER_CONFIG['email']['delivery_method'].to_sym
-  if $SERVER_CONFIG['email']['delivery_method'].eql?('postmark')
-    config.action_mailer.postmark_settings = { :api_key=>Rails.application.credentials.dig(:postmark_api_token) }
+  email_config = $SERVER_CONFIG['email'] || {}
+  delivery_method = email_config['delivery_method']
+  config.action_mailer.delivery_method = delivery_method&.to_sym || :test
+  if delivery_method&.eql?('postmark')
+    config.action_mailer.postmark_settings = { :api_key => Rails.application.credentials.dig(:postmark_api_token) }
   end
 
   $RAND_CLAUSE = Arel.sql('RAND()')
   $APP_DISPLAY_NAME = $SERVER_CONFIG['app_name'] || 'StageMgr'
-  config.action_mailer.default_url_options = { host: "#{$SERVER_CONFIG['host']}#{$SERVER_CONFIG['sub_uri']}", protocol: $SERVER_CONFIG['host_protocol'] }
-  Rails.application.routes.default_url_options[:host] = $SERVER_CONFIG['host']
+  config.action_mailer.default_url_options = { host: "#{$SERVER_CONFIG['host']}#{$SERVER_CONFIG['sub_uri']}", protocol: $SERVER_CONFIG['host_protocol'] || 'http' }
+  Rails.application.routes.default_url_options[:host] = $SERVER_CONFIG['host'] || 'localhost'
 
   # Set up notification for issues
 

@@ -49,21 +49,15 @@ gem "jquery-datatables"
 gem 'ajax-datatables-rails', '> 1.0.0'
 gem 'rails-jquery-autocomplete' # :git=>"https://github.com/jwechsler/rails3-jquery-autocomplete.git" #:path=>'/Users/jeremyw/dev/rails3-jquery-autocomplete'
 
-gem 'sassc-rails'
-# gem 'sass'  # Remove this line as we're using sassc
-# gem 'sass-rails'  # Remove this line as we're using sassc-rails
+gem 'dartsass-sprockets'
 gem 'coffee-rails'
 gem 'uglifier'
-# Add Foundation Here
-gem 'bourbon'
-gem 'foundation-rails', '~> 6.6.2.0'  # This version uses older Sass syntax
-gem 'foundation-icons-sass-rails'
+# Foundation 6.9 via npm (foundation-sites in package.json)
 gem 'autoprefixer-rails'
 
 gem 'draper'
 gem 'yajl-ruby', require: 'yajl'
 gem 'jquery-timepicker-rails'
-gem 'foundation-datetimepicker-rails'
 # gem 'jqgrid-rails3', :git=>"https://github.com/davebaldwin/jqgrid-rails3.git"
 #gem "name_parse", "~> 0.0.5"
 gem "namae"
