@@ -11,7 +11,7 @@
         = f.hidden_field :ticket_count
         - if number_left == 0
           Sold Out
-        - elsif f.object.ticket_class.limit_tickets > 0
+        - else
           Call
       - else
         = f.input_field :ticket_count, collection: 0.upto(max_count).map{|x| x}, include_blank:false, :class=>'ticket_count'
