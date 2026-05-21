@@ -238,6 +238,18 @@ RAILS_LOG_TO_STDOUT=true
 
 Precompile assets at deploy time: `bundle exec rake assets:precompile`.
 
+### 7. Restrict the production bundle to production gems
+
+By default Bundler installs and materializes every gem group, so a production box ends up needing development, test, and editor-tooling gems just to boot. Configure Bundler once on the server to skip them:
+
+```bash
+bundle config set --local without 'development test cucumber'
+```
+
+This writes `.bundle/config` in the app directory and persists across deploys. Without it, any gem later added to the `:development`, `:test`, or `:cucumber` group must also be installed on the production box, or the app fails to boot with `Bundler::GemNotFound`. The app itself is unaffected — `config/application.rb` already only requires the `:default` and `:production` groups in production.
+
+Confirm with `bundle config` (the `without` list should show all three groups) and `bundle check` (should report the bundle is satisfied).
+
 ***
 
 ## Troubleshooting
