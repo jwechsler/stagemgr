@@ -20,11 +20,11 @@ module OrdersHelper
 
   def validate_web_order(order)
     begin
-      raise "Email required" if order.address.email.blank?
-      raise "Name required" if order.address.full_name.blank?
+      raise "Email required" if order.address&.email.blank?
+      raise "Name required" if order.address&.full_name.blank?
       unless order.payment_type.is_a? PassPaymentType
-        raise "Billing address incomplete" if order.address.line1.blank? || order.address.city.blank? || order.address.state.blank? || order.address.zipcode.blank?
-        raise "Phone number required" if order.address.phone.blank?
+        raise "Billing address incomplete" if order.address&.line1.blank? || order.address&.city.blank? || order.address&.state.blank? || order.address&.zipcode.blank?
+        raise "Phone number required" if order.address&.phone.blank?
       end
       if order.payment_type.is_a?(CreditCardPaymentType) && !order.credit_card_number.blank?
         raise "Credit card type required" if order.credit_card_type.blank?
