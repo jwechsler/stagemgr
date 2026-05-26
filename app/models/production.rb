@@ -101,6 +101,10 @@ class Production < ApplicationRecord
     self.first_preview_at || self.press_opening_at || self.opening_at || Date.today + 10.years
   end
 
+  def effective_closing_at
+    closing_at || performances.where(status: Performance::ACTIVE).maximum(:performance_date)
+  end
+
   # :section:
 
   # default sort for productions
