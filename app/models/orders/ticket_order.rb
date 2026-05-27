@@ -87,7 +87,15 @@ class TicketOrder < Order
 
   def unassign_seats
     Rails.logger.info("Releasing seats for Order #{self.id} [#{self.status}] [#{self.seats.map{|s| s.seat.location}.join(',')}]")
-    self.seats.each {|seat| seat.unassign_from_order(self.uuid); seat.save! }
+    seat_ids = self.seats.pluck(:id)
+    # Clear the seat FK on this order's TLIs so the seats can be re-sold after
+    # this order is released without hitting the unique index on
+    # seat_assignment_id. The TLI rows are preserved for accounting history.
+    if seat_ids.any?
+      TicketLineItem.where(order_id: self.id, seat_assignment_id: seat_ids)
+                    .update_all(seat_assignment_id: nil)
+    end
+    self.seats.each { |seat| seat.unassign_from_order(self.uuid) }
     Rails.logger.info("Seats released for Order #{self.id} [#{self.status}] [#{self.seats.map{|s| s.seat.location}.join(',')}]")
   end
 

@@ -185,7 +185,7 @@ function initialize_seating_assignment() {
               ticket_class_name: tcInfo['class_name'],
               ticket_price: tcInfo['raw_ticket_price'],
               price_override: response['price_override'],
-              ticket_line_item_id: null
+              ticket_line_item_id: response['ticket_line_item_id'] || null
             })
             $("#ticket-display").append(row)
             c_locations = $("#seatlocations").text().trim()

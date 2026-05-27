@@ -40,12 +40,13 @@ class SeatAssignmentsController < ApplicationController
         unless order_uuid.nil?
           max_seatable = can?(:seat_unlimited,SeatAssignment) ? 9999 : 20
           sa = SeatAssignment.find(params[:id])
+          tli_id = nil
           unless (!max_tickets.nil? && current_assignment_count(order_uuid,sa.id) >= max_tickets.to_i)
             SeatAssignment.transaction do
               if sa.available?(order_uuid)
                 sa.assign_to_order(order_uuid, max_seatable, ticket_class_id.to_i, accessible_setting)
                 sa.update(price_override: price_override) if price_override
-                upsert_ticket_line_item_for(sa, order_uuid, price_override)
+                tli_id = upsert_ticket_line_item_for(sa, order_uuid, price_override)
               end
             end
           end
@@ -54,6 +55,7 @@ class SeatAssignmentsController < ApplicationController
             ticket_class_id: sa.ticket_class_id,
             price_override: sa.price_override,
             seat_label: sa.seat&.location,
+            ticket_line_item_id: tli_id,
             unavailable: unavailable_seating_report(order_uuid, sa.performance_id),
             current_seat_assignments: SeatAssignment.seating_as_list(order_uuid, [SeatAssignment::TEMPORARY, SeatAssignment::ASSIGNED]),
             ticket_count: current_assignment_count(order_uuid)
@@ -204,6 +206,7 @@ class SeatAssignmentsController < ApplicationController
     tli.ticket_count = 1
     tli.price_override = price_override
     tli.save!
+    tli.id
   end
 
   def destroy_ticket_line_item_for(sa)
