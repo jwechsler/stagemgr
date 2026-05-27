@@ -162,7 +162,22 @@ class Admin::TicketOrdersController < Admin::OrdersController
 
   def create
     @ticket_order.uuid = params[:uuid] unless params[:uuid].blank?
-    @ticket_order.performance=Performance.find_by performance_code:params[:ticket_order][:performance_code]
+    submitted_code = params[:ticket_order][:performance_code]
+    @ticket_order.performance = Performance.find_by(performance_code: submitted_code)
+
+    if @ticket_order.performance.nil?
+      Rails.logger.warn(
+        "[admin/ticket_orders#create] performance lookup miss " \
+        "production_id=#{params[:production_id].inspect} " \
+        "performance_code=#{submitted_code.inspect} " \
+        "performance_id_param=#{params[:performance_id].inspect}"
+      )
+      flash.now[:error] =
+        "Please select a performance from the dropdown before placing the order " \
+        "(no performance matched code #{submitted_code.inspect})."
+      render 'edit' and return
+    end
+
     @ticket_order.status = Order::NEW if @ticket_order.status.nil?
     time_cutoff = @ticket_order.performance.to_time_with_zone - ($SERVER_CONFIG['minutes_before_performance_close_to_third_party_sales'] || 0).minutes
     action = params[:submit_action] || params[:commit]
