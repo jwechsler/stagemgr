@@ -4,7 +4,11 @@
 require File.expand_path('../config/application', __FILE__)
 require 'rake'
 
-require 'single_test'
-require 'single_test/tasks'
+begin
+  require 'single_test'
+  require 'single_test/tasks'
+rescue LoadError
+  # development-only helper; absent in production bundle
+end
 
 Stagemgr::Application.load_tasks
