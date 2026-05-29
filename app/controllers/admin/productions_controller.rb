@@ -1,7 +1,8 @@
 class Admin::ProductionsController < Admin::ApplicationController
   prepend_before_action :find_theater
-  before_action :find_context, :only => [:show]
+  before_action :find_context, :only => [:show, :allocation_sync_status]
   load_and_authorize_resource
+  skip_load_and_authorize_resource only: [:allocation_sync_status]
 
   def index
     respond_to do |format|
@@ -82,6 +83,12 @@ class Admin::ProductionsController < Admin::ApplicationController
         format.xml  { render :xml => @production.errors, :status => :unprocessable_entity }
       end
     end
+  end
+
+  def allocation_sync_status
+    @production = @context
+    authorize! :read, @production
+    render json: { syncing: @production.allocations_syncing? }
   end
 
   def send_sample_confirmation

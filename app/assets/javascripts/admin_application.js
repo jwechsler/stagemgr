@@ -193,3 +193,26 @@ $(document).ready(function() {
     });
   });
 });
+
+// Allocation sync status polling — auto-clears banner when background job finishes
+$(document).ready(function() {
+  var $banner = $('#allocation-status-banner');
+  if ($banner.length === 0) return;
+
+  var statusUrl = $banner.data('status-url');
+  if (!statusUrl || $banner.hasClass('hide')) return;
+
+  var pollInterval = setInterval(function() {
+    $.ajax({
+      url: statusUrl,
+      method: 'GET',
+      dataType: 'json',
+      success: function(data) {
+        if (!data.syncing) {
+          $banner.addClass('hide');
+          clearInterval(pollInterval);
+        }
+      }
+    });
+  }, 5000);
+});

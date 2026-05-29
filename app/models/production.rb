@@ -70,6 +70,18 @@ class Production < ApplicationRecord
     seat_map&.capacity || read_attribute(:capacity)
   end
 
+  def mark_allocation_sync_enqueued!
+    Production.increment_counter(:allocation_sync_pending_count, id)
+  end
+
+  def mark_allocation_sync_completed!
+    Production.decrement_counter(:allocation_sync_pending_count, id)
+  end
+
+  def allocations_syncing?
+    reload.allocation_sync_pending_count > 0
+  end
+
   def to_s
     "#{self.name}, #{self.theater.name}"
   end

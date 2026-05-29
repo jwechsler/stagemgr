@@ -18,7 +18,7 @@ class TicketClass < ApplicationRecord
   validates_presence_of :class_name
   validates_presence_of :ticketing_fee
   before_validation :prevent_price_changes_after_sales
-  after_save :update_auto_attached_performances
+  after_commit :sync_allocations_async, on: [:create, :update]
   before_destroy :check_for_processed_tickets
   before_destroy :check_for_shift_to_codes
 
@@ -83,11 +83,10 @@ class TicketClass < ApplicationRecord
   end
 
   private
-  def update_auto_attached_performances
-    Performance.where(production_id: self.production_id).each do |perf|
-        perf.populate_ticket_class_allocations
-        perf.save!
-    end
+  def sync_allocations_async
+    return unless saved_change_to_auto_attach? || previously_new_record?
+    production&.mark_allocation_sync_enqueued!
+    Resque.enqueue(SyncTicketClassAllocationsJob, id)
   end
 
   private

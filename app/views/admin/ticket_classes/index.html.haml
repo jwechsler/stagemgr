@@ -11,6 +11,7 @@
         Ticket Classes
 .grid-x.grid-padding-x
   .small-12.cell
+    = render 'admin/allocation_sync_status'
     %h3= "#{@production.name} Ticket Classes"
     %table#ticket-class-listing{:data=>{:source=>"#{admin_theater_production_ticket_classes_path(@production.theater, @production, format: :json)}"}}
       %thead
