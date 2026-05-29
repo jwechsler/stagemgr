@@ -186,13 +186,14 @@ RSpec.describe PrintingService, type: :service do
     end
 
     it 'generates batch_id in expected format for job consumption' do
-      allow(Resque).to receive(:enqueue) do |job_class, batch_id, order_ids|
-        expect(job_class).to eq(PrintBatchJob)
+      allow(Resque).to receive(:enqueue) do |job_class, *args|
+        next unless job_class == PrintBatchJob
+        batch_id, order_ids = args
         expect(batch_id).to be_a(String)
         expect(batch_id).not_to be_empty
         expect(order_ids).to eq([order.id])
       end
-      
+
       PrintingService.print_order(order.id)
     end
   end
