@@ -65,47 +65,37 @@ Capybara.javascript_driver = :selenium
 #
 ActionController::Base.allow_rescue = false
 
-# Share the ActiveRecord connection across threads so Capybara's Puma server
-# thread can see data created inside the test transaction. This lets us use
-# :transaction strategy for all tests (including @javascript), avoiding
-# SQLite locking issues that occur with :truncation.
-class ActiveRecord::Base
-  mattr_accessor :shared_connection
-  @@shared_connection = nil
-
-  def self.connection
-    @@shared_connection || retrieve_connection
-  end
-end
-ActiveRecord::Base.shared_connection = ActiveRecord::Base.connection
-
+# Use truncation for @javascript scenarios (Capybara server runs in a separate
+# thread and cannot see data inside an uncommitted transaction) and transaction
+# for everything else (fast rollback, no truncation overhead).
+# The shared_connection monkeypatch is NOT needed with MySQL — each thread gets
+# its own pooled connection.
 begin
   DatabaseCleaner.strategy = :transaction
 rescue NameError
   raise "You need to add database_cleaner to your Gemfile (in the :test group) if you wish to use it."
 end
 
+Before('@javascript') do
+  DatabaseCleaner.strategy = :truncation
+end
+
+Before('not @javascript') do
+  DatabaseCleaner.strategy = :transaction
+end
+
 Before do
   DatabaseCleaner.start
+  ActionMailer::Base.deliveries.clear
+  begin
+    Resque.redis.redis.flushdb
+  rescue
+    # non-fatal: clear stale jobs when Redis is available
+  end
 end
 
 After do
   DatabaseCleaner.clean
 end
-
-# You may also want to configure DatabaseCleaner to use different strategies for certain features and scenarios.
-# See the DatabaseCleaner documentation for details. Example:
-#
-#   Before('@no-txn,@selenium,@culerity,@celerity,@javascript') do
-#     # { :except => [:widgets] } may not do what you expect here
-#     # as Cucumber::Rails::Database.javascript_strategy overrides
-#     # this setting.
-#     DatabaseCleaner.strategy = :truncation
-#   end
-#
-#   Before('~@no-txn', '~@selenium', '~@culerity', '~@celerity', '~@javascript') do
-#     DatabaseCleaner.strategy = :transaction
-#   end
-#
 
 
