@@ -5,8 +5,14 @@ module FactoryBot
     def create_test_theater
       theater = FactoryBot.create(:theater, :name=>"Test Theater", theater_class: Theater::VISITING, accepts_donations: true)
       org_theater = FactoryBot.create(:theater, :name=>"Box Office Theater",theater_class: Theater::DEFAULT, accepts_donations: true)
+      # Fixed point in next month: keeps the single performance in the future
+      # (so the public order form isn't suppressed by the pre-show "in person
+      # only" window) AND on a single box-office calendar page (the calendar
+      # defaults to the production's first_preview_at month).
+      show_date = Date.today.next_month.change(:day => 10)
       production = FactoryBot.create(:production, :theater=>theater, :name=>"Production One",
-                          :production_code=>"TEST", :opening_at=>Date.today+1.day, :closing_at=>Date.today+1.day)
+                          :production_code=>"TEST", :opening_at=>show_date, :press_opening_at=>show_date,
+                          :first_preview_at=>show_date, :closing_at=>show_date + 1.week)
       FactoryBot.create(:ticket_class, :class_code=>'PASS', :class_name=>"Pass Ticket",
                           :ticket_price=>0.00, :web_visible=>false, :software_managed=>true,
                           :production=>production, :auto_attach=>true)
@@ -32,7 +38,8 @@ module FactoryBot
       FactoryBot.create(:default_ticket_class, :class_code=>'PASSFRIEND', :class_name=>"Pass Ticket",
                           :ticket_price=>0.00, :web_visible=>false, :software_managed=>true, :auto_attach=>true)
       production.reload
-      performance = FactoryBot.create(:performance, :production=>production, :performance_code=>'TEST01', :performance_time=>"#{Date.today} 18:00".to_time)
+      performance = FactoryBot.create(:performance, :production=>production, :performance_code=>'TEST01',
+                          :performance_date=>show_date, :performance_time=>"#{Date.today} 18:00".to_time)
       #
       performance.ticket_class_allocations.each do |tca|
         tca.available = true
