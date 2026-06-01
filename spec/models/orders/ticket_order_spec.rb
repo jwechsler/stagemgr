@@ -167,7 +167,7 @@ RSpec.describe TicketOrder do
     o.additional_donation_for_other = 1.66
     expect(o.total_due).to eq(12.00)
     o.transition_to!(Order::PROCESSED)
-    donation_orders = DonationOrder.all.order(amount: :desc)
+    donation_orders = DonationOrder.all.to_a.sort_by { |d| -d.total_paid }
     expect(donation_orders.count).to eq(2)
     expect(donation_orders[0].total_paid).to eq(50.00)
     expect(donation_orders[1].total_paid).to eq(1.66)

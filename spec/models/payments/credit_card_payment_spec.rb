@@ -129,7 +129,7 @@ RSpec.describe CreditCardPayment, type: :model do
         }.not_to raise_error
 
         order.reload
-        refund_payment = order.payments.last
+        refund_payment = order.payments.reload.detect { |p| p.amount < 0 }
         expect(refund_payment.amount).to eq(-50.00)
       end
 
