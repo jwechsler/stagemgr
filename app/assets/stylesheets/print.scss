@@ -1,0 +1,37 @@
+// Print-only stylesheet.
+//
+// Linked from the layout with `media: "print"`. This is required because the
+// main `application` stylesheet is linked with Rails' default `media="screen"`,
+// so Foundation's own `@media print` block (including `.hide-for-print`) never
+// reaches the page when printing. Rules here apply ONLY when printing.
+
+// Mirror Foundation's print-visibility utility so `.hide-for-print` works.
+.hide-for-print { display: none !important; }
+
+// Breadcrumbs. Without the screen stylesheet, Foundation's breadcrumb styling
+// is gone in print, so `<ul class="breadcrumbs">` falls back to a bullet list.
+// Reproduce the inline, slash-separated look (uses inline-block instead of
+// Foundation's float, which is unreliable in print).
+.breadcrumbs {
+  margin: 0 0 1rem 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: inline-block;
+    font-size: 0.6875rem; // 11px, matches Foundation
+    text-transform: uppercase;
+    color: #0a0a0a;
+
+    &:not(:last-child)::after {
+      content: "/";
+      margin: 0 0.75rem;
+      color: #8a8a8a;
+    }
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+}
