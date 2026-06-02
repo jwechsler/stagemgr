@@ -68,21 +68,29 @@ class Report
   def report_filename(filename)
 
     dir_name = File.dirname(filename)
-    base_filename = File.basename(filename, File.extname(filename))
     extension = File.extname(filename)
     extension = ".csv" if extension.blank?
-    sanitized_filename = "#{base_filename.parameterize}#{extension}"
-  
-    # Use tmpdir if no directory is specified or if the directory is "."
-    if dir_name == '.' || dir_name.empty?
+
+    # Only honor an explicitly supplied directory that actually exists. A bare
+    # filename built from user data (e.g. a production name containing "/")
+    # makes File.dirname report a phantom directory, which previously slipped
+    # past the "." / empty check and caused File.new to raise Errno::ENOENT.
+    # In that case the leading path fragment is really part of the name, so we
+    # sanitize the whole filename and write to the system tmpdir.
+    if dir_name != '.' && !dir_name.empty? && Dir.exist?(dir_name)
+      base_filename = File.basename(filename, File.extname(filename))
+      sanitized_filename = "#{base_filename.parameterize}#{extension}"
+    else
       dir_name = Dir.tmpdir
+      name_without_extension = filename.delete_suffix(File.extname(filename))
+      sanitized_filename = "#{name_without_extension.parameterize}#{extension}"
     end
-  
+
     full_path = File.join(dir_name, sanitized_filename)
 
     return full_path.to_s
 
-  end 
+  end
 
   def report_data(file_name = nil)
     unless reporting_user_id.nil?
