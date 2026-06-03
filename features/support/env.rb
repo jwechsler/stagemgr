@@ -25,7 +25,14 @@ end
 # Configure Selenium driver for JavaScript tests
 Capybara.register_driver :selenium do |app|
   options = Selenium::WebDriver::Firefox::Options.new
-  options.binary = "/Applications/Firefox.app/Contents/MacOS/firefox"
+  # On macOS, point to the standard Firefox.app location. On Linux (Docker),
+  # Firefox is pre-installed via Mozilla's APT repository and in PATH; omitting
+  # options.binary lets WebDriver find it automatically, which also prevents
+  # Selenium Manager from downloading a freshly-released patch version that
+  # may not yet be on Mozilla's FTP.
+  if RUBY_PLATFORM.include?('darwin')
+    options.binary = "/Applications/Firefox.app/Contents/MacOS/firefox"
+  end
   options.args << '--headless' # Run in headless mode
   options.args << '--no-sandbox'
   options.args << '--disable-dev-shm-usage'
