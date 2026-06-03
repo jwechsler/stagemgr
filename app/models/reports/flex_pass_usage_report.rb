@@ -87,7 +87,7 @@ class FlexPassUsageReport < Report
     filename = "_#{self.starting_date.to_date.strftime('%y%m%d')}_#{self.ending_date.to_date.strftime('%y%m%d')}.csv"
     if flex_pass_offer_id.present?
       offer = FlexPassOffer.find(flex_pass_offer_id)
-      filename = "#{offer.name}_usage_#{filename}"
+      filename = "#{Admin::ReportsHelper.safe_title(offer.name)}_usage_#{filename}"
     else
       filename = "flex_pass_usage_#{filename}"
     end

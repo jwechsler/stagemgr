@@ -55,6 +55,10 @@ all:
   report_timeout_seconds: 30       # Timeout for inline report generation
   report_frequent_customer_at: 12         # Minimum Number of visits from a customer to define a "frequent attendee"
   report_frequent_customer_range_days: 1460 # Window of time to determine a frequent customer.  Undefined means for all purchase history
+  # Maximum tickets a patron can select in one order via the quantity dropdown
+  max_ticket_dropdown: 20
+  # Seats remaining below which front-facing sales collapse to "Call" instead of a quantity dropdown (0 = never show Call, only Sold Out)
+  suspend_front_facing_sales_threshold: 0
   # Calendar heatmap thresholds (percentage of seats remaining)
   calendar_display:
     warning_at: 50

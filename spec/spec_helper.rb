@@ -1,3 +1,6 @@
+require 'simplecov'
+SimpleCov.start 'rails'
+
 ENV['RAILS_ENV'] = 'test'
 
 # ActiveSupport 6.1 reopens stdlib Logger without requiring it; load it first

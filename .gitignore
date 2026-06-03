@@ -1,4 +1,5 @@
 spec/examples.txt
+coverage/
 config/pay_pal_credentials.yml
 
 .windsurfrules

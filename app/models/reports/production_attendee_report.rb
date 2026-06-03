@@ -60,7 +60,7 @@ class ProductionAttendeeReport < OrderReport
       end
     end
 
-    filename = "#{production.name}-attendees-#{self.reporting_user_id}.csv"
+    filename = "#{Admin::ReportsHelper.safe_title(production.name)}-attendees-#{self.reporting_user_id}.csv"
     return self.report_data(self.report_filename(filename))
   end
 

@@ -35,6 +35,14 @@ RSpec.describe Report, type: :model do
       File.delete(path) if File.exist?(path)
     end
 
+    it 'falls back to tmpdir when the supplied directory does not exist' do
+      path = filename_for('/nonexistent/path/report.csv')
+      expect(File.dirname(path)).to eq(Dir.tmpdir)
+      expect(File.basename(path)).to eq('nonexistent-path-report.csv')
+      expect { File.write(path, 'ok') }.not_to raise_error
+      File.delete(path) if File.exist?(path)
+    end
+
     it 'honors an explicitly supplied directory that exists' do
       path = filename_for(File.join(Dir.tmpdir, 'audience-cohort.csv'))
       expect(File.dirname(path)).to eq(Dir.tmpdir)
