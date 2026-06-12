@@ -31,7 +31,7 @@ class OrderDecorator < ApplicationDecorator
       else
         h.raw("<span class=\"label alert\">#{object.membership.status}</span>")
       end
-    else  
+    else
       h.raw("<span class=\"label #{order_status_severity_class}\">#{order.status}</span>")
     end
   end
@@ -59,6 +59,7 @@ class OrderDecorator < ApplicationDecorator
   end
 
   private
+
   def order_status_severity_class
     case object.status
     when Order::FULFILLED
@@ -75,7 +76,4 @@ class OrderDecorator < ApplicationDecorator
       "secondary"
     end
   end
-
-
 end
-

@@ -1,5 +1,4 @@
 class SpecialFeatureDatatable < DatatableBase
-  
   def view_columns
     # Declare strings in this format: ModelName.column_name
     # or in aliased_join_table.column_name format
@@ -20,7 +19,7 @@ class SpecialFeatureDatatable < DatatableBase
         status: record.decorate.status,
         actions: record.decorate.dt_actions,
         DT_RowID: record.id,
-     }
+      }
     end
   end
 
@@ -36,11 +35,8 @@ class SpecialFeatureDatatable < DatatableBase
   # def filter_records(records)
   # end
 
-
   # def paginate_records(records)
   # end
 
   # ==== Insert 'presenter'-like methods below if necessary
-
-
 end

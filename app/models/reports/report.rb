@@ -1,9 +1,8 @@
 require 'csv'
 
 class Report
-
   include NotifyOnCompletion
-  
+
   attr_accessor :headers
   attr_accessor :data
   attr_reader :reporting_user_id
@@ -18,7 +17,7 @@ class Report
     Admin::ReportsHelper.tidy_output(f)
   end
 
-  def save_report_to_filestore(file_name, notes='Report')
+  def save_report_to_filestore(file_name, notes = 'Report')
     # now, output the various production reports
     # @todo refactor for new delf.data format.
     file_store = FileStore.new
@@ -28,30 +27,32 @@ class Report
     self.save_report_as_csv(file_name, file_store)
   end
 
-  def save_report_as_csv(file_path, filestore=nil)
+  def save_report_as_csv(file_path, filestore = nil)
     csv_string = CSV.generate do |csv|
       csv << self.headers
       if self.data.is_a? Hash
-        self.data.each { |key, rows| rows.each { |row|
-          csv << headers.map { |h| 
-            h == :Segment ? key : Report.tidy_output(row[h]) } unless row.nil? 
-        }
-
-      } else # if simple array, then dump array into csv
-          self.data.each { |row|
-            csv << headers.map { |h| Report.tidy_output(row[h]) }
+        self.data.each { |key, rows|
+          rows.each { |row|
+            csv << headers.map { |h|
+              h == :Segment ? key : Report.tidy_output(row[h])
+            } unless row.nil?
           }
+        } else # if simple array, then dump array into csv
+            self.data.each { |row|
+              csv << headers.map { |h| Report.tidy_output(row[h]) }
+            }
       end
     end
     self.write_file_data(file_path, filestore, csv_string)
   end
 
   def write_file_data(file_path, filestore, data)
-    f = File.new(file_path,'w')
+    f = File.new(file_path, 'w')
     f.puts(data)
     f.close
     unless filestore.nil?
-      filestore.datafile.attach(io: File.open(file_path), filename: File.basename(file_path), content_type: "text/plain")
+      filestore.datafile.attach(io: File.open(file_path), filename: File.basename(file_path),
+                                content_type: "text/plain")
       filestore.worker = FileStore::REPORT
       filestore.save
       File.delete(file_path)
@@ -62,11 +63,9 @@ class Report
     end
   end
 
-  
   protected
-  
-  def report_filename(filename)
 
+  def report_filename(filename)
     dir_name = File.dirname(filename)
     extension = File.extname(filename)
     extension = ".csv" if extension.blank?
@@ -89,15 +88,13 @@ class Report
     full_path = File.join(dir_name, sanitized_filename)
 
     return full_path.to_s
-
   end
 
   def report_data(file_name = nil)
     unless reporting_user_id.nil?
       self.save_report_to_filestore(file_name)
     else
-      return [self.headers,self.data]
+      return [self.headers, self.data]
     end
   end
-
 end

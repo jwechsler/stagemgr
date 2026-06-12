@@ -1,5 +1,4 @@
 class Admin::ApplicationController < ApplicationController
-
   rescue_from CanCan::AccessDenied do |exception|
     if current_user.nil?
       # User session has expired, redirect to the login page
@@ -24,38 +23,37 @@ class Admin::ApplicationController < ApplicationController
     if self.current_user.nil?
       raise CanCan::AccessDenied
     end
+
     self.current_user.ability
   end
 
-
   def find_context
     @context, @rest_path =
-    case
-    when (self.class == Admin::TheatersController) && params[:id]
-      [Theater.find(params[:id])].map{|m| [m , [:admin, m]]}.first
-    when (self.class == Admin::ProductionsController) && params[:id]
-      [Production.find(params[:id])].map{|m| [m , [:admin, m.theater, m]]}.first
-    when params[:ticket_class_id]
-      [TicketClass.find(params[:ticket_class_id])].map{|m| [m , [:admin, m.theater, m.production, m]]}.first
-    when params[:performance_id]
-      [Performance.find(params[:performance_id])].map{|m| [m , [:admin, m.theater, m.production, m]]}.first
-    when params[:production_id]
-      [Production.find(params[:production_id])].map{|m| [m , [:admin, m.theater, m]]}.first
-    when params[:theater_id]
-      [Theater.find(params[:theater_id])].map{|m| [m , [:admin, m]]}.first
-    else
-      nil
-    end
+      case
+      when (self.class == Admin::TheatersController) && params[:id]
+        [Theater.find(params[:id])].map { |m| [m, [:admin, m]] }.first
+      when (self.class == Admin::ProductionsController) && params[:id]
+        [Production.find(params[:id])].map { |m| [m, [:admin, m.theater, m]] }.first
+      when params[:ticket_class_id]
+        [TicketClass.find(params[:ticket_class_id])].map { |m| [m, [:admin, m.theater, m.production, m]] }.first
+      when params[:performance_id]
+        [Performance.find(params[:performance_id])].map { |m| [m, [:admin, m.theater, m.production, m]] }.first
+      when params[:production_id]
+        [Production.find(params[:production_id])].map { |m| [m, [:admin, m.theater, m]] }.first
+      when params[:theater_id]
+        [Theater.find(params[:theater_id])].map { |m| [m, [:admin, m]] }.first
+      else
+        nil
+      end
     raise ActiveRecord::RecordNotFound if @context.nil?
   end
 
   private
+
   def prepare_exception_notifier
     request.env["exception_notifier.exception_data"] = {
       user_id: current_user&.id,
       user_email: current_user&.email
     }
   end
-
-
 end

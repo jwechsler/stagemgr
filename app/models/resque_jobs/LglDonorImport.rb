@@ -1,7 +1,7 @@
 require 'csv'
 ###
 #
-# LglDonorImport: loads in an export file from Little Green Light (or other donor system), 
+# LglDonorImport: loads in an export file from Little Green Light (or other donor system),
 # with the following fields:
 #
 #   'External constituent ID': Stagemgr ID (optional, for quick matching)
@@ -16,14 +16,12 @@ require 'csv'
 # management report in pulling current donor information
 
 class LglDonorImport < ImportIssuesReport
-
   LGL_DONOR_FIELDS = ['External Constituent Id', 'First Name', 'Last Name', 'Pref. Email', 'TG Tier Last Fiscal',
                       'TG Tier This Fiscal']
   @queue = :import
 
   # find address from import_row
   def self.find_address_from_import_row
-
   end
 
   def self.perform(filestore_id)
@@ -52,14 +50,14 @@ class LglDonorImport < ImportIssuesReport
     CSV.foreach(filestore.path) do |row|
       if headers.nil? then
         _index = 0
-        headers = Hash[row.map {|header| _index += 1; [header, _index]}]
+        headers = Hash[row.map { |header| _index += 1; [header, _index] }]
         problems = ImportIssuesReport.new(LGL_DONOR_FIELDS, filestore.user.id)
         address_id_idx = headers['External constituent ID']
         first_name_idx = headers['First Name'] - 1
         last_name_idx = headers['Last Name'] - 1
         email_idx = headers['Pref. Email'] - 1
         last_fiscal_tier_idx = headers['TG Tier Last Fiscal'] - 1
-        current_fiscal_tier_idx =  headers['TG Tier This Fiscal'] - 1
+        current_fiscal_tier_idx = headers['TG Tier This Fiscal'] - 1
       else
         total += 1
         row_message = nil
@@ -74,7 +72,6 @@ class LglDonorImport < ImportIssuesReport
               begin
                 a = Address.find_by_email(row[email_idx]) if !row[email_idx].blank?
               rescue ActiveRecord::RecordNotFound
-
               end
             end
             puts "Found record #{a.id}" unless a.nil?
@@ -83,7 +80,7 @@ class LglDonorImport < ImportIssuesReport
             a.first_name = row[first_name_idx]
             a.last_name = row[last_name_idx]
             a.full_name = a.first_name unless a.first_name.blank?
-            a.full_name += a.full_name.blank? ?  a.last_name : " #{a.last_name}"  unless a.last_name.blank?
+            a.full_name += a.full_name.blank? ? a.last_name : " #{a.last_name}" unless a.last_name.blank?
             a.email = row[email_idx] if a.email.blank?
             a.donor_tier_for_last_fiscal_year = last_fiscal_tier
             a.donor_tier_for_current_fiscal_year = current_fiscal_tier
@@ -114,7 +111,7 @@ class LglDonorImport < ImportIssuesReport
           Rails.logger.error e.message
           row_message = ImportIssuesReport.format_exception(e)
         end
-        data = headers.keys.map {|key| row[headers[key]]}
+        data = headers.keys.map { |key| row[headers[key]] }
         problems.add_problem_row(row: data, message: row_message)
       end
     end

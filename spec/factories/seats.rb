@@ -5,6 +5,5 @@ FactoryBot.define do
 
     sequence(:seat_number) { |n| n }
     sequence(:location) { |n| "AA#{n}" }
-
   end
 end

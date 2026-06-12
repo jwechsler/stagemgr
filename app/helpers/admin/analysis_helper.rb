@@ -10,8 +10,10 @@ module Admin::AnalysisHelper
   # Returns the longest common leading substring shared by all strings in the array.
   def common_prefix_of(strings)
     return '' if strings.empty?
+
     strs = strings.map(&:to_s)
     return strs.first if strs.size == 1
+
     sorted_first = strs.min
     sorted_last  = strs.max
     i = 0
@@ -23,6 +25,7 @@ module Admin::AnalysisHelper
   def bucket_subtitle(bucket)
     return 'Comp'       if bucket.bucket_type == :comp
     return 'No Revenue' if bucket.bucket_type == :zero_rev
+
     prefix = common_prefix_of(bucket.class_codes).sub(/\d+$/, '')
     if prefix.length >= 1
       prefix
@@ -78,14 +81,15 @@ module Admin::AnalysisHelper
     paid_ladders = paid_buckets.map(&:ladder_distribution)
 
     {
-      capacity: { labels: cap_labels,  values: cap_values,  colors: cap_colors,  ladders: cap_ladders },
-      paid:     { labels: paid_labels, values: paid_values, colors: paid_colors, ladders: paid_ladders }
+      capacity: { labels: cap_labels, values: cap_values, colors: cap_colors, ladders: cap_ladders },
+      paid: { labels: paid_labels, values: paid_values, colors: paid_colors, ladders: paid_ladders }
     }
   end
 
   def bucket_label(bucket)
     flag = bucket.allocation_cap_hit ? " \u2691" : ''
     return "#{bucket.name}#{flag}" if [:comp, :zero_rev].include?(bucket.bucket_type)
+
     price_dollar = bucket.avg_paid_price.round
     prefix = bucket.bucket_type == :dynamic ? "\u21C5 " : ''
     suffix = bucket.bucket_type == :dynamic ? ' avg' : ''
@@ -98,25 +102,25 @@ module Admin::AnalysisHelper
   # has no entry here — the view passes the prior production's name via the
   # display_label: kwarg below.
   COHORT_UI_LABELS = {
-    "cohort"                   => "Selected production attendees",
-    "returning_any"            => "Returning attendees (any production)",
+    "cohort" => "Selected production attendees",
+    "returning_any" => "Returning attendees (any production)",
     "first_time_vs_comparison" => "First Time visitors (comparison group)",
-    "returning_vs_comparison"  => "Returning visitors (comparison group)",
-    "dedicated_customers"      => "Dedicated customers",
-    "two_plus_in_comparison"   => "2+ visits in comparison",
-    "first_time_vs_building"   => "First Time visitors (facility)",
-    "returning_vs_building"    => "Returning visitors (facility)",
-    "three_plus_in_building"   => "3+ visits in building"
+    "returning_vs_comparison" => "Returning visitors (comparison group)",
+    "dedicated_customers" => "Dedicated customers",
+    "two_plus_in_comparison" => "2+ visits in comparison",
+    "first_time_vs_building" => "First Time visitors (facility)",
+    "returning_vs_building" => "Returning visitors (facility)",
+    "three_plus_in_building" => "3+ visits in building"
   }.freeze
 
   # Natural-language window phrases used in the confirmation prompt.
   COHORT_WINDOW_PHRASES = {
     "3 months" => "last 3 months",
     "6 months" => "last 6 months",
-    "1 year"   => "last year",
-    "3 years"  => "last 3 years",
-    "5 years"  => "last 5 years",
-    "Ever"     => "ever"
+    "1 year" => "last year",
+    "3 years" => "last 3 years",
+    "5 years" => "last 5 years",
+    "Ever" => "ever"
   }.freeze
 
   # Renders a count value as a clickable export trigger when non-zero. Posts
@@ -144,6 +148,7 @@ module Admin::AnalysisHelper
     if facility_scope && !current_user.is_administrator?
       return n.to_s
     end
+
     button_to(
       n.to_s,
       audience_export_admin_analysis_index_path,

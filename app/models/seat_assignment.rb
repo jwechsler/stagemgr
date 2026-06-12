@@ -1,5 +1,4 @@
 class SeatAssignment < ApplicationRecord
-
   before_destroy :verify_unused
 
   belongs_to :order, foreign_key: :order_uuid, primary_key: :uuid, optional: true, inverse_of: :seats
@@ -10,9 +9,9 @@ class SeatAssignment < ApplicationRecord
 
   SEAT_STATUSES = (
   AVAILABLE, ASSIGNED, TEMPORARY, RELEASING, BROKEN =
-      "Available", "Assigned", "Held", "Releasing", "N/A")
+    "Available", "Assigned", "Held", "Releasing", "N/A")
 
-  def available?(check_order_uuid=nil)
+  def available?(check_order_uuid = nil)
     a = status.eql?(AVAILABLE)
     a ||= assigned?(check_order_uuid) unless check_order_uuid.nil?
     a
@@ -31,7 +30,7 @@ class SeatAssignment < ApplicationRecord
     status.eql?(RELEASING) && assigned?(check_order_uuid)
   end
 
-  def self.available_seat_assignments(performance, order=nil)
+  def self.available_seat_assignments(performance, order = nil)
     if performance.seat_assignments.empty? and performance.production.has_reserved_seating? then
       performance.seat_assignments << performance.production.seat_map.create_inventory_for_performance(performance)
     end
@@ -40,20 +39,22 @@ class SeatAssignment < ApplicationRecord
 
   def self.seating_as_list(order_uuid, assignment_types)
     SeatAssignment.includes(:seat).where("status in (:assignment_types) and order_uuid = :order_uuid",
-      order_uuid: order_uuid,
-      assignment_types: assignment_types).all.map {|sa| sa.seat.location}.sort.join(", ")
+                                         order_uuid: order_uuid,
+                                         assignment_types: assignment_types).all.map { |sa| sa.seat.location }.sort.join(", ")
   end
 
   # Proxy for seat location
   #
   def location
-
   end
 
-  def assign_to_order(order_uuid, limit_seats = 999, ticket_class_id = nil, accessibility=nil)
-    number_assigned = SeatAssignment.where(status: [SeatAssignment::TEMPORARY, SeatAssignment::ASSIGNED], order_uuid:order_uuid).size
+  def assign_to_order(order_uuid, limit_seats = 999, ticket_class_id = nil, accessibility = nil)
+    number_assigned = SeatAssignment.where(status: [SeatAssignment::TEMPORARY, SeatAssignment::ASSIGNED],
+                                           order_uuid: order_uuid).size
     unless number_assigned >= limit_seats
-      SeatAssignment.where("id = :id and (order_uuid is null or order_uuid = '' or order_uuid = :order_uuid)",id:self.id, order_uuid: order_uuid).update_all(order_uuid: order_uuid, ticket_class_id: ticket_class_id, updated_at: Time.now, status: SeatAssignment::TEMPORARY, accessibility:accessibility)
+      SeatAssignment.where("id = :id and (order_uuid is null or order_uuid = '' or order_uuid = :order_uuid)", id: self.id, order_uuid: order_uuid).update_all(
+        order_uuid: order_uuid, ticket_class_id: ticket_class_id, updated_at: Time.now, status: SeatAssignment::TEMPORARY, accessibility: accessibility
+      )
       self.reload
     end
     (self.order_uuid == order_uuid)
@@ -68,9 +69,11 @@ class SeatAssignment < ApplicationRecord
     o = Order.find_by(uuid: order_uuid)
     if SeatAssignment.current_seat_assignments(o.uuid).count.eql?(o.number_of_tickets)
       SeatAssignment.transaction do
-        SeatAssignment.where(order_uuid: order_uuid, status: SeatAssignment::TEMPORARY).update_all(status: SeatAssignment::ASSIGNED, updated_at: Time.now)
+        SeatAssignment.where(order_uuid: order_uuid, status: SeatAssignment::TEMPORARY).update_all(
+          status: SeatAssignment::ASSIGNED, updated_at: Time.now
+        )
         SeatAssignment.where(order_uuid: order_uuid, status: SeatAssignment::RELEASING).update_all(status: SeatAssignment::AVAILABLE, order_uuid: nil,
-          accessibility:nil, updated_at: Time.now)
+                                                                                                   accessibility: nil, updated_at: Time.now)
       end
       return "success"
     else
@@ -81,15 +84,21 @@ class SeatAssignment < ApplicationRecord
 
   def self.reseating_rollback(order_uuid)
     SeatAssignment.transaction do
-      SeatAssignment.where(order_uuid: order_uuid, status: SeatAssignment::RELEASING).update_all(status: SeatAssignment::ASSIGNED, updated_at: Time.now)
-      SeatAssignment.where(order_uuid: order_uuid, status: SeatAssignment::TEMPORARY).update_all(status: SeatAssignment::AVAILABLE, order_uuid: nil,  updated_at: Time.now, accessibility:nil)
+      SeatAssignment.where(order_uuid: order_uuid, status: SeatAssignment::RELEASING).update_all(
+        status: SeatAssignment::ASSIGNED, updated_at: Time.now
+      )
+      SeatAssignment.where(order_uuid: order_uuid, status: SeatAssignment::TEMPORARY).update_all(
+        status: SeatAssignment::AVAILABLE, order_uuid: nil, updated_at: Time.now, accessibility: nil
+      )
     end
   end
 
   def self.assign_seats_to_saved_order(order_uuid)
     order = Order.find_by(uuid: order_uuid)
     unless order.nil?
-      SeatAssignment.where('order_uuid = :order_uuid and status = :temp_status', order_uuid: order_uuid, temp_status: SeatAssignment::TEMPORARY).update_all(status: ASSIGNED, updated_at: Time.now, order_id: order.id)
+      SeatAssignment.where('order_uuid = :order_uuid and status = :temp_status', order_uuid: order_uuid, temp_status: SeatAssignment::TEMPORARY).update_all(
+        status: ASSIGNED, updated_at: Time.now, order_id: order.id
+      )
     end
   end
 
@@ -137,13 +146,13 @@ class SeatAssignment < ApplicationRecord
   def self.current_seat_assignments(order_uuid, exclude_sa_id = nil)
     if exclude_sa_id.nil?
       SeatAssignment.where("status in (:assigned_statuses) and order_uuid = :uuid",
-        assigned_statuses: [SeatAssignment::ASSIGNED, SeatAssignment::TEMPORARY],
-        uuid: order_uuid)
+                           assigned_statuses: [SeatAssignment::ASSIGNED, SeatAssignment::TEMPORARY],
+                           uuid: order_uuid)
     else
       SeatAssignment.where("status in (:assigned_statuses) and order_uuid = :uuid and id <> :sa_id",
-        assigned_statuses: [SeatAssignment::ASSIGNED, SeatAssignment::TEMPORARY],
-        uuid: order_uuid,
-        sa_id: exclude_sa_id)
+                           assigned_statuses: [SeatAssignment::ASSIGNED, SeatAssignment::TEMPORARY],
+                           uuid: order_uuid,
+                           sa_id: exclude_sa_id)
     end
   end
 
@@ -166,5 +175,4 @@ class SeatAssignment < ApplicationRecord
   def verify_unused
     return (order_uuid.blank?)
   end
-
 end

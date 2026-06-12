@@ -7,5 +7,4 @@ class GenerateSeatingThumbnails
     perfs_with_seating.each { |perf| perf.generate_seating_thumbnail }
     nil
   end
-
 end

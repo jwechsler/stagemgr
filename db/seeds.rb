@@ -13,17 +13,18 @@ user.is_box_office_user = false
 user.password           = 'changeme'
 user.save!
 
-theater     = Theater.create!({
-  :name                      =>'Theater 1',
-  :theater_class             =>Theater::THEATER_CLASSES.first,
-  :status                    =>Theater::THEATER_STATUSES.first})
+theater = Theater.create!({
+                            :name => 'Theater 1',
+                            :theater_class => Theater::THEATER_CLASSES.first,
+                            :status => Theater::THEATER_STATUSES.first
+                          })
 
-venue       = Venue.create!({
-  :name                      =>'Venue 1',
-  :ordinal_sort              => 1
-})
+venue = Venue.create!({
+                        :name => 'Venue 1',
+                        :ordinal_sort => 1
+                      })
 
-CashPaymentType.create(display_name:'Cash', allow_for_public: false, allow_for_box_office: true)
-CreditCardPaymentType.create(display_name:'Credit Card', allow_for_public: true, allow_for_box_office: true)
-MembershipPaymentType.create(display_name:'Membership', allow_for_public: true, allow_for_box_office: true)
-FlexPassPaymentType.create(display_name:'FlexPass', allow_for_public: true, allow_for_box_office: true)
+CashPaymentType.create(display_name: 'Cash', allow_for_public: false, allow_for_box_office: true)
+CreditCardPaymentType.create(display_name: 'Credit Card', allow_for_public: true, allow_for_box_office: true)
+MembershipPaymentType.create(display_name: 'Membership', allow_for_public: true, allow_for_box_office: true)
+FlexPassPaymentType.create(display_name: 'FlexPass', allow_for_public: true, allow_for_box_office: true)

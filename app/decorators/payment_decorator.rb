@@ -17,7 +17,7 @@ class PaymentDecorator < ApplicationDecorator
   def payment_info
     object.payment_info
   end
-  
+
   def confirmation_code
     object.confirmation_code
   end
@@ -26,9 +26,9 @@ class PaymentDecorator < ApplicationDecorator
     if PaymentProcessing.external_type(object.transaction_id).eql?('unknown') then
       "#{object.note}"
     else
-      link = link_to PaymentProcessing.external_type(object.transaction_id), PaymentProcessing.external_url(object.transaction_id)
+      link = link_to PaymentProcessing.external_type(object.transaction_id),
+                     PaymentProcessing.external_url(object.transaction_id)
       "#{object.note} for #{link}".html_safe
     end
   end
-
 end

@@ -2,7 +2,7 @@ require 'rails_helper'
 require 'stripe_mock'
 
 RSpec.shared_examples "a paid ticket order" do |pay_method_type, seating_type|
-  let(:pay_method) { pay_method_type}
+  let(:pay_method) { pay_method_type }
   let(:seating) { seating_type }
   let(:stripe_helper) { StripeMock.create_test_helper }
   before { StripeMock.start }
@@ -17,19 +17,18 @@ RSpec.shared_examples "a paid ticket order" do |pay_method_type, seating_type|
     end
   end
 
-  it "should mark its holder has having attended the production when fulfilled" do    
+  it "should mark its holder has having attended the production when fulfilled" do
     o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, pay_method, seating)
     # There is something weird about the setup for membership ticket facotries that screws up this test.
-      expect(o.production.addresses.size).to eq(0)
-      
-      expect(o.address.productions.size).to eq(0)
-      total_records = ActiveRecord::Base.connection.execute("SELECT COUNT(*) FROM addresses_productions").first[0]
-      o.transition_to!(Order::FULFILLED)
-      o.production.reload
-      o.address.reload
-      expect(o.address.productions.size).to eq(1)
-      expect(o.production.addresses.size).to eq(1)
-    
+    expect(o.production.addresses.size).to eq(0)
+
+    expect(o.address.productions.size).to eq(0)
+    total_records = ActiveRecord::Base.connection.execute("SELECT COUNT(*) FROM addresses_productions").first[0]
+    o.transition_to!(Order::FULFILLED)
+    o.production.reload
+    o.address.reload
+    expect(o.address.productions.size).to eq(1)
+    expect(o.production.addresses.size).to eq(1)
   end
   it "should unmark the holder has having attended when refunded" do
     o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, pay_method, seating)
@@ -62,23 +61,21 @@ RSpec.shared_examples "a paid ticket order" do |pay_method_type, seating_type|
       expect(split_order2.status).to eq(original_status)
       expect(original_order.number_of_seats).to eq(0)
       expect(split_order1.number_of_seats).to eq(1)
-      expect(split_order2.number_of_seats).to eq(original_seats-1)
+      expect(split_order2.number_of_seats).to eq(original_seats - 1)
       expect(split_order1.payments.size).to be >= 1
       expect(split_order2.payments.size).to be >= 1
       expect(original_order.ticket_line_items.size).to eq(3)
-      
-      
+
       expect(original_order.total_paid).to eq(0)
       expect(original_order.customer_visible_total).to eq(0.0)
-      expect(split_order1.total_paid).to eq(original_total/2.0)
-      expect(split_order2.total_paid).to eq(original_total/2.0)
+      expect(split_order1.total_paid).to eq(original_total / 2.0)
+      expect(split_order2.total_paid).to eq(original_total / 2.0)
       expect(split_order1.split_source_id).to eq(original_order.id)
       expect(split_order2.split_source_id).to eq(original_order.id)
       expect(split_order1.split_source.id).to eq(original_order.id)
       expect(split_order2.split_source.id).to eq(original_order.id)
     end
   end
-
 end
 
 RSpec.describe TicketOrder do
@@ -97,12 +94,12 @@ RSpec.describe TicketOrder do
 
   it "ensures that membership quotas/production are honored" do
     address = FactoryBot.create(:address)
-    membership_offer = FactoryBot.create(:membership_offer,tickets_per_performance: 1)
+    membership_offer = FactoryBot.create(:membership_offer, tickets_per_performance: 1)
     membership = FactoryBot.create(:membership, address: address, membership_offer: membership_offer)
     expect(membership.membership_offer.tickets_per_performance).to eq(1)
     o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, address: address, member_code: membership.member_code)
     o.payment_type = FactoryBot.create(:membership_payment_type)
-    expect{o.transition_to!(Order::FULFILLED)}.to raise_error(Exceptions::TooManyTicketsForMembership)
+    expect { o.transition_to!(Order::FULFILLED) }.to raise_error(Exceptions::TooManyTicketsForMembership)
   end
 
   it "should preserve the attendance when cancelling one of multiple reservations" do
@@ -110,7 +107,7 @@ RSpec.describe TicketOrder do
     a = o.address
     o.transition_to!(Order::FULFILLED)
     expect(o.performance.production.addresses.count).to eq(1)
-    o2 = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash, :performance=>o.performance)
+    o2 = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash, :performance => o.performance)
     o2.address = a
     o2.save!
     o2.transition_to!(Order::FULFILLED)
@@ -145,8 +142,8 @@ RSpec.describe TicketOrder do
   it "can prevent receipt emails from being generated for ticket classes that disallow receipts" do
     start_count = OutreachTask.where(method_symbol: :ticket_confirmation).count
     o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
-    expect(OutreachTask.where(method_symbol: :ticket_confirmation).count).to eq(start_count+1)
-    o.ticket_line_items.first.ticket_class.suppress_receipt=true
+    expect(OutreachTask.where(method_symbol: :ticket_confirmation).count).to eq(start_count + 1)
+    o.ticket_line_items.first.ticket_class.suppress_receipt = true
     o.ticket_line_items.first.ticket_class.save!
     o2 = o.dup
     o2.status = Order::NEW
@@ -155,10 +152,8 @@ RSpec.describe TicketOrder do
     o2.uuid = SecureRandom.uuid
     o2.save!
     o2.transition_to!(Order::PROCESSED)
-    expect(OutreachTask.where(method_symbol: :ticket_confirmation).count).to eq(start_count+1)
-
+    expect(OutreachTask.where(method_symbol: :ticket_confirmation).count).to eq(start_count + 1)
   end
-
 
   it "can create up to two additional donation orders" do
     o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets)
@@ -177,73 +172,73 @@ RSpec.describe TicketOrder do
     expect(donation_orders[0].theater).to eq(Theater.first)
   end
 
-
   context "when overselling" do
-
     it "cannot processes if it would oversell a particular ticket class" do
-      production = FactoryBot.create(:production, :capacity=>4)
-      performance = FactoryBot.create(:performance, :production=>production)
+      production = FactoryBot.create(:production, :capacity => 4)
+      performance = FactoryBot.create(:performance, :production => production)
       expect(performance.number_of_seats_left).to eq(4)
-      o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash, :performance=>performance)
-      o2 = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash, :performance=>performance)
+      o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash, :performance => performance)
+      o2 = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash, :performance => performance)
       expect(performance.number_of_seats_left).to eq(0)
 
-      expect{ order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :performance=>performance )
-                  order.transition_to!(Order::PROCESSING)
-                  order.errors.each do |error|
-                    puts "#{error.message}, #{error.attribute.to_yaml}" 
-                  end
-            }.to raise_error(ActiveRecord::RecordInvalid)
+      expect {
+        order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :performance => performance)
+        order.transition_to!(Order::PROCESSING)
+        order.errors.each do |error|
+          puts "#{error.message}, #{error.attribute.to_yaml}"
+        end
+      }.to raise_error(ActiveRecord::RecordInvalid)
     end
 
     it "cannot processes if it would oversell a performance" do
-      production = FactoryBot.create(:production, :capacity=>2)
-      tc_1 = FactoryBot.create(:ticket_class, :production=>production, :class_code=>'CODEA')
-      tc_2 = FactoryBot.create(:ticket_class, :production=>production, :class_code=>'CODEB')
-      tc_3 = FactoryBot.create(:ticket_class, :production=>production, :class_code=>'CODEC')
+      production = FactoryBot.create(:production, :capacity => 2)
+      tc_1 = FactoryBot.create(:ticket_class, :production => production, :class_code => 'CODEA')
+      tc_2 = FactoryBot.create(:ticket_class, :production => production, :class_code => 'CODEB')
+      tc_3 = FactoryBot.create(:ticket_class, :production => production, :class_code => 'CODEC')
       production.reload
-      performance = FactoryBot.create(:performance, :production=>production)
+      performance = FactoryBot.create(:performance, :production => production)
 
       expect(performance.number_of_seats_left).to eq(2)
       expect(tc_1.number_left(performance)).to eq(2)
       expect(tc_2.number_left(performance)).to eq(2)
       expect(tc_3.number_left(performance)).to eq(2)
 
-      o  = FactoryBot.create(:ticket_order, :performance=>performance)
+      o = FactoryBot.create(:ticket_order, :performance => performance)
       o.ticket_line_items << FactoryBot.build(
-                                  :ticket_line_item,
-                                  :ticket_class=>tc_1,
-                                  :ticket_count=>1,
-                                  :order=>o)
+        :ticket_line_item,
+        :ticket_class => tc_1,
+        :ticket_count => 1,
+        :order => o
+      )
       expect(tc_1.number_left(performance)).to eq(1)
       expect(tc_2.number_left(performance)).to eq(1)
       expect(tc_2.number_left(performance)).to eq(1)
 
       o.ticket_line_items << FactoryBot.build(
-                                  :ticket_line_item,
-                                  :ticket_class=>tc_2,
-                                  :ticket_count=>2,
-                                  :order=>o)
+        :ticket_line_item,
+        :ticket_class => tc_2,
+        :ticket_count => 2,
+        :order => o
+      )
       expect(tc_1.number_left(performance)).to eq(-1)
       expect(tc_2.number_left(performance)).to eq(-1)
       expect(tc_2.number_left(performance)).to eq(-1)
 
-      #o.ticket_line_items << FactoryBot.create(
+      # o.ticket_line_items << FactoryBot.create(
       #                            :ticket_line_item,
       #                            :ticket_class=>tc_3,
       #                            :ticket_count=>1,
       #                            :order=>o)
       expect(o.number_of_seats).to eq(3)
 
-
-      expect{ o.transition_to!(Order::PROCESSING) }.to raise_error(ActiveRecord::RecordInvalid)
+      expect { o.transition_to!(Order::PROCESSING) }.to raise_error(ActiveRecord::RecordInvalid)
     end
 
     it "can mark an order in a sold-out performance as unclaimed" do
-      production = FactoryBot.create(:production, :capacity=>4)
-      performance = FactoryBot.create(:performance, :production=>production)
-      o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash, :performance=>performance)
-      o2 = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash, :performance=>performance)
+      production = FactoryBot.create(:production, :capacity => 4)
+      performance = FactoryBot.create(:performance, :production => production)
+      o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash, :performance => performance)
+      o2 = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash, :performance => performance)
       o.transition_to!(Order::FULFILLED)
       o2.transition_to!(Order::FULFILLED)
       expect(performance.number_of_seats_left).to eq(0)
@@ -256,18 +251,17 @@ RSpec.describe TicketOrder do
       task_count = o.tasks.count
       expect(task_count).to be > 0
       payment_type = o.payment_type
-      payment_type.order_task_suppressions << FactoryBot.create(:order_task_suppression, task_type:o.tasks.first.type, method_name:o.tasks.first.method_symbol)
+      payment_type.order_task_suppressions << FactoryBot.create(:order_task_suppression, task_type: o.tasks.first.type,
+                                                                                         method_name: o.tasks.first.method_symbol)
       payment_type.save
       o2 = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
       expect(o2.tasks.count).to eq(task_count)
       t = o2.tasks.first
       t.run!
       expect(t.status).to eq('Cancelled')
-
     end
 
     it "can be held under a different name but not under an email" do
-
       o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
       o.hold_under = "Another Name"
       expect(o.save).to equal(true)
@@ -275,9 +269,7 @@ RSpec.describe TicketOrder do
       o.hold_under = 'bad@email.com'
       expect(o.save).to equal(false)
     end
-
   end
-
 
   context "to an event that is not a performance" do
     before(:each) do
@@ -294,28 +286,26 @@ RSpec.describe TicketOrder do
     end
 
     it "does not send an automatic followup" do
-      followups = @ticket_order.tasks.select{|t| t.method_symbol&.include?('followup')}
+      followups = @ticket_order.tasks.select { |t| t.method_symbol&.include?('followup') }
       expect(followups.count).to eq(0)
-
     end
-
   end
 
-  context "when exchanging"  do
-
+  context "when exchanging" do
     it "allows an exchange with an external payment to a performance that is cheaper" do
       ticket_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_external)
       original_price = ticket_order.total_paid
       performance2 = ticket_order.performance.dup
-      ticket_class = FactoryBot.create(:ticket_class, :ticket_price=>1.0,  class_code: 'EXCH', production:ticket_order.performance.production)
-      performance2.performance_date=ticket_order.performance.performance_date+1.day
+      ticket_class = FactoryBot.create(:ticket_class, :ticket_price => 1.0, class_code: 'EXCH',
+                                                      production: ticket_order.performance.production)
+      performance2.performance_date = ticket_order.performance.performance_date + 1.day
       performance2.performance_code += "A"
       performance2.save!
       performance2.reload
-      exchange_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, performance:performance2)
+      exchange_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, performance: performance2)
       exchange_order.ticket_line_items[0].ticket_class = ticket_class
       exchange_order.exchange_and_process_from!(ticket_order)
-      amt = exchange_order.payments.inject(0.0) {|sum, p| sum += p.is_a?(PriceOverridePayment) ? p.amount : 0.0}
+      amt = exchange_order.payments.inject(0.0) { |sum, p| sum += p.is_a?(PriceOverridePayment) ? p.amount : 0.0 }
       expect(amt).to eq(2.0 - original_price)
       expect(exchange_order.total_paid).to eq(2.0)
       expect(exchange_order.total_override_payments).to eq(-10.0)
@@ -367,10 +357,10 @@ RSpec.describe TicketOrder do
       original_order.ticket_line_items.destroy_all
       seats.each do |seat|
         original_order.ticket_line_items << FactoryBot.create(:ticket_line_item,
-          ticket_class: aggregated_tli.ticket_class,
-          ticket_count: 1,
-          order: original_order,
-          seat_assignment_id: seat.id)
+                                                              ticket_class: aggregated_tli.ticket_class,
+                                                              ticket_count: 1,
+                                                              order: original_order,
+                                                              seat_assignment_id: seat.id)
       end
       original_order.save!
       original_order.reload
@@ -416,10 +406,10 @@ RSpec.describe TicketOrder do
       original_order.ticket_line_items.destroy_all
       seats.each do |seat|
         original_order.ticket_line_items << FactoryBot.create(:ticket_line_item,
-          ticket_class: aggregated_tli.ticket_class,
-          ticket_count: 1,
-          order: original_order,
-          seat_assignment_id: seat.id)
+                                                              ticket_class: aggregated_tli.ticket_class,
+                                                              ticket_count: 1,
+                                                              order: original_order,
+                                                              seat_assignment_id: seat.id)
       end
       original_order.save!
       original_order.reload
@@ -445,7 +435,8 @@ RSpec.describe TicketOrder do
   end
 
   it "creates two orders that round down when they are not divisible" do
-    original_order = FactoryBot.create(:ticket_order, :with_wierd_special_offer, :for_three_tickets, :with_twenty_dollar_service_item, :paid_with_cash)      
+    original_order = FactoryBot.create(:ticket_order, :with_wierd_special_offer, :for_three_tickets,
+                                       :with_twenty_dollar_service_item, :paid_with_cash)
     original_total = original_order.total_paid
     expect(original_total).to eq(32.03)
     old_tli = original_order.flatten_ticket_line_items
@@ -456,14 +447,14 @@ RSpec.describe TicketOrder do
     result = original_order.split(new_tli)
     expect(result.size).to eq(2)
     split_order1, split_order2 = result
-    expect(split_order1.payments.size).to be >(0)
-    expect(split_order2.payments.size).to be >(0)
+    expect(split_order1.payments.size).to be > (0)
+    expect(split_order2.payments.size).to be > (0)
     expect(original_order.status).to eq(TicketOrder::SPLIT)
     expect(split_order1.status).to eq(original_status)
     expect(split_order2.status).to eq(original_status)
     expect(original_order.number_of_seats).to eq(0)
     expect(split_order1.number_of_seats).to eq(1)
-    expect(split_order2.number_of_seats).to eq(original_seats-1)
+    expect(split_order2.number_of_seats).to eq(original_seats - 1)
     expect(original_order.ticket_line_items.size).to eq(5)
     expect(original_order.total_paid).to eq(20.0)
     expect(split_order1.total_paid).to eq(4.01)
@@ -478,7 +469,8 @@ RSpec.describe TicketOrder do
   end
 
   it "creates two orders that manage an order with an uneven number of tickets and a service charge" do
-    original_order = FactoryBot.create(:ticket_order, :with_twenty_dollar_service_item, :for_three_tickets, :paid_with_cash)
+    original_order = FactoryBot.create(:ticket_order, :with_twenty_dollar_service_item, :for_three_tickets,
+                                       :paid_with_cash)
     original_total = original_order.total_paid
     old_tli = original_order.flatten_ticket_line_items
     new_tli = [old_tli[0]]
@@ -493,7 +485,7 @@ RSpec.describe TicketOrder do
     expect(split_order2.status).to eq(original_status)
     expect(original_order.number_of_seats).to eq(0)
     expect(split_order1.number_of_seats).to eq(1)
-    expect(split_order2.number_of_seats).to eq(original_seats-1)
+    expect(split_order2.number_of_seats).to eq(original_seats - 1)
     expect(original_order.ticket_line_items.size).to eq(5)
     expect(original_order.total_paid).to eq(20.01)
     expect(split_order1.total_paid).to eq(4.83)
@@ -504,12 +496,10 @@ RSpec.describe TicketOrder do
     expect(split_order2.split_source_id).to eq(original_order.id)
     expect(split_order1.split_source.id).to eq(original_order.id)
     expect(split_order2.split_source.id).to eq(original_order.id)
-
   end
 
   context "seat assignment validation" do
     context "for reserved seating orders" do
-
       it "allows NEW orders to be saved without complete seat assignments" do
         # Create order with NEW status
         order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :reserved_seating, status: Order::NEW)

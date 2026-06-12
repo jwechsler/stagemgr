@@ -27,7 +27,7 @@ class Admin::MembershipsController < ApplicationController
   def update
     @membership = Membership.find(params[:id])
     if @membership.update(membership_params)
-      redirect_to [:admin, @membership], :notice  => "Successfully updated membership."
+      redirect_to [:admin, @membership], :notice => "Successfully updated membership."
     else
       render :action => 'edit'
     end
@@ -44,5 +44,4 @@ class Admin::MembershipsController < ApplicationController
   def membership_params
     params.require(:membership).permit(:membership_offer_id, :member_since, :member_code, :status, :preferred_seating)
   end
-
 end

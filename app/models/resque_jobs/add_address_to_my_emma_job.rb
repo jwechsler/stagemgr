@@ -1,7 +1,6 @@
 class AddAddressToMyEmmaJob
   @queue = :sync
 
-
   def self.newsletter_id
     unless defined? @@newsletter_id
       group = MyEmma::Group.find_by_group_name("Newsletter")
@@ -10,7 +9,6 @@ class AddAddressToMyEmmaJob
   end
 
   def self.perform(address_id, production_id = nil, additional_groups = nil)
-
     production = Production.find(production_id) unless production_id.nil?
     address = Address.find(address_id)
 
@@ -19,7 +17,7 @@ class AddAddressToMyEmmaJob
       member = MyEmma::Member.find_by_email(address.email) || MyEmma::Member.new
 
       groups = [AddAddressToMyEmmaJob.newsletter_id]
-      additional_groups.each{|grp| groups << grp unless grp.blank?} unless additional_groups.nil?
+      additional_groups.each { |grp| groups << grp unless grp.blank? } unless additional_groups.nil?
       groups << production.use_myemma_attendee_group unless production.nil? || production.use_myemma_attendee_group.blank?
       member.name_first = address.first_name
       member.name_last = address.last_name
@@ -32,7 +30,5 @@ class AddAddressToMyEmmaJob
 
       result = member.save(groups)
     end
-
   end
-
 end

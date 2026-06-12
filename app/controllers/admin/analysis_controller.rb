@@ -14,7 +14,8 @@ class Admin::AnalysisController < Admin::ApplicationController
       @comparison_theaters = Theater.where(id: ids).order(:name).to_a
     end
     if params[:comparison_production_id].present?
-      @comparison_production = Production.accessible_by(current_ability, :read).find_by(id: params[:comparison_production_id])
+      @comparison_production = Production.accessible_by(current_ability,
+                                                        :read).find_by(id: params[:comparison_production_id])
     end
     @analysis_type = params[:analysis_type]
   end
@@ -25,19 +26,19 @@ class Admin::AnalysisController < Admin::ApplicationController
                            .where.not(status: Production::PRESALE)
 
     productions = base_scope
-                    .left_outer_joins(:theater)
-                    .where("LOWER(productions.name) LIKE :q OR CAST(productions.season AS CHAR) LIKE :q OR LOWER(productions.production_code) LIKE :q OR LOWER(theaters.name) LIKE :q",
-                           q: "%#{query.downcase}%")
-                    .includes(:theater)
-                    .order(season: :desc, name: :asc)
-                    .limit(20)
+                  .left_outer_joins(:theater)
+                  .where("LOWER(productions.name) LIKE :q OR CAST(productions.season AS CHAR) LIKE :q OR LOWER(productions.production_code) LIKE :q OR LOWER(theaters.name) LIKE :q",
+                         q: "%#{query.downcase}%")
+                  .includes(:theater)
+                  .order(season: :desc, name: :asc)
+                  .limit(20)
 
     results = []
 
     # Add season group entries for matching seasons
     matching_seasons = base_scope
-                         .where("CAST(productions.season AS CHAR) LIKE :q", q: "%#{query}%")
-                         .distinct.pluck(:season).sort.reverse
+                       .where("CAST(productions.season AS CHAR) LIKE :q", q: "%#{query}%")
+                       .distinct.pluck(:season).sort.reverse
     matching_seasons.each do |season|
       results << { group_key: "season:#{season}", label: "All shows in #{season}" }
     end
@@ -59,13 +60,15 @@ class Admin::AnalysisController < Admin::ApplicationController
     matching_tags.each do |tag|
       key = tag.name.to_s.downcase
       next if key.blank? || seen_tag_keys[key]
+
       seen_tag_keys[key] = true
       results << { group_key: "tag:#{tag.name}", label: "All shows tagged #{tag.name}" }
     end
 
     # Add individual production results
     productions.each do |p|
-      results << { id: p.id, label: "#{p.season} - #{p.name} (#{p.theater.name})", name: p.name, season: p.season, theater: p.theater.name, theater_id: p.theater_id }
+      results << { id: p.id, label: "#{p.season} - #{p.name} (#{p.theater.name})", name: p.name, season: p.season,
+                   theater: p.theater.name, theater_id: p.theater_id }
     end
 
     render json: results
@@ -94,7 +97,8 @@ class Admin::AnalysisController < Admin::ApplicationController
                   end
 
     render json: productions.map { |p|
-      { id: p.id, label: "#{p.season} - #{p.name} (#{p.theater.name})", name: p.name, season: p.season, theater: p.theater.name }
+      { id: p.id, label: "#{p.season} - #{p.name} (#{p.theater.name})", name: p.name, season: p.season,
+        theater: p.theater.name }
     }
   end
 
@@ -103,29 +107,29 @@ class Admin::AnalysisController < Admin::ApplicationController
     exclude_id = params[:exclude_id].to_i
 
     base_scope = Production.accessible_by(current_ability, :read)
-                            .where.not(status: Production::PRESALE)
+                           .where.not(status: Production::PRESALE)
 
     scope = base_scope
-              .left_outer_joins(:theater)
-              .where(
-                "LOWER(productions.name) LIKE :q OR CAST(productions.season AS CHAR) LIKE :q OR LOWER(theaters.name) LIKE :q",
-                q: "%#{query.downcase}%"
-              )
-              .includes(:theater)
-              .order(season: :desc, name: :asc)
-              .limit(20)
+            .left_outer_joins(:theater)
+            .where(
+              "LOWER(productions.name) LIKE :q OR CAST(productions.season AS CHAR) LIKE :q OR LOWER(theaters.name) LIKE :q",
+              q: "%#{query.downcase}%"
+            )
+            .includes(:theater)
+            .order(season: :desc, name: :asc)
+            .limit(20)
 
     scope = scope.where.not(id: exclude_id) if exclude_id > 0
 
     render json: scope.map { |p|
       {
-        id:         p.id,
-        label:      "#{p.season} - #{p.name} (#{p.theater.name})",
-        name:       p.name,
-        season:     p.season,
-        theater:    p.theater.name,
+        id: p.id,
+        label: "#{p.season} - #{p.name} (#{p.theater.name})",
+        name: p.name,
+        season: p.season,
+        theater: p.theater.name,
         theater_id: p.theater_id,
-        status:     p.status,
+        status: p.status,
         closing_at: p.closing_at
       }
     }
@@ -147,6 +151,7 @@ class Admin::AnalysisController < Admin::ApplicationController
 
     name_matches.order(:name).each do |t|
       next if seen_ids[t.id]
+
       seen_ids[t.id] = true
       results << { id: t.id, label: t.name, match_kind: 'name' }
     end
@@ -158,9 +163,11 @@ class Admin::AnalysisController < Admin::ApplicationController
     matching_tags.each do |tag|
       key = tag.name.to_s.downcase
       next if key.blank? || seen_tag_keys[key]
+
       seen_tag_keys[key] = true
       tag_theaters = Theater.tagged_with(tag.name).order(:name).pluck(:id, :name)
       next if tag_theaters.empty?
+
       results << {
         group_key: "tag:#{tag.name}",
         label: "All theaters tagged #{tag.name}",
@@ -170,6 +177,7 @@ class Admin::AnalysisController < Admin::ApplicationController
 
     tag_matches.order(:name).each do |t|
       next if seen_ids[t.id]
+
       seen_ids[t.id] = true
       results << { id: t.id, label: t.name, match_kind: 'tag' }
     end
@@ -201,7 +209,7 @@ class Admin::AnalysisController < Admin::ApplicationController
 
     if params[:comparison_production_id].present?
       @comparison_production = Production.accessible_by(current_ability, :read)
-                                          .find_by(id: params[:comparison_production_id])
+                                         .find_by(id: params[:comparison_production_id])
     end
 
     @target_result     = TicketRevenueAnalysis.new(@target_production).compute
@@ -222,7 +230,8 @@ class Admin::AnalysisController < Admin::ApplicationController
 
     if FACILITY_SEGMENT_KEYS.include?(segment_key) && !current_user.is_administrator?
       flash[:error] = "Only administrators can export facility-wide cohorts."
-      redirect_to admin_analysis_index_path(target_production_id: target.id, analysis_type: 'audience', comparison_theater_ids: comparison_theater_ids) and return
+      redirect_to admin_analysis_index_path(target_production_id: target.id, analysis_type: 'audience',
+                                            comparison_theater_ids: comparison_theater_ids) and return
     end
 
     Resque.enqueue(
@@ -235,8 +244,10 @@ class Admin::AnalysisController < Admin::ApplicationController
       current_user.theater_ids,
       current_user.id
     )
-    flash[:notice] = "Your cohort export is queued. You'll receive an email when it's ready, and it will also appear on the reports page."
-    redirect_to admin_analysis_index_path(target_production_id: target.id, analysis_type: 'audience', comparison_theater_ids: comparison_theater_ids)
+    flash[:notice] =
+      "Your cohort export is queued. You'll receive an email when it's ready, and it will also appear on the reports page."
+    redirect_to admin_analysis_index_path(target_production_id: target.id, analysis_type: 'audience',
+                                          comparison_theater_ids: comparison_theater_ids)
   end
 
   def rate_of_sales

@@ -1,10 +1,10 @@
 require 'test_helper'
 
 class AddressTest < ActiveSupport::TestCase
-
   context "with a valid address" do
     setup do
-      @new_address = FactoryBot.create(:address, :full_name=>"Test Guy", :line1=>"1229 W Belmont Ave Unit #3", :city=>"Chicago", :state=>"IL", :zipcode=>"60657", :email=>"test@matches.com")
+      @new_address = FactoryBot.create(:address, :full_name => "Test Guy", :line1 => "1229 W Belmont Ave Unit #3",
+                                                 :city => "Chicago", :state => "IL", :zipcode => "60657", :email => "test@matches.com")
     end
     should "be able to parse street address" do
       @new_address.regularize!
@@ -25,27 +25,28 @@ class AddressTest < ActiveSupport::TestCase
     end
 
     should "gracefully accept missing address" do
-      @bad_address = FactoryBot.create(:address, :full_name=>"hi", :line1=>'', :city=>'')
+      @bad_address = FactoryBot.create(:address, :full_name => "hi", :line1 => '', :city => '')
       @bad_address.save!
       assert_nil @bad_address.street_number
     end
   end
 
   context "with a set of preexisting addresses" do
-
     setup do
-      @first_customer = FactoryBot.create(:address, :full_name=>"Test Guy", :line1=>"1229 W Belmont", :city=>"Chicago", :state=>"IL", :zipcode=>"60657", :email=>"test@matches.com")
-      @same_name_different_email = FactoryBot.create(:address, :full_name=>"First Guy", :line1=>"1229 W Belmont", :city=>"Chicago", :state=>"IL", :zipcode=>"60657", :email=>"test@different.com")
-      @different_name_no_email = FactoryBot.create(:address, :full_name=>"Second Guy", :line1=>"1229 W Belmont", :city=>"Chicago", :state=>"IL", :zipcode=>"60657")
-
+      @first_customer = FactoryBot.create(:address, :full_name => "Test Guy", :line1 => "1229 W Belmont", :city => "Chicago",
+                                                    :state => "IL", :zipcode => "60657", :email => "test@matches.com")
+      @same_name_different_email = FactoryBot.create(:address, :full_name => "First Guy", :line1 => "1229 W Belmont",
+                                                               :city => "Chicago", :state => "IL", :zipcode => "60657", :email => "test@different.com")
+      @different_name_no_email = FactoryBot.create(:address, :full_name => "Second Guy", :line1 => "1229 W Belmont",
+                                                             :city => "Chicago", :state => "IL", :zipcode => "60657")
     end
 
     should "match by name and email" do
       @new_address = Address.new
       @new_address.full_name = "Test Guy"
-      @new_address.line1="500 W Nowhere"
-      @new_address.zipcode="60640"
-      @new_address.email="test@matches.com"
+      @new_address.line1 = "500 W Nowhere"
+      @new_address.zipcode = "60640"
+      @new_address.email = "test@matches.com"
       @new_address.regularize!
       @matching = @new_address.find_original
       assert_not_nil @matching
@@ -54,9 +55,9 @@ class AddressTest < ActiveSupport::TestCase
 
     should "match by name and key address fields when email missing from new" do
       @new_address = Address.new
-      @new_address.full_name="Test Guy"
-      @new_address.line1="1229 W Belmont"
-      @new_address.city="Chicago"
+      @new_address.full_name = "Test Guy"
+      @new_address.line1 = "1229 W Belmont"
+      @new_address.city = "Chicago"
       @new_address.regularize!
       @matching = @new_address.find_original
       assert_not_nil @matching
@@ -66,8 +67,8 @@ class AddressTest < ActiveSupport::TestCase
     should "won't match without name" do
       @new_address = Address.new
       @new_address.full_name = "Other Guy"
-      @new_address.line1="1229 W Belmont"
-      @new_address.city="Chicago"
+      @new_address.line1 = "1229 W Belmont"
+      @new_address.city = "Chicago"
       @new_address.regularize!
       @matching = @new_address.find_original
       assert_nil @matching
@@ -76,21 +77,20 @@ class AddressTest < ActiveSupport::TestCase
     should "dont match mismatched emails" do
       @new_address = Address.new
       @new_address.full_name = "First Guy"
-      @new_address.line1="1229 W Belmont"
-      @new_address.city="Chicago"
-      @new_address.email="random@email.com"
+      @new_address.line1 = "1229 W Belmont"
+      @new_address.city = "Chicago"
+      @new_address.email = "random@email.com"
       @new_address.regularize!
       @matching = @new_address.find_original
       assert_nil @matching
-
     end
 
     should "merge missing information" do
       @new_address = Address.new
       @new_address.full_name = "Test Guy"
-      @new_address.line1="500 W Nowhere"
-      @new_address.zipcode="60640"
-      @new_address.email="test@matches.com"
+      @new_address.line1 = "500 W Nowhere"
+      @new_address.zipcode = "60640"
+      @new_address.email = "test@matches.com"
       @new_address.regularize!
       @matching = @new_address.find_original
       assert_not_nil @matching
@@ -100,18 +100,15 @@ class AddressTest < ActiveSupport::TestCase
 
       @new_address = Address.new
       @new_address.full_name = "Second Guy"
-      @new_address.line1="1229 W Belmont"
-      @new_address.city="Chicago"
-      @new_address.email="newemail@testing.com"
+      @new_address.line1 = "1229 W Belmont"
+      @new_address.city = "Chicago"
+      @new_address.email = "newemail@testing.com"
       @new_address.regularize!
       @matching = @new_address.find_original
       assert_not_nil @matching
       @matching.update_from(@new_address)
       assert_equal "newemail@testing.com", @matching.email
-
     end
-
-
   end
 
   context "with a similar address" do
@@ -132,7 +129,6 @@ class AddressTest < ActiveSupport::TestCase
       assert_equal "2nd Floor", @original_address.line2
       assert_equal "Chicago", @original_address.city
     end
-
   end
 
   context "with a duplicate address entry" do
@@ -155,7 +151,7 @@ class AddressTest < ActiveSupport::TestCase
     should "purge the duplicate address" do
       num_addresses = Address.all.count
       Address.purge_matched_duplicates
-      assert_equal num_addresses-1, Address.all.count
+      assert_equal num_addresses - 1, Address.all.count
       assert_raise ActiveRecord::RecordNotFound do
         Address.find(@address_2.id)
       end
@@ -165,14 +161,17 @@ class AddressTest < ActiveSupport::TestCase
   context "with a new matching address and related tags" do
     setup do
       without_access_control do
-        @address_1 = FactoryBot.create(:address, :full_name => "Bob Smith", :first_name=>"bob", :last_name=>"Smith", :email=>"bob@smith.com", :search_name => "BOB SMITH")
-        @address_1.address_tags.build([{:tag_label=>"Subscription ID", :tag_value=>"9393", :theater => FactoryBot.create(:theater)}])
+        @address_1 = FactoryBot.create(:address, :full_name => "Bob Smith", :first_name => "bob", :last_name => "Smith",
+                                                 :email => "bob@smith.com", :search_name => "BOB SMITH")
+        @address_1.address_tags.build([{ :tag_label => "Subscription ID", :tag_value => "9393",
+                                         :theater => FactoryBot.create(:theater) }])
         @address_1.save
-        @address_2 = FactoryBot.create(:address, :first_name=>"bob", :last_name=>"Smith", :email=>"bob@smith.com", :full_name => "bob Smith")
-        @address_2.address_tags.build([{:tag_label=>"Subscription ID", :tag_value=>"4444", :theater => FactoryBot.create(:theater)}])
+        @address_2 = FactoryBot.create(:address, :first_name => "bob", :last_name => "Smith", :email => "bob@smith.com",
+                                                 :full_name => "bob Smith")
+        @address_2.address_tags.build([{ :tag_label => "Subscription ID", :tag_value => "4444",
+                                         :theater => FactoryBot.create(:theater) }])
         @address_2.save
       end
-
     end
     should "merge the related tags" do
       merge = @address_2.find_original

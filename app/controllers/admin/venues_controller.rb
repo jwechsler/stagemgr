@@ -6,7 +6,7 @@ class Admin::VenuesController < ApplicationController
       format.html # index.html.erb
       format.json {
         params.permit!
-        render json: VenueDatatable.new(params, view_context: view_context, current_user: current_user )
+        render json: VenueDatatable.new(params, view_context: view_context, current_user: current_user)
       }
     end
   end
@@ -30,9 +30,8 @@ class Admin::VenuesController < ApplicationController
   end
 
   def update
-
     if @venue.update(venue_params)
-      redirect_to [:admin, @venue], :success  => "Successfully updated venue."
+      redirect_to [:admin, @venue], :success => "Successfully updated venue."
     else
       render :action => 'edit'
     end
@@ -45,6 +44,7 @@ class Admin::VenuesController < ApplicationController
   end
 
   private
+
   def venue_params
     params.require(:venue).permit(:name, :ordinal_sort, :external)
   end

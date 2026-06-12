@@ -31,10 +31,11 @@ class RateOfSalesAnalysis
     daily_rolling = daily_rolling_revenue_for(target_production, cutoff: Date.yesterday)
     comparison_daily_rolling = if comparison_productions.size == 1
                                  daily_rolling_revenue_for(comparison_productions.first, cutoff: Date.today)
-    end
+                               end
     insights = compute_insights(cutoff, target_tickets, target_revenue, aggregate_data, daily_rolling)
 
-    { target_tickets: target_tickets, target_revenue: target_revenue, aggregate_data: aggregate_data, projection: projection, comparison_summaries: comparison_summaries, target_summary: target_summary, insights: insights, daily_rolling: daily_rolling, comparison_daily_rolling: comparison_daily_rolling }
+    { target_tickets: target_tickets, target_revenue: target_revenue, aggregate_data: aggregate_data,
+      projection: projection, comparison_summaries: comparison_summaries, target_summary: target_summary, insights: insights, daily_rolling: daily_rolling, comparison_daily_rolling: comparison_daily_rolling }
   end
 
   private
@@ -113,7 +114,7 @@ class RateOfSalesAnalysis
         # Stretch the decline tail across (tail.size + extra_weeks) weeks, so
         # extension weeks interpolate within the tail rather than re-stretching
         # the body.
-        tail_pos = week_num - body_weeks  # 1-based index into extended tail
+        tail_pos = week_num - body_weeks # 1-based index into extended tail
         interpolated = interpolate_curve(decline_tail, tail_pos, extended_tail_weeks)
       else
         # No decline tail — plateau at the last body value for extension weeks
@@ -169,7 +170,8 @@ class RateOfSalesAnalysis
   # rolling revenue and apply the target's own recent week-over-week pct
   # change forward. No historical-show scaling — the projection reflects the
   # current show's observed trajectory, capped by remaining seat inventory.
-  def compute_alternate_projection(cutoff:, target_weekly:, last_actual_week:, total_weeks:, actual_total:, remaining_rev_budget_initial:)
+  def compute_alternate_projection(cutoff:, target_weekly:, last_actual_week:, total_weeks:, actual_total:,
+                                   remaining_rev_budget_initial:)
     # Anchor on the 7-day rolling revenue. More stable than the last weekly
     # bucket, which is typically partial since presale_cutoff week boundaries
     # don't align with the start-of-week cutoff used for actuals.
@@ -242,6 +244,7 @@ class RateOfSalesAnalysis
     total_rev = totals.sum { |r, _| r.to_f }
     total_tix = totals.sum { |_, t| t.to_i }
     return nil if total_tix <= 0
+
     total_rev / total_tix
   end
 
@@ -257,6 +260,7 @@ class RateOfSalesAnalysis
   # Returns Float::INFINITY when we can't derive a price (no sales yet).
   def remaining_revenue_budget(production, avg_price)
     return Float::INFINITY if avg_price.nil? || avg_price <= 0
+
     remaining_seats_across_future_performances(production) * avg_price
   end
 
@@ -328,11 +332,11 @@ class RateOfSalesAnalysis
         trajectory_pct = ((recent_avg - prior_avg) / prior_avg * 100).round(1)
         insights[:trajectory] = if trajectory_pct > 2
                                   :increasing
-                                 elsif trajectory_pct < -2
-                                   :decreasing
-                                 else
-                                   :steady
-                                 end
+                                elsif trajectory_pct < -2
+                                  :decreasing
+                                else
+                                  :steady
+                                end
         insights[:trajectory_recent_avg] = recent_avg.round(2)
         insights[:trajectory_prior_avg]  = prior_avg.round(2)
         insights[:trajectory_pct_change] = trajectory_pct
@@ -341,7 +345,8 @@ class RateOfSalesAnalysis
 
     # 5. Performance ratio (revenue level vs historical)
     if insights[:hist_avg_revenue_per_week] && insights[:hist_avg_revenue_per_week] > 0
-      insights[:performance_pct] = ((insights[:avg_revenue_per_week] / insights[:hist_avg_revenue_per_week]) * 100).round(0)
+      insights[:performance_pct] =
+        ((insights[:avg_revenue_per_week] / insights[:hist_avg_revenue_per_week]) * 100).round(0)
     end
 
     # 6. Lifecycle position — where is the show in its run vs historical peak?
@@ -392,6 +397,7 @@ class RateOfSalesAnalysis
     ordered_labels.each do |label|
       values = series_list.filter_map { |s| s[label] if s[label] && s[label] > 0 }
       next if values.empty?
+
       result[label] = values.sum / values.size.to_f
     end
     result
@@ -405,8 +411,10 @@ class RateOfSalesAnalysis
 
     target_weekly.each do |label, target_val|
       next if label == "Pre-sales" # skip pre-sales for ratio since it's a collapsed bucket
+
       agg_val = aggregate_weekly[label]
       next if agg_val.nil? || agg_val <= 0 || target_val <= 0
+
       overlapping << { target: target_val, aggregate: agg_val }
     end
 
@@ -527,6 +535,7 @@ class RateOfSalesAnalysis
     ordered_labels.each do |label|
       values = series_list.filter_map { |s| s[label] }
       next if values.empty?
+
       result[label] = (values.sum / values.size.to_f).round(1)
     end
 

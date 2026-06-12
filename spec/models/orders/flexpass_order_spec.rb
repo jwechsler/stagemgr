@@ -25,4 +25,3 @@ RSpec.describe "an flexpass ticket order" do
     end
   end
 end
-

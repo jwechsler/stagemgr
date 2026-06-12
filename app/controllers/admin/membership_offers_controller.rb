@@ -6,7 +6,7 @@ class Admin::MembershipOffersController < ApplicationController
       format.html
       format.json {
         params.permit!
-        render json: MembershipOfferDatatable.new(params, view_context: view_context )
+        render json: MembershipOfferDatatable.new(params, view_context: view_context)
       }
     end
   end
@@ -32,7 +32,7 @@ class Admin::MembershipOffersController < ApplicationController
 
   def update
     if @membership_offer.update(membership_offer_params)
-      redirect_to [:admin, @membership_offer], :success  => "Successfully updated membership offer."
+      redirect_to [:admin, @membership_offer], :success => "Successfully updated membership offer."
     else
       render :action => 'edit'
     end
@@ -47,8 +47,8 @@ class Admin::MembershipOffersController < ApplicationController
 
   def membership_offer_params
     params.require(:membership_offer).permit(:name, :email_html, :html_description, :use_ticket_class_code,
-                  :use_member_friend_code, :tickets_per_performance,
-                  :billing_agreement, :myemma_group, :on_sale, :trial_period,
-                  :restricted_to_first_time, :max_cycles_if_gift, :status, :price_id)
+                                             :use_member_friend_code, :tickets_per_performance,
+                                             :billing_agreement, :myemma_group, :on_sale, :trial_period,
+                                             :restricted_to_first_time, :max_cycles_if_gift, :status, :price_id)
   end
 end

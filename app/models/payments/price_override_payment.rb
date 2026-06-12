@@ -1,7 +1,7 @@
 class PriceOverridePayment < Payment
   attr_accessor :override_type
 
-  belongs_to :source_payment_type, :class_name=>'PaymentType'
+  belongs_to :source_payment_type, :class_name => 'PaymentType'
 
   def payment_type
     if self.override_type.nil?
@@ -23,5 +23,4 @@ class PriceOverridePayment < Payment
   def receipt_description
     'Payment'
   end
-  
 end

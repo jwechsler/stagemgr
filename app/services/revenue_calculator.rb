@@ -25,26 +25,27 @@ class RevenueCalculator
 
     def +(other)
       return self if other.nil?
+
       Result.new(
-        cash_collected:   cash_collected   + other.cash_collected,
-        cash_reportable:  cash_reportable  + other.cash_reportable,
-        ticketing_fees:   ticketing_fees   + other.ticketing_fees,
-        processing_fees:  processing_fees  + other.processing_fees,
-        ticket_count:     ticket_count     + other.ticket_count,
-        comp_count:       comp_count       + other.comp_count,
-        order_count:      order_count      + other.order_count
+        cash_collected: cash_collected + other.cash_collected,
+        cash_reportable: cash_reportable + other.cash_reportable,
+        ticketing_fees: ticketing_fees + other.ticketing_fees,
+        processing_fees: processing_fees + other.processing_fees,
+        ticket_count: ticket_count + other.ticket_count,
+        comp_count: comp_count + other.comp_count,
+        order_count: order_count + other.order_count
       )
     end
   end
 
   ZERO = Result.new(
-    cash_collected:  BigDecimal('0'),
+    cash_collected: BigDecimal('0'),
     cash_reportable: BigDecimal('0'),
-    ticketing_fees:  BigDecimal('0'),
+    ticketing_fees: BigDecimal('0'),
     processing_fees: BigDecimal('0'),
-    ticket_count:    0,
-    comp_count:      0,
-    order_count:     0
+    ticket_count: 0,
+    comp_count: 0,
+    order_count: 0
   ).freeze
 
   PRELOADS = [
@@ -71,9 +72,9 @@ class RevenueCalculator
   # (keyed on Order#created_at, matching RateOfSalesJob semantics).
   def self.for_production_on_day(production_id, date, statuses: Order::SETTLED_STATUSES)
     scope = TicketOrder
-              .joins(:performance)
-              .where(performances: { production_id: production_id })
-              .where(created_at: date.all_day)
+            .joins(:performance)
+            .where(performances: { production_id: production_id })
+            .where(created_at: date.all_day)
     self.for(scope, statuses: statuses)
   end
 
@@ -109,13 +110,13 @@ class RevenueCalculator
     end
 
     Result.new(
-      cash_collected:  cc(cash_collected),
+      cash_collected: cc(cash_collected),
       cash_reportable: cc(cash_reportable),
-      ticketing_fees:  cc(ticketing_fees),
+      ticketing_fees: cc(ticketing_fees),
       processing_fees: cc(processing_fees),
-      ticket_count:    ticket_count,
-      comp_count:      comp_count,
-      order_count:     orders.size
+      ticket_count: ticket_count,
+      comp_count: comp_count,
+      order_count: orders.size
     )
   end
 

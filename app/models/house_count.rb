@@ -1,6 +1,5 @@
 # app/models/house_count.rb
 class HouseCount < Metric
-
   belongs_to :performance
 
   # Method to calculate and update the seat counts
@@ -30,8 +29,7 @@ class HouseCount < Metric
   # Required by Metric abstract class
   def self.export_records
     HouseCount.joins(:performance).merge(Performance.sellable)
-                        .where(performances: { performance_date: Date.today..(Date.today + 14.days) }).order('performance_date, performance_code')
-  
+              .where(performances: { performance_date: Date.today..(Date.today + 14.days) }).order('performance_date, performance_code')
   end
 
   # Public accessor for performance code
@@ -75,8 +73,8 @@ class HouseCount < Metric
   def calculate_sold_out
     available_seats <= 0 &&
       performance.ticket_class_allocations
-        .select { |tca| tca.available? && tca.ticket_class.web_visible? && !tca.ticket_class.holds_seats? }
-        .empty?
+                 .select { |tca| tca.available? && tca.ticket_class.web_visible? && !tca.ticket_class.holds_seats? }
+                 .empty?
   end
 
   def calculate_near_capacity
@@ -85,7 +83,6 @@ class HouseCount < Metric
 
   def visible_priced_allocations
     performance.ticket_class_allocations
-      .select { |tca| tca.available? && tca.ticket_class.web_visible? && tca.ticket_class.show_in_pricing_range? }
+               .select { |tca| tca.available? && tca.ticket_class.web_visible? && tca.ticket_class.show_in_pricing_range? }
   end
-
 end

@@ -1,7 +1,5 @@
 class CreditCardPaymentType < CurrencyPaymentType
-
-  def build_payment(amount, order, payment_details={})
-
+  def build_payment(amount, order, payment_details = {})
     if (amount != 0) then
 
       new_payment = CreditCardPayment.new(
@@ -15,7 +13,7 @@ class CreditCardPaymentType < CurrencyPaymentType
         :card_verification_number => order.credit_card_verification_number,
         :confirmation_code => order.credit_card_confirmation_code,
         :ip_address => order.ip_address,
-        :payment_type=>self
+        :payment_type => self
       )
     else
       new_payment = CashPaymentType.first.build_payment(0, order)
@@ -24,12 +22,9 @@ class CreditCardPaymentType < CurrencyPaymentType
     new_payment.process!
 
     new_payment
-
   end
 
   def payment_classes
     super + [CreditCardPayment.class]
   end
-
-
 end

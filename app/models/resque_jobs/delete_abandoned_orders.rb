@@ -3,7 +3,7 @@ class DeleteAbandonedOrders
 
   def self.perform
     orders = Order.where("status in (:status) and updated_at < :time_window",
-      status: [Order::NEW, Order::PROCESSING], time_window: Time.now-8.minutes)
+                         status: [Order::NEW, Order::PROCESSING], time_window: Time.now - 8.minutes)
     orders.each do |o|
       begin
         o.destroy
@@ -14,5 +14,4 @@ class DeleteAbandonedOrders
       end
     end
   end
-
 end

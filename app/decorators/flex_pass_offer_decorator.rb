@@ -45,25 +45,25 @@ class FlexPassOfferDecorator < ApplicationDecorator
     end
   end
 
-
   def dt_actions
     actions = []
     if h.current_user.can? :update, FlexPassOffer then
-      actions << h.link_to('Edit', [:edit,:admin,object], :class=>'tiny button')
+      actions << h.link_to('Edit', [:edit, :admin, object], :class => 'tiny button')
     end
 
     if h.current_user.can? :destroy, FlexPassOffer then
-      actions <<  h.link_to('Destroy', [:admin, object], method: :delete, :confirm=>'Are you sure?', :class=>'tiny alert button')
+      actions << h.link_to('Destroy', [:admin, object], method: :delete, :confirm => 'Are you sure?',
+                                                        :class => 'tiny alert button')
     end
 
     if h.current_user.can? :create, FlexPassOrder then
       if flex_pass_offer.active?
-        actions << h.link_to('Create Order', [:new, :admin, object, :order], :class=>'tiny button')
+        actions << h.link_to('Create Order', [:new, :admin, object, :order], :class => 'tiny button')
       else
-        actions << h.link_to('Create Order', '#', :class=> 'tiny button disabled')
+        actions << h.link_to('Create Order', '#', :class => 'tiny button disabled')
       end
     end
 
-    h.safe_join(actions,' ')
+    h.safe_join(actions, ' ')
   end
 end

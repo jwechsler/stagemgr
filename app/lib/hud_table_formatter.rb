@@ -63,7 +63,7 @@ class HudTableFormatter
   # and must return the string value to display.
   def self.build_row(columns, col_widths, &value_for)
     cells = columns.each_with_index.map do |col, i|
-      inner_width = col_widths[i] - 2  # subtract the two padding spaces
+      inner_width = col_widths[i] - 2 # subtract the two padding spaces
       value = value_for.call(col)
       padded = case col[:align]
                when :right then value.rjust(inner_width)

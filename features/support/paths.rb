@@ -9,118 +9,120 @@ module NavigationHelpers
     @using_admin_interface = false
     case page_name
 
-      when /the home\s?page/
-        '/'
-      when /^the login page$/
-        new_user_session_path
-      when /^the logout page$/
-        logout_path
-      when /^the admin[\/| ]theaters? page$/
-        @using_admin_interface = true
-        admin_theaters_path
-      when /^the admin detail page for theater ["'](.*)['"]$/
-        @using_admin_interface = true
-        admin_theater_path(Theater.find_by_name($1).id)
-        #url_for(:controller => 'admin/theaters', :action => 'show', :id => Theater.find_by_name($1).id, :only_path => true)
-      when /^the admin edit page for user ["'](.*)['"]$/
-        @using_admin_interface = true
-        url_for(controller: 'admin/users', action: 'edit', id: User.find_by_email($1), only_path:true)
-      when /^the admin theater edit page for production "([^"]*)"$/
-        @using_admin_interface = true
-        url_for(:controller => 'admin/theaters', :action => 'edit', :id => Production.find_by_name($1).theater.id, :only_path => true)
-      when /^the admin theater detail page for production "([^"]*)"$/
-        @using_admin_interface = true
-        admin_theater_path(Production.find_by_name($1).theater)
-      when /^the admin production detail page for "([^"]*)"$/
-        @using_admin_interface = true
-        production = Production.find_by_name($1)
-        admin_theater_production_path(production.theater, production)
-      when /^the admin production edit page for "([^"]*)"$/
-        @using_admin_interface = true
-        production = Production.find_by_name($1)
-        edit_admin_theater_production_path(production.theater, production)
-      when /^the admin performance detail page for "([^"]*)"$/
-        @using_admin_interface = true
-        performance = Performance.find_by_performance_code($1)
-        admin_theater_production_performance_path(performance.production.theater, performance.production, performance)
-      when /^the admin performance edit page for production "([^"]*)" and performance "([^"]*)"$/
-        @using_admin_interface = true
-        production = Production.find_by_name($1)
-        performance = production.performances.select{|perf| perf.performance_code == $2}.first
-        edit_admin_theater_production_performance_path(production.theater, production, performance)
-      when /^New Box Office Order$/
-        url_for(:controller => 'admin/ticket_orders', :action => 'new', :only_path => true)
-      when /^new web order for production "([^"]*)" and performance "([^"]*)"/
-        new_production_performance_order_path(Production.find_by_name($1).id, Performance.find_by_performance_code($2).id)
-      when /^the box office calendar for production "([^"]*)"/
-        production_performances_path(Production.find_by_name($1))
-      when /^(the )?new membership order for membership offer "([^"]*)"/
-        @_current_form='membership_order'
-        new_membership_offer_order_path(MembershipOffer.find_by_name($2).id)
-      when /^the admin edit page for membership offer "([^"]*)"/
-        @using_admin_interface = true
-        edit_admin_membership_offer_path(MembershipOffer.find_by_name($1))
-      when /^(the )?new donation order$/
-        @_current_form='donation_order'
-        new_donation_order_path
-      when /^(the |a )?new monthly pledge$/
-        @_current_form='donation_pledge_order'
-        new_donation_pledge_order_path
-      when /^the admin ticket order detail page$/
-        @using_admin_interface = true
-        admin_ticket_order_path(TicketOrder.last)
-      when /^the admin order page for the (.*)$/
-        @using_admin_interface = true
-        page_type = "#{$1}".gsub(' ','_')
-        admin_order_path(eval "@#{page_type}.id")
-      when /^the admin membership offers page$/
-        @_current_form='membership_order'
-        @using_admin_interface = true
-        admin_membership_offers_path
-      when /^the new admin membership order page for offer "(.*)"$/
-        @_current_form='membership_order'
-        @using_admin_interface = true
-        new_admin_membership_offer_order_path(MembershipOffer.find_by_name("#{$1}"))
-      when /^the new admin membership offer page$/
-        @using_admin_interface = true
-        new_admin_membership_offer_path
-      when /^the new admin flex pass offer page$/
-        @using_admin_interface = true
-        new_admin_flex_pass_offer_path
-      when /^the edit admin flex pass offer page for "([^"]*)"$/
-        @using_admin_interface = true
-        edit_admin_flex_pass_offer_path(FlexPassOffer.find_by(name: $1))
-      when /^the new admin flex pass order page for "(.*)"$/
-        @_current_form = 'flex_pass_order'
-        @using_admin_interface = true
-        new_admin_flex_pass_offer_order_path(FlexPassOffer.find_by(name: $1))
-      when /^the system options page$/
-        @using_admin_interface=true
-        admin_system_options_path
-      when /^the manage payment types page$/
-        @using_admin_interface=true
-        admin_payment_types_path
-      when /^the address page for "([^"]*)"$/
-        @using_admin_interface=true
-        admin_address_path(Address.find_by_full_name($1))
-      when /^the edit address page for "([^"]*)"$/
-        @using_admin_interface=true
-        edit_admin_address_path(Address.find_by_full_name($1))
-      when /^the edit page for payment type "([^"]*)"$/
-        @using_admin_interface=true
-        edit_admin_payment_type_path(PaymentType.find_by_display_name($1))
-      when /^the new special feature page$/
-        @using_admin_interface=true
-        new_admin_special_feature_path
-      when /^the existing orders page$/
-        @using_admin_interface=true
-        admin_orders_path
-      when /^the edit page for special offer ['"](.*?)['"]$/
-        @using_admin_interface=true
-        edit_admin_special_offer_path(SpecialOffer.find_by_code($1))
-      when /^the admin venue page for "([^"]*)"$/
-        @using_admin_interface = true
-        admin_venue_path(Venue.find_by!(name: $1))
+    when /the home\s?page/
+      '/'
+    when /^the login page$/
+      new_user_session_path
+    when /^the logout page$/
+      logout_path
+    when /^the admin[\/| ]theaters? page$/
+      @using_admin_interface = true
+      admin_theaters_path
+    when /^the admin detail page for theater ["'](.*)['"]$/
+      @using_admin_interface = true
+      admin_theater_path(Theater.find_by_name($1).id)
+    # url_for(:controller => 'admin/theaters', :action => 'show', :id => Theater.find_by_name($1).id, :only_path => true)
+    when /^the admin edit page for user ["'](.*)['"]$/
+      @using_admin_interface = true
+      url_for(controller: 'admin/users', action: 'edit', id: User.find_by_email($1), only_path: true)
+    when /^the admin theater edit page for production "([^"]*)"$/
+      @using_admin_interface = true
+      url_for(:controller => 'admin/theaters', :action => 'edit', :id => Production.find_by_name($1).theater.id,
+              :only_path => true)
+    when /^the admin theater detail page for production "([^"]*)"$/
+      @using_admin_interface = true
+      admin_theater_path(Production.find_by_name($1).theater)
+    when /^the admin production detail page for "([^"]*)"$/
+      @using_admin_interface = true
+      production = Production.find_by_name($1)
+      admin_theater_production_path(production.theater, production)
+    when /^the admin production edit page for "([^"]*)"$/
+      @using_admin_interface = true
+      production = Production.find_by_name($1)
+      edit_admin_theater_production_path(production.theater, production)
+    when /^the admin performance detail page for "([^"]*)"$/
+      @using_admin_interface = true
+      performance = Performance.find_by_performance_code($1)
+      admin_theater_production_performance_path(performance.production.theater, performance.production, performance)
+    when /^the admin performance edit page for production "([^"]*)" and performance "([^"]*)"$/
+      @using_admin_interface = true
+      production = Production.find_by_name($1)
+      performance = production.performances.select { |perf| perf.performance_code == $2 }.first
+      edit_admin_theater_production_performance_path(production.theater, production, performance)
+    when /^New Box Office Order$/
+      url_for(:controller => 'admin/ticket_orders', :action => 'new', :only_path => true)
+    when /^new web order for production "([^"]*)" and performance "([^"]*)"/
+      new_production_performance_order_path(Production.find_by_name($1).id,
+                                            Performance.find_by_performance_code($2).id)
+    when /^the box office calendar for production "([^"]*)"/
+      production_performances_path(Production.find_by_name($1))
+    when /^(the )?new membership order for membership offer "([^"]*)"/
+      @_current_form = 'membership_order'
+      new_membership_offer_order_path(MembershipOffer.find_by_name($2).id)
+    when /^the admin edit page for membership offer "([^"]*)"/
+      @using_admin_interface = true
+      edit_admin_membership_offer_path(MembershipOffer.find_by_name($1))
+    when /^(the )?new donation order$/
+      @_current_form = 'donation_order'
+      new_donation_order_path
+    when /^(the |a )?new monthly pledge$/
+      @_current_form = 'donation_pledge_order'
+      new_donation_pledge_order_path
+    when /^the admin ticket order detail page$/
+      @using_admin_interface = true
+      admin_ticket_order_path(TicketOrder.last)
+    when /^the admin order page for the (.*)$/
+      @using_admin_interface = true
+      page_type = "#{$1}".gsub(' ', '_')
+      admin_order_path(eval "@#{page_type}.id")
+    when /^the admin membership offers page$/
+      @_current_form = 'membership_order'
+      @using_admin_interface = true
+      admin_membership_offers_path
+    when /^the new admin membership order page for offer "(.*)"$/
+      @_current_form = 'membership_order'
+      @using_admin_interface = true
+      new_admin_membership_offer_order_path(MembershipOffer.find_by_name("#{$1}"))
+    when /^the new admin membership offer page$/
+      @using_admin_interface = true
+      new_admin_membership_offer_path
+    when /^the new admin flex pass offer page$/
+      @using_admin_interface = true
+      new_admin_flex_pass_offer_path
+    when /^the edit admin flex pass offer page for "([^"]*)"$/
+      @using_admin_interface = true
+      edit_admin_flex_pass_offer_path(FlexPassOffer.find_by(name: $1))
+    when /^the new admin flex pass order page for "(.*)"$/
+      @_current_form = 'flex_pass_order'
+      @using_admin_interface = true
+      new_admin_flex_pass_offer_order_path(FlexPassOffer.find_by(name: $1))
+    when /^the system options page$/
+      @using_admin_interface = true
+      admin_system_options_path
+    when /^the manage payment types page$/
+      @using_admin_interface = true
+      admin_payment_types_path
+    when /^the address page for "([^"]*)"$/
+      @using_admin_interface = true
+      admin_address_path(Address.find_by_full_name($1))
+    when /^the edit address page for "([^"]*)"$/
+      @using_admin_interface = true
+      edit_admin_address_path(Address.find_by_full_name($1))
+    when /^the edit page for payment type "([^"]*)"$/
+      @using_admin_interface = true
+      edit_admin_payment_type_path(PaymentType.find_by_display_name($1))
+    when /^the new special feature page$/
+      @using_admin_interface = true
+      new_admin_special_feature_path
+    when /^the existing orders page$/
+      @using_admin_interface = true
+      admin_orders_path
+    when /^the edit page for special offer ['"](.*?)['"]$/
+      @using_admin_interface = true
+      edit_admin_special_offer_path(SpecialOffer.find_by_code($1))
+    when /^the admin venue page for "([^"]*)"$/
+      @using_admin_interface = true
+      admin_venue_path(Venue.find_by!(name: $1))
 
       # Add more mappings here.
       # Here is an example that pulls values out of the Regexp:
@@ -128,17 +130,17 @@ module NavigationHelpers
       #   when /^(.*)'s profile page$/i
       #     user_profile_path(User.find_by_login($1))
 
-      else
-        begin
-          page_name =~ /the (.*) page/
-          path_components = $1.split(/\s+/)
-          self.send(path_components.push('path').join('_').to_sym)
-        rescue Object => e
-          raise "Can't find mapping from \"#{page_name}\" to a path.\n" +
-                   "Now, go and add a mapping in #{__FILE__}"
-        end
+    else
+      begin
+        page_name =~ /the (.*) page/
+        path_components = $1.split(/\s+/)
+        self.send(path_components.push('path').join('_').to_sym)
+      rescue Object => e
+        raise "Can't find mapping from \"#{page_name}\" to a path.\n" +
+              "Now, go and add a mapping in #{__FILE__}"
       end
     end
+  end
 end
 
 World(NavigationHelpers)

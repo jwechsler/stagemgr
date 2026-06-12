@@ -162,7 +162,8 @@ RSpec.describe AudienceAnalysis do
 
     it "uses today when the production is still running" do
       future_close = Date.today + 30.days
-      running = make_production(theater_a, name: 'STILL_RUNNING', closing_at: future_close, opening_at: Date.today - 10.days)
+      running = make_production(theater_a, name: 'STILL_RUNNING', closing_at: future_close,
+                                           opening_at: Date.today - 10.days)
       make_ticket_class(running, complimentary: false)
       make_performance(running, Date.today - 1.day)
       svc = described_class.new(running, [theater_a.id, theater_b.id, theater_c.id])
@@ -372,7 +373,7 @@ RSpec.describe AudienceAnalysis do
 
     it "treats a HABTM-only cohort member as first-time when they have no other attendance" do
       addr = make_address('newcard@example.com')
-      target_production.addresses << addr  # mailing card only
+      target_production.addresses << addr # mailing card only
       expect(results[:metrics][:first_time_vs_comparison]["3 months"]).to eq(1)
       expect(results[:metrics][:returning_vs_comparison]["3 months"]).to eq(0)
     end

@@ -20,18 +20,19 @@ class SeatManagementService
         ActiveRecord::Base.transaction do
           assignments = find_available_seats(seats)
           validate_seat_assignments!(assignments)
-          
+
           assigned = assign_seats_to_order(assignments, ticket_class_id, accessibility)
           first_assignment = assigned.first
-          
+
           result.success!({
-            id: first_assignment.id,
-            status: first_assignment.status,
-            order_uuid: first_assignment.order_uuid,
-            current_seat_assignments: SeatAssignment.seating_as_list(order_uuid, [SeatAssignment::TEMPORARY, SeatAssignment::ASSIGNED]),
-            unavailable: unavailable_seating_report(order_uuid, performance.id),
-            ticket_count: current_assignment_count(order_uuid)
-          })
+                            id: first_assignment.id,
+                            status: first_assignment.status,
+                            order_uuid: first_assignment.order_uuid,
+                            current_seat_assignments: SeatAssignment.seating_as_list(order_uuid,
+                                                                                     [SeatAssignment::TEMPORARY, SeatAssignment::ASSIGNED]),
+                            unavailable: unavailable_seating_report(order_uuid, performance.id),
+                            ticket_count: current_assignment_count(order_uuid)
+                          })
         end
       rescue SeatError => e
         result.fail!(e.message)
@@ -50,21 +51,22 @@ class SeatManagementService
         ActiveRecord::Base.transaction do
           assignments = find_order_seats(seats)
           validate_release!(assignments)
-          
+
           puts "Comparing order UUIDs: #{assignments.map(&:order_uuid)} with #{order_uuid}"
-          
+
           released = release_seats_from_order(assignments)
           first_assignment = released.first
-          
+
           result.success!({
-            id: first_assignment.id,
-            status: first_assignment.status,
-            order_uuid: first_assignment.order_uuid,
-            current_seat_assignments: SeatAssignment.seating_as_list(order_uuid, [SeatAssignment::TEMPORARY, SeatAssignment::ASSIGNED]),
-            ticket_class_id: first_assignment.ticket_class_id,
-            unavailable: unavailable_seating_report(order_uuid, performance.id),
-            ticket_count: current_assignment_count(order_uuid)
-          })
+                            id: first_assignment.id,
+                            status: first_assignment.status,
+                            order_uuid: first_assignment.order_uuid,
+                            current_seat_assignments: SeatAssignment.seating_as_list(order_uuid,
+                                                                                     [SeatAssignment::TEMPORARY, SeatAssignment::ASSIGNED]),
+                            ticket_class_id: first_assignment.ticket_class_id,
+                            unavailable: unavailable_seating_report(order_uuid, performance.id),
+                            ticket_count: current_assignment_count(order_uuid)
+                          })
         end
       rescue SeatError => e
         result.fail!(e.message)
@@ -80,12 +82,13 @@ class SeatManagementService
         ActiveRecord::Base.transaction do
           assignments = find_temporary_assignments
           validate_confirmation!(assignments)
-          
+
           confirmed = confirm_assignments(assignments)
           result.success!({
-            status: SeatAssignment::ASSIGNED,
-            current_seat_assignments: SeatAssignment.seating_as_list(order_uuid, [SeatAssignment::TEMPORARY, SeatAssignment::ASSIGNED])
-          })
+                            status: SeatAssignment::ASSIGNED,
+                            current_seat_assignments: SeatAssignment.seating_as_list(order_uuid,
+                                                                                     [SeatAssignment::TEMPORARY, SeatAssignment::ASSIGNED])
+                          })
         end
       rescue SeatError => e
         result.fail!(e.message)
@@ -101,20 +104,21 @@ class SeatManagementService
       begin
         ActiveRecord::Base.transaction do
           assignment = SeatAssignment.find(seat_id)
-          
+
           if assignment.assigned?(order_uuid)
             assignment.begin_release_from_order(order_uuid)
             status = assignment.status
-            
+
             result.success!({
-              id: assignment.id,
-              status: status,
-              order_uuid: assignment.order_uuid,
-              current_seat_assignments: SeatAssignment.seating_as_list(order_uuid, [SeatAssignment::TEMPORARY, SeatAssignment::ASSIGNED]),
-              ticket_class_id: assignment.ticket_class_id,
-              unavailable: unavailable_seating_report(order_uuid, performance.id),
-              ticket_count: current_assignment_count(order_uuid)
-            })
+                              id: assignment.id,
+                              status: status,
+                              order_uuid: assignment.order_uuid,
+                              current_seat_assignments: SeatAssignment.seating_as_list(order_uuid,
+                                                                                       [SeatAssignment::TEMPORARY, SeatAssignment::ASSIGNED]),
+                              ticket_class_id: assignment.ticket_class_id,
+                              unavailable: unavailable_seating_report(order_uuid, performance.id),
+                              ticket_count: current_assignment_count(order_uuid)
+                            })
           else
             result.fail!("Seat is not assigned to this order")
           end
@@ -158,11 +162,14 @@ class SeatManagementService
 
   def validate_release!(assignments)
     raise SeatError, "No matching seats found for release" if assignments.empty?
-    raise SeatError, "Cannot release seats from different order" unless assignments.all? { |a| a.order_uuid == order_uuid }
+    raise SeatError, "Cannot release seats from different order" unless assignments.all? { |a|
+      a.order_uuid == order_uuid
+    }
   end
 
   def validate_confirmation!(assignments)
     raise SeatError, "No temporary seats found to confirm" if assignments.empty?
+
     order = Order.find_by(uuid: order_uuid)
     raise SeatError, "Order not found" unless order
     raise SeatError, "Seat count mismatch" unless assignments.size == order.number_of_tickets
@@ -192,6 +199,7 @@ class SeatManagementService
 
   def valid_ticket_class?(ticket_class_id)
     return false unless ticket_class_id
+
     performance.ticket_classes.exists?(ticket_class_id)
   end
 
@@ -200,7 +208,7 @@ class SeatManagementService
       status: [SeatAssignment::TEMPORARY, SeatAssignment::ASSIGNED],
       order_uuid: order_uuid
     ).count
-    
+
     (current_count + requested_count) > performance.production.capacity
   end
 

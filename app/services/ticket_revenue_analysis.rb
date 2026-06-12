@@ -76,13 +76,13 @@ class TicketRevenueAnalysis
       entry_price = entry_price_for_bucket(tc_ids, dynamic_edges, class_by_id)
       paid_rows   = line_items.select { |r| tc_ids.include?(r[:tc_id]) }
       result = build_bucket(
-        tc_ids:              tc_ids,
-        class_by_id:         class_by_id,
-        entry_price:         entry_price,
-        paid_rows:           paid_rows,
-        allocation_data:     allocation_data,
+        tc_ids: tc_ids,
+        class_by_id: class_by_id,
+        entry_price: entry_price,
+        paid_rows: paid_rows,
+        allocation_data: allocation_data,
         fallback_allocation: fallback_alloc,
-        bucket_type:         :dynamic
+        bucket_type: :dynamic
       )
       bucket_results << result if result
     end
@@ -91,13 +91,13 @@ class TicketRevenueAnalysis
     singleton_tcs.each do |tc|
       paid_rows = line_items.select { |r| r[:tc_id] == tc.id }
       result = build_bucket(
-        tc_ids:              [tc.id],
-        class_by_id:         class_by_id,
-        entry_price:         effective_class_price(tc),
-        paid_rows:           paid_rows,
-        allocation_data:     allocation_data,
+        tc_ids: [tc.id],
+        class_by_id: class_by_id,
+        entry_price: effective_class_price(tc),
+        paid_rows: paid_rows,
+        allocation_data: allocation_data,
         fallback_allocation: fallback_alloc,
-        bucket_type:         :singleton
+        bucket_type: :singleton
       )
       bucket_results << result if result
     end
@@ -135,41 +135,42 @@ class TicketRevenueAnalysis
     cap_util        = total_cap > 0 ? (issued.to_f / total_cap * 100).round(1) : 0
 
     Summary.new(
-      production:                  @production,
-      buckets:                     bucket_results,
-      comp_count:                  comp_count,
-      total_capacity:              total_cap,
-      total_paid:                  total_paid,
-      capacity_utilization_pct:    cap_util,
-      gross_revenue:               gross_revenue,
-      cash_collected:              RevenueCalculator.for_production(@production).cash_collected,
-      overall_avg_paid_price:      overall_avg,
-      total_dynamic_lift_dollars:  total_lift,
-      total_dynamic_lift_pct:      total_lift_pct,
-      performance_count:           perf_count,
+      production: @production,
+      buckets: bucket_results,
+      comp_count: comp_count,
+      total_capacity: total_cap,
+      total_paid: total_paid,
+      capacity_utilization_pct: cap_util,
+      gross_revenue: gross_revenue,
+      cash_collected: RevenueCalculator.for_production(@production).cash_collected,
+      overall_avg_paid_price: overall_avg,
+      total_dynamic_lift_dollars: total_lift,
+      total_dynamic_lift_pct: total_lift_pct,
+      performance_count: perf_count,
       completed_performance_count: completed_perfs,
-      special_offer_usage:         compute_special_offer_usage
+      special_offer_usage: compute_special_offer_usage
     )
   end
 
   def compute_special_offer_usage
     items = SpecialOfferLineItem
-              .joins("INNER JOIN orders ON orders.id = line_items.order_id")
-              .joins("INNER JOIN performances ON performances.id = orders.performance_id")
-              .where("performances.production_id = ?", @production.id)
-              .where("orders.status IN (?)", Order::FINALIZED_STATUSES)
-              .includes(:special_offer, :order)
+            .joins("INNER JOIN orders ON orders.id = line_items.order_id")
+            .joins("INNER JOIN performances ON performances.id = orders.performance_id")
+            .where("performances.production_id = ?", @production.id)
+            .where("orders.status IN (?)", Order::FINALIZED_STATUSES)
+            .includes(:special_offer, :order)
 
     items.group_by(&:special_offer_id).filter_map do |_offer_id, list|
       offer = list.first.special_offer
       next nil unless offer
+
       total_discount = list.sum { |li| li.price.to_f.abs }
       OfferUsage.new(
-        code:           offer.code,
-        description:    offer.to_s,
-        uses:           list.size,
+        code: offer.code,
+        description: offer.to_s,
+        uses: list.size,
         total_discount: BigDecimal(total_discount.to_s),
-        class_swap:     offer.is_a?(TicketClassSpecialOffer)
+        class_swap: offer.is_a?(TicketClassSpecialOffer)
       )
     end.sort_by { |u| -u.uses }
   end
@@ -210,9 +211,9 @@ class TicketRevenueAnalysis
   def effective_class_price(ticket_class)
     base = if ticket_class.ticket_price == 0 && ticket_class.royalty_amount
              ticket_class.royalty_amount
-    else
-      ticket_class.ticket_price
-    end
+           else
+             ticket_class.ticket_price
+           end
     base - (ticket_class.ticketing_fee || BigDecimal('0'))
   end
 
@@ -234,12 +235,12 @@ class TicketRevenueAnalysis
       )
       .map do |tc_id, count, override, price, royalty, comp, ticketing_fee|
         {
-          tc_id:        tc_id,
-          count:        count.to_i,
-          override:     override ? BigDecimal(override.to_s) : nil,
-          price:        BigDecimal(price.to_s),
-          royalty:      royalty ? BigDecimal(royalty.to_s) : nil,
-          comp:         comp == 1 || comp == true,
+          tc_id: tc_id,
+          count: count.to_i,
+          override: override ? BigDecimal(override.to_s) : nil,
+          price: BigDecimal(price.to_s),
+          royalty: royalty ? BigDecimal(royalty.to_s) : nil,
+          comp: comp == 1 || comp == true,
           ticketing_fee: ticketing_fee ? BigDecimal(ticketing_fee.to_s) : BigDecimal('0')
         }
       end
@@ -247,17 +248,17 @@ class TicketRevenueAnalysis
 
   def fetch_allocation_data
     rows = TicketClassAllocation
-             .joins("INNER JOIN performances ON performances.id = ticket_class_allocations.performance_id")
-             .where("performances.production_id = ?", @production.id)
-             .pluck(
-               "ticket_class_allocations.ticket_class_id",
-               "ticket_class_allocations.ticket_limit"
-             )
+           .joins("INNER JOIN performances ON performances.id = ticket_class_allocations.performance_id")
+           .where("performances.production_id = ?", @production.id)
+           .pluck(
+             "ticket_class_allocations.ticket_class_id",
+             "ticket_class_allocations.ticket_limit"
+           )
 
     rows.group_by { |tc_id, _| tc_id }.each_with_object({}) do |(tc_id, pairs), h|
       limits = pairs.map { |_, limit| limit }.compact
       h[tc_id] = {
-        total_limit:   limits.any? ? limits.sum : nil,
+        total_limit: limits.any? ? limits.sum : nil,
         has_any_limit: limits.any?
       }
     end
@@ -265,13 +266,14 @@ class TicketRevenueAnalysis
 
   def effective_price(row)
     return nil if row[:comp]
+
     base = if row[:price] == 0 && row[:royalty]
              row[:royalty]
-    elsif row[:override]
-      row[:override]
-    else
-      row[:price]
-    end
+           elsif row[:override]
+             row[:override]
+           else
+             row[:price]
+           end
     base - row[:ticketing_fee]
   end
 
@@ -281,6 +283,7 @@ class TicketRevenueAnalysis
     tc_ids.each do |tc_id|
       data = allocation_data[tc_id]
       next unless data
+
       if data[:has_any_limit] && data[:total_limit].to_i > 0
         bucket_alloc += data[:total_limit].to_i
         from_limit = true
@@ -290,7 +293,8 @@ class TicketRevenueAnalysis
     [bucket_alloc, from_limit]
   end
 
-  def build_bucket(tc_ids:, class_by_id:, entry_price:, paid_rows:, allocation_data:, fallback_allocation:, bucket_type:)
+  def build_bucket(tc_ids:, class_by_id:, entry_price:, paid_rows:, allocation_data:, fallback_allocation:,
+                   bucket_type:)
     priced_rows = paid_rows.filter_map do |r|
       ep = effective_price(r)
       ep ? { tc_id: r[:tc_id], count: r[:count], price: ep } : nil
@@ -320,25 +324,25 @@ class TicketRevenueAnalysis
     class_codes    = tc_ids.map { |id| class_by_id[id]&.class_code }.compact
 
     BucketResult.new(
-      name:                  class_codes.join("/"),
-      ticket_class_ids:      tc_ids,
-      class_codes:           class_codes,
-      entry_price:           entry_price,
-      bucket_type:           bucket_type,
-      paid_count:            total_count,
-      avg_paid_price:        avg_price,
-      price_min:             price_min,
-      price_max:             price_max,
-      ladder_distribution:   ladder,
-      class_breakdown:       breakdown,
-      actual_gross:          weighted_sum,
-      flat_base_gross:       flat_base,
-      dynamic_lift_dollars:  lift_dollars,
-      dynamic_lift_pct:      lift_pct,
-      bucket_allocation:     bucket_alloc,
+      name: class_codes.join("/"),
+      ticket_class_ids: tc_ids,
+      class_codes: class_codes,
+      entry_price: entry_price,
+      bucket_type: bucket_type,
+      paid_count: total_count,
+      avg_paid_price: avg_price,
+      price_min: price_min,
+      price_max: price_max,
+      ladder_distribution: ladder,
+      class_breakdown: breakdown,
+      actual_gross: weighted_sum,
+      flat_base_gross: flat_base,
+      dynamic_lift_dollars: lift_dollars,
+      dynamic_lift_pct: lift_pct,
+      bucket_allocation: bucket_alloc,
       allocation_from_limit: from_limit,
-      sell_through_pct:      sell_through,
-      allocation_cap_hit:    cap_hit
+      sell_through_pct: sell_through,
+      allocation_cap_hit: cap_hit
     )
   end
 
@@ -349,10 +353,10 @@ class TicketRevenueAnalysis
       avg      = count > 0 ? gross / count : BigDecimal('0')
       pct      = total_count > 0 ? (count.to_f / total_count * 100).round(1) : 0
       {
-        class_code:    class_by_id[tc_id]&.class_code,
-        ticket_count:  count,
-        avg_price:     avg,
-        gross:         gross,
+        class_code: class_by_id[tc_id]&.class_code,
+        ticket_count: count,
+        avg_price: avg,
+        gross: gross,
         pct_of_bucket: pct
       }
     end.sort_by { |h| -h[:avg_price] }
@@ -368,25 +372,25 @@ class TicketRevenueAnalysis
     cap_hit      = from_limit && bucket_alloc > 0 && total_count >= bucket_alloc
 
     BucketResult.new(
-      name:                  'Comp',
-      ticket_class_ids:      tc_ids,
-      class_codes:           class_codes,
-      entry_price:           BigDecimal('0'),
-      bucket_type:           :comp,
-      paid_count:            total_count,
-      avg_paid_price:        BigDecimal('0'),
-      price_min:             nil,
-      price_max:             nil,
-      ladder_distribution:   {},
-      class_breakdown:       [],
-      actual_gross:          BigDecimal('0'),
-      flat_base_gross:       BigDecimal('0'),
-      dynamic_lift_dollars:  BigDecimal('0'),
-      dynamic_lift_pct:      nil,
-      bucket_allocation:     bucket_alloc,
+      name: 'Comp',
+      ticket_class_ids: tc_ids,
+      class_codes: class_codes,
+      entry_price: BigDecimal('0'),
+      bucket_type: :comp,
+      paid_count: total_count,
+      avg_paid_price: BigDecimal('0'),
+      price_min: nil,
+      price_max: nil,
+      ladder_distribution: {},
+      class_breakdown: [],
+      actual_gross: BigDecimal('0'),
+      flat_base_gross: BigDecimal('0'),
+      dynamic_lift_dollars: BigDecimal('0'),
+      dynamic_lift_pct: nil,
+      bucket_allocation: bucket_alloc,
       allocation_from_limit: from_limit,
-      sell_through_pct:      sell_through,
-      allocation_cap_hit:    cap_hit
+      sell_through_pct: sell_through,
+      allocation_cap_hit: cap_hit
     )
   end
 
@@ -400,44 +404,44 @@ class TicketRevenueAnalysis
     cap_hit      = from_limit && bucket_alloc > 0 && total_count >= bucket_alloc
 
     BucketResult.new(
-      name:                  'No Revenue',
-      ticket_class_ids:      tc_ids,
-      class_codes:           class_codes,
-      entry_price:           BigDecimal('0'),
-      bucket_type:           :zero_rev,
-      paid_count:            total_count,
-      avg_paid_price:        BigDecimal('0'),
-      price_min:             nil,
-      price_max:             nil,
-      ladder_distribution:   {},
-      class_breakdown:       [],
-      actual_gross:          BigDecimal('0'),
-      flat_base_gross:       BigDecimal('0'),
-      dynamic_lift_dollars:  BigDecimal('0'),
-      dynamic_lift_pct:      nil,
-      bucket_allocation:     bucket_alloc,
+      name: 'No Revenue',
+      ticket_class_ids: tc_ids,
+      class_codes: class_codes,
+      entry_price: BigDecimal('0'),
+      bucket_type: :zero_rev,
+      paid_count: total_count,
+      avg_paid_price: BigDecimal('0'),
+      price_min: nil,
+      price_max: nil,
+      ladder_distribution: {},
+      class_breakdown: [],
+      actual_gross: BigDecimal('0'),
+      flat_base_gross: BigDecimal('0'),
+      dynamic_lift_dollars: BigDecimal('0'),
+      dynamic_lift_pct: nil,
+      bucket_allocation: bucket_alloc,
       allocation_from_limit: from_limit,
-      sell_through_pct:      sell_through,
-      allocation_cap_hit:    cap_hit
+      sell_through_pct: sell_through,
+      allocation_cap_hit: cap_hit
     )
   end
 
   def empty_summary(perf_count, completed_perfs)
     Summary.new(
-      production:                  @production,
-      buckets:                     [],
-      comp_count:                  0,
-      total_capacity:              0,
-      total_paid:                  0,
-      capacity_utilization_pct:    0,
-      gross_revenue:               BigDecimal('0'),
-      cash_collected:              BigDecimal('0'),
-      overall_avg_paid_price:      BigDecimal('0'),
-      total_dynamic_lift_dollars:  BigDecimal('0'),
-      total_dynamic_lift_pct:      nil,
-      performance_count:           perf_count,
+      production: @production,
+      buckets: [],
+      comp_count: 0,
+      total_capacity: 0,
+      total_paid: 0,
+      capacity_utilization_pct: 0,
+      gross_revenue: BigDecimal('0'),
+      cash_collected: BigDecimal('0'),
+      overall_avg_paid_price: BigDecimal('0'),
+      total_dynamic_lift_dollars: BigDecimal('0'),
+      total_dynamic_lift_pct: nil,
+      performance_count: perf_count,
       completed_performance_count: completed_perfs,
-      special_offer_usage:         []
+      special_offer_usage: []
     )
   end
 end

@@ -44,7 +44,7 @@ RSpec.describe AudienceCohortReport do
       # AAAAAAAA (8) + " - " (3) + label + " - Last 3mo" (11) > 50 → drop window.
       # AAAAAAAA (8) + " - " (3) + label ≤ 50 → keep metric.
       stub_const("AudienceCohortReport::METRIC_LABELS", {
-        "first_time_vs_comparison" => "First Time Visitor (group qualifier)"  # 36 chars
+        "first_time_vs_comparison" => "First Time Visitor (group qualifier)" # 36 chars
       }.freeze)
 
       r = described_class.new(42, [1], :first_time_vs_comparison, "3 months", false, [], 99)

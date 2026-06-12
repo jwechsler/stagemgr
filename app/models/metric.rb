@@ -1,8 +1,8 @@
 class Metric < ApplicationRecord
-
   self.abstract_class = true
   # Including the MetricsExporter module to use its methods
   include MetricsExporter
+
   # Define this method in subclasses to specify the columns to be exported
   def self.export_columns
     raise NotImplementedError, "Subclasses must define `export_columns`."

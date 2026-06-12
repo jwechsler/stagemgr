@@ -1,5 +1,4 @@
 class HouseManagementReport < Report
-
   attr_accessor :for_date
 
   def initialize(for_date, reporting_user_id = nil)
@@ -8,10 +7,11 @@ class HouseManagementReport < Report
   end
 
   def self.ticket_orders(for_date)
-    TicketOrder.includes(:address, {:performance=>:production}).where(
+    TicketOrder.includes(:address, { :performance => :production }).where(
       "performances.performance_date = :performance_date and orders.status in (:attending)",
-      {:performance_date=>for_date, :attending=>(Order::FINALIZED_STATUSES + Order::HELD_STATUSES)}).
-      order('productions.venue_id, performances.performance_time, addresses.last_name, addresses.first_name')
+      { :performance_date => for_date, :attending => (Order::FINALIZED_STATUSES + Order::HELD_STATUSES) }
+    )
+               .order('productions.venue_id, performances.performance_time, addresses.last_name, addresses.first_name')
   end
 
   def ticket_orders
@@ -22,19 +22,20 @@ class HouseManagementReport < Report
     unless address.nil?
       address.address_tags.select do |tag|
         next false if tag.tag_label == AddressTag::EXTERNAL_ID
+
         tag.theater_id.blank? || tag.theater.producing?
       end
     else
       Array.new
     end
-
   end
 
   def visits_by_address(address_ids)
     return {} if address_ids.empty?
+
     scope = TicketOrder.attending.joins(:performance)
-      .where(address_id: address_ids)
-      .where("performances.performance_date <= ?", self.for_date)
+                       .where(address_id: address_ids)
+                       .where("performances.performance_date <= ?", self.for_date)
     range_days = $SERVER_CONFIG['report_frequent_customer_range_days']
     scope = scope.where("performances.performance_date >= ?", self.for_date - range_days.to_i) if range_days
     scope.group(:address_id).count
@@ -47,7 +48,8 @@ class HouseManagementReport < Report
   def create
     orders = self.ticket_orders
     report = Array.new
-    headers = [:production_name, :performance_code, :patron_name, :seats, :special_requests, :notes, :is_member, :is_donor, :visits, :photo]
+    headers = [:production_name, :performance_code, :patron_name, :seats, :special_requests, :notes, :is_member,
+               :is_donor, :visits, :photo]
     visit_counts = visits_by_address(orders.map(&:address_id).uniq)
     threshold = frequent_customer_threshold
     orders.each do |o|
@@ -63,7 +65,7 @@ class HouseManagementReport < Report
         end
         unless print_tags.empty?
           note_column += "<br/>" unless note_column.blank?
-          note_column += "Patron Notes: " + print_tags.map{|tag|
+          note_column += "Patron Notes: " + print_tags.map { |tag|
             r = "<i><font size=\"-1\" >#{tag.tag_label}"
             r += " [#{tag.theater.name}]" unless (tag.theater_id.nil? || tag.theater.producing?)
             r += " (#{tag.tag_value})" unless tag.tag_value.blank?
@@ -80,7 +82,7 @@ class HouseManagementReport < Report
           :production_name => o.performance.production.name,
           :patron_name => o.address.full_name,
           :performance_code => o.performance.performance_code,
-          :special_requests =>  (o.special_request.blank? ? nil : o.special_request) || (o.address.is_current_member? ? o.address.current_membership.preferred_seating : ''),
+          :special_requests => (o.special_request.blank? ? nil : o.special_request) || (o.address.is_current_member? ? o.address.current_membership.preferred_seating : ''),
           :notes => note_column,
           :is_member => o.address.is_current_member?,
           :is_donor => o.address.is_donor? ? o.address.most_recent_donation_tier : "",
@@ -93,5 +95,4 @@ class HouseManagementReport < Report
 
     [headers, report]
   end
-
 end

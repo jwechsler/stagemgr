@@ -1,6 +1,8 @@
 module PerformancesHelper
   def price_range(performance)
-    visible = performance.ticket_class_allocations.select { |tca| !tca.ticket_class.nil? && tca.available? && tca.ticket_class.web_visible? && tca.ticket_class.show_in_pricing_range? }
+    visible = performance.ticket_class_allocations.select { |tca|
+      !tca.ticket_class.nil? && tca.available? && tca.ticket_class.web_visible? && tca.ticket_class.show_in_pricing_range?
+    }
 
     unless visible.empty?
       min_price = visible.first.ticket_class.ticket_price
@@ -12,8 +14,8 @@ module PerformancesHelper
       display_min = min_price.to_money
       display_max = max_price.to_money
 
-      price_range = raw "<span class=\"price_range\">#{display_min.format(:no_cents_if_whole=>true)}"
-      price_range += raw "-#{display_max.format(:no_cents_if_whole=>true)}" unless max_price == min_price
+      price_range = raw "<span class=\"price_range\">#{display_min.format(:no_cents_if_whole => true)}"
+      price_range += raw "-#{display_max.format(:no_cents_if_whole => true)}" unless max_price == min_price
       price_range += raw "</span>"
     else
       price_range = ''
@@ -22,10 +24,9 @@ module PerformancesHelper
 
   def new_order_path(performance)
     if performance.order_url_override.blank?
-      new_production_performance_order_path(performance.production.id,performance.id)
+      new_production_performance_order_path(performance.production.id, performance.id)
     else
       performance.order_url_override
     end
   end
-
 end

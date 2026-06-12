@@ -1,34 +1,33 @@
-
 Given /^I enter a performance on "(.*?)" with code "(.*?)"$/ do |perf_date, perf_code|
-  fill_in "performance_performance_date", :with=>perf_date
-  select "Active", :from=>"Status"
-  fill_in "Performance code", :with=>perf_code
+  fill_in "performance_performance_date", :with => perf_date
+  select "Active", :from => "Status"
+  fill_in "Performance code", :with => perf_code
 end
 
 Given /^I enter a performance date of "(.*?)"$/ do |perf_date|
-  fill_in "performance_performance_date", :with=>perf_date
+  fill_in "performance_performance_date", :with => perf_date
   page.execute_script("$('#performance_performance_date').val('#{perf_date}')")
-  #find(:css, '#performance_performance_date').value(perf_date)
+  # find(:css, '#performance_performance_date').value(perf_date)
 end
 
 Given /^I enter a trigger to "(.*?)" based on "(.*?)" days before for the (\d+)(?:st|nd|rd|th) ticket class$/ do |code, value, num|
-  fill_in "performance_ticket_class_allocations_attributes_#{num-1}_shift_days_before_performance", :with=>value
-  select code, :from=>"performance_ticket_class_allocations_attributes_#{num-1}_shift_to_code"
-  check "performance_ticket_class_allocations_attributes_#{num-1}_shiftable"
+  fill_in "performance_ticket_class_allocations_attributes_#{num - 1}_shift_days_before_performance", :with => value
+  select code, :from => "performance_ticket_class_allocations_attributes_#{num - 1}_shift_to_code"
+  check "performance_ticket_class_allocations_attributes_#{num - 1}_shiftable"
 end
 
 Given /^I enter a trigger to "(.*?)" based on capacity of "(.*?)" for the (\d+)(?:st|nd|rd|th) ticket class$/ do |code, value, num|
-  fill_in "performance_ticket_class_allocations_attributes_#{num-1}_shift_when_capacity_over", :with=>value
-  select code, :from=>"performance_ticket_class_allocations_attributes_#{num-1}_shift_to_code"
-  check "performance_ticket_class_allocations_attributes_#{num-1}_shiftable"
+  fill_in "performance_ticket_class_allocations_attributes_#{num - 1}_shift_when_capacity_over", :with => value
+  select code, :from => "performance_ticket_class_allocations_attributes_#{num - 1}_shift_to_code"
+  check "performance_ticket_class_allocations_attributes_#{num - 1}_shiftable"
 end
 
 Given /^I enter a custom feature description of "(.*?)"$/ do |description|
-  fill_in "performance_special_feature_display_markdown", :with=>description
+  fill_in "performance_special_feature_display_markdown", :with => description
 end
 
 Given /^I enter a custom feature email of "(.*?)"$/ do |email|
-  fill_in "performance_special_feature_email_markdown", :with=>email
+  fill_in "performance_special_feature_email_markdown", :with => email
 end
 
 Then(/^show me the yaml for performance "(.*?)"$/) do |perf_code|
@@ -45,7 +44,7 @@ Then (/^the performance date for "(.*?)" is "(.*?)"$/) do |perf_code, required_d
 end
 
 Given(/^I enter an override URL of "(.*?)"$/) do |url|
-  fill_in "performance_order_url_override", :with=>url
+  fill_in "performance_order_url_override", :with => url
 end
 
 # Steps for release held seats feature
@@ -70,7 +69,7 @@ Given(/^a theater with reserved seating exists$/) do
     @seat_map = SeatMap.create!(venue: @venue)
     # Create seats
     10.times do |i|
-      Seat.create!(seat_map: @seat_map, row: "A", seat_number: (i+1).to_s, location: "A#{i+1}")
+      Seat.create!(seat_map: @seat_map, row: "A", seat_number: (i + 1).to_s, location: "A#{i + 1}")
     end
   end
 
@@ -91,8 +90,10 @@ Given(/^a theater with reserved seating exists$/) do
   )
 
   # Create default ticket classes
-  TicketClass.create!(production: @production, class_code: "ADULT", class_name: "Adult", ticket_price: 25.00, ticket_type: 'Fixed', ticketing_fee: 0.0)
-  TicketClass.create!(production: @production, class_code: "SENIOR", class_name: "Senior", ticket_price: 20.00, ticket_type: 'Fixed', ticketing_fee: 0.0)
+  TicketClass.create!(production: @production, class_code: "ADULT", class_name: "Adult", ticket_price: 25.00,
+                      ticket_type: 'Fixed', ticketing_fee: 0.0)
+  TicketClass.create!(production: @production, class_code: "SENIOR", class_name: "Senior", ticket_price: 20.00,
+                      ticket_type: 'Fixed', ticketing_fee: 0.0)
 end
 
 Given(/^a test performance "(.*?)" exists$/) do |perf_code|
@@ -226,17 +227,19 @@ Given(/^a general admission production "(.*?)" exists$/) do |production_name|
     season: Date.today.year,
     theater: theater,
     venue: venue,
-    seat_map: nil,  # No seat map = general admission
+    seat_map: nil, # No seat map = general admission
     opening_at: Date.today,
     closing_at: Date.today + 30.days,
     press_opening_at: Date.today,
     first_preview_at: Date.today,
-    capacity: 100  # Manual capacity for general admission
+    capacity: 100 # Manual capacity for general admission
   )
 
   # Create default ticket classes
-  TicketClass.create!(production: @ga_production, class_code: "ADULT", class_name: "Adult", ticket_price: 25.00, ticket_type: 'Fixed', ticketing_fee: 0.0)
-  TicketClass.create!(production: @ga_production, class_code: "SENIOR", class_name: "Senior", ticket_price: 20.00, ticket_type: 'Fixed', ticketing_fee: 0.0)
+  TicketClass.create!(production: @ga_production, class_code: "ADULT", class_name: "Adult", ticket_price: 25.00,
+                      ticket_type: 'Fixed', ticketing_fee: 0.0)
+  TicketClass.create!(production: @ga_production, class_code: "SENIOR", class_name: "Senior", ticket_price: 20.00,
+                      ticket_type: 'Fixed', ticketing_fee: 0.0)
 end
 
 Given(/^a performance "(.*?)" exists for production "(.*?)"$/) do |perf_code, production_name|
@@ -267,19 +270,19 @@ end
 Then(/^the performance "(.*?)" should have (\d+) held seats without orders$/) do |perf_code, count|
   performance = Performance.find_by_performance_code(perf_code)
   actual_count = performance.seat_assignments
-    .where(status: SeatAssignment::TEMPORARY)
-    .where("order_uuid is null OR NOT EXISTS (SELECT * FROM orders WHERE uuid = seat_assignments.order_uuid AND status IN (?))", Order::HOLDING_SEAT_STATUSES)
-    .count
+                            .where(status: SeatAssignment::TEMPORARY)
+                            .where("order_uuid is null OR NOT EXISTS (SELECT * FROM orders WHERE uuid = seat_assignments.order_uuid AND status IN (?))", Order::HOLDING_SEAT_STATUSES)
+                            .count
   expect(actual_count).to eq(count.to_i)
 end
 
 Then(/^the performance "(.*?)" should have (\d+) held seats with valid orders$/) do |perf_code, count|
   performance = Performance.find_by_performance_code(perf_code)
   actual_count = performance.seat_assignments
-    .joins("INNER JOIN orders ON seat_assignments.order_uuid = orders.uuid")
-    .where(status: SeatAssignment::TEMPORARY)
-    .where("orders.status IN (?)", Order::HOLDING_SEAT_STATUSES)
-    .count
+                            .joins("INNER JOIN orders ON seat_assignments.order_uuid = orders.uuid")
+                            .where(status: SeatAssignment::TEMPORARY)
+                            .where("orders.status IN (?)", Order::HOLDING_SEAT_STATUSES)
+                            .count
   expect(actual_count).to eq(count.to_i)
 end
 
@@ -288,4 +291,3 @@ Then(/^the performance "(.*?)" should have (\d+) assigned seat(?:s)?$/) do |perf
   actual_count = performance.seat_assignments.where(status: SeatAssignment::ASSIGNED).count
   expect(actual_count).to eq(count.to_i)
 end
-

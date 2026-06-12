@@ -1,5 +1,4 @@
 class Admin::RefundOrdersController < Admin::ApplicationController
-
   def new
     authorize! :refund, Order
     @original_order = Order.find(params[:order_id])
@@ -22,9 +21,7 @@ class Admin::RefundOrdersController < Admin::ApplicationController
       flash[:error] = "Refund failed: #{e.message}"
     end
     respond_to do |format|
-      
       format.html { redirect_to(edit_admin_order_path(@original_order.id)) }
     end
-
   end
 end

@@ -22,9 +22,9 @@ RSpec.describe RevenueCalculator, type: :service do
     context 'with a settled ticket order paid with credit card' do
       let!(:order) do
         FactoryBot.create(:ticket_order,
-          :for_a_single_ticket,
-          :paid_with_credit_card,
-          performance: performance)
+                          :for_a_single_ticket,
+                          :paid_with_credit_card,
+                          performance: performance)
       end
 
       before do
@@ -63,9 +63,9 @@ RSpec.describe RevenueCalculator, type: :service do
     context 'with refund/exchange offset payments' do
       let!(:order) do
         FactoryBot.create(:ticket_order,
-          :for_a_single_ticket,
-          :paid_with_credit_card,
-          performance: performance)
+                          :for_a_single_ticket,
+                          :paid_with_credit_card,
+                          performance: performance)
       end
 
       it 'nets negative offset payments against cash_collected' do
@@ -96,9 +96,9 @@ RSpec.describe RevenueCalculator, type: :service do
     context 'accepting a pre-loaded array' do
       let!(:order) do
         FactoryBot.create(:ticket_order,
-          :for_a_single_ticket,
-          :paid_with_credit_card,
-          performance: performance)
+                          :for_a_single_ticket,
+                          :paid_with_credit_card,
+                          performance: performance)
       end
 
       it 'works with an Array of orders and applies the status filter' do

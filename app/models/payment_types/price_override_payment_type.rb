@@ -1,5 +1,4 @@
 class PriceOverridePaymentType < PaymentType
-
   def receipt_description
     'Carryover'
   end
@@ -7,5 +6,4 @@ class PriceOverridePaymentType < PaymentType
   def display_name
     'Carryover'
   end
-
 end

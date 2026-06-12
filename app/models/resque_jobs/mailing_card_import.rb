@@ -5,7 +5,6 @@ class MailingCardImport
 
   # find address from import_row
   def self.find_address_from_import_row
-
   end
 
   def self.perform(filestore_id, production_id)
@@ -25,14 +24,14 @@ class MailingCardImport
       zip_idx = 0
       zip4_idx = 0
       email_idx = 0
-      phone_idx = 0 
+      phone_idx = 0
       production = Production.find(production_id) unless production_id == 0
       filestore.notes = "Importing #{production.nil? ? '' : production.name + ' '}attendees..."
       filestore.save
       CSV.foreach(filestore.path) do |row|
         if headers.nil? then
           _index = 0
-          headers = Hash[row.map {|header| _index += 1; [header, _index]}]
+          headers = Hash[row.map { |header| _index += 1; [header, _index] }]
           first_name_idx = headers['FirstName'] - 1
           last_name_idx = headers['LastName'] - 1
           full_name_idx = headers['FullName'] - 1
@@ -53,7 +52,7 @@ class MailingCardImport
           if row[full_name_idx].blank?
             a.full_name = ""
             a.full_name = a.first_name unless a.first_name.blank?
-            a.full_name += a.last_name.blank? ?  a.last_name : " #{a.last_name}"  unless a.last_name.blank?
+            a.full_name += a.last_name.blank? ? a.last_name : " #{a.last_name}" unless a.last_name.blank?
           else
             a.full_name = row[full_name_idx]
           end
@@ -78,18 +77,14 @@ class MailingCardImport
             end
             Resque.enqueue(AddAddressToMyEmmaJob, a.id, production_id)
           end
-          
-        end
 
+        end
       end
       filestore.notes = "Imported #{total} contacts, merged #{merged} as attendees#{production.nil? ? '' : ' ' + production.name}."
       filestore.save
-    rescue Exception=>e
+    rescue Exception => e
       filestore.notes = "Error: #{e.message}"
-        filestore.save
+      filestore.save
     end
   end
-
 end
-
-

@@ -46,11 +46,11 @@ RSpec.describe PerformanceBroadcast, type: :model do
   describe '#recipient_orders' do
     let(:broadcast) do
       FactoryBot.create(:performance_broadcast,
-             performance: performance,
-             user: user,
-             subject: 'Test Subject',
-             from_address: 'test@example.com',
-             body: 'Test body')
+                        performance: performance,
+                        user: user,
+                        subject: 'Test Subject',
+                        from_address: 'test@example.com',
+                        body: 'Test body')
     end
 
     let!(:valid_address) do
@@ -68,30 +68,30 @@ RSpec.describe PerformanceBroadcast, type: :model do
     context 'with eligible orders' do
       let!(:processed_order) do
         FactoryBot.create(:ticket_order, :for_a_pair_of_tickets,
-               performance: performance,
-               address: valid_address,
-               status: 'Processed')
+                          performance: performance,
+                          address: valid_address,
+                          status: 'Processed')
       end
 
       let!(:hold_order) do
         FactoryBot.create(:ticket_order, :for_a_pair_of_tickets,
-               performance: performance,
-               address: FactoryBot.create(:address, email: 'hold@example.com', placeholder: false),
-               status: 'Hold')
+                          performance: performance,
+                          address: FactoryBot.create(:address, email: 'hold@example.com', placeholder: false),
+                          status: 'Hold')
       end
 
       let!(:processing_order) do
         FactoryBot.create(:ticket_order, :for_a_pair_of_tickets,
-               performance: performance,
-               address: FactoryBot.create(:address, email: 'processing@example.com', placeholder: false),
-               status: 'Processing')
+                          performance: performance,
+                          address: FactoryBot.create(:address, email: 'processing@example.com', placeholder: false),
+                          status: 'Processing')
       end
 
       let!(:fulfilled_order) do
         FactoryBot.create(:ticket_order, :for_a_pair_of_tickets,
-               performance: performance,
-               address: FactoryBot.create(:address, email: 'fulfilled@example.com', placeholder: false),
-               status: 'Fulfilled')
+                          performance: performance,
+                          address: FactoryBot.create(:address, email: 'fulfilled@example.com', placeholder: false),
+                          status: 'Fulfilled')
       end
 
       it 'includes orders with eligible statuses' do
@@ -104,23 +104,23 @@ RSpec.describe PerformanceBroadcast, type: :model do
     context 'with ineligible orders' do
       let!(:canceled_order) do
         FactoryBot.create(:ticket_order, :for_a_pair_of_tickets,
-               performance: performance,
-               address: valid_address,
-               status: 'Canceled')
+                          performance: performance,
+                          address: valid_address,
+                          status: 'Canceled')
       end
 
       let!(:placeholder_order) do
         FactoryBot.create(:ticket_order, :for_a_pair_of_tickets,
-               performance: performance,
-               address: placeholder_address,
-               status: 'Processed')
+                          performance: performance,
+                          address: placeholder_address,
+                          status: 'Processed')
       end
 
       let!(:no_email_order) do
         FactoryBot.create(:ticket_order, :for_a_pair_of_tickets,
-               performance: performance,
-               address: no_email_address,
-               status: 'Processed')
+                          performance: performance,
+                          address: no_email_address,
+                          status: 'Processed')
       end
 
       let!(:different_performance_order) do
@@ -129,9 +129,9 @@ RSpec.describe PerformanceBroadcast, type: :model do
                                               performance_date: Date.tomorrow,
                                               performance_time: Time.parse('20:00'))
         FactoryBot.create(:ticket_order, :for_a_pair_of_tickets,
-               performance: other_performance,
-               address: valid_address,
-               status: 'Processed')
+                          performance: other_performance,
+                          address: valid_address,
+                          status: 'Processed')
       end
 
       it 'excludes canceled orders' do
@@ -154,16 +154,16 @@ RSpec.describe PerformanceBroadcast, type: :model do
     context 'with duplicate addresses' do
       let!(:order1) do
         FactoryBot.create(:ticket_order, :for_a_pair_of_tickets,
-               performance: performance,
-               address: valid_address,
-               status: 'Processed')
+                          performance: performance,
+                          address: valid_address,
+                          status: 'Processed')
       end
 
       let!(:order2) do
         FactoryBot.create(:ticket_order, :for_a_pair_of_tickets,
-               performance: performance,
-               address: valid_address,
-               status: 'Processed')
+                          performance: performance,
+                          address: valid_address,
+                          status: 'Processed')
       end
 
       it 'returns distinct orders' do
@@ -176,25 +176,25 @@ RSpec.describe PerformanceBroadcast, type: :model do
   describe '#queue_broadcast!' do
     let(:broadcast) do
       FactoryBot.create(:performance_broadcast,
-             performance: performance,
-             user: user,
-             subject: 'Test Subject',
-             from_address: 'test@example.com',
-             body: 'Test body')
+                        performance: performance,
+                        user: user,
+                        subject: 'Test Subject',
+                        from_address: 'test@example.com',
+                        body: 'Test body')
     end
 
     let!(:order1) do
       FactoryBot.create(:ticket_order, :for_a_pair_of_tickets,
-             performance: performance,
-             address: FactoryBot.create(:address, email: 'customer1@example.com', placeholder: false),
-             status: 'Processed')
+                        performance: performance,
+                        address: FactoryBot.create(:address, email: 'customer1@example.com', placeholder: false),
+                        status: 'Processed')
     end
 
     let!(:order2) do
       FactoryBot.create(:ticket_order, :for_a_pair_of_tickets,
-             performance: performance,
-             address: FactoryBot.create(:address, email: 'customer2@example.com', placeholder: false),
-             status: 'Fulfilled')
+                        performance: performance,
+                        address: FactoryBot.create(:address, email: 'customer2@example.com', placeholder: false),
+                        status: 'Fulfilled')
     end
 
     before do
@@ -224,7 +224,7 @@ RSpec.describe PerformanceBroadcast, type: :model do
       broadcast.queue_broadcast!
 
       tasks = OutreachTask.where(method_symbol: 'custom_performance_broadcast')
-                         .where(order_id: [order1.id, order2.id])
+                          .where(order_id: [order1.id, order2.id])
 
       expect(tasks.count).to eq(2)
 
@@ -277,7 +277,8 @@ RSpec.describe PerformanceBroadcast, type: :model do
         mailer_double = double('mailer')
         allow(mailer_double).to receive(:deliver_now)
 
-        expect(NotificationMailer).to receive(:broadcast_log_generated).with(anything, user.email).and_return(mailer_double)
+        expect(NotificationMailer).to receive(:broadcast_log_generated).with(anything,
+                                                                             user.email).and_return(mailer_double)
 
         broadcast.queue_broadcast!
       end
@@ -318,11 +319,11 @@ RSpec.describe PerformanceBroadcast, type: :model do
   describe '#generate_and_send_log' do
     let(:broadcast) do
       FactoryBot.create(:performance_broadcast,
-        performance: performance,
-        user: user,
-        subject: 'Test Subject',
-        from_address: 'test@example.com',
-        body: 'Test body')
+                        performance: performance,
+                        user: user,
+                        subject: 'Test Subject',
+                        from_address: 'test@example.com',
+                        body: 'Test body')
     end
 
     it 'creates a PerformanceBroadcastReport' do
@@ -341,7 +342,8 @@ RSpec.describe PerformanceBroadcast, type: :model do
       mailer_double = double('mailer')
       allow(mailer_double).to receive(:deliver_now)
 
-      expect(NotificationMailer).to receive(:broadcast_log_generated).once.with(anything, user.email).and_return(mailer_double)
+      expect(NotificationMailer).to receive(:broadcast_log_generated).once.with(anything,
+                                                                                user.email).and_return(mailer_double)
 
       broadcast.generate_and_send_log
     end

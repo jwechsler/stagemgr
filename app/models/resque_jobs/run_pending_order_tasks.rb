@@ -4,5 +4,4 @@ class RunPendingOrderTasks
   def self.perform()
     OrderTask.run_pending
   end
-
 end

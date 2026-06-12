@@ -23,11 +23,10 @@ RSpec.describe MailingList do
   describe ".mailing_hash_from_buyer" do
     let(:address) do
       instance_double(Address,
-        id: 12345,
-        first_name: 'A', last_name: 'B', full_name: 'A B',
-        email: 'a@example.com', line1: '1 St', line2: nil,
-        city: 'Chi', state: 'IL', zipcode: '60000', phone: '312'
-      )
+                      id: 12345,
+                      first_name: 'A', last_name: 'B', full_name: 'A B',
+                      email: 'a@example.com', line1: '1 St', line2: nil,
+                      city: 'Chi', state: 'IL', zipcode: '60000', phone: '312')
     end
 
     before do

@@ -2,9 +2,8 @@
 #  Basic utility routines to create/export data for TRG / direct mail uses
 #
 class MailingList < Report
-
   TRG_IMPORT_HEADERS = [:Segment, :Season, :Title, :FirstName, :LastName, :FullName, :CompanyName, :Email, :Address1, :Address2,
-               :Address3, :City, :State, :Zip, :HomePhone, :BusinessPhone, :ClientPatronID, :StagemgrPatronID]
+                        :Address3, :City, :State, :Zip, :HomePhone, :BusinessPhone, :ClientPatronID, :StagemgrPatronID]
 
   # theater_ids drives the per-theater :ClientPatronID lookup for TRG
   # exports: `address.external_id(theater_ids)` returns the patron's id in
@@ -29,20 +28,20 @@ class MailingList < Report
   end
 
   def extract_addresses_from_ticket_orders(orders, allow_email_export = false, email_attendees = nil)
-
-    order_set = orders.select{|o| !o.performance.nil? && !o.performance.production.nil?}.to_set
+    order_set = orders.select { |o| !o.performance.nil? && !o.performance.production.nil? }.to_set
     members_by_email = email_attendees || Hash.new
     order_set.each do |order|
       consolidation_code = (order.performance.production.theater.producing?) ? 'ALL' : 'REN'
       buyer_type = case
-      when order.paid_with_membership?
-        'MEM'
-      when order.all_tickets_complimentary?
-        'CMP'
-      else
-        'STB'
-      end
-      self.add_hash_to_data(consolidation_code, order.address, order.performance.production, buyer_type, order.performance.performance_date, allow_email_export, email_attendees)
+                   when order.paid_with_membership?
+                     'MEM'
+                   when order.all_tickets_complimentary?
+                     'CMP'
+                   else
+                     'STB'
+                   end
+      self.add_hash_to_data(consolidation_code, order.address, order.performance.production, buyer_type,
+                            order.performance.performance_date, allow_email_export, email_attendees)
     end
   end
 
@@ -50,8 +49,9 @@ class MailingList < Report
     attendees = production.addresses
     attendees.each do |address|
       consolidation_code = production.theater.producing? ? 'ALL' : 'REN'
-      self.add_hash_to_data(consolidation_code, address, production, consolidation_code, production.closing_at + 1.day, allow_email_export, email_attendees)
-    end 
+      self.add_hash_to_data(consolidation_code, address, production, consolidation_code, production.closing_at + 1.day,
+                            allow_email_export, email_attendees)
+    end
   end
 
   # Instance wrapper that threads the report's theater_ids context into the
@@ -63,16 +63,16 @@ class MailingList < Report
   end
 
   def self.mailing_hash_from_buyer(address, allow_email_export = false, theater_ids = [])
-    Hash[:FirstName => address.first_name, :LastName=>address.last_name,
-               :FullName => address.full_name, :CompanyName => '',
-               :Address1 => address.line1,
-               :Address2=>address.line2, :Address3=>'',
-               :City=>address.city, :State => address.state,
-               :Zip => address.zipcode,
-               :Email => (allow_email_export ? address.email : ''),
-               :HomePhone => address.phone, :BusinessPhone => '',
-               :ClientPatronID => client_patron_id_for(address, theater_ids),
-               :StagemgrPatronID => address.id ]
+    Hash[:FirstName => address.first_name, :LastName => address.last_name,
+         :FullName => address.full_name, :CompanyName => '',
+         :Address1 => address.line1,
+         :Address2 => address.line2, :Address3 => '',
+         :City => address.city, :State => address.state,
+         :Zip => address.zipcode,
+         :Email => (allow_email_export ? address.email : ''),
+         :HomePhone => address.phone, :BusinessPhone => '',
+         :ClientPatronID => client_patron_id_for(address, theater_ids),
+         :StagemgrPatronID => address.id ]
   end
 
   # Patron's id in the theater's external system (TRG, etc.), looked up via
@@ -84,8 +84,10 @@ class MailingList < Report
   end
 
   private
+
   # adds address information to the data hash.  Only does so once per address_id
-  def add_hash_to_data(consolidation_code, address, production, buyer_type, performance_date, allow_email_export, members_by_email)
+  def add_hash_to_data(consolidation_code, address, production, buyer_type, performance_date, allow_email_export,
+                       members_by_email)
     @processed_addresses[production.id] = Set.new if @processed_addresses[production.id].nil?
     unless @processed_addresses[production.id].include?(address.id)
       season_tag = production.season.to_i
@@ -100,7 +102,7 @@ class MailingList < Report
       hash[:Title] = production.name
       hash[:Season] = season_tag
       hash[:AttendedOn] = performance_date
-      
+
       self.data[consolidation_code] << hash
       theater_hash = hash.dup
       theater_hash[:Title] = "#{production.theater.name} Attendee"
@@ -111,5 +113,4 @@ class MailingList < Report
       @processed_addresses[production.id] << address.id
     end
   end
-
 end

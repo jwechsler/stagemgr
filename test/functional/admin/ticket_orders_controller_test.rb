@@ -10,19 +10,19 @@ class Admin::TicketOrdersControllerTest < ActionController::TestCase
       @payment_type = FactoryBot.create :cash_payment_type
       flexmock(@controller).should_receive(:admin_only).and_return(true)
       assert_difference('Order.count') do
-        post :create, :commit=>'Place Order',
-             "ticket_order"=>{
-                 "address_attributes"=>address_hash,
-                 "performance_code"=>@performance.performance_code,
-                 "ticket_line_items_attributes"=>{
-                     "0"=>{
-                         "ticket_class_code"=>@ticket_class.class_code,
-                         "ticket_count"=>"5"
-                     }
-                 },
-                 "payment_type_id"=>@payment_type.id,
-                 "production_code"=>@production.production_code
-             }
+        post :create, :commit => 'Place Order',
+                      "ticket_order" => {
+                        "address_attributes" => address_hash,
+                        "performance_code" => @performance.performance_code,
+                        "ticket_line_items_attributes" => {
+                          "0" => {
+                            "ticket_class_code" => @ticket_class.class_code,
+                            "ticket_count" => "5"
+                          }
+                        },
+                        "payment_type_id" => @payment_type.id,
+                        "production_code" => @production.production_code
+                      }
         assert_equal 'Order was successfully saved and is now Processed', flash[:notice]
       end
       new_order = Order.last
@@ -49,24 +49,24 @@ class Admin::TicketOrdersControllerTest < ActionController::TestCase
       end
 
       assert_difference('Order.count') do
-        post :create, :commit=>'Place Order',
-             "ticket_order"=>{
-                 "address_attributes"=>address_hash,
-                 "performance_code"=>@performance.performance_code,
-                 "credit_card_expiration_month"=>'09',
-                 "credit_card_expiration_year"=>'2014',
-                 "credit_card_verification_number"=>'123',
-                 "credit_card_number"=>'123412341234',
-                 "credit_card_type"=>'American Express',
-                 "ticket_line_items_attributes"=>{
-                     "0"=>{
-                         "ticket_class_code"=>@ticket_class.class_code,
-                         "ticket_count"=>"5"
-                     }
-                 },
-                 "payment_type_id"=>@payment_type.id,
-                 "production_code"=>@production.production_code
-             }
+        post :create, :commit => 'Place Order',
+                      "ticket_order" => {
+                        "address_attributes" => address_hash,
+                        "performance_code" => @performance.performance_code,
+                        "credit_card_expiration_month" => '09',
+                        "credit_card_expiration_year" => '2014',
+                        "credit_card_verification_number" => '123',
+                        "credit_card_number" => '123412341234',
+                        "credit_card_type" => 'American Express',
+                        "ticket_line_items_attributes" => {
+                          "0" => {
+                            "ticket_class_code" => @ticket_class.class_code,
+                            "ticket_count" => "5"
+                          }
+                        },
+                        "payment_type_id" => @payment_type.id,
+                        "production_code" => @production.production_code
+                      }
         assert_equal 'Order was successfully saved and is now Processed', flash[:notice]
       end
       new_order = Order.last

@@ -42,20 +42,20 @@ namespace :migrate_paperclip do
                 end
 
                 @active_storage_blob_statement.execute(
-                    key(instance, attachment),
-                    instance.send("#{attachment}_file_name"),
-                    instance.send("#{attachment}_content_type"),
-                    instance.send("#{attachment}_file_size"),
-                    checksum(instance.send(attachment)),
-                    instance.updated_at.iso8601
-                  )
+                  key(instance, attachment),
+                  instance.send("#{attachment}_file_name"),
+                  instance.send("#{attachment}_content_type"),
+                  instance.send("#{attachment}_file_size"),
+                  checksum(instance.send(attachment)),
+                  instance.updated_at.iso8601
+                )
 
                 @active_storage_attachment_statement.execute(
-                    attachment,
-                    model.name,
-                    instance.id,
-                    instance.updated_at.iso8601,
-                  )
+                  attachment,
+                  model.name,
+                  instance.id,
+                  instance.updated_at.iso8601,
+                )
               end
             end
           end
@@ -99,14 +99,14 @@ namespace :migrate_paperclip do
           end.compact
 
           attachments.each do |attachment|
-            migrate_data(attachment,model)
+            migrate_data(attachment, model)
           end
         end
       end
 
       private
 
-      def migrate_data(attachment,model)
+      def migrate_data(attachment, model)
         model.where.not("#{attachment}_file_name": nil).find_each do |instance|
           name = instance.send("#{attachment}_file_name")
           content_type = instance.send("#{attachment}_content_type")
@@ -118,11 +118,10 @@ namespace :migrate_paperclip do
             io: open(url),
             filename: name,
             content_type: content_type
-            )
+          )
         end
       end
     end
     puts "Creating blobs in active storage from paperclip"
   end
-
 end

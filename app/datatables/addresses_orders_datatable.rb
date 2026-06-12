@@ -1,5 +1,4 @@
 class AddressesOrdersDatatable < DatatableBase
-  
   def view_columns
     # Declare strings in this format: ModelName.column_name
     # or in aliased_join_table.column_name format
@@ -7,8 +6,8 @@ class AddressesOrdersDatatable < DatatableBase
       order: { source: 'Order.id' },
       created: { source: 'Order.created_at' },
       status: { source: 'Order.status' },
-      description: { searchable: false, orderable: false},
-      amount: { searchable: false, orderable: false}
+      description: { searchable: false, orderable: false },
+      amount: { searchable: false, orderable: false }
     }
   end
 
@@ -16,13 +15,13 @@ class AddressesOrdersDatatable < DatatableBase
     unless records.nil?
       records.map do |order|
         {
-          order: order.decorate.id ,
+          order: order.decorate.id,
           created: order.decorate.created_at,
           description: order.decorate.description,
           amount: order.decorate.total_paid,
           status: order.decorate.status,
           DT_RowID: order.id,
-       }
+        }
       end
     else
       Array.new
@@ -36,5 +35,4 @@ class AddressesOrdersDatatable < DatatableBase
   def address
     @address ||= options[:address]
   end
-
 end

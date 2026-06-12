@@ -1,8 +1,6 @@
 require 'mail'
 class EmailValidator < ActiveModel::EachValidator
-
   def validate_each(record, attribute, value)
-
     unless value.blank?
       v = value.strip
       begin
@@ -20,8 +18,7 @@ class EmailValidator < ActiveModel::EachValidator
       rescue Exception => e
         r = false
       end
-      record.errors.add(attribute,options[:message] || "is invalid") unless r
+      record.errors.add(attribute, options[:message] || "is invalid") unless r
     end
   end
-
 end

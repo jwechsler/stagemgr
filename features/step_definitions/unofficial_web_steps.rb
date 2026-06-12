@@ -1,15 +1,15 @@
 Given /^I debug stuff$/ do
   require 'ruby-debug'
   debugger
-  a=1
+  a = 1
 end
 
 # this needs to be reimplmented
-#Given /^I follow "([^\"]*)" "([^\"]*)" link$/ do |label, nondescript_link|
+# Given /^I follow "([^\"]*)" "([^\"]*)" link$/ do |label, nondescript_link|
 #  within(:xpath, Capybara::XPath.wrap("//a[contains(.,'#{label}')]/../..")) do
 #    click_link(nondescript_link)
 #  end
-#end
+# end
 
 Then /^['"]([^\"]*)['"] should link to ['"]([^\"]*)"(?: within "([^\"]*)")$/ do |link_text,
 page_name, container|
@@ -57,7 +57,6 @@ Given /^I change "(.*?)" to "(.*?)"$/ do |field, value|
   fill_in(field, :with => value)
 end
 
-
 Given /^I select ([0-9]+\/[0-9]+\/[0-9]+) from "([^\"]*)"$/ do |date, field|
   parent_of_date = find(:xpath, "//label[contains(.,'#{field}')]")['for']
   parent_of_date.gsub! /_1i/, ''
@@ -65,7 +64,7 @@ Given /^I select ([0-9]+\/[0-9]+\/[0-9]+) from "([^\"]*)"$/ do |date, field|
 end
 
 When /^I attach the test file "([^\"]*)" to "([^\"]*)"$/ do |filename, field|
-  path = Rails.root.join('test','files',filename).to_s
+  path = Rails.root.join('test', 'files', filename).to_s
   attach_file(field, path)
 end
 Then /^["']([^"]*)['"] should link to ['"]([^"]*)['"]$/ do |link_text, page_name|

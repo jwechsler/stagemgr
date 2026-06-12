@@ -5,7 +5,7 @@ class CreateSeats < ActiveRecord::Migration[4.2]
       t.string :zone
       t.string :row, null: false
       t.integer :seat_number, null: false
-      t.belongs_to :seat_map,  index:true
+      t.belongs_to :seat_map, index: true
       t.timestamps null: false
     end
   end

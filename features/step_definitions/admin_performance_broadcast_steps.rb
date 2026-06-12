@@ -7,10 +7,10 @@ Given(/^the performance "(.*?)" has (\d+) processed orders with valid email addr
   ticket_class = performance.production.ticket_classes.first
   count.to_i.times do |i|
     address = FactoryBot.create(:address,
-                                 email: "customer#{i}@example.com",
-                                 placeholder: false,
-                                 first_name: "Customer#{i}",
-                                 last_name: "Test")
+                                email: "customer#{i}@example.com",
+                                placeholder: false,
+                                first_name: "Customer#{i}",
+                                last_name: "Test")
     order = TicketOrder.new(
       performance: performance,
       address: address,
@@ -38,8 +38,8 @@ Given(/^the performance "(.*?)" has (\d+) canceled order(?:s)?$/) do |perf_code,
   ticket_class = performance.production.ticket_classes.first
   count.to_i.times do |i|
     address = FactoryBot.create(:address,
-                                 email: "canceled#{i}@example.com",
-                                 placeholder: false)
+                                email: "canceled#{i}@example.com",
+                                placeholder: false)
     order = TicketOrder.new(
       performance: performance,
       address: address,
@@ -80,8 +80,8 @@ Given(/^the performance "(.*?)" has (\d+) order(?:s)? with a placeholder address
   ticket_class = performance.production.ticket_classes.first
   count.to_i.times do |i|
     address = FactoryBot.create(:address,
-                                 email: "placeholder#{i}@example.com",
-                                 placeholder: true)
+                                email: "placeholder#{i}@example.com",
+                                placeholder: true)
     order = TicketOrder.new(
       performance: performance,
       address: address,
@@ -108,11 +108,11 @@ Given(/^a performance broadcast exists for performance "(.*?)"$/) do |perf_code|
   performance = Performance.find_by_performance_code(perf_code)
   user = User.first || FactoryBot.create(:user)
   FactoryBot.create(:performance_broadcast,
-                   performance: performance,
-                   user: user,
-                   subject: "Previous broadcast",
-                   from_address: "boxoffice@theaterwit.org",
-                   body: "Previous message")
+                    performance: performance,
+                    user: user,
+                    subject: "Previous broadcast",
+                    from_address: "boxoffice@theaterwit.org",
+                    body: "Previous message")
 end
 
 # Modal interaction steps

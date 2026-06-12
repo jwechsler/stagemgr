@@ -1,5 +1,4 @@
 class FoundationUiRadioButtonsInput < SimpleForm::Inputs::CollectionRadioButtonsInput
-
   # Creates a radio button set for use with Foundation UI
 
   def input(wrapper_options)
@@ -7,7 +6,7 @@ class FoundationUiRadioButtonsInput < SimpleForm::Inputs::CollectionRadioButtons
     iopts = {
       :checked => 1,
       :collection_wrapper_tag => 'div'
-     }
+    }
     return @builder.send(
       "collection_radio_buttons",
       attribute_name,
@@ -27,5 +26,4 @@ class FoundationUiRadioButtonsInput < SimpleForm::Inputs::CollectionRadioButtons
     tag << collection_builder.radio_button + collection_builder.label
     return tag.html_safe
   end # method
-
 end # class

@@ -11,5 +11,4 @@ class AddCustomFollowupLinksToProductions < ActiveRecord::Migration[4.2]
   def down
     execute "DROP FUNCTION random();"
   end
-
 end

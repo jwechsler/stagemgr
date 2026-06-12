@@ -1,15 +1,14 @@
 class Admin::ServiceItemTemplatesController < Admin::ApplicationController
-
   load_and_authorize_resource
   def index
     respond_to do |format|
       format.html
       format.json {
         params.permit!
-        render json: ServiceItemTemplateDatatable.new(params, view_context: view_context, current_user: current_user )
+        render json: ServiceItemTemplateDatatable.new(params, view_context: view_context, current_user: current_user)
       }
     end
- end
+  end
 
   def new
   end
@@ -17,7 +16,7 @@ class Admin::ServiceItemTemplatesController < Admin::ApplicationController
   def create
     respond_to do |format|
       if @service_item_template.save
-        flash[:notice] =  raw "<i>#{@service_item_template.name}</i> was successfully created."
+        flash[:notice] = raw "<i>#{@service_item_template.name}</i> was successfully created."
         format.html { redirect_to(admin_service_item_templates_path) }
       else
         format.html { render :action => "new" }
@@ -32,7 +31,7 @@ class Admin::ServiceItemTemplatesController < Admin::ApplicationController
     @service_item_template.update(service_item_template_params)
     respond_to do |format|
       if @service_item_template.save
-        flash[:notice] =  raw "<i>#{@service_item_template.name}</i> was updated."
+        flash[:notice] = raw "<i>#{@service_item_template.name}</i> was updated."
         format.html { redirect_to(admin_service_item_templates_path) }
       else
         format.html { render :action => "edit" }
@@ -51,11 +50,10 @@ class Admin::ServiceItemTemplatesController < Admin::ApplicationController
     end
   end
 
-
   private
-  def service_item_template_params
-    params.require(:service_item_template).permit(:name, :description, :internal_description, 
-      :user_selectable, :amount, :facility_fee,:suppress_for_pass_payments)
-  end
 
+  def service_item_template_params
+    params.require(:service_item_template).permit(:name, :description, :internal_description,
+                                                  :user_selectable, :amount, :facility_fee, :suppress_for_pass_payments)
+  end
 end

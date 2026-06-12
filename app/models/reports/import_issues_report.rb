@@ -1,5 +1,4 @@
 class ImportIssuesReport < SimpleReport
-
   # basic report -> simple rows/headers
 
   attr_reader :reporting_user_id
@@ -82,6 +81,7 @@ class ImportIssuesReport < SimpleReport
   end
 
   protected
+
   def self.new_address_tag(theater_id, address, tag_label, tag_value)
     sub_tag = AddressTag.new
     sub_tag.address = address
@@ -90,6 +90,4 @@ class ImportIssuesReport < SimpleReport
     sub_tag.theater_id = theater_id
     sub_tag
   end
-
 end
-

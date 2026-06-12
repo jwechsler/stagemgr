@@ -1,6 +1,5 @@
 class DonationOrder < Order
-
-  has_many :donation_line_items, :foreign_key=>:order_id, inverse_of: :donation_order
+  has_many :donation_line_items, :foreign_key => :order_id, inverse_of: :donation_order
 
   accepts_nested_attributes_for :donation_line_items,
                                 :allow_destroy => true
@@ -30,12 +29,12 @@ class DonationOrder < Order
   def all_line_items(reload_line_items = false)
     self.donation_line_items.reload if reload_line_items
     super(reload_line_items) +
-        self.donation_line_items
+      self.donation_line_items
   end
 
   def valid_payment_types_for(current_user)
     valid_payment_types = super
-    valid_payment_types.select {|pt| pt.is_a? CurrencyPaymentType }
+    valid_payment_types.select { |pt| pt.is_a? CurrencyPaymentType }
   end
 
   def reload_associated
@@ -47,13 +46,12 @@ class DonationOrder < Order
 
   def set_defaults
     super
-    self.donation_line_items.each { |di| di.order=self }
+    self.donation_line_items.each { |di| di.order = self }
   end
 
   def create_receipt_task
     super
-    task = OutreachTask.new(:execute_at=>Time.now + 5.minutes, order: self, :method_symbol=>:donation_thank_you)
+    task = OutreachTask.new(:execute_at => Time.now + 5.minutes, order: self, :method_symbol => :donation_thank_you)
     task.save!
   end
-
 end

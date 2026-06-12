@@ -19,12 +19,12 @@ RSpec.describe HouseCount, type: :model do
 
       # Initialize the HouseCount record associated with the performance
       house_count = HouseCount.new(performance: performance)
-      house_count.calculate  # This method should calculate total, sold, and available seats
+      house_count.calculate # This method should calculate total, sold, and available seats
 
       # Validate the HouseCount calculations
       expect(house_count.total_seats).to eq(50)
-      expect(house_count.sold_seats).to eq(6)  # Since each order includes 1 ticket
-      expect(house_count.available_seats).to eq(41)  # Total seats minus held seats
+      expect(house_count.sold_seats).to eq(6) # Since each order includes 1 ticket
+      expect(house_count.available_seats).to eq(41) # Total seats minus held seats
     end
 
     describe '#calculate_held_seats' do
@@ -33,7 +33,8 @@ RSpec.describe HouseCount, type: :model do
         performance = FactoryBot.create(:general_admission, production: production, performance_date: Date.today)
 
         # Create a Hold order explicitly
-        hold_order = FactoryBot.create(:ticket_order, :for_a_single_ticket, status: Order::HOLD, performance: performance)
+        hold_order = FactoryBot.create(:ticket_order, :for_a_single_ticket, status: Order::HOLD,
+                                                                            performance: performance)
         expect(hold_order.status).to eq(Order::HOLD)
 
         # Create a sold (Processed) order — should not count toward held_seats
@@ -64,18 +65,18 @@ RSpec.describe HouseCount, type: :model do
         production = FactoryBot.create(:production, capacity: 50)
 
         cheap_class = FactoryBot.create(:ticket_class,
-          production: production,
-          ticket_price: 15.00,
-          web_visible: true,
-          show_in_pricing_range: true,
-          auto_attach: true)
+                                        production: production,
+                                        ticket_price: 15.00,
+                                        web_visible: true,
+                                        show_in_pricing_range: true,
+                                        auto_attach: true)
 
         expensive_class = FactoryBot.create(:ticket_class,
-          production: production,
-          ticket_price: 40.00,
-          web_visible: true,
-          show_in_pricing_range: true,
-          auto_attach: true)
+                                            production: production,
+                                            ticket_price: 40.00,
+                                            web_visible: true,
+                                            show_in_pricing_range: true,
+                                            auto_attach: true)
 
         performance = FactoryBot.create(:general_admission, production: production, performance_date: Date.today)
 
@@ -89,18 +90,18 @@ RSpec.describe HouseCount, type: :model do
         production = FactoryBot.create(:production, capacity: 50)
 
         FactoryBot.create(:ticket_class,
-          production: production,
-          ticket_price: 20.00,
-          web_visible: true,
-          show_in_pricing_range: true,
-          auto_attach: true)
+                          production: production,
+                          ticket_price: 20.00,
+                          web_visible: true,
+                          show_in_pricing_range: true,
+                          auto_attach: true)
 
         FactoryBot.create(:ticket_class,
-          production: production,
-          ticket_price: 99.00,
-          web_visible: false,
-          show_in_pricing_range: true,
-          auto_attach: true)
+                          production: production,
+                          ticket_price: 99.00,
+                          web_visible: false,
+                          show_in_pricing_range: true,
+                          auto_attach: true)
 
         performance = FactoryBot.create(:general_admission, production: production, performance_date: Date.today)
 
@@ -114,18 +115,18 @@ RSpec.describe HouseCount, type: :model do
         production = FactoryBot.create(:production, capacity: 50)
 
         FactoryBot.create(:ticket_class,
-          production: production,
-          ticket_price: 25.00,
-          web_visible: true,
-          show_in_pricing_range: true,
-          auto_attach: true)
+                          production: production,
+                          ticket_price: 25.00,
+                          web_visible: true,
+                          show_in_pricing_range: true,
+                          auto_attach: true)
 
         FactoryBot.create(:ticket_class,
-          production: production,
-          ticket_price: 75.00,
-          web_visible: true,
-          show_in_pricing_range: false,
-          auto_attach: true)
+                          production: production,
+                          ticket_price: 75.00,
+                          web_visible: true,
+                          show_in_pricing_range: false,
+                          auto_attach: true)
 
         performance = FactoryBot.create(:general_admission, production: production, performance_date: Date.today)
 
@@ -140,11 +141,11 @@ RSpec.describe HouseCount, type: :model do
         production.ticket_classes.update_all(web_visible: false)
 
         FactoryBot.create(:ticket_class,
-          production: production,
-          ticket_price: 50.00,
-          web_visible: false,
-          show_in_pricing_range: true,
-          auto_attach: true)
+                          production: production,
+                          ticket_price: 50.00,
+                          web_visible: false,
+                          show_in_pricing_range: true,
+                          auto_attach: true)
 
         performance = FactoryBot.create(:general_admission, production: production, performance_date: Date.today)
 

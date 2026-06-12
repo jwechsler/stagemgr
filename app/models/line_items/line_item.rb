@@ -22,6 +22,4 @@ class LineItem < ApplicationRecord
   def ticket?
     return false;
   end
-
 end
-

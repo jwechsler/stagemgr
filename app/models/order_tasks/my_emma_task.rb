@@ -31,7 +31,7 @@ class MyEmmaTask < OrderTask
 
       groups = [MyEmmaTask.newsletter_id]
       groups += [MyEmmaTask.coupon_id]
-      additional_groups.each{|grp| groups << grp unless grp.blank?} unless additional_groups.nil?
+      additional_groups.each { |grp| groups << grp unless grp.blank? } unless additional_groups.nil?
       groups << order.performance.production.use_myemma_attendee_group unless order.performance.nil? || order.performance.production.use_myemma_attendee_group.blank?
       member.name_first = order.address.first_name
       member.name_last = order.address.last_name
@@ -43,8 +43,5 @@ class MyEmmaTask < OrderTask
 
       result = member.save(groups)
     end
-
   end
-
 end
-

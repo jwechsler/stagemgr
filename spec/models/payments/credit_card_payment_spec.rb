@@ -26,12 +26,11 @@ RSpec.describe CreditCardPayment, type: :model do
     context "when charge has already been refunded in Stripe" do
       let(:stripe_charge) do
         double('Stripe::Charge',
-          id: 'ch_test123',
-          refunded: true,
-          amount_refunded: 5000, # $50.00 in cents
-          amount: 5000,
-          to_hash: { id: 'ch_test123', refunded: true, amount_refunded: 5000 }
-        )
+               id: 'ch_test123',
+               refunded: true,
+               amount_refunded: 5000, # $50.00 in cents
+               amount: 5000,
+               to_hash: { id: 'ch_test123', refunded: true, amount_refunded: 5000 })
       end
 
       before do
@@ -65,12 +64,11 @@ RSpec.describe CreditCardPayment, type: :model do
       it "creates a carryover payment when refund amount differs from order amount" do
         # Stripe refunded $45.00 but order was $50.00
         different_stripe_charge = double('Stripe::Charge',
-          id: 'ch_test123',
-          refunded: true,
-          amount_refunded: 4500, # $45.00 in cents
-          amount: 5000,
-          to_hash: { id: 'ch_test123', refunded: true, amount_refunded: 4500 }
-        )
+                                         id: 'ch_test123',
+                                         refunded: true,
+                                         amount_refunded: 4500, # $45.00 in cents
+                                         amount: 5000,
+                                         to_hash: { id: 'ch_test123', refunded: true, amount_refunded: 4500 })
         allow(Stripe::Charge).to receive(:retrieve).with('ch_test123').and_return(different_stripe_charge)
 
         gateway = double('gateway')
@@ -105,17 +103,15 @@ RSpec.describe CreditCardPayment, type: :model do
         payment.update_column(:transaction_id, 'pi_test123')
 
         payment_intent = double('Stripe::PaymentIntent',
-          charges: double(data: [double(id: 'ch_converted_from_pi')])
-        )
+                                charges: double(data: [double(id: 'ch_converted_from_pi')]))
         allow(Stripe::PaymentIntent).to receive(:retrieve).with('pi_test123').and_return(payment_intent)
 
         converted_charge = double('Stripe::Charge',
-          id: 'ch_converted_from_pi',
-          refunded: true,
-          amount_refunded: 5000,
-          amount: 5000,
-          to_hash: { id: 'ch_converted_from_pi', refunded: true, amount_refunded: 5000 }
-        )
+                                  id: 'ch_converted_from_pi',
+                                  refunded: true,
+                                  amount_refunded: 5000,
+                                  amount: 5000,
+                                  to_hash: { id: 'ch_converted_from_pi', refunded: true, amount_refunded: 5000 })
         allow(Stripe::Charge).to receive(:retrieve).with('ch_converted_from_pi').and_return(converted_charge)
 
         gateway = double('gateway')

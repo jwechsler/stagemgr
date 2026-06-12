@@ -6,17 +6,19 @@ class Admin::ReportsController < Admin::ApplicationController
 
   include Admin::ReportsHelper
   include ReportProcessor
+
   helper_method :tidy_output
 
   # GET /admin/reports
   # GET /admin/reports.xml
   def index
     is_theater_user = !current_user.nil? && current_user.is_theater_user?
-    @generated_reports = FileStore.where("worker = ? and user_id = ?", FileStore::REPORT, current_user.id).order('created_at desc')
-    @generated_reports.select {|r| r.datafile.attached? }
+    @generated_reports = FileStore.where("worker = ? and user_id = ?", FileStore::REPORT,
+                                         current_user.id).order('created_at desc')
+    @generated_reports.select { |r| r.datafile.attached? }
 
     if is_theater_user then
-      @productions = Production.accessible_by(current_ability,:read).order(press_opening_at: :desc)
+      @productions = Production.accessible_by(current_ability, :read).order(press_opening_at: :desc)
       @flex_pass_offers = @productions.select { |p| !p.flex_pass_offer.nil? }.map { |p| p.flex_pass_offer }
     else
       @productions = Production.accessible_by(current_ability, :read).sellable.order(:name)
@@ -31,8 +33,6 @@ class Admin::ReportsController < Admin::ApplicationController
   # GET /admin/reports/1
   # GET /admin/reports/1.xml
   def show
-
-
     respond_to do |format|
       format.html # show.html.erb
       format.xml { render :xml => @admin_report }
@@ -89,7 +89,7 @@ class Admin::ReportsController < Admin::ApplicationController
   def daily_box_office_receipts
     @start_day = Date.parse(params[:start_day])
     @end_day = Date.parse(params[:end_day])
-    
+
     # Swap dates if start date is after end date
     if @start_day > @end_day
       @start_day, @end_day = @end_day, @start_day
@@ -103,7 +103,7 @@ class Admin::ReportsController < Admin::ApplicationController
     end
 
     @headers, @report_data = build_daily_box_office_receipts(@start_day, @end_day, !params['download_csv'].nil?)
-    
+
     if params['download_csv'].nil? then
       respond_to do |format|
         format.html
@@ -158,9 +158,10 @@ class Admin::ReportsController < Admin::ApplicationController
     if params[:required_theaters].nil?
       required_theaters = []
     else
-      required_theaters = params[:required_theaters].map{|t| t.to_i}
+      required_theaters = params[:required_theaters].map { |t| t.to_i }
     end
-    Resque.enqueue(TrgMinedExport, minimum_attended, minimum_revenue, start_day, required_theaters, current_user.id, current_user.theater_ids)
+    Resque.enqueue(TrgMinedExport, minimum_attended, minimum_revenue, start_day, required_theaters, current_user.id,
+                   current_user.theater_ids)
     flash[:notice] = 'Your export is queued for generation. You\'ll recieve notification when the process is complete.'
     redirect_to admin_reports_path
   end
@@ -177,12 +178,13 @@ class Admin::ReportsController < Admin::ApplicationController
   # Exports production attendees segmented for TRG Arts. Includes email opt-in attendees
   def trg_dump
     production = Production.find(params[:report][:production_id])
-    Resque.enqueue(TrgProductionAttendeeExportJob, production.nil? ? 0 : production.id, current_user.id, can?(:view_email, Address), current_user.theater_ids)
+    Resque.enqueue(TrgProductionAttendeeExportJob, production.nil? ? 0 : production.id, current_user.id,
+                   can?(:view_email, Address), current_user.theater_ids)
     flash[:notice] = 'Your export is queued for generation. You\'ll recieve notification when the process is complete.'
     redirect_to admin_reports_path
   end
 
-  # Trg Export by attended date.  Includes 
+  # Trg Export by attended date.  Includes
   def attended_dump
     starting_date = params[:starting_date].to_date
     ending_date = params[:ending_date].to_date
@@ -196,11 +198,11 @@ class Admin::ReportsController < Admin::ApplicationController
     dates = parse_date_params(starting_date: params[:starting_date_donor], ending_date: params[:ending_date_donor])
     theater_id = params[:theater_id].to_i
 
-    Resque.enqueue(DonorListExport, dates[:starting_date], dates[:ending_date], theater_id, current_user.id, current_user.theater_ids)
+    Resque.enqueue(DonorListExport, dates[:starting_date], dates[:ending_date], theater_id, current_user.id,
+                   current_user.theater_ids)
     flash[:notice] = "Your export is queued for generation. You'll receive notification when the process is complete."
     redirect_to admin_reports_path
   end
-
 
   def fulfill_tickets
     @through_day = params[:through_day].to_date
@@ -214,7 +216,6 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def production_sales_by_performance
-
     @production = Production.accessible_by(current_ability, :read).find(params[:report][:production_id])
     report = SalesByPerformanceReport.new([@production], !params['download_csv'].nil?)
     @headers, @report_data = report.create
@@ -260,21 +261,21 @@ class Admin::ReportsController < Admin::ApplicationController
     @ending_date = params[:ending_date].to_date.at_end_of_month
     trg_lists = params[:trg_lists]
 
-    Resque.enqueue(MembershipOrderMailingListExport, @starting_date, @ending_date, trg_lists, current_user.id, current_user.theater_ids)
+    Resque.enqueue(MembershipOrderMailingListExport, @starting_date, @ending_date, trg_lists, current_user.id,
+                   current_user.theater_ids)
     flash[:notice] = "Your export is queued for generation. You'll recieve notification when the process is complete."
     redirect_to admin_reports_path
-
   end
 
   def flex_pass_patron_report
     dates = parse_date_params(starting_date: params[:starting_date], ending_date: params[:ending_date])
     @starting_date = dates[:starting_date]
     @ending_date = dates[:ending_date]
-    
+
     process_report(
       report_class: FlexPassPatronReport,
       report_params: [@starting_date, @ending_date, nil],
-      job_class: FlexPassPatronReportJob, 
+      job_class: FlexPassPatronReportJob,
       job_params: [@starting_date, @ending_date],
       csv_filename: 'flex_pass_patron_report',
       timeout: 60.seconds
@@ -332,7 +333,6 @@ class Admin::ReportsController < Admin::ApplicationController
     end
   end
 
-
   private
 
   def send_report_as_csv(title, headers, data)
@@ -342,21 +342,25 @@ class Admin::ReportsController < Admin::ApplicationController
         csv << headers.map { |h| Admin::ReportsHelper.tidy_output(r[h]) } unless r.nil?
       end
     end
-    f = File.new('/tmp/debug.csv','w')
+    f = File.new('/tmp/debug.csv', 'w')
     f.puts(csv_string)
     f.close
-    send_data csv_string, :type => "text/csv", :filename=>"#{title}.csv", :disposition=>'attachment'
+    send_data csv_string, :type => "text/csv", :filename => "#{title}.csv", :disposition => 'attachment'
   end
 
   def build_fulfill_labels(through_date)
     orders = TicketOrder.joins(:performance).joins(performance: :production).joins(:address).includes(:ticket_line_items).where(
-        "orders.status = ? and performances.status = 'Active' and performances.performance_date <= ? and performances.performance_date > ? and productions.status in (?)",
-        Order::PROCESSED, through_date, through_date - 1.day, Production.visible_statuses
-      ).order("performances.performance_date, productions.production_code, performances.performance_code, addresses.last_name")
+      "orders.status = ? and performances.status = 'Active' and performances.performance_date <= ? and performances.performance_date > ? and productions.status in (?)",
+      Order::PROCESSED, through_date, through_date - 1.day, Production.visible_statuses
+    ).order("performances.performance_date, productions.production_code, performances.performance_code, addresses.last_name")
 
-    orders = orders.sort_by{|o| [o.performance.performance_code, (o.hold_under.blank? ? o.address.last_name : Address.parse_name(o.hold_under)[2]).downcase ]}
+    orders = orders.sort_by { |o|
+      [o.performance.performance_code,
+       (o.hold_under.blank? ? o.address.last_name : Address.parse_name(o.hold_under)[2]).downcase]
+    }
     report = Array.new
-    headers = [:reserved_under, :performance_code, :tickets, :order_id, :profile, :member_id, :first_time, :last_24_months, :donor]
+    headers = [:reserved_under, :performance_code, :tickets, :order_id, :profile, :member_id, :first_time,
+               :last_24_months, :donor]
     order_ids_to_fulfill = []
 
     orders.each { |o|
@@ -365,10 +369,12 @@ class Admin::ReportsController < Admin::ApplicationController
         is_donor = o.address.is_donor?
 
         last24 = o.address.performances_attended(2.years.ago)
-        member_id = o.membership_payments.size > 0 ? o.membership_payments.to_a.map { |mp| mp.membership.member_code }.join(',') + ' ' : ''
+        member_id = o.membership_payments.size > 0 ? o.membership_payments.to_a.map { |mp|
+          mp.membership.member_code
+        }.join(',') + ' ' : ''
         attendance_code = member_id
         attendance_code += o.address.first_time_paying?(o) ? 'N' : 'R'
-#          attendance_code += ("%03d" % last24).reverse
+        #          attendance_code += ("%03d" % last24).reverse
         attendance_code += "A" if is_donor
         if o.hold_under.blank?
           ticket_name = "#{o.address.last_name}" + ((o.address.last_name.blank? || o.address.first_name.blank?) ? '' : ', ') + (o.address.first_name.blank? ? '' : o.address.first_name.first)
@@ -377,15 +383,15 @@ class Admin::ReportsController < Admin::ApplicationController
           ticket_name = "#{l_name}" + ((l_name.blank? || f_name.blank?) ? '' : ', ') + (f_name.blank? ? '' : f_name.first)
         end
 
-        report << {:reserved_under=> ticket_name,
-                   :performance_code => o.performance.performance_code,
-                   :tickets => o.ticket_detail_description,
-                   :profile => attendance_code,
-                   :order_id => o.id,
-                   :member_id => member_id,
-                   :first_time => o.address.first_time_paying?(o),
-                   :last_24_months => last24,
-                   :donor => is_donor}
+        report << { :reserved_under => ticket_name,
+                    :performance_code => o.performance.performance_code,
+                    :tickets => o.ticket_detail_description,
+                    :profile => attendance_code,
+                    :order_id => o.id,
+                    :member_id => member_id,
+                    :first_time => o.address.first_time_paying?(o),
+                    :last_24_months => last24,
+                    :donor => is_donor }
 
         # Collect order IDs for batch printing
         order_ids_to_fulfill << o.id
@@ -402,16 +408,21 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def build_production_sales_by_performance(productions, include_classes = true, perfs = nil)
-    report = SalesByPerformanceReport.new(productions.map{|prod| prod.id}, include_classes, perfs.nil? ? nil : perfs.map{|perf| perf.id})
+    report = SalesByPerformanceReport.new(productions.map { |prod|
+      prod.id
+    }, include_classes, perfs.nil? ? nil : perfs.map { |perf|
+                          perf.id
+                        })
     report.create
   end
-
 
   def build_weekly_box_office(week_ending)
     performances = Performance.where("performance_date >= ? and performance_date <= ? and exists (select * from productions where production_id = productions.id)",
                                      week_ending.beginning_of_week, week_ending.end_of_week)
     productions = performances.map { |p| p.production }.uniq
-    report = SalesByPerformanceReport.new(productions.map{|prod| prod.id}, false, performances.map{|perf| perf.id})
+    report = SalesByPerformanceReport.new(productions.map { |prod| prod.id }, false, performances.map { |perf|
+      perf.id
+    })
     report.create
   end
 
@@ -441,16 +452,18 @@ class Admin::ReportsController < Admin::ApplicationController
   protected
 
   def build_daily_box_office_receipts(start_day, end_day, build_for_dumpfile = false)
-
     report = Array.new
     day_total = Hash.new
     zero_dollars = Money.new(0)
-    keys = OrderReport.columns_for_orders(build_for_dumpfile, can?(:view_email, Address)) - [:order_date] + [:processed_on]
+    keys = OrderReport.columns_for_orders(build_for_dumpfile,
+                                          can?(:view_email, Address)) - [:order_date] + [:processed_on]
 
     current_date = start_day - 1.week
 
-    payments = Payment.order("processed_on").where("processed_on >=:start_day and processed_on < :end_day", {:start_day=>start_day.to_time(:local), :end_day=>(end_day + 1.day).to_time(:local)})
-    
+    payments = Payment.order("processed_on").where("processed_on >=:start_day and processed_on < :end_day",
+                                                   { :start_day => start_day.to_time(:local),
+                                                     :end_day => (end_day + 1.day).to_time(:local) })
+
     # Pre-collect all payment types for this date range
     payment_types = []
     payments.each { |p|
@@ -458,7 +471,7 @@ class Admin::ReportsController < Admin::ApplicationController
       payment_types << bucket unless payment_types.include?(bucket)
     }
     payment_types.sort!
-    
+
     payments.each { |p|
       c_day = p.processed_on.to_s
       if c_day != current_date then
@@ -473,7 +486,7 @@ class Admin::ReportsController < Admin::ApplicationController
       if day_total[bucket].nil?
         day_total[bucket] = amt
       else
-        day_total[bucket] +=  amt
+        day_total[bucket] += amt
       end
 
       if build_for_dumpfile then
@@ -486,8 +499,6 @@ class Admin::ReportsController < Admin::ApplicationController
         row[:display_class] = :report_detail_row
         report << row
       end
-
-
     }
     keys += payment_types
     report << day_total
@@ -495,9 +506,11 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def build_donations_dump(start_day, end_day, build_for_dumpfile = false)
-    donations = Order.all(:include=>[:address, :donation_line_items, :payments], :conditions=>["orders.status in (?) and payments.processed_on >= ? and payments.processed_on <= ?", Order::PROCESSED, start_day, end_day])
+    donations = Order.all(:include => [:address, :donation_line_items, :payments],
+                          :conditions => ["orders.status in (?) and payments.processed_on >= ? and payments.processed_on <= ?", Order::PROCESSED,
+                                          start_day, end_day])
     report = Array.new
-    keys = OrderReport.columns_for_orders(true) + [:total,:campaign]
+    keys = OrderReport.columns_for_orders(true) + [:total, :campaign]
     Order.transaction do
       donations.each { |o|
         total = o.total_paid
@@ -509,28 +522,30 @@ class Admin::ReportsController < Admin::ApplicationController
         end
         o.transition_to!(Order::FULFILLED)
       }
-
     end
     [keys, report]
   end
 
   def build_donation_totals_dump(start_day, end_day, build_for_dumpfile = false)
-    orders = DonationOrder.joins(:theater, :payments).includes([:theater, :payments]).where("orders.status in (?) and orders.created_at >= ? and orders.created_at < ?", Order::SETTLED_STATUSES, start_day, end_day+1.day)
+    orders = DonationOrder.joins(:theater, :payments).includes([:theater, :payments]).where(
+      "orders.status in (?) and orders.created_at >= ? and orders.created_at < ?", Order::SETTLED_STATUSES, start_day, end_day + 1.day
+    )
     reportdata = Array.new
     theater_ids = orders.pluck(:theater_id).uniq
     theaters = Theater.find(theater_ids)
     theater_hash = theaters.each_with_object({}) do |theater, hash|
-      hash[theater.id] = {theater: theater.name, total_amount: Money.new(0), processing_fee: Money.new(0), due: Money.new(0)}
+      hash[theater.id] =
+        { theater: theater.name, total_amount: Money.new(0), processing_fee: Money.new(0), due: Money.new(0) }
     end
     orders.each do |o|
-      theater_hash[o.theater_id][:total_amount] += Money.new(o.total_paid*100.0)
-       theater_hash[o.theater_id][:processing_fee] += Money.new(o.processing_fee*100.0)
-       theater_hash[o.theater_id][:due] += Money.new((o.total_paid-o.processing_fee)*100.0)
+      theater_hash[o.theater_id][:total_amount] += Money.new(o.total_paid * 100.0)
+      theater_hash[o.theater_id][:processing_fee] += Money.new(o.processing_fee * 100.0)
+      theater_hash[o.theater_id][:due] += Money.new((o.total_paid - o.processing_fee) * 100.0)
     end
     theater_hash.values.each do |row|
-      reportdata << { theater: row[:theater], total_amount:row[:total_amount], processing_fee: row[:processing_fee], due: row[:due] }
+      reportdata << { theater: row[:theater], total_amount: row[:total_amount], processing_fee: row[:processing_fee],
+                      due: row[:due] }
     end
-    [[:theater, :total_amount, :processing_fee, :due],reportdata]
+    [[:theater, :total_amount, :processing_fee, :due], reportdata]
   end
-
 end

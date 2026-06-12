@@ -5,18 +5,19 @@ class ProductionDecorator < ApplicationDecorator
     actions = []
     if h.current_user.can? :destroy, Production then
       if object.performances.count != 0
-        actions <<  h.link_to('Destroy', '#', :method=>:get, :class=>"disabled alert tiny button")
+        actions <<  h.link_to('Destroy', '#', :method => :get, :class => "disabled alert tiny button")
       else
-        actions <<  h.link_to('Destroy', [:admin, object.theater, object], :confirm=>'Are you sure?', :method=>:delete, :class=>"alert tiny button")
+        actions <<  h.link_to('Destroy', [:admin, object.theater, object], :confirm => 'Are you sure?', :method => :delete,
+                                                                           :class => "alert tiny button")
       end
     end
     if h.current_user.can? :edit, Production then
-      actions << h.link_to('Edit', [:edit, :admin, object.theater, object], :class=> "tiny button")
+      actions << h.link_to('Edit', [:edit, :admin, object.theater, object], :class => "tiny button")
     end
     if h.current_user.can? :read, TicketClass then
       actions << h.link_to('Ticket Classes', [:admin, object.theater, object, :ticket_classes], class: 'tiny button')
     end
-    h.safe_join(actions,' ')
+    h.safe_join(actions, ' ')
   end
 
   def name
@@ -44,5 +45,4 @@ class ProductionDecorator < ApplicationDecorator
   #       object.created_at.strftime("%a %m/%d/%y")
   #     end
   #   end
-
 end

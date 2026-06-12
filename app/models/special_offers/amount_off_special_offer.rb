@@ -3,11 +3,15 @@ class AmountOffSpecialOffer < SpecialOffer
     # the discount will either be negative the amount configured
     # or negative the sum total of all tickets of this class
     # which ever one is smaller
-    (self.amount || 0) * (self.applicable_line_items(order).to_a.sum{|li| li.respond_to?(:ticket_count) ? li.ticket_count : 0} || 0) * -1
+    (self.amount || 0) * (self.applicable_line_items(order).to_a.sum { |li|
+      li.respond_to?(:ticket_count) ? li.ticket_count : 0
+    } || 0) * -1
   end
 
   def calculate_royalty_discount(order)
-    (self.amount || 0) * (self.applicable_line_items(order, false).to_a.sum { |li| li.respond_to?(:ticket_count) ? li.ticket_count : 0 }) * -1
+    (self.amount || 0) * (self.applicable_line_items(order, false).to_a.sum { |li|
+      li.respond_to?(:ticket_count) ? li.ticket_count : 0
+    }) * -1
   end
 
   def description(order)
@@ -25,5 +29,4 @@ class AmountOffSpecialOffer < SpecialOffer
       "ERROR amount off"
     end
   end
-
 end

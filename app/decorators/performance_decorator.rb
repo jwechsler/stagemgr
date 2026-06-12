@@ -5,30 +5,32 @@ class PerformanceDecorator < ApplicationDecorator
     actions = []
 
     if h.current_user.can? :update, Performance then
-      actions << h.link_to('Edit', [:edit,:admin, object.production.theater, object.production, object], :id=>"edit_#{object.performance_code.gsub(' ','_')}", class: 'tiny button')
+      actions << h.link_to('Edit', [:edit, :admin, object.production.theater, object.production, object],
+                           :id => "edit_#{object.performance_code.gsub(' ', '_')}", class: 'tiny button')
     end
     if h.current_user.can? :create, Performance then
-      actions << h.link_to('Duplicate', [:duplicate, :admin, object.production.theater, object.production, object], :id=>"duplicate_#{object.performance_code.gsub(' ','_')}", class: 'tiny button' )
+      actions << h.link_to('Duplicate', [:duplicate, :admin, object.production.theater, object.production, object],
+                           :id => "duplicate_#{object.performance_code.gsub(' ', '_')}", class: 'tiny button')
     end
     if h.current_user.can?(:release_held_seats, Performance) && object.production.has_reserved_seating? then
       actions << h.link_to('Release Held Seats', h.release_held_seats_admin_theater_production_performance_path(object.production.theater, object.production, object),
-        method: :post,
-        data: { confirm: 'Are you sure you want to release all held seats for this performance?' },
-        class: 'tiny button alert',
-        id: "release_seats_#{object.performance_code.gsub(' ','_')}")
+                           method: :post,
+                           data: { confirm: 'Are you sure you want to release all held seats for this performance?' },
+                           class: 'tiny button alert',
+                           id: "release_seats_#{object.performance_code.gsub(' ', '_')}")
     end
     if h.current_user.can?(:email_attendees, Performance) then
       actions << h.link_to('Email Attendees', '#',
-        class: 'tiny button secondary email-attendees-btn',
-        data: {
-          performance_id: object.id,
-          performance_code: object.performance_code,
-          theater_id: object.production.theater.id,
-          production_id: object.production.id,
-          production_name: object.production.name,
-          performance_date: object.performance_date.strftime('%m/%d')
-        },
-        id: "email_attendees_#{object.performance_code.gsub(' ','_')}")
+                           class: 'tiny button secondary email-attendees-btn',
+                           data: {
+                             performance_id: object.id,
+                             performance_code: object.performance_code,
+                             theater_id: object.production.theater.id,
+                             production_id: object.production.id,
+                             production_name: object.production.name,
+                             performance_date: object.performance_date.strftime('%m/%d')
+                           },
+                           id: "email_attendees_#{object.performance_code.gsub(' ', '_')}")
     end
     if h.current_user.can? :delete, Performance then
       # actions << h.link_to('Delete', [:destroy, :admin, object], :id=>"delete_#{object.performance_code.gsub(' ','_')}", :confirm=> "Are you sure?" , class: 'tiny button alert' )
@@ -52,14 +54,15 @@ class PerformanceDecorator < ApplicationDecorator
     display_text ||= object.performance_time.to_s(:hour_min).lstrip
     result = ''
     unless object.order_url_override.blank?
-      result << h.link_to( h.raw(display_text), object.order_url_override, class: link_classes.join(' '), style: link_style )
+      result << h.link_to(h.raw(display_text), object.order_url_override, class: link_classes.join(' '),
+                                                                          style: link_style)
       return h.raw(result)
     end
     case when (object.performance_at + object.production.running_time.minutes < Time.now) || object.calendar_sold_out? || object.withhold_from_public?
            result << "<del>#{display_text}</del><br/>"
-      if object.calendar_sold_out? || object.withhold_from_public?
-        result << "<font size=\"-2\">Sold out!</font>"
-      end
+           if object.calendar_sold_out? || object.withhold_from_public?
+             result << "<font size=\"-2\">Sold out!</font>"
+           end
     when (object.calendar_near_capacity? || object.happening_soon?)
       result << "#{display_text}<br/>" unless suppress_display_if_unavailable
       if object.calendar_near_capacity?
@@ -68,9 +71,9 @@ class PerformanceDecorator < ApplicationDecorator
         result << "<font size=\"-2\">Tickets available at door</font>"
       end
     else
-      result << h.link_to( h.raw(display_text), h.new_order_path(object), class: link_classes.join(' '), style: link_style )
+      result << h.link_to(h.raw(display_text), h.new_order_path(object), class: link_classes.join(' '),
+                                                                         style: link_style)
     end
     h.raw(result)
   end
-
 end

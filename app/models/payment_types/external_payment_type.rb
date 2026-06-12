@@ -1,19 +1,20 @@
 class ExternalPaymentType < PaymentType
-
-  def build_payment(amount, order, payment_details={})
+  def build_payment(amount, order, payment_details = {})
     unless self.restrict_to_ticket_classes.blank?
       if order.respond_to?(:ticket_line_items) then
         allowed_class_codes = self.restrict_to_ticket_classes.split(',')
-        order.ticket_line_items.map {|tli|
-
-          raise "This payment type is restricted to #{self.restrict_to_ticket_classes.upcase} tickets" unless allowed_class_codes.select{|code| tli.ticket_class.class_code.upcase.start_with?(code) }.size > 0 }
+        order.ticket_line_items.map { |tli|
+          raise "This payment type is restricted to #{self.restrict_to_ticket_classes.upcase} tickets" unless allowed_class_codes.select { |code|
+            tli.ticket_class.class_code.upcase.start_with?(code)
+          }.size > 0
+        }
       end
     end
-    new_payment = ExternalPayment.new(:amount => amount, :order=>order, :payment_type=>self)
+    new_payment = ExternalPayment.new(:amount => amount, :order => order, :payment_type => self)
   end
 
   def create_refund_payment(cc_number = nil, note = nil)
-    refund_payment = ReversalPayment.create(:amount=>self.amount * -1, :order=>self.order, :payment_id=>self.id)
+    refund_payment = ReversalPayment.create(:amount => self.amount * -1, :order => self.order, :payment_id => self.id)
     self.order.payments << refund_payment
     refund_payment
   end
@@ -25,5 +26,4 @@ class ExternalPaymentType < PaymentType
   def payment_classes
     super + [ExternalPayment.class]
   end
-
 end

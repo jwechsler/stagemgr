@@ -1,12 +1,11 @@
 # Methods added to this helper will be available to all templates in the application.
 module ApplicationHelper
-
   def html_comment(comment)
     raw("// #{comment}\n") if Rails.env.eql?("development")
   end
 
   def to_currency(val)
-    number_to_currency(val,:delimiter => ",", :unit => "$",:separator => ".", :precision => 2)
+    number_to_currency(val, :delimiter => ",", :unit => "$", :separator => ".", :precision => 2)
   end
 
   def backend?
@@ -21,16 +20,15 @@ module ApplicationHelper
     if controller.markdown.nil?
       controller.markdown = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)
     end
-
   end
 
   def display_markdown(markdown_text, trusted = false)
     return "" if markdown_text.nil?
-    
+
     if trusted
       raw($TRUSTED_MARKDOWN.render(markdown_text))
     else
-      raw($MARKDOWN.render(markdown_text)) 
+      raw($MARKDOWN.render(markdown_text))
     end
   end
 
@@ -49,6 +47,4 @@ module ApplicationHelper
   def survey_link(production = nil)
     (production.nil? || production.survey_link.blank?) ? $SERVER_CONFIG['survey_link'] : production.survey_link
   end
-
 end
-

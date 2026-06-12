@@ -46,7 +46,7 @@ class Admin::SeatMapsController < ApplicationController
       flash[:notice] = "SeatMap '#{@seat_map.label}' was successfully created for venue #{@seat_map.venue.name}."
       redirect_to(admin_venue_path(@venue))
     else
-      render :action=>"edit"
+      render :action => "edit"
     end
   end
 
@@ -74,15 +74,14 @@ class Admin::SeatMapsController < ApplicationController
     CSV.foreach(geometry_import.path) do |row|
       if headers.nil? then
 
-
         _index = 0
-        headers = Hash[row.map {|header| _index += 1; [header, _index]}]
-        headers.keys.each {|key|
+        headers = Hash[row.map { |header| _index += 1; [header, _index] }]
+        headers.keys.each { |key|
           encoding_options = {
-          :invalid           => :replace,  # Replace invalid byte sequences
-            :undef             => :replace,  # Replace anything not defined in ASCII
-            :replace           => '',        # Use a blank for those replacements
-            :universal_newline => true       # Always break lines with \n
+            :invalid => :replace, # Replace invalid byte sequences
+            :undef => :replace, # Replace anything not defined in ASCII
+            :replace => '', # Use a blank for those replacements
+            :universal_newline => true # Always break lines with \n
           }
           stripped_key = key.encode(Encoding.find('ASCII'), encoding_options)
           headers[stripped_key] = headers.delete(key)
@@ -98,8 +97,9 @@ class Admin::SeatMapsController < ApplicationController
 
       else
         total += 1
-        seat = @seat_map.seats.select{|s|
-          s.location.eql?(row[location_idx])}.first
+        seat = @seat_map.seats.select { |s|
+          s.location.eql?(row[location_idx])
+        }.first
         if seat.nil?
           seat ||= Seat.new(location: row[location_idx])
           @seat_map.seats << seat
@@ -112,7 +112,7 @@ class Admin::SeatMapsController < ApplicationController
         seat.height = row[height_idx]
         seat.feature = row[feature_idx]
         seat.save
-        
+
       end
     end
 
@@ -122,7 +122,6 @@ class Admin::SeatMapsController < ApplicationController
         @seat_map.create_inventory_for_performance(perf)
       end
     end
-
   end
 
   def seat_map_params
@@ -130,7 +129,6 @@ class Admin::SeatMapsController < ApplicationController
   end
 
   def find_venue
-    @venue=Venue.find(params[:venue_id])
+    @venue = Venue.find(params[:venue_id])
   end
-
 end

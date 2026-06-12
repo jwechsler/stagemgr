@@ -5,7 +5,7 @@ class MembershipLineItem < LineItem
   belongs_to :membership_offer
   belongs_to :membership
   belongs_to :address
-  belongs_to :membership_order, :foreign_key=>:order_id, optional: true, inverse_of: :membership_line_item
+  belongs_to :membership_order, :foreign_key => :order_id, optional: true, inverse_of: :membership_line_item
 
   accepts_nested_attributes_for :membership
 
@@ -14,14 +14,15 @@ class MembershipLineItem < LineItem
   before_destroy :delete_membership
 
   private
+
   def create_membership
     if self.membership.nil?
 
       self.membership = Membership.new
-      self.membership.member_since=Date.today
-      self.membership.membership_offer=self.membership_offer
-      self.membership.status=Membership::PENDING
-      self.membership.address=self.address
+      self.membership.member_since = Date.today
+      self.membership.membership_offer = self.membership_offer
+      self.membership.status = Membership::PENDING
+      self.membership.address = self.address
     end
   end
 
@@ -32,5 +33,4 @@ class MembershipLineItem < LineItem
   def delete_membership
     membership.destroy unless membership.nil?
   end
-
 end

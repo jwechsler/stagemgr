@@ -9,5 +9,4 @@ module NotifyOnCompletion
       end
     end
   end
-
 end

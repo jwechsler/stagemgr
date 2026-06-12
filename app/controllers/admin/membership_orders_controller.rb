@@ -25,7 +25,6 @@ class Admin::MembershipOrdersController < Admin::ApplicationController
   end
 
   def cancel
-
     begin
       result = @membership_order.cancel
       unless result.success?
@@ -36,6 +35,7 @@ class Admin::MembershipOrdersController < Admin::ApplicationController
       render '/admin/membership_orders/show'
     end
   end
+
   def create
     update_or_create
   end
@@ -54,7 +54,6 @@ class Admin::MembershipOrdersController < Admin::ApplicationController
   end
 
   def edit
-
   end
 
   def fulfill
@@ -65,10 +64,12 @@ class Admin::MembershipOrdersController < Admin::ApplicationController
   end
 
   protected
+
   def update_or_create
     respond_to do |format|
       if validate_web_order(@membership_order) && process_order(@membership_order, Order::PROCESSED)
-        flash[:info] = raw "Customer successfully set up for the <strong>#{@membership_order.membership_offer.name}</strong> payment plan."
+        flash[:info] =
+          raw "Customer successfully set up for the <strong>#{@membership_order.membership_offer.name}</strong> payment plan."
         format.html { render 'show' }
       else
         format.html { render 'edit' }
@@ -77,8 +78,8 @@ class Admin::MembershipOrdersController < Admin::ApplicationController
   end
 
   private
+
   def membership_order_params
     params.require(:membership_order).permit(*common_params, *common_membership_order_params)
   end
-
 end

@@ -44,7 +44,6 @@ class Admin::ImportsController < Admin::ApplicationController
       flash[:error] = 'Invalid format'
     end
     redirect_back_or_default admin_imports_path
-
   end
 
   def mailing_cards
@@ -61,7 +60,6 @@ class Admin::ImportsController < Admin::ApplicationController
       flash[:error] = 'Invalid format'
     end
     redirect_back_or_default admin_imports_path
-
   end
 
   def external_contacts
@@ -88,7 +86,8 @@ class Admin::ImportsController < Admin::ApplicationController
     @bulk_orders_import.worker = FileStore::IMPORT
     @bulk_orders_import.notes = "Order import"
     if @bulk_orders_import.save then
-      Resque.enqueue(BulkOrderImport, @bulk_orders_import.id, @theater.id, params[:payment_type][:payment_type_id], params[:add_to_email_list])
+      Resque.enqueue(BulkOrderImport, @bulk_orders_import.id, @theater.id, params[:payment_type][:payment_type_id],
+                     params[:add_to_email_list])
       flash[:notice] = 'Your orders are being imported.'
     else
       flash[:error] = 'Invalid format'
@@ -103,7 +102,8 @@ class Admin::ImportsController < Admin::ApplicationController
     @bulk_flex_pass_orders_import.worker = FileStore::IMPORT
     @bulk_flex_pass_orders_import.notes = "Flex Pass order import"
     if @bulk_flex_pass_orders_import.save then
-      Resque.enqueue(BulkFlexOrderImport, @bulk_flex_pass_orders_import.id, @theater.id, params[:payment_type][:payment_type_id])
+      Resque.enqueue(BulkFlexOrderImport, @bulk_flex_pass_orders_import.id, @theater.id,
+                     params[:payment_type][:payment_type_id])
       flash[:notice] = 'Your flex passes are being created'
     else
       flash[:error] = 'Invalid format'
@@ -125,10 +125,9 @@ class Admin::ImportsController < Admin::ApplicationController
     redirect_back_or_default admin_imports_path
   end
 
-
   private
+
   def file_store_params
     params.require(:file_store).permit!
   end
-
 end

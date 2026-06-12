@@ -8,9 +8,10 @@ class Admin::FlexPassOrdersController < Admin::OrdersController
   def show
     respond_to do |format|
       format.html # show.html.erb
-      format.json  {
+      format.json {
         params.permit!
-        render json: FlexPassOrdersDatatable.new(params, view_context: view_context, current_user: current_user, flex_pass: @order.flex_pass)
+        render json: FlexPassOrdersDatatable.new(params, view_context: view_context, current_user: current_user,
+                                                         flex_pass: @order.flex_pass)
       }
     end
   end
@@ -32,5 +33,4 @@ class Admin::FlexPassOrdersController < Admin::OrdersController
   def flex_pass_order_params
     params.require(:flex_pass_order).permit(*common_flex_pass_order_params)
   end
-
 end

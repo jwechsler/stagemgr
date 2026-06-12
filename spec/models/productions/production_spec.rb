@@ -44,7 +44,7 @@ RSpec.describe "a production" do
       production = FactoryBot.create(:production, capacity: 150, venue: seat_map.venue)
       production.seat_map = seat_map
       production.save!
-      
+
       expect(production.capacity).to eq(75)
       expect(production.capacity).not_to eq(150)
     end
@@ -54,7 +54,7 @@ RSpec.describe "a production" do
       production = FactoryBot.create(:production, capacity: 150, venue: seat_map.venue)
       production.seat_map = seat_map
       production.save!
-      
+
       expect(production.capacity).to eq(0)
     end
 
@@ -63,7 +63,7 @@ RSpec.describe "a production" do
       production = FactoryBot.create(:production, capacity: 200, venue: seat_map.venue)
       production.seat_map = seat_map
       production.save!
-      
+
       expect(production.capacity).to eq(25)
       expect(production.read_attribute(:capacity)).to eq(200)
     end
@@ -71,9 +71,8 @@ RSpec.describe "a production" do
     it "handles nil seat map gracefully" do
       production = FactoryBot.create(:production, capacity: 100)
       production.seat_map = nil
-      
+
       expect(production.capacity).to eq(100)
     end
   end
-
 end

@@ -16,7 +16,7 @@ gem 'simple-form-datepicker'
 # gem 'restforce', '~> 2.5.3'
 # gem "validation_reflection"
 gem "cancancan", '~> 3.3'
-gem "activeresource"  
+gem "activeresource"
 gem "activemerchant"
 gem "stripe"
 gem "stripe_event"
@@ -25,8 +25,8 @@ gem "authlogic"
 gem "audited"
 # gem "psych", '3.3.3'
 # gem "will_paginate"
-#gem 'safe_attributes', :require=> 'safe_attributes/base'  # Used to support legacy rails 2 schema names for TrgExport model
-gem "my_emma", :git=>"https://github.com/jwechsler/my_emma.git"
+# gem 'safe_attributes', :require=> 'safe_attributes/base'  # Used to support legacy rails 2 schema names for TrgExport model
+gem "my_emma", :git => "https://github.com/jwechsler/my_emma.git"
 # or develop against "~/dev/my_emma"
 # gem "my_emma", :path=>"~/dev/my_emma"
 # gem 'terrapin'
@@ -56,7 +56,7 @@ gem 'coffee-rails'
 gem 'uglifier'
 # Add Foundation Here
 gem 'bourbon'
-gem 'foundation-rails', '~> 6.6.2.0'  # This version uses older Sass syntax
+gem 'foundation-rails', '~> 6.6.2.0' # This version uses older Sass syntax
 gem 'foundation-icons-sass-rails'
 gem 'autoprefixer-rails'
 
@@ -65,22 +65,22 @@ gem 'yajl-ruby', require: 'yajl'
 gem 'jquery-timepicker-rails'
 gem 'foundation-datetimepicker-rails'
 # gem 'jqgrid-rails3', :git=>"https://github.com/davebaldwin/jqgrid-rails3.git"
-#gem "name_parse", "~> 0.0.5"
+# gem "name_parse", "~> 0.0.5"
 gem "namae"
-gem "redis", "~> 4.8.0"  # Updated for better Ruby 3.2.2 compatibility
+gem "redis", "~> 4.8.0" # Updated for better Ruby 3.2.2 compatibility
 gem 'rack-attack', require: 'rack/attack'
 
-gem "ri_cal", :git=>"https://github.com/ctide/ri_cal.git"
+gem "ri_cal", :git => "https://github.com/ctide/ri_cal.git"
 
 # scheduling and crons
-gem "whenever", :require=>false
+gem "whenever", :require => false
 gem 'resque', '~> 2.6.0', :require => 'resque/server'
 gem 'resque-scheduler'
-gem 'resque-retry'  #, :git=>"https://github.com/jwechsler/resque-retry.git"
+gem 'resque-retry' # , :git=>"https://github.com/jwechsler/resque-retry.git"
 gem 'resque-lock-timeout'
 gem 'redis-namespace'
 
-gem 'config', :git=>'https://github.com/railsconfig/config.git'
+gem 'config', :git => 'https://github.com/railsconfig/config.git'
 gem 'responders'
 gem 'decent_exposure'
 gem 'activestorage-validator', '0.4.0' # validates blobs for activestorage
@@ -92,9 +92,8 @@ gem 'ruby-vips'
 
 gem 'whiny_validation'
 
-#reports
+# reports
 gem 'chartkick'
-
 
 group :development do
   gem 'listen'
@@ -102,9 +101,9 @@ group :development do
   gem 'what_methods'
   gem 'map_by_method'
   gem 'bond'
-#  gem 'g'
-#  gem 'terminal-notifier'
-#  gem 'mongrel'
+  #  gem 'g'
+  #  gem 'terminal-notifier'
+  #  gem 'mongrel'
   gem 'capistrano-rails'
   gem 'capistrano-rbenv'
   gem 'pry-rails'
@@ -129,7 +128,7 @@ group :test do
   gem 'puma'
   # gem 'poltergeist'
   gem 'selenium-webdriver', '~> 4.15' # Latest stable version
-  gem 'cucumber-rails', '2.5.1', :require=>false
+  gem 'cucumber-rails', '2.5.1', :require => false
   gem 'simplecov'
   gem 'database_cleaner-active_record'
   gem 'stripe-ruby-mock'
@@ -145,15 +144,14 @@ group :test do
 end
 
 group :production, :test do
-#  gem 'newrelic_rpm'
-  gem 'exception_notification' #, '< 4.5' # rails 5.0
+  #  gem 'newrelic_rpm'
+  gem 'exception_notification' # , '< 4.5' # rails 5.0
   gem 'mysql2'
 end
 
-group :development,:production do
-  gem 'resque-web', :require=>'resque_web'
+group :development, :production do
+  gem 'resque-web', :require => 'resque_web'
 end
-
 
 group :cucumber do
   gem 'launchy'
@@ -166,5 +164,3 @@ gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby, :ruby]
 
 gem 'ffi', '1.17.0'
 gem 'nio4r', '~> 2.5.9'
-
-  

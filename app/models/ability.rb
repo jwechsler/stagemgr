@@ -4,22 +4,25 @@ class Ability
   def initialize(user)
     alias_action :create, :new, to: :make
     alias_action :read, :make, :update, :edit, to: :cru
-    alias_action :attended_dump, :daily_box_office_receipts, :fulfill_tickets, :donations_total, :membership_export, :flex_pass_patron_report, to: :box_office_reports
-    alias_action :trg_dump, :donation_dump, :production_sales_by_performance, :order_dump, :royalty_report, to: :show_reports
+    alias_action :attended_dump, :daily_box_office_receipts, :fulfill_tickets, :donations_total, :membership_export,
+                 :flex_pass_patron_report, to: :box_office_reports
+    alias_action :trg_dump, :donation_dump, :production_sales_by_performance, :order_dump, :royalty_report,
+                 to: :show_reports
     alias_action :house_management_seating, to: :house_management_reports
     alias_action :flexpass_sales, :weekly_box_office, to: :reconciliation_reports
     alias_action :membership_usage, to: :membership_reports
     alias_action :autocomplete_service_item_template_name, to: :modify_service_items
-    
+
     can :read, FlexPassOffer, ["on_sale_to_public = ?", true] do |offer|
       offer.on_sale_to_public?
     end
 
     return if user.nil?
+
     # theater-specific staff
 
     can :read, [TicketOrder, DonationOrder]
-    
+
     can :read, Production, ["theater_id in (?)", user.theater_ids] do |production|
       user.theater_ids.include?(production.id)
     end
@@ -37,17 +40,18 @@ class Ability
     end
     can :auto_complete, Production
     can :autocomplete_tag, Address
-    can [:seating_quickview,:auto_complete], Performance
+    can [:seating_quickview, :auto_complete], Performance
     can :auto_complete, SpecialOffer
-    can [:read,:update], Theater, id: user.theater_ids
+    can [:read, :update], Theater, id: user.theater_ids
     can :read, Production, theater_id: user.theater_ids
     can :read, FlexPassOffer, theater_id: user.theater_ids
-    can :read, Address, ["addresses.id in (select orders.address_id from orders where orders.theater_id in (?))", user.theater_ids] do |address|
-      address.orders.map{|o| o.theater_id}.intersection(user.theater_ids).size > 0
+    can :read, Address,
+        ["addresses.id in (select orders.address_id from orders where orders.theater_id in (?))", user.theater_ids] do |address|
+      address.orders.map { |o| o.theater_id }.intersection(user.theater_ids).size > 0
     end
 
     can [:make, :update, :edit, :autocomplete_address], Address
-    
+
     can :cancel_held_during_seating, TicketOrder
     can :read, Performance
     can :read, ServiceItemTemplate
@@ -55,11 +59,12 @@ class Ability
     can [:read, :show_reports], Report
     can :perform_analysis, Analysis unless user.is_box_office_user?
     can [:autocomplete_production_production_code,
-            :autocomplete_performance_performance_code,
-            :autocomplete_ticket_line_item_ticket_class_code,
-            :autocomplete_special_offer_special_offer_code],
+         :autocomplete_performance_performance_code,
+         :autocomplete_ticket_line_item_ticket_class_code,
+         :autocomplete_special_offer_special_offer_code],
         TicketOrder
     return if user.is_theater_user? && !user.is_resident?
+
     can :view_email, Address
     return if user.is_theater_user?
 
@@ -76,7 +81,7 @@ class Ability
 
     can [:unclaimed, :fulfill_selected], Order
     can :swipe_card, Order
-    can [:swipe_card, :confirm_credit_card,:hold,:mark_unclaimed,:resend_confirmation], TicketOrder
+    can [:swipe_card, :confirm_credit_card, :hold, :mark_unclaimed, :resend_confirmation], TicketOrder
     can [:fulfill, :read], [Order, TicketOrder, FlexPassOrder, MembershipOrder]
     can :confirm_credit_card, [Order, TicketOrder, FlexPassOrder, MembershipOrder]
     can :cru, FlexPassOrder
@@ -85,7 +90,7 @@ class Ability
     can :view_email, Address
     can [:box_office_reports, :house_management_reports, :membership_reports, :reconciliation_reports], Report
     can [:create, :read, :reactivate, :cancel, :update_seating], MembershipOrder
-    can [:read,:edit], MembershipOffer
+    can [:read, :edit], MembershipOffer
     can :manage, SpecialFeature
     can :manage, SpecialOffer
     can :cru, DonationOrder
@@ -119,6 +124,5 @@ class Ability
     can :manage, MembershipOffer
     can [:membership_reports, :fulfill_donations, :mine_customer_data], Report
     can :manage, DefaultTicketClass
-
   end
 end

@@ -15,10 +15,10 @@ RSpec.describe TicketOrder, "#send_to_printer_api with hide_pricing" do
     before do
       # Create a second ticket class with hide_pricing=true
       hidden_tc = FactoryBot.create(:ticket_class,
-                                     production: ticket_order.performance.production,
-                                     class_code: 'COMP',
-                                     ticket_price: 10.00,
-                                     hide_pricing: true)
+                                    production: ticket_order.performance.production,
+                                    class_code: 'COMP',
+                                    ticket_price: 10.00,
+                                    hide_pricing: true)
       FactoryBot.create(:ticket_class_allocation,
                         performance: ticket_order.performance,
                         ticket_class: hidden_tc,
@@ -26,9 +26,9 @@ RSpec.describe TicketOrder, "#send_to_printer_api with hide_pricing" do
 
       # Add a hidden pricing ticket to the order
       ticket_order.ticket_line_items << FactoryBot.create(:ticket_line_item,
-                                                           ticket_class: hidden_tc,
-                                                           ticket_count: 1,
-                                                           order: ticket_order)
+                                                          ticket_class: hidden_tc,
+                                                          ticket_count: 1,
+                                                          order: ticket_order)
 
       # Set the first ticket class to have hide_pricing=false explicitly
       ticket_order.ticket_line_items.first.ticket_class.update!(hide_pricing: false)
@@ -159,7 +159,7 @@ RSpec.describe TicketOrder, "#send_to_printer_api with hide_pricing" do
       actual_total = ticket_order.total_paid
 
       line_items.each do |li|
-        expect(li[:amount]).to be > 0  # Should have actual positive amounts
+        expect(li[:amount]).to be > 0 # Should have actual positive amounts
       end
 
       # Order total should be actual total

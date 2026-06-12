@@ -106,13 +106,12 @@ RSpec.describe FlexPassOffer, type: :model do
 
   describe 'currency precision' do
     it 'stores values with exactly 2 decimal places' do
-      offer = FactoryBot.create(:flex_pass_offer, 
-        price: 10.999,
-        facility_fee: 2.333,
-        spiff: 1.777,
-        flat_payout: 5.444
-      )
-      
+      offer = FactoryBot.create(:flex_pass_offer,
+                                price: 10.999,
+                                facility_fee: 2.333,
+                                spiff: 1.777,
+                                flat_payout: 5.444)
+
       offer.reload
       expect(offer.price).to eq(11.00)
       expect(offer.facility_fee).to eq(2.33)
@@ -121,13 +120,12 @@ RSpec.describe FlexPassOffer, type: :model do
     end
 
     it 'handles very small decimal values' do
-      offer = FactoryBot.create(:flex_pass_offer, 
-        price: 0.01,
-        facility_fee: 0.01,
-        spiff: 0.01,
-        flat_payout: 0.01
-      )
-      
+      offer = FactoryBot.create(:flex_pass_offer,
+                                price: 0.01,
+                                facility_fee: 0.01,
+                                spiff: 0.01,
+                                flat_payout: 0.01)
+
       offer.reload
       expect(offer.price).to eq(0.01)
       expect(offer.facility_fee).to eq(0.01)
@@ -136,13 +134,12 @@ RSpec.describe FlexPassOffer, type: :model do
     end
 
     it 'handles large monetary values' do
-      offer = FactoryBot.create(:flex_pass_offer, 
-        price: 999999.99,
-        facility_fee: 999999.99,
-        spiff: 999999.99,
-        flat_payout: 999999.99
-      )
-      
+      offer = FactoryBot.create(:flex_pass_offer,
+                                price: 999999.99,
+                                facility_fee: 999999.99,
+                                spiff: 999999.99,
+                                flat_payout: 999999.99)
+
       offer.reload
       expect(offer.price).to eq(999999.99)
       expect(offer.facility_fee).to eq(999999.99)
@@ -152,12 +149,13 @@ RSpec.describe FlexPassOffer, type: :model do
   end
 
   describe 'currency formatting' do
-    let(:offer) { FactoryBot.build(:flex_pass_offer, 
-      price: 10.50,
-      facility_fee: 2.75,
-      spiff: 1.50,
-      flat_payout: 5.00
-    ) }
+    let(:offer) {
+      FactoryBot.build(:flex_pass_offer,
+                       price: 10.50,
+                       facility_fee: 2.75,
+                       spiff: 1.50,
+                       flat_payout: 5.00)
+    }
 
     it 'formats price as currency' do
       expect(offer.formatted_price).to eq('$10.50')
@@ -179,7 +177,7 @@ RSpec.describe FlexPassOffer, type: :model do
       offer.facility_fee = nil
       offer.spiff = nil
       offer.flat_payout = nil
-      
+
       expect(offer.formatted_facility_fee).to eq('$0.00')
       expect(offer.formatted_spiff).to eq('$0.00')
       expect(offer.formatted_flat_payout).to eq('$0.00')

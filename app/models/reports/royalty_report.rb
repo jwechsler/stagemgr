@@ -57,7 +57,9 @@ class RoyaltyReport < Report
 
         if breakdown_by_ticket_class
           prod_active_classes.each do |tc|
-            class_qty = settled_orders.sum { |o| o.respond_to?(:ticket_quantity_by_class) ? o.ticket_quantity_by_class(tc.class_code) : 0 }
+            class_qty = settled_orders.sum { |o|
+              o.respond_to?(:ticket_quantity_by_class) ? o.ticket_quantity_by_class(tc.class_code) : 0
+            }
             total_tickets[tc.class_code] = (total_tickets[tc.class_code] || 0) + class_qty
             row[tc.class_code] = class_qty
           end
@@ -101,9 +103,12 @@ class RoyaltyReport < Report
     if breakdown_by_ticket_class
       face_value_row = { performance_code: 'Face Value' }
       productions.first.ticket_classes
-        .select { |tc| active_ticket_classes.include?(tc.id) }
-        .sort { |t1, t2| t2.ticket_price <=> t1.ticket_price }
-        .each { |tc| face_value_row[tc.class_code] = tc.royalty_price.to_money }
+                 .select { |tc| active_ticket_classes.include?(tc.id) }
+                 .sort { |t1, t2| t2.ticket_price <=> t1.ticket_price }
+                 .each { |tc|
+        face_value_row[tc.class_code] =
+          tc.royalty_price.to_money
+      }
       report.unshift(face_value_row)
     end
 
@@ -118,6 +123,7 @@ class RoyaltyReport < Report
       production.performances.each do |perf|
         perf.orders.select(&:settled?).each do |order|
           next unless order.respond_to?(:ticket_line_items)
+
           order.ticket_line_items.each do |tli|
             active_ids.add(tli.ticket_class_id) if tli.ticket_count > 0
           end
@@ -131,9 +137,9 @@ class RoyaltyReport < Report
     @headers = [:performance_code, :performance_date, :performance_time]
     if breakdown_by_ticket_class
       productions.first.ticket_classes
-        .select { |tc| active_ticket_classes.include?(tc.id) }
-        .sort { |t1, t2| t2.ticket_price <=> t1.ticket_price }
-        .each { |tc| @headers << tc.class_code }
+                 .select { |tc| active_ticket_classes.include?(tc.id) }
+                 .sort { |t1, t2| t2.ticket_price <=> t1.ticket_price }
+                 .each { |tc| @headers << tc.class_code }
     end
     @headers += [:paid, :gross, :processing, :net, :royalty]
   end

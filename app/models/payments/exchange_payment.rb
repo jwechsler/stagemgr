@@ -3,7 +3,7 @@ class ExchangePayment < Payment
   belongs_to :membership, optional: true
 
   def customer_visible_amount
-    return -1*super
+    return -1 * super
   end
 
   def receipt_description
@@ -22,5 +22,4 @@ class ExchangePayment < Payment
   def can_cancel?
     true
   end
-
 end

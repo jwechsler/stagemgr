@@ -1,7 +1,6 @@
 require 'rails_helper'
 
 RSpec.describe "a special offer" do
-
   it "can change the price of a ticket order" do
     o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets)
     expect(o.total_due).to eq(12)
@@ -64,7 +63,6 @@ RSpec.describe "a special offer" do
     o.special_offer_code = offer.code
     o.transition_to!(Order::PROCESSED)
     expect(o.total_paid).to eq(6)
-
   end
 
   it "can be limited to performances on or before a certain date" do
@@ -123,7 +121,5 @@ RSpec.describe "a special offer" do
     offer.save!
     o.transition_to!(Order::PROCESSED)
     expect(o.total_paid).to eq(6)
-
   end
-
 end

@@ -1,8 +1,6 @@
 require 'test_helper'
 
 class OrderTaskTest < ActiveSupport::TestCase
-
-
   context "given a new order" do
     setup do
       without_access_control do
@@ -12,7 +10,6 @@ class OrderTaskTest < ActiveSupport::TestCase
         performance = FactoryBot.create(:performance)
 
         @order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
-
       end
     end
     should "generate two outreach tasks when processed" do
@@ -20,8 +17,8 @@ class OrderTaskTest < ActiveSupport::TestCase
       assert_equal(0, @order.tasks.size)
       @order.transition_to!(Order::PROCESSED)
       assert_equal(2, @order.tasks.size)
-      task1=@order.tasks[0]
-      task2=@order.tasks[1]
+      task1 = @order.tasks[0]
+      task2 = @order.tasks[1]
       assert_true(task1.is_a? OutreachTask)
       assert_true(@order.tasks[1].is_a? OutreachTask)
       assert_equal('ticket_confirmation', task1.method_symbol.to_s)
@@ -42,8 +39,9 @@ class OrderTaskTest < ActiveSupport::TestCase
       @order.transition_to!(Order::PROCESSING)
       @order.transition_to!(Order::PROCESSED)
       @order2 = FactoryBot.create(:ticket_order, :address => addresses(:jeremy), :payment_type => CashPaymentType.first, :status => Order::NEW,
-                               :performance => performances(:macbeth_matinee))
-      @order2.ticket_line_items << TicketLineItem.new({:ticket_class => ticket_classes(:macbeth_general_admission), :ticket_count => 1})
+                                                 :performance => performances(:macbeth_matinee))
+      @order2.ticket_line_items << TicketLineItem.new({ :ticket_class => ticket_classes(:macbeth_general_admission),
+                                                        :ticket_count => 1 })
 
       @order2.transition_to!(Order::PROCESSING)
       @order2.transition_to!(Order::PROCESSED)
@@ -52,7 +50,5 @@ class OrderTaskTest < ActiveSupport::TestCase
       assert_equal(3, @order2.tasks.size)
       assert_equal('standard_followup', @order2.tasks[2].method_symbol.to_s)
     end
-
   end
-
 end

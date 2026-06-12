@@ -1,6 +1,6 @@
 class CreateTicketClasses < ActiveRecord::Migration[4.2]
   def self.up
-    begin 
+    begin
       drop_table :ticket_classes
     rescue StandardError => e
     end

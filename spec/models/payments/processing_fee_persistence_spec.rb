@@ -2,7 +2,9 @@ require 'rails_helper'
 
 RSpec.describe "Processing fee persistence", type: :model do
   let(:order) { FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :general_admission) }
-  let(:credit_card_payment_type) { PaymentType.find_by(display_name: 'Credit Card') || FactoryBot.create(:credit_card_payment_type) }
+  let(:credit_card_payment_type) {
+    PaymentType.find_by(display_name: 'Credit Card') || FactoryBot.create(:credit_card_payment_type)
+  }
   let(:cash_payment_type) { PaymentType.find_by(display_name: 'Cash') || FactoryBot.create(:cash_payment_type) }
 
   let(:cc_attrs) do

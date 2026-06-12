@@ -17,12 +17,10 @@ end
 Given /^there is a flex pass offer named "([^"]*)"$/ do |offer_name|
   theater = Theater.first || FactoryBot.create(:theater)
   FactoryBot.create(:flex_pass_offer,
-    name: offer_name,
-    theater: theater,
-    price: 100.00,
-    facility_fee: 2.00,
-    spiff: 1.00,
-    flat_payout: 5.00
-  )
+                    name: offer_name,
+                    theater: theater,
+                    price: 100.00,
+                    facility_fee: 2.00,
+                    spiff: 1.00,
+                    flat_payout: 5.00)
 end
-

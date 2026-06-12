@@ -21,7 +21,7 @@ class RemoveReferralCodeFromOrders < ActiveRecord::Migration[6.1]
   def down
     # Add the column back, but we can't restore the data
     add_column :orders, :referral_code, :string
-    
+
     puts "Warning: Data migration is one-way. The referral_code values cannot be restored."
   end
 end

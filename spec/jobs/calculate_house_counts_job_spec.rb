@@ -4,8 +4,12 @@ RSpec.describe CalculateHouseCountsJob, type: :job do
   include ActiveSupport::Testing::TimeHelpers
 
   describe '#perform' do
-    let!(:performance) { FactoryBot.create(:general_admission, performance_date: Date.today) }  # Uses the general_admission factory
-    let!(:ticket_order) { FactoryBot.create(:ticket_order,:for_a_pair_of_tickets, performance: performance, updated_at: 2.days.ago) }
+    let!(:performance) {
+      FactoryBot.create(:general_admission, performance_date: Date.today)
+    } # Uses the general_admission factory
+    let!(:ticket_order) {
+      FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, performance: performance, updated_at: 2.days.ago)
+    }
 
     before do
       # Assume last run was yesterday, so only changes within the last day are considered
@@ -27,8 +31,7 @@ RSpec.describe CalculateHouseCountsJob, type: :job do
         expect(performance.house_count.available_seats).to eq(performance.production.capacity)
         CalculateHouseCountsJob.perform
         performance.reload
-        expect(performance.house_count.available_seats).to eq(performance.production.capacity-2)
-      
+        expect(performance.house_count.available_seats).to eq(performance.production.capacity - 2)
       end
     end
 
@@ -44,7 +47,7 @@ RSpec.describe CalculateHouseCountsJob, type: :job do
         CalculateHouseCountsJob.perform
         performance.reload
         expect(performance.house_count.total_seats).to eq(50)
-        expect(performance.house_count.available_seats).to eq(performance.production.capacity-2)
+        expect(performance.house_count.available_seats).to eq(performance.production.capacity - 2)
       end
     end
 

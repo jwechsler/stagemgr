@@ -1,12 +1,11 @@
 class Payment < ApplicationRecord
-
   belongs_to :order, inverse_of: :payments
   belongs_to :payment_type
 
   # validates_numericality_of :amount, :unless => :number_of_tickets
   # validates_numericality_of :number_of_tickets, :unless => :amount
   # validates_presence_of :order
-  default_scope { order(created_at: :asc )}
+  default_scope { order(created_at: :asc) }
   before_save :set_processed_on
   before_save :persist_processing_fee
 
@@ -51,7 +50,7 @@ class Payment < ApplicationRecord
   # creates an exchange payment to offset the current payment
   def new_exchange_offset_payment
     ExchangePayment.new(
-      amount: -1*self.amount,
+      amount: -1 * self.amount,
       order: self.order,
       note: "Exchange for order #{self.order.id}",
       payment_type: self.payment_type,
@@ -62,7 +61,7 @@ class Payment < ApplicationRecord
   def new_offset_payment(partial_amount = nil, number_of_tickets = nil)
     partial_amount = self.amount if partial_amount.nil?
     new_payment = self.dup
-    new_payment.amount = 0-partial_amount
+    new_payment.amount = 0 - partial_amount
     new_payment
   end
 
@@ -90,7 +89,7 @@ class Payment < ApplicationRecord
 
   def create_refund_payment(cc_number = nil, note = nil)
     refund_payment = self.dup
-    refund_payment.amount = 0.0-refund_payment.amount
+    refund_payment.amount = 0.0 - refund_payment.amount
     refund_payment.order = self.order
     self.order.payments << refund_payment
     refund_payment
@@ -104,7 +103,6 @@ class Payment < ApplicationRecord
       end
     end
   end
-
 
   def report_as_sales_collected?
     self.payment_type_id.nil? ? true : self.payment_type.report_as_sales_collected?
@@ -123,6 +121,7 @@ class Payment < ApplicationRecord
   end
 
   protected
+
   def set_processed_on
     self.processed_on = self.processed_on || Time.now if self.new_record?
   end
@@ -134,12 +133,10 @@ class Payment < ApplicationRecord
   def create_refund_payment?
     self.amount > 0
   end
-
 end
 
-#class Class
+# class Class
 #  def subclasses
 #    ObjectSpace.each_object(Class).select { |klass| klass < self }
 #  end
-#end
-
+# end

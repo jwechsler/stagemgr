@@ -14,6 +14,7 @@ class Seat < ApplicationRecord
   end
 
   private
+
   def set_standard_location
     location = "#{row}#{seat_number}" if location.blank? || location.original.eql?("#{row.original}#{seat_number.original}")
   end

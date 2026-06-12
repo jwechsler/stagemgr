@@ -5,9 +5,9 @@ class RegularizeAddresses < ActiveRecord::Migration[4.2]
         if a.last_name.blank? then
           a.last_name = 'Unknown'
         end
-        a.save! }
+        a.save!
+      }
     end
-
   end
 
   def self.down

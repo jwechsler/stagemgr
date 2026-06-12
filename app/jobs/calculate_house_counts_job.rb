@@ -3,12 +3,11 @@
 require 'resque-lock-timeout'
 
 class CalculateHouseCountsJob < ApplicationJob
-  
   include LoggedJob
   extend Resque::Plugins::LockTimeout
+
   @queue = :sync
 
-  
   @loner = true # only one house counts job can be queued at a time
   @lock_timeout = 900 # timeout the lock after 15 minutes
   @lock_after_execution = true # Optional: lock throughout the job execution

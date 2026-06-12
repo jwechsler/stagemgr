@@ -1,14 +1,13 @@
 class FlexPassOrder < Order
+  has_one :flex_pass_line_item, :foreign_key => :order_id, dependent: :destroy, inverse_of: :flex_pass_order
 
-  has_one :flex_pass_line_item, :foreign_key=>:order_id, dependent: :destroy, inverse_of: :flex_pass_order
-  
   delegate :flex_pass, to: :flex_pass_line_item
   delegate :flex_pass_offer, to: :flex_pass_line_item
 
   accepts_nested_attributes_for :flex_pass_line_item
-  
+
   validates_associated :flex_pass_line_item
-  
+
   before_destroy :has_no_placed_orders?
 
   def associated_theater_id
@@ -29,7 +28,7 @@ class FlexPassOrder < Order
 
   def valid_payment_types_for(current_user)
     valid_payment_types = super
-    valid_payment_types.select {|pt| pt.is_a? CurrencyPaymentType }
+    valid_payment_types.select { |pt| pt.is_a? CurrencyPaymentType }
   end
 
   def description
@@ -90,11 +89,11 @@ class FlexPassOrder < Order
   end
 
   protected
+
   def create_receipt_task
     super
     unless self.suppress_receipt
-      self.tasks << OutreachTask.new(:execute_at=>Time.now + 5.minutes, :method_symbol=>:flexpass_confirmation)
+      self.tasks << OutreachTask.new(:execute_at => Time.now + 5.minutes, :method_symbol => :flexpass_confirmation)
     end
   end
-
 end

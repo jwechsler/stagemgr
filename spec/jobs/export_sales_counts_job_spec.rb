@@ -18,13 +18,13 @@ RSpec.describe ExportSalesCountsJob, type: :job do
                           total_single_tickets: 3, total_complimentary_tickets: 1,
                           gross_sales: 30.00, processing_fees: 1.50)
     RateOfSale.create!(
-      production:                  production,
-      day_of_sale:                 day_of_sale,
-      order_count:                 order_count,
-      total_single_tickets:        total_single_tickets,
+      production: production,
+      day_of_sale: day_of_sale,
+      order_count: order_count,
+      total_single_tickets: total_single_tickets,
       total_complimentary_tickets: total_complimentary_tickets,
-      gross_sales:                 gross_sales,
-      processing_fees:             processing_fees
+      gross_sales: gross_sales,
+      processing_fees: processing_fees
     )
   end
 

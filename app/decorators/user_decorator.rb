@@ -2,7 +2,7 @@ class UserDecorator < ApplicationDecorator
   delegate_all
 
   def email
-    h.link_to(object.email, [:admin, object], :class=>"#{'strike' if object.inactive?}")
+    h.link_to(object.email, [:admin, object], :class => "#{'strike' if object.inactive?}")
   end
 
   def last_request_at
@@ -16,11 +16,11 @@ class UserDecorator < ApplicationDecorator
     object.theaters.each do |t|
       labels << h.raw("<span class=\"label secondary\">#{t}</span>")
     end
-    h.safe_join(labels,' ')
+    h.safe_join(labels, ' ')
   end
 
   def dt_actions
-    h.link_to('Edit', [:edit,:admin,user], :class=>'tiny button')
+    h.link_to('Edit', [:edit, :admin, user], :class => 'tiny button')
   end
 
   # Define presentation-specific methods here. Helpers are accessed through
@@ -31,5 +31,4 @@ class UserDecorator < ApplicationDecorator
   #       object.created_at.strftime("%a %m/%d/%y")
   #     end
   #   end
-
 end

@@ -5,7 +5,7 @@ class MembershipOrdersController < ApplicationController
 
   def payment_types_for(order, frontend = true)
     types = super
-    types.select{|t| t.is_a? CreditCardPaymentType}
+    types.select { |t| t.is_a? CreditCardPaymentType }
   end
 
   def create
@@ -34,6 +34,7 @@ class MembershipOrdersController < ApplicationController
   end
 
   protected
+
   def update_or_create
     respond_to do |format|
       if validate_web_order(@order) && process_order(@order, Order::PROCESSED)
@@ -48,5 +49,4 @@ class MembershipOrdersController < ApplicationController
   def membership_order_params
     params.require(:membership_order).permit(*common_params, *common_membership_order_params)
   end
-
 end

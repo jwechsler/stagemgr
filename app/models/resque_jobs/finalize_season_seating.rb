@@ -35,7 +35,9 @@ class FinalizeSeasonSeating
       email: order.address&.email,
       date: perf.performance_date,
       performance_code: perf.performance_code,
-      ticket_types: order.ticket_line_items.map { |tli| "#{tli.ticket_count}x #{tli.ticket_class.class_code}" }.join(', '),
+      ticket_types: order.ticket_line_items.map { |tli|
+        "#{tli.ticket_count}x #{tli.ticket_class.class_code}"
+      }.join(', '),
       order_total: order.total,
       status: nil,
       error: nil
@@ -43,7 +45,8 @@ class FinalizeSeasonSeating
   end
 
   def self.send_report(production, results, reporting_user_id)
-    headers = ['Order ID', 'Name', 'Email', 'Date', 'Performance Code', 'Ticket Types', 'Order Total', 'Status', 'Error']
+    headers = ['Order ID', 'Name', 'Email', 'Date', 'Performance Code', 'Ticket Types', 'Order Total', 'Status',
+               'Error']
 
     csv_string = CSV.generate do |csv|
       csv << headers

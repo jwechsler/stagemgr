@@ -4,5 +4,4 @@ class InactivateUnusedProductions
   def self.perform
     Production.inactivate_unused
   end
-
 end

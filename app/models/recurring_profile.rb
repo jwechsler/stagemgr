@@ -1,19 +1,21 @@
 module RecurringProfile
   RECURRING_STATUSES = (
   ACTIVE, EXPIRED, PENDING, CANCELED, SUSPENDED =
-      "Active", "Expired", "Pending", "Canceled", "Suspended"
-  )
+    "Active", "Expired", "Pending", "Canceled", "Suspended"
+)
   extend ActiveSupport::Concern
+
   included do
     belongs_to :address
 
     validates_presence_of :address
-    validates_uniqueness_of :profile_id, allow_nil: true, allow_blank:true, :unless=>Proc.new {|profile| profile.profile_id.eql?(PaymentProcessing::BogusResponse::PROFILE_ID)}
-
-    after_save :notify_on_suspension, :if=>Proc.new { |record|
-      record.saved_change_to_attribute?(:status) && record.suspended?
+    validates_uniqueness_of :profile_id, allow_nil: true, allow_blank: true, :unless => Proc.new { |profile|
+      profile.profile_id.eql?(PaymentProcessing::BogusResponse::PROFILE_ID)
     }
 
+    after_save :notify_on_suspension, :if => Proc.new { |record|
+      record.saved_change_to_attribute?(:status) && record.suspended?
+    }
   end
 
   def active?
@@ -24,33 +26,33 @@ module RecurringProfile
     self.status.eql?(PENDING)
   end
 
-  def self.create_recurring_profile(order,start_date, recurring_amount, profile_description,
-                               max_failed_payments, additional_options = Hash.new)
+  def self.create_recurring_profile(order, start_date, recurring_amount, profile_description,
+                                    max_failed_payments, additional_options = Hash.new)
     raise "This functionality has been deprecated"
     gateway ||= PaymentProcessing.recurring_gateway
     f_name, l_name = order.address.parse_full_name
     order.credit_card_expiration_year = Order.fix_expiration_year(order.credit_card_expiration_year.to_s)
-    credit_card = PaymentProcessing.credit_card(  order.credit_card_type,
-                                                  f_name,
-                                                  l_name,
-                                                  order.credit_card_number,
-                                                  order.credit_card_expiration_month,
-                                                  order.credit_card_expiration_year,
-                                                  order.credit_card_verification_number)
-    options = { :ip=>order.ip_address,
-                :order_id =>order.id,
-                :email=>order.address.email,
+    credit_card = PaymentProcessing.credit_card(order.credit_card_type,
+                                                f_name,
+                                                l_name,
+                                                order.credit_card_number,
+                                                order.credit_card_expiration_month,
+                                                order.credit_card_expiration_year,
+                                                order.credit_card_verification_number)
+    options = { :ip => order.ip_address,
+                :order_id => order.id,
+                :email => order.address.email,
                 :description => profile_description,
-                :start_date=>start_date,
-                :period=>'Month', :frequency=>1, :max_failed_payments=>max_failed_payments,
-                :auto_bill_outstanding=> true
-              }
+                :start_date => start_date,
+                :period => 'Month', :frequency => 1, :max_failed_payments => max_failed_payments,
+                :auto_bill_outstanding => true }
     options.merge!(additional_options) unless additional_options.nil?
     response = gateway.recurring((recurring_amount * 100).to_i, credit_card, options)
     response
   end
 
   protected
+
   def get_profile_data
     if self.profile_id.starts_with?('sub_') then # stripe @todo remove at transition
       subscription = PaymentProcessing.gateway.subscription(self.profile_id)
@@ -61,6 +63,7 @@ module RecurringProfile
   end
 
   public
+
   def update_from_profile(subscription_id = nil)
     self.profile_id = subscription_id if (self.profile_id.blank? && !subscription_id.blank?)
     unless self.profile_id.blank? || !self.profile_id.starts_with?('sub') # second condition is to wean off of paypal.  Remove it eventually
@@ -75,15 +78,15 @@ module RecurringProfile
       profile_status = PENDING
     end
     self.status = case
-      when ['active','trialing'].include?(profile_status)
-        ACTIVE
-      when [CANCELED, 'canceled', 'unpaid'].include?(profile_status)
-        CANCELED
-      when  profile_status.eql?(PENDING)
-        PENDING
-      else
-        SUSPENDED
-    end
+                  when ['active', 'trialing'].include?(profile_status)
+                    ACTIVE
+                  when [CANCELED, 'canceled', 'unpaid'].include?(profile_status)
+                    CANCELED
+                  when profile_status.eql?(PENDING)
+                    PENDING
+                  else
+                    SUSPENDED
+                  end
   end
 
   def update_from_profile!
@@ -91,7 +94,6 @@ module RecurringProfile
     self.save!
     self
   end
-
 
   def current_status
     case
@@ -142,6 +144,4 @@ module RecurringProfile
     self.recurring_order.notify_suspended
     self.recurring_order.save
   end
-
-
 end

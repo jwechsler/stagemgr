@@ -14,8 +14,11 @@ class ServiceItemTemplateDecorator < ApplicationDecorator
   end
 
   def dt_actions
-    (h.current_user.can?(:edit, object) ? h.link_to('Edit', [:edit, :admin, object], :id=>"edit_#{object.name.downcase}", :class=>'tiny button') + " " : "") +
-    (h.current_user.can?(:destroy, object) ? link_to('Destroy', [:admin, object], :confirm => 'Are you sure?', :method => :delete, :class=>'tiny alert button') : "")
+    (h.current_user.can?(:edit,
+                         object) ? h.link_to('Edit', [:edit, :admin, object], :id => "edit_#{object.name.downcase}",
+                                                                              :class => 'tiny button') + " " : "") +
+      (h.current_user.can?(:destroy,
+                           object) ? link_to('Destroy', [:admin, object], :confirm => 'Are you sure?', :method => :delete,
+                                                                          :class => 'tiny alert button') : "")
   end
-
 end

@@ -25,5 +25,4 @@ class SyncCache
     end
     p
   end
-
 end

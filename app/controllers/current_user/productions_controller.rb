@@ -70,11 +70,10 @@ class CurrentUser::ProductionsController < CurrentUser::ApplicationController
   private
 
   def find_theater
-    @theater=Theater.find(params[:theater_id])
+    @theater = Theater.find(params[:theater_id])
   end
 
   def find_production
     @production = @theater.productions.find(params[:id])
   end
-
 end

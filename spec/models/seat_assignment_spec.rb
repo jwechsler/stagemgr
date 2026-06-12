@@ -3,8 +3,14 @@ require 'rails_helper'
 RSpec.describe SeatAssignment, type: :model do
   describe ".release_temporary_holds_for_performance" do
     let(:production) { FactoryBot.create(:production_with_reserved_seating) }
-    let(:performance1) { FactoryBot.create(:reserved_seating, production: production, performance_date: Date.today + 1.day, performance_time: Time.parse("19:00")) }
-    let(:performance2) { FactoryBot.create(:reserved_seating, production: production, performance_date: Date.today + 2.days, performance_time: Time.parse("19:00")) }
+    let(:performance1) {
+      FactoryBot.create(:reserved_seating, production: production, performance_date: Date.today + 1.day,
+                                           performance_time: Time.parse("19:00"))
+    }
+    let(:performance2) {
+      FactoryBot.create(:reserved_seating, production: production, performance_date: Date.today + 2.days,
+                                           performance_time: Time.parse("19:00"))
+    }
     let(:seat_map) { performance1.production.seat_map }
 
     before do
@@ -46,10 +52,9 @@ RSpec.describe SeatAssignment, type: :model do
           payment_type: FactoryBot.create(:cash_payment_type)
         )
         @ticket_order.ticket_line_items << FactoryBot.build(:ticket_line_item,
-          ticket_class: ticket_class,
-          ticket_count: 2,
-          order: @ticket_order
-        )
+                                                            ticket_class: ticket_class,
+                                                            ticket_count: 2,
+                                                            order: @ticket_order)
 
         # Manually assign seats to this order with TEMPORARY status
         @held_seats = performance1.seat_assignments.where(status: SeatAssignment::AVAILABLE).take(2)
@@ -89,10 +94,9 @@ RSpec.describe SeatAssignment, type: :model do
           payment_type: FactoryBot.create(:cash_payment_type)
         )
         @canceled_order.ticket_line_items << FactoryBot.build(:ticket_line_item,
-          ticket_class: ticket_class,
-          ticket_count: 2,
-          order: @canceled_order
-        )
+                                                              ticket_class: ticket_class,
+                                                              ticket_count: 2,
+                                                              order: @canceled_order)
 
         # Create TEMPORARY seats pointing to the canceled order
         @abandoned_seats = performance1.seat_assignments.where(status: SeatAssignment::AVAILABLE).take(2)
@@ -207,10 +211,9 @@ RSpec.describe SeatAssignment, type: :model do
           payment_type: FactoryBot.create(:cash_payment_type)
         )
         @valid_order.ticket_line_items << FactoryBot.build(:ticket_line_item,
-          ticket_class: ticket_class,
-          ticket_count: 2,
-          order: @valid_order
-        )
+                                                           ticket_class: ticket_class,
+                                                           ticket_count: 2,
+                                                           order: @valid_order)
         # Assign seats before saving to satisfy validation
         @valid_hold = seats[2..3]
         @valid_hold.each do |sa|

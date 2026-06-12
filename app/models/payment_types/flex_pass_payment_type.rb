@@ -1,6 +1,4 @@
 class FlexPassPaymentType < PassPaymentType
-
-  
   def payment_classes
     super + [FlexPassPayment.class]
   end
@@ -9,7 +7,7 @@ class FlexPassPaymentType < PassPaymentType
     super + FlexPassPaymentType.all
   end
 
-  def build_payment(amount, order, payment_details={})
+  def build_payment(amount, order, payment_details = {})
     flex_pass = FlexPass.find_by_code(order.flex_pass_code)
     raise 'No FlexPass with that code exists' unless flex_pass
 
@@ -18,12 +16,12 @@ class FlexPassPaymentType < PassPaymentType
       total_amount += PassPaymentType.applicable_price(li.ticket_class, pass_ticket_class) * li.ticket_count
     }
     new_payment = FlexPassPayment.new(
-            :number_of_tickets => order.number_of_tickets,
-            :flex_pass => flex_pass,
-            :amount => total_amount,
-            :payment_type=>self,
-            :order=>order
-        )
+      :number_of_tickets => order.number_of_tickets,
+      :flex_pass => flex_pass,
+      :amount => total_amount,
+      :payment_type => self,
+      :order => order
+    )
     new_payment.process!(order)
     new_payment
   end

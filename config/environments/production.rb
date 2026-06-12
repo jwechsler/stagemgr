@@ -53,7 +53,7 @@ Rails.application.configure do
   config.log_level = :info
 
   # Prepend all log lines with the following tags.
-  config.log_tags = [ :request_id ]
+  config.log_tags = [:request_id]
 
   # Rotate logs when they reach 100 MB, with a history of 10 logs
   config.logger = Logger.new(config.paths['log'].first, 10, 100.megabytes)
@@ -62,7 +62,7 @@ Rails.application.configure do
   # config.cache_store = :mem_cache_store
 
   # Use a real queuing backend for Active Job (and separate queues per environment).
-  config.active_job.queue_adapter     = :resque
+  config.active_job.queue_adapter = :resque
   # config.active_job.queue_name_prefix = "stagemgr_production"
 
   config.action_mailer.perform_caching = false
@@ -120,12 +120,13 @@ Rails.application.configure do
   # config.active_record.database_selector = { delay: 2.seconds }
   # config.active_record.database_resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver
   # config.active_record.database_resolver_context = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
-# Setup payments
+  # Setup payments
 
   config.after_initialize do
     PaymentProcessing.after_initialize
-    unless Rails.application.credentials.dig(:my_emma,:account_id).nil?
-      MyEmma.set_credentials(Rails.application.credentials.dig(:my_emma,:username), Rails.application.credentials.dig(:my_emma, :password), Rails.application.credentials.dig(:my_emma,:account_id)) 
+    unless Rails.application.credentials.dig(:my_emma, :account_id).nil?
+      MyEmma.set_credentials(Rails.application.credentials.dig(:my_emma, :username),
+                             Rails.application.credentials.dig(:my_emma, :password), Rails.application.credentials.dig(:my_emma, :account_id))
     else
       MyEmma.disable
     end
@@ -135,42 +136,43 @@ Rails.application.configure do
   $SERVER_CONFIG = config_data['all'].deep_merge(config_data['production'])
   $EMAIL_ADDRESS = $SERVER_CONFIG['email']['addresses']
   $PAYMENT_CONFIG = $SERVER_CONFIG['payment_processing']
-  $SERVER_CONFIG['ext_site_wrapper']=$SERVER_CONFIG['ext_site_wrapper'] || 'ext_site_wrapper'
-  $TKTPRINT =  YAML::load(File.open("#{::Rails.root.to_s}/config/ticket_print.yml"))['production']
+  $SERVER_CONFIG['ext_site_wrapper'] = $SERVER_CONFIG['ext_site_wrapper'] || 'ext_site_wrapper'
+  $TKTPRINT = YAML::load(File.open("#{::Rails.root.to_s}/config/ticket_print.yml"))['production']
   unless $SERVER_CONFIG['payment_processing'].nil? || $SERVER_CONFIG['payment_processing']['additional_card_types'].blank?
-    $ADDITIONAL_CARD_TYPES = $SERVER_CONFIG['payment_processing']['additional_card_types'].split(',').map{|ct| ct.strip}
+    $ADDITIONAL_CARD_TYPES = $SERVER_CONFIG['payment_processing']['additional_card_types'].split(',').map { |ct|
+      ct.strip
+    }
   else
     $ADDITIONAL_CARD_TYPES = []
   end
 
-  config.action_mailer.delivery_method   = $SERVER_CONFIG['email']['delivery_method'].to_sym
+  config.action_mailer.delivery_method = $SERVER_CONFIG['email']['delivery_method'].to_sym
   if $SERVER_CONFIG['email']['delivery_method'].eql?('postmark')
-    config.action_mailer.postmark_settings = { :api_key=>Rails.application.credentials.dig(:postmark_api_token) }
+    config.action_mailer.postmark_settings = { :api_key => Rails.application.credentials.dig(:postmark_api_token) }
   end
 
   $RAND_CLAUSE = Arel.sql('RAND()')
   $APP_DISPLAY_NAME = $SERVER_CONFIG['app_name'] || 'StageMgr'
-  config.action_mailer.default_url_options = { host: "#{$SERVER_CONFIG['host']}#{$SERVER_CONFIG['sub_uri']}", protocol: $SERVER_CONFIG['host_protocol'] }
+  config.action_mailer.default_url_options = { host: "#{$SERVER_CONFIG['host']}#{$SERVER_CONFIG['sub_uri']}",
+                                               protocol: $SERVER_CONFIG['host_protocol'] }
   Rails.application.routes.default_url_options[:host] = $SERVER_CONFIG['host']
 
   # Set up notification for issues
-
 end
 
 # Exception notifications
 
 Stagemgr::Application.config.middleware.use ExceptionNotification::Rack,
-                        ignore_exceptions: [
-                          'ActionController::InvalidAuthenticityToken',
-                          'ActiveRecord::RecordNotFound',
-                          'ActionController::BadRequest',
-                          'Rack::QueryParser::InvalidParameterError'
-                        ] + ExceptionNotifier.ignored_exceptions,
-                        :email=> {
-                          :email_prefix=>"[Stagemgr Exception] ",
-                          :sender_address=>%{"Exception Notifier" <bugs@theaterwit.org>},
-                          :exception_recipients=>%w{bugs@theaterwit.org},
-                          :delivery_method=>:sendmail
-                        },
-                        error_grouping: true
-
+                                            ignore_exceptions: [
+                                              'ActionController::InvalidAuthenticityToken',
+                                              'ActiveRecord::RecordNotFound',
+                                              'ActionController::BadRequest',
+                                              'Rack::QueryParser::InvalidParameterError'
+                                            ] + ExceptionNotifier.ignored_exceptions,
+                                            :email => {
+                                              :email_prefix => "[Stagemgr Exception] ",
+                                              :sender_address => %{"Exception Notifier" <bugs@theaterwit.org>},
+                                              :exception_recipients => %w{bugs@theaterwit.org},
+                                              :delivery_method => :sendmail
+                                            },
+                                            error_grouping: true

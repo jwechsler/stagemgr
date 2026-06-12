@@ -16,11 +16,11 @@ module Stagemgr
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 6.0
-    
+
     config.autoload_paths += Dir[Rails.root.join('app', 'models', '**/')]
     config.autoload_paths << "#{config.root}/lib"
     # config.eager_load_paths << "#{config.root}/lib"
-    
+
     Rails.autoloaders.main.ignore("#{config.root}/lib/tasks")
     Rails.autoloaders.main.ignore(Rails.root.join('lib/my_emma_patches.rb'))
     Rails.autoloaders.main.ignore(Rails.root.join('lib/validates_credit_card.rb'))
@@ -33,11 +33,9 @@ module Stagemgr
     # config.i18n.load_path += Dir[Rails.root.join('my', 'locales', '*.{rb,yml}').to_s]
     # config.i18n.default_locale = :de
 
-    
-
     # If you want to use gmail for deliver...
-    #config.action_mailer.delivery_method = :smtp
-    #config.action_mailer.smtp_settings = {
+    # config.action_mailer.delivery_method = :smtp
+    # config.action_mailer.smtp_settings = {
     #  :enable_starttls_auto => true,
     #  :address => 'smtp.gmail.com',
     #  :port => 587,
@@ -45,7 +43,7 @@ module Stagemgr
     #  :authentication => :plain,
     #  :user_name => 'user@yourdomain.org',
     #  :password => 'yourpassword'
-    #}
+    # }
 
     config.action_mailer.raise_delivery_errors = true
     # JavaScript files you want as :defaults (application.js is always included).
@@ -54,7 +52,6 @@ module Stagemgr
     config.assets.enabled = true
     config.assets.version = '1.0'
     config.assets.prefix = '/assets'
-
 
     # Configure the default encoding used in templates for Ruby 1.9.
     config.encoding = "utf-8"
@@ -69,22 +66,22 @@ module Stagemgr
     # config.active_record.raise_in_transactional_callbacks = true
 
     initializer :after_append_asset_paths,
-            :group => :all,
-            :after => :append_assets_path do
-      $MARKDOWN = Redcarpet::Markdown.new(Redcarpet::Render::HTML, :autolink => true, :space_after_headers => true, :filter_html=>true)
-        $TRUSTED_MARKDOWN = Redcarpet::Markdown.new(Redcarpet::Render::HTML, :autolink => true, :space_after_headers => true)
-
+                :group => :all,
+                :after => :append_assets_path do
+      $MARKDOWN = Redcarpet::Markdown.new(Redcarpet::Render::HTML, :autolink => true, :space_after_headers => true,
+                                                                   :filter_html => true)
+      $TRUSTED_MARKDOWN = Redcarpet::Markdown.new(Redcarpet::Render::HTML, :autolink => true,
+                                                                           :space_after_headers => true)
     end
 
     # manage yaml deserialization of audit records for ruby type safety workaround
     config.active_record.yaml_column_permitted_classes =
       %w[String Integer NilClass Float Time Date FalseClass Hash Array DateTime TrueClass BigDecimal
-        ActiveSupport::TimeWithZone ActiveSupport::TimeZone ActiveSupport::HashWithIndifferentAccess]
-    #limit Audits to 25 changes
+         ActiveSupport::TimeWithZone ActiveSupport::TimeZone ActiveSupport::HashWithIndifferentAccess]
+    # limit Audits to 25 changes
     Audited.max_audits = 25
 
-    config.active_storage.variant_processor = :vips 
+    config.active_storage.variant_processor = :vips
     config.active_storage.queue = :maintenance
-    
   end
 end

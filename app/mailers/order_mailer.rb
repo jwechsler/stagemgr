@@ -4,80 +4,80 @@ class OrderMailer < ActionMailer::Base
   @markdown_renderer = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)
   helper ApplicationHelper
 
-  layout "order_mailer", :except=>[:performance_reminder, :flex_pass_pending_reminder, :refunded_item_alert]
+  layout "order_mailer", :except => [:performance_reminder, :flex_pass_pending_reminder, :refunded_item_alert]
 
   def markdown_renderer
     Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)
   end
 
-  def ticket_confirmation(order,address=nil,action_by=nil)
+  def ticket_confirmation(order, address = nil, action_by = nil)
     @order = order
     @markdown_renderer = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)
-     if !@order.performance.nil? && !@order.performance.suppress_notification?
-       @confirmation_message = ERB.new(@order.performance.production.confirmation_message).result if !@order.performance.production.confirmation_message.blank?
+    if !@order.performance.nil? && !@order.performance.suppress_notification?
+      @confirmation_message = ERB.new(@order.performance.production.confirmation_message).result if !@order.performance.production.confirmation_message.blank?
       mail(:to => @order.address.email,
            :from => "\"Theater Wit Box Office\" <boxoffice@theaterwit.org>",
            :subject => "Your reservation ##{order.id} for #{@order.performance.production.name} is confirmed",
-         :tag=>"Ticket Confirmation")
+           :tag => "Ticket Confirmation")
     end
   end
 
-  def membership_confirmation(order,address=nil,action_by=nil)
+  def membership_confirmation(order, address = nil, action_by = nil)
     @order = order
     @membership = @order.membership
     mail(:to => order.address.email,
          :from => "\"Theater Wit Box Office\" <boxoffice@theaterwit.org>",
          :subject => "Your #{@membership.membership_offer.name}",
-         :tag=>"Membership Confirmation")
+         :tag => "Membership Confirmation")
   end
 
-  def donation_thank_you(order,address=nil,action_by=nil)
+  def donation_thank_you(order, address = nil, action_by = nil)
     @order = order
     mail(:to => order.address.email,
          :from => "\"Jeremy Wechsler\" <jeremy@theaterwit.org>",
          :subject => "Thank you for your donation (you are AWESOME)!",
-         :tag=>"Donation Thank You") do |format|
-      format.html { render layout: 'order_mailer_no_sidebar'}
+         :tag => "Donation Thank You") do |format|
+      format.html { render layout: 'order_mailer_no_sidebar' }
     end
   end
 
-  def flexpass_confirmation(order,address=nil,action_by=nil)
+  def flexpass_confirmation(order, address = nil, action_by = nil)
     @order = order
     mail(:to => order.address.email,
          :from => "\"Theater Wit Box Office\" <boxoffice@theaterwit.org>",
          :subject => "Your #{@order.flex_pass.flex_pass_offer.name} [Order ##{@order.id}]",
-         :tag=>"Flex Pass Confirmation") do |format|
-      format.html { render layout: 'order_mailer_no_sidebar'}
+         :tag => "Flex Pass Confirmation") do |format|
+      format.html { render layout: 'order_mailer_no_sidebar' }
     end
   end
 
   def refunded_fulfilled_item_alert(order, email, action_by)
     @order = order
     @action_by = action_by
-    mail(:to=> email, :from => $EMAIL_ADDRESS['box_office'],
-         :subject=>"Warning: Fulfilled order #{@order.id} refunded",
-         :tag=>"Alert")
+    mail(:to => email, :from => $EMAIL_ADDRESS['box_office'],
+         :subject => "Warning: Fulfilled order #{@order.id} refunded",
+         :tag => "Alert")
   end
 
   def test_message(address)
-    mail(:to=>"jeremy@theaterwit.org", :from=>"\"Theater Wit Box Office\" <boxoffice@theaterwit.org>",
-         :subject=>"Test",
-         :tag=>"Test Message")
+    mail(:to => "jeremy@theaterwit.org", :from => "\"Theater Wit Box Office\" <boxoffice@theaterwit.org>",
+         :subject => "Test",
+         :tag => "Test Message")
   end
 
-  def performance_reminder(order,address=nil,action_by=nil,testing=false)
-    if (testing || (!order.performance.suppress_notification? && order.performance.performance_date > Date.today+1.day))
+  def performance_reminder(order, address = nil, action_by = nil, testing = false)
+    if (testing || (!order.performance.suppress_notification? && order.performance.performance_date > Date.today + 1.day))
       @order = order
       @markdown_renderer = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)
-      mail(:to=>@order.address.email, :from=>"\"Theater Wit Box Office\" <boxoffice@theaterwit.org>",
-           :subject=>"Don't forget you have a reservation for #{@order.performance.production.name}",
-           :tag=>"Ticket Reminder")
+      mail(:to => @order.address.email, :from => "\"Theater Wit Box Office\" <boxoffice@theaterwit.org>",
+           :subject => "Don't forget you have a reservation for #{@order.performance.production.name}",
+           :tag => "Ticket Reminder")
     else
       true
     end
   end
 
-  def member_followup(order,address=nil,action_by=nil)
+  def member_followup(order, address = nil, action_by = nil)
     @order = order
     @markdown_renderer = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)
     if !@order.performance.nil?
@@ -85,17 +85,17 @@ class OrderMailer < ActionMailer::Base
       @follow_up_message_2 = ERB.new(@order.performance.production.follow_up_message_2).result if !@order.performance.production.follow_up_message_2.blank?
     end
     unless @order.performance.suppress_notification?
-      mail(:to=>order.address.email, :from=>"\"Jeremy Wechsler\" <jeremy@theaterwit.org>",
-           :subject=>"Thanks for coming to #{order.performance.production.name}",
-           :tag=>"Member Followup")
+      mail(:to => order.address.email, :from => "\"Jeremy Wechsler\" <jeremy@theaterwit.org>",
+           :subject => "Thanks for coming to #{order.performance.production.name}",
+           :tag => "Member Followup")
     end
   end
 
-  def flex_pass_followup(order,address=nil,action_by=nil)
+  def flex_pass_followup(order, address = nil, action_by = nil)
     standard_followup(order)
   end
 
-  def first_time_followup(order,address=nil,action_by=nil)
+  def first_time_followup(order, address = nil, action_by = nil)
     @markdown_renderer = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)
     @order = order
     @special_offer = PercentOffSpecialOffer.new
@@ -106,19 +106,19 @@ class OrderMailer < ActionMailer::Base
     @special_offer.ticket_class_code = "GEN"
     @special_offer.system_generated = true
     @special_offer.save!
-    mail(:to=>order.address.email, :from=>"\"Jeremy Wechsler\" <jeremy@theaterwit.org>",
-         :subject=>"Thanks for coming to Theater Wit",
-         :tag=>"First Time Followup")
+    mail(:to => order.address.email, :from => "\"Jeremy Wechsler\" <jeremy@theaterwit.org>",
+         :subject => "Thanks for coming to Theater Wit",
+         :tag => "First Time Followup")
   end
 
-  def membership_friend_pass(order,address=nil,action_by=nil,expiration_date=nil)
+  def membership_friend_pass(order, address = nil, action_by = nil, expiration_date = nil)
     @order = order
     @membership = order.membership
     if @membership.membership_offer.use_member_friend_code.blank? then
       return false
     else
       @special_offer = TicketClassSpecialOffer.new
-      @special_offer.create_code("MF",6)
+      @special_offer.create_code("MF", 6)
       @special_offer.number_of_uses = 1
       @special_offer.auto_expire = expiration_date.nil? ? Date.today + 6.months : expiration_date
       @special_offer.max_tickets_per_order = 1
@@ -126,51 +126,51 @@ class OrderMailer < ActionMailer::Base
       @special_offer.change_ticket_class_code = @membership.membership_offer.use_member_friend_code
       @special_offer.membership_id = @membership.id
       @special_offer.save!
-      mail(:to=>order.address.email, :from=>"\"Jeremy Wechsler\" <jeremy@theaterwit.org>",
-           :subject=>"Thanks for being a member",
-           :tag=>"Member Bring a Friend")
+      mail(:to => order.address.email, :from => "\"Jeremy Wechsler\" <jeremy@theaterwit.org>",
+           :subject => "Thanks for being a member",
+           :tag => "Member Bring a Friend")
     end
   end
 
-  def standard_followup(order,address=nil,action_by=nil)
+  def standard_followup(order, address = nil, action_by = nil)
     @order = order
     @markdown_renderer = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)
-    mail(:to=>order.address.email, :from=>"\"Jeremy Wechsler\" <jeremy@theaterwit.org>",
-         :subject=>"Nice to see you again",
-         :tag=>"Standard Followup") unless order.performance.suppress_notification?
+    mail(:to => order.address.email, :from => "\"Jeremy Wechsler\" <jeremy@theaterwit.org>",
+         :subject => "Nice to see you again",
+         :tag => "Standard Followup") unless order.performance.suppress_notification?
   end
 
-  def flex_pass_pending_reminder(flex_pass_orders,address=nil,action_by=nil)
+  def flex_pass_pending_reminder(flex_pass_orders, address = nil, action_by = nil)
     unless flex_pass_orders.empty?
       @flex_pass_orders = flex_pass_orders
-      mail(:to=>$EMAIL_ADDRESS['flex_pass_notifications'], :from=>"\"Theater Wit Box Office\" <boxoffice@theaterwit.org>",
-           :subject=>"Unprocessed Flex Passes",
-           :tag=>"Internal Notification") do |format|
-        format.html { render layout: 'internal_mail'}
+      mail(:to => $EMAIL_ADDRESS['flex_pass_notifications'], :from => "\"Theater Wit Box Office\" <boxoffice@theaterwit.org>",
+           :subject => "Unprocessed Flex Passes",
+           :tag => "Internal Notification") do |format|
+        format.html { render layout: 'internal_mail' }
       end
     end
   end
 
-  def membership_pending_reminder(membership_orders,address=nil,action_by=nil)
+  def membership_pending_reminder(membership_orders, address = nil, action_by = nil)
     unless membership_orders.empty?
       @membership_orders = membership_orders
-      mail(:to=>$EMAIL_ADDRESS['membership_notifications'], :from=>"\"Theater Wit Box Office\" <boxoffice@theaterwit.org>",
-           :subject=>"Unprocessed Memberships",
-           :tag=>"Internal Notification") do |format|
-        format.html { render layout: 'internal_mail'}
+      mail(:to => $EMAIL_ADDRESS['membership_notifications'], :from => "\"Theater Wit Box Office\" <boxoffice@theaterwit.org>",
+           :subject => "Unprocessed Memberships",
+           :tag => "Internal Notification") do |format|
+        format.html { render layout: 'internal_mail' }
       end
     end
   end
 
-  def custom_performance_broadcast(order,address=nil,action_by=nil)
+  def custom_performance_broadcast(order, address = nil, action_by = nil)
     @order = order
     @markdown_renderer = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)
 
     # Find the most recent broadcast for this performance (sent within last hour)
     @broadcast = order.performance.broadcasts
-      .where('sent_at > ?', 1.hour.ago)
-      .order(sent_at: :desc)
-      .first
+                      .where('sent_at > ?', 1.hour.ago)
+                      .order(sent_at: :desc)
+                      .first
 
     if @broadcast
       @body_html = @markdown_renderer.render(@broadcast.body)
@@ -180,5 +180,4 @@ class OrderMailer < ActionMailer::Base
            :tag => "Performance Broadcast")
     end
   end
-
 end

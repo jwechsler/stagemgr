@@ -1,6 +1,6 @@
 class PercentOffSpecialOffer < SpecialOffer
   def calculate_discount(order)
-    (self.applicable_line_items(order).map{|li|li.total}.sum * self.amount/-100.0).round(2)
+    (self.applicable_line_items(order).map { |li| li.total }.sum * self.amount / -100.0).round(2)
   end
 
   def calculate_royalty_discount(order)

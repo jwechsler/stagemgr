@@ -5,10 +5,10 @@ class VenuesController < ApplicationController
   def now_playing_fb
     self.set_now_playing_productions
     @now_playing_productions += @offtime_productions
-    @home_shows = @now_playing_productions.select{|prod| prod.theater.producing?}
+    @home_shows = @now_playing_productions.select { |prod| prod.theater.producing? }
     @now_playing_productions -= @home_shows
     @max_pieces = 3
-    render :now_playing_fb, :layout=>'facebook'
+    render :now_playing_fb, :layout => 'facebook'
   end
 
   def now_playing
@@ -27,7 +27,7 @@ class VenuesController < ApplicationController
   def set_background
     @background = params['background']
     @background = 'light' if @background.nil?
-    @background = 'light' unless ['light','dark'].include?(@background)
+    @background = 'light' unless ['light', 'dark'].include?(@background)
   end
 
   def current_shows
@@ -53,14 +53,15 @@ class VenuesController < ApplicationController
   end
 
   protected
+
   def set_now_playing_productions
     @now_playing_productions = Array.new
     Venue.all.sort.each do |venue|
       prods = if venue.external?
                 venue.now_playing(Production::PLAY, Date.today.end_of_week + 1.week)
-      else
-        venue.now_playing_or_next_up(Production::PLAY)
-      end
+              else
+                venue.now_playing_or_next_up(Production::PLAY)
+              end
       @now_playing_productions += prods
     end
     @offtime_productions = Array.new

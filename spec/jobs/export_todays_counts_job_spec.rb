@@ -92,7 +92,7 @@ RSpec.describe ExportTodaysCountsJob, type: :job do
         expect(content).to include('sold_on')
         # Only three separator+header lines; no production name rows
         lines = content.split("\n").select { |l| l.start_with?('|') }
-        expect(lines.length).to eq(1)  # header row only
+        expect(lines.length).to eq(1) # header row only
       end
     end
 
@@ -120,7 +120,9 @@ RSpec.describe ExportTodaysCountsJob, type: :job do
     end
 
     context 'production name truncation' do
-      let!(:long_name_production) { FactoryBot.create(:production, name: 'A Very Long Production Name That Exceeds Limit') }
+      let!(:long_name_production) {
+        FactoryBot.create(:production, name: 'A Very Long Production Name That Exceeds Limit')
+      }
 
       before do
         create_rate_of_sale(production: long_name_production, order_count: 1, gross_sales: 20.00, processing_fees: 0)

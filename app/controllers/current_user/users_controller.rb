@@ -26,7 +26,7 @@ class CurrentUser::UsersController < CurrentUser::ApplicationController
 
   def show
     @user = current_user
-   end
+  end
 
   def edit
     @user = current_user
@@ -58,5 +58,4 @@ class CurrentUser::UsersController < CurrentUser::ApplicationController
     @is_my_account = params[:id].nil?
     @user = @is_my_account ? current_user : User.find(params[:id])
   end
-
 end

@@ -1,7 +1,6 @@
 require 'test_helper'
 
 class Admin::DefaultTicketClassesControllerTest < ActionController::TestCase
-
   def setup
     @sample_record = FactoryBot.create(:default_ticket_class)
     @sample_record.save!
@@ -10,6 +9,7 @@ class Admin::DefaultTicketClassesControllerTest < ActionController::TestCase
   def teardown
     @sample_record.destroy
   end
+
   def test_index
     get :index
     assert_template 'index'

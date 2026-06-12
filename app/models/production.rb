@@ -1,7 +1,6 @@
 # A production is a show with one or more performances.  Items common to performances are grouped here.
 
 class Production < ApplicationRecord
-
   attr_accessor :updated_by_user_id
 
   # :section: Production Constants
@@ -10,12 +9,12 @@ class Production < ApplicationRecord
 
   PRODUCTION_STATUSES = (
   ACTIVE, PRIVATE, INACTIVE, PRESALE, SEASONSEATING =
-      'Active', 'Private', 'Inactive', 'Presale', 'Season Seating')
+    'Active', 'Private', 'Inactive', 'Presale', 'Season Seating')
 
   PRODUCTION_CLASSES = (
   PLAY, SPECIAL_EVENT, PRIVATE_PARTY, CONFERENCE, OFF_TIME, CLASS, EXTERNAL =
-      'Primetime', 'Special Event', 'Private Party', 'Conference', 'Off/Late night', 'Class', 'External'
-  )
+    'Primetime', 'Special Event', 'Private Party', 'Conference', 'Off/Late night', 'Class', 'External'
+)
 
   PROMO_SIZES = (
     LARGE, MEDIUM, THUMB =
@@ -26,12 +25,16 @@ class Production < ApplicationRecord
 
   validates_inclusion_of :status, :in => PRODUCTION_STATUSES
   validates_presence_of :name, :season, :production_code
-  validates_uniqueness_of :production_code, :message=>"%{value} is already in use"
-  validates_length_of :production_code, :in=>1..8
+  validates_uniqueness_of :production_code, :message => "%{value} is already in use"
+  validates_length_of :production_code, :in => 1..8
   validates_numericality_of :capacity
-  validates_inclusion_of :seat_map, in: lambda{ |production| production.venue.seat_maps }, unless: Proc.new {|production| production.seat_map.nil?}
-  validates_formatting_of :survey_link, :using => :url, :allow_blank=>true
-  validates_formatting_of :mailing_list_link, :using => :url, :allow_blank=>true
+  validates_inclusion_of :seat_map, in: lambda { |production|
+    production.venue.seat_maps
+  }, unless: Proc.new { |production|
+       production.seat_map.nil?
+     }
+  validates_formatting_of :survey_link, :using => :url, :allow_blank => true
+  validates_formatting_of :mailing_list_link, :using => :url, :allow_blank => true
   with_options if: :visible? do |visible_prod|
     visible_prod.validates_presence_of :opening_at
     visible_prod.validates_presence_of :closing_at
@@ -47,23 +50,23 @@ class Production < ApplicationRecord
   has_many :special_offers, inverse_of: :production
   has_many :performances, inverse_of: :production
   has_many :ticket_classes, inverse_of: :production
-  has_many :ticket_orders, :source=>:orders, :through=>:performances
+  has_many :ticket_orders, :source => :orders, :through => :performances
   before_validation :clean_values, :downcase_for_db
   before_create :assign_default_ticket_classes
   # removed until we fix/expose statistics
   # before_save :queue_statistics_recalc
-  before_save :finalize_season_seating, :if=>:status_changed?
-  before_save :update_performance_codes, :if=>:production_code_changed?
+  before_save :finalize_season_seating, :if => :status_changed?
+  before_save :update_performance_codes, :if => :production_code_changed?
   belongs_to :flex_pass_offer, optional: true, inverse_of: :production
   has_and_belongs_to_many :addresses
   has_many :rate_of_sales
-  
-  #has_attached_file :promo, :path=>":rails_root/public/system/:attachment/:id/:style/:filename"
+
+  # has_attached_file :promo, :path=>":rails_root/public/system/:attachment/:id/:style/:filename"
   has_one_attached :promo
-  #, :styles => {:medium => "250x375>", :thumb => "125x186>"},
+  # , :styles => {:medium => "250x375>", :thumb => "125x186>"},
   #                  :path => ":rails_root/public/system/:attachment/:id/:style/:filename",
   #                  :url => "#{Rails.application.config.action_controller.relative_url_root}/system/:attachment/:id/:style/:filename"
-  #validates_attachment_content_type :promo, :content_type => ["image/jpg", "image/jpeg", "image/png", "image/gif"]
+  # validates_attachment_content_type :promo, :content_type => ["image/jpg", "image/jpeg", "image/png", "image/gif"]
   validates :promo, blob: { content_type: :image }
 
   def capacity
@@ -99,7 +102,6 @@ class Production < ApplicationRecord
 
   # :section: Production dates
 
-  #
   def running_dates
     self.first_performance_at.strftime('%B %d, %Y') + " through " + self.closing_at.strftime('%B %d, %Y')
   end
@@ -107,7 +109,6 @@ class Production < ApplicationRecord
   def first_performance_at
     self.first_playing_date
   end
-
 
   def first_playing_date
     self.first_preview_at || self.press_opening_at || self.opening_at || Date.today + 10.years
@@ -124,7 +125,7 @@ class Production < ApplicationRecord
   # by status (positional by PRODUCTION_STATUSES, opening_at
   def <=>(other)
     [PRODUCTION_STATUSES.index(self.status) || 0, self.opening_at || Date.today, self.name || ''] <=>
-        [PRODUCTION_STATUSES.index(other.status) || 0, other.opening_at || Date.today, other.name || '']
+      [PRODUCTION_STATUSES.index(other.status) || 0, other.opening_at || Date.today, other.name || '']
   end
 
   def now_playing?(through = nil)
@@ -166,7 +167,7 @@ class Production < ApplicationRecord
   def use_ticket_email_templates?
     return Production.performing_classes.include?(self.production_class)
   end
-  
+
   # Indicates whether this production should be treated as a special event
   # for email notification purposes - avoiding location-specific content
   def treat_as_special_event?
@@ -212,20 +213,21 @@ class Production < ApplicationRecord
 
   def self.additional_upcoming(order)
     Production.where("closing_at > :after_date and opening_at < :future_date and status in (:visible) and production_class in (:visible_classes) and not exists (select * from performances where status!='Inactive' and performances.production_id = productions.id and performances.id in (select performance_id from orders where address_id = :order_address))",
-                                     {:visible=>Production.visible_statuses,
-                                      :visible_classes=>[Production::PLAY],
-                                      :after_date=>Time.now.end_of_week,
-                                      :future_date=>(Time.now + 3.month),
-                                      :order_address=>order.address.id}).order($RAND_CLAUSE).limit(3)
+                     { :visible => Production.visible_statuses,
+                       :visible_classes => [Production::PLAY],
+                       :after_date => Time.now.end_of_week,
+                       :future_date => (Time.now + 3.month),
+                       :order_address => order.address.id }).order($RAND_CLAUSE).limit(3)
   end
 
   def self.running_week_of(check_date)
     start_of_week = check_date.beginning_of_week
     end_of_week = check_date.end_of_week
     Production.where(
-          'ifnull(productions.first_preview_at,productions.opening_at) <= ? and productions.closing_at >= ?',
-          end_of_week,
-          start_of_week)
+      'ifnull(productions.first_preview_at,productions.opening_at) <= ? and productions.closing_at >= ?',
+      end_of_week,
+      start_of_week
+    )
   end
 
   #
@@ -233,17 +235,21 @@ class Production < ApplicationRecord
   #
   def self.inactivate_unused
     productions = Production.where("status = :active_status and closing_at < :closing_date and updated_at <= :last_mod_check",
-      {closing_date: Date.today - 3.years, active_status: Production::ACTIVE, last_mod_check: Time.now - 14.days})
+                                   { closing_date: Date.today - 3.years, active_status: Production::ACTIVE,
+                                     last_mod_check: Time.now - 14.days })
     productions.each do |prod|
-      prod.status = INACTIVE 
+      prod.status = INACTIVE
       prod.save
     end
   end
 
   def price_range
     min_price = nil
-    max_price = TicketClass.maximum(:ticket_price, :conditions=>['web_visible = ? and production_id = ? and show_in_pricing_range = ?', true, self.id, true])
-    self.performances.each {|perf|
+    max_price = TicketClass.maximum(:ticket_price,
+                                    :conditions => [
+                                      'web_visible = ? and production_id = ? and show_in_pricing_range = ?', true, self.id, true
+                                    ])
+    self.performances.each { |perf|
       if perf.performance_date >= Date.today && perf.visible?
         visible = perf.ticket_class_allocations.select { |tca|
           tca.available? && tca.ticket_class.web_visible?
@@ -282,7 +288,7 @@ class Production < ApplicationRecord
 
   def service_item_template_list(service_item_list)
     itm = service_item_list.nil? ? '' : service_item_list
-    itm.split(',').map{|a| a.strip}
+    itm.split(',').map { |a| a.strip }
   end
 
   # @todo the below are hooks for markdown feature as planned
@@ -291,9 +297,9 @@ class Production < ApplicationRecord
 
   # When a production code is changed, performance codes are made to match
   def update_performance_codes
-    self.performances.select{|perf| perf.performance_code.starts_with?(self.production_code_was)}.each { |perf|
+    self.performances.select { |perf| perf.performance_code.starts_with?(self.production_code_was) }.each { |perf|
       perf.performance_code = perf.performance_code.sub(self.production_code_was, self.production_code)
-        perf.save!
+      perf.save!
     }
   end
 
@@ -309,12 +315,13 @@ class Production < ApplicationRecord
 
   def assign_default_ticket_classes
     defaults = DefaultTicketClass.all
-   defaults.each { |tcd| tc = TicketClass.new
-     tc.attributes=tcd.to_hash
-     self.ticket_classes << tc}
-   self
- end
-
+    defaults.each { |tcd|
+      tc = TicketClass.new
+      tc.attributes = tcd.to_hash
+      self.ticket_classes << tc
+    }
+    self
+  end
 
   def manage_after_save_active
     if self.status == ACTIVE && self.saved_change_to_status?
@@ -343,7 +350,6 @@ class Production < ApplicationRecord
       Resque.enqueue(FinalizeSeasonSeating, self.id, self.updated_by_user_id)
     end
   end
-
 end
 
 # Non-engine code
@@ -362,7 +368,7 @@ class Production
 
   def sync_attendees_on_email_list
     email_members = attendees_on_email_list
-    email_members.each do |email,member|
+    email_members.each do |email, member|
       puts "Syncing #{email}"
       if member.remoteid.blank? then
         a = Address.find_by(email: email)
@@ -412,10 +418,11 @@ class Production
   # <b>DEPRECATED:</b> Use bulk order import function instead
 
   def add_hold_to_every_performance(address, number_of_tickets, ticket_class_code)
-    ticket_class=ticket_classes.select { |tc| tc.class_code == ticket_class_code }.first
+    ticket_class = ticket_classes.select { |tc| tc.class_code == ticket_class_code }.first
     self.performances.each { |p|
-      o = TicketOrder.create(:status=>Order::HOLD, :address=>address, :performance=>p, :payment_type=>CashPaymentType.first)
-      li = o.ticket_line_items.build(:ticket_class=>ticket_class, :ticket_count=>number_of_tickets)
+      o = TicketOrder.create(:status => Order::HOLD, :address => address, :performance => p,
+                             :payment_type => CashPaymentType.first)
+      li = o.ticket_line_items.build(:ticket_class => ticket_class, :ticket_count => number_of_tickets)
       if !o.save
         o.destroy
         puts "Couldn't create hold for #{p.performance_code}"

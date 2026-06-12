@@ -1,5 +1,4 @@
 class ExpireFlexPass
-
   @queue = :maintenance
 
   def self.perform(flex_pass_id)
@@ -10,5 +9,4 @@ class ExpireFlexPass
     rescue ActiveRecord::RecordNotFound
     end
   end
-
 end

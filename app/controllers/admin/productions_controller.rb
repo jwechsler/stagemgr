@@ -8,9 +8,9 @@ class Admin::ProductionsController < Admin::ApplicationController
     respond_to do |format|
       format.json {
         params.permit!
-        render json: ProductionDatatable.new(params, view_context: view_context, current_user: current_user, current_theater: @theater )
+        render json: ProductionDatatable.new(params, view_context: view_context, current_user: current_user,
+                                                     current_theater: @theater)
       }
-
     end
   end
 
@@ -28,9 +28,9 @@ class Admin::ProductionsController < Admin::ApplicationController
   def new
     @production = @theater.productions.build
     @production.theater = @theater
-     respond_to do |format|
+    respond_to do |format|
       format.html # new.html.erb
-      format.xml  { render :xml => @production }
+      format.xml { render :xml => @production }
     end
   end
 
@@ -75,7 +75,7 @@ class Admin::ProductionsController < Admin::ApplicationController
     end
     respond_to do |format|
       if saved
-        flash[:notice] =   "#{@production.name} was successfully updated."
+        flash[:notice] = "#{@production.name} was successfully updated."
         format.html { redirect_to(admin_theater_path(@production.theater)) }
         format.xml  { head :ok }
       else
@@ -139,18 +139,16 @@ class Admin::ProductionsController < Admin::ApplicationController
   private
 
   def find_theater
-    @theater=Theater.find(params[:theater_id])
+    @theater = Theater.find(params[:theater_id])
   end
-
 
   def production_params
     params.require(:production).permit(:name, :first_preview_at, :press_opening_at, :opening_at,
-      :closing_at, :production_code, :production_class, :status, :season, :venue_id, :custom_label,
-      :credit_lines, :short_description, :show_description, :running_time, :intermission,
-      :allow_late_seating, :capacity, :additional_information_link, :calendar_callout, :conversion_pixel_code,
-      :flex_pass_offer_id, :myemma_attendee_group, :survey_link, :mailing_list_link,
-      :follow_up_message_2, :confirmation_message, :seat_map_id, :promo, :override_service_items, :override_first_exchange_items,
-      :override_addl_exchange_items, :custom1, :custom2, :royalty_percent)
+                                       :closing_at, :production_code, :production_class, :status, :season, :venue_id, :custom_label,
+                                       :credit_lines, :short_description, :show_description, :running_time, :intermission,
+                                       :allow_late_seating, :capacity, :additional_information_link, :calendar_callout, :conversion_pixel_code,
+                                       :flex_pass_offer_id, :myemma_attendee_group, :survey_link, :mailing_list_link,
+                                       :follow_up_message_2, :confirmation_message, :seat_map_id, :promo, :override_service_items, :override_first_exchange_items,
+                                       :override_addl_exchange_items, :custom1, :custom2, :royalty_percent)
   end
-
 end

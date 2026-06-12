@@ -7,14 +7,14 @@ class TicketLineItem < LineItem
 
   before_validation :assign_from_attr_accessors
   before_save :check_price_override
-  
+
   validates_numericality_of :price_override, :allow_nil => true
 
   def ticket_class_allocation_available?
     unless self.order.nil? || self.order.performance_id.nil?
-      number_available = TicketClassAllocation.where(ticket_class_id:self.id, performance_id:performance.id).sum(:ticket_limit)
+      number_available = TicketClassAllocation.where(ticket_class_id: self.id,
+                                                     performance_id: performance.id).sum(:ticket_limit)
     end
-
   end
 
   def price
@@ -24,7 +24,7 @@ class TicketLineItem < LineItem
   def refund!
     if self.ticket_count > 0
       refund_lineitem = self.dup
-      refund_lineitem.ticket_count = refund_lineitem.ticket_count*-1
+      refund_lineitem.ticket_count = refund_lineitem.ticket_count * -1
       refund_lineitem.ticket_class = self.ticket_class
       # The negative-count reversing entry is an accounting record, not a seat
       # owner. Clear the FK so the 1:1 uniqueness index isn't violated.
@@ -33,7 +33,6 @@ class TicketLineItem < LineItem
     else
       []
     end
-
   end
 
   def total
@@ -75,10 +74,10 @@ class TicketLineItem < LineItem
   end
 
   private
+
   def assign_from_attr_accessors
     return unless self.order && self.order.performance && self.order.performance.ticket_classes.count > 0
+
     self.ticket_class = self.order.performance.ticket_classes.find_by_class_code @ticket_class_code if @ticket_class_code
   end
-
-
 end

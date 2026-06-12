@@ -1,5 +1,6 @@
 class SyncTicketClassAllocationsJob < ApplicationJob
   include LoggedJob
+
   @queue = :sync
 
   def self.perform(ticket_class_id)

@@ -1,30 +1,31 @@
 class OrderTask < ApplicationRecord
-
   after_initialize :init
 
   TASK_STATUSES = (
       UNTRIED, COMPLETED, FAILED, CANCELLED = "Untried", "Completed", "Failed", "Cancelled"
-  )
+    )
 
   belongs_to :order, inverse_of: :tasks
 
   validates_presence_of :order
 
-
   protected
+
   def execute!
     raise Exception.new("Unimplmented Task")
   end
 
   private
+
   def init
     self.attempts ||= 0
     self.status ||= UNTRIED
   end
 
   public
-    # runs execute method for the order task.
-    # if the order is in a transational state (like exchanging), postpone for 5 minutes.
+
+  # runs execute method for the order task.
+  # if the order is in a transational state (like exchanging), postpone for 5 minutes.
   def run!
     if self.uncompleted? then
       if suppressed?
@@ -36,7 +37,7 @@ class OrderTask < ApplicationRecord
         else
           self.attempts += 1
           success = self.execute!
-          self.status =  success ?  COMPLETED : FAILED
+          self.status = success ? COMPLETED : FAILED
           self.save!
           if success
             unless self.repeat_monthly_interval.blank?
@@ -63,16 +64,14 @@ class OrderTask < ApplicationRecord
   end
 
   def self.run_pending
-    pending_tasks = OrderTask.where("status in ('Untried','Failed') and attempts < 12 and execute_at < ?",Time.now)
+    pending_tasks = OrderTask.where("status in ('Untried','Failed') and attempts < 12 and execute_at < ?", Time.now)
     pending_tasks.each { |task|
       begin
         task.run!
       rescue => e
         puts "Could not run task #{task.id} on order #{task.order.id}: #{e}"
       end
-
     }
-
   end
 
   def suppressed?
@@ -80,6 +79,7 @@ class OrderTask < ApplicationRecord
       next false unless s.task_type == self.type
       next true if s.method_name == 'ANY'
       next true if self.method_symbol.blank?
+
       s.method_name == self.method_symbol.to_s
     end
   end
@@ -93,5 +93,4 @@ class OrderTask < ApplicationRecord
     self.attempts = 0
     self
   end
-
 end

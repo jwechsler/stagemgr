@@ -1,4 +1,3 @@
-
 class OrdersController < ApplicationController
   layout $SERVER_CONFIG['ext_site_wrapper']
   include OrdersHelper
@@ -9,6 +8,7 @@ class OrdersController < ApplicationController
   respond_to :html, :xml, :json
 
   private
+
   def klass
     Object.const_get params[:controller].classify
   end
@@ -28,5 +28,4 @@ class OrdersController < ApplicationController
       end
     end
   end
-
 end

@@ -1,35 +1,34 @@
 class Performance < ApplicationRecord
-
-  PERFORMANCE_STATUSES = (ACTIVE, INACTIVE, PRIVATE = 'Active',  'Inactive', 'Private')
+  PERFORMANCE_STATUSES = (ACTIVE, INACTIVE, PRIVATE = 'Active', 'Inactive', 'Private')
 
   belongs_to               :production, inverse_of: :performances
   has_many                 :special_offers, inverse_of: :performance
   has_many                 :ticket_class_allocations, -> { includes :ticket_class }, inverse_of: :performance
-  has_many                 :ticket_classes, :through=>:ticket_class_allocations, inverse_of: :performances 
+  has_many                 :ticket_classes, :through => :ticket_class_allocations, inverse_of: :performances
   has_many                 :seat_assignments, -> { includes :seat }, inverse_of: :performance
-  has_many                 :seats, :through=>:seat_assignments
-  has_one                  :seat_map, :through=>:production
-  has_many                 :orders, :class_name=>'TicketOrder', inverse_of: :performance
+  has_many                 :seats, :through => :seat_assignments
+  has_one                  :seat_map, :through => :production
+  has_many                 :orders, :class_name => 'TicketOrder', inverse_of: :performance
   has_many                 :broadcasts, class_name: 'PerformanceBroadcast', dependent: :destroy
-  has_many                 :payment_restrictions, :dependent=>:destroy, inverse_of: :performance
-  has_many                 :restricted_payment_types, :source=>:payment_type, :through=>:payment_restrictions
+  has_many                 :payment_restrictions, :dependent => :destroy, inverse_of: :performance
+  has_many                 :restricted_payment_types, :source => :payment_type, :through => :payment_restrictions
   has_and_belongs_to_many  :special_features
   has_one                  :house_count, dependent: :destroy
 
   default_scope            { includes(:ticket_class_allocations) }
 
-  scope                    :sellable, -> { where("status in (:sellable)", sellable: Performance.sellable_statuses)}
+  scope                    :sellable, -> { where("status in (:sellable)", sellable: Performance.sellable_statuses) }
 
-  validates_inclusion_of   :status,            :in => PERFORMANCE_STATUSES
+  validates_inclusion_of   :status, :in => PERFORMANCE_STATUSES
   validates_uniqueness_of  :performance_code
-  validates_uniqueness_of  :performance_time, :scope=>[:performance_date, :production_id]
+  validates_uniqueness_of  :performance_time, :scope => [:performance_date, :production_id]
   validates_each           :performance_time do |record, attr, value|
     if !record.production.nil? && record.production.performances.any? do |p|
-        p.id != record.id &&
-        p.performance_date==record.performance_date &&
-        p.performance_time.hour==record.performance_time.hour &&
-        p.performance_time.min==record.performance_time.min
-      end
+      p.id != record.id &&
+      p.performance_date == record.performance_date &&
+      p.performance_time.hour == record.performance_time.hour &&
+      p.performance_time.min == record.performance_time.min
+    end
       record.errors.add(attr, 'has already been taken')
     end
   end
@@ -39,9 +38,11 @@ class Performance < ApplicationRecord
   validates_presence_of           :production
 
   before_validation               :clean_values
-  before_validation               :populate_ticket_class_allocations, :unless=>Proc.new { |p| p.production.nil? }
-  before_validation               :performance_code_must_match_production, :unless=>Proc.new { |p| p.production.nil? }
-  before_save                     :manage_seat_inventory, :unless=>Proc.new { |p| p.production.nil? || p.production.seat_map.nil? }
+  before_validation               :populate_ticket_class_allocations, :unless => Proc.new { |p| p.production.nil? }
+  before_validation               :performance_code_must_match_production, :unless => Proc.new { |p| p.production.nil? }
+  before_save                     :manage_seat_inventory, :unless => Proc.new { |p|
+    p.production.nil? || p.production.seat_map.nil?
+  }
   before_destroy                  :protect_performances_with_orders
   after_create                    :create_metrics
   accepts_nested_attributes_for   :ticket_class_allocations
@@ -53,10 +54,10 @@ class Performance < ApplicationRecord
 
   def seats_held(exclude_order = nil)
     TicketLineItem.where('ticket_classes.holds_seats = ? and orders.status in (?) and orders.performance_id = ? and order_id != ?',
-                            true,
-                            Order::HOLDING_SEAT_STATUSES,
-                            id,
-                            (exclude_order.nil? ? 0 : exclude_order.id)).includes(:order, :ticket_class).sum(:ticket_count)
+                         true,
+                         Order::HOLDING_SEAT_STATUSES,
+                         id,
+                         (exclude_order.nil? ? 0 : exclude_order.id)).includes(:order, :ticket_class).sum(:ticket_count)
   end
 
   def scan_ticket_allocation_triggers
@@ -66,7 +67,7 @@ class Performance < ApplicationRecord
       new_scan = false
       max_scans -= 1
       seats_currently_held = self.seats_held
-      self.ticket_class_allocations.select{|tca| tca.shiftable? && tca.available?}.each do |tca|
+      self.ticket_class_allocations.select { |tca| tca.shiftable? && tca.available? }.each do |tca|
         if tca.trigger_satisfied?(seats_currently_held)
           Rails.logger.info("Promoting #{self.to_s}, ticket class #{tca.ticket_class.class_code} to #{tca.shift_to_code}")
           tca.available = false
@@ -80,7 +81,6 @@ class Performance < ApplicationRecord
       scan_required = new_scan
       self.ticket_class_allocations.reload
     end
-
   end
 
   def number_of_tickets_left
@@ -88,7 +88,9 @@ class Performance < ApplicationRecord
   end
 
   def sold_out?
-    self.number_of_seats_left <= 0 && self.ticket_class_allocations.select{|tca| tca.available? && tca.ticket_class.web_visible? && !tca.ticket_class.holds_seats?}.size.eql?(0)
+    self.number_of_seats_left <= 0 && self.ticket_class_allocations.select { |tca|
+      tca.available? && tca.ticket_class.web_visible? && !tca.ticket_class.holds_seats?
+    }.size.eql?(0)
   end
 
   def happening_soon?
@@ -107,7 +109,6 @@ class Performance < ApplicationRecord
   def to_time_with_zone
     Time.zone.parse("#{self.performance_date}T#{self.performance_time.strftime("%H:%M:00")}")
   end
-
 
   def near_capacity?
     self.number_of_seats_left <= $SERVER_CONFIG['restrict_sales_due_to_capacity_at'].to_i
@@ -132,8 +133,10 @@ class Performance < ApplicationRecord
   def calendar_heatmap_level
     return nil if performance_at + production.running_time.minutes < Time.now
     return nil if calendar_sold_out? || withhold_from_public?
+
     capacity = production.capacity
     return nil if capacity.nil? || capacity <= 0
+
     seats_left = calendar_seats_left
     pct_remaining = (seats_left.to_f / capacity) * 100
     thresholds = $SERVER_CONFIG['calendar_display'] || {}
@@ -145,17 +148,21 @@ class Performance < ApplicationRecord
   end
 
   def populate_ticket_class_allocations
-    (self.production.ticket_classes - self.ticket_class_allocations.map{|tca|tca.ticket_class}).each do |ticket_class|
-      self.ticket_class_allocations.build({:ticket_class=>ticket_class, :available=>ticket_class.auto_attach, :performance=>self})
+    (self.production.ticket_classes - self.ticket_class_allocations.map { |tca|
+      tca.ticket_class
+    }).each do |ticket_class|
+      self.ticket_class_allocations.build({ :ticket_class => ticket_class, :available => ticket_class.auto_attach,
+                                            :performance => self })
     end
     self.ticket_class_allocations.each do |tca|
       tca.available = true if tca.ticket_class.auto_attach?
     end
-
   end
 
   def allocation(class_code)
-    self.ticket_class_allocations.select{|tca| !tca.ticket_class.nil? && tca.ticket_class.class_code.eql?(class_code)}.first
+    self.ticket_class_allocations.select { |tca|
+      !tca.ticket_class.nil? && tca.ticket_class.class_code.eql?(class_code)
+    }.first
   end
 
   def to_s
@@ -189,10 +196,10 @@ class Performance < ApplicationRecord
   def manage_seat_inventory
     unless self.seat_map.nil? then
       seats = Seat.where(seat_map_id: self.seat_map.id)
-      known_seats = self.seat_assignments.map {|sa| sa.seat}
-      missing_seats = seats.map{|s| s} - known_seats
+      known_seats = self.seat_assignments.map { |sa| sa.seat }
+      missing_seats = seats.map { |s| s } - known_seats
 
-      missing_seats.each{|seat|
+      missing_seats.each { |seat|
         seat_assignments << SeatAssignment.new(seat: seat)
       }
     end
@@ -201,9 +208,9 @@ class Performance < ApplicationRecord
   def remove_illegal_seat_assignments
     unless self.seat_map.nil? then
       seats = Seat.where(seat_map_id: self.seat_map.id)
-      known_seats = self.seat_assignments.map {|sa| sa.seat}
-      problem_seats = known_seats - seats.map{|s| s}
-      problem_seats.each {|s|
+      known_seats = self.seat_assignments.map { |sa| sa.seat }
+      problem_seats = known_seats - seats.map { |s| s }
+      problem_seats.each { |s|
         self.seat_assignments.select { |sa| sa.seat_id == s.id }.each { |sa|
           if sa.order_id.nil? && sa.status == "Available"
             sa.destroy
@@ -223,20 +230,23 @@ class Performance < ApplicationRecord
   # @return image_path to generated image, empty string if the production is not reserved seating
   def generate_seating_thumbnail
     if production.has_reserved_seating? then
-      file_name = performance_code+'_seating.png'
-      file_path=Rails.root.join('public','static','qv',file_name).to_s
-      if !File.exist?(file_path) || (File.mtime(file_path) < (seat_assignments.maximum(:updated_at) || Time.now) +5.minutes)
-        dots = SeatAssignment.joins(:seat).includes(:seat).where(performance_id: self.id, status: SeatAssignment::AVAILABLE).pluck(:origin_x, :origin_y, :width)
+      file_name = performance_code + '_seating.png'
+      file_path = Rails.root.join('public', 'static', 'qv', file_name).to_s
+      if !File.exist?(file_path) || (File.mtime(file_path) < (seat_assignments.maximum(:updated_at) || Time.now) + 5.minutes)
+        dots = SeatAssignment.joins(:seat).includes(:seat).where(performance_id: self.id, status: SeatAssignment::AVAILABLE).pluck(
+          :origin_x, :origin_y, :width
+        )
         result = MiniMagick::Image.open(seat_map.base_image_map_file)
         image = 'available_seat.png'
         available_dot = MiniMagick::Image.open(Rails.root.to_s + "/app/assets/images/available_seat.png")
         availables = Hash.new
 
         dots.each { |dot|
-          availables[dot[2]] = MiniMagick::Image.open(Rails.root.to_s + "/app/assets/images/available_seat.png").resize("#{dot[2]*2}x#{dot[2]*2}") if availables[dot[2]].nil?
+          availables[dot[2]] =
+            MiniMagick::Image.open(Rails.root.to_s + "/app/assets/images/available_seat.png").resize("#{dot[2] * 2}x#{dot[2] * 2}") if availables[dot[2]].nil?
           result = result.composite(availables[dot[2]]) do |c|
             c.compose('over')
-            c.geometry("+#{dot[0]-dot[2]}+#{dot[1]-dot[2]}")
+            c.geometry("+#{dot[0] - dot[2]}+#{dot[1] - dot[2]}")
           end
         }
         result.resize("225x225").write(file_path)
@@ -251,22 +261,23 @@ class Performance < ApplicationRecord
   private
 
   def performance_code_must_match_production
-    errors.add(:performance_code, "must start with #{production.production_code}") unless performance_code.starts_with?(production.production_code)
+    errors.add(:performance_code,
+               "must start with #{production.production_code}") unless performance_code.starts_with?(production.production_code)
   end
 
   def clean_values
     self.performance_date = Date.today if self.performance_date.nil?
     self.performance_time = Time.now if self.performance_time.nil?
-    self.performance_date = self.performance_date.change( :hour  => 0,
-                                  :min   => 0,
-                                  :sec   => 0,
-                                  :usec  => 0)
-    self.performance_time = self.performance_time.change( :year  => self.performance_date.year,
-                                  :month => self.performance_date.month,
-                                  :day   => self.performance_date.day,
-                                  :min   => ((self.performance_time.min.to_i/15)*15),
-                                  :sec   => 0,
-                                  :usec  => 0)
+    self.performance_date = self.performance_date.change(:hour => 0,
+                                                         :min => 0,
+                                                         :sec => 0,
+                                                         :usec => 0)
+    self.performance_time = self.performance_time.change(:year => self.performance_date.year,
+                                                         :month => self.performance_date.month,
+                                                         :day => self.performance_date.day,
+                                                         :min => ((self.performance_time.min.to_i / 15) * 15),
+                                                         :sec => 0,
+                                                         :usec => 0)
     self.performance_code.upcase! if self.performance_code
   end
 
@@ -278,5 +289,4 @@ class Performance < ApplicationRecord
   def create_metrics
     self.create_house_count(total_seats: self.production.capacity, available_seats: self.production.capacity)
   end
-
 end

@@ -5,9 +5,9 @@ require_relative "config/environment"
 run Rails.application
 Rails.application.load_server
 
-#map '/' do
+# map '/' do
 #  run Stagemgr::Application
-#end
+# end
 
 map '/admin/resque' do
   run Stagemgr::Resque

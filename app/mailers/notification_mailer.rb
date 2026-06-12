@@ -1,5 +1,4 @@
 class NotificationMailer < ActionMailer::Base
-
   helper ApplicationHelper
 
   layout "notification_mailer"
@@ -10,17 +9,17 @@ class NotificationMailer < ActionMailer::Base
     mail(:to => recipient,
          :from => $EMAIL_ADDRESS['software_address'],
          :subject => subject,
-         :tag=>"Wheelchair request")
+         :tag => "Wheelchair request")
   end
 
-  def suspension_alert(order,recipient,action_by=nil)
+  def suspension_alert(order, recipient, action_by = nil)
     @order = order
 
     subject = "#{order.display_code.titlecase} payments suspended / #{order.address.full_name}"
     mail(:to => recipient,
          :from => $EMAIL_ADDRESS['software_address'],
          :subject => subject,
-         :tag=>"Recurring Payment")
+         :tag => "Recurring Payment")
   end
 
   def file_generated(filestore)
@@ -33,7 +32,7 @@ class NotificationMailer < ActionMailer::Base
       mail(:to => filestore.user.email,
            :from => $EMAIL_ADDRESS['software_address'],
            :subject => "Your download is ready",
-           :tag=>"File Generation Complete")
+           :tag => "File Generation Complete")
     end
   end
 
@@ -50,5 +49,4 @@ class NotificationMailer < ActionMailer::Base
            :tag => "Broadcast Log")
     end
   end
-
 end

@@ -22,6 +22,7 @@ require 'csv'
 
 class BulkFlexOrderImport < ImportIssuesReport
   include NotifyOnCompletion
+
   @queue = :import
 
   def self.perform(filestore_id, theater_id, payment_type_id)
@@ -38,13 +39,14 @@ class BulkFlexOrderImport < ImportIssuesReport
       performance_code_idx = 0
       seating_list_idx = 0
 
-      flex_pass_offer_lookup = FlexPassOffer.where("theater_id = :theater_id or theater_id is null", theater_id: theater_id).pluck(:name, :id).to_h
-      external_address_ids = AddressTag.where("tag_label = 'External Id' and theater_id = :theater_id and address_id is not null",theater_id: theater_id).pluck(:tag_value, :address_id).to_h # Get a list of all addresses with these external tags
+      flex_pass_offer_lookup = FlexPassOffer.where("theater_id = :theater_id or theater_id is null", theater_id: theater_id).pluck(
+        :name, :id
+      ).to_h
+      external_address_ids = AddressTag.where("tag_label = 'External Id' and theater_id = :theater_id and address_id is not null", theater_id: theater_id).pluck(:tag_value, :address_id).to_h # Get a list of all addresses with these external tags
       payment_type = payment_type_id.blank? ? nil : PaymentType.find(payment_type_id.to_i)
       issues = []
 
-
-      CSV.foreach(filestore.path, headers:true) do |row|
+      CSV.foreach(filestore.path, headers: true) do |row|
         puts("As Hash #{row.to_hash.to_yaml}")
         total += 1
         begin
@@ -54,11 +56,11 @@ class BulkFlexOrderImport < ImportIssuesReport
             case
             when !row['Id'].blank? # if ID is present, use that as the match criteria
               current_address_id = row['Id']
-              a = Address.find_by(id:row['Id'].to_i)
+              a = Address.find_by(id: row['Id'].to_i)
 
             when !row['ExternalId'].blank?
               current_address_id = row['ExternalId']
-              a = Address.find_by(id:external_address_ids[current_address_id])
+              a = Address.find_by(id: external_address_ids[current_address_id])
               a ||= Address.new
 
             else
@@ -66,7 +68,8 @@ class BulkFlexOrderImport < ImportIssuesReport
               a = Address.new
             end
             a ||= Address.new
-            a.set_full_name(row['FullName'],row['FirstName'],row['MiddleName'],row['LastName']) unless row['FullName'].blank? && row['LastName'].blank?
+            a.set_full_name(row['FullName'], row['FirstName'], row['MiddleName'],
+                            row['LastName']) unless row['FullName'].blank? && row['LastName'].blank?
             a.line1 = row['Address'] unless row['Address'].blank?
             a.line2 = row['Address2'] unless row['Address2'].blank?
             a.email = row['EmailAddress'] unless row['EmailAddress'].blank?
@@ -75,7 +78,8 @@ class BulkFlexOrderImport < ImportIssuesReport
             a.phone = row['Phone'] unless row['Phone'].blank?
             a.address_tags << new_address_tag(theater_id, a, row['Tag1'], row['TagValue1']) unless row['Tag1'].blank?
             a.address_tags << new_address_tag(theater_id, a, row['Tag2'], row['TagValue2']) unless row['Tag2'].blank?
-            a.address_tags << new_address_tag(theater_id, a, 'External ID', row['ExternalId']) unless row['ExternalId'].blank?
+            a.address_tags << new_address_tag(theater_id, a, 'External ID',
+                                              row['ExternalId']) unless row['ExternalId'].blank?
             a.regularize!
 
             a.save!
@@ -83,6 +87,7 @@ class BulkFlexOrderImport < ImportIssuesReport
             o.status = FlexPassOrder::NEW
             offer_code = row['FlexPassOffer']
             raise RuntimeError, "FlexPassOffer #{offer_code} not defined in import file" if offer_code.blank?
+
             flex_pass_offer_id = flex_pass_offer_lookup[offer_code].to_i
             puts("IMPORT: Offer: #{offer_code} #{flex_pass_offer_id}")
 
@@ -90,12 +95,14 @@ class BulkFlexOrderImport < ImportIssuesReport
 
             o.address = a
 
-            o.build_flex_pass_line_item(flex_pass_offer_id:flex_pass_offer_id)
+            o.build_flex_pass_line_item(flex_pass_offer_id: flex_pass_offer_id)
 
             o.payment_type = payment_type
             o.suppress_receipt = true
             o.transition_to!(Order::PROCESSED)
-            o.payments.each{|p| p.note = "Imported from #{File.basename(filestore.path)} by #{filestore.user.email}"; p.save }
+            o.payments.each { |p|
+              p.note = "Imported from #{File.basename(filestore.path)} by #{filestore.user.email}"; p.save
+            }
             puts("IMPORT: Order is #{Order::PROCESSED}")
             flex_pass = o.flex_pass
             unless row['Code'].blank?
@@ -109,12 +116,9 @@ class BulkFlexOrderImport < ImportIssuesReport
           puts e.backtrace
           problems.add_problem_row(row: row.to_h, message: ImportIssuesReport.format_exception(e))
         end
-
-
       end
       filestore.notes = "Imported #{total} orders, #{problems.count} errors"
       filestore.save
-
     rescue => e
       puts "IMPORT: Could not save "
       Rails.logger.error e.message
@@ -129,7 +133,4 @@ class BulkFlexOrderImport < ImportIssuesReport
     fs = problems.create(import_name: filestore.file_name, result_prefix: 'flex_pass_import_results')
     notify_user_on_completion(fs) if fs && problems.any_issues?
   end
-
 end
-
-

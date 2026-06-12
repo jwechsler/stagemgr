@@ -27,8 +27,9 @@ class TrgImport
       CSV.foreach(filestore.path) do |row|
         if headers.nil? then
           _index = 0
-          headers = Hash[row.map {|header| _index += 1; [header, _index]}]
-          ['FirstName','LastName','Prefix','FullName','Address','City','StateCode','PostalCode','Zip4','EmailAddress1','HomePhone'].each do |t|
+          headers = Hash[row.map { |header| _index += 1; [header, _index] }]
+          ['FirstName', 'LastName', 'Prefix', 'FullName', 'Address', 'City', 'StateCode', 'PostalCode', 'Zip4', 'EmailAddress1',
+           'HomePhone'].each do |t|
             raise "Missing expected header #{t}" if headers[t].nil?
           end
           first_name_idx = headers['FirstName'] - 1
@@ -42,8 +43,8 @@ class TrgImport
           zip4_idx = headers['Zip4'] - 1
           email1_idx = headers['EmailAddress1'] - 1
           phone_idx = headers['HomePhone'] - 1
-          else
-            total += 1
+        else
+          total += 1
 
           unless row[last_name_idx].blank? && row[full_name_idx].blank?
             a = Address.new if a.nil?
@@ -52,7 +53,7 @@ class TrgImport
             if row[full_name_idx].blank?
               a.full_name = a.first_name unless a.first_name.blank?
               a.full_name += a.full_name.blank? ? " #{a.middle_name}" : a.middle_name unless a.middle_name.blank?
-              a.full_name += a.full_name.blank? ? a.last_name : " #{a.last_name}"  unless a.last_name.blank?
+              a.full_name += a.full_name.blank? ? a.last_name : " #{a.last_name}" unless a.last_name.blank?
             else
               a.full_name = row[full_name_idx]
             end
@@ -76,7 +77,6 @@ class TrgImport
             end
           end
         end
-
       end
       filestore.notes = "Imported #{total} contacts, merged #{merged} as attendees#{production.nil? ? '' : ' ' + production.name}."
       filestore.save
@@ -88,7 +88,4 @@ class TrgImport
       filestore.save
     end
   end
-
 end
-
-

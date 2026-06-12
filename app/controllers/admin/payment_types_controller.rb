@@ -1,5 +1,4 @@
 class Admin::PaymentTypesController < Admin::ApplicationController
-
   authorize_resource
 
   def index
@@ -13,7 +12,7 @@ class Admin::PaymentTypesController < Admin::ApplicationController
   def new_external_payment
     @payment_type = ExternalPaymentType.new
     respond_to do |format|
-      format.html { render :action=>"new"}
+      format.html { render :action => "new" }
       format.xml
     end
   end
@@ -45,7 +44,6 @@ class Admin::PaymentTypesController < Admin::ApplicationController
         format.xml  { render :xml => @payment_type.errors, :status => :unprocessable_entity }
       end
     end
-
   end
 
   def destroy
@@ -55,14 +53,14 @@ class Admin::PaymentTypesController < Admin::ApplicationController
     else
       flash[:error] = @payment_type.errors.first.full_message unless @payment_type.errors.empty?
     end
-    redirect_to :action=>'index'
+    redirect_to :action => 'index'
   end
 
   private
+
   def payment_type_params
     params.require(:payment_type).permit(:display_name, :allow_for_public, :allow_for_box_office, :allow_theater_user_holds, :report_as_sales_collected,
-      :report_as_production_revenue, :restrict_to_ticket_classes, order_task_suppressions_attributes: [:id, :task_type,
-        :method_name, :_destroy])
+                                         :report_as_production_revenue, :restrict_to_ticket_classes, order_task_suppressions_attributes: [:id, :task_type,
+                                                                                                                                          :method_name, :_destroy])
   end
-
 end

@@ -28,5 +28,4 @@ class SpecialOfferLineItem < LineItem
   def receipt_description
     self.special_offer.code
   end
-
 end

@@ -14,11 +14,11 @@ RSpec.describe NotificationMailer, type: :mailer do
     let(:user) { FactoryBot.create(:user) }
     let(:broadcast) do
       FactoryBot.create(:performance_broadcast,
-        performance: performance,
-        user: user,
-        subject: 'Important Update',
-        from_address: 'test@example.com',
-        body: 'Test body')
+                        performance: performance,
+                        user: user,
+                        subject: 'Important Update',
+                        from_address: 'test@example.com',
+                        body: 'Test body')
     end
 
     let(:file_store) do

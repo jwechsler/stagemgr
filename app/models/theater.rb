@@ -1,136 +1,136 @@
- class Theater < ApplicationRecord
-  #@todo setup access control
+class Theater < ApplicationRecord
+  # @todo setup access control
 
-   THEATER_CLASSES  = (
-     DEFAULT, COPRO, RESIDENT, VISITING, GUESTARTIST =
-     'Default', 'Co-production', 'Resident Company', 'Visiting Company', 'Guest Artist')
-   THEATER_STATUSES = (
-     ACTIVE, INACTIVE = 'Active',  'Inactive'
-   )
-   LOGO_SIZES = (
-     MEDIUM, THUMB = [250,250],[125,125]
-   )
-   validates_inclusion_of :theater_class, :in => THEATER_CLASSES
-   validates_inclusion_of :status,        :in => THEATER_STATUSES
-   validates_uniqueness_of :name
-   validates_presence_of :name
+  THEATER_CLASSES  = (
+    DEFAULT, COPRO, RESIDENT, VISITING, GUESTARTIST =
+      'Default', 'Co-production', 'Resident Company', 'Visiting Company', 'Guest Artist')
+  THEATER_STATUSES = (
+    ACTIVE, INACTIVE = 'Active', 'Inactive'
+  )
+  LOGO_SIZES = (
+    MEDIUM, THUMB = [250, 250], [125, 125]
+  )
+  validates_inclusion_of :theater_class, :in => THEATER_CLASSES
+  validates_inclusion_of :status,        :in => THEATER_STATUSES
+  validates_uniqueness_of :name
+  validates_presence_of :name
 
-   has_many :productions, inverse_of: :theater
-   has_many :special_offers, inverse_of: :theaters
-   has_many :flex_pass_offers, inverse_of: :theater
-   has_many :orders, inverse_of: :theater
-   has_many :theater_tags, inverse_of: :theater, dependent: :destroy, autosave: true
+  has_many :productions, inverse_of: :theater
+  has_many :special_offers, inverse_of: :theaters
+  has_many :flex_pass_offers, inverse_of: :theater
+  has_many :orders, inverse_of: :theater
+  has_many :theater_tags, inverse_of: :theater, dependent: :destroy, autosave: true
 
-   scope :tagged_with, ->(name) {
-     joins(:theater_tags).where("LOWER(theater_tags.name) = ?", name.to_s.downcase).distinct
-   }
+  scope :tagged_with, ->(name) {
+    joins(:theater_tags).where("LOWER(theater_tags.name) = ?", name.to_s.downcase).distinct
+  }
 
   # Returns theaters whose name contains the string OR whose tags contain it.
   # Case-insensitive substring match.
-   def self.search_by_name_or_tag(string)
-     q = "%#{string.to_s.downcase}%"
-     by_name_ids = where("LOWER(theaters.name) LIKE ?", q).pluck(:id)
-     by_tag_ids  = joins(:theater_tags).where("LOWER(theater_tags.name) LIKE ?", q).distinct.pluck(:id)
-     where(id: (by_name_ids + by_tag_ids).uniq)
-   end
+  def self.search_by_name_or_tag(string)
+    q = "%#{string.to_s.downcase}%"
+    by_name_ids = where("LOWER(theaters.name) LIKE ?", q).pluck(:id)
+    by_tag_ids  = joins(:theater_tags).where("LOWER(theater_tags.name) LIKE ?", q).distinct.pluck(:id)
+    where(id: (by_name_ids + by_tag_ids).uniq)
+  end
 
-   def tag_names
-     theater_tags.reject(&:marked_for_destruction?).map(&:name).sort_by { |n| n.to_s.downcase }
-   end
+  def tag_names
+    theater_tags.reject(&:marked_for_destruction?).map(&:name).sort_by { |n| n.to_s.downcase }
+  end
 
-   def tag_names=(value)
-     list =
-       case value
-       when nil, '' then []
-       when Array   then value.map { |v| v.is_a?(Hash) ? v['value'] : v.to_s }
-       when String  then value.split(',')
-       else []
-       end
+  def tag_names=(value)
+    list =
+      case value
+      when nil, '' then []
+      when Array   then value.map { |v| v.is_a?(Hash) ? v['value'] : v.to_s }
+      when String  then value.split(',')
+      else []
+      end
 
-     desired = list.map { |s| s.to_s.strip }.reject(&:blank?).uniq { |s| s.downcase }
-     desired_lc = desired.map(&:downcase)
+    desired = list.map { |s| s.to_s.strip }.reject(&:blank?).uniq { |s| s.downcase }
+    desired_lc = desired.map(&:downcase)
 
-     theater_tags.each do |tag|
-       tag.mark_for_destruction unless desired_lc.include?(tag.name.to_s.downcase)
-     end
+    theater_tags.each do |tag|
+      tag.mark_for_destruction unless desired_lc.include?(tag.name.to_s.downcase)
+    end
 
-     existing_lc = theater_tags.reject(&:marked_for_destruction?).map { |t| t.name.to_s.downcase }
-     desired.each do |name|
-       next if existing_lc.include?(name.downcase)
-       theater_tags.build(name: name)
-     end
-   end
+    existing_lc = theater_tags.reject(&:marked_for_destruction?).map { |t| t.name.to_s.downcase }
+    desired.each do |name|
+      next if existing_lc.include?(name.downcase)
 
-   has_and_belongs_to_many :users#, :as=>:owners
+      theater_tags.build(name: name)
+    end
+  end
 
-   has_one_attached :logo
-  #has_attached_file :logo,
+  has_and_belongs_to_many :users # , :as=>:owners
+
+  has_one_attached :logo
+  # has_attached_file :logo,
   #                  :path => ":rails_root/public/system/:attachment/:id/:style/:filename",
   #                  :url => "#{Rails.application.config.action_controller.relative_url_root}/system/:attachment/:id/:style/:filename",
   #                  :styles => {:medium => "250x250>", :small => "125x125>", :thumbnail => "125x125>"}
-  #validates_attachment_content_type :logo, :content_type => ["image/jpg", "image/jpeg", "image/png", "image/gif"]
-   validates :logo, blob: { content_type: :image }
+  # validates_attachment_content_type :logo, :content_type => ["image/jpg", "image/jpeg", "image/png", "image/gif"]
+  validates :logo, blob: { content_type: :image }
 
+  def class_display
+    return theater_class == 'Default' ? '' : theater_class
+  end
 
-   def class_display
-     return theater_class == 'Default' ? '' : theater_class
-   end
+  def to_s
+    return self.name
+  end
 
-   def to_s
-     return self.name
-   end
+  def self.allowed(current_user)
+    (current_user.respond_to?('is_theater_user?') && current_user.is_theater_user?) ? Theater.where(
+      "status != 'Inactive' and id in (?)", current_user.theater_ids
+    ) : Theater.where("status != 'Inactive'")
+  end
 
-   def self.allowed(current_user)
-     (current_user.respond_to?('is_theater_user?') && current_user.is_theater_user?) ? Theater.where("status != 'Inactive' and id in (?)",current_user.theater_ids) : Theater.where("status != 'Inactive'")
-   end
+  def producing?
+    self.is_default? || self.is_copro?
+  end
 
-   def producing?
-     self.is_default? || self.is_copro?
-   end
+  def is_default?
+    self.theater_class == DEFAULT
+  end
 
-   def is_default?
-     self.theater_class == DEFAULT
-   end
+  def is_copro?
+    self.theater_class == COPRO
+  end
 
-   def is_copro?
-     self.theater_class == COPRO
-   end
+  def is_resident?
+    self.theater_class == RESIDENT
+  end
 
+  def inactive?
+    self.status == 'Inactive'
+  end
 
-   def is_resident?
-     self.theater_class == RESIDENT
-   end
+  def service_item_templates_new
+    ServiceItemTemplate.where(name: service_item_template_list(self.default_service_items))
+  end
 
-   def inactive?
-     self.status == 'Inactive'
-   end
+  def service_item_templates_first_exchange
+    ServiceItemTemplate.where(name: service_item_template_list(self.default_first_exchange_items))
+  end
 
-   def service_item_templates_new
-     ServiceItemTemplate.where(name: service_item_template_list(self.default_service_items))
-   end
+  def service_item_templates_addl_exchange
+    ServiceItemTemplate.where(name: service_item_template_list(self.default_addl_exchange_items))
+  end
 
-   def service_item_templates_first_exchange
-     ServiceItemTemplate.where(name: service_item_template_list(self.default_first_exchange_items))
-   end
-
-   def service_item_templates_addl_exchange
-     ServiceItemTemplate.where(name: service_item_template_list(self.default_addl_exchange_items))
-   end
-
-   def self.default_theater
-     Theater.find_by(theater_class: Theater::DEFAULT)
-   end
+  def self.default_theater
+    Theater.find_by(theater_class: Theater::DEFAULT)
+  end
 
   private
-   def service_item_template_list(service_item_list)
-     itm = service_item_list.nil? ? '' : service_item_list
-     itm.split(',').map{|a| a.strip}
-   end
 
+  def service_item_template_list(service_item_list)
+    itm = service_item_list.nil? ? '' : service_item_list
+    itm.split(',').map { |a| a.strip }
+  end
 end
 
 class Theater
-
   before_save :create_my_emma_group # unless :my_emma_disabled?
 
   def my_emma_disabled?
@@ -138,7 +138,7 @@ class Theater
   end
 
   def create_my_emma_group
-    unless MyEmma.disabled? 
+    unless MyEmma.disabled?
       if self.myemma_attendee_group.blank? then
         grp = MyEmma::Group.find_by_group_name(self.my_emma_group_name)
         if grp.nil? && $SERVER_CONFIG['my_emma']['create_theater_groups']
@@ -155,5 +155,4 @@ class Theater
   def my_emma_group_name
     "#{self.name} Attendee"
   end
-
 end

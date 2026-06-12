@@ -50,14 +50,14 @@ class ExternalAddressesImport
       address2_idx = 0
       city_idx  = 0
       state_idx = 0
-      zip_idx  = 0
+      zip_idx = 0
       phone_idx = 0
       email1_idx = 0
       email2_idx = 0
-      tag1_idx  = 0
-      tag_value1_idx  = 0
-      tag2_idx  = 0
-      tag_value2_idx  = 0
+      tag1_idx = 0
+      tag_value1_idx = 0
+      tag2_idx = 0
+      tag_value2_idx = 0
 
       filestore = FileStore.find(filestore_id)
       theater = Theater.find(theater_id) unless (theater_id.blank? || theater_id == 0)
@@ -66,39 +66,39 @@ class ExternalAddressesImport
       CSV.foreach(filestore.path) do |row|
         if headers.nil? then
           _index = 0
-          headers = Hash[row.map {|header| _index += 1; [header, _index]}]
-          headers.keys.each {|key|
+          headers = Hash[row.map { |header| _index += 1; [header, _index] }]
+          headers.keys.each { |key|
             encoding_options = {
-            :invalid           => :replace,  # Replace invalid byte sequences
-              :undef             => :replace,  # Replace anything not defined in ASCII
-              :replace           => '',        # Use a blank for those replacements
-              :universal_newline => true       # Always break lines with \n
+              :invalid => :replace, # Replace invalid byte sequences
+              :undef => :replace, # Replace anything not defined in ASCII
+              :replace => '', # Use a blank for those replacements
+              :universal_newline => true # Always break lines with \n
             }
             stripped_key = key.encode(Encoding.find('ASCII'), encoding_options)
             headers[stripped_key] = headers.delete(key)
           }
 
           ['ExternalId',
-          'FirstName',
-          'MiddleName',
-          'LastName',
-          'FullName',
-          'FirstName2',
-          'MiddleName2',
-          'LastName2',
-          'FullName2',
-          'EmailAddress1',
-          'EmailAddress2',
-          'Phone',
-          'Address',
-          'Address2',
-          'City',
-          'StateCode',
-          'PostalCode',
-          'Tag1',
-          'TagValue1',
-          'Tag2',
-          'TagValue2' ].each do |t|
+           'FirstName',
+           'MiddleName',
+           'LastName',
+           'FullName',
+           'FirstName2',
+           'MiddleName2',
+           'LastName2',
+           'FullName2',
+           'EmailAddress1',
+           'EmailAddress2',
+           'Phone',
+           'Address',
+           'Address2',
+           'City',
+           'StateCode',
+           'PostalCode',
+           'Tag1',
+           'TagValue1',
+           'Tag2',
+           'TagValue2'].each do |t|
             raise "Missing required header #{t}" if headers[t].nil?
           end
 
@@ -129,7 +129,8 @@ class ExternalAddressesImport
 
           unless row[last_name_idx].blank? && row[full_name_idx].blank?
             a = Address.new
-            a = ExternalAddressesImport.build_name(a, row[full_name_idx], row[first_name_idx], row[middle_name_idx], row[last_name_idx])
+            a = ExternalAddressesImport.build_name(a, row[full_name_idx], row[first_name_idx], row[middle_name_idx],
+                                                   row[last_name_idx])
 
             a.line1 = row[address1_idx]
             a.line2 = row[address2_idx]
@@ -168,8 +169,9 @@ class ExternalAddressesImport
 
             unless row[full_name2_idx].blank? && row[last_name2_idx].blank?
               a2 = a.dup
-              a2 = ExternalAddressesImport.build_name(a2, row[full_name2_idx], row[first_name2_idx], row[middle_name2_idx], row[last_name2_idx])
-              a.address_tags.each {|tag|
+              a2 = ExternalAddressesImport.build_name(a2, row[full_name2_idx], row[first_name2_idx],
+                                                      row[middle_name2_idx], row[last_name2_idx])
+              a.address_tags.each { |tag|
                 a2.address_tags << tag.dup
               }
               a2.email = row[email2_idx]
@@ -180,7 +182,6 @@ class ExternalAddressesImport
 
           end
         end
-
       end
       filestore.notes = "Imported #{total} contacts, merged #{merged} records."
       filestore.save
@@ -194,6 +195,7 @@ class ExternalAddressesImport
   end
 
   private
+
   def self.build_name(address, full_name, first_name, middle_name, last_name)
     address.first_name = first_name
     address.middle_name = middle_name
@@ -201,7 +203,7 @@ class ExternalAddressesImport
     if full_name.blank?
       address.full_name = address.first_name unless address.first_name.blank?
       address.full_name += address.full_name.blank? ? " #{address.middle_name}" : address.middle_name unless address.middle_name.blank?
-      address.full_name += address.full_name.blank? ? address.last_name : " #{address.last_name}"  unless address.last_name.blank?
+      address.full_name += address.full_name.blank? ? address.last_name : " #{address.last_name}" unless address.last_name.blank?
     else
       address.full_name = full_name
     end
@@ -220,7 +222,4 @@ class ExternalAddressesImport
     end
     [address, merge_occurred]
   end
-
 end
-
-

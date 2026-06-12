@@ -4,13 +4,10 @@ if !defined? InvalidCreditCard
 end
 
 class CreditCardPayment < CurrencyPayment
-
-
   belongs_to :address, optional: true
 
   attr_accessor :card_number
   attr_accessor :card_verification_number
-
 
   validates_credit_card_if_new :card_number,
                                :card_type, {}, :confirmation_code
@@ -38,16 +35,16 @@ class CreditCardPayment < CurrencyPayment
 
   def receipt_description
     ctype = case self.card_type
-              when 'MasterCard'
-                'MC'
-              when 'American Express'
-                'Amex'
-              when 'Discover'
-                'Dscvr'
-              when 'master_card'
-                'MC'
-              else
-                self.card_type
+            when 'MasterCard'
+              'MC'
+            when 'American Express'
+              'Amex'
+            when 'Discover'
+              'Dscvr'
+            when 'master_card'
+              'MC'
+            else
+              self.card_type
             end
     "#{ctype} ****#{self.card_last_four}::AUTH #{confirmation_code}"
   end
@@ -70,17 +67,17 @@ class CreditCardPayment < CurrencyPayment
 
       order = order || self.order
       options = {
-        ip: self.ip_address, 
-        billing_address: billing_address, 
-        email: self.address.email, 
-        order_id: order_id, 
+        ip: self.ip_address,
+        billing_address: billing_address,
+        email: self.address.email,
+        order_id: order_id,
         description: order.description,
         idempotency_key: order.uuid
       }
       response = gateway.purchase(self.charge_amount, credit_card, options)
 
-# Authorize for the amount
-#     response = gateway.purchase(self.charge_amount, credit_card)
+      # Authorize for the amount
+      #     response = gateway.purchase(self.charge_amount, credit_card)
 
       if response.success?
         self.confirmation_code = response.authorization
@@ -99,11 +96,10 @@ class CreditCardPayment < CurrencyPayment
   def refund!(cc_number = nil, note = nil)
     if self.create_refund_payment?
       CreditCardPayment.transaction do
-
         gateway = PaymentProcessing.gateway
 
         refund_payment = self.dup
-        refund_payment.amount = 0.0-self.amount
+        refund_payment.amount = 0.0 - self.amount
         refund_payment.ipn_track_id = nil
         self.order.payments << refund_payment
 
@@ -161,7 +157,7 @@ class CreditCardPayment < CurrencyPayment
   def create_credit_card
     self.address.regularize!
     PaymentProcessing.credit_card(self.card_type, self.address.first_name, self.address.last_name, self.card_number,
-     self.card_expiration_month, self.card_expiration_year, self.card_verification_number)
+                                  self.card_expiration_month, self.card_expiration_year, self.card_verification_number)
   end
 
   def calculate_processing_fee
@@ -178,8 +174,9 @@ class CreditCardPayment < CurrencyPayment
   end
 
   protected
+
   def charge_amount
-    (self.amount*100.0).to_i
+    (self.amount * 100.0).to_i
   end
 
   def get_stripe_refund_amount
@@ -264,6 +261,4 @@ class CreditCardPayment < CurrencyPayment
         }
     }
   end
-
 end
-

@@ -27,10 +27,10 @@ class AudienceAnalysis
   WINDOWS = {
     "3 months" => 3.months,
     "6 months" => 6.months,
-    "1 year"   => 1.year,
-    "3 years"  => 3.years,
-    "5 years"  => 5.years,
-    "Ever"     => :ever
+    "1 year" => 1.year,
+    "3 years" => 3.years,
+    "5 years" => 5.years,
+    "Ever" => :ever
   }.freeze
 
   EVER_FLOOR = Date.new(1900, 1, 1).freeze
@@ -155,6 +155,7 @@ class AudienceAnalysis
 
     # Per-window segment.
     raise ArgumentError, "window_label required for segment #{key}" if window_label.nil?
+
     duration = WINDOWS.fetch(window_label) { raise ArgumentError, "unknown window #{window_label}" }
     window_start = duration == :ever ? EVER_FLOOR : (anchor_date - duration)
 
@@ -313,6 +314,7 @@ class AudienceAnalysis
       next if max_d.nil?
       next unless max_d < target_start
       next unless in_comparison?(theater_id)
+
       acc << { id: prod_id, last_perf: max_d }
     end
     top = candidates.sort_by { |c| c[:last_perf] }.reverse.first(limit)
@@ -322,6 +324,7 @@ class AudienceAnalysis
     top.map do |c|
       prod = prods_by_id[c[:id]]
       next nil unless prod
+
       { id: prod.id, name: prod.name, last_perf: c[:last_perf] }
     end.compact
   end
@@ -333,6 +336,7 @@ class AudienceAnalysis
     productions_meta.each_with_object(Set.new) do |(prod_id, (min_d, max_d, theater_id)), set|
       next if min_d.nil? || max_d.nil?
       next unless min_d <= anchor && window_start <= max_d
+
       if scope == :comparison
         next unless in_comparison?(theater_id)
       end

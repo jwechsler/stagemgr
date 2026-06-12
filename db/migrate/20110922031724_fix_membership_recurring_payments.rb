@@ -6,7 +6,7 @@ class FixMembershipRecurringPayments < ActiveRecord::Migration[4.2]
       memberships.each do |m|
         m.update_from_profile!
         o = m.membership_line_item.order
-        o.tasks << CheckMembershipTask.new(:execute_at=>m.next_billing_date + 2.hours) unless m.next_billing_date.blank?
+        o.tasks << CheckMembershipTask.new(:execute_at => m.next_billing_date + 2.hours) unless m.next_billing_date.blank?
         o.save!
         c_start_date = m.member_since
         o_id = m.membership_line_item.order_id

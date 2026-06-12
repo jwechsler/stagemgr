@@ -5,29 +5,28 @@
 # The :Segment column is derived from those inputs and capped at 50 characters
 # (TRG Arts list-name limit).
 class AudienceCohortReport < MailingList
-
   SEGMENT_NAME_LIMIT = 50
 
   # Terse metric labels designed to keep the assembled segment name short.
   METRIC_LABELS = {
-    "cohort"                   => "Attendees",
-    "returning_any"            => "Returning (any prior)",
+    "cohort" => "Attendees",
+    "returning_any" => "Returning (any prior)",
     "first_time_vs_comparison" => "First Time (group)",
-    "returning_vs_comparison"  => "Returning (group)",
-    "dedicated_customers"      => "Dedicated",
-    "two_plus_in_comparison"   => "2+ visits (group)",
-    "first_time_vs_building"   => "First Time (facility)",
-    "returning_vs_building"    => "Returning (facility)",
-    "three_plus_in_building"   => "3+ visits (facility)"
+    "returning_vs_comparison" => "Returning (group)",
+    "dedicated_customers" => "Dedicated",
+    "two_plus_in_comparison" => "2+ visits (group)",
+    "first_time_vs_building" => "First Time (facility)",
+    "returning_vs_building" => "Returning (facility)",
+    "three_plus_in_building" => "3+ visits (facility)"
   }.freeze
 
   WINDOW_PHRASES = {
     "3 months" => "Last 3mo",
     "6 months" => "Last 6mo",
-    "1 year"   => "Last 1yr",
-    "3 years"  => "Last 3yr",
-    "5 years"  => "Last 5yr",
-    "Ever"     => "Ever"
+    "1 year" => "Last 1yr",
+    "3 years" => "Last 3yr",
+    "5 years" => "Last 5yr",
+    "Ever" => "Ever"
   }.freeze
 
   attr_reader :target_production, :comparison_theater_ids, :segment_key,
@@ -126,6 +125,7 @@ class AudienceCohortReport < MailingList
 
   def metric_label_for(key)
     return METRIC_LABELS[key] if METRIC_LABELS.key?(key)
+
     if key.start_with?("previous_production:")
       prev_code = previous_production&.production_code.presence || "prev"
       return "Returning from #{prev_code.upcase}"
@@ -137,6 +137,7 @@ class AudienceCohortReport < MailingList
   # "previous_production:<id>" segment key. Returns nil for other keys.
   def previous_production
     return @previous_production if defined?(@previous_production)
+
     @previous_production =
       if @segment_key.start_with?("previous_production:")
         Production.find_by(id: @segment_key.split(":", 2).last.to_i)
@@ -145,6 +146,7 @@ class AudienceCohortReport < MailingList
 
   def window_phrase_for(label)
     return nil if label.nil?
+
     WINDOW_PHRASES[label] || label
   end
 end

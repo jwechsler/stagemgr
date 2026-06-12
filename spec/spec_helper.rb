@@ -33,7 +33,7 @@ RSpec.configure do |config|
   end
 
   # Looking for deprecation errors in rspec?
-  #config.raise_errors_for_deprecations!
+  # config.raise_errors_for_deprecations!
 
   # rspec-mocks config goes here. You can use an alternate test double
   # library (such as bogus or mocha) by changing the `mock_with` option here.
@@ -109,7 +109,4 @@ RSpec.configure do |config|
   config.filter_run :focus => true
   config.run_all_when_everything_filtered = true
   config.include ActiveSupport::Testing::TimeHelpers
-
-
 end
-

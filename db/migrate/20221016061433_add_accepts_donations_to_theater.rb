@@ -3,4 +3,3 @@ class AddAcceptsDonationsToTheater < ActiveRecord::Migration[6.1]
     add_column :theaters, :accepts_donations, :boolean, default: true
   end
 end
-

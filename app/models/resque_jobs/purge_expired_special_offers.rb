@@ -4,5 +4,4 @@ class PurgeExpiredSpecialOffers
   def self.perform()
     SpecialOffer.purge_expired_offers
   end
-
 end

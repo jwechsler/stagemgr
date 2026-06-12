@@ -5,14 +5,17 @@ RSpec.describe FlexPassOrder, type: :model do
     let(:theater) { FactoryBot.create(:theater) }
     let(:flex_pass_offer) { FactoryBot.create(:flex_pass_offer, theater: theater, number_of_tickets: 10) }
     let(:address) { FactoryBot.create(:address) }
-    let(:flex_pass_order) { FactoryBot.create(:flex_pass_order, :with_payment, address: address, flex_pass_offer: flex_pass_offer) }
+    let(:flex_pass_order) {
+      FactoryBot.create(:flex_pass_order, :with_payment, address: address, flex_pass_offer: flex_pass_offer)
+    }
     let(:flex_pass) { flex_pass_order.flex_pass }
 
     context "when flex pass has attended past ticket orders" do
       before do
         production = FactoryBot.create(:production, theater: theater)
         performance = FactoryBot.create(:performance, production: production, performance_date: 1.week.ago)
-        ticket_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, performance: performance, address: address, status: Order::PROCESSED)
+        ticket_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, performance: performance,
+                                                                                address: address, status: Order::PROCESSED)
         FactoryBot.create(:flex_pass_payment, order: ticket_order, flex_pass: flex_pass, number_of_tickets: 2)
       end
 
@@ -67,7 +70,8 @@ RSpec.describe FlexPassOrder, type: :model do
       let!(:ticket_order) do
         production = FactoryBot.create(:production, theater: theater)
         performance = FactoryBot.create(:performance, production: production, performance_date: 1.week.from_now)
-        to = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, performance: performance, address: address, status: Order::PROCESSED)
+        to = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, performance: performance, address: address,
+                                                                      status: Order::PROCESSED)
         FactoryBot.create(:flex_pass_payment, order: to, flex_pass: flex_pass, number_of_tickets: 2)
         to
       end
@@ -97,7 +101,8 @@ RSpec.describe FlexPassOrder, type: :model do
       before do
         production = FactoryBot.create(:production, theater: theater)
         performance = FactoryBot.create(:performance, production: production, performance_date: 1.week.ago)
-        ticket_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, performance: performance, address: address, status: Order::REFUNDED)
+        ticket_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, performance: performance,
+                                                                                address: address, status: Order::REFUNDED)
         FactoryBot.create(:flex_pass_payment, order: ticket_order, flex_pass: flex_pass, number_of_tickets: 2)
       end
 

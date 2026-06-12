@@ -2,14 +2,14 @@ require 'street_address'
 require 'csv'
 
 class Address < ApplicationRecord
-
   # audited only:[:first_name, :last_name, :line1, :line2, :email, :city, :state, :zipcode, :phone], max_audits: 30
 
   validates_presence_of :full_name
-  validates :email, :email=>true, :allow_blank=>true
-  before_validation :regularize!, :if=>:changed?
+  validates :email, :email => true, :allow_blank => true
+  before_validation :regularize!, :if => :changed?
   has_many :orders, inverse_of: :address
-  has_many :orders_as_recipient, :class_name=>'Order', :foreign_key=>:recipient_address_id, inverse_of: :recipient_address
+  has_many :orders_as_recipient, :class_name => 'Order', :foreign_key => :recipient_address_id,
+                                 inverse_of: :recipient_address
   has_many :address_tags, inverse_of: :address
   has_many :memberships, inverse_of: :address
   has_many :flex_passes, inverse_of: :address
@@ -21,7 +21,9 @@ class Address < ApplicationRecord
   PHOTO_LARGE = [150, 200]
   PHOTO_THUMB = [75, 100]
 
-  accepts_nested_attributes_for :address_tags, :reject_if => proc { |attributes| attributes['tag_label'].blank? }, :allow_destroy => true
+  accepts_nested_attributes_for :address_tags, :reject_if => proc { |attributes|
+    attributes['tag_label'].blank?
+  }, :allow_destroy => true
   before_save :set_search_name
   before_save :purge_duplicate_tags
   before_destroy :ensure_no_finalized_orders
@@ -29,7 +31,7 @@ class Address < ApplicationRecord
 
   MAILLIST_STATUS = (
     REQUESTED, SAVED =
-  "Requested", "Saved")
+      "Requested", "Saved")
 
   SEARCHABLE_REGEXP = /[\d+\s+\.!,]/
 
@@ -50,7 +52,7 @@ class Address < ApplicationRecord
         end
         l_name = secondary_name.family if l_name.blank? && !secondary_name&.family.blank?
         if l_name.blank?
-          l_name = f_name 
+          l_name = f_name
           f_name = ""
         end
         [full_name, f_name, l_name]
@@ -62,7 +64,6 @@ class Address < ApplicationRecord
     end
   end
 
-
   def parse_full_name
     cleaned_name, f_name, l_name = Address.parse_name(self.full_name)
     [f_name, l_name]
@@ -72,14 +73,13 @@ class Address < ApplicationRecord
     if full_name.blank? then
       self.full_name = ""
       self.full_name = first_name unless first_name.blank?
-      self.full_name += self.full_name.blank? ? last_name : " #{last_name}"  unless last_name.blank?
+      self.full_name += self.full_name.blank? ? last_name : " #{last_name}" unless last_name.blank?
     else
       self.full_name = full_name
     end
   end
 
   def regularize!
-
     self.first_name, self.last_name = parse_full_name
 
     self.email.strip! unless self.email.nil?
@@ -116,21 +116,30 @@ class Address < ApplicationRecord
     self.regularize!
     comparison_id = self.id.nil? ? -1 : self.id
 
-    matches = Address.where("search_name = :search_name and (email = :email #{(self.email.blank? && self.street_number.blank?) ? '' : ' or email is null or email = \'\''}) and id <> :id", {:search_name=>name_as_searchable, :id=>comparison_id, :email => (self.email.blank? ? '' : self.email.strip)})
+    matches = Address.where(
+      "search_name = :search_name and (email = :email #{(self.email.blank? && self.street_number.blank?) ? '' : ' or email is null or email = \'\''}) and id <> :id", {
+        :search_name => name_as_searchable, :id => comparison_id, :email => (self.email.blank? ? '' : self.email.strip)
+      }
+    )
     if matches.nil? || matches.size == 0
-      matches = Address.where("first_name = :first_name and last_name = :last_name and (email = :email #{(self.email.blank? && self.street_number.blank?) ? '' : ' or email is null or email = \'\''}) and id <> :id", {:first_name => self.first_name, :last_name => self.last_name, :id=>comparison_id, :email => (self.email.blank? ? '' : self.email.strip)})
+      matches = Address.where(
+        "first_name = :first_name and last_name = :last_name and (email = :email #{(self.email.blank? && self.street_number.blank?) ? '' : ' or email is null or email = \'\''}) and id <> :id", {
+          :first_name => self.first_name, :last_name => self.last_name, :id => comparison_id, :email => (self.email.blank? ? '' : self.email.strip)
+        }
+      )
       if matches.nil? || matches.size == 0
         matches = Address.where("id <> :id AND street_number = :street_number AND street = :street AND city = :city and search_name = :search_name #{self.email.blank? ? '' : 'and (email = \'\' or email is null)'}",
-                                {:id=>comparison_id, :street_number=>self.street_number, :street=>self.street,
-                                 :city=>self.city, :search_name=>name_as_searchable})
+                                { :id => comparison_id, :street_number => self.street_number, :street => self.street,
+                                  :city => self.city, :search_name => name_as_searchable })
         if matches.nil? || matches.size == 0
           matches = Address.where("id <> :id and search_name = :search_name and street_number is null and street is null and city is null and (email = '' or email is null)",
-                                  {:id=>comparison_id, :search_name=>name_as_searchable})
+                                  { :id => comparison_id, :search_name => name_as_searchable })
         end
       end
     end
-    return matches.nil? ? nil : matches.select { |a| self.id.nil? ? true : (a.id < self.id) }.sort! { |a, b| a.id <=> b.id }.first
-
+    return matches.nil? ? nil : matches.select { |a|
+      self.id.nil? ? true : (a.id < self.id)
+    }.sort! { |a, b| a.id <=> b.id }.first
   end
 
   def customer?
@@ -138,7 +147,7 @@ class Address < ApplicationRecord
   end
 
   def ensure_no_finalized_orders
-    raise "Cannot delete an address associated with orders" if orders.reload.any? 
+    raise "Cannot delete an address associated with orders" if orders.reload.any?
   end
 
   def update_from(newer)
@@ -160,7 +169,8 @@ class Address < ApplicationRecord
     end
     newer.address_tags.each do |tag|
       existing_tag = self.address_tags.select { |t|
-        (t.tag_label == tag.tag_label) && (t.theater_id == tag.theater_id) }.first
+        (t.tag_label == tag.tag_label) && (t.theater_id == tag.theater_id)
+      }.first
       if existing_tag.nil?
         self.address_tags << tag
       else
@@ -187,7 +197,6 @@ class Address < ApplicationRecord
       from_address.destroy
     end
   end
-
 
   def self.purge_matched_duplicates
     Address.transaction do
@@ -245,10 +254,8 @@ class Address < ApplicationRecord
         end
         last_id = new_id
       end
-
     end
   end
-
 
   def field_changed_after?(field_name, change_time)
     unless change_time.nil?
@@ -269,15 +276,16 @@ class Address < ApplicationRecord
     attendance_code += "A" if self.is_donor?
     attendance_code += "M" if self.is_current_member?
     attendance_code
-
   end
 
   def is_current_member?
-    MembershipLineItem.joins(:order,:membership).references(:order, :membership).where("orders.address_id = :address_id AND memberships.status = :active", address_id:self.id, active: Membership::ACTIVE).size > 0
+    MembershipLineItem.joins(:order, :membership).references(:order, :membership).where(
+      "orders.address_id = :address_id AND memberships.status = :active", address_id: self.id, active: Membership::ACTIVE
+    ).size > 0
   end
 
   def active_memberships
-    self.orders.select { |o| (o.is_a? MembershipOrder) && !o.membership.nil? && (o.membership.status == Membership::ACTIVE) }.map{|o| o.membership}
+    self.orders.select { |o| (o.is_a? MembershipOrder) && !o.membership.nil? && (o.membership.status == Membership::ACTIVE) }.map { |o| o.membership }
   end
 
   def current_membership
@@ -290,10 +298,12 @@ class Address < ApplicationRecord
 
   def self.export_addresses_as_csv(addresses, filename)
     csv_string = FasterCSV.generate do |csv|
-      csv << [:id, :first_name, :last_name, :street_number, :street, :street_type, :unit, :unit_prefix, :zipcode, :customer_tag]
+      csv << [:id, :first_name, :last_name, :street_number, :street, :street_type, :unit, :unit_prefix, :zipcode,
+              :customer_tag]
 
       addresses.each do |r|
-        csv << [r.id, r.first_name, r.last_name, r.street_number, r.street, r.street_type, r.unit, r.unit_prefix, r.zipcode, r.customer_tag]
+        csv << [r.id, r.first_name, r.last_name, r.street_number, r.street, r.street_type, r.unit, r.unit_prefix,
+                r.zipcode, r.customer_tag]
       end
     end
     File.open(filename, "w") do |the_file|
@@ -314,7 +324,9 @@ class Address < ApplicationRecord
   end
 
   def has_flex_pass?
-    FlexPassLineItem.joins(:order, :flex_passes).references(:order, :flex_passes).where("orders.address_id = :address_id AND flex_passes.active = :active", address_id:self.id, active: true).size > 0
+    FlexPassLineItem.joins(:order, :flex_passes).references(:order, :flex_passes).where(
+      "orders.address_id = :address_id AND flex_passes.active = :active", address_id: self.id, active: true
+    ).size > 0
   end
 
   # @todo Flex pass programs can't be hard coded.
@@ -323,33 +335,34 @@ class Address < ApplicationRecord
       recent_orders = self.orders.select { |o| o.created_at > 1.year.ago }
       total_spent = recent_orders.sum { |o| o.total_paid }
       num_paid_tickets = recent_orders.sum { |o| o.total_paid > 0 ? o.number_of_tickets : 0 }
-      candidate = recent_orders.size > 2 && total_spent/num_paid_tickets > 20
+      candidate = recent_orders.size > 2 && total_spent / num_paid_tickets > 20
     else
       candidate = false
     end
     candidate
   end
 
-  def first_time_paying? (current_order)
-    self.orders.select { |o| (o.id != current_order.id) && o.settled? }.size ==0
+  def first_time_paying?(current_order)
+    self.orders.select { |o| (o.id != current_order.id) && o.settled? }.size == 0
   end
 
   def revenue_collected(since_when = 18.months.ago)
-    Payment.includes(:order).where('orders.status in (?) and payments.processed_on >= ?', Order::SETTLED_STATUSES, since_when).sum(:amount)
+    Payment.includes(:order).where('orders.status in (?) and payments.processed_on >= ?', Order::SETTLED_STATUSES,
+                                   since_when).sum(:amount)
   end
 
   def performances_attended(since_when = 5.years.ago)
     TicketOrder.includes(:performance).joins(:performance).where("orders.address_id = ? and orders.status = ? and performances.performance_date >= ? and performances.performance_date <= ?",
-                                    self.id, Order::FULFILLED, since_when, Date.today)
+                                                                 self.id, Order::FULFILLED, since_when, Date.today)
   end
 
   def orders_processed(for_theaters = nil)
     if for_theaters.nil?
       TicketOrder.attending.where("orders.address_id = ?",
-                                       self.id).count
+                                  self.id).count
     else
       TicketOrder.attending.where("orders.address_id = ? and orders.performance_id in (select id from performances where production_id in (select id from productions where theater_id in (?)))",
-                      self.id, for_theaters).count
+                                  self.id, for_theaters).count
     end
   end
 
@@ -371,7 +384,7 @@ class Address < ApplicationRecord
 
   def donated_last_year?
     if !self.donor_tier_updated_on.nil?
-      return true if self.donor_tier_updated_on.year == Date.today.year-1 && self.donor_tier_for_current_fiscal_year.present?
+      return true if self.donor_tier_updated_on.year == Date.today.year - 1 && self.donor_tier_for_current_fiscal_year.present?
       return true if self.donor_tier_updated_on.year == Date.today.year && self.donor_tier_for_last_fiscal_year.present?
     end
     return false
@@ -382,44 +395,43 @@ class Address < ApplicationRecord
   end
 
   def last_attendance_date
-    TicketOrder.joins(:performance).maximum('performance_date',:conditions=>["orders.address_id = ?", self.id])
+    TicketOrder.joins(:performance).maximum('performance_date', :conditions => ["orders.address_id = ?", self.id])
   end
 
   def productions_attended(start_date = 25.years.ago.to_date, end_date = Date.today)
-    Production.joins(:performances=>:orders).references(:orders).where("orders.address_id = :address_id and orders.status in (:attended_status) and performances.performance_date between :start_date AND :end_date",
-      address_id: self.id,
-      start_date: start_date,
-      end_date: end_date,
-      attended_status: Order::ATTENDING_STATUSES).distinct
+    Production.joins(:performances => :orders).references(:orders).where("orders.address_id = :address_id and orders.status in (:attended_status) and performances.performance_date between :start_date AND :end_date",
+                                                                         address_id: self.id,
+                                                                         start_date: start_date,
+                                                                         end_date: end_date,
+                                                                         attended_status: Order::ATTENDING_STATUSES).distinct
   end
 
   def theaters_attended(start_date = 25.years.ago.to_date, end_date = Date.today)
-    Theater.joins(:productions=>[:performances=>:orders]).references(:orders).where("orders.address_id = :address_id and orders.status in (:attended_status) and performances.performance_date between :start_date AND :end_date",
-      address_id: self.id,
-      start_date: start_date,
-      end_date: end_date,
-      attended_status: Order::ATTENDING_STATUSES).distinct
+    Theater.joins(:productions => [:performances => :orders]).references(:orders).where("orders.address_id = :address_id and orders.status in (:attended_status) and performances.performance_date between :start_date AND :end_date",
+                                                                                        address_id: self.id,
+                                                                                        start_date: start_date,
+                                                                                        end_date: end_date,
+                                                                                        attended_status: Order::ATTENDING_STATUSES).distinct
   end
 
   def number_of_productions_attended(start_date = 25.years.ago.to_date, end_date = Date.today)
     self.productions_attended(start_date, end_date).size
   end
 
-  def names_of_productions_attended(start_date = 25.years.ago.to_date, end_date =  Date.today)
-    self.productions_attended(start_date,end_date).pluck(:name)
+  def names_of_productions_attended(start_date = 25.years.ago.to_date, end_date = Date.today)
+    self.productions_attended(start_date, end_date).pluck(:name)
   end
 
-  def number_of_theaters_attended(start_date = 25.years.ago.to_date, end_date =  Date.today)
+  def number_of_theaters_attended(start_date = 25.years.ago.to_date, end_date = Date.today)
     self.theaters_attended(start_date, end_date).size
   end
 
-  def names_of_theaters_attended(start_date = 25.years.ago.to_date, end_date =  Date.today)
-    self.theaters_attended(start_date,end_date).pluck(:name)
+  def names_of_theaters_attended(start_date = 25.years.ago.to_date, end_date = Date.today)
+    self.theaters_attended(start_date, end_date).pluck(:name)
   end
 
-
   def external_id(theater_ids)
-    found = address_tags.select{|tag| theater_ids.include?(tag.theater_id) && tag.tag_label.eql?(AddressTag::EXTERNAL_ID) }
+    found = address_tags.select { |tag| theater_ids.include?(tag.theater_id) && tag.tag_label.eql?(AddressTag::EXTERNAL_ID) }
     if found.empty?
       return ""
     else
@@ -428,22 +440,22 @@ class Address < ApplicationRecord
   end
 
   def purge_duplicate_tags
-    unique_tags = self.address_tags.map{|a| {tag_label: a.tag_label, tag_value: a.tag_value, theater_id: a.theater_id} }.uniq
+    unique_tags = self.address_tags.map { |a|
+      { tag_label: a.tag_label, tag_value: a.tag_value, theater_id: a.theater_id }
+    }.uniq
     unique_tags.each do |tag|
       save_me = true
       self.address_tags.each do |address_tag|
-        if {tag_label: address_tag.tag_label, tag_value: address_tag.tag_value, theater_id: address_tag.theater_id}.eql?(tag)
+        if { tag_label: address_tag.tag_label, tag_value: address_tag.tag_value,
+             theater_id: address_tag.theater_id }.eql?(tag)
           self.address_tags.delete(AddressTag.find(address_tag.id)) unless save_me
           save_me = false
         end
       end
-
     end
-
   end
 
   def self.unattached
-
   end
 
   def self.delete_unattached
@@ -456,14 +468,16 @@ class Address < ApplicationRecord
   end
 
   protected
+
   def set_search_name
-    self.search_name = self.full_name.gsub(/[\d+\s+\.!,]/,'').upcase
-    self.last_first_name = "#{self.last_name}#{self.first_name}#{self.middle_name}".gsub(/[\d+\s+\.!,]/,'').upcase
+    self.search_name = self.full_name.gsub(/[\d+\s+\.!,]/, '').upcase
+    self.last_first_name = "#{self.last_name}#{self.first_name}#{self.middle_name}".gsub(/[\d+\s+\.!,]/, '').upcase
   end
 
   private
+
   def name_as_searchable
-    full_name.gsub(SEARCHABLE_REGEXP,'').upcase
+    full_name.gsub(SEARCHABLE_REGEXP, '').upcase
   end
 
   def cap_photo_resolution
@@ -477,10 +491,10 @@ class Address < ApplicationRecord
       src.flush
 
       result = ImageProcessing::Vips
-        .source(src.path)
-        .resize_to_limit(*PHOTO_STORED)
-        .convert('jpeg')
-        .call
+               .source(src.path)
+               .resize_to_limit(*PHOTO_STORED)
+               .convert('jpeg')
+               .call
 
       begin
         new_blob = ActiveStorage::Blob.create_and_upload!(
@@ -496,15 +510,14 @@ class Address < ApplicationRecord
       end
     end
   end
-
 end
 
-#MyEmma code
+# MyEmma code
 
 class Address
   def self.sync_ids_to_my_emma
     members = MyEmma::Member.all
-    members.each {|m|
+    members.each { |m|
       unless (m.email.blank?)
         a = Address.find_by(email: m.email)
         unless (a.nil? || a.email.blank? || (m.remoteid.eql?(a.id.to_s)))
@@ -515,5 +528,3 @@ class Address
     }
   end
 end
-
-

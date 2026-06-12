@@ -5,7 +5,7 @@ class FixProductionVenueAndSeason < ActiveRecord::Migration[4.2]
         opening_year = p.opening_at.year
         opening_month = p.opening_at.month
         if opening_month >= 9
-          p.season = (opening_year+1).to_s
+          p.season = (opening_year + 1).to_s
         else
           p.season = (opening_year).to_s
         end

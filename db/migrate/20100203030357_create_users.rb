@@ -11,7 +11,6 @@ class CreateUsers < ActiveRecord::Migration[4.2]
       t.boolean   :is_administrator,    :null => false
       t.boolean   :is_box_office_user,  :null => false
 
-
       # Magic columns, just like ActiveRecord's created_at and updated_at. These are automatically maintained by Authlogic if they are present.
       t.integer   :login_count,         :null => false, :default => 0 # optional, see Authlogic::Session::MagicColumns
       t.integer   :failed_login_count,  :null => false, :default => 0 # optional, see Authlogic::Session::MagicColumns
@@ -23,14 +22,13 @@ class CreateUsers < ActiveRecord::Migration[4.2]
 
       t.timestamps
 
-      t.string    :status, :default=>User::ACTIVE
+      t.string :status, :default => User::ACTIVE
     end
     #
     # Add indexes
     #
     add_index :users, :perishable_token
     add_index :users, :email
-    
   end
 
   def self.down

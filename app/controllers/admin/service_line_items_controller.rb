@@ -1,5 +1,4 @@
 class Admin::ServiceLineItemsController < Admin::ApplicationController
-
   def destroy
     @service_line_item = ServiceLineItem.find(params[:id])
     @order = @service_line_item.order

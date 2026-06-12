@@ -7,11 +7,11 @@ RSpec.describe PerformanceBroadcastReport, type: :model do
   let(:user) { FactoryBot.create(:user) }
   let(:broadcast) do
     FactoryBot.create(:performance_broadcast,
-      performance: performance,
-      user: user,
-      subject: 'Test Broadcast',
-      from_address: 'test@example.com',
-      body: 'Test body')
+                      performance: performance,
+                      user: user,
+                      subject: 'Test Broadcast',
+                      from_address: 'test@example.com',
+                      body: 'Test body')
   end
 
   describe '#create' do
@@ -42,30 +42,30 @@ RSpec.describe PerformanceBroadcastReport, type: :model do
 
       let!(:processed_order1) do
         FactoryBot.create(:ticket_order, :for_a_pair_of_tickets,
-          performance: performance,
-          address: valid_address1,
-          status: 'Processed')
+                          performance: performance,
+                          address: valid_address1,
+                          status: 'Processed')
       end
 
       let!(:fulfilled_order) do
         FactoryBot.create(:ticket_order, :for_a_pair_of_tickets,
-          performance: performance,
-          address: valid_address2,
-          status: 'Fulfilled')
+                          performance: performance,
+                          address: valid_address2,
+                          status: 'Fulfilled')
       end
 
       let!(:canceled_order) do
         FactoryBot.create(:ticket_order, :for_a_pair_of_tickets,
-          performance: performance,
-          address: canceled_address,
-          status: 'Canceled')
+                          performance: performance,
+                          address: canceled_address,
+                          status: 'Canceled')
       end
 
       let!(:no_email_order) do
         FactoryBot.create(:ticket_order, :for_a_pair_of_tickets,
-          performance: performance,
-          address: no_email_address,
-          status: 'Processed')
+                          performance: performance,
+                          address: no_email_address,
+                          status: 'Processed')
       end
 
       it 'includes all orders for the performance' do
@@ -169,9 +169,9 @@ RSpec.describe PerformanceBroadcastReport, type: :model do
 
       let!(:incomplete_order) do
         FactoryBot.create(:ticket_order, :for_a_pair_of_tickets,
-          performance: performance,
-          address: incomplete_address,
-          status: 'Processed')
+                          performance: performance,
+                          address: incomplete_address,
+                          status: 'Processed')
       end
 
       it 'handles missing names gracefully' do

@@ -6,7 +6,7 @@ class Admin::SpecialFeaturesController < ApplicationController
       format.html # index.html.erb
       format.json {
         params.permit!
-        render json: SpecialFeatureDatatable.new(params, view_context: view_context, current_user: current_user )
+        render json: SpecialFeatureDatatable.new(params, view_context: view_context, current_user: current_user)
       }
     end
   end
@@ -30,7 +30,7 @@ class Admin::SpecialFeaturesController < ApplicationController
 
   def update
     if @special_feature.update(special_feature_params)
-      redirect_to [:admin, :special_features], :success  => "Successfully updated special feature."
+      redirect_to [:admin, :special_features], :success => "Successfully updated special feature."
     else
       render :action => 'edit'
     end
@@ -42,8 +42,8 @@ class Admin::SpecialFeaturesController < ApplicationController
   end
 
   private
-  def special_feature_params
-    params.require(:special_feature).permit(:short_name, :description,:status)
-  end
 
+  def special_feature_params
+    params.require(:special_feature).permit(:short_name, :description, :status)
+  end
 end

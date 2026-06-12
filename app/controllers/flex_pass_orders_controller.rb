@@ -39,7 +39,8 @@ class FlexPassOrdersController < ApplicationController
   def confirm
   end
 
-    private
+  private
+
   def create_or_update
     respond_to do |format|
       if validate_web_order(@order) && process_order(@order, Order::PROCESSED)
@@ -49,7 +50,6 @@ class FlexPassOrdersController < ApplicationController
       end
     end
   end
-
 
   def flex_pass_order_params
     params.require(:flex_pass_order).permit(*common_flex_pass_order_params)

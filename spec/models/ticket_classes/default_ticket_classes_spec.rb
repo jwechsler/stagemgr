@@ -2,12 +2,12 @@ require 'rails_helper'
 
 RSpec.describe DefaultTicketClass do
   it "should create an identical copy of itself as an associated ticket class when a production is created" do
-    default_ticket_class = FactoryBot.create(:default_ticket_class, :class_code=>'TEST')
+    default_ticket_class = FactoryBot.create(:default_ticket_class, :class_code => 'TEST')
     default_ticket_class.save
     production = FactoryBot.create(:production)
-    ticket_class = production.ticket_classes.select{|tc| tc.class_code == default_ticket_class.class_code}.first
+    ticket_class = production.ticket_classes.select { |tc| tc.class_code == default_ticket_class.class_code }.first
     default_attributes = default_ticket_class.to_hash
-    default_attributes.keys.each {|key|
+    default_attributes.keys.each { |key|
       expect(ticket_class.attributes).to include(key)
       expect(ticket_class[key]).to eq(default_attributes[key])
     }
@@ -42,7 +42,8 @@ RSpec.describe DefaultTicketClass do
 
     it "refuses to destroy when a MembershipOffer references the code as use_member_friend_code" do
       dtc = FactoryBot.create(:default_ticket_class, class_code: 'FRIENDREF')
-      FactoryBot.create(:membership_offer, name: 'Buddy Membership', use_ticket_class_code: 'OTHER', use_member_friend_code: 'FRIENDREF')
+      FactoryBot.create(:membership_offer, name: 'Buddy Membership', use_ticket_class_code: 'OTHER',
+                                           use_member_friend_code: 'FRIENDREF')
       expect(dtc.destroy).to eq(false)
       msg = dtc.errors[:base].join
       expect(msg).to include("membership offer 'Buddy Membership'")
@@ -52,7 +53,8 @@ RSpec.describe DefaultTicketClass do
 
     it "lists a membership offer only once when it references the code in both columns" do
       dtc = FactoryBot.create(:default_ticket_class, class_code: 'BOTHREF')
-      FactoryBot.create(:membership_offer, name: 'Double-Ref Membership', use_ticket_class_code: 'BOTHREF', use_member_friend_code: 'BOTHREF')
+      FactoryBot.create(:membership_offer, name: 'Double-Ref Membership', use_ticket_class_code: 'BOTHREF',
+                                           use_member_friend_code: 'BOTHREF')
       expect(dtc.destroy).to eq(false)
       msg = dtc.errors[:base].join
       expect(msg.scan("'Double-Ref Membership'").size).to eq(1)
@@ -70,5 +72,4 @@ RSpec.describe DefaultTicketClass do
       expect(msg).to include("'Beta Membership'")
     end
   end
-
 end

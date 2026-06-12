@@ -1,5 +1,4 @@
 class CurrencyInput < SimpleForm::Inputs::Base
-
   def input(wrapper_options)
     input_html_classes.unshift("string currency")
     input_html_options[:type] = :number

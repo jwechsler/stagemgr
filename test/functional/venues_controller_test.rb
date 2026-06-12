@@ -20,5 +20,4 @@ class VenuesControllerTest < ActionController::TestCase
     get :offtime_up_next
     assert_response :success
   end
-
 end

@@ -17,5 +17,4 @@ class FileStoreDecorator < ApplicationDecorator
   def datafile
     h.link_to(object.file_name, datafile_url)
   end
-
 end

@@ -13,7 +13,8 @@ class RateOfSalesJob < ApplicationJob
       calculate_for_today
     else
       calculate_recent_days(Date.yesterday, SELF_HEAL_WINDOW_DAYS)
-      RateOfSale.export_to_file(RateOfSale.export_records, RateOfSale.export_columns, File.join($SERVER_CONFIG['hud_export_directory'],'rate_of_sales.txt'))
+      RateOfSale.export_to_file(RateOfSale.export_records, RateOfSale.export_columns,
+                                File.join($SERVER_CONFIG['hud_export_directory'], 'rate_of_sales.txt'))
     end
   end
 
@@ -27,10 +28,10 @@ class RateOfSalesJob < ApplicationJob
 
   def self.calculate_for_day(date)
     production_ids = TicketOrder
-      .joins(:performance)
-      .where(created_at: date.all_day, status: Order::SETTLED_STATUSES)
-      .distinct
-      .pluck('performances.production_id')
+                     .joins(:performance)
+                     .where(created_at: date.all_day, status: Order::SETTLED_STATUSES)
+                     .distinct
+                     .pluck('performances.production_id')
 
     production_ids.each do |production_id|
       revenue = RevenueCalculator.for_production_on_day(production_id, date)

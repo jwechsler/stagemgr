@@ -19,7 +19,7 @@ class AddressDecorator < ApplicationDecorator
   end
 
   def visits(current_user)
-    (current_user.is_theater_user? ? object.orders_processed(current_user.theater_ids) : object.orders_processed )
+    (current_user.is_theater_user? ? object.orders_processed(current_user.theater_ids) : object.orders_processed)
   end
 
   def full_name
@@ -34,20 +34,19 @@ class AddressDecorator < ApplicationDecorator
           h.link_to(fp.code, [:admin, fp.flex_pass_line_item.order])
         end
       end
-      passes = h.safe_join(passes,',')
+      passes = h.safe_join(passes, ',')
       d += "FlexPass Holder [#{h.raw(passes)}]"
     end
-    if object.is_current_member? 
+    if object.is_current_member?
       memberships = []
-      object.memberships.select { |membership| membership.active? }.each { |membership| 
+      object.memberships.select { |membership| membership.active? }.each { |membership|
         memberships << h.link_to(membership.member_code, [:admin, membership.membership_order])
       }
       if memberships.size > 0
-        memberships = h.safe_join(memberships,',')
+        memberships = h.safe_join(memberships, ',')
         d = (d.blank? ? '' : "#{d}; ") + "Member [#{h.raw(memberships)}]"
       end
     end
     h.raw d
   end
-
 end

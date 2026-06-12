@@ -10,7 +10,7 @@ class Admin::UsersController < Admin::ApplicationController
       format.html # index.html.erb
       format.json {
         params.permit!
-        render json: UserDatatable.new(params, view_context: view_context, current_user: current_user )
+        render json: UserDatatable.new(params, view_context: view_context, current_user: current_user)
       }
     end
   end
@@ -57,6 +57,6 @@ class Admin::UsersController < Admin::ApplicationController
   end
 
   def user_params
-    params.require(:user).permit(:email,:password,:status,:is_administrator,:is_box_office_user, :theater_ids=>[])
+    params.require(:user).permit(:email, :password, :status, :is_administrator, :is_box_office_user, :theater_ids => [])
   end
 end

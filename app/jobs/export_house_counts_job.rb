@@ -18,9 +18,9 @@ class ExportHouseCountsJob
     rows = HouseCount.export_records.map do |house_count|
       max_price = house_count.max_ticket_price
       {
-        code:      house_count.performance.performance_code,
-        sold:      house_count.sold_seats.to_s,
-        held:      house_count.held_seats.to_s,
+        code: house_count.performance.performance_code,
+        sold: house_count.sold_seats.to_s,
+        held: house_count.held_seats.to_s,
         remaining: house_count.available_seats.to_s,
         max_price: max_price ? format('%.2f', max_price) : '',
       }
@@ -28,12 +28,11 @@ class ExportHouseCountsJob
 
     content = HudTableFormatter.render(
       columns: columns,
-      rows:    rows,
-      title:   'HOUSE COUNTS',
-      footer:  "Generated #{Time.current.strftime('%a %b %d %H:%M:%S %Z %Y')}",
+      rows: rows,
+      title: 'HOUSE COUNTS',
+      footer: "Generated #{Time.current.strftime('%a %b %d %H:%M:%S %Z %Y')}",
     )
 
     HudTableFormatter.write_to_file(content, file_path || self.file_path)
   end
 end
-

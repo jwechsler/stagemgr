@@ -63,6 +63,7 @@ RSpec.describe 'Batch Printing Workflow', type: :feature do
       failing_order_id = orders.first.id
       allow_any_instance_of(TicketOrder).to receive(:send_to_printer_api) do |order, *_args|
         raise StandardError.new('Printer error') if order.id == failing_order_id
+
         "test_id"
       end
 
@@ -123,7 +124,8 @@ RSpec.describe 'Batch Printing Workflow', type: :feature do
     let(:mock_response) { double('response', success?: true, body: '{"status": "complete", "printed_count": 5}') }
 
     before do
-      allow(PrintBatchJob).to receive(:send).with(:tktprint_request, :get, "print_batches/#{batch_id}").and_return(mock_response)
+      allow(PrintBatchJob).to receive(:send).with(:tktprint_request, :get,
+                                                  "print_batches/#{batch_id}").and_return(mock_response)
     end
 
     it 'successfully retrieves batch status from tktprint' do
@@ -264,7 +266,9 @@ RSpec.describe 'Batch Printing Workflow', type: :feature do
   end
 
   describe 'Performance and resource management' do
-    let(:large_order_set) { FactoryBot.create_list(:ticket_order, 10, :for_a_single_ticket, performance: performance, status: Order::PROCESSED) }
+    let(:large_order_set) {
+      FactoryBot.create_list(:ticket_order, 10, :for_a_single_ticket, performance: performance, status: Order::PROCESSED)
+    }
 
     before do
       allow(Rails.logger).to receive(:info)

@@ -1,7 +1,6 @@
 require 'forwardable'
 class DatatableBase < AjaxDatatablesRails::ActiveRecord
-  
-  def initialize(params, opts={})
+  def initialize(params, opts = {})
     super(params, opts)
     @view = opts[:view_context]
     sanitize_search_values_for_latin1!
@@ -31,6 +30,7 @@ class DatatableBase < AjaxDatatablesRails::ActiveRecord
 
     columns.each_value do |col|
       next unless col.respond_to?(:dig)
+
       val = col.dig(:search, :value)
       col[:search][:value] = strip_non_latin1(val) if val.present?
     end
@@ -40,6 +40,4 @@ class DatatableBase < AjaxDatatablesRails::ActiveRecord
     str.encode(Encoding::ISO_8859_1, invalid: :replace, undef: :replace, replace: "")
        .force_encoding(Encoding::UTF_8)
   end
-
 end
-

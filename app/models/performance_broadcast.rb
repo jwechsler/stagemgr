@@ -10,12 +10,12 @@ class PerformanceBroadcast < ApplicationRecord
   # - Have a non-placeholder address with a valid email
   def recipient_orders
     performance.orders
-      .joins(:address)
-      .where(status: ['Hold', 'Processed', 'Processing', 'Fulfilled'])
-      .where.not(addresses: { placeholder: true })
-      .where.not(addresses: { email: [nil, ''] })
-      .where("addresses.email LIKE '%@%'")
-      .distinct
+               .joins(:address)
+               .where(status: ['Hold', 'Processed', 'Processing', 'Fulfilled'])
+               .where.not(addresses: { placeholder: true })
+               .where.not(addresses: { email: [nil, ''] })
+               .where("addresses.email LIKE '%@%'")
+               .distinct
   end
 
   # Queues individual OutreachTask jobs for each recipient order

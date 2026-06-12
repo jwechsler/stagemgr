@@ -24,14 +24,17 @@ class DefaultTicketClass < ApplicationRecord
     parts = []
     flex_names = FlexPassOffer.where(use_ticket_class_code: class_code).order(:name).pluck(:name)
     membership_names = MembershipOffer
-      .where('use_ticket_class_code = :code OR use_member_friend_code = :code', code: class_code)
-      .order(:name).pluck(:name).uniq
-    parts << "flex pass offer#{'s' if flex_names.size > 1} #{flex_names.map { |n| "'#{n}'" }.to_sentence}" if flex_names.any?
-    parts << "membership offer#{'s' if membership_names.size > 1} #{membership_names.map { |n| "'#{n}'" }.to_sentence}" if membership_names.any?
+                       .where('use_ticket_class_code = :code OR use_member_friend_code = :code', code: class_code)
+                       .order(:name).pluck(:name).uniq
+    parts << "flex pass offer#{'s' if flex_names.size > 1} #{flex_names.map { |n|
+      "'#{n}'"
+    }.to_sentence}" if flex_names.any?
+    parts << "membership offer#{'s' if membership_names.size > 1} #{membership_names.map { |n|
+      "'#{n}'"
+    }.to_sentence}" if membership_names.any?
     return if parts.empty?
 
     errors.add(:base, "Cannot delete: class code '#{class_code}' is still referenced by #{parts.to_sentence}.")
     throw :abort
   end
-
 end

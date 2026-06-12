@@ -50,7 +50,6 @@ class PrintBatchJob
       close_print_batch(batch_id)
 
       Rails.logger.info("Completed print batch job: #{batch_id} - #{successful_order_ids.length} successful, #{failed_order_ids.length} failed")
-
     rescue => e
       Rails.logger.error("Error in print batch job #{batch_id}: #{e.message}")
       Rails.logger.error("Backtrace: #{e.backtrace.join("\n")}")
@@ -62,9 +61,9 @@ class PrintBatchJob
 
   def self.create_print_batch(batch_id)
     Rails.logger.info("Creating print batch: #{batch_id}")
-    
+
     response = tktprint_request(:post, 'print_batches', { batch_id: batch_id })
-    
+
     if response.success?
       Rails.logger.info("Successfully created print batch: #{batch_id}")
     else
@@ -76,9 +75,9 @@ class PrintBatchJob
 
   def self.close_print_batch(batch_id)
     Rails.logger.info("Closing print batch: #{batch_id}")
-    
+
     response = tktprint_request(:put, "print_batches/#{batch_id}/close")
-    
+
     if response.success?
       Rails.logger.info("Successfully closed print batch: #{batch_id}")
     else
@@ -125,11 +124,11 @@ class PrintBatchJob
     else
       Rails.logger.warn("TktPrint: No credentials found in service URL")
     end
-    
+
     response = http.request(request)
 
     Rails.logger.debug("Tktprint API #{method.upcase} #{base_uri.host}:#{base_uri.port}#{request_path}: #{response.code} #{response.body}")
-    
+
     OpenStruct.new(
       success?: response.code.to_i.between?(200, 299),
       code: response.code.to_i,

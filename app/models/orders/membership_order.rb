@@ -1,17 +1,17 @@
 class MembershipOrder < Order
   include RecurringOrder
 
-  has_one :membership_line_item, :foreign_key=>:order_id, :dependent => :destroy, inverse_of: :membership_order
+  has_one :membership_line_item, :foreign_key => :order_id, :dependent => :destroy, inverse_of: :membership_order
   delegate :membership, to: :membership_line_item
   validates_associated :membership_line_item
-  accepts_nested_attributes_for :membership_line_item, :recurring_payments, :allow_destroy=>true
+  accepts_nested_attributes_for :membership_line_item, :recurring_payments, :allow_destroy => true
 
   after_initialize :ensure_membership_line_item_exists
 
   # after_commit :update_membership_profile, :if=>:has_membership?
 
   def transition_processing_to_processed!(redirect_to = nil)
-    self.build_membership_line_item(membership_offer:membership_offer) if membership_line_item.nil?
+    self.build_membership_line_item(membership_offer: membership_offer) if membership_line_item.nil?
     subcription_id = nil
     begin
       subscription_id = PaymentProcessing.create_subscription(self)
@@ -23,7 +23,8 @@ class MembershipOrder < Order
       membership_line_item.membership.save!
       super
     rescue StandardError => e
-      raise RuntimeError, "There was a problem setting up your account for the #{membership_offer.name} payment plan. #{e.message}"
+      raise RuntimeError,
+            "There was a problem setting up your account for the #{membership_offer.name} payment plan. #{e.message}"
     end
   end
 
@@ -49,7 +50,7 @@ class MembershipOrder < Order
     else
       member_start_date = membership.start_date || membership.created_at.to_date
       end_date = [Date.today, self.membership.ended_at.nil? ? Date.today : self.membership.ended_at].min
-      
+
       "#{member_start_date} -> #{member_start_date + months_active_i.months}"
     end
   end
@@ -72,7 +73,7 @@ class MembershipOrder < Order
 
   def valid_payment_types_for(current_user)
     valid_payment_types = super
-    valid_payment_types.select {|pt| pt.is_a? CreditCardPaymentType }
+    valid_payment_types.select { |pt| pt.is_a? CreditCardPaymentType }
   end
 
   def link_to_address_of_record
@@ -87,7 +88,7 @@ class MembershipOrder < Order
   def set_defaults
     super
     unless self.membership_line_item.nil?
-      self.membership_line_item.order=self
+      self.membership_line_item.order = self
       self.membership_line_item.membership.address = self.address if !self.membership_line_item.membership.nil?
     end
   end
@@ -108,7 +109,7 @@ class MembershipOrder < Order
     end
   end
 
-  def unique_line_items(reload_line_items=false)
+  def unique_line_items(reload_line_items = false)
     result = super
     result << self.membership_line_item unless self.membership_line_item.nil?
     result
@@ -120,24 +121,20 @@ class MembershipOrder < Order
     result
   end
 
-
-
-
   def transition_processing_to_processing!(redirect_to = nil)
     self.transition_new_to_processing!(redirect_to)
   end
 
   protected
+
   def ensure_membership_line_item_exists
     self.build_membership_line_item if self.membership_line_item.nil?
   end
-
 
   def cascade_address_to_nested_items
     super
     membership_line_item.address = self.address unless membership_line_item.nil?
   end
-
 
   def transition_new_to_processing!(redirect_to = nil)
     super
@@ -145,32 +142,31 @@ class MembershipOrder < Order
 
   def starting_at
     [Time.now, self.gift_date.nil? ? Time.now : self.gift_date.to_datetime].max
- end
+  end
 
   def create_receipt_task
-
-    self.tasks << OutreachTask.new(:execute_at=>self.starting_at + 23.hours, :method_symbol=>:membership_confirmation)
-
+    self.tasks << OutreachTask.new(:execute_at => self.starting_at + 23.hours,
+                                   :method_symbol => :membership_confirmation)
   end
 
   def create_transfer_ownership_task
-    self.tasks << TransferOwnershipTask.new(:execute_at=>self.starting_at)
+    self.tasks << TransferOwnershipTask.new(:execute_at => self.starting_at)
   end
-
 
   def create_mail_list_task
     unless self.address.email.blank?
-      task = MyEmmaTask.new(:execute_at=>Time.now + 5.minutes, order: self, :additional_groups=>[self.membership_offer.myemma_group]) 
+      task = MyEmmaTask.new(:execute_at => Time.now + 5.minutes, order: self,
+                            :additional_groups => [self.membership_offer.myemma_group])
       task.save!
     end
   end
 
   def set_tasks_after_save
     if self.do_not_create_tasks.nil? && self.saved_change_to_status? && self.processed? && !self.membership_offer.use_member_friend_code.blank?
-      task = OutreachTask.new(:execute_at=>self.starting_at + 4.months,
-        :method_symbol=>:membership_friend_pass,
-        :repeat_monthly_interval => 6, 
-        order: self)
+      task = OutreachTask.new(:execute_at => self.starting_at + 4.months,
+                              :method_symbol => :membership_friend_pass,
+                              :repeat_monthly_interval => 6,
+                              order: self)
       task.save!
     end
     super
@@ -180,12 +176,14 @@ class MembershipOrder < Order
     order = nil
     membership = Membership.find_by(profile_id: profile_id)
     unless membership.nil?
-      order = membership.membership_order.create_recurring_payment!('Subscription Payment', amount: amount, invoice_id: invoice_id)
+      order = membership.membership_order.create_recurring_payment!('Subscription Payment', amount: amount,
+                                                                                            invoice_id: invoice_id)
     end
     order
   end
 
   protected
+
   def months_active
     if self.membership.nil?
       "ERROR. Membership data missing"
