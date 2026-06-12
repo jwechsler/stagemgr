@@ -926,6 +926,51 @@ RSpec.describe RateOfSalesAnalysis, type: :service do
       expect(ratio_fri).not_to be_nil
       expect(ratio_fri).to be_within(0.001).of(ratio_wed)
     end
+
+    # The stability test above happens to pick an opening whose presale_cutoff
+    # lands on a Monday, so no bucket is ever partial — it proves cross-weekday
+    # stability but does NOT exercise the partial-bucket EXCLUSION itself. This
+    # case forces a genuinely partial final bucket (presale_cutoff on a
+    # Wednesday) and pins both halves of Fix 1: the partial week's revenue still
+    # counts in cumulative actuals, but it is excluded from the performance
+    # ratio.
+    it 'counts the partial final bucket in actuals but excludes it from the ratio' do
+      travel_to(Date.new(2026, 6, 12)) do # Friday → cutoff (Monday) = 2026-06-08
+        opening = Date.new(2026, 5, 6) # Wed → presale_cutoff = 2026-04-15 (Wed)
+        closing = Date.new(2026, 7, 15)
+        target = create_production(opening: opening, closing: closing, capacity: 100_000)
+        comp = create_production(opening: opening - 70, closing: opening - 10)
+
+        pc_t = target.first_playing_date - 21.days
+        # 53 days of $100 spans 2026-04-15..2026-06-06, all strictly before the
+        # 2026-06-08 cutoff. The final bucket (Week 8) starts Wed 2026-06-03 and
+        # holds only 4 days (Wed–Sat) → it is partial.
+        (0..52).each do |i|
+          RateOfSale.create!(production: target, day_of_sale: pc_t + i.days,
+                             total_single_tickets: 10, total_complimentary_tickets: 0,
+                             gross_sales: 100.0, processing_fees: 0, ticketing_fees: 0, order_count: 1)
+        end
+        pc_c = comp.first_playing_date - 21.days
+        (0..55).each do |i|
+          RateOfSale.create!(production: comp, day_of_sale: pc_c + i.days,
+                             total_single_tickets: 10, total_complimentary_tickets: 0,
+                             gross_sales: 100.0, processing_fees: 0, ticketing_fees: 0, order_count: 1)
+        end
+
+        proj = described_class.new(target, [comp]).compute[:projection]
+        expect(proj).not_to be_nil
+
+        # 53 days × $100 = $5300 — the partial Week 8 ($400, 4 days) IS included.
+        expect(proj[:actual_total]).to be_within(0.01).of(5300.0)
+        expect(proj[:actual_cumulative]['Week 8']).to be_within(0.01).of(5300.0)
+
+        # Target and comparison are flat $100/day, so every COMPLETE week matches
+        # the aggregate → ratio 1.0. Had the partial $400 week been admitted to
+        # the ratio (against a full ~$700 aggregate week) the ratio would fall
+        # below 1.0; staying at 1.0 proves it was excluded.
+        expect(proj[:performance_ratio]).to be_within(0.001).of(1.0)
+      end
+    end
   end
 
   # ---------------------------------------------------------------------------
