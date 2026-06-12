@@ -1,3 +1,9 @@
+# The meaning of "available" here: this model has an `available` boolean DB column
+# that acts as a dynamic-pricing on/off switch -- when true, this ticket class is
+# offered for sale at this performance; the shift logic (see #trigger_satisfied?)
+# flips it as price tiers promote/demote. It is NOT a seat count and is unrelated
+# to Performance#seats_available / HouseCount#available_seats (aggregate seat
+# availability) or to SeatAssignment#available? (per-seat status).
 class TicketClassAllocation < ApplicationRecord
   belongs_to :performance, inverse_of: :ticket_class_allocations
   belongs_to :ticket_class, inverse_of: :ticket_class_allocations

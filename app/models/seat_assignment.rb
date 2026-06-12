@@ -11,6 +11,11 @@ class SeatAssignment < ApplicationRecord
   AVAILABLE, ASSIGNED, TEMPORARY, RELEASING, BROKEN =
     "Available", "Assigned", "Held", "Releasing", "N/A")
 
+  # NOTE: this "available" is a PER-SEAT reserved-seating concept and is unrelated
+  # to Performance#seats_available / HouseCount#available_seats (which are aggregate
+  # seat counts) or to Order::ON_HOLD_STATUSES. Here a seat is available when it is
+  # unassigned (AVAILABLE) -- or, when a specific order's UUID is supplied, when it
+  # is already assigned to that same order (so a buyer can keep their own seats).
   def available?(check_order_uuid = nil)
     a = status.eql?(AVAILABLE)
     a ||= assigned?(check_order_uuid) unless check_order_uuid.nil?
