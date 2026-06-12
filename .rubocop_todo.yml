@@ -386,8 +386,10 @@ Metrics/BlockNesting:
 
 # Offense count: 36
 # Configuration parameters: CountComments, CountAsOne.
+# Max bumped 1017 -> 1020 for the reviewed TicketOrder#occupies_seats? seat-
+# inventory vocabulary facade (3 LOC). TicketOrder was already at the limit.
 Metrics/ClassLength:
-  Max: 1017
+  Max: 1020
 
 # Offense count: 101
 # Configuration parameters: AllowedMethods, AllowedPatterns.

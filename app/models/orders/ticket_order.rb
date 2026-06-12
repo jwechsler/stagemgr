@@ -222,6 +222,14 @@ class TicketOrder < Order
     HOLDING_SEAT_STATUSES.include?(status)
   end
 
+  # Preferred name for #holding_seats?. True when this order's status occupies a
+  # seat (hold, in-progress checkout, sale, exchange or release) and therefore
+  # makes that seat unsellable. "Occupies" avoids confusion with a box-office
+  # HOLD, which is only one of these statuses. Exact alias -- same result.
+  def occupies_seats?
+    holding_seats?
+  end
+
   def sold?
     exchangeable?
   end
