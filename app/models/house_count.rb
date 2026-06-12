@@ -9,7 +9,7 @@ class HouseCount < Metric
     self.total_seats = performance.production.capacity
     self.sold_seats = calculate_sold_seats
     self.held_seats = calculate_held_seats
-# available = capacity minus every seat currently occupied (sold + on hold +
+    # available = capacity minus every seat currently occupied (sold + on hold +
     # in-progress + exchanging + releasing). performance.seats_occupied is the
     # preferred alias of the original #seats_held and returns the same figure.
     self.available_seats = performance.production.capacity - performance.seats_occupied
