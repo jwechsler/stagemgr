@@ -1,5 +1,50 @@
 # Metrics and Historical Reporting
 
+## Seat inventory vocabulary
+
+Seat-availability language is used in several places and is easy to confuse, so
+the codebase now exposes a consistent set of self-describing names. The older
+names still work (the new ones are aliases / thin delegators with no behavior
+change); new code should prefer the clearer names.
+
+Four distinct concepts:
+
+| Concept | Meaning | Where |
+|---------|---------|-------|
+| **occupied** | Every seat currently spoken for: box-office holds, in-progress checkouts (New/Processing), settled sales (Processed/Fulfilled), plus seats mid-exchange/mid-release. The set of statuses is `Order::SEAT_OCCUPYING_STATUSES` (alias of `HOLDING_SEAT_STATUSES`). | `Performance#seats_occupied` (alias of `#seats_held`) |
+| **on hold** | Only the box-office **Hold** status — seats a clerk parked for a patron who has not paid. Statuses: `Order::ON_HOLD_STATUSES` (alias of `HELD_STATUSES`). | `HouseCount#seats_on_hold` (reads `held_seats`) |
+| **sold** | Tickets on settled orders (Processed, Fulfilled, Unclaimed) — the patron paid. | `HouseCount#seats_sold` (reads `sold_seats`) |
+| **available** | Capacity minus all **occupied** seats. | `Performance#seats_available` (alias of `#number_of_seats_left`); `HouseCount#seats_available` (reads `available_seats`) |
+
+Key point: **occupied is broader than on hold.** `held_seats` deliberately
+counts only Hold-status orders ("heads on hold"), whereas `available_seats`
+subtracts *all* occupying statuses. The two figures are intentionally different
+and that difference is pinned by `spec/models/seat_inventory_vocabulary_spec.rb`.
+
+### Live (Performance) vs cached (HouseCount)
+
+- **`Performance`** computes occupied/available **live** from the orders table on
+  every call — always current, slightly more expensive.
+- **`HouseCount`** stores a **cached snapshot** of the same numbers. It is only
+  refreshed when `CalculateHouseCountsJob` runs (every 5 minutes), so its values
+  can briefly lag the live `Performance` figures.
+
+After `house_count.calculate!`, the snapshot satisfies:
+
+```ruby
+house_count.available_seats == production.capacity - performance.seats_occupied
+```
+
+### Unrelated uses of the word "available"
+
+Two other "available" concepts share the word but are *not* aggregate seat
+counts — documented at their definitions:
+
+- `SeatAssignment#available?` — per-seat reserved-seating status (is this
+  individual seat unassigned / mine?).
+- `TicketClassAllocation#available` — a boolean dynamic-pricing flag (is this
+  ticket class currently offered for sale at this performance?).
+
 ## Overview
 
 Stagemgr maintains two categories of historical show data that are calculated automatically by background jobs and stored in the database for reporting and display purposes.
@@ -51,9 +96,9 @@ The `HouseCount` model tracks real-time seat inventory for each performance. One
 |-------|-------------|
 | `performance` | The performance this count tracks |
 | `total_seats` | Production capacity (from seat map or manual setting) |
-| `sold_seats` | Tickets on Processed, Fulfilled, or Unclaimed orders |
-| `held_seats` | Tickets on Hold-status orders |
-| `available_seats` | Capacity minus all held seats (sold + held + other) |
+| `sold_seats` | Tickets on Processed, Fulfilled, or Unclaimed orders (read via `seats_sold`) |
+| `held_seats` | Tickets on Hold-status orders only — "on hold" (read via `seats_on_hold`) |
+| `available_seats` | Capacity minus all *occupied* seats — sold + on hold + in-progress + exchanging/releasing (read via `seats_available`) |
 | `max_ticket_price` | Highest ticket price currently available to web buyers |
 
 ### Calculation Schedule
