@@ -1,5 +1,5 @@
-ENV["RAILS_ENV"] = "test"
-require File.expand_path('../../config/environment', __FILE__)
+ENV['RAILS_ENV'] = 'test'
+require File.expand_path('../config/environment', __dir__)
 require 'flexmock/test_unit'
 require 'flexmock/rails'
 require 'factory_bot'
@@ -16,14 +16,14 @@ class ActiveSupport::TestCase
   # Add more helper methods to be used by all tests here...
   def address_hash
     {
-      "full_name" => "Joe Schmoe",
-      "email" => "jshmoe@example.com",
-      "line1" => "123 Swift St",
-      "line2" => "",
-      "city" => "Anytown",
-      "state" => "il",
-      "zipcode" => "60606",
-      "phone" => "312-555-5555"
+      'full_name' => 'Joe Schmoe',
+      'email' => 'jshmoe@example.com',
+      'line1' => '123 Swift St',
+      'line2' => '',
+      'city' => 'Anytown',
+      'state' => 'il',
+      'zipcode' => '60606',
+      'phone' => '312-555-5555'
     }
   end
 end

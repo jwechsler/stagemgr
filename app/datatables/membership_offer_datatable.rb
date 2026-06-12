@@ -17,7 +17,7 @@ class MembershipOfferDatatable < DatatableBase
         name: record.decorate.name,
         on_sale: record.decorate.on_sale?,
         status: record.decorate.dt_actions,
-        DT_RowID: record.id,
+        DT_RowID: record.id
       }
     end
   end

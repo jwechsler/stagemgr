@@ -3,8 +3,8 @@ class ProductionStatusDefaultToInactive < ActiveRecord::Migration[4.2]
     change_column_default(
       :productions,
       :status,
-      :from => nil,
-      :to => Production::INACTIVE
+      from: nil,
+      to: Production::INACTIVE
     )
   end
 end

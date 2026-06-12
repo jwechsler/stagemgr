@@ -16,7 +16,7 @@ module DateUtils
 
       end
 
-      (recent_date.month - past_date.month) + 12 * (recent_date.year - past_date.year)
+      (recent_date.month - past_date.month) + (12 * (recent_date.year - past_date.year))
     end
   end
 end

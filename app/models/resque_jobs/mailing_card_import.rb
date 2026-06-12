@@ -4,8 +4,7 @@ class MailingCardImport
   @queue = :import
 
   # find address from import_row
-  def self.find_address_from_import_row
-  end
+  def self.find_address_from_import_row; end
 
   def self.perform(filestore_id, production_id)
     filestore = FileStore.find(filestore_id)
@@ -22,16 +21,18 @@ class MailingCardImport
       city_idx = 0
       state_idx = 0
       zip_idx = 0
-      zip4_idx = 0
       email_idx = 0
       phone_idx = 0
       production = Production.find(production_id) unless production_id == 0
-      filestore.notes = "Importing #{production.nil? ? '' : production.name + ' '}attendees..."
+      filestore.notes = "Importing #{production.name + ' ' unless production.nil?}attendees..."
       filestore.save
       CSV.foreach(filestore.path) do |row|
-        if headers.nil? then
+        if headers.nil?
           _index = 0
-          headers = Hash[row.map { |header| _index += 1; [header, _index] }]
+          headers = Hash[row.map do |header|
+            _index += 1
+            [header, _index]
+          end]
           first_name_idx = headers['FirstName'] - 1
           last_name_idx = headers['LastName'] - 1
           full_name_idx = headers['FullName'] - 1
@@ -50,26 +51,26 @@ class MailingCardImport
           a.first_name = row[first_name_idx]
           a.last_name = row[last_name_idx]
           if row[full_name_idx].blank?
-            a.full_name = ""
-            a.full_name = a.first_name unless a.first_name.blank?
-            a.full_name += a.last_name.blank? ? a.last_name : " #{a.last_name}" unless a.last_name.blank?
+            a.full_name = ''
+            a.full_name = a.first_name if a.first_name.present?
+            a.full_name += a.last_name.blank? ? a.last_name : " #{a.last_name}" if a.last_name.present?
           else
             a.full_name = row[full_name_idx]
           end
-          unless a.full_name.blank?
-            a.line1 = row[address1_idx] unless row[address1_idx].blank?
-            a.city = row[city_idx] unless row[city_idx].blank?
-            a.state = row[state_idx] unless row[state_idx].blank?
-            a.zipcode = row[zip_idx] unless row[zip_idx].blank?
+          if a.full_name.present?
+            a.line1 = row[address1_idx] if row[address1_idx].present?
+            a.city = row[city_idx] if row[city_idx].present?
+            a.state = row[state_idx] if row[state_idx].present?
+            a.zipcode = row[zip_idx] if row[zip_idx].present?
             a.email = row[email_idx] if a.email.blank?
-            a.phone = row[phone_idx] unless row[phone_idx].blank?
+            a.phone = row[phone_idx] if row[phone_idx].present?
             merge_check = a.find_original
             merged += 1 if !a.new_record? || !merge_check.nil?
             puts "Importing: #{a.first_name} as #{a.full_name}"
             a.save!
             a.productions << production unless production.nil?
 
-            if merge_check.nil? then
+            if merge_check.nil?
               a.save!
             else
               merge_check.merge_and_purge(a)
@@ -80,7 +81,7 @@ class MailingCardImport
 
         end
       end
-      filestore.notes = "Imported #{total} contacts, merged #{merged} as attendees#{production.nil? ? '' : ' ' + production.name}."
+      filestore.notes = "Imported #{total} contacts, merged #{merged} as attendees#{' ' + production.name unless production.nil?}."
       filestore.save
     rescue Exception => e
       filestore.notes = "Error: #{e.message}"

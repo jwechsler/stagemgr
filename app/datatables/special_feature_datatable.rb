@@ -18,7 +18,7 @@ class SpecialFeatureDatatable < DatatableBase
         description: record.decorate.description,
         status: record.decorate.status,
         actions: record.decorate.dt_actions,
-        DT_RowID: record.id,
+        DT_RowID: record.id
       }
     end
   end
@@ -26,7 +26,7 @@ class SpecialFeatureDatatable < DatatableBase
   private
 
   def get_raw_records
-    special_features = SpecialFeature.all
+    SpecialFeature.all
   end
 
   # ==== These methods represent the basic operations to perform on records

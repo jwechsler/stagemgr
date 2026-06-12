@@ -8,9 +8,9 @@ module EmailValidatable
       return true if value.blank?
 
       begin
-        a = Mail::Address.new(value)
+        Mail::Address.new(value)
       rescue Mail::Field::ParseError
-        record.errors.add(attribute, options[:message] || "is not an email")
+        record.errors.add(attribute, options[:message] || 'is not an email')
       end
     end
   end
@@ -20,8 +20,8 @@ module EmailValidatable
       return true if value.blank?
 
       begin
-        a = Mail::Address.new(value)
-        record.errors.add(attribute, options[:message] || "is an email")
+        Mail::Address.new(value)
+        record.errors.add(attribute, options[:message] || 'is an email')
       rescue Mail::Field::ParseError
         true
       end

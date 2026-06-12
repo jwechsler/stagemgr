@@ -42,7 +42,7 @@ class ExportSalesCountsJob
       { key: :amount,   header: 'Amount',   align: :right }
     ]
 
-    # Note: last7 and previous7 samples have NO title and NO footer
+    # NOTE: last7 and previous7 samples have NO title and NO footer
     content = HudTableFormatter.render(
       columns: columns,
       rows: rows
@@ -50,8 +50,6 @@ class ExportSalesCountsJob
 
     HudTableFormatter.write_to_file(content, file_path || self.file_path(period))
   end
-
-  private
 
   def self.format_currency(amount)
     # Format with 2 decimal places and comma thousands separator

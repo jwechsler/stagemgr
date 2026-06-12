@@ -104,7 +104,7 @@ RSpec.describe NotificationMailer, type: :mailer do
         store = FileStore.new
         store.user = user
         store.worker = FileStore::REPORT
-        store.notes = "Broadcast log without file"
+        store.notes = 'Broadcast log without file'
         store.save!
         store
       end

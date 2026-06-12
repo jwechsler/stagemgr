@@ -23,7 +23,7 @@ class OrderDecorator < ApplicationDecorator
   end
 
   def status
-    if (object.is_a? MembershipOrder) && (!object.membership.nil?) then
+    if (object.is_a? MembershipOrder) && !object.membership.nil?
       if object.membership.active?
         h.raw("<span class=\"label #{order_status_severity_class}\">#{order.status}</span>")
       elsif object.membership.pending?
@@ -38,10 +38,12 @@ class OrderDecorator < ApplicationDecorator
 
   def address
     if object.address.nil?
-      "???"
+      '???'
     else
-      display = ""
-      display += "<br/>(h/u #{object.hold_under})" unless (object.hold_under.blank? || object.hold_under.eql?(object.address.full_name) || object.display_code.eql?("DONATION"))
+      display = ''
+      unless object.hold_under.blank? || object.hold_under.eql?(object.address.full_name) || object.display_code.eql?('DONATION')
+        display += "<br/>(h/u #{object.hold_under})"
+      end
       h.link_to(object.address.full_name, [:admin, object.address]) + h.raw(display)
     end
   end
@@ -51,11 +53,11 @@ class OrderDecorator < ApplicationDecorator
   end
 
   def description
-    result = ""
-    if (object.is_a? FlexPassOrder) && (!object.flex_pass.nil?) then
-      result = h.raw("<span class=\"label warning\">Expired</span> ") if !order.flex_pass.active?
+    result = ''
+    if (object.is_a? FlexPassOrder) && !object.flex_pass.nil? && !order.flex_pass.active?
+      result = h.raw('<span class="label warning">Expired</span> ')
     end
-    result += order.description
+    result + order.description
   end
 
   private
@@ -63,17 +65,17 @@ class OrderDecorator < ApplicationDecorator
   def order_status_severity_class
     case object.status
     when Order::FULFILLED
-      "success"
+      'success'
     when Order::REFUNDED
-      "alert"
+      'alert'
     when Order::CANCELED
-      "alert"
+      'alert'
     when Order::HOLD
-      "alert"
+      'alert'
     when Order::PROCESSING
-      "alert"
+      'alert'
     else
-      "secondary"
+      'secondary'
     end
   end
 end

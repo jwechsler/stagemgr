@@ -1,16 +1,16 @@
 require 'rails_helper'
 
 RSpec.describe SeatAssignment, type: :model do
-  describe ".release_temporary_holds_for_performance" do
+  describe '.release_temporary_holds_for_performance' do
     let(:production) { FactoryBot.create(:production_with_reserved_seating) }
-    let(:performance1) {
+    let(:performance1) do
       FactoryBot.create(:reserved_seating, production: production, performance_date: Date.today + 1.day,
-                                           performance_time: Time.parse("19:00"))
-    }
-    let(:performance2) {
+                                           performance_time: Time.parse('19:00'))
+    end
+    let(:performance2) do
       FactoryBot.create(:reserved_seating, production: production, performance_date: Date.today + 2.days,
-                                           performance_time: Time.parse("19:00"))
-    }
+                                           performance_time: Time.parse('19:00'))
+    end
     let(:seat_map) { performance1.production.seat_map }
 
     before do
@@ -19,7 +19,7 @@ RSpec.describe SeatAssignment, type: :model do
       SeatAssignment.available_seat_assignments(performance2)
     end
 
-    context "when there are TEMPORARY seats without orders" do
+    context 'when there are TEMPORARY seats without orders' do
       before do
         # Create TEMPORARY seats without orders (orphaned holds)
         @orphaned_seats = performance1.seat_assignments.take(3)
@@ -28,7 +28,7 @@ RSpec.describe SeatAssignment, type: :model do
         end
       end
 
-      it "releases the orphaned TEMPORARY seats" do
+      it 'releases the orphaned TEMPORARY seats' do
         count = SeatAssignment.release_temporary_holds_for_performance(performance1.id)
 
         expect(count).to eq(3)
@@ -41,7 +41,7 @@ RSpec.describe SeatAssignment, type: :model do
       end
     end
 
-    context "when there are TEMPORARY seats with valid orders in HOLDING_SEAT_STATUSES" do
+    context 'when there are TEMPORARY seats with valid orders in HOLDING_SEAT_STATUSES' do
       before do
         # Create a simple order and manually assign seats
         ticket_class = performance1.ticket_class_allocations.first.ticket_class
@@ -71,7 +71,7 @@ RSpec.describe SeatAssignment, type: :model do
         end
       end
 
-      it "does NOT release seats associated with valid holding orders" do
+      it 'does NOT release seats associated with valid holding orders' do
         count = SeatAssignment.release_temporary_holds_for_performance(performance1.id)
 
         expect(count).to eq(0)
@@ -83,7 +83,7 @@ RSpec.describe SeatAssignment, type: :model do
       end
     end
 
-    context "when there are TEMPORARY seats with orders in non-holding statuses" do
+    context 'when there are TEMPORARY seats with orders in non-holding statuses' do
       before do
         # Create a simple order with CANCELED status
         ticket_class = performance1.ticket_class_allocations.first.ticket_class
@@ -107,7 +107,7 @@ RSpec.describe SeatAssignment, type: :model do
         @canceled_order.save!
       end
 
-      it "releases seats associated with non-holding orders" do
+      it 'releases seats associated with non-holding orders' do
         count = SeatAssignment.release_temporary_holds_for_performance(performance1.id)
 
         expect(count).to eq(2)
@@ -119,7 +119,7 @@ RSpec.describe SeatAssignment, type: :model do
       end
     end
 
-    context "when there are ASSIGNED seats" do
+    context 'when there are ASSIGNED seats' do
       before do
         @assigned_seats = performance1.seat_assignments.take(2)
         @assigned_seats.each do |sa|
@@ -127,7 +127,7 @@ RSpec.describe SeatAssignment, type: :model do
         end
       end
 
-      it "does NOT release ASSIGNED seats" do
+      it 'does NOT release ASSIGNED seats' do
         count = SeatAssignment.release_temporary_holds_for_performance(performance1.id)
 
         expect(count).to eq(0)
@@ -139,7 +139,7 @@ RSpec.describe SeatAssignment, type: :model do
       end
     end
 
-    context "when releasing seats clears order_uuid and accessibility" do
+    context 'when releasing seats clears order_uuid and accessibility' do
       before do
         @seat_with_accessibility = performance1.seat_assignments.first
         @seat_with_accessibility.update!(
@@ -149,7 +149,7 @@ RSpec.describe SeatAssignment, type: :model do
         )
       end
 
-      it "clears both order_uuid and accessibility fields" do
+      it 'clears both order_uuid and accessibility fields' do
         SeatAssignment.release_temporary_holds_for_performance(performance1.id)
 
         @seat_with_accessibility.reload
@@ -158,7 +158,7 @@ RSpec.describe SeatAssignment, type: :model do
       end
     end
 
-    context "when scoping to specific performance" do
+    context 'when scoping to specific performance' do
       before do
         # Create TEMPORARY seats in performance1
         @perf1_seats = performance1.seat_assignments.take(2)
@@ -173,7 +173,7 @@ RSpec.describe SeatAssignment, type: :model do
         end
       end
 
-      it "only releases seats for the specified performance" do
+      it 'only releases seats for the specified performance' do
         count = SeatAssignment.release_temporary_holds_for_performance(performance1.id)
 
         expect(count).to eq(2)
@@ -192,7 +192,7 @@ RSpec.describe SeatAssignment, type: :model do
       end
     end
 
-    context "when there is a mix of seat types" do
+    context 'when there is a mix of seat types' do
       before do
         seats = performance1.seat_assignments.take(6)
 
@@ -235,7 +235,7 @@ RSpec.describe SeatAssignment, type: :model do
         end
       end
 
-      it "only releases the orphaned TEMPORARY seats" do
+      it 'only releases the orphaned TEMPORARY seats' do
         count = SeatAssignment.release_temporary_holds_for_performance(performance1.id)
 
         expect(count).to eq(2)
@@ -260,8 +260,8 @@ RSpec.describe SeatAssignment, type: :model do
       end
     end
 
-    context "when there are no seats to release" do
-      it "returns zero" do
+    context 'when there are no seats to release' do
+      it 'returns zero' do
         count = SeatAssignment.release_temporary_holds_for_performance(performance1.id)
         expect(count).to eq(0)
       end

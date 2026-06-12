@@ -1,35 +1,35 @@
 class DonationOrder < Order
-  has_many :donation_line_items, :foreign_key => :order_id, inverse_of: :donation_order
+  has_many :donation_line_items, foreign_key: :order_id, inverse_of: :donation_order
 
   accepts_nested_attributes_for :donation_line_items,
-                                :allow_destroy => true
+                                allow_destroy: true
 
   validates_associated :donation_line_items
 
   def refundable?
-    [Order::PROCESSED, Order::FULFILLED].include?(self.status)
+    [Order::PROCESSED, Order::FULFILLED].include?(status)
   end
 
-  def display_code()
-    "DONATION"
+  def display_code
+    'DONATION'
   end
 
   def to_s
-    "Donation (#{self.theater.name unless self.theater.nil?})"
+    "Donation (#{theater.name unless theater.nil?})"
   end
 
   def total
-    self.donation_line_items.sum(:amount)
+    donation_line_items.sum(:amount)
   end
 
   def description
-    self.to_s
+    to_s
   end
 
   def all_line_items(reload_line_items = false)
-    self.donation_line_items.reload if reload_line_items
-    super(reload_line_items) +
-      self.donation_line_items
+    donation_line_items.reload if reload_line_items
+    super +
+      donation_line_items
   end
 
   def valid_payment_types_for(current_user)
@@ -39,19 +39,19 @@ class DonationOrder < Order
 
   def reload_associated
     super
-    self.donation_line_items(true)
+    donation_line_items(true)
   end
 
   protected
 
   def set_defaults
     super
-    self.donation_line_items.each { |di| di.order = self }
+    donation_line_items.each { |di| di.order = self }
   end
 
   def create_receipt_task
     super
-    task = OutreachTask.new(:execute_at => Time.now + 5.minutes, order: self, :method_symbol => :donation_thank_you)
+    task = OutreachTask.new(execute_at: Time.now + 5.minutes, order: self, method_symbol: :donation_thank_you)
     task.save!
   end
 end

@@ -10,7 +10,7 @@ class SpecialOfferDecorator < ApplicationDecorator
   end
 
   def dt_actions
-    h.link_to('Edit', [:edit, :admin, object], :class => 'tiny button')
+    h.link_to('Edit', [:edit, :admin, object], class: 'tiny button')
   end
   # Define presentation-specific methods here. Helpers are accessed through
   # `helpers` (aka `h`). You can override attributes, for example:

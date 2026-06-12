@@ -8,11 +8,18 @@ class TicketOrdersController < ApplicationController
   include TicketOrdersHelper
 
   # No login requirement since this is a public controller
-  before_action :find_order, :only => [:show, :edit, :update, :destroy, :confirm]
-  before_action :redirect_to_proper_action, :only => [:edit]
+  before_action :find_order, only: %i[show edit update destroy confirm]
+  before_action :redirect_to_proper_action, only: [:edit]
   # skip_before_action :verify_authenticity_token, :only => [:create]
 
   respond_to :html
+
+  def show
+    @ticket_order = TicketOrder.find(params[:id].to_i)
+    respond_to do |format|
+      format.html { render '/general/unavailable' }
+    end
+  end
 
   def edit
     preset_line_items_for_display(@ticket_order)
@@ -35,17 +42,17 @@ class TicketOrdersController < ApplicationController
 
     # Set marketing source from referral_code cookie if present and marketing_source isn't already set
     # This system integrates with external referral tracking systems or campaigns
-    if @has_referral_cookie && @ticket_order.marketing_source.blank?
-      referral = cookies['referral_code'].to_s
-      # Set the marketing source directly - the validation in the model will ensure it's safe
-      # Note: REFERRALS list is for reporting/UI purposes and custom referral codes are also valid
-      @ticket_order.marketing_source = referral
-    end
+    return unless @has_referral_cookie && @ticket_order.marketing_source.blank?
+
+    referral = cookies['referral_code'].to_s
+    # Set the marketing source directly - the validation in the model will ensure it's safe
+    # Note: REFERRALS list is for reporting/UI purposes and custom referral codes are also valid
+    @ticket_order.marketing_source = referral
   end
 
   def create
     @ticket_order = TicketOrder.new(ticket_order_params)
-    @ticket_order.uuid = params[:ticket_order][:uuid] unless params[:ticket_order][:uuid].blank?
+    @ticket_order.uuid = params[:ticket_order][:uuid] if params[:ticket_order][:uuid].present?
     @ticket_order.ip_address = request.remote_ip
     @ticket_order.create_default_service_fees
     @ticket_order.status = Order::NEW
@@ -82,13 +89,6 @@ class TicketOrdersController < ApplicationController
     # @ticket_order = TicketOrder.find(params[:id].to_i)
   end
 
-  def show
-    @ticket_order = TicketOrder.find(params[:id].to_i)
-    respond_to do |format|
-      format.html { render '/general/unavailable' }
-    end
-  end
-
   #  def donate
   #    @ticket_order = TicketOrder.new(ticket_order_params)
   #  end
@@ -97,8 +97,8 @@ class TicketOrdersController < ApplicationController
 
   def update_or_create
     respond_to do |format|
-      if !params[:commit].blank? && validate_web_order(@ticket_order) && process_order(@ticket_order,
-                                                                                       convert_button_label_to_state(params[:commit]))
+      if params[:commit].present? && validate_web_order(@ticket_order) && process_order(@ticket_order,
+                                                                                        convert_button_label_to_state(params[:commit]))
         # Clear the special offer cookie if order is processed
         if @ticket_order.processing? || @ticket_order.processed?
           cookies.delete('spofrcode', secure: Rails.env.production?, httponly: true)
@@ -110,16 +110,14 @@ class TicketOrdersController < ApplicationController
           format.html { render '/ticket_orders/show' }
         end
 
+      elsif @ticket_order.finalized?
+        format.html { render 'show' }
       else
-        if @ticket_order.finalized?
-          format.html { render 'show' }
+        preset_line_items_for_display(@ticket_order)
+        if @ticket_order.processing? || @ticket_order.new?
+          format.html { render '/ticket_orders/edit' }
         else
-          preset_line_items_for_display(@ticket_order)
-          if @ticket_order.processing? || @ticket_order.new?
-            format.html { render '/ticket_orders/edit' }
-          else
-            format.html { render '/general/unavailable' }
-          end
+          format.html { render '/general/unavailable' }
         end
       end
     end
@@ -132,17 +130,11 @@ class TicketOrdersController < ApplicationController
   def redirect_to_proper_action
     flash.keep
     if @ticket_order.editable?
-      if params[:action] != 'edit'
-        redirect_to(edit_ticket_order_path(@ticket_order))
-      end
-    else
-      if params[:action] != 'show'
-        redirect_to(ticket_order_path(@ticket_order))
-      end
+      redirect_to(edit_ticket_order_path(@ticket_order)) if params[:action] != 'edit'
+    elsif params[:action] != 'show'
+      redirect_to(ticket_order_path(@ticket_order))
     end
   end
-
-  private
 
   def ticket_order_params
     params.require(:ticket_order).permit(*ticket_order_common_params)

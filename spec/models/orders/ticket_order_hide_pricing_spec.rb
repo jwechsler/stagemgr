@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe TicketOrder, "#send_to_printer_api with hide_pricing" do
+RSpec.describe TicketOrder, '#send_to_printer_api with hide_pricing' do
   before do
     # Mock tktprint service configuration
     $TKTPRINT = { 'service' => 'http://test:secret@localhost:3001' }
@@ -9,7 +9,7 @@ RSpec.describe TicketOrder, "#send_to_printer_api with hide_pricing" do
     allow_any_instance_of(TicketOrder).to receive(:send_order_to_tktprint_api).and_return(123)
   end
 
-  context "with mixed ticket classes (some hide_pricing, some not)" do
+  context 'with mixed ticket classes (some hide_pricing, some not)' do
     let(:ticket_order) { FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash) }
 
     before do
@@ -35,7 +35,7 @@ RSpec.describe TicketOrder, "#send_to_printer_api with hide_pricing" do
       ticket_order.reload
     end
 
-    it "sends $0 for line items with hide_pricing=true" do
+    it 'sends $0 for line items with hide_pricing=true' do
       # Capture the payload sent to tktprint
       captured_payload = nil
       allow_any_instance_of(TicketOrder).to receive(:send_order_to_tktprint_api) do |_instance, payload|
@@ -65,7 +65,7 @@ RSpec.describe TicketOrder, "#send_to_printer_api with hide_pricing" do
       expect(hidden_line_item[:amount]).to eq(0)
     end
 
-    it "calculates order total excluding hide_pricing line items" do
+    it 'calculates order total excluding hide_pricing line items' do
       captured_payload = nil
       allow_any_instance_of(TicketOrder).to receive(:send_order_to_tktprint_api) do |_instance, payload|
         captured_payload = payload
@@ -84,7 +84,7 @@ RSpec.describe TicketOrder, "#send_to_printer_api with hide_pricing" do
       expect(captured_payload[:amount]).to eq(expected_visible_amount)
     end
 
-    it "includes all tickets in tickets_attributes regardless of hide_pricing" do
+    it 'includes all tickets in tickets_attributes regardless of hide_pricing' do
       captured_payload = nil
       allow_any_instance_of(TicketOrder).to receive(:send_order_to_tktprint_api) do |_instance, payload|
         captured_payload = payload
@@ -103,7 +103,7 @@ RSpec.describe TicketOrder, "#send_to_printer_api with hide_pricing" do
     end
   end
 
-  context "with all tickets having hide_pricing=true" do
+  context 'with all tickets having hide_pricing=true' do
     let(:ticket_order) { FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash) }
 
     before do
@@ -114,7 +114,7 @@ RSpec.describe TicketOrder, "#send_to_printer_api with hide_pricing" do
       ticket_order.reload
     end
 
-    it "sends $0 for all line items and $0 total" do
+    it 'sends $0 for all line items and $0 total' do
       captured_payload = nil
       allow_any_instance_of(TicketOrder).to receive(:send_order_to_tktprint_api) do |_instance, payload|
         captured_payload = payload
@@ -134,7 +134,7 @@ RSpec.describe TicketOrder, "#send_to_printer_api with hide_pricing" do
     end
   end
 
-  context "with no tickets having hide_pricing=true" do
+  context 'with no tickets having hide_pricing=true' do
     let(:ticket_order) { FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash) }
 
     before do
@@ -145,7 +145,7 @@ RSpec.describe TicketOrder, "#send_to_printer_api with hide_pricing" do
       ticket_order.reload
     end
 
-    it "sends actual amounts for all line items" do
+    it 'sends actual amounts for all line items' do
       captured_payload = nil
       allow_any_instance_of(TicketOrder).to receive(:send_order_to_tktprint_api) do |_instance, payload|
         captured_payload = payload

@@ -1,7 +1,7 @@
 require 'forwardable'
 class DatatableBase < AjaxDatatablesRails::ActiveRecord
   def initialize(params, opts = {})
-    super(params, opts)
+    super
     @view = opts[:view_context]
     sanitize_search_values_for_latin1!
   end
@@ -11,7 +11,7 @@ class DatatableBase < AjaxDatatablesRails::ActiveRecord
   end
 
   def filter_by_name
-    ->(column, formatted_value) {
+    lambda { |_column, formatted_value|
       ::Arel::Nodes::SqlLiteral.new('full_name').matches("#{formatted_value}%").or(::Arel::Nodes::SqlLiteral.new('last_name').matches("#{formatted_value}%"))
     }
   end
@@ -21,9 +21,7 @@ class DatatableBase < AjaxDatatablesRails::ActiveRecord
   def sanitize_search_values_for_latin1!
     return unless @params.respond_to?(:dig)
 
-    if @params.dig(:search, :value).present?
-      @params[:search][:value] = strip_non_latin1(@params[:search][:value])
-    end
+    @params[:search][:value] = strip_non_latin1(@params[:search][:value]) if @params.dig(:search, :value).present?
 
     columns = @params[:columns]
     return unless columns.respond_to?(:each)
@@ -37,7 +35,7 @@ class DatatableBase < AjaxDatatablesRails::ActiveRecord
   end
 
   def strip_non_latin1(str)
-    str.encode(Encoding::ISO_8859_1, invalid: :replace, undef: :replace, replace: "")
+    str.encode(Encoding::ISO_8859_1, invalid: :replace, undef: :replace, replace: '')
        .force_encoding(Encoding::UTF_8)
   end
 end

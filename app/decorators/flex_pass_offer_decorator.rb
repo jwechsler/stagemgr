@@ -34,34 +34,32 @@ class FlexPassOfferDecorator < ApplicationDecorator
   end
 
   def restrictions
-    unless object.theater.blank? then
-      if object.exclude_theater then
-        "All but #{object.theater.name}"
-      else
-        "Only #{object.theater.name}"
-      end
+    if object.theater.blank?
+      ''
+    elsif object.exclude_theater
+      "All but #{object.theater.name}"
     else
-      ""
+      "Only #{object.theater.name}"
     end
   end
 
   def dt_actions
     actions = []
-    if h.current_user.can? :update, FlexPassOffer then
-      actions << h.link_to('Edit', [:edit, :admin, object], :class => 'tiny button')
+    if h.current_user.can? :update, FlexPassOffer
+      actions << h.link_to('Edit', [:edit, :admin, object], class: 'tiny button')
     end
 
-    if h.current_user.can? :destroy, FlexPassOffer then
-      actions << h.link_to('Destroy', [:admin, object], method: :delete, :confirm => 'Are you sure?',
-                                                        :class => 'tiny alert button')
+    if h.current_user.can? :destroy, FlexPassOffer
+      actions << h.link_to('Destroy', [:admin, object], method: :delete, confirm: 'Are you sure?',
+                                                        class: 'tiny alert button')
     end
 
-    if h.current_user.can? :create, FlexPassOrder then
-      if flex_pass_offer.active?
-        actions << h.link_to('Create Order', [:new, :admin, object, :order], :class => 'tiny button')
-      else
-        actions << h.link_to('Create Order', '#', :class => 'tiny button disabled')
-      end
+    if h.current_user.can? :create, FlexPassOrder
+      actions << if flex_pass_offer.active?
+                   h.link_to('Create Order', [:new, :admin, object, :order], class: 'tiny button')
+                 else
+                   h.link_to('Create Order', '#', class: 'tiny button disabled')
+                 end
     end
 
     h.safe_join(actions, ' ')

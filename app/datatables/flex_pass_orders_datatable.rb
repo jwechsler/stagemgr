@@ -19,14 +19,14 @@ class FlexPassOrdersDatatable < DatatableBase
         description: order.decorate.description,
         amount: order.decorate.total_paid,
         status: order.decorate.status,
-        DT_RowID: order.id,
+        DT_RowID: order.id
       }
     end
   end
 
   def get_raw_records
     Order.allowed_for(current_user).includes(:payments, performance: :production).references(performance: :production).references(:payments).where(
-      "payments.flex_pass_id = :flex_pass_id", :flex_pass_id => flex_pass.id
+      'payments.flex_pass_id = :flex_pass_id', flex_pass_id: flex_pass.id
     )
   end
 

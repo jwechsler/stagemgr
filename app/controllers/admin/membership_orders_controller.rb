@@ -5,36 +5,32 @@ class Admin::MembershipOrdersController < Admin::ApplicationController
   include ActionView::Helpers::OutputSafetyHelper
 
   def show
-    begin
-      @membership_order.membership.update_from_profile!
-    rescue Exception => e
-      Rails.logger.warn("Recurring Payment for order #{params[:id]} not updated. #{e.message}")
-    end
+    @membership_order.membership.update_from_profile!
+  rescue Exception => e
+    Rails.logger.warn("Recurring Payment for order #{params[:id]} not updated. #{e.message}")
   end
 
   def reactivate
-    begin
-      result = @membership_order.reactivate
-      unless result.success?
-        flash[:error] = "#{result.message}"
-      else
-        flash[:notice] = "Membership reactivated. #{result.message}"
-      end
-      render '/admin/membership_orders/show'
+    result = @membership_order.reactivate
+    if result.success?
+      flash[:notice] = "Membership reactivated. #{result.message}"
+    else
+      flash[:error] = "#{result.message}"
     end
+    render '/admin/membership_orders/show'
   end
 
   def cancel
-    begin
-      result = @membership_order.cancel
-      unless result.success?
-        flash[:error] = "#{result.message}"
-      else
-        flash[:notice] = "Membership cancelled. #{result.message}"
-      end
-      render '/admin/membership_orders/show'
+    result = @membership_order.cancel
+    if result.success?
+      flash[:notice] = "Membership cancelled. #{result.message}"
+    else
+      flash[:error] = "#{result.message}"
     end
+    render '/admin/membership_orders/show'
   end
+
+  def edit; end
 
   def create
     update_or_create
@@ -51,9 +47,6 @@ class Admin::MembershipOrdersController < Admin::ApplicationController
     respond_to do |format|
       format.html { render 'show' }
     end
-  end
-
-  def edit
   end
 
   def fulfill

@@ -12,7 +12,7 @@ class Admin::PaymentTypesController < Admin::ApplicationController
   def new_external_payment
     @payment_type = ExternalPaymentType.new
     respond_to do |format|
-      format.html { render :action => "new" }
+      format.html { render action: 'new' }
       format.xml
     end
   end
@@ -21,13 +21,13 @@ class Admin::PaymentTypesController < Admin::ApplicationController
     @payment_type = PaymentType.find(params[:id])
     @payment_type.update(payment_type_params)
     respond_to do |format|
-      if (@payment_type.save)
+      if @payment_type.save
         flash[:notice] = "#{@payment_type.type} was successfully updated."
         format.html { redirect_to(admin_payment_types_path) }
         format.xml  { head :ok }
       else
-        format.html { render :action => "edit" }
-        format.xml  { render :xml => @payment_type.errors, :status => :unprocessable_entity }
+        format.html { render action: 'edit' }
+        format.xml  { render xml: @payment_type.errors, status: :unprocessable_entity }
       end
     end
   end
@@ -40,8 +40,8 @@ class Admin::PaymentTypesController < Admin::ApplicationController
         format.html { redirect_to(admin_payment_types_path) }
         format.xml  { head :ok }
       else
-        format.html { render :action => "new" }
-        format.xml  { render :xml => @payment_type.errors, :status => :unprocessable_entity }
+        format.html { render action: 'new' }
+        format.xml  { render xml: @payment_type.errors, status: :unprocessable_entity }
       end
     end
   end
@@ -53,14 +53,14 @@ class Admin::PaymentTypesController < Admin::ApplicationController
     else
       flash[:error] = @payment_type.errors.first.full_message unless @payment_type.errors.empty?
     end
-    redirect_to :action => 'index'
+    redirect_to action: 'index'
   end
 
   private
 
   def payment_type_params
     params.require(:payment_type).permit(:display_name, :allow_for_public, :allow_for_box_office, :allow_theater_user_holds, :report_as_sales_collected,
-                                         :report_as_production_revenue, :restrict_to_ticket_classes, order_task_suppressions_attributes: [:id, :task_type,
-                                                                                                                                          :method_name, :_destroy])
+                                         :report_as_production_revenue, :restrict_to_ticket_classes, order_task_suppressions_attributes: %i[id task_type
+                                                                                                                                            method_name _destroy])
   end
 end

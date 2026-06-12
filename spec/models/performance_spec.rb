@@ -1,21 +1,21 @@
 require 'rails_helper'
 
-RSpec.describe "a performance" do
-  before (:each) do
-    @production = FactoryBot.create(:production, :capacity => 10)
-    @performance = FactoryBot.create(:performance, :production => @production)
+RSpec.describe 'a performance' do
+  before(:each) do
+    @production = FactoryBot.create(:production, capacity: 10)
+    @performance = FactoryBot.create(:performance, production: @production)
   end
 
-  it "returns an allocation given a ticket class code" do
+  it 'returns an allocation given a ticket class code' do
     allocation = @performance.ticket_class_allocations.last
     expect(@performance.allocation(allocation.ticket_class.class_code)).to eq(allocation)
   end
 
-  it "populates ticket class allocations on demand" do
-    ticket_class = FactoryBot.create(:ticket_class, :class_code => 'TESTA', :production => @production,
-                                                    :ticket_price => 10, :web_visible => true)
-    ticket_class2 = FactoryBot.create(:ticket_class, :class_code => 'TESTB', :production => @production,
-                                                     :ticket_price => 20, :web_visible => true)
+  it 'populates ticket class allocations on demand' do
+    ticket_class = FactoryBot.create(:ticket_class, class_code: 'TESTA', production: @production,
+                                                    ticket_price: 10, web_visible: true)
+    ticket_class2 = FactoryBot.create(:ticket_class, class_code: 'TESTB', production: @production,
+                                                     ticket_price: 20, web_visible: true)
     @production.reload
     @performance.reload
     @performance.populate_ticket_class_allocations
@@ -23,13 +23,13 @@ RSpec.describe "a performance" do
     expect(@performance.ticket_class_allocations.map { |tca| tca.ticket_class }).to include(ticket_class2)
   end
 
-  it "cascades availability based on triggered sales targets" do
-    ticket_class = FactoryBot.create(:ticket_class, :class_code => 'TESTA', :production => @production,
-                                                    :ticket_price => 10, :web_visible => true)
-    ticket_class2 = FactoryBot.create(:ticket_class, :class_code => 'TESTB', :production => @production,
-                                                     :ticket_price => 20, :web_visible => true)
-    ticket_class3 = FactoryBot.create(:ticket_class, :class_code => 'TESTC', :production => @production,
-                                                     :ticket_price => 1, :web_visible => true)
+  it 'cascades availability based on triggered sales targets' do
+    ticket_class = FactoryBot.create(:ticket_class, class_code: 'TESTA', production: @production,
+                                                    ticket_price: 10, web_visible: true)
+    ticket_class2 = FactoryBot.create(:ticket_class, class_code: 'TESTB', production: @production,
+                                                     ticket_price: 20, web_visible: true)
+    ticket_class3 = FactoryBot.create(:ticket_class, class_code: 'TESTC', production: @production,
+                                                     ticket_price: 1, web_visible: true)
     @production.reload
     @performance.production.reload
     @performance.populate_ticket_class_allocations

@@ -27,7 +27,7 @@ class Admin::AnalysisController < Admin::ApplicationController
 
     productions = base_scope
                   .left_outer_joins(:theater)
-                  .where("LOWER(productions.name) LIKE :q OR CAST(productions.season AS CHAR) LIKE :q OR LOWER(productions.production_code) LIKE :q OR LOWER(theaters.name) LIKE :q",
+                  .where('LOWER(productions.name) LIKE :q OR CAST(productions.season AS CHAR) LIKE :q OR LOWER(productions.production_code) LIKE :q OR LOWER(theaters.name) LIKE :q',
                          q: "%#{query.downcase}%")
                   .includes(:theater)
                   .order(season: :desc, name: :asc)
@@ -37,7 +37,7 @@ class Admin::AnalysisController < Admin::ApplicationController
 
     # Add season group entries for matching seasons
     matching_seasons = base_scope
-                       .where("CAST(productions.season AS CHAR) LIKE :q", q: "%#{query}%")
+                       .where('CAST(productions.season AS CHAR) LIKE :q', q: "%#{query}%")
                        .distinct.pluck(:season).sort.reverse
     matching_seasons.each do |season|
       results << { group_key: "season:#{season}", label: "All shows in #{season}" }
@@ -46,7 +46,7 @@ class Admin::AnalysisController < Admin::ApplicationController
     # Add theater group entries — only theaters with accessible productions
     accessible_theater_ids = base_scope.distinct.pluck(:theater_id)
     matching_theaters = Theater.where(id: accessible_theater_ids)
-                               .where("LOWER(name) LIKE :q", q: "%#{query.downcase}%")
+                               .where('LOWER(name) LIKE :q', q: "%#{query.downcase}%")
     matching_theaters.each do |theater|
       results << { group_key: "theater:#{theater.id}", label: "All shows by #{theater.name}" }
     end
@@ -54,7 +54,7 @@ class Admin::AnalysisController < Admin::ApplicationController
     # Add tag group entries — only tags on theaters with accessible productions.
     # Dedup case-insensitively, preserving the first casing we encounter.
     matching_tags = TheaterTag.where(theater_id: accessible_theater_ids)
-                              .where("LOWER(name) LIKE :q", q: "%#{query.downcase}%")
+                              .where('LOWER(name) LIKE :q', q: "%#{query.downcase}%")
                               .order(:name)
     seen_tag_keys = {}
     matching_tags.each do |tag|
@@ -76,7 +76,7 @@ class Admin::AnalysisController < Admin::ApplicationController
 
   def resolve_group
     group_key = params[:group_key].to_s
-    type, value = group_key.split(":", 2)
+    type, value = group_key.split(':', 2)
 
     base_scope = Production.accessible_by(current_ability, :read)
                            .where.not(status: Production::PRESALE)
@@ -84,12 +84,12 @@ class Admin::AnalysisController < Admin::ApplicationController
                            .order(season: :desc, name: :asc)
 
     productions = case type
-                  when "season"
+                  when 'season'
                     base_scope.where(season: value.to_i)
-                  when "theater"
+                  when 'theater'
                     base_scope.where(theater_id: value.to_i)
-                  when "tag"
-                    tagged_theater_ids = TheaterTag.where("LOWER(name) = ?", value.to_s.downcase)
+                  when 'tag'
+                    tagged_theater_ids = TheaterTag.where('LOWER(name) = ?', value.to_s.downcase)
                                                    .distinct.pluck(:theater_id)
                     base_scope.where(theater_id: tagged_theater_ids)
                   else
@@ -112,7 +112,7 @@ class Admin::AnalysisController < Admin::ApplicationController
     scope = base_scope
             .left_outer_joins(:theater)
             .where(
-              "LOWER(productions.name) LIKE :q OR CAST(productions.season AS CHAR) LIKE :q OR LOWER(theaters.name) LIKE :q",
+              'LOWER(productions.name) LIKE :q OR CAST(productions.season AS CHAR) LIKE :q OR LOWER(theaters.name) LIKE :q',
               q: "%#{query.downcase}%"
             )
             .includes(:theater)
@@ -140,9 +140,9 @@ class Admin::AnalysisController < Admin::ApplicationController
     return render(json: []) if query.blank?
 
     q = "%#{query.downcase}%"
-    name_matches = Theater.where("LOWER(theaters.name) LIKE ?", q).limit(20)
+    name_matches = Theater.where('LOWER(theaters.name) LIKE ?', q).limit(20)
     tag_matches  = Theater.joins(:theater_tags)
-                          .where("LOWER(theater_tags.name) LIKE ?", q)
+                          .where('LOWER(theater_tags.name) LIKE ?', q)
                           .distinct
                           .limit(20)
 
@@ -158,7 +158,7 @@ class Admin::AnalysisController < Admin::ApplicationController
 
     # Also surface tag-keyed group entries (one row per matching tag), so the
     # operator can pick "every theater tagged X" in one click.
-    matching_tags = TheaterTag.where("LOWER(name) LIKE ?", q).order(:name)
+    matching_tags = TheaterTag.where('LOWER(name) LIKE ?', q).order(:name)
     seen_tag_keys = {}
     matching_tags.each do |tag|
       key = tag.name.to_s.downcase
@@ -192,7 +192,7 @@ class Admin::AnalysisController < Admin::ApplicationController
     @comparison_theaters = Theater.where(id: requested_ids).to_a
 
     if requested_ids.empty?
-      flash[:error] = "Select at least one comparison theater before running an audience analysis."
+      flash[:error] = 'Select at least one comparison theater before running an audience analysis.'
       redirect_to admin_analysis_index_path(target_production_id: @target_production.id, analysis_type: 'audience')
       return
     end
@@ -229,7 +229,7 @@ class Admin::AnalysisController < Admin::ApplicationController
     window_label = params[:window_label].presence
 
     if FACILITY_SEGMENT_KEYS.include?(segment_key) && !current_user.is_administrator?
-      flash[:error] = "Only administrators can export facility-wide cohorts."
+      flash[:error] = 'Only administrators can export facility-wide cohorts.'
       redirect_to admin_analysis_index_path(target_production_id: target.id, analysis_type: 'audience',
                                             comparison_theater_ids: comparison_theater_ids) and return
     end

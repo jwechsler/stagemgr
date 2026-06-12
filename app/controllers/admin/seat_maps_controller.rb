@@ -5,12 +5,14 @@ class Admin::SeatMapsController < ApplicationController
   def index
     respond_to do |format|
       format.html # index.html.erb
-      format.json {
+      format.json do
         params.permit!
         render json: SeatMapDatatable.new(params, venue: @venue, view_context: view_context, current_user: current_user)
-      }
+      end
     end
   end
+
+  def show; end
 
   def new
     @seat_map.venue = @venue
@@ -19,24 +21,9 @@ class Admin::SeatMapsController < ApplicationController
     # @seat_map = SeatMap.new
   end
 
-  def show
-  end
-
   def edit
     @geometry_import = FileStore.new
     @geometry_import.format = FileStore::SEATMAP_GEOMETRY
-  end
-
-  def update
-    respond_to do |format|
-      update_geometry(params[:seat_map][:geometry_import]) unless params[:seat_map][:geometry_import].nil?
-      if @seat_map.update(seat_map_params)
-        flash[:notice] = "SeatMap '#{@seat_map.label}' was successfully updated."
-        format.html { redirect_to(admin_venue_path(@venue)) }
-      else
-        format.html { render :action => "edit" }
-      end
-    end
   end
 
   def create
@@ -46,7 +33,19 @@ class Admin::SeatMapsController < ApplicationController
       flash[:notice] = "SeatMap '#{@seat_map.label}' was successfully created for venue #{@seat_map.venue.name}."
       redirect_to(admin_venue_path(@venue))
     else
-      render :action => "edit"
+      render action: 'edit'
+    end
+  end
+
+  def update
+    respond_to do |format|
+      update_geometry(params[:seat_map][:geometry_import]) unless params[:seat_map][:geometry_import].nil?
+      if @seat_map.update(seat_map_params)
+        flash[:notice] = "SeatMap '#{@seat_map.label}' was successfully updated."
+        format.html { redirect_to(admin_venue_path(@venue)) }
+      else
+        format.html { render action: 'edit' }
+      end
     end
   end
 
@@ -62,7 +61,6 @@ class Admin::SeatMapsController < ApplicationController
   def update_geometry(geometry_import)
     headers = nil
     total = 0
-    merged = 0
     location_idx = 0
     row_idx = 0
     sequence_idx = 0
@@ -72,20 +70,23 @@ class Admin::SeatMapsController < ApplicationController
     height_idx = 0
     feature_idx = 0
     CSV.foreach(geometry_import.path) do |row|
-      if headers.nil? then
+      if headers.nil?
 
         _index = 0
-        headers = Hash[row.map { |header| _index += 1; [header, _index] }]
-        headers.keys.each { |key|
+        headers = Hash[row.map do |header|
+          _index += 1
+          [header, _index]
+        end]
+        headers.keys.each do |key|
           encoding_options = {
-            :invalid => :replace, # Replace invalid byte sequences
-            :undef => :replace, # Replace anything not defined in ASCII
-            :replace => '', # Use a blank for those replacements
-            :universal_newline => true # Always break lines with \n
+            invalid: :replace, # Replace invalid byte sequences
+            undef: :replace, # Replace anything not defined in ASCII
+            replace: '', # Use a blank for those replacements
+            universal_newline: true # Always break lines with \n
           }
           stripped_key = key.encode(Encoding.find('ASCII'), encoding_options)
           headers[stripped_key] = headers.delete(key)
-        }
+        end
         location_idx = headers['location'] - 1
         row_idx = headers['row'] - 1
         sequence_idx = headers['sequence'] - 1
@@ -97,9 +98,9 @@ class Admin::SeatMapsController < ApplicationController
 
       else
         total += 1
-        seat = @seat_map.seats.select { |s|
+        seat = @seat_map.seats.select do |s|
           s.location.eql?(row[location_idx])
-        }.first
+        end.first
         if seat.nil?
           seat ||= Seat.new(location: row[location_idx])
           @seat_map.seats << seat

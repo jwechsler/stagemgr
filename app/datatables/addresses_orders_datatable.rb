@@ -12,7 +12,9 @@ class AddressesOrdersDatatable < DatatableBase
   end
 
   def data
-    unless records.nil?
+    if records.nil?
+      []
+    else
       records.map do |order|
         {
           order: order.decorate.id,
@@ -20,11 +22,9 @@ class AddressesOrdersDatatable < DatatableBase
           description: order.decorate.description,
           amount: order.decorate.total_paid,
           status: order.decorate.status,
-          DT_RowID: order.id,
+          DT_RowID: order.id
         }
       end
-    else
-      Array.new
     end
   end
 

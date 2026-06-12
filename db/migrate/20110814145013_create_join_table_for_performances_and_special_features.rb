@@ -2,7 +2,7 @@ class CreateJoinTableForPerformancesAndSpecialFeatures < ActiveRecord::Migration
   def self.up
     remove_column :performances, :special_feature_id
     remove_column :performances, :footnote
-    create_table :performances_special_features, :id => false do |t|
+    create_table :performances_special_features, id: false do |t|
       t.integer :performance_id
       t.integer :special_feature_id
     end

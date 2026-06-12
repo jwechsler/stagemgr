@@ -1,4 +1,4 @@
-require "active_support/core_ext/integer/time"
+require 'active_support/core_ext/integer/time'
 
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
@@ -16,7 +16,7 @@ Rails.application.configure do
 
   # Enable/disable caching. By default caching is disabled.
   # Run rails dev:cache to toggle caching.
-  if Rails.root.join('tmp', 'caching-dev.txt').exist?
+  if Rails.root.join('tmp/caching-dev.txt').exist?
     config.action_controller.perform_caching = true
     config.action_controller.enable_fragment_cache_logging = true
 
@@ -85,18 +85,18 @@ Rails.application.configure do
   config.after_initialize do
     ActiveMerchant::Billing::Base.mode = :test
     PaymentProcessing.after_initialize
-    unless Rails.application.credentials.dig(:my_emma, :account_id).nil?
+    if Rails.application.credentials.dig(:my_emma, :account_id).nil?
+      MyEmma.read_only!
+    else
       MyEmma.set_credentials(Rails.application.credentials.dig(:my_emma, :username),
                              Rails.application.credentials.dig(:my_emma, :password), Rails.application.credentials.dig(:my_emma, :account_id))
-    else
-      MyEmma.read_only!
     end
   end
 
   config.external_site_root = 'file:///Users/jeremyw/dev/site'
 
-  $TKTPRINT = YAML::load(File.open("#{::Rails.root.to_s}/config/ticket_print.yml"))['development']
-  config_data = YAML::load(File.open("#{::Rails.root.to_s}/config/server.yml"))
+  $TKTPRINT = YAML.load(File.open("#{Rails.root.join('config/ticket_print.yml')}"))['development']
+  config_data = YAML.load(File.open("#{Rails.root.join('config/server.yml')}"))
   $SERVER_CONFIG = config_data['all'].deep_merge(config_data['development'])
   $PAYMENT_CONFIG = $SERVER_CONFIG['payment_processing']
   $SERVER_CONFIG['ext_site_wrapper'] = $SERVER_CONFIG['ext_site_wrapper'] || 'ext_site_wrapper'
@@ -106,21 +106,21 @@ Rails.application.configure do
 
   config.action_mailer.delivery_method = $SERVER_CONFIG['email']['delivery_method'].to_sym
   if $SERVER_CONFIG['email']['delivery_method'].eql?('postmark')
-    config.action_mailer.postmark_settings = { :api_key => Rails.application.credentials.dig(:postmark_api_token) }
+    config.action_mailer.postmark_settings = { api_key: Rails.application.credentials.dig(:postmark_api_token) }
   end
 
-  unless $SERVER_CONFIG['payment_processing'].nil? || $SERVER_CONFIG['payment_processing']['additional_card_types'].blank?
-    $ADDITIONAL_CARD_TYPES = $SERVER_CONFIG['payment_processing']['additional_card_types'].split(',').map { |ct|
-      ct.strip
-    }
-  else
+  if $SERVER_CONFIG['payment_processing'].nil? || $SERVER_CONFIG['payment_processing']['additional_card_types'].blank?
     $ADDITIONAL_CARD_TYPES = []
+  else
+    $ADDITIONAL_CARD_TYPES = $SERVER_CONFIG['payment_processing']['additional_card_types'].split(',').map do |ct|
+      ct.strip
+    end
   end
   $APP_DISPLAY_NAME = $SERVER_CONFIG['app_name'] || 'StageMgr'
   Rails.application.routes.default_url_options[:host] = $SERVER_CONFIG['host']
 
   # Allow binding from ngrok.io for remote testing
-  config.hosts << "jw-macbook-m4"
+  config.hosts << 'jw-macbook-m4'
   config.hosts << /.*\.ngrok\.io/
   config.hosts << /.*\.ngrok\.app/
 end

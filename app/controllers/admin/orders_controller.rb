@@ -4,9 +4,9 @@ class Admin::OrdersController < Admin::ApplicationController
   include OrdersHelper
 
   before_action :find_order,
-                :except => [:index, :new, :create, :update, :fulfill_selected,
-                            :autocomplete_service_item_templates_name]
-  before_action :redirect_edits_to_proper_action, :only => [:show, :edit]
+                except: %i[index new create update fulfill_selected
+                           autocomplete_service_item_templates_name]
+  before_action :redirect_edits_to_proper_action, only: %i[show edit]
 
   VALID_SEARCH_COLUMNS = [
     'orders.id',
@@ -19,22 +19,22 @@ class Admin::OrdersController < Admin::ApplicationController
   def index
     respond_to do |format|
       format.html
-      format.json {
+      format.json do
         render json: OrdersDatatable.new(params, view_context: view_context, current_user: current_user)
-      }
+      end
     end
   end
 
   def show
     flash.keep
     if @order.is_a? MembershipOrder
-      redirect_to url_for(:controller => :membership_orders, :action => :show, :id => @order.id)
+      redirect_to url_for(controller: :membership_orders, action: :show, id: @order.id)
     elsif @order.is_a? TicketOrder
-      redirect_to url_for(:controller => :ticket_orders, :action => :show, :id => @order.id)
+      redirect_to url_for(controller: :ticket_orders, action: :show, id: @order.id)
     elsif @order.is_a? DonationOrder
-      redirect_to url_for(:controller => :donation_orders, :action => :show, :id => @order.id)
+      redirect_to url_for(controller: :donation_orders, action: :show, id: @order.id)
     elsif @order.is_a? FlexPassOrder
-      redirect_to url_for(:controller => :flex_pass_orders, :action => :show, :id => @order.id)
+      redirect_to url_for(controller: :flex_pass_orders, action: :show, id: @order.id)
     end
   end
 
@@ -42,17 +42,17 @@ class Admin::OrdersController < Admin::ApplicationController
     params[:commit] = 'Fulfill'
     ids = params[:ids]
     orders = Order.where(id: params[:ids])
-    logger.debug("Fulfill #{ids.to_s}")
+    logger.debug("Fulfill #{ids}")
     statuses = {}
     orders.each do |order|
       if [Order::PROCESSED, Order::FULFILLED].include?(order.status)
         order.transition_to!(Order::FULFILLED)
-        statuses[order.id] = { :success => true }
+        statuses[order.id] = { success: true }
       else
         statuses[order.id] = { success: false }
       end
     end
-    render :json => statuses.to_json
+    render json: statuses.to_json
   end
 
   def unclaim_selected
@@ -63,12 +63,12 @@ class Admin::OrdersController < Admin::ApplicationController
     orders.each do |order|
       if order.status == 'Fulfilled'
         order.transition_to!(Order::UNCLAIMED)
-        statuses[order.id] = { :success => true }
+        statuses[order.id] = { success: true }
       else
-        statuses[order.id] = { :success => false, :message => "Only 'Fulfilled' orders can be unclaimed" }
+        statuses[order.id] = { success: false, message: "Only 'Fulfilled' orders can be unclaimed" }
       end
     end
-    render :json => statuses.to_json
+    render json: statuses.to_json
   end
 
   def fulfill
@@ -80,22 +80,20 @@ class Admin::OrdersController < Admin::ApplicationController
   def edit
     if @order.is_a? TicketOrder
       flash.keep
-      redirect_to(:controller => :ticket_orders, :action => :show, :id => @order.id)
+      redirect_to(controller: :ticket_orders, action: :show, id: @order.id)
     elsif @order.is_a? FlexPassOrder
       flash.keep
-      redirect_to(:controller => :flex_pass_orders, :action => :show, :id => @order.id)
+      redirect_to(controller: :flex_pass_orders, action: :show, id: @order.id)
     elsif @order.is_a? DonationOrder
       flash.keep
-      redirect_to(:controller => :donation_orders, :action => :show, :id => @order.id)
+      redirect_to(controller: :donation_orders, action: :show, id: @order.id)
     end
   end
 
   def update_notes
     @order = Order.find(params[:id])
     update_order_notes_from_params(@order, params)
-    if @order.save
-      flash[:notice] = 'Note updated.'
-    end
+    flash[:notice] = 'Note updated.' if @order.save
     redirect_to action: 'show', id: @order.id
   end
 
@@ -112,7 +110,7 @@ class Admin::OrdersController < Admin::ApplicationController
   def cancel
     if @order.cancel!
       flash[:notice] = @order.errors[:info].to_sentence if @order.errors[:info].present?
-      redirect_to :action => "index", :controller => "admin/orders"
+      redirect_to action: 'index', controller: 'admin/orders'
     else
       flash[:error] = @order.errors.full_messages.to_sentence
       redirect_to action: 'edit', id: @order.id
@@ -123,10 +121,10 @@ class Admin::OrdersController < Admin::ApplicationController
 
   # for non-editable orders, redirect to 'show' when edit requested
   def redirect_edits_to_proper_action
-    if @order.editable? && params[:action].eql?('show') then
+    if @order.editable? && params[:action].eql?('show')
       flash.keep
       redirect_to action: 'edit', id: @order.id
-    elsif !@order.editable? && params[:action].eql?('edit') then
+    elsif !@order.editable? && params[:action].eql?('edit')
       flash.keep
       redirect_to action: 'show', id: @order.id
     end
@@ -141,7 +139,7 @@ class Admin::OrdersController < Admin::ApplicationController
   # @order [Order] order to process
   def create_or_update(order, commit_action = nil)
     new_state = convert_button_label_to_state(params[:submit_action] || params[:commit])
-    if new_state.blank? then
+    if new_state.blank?
       simple_save(order)
     else
       process_order(order, new_state) # Either way the process goes, we pick the display by current status
@@ -167,7 +165,7 @@ class Admin::OrdersController < Admin::ApplicationController
   end
 
   # override if there are more states to determine (like confirmation pages)
-  def template_by_order_status(order, commit_action = nil)
+  def template_by_order_status(order, _commit_action = nil)
     if order.editable?
       'edit'
     else
@@ -182,6 +180,6 @@ class Admin::OrdersController < Admin::ApplicationController
   end
 
   def find_order
-    @order = Order.find(params[:id]) unless params[:id].blank?
+    @order = Order.find(params[:id]) if params[:id].present?
   end
 end

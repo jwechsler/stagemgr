@@ -2,13 +2,13 @@ class SeatAssignmentsController < ApplicationController
   protect_from_forgery with: :null_session
   helper SeatAssignmentHelper
 
-  expose :performance, -> {
+  expose :performance, lambda {
     Performance.find(params[:performance_id])
   }
 
-  expose :seat_assignments, -> {
+  expose :seat_assignments, lambda {
     sa = SeatAssignment.includes(:seat).joins(:seat).where(performance_id: performance.id).merge(Seat.order(:origin_y, :origin_x))
-    if sa.empty? and !performance.production.seat_map.nil? then
+    if sa.empty? and !performance.production.seat_map.nil?
       sa = performance.production.seat_map.create_inventory_for_performance(performance)
     end
     sa
@@ -17,25 +17,25 @@ class SeatAssignmentsController < ApplicationController
   # before_action :load_performance_and_seat_assignments
   def index
     respond_to do |format|
-      format.html {
-        render partial: "available_seatmap",
+      format.html do
+        render partial: 'available_seatmap',
                locals: { ticket_order_uuid: params[:ticket_order_uuid], performance: performance }
-      }
-      format.json {
+      end
+      format.json do
         render json: seat_assignments.map { |sa|
           { id: sa.id, seat_id: sa.seat_id, status: sa.status, label: sa.seat.location, origin_x: sa.seat.origin_x,
             origin_y: sa.seat.origin_y, width: sa.seat.width, accessible: sa.seat.accessible? }
         }
-      }
+      end
     end
   end
 
   def reserve
     respond_to do |format|
-      format.html {
-        raise "Action not allowed"
-      }
-      format.json {
+      format.html do
+        raise 'Action not allowed'
+      end
+      format.json do
         order_uuid = params[:order_uuid]
         ticket_class_id = params[:ticket_class_id]
         max_tickets = params[:max_tickets]
@@ -45,7 +45,7 @@ class SeatAssignmentsController < ApplicationController
           max_seatable = can?(:seat_unlimited, SeatAssignment) ? 9999 : 20
           sa = SeatAssignment.find(params[:id])
           tli_id = nil
-          unless (!max_tickets.nil? && current_assignment_count(order_uuid, sa.id) >= max_tickets.to_i)
+          unless !max_tickets.nil? && current_assignment_count(order_uuid, sa.id) >= max_tickets.to_i
             SeatAssignment.transaction do
               if sa.available?(order_uuid)
                 sa.assign_to_order(order_uuid, max_seatable, ticket_class_id.to_i, accessible_setting)
@@ -64,16 +64,16 @@ class SeatAssignmentsController < ApplicationController
                          current_seat_assignments: SeatAssignment.seating_as_list(order_uuid, [SeatAssignment::TEMPORARY, SeatAssignment::ASSIGNED]),
                          ticket_count: current_assignment_count(order_uuid) }
         end
-      }
+      end
     end
   end
 
   def release
     respond_to do |format|
-      format.html {
-        raise "Action not allowed"
-      }
-      format.json {
+      format.html do
+        raise 'Action not allowed'
+      end
+      format.json do
         order_uuid = params[:order_uuid]
         sa = SeatAssignment.find(params[:id])
         reseating = params[:reseating]
@@ -85,8 +85,8 @@ class SeatAssignmentsController < ApplicationController
               sa.unassign_from_order(order_uuid)
               sa.update(price_override: nil)
             end
-          else
-            sa.begin_release_from_order(order_uuid) if sa.assigned?(order_uuid)
+          elsif sa.assigned?(order_uuid)
+            sa.begin_release_from_order(order_uuid)
           end
         end
         status = view_context.assignment_keys(sa, order_uuid)
@@ -94,13 +94,13 @@ class SeatAssignmentsController < ApplicationController
                        current_seat_assignments: SeatAssignment.seating_as_list(order_uuid, [SeatAssignment::TEMPORARY, SeatAssignment::ASSIGNED]),
                        ticket_class_id: released_ticket_class_id, unavailable: unavailable_seating_report(order_uuid, sa.performance_id),
                        ticket_count: current_assignment_count(order_uuid) }
-      }
+      end
     end
   end
 
   def update_price_override
     respond_to do |format|
-      format.json {
+      format.json do
         order_uuid = params[:order_uuid]
         sa = SeatAssignment.find(params[:id])
         price_override = parse_price_override(params[:price_override], sa.ticket_class_id)
@@ -119,63 +119,63 @@ class SeatAssignmentsController < ApplicationController
           tli.update(price_override: price_override) if tli
         end
         render json: { id: sa.id, price_override: sa.price_override, ticket_class_id: sa.ticket_class_id }
-      }
+      end
     end
   end
 
   def release_temporary
     respond_to do |format|
-      format.html {
-        raise "Action not allowed"
-      }
-      format.json {
+      format.html do
+        raise 'Action not allowed'
+      end
+      format.json do
         order_uuid = params[:order_uuid]
-        num_updated = SeatAssignment.where("order_uuid = :order_uuid and status = :temp_assignment and performance_id <> :performance_id",
-                                           order_uuid: order_uuid, temp_assignment: SeatAssignment::TEMPORARY,
-                                           performance_id: params['exclude_performance_id'].to_i).update_all(order_uuid: nil, updated_at: Time.now, status: SeatAssignment::AVAILABLE)
-        render json: { status: "released" }
-      }
+        SeatAssignment.where('order_uuid = :order_uuid and status = :temp_assignment and performance_id <> :performance_id',
+                             order_uuid: order_uuid, temp_assignment: SeatAssignment::TEMPORARY,
+                             performance_id: params['exclude_performance_id'].to_i).update_all(order_uuid: nil, updated_at: Time.now, status: SeatAssignment::AVAILABLE)
+        render json: { status: 'released' }
+      end
     end
   end
 
   def commit_reseating
     respond_to do |format|
-      format.html {
-        raise "Action not allowed"
-      }
-      format.json {
+      format.html do
+        raise 'Action not allowed'
+      end
+      format.json do
         order_uuid = params[:order_uuid]
         result = SeatAssignment.reseating_commit(order_uuid)
         render json: { status: result,
                        current_seat_assignments: SeatAssignment.seating_as_list(order_uuid,
                                                                                 [SeatAssignment::TEMPORARY,
                                                                                  SeatAssignment::ASSIGNED]) }
-      }
+      end
     end
   end
 
   def rollback_reseating
     respond_to do |format|
-      format.html {
-        raise "Action not allowed"
-      }
-      format.json {
+      format.html do
+        raise 'Action not allowed'
+      end
+      format.json do
         order_uuid = params[:order_uuid]
         SeatAssignment.reseating_rollback(order_uuid)
-        render json: { status: "success" }
-      }
+        render json: { status: 'success' }
+      end
     end
   end
 
   def unavailable_seating_report(order_uuid, performance_id)
     SeatAssignment.where(
-      "performance_id = :performance_id and order_uuid <> :order_uuid and status not in(:available_status)",
+      'performance_id = :performance_id and order_uuid <> :order_uuid and status not in(:available_status)',
       performance_id: performance_id,
       order_uuid: order_uuid,
       available_status: SeatAssignment::AVAILABLE
-    ).all.map { |sa|
+    ).all.map do |sa|
       sa.id
-    }
+    end
   end
 
   protected
@@ -228,7 +228,7 @@ class SeatAssignmentsController < ApplicationController
   def load_performance_and_seat_assignments
     @performance = Performance.find(params[:performance_id])
     @seat_assignments = SeatAssignment.joins(:seat).where(performance_id: @performance.id)
-    if @seat_assignments.empty? and !@performance.production.seat_map.nil? then
+    if @seat_assignments.empty? and !@performance.production.seat_map.nil?
       @seat_assignments = @performance.production.seat_map.create_inventory_for_performance(@performance)
     end
     @seat_assignments.order(:originY, :originX)

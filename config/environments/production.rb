@@ -1,4 +1,4 @@
-require "active_support/core_ext/integer/time"
+require 'active_support/core_ext/integer/time'
 
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
@@ -85,13 +85,13 @@ Rails.application.configure do
   config.active_support.disallowed_deprecation_warnings = []
 
   # Use default logging formatter so that PID and timestamp are not suppressed.
-  config.log_formatter = ::Logger::Formatter.new
+  config.log_formatter = Logger::Formatter.new
 
   # Use a different logger for distributed setups.
   # require "syslog/logger"
   # config.logger = ActiveSupport::TaggedLogging.new(Syslog::Logger.new 'app-name')
 
-  if ENV["RAILS_LOG_TO_STDOUT"].present?
+  if ENV['RAILS_LOG_TO_STDOUT'].present?
     logger           = ActiveSupport::Logger.new(STDOUT)
     logger.formatter = config.log_formatter
     config.logger    = ActiveSupport::TaggedLogging.new(logger)
@@ -124,31 +124,31 @@ Rails.application.configure do
 
   config.after_initialize do
     PaymentProcessing.after_initialize
-    unless Rails.application.credentials.dig(:my_emma, :account_id).nil?
+    if Rails.application.credentials.dig(:my_emma, :account_id).nil?
+      MyEmma.disable
+    else
       MyEmma.set_credentials(Rails.application.credentials.dig(:my_emma, :username),
                              Rails.application.credentials.dig(:my_emma, :password), Rails.application.credentials.dig(:my_emma, :account_id))
-    else
-      MyEmma.disable
     end
   end
 
-  config_data = YAML::load(File.open("#{::Rails.root.to_s}/config/server.yml"))
+  config_data = YAML.load(File.open("#{Rails.root.join('config/server.yml')}"))
   $SERVER_CONFIG = config_data['all'].deep_merge(config_data['production'])
   $EMAIL_ADDRESS = $SERVER_CONFIG['email']['addresses']
   $PAYMENT_CONFIG = $SERVER_CONFIG['payment_processing']
   $SERVER_CONFIG['ext_site_wrapper'] = $SERVER_CONFIG['ext_site_wrapper'] || 'ext_site_wrapper'
-  $TKTPRINT = YAML::load(File.open("#{::Rails.root.to_s}/config/ticket_print.yml"))['production']
-  unless $SERVER_CONFIG['payment_processing'].nil? || $SERVER_CONFIG['payment_processing']['additional_card_types'].blank?
-    $ADDITIONAL_CARD_TYPES = $SERVER_CONFIG['payment_processing']['additional_card_types'].split(',').map { |ct|
-      ct.strip
-    }
-  else
+  $TKTPRINT = YAML.load(File.open("#{Rails.root.join('config/ticket_print.yml')}"))['production']
+  if $SERVER_CONFIG['payment_processing'].nil? || $SERVER_CONFIG['payment_processing']['additional_card_types'].blank?
     $ADDITIONAL_CARD_TYPES = []
+  else
+    $ADDITIONAL_CARD_TYPES = $SERVER_CONFIG['payment_processing']['additional_card_types'].split(',').map do |ct|
+      ct.strip
+    end
   end
 
   config.action_mailer.delivery_method = $SERVER_CONFIG['email']['delivery_method'].to_sym
   if $SERVER_CONFIG['email']['delivery_method'].eql?('postmark')
-    config.action_mailer.postmark_settings = { :api_key => Rails.application.credentials.dig(:postmark_api_token) }
+    config.action_mailer.postmark_settings = { api_key: Rails.application.credentials.dig(:postmark_api_token) }
   end
 
   $RAND_CLAUSE = Arel.sql('RAND()')
@@ -169,10 +169,10 @@ Stagemgr::Application.config.middleware.use ExceptionNotification::Rack,
                                               'ActionController::BadRequest',
                                               'Rack::QueryParser::InvalidParameterError'
                                             ] + ExceptionNotifier.ignored_exceptions,
-                                            :email => {
-                                              :email_prefix => "[Stagemgr Exception] ",
-                                              :sender_address => %{"Exception Notifier" <bugs@theaterwit.org>},
-                                              :exception_recipients => %w{bugs@theaterwit.org},
-                                              :delivery_method => :sendmail
+                                            email: {
+                                              email_prefix: '[Stagemgr Exception] ',
+                                              sender_address: %("Exception Notifier" <bugs@theaterwit.org>),
+                                              exception_recipients: %w[bugs@theaterwit.org],
+                                              delivery_method: :sendmail
                                             },
                                             error_grouping: true

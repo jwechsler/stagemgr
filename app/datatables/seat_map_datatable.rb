@@ -3,8 +3,8 @@ class SeatMapDatatable < DatatableBase
     # Declare strings in this format: ModelName.column_name
     # or in aliased_join_table.column_name format
     @view_columns ||= {
-      label: { source: "SeatMap.label" },
-      base_image_map: { source: "SeatMap.base_image_map", :searchable => false },
+      label: { source: 'SeatMap.label' },
+      base_image_map: { source: 'SeatMap.base_image_map', searchable: false },
       actions: { searchable: false }
       # id: { source: "User.id", cond: :eq },
       # name: { source: "User.name", cond: :like }

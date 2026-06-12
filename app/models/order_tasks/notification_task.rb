@@ -4,19 +4,17 @@ class NotificationTask < OrderTask
   end
 
   def execute!
-    if self.notifications.blank? || attempts > 8
-      return false
-    end
+    return false if notifications.blank? || attempts > 8
 
     result = true
     begin
-      self.notifications.split(',').each { |address|
-        NotificationMailer.send(self.method_symbol, self.order, address).deliver
-      }
-    rescue => detail
+      notifications.split(',').each do |address|
+        NotificationMailer.send(method_symbol, order, address).deliver
+      end
+    rescue StandardError => e
       result = false
-      self.result = detail.message + '\n' + detail.backtrace.join("\n")
+      self.result = e.message + '\n' + e.backtrace.join("\n")
     end
-    return result
+    result
   end
 end

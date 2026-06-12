@@ -2,10 +2,10 @@ class MembershipUsageReport < Report
   attr_reader :starting_date, :ending_date
 
   def initialize(starting_date, ending_date, reporting_user_id = nil)
-    super([:Month, :Memberships, :Collected, :Paid], reporting_user_id)
+    super(%i[Month Memberships Collected Paid], reporting_user_id)
     @starting_date = starting_date.to_date
     @ending_date = ending_date.to_date + 1.day
-    @data = Array.new
+    @data = []
   end
 
   def create
@@ -34,12 +34,12 @@ class MembershipUsageReport < Report
       collected = collected_amount[month] || 0
       membership_count = distinct_membership_count[month] || 0
 
-      self.data << { Month: month, Memberships: membership_count, Collected: collected.to_money, Paid: paid.to_money }
+      data << { Month: month, Memberships: membership_count, Collected: collected.to_money, Paid: paid.to_money }
     end
     unless reporting_user_id.nil?
-      return self.report_data("/tmp/membership_usage_report_#{self.starting_date.to_date.strftime('%y%m%d')}_#{self.ending_date.to_date.strftime('%y%m%d')}.csv")
-    else
-      return self.report_data
+      return report_data("/tmp/membership_usage_report_#{starting_date.to_date.strftime('%y%m%d')}_#{ending_date.to_date.strftime('%y%m%d')}.csv")
     end
+
+    report_data
   end
 end

@@ -26,16 +26,16 @@ RSpec.describe 'Batch Printing Workflow', type: :feature do
       allow(Rails.logger).to receive(:warn)
       allow(Rails.logger).to receive(:error)
       allow(Rails.logger).to receive(:debug)
-      allow_any_instance_of(TicketOrder).to receive(:send_to_printer_api).and_return("test_tktprint_id")
+      allow_any_instance_of(TicketOrder).to receive(:send_to_printer_api).and_return('test_tktprint_id')
     end
 
     it 'processes orders through the entire batch printing pipeline' do
       # Step 1: Create and process batch
       batch_id = nil
 
-      expect {
+      expect do
         batch_id = BatchPrintingService.create_and_process_batch(orders)
-      }.to change { Resque.size(:batch_printing) }.by(1)
+      end.to change { Resque.size(:batch_printing) }.by(1)
 
       expect(batch_id).to be_present
       expect(batch_id).to match(/\d{8}_\d{6}_[a-f0-9]{8}/)
@@ -47,12 +47,12 @@ RSpec.describe 'Batch Printing Workflow', type: :feature do
       expect(job.payload['args']).to eq([batch_id, orders.map(&:id)])
 
       # Step 3: Execute the print batch job
-      expect {
+      expect do
         job.perform
-      }.not_to raise_error
+      end.not_to raise_error
 
       # Step 4: Verify orders were sent to printer with batch information
-      orders.each_with_index do |order, index|
+      orders.each_with_index do |order, _index|
         order.reload
         expect(order.print_order_id).to be_present
       end
@@ -64,15 +64,15 @@ RSpec.describe 'Batch Printing Workflow', type: :feature do
       allow_any_instance_of(TicketOrder).to receive(:send_to_printer_api) do |order, *_args|
         raise StandardError.new('Printer error') if order.id == failing_order_id
 
-        "test_id"
+        'test_id'
       end
 
       batch_id = BatchPrintingService.create_and_process_batch(orders)
 
       # Execute the batch job
-      expect {
+      expect do
         PrintBatchJob.perform(batch_id, orders.map(&:id))
-      }.not_to raise_error
+      end.not_to raise_error
 
       # Verify that the job completed despite the individual failure
       expect(Rails.logger).to have_received(:error).with(/Error processing order #{failing_order_id}/)
@@ -104,9 +104,9 @@ RSpec.describe 'Batch Printing Workflow', type: :feature do
     it 'maintains order sequence throughout the workflow' do
       # Track calls since have_received doesn't work with any_instance stubs
       api_calls = []
-      allow_any_instance_of(TicketOrder).to receive(:send_to_printer_api) do |order, batch_id_arg, sequence|
+      allow_any_instance_of(TicketOrder).to receive(:send_to_printer_api) do |order, _batch_id_arg, sequence|
         api_calls << { order_id: order.id, sequence: sequence }
-        "test_tktprint_id"
+        'test_tktprint_id'
       end
 
       batch_id = BatchPrintingService.create_and_process_batch(orders)
@@ -161,14 +161,14 @@ RSpec.describe 'Batch Printing Workflow', type: :feature do
 
       batch_id = BatchPrintingService.create_and_process_batch(orders)
 
-      expect {
+      expect do
         PrintBatchJob.perform(batch_id, orders.map(&:id))
-      }.to raise_error(/Failed to create print batch/)
+      end.to raise_error(/Failed to create print batch/)
     end
 
     it 'handles tktprint API failures during batch closure' do
       # Stub order sending to avoid consuming HTTP mock responses
-      allow_any_instance_of(TicketOrder).to receive(:send_to_printer_api).and_return("test_id")
+      allow_any_instance_of(TicketOrder).to receive(:send_to_printer_api).and_return('test_id')
 
       # Differentiate create (200) from close (500) by request path
       allow_any_instance_of(Net::HTTP).to receive(:request) do |_, req|
@@ -181,9 +181,9 @@ RSpec.describe 'Batch Printing Workflow', type: :feature do
 
       batch_id = BatchPrintingService.create_and_process_batch(orders)
 
-      expect {
+      expect do
         PrintBatchJob.perform(batch_id, orders.map(&:id))
-      }.to raise_error(/Failed to close print batch/)
+      end.to raise_error(/Failed to close print batch/)
     end
 
     it 'continues processing remaining orders when individual orders fail' do
@@ -197,21 +197,19 @@ RSpec.describe 'Batch Printing Workflow', type: :feature do
       processed_orders = []
 
       # Stub send_to_printer_api to track calls and fail for second order
-      allow_any_instance_of(TicketOrder).to receive(:send_to_printer_api) do |order, batch_id, sequence|
-        if order.id == orders[1].id
-          raise StandardError.new('Network timeout')
-        else
-          processed_orders << order.id
-          "test_#{order.id}"
-        end
+      allow_any_instance_of(TicketOrder).to receive(:send_to_printer_api) do |order, _batch_id, _sequence|
+        raise StandardError.new('Network timeout') if order.id == orders[1].id
+
+        processed_orders << order.id
+        "test_#{order.id}"
       end
 
       batch_id = BatchPrintingService.create_and_process_batch(orders)
 
       # Should not raise error overall
-      expect {
+      expect do
         PrintBatchJob.perform(batch_id, orders.map(&:id))
-      }.not_to raise_error
+      end.not_to raise_error
 
       # Verify first and third orders were processed (but not the second)
       expect(processed_orders).to include(orders[0].id, orders[2].id)
@@ -226,19 +224,19 @@ RSpec.describe 'Batch Printing Workflow', type: :feature do
     it 'uses configured tktprint service URL' do
       expect($TKTPRINT['service']).to be_present
 
-      allow_any_instance_of(TicketOrder).to receive(:send_to_printer_api).and_return("test_id")
+      allow_any_instance_of(TicketOrder).to receive(:send_to_printer_api).and_return('test_id')
 
       batch_id = BatchPrintingService.create_and_process_batch(orders)
-      expect {
+      expect do
         PrintBatchJob.perform(batch_id, orders.map(&:id))
-      }.not_to raise_error
+      end.not_to raise_error
     end
 
     it 'uses configured authentication credentials' do
       # Authentication credentials are embedded in the tktprint service URL (HTTP Basic Auth)
       expect($TKTPRINT['service']).to be_present
 
-      allow_any_instance_of(TicketOrder).to receive(:send_to_printer_api).and_return("test_id")
+      allow_any_instance_of(TicketOrder).to receive(:send_to_printer_api).and_return('test_id')
 
       batch_id = BatchPrintingService.create_and_process_batch(orders)
       PrintBatchJob.perform(batch_id, orders.map(&:id))
@@ -258,33 +256,33 @@ RSpec.describe 'Batch Printing Workflow', type: :feature do
       it 'handles missing service configuration gracefully' do
         batch_id = BatchPrintingService.create_and_process_batch(orders)
 
-        expect {
+        expect do
           PrintBatchJob.perform(batch_id, orders.map(&:id))
-        }.to raise_error(/Tktprint service not configured/)
+        end.to raise_error(/Tktprint service not configured/)
       end
     end
   end
 
   describe 'Performance and resource management' do
-    let(:large_order_set) {
+    let(:large_order_set) do
       FactoryBot.create_list(:ticket_order, 10, :for_a_single_ticket, performance: performance, status: Order::PROCESSED)
-    }
+    end
 
     before do
       allow(Rails.logger).to receive(:info)
       allow(Rails.logger).to receive(:warn)
       allow(Rails.logger).to receive(:error)
       allow(Rails.logger).to receive(:debug)
-      allow_any_instance_of(TicketOrder).to receive(:send_to_printer_api).and_return("test_id")
+      allow_any_instance_of(TicketOrder).to receive(:send_to_printer_api).and_return('test_id')
       large_order_set.each_with_index { |order, index| order.update!(print_order_id: index + 1) }
     end
 
     it 'handles large batches efficiently' do
       # Track calls since have_received doesn't work with any_instance stubs
       api_calls = []
-      allow_any_instance_of(TicketOrder).to receive(:send_to_printer_api) do |order, batch_id_arg, sequence|
+      allow_any_instance_of(TicketOrder).to receive(:send_to_printer_api) do |order, _batch_id_arg, sequence|
         api_calls << { order_id: order.id, sequence: sequence }
-        "test_id"
+        'test_id'
       end
 
       start_time = Time.current
@@ -306,9 +304,9 @@ RSpec.describe 'Batch Printing Workflow', type: :feature do
     it 'manages memory efficiently during large batch processing' do
       batch_id = BatchPrintingService.create_and_process_batch(large_order_set)
 
-      expect {
+      expect do
         PrintBatchJob.perform(batch_id, large_order_set.map(&:id))
-      }.not_to raise_error
+      end.not_to raise_error
     end
   end
 end

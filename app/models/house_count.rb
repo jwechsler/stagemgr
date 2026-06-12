@@ -4,26 +4,26 @@ class HouseCount < Metric
 
   # Method to calculate and update the seat counts
   def calculate
-    unless performance.production.nil?
-      self.total_seats = performance.production&.capacity
-      self.sold_seats = calculate_sold_seats
-      self.held_seats = calculate_held_seats
-      self.available_seats = performance.production&.capacity - performance.seats_held
-      self.max_ticket_price = calculate_max_ticket_price
-      self.min_ticket_price = calculate_min_ticket_price
-      self.sold_out = calculate_sold_out
-      self.near_capacity = calculate_near_capacity
-    end
+    return if performance.production.nil?
+
+    self.total_seats = performance.production&.capacity
+    self.sold_seats = calculate_sold_seats
+    self.held_seats = calculate_held_seats
+    self.available_seats = performance.production&.capacity&.- performance.seats_held
+    self.max_ticket_price = calculate_max_ticket_price
+    self.min_ticket_price = calculate_min_ticket_price
+    self.sold_out = calculate_sold_out
+    self.near_capacity = calculate_near_capacity
   end
 
   def calculate!
-    self.calculate
-    self.save!
+    calculate
+    save!
   end
 
   # Required by Metric abstract class
   def self.export_columns
-    ['performance_code', 'total_seats', 'sold_seats', 'held_seats', 'available_seats', 'max_ticket_price']
+    %w[performance_code total_seats sold_seats held_seats available_seats max_ticket_price]
   end
 
   # Required by Metric abstract class
@@ -33,18 +33,15 @@ class HouseCount < Metric
   end
 
   # Public accessor for performance code
-  def performance_code
-    self.performance.performance_code
-  end
+  delegate :performance_code, to: :performance
 
   private
 
   # Helper method to calculate sold seats based on the TicketOrder#sold? method
   def calculate_sold_seats
-    sold_tickets = performance.orders.includes(:ticket_line_items).select(&:sold?).sum do |order|
+    performance.orders.includes(:ticket_line_items).select(&:sold?).sum do |order|
       order.ticket_line_items.sum(:ticket_count)
     end
-    sold_tickets
   end
 
   # Count ticket_count from TicketLineItem joined to orders in Hold status

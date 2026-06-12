@@ -3,7 +3,7 @@ require 'rails_helper'
 RSpec.describe ExportSalesCountsJob, type: :job do
   include ActiveSupport::Testing::TimeHelpers
 
-  let(:temp_dir)       { Rails.root.join('tmp', 'tests') }
+  let(:temp_dir)       { Rails.root.join('tmp/tests') }
   let(:last7_path)     { File.join(temp_dir, 'last7_counts.txt') }
   let(:previous7_path) { File.join(temp_dir, 'previous7_counts.txt') }
 

@@ -5,7 +5,7 @@ class CreateSeatAssignments < ActiveRecord::Migration[4.2]
       t.references :seat, index: true
       t.references :seat_map, index: true
       t.references :performance, index: true
-      t.string :status, index: true, :default => 'Available'
+      t.string :status, index: true, default: 'Available'
 
       t.timestamps null: false
     end

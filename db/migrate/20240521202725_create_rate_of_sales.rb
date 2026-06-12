@@ -11,7 +11,7 @@ class CreateRateOfSales < ActiveRecord::Migration[6.1]
       t.timestamps
     end
 
-    add_index :rate_of_sales, [:day_of_sale, :production_id], unique: true
+    add_index :rate_of_sales, %i[day_of_sale production_id], unique: true
     add_foreign_key :rate_of_sales, :productions, column: :production_id
   end
 end

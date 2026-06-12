@@ -11,9 +11,7 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  unless Rails.env.development?
-    rescue_from StandardError, with: :handle_exception
-  end
+  rescue_from StandardError, with: :handle_exception unless Rails.env.development?
 
   attr_accessor :markdown
 
@@ -30,27 +28,23 @@ class ApplicationController < ActionController::Base
     current_user && (current_user.is_administrator? || current_user.is_box_office_user?)
   end
 
-  def method_missing(method, *args, &block)
+  def method_missing(method, *args, &)
     begin
       method_name = method.to_s
       if method_name =~ /^find_/
         match_data = method_name.match(/^find_(.*)$/)
         model_name = match_data[1]
         model_class = model_name.classify.constantize
-        param_id = "#{model_name}_id".to_sym
+        param_id = :"#{model_name}_id"
         found_model = if params[param_id]
                         model_class.find(params[param_id])
                       elsif params[:id]
                         model_class.find(params[:id])
-                      else
-                        nil
                       end
-        if found_model
-          instance_variable_set "@#{model_name}", found_model
-        end
+        instance_variable_set "@#{model_name}", found_model if found_model
         return
       end
-    rescue StandardError => e
+    rescue StandardError
       # just do standard method_missing stuff if we fail
     end
     super
@@ -71,7 +65,7 @@ class ApplicationController < ActionController::Base
   end
 
   def index
-    render '/general/unavailable', :status => 404
+    render '/general/unavailable', status: :not_found
   end
 
   protected
@@ -82,21 +76,21 @@ class ApplicationController < ActionController::Base
   end
 
   def require_login
-    unless current_user
-      respond_to do |format|
-        format.html {
-          session[:return_to] = request.url
-          flash[:error] = "You must be logged in to access this page"
-          redirect_to new_user_session_path
-        }
-        format.xml {
-          user = User.new
-          user.errors.add(:base, "Authentication is required.")
-          render :xml => user.errors, :status => 401
-        }
+    return if current_user
+
+    respond_to do |format|
+      format.html do
+        session[:return_to] = request.url
+        flash[:error] = 'You must be logged in to access this page'
+        redirect_to new_user_session_path
       end
-      return false
+      format.xml do
+        user = User.new
+        user.errors.add(:base, 'Authentication is required.')
+        render xml: user.errors, status: :unauthorized
+      end
     end
+    false
   end
 
   def current_user_session
@@ -132,10 +126,9 @@ class ApplicationController < ActionController::Base
   end
 
   def store_location
-    case
-    when self.is_a?(UserSessionsController)
+    if is_a?(UserSessionsController)
       # don't store
-    when request.format == :json
+    elsif request.format == :json
       # don't store
     else
       session[:return_to] = request.url

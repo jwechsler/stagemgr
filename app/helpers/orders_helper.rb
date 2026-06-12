@@ -1,5 +1,5 @@
 module OrdersHelper
-  SWIPE_REGEX = /^%(?<FC>.)\$(?<PAN>[\d]{1,19}+)\^(?<NM>.{2,26})\^\@(?<YY>[\d]{0,2}|\^)(?<MM>[\d]{0,2}|\^)(?<SC>[\d]{0,3}|\^)(?<DD>.*)\?;(?<PAN>[\d]{1,19}+)=(?<YY>[\d]{0,2}|\^)(?<MM>[\d]{0,2}|\^)(?<SC>[\d]{0,3}|\^)(?<DD>.*)\?/
+  SWIPE_REGEX = /^%(?<FC>.)\$(?<PAN>\d{1,19}+)\^(?<NM>.{2,26})\^@(?<YY>\d{0,2}|\^)(?<MM>\d{0,2}|\^)(?<SC>\d{0,3}|\^)(?<DD>.*)\?;(?<PAN>\d{1,19}+)=(?<YY>\d{0,2}|\^)(?<MM>\d{0,2}|\^)(?<SC>\d{0,3}|\^)(?<DD>.*)\?/
 
   def convert_button_label_to_state(button_label)
     case button_label.downcase
@@ -19,19 +19,20 @@ module OrdersHelper
 
   def validate_web_order(order)
     begin
-      raise "Email required" if order.address&.email.blank?
-      raise "Name required" if order.address&.full_name.blank?
+      raise 'Email required' if order.address&.email.blank?
+      raise 'Name required' if order.address&.full_name.blank?
 
       unless order.payment_type.is_a? PassPaymentType
-        raise "Billing address incomplete" if order.address&.line1.blank? || order.address&.city.blank? || order.address&.state.blank? || order.address&.zipcode.blank?
-        raise "Phone number required" if order.address&.phone.blank?
+        if order.address&.line1.blank? || order.address&.city.blank? || order.address&.state.blank? || order.address&.zipcode.blank?
+          raise 'Billing address incomplete'
+        end
+        raise 'Phone number required' if order.address&.phone.blank?
       end
-      if order.payment_type.is_a?(CreditCardPaymentType) && !order.credit_card_number.blank?
-        raise "Credit card type required" if order.credit_card_type.blank?
-        raise "Credit card verification number required" if order.credit_card_verification_number.blank?
+      if order.payment_type.is_a?(CreditCardPaymentType) && order.credit_card_number.present?
+        raise 'Credit card type required' if order.credit_card_type.blank?
+        raise 'Credit card verification number required' if order.credit_card_verification_number.blank?
       end
     rescue RuntimeError => e
-      result = false
       rescue_error(e)
       return false
     end
@@ -40,7 +41,7 @@ module OrdersHelper
       flash[:error] = order.errors.first.full_message
       result = false
     end
-    return result
+    result
   end
 
   def update_order_notes_from_params(order, order_params)
@@ -48,15 +49,15 @@ module OrdersHelper
     order.notes = order_params[:notes]
   end
 
-  public
-
   def common_params
     [:special_offer_code, :hold_under, :payment_type_id, :credit_card_type, :additional_donation, :additional_donation_for_other,
      :credit_card_number, :credit_card_expiration_month, :credit_card_expiration_year,
      :credit_card_verification_number, :credit_card_swipe, :credit_card_confirmation_code,
      :flex_pass_code, :member_code, :check_number, :add_to_email_list, :marketing_source, :notes, :status,
-     address_attributes: [:full_name, :email, :phone, :line1, :line2, :city, :state, :zipcode],
-     service_line_items_attributes: [:id, :description, :facility_fee, :amount, :_destroy, :suppress_for_pass_payments]]
+     {
+       address_attributes: %i[full_name email phone line1 line2 city state zipcode],
+       service_line_items_attributes: %i[id description facility_fee amount _destroy suppress_for_pass_payments]
+     }]
   end
 
   def set_payment_accessors_from_params(order, order_params)
@@ -85,7 +86,7 @@ module OrdersHelper
   def process_order(order, change_to_state)
     Rails.logger.info("Transitioning order #{order.id.nil? ? '(new)' : order.id} to #{change_to_state}")
     begin
-      unless order.credit_card_swipe.blank?
+      if order.credit_card_swipe.present?
         parsed = order.credit_card_swipe.scan(SWIPE_REGEX)[0]
         order.address.full_name = parsed[4] + ' ' + parsed[2]
         order.credit_card_expiration_year = parsed[5]
@@ -105,11 +106,11 @@ module OrdersHelper
 
     # Special message for ticket orders being fulfilled (print queued asynchronously)
     if change_to_state == Order::FULFILLED && order.is_a?(TicketOrder)
-      flash[:notice] = "Print request submitted. Order will be marked as Fulfilled after successful printing."
+      flash[:notice] = 'Print request submitted. Order will be marked as Fulfilled after successful printing.'
     elsif order.finalized?
       flash[:notice] = "Order was successfully #{order.status_display.downcase}"
     end
-    return true
+    true
   end
 
   def rescue_error(e)
@@ -129,19 +130,16 @@ module OrdersHelper
 
   def payment_types(order, allowed_payment_types = nil, front_end_only = true)
     paytype = payment_types_for(order, front_end_only)
-    unless allowed_payment_types.nil?
-      paytype = paytype.select { |pt| allowed_payment_types.includes?(paytype) }
-    end
+    paytype = paytype.select { |_pt| allowed_payment_types.includes?(paytype) } unless allowed_payment_types.nil?
     paytype
   end
 
   def payment_text_for(order)
-    case
-    when order.payment_type.is_a?(CreditCardPaymentType)
+    if order.payment_type.is_a?(CreditCardPaymentType)
       "This amount will be charged to your #{order.credit_card_type} ending in #{order.credit_card_number[-4..-1]}."
-    when order.payment_type.is_a?(MembershipPaymentType)
-      "This order will be applied to your membership."
-    when order.payment_type.is_a?(FlexPassPaymentType)
+    elsif order.payment_type.is_a?(MembershipPaymentType)
+      'This order will be applied to your membership.'
+    elsif order.payment_type.is_a?(FlexPassPaymentType)
       "You are using flex pass #{order.flex_pass_code}."
     end
   end
@@ -152,7 +150,7 @@ module OrdersHelper
       idx = footnotes.find_index(feature.short_name)
       text <<= raw "<sup>[#{idx + 1}]&nbsp;</sup>" unless idx.nil?
     end
-    unless performance.special_feature_display_markdown.blank?
+    if performance.special_feature_display_markdown.present?
       idx = footnotes.find_index("_custom#{performance.id}")
       text <<= raw "<sup>[#{idx + 1}]&nbsp;</sup>" unless idx.nil?
     end

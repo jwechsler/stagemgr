@@ -65,18 +65,18 @@ module Admin::AnalysisHelper
     unsold_pct   = total_cap > 0 ? (unsold_count.to_f / total_cap * 100).round(2) : 0
 
     cap_labels  = summary.buckets.map { |b| bucket_label(b) } + ['Unsold']
-    cap_values  = summary.buckets.map { |b|
+    cap_values  = summary.buckets.map do |b|
       total_cap > 0 ? (b.paid_count.to_f / total_cap * 100).round(2) : 0
-    } + [unsold_pct]
+    end + [unsold_pct]
     cap_colors  = summary.buckets.map { |b| bucket_colors[b.object_id] } + [UNSOLD_COLOR]
     cap_ladders = summary.buckets.map(&:ladder_distribution) + [{}]
 
     # Paid mode: only dynamic + singleton buckets, normalized to paid total
-    paid_buckets = summary.buckets.select { |b| [:dynamic, :singleton].include?(b.bucket_type) }
+    paid_buckets = summary.buckets.select { |b| %i[dynamic singleton].include?(b.bucket_type) }
     paid_labels  = paid_buckets.map { |b| bucket_label(b) }
-    paid_values  = paid_buckets.map { |b|
+    paid_values  = paid_buckets.map do |b|
       total_paid > 0 ? (b.paid_count.to_f / total_paid * 100).round(2) : 0
-    }
+    end
     paid_colors  = paid_buckets.map { |b| bucket_colors[b.object_id] }
     paid_ladders = paid_buckets.map(&:ladder_distribution)
 
@@ -88,7 +88,7 @@ module Admin::AnalysisHelper
 
   def bucket_label(bucket)
     flag = bucket.allocation_cap_hit ? " \u2691" : ''
-    return "#{bucket.name}#{flag}" if [:comp, :zero_rev].include?(bucket.bucket_type)
+    return "#{bucket.name}#{flag}" if %i[comp zero_rev].include?(bucket.bucket_type)
 
     price_dollar = bucket.avg_paid_price.round
     prefix = bucket.bucket_type == :dynamic ? "\u21C5 " : ''
@@ -102,25 +102,25 @@ module Admin::AnalysisHelper
   # has no entry here — the view passes the prior production's name via the
   # display_label: kwarg below.
   COHORT_UI_LABELS = {
-    "cohort" => "Selected production attendees",
-    "returning_any" => "Returning attendees (any production)",
-    "first_time_vs_comparison" => "First Time visitors (comparison group)",
-    "returning_vs_comparison" => "Returning visitors (comparison group)",
-    "dedicated_customers" => "Dedicated customers",
-    "two_plus_in_comparison" => "2+ visits in comparison",
-    "first_time_vs_building" => "First Time visitors (facility)",
-    "returning_vs_building" => "Returning visitors (facility)",
-    "three_plus_in_building" => "3+ visits in building"
+    'cohort' => 'Selected production attendees',
+    'returning_any' => 'Returning attendees (any production)',
+    'first_time_vs_comparison' => 'First Time visitors (comparison group)',
+    'returning_vs_comparison' => 'Returning visitors (comparison group)',
+    'dedicated_customers' => 'Dedicated customers',
+    'two_plus_in_comparison' => '2+ visits in comparison',
+    'first_time_vs_building' => 'First Time visitors (facility)',
+    'returning_vs_building' => 'Returning visitors (facility)',
+    'three_plus_in_building' => '3+ visits in building'
   }.freeze
 
   # Natural-language window phrases used in the confirmation prompt.
   COHORT_WINDOW_PHRASES = {
-    "3 months" => "last 3 months",
-    "6 months" => "last 6 months",
-    "1 year" => "last year",
-    "3 years" => "last 3 years",
-    "5 years" => "last 5 years",
-    "Ever" => "ever"
+    '3 months' => 'last 3 months',
+    '6 months' => 'last 6 months',
+    '1 year' => 'last year',
+    '3 years' => 'last 3 years',
+    '5 years' => 'last 5 years',
+    'Ever' => 'ever'
   }.freeze
 
   # Renders a count value as a clickable export trigger when non-zero. Posts
@@ -142,12 +142,8 @@ module Admin::AnalysisHelper
     # just be the full attendee list — there's no distinct sub-cohort to
     # report. Suppress the cell (no number, no link). The "cohort" segment
     # itself is the reference value, so it's always shown.
-    if segment_key.to_s != 'cohort' && @results.present? && n == @results[:cohort_size].to_i
-      return ''.html_safe
-    end
-    if facility_scope && !current_user.is_administrator?
-      return n.to_s
-    end
+    return ''.html_safe if segment_key.to_s != 'cohort' && @results.present? && n == @results[:cohort_size].to_i
+    return n.to_s if facility_scope && !current_user.is_administrator?
 
     button_to(
       n.to_s,
@@ -166,8 +162,8 @@ module Admin::AnalysisHelper
   end
 
   def cohort_export_confirm_prompt(count, segment_key, window_label, display_label = nil)
-    label = display_label.presence || COHORT_UI_LABELS[segment_key.to_s] || "this cohort"
-    window_phrase = window_label.present? ? " (#{COHORT_WINDOW_PHRASES[window_label] || window_label})" : ""
+    label = display_label.presence || COHORT_UI_LABELS[segment_key.to_s] || 'this cohort'
+    window_phrase = window_label.present? ? " (#{COHORT_WINDOW_PHRASES[window_label] || window_label})" : ''
     "Export #{count} #{pluralize_patron(count)} in '#{label}'#{window_phrase}? You'll receive an email when the CSV is ready."
   end
 

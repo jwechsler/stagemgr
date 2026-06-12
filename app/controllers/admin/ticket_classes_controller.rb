@@ -2,16 +2,16 @@ class Admin::TicketClassesController < Admin::ApplicationController
   load_and_authorize_resource
 
   prepend_before_action :find_production
-  before_action :find_ticket_class, :only => [:edit, :update, :destroy]
+  before_action :find_ticket_class, only: %i[edit update destroy]
 
   def index
     respond_to do |format|
       format.html # index.html.erb
-      format.json {
+      format.json do
         params.permit!
         render json: TicketClassDatatable.new(params, view_context: view_context, current_user: current_user,
                                                       theater: @production.theater, production: @production)
-      }
+      end
     end
   end
 
@@ -26,10 +26,10 @@ class Admin::TicketClassesController < Admin::ApplicationController
       if @ticket_class.save
         flash[:notice] = 'TicketClass was successfully created.'
         format.html { redirect_to(admin_theater_production_ticket_classes_path(@theater, @production)) }
-        format.xml  { render :xml => @ticket_class, :status => :created, :location => @ticket_class }
+        format.xml  { render xml: @ticket_class, status: :created, location: @ticket_class }
       else
-        format.html { render :action => "new" }
-        format.xml  { render :xml => @ticket_class.errors, :status => :unprocessable_entity }
+        format.html { render action: 'new' }
+        format.xml  { render xml: @ticket_class.errors, status: :unprocessable_entity }
       end
     end
   end
@@ -41,8 +41,8 @@ class Admin::TicketClassesController < Admin::ApplicationController
         format.html { redirect_to(admin_theater_production_ticket_classes_path(@theater, @production)) }
         format.xml  { head :ok }
       else
-        format.html { render :action => "edit" }
-        format.xml  { render :xml => @ticket_class.errors, :status => :unprocessable_entity }
+        format.html { render action: 'edit' }
+        format.xml  { render xml: @ticket_class.errors, status: :unprocessable_entity }
       end
     end
   end

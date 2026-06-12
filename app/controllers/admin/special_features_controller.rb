@@ -4,41 +4,38 @@ class Admin::SpecialFeaturesController < ApplicationController
   def index
     respond_to do |format|
       format.html # index.html.erb
-      format.json {
+      format.json do
         params.permit!
         render json: SpecialFeatureDatatable.new(params, view_context: view_context, current_user: current_user)
-      }
+      end
     end
   end
 
-  def show
-  end
+  def show; end
 
-  def new
-  end
+  def new; end
+
+  def edit; end
 
   def create
     if @special_feature.save
-      redirect_to [:admin, :special_features], :notice => "Successfully created special feature."
+      redirect_to %i[admin special_features], notice: 'Successfully created special feature.'
     else
-      render :action => 'new'
+      render action: 'new'
     end
-  end
-
-  def edit
   end
 
   def update
     if @special_feature.update(special_feature_params)
-      redirect_to [:admin, :special_features], :success => "Successfully updated special feature."
+      redirect_to %i[admin special_features], success: 'Successfully updated special feature.'
     else
-      render :action => 'edit'
+      render action: 'edit'
     end
   end
 
   def destroy
     @special_feature.destroy
-    redirect_to admin_special_features_url, :notice => "Successfully destroyed special feature."
+    redirect_to admin_special_features_url, notice: 'Successfully destroyed special feature.'
   end
 
   private

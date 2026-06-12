@@ -8,7 +8,7 @@ module CurrencyUtils
     when Integer
       BigDecimal(value).round(2)
     else
-      raise ArgumentError, "Value must be a Float, BigDecimal, or Integer"
+      raise ArgumentError, 'Value must be a Float, BigDecimal, or Integer'
     end
   end
 end

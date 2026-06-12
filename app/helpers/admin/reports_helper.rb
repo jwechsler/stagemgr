@@ -1,10 +1,10 @@
 module Admin::ReportsHelper
-  TRG_IMPORT_HEADERS = [:FirstName, :LastName, :FullName, :CompanyName, :Email, :Address1, :Address2,
-                        :Address3, :City, :State, :Zip, :HomePhone, :BusinessPhone, :ClientPatronID]
+  TRG_IMPORT_HEADERS = %i[FirstName LastName FullName CompanyName Email Address1 Address2
+                          Address3 City State Zip HomePhone BusinessPhone ClientPatronID]
 
   def select_week_of
     c_week = 16.weeks.ago.to_date
-    s = Array.new
+    s = []
     until c_week > Date.today
       s << WeekSelect.new(c_week)
       c_week += 1.week
@@ -21,7 +21,7 @@ module Admin::ReportsHelper
   end
 
   def self.safe_title(title)
-    title.gsub(/[\/\(\)\'\" ]/, '_')
+    title.gsub(%r{[/()'" ]}, '_')
   end
 
   def self.save_report_as_csv(file_path, headers, data, filestore = nil)
@@ -34,17 +34,17 @@ module Admin::ReportsHelper
     f = File.new(file_path, 'w')
     f.puts(csv_string)
     f.close
-    unless filestore.nil?
-      filestore.datafile.attach(io: File.open(file_path), filename: File.basename(file_path),
-                                content_type: "text/plain")
-      filestore.worker = FileStore::REPORT
-      filestore.save
-      File.delete(file_path)
-    end
+    return if filestore.nil?
+
+    filestore.datafile.attach(io: File.open(file_path), filename: File.basename(file_path),
+                              content_type: 'text/plain')
+    filestore.worker = FileStore::REPORT
+    filestore.save
+    File.delete(file_path)
   end
 
   def self.attendees_on_email_list(production)
-    members_by_email = Hash.new
+    members_by_email = {}
     # @todo fix MyEmma for this error on attendees Mr. Burns
     unless MyEmma.disabled? || production.use_myemma_attendee_group.nil?
       grp = MyEmma::Group.find(production.use_myemma_attendee_group)
@@ -83,62 +83,61 @@ module Admin::ReportsHelper
   end
 
   def self.trg_hash(address)
-    Hash[:FirstName => address.first_name, :LastName => address.last_name,
-         :FullName => address.full_name, :CompanyName => '',
-         :Email => address.email, :Address1 => address.line1,
-         :Address2 => address.line2, :Address3 => '',
-         :City => address.city, :State => address.state,
-         :Zip => address.zipcode,
-         :HomePhone => address.phone, :BusinessPhone => '',
-         :ClientPatronID => address.sf_contact_id ]
+    Hash[FirstName: address.first_name, LastName: address.last_name,
+         FullName: address.full_name, CompanyName: '',
+         Email: address.email, Address1: address.line1,
+         Address2: address.line2, Address3: '',
+         City: address.city, State: address.state,
+         Zip: address.zipcode,
+         HomePhone: address.phone, BusinessPhone: '',
+         ClientPatronID: address.sf_contact_id ]
   end
 
   def self.build_new_trg_dump(season)
     productions = Production.find_all_by_season(season)
 
-    headers = [:FirstName, :LastName, :FullName, :CompanyName, :Email, :Address1, :Address2,
-               :Address3, :City, :State, :Zip, :HomePhone, :BusinessPhone, :ClientPatronID]
+    headers = %i[FirstName LastName FullName CompanyName Email Address1 Address2
+                 Address3 City State Zip HomePhone BusinessPhone ClientPatronID]
 
-    master_lists = Hash['MEM' => Array.new, 'BLDG' => Array.new, 'DNT' => Array.new]
+    master_lists = Hash['MEM' => [], 'BLDG' => [], 'DNT' => []]
     productions.each do |production|
       season_tag = production.season.to_i + 1
       additional_attendees = production.addresses
-      orders = TicketOrder.includes(:address, :payments, :theater, { :performance => :production }).where(
+      orders = TicketOrder.includes(:address, :payments, :theater, { performance: :production }).where(
         'performances.production_id = ?', production.id
       )
 
-      reports = Hash['ALL' => Array.new,
-                     'MEM' => Array.new,
-                     'STB' => Array.new,
-                     'EMA' => Array.new,
-                     'REN' => Array.new,
-                     'CMP' => Array.new]
+      reports = Hash['ALL' => [],
+                     'MEM' => [],
+                     'STB' => [],
+                     'EMA' => [],
+                     'REN' => [],
+                     'CMP' => []]
 
       orders.each do |order|
-        unless order.address.nil?
-          hash = trg_hash(order.address)
-          buyer_type = case
-                       when order.paid_with_membership?
-                         'MEM'
-                       when (order.theater.producing?)
-                         order.all_tickets_complimentary? ? 'CMP' : 'STB'
-                       else
-                         'REN'
-                       end
-          # members_by_email.delete(hash[:Email].downcase) unless hash[:Email].nil?
+        next if order.address.nil?
 
-          hash[:Email] = nil unless can?(:view_email, Address)
-          master_lists['BLDG'] << hash # Add to season master list
-          master_lists[production.theater.name] = Array.new unless master_lists.has_key?(production.theater.name)
-          master_lists[production.theater.name] << hash
-          reports['ALL'] << hash
-          reports[buyer_type] << hash
-        end
+        hash = trg_hash(order.address)
+        buyer_type = if order.paid_with_membership?
+                       'MEM'
+                     elsif order.theater.producing?
+                       order.all_tickets_complimentary? ? 'CMP' : 'STB'
+                     else
+                       'REN'
+                     end
+        # members_by_email.delete(hash[:Email].downcase) unless hash[:Email].nil?
+
+        hash[:Email] = nil unless can?(:view_email, Address)
+        master_lists['BLDG'] << hash # Add to season master list
+        master_lists[production.theater.name] = [] unless master_lists.has_key?(production.theater.name)
+        master_lists[production.theater.name] << hash
+        reports['ALL'] << hash
+        reports[buyer_type] << hash
       end
       additional_attendees.each do |member_record|
         hash = trg_hash(member_record)
         master_lists['BLDG'] << hash
-        master_lists[production.theater.name] = Array.new unless master_lists.has_key?(production.theater.name)
+        master_lists[production.theater.name] = [] unless master_lists.has_key?(production.theater.name)
         master_lists[production.theater.name] << hash
         reports[production.theater.producing? ? 'ALL' : 'REN'] << hash
         reports['EMA'] << hash

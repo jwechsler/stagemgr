@@ -1,4 +1,4 @@
-require "fileutils"
+require 'fileutils'
 
 class HudTableFormatter
   # Renders a MySQL --table=true style fixed-width text table.
@@ -43,8 +43,6 @@ class HudTableFormatter
     FileUtils.mv(tmp_path, file_path)
   end
 
-  private
-
   # Returns an array of integers: the total column width (including the two
   # padding spaces) for each column, in order.
   def self.compute_widths(columns, rows)
@@ -56,7 +54,7 @@ class HudTableFormatter
 
   # Builds a separator line like: +------+--------+
   def self.build_separator(col_widths)
-    "+#{col_widths.map { |w| "-" * w }.join("+")}+"
+    "+#{col_widths.map { |w| '-' * w }.join('+')}+"
   end
 
   # Builds a data or header row.  The block receives each column definition
@@ -71,6 +69,6 @@ class HudTableFormatter
                end
       " #{padded} "
     end
-    "|#{cells.join("|")}|"
+    "|#{cells.join('|')}|"
   end
 end

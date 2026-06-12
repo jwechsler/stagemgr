@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe CreditCardPayment, type: :model do
-  describe "#refund!" do
+  describe '#refund!' do
     let(:order) { FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :general_admission) }
     let(:payment) do
       CreditCardPayment.create!(
@@ -23,7 +23,7 @@ RSpec.describe CreditCardPayment, type: :model do
       Stripe.api_key = 'sk_test_fake_key_for_testing'
     end
 
-    context "when charge has already been refunded in Stripe" do
+    context 'when charge has already been refunded in Stripe' do
       let(:stripe_charge) do
         double('Stripe::Charge',
                id: 'ch_test123',
@@ -37,7 +37,7 @@ RSpec.describe CreditCardPayment, type: :model do
         allow(Stripe::Charge).to receive(:retrieve).with('ch_test123').and_return(stripe_charge)
       end
 
-      it "reconciles the order when refund amount matches" do
+      it 'reconciles the order when refund amount matches' do
         # Mock the gateway to return "already refunded" error
         gateway = double('gateway')
         allow(PaymentProcessing).to receive(:gateway).and_return(gateway)
@@ -49,9 +49,9 @@ RSpec.describe CreditCardPayment, type: :model do
         payment.reload
         initial_payment_count = order.payments.reload.count
 
-        expect {
+        expect do
           payment.refund!(nil, 'test refund')
-        }.not_to raise_error
+        end.not_to raise_error
 
         order.reload
         # Should have created one refund payment
@@ -61,7 +61,7 @@ RSpec.describe CreditCardPayment, type: :model do
         expect(refund_payment.amount).to eq(-50.00)
       end
 
-      it "creates a carryover payment when refund amount differs from order amount" do
+      it 'creates a carryover payment when refund amount differs from order amount' do
         # Stripe refunded $45.00 but order was $50.00
         different_stripe_charge = double('Stripe::Charge',
                                          id: 'ch_test123',
@@ -81,9 +81,9 @@ RSpec.describe CreditCardPayment, type: :model do
         payment.reload
         initial_payment_count = order.payments.reload.count
 
-        expect {
+        expect do
           payment.refund!(nil, 'test refund')
-        }.not_to raise_error
+        end.not_to raise_error
 
         order.reload
         # Should have created refund payment + carryover payment
@@ -99,7 +99,7 @@ RSpec.describe CreditCardPayment, type: :model do
         expect(carryover_payment.amount).to eq(-5.00) # Difference
       end
 
-      it "handles payment intent IDs by looking up the charge" do
+      it 'handles payment intent IDs by looking up the charge' do
         payment.update_column(:transaction_id, 'pi_test123')
 
         payment_intent = double('Stripe::PaymentIntent',
@@ -120,16 +120,16 @@ RSpec.describe CreditCardPayment, type: :model do
         response = double('response', success?: false, message: 'Charge pi_test123 has already been refunded')
         allow(gateway).to receive(:refund).and_return(response)
 
-        expect {
+        expect do
           payment.refund!(nil, 'test refund')
-        }.not_to raise_error
+        end.not_to raise_error
 
         order.reload
         refund_payment = order.payments.reload.detect { |p| p.amount < 0 }
         expect(refund_payment.amount).to eq(-50.00)
       end
 
-      it "assumes full refund if cannot retrieve Stripe refund amount" do
+      it 'assumes full refund if cannot retrieve Stripe refund amount' do
         allow(Stripe::Charge).to receive(:retrieve).and_raise(Stripe::InvalidRequestError.new('Not found', 'charge'))
 
         gateway = double('gateway')
@@ -142,9 +142,9 @@ RSpec.describe CreditCardPayment, type: :model do
         payment.reload
         initial_payment_count = order.payments.reload.count
 
-        expect {
+        expect do
           payment.refund!(nil, 'test refund')
-        }.not_to raise_error
+        end.not_to raise_error
 
         order.reload
         # Should have created one refund payment assuming full amount
@@ -155,7 +155,7 @@ RSpec.describe CreditCardPayment, type: :model do
       end
     end
 
-    context "when refund fails for other reasons" do
+    context 'when refund fails for other reasons' do
       it "raises CannotProcessPayment for non-'already refunded' errors" do
         gateway = double('gateway')
         allow(PaymentProcessing).to receive(:gateway).and_return(gateway)
@@ -163,9 +163,9 @@ RSpec.describe CreditCardPayment, type: :model do
         response = double('response', success?: false, message: 'Insufficient funds')
         allow(gateway).to receive(:refund).and_return(response)
 
-        expect {
+        expect do
           payment.refund!(nil, 'test refund')
-        }.to raise_error(CannotProcessPayment, 'Insufficient funds')
+        end.to raise_error(CannotProcessPayment, 'Insufficient funds')
       end
     end
   end

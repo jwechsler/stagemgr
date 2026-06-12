@@ -29,9 +29,9 @@ RSpec.describe Admin::FlexPassOffersController, type: :controller do
       end
 
       it 'creates a flex pass offer with decimal values' do
-        expect {
+        expect do
           post :create, params: valid_params
-        }.to change(FlexPassOffer, :count).by(1)
+        end.to change(FlexPassOffer, :count).by(1)
 
         offer = FlexPassOffer.last
         expect(offer.price).to eq(99.99)
@@ -65,9 +65,9 @@ RSpec.describe Admin::FlexPassOffersController, type: :controller do
       end
 
       it 'does not create a flex pass offer' do
-        expect {
+        expect do
           post :create, params: invalid_params
-        }.not_to change(FlexPassOffer, :count)
+        end.not_to change(FlexPassOffer, :count)
       end
 
       it 'renders the new template' do
@@ -95,9 +95,9 @@ RSpec.describe Admin::FlexPassOffersController, type: :controller do
       end
 
       it 'does not create a flex pass offer' do
-        expect {
+        expect do
           post :create, params: negative_params
-        }.not_to change(FlexPassOffer, :count)
+        end.not_to change(FlexPassOffer, :count)
       end
 
       it 'renders the new template' do
@@ -166,15 +166,15 @@ RSpec.describe Admin::FlexPassOffersController, type: :controller do
 
   describe 'strong parameters' do
     it 'permits the currency fields' do
-      params = ActionController::Parameters.new({
-                                                  flex_pass_offer: {
-                                                    price: '99.99',
-                                                    facility_fee: '2.50',
-                                                    spiff: '1.75',
-                                                    flat_payout: '5.25',
-                                                    other_param: 'should be filtered'
-                                                  }
-                                                })
+      ActionController::Parameters.new({
+                                         flex_pass_offer: {
+                                           price: '99.99',
+                                           facility_fee: '2.50',
+                                           spiff: '1.75',
+                                           flat_payout: '5.25',
+                                           other_param: 'should be filtered'
+                                         }
+                                       })
 
       # We need to test that the controller permits these params
       # This is a bit tricky to test directly, so we'll create the offer

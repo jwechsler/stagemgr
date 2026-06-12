@@ -4,10 +4,10 @@ class Admin::FlexPassOffersController < Admin::ApplicationController
   def index
     respond_to do |format|
       format.html
-      format.json {
+      format.json do
         params.permit!
         render json: FlexPassOfferDatatable.new(params, view_context: view_context, current_user: current_user)
-      }
+      end
     end
   end
 
@@ -16,7 +16,7 @@ class Admin::FlexPassOffersController < Admin::ApplicationController
   def show
     respond_to do |format|
       format.html # show.html.erb
-      format.xml  { render :xml => @flex_pass_offer }
+      format.xml  { render xml: @flex_pass_offer }
     end
   end
 
@@ -25,13 +25,12 @@ class Admin::FlexPassOffersController < Admin::ApplicationController
   def new
     respond_to do |format|
       format.html # new.html.erb
-      format.xml  { render :xml => @flex_pass_offer }
+      format.xml  { render xml: @flex_pass_offer }
     end
   end
 
   # GET /flex_pass_offers/1/edit
-  def edit
-  end
+  def edit; end
 
   # POST /flex_pass_offers
   # POST /flex_pass_offers.xml
@@ -41,7 +40,7 @@ class Admin::FlexPassOffersController < Admin::ApplicationController
         flash[:notice] = 'FlexPassOffer was successfully created.'
         format.html { redirect_to(admin_flex_pass_offers_path) }
       else
-        format.html { render :action => "new" }
+        format.html { render action: 'new' }
       end
     end
   end
@@ -56,8 +55,8 @@ class Admin::FlexPassOffersController < Admin::ApplicationController
         format.html { redirect_to([:admin, @flex_pass_offer]) }
         format.xml  { head :ok }
       else
-        format.html { render :action => "edit" }
-        format.xml  { render :xml => @flex_pass_offer.errors, :status => :unprocessable_entity }
+        format.html { render action: 'edit' }
+        format.xml  { render xml: @flex_pass_offer.errors, status: :unprocessable_entity }
       end
     end
   end
@@ -68,10 +67,10 @@ class Admin::FlexPassOffersController < Admin::ApplicationController
     @flex_pass_offer.destroy
 
     respond_to do |format|
-      format.html {
+      format.html do
         flash.keep
         redirect_to(flex_pass_offers_url)
-      }
+      end
       format.xml { head :ok }
     end
   end

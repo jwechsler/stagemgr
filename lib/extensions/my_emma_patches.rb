@@ -8,7 +8,7 @@ module MyEmmaPatches
     MyEmma::Member.custom_attributes :name_first, :name_last, :wildcard_1403237, :address, :city, :state, :postal_code
 
     def contact_frequency
-      self.wildcard_1403237
+      wildcard_1403237
     end
 
     def contact_frequency=(frequency)

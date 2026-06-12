@@ -1,5 +1,5 @@
 namespace :migrate_paperclip do
-  desc "Updates Active Storage Blobs"
+  desc 'Updates Active Storage Blobs'
   task create_active_storage: :environment do
     class MigrateToActiveStorage
       require 'open-uri'
@@ -25,21 +25,15 @@ namespace :migrate_paperclip do
         ActiveRecord::Base.transaction do
           models.each do |model|
             attachments = model.column_names.map do |c|
-              if c =~ /(.+)_file_name$/
-                $1
-              end
+              ::Regexp.last_match(1) if c =~ /(.+)_file_name$/
             end.compact
 
-            if attachments.blank?
-              next
-            end
+            next if attachments.blank?
 
             model.find_each.each do |instance|
               attachments.each do |attachment|
                 puts "#{instance}, #{attachment}"
-                if instance.send(attachment).path.blank? || !File.exists?(instance.send(attachment).path)
-                  next
-                end
+                next if instance.send(attachment).path.blank? || !File.exist?(instance.send(attachment).path)
 
                 @active_storage_blob_statement.execute(
                   key(instance, attachment),
@@ -54,7 +48,7 @@ namespace :migrate_paperclip do
                   attachment,
                   model.name,
                   instance.id,
-                  instance.updated_at.iso8601,
+                  instance.updated_at.iso8601
                 )
               end
             end
@@ -85,7 +79,7 @@ namespace :migrate_paperclip do
     MigrateToActiveStorage.new.perform
   end
 
-  desc "Moves data to correct filestore"
+  desc 'Moves data to correct filestore'
   task migrate_data: :environment do
     class MigrateData
       def perform
@@ -93,9 +87,7 @@ namespace :migrate_paperclip do
 
         models.each do |model|
           attachments = model.column_names.map do |c|
-            if c =~ /(.+)_file_name$/
-              $1
-            end
+            ::Regexp.last_match(1) if c =~ /(.+)_file_name$/
           end.compact
 
           attachments.each do |attachment|
@@ -113,7 +105,7 @@ namespace :migrate_paperclip do
           id = instance.id
 
           url = "https://s3.amazonaws.com/#{bucket}/uploads/#{attachment.pluralize}/#{id}/original/#{name}"
-          File.exists?(instance.send(attachment).path)
+          File.exist?(instance.send(attachment).path)
           instance.send(attachment.to_sym).attach(
             io: open(url),
             filename: name,
@@ -122,6 +114,6 @@ namespace :migrate_paperclip do
         end
       end
     end
-    puts "Creating blobs in active storage from paperclip"
+    puts 'Creating blobs in active storage from paperclip'
   end
 end

@@ -3,12 +3,20 @@ class TheaterDecorator < ApplicationDecorator
 
   def dt_actions
     links = []
-    links << (h.current_user.can?(:edit,
-                                  object) ? h.link_to('Edit', [:edit, :admin, object], :id => "edit_#{object.name.downcase.gsub(' ', '_')}",
-                                                                                       :class => 'tiny button') : '')
-    links << (h.current_user.can?(:destroy,
-                                  object) ? h.link_to('Destroy', [:admin, object], :confirm => 'Are you sure?', :method => :delete,
-                                                                                   :class => 'tiny alert button') : '')
+    links << (if h.current_user.can?(:edit,
+                                     object)
+                h.link_to('Edit', [:edit, :admin, object], id: "edit_#{object.name.downcase.gsub(' ', '_')}",
+                                                           class: 'tiny button')
+              else
+                ''
+              end)
+    links << (if h.current_user.can?(:destroy,
+                                     object)
+                h.link_to('Destroy', [:admin, object], confirm: 'Are you sure?', method: :delete,
+                                                       class: 'tiny alert button')
+              else
+                ''
+              end)
     h.safe_join(links, ' ')
   end
 
@@ -16,7 +24,7 @@ class TheaterDecorator < ApplicationDecorator
     begin
       host = URI.parse(object.url).host
     rescue URI::InvalidURIError
-      host = ""
+      host = ''
     end
     h.link_to(host, object.url)
   end

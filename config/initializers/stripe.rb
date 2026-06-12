@@ -18,10 +18,12 @@ StripeEvent.configure do |events|
     # Rails.logger.debug("STRIPE for #{event.data['subscription']}")
     transaction_id = event.data['object']['id']
     transaction_type = event.data['object']['object']
-    Rails.logger.debug("STRIPE FOR transaction id #{transaction_id} as #{transaction_type}")
+    Rails.logger.debug { "STRIPE FOR transaction id #{transaction_id} as #{transaction_type}" }
     event.data['object']['lines'].each do |line|
-      MembershipOrder.register_payment_to_profile(line['subscription'], (line['amount'].to_i / 100.0),
-                                                  transaction_id) unless line['subscription'].blank?
+      if line['subscription'].present?
+        MembershipOrder.register_payment_to_profile(line['subscription'], line['amount'].to_i / 100.0,
+                                                    transaction_id)
+      end
     end
   end
 
@@ -40,9 +42,9 @@ StripeEvent.configure do |events|
     unless payment.nil?
       refund_payment = payment.dup
       refund_payment.amount = CurrencyUtils.float_to_currency_decimal(BigDecimal(event.data['object']['amount_refunded'].to_s) / -100.0)
-      refund_payment.note = "Refund"
+      refund_payment.note = 'Refund'
       refund_payment.save!
-      Rails.logger.debug("REFUNDED payment from STRIPE #{refund_payment.id}")
+      Rails.logger.debug { "REFUNDED payment from STRIPE #{refund_payment.id}" }
     end
   end
 

@@ -4,7 +4,7 @@ class SendMembershipReminders
   def self.perform
     email = $EMAIL_ADDRESS['membership_notifications']
 
-    unless email.blank?
+    if email.present?
       membership_orders = MembershipOrder.where(status: Order::PROCESSED)
       OrderMailer.send(:membership_pending_reminder, membership_orders).deliver
     end

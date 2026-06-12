@@ -1,12 +1,12 @@
-require_relative "boot"
+require_relative 'boot'
 
 # Belt-and-suspenders: also loaded in config/boot.rb. Repeated here so any
 # entry point that bypasses boot.rb (webpacker:compile invoked outside the
 # normal rails command chain, certain asset precompile flows, etc.) still
 # has stdlib Logger defined before ActiveSupport reopens it.
-require "logger"
+require 'logger'
 
-require "rails/all"
+require 'rails/all'
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
@@ -17,7 +17,7 @@ module Stagemgr
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 6.0
 
-    config.autoload_paths += Dir[Rails.root.join('app', 'models', '**/')]
+    config.autoload_paths += Dir[Rails.root.join('app/models/**/')]
     config.autoload_paths << "#{config.root}/lib"
     # config.eager_load_paths << "#{config.root}/lib"
 
@@ -54,10 +54,10 @@ module Stagemgr
     config.assets.prefix = '/assets'
 
     # Configure the default encoding used in templates for Ruby 1.9.
-    config.encoding = "utf-8"
+    config.encoding = 'utf-8'
 
     # Configure sensitive parameters which will be filtered from the log file.
-    config.filter_parameters += [:password, :password_confirmation]
+    config.filter_parameters += %i[password password_confirmation]
 
     # removed below with 4.2 update
     # config.action_view.javascript_expansions[:defaults] = %w(prototype rails)
@@ -66,12 +66,12 @@ module Stagemgr
     # config.active_record.raise_in_transactional_callbacks = true
 
     initializer :after_append_asset_paths,
-                :group => :all,
-                :after => :append_assets_path do
-      $MARKDOWN = Redcarpet::Markdown.new(Redcarpet::Render::HTML, :autolink => true, :space_after_headers => true,
-                                                                   :filter_html => true)
-      $TRUSTED_MARKDOWN = Redcarpet::Markdown.new(Redcarpet::Render::HTML, :autolink => true,
-                                                                           :space_after_headers => true)
+                group: :all,
+                after: :append_assets_path do
+      $MARKDOWN = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, space_after_headers: true,
+                                                                   filter_html: true)
+      $TRUSTED_MARKDOWN = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true,
+                                                                           space_after_headers: true)
     end
 
     # manage yaml deserialization of audit records for ruby type safety workaround

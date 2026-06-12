@@ -56,7 +56,7 @@ RSpec.describe PrintBatchJob, type: :job do
 
       PrintBatchJob.perform(batch_id, order_ids)
 
-      order_ids.each_with_index do |order_id, index|
+      order_ids.each_with_index do |_order_id, index|
         expect(mock_orders[index]).to have_received(:send_to_printer_api).with(batch_id, index + 1)
       end
     end
@@ -231,10 +231,10 @@ RSpec.describe PrintBatchJob, type: :job do
       let(:mock_success_response) { OpenStruct.new(success?: false, body: 'Service error') }
 
       it 'logs the error and raises an exception' do
-        expect {
+        expect do
           PrintBatchJob.send(:create_print_batch,
                              batch_id)
-        }.to raise_error(/Failed to create print batch #{batch_id}: Service error/)
+        end.to raise_error(/Failed to create print batch #{batch_id}: Service error/)
 
         expect(Rails.logger).to have_received(:error).with(/Failed to create print batch #{batch_id}: Service error/)
       end
@@ -265,10 +265,10 @@ RSpec.describe PrintBatchJob, type: :job do
       let(:mock_success_response) { OpenStruct.new(success?: false, body: 'Service error') }
 
       it 'logs the error and raises an exception' do
-        expect {
+        expect do
           PrintBatchJob.send(:close_print_batch,
                              batch_id)
-        }.to raise_error(/Failed to close print batch #{batch_id}: Service error/)
+        end.to raise_error(/Failed to close print batch #{batch_id}: Service error/)
 
         expect(Rails.logger).to have_received(:error).with(/Failed to close print batch #{batch_id}: Service error/)
       end

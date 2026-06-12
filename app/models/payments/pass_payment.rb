@@ -1,7 +1,7 @@
 class PassPayment < Payment
   def new_exchange_offset_payment
     offset_payment = super
-    offset_payment.number_of_tickets = 0 - self.number_of_tickets
+    offset_payment.number_of_tickets = 0 - number_of_tickets
     offset_payment
   end
 
@@ -13,17 +13,17 @@ class PassPayment < Payment
 
   def new_offset_payment(partial_amount = nil, partial_number_of_tickets = nil)
     new_payment = super(partial_amount, number_of_tickets)
-    if partial_number_of_tickets.nil?
-      new_payment.number_of_tickets = (0 - new_payment.number_of_tickets)
-    else
-      new_payment.number_of_tickets = 0 - [new_payment.number_of_tickets, partial_number_of_tickets].min
-    end
+    new_payment.number_of_tickets = if partial_number_of_tickets.nil?
+                                      (0 - new_payment.number_of_tickets)
+                                    else
+                                      0 - [new_payment.number_of_tickets, partial_number_of_tickets].min
+                                    end
     new_payment
   end
 
   protected
 
   def create_refund_payment?
-    self.number_of_tickets > 0
+    number_of_tickets > 0
   end
 end

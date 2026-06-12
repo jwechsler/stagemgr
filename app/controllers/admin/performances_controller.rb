@@ -1,5 +1,5 @@
 class Admin::PerformancesController < Admin::ApplicationController
-  prepend_before_action :find_production, :except => [:seating_quickview]
+  prepend_before_action :find_production, except: [:seating_quickview]
   # before_action :find_performance, :only => [:show, :edit, :update, :destroy, :duplicate]
 
   load_and_authorize_resource
@@ -9,11 +9,11 @@ class Admin::PerformancesController < Admin::ApplicationController
   def index
     respond_to do |format|
       format.html # index.html.erb
-      format.json {
+      format.json do
         params.permit!
         render json: PerformanceDatatable.new(params, view_context: view_context, current_user: current_user,
                                                       production: @production)
-      }
+      end
     end
   end
 
@@ -22,18 +22,18 @@ class Admin::PerformancesController < Admin::ApplicationController
   def show
     respond_to do |format|
       format.html # show.html.erb
-      format.xml  { render :xml => @performance }
+      format.xml  { render xml: @performance }
     end
   end
 
   # GET /performances/new
   # GET /performances/new.xml
   def new
-    @performance = Performance.new({ :production => @production })
+    @performance = Performance.new({ production: @production })
     @performance.populate_ticket_class_allocations
     respond_to do |format|
       format.html # new.html.erb
-      format.xml  { render :xml => @performance }
+      format.xml  { render xml: @performance }
     end
   end
 
@@ -42,7 +42,7 @@ class Admin::PerformancesController < Admin::ApplicationController
     @performance = @performance.dup
     @performance.ticket_class_allocations << old_performance.ticket_class_allocations.map { |tca| tca.dup }
     @performance.save
-    render :action => :new
+    render action: :new
   end
 
   def release_held_seats
@@ -65,13 +65,13 @@ class Admin::PerformancesController < Admin::ApplicationController
     respond_to do |format|
       if @performance.save
         flash[:notice] = "Performance #{@performance.performance_code} was successfully created."
-        format.html {
+        format.html do
           redirect_to(admin_theater_production_path(@performance.production.theater, @performance.production))
-        }
-        format.xml  { render :xml => @performance, :status => :created, :location => @performance }
+        end
+        format.xml  { render xml: @performance, status: :created, location: @performance }
       else
-        format.html { render :action => "new" }
-        format.xml  { render :xml => @performance.errors, :status => :unprocessable_entity }
+        format.html { render action: 'new' }
+        format.xml  { render xml: @performance.errors, status: :unprocessable_entity }
       end
     end
   end
@@ -86,8 +86,8 @@ class Admin::PerformancesController < Admin::ApplicationController
         format.xml  { head :ok }
       else
         flash.now[:error] = @performance.errors.full_messages[0]
-        format.html { render :action => "edit" }
-        format.xml  { render :xml => @performance.errors, :status => :unprocessable_entity }
+        format.html { render action: 'edit' }
+        format.xml  { render xml: @performance.errors, status: :unprocessable_entity }
       end
     end
   end
@@ -107,9 +107,9 @@ class Admin::PerformancesController < Admin::ApplicationController
   def seating_quickview
     @qv = @performance.generate_seating_thumbnail
     respond_to do |format|
-      format.html {
+      format.html do
         render 'quickview', layout: false
-      }
+      end
     end
   end
 
@@ -165,9 +165,9 @@ class Admin::PerformancesController < Admin::ApplicationController
                                         :performance_time, :suppress_notification, :withhold_from_public, :order_url_override,
                                         :special_feature_display_markdown,
                                         :special_feature_email_markdown,
-                                        :ticket_class_allocations_attributes => [:id, :available, :ticket_limit, :shiftable, :shift_to_code,
-                                                                                 :shift_when_capacity_over, :shift_days_before_performance, :ticket_class_id],
-                                        :restricted_payment_type_ids => [],
-                                        :special_feature_ids => [])
+                                        ticket_class_allocations_attributes: %i[id available ticket_limit shiftable shift_to_code
+                                                                                shift_when_capacity_over shift_days_before_performance ticket_class_id],
+                                        restricted_payment_type_ids: [],
+                                        special_feature_ids: [])
   end
 end

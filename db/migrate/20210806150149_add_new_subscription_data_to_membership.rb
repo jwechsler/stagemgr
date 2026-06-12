@@ -6,6 +6,6 @@ class AddNewSubscriptionDataToMembership < ActiveRecord::Migration[4.2]
     remove_column :memberships, :number_cycles_completed
     remove_column :memberships, :failed_payment_count
     remove_column :memberships, :outstanding_balance
-    add_column :memberships, :cancel_at_period_end, :boolean, :default => false
+    add_column :memberships, :cancel_at_period_end, :boolean, default: false
   end
 end

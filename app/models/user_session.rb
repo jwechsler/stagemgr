@@ -5,9 +5,11 @@ class UserSession < Authlogic::Session::Base
   private
 
   def is_active?
-    errors.add(:login, 'Session expired') if self.attempted_record.nil?
-    unless self.attempted_record.nil?
-      errors.add(:login, "#{self.attempted_record.email} is currently inactive") if self.attempted_record.status.eql? User::INACTIVE
-    end
+    errors.add(:login, 'Session expired') if attempted_record.nil?
+    return if attempted_record.nil?
+
+    return unless attempted_record.status.eql? User::INACTIVE
+
+    errors.add(:login, "#{attempted_record.email} is currently inactive")
   end
 end

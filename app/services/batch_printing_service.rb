@@ -51,10 +51,8 @@ class BatchPrintingService
       else
         { error: "Failed to get batch status: #{response.body}" }
       end
-    rescue => e
+    rescue StandardError => e
       { error: "Error checking batch status: #{e.message}" }
     end
-
-    private
   end
 end

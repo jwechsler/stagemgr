@@ -32,4 +32,4 @@ class Stagemgr::Resque < Resque::Server
 end
 
 Resque::Scheduler.dynamic = true
-Resque.schedule = YAML.load_file("#{::Rails.root.to_s}/config/schedule.yml")
+Resque.schedule = YAML.load_file("#{Rails.root.join('config/schedule.yml')}")

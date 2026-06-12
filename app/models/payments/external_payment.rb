@@ -4,6 +4,6 @@ class ExternalPayment < Payment
   end
 
   def receipt_description
-    self.payment_type.display_name
+    payment_type.display_name
   end
 end

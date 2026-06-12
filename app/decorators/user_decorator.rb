@@ -2,7 +2,7 @@ class UserDecorator < ApplicationDecorator
   delegate_all
 
   def email
-    h.link_to(object.email, [:admin, object], :class => "#{'strike' if object.inactive?}")
+    h.link_to(object.email, [:admin, object], class: "#{'strike' if object.inactive?}")
   end
 
   def last_request_at
@@ -20,7 +20,7 @@ class UserDecorator < ApplicationDecorator
   end
 
   def dt_actions
-    h.link_to('Edit', [:edit, :admin, user], :class => 'tiny button')
+    h.link_to('Edit', [:edit, :admin, user], class: 'tiny button')
   end
 
   # Define presentation-specific methods here. Helpers are accessed through

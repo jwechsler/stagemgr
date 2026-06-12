@@ -177,9 +177,7 @@ class RateOfSalesAnalysis
     # don't align with the start-of-week cutoff used for actuals.
     daily_rolling = daily_rolling_revenue_for(target_production, cutoff: Date.yesterday)
     anchor_weekly = daily_rolling.values.last.to_f
-    if anchor_weekly <= 0
-      anchor_weekly = target_weekly["Week #{last_actual_week}"].to_f
-    end
+    anchor_weekly = target_weekly["Week #{last_actual_week}"].to_f if anchor_weekly <= 0
 
     target_rev_pct = weekly_pct_change_for(target_production, cutoff: cutoff, field: :gross_sales)
     momentum_pct, momentum_window = compute_momentum(target_rev_pct)
@@ -196,7 +194,7 @@ class RateOfSalesAnalysis
 
     (last_actual_week + 1..total_weeks).each do |_week_num|
       key = "Week #{_week_num}"
-      weekly = prev_weekly * (1 + momentum_pct_clamped / 100.0)
+      weekly = prev_weekly * (1 + (momentum_pct_clamped / 100.0))
       weekly = 0.0 if weekly < 0
       if weekly > remaining_budget
         weekly = [remaining_budget, 0.0].max
@@ -301,7 +299,7 @@ class RateOfSalesAnalysis
     # 2. Ticket growth comparison — use last 3 weeks only to avoid early
     # spikes (e.g., 500% when going from near-zero to real sales) that
     # make the full-run average meaningless.
-    overlapping_pct = (target_tickets_pct.keys & aggregate_pct.keys) - ["Pre-sales"]
+    overlapping_pct = (target_tickets_pct.keys & aggregate_pct.keys) - ['Pre-sales']
     compare_keys = overlapping_pct.sort_by { |k| k[/\d+/].to_i }.last(3)
     if compare_keys.size >= 2
       target_avg_pct = compare_keys.sum { |k| target_tickets_pct[k] } / compare_keys.size.to_f
@@ -313,7 +311,7 @@ class RateOfSalesAnalysis
     end
 
     # 3. Revenue growth comparison — same recent window
-    overlapping_rev = (target_revenue_pct.keys & aggregate_pct.keys) - ["Pre-sales"]
+    overlapping_rev = (target_revenue_pct.keys & aggregate_pct.keys) - ['Pre-sales']
     rev_compare_keys = overlapping_rev.sort_by { |k| k[/\d+/].to_i }.last(3)
     if rev_compare_keys.size >= 2
       target_rev_avg_pct = rev_compare_keys.sum { |k| target_revenue_pct[k] } / rev_compare_keys.size.to_f
@@ -383,7 +381,7 @@ class RateOfSalesAnalysis
   end
 
   def extract_max_week(weekly_data)
-    weekly_data.keys.grep(/^Week (\d+)$/) { $1.to_i }.max || 0
+    weekly_data.keys.grep(/^Week (\d+)$/) { ::Regexp.last_match(1).to_i }.max || 0
   end
 
   # Averages raw weekly totals across multiple productions by week label
@@ -410,7 +408,7 @@ class RateOfSalesAnalysis
     overlapping = []
 
     target_weekly.each do |label, target_val|
-      next if label == "Pre-sales" # skip pre-sales for ratio since it's a collapsed bucket
+      next if label == 'Pre-sales' # skip pre-sales for ratio since it's a collapsed bucket
 
       agg_val = aggregate_weekly[label]
       next if agg_val.nil? || agg_val <= 0 || target_val <= 0
@@ -438,7 +436,7 @@ class RateOfSalesAnalysis
     presale_cutoff = anchor - 21.days
 
     records = production.rate_of_sales
-                        .where("day_of_sale <= ?", cutoff)
+                        .where('day_of_sale <= ?', cutoff)
                         .pluck(:day_of_sale, :gross_sales)
 
     return {} if records.empty?
@@ -454,7 +452,7 @@ class RateOfSalesAnalysis
     result = {}
     (start_date..end_date).each do |date|
       rolling_sum = (0..6).sum { |i| daily_sales[date - i.days] || 0.0 }
-      result[date.strftime("%-m/%-d/%y")] = rolling_sum.round(2)
+      result[date.strftime('%-m/%-d/%y')] = rolling_sum.round(2)
     end
 
     result
@@ -473,7 +471,7 @@ class RateOfSalesAnalysis
     presale_cutoff = anchor - 21.days
 
     scope = production.rate_of_sales.order(:day_of_sale)
-    scope = scope.where("day_of_sale < ?", cutoff) if cutoff
+    scope = scope.where('day_of_sale < ?', cutoff) if cutoff
     records = scope
     return {} if records.empty?
 
@@ -484,7 +482,7 @@ class RateOfSalesAnalysis
       value = ros.send(field).to_f
 
       if day < presale_cutoff
-        buckets["Pre-sales"] += value
+        buckets['Pre-sales'] += value
       else
         week_num = ((day - presale_cutoff).to_i / 7) + 1
         buckets["Week #{week_num}"] += value
@@ -493,8 +491,8 @@ class RateOfSalesAnalysis
 
     # Return in order: Pre-sales first, then Week 1, 2, 3...
     ordered = ActiveSupport::OrderedHash.new
-    ordered["Pre-sales"] = buckets["Pre-sales"] if buckets.key?("Pre-sales")
-    max_week = buckets.keys.grep(/^Week (\d+)$/) { $1.to_i }.max || 0
+    ordered['Pre-sales'] = buckets['Pre-sales'] if buckets.key?('Pre-sales')
+    max_week = buckets.keys.grep(/^Week (\d+)$/) { ::Regexp.last_match(1).to_i }.max || 0
     (1..max_week).each do |n|
       key = "Week #{n}"
       ordered[key] = buckets[key] if buckets.key?(key)
@@ -602,15 +600,15 @@ class RateOfSalesAnalysis
 
     # Linear interpolation between the two nearest points
     fraction = position - lower
-    hist_curve[lower] * (1 - fraction) + hist_curve[upper] * fraction
+    (hist_curve[lower] * (1 - fraction)) + (hist_curve[upper] * fraction)
   end
 
   def sort_week_labels(labels)
     labels.sort_by do |label|
-      if label == "Pre-sales"
+      if label == 'Pre-sales'
         -1
       elsif label =~ /^Week (\d+)$/
-        $1.to_i
+        ::Regexp.last_match(1).to_i
       else
         999
       end

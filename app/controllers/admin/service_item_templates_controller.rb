@@ -3,15 +3,27 @@ class Admin::ServiceItemTemplatesController < Admin::ApplicationController
   def index
     respond_to do |format|
       format.html
-      format.json {
+      format.json do
         params.permit!
         render json: ServiceItemTemplateDatatable.new(params, view_context: view_context, current_user: current_user)
-      }
+      end
     end
   end
 
-  def new
+  def show
+    respond_to do |format|
+      format.html do
+        render action: 'show'
+      end
+      format.json do
+        render json: @service_item_template.to_json
+      end
+    end
   end
+
+  def new; end
+
+  def edit; end
 
   def create
     respond_to do |format|
@@ -19,12 +31,9 @@ class Admin::ServiceItemTemplatesController < Admin::ApplicationController
         flash[:notice] = raw "<i>#{@service_item_template.name}</i> was successfully created."
         format.html { redirect_to(admin_service_item_templates_path) }
       else
-        format.html { render :action => "new" }
+        format.html { render action: 'new' }
       end
     end
-  end
-
-  def edit
   end
 
   def update
@@ -34,19 +43,8 @@ class Admin::ServiceItemTemplatesController < Admin::ApplicationController
         flash[:notice] = raw "<i>#{@service_item_template.name}</i> was updated."
         format.html { redirect_to(admin_service_item_templates_path) }
       else
-        format.html { render :action => "edit" }
+        format.html { render action: 'edit' }
       end
-    end
-  end
-
-  def show
-    respond_to do |format|
-      format.html {
-        render :action => "show"
-      }
-      format.json {
-        render json: @service_item_template.to_json
-      }
     end
   end
 

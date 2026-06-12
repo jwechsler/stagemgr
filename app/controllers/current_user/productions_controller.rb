@@ -1,13 +1,13 @@
 class CurrentUser::ProductionsController < CurrentUser::ApplicationController
   prepend_before_action :find_theater
-  before_action :find_production, :only => [:show, :edit, :update, :destroy]
+  before_action :find_production, only: %i[show edit update destroy]
 
   # GET /productions/1
   # GET /productions/1.xml
   def show
     respond_to do |format|
       format.html # show.html.erb
-      format.xml  { render :xml => @production }
+      format.xml  { render xml: @production }
     end
   end
 
@@ -17,7 +17,7 @@ class CurrentUser::ProductionsController < CurrentUser::ApplicationController
     @production = @theater.productions.build
     respond_to do |format|
       format.html # new.html.erb
-      format.xml  { render :xml => @production }
+      format.xml  { render xml: @production }
     end
   end
 
@@ -33,10 +33,10 @@ class CurrentUser::ProductionsController < CurrentUser::ApplicationController
       if @production.save
         flash[:notice] = 'Production was successfully created.'
         format.html { redirect_to(edit_theater_path(@theater)) }
-        format.xml  { render :xml => @production, :status => :created, :location => @production }
+        format.xml  { render xml: @production, status: :created, location: @production }
       else
-        format.html { render :action => "new" }
-        format.xml  { render :xml => @production.errors, :status => :unprocessable_entity }
+        format.html { render action: 'new' }
+        format.xml  { render xml: @production.errors, status: :unprocessable_entity }
       end
     end
   end
@@ -50,8 +50,8 @@ class CurrentUser::ProductionsController < CurrentUser::ApplicationController
         format.html { redirect_to(edit_theater_path(@production.theater)) }
         format.xml  { head :ok }
       else
-        format.html { render :action => "edit" }
-        format.xml  { render :xml => @production.errors, :status => :unprocessable_entity }
+        format.html { render action: 'edit' }
+        format.xml  { render xml: @production.errors, status: :unprocessable_entity }
       end
     end
   end

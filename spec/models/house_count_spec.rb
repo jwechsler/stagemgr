@@ -64,19 +64,19 @@ RSpec.describe HouseCount, type: :model do
       it 'returns the highest ticket price among available, web_visible, show_in_pricing_range ticket classes' do
         production = FactoryBot.create(:production, capacity: 50)
 
-        cheap_class = FactoryBot.create(:ticket_class,
-                                        production: production,
-                                        ticket_price: 15.00,
-                                        web_visible: true,
-                                        show_in_pricing_range: true,
-                                        auto_attach: true)
+        FactoryBot.create(:ticket_class,
+                          production: production,
+                          ticket_price: 15.00,
+                          web_visible: true,
+                          show_in_pricing_range: true,
+                          auto_attach: true)
 
-        expensive_class = FactoryBot.create(:ticket_class,
-                                            production: production,
-                                            ticket_price: 40.00,
-                                            web_visible: true,
-                                            show_in_pricing_range: true,
-                                            auto_attach: true)
+        FactoryBot.create(:ticket_class,
+                          production: production,
+                          ticket_price: 40.00,
+                          web_visible: true,
+                          show_in_pricing_range: true,
+                          auto_attach: true)
 
         performance = FactoryBot.create(:general_admission, production: production, performance_date: Date.today)
 

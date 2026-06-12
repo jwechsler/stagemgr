@@ -101,12 +101,12 @@ class RevenueCalculator
       ticketing_fees  += o.ticketing_fee.to_f
       processing_fees += o.processing_fee.to_f
 
-      if o.respond_to?(:ticket_line_items)
-        tlis = o.ticket_line_items.to_a
-        comps = tlis.select(&:complimentary?).sum(&:ticket_count)
-        comp_count   += comps
-        ticket_count += tlis.sum(&:ticket_count) - comps
-      end
+      next unless o.respond_to?(:ticket_line_items)
+
+      tlis = o.ticket_line_items.to_a
+      comps = tlis.select(&:complimentary?).sum(&:ticket_count)
+      comp_count   += comps
+      ticket_count += tlis.sum(&:ticket_count) - comps
     end
 
     Result.new(

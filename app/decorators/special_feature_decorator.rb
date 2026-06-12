@@ -14,12 +14,20 @@ class SpecialFeatureDecorator < ApplicationDecorator
   end
 
   def dt_actions
-    (h.current_user.can?(:edit,
-                         object) ? h.link_to('Edit', [:edit, :admin, object], :id => "edit_#{object.short_name.downcase.gsub(' ', '_')}",
-                                                                              :class => 'tiny button') + " " : "") +
-      (h.current_user.can?(:destroy,
-                           object) ? h.link_to('Destroy', [:admin, object], :confirm => 'Are you sure?', :method => :delete,
-                                                                            :class => 'tiny alert button') : "")
+    (if h.current_user.can?(:edit,
+                            object)
+       h.link_to('Edit', [:edit, :admin, object], id: "edit_#{object.short_name.downcase.gsub(' ', '_')}",
+                                                  class: 'tiny button') + ' '
+     else
+       ''
+     end) +
+      (if h.current_user.can?(:destroy,
+                              object)
+         h.link_to('Destroy', [:admin, object], confirm: 'Are you sure?', method: :delete,
+                                                class: 'tiny alert button')
+       else
+         ''
+       end)
   end
 
   # Define presentation-specific methods here. Helpers are accessed through

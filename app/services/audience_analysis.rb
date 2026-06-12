@@ -25,12 +25,12 @@ class AudienceAnalysis
   # which sets window_start to an effectively-infinite past so every prior
   # production qualifies.
   WINDOWS = {
-    "3 months" => 3.months,
-    "6 months" => 6.months,
-    "1 year" => 1.year,
-    "3 years" => 3.years,
-    "5 years" => 5.years,
-    "Ever" => :ever
+    '3 months' => 3.months,
+    '6 months' => 6.months,
+    '1 year' => 1.year,
+    '3 years' => 3.years,
+    '5 years' => 5.years,
+    'Ever' => :ever
   }.freeze
 
   EVER_FLOOR = Date.new(1900, 1, 1).freeze
@@ -46,9 +46,7 @@ class AudienceAnalysis
     anchor = anchor_date
     cohort_address_ids = load_cohort_address_ids
 
-    if cohort_address_ids.empty?
-      return empty_result(anchor)
-    end
+    return empty_result(anchor) if cohort_address_ids.empty?
 
     # Cohort's lifetime attendance, deduped to (address_id => Set of production_ids).
     # Date of the customer's order doesn't matter here — what matters is which
@@ -130,12 +128,12 @@ class AudienceAnalysis
     cohort_address_ids = load_cohort_address_ids
     return Set.new if cohort_address_ids.empty?
 
-    return cohort_address_ids if key == "cohort"
+    return cohort_address_ids if key == 'cohort'
 
     attended_by_address = load_cohort_attendance(cohort_address_ids)
     productions_meta = load_productions_meta
 
-    if key == "returning_any"
+    if key == 'returning_any'
       all_comparison_prod_ids = productions_meta.each_with_object(Set.new) do |(prod_id, (_, _, theater_id)), set|
         set << prod_id if in_comparison?(theater_id)
       end
@@ -145,8 +143,8 @@ class AudienceAnalysis
       end.to_set
     end
 
-    if key.start_with?("previous_production:")
-      prev_id = key.split(":", 2).last.to_i
+    if key.start_with?('previous_production:')
+      prev_id = key.split(':', 2).last.to_i
       return cohort_address_ids.select do |address_id|
         attended = attended_by_address[address_id] || EMPTY_SET
         attended.include?(prev_id)
@@ -168,13 +166,13 @@ class AudienceAnalysis
       comp_visits     = (attended & comparison_prod_ids).size
       building_visits = (attended & building_prod_ids).size
       case key
-      when "first_time_vs_comparison" then comp_visits == 0
-      when "returning_vs_comparison"  then comp_visits >= 1
-      when "dedicated_customers"      then comp_count > 0 && comp_visits == comp_count
-      when "two_plus_in_comparison"   then comp_visits >= 2
-      when "first_time_vs_building"   then building_visits == 0
-      when "returning_vs_building"    then building_visits >= 1
-      when "three_plus_in_building"   then building_visits >= 3
+      when 'first_time_vs_comparison' then comp_visits == 0
+      when 'returning_vs_comparison'  then comp_visits >= 1
+      when 'dedicated_customers'      then comp_count > 0 && comp_visits == comp_count
+      when 'two_plus_in_comparison'   then comp_visits >= 2
+      when 'first_time_vs_building'   then building_visits == 0
+      when 'returning_vs_building'    then building_visits >= 1
+      when 'three_plus_in_building'   then building_visits >= 3
       else
         raise ArgumentError, "unknown segment_key #{key}"
       end
@@ -251,7 +249,7 @@ class AudienceAnalysis
   def load_cohort_attendance(address_ids)
     return {} if address_ids.empty?
 
-    quoted_ids = address_ids.to_a.join(",")
+    quoted_ids = address_ids.to_a.join(',')
     target_id = target_production.id.to_i
     sql = <<~SQL
       SELECT DISTINCT combined.address_id, combined.production_id
@@ -337,9 +335,8 @@ class AudienceAnalysis
       next if min_d.nil? || max_d.nil?
       next unless min_d <= anchor && window_start <= max_d
 
-      if scope == :comparison
-        next unless in_comparison?(theater_id)
-      end
+      next if (scope == :comparison) && !in_comparison?(theater_id)
+
       set << prod_id
     end
   end
@@ -382,7 +379,7 @@ class AudienceAnalysis
   end
 
   def attending_status_sql
-    Order::ATTENDING_STATUSES.map { |s| ActiveRecord::Base.connection.quote(s) }.join(",")
+    Order::ATTENDING_STATUSES.map { |s| ActiveRecord::Base.connection.quote(s) }.join(',')
   end
 
   def empty_result(anchor)

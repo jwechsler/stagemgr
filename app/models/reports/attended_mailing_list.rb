@@ -9,19 +9,19 @@ class AttendedMailingList < MailingList
   end
 
   def create
-    orders = TicketOrder.joins(:performance, :address).references(:performance, :address).where('performances.performance_date >= ? and performances.performance_date <= ? and addresses.placeholder <> ?', self.starting_date, self.ending_date, true).includes(
-      :address, :payments, :theater, { :performance => :production }
+    orders = TicketOrder.joins(:performance, :address).references(:performance, :address).where('performances.performance_date >= ? and performances.performance_date <= ? and addresses.placeholder <> ?', starting_date, ending_date, true).includes(
+      :address, :payments, :theater, { performance: :production }
     )
-    self.extract_addresses_from_ticket_orders(orders, true)
+    extract_addresses_from_ticket_orders(orders, true)
     productions = Production.joins(:performances).where(
-      "performances.performance_date >= :starting_date and performances.performance_date <= :ending_date", starting_date: starting_date, ending_date: ending_date
+      'performances.performance_date >= :starting_date and performances.performance_date <= :ending_date', starting_date: starting_date, ending_date: ending_date
     ).uniq
     productions.each do |production|
-      self.extract_production_attendees(production, true)
+      extract_production_attendees(production, true)
     end
 
-    file_name = "/tmp/attendees_#{self.starting_date.to_date.strftime('%y%m%d')}_#{self.ending_date.to_date.strftime('%y%m%d')}.csv"
+    file_name = "/tmp/attendees_#{starting_date.to_date.strftime('%y%m%d')}_#{ending_date.to_date.strftime('%y%m%d')}.csv"
 
-    self.save_report_to_filestore(file_name)
+    save_report_to_filestore(file_name)
   end
 end

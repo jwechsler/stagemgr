@@ -11,7 +11,7 @@ class PerformanceBroadcast < ApplicationRecord
   def recipient_orders
     performance.orders
                .joins(:address)
-               .where(status: ['Hold', 'Processed', 'Processing', 'Fulfilled'])
+               .where(status: %w[Hold Processed Processing Fulfilled])
                .where.not(addresses: { placeholder: true })
                .where.not(addresses: { email: [nil, ''] })
                .where("addresses.email LIKE '%@%'")
@@ -44,13 +44,13 @@ class PerformanceBroadcast < ApplicationRecord
     file_store = report.create
 
     # Send log only to the user who requested the broadcast
-    if user.email.present?
-      begin
-        NotificationMailer.broadcast_log_generated(file_store, user.email).deliver_now
-        Rails.logger.info("Broadcast log sent to #{user.email}")
-      rescue => e
-        Rails.logger.error("Failed to send broadcast log to #{user.email}: #{e.message}")
-      end
+    return unless user.email.present?
+
+    begin
+      NotificationMailer.broadcast_log_generated(file_store, user.email).deliver_now
+      Rails.logger.info("Broadcast log sent to #{user.email}")
+    rescue StandardError => e
+      Rails.logger.error("Failed to send broadcast log to #{user.email}: #{e.message}")
     end
   end
 end

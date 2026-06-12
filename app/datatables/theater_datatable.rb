@@ -4,7 +4,7 @@ class TheaterDatatable < DatatableBase
     # or in aliased_join_table.column_name format
     @view_columns ||= {
       name: { source: 'Theater.name' },
-      home: { source: 'Theater.url', :searchable => false },
+      home: { source: 'Theater.url', searchable: false },
       theater_class: { source: 'Theater.theater_class' },
       actions: { searchable: false, orderable: false }
     }
@@ -18,7 +18,7 @@ class TheaterDatatable < DatatableBase
         home: record.decorate.url,
         theater_class: record.decorate.theater_class,
         actions: record.decorate.dt_actions,
-        _RowID: record.id,
+        _RowID: record.id
       }
     end
   end
@@ -46,11 +46,11 @@ class TheaterDatatable < DatatableBase
   end
 
   def get_raw_records
-    if current_user.is_theater_user?
-      result = Theater.where(id: current_user.theater_ids)
-    else
-      result = Theater.all
-    end
+    result = if current_user.is_theater_user?
+               Theater.where(id: current_user.theater_ids)
+             else
+               Theater.all
+             end
     result = result.includes(:theater_tags)
     result.order(Arel.sql("CASE WHEN status='#{Theater::ACTIVE}' THEN 0 WHEN status='#{Theater::INACTIVE}' THEN 1 END"),
                  Arel.sql("CASE WHEN theater_class='#{Theater::DEFAULT}' THEN 0 WHEN theater_class = '#{Theater::COPRO}' THEN 2 ELSE 3 END"),

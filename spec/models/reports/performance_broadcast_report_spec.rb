@@ -70,14 +70,14 @@ RSpec.describe PerformanceBroadcastReport, type: :model do
 
       it 'includes all orders for the performance' do
         report = PerformanceBroadcastReport.new(broadcast)
-        file_store = report.create
+        report.create
 
         expect(report.data.size).to eq(4)
       end
 
       it 'marks eligible orders with "Email Queued" status' do
         report = PerformanceBroadcastReport.new(broadcast)
-        file_store = report.create
+        report.create
 
         # Find rows by email
         alice_row = report.data.find { |row| row[3] == 'alice@example.com' }
@@ -89,7 +89,7 @@ RSpec.describe PerformanceBroadcastReport, type: :model do
 
       it 'leaves status blank for ineligible orders' do
         report = PerformanceBroadcastReport.new(broadcast)
-        file_store = report.create
+        report.create
 
         # Find rows by email
         charlie_row = report.data.find { |row| row[3] == 'charlie@example.com' }
@@ -101,15 +101,15 @@ RSpec.describe PerformanceBroadcastReport, type: :model do
 
       it 'sorts orders by last name, then first name' do
         report = PerformanceBroadcastReport.new(broadcast)
-        file_store = report.create
+        report.create
 
         last_names = report.data.map { |row| row[0] }
-        expect(last_names).to eq(['Anderson', 'Baker', 'Chen', 'Davis'])
+        expect(last_names).to eq(%w[Anderson Baker Chen Davis])
       end
 
       it 'includes all required columns' do
         report = PerformanceBroadcastReport.new(broadcast)
-        file_store = report.create
+        report.create
 
         expect(report.headers).to eq(['Last Name', 'First Name', 'Phone', 'Email', 'Performance Code', 'Status'])
       end
@@ -118,7 +118,7 @@ RSpec.describe PerformanceBroadcastReport, type: :model do
         code = "#{production.production_code}-TEST-123"
         performance.update!(performance_code: code)
         report = PerformanceBroadcastReport.new(broadcast)
-        file_store = report.create
+        report.create
 
         expect(report.data.first[4]).to eq(code)
       end
@@ -127,7 +127,7 @@ RSpec.describe PerformanceBroadcastReport, type: :model do
         # Can't set performance_code to nil due to validation, so skip this test
         # The fallback is tested implicitly when performance_code is already set
         report = PerformanceBroadcastReport.new(broadcast)
-        file_store = report.create
+        report.create
 
         # Just verify it includes some performance identifier
         expect(report.data.first[4]).to be_present
@@ -136,9 +136,9 @@ RSpec.describe PerformanceBroadcastReport, type: :model do
       it 'creates a FileStore record' do
         report = PerformanceBroadcastReport.new(broadcast)
 
-        expect {
+        expect do
           report.create
-        }.to change { FileStore.count }.by(1)
+        end.to change { FileStore.count }.by(1)
       end
 
       it 'sets FileStore worker to REPORT' do
@@ -176,7 +176,7 @@ RSpec.describe PerformanceBroadcastReport, type: :model do
 
       it 'handles missing names gracefully' do
         report = PerformanceBroadcastReport.new(broadcast)
-        file_store = report.create
+        report.create
 
         incomplete_row = report.data.find { |row| row[3] == 'incomplete@example.com' }
         expect(incomplete_row[0]).to eq('')
@@ -185,7 +185,7 @@ RSpec.describe PerformanceBroadcastReport, type: :model do
 
       it 'handles missing phone gracefully' do
         report = PerformanceBroadcastReport.new(broadcast)
-        file_store = report.create
+        report.create
 
         incomplete_row = report.data.find { |row| row[3] == 'incomplete@example.com' }
         expect(incomplete_row[2]).to eq('')
@@ -195,7 +195,7 @@ RSpec.describe PerformanceBroadcastReport, type: :model do
     context 'with no orders' do
       it 'creates empty CSV with headers' do
         report = PerformanceBroadcastReport.new(broadcast)
-        file_store = report.create
+        report.create
 
         expect(report.data).to be_empty
         expect(report.headers).to eq(['Last Name', 'First Name', 'Phone', 'Email', 'Performance Code', 'Status'])

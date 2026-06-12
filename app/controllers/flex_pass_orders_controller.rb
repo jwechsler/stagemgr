@@ -3,25 +3,18 @@ class FlexPassOrdersController < ApplicationController
   include OrdersHelper
   include FlexPassOrdersHelper
 
-  before_action :find_order, :only => [:show, :edit, :update, :destroy]
-  before_action :redirect_to_proper_action, :only => [:edit, :show]
+  before_action :find_order, only: %i[show edit update destroy]
+  before_action :redirect_to_proper_action, only: %i[edit show]
 
   respond_to :html, :xml, :json
 
-  def new
-  end
+  def show; end
+  def show; end
+  def new; end
 
-  def confirm
-  end
+  def confirm; end
 
-  def show
-  end
-
-  def edit
-  end
-
-  def show;
-  end
+  def edit; end
 
   def create
     @order = FlexPassOrder.new(flex_pass_order_params)
@@ -36,8 +29,7 @@ class FlexPassOrdersController < ApplicationController
     create_or_update
   end
 
-  def confirm
-  end
+  def confirm; end
 
   private
 
@@ -61,13 +53,9 @@ class FlexPassOrdersController < ApplicationController
 
   def redirect_to_proper_action
     if @order.editable?
-      if params[:action] != 'edit'
-        redirect_to(edit_flex_pass_order_path(@order))
-      end
-    else
-      if params[:action] != 'show'
-        redirect_to(flex_pass_order_path(@order))
-      end
+      redirect_to(edit_flex_pass_order_path(@order)) if params[:action] != 'edit'
+    elsif params[:action] != 'show'
+      redirect_to(flex_pass_order_path(@order))
     end
   end
 end

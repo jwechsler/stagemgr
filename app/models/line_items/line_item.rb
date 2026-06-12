@@ -4,7 +4,7 @@ class LineItem < ApplicationRecord
 
   def ticket_class_code
     # self.ticket_class_code || self.ticket_class.try(:class_code)
-    self.ticket_class.try(:class_code)
+    ticket_class.try(:class_code)
   end
 
   def total
@@ -12,14 +12,14 @@ class LineItem < ApplicationRecord
   end
 
   def receipt_total
-    self.total
+    total
   end
 
   def receipt_description
-    self.to_s
+    to_s
   end
 
   def ticket?
-    return false;
+    false
   end
 end

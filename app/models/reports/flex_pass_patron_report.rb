@@ -2,18 +2,18 @@ class FlexPassPatronReport < Report
   attr_reader :starting_date, :ending_date
 
   def initialize(starting_date, ending_date, reporting_user_id = nil)
-    super([:flex_pass_order_number, :patron_name, :email, :phone, :flex_pass_code,
-           :expiration_date, :admissions_remaining, :fulfilled], reporting_user_id)
+    super(%i[flex_pass_order_number patron_name email phone flex_pass_code
+             expiration_date admissions_remaining fulfilled], reporting_user_id)
     @starting_date = starting_date.is_a?(String) ? Date.parse(starting_date) : starting_date
     @ending_date = ending_date.is_a?(String) ? Date.parse(ending_date) : ending_date
-    @data = Array.new
+    @data = []
   end
 
   def create
     # Get FlexPassOrders within the date range
-    flex_pass_orders = FlexPassOrder.joins(:flex_pass_line_item => :flex_pass)
+    flex_pass_orders = FlexPassOrder.joins(flex_pass_line_item: :flex_pass)
                                     .joins(:address)
-                                    .includes({ :flex_pass_line_item => { :flex_pass => :flex_pass_offer } }, :address)
+                                    .includes({ flex_pass_line_item: { flex_pass: :flex_pass_offer } }, :address)
                                     .where("#{FlexPassOrder.table_name}.created_at >= ? AND #{FlexPassOrder.table_name}.created_at <= ?",
                                            starting_date.beginning_of_day, ending_date.end_of_day)
                                     .order(:created_at)
@@ -26,7 +26,7 @@ class FlexPassPatronReport < Report
       fulfilled = order.status == Order::PROCESSED ? 'Y' : 'N'
 
       # Format phone number
-      phone = address.phone.present? ? address.phone : ''
+      phone = address.phone.presence || ''
 
       @data << {
         flex_pass_order_number: order.id,
@@ -41,6 +41,6 @@ class FlexPassPatronReport < Report
     end
 
     filename = "flex_pass_patron_report_#{@starting_date.strftime('%Y%m%d')}_#{@ending_date.strftime('%Y%m%d')}.csv"
-    return self.report_data(filename)
+    report_data(filename)
   end
 end

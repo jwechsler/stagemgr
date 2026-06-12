@@ -2,8 +2,8 @@ class SyncCache
   attr_accessor :addresses, :productions
 
   def initialize
-    @addresses = Hash.new
-    @productions = Hash.new
+    @addresses = {}
+    @productions = {}
   end
 
   def address(address_id)

@@ -1,10 +1,10 @@
 class PriceOverridePayment < Payment
   attr_accessor :override_type
 
-  belongs_to :source_payment_type, :class_name => 'PaymentType'
+  belongs_to :source_payment_type, class_name: 'PaymentType'
 
   def payment_type
-    if self.override_type.nil?
+    if override_type.nil?
       report_as_sales = source_payment_type&.report_as_sales_collected? || false
       self.override_type = PriceOverridePaymentType.find_or_create_by(
         report_as_sales_collected: report_as_sales,
@@ -12,7 +12,7 @@ class PriceOverridePayment < Payment
         allow_for_box_office: false
       )
     else
-      self.override_type
+      override_type
     end
   end
 

@@ -11,11 +11,11 @@ module ProductionsHelper
   end
 
   def productions_visible_to_operations
-    Production.accessible_by(current_ability).where(current_user.is_theater_user? ? "1=1" : "status != 'Inactive'").order('name')
+    Production.accessible_by(current_ability).where(current_user.is_theater_user? ? '1=1' : "status != 'Inactive'").order('name')
   end
 
   def production_image_id(production)
-    "\#showimage_#{production.id}"
+    "#showimage_#{production.id}"
   end
 
   def production_image_style(production)

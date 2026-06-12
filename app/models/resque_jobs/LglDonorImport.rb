@@ -21,8 +21,7 @@ class LglDonorImport < ImportIssuesReport
   @queue = :import
 
   # find address from import_row
-  def self.find_address_from_import_row
-  end
+  def self.find_address_from_import_row; end
 
   def self.perform(filestore_id)
     filestore = FileStore.find(filestore_id)
@@ -32,25 +31,19 @@ class LglDonorImport < ImportIssuesReport
     merged = 0
     first_name_idx = 0
     last_name_idx = 0
-    full_name_idx = 0
-    address1_idx = 0
-    address2_idx = 0
-    address3_idx = 0
-    city_idx = 0
-    state_idx = 0
-    zip_idx = 0
-    zip4_idx = 0
     email_idx = 0
-    phone_idx = 0
     address_id_idx = 0
     last_fiscal_tier_idx = 0
     current_fiscal_tier_idx = 0
-    filestore.notes = "Importing Donor Levels..."
+    filestore.notes = 'Importing Donor Levels...'
     filestore.save
     CSV.foreach(filestore.path) do |row|
-      if headers.nil? then
+      if headers.nil?
         _index = 0
-        headers = Hash[row.map { |header| _index += 1; [header, _index] }]
+        headers = Hash[row.map do |header|
+          _index += 1
+          [header, _index]
+        end]
         problems = ImportIssuesReport.new(LGL_DONOR_FIELDS, filestore.user.id)
         address_id_idx = headers['External constituent ID']
         first_name_idx = headers['First Name'] - 1
@@ -67,34 +60,34 @@ class LglDonorImport < ImportIssuesReport
           a = nil
           unless last_fiscal_tier.blank? && current_fiscal_tier.blank?
             begin
-              a = Address.find(row[address_id_idx].to_i) unless row[address_id_idx].blank?
+              a = Address.find(row[address_id_idx].to_i) if row[address_id_idx].present?
             rescue (ActiveRecord::RecordNotFound)
               begin
-                a = Address.find_by_email(row[email_idx]) if !row[email_idx].blank?
+                a = Address.find_by_email(row[email_idx]) if row[email_idx].present?
               rescue ActiveRecord::RecordNotFound
               end
             end
             puts "Found record #{a.id}" unless a.nil?
-            puts "Creating address record" if a.nil?
+            puts 'Creating address record' if a.nil?
             a = Address.new if a.nil?
             a.first_name = row[first_name_idx]
             a.last_name = row[last_name_idx]
-            a.full_name = a.first_name unless a.first_name.blank?
-            a.full_name += a.full_name.blank? ? a.last_name : " #{a.last_name}" unless a.last_name.blank?
+            a.full_name = a.first_name if a.first_name.present?
+            a.full_name += a.full_name.blank? ? a.last_name : " #{a.last_name}" if a.last_name.present?
             a.email = row[email_idx] if a.email.blank?
             a.donor_tier_for_last_fiscal_year = last_fiscal_tier
             a.donor_tier_for_current_fiscal_year = current_fiscal_tier
             a.donor_tier_updated_on = Date.today
             merge_check = a.find_original
-            merged += 1 if !merge_check.nil?
-            unless merge_check.nil? then
-              if a.id.nil? then
+            merged += 1 unless merge_check.nil?
+            unless merge_check.nil?
+              if a.id.nil?
                 # New record - save first, then merge into existing
                 a.save!
                 puts "Merging #{a.id} into #{merge_check.id}"
                 merge_check.merge_and_purge(a)
                 a = merge_check
-              elsif a.id < merge_check.id then
+              elsif a.id < merge_check.id
                 puts "Merging #{merge_check.id} into #{a.id}"
                 a.merge_and_purge(merge_check)
               else
@@ -107,7 +100,7 @@ class LglDonorImport < ImportIssuesReport
             puts "Saved address #{a.id}"
             puts "Imported: #{row}"
           end
-        rescue => e
+        rescue StandardError => e
           Rails.logger.error e.message
           row_message = ImportIssuesReport.format_exception(e)
         end
@@ -118,9 +111,9 @@ class LglDonorImport < ImportIssuesReport
     filestore.notes = "Imported #{total} contacts, merged #{merged} as donors."
     filestore.save
     fs = problems.create(import_name: filestore.file_name, result_prefix: 'donor_import_results')
-    if fs
-      fs.save!
-      ImportIssuesReport.notify_user_on_completion(fs) if problems.any_issues?
-    end
+    return unless fs
+
+    fs.save!
+    ImportIssuesReport.notify_user_on_completion(fs) if problems.any_issues?
   end
 end

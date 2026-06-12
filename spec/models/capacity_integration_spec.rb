@@ -1,8 +1,8 @@
 require 'rails_helper'
 
-RSpec.describe "Production-SeatMap Capacity Integration", type: :model do
-  context "capacity logic integration" do
-    it "prevents overselling by using actual seat count" do
+RSpec.describe 'Production-SeatMap Capacity Integration', type: :model do
+  context 'capacity logic integration' do
+    it 'prevents overselling by using actual seat count' do
       # Create a seat map with 50 seats
       seat_map = FactoryBot.create(:seat_map, seat_count: 50)
 
@@ -20,7 +20,7 @@ RSpec.describe "Production-SeatMap Capacity Integration", type: :model do
       expect(production.seat_map.capacity).to eq(50)           # actual seats
     end
 
-    it "works for general admission (no seat map)" do
+    it 'works for general admission (no seat map)' do
       production = FactoryBot.create(:production, capacity: 300)
 
       # Should use database capacity when no seat map
@@ -29,7 +29,7 @@ RSpec.describe "Production-SeatMap Capacity Integration", type: :model do
       expect(production.has_reserved_seating?).to be false
     end
 
-    it "switches capacity calculation when seat map is added" do
+    it 'switches capacity calculation when seat map is added' do
       production = FactoryBot.create(:production, capacity: 100)
 
       # Initially uses database capacity
@@ -46,7 +46,7 @@ RSpec.describe "Production-SeatMap Capacity Integration", type: :model do
       expect(production.has_general_admission?).to be false
     end
 
-    it "handles seat map removal gracefully" do
+    it 'handles seat map removal gracefully' do
       seat_map = FactoryBot.create(:seat_map, seat_count: 60)
       production = FactoryBot.create(:production, capacity: 120, venue: seat_map.venue)
       production.seat_map = seat_map
@@ -63,7 +63,7 @@ RSpec.describe "Production-SeatMap Capacity Integration", type: :model do
       expect(production.capacity).to eq(120)
     end
 
-    it "reflects real-time seat changes" do
+    it 'reflects real-time seat changes' do
       seat_map = FactoryBot.create(:seat_map, seat_count: 30)
       production = FactoryBot.create(:production, capacity: 100, venue: seat_map.venue)
       production.seat_map = seat_map

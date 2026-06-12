@@ -1,8 +1,8 @@
 require 'rails_helper'
 
-RSpec.describe "a donation order" do
-  context "when a single donation" do
-    it "should process a one-time payment accurately" do
+RSpec.describe 'a donation order' do
+  context 'when a single donation' do
+    it 'should process a one-time payment accurately' do
       @donation = FactoryBot.create(:donation_order_for_one_thousand_dollars)
       expect(@donation.status).to eq(Order::HOLD)
       expect(@donation.total_due).to eq(1000.00)

@@ -8,7 +8,7 @@ class SpecialOfferDatatable < DatatableBase
       status: { source: 'SpecialOffer.status' },
       expires: { source: 'SpecialOffer.auto_expire' },
       description: { searchable: false },
-      actions: { searchable: false },
+      actions: { searchable: false }
     }
   end
 
@@ -20,14 +20,14 @@ class SpecialOfferDatatable < DatatableBase
         description: special_offer.decorate.description,
         number_of_uses: special_offer.number_of_uses,
         status: special_offer.status,
-        expires: (special_offer.auto_expire.nil? ? "n/a" : special_offer.auto_expire.to_s),
-        DT_RowID: special_offer.id,
+        expires: (special_offer.auto_expire.nil? ? 'n/a' : special_offer.auto_expire.to_s),
+        DT_RowID: special_offer.id
       }
     end
   end
 
   def initialize(params, opts = {})
-    super(params, opts)
+    super
     @view = opts[:view_context]
   end
 
@@ -39,7 +39,7 @@ class SpecialOfferDatatable < DatatableBase
     # perf_ids = Performance.where("status != 'Inactive' and production_id in (?)",prod_ids).map {|x| x.id}
     # prevent scan... or (theater_id is null and performance_id is null and production_id is null)
     # .order("code, performance_id, production_id, theater_id")
-    special_offers = SpecialOffer.where(system_generated: false).order(:code)
+    SpecialOffer.where(system_generated: false).order(:code)
   end
 
   # ==== These methods represent the basic operations to perform on records

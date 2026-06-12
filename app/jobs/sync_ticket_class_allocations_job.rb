@@ -11,7 +11,7 @@ class SyncTicketClassAllocationsJob < ApplicationJob
     return if production.nil?
 
     performances = production.performances
-                             .where("performance_date >= ?", Date.today)
+                             .where('performance_date >= ?', Date.today)
                              .where(status: Performance.sellable_statuses)
 
     performances.find_each do |perf|
@@ -28,7 +28,7 @@ class SyncTicketClassAllocationsJob < ApplicationJob
     end
 
     production.mark_allocation_sync_completed!
-  rescue => e
+  rescue StandardError => e
     Rails.logger.error("SyncTicketClassAllocationsJob: Failed for ticket_class #{ticket_class_id} - #{e.message}")
     raise
   end

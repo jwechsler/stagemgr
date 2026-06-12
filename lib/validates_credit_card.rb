@@ -1,21 +1,23 @@
 module ActiveRecord::Validations::ClassMethods
-  DEFAULT_CREDIT_CARD_TYPES = { :visa => 'Visa', :master_card => 'MasterCard', :discover => 'Discover',
-                                :amex => 'American Express', :unknown => 'invalid' }
+  DEFAULT_CREDIT_CARD_TYPES = { visa: 'Visa', master_card: 'MasterCard', discover: 'Discover',
+                                amex: 'American Express', unknown: 'invalid' }
 
   # I don't think anyone doing the right thing will be validating more than one type and one card number per record.
   def validates_credit_card(card_number, card_type, options)
     with = options[:with] || DEFAULT_CREDIT_CARD_TYPES
     validates_each(card_number, options) do |record, attr_name, value|
       type = record.send(card_type)
-      record.errors.add(attr_name,
-                        "is not a valid #{type.humanize} card") unless passes_luhn?(value) and with[card_bin(value)] == type
+      unless passes_luhn?(value) and with[card_bin(value)] == type
+        record.errors.add(attr_name,
+                          "is not a valid #{type.humanize} card")
+      end
     end
   end
 
   def validates_credit_card_if_new(card_number, card_type, options, confirmation_code)
-    if confirmation_code.blank?
-      validates_credit_card(card_number, card_type, options)
-    end
+    return if confirmation_code.present?
+
+    validates_credit_card(card_number, card_type, options)
   end
 
   # example
@@ -27,8 +29,10 @@ module ActiveRecord::Validations::ClassMethods
     validates_each(card_type) do |record, attr_name, value|
       card_number = record.send against
       type = card_bin(card_number)
-      record.errors.add(attr_name,
-                        " is #{value.humanize} but it looks more like a #{with[type].humanize} card.") if value != with[type]
+      if value != with[type]
+        record.errors.add(attr_name,
+                          " is #{value.humanize} but it looks more like a #{with[type].humanize} card.")
+      end
     end
   end
 
@@ -43,10 +47,10 @@ module ActiveRecord::Validations::ClassMethods
   def passes_luhn?(number)
     # Luhn check from http://blog.internautdesign.com/2007/4/18/ruby-luhn-check-aka-mod-10-formula
     odd = true
-    number.to_s.gsub(/\D/, '').reverse.split('').map(&:to_i).collect { |d|
+    number.to_s.gsub(/\D/, '').reverse.split('').map(&:to_i).collect do |d|
       d *= 2 if odd = !odd
       d > 9 ? d - 9 : d
-    }.sum % 10 == 0
+    end.sum % 10 == 0
   end
 
   def passes_bin?(type, number)

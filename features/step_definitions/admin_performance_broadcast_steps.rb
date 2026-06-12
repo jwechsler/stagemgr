@@ -10,7 +10,7 @@ Given(/^the performance "(.*?)" has (\d+) processed orders with valid email addr
                                 email: "customer#{i}@example.com",
                                 placeholder: false,
                                 first_name: "Customer#{i}",
-                                last_name: "Test")
+                                last_name: 'Test')
     order = TicketOrder.new(
       performance: performance,
       address: address,
@@ -110,9 +110,9 @@ Given(/^a performance broadcast exists for performance "(.*?)"$/) do |perf_code|
   FactoryBot.create(:performance_broadcast,
                     performance: performance,
                     user: user,
-                    subject: "Previous broadcast",
-                    from_address: "boxoffice@theaterwit.org",
-                    body: "Previous message")
+                    subject: 'Previous broadcast',
+                    from_address: 'boxoffice@theaterwit.org',
+                    body: 'Previous message')
 end
 
 # Modal interaction steps
@@ -237,7 +237,7 @@ Then(/^no performance broadcast should be created$/) do
 end
 
 Then(/^(\d+) outreach tasks should be created for the broadcast$/) do |count|
-  broadcast = PerformanceBroadcast.last
+  PerformanceBroadcast.last
   expect(OutreachTask.where(method_symbol: 'custom_performance_broadcast').count).to eq(count.to_i)
 end
 

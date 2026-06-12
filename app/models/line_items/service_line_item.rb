@@ -1,18 +1,18 @@
 class ServiceLineItem < LineItem
   belongs_to :order, inverse_of: :service_line_items
 
-  validates_numericality_of :amount, :greater_than_or_equal_to => 0
-  validates_numericality_of :facility_fee
-  validates_presence_of :description, :facility_fee, :amount
+  validates :amount, numericality: { greater_than_or_equal_to: 0 }
+  validates :facility_fee, numericality: true
+  validates :description, :facility_fee, :amount, presence: true
   attr_accessor :name
 
   def total
-    if (self.order.nil? || self.order.payment_type.nil?)
-      return self.amount
-    elsif (self.suppress_for_pass_payments? && self.order.payment_type.is_a?(PassPaymentType))
-      return 0.0
+    if order.nil? || order.payment_type.nil?
+      amount
+    elsif suppress_for_pass_payments? && order.payment_type.is_a?(PassPaymentType)
+      0.0
     else
-      return self.amount
+      amount
     end
   end
 end

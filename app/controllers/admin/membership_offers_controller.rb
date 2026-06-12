@@ -4,43 +4,41 @@ class Admin::MembershipOffersController < ApplicationController
   def index
     respond_to do |format|
       format.html
-      format.json {
+      format.json do
         params.permit!
         render json: MembershipOfferDatatable.new(params, view_context: view_context)
-      }
+      end
     end
   end
 
-  def show
-  end
+  def show; end
 
   def new
     @membership_offer = MembershipOffer.new
   end
 
+  def edit; end
+
   def create
     @membership_offer = MembershipOffer.new(membership_offer_params)
     if @membership_offer.save
-      redirect_to [:admin, @membership_offer], :notice => "Successfully created membership offer."
+      redirect_to [:admin, @membership_offer], notice: 'Successfully created membership offer.'
     else
-      render :action => 'new'
+      render action: 'new'
     end
-  end
-
-  def edit
   end
 
   def update
     if @membership_offer.update(membership_offer_params)
-      redirect_to [:admin, @membership_offer], :success => "Successfully updated membership offer."
+      redirect_to [:admin, @membership_offer], success: 'Successfully updated membership offer.'
     else
-      render :action => 'edit'
+      render action: 'edit'
     end
   end
 
   def destroy
     @membership_offer.destroy
-    redirect_to admin_membership_offers_url, :notice => "Successfully destroyed membership offer."
+    redirect_to admin_membership_offers_url, notice: 'Successfully destroyed membership offer.'
   end
 
   private

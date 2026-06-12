@@ -31,7 +31,7 @@ FactoryBot.define do
 
   factory :ticket_class_allocation do
     association :performance
-    association :ticket_class, :factory => :ticket_class
+    association :ticket_class, factory: :ticket_class
     available { true }
   end
 end

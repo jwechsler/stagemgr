@@ -13,7 +13,7 @@ class Ability
     alias_action :membership_usage, to: :membership_reports
     alias_action :autocomplete_service_item_template_name, to: :modify_service_items
 
-    can :read, FlexPassOffer, ["on_sale_to_public = ?", true] do |offer|
+    can :read, FlexPassOffer, ['on_sale_to_public = ?', true] do |offer|
       offer.on_sale_to_public?
     end
 
@@ -23,45 +23,45 @@ class Ability
 
     can :read, [TicketOrder, DonationOrder]
 
-    can :read, Production, ["theater_id in (?)", user.theater_ids] do |production|
+    can :read, Production, ['theater_id in (?)', user.theater_ids] do |production|
       user.theater_ids.include?(production.id)
     end
 
     can :update_notes, Order
-    can :read, FlexPassOffer, ["theater_id in (?)", user.theater_ids] do |flex_pass_offer|
+    can :read, FlexPassOffer, ['theater_id in (?)', user.theater_ids] do |flex_pass_offer|
       user.theater_ids.include?(flex_pass_offer.theater_id)
     end
 
-    can [:create, :update, :update_notes, :confirm, :quickview, :new_for_production], TicketOrder
+    can %i[create update update_notes confirm quickview new_for_production], TicketOrder
     can :seat_unlimited, SeatAssignment
-    can [:create, :hold_existing], TicketOrder
+    can %i[create hold_existing], TicketOrder
     can :prehold, TicketOrder do |order|
       order.performance.production.season_seating?
     end
     can :auto_complete, Production
     can :autocomplete_tag, Address
-    can [:seating_quickview, :auto_complete], Performance
+    can %i[seating_quickview auto_complete], Performance
     can :auto_complete, SpecialOffer
-    can [:read, :update], Theater, id: user.theater_ids
+    can %i[read update], Theater, id: user.theater_ids
     can :read, Production, theater_id: user.theater_ids
     can :read, FlexPassOffer, theater_id: user.theater_ids
     can :read, Address,
-        ["addresses.id in (select orders.address_id from orders where orders.theater_id in (?))", user.theater_ids] do |address|
+        ['addresses.id in (select orders.address_id from orders where orders.theater_id in (?))', user.theater_ids] do |address|
       address.orders.map { |o| o.theater_id }.intersection(user.theater_ids).size > 0
     end
 
-    can [:make, :update, :edit, :autocomplete_address], Address
+    can %i[make update edit autocomplete_address], Address
 
     can :cancel_held_during_seating, TicketOrder
     can :read, Performance
     can :read, ServiceItemTemplate
     can :view_backend_classes, TicketClassAllocation
-    can [:read, :show_reports], Report
+    can %i[read show_reports], Report
     can :perform_analysis, Analysis unless user.is_box_office_user?
-    can [:autocomplete_production_production_code,
-         :autocomplete_performance_performance_code,
-         :autocomplete_ticket_line_item_ticket_class_code,
-         :autocomplete_special_offer_special_offer_code],
+    can %i[autocomplete_production_production_code
+           autocomplete_performance_performance_code
+           autocomplete_ticket_line_item_ticket_class_code
+           autocomplete_special_offer_special_offer_code],
         TicketOrder
     return if user.is_theater_user? && !user.is_resident?
 
@@ -69,37 +69,37 @@ class Ability
     return if user.is_theater_user?
 
     # below is for box office staff
-    can [:read, :update], Order
-    can [:cancel, :cru], FlexPassOrder
-    can [:manage, :duplicate, :create, :delete, :release_held_seats, :email_attendees], Performance
+    can %i[read update], Order
+    can %i[cancel cru], FlexPassOrder
+    can %i[manage duplicate create delete release_held_seats email_attendees], Performance
     can :read, Address
-    can [:read, :create, :edit, :update, :duplicate, :send_sample_confirmation, :send_sample_followup], Production
+    can %i[read create edit update duplicate send_sample_confirmation send_sample_followup], Production
     can :view_system_options, UserSession
     can :read, PaymentType
     can :manage, Theater
     can [:manage], DonationOrder
 
-    can [:unclaimed, :fulfill_selected], Order
+    can %i[unclaimed fulfill_selected], Order
     can :swipe_card, Order
-    can [:swipe_card, :confirm_credit_card, :hold, :mark_unclaimed, :resend_confirmation], TicketOrder
-    can [:fulfill, :read], [Order, TicketOrder, FlexPassOrder, MembershipOrder]
+    can %i[swipe_card confirm_credit_card hold mark_unclaimed resend_confirmation], TicketOrder
+    can %i[fulfill read], [Order, TicketOrder, FlexPassOrder, MembershipOrder]
     can :confirm_credit_card, [Order, TicketOrder, FlexPassOrder, MembershipOrder]
     can :cru, FlexPassOrder
     can :manage, TicketClass
     can :manage, FlexPassOffer
     can :view_email, Address
-    can [:box_office_reports, :house_management_reports, :membership_reports, :reconciliation_reports], Report
-    can [:create, :read, :reactivate, :cancel, :update_seating], MembershipOrder
-    can [:read, :edit], MembershipOffer
+    can %i[box_office_reports house_management_reports membership_reports reconciliation_reports], Report
+    can %i[create read reactivate cancel update_seating], MembershipOrder
+    can %i[read edit], MembershipOffer
     can :manage, SpecialFeature
     can :manage, SpecialOffer
     can :cru, DonationOrder
-    can [:read, :cru, :mailing_cards], FileStore
+    can %i[read cru mailing_cards], FileStore
     can :read, MembershipOffer
     can :read, FlexPassOffer
-    can [:cancel, :reprint, :refund, :sell_past_performances, :order_anytime], [Order, TicketOrder]
+    can %i[cancel reprint refund sell_past_performances order_anytime], [Order, TicketOrder]
     can :exchange, TicketOrder
-    can [:split, :finalize_split], TicketOrder
+    can %i[split finalize_split], TicketOrder
     can :convert_to_donation, TicketOrder
     can :cru, Venue
     can :cru, ServiceItemTemplate
@@ -122,7 +122,7 @@ class Ability
     can [:delete], [TicketOrder, DonationOrder, FlexPassOrder, MembershipOrder]
     can :manage, User
     can :manage, MembershipOffer
-    can [:membership_reports, :fulfill_donations, :mine_customer_data], Report
+    can %i[membership_reports fulfill_donations mine_customer_data], Report
     can :manage, DefaultTicketClass
   end
 end

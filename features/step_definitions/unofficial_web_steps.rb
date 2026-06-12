@@ -1,7 +1,7 @@
-Given /^I debug stuff$/ do
+Given(/^I debug stuff$/) do
   require 'ruby-debug'
   debugger
-  a = 1
+  1
 end
 
 # this needs to be reimplmented
@@ -11,14 +11,14 @@ end
 #  end
 # end
 
-Then /^['"]([^\"]*)['"] should link to ['"]([^\"]*)"(?: within "([^\"]*)")$/ do |link_text,
+Then(/^['"]([^"]*)['"] should link to ['"]([^"]*)"(?: within "([^"]*)")$/) do |link_text,
 page_name, container|
   with_scope(container) do
     URI.parse(page.find_link(link_text)['href']).path.should == path_to(page_name)
   end
 end
 
-Then /^a link exists to "(.*?)"$/ do |arg1|
+Then(/^a link exists to "(.*?)"$/) do |arg1|
   page.should have_xpath("//a[@href='" + arg1 + "']")
 end
 
@@ -53,24 +53,24 @@ end
 #   end
 # end
 
-Given /^I change "(.*?)" to "(.*?)"$/ do |field, value|
-  fill_in(field, :with => value)
+Given(/^I change "(.*?)" to "(.*?)"$/) do |field, value|
+  fill_in(field, with: value)
 end
 
-Given /^I select ([0-9]+\/[0-9]+\/[0-9]+) from "([^\"]*)"$/ do |date, field|
+Given(%r{^I select ([0-9]+/[0-9]+/[0-9]+) from "([^"]*)"$}) do |date, field|
   parent_of_date = find(:xpath, "//label[contains(.,'#{field}')]")['for']
-  parent_of_date.gsub! /_1i/, ''
+  parent_of_date.gsub!('_1i', '')
   select_date_by_id(date, parent_of_date)
 end
 
-When /^I attach the test file "([^\"]*)" to "([^\"]*)"$/ do |filename, field|
+When(/^I attach the test file "([^"]*)" to "([^"]*)"$/) do |filename, field|
   path = Rails.root.join('test', 'files', filename).to_s
   attach_file(field, path)
 end
-Then /^["']([^"]*)['"] should link to ['"]([^"]*)['"]$/ do |link_text, page_name|
+Then(/^["']([^"]*)['"] should link to ['"]([^"]*)['"]$/) do |link_text, page_name|
   URI.parse(page.find_link(link_text)['href']).path.should == path_to(page_name)
 end
 
-Then /^"([^"]*)" should not link to "([^"]*)"$/ do |link_text, page_name|
+Then(/^"([^"]*)" should not link to "([^"]*)"$/) do |link_text, page_name|
   URI.parse(page.find_link(link_text)['href']).path.should != path_to(page_name)
 end

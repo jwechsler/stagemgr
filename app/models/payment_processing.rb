@@ -1,4 +1,4 @@
-require "active_merchant/billing/rails"
+require 'active_merchant/billing/rails'
 require 'json'
 module PaymentProcessing
   class BogusResponse < ActiveMerchant::Billing::Response
@@ -15,7 +15,7 @@ module PaymentProcessing
       # response = BogusResponse.new(true, "", options)
       response.params['profile_id'] = profile_id
       response.params['profile_status'] = 'ActiveProfile'
-      BogusGateway.profiles = Hash.new if BogusGateway.profiles.nil?
+      BogusGateway.profiles = ({}) if BogusGateway.profiles.nil?
       if BogusGateway.profiles[profile_id].nil?
         balance = money
         BogusGateway.profiles[profile_id] = response.params.merge({
@@ -29,13 +29,13 @@ module PaymentProcessing
     end
 
     def status_recurring(profile_id)
-      r = BogusResponse.new(true, "Forced Response")
+      r = BogusResponse.new(true, 'Forced Response')
       r.params['profile_id'] = profile_id
       r.params['profile_status'] = 'ActiveProfile'
-      BogusGateway.profiles ||= Hash.new
-      if BogusGateway.profiles[profile_id].nil? then
-        BogusGateway.profiles[profile_id] = { 'balance': 9900, 'outstanding_balance': 9900, 'aggregate_amount': 0,
-                                              'number_cycles_completed': 0, 'final_payment_due_date': Date.today + 1.year }
+      BogusGateway.profiles ||= {}
+      if BogusGateway.profiles[profile_id].nil?
+        BogusGateway.profiles[profile_id] = { balance: 9900, outstanding_balance: 9900, aggregate_amount: 0,
+                                              number_cycles_completed: 0, final_payment_due_date: Date.today + 1.year }
       end
       r.params.merge!(BogusGateway.profiles[profile_id])
       r
@@ -45,31 +45,31 @@ module PaymentProcessing
       self.price_id = price_id
     end
 
-    def create_subscription(order)
-      return 'TESTSUBSCRIPTION'
+    def create_subscription(_order)
+      'TESTSUBSCRIPTION'
     end
 
-    def subscription_url(subscription_id)
-      return Rails.root + "TESTSUBSCRIPTION"
+    def subscription_url(_subscription_id)
+      Rails.root + 'TESTSUBSCRIPTION'
     end
 
-    def external_type(transaction_id)
-      return "test"
+    def external_type(_transaction_id)
+      'test'
     end
 
-    def external_url(transaction_id)
-      return "http://localhost"
+    def external_url(_transaction_id)
+      'http://localhost'
     end
   end
 
   def self.after_initialize
-    if $PAYMENT_CONFIG['default_gateway'].eql?('paypal') || $PAYMENT_CONFIG['default_recurring_gateway'].eql?('paypal') then
-      unless Rails.credentials.dig(:paypal, :pem_file).nil?
-        pem_file = File.read(::Rails.root.to_s + "/config/#{Rails.credentials.dig(:paypal, :pem_file)}")
-        ActiveMerchant::Billing::PaypalGateway.pem_file = pem_file
-      end
+    if ($PAYMENT_CONFIG['default_gateway'].eql?('paypal') || $PAYMENT_CONFIG['default_recurring_gateway'].eql?('paypal')) && !Rails.credentials.dig(
+      :paypal, :pem_file
+    ).nil?
+      pem_file = File.read(::Rails.root.to_s + "/config/#{Rails.credentials.dig(:paypal, :pem_file)}")
+      ActiveMerchant::Billing::PaypalGateway.pem_file = pem_file
     end
-    if $PAYMENT_CONFIG['default_gateway'].eql?('stripe') || $PAYMENT_CONFIG['default_recurring_gateway'].eql?('stripe') then
+    if $PAYMENT_CONFIG['default_gateway'].eql?('stripe') || $PAYMENT_CONFIG['default_recurring_gateway'].eql?('stripe')
       Stripe.api_key = Rails.application.credentials.dig(:stripe, :secret_key)
     end
   end
@@ -83,28 +83,28 @@ module PaymentProcessing
     requested_gateway ||= default_gateway
     case requested_gateway
     when 'paypal'
-      if Rails.credentials.dig(:paypal, :signature).nil? then
-        ActiveMerchant::Billing::PaypalGateway.new(:login => Rails.credentials.dig(:paypal, :login),
-                                                   :password => Rails.credentials.dig(
+      if Rails.credentials.dig(:paypal, :signature).nil?
+        ActiveMerchant::Billing::PaypalGateway.new(login: Rails.credentials.dig(:paypal, :login),
+                                                   password: Rails.credentials.dig(
                                                      :paypal, :password
                                                    ))
       else
-        ActiveMerchant::Billing::PaypalGateway.new(:login => Rails.credentials.dig(:paypal, :login),
-                                                   :password => Rails.credentials.dig(
+        ActiveMerchant::Billing::PaypalGateway.new(login: Rails.credentials.dig(:paypal, :login),
+                                                   password: Rails.credentials.dig(
                                                      :paypal, :password
                                                    ),
-                                                   :signature => Rails.credentials.dig(
+                                                   signature: Rails.credentials.dig(
                                                      :paypal, :signature
                                                    ))
       end
     when 'paypal_express'
-      ActiveMerchant::Billing::PaypalExpressGateway.new(:login => Rails.credentials.dig(:paypal_express, :login),
-                                                        :password => Rails.credentials.dig(
+      ActiveMerchant::Billing::PaypalExpressGateway.new(login: Rails.credentials.dig(:paypal_express, :login),
+                                                        password: Rails.credentials.dig(
                                                           :paypal, :password
                                                         ))
     when 'stripe'
       Stripe.api_key = Rails.application.credentials.dig(:stripe, :secret_key)
-      StripeGateway.new(:login => Stripe.api_key)
+      StripeGateway.new(login: Stripe.api_key)
 
     when 'bogus'
       PaymentProcessing::BogusGateway.new
@@ -117,24 +117,26 @@ module PaymentProcessing
 
   def self.credit_card(card_type, first_name, last_name, card_number, card_expiration_month, card_expiration_year,
                        verification_number)
-    Rails.logger.debug("Using test credit card number of #{$PAYMENT_CONFIG['test_credit_card']}") if $PAYMENT_CONFIG.has_key?('test_credit_card')
+    if $PAYMENT_CONFIG.has_key?('test_credit_card')
+      Rails.logger.debug { "Using test credit card number of #{$PAYMENT_CONFIG['test_credit_card']}" }
+    end
     credit_card = ActiveMerchant::Billing::CreditCard.new(
-      :brand => credit_card_type(card_type),
-      :first_name => first_name,
-      :last_name => last_name,
-      :number => $PAYMENT_CONFIG.has_key?('test_credit_card') ? $PAYMENT_CONFIG['test_credit_card'].to_s : card_number,
-      :month => card_expiration_month,
-      :year => card_expiration_year,
-      :verification_value => verification_number
+      brand: credit_card_type(card_type),
+      first_name: first_name,
+      last_name: last_name,
+      number: $PAYMENT_CONFIG.has_key?('test_credit_card') ? $PAYMENT_CONFIG['test_credit_card'].to_s : card_number,
+      month: card_expiration_month,
+      year: card_expiration_year,
+      verification_value: verification_number
     )
-    raise InvalidCreditCard, credit_card.errors.map { |field, message|
-      "#{field} #{message}"
-    }.join(", ") unless credit_card.valid?
+    unless credit_card.valid?
+      raise InvalidCreditCard, credit_card.errors.map { |field, message|
+        "#{field} #{message}"
+      }.join(', ')
+    end
 
     credit_card
   end
-
-  private
 
   def self.default_recurring_gateway
     $PAYMENT_CONFIG['default_recurring_gateway']
@@ -157,11 +159,11 @@ module PaymentProcessing
 
     case ctype
     when 'MasterCard'
-      "master"
+      'master'
     when 'master_card'
-      "master"
+      'master'
     when 'American Express'
-      "american_express"
+      'american_express'
     else
       ctype
     end

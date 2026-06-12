@@ -8,6 +8,16 @@ class MembershipOrdersController < ApplicationController
     types.select { |t| t.is_a? CreditCardPaymentType }
   end
 
+  def show; end
+
+  def new
+    @order = build_membership_order(params[:membership_offer_id].to_i)
+  end
+
+  def edit
+    @order = MembershipOrder.find(params[:id])
+  end
+
   def create
     @order = MembershipOrder.new(membership_order_params)
     update_or_create
@@ -19,19 +29,7 @@ class MembershipOrdersController < ApplicationController
     update_or_create
   end
 
-  def show
-  end
-
-  def edit
-    @order = MembershipOrder.find(params[:id])
-  end
-
-  def new
-    @order = build_membership_order(params[:membership_offer_id].to_i)
-  end
-
-  def checkout
-  end
+  def checkout; end
 
   protected
 

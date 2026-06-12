@@ -1,19 +1,19 @@
 class CreateUsers < ActiveRecord::Migration[4.2]
   def self.up
     create_table :users do |t|
-      t.string    :email,               :null => false                # optional, you can use login instead, or both
-      t.string    :crypted_password,    :null => false                # optional, see below
-      t.string    :password_salt,       :null => false                # optional, but highly recommended
-      t.string    :persistence_token,   :null => false                # required
-      t.string    :single_access_token, :null => false                # optional, see Authlogic::Session::Params
-      t.string    :perishable_token,    :null => false                # optional, see Authlogic::Session::Perishability
+      t.string    :email,               null: false                # optional, you can use login instead, or both
+      t.string    :crypted_password,    null: false                # optional, see below
+      t.string    :password_salt,       null: false                # optional, but highly recommended
+      t.string    :persistence_token,   null: false                # required
+      t.string    :single_access_token, null: false                # optional, see Authlogic::Session::Params
+      t.string    :perishable_token,    null: false                # optional, see Authlogic::Session::Perishability
 
-      t.boolean   :is_administrator,    :null => false
-      t.boolean   :is_box_office_user,  :null => false
+      t.boolean   :is_administrator,    null: false
+      t.boolean   :is_box_office_user,  null: false
 
       # Magic columns, just like ActiveRecord's created_at and updated_at. These are automatically maintained by Authlogic if they are present.
-      t.integer   :login_count,         :null => false, :default => 0 # optional, see Authlogic::Session::MagicColumns
-      t.integer   :failed_login_count,  :null => false, :default => 0 # optional, see Authlogic::Session::MagicColumns
+      t.integer   :login_count,         null: false, default: 0 # optional, see Authlogic::Session::MagicColumns
+      t.integer   :failed_login_count,  null: false, default: 0 # optional, see Authlogic::Session::MagicColumns
       t.datetime  :last_request_at                                    # optional, see Authlogic::Session::MagicColumns
       t.datetime  :current_login_at                                   # optional, see Authlogic::Session::MagicColumns
       t.datetime  :last_login_at                                      # optional, see Authlogic::Session::MagicColumns
@@ -22,7 +22,7 @@ class CreateUsers < ActiveRecord::Migration[4.2]
 
       t.timestamps
 
-      t.string :status, :default => User::ACTIVE
+      t.string :status, default: User::ACTIVE
     end
     #
     # Add indexes

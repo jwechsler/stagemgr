@@ -1,6 +1,6 @@
 class Admin::FlexPassOrdersController < Admin::OrdersController
   load_and_authorize_resource
-  before_action :redirect_edits_to_proper_action, :only => [:edit]
+  before_action :redirect_edits_to_proper_action, only: [:edit]
 
   include OrdersHelper
   include FlexPassOrdersHelper
@@ -8,23 +8,22 @@ class Admin::FlexPassOrdersController < Admin::OrdersController
   def show
     respond_to do |format|
       format.html # show.html.erb
-      format.json {
+      format.json do
         params.permit!
         render json: FlexPassOrdersDatatable.new(params, view_context: view_context, current_user: current_user,
                                                          flex_pass: @order.flex_pass)
-      }
+      end
     end
   end
 
-  def edit
+  def edit; end
+
+  def create
+    create_or_update(@flex_pass_order)
   end
 
   def update
     @flex_pass_order.update(flex_pass_order_params)
-    create_or_update(@flex_pass_order)
-  end
-
-  def create
     create_or_update(@flex_pass_order)
   end
 

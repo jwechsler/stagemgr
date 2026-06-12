@@ -12,7 +12,7 @@
 #        Add DRY_RUN=1 to preview changes without modifying data.
 
 dry_run = ENV['DRY_RUN'] == '1'
-puts dry_run ? "=== DRY RUN MODE ===" : "=== LIVE RUN ==="
+puts dry_run ? '=== DRY RUN MODE ===' : '=== LIVE RUN ==='
 
 all_overrides = PriceOverridePaymentType.all.to_a
 puts "\nFound #{all_overrides.size} PriceOverridePaymentType records:"
@@ -30,9 +30,9 @@ if all_overrides.size <= 1
 end
 
 # Group by the attributes that should distinguish records
-groups = all_overrides.group_by { |pt|
+groups = all_overrides.group_by do |pt|
   [pt[:report_as_sales_collected], pt[:report_as_production_revenue]]
-}
+end
 
 total_reassigned = 0
 total_deleted = 0
@@ -58,9 +58,7 @@ groups.each do |(report_sales, report_rev), records|
     if payment_ids.any?
       puts "  Reassigning #{payment_ids.size} payments from id=#{dup.id} to id=#{canonical.id} " \
            "(payment ids: #{payment_ids.join(', ')})"
-      unless dry_run
-        Payment.where(payment_type_id: dup.id).update_all(payment_type_id: canonical.id)
-      end
+      Payment.where(payment_type_id: dup.id).update_all(payment_type_id: canonical.id) unless dry_run
       total_reassigned += payment_ids.size
     end
 

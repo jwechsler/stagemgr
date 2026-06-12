@@ -7,21 +7,21 @@ class CurrentUser::AccountsController < CurrentUser::ApplicationController
     @gross_sales_data = @rate_of_sales.group_by(&:production).map do |production, sales|
       {
         name: production.name,
-        data: sales.group_by(&:day_of_sale).map { |day, sales_for_day|
+        data: sales.group_by(&:day_of_sale).map do |day, sales_for_day|
           [day.strftime('%Y-%m-%d'),
            sales_for_day.sum(&:gross_sales) - sales_for_day.sum(&:processing_fees)]
-        }.to_h
+        end.to_h
       }
     end
     # Aggregate sales data by theater for all dates
-    @theater_sales_data = @rate_of_sales.group_by { |rate_of_sale|
+    @theater_sales_data = @rate_of_sales.group_by do |rate_of_sale|
       rate_of_sale.production.theater
-    }.map do |theater, sales|
+    end.map do |theater, sales|
       {
         name: theater.name,
-        data: sales.group_by(&:theater).map { |theater, sales_for_day|
+        data: sales.group_by(&:theater).map do |theater, sales_for_day|
           [theater.name, sales_for_day.sum(&:gross_sales)]
-        }.to_h,
+        end.to_h,
         producing: theater.producing?,
         total_tickets: sales.sum(&:total_single_tickets),
         total_comps: sales.sum(&:total_complimentary_tickets),
@@ -31,14 +31,14 @@ class CurrentUser::AccountsController < CurrentUser::ApplicationController
     end.sort_by { |t| -t[:total_gross_sales] }
 
     unless current_user.is_theater_user?
-      @gross_sales_data = @rate_of_sales.select { |sales_data|
+      @gross_sales_data = @rate_of_sales.select do |sales_data|
         sales_data.production.theater.producing?
-      }.group_by(&:production).map do |production, sales|
+      end.group_by(&:production).map do |production, sales|
         {
           name: production.name,
-          data: sales.group_by(&:day_of_sale).map { |day, sales_for_day|
+          data: sales.group_by(&:day_of_sale).map do |day, sales_for_day|
             [day.strftime('%Y-%m-%d'), sales_for_day.sum(&:gross_sales)]
-          }.to_h
+          end.to_h
         }
       end
       @rate_of_sales = @rate_of_sales.select { |sale| sale.production.theater.producing? }
@@ -103,14 +103,14 @@ class CurrentUser::AccountsController < CurrentUser::ApplicationController
   def update
     @user = current_user # makes our views "cleaner" and more consistent
     if @user.update(user_params[:user])
-      flash[:notice] = "Account updated!"
+      flash[:notice] = 'Account updated!'
       redirect_to current_user_account_url
     else
-      render :action => :edit
+      render action: :edit
     end
   end
 
   def user_params
-    params.permit(user: [:email, :password, :status, :is_administrator, :is_box_office_user, :theater_ids => []])
+    params.permit(user: [:email, :password, :status, :is_administrator, :is_box_office_user, { theater_ids: [] }])
   end
 end

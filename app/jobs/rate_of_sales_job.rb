@@ -9,7 +9,7 @@ class RateOfSalesJob < ApplicationJob
   SELF_HEAL_WINDOW_DAYS = 30
 
   def self.perform(mode = nil)
-    if mode == "today"
+    if mode == 'today'
       calculate_for_today
     else
       calculate_recent_days(Date.yesterday, SELF_HEAL_WINDOW_DAYS)
@@ -56,7 +56,7 @@ class RateOfSalesJob < ApplicationJob
     existing_dates = RateOfSale.distinct.pluck(:day_of_sale).to_set
     order_dates = Order.where(status: Order::SETTLED_STATUSES)
                        .distinct
-                       .pluck(Arel.sql("DATE(created_at)"))
+                       .pluck(Arel.sql('DATE(created_at)'))
                        .map(&:to_date)
                        .sort
 
@@ -67,11 +67,11 @@ class RateOfSalesJob < ApplicationJob
     missing.each_with_index do |date, i|
       begin
         calculate_for_day(date)
-      rescue => e
+      rescue StandardError => e
         errors << "#{date}: #{e.message}"
         Rails.logger.warn "RateOfSalesJob.backfill_missing_days: #{date} failed - #{e.message}"
       end
-      print "." if i % 100 == 0
+      print '.' if i % 100 == 0
     end
     puts " Done! Processed #{missing.size} days, #{errors.size} errors."
     errors.each { |e| puts "  #{e}" } if errors.any?

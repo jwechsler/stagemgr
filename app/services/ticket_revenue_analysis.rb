@@ -37,7 +37,7 @@ class TicketRevenueAnalysis
   def uncached_compute
     ticket_classes  = @production.ticket_classes.to_a
     perf_count      = @production.performances.count
-    completed_perfs = @production.performances.where("performance_date < ?", Date.today).count
+    completed_perfs = @production.performances.where('performance_date < ?', Date.today).count
 
     return empty_summary(perf_count, completed_perfs) if ticket_classes.empty?
 
@@ -121,7 +121,7 @@ class TicketRevenueAnalysis
       bucket_results << build_comp_bucket(comp_tcs, class_by_id, comp_rows, allocation_data, fallback_alloc)
     end
 
-    paid_buckets  = bucket_results.select { |b| [:dynamic, :singleton].include?(b.bucket_type) }
+    paid_buckets  = bucket_results.select { |b| %i[dynamic singleton].include?(b.bucket_type) }
     total_paid    = paid_buckets.sum(&:paid_count)
     total_cap     = (@production.capacity || 0) * perf_count
     gross_revenue = paid_buckets.sum(&:actual_gross)
@@ -154,10 +154,10 @@ class TicketRevenueAnalysis
 
   def compute_special_offer_usage
     items = SpecialOfferLineItem
-            .joins("INNER JOIN orders ON orders.id = line_items.order_id")
-            .joins("INNER JOIN performances ON performances.id = orders.performance_id")
-            .where("performances.production_id = ?", @production.id)
-            .where("orders.status IN (?)", Order::FINALIZED_STATUSES)
+            .joins('INNER JOIN orders ON orders.id = line_items.order_id')
+            .joins('INNER JOIN performances ON performances.id = orders.performance_id')
+            .where('performances.production_id = ?', @production.id)
+            .where('orders.status IN (?)', Order::FINALIZED_STATUSES)
             .includes(:special_offer, :order)
 
     items.group_by(&:special_offer_id).filter_map do |_offer_id, list|
@@ -177,11 +177,11 @@ class TicketRevenueAnalysis
 
   def build_promotion_edges(class_by_code)
     TicketClassAllocation
-      .joins("INNER JOIN performances ON performances.id = ticket_class_allocations.performance_id")
-      .where("performances.production_id = ?", @production.id)
+      .joins('INNER JOIN performances ON performances.id = ticket_class_allocations.performance_id')
+      .where('performances.production_id = ?', @production.id)
       .where(shiftable: true)
       .where.not(shift_to_code: nil)
-      .pluck("ticket_class_allocations.ticket_class_id", "ticket_class_allocations.shift_to_code")
+      .pluck('ticket_class_allocations.ticket_class_id', 'ticket_class_allocations.shift_to_code')
       .filter_map do |from_id, to_code|
         to_tc = class_by_code[to_code]
         to_tc && to_tc.id != from_id ? [from_id, to_tc.id] : nil
@@ -219,19 +219,19 @@ class TicketRevenueAnalysis
 
   def fetch_line_items
     TicketLineItem
-      .joins("INNER JOIN orders ON orders.id = line_items.order_id")
-      .joins("INNER JOIN performances ON performances.id = orders.performance_id")
-      .joins("INNER JOIN ticket_classes tc ON tc.id = line_items.ticket_class_id")
-      .where("performances.production_id = ?", @production.id)
-      .where("orders.status IN (?)", Order::FINALIZED_STATUSES)
+      .joins('INNER JOIN orders ON orders.id = line_items.order_id')
+      .joins('INNER JOIN performances ON performances.id = orders.performance_id')
+      .joins('INNER JOIN ticket_classes tc ON tc.id = line_items.ticket_class_id')
+      .where('performances.production_id = ?', @production.id)
+      .where('orders.status IN (?)', Order::FINALIZED_STATUSES)
       .pluck(
-        "line_items.ticket_class_id",
-        "line_items.ticket_count",
-        "line_items.price_override",
-        "tc.ticket_price",
-        "tc.royalty_amount",
-        "tc.complimentary",
-        "tc.ticketing_fee"
+        'line_items.ticket_class_id',
+        'line_items.ticket_count',
+        'line_items.price_override',
+        'tc.ticket_price',
+        'tc.royalty_amount',
+        'tc.complimentary',
+        'tc.ticketing_fee'
       )
       .map do |tc_id, count, override, price, royalty, comp, ticketing_fee|
         {
@@ -240,7 +240,7 @@ class TicketRevenueAnalysis
           override: override ? BigDecimal(override.to_s) : nil,
           price: BigDecimal(price.to_s),
           royalty: royalty ? BigDecimal(royalty.to_s) : nil,
-          comp: comp == 1 || comp == true,
+          comp: [1, true].include?(comp),
           ticketing_fee: ticketing_fee ? BigDecimal(ticketing_fee.to_s) : BigDecimal('0')
         }
       end
@@ -248,11 +248,11 @@ class TicketRevenueAnalysis
 
   def fetch_allocation_data
     rows = TicketClassAllocation
-           .joins("INNER JOIN performances ON performances.id = ticket_class_allocations.performance_id")
-           .where("performances.production_id = ?", @production.id)
+           .joins('INNER JOIN performances ON performances.id = ticket_class_allocations.performance_id')
+           .where('performances.production_id = ?', @production.id)
            .pluck(
-             "ticket_class_allocations.ticket_class_id",
-             "ticket_class_allocations.ticket_limit"
+             'ticket_class_allocations.ticket_class_id',
+             'ticket_class_allocations.ticket_limit'
            )
 
     rows.group_by { |tc_id, _| tc_id }.each_with_object({}) do |(tc_id, pairs), h|
@@ -324,7 +324,7 @@ class TicketRevenueAnalysis
     class_codes    = tc_ids.map { |id| class_by_id[id]&.class_code }.compact
 
     BucketResult.new(
-      name: class_codes.join("/"),
+      name: class_codes.join('/'),
       ticket_class_ids: tc_ids,
       class_codes: class_codes,
       entry_price: entry_price,
@@ -362,7 +362,7 @@ class TicketRevenueAnalysis
     end.sort_by { |h| -h[:avg_price] }
   end
 
-  def build_comp_bucket(comp_tcs, class_by_id, comp_rows, allocation_data, fallback_allocation)
+  def build_comp_bucket(comp_tcs, _class_by_id, comp_rows, allocation_data, fallback_allocation)
     tc_ids      = comp_tcs.map(&:id)
     class_codes = comp_tcs.map(&:class_code)
     total_count = comp_rows.sum { |r| r[:count] }
@@ -394,7 +394,7 @@ class TicketRevenueAnalysis
     )
   end
 
-  def build_zero_rev_bucket(zero_rev_tcs, class_by_id, zero_rows, allocation_data, fallback_allocation)
+  def build_zero_rev_bucket(zero_rev_tcs, _class_by_id, zero_rows, allocation_data, fallback_allocation)
     tc_ids      = zero_rev_tcs.map(&:id)
     class_codes = zero_rev_tcs.map(&:class_code)
     total_count = zero_rows.sum { |r| r[:count] }

@@ -8,36 +8,34 @@ class Admin::UsersController < Admin::ApplicationController
 
     respond_to do |format|
       format.html # index.html.erb
-      format.json {
+      format.json do
         params.permit!
         render json: UserDatatable.new(params, view_context: view_context, current_user: current_user)
-      }
-    end
-  end
-
-  def new
-  end
-
-  def create
-    if @user.save
-      flash[:notice] = "Account registered!"
-      redirect_back_or_default admin_users_path
-    else
-      render :action => :new
+      end
     end
   end
 
   def show; end
+  def new; end
 
   def edit; end
+
+  def create
+    if @user.save
+      flash[:notice] = 'Account registered!'
+      redirect_back_or_default admin_users_path
+    else
+      render action: :new
+    end
+  end
 
   def update
     @user.update(user_params)
     if @user.save
-      flash[:notice] = "Account updated!"
+      flash[:notice] = 'Account updated!'
       redirect_to admin_users_path
     else
-      render :action => :edit
+      render action: :edit
     end
   end
 
@@ -57,6 +55,6 @@ class Admin::UsersController < Admin::ApplicationController
   end
 
   def user_params
-    params.require(:user).permit(:email, :password, :status, :is_administrator, :is_box_office_user, :theater_ids => [])
+    params.require(:user).permit(:email, :password, :status, :is_administrator, :is_box_office_user, theater_ids: [])
   end
 end

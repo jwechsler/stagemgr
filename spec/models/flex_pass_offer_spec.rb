@@ -18,13 +18,13 @@ RSpec.describe FlexPassOffer, type: :model do
       it 'requires price to be numeric' do
         offer = FactoryBot.build(:flex_pass_offer, price: 'not a number')
         expect(offer).not_to be_valid
-        expect(offer.errors[:price]).to include("is not a number")
+        expect(offer.errors[:price]).to include('is not a number')
       end
 
       it 'requires price to be non-negative' do
         offer = FactoryBot.build(:flex_pass_offer, price: -1)
         expect(offer).not_to be_valid
-        expect(offer.errors[:price]).to include("must be greater than or equal to 0")
+        expect(offer.errors[:price]).to include('must be greater than or equal to 0')
       end
     end
 
@@ -43,13 +43,13 @@ RSpec.describe FlexPassOffer, type: :model do
       it 'requires facility_fee to be numeric when present' do
         offer = FactoryBot.build(:flex_pass_offer, facility_fee: 'not a number')
         expect(offer).not_to be_valid
-        expect(offer.errors[:facility_fee]).to include("is not a number")
+        expect(offer.errors[:facility_fee]).to include('is not a number')
       end
 
       it 'requires facility_fee to be non-negative when present' do
         offer = FactoryBot.build(:flex_pass_offer, facility_fee: -1)
         expect(offer).not_to be_valid
-        expect(offer.errors[:facility_fee]).to include("must be greater than or equal to 0")
+        expect(offer.errors[:facility_fee]).to include('must be greater than or equal to 0')
       end
     end
 
@@ -68,13 +68,13 @@ RSpec.describe FlexPassOffer, type: :model do
       it 'requires spiff to be numeric when present' do
         offer = FactoryBot.build(:flex_pass_offer, spiff: 'not a number')
         expect(offer).not_to be_valid
-        expect(offer.errors[:spiff]).to include("is not a number")
+        expect(offer.errors[:spiff]).to include('is not a number')
       end
 
       it 'requires spiff to be non-negative when present' do
         offer = FactoryBot.build(:flex_pass_offer, spiff: -1)
         expect(offer).not_to be_valid
-        expect(offer.errors[:spiff]).to include("must be greater than or equal to 0")
+        expect(offer.errors[:spiff]).to include('must be greater than or equal to 0')
       end
     end
 
@@ -93,13 +93,13 @@ RSpec.describe FlexPassOffer, type: :model do
       it 'requires flat_payout to be numeric when present' do
         offer = FactoryBot.build(:flex_pass_offer, flat_payout: 'not a number')
         expect(offer).not_to be_valid
-        expect(offer.errors[:flat_payout]).to include("is not a number")
+        expect(offer.errors[:flat_payout]).to include('is not a number')
       end
 
       it 'requires flat_payout to be non-negative when present' do
         offer = FactoryBot.build(:flex_pass_offer, flat_payout: -1)
         expect(offer).not_to be_valid
-        expect(offer.errors[:flat_payout]).to include("must be greater than or equal to 0")
+        expect(offer.errors[:flat_payout]).to include('must be greater than or equal to 0')
       end
     end
   end
@@ -135,27 +135,27 @@ RSpec.describe FlexPassOffer, type: :model do
 
     it 'handles large monetary values' do
       offer = FactoryBot.create(:flex_pass_offer,
-                                price: 999999.99,
-                                facility_fee: 999999.99,
-                                spiff: 999999.99,
-                                flat_payout: 999999.99)
+                                price: 999_999.99,
+                                facility_fee: 999_999.99,
+                                spiff: 999_999.99,
+                                flat_payout: 999_999.99)
 
       offer.reload
-      expect(offer.price).to eq(999999.99)
-      expect(offer.facility_fee).to eq(999999.99)
-      expect(offer.spiff).to eq(999999.99)
-      expect(offer.flat_payout).to eq(999999.99)
+      expect(offer.price).to eq(999_999.99)
+      expect(offer.facility_fee).to eq(999_999.99)
+      expect(offer.spiff).to eq(999_999.99)
+      expect(offer.flat_payout).to eq(999_999.99)
     end
   end
 
   describe 'currency formatting' do
-    let(:offer) {
+    let(:offer) do
       FactoryBot.build(:flex_pass_offer,
                        price: 10.50,
                        facility_fee: 2.75,
                        spiff: 1.50,
                        flat_payout: 5.00)
-    }
+    end
 
     it 'formats price as currency' do
       expect(offer.formatted_price).to eq('$10.50')

@@ -9,24 +9,24 @@ class AudienceCohortReport < MailingList
 
   # Terse metric labels designed to keep the assembled segment name short.
   METRIC_LABELS = {
-    "cohort" => "Attendees",
-    "returning_any" => "Returning (any prior)",
-    "first_time_vs_comparison" => "First Time (group)",
-    "returning_vs_comparison" => "Returning (group)",
-    "dedicated_customers" => "Dedicated",
-    "two_plus_in_comparison" => "2+ visits (group)",
-    "first_time_vs_building" => "First Time (facility)",
-    "returning_vs_building" => "Returning (facility)",
-    "three_plus_in_building" => "3+ visits (facility)"
+    'cohort' => 'Attendees',
+    'returning_any' => 'Returning (any prior)',
+    'first_time_vs_comparison' => 'First Time (group)',
+    'returning_vs_comparison' => 'Returning (group)',
+    'dedicated_customers' => 'Dedicated',
+    'two_plus_in_comparison' => '2+ visits (group)',
+    'first_time_vs_building' => 'First Time (facility)',
+    'returning_vs_building' => 'Returning (facility)',
+    'three_plus_in_building' => '3+ visits (facility)'
   }.freeze
 
   WINDOW_PHRASES = {
-    "3 months" => "Last 3mo",
-    "6 months" => "Last 6mo",
-    "1 year" => "Last 1yr",
-    "3 years" => "Last 3yr",
-    "5 years" => "Last 5yr",
-    "Ever" => "Ever"
+    '3 months' => 'Last 3mo',
+    '6 months' => 'Last 6mo',
+    '1 year' => 'Last 1yr',
+    '3 years' => 'Last 3yr',
+    '5 years' => 'Last 5yr',
+    'Ever' => 'Ever'
   }.freeze
 
   attr_reader :target_production, :comparison_theater_ids, :segment_key,
@@ -70,10 +70,10 @@ class AudienceCohortReport < MailingList
       is_opted_in    = email_downcased.present? && email_allowlist.key?(email_downcased)
       include_email  = @allow_email_export || is_opted_in
 
-      hash = self.mailing_hash_from_buyer(addr, include_email)
+      hash = mailing_hash_from_buyer(addr, include_email)
       hash[:Title]           = @segment_name
       hash[:Season]          = @target_production.season.to_i
-      hash[:OptedInForEmail] = is_opted_in ? "Y" : "N"
+      hash[:OptedInForEmail] = is_opted_in ? 'Y' : 'N'
       @data[TRG_SEGMENT_CODE] << hash
     end
 
@@ -85,10 +85,10 @@ class AudienceCohortReport < MailingList
 
   def default_basename
     parts = [
-      "audience",
+      'audience',
       @target_production.production_code.to_s.parameterize,
       segment_slug,
-      (@window_label || "aggregate").parameterize
+      (@window_label || 'aggregate').parameterize
     ]
     "#{parts.join('_')}.csv"
   end
@@ -97,9 +97,9 @@ class AudienceCohortReport < MailingList
   # uses the prior production's production_code instead of its database id so
   # the file name stays human-readable.
   def segment_slug
-    if @segment_key.start_with?("previous_production:")
+    if @segment_key.start_with?('previous_production:')
       prev = previous_production
-      code = prev&.production_code.presence || "prev"
+      code = prev&.production_code.presence || 'prev'
       "returning_from_#{code.parameterize}"
     else
       @segment_key.parameterize
@@ -117,17 +117,15 @@ class AudienceCohortReport < MailingList
       window_phrase_for(@window_label)
     ].reject { |p| p.nil? || p.empty? }
 
-    while pieces.size > 1 && pieces.join(" - ").length > SEGMENT_NAME_LIMIT
-      pieces.pop
-    end
-    pieces.join(" - ")[0, SEGMENT_NAME_LIMIT]
+    pieces.pop while pieces.size > 1 && pieces.join(' - ').length > SEGMENT_NAME_LIMIT
+    pieces.join(' - ')[0, SEGMENT_NAME_LIMIT]
   end
 
   def metric_label_for(key)
     return METRIC_LABELS[key] if METRIC_LABELS.key?(key)
 
-    if key.start_with?("previous_production:")
-      prev_code = previous_production&.production_code.presence || "prev"
+    if key.start_with?('previous_production:')
+      prev_code = previous_production&.production_code.presence || 'prev'
       return "Returning from #{prev_code.upcase}"
     end
     key
@@ -139,9 +137,7 @@ class AudienceCohortReport < MailingList
     return @previous_production if defined?(@previous_production)
 
     @previous_production =
-      if @segment_key.start_with?("previous_production:")
-        Production.find_by(id: @segment_key.split(":", 2).last.to_i)
-      end
+      (Production.find_by(id: @segment_key.split(':', 2).last.to_i) if @segment_key.start_with?('previous_production:'))
   end
 
   def window_phrase_for(label)

@@ -19,7 +19,7 @@ RSpec.describe AudienceAnalysis do
       theater: theater,
       venue: shared_venue,
       name: name,
-      production_code: "P#{'%07d' % @production_seq}",
+      production_code: "P#{format('%07d', @production_seq)}",
       status: Production::PRODUCTION_STATUSES.first,
       capacity: 100,
       opening_at: opening_at,
@@ -152,15 +152,15 @@ RSpec.describe AudienceAnalysis do
 
   subject(:results) { described_class.new(target_production, comparison).compute }
 
-  describe "anchor date" do
-    it "uses the closing_at when the production has closed" do
+  describe 'anchor date' do
+    it 'uses the closing_at when the production has closed' do
       allow(target_production).to receive(:closed?).and_return(true)
       allow(target_production).to receive(:closing_at).and_return(anchor)
       svc = described_class.new(target_production, [theater_a.id, theater_b.id, theater_c.id])
       expect(svc.compute[:anchor_date]).to eq(anchor)
     end
 
-    it "uses today when the production is still running" do
+    it 'uses today when the production is still running' do
       future_close = Date.today + 30.days
       running = make_production(theater_a, name: 'STILL_RUNNING', closing_at: future_close,
                                            opening_at: Date.today - 10.days)
@@ -171,7 +171,7 @@ RSpec.describe AudienceAnalysis do
     end
   end
 
-  describe "cohort selection" do
+  describe 'cohort selection' do
     before do
       allow(target_production).to receive(:closed?).and_return(true)
       allow(target_production).to receive(:closing_at).and_return(anchor)
@@ -179,20 +179,20 @@ RSpec.describe AudienceAnalysis do
 
     let(:comparison) { [theater_a.id, theater_b.id, theater_c.id] }
 
-    it "is empty when no paid attendees exist" do
+    it 'is empty when no paid attendees exist' do
       expect(results[:cohort_size]).to eq(0)
       results[:metrics].each_value do |window_map|
         window_map.each_value { |v| expect(v).to eq(0) }
       end
     end
 
-    it "includes addresses with no email but a street address" do
+    it 'includes addresses with no email but a street address' do
       addr = make_address(nil) # make_address always sets line1 + zipcode
       make_attended_order(address: addr, performance: @target_performance, ticket_class: @target_paid_class)
       expect(results[:cohort_size]).to eq(1)
     end
 
-    it "excludes addresses with no email AND no street address" do
+    it 'excludes addresses with no email AND no street address' do
       addr = Address.create!(first_name: 'X', last_name: 'Y', full_name: 'X Y')
       make_attended_order(address: addr, performance: @target_performance, ticket_class: @target_paid_class)
       expect(results[:cohort_size]).to eq(0)
@@ -205,19 +205,19 @@ RSpec.describe AudienceAnalysis do
       expect(results[:cohort_size]).to eq(0)
     end
 
-    it "excludes orders with only comp tickets" do
+    it 'excludes orders with only comp tickets' do
       addr = make_address('only_comp@example.com')
       make_attended_order(address: addr, performance: @target_performance, ticket_class: @target_comp_class)
       expect(results[:cohort_size]).to eq(0)
     end
 
-    it "includes addresses with at least one paid order" do
+    it 'includes addresses with at least one paid order' do
       addr = make_address('paid@example.com')
       make_attended_order(address: addr, performance: @target_performance, ticket_class: @target_paid_class)
       expect(results[:cohort_size]).to eq(1)
     end
 
-    it "treats two distinct address_ids as two cohort members even if they share an email" do
+    it 'treats two distinct address_ids as two cohort members even if they share an email' do
       a1 = make_address('shared@example.com')
       a2 = make_address('shared@example.com')
       make_attended_order(address: a1, performance: @target_performance, ticket_class: @target_paid_class)
@@ -226,7 +226,7 @@ RSpec.describe AudienceAnalysis do
     end
   end
 
-  describe "metric counts" do
+  describe 'metric counts' do
     let(:comparison) { [theater_a.id, theater_c.id] }
 
     before do
@@ -273,69 +273,69 @@ RSpec.describe AudienceAnalysis do
       a
     end
 
-    it "cohort includes all six paid attendees" do
+    it 'cohort includes all six paid attendees' do
       expect(results[:cohort_size]).to eq(6)
     end
 
-    it "first-time vs comparison group, 3-month window" do
+    it 'first-time vs comparison group, 3-month window' do
       # Within 3mo: A_RECENT (-30d) is in comparison, B_RECENT (-45d) is NOT.
       # alice 0, bob 1, carol 1 (A_MID outside), dave 0, eve 1, frank 0 (post-anchor excluded).
-      expect(results[:metrics][:first_time_vs_comparison]["3 months"]).to eq(3)
+      expect(results[:metrics][:first_time_vs_comparison]['3 months']).to eq(3)
     end
 
-    it "first-time vs comparison group, 1-year window" do
+    it 'first-time vs comparison group, 1-year window' do
       # alice 0, bob 1, carol 2, dave 0, eve 2, frank 0.
-      expect(results[:metrics][:first_time_vs_comparison]["1 year"]).to eq(3)
+      expect(results[:metrics][:first_time_vs_comparison]['1 year']).to eq(3)
     end
 
-    it "dedicated customers — attended every comparison production in window, 1-year" do
+    it 'dedicated customers — attended every comparison production in window, 1-year' do
       # 1-year comparison productions: A_RECENT and A_MID (C_OLD outside 1yr) → 2.
       # carol: 2 of 2 → YES. eve: 2 of 2 → YES.
-      expect(results[:metrics][:dedicated_customers]["1 year"]).to eq(2)
+      expect(results[:metrics][:dedicated_customers]['1 year']).to eq(2)
     end
 
-    it "dedicated customers, 3-year window" do
+    it 'dedicated customers, 3-year window' do
       # 3-year comparison productions: A_RECENT, A_MID, C_OLD → 3.
       # carol: 2 of 3 → no. eve: 3 of 3 → YES.
-      expect(results[:metrics][:dedicated_customers]["3 years"]).to eq(1)
+      expect(results[:metrics][:dedicated_customers]['3 years']).to eq(1)
     end
 
-    it "dedicated customers, 3-month window" do
+    it 'dedicated customers, 3-month window' do
       # 3-month comparison productions: A_RECENT only → 1.
       # bob, carol, eve all attended A_RECENT → 3 dedicated.
-      expect(results[:metrics][:dedicated_customers]["3 months"]).to eq(3)
+      expect(results[:metrics][:dedicated_customers]['3 months']).to eq(3)
     end
 
-    it "2+ visits in comparison, 3-year window" do
+    it '2+ visits in comparison, 3-year window' do
       # 3-year comparison productions: A_RECENT, A_MID, C_OLD → 3.
       # carol: 2 (A_RECENT + A_MID). eve: 3 (A_RECENT + A_MID + C_OLD).
       # Both qualify under >= 2.
-      expect(results[:metrics][:two_plus_in_comparison]["3 years"]).to eq(2)
+      expect(results[:metrics][:two_plus_in_comparison]['3 years']).to eq(2)
     end
 
-    it "2+ visits in comparison, 1-year window" do
+    it '2+ visits in comparison, 1-year window' do
       # 1-year comparison productions: A_RECENT, A_MID (C_OLD outside).
       # carol: 2. eve: 2. Both qualify.
-      expect(results[:metrics][:two_plus_in_comparison]["1 year"]).to eq(2)
+      expect(results[:metrics][:two_plus_in_comparison]['1 year']).to eq(2)
     end
 
-    it "2+ visits in comparison, 3-month window" do
+    it '2+ visits in comparison, 3-month window' do
       # Only A_RECENT in window — nobody can hit 2.
-      expect(results[:metrics][:two_plus_in_comparison]["3 months"]).to eq(0)
+      expect(results[:metrics][:two_plus_in_comparison]['3 months']).to eq(0)
     end
 
-    it "first-time vs entire building, 3-month window" do
+    it 'first-time vs entire building, 3-month window' do
       # Building 3mo: A_RECENT and B_RECENT.
       # alice 0, bob 1, carol 1, dave 1, eve 1, frank 0.
-      expect(results[:metrics][:first_time_vs_building]["3 months"]).to eq(2)
+      expect(results[:metrics][:first_time_vs_building]['3 months']).to eq(2)
     end
 
-    it "3+ visits anywhere in the building, 3-year window" do
+    it '3+ visits anywhere in the building, 3-year window' do
       # eve has A_RECENT + A_MID + C_OLD = 3 building visits.
-      expect(results[:metrics][:three_plus_in_building]["3 years"]).to eq(1)
+      expect(results[:metrics][:three_plus_in_building]['3 years']).to eq(1)
     end
 
-    it "post-anchor orders are excluded — frank counts as first-time everywhere" do
+    it 'post-anchor orders are excluded — frank counts as first-time everywhere' do
       results[:window_labels].each do |label|
         # frank contributes one "first-time" count in every window for both
         # comparison and building metrics. The lower bound here is 1; the
@@ -346,7 +346,7 @@ RSpec.describe AudienceAnalysis do
     end
   end
 
-  describe "non-order attendance (mailing card entries)" do
+  describe 'non-order attendance (mailing card entries)' do
     let(:comparison) { [theater_a.id, theater_b.id, theater_c.id] }
 
     before do
@@ -354,31 +354,31 @@ RSpec.describe AudienceAnalysis do
       allow(target_production).to receive(:closing_at).and_return(anchor)
     end
 
-    it "includes addresses linked via addresses_productions HABTM with no orders" do
+    it 'includes addresses linked via addresses_productions HABTM with no orders' do
       addr = make_address('cardonly@example.com')
       target_production.addresses << addr
       expect(results[:cohort_size]).to eq(1)
     end
 
-    it "counts HABTM-only cross-attendance for cohort members" do
+    it 'counts HABTM-only cross-attendance for cohort members' do
       addr = make_address('mixedmode@example.com')
       # Cohort membership via a paid order to the target
       make_attended_order(address: addr, performance: @target_performance, ticket_class: @target_paid_class)
       # Cross-attendance to A_RECENT via HABTM (mailing card, not order)
       prod_a_recent.addresses << addr
 
-      expect(results[:metrics][:returning_vs_comparison]["3 months"]).to eq(1)
-      expect(results[:metrics][:first_time_vs_comparison]["3 months"]).to eq(0)
+      expect(results[:metrics][:returning_vs_comparison]['3 months']).to eq(1)
+      expect(results[:metrics][:first_time_vs_comparison]['3 months']).to eq(0)
     end
 
-    it "treats a HABTM-only cohort member as first-time when they have no other attendance" do
+    it 'treats a HABTM-only cohort member as first-time when they have no other attendance' do
       addr = make_address('newcard@example.com')
       target_production.addresses << addr # mailing card only
-      expect(results[:metrics][:first_time_vs_comparison]["3 months"]).to eq(1)
-      expect(results[:metrics][:returning_vs_comparison]["3 months"]).to eq(0)
+      expect(results[:metrics][:first_time_vs_comparison]['3 months']).to eq(1)
+      expect(results[:metrics][:returning_vs_comparison]['3 months']).to eq(0)
     end
 
-    it "applies the same placeholder + identifying-info filters to HABTM-only entries" do
+    it 'applies the same placeholder + identifying-info filters to HABTM-only entries' do
       placeholder = make_address('placeholder@example.com')
       placeholder.update!(placeholder: true)
       target_production.addresses << placeholder
@@ -390,7 +390,7 @@ RSpec.describe AudienceAnalysis do
     end
   end
 
-  describe "#cohort_for" do
+  describe '#cohort_for' do
     let(:comparison) { [theater_a.id, theater_b.id, theater_c.id] }
 
     before do
@@ -400,7 +400,7 @@ RSpec.describe AudienceAnalysis do
 
     let(:service) { described_class.new(target_production, comparison) }
 
-    it "returns the full cohort for :cohort regardless of window" do
+    it 'returns the full cohort for :cohort regardless of window' do
       a = make_address('alice@example.com')
       b = make_address('bob@example.com')
       make_attended_order(address: a, performance: @target_performance, ticket_class: @target_paid_class)
@@ -408,12 +408,12 @@ RSpec.describe AudienceAnalysis do
       expect(service.cohort_for(:cohort)).to eq(Set.new([a.id, b.id]))
     end
 
-    it "returns an empty Set when the cohort is empty" do
+    it 'returns an empty Set when the cohort is empty' do
       expect(service.cohort_for(:cohort)).to eq(Set.new)
-      expect(service.cohort_for(:first_time_vs_comparison, "3 months")).to eq(Set.new)
+      expect(service.cohort_for(:first_time_vs_comparison, '3 months')).to eq(Set.new)
     end
 
-    it "returns address_ids that match the previous-production segment key" do
+    it 'returns address_ids that match the previous-production segment key' do
       a = make_address('alice@example.com')
       b = make_address('bob@example.com')
       make_attended_order(address: a, performance: @target_performance, ticket_class: @target_paid_class)
@@ -424,7 +424,7 @@ RSpec.describe AudienceAnalysis do
       expect(service.cohort_for(key)).to eq(Set.new([a.id]))
     end
 
-    it "returns address_ids attending any comparison production for :returning_any" do
+    it 'returns address_ids attending any comparison production for :returning_any' do
       a = make_address('alice@example.com')
       b = make_address('bob@example.com')
       make_attended_order(address: a, performance: @target_performance, ticket_class: @target_paid_class)
@@ -434,7 +434,7 @@ RSpec.describe AudienceAnalysis do
       expect(service.cohort_for(:returning_any)).to eq(Set.new([a.id]))
     end
 
-    it "partitions first_time_vs_comparison by window" do
+    it 'partitions first_time_vs_comparison by window' do
       a = make_address('alice@example.com')
       b = make_address('bob@example.com')
       make_attended_order(address: a, performance: @target_performance, ticket_class: @target_paid_class)
@@ -443,24 +443,24 @@ RSpec.describe AudienceAnalysis do
 
       # alice has a comparison visit in the 3mo window → not first-time
       # bob has no other visits → first-time
-      expect(service.cohort_for(:first_time_vs_comparison, "3 months")).to eq(Set.new([b.id]))
-      expect(service.cohort_for(:returning_vs_comparison, "3 months")).to eq(Set.new([a.id]))
+      expect(service.cohort_for(:first_time_vs_comparison, '3 months')).to eq(Set.new([b.id]))
+      expect(service.cohort_for(:returning_vs_comparison, '3 months')).to eq(Set.new([a.id]))
     end
 
-    it "raises on unknown segment_key" do
+    it 'raises on unknown segment_key' do
       a = make_address('alice@example.com')
       make_attended_order(address: a, performance: @target_performance, ticket_class: @target_paid_class)
       expect { service.cohort_for(:bogus) }.to raise_error(ArgumentError)
     end
 
-    it "raises when window_label is missing for a per-window segment" do
+    it 'raises when window_label is missing for a per-window segment' do
       a = make_address('alice@example.com')
       make_attended_order(address: a, performance: @target_performance, ticket_class: @target_paid_class)
       expect { service.cohort_for(:first_time_vs_comparison) }.to raise_error(ArgumentError)
     end
   end
 
-  describe "explicit multi-theater comparison" do
+  describe 'explicit multi-theater comparison' do
     let(:comparison) { [theater_a.id, theater_b.id, theater_c.id] }
 
     before do
@@ -468,15 +468,15 @@ RSpec.describe AudienceAnalysis do
       allow(target_production).to receive(:closing_at).and_return(anchor)
     end
 
-    it "treats every selected theater as part of the comparison" do
+    it 'treats every selected theater as part of the comparison' do
       a = make_address('zoe@example.com')
       make_attended_order(address: a, performance: @target_performance, ticket_class: @target_paid_class)
       make_attended_order(address: a, performance: @b_recent_perf, ticket_class: @b_recent_class)
 
       # B is now explicitly in the comparison group, so the visit counts as
       # a comparison visit and zoe is NOT first-time in either scope.
-      expect(results[:metrics][:first_time_vs_comparison]["3 months"]).to eq(0)
-      expect(results[:metrics][:first_time_vs_building]["3 months"]).to eq(0)
+      expect(results[:metrics][:first_time_vs_comparison]['3 months']).to eq(0)
+      expect(results[:metrics][:first_time_vs_building]['3 months']).to eq(0)
     end
   end
 end

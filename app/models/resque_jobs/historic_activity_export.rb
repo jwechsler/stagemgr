@@ -6,6 +6,6 @@ class HistoricActivityExport
                    reporting_user_id = nil)
     report = HistoricActivityReport.new(start_day, minimum_attended, required_theater_ids, minimum_revenue,
                                         reporting_user_id)
-    fs = report.create
+    report.create
   end
 end

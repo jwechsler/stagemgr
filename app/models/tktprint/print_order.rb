@@ -10,7 +10,7 @@ class PrintOrder < ActiveResource::Base
     self.site = $TKTPRINT['service']
   end
   self.format = :json
-  self.element_name = "order"
+  self.element_name = 'order'
   # self.ssl_options={:verify_mode=>OpenSSL::SSL::VERIFY_NONE}
   self.timeout = 120
   has_many :tickets

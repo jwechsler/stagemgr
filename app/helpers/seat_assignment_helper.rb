@@ -1,6 +1,11 @@
 module SeatAssignmentHelper
   def assignment_keys(sa, order_uuid)
-    keys = sa.releasing?(order_uuid) ? 'releasing' : sa.assigned?(order_uuid) ? 'assigned' : (sa.available? ? 'available' : 'unavailable')
-    keys
+    if sa.releasing?(order_uuid)
+      'releasing'
+    elsif sa.assigned?(order_uuid)
+      'assigned'
+    else
+      (sa.available? ? 'available' : 'unavailable')
+    end
   end
 end

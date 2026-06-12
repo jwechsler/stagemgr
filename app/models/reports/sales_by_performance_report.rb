@@ -1,11 +1,9 @@
 class SalesByPerformanceReport < Report
-  attr_accessor :productions
-  attr_accessor :breakdown_by_ticket_class
-  attr_accessor :restrict_to_performances
+  attr_accessor :productions, :breakdown_by_ticket_class, :restrict_to_performances
 
   def initialize(production_list, breakdown_by_ticket_class = true, restrict_to_performance_ids = nil,
                  reporting_user_id = nil)
-    @productions = Array.new
+    @productions = []
     production_list.each do |prod|
       prod = Production.find(prod) unless prod.is_a?(Production)
       @productions << prod
@@ -17,8 +15,8 @@ class SalesByPerformanceReport < Report
   end
 
   def create
-    report = Array.new
-    total_tickets = Hash.new
+    report = []
+    total_tickets = {}
     total_tickets[:gross] = Money.new(0)
     total_tickets[:collected] = Money.new(0)
     total_tickets[:facility] = Money.new(0)
@@ -28,8 +26,8 @@ class SalesByPerformanceReport < Report
     total_tickets[:display_class] = :report_summary_row
 
     productions.sort! { |p1, p2| p1.name <=> p2.name }
-    productions.each { |production|
-      subtotal = Hash.new
+    productions.each do |production|
+      subtotal = {}
       ticket_classes = production.ticket_classes.sort { |t1, t2| t2.ticket_price <=> t1.ticket_price }
       ticket_classes.each { |tc| total_tickets[tc.class_code] = 0 }
       subtotal[:gross] = Money.new(0)
@@ -41,21 +39,27 @@ class SalesByPerformanceReport < Report
       subtotal[:display_class] = :report_summary_row
       subtotal[:performance_code] = production.production_code
       # header row
-      use_performances = restrict_to_performances.nil? ? production.performances : restrict_to_performances.select { |p|
-        p.production.id == production.id
-      }
-      use_performances.sort { |x, y|
-        (x.performance_date == y.performance_date) ?
-          x.performance_time <=> y.performance_time :
+      use_performances = if restrict_to_performances.nil?
+                           production.performances
+                         else
+                           restrict_to_performances.select do |p|
+                             p.production.id == production.id
+                           end
+                         end
+      use_performances.sort do |x, y|
+        if x.performance_date == y.performance_date
+          x.performance_time <=> y.performance_time
+        else
           x.performance_date <=> y.performance_date
-      }.each { |perf|
+        end
+      end.each do |perf|
         settled_orders = perf.orders.select { |o| o.settled? }
         held_orders = perf.orders.select { |o| o.held? }
         paid_tickets = settled_orders.sum { |o| o.number_of_tickets }
         held_tickets = held_orders.sum { |o| o.number_of_tickets }
-        max_ticket_price = perf.ticket_class_allocations.select { |tca|
+        max_ticket_price = perf.ticket_class_allocations.select do |tca|
           tca.available? && !tca.ticket_class.nil?
-        }.max_by { |tca| tca.ticket_class.ticket_price }.ticket_class.ticket_price
+        end.max_by { |tca| tca.ticket_class.ticket_price }.ticket_class.ticket_price
         revenue = RevenueCalculator.for(settled_orders)
         gross = revenue.cash_collected.to_money
         collected = revenue.cash_reportable.to_money
@@ -67,17 +71,17 @@ class SalesByPerformanceReport < Report
         subtotal[:processing] += processing_fee
         subtotal[:paid] += paid_tickets
         subtotal[:holds] += held_tickets
-        row = { :performance_code => perf.performance_code,
-                :performance_date => perf.performance_date,
-                :performance_time => perf.performance_time,
-                :display_class => :report_detail_row,
-                :max_ticket => max_ticket_price.to_money }
-        if breakdown_by_ticket_class then
-          ticket_classes.each { |tc|
+        row = { performance_code: perf.performance_code,
+                performance_date: perf.performance_date,
+                performance_time: perf.performance_time,
+                display_class: :report_detail_row,
+                max_ticket: max_ticket_price.to_money }
+        if breakdown_by_ticket_class
+          ticket_classes.each do |tc|
             class_qty = settled_orders.sum { |o| o.ticket_quantity_by_class(tc.class_code) }
             total_tickets[tc.class_code] += class_qty
             row[tc.class_code] = class_qty
-          }
+          end
 
         end
 
@@ -89,7 +93,7 @@ class SalesByPerformanceReport < Report
         row[:processing] = processing_fee
         row[:net] = collected - (ticketing_fee + processing_fee)
         report << row
-      }
+      end
       subtotal[:net] = subtotal[:collected] - (subtotal[:facility] + subtotal[:processing])
 
       report << subtotal
@@ -99,22 +103,20 @@ class SalesByPerformanceReport < Report
       total_tickets[:processing] += subtotal[:processing]
       total_tickets[:paid] += subtotal[:paid]
       total_tickets[:holds] += subtotal[:holds]
-    }
-
-    total_tickets[:net] = total_tickets[:collected] - (total_tickets[:facility] + total_tickets[:processing])
-    total_tickets[:performance_code] = "TOTAL"
-    if productions.size > 1
-      report << total_tickets
     end
 
+    total_tickets[:net] = total_tickets[:collected] - (total_tickets[:facility] + total_tickets[:processing])
+    total_tickets[:performance_code] = 'TOTAL'
+    report << total_tickets if productions.size > 1
+
     # Build headers, filtering out ticket classes with zero sales
-    @headers = [:performance_code, :performance_date, :performance_time]
+    @headers = %i[performance_code performance_date performance_time]
     if breakdown_by_ticket_class
       productions.first.ticket_classes
                  .sort { |t1, t2| t2.ticket_price <=> t1.ticket_price }
                  .each { |tc| @headers << tc.class_code if (total_tickets[tc.class_code] || 0) > 0 }
     end
-    @headers += [:paid, :holds, :max_ticket, :gross, :collected, :facility, :processing, :net]
+    @headers += %i[paid holds max_ticket gross collected facility processing net]
 
     [headers, report]
   end

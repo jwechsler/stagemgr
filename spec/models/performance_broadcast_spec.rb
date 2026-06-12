@@ -203,21 +203,21 @@ RSpec.describe PerformanceBroadcast, type: :model do
     end
 
     it 'updates recipient_count' do
-      expect {
+      expect do
         broadcast.queue_broadcast!
-      }.to change { broadcast.reload.recipient_count }.from(nil).to(2)
+      end.to change { broadcast.reload.recipient_count }.from(nil).to(2)
     end
 
     it 'updates sent_at timestamp' do
-      expect {
+      expect do
         broadcast.queue_broadcast!
-      }.to change { broadcast.reload.sent_at }.from(nil).to(Time.parse('2026-02-16 10:00:00'))
+      end.to change { broadcast.reload.sent_at }.from(nil).to(Time.parse('2026-02-16 10:00:00'))
     end
 
     it 'creates OutreachTask for each recipient order' do
-      expect {
+      expect do
         broadcast.queue_broadcast!
-      }.to change { OutreachTask.count }.by(2)
+      end.to change { OutreachTask.count }.by(2)
     end
 
     it 'creates OutreachTasks with correct attributes' do
@@ -254,9 +254,9 @@ RSpec.describe PerformanceBroadcast, type: :model do
       end
 
       it 'does not create any OutreachTasks' do
-        expect {
+        expect do
           broadcast.queue_broadcast!
-        }.not_to change { OutreachTask.count }
+        end.not_to(change { OutreachTask.count })
       end
     end
 
@@ -268,9 +268,9 @@ RSpec.describe PerformanceBroadcast, type: :model do
       end
 
       it 'creates a FileStore record for the log' do
-        expect {
+        expect do
           broadcast.queue_broadcast!
-        }.to change { FileStore.count }.by(1)
+        end.to change { FileStore.count }.by(1)
       end
 
       it 'sends email to the requester' do
@@ -293,9 +293,9 @@ RSpec.describe PerformanceBroadcast, type: :model do
       it 'handles email delivery errors gracefully' do
         allow(NotificationMailer).to receive(:broadcast_log_generated).and_raise(StandardError.new('SMTP error'))
 
-        expect {
+        expect do
           broadcast.queue_broadcast!
-        }.not_to raise_error
+        end.not_to raise_error
       end
 
       it 'logs email delivery errors' do
@@ -333,9 +333,9 @@ RSpec.describe PerformanceBroadcast, type: :model do
     end
 
     it 'creates a FileStore record' do
-      expect {
+      expect do
         broadcast.generate_and_send_log
-      }.to change { FileStore.count }.by(1)
+      end.to change { FileStore.count }.by(1)
     end
 
     it 'sends email to the broadcast requester' do
@@ -359,9 +359,9 @@ RSpec.describe PerformanceBroadcast, type: :model do
     it 'handles email delivery errors gracefully' do
       allow(NotificationMailer).to receive(:broadcast_log_generated).and_raise(StandardError.new('SMTP error'))
 
-      expect {
+      expect do
         broadcast.generate_and_send_log
-      }.not_to raise_error
+      end.not_to raise_error
     end
   end
 end

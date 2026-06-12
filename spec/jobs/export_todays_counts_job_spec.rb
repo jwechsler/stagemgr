@@ -3,7 +3,7 @@
 require 'rails_helper'
 
 RSpec.describe ExportTodaysCountsJob, type: :job do
-  let(:temp_dir) { Rails.root.join('tmp', 'tests') }
+  let(:temp_dir) { Rails.root.join('tmp/tests') }
   let(:file_path) { File.join(temp_dir, 'todays_counts.txt') }
 
   before do
@@ -120,9 +120,9 @@ RSpec.describe ExportTodaysCountsJob, type: :job do
     end
 
     context 'production name truncation' do
-      let!(:long_name_production) {
+      let!(:long_name_production) do
         FactoryBot.create(:production, name: 'A Very Long Production Name That Exceeds Limit')
-      }
+      end
 
       before do
         create_rate_of_sale(production: long_name_production, order_count: 1, gross_sales: 20.00, processing_fees: 0)

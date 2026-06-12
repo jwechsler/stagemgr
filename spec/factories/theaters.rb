@@ -5,7 +5,7 @@ FactoryBot.define do
     logo            { nil }
     accepts_donations { false }
 
-    sequence(:name) { |n| "Theater \##{n}" }
+    sequence(:name) { |n| "Theater ##{n}" }
 
     factory :theater_with_venues do
       transient do

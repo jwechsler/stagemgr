@@ -6,8 +6,8 @@ class TicketClassDatatable < DatatableBase
       class_code: { source: 'TicketClass.class_code' },
       class_name: { source: 'TicketClass.class_name' },
       ticket_price: { source: 'TicketClass.ticket_price' },
-      ticketing_fee: { source: 'TicketClass.ticketing_fee', :searchable => false },
-      web_visible: { source: 'TicketClass.web_visible', :searchable => false },
+      ticketing_fee: { source: 'TicketClass.ticketing_fee', searchable: false },
+      web_visible: { source: 'TicketClass.web_visible', searchable: false },
       ticket_type: { source: 'TicketClass.ticket_type' },
       actions: { orderable: false, searchable: false }
     }
@@ -24,7 +24,7 @@ class TicketClassDatatable < DatatableBase
         web_visible: ticket_class.decorate.web_visible?,
         ticket_type: ticket_class.decorate.ticket_type,
         actions: ticket_class.decorate.dt_actions,
-        DT_RowID: ticket_class.id,
+        DT_RowID: ticket_class.id
       }
     end
   end

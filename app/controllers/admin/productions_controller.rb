@@ -1,16 +1,16 @@
 class Admin::ProductionsController < Admin::ApplicationController
   prepend_before_action :find_theater
-  before_action :find_context, :only => [:show, :allocation_sync_status]
+  before_action :find_context, only: %i[show allocation_sync_status]
   load_and_authorize_resource
   skip_load_and_authorize_resource only: [:allocation_sync_status]
 
   def index
     respond_to do |format|
-      format.json {
+      format.json do
         params.permit!
         render json: ProductionDatatable.new(params, view_context: view_context, current_user: current_user,
                                                      current_theater: @theater)
-      }
+      end
     end
   end
 
@@ -19,7 +19,7 @@ class Admin::ProductionsController < Admin::ApplicationController
   def show
     respond_to do |format|
       format.html # show.html.erb
-      format.xml  { render :xml => @production }
+      format.xml  { render xml: @production }
     end
   end
 
@@ -30,12 +30,11 @@ class Admin::ProductionsController < Admin::ApplicationController
     @production.theater = @theater
     respond_to do |format|
       format.html # new.html.erb
-      format.xml { render :xml => @production }
+      format.xml { render xml: @production }
     end
   end
 
-  def edit
-  end
+  def edit; end
 
   # POST /productions
   # POST /productions.xml
@@ -52,12 +51,12 @@ class Admin::ProductionsController < Admin::ApplicationController
       flash[:notice] = 'Production was successfully created.'
       respond_to do |format|
         format.html { redirect_to(admin_theater_path(@theater)) }
-        format.xml  { render :xml => @production, :status => :created, :location => @production }
+        format.xml  { render xml: @production, status: :created, location: @production }
       end
     else
       respond_to do |format|
-        format.html { render :action => "new" }
-        format.xml  { render :xml => @production.errors, :status => :unprocessable_entity }
+        format.html { render action: 'new' }
+        format.xml  { render xml: @production.errors, status: :unprocessable_entity }
       end
     end
   end
@@ -79,8 +78,8 @@ class Admin::ProductionsController < Admin::ApplicationController
         format.html { redirect_to(admin_theater_path(@production.theater)) }
         format.xml  { head :ok }
       else
-        format.html { render :action => "edit" }
-        format.xml  { render :xml => @production.errors, :status => :unprocessable_entity }
+        format.html { render action: 'edit' }
+        format.xml  { render xml: @production.errors, status: :unprocessable_entity }
       end
     end
   end
@@ -97,14 +96,14 @@ class Admin::ProductionsController < Admin::ApplicationController
       name: params[:production_name].presence || @production.name,
       confirmation_message: params[:confirmation_message],
       production_class: params[:production_class].presence || @production.production_class,
-      allow_late_seating: params[:allow_late_seating] == "true",
+      allow_late_seating: params[:allow_late_seating] == 'true',
       venue_id: params[:venue_id]
     }
     SampleOrderBuilder.with_sample_order(@theater, current_user.email, production_attrs) do |order|
       OrderMailer.ticket_confirmation(order).deliver_now
     end
     render json: { success: true, message: "Sample confirmation email sent to #{current_user.email}" }
-  rescue => e
+  rescue StandardError => e
     render json: { success: false, message: e.message }, status: :unprocessable_entity
   end
 
@@ -114,14 +113,14 @@ class Admin::ProductionsController < Admin::ApplicationController
       name: params[:production_name].presence || @production.name,
       follow_up_message_2: params[:follow_up_message_2],
       production_class: params[:production_class].presence || @production.production_class,
-      allow_late_seating: params[:allow_late_seating] == "true",
+      allow_late_seating: params[:allow_late_seating] == 'true',
       venue_id: params[:venue_id]
     }
     SampleOrderBuilder.with_sample_order(@theater, current_user.email, production_attrs) do |order|
       OrderMailer.member_followup(order).deliver_now
     end
     render json: { success: true, message: "Sample follow-up email sent to #{current_user.email}" }
-  rescue => e
+  rescue StandardError => e
     render json: { success: false, message: e.message }, status: :unprocessable_entity
   end
 

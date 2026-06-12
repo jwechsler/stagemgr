@@ -1,4 +1,4 @@
-require "active_support/core_ext/integer/time"
+require 'active_support/core_ext/integer/time'
 
 # The test environment is used exclusively to run your application's
 # test suite. You never need to work with it otherwise. Remember that
@@ -67,9 +67,9 @@ Rails.application.configure do
 
   # $TEST_CREDIT_CARD = paypal_config['test']['test_credit_card']
 
-  $TKTPRINT = YAML::load(File.open("#{::Rails.root.to_s}/config/ticket_print.yml"))['test']
+  $TKTPRINT = YAML.load(File.open("#{Rails.root.join('config/ticket_print.yml')}"))['test']
 
-  config_data = YAML::load(File.open("#{::Rails.root.to_s}/config/server.yml"))
+  config_data = YAML.load(File.open("#{Rails.root.join('config/server.yml')}"))
   $SERVER_CONFIG = config_data['all'].deep_merge(config_data['test'])
   $PAYMENT_CONFIG = $SERVER_CONFIG['payment_processing']
   $TEST_CREDIT_CARD = $PAYMENT_CONFIG['test_credit_card']
@@ -79,12 +79,12 @@ Rails.application.configure do
   config.action_mailer.default_url_options = { host: $SERVER_CONFIG['host'], protocol: $SERVER_CONFIG['host_protocol'] }
 
   config.action_mailer.delivery_method = :test
-  $APP_DISPLAY_NAME = ($SERVER_CONFIG['app_name'] || 'StageMgr') + " TEST"
-  unless $SERVER_CONFIG['payment_processing'].nil? || $SERVER_CONFIG['payment_processing']['additional_card_types'].blank?
-    $ADDITIONAL_CARD_TYPES = $SERVER_CONFIG['payment_processing']['additional_card_types'].split(',').map { |ct|
-      ct.strip
-    }
-  else
+  $APP_DISPLAY_NAME = ($SERVER_CONFIG['app_name'] || 'StageMgr') + ' TEST'
+  if $SERVER_CONFIG['payment_processing'].nil? || $SERVER_CONFIG['payment_processing']['additional_card_types'].blank?
     $ADDITIONAL_CARD_TYPES = []
+  else
+    $ADDITIONAL_CARD_TYPES = $SERVER_CONFIG['payment_processing']['additional_card_types'].split(',').map do |ct|
+      ct.strip
+    end
   end
 end

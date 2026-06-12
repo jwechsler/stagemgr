@@ -2,7 +2,7 @@ class CreateTicketClasses < ActiveRecord::Migration[4.2]
   def self.up
     begin
       drop_table :ticket_classes
-    rescue StandardError => e
+    rescue StandardError
     end
     create_table :ticket_classes do |t|
       t.string :class_code

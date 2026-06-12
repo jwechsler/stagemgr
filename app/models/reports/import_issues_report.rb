@@ -2,11 +2,10 @@ class ImportIssuesReport < SimpleReport
   # basic report -> simple rows/headers
 
   attr_reader :reporting_user_id
-  attr_accessor :headers
-  attr_accessor :data
+  attr_accessor :headers, :data
 
   def initialize(headers, reporting_user_id = nil)
-    super(headers, reporting_user_id)
+    super
     # Report#initialize sets @headers = headers, so append the Error column
     # *after* super has run, otherwise it gets overwritten.
     @headers = headers + ['Error']
@@ -15,9 +14,9 @@ class ImportIssuesReport < SimpleReport
   def add_problem_row(row:, message:)
     if row.is_a?(Hash)
       @headers = row.keys + ['Error'] if @headers == ['Error']
-      data << row.values + [message]
+      data << (row.values + [message])
     else
-      data << row + [message]
+      data << (row + [message])
     end
   end
 
@@ -50,20 +49,20 @@ class ImportIssuesReport < SimpleReport
   # original upload filename, which gets sanitised via regularize_name so the
   # resulting filename is safe for shell/filesystem use.
   def create(import_name: nil, result_prefix: 'import_results')
-    if @data.any?
-      errors = error_messages
-      notes = "#{errors.size} error#{errors.size == 1 ? '' : 's'} in #{@data.size} row#{@data.size == 1 ? '' : 's'}"
-      notes += ": #{errors.last.to_s.truncate(120)}" if errors.any?
-      suffix = import_name.present? ?
-        ImportIssuesReport.regularize_name(import_name) :
-        "#{self.reporting_user_id}_#{Time.now.seconds_since_midnight}"
-      file_name = "/tmp/#{result_prefix}_#{suffix}.csv"
-      fs = self.save_report_to_filestore(file_name, notes)
-      fs.save
-      fs
-    else
-      nil
-    end
+    return unless @data.any?
+
+    errors = error_messages
+    notes = "#{errors.size} error#{'s' unless errors.size == 1} in #{@data.size} row#{'s' unless @data.size == 1}"
+    notes += ": #{errors.last.to_s.truncate(120)}" if errors.any?
+    suffix = if import_name.present?
+               ImportIssuesReport.regularize_name(import_name)
+             else
+               "#{reporting_user_id}_#{Time.now.seconds_since_midnight}"
+             end
+    file_name = "/tmp/#{result_prefix}_#{suffix}.csv"
+    fs = save_report_to_filestore(file_name, notes)
+    fs.save
+    fs
   end
 
   # Strip a filename down to a shell-safe basename: drop the extension, then
@@ -79,8 +78,6 @@ class ImportIssuesReport < SimpleReport
     cleaned = base.gsub(/[^A-Za-z0-9-]+/, '_').gsub(/\A_+|_+\z/, '')
     cleaned.presence || 'import'
   end
-
-  protected
 
   def self.new_address_tag(theater_id, address, tag_label, tag_value)
     sub_tag = AddressTag.new

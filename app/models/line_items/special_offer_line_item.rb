@@ -2,7 +2,7 @@ class SpecialOfferLineItem < LineItem
   belongs_to            :special_offer, inverse_of: :special_offer_line_items
   belongs_to            :order, inverse_of: :special_offer_line_item
   def price
-    self.special_offer.calculate_discount(self.order)
+    special_offer.calculate_discount(order)
   end
 
   def total
@@ -18,14 +18,14 @@ class SpecialOfferLineItem < LineItem
   end
 
   def receipt_total
-    self.price
+    price
   end
 
   def description
-    self.special_offer.description(self.order)
+    special_offer.description(order)
   end
 
   def receipt_description
-    self.special_offer.code
+    special_offer.code
   end
 end

@@ -1,29 +1,29 @@
 # Methods added to this helper will be available to all templates in the application.
 module ApplicationHelper
   def html_comment(comment)
-    raw("// #{comment}\n") if Rails.env.eql?("development")
+    raw("// #{comment}\n") if Rails.env.eql?('development')
   end
 
   def to_currency(val)
-    number_to_currency(val, :delimiter => ",", :unit => "$", :separator => ".", :precision => 2)
+    number_to_currency(val, delimiter: ',', unit: '$', separator: '.', precision: 2)
   end
 
   def backend?
-    controller.class.name.split("::").first == "Admin"
+    controller.class.name.split('::').first == 'Admin'
   end
 
   def admin?
-    self.backend?
+    backend?
   end
 
   def markdown_renderer
-    if controller.markdown.nil?
-      controller.markdown = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)
-    end
+    return unless controller.markdown.nil?
+
+    controller.markdown = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)
   end
 
   def display_markdown(markdown_text, trusted = false)
-    return "" if markdown_text.nil?
+    return '' if markdown_text.nil?
 
     if trusted
       raw($TRUSTED_MARKDOWN.render(markdown_text))
@@ -41,10 +41,10 @@ module ApplicationHelper
   end
 
   def mailing_list_link(production = nil)
-    (production.nil? || production.mailing_list_link.blank?) ? $SERVER_CONFIG['mailing_list_link'] : production.mailing_list_link
+    production.nil? || production.mailing_list_link.blank? ? $SERVER_CONFIG['mailing_list_link'] : production.mailing_list_link
   end
 
   def survey_link(production = nil)
-    (production.nil? || production.survey_link.blank?) ? $SERVER_CONFIG['survey_link'] : production.survey_link
+    production.nil? || production.survey_link.blank? ? $SERVER_CONFIG['survey_link'] : production.survey_link
   end
 end

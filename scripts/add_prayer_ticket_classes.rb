@@ -76,7 +76,7 @@ ticket_data = [
   ['EXTERNAL87', 87.00],
   ['EXTERNAL88', 88.00],
   ['EXTERNAL89', 89.00],
-  ['EXTERNAL91', 91.00],
+  ['EXTERNAL91', 91.00]
 ]
 
 created = []
@@ -137,5 +137,5 @@ if errors.any?
 else
   perf_count = production.performances.count
   puts "\nAuto-attached to #{perf_count} performance(s)"
-  puts "Done!"
+  puts 'Done!'
 end

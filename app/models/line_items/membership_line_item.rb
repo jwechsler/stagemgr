@@ -1,11 +1,11 @@
 class MembershipLineItem < LineItem
-  validates_presence_of :membership_offer
-  validates_presence_of :membership
-  validates_presence_of :address
+  validates :membership_offer, presence: true
+  validates :membership, presence: true
+  validates :address, presence: true
   belongs_to :membership_offer
   belongs_to :membership
   belongs_to :address
-  belongs_to :membership_order, :foreign_key => :order_id, optional: true, inverse_of: :membership_line_item
+  belongs_to :membership_order, foreign_key: :order_id, optional: true, inverse_of: :membership_line_item
 
   accepts_nested_attributes_for :membership
 
@@ -16,14 +16,13 @@ class MembershipLineItem < LineItem
   private
 
   def create_membership
-    if self.membership.nil?
+    return unless membership.nil?
 
-      self.membership = Membership.new
-      self.membership.member_since = Date.today
-      self.membership.membership_offer = self.membership_offer
-      self.membership.status = Membership::PENDING
-      self.membership.address = self.address
-    end
+    self.membership = Membership.new
+    membership.member_since = Date.today
+    membership.membership_offer = membership_offer
+    membership.status = Membership::PENDING
+    membership.address = address
   end
 
   def save_membership

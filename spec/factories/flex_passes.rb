@@ -10,8 +10,8 @@ FactoryBot.define do
 
   factory :flex_pass_order do
     status                  { Order::ORDER_STATUSES.first }
-    association             :address, :factory => :address
-    association             :payment_type, :factory => :cash_payment_type
+    association             :address, factory: :address
+    association             :payment_type, factory: :cash_payment_type
 
     transient do
       flex_pass_offer { nil }
@@ -31,7 +31,7 @@ FactoryBot.define do
         )
 
         # Create the flex pass
-        flex_pass = FlexPass.create!(
+        FlexPass.create!(
           flex_pass_line_item: flex_pass_line_item,
           flex_pass_offer: offer,
           address: flex_pass_order.address,
@@ -45,7 +45,7 @@ FactoryBot.define do
     end
 
     trait :with_payment do
-      after(:create) do |flex_pass_order, evaluator|
+      after(:create) do |flex_pass_order, _evaluator|
         flex_pass_order.payments << FactoryBot.create(:credit_card_payment,
                                                       order: flex_pass_order,
                                                       amount: flex_pass_order.flex_pass_offer.price,
@@ -62,16 +62,16 @@ FactoryBot.define do
   factory :flex_pass do
     code                    { 'TESTPASS' }
     expiration_date         { Date.today + 12.months }
-    association :flex_pass_offer, :factory => :flex_pass_offer
-    # Note: flex_pass_line_item should be set by the creator to avoid circular dependency
+    association :flex_pass_offer, factory: :flex_pass_offer
+    # NOTE: flex_pass_line_item should be set by the creator to avoid circular dependency
 
-    after(:build) { |flex_pass|
+    after(:build) do |flex_pass|
       flex_pass.address = flex_pass.order.address if flex_pass.flex_pass_line_item
-    }
+    end
   end
 
   factory :flex_pass_line_item do
-    association :flex_pass_offer, :factory => :flex_pass_offer
+    association :flex_pass_offer, factory: :flex_pass_offer
     ticket_count { 1 }
 
     # The order association will be handled by the flex_pass_order factory

@@ -5,10 +5,10 @@ class AddCustomFollowupLinksToProductions < ActiveRecord::Migration[4.2]
   end
 
   def up
-    execute "CREATE FUNCTION random() RETURNS FLOAT NO SQL SQL SECURITY INVOKER RETURN rand();"
+    execute 'CREATE FUNCTION random() RETURNS FLOAT NO SQL SQL SECURITY INVOKER RETURN rand();'
   end
 
   def down
-    execute "DROP FUNCTION random();"
+    execute 'DROP FUNCTION random();'
   end
 end

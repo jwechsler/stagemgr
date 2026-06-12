@@ -4,7 +4,7 @@ class BulkOrderImportIssues < ImportIssuesReport
   end
 
   def append_issue(id:, customer_name:, performance_code:, seating:, order_detail:, message:)
-    @data << { :Id => id,
+    @data << { Id: id,
                Name: customer_name,
                PerformanceCode: performance_code,
                Seating: seating,

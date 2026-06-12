@@ -1,18 +1,17 @@
 class RoyaltyReport < Report
-  attr_accessor :productions
-  attr_accessor :breakdown_by_ticket_class
+  attr_accessor :productions, :breakdown_by_ticket_class
 
   def initialize(production_list, breakdown_by_ticket_class = true, reporting_user_id = nil)
-    @productions = production_list.map { |prod|
+    @productions = production_list.map do |prod|
       prod.is_a?(Production) ? prod : Production.find(prod)
-    }
+    end
     @breakdown_by_ticket_class = @productions.size == 1 ? breakdown_by_ticket_class : false
     super([], reporting_user_id)
   end
 
   def create
     report = []
-    total_tickets = Hash.new
+    total_tickets = {}
     total_tickets[:gross] = Money.new(0)
     total_tickets[:processing] = Money.new(0)
     total_tickets[:paid] = 0
@@ -23,7 +22,7 @@ class RoyaltyReport < Report
 
     productions.sort! { |p1, p2| p1.name <=> p2.name }
     productions.each do |production|
-      subtotal = Hash.new
+      subtotal = {}
       ticket_classes = production.ticket_classes.sort { |t1, t2| t2.ticket_price <=> t1.ticket_price }
       prod_active_classes = ticket_classes.select { |tc| active_ticket_classes.include?(tc.id) }
 
@@ -34,11 +33,13 @@ class RoyaltyReport < Report
       subtotal[:display_class] = :report_summary_row
       subtotal[:performance_code] = production.production_code
 
-      production.performances.sort { |x, y|
-        (x.performance_date == y.performance_date) ?
-          x.performance_time <=> y.performance_time :
+      production.performances.sort do |x, y|
+        if x.performance_date == y.performance_date
+          x.performance_time <=> y.performance_time
+        else
           x.performance_date <=> y.performance_date
-      }.each do |perf|
+        end
+      end.each do |perf|
         settled_orders = perf.orders.select { |o| o.settled? }
         paid_tickets = settled_orders.sum { |o| o.number_of_tickets }
         gross = settled_orders.sum { |o| o.respond_to?(:royalty_gross) ? o.royalty_gross : 0 }.to_money
@@ -57,9 +58,9 @@ class RoyaltyReport < Report
 
         if breakdown_by_ticket_class
           prod_active_classes.each do |tc|
-            class_qty = settled_orders.sum { |o|
+            class_qty = settled_orders.sum do |o|
               o.respond_to?(:ticket_quantity_by_class) ? o.ticket_quantity_by_class(tc.class_code) : 0
-            }
+            end
             total_tickets[tc.class_code] = (total_tickets[tc.class_code] || 0) + class_qty
             row[tc.class_code] = class_qty
           end
@@ -93,7 +94,7 @@ class RoyaltyReport < Report
     royalty_pct = productions.first.royalty_percent || 0
     total_tickets[:royalty] = (total_tickets[:net] * (royalty_pct / 100.0)).to_money
 
-    total_tickets[:performance_code] = "TOTAL"
+    total_tickets[:performance_code] = 'TOTAL'
     report << total_tickets if productions.size > 1
 
     # Build headers
@@ -105,10 +106,10 @@ class RoyaltyReport < Report
       productions.first.ticket_classes
                  .select { |tc| active_ticket_classes.include?(tc.id) }
                  .sort { |t1, t2| t2.ticket_price <=> t1.ticket_price }
-                 .each { |tc|
+                 .each do |tc|
         face_value_row[tc.class_code] =
           tc.royalty_price.to_money
-      }
+      end
       report.unshift(face_value_row)
     end
 
@@ -134,13 +135,13 @@ class RoyaltyReport < Report
   end
 
   def build_headers(active_ticket_classes)
-    @headers = [:performance_code, :performance_date, :performance_time]
+    @headers = %i[performance_code performance_date performance_time]
     if breakdown_by_ticket_class
       productions.first.ticket_classes
                  .select { |tc| active_ticket_classes.include?(tc.id) }
                  .sort { |t1, t2| t2.ticket_price <=> t1.ticket_price }
                  .each { |tc| @headers << tc.class_code }
     end
-    @headers += [:paid, :gross, :processing, :net, :royalty]
+    @headers += %i[paid gross processing net royalty]
   end
 end

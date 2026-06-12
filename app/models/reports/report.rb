@@ -3,13 +3,12 @@ require 'csv'
 class Report
   include NotifyOnCompletion
 
-  attr_accessor :headers
-  attr_accessor :data
+  attr_accessor :headers, :data
   attr_reader :reporting_user_id
 
   def initialize(headers, reporting_user_id = nil)
     @headers = headers
-    @data = Hash.new
+    @data = {}
     @reporting_user_id = reporting_user_id
   end
 
@@ -22,44 +21,47 @@ class Report
     # @todo refactor for new delf.data format.
     file_store = FileStore.new
     file_store.worker = FileStore::REPORT
-    file_store.user_id = self.reporting_user_id
+    file_store.user_id = reporting_user_id
     file_store.notes = notes
-    self.save_report_as_csv(file_name, file_store)
+    save_report_as_csv(file_name, file_store)
   end
 
   def save_report_as_csv(file_path, filestore = nil)
     csv_string = CSV.generate do |csv|
-      csv << self.headers
-      if self.data.is_a? Hash
-        self.data.each { |key, rows|
-          rows.each { |row|
-            csv << headers.map { |h|
+      csv << headers
+      if data.is_a? Hash
+        # if simple array, then dump array into csv
+        data.each do |key, rows|
+          rows.each do |row|
+            next if row.nil?
+
+            csv << headers.map do |h|
               h == :Segment ? key : Report.tidy_output(row[h])
-            } unless row.nil?
-          }
-        } else # if simple array, then dump array into csv
-            self.data.each { |row|
-              csv << headers.map { |h| Report.tidy_output(row[h]) }
-            }
+            end
+          end
+        end else
+              data.each do |row|
+                csv << headers.map { |h| Report.tidy_output(row[h]) }
+              end
       end
     end
-    self.write_file_data(file_path, filestore, csv_string)
+    write_file_data(file_path, filestore, csv_string)
   end
 
   def write_file_data(file_path, filestore, data)
     f = File.new(file_path, 'w')
     f.puts(data)
     f.close
-    unless filestore.nil?
+    if filestore.nil?
+      file_path
+    else
       filestore.datafile.attach(io: File.open(file_path), filename: File.basename(file_path),
-                                content_type: "text/plain")
+                                content_type: 'text/plain')
       filestore.worker = FileStore::REPORT
       filestore.save
       File.delete(file_path)
       # @todo notify user that report is generated
       filestore
-    else
-      file_path
     end
   end
 
@@ -68,7 +70,7 @@ class Report
   def report_filename(filename)
     dir_name = File.dirname(filename)
     extension = File.extname(filename)
-    extension = ".csv" if extension.blank?
+    extension = '.csv' if extension.blank?
 
     # Only honor an explicitly supplied directory that actually exists. A bare
     # filename built from user data (e.g. a production name containing "/")
@@ -87,14 +89,12 @@ class Report
 
     full_path = File.join(dir_name, sanitized_filename)
 
-    return full_path.to_s
+    full_path.to_s
   end
 
   def report_data(file_name = nil)
-    unless reporting_user_id.nil?
-      self.save_report_to_filestore(file_name)
-    else
-      return [self.headers, self.data]
-    end
+    return [headers, data] if reporting_user_id.nil?
+
+    save_report_to_filestore(file_name)
   end
 end
