@@ -1,6 +1,6 @@
 <tr>
   <td><%=link_to production.name, edit_current_user_theater_production_path(production.theater, production) %></td>
-  <td><%=h $MARKDOWN.render(production.show_description) %></td>
+  <td><%=h Rails.configuration.x.markdown.render(production.show_description) %></td>
   <td><%=h production.capacity %></td>
   <td><%=h production.status %></td>
   <td><%= link_to 'Destroy', [:current_user, production.theater, production], :confirm => 'Are you sure?', :method => :delete %></td>

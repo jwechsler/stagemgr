@@ -31,7 +31,7 @@
               elsif row[h].is_a?(TrueClass) || row[h].is_a?(FalseClass)
                 raw "&#x2717" if row[h]
               elsif row[h].is_a?(String)
-                raw($TRUSTED_MARKDOWN.render(row[h]))
+                raw(Rails.configuration.x.trusted_markdown.render(row[h]))
               else
                 row[h]
               end %></td>
