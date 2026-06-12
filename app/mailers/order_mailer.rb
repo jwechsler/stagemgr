@@ -56,7 +56,7 @@ class OrderMailer < ActionMailer::Base
   def refunded_fulfilled_item_alert(order, email, action_by)
     @order = order
     @action_by = action_by
-    mail(to: email, from: $EMAIL_ADDRESS['box_office'],
+    mail(to: email, from: Rails.configuration.x.email_address['box_office'],
          subject: "Warning: Fulfilled order #{@order.id} refunded",
          tag: 'Alert')
   end
@@ -150,7 +150,7 @@ class OrderMailer < ActionMailer::Base
     return if flex_pass_orders.empty?
 
     @flex_pass_orders = flex_pass_orders
-    mail(to: $EMAIL_ADDRESS['flex_pass_notifications'], from: '"Theater Wit Box Office" <boxoffice@theaterwit.org>',
+    mail(to: Rails.configuration.x.email_address['flex_pass_notifications'], from: '"Theater Wit Box Office" <boxoffice@theaterwit.org>',
          subject: 'Unprocessed Flex Passes',
          tag: 'Internal Notification') do |format|
       format.html { render layout: 'internal_mail' }
@@ -161,7 +161,7 @@ class OrderMailer < ActionMailer::Base
     return if membership_orders.empty?
 
     @membership_orders = membership_orders
-    mail(to: $EMAIL_ADDRESS['membership_notifications'], from: '"Theater Wit Box Office" <boxoffice@theaterwit.org>',
+    mail(to: Rails.configuration.x.email_address['membership_notifications'], from: '"Theater Wit Box Office" <boxoffice@theaterwit.org>',
          subject: 'Unprocessed Memberships',
          tag: 'Internal Notification') do |format|
       format.html { render layout: 'internal_mail' }

@@ -26,9 +26,9 @@ module ApplicationHelper
     return '' if markdown_text.nil?
 
     if trusted
-      raw($TRUSTED_MARKDOWN.render(markdown_text))
+      raw(Rails.configuration.x.trusted_markdown.render(markdown_text))
     else
-      raw($MARKDOWN.render(markdown_text))
+      raw(Rails.configuration.x.markdown.render(markdown_text))
     end
   end
 

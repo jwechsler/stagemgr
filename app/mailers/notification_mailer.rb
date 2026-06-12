@@ -7,7 +7,7 @@ class NotificationMailer < ActionMailer::Base
     @order = order
     subject = "#{order.display_code} wheelchair requested / #{order.address.full_name}"
     mail(to: recipient,
-         from: $EMAIL_ADDRESS['software_address'],
+         from: Rails.configuration.x.email_address['software_address'],
          subject: subject,
          tag: 'Wheelchair request')
   end
@@ -17,7 +17,7 @@ class NotificationMailer < ActionMailer::Base
 
     subject = "#{order.display_code.titlecase} payments suspended / #{order.address.full_name}"
     mail(to: recipient,
-         from: $EMAIL_ADDRESS['software_address'],
+         from: Rails.configuration.x.email_address['software_address'],
          subject: subject,
          tag: 'Recurring Payment')
   end
@@ -31,7 +31,7 @@ class NotificationMailer < ActionMailer::Base
       content: filestore.datafile.download
     }
     mail(to: filestore.user.email,
-         from: $EMAIL_ADDRESS['software_address'],
+         from: Rails.configuration.x.email_address['software_address'],
          subject: 'Your download is ready',
          tag: 'File Generation Complete')
   end
@@ -45,7 +45,7 @@ class NotificationMailer < ActionMailer::Base
       content: filestore.datafile.download
     }
     mail(to: recipient_email,
-         from: $EMAIL_ADDRESS['software_address'],
+         from: Rails.configuration.x.email_address['software_address'],
          subject: 'Broadcast Email Log Ready',
          tag: 'Broadcast Log')
   end

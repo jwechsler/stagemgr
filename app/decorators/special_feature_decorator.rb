@@ -6,7 +6,7 @@ class SpecialFeatureDecorator < ApplicationDecorator
   end
 
   def description
-    h.raw($MARKDOWN.render(object.description))
+    h.raw(Rails.configuration.x.markdown.render(object.description))
   end
 
   def status
