@@ -3,7 +3,7 @@ require 'rails_helper'
 RSpec.describe TicketOrder, '#send_to_printer_api with hide_pricing' do
   before do
     # Mock tktprint service configuration
-    $TKTPRINT = { 'service' => 'http://test:secret@localhost:3001' }
+    Rails.configuration.x.tktprint = { 'service' => 'http://test:secret@localhost:3001' }
 
     # Mock the HTTP request to tktprint
     allow_any_instance_of(TicketOrder).to receive(:send_order_to_tktprint_api).and_return(123)

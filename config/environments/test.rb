@@ -65,7 +65,7 @@ Rails.application.configure do
     MyEmma.disable
   end
 
-  # $TEST_CREDIT_CARD = paypal_config['test']['test_credit_card']
+  # config.x.test_credit_card is assigned from config.x.payment_config below.
 
   # Application configuration loaded from YAML. The loaded objects are kept
   # exactly as parsed (string-keyed Hashes) and assigned to config.x.* so that

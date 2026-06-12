@@ -8,8 +8,8 @@ RSpec.describe 'Batch Printing Workflow', type: :feature do
 
   before do
     # Set up tktprint service configuration for tests
-    $TKTPRINT ||= {}
-    $TKTPRINT['service'] = 'http://test:test@localhost:3000'
+    Rails.configuration.x.tktprint ||= {}
+    Rails.configuration.x.tktprint['service'] = 'http://test:test@localhost:3000'
 
     # Mock the tktprint service calls
     allow_any_instance_of(Net::HTTP).to receive(:request).and_return(
@@ -222,7 +222,7 @@ RSpec.describe 'Batch Printing Workflow', type: :feature do
 
   describe 'Configuration and environment' do
     it 'uses configured tktprint service URL' do
-      expect($TKTPRINT['service']).to be_present
+      expect(Rails.configuration.x.tktprint['service']).to be_present
 
       allow_any_instance_of(TicketOrder).to receive(:send_to_printer_api).and_return('test_id')
 
@@ -234,7 +234,7 @@ RSpec.describe 'Batch Printing Workflow', type: :feature do
 
     it 'uses configured authentication credentials' do
       # Authentication credentials are embedded in the tktprint service URL (HTTP Basic Auth)
-      expect($TKTPRINT['service']).to be_present
+      expect(Rails.configuration.x.tktprint['service']).to be_present
 
       allow_any_instance_of(TicketOrder).to receive(:send_to_printer_api).and_return('test_id')
 
@@ -246,11 +246,11 @@ RSpec.describe 'Batch Printing Workflow', type: :feature do
 
     context 'when tktprint service is not configured' do
       before do
-        $TKTPRINT['service'] = ''
+        Rails.configuration.x.tktprint['service'] = ''
       end
 
       after do
-        $TKTPRINT['service'] = 'http://test:test@localhost:3000'
+        Rails.configuration.x.tktprint['service'] = 'http://test:test@localhost:3000'
       end
 
       it 'handles missing service configuration gracefully' do

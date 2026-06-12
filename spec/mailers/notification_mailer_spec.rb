@@ -62,7 +62,7 @@ RSpec.describe NotificationMailer, type: :mailer do
     it 'uses correct from address' do
       mail = NotificationMailer.broadcast_log_generated(file_store, recipient_email)
 
-      expect(mail.from).to eq([$EMAIL_ADDRESS['software_address']])
+      expect(mail.from).to eq([Rails.configuration.x.email_address['software_address']])
     end
 
     it 'has correct subject' do

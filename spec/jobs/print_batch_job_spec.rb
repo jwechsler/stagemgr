@@ -284,8 +284,8 @@ RSpec.describe PrintBatchJob, type: :job do
       allow(mock_http).to receive(:use_ssl=)
       allow(mock_http).to receive(:request).and_return(mock_response)
 
-      # Mock the global configuration with credentials in URI
-      $TKTPRINT = { 'service' => 'http://test:secret@localhost:3001' }
+      # Mock the tktprint configuration with credentials in URI
+      Rails.configuration.x.tktprint = { 'service' => 'http://test:secret@localhost:3001' }
     end
 
     context 'with POST request' do
@@ -307,7 +307,7 @@ RSpec.describe PrintBatchJob, type: :job do
 
     context 'when tktprint service is not configured' do
       before do
-        $TKTPRINT = { 'service' => '' }
+        Rails.configuration.x.tktprint = { 'service' => '' }
       end
 
       it 'returns error response' do
