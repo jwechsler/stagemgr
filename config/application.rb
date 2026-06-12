@@ -67,11 +67,19 @@ module Stagemgr
 
     initializer :after_append_asset_paths,
                 group: :all,
-                after: :append_assets_path do
-      $MARKDOWN = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, space_after_headers: true,
-                                                                   filter_html: true)
-      $TRUSTED_MARKDOWN = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true,
-                                                                           space_after_headers: true)
+                after: :append_assets_path do |app|
+      app.config.x.markdown = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true,
+                                                                               space_after_headers: true,
+                                                                               filter_html: true)
+      app.config.x.trusted_markdown = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true,
+                                                                                       space_after_headers: true)
+      # Deprecated compatibility shim for the markdown renderers. These run in a
+      # late initializer (after config/initializers load), so they are aliased
+      # here rather than in config/initializers/legacy_globals.rb to capture the
+      # real renderer object. New code must use Rails.configuration.x.markdown /
+      # .trusted_markdown. Remove after external forks migrate.
+      $MARKDOWN = app.config.x.markdown
+      $TRUSTED_MARKDOWN = app.config.x.trusted_markdown
     end
 
     # manage yaml deserialization of audit records for ruby type safety workaround

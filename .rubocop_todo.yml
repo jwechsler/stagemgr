@@ -1066,6 +1066,10 @@ Style/GlobalStdStream:
 
 # Offense count: 162
 # Configuration parameters: AllowedVariables.
+# NOTE: Temporarily disabled while $GLOBAL references are migrated to
+# Rails.configuration.x.*. The final migration commit removes this entry, leaving
+# the scoped exclusion in .rubocop.yml to enforce the cop everywhere except the
+# deprecated compatibility shim.
 Style/GlobalVars:
   Enabled: false
 

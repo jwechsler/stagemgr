@@ -95,29 +95,34 @@ Rails.application.configure do
 
   config.external_site_root = 'file:///Users/jeremyw/dev/site'
 
-  $TKTPRINT = YAML.load(File.open(Rails.root.join('config/ticket_print.yml').to_s))['development']
+  # Application configuration loaded from YAML. The loaded objects are kept
+  # exactly as parsed (string-keyed Hashes) and assigned to config.x.* so that
+  # existing string-key access (e.g. config.x.server_config['host']) keeps
+  # working. Legacy $GLOBALS alias these via config/initializers/legacy_globals.rb.
+  config.x.tktprint = YAML.load(File.open(Rails.root.join('config/ticket_print.yml').to_s))['development']
   config_data = YAML.load(File.open(Rails.root.join('config/server.yml').to_s))
-  $SERVER_CONFIG = config_data['all'].deep_merge(config_data['development'])
-  $PAYMENT_CONFIG = $SERVER_CONFIG['payment_processing']
-  $SERVER_CONFIG['ext_site_wrapper'] = $SERVER_CONFIG['ext_site_wrapper'] || 'ext_site_wrapper'
-  $EMAIL_ADDRESS = $SERVER_CONFIG['email']['addresses']
-  config.action_mailer.default_url_options = { host: $SERVER_CONFIG['host'], protocol: $SERVER_CONFIG['host_protocol'] }
-  $RAND_CLAUSE = Arel.sql('RAND()')
+  config.x.server_config = config_data['all'].deep_merge(config_data['development'])
+  config.x.payment_config = config.x.server_config['payment_processing']
+  config.x.server_config['ext_site_wrapper'] = config.x.server_config['ext_site_wrapper'] || 'ext_site_wrapper'
+  config.x.email_address = config.x.server_config['email']['addresses']
+  config.action_mailer.default_url_options = { host: config.x.server_config['host'],
+                                               protocol: config.x.server_config['host_protocol'] }
+  config.x.rand_clause = Arel.sql('RAND()')
 
-  config.action_mailer.delivery_method = $SERVER_CONFIG['email']['delivery_method'].to_sym
-  if $SERVER_CONFIG['email']['delivery_method'].eql?('postmark')
+  config.action_mailer.delivery_method = config.x.server_config['email']['delivery_method'].to_sym
+  if config.x.server_config['email']['delivery_method'].eql?('postmark')
     config.action_mailer.postmark_settings = { api_key: Rails.application.credentials[:postmark_api_token] }
   end
 
-  if $SERVER_CONFIG['payment_processing'].nil? || $SERVER_CONFIG['payment_processing']['additional_card_types'].blank?
-    $ADDITIONAL_CARD_TYPES = []
+  if config.x.server_config['payment_processing'].nil? ||
+     config.x.server_config['payment_processing']['additional_card_types'].blank?
+    config.x.additional_card_types = []
   else
-    $ADDITIONAL_CARD_TYPES = $SERVER_CONFIG['payment_processing']['additional_card_types'].split(',').map do |ct|
-      ct.strip
-    end
+    config.x.additional_card_types =
+      config.x.server_config['payment_processing']['additional_card_types'].split(',').map(&:strip)
   end
-  $APP_DISPLAY_NAME = $SERVER_CONFIG['app_name'] || 'StageMgr'
-  Rails.application.routes.default_url_options[:host] = $SERVER_CONFIG['host']
+  config.x.app_display_name = config.x.server_config['app_name'] || 'StageMgr'
+  Rails.application.routes.default_url_options[:host] = config.x.server_config['host']
 
   # Allow binding from ngrok.io for remote testing
   config.hosts << 'jw-macbook-m4'
