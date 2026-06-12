@@ -52,7 +52,7 @@ class StripeGateway < ActiveMerchant::Billing::StripePaymentIntentsGateway
       customer = StripeGateway.create_customer(order.address)
     else
       begin
-        customer = Stripe::Customer.retrieve(customer.processor_id)
+        customer = Stripe::Customer.retrieve(order.address.processor_id)
       rescue Stripe::InvalidRequestError
         customer = StripeGateway.create_customer(order.address)
       end

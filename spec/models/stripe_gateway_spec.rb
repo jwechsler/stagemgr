@@ -277,36 +277,46 @@ RSpec.describe StripeGateway, type: :model do
     end
 
     context "when address already has a processor_id" do
-      # CHARACTERIZATION OF A BUG (stripe_gateway.rb:54-62): When processor_id is
-      # present, the else branch runs `Stripe::Customer.retrieve(customer.processor_id)`.
-      # The local variable `customer` is only assigned in the `if` branch (line 55),
-      # so in this branch Ruby treats it as a defined-but-nil local (the lexical
-      # assignment makes it a known local). Calling `nil.processor_id` therefore
-      # raises NoMethodError. The intended receiver was almost certainly
-      # `order.address.processor_id`.
-      #
-      # NoMethodError is a subclass of NameError, so the rescue on line 59
-      # (rescue Stripe::InvalidRequestError) does NOT catch it; the error
-      # propagates to the caller. We assert NoMethodError specifically because
-      # that is the exact class raised.
+      # Previously a bug lived here (stripe_gateway.rb): the else branch called
+      # `Stripe::Customer.retrieve(customer.processor_id)`, but `customer` was an
+      # as-yet-unassigned local in this branch, so `nil.processor_id` raised
+      # NoMethodError and a returning Stripe customer could never renew. The
+      # receiver is now `order.address.processor_id`, so the existing customer is
+      # retrieved and the rescue fallback is reachable.
       before do
         allow(fake_address).to receive(:processor_id).and_return("cus_existing")
+        allow(Stripe::Customer).to receive(:retrieve).with("cus_existing").and_return(fake_customer)
       end
 
-      it "raises NoMethodError from nil.processor_id (bug at stripe_gateway.rb:58)" do
-        expect { gateway.create_subscription(fake_order) }
-          .to raise_error(NoMethodError, /processor_id/)
+      it "retrieves the existing Stripe customer by its processor_id" do
+        expect(Stripe::Customer).to receive(:retrieve).with("cus_existing").and_return(fake_customer)
+        gateway.create_subscription(fake_order)
       end
 
-      it "does not reach the Stripe::InvalidRequestError rescue branch (line 60 is dead code)" do
-        # If Stripe::Customer.retrieve were reachable here, this stub would make
-        # the code follow the rescue path and call create_customer. It never is,
-        # because nil.processor_id raises first — so retrieve is never invoked.
-        allow(Stripe::Customer).to receive(:retrieve).and_raise(
-          Stripe::InvalidRequestError.new("No such customer", "customer")
-        )
-        expect(Stripe::Customer).not_to receive(:retrieve)
-        expect { gateway.create_subscription(fake_order) }.to raise_error(NoMethodError)
+      it "does not create a new customer when one already exists" do
+        expect(Stripe::Customer).not_to receive(:create)
+        gateway.create_subscription(fake_order)
+      end
+
+      it "still creates the subscription for the retrieved customer" do
+        expect(Stripe::Subscription).to receive(:create).and_return(fake_subscription)
+        expect(gateway.create_subscription(fake_order)).to eq(fake_subscription.id)
+      end
+
+      context "and Stripe no longer has that customer" do
+        # The rescue branch is now reachable: a stale processor_id makes
+        # retrieve raise InvalidRequestError, and the code falls back to
+        # creating a fresh customer rather than crashing.
+        before do
+          allow(Stripe::Customer).to receive(:retrieve).with("cus_existing").and_raise(
+            Stripe::InvalidRequestError.new("No such customer", "customer")
+          )
+        end
+
+        it "falls back to creating a new customer" do
+          expect(Stripe::Customer).to receive(:create).and_return(fake_customer)
+          gateway.create_subscription(fake_order)
+        end
       end
     end
   end

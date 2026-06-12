@@ -159,6 +159,33 @@ RSpec.describe SeatManagementService, type: :service do
       end
     end
 
+    context "when only some of the requested seats are available" do
+      # All-or-nothing: a request mixing an available and an already-taken seat
+      # must fail rather than silently assigning just the free one.
+      before do
+        taken = available_seat_ids(1).first
+        other_service = described_class.new(performance, SecureRandom.uuid)
+        other_service.assign_seats([taken], valid_ticket_class_id)
+        @taken_seat_id = taken
+      end
+
+      it "fails the whole request instead of assigning the available subset" do
+        available = (available_seat_ids(5) - [@taken_seat_id]).first
+        result = service.assign_seats([available, @taken_seat_id], valid_ticket_class_id)
+        expect(result.failure?).to be true
+        expect(result.error).to eq("Some seats are not available")
+      end
+    end
+
+    context "when a requested seat_id is not part of this performance's seat map" do
+      it "fails rather than assigning whatever subset is found" do
+        valid = available_seat_ids(1).first
+        result = service.assign_seats([valid, 999_999_999], valid_ticket_class_id)
+        expect(result.failure?).to be true
+        expect(result.error).to eq("Some seats are not available")
+      end
+    end
+
     context "when seat_ids belong to a different performance that shares the same seat map" do
       # CHARACTERIZATION NOTE: Because both performances share the same seat map,
       # the same seat_id exists in BOTH performances' SeatAssignments.

@@ -19,7 +19,7 @@ class SeatManagementService
       begin
         ActiveRecord::Base.transaction do
           assignments = find_available_seats(seats)
-          validate_seat_assignments!(assignments)
+          validate_seat_assignments!(seats, assignments)
 
           assigned = assign_seats_to_order(assignments, ticket_class_id, accessibility)
           first_assignment = assigned.first
@@ -151,8 +151,22 @@ class SeatManagementService
     )
   end
 
-  def validate_seat_assignments!(assignments)
+  # All-or-nothing: every requested seat must resolve to a seat that is
+  # available in THIS performance. Assigning only the subset that happens to be
+  # free silently gives the patron fewer seats than they asked for, so any
+  # requested seat that is missing (not part of this performance's seat map) or
+  # already taken fails the whole request. Note that performances of the same
+  # production share one seat map, so a seat_id is inherently shared across
+  # them; this guard rejects seats from a *different* seat map and prevents
+  # partial assignment, but it cannot distinguish two performances that share a
+  # map — the caller is responsible for passing the correct performance.
+  def validate_seat_assignments!(requested_seat_ids, assignments)
     raise SeatError, 'Some seats are not available' if assignments.empty?
+
+    available_ids = assignments.to_set(&:seat_id)
+    unavailable = requested_seat_ids.map(&:to_i).uniq.reject { |id| available_ids.include?(id) }
+    raise SeatError, 'Some seats are not available' if unavailable.any?
+
     raise SeatError, 'Seat limit exceeded' if exceeds_seat_limit?(assignments.size)
   end
 
