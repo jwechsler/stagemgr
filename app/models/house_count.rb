@@ -6,10 +6,10 @@ class HouseCount < Metric
   def calculate
     return if performance.production.nil?
 
-    self.total_seats = performance.production&.capacity
+    self.total_seats = performance.production.capacity
     self.sold_seats = calculate_sold_seats
     self.held_seats = calculate_held_seats
-    self.available_seats = performance.production&.capacity&.- performance.seats_held
+    self.available_seats = performance.production.capacity - performance.seats_held
     self.max_ticket_price = calculate_max_ticket_price
     self.min_ticket_price = calculate_min_ticket_price
     self.sold_out = calculate_sold_out
