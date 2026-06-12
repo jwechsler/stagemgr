@@ -4,7 +4,7 @@
 # - Handling special offer codes
 # - Processing order submissions
 class TicketOrdersController < ApplicationController
-  layout $SERVER_CONFIG['ext_site_wrapper']
+  layout Rails.configuration.x.server_config['ext_site_wrapper']
   include TicketOrdersHelper
 
   # No login requirement since this is a public controller

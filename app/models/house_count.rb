@@ -106,7 +106,7 @@ class HouseCount < Metric
   end
 
   def calculate_near_capacity
-    available_seats <= $SERVER_CONFIG['restrict_sales_due_to_capacity_at'].to_i
+    available_seats <= Rails.configuration.x.server_config['restrict_sales_due_to_capacity_at'].to_i
   end
 
   def visible_priced_allocations

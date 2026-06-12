@@ -8,8 +8,8 @@ RSpec.describe ExportTodaysCountsJob, type: :job do
 
   before do
     FileUtils.mkdir_p(temp_dir)
-    allow($SERVER_CONFIG).to receive(:[]).and_call_original
-    allow($SERVER_CONFIG).to receive(:[]).with('hud_export_directory').and_return(temp_dir.to_s)
+    allow(Rails.configuration.x.server_config).to receive(:[]).and_call_original
+    allow(Rails.configuration.x.server_config).to receive(:[]).with('hud_export_directory').and_return(temp_dir.to_s)
   end
 
   after do

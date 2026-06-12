@@ -14,7 +14,7 @@ class RateOfSalesJob < ApplicationJob
     else
       calculate_recent_days(Date.yesterday, SELF_HEAL_WINDOW_DAYS)
       RateOfSale.export_to_file(RateOfSale.export_records, RateOfSale.export_columns,
-                                File.join($SERVER_CONFIG['hud_export_directory'], 'rate_of_sales.txt'))
+                                File.join(Rails.configuration.x.server_config['hud_export_directory'], 'rate_of_sales.txt'))
     end
   end
 

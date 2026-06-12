@@ -1,6 +1,6 @@
 class PerformancesController < ApplicationController
   helper PerformancesHelper
-  layout $SERVER_CONFIG['ext_site_wrapper']
+  layout Rails.configuration.x.server_config['ext_site_wrapper']
 
   before_action :find_production, except: %i[by_date ticket_classes]
 
@@ -51,7 +51,7 @@ class PerformancesController < ApplicationController
       end
       @list_footnotes.uniq!
 
-      render :index, layout: $SERVER_CONFIG['ext_site_wrapper']
+      render :index, layout: Rails.configuration.x.server_config['ext_site_wrapper']
     end
   end
 
@@ -69,7 +69,7 @@ class PerformancesController < ApplicationController
         @footnotes << "_custom#{p.id}"
       end
     end
-    render :by_date, layout: $SERVER_CONFIG['ext_site_wrapper']
+    render :by_date, layout: Rails.configuration.x.server_config['ext_site_wrapper']
   end
 
   def ticket_classes

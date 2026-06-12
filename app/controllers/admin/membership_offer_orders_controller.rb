@@ -7,7 +7,7 @@ class Admin::MembershipOfferOrdersController < Admin::ApplicationController
     @membership_order.address = Address.new
     membership_offer = MembershipOffer.where(id: params[:membership_offer_id])
     if membership_offer.blank?
-      render '/orders/not_available', layout: $SERVER_CONFIG['ext_site_wrapper']
+      render '/orders/not_available', layout: Rails.configuration.x.server_config['ext_site_wrapper']
       return
     end
     @membership_order.build_membership_line_item(membership_offer_id: params[:membership_offer_id])

@@ -1,5 +1,5 @@
 class OrdersController < ApplicationController
-  layout $SERVER_CONFIG['ext_site_wrapper']
+  layout Rails.configuration.x.server_config['ext_site_wrapper']
   include OrdersHelper
 
   before_action :find_order, only: %i[show edit update destroy]

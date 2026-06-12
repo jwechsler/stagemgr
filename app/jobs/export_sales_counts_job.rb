@@ -6,7 +6,7 @@ class ExportSalesCountsJob
                when 'last7'     then 'last7_counts.txt'
                when 'previous7' then 'previous7_counts.txt'
                end
-    File.join($SERVER_CONFIG['hud_export_directory'], filename)
+    File.join(Rails.configuration.x.server_config['hud_export_directory'], filename)
   end
 
   def self.perform(period = 'last7', file_path = nil)

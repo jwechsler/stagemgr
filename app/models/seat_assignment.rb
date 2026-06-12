@@ -110,7 +110,7 @@ class SeatAssignment < ApplicationRecord
     results = SeatAssignment.where(
       "updated_at < :expire_time and status = :temp_status and " \
       "(order_uuid is null or not exists (select * from orders where uuid=order_uuid))",
-      expire_time: Time.now - $SERVER_CONFIG['order_expiration_in_minutes'].to_i.minutes,
+      expire_time: Time.now - Rails.configuration.x.server_config['order_expiration_in_minutes'].to_i.minutes,
       temp_status: SeatAssignment::TEMPORARY
     )
     count = release_seat_assignments(results)

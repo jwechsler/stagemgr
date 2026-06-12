@@ -3,7 +3,7 @@ class ExportHouseCountsJob
   @queue = :report
 
   def self.file_path
-    File.join($SERVER_CONFIG['hud_export_directory'], 'house_counts.txt')
+    File.join(Rails.configuration.x.server_config['hud_export_directory'], 'house_counts.txt')
   end
 
   def self.perform(file_path = nil)

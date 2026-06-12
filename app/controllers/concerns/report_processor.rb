@@ -77,7 +77,7 @@ module ReportProcessor
 
   # Generate report inline with timeout protection
   def generate_inline_report(options, &)
-    timeout_seconds = options[:timeout] || $SERVER_CONFIG['report_timeout_seconds'] || 30
+    timeout_seconds = options[:timeout] || Rails.configuration.x.server_config['report_timeout_seconds'] || 30
     Timeout.timeout(timeout_seconds.seconds) do
       if block_given?
         yield
@@ -121,7 +121,7 @@ module ReportProcessor
     days_span = (end_date - start_date).to_i
 
     # Maximum allowed date range (configurable, default to 2 years)
-    max_days = $SERVER_CONFIG['max_report_date_range_days'] || 730
+    max_days = Rails.configuration.x.server_config['max_report_date_range_days'] || 730
 
     if days_span > max_days
       raise ParameterError,

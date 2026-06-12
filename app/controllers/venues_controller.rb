@@ -1,5 +1,5 @@
 class VenuesController < ApplicationController
-  layout $SERVER_CONFIG['ext_site_wrapper']
+  layout Rails.configuration.x.server_config['ext_site_wrapper']
   before_action :set_background
 
   def now_playing_fb

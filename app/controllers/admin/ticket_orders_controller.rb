@@ -174,7 +174,7 @@ class Admin::TicketOrdersController < Admin::OrdersController
     end
 
     @ticket_order.status = Order::NEW if @ticket_order.status.nil?
-    time_cutoff = @ticket_order.performance.to_time_with_zone - ($SERVER_CONFIG['minutes_before_performance_close_to_third_party_sales'] || 0).minutes
+    time_cutoff = @ticket_order.performance.to_time_with_zone - (Rails.configuration.x.server_config['minutes_before_performance_close_to_third_party_sales'] || 0).minutes
     action = params[:submit_action] || params[:commit]
     if action.eql?(Order::HOLD) && !(can?(:hold, TicketOrder) || @ticket_order.payment_type.allow_theater_user_holds?)
       flash[:error] =

@@ -41,10 +41,10 @@ module ApplicationHelper
   end
 
   def mailing_list_link(production = nil)
-    production.nil? || production.mailing_list_link.blank? ? $SERVER_CONFIG['mailing_list_link'] : production.mailing_list_link
+    production.nil? || production.mailing_list_link.blank? ? Rails.configuration.x.server_config['mailing_list_link'] : production.mailing_list_link
   end
 
   def survey_link(production = nil)
-    production.nil? || production.survey_link.blank? ? $SERVER_CONFIG['survey_link'] : production.survey_link
+    production.nil? || production.survey_link.blank? ? Rails.configuration.x.server_config['survey_link'] : production.survey_link
   end
 end

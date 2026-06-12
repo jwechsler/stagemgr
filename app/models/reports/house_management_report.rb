@@ -36,13 +36,13 @@ class HouseManagementReport < Report
     scope = TicketOrder.attending.joins(:performance)
                        .where(address_id: address_ids)
                        .where('performances.performance_date <= ?', for_date)
-    range_days = $SERVER_CONFIG['report_frequent_customer_range_days']
+    range_days = Rails.configuration.x.server_config['report_frequent_customer_range_days']
     scope = scope.where('performances.performance_date >= ?', for_date - range_days.to_i) if range_days
     scope.group(:address_id).count
   end
 
   def frequent_customer_threshold
-    $SERVER_CONFIG['report_frequent_customer_at']
+    Rails.configuration.x.server_config['report_frequent_customer_at']
   end
 
   def create

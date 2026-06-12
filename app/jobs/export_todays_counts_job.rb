@@ -30,7 +30,7 @@ class ExportTodaysCountsJob
       footer: "Generated #{Time.current.strftime('%a %b %d %H:%M:%S %Z %Y')}"
     )
 
-    file_path = File.join($SERVER_CONFIG['hud_export_directory'], 'todays_counts.txt')
+    file_path = File.join(Rails.configuration.x.server_config['hud_export_directory'], 'todays_counts.txt')
     HudTableFormatter.write_to_file(content, file_path)
   end
 

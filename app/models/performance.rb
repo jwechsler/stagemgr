@@ -116,7 +116,7 @@ class Performance < ApplicationRecord
 
   def happening_soon?
     at = performance_at
-    (Time.now < at + production.running_time.minutes) && (Time.now + $SERVER_CONFIG['restrict_sales_due_to_time_at_minutes_before'].minutes > at)
+    (Time.now < at + production.running_time.minutes) && (Time.now + Rails.configuration.x.server_config['restrict_sales_due_to_time_at_minutes_before'].minutes > at)
   end
 
   def performance_at
@@ -132,7 +132,7 @@ class Performance < ApplicationRecord
   end
 
   def near_capacity?
-    number_of_seats_left <= $SERVER_CONFIG['restrict_sales_due_to_capacity_at'].to_i
+    number_of_seats_left <= Rails.configuration.x.server_config['restrict_sales_due_to_capacity_at'].to_i
   end
 
   # Calendar-optimized methods using pre-computed HouseCount data.
@@ -160,7 +160,7 @@ class Performance < ApplicationRecord
 
     seats_left = calendar_seats_left
     pct_remaining = (seats_left.to_f / capacity) * 100
-    thresholds = $SERVER_CONFIG['calendar_display'] || {}
+    thresholds = Rails.configuration.x.server_config['calendar_display'] || {}
     if pct_remaining <= (thresholds['critical_at'] || 30)
       'critical'
     elsif pct_remaining <= (thresholds['warning_at'] || 50)

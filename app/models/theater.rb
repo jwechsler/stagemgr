@@ -146,7 +146,7 @@ class Theater
       return if myemma_attendee_group.present? 
 
         grp = MyEmma::Group.find_by_group_name(my_emma_group_name)
-        if grp.nil? && $SERVER_CONFIG['my_emma']['create_theater_groups']
+        if grp.nil? && Rails.configuration.x.server_config['my_emma']['create_theater_groups']
           grp = MyEmma::Group.new
           grp.group_name = my_emma_group_name
           self.myemma_attendee_group = grp.id if grp.save

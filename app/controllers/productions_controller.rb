@@ -1,5 +1,5 @@
 class ProductionsController < ApplicationController
-  layout $SERVER_CONFIG['ext_site_wrapper']
+  layout Rails.configuration.x.server_config['ext_site_wrapper']
 
   prepend_before_action :find_theater, except: %i[index upcoming now_playing box_office by_date show]
   before_action :find_production, only: %i[edit update destroy]

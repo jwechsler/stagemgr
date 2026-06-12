@@ -14,7 +14,7 @@ class ProductionPerformanceOrdersController < ApplicationController
     @performance = @production.performances.find(params[:performance_id]) unless @production.nil?
     if @production.nil? || @performance.nil? || @performance.inactive? || @production.inactive? || @performance.performance_date.past?
       respond_to do |format|
-        format.html { render '/orders/not_available', layout: $SERVER_CONFIG['ext_site_wrapper'] }
+        format.html { render '/orders/not_available', layout: Rails.configuration.x.server_config['ext_site_wrapper'] }
       end
     else
       begin
@@ -57,7 +57,7 @@ class ProductionPerformanceOrdersController < ApplicationController
                           ' at ' + @performance.performance_time.to_formatted_s(:hour_min)
 
         respond_to do |format|
-          format.html { render '/ticket_orders/edit', layout: $SERVER_CONFIG['ext_site_wrapper'] }
+          format.html { render '/ticket_orders/edit', layout: Rails.configuration.x.server_config['ext_site_wrapper'] }
         end
       rescue StandardError => e
         # Debug the error to see exactly where it's happening
