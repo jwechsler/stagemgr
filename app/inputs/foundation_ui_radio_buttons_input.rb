@@ -22,7 +22,7 @@ class FoundationUiRadioButtonsInput < SimpleForm::Inputs::CollectionRadioButtons
   protected
 
   def build_nested_boolean_style_item_tag(collection_builder)
-    tag = String.new
+    tag = ''
     tag << (collection_builder.radio_button + collection_builder.label)
     tag.html_safe
   end # method
