@@ -8,8 +8,8 @@ RSpec.describe RevenueCalculator, type: :service do
     context 'with an empty scope' do
       it 'returns zero totals' do
         result = RevenueCalculator.for(TicketOrder.none)
-        expect(result.cash_collected).to eq(0)
-        expect(result.cash_reportable).to eq(0)
+        expect(result.collected).to eq(0)
+        expect(result.reportable).to eq(0)
         expect(result.ticketing_fees).to eq(0)
         expect(result.processing_fees).to eq(0)
         expect(result.ticket_count).to eq(0)
@@ -31,11 +31,17 @@ RSpec.describe RevenueCalculator, type: :service do
         order.payments.first.update!(processing_fee: 0.30)
       end
 
-      it 'includes the order in cash_collected and cash_reportable' do
+      it 'includes the order in collected and reportable' do
         result = RevenueCalculator.for(performance.orders)
         expect(result.order_count).to eq(1)
-        expect(result.cash_collected).to  eq(order.total_paid)
-        expect(result.cash_reportable).to eq(order.total_paid)
+        expect(result.collected).to  eq(order.total_paid)
+        expect(result.reportable).to eq(order.total_paid)
+      end
+
+      it 'exposes the deprecated cash_* aliases equivalently' do
+        result = RevenueCalculator.for(performance.orders)
+        expect(result.cash_collected).to eq(result.collected)
+        expect(result.cash_reportable).to eq(result.reportable)
       end
 
       it 'sums processing_fees from payments' do
@@ -68,7 +74,7 @@ RSpec.describe RevenueCalculator, type: :service do
                           performance: performance)
       end
 
-      it 'nets negative offset payments against cash_collected' do
+      it 'nets negative offset payments against collected' do
         original = order.total_paid
         offset_payment = order.payments.first.new_exchange_offset_payment
         offset_payment.save!
@@ -76,20 +82,20 @@ RSpec.describe RevenueCalculator, type: :service do
 
         result = RevenueCalculator.for(performance.orders)
         expect(result.order_count).to eq(1)
-        expect(result.cash_collected).to eq(0) # original + offset = 0
+        expect(result.collected).to eq(0) # original + offset = 0
         expect(original).to be > 0
       end
     end
 
-    context 'when cash_reportable differs from cash_collected' do
+    context 'when reportable differs from collected' do
       it 'excludes payments whose payment_type is not report_as_sales_collected' do
         order = FactoryBot.create(:ticket_order, :for_a_single_ticket, :paid_with_credit_card, performance: performance)
-        # Flip the payment's type so its amount is in cash_collected but NOT cash_reportable
+        # Flip the payment's type so its amount is in collected but NOT reportable
         order.payments.first.payment_type.update!(report_as_sales_collected: false)
 
         result = RevenueCalculator.for(performance.orders)
-        expect(result.cash_collected).to  eq(order.total_paid)
-        expect(result.cash_reportable).to eq(0)
+        expect(result.collected).to  eq(order.total_paid)
+        expect(result.reportable).to eq(0)
       end
     end
 
@@ -105,7 +111,7 @@ RSpec.describe RevenueCalculator, type: :service do
         orders = performance.orders.to_a
         result = RevenueCalculator.for(orders)
         expect(result.order_count).to eq(1)
-        expect(result.cash_collected).to eq(order.total_paid)
+        expect(result.collected).to eq(order.total_paid)
       end
 
       it 'filters out statuses not in the filter when passed an array' do

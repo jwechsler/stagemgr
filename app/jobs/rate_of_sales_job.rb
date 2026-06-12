@@ -39,7 +39,7 @@ class RateOfSalesJob < ApplicationJob
       RateOfSale.find_or_initialize_by(day_of_sale: date, production_id: production_id).update!(
         total_single_tickets: revenue.ticket_count,
         total_complimentary_tickets: revenue.comp_count,
-        gross_sales: revenue.cash_collected,
+        gross_sales: revenue.collected,
         processing_fees: revenue.ticketing_fees + revenue.processing_fees,
         order_count: revenue.order_count
       )
