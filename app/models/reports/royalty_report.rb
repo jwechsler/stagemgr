@@ -42,8 +42,16 @@ class RoyaltyReport < Report
       end.each do |perf|
         settled_orders = perf.orders.select { |o| o.settled? }
         paid_tickets = settled_orders.sum { |o| o.number_of_tickets }
+        # Gross stays on the royalty_gross basis (royalty contracts value the
+        # show on face/royalty price, not on collected revenue), so it is NOT
+        # sourced from RevenueCalculator.
         gross = settled_orders.sum { |o| o.respond_to?(:royalty_gross) ? o.royalty_gross : 0 }.to_money
-        processing_fee = settled_orders.sum { |o| o.processing_fee }.to_money
+        # Processing fees come from the canonical RevenueCalculator (equivalent
+        # to summing each settled order's processing_fee). Ticketing fees are
+        # intentionally excluded from royalty net pending business review, so
+        # only the processing-fee total is pulled and deducted below.
+        revenue = RevenueCalculator.for(settled_orders)
+        processing_fee = revenue.processing_fees.to_money
 
         subtotal[:gross] += gross
         subtotal[:processing] += processing_fee
