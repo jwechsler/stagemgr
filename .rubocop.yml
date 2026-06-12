@@ -27,3 +27,9 @@ Layout/IndentationStyle:
 Layout/IndentationWidth:
   Enabled: true
   Width: 2
+
+# follow_up_message_2 is an existing Production database column; specs and code
+# must reference it by its real name.
+Naming/VariableNumber:
+  AllowedIdentifiers:
+    - follow_up_message_2

@@ -14,11 +14,11 @@ RSpec.describe SeatManagementService, type: :service do
   end
   let(:order_uuid) { SecureRandom.uuid }
 
-  # Helper: grab n available SeatAssignments from the performance
-  def available_seat_ids(n = 1)
+  # Helper: grab the requested number of available SeatAssignments from the performance
+  def available_seat_ids(count = 1)
     performance.seat_assignments
               .select { |sa| sa.status == SeatAssignment::AVAILABLE }
-              .first(n)
+              .first(count)
               .map(&:seat_id)
   end
 

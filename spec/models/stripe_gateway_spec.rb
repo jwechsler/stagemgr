@@ -161,7 +161,7 @@ RSpec.describe StripeGateway, type: :model do
       double("Address",
              id: 42,
              full_name: "John Doe",
-             parse_full_name: ["John", "Doe"],
+             parse_full_name: %w[John Doe],
              line1: "123 Main St",
              line2: nil,
              city: "Springfield",
@@ -170,7 +170,7 @@ RSpec.describe StripeGateway, type: :model do
              email: "john@example.com",
              phone: "555-1234",
              processor_id: nil,
-             "processor_id=": nil)
+             'processor_id=': nil)
     end
 
     let(:fake_recurring_offer) do
@@ -185,7 +185,7 @@ RSpec.describe StripeGateway, type: :model do
              credit_card_number: "4111111111111111",
              credit_card_expiration_month: "12",
              credit_card_expiration_year: "2025",
-             "credit_card_expiration_year=": nil,
+             'credit_card_expiration_year=': nil,
              credit_card_verification_number: "123",
              id: 99)
     end
