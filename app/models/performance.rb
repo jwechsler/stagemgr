@@ -110,7 +110,7 @@ class Performance < ApplicationRecord
 
 
   def near_capacity?
-    self.number_of_seats_left <= $SERVER_CONFIG['restrict_sales_due_to_capacity_at']
+    self.number_of_seats_left <= $SERVER_CONFIG['restrict_sales_due_to_capacity_at'].to_i
   end
 
   # Calendar-optimized methods using pre-computed HouseCount data.
