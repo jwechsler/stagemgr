@@ -1,0 +1,29 @@
+inherit_from: .rubocop_todo.yml
+
+plugins:
+  - rubocop-rails
+
+AllCops:
+  TargetRubyVersion: 3.3
+  TargetRailsVersion: 6.1
+  NewCops: enable
+  SuggestExtensions: false
+  Exclude:
+    - 'bin/**/*'
+    - 'vendor/**/*'
+    - 'node_modules/**/*'
+    - 'tmp/**/*'
+    - 'log/**/*'
+    - 'public/**/*'
+    - 'storage/**/*'
+    - 'coverage/**/*'
+    - 'db/schema.rb'
+
+# Project indentation preference: two spaces, never tabs.
+Layout/IndentationStyle:
+  Enabled: true
+  EnforcedStyle: spaces
+
+Layout/IndentationWidth:
+  Enabled: true
+  Width: 2
