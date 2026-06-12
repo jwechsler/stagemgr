@@ -59,6 +59,8 @@ all:
   max_ticket_dropdown: 20
   # Seats remaining below which front-facing sales collapse to "Call" instead of a quantity dropdown (0 = never show Call, only Sold Out)
   suspend_front_facing_sales_threshold: 0
+  # Seats remaining at or below which remaining inventory is restricted to the box office (near-capacity)
+  restrict_sales_due_to_capacity_at: 8
   # Calendar heatmap thresholds (percentage of seats remaining)
   calendar_display:
     warning_at: 50
