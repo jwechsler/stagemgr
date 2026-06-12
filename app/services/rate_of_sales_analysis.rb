@@ -230,9 +230,15 @@ class RateOfSalesAnalysis
   # (growth + plateau) and decline tail. split_curve_at_decline still FINDS the
   # tail; we no longer stretch either piece. (Fix 4)
   def historical_body_and_tail(aggregate_weekly_avg)
-    hist_curve = aggregate_weekly_avg.select { |k, _| k =~ /^Week \d+$/ }
-                                     .sort_by { |k, _| k[/\d+/].to_i }
-                                     .map(&:last)
+    week_pairs = aggregate_weekly_avg.select { |k, _| k =~ /^Week \d+$/ }
+    # Fix 4: Pre-sales must NEVER enter the expectation curve — presale periods
+    # vary too much between productions to be comparable. The /^Week \d+$/ filter
+    # above already excludes it; assert it explicitly so a future change to the
+    # label scheme can't silently let pre-sales leak into the projection.
+    raise 'Pre-sales must not enter the expectation curve' if week_pairs.key?('Pre-sales')
+
+    hist_curve = week_pairs.sort_by { |k, _| k[/\d+/].to_i }
+                           .map(&:last)
     # Drop trailing partial/straggler weeks (near-zero revenue after show closes)
     peak_val = hist_curve.max || 0
     hist_curve.pop while hist_curve.size > 1 && hist_curve.last < peak_val * 0.01
