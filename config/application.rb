@@ -78,8 +78,8 @@ module Stagemgr
       # here rather than in config/initializers/legacy_globals.rb to capture the
       # real renderer object. New code must use Rails.configuration.x.markdown /
       # .trusted_markdown. Remove after external forks migrate.
-      $MARKDOWN = app.config.x.markdown
-      $TRUSTED_MARKDOWN = app.config.x.trusted_markdown
+      $MARKDOWN = app.config.x.markdown # rubocop:disable Style/GlobalVars
+      $TRUSTED_MARKDOWN = app.config.x.trusted_markdown # rubocop:disable Style/GlobalVars
     end
 
     # manage yaml deserialization of audit records for ruby type safety workaround
