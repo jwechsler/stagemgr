@@ -49,6 +49,48 @@ counts — documented at their definitions:
 
 Stagemgr maintains two categories of historical show data that are calculated automatically by background jobs and stored in the database for reporting and display purposes.
 
+## Revenue Vocabulary
+
+Revenue figures span every payment method (credit cards, third-party, comps that
+back gift certificates, etc.), so the canonical terms deliberately avoid the word
+"cash" — cash is just one payment type. There are three core concepts:
+
+| Term | Meaning |
+|------|---------|
+| `collected` | Total of all payments on the scoped orders (every payment type). Human-facing label: **"Revenue Collected"**. |
+| `reportable` | The sales-reportable subset of `collected` — only payments whose payment type has `report_as_sales_collected?`. Excludes things like membership/flex-pass redemptions that are gross but not collected as sales. |
+| `net` | `reportable` minus ticketing (facility) and processing fees. The house's take-home figure. |
+
+### Single source of truth: `RevenueCalculator`
+
+`RevenueCalculator` (`app/services/revenue_calculator.rb`) is the one place that
+computes these figures for an arbitrary scope of orders. Its `Result` struct
+exposes `collected`, `reportable`, `ticketing_fees`, `processing_fees`, `net`,
+and ticket/order counts. (`cash_collected` / `cash_reportable` remain as
+deprecated aliases for backward compatibility; new code should use
+`collected` / `reportable`.)
+
+Callers that route through `RevenueCalculator`:
+
+- **`RateOfSalesJob`** — daily `gross_sales` is `RevenueCalculator#collected`.
+- **`TicketRevenueAnalysis`** — its dynamic-pricing summary pulls `collected`.
+- **`SalesByPerformanceReport`** — its per-performance columns are
+  `revenue_collected` (= `collected`, labeled "Revenue Collected"),
+  `reportable` (= `reportable`), the fee columns, and `net`.
+- **`RoyaltyReport`** — pulls the processing-fee total from `RevenueCalculator`.
+  Note: royalty **gross** stays on the `royalty_gross` basis (royalty contracts
+  value the show on face/royalty price, not collected revenue), and **ticketing
+  fees are intentionally excluded** from royalty net pending business review, so
+  royalty net = `royalty_gross` minus processing fees only.
+
+### Deliberately order-local
+
+`OrderReport#order_revenue` is **not** routed through `RevenueCalculator`. It is a
+single order's `total_paid` minus that order's fees, and must reflect every
+payment on the order regardless of payment type or order status — whereas
+`RevenueCalculator#net` is built on the reportable subset and only counts settled
+orders. The math is therefore kept inline and order-scoped.
+
 ## Rate of Sale (Daily Sales History)
 
 The `RateOfSale` model stores a daily snapshot of ticket sales activity for each production. One record is created per production per day that had sales.
