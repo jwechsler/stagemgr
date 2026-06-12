@@ -52,6 +52,12 @@ class OrderReport < Report
     row[:status] = order.status
     row[:description] = order.description
     row[:order_total] = Money.from_amount(order.total_paid)
+# Order-local revenue: this single order's total_paid minus its fees.
+    # Deliberately NOT routed through RevenueCalculator (the canonical source
+    # for "collected"/"reportable"/"net"). RevenueCalculator's net is built on
+    # the sales-reportable subset and only counts settled orders, whereas this
+    # row must reflect every payment on this one order regardless of payment
+    # type or order status — so the math stays inline and order-scoped here.
     row[:order_revenue] =
       Money.from_amount(order.total_paid) - Money.from_amount(order.processing_fee) - Money.from_amount(order.ticketing_fee)
     row[:num_tickets] = order.is_a?(TicketOrder) ? order.number_of_tickets : 0
