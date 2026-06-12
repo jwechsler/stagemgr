@@ -103,9 +103,20 @@ The `RateOfSale` model stores a daily snapshot of ticket sales activity for each
 | `production` | The production these sales belong to |
 | `total_single_tickets` | Paid ticket count (excludes comps) |
 | `total_complimentary_tickets` | Complimentary ticket count |
-| `gross_sales` | Total amount paid across all orders |
-| `processing_fees` | Sum of processing and ticketing fees |
+| `gross_sales` | Total amount paid across all orders (`RevenueCalculator#collected` — includes third-party/external payments and ticketing fees) |
+| `processing_fees` | **Legacy combined figure**: sum of ticketing + processing fees. Kept as-is for backward compatibility; prefer `ticketing_fees` (below) when you need the ticketing portion alone. |
+| `ticketing_fees` | Isolated ticketing (facility) fee for the day (`RevenueCalculator#ticketing_fees`). **Nullable** — `nil` means the row predates this column and has not yet been backfilled (see Backfill). |
 | `order_count` | Number of distinct orders placed |
+
+### Analysis revenue basis
+
+`RateOfSalesAnalysis` does **not** report raw `gross_sales`. Its revenue series
+(weekly totals, daily rolling, momentum, ratio, projections, and insights) all
+use **analysis revenue = `gross_sales − (ticketing_fees || 0)`**: all payments
+(including third-party) net of ticketing fees but gross of processing fees —
+the same treatment as `RoyaltyReport`. Rows with `nil` `ticketing_fees` fall
+back to `gross_sales`, so the figure is slightly overstated for un-backfilled
+rows; run the backfill task below for historical comparability.
 
 ### Calculation Schedule
 
@@ -127,6 +138,58 @@ To calculate a specific date:
 ```ruby
 RateOfSalesJob.calculate_for_day(Date.parse('2026-03-15'))
 ```
+
+#### Backfilling `ticketing_fees`
+
+The `ticketing_fees` column was added after the table already had history. Rows
+created before it default to `nil` and fall back to `gross_sales` in the
+analysis. **This task must be run in production** so historical comparisons in
+`RateOfSalesAnalysis` are on the correct net-of-ticketing-fees basis:
+
+```bash
+bundle exec rake rate_of_sales:backfill_ticketing_fees
+```
+
+It recomputes **only** the `ticketing_fees` column (via the same
+`RevenueCalculator` path the daily job uses) and leaves all other columns
+untouched. It is idempotent; by default it only fills rows where
+`ticketing_fees IS NULL`. Pass `FORCE=1` to recompute every row (e.g. after a
+`RevenueCalculator` change).
+
+## Rate of Sales Analysis & Revenue Projection
+
+`RateOfSalesAnalysis` (`app/services/rate_of_sales_analysis.rb`) compares a
+target production's sales trajectory against a set of historical comparison
+productions and projects remaining revenue. Key conventions:
+
+- **Week buckets** anchor on `presale_cutoff = first_playing_date − 21 days`.
+  Bucket *N* spans `[presale_cutoff + (N−1)·7, presale_cutoff + N·7)`. Because
+  runs are short (4–7 weeks) and opening-aligned, "Week 4" is opening week for
+  every show, so week labels are directly comparable across productions.
+- **Partial final week**: actuals are cut at the start-of-week `cutoff`, which
+  rarely lands on a bucket boundary, so the newest actual bucket is usually
+  partial. Its revenue still counts in the cumulative actual totals (real
+  money), but it is **excluded** from the performance ratio and the momentum
+  window so results don't depend on which weekday the report runs. Its
+  unplayed days are projected as the first projected increment (expected week
+  value × ratio, pro-rated by `remaining_days / 7`).
+- **Pre-sales** are never part of the expectation curve, ratio, or momentum —
+  presale periods vary too much between productions.
+- **Expectation curve (historical-scaled projection)**: built from **matching
+  weeks** — expected revenue for target Week *N* is the comparison average at
+  "Week *N*". The comparisons' decline tail is **end-aligned** to the target's
+  closing week (closing-week dynamics belong at the close). If the target runs
+  longer than the comparisons, the gap between the last matching body week and
+  the end-aligned tail is filled with the plateau level (average of the last
+  two body weeks). The result is multiplied by the weighted performance ratio
+  and capped by remaining seat inventory × average realized ticket price.
+  `extra_weeks` widens the plateau gap.
+- **Self-scaled (momentum) projection**: anchors on the target's recent 7-day
+  rolling revenue and applies a weekly rate derived from the daily-rolling
+  trajectory (last 7 complete days vs the prior 7), clamped to ±`MOMENTUM_CLAMP_PCT`%
+  and **decayed by half each successive projected week** (`MOMENTUM_DECAY`) so
+  momentum fades toward flat rather than compounding over a short run. Both
+  constants are exposed at the top of the class and are intended to be tunable.
 
 ## House Count (Performance Inventory)
 

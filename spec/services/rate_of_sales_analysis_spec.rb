@@ -510,78 +510,101 @@ RSpec.describe RateOfSalesAnalysis, type: :service do
   end
 
   # ---------------------------------------------------------------------------
-  # Private helper: #interpolate_curve
+  # Private helper: #expected_weekly_value / #plateau_level
+  # FIX 4: the body-stretch machinery (#interpolate_curve + body stretching) was
+  # replaced with matching-week expectation + an end-aligned decline tail. The
+  # former #interpolate_curve direct specs are replaced by these, which pin the
+  # new mapping.
   # ---------------------------------------------------------------------------
-  describe '#interpolate_curve directly' do
+  describe '#expected_weekly_value (matching-week + end-aligned tail)' do
     let(:analysis) { described_class.new(create_production, []) }
 
-    it 'returns 0.0 for empty curve' do
-      expect(analysis.send(:interpolate_curve, [], 1, 5)).to eq(0.0)
+    it 'uses the matching body value for body weeks' do
+      body = [10.0, 20.0, 30.0]
+      tail = []
+      # total_weeks=3, no tail → week N maps to body[N-1]
+      expect(analysis.send(:expected_weekly_value, 1, 3, body, tail)).to be_within(0.001).of(10.0)
+      expect(analysis.send(:expected_weekly_value, 2, 3, body, tail)).to be_within(0.001).of(20.0)
+      expect(analysis.send(:expected_weekly_value, 3, 3, body, tail)).to be_within(0.001).of(30.0)
     end
 
-    it 'returns the single element for a 1-element curve' do
-      expect(analysis.send(:interpolate_curve, [42.0], 1, 5)).to eq(42.0)
+    it 'end-aligns the decline tail to the final weeks of the run' do
+      body = [10.0, 20.0, 30.0]
+      tail = [25.0, 15.0]
+      total_weeks = 5
+      # Body weeks 1..3, tail end-aligned to weeks 4,5
+      expect(analysis.send(:expected_weekly_value, 3, total_weeks, body, tail)).to be_within(0.001).of(30.0)
+      expect(analysis.send(:expected_weekly_value, 4, total_weeks, body, tail)).to be_within(0.001).of(25.0)
+      expect(analysis.send(:expected_weekly_value, 5, total_weeks, body, tail)).to be_within(0.001).of(15.0)
     end
 
-    it 'returns the first element when week_num == 1 and total_weeks == size' do
-      curve = [10.0, 20.0, 30.0]
-      expect(analysis.send(:interpolate_curve, curve, 1, 3)).to be_within(0.001).of(10.0)
+    it 'fills the gap with the plateau level when the run is longer than body+tail' do
+      body = [10.0, 20.0, 30.0]
+      tail = [25.0, 15.0]
+      total_weeks = 7 # body(3) + gap(2) + tail(2)
+      # weeks 4,5 fall in the gap → plateau = avg(body[-2], body[-1]) = (20+30)/2 = 25
+      expect(analysis.send(:expected_weekly_value, 4, total_weeks, body, tail)).to be_within(0.001).of(25.0)
+      expect(analysis.send(:expected_weekly_value, 5, total_weeks, body, tail)).to be_within(0.001).of(25.0)
+      # weeks 6,7 are the end-aligned tail
+      expect(analysis.send(:expected_weekly_value, 6, total_weeks, body, tail)).to be_within(0.001).of(25.0)
+      expect(analysis.send(:expected_weekly_value, 7, total_weeks, body, tail)).to be_within(0.001).of(15.0)
+    end
+  end
+
+  describe '#plateau_level' do
+    let(:analysis) { described_class.new(create_production, []) }
+
+    it 'returns 0.0 for empty body' do
+      expect(analysis.send(:plateau_level, [])).to eq(0.0)
     end
 
-    it 'returns the last element when week_num == total_weeks' do
-      curve = [10.0, 20.0, 30.0]
-      expect(analysis.send(:interpolate_curve, curve, 3, 3)).to be_within(0.001).of(30.0)
+    it 'returns the single value for a 1-element body' do
+      expect(analysis.send(:plateau_level, [42.0])).to eq(42.0)
     end
 
-    it 'interpolates linearly between two points' do
-      curve = [0.0, 100.0]
-      # Week 1 of 3: position = 0/2 * 1 = 0.0 → lower=0, upper=0 → returns 0.0
-      # Week 2 of 3: position = 1/2 * 1 = 0.5 → interpolate between curve[0] and curve[1]
-      val = analysis.send(:interpolate_curve, curve, 2, 3)
-      expect(val).to be_within(0.001).of(50.0)
+    it 'returns the average of the last two body weeks' do
+      expect(analysis.send(:plateau_level, [10.0, 20.0, 30.0])).to be_within(0.001).of(25.0)
     end
   end
 
   # ---------------------------------------------------------------------------
   # Private helper: #compute_momentum
+  # FIX 5: momentum is now a daily-rolling-based rate (last 7 complete days vs
+  # the prior 7), replacing the former median-of-last-3-weekly-pct model. The
+  # method now takes the daily_rolling hash, not a weekly pct hash.
   # ---------------------------------------------------------------------------
-  describe '#compute_momentum' do
+  describe '#compute_momentum (daily-rolling rate)' do
     let(:analysis) { described_class.new(create_production, []) }
 
-    it 'returns [0.0, 0] for an empty hash' do
-      momentum, window = analysis.send(:compute_momentum, {})
-      expect(momentum).to eq(0.0)
-      expect(window).to eq(0)
-    end
-
-    it 'returns [0.0, 0] when fewer than 2 week keys exist' do
-      data = { "Week 1" => 10.0 }
+    it 'returns [0.0, 0] when fewer than 14 rolling points exist' do
+      data = (1..10).to_h { |i| ["#{i}/1/26", 100.0] }
       momentum, window = analysis.send(:compute_momentum, data)
       expect(momentum).to eq(0.0)
       expect(window).to eq(0)
     end
 
-    it 'returns median of last-3 weeks pct changes with 2 week keys' do
-      data = { "Week 1" => 0.0, "Week 2" => 50.0 }
+    it 'returns 0% when the recent window matches the prior window' do
+      data = (1..14).to_h { |i| ["d#{i}", 100.0] }
       momentum, window = analysis.send(:compute_momentum, data)
-      expect(window).to eq(2)
-      # Sorted: [0.0, 50.0], size=2 even → (values[0] + values[1]) / 2 = 25.0
-      expect(momentum).to be_within(0.001).of(25.0)
+      expect(window).to eq(14)
+      expect(momentum).to be_within(0.001).of(0.0)
     end
 
-    it 'returns median of last-3 weeks pct changes with 3 week keys (odd length)' do
-      data = { "Week 1" => 0.0, "Week 2" => 10.0, "Week 3" => 30.0 }
+    it 'computes the pct change of the recent 7-day avg vs the prior 7-day avg' do
+      # prior 7 (indices -14..-8) = 100 each; recent 7 = 150 each → +50%
+      prior = Array.new(7, 100.0)
+      recent = Array.new(7, 150.0)
+      data = (prior + recent).each_with_index.to_h { |v, i| ["d#{i}", v] }
       momentum, window = analysis.send(:compute_momentum, data)
-      expect(window).to eq(3)
-      # sorted: [0.0, 10.0, 30.0], size=3, mid=1 → values[1] = 10.0
-      expect(momentum).to be_within(0.001).of(10.0)
+      expect(window).to eq(14)
+      expect(momentum).to be_within(0.001).of(50.0)
     end
 
-    it 'ignores "Pre-sales" key when selecting the last 3 weeks' do
-      data = { "Pre-sales" => 0.0, "Week 1" => 0.0, "Week 2" => 20.0 }
-      _, window = analysis.send(:compute_momentum, data)
-      # Only Week 1 and Week 2 match /^Week \d+$/
-      expect(window).to eq(2)
+    it 'returns [0.0, size] when the prior window is non-positive' do
+      data = (Array.new(7, 0.0) + Array.new(7, 50.0)).each_with_index.to_h { |v, i| ["d#{i}", v] }
+      momentum, window = analysis.send(:compute_momentum, data)
+      expect(momentum).to eq(0.0)
+      expect(window).to eq(14)
     end
   end
 
@@ -856,6 +879,149 @@ RSpec.describe RateOfSalesAnalysis, type: :service do
       if result[:projection]
         expect(result[:projection][:extra_weeks]).to eq(1)
       end
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # FIX 1: partial-week bias — the performance ratio must not depend on which
+  # day of the week the analysis runs. The actual buckets anchor on
+  # presale_cutoff (rarely a Monday), so the final bucket is usually partial;
+  # excluding it from the ratio makes the ratio stable across days in the week.
+  # ---------------------------------------------------------------------------
+  describe 'FIX 1: performance ratio stability across the week' do
+    it 'produces the same performance_ratio on two different days in the same week' do
+      # Anchor far enough back that several complete weeks exist regardless of
+      # the "today" we travel to.
+      opening = Date.new(2026, 5, 4) # a Monday-ish anchor; presale_cutoff = opening-21
+      closing = Date.new(2026, 6, 30)
+
+      target = create_production(opening: opening, closing: closing)
+      comp   = create_production(opening: opening - 60, closing: opening - 10)
+
+      anchor_t = target.first_playing_date
+      pc_t = anchor_t - 21.days
+      (0..40).each do |i|
+        RateOfSale.create!(production: target, day_of_sale: pc_t + i.days,
+                           total_single_tickets: 10, total_complimentary_tickets: 0,
+                           gross_sales: 100.0, processing_fees: 0, ticketing_fees: 0, order_count: 1)
+      end
+      anchor_c = comp.first_playing_date
+      pc_c = anchor_c - 21.days
+      (0..55).each do |i|
+        RateOfSale.create!(production: comp, day_of_sale: pc_c + i.days,
+                           total_single_tickets: 10, total_complimentary_tickets: 0,
+                           gross_sales: 100.0, processing_fees: 0, ticketing_fees: 0, order_count: 1)
+      end
+
+      # Two different days within the SAME analysis week (Wed and Fri of a week
+      # whose Monday is after enough data exists).
+      ratio_wed = travel_to(Date.new(2026, 6, 10)) do # Wednesday
+        described_class.new(target, [comp]).compute[:projection]&.dig(:performance_ratio)
+      end
+      ratio_fri = travel_to(Date.new(2026, 6, 12)) do # Friday, same week
+        described_class.new(target, [comp]).compute[:projection]&.dig(:performance_ratio)
+      end
+
+      expect(ratio_wed).not_to be_nil
+      expect(ratio_fri).not_to be_nil
+      expect(ratio_fri).to be_within(0.001).of(ratio_wed)
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # FIX 2: revenue-vs-revenue insight + new aggregate_revenue_data result key.
+  # ---------------------------------------------------------------------------
+  describe 'FIX 2: aggregate revenue series' do
+    let(:target) { create_production(opening: Date.today - 60.days, closing: Date.today + 10.days) }
+    let(:comp)   { create_production(opening: Date.today - 90.days, closing: Date.today - 10.days) }
+
+    before do
+      anchor = comp.first_playing_date
+      pc = anchor - 21.days
+      [1, 2, 3].each do |w|
+        RateOfSale.create!(production: comp, day_of_sale: pc + (((w - 1) * 7) + 1).days,
+                           total_single_tickets: 10 * w, total_complimentary_tickets: 0,
+                           gross_sales: 100.0 * w, processing_fees: 0, ticketing_fees: 0, order_count: 1)
+      end
+    end
+
+    it 'exposes :aggregate_revenue_data alongside :aggregate_data' do
+      result = described_class.new(target, [comp]).compute
+      expect(result).to have_key(:aggregate_revenue_data)
+      expect(result).to have_key(:aggregate_data)
+      expect(result[:aggregate_revenue_data]).to be_a(Hash)
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # FIX 3: analysis revenue = gross_sales net of ticketing fees.
+  # ---------------------------------------------------------------------------
+  describe 'FIX 3: revenue is net of ticketing fees' do
+    let(:production) { create_production(opening: Date.today - 60.days, closing: Date.today + 10.days) }
+
+    it 'subtracts ticketing_fees from gross_sales in revenue totals' do
+      anchor = production.first_playing_date
+      pc = anchor - 21.days
+      RateOfSale.create!(production: production, day_of_sale: pc + 1.day,
+                         total_single_tickets: 10, total_complimentary_tickets: 0,
+                         gross_sales: 200.0, processing_fees: 30.0, ticketing_fees: 30.0, order_count: 1)
+      result = described_class.new(production, []).compute
+      # 200 gross - 30 ticketing = 170 analysis revenue
+      expect(result[:target_summary][:total_revenue]).to be_within(0.01).of(170.0)
+    end
+
+    it 'falls back to gross when ticketing_fees is nil (not yet backfilled)' do
+      anchor = production.first_playing_date
+      pc = anchor - 21.days
+      RateOfSale.create!(production: production, day_of_sale: pc + 1.day,
+                         total_single_tickets: 10, total_complimentary_tickets: 0,
+                         gross_sales: 200.0, processing_fees: 30.0, ticketing_fees: nil, order_count: 1)
+      result = described_class.new(production, []).compute
+      expect(result[:target_summary][:total_revenue]).to be_within(0.01).of(200.0)
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # FIX 4: pre-sales must never enter the expectation curve / ratio / momentum.
+  # ---------------------------------------------------------------------------
+  describe 'FIX 4: pre-sales excluded from expectation curve' do
+    it 'does not let a huge pre-sales bucket distort the projection' do
+      opening = Date.today - 30.days
+      closing = Date.today + 21.days
+      target = create_production(opening: opening, closing: closing)
+      comp   = create_production(opening: Date.today - 120.days, closing: Date.today - 20.days)
+
+      anchor_t = target.first_playing_date
+      pc_t = anchor_t - 21.days
+      # Enormous pre-sales spike that, if included, would dominate everything.
+      RateOfSale.create!(production: target, day_of_sale: pc_t - 5.days,
+                         total_single_tickets: 1000, total_complimentary_tickets: 0,
+                         gross_sales: 100_000.0, processing_fees: 0, ticketing_fees: 0, order_count: 1)
+      [1, 2, 3].each do |w|
+        RateOfSale.create!(production: target, day_of_sale: pc_t + (((w - 1) * 7) + 1).days,
+                           total_single_tickets: 10, total_complimentary_tickets: 0,
+                           gross_sales: 100.0, processing_fees: 0, ticketing_fees: 0, order_count: 1)
+      end
+      anchor_c = comp.first_playing_date
+      pc_c = anchor_c - 21.days
+      RateOfSale.create!(production: comp, day_of_sale: pc_c - 5.days,
+                         total_single_tickets: 1000, total_complimentary_tickets: 0,
+                         gross_sales: 50_000.0, processing_fees: 0, ticketing_fees: 0, order_count: 1)
+      [1, 2, 3, 4, 5, 6].each do |w|
+        RateOfSale.create!(production: comp, day_of_sale: pc_c + (((w - 1) * 7) + 1).days,
+                           total_single_tickets: 10, total_complimentary_tickets: 0,
+                           gross_sales: 100.0, processing_fees: 0, ticketing_fees: 0, order_count: 1)
+      end
+
+      proj = described_class.new(target, [comp]).compute[:projection]
+      next if proj.nil?
+
+      # Projected weekly increments should be on the order of the in-run weekly
+      # revenue (~$100), nowhere near the pre-sales spike. Confirm no single
+      # projected week jumps by tens of thousands.
+      cum = proj[:projected_cumulative].values
+      increments = cum.each_cons(2).map { |a, b| b - a }
+      expect(increments.max.to_f).to be < 10_000.0 if increments.any?
     end
   end
 end

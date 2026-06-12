@@ -40,7 +40,11 @@ class RateOfSalesJob < ApplicationJob
         total_single_tickets: revenue.ticket_count,
         total_complimentary_tickets: revenue.comp_count,
         gross_sales: revenue.collected,
+        # Legacy combined figure (ticketing + processing). Kept as-is for
+        # backward compatibility; the isolated ticketing portion now also lives
+        # in the dedicated ticketing_fees column below.
         processing_fees: revenue.ticketing_fees + revenue.processing_fees,
+        ticketing_fees: revenue.ticketing_fees,
         order_count: revenue.order_count
       )
     end
