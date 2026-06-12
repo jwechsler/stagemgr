@@ -2,7 +2,7 @@ class SendFlexPassReminders
   @queue = :notification
 
   def self.perform
-    email = $EMAIL_ADDRESS['flex_pass_notifications']
+    email = Rails.configuration.x.email_address['flex_pass_notifications']
 
     if email.present?
       flex_pass_orders = FlexPassOrder.where(status: Order::PROCESSED)

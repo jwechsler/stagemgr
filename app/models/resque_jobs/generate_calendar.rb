@@ -11,7 +11,7 @@ class GenerateCalendar
       Performance.joins(:production).references(:production).where(
         'productions.status = ? and performances.status in (?) and performance_date > ?', Production::ACTIVE, Performance.visible_statuses, Date.today.beginning_of_month
       ).includes(:production).each do |perf|
-        # = { "X-WR-CALNAME"=>"", "X_WR_TIMEZONE"=>"VALUE=TEXT:America/Chicago", "X-ALT_DESC"=>"FMTTYPE=text/html:<!DOCTYPE HTMLS PUBLIC \"-//W3C//DTD HTMLS 3.2//EN\"\n<HTML><BODY>#{$MARKDOWN.render(perf.production.show_description)}</BODY></HTML>"}
+        # = { "X-WR-CALNAME"=>"", "X_WR_TIMEZONE"=>"VALUE=TEXT:America/Chicago", "X-ALT_DESC"=>"FMTTYPE=text/html:<!DOCTYPE HTMLS PUBLIC \"-//W3C//DTD HTMLS 3.2//EN\"\n<HTML><BODY>#{Rails.configuration.x.markdown.render(perf.production.show_description)}</BODY></HTML>"}
         desc = perf.production.show_description
         unless perf.performance_date < Date.today
           desc + "\n\nFor tickets, visit #{Rails.configuration.x.server_config['secure_root_url']}#{Rails.application.routes.url_helpers.new_production_performance_order_path(

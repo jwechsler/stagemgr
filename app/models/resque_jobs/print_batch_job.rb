@@ -88,7 +88,7 @@ class PrintBatchJob
     require 'uri'
     require 'json'
 
-    tktprint_url = $TKTPRINT['service']
+    tktprint_url = Rails.configuration.x.tktprint['service']
     return OpenStruct.new(success?: false, body: 'Tktprint service not configured') if tktprint_url.blank?
 
     # Parse base URI to extract credentials

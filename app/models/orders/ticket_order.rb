@@ -407,7 +407,7 @@ end
 
     batch_sequence ||= 1
 
-    return if $TKTPRINT['service'].blank?
+    return if Rails.configuration.x.tktprint['service'].blank?
 
     # If we already have a print_order_id, reprint the existing order
     if print_order_id.present?
@@ -522,7 +522,7 @@ end
     require 'uri'
     require 'json'
 
-    tktprint_url = $TKTPRINT['service']
+    tktprint_url = Rails.configuration.x.tktprint['service']
     base_uri = URI(tktprint_url)
 
     # Build the HTTP connection
@@ -569,7 +569,7 @@ end
     require 'json'
     require 'cgi'
 
-    tktprint_url = $TKTPRINT['service']
+    tktprint_url = Rails.configuration.x.tktprint['service']
 
     # Parse the base URL to extract credentials and host
     base_uri = URI(tktprint_url)
@@ -1184,17 +1184,17 @@ end
       tasks << OutreachTask.new(:execute_at => Time.now + 5.minutes,
                                 :method_symbol => :ticket_confirmation)
     end
-    if !$EMAIL_ADDRESS.nil? && $EMAIL_ADDRESS['wheelchair_conversion_notifications'].present? && wheelchair_requested?
+    if !Rails.configuration.x.email_address.nil? && Rails.configuration.x.email_address['wheelchair_conversion_notifications'].present? && wheelchair_requested?
       tasks << NotificationTask.new(:execute_at => Time.now + 15.minutes,
-                                    :notifications => $EMAIL_ADDRESS['wheelchair_conversion_notifications'],
+                                    :notifications => Rails.configuration.x.email_address['wheelchair_conversion_notifications'],
                                     :method_symbol => :wheelchair_conversion_alert)
     end
     super
   end
 
   def create_notify_refund_task
-    unless $EMAIL_ADDRESS.nil? || !do_not_create_tasks.nil?
-      tasks << NotificationTask.new(:execute_at => Time.now, :notifications => [$EMAIL_ADDRESS['box_office'], $EMAIL_ADDRESS['supervisor_notifications']].join(','),
+    unless Rails.configuration.x.email_address.nil? || !do_not_create_tasks.nil?
+      tasks << NotificationTask.new(:execute_at => Time.now, :notifications => [Rails.configuration.x.email_address['box_office'], Rails.configuration.x.email_address['supervisor_notifications']].join(','),
                                     :method_symbol => :refunded_fulfilled_item_alert)
     end
     super

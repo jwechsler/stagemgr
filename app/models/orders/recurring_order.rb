@@ -50,9 +50,9 @@ module RecurringOrder
   end
 
   def notify_suspended
-    return if $EMAIL_ADDRESS['box_office'].nil?
+    return if Rails.configuration.x.email_address['box_office'].nil?
 
-    task = NotificationTask.new(execute_at: Time.now, notifications: [$EMAIL_ADDRESS['box_office'], $EMAIL_ADDRESS['supervisor_notifications']].join(','),
+    task = NotificationTask.new(execute_at: Time.now, notifications: [Rails.configuration.x.email_address['box_office'], Rails.configuration.x.email_address['supervisor_notifications']].join(','),
                                 method_symbol: :suspension_alert, order: self)
     task.save
   end

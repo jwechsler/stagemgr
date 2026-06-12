@@ -44,7 +44,7 @@ class FlexPassOrder < Order
   end
 
   def self.send_flex_pass_reminder
-    email = $EMAIL_ADDRESS['flex_pass_notifications']
+    email = Rails.configuration.x.email_address['flex_pass_notifications']
 
     return if email.blank?
 

@@ -2,7 +2,7 @@ class SendMembershipReminders
   @queue = :notification
 
   def self.perform
-    email = $EMAIL_ADDRESS['membership_notifications']
+    email = Rails.configuration.x.email_address['membership_notifications']
 
     if email.present?
       membership_orders = MembershipOrder.where(status: Order::PROCESSED)
