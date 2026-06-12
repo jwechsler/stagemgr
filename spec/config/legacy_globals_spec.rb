@@ -11,10 +11,13 @@ CONFIG_X_KEYS = %i[
 ].freeze
 
 RSpec.describe 'legacy global configuration shim' do
-  # Some specs reassign individual globals (e.g. $TKTPRINT) to stub configuration
-  # and do not restore them, which would leak across the randomly-ordered suite.
-  # Re-run the shim aliasing here so the identity assertions below verify the
-  # initializer's intended wiring rather than incidental run-order pollution.
+  # Defensively re-run the shim aliasing before each example so the identity
+  # assertions below verify the initializer's intended wiring even under the
+  # randomly-ordered suite. (No current spec reassigns these globals -- usages
+  # were migrated to Rails.configuration.x.* -- but this keeps the guarantee
+  # robust if a future spec stubs one and forgets to restore it. Note the
+  # markdown aliases are set in config/application.rb, not this initializer, so
+  # reloading here does not re-establish $MARKDOWN/$TRUSTED_MARKDOWN.)
   before { load Rails.root.join('config/initializers/legacy_globals.rb') }
 
   describe 'config.x.* values are populated in the test environment' do

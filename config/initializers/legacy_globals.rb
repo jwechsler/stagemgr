@@ -7,8 +7,13 @@
 # constructed reference keeps working during the transition. Do not add new
 # usages of these globals.
 #
-# This file runs before other config/initializers (alphabetical load order), so
-# globals read at initializer load time (e.g. resque_auth.rb) still resolve.
+# The underlying config.x.* values are populated by the environment files
+# (config/environments/{development,production,test}.rb), which run during
+# bootstrap before any config/initializers load. This file therefore always
+# sees populated values. It also loads ahead of most other initializers by
+# alphabetical order, so any initializer that still reads one of these globals
+# at load time would resolve -- though after this migration none do; in-app
+# initializers (e.g. resque_auth.rb) read Rails.configuration.x.* directly.
 #
 # $MARKDOWN / $TRUSTED_MARKDOWN are aliased in config/application.rb instead,
 # because their config.x.* values are populated by a late initializer that runs
