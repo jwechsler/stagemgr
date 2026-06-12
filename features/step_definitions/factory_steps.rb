@@ -87,7 +87,7 @@ end
 Then(/^a membership order exists for "(.*?)"$/) do |name|
   address = Address.find_by(full_name: name)
   orders = MembershipOrder.where(address_id: address.id)
-  raise "No order found for #{name}" unless orders.size > 0
+  raise "No order found for #{name}" unless !orders.empty?
 end
 
 Then(/^a membership exists with status "(.*?)"$/) do |status|
@@ -139,7 +139,7 @@ Then(/^a membership exists with "(.*?)" as preferred seating$/) do |preferred_se
   seats = Membership.where('1=1')
   seats.each { |s| puts s.preferred_seating }
   seats = seats.select { |m| m.preferred_seating.eql?(preferred_seating) }
-  raise "Found #{seats.size} memberships with '#{preferred_seating}' seating" if seats.size == 0
+  raise "Found #{seats.size} memberships with '#{preferred_seating}' seating" if seats.empty?
 end
 
 Given(/^the system accepts currency$/) do

@@ -6,15 +6,15 @@ class MembershipOffer < ApplicationRecord
 
   OFFER_STATUSES = (ACTIVE, INACTIVE = 'Active', 'Inactive')
   def has_trial?
-    !self.trial_period.nil? && self.trial_period > 0
+    !trial_period.nil? && trial_period > 0
   end
 
   def trial_amount
-    self.has_trial? ? self.trial_price : nil
+    has_trial? ? trial_price : nil
   end
 
   def active?
-    self.status == ACTIVE
+    status == ACTIVE
   end
 
   def take_inactive_off_sale
@@ -23,6 +23,6 @@ class MembershipOffer < ApplicationRecord
   end
 
   def on_sale_to_public?
-    self.on_sale
+    on_sale
   end
 end

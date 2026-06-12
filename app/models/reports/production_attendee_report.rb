@@ -34,7 +34,7 @@ class ProductionAttendeeReport < OrderReport
       row[:external_id] = o.address.external_id(theater_ids) unless o.address.nil?
       unless row[:email].nil?
         # Check if user is on the email opt-in list
-        is_opted_in = members_by_email.has_key?(row[:email].downcase)
+        is_opted_in = members_by_email.key?(row[:email].downcase)
 
         if is_opted_in
           row[:opted_in_for_email] = 'Y'
@@ -49,7 +49,7 @@ class ProductionAttendeeReport < OrderReport
     end
 
     production.addresses.uniq.each do |address|
-      next unless address.email.present? && members_by_email.has_key?(address.email.downcase)
+      next unless address.email.present? && members_by_email.key?(address.email.downcase)
 
       row = OrderReport.address_hash(address)
       row[:id] = 'email'

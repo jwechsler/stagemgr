@@ -73,11 +73,11 @@ class Theater < ApplicationRecord
   validates :logo, blob: { content_type: :image }
 
   def class_display
-    return theater_class == 'Default' ? '' : theater_class
+    theater_class == 'Default' ? '' : theater_class
   end
 
   def to_s
-    return self.name
+    name
   end
 
   def self.allowed(current_user)
@@ -87,35 +87,35 @@ class Theater < ApplicationRecord
   end
 
   def producing?
-    self.is_default? || self.is_copro?
+    is_default? || is_copro?
   end
 
   def is_default?
-    self.theater_class == DEFAULT
+    theater_class == DEFAULT
   end
 
   def is_copro?
-    self.theater_class == COPRO
+    theater_class == COPRO
   end
 
   def is_resident?
-    self.theater_class == RESIDENT
+    theater_class == RESIDENT
   end
 
   def inactive?
-    self.status == 'Inactive'
+    status == 'Inactive'
   end
 
   def service_item_templates_new
-    ServiceItemTemplate.where(name: service_item_template_list(self.default_service_items))
+    ServiceItemTemplate.where(name: service_item_template_list(default_service_items))
   end
 
   def service_item_templates_first_exchange
-    ServiceItemTemplate.where(name: service_item_template_list(self.default_first_exchange_items))
+    ServiceItemTemplate.where(name: service_item_template_list(default_first_exchange_items))
   end
 
   def service_item_templates_addl_exchange
-    ServiceItemTemplate.where(name: service_item_template_list(self.default_addl_exchange_items))
+    ServiceItemTemplate.where(name: service_item_template_list(default_addl_exchange_items))
   end
 
   def self.default_theater
@@ -139,11 +139,11 @@ class Theater
 
   def create_my_emma_group
     unless MyEmma.disabled?
-      if self.myemma_attendee_group.blank? then
-        grp = MyEmma::Group.find_by_group_name(self.my_emma_group_name)
+      if myemma_attendee_group.blank? then
+        grp = MyEmma::Group.find_by_group_name(my_emma_group_name)
         if grp.nil? && $SERVER_CONFIG['my_emma']['create_theater_groups']
           grp = MyEmma::Group.new
-          grp.group_name = self.my_emma_group_name
+          grp.group_name = my_emma_group_name
           self.myemma_attendee_group = grp.id if grp.save
         else
           self.myemma_attendee_group = grp.id unless grp.nil?
@@ -153,6 +153,6 @@ class Theater
   end
 
   def my_emma_group_name
-    "#{self.name} Attendee"
+    "#{name} Attendee"
   end
 end

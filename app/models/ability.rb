@@ -47,7 +47,7 @@ class Ability
     can :read, FlexPassOffer, theater_id: user.theater_ids
     can :read, Address,
         ['addresses.id in (select orders.address_id from orders where orders.theater_id in (?))', user.theater_ids] do |address|
-      address.orders.map { |o| o.theater_id }.intersection(user.theater_ids).size > 0
+      !address.orders.map { |o| o.theater_id }.intersection(user.theater_ids).empty?
     end
 
     can %i[make update edit autocomplete_address], Address

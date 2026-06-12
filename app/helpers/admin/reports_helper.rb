@@ -129,7 +129,7 @@ module Admin::ReportsHelper
 
         hash[:Email] = nil unless can?(:view_email, Address)
         master_lists['BLDG'] << hash # Add to season master list
-        master_lists[production.theater.name] = [] unless master_lists.has_key?(production.theater.name)
+        master_lists[production.theater.name] = [] unless master_lists.key?(production.theater.name)
         master_lists[production.theater.name] << hash
         reports['ALL'] << hash
         reports[buyer_type] << hash
@@ -137,7 +137,7 @@ module Admin::ReportsHelper
       additional_attendees.each do |member_record|
         hash = trg_hash(member_record)
         master_lists['BLDG'] << hash
-        master_lists[production.theater.name] = [] unless master_lists.has_key?(production.theater.name)
+        master_lists[production.theater.name] = [] unless master_lists.key?(production.theater.name)
         master_lists[production.theater.name] << hash
         reports[production.theater.producing? ? 'ALL' : 'REN'] << hash
         reports['EMA'] << hash
@@ -145,7 +145,7 @@ module Admin::ReportsHelper
 
       # now, output the various production reports
       reports.keys.each do |key|
-        if reports[key].size > 0
+        if !reports[key].empty?
           file_name = "/tmp/#{season_tag}_#{key}_#{safe_title(production.name)}.csv"
           Report.save_report_as_csv(file_name, headers, reports[key])
         end

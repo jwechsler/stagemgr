@@ -33,20 +33,20 @@ class User < ApplicationRecord
   after_initialize :init
 
   def init
-    self.status = User::ACTIVE if self.status.blank?
+    self.status = User::ACTIVE if status.blank?
   end
 
   def inactive?
-    self.status == INACTIVE
+    status == INACTIVE
   end
 
   def theater_ids
-    allowed = theaters.map { |t| t.id.to_i }
+    theaters.map { |t| t.id.to_i }
   end
 
   def allowed_theaters
-    if self.is_theater_user?
-      self.theaters
+    if is_theater_user?
+      theaters
     else
       Theater.where(status: Theater::ACTIVE)
     end
@@ -57,35 +57,35 @@ class User < ApplicationRecord
   end
 
   def set_defaults
-    self.is_administrator = false if self.is_administrator.nil?
-    self.is_box_office_user = false if self.is_box_office_user.nil?
+    self.is_administrator = false if is_administrator.nil?
+    self.is_box_office_user = false if is_box_office_user.nil?
     true
   end
 
   def is_theater_user?
-    !self.is_administrator? && !self.is_box_office_user?
+    !is_administrator? && !is_box_office_user?
   end
 
   def is_resident?
-    is_theater_user? && self.theaters.map { |t| t.theater_class }.include?(Theater::RESIDENT)
+    is_theater_user? && theaters.map { |t| t.theater_class }.include?(Theater::RESIDENT)
   end
 
   def username
-    self.email
+    email
   end
 
   def role_symbols
     roles = Array.new
-    roles += [:admin] if self.is_administrator?
-    roles += [:box_office] if self.is_box_office_user?
-    roles += [:theater_user] if self.is_theater_user?
+    roles += [:admin] if is_administrator?
+    roles += [:box_office] if is_box_office_user?
+    roles += [:theater_user] if is_theater_user?
     roles
   end
 
   def allowed_tags(tags)
     allowed = Array.new
-    if self.is_theater_user?
-      ids = self.theater_ids
+    if is_theater_user?
+      ids = theater_ids
       allowed = tags.select { |t| ids.include?(t.theater_id) }
     else
       allowed += tags

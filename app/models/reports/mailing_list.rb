@@ -92,7 +92,7 @@ class MailingList < Report
 
     season_tag = production.season.to_i
     hash = mailing_hash_from_buyer(address, allow_email_export)
-    if !hash[:Email].nil? && !(allow_email_export || members_by_email.has_key?(hash[:Email].downcase))
+    if !hash[:Email].nil? && !(allow_email_export || members_by_email.key?(hash[:Email].downcase))
       hash[:Email] = nil
     end
     # :Title in TRG Arts is the segment title — the descriptive label for

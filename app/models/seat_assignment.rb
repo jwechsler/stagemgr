@@ -18,7 +18,7 @@ class SeatAssignment < ApplicationRecord
   end
 
   def assigned?(check_order_uuid = nil)
-    use_uuid = check_order_uuid || self.order_uuid
+    use_uuid = check_order_uuid || order_uuid
     !use_uuid.nil? && [TEMPORARY, ASSIGNED, RELEASING].include?(status) && order_uuid.eql?(check_order_uuid)
   end
 
@@ -52,17 +52,17 @@ class SeatAssignment < ApplicationRecord
     number_assigned = SeatAssignment.where(status: [SeatAssignment::TEMPORARY, SeatAssignment::ASSIGNED],
                                            order_uuid: order_uuid).size
     unless number_assigned >= limit_seats
-      SeatAssignment.where("id = :id and (order_uuid is null or order_uuid = '' or order_uuid = :order_uuid)", id: self.id, order_uuid: order_uuid).update_all(
+      SeatAssignment.where("id = :id and (order_uuid is null or order_uuid = '' or order_uuid = :order_uuid)", id: id, order_uuid: order_uuid).update_all(
         order_uuid: order_uuid, ticket_class_id: ticket_class_id, updated_at: Time.now, status: SeatAssignment::TEMPORARY, accessibility: accessibility
       )
-      self.reload
+      reload
     end
     (self.order_uuid == order_uuid)
   end
 
   def begin_release_from_order(order_uuid)
     self.status = RELEASING
-    self.save!
+    save!
   end
 
   def self.reseating_commit(order_uuid)
@@ -75,10 +75,10 @@ class SeatAssignment < ApplicationRecord
         SeatAssignment.where(order_uuid: order_uuid, status: SeatAssignment::RELEASING).update_all(status: SeatAssignment::AVAILABLE, order_uuid: nil,
                                                                                                    accessibility: nil, updated_at: Time.now)
       end
-      return "success"
+      "success"
     else
       Rails.logger.debug("Mismatched seats for order #{o.id}")
-      return "failure"
+      "failure"
     end
   end
 
@@ -133,14 +133,14 @@ class SeatAssignment < ApplicationRecord
   end
 
   def unassign_from_order(ticket_order_uuid)
-    if self.order_uuid.eql?(ticket_order_uuid)
+    if order_uuid.eql?(ticket_order_uuid)
       self.order_id = nil
       self.order_uuid = nil
       self.status = SeatAssignment::AVAILABLE
       self.accessibility = nil
-      self.save
+      save
     end
-    (self.order_uuid.nil? || (self.order_uuid != ticket_order_uuid))
+    order_uuid.nil? || (order_uuid != ticket_order_uuid)
   end
 
   def self.current_seat_assignments(order_uuid, exclude_sa_id = nil)
@@ -173,6 +173,6 @@ class SeatAssignment < ApplicationRecord
   end
 
   def verify_unused
-    return (order_uuid.blank?)
+    order_uuid.blank?
   end
 end

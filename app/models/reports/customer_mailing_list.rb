@@ -33,7 +33,7 @@ class CustomerMailingList < MailingList
     consolidation_code = 'LST'
 
     addresses.each do |address|
-      primary_attendee = address.theaters_attended.select { |t| t.producing? }.size > 0
+      primary_attendee = !address.theaters_attended.select { |t| t.producing? }.empty?
       production_names = address.names_of_productions_attended(start_date)
       theater_names = address.names_of_theaters_attended(start_date)
       hash = mailing_hash_from_buyer(address)

@@ -3,9 +3,9 @@ class ExternalPaymentType < PaymentType
     if restrict_to_ticket_classes.present? && order.respond_to?(:ticket_line_items)
       allowed_class_codes = restrict_to_ticket_classes.split(',')
       order.ticket_line_items.map do |tli|
-        raise "This payment type is restricted to #{restrict_to_ticket_classes.upcase} tickets" unless allowed_class_codes.select do |code|
+        raise "This payment type is restricted to #{restrict_to_ticket_classes.upcase} tickets" unless !allowed_class_codes.select do |code|
           tli.ticket_class.class_code.upcase.start_with?(code)
-        end.size > 0
+        end.empty?
       end
     end
     ExternalPayment.new(amount: amount, order: order, payment_type: self)

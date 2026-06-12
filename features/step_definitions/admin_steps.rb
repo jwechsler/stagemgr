@@ -27,8 +27,8 @@ def enter_base_production(code, capacity = 99)
   fill_in 'production_name', with: "Production #{code}"
   fill_in 'Capacity', with: capacity
   fill_in 'Season', with: Date.today.year
-  fill_in 'production_opening_at', with: "#{Date.today}"
-  fill_in 'production_closing_at', with: "#{Date.today}"
+  fill_in 'production_opening_at', with: Date.today.to_s
+  fill_in 'production_closing_at', with: Date.today.to_s
 
   select 'Space 1', from: 'Venue'
 end

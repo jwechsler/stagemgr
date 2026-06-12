@@ -127,18 +127,14 @@ class Admin::AddressesController < Admin::ApplicationController
   end
 
   def autocomplete_address
-    cleaned_name, first_name, last_name = Address.parse_name(params[:term])
+    _, first_name, last_name = Address.parse_name(params[:term])
     last_name = first_name if last_name.blank?
     first_name = "" if first_name.nil?
     # val = params[:q].gsub(Address::SEARCHABLE_REGEXP,'').upcase
 
     # addresses = Address.where("search_name like :search_expr and id in (select address_id from orders)", {:search_expr=>'%' + val + '%'}).limit(10).order(
     #    'last_name', 'first_name', 'id');
-    unless first_name.blank? || (last_name.eql?(first_name))
-      addresses = Address.where("(first_name like ?) AND (last_name like ?)",
-                                "#{first_name}%",
-                                "#{last_name}%").order("addresses.last_name, addresses.first_name, addresses.id").limit(15)
-    else
+    if first_name.blank? || last_name.eql?(first_name)
       Rails.logger.debug("**** CASE 2 last_name = #{last_name} and first_name = #{first_name}")
 
       if last_name.eql?(first_name)
@@ -148,12 +144,16 @@ class Admin::AddressesController < Admin::ApplicationController
         addresses = Address.where("search_name like ? or last_first_name like ?", (first_name + last_name + '%').upcase,
                                   (last_name + first_name + '%').upcase).order("addresses.last_name, addresses.first_name, addresses.id").limit(7)
       end
+    else
+      addresses = Address.where("(first_name like ?) AND (last_name like ?)",
+                                "#{first_name}%",
+                                "#{last_name}%").order("addresses.last_name, addresses.first_name, addresses.id").limit(15)
     end
     if addresses.nil?
       render :json => Array.new
     else
       render :json => addresses.to_a.uniq { |a| [a.first_name, a.last_name, a.email] }.map { |a|
-        value = a.full_name
+        a.full_name
         member_code = a.is_current_member? ? a.current_membership.member_code : nil
         # tags = current_user.allowed_tags(a.address_tags).map {|t|
         #  "<div class=\"small-6 columns quick-lookup-history label\">#{t.tag_label}</div><div class=\"small-6 columns quick-lookup-history\">#{t.tag_value}</div>"

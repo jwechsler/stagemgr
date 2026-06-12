@@ -95,8 +95,8 @@ Rails.application.configure do
 
   config.external_site_root = 'file:///Users/jeremyw/dev/site'
 
-  $TKTPRINT = YAML.load(File.open("#{Rails.root.join('config/ticket_print.yml')}"))['development']
-  config_data = YAML.load(File.open("#{Rails.root.join('config/server.yml')}"))
+  $TKTPRINT = YAML.load(File.open(Rails.root.join('config/ticket_print.yml').to_s))['development']
+  config_data = YAML.load(File.open(Rails.root.join('config/server.yml').to_s))
   $SERVER_CONFIG = config_data['all'].deep_merge(config_data['development'])
   $PAYMENT_CONFIG = $SERVER_CONFIG['payment_processing']
   $SERVER_CONFIG['ext_site_wrapper'] = $SERVER_CONFIG['ext_site_wrapper'] || 'ext_site_wrapper'

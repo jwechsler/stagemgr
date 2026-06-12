@@ -244,7 +244,7 @@ class Admin::TicketOrdersController < Admin::OrdersController
   def update_notes
     @order = TicketOrder.find(params[:id])
     update_order_notes_from_params(@order, params)
-    @order.special_request = params[:special_request] if params.has_key?(:special_request)
+    @order.special_request = params[:special_request] if params.key?(:special_request)
 
     flash[:notice] = 'Note updated.' if @order.save
     redirect_to action: 'show', id: @order.id

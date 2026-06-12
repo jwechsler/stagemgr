@@ -200,7 +200,7 @@ FactoryBot.define do
                                                    flex_pass: flex_pass,
                                                    amount: (num_tix * new_ticket_class.ticket_price))
 
-        if ticket_order.service_line_items.size > 0
+        if !ticket_order.service_line_items.empty?
           ticket_order.payments << FactoryBot.create(:cash_payment,
                                                      order: ticket_order,
                                                      number_of_tickets: num_tix,
@@ -224,7 +224,7 @@ FactoryBot.define do
                      end
         find_code = membership.membership_offer.use_ticket_class_code
 
-        if ticket_order.performance.production.ticket_classes.select { |tc| tc.class_code.eql?(find_code) }.size == 0
+        if ticket_order.performance.production.ticket_classes.select { |tc| tc.class_code.eql?(find_code) }.empty?
           FactoryBot.create(:ticket_class, class_code: find_code, class_name: 'Pass Ticket',
                                            ticket_price: 0.00, web_visible: false, software_managed: true,
                                            production: ticket_order.performance.production, auto_attach: true)
@@ -254,7 +254,7 @@ FactoryBot.define do
                                     amount: (num_tix * new_ticket_class.ticket_price))
 
         ticket_order.payments << payment
-        if ticket_order.service_line_items.size > 0
+        if !ticket_order.service_line_items.empty?
           ticket_order.payments << FactoryBot.create(:cash_payment,
                                                      order: ticket_order,
                                                      number_of_tickets: num_tix,

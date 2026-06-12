@@ -74,7 +74,7 @@ module NavigationHelpers
       admin_ticket_order_path(TicketOrder.last)
     when /^the admin order page for the (.*)$/
       @using_admin_interface = true
-      page_type = "#{::Regexp.last_match(1)}".gsub(' ', '_')
+      page_type = ::Regexp.last_match(1).to_s.gsub(' ', '_')
       admin_order_path(eval("@#{page_type}.id"))
     when /^the admin membership offers page$/
       @_current_form = 'membership_order'
@@ -83,7 +83,7 @@ module NavigationHelpers
     when /^the new admin membership order page for offer "(.*)"$/
       @_current_form = 'membership_order'
       @using_admin_interface = true
-      new_admin_membership_offer_order_path(MembershipOffer.find_by_name("#{::Regexp.last_match(1)}"))
+      new_admin_membership_offer_order_path(MembershipOffer.find_by_name(::Regexp.last_match(1).to_s))
     when /^the new admin membership offer page$/
       @using_admin_interface = true
       new_admin_membership_offer_path

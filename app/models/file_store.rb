@@ -21,14 +21,14 @@ class FileStore < ApplicationRecord
   end
 
   def path
-    ActiveStorage::Blob.service.path_for(self.datafile.key)
+    ActiveStorage::Blob.service.path_for(datafile.key)
   end
 
   def file_name
-    self.datafile.filename.to_s
+    datafile.filename.to_s
   end
 
   def file_size
-    self.datafile.byte_size
+    datafile.byte_size
   end
 end

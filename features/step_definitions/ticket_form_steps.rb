@@ -133,7 +133,7 @@ Given(/^I enter flex pass( code)? "(.*?)" as payment$/) do |_ignore, pass_code|
   else
     choose 'Flex Pass'
   end
-  fill_in 'Flex pass code', with: "#{pass_code}"
+  fill_in 'Flex pass code', with: pass_code.to_s
 end
 
 Given(/^I enter (\d+) tickets for performance "(.*?)"$/) do |num_tix, perf_code|

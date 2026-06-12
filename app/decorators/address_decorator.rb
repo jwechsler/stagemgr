@@ -40,7 +40,7 @@ class AddressDecorator < ApplicationDecorator
       object.memberships.select { |membership| membership.active? }.each do |membership|
         memberships << h.link_to(membership.member_code, [:admin, membership.membership_order])
       end
-      if memberships.size > 0
+      if !memberships.empty?
         memberships = h.safe_join(memberships, ',')
         d = (d.blank? ? '' : "#{d}; ") + "Member [#{h.raw(memberships)}]"
       end

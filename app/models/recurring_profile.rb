@@ -19,11 +19,11 @@ module RecurringProfile
   end
 
   def active?
-    self.status.eql?(ACTIVE)
+    status.eql?(ACTIVE)
   end
 
   def pending?
-    self.status.eql?(PENDING)
+    status.eql?(PENDING)
   end
 
   def self.create_recurring_profile(order, start_date, recurring_amount, profile_description,
@@ -47,17 +47,17 @@ module RecurringProfile
                 :period => 'Month', :frequency => 1, :max_failed_payments => max_failed_payments,
                 :auto_bill_outstanding => true }
     options.merge!(additional_options) unless additional_options.nil?
-    response = gateway.recurring((recurring_amount * 100).to_i, credit_card, options)
-    response
+    gateway.recurring((recurring_amount * 100).to_i, credit_card, options)
+    
   end
 
   protected
 
   def get_profile_data
-    if self.profile_id.starts_with?('sub_') then # stripe @todo remove at transition
-      subscription = PaymentProcessing.gateway.subscription(self.profile_id)
+    if profile_id.starts_with?('sub_') then # stripe @todo remove at transition
+      PaymentProcessing.gateway.subscription(profile_id)
     else
-      response = gateway.status_recurring(self.profile_id)
+      response = gateway.status_recurring(profile_id)
       response.params
     end
   end
@@ -65,8 +65,10 @@ module RecurringProfile
   public
 
   def update_from_profile(subscription_id = nil)
-    self.profile_id = subscription_id if (self.profile_id.blank? && !subscription_id.blank?)
-    unless self.profile_id.blank? || !self.profile_id.starts_with?('sub') # second condition is to wean off of paypal.  Remove it eventually
+    self.profile_id = subscription_id if profile_id.blank? && !subscription_id.blank?
+    if profile_id.blank? || !profile_id.starts_with?('sub')
+      profile_status = PENDING
+    else # second condition is to wean off of paypal.  Remove it eventually
       subscription = get_profile_data
       self.start_date = Time.at(subscription.start_date).to_date unless subscription.start_date.nil?
       self.ended_at = Time.at(subscription.ended_at).to_date unless subscription.ended_at.nil?
@@ -74,8 +76,6 @@ module RecurringProfile
       self.next_billing_date = Time.at(subscription.current_period_end).to_date unless subscription.current_period_end.nil?
       self.cancel_at_period_end = subscription.cancel_at_period_end
       profile_status = subscription.status
-    else
-      profile_status = PENDING
     end
     self.status = case
                   when ['active', 'trialing'].include?(profile_status)
@@ -90,58 +90,58 @@ module RecurringProfile
   end
 
   def update_from_profile!
-    self.update_from_profile
-    self.save!
+    update_from_profile
+    save!
     self
   end
 
   def current_status
     case
-    when self.pending?
+    when pending?
       PENDING
-    when self.active?
+    when active?
       ACTIVE
     else
-      self.status
+      status
     end
   end
 
   def active?(as_of = nil)
-    self.status == ACTIVE
+    status == ACTIVE
   end
 
   def suspended?
-    self.status == SUSPENDED
+    status == SUSPENDED
   end
 
   def pending?
-    self.status == PENDING
+    status == PENDING
   end
 
   def inactive?
-    [Membership::CANCELED, Membership::SUSPENDED].include?(self.status)
+    [Membership::CANCELED, Membership::SUSPENDED].include?(status)
   end
 
   def canceled?
-    self.status == Membership::CANCELED
+    status == Membership::CANCELED
   end
 
   def recurring_order
-    raise "RecurringProfile\#recurring_order not yet implemented"
+    raise "RecurringProfile#recurring_order not yet implemented"
   end
 
   def reactivate
     gateway ||= PaymentProcessing.recurring_gateway
-    gateway.reactivate_recurring(self.profile_id)
+    gateway.reactivate_recurring(profile_id)
   end
 
   def cancel
     gateway ||= PaymentProcessing.recurring_gateway
-    gateway.cancel_recurring(self.profile_id)
+    gateway.cancel_recurring(profile_id)
   end
 
   def notify_on_suspension
-    self.recurring_order.notify_suspended
-    self.recurring_order.save
+    recurring_order.notify_suspended
+    recurring_order.save
   end
 end

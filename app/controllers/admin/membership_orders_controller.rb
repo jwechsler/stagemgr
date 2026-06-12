@@ -15,7 +15,7 @@ class Admin::MembershipOrdersController < Admin::ApplicationController
     if result.success?
       flash[:notice] = "Membership reactivated. #{result.message}"
     else
-      flash[:error] = "#{result.message}"
+      flash[:error] = result.message.to_s
     end
     render '/admin/membership_orders/show'
   end
@@ -25,7 +25,7 @@ class Admin::MembershipOrdersController < Admin::ApplicationController
     if result.success?
       flash[:notice] = "Membership cancelled. #{result.message}"
     else
-      flash[:error] = "#{result.message}"
+      flash[:error] = result.message.to_s
     end
     render '/admin/membership_orders/show'
   end

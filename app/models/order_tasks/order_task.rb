@@ -27,23 +27,23 @@ class OrderTask < ApplicationRecord
   # runs execute method for the order task.
   # if the order is in a transational state (like exchanging), postpone for 5 minutes.
   def run!
-    if self.uncompleted? then
+    if uncompleted? then
       if suppressed?
-        self.cancel!
+        cancel!
       else
-        if self.order.in_multi_transactional_state?
-          self.execute_at = self.execute_at + 5.minutes
-          self.save!
+        if order.in_multi_transactional_state?
+          self.execute_at = execute_at + 5.minutes
+          save!
         else
           self.attempts += 1
-          success = self.execute!
+          success = execute!
           self.status = success ? COMPLETED : FAILED
-          self.save!
+          save!
           if success
-            unless self.repeat_monthly_interval.blank?
-              new_task = self.dup
-              new_task.execute_at = Time.now + self.repeat_monthly_interval.months
-              new_task.order_id = self.order_id
+            unless repeat_monthly_interval.blank?
+              new_task = dup
+              new_task.execute_at = Time.now + repeat_monthly_interval.months
+              new_task.order_id = order_id
               new_task.attempts = 0
               new_task.status = UNTRIED
               new_task.save!
@@ -56,7 +56,7 @@ class OrderTask < ApplicationRecord
 
   def cancel!
     self.status = CANCELLED
-    self.save!
+    save!
   end
 
   def uncompleted?
@@ -75,12 +75,12 @@ class OrderTask < ApplicationRecord
   end
 
   def suppressed?
-    self.order.payment_type.order_task_suppressions.any? do |s|
-      next false unless s.task_type == self.type
+    order.payment_type.order_task_suppressions.any? do |s|
+      next false unless s.task_type == type
       next true if s.method_name == 'ANY'
-      next true if self.method_symbol.blank?
+      next true if method_symbol.blank?
 
-      s.method_name == self.method_symbol.to_s
+      s.method_name == method_symbol.to_s
     end
   end
 

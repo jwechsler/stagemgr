@@ -61,12 +61,12 @@ namespace :migrate_paperclip do
       def key(instance, attachment)
         # SecureRandom.uuid
         # Alternatively:
-        instance.send("#{attachment}").path
+        instance.send(attachment.to_s).path
       end
 
       def checksum(attachment)
         # local files stored on disk:
-        url = "#{attachment.path}"
+        url = attachment.path.to_s
         puts "checksum = #{url}"
         Digest::MD5.base64digest(File.read(url))
 

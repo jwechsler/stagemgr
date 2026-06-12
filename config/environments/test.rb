@@ -67,9 +67,9 @@ Rails.application.configure do
 
   # $TEST_CREDIT_CARD = paypal_config['test']['test_credit_card']
 
-  $TKTPRINT = YAML.load(File.open("#{Rails.root.join('config/ticket_print.yml')}"))['test']
+  $TKTPRINT = YAML.load(File.open(Rails.root.join('config/ticket_print.yml').to_s))['test']
 
-  config_data = YAML.load(File.open("#{Rails.root.join('config/server.yml')}"))
+  config_data = YAML.load(File.open(Rails.root.join('config/server.yml').to_s))
   $SERVER_CONFIG = config_data['all'].deep_merge(config_data['test'])
   $PAYMENT_CONFIG = $SERVER_CONFIG['payment_processing']
   $TEST_CREDIT_CARD = $PAYMENT_CONFIG['test_credit_card']

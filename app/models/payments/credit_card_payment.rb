@@ -87,7 +87,7 @@ class CreditCardPayment < CurrencyPayment
 
       end
 
-      raise CannotProcessPayment, "#{response.message}" unless response.success?
+      raise CannotProcessPayment, response.message.to_s unless response.success?
 
     end
     super

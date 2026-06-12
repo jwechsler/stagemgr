@@ -2,7 +2,7 @@ class UserDecorator < ApplicationDecorator
   delegate_all
 
   def email
-    h.link_to(object.email, [:admin, object], class: "#{'strike' if object.inactive?}")
+    h.link_to(object.email, [:admin, object], class: ('strike' if object.inactive?).to_s)
   end
 
   def last_request_at

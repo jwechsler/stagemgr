@@ -368,7 +368,7 @@ class Admin::ReportsController < Admin::ApplicationController
       is_donor = o.address.is_donor?
 
       last24 = o.address.performances_attended(2.years.ago)
-      member_id = if o.membership_payments.size > 0
+      member_id = if !o.membership_payments.empty?
                     o.membership_payments.to_a.map do |mp|
                       mp.membership.member_code
                     end.join(',') + ' '
@@ -380,10 +380,10 @@ class Admin::ReportsController < Admin::ApplicationController
       #          attendance_code += ("%03d" % last24).reverse
       attendance_code += 'A' if is_donor
       if o.hold_under.blank?
-        ticket_name = "#{o.address.last_name}" + (o.address.last_name.blank? || o.address.first_name.blank? ? '' : ', ') + (o.address.first_name.blank? ? '' : o.address.first_name.first)
+        ticket_name = o.address.last_name.to_s + (o.address.last_name.blank? || o.address.first_name.blank? ? '' : ', ') + (o.address.first_name.blank? ? '' : o.address.first_name.first)
       else
         _, f_name, _, l_name, = Address.parse_name(o.hold_under)
-        ticket_name = "#{l_name}" + (l_name.blank? || f_name.blank? ? '' : ', ') + (f_name.blank? ? '' : f_name.first)
+        ticket_name = l_name.to_s + (l_name.blank? || f_name.blank? ? '' : ', ') + (f_name.blank? ? '' : f_name.first)
       end
 
       report << { reserved_under: ticket_name,

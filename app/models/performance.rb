@@ -22,7 +22,7 @@ class Performance < ApplicationRecord
   validates_inclusion_of   :status, :in => PERFORMANCE_STATUSES
   validates_uniqueness_of  :performance_code
   validates_uniqueness_of  :performance_time, :scope => [:performance_date, :production_id]
-  validates_each           :performance_time do |record, attr, value|
+  validates_each           :performance_time do |record, attr, _value|
     if !record.production.nil? && record.production.performances.any? do |p|
       p.id != record.id &&
       p.performance_date == record.performance_date &&
@@ -48,7 +48,7 @@ class Performance < ApplicationRecord
   accepts_nested_attributes_for   :ticket_class_allocations
 
   def number_of_seats_left(exclude_order = nil)
-    self.production.capacity - self.seats_held(exclude_order)
+    production.capacity - seats_held(exclude_order)
     # self.orders.select{|o| o.holding_seats? }.inject(0){|sum,order| sum + order.ticket_line_items.sum(:ticket_count) }
   end
 
@@ -63,13 +63,13 @@ class Performance < ApplicationRecord
   def scan_ticket_allocation_triggers
     max_scans = 15
     scan_required = true # we need to rescan if any performance allocation has shifted in case it cascades up
-    while (scan_required && max_scans > 0)
+    while scan_required && max_scans > 0
       new_scan = false
       max_scans -= 1
-      seats_currently_held = self.seats_held
-      self.ticket_class_allocations.select { |tca| tca.shiftable? && tca.available? }.each do |tca|
+      seats_currently_held = seats_held
+      ticket_class_allocations.select { |tca| tca.shiftable? && tca.available? }.each do |tca|
         if tca.trigger_satisfied?(seats_currently_held)
-          Rails.logger.info("Promoting #{self.to_s}, ticket class #{tca.ticket_class.class_code} to #{tca.shift_to_code}")
+          Rails.logger.info("Promoting #{self}, ticket class #{tca.ticket_class.class_code} to #{tca.shift_to_code}")
           tca.available = false
           allocation = self.allocation(tca.shift_to_code)
           allocation.available = true
@@ -79,39 +79,39 @@ class Performance < ApplicationRecord
         end
       end
       scan_required = new_scan
-      self.ticket_class_allocations.reload
+      ticket_class_allocations.reload
     end
   end
 
   def number_of_tickets_left
-    self.number_of_seats_left
+    number_of_seats_left
   end
 
   def sold_out?
-    self.number_of_seats_left <= 0 && self.ticket_class_allocations.select { |tca|
+    number_of_seats_left <= 0 && ticket_class_allocations.select { |tca|
       tca.available? && tca.ticket_class.web_visible? && !tca.ticket_class.holds_seats?
     }.size.eql?(0)
   end
 
   def happening_soon?
-    at = self.performance_at
-    (Time.now < at + self.production.running_time.minutes) && (Time.now + $SERVER_CONFIG['restrict_sales_due_to_time_at_minutes_before'].minutes > at)
+    at = performance_at
+    (Time.now < at + production.running_time.minutes) && (Time.now + $SERVER_CONFIG['restrict_sales_due_to_time_at_minutes_before'].minutes > at)
   end
 
   def performance_at
-    Time.parse(self.performance_date.to_s(:default) + " " + self.performance_time.to_s(:hour_min))
+    Time.parse(performance_date.to_s(:default) + " " + performance_time.to_s(:hour_min))
   end
 
   def to_datetime
-    DateTime.parse("#{self.performance_date}T#{self.performance_time.strftime("%H:%M:00")}")
+    DateTime.parse("#{performance_date}T#{performance_time.strftime("%H:%M:00")}")
   end
 
   def to_time_with_zone
-    Time.zone.parse("#{self.performance_date}T#{self.performance_time.strftime("%H:%M:00")}")
+    Time.zone.parse("#{performance_date}T#{performance_time.strftime("%H:%M:00")}")
   end
 
   def near_capacity?
-    self.number_of_seats_left <= $SERVER_CONFIG['restrict_sales_due_to_capacity_at'].to_i
+    number_of_seats_left <= $SERVER_CONFIG['restrict_sales_due_to_capacity_at'].to_i
   end
 
   # Calendar-optimized methods using pre-computed HouseCount data.
@@ -148,55 +148,55 @@ class Performance < ApplicationRecord
   end
 
   def populate_ticket_class_allocations
-    (self.production.ticket_classes - self.ticket_class_allocations.map { |tca|
+    (production.ticket_classes - ticket_class_allocations.map { |tca|
       tca.ticket_class
     }).each do |ticket_class|
-      self.ticket_class_allocations.build({ :ticket_class => ticket_class, :available => ticket_class.auto_attach,
+      ticket_class_allocations.build({ :ticket_class => ticket_class, :available => ticket_class.auto_attach,
                                             :performance => self })
     end
-    self.ticket_class_allocations.each do |tca|
+    ticket_class_allocations.each do |tca|
       tca.available = true if tca.ticket_class.auto_attach?
     end
   end
 
   def allocation(class_code)
-    self.ticket_class_allocations.select { |tca|
+    ticket_class_allocations.select { |tca|
       !tca.ticket_class.nil? && tca.ticket_class.class_code.eql?(class_code)
     }.first
   end
 
   def to_s
-    "#{self.production.name} [#{datetime_s}] (#{number_of_seats_left} Seats Left)"
+    "#{production.name} [#{datetime_s}] (#{number_of_seats_left} Seats Left)"
   end
 
   def to_short_s
-    "#{self.production.name} on #{datetime_s}"
+    "#{production.name} on #{datetime_s}"
   end
 
   def datetime_s
-    "#{self.performance_date.strftime('%m/%d')} #{self.performance_time.strftime('%H:%M')}"
+    "#{performance_date.strftime('%m/%d')} #{performance_time.strftime('%H:%M')}"
   end
 
   def inactive?
-    self.status == Performance::INACTIVE
+    status == Performance::INACTIVE
   end
 
   def self.sellable_statuses
-    return [Performance::ACTIVE, Performance::PRIVATE]
+    [Performance::ACTIVE, Performance::PRIVATE]
   end
 
   def self.visible_statuses
-    return [Performance::ACTIVE]
+    [Performance::ACTIVE]
   end
 
   def visible?
-    Performance.visible_statuses.include?(self.status)
+    Performance.visible_statuses.include?(status)
   end
 
   def manage_seat_inventory
-    unless self.seat_map.nil? then
-      seats = Seat.where(seat_map_id: self.seat_map.id)
-      known_seats = self.seat_assignments.map { |sa| sa.seat }
+    unless seat_map.nil? then
+      seats = Seat.where(seat_map_id: seat_map.id)
+      known_seats = seat_assignments.map { |sa| sa.seat }
       missing_seats = seats.map { |s| s } - known_seats
 
       missing_seats.each { |seat|
@@ -206,12 +206,12 @@ class Performance < ApplicationRecord
   end
 
   def remove_illegal_seat_assignments
-    unless self.seat_map.nil? then
-      seats = Seat.where(seat_map_id: self.seat_map.id)
-      known_seats = self.seat_assignments.map { |sa| sa.seat }
+    unless seat_map.nil? then
+      seats = Seat.where(seat_map_id: seat_map.id)
+      known_seats = seat_assignments.map { |sa| sa.seat }
       problem_seats = known_seats - seats.map { |s| s }
       problem_seats.each { |s|
-        self.seat_assignments.select { |sa| sa.seat_id == s.id }.each { |sa|
+        seat_assignments.select { |sa| sa.seat_id == s.id }.each { |sa|
           if sa.order_id.nil? && sa.status == "Available"
             sa.destroy
           else
@@ -233,12 +233,12 @@ class Performance < ApplicationRecord
       file_name = performance_code + '_seating.png'
       file_path = Rails.root.join('public', 'static', 'qv', file_name).to_s
       if !File.exist?(file_path) || (File.mtime(file_path) < (seat_assignments.maximum(:updated_at) || Time.now) + 5.minutes)
-        dots = SeatAssignment.joins(:seat).includes(:seat).where(performance_id: self.id, status: SeatAssignment::AVAILABLE).pluck(
+        dots = SeatAssignment.joins(:seat).includes(:seat).where(performance_id: id, status: SeatAssignment::AVAILABLE).pluck(
           :origin_x, :origin_y, :width
         )
         result = MiniMagick::Image.open(seat_map.base_image_map_file)
-        image = 'available_seat.png'
-        available_dot = MiniMagick::Image.open(Rails.root.to_s + "/app/assets/images/available_seat.png")
+        'available_seat.png'
+        MiniMagick::Image.open(Rails.root.to_s + "/app/assets/images/available_seat.png")
         availables = Hash.new
 
         dots.each { |dot|
@@ -266,27 +266,27 @@ class Performance < ApplicationRecord
   end
 
   def clean_values
-    self.performance_date = Date.today if self.performance_date.nil?
-    self.performance_time = Time.now if self.performance_time.nil?
-    self.performance_date = self.performance_date.change(:hour => 0,
+    self.performance_date = Date.today if performance_date.nil?
+    self.performance_time = Time.now if performance_time.nil?
+    self.performance_date = performance_date.change(:hour => 0,
                                                          :min => 0,
                                                          :sec => 0,
                                                          :usec => 0)
-    self.performance_time = self.performance_time.change(:year => self.performance_date.year,
-                                                         :month => self.performance_date.month,
-                                                         :day => self.performance_date.day,
-                                                         :min => ((self.performance_time.min.to_i / 15) * 15),
+    self.performance_time = performance_time.change(:year => performance_date.year,
+                                                         :month => performance_date.month,
+                                                         :day => performance_date.day,
+                                                         :min => ((performance_time.min.to_i / 15) * 15),
                                                          :sec => 0,
                                                          :usec => 0)
-    self.performance_code.upcase! if self.performance_code
+    performance_code.upcase! if performance_code
   end
 
   def protect_performances_with_orders
-    errors.add(:performance_code, " has associated ticket orders and cannot be deleted") if self.orders.size > 0
-    return self.orders.size.eql?(0)
+    errors.add(:performance_code, " has associated ticket orders and cannot be deleted") if !orders.empty?
+    orders.size.eql?(0)
   end
 
   def create_metrics
-    self.create_house_count(total_seats: self.production.capacity, available_seats: self.production.capacity)
+    create_house_count(total_seats: production.capacity, available_seats: production.capacity)
   end
 end

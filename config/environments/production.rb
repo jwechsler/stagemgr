@@ -132,12 +132,12 @@ Rails.application.configure do
     end
   end
 
-  config_data = YAML.load(File.open("#{Rails.root.join('config/server.yml')}"))
+  config_data = YAML.load(File.open(Rails.root.join('config/server.yml').to_s))
   $SERVER_CONFIG = config_data['all'].deep_merge(config_data['production'])
   $EMAIL_ADDRESS = $SERVER_CONFIG['email']['addresses']
   $PAYMENT_CONFIG = $SERVER_CONFIG['payment_processing']
   $SERVER_CONFIG['ext_site_wrapper'] = $SERVER_CONFIG['ext_site_wrapper'] || 'ext_site_wrapper'
-  $TKTPRINT = YAML.load(File.open("#{Rails.root.join('config/ticket_print.yml')}"))['production']
+  $TKTPRINT = YAML.load(File.open(Rails.root.join('config/ticket_print.yml').to_s))['production']
   if $SERVER_CONFIG['payment_processing'].nil? || $SERVER_CONFIG['payment_processing']['additional_card_types'].blank?
     $ADDITIONAL_CARD_TYPES = []
   else

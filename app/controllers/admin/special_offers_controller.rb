@@ -23,7 +23,7 @@ class Admin::SpecialOffersController < Admin::ApplicationController
 
   def create
     object_type = %i[percent_off_special_offer amount_off_special_offer ticket_class_special_offer].select do |t|
-      params.has_key?(t)
+      params.key?(t)
     end.first || :special_offer
     @special_offer = SpecialOffer.new(special_offer_params(object_type))
     @special_offer.type = params[object_type][:type]
@@ -38,7 +38,7 @@ class Admin::SpecialOffersController < Admin::ApplicationController
   def update
     @special_offer = SpecialOffer.find(params[:id])
     object_type = %i[percent_off_special_offer amount_off_special_offer ticket_class_special_offer].select do |t|
-      params.has_key?(t)
+      params.key?(t)
     end.first
     @special_offer.update(special_offer_params(object_type))
     @special_offer.limiting_model_type = params[object_type][:limiting_model_type]
@@ -55,7 +55,7 @@ class Admin::SpecialOffersController < Admin::ApplicationController
   def duplicate
     @special_offer = SpecialOffer.find(params[:id])
     object_type = %i[percent_off_special_offer amount_off_special_offer ticket_class_special_offer].select do |t|
-      params.has_key?(t)
+      params.key?(t)
     end.first
     @special_offer.update(special_offer_params(object_type))
     @special_offer.limiting_model_type = params[object_type][:limiting_model_type]
