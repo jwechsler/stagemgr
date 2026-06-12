@@ -52,6 +52,28 @@ class Performance < ApplicationRecord
     # self.orders.select{|o| o.holding_seats? }.inject(0){|sum,order| sum + order.ticket_line_items.sum(:ticket_count) }
   end
 
+  # Seat-inventory vocabulary facades (preferred names).
+  #
+  # These are LIVE figures computed from the orders table on demand. Contrast
+  # with HouseCount, which stores a CACHED snapshot of the same numbers and is
+  # only refreshed when CalculateHouseCountsJob runs.
+  #
+  # seats_occupied counts every seat that is currently spoken for -- holds,
+  # in-progress checkouts, sold tickets, exchanges, releases (Order's
+  # SEAT_OCCUPYING_STATUSES). It is deliberately broader than "seats on hold",
+  # which would be just the box-office HOLD status. seats_occupied is an exact
+  # alias of the original #seats_held; seats_available aliases
+  # #number_of_seats_left (capacity minus occupied seats). The optional
+  # exclude_order argument (used during exchanges to ignore the order being
+  # edited) is forwarded unchanged.
+  def seats_occupied(exclude_order = nil)
+    seats_held(exclude_order)
+  end
+
+  def seats_available(exclude_order = nil)
+    number_of_seats_left(exclude_order)
+  end
+
   def seats_held(exclude_order = nil)
     TicketLineItem.where('ticket_classes.holds_seats = ? and orders.status in (?) and orders.performance_id = ? and order_id != ?',
                          true,
