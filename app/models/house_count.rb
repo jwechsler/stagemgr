@@ -70,8 +70,7 @@ class HouseCount < Metric
   def calculate_sold_out
     available_seats <= 0 &&
       performance.ticket_class_allocations
-                 .select { |tca| tca.available? && tca.ticket_class.web_visible? && !tca.ticket_class.holds_seats? }
-                 .empty?
+                 .none? { |tca| tca.available? && tca.ticket_class.web_visible? && !tca.ticket_class.holds_seats? }
   end
 
   def calculate_near_capacity

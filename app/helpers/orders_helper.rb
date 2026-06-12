@@ -135,11 +135,12 @@ module OrdersHelper
   end
 
   def payment_text_for(order)
-    if order.payment_type.is_a?(CreditCardPaymentType)
-      "This amount will be charged to your #{order.credit_card_type} ending in #{order.credit_card_number[-4..-1]}."
-    elsif order.payment_type.is_a?(MembershipPaymentType)
+    case order.payment_type
+    when CreditCardPaymentType
+      "This amount will be charged to your #{order.credit_card_type} ending in #{order.credit_card_number[-4..]}."
+    when MembershipPaymentType
       'This order will be applied to your membership.'
-    elsif order.payment_type.is_a?(FlexPassPaymentType)
+    when FlexPassPaymentType
       "You are using flex pass #{order.flex_pass_code}."
     end
   end

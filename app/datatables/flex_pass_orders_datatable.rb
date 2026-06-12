@@ -25,9 +25,7 @@ class FlexPassOrdersDatatable < DatatableBase
   end
 
   def get_raw_records
-    Order.allowed_for(current_user).includes(:payments, performance: :production).references(performance: :production).references(:payments).where(
-      'payments.flex_pass_id = :flex_pass_id', flex_pass_id: flex_pass.id
-    )
+    Order.allowed_for(current_user).includes(:payments, performance: :production).references(performance: :production).references(:payments).where(payments: { flex_pass_id: flex_pass.id })
   end
 
   def flex_pass

@@ -32,7 +32,7 @@ class CreditCardPayment < CurrencyPayment
   end
 
   def set_defaults
-    self.card_last_four ||= card_number.nil? ? '' : card_number[-4..-1]
+    self.card_last_four ||= card_number.nil? ? '' : card_number[-4..]
   end
 
   def receipt_description

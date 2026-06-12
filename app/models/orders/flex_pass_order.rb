@@ -28,7 +28,7 @@ class FlexPassOrder < Order
 
   def valid_payment_types_for(current_user)
     valid_payment_types = super
-    valid_payment_types.select { |pt| pt.is_a? CurrencyPaymentType }
+    valid_payment_types.grep(CurrencyPaymentType)
   end
 
   def description
@@ -40,7 +40,7 @@ class FlexPassOrder < Order
   end
 
   def flex_pass_payments
-    payments.select { |p| p.is_a? FlexPassPayment }
+    payments.grep(FlexPassPayment)
   end
 
   def self.send_flex_pass_reminder

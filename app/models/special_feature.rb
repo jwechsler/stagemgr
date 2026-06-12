@@ -7,7 +7,7 @@ class SpecialFeature < ApplicationRecord
 
   has_and_belongs_to_many :performances
 
-  validates_presence_of :short_name, :description
+  validates :short_name, :description, presence: true
   validates :short_name, :uniqueness => { :case_sensitive => false }
 
   def to_s
@@ -15,14 +15,14 @@ class SpecialFeature < ApplicationRecord
   end
 
   def reassign_feature_to_custom
-    performances.each { |perf|
+    performances.each do |perf|
       if perf.special_feature_display_markdown.blank?
         perf.special_feature_display_markdown = description
       else
         perf.special_feature_display_markdown + '\n\n' + description
       end
       perf.save!
-    }
+    end
     true
   end
 end

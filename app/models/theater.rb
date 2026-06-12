@@ -10,10 +10,10 @@ class Theater < ApplicationRecord
   LOGO_SIZES = (
     MEDIUM, THUMB = [250, 250], [125, 125]
   )
-  validates_inclusion_of :theater_class, :in => THEATER_CLASSES
-  validates_inclusion_of :status,        :in => THEATER_STATUSES
-  validates_uniqueness_of :name
-  validates_presence_of :name
+  validates :theater_class, inclusion: { :in => THEATER_CLASSES }
+  validates :status,        inclusion: { :in => THEATER_STATUSES }
+  validates :name, uniqueness: true
+  validates :name, presence: true
 
   has_many :productions, inverse_of: :theater
   has_many :special_offers, inverse_of: :theaters
@@ -21,7 +21,7 @@ class Theater < ApplicationRecord
   has_many :orders, inverse_of: :theater
   has_many :theater_tags, inverse_of: :theater, dependent: :destroy, autosave: true
 
-  scope :tagged_with, ->(name) {
+  scope :tagged_with, lambda { |name|
     joins(:theater_tags).where("LOWER(theater_tags.name) = ?", name.to_s.downcase).distinct
   }
 
@@ -47,7 +47,7 @@ class Theater < ApplicationRecord
       else []
       end
 
-    desired = list.map { |s| s.to_s.strip }.reject(&:blank?).uniq { |s| s.downcase }
+    desired = list.map { |s| s.to_s.strip }.compact_blank.uniq { |s| s.downcase }
     desired_lc = desired.map(&:downcase)
 
     theater_tags.each do |tag|
@@ -81,9 +81,13 @@ class Theater < ApplicationRecord
   end
 
   def self.allowed(current_user)
-    (current_user.respond_to?('is_theater_user?') && current_user.is_theater_user?) ? Theater.where(
+    if (current_user.respond_to?('is_theater_user?') && current_user.is_theater_user?)
+  Theater.where(
       "status != 'Inactive' and id in (?)", current_user.theater_ids
-    ) : Theater.where("status != 'Inactive'")
+    )
+else
+  Theater.where("status != 'Inactive'")
+end
   end
 
   def producing?
@@ -138,8 +142,9 @@ class Theater
   end
 
   def create_my_emma_group
-    unless MyEmma.disabled?
-      if myemma_attendee_group.blank? then
+    return if MyEmma.disabled?
+      return if myemma_attendee_group.present? 
+
         grp = MyEmma::Group.find_by_group_name(my_emma_group_name)
         if grp.nil? && $SERVER_CONFIG['my_emma']['create_theater_groups']
           grp = MyEmma::Group.new
@@ -148,8 +153,8 @@ class Theater
         else
           self.myemma_attendee_group = grp.id unless grp.nil?
         end
-      end
-    end
+      
+    
   end
 
   def my_emma_group_name

@@ -149,9 +149,9 @@ class AddressTest < ActiveSupport::TestCase
       assert_equal addresses(:bob_smith_1).id, order.address.id
     end
     should 'purge the duplicate address' do
-      num_addresses = Address.all.count
+      num_addresses = Address.count
       Address.purge_matched_duplicates
-      assert_equal num_addresses - 1, Address.all.count
+      assert_equal num_addresses - 1, Address.count
       assert_raise ActiveRecord::RecordNotFound do
         Address.find(@address_2.id)
       end

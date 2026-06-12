@@ -8,12 +8,12 @@ module RecurringProfile
   included do
     belongs_to :address
 
-    validates_presence_of :address
-    validates_uniqueness_of :profile_id, allow_nil: true, allow_blank: true, :unless => Proc.new { |profile|
+    validates :address, presence: true
+    validates :profile_id, uniqueness: { allow_nil: true, allow_blank: true, :unless => proc { |profile|
       profile.profile_id.eql?(PaymentProcessing::BogusResponse::PROFILE_ID)
-    }
+    } }
 
-    after_save :notify_on_suspension, :if => Proc.new { |record|
+    after_save :notify_on_suspension, :if => proc { |record|
       record.saved_change_to_attribute?(:status) && record.suspended?
     }
   end
@@ -27,7 +27,7 @@ module RecurringProfile
   end
 
   def self.create_recurring_profile(order, start_date, recurring_amount, profile_description,
-                                    max_failed_payments, additional_options = Hash.new)
+                                    max_failed_payments, additional_options = {})
     raise "This functionality has been deprecated"
     gateway ||= PaymentProcessing.recurring_gateway
     f_name, l_name = order.address.parse_full_name
@@ -48,7 +48,6 @@ module RecurringProfile
                 :auto_bill_outstanding => true }
     options.merge!(additional_options) unless additional_options.nil?
     gateway.recurring((recurring_amount * 100).to_i, credit_card, options)
-    
   end
 
   protected
@@ -65,7 +64,7 @@ module RecurringProfile
   public
 
   def update_from_profile(subscription_id = nil)
-    self.profile_id = subscription_id if profile_id.blank? && !subscription_id.blank?
+    self.profile_id = subscription_id if profile_id.blank? && subscription_id.present?
     if profile_id.blank? || !profile_id.starts_with?('sub')
       profile_status = PENDING
     else # second condition is to wean off of paypal.  Remove it eventually

@@ -1,16 +1,16 @@
 class Seat < ApplicationRecord
   belongs_to :seat_map, inverse_of: :seats
 
-  validates_presence_of :location, :row, :seat_number
+  validates :location, :row, :seat_number, presence: true
   before_validation :set_standard_location
   before_destroy :verify_unassigned
-  validates_uniqueness_of :location, scope: [:seat_map_id]
+  validates :location, uniqueness: { scope: [:seat_map_id] }
 
   has_many :seat_assignments, dependent: :destroy, inverse_of: :seat
 
   # returns true if the seat is convertable to a wheelchair seat
   def accessible?
-    !self.feature.blank?
+    self.feature.present?
   end
 
   private

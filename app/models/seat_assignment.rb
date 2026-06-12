@@ -45,8 +45,7 @@ class SeatAssignment < ApplicationRecord
 
   # Proxy for seat location
   #
-  def location
-  end
+  def location; end
 
   def assign_to_order(order_uuid, limit_seats = 999, ticket_class_id = nil, accessibility = nil)
     number_assigned = SeatAssignment.where(status: [SeatAssignment::TEMPORARY, SeatAssignment::ASSIGNED],
@@ -95,11 +94,11 @@ class SeatAssignment < ApplicationRecord
 
   def self.assign_seats_to_saved_order(order_uuid)
     order = Order.find_by(uuid: order_uuid)
-    unless order.nil?
+    return if order.nil?
       SeatAssignment.where('order_uuid = :order_uuid and status = :temp_status', order_uuid: order_uuid, temp_status: SeatAssignment::TEMPORARY).update_all(
         status: ASSIGNED, updated_at: Time.now, order_id: order.id
       )
-    end
+    
   end
 
   def self.release_expired_temporary_holds

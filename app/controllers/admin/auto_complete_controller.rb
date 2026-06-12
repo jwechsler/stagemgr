@@ -40,7 +40,7 @@ class Admin::AutoCompleteController < Admin::ApplicationController
     else
       ticket_classes = performance.production.ticket_classes.search_by_code_and_performance_id(params[:q],
                                                                                                performance.id)
-      render json: ticket_classes.select { |tc| !tc.software_managed }.map { |ticket_class|
+      render json: ticket_classes.reject { |tc| tc.software_managed }.map { |ticket_class|
         { code: ticket_class.class_code,
           name: "#{ticket_class} (#{ticket_class.number_left(performance)} Tickets Left)",
           ticket_type: ticket_class.ticket_type,

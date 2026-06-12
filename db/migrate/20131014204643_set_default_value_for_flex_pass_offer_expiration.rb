@@ -1,6 +1,6 @@
 class SetDefaultValueForFlexPassOfferExpiration < ActiveRecord::Migration[4.2]
   def up
-    FlexPassOffer.where('months_till_expiration is null').each do |fpo|
+    FlexPassOffer.where(months_till_expiration: nil).each do |fpo|
       fpo.months_till_expiration = 12
       fpo.save!
     end

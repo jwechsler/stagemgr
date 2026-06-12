@@ -281,7 +281,7 @@ Then(/^the performance "(.*?)" should have (\d+) held seats with valid orders$/)
   actual_count = performance.seat_assignments
                             .joins('INNER JOIN orders ON seat_assignments.order_uuid = orders.uuid')
                             .where(status: SeatAssignment::TEMPORARY)
-                            .where('orders.status IN (?)', Order::HOLDING_SEAT_STATUSES)
+                            .where(orders: { status: Order::HOLDING_SEAT_STATUSES })
                             .count
   expect(actual_count).to eq(count.to_i)
 end

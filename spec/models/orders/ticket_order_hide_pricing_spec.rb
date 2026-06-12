@@ -98,7 +98,7 @@ RSpec.describe TicketOrder, '#send_to_printer_api with hide_pricing' do
       expect(tickets.length).to eq(3)
 
       # Verify we have tickets from both ticket classes
-      ticket_classes_in_payload = tickets.map { |t| t[:ticket_class] }.uniq
+      ticket_classes_in_payload = tickets.pluck(:ticket_class).uniq
       expect(ticket_classes_in_payload.length).to eq(2)
     end
   end

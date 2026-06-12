@@ -1,8 +1,8 @@
 class User < ApplicationRecord
   has_and_belongs_to_many :theaters # , :as => :owned_theaters
   has_many :file_stores, inverse_of: :user
-  validates_presence_of :email
-  validates_uniqueness_of :email
+  validates :email, presence: true
+  validates :email, uniqueness: true
   # proxy ability queries to user objects
   delegate :can?, :cannot?, :to => :ability
   validates :email,
@@ -75,7 +75,7 @@ class User < ApplicationRecord
   end
 
   def role_symbols
-    roles = Array.new
+    roles = []
     roles += [:admin] if is_administrator?
     roles += [:box_office] if is_box_office_user?
     roles += [:theater_user] if is_theater_user?
@@ -83,7 +83,7 @@ class User < ApplicationRecord
   end
 
   def allowed_tags(tags)
-    allowed = Array.new
+    allowed = []
     if is_theater_user?
       ids = theater_ids
       allowed = tags.select { |t| ids.include?(t.theater_id) }

@@ -156,8 +156,8 @@ class TicketRevenueAnalysis
     items = SpecialOfferLineItem
             .joins('INNER JOIN orders ON orders.id = line_items.order_id')
             .joins('INNER JOIN performances ON performances.id = orders.performance_id')
-            .where('performances.production_id = ?', @production.id)
-            .where('orders.status IN (?)', Order::FINALIZED_STATUSES)
+            .where(performances: { production_id: @production.id })
+            .where(orders: { status: Order::FINALIZED_STATUSES })
             .includes(:special_offer, :order)
 
     items.group_by(&:special_offer_id).filter_map do |_offer_id, list|
@@ -178,7 +178,7 @@ class TicketRevenueAnalysis
   def build_promotion_edges(class_by_code)
     TicketClassAllocation
       .joins('INNER JOIN performances ON performances.id = ticket_class_allocations.performance_id')
-      .where('performances.production_id = ?', @production.id)
+      .where(performances: { production_id: @production.id })
       .where(shiftable: true)
       .where.not(shift_to_code: nil)
       .pluck('ticket_class_allocations.ticket_class_id', 'ticket_class_allocations.shift_to_code')
@@ -190,7 +190,7 @@ class TicketRevenueAnalysis
   end
 
   def union_find_buckets(all_ids, edges)
-    parent = all_ids.each_with_object({}) { |id, h| h[id] = id }
+    parent = all_ids.to_h { |id| [id, id] }
 
     find = lambda { |x|
       parent[x] = find.call(parent[x]) unless parent[x] == x
@@ -222,8 +222,8 @@ class TicketRevenueAnalysis
       .joins('INNER JOIN orders ON orders.id = line_items.order_id')
       .joins('INNER JOIN performances ON performances.id = orders.performance_id')
       .joins('INNER JOIN ticket_classes tc ON tc.id = line_items.ticket_class_id')
-      .where('performances.production_id = ?', @production.id)
-      .where('orders.status IN (?)', Order::FINALIZED_STATUSES)
+      .where(performances: { production_id: @production.id })
+      .where(orders: { status: Order::FINALIZED_STATUSES })
       .pluck(
         'line_items.ticket_class_id',
         'line_items.ticket_count',
@@ -249,7 +249,7 @@ class TicketRevenueAnalysis
   def fetch_allocation_data
     rows = TicketClassAllocation
            .joins('INNER JOIN performances ON performances.id = ticket_class_allocations.performance_id')
-           .where('performances.production_id = ?', @production.id)
+           .where(performances: { production_id: @production.id })
            .pluck(
              'ticket_class_allocations.ticket_class_id',
              'ticket_class_allocations.ticket_limit'
@@ -305,8 +305,8 @@ class TicketRevenueAnalysis
 
     weighted_sum = priced_rows.sum { |r| r[:price] * r[:count] }
     avg_price    = weighted_sum / total_count
-    price_min    = priced_rows.map { |r| r[:price] }.min
-    price_max    = priced_rows.map { |r| r[:price] }.max
+    price_min    = priced_rows.pluck(:price).min
+    price_max    = priced_rows.pluck(:price).max
 
     ladder = priced_rows.each_with_object(Hash.new(0)) do |r, h|
       h[r[:price].to_f.round(2)] += r[:count]

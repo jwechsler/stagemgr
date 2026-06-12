@@ -318,7 +318,7 @@ class AudienceAnalysis
     top = candidates.sort_by { |c| c[:last_perf] }.reverse.first(limit)
     return [] if top.empty?
 
-    prods_by_id = Production.where(id: top.map { |c| c[:id] }).index_by(&:id)
+    prods_by_id = Production.where(id: top.pluck(:id)).index_by(&:id)
     top.map do |c|
       prod = prods_by_id[c[:id]]
       next nil unless prod
@@ -393,7 +393,7 @@ class AudienceAnalysis
       three_plus_in_building: {}
     }
     zero_map = {}
-    WINDOWS.keys.each do |label|
+    WINDOWS.each_key do |label|
       metrics.each_value { |h| h[label] = 0 }
       zero_map[label] = 0
     end

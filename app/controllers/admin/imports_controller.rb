@@ -23,7 +23,7 @@ class Admin::ImportsController < Admin::ApplicationController
     @donor_import.format = FileStore::DONATION_LEVELS_IMPORT_FORMAT
     @productions = productions_visible_to_operations
     @theaters = Theater.all.accessible_by(current_ability).where(status: Theater::ACTIVE)
-    @payment_types = ExternalPaymentType.all.order(:display_name)
+    @payment_types = ExternalPaymentType.order(:display_name)
     respond_to do |format|
       format.html # index.html.erb
       format.xml  { render xml: @theaters }

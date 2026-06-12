@@ -2,7 +2,7 @@ class CopyProductionMembersToMyEmmaTheatreGroup < ActiveRecord::Migration[4.2]
   def up
     return if MyEmma.disabled?
 
-    Production.all.select { |prod| !prod.myemma_attendee_group.nil? }.each do |prod|
+    Production.all.reject { |prod| prod.myemma_attendee_group.nil? }.each do |prod|
       puts "Copying Members from #{prod.my_emma_group_name} to #{prod.theater.my_emma_group_name}"
       result = prod.copy_myemma_attendees_to_theater
       sleep(1)

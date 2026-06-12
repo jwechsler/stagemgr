@@ -24,13 +24,13 @@ class TicketOrder < Order
   attr_accessor :selected_production
 
   has_many :ticket_line_items, :foreign_key => :order_id, inverse_of: :ticket_order
-  belongs_to :exchange_source, class_name: "TicketOrder", foreign_key: "exchange_source_id", optional: true
-  belongs_to :split_source, class_name: "TicketOrder", foreign_key: "split_source_id", optional: true
+  belongs_to :exchange_source, class_name: "TicketOrder", optional: true
+  belongs_to :split_source, class_name: "TicketOrder", optional: true
   delegate :production, to: :performance
   accepts_nested_attributes_for :ticket_line_items, allow_destroy: true
 
   validates_associated :ticket_line_items
-  validates_presence_of :performance
+  validates :performance, presence: true
   validate :ticket_stock_available, :unless => :allow_deletion?
   validate :seat_assignments_complete?, :if => :seating_check_required?
   validate :payments_exist?, :if => :processed?
@@ -50,40 +50,42 @@ class TicketOrder < Order
   end
 
   def ticket_stock_available
-    unless ticket_line_items.empty?
-      ticket_counts_by_class = Hash.new
+    return if ticket_line_items.empty?
+      ticket_counts_by_class = {}
       ticket_line_items.each do |tli|
-        errors.add(:base,
-                   "Missing allocation for #{performance.performance_code} / #{tli.ticket_class.nil? ? "NIL" : tli.ticket_class.class_code}") unless performance.ticket_class_allocations.map { |tla|
-                                                                                                                                                            tla.ticket_class
-                                                                                                                                                          }.include?(tli.ticket_class)
+        unless performance.ticket_class_allocations.map do |tla|
+                                                                                                                                                       tla.ticket_class
+                                                                                                                                                     end.include?(tli.ticket_class)
+          errors.add(:base,
+                     "Missing allocation for #{performance.performance_code} / #{tli.ticket_class.nil? ? "NIL" : tli.ticket_class.class_code}")
+        end
         if ticket_counts_by_class.key?(tli.ticket_class_id)
           ticket_counts_by_class[tli.ticket_class_id] += tli.ticket_count
         else
           ticket_counts_by_class[tli.ticket_class_id] = tli.ticket_count
         end
       end
-      ticket_counts_by_class.keys.each do |key|
+      ticket_counts_by_class.each_key do |key|
         allocation = TicketClassAllocation.find_by_performance_id_and_ticket_class_id(performance_id, key)
-        unless allocation.nil?
-          number_of_tickets_already_used = TicketLineItem.where(
-            'ticket_class_id = ? and performance_id = ? and order_id != ?', key, performance_id, id
-          ).joins(:order).sum(:ticket_count)
-          if !allocation.ticket_limit.nil? && (ticket_counts_by_class[key] + number_of_tickets_already_used > allocation.ticket_limit) then
-            remainder = allocation.ticket_limit - number_of_tickets_already_used
-            if remainder > 0
-              errors.add(:base,
-                         "There are only #{allocation.ticket_limit - number_of_tickets_already_used} '#{TicketClass.find(key).class_name}' tickets remaining.")
-            else
-              errors.add(:base, "Sorry, there are no '#{TicketClass.find(key).class_name}' tickets left.")
-            end
-          end
+        next if allocation.nil?
+        number_of_tickets_already_used = TicketLineItem.where(
+          'ticket_class_id = ? and performance_id = ? and order_id != ?', key, performance_id, id
+        ).joins(:order).sum(:ticket_count)
+        next unless !allocation.ticket_limit.nil? && (ticket_counts_by_class[key] + number_of_tickets_already_used > allocation.ticket_limit)
+        remainder = allocation.ticket_limit - number_of_tickets_already_used
+        if remainder > 0
+          errors.add(:base,
+                     "There are only #{allocation.ticket_limit - number_of_tickets_already_used} '#{TicketClass.find(key).class_name}' tickets remaining.")
+        else
+          errors.add(:base, "Sorry, there are no '#{TicketClass.find(key).class_name}' tickets left.")
         end
       end
       seats_left = performance.number_of_seats_left(self)
-      errors.add(:base,
-                 "There #{seats_left == 1 ? "is" : "are"} only #{seats_left} reservation#{"s" unless seats_left == 1} remaining for the #{performance.performance_date} performance at #{performance.performance_time.to_formatted_s(:standard_time)}.") if holding_seats? && seats_left < number_of_seats
-    end
+      if holding_seats? && seats_left < number_of_seats
+        errors.add(:base,
+                   "There #{seats_left == 1 ? "is" : "are"} only #{seats_left} reservation#{"s" unless seats_left == 1} remaining for the #{performance.performance_date} performance at #{performance.performance_time.to_formatted_s(:standard_time)}.")
+      end
+    
   end
 
   def payments_exist?
@@ -91,9 +93,9 @@ class TicketOrder < Order
   end
 
   def unassign_seats
-    Rails.logger.info("Releasing seats for Order #{id} [#{status}] [#{seats.map { |s|
+    Rails.logger.info("Releasing seats for Order #{id} [#{status}] [#{seats.map do |s|
       s.seat.location
-    }.join(',')}]")
+    end.join(',')}]")
     seat_ids = seats.pluck(:id)
     # Clear the seat FK on this order's TLIs so the seats can be re-sold after
     # this order is released without hitting the unique index on
@@ -103,17 +105,17 @@ class TicketOrder < Order
                     .update_all(seat_assignment_id: nil)
     end
     seats.each { |seat| seat.unassign_from_order(uuid) }
-    Rails.logger.info("Seats released for Order #{id} [#{status}] [#{seats.map { |s|
+    Rails.logger.info("Seats released for Order #{id} [#{status}] [#{seats.map do |s|
       s.seat.location
-    }.join(',')}]")
+    end.join(',')}]")
   end
 
   def unassign_seats_when_performance_changes
-    seats.reload.each { |seat|
+    seats.reload.each do |seat|
       unless seat.performance_id.eql?(performance_id)
         seat.unassign_from_order(self)
       end
-    }
+    end
     seats.reload
   end
 
@@ -155,7 +157,7 @@ class TicketOrder < Order
     orders = Order.where("id in (select order_id from payments where flex_pass_id in (select id from flex_passes where flex_pass_offer_id = :offer_id))",
                          { :offer_id => offer.id })
 
-    orders.each { |o|
+    orders.each do |o|
       was = o.to_s
       o.set_ticket_classes_using_offer(offer)
       o.save!
@@ -164,7 +166,7 @@ class TicketOrder < Order
       else
         puts "Order #{o.id}: #{was}"
       end
-    }
+    end
 
     nil
   end
@@ -179,7 +181,7 @@ class TicketOrder < Order
 
   def splittable?
     number_of_tickets > 1 && [Order::PROCESSED, Order::UNCLAIMED,
-                                   Order::FULFILLED].include?(status) && !paid_with_membership?
+                              Order::FULFILLED].include?(status) && !paid_with_membership?
   end
 
   def convertible_to_donation?
@@ -245,9 +247,9 @@ class TicketOrder < Order
   def wheelchair_requested?
     case
     when [WHEELCHAIR, WHEELCHAIR_TRANSFER].include?(special_request) then true
-    when performance.production.has_reserved_seating? && !seats.select { |sa|
-      !sa.accessibility.blank?
-    }.empty? then true
+    when performance.production.has_reserved_seating? && !seats.reject do |sa|
+      sa.accessibility.blank?
+    end.empty? then true
     else false
     end
   end
@@ -255,17 +257,19 @@ class TicketOrder < Order
   def seat_assignments(assignment_types = [])
     if performance.nil?
       r = ""
-    else
-      if performance.production.has_reserved_seating?
-        show_seats = assignment_types.size.eql?(0) ? seats : seats.select { |s|
+    elsif performance.production.has_reserved_seating?
+      show_seats = if assignment_types.size.eql?(0)
+  seats
+else
+  seats.select do |s|
           assignment_types.include?(s.status)
-        }
+        end
+end
         r = show_seats.map { |s| s.seat.location }.sort.join(', ')
       elsif assigned_seats?
         r = ticket_detail_description.to_s
       else
         r = ""
-      end
     end
     r
   end
@@ -273,9 +277,9 @@ class TicketOrder < Order
   # when an order is saved to any status besides "EXCHANGING", any temporary seat assignments
   # are also associated with the newly generated order_id
   def finalize_seat_assignments
-    if (processed? or held?) and performance.production.has_reserved_seating? and !uuid.nil?
+    return unless (processed? or held?) and performance.production.has_reserved_seating? and !uuid.nil?
       SeatAssignment.assign_seats_to_saved_order(uuid) unless exchanging?
-    end
+    
   end
 
   # For reserved-seating orders, ensure each SeatAssignment with a donation
@@ -294,9 +298,9 @@ class TicketOrder < Order
     priced_seats.each do |sa|
       next if ticket_line_items.any? { |tli| tli.seat_assignment_id == sa.id }
 
-      aggregated = ticket_line_items.detect { |tli|
+      aggregated = ticket_line_items.detect do |tli|
         tli.ticket_class_id == sa.ticket_class_id && tli.seat_assignment_id.nil? && tli.ticket_count.to_i.positive?
-      }
+      end
       next if aggregated.nil?
 
       if aggregated.ticket_count > 1
@@ -333,30 +337,30 @@ class TicketOrder < Order
 
   def preset_line_items
     super
-    unless finalized?
+    return if finalized?
       tcs = ticket_line_items.map { |li| li.ticket_class_id }.uniq
-      available = performance.ticket_class_allocations.select { |tca|
-        tca.available? && !tcs.include?(tca.ticket_class.id) && tca.ticket_class.web_visible?
-      }.map { |tca| tca.ticket_class }
+      available = performance.ticket_class_allocations.select do |tca|
+        tca.available? && tcs.exclude?(tca.ticket_class.id) && tca.ticket_class.web_visible?
+      end.map { |tca| tca.ticket_class }
       available.each { |tc| ticket_line_items.build(:ticket_class => tc, :ticket_count => 0) }
       ticket_line_items.order(:ticket_class_id)
-    end
+    
   end
 
   def valid_payment_types_for(current_user)
     valid_payment_types = super
-    valid_payment_types = valid_payment_types - performance.restricted_payment_types unless performance.nil?
+    valid_payment_types -= performance.restricted_payment_types unless performance.nil?
     valid_payment_types
   end
 
   def ticket_detail_description
-    ticket_line_items.select { |tli| !tli.ticket_count.nil? && tli.ticket_count > 0 }.map { |li|
+    ticket_line_items.select { |tli| !tli.ticket_count.nil? && tli.ticket_count > 0 }.map do |li|
       if (li.ticket_count.nil? ? 0 : li.ticket_count) > 0
         li.to_s
       else
         ""
       end
-    }.join(', ')
+    end.join(', ')
   end
 
   # @todo remove when multiple performances for an order are allowed
@@ -395,7 +399,7 @@ class TicketOrder < Order
 
     batch_sequence ||= 1
 
-    return unless $TKTPRINT['service'].present?
+    return if $TKTPRINT['service'].blank?
 
     # If we already have a print_order_id, reprint the existing order
     if print_order_id.present?
@@ -413,7 +417,7 @@ class TicketOrder < Order
 
   def build_tktprint_payload(batch_id, batch_sequence)
     # Build customer name
-    cleaned_name, f_name, l_name = Address.parse_name(hold_under.blank? ? address.full_name : hold_under)
+    cleaned_name, f_name, l_name = Address.parse_name(hold_under.presence || address.full_name)
     if cleaned_name == address.full_name
       use_last_name = address.last_name
       use_first_name = address.first_name
@@ -425,7 +429,7 @@ class TicketOrder < Order
     # Build credits
     credit_1 = nil
     credit_2 = nil
-    unless performance.production.credit_lines.blank?
+    if performance.production.credit_lines.present?
       credit_lines = performance.production.credit_lines.split("\n")
       credit_1 = credit_lines[0] unless credit_lines.nil?
       credit_2 = credit_lines[1] unless credit_lines.size < 2
@@ -434,11 +438,11 @@ class TicketOrder < Order
     # Calculate visible amount (excluding line items with hide_pricing=true)
     visible_amount = 0
     unique_line_items.select { |li| !li.special_offer_id.nil? || li.ticket_count > 0 }.each do |oli|
-      if oli.is_a?(TicketLineItem) && oli.ticket_class&.hide_pricing
-        next
-      else
+      next if oli.is_a?(TicketLineItem) && oli.ticket_class&.hide_pricing
+        
+      
         visible_amount += oli.receipt_total
-      end
+      
     end
 
     # Build main order payload
@@ -478,12 +482,11 @@ class TicketOrder < Order
 
     # Add payments
     payments.each do |pay|
-      unless pay.receipt_description.blank?
-        order_payload[:payments_attributes] << {
-          description: pay.receipt_description,
-          amount: pay.customer_visible_amount
-        }
-      end
+      next unless pay.receipt_description.present?
+      order_payload[:payments_attributes] << {
+        description: pay.receipt_description,
+        amount: pay.customer_visible_amount
+      }
     end
 
     # Add tickets with current seat assignments
@@ -613,11 +616,11 @@ class TicketOrder < Order
   public
 
   def number_of_tickets
-    if ticket_line_items.empty?
-      result = 0
+    result = if ticket_line_items.empty?
+      0
     else
-      result = ticket_line_items.inject(0) { |sum, li| sum + (li.ticket_count.nil? ? 0 : li.ticket_count) }
-    end
+      ticket_line_items.inject(0) { |sum, li| sum + (li.ticket_count.nil? ? 0 : li.ticket_count) }
+             end
     result || 0
   end
 
@@ -625,9 +628,9 @@ class TicketOrder < Order
     if ticket_line_items.empty?
       0
     else
-      ticket_line_items.select { |tli|
+      ticket_line_items.select do |tli|
         !tli.nil? && !tli.ticket_class.nil? && tli.ticket_class.holds_seats?
-      }.inject(0) { |sum, li| sum + (li.ticket_count.nil? ? 0 : li.ticket_count) }
+      end.inject(0) { |sum, li| sum + (li.ticket_count.nil? ? 0 : li.ticket_count) }
     end
   end
 
@@ -641,7 +644,7 @@ class TicketOrder < Order
     adjust_seating_to_match_ticket_line_items
     seat_assignments = seats.map { |sa| sa }
     ticket_line_items.each do |tli|
-      tli.ticket_count.times {
+      tli.ticket_count.times do
         seat = nil
         if tli.seat_assignment_id.present?
           # Per-seat TLI: the association is authoritative. Pull the seat directly
@@ -660,7 +663,7 @@ class TicketOrder < Order
         end
         item = { source: tli, seat: seat, ticket_class_id: tli.ticket_class_id }
         tickets << item
-      }
+      end
     end
     tickets
   end
@@ -674,7 +677,7 @@ class TicketOrder < Order
   end
 
   def flatten_payments
-    fpayments = Hash.new
+    fpayments = {}
     payments.each do |payment|
       if fpayments.key?(payment.payment_type_id)
         fpayments[payment.payment_type_id].amount += payment.amount
@@ -746,8 +749,8 @@ class TicketOrder < Order
 
       order1 = fork_order_into_split
       order2 = fork_order_into_split
-      order1_payments = Hash.new
-      order2_payments = Hash.new
+      order1_payments = {}
+      order2_payments = {}
       remaining_tickets = all_tlis || flatten_ticket_line_items
       # Per-seat TLIs hold a unique seat_assignment_id FK. The source order is
       # losing all its seats (each seat's order_uuid is reassigned to a split
@@ -848,7 +851,7 @@ class TicketOrder < Order
   end
 
   def contains_tickets?
-    !ticket_line_items.select { |li| li.ticket_count > 0 }.empty?
+    !ticket_line_items.none? { |li| li.ticket_count > 0 }
   end
 
   def exchanged_for
@@ -863,7 +866,7 @@ class TicketOrder < Order
   def create_offset_payments
     sorted = payments.sort { |a, b| b.amount <=> a.amount }
     service_fee = service_line_items.sum(:amount)
-    Array.new
+    []
     offsets = sorted.map do |p|
       offset = p.new_exchange_offset_payment
       if service_fee > 0 then
@@ -873,7 +876,7 @@ class TicketOrder < Order
       end
       offset
     end
-    offsets.select { |p| p.amount != 0 }
+    offsets.reject { |p| p.amount == 0 }
   end
 
   def total_ticket_face_value(reload_line_items = false)
@@ -893,12 +896,12 @@ class TicketOrder < Order
       exchange_payments_toward_exchange_order = payment_type.build_exchange_offset_payments(exchange_payments_on_original_order)
       exchange_payments_on_original_order.each { |p| original_order.payments << p unless p.nil? }
       exchange_payments_toward_exchange_order.each { |p| payments << p unless p.nil? }
-      payment_difference = total_due - exchange_payments_toward_exchange_order.inject(0) { |sum, x|
+      payment_difference = total_due - exchange_payments_toward_exchange_order.inject(0) do |sum, x|
         sum + x.amount
-      }
+      end
       if payment_difference < 0
         payments << PriceOverridePayment.new(:amount => payment_difference, :order => self,
-                                                  :source_payment_type => original_order.payment_type)
+                                             :source_payment_type => original_order.payment_type)
       elsif payment_difference > 0
         create_proper_payment_in_amount_of!(payment_difference)
       end
@@ -1017,13 +1020,13 @@ class TicketOrder < Order
   end
 
   def create_exchange_service_fees(original_order)
-    templates = Array.new
+    templates = []
 
-    if original_order.exchange_source.nil?
-      templates = original_order.performance.production.service_item_templates_first_exchange
+    templates = if original_order.exchange_source.nil?
+      original_order.performance.production.service_item_templates_first_exchange
     else
-      templates = original_order.performance.production.service_item_templates_addl_exchange
-    end
+      original_order.performance.production.service_item_templates_addl_exchange
+                end
     templates.each do |template|
       service_line_items.build(template.attributes_for_service_item)
     end
@@ -1038,7 +1041,7 @@ class TicketOrder < Order
   # Notes:
   #   If either new_tlis or old_tlis are nil, then the seating is forced to match the existing ticket line items ticket assignments blindly.
   def adjust_seating_to_match_ticket_line_items(new_tlis = nil, old_tlis = nil)
-    if performance.production.has_reserved_seating?
+    return unless performance.production.has_reserved_seating?
       # Reserved-seating orders now maintain 1 TicketLineItem per SeatAssignment
       # via TicketLineItem#seat_assignment_id. When that invariant holds there is
       # nothing to reconcile — the association itself guarantees the pairing.
@@ -1048,11 +1051,11 @@ class TicketOrder < Order
 
       # LEGACY: pre-per-seat-TLI reserved orders (TicketLineItem#seat_assignment_id is NULL).
       # Do not remove without auditing historical TicketOrders.
-      Hash.new
+      {}
       if new_tlis.nil?
         tli_ticket_class_ids = Set.new(ticket_line_items.map { |tli| tli.ticket_class_id })
       else
-        new_tlis = [new_tlis] unless new_tlis.kind_of?(Array)
+        new_tlis = [new_tlis] unless new_tlis.is_a?(Array)
         tli_ticket_class_ids = Set.new(new_tlis.map { |tli| tli.ticket_class_id })
       end
       seat_ticket_class_ids = Set.new(seats.map { |s| s.ticket_class_id })
@@ -1061,7 +1064,7 @@ class TicketOrder < Order
         tc_ids_for_reassign = seat_ticket_class_ids - tli_ticket_class_ids
         ticket_line_items.select { |tli| tc_ids_for_reassign.include?(tli.ticket_class_id) }
       else
-        old_tlis = [old_tlis] unless old_tlis.kind_of?(Array)
+        old_tlis = [old_tlis] unless old_tlis.is_a?(Array)
         tc_ids_for_reassign = Set.new(old_tlis.map { |tli| tli.ticket_class_id })
       end
       tc_ids_to_fix = tli_ticket_class_ids - seat_ticket_class_ids # ticket_class_ids that don't exist in seat
@@ -1077,7 +1080,7 @@ class TicketOrder < Order
       seats.select { |sa| tc_ids_for_reassign.include?(sa.ticket_class_id) }.each do |seat_assignment|
         seat_assignment.ticket_class_id = tc_id_pool.pop
       end
-    end
+    
   end
 
   protected
@@ -1147,7 +1150,7 @@ class TicketOrder < Order
   end
 
   def set_tasks_on_save
-    if do_not_create_tasks.nil? && (new_record? || saved_change_to_status?)
+    return unless do_not_create_tasks.nil? && (new_record? || saved_change_to_status?)
       super
       case status
       when PROCESSED
@@ -1155,56 +1158,64 @@ class TicketOrder < Order
       when FULFILLED
         create_performance_followup_task
       end
-    end
+    
   end
 
   def create_reminder_task
-    if do_not_create_tasks.nil? || (contains_tickets? && !performance.suppress_notification)
+    return unless do_not_create_tasks.nil? || (contains_tickets? && !performance.suppress_notification)
       day_before = performance.performance_date.to_datetime - 1.day
-      tasks << OutreachTask.new(:execute_at => day_before,
-                                     :method_symbol => :performance_reminder) unless day_before - 1.day < Time.now
-    end
+      unless day_before - 1.day < Time.now
+        tasks << OutreachTask.new(:execute_at => day_before,
+                                  :method_symbol => :performance_reminder)
+      end
+    
   end
 
   def create_receipt_task
-    tasks << OutreachTask.new(:execute_at => Time.now + 5.minutes,
-                                   :method_symbol => :ticket_confirmation) unless performance.suppress_notification || suppress_receipt? || !do_not_create_tasks.nil? || performance.performance_date < Date.today
-    if !$EMAIL_ADDRESS.nil? && !$EMAIL_ADDRESS['wheelchair_conversion_notifications'].blank? && wheelchair_requested?
+    unless performance.suppress_notification || suppress_receipt? || !do_not_create_tasks.nil? || performance.performance_date < Date.today
+      tasks << OutreachTask.new(:execute_at => Time.now + 5.minutes,
+                                :method_symbol => :ticket_confirmation)
+    end
+    if !$EMAIL_ADDRESS.nil? && $EMAIL_ADDRESS['wheelchair_conversion_notifications'].present? && wheelchair_requested?
       tasks << NotificationTask.new(:execute_at => Time.now + 15.minutes,
-                                         :notifications => $EMAIL_ADDRESS['wheelchair_conversion_notifications'],
-                                         :method_symbol => :wheelchair_conversion_alert)
+                                    :notifications => $EMAIL_ADDRESS['wheelchair_conversion_notifications'],
+                                    :method_symbol => :wheelchair_conversion_alert)
     end
     super
   end
 
   def create_notify_refund_task
-    tasks << NotificationTask.new(:execute_at => Time.now, :notifications => [$EMAIL_ADDRESS['box_office'], $EMAIL_ADDRESS['supervisor_notifications']].join(','),
-                                       :method_symbol => :refunded_fulfilled_item_alert) unless $EMAIL_ADDRESS.nil? || !do_not_create_tasks.nil?
+    unless $EMAIL_ADDRESS.nil? || !do_not_create_tasks.nil?
+      tasks << NotificationTask.new(:execute_at => Time.now, :notifications => [$EMAIL_ADDRESS['box_office'], $EMAIL_ADDRESS['supervisor_notifications']].join(','),
+                                    :method_symbol => :refunded_fulfilled_item_alert)
+    end
     super
   end
 
   def create_performance_followup_task
-    if do_not_create_tasks.nil?
-      if contains_tickets? && !performance.suppress_notification && performance.production.use_ticket_email_templates?
+    return unless do_not_create_tasks.nil?
+      unless contains_tickets? && !performance.suppress_notification && performance.production.use_ticket_email_templates?
+  return
+end
         monday_following = performance.performance_date.end_of_week + 1.day
-        case
+        tasks << case
         when address.current_member?
-          tasks << OutreachTask.new(:execute_at => monday_following, :method_symbol => :member_followup)
+          OutreachTask.new(:execute_at => monday_following, :method_symbol => :member_followup)
         when paid_with_flexpass?
-          tasks << OutreachTask.new(:execute_at => monday_following, :method_symbol => :flex_pass_followup)
+          OutreachTask.new(:execute_at => monday_following, :method_symbol => :flex_pass_followup)
         when address.first_time_paying?(self)
-          tasks << OutreachTask.new(:execute_at => monday_following, :method_symbol => :first_time_followup)
+          OutreachTask.new(:execute_at => monday_following, :method_symbol => :first_time_followup)
         else
-          tasks << OutreachTask.new(:execute_at => monday_following, :method_symbol => :standard_followup)
-        end
-      end
-    end
+          OutreachTask.new(:execute_at => monday_following, :method_symbol => :standard_followup)
+                 end
+      
+    
   end
 
   def suppress_receipt?
-    performance.suppress_notification || ticket_line_items.map { |tli|
+    performance.suppress_notification || ticket_line_items.map do |tli|
       tli.ticket_class.suppress_receipt?
-    }.all?
+    end.all?
   end
 
   def remove_empty_ticket_lines
@@ -1218,23 +1229,25 @@ class TicketOrder < Order
 
   def set_ticket_classes_using_offer(offer)
     new_ticket_class = production_ticket_class_from_offer(offer)
-    if !new_ticket_class.nil?
-      ticket_line_items.each { |li|
+    return if new_ticket_class.nil?
+      ticket_line_items.each do |li|
         new_line_item = TicketLineItem.new
         new_line_item.ticket_class = new_ticket_class
         li.ticket_class.ticket_price
         new_line_item.ticket_count = li.ticket_count
-        new_line_item.price_override = TicketOrder.applicable_price(li.ticket_class,
-                                                                    new_ticket_class) if new_ticket_class.ticket_type == TicketClass::DONATION
+        if new_ticket_class.ticket_type == TicketClass::DONATION
+          new_line_item.price_override = TicketOrder.applicable_price(li.ticket_class,
+                                                                      new_ticket_class)
+        end
         ticket_line_items << new_line_item
         ticket_line_items.delete(li)
         adjust_seating_to_match_ticket_line_items(new_line_item, li)
-      }
-    end
+      end
+    
   end
 
   def update_attendance_record
-    if saved_change_to_status?
+    return unless saved_change_to_status?
       begin
         case status
         when Order::FULFILLED
@@ -1251,19 +1264,19 @@ class TicketOrder < Order
         Rails.logger.error "Failed to update attendee status for order #{id}: #{e.message}"
         Rails.logger.error "Backtrace:\n#{e.backtrace.join("\n")}"
       end
-    end
+    
   end
 
   def reverse_source_exchange_payments
-    exchange_source.payments.select { |p| p.can_cancel? }.each { |p|
+    exchange_source.payments.select { |p| p.can_cancel? }.each do |p|
       p.destroy!
-    }
+    end
     exchange_source.status = Order::PROCESSED
     exchange_source.save!
   end
 
   def is_unique_visit?(prod = nil)
-    prod = prod || production
+    prod ||= production
     TicketOrder.joins(:performance).where("performances.production_id = ? and orders.id != ? and orders.status = ? and orders.address_id = ?",
                                           prod.id,
                                           id,
@@ -1272,23 +1285,23 @@ class TicketOrder < Order
   end
 
   def set_tickets_for_pass_redemption
-    if status_changed? && status == Order::PROCESSED
+    return unless status_changed? && status == Order::PROCESSED
       if paid_with_flexpass?
         flex_pass = paid_with_flexpass
         offer = flex_pass.flex_pass_offer
         set_ticket_classes_using_offer(offer)
       end
-      if paid_with_membership?
+      return unless paid_with_membership?
         membership = Membership.find_by_member_code(member_code)
         offer = membership.membership_offer
         set_ticket_classes_using_offer(offer)
         ticket_line_items
-      end
-    end
+      
+    
   end
 
   def debug_logger
-    @@debug_logger ||= Logger.new("#{Rails.root}/log/debug.log")
+    @@debug_logger ||= Logger.new("#{Rails.root.join("log/debug.log")}")
   end
 
   def set_theater

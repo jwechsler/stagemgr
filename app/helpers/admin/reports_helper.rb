@@ -103,9 +103,7 @@ module Admin::ReportsHelper
     productions.each do |production|
       season_tag = production.season.to_i + 1
       additional_attendees = production.addresses
-      orders = TicketOrder.includes(:address, :payments, :theater, { performance: :production }).where(
-        'performances.production_id = ?', production.id
-      )
+      orders = TicketOrder.includes(:address, :payments, :theater, { performance: :production }).where(performances: { production_id: production.id })
 
       reports = Hash['ALL' => [],
                      'MEM' => [],
@@ -144,8 +142,8 @@ module Admin::ReportsHelper
       end
 
       # now, output the various production reports
-      reports.keys.each do |key|
-        if !reports[key].empty?
+      reports.each_key do |key|
+        unless reports[key].empty?
           file_name = "/tmp/#{season_tag}_#{key}_#{safe_title(production.name)}.csv"
           Report.save_report_as_csv(file_name, headers, reports[key])
         end
@@ -162,7 +160,7 @@ module Admin::ReportsHelper
 
     # output the master lists
 
-    master_lists.keys.each do |key|
+    master_lists.each_key do |key|
       file_name = "/tmp/#{season}_#{key.tr(' ', '_')}.csv"
       Report.save_report_as_csv(file_name, headers, master_lists[key])
     end

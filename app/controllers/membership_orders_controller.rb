@@ -5,7 +5,7 @@ class MembershipOrdersController < ApplicationController
 
   def payment_types_for(order, frontend = true)
     types = super
-    types.select { |t| t.is_a? CreditCardPaymentType }
+    types.grep(CreditCardPaymentType)
   end
 
   def show; end

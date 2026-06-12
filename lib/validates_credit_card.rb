@@ -47,7 +47,7 @@ module ActiveRecord::Validations::ClassMethods
   def passes_luhn?(number)
     # Luhn check from http://blog.internautdesign.com/2007/4/18/ruby-luhn-check-aka-mod-10-formula
     odd = true
-    number.to_s.gsub(/\D/, '').reverse.split('').map(&:to_i).collect do |d|
+    number.to_s.gsub(/\D/, '').reverse.chars.map(&:to_i).collect do |d|
       d *= 2 if odd = !odd
       d > 9 ? d - 9 : d
     end.sum % 10 == 0

@@ -54,12 +54,12 @@ class FlexPassUsageReport < Report
       '(SUM(flex_pass_offers.price) - SUM(flex_pass_offers.facility_fee) - SUM(flex_pass_offers.flat_payout) - SUM(amount)) as recovered_amount'
     )
 
-    recovered_amounts_hash = recovered_amounts.map do |record|
+    recovered_amounts_hash = recovered_amounts.to_h do |record|
       [record.processed_month, { recovered_amount: record.recovered_amount,
                                  expired_flex_passes: record.expired_flex_passes }]
-    end.to_h
+    end
 
-    collected_amounts_hash = collected_amounts.map do |record|
+    collected_amounts_hash = collected_amounts.to_h do |record|
       [record.processed_month, {
         new_passes: record.new_passes,
         new_deposits: record.new_deposits,
@@ -68,7 +68,7 @@ class FlexPassUsageReport < Report
         total_facility: record.total_facility
 
       }]
-    end.to_h
+    end
 
     months = (paid_amount.keys + recovered_amounts_hash.keys + collected_amounts_hash.keys).uniq.sort
 

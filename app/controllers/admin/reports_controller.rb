@@ -19,7 +19,7 @@ class Admin::ReportsController < Admin::ApplicationController
 
     if is_theater_user
       @productions = Production.accessible_by(current_ability, :read).order(press_opening_at: :desc)
-      @flex_pass_offers = @productions.select { |p| !p.flex_pass_offer.nil? }.map { |p| p.flex_pass_offer }
+      @flex_pass_offers = @productions.reject { |p| p.flex_pass_offer.nil? }.map { |p| p.flex_pass_offer }
     else
       @productions = Production.accessible_by(current_ability, :read).sellable.order(:name)
       @flex_pass_offers = FlexPassOffer.all
@@ -115,9 +115,7 @@ class Admin::ReportsController < Admin::ApplicationController
     @start_day = Date.parse(params[:start_day])
     @end_day = Date.parse(params[:end_day])
     if @start_day > @end_day
-      t = @start_day
-      @start_day = @end_day
-      @end_day = t
+@start_day, @end_day = @end_day, @start_day
     end
     @headers, @report_data = build_donation_totals_dump(@start_day, @end_day, !params['download_csv'].nil?)
     if params['download_csv'].nil?
@@ -133,9 +131,7 @@ class Admin::ReportsController < Admin::ApplicationController
     @start_day = grab_from_date_select(:start_day, params[:report])
     @end_day = grab_from_date_select(:end_day, params[:report])
     if @start_day > @end_day
-      t = @start_day
-      @start_day = @end_day
-      @end_day = t
+@start_day, @end_day = @end_day, @start_day
     end
 
     @headers, @report_data = build_donations_dump(@start_day, @end_day, !params['download_csv'].nil?)
@@ -535,16 +531,15 @@ class Admin::ReportsController < Admin::ApplicationController
     reportdata = []
     theater_ids = orders.pluck(:theater_id).uniq
     theaters = Theater.find(theater_ids)
-    theater_hash = theaters.each_with_object({}) do |theater, hash|
-      hash[theater.id] =
-        { theater: theater.name, total_amount: Money.new(0), processing_fee: Money.new(0), due: Money.new(0) }
-    end
+    theater_hash = theaters.to_h do |theater|
+                     [theater.id, { theater: theater.name, total_amount: Money.new(0), processing_fee: Money.new(0), due: Money.new(0) }]
+                   end
     orders.each do |o|
       theater_hash[o.theater_id][:total_amount] += Money.new(o.total_paid * 100.0)
       theater_hash[o.theater_id][:processing_fee] += Money.new(o.processing_fee * 100.0)
       theater_hash[o.theater_id][:due] += Money.new((o.total_paid - o.processing_fee) * 100.0)
     end
-    theater_hash.values.each do |row|
+    theater_hash.each_value do |row|
       reportdata << { theater: row[:theater], total_amount: row[:total_amount], processing_fee: row[:processing_fee],
                       due: row[:due] }
     end

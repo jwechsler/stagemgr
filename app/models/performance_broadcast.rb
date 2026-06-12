@@ -44,7 +44,7 @@ class PerformanceBroadcast < ApplicationRecord
     file_store = report.create
 
     # Send log only to the user who requested the broadcast
-    return unless user.email.present?
+    return if user.email.blank?
 
     begin
       NotificationMailer.broadcast_log_generated(file_store, user.email).deliver_now

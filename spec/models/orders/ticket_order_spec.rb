@@ -157,7 +157,7 @@ RSpec.describe TicketOrder do
 
   it "can create up to two additional donation orders" do
     o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets)
-    expect(DonationOrder.all.count).to eq(0)
+    expect(DonationOrder.count).to eq(0)
     o.additional_donation = 50.00
     o.additional_donation_for_other = 1.66
     expect(o.total_due).to eq(12.00)
@@ -181,13 +181,13 @@ RSpec.describe TicketOrder do
       o2 = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash, :performance => performance)
       expect(performance.number_of_seats_left).to eq(0)
 
-      expect {
+      expect do
         order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :performance => performance)
         order.transition_to!(Order::PROCESSING)
         order.errors.each do |error|
           puts "#{error.message}, #{error.attribute.to_yaml}"
         end
-      }.to raise_error(ActiveRecord::RecordInvalid)
+      end.to raise_error(ActiveRecord::RecordInvalid)
     end
 
     it "cannot processes if it would oversell a performance" do
@@ -369,9 +369,9 @@ RSpec.describe TicketOrder do
       expect(flat.size).to eq(2)
       expect(flat.map { |t| t[:seat]&.id }.compact.sort).to eq(seats.map(&:id).sort)
 
-      expect {
+      expect do
         @result = original_order.split([flat[0]], flat)
-      }.not_to raise_error
+      end.not_to raise_error
 
       order1, order2 = @result
       expect(order1).not_to be_nil
@@ -422,9 +422,9 @@ RSpec.describe TicketOrder do
         { source: tlis[1], seat: seats[0], ticket_class_id: tlis[1].ticket_class_id },
       ]
 
-      expect {
+      expect do
         @result = original_order.split([swapped[0]], swapped)
-      }.not_to raise_error
+      end.not_to raise_error
 
       order1, order2 = @result
       expect(order1).not_to be_nil

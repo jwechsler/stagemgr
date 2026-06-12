@@ -15,7 +15,7 @@ class ApplicationDecorator < Draper::Decorator
   def make_image_url(img, dimensions)
     return '' unless img.respond_to?(:attached?) && img.attached?
 
-    if dimensions.nil? || dimensions.empty?
+    if dimensions.blank?
       h.url_for(img)
     else
       width, height = parse_dimensions(dimensions[0])
@@ -28,7 +28,7 @@ class ApplicationDecorator < Draper::Decorator
   def make_image_tag(img, dimensions)
     return '' unless img.respond_to?(:attached?) && img.attached?
 
-    if dimensions.nil? || dimensions.empty?
+    if dimensions.blank?
       h.image_tag(img)
     else
       width, height = parse_dimensions(dimensions[0])

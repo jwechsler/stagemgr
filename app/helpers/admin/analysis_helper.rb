@@ -49,15 +49,15 @@ module Admin::AnalysisHelper
 
     # Assign palette colors to non-special buckets in stable order
     palette_idx = -1
-    bucket_colors = summary.buckets.each_with_object({}) do |bucket, h|
-      h[bucket.object_id] = case bucket.bucket_type
+    bucket_colors = summary.buckets.to_h do |bucket|
+                      [bucket.object_id, case bucket.bucket_type
                             when :comp     then COMP_COLOR
                             when :zero_rev then ZERO_REV_COLOR
                             else
                               palette_idx += 1
                               BUCKET_PALETTE[palette_idx % BUCKET_PALETTE.size]
-                            end
-    end
+                            end]
+                    end
 
     # Capacity mode: all buckets + Unsold
     issued       = summary.total_paid + summary.comp_count + zero_rev_count

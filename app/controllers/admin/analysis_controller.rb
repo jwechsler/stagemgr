@@ -6,11 +6,11 @@ class Admin::AnalysisController < Admin::ApplicationController
       @target_production = Production.accessible_by(current_ability, :read).find_by(id: params[:target_production_id])
     end
     if params[:comparison_production_ids].present?
-      ids = Array(params[:comparison_production_ids]).reject(&:blank?).map(&:to_i)
+      ids = Array(params[:comparison_production_ids]).compact_blank.map(&:to_i)
       @comparison_productions = Production.accessible_by(current_ability, :read).where(id: ids).includes(:theater)
     end
     if params[:comparison_theater_ids].present?
-      ids = Array(params[:comparison_theater_ids]).reject(&:blank?).map(&:to_i)
+      ids = Array(params[:comparison_theater_ids]).compact_blank.map(&:to_i)
       @comparison_theaters = Theater.where(id: ids).order(:name).to_a
     end
     if params[:comparison_production_id].present?
@@ -188,7 +188,7 @@ class Admin::AnalysisController < Admin::ApplicationController
   def audience
     @target_production = Production.accessible_by(current_ability, :read).find(params[:target_production_id])
 
-    requested_ids = Array(params[:comparison_theater_ids]).reject(&:blank?).map(&:to_i)
+    requested_ids = Array(params[:comparison_theater_ids]).compact_blank.map(&:to_i)
     @comparison_theaters = Theater.where(id: requested_ids).to_a
 
     if requested_ids.empty?
@@ -224,7 +224,7 @@ class Admin::AnalysisController < Admin::ApplicationController
 
   def audience_export
     target = Production.accessible_by(current_ability, :read).find(params[:target_production_id])
-    comparison_theater_ids = Array(params[:comparison_theater_ids]).reject(&:blank?).map(&:to_i)
+    comparison_theater_ids = Array(params[:comparison_theater_ids]).compact_blank.map(&:to_i)
     segment_key  = params[:segment_key].to_s
     window_label = params[:window_label].presence
 
@@ -252,7 +252,7 @@ class Admin::AnalysisController < Admin::ApplicationController
 
   def rate_of_sales
     @target_production = Production.accessible_by(current_ability, :read).find(params[:target_production_id])
-    comparison_ids = Array(params[:comparison_production_ids]).reject(&:blank?).map(&:to_i)
+    comparison_ids = Array(params[:comparison_production_ids]).compact_blank.map(&:to_i)
     @comparison_productions = Production.accessible_by(current_ability, :read).where(id: comparison_ids)
 
     @extra_weeks = params[:extra_weeks].to_i

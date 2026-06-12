@@ -55,7 +55,7 @@ class Admin::TicketOrdersController < Admin::OrdersController
       ticket_classes = performance.production.ticket_classes.search_by_code_and_performance_id(
         sanitize_autocomplete_term(params[:term]), performance.id
       )
-      render json: ticket_classes.select { |tc| !tc.software_managed }.map { |ticket_class|
+      render json: ticket_classes.reject { |tc| tc.software_managed }.map { |ticket_class|
         { id: ticket_class.id,
           value: ticket_class.class_code,
           label: "#{ticket_class.class_code} [#{ticket_class} (#{ticket_class.number_left(performance)} Tickets Left)]",
@@ -215,7 +215,7 @@ class Admin::TicketOrdersController < Admin::OrdersController
   def set_ticket_classes_for_line_items(order)
     return if params[:ticket_order][:ticket_line_items_attributes].nil?
 
-    params[:ticket_order][:ticket_line_items_attributes].values.each do |tlia|
+    params[:ticket_order][:ticket_line_items_attributes].each_value do |tlia|
       code = tlia[:ticket_class_code]
       found = order.ticket_line_items.select { |tli| tli.id == tlia[:id].to_i }
       found.each do |tli|

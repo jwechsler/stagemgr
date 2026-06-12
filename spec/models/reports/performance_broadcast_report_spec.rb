@@ -103,7 +103,7 @@ RSpec.describe PerformanceBroadcastReport, type: :model do
         report = PerformanceBroadcastReport.new(broadcast)
         report.create
 
-        last_names = report.data.map { |row| row[0] }
+        last_names = report.data.pluck(0)
         expect(last_names).to eq(%w[Anderson Baker Chen Davis])
       end
 

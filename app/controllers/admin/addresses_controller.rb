@@ -10,10 +10,10 @@ class Admin::AddressesController < Admin::ApplicationController
   def index
     respond_to do |format|
       format.html # index.html.erb
-      format.json {
+      format.json do
         params.permit!
         render json: AddressDatatable.new(params, current_user: current_user)
-      }
+      end
     end
   end
 
@@ -22,10 +22,10 @@ class Admin::AddressesController < Admin::ApplicationController
   def show
     respond_to do |format|
       format.html # show.html.erb
-      format.json {
+      format.json do
         params.permit!
         render json: AddressesOrdersDatatable.new(params, current_user: current_user, address: @address)
-      }
+      end
     end
   end
 
@@ -39,8 +39,7 @@ class Admin::AddressesController < Admin::ApplicationController
   end
 
   # GET /admin/addresses/1/edit
-  def edit
-  end
+  def edit; end
 
   # POST /admin/addresses
   # POST /admin/addresses.xml
@@ -55,10 +54,10 @@ class Admin::AddressesController < Admin::ApplicationController
     end
     respond_to do |format|
       if @address.save
-        format.html {
+        format.html do
           flash.keep
           redirect_to(admin_address_path(@address), :success => notice)
-        }
+        end
         format.xml  { render :xml => :admin_address, :status => :created, :location => @address }
       else
         format.html { render :action => "new" }
@@ -89,10 +88,10 @@ class Admin::AddressesController < Admin::ApplicationController
     respond_to do |format|
       if @address.save
 
-        format.html {
+        format.html do
           flash.keep
           redirect_to(:admin_address, :success => notice)
-        }
+        end
         format.xml  { head :ok }
       else
         format.html { render :action => "edit" }
@@ -150,7 +149,7 @@ class Admin::AddressesController < Admin::ApplicationController
                                 "#{last_name}%").order("addresses.last_name, addresses.first_name, addresses.id").limit(15)
     end
     if addresses.nil?
-      render :json => Array.new
+      render :json => []
     else
       render :json => addresses.to_a.uniq { |a| [a.first_name, a.last_name, a.email] }.map { |a|
         a.full_name
@@ -160,8 +159,8 @@ class Admin::AddressesController < Admin::ApplicationController
         #  }.join(" ")
         label = a.full_name
         label += " [MEMBER]" unless member_code.nil?
-        label += " #{a.line1} #{a.city} #{a.zipcode}" unless a.line1.blank?
-        label += " #{a.email}" unless a.email.blank?
+        label += " #{a.line1} #{a.city} #{a.zipcode}" if a.line1.present?
+        label += " #{a.email}" if a.email.present?
         attended = a.productions.uniq.sort { |a, b|
           b.closing_at <=> a.closing_at
         }[0..9].map { |p| "<div class=\"small-6 columns quick-lookup-history\">#{p.name}</div>" }.join(' ')

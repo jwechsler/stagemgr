@@ -80,14 +80,14 @@ end
 
 Then(/^the order should have an email task$/) do
   @order = Order.last
-  count = @order.tasks.select { |task| task.is_a? MyEmmaTask }.size
+  count = @order.tasks.grep(MyEmmaTask).size
   raise "Expected one email task, got #{count}" if count != 1
 end
 
 Then(/^a membership order exists for "(.*?)"$/) do |name|
   address = Address.find_by(full_name: name)
   orders = MembershipOrder.where(address_id: address.id)
-  raise "No order found for #{name}" unless !orders.empty?
+  raise "No order found for #{name}" if orders.empty?
 end
 
 Then(/^a membership exists with status "(.*?)"$/) do |status|
@@ -128,7 +128,7 @@ Then(/^a special offer called ['"](.*?)["'] is found$/) do |code|
 end
 
 Then(/^an address "(.*?)" exists$/) do |name|
-  Address.where('full_name = ?', name).count == 1
+  Address.where(full_name: name).count == 1
 end
 
 Then(/^a membership_offer should exist with trial_period of (\d+)$/) do |period|

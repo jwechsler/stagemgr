@@ -18,7 +18,7 @@ class HistoricActivityReport < MailingList
     orders = TicketOrder.where('orders.status in (?) and orders.created_at >= ?', Order::ATTENDING_STATUSES, start_day).includes(
       :address, :payments, { performance: :production }
     )
-    unless required_theater_ids.nil? || required_theater_ids.empty?
+    if required_theater_ids.present?
       orders = orders.select do |o|
         required_theater_ids.include?(o.performance.production.theater_id)
       end

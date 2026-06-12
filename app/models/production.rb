@@ -23,16 +23,16 @@ class Production < ApplicationRecord
 
   # :section:
 
-  validates_inclusion_of :status, :in => PRODUCTION_STATUSES
-  validates_presence_of :name, :season, :production_code
-  validates_uniqueness_of :production_code, :message => "%{value} is already in use"
-  validates_length_of :production_code, :in => 1..8
-  validates_numericality_of :capacity
-  validates_inclusion_of :seat_map, in: lambda { |production|
+  validates :status, inclusion: { :in => PRODUCTION_STATUSES }
+  validates :name, :season, :production_code, presence: true
+  validates :production_code, uniqueness: { :message => "%{value} is already in use" }
+  validates :production_code, length: { :in => 1..8 }
+  validates :capacity, numericality: true
+  validates :seat_map, inclusion: { in: lambda { |production|
     production.venue.seat_maps
-  }, unless: Proc.new { |production|
+  }, unless: proc { |production|
        production.seat_map.nil?
-     }
+     } }
   validates_formatting_of :survey_link, :using => :url, :allow_blank => true
   validates_formatting_of :mailing_list_link, :using => :url, :allow_blank => true
   with_options if: :visible? do |visible_prod|
@@ -94,10 +94,10 @@ class Production < ApplicationRecord
   end
 
   def ensure_no_performances
-    unless performances.count == 0
+    return if performances.count == 0
       errors.add(:base, " cannot be deleted due to associated performances")
       throw(:abort)
-    end
+    
   end
 
   # :section: Production dates
@@ -176,7 +176,7 @@ class Production < ApplicationRecord
 
   # placeholder for email list management through plugin engine
   def attendees_on_email_list
-    Hash.new
+    {}
   end
 
   def self.visible_statuses
@@ -249,16 +249,15 @@ class Production < ApplicationRecord
                                     :conditions => [
                                       'web_visible = ? and production_id = ? and show_in_pricing_range = ?', true, id, true
                                     ])
-    performances.each { |perf|
-      if perf.performance_date >= Date.today && perf.visible?
-        visible = perf.ticket_class_allocations.select { |tca|
-          tca.available? && tca.ticket_class.web_visible?
-        }
-        visible.each { |tca|
-          min_price = min_price.nil? ? tca.ticket_class.ticket_price : [tca.ticket_class.ticket_price, min_price].min
-        }
+    performances.each do |perf|
+      next unless perf.performance_date >= Date.today && perf.visible?
+      visible = perf.ticket_class_allocations.select do |tca|
+        tca.available? && tca.ticket_class.web_visible?
       end
-    }
+      visible.each do |tca|
+        min_price = min_price.nil? ? tca.ticket_class.ticket_price : [tca.ticket_class.ticket_price, min_price].min
+      end
+    end
     [min_price, max_price]
   end
 
@@ -297,10 +296,10 @@ class Production < ApplicationRecord
 
   # When a production code is changed, performance codes are made to match
   def update_performance_codes
-    performances.select { |perf| perf.performance_code.starts_with?(production_code_was) }.each { |perf|
+    performances.select { |perf| perf.performance_code.starts_with?(production_code_was) }.each do |perf|
       perf.performance_code = perf.performance_code.sub(production_code_was, production_code)
       perf.save!
-    }
+    end
   end
 
   def clean_values
@@ -315,24 +314,24 @@ class Production < ApplicationRecord
 
   def assign_default_ticket_classes
     defaults = DefaultTicketClass.all
-    defaults.each { |tcd|
+    defaults.each do |tcd|
       tc = TicketClass.new
       tc.attributes = tcd.to_hash
       ticket_classes << tc
-    }
+    end
     self
   end
 
   def manage_after_save_active
-    if status == ACTIVE && saved_change_to_status?
+    return unless status == ACTIVE && saved_change_to_status?
       run_callbacks :save_active
-    end
+    
   end
 
   def manage_after_save_private
-    if status == PRIVATE && saved_change_to_status?
+    return unless status == PRIVATE && saved_change_to_status?
       run_callbacks :save_private
-    end
+    
   end
 
   def production_code_autocomplete_display
@@ -346,16 +345,20 @@ class Production < ApplicationRecord
 
   # when status changes from SEASON SEATING
   def finalize_season_seating
-    if status_was.eql?(SEASONSEATING)
+    return unless status_was.eql?(SEASONSEATING)
       Resque.enqueue(FinalizeSeasonSeating, id, updated_by_user_id)
-    end
+    
   end
 end
 
 # Non-engine code
 class Production
   def use_myemma_attendee_group
-    myemma_attendee_group.blank? ? (theater.nil? ? nil : theater.myemma_attendee_group) : myemma_attendee_group
+    if myemma_attendee_group.blank?
+theater.nil? ? nil : theater.myemma_attendee_group
+else
+myemma_attendee_group
+end
   end
 
   def my_emma_disabled?
@@ -370,22 +373,21 @@ class Production
     email_members = attendees_on_email_list
     email_members.each do |email, member|
       puts "Syncing #{email}"
-      if member.remoteid.blank? then
-        a = Address.find_by(email: email)
-        unless a.nil?
-          member.remoteid = a.id.to_s
-          member.save
-        end
+      next unless member.remoteid.blank?
+      a = Address.find_by(email: email)
+      unless a.nil?
+        member.remoteid = a.id.to_s
+        member.save
       end
     end
     email_members
   end
 
   def attendees_on_email_list
-    members_by_email = Hash.new
+    members_by_email = {}
     unless MyEmma.disabled? || use_myemma_attendee_group.nil?
       grp = MyEmma::Group.find(use_myemma_attendee_group)
-      unless grp.group_name.blank?
+      if grp.group_name.present?
         members = grp.members
 
         members.each do |m|
@@ -419,22 +421,22 @@ class Production
 
   def add_hold_to_every_performance(address, number_of_tickets, ticket_class_code)
     ticket_class = ticket_classes.select { |tc| tc.class_code == ticket_class_code }.first
-    performances.each { |p|
+    performances.each do |p|
       o = TicketOrder.create(:status => Order::HOLD, :address => address, :performance => p,
                              :payment_type => CashPaymentType.first)
       o.ticket_line_items.build(:ticket_class => ticket_class, :ticket_count => number_of_tickets)
-      if !o.save
+      unless o.save
         o.destroy
         puts "Couldn't create hold for #{p.performance_code}"
       end
-    }
+    end
     nil
   end
 
   private def correct_promo_mime_type
-    if promo.attached? && !promo.content_type.in?(%w(image/jpeg image/png))
+    return unless promo.attached? && !promo.content_type.in?(%w(image/jpeg image/png))
       errors.add(:promo, 'must be a JPEG or PNG')
-    end
+    
   end
 end
 

@@ -4,7 +4,7 @@ require 'csv'
 class Address < ApplicationRecord
   # audited only:[:first_name, :last_name, :line1, :line2, :email, :city, :state, :zipcode, :phone], max_audits: 30
 
-  validates_presence_of :full_name
+  validates :full_name, presence: true
   validates :email, :email => true, :allow_blank => true
   before_validation :regularize!, :if => :changed?
   has_many :orders, inverse_of: :address
@@ -46,13 +46,13 @@ class Address < ApplicationRecord
 
         f_name = primary_name.given
         l_name = primary_name.family
-        l_name = secondary_name.family if l_name.blank? && !secondary_name&.family.blank?
+        l_name = secondary_name.family if l_name.blank? && secondary_name&.family.present?
 
         # If there's a second name and it has the same last name, append its given name to the first name
         if secondary_name && secondary_name.family == l_name
           f_name += " and #{secondary_name.given}"
         end
-        l_name = secondary_name.family if l_name.blank? && !secondary_name&.family.blank?
+        l_name = secondary_name.family if l_name.blank? && secondary_name&.family.present?
         if l_name.blank?
           l_name = f_name
           f_name = ""
@@ -72,8 +72,8 @@ class Address < ApplicationRecord
   def set_full_name(full_name, first_name = nil, middle_name = nil, last_name = nil)
     if full_name.blank? then
       self.full_name = ""
-      self.full_name = first_name unless first_name.blank?
-      self.full_name += self.full_name.blank? ? last_name : " #{last_name}" unless last_name.blank?
+      self.full_name = first_name if first_name.present?
+      self.full_name += self.full_name.blank? ? last_name : " #{last_name}" if last_name.present?
     else
       self.full_name = full_name
     end
@@ -88,7 +88,7 @@ class Address < ApplicationRecord
     line2.strip! unless line2.nil?
     if !line1.nil? || !line2.nil? then
       parsed_address = StreetAddress::US.parse_address("#{line1}\n#{line2}")
-      if !parsed_address.nil? then
+      unless parsed_address.nil? then
         self.street_number = parsed_address.number
         self.street = parsed_address.street
         self.street_type = parsed_address.street_type
@@ -117,29 +117,33 @@ class Address < ApplicationRecord
     comparison_id = id.nil? ? -1 : id
 
     matches = Address.where(
-      "search_name = :search_name and (email = :email #{(email.blank? && street_number.blank?) ? '' : ' or email is null or email = \'\''}) and id <> :id", {
+      "search_name = :search_name and (email = :email #{' or email is null or email = \'\'' unless (email.blank? && street_number.blank?)}) and id <> :id", {
         :search_name => name_as_searchable, :id => comparison_id, :email => (email.blank? ? '' : email.strip)
       }
     )
-    if matches.nil? || matches.empty?
+    if matches.blank?
       matches = Address.where(
-        "first_name = :first_name and last_name = :last_name and (email = :email #{(email.blank? && street_number.blank?) ? '' : ' or email is null or email = \'\''}) and id <> :id", {
+        "first_name = :first_name and last_name = :last_name and (email = :email #{' or email is null or email = \'\'' unless (email.blank? && street_number.blank?)}) and id <> :id", {
           :first_name => first_name, :last_name => last_name, :id => comparison_id, :email => (email.blank? ? '' : email.strip)
         }
       )
-      if matches.nil? || matches.empty?
-        matches = Address.where("id <> :id AND street_number = :street_number AND street = :street AND city = :city and search_name = :search_name #{email.blank? ? '' : 'and (email = \'\' or email is null)'}",
+      if matches.blank?
+        matches = Address.where("id <> :id AND street_number = :street_number AND street = :street AND city = :city and search_name = :search_name #{'and (email = \'\' or email is null)' if email.present?}",
                                 { :id => comparison_id, :street_number => street_number, :street => street,
                                   :city => city, :search_name => name_as_searchable })
-        if matches.nil? || matches.empty?
+        if matches.blank?
           matches = Address.where("id <> :id and search_name = :search_name and street_number is null and street is null and city is null and (email = '' or email is null)",
                                   { :id => comparison_id, :search_name => name_as_searchable })
         end
       end
     end
-    matches.nil? ? nil : matches.select { |a|
+    if matches.nil?
+  nil
+else
+  matches.select do |a|
       id.nil? || (a.id < id)
-    }.sort! { |a, b| a.id <=> b.id }.first
+    end.sort! { |a, b| a.id <=> b.id }.first
+end
   end
 
   def customer?
@@ -151,16 +155,16 @@ class Address < ApplicationRecord
   end
 
   def update_from(newer)
-    self.email = newer.email unless newer.email.blank?
-    self.first_name = newer.first_name unless newer.first_name.blank?
-    self.last_name = newer.last_name unless newer.last_name.blank?
-    self.full_name = newer.full_name unless newer.full_name.blank?
-    self.line1 = newer.line1 unless newer.line1.blank?
-    self.line2 = newer.line2 unless newer.line2.blank?
-    self.city = newer.city unless newer.city.blank?
-    self.state = newer.state unless newer.state.blank?
-    self.zipcode = newer.zipcode unless newer.zipcode.blank?
-    self.phone = newer.phone unless newer.phone.blank?
+    self.email = newer.email if newer.email.present?
+    self.first_name = newer.first_name if newer.first_name.present?
+    self.last_name = newer.last_name if newer.last_name.present?
+    self.full_name = newer.full_name if newer.full_name.present?
+    self.line1 = newer.line1 if newer.line1.present?
+    self.line2 = newer.line2 if newer.line2.present?
+    self.city = newer.city if newer.city.present?
+    self.state = newer.state if newer.state.present?
+    self.zipcode = newer.zipcode if newer.zipcode.present?
+    self.phone = newer.phone if newer.phone.present?
     self.vip ||= newer.vip?
     self.placeholder ||= newer.placeholder?
     if !newer.donor_tier_updated_on.nil? && (donor_tier_updated_on.nil? || (donor_tier_updated_on < newer.donor_tier_updated_on))
@@ -168,9 +172,9 @@ class Address < ApplicationRecord
       self.donor_tier_for_current_fiscal_year = newer.donor_tier_for_current_fiscal_year
     end
     newer.address_tags.each do |tag|
-      existing_tag = address_tags.select { |t|
+      existing_tag = address_tags.select do |t|
         (t.tag_label == tag.tag_label) && (t.theater_id == tag.theater_id)
-      }.first
+      end.first
       if existing_tag.nil?
         address_tags << tag
       else
@@ -208,7 +212,7 @@ class Address < ApplicationRecord
   def self.update_address_from_csv(csv_file)
     header_required = true
     last_id = -1
-    index = Hash.new
+    index = {}
     CSV.foreach(csv_file) do |row|
       if header_required
         header_required = false
@@ -238,7 +242,7 @@ class Address < ApplicationRecord
             new_address.state = row[index[:state]]
             new_address.prefix = row[index[:prefix]]
             zip = row[index[:zipcode]]
-            zip = zip + '-' + row[index[:zip4]] unless row[index[:zip4]].blank?
+            zip = zip + '-' + row[index[:zip4]] if row[index[:zip4]].present?
             new_address.zipcode = zip
             original = new_address.find_original
             if original.nil?
@@ -262,7 +266,7 @@ class Address < ApplicationRecord
       true
     else
       audits.select { |audit| audit.created_at > change_time unless audit.created_at.nil? }.each do |revision|
-        revision.audited_changes.each do |fld, _changes|
+        revision.audited_changes.each_key do |fld|
           return true if fld == field_name.to_s
         end
       end
@@ -293,7 +297,7 @@ class Address < ApplicationRecord
   end
 
   def has_finalized_orders?
-    !orders.select { |o| o.finalized? }.empty?
+    !orders.none? { |o| o.finalized? }
   end
 
   def self.export_addresses_as_csv(addresses, filename)
@@ -312,7 +316,7 @@ class Address < ApplicationRecord
   end
 
   def contactable?
-    !line1.blank? || !email.blank?
+    line1.present? || email.present?
   end
 
   def current_member?
@@ -343,7 +347,7 @@ class Address < ApplicationRecord
   end
 
   def first_time_paying?(current_order)
-    orders.select { |o| (o.id != current_order.id) && o.settled? }.empty?
+    orders.none? { |o| (o.id != current_order.id) && o.settled? }
   end
 
   def revenue_collected(since_when = 18.months.ago)
@@ -358,8 +362,7 @@ class Address < ApplicationRecord
 
   def orders_processed(for_theaters = nil)
     if for_theaters.nil?
-      TicketOrder.attending.where("orders.address_id = ?",
-                                  id).count
+      TicketOrder.attending.where(orders: { address_id: id }).count
     else
       TicketOrder.attending.where("orders.address_id = ? and orders.performance_id in (select id from performances where production_id in (select id from productions where theater_id in (?)))",
                                   id, for_theaters).count
@@ -383,7 +386,7 @@ class Address < ApplicationRecord
   end
 
   def donated_last_year?
-    if !donor_tier_updated_on.nil?
+    unless donor_tier_updated_on.nil?
       return true if donor_tier_updated_on.year == Date.today.year - 1 && donor_tier_for_current_fiscal_year.present?
       return true if donor_tier_updated_on.year == Date.today.year && donor_tier_for_last_fiscal_year.present?
     end
@@ -440,23 +443,21 @@ class Address < ApplicationRecord
   end
 
   def purge_duplicate_tags
-    unique_tags = address_tags.map { |a|
+    unique_tags = address_tags.map do |a|
       { tag_label: a.tag_label, tag_value: a.tag_value, theater_id: a.theater_id }
-    }.uniq
+    end.uniq
     unique_tags.each do |tag|
       save_me = true
       address_tags.each do |address_tag|
-        if { tag_label: address_tag.tag_label, tag_value: address_tag.tag_value,
+        next unless { tag_label: address_tag.tag_label, tag_value: address_tag.tag_value,
              theater_id: address_tag.theater_id }.eql?(tag)
-          address_tags.delete(AddressTag.find(address_tag.id)) unless save_me
-          save_me = false
-        end
+        address_tags.delete(AddressTag.find(address_tag.id)) unless save_me
+        save_me = false
       end
     end
   end
 
-  def self.unattached
-  end
+  def self.unattached; end
 
   def self.delete_unattached
     unassociated = Address.where("addresses.id not in (select address_id from orders union select address_id from addresses_productions)")
@@ -517,14 +518,13 @@ end
 class Address
   def self.sync_ids_to_my_emma
     members = MyEmma::Member.all
-    members.each { |m|
-      unless m.email.blank?
-        a = Address.find_by(email: m.email)
-        unless a.nil? || a.email.blank? || m.remoteid.eql?(a.id.to_s)
-          m.remoteid = a.id.to_s
-          m.save
-        end
+    members.each do |m|
+      next unless m.email.present?
+      a = Address.find_by(email: m.email)
+      unless a.nil? || a.email.blank? || m.remoteid.eql?(a.id.to_s)
+        m.remoteid = a.id.to_s
+        m.save
       end
-    }
+    end
   end
 end

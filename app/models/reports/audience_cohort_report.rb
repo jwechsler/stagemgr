@@ -115,7 +115,7 @@ class AudienceCohortReport < MailingList
       @target_production.production_code.to_s.upcase,
       metric_label_for(@segment_key),
       window_phrase_for(@window_label)
-    ].reject { |p| p.nil? || p.empty? }
+    ].compact_blank
 
     pieces.pop while pieces.size > 1 && pieces.join(' - ').length > SEGMENT_NAME_LIMIT
     pieces.join(' - ')[0, SEGMENT_NAME_LIMIT]

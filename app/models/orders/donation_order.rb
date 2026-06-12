@@ -34,7 +34,7 @@ class DonationOrder < Order
 
   def valid_payment_types_for(current_user)
     valid_payment_types = super
-    valid_payment_types.select { |pt| pt.is_a? CurrencyPaymentType }
+    valid_payment_types.grep(CurrencyPaymentType)
   end
 
   def reload_associated

@@ -17,11 +17,11 @@ class Performance < ApplicationRecord
 
   default_scope            { includes(:ticket_class_allocations) }
 
-  scope                    :sellable, -> { where("status in (:sellable)", sellable: Performance.sellable_statuses) }
+  scope                    :sellable, -> { where(status: Performance.sellable_statuses) }
 
-  validates_inclusion_of   :status, :in => PERFORMANCE_STATUSES
-  validates_uniqueness_of  :performance_code
-  validates_uniqueness_of  :performance_time, :scope => [:performance_date, :production_id]
+  validates   :status, inclusion: { :in => PERFORMANCE_STATUSES }
+  validates  :performance_code, uniqueness: true
+  validates  :performance_time, uniqueness: { :scope => [:performance_date, :production_id] }
   validates_each           :performance_time do |record, attr, _value|
     if !record.production.nil? && record.production.performances.any? do |p|
       p.id != record.id &&
@@ -32,15 +32,15 @@ class Performance < ApplicationRecord
       record.errors.add(attr, 'has already been taken')
     end
   end
-  validates_presence_of           :performance_code
-  validates_presence_of           :performance_date
-  validates_presence_of           :performance_time
-  validates_presence_of           :production
+  validates           :performance_code, presence: true
+  validates           :performance_date, presence: true
+  validates           :performance_time, presence: true
+  validates           :production, presence: true
 
   before_validation               :clean_values
-  before_validation               :populate_ticket_class_allocations, :unless => Proc.new { |p| p.production.nil? }
-  before_validation               :performance_code_must_match_production, :unless => Proc.new { |p| p.production.nil? }
-  before_save                     :manage_seat_inventory, :unless => Proc.new { |p|
+  before_validation               :populate_ticket_class_allocations, :unless => proc { |p| p.production.nil? }
+  before_validation               :performance_code_must_match_production, :unless => proc { |p| p.production.nil? }
+  before_save                     :manage_seat_inventory, :unless => proc { |p|
     p.production.nil? || p.production.seat_map.nil?
   }
   before_destroy                  :protect_performances_with_orders
@@ -68,15 +68,14 @@ class Performance < ApplicationRecord
       max_scans -= 1
       seats_currently_held = seats_held
       ticket_class_allocations.select { |tca| tca.shiftable? && tca.available? }.each do |tca|
-        if tca.trigger_satisfied?(seats_currently_held)
-          Rails.logger.info("Promoting #{self}, ticket class #{tca.ticket_class.class_code} to #{tca.shift_to_code}")
-          tca.available = false
-          allocation = self.allocation(tca.shift_to_code)
-          allocation.available = true
-          allocation.save
-          tca.save
-          new_scan = true
-        end
+        next unless tca.trigger_satisfied?(seats_currently_held)
+        Rails.logger.info("Promoting #{self}, ticket class #{tca.ticket_class.class_code} to #{tca.shift_to_code}")
+        tca.available = false
+        allocation = self.allocation(tca.shift_to_code)
+        allocation.available = true
+        allocation.save
+        tca.save
+        new_scan = true
       end
       scan_required = new_scan
       ticket_class_allocations.reload
@@ -88,9 +87,9 @@ class Performance < ApplicationRecord
   end
 
   def sold_out?
-    number_of_seats_left <= 0 && ticket_class_allocations.select { |tca|
+    number_of_seats_left <= 0 && ticket_class_allocations.select do |tca|
       tca.available? && tca.ticket_class.web_visible? && !tca.ticket_class.holds_seats?
-    }.size.eql?(0)
+    end.size.eql?(0)
   end
 
   def happening_soon?
@@ -148,11 +147,11 @@ class Performance < ApplicationRecord
   end
 
   def populate_ticket_class_allocations
-    (production.ticket_classes - ticket_class_allocations.map { |tca|
+    (production.ticket_classes - ticket_class_allocations.map do |tca|
       tca.ticket_class
-    }).each do |ticket_class|
+    end).each do |ticket_class|
       ticket_class_allocations.build({ :ticket_class => ticket_class, :available => ticket_class.auto_attach,
-                                            :performance => self })
+                                       :performance => self })
     end
     ticket_class_allocations.each do |tca|
       tca.available = true if tca.ticket_class.auto_attach?
@@ -160,9 +159,9 @@ class Performance < ApplicationRecord
   end
 
   def allocation(class_code)
-    ticket_class_allocations.select { |tca|
+    ticket_class_allocations.select do |tca|
       !tca.ticket_class.nil? && tca.ticket_class.class_code.eql?(class_code)
-    }.first
+    end.first
   end
 
   def to_s
@@ -194,32 +193,34 @@ class Performance < ApplicationRecord
   end
 
   def manage_seat_inventory
-    unless seat_map.nil? then
+    return if seat_map.nil? 
+
       seats = Seat.where(seat_map_id: seat_map.id)
       known_seats = seat_assignments.map { |sa| sa.seat }
       missing_seats = seats.map { |s| s } - known_seats
 
-      missing_seats.each { |seat|
+      missing_seats.each do |seat|
         seat_assignments << SeatAssignment.new(seat: seat)
-      }
-    end
+      end
+    
   end
 
   def remove_illegal_seat_assignments
-    unless seat_map.nil? then
+    return if seat_map.nil? 
+
       seats = Seat.where(seat_map_id: seat_map.id)
       known_seats = seat_assignments.map { |sa| sa.seat }
       problem_seats = known_seats - seats.map { |s| s }
-      problem_seats.each { |s|
-        seat_assignments.select { |sa| sa.seat_id == s.id }.each { |sa|
+      problem_seats.each do |s|
+        seat_assignments.select { |sa| sa.seat_id == s.id }.each do |sa|
           if sa.order_id.nil? && sa.status == "Available"
             sa.destroy
           else
             Rails.logger.error "Seat Assignment #{sa.id} is for seat map #{sa.seat.seat_map_id}, location #{sa.seat.location} and is #{sa.status} to order #{sa.order_id}"
           end
-        }
-      }
-    end
+        end
+      end
+    
   end
 
   # generates a png based on the current seating chart for a seating preview for this performance
@@ -239,16 +240,18 @@ class Performance < ApplicationRecord
         result = MiniMagick::Image.open(seat_map.base_image_map_file)
         'available_seat.png'
         MiniMagick::Image.open(Rails.root.to_s + "/app/assets/images/available_seat.png")
-        availables = Hash.new
+        availables = {}
 
-        dots.each { |dot|
-          availables[dot[2]] =
-            MiniMagick::Image.open(Rails.root.to_s + "/app/assets/images/available_seat.png").resize("#{dot[2] * 2}x#{dot[2] * 2}") if availables[dot[2]].nil?
+        dots.each do |dot|
+          if availables[dot[2]].nil?
+            availables[dot[2]] =
+              MiniMagick::Image.open(Rails.root.to_s + "/app/assets/images/available_seat.png").resize("#{dot[2] * 2}x#{dot[2] * 2}")
+          end
           result = result.composite(availables[dot[2]]) do |c|
             c.compose('over')
             c.geometry("+#{dot[0] - dot[2]}+#{dot[1] - dot[2]}")
           end
-        }
+        end
         result.resize("225x225").write(file_path)
       end
       image_path = '/static/qv/' + file_name
@@ -261,28 +264,30 @@ class Performance < ApplicationRecord
   private
 
   def performance_code_must_match_production
-    errors.add(:performance_code,
-               "must start with #{production.production_code}") unless performance_code.starts_with?(production.production_code)
+    unless performance_code.starts_with?(production.production_code)
+      errors.add(:performance_code,
+                 "must start with #{production.production_code}")
+    end
   end
 
   def clean_values
     self.performance_date = Date.today if performance_date.nil?
     self.performance_time = Time.now if performance_time.nil?
     self.performance_date = performance_date.change(:hour => 0,
-                                                         :min => 0,
-                                                         :sec => 0,
-                                                         :usec => 0)
+                                                    :min => 0,
+                                                    :sec => 0,
+                                                    :usec => 0)
     self.performance_time = performance_time.change(:year => performance_date.year,
-                                                         :month => performance_date.month,
-                                                         :day => performance_date.day,
-                                                         :min => ((performance_time.min.to_i / 15) * 15),
-                                                         :sec => 0,
-                                                         :usec => 0)
+                                                    :month => performance_date.month,
+                                                    :day => performance_date.day,
+                                                    :min => ((performance_time.min.to_i / 15) * 15),
+                                                    :sec => 0,
+                                                    :usec => 0)
     performance_code.upcase! if performance_code
   end
 
   def protect_performances_with_orders
-    errors.add(:performance_code, " has associated ticket orders and cannot be deleted") if !orders.empty?
+    errors.add(:performance_code, " has associated ticket orders and cannot be deleted") unless orders.empty?
     orders.size.eql?(0)
   end
 

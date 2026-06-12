@@ -51,17 +51,17 @@ FactoryBot.define do
         ticket_order.ticket_line_items << [FactoryBot.build(:ticket_line_item,
                                                             ticket_class: ticket_order.performance.ticket_class_allocations.select do |tca|
                                                               tca.available && !tca.ticket_class.software_managed? && tca.ticket_class.ticket_price > 0
-                                                            end.sort do |tca1, tca2|
+                                                            end.min do |tca1, tca2|
                                                               tca2.ticket_class.ticket_price <=> tca1.ticket_class.ticket_price
-                                                            end.first.ticket_class,
+                                                            end.ticket_class,
                                                             ticket_count: 2,
                                                             order: ticket_order),
                                            FactoryBot.build(:ticket_line_item,
                                                             ticket_class: ticket_order.performance.ticket_class_allocations.select do |tca|
                                                               tca.available
-                                                            end.sort do |tca1, tca2|
+                                                            end.min do |tca1, tca2|
                                                               tca1.ticket_class.ticket_price <=> tca2.ticket_class.ticket_price
-                                                            end.first.ticket_class,
+                                                            end.ticket_class,
                                                             ticket_count: 1,
                                                             order: ticket_order)]
       end
@@ -72,9 +72,9 @@ FactoryBot.define do
         ticket_order.ticket_line_items << FactoryBot.build(:ticket_line_item,
                                                            ticket_class: ticket_order.performance.ticket_class_allocations.select { |tca|
                                                              tca.available && !tca.ticket_class.software_managed? && tca.ticket_class.ticket_price > 0
-                                                           }.sort { |tca1, tca2|
+                                                           }.min { |tca1, tca2|
                                                              tca2.ticket_class.ticket_price <=> tca1.ticket_class.ticket_price
-                                                           }.first.ticket_class,
+                                                           }.ticket_class,
                                                            ticket_count: 2,
                                                            order: ticket_order)
       end
@@ -85,9 +85,9 @@ FactoryBot.define do
         ticket_order.ticket_line_items << FactoryBot.build(:ticket_line_item,
                                                            ticket_class: ticket_order.performance.ticket_class_allocations.select { |tca|
                                                              tca.available
-                                                           }.sort { |tca1, tca2|
+                                                           }.min { |tca1, tca2|
                                                              tca2.ticket_class.ticket_price <=> tca1.ticket_class.ticket_price
-                                                           }.first.ticket_class,
+                                                           }.ticket_class,
                                                            ticket_count: 2,
                                                            order: ticket_order)
       end
@@ -98,9 +98,9 @@ FactoryBot.define do
         ticket_order.ticket_line_items << FactoryBot.build(:ticket_line_item,
                                                            ticket_class: ticket_order.performance.ticket_class_allocations.select { |tca|
                                                              tca.available
-                                                           }.sort { |tca1, tca2|
+                                                           }.min { |tca1, tca2|
                                                              tca1.ticket_class.ticket_price <=> tca2.ticket_class.ticket_price
-                                                           }.first.ticket_class,
+                                                           }.ticket_class,
                                                            ticket_count: 2,
                                                            order: ticket_order)
       end
@@ -110,7 +110,7 @@ FactoryBot.define do
     after(:create) do |ticket_order, _evaluator|
       if ticket_order.performance.production.has_reserved_seating?
         seats_required = ticket_order.number_of_seats - ticket_order.seats.size
-        remaining_seats = ticket_order.performance.seat_assignments.select { |sa| !sa.assigned? }
+        remaining_seats = ticket_order.performance.seat_assignments.reject { |sa| sa.assigned? }
         remaining_seats_index = 0
         ticket_order.ticket_line_items.each do |tli|
           tli.ticket_count.times do
@@ -200,7 +200,7 @@ FactoryBot.define do
                                                    flex_pass: flex_pass,
                                                    amount: (num_tix * new_ticket_class.ticket_price))
 
-        if !ticket_order.service_line_items.empty?
+        unless ticket_order.service_line_items.empty?
           ticket_order.payments << FactoryBot.create(:cash_payment,
                                                      order: ticket_order,
                                                      number_of_tickets: num_tix,
@@ -224,7 +224,7 @@ FactoryBot.define do
                      end
         find_code = membership.membership_offer.use_ticket_class_code
 
-        if ticket_order.performance.production.ticket_classes.select { |tc| tc.class_code.eql?(find_code) }.empty?
+        if ticket_order.performance.production.ticket_classes.none? { |tc| tc.class_code.eql?(find_code) }
           FactoryBot.create(:ticket_class, class_code: find_code, class_name: 'Pass Ticket',
                                            ticket_price: 0.00, web_visible: false, software_managed: true,
                                            production: ticket_order.performance.production, auto_attach: true)
@@ -254,7 +254,7 @@ FactoryBot.define do
                                     amount: (num_tix * new_ticket_class.ticket_price))
 
         ticket_order.payments << payment
-        if !ticket_order.service_line_items.empty?
+        unless ticket_order.service_line_items.empty?
           ticket_order.payments << FactoryBot.create(:cash_payment,
                                                      order: ticket_order,
                                                      number_of_tickets: num_tix,

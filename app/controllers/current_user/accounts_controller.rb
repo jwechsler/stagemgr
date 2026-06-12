@@ -7,10 +7,10 @@ class CurrentUser::AccountsController < CurrentUser::ApplicationController
     @gross_sales_data = @rate_of_sales.group_by(&:production).map do |production, sales|
       {
         name: production.name,
-        data: sales.group_by(&:day_of_sale).map do |day, sales_for_day|
+        data: sales.group_by(&:day_of_sale).to_h do |day, sales_for_day|
           [day.strftime('%Y-%m-%d'),
            sales_for_day.sum(&:gross_sales) - sales_for_day.sum(&:processing_fees)]
-        end.to_h
+        end
       }
     end
     # Aggregate sales data by theater for all dates
@@ -19,9 +19,9 @@ class CurrentUser::AccountsController < CurrentUser::ApplicationController
     end.map do |theater, sales|
       {
         name: theater.name,
-        data: sales.group_by(&:theater).map do |theater, sales_for_day|
+        data: sales.group_by(&:theater).to_h do |theater, sales_for_day|
           [theater.name, sales_for_day.sum(&:gross_sales)]
-        end.to_h,
+        end,
         producing: theater.producing?,
         total_tickets: sales.sum(&:total_single_tickets),
         total_comps: sales.sum(&:total_complimentary_tickets),
@@ -36,9 +36,9 @@ class CurrentUser::AccountsController < CurrentUser::ApplicationController
       end.group_by(&:production).map do |production, sales|
         {
           name: production.name,
-          data: sales.group_by(&:day_of_sale).map do |day, sales_for_day|
+          data: sales.group_by(&:day_of_sale).to_h do |day, sales_for_day|
             [day.strftime('%Y-%m-%d'), sales_for_day.sum(&:gross_sales)]
-          end.to_h
+          end
         }
       end
       @rate_of_sales = @rate_of_sales.select { |sale| sale.production.theater.producing? }

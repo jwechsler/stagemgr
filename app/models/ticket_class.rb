@@ -40,7 +40,7 @@ class TicketClass < ApplicationRecord
   end
 
   def prevent_price_changes_after_sales
-    if !(ticket_type == DONATION) && (ticket_price_was != ticket_price) && !TicketLineItem.where(ticket_class_id: id).empty?
+    if ticket_type != DONATION && (ticket_price_was != ticket_price) && !TicketLineItem.where(ticket_class_id: id).empty?
       errors.add(:base,
                  "Cannot change ticket price from #{ticket_price_was} to #{ticket_price} if sales have already occurred")
       return false

@@ -7,7 +7,7 @@ RSpec.describe DefaultTicketClass do
     production = FactoryBot.create(:production)
     ticket_class = production.ticket_classes.select { |tc| tc.class_code == default_ticket_class.class_code }.first
     default_attributes = default_ticket_class.to_hash
-    default_attributes.keys.each do |key|
+    default_attributes.each_key do |key|
       expect(ticket_class.attributes).to include(key)
       expect(ticket_class[key]).to eq(default_attributes[key])
     end

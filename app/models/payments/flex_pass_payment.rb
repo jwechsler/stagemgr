@@ -42,7 +42,7 @@ class FlexPassPayment < PassPayment
   def process!(order = nil)
     offer = flex_pass.flex_pass_offer
     if offer.theater_id.present?
-      if !order.theater_ids.include?(offer.theater_id) and !offer.exclude_theater?
+      if order.theater_ids.exclude?(offer.theater_id) and !offer.exclude_theater?
         raise "That FlexPass is restricted to #{Theater.find_by_id(offer.theater_id).name} productions"
       end
       if order.theater_ids.include?(flex_pass.flex_pass_offer.theater_id) and flex_pass.flex_pass_offer.exclude_theater?

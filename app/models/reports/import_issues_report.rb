@@ -32,7 +32,7 @@ class ImportIssuesReport < SimpleReport
   # All error messages collected across rows. Used for both the file notes
   # summary and to decide whether any row actually failed.
   def error_messages
-    @data.map { |row| row.is_a?(Hash) ? row[:Error] : row.last }.select(&:present?)
+    @data.map { |row| row.is_a?(Hash) ? row[:Error] : row.last }.compact_blank
   end
 
   def any_issues?

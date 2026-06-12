@@ -106,7 +106,7 @@ Rails.application.configure do
 
   config.action_mailer.delivery_method = $SERVER_CONFIG['email']['delivery_method'].to_sym
   if $SERVER_CONFIG['email']['delivery_method'].eql?('postmark')
-    config.action_mailer.postmark_settings = { api_key: Rails.application.credentials.dig(:postmark_api_token) }
+    config.action_mailer.postmark_settings = { api_key: Rails.application.credentials[:postmark_api_token] }
   end
 
   if $SERVER_CONFIG['payment_processing'].nil? || $SERVER_CONFIG['payment_processing']['additional_card_types'].blank?

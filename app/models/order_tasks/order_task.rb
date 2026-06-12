@@ -7,7 +7,7 @@ class OrderTask < ApplicationRecord
 
   belongs_to :order, inverse_of: :tasks
 
-  validates_presence_of :order
+  validates :order, presence: true
 
   protected
 
@@ -27,12 +27,12 @@ class OrderTask < ApplicationRecord
   # runs execute method for the order task.
   # if the order is in a transational state (like exchanging), postpone for 5 minutes.
   def run!
-    if uncompleted? then
+    return unless uncompleted? 
+
       if suppressed?
         cancel!
-      else
-        if order.in_multi_transactional_state?
-          self.execute_at = execute_at + 5.minutes
+      elsif order.in_multi_transactional_state?
+        self.execute_at = execute_at + 5.minutes
           save!
         else
           self.attempts += 1
@@ -40,7 +40,7 @@ class OrderTask < ApplicationRecord
           self.status = success ? COMPLETED : FAILED
           save!
           if success
-            unless repeat_monthly_interval.blank?
+            if repeat_monthly_interval.present?
               new_task = dup
               new_task.execute_at = Time.now + repeat_monthly_interval.months
               new_task.order_id = order_id
@@ -49,9 +49,8 @@ class OrderTask < ApplicationRecord
               new_task.save!
             end
           end
-        end
       end
-    end
+    
   end
 
   def cancel!
@@ -65,13 +64,13 @@ class OrderTask < ApplicationRecord
 
   def self.run_pending
     pending_tasks = OrderTask.where("status in ('Untried','Failed') and attempts < 12 and execute_at < ?", Time.now)
-    pending_tasks.each { |task|
+    pending_tasks.each do |task|
       begin
         task.run!
       rescue => e
         puts "Could not run task #{task.id} on order #{task.order.id}: #{e}"
       end
-    }
+    end
   end
 
   def suppressed?

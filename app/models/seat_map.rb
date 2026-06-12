@@ -13,9 +13,10 @@ class SeatMap < ApplicationRecord
   before_save :save_image_dimensions
 
   def save_image_dimensions
-    if base_image_map.attached? && base_image_map.changed? then
+    return unless base_image_map.attached? && base_image_map.changed? 
+
       base_image_map.analyze
-    end
+    
   end
 
   def original_width
@@ -31,15 +32,15 @@ class SeatMap < ApplicationRecord
   end
 
   def create_inventory_for_performance(performance)
-    if productions.map { |p|
+    if productions.map do |p|
       p.id
-    }.include? (performance.production_id) and performance.production.has_reserved_seating? then
+    end.include? (performance.production_id) and performance.production.has_reserved_seating? then
       SeatMap.transaction do
-        seats.each { |seat|
+        seats.each do |seat|
           assignment = performance.seat_assignments.select { |sa| sa.seat_id.eql?(seat.id) }.first
           assignment ||= SeatAssignment.new(seat: seat, performance: performance)
           assignment.save
-        }
+        end
       end
     end
     SeatAssignment.where(performance_id: performance.id)

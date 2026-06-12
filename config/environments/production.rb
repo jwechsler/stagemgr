@@ -148,7 +148,7 @@ Rails.application.configure do
 
   config.action_mailer.delivery_method = $SERVER_CONFIG['email']['delivery_method'].to_sym
   if $SERVER_CONFIG['email']['delivery_method'].eql?('postmark')
-    config.action_mailer.postmark_settings = { api_key: Rails.application.credentials.dig(:postmark_api_token) }
+    config.action_mailer.postmark_settings = { api_key: Rails.application.credentials[:postmark_api_token] }
   end
 
   $RAND_CLAUSE = Arel.sql('RAND()')

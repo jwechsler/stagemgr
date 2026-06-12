@@ -554,7 +554,7 @@ class RateOfSalesAnalysis
     # The peak itself stays in the body.
     decline_start = nil
     ((peak_idx + 1)...curve.size).each do |i|
-      remaining = curve[i..-1]
+      remaining = curve[i..]
       if remaining.size >= 2 && remaining.each_cons(2).all? { |a, b| b <= a }
         decline_start = i
         break
@@ -567,7 +567,7 @@ class RateOfSalesAnalysis
 
     if decline_start && decline_start < curve.size - 1
       body = curve[0...decline_start]
-      tail = curve[decline_start..-1]
+      tail = curve[decline_start..]
       # Ensure body has at least 2 points for interpolation
       if body.size < 2
         [curve, []]
