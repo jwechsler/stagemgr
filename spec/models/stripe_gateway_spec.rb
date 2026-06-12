@@ -277,52 +277,36 @@ RSpec.describe StripeGateway, type: :model do
     end
 
     context "when address already has a processor_id" do
-      # SUSPECTED BUG (stripe_gateway.rb:57-62): When processor_id is present,
-      # the code calls `Stripe::Customer.retrieve(customer.processor_id)` but
-      # `customer` is a local uninitialized variable at that point. This would
-      # raise a NameError at runtime. The intent is likely
+      # CHARACTERIZATION OF A BUG (stripe_gateway.rb:54-62): When processor_id is
+      # present, the else branch runs `Stripe::Customer.retrieve(customer.processor_id)`.
+      # The local variable `customer` is only assigned in the `if` branch (line 55),
+      # so in this branch Ruby treats it as a defined-but-nil local (the lexical
+      # assignment makes it a known local). Calling `nil.processor_id` therefore
+      # raises NoMethodError. The intended receiver was almost certainly
       # `order.address.processor_id`.
-      # The rescue block only catches Stripe::InvalidRequestError, not NameError,
-      # so the NameError propagates up to the caller.
+      #
+      # NoMethodError is a subclass of NameError, so the rescue on line 59
+      # (rescue Stripe::InvalidRequestError) does NOT catch it; the error
+      # propagates to the caller. We assert NoMethodError specifically because
+      # that is the exact class raised.
       before do
         allow(fake_address).to receive(:processor_id).and_return("cus_existing")
-        # The bug fires before Stripe::Customer.retrieve is even called with the
-        # right arg — it raises NameError from evaluating `customer.processor_id`
-        # because `customer` is uninitialized in that branch.
       end
 
-      it "raises NameError due to uninitialized local variable 'customer' (bug in stripe_gateway.rb:58)" do
-        expect { gateway.create_subscription(fake_order) }.to raise_error(NameError)
+      it "raises NoMethodError from nil.processor_id (bug at stripe_gateway.rb:58)" do
+        expect { gateway.create_subscription(fake_order) }
+          .to raise_error(NoMethodError, /processor_id/)
       end
-    end
 
-    context "when address has a processor_id and Stripe::InvalidRequestError is raised" do
-      # This tests line 60: the rescue Stripe::InvalidRequestError branch.
-      # We need to work around the NameError bug on line 58 by stubbing
-      # the private class method that evaluates `customer.processor_id`.
-      # Since the NameError fires first, we stub Stripe::Customer.retrieve
-      # to return normally so the code proceeds, then intercept at a later point
-      # to make it raise Stripe::InvalidRequestError.
-      # IMPLEMENTATION: Stub Object binding so `customer` appears to be defined.
-      # We accomplish this by using allow_any_instance_of on StripeGateway to
-      # intercept the create_subscription and simulate the rescue path.
-      before do
-        allow(fake_address).to receive(:processor_id).and_return("cus_existing")
-        # Stub `Stripe::Customer.retrieve` to raise Stripe::InvalidRequestError
-        # as if the customer id was invalid — this exercises line 60.
-        # However, due to the NameError bug on line 58, `customer` is undefined,
-        # so we cannot directly reach line 60 without patching.
-        # We document that line 60 is unreachable through this path in practice.
+      it "does not reach the Stripe::InvalidRequestError rescue branch (line 60 is dead code)" do
+        # If Stripe::Customer.retrieve were reachable here, this stub would make
+        # the code follow the rescue path and call create_customer. It never is,
+        # because nil.processor_id raises first — so retrieve is never invoked.
         allow(Stripe::Customer).to receive(:retrieve).and_raise(
           Stripe::InvalidRequestError.new("No such customer", "customer")
         )
-        allow(Stripe::Customer).to receive(:create).and_return(fake_customer)
-      end
-
-      it "raises NameError before reaching the Stripe::InvalidRequestError rescue (line 60 is unreachable due to bug)" do
-        # Line 60 (rescue Stripe::InvalidRequestError -> create_customer) is
-        # dead code in practice because line 58 raises NameError first.
-        expect { gateway.create_subscription(fake_order) }.to raise_error(NameError)
+        expect(Stripe::Customer).not_to receive(:retrieve)
+        expect { gateway.create_subscription(fake_order) }.to raise_error(NoMethodError)
       end
     end
   end
