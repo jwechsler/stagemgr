@@ -9,7 +9,10 @@ class HouseCount < Metric
     self.total_seats = performance.production.capacity
     self.sold_seats = calculate_sold_seats
     self.held_seats = calculate_held_seats
-    self.available_seats = performance.production.capacity - performance.seats_held
+# available = capacity minus every seat currently occupied (sold + on hold +
+    # in-progress + exchanging + releasing). performance.seats_occupied is the
+    # preferred alias of the original #seats_held and returns the same figure.
+    self.available_seats = performance.production.capacity - performance.seats_occupied
     self.max_ticket_price = calculate_max_ticket_price
     self.min_ticket_price = calculate_min_ticket_price
     self.sold_out = calculate_sold_out
@@ -19,6 +22,35 @@ class HouseCount < Metric
   def calculate!
     calculate
     save!
+  end
+
+  # Seat-inventory vocabulary facades (preferred reader names).
+  #
+  # HouseCount stores a CACHED snapshot of a performance's seat inventory. The
+  # underlying columns (total_seats, sold_seats, held_seats, available_seats)
+  # are written by #calculate and only refreshed when CalculateHouseCountsJob
+  # runs (every 5 minutes), so these readers can lag the live figures on
+  # Performance. The names below describe each column in the shared seat
+  # vocabulary; they read the existing columns unchanged.
+  #
+  #   seats_on_hold   -> held_seats      (box-office HOLD orders only)
+  #   seats_sold      -> sold_seats      (settled / paid orders)
+  #   seats_available -> available_seats (capacity minus all occupied seats)
+  #   seats_total     -> total_seats     (production capacity at snapshot time)
+  def seats_on_hold
+    held_seats
+  end
+
+  def seats_sold
+    sold_seats
+  end
+
+  def seats_available
+    available_seats
+  end
+
+  def seats_total
+    total_seats
   end
 
   # Required by Metric abstract class
