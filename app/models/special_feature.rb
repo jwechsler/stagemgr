@@ -17,7 +17,7 @@ class SpecialFeature < ApplicationRecord
 
   def reassign_feature_to_custom
     self.performances.each { | perf| if perf.special_feature_display_markdown.blank?
-                                  perf.special_feature_display_markdown = self.description
+                                       perf.special_feature_display_markdown = self.description
                                 else
                                   perf.special_feature_display_markdown + '\n\n' + self.description
                                 end

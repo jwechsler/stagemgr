@@ -25,33 +25,33 @@ class OrderTask < ApplicationRecord
   public
     # runs execute method for the order task.
     # if the order is in a transational state (like exchanging), postpone for 5 minutes.
-    def run!
-      if self.uncompleted? then
-        if suppressed?
-          self.cancel!
+  def run!
+    if self.uncompleted? then
+      if suppressed?
+        self.cancel!
+      else
+        if self.order.in_multi_transactional_state?
+          self.execute_at = self.execute_at + 5.minutes
+          self.save!
         else
-          if self.order.in_multi_transactional_state?
-            self.execute_at = self.execute_at + 5.minutes
-            self.save!
-          else
-            self.attempts += 1
-            success = self.execute!
-            self.status =  success ?  COMPLETED : FAILED
-            self.save!
-            if success
-              unless self.repeat_monthly_interval.blank?
-                new_task = self.dup
-                new_task.execute_at = Time.now + self.repeat_monthly_interval.months
-                new_task.order_id = self.order_id
-                new_task.attempts = 0
-                new_task.status = UNTRIED
-                new_task.save!
-              end
+          self.attempts += 1
+          success = self.execute!
+          self.status =  success ?  COMPLETED : FAILED
+          self.save!
+          if success
+            unless self.repeat_monthly_interval.blank?
+              new_task = self.dup
+              new_task.execute_at = Time.now + self.repeat_monthly_interval.months
+              new_task.order_id = self.order_id
+              new_task.attempts = 0
+              new_task.status = UNTRIED
+              new_task.save!
             end
           end
         end
       end
     end
+  end
 
   def cancel!
     self.status = CANCELLED

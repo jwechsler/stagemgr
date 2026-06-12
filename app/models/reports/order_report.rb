@@ -25,15 +25,15 @@ class OrderReport < Report
     unless o.address.blank?
       address_hash(o.address)
     else
-         {:last_name=>'Purchaser',
-            :first_name=>'Unknown',
-            :street_address=>'',
-            :street_address_2=>'',
-            :city=>'',
-            :state=>'',
-            :postal_code=>'',
-            :phone=>'',
-            :email=>''}
+      {:last_name=>'Purchaser',
+         :first_name=>'Unknown',
+         :street_address=>'',
+         :street_address_2=>'',
+         :city=>'',
+         :state=>'',
+         :postal_code=>'',
+         :phone=>'',
+         :email=>''}
     end
   end
 

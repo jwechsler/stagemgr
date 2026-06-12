@@ -209,7 +209,7 @@ class TicketRevenueAnalysis
 
   def effective_class_price(ticket_class)
     base = if ticket_class.ticket_price == 0 && ticket_class.royalty_amount
-      ticket_class.royalty_amount
+             ticket_class.royalty_amount
     else
       ticket_class.ticket_price
     end
@@ -266,7 +266,7 @@ class TicketRevenueAnalysis
   def effective_price(row)
     return nil if row[:comp]
     base = if row[:price] == 0 && row[:royalty]
-      row[:royalty]
+             row[:royalty]
     elsif row[:override]
       row[:override]
     else

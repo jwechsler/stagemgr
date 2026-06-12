@@ -53,7 +53,7 @@ class CurrentUser::AccountsController < CurrentUser::ApplicationController
       .map do |production, sales|
         presale_cutoff = production.first_preview_at ? (production.first_preview_at - 2.weeks).beginning_of_week(:monday) : nil
         pre_sales, weekly_sales = if presale_cutoff
-          sales.partition { |s| s.day_of_sale < presale_cutoff }
+                                    sales.partition { |s| s.day_of_sale < presale_cutoff }
         else
           [[], sales]
         end

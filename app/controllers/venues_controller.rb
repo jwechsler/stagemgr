@@ -57,7 +57,7 @@ class VenuesController < ApplicationController
     @now_playing_productions = Array.new
     Venue.all.sort.each do |venue|
       prods = if venue.external?
-        venue.now_playing(Production::PLAY, Date.today.end_of_week + 1.week)
+                venue.now_playing(Production::PLAY, Date.today.end_of_week + 1.week)
       else
         venue.now_playing_or_next_up(Production::PLAY)
       end

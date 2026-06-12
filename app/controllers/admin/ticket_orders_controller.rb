@@ -222,7 +222,7 @@ class Admin::TicketOrdersController < Admin::OrdersController
   end
 
   def sellable_performances_with_partial_code(production, search_term)
-   where_clause = "production_id = :production_id and LOWER(performance_code) LIKE :search_term and status in (:sellable_statuses)"
+    where_clause = "production_id = :production_id and LOWER(performance_code) LIKE :search_term and status in (:sellable_statuses)"
    cannot? :sell_past_performances, TicketOrder do
      where_clause >> ' and performance_date >= curdate()'
    end

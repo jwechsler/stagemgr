@@ -71,7 +71,7 @@ class PerformancesController < ApplicationController
     @performance = Performance.find(params[:id])
     unless @performance.inactive? || @performance.production.inactive?
       visible_to_public = @performance.ticket_class_allocations.select{|tca|
-        tca.available? && (tca.ticket_class.web_visible? || current_user&.can?(:view_backend_classes, TicketClassAllocation)) && !tca.ticket_class.software_managed?
+      tca.available? && (tca.ticket_class.web_visible? || current_user&.can?(:view_backend_classes, TicketClassAllocation)) && !tca.ticket_class.software_managed?
     }.sort{|a,b| [(b.ticket_class.web_visible? ? 1 : 0),b.ticket_class.ticket_price, a.ticket_class.class_name] <=> [(a.ticket_class.web_visible? ? 1 : 0),a.ticket_class.ticket_price, b.ticket_class.class_name]}
     else
       visible_to_public = []

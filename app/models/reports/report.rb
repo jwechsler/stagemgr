@@ -33,14 +33,14 @@ class Report
       csv << self.headers
       if self.data.is_a? Hash
         self.data.each { |key, rows| rows.each { |row|
-            csv << headers.map { |h| 
-              h == :Segment ? key : Report.tidy_output(row[h]) } unless row.nil? 
+          csv << headers.map { |h| 
+            h == :Segment ? key : Report.tidy_output(row[h]) } unless row.nil? 
         }
 
       } else # if simple array, then dump array into csv
-        self.data.each { |row|
-          csv << headers.map { |h| Report.tidy_output(row[h]) }
-        }
+          self.data.each { |row|
+            csv << headers.map { |h| Report.tidy_output(row[h]) }
+          }
       end
     end
     self.write_file_data(file_path, filestore, csv_string)

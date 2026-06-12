@@ -103,7 +103,7 @@ module PaymentProcessing
       StripeGateway.new(:login=>Stripe.api_key)
       
     when 'bogus'
-        PaymentProcessing::BogusGateway.new
+      PaymentProcessing::BogusGateway.new
     end
   end
 

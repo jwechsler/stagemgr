@@ -43,7 +43,7 @@ class TrgImport
           email1_idx = headers['EmailAddress1'] - 1
           phone_idx = headers['HomePhone'] - 1
           else
-          total += 1
+            total += 1
 
           unless row[last_name_idx].blank? && row[full_name_idx].blank?
             a = Address.new if a.nil?
@@ -70,9 +70,9 @@ class TrgImport
             a.productions << production unless production.nil?
 
             if merge_check.nil? then
-                a.save!
+              a.save!
             else
-                merge_check.merge_and_purge(a)
+              merge_check.merge_and_purge(a)
             end
           end
         end

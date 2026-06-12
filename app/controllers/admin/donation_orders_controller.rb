@@ -30,6 +30,6 @@ class Admin::DonationOrdersController < Admin::OrdersController
 
   private
   def donation_order_params
-   params.require(:donation_order).permit(*donation_order_common_params)
+    params.require(:donation_order).permit(*donation_order_common_params)
   end
 end

@@ -143,9 +143,9 @@ class MembershipOrder < Order
     super
   end
 
-   def starting_at
+  def starting_at
     [Time.now, self.gift_date.nil? ? Time.now : self.gift_date.to_datetime].max
-  end
+ end
 
   def create_receipt_task
 

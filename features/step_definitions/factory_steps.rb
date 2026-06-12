@@ -132,7 +132,7 @@ end
 
 Then /^a membership exists with "(.*?)" as preferred seating$/ do |preferred_seating|
 
-    seats = Membership.where("1=1")
+  seats = Membership.where("1=1")
     seats.each {|s| puts s.preferred_seating}
     seats = seats.select{|m| m.preferred_seating.eql?(preferred_seating)}
     raise "Found #{seats.size} memberships with \'#{preferred_seating}\' seating" if seats.size == 0

@@ -46,11 +46,11 @@ class ProductionsController < ApplicationController
     @coming_soon = Array.new
     @long_term = Array.new
     upcoming_shows.each do |prod|
-        if prod.first_playing_date <= three_months_from_now
-          @coming_soon << prod
-        else
-          @long_term << prod
-        end
+      if prod.first_playing_date <= three_months_from_now
+        @coming_soon << prod
+      else
+        @long_term << prod
+      end
 
     end
 
@@ -132,14 +132,14 @@ class ProductionsController < ApplicationController
     @production = @theater.productions.find(params[:id])
   end
 
-def now_playing_by_venue(production_type)
+  def now_playing_by_venue(production_type)
     now_playing_productions = Array.new
-    Venue.all.sort.each do |venue|
-      prods = venue.now_playing(production_type)
-      now_playing_productions += prods
+      Venue.all.sort.each do |venue|
+        prods = venue.now_playing(production_type)
+        now_playing_productions += prods
+      end
+      now_playing_productions
     end
-    now_playing_productions
-  end
 
 
 end

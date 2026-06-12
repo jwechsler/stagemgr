@@ -1254,19 +1254,19 @@ class TicketOrder < Order
   end
 
   def set_tickets_for_pass_redemption
-   if self.status_changed? && self.status == Order::PROCESSED
-     if self.paid_with_flexpass?
-       flex_pass = self.paid_with_flexpass
-       offer = flex_pass.flex_pass_offer
-       set_ticket_classes_using_offer(offer)
-     end
-     if self.paid_with_membership?
-       membership = Membership.find_by_member_code(self.member_code)
-       offer = membership.membership_offer
-       set_ticket_classes_using_offer(offer)
-       self.ticket_line_items
-     end
-   end
+    if self.status_changed? && self.status == Order::PROCESSED
+      if self.paid_with_flexpass?
+        flex_pass = self.paid_with_flexpass
+        offer = flex_pass.flex_pass_offer
+        set_ticket_classes_using_offer(offer)
+      end
+      if self.paid_with_membership?
+        membership = Membership.find_by_member_code(self.member_code)
+        offer = membership.membership_offer
+        set_ticket_classes_using_offer(offer)
+        self.ticket_line_items
+      end
+    end
   end
 
   def debug_logger

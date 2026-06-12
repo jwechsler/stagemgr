@@ -63,7 +63,7 @@ class FlexPass < ApplicationRecord
     passes.select{|p| p.flex_pass_line_item.nil? }.each{|p| p.destroy}
     passes = FlexPass.all
     passes.each { |p|
-      p.order = p.flex_pass_line_item.order
+       p.order = p.flex_pass_line_item.order
       p.address = p.order.address
       p.expiration_date = p.created_at.to_date + p.flex_pass_offer.months_till_expiration.months
       p.save!

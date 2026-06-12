@@ -113,73 +113,73 @@ class Admin::AddressesController < Admin::ApplicationController
     end
   end
 
-def merge_selected
-  ids = params[:ids].sort { |a, b| a.to_i <=> b.to_i }
-  address = Address.find(ids[0])
-  ids.drop(1).each do |id|
-    address2 = Address.find(id)
-    address.merge_and_purge(address2)
+  def merge_selected
+    ids = params[:ids].sort { |a, b| a.to_i <=> b.to_i }
+    address = Address.find(ids[0])
+    ids.drop(1).each do |id|
+      address2 = Address.find(id)
+      address.merge_and_purge(address2)
+    end
+    render json: { result: true }
+  rescue => e
+    Rails.logger.error("Merge failed: #{e.message}\n#{e.backtrace.join("\n")}")
+    render json: { result: false, error: e.message }, status: :unprocessable_entity
   end
-  render json: { result: true }
-rescue => e
-  Rails.logger.error("Merge failed: #{e.message}\n#{e.backtrace.join("\n")}")
-  render json: { result: false, error: e.message }, status: :unprocessable_entity
-end
 
-def autocomplete_address
+  def autocomplete_address
     cleaned_name, first_name, last_name = Address.parse_name(params[:term])
-    last_name = first_name if last_name.blank?
-    first_name = "" if first_name.nil?
-    # val = params[:q].gsub(Address::SEARCHABLE_REGEXP,'').upcase
+      last_name = first_name if last_name.blank?
+      first_name = "" if first_name.nil?
+      # val = params[:q].gsub(Address::SEARCHABLE_REGEXP,'').upcase
 
-    #addresses = Address.where("search_name like :search_expr and id in (select address_id from orders)", {:search_expr=>'%' + val + '%'}).limit(10).order(
-    #    'last_name', 'first_name', 'id');
-    unless first_name.blank? || (last_name.eql?(first_name))
-      addresses = Address.where("(first_name like ?) AND (last_name like ?)",
-        "#{first_name}%",
-        "#{last_name}%").order("addresses.last_name, addresses.first_name, addresses.id").limit(15)
-    else
-      Rails.logger.debug("**** CASE 2 last_name = #{last_name} and first_name = #{first_name}")
-      
-      if last_name.eql?(first_name)
-        addresses = Address.where("search_name like ? or last_first_name like ?", (last_name+'%').upcase, (last_name+'%').upcase).order("addresses.last_name, addresses.first_name, addresses.id").limit(7)
+      #addresses = Address.where("search_name like :search_expr and id in (select address_id from orders)", {:search_expr=>'%' + val + '%'}).limit(10).order(
+      #    'last_name', 'first_name', 'id');
+      unless first_name.blank? || (last_name.eql?(first_name))
+        addresses = Address.where("(first_name like ?) AND (last_name like ?)",
+          "#{first_name}%",
+          "#{last_name}%").order("addresses.last_name, addresses.first_name, addresses.id").limit(15)
       else
-        addresses = Address.where("search_name like ? or last_first_name like ?", (first_name+last_name+'%').upcase, (last_name+first_name+'%').upcase).order("addresses.last_name, addresses.first_name, addresses.id").limit(7)
+        Rails.logger.debug("**** CASE 2 last_name = #{last_name} and first_name = #{first_name}")
+        
+        if last_name.eql?(first_name)
+          addresses = Address.where("search_name like ? or last_first_name like ?", (last_name+'%').upcase, (last_name+'%').upcase).order("addresses.last_name, addresses.first_name, addresses.id").limit(7)
+        else
+          addresses = Address.where("search_name like ? or last_first_name like ?", (first_name+last_name+'%').upcase, (last_name+first_name+'%').upcase).order("addresses.last_name, addresses.first_name, addresses.id").limit(7)
+        end
+      end
+      if addresses.nil?
+        render :json=>Array.new
+      else
+        render :json => addresses.to_a.uniq{|a| [a.first_name, a.last_name, a.email]}.map { |a|
+          value = a.full_name
+          member_code = a.is_current_member? ? a.current_membership.member_code : nil
+          # tags = current_user.allowed_tags(a.address_tags).map {|t|
+          #  "<div class=\"small-6 columns quick-lookup-history label\">#{t.tag_label}</div><div class=\"small-6 columns quick-lookup-history\">#{t.tag_value}</div>"
+          #  }.join(" ")
+          label = a.full_name
+          label += " [MEMBER]" unless member_code.nil?
+          label += " #{a.line1} #{a.city} #{a.zipcode}" unless a.line1.blank?
+          label += " #{a.email}" unless a.email.blank?
+          attended = a.productions.uniq.sort {|a,b| b.closing_at <=> a.closing_at}[0..9].map{|p| "<div class=\"small-6 columns quick-lookup-history\">#{p.name}</div>" }.join(' ')
+          { :id => a.id,
+            :label=>label,
+            :value=>a.full_name,
+            :full_name => a.full_name,
+            :email => a.email,
+            :line1=>a.line1,
+            :line2=>a.line2,
+            :city=>a.city,
+            :state=>a.state,
+            :zipcode=>a.zipcode,
+            :phone=>a.phone,
+            :member_code=>member_code,
+            :tags=>[],
+            :attended=>attended
+          }
+
+        }
       end
     end
-    if addresses.nil?
-      render :json=>Array.new
-    else
-      render :json => addresses.to_a.uniq{|a| [a.first_name, a.last_name, a.email]}.map { |a|
-        value = a.full_name
-        member_code = a.is_current_member? ? a.current_membership.member_code : nil
-        # tags = current_user.allowed_tags(a.address_tags).map {|t|
-        #  "<div class=\"small-6 columns quick-lookup-history label\">#{t.tag_label}</div><div class=\"small-6 columns quick-lookup-history\">#{t.tag_value}</div>"
-        #  }.join(" ")
-        label = a.full_name
-        label += " [MEMBER]" unless member_code.nil?
-        label += " #{a.line1} #{a.city} #{a.zipcode}" unless a.line1.blank?
-        label += " #{a.email}" unless a.email.blank?
-        attended = a.productions.uniq.sort {|a,b| b.closing_at <=> a.closing_at}[0..9].map{|p| "<div class=\"small-6 columns quick-lookup-history\">#{p.name}</div>" }.join(' ')
-        { :id => a.id,
-          :label=>label,
-          :value=>a.full_name,
-          :full_name => a.full_name,
-          :email => a.email,
-          :line1=>a.line1,
-          :line2=>a.line2,
-          :city=>a.city,
-          :state=>a.state,
-          :zipcode=>a.zipcode,
-          :phone=>a.phone,
-          :member_code=>member_code,
-          :tags=>[],
-          :attended=>attended
-        }
-
-      }
-    end
-  end
 
   def autocomplete_tag
     #tags = AddressTag.order(:tag_label).select('tag_label').where('tag_label like ?', "#{params[:term]}%").uniq

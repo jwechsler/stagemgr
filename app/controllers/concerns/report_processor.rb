@@ -147,7 +147,7 @@ module ReportProcessor
     
     # Extract date parameters if present
     date_info = if params[:starting_date] && params[:ending_date]
-      " (#{params[:starting_date]} to #{params[:ending_date]})"
+                  " (#{params[:starting_date]} to #{params[:ending_date]})"
     elsif params.dig(:report, :week_ending)
       " (week ending #{params[:report][:week_ending]})"
     else

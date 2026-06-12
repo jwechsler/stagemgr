@@ -39,7 +39,7 @@ class ApplicationController < ActionController::Base
         model_class = model_name.classify.constantize
         param_id = "#{model_name}_id".to_sym
         found_model = if params[param_id]
-          model_class.find(params[param_id])
+                        model_class.find(params[param_id])
         elsif params[:id]
           model_class.find(params[:id])
         else
@@ -83,11 +83,11 @@ class ApplicationController < ActionController::Base
   def require_login
     unless current_user
       respond_to do |format|
-      format.html {
-        session[:return_to] = request.url
-        flash[:error] = "You must be logged in to access this page"
-        redirect_to new_user_session_path
-      }
+        format.html {
+          session[:return_to] = request.url
+          flash[:error] = "You must be logged in to access this page"
+          redirect_to new_user_session_path
+        }
       format.xml {
         user = User.new
         user.errors.add(:base, "Authentication is required.")
@@ -106,28 +106,28 @@ class ApplicationController < ActionController::Base
 
   private
 
-   def handle_exception(exception)
-    # Log the exception
+  def handle_exception(exception)
+   # Log the exception
     Rails.logger.error "Exception: #{exception.message}"
-    Rails.logger.error exception.backtrace.join("\n")
+   Rails.logger.error exception.backtrace.join("\n")
 
-    # Notify an external service (optional)
-    ExceptionNotifier.notify_exception(exception, env: request.env)
+   # Notify an external service (optional)
+   ExceptionNotifier.notify_exception(exception, env: request.env)
 
-    # Set the flash message with the exception
-    flash[:error] = "An unexpected error occurred at #{request.fullpath}: #{exception.message}. An error report has been filed with the administrator"
+   # Set the flash message with the exception
+   flash[:error] = "An unexpected error occurred at #{request.fullpath}: #{exception.message}. An error report has been filed with the administrator"
 
-    # Prevent redirect loop by checking if referer is the same as current request path
-    referer = request.referer
-    current_path = request.fullpath
+   # Prevent redirect loop by checking if referer is the same as current request path
+   referer = request.referer
+   current_path = request.fullpath
 
-    if referer && URI(referer).path != current_path
-      redirect_to referer
-    else
-      # Fallback to a safe path if referer is not available or matches the current path
-      redirect_to root_path
-    end
-  end
+   if referer && URI(referer).path != current_path
+     redirect_to referer
+   else
+     # Fallback to a safe path if referer is not available or matches the current path
+     redirect_to root_path
+   end
+ end
 
 
   def store_location
