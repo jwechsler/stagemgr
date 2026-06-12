@@ -12,7 +12,7 @@ class Ability
     alias_action :autocomplete_service_item_template_name, to: :modify_service_items
     
     can :read, FlexPassOffer, ["on_sale_to_public = ?", true] do |offer|
-        offer.on_sale_to_public?
+      offer.on_sale_to_public?
     end
 
     return if user.nil?
@@ -21,19 +21,19 @@ class Ability
     can :read, [TicketOrder, DonationOrder]
     
     can :read, Production, ["theater_id in (?)", user.theater_ids] do |production|
-        user.theater_ids.include?(production.id)
+      user.theater_ids.include?(production.id)
     end
 
     can :update_notes, Order
     can :read, FlexPassOffer, ["theater_id in (?)", user.theater_ids] do |flex_pass_offer|
-        user.theater_ids.include?(flex_pass_offer.theater_id)
+      user.theater_ids.include?(flex_pass_offer.theater_id)
     end
 
     can [:create, :update, :update_notes, :confirm, :quickview, :new_for_production], TicketOrder
     can :seat_unlimited, SeatAssignment
     can [:create, :hold_existing], TicketOrder
     can :prehold, TicketOrder do |order|
-        order.performance.production.season_seating?
+      order.performance.production.season_seating?
     end
     can :auto_complete, Production
     can :autocomplete_tag, Address
@@ -43,7 +43,7 @@ class Ability
     can :read, Production, theater_id: user.theater_ids
     can :read, FlexPassOffer, theater_id: user.theater_ids
     can :read, Address, ["addresses.id in (select orders.address_id from orders where orders.theater_id in (?))", user.theater_ids] do |address|
-        address.orders.map{|o| o.theater_id}.intersection(user.theater_ids).size > 0
+      address.orders.map{|o| o.theater_id}.intersection(user.theater_ids).size > 0
     end
 
     can [:make, :update, :edit, :autocomplete_address], Address

@@ -700,7 +700,7 @@ class Order < ApplicationRecord
   end
 
   def transition_new_to_processed!(redirect_to = nil)
-      self.transition_new_to_processing!(redirect_to)
+    self.transition_new_to_processing!(redirect_to)
       self.transition_processing_to_processed!(redirect_to)
   end
 
@@ -778,7 +778,7 @@ class Order < ApplicationRecord
   end
 
   def create_recipient_address
-      new_owner = Address.new(:full_name=>self.recipient_name, :email=>self.recipient_email)
+    new_owner = Address.new(:full_name=>self.recipient_name, :email=>self.recipient_email)
       new_owner = new_owner.find_original || new_owner
       new_owner.save!
       self.recipient_address_id = new_owner.id

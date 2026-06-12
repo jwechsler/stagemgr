@@ -11,7 +11,7 @@ class PaymentDecorator < ApplicationDecorator
   end
 
   def amount
-     object.amount
+    object.amount
   end
 
   def payment_info

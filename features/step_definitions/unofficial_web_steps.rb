@@ -19,7 +19,7 @@ page_name, container|
 end
 
 Then /^a link exists to "(.*?)"$/ do |arg1|
-   page.should have_xpath("//a[@href='" + arg1 + "']")
+  page.should have_xpath("//a[@href='" + arg1 + "']")
 end
 
 # Given /^(?:|I )should (|not )see a link(?:| to '([^']+)')(?:| labeled '([^']+)')$/ do |is_not,path,link_label|

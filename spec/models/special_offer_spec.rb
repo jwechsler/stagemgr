@@ -98,7 +98,7 @@ RSpec.describe "a special offer" do
     offer.performance_start_range = o.performance.performance_date + 1.day
     offer.performance_end_range = o.performance.performance_date - 1.day
     expect {
-        offer.save!
+      offer.save!
     }.to raise_error(ActiveRecord::RecordInvalid)
 
     offer.performance_start_range = o.performance.performance_date - 1.day

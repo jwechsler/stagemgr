@@ -292,7 +292,7 @@ class Production < ApplicationRecord
   # When a production code is changed, performance codes are made to match
   def update_performance_codes
     self.performances.select{|perf| perf.performance_code.starts_with?(self.production_code_was)}.each { |perf|
-        perf.performance_code = perf.performance_code.sub(self.production_code_was, self.production_code)
+      perf.performance_code = perf.performance_code.sub(self.production_code_was, self.production_code)
         perf.save!
     }
   end
@@ -307,13 +307,13 @@ class Production < ApplicationRecord
     end
   end
 
-   def assign_default_ticket_classes
+  def assign_default_ticket_classes
     defaults = DefaultTicketClass.all
-    defaults.each { |tcd| tc = TicketClass.new
-      tc.attributes=tcd.to_hash
-      self.ticket_classes << tc}
-    self
-  end
+   defaults.each { |tcd| tc = TicketClass.new
+     tc.attributes=tcd.to_hash
+     self.ticket_classes << tc}
+   self
+ end
 
 
   def manage_after_save_active

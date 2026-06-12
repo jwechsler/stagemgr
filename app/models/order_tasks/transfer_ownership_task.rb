@@ -1,6 +1,6 @@
 class TransferOwnershipTask < OrderTask
 
-protected
+  protected
 
   def execute!
     result = false

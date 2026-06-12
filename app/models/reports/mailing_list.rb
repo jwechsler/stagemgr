@@ -88,7 +88,7 @@ class MailingList < Report
   def add_hash_to_data(consolidation_code, address, production, buyer_type, performance_date, allow_email_export, members_by_email)
     @processed_addresses[production.id] = Set.new if @processed_addresses[production.id].nil?
     unless @processed_addresses[production.id].include?(address.id)
-     season_tag = production.season.to_i
+      season_tag = production.season.to_i
       hash = self.mailing_hash_from_buyer(address, allow_email_export)
       unless hash[:Email].nil?
         unless allow_email_export || members_by_email.has_key?(hash[:Email].downcase)

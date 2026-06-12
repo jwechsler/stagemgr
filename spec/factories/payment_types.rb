@@ -10,7 +10,7 @@ FactoryBot.define do
   end
 
   factory :membership_payment_type do
-    initialize_with { MembershipPaymentType.find_or_create_by(id:3, display_name: 'Membership')}
+     initialize_with { MembershipPaymentType.find_or_create_by(id:3, display_name: 'Membership')}
    end
 
   factory :flex_pass_payment_type do

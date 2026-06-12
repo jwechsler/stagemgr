@@ -101,11 +101,11 @@ class Performance < ApplicationRecord
   end
 
   def to_datetime
-   DateTime.parse("#{self.performance_date}T#{self.performance_time.strftime("%H:%M:00")}")
+    DateTime.parse("#{self.performance_date}T#{self.performance_time.strftime("%H:%M:00")}")
   end
 
   def to_time_with_zone
-   Time.zone.parse("#{self.performance_date}T#{self.performance_time.strftime("%H:%M:00")}")
+    Time.zone.parse("#{self.performance_date}T#{self.performance_time.strftime("%H:%M:00")}")
   end
 
 

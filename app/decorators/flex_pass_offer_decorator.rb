@@ -36,9 +36,9 @@ class FlexPassOfferDecorator < ApplicationDecorator
   def restrictions
     unless object.theater.blank? then
       if object.exclude_theater then
-          "All but #{object.theater.name}"
+        "All but #{object.theater.name}"
       else
-          "Only #{object.theater.name}"
+        "Only #{object.theater.name}"
       end
     else
       ""

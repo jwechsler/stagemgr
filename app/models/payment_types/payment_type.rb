@@ -36,7 +36,7 @@ class PaymentType < ApplicationRecord
   end
 
   def to_label
-   self.display_name
+    self.display_name
   end
 
   def payment_classes

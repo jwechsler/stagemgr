@@ -27,7 +27,7 @@ class HistoricActivityReport < MailingList
       primary_attendee = all_prods.map {|p| p.theater_id}.uniq.include?(1)
       requested_prods = address.productions_attended(start_day)
       prods = requested_prods.sort{|a,b| if b.opening_at.nil?
-        false
+                                           false
       elsif a.opening_at.nil?
         true
       else

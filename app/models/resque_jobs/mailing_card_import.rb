@@ -85,7 +85,7 @@ class MailingCardImport
       filestore.notes = "Imported #{total} contacts, merged #{merged} as attendees#{production.nil? ? '' : ' ' + production.name}."
       filestore.save
     rescue Exception=>e
-        filestore.notes = "Error: #{e.message}"
+      filestore.notes = "Error: #{e.message}"
         filestore.save
     end
   end

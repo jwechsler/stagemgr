@@ -1,7 +1,7 @@
 class Admin::ServiceItemTemplatesController < Admin::ApplicationController
 
   load_and_authorize_resource
-   def index
+  def index
     respond_to do |format|
       format.html
       format.json {
@@ -9,7 +9,7 @@ class Admin::ServiceItemTemplatesController < Admin::ApplicationController
         render json: ServiceItemTemplateDatatable.new(params, view_context: view_context, current_user: current_user )
       }
     end
-  end
+ end
 
   def new
   end

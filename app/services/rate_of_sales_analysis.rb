@@ -30,7 +30,7 @@ class RateOfSalesAnalysis
 
     daily_rolling = daily_rolling_revenue_for(target_production, cutoff: Date.yesterday)
     comparison_daily_rolling = if comparison_productions.size == 1
-      daily_rolling_revenue_for(comparison_productions.first, cutoff: Date.today)
+                                 daily_rolling_revenue_for(comparison_productions.first, cutoff: Date.today)
     end
     insights = compute_insights(cutoff, target_tickets, target_revenue, aggregate_data, daily_rolling)
 
@@ -327,7 +327,7 @@ class RateOfSalesAnalysis
       if prior_avg > 0
         trajectory_pct = ((recent_avg - prior_avg) / prior_avg * 100).round(1)
         insights[:trajectory] = if trajectory_pct > 2
-                                   :increasing
+                                  :increasing
                                  elsif trajectory_pct < -2
                                    :decreasing
                                  else

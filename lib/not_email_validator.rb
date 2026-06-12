@@ -1,6 +1,6 @@
 class NotEmailValidator < EmailValidator
 
-def validate_each(record, attribute, value)
+  def validate_each(record, attribute, value)
 
     unless value.blank?
       v = value.strip
@@ -22,6 +22,6 @@ def validate_each(record, attribute, value)
       end
       record.errors.add(attribute,options[:message] || "cannot be an email address") unless r
     end
-  end
+    end
 
 end

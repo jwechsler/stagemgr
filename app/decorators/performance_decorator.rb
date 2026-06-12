@@ -56,7 +56,7 @@ class PerformanceDecorator < ApplicationDecorator
       return h.raw(result)
     end
     case when (object.performance_at + object.production.running_time.minutes < Time.now) || object.calendar_sold_out? || object.withhold_from_public?
-      result << "<del>#{display_text}</del><br/>"
+           result << "<del>#{display_text}</del><br/>"
       if object.calendar_sold_out? || object.withhold_from_public?
         result << "<font size=\"-2\">Sold out!</font>"
       end

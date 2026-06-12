@@ -523,7 +523,7 @@ class Admin::ReportsController < Admin::ApplicationController
       hash[theater.id] = {theater: theater.name, total_amount: Money.new(0), processing_fee: Money.new(0), due: Money.new(0)}
     end
     orders.each do |o|
-       theater_hash[o.theater_id][:total_amount] += Money.new(o.total_paid*100.0)
+      theater_hash[o.theater_id][:total_amount] += Money.new(o.total_paid*100.0)
        theater_hash[o.theater_id][:processing_fee] += Money.new(o.processing_fee*100.0)
        theater_hash[o.theater_id][:due] += Money.new((o.total_paid-o.processing_fee)*100.0)
     end
