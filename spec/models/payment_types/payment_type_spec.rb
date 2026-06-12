@@ -20,7 +20,7 @@ RSpec.describe 'a payment type'  do
     order.transition_to!(Order::PROCESSED)
     report = SalesByPerformanceReport.new([production], false)
     @headers, @report_data = report.create
-    expect(@report_data[0][:collected].to_f).to eq(12.0)
+    expect(@report_data[0][:reportable].to_f).to eq(12.0)
     order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, performance: performance)
     payment_type = FactoryBot.create(:external_payment_type)
     payment_type.report_as_sales_collected = false
@@ -30,7 +30,7 @@ RSpec.describe 'a payment type'  do
     production.reload
     report = SalesByPerformanceReport.new([production], false)
     @headers, @report_data = report.create
-    expect(@report_data[0][:collected].to_f).to eq(12.0)
+    expect(@report_data[0][:reportable].to_f).to eq(12.0)
   end
 
   it 'can specify if it should be used in production revenue reporting' do
@@ -42,7 +42,7 @@ RSpec.describe 'a payment type'  do
     order.transition_to!(Order::PROCESSED)
     report = SalesByPerformanceReport.new([production], false)
     @headers, @report_data = report.create
-    expect(@report_data[0][:gross].to_f).to eq(12.0)
+    expect(@report_data[0][:revenue_collected].to_f).to eq(12.0)
     order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, performance: performance)
     payment_type = FactoryBot.create(:external_payment_type)
     payment_type.report_as_sales_collected = false
@@ -53,8 +53,8 @@ RSpec.describe 'a payment type'  do
     production.reload
     report = SalesByPerformanceReport.new([production], false)
     @headers, @report_data = report.create
-    expect(@report_data[0][:gross].to_f).to eq(24.0)
-    expect(@report_data[0][:collected].to_f).to eq(12.0)
+    expect(@report_data[0][:revenue_collected].to_f).to eq(24.0)
+    expect(@report_data[0][:reportable].to_f).to eq(12.0)
   end
 
   it 'can restrict purchases based on a comma-delimited set of ticket class strings' do

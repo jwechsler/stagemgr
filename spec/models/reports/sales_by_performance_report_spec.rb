@@ -35,7 +35,10 @@ RSpec.describe SalesByPerformanceReport, type: :model do
   describe 'header row' do
     it 'lists the fixed leading and trailing columns in order' do
       expect(headers.first(3)).to eq(%i[performance_code performance_date performance_time])
-      expect(headers.last(8)).to eq(%i[paid holds max_ticket gross collected facility processing net])
+      # Canonical vocabulary: the old :gross column is now :revenue_collected
+      # ("Revenue Collected"), and the old :collected column is now :reportable.
+      # Column order is unchanged.
+      expect(headers.last(8)).to eq(%i[paid holds max_ticket revenue_collected reportable facility processing net])
     end
 
     it 'includes only ticket-class columns with non-zero sales' do
@@ -50,8 +53,8 @@ RSpec.describe SalesByPerformanceReport, type: :model do
       expect(detail_row[:paid]).to eq(1)
       expect(detail_row[:holds]).to eq(0)
       expect(detail_row[sold_class_code]).to eq(1)
-      expect(detail_row[:gross]).to eq(Money.new(250))
-      expect(detail_row[:collected]).to eq(Money.new(250))
+      expect(detail_row[:revenue_collected]).to eq(Money.new(250))
+      expect(detail_row[:reportable]).to eq(Money.new(250))
       expect(detail_row[:facility]).to eq(Money.new(0))
       expect(detail_row[:processing]).to eq(Money.new(39))
       expect(detail_row[:net]).to eq(Money.new(211))
@@ -64,8 +67,8 @@ RSpec.describe SalesByPerformanceReport, type: :model do
       expect(summary_row[:performance_code]).to eq(production.production_code)
       expect(summary_row[:paid]).to eq(1)
       expect(summary_row[:holds]).to eq(0)
-      expect(summary_row[:gross]).to eq(Money.new(250))
-      expect(summary_row[:collected]).to eq(Money.new(250))
+      expect(summary_row[:revenue_collected]).to eq(Money.new(250))
+      expect(summary_row[:reportable]).to eq(Money.new(250))
       expect(summary_row[:facility]).to eq(Money.new(0))
       expect(summary_row[:processing]).to eq(Money.new(39))
       expect(summary_row[:net]).to eq(Money.new(211))

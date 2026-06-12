@@ -15,10 +15,16 @@ class SalesByPerformanceReport < Report
   end
 
   def create
+    # Canonical revenue vocabulary (see RevenueCalculator):
+    #   :revenue_collected => total of all payments  (RevenueCalculator#collected)
+    #   :reportable        => sales-reportable subset (RevenueCalculator#reportable)
+    # The :revenue_collected column was historically keyed/labeled "Gross"; it is
+    # renamed here to "Revenue Collected" per the product owner. Column order is
+    # unchanged.
     report = []
     total_tickets = {}
-    total_tickets[:gross] = Money.new(0)
-    total_tickets[:collected] = Money.new(0)
+    total_tickets[:revenue_collected] = Money.new(0)
+    total_tickets[:reportable] = Money.new(0)
     total_tickets[:facility] = Money.new(0)
     total_tickets[:processing] = Money.new(0)
     total_tickets[:paid] = 0
@@ -30,8 +36,8 @@ class SalesByPerformanceReport < Report
       subtotal = {}
       ticket_classes = production.ticket_classes.sort { |t1, t2| t2.ticket_price <=> t1.ticket_price }
       ticket_classes.each { |tc| total_tickets[tc.class_code] = 0 }
-      subtotal[:gross] = Money.new(0)
-      subtotal[:collected] = Money.new(0)
+      subtotal[:revenue_collected] = Money.new(0)
+      subtotal[:reportable] = Money.new(0)
       subtotal[:facility] = Money.new(0)
       subtotal[:processing] = Money.new(0)
       subtotal[:paid] = 0
@@ -61,12 +67,12 @@ class SalesByPerformanceReport < Report
           tca.available? && !tca.ticket_class.nil?
         end.max_by { |tca| tca.ticket_class.ticket_price }.ticket_class.ticket_price
         revenue = RevenueCalculator.for(settled_orders)
-        gross = revenue.cash_collected.to_money
-        collected = revenue.cash_reportable.to_money
+        revenue_collected = revenue.collected.to_money
+        reportable = revenue.reportable.to_money
         ticketing_fee = revenue.ticketing_fees.to_money
         processing_fee = revenue.processing_fees.to_money
-        subtotal[:gross] += gross
-        subtotal[:collected] += collected
+        subtotal[:revenue_collected] += revenue_collected
+        subtotal[:reportable] += reportable
         subtotal[:facility] += ticketing_fee
         subtotal[:processing] += processing_fee
         subtotal[:paid] += paid_tickets
@@ -87,25 +93,25 @@ class SalesByPerformanceReport < Report
 
         row[:paid] = paid_tickets
         row[:holds] = held_tickets
-        row[:gross] = gross
-        row[:collected] = collected
+        row[:revenue_collected] = revenue_collected
+        row[:reportable] = reportable
         row[:facility] = ticketing_fee
         row[:processing] = processing_fee
-        row[:net] = collected - (ticketing_fee + processing_fee)
+        row[:net] = reportable - (ticketing_fee + processing_fee)
         report << row
       end
-      subtotal[:net] = subtotal[:collected] - (subtotal[:facility] + subtotal[:processing])
+      subtotal[:net] = subtotal[:reportable] - (subtotal[:facility] + subtotal[:processing])
 
       report << subtotal
-      total_tickets[:gross] += subtotal[:gross]
-      total_tickets[:collected] += subtotal[:collected]
+      total_tickets[:revenue_collected] += subtotal[:revenue_collected]
+      total_tickets[:reportable] += subtotal[:reportable]
       total_tickets[:facility] += subtotal[:facility]
       total_tickets[:processing] += subtotal[:processing]
       total_tickets[:paid] += subtotal[:paid]
       total_tickets[:holds] += subtotal[:holds]
     end
 
-    total_tickets[:net] = total_tickets[:collected] - (total_tickets[:facility] + total_tickets[:processing])
+    total_tickets[:net] = total_tickets[:reportable] - (total_tickets[:facility] + total_tickets[:processing])
     total_tickets[:performance_code] = 'TOTAL'
     report << total_tickets if productions.size > 1
 
@@ -116,7 +122,7 @@ class SalesByPerformanceReport < Report
                  .sort { |t1, t2| t2.ticket_price <=> t1.ticket_price }
                  .each { |tc| @headers << tc.class_code if (total_tickets[tc.class_code] || 0) > 0 }
     end
-    @headers += %i[paid holds max_ticket gross collected facility processing net]
+    @headers += %i[paid holds max_ticket revenue_collected reportable facility processing net]
 
     [headers, report]
   end
