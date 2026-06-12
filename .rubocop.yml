@@ -33,3 +33,9 @@ Layout/IndentationWidth:
 Naming/VariableNumber:
   AllowedIdentifiers:
     - follow_up_message_2
+
+# RSpec describe/context blocks are naturally long; block length is not a
+# meaningful complexity signal in specs.
+Metrics/BlockLength:
+  Exclude:
+    - 'spec/**/*'
