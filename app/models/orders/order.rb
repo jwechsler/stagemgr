@@ -46,9 +46,28 @@ class Order < ApplicationRecord
     "Hold", "New", "Processing", "Processed", "Refunded", "Exchanged", "Exchanging", "Releasing", "Fulfilled",
 "Canceled", "Unclaimed", "Split").freeze
 
+  # Seat-inventory vocabulary. Two distinct concepts that are easy to confuse:
+  #
+  #   * ON HOLD  -> only the box-office HOLD status. These are seats a clerk has
+  #     parked for a patron who has not paid. Reported as HouseCount#held_seats
+  #     ("heads on hold"). Consumed by HouseCount#calculate_held_seats.
+  #
+  #   * OCCUPYING -> every status that ties up a seat so it is no longer sellable:
+  #     a hold, an in-progress checkout (NEW/PROCESSING), a completed sale
+  #     (PROCESSED/FULFILLED), or a seat mid-exchange/mid-release. Consumed by
+  #     Performance#seats_held / #number_of_seats_left to decide availability.
+  #
+  # SEAT_OCCUPYING_STATUSES and ON_HOLD_STATUSES are the preferred, self-describing
+  # names; HELD_STATUSES / HOLDING_SEAT_STATUSES are retained as the original
+  # names so existing call sites keep working unchanged.
   HELD_STATUSES = [Order::HOLD].freeze
 
   HOLDING_SEAT_STATUSES = [HOLD, NEW, PROCESSING, PROCESSED, EXCHANGING, RELEASING, FULFILLED].freeze
+
+  # Documented aliases for the two status sets above. Same frozen arrays, clearer
+  # names. New code should prefer these.
+  ON_HOLD_STATUSES = HELD_STATUSES                 # box-office holds only
+  SEAT_OCCUPYING_STATUSES = HOLDING_SEAT_STATUSES  # everything that occupies a seat
 
   TRANSITORY_STATUSES = [NEW, PROCESSING].freeze
 
