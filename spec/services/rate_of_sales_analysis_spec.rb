@@ -549,6 +549,44 @@ RSpec.describe RateOfSalesAnalysis, type: :service do
       expect(analysis.send(:expected_weekly_value, 6, total_weeks, body, tail)).to be_within(0.001).of(25.0)
       expect(analysis.send(:expected_weekly_value, 7, total_weeks, body, tail)).to be_within(0.001).of(15.0)
     end
+
+    # Degenerate short-run fix: when total_weeks <= tail.size, end-aligning the
+    # tail would bypass the body entirely and project pure decline. Instead the
+    # full body+tail curve is compressed into the available weeks, so the early
+    # peak is preserved rather than the run reading as all-decline.
+    it 'compresses the full curve into the run instead of projecting all-decline when the run is shorter than the tail' do
+      body = [10.0, 30.0]            # early growth to a week-2 peak
+      tail = [25.0, 15.0, 5.0, 2.0]  # tail_size 4 > total_weeks 3 → degenerate
+      total_weeks = 3
+
+      week1 = analysis.send(:expected_weekly_value, 1, total_weeks, body, tail)
+      week3 = analysis.send(:expected_weekly_value, 3, total_weeks, body, tail)
+
+      # The run opens on the body's growth value (10), NOT an interior decline
+      # value as the old end-aligned tail would have produced — proving the body
+      # is no longer bypassed.
+      expect(week1).to be_within(0.001).of(10.0)
+      # The run still closes on the tail's final value (the close).
+      expect(week3).to be_within(0.001).of(2.0)
+      # And the opening is below the historical peak (growth, not decline-tail).
+      expect(week1).to be < (body + tail).max
+    end
+  end
+
+  describe '#compressed_curve_value' do
+    let(:analysis) { described_class.new(create_production, []) }
+
+    it 'returns endpoints exactly and interpolates the interior' do
+      curve = [0.0, 10.0, 20.0, 30.0] # 4 points compressed into 3 weeks
+      expect(analysis.send(:compressed_curve_value, 1, 3, curve)).to be_within(0.001).of(0.0)
+      expect(analysis.send(:compressed_curve_value, 2, 3, curve)).to be_within(0.001).of(15.0)
+      expect(analysis.send(:compressed_curve_value, 3, 3, curve)).to be_within(0.001).of(30.0)
+    end
+
+    it 'handles single-point and empty curves' do
+      expect(analysis.send(:compressed_curve_value, 1, 1, [42.0])).to eq(42.0)
+      expect(analysis.send(:compressed_curve_value, 1, 3, [])).to eq(0.0)
+    end
   end
 
   describe '#plateau_level' do

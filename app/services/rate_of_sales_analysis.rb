@@ -201,6 +201,18 @@ class RateOfSalesAnalysis
   #     filled with the plateau level (avg of the last 2 body weeks).
   def expected_weekly_value(week_num, total_weeks, body, tail)
     tail_size = tail.size
+
+    # Degenerate short run: the target closes so soon that the end-aligned tail
+    # alone would fill the whole run and bypass the early body. Shows sell
+    # hardest early (growth to a week-2/3 peak), so projecting pure decline here
+    # is wrong. Instead compress the full historical curve (body + tail) into the
+    # available weeks, preserving the early peak in proportion. Only triggers
+    # when the run is no longer than the comparison's decline tail; normal and
+    # longer runs keep the matching-week + end-aligned-tail behavior below.
+    if tail_size.positive? && total_weeks <= tail_size
+      return compressed_curve_value(week_num, total_weeks, body + tail)
+    end
+
     tail_start_week = total_weeks - tail_size + 1 # first week occupied by the end-aligned tail
 
     if tail_size.positive? && week_num >= tail_start_week
@@ -216,6 +228,22 @@ class RateOfSalesAnalysis
       # hold the plateau level. extra_weeks widens this gap.
       plateau_level(body)
     end
+  end
+
+  # Linearly interpolate a curve to fill exactly total_weeks slots. Used only for
+  # the degenerate short-run case, where the historical curve is compressed into
+  # fewer weeks than it originally spanned. week_num is 1-based.
+  def compressed_curve_value(week_num, total_weeks, curve)
+    return 0.0 if curve.empty?
+    return curve.first if curve.size == 1 || total_weeks <= 1
+
+    position = (week_num - 1).to_f / (total_weeks - 1) * (curve.size - 1)
+    lower = position.floor
+    upper = position.ceil
+    return curve[lower] if lower == upper
+
+    fraction = position - lower
+    (curve[lower] * (1 - fraction)) + (curve[upper] * fraction)
   end
 
   # Plateau level = average of the last two body weeks (or the single value).

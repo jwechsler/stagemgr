@@ -181,9 +181,12 @@ productions and projects remaining revenue. Key conventions:
   closing week (closing-week dynamics belong at the close). If the target runs
   longer than the comparisons, the gap between the last matching body week and
   the end-aligned tail is filled with the plateau level (average of the last
-  two body weeks). The result is multiplied by the weighted performance ratio
-  and capped by remaining seat inventory × average realized ticket price.
-  `extra_weeks` widens the plateau gap.
+  two body weeks). If the target run is so short that the decline tail alone
+  would fill it and bypass the early body (`total_weeks <= tail.size`), the full
+  body+tail curve is instead compressed into the available weeks so the early
+  peak is preserved rather than projecting pure decline. The result is multiplied
+  by the weighted performance ratio and capped by remaining seat inventory ×
+  average realized ticket price. `extra_weeks` widens the plateau gap.
 - **Self-scaled (momentum) projection**: anchors on the target's recent 7-day
   rolling revenue and applies a weekly rate derived from the daily-rolling
   trajectory (last 7 complete days vs the prior 7), clamped to ±`MOMENTUM_CLAMP_PCT`%
