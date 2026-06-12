@@ -16,17 +16,17 @@ RSpec.describe TicketRevenueAnalysis, type: :service do
     @prod_seq ||= 0
     @prod_seq += 1
     prod = Production.new(
-      name:             "Test Prod #{@prod_seq}",
-      production_code:  "TP#{@prod_seq.to_s.rjust(4, '0')}",
-      capacity:         capacity,
-      closing_at:       closing,
-      opening_at:       Date.today - 14.days,
+      name: "Test Prod #{@prod_seq}",
+      production_code: "TP#{@prod_seq.to_s.rjust(4, '0')}",
+      capacity: capacity,
+      closing_at: closing,
+      opening_at: Date.today - 14.days,
       first_preview_at: Date.today - 14.days,
       press_opening_at: Date.today - 14.days,
-      season:           Date.today.year,
-      status:           Production::ACTIVE,
-      theater:          theater,
-      venue:            venue
+      season: Date.today.year,
+      status: Production::ACTIVE,
+      theater: theater,
+      venue: venue
     )
     prod.save!
     prod
@@ -37,18 +37,18 @@ RSpec.describe TicketRevenueAnalysis, type: :service do
     @tc_seq += 1
     code ||= "T#{@tc_seq.to_s.rjust(3, '0')}"
     TicketClass.create!(
-      production:       production,
-      class_code:       code,
-      class_name:       "Class #{code}",
-      ticket_type:      'Fixed',
-      ticket_price:     price,
-      ticketing_fee:    fee,
-      complimentary:    comp,
-      royalty_amount:   royalty,
-      web_visible:      true,
-      auto_attach:      false,
+      production: production,
+      class_code: code,
+      class_name: "Class #{code}",
+      ticket_type: 'Fixed',
+      ticket_price: price,
+      ticketing_fee: fee,
+      complimentary: comp,
+      royalty_amount: royalty,
+      web_visible: true,
+      auto_attach: false,
       software_managed: false,
-      holds_seats:      true
+      holds_seats: true
     )
   end
 
@@ -59,19 +59,19 @@ RSpec.describe TicketRevenueAnalysis, type: :service do
     perf_date = Date.today + 10.days + @perf_seq.days
     perf_time = Time.now.beginning_of_day + (18 + @perf_seq).hours
     Performance.create!(
-      performance_code:  perf_code,
-      production:        production,
-      performance_date:  perf_date,
-      performance_time:  perf_time,
-      status:            Performance::PERFORMANCE_STATUSES.first
+      performance_code: perf_code,
+      production: production,
+      performance_date: perf_date,
+      performance_time: perf_time,
+      status: Performance::PERFORMANCE_STATUSES.first
     )
   end
 
   def make_order_with_line_item(performance, ticket_class, count: 1)
     order = TicketOrder.create!(
-      status:       Order::NEW,
-      performance:  performance,
-      address:      FactoryBot.create(:address),
+      status: Order::NEW,
+      performance: performance,
+      address: FactoryBot.create(:address),
       payment_type: FactoryBot.create(:cash_payment_type)
     )
     TicketLineItem.create!(order: order, ticket_class: ticket_class, ticket_count: count)
@@ -563,7 +563,7 @@ RSpec.describe TicketRevenueAnalysis, type: :service do
 
     before do
       make_allocation(perf, tc, limit: 2)
-      make_order_with_line_item(perf, tc, count: 2)  # sold == limit
+      make_order_with_line_item(perf, tc, count: 2) # sold == limit
     end
 
     it 'sets allocation_cap_hit to true when sold == allocation limit' do

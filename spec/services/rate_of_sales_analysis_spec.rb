@@ -17,9 +17,9 @@ RSpec.describe RateOfSalesAnalysis, type: :service do
       :production,
       first_preview_at: opening,
       press_opening_at: opening,
-      opening_at:       opening,
-      closing_at:       closing,
-      capacity:         capacity
+      opening_at: opening,
+      closing_at: closing,
+      capacity: capacity
     )
   end
 
@@ -27,13 +27,13 @@ RSpec.describe RateOfSalesAnalysis, type: :service do
   def seed_ros(production, start_date:, days:, tickets: 10, gross_sales: 100.0)
     days.times.map do |i|
       RateOfSale.create!(
-        production:                  production,
-        day_of_sale:                 start_date + i.days,
-        total_single_tickets:        tickets,
+        production: production,
+        day_of_sale: start_date + i.days,
+        total_single_tickets: tickets,
         total_complimentary_tickets: 0,
-        gross_sales:                 gross_sales,
-        processing_fees:             0.00,
-        order_count:                 1
+        gross_sales: gross_sales,
+        processing_fees: 0.00,
+        order_count: 1
       )
     end
   end
@@ -95,8 +95,8 @@ RSpec.describe RateOfSalesAnalysis, type: :service do
         # first_playing_date = production.opening_at
         # presale_cutoff = first_playing_date - 21 days
         anchor = production.first_playing_date
-        seed_ros(production, start_date: anchor - 25.days, days: 5, tickets: 5, gross_sales: 50.0)  # pre-sales
-        seed_ros(production, start_date: anchor, days: 14, tickets: 10, gross_sales: 100.0)          # weeks 1-2
+        seed_ros(production, start_date: anchor - 25.days, days: 5, tickets: 5, gross_sales: 50.0) # pre-sales
+        seed_ros(production, start_date: anchor, days: 14, tickets: 10, gross_sales: 100.0) # weeks 1-2
       end
 
       it 'returns a non-empty target_tickets hash' do
@@ -241,17 +241,17 @@ RSpec.describe RateOfSalesAnalysis, type: :service do
       anchor1 = comp1.first_playing_date
       pc1 = anchor1 - 21.days
       RateOfSale.create!(production: comp1, day_of_sale: pc1 - 1.day, total_single_tickets: 10,
-                          total_complimentary_tickets: 0, gross_sales: 100.0, processing_fees: 0, order_count: 1)
+                         total_complimentary_tickets: 0, gross_sales: 100.0, processing_fees: 0, order_count: 1)
       RateOfSale.create!(production: comp1, day_of_sale: pc1 + 1.day, total_single_tickets: 20,
-                          total_complimentary_tickets: 0, gross_sales: 200.0, processing_fees: 0, order_count: 1)
+                         total_complimentary_tickets: 0, gross_sales: 200.0, processing_fees: 0, order_count: 1)
 
       # Seed comp2 with presale + week 1 data
       anchor2 = comp2.first_playing_date
       pc2 = anchor2 - 21.days
       RateOfSale.create!(production: comp2, day_of_sale: pc2 - 1.day, total_single_tickets: 10,
-                          total_complimentary_tickets: 0, gross_sales: 100.0, processing_fees: 0, order_count: 1)
+                         total_complimentary_tickets: 0, gross_sales: 100.0, processing_fees: 0, order_count: 1)
       RateOfSale.create!(production: comp2, day_of_sale: pc2 + 3.days, total_single_tickets: 30,
-                          total_complimentary_tickets: 0, gross_sales: 300.0, processing_fees: 0, order_count: 1)
+                         total_complimentary_tickets: 0, gross_sales: 300.0, processing_fees: 0, order_count: 1)
     end
 
     it 'returns a Hash for aggregate_data' do
@@ -285,9 +285,9 @@ RSpec.describe RateOfSalesAnalysis, type: :service do
       anchor = comp.first_playing_date
       pc = anchor - 21.days
       RateOfSale.create!(production: comp, day_of_sale: pc + 1.day, total_single_tickets: 5,
-                          total_complimentary_tickets: 0, gross_sales: 150.0, processing_fees: 0, order_count: 1)
+                         total_complimentary_tickets: 0, gross_sales: 150.0, processing_fees: 0, order_count: 1)
       RateOfSale.create!(production: comp, day_of_sale: pc + 8.days, total_single_tickets: 5,
-                          total_complimentary_tickets: 0, gross_sales: 100.0, processing_fees: 0, order_count: 1)
+                         total_complimentary_tickets: 0, gross_sales: 100.0, processing_fees: 0, order_count: 1)
     end
 
     it 'returns an array with one entry per comparison production' do
@@ -329,7 +329,7 @@ RSpec.describe RateOfSalesAnalysis, type: :service do
       anchor = production.first_playing_date
       pc = anchor - 21.days
       RateOfSale.create!(production: production, day_of_sale: pc + 1.day, total_single_tickets: 10,
-                          total_complimentary_tickets: 0, gross_sales: 200.0, processing_fees: 0, order_count: 1)
+                         total_complimentary_tickets: 0, gross_sales: 200.0, processing_fees: 0, order_count: 1)
     end
 
     it 'includes :production, :total_revenue, :num_weeks' do
@@ -579,7 +579,7 @@ RSpec.describe RateOfSalesAnalysis, type: :service do
 
     it 'ignores "Pre-sales" key when selecting the last 3 weeks' do
       data = { "Pre-sales" => 0.0, "Week 1" => 0.0, "Week 2" => 20.0 }
-      momentum, window = analysis.send(:compute_momentum, data)
+      _, window = analysis.send(:compute_momentum, data)
       # Only Week 1 and Week 2 match /^Week \d+$/
       expect(window).to eq(2)
     end
@@ -598,26 +598,26 @@ RSpec.describe RateOfSalesAnalysis, type: :service do
 
     it 'returns nil when total tickets is zero' do
       RateOfSale.create!(production: production, day_of_sale: Date.today - 1,
-                          total_single_tickets: 0, total_complimentary_tickets: 0,
-                          gross_sales: 0, processing_fees: 0, order_count: 0)
+                         total_single_tickets: 0, total_complimentary_tickets: 0,
+                         gross_sales: 0, processing_fees: 0, order_count: 0)
       expect(analysis.send(:avg_ticket_price_to_date, production)).to be_nil
     end
 
     it 'calculates the average correctly' do
       # 100 revenue, 10 tickets → avg = 10.0
       RateOfSale.create!(production: production, day_of_sale: Date.today - 1,
-                          total_single_tickets: 10, total_complimentary_tickets: 0,
-                          gross_sales: 100.0, processing_fees: 0, order_count: 1)
+                         total_single_tickets: 10, total_complimentary_tickets: 0,
+                         gross_sales: 100.0, processing_fees: 0, order_count: 1)
       expect(analysis.send(:avg_ticket_price_to_date, production)).to be_within(0.001).of(10.0)
     end
 
     it 'sums across multiple records' do
       RateOfSale.create!(production: production, day_of_sale: Date.today - 2,
-                          total_single_tickets: 10, total_complimentary_tickets: 0,
-                          gross_sales: 100.0, processing_fees: 0, order_count: 1)
+                         total_single_tickets: 10, total_complimentary_tickets: 0,
+                         gross_sales: 100.0, processing_fees: 0, order_count: 1)
       RateOfSale.create!(production: production, day_of_sale: Date.today - 1,
-                          total_single_tickets: 10, total_complimentary_tickets: 0,
-                          gross_sales: 200.0, processing_fees: 0, order_count: 1)
+                         total_single_tickets: 10, total_complimentary_tickets: 0,
+                         gross_sales: 200.0, processing_fees: 0, order_count: 1)
       # total_rev=300, total_tix=20 → avg=15.0
       expect(analysis.send(:avg_ticket_price_to_date, production)).to be_within(0.001).of(15.0)
     end
@@ -758,8 +758,8 @@ RSpec.describe RateOfSalesAnalysis, type: :service do
 
     it 'returns finite budget when avg_price is positive' do
       # Create a future performance
-      perf = FactoryBot.create(:performance, production: production,
-                                performance_date: Date.today + 1.day)
+      FactoryBot.create(:performance, production: production,
+                                      performance_date: Date.today + 1.day)
       result = analysis.send(:remaining_revenue_budget, production, 10.0)
       expect(result).not_to eq(Float::INFINITY)
     end
@@ -833,15 +833,15 @@ RSpec.describe RateOfSalesAnalysis, type: :service do
       pc_t = anchor_t - 21.days
       [1, 2, 3].each do |w|
         RateOfSale.create!(production: target, day_of_sale: pc_t + (((w - 1) * 7) + 1).days,
-                            total_single_tickets: 10, total_complimentary_tickets: 0,
-                            gross_sales: 100.0, processing_fees: 0, order_count: 1)
+                           total_single_tickets: 10, total_complimentary_tickets: 0,
+                           gross_sales: 100.0, processing_fees: 0, order_count: 1)
       end
       anchor_c = comp.first_playing_date
       pc_c = anchor_c - 21.days
       [1, 2, 3, 4, 5, 6, 7, 8].each do |w|
         RateOfSale.create!(production: comp, day_of_sale: pc_c + (((w - 1) * 7) + 1).days,
-                            total_single_tickets: 10, total_complimentary_tickets: 0,
-                            gross_sales: 100.0, processing_fees: 0, order_count: 1)
+                           total_single_tickets: 10, total_complimentary_tickets: 0,
+                           gross_sales: 100.0, processing_fees: 0, order_count: 1)
       end
     end
 

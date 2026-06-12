@@ -6,8 +6,8 @@ RSpec.describe SeatManagementService, type: :service do
   let(:production) { FactoryBot.create(:production_with_reserved_seating) }
   let(:performance) do
     perf = FactoryBot.create(:reserved_seating, production: production,
-                             performance_date: Date.today + 7.days,
-                             performance_time: Time.parse("19:00"))
+                                                performance_date: Date.today + 7.days,
+                                                performance_time: Time.parse("19:00"))
     SeatAssignment.available_seat_assignments(perf)
     perf.reload
     perf
@@ -17,9 +17,9 @@ RSpec.describe SeatManagementService, type: :service do
   # Helper: grab the requested number of available SeatAssignments from the performance
   def available_seat_ids(count = 1)
     performance.seat_assignments
-              .select { |sa| sa.status == SeatAssignment::AVAILABLE }
-              .first(count)
-              .map(&:seat_id)
+               .select { |sa| sa.status == SeatAssignment::AVAILABLE }
+               .first(count)
+               .map(&:seat_id)
   end
 
   # Helper: a valid ticket class id for this performance

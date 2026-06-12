@@ -146,7 +146,7 @@ RSpec.describe SampleOrderBuilder, type: :service do
     end
 
     it "returns the value of the block" do
-      result = SampleOrderBuilder.with_sample_order(theater, recipient_email) do |order|
+      result = SampleOrderBuilder.with_sample_order(theater, recipient_email) do |_order|
         "block_return_value"
       end
       # The rollback happens via raise ActiveRecord::Rollback inside the transaction,

@@ -10,13 +10,13 @@ RSpec.describe RateOfSale, type: :model do
   # ---------------------------------------------------------------------------
   def build_ros(overrides = {})
     RateOfSale.new({
-      day_of_sale:                   Date.today,
-      production:                    production,
-      total_single_tickets:          5,
-      total_complimentary_tickets:   2,
-      gross_sales:                   BigDecimal('50.00'),
-      processing_fees:               BigDecimal('1.50'),
-      order_count:                   3
+      day_of_sale: Date.today,
+      production: production,
+      total_single_tickets: 5,
+      total_complimentary_tickets: 2,
+      gross_sales: BigDecimal('50.00'),
+      processing_fees: BigDecimal('1.50'),
+      order_count: 3
     }.merge(overrides))
   end
 
@@ -202,9 +202,10 @@ RSpec.describe RateOfSale, type: :model do
   # ---------------------------------------------------------------------------
   describe '.export_to_file via MetricsExporter' do
     let(:tmpfile) { Tempfile.new(['rate_of_sales', '.txt']) }
-    after { 
+    after do
       tmpfile.close
- tmpfile.unlink }
+      tmpfile.unlink
+    end
 
     it 'writes a file with header, separator, and record lines' do
       RateOfSale.create!(
