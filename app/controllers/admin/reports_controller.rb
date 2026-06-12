@@ -201,7 +201,7 @@ class Admin::ReportsController < Admin::ApplicationController
   def fulfill_tickets
     @through_day = params[:through_day].to_date
     @headers, @report_data = build_fulfill_labels(@through_day)
-    if $TKTPRINT['service'].blank?
+    if Rails.configuration.x.tktprint['service'].blank?
       send_report_as_csv('ticket_labels', @headers, @report_data)
     else
       flash[:notice] = "Tickets printed for #{@through_day}"

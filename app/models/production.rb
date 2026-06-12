@@ -217,7 +217,7 @@ class Production < ApplicationRecord
                        :visible_classes => [Production::PLAY],
                        :after_date => Time.now.end_of_week,
                        :future_date => (Time.now + 3.month),
-                       :order_address => order.address.id }).order($RAND_CLAUSE).limit(3)
+                       :order_address => order.address.id }).order(Rails.configuration.x.rand_clause).limit(3)
   end
 
   def self.running_week_of(check_date)

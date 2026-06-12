@@ -169,7 +169,7 @@ class CreditCardPayment < CurrencyPayment
   end
 
   def self.card_types
-    @@credit_card_types ||= ActiveRecord::Validations::ClassMethods::DEFAULT_CREDIT_CARD_TYPES.values.sort - ['invalid'] + $ADDITIONAL_CARD_TYPES
+    @@credit_card_types ||= ActiveRecord::Validations::ClassMethods::DEFAULT_CREDIT_CARD_TYPES.values.sort - ['invalid'] + Rails.configuration.x.additional_card_types
   end
 
   protected

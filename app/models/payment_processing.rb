@@ -63,13 +63,13 @@ module PaymentProcessing
   end
 
   def self.after_initialize
-    if ($PAYMENT_CONFIG['default_gateway'].eql?('paypal') || $PAYMENT_CONFIG['default_recurring_gateway'].eql?('paypal')) && !Rails.credentials.dig(
+    if (Rails.configuration.x.payment_config['default_gateway'].eql?('paypal') || Rails.configuration.x.payment_config['default_recurring_gateway'].eql?('paypal')) && !Rails.credentials.dig(
       :paypal, :pem_file
     ).nil?
       pem_file = File.read(::Rails.root.to_s + "/config/#{Rails.credentials.dig(:paypal, :pem_file)}")
       ActiveMerchant::Billing::PaypalGateway.pem_file = pem_file
     end
-    if $PAYMENT_CONFIG['default_gateway'].eql?('stripe') || $PAYMENT_CONFIG['default_recurring_gateway'].eql?('stripe')
+    if Rails.configuration.x.payment_config['default_gateway'].eql?('stripe') || Rails.configuration.x.payment_config['default_recurring_gateway'].eql?('stripe')
       Stripe.api_key = Rails.application.credentials.dig(:stripe, :secret_key)
     end
   end
@@ -117,14 +117,14 @@ module PaymentProcessing
 
   def self.credit_card(card_type, first_name, last_name, card_number, card_expiration_month, card_expiration_year,
                        verification_number)
-    if $PAYMENT_CONFIG.key?('test_credit_card')
-      Rails.logger.debug { "Using test credit card number of #{$PAYMENT_CONFIG['test_credit_card']}" }
+    if Rails.configuration.x.payment_config.key?('test_credit_card')
+      Rails.logger.debug { "Using test credit card number of #{Rails.configuration.x.payment_config['test_credit_card']}" }
     end
     credit_card = ActiveMerchant::Billing::CreditCard.new(
       brand: credit_card_type(card_type),
       first_name: first_name,
       last_name: last_name,
-      number: $PAYMENT_CONFIG.key?('test_credit_card') ? $PAYMENT_CONFIG['test_credit_card'].to_s : card_number,
+      number: Rails.configuration.x.payment_config.key?('test_credit_card') ? Rails.configuration.x.payment_config['test_credit_card'].to_s : card_number,
       month: card_expiration_month,
       year: card_expiration_year,
       verification_value: verification_number
@@ -139,11 +139,11 @@ module PaymentProcessing
   end
 
   def self.default_recurring_gateway
-    $PAYMENT_CONFIG['default_recurring_gateway']
+    Rails.configuration.x.payment_config['default_recurring_gateway']
   end
 
   def self.default_gateway
-    $PAYMENT_CONFIG['default_gateway']
+    Rails.configuration.x.payment_config['default_gateway']
   end
 
   def self.subscription_url(subscription_id)
@@ -155,7 +155,7 @@ module PaymentProcessing
   end
 
   def self.credit_card_type(ctype)
-    return $PAYMENT_CONFIG['test_card_brand'] if $PAYMENT_CONFIG.key?('test_card_brand')
+    return Rails.configuration.x.payment_config['test_card_brand'] if Rails.configuration.x.payment_config.key?('test_card_brand')
 
     case ctype
     when 'MasterCard'
