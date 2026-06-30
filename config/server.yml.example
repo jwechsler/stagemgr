@@ -57,8 +57,6 @@ all:
   report_frequent_customer_range_days: 1460 # Window of time to determine a frequent customer.  Undefined means for all purchase history
   # Maximum tickets a patron can select in one order via the quantity dropdown
   max_ticket_dropdown: 20
-  # Seats remaining below which front-facing sales collapse to "Call" instead of a quantity dropdown (0 = never show Call, only Sold Out)
-  suspend_front_facing_sales_threshold: 0
   # Seats remaining at or below which remaining inventory is restricted to the box office (near-capacity)
   restrict_sales_due_to_capacity_at: 8
   # Calendar heatmap thresholds (percentage of seats remaining)
