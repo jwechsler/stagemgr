@@ -8,10 +8,12 @@
       - number_left = performance.number_of_seats_left
       -# Cap the quantity selector at max_per_order even when more seats are available
       - max_count = [f.object.ticket_class.number_left(performance), number_left, max_per_order].min
-      -# Near-capacity: pull the final seats off self-service and route to the box office.
-      -# Same gate as the calendar listing (Performance#near_capacity? / restrict_sales_due_to_capacity_at),
-      -# so a direct link to a low-inventory performance is suspended the same way the calendar is.
-      - if performance.near_capacity?
+      -# Pull front-facing sales off self-service and route to the box office when either the
+      -# performance is near capacity (restrict_sales_due_to_capacity_at) or within the pre-show
+      -# sales cutoff (restrict_sales_due_to_time_at_minutes_before, via Performance#happening_soon?).
+      -# These are the same gates the calendar listing uses, so a direct link to a low-inventory or
+      -# about-to-start performance is suspended the same way the calendar is.
+      - if performance.near_capacity? || performance.happening_soon?
         = f.hidden_field :ticket_count
         - if number_left == 0
           Sold Out
