@@ -74,7 +74,7 @@ Rails.application.configure do
   config.x.tktprint = YAML.load(File.open(Rails.root.join('config/ticket_print.yml').to_s))['test']
 
   config_data = YAML.load(File.open(Rails.root.join('config/server.yml').to_s))
-  config.x.server_config = config_data['all'].deep_merge(config_data['test'])
+  config.x.server_config = config_data['all'].deep_merge(config_data['test']).with_indifferent_access
   config.x.payment_config = config.x.server_config['payment_processing']
   config.x.test_credit_card = config.x.payment_config['test_credit_card']
   config.x.email_address = config.x.server_config['email']['addresses']

@@ -137,7 +137,7 @@ Rails.application.configure do
   # existing string-key access (e.g. config.x.server_config['host']) keeps
   # working. Legacy $GLOBALS alias these via config/initializers/legacy_globals.rb.
   config_data = YAML.load(File.open(Rails.root.join('config/server.yml').to_s))
-  config.x.server_config = config_data['all'].deep_merge(config_data['production'])
+  config.x.server_config = config_data['all'].deep_merge(config_data['production']).with_indifferent_access
   config.x.email_address = config.x.server_config['email']['addresses']
   config.x.payment_config = config.x.server_config['payment_processing']
   config.x.server_config['ext_site_wrapper'] = config.x.server_config['ext_site_wrapper'] || 'ext_site_wrapper'

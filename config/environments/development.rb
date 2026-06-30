@@ -101,7 +101,7 @@ Rails.application.configure do
   # working. Legacy $GLOBALS alias these via config/initializers/legacy_globals.rb.
   config.x.tktprint = YAML.load(File.open(Rails.root.join('config/ticket_print.yml').to_s))['development']
   config_data = YAML.load(File.open(Rails.root.join('config/server.yml').to_s))
-  config.x.server_config = config_data['all'].deep_merge(config_data['development'])
+  config.x.server_config = config_data['all'].deep_merge(config_data['development']).with_indifferent_access
   config.x.payment_config = config.x.server_config['payment_processing']
   config.x.server_config['ext_site_wrapper'] = config.x.server_config['ext_site_wrapper'] || 'ext_site_wrapper'
   config.x.email_address = config.x.server_config['email']['addresses']
