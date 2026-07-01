@@ -73,8 +73,9 @@ test:
   host: "127.0.0.1"
   root_url:  "http://127.0.0.1"
   secure_root_url:  ""
-  survey_link: "https://survey.example.test"
-  mailing_list_link: "http://mailing.example.test"
+  # Sentinel values asserted by spec/models/productions/production_spec.rb
+  survey_link: "https://SURVEYLINK.TEST"
+  mailing_list_link: "http://MAILINGLINK.TEST"
   my_emma:
     create_production_groups: false
   email:
