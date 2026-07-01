@@ -1,78 +1,117 @@
-development:
-  root_url:  "http://stagemgr.dev"
-  secure_root_url:  "http://stagemgr.dev"
-  static_cache_dir: "/Users/jeremyw/tmp"
-  filestore_hash: "yoursecrethere"
-  resque_admin_password: "yourpassword"
-  payment_processing:
-    default_gateway: bogus
-    default_recurring_gateway: bogus
-    test_credit_card: 1
-    test_card_brand: bogus
-  
-
-test:
-  filestore_hash: "yoursecrethere"
-  resque_admin_password: "yourpassword"
-  host: "127.0.0.1"
-  root_url:  "http://127.0.0.1"
-  secure_root_url:  ""
-  external_site_wrapper: http://site.test
-  survey_link: "https://SURVEYLINK.TEST"
-  mailing_list_link: "http://MAILINGLINK.TEST"
-  my_emma:
-    create_production_groups: false
-  email_addresses:
-      box_office: boxoffice@yourtheater.org
-      online_errors: boxoffice@yourtheater.org
-      flex_pass_notifications: boxoffice@yourtheater.org
-      membership_notifications: boxoffice@yourtheater.org
-      supervisor_notifications: boxoffice@yourtheater.org
-  payment_processing:
-    additional_card_types: bogus
-    default_recurring_gateway: bogus
-    default_gateway: bogus
-    test_credit_card: 1
-    test_card_brand: bogus
-
-production:
-  root_url:  "http://configure.yourserver.here/tickets"
-  secure_rooturl: "https://configure.yourserver.here/tickets"
-  filestore_hash: "yoursecrethere"
-  resque_admin_password: "yourpassword"
-  payment_processing:
-    default_gateway: stripe
-    default_recurring_gateway: stripe
-
-
+# Copy to config/server.yml (rake config:setup does this) and adjust for your
+# deployment. Values in `all:` apply to every environment and are overridden by
+# any key present in the environment-specific section below.
 all:
   app_name: "StageMgr"
-  minutes_before_performance_close_to_third_party_sales: 30
+  # permits certain order tasks to be suppressed at the user's request
+  allowed_order_task_suppressions: { OutreachTask: [ticket_confirmation, ANY] }
+  # host used for building references to static resources
+  host: "www.yourtheater.org"
+  # mount point for the application (some deployments serve it under a sub-path)
+  sub_uri: "/tickets"
+  # required protocol
+  host_protocol: "https"
+  # minutes before unpaid orders expire
   order_expiration_in_minutes: 8
-  hud_export_directory: "/tmp"
-  # Report generation configuration
-  max_report_date_range_days: 730  # Maximum date range for reports (2 years)
-  report_timeout_seconds: 30       # Timeout for inline report generation
-  report_frequent_customer_at: 12         # Minimum Number of visits from a customer to define a "frequent attendee"
-  report_frequent_customer_range_days: 1460 # Window of time to determine a frequent customer.  Undefined means for all purchase history
+  # block public sales this many minutes before showtime (route inventory to the box office)
+  restrict_sales_due_to_time_at_minutes_before: 120
+  # block third-party (theater user) sales this many minutes before showtime
+  minutes_before_performance_close_to_third_party_sales: 30
+  # Seats remaining at/below which inventory is pulled off self-service and routed
+  # to the box office. Governs BOTH the calendar listing ("Call box office") and
+  # the order-form line item (Performance#near_capacity?).
+  restrict_sales_due_to_capacity_at: 9
   # Maximum tickets a patron can select in one order via the quantity dropdown
   max_ticket_dropdown: 20
-  # Seats remaining at or below which remaining inventory is restricted to the box office (near-capacity)
-  restrict_sales_due_to_capacity_at: 8
-  # Calendar heatmap thresholds (percentage of seats remaining)
+  # calendar heatmap thresholds (percentage of seats remaining)
   calendar_display:
     warning_at: 50
     critical_at: 30
+  # layout for public-facing pages to match the main web site
+  ext_site_wrapper: 'ext_site_wrapper'
+  # export directory for HUD reports
+  hud_export_directory: "/tmp"
+  # report generation configuration
+  max_report_date_range_days: 730
+  report_timeout_seconds: 30
+  report_frequent_customer_at: 12
+  report_frequent_customer_range_days: 1460
   payment_processing:
     additional_card_types:
+
+development:
+  app_name: "StageMgrDEV"
+  root_url:  "http://localhost"
+  secure_root_url:  "http://localhost"
+  static_cache_dir: "/tmp/stagemgr-cache"
+  filestore_hash: "yoursecrethere"
+  resque_admin_password: "changeme"
+  my_emma:
+    create_production_groups: false
+    create_theater_groups: false
   email:
     delivery_method: postmark
     addresses:
       box_office: boxoffice@yourtheater.org
       online_errors: boxoffice@yourtheater.org
-      software_address: stagemgr@yourtheater.org
       flex_pass_notifications: boxoffice@yourtheater.org
       membership_notifications: boxoffice@yourtheater.org
       supervisor_notifications: admin@yourtheater.org
       wheelchair_conversion_notifications: stagemgr@yourtheater.org
+      software_address: stagemgr@yourtheater.org
+  payment_processing:
+    default_gateway: bogus
+    default_recurring_gateway: bogus
+    test_credit_card: "4111111111111111"
+    test_card_brand: bogus
 
+# The test/cucumber suites run against MySQL (see database.yml.example) and use
+# StripeMock, so no real gateway or credentials are needed here.
+test:
+  filestore_hash: "yoursecrethere"
+  resque_admin_password: "changeme"
+  host: "127.0.0.1"
+  root_url:  "http://127.0.0.1"
+  secure_root_url:  ""
+  survey_link: "https://survey.example.test"
+  mailing_list_link: "http://mailing.example.test"
+  my_emma:
+    create_production_groups: false
+  email:
+    addresses:
+      box_office: boxoffice@yourtheater.org
+      online_errors: boxoffice@yourtheater.org
+      flex_pass_notifications: boxoffice@yourtheater.org
+      membership_notifications: boxoffice@yourtheater.org
+      supervisor_notifications: admin@yourtheater.org
+      wheelchair_conversion_notifications: stagemgr@yourtheater.org
+      software_address: stagemgr@yourtheater.org
+  payment_processing:
+    default_gateway: bogus
+    default_recurring_gateway: bogus
+    additional_card_types: bogus
+    test_credit_card: "4111111111111111"
+    test_card_brand: bogus
+
+production:
+  root_url:  "http://configure.yourserver.here/tickets"
+  secure_root_url: "https://configure.yourserver.here/tickets"
+  static_cache_dir: "/var/www/stagemgr/tmp/cache"
+  filestore_hash: "changeme"
+  resque_admin_password: "changeme"
+  my_emma:
+    create_production_groups: true
+    create_theater_groups: true
+  email:
+    delivery_method: postmark
+    addresses:
+      box_office: boxoffice@yourtheater.org
+      online_errors: boxoffice@yourtheater.org
+      flex_pass_notifications: boxoffice@yourtheater.org
+      membership_notifications: boxoffice@yourtheater.org
+      supervisor_notifications: admin@yourtheater.org
+      wheelchair_conversion_notifications: stagemgr@yourtheater.org
+      software_address: stagemgr@yourtheater.org
+  payment_processing:
+    default_gateway: stripe
+    default_recurring_gateway: stripe

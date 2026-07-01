@@ -116,7 +116,9 @@ class Performance < ApplicationRecord
 
   def happening_soon?
     at = performance_at
-    (Time.now < at + production.running_time.minutes) && (Time.now + Rails.configuration.x.server_config['restrict_sales_due_to_time_at_minutes_before'].minutes > at)
+    # .to_i so a missing/nil config key degrades to 0 instead of raising NoMethodError
+    # on nil (mirrors the coercion on restrict_sales_due_to_capacity_at in near_capacity?).
+    (Time.now < at + production.running_time.minutes) && (Time.now + Rails.configuration.x.server_config['restrict_sales_due_to_time_at_minutes_before'].to_i.minutes > at)
   end
 
   def performance_at
