@@ -1,0 +1,71 @@
+name: Test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  rspec-cucumber:
+    runs-on: ubuntu-latest
+
+    services:
+      # Ephemeral MySQL created and destroyed by the runner each run — nothing
+      # to host or maintain. Loaded fresh from db/schema.rb below.
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: stagemgr_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+      redis:
+        image: redis:latest
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      RAILS_ENV: test
+      # config/database.yml.example reads these; the generated database.yml
+      # points the test/cucumber DBs at the MySQL service above.
+      DATABASE_HOST: 127.0.0.1
+      DATABASE_PORT: 3306
+      DATABASE_USERNAME: root
+      DATABASE_PASSWORD: root
+      TEST_DATABASE: stagemgr_test
+      REDIS_URL: redis://localhost:6379
+      # No RAILS_MASTER_KEY needed: the test env decrypts
+      # config/credentials/test.yml.enc with the committed, dummy-only test.key.
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # mysql2 native extension needs the MySQL client headers. Install before
+      # ruby/setup-ruby so bundler-cache's `bundle install` can build the gem.
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y default-libmysqlclient-dev
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Generate config files from templates
+        run: bundle exec rake config:setup
+
+      - name: Load the test database schema
+        run: bundle exec rails db:create db:schema:load
+
+      - name: RSpec
+        run: bundle exec rspec
+
+      - name: Cucumber (non-JS)
+        run: bundle exec cucumber --tags "not @javascript"
