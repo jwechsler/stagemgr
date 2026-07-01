@@ -5,6 +5,5 @@ class AddOrderReferralCode < ActiveRecord::Migration[4.2]
 
   def self.down
     remove_column :orders, :referral_code, :string
-    
   end
 end

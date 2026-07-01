@@ -8,4 +8,3 @@ class AddServiceItemsToTheatre < ActiveRecord::Migration[4.2]
     add_column :productions, :override_addl_exchange_items, :string
   end
 end
-

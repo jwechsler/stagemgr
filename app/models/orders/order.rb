@@ -1,10 +1,9 @@
 class Order < ApplicationRecord
-
   include Admin::ReportsHelper
   include ActionView::Helpers::NumberHelper
   include EmailValidatable
 
-    # Associations
+  # Associations
   belongs_to :theater, required: false, inverse_of: :orders
   belongs_to :performance, required: false, inverse_of: :orders
 
@@ -13,12 +12,12 @@ class Order < ApplicationRecord
   validates :address, presence: true
 
   # Validates marketing source format if it's not one of the standard referrals
-  validates :marketing_source, format: { with: /\A[a-zA-Z0-9_\s\/-]*\z/, message: "can only contain letters, numbers, spaces, forward slashes, underscores and hyphens" }, allow_blank: true
+  validates :marketing_source,
+            format: { with: /\A[a-zA-Z0-9_\s\/-]*\z/, message: "can only contain letters, numbers, spaces, forward slashes, underscores and hyphens" }, allow_blank: true
   validate :validate_marketing_source
 
-  
-  
-  belongs_to :recipient_address, class_name: 'Address', foreign_key: :recipient_address_id, required: false, inverse_of: :orders_as_recipient
+  belongs_to :recipient_address, class_name: 'Address', required: false,
+                                 inverse_of: :orders_as_recipient
 
   has_many :payments, inverse_of: :order
   has_many :exchange_payments
@@ -44,14 +43,34 @@ class Order < ApplicationRecord
   # Constants
   ORDER_STATUSES = (
   HOLD, NEW, PROCESSING, PROCESSED, REFUNDED, EXCHANGED, EXCHANGING, RELEASING, FULFILLED, CANCELED, UNCLAIMED, SPLIT =
-      "Hold", "New", "Processing", "Processed", "Refunded", "Exchanged", "Exchanging", "Releasing", "Fulfilled", "Canceled", "Unclaimed", "Split").freeze
+    "Hold", "New", "Processing", "Processed", "Refunded", "Exchanged", "Exchanging", "Releasing", "Fulfilled",
+"Canceled", "Unclaimed", "Split").freeze
 
+  # Seat-inventory vocabulary. Two distinct concepts that are easy to confuse:
+  #
+  #   * ON HOLD  -> only the box-office HOLD status. These are seats a clerk has
+  #     parked for a patron who has not paid. Reported as HouseCount#held_seats
+  #     ("heads on hold"). Consumed by HouseCount#calculate_held_seats.
+  #
+  #   * OCCUPYING -> every status that ties up a seat so it is no longer sellable:
+  #     a hold, an in-progress checkout (NEW/PROCESSING), a completed sale
+  #     (PROCESSED/FULFILLED), or a seat mid-exchange/mid-release. Consumed by
+  #     Performance#seats_held / #number_of_seats_left to decide availability.
+  #
+  # SEAT_OCCUPYING_STATUSES and ON_HOLD_STATUSES are the preferred, self-describing
+  # names; HELD_STATUSES / HOLDING_SEAT_STATUSES are retained as the original
+  # names so existing call sites keep working unchanged.
   HELD_STATUSES = [Order::HOLD].freeze
 
   HOLDING_SEAT_STATUSES = [HOLD, NEW, PROCESSING, PROCESSED, EXCHANGING, RELEASING, FULFILLED].freeze
 
+  # Documented aliases for the two status sets above. Same frozen arrays, clearer
+  # names. New code should prefer these.
+  ON_HOLD_STATUSES = HELD_STATUSES                 # box-office holds only
+  SEAT_OCCUPYING_STATUSES = HOLDING_SEAT_STATUSES  # everything that occupies a seat
+
   TRANSITORY_STATUSES = [NEW, PROCESSING].freeze
-  
+
   UNPROCESSED_STATUSES = (TRANSITORY_STATUSES + [HOLD]).freeze
 
   ATTENDING_STATUSES = [PROCESSED, FULFILLED].freeze
@@ -63,9 +82,8 @@ class Order < ApplicationRecord
   RETURNED_STATUSES = [UNCLAIMED, REFUNDED, EXCHANGED].freeze
 
   REFERRALS = [
-      "Email", "Mail", "Cast/Staff/Production Team", "Review/Feature", "Radio", "Newspaper Ad", "Facebook", "Twitter", "Word of Mouth", "Attended previous production", "Other"
+    "Email", "Mail", "Cast/Staff/Production Team", "Review/Feature", "Radio", "Newspaper Ad", "Facebook", "Twitter", "Word of Mouth", "Attended previous production", "Other"
   ].freeze
-
 
   # Order statuses that are considered transitory
   audited
@@ -83,8 +101,8 @@ class Order < ApplicationRecord
   after_save :set_tasks_after_save
 
   # Validations
-  validates_inclusion_of :status, :in => ORDER_STATUSES, :if=>:status_is_provided?
-  validates_presence_of :address
+  validates :status, inclusion: { :in => ORDER_STATUSES, :if => :status_is_provided? }
+  validates :address, presence: true
   validates_associated :address, unless: :new?
   validates_associated :payments,
                        :special_offer_line_item
@@ -95,37 +113,37 @@ class Order < ApplicationRecord
 
   # Custom validation method
   def validate_membership_payments
-    membership_payments.each { |p| p.membership.verify_applicable_for(self)}
+    membership_payments.each { |p| p.membership.verify_applicable_for(self) }
   end
 
   def validate_marketing_source
     return if marketing_source.blank?
     return if REFERRALS.include?(marketing_source)
-    
+
     # If it's not a standard referral, ensure it's not too long for the database
-    if marketing_source.length > 255
+    return unless marketing_source.length > 255
       errors.add(:marketing_source, "is too long (maximum is 255 characters)")
-    end
+    
   end
 
-  #scopes 
-  scope :transitory, -> {
+  # scopes
+  scope :transitory, lambda {
     where(status: Order::TRANSITORY_STATUSES)
   }
 
-  scope :settled, -> {
+  scope :settled, lambda {
     where(status: Order::SETTLED_STATUSES)
   }
 
-  scope :attending, -> {
+  scope :attending, lambda {
     where(status: Order::ATTENDING_STATUSES)
   }
 
-  scope :paid, -> {
+  scope :paid, lambda {
     where(status: Order::FINALIZED_STATUSES)
   }
 
-  scope :finalized, -> {
+  scope :finalized, lambda {
     where(status: Order::FINALIZED_STATUSES)
   }
 
@@ -140,14 +158,14 @@ class Order < ApplicationRecord
 
   # total recorded revenue collected by box office
   def total_collected
-    sum_payments = self.payments.reported_as_sales_collected.sum(:amount)
+    sum_payments = payments.reported_as_sales_collected.sum(:amount)
     CurrencyUtils.float_to_currency_decimal(sum_payments)
   end
 
   # total recorded revenue for the order
   def total_revenue
     Rails.logger.warn "Deprecated method 'total_revenue' called from #{caller.join("\n")}"
-    self.total_paid
+    total_paid
   end
 
   # returns the total amount, regardless of reporting status
@@ -163,15 +181,15 @@ class Order < ApplicationRecord
   end
 
   def total_override_payments
-    sum = self.payments.override_payments_only.sum(:amount)
+    sum = payments.override_payments_only.sum(:amount)
     CurrencyUtils.float_to_currency_decimal(sum)
   end
 
-  #returns the total payments visible to the customer, negative payment offsets
+  # returns the total payments visible to the customer, negative payment offsets
   # are never visible
   def customer_visible_total
-    total = self.payments.to_a.sum { |payment| payment.customer_visible_amount }
-    (total.nil? || total < 0) ?  BigDecimal('0') : CurrencyUtils.float_to_currency_decimal(total)
+    total = payments.to_a.sum { |payment| payment.customer_visible_amount }
+    (total.nil? || total < 0) ? BigDecimal('0') : CurrencyUtils.float_to_currency_decimal(total)
   end
 
   # returns the actual total of the order by either total payments made (if there are any payments),
@@ -190,11 +208,11 @@ class Order < ApplicationRecord
   end
 
   def membership_payments
-    self.payments.select { |p| p.is_a? MembershipPayment }
+    payments.grep(MembershipPayment)
   end
 
   def flex_pass_payments
-    self.payments.select { |p| p.is_a?(FlexPassPayment) }
+    payments.grep(FlexPassPayment)
   end
 
   def exchangeable?
@@ -202,7 +220,7 @@ class Order < ApplicationRecord
   end
 
   def exchanging?
-    self.status.eql?(Order::EXCHANGING)
+    status.eql?(Order::EXCHANGING)
   end
 
   def holdable?
@@ -214,15 +232,15 @@ class Order < ApplicationRecord
   end
 
   def fulfillable?
-    self.status.eql?(Order::PROCESSED) || self.status == Order::UNCLAIMED
+    status.eql?(Order::PROCESSED) || status == Order::UNCLAIMED
   end
 
   def fulfilled?
-    self.status.eql?(Order::FULFILLED)
+    status.eql?(Order::FULFILLED)
   end
 
   def refunded?
-    self.status.eql?(Order::REFUNDED)
+    status.eql?(Order::REFUNDED)
   end
 
   def printable?
@@ -234,15 +252,15 @@ class Order < ApplicationRecord
   end
 
   def new?
-    self.status.eql?(Order::NEW)
+    status.eql?(Order::NEW)
   end
 
   def refundable?
-    self.exchangeable?
+    exchangeable?
   end
 
   def addresses
-    [self.address]
+    [address]
   end
 
   def display_code()
@@ -258,123 +276,119 @@ class Order < ApplicationRecord
   end
 
   def ticketing_fee
-    CurrencyUtils.float_to_currency_decimal(self.service_line_items.to_a.sum{|li| li.facility_fee })
+    CurrencyUtils.float_to_currency_decimal(service_line_items.to_a.sum { |li| li.facility_fee })
   end
 
-  def valid_payment_types_for(current_user)
-    PaymentType.valid_payment_types_for(current_user)
-  end
+  delegate :valid_payment_types_for, to: :PaymentType
 
   def show_confirmation_for?(current_user)
     current_user && (current_user.is_administrator? || current_user.is_box_office_user?)
   end
 
   def processing?
-    self.status.eql?(PROCESSING)
+    status.eql?(PROCESSING)
   end
 
   def editable?
-    [HOLD, NEW, PROCESSING, nil].include? self.status
+    [HOLD, NEW, PROCESSING, nil].include? status
   end
 
   def finalized?
-    FINALIZED_STATUSES.include? self.status
+    FINALIZED_STATUSES.include? status
   end
 
   def paid?
-    self.finalized?
+    finalized?
   end
 
   def unsettled?
-    !self.settled?
+    !settled?
   end
 
   def settled?
-    SETTLED_STATUSES.include? self.status
+    SETTLED_STATUSES.include? status
   end
 
   def processed?
-    PROCESSED == self.status
+    status == PROCESSED
   end
 
   def returned?
-    RETURNED_STATUSES.include? self.status
+    RETURNED_STATUSES.include? status
   end
 
   def unclaimed?
-    self.status == UNCLAIMED
+    status == UNCLAIMED
   end
 
   def attended?
-    self.ATTENDING_STATUSES.include? self.status
+    self.ATTENDING_STATUSES.include? status
   end
 
   def paid_with_currency?
-    self.payment_type.is_a? CurrencyPaymentType
+    payment_type.is_a? CurrencyPaymentType
   end
 
   def paid_with_external?
-    self.payment_type.is_a? ExternalPaymentType
+    payment_type.is_a? ExternalPaymentType
   end
 
   def paid_with_flexpass?
-    self.payment_type.is_a?(FlexPassPaymentType) && !self.flex_pass_payments.empty?
+    payment_type.is_a?(FlexPassPaymentType) && !flex_pass_payments.empty?
   end
 
   def paid_with_membership?
-    !self.membership_payments.empty?
+    !membership_payments.empty?
   end
 
   def paid_with_pass?
-    self.paid_with_flexpass? || self.paid_with_membership?
+    paid_with_flexpass? || paid_with_membership?
   end
 
   def paid_with_flexpass
-    unless flex_pass_payments.empty?
-      FlexPass.find(flex_pass_payments.first.flex_pass_id)
+    if flex_pass_payments.empty?
+      FlexPass.find_by_code(flex_pass_code)
     else
-      FlexPass.find_by_code(self.flex_pass_code)
+      FlexPass.find(flex_pass_payments.first.flex_pass_id)
     end
   end
 
   def using_credit_card?
-    self.payment_type.is_a?(CreditCardPaymentType) && self.total > 0
+    payment_type.is_a?(CreditCardPaymentType) && total > 0
   end
 
   def held?
-    self.status == HOLD
+    status == HOLD
   end
 
-  
   def special_offer_code_used
-    self.special_offer_line_item.nil? ? '' : self.special_offer_line_item.special_offer.code
+    special_offer_line_item.nil? ? '' : special_offer_line_item.special_offer.code
   end
 
   def reload_associated
-    self.payments(true)
-    self.tasks(true)
-    self.special_offer_line_item(true)
+    payments(true)
+    tasks(true)
+    special_offer_line_item(true)
   end
 
-
   def regularize_credit_card_expiration
-    self.credit_card_expiration_year = Order.fix_expiration_year(self.credit_card_expiration_year)
-    unless self.credit_card_expiration_year.blank? || self.credit_card_expiration_year.length > 2
-      self.credit_card_expiration_year = "20" + self.credit_card_expiration_year
-    end
+    self.credit_card_expiration_year = Order.fix_expiration_year(credit_card_expiration_year)
+    return if credit_card_expiration_year.blank? || credit_card_expiration_year.length > 2
+      self.credit_card_expiration_year = "20" + credit_card_expiration_year
+    
   end
 
   def refund!
     Order.transaction do
       payments.each do |payment|
-        if ((payment.respond_to? :refund!) && payment.report_as_sales_collected?)
-          payment.refund!(nil, self.notes)
+        if (payment.respond_to? :refund!) && payment.report_as_sales_collected?
+          payment.refund!(nil, notes)
         end
       end
-      self.all_line_items.each { |li| self.refund_line_items (li.refund!) if li.respond_to? :refund!  }
+      all_line_items.each { |li| refund_line_items (li.refund!) if li.respond_to? :refund! }
       self.status = REFUNDED
-      create_notify_refund_task if self.fulfilled?
-      self.save!
+      create_notify_refund_task if fulfilled?
+      save!
     end
   end
 
@@ -384,13 +398,12 @@ class Order < ApplicationRecord
   end
 
   def cancel!
-
-    if self.payments.select{|p| !p.can_cancel?}.size > 0
+    if !payments.reject { |p| p.can_cancel? }.empty?
       errors.add(:error, "Cannot cancel orders with payments")
       false
     else
-      self.allow_deletion!
-      self.destroy
+      allow_deletion!
+      destroy
       true
     end
   end
@@ -404,31 +417,29 @@ class Order < ApplicationRecord
   end
 
   def create_proper_payment_in_amount_of!(amount, payment_options = {})
-    new_payment = self.payment_type.build_payment(amount, self, payment_options)
-    self.payments << new_payment
+    new_payment = payment_type.build_payment(amount, self, payment_options)
+    payments << new_payment
     new_payment
   end
 
   def set_email_confirmation
-    #now = DateTime.now
-    #if !self.performance.nil? && (self.performance.performance_date > Date.today || (self.performance.performance_date == Date.today && self.performance.performance_time > Time.now - (60*60)))
+    # now = DateTime.now
+    # if !self.performance.nil? && (self.performance.performance_date > Date.today || (self.performance.performance_date == Date.today && self.performance.performance_time > Time.now - (60*60)))
     self.email_confirmation = 1
-    #end
+    # end
   end
 
   def update_special_offer_line_item_from_code!
-    unless self.special_offer_code.blank? || !self.paid_with_currency?
+    return if special_offer_code.blank? || !paid_with_currency?
       special_offer = SpecialOffer.find_by_order(self)
-      unless special_offer.nil?
-        if self.special_offer_line_item.nil?
-          self.build_special_offer_line_item(:special_offer=>special_offer)
+      if special_offer.nil?
+        raise RuntimeError, "Unknown or inapplicable special offer code \"#{special_offer_code}\""
+      elsif special_offer_line_item.nil?
+        build_special_offer_line_item(:special_offer => special_offer)
         else
-          self.special_offer_line_item.special_offer=special_offer
-        end
-      else
-        raise RuntimeError, "Unknown or inapplicable special offer code \"#{self.special_offer_code}\""
+          special_offer_line_item.special_offer = special_offer
       end
-    end
+    
   end
 
   def description
@@ -441,11 +452,12 @@ class Order < ApplicationRecord
 
   def self.visible_order_for_theater_user(user)
     if user.is_theater_user?
-      includes(performance: :production).where("(productions.theater_id in (:theater_ids)) OR orders.id in (select orders.id from orders, line_items, flex_pass_offers where line_items.order_id = orders.id and orders.type = 'FlexPassOrder' and line_items.flex_pass_offer_id = flex_pass_offers.id and flex_pass_offers.theater_id in (:theater_ids))", theater_ids: user.theater_ids).references(:productions)
+      includes(performance: :production).where(
+        "(productions.theater_id in (:theater_ids)) OR orders.id in (select orders.id from orders, line_items, flex_pass_offers where line_items.order_id = orders.id and orders.type = 'FlexPassOrder' and line_items.flex_pass_offer_id = flex_pass_offers.id and flex_pass_offers.theater_id in (:theater_ids))", theater_ids: user.theater_ids
+      ).references(:productions)
     else
       where('1=1')
     end
-
   end
 
   def associated_theater_id
@@ -453,14 +465,14 @@ class Order < ApplicationRecord
   end
 
   def sf
-    if self.sf_object.nil?
-      self.sf_object = SalesforceData::Event.find_by_stagemgr_order_id__c(self.id.to_s)
-      if self.sf_object.nil?
+    if sf_object.nil?
+      self.sf_object = SalesforceData::Event.find_by_stagemgr_order_id__c(id.to_s)
+      if sf_object.nil?
         self.sf_last_sync_at = nil
-        self.sync_to_salesforce!
+        sync_to_salesforce!
       end
     end
-    self.sf_object
+    sf_object
   end
 
   # Transitions the order to the specified status.
@@ -479,51 +491,48 @@ class Order < ApplicationRecord
   #   order.transition_to!(Order::PROCESSED)
   #
   # Note: The method assumes that there is a logical sequence of statuses
-  # and that each individual transition method 
+  # and that each individual transition method
   # (e.g., transition_new_to_processing! followed by transition_processing_to_processed!)
   # is defined to handle the specific logic required to move from one status to
   # the next in the sequence.
 
   def transition_to!(new_status)
     Order.transaction do
-      begin
-        old_status = self.status
-        redirect_to = self.send "transition_#{self.status.underscore}_to_#{new_status.underscore}!".to_sym
+      old_status = status
+      send :"transition_#{status.underscore}_to_#{new_status.underscore}!"
 
-        # Skip validation for TicketOrder transitioning to FULFILLED (asynchronous printing)
-        # The status will be updated to FULFILLED by PrintBatchJob after successful printing
-        unless self.status == new_status || (self.is_a?(TicketOrder) && new_status == Order::FULFILLED)
-          raise "Transition from #{old_status} to #{new_status} unsuccessful. Current status is #{self.status}."
-        end
-      rescue StandardError=>e
-        Rails.logger.error "Order #{self.id} could not transition from #{old_status} to #{new_status}:"
-        Rails.logger.error "   #{e.to_s}"
-        Rails.logger.debug e.backtrace.join("\n")
-        self.status = old_status
-        self.id = nil if self.status.eql?(Order::NEW)
-        raise e
+      # Skip validation for TicketOrder transitioning to FULFILLED (asynchronous printing)
+      # The status will be updated to FULFILLED by PrintBatchJob after successful printing
+      unless status == new_status || (is_a?(TicketOrder) && new_status == Order::FULFILLED)
+        raise "Transition from #{old_status} to #{new_status} unsuccessful. Current status is #{status}."
       end
+    rescue StandardError => e
+      Rails.logger.error "Order #{id} could not transition from #{old_status} to #{new_status}:"
+      Rails.logger.error "   #{e}"
+      Rails.logger.debug e.backtrace.join("\n")
+      self.status = old_status
+      self.id = nil if status.eql?(Order::NEW)
+      raise e
     end
     self
   end
 
   def status_display
-    case self.status
-      when HOLD
-        "Held"
-      else
-        self.status
+    case status
+    when HOLD
+      "Held"
+    else
+      status
     end
   end
 
   def transitory?
-    TRANSITORY_STATUSES.include? self.status
+    TRANSITORY_STATUSES.include? status
   end
 
   def in_multi_transactional_state?
     status.eql?(Order::PROCESSING)
   end
-
 
   # All statuses that can be considered as "reserved" by a purchase
   # (used for determining flex pass availability for limited-by-production flex passes)
@@ -533,22 +542,21 @@ class Order < ApplicationRecord
   end
 
   def unprocessed?
-    UNPROCESSED_STATUSES.include? self.status
+    UNPROCESSED_STATUSES.include? status
   end
 
   def self.delete_unprocessed_orders
     orders = Order.transitory.where("updated_at < :window and type != 'MembershipOrder'",
-                         {:window=>Time.now - 20.minutes})
+                                    { :window => Time.now - 20.minutes })
     orders.each do |order|
       order.destroy
     end
 
     orders = Order.transitory.where("updated_at < :window and type = 'MembershipOrder'",
-                         {:window=>Time.now - 8.hours})
+                                    { :window => Time.now - 8.hours })
     orders.each do |order|
       order.destroy
     end
-
   end
 
   def self.fix_expiration_year(expiration_year)
@@ -558,49 +566,49 @@ class Order < ApplicationRecord
     expiration_year
   end
 
-
-
   def link_to_address_of_record
-    if paid_with_membership?
-      merge = membership_payments.first.membership.address
+    merge = if paid_with_membership?
+      membership_payments.first.membership.address
     else
-      merge = address.find_original
-    end
-    if !merge.nil? then
-      comparison_id = self.address.id.nil? ? -1 : self.address.id
-      if comparison_id != merge.id then
-        merge.update_from(self.address)
-        a = self.address
+      address.find_original
+            end
+    return if merge.nil? 
+
+      comparison_id = address.id.nil? ? -1 : address.id
+      return unless comparison_id != merge.id 
+
+        merge.update_from(address)
+        a = address
         self.address = merge
-        self.address.save
-        self.save
-        a.destroy unless a.nil? || (Order.where("id <> :id AND address_id = :address_id", id:self.id, address_id: a.id).count > 0)
-      end
-    end
+        address.save
+        save
+        a.destroy unless a.nil? || (Order.where("id <> :id AND address_id = :address_id", id: id,
+                                                                                          address_id: a.id).count > 0)
+      
+    
   end
 
-
   def last_processed_on
-    self.payments.map {|p| p.processed_on}.max
+    payments.map { |p| p.processed_on }.max
   end
 
   def unique_line_items(reload_line_items = false)
-    hack = Array.new
+    hack = []
     unless special_offer_line_item.nil?
-      hack << self.special_offer_line_item
+      hack << special_offer_line_item
     end
     hack
   end
 
   def all_line_items(reload_line_items = false)
-    result = Array.new
+    result = []
     if reload_line_items
       special_offer_line_item.reload
       service_line_item.reload
     end
-    result << self.special_offer_line_item unless self.special_offer_line_item.nil?
-    result += self.service_line_items
-    result.select{|r| !r.nil?}
+    result << special_offer_line_item unless special_offer_line_item.nil?
+    result += service_line_items
+    result.reject { |r| r.nil? }
   end
 
   def cancel_pending_tasks
@@ -610,15 +618,15 @@ class Order < ApplicationRecord
   private
 
   def ensure_address_exists
-    unless Address.exists?(self.address_id)
+    return if Address.exists?(address_id)
       errors.add(:address_id, "is invalid or has been deleted")
       throw(:abort) # Prevents the record from being saved
-    end
+    
   end
 
   def self.trg_row(buyer_type, season, description, address)
-    return [buyer_type, season, description, address.first_name, address.last_name, address.full_name, '', address.email,
-            address.line1, address.line2, nil, address.city, address.state, address.zipcode, address.phone, address.id]
+    [buyer_type, season, description, address.first_name, address.last_name, address.full_name, '', address.email,
+     address.line1, address.line2, nil, address.city, address.state, address.zipcode, address.phone, address.id]
   end
 
   protected
@@ -628,37 +636,36 @@ class Order < ApplicationRecord
     pay_total = total_paid
     return true if li_total.eql?(pay_total)
 
-    errors.add(:status, "cannot be set to #{status} if the total ($#{li_total}) isn't countered by a payment (currently $#{pay_total}).")
+    errors.add(:status,
+               "cannot be set to #{status} if the total ($#{li_total}) isn't countered by a payment (currently $#{pay_total}).")
     false
   end
 
-
   def status_is_provided?
-    !self.status.blank?
+    status.present?
   end
 
-  
   def check_for_settled_payments
-    paid_amt = self.total_paid || 0
-    if (paid_amt > 0 && self.payments.select{|p| !p.can_cancel?}.size > 0)
-      errors.add(:order,"Cannot destroy orders with settled payments") 
-      return false
+    paid_amt = total_paid || 0
+    if paid_amt > 0 && !payments.reject { |p| p.can_cancel? }.empty?
+      errors.add(:order, "Cannot destroy orders with settled payments")
+      false
     else
-      return true
+      true
     end
   end
 
   def prevent_status_rollbacks
-    if self.status_changed? && !self.status_was.blank?
-      self.errors.add(:error, "Cannot reprocess orders") if self.unprocessed? && !UNPROCESSED_STATUSES.include?(self.status_was)
+    if status_changed? && status_was.present?
+      if unprocessed? && UNPROCESSED_STATUSES.exclude?(status_was)
+        errors.add(:error,
+                   "Cannot reprocess orders")
+      end
     end
     true
   end
 
-
-  def refund_line_items(reversing_entries)
-
-  end
+  def refund_line_items(reversing_entries); end
 
   def cascade_address_to_nested_items
     # code here
@@ -666,32 +673,30 @@ class Order < ApplicationRecord
 
   def create_credit_card_payment(amount)
     new_payment = CreditCardPayment.new(
-        :amount => amount,
-        :address => self.address,
-        :card_number => self.credit_card_number,
-        :card_expiration_month => self.credit_card_expiration_month,
-        :card_expiration_year => self.credit_card_expiration_year,
-        :card_type => self.credit_card_type,
-        :card_verification_number => self.credit_card_verification_number,
-        :confirmation_code => self.credit_card_confirmation_code,
-        :ip_address => self.ip_address
+      :amount => amount,
+      :address => address,
+      :card_number => credit_card_number,
+      :card_expiration_month => credit_card_expiration_month,
+      :card_expiration_year => credit_card_expiration_year,
+      :card_type => credit_card_type,
+      :card_verification_number => credit_card_verification_number,
+      :confirmation_code => credit_card_confirmation_code,
+      :ip_address => ip_address
     )
     payments << new_payment
     new_payment.process!
   end
 
-  def preset_line_items
-
-  end
+  def preset_line_items; end
 
   def transition_new_to_hold!(redirect_to = nil)
     self.status = Order::HOLD
-    self.save!
+    save!
     redirect_to
   end
 
   def transition_processed_to_processed!(redirect_to = nil)
-    self.save!
+    save!
     redirect_to
   end
 
@@ -700,20 +705,19 @@ class Order < ApplicationRecord
   end
 
   def transition_new_to_processed!(redirect_to = nil)
-      self.transition_new_to_processing!(redirect_to)
-      self.transition_processing_to_processed!(redirect_to)
+    transition_new_to_processing!(redirect_to)
+    transition_processing_to_processed!(redirect_to)
   end
 
   def transition_new_to_processing!(redirect_to = nil)
     Order.transaction do
       self.status = Order::PROCESSING
-      self.save!
-      self.update_special_offer_line_item_from_code! unless self.special_offer_code.blank?
-      self.save!
+      save!
+      update_special_offer_line_item_from_code! if special_offer_code.present?
+      save!
     end
     redirect_to
   end
-
 
   def transition_hold_to_processing!(redirect_to = nil)
     transition_new_to_processing!(redirect_to)
@@ -725,23 +729,26 @@ class Order < ApplicationRecord
   end
 
   def transition_hold_to_hold!(redirect_to = nil)
-    self.save!
+    save!
     redirect_to
   end
 
   def transition_processing_to_processed!(redirect_to = nil)
     Order.transaction do
-      if self.valid?
-        self.update_special_offer_line_item_from_code! unless (self.special_offer_code.blank? || !self.special_offer_line_item.nil?)
-        self.special_offer_line_item.special_offer.apply_to_order(self) unless special_offer_line_item.nil?
-        create_proper_payment_in_amount_of!(self.total)
+      if valid?
+        update_special_offer_line_item_from_code! unless special_offer_code.blank? || !special_offer_line_item.nil?
+        special_offer_line_item.special_offer.apply_to_order(self) unless special_offer_line_item.nil?
+        create_proper_payment_in_amount_of!(total)
         self.status = Order::PROCESSED
-        self.set_email_confirmation
-        self.special_offer_line_item.mark_redeemed unless self.special_offer_line_item.nil?
-        self.save!
-        self.remove_suppressed_service_items
-        save_additional_donation_order(self.additional_donation, Theater.default_theater) unless (self.additional_donation.blank? || self.additional_donation.to_i == 0)
-        save_additional_donation_order(self.additional_donation_for_other) unless (self.additional_donation_for_other.blank? || self.additional_donation_for_other.to_i == 0)
+        set_email_confirmation
+        special_offer_line_item.mark_redeemed unless special_offer_line_item.nil?
+        save!
+        remove_suppressed_service_items
+        unless additional_donation.blank? || additional_donation.to_i == 0
+          save_additional_donation_order(additional_donation,
+                                         Theater.default_theater)
+        end
+        save_additional_donation_order(additional_donation_for_other) unless additional_donation_for_other.blank? || additional_donation_for_other.to_i == 0
       end
     end
     redirect_to
@@ -752,19 +759,19 @@ class Order < ApplicationRecord
   end
 
   def transition_hold_to_fulfilled!(redirect_to = nil)
-    redirect_to = transition_hold_to_processed!(redirect_to)
+    transition_hold_to_processed!(redirect_to)
     transition_processed_to_fulfilled!
   end
 
   def transition_processed_to_fulfilled!(redirect_to = nil)
     self.status = Order::FULFILLED
-    self.save!
+    save!
     redirect_to
   end
 
   def self.allowed_for(user)
     result = Order.all
-    result = result.where("orders.theater_id in (?)", user.theater_ids) if user.is_theater_user?
+    result = result.where(orders: { theater_id: user.theater_ids }) if user.is_theater_user?
     result
   end
 
@@ -772,28 +779,28 @@ class Order < ApplicationRecord
   # delete service items that are suppressed for pass payments
   #
   def remove_suppressed_service_items
-    if self.payment_type.is_a? PassPaymentType
-      self.service_line_items.select{|sli| sli.suppress_for_pass_payments?}.each{|sli| sli.destroy}
-    end
+    return unless payment_type.is_a? PassPaymentType
+      service_line_items.select { |sli| sli.suppress_for_pass_payments? }.each { |sli| sli.destroy }
+    
   end
 
   def create_recipient_address
-      new_owner = Address.new(:full_name=>self.recipient_name, :email=>self.recipient_email)
-      new_owner = new_owner.find_original || new_owner
-      new_owner.save!
-      self.recipient_address_id = new_owner.id
+    new_owner = Address.new(:full_name => recipient_name, :email => recipient_email)
+    new_owner = new_owner.find_original || new_owner
+    new_owner.save!
+    self.recipient_address_id = new_owner.id
   end
 
   def set_defaults
     self.status ||= HOLD
-    self.hold_under = self.address.full_name if self.hold_under.blank?
+    self.hold_under = address.full_name if hold_under.blank?
   end
 
   def create_mail_list_task
-    if self.add_to_email_list == "1" && !self.address.email.blank?
-      task = MyEmmaTask.new(:execute_at=>Time.now + 5.minutes, order: self)
-      task.save! 
-    end
+    return unless add_to_email_list == "1" && address.email.present?
+      task = MyEmmaTask.new(:execute_at => Time.now + 5.minutes, order: self)
+      task.save!
+    
   end
 
   def create_address_of_record_task
@@ -801,35 +808,30 @@ class Order < ApplicationRecord
     task.save!
   end
 
-  def create_receipt_task
-  end
+  def create_receipt_task; end
 
-  def create_transfer_ownership_task
-  end
+  def create_transfer_ownership_task; end
 
-  def create_notify_refund_task
-  end
+  def create_notify_refund_task; end
 
   def newly_canceled?
-    self.status_changed? && [UNCLAIMED, CANCELED, REFUNDED, EXCHANGED].include?(self.status)
+    status_changed? && [UNCLAIMED, CANCELED, REFUNDED, EXCHANGED].include?(status)
   end
 
   def set_tasks_after_save
-    if self.do_not_create_tasks.nil? && self.saved_change_to_status?
-      case self.status
-        when PROCESSED
-          create_mail_list_task
-          create_receipt_task
-          create_transfer_ownership_task if self.gift?
+    if do_not_create_tasks.nil? && saved_change_to_status?
+      case status
+      when PROCESSED
+        create_mail_list_task
+        create_receipt_task
+        create_transfer_ownership_task if gift?
       end
     end
-    if self.saved_change_to_status? && self.status.eql?(Order::PROCESSED)
+    return unless saved_change_to_status? && status.eql?(Order::PROCESSED)
       create_address_of_record_task
-    end
-
+    
   end
 
-  
   def copy_payment_information(from_order)
     self.credit_card_number = from_order.credit_card_number
     self.credit_card_type = from_order.credit_card_type
@@ -842,17 +844,18 @@ class Order < ApplicationRecord
   end
 
   private
-  
+
   def save_additional_donation_order(donation_amount, credit_to_theater = nil)
-    donation = DonationOrder.new(:address => self.address, :payment_type => self.payment_type, :status => Order::NEW)
+    donation = DonationOrder.new(:address => address, :payment_type => payment_type, :status => Order::NEW)
     donation.copy_payment_information(self)
-    donation.campaign = self.performance.production.name unless self.performance.nil?
-    donation.theater = credit_to_theater.nil? ? self.theater : credit_to_theater
+    donation.campaign = performance.production.name unless performance.nil?
+    donation.theater = credit_to_theater.nil? ? theater : credit_to_theater
     donation.donation_line_items.build(:amount => donation_amount)
     donation.transition_to!(Order::PROCESSED)
   end
 
   protected # validation methods
+
   def set_uuid_on_create
     self.uuid ||= SecureRandom.uuid if new_record?
   end
@@ -896,22 +899,19 @@ class Order < ApplicationRecord
   private # these might be ghost methods...
 
   def payment_attributes
-    {:credit_card_number=>self.credit_card_number,
-     :credit_card_type=>self.credit_card_type,
-     :credit_card_expiration_year=>self.credit_card_expiration_year,
-     :credit_card_expiration_month=>self.credit_card_expiration_month,
-     :credit_card_confirmation_code=>self.credit_card_confirmation_code,
-     :card_verification_number => self.credit_card_verification_number,
-     :flex_pass_code=>self.flex_pass_code,
-     :ip_address => self.ip_address,
-     :member_code=>self.member_code,
-     :check_number=>self.check_number}
+    { :credit_card_number => credit_card_number,
+      :credit_card_type => credit_card_type,
+      :credit_card_expiration_year => credit_card_expiration_year,
+      :credit_card_expiration_month => credit_card_expiration_month,
+      :credit_card_confirmation_code => credit_card_confirmation_code,
+      :card_verification_number => credit_card_verification_number,
+      :flex_pass_code => flex_pass_code,
+      :ip_address => ip_address,
+      :member_code => member_code,
+      :check_number => check_number }
   end
 
   def time_to_hold_in_transition
     10.minutes
   end
-
-
-
 end

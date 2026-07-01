@@ -5,14 +5,14 @@ Rack::Attack.cache.store = ActiveSupport::Cache::RedisCacheStore.new(
   url: redis_url,
   namespace: "stagemgr:#{Rails.env}:rack-attack",
   reconnect_attempts: 1,
-  error_handler: ->(method:, returning:, exception:) {
+  error_handler: lambda { |method:, returning:, exception:|
     Rails.logger.warn("rack-attack cache error (#{method}): #{exception.class}: #{exception.message}")
   }
 )
 
 ASSET_PREFIXES = %w[/assets /packs /favicon].freeze
-LOGIN_PATH_RE = %r{/(user_session|login)\z}.freeze
-ORDER_PATH_RE = %r{/(ticket|donation|membership|flex_pass)_orders(\.|/|\z)}.freeze
+LOGIN_PATH_RE = %r{/(user_session|login)\z}
+ORDER_PATH_RE = %r{/(ticket|donation|membership|flex_pass)_orders(\.|/|\z)}
 
 Rack::Attack.throttle('req/ip', limit: 300, period: 5.minutes) do |req|
   req.ip unless ASSET_PREFIXES.any? { |p| req.path.include?(p) }

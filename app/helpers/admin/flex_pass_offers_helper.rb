@@ -1,3 +1,2 @@
 module Admin::FlexPassOffersHelper
-
 end

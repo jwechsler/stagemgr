@@ -1,5 +1,4 @@
 class PaypalIpnJob
-
   @queue = :sync
 
   def self.profile_id(params)
@@ -19,7 +18,7 @@ class PaypalIpnJob
     profile = Membership.find_by_id(profile_id)
     profile = Pledge.find_by_id(profile_id) if profile.nil?
     raise "Cannot locate profile with payment ID '#{profile_id}'" if profile.nil?
+
     profile
   end
-
 end

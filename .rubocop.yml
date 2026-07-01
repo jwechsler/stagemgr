@@ -1,0 +1,52 @@
+inherit_from: .rubocop_todo.yml
+
+plugins:
+  - rubocop-rails
+
+AllCops:
+  TargetRubyVersion: 3.3
+  TargetRailsVersion: 6.1
+  NewCops: enable
+  SuggestExtensions: false
+  Exclude:
+    - 'bin/**/*'
+    - 'vendor/**/*'
+    - 'node_modules/**/*'
+    - 'tmp/**/*'
+    - 'log/**/*'
+    - 'public/**/*'
+    - 'storage/**/*'
+    - 'coverage/**/*'
+    - 'db/schema.rb'
+
+# Style/GlobalVars is enforced everywhere. The only sanctioned global variables
+# are the deprecated compatibility shim that aliases Rails.configuration.x.* for
+# external forks mid-migration; this is scoped to the shim initializer and the
+# spec that asserts the shim still works. (The late markdown aliases in
+# config/application.rb use inline disable comments instead.) Remove once forks
+# migrate.
+Style/GlobalVars:
+  Exclude:
+    - 'config/initializers/legacy_globals.rb'
+    - 'spec/config/legacy_globals_spec.rb'
+
+# Project indentation preference: two spaces, never tabs.
+Layout/IndentationStyle:
+  Enabled: true
+  EnforcedStyle: spaces
+
+Layout/IndentationWidth:
+  Enabled: true
+  Width: 2
+
+# follow_up_message_2 is an existing Production database column; specs and code
+# must reference it by its real name.
+Naming/VariableNumber:
+  AllowedIdentifiers:
+    - follow_up_message_2
+
+# RSpec describe/context blocks are naturally long; block length is not a
+# meaningful complexity signal in specs.
+Metrics/BlockLength:
+  Exclude:
+    - 'spec/**/*'

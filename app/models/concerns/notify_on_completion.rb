@@ -3,11 +3,10 @@ module NotifyOnCompletion
 
   module ClassMethods
     def notify_user_on_completion(filestore)
-      unless filestore.user.nil?
-        Rails.logger.debug("Notifying #{filestore.user.email} about report generation")
-        NotificationMailer.file_generated(filestore).deliver_now
-      end
+      return if filestore.user.nil?
+
+      Rails.logger.debug { "Notifying #{filestore.user.email} about report generation" }
+      NotificationMailer.file_generated(filestore).deliver_now
     end
   end
-
 end

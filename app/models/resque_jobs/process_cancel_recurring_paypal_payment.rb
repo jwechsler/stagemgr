@@ -7,5 +7,4 @@ class ProcessCancelRecurringPaypalPayment < PaypalIpnJob
     profile.status = Membership::CANCELED
     profile.save!
   end
-
 end

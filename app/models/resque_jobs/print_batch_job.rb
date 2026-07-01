@@ -30,15 +30,13 @@ class PrintBatchJob
           end
 
           # Mark PROCESSED orders as FULFILLED after successful print
-          if order.status == Order::PROCESSED
-            order.status = Order::FULFILLED
-          end
+          order.status = Order::FULFILLED if order.status == Order::PROCESSED
 
           order.save!
           Rails.logger.info("Successfully sent order #{order_id} to printer (tktprint ID: #{tktprint_order_id})")
 
           successful_order_ids << order_id
-        rescue => e
+        rescue StandardError => e
           Rails.logger.error("Error processing order #{order_id} in batch #{batch_id}: #{e.message}")
           Rails.logger.error("Backtrace: #{e.backtrace.join("\n")}")
           failed_order_ids << order_id
@@ -50,21 +48,18 @@ class PrintBatchJob
       close_print_batch(batch_id)
 
       Rails.logger.info("Completed print batch job: #{batch_id} - #{successful_order_ids.length} successful, #{failed_order_ids.length} failed")
-
-    rescue => e
+    rescue StandardError => e
       Rails.logger.error("Error in print batch job #{batch_id}: #{e.message}")
       Rails.logger.error("Backtrace: #{e.backtrace.join("\n")}")
       raise e
     end
   end
 
-  private
-
   def self.create_print_batch(batch_id)
     Rails.logger.info("Creating print batch: #{batch_id}")
-    
+
     response = tktprint_request(:post, 'print_batches', { batch_id: batch_id })
-    
+
     if response.success?
       Rails.logger.info("Successfully created print batch: #{batch_id}")
     else
@@ -76,9 +71,9 @@ class PrintBatchJob
 
   def self.close_print_batch(batch_id)
     Rails.logger.info("Closing print batch: #{batch_id}")
-    
+
     response = tktprint_request(:put, "print_batches/#{batch_id}/close")
-    
+
     if response.success?
       Rails.logger.info("Successfully closed print batch: #{batch_id}")
     else
@@ -93,7 +88,7 @@ class PrintBatchJob
     require 'uri'
     require 'json'
 
-    tktprint_url = $TKTPRINT['service']
+    tktprint_url = Rails.configuration.x.tktprint['service']
     return OpenStruct.new(success?: false, body: 'Tktprint service not configured') if tktprint_url.blank?
 
     # Parse base URI to extract credentials
@@ -121,21 +116,23 @@ class PrintBatchJob
     # Add basic auth if configured
     if base_uri.user && base_uri.password
       request.basic_auth(base_uri.user, base_uri.password)
-      Rails.logger.debug("TktPrint: Adding Basic Auth for user: #{base_uri.user}")
+      Rails.logger.debug { "TktPrint: Adding Basic Auth for user: #{base_uri.user}" }
     else
-      Rails.logger.warn("TktPrint: No credentials found in service URL")
+      Rails.logger.warn('TktPrint: No credentials found in service URL')
     end
-    
+
     response = http.request(request)
 
-    Rails.logger.debug("Tktprint API #{method.upcase} #{base_uri.host}:#{base_uri.port}#{request_path}: #{response.code} #{response.body}")
-    
+    Rails.logger.debug do
+      "Tktprint API #{method.upcase} #{base_uri.host}:#{base_uri.port}#{request_path}: #{response.code} #{response.body}"
+    end
+
     OpenStruct.new(
       success?: response.code.to_i.between?(200, 299),
       code: response.code.to_i,
       body: response.body
     )
-  rescue => e
+  rescue StandardError => e
     Rails.logger.error("Error making tktprint request: #{e.message}")
     OpenStruct.new(success?: false, body: e.message)
   end

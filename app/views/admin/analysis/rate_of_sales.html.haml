@@ -245,9 +245,10 @@
                 - if momentum && window && window > 0
                   %br
                   %em
-                    Self-scaled grows at #{momentum >= 0 ? '+' : ''}#{momentum}% per
-                    week (median of the last #{window} week#{'s' if window != 1}'
-                    pct change).
+                    Self-scaled starts at #{momentum >= 0 ? '+' : ''}#{momentum}% per
+                    week (recent 7-day rolling revenue vs the prior 7 days), then
+                    halves that rate each following week so momentum fades toward
+                    flat over the remaining run.
           = form_tag(rate_of_sales_admin_analysis_index_path, method: :post, id: 'extend-form') do
             = hidden_field_tag :target_production_id, @target_production.id
             - @comparison_productions.each do |p|

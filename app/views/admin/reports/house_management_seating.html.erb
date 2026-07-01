@@ -32,8 +32,8 @@
               <% end %>
             </td>
             <td class="numeric"><%= row[:seats] %></td>
-            <td><%= raw($TRUSTED_MARKDOWN.render(row[:special_requests].to_s)) %></td>
-            <td><%= raw($TRUSTED_MARKDOWN.render(row[:notes].to_s)) %></td>
+            <td><%= raw(Rails.configuration.x.trusted_markdown.render(row[:special_requests].to_s)) %></td>
+            <td><%= raw(Rails.configuration.x.trusted_markdown.render(row[:notes].to_s)) %></td>
             <td class="numeric"><%= row[:visits] %></td>
             <td class="boolean"><%= raw("&#x2717") if row[:is_member] %></td>
             <td><%= row[:is_donor] %></td>

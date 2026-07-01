@@ -1,19 +1,18 @@
 class TicketClassDatatable < DatatableBase
-  
   def view_columns
     # Declare strings in this format: ModelName.column_name
     # or in aliased_join_table.column_name format
     @view_columns ||= {
-      class_code: { source: 'TicketClass.class_code'},
-      class_name: { source: 'TicketClass.class_name'},
-      ticket_price: { source: 'TicketClass.ticket_price'},
-      ticketing_fee: { source: 'TicketClass.ticketing_fee', :searchable=>false},
-      web_visible: { source: 'TicketClass.web_visible', :searchable=>false},
-      ticket_type: { source: 'TicketClass.ticket_type'},
-      actions: { orderable: false, searchable: false}
+      class_code: { source: 'TicketClass.class_code' },
+      class_name: { source: 'TicketClass.class_name' },
+      ticket_price: { source: 'TicketClass.ticket_price' },
+      ticketing_fee: { source: 'TicketClass.ticketing_fee', searchable: false },
+      web_visible: { source: 'TicketClass.web_visible', searchable: false },
+      ticket_type: { source: 'TicketClass.ticket_type' },
+      actions: { orderable: false, searchable: false }
     }
   end
-  
+
   def data
     records.map do |ticket_class|
       {
@@ -25,8 +24,8 @@ class TicketClassDatatable < DatatableBase
         web_visible: ticket_class.decorate.web_visible?,
         ticket_type: ticket_class.decorate.ticket_type,
         actions: ticket_class.decorate.dt_actions,
-        DT_RowID: ticket_class.id,
-     }
+        DT_RowID: ticket_class.id
+      }
     end
   end
 
@@ -35,7 +34,6 @@ class TicketClassDatatable < DatatableBase
   def get_raw_records
     TicketClass.where(production: production)
   end
-
 
   def production
     @production ||= options[:production]
@@ -59,6 +57,4 @@ class TicketClassDatatable < DatatableBase
   # end
 
   # ==== Insert 'presenter'-like methods below if necessary
-
-
 end

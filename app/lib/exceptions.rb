@@ -11,5 +11,4 @@ module Exceptions
   class SeatUnavailableError < StandardError; end
 
   class SeatingNotAllowedForProduction < StandardError; end
-
 end

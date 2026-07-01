@@ -1,11 +1,21 @@
 class MembershipOrdersController < ApplicationController
-  layout $SERVER_CONFIG['ext_site_wrapper']
+  layout Rails.configuration.x.server_config['ext_site_wrapper']
   include OrdersHelper
   include MembershipOrdersHelper
 
   def payment_types_for(order, frontend = true)
     types = super
-    types.select{|t| t.is_a? CreditCardPaymentType}
+    types.grep(CreditCardPaymentType)
+  end
+
+  def show; end
+
+  def new
+    @order = build_membership_order(params[:membership_offer_id].to_i)
+  end
+
+  def edit
+    @order = MembershipOrder.find(params[:id])
   end
 
   def create
@@ -19,21 +29,10 @@ class MembershipOrdersController < ApplicationController
     update_or_create
   end
 
-  def show
-  end
-
-  def edit
-    @order = MembershipOrder.find(params[:id])
-  end
-
-  def new
-    @order = build_membership_order(params[:membership_offer_id].to_i)
-  end
-
-  def checkout
-  end
+  def checkout; end
 
   protected
+
   def update_or_create
     respond_to do |format|
       if validate_web_order(@order) && process_order(@order, Order::PROCESSED)
@@ -48,5 +47,4 @@ class MembershipOrdersController < ApplicationController
   def membership_order_params
     params.require(:membership_order).permit(*common_params, *common_membership_order_params)
   end
-
 end

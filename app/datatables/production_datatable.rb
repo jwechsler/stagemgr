@@ -1,5 +1,4 @@
 class ProductionDatatable < DatatableBase
-  
   def view_columns
     # Declare strings in this format: ModelName.column_name
     # or in aliased_join_table.column_name format
@@ -7,7 +6,7 @@ class ProductionDatatable < DatatableBase
       name: { source: 'Production.name', orderable: false },
       season: { source: 'Production.season', searchable: false, orderable: false },
       status: { source: 'Production.status', orderable: false },
-      actions: { searchable: false, orderable: false}
+      actions: { searchable: false, orderable: false }
     }
   end
 
@@ -20,7 +19,7 @@ class ProductionDatatable < DatatableBase
         status: record.decorate.status,
         actions: record.decorate.dt_actions,
         DT_RowID: record.id
-     }
+      }
     end
   end
 
@@ -31,18 +30,17 @@ class ProductionDatatable < DatatableBase
   end
 
   def current_theater
-    @current_theater  ||= options[:current_theater]
+    @current_theater ||= options[:current_theater]
   end
 
   # ==== These methods represent the basic operations to perform on records
   # and feel free to override them
 
-  #def filter_records(records)
-  #end
+  # def filter_records(records)
+  # end
 
   # def paginate_records(records)
   # end
 
   # ==== Insert 'presenter'-like methods below if necessary
-
 end

@@ -2,11 +2,11 @@ class BatchPrintingService
   class << self
     def create_and_process_batch(orders)
       return false if orders.empty?
-      
+
       order_ids = orders.map(&:id)
-      
+
       Rails.logger.info("Creating bulk batch with orders: #{order_ids}")
-      
+
       # Use unified PrintingService for batch printing
       PrintingService.print_orders(order_ids, batch_type: :bulk)
     end
@@ -18,7 +18,7 @@ class BatchPrintingService
                           .where.not(print_order_id: nil)
                           .limit(limit)
                           .order(:created_at)
-      
+
       if orders.any?
         create_and_process_batch(orders)
       else
@@ -34,7 +34,7 @@ class BatchPrintingService
                           .where.not(print_order_id: nil)
                           .limit(limit)
                           .order(:created_at)
-      
+
       if orders.any?
         create_and_process_batch(orders)
       else
@@ -45,16 +45,14 @@ class BatchPrintingService
 
     def check_batch_status(batch_id)
       response = PrintBatchJob.send(:tktprint_request, :get, "print_batches/#{batch_id}")
-      
+
       if response.success?
         JSON.parse(response.body)
       else
         { error: "Failed to get batch status: #{response.body}" }
       end
-    rescue => e
+    rescue StandardError => e
       { error: "Error checking batch status: #{e.message}" }
     end
-
-    private
   end
 end

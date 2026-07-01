@@ -1,0 +1,33 @@
+name: Lint
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: lint-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rubocop:
+    name: RuboCop
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
+      # RuboCop does not load the application, so we install it standalone
+      # (pinned to the versions in Gemfile.lock) instead of running a full
+      # bundle install. This avoids native build deps (mysql2, ruby-vips) and
+      # git-sourced gems just to lint.
+      - name: Install RuboCop
+        run: gem install rubocop:1.87.0 rubocop-rails:2.35.4
+
+      - name: Run RuboCop
+        run: rubocop --format github

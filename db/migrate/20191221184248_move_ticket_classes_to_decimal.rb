@@ -19,5 +19,4 @@ class MoveTicketClassesToDecimal < ActiveRecord::Migration[4.2]
     remove_column :ticket_classes, :ticket_price_old, :float
     remove_column :ticket_classes, :ticketing_fee_old, :float
   end
-
 end

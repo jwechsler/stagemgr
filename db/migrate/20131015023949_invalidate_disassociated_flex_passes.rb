@@ -4,6 +4,5 @@ class InvalidateDisassociatedFlexPasses < ActiveRecord::Migration[4.2]
     or flex_passes.flex_pass_line_item_id not in (select id from line_items where type = 'FlexPassLineItem')"
   end
 
-  def down
-  end
+  def down; end
 end

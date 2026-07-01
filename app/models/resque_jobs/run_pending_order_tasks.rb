@@ -1,8 +1,7 @@
 class RunPendingOrderTasks
   @queue = :maintenance
 
-  def self.perform()
+  def self.perform
     OrderTask.run_pending
   end
-
 end

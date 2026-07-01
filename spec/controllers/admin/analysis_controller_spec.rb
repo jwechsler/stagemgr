@@ -6,20 +6,18 @@ RSpec.describe Admin::AnalysisController, type: :controller do
 
   let(:admin_user) do
     double('AdminUser',
-      id: 1,
-      email: 'admin@example.com',
-      is_administrator?: true,
-      theater_ids: [theater.id]
-    )
+           id: 1,
+           email: 'admin@example.com',
+           is_administrator?: true,
+           theater_ids: [theater.id])
   end
 
   let(:theater_user) do
     double('TheaterUser',
-      id: 2,
-      email: 'theater@example.com',
-      is_administrator?: false,
-      theater_ids: [theater.id]
-    )
+           id: 2,
+           email: 'theater@example.com',
+           is_administrator?: false,
+           theater_ids: [theater.id])
   end
 
   before do
@@ -51,18 +49,20 @@ RSpec.describe Admin::AnalysisController, type: :controller do
           [theater.id],
           'first_time_vs_comparison',
           '3 months',
-          true,             # can?(:view_email, Address) stubbed to true
+          true, # can?(:view_email, Address) stubbed to true
           [theater.id],
           admin_user.id
         )
 
         post :audience_export, params: base_params
         expect(flash[:notice]).to match(/cohort export is queued/i)
-        expect(response).to redirect_to(admin_analysis_index_path(target_production_id: production.id, analysis_type: 'audience', comparison_theater_ids: [theater.id]))
+        expect(response).to redirect_to(admin_analysis_index_path(target_production_id: production.id,
+                                                                  analysis_type: 'audience', comparison_theater_ids: [theater.id]))
       end
 
       it 'allows facility-scope exports for admin users' do
-        expect(Resque).to receive(:enqueue).with(AudienceCohortExport, anything, anything, 'three_plus_in_building', anything, anything, anything, anything)
+        expect(Resque).to receive(:enqueue).with(AudienceCohortExport, anything, anything, 'three_plus_in_building',
+                                                 anything, anything, anything, anything)
         post :audience_export, params: base_params.merge(segment_key: 'three_plus_in_building')
       end
     end
@@ -71,7 +71,8 @@ RSpec.describe Admin::AnalysisController, type: :controller do
       before { allow(controller).to receive(:current_user).and_return(theater_user) }
 
       it 'allows comparison-scope exports' do
-        expect(Resque).to receive(:enqueue).with(AudienceCohortExport, anything, anything, 'first_time_vs_comparison', anything, anything, [theater.id], theater_user.id)
+        expect(Resque).to receive(:enqueue).with(AudienceCohortExport, anything, anything, 'first_time_vs_comparison',
+                                                 anything, anything, [theater.id], theater_user.id)
         post :audience_export, params: base_params
       end
 
@@ -79,7 +80,8 @@ RSpec.describe Admin::AnalysisController, type: :controller do
         expect(Resque).not_to receive(:enqueue)
         post :audience_export, params: base_params.merge(segment_key: 'three_plus_in_building')
         expect(flash[:error]).to match(/administrators/i)
-        expect(response).to redirect_to(admin_analysis_index_path(target_production_id: production.id, analysis_type: 'audience', comparison_theater_ids: [theater.id]))
+        expect(response).to redirect_to(admin_analysis_index_path(target_production_id: production.id,
+                                                                  analysis_type: 'audience', comparison_theater_ids: [theater.id]))
       end
 
       %w[first_time_vs_building returning_vs_building three_plus_in_building].each do |key|

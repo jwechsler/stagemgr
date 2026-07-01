@@ -19,7 +19,7 @@ require 'capybara'
 # poisoning every @javascript scenario in the run.
 AfterConfiguration do
   system("pkill -9 -f 'Firefox.app/Contents/MacOS/firefox' >/dev/null 2>&1")
-  system("pkill -9 geckodriver >/dev/null 2>&1")
+  system('pkill -9 geckodriver >/dev/null 2>&1')
 end
 
 # Configure Selenium driver for JavaScript tests
@@ -30,9 +30,7 @@ Capybara.register_driver :selenium do |app|
   # options.binary lets WebDriver find it automatically, which also prevents
   # Selenium Manager from downloading a freshly-released patch version that
   # may not yet be on Mozilla's FTP.
-  if RUBY_PLATFORM.include?('darwin')
-    options.binary = "/Applications/Firefox.app/Contents/MacOS/firefox"
-  end
+  options.binary = '/Applications/Firefox.app/Contents/MacOS/firefox' if RUBY_PLATFORM.include?('darwin')
   options.args << '--headless' # Run in headless mode
   options.args << '--no-sandbox'
   options.args << '--disable-dev-shm-usage'
@@ -56,8 +54,8 @@ Capybara.javascript_driver = :selenium
 # Capybara.default_selector = :xpath
 
 # By default, any exception happening in your Rails application will bubble up
-# to Cucumber so that your scenario will fail. This is a different from how 
-# your application behaves in the production environment, where an error page will 
+# to Cucumber so that your scenario will fail. This is a different from how
+# your application behaves in the production environment, where an error page will
 # be rendered instead.
 #
 # Sometimes we want to override this default behaviour and allow Rails to rescue
@@ -80,7 +78,7 @@ ActionController::Base.allow_rescue = false
 begin
   DatabaseCleaner.strategy = :transaction
 rescue NameError
-  raise "You need to add database_cleaner to your Gemfile (in the :test group) if you wish to use it."
+  raise 'You need to add database_cleaner to your Gemfile (in the :test group) if you wish to use it.'
 end
 
 Before('@javascript') do
@@ -96,7 +94,7 @@ Before do
   ActionMailer::Base.deliveries.clear
   begin
     Resque.redis.redis.flushdb
-  rescue
+  rescue StandardError
     # non-fatal: clear stale jobs when Redis is available
   end
 end
@@ -104,5 +102,3 @@ end
 After do
   DatabaseCleaner.clean
 end
-
-

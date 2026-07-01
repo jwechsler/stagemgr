@@ -3,24 +3,22 @@ class ExchangePayment < Payment
   belongs_to :membership, optional: true
 
   def customer_visible_amount
-    return -1*super
+    -1 * super
   end
 
   def receipt_description
-    unless self.order.nil? || self.order.exchange_source.nil?
-      source_payment = "Exchg ##{self.order.exchange_source.id}"
+    if order.nil? || order.exchange_source.nil?
+      'Exchg'
     else
-      source_payment = "Exchg"
+      "Exchg ##{order.exchange_source.id}"
     end
-    source_payment
   end
 
   def display_name
-    "#{super} #{self.amount >= 0 ? '' : 'Offset'}"
+    "#{super} #{'Offset' unless amount >= 0}"
   end
 
   def can_cancel?
     true
   end
-
 end

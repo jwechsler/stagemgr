@@ -8,7 +8,7 @@ require 'stripe_mock'
 # TicketLineItem rows pointing at those seat_assignment_ids. The next attempt to
 # sell the same seat hit the unique index `index_line_items_on_seat_assignment_id`
 # with `Mysql2::Error: Duplicate entry '<sa_id>'`.
-RSpec.describe "TicketOrder#unassign_seats — TLI seat_assignment_id cleanup" do
+RSpec.describe 'TicketOrder#unassign_seats — TLI seat_assignment_id cleanup' do
   before { StripeMock.start }
   after  { StripeMock.stop }
 
@@ -42,8 +42,8 @@ RSpec.describe "TicketOrder#unassign_seats — TLI seat_assignment_id cleanup" d
     TicketLineItem.where(order_id: o.id).pluck(:seat_assignment_id).compact
   end
 
-  describe "when the order is refunded" do
-    it "clears seat_assignment_id on every TicketLineItem belonging to the order" do
+  describe 'when the order is refunded' do
+    it 'clears seat_assignment_id on every TicketLineItem belonging to the order' do
       original_seat_ids = reserved_seat_ids(order)
       expect(original_seat_ids).not_to be_empty
       expect(tli_seat_assignment_ids_for(order)).to match_array(original_seat_ids)
@@ -53,7 +53,7 @@ RSpec.describe "TicketOrder#unassign_seats — TLI seat_assignment_id cleanup" d
       expect(tli_seat_assignment_ids_for(order)).to be_empty
     end
 
-    it "releases the SeatAssignments back to Available with a null order_uuid" do
+    it 'releases the SeatAssignments back to Available with a null order_uuid' do
       seat_ids = reserved_seat_ids(order)
 
       order.refund!
@@ -64,7 +64,7 @@ RSpec.describe "TicketOrder#unassign_seats — TLI seat_assignment_id cleanup" d
       end
     end
 
-    it "lets a brand-new TicketLineItem claim the same seat without a duplicate-key error" do
+    it 'lets a brand-new TicketLineItem claim the same seat without a duplicate-key error' do
       seat = order.seats.first
       seat_id = seat.id
       ticket_class = seat.ticket_class
@@ -88,13 +88,13 @@ RSpec.describe "TicketOrder#unassign_seats — TLI seat_assignment_id cleanup" d
                        status: SeatAssignment::ASSIGNED,
                        ticket_class_id: ticket_class.id)
 
-      expect {
+      expect do
         new_order.ticket_line_items.create!(
           ticket_class: ticket_class,
           ticket_count: 1,
           seat_assignment_id: released.id
         )
-      }.not_to raise_error
+      end.not_to raise_error
 
       # The new TLI now owns the seat; no other TLI does.
       expect(TicketLineItem.where(seat_assignment_id: released.id).pluck(:order_id))
@@ -102,7 +102,7 @@ RSpec.describe "TicketOrder#unassign_seats — TLI seat_assignment_id cleanup" d
     end
   end
 
-  describe "when the order is unclaimed" do
+  describe 'when the order is unclaimed' do
     it "clears seat_assignment_id on the order's TicketLineItems" do
       original_seat_ids = reserved_seat_ids(order)
       expect(tli_seat_assignment_ids_for(order)).to match_array(original_seat_ids)
@@ -113,8 +113,8 @@ RSpec.describe "TicketOrder#unassign_seats — TLI seat_assignment_id cleanup" d
     end
   end
 
-  describe "isolation" do
-    it "only clears TLIs owned by the order being released" do
+  describe 'isolation' do
+    it 'only clears TLIs owned by the order being released' do
       # Create a second order on a different performance, so its TLI/seat pair
       # is independent and must remain untouched.
       other = FactoryBot.create(:ticket_order, :for_a_single_ticket, :paid_with_cash, :reserved_seating)

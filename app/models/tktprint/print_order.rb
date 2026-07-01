@@ -1,5 +1,5 @@
 class PrintOrder < ActiveResource::Base
-  uri = URI.parse($TKTPRINT['service'])
+  uri = URI.parse(Rails.configuration.x.tktprint['service'])
   if uri.user && uri.password
     self.user = uri.user
     self.password = uri.password
@@ -7,10 +7,10 @@ class PrintOrder < ActiveResource::Base
     uri.userinfo = nil
     self.site = uri.to_s
   else
-    self.site = $TKTPRINT['service']
+    self.site = Rails.configuration.x.tktprint['service']
   end
   self.format = :json
-  self.element_name = "order"
+  self.element_name = 'order'
   # self.ssl_options={:verify_mode=>OpenSSL::SSL::VERIFY_NONE}
   self.timeout = 120
   has_many :tickets

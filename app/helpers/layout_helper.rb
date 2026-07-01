@@ -17,6 +17,6 @@ module LayoutHelper
   end
 
   def javascript(*args)
-    args = args.map { |arg| arg == :defaults ? arg : arg.to_s }
+    args.map { |arg| arg == :defaults ? arg : arg.to_s }
   end
 end

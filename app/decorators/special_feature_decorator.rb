@@ -6,16 +6,28 @@ class SpecialFeatureDecorator < ApplicationDecorator
   end
 
   def description
-    h.raw($MARKDOWN.render(object.description))
+    h.raw(Rails.configuration.x.markdown.render(object.description))
   end
 
   def status
     h.raw("<span class=\"label\">#{object.status}</span>")
   end
-  
+
   def dt_actions
-    (h.current_user.can?(:edit, object) ? h.link_to('Edit', [:edit, :admin, object], :id=>"edit_#{object.short_name.downcase.gsub(' ','_')}", :class=>'tiny button') +" " : "") +
-    (h.current_user.can?(:destroy, object) ? h.link_to('Destroy', [:admin, object], :confirm => 'Are you sure?', :method => :delete, :class=>'tiny alert button') : "")
+    (if h.current_user.can?(:edit,
+                            object)
+       h.link_to('Edit', [:edit, :admin, object], id: "edit_#{object.short_name.downcase.gsub(' ', '_')}",
+                                                  class: 'tiny button') + ' '
+     else
+       ''
+     end) +
+      (if h.current_user.can?(:destroy,
+                              object)
+         h.link_to('Destroy', [:admin, object], confirm: 'Are you sure?', method: :delete,
+                                                class: 'tiny alert button')
+       else
+         ''
+       end)
   end
 
   # Define presentation-specific methods here. Helpers are accessed through
@@ -26,5 +38,4 @@ class SpecialFeatureDecorator < ApplicationDecorator
   #       object.created_at.strftime("%a %m/%d/%y")
   #     end
   #   end
-
 end

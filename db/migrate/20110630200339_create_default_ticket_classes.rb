@@ -5,13 +5,12 @@ class CreateDefaultTicketClasses < ActiveRecord::Migration[4.2]
       t.string :class_name
       t.string :description
       t.integer :minutes_before_show
-      t.decimal :ticket_price,:precision=>6, :scale=>2
+      t.decimal :ticket_price, precision: 6, scale: 2
       t.string :ticket_type
-      t.decimal :ticketing_fee, :precision=>6, :scale=>2
+      t.decimal :ticketing_fee, precision: 6, scale: 2
       t.boolean :web_visible
       t.timestamps
     end
-
   end
 
   def self.down

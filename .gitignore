@@ -35,7 +35,6 @@ rerun.txt
 *~
 log/*.log
 db/*.sqlite3
-db/schema.rb
 vendor/bundle/
 public/system/
 public/assets/
@@ -70,6 +69,13 @@ yarn-debug.log*
 dbhub.toml
 worktrees/
 .playwright-mcp/
-.claude/
+.claude/*
+!.claude/settings.json
+!.claude/hooks/
+.claude/settings.local.json
 docs/_site/
 docs/site/
+
+# NOTE: config/credentials/test.key is intentionally committed. The test
+# credentials it decrypts (config/credentials/test.yml.enc) hold only dummy
+# values (tests use StripeMock), so CI can decrypt them with no repo secret.

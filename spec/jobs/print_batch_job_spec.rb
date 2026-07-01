@@ -29,13 +29,13 @@ RSpec.describe PrintBatchJob, type: :job do
 
     it 'creates a print batch' do
       PrintBatchJob.perform(batch_id, order_ids)
-      
+
       expect(PrintBatchJob).to have_received(:create_print_batch).with(batch_id)
     end
 
     it 'closes the print batch' do
       PrintBatchJob.perform(batch_id, order_ids)
-      
+
       expect(PrintBatchJob).to have_received(:close_print_batch).with(batch_id)
     end
 
@@ -56,7 +56,7 @@ RSpec.describe PrintBatchJob, type: :job do
 
       PrintBatchJob.perform(batch_id, order_ids)
 
-      order_ids.each_with_index do |order_id, index|
+      order_ids.each_with_index do |_order_id, index|
         expect(mock_orders[index]).to have_received(:send_to_printer_api).with(batch_id, index + 1)
       end
     end
@@ -87,7 +87,7 @@ RSpec.describe PrintBatchJob, type: :job do
 
     it 'logs batch processing start and completion' do
       PrintBatchJob.perform(batch_id, order_ids)
-      
+
       expect(Rails.logger).to have_received(:info).with(/Starting print batch job: #{batch_id} with #{order_ids.length} orders/)
       expect(Rails.logger).to have_received(:info).with(/Completed print batch job: #{batch_id}/)
     end
@@ -201,7 +201,7 @@ RSpec.describe PrintBatchJob, type: :job do
 
       it 'logs the error and re-raises' do
         expect { PrintBatchJob.perform(batch_id, order_ids) }.to raise_error('API error')
-        
+
         expect(Rails.logger).to have_received(:error).with(/Error in print batch job #{batch_id}: API error/)
       end
     end
@@ -209,20 +209,20 @@ RSpec.describe PrintBatchJob, type: :job do
 
   describe '.create_print_batch' do
     let(:mock_success_response) { OpenStruct.new(success?: true, body: 'OK') }
-    
+
     before do
       allow(PrintBatchJob).to receive(:tktprint_request).and_return(mock_success_response)
     end
 
     it 'makes a POST request to create the batch' do
       PrintBatchJob.send(:create_print_batch, batch_id)
-      
+
       expect(PrintBatchJob).to have_received(:tktprint_request).with(:post, 'print_batches', { batch_id: batch_id })
     end
 
     it 'logs successful creation' do
       PrintBatchJob.send(:create_print_batch, batch_id)
-      
+
       expect(Rails.logger).to have_received(:info).with(/Creating print batch: #{batch_id}/)
       expect(Rails.logger).to have_received(:info).with(/Successfully created print batch: #{batch_id}/)
     end
@@ -231,8 +231,11 @@ RSpec.describe PrintBatchJob, type: :job do
       let(:mock_success_response) { OpenStruct.new(success?: false, body: 'Service error') }
 
       it 'logs the error and raises an exception' do
-        expect { PrintBatchJob.send(:create_print_batch, batch_id) }.to raise_error(/Failed to create print batch #{batch_id}: Service error/)
-        
+        expect do
+          PrintBatchJob.send(:create_print_batch,
+                             batch_id)
+        end.to raise_error(/Failed to create print batch #{batch_id}: Service error/)
+
         expect(Rails.logger).to have_received(:error).with(/Failed to create print batch #{batch_id}: Service error/)
       end
     end
@@ -240,20 +243,20 @@ RSpec.describe PrintBatchJob, type: :job do
 
   describe '.close_print_batch' do
     let(:mock_success_response) { OpenStruct.new(success?: true, body: 'OK') }
-    
+
     before do
       allow(PrintBatchJob).to receive(:tktprint_request).and_return(mock_success_response)
     end
 
     it 'makes a PUT request to close the batch' do
       PrintBatchJob.send(:close_print_batch, batch_id)
-      
+
       expect(PrintBatchJob).to have_received(:tktprint_request).with(:put, "print_batches/#{batch_id}/close")
     end
 
     it 'logs successful closure' do
       PrintBatchJob.send(:close_print_batch, batch_id)
-      
+
       expect(Rails.logger).to have_received(:info).with(/Closing print batch: #{batch_id}/)
       expect(Rails.logger).to have_received(:info).with(/Successfully closed print batch: #{batch_id}/)
     end
@@ -262,8 +265,11 @@ RSpec.describe PrintBatchJob, type: :job do
       let(:mock_success_response) { OpenStruct.new(success?: false, body: 'Service error') }
 
       it 'logs the error and raises an exception' do
-        expect { PrintBatchJob.send(:close_print_batch, batch_id) }.to raise_error(/Failed to close print batch #{batch_id}: Service error/)
-        
+        expect do
+          PrintBatchJob.send(:close_print_batch,
+                             batch_id)
+        end.to raise_error(/Failed to close print batch #{batch_id}: Service error/)
+
         expect(Rails.logger).to have_received(:error).with(/Failed to close print batch #{batch_id}: Service error/)
       end
     end
@@ -277,9 +283,9 @@ RSpec.describe PrintBatchJob, type: :job do
       allow(Net::HTTP).to receive(:new).and_return(mock_http)
       allow(mock_http).to receive(:use_ssl=)
       allow(mock_http).to receive(:request).and_return(mock_response)
-      
-      # Mock the global configuration with credentials in URI
-      $TKTPRINT = { 'service' => 'http://test:secret@localhost:3001' }
+
+      # Mock the tktprint configuration with credentials in URI
+      Rails.configuration.x.tktprint = { 'service' => 'http://test:secret@localhost:3001' }
     end
 
     context 'with POST request' do
@@ -301,12 +307,12 @@ RSpec.describe PrintBatchJob, type: :job do
 
     context 'when tktprint service is not configured' do
       before do
-        $TKTPRINT = { 'service' => '' }
+        Rails.configuration.x.tktprint = { 'service' => '' }
       end
 
       it 'returns error response' do
         result = PrintBatchJob.send(:tktprint_request, :get, 'test')
-        
+
         expect(result.success?).to be false
         expect(result.body).to eq('Tktprint service not configured')
       end
@@ -319,7 +325,7 @@ RSpec.describe PrintBatchJob, type: :job do
 
       it 'returns error response' do
         result = PrintBatchJob.send(:tktprint_request, :get, 'test')
-        
+
         expect(result.success?).to be false
         expect(result.body).to eq('Network timeout')
         expect(Rails.logger).to have_received(:error).with(/Error making tktprint request: Network timeout/)
@@ -329,7 +335,7 @@ RSpec.describe PrintBatchJob, type: :job do
     context 'with successful response' do
       it 'returns success response' do
         result = PrintBatchJob.send(:tktprint_request, :get, 'test')
-        
+
         expect(result.success?).to be true
         expect(result.code).to eq(200)
         expect(result.body).to eq('{"status": "ok"}')
