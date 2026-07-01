@@ -49,10 +49,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # mysql2 native extension needs the MySQL client headers. Install before
-      # ruby/setup-ruby so bundler-cache's `bundle install` can build the gem.
+      # System libs the app's native gems need:
+      #  - default-libmysqlclient-dev: build the mysql2 extension
+      #  - libvips-dev: ruby-vips (image_processing) loads libvips.so at boot
+      # Installed before ruby/setup-ruby so bundler-cache's `bundle install` works.
       - name: Install system dependencies
-        run: sudo apt-get update && sudo apt-get install -y default-libmysqlclient-dev
+        run: sudo apt-get update && sudo apt-get install -y default-libmysqlclient-dev libvips-dev
 
       - uses: ruby/setup-ruby@v1
         with:
