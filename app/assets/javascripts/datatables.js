@@ -12,7 +12,7 @@
 // require datatables/extensions/FixedColumns/dataTables.fixedColumns
 // require datatables/extensions/FixedHeader/dataTables.fixedHeader
 // require datatables/extensions/KeyTable/dataTables.keyTable
-// require datatables/extensions/Responsive/dataTables.responsive
+//= require datatables/extensions/Responsive/dataTables.responsive
 // require datatables/extensions/RowGroup/dataTables.rowGroup
 // require datatables/extensions/RowReorder/dataTables.rowReorder
 // require datatables/extensions/Scroller/dataTables.scroller
