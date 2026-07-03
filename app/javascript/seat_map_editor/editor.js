@@ -9,6 +9,7 @@ import { zoneColor, zoneProgression } from './zone_colors'
 import { initSelection } from './selection'
 import { initZonePanel } from './zone_panel'
 import { initRadiusPanel } from './radius_panel'
+import { initCoordinatePanels } from './coordinate_panel'
 
 const MIN_ZOOM = 0.5
 const MAX_ZOOM = 4
@@ -62,6 +63,8 @@ export async function boot(root) {
     saveBtn: document.getElementById('save-btn'),
     zoneInput: document.getElementById('zone-input'),
     radiusInput: document.getElementById('radius-input'),
+    xInput: document.getElementById('x-input'),
+    yInput: document.getElementById('y-input'),
     status: document.getElementById('editor-status'),
     newSeatForm: document.getElementById('new-seat-form')
   }
@@ -332,6 +335,7 @@ export async function boot(root) {
   initSelection(ctx)
   initZonePanel(ctx, ui.zoneInput)
   initRadiusPanel(ctx, ui.radiusInput)
+  initCoordinatePanels(ctx, ui.xInput, ui.yInput)
   render()
   refreshDirtyState()
   setStatus(`Loaded ${ctx.store.seats.size} seats`)

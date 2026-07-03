@@ -85,6 +85,18 @@ export function setRadius(store, keys, radius) {
   })
 }
 
+// Stamp one axis onto every selected seat (alignment). field is whitelisted
+// so a caller can never write arbitrary attributes through this path.
+export function setCoordinate(store, keys, field, value) {
+  if (field !== 'origin_x' && field !== 'origin_y') return
+
+  beginMutation(store)
+  keys.forEach((k) => {
+    const seat = store.seats.get(k)
+    if (seat) seat[field] = value
+  })
+}
+
 // Positions are written on drag end (the drag start took the undo snapshot).
 export function setPositions(store, positions) {
   positions.forEach(({ key, x, y }) => {
