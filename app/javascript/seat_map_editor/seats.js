@@ -75,6 +75,16 @@ export function setZone(store, keys, zone) {
   })
 }
 
+// The seat's width column is used as the circle radius everywhere it renders;
+// height is legacy/unused for circles and left untouched.
+export function setRadius(store, keys, radius) {
+  beginMutation(store)
+  keys.forEach((k) => {
+    const seat = store.seats.get(k)
+    if (seat) seat.width = radius
+  })
+}
+
 // Positions are written on drag end (the drag start took the undo snapshot).
 export function setPositions(store, positions) {
   positions.forEach(({ key, x, y }) => {

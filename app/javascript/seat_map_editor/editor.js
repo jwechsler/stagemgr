@@ -8,6 +8,7 @@ import * as SeatStore from './seats'
 import { zoneColor, zoneProgression } from './zone_colors'
 import { initSelection } from './selection'
 import { initZonePanel } from './zone_panel'
+import { initRadiusPanel } from './radius_panel'
 
 const MIN_ZOOM = 0.5
 const MAX_ZOOM = 4
@@ -60,6 +61,7 @@ export async function boot(root) {
     undoBtn: document.getElementById('undo-btn'),
     saveBtn: document.getElementById('save-btn'),
     zoneInput: document.getElementById('zone-input'),
+    radiusInput: document.getElementById('radius-input'),
     status: document.getElementById('editor-status'),
     newSeatForm: document.getElementById('new-seat-form')
   }
@@ -329,6 +331,7 @@ export async function boot(root) {
   // --- Boot -----------------------------------------------------------------
   initSelection(ctx)
   initZonePanel(ctx, ui.zoneInput)
+  initRadiusPanel(ctx, ui.radiusInput)
   render()
   refreshDirtyState()
   setStatus(`Loaded ${ctx.store.seats.size} seats`)
