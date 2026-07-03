@@ -4,6 +4,7 @@
 //= require jquery-ui
 //= require jquery_ujs
 //= require datatables
+//= require datatables_responsive_defaults
 //= require foundation
 //= require jquery.dataTables.yadcf
 //= require utility
