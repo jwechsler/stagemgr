@@ -15,7 +15,8 @@
 #seat-map-editor-app{data: { editor_data_url: editor_data_admin_venue_seat_map_path(@venue, @seat_map, format: :json),
                              save_url: bulk_update_seats_admin_venue_seat_map_path(@venue, @seat_map, format: :json) }}
   .editor-toolbar
-    %button#add-seat-btn.button.small.hollow{type: 'button'} Add Seat
+    -# Disabled until the editor boots and wires its click handler.
+    %button#add-seat-btn.button.small.hollow{type: 'button', disabled: true} Add Seat
     %button#delete-seats-btn.button.small.alert{type: 'button', disabled: true} Delete
     %label.editor-zone-label
       Label

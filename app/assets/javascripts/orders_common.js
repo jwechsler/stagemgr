@@ -129,13 +129,16 @@ function set_button_state_for_autocompletes() {
     }
   });
 
-  // Modal dismissal controls ([data-close]) are exempt from order-action
-  // gating — the ticket-class selector's close button must always work.
+  // Modal dismissal controls ([data-close]) and the seat map editor
+  // (#seat-map-editor-app) are exempt from order-action gating — the close
+  // button must always work, and the editor manages its own buttons'
+  // disabled states (Save/Undo/Delete reflect editor state; Add Seat and
+  // the new-seat form are always available).
   if (allow_submit) {
-    $('input[type="submit"].order-submit-button, button').not('[data-close]').prop('disabled', false);
+    $('input[type="submit"].order-submit-button, button').not('[data-close], #seat-map-editor-app button').prop('disabled', false);
     $('#hold_button').prop('disabled', false);
   } else {
-    $('input[type="submit"].order-submit-button, button').not('[data-close]').prop('disabled', true);
+    $('input[type="submit"].order-submit-button, button').not('[data-close], #seat-map-editor-app button').prop('disabled', true);
     $('#hold_button').prop('disabled', true);
   }
 

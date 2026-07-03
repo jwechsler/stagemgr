@@ -204,6 +204,7 @@ export async function boot(root) {
   }
 
   ui.addBtn.addEventListener('click', () => setAddMode(!ctx.addMode))
+  ui.addBtn.disabled = false // rendered disabled until this handler exists
 
   stage.on('click', () => {
     if (!ctx.addMode) return
