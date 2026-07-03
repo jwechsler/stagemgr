@@ -129,11 +129,13 @@ function set_button_state_for_autocompletes() {
     }
   });
 
+  // Modal dismissal controls ([data-close]) are exempt from order-action
+  // gating — the ticket-class selector's close button must always work.
   if (allow_submit) {
-    $('input[type="submit"].order-submit-button, button').prop('disabled', false);
+    $('input[type="submit"].order-submit-button, button').not('[data-close]').prop('disabled', false);
     $('#hold_button').prop('disabled', false);
   } else {
-    $('input[type="submit"].order-submit-button, button').prop('disabled', true);
+    $('input[type="submit"].order-submit-button, button').not('[data-close]').prop('disabled', true);
     $('#hold_button').prop('disabled', true);
   }
 
