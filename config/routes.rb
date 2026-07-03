@@ -320,7 +320,13 @@ Rails.application.routes.draw do
     end
 
     resources :venues do
-      resources :seat_maps
+      resources :seat_maps do
+        member do
+          get :editor
+          get :editor_data
+          post :bulk_update_seats
+        end
+      end
     end
 
     resources :users do

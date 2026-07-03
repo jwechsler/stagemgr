@@ -1,0 +1,52 @@
+= content_for :title do
+  = "Seat Map Editor — #{@seat_map.label}"
+
+= content_for :breadcrumbs do
+  %ul.breadcrumbs
+    %li
+      %a{href: admin_venues_path} Venues
+    %li
+      %a{href: admin_venue_path(@venue)}= @seat_map.venue.name
+    %li
+      %a{href: admin_venue_seat_map_path(@venue, @seat_map)}= "Seat Map #{@seat_map.label}"
+    %li.current
+      %a{href: '#'} Editor
+
+#seat-map-editor-app{data: { editor_data_url: editor_data_admin_venue_seat_map_path(@venue, @seat_map, format: :json),
+                             save_url: bulk_update_seats_admin_venue_seat_map_path(@venue, @seat_map, format: :json) }}
+  .editor-toolbar
+    %button#add-seat-btn.button.small.hollow{type: 'button'} Add Seat
+    %button#delete-seats-btn.button.small.alert{type: 'button', disabled: true} Delete
+    %label.editor-zone-label
+      Zone
+      %input#zone-input{type: 'text', maxlength: 5, autocomplete: 'off', disabled: true}
+    %button#undo-btn.button.small.secondary{type: 'button', disabled: true} Undo
+    %button#save-btn.button.small.success{type: 'button', disabled: true} Save
+    %span#dirty-indicator{style: 'display:none'} ● unsaved changes
+    %span#editor-status.editor-status
+  .editor-hints
+    Drag seats to move them (selections move together). Drag on the background to select a group.
+    Shift-click adds to the selection. Scroll to zoom, hold SPACE and drag to pan.
+    Type a zone in the Zone box and press Enter to stamp the selection. Ctrl+Z undoes the last change.
+    Nothing is written until you press Save.
+
+  #new-seat-form.callout{style: 'display:none'}
+    %strong New Seat
+    %label
+      Row
+      %input{type: 'text', name: 'row', maxlength: 4}
+    %label
+      Number
+      %input{type: 'number', name: 'seat_number', min: 1}
+    %label
+      Location
+      %input{type: 'text', name: 'location', maxlength: 8}
+    %label
+      Zone
+      %input{type: 'text', name: 'zone', maxlength: 2}
+    %button.button.small.success.confirm{type: 'button'} Add
+    %button.button.small.secondary.cancel{type: 'button'} Cancel
+
+  #seatmap-editor
+
+= javascript_pack_tag 'seat_map_editor'

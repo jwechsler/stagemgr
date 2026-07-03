@@ -4,6 +4,10 @@ class Ability
   def initialize(user)
     alias_action :create, :new, to: :make
     alias_action :read, :make, :update, :edit, to: :cru
+    # Seat map editor: whoever may create/update a seat map (:cru) may use the
+    # graphical editor (page, data load, and batch save). Note: CanCan forbids
+    # aliasing to a real action name like :update, so extend :cru instead.
+    alias_action :editor, :editor_data, :bulk_update_seats, to: :cru
     alias_action :attended_dump, :daily_box_office_receipts, :fulfill_tickets, :donations_total, :membership_export,
                  :flex_pass_patron_report, to: :box_office_reports
     alias_action :trg_dump, :donation_dump, :production_sales_by_performance, :order_dump, :royalty_report,

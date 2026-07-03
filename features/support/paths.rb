@@ -124,6 +124,10 @@ module NavigationHelpers
     when /^the admin venue page for "([^"]*)"$/
       @using_admin_interface = true
       admin_venue_path(Venue.find_by!(name: ::Regexp.last_match(1)))
+    when /^the seat map editor for venue "([^"]*)"$/
+      @using_admin_interface = true
+      venue = Venue.find_by!(name: ::Regexp.last_match(1))
+      editor_admin_venue_seat_map_path(venue, venue.seat_maps.first)
 
       # Add more mappings here.
       # Here is an example that pulls values out of the Regexp:
