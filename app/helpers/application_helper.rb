@@ -12,6 +12,15 @@ module ApplicationHelper
     controller.class.name.split('::').first == 'Admin'
   end
 
+  # Order-entry surfaces that need the shared order-form JS
+  # (orders_common.js, plus admin/orders_common.js in the admin scope).
+  # Only pages on the application layout consult this — public order pages
+  # use the Foundation site wrapper and get orders_common via a
+  # content_for :js include in orders/_billing_form instead.
+  def order_form_page?
+    controller_name == 'orders' || controller_name.end_with?('_orders')
+  end
+
   def admin?
     backend?
   end

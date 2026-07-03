@@ -13,6 +13,14 @@
     = javascript_include_tag "application", "data-turbolinks-track" => true
     = javascript_pack_tag 'application'
     = javascript_include_tag 'admin_application'
+    -# Order-form JS is scoped to order pages: its document.ready side effects
+    -# (button gating, payment form switching) break unrelated pages when
+    -# loaded globally. admin/orders_common depends on orders_common, so the
+    -# tag order here matters.
+    - if order_form_page?
+      = javascript_include_tag 'orders_common'
+      - if backend?
+        = javascript_include_tag 'admin/orders_common'
     = csrf_meta_tag
     %meta{name: "app-root-path", content: Rails.application.config.relative_url_root || ""}
     = yield(:head)
