@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_06_12_170000) do
+ActiveRecord::Schema.define(version: 2026_07_02_210300) do
 
   create_table "active_storage_attachments", charset: "utf8mb3", force: :cascade do |t|
     t.string "name", null: false
@@ -544,12 +544,13 @@ ActiveRecord::Schema.define(version: 2026_06_12_170000) do
     t.integer "venue_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "present_as_zoned", default: false, null: false
     t.index ["venue_id"], name: "index_seat_maps_on_venue_id"
   end
 
   create_table "seats", id: :integer, charset: "utf8mb3", force: :cascade do |t|
     t.string "location", null: false
-    t.string "zone"
+    t.string "zone", default: "A", null: false
     t.string "row", null: false
     t.integer "seat_number", null: false
     t.integer "seat_map_id"
@@ -688,6 +689,7 @@ ActiveRecord::Schema.define(version: 2026_06_12_170000) do
     t.decimal "ticketing_fee", precision: 8, scale: 2, default: "0.0"
     t.decimal "ticket_price", precision: 8, scale: 2, default: "0.0"
     t.decimal "royalty_amount", precision: 8, scale: 2
+    t.string "zone_id", limit: 2, default: "*", null: false
   end
 
   create_table "users", id: :integer, charset: "latin1", force: :cascade do |t|
