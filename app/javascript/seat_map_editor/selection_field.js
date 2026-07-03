@@ -4,11 +4,14 @@
 // to every selected seat; Escape reverts the box.
 export const MULTIPLE = 'mult.'
 
-export function initSelectionField(ctx, input, { valueOf, commit }) {
+// singleOnly: the field only accepts input when exactly one seat is selected
+// (used for per-seat-unique values like the label); a larger selection shows
+// "mult." grayed out.
+export function initSelectionField(ctx, input, { valueOf, commit, singleOnly = false }) {
   function refresh() {
     const keys = Array.from(ctx.selection)
-    if (keys.length === 0) {
-      input.value = ''
+    if (keys.length === 0 || (singleOnly && keys.length > 1)) {
+      input.value = keys.length > 1 ? MULTIPLE : ''
       input.disabled = true
       return
     }

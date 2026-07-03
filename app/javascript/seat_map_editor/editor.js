@@ -10,6 +10,7 @@ import { initSelection } from './selection'
 import { initZonePanel } from './zone_panel'
 import { initRadiusPanel } from './radius_panel'
 import { initCoordinatePanels } from './coordinate_panel'
+import { initLabelPanel } from './label_panel'
 
 const MIN_ZOOM = 0.5
 const MAX_ZOOM = 4
@@ -61,6 +62,7 @@ export async function boot(root) {
     deleteBtn: document.getElementById('delete-seats-btn'),
     undoBtn: document.getElementById('undo-btn'),
     saveBtn: document.getElementById('save-btn'),
+    labelInput: document.getElementById('label-input'),
     zoneInput: document.getElementById('zone-input'),
     radiusInput: document.getElementById('radius-input'),
     xInput: document.getElementById('x-input'),
@@ -333,6 +335,7 @@ export async function boot(root) {
 
   // --- Boot -----------------------------------------------------------------
   initSelection(ctx)
+  initLabelPanel(ctx, ui.labelInput)
   initZonePanel(ctx, ui.zoneInput)
   initRadiusPanel(ctx, ui.radiusInput)
   initCoordinatePanels(ctx, ui.xInput, ui.yInput)

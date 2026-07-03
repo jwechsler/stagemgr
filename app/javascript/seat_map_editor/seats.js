@@ -85,6 +85,16 @@ export function setRadius(store, keys, radius) {
   })
 }
 
+// Relabel a single seat. Uniqueness is checked by the caller (and enforced
+// again server-side on save).
+export function setLocation(store, key, location) {
+  const seat = store.seats.get(key)
+  if (!seat) return
+
+  beginMutation(store)
+  store.seats.get(key).location = location
+}
+
 // Stamp one axis onto every selected seat (alignment). field is whitelisted
 // so a caller can never write arbitrary attributes through this path.
 export function setCoordinate(store, keys, field, value) {
