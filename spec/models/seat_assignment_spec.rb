@@ -267,4 +267,65 @@ RSpec.describe SeatAssignment, type: :model do
       end
     end
   end
+
+  describe '.reseating_zone_conflict' do
+    let(:production) { FactoryBot.create(:production_with_reserved_seating) }
+    let(:performance) do
+      FactoryBot.create(:reserved_seating, production: production, performance_date: Date.today + 1.day,
+                                           performance_time: Time.parse('19:00'))
+    end
+    let(:order_uuid) { SecureRandom.uuid }
+
+    before do
+      SeatAssignment.available_seat_assignments(performance)
+    end
+
+    def make_releasing(zone_id:)
+      ticket_class = FactoryBot.create(:ticket_class, production: production, zone_id: zone_id)
+      sa = performance.seat_assignments.reload.find { |a| a.status == SeatAssignment::AVAILABLE }
+      sa.update!(order_uuid: order_uuid, ticket_class_id: ticket_class.id,
+                 status: SeatAssignment::RELEASING)
+      sa
+    end
+
+    def make_incoming(seat_zone:)
+      sa = performance.seat_assignments.reload.find { |a| a.status == SeatAssignment::AVAILABLE }
+      sa.seat.update!(zone: seat_zone)
+      sa.update!(order_uuid: order_uuid, status: SeatAssignment::TEMPORARY)
+      sa
+    end
+
+    it 'is nil when nothing is releasing (not a reseat)' do
+      expect(SeatAssignment.reseating_zone_conflict(order_uuid)).to be_nil
+    end
+
+    it 'is nil when the releasing class is a wildcard' do
+      make_releasing(zone_id: '*')
+      make_incoming(seat_zone: 'Q9')
+      expect(SeatAssignment.reseating_zone_conflict(order_uuid)).to be_nil
+    end
+
+    it 'reports a conflict when a specific-zone class has no seat in its zone' do
+      make_releasing(zone_id: 'A')
+      make_incoming(seat_zone: 'B')
+      conflict = SeatAssignment.reseating_zone_conflict(order_uuid)
+      expect(conflict).to include('zone A')
+    end
+
+    it 'is nil when every specific-zone class is covered by a matching seat' do
+      make_releasing(zone_id: 'A')
+      make_releasing(zone_id: 'A')
+      make_incoming(seat_zone: 'A')
+      make_incoming(seat_zone: 'A')
+      expect(SeatAssignment.reseating_zone_conflict(order_uuid)).to be_nil
+    end
+
+    it 'lets wildcards absorb leftover seats after specific zones are satisfied' do
+      make_releasing(zone_id: 'A')
+      make_releasing(zone_id: '*')
+      make_incoming(seat_zone: 'A')
+      make_incoming(seat_zone: 'B')
+      expect(SeatAssignment.reseating_zone_conflict(order_uuid)).to be_nil
+    end
+  end
 end

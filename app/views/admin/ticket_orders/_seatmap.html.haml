@@ -1,8 +1,9 @@
 %figure#seatingmap
   %svg{:version=>"1.1", :xmlns=>"http://www.w3.org/2000/svg", 'xmlns:xlink'=>"http://www.w3.org/1999/xlink", viewBox: "0 0 #{ticket_order.performance.production.seat_map.original_width} #{ticket_order.performance.production.seat_map.original_height}", preserveAspectRatio: "xMinYMin meet"}
     %image{width: "#{ticket_order.performance.production.seat_map.original_width}", height: "#{ticket_order.performance.production.seat_map.original_height}", 'xlink:href': "#{ticket_order.performance.production.seat_map.decorate.base_image_map_url}" }
+    - zoned_presentation = ticket_order.performance.production.seat_map.present_as_zoned
     - SeatAssignment.available_seat_assignments(ticket_order.performance, ticket_order).each do |sa|
       - state = assignment_keys(sa,ticket_order.uuid)
       - sa_key = "#{sa.id}, #{state}"
       %a{"xlink:href":"#?id=#{sa.seat.location}"}
-        %circle{:class=>"seat #{assignment_keys(sa, ticket_order.uuid)}", :cx=>"#{sa.seat.origin_x}", :cy=>"#{sa.seat.origin_y}", :r=>"#{sa.seat.width}", 'data-status': "#{assignment_keys(sa, ticket_order.uuid)}", 'data-assignment-id':"#{sa.id}", 'data-accessible':"#{sa.seat.accessible?}", 'data-location':"#{sa.seat.location}"}
+        %circle{:class=>"seat #{assignment_keys(sa, ticket_order.uuid)}", :cx=>"#{sa.seat.origin_x}", :cy=>"#{sa.seat.origin_y}", :r=>"#{sa.seat.width}", 'data-status': "#{assignment_keys(sa, ticket_order.uuid)}", 'data-assignment-id':"#{sa.id}", 'data-accessible':"#{sa.seat.accessible?}", 'data-location':"#{sa.seat.location}", 'data-zone':"#{sa.seat.zone}", style: (zoned_presentation ? "stroke:#{zone_stroke_color(sa.seat.zone)}" : nil)}

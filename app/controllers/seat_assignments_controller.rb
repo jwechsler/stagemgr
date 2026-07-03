@@ -44,6 +44,35 @@ class SeatAssignmentsController < ApplicationController
         unless order_uuid.nil?
           max_seatable = can?(:seat_unlimited, SeatAssignment) ? 9999 : 20
           sa = SeatAssignment.find(params[:id])
+
+          # Zoned pricing: reject before any mutation so a mismatch leaves no
+          # state behind (no held seat, no TLI, no price_override). There is
+          # deliberately no override path for this rule.
+          if ticket_class_id.present?
+            tc = TicketClass.find_by(id: ticket_class_id)
+            if tc && !tc.sellable_for_zone?(sa.seat.zone)
+              render json: { id: sa.id, status: 'error',
+                             message: "Ticket type #{tc.class_name} is not available for seat #{sa.seat.location} (zone #{sa.seat.zone})" },
+                     status: :unprocessable_entity
+              return
+            end
+          else
+            # A classless reserve is how the reseating flow holds a replacement
+            # seat (the class stays with the line item). The replacement seat
+            # must sit in a zone served by at least one class being released;
+            # cross-zone moves require an exchange instead.
+            releasing_classes = TicketClass.where(
+              id: SeatAssignment.where(order_uuid: order_uuid, performance_id: sa.performance_id,
+                                       status: SeatAssignment::RELEASING).select(:ticket_class_id)
+            )
+            if releasing_classes.any? && releasing_classes.none? { |rc| rc.sellable_for_zone?(sa.seat.zone) }
+              render json: { id: sa.id, status: 'error',
+                             message: "Seat #{sa.seat.location} (zone #{sa.seat.zone}) is not available for your ticket type" },
+                     status: :unprocessable_entity
+              return
+            end
+          end
+
           tli_id = nil
           unless !max_tickets.nil? && current_assignment_count(order_uuid, sa.id) >= max_tickets.to_i
             SeatAssignment.transaction do
@@ -146,7 +175,9 @@ class SeatAssignmentsController < ApplicationController
       format.json do
         order_uuid = params[:order_uuid]
         result = SeatAssignment.reseating_commit(order_uuid)
-        render json: { status: result,
+        success = result.eql?('success')
+        render json: { status: success ? 'success' : 'failure',
+                       message: success ? nil : result,
                        current_seat_assignments: SeatAssignment.seating_as_list(order_uuid,
                                                                                 [SeatAssignment::TEMPORARY,
                                                                                  SeatAssignment::ASSIGNED]) }
