@@ -27,6 +27,16 @@ module ZoneHelper
     "stroke:#{zone_stroke_color(zone, seat_map)};stroke-width:4;stroke-opacity:1"
   end
 
+  # Heat ramp for the sales-by-zone heatmap: intensity is *relative* to the
+  # best-selling zone (the max pct maps to the deepest color), so the display
+  # answers "which zones are more popular than which" rather than "how sold
+  # is the run". Single red hue; lightness carries the signal.
+  def zone_heat_color(pct_sold, max_pct)
+    intensity = max_pct.to_f.positive? ? (pct_sold.to_f / max_pct) : 0.0
+    lightness = (93 - (intensity * 51)).round
+    "hsl(6, 78%, #{lightness}%)"
+  end
+
   # The map's distinct zones in sorted order — the progression that drives
   # color assignment. Memoized per request so rendering a full house doesn't
   # re-query per circle.
