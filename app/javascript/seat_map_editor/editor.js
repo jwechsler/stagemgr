@@ -5,7 +5,7 @@
 import Konva from 'konva'
 import { loadEditorData, saveSeats } from './api'
 import * as SeatStore from './seats'
-import { zoneColor } from './zone_colors'
+import { zoneColor, zoneProgression } from './zone_colors'
 import { initSelection } from './selection'
 import { initZonePanel } from './zone_panel'
 
@@ -82,7 +82,7 @@ export async function boot(root) {
   // --- Seat rendering -------------------------------------------------------
   function seatStyle(node, seat, selected) {
     node.setAttrs({
-      stroke: zoneColor(seat.zone),
+      stroke: zoneColor(seat.zone, ctx.zoneProgression),
       strokeWidth: selected ? 4 : 2,
       fill: selected ? 'rgba(0, 161, 255, 0.6)' : seat.deletable ? 'rgba(0, 0, 255, 0.35)' : 'rgba(0, 200, 0, 0.45)',
       shadowColor: 'black',
@@ -92,6 +92,10 @@ export async function boot(root) {
   }
 
   function render() {
+    // Per-map color progression, recomputed so newly stamped zones color up
+    // immediately (matches ZoneHelper's per-map assignment).
+    ctx.zoneProgression = zoneProgression(ctx.store.seats)
+
     // Remove nodes for seats gone from the store (deleted or undone adds).
     Array.from(ctx.nodes.keys()).forEach((key) => {
       if (!ctx.store.seats.has(key)) {
@@ -124,6 +128,7 @@ export async function boot(root) {
   ctx.setSelection = (keys, { additive = false } = {}) => {
     if (!additive) ctx.selection.clear()
     keys.forEach((k) => ctx.selection.add(k))
+    ctx.zoneProgression = zoneProgression(ctx.store.seats)
     ctx.store.seats.forEach((seat, key) => {
       const node = ctx.nodes.get(key)
       if (node) seatStyle(node, seat, ctx.selection.has(key))
