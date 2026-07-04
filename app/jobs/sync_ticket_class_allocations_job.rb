@@ -3,13 +3,27 @@ class SyncTicketClassAllocationsJob < ApplicationJob
 
   @queue = :sync
 
-  def self.perform(ticket_class_id)
+  # production_id may be nil on payloads enqueued before it was added
+  # (legacy single-argument jobs); it is then derived from the ticket class.
+  def self.perform(ticket_class_id, production_id = nil)
+    production = Production.find_by(id: production_id) if production_id
     ticket_class = TicketClass.find_by(id: ticket_class_id)
-    return if ticket_class.nil?
-
-    production = ticket_class.production
+    production ||= ticket_class&.production
     return if production.nil?
 
+    begin
+      sync_allocations(production, ticket_class) if ticket_class
+    rescue StandardError => e
+      Rails.logger.error("SyncTicketClassAllocationsJob: Failed for ticket_class #{ticket_class_id} - #{e.message}")
+      raise
+    ensure
+      # Always release the pending counter, or the "allocations are updating"
+      # banner stays up forever after a failed or obsolete job.
+      production.mark_allocation_sync_completed!
+    end
+  end
+
+  def self.sync_allocations(production, ticket_class)
     performances = production.performances
                              .where('performance_date >= ?', Date.today)
                              .where(status: Performance.sellable_statuses)
@@ -26,10 +40,5 @@ class SyncTicketClassAllocationsJob < ApplicationJob
       end
       tca.save! if tca.changed? || tca.new_record?
     end
-
-    production.mark_allocation_sync_completed!
-  rescue StandardError => e
-    Rails.logger.error("SyncTicketClassAllocationsJob: Failed for ticket_class #{ticket_class_id} - #{e.message}")
-    raise
   end
 end

@@ -38,6 +38,7 @@ nav:
     - Theaters: setup/theaters.md
     - Venues: setup/venues.md
     - Seat Maps: setup/seat-maps.md
+    - Seat Map Editor: setup/seat-map-editor.md
     - Payment Types: setup/payment-types.md
     - System Options: setup/system-options.md
     - Users: setup/users.md

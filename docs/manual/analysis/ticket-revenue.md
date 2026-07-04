@@ -125,6 +125,34 @@ Scroll below the charts to see a summary table comparing both shows side-by-side
 
 ---
 
+## Ticket Sales by Zone
+
+For productions on a seat map with two or more [seat zones](../setup/seat-map-editor.md#seat-zones-and-zoned-pricing),
+a heatmap appears below the Revenue Summary showing how each zone is selling relative to the
+others. Each seat is colored by its zone's **percentage of stock sold** -- the deepest red marks
+the production's best-selling zone, and paler zones are selling relatively slower. Zone labels
+on the map and a table below it give the exact figures.
+
+![Sales-by-zone heatmaps for two zoned productions, with zone percentage labels and per-zone tables](../assets/images/screenshots/analysis-zone-heatmap.png)
+
+| Column | Description |
+|--------|-------------|
+| **Zone** | The seat zone, as painted in the [seat map editor](../setup/seat-map-editor.md) |
+| **Seats** | Number of seats currently in the zone |
+| **Stock** | The zone's total inventory across the run -- one per seat per performance. Seats marked broken/N/A are excluded, and seats added mid-run only count for the performances that actually offered them. |
+| **Sold** | Seats in the zone sold across all performances |
+| **% of stock sold** | Sold ÷ Stock |
+
+!!! tip "Reading the heat"
+    Color intensity is scaled **within each production** (its best-selling zone is always the
+    deepest red), so the heatmap answers "which of my zones is more popular?" -- compare the
+    percentage figures, not the colors, when judging one production against another.
+
+The section is hidden for general admission productions and for seat maps where every seat is
+in the same zone. Held seats count toward stock but not toward sold.
+
+---
+
 ## Per-Bucket Detail Table
 
 Below the summary, a separate detail table is rendered for each show, listing every

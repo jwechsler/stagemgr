@@ -26,6 +26,21 @@ class TicketClass < ApplicationRecord
   before_destroy :check_for_shift_to_codes
   after_commit :sync_allocations_async, on: %i[create update]
 
+  # Zoned pricing: "*" (default) sells into any seat; a specific 1-2 char
+  # zone only sells into seats whose Seat#zone matches. Zone is a filter on
+  # top of the allocation/availability rules, never a replacement for them.
+  validates :zone_id, presence: true,
+                      format: { with: ZoneMatchable::CLASS_ZONE_FORMAT,
+                                message: 'must be "*" or 1-2 characters A-Z or 0-9' }
+  scope :for_zone, lambda { |seat_zone|
+    where('zone_id = :wildcard OR zone_id = :zone',
+          wildcard: ZoneMatchable::WILDCARD, zone: seat_zone)
+  }
+
+  def sellable_for_zone?(seat_zone)
+    ZoneMatchable.match?(zone_id, seat_zone)
+  end
+
   def number_left(performance, _exclude_order = nil)
     ticket_class_capacity_left = production_capacity_left = performance.number_of_tickets_left
 
@@ -101,10 +116,13 @@ class TicketClass < ApplicationRecord
     return unless saved_change_to_auto_attach? || previously_new_record?
 
     production&.mark_allocation_sync_enqueued!
-    Resque.enqueue(SyncTicketClassAllocationsJob, id)
+    # production_id lets the job release the pending counter even if this
+    # ticket class is deleted before the job runs.
+    Resque.enqueue(SyncTicketClassAllocationsJob, id, production_id)
   end
 
   def clean_values
     class_code.upcase! if class_code
+    self.zone_id = zone_id.to_s.strip.upcase.presence || ZoneMatchable::WILDCARD
   end
 end

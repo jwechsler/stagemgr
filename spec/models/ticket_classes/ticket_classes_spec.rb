@@ -52,4 +52,50 @@ RSpec.describe TicketClass do
   ensure
     Resque.inline = false
   end
+
+  describe 'zoned pricing' do
+    it 'defaults zone_id to the wildcard "*"' do
+      ticket_class = FactoryBot.create(:ticket_class, production: @production)
+      expect(ticket_class.zone_id).to eq('*')
+    end
+
+    it 'normalizes zone_id (strip + upcase, blank -> "*")' do
+      ticket_class = FactoryBot.create(:ticket_class, production: @production, zone_id: ' b2 ')
+      expect(ticket_class.zone_id).to eq('B2')
+      ticket_class.update!(zone_id: '')
+      expect(ticket_class.zone_id).to eq('*')
+    end
+
+    it 'rejects malformed zone_ids' do
+      expect(FactoryBot.build(:ticket_class, production: @production, zone_id: 'ABC')).not_to be_valid
+      expect(FactoryBot.build(:ticket_class, production: @production, zone_id: '**')).not_to be_valid
+      expect(FactoryBot.build(:ticket_class, production: @production, zone_id: 'A-')).not_to be_valid
+    end
+
+    describe '#sellable_for_zone?' do
+      it 'is true for the wildcard against any zone' do
+        ticket_class = FactoryBot.create(:ticket_class, production: @production, zone_id: '*')
+        expect(ticket_class.sellable_for_zone?('A')).to be true
+        expect(ticket_class.sellable_for_zone?('Z9')).to be true
+      end
+
+      it 'is true only for the matching zone otherwise' do
+        ticket_class = FactoryBot.create(:ticket_class, production: @production, zone_id: 'B')
+        expect(ticket_class.sellable_for_zone?('B')).to be true
+        expect(ticket_class.sellable_for_zone?('A')).to be false
+      end
+    end
+
+    describe '.for_zone' do
+      it 'returns wildcard and exact-match classes only' do
+        wildcard = FactoryBot.create(:ticket_class, production: @production, zone_id: '*')
+        zone_a = FactoryBot.create(:ticket_class, production: @production, zone_id: 'A')
+        zone_b = FactoryBot.create(:ticket_class, production: @production, zone_id: 'B')
+
+        matches = @production.ticket_classes.for_zone('A')
+        expect(matches).to include(wildcard, zone_a)
+        expect(matches).not_to include(zone_b)
+      end
+    end
+  end
 end

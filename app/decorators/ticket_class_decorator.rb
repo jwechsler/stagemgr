@@ -28,12 +28,20 @@ class TicketClassDecorator < ApplicationDecorator
   end
 
   def ticket_type
-    h.raw(make_label(object.ticket_type) + (object.minutes_before_show.blank? ? '' : make_label(" #{object.minutes_before_show} minutes before")))
+    h.raw(make_label(object.ticket_type) +
+      (object.minutes_before_show.blank? ? '' : make_label(" #{object.minutes_before_show} minutes before")) +
+      auto_attach_indicator)
   end
 
   private
 
   def make_label(value)
     "<span class=\"label info\">#{value}</span>"
+  end
+
+  def auto_attach_indicator
+    return '' unless object.auto_attach?
+
+    ' <span class="auto-attach-indicator" title="Added automatically to orders">＋</span>'
   end
 end

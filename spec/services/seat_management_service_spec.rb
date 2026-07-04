@@ -497,4 +497,48 @@ RSpec.describe SeatManagementService, type: :service do
       expect(svc.order_uuid).to be_nil
     end
   end
+
+  # ---------------------------------------------------------------------------
+  # Zoned pricing
+  # ---------------------------------------------------------------------------
+  describe "#assign_seats zone enforcement" do
+    it "fails the whole batch when any seat is outside the class zone" do
+      seat_ids = available_seat_ids(2)
+      Seat.where(id: seat_ids.first).update_all(zone: "B")
+      ticket_class = TicketClass.find(valid_ticket_class_id)
+      ticket_class.update!(zone_id: "A")
+
+      result = service.assign_seats(seat_ids, ticket_class.id)
+
+      expect(result.failure?).to be true
+      expect(result.error).to include("zone")
+      expect(result.error).to include("B")
+      held = SeatAssignment.where(performance_id: performance.id, seat_id: seat_ids,
+                                  status: SeatAssignment::TEMPORARY)
+      expect(held).to be_empty
+    end
+
+    it "assigns when every seat matches the class zone" do
+      seat_ids = available_seat_ids(2)
+      Seat.where(id: seat_ids).update_all(zone: "B")
+      ticket_class = TicketClass.find(valid_ticket_class_id)
+      ticket_class.update!(zone_id: "B")
+
+      result = service.assign_seats(seat_ids, ticket_class.id)
+
+      expect(result.success?).to be true
+    end
+
+    it "assigns any zone with a wildcard class" do
+      seat_ids = available_seat_ids(2)
+      Seat.where(id: seat_ids.first).update_all(zone: "B")
+      Seat.where(id: seat_ids.last).update_all(zone: "C7")
+      ticket_class = TicketClass.find(valid_ticket_class_id)
+      expect(ticket_class.zone_id).to eq("*")
+
+      result = service.assign_seats(seat_ids, ticket_class.id)
+
+      expect(result.success?).to be true
+    end
+  end
 end

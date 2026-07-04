@@ -108,7 +108,7 @@ RSpec.describe TicketRevenueAnalysis, type: :service do
       fields = %i[production buckets comp_count total_capacity total_paid
                   capacity_utilization_pct gross_revenue cash_collected
                   overall_avg_paid_price total_dynamic_lift_dollars total_dynamic_lift_pct
-                  performance_count completed_performance_count special_offer_usage]
+                  performance_count completed_performance_count special_offer_usage zone_sales]
       fields.each { |f| expect(TicketRevenueAnalysis::Summary.members).to include(f) }
     end
   end
@@ -863,6 +863,98 @@ RSpec.describe TicketRevenueAnalysis, type: :service do
 
     it 'returns BigDecimal(0) for empty tc_ids' do
       expect(analysis.send(:entry_price_for_bucket, [], [], {})).to eq(BigDecimal('0'))
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # Zone sales (sales-by-zone heatmap data)
+  # ---------------------------------------------------------------------------
+  describe '#compute zone_sales' do
+    def make_zoned_seat_map(zone_counts)
+      seat_map = FactoryBot.create(:seat_map, venue: venue, seat_count: 0)
+      zone_counts.each do |zone, count|
+        count.times do |i|
+          FactoryBot.create(:seat, seat_map: seat_map, zone: zone,
+                                   row: zone, seat_number: i + 1, location: "#{zone}#{i + 1}")
+        end
+      end
+      seat_map
+    end
+
+    def make_reserved_production(seat_map)
+      prod = make_production
+      prod.update!(seat_map: seat_map)
+      make_ticket_class(prod)
+      prod
+    end
+
+    # Performance saves auto-create an Available seat assignment per seat
+    # (Performance#manage_seat_inventory), so specs mutate that inventory
+    # rather than creating their own rows.
+    def set_status(performance, location, status)
+      SeatAssignment.where(performance: performance)
+                    .joins(:seat).where(seats: { location: location })
+                    .update_all(status: status)
+    end
+
+    it 'is empty for a production without a seat map' do
+      production = make_production
+      make_ticket_class(production)
+      expect(described_class.new(production).compute.zone_sales).to eq([])
+    end
+
+    it 'is empty for a seat map with a single zone' do
+      production = make_reserved_production(make_zoned_seat_map('A' => 4))
+      perf = make_performance(production)
+      SeatAssignment.where(performance: perf).update_all(status: SeatAssignment::ASSIGNED)
+      expect(described_class.new(production).compute.zone_sales).to eq([])
+    end
+
+    it 'reports per-zone stock, sold count, and percent sold, sorted by zone' do
+      production = make_reserved_production(make_zoned_seat_map('A' => 4, 'B' => 2))
+      perf = make_performance(production)
+      %w[A1 B1 B2].each { |loc| set_status(perf, loc, SeatAssignment::ASSIGNED) }
+
+      zone_sales = described_class.new(production).compute.zone_sales
+      expect(zone_sales.map(&:zone)).to eq(%w[A B])
+
+      zone_a, zone_b = zone_sales
+      expect(zone_a.to_h).to include(seat_count: 4, stock: 4, sold: 1, pct_sold: 25.0)
+      expect(zone_b.to_h).to include(seat_count: 2, stock: 2, sold: 2, pct_sold: 100.0)
+    end
+
+    it 'counts stock across every performance of the run' do
+      production = make_reserved_production(make_zoned_seat_map('A' => 2, 'B' => 1))
+      2.times { make_performance(production) }
+
+      zone_sales = described_class.new(production).compute.zone_sales
+      expect(zone_sales.map(&:stock)).to eq([4, 2])
+      expect(zone_sales.map(&:sold)).to eq([0, 0])
+    end
+
+    it 'excludes broken (N/A) seats from stock and ignores held seats in sold' do
+      production = make_reserved_production(make_zoned_seat_map('A' => 3, 'B' => 1))
+      perf = make_performance(production)
+      set_status(perf, 'A1', SeatAssignment::BROKEN)
+      set_status(perf, 'A2', SeatAssignment::TEMPORARY)
+      set_status(perf, 'A3', SeatAssignment::ASSIGNED)
+
+      zone_a = described_class.new(production).compute.zone_sales.first
+      expect(zone_a.to_h).to include(stock: 2, sold: 1, pct_sold: 50.0)
+    end
+
+    it 'ignores assignments belonging to other productions on the same seat map' do
+      seat_map = make_zoned_seat_map('A' => 2, 'B' => 2)
+      production = make_reserved_production(seat_map)
+      other      = make_reserved_production(seat_map)
+
+      make_performance(production)
+      other_perf = make_performance(other)
+      SeatAssignment.where(performance: other_perf).update_all(status: SeatAssignment::ASSIGNED)
+
+      zone_sales = described_class.new(production).compute.zone_sales
+      expect(zone_sales.map(&:sold)).to eq([0, 0])
+      expect(zone_sales.map(&:stock)).to eq([2, 2])
     end
   end
 end

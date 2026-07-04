@@ -69,9 +69,35 @@ class SeatAssignment < ApplicationRecord
     save!
   end
 
+  # Zoned pricing: before a reseat is finalized, every ticket class being
+  # released must be placeable on a distinct newly-held seat whose zone it
+  # matches. Specific-zone classes can only take seats in their own zone;
+  # wildcard ("*") classes take anything, so feasibility reduces to a per-zone
+  # count check. Returns nil when feasible, or a human-readable conflict.
+  def self.reseating_zone_conflict(order_uuid)
+    releasing = where(order_uuid: order_uuid, status: RELEASING).includes(:ticket_class)
+    return nil if releasing.empty?
+
+    incoming_zone_counts = where(order_uuid: order_uuid, status: TEMPORARY)
+                           .includes(:seat).map { |sa| sa.seat.zone }.tally
+
+    specific = releasing.map(&:ticket_class).compact
+                        .reject { |tc| tc.zone_id == ZoneMatchable::WILDCARD }
+    specific.group_by(&:zone_id).each do |zone, classes|
+      next if classes.size <= (incoming_zone_counts[zone] || 0)
+
+      return "Not enough seats selected in zone #{zone} for " \
+             "#{classes.map(&:class_name).uniq.join(', ')}"
+    end
+    nil
+  end
+
   def self.reseating_commit(order_uuid)
     o = Order.find_by(uuid: order_uuid)
     if SeatAssignment.current_seat_assignments(o.uuid).count.eql?(o.number_of_tickets)
+      conflict = reseating_zone_conflict(order_uuid)
+      return conflict unless conflict.nil?
+
       SeatAssignment.transaction do
         SeatAssignment.where(order_uuid: order_uuid, status: SeatAssignment::TEMPORARY).update_all(
           status: SeatAssignment::ASSIGNED, updated_at: Time.now

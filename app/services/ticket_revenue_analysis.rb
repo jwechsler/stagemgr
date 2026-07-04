@@ -14,11 +14,16 @@ class TicketRevenueAnalysis
     :cash_collected,
     :overall_avg_paid_price, :total_dynamic_lift_dollars, :total_dynamic_lift_pct,
     :performance_count, :completed_performance_count,
-    :special_offer_usage,
+    :special_offer_usage, :zone_sales,
     keyword_init: true
   )
 
   OfferUsage = Struct.new(:code, :description, :uses, :total_discount, :class_swap, keyword_init: true)
+
+  # Per-zone sell-through for productions on a zoned seat map. `stock` is the
+  # zone's real inventory across the run (seat assignment rows, excluding
+  # broken seats), so it stays correct when seats were added mid-run.
+  ZoneSales = Struct.new(:zone, :seat_count, :stock, :sold, :pct_sold, keyword_init: true)
 
   def initialize(production)
     @production = production
@@ -31,7 +36,7 @@ class TicketRevenueAnalysis
   private
 
   def cache_key
-    "ticket_revenue_analysis/#{@production.id}/v5/#{@production.updated_at.to_i}"
+    "ticket_revenue_analysis/#{@production.id}/v6/#{@production.updated_at.to_i}"
   end
 
   def uncached_compute
@@ -148,8 +153,38 @@ class TicketRevenueAnalysis
       total_dynamic_lift_pct: total_lift_pct,
       performance_count: perf_count,
       completed_performance_count: completed_perfs,
-      special_offer_usage: compute_special_offer_usage
+      special_offer_usage: compute_special_offer_usage,
+      zone_sales: compute_zone_sales
     )
+  end
+
+  # Sales by seat zone, for the zone heatmap. Returns [] unless the production
+  # sits on a seat map with at least two zones — a single-zone map has no
+  # relative popularity to show.
+  def compute_zone_sales
+    seat_map = @production.seat_map
+    return [] unless seat_map
+
+    zone_seat_counts = seat_map.seats.group(:zone).count
+    return [] if zone_seat_counts.size < 2
+
+    status_counts = SeatAssignment.joins(:seat, :performance)
+                                  .where(performances: { production_id: @production.id })
+                                  .where.not(status: SeatAssignment::BROKEN)
+                                  .group('seats.zone', 'seat_assignments.status')
+                                  .count
+
+    zone_seat_counts.keys.sort.map do |zone|
+      stock = status_counts.sum { |(z, _status), count| z == zone ? count : 0 }
+      sold  = status_counts[[zone, SeatAssignment::ASSIGNED]].to_i
+      ZoneSales.new(
+        zone: zone,
+        seat_count: zone_seat_counts[zone],
+        stock: stock,
+        sold: sold,
+        pct_sold: stock.positive? ? (sold.to_f / stock * 100).round(1) : 0.0
+      )
+    end
   end
 
   def compute_special_offer_usage
@@ -441,7 +476,8 @@ class TicketRevenueAnalysis
       total_dynamic_lift_pct: nil,
       performance_count: perf_count,
       completed_performance_count: completed_perfs,
-      special_offer_usage: []
+      special_offer_usage: [],
+      zone_sales: compute_zone_sales
     )
   end
 end

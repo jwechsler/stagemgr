@@ -122,6 +122,15 @@ When checked, tickets of this class are treated as comps. Complimentary tickets 
 
 **Default: checked.** When checked, this ticket class's price is included in the price range displayed on the production's public listing (e.g., "$25--$45"). Uncheck for comps or special classes that would skew the displayed range.
 
+### Zone ID
+
+**Default: `*` (any zone).** For reserved seating productions, restricts which seats this class can be sold into. A class with Zone ID `*` sells into any seat; a class with a specific zone (1--2 letters/digits, e.g., `B`) sells only into seats whose zone matches. Seat zones are assigned in the [seat map editor](../setup/seat-map-editor.md#seat-zones-and-zoned-pricing).
+
+The match is enforced everywhere -- the public seat selector hides non-matching classes, the server rejects mismatched sales, and reseating cannot move a ticket across zones (use an exchange instead). Multiple classes may share a zone (e.g., `STUDENT`, `GENERAL`, and `SENIOR` classes all with Zone ID `A`), and the class code does not need to mention the zone. General admission productions ignore this field.
+
+!!! tip "Pricing by section"
+    To charge more for premium seats, zone those seats (e.g., zone `P`) in the seat map editor and create ticket classes with Zone ID `P` at the premium price. Keep wildcard (`*`) classes for tickets -- like subscriber redemptions -- that should work anywhere in the house.
+
 ## Exchange Behavior
 
 ### Exchangeable
@@ -139,6 +148,8 @@ Only applicable when **Ticket Type** is set to **Timed**. Enter the number of mi
 ### Auto Attach
 
 When checked, this ticket class is automatically included in the allocation table for **every new performance** created for this production. When unchecked, the class must be manually added to each performance's allocations.
+
+Auto-attaching classes are flagged in the ticket classes list: a blue **＋** marker appears after the type tag in the **Type** column. Hover over the marker to see the tooltip "Added automatically to orders." Classes without the marker must be added to performances manually.
 
 !!! tip "When to Use Auto Attach"
     Enable auto attach for ticket classes that apply to every performance (e.g., General Admission, Senior). Disable it for special one-off classes (e.g., Opening Night VIP) that only apply to specific performances.

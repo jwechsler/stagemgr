@@ -1,0 +1,41 @@
+-# Sales-by-zone heatmap for one production (locals: summary — a
+-# TicketRevenueAnalysis::Summary whose zone_sales is non-empty). Seat fills
+-# carry a heat color scaled to the best-selling zone, so relative popularity
+-# between zones reads directly off the map.
+- seat_map      = summary.production.seat_map
+- zone_sales    = summary.zone_sales
+- max_pct       = zone_sales.map(&:pct_sold).max
+- sales_by_zone = zone_sales.index_by(&:zone)
+- if seat_map.base_image_map.attached?
+  %figure.zone-heatmap{style: 'margin: 0 0 0.5rem 0'}
+    %svg{version: '1.1', xmlns: 'http://www.w3.org/2000/svg', 'xmlns:xlink' => 'http://www.w3.org/1999/xlink', viewBox: "0 0 #{seat_map.original_width} #{seat_map.original_height}", preserveAspectRatio: 'xMinYMin meet'}
+      %image{width: seat_map.original_width, height: seat_map.original_height, 'xlink:href': seat_map.decorate.base_image_map_url}
+      - seat_map.seats.each do |seat|
+        - zs = sales_by_zone[seat.zone]
+        %circle{cx: seat.origin_x, cy: seat.origin_y, r: seat.width, style: "fill:#{zone_heat_color(zs&.pct_sold, max_pct)};fill-opacity:0.9;stroke:#666;stroke-width:1"}
+          %title= "Zone #{seat.zone} — #{zs ? zs.pct_sold : 0}% of stock sold"
+      - seat_map.seats.group_by(&:zone).each do |zone, seats|
+        - zs = sales_by_zone[zone]
+        - label_x = seats.sum { |s| s.origin_x.to_f } / seats.size
+        - label_y = seats.sum { |s| s.origin_y.to_f } / seats.size
+        %text{x: label_x.round, y: label_y.round, 'text-anchor' => 'middle', style: "font: bold #{(seat_map.original_width.to_f / 40).round}px sans-serif;fill:#111;paint-order:stroke;stroke:#fff;stroke-width:6px;pointer-events:none"}
+          = "#{zone} · #{zs ? zs.pct_sold : 0}%"
+%table.hover
+  %thead
+    %tr
+      %th
+      %th Zone
+      %th Seats
+      %th Stock
+      %th Sold
+      %th % of stock sold
+  %tbody
+    - zone_sales.each do |zs|
+      %tr
+        %td
+          %span{style: "display:inline-block;width:1rem;height:1rem;border:1px solid #666;background:#{zone_heat_color(zs.pct_sold, max_pct)}"}
+        %td= zs.zone
+        %td= zs.seat_count
+        %td= zs.stock
+        %td= zs.sold
+        %td= "#{zs.pct_sold}%"

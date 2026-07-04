@@ -9,6 +9,7 @@ class TicketClassDatatable < DatatableBase
       ticketing_fee: { source: 'TicketClass.ticketing_fee', searchable: false },
       web_visible: { source: 'TicketClass.web_visible', searchable: false },
       ticket_type: { source: 'TicketClass.ticket_type' },
+      zone_id: { source: 'TicketClass.zone_id' },
       actions: { orderable: false, searchable: false }
     }
   end
@@ -23,6 +24,7 @@ class TicketClassDatatable < DatatableBase
         ticketing_fee: ticket_class.decorate.ticketing_fee,
         web_visible: ticket_class.decorate.web_visible?,
         ticket_type: ticket_class.decorate.ticket_type,
+        zone_id: ticket_class.zone_id,
         actions: ticket_class.decorate.dt_actions,
         DT_RowID: ticket_class.id
       }

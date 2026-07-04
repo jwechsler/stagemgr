@@ -20,6 +20,7 @@ class SeatManagementService
         ActiveRecord::Base.transaction do
           assignments = find_available_seats(seats)
           validate_seat_assignments!(seats, assignments)
+          validate_zone!(assignments, ticket_class_id)
 
           assigned = assign_seats_to_order(assignments, ticket_class_id, accessibility)
           first_assignment = assigned.first
@@ -168,6 +169,20 @@ class SeatManagementService
     raise SeatError, 'Some seats are not available' if unavailable.any?
 
     raise SeatError, 'Seat limit exceeded' if exceeds_seat_limit?(assignments.size)
+  end
+
+  # Zoned pricing: every seat in the batch must be in a zone the ticket class
+  # sells into (wildcard "*" classes match all zones). All-or-nothing, and
+  # there is deliberately no override.
+  def validate_zone!(assignments, ticket_class_id)
+    ticket_class = TicketClass.find_by(id: ticket_class_id)
+    return if ticket_class.nil?
+
+    mismatched = assignments.reject { |a| ticket_class.sellable_for_zone?(a.seat.zone) }
+    return if mismatched.empty?
+
+    zones = mismatched.map { |a| a.seat.zone }.uniq.sort.join(', ')
+    raise SeatError, "Ticket class #{ticket_class.class_name} is not valid for zone(s): #{zones}"
   end
 
   def validate_release!(assignments)

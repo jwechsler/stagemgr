@@ -176,6 +176,64 @@ select[size], select[multiple] {
   stroke-opacity:  .25;
 }
 
+/* Zoned pricing: available seats the order's ticket classes cannot move into
+   (reseating flow). Kept visually distinct from na/unavailable. */
+.seat.zone-blocked {
+  fill-opacity: .15;
+  stroke-opacity: .3;
+  cursor: not-allowed;
+}
+
+/* Seat map editor (admin/seat_maps#editor) */
+#seatmap-editor {
+  border: 1px solid #ccc;
+  background: #f7f7f7;
+  overflow: hidden;
+}
+
+.editor-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+
+  .button { margin-bottom: 0; }
+
+  .editor-zone-label {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+
+    input {
+      width: 4.5rem;
+      margin-bottom: 0;
+      text-transform: uppercase;
+    }
+  }
+}
+
+#dirty-indicator { color: #cc4b37; font-weight: bold; }
+
+.editor-status { margin-left: 0.5rem; }
+.editor-status.error { color: #cc4b37; font-weight: bold; }
+
+.editor-hints {
+  font-size: 0.8rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+}
+
+#new-seat-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  padding: 0.5rem;
+
+  label { margin-right: 0.25rem; }
+  input { margin-bottom: 0; width: 6rem; }
+  .button { margin-bottom: 0; }
+}
+
 #seatingmap {
   position: relative;
   width: 100%;

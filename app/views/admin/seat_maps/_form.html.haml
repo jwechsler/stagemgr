@@ -1,5 +1,6 @@
 = f.input :label, label: "Label", error: "You must name this seat map"
 = f.input :base_image_map, as: :file, label: "Seating Map Image", hint: "Upload an image 1200x900 to create the image map"
 = f.input :geometry_import, as: :file, label: "Seating Geometry File", hint: "Upload a csv file with seat geometry"
+= f.input :present_as_zoned, label: "Present as zoned", hint: "Color seat borders by zone in seating displays (visual only; zone rules always apply)"
 
 = f.button :submit, class: 'right'
