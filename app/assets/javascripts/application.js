@@ -5,7 +5,8 @@
 //= require jquery_ujs
 //= require datatables
 //= require datatables_responsive_defaults
-//= require foundation
+//= require what-input/dist/what-input
+//= require foundation-sites/dist/js/foundation
 //= require jquery.dataTables.yadcf
 //= require utility
 //= require activestorage

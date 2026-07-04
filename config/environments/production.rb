@@ -136,12 +136,12 @@ Rails.application.configure do
   # exactly as parsed (string-keyed Hashes) and assigned to config.x.* so that
   # existing string-key access (e.g. config.x.server_config['host']) keeps
   # working. Legacy $GLOBALS alias these via config/initializers/legacy_globals.rb.
-  config_data = YAML.load(File.open(Rails.root.join('config/server.yml').to_s))
-  config.x.server_config = config_data['all'].deep_merge(config_data['production']).with_indifferent_access
-  config.x.email_address = config.x.server_config['email']['addresses']
+  config_data = YAML.load(File.open(Rails.root.join('config/server.yml').to_s)) || {}
+  config.x.server_config = (config_data['all'] || {}).deep_merge(config_data['production'] || {}).with_indifferent_access
+  config.x.email_address = config.x.server_config.dig('email', 'addresses')
   config.x.payment_config = config.x.server_config['payment_processing']
   config.x.server_config['ext_site_wrapper'] = config.x.server_config['ext_site_wrapper'] || 'ext_site_wrapper'
-  config.x.tktprint = YAML.load(File.open(Rails.root.join('config/ticket_print.yml').to_s))['production']
+  config.x.tktprint = (YAML.load(File.open(Rails.root.join('config/ticket_print.yml').to_s)) || {})['production']
   if config.x.server_config['payment_processing'].nil? ||
      config.x.server_config['payment_processing']['additional_card_types'].blank?
     config.x.additional_card_types = []
@@ -150,8 +150,10 @@ Rails.application.configure do
       config.x.server_config['payment_processing']['additional_card_types'].split(',').map(&:strip)
   end
 
-  config.action_mailer.delivery_method = config.x.server_config['email']['delivery_method'].to_sym
-  if config.x.server_config['email']['delivery_method'].eql?('postmark')
+  email_config = config.x.server_config['email'] || {}
+  delivery_method = email_config['delivery_method']
+  config.action_mailer.delivery_method = delivery_method&.to_sym || :test
+  if delivery_method.eql?('postmark')
     config.action_mailer.postmark_settings = { api_key: Rails.application.credentials[:postmark_api_token] }
   end
 
@@ -159,9 +161,9 @@ Rails.application.configure do
   config.x.app_display_name = config.x.server_config['app_name'] || 'StageMgr'
   config.action_mailer.default_url_options = {
     host: "#{config.x.server_config['host']}#{config.x.server_config['sub_uri']}",
-    protocol: config.x.server_config['host_protocol']
+    protocol: config.x.server_config['host_protocol'] || 'http'
   }
-  Rails.application.routes.default_url_options[:host] = config.x.server_config['host']
+  Rails.application.routes.default_url_options[:host] = config.x.server_config['host'] || 'localhost'
 
   # Set up notification for issues
 end

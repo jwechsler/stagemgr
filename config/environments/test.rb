@@ -71,17 +71,17 @@ Rails.application.configure do
   # exactly as parsed (string-keyed Hashes) and assigned to config.x.* so that
   # existing string-key access (e.g. config.x.server_config['host']) keeps
   # working. Legacy $GLOBALS alias these via config/initializers/legacy_globals.rb.
-  config.x.tktprint = YAML.load(File.open(Rails.root.join('config/ticket_print.yml').to_s))['test']
+  config.x.tktprint = (YAML.load(File.open(Rails.root.join('config/ticket_print.yml').to_s)) || {})['test']
 
-  config_data = YAML.load(File.open(Rails.root.join('config/server.yml').to_s))
-  config.x.server_config = config_data['all'].deep_merge(config_data['test']).with_indifferent_access
-  config.x.payment_config = config.x.server_config['payment_processing']
+  config_data = YAML.load(File.open(Rails.root.join('config/server.yml').to_s)) || {}
+  config.x.server_config = (config_data['all'] || {}).deep_merge(config_data['test'] || {}).with_indifferent_access
+  config.x.payment_config = config.x.server_config['payment_processing'] || {}
   config.x.test_credit_card = config.x.payment_config['test_credit_card']
-  config.x.email_address = config.x.server_config['email']['addresses']
+  config.x.email_address = config.x.server_config.dig('email', 'addresses')
   config.x.server_config['ext_site_wrapper'] = 'ext_test_wrapper'
   config.x.rand_clause = 1
-  config.action_mailer.default_url_options = { host: config.x.server_config['host'],
-                                               protocol: config.x.server_config['host_protocol'] }
+  config.action_mailer.default_url_options = { host: config.x.server_config['host'] || 'localhost',
+                                               protocol: config.x.server_config['host_protocol'] || 'http' }
 
   config.action_mailer.delivery_method = :test
   config.x.app_display_name = "#{config.x.server_config['app_name'] || 'StageMgr'} TEST"

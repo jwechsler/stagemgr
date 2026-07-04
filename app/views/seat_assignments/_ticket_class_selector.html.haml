@@ -1,4 +1,4 @@
-#ticket-modal.xlarge.reveal(data-reveal aria-labelledby="modalTitle" aria-hidden="true" role="dialog" data-assignment-id="none")
+= render layout: "shared/components/modal", locals: { id: "ticket-modal", size: "xlarge", aria_labelledby: "modalTitle", data: { "assignment-id" => "none" } } do
   %p.lead
     Select the ticket type for seat
     %span#seat-location &nbsp;
@@ -42,13 +42,11 @@
                 -else
                   %span.ticket_price= number_to_currency(tc.ticket_price)
               .small-3.cell
-                %a.button.tiny.ticket-class-select-button{href:'#',"data-ticket-class":tc.id, "data-ticket-type":tc.ticket_type} Select
+                = ui_button "Select", "#", size: :tiny, class: "ticket-class-select-button", data: { "ticket-class": tc.id, "ticket-type": tc.ticket_type }
 
     #no-ticket-classes-message{style: "display:none"}
       %p No ticket types are available for this seat.
 
-  %button.close-button(data-close aria-label="Close modal" type="button")
-    %span(aria-hidden="true") &times;
 = render partial: "/seat_assignments/seating_config", locals: {performance_id: order_form.object.performance_id, order_uuid: order_form.object.uuid }
 
 = content_for :js do

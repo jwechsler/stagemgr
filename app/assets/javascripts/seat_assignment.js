@@ -75,7 +75,7 @@ function filter_ticket_selector_by_zone(seatZone) {
 
 function initialize_seating_assignment() {
 
-  $(document).on('closed.fndtn.reveal', '[data-reveal]', function () {
+  $(document).on('closed.zf.reveal', '[data-reveal]', function () {
     var modal = $(this);
     //$('img.seatingmap').mapster('rebind',mapster_options());
 

@@ -59,10 +59,7 @@ jQuery(document).ready(function($) {
 
   //$('input[type="submit"]).addClass('disabled');
 
-  // Gate order-action buttons until the order is actionable, but never
-  // disable modal dismissal controls ([data-close], e.g. the ticket-class
-  // selector's close button) — they must always work.
-  $('input[type="submit"].order-submit-button, button').not('[data-close]').disable(true);
+  $('input[type="submit"].order-submit-button, button.order-submit-button').disable(true);
   set_button_state_for_autocompletes();
   $('body').on('click', 'button.disabled', function(event) {
       event.preventDefault();

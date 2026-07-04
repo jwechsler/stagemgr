@@ -1,8 +1,7 @@
 = content_for :title do
   Analysis
 = content_for :breadcrumbs do
-  %ul.breadcrumbs
-    %li.current= link_to 'Analysis', admin_analysis_index_path
+  = render "shared/components/breadcrumb", items: [{ label: 'Analysis'}]
 
 = form_tag(rate_of_sales_admin_analysis_index_path, method: :post, id: 'analysis-form', data: { rate_of_sales_url: rate_of_sales_admin_analysis_index_path, ticket_revenue_url: ticket_revenue_admin_analysis_index_path, audience_url: audience_admin_analysis_index_path }) do
   .grid-x.grid-padding-x

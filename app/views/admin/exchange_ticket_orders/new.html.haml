@@ -3,13 +3,7 @@
 = content_for :breadcrumbs do
   %div.grid-x.grid-padding-x.collapse
     %div.small-10.cell
-      %ul.breadcrumbs
-        %li
-          = link_to 'Existing Orders', admin_orders_path
-        %li
-          = link_to "Order \##{@original_order.id}"
-        %li.current
-          %a{:href=>'#'}= "Exchange"
+      = render "shared/components/breadcrumb", items: [{ label: 'Existing Orders', path: admin_orders_path }, { label: "Order \##{@original_order.id}", path: "Order \##{@original_order.id}" }, { label: "Exchange" }]
     %div.small-2.cell
       = render '/admin/orders/status_bar', :order=>@original_order
 

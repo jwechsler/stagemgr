@@ -1,9 +1,6 @@
 <%= content_for :title do %>New Theater<% end %>
 <% content_for :breadcrumbs do %>
-<ul class="breadcrumbs">
-  <li><%= link_to 'Theaters', admin_theaters_path %></li>
-  <li class="current"><a href='#'>New</a></li>
-</ul>
+  <%= render "shared/components/breadcrumb", items: [{ label: 'Theaters', path: admin_theaters_path }, { label: "New" }] %>
 <% end %>
 
 <%= render :partial => 'form', :locals=>{:theater=>@theater} %>

@@ -1,8 +1,7 @@
 = content_for :title do
   Default Ticket Classes
 = content_for :breadcrumbs do
-  %ul.breadcrumbs
-    %li.current= link_to 'Default Ticket Classes', admin_default_ticket_classes_path
+  = render "shared/components/breadcrumb", items: [{ label: 'Default Ticket Classes'}]
 
 .grid-x.grid-padding-x
   .cell
@@ -23,7 +22,7 @@
             %td
               = default_ticket_class.class_code
             %td
-              %span.label.right.secondary= default_ticket_class.ticket_type
+              = ui_label(default_ticket_class.ticket_type, variant: :secondary, class: 'right')
               = default_ticket_class.class_name
             %td.currency= number_to_currency(default_ticket_class.ticket_price)
             %td.currency= number_to_currency(default_ticket_class.ticketing_fee)

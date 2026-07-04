@@ -32,7 +32,6 @@ Feature: Administer Special Offers
       And I am logged in
       And a special offer with code "TEST" for 50% off exists
       And I go to the edit page for special offer "TEST"
-      And I follow "TEST"
       And I check "Thursdays"
       And I check "Fridays"
       And I press "Update Percent off special offer"

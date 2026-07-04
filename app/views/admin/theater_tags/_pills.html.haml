@@ -2,4 +2,4 @@
 - unless tags.empty?
   %span.theater-tags
     - tags.each do |tag|
-      %span.label.theater-tag= tag.name
+      = ui_label(tag.name, variant: nil, class: 'theater-tag')

@@ -49,19 +49,13 @@ gem 'postmark-rails'
 gem 'rails-jquery-autocomplete' # :git=>"https://github.com/jwechsler/rails3-jquery-autocomplete.git" #:path=>'/Users/jeremyw/dev/rails3-jquery-autocomplete'
 gem 'validates_formatting_of'
 
-gem 'sassc-rails'
-# gem 'sass'  # Remove this line as we're using sassc
-# gem 'sass-rails'  # Remove this line as we're using sassc-rails
 gem 'coffee-rails'
+gem 'dartsass-sprockets'
 gem 'uglifier'
-# Add Foundation Here
+# Foundation 6.9 via npm (foundation-sites in package.json)
 gem 'autoprefixer-rails'
-gem 'bourbon'
-gem 'foundation-icons-sass-rails'
-gem 'foundation-rails', '~> 6.6.2.0' # This version uses older Sass syntax
 
 gem 'draper'
-gem 'foundation-datetimepicker-rails'
 gem 'jquery-timepicker-rails'
 gem 'yajl-ruby', require: 'yajl'
 # gem 'jqgrid-rails3', :git=>"https://github.com/davebaldwin/jqgrid-rails3.git"

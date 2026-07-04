@@ -33,7 +33,7 @@
             = number_to_currency(bucket.avg_paid_price.round)
             %small.text-secondary= "(#{bucket_subtitle(bucket)})"
           - if bucket.allocation_cap_hit
-            %span.label.alert{style: 'margin-left:0.25rem', title: 'Sold to allocation limit'} ⚑
+            = ui_label "⚑", variant: :alert, style: 'margin-left:0.25rem', title: 'Sold to allocation limit'
         %td.text-right= bucket.paid_count
         %td.text-right= pct_cap  ? "#{pct_cap}%"  : "—"
         %td.text-right= pct_sold ? "#{pct_sold}%" : "—"

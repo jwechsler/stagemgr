@@ -1,9 +1,6 @@
 = content_for :title do
   = @membership_offer.name
 = content_for :breadcrumbs do
-  %ul.breadcrumbs
-    %li= link_to 'Membership Offers', admin_membership_offers_path
-    %li.current
-      %a{:href=>'#'}= @membership_offer.name
+  = render "shared/components/breadcrumb", items: [{ label: 'Membership Offers', path: admin_membership_offers_path }, { label: @membership_offer.name }]
 
 = render 'form', :membership_offer=>@membership_offer

@@ -1,9 +1,7 @@
 = content_for :title do
   New User
 = content_for :breadcrumbs do
-  %ul.breadcrumbs
-    %li= link_to 'Users', admin_users_path
-    %li.current New
+  = render "shared/components/breadcrumb", items: [{ label: 'Users', path: admin_users_path }, { label: "New" }]
 
 .grid-x
   .small-12.cell

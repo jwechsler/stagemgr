@@ -1,13 +1,7 @@
 = content_for :title do
   Seat Map
 = content_for :breadcrumbs do
-  %ul.breadcrumbs
-    %li
-      %a{:href=>"#{admin_venues_path}"} Venues
-    %li
-      %a{:href=>"#{admin_venue_path(@venue)}"}= @seat_map.venue.name
-    %li.current
-      %a{:href=>'#'}= "Seat Map #{@seat_map.label}"
+  = render "shared/components/breadcrumb", items: [{ label: "Venues", path: admin_venues_path }, { label: @seat_map.venue.name, path: admin_venue_path(@venue) }, { label: "Seat Map #{@seat_map.label}" }]
 
 .grid-x.grid-padding-x
   .cell.small-12
