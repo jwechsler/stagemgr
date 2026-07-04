@@ -21,10 +21,13 @@
       #ticket-selector
     - else
       #ticket-selector
+        -# Box office staff may sell classes hidden from the public purchase page;
+        -# mirrors the ability gate in PerformancesController#ticket_classes.
+        - show_backend_classes = can? :view_backend_classes, TicketClassAllocation
         - order_form.object.performance.ticket_class_allocations.each do |tca|
-          -if tca.available? && !tca.ticket_class.software_managed? && (tca.ticket_class.web_visible?)
+          -if tca.available? && !tca.ticket_class.software_managed? && (tca.ticket_class.web_visible? || show_backend_classes)
             - tc = tca.ticket_class
-            .grid-x.grid-padding-x{"data-ticket-type" => tc.ticket_type, "data-zone-id" => tc.zone_id}
+            .grid-x.grid-padding-x{class: ('front-facing' if tc.web_visible?), "data-ticket-type" => tc.ticket_type, "data-zone-id" => tc.zone_id}
               .small-6.cell.vertical-center
 
                 = tc.class_name
