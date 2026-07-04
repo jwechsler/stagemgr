@@ -39,9 +39,12 @@ module ZoneHelper
 
   # The map's distinct zones in sorted order — the progression that drives
   # color assignment. Memoized per request so rendering a full house doesn't
-  # re-query per circle.
+  # re-query per circle; the instance variable is that deliberate per-request
+  # cache, not shared view state.
+  # rubocop:disable Rails/HelperInstanceVariable
   def zone_progression(seat_map)
     @_zone_progressions ||= {}
     @_zone_progressions[seat_map.id] ||= seat_map.seats.distinct.pluck(:zone).sort
   end
+  # rubocop:enable Rails/HelperInstanceVariable
 end

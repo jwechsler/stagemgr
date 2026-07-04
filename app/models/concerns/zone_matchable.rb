@@ -8,8 +8,8 @@
 # which matches any seat zone.
 module ZoneMatchable
   WILDCARD = '*'.freeze
-  SEAT_ZONE_FORMAT = /\A[A-Z0-9]{1,2}\z/.freeze
-  CLASS_ZONE_FORMAT = /\A(\*|[A-Z0-9]{1,2})\z/.freeze
+  SEAT_ZONE_FORMAT = /\A[A-Z0-9]{1,2}\z/
+  CLASS_ZONE_FORMAT = /\A(\*|[A-Z0-9]{1,2})\z/
 
   def self.match?(class_zone, seat_zone)
     class_zone == WILDCARD || class_zone == seat_zone

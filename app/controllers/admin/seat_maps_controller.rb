@@ -93,7 +93,7 @@ class Admin::SeatMapsController < ApplicationController
           height: seat.height,
           zone: seat.zone,
           feature: seat.feature,
-          deletable: !undeletable_seat_ids.include?(seat.id)
+          deletable: undeletable_seat_ids.exclude?(seat.id)
         }
       end
     }
@@ -105,8 +105,8 @@ class Admin::SeatMapsController < ApplicationController
   def bulk_update_seats
     id_map = {}
     ActiveRecord::Base.transaction do
-      params.permit(seats: [:id, :op, :client_id, :location, :row, :seat_number,
-                            :origin_x, :origin_y, :width, :height, :zone, :feature])
+      params.permit(seats: %i[id op client_id location row seat_number
+                              origin_x origin_y width height zone feature])
             .fetch(:seats, []).each do |seat_params|
         case seat_params[:op]
         when 'delete'
@@ -146,9 +146,7 @@ class Admin::SeatMapsController < ApplicationController
   # allowed for in-use seats; deletion is not.
   def seat_in_use?(seat)
     SeatAssignment.where(seat_id: seat.id)
-                  .where("(order_uuid IS NOT NULL AND order_uuid <> '') OR status IN (:held)",
-                         held: [SeatAssignment::TEMPORARY, SeatAssignment::ASSIGNED])
-                  .exists?
+                  .exists?(["(order_uuid IS NOT NULL AND order_uuid <> '') OR status IN (:held)", { held: [SeatAssignment::TEMPORARY, SeatAssignment::ASSIGNED] }])
   end
 
   def update_geometry(geometry_import)

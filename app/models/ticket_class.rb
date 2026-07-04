@@ -32,7 +32,7 @@ class TicketClass < ApplicationRecord
   validates :zone_id, presence: true,
                       format: { with: ZoneMatchable::CLASS_ZONE_FORMAT,
                                 message: 'must be "*" or 1-2 characters A-Z or 0-9' }
-  scope :for_zone, ->(seat_zone) {
+  scope :for_zone, lambda { |seat_zone|
     where('zone_id = :wildcard OR zone_id = :zone',
           wildcard: ZoneMatchable::WILDCARD, zone: seat_zone)
   }

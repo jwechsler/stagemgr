@@ -8,7 +8,7 @@ RSpec.describe ZoneHelper do
   end
 
   describe '#zone_stroke_color (per-map assignment)' do
-    it 'assigns palette entries by the zone position among the map''s sorted zones' do
+    it "assigns palette entries by the zone position among the map's sorted zones" do
       %w[B QR A].each { |z| add_seat(z) }
       # sorted progression: A, B, QR
       expect(helper.zone_stroke_color('A', seat_map)).to eq(ZoneHelper::ZONE_STROKE_PALETTE[0])

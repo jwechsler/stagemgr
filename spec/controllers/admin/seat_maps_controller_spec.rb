@@ -27,7 +27,7 @@ RSpec.describe Admin::SeatMapsController, type: :controller do
 
     it 'preserves existing zones when the zone column is absent' do
       seat = FactoryBot.create(:seat, seat_map: seat_map, location: 'AA1', row: 'AA',
-                               seat_number: 1, zone: 'B2')
+                                      seat_number: 1, zone: 'B2')
 
       import_csv(<<~CSV)
         location,row,sequence,origin-x,origin-y,width,height,feature
@@ -65,7 +65,7 @@ RSpec.describe Admin::SeatMapsController, type: :controller do
 
         get :editor_data, params: { venue_id: venue.id, id: seat_map.id }, format: :json
         expect(response).to be_successful
-        body = JSON.parse(response.body)
+        body = response.parsed_body
 
         expect(body['seat_map']['id']).to eq(seat_map.id)
         expect(body['seats'].length).to eq(3)
@@ -82,15 +82,15 @@ RSpec.describe Admin::SeatMapsController, type: :controller do
       it 'creates, updates and maps client ids in one batch' do
         target = seat_map.seats.first
         post :bulk_update_seats, format: :json,
-             params: { venue_id: venue.id, id: seat_map.id,
-                       seats: [
-                         { op: 'update', id: target.id, origin_x: 111, origin_y: 222, zone: 'B' },
-                         { op: 'create', client_id: 'new-1', location: 'ZZ1', row: 'ZZ',
-                           seat_number: 1, origin_x: 10, origin_y: 20, width: 8, height: 8, zone: 'B' }
-                       ] }
+                                 params: { venue_id: venue.id, id: seat_map.id,
+                                           seats: [
+                                             { op: 'update', id: target.id, origin_x: 111, origin_y: 222, zone: 'B' },
+                                             { op: 'create', client_id: 'new-1', location: 'ZZ1', row: 'ZZ',
+                                               seat_number: 1, origin_x: 10, origin_y: 20, width: 8, height: 8, zone: 'B' }
+                                           ] }
 
         expect(response).to be_successful
-        body = JSON.parse(response.body)
+        body = response.parsed_body
         expect(body['status']).to eq('ok')
 
         target.reload
@@ -108,9 +108,9 @@ RSpec.describe Admin::SeatMapsController, type: :controller do
         seat_map.create_inventory_for_performance(performance)
 
         post :bulk_update_seats, format: :json,
-             params: { venue_id: venue.id, id: seat_map.id,
-                       seats: [{ op: 'create', client_id: 'new-1', location: 'ZZ1', row: 'ZZ',
-                                 seat_number: 1, origin_x: 10, origin_y: 20, width: 8, height: 8 }] }
+                                 params: { venue_id: venue.id, id: seat_map.id,
+                                           seats: [{ op: 'create', client_id: 'new-1', location: 'ZZ1', row: 'ZZ',
+                                                     seat_number: 1, origin_x: 10, origin_y: 20, width: 8, height: 8 }] }
 
         expect(response).to be_successful
         new_seat = seat_map.seats.find_by(location: 'ZZ1')
@@ -122,8 +122,8 @@ RSpec.describe Admin::SeatMapsController, type: :controller do
         sold!(sold_seat)
 
         post :bulk_update_seats, format: :json,
-             params: { venue_id: venue.id, id: seat_map.id,
-                       seats: [{ op: 'update', id: sold_seat.id, origin_x: 500, zone: 'C' }] }
+                                 params: { venue_id: venue.id, id: seat_map.id,
+                                           seats: [{ op: 'update', id: sold_seat.id, origin_x: 500, zone: 'C' }] }
 
         expect(response).to be_successful
         expect(sold_seat.reload.origin_x).to eq(500)
@@ -133,8 +133,8 @@ RSpec.describe Admin::SeatMapsController, type: :controller do
       it 'deletes an unused seat' do
         seat = seat_map.seats.last
         post :bulk_update_seats, format: :json,
-             params: { venue_id: venue.id, id: seat_map.id,
-                       seats: [{ op: 'delete', id: seat.id }] }
+                                 params: { venue_id: venue.id, id: seat_map.id,
+                                           seats: [{ op: 'delete', id: seat.id }] }
 
         expect(response).to be_successful
         expect(Seat.find_by(id: seat.id)).to be_nil
@@ -146,14 +146,14 @@ RSpec.describe Admin::SeatMapsController, type: :controller do
         sold!(sold_seat)
 
         post :bulk_update_seats, format: :json,
-             params: { venue_id: venue.id, id: seat_map.id,
-                       seats: [
-                         { op: 'update', id: other.id, origin_x: 777 },
-                         { op: 'delete', id: sold_seat.id }
-                       ] }
+                                 params: { venue_id: venue.id, id: seat_map.id,
+                                           seats: [
+                                             { op: 'update', id: other.id, origin_x: 777 },
+                                             { op: 'delete', id: sold_seat.id }
+                                           ] }
 
         expect(response).to have_http_status(:unprocessable_entity)
-        expect(JSON.parse(response.body)['message']).to include(sold_seat.location)
+        expect(response.parsed_body['message']).to include(sold_seat.location)
         expect(Seat.find_by(id: sold_seat.id)).to be_present
         expect(other.reload.origin_x).not_to eq(777) # batch rolled back
       end
@@ -161,13 +161,13 @@ RSpec.describe Admin::SeatMapsController, type: :controller do
       it 'rejects a duplicate location with a validation error' do
         existing = seat_map.seats.first
         post :bulk_update_seats, format: :json,
-             params: { venue_id: venue.id, id: seat_map.id,
-                       seats: [{ op: 'create', client_id: 'new-1', location: existing.location,
-                                 row: existing.row, seat_number: 99, origin_x: 1, origin_y: 1,
-                                 width: 8, height: 8 }] }
+                                 params: { venue_id: venue.id, id: seat_map.id,
+                                           seats: [{ op: 'create', client_id: 'new-1', location: existing.location,
+                                                     row: existing.row, seat_number: 99, origin_x: 1, origin_y: 1,
+                                                     width: 8, height: 8 }] }
 
         expect(response).to have_http_status(:unprocessable_entity)
-        expect(JSON.parse(response.body)['status']).to eq('error')
+        expect(response.parsed_body['status']).to eq('error')
       end
     end
   end
