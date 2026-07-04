@@ -112,8 +112,8 @@ Rails.application.configure do
   email_config = config.x.server_config['email'] || {}
   delivery_method = email_config['delivery_method']
   config.action_mailer.delivery_method = delivery_method&.to_sym || :test
-  if delivery_method&.eql?('postmark')
-    config.action_mailer.postmark_settings = { api_key: Rails.application.credentials.dig(:postmark_api_token) }
+  if delivery_method.eql?('postmark')
+    config.action_mailer.postmark_settings = { api_key: Rails.application.credentials[:postmark_api_token] }
   end
 
   if config.x.server_config['payment_processing'].nil? ||

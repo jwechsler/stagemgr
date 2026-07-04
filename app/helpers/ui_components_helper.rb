@@ -14,13 +14,13 @@ module UiComponentsHelper
   #
   # Any extra options (data:, id:, method:, title:, ...) pass straight
   # through to link_to. Pass a block for non-text content (icons, markup).
-  def ui_button(name = nil, path = "#", variant: nil, size: nil, class: nil, **options, &block)
+  def ui_button(name = nil, path = "#", variant: nil, size: nil, class: nil, **, &block)
     extra   = binding.local_variable_get(:class)
     classes = ["button", size, variant, extra].compact.join(" ")
     if block
-      link_to(path, class: classes, **options, &block)
+      link_to(path, class: classes, **, &block)
     else
-      link_to(name, path, class: classes, **options)
+      link_to(name, path, class: classes, **)
     end
   end
 
@@ -31,9 +31,9 @@ module UiComponentsHelper
   #   ui_label "VIP", variant: :info, title: "Very important patron"
   #
   # variant: nil omits the variant class entirely (for custom-styled labels).
-  def ui_label(text, variant: :secondary, class: nil, **options)
+  def ui_label(text, variant: :secondary, class: nil, **)
     extra   = binding.local_variable_get(:class)
     classes = ["label", variant, extra].compact.join(" ")
-    content_tag(:span, text, class: classes, **options)
+    content_tag(:span, text, class: classes, **)
   end
 end

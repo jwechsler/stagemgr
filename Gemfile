@@ -49,15 +49,15 @@ gem 'postmark-rails'
 gem 'rails-jquery-autocomplete' # :git=>"https://github.com/jwechsler/rails3-jquery-autocomplete.git" #:path=>'/Users/jeremyw/dev/rails3-jquery-autocomplete'
 gem 'validates_formatting_of'
 
-gem 'dartsass-sprockets'
 gem 'coffee-rails'
+gem 'dartsass-sprockets'
 gem 'uglifier'
 # Foundation 6.9 via npm (foundation-sites in package.json)
 gem 'autoprefixer-rails'
 
 gem 'draper'
-gem 'yajl-ruby', require: 'yajl'
 gem 'jquery-timepicker-rails'
+gem 'yajl-ruby', require: 'yajl'
 # gem 'jqgrid-rails3', :git=>"https://github.com/davebaldwin/jqgrid-rails3.git"
 # gem "name_parse", "~> 0.0.5"
 gem 'namae'
