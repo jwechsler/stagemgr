@@ -279,7 +279,7 @@
             = submit_tag "Show", :class=>'tiny button postfix'
             = submit_tag "Download", :name=>'download_csv', :class=>'tiny button postfix'
 
-- if can?(:fulfill, TicketOrder) && !$TKTPRINT['service'].blank? then
+- if can?(:fulfill, TicketOrder) && !Rails.configuration.x.tktprint['service'].blank? then
   .grid-x.grid-padding-x
     .small-12.cell
       &nbsp;  

@@ -1,2 +1,5 @@
-InvalidCreditCard     = Class.new(StandardError)
-CannotProcessPayment  = Class.new(StandardError)
+class InvalidCreditCard < StandardError
+end
+
+class CannotProcessPayment < StandardError
+end

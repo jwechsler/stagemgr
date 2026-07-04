@@ -10,5 +10,4 @@ class MakePaymentTypeSingleInheritance < ActiveRecord::Migration[4.2]
   def down
     remove_column :payment_types, :type, :string
   end
-
 end

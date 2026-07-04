@@ -1,4 +1,9 @@
 - paytype = payment_types(order_form.object, (defined? allowed_payment_types?) ? allowed_payment_types : nil, true)
+-# Public order pages use the Foundation site wrapper (not the application
+-# layout), which emits yield :js — this is where they pick up the shared
+-# order-form JS. Every public order form renders this partial exactly once.
+= content_for :js do
+  = javascript_include_tag 'orders_common'
 .grid-x.grid-padding-x
   .small-12.cell
     .grid-x.grid-padding-x

@@ -3,7 +3,7 @@ require 'rails_helper'
 RSpec.describe Admin::FlexPassOffersController, type: :controller do
   let(:admin_user) { FactoryBot.create(:admin_user) }
   let(:theater) { FactoryBot.create(:theater) }
-  
+
   before do
     allow(controller).to receive(:current_user).and_return(admin_user)
     allow(controller).to receive(:authorize!).and_return(true)
@@ -29,10 +29,10 @@ RSpec.describe Admin::FlexPassOffersController, type: :controller do
       end
 
       it 'creates a flex pass offer with decimal values' do
-        expect {
+        expect do
           post :create, params: valid_params
-        }.to change(FlexPassOffer, :count).by(1)
-        
+        end.to change(FlexPassOffer, :count).by(1)
+
         offer = FlexPassOffer.last
         expect(offer.price).to eq(99.99)
         expect(offer.facility_fee).to eq(2.50)
@@ -65,9 +65,9 @@ RSpec.describe Admin::FlexPassOffersController, type: :controller do
       end
 
       it 'does not create a flex pass offer' do
-        expect {
+        expect do
           post :create, params: invalid_params
-        }.not_to change(FlexPassOffer, :count)
+        end.not_to change(FlexPassOffer, :count)
       end
 
       it 'renders the new template' do
@@ -95,9 +95,9 @@ RSpec.describe Admin::FlexPassOffersController, type: :controller do
       end
 
       it 'does not create a flex pass offer' do
-        expect {
+        expect do
           post :create, params: negative_params
-        }.not_to change(FlexPassOffer, :count)
+        end.not_to change(FlexPassOffer, :count)
       end
 
       it 'renders the new template' do
@@ -125,7 +125,7 @@ RSpec.describe Admin::FlexPassOffersController, type: :controller do
 
       it 'updates the flex pass offer with decimal values' do
         patch :update, params: update_params
-        
+
         flex_pass_offer.reload
         expect(flex_pass_offer.price).to eq(149.99)
         expect(flex_pass_offer.facility_fee).to eq(3.50)
@@ -152,7 +152,7 @@ RSpec.describe Admin::FlexPassOffersController, type: :controller do
       it 'does not update the flex pass offer' do
         original_price = flex_pass_offer.price
         patch :update, params: invalid_update_params
-        
+
         flex_pass_offer.reload
         expect(flex_pass_offer.price).to eq(original_price)
       end
@@ -166,15 +166,15 @@ RSpec.describe Admin::FlexPassOffersController, type: :controller do
 
   describe 'strong parameters' do
     it 'permits the currency fields' do
-      params = ActionController::Parameters.new({
-        flex_pass_offer: {
-          price: '99.99',
-          facility_fee: '2.50',
-          spiff: '1.75',
-          flat_payout: '5.25',
-          other_param: 'should be filtered'
-        }
-      })
+      ActionController::Parameters.new({
+                                         flex_pass_offer: {
+                                           price: '99.99',
+                                           facility_fee: '2.50',
+                                           spiff: '1.75',
+                                           flat_payout: '5.25',
+                                           other_param: 'should be filtered'
+                                         }
+                                       })
 
       # We need to test that the controller permits these params
       # This is a bit tricky to test directly, so we'll create the offer

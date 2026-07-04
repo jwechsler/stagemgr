@@ -41,7 +41,6 @@
     $(document).ready(function() {
      var oListing = $('#order-listing').DataTable({
        "stateSave": true,
-       "responsive": true,
        "processing": true,
        "serverSide": true,
        dom: 'lfrBtip',
@@ -73,7 +72,9 @@
            return json.data; // Return the data array to DataTables if no error
          }
        },
-       "select": true,
+       // Exclude the first cell: Responsive's inline expand control lives there,
+       // so a tap to open the child row must not also select the order.
+       "select": { style: 'os', selector: 'td:not(:first-child)' },
        "order": [[ 0, "desc" ]],
        "lengthMenu": [25, 50, 100],
        "language": {
@@ -81,14 +82,14 @@
          "processing": '<div class="small-4 small-centered columns"><data-alert class="alert-box" style="z-index:1000">Processing...</div></div>'
        },
        "columns": [
-         {data: 'id'},
-         {data: 'code'},
-         {data: 'name'},
-         {data: 'seats'},
-         {data: 'status'},
-         {data: 'visits'},
-         {data: 'total', orderable: false},
-         {data: 'description', orderable: false},
+         {data: 'id', className: 'all'},
+         {data: 'code', className: 'all'},
+         {data: 'name', className: 'all'},
+         {data: 'seats', className: 'min-medium'},
+         {data: 'status', className: 'all'},
+         {data: 'visits', className: 'min-medium'},
+         {data: 'total', className: 'min-medium', orderable: false},
+         {data: 'description', className: 'large', orderable: false},
          {data: 'order_id', visible: false},
        ],
      });

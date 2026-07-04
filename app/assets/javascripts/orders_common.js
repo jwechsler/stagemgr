@@ -103,8 +103,8 @@ function calculate_ticket_totals(for_general_admission = false) {
     if (!isNaN(price_input)) { total += price_input*line_qty }
   });
 
-  $('#ticket_quantity').text(qty);
-  $('#order_total').text(formatter.format(total));
+  $('#ticket_quantity').text(isNaN(qty) ? '' : qty);
+  $('#order_total').text(isNaN(total) ? '' : formatter.format(total));
 
 }
 
@@ -129,20 +129,26 @@ function set_button_state_for_autocompletes() {
     }
   });
 
+  // Modal dismissal controls ([data-close]) are exempt from order-action
+  // gating — the ticket-class selector's close button must always work.
   if (allow_submit) {
-    $('input[type="submit"].order-submit-button, button').prop('disabled', false);
+    $('input[type="submit"].order-submit-button, button').not('[data-close]').prop('disabled', false);
     $('#hold_button').prop('disabled', false);
   } else {
-    $('input[type="submit"].order-submit-button, button').prop('disabled', true);
+    $('input[type="submit"].order-submit-button, button').not('[data-close]').prop('disabled', true);
     $('#hold_button').prop('disabled', true);
   }
 
 }
 
 
-jQuery(document).ready(function($) {
-  setup_payment_form();
-  setup_gift_form();
-  
-});
+// The public site wrapper (ext_site_wrapper) yields :js twice, so this file
+// can be included twice on public order pages — bind the ready hook once.
+if (!window.__orders_common_ready_bound) {
+  window.__orders_common_ready_bound = true;
+  jQuery(document).ready(function($) {
+    setup_payment_form();
+    setup_gift_form();
+  });
+}
 

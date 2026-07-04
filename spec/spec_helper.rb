@@ -1,3 +1,6 @@
+require 'simplecov'
+SimpleCov.start 'rails'
+
 ENV['RAILS_ENV'] = 'test'
 
 # ActiveSupport 6.1 reopens stdlib Logger without requiring it; load it first
@@ -30,7 +33,7 @@ RSpec.configure do |config|
   end
 
   # Looking for deprecation errors in rspec?
-  #config.raise_errors_for_deprecations!
+  # config.raise_errors_for_deprecations!
 
   # rspec-mocks config goes here. You can use an alternate test double
   # library (such as bogus or mocha) by changing the `mock_with` option here.
@@ -61,7 +64,7 @@ RSpec.configure do |config|
   # Allows RSpec to persist some state between runs in order to support
   # the `--only-failures` and `--next-failure` CLI options. We recommend
   # you configure your source control system to ignore this file.
-  config.example_status_persistence_file_path = "spec/examples.txt"
+  config.example_status_persistence_file_path = 'spec/examples.txt'
 
   # Limits the available syntax to the non-monkey patched syntax that is
   # recommended. For more details, see:
@@ -77,7 +80,7 @@ RSpec.configure do |config|
     # Use the documentation formatter for detailed output,
     # unless a formatter has already been configured
     # (e.g. via a command-line flag).
-    config.default_formatter = "doc"
+    config.default_formatter = 'doc'
   end
 
   # Print the 10 slowest examples and example groups at the
@@ -103,10 +106,7 @@ RSpec.configure do |config|
     Rails.cache.clear
   end
 
-  config.filter_run :focus => true
+  config.filter_run focus: true
   config.run_all_when_everything_filtered = true
   config.include ActiveSupport::Testing::TimeHelpers
-
-
 end
-

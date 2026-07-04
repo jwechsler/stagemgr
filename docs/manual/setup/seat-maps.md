@@ -27,6 +27,7 @@ When a seat map is assigned to a production, that production becomes a **reserve
 | **Label** | Yes | A descriptive name for this seat map (e.g., "Mainstage Standard", "Studio Cabaret Layout") |
 | **Seating Map Image** | Yes | Upload an image file (JPG, PNG, GIF) showing the venue layout. Recommended size: **1200x900 pixels**. This image is displayed as the background when patrons and staff select seats. |
 | **Seating Geometry File** | No | Upload a CSV file defining each seat's position on the image. See format below. |
+| **Present as zoned** | No | When checked, seating displays color each seat's border by its zone. Visual only -- zone matching rules always apply. See [Seat Zones and Zoned Pricing](seat-map-editor.md#seat-zones-and-zoned-pricing). |
 
 4. Click **Create Seat Map**
 
@@ -51,6 +52,7 @@ The geometry CSV file defines the position and properties of each seat. Each row
 | `width` | Width of the seat marker in pixels | `20` |
 | `height` | Height of the seat marker in pixels | `20` |
 | `feature` | Accessibility designation -- if set, indicates the seat can be converted to wheelchair accessible | `wheelchair` |
+| `zone` | Seating zone for [zoned pricing](seat-map-editor.md#seat-zones-and-zoned-pricing) (1--2 letters/digits; defaults to `A`). When the column is absent, re-imports leave existing zones untouched. | `B` |
 
 ### Example CSV
 
@@ -91,7 +93,11 @@ You can edit an existing seat map to:
 - Upload a new **geometry file** (updates seat positions; adds new seats for locations not already in the map)
 
 !!! warning
-    Uploading a new geometry file adds or updates seats but does **not** remove existing seats. To remove a seat, you must do so individually. Seats that have been assigned to orders cannot be removed.
+    Uploading a new geometry file adds or updates seats but does **not** remove existing seats. To remove a seat, use the [seat map editor](seat-map-editor.md). Seats that have been assigned to orders cannot be removed.
+
+### The Seat Map Editor
+
+For day-to-day adjustments, the graphical [**Seat Map Editor**](seat-map-editor.md) is usually faster than re-importing a CSV. Open it from the **Open Seat Map Editor** button on the seat map's detail page to drag seats into position, add or delete seats, resize the markers, and paint pricing zones -- all with an explicit Save.
 
 ## Deleting a Seat Map
 

@@ -1,21 +1,20 @@
 class FixProductionVenueAndSeason < ActiveRecord::Migration[4.2]
   def self.up
-    Production.all.each { |p|
-      unless p.opening_at.nil?
-        opening_year = p.opening_at.year
-        opening_month = p.opening_at.month
-        if opening_month >= 9
-          p.season = (opening_year+1).to_s
-        else
-          p.season = (opening_year).to_s
-        end
-        p.venue = Venue.first if p.venue.nil?
-        p.theater = p.performance.production.theater if p.theater.nil?
-        p.save!
-      end
-    }
+    Production.all.each do |p|
+      next if p.opening_at.nil?
+
+      opening_year = p.opening_at.year
+      opening_month = p.opening_at.month
+      p.season = if opening_month >= 9
+                   (opening_year + 1).to_s
+                 else
+                   opening_year.to_s
+                 end
+      p.venue = Venue.first if p.venue.nil?
+      p.theater = p.performance.production.theater if p.theater.nil?
+      p.save!
+    end
   end
 
-  def self.down
-  end
+  def self.down; end
 end

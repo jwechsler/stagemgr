@@ -8,13 +8,36 @@
 //@import 'datatables/extensions/FixedColumns/fixedColumns.dataTables';
 //@import 'datatables/extensions/FixedHeader/fixedHeader.dataTables';
 //@import 'datatables/extensions/KeyTable/keyTable.dataTables';
-//@import 'datatables/extensions/Responsive/responsive.dataTables';
+@import 'datatables/extensions/Responsive/responsive.dataTables';
 //@import 'datatables/extensions/RowGroup/rowGroup.dataTables';
 //@import 'datatables/extensions/RowReorder/rowReorder.dataTables';
 //@import 'datatables/extensions/Scroller/scroller.dataTables';
 @import 'datatables/extensions/Select/select.dataTables';
 @import 'jquery.dataTables.yadcf';
 
+
+// Safari/iOS does not treat position:relative on a <td> as a containing
+// block (WebKit bug 124862), so Responsive's absolutely-positioned +/-
+// control renders far outside its cell and looks missing. A no-op transform
+// forces the cell to become the containing block in every engine.
+table.dataTable.dtr-inline.collapsed > tbody > tr > td:first-child,
+table.dataTable.dtr-inline.collapsed > tbody > tr > th:first-child {
+  transform: translate(0, 0);
+}
+
+// Compact mailto: button used by the emailResponsive column renderer on
+// small screens; Foundation buttons carry a bottom margin that would bloat
+// the row height inside a table cell.
+table.dataTable .dt-email-button {
+  margin-bottom: 0;
+}
+
+// Let yadcf filter widgets shrink with their column instead of imposing a
+// min-content floor that forces horizontal scrolling on narrow viewports.
+table.dataTable thead .yadcf-filter {
+  max-width: 95%;
+  box-sizing: border-box;
+}
 
 // fix image asset url
 table.dataTable thead .sorting {

@@ -1,0 +1,73 @@
+#!/bin/bash
+# Deploy stagemgr on the production box (bare-metal Passenger, flat git
+# checkout at ~/stagemgr).
+#
+# Runs the manual deploy sequence in a fixed order so no step can be
+# forgotten:
+#   git pull -> gems -> yarn -> migrate -> precompile -> restart -> smoke check
+#
+# Every step is idempotent, so a failed deploy is retried by simply running
+# the script again. The smoke check doubles as the request that boots the
+# new code under Passenger, so a boot crash (e.g. a missing gem) fails the
+# deploy here instead of surfacing to the first customer.
+#
+# Usage, from the dev machine:
+#   ssh theaterwit.org 'stagemgr/bin/deploy'
+
+set -euo pipefail
+
+APP_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+SMOKE_URL="${SMOKE_URL:-https://www.theaterwit.org/tickets/login}"
+LOG_FILE="$APP_ROOT/log/deploys.log"
+export RAILS_ENV=production
+
+# Refuse to run outside the production checkout — the dev tree lives at
+# ~/dev/wit/stagemgr and must never receive production rake tasks.
+if [[ "$APP_ROOT" != "$HOME/stagemgr" && "${FORCE_DEPLOY:-0}" != "1" ]]; then
+  echo "Refusing to deploy: $APP_ROOT is not $HOME/stagemgr (set FORCE_DEPLOY=1 to override)" >&2
+  exit 1
+fi
+
+cd "$APP_ROOT"
+started_at=$(date +%s)
+
+step() { printf '\n==> %s\n' "$*"; }
+
+step "Pulling master"
+old_sha=$(git rev-parse --short HEAD)
+git checkout master
+git pull --ff-only
+new_sha=$(git rev-parse --short HEAD)
+echo "    ${old_sha} -> ${new_sha}"
+
+step "Gems"
+bundle check || bundle install
+
+step "JS packages"
+yarn install --frozen-lockfile
+
+step "Database migrations"
+bundle exec rails db:migrate
+
+step "Assets"
+bundle exec rails assets:precompile
+
+step "Restarting Passenger"
+touch tmp/restart.txt
+
+step "Restarting Resque workers"
+script/resque-worker restart
+
+step "Restarting Resque scheduler"
+# The scheduler script has no restart action, and its stop errors out when
+# the scheduler isn't running — tolerate that and just start a fresh one.
+script/scheduler stop || true
+script/scheduler start
+
+step "Smoke check (${SMOKE_URL})"
+curl -fsS --max-time 120 -o /dev/null "$SMOKE_URL"
+echo "    OK"
+
+printf '%s deploy %s -> %s (%ss)\n' \
+  "$(date '+%Y-%m-%d %H:%M:%S')" "$old_sha" "$new_sha" "$(($(date +%s) - started_at))" >> "$LOG_FILE"
+step "Deployed ${new_sha}"

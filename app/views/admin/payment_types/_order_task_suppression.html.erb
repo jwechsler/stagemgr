@@ -3,12 +3,12 @@
     <li>
   <%= f.input(:task_type,
       :as=>:select,
-      :collection=>$SERVER_CONFIG['allowed_order_task_suppressions'].keys.uniq,
+      :collection=>Rails.configuration.x.server_config['allowed_order_task_suppressions'].keys.uniq,
       :input_html=>{:class=>"new_order_task_suppression_task_type"})%>
 
   <%= f.input(:method_name,
       :as=>:select,
-      :collection=>$SERVER_CONFIG['allowed_order_task_suppressions'].keys.map { |k| $SERVER_CONFIG['allowed_order_task_suppressions'][k] }.flatten.sort,
+      :collection=>Rails.configuration.x.server_config['allowed_order_task_suppressions'].keys.map { |k| Rails.configuration.x.server_config['allowed_order_task_suppressions'][k] }.flatten.sort,
       :input_html=>{:class=>"new_order_task_suppression_method_name"})
        %>
     </li>

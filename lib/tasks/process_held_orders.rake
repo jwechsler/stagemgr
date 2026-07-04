@@ -1,12 +1,12 @@
 namespace :orders do
-  desc "Transition held orders to processed for a given production code. " \
-       "Usage: bundle exec rake orders:process_held[PRAYER] " \
-       "or DRY_RUN=false bundle exec rake orders:process_held[PRAYER]"
+  desc 'Transition held orders to processed for a given production code. ' \
+       'Usage: bundle exec rake orders:process_held[PRAYER] ' \
+       'or DRY_RUN=false bundle exec rake orders:process_held[PRAYER]'
   task :process_held, [:production_code] => :environment do |_t, args|
     production_code = args[:production_code]
-    dry_run = ENV.fetch("DRY_RUN", "true") != "false"
+    dry_run = ENV.fetch('DRY_RUN', 'true') != 'false'
 
-    abort "Usage: bundle exec rake orders:process_held[PRODUCTION_CODE]" if production_code.blank?
+    abort 'Usage: bundle exec rake orders:process_held[PRODUCTION_CODE]' if production_code.blank?
 
     production = Production.find_by(production_code: production_code)
     abort "Production '#{production_code}' not found." if production.nil?
@@ -20,15 +20,19 @@ namespace :orders do
 
     puts "Production: #{production.name} (#{production_code})"
     puts "Found #{held_orders.count} order(s) in Hold status"
-    puts dry_run ? "** DRY RUN — no changes will be made **" : "** LIVE RUN — orders will be transitioned **"
-    puts "-" * 60
+    puts dry_run ? '** DRY RUN — no changes will be made **' : '** LIVE RUN — orders will be transitioned **'
+    puts '-' * 60
 
     success = 0
     failed = 0
 
     held_orders.find_each do |order|
       perf = order.performance
-      perf_label = "#{perf.performance_date} #{perf.performance_time.strftime('%l:%M %p')}" rescue "Perf ##{order.performance_id}"
+      perf_label = begin
+        "#{perf.performance_date} #{perf.performance_time.strftime('%l:%M %p')}"
+      rescue StandardError
+        "Perf ##{order.performance_id}"
+      end
       line = "Order ##{order.id} | #{order.address&.full_name || 'No name'} | #{perf_label} | " \
              "Payment: #{order.payment_type&.display_name || 'None'} | Total: $#{'%.2f' % order.total}"
 
@@ -48,10 +52,10 @@ namespace :orders do
       end
     end
 
-    puts "-" * 60
+    puts '-' * 60
     if dry_run
       puts "Dry run complete. #{success} order(s) would be transitioned."
-      puts "Run with DRY_RUN=false to execute."
+      puts 'Run with DRY_RUN=false to execute.'
     else
       puts "Done. #{success} succeeded, #{failed} failed."
     end

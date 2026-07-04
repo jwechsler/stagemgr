@@ -6,10 +6,9 @@ class MembershipOfferDatatable < DatatableBase
       name: { source: 'MembershipOffer.name', orderable: false },
       on_sale: { source: 'MembershipOffer.on_sale', orderable: false },
       status: { source: 'MembershipOffer.status', orderable: false },
-      actions: { searchable: false, orderable: false}
+      actions: { searchable: false, orderable: false }
     }
   end
-
 
   def data
     records.map do |record|
@@ -18,8 +17,8 @@ class MembershipOfferDatatable < DatatableBase
         name: record.decorate.name,
         on_sale: record.decorate.on_sale?,
         status: record.decorate.dt_actions,
-        DT_RowID: record.id,
-     }
+        DT_RowID: record.id
+      }
     end
   end
 
@@ -46,6 +45,4 @@ class MembershipOfferDatatable < DatatableBase
   # end
 
   # ==== Insert 'presenter'-like methods below if necessary
-
-
 end

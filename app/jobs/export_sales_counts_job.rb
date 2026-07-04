@@ -6,7 +6,7 @@ class ExportSalesCountsJob
                when 'last7'     then 'last7_counts.txt'
                when 'previous7' then 'previous7_counts.txt'
                end
-    File.join($SERVER_CONFIG['hud_export_directory'], filename)
+    File.join(Rails.configuration.x.server_config['hud_export_directory'], filename)
   end
 
   def self.perform(period = 'last7', file_path = nil)
@@ -28,10 +28,10 @@ class ExportSalesCountsJob
 
     rows = by_production.map do |production, sales|
       {
-        name:     production.name[0, 24],
-        orders:   sales.sum(&:order_count).to_s,
+        name: production.name[0, 24],
+        orders: sales.sum(&:order_count).to_s,
         num_sold: sales.sum { |s| s.total_single_tickets + s.total_complimentary_tickets }.to_s,
-        amount:   format_currency(sales.sum(&:gross_sales))
+        amount: format_currency(sales.sum(&:gross_sales))
       }
     end.sort_by { |r| r[:name] }
 
@@ -42,16 +42,14 @@ class ExportSalesCountsJob
       { key: :amount,   header: 'Amount',   align: :right }
     ]
 
-    # Note: last7 and previous7 samples have NO title and NO footer
+    # NOTE: last7 and previous7 samples have NO title and NO footer
     content = HudTableFormatter.render(
       columns: columns,
-      rows:    rows
+      rows: rows
     )
 
     HudTableFormatter.write_to_file(content, file_path || self.file_path(period))
   end
-
-  private
 
   def self.format_currency(amount)
     # Format with 2 decimal places and comma thousands separator

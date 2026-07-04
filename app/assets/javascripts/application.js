@@ -4,12 +4,11 @@
 //= require jquery-ui
 //= require jquery_ujs
 //= require datatables
+//= require datatables_responsive_defaults
 //= require foundation
 //= require jquery.dataTables.yadcf
 //= require utility
-//= require orders_common
 //= require activestorage
-//= require admin/orders_common
 //= require cocoon
 //= require jquery-ui/widgets/autocomplete
 //= require autocomplete-rails

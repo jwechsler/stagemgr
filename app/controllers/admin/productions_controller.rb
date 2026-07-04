@@ -1,15 +1,16 @@
 class Admin::ProductionsController < Admin::ApplicationController
   prepend_before_action :find_theater
-  before_action :find_context, :only => [:show]
+  before_action :find_context, only: %i[show allocation_sync_status]
   load_and_authorize_resource
+  skip_load_and_authorize_resource only: [:allocation_sync_status]
 
   def index
     respond_to do |format|
-      format.json {
+      format.json do
         params.permit!
-        render json: ProductionDatatable.new(params, view_context: view_context, current_user: current_user, current_theater: @theater )
-      }
-
+        render json: ProductionDatatable.new(params, view_context: view_context, current_user: current_user,
+                                                     current_theater: @theater)
+      end
     end
   end
 
@@ -18,7 +19,7 @@ class Admin::ProductionsController < Admin::ApplicationController
   def show
     respond_to do |format|
       format.html # show.html.erb
-      format.xml  { render :xml => @production }
+      format.xml  { render xml: @production }
     end
   end
 
@@ -27,14 +28,13 @@ class Admin::ProductionsController < Admin::ApplicationController
   def new
     @production = @theater.productions.build
     @production.theater = @theater
-     respond_to do |format|
+    respond_to do |format|
       format.html # new.html.erb
-      format.xml  { render :xml => @production }
+      format.xml { render xml: @production }
     end
   end
 
-  def edit
-  end
+  def edit; end
 
   # POST /productions
   # POST /productions.xml
@@ -51,12 +51,12 @@ class Admin::ProductionsController < Admin::ApplicationController
       flash[:notice] = 'Production was successfully created.'
       respond_to do |format|
         format.html { redirect_to(admin_theater_path(@theater)) }
-        format.xml  { render :xml => @production, :status => :created, :location => @production }
+        format.xml  { render xml: @production, status: :created, location: @production }
       end
     else
       respond_to do |format|
-        format.html { render :action => "new" }
-        format.xml  { render :xml => @production.errors, :status => :unprocessable_entity }
+        format.html { render action: 'new' }
+        format.xml  { render xml: @production.errors, status: :unprocessable_entity }
       end
     end
   end
@@ -74,14 +74,20 @@ class Admin::ProductionsController < Admin::ApplicationController
     end
     respond_to do |format|
       if saved
-        flash[:notice] =   "#{@production.name} was successfully updated."
+        flash[:notice] = "#{@production.name} was successfully updated."
         format.html { redirect_to(admin_theater_path(@production.theater)) }
         format.xml  { head :ok }
       else
-        format.html { render :action => "edit" }
-        format.xml  { render :xml => @production.errors, :status => :unprocessable_entity }
+        format.html { render action: 'edit' }
+        format.xml  { render xml: @production.errors, status: :unprocessable_entity }
       end
     end
+  end
+
+  def allocation_sync_status
+    @production = @context
+    authorize! :read, @production
+    render json: { syncing: @production.allocations_syncing? }
   end
 
   def send_sample_confirmation
@@ -90,14 +96,14 @@ class Admin::ProductionsController < Admin::ApplicationController
       name: params[:production_name].presence || @production.name,
       confirmation_message: params[:confirmation_message],
       production_class: params[:production_class].presence || @production.production_class,
-      allow_late_seating: params[:allow_late_seating] == "true",
+      allow_late_seating: params[:allow_late_seating] == 'true',
       venue_id: params[:venue_id]
     }
     SampleOrderBuilder.with_sample_order(@theater, current_user.email, production_attrs) do |order|
       OrderMailer.ticket_confirmation(order).deliver_now
     end
     render json: { success: true, message: "Sample confirmation email sent to #{current_user.email}" }
-  rescue => e
+  rescue StandardError => e
     render json: { success: false, message: e.message }, status: :unprocessable_entity
   end
 
@@ -107,14 +113,14 @@ class Admin::ProductionsController < Admin::ApplicationController
       name: params[:production_name].presence || @production.name,
       follow_up_message_2: params[:follow_up_message_2],
       production_class: params[:production_class].presence || @production.production_class,
-      allow_late_seating: params[:allow_late_seating] == "true",
+      allow_late_seating: params[:allow_late_seating] == 'true',
       venue_id: params[:venue_id]
     }
     SampleOrderBuilder.with_sample_order(@theater, current_user.email, production_attrs) do |order|
       OrderMailer.member_followup(order).deliver_now
     end
     render json: { success: true, message: "Sample follow-up email sent to #{current_user.email}" }
-  rescue => e
+  rescue StandardError => e
     render json: { success: false, message: e.message }, status: :unprocessable_entity
   end
 
@@ -132,18 +138,16 @@ class Admin::ProductionsController < Admin::ApplicationController
   private
 
   def find_theater
-    @theater=Theater.find(params[:theater_id])
+    @theater = Theater.find(params[:theater_id])
   end
-
 
   def production_params
     params.require(:production).permit(:name, :first_preview_at, :press_opening_at, :opening_at,
-      :closing_at, :production_code, :production_class, :status, :season, :venue_id, :custom_label,
-      :credit_lines, :short_description, :show_description, :running_time, :intermission,
-      :allow_late_seating, :capacity, :additional_information_link, :calendar_callout, :conversion_pixel_code,
-      :flex_pass_offer_id, :myemma_attendee_group, :survey_link, :mailing_list_link,
-      :follow_up_message_2, :confirmation_message, :seat_map_id, :promo, :override_service_items, :override_first_exchange_items,
-      :override_addl_exchange_items, :custom1, :custom2, :royalty_percent)
+                                       :closing_at, :production_code, :production_class, :status, :season, :venue_id, :custom_label,
+                                       :credit_lines, :short_description, :show_description, :running_time, :intermission,
+                                       :allow_late_seating, :capacity, :additional_information_link, :calendar_callout, :conversion_pixel_code,
+                                       :flex_pass_offer_id, :myemma_attendee_group, :survey_link, :mailing_list_link,
+                                       :follow_up_message_2, :confirmation_message, :seat_map_id, :promo, :override_service_items, :override_first_exchange_items,
+                                       :override_addl_exchange_items, :custom1, :custom2, :royalty_percent)
   end
-
 end

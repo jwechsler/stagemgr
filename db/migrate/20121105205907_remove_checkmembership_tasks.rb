@@ -3,6 +3,5 @@ class RemoveCheckmembershipTasks < ActiveRecord::Migration[4.2]
     execute "delete from order_tasks where type = 'CheckMembershipTask'"
   end
 
-  def down
-  end
+  def down; end
 end

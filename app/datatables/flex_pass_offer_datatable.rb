@@ -1,15 +1,14 @@
 class FlexPassOfferDatatable < DatatableBase
-  
   def view_columns
     # Declare strings in this format: ModelName.column_name
     # or in aliased_join_table.column_name format
     @view_columns ||= {
       offer: { source: 'FlexPassOffer.name', cond: :like },
-      price: { source: 'FlexPassOffer.price', searchable: false},
-      qty:  { source: 'FlexPassOffer.number_of_tickets', searchable: false},
-      public: {searchable: false, orderable: false},
-      restrictions: {searchable: false, orderable: false},
-      actions: {searchable: false, orderable: false}
+      price: { source: 'FlexPassOffer.price', searchable: false },
+      qty: { source: 'FlexPassOffer.number_of_tickets', searchable: false },
+      public: { searchable: false, orderable: false },
+      restrictions: { searchable: false, orderable: false },
+      actions: { searchable: false, orderable: false }
     }
   end
 
@@ -29,11 +28,9 @@ class FlexPassOfferDatatable < DatatableBase
 
   private
 
-
   def get_raw_records
-    FlexPassOffer.accessible_by(current_user.ability,:read)
+    FlexPassOffer.accessible_by(current_user.ability, :read)
   end
-
 
   # ==== These methods represent the basic operations to perform on records
   # and feel free to override them

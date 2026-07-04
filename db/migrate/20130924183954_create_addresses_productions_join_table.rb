@@ -1,10 +1,10 @@
 class CreateAddressesProductionsJoinTable < ActiveRecord::Migration[4.2]
   def up
-    create_table :addresses_productions, :id => false do |t|
+    create_table :addresses_productions, id: false do |t|
       t.integer :address_id
       t.integer :production_id
     end
-    add_index :addresses_productions, [:address_id, :production_id]
+    add_index :addresses_productions, %i[address_id production_id]
   end
 
   def down

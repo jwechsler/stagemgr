@@ -1,16 +1,15 @@
 class ProductionsController < ApplicationController
+  layout Rails.configuration.x.server_config['ext_site_wrapper']
 
-  layout $SERVER_CONFIG['ext_site_wrapper']
-
-  prepend_before_action :find_theater, :except => [:index, :upcoming, :now_playing, :box_office, :by_date, :show]
-  before_action :find_production, :only => [:edit, :update, :destroy]
+  prepend_before_action :find_theater, except: %i[index upcoming now_playing box_office by_date show]
+  before_action :find_production, only: %i[edit update destroy]
 
   def by_date
     @start_date = parse_date_param(:start_date, default: Date.today.beginning_of_week)
     @end_date = parse_date_param(:end_date, default: Date.today.beginning_of_week + 1.week - 1)
     @productions = Production.includes(:performances).where(
       'performances.performance_date >= ? and performances.performance_date <= ?',
-      @start_date,@end_date
+      @start_date, @end_date
     ).order(performance_date: :asc, performance_time: :asc)
     render :index
   end
@@ -22,7 +21,8 @@ class ProductionsController < ApplicationController
   def upcoming
     @current_date = Date.today.end_of_week + 1
     @productions = Production.opening_after(@current_date).visible.sellable_to_public.order(
-      Arel.sql('case theater_id when 1 then 0 else 1 end, productions.first_preview_at'))
+      Arel.sql('case theater_id when 1 then 0 else 1 end, productions.first_preview_at')
+    )
     render :upcoming
   end
 
@@ -31,29 +31,27 @@ class ProductionsController < ApplicationController
     @end_of_week = Date.today.end_of_week
     @second_date = Date.today
     @productions = Production.running_week_of(Date.today).visible.sellable_to_public.order(Arel.sql(
-      Arel.sql('case theater_id when 1 then 0 else 1 end, productions.name'))
-    )
+                                                                                             Arel.sql('case theater_id when 1 then 0 else 1 end, productions.name')
+                                                                                           ))
     render :now_playing
   end
-
 
   def box_office
     @now_playing = now_playing_by_venue(Production::PLAY) + now_playing_by_venue(Production::OFF_TIME) + now_playing_by_venue(Production::SPECIAL_EVENT)
     end_of_week = Date.today.end_of_week
-    three_months_from_now = (end_of_week+2.months).end_of_month
+    three_months_from_now = (end_of_week + 2.months).end_of_month
     upcoming_shows = Production.opening_after(end_of_week).visible.order(
-      :first_preview_at)
-    @coming_soon = Array.new
-    @long_term = Array.new
+      :first_preview_at
+    )
+    @coming_soon = []
+    @long_term = []
     upcoming_shows.each do |prod|
-        if prod.first_playing_date <= three_months_from_now
-          @coming_soon << prod
-        else
-          @long_term << prod
-        end
-
+      if prod.first_playing_date <= three_months_from_now
+        @coming_soon << prod
+      else
+        @long_term << prod
+      end
     end
-
   end
 
   # GET /productions/1
@@ -61,8 +59,8 @@ class ProductionsController < ApplicationController
   def show
     @production = Production.find(params[:id])
     respond_to do |format|
-      format.html { render :layout=>false }# show.html.erb
-      format.xml  { render :xml => @production }
+      format.html { render layout: false } # show.html.erb
+      format.xml  { render xml: @production }
     end
   end
 
@@ -71,8 +69,8 @@ class ProductionsController < ApplicationController
   def new
     @production = @theater.productions.build
     respond_to do |format|
-      format.html  # new.html.erb
-      format.xml  { render :xml => @production }
+      format.html # new.html.erb
+      format.xml { render xml: @production }
     end
   end
 
@@ -88,10 +86,10 @@ class ProductionsController < ApplicationController
       if @production.save
         flash[:notice] = 'Production was successfully created.'
         format.html { redirect_to(theater_path(@theater)) }
-        format.xml  { render :xml => @production, :status => :created, :location => @production }
+        format.xml  { render xml: @production, status: :created, location: @production }
       else
-        format.html { render :action => "new" }
-        format.xml  { render :xml => @production.errors, :status => :unprocessable_entity }
+        format.html { render action: 'new' }
+        format.xml  { render xml: @production.errors, status: :unprocessable_entity }
       end
     end
   end
@@ -105,8 +103,8 @@ class ProductionsController < ApplicationController
         format.html { redirect_to(theater_path(@production.theater)) }
         format.xml  { head :ok }
       else
-        format.html { render :action => "edit" }
-        format.xml  { render :xml => @production.errors, :status => :unprocessable_entity }
+        format.html { render action: 'edit' }
+        format.xml  { render xml: @production.errors, status: :unprocessable_entity }
       end
     end
   end
@@ -125,21 +123,19 @@ class ProductionsController < ApplicationController
   private
 
   def find_theater
-    @theater=Theater.find(params[:theater_id])
+    @theater = Theater.find(params[:theater_id])
   end
 
   def find_production
     @production = @theater.productions.find(params[:id])
   end
 
-def now_playing_by_venue(production_type)
-    now_playing_productions = Array.new
+  def now_playing_by_venue(production_type)
+    now_playing_productions = []
     Venue.all.sort.each do |venue|
       prods = venue.now_playing(production_type)
       now_playing_productions += prods
     end
     now_playing_productions
   end
-
-
 end

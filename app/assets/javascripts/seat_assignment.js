@@ -59,6 +59,20 @@ function release_temporary_holds_by_uuid(uuid, perf_id) {
     });
 }
 
+// Zoned pricing: only offer ticket classes whose zone_id matches the seat's
+// zone (or the "*" wildcard). Mirrors the server-side rule in
+// ZoneMatchable.match? — the server rejects anything this filter would hide.
+function filter_ticket_selector_by_zone(seatZone) {
+  var anyVisible = false;
+  $("#ticket-selector > .grid-x").each(function() {
+    var zoneId = String($(this).data('zone-id') || '*');
+    var matches = (zoneId === '*') || (zoneId === seatZone);
+    $(this).toggle(matches);
+    if (matches) { anyVisible = true; }
+  });
+  $("#no-ticket-classes-message").toggle(!anyVisible);
+}
+
 function initialize_seating_assignment() {
 
   $(document).on('closed.fndtn.reveal', '[data-reveal]', function () {
@@ -89,6 +103,7 @@ function initialize_seating_assignment() {
         }
 
         $("#ticket-modal").data('assignment-id', $( this ).data('assignment-id'));
+        filter_ticket_selector_by_zone(String($(this).data('zone') || ''));
         $('#ticket-modal').foundation('open');
         break;
       case "assigned":
@@ -185,7 +200,7 @@ function initialize_seating_assignment() {
               ticket_class_name: tcInfo['class_name'],
               ticket_price: tcInfo['raw_ticket_price'],
               price_override: response['price_override'],
-              ticket_line_item_id: null
+              ticket_line_item_id: response['ticket_line_item_id'] || null
             })
             $("#ticket-display").append(row)
             c_locations = $("#seatlocations").text().trim()

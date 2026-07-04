@@ -11,5 +11,4 @@ class CreateFileStores < ActiveRecord::Migration[4.2]
     add_index :file_stores, :hash
     add_index :file_stores, :user_id
   end
-
 end

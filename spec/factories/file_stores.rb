@@ -3,8 +3,8 @@
 FactoryBot.define do
   factory :file_store do
     user_id   { 1 }
-    name      { "MyString" }
-    hash      { "MyString" }
-    worker    { "MyString" }
+    name      { 'MyString' }
+    hash      { 'MyString' }
+    worker    { 'MyString' }
   end
 end

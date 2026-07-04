@@ -17,11 +17,11 @@ class ExportTodaysCountsJob
     end
 
     columns = [
-      { key: :sold_on, header: "sold_on", align: :left },
-      { key: :name, header: "name", align: :left },
-      { key: :orders, header: "orders", align: :right },
-      { key: :num_sold, header: "num_sold", align: :right },
-      { key: :amount, header: "Amount", align: :right }
+      { key: :sold_on, header: 'sold_on', align: :left },
+      { key: :name, header: 'name', align: :left },
+      { key: :orders, header: 'orders', align: :right },
+      { key: :num_sold, header: 'num_sold', align: :right },
+      { key: :amount, header: 'Amount', align: :right }
     ]
 
     content = HudTableFormatter.render(
@@ -30,11 +30,9 @@ class ExportTodaysCountsJob
       footer: "Generated #{Time.current.strftime('%a %b %d %H:%M:%S %Z %Y')}"
     )
 
-    file_path = File.join($SERVER_CONFIG['hud_export_directory'], 'todays_counts.txt')
+    file_path = File.join(Rails.configuration.x.server_config['hud_export_directory'], 'todays_counts.txt')
     HudTableFormatter.write_to_file(content, file_path)
   end
-
-  private
 
   def self.format_currency(amount)
     # Format with 2 decimal places and comma thousands separator

@@ -37,12 +37,12 @@
           "search": "_INPUT_"
         },
         columns: [
-          {data: 'email'},
-          {data: 'last_request'},
-          {data: 'logins'},
-          {data: 'failed_logins'},
-          {data: 'privs'},
-          {data: 'actions'},
+          {data: 'email', className: 'all', render: $.fn.dataTable.render.emailResponsive()},
+          {data: 'last_request', className: 'min-medium'},
+          {data: 'logins', className: 'none'},
+          {data: 'failed_logins', className: 'none'},
+          {data: 'privs', className: 'min-medium'},
+          {data: 'actions', className: 'all'},
 
         ]
       });

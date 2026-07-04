@@ -1,3 +1,2 @@
 class CurrencyPayment < Payment
-
 end

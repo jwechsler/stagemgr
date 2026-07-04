@@ -12,16 +12,16 @@ RSpec.describe BatchPrintingService, type: :service do
     context 'with valid orders' do
       it 'creates a batch with generated ID' do
         batch_id = BatchPrintingService.create_and_process_batch(orders)
-        
+
         expect(batch_id).to match(/\d{8}_\d{6}_[a-f0-9]{8}/)
       end
 
       it 'enqueues a PrintBatchJob with batch_id and order_ids' do
         batch_id = BatchPrintingService.create_and_process_batch(orders)
-        
+
         expect(Resque).to have_received(:enqueue).with(
-          PrintBatchJob, 
-          batch_id, 
+          PrintBatchJob,
+          batch_id,
           orders.map(&:id)
         )
       end
@@ -37,13 +37,13 @@ RSpec.describe BatchPrintingService, type: :service do
     context 'with empty orders' do
       it 'returns false' do
         result = BatchPrintingService.create_and_process_batch([])
-        
+
         expect(result).to be false
       end
 
       it 'does not enqueue any jobs' do
         BatchPrintingService.create_and_process_batch([])
-        
+
         expect(Resque).not_to have_received(:enqueue)
       end
     end
@@ -54,13 +54,14 @@ RSpec.describe BatchPrintingService, type: :service do
     let(:mock_response) { double('response', success?: true, body: '{"status": "complete", "printed_count": 5}') }
 
     before do
-      allow(PrintBatchJob).to receive(:send).with(:tktprint_request, :get, "print_batches/#{batch_id}").and_return(mock_response)
+      allow(PrintBatchJob).to receive(:send).with(:tktprint_request, :get,
+                                                  "print_batches/#{batch_id}").and_return(mock_response)
     end
 
     context 'with successful response' do
       it 'returns parsed JSON response' do
         result = BatchPrintingService.check_batch_status(batch_id)
-        
+
         expect(result).to eq({ 'status' => 'complete', 'printed_count' => 5 })
       end
     end
@@ -70,7 +71,7 @@ RSpec.describe BatchPrintingService, type: :service do
 
       it 'returns error message' do
         result = BatchPrintingService.check_batch_status(batch_id)
-        
+
         expect(result).to eq({ error: 'Failed to get batch status: Service unavailable' })
       end
     end
@@ -82,7 +83,7 @@ RSpec.describe BatchPrintingService, type: :service do
 
       it 'returns error message' do
         result = BatchPrintingService.check_batch_status(batch_id)
-        
+
         expect(result).to eq({ error: 'Error checking batch status: Network error' })
       end
     end

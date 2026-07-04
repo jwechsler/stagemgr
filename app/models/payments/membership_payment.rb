@@ -4,10 +4,8 @@ class MembershipPayment < PassPayment
   def receipt_description
     'Membership'
   end
-  
-  def member_code
-    self.membership.member_code
-  end
+
+  delegate :member_code, to: :membership
 
   def customer_visible_amount
     0.0
@@ -19,7 +17,7 @@ class MembershipPayment < PassPayment
 
   def member_code=(code)
     self.membership = Membership.find_by_member_code(code)
-    raise UnknownMembershipCode if self.membership.nil?
+    raise UnknownMembershipCode if membership.nil?
   end
 
   def receipt_description
@@ -27,17 +25,18 @@ class MembershipPayment < PassPayment
   end
 
   def process!(order = nil)
-    if !order.address.email.blank? && self.membership.address.email.downcase.strip != order.address.email.downcase.strip
+    if order.address.email.present? && membership.address.email.downcase.strip != order.address.email.downcase.strip
       raise 'Member ID does not match provided email address'
     end
     raise 'That member ID is not active. Please call the box office for assistance.' unless membership.active?
-    self.membership.verify_applicable_for(self.order || order)
+
+    membership.verify_applicable_for(self.order || order)
     super
   end
 
   def new_exchange_offset_payment
     offset_payment = super
-    offset_payment.membership = self.membership
+    offset_payment.membership = membership
     offset_payment
   end
 end

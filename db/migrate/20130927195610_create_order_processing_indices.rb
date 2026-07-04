@@ -3,6 +3,5 @@ class CreateOrderProcessingIndices < ActiveRecord::Migration[4.2]
     add_index :payments, :membership_id
   end
 
-  def down
-  end
+  def down; end
 end

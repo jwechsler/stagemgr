@@ -5,5 +5,4 @@ class AgeOutFileStore
     filestores = FileStore.where('created_at < ? and worker = ?', number_of_hours.hours.ago, worker_type)
     filestores.each { |filestore| filestore.destroy }
   end
-
 end

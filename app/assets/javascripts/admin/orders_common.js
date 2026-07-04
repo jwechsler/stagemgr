@@ -1,7 +1,8 @@
-//= require utility
-//= require orders/payments
+// Loaded per-page (application layout) on admin order pages only, always
+// after orders_common.js. utility and credit_card_track_parser come from the
+// global application.js bundle; orders/payments comes via orders_common.js —
+// requiring them here too would execute them twice as a standalone asset.
 //= require admin/address_utility
-//= require credit_card_track_parser
 //= require_self
 
 function setup_admin_payment_form() {
@@ -58,7 +59,10 @@ jQuery(document).ready(function($) {
 
   //$('input[type="submit"]).addClass('disabled');
 
-  $('input[type="submit"].order-submit-button, button').disable(true);
+  // Gate order-action buttons until the order is actionable, but never
+  // disable modal dismissal controls ([data-close], e.g. the ticket-class
+  // selector's close button) — they must always work.
+  $('input[type="submit"].order-submit-button, button').not('[data-close]').disable(true);
   set_button_state_for_autocompletes();
   $('body').on('click', 'button.disabled', function(event) {
       event.preventDefault();

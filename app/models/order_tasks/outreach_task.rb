@@ -1,18 +1,16 @@
 class OutreachTask < OrderTask
-
   protected
 
   def execute!
-    if self.order.address.email.blank? || attempts > 8
-      return false
-    end
+    return false if order.address.email.blank? || attempts > 8
+
     result = true
     begin
-      OrderMailer.send(self.method_symbol,self.order).deliver_now if !self.order.address.email.nil?
-    rescue => detail
+      OrderMailer.send(method_symbol, order).deliver_now unless order.address.email.nil?
+    rescue StandardError => e
       result = false
-      self.result = detail.message + '\n' + detail.backtrace.join("\n")
+      self.result = e.message + '\n' + e.backtrace.join("\n")
     end
-    return result
+    result
   end
 end

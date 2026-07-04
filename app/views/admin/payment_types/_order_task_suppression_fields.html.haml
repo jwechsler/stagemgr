@@ -5,13 +5,13 @@
         .small-3.cell
           = f.label :task_type, 'Type', :class=>'left prefix'
         .small-9.cell.new_order_task_suppression_task_type
-          = f.input_field :task_type, :collection=>$SERVER_CONFIG['allowed_order_task_suppressions'].keys.uniq, :include_blank=>false
+          = f.input_field :task_type, :collection=>Rails.configuration.x.server_config['allowed_order_task_suppressions'].keys.uniq, :include_blank=>false
     .small-5.cell
       .grid-x.grid-padding-x.collapse
         .small-3.cell
           = f.label :method_name, 'Method', :class=>'left prefix'
         .small-9.cell.new_order_task_suppression_task_method
-          = f.input_field :method_name, :collection=>$SERVER_CONFIG['allowed_order_task_suppressions'].keys.map { |k| $SERVER_CONFIG['allowed_order_task_suppressions'][k] }.flatten.sort, :include_blank=>false
+          = f.input_field :method_name, :collection=>Rails.configuration.x.server_config['allowed_order_task_suppressions'].keys.map { |k| Rails.configuration.x.server_config['allowed_order_task_suppressions'][k] }.flatten.sort, :include_blank=>false
 
     .small-2.cell
       = link_to_remove_association "remove", f, :class=>'tiny alert button'

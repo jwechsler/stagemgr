@@ -7,7 +7,7 @@ class Admin::VenuesControllerTest < ActionController::TestCase
   end
 
   def test_show
-    get :show, :id => Venue.first
+    get :show, params: { id: Venue.first }
     assert_template 'show'
   end
 
@@ -29,26 +29,26 @@ class Admin::VenuesControllerTest < ActionController::TestCase
   end
 
   def test_edit
-    get :edit, :id => Venue.first
+    get :edit, params: { id: Venue.first }
     assert_template 'edit'
   end
 
   def test_update_invalid
     Venue.any_instance.stubs(:valid?).returns(false)
-    put :update, :id => Venue.first
+    put :update, params: { id: Venue.first }
     assert_template 'edit'
   end
 
   def test_update_valid
     Venue.any_instance.stubs(:valid?).returns(true)
-    put :update, :id => Venue.first
+    put :update, params: { id: Venue.first }
     assert_redirected_to admin_venue_url(assigns(:venue))
   end
 
   def test_destroy
     venue = Venue.first
-    delete :destroy, :id => venue
+    delete :destroy, params: { id: venue }
     assert_redirected_to admin_venues_url
-    assert !Venue.exists?(venue.id)
+    assert_not Venue.exists?(venue.id)
   end
 end
