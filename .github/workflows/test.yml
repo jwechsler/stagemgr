@@ -76,4 +76,12 @@ jobs:
       # CI-environment difference is tracked down.
       - name: Cucumber (non-JS)
         continue-on-error: true
+        env:
+          # Surface real exceptions instead of the app's rescue_from redirect
+          # (which turns any per-request error into an InfiniteRedirectError).
+          RAILS_RAISE_ERRORS: "1"
         run: bundle exec cucumber --tags "not @javascript"
+
+      - name: Dump test log on failure
+        if: always()
+        run: tail -300 log/test.log || true
