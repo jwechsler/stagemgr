@@ -11,8 +11,8 @@ class PerformanceBroadcastReport < SimpleReport
   def create
     # Get ALL orders for this performance
     all_orders = @broadcast.performance.orders
-                          .includes(:address)
-                          .order('addresses.last_name', 'addresses.first_name')
+                           .includes(:address)
+                           .order('addresses.last_name', 'addresses.first_name')
 
     # Get set of order IDs that will receive emails (for status check)
     recipient_order_ids = @broadcast.recipient_orders.pluck(:id).to_set

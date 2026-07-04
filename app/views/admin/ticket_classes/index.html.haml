@@ -5,6 +5,7 @@
   = render "shared/components/breadcrumb", items: [{ label: "Theaters", path: admin_theaters_path }, { label: @production.theater.name, path: admin_theater_path(@production.theater) }, { label: @production.name, path: admin_theater_production_path(@production.theater, @production) }, { label: "Ticket Classes" }]
 .grid-x.grid-padding-x
   .small-12.cell
+    = render 'admin/allocation_sync_status'
     %h3= "#{@production.name} Ticket Classes"
     %table#ticket-class-listing{:data=>{:source=>"#{admin_theater_production_ticket_classes_path(@production.theater, @production, format: :json)}"}}
       %thead
@@ -15,6 +16,7 @@
           %th Fee
           %th Web Visible?
           %th Type
+          %th Zone ID
           %th
       %tbody
 
@@ -42,6 +44,7 @@
           {data: 'ticketing_fee'},
           {data: 'web_visible'},
           {data: 'ticket_type'},
+          {data: 'zone_id'},
           {data: 'actions'},
         ]
       });

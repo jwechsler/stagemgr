@@ -10,6 +10,6 @@ class FlexPassDecorator < ApplicationDecorator
   #     end
   #   end
   def description
-    "#{flex_pass.flex_pass_offer.name} [#{flex_pass.code}], #{flex_pass.uses_remaining} remaining. " + (flex_pass.available? ? "Expires #{flex_pass.expiration_date.to_s}" : h.raw("<span class='label error'>Expired</span>"))
+    "#{flex_pass.flex_pass_offer.name} [#{flex_pass.code}], #{flex_pass.uses_remaining} remaining. " + (flex_pass.available? ? "Expires #{flex_pass.expiration_date}" : h.raw("<span class='label error'>Expired</span>"))
   end
 end

@@ -8,10 +8,8 @@ FactoryBot.define do
     amount            { 50 }
   end
 
-
   factory :amount_off_special_offer do
     amount            { 1 }
     sequence(:code) { |n| "SpecialOffer#{n}" }
   end
-
 end

@@ -4,8 +4,13 @@ RSpec.describe CalculateHouseCountsJob, type: :job do
   include ActiveSupport::Testing::TimeHelpers
 
   describe '#perform' do
-    let!(:performance) { FactoryBot.create(:general_admission, performance_date: Date.today) }  # Uses the general_admission factory
-    let!(:ticket_order) { FactoryBot.create(:ticket_order,:for_a_pair_of_tickets, performance: performance, updated_at: 2.days.ago) }
+    # Uses the general_admission factory
+    let!(:performance) do
+      FactoryBot.create(:general_admission, performance_date: Date.today)
+    end
+    let!(:ticket_order) do
+      FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, performance: performance, updated_at: 2.days.ago)
+    end
 
     before do
       # Assume last run was yesterday, so only changes within the last day are considered
@@ -13,8 +18,6 @@ RSpec.describe CalculateHouseCountsJob, type: :job do
         JobMetadata.record_last_run(described_class.to_s)
       end
     end
-
-    after { travel_back }
 
     context 'when there are updated ticket orders since the last run' do
       before do
@@ -27,8 +30,7 @@ RSpec.describe CalculateHouseCountsJob, type: :job do
         expect(performance.house_count.available_seats).to eq(performance.production.capacity)
         CalculateHouseCountsJob.perform
         performance.reload
-        expect(performance.house_count.available_seats).to eq(performance.production.capacity-2)
-      
+        expect(performance.house_count.available_seats).to eq(performance.production.capacity - 2)
       end
     end
 
@@ -39,12 +41,12 @@ RSpec.describe CalculateHouseCountsJob, type: :job do
         end
       end
 
-      it "recalculates house count data" do
+      it 'recalculates house count data' do
         expect(performance.house_count.total_seats).to eq(100)
         CalculateHouseCountsJob.perform
         performance.reload
         expect(performance.house_count.total_seats).to eq(50)
-        expect(performance.house_count.available_seats).to eq(performance.production.capacity-2)
+        expect(performance.house_count.available_seats).to eq(performance.production.capacity - 2)
       end
     end
 

@@ -54,3 +54,10 @@
 //
 // @include motion-ui-transitions;
 // @include motion-ui-animations;
+
+// Auto-attach marker in the ticket-class Type column: match the "info" label blue
+// ($label-background falls back to $primary-color when no palette color is set).
+.auto-attach-indicator {
+  color: $primary-color;
+  font-weight: bold;
+}

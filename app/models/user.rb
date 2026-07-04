@@ -1,28 +1,27 @@
 class User < ApplicationRecord
-  has_and_belongs_to_many :theaters #, :as => :owned_theaters
+  has_and_belongs_to_many :theaters # , :as => :owned_theaters
   has_many :file_stores, inverse_of: :user
-  validates_presence_of :email
-  validates_uniqueness_of :email
+  validates :email, presence: true
+  validates :email, uniqueness: true
   # proxy ability queries to user objects
   delegate :can?, :cannot?, :to => :ability
   validates :email,
-    format: {
-        with: /@/,
-        message: "should look like an email address."
-      },
-      length: { maximum: 100 },
-      uniqueness: {
-        case_sensitive: false,
-        if: :will_save_change_to_email?
-      }
-  ROLES                                 = (
-  ADMIN, BOXOFFICE, THEATERUSER  = "Administrator", "Box Office", "Producer"
-  )
+            format: {
+              with: /@/,
+              message: "should look like an email address."
+            },
+            length: { maximum: 100 },
+            uniqueness: {
+              case_sensitive: false,
+              if: :will_save_change_to_email?
+            }
+  ROLES = (
+  ADMIN, BOXOFFICE, THEATERUSER = "Administrator", "Box Office", "Producer"
+)
 
   STATUSES = (
   ACTIVE, INACTIVE =
-      'Active', 'Inactive')
-
+    'Active', 'Inactive')
 
   acts_as_authentic do |c|
     c.logged_in_timeout = 6.hours
@@ -34,20 +33,20 @@ class User < ApplicationRecord
   after_initialize :init
 
   def init
-    self.status = User::ACTIVE if self.status.blank?
+    self.status = User::ACTIVE if status.blank?
   end
 
   def inactive?
-    self.status == INACTIVE
+    status == INACTIVE
   end
 
   def theater_ids
-    allowed = theaters.map{|t| t.id.to_i}
+    theaters.map { |t| t.id.to_i }
   end
 
   def allowed_theaters
-    if self.is_theater_user? 
-      self.theaters
+    if is_theater_user?
+      theaters
     else
       Theater.where(status: Theater::ACTIVE)
     end
@@ -56,38 +55,38 @@ class User < ApplicationRecord
   def allowed_productions
     Production.where(theater: allowed_theaters)
   end
-  
+
   def set_defaults
-    self.is_administrator = false if self.is_administrator.nil?
-    self.is_box_office_user = false if self.is_box_office_user.nil?
+    self.is_administrator = false if is_administrator.nil?
+    self.is_box_office_user = false if is_box_office_user.nil?
     true
   end
 
   def is_theater_user?
-    !self.is_administrator? && !self.is_box_office_user?
+    !is_administrator? && !is_box_office_user?
   end
 
   def is_resident?
-    is_theater_user? && self.theaters.map{|t| t.theater_class}.include?(Theater::RESIDENT)
+    is_theater_user? && theaters.map { |t| t.theater_class }.include?(Theater::RESIDENT)
   end
 
   def username
-    self.email
+    email
   end
 
   def role_symbols
-    roles = Array.new
-    roles += [:admin] if self.is_administrator?
-    roles += [:box_office] if self.is_box_office_user?
-    roles += [:theater_user] if self.is_theater_user?
+    roles = []
+    roles += [:admin] if is_administrator?
+    roles += [:box_office] if is_box_office_user?
+    roles += [:theater_user] if is_theater_user?
     roles
   end
 
   def allowed_tags(tags)
-    allowed = Array.new
-    if self.is_theater_user?
-      ids = self.theater_ids
-      allowed = tags.select{|t| ids.include?(t.theater_id)}
+    allowed = []
+    if is_theater_user?
+      ids = theater_ids
+      allowed = tags.select { |t| ids.include?(t.theater_id) }
     else
       allowed += tags
     end
@@ -99,5 +98,4 @@ class User < ApplicationRecord
   def ability
     @ability ||= Ability.new(self)
   end
-
 end

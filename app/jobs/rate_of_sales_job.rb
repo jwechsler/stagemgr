@@ -9,11 +9,12 @@ class RateOfSalesJob < ApplicationJob
   SELF_HEAL_WINDOW_DAYS = 30
 
   def self.perform(mode = nil)
-    if mode == "today"
+    if mode == 'today'
       calculate_for_today
     else
       calculate_recent_days(Date.yesterday, SELF_HEAL_WINDOW_DAYS)
-      RateOfSale.export_to_file(RateOfSale.export_records, RateOfSale.export_columns, File.join($SERVER_CONFIG['hud_export_directory'],'rate_of_sales.txt'))
+      RateOfSale.export_to_file(RateOfSale.export_records, RateOfSale.export_columns,
+                                File.join(Rails.configuration.x.server_config['hud_export_directory'], 'rate_of_sales.txt'))
     end
   end
 
@@ -27,10 +28,10 @@ class RateOfSalesJob < ApplicationJob
 
   def self.calculate_for_day(date)
     production_ids = TicketOrder
-      .joins(:performance)
-      .where(created_at: date.all_day, status: Order::SETTLED_STATUSES)
-      .distinct
-      .pluck('performances.production_id')
+                     .joins(:performance)
+                     .where(created_at: date.all_day, status: Order::SETTLED_STATUSES)
+                     .distinct
+                     .pluck('performances.production_id')
 
     production_ids.each do |production_id|
       revenue = RevenueCalculator.for_production_on_day(production_id, date)
@@ -38,8 +39,12 @@ class RateOfSalesJob < ApplicationJob
       RateOfSale.find_or_initialize_by(day_of_sale: date, production_id: production_id).update!(
         total_single_tickets: revenue.ticket_count,
         total_complimentary_tickets: revenue.comp_count,
-        gross_sales: revenue.cash_collected,
+        gross_sales: revenue.collected,
+        # Legacy combined figure (ticketing + processing). Kept as-is for
+        # backward compatibility; the isolated ticketing portion now also lives
+        # in the dedicated ticketing_fees column below.
         processing_fees: revenue.ticketing_fees + revenue.processing_fees,
+        ticketing_fees: revenue.ticketing_fees,
         order_count: revenue.order_count
       )
     end
@@ -55,7 +60,7 @@ class RateOfSalesJob < ApplicationJob
     existing_dates = RateOfSale.distinct.pluck(:day_of_sale).to_set
     order_dates = Order.where(status: Order::SETTLED_STATUSES)
                        .distinct
-                       .pluck(Arel.sql("DATE(created_at)"))
+                       .pluck(Arel.sql('DATE(created_at)'))
                        .map(&:to_date)
                        .sort
 
@@ -66,11 +71,11 @@ class RateOfSalesJob < ApplicationJob
     missing.each_with_index do |date, i|
       begin
         calculate_for_day(date)
-      rescue => e
+      rescue StandardError => e
         errors << "#{date}: #{e.message}"
         Rails.logger.warn "RateOfSalesJob.backfill_missing_days: #{date} failed - #{e.message}"
       end
-      print "." if i % 100 == 0
+      print '.' if i % 100 == 0
     end
     puts " Done! Processed #{missing.size} days, #{errors.size} errors."
     errors.each { |e| puts "  #{e}" } if errors.any?

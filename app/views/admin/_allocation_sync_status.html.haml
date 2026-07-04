@@ -1,0 +1,5 @@
+- if @production.allocations_syncing?
+  #allocation-status-banner.callout.secondary{data: {status_url: allocation_sync_status_admin_theater_production_path(@production.theater, @production)}}
+    Allocations are updating in the background; the ticket class will be available for use shortly.
+- else
+  #allocation-status-banner.callout.secondary.hide{data: {status_url: allocation_sync_status_admin_theater_production_path(@production.theater, @production)}}

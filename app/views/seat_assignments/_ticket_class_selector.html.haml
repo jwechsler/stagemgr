@@ -21,10 +21,13 @@
       #ticket-selector
     - else
       #ticket-selector
+        -# Box office staff may sell classes hidden from the public purchase page;
+        -# mirrors the ability gate in PerformancesController#ticket_classes.
+        - show_backend_classes = can? :view_backend_classes, TicketClassAllocation
         - order_form.object.performance.ticket_class_allocations.each do |tca|
-          -if tca.available? && !tca.ticket_class.software_managed? && (tca.ticket_class.web_visible?)
+          -if tca.available? && !tca.ticket_class.software_managed? && (tca.ticket_class.web_visible? || show_backend_classes)
             - tc = tca.ticket_class
-            .grid-x.grid-padding-x{"data-ticket-type" => tc.ticket_type}
+            .grid-x.grid-padding-x{class: ('front-facing' if tc.web_visible?), "data-ticket-type" => tc.ticket_type, "data-zone-id" => tc.zone_id}
               .small-6.cell.vertical-center
 
                 = tc.class_name
@@ -40,6 +43,9 @@
                   %span.ticket_price= number_to_currency(tc.ticket_price)
               .small-3.cell
                 = ui_button "Select", "#", size: :tiny, class: "ticket-class-select-button", data: { "ticket-class": tc.id, "ticket-type": tc.ticket_type }
+
+    #no-ticket-classes-message{style: "display:none"}
+      %p No ticket types are available for this seat.
 
 = render partial: "/seat_assignments/seating_config", locals: {performance_id: order_form.object.performance_id, order_uuid: order_form.object.uuid }
 
@@ -60,6 +66,7 @@
         var row = document.createElement("div")
         row.setAttribute("class", "grid-x grid-padding-x " + visible_style)
         row.setAttribute("data-ticket-type", ticket_type || "")
+        row.setAttribute("data-zone-id", val['zone_id'] || "*")
         col = create_column("6",val['class_name'])
         if (val['purchase_page_annotation']) {
           span = document.createElement('span')

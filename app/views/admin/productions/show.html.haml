@@ -3,6 +3,8 @@
 - content_for :breadcrumbs do
   = render "shared/components/breadcrumb", items: [{ label: 'Theaters', path: admin_theaters_path }, { label: @production.theater.name, path: admin_theater_path(@production.theater) }, { label: @production.name }]
 .grid-x.grid-padding-x{data: {theater_id: @production.theater.id, production_id: @production.id}}
+  .small-12.cell
+    = render 'admin/allocation_sync_status'
   = render :partial=>'/productions/show_detail_column', :locals=>{:production=>@production}
   .small-12.medium-8.cell
     %ul.tabs#prodtabs(data-tabs)

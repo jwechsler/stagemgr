@@ -14,11 +14,11 @@ RSpec.describe NotificationMailer, type: :mailer do
     let(:user) { FactoryBot.create(:user) }
     let(:broadcast) do
       FactoryBot.create(:performance_broadcast,
-        performance: performance,
-        user: user,
-        subject: 'Important Update',
-        from_address: 'test@example.com',
-        body: 'Test body')
+                        performance: performance,
+                        user: user,
+                        subject: 'Important Update',
+                        from_address: 'test@example.com',
+                        body: 'Test body')
     end
 
     let(:file_store) do
@@ -62,7 +62,7 @@ RSpec.describe NotificationMailer, type: :mailer do
     it 'uses correct from address' do
       mail = NotificationMailer.broadcast_log_generated(file_store, recipient_email)
 
-      expect(mail.from).to eq([$EMAIL_ADDRESS['software_address']])
+      expect(mail.from).to eq([Rails.configuration.x.email_address['software_address']])
     end
 
     it 'has correct subject' do
@@ -104,7 +104,7 @@ RSpec.describe NotificationMailer, type: :mailer do
         store = FileStore.new
         store.user = user
         store.worker = FileStore::REPORT
-        store.notes = "Broadcast log without file"
+        store.notes = 'Broadcast log without file'
         store.save!
         store
       end

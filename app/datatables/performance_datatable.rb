@@ -3,9 +3,9 @@ class PerformanceDatatable < DatatableBase
     # Declare strings in this format: ModelName.column_name
     # or in aliased_join_table.column_name format
     @view_columns ||= {
-      code: { source: 'Performance.performance_code', orderable: false},
+      code: { source: 'Performance.performance_code', orderable: false },
       date: { source: 'Performance.performance_date', orderable: false },
-      time: { source: 'Performance.performance_time', :searchable=>false, orderable: false },
+      time: { source: 'Performance.performance_time', searchable: false, orderable: false },
       status: { source: 'Performance.status', orderable: false },
       actions: { orderable: false, searchable: false }
     }
@@ -45,6 +45,4 @@ class PerformanceDatatable < DatatableBase
   # end
 
   # ==== Insert 'presenter'-like methods below if necessary
-
-
 end

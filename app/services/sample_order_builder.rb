@@ -7,12 +7,10 @@ class SampleOrderBuilder
     end
   end
 
-  private
-
   def self.build_sample_order(theater, recipient_email, production_attrs)
     production = Production.new(
       theater: theater,
-      name: production_attrs[:name].presence || "Sample Production",
+      name: production_attrs[:name].presence || 'Sample Production',
       confirmation_message: production_attrs[:confirmation_message],
       follow_up_message_2: production_attrs[:follow_up_message_2],
       production_code: "SMP#{SecureRandom.hex(2).upcase}",
@@ -27,8 +25,8 @@ class SampleOrderBuilder
 
     ticket_class = TicketClass.create!(
       production: production,
-      class_code: "GEN",
-      class_name: "General Admission",
+      class_code: 'GEN',
+      class_name: 'General Admission',
       ticket_price: 35.00,
       ticket_type: TicketClass::TICKET_TYPES.first,
       web_visible: true
@@ -37,7 +35,7 @@ class SampleOrderBuilder
     performance = Performance.new(
       production: production,
       performance_date: 1.week.from_now.to_date,
-      performance_time: Time.zone.parse("19:30"),
+      performance_time: Time.zone.parse('19:30'),
       performance_code: "#{production.production_code}01",
       status: Performance::ACTIVE,
       suppress_notification: false
@@ -50,7 +48,7 @@ class SampleOrderBuilder
       available: true
     )
 
-    address = Address.create!(full_name: "Sample Customer", email: recipient_email)
+    address = Address.create!(full_name: 'Sample Customer', email: recipient_email)
 
     order = TicketOrder.new(
       address: address,

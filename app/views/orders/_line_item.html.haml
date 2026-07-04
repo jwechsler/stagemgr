@@ -3,20 +3,26 @@
     = f.hidden_field :ticket_class_id
     = f.object.ticket_class.class_name
   .small-6.medium-3.cell
-    - max_count = 20
+    - max_per_order = Rails.configuration.x.server_config[:max_ticket_dropdown] || 20
     - if f.object.ticket_class.holds_seats?
       - number_left = performance.number_of_seats_left
-      - max_count = [f.object.ticket_class.number_left(performance), number_left].min
-      - if  number_left <= $SERVER_CONFIG[:ticket_line_item_fields].to_i
+      -# Cap the quantity selector at max_per_order even when more seats are available
+      - max_count = [f.object.ticket_class.number_left(performance), number_left, max_per_order].min
+      -# Pull front-facing sales off self-service and route to the box office when either the
+      -# performance is near capacity (restrict_sales_due_to_capacity_at) or within the pre-show
+      -# sales cutoff (restrict_sales_due_to_time_at_minutes_before, via Performance#happening_soon?).
+      -# These are the same gates the calendar listing uses, so a direct link to a low-inventory or
+      -# about-to-start performance is suspended the same way the calendar is.
+      - if performance.near_capacity? || performance.happening_soon?
         = f.hidden_field :ticket_count
         - if number_left == 0
           Sold Out
-        - elsif f.object.ticket_class.limit_tickets > 0
+        - else
           Call
       - else
         = f.input_field :ticket_count, collection: 0.upto(max_count).map{|x| x}, include_blank:false, :class=>'ticket_count'
     - else
-      = f.input_field :ticket_count, collection: 0.upto(max_count).map{|x| x}, include_blank:false, :class=>'ticket_count'
+      = f.input_field :ticket_count, collection: 0.upto(max_per_order).map{|x| x}, include_blank:false, :class=>'ticket_count'
   .small-12.medium-3.cell
     - if f.object.ticket_class.ticket_type == 'Donation'
       = f.input_field :price_override, :class=>'price_override', :placeholder=>"Suggested #{number_to_currency(f.object.ticket_class.ticket_price)}"

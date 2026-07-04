@@ -5,6 +5,30 @@ function commit_reseating_url() {
   return $('#seating-config').data('commit-reseating-url')
 }
 
+// Zoned pricing: zones served by the ticket classes already on this order.
+// A replacement seat must sit in one of these zones ("*" serves any zone).
+function order_class_zones() {
+  var raw = $('#seating-config').attr('data-order-class-zones') || '';
+  return raw.length ? raw.split(',') : [];
+}
+
+function zone_allowed_for_order(seatZone) {
+  var zones = order_class_zones();
+  if (zones.length === 0) { return true; }
+  for (var i = 0; i < zones.length; i++) {
+    if (zones[i] === '*' || zones[i] === seatZone) { return true; }
+  }
+  return false;
+}
+
+// Visually dim available seats the order's ticket classes cannot move into.
+function mark_zone_blocked_seats() {
+  $('#seatingmap circle[data-status="available"]').each(function() {
+    var blocked = !zone_allowed_for_order(String($(this).data('zone') || ''));
+    $(this).toggleClass('zone-blocked', blocked);
+  });
+}
+
 function rollback_reseating_url() {
   return $('#seating-config').data('rollback-reseating-url')
 }
@@ -15,6 +39,7 @@ $(document).ready(function() {
 
     setTimeout(function() {
       initialize_seatingmap()
+      mark_zone_blocked_seats()
     },1000)
 
   });
@@ -33,6 +58,13 @@ $(document).ready(function() {
     switch (starting_status) {
       case "available":
       case "releasing":
+        // Zoned pricing: refuse cross-zone targets client-side; the server
+        // enforces the same rule in reserve and commit_reseating.
+        var seatZone = String($(this).data('zone') || '');
+        if (!zone_allowed_for_order(seatZone)) {
+          alert("Seat " + $(this).data('location') + " (zone " + seatZone + ") is not available for your ticket type");
+          break;
+        }
         $.post( reserve_url(),
               { 'id': assignment_id,
                  'order_uuid': ticket_order_id(),
@@ -116,6 +148,7 @@ $(document).ready(function() {
 
         } else {
           console.log("failure")
+          alert(response['message'] || 'Unable to finalize seating')
         }
       });
     }

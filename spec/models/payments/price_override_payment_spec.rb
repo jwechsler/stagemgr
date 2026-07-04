@@ -1,8 +1,8 @@
 require 'rails_helper'
 
 RSpec.describe PriceOverridePayment do
-  context "payment_type for exchange orders" do
-    it "inherits reporting flags from the source payment type" do
+  context 'payment_type for exchange orders' do
+    it 'inherits reporting flags from the source payment type' do
       source_payment_type = FactoryBot.create(:external_payment_type)
       source_payment_type.update!(report_as_sales_collected: true)
 
@@ -14,7 +14,7 @@ RSpec.describe PriceOverridePayment do
       expect(override_type.report_as_production_revenue?).to eq(true)
     end
 
-    it "defaults reporting flags to false when source payment type does not report as sales" do
+    it 'defaults reporting flags to false when source payment type does not report as sales' do
       source_payment_type = FactoryBot.create(:external_payment_type)
       source_payment_type.update!(report_as_sales_collected: false)
 
@@ -26,7 +26,7 @@ RSpec.describe PriceOverridePayment do
       expect(override_type.report_as_production_revenue?).to eq(false)
     end
 
-    it "defaults reporting flags to false when there is no source payment type" do
+    it 'defaults reporting flags to false when there is no source payment type' do
       payment = PriceOverridePayment.new(amount: -5.0)
       override_type = payment.payment_type
 
@@ -35,7 +35,7 @@ RSpec.describe PriceOverridePayment do
       expect(override_type.report_as_production_revenue?).to eq(false)
     end
 
-    it "does not create duplicate PriceOverridePaymentType records" do
+    it 'does not create duplicate PriceOverridePaymentType records' do
       source_payment_type = FactoryBot.create(:external_payment_type)
       source_payment_type.update!(report_as_sales_collected: true)
 
@@ -52,7 +52,7 @@ RSpec.describe PriceOverridePayment do
       expect(PriceOverridePaymentType.count).to eq(initial_count + 2)
     end
 
-    it "reuses existing PriceOverridePaymentType across multiple exchange orders" do
+    it 'reuses existing PriceOverridePaymentType across multiple exchange orders' do
       ticket_order1 = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_external)
       ticket_order2 = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_external)
 
@@ -62,7 +62,7 @@ RSpec.describe PriceOverridePayment do
       expect(payment1.payment_type.id).to eq(payment2.payment_type.id)
     end
 
-    it "always displays as Carryover" do
+    it 'always displays as Carryover' do
       payment = PriceOverridePayment.new(amount: -5.0)
       expect(payment.payment_type.display_name).to eq('Carryover')
     end

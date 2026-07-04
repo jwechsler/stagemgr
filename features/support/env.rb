@@ -19,13 +19,18 @@ require 'capybara'
 # poisoning every @javascript scenario in the run.
 AfterConfiguration do
   system("pkill -9 -f 'Firefox.app/Contents/MacOS/firefox' >/dev/null 2>&1")
-  system("pkill -9 geckodriver >/dev/null 2>&1")
+  system('pkill -9 geckodriver >/dev/null 2>&1')
 end
 
 # Configure Selenium driver for JavaScript tests
 Capybara.register_driver :selenium do |app|
   options = Selenium::WebDriver::Firefox::Options.new
-  options.binary = "/Applications/Firefox.app/Contents/MacOS/firefox"
+  # On macOS, point to the standard Firefox.app location. On Linux (Docker),
+  # Firefox is pre-installed via Mozilla's APT repository and in PATH; omitting
+  # options.binary lets WebDriver find it automatically, which also prevents
+  # Selenium Manager from downloading a freshly-released patch version that
+  # may not yet be on Mozilla's FTP.
+  options.binary = '/Applications/Firefox.app/Contents/MacOS/firefox' if RUBY_PLATFORM.include?('darwin')
   options.args << '--headless' # Run in headless mode
   options.args << '--no-sandbox'
   options.args << '--disable-dev-shm-usage'
@@ -49,8 +54,8 @@ Capybara.javascript_driver = :selenium
 # Capybara.default_selector = :xpath
 
 # By default, any exception happening in your Rails application will bubble up
-# to Cucumber so that your scenario will fail. This is a different from how 
-# your application behaves in the production environment, where an error page will 
+# to Cucumber so that your scenario will fail. This is a different from how
+# your application behaves in the production environment, where an error page will
 # be rendered instead.
 #
 # Sometimes we want to override this default behaviour and allow Rails to rescue
@@ -65,47 +70,35 @@ Capybara.javascript_driver = :selenium
 #
 ActionController::Base.allow_rescue = false
 
-# Share the ActiveRecord connection across threads so Capybara's Puma server
-# thread can see data created inside the test transaction. This lets us use
-# :transaction strategy for all tests (including @javascript), avoiding
-# SQLite locking issues that occur with :truncation.
-class ActiveRecord::Base
-  mattr_accessor :shared_connection
-  @@shared_connection = nil
-
-  def self.connection
-    @@shared_connection || retrieve_connection
-  end
-end
-ActiveRecord::Base.shared_connection = ActiveRecord::Base.connection
-
+# Use truncation for @javascript scenarios (Capybara server runs in a separate
+# thread and cannot see data inside an uncommitted transaction) and transaction
+# for everything else (fast rollback, no truncation overhead).
+# The shared_connection monkeypatch is NOT needed with MySQL — each thread gets
+# its own pooled connection.
 begin
   DatabaseCleaner.strategy = :transaction
 rescue NameError
-  raise "You need to add database_cleaner to your Gemfile (in the :test group) if you wish to use it."
+  raise 'You need to add database_cleaner to your Gemfile (in the :test group) if you wish to use it.'
+end
+
+Before('@javascript') do
+  DatabaseCleaner.strategy = :truncation
+end
+
+Before('not @javascript') do
+  DatabaseCleaner.strategy = :transaction
 end
 
 Before do
   DatabaseCleaner.start
+  ActionMailer::Base.deliveries.clear
+  begin
+    Resque.redis.redis.flushdb
+  rescue StandardError
+    # non-fatal: clear stale jobs when Redis is available
+  end
 end
 
 After do
   DatabaseCleaner.clean
 end
-
-# You may also want to configure DatabaseCleaner to use different strategies for certain features and scenarios.
-# See the DatabaseCleaner documentation for details. Example:
-#
-#   Before('@no-txn,@selenium,@culerity,@celerity,@javascript') do
-#     # { :except => [:widgets] } may not do what you expect here
-#     # as Cucumber::Rails::Database.javascript_strategy overrides
-#     # this setting.
-#     DatabaseCleaner.strategy = :truncation
-#   end
-#
-#   Before('~@no-txn', '~@selenium', '~@culerity', '~@celerity', '~@javascript') do
-#     DatabaseCleaner.strategy = :transaction
-#   end
-#
-
-

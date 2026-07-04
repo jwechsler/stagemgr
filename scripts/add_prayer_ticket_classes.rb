@@ -76,7 +76,7 @@ ticket_data = [
   ['EXTERNAL87', 87.00],
   ['EXTERNAL88', 88.00],
   ['EXTERNAL89', 89.00],
-  ['EXTERNAL91', 91.00],
+  ['EXTERNAL91', 91.00]
 ]
 
 created = []
@@ -85,7 +85,6 @@ errors = []
 
 ActiveRecord::Base.transaction do
   ticket_data.each do |class_code, price|
-
     # Skip if this ticket class already exists for PRAYER
     if production.ticket_classes.exists?(class_code: class_code)
       skipped << class_code
@@ -95,14 +94,14 @@ ActiveRecord::Base.transaction do
     is_comp = (class_code == 'COMP')
 
     tc = production.ticket_classes.build(
-      class_code:    class_code,
-      class_name:    is_comp ? 'Complimentary' : class_code,
-      ticket_type:   'Fixed',
-      ticket_price:  price,
+      class_code: class_code,
+      class_name: is_comp ? 'Complimentary' : class_code,
+      ticket_type: 'Fixed',
+      ticket_price: price,
       ticketing_fee: 0.0,
-      auto_attach:   true,
-      web_visible:   false,
-      holds_seats:   true,
+      auto_attach: true,
+      web_visible: false,
+      holds_seats: true,
       complimentary: is_comp,
       show_in_pricing_range: !is_comp
     )
@@ -138,5 +137,5 @@ if errors.any?
 else
   perf_count = production.performances.count
   puts "\nAuto-attached to #{perf_count} performance(s)"
-  puts "Done!"
+  puts 'Done!'
 end

@@ -6,7 +6,7 @@ class CurrentUser::TheatersController < CurrentUser::ApplicationController
 
     respond_to do |format|
       format.html # index.html.erb
-      format.xml  { render :xml => @theaters }
+      format.xml  { render xml: @theaters }
     end
   end
 
@@ -17,7 +17,7 @@ class CurrentUser::TheatersController < CurrentUser::ApplicationController
 
     respond_to do |format|
       format.html # new.html.erb
-      format.xml  { render :xml => @theater }
+      format.xml  { render xml: @theater }
     end
   end
 
@@ -35,10 +35,10 @@ class CurrentUser::TheatersController < CurrentUser::ApplicationController
       if @theater.save
         flash[:notice] = 'Theater was successfully created.'
         format.html { redirect_to(current_user_theaters_path) }
-        format.xml  { render :xml => @theater, :status => :created, :location => @theater }
+        format.xml  { render xml: @theater, status: :created, location: @theater }
       else
-        format.html { render :action => "new" }
-        format.xml  { render :xml => @theater.errors, :status => :unprocessable_entity }
+        format.html { render action: 'new' }
+        format.xml  { render xml: @theater.errors, status: :unprocessable_entity }
       end
     end
   end
@@ -54,8 +54,8 @@ class CurrentUser::TheatersController < CurrentUser::ApplicationController
         format.html { redirect_to(current_user_theaters_path) }
         format.xml  { head :ok }
       else
-        format.html { render :action => "edit" }
-        format.xml  { render :xml => @theater.errors, :status => :unprocessable_entity }
+        format.html { render action: 'edit' }
+        format.xml  { render xml: @theater.errors, status: :unprocessable_entity }
       end
     end
   end

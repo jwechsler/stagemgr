@@ -1,7 +1,8 @@
-//= require utility
-//= require orders/payments
+// Loaded per-page (application layout) on admin order pages only, always
+// after orders_common.js. utility and credit_card_track_parser come from the
+// global application.js bundle; orders/payments comes via orders_common.js —
+// requiring them here too would execute them twice as a standalone asset.
 //= require admin/address_utility
-//= require credit_card_track_parser
 //= require_self
 
 function setup_admin_payment_form() {

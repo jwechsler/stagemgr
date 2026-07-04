@@ -17,7 +17,7 @@ class FinalizeSeasonSeating
           order.transition_to!(Order::PROCESSED)
           row[:status] = order.status
           row[:error] = nil
-        rescue => e
+        rescue StandardError => e
           row[:status] = order.status
           row[:error] = e.message
         end
@@ -35,7 +35,9 @@ class FinalizeSeasonSeating
       email: order.address&.email,
       date: perf.performance_date,
       performance_code: perf.performance_code,
-      ticket_types: order.ticket_line_items.map { |tli| "#{tli.ticket_count}x #{tli.ticket_class.class_code}" }.join(', '),
+      ticket_types: order.ticket_line_items.map do |tli|
+        "#{tli.ticket_count}x #{tli.ticket_class.class_code}"
+      end.join(', '),
       order_total: order.total,
       status: nil,
       error: nil
@@ -43,7 +45,8 @@ class FinalizeSeasonSeating
   end
 
   def self.send_report(production, results, reporting_user_id)
-    headers = ['Order ID', 'Name', 'Email', 'Date', 'Performance Code', 'Ticket Types', 'Order Total', 'Status', 'Error']
+    headers = ['Order ID', 'Name', 'Email', 'Date', 'Performance Code', 'Ticket Types', 'Order Total', 'Status',
+               'Error']
 
     csv_string = CSV.generate do |csv|
       csv << headers
@@ -69,7 +72,7 @@ class FinalizeSeasonSeating
     file_store.worker = FileStore::REPORT
     file_store.user_id = reporting_user_id
     file_store.notes = "Season Seating Finalization: #{production.name}"
-    file_store.datafile.attach(io: File.open(file_name), filename: File.basename(file_name), content_type: "text/csv")
+    file_store.datafile.attach(io: File.open(file_name), filename: File.basename(file_name), content_type: 'text/csv')
     file_store.save!
     File.delete(file_name)
 

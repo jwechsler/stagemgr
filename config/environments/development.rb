@@ -1,4 +1,4 @@
-require "active_support/core_ext/integer/time"
+require 'active_support/core_ext/integer/time'
 
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
@@ -16,7 +16,7 @@ Rails.application.configure do
 
   # Enable/disable caching. By default caching is disabled.
   # Run rails dev:cache to toggle caching.
-  if Rails.root.join('tmp', 'caching-dev.txt').exist?
+  if Rails.root.join('tmp/caching-dev.txt').exist?
     config.action_controller.perform_caching = true
     config.action_controller.enable_fragment_cache_logging = true
 
@@ -42,7 +42,7 @@ Rails.application.configure do
   config.active_support.deprecation = :log
 
   # Use a real queuing backend for Active Job (and separate queues per environment).
-  config.active_job.queue_adapter     = :inline
+  config.active_job.queue_adapter = :inline
 
   # Raise exceptions for disallowed deprecations.
   config.active_support.disallowed_deprecation = :raise
@@ -80,48 +80,54 @@ Rails.application.configure do
   # Log error messages when you accidentally call methods on nil.
   config.whiny_nils = true
 
-    
   # Setup paypal module
 
   config.after_initialize do
     ActiveMerchant::Billing::Base.mode = :test
     PaymentProcessing.after_initialize
-    unless Rails.application.credentials.dig(:my_emma,:account_id).nil?
-      MyEmma.set_credentials(Rails.application.credentials.dig(:my_emma,:username), Rails.application.credentials.dig(:my_emma, :password), Rails.application.credentials.dig(:my_emma,:account_id))
-    else
+    if Rails.application.credentials.dig(:my_emma, :account_id).nil?
       MyEmma.read_only!
+    else
+      MyEmma.set_credentials(Rails.application.credentials.dig(:my_emma, :username),
+                             Rails.application.credentials.dig(:my_emma, :password), Rails.application.credentials.dig(:my_emma, :account_id))
     end
   end
 
   config.external_site_root = 'file:///Users/jeremyw/dev/site'
 
-  $TKTPRINT = (YAML::load(File.open("#{::Rails.root.to_s}/config/ticket_print.yml")) || {})['development']
-  config_data = YAML::load(File.open("#{::Rails.root.to_s}/config/server.yml")) || {}
-  $SERVER_CONFIG = (config_data['all'] || {}).deep_merge(config_data['development'] || {})
-  $PAYMENT_CONFIG = $SERVER_CONFIG['payment_processing']
-  $SERVER_CONFIG['ext_site_wrapper'] = $SERVER_CONFIG['ext_site_wrapper'] || 'ext_site_wrapper'
-  $EMAIL_ADDRESS = $SERVER_CONFIG.dig('email', 'addresses')
-  config.action_mailer.default_url_options = { host: $SERVER_CONFIG['host'] || 'localhost', protocol: $SERVER_CONFIG['host_protocol'] || 'http' }
-  $RAND_CLAUSE = Arel.sql('RAND()')
+  # Application configuration loaded from YAML. The loaded objects are kept
+  # exactly as parsed (string-keyed Hashes) and assigned to config.x.* so that
+  # existing string-key access (e.g. config.x.server_config['host']) keeps
+  # working. Legacy $GLOBALS alias these via config/initializers/legacy_globals.rb.
+  config.x.tktprint = (YAML.load(File.open(Rails.root.join('config/ticket_print.yml').to_s)) || {})['development']
+  config_data = YAML.load(File.open(Rails.root.join('config/server.yml').to_s)) || {}
+  config.x.server_config = (config_data['all'] || {}).deep_merge(config_data['development'] || {}).with_indifferent_access
+  config.x.payment_config = config.x.server_config['payment_processing']
+  config.x.server_config['ext_site_wrapper'] = config.x.server_config['ext_site_wrapper'] || 'ext_site_wrapper'
+  config.x.email_address = config.x.server_config.dig('email', 'addresses')
+  config.action_mailer.default_url_options = { host: config.x.server_config['host'] || 'localhost',
+                                               protocol: config.x.server_config['host_protocol'] || 'http' }
+  config.x.rand_clause = Arel.sql('RAND()')
 
-  email_config = $SERVER_CONFIG['email'] || {}
+  email_config = config.x.server_config['email'] || {}
   delivery_method = email_config['delivery_method']
   config.action_mailer.delivery_method = delivery_method&.to_sym || :test
   if delivery_method&.eql?('postmark')
-    config.action_mailer.postmark_settings = { :api_key => Rails.application.credentials.dig(:postmark_api_token) }
+    config.action_mailer.postmark_settings = { api_key: Rails.application.credentials.dig(:postmark_api_token) }
   end
 
-  payment_config = $SERVER_CONFIG['payment_processing'] || {}
-  if payment_config['additional_card_types'].present?
-    $ADDITIONAL_CARD_TYPES = payment_config['additional_card_types'].split(',').map(&:strip)
+  if config.x.server_config['payment_processing'].nil? ||
+     config.x.server_config['payment_processing']['additional_card_types'].blank?
+    config.x.additional_card_types = []
   else
-    $ADDITIONAL_CARD_TYPES = []
+    config.x.additional_card_types =
+      config.x.server_config['payment_processing']['additional_card_types'].split(',').map(&:strip)
   end
-  $APP_DISPLAY_NAME = $SERVER_CONFIG['app_name'] || 'StageMgr'
-  Rails.application.routes.default_url_options[:host] = $SERVER_CONFIG['host'] || 'localhost'
+  config.x.app_display_name = config.x.server_config['app_name'] || 'StageMgr'
+  Rails.application.routes.default_url_options[:host] = config.x.server_config['host'] || 'localhost'
 
   # Allow binding from ngrok.io for remote testing
-  config.hosts << "jw-macbook-m4"
+  config.hosts << 'jw-macbook-m4'
   config.hosts << /.*\.ngrok\.io/
   config.hosts << /.*\.ngrok\.app/
 end

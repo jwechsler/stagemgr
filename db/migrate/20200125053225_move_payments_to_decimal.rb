@@ -5,7 +5,7 @@ class MovePaymentsToDecimal < ActiveRecord::Migration[4.2]
     add_column :payments, :payment_fee, :decimal, precision: 8, scale: 2, default: 0.0
     add_column :payments, :amount, :decimal, precision: 8, scale: 2, default: 0.0
     reversible do |dir|
-      dir.up do 
+      dir.up do
         execute <<-SQL
           UPDATE PAYMENTS SET PAYMENT_FEE = PAYMENT_FEE_OLD, AMOUNT = AMOUNT_OLD;
         SQL
@@ -19,5 +19,4 @@ class MovePaymentsToDecimal < ActiveRecord::Migration[4.2]
     remove_column :payments, :amount_old, :float
     remove_column :payments, :payment_fee_old, :float
   end
-
 end

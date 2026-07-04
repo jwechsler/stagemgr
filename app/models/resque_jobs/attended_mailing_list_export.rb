@@ -8,5 +8,4 @@ class AttendedMailingListExport
     fs = report.create
     notify_user_on_completion(fs)
   end
-
 end

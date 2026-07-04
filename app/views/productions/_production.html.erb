@@ -1,6 +1,6 @@
 <tr>
   <td><%= %></td>
-  <td><%=h $MARKDOWN.render(production.show_description) %></td>
+  <td><%=h Rails.configuration.x.markdown.render(production.show_description) %></td>
   <td><%=h production.season %></td>
   <td><%=h production.status %></td>
 </tr>

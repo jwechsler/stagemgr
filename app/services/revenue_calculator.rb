@@ -5,9 +5,13 @@
 # REFUNDED and EXCHANGED orders are included by default — they net out via the
 # offset payments written to the original order (see Payment#new_exchange_offset_payment).
 class RevenueCalculator
+  # Canonical revenue vocabulary (per product owner): these figures span all
+  # payment types — credit cards, third-party, etc. — so "cash" is avoided.
+  #   collected  = total of all payments
+  #   reportable = the sales-reportable subset (Payment#report_as_sales_collected?)
   Result = Struct.new(
-    :cash_collected,
-    :cash_reportable,
+    :collected,
+    :reportable,
     :ticketing_fees,
     :processing_fees,
     :ticket_count,
@@ -15,36 +19,41 @@ class RevenueCalculator
     :order_count,
     keyword_init: true
   ) do
+    # Deprecated: use #collected / #reportable; retained for compatibility.
+    alias_method :cash_collected, :collected
+    alias_method :cash_reportable, :reportable
+
     # Matches SalesByPerformanceReport's historical "net" column:
-    # reportable cash minus fees. Uses cash_reportable (not cash_collected)
-    # so membership/flex-pass payments — which are gross but not collected —
+    # reportable revenue minus fees. Uses reportable (not collected) so
+    # membership/flex-pass payments — which are gross but not collected —
     # don't inflate the house's take-home figure.
     def net
-      cash_reportable - ticketing_fees - processing_fees
+      reportable - ticketing_fees - processing_fees
     end
 
     def +(other)
       return self if other.nil?
+
       Result.new(
-        cash_collected:   cash_collected   + other.cash_collected,
-        cash_reportable:  cash_reportable  + other.cash_reportable,
-        ticketing_fees:   ticketing_fees   + other.ticketing_fees,
-        processing_fees:  processing_fees  + other.processing_fees,
-        ticket_count:     ticket_count     + other.ticket_count,
-        comp_count:       comp_count       + other.comp_count,
-        order_count:      order_count      + other.order_count
+        collected: collected + other.collected,
+        reportable: reportable + other.reportable,
+        ticketing_fees: ticketing_fees + other.ticketing_fees,
+        processing_fees: processing_fees + other.processing_fees,
+        ticket_count: ticket_count + other.ticket_count,
+        comp_count: comp_count + other.comp_count,
+        order_count: order_count + other.order_count
       )
     end
   end
 
   ZERO = Result.new(
-    cash_collected:  BigDecimal('0'),
-    cash_reportable: BigDecimal('0'),
-    ticketing_fees:  BigDecimal('0'),
+    collected: BigDecimal('0'),
+    reportable: BigDecimal('0'),
+    ticketing_fees: BigDecimal('0'),
     processing_fees: BigDecimal('0'),
-    ticket_count:    0,
-    comp_count:      0,
-    order_count:     0
+    ticket_count: 0,
+    comp_count: 0,
+    order_count: 0
   ).freeze
 
   PRELOADS = [
@@ -71,9 +80,9 @@ class RevenueCalculator
   # (keyed on Order#created_at, matching RateOfSalesJob semantics).
   def self.for_production_on_day(production_id, date, statuses: Order::SETTLED_STATUSES)
     scope = TicketOrder
-              .joins(:performance)
-              .where(performances: { production_id: production_id })
-              .where(created_at: date.all_day)
+            .joins(:performance)
+            .where(performances: { production_id: production_id })
+            .where(created_at: date.all_day)
     self.for(scope, statuses: statuses)
   end
 
@@ -86,8 +95,8 @@ class RevenueCalculator
     orders = resolve_orders
     return ZERO.dup if orders.empty?
 
-    cash_collected  = 0.0
-    cash_reportable = 0.0
+    collected       = 0.0
+    reportable      = 0.0
     ticketing_fees  = 0.0
     processing_fees = 0.0
     ticket_count    = 0
@@ -95,27 +104,27 @@ class RevenueCalculator
 
     orders.each do |o|
       payments = o.payments.to_a
-      cash_collected  += payments.sum(&:amount)
-      cash_reportable += payments.select { |p| p.report_as_sales_collected? }.sum(&:amount)
+      collected       += payments.sum(&:amount)
+      reportable      += payments.select { |p| p.report_as_sales_collected? }.sum(&:amount)
       ticketing_fees  += o.ticketing_fee.to_f
       processing_fees += o.processing_fee.to_f
 
-      if o.respond_to?(:ticket_line_items)
-        tlis = o.ticket_line_items.to_a
-        comps = tlis.select(&:complimentary?).sum(&:ticket_count)
-        comp_count   += comps
-        ticket_count += tlis.sum(&:ticket_count) - comps
-      end
+      next unless o.respond_to?(:ticket_line_items)
+
+      tlis = o.ticket_line_items.to_a
+      comps = tlis.select(&:complimentary?).sum(&:ticket_count)
+      comp_count   += comps
+      ticket_count += tlis.sum(&:ticket_count) - comps
     end
 
     Result.new(
-      cash_collected:  cc(cash_collected),
-      cash_reportable: cc(cash_reportable),
-      ticketing_fees:  cc(ticketing_fees),
+      collected: cc(collected),
+      reportable: cc(reportable),
+      ticketing_fees: cc(ticketing_fees),
       processing_fees: cc(processing_fees),
-      ticket_count:    ticket_count,
-      comp_count:      comp_count,
-      order_count:     orders.size
+      ticket_count: ticket_count,
+      comp_count: comp_count,
+      order_count: orders.size
     )
   end
 

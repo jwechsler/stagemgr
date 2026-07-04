@@ -4,16 +4,19 @@ class Admin::ExchangeTicketOrdersController < Admin::ApplicationController
   include OrdersHelper
   include TicketOrdersHelper
 
-  expose :order_production_id, ->{
-    case
-      when (!@original_order.nil? && !@original_order.performance.nil?) then @original_order.performance.production_id
-      when !params[:new_production_id].nil? then params[:new_production_id]
-      when !params[:production_id].nil? then params[:production_id]
-      else ""
+  expose :order_production_id, lambda {
+    if !@original_order.nil? && !@original_order.performance.nil?
+      @original_order.performance.production_id
+    elsif !params[:new_production_id].nil?
+      params[:new_production_id]
+    elsif !params[:production_id].nil?
+      params[:production_id]
+    else
+      ''
     end
   }
 
-  expose :order_production,  ->{ Production.find(order_production_id) }
+  expose :order_production, -> { Production.find(order_production_id) }
 
   def new
     @original_order = TicketOrder.find(params[:ticket_order_id])
@@ -30,7 +33,7 @@ class Admin::ExchangeTicketOrdersController < Admin::ApplicationController
   end
 
   def create
-    error = nil
+    nil
     begin
       @original_order = TicketOrder.find(params[:ticket_order_id])
       @exchange_order = TicketOrder.new(ticket_order_params)
@@ -51,6 +54,7 @@ class Admin::ExchangeTicketOrdersController < Admin::ApplicationController
   end
 
   private
+
   def ticket_order_params
     params.require(:ticket_order).permit(*ticket_order_common_params)
   end

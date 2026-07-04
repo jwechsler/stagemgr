@@ -20,6 +20,54 @@
       }
     }
 
+    function performance_selected() {
+      return $.trim($('#performance_id').val() || '') !== '';
+    }
+
+    function update_perf_submit_state() {
+      var $btns = $('.order-submit-button, #hold_button');
+      if (performance_selected()) {
+        $btns.removeClass('disabled').attr('aria-disabled', 'false').css('pointer-events', '');
+        $('#perf-required-hint').hide();
+      } else {
+        $btns.addClass('disabled').attr('aria-disabled', 'true').css('pointer-events', 'none');
+        $('#perf-required-hint').show();
+      }
+    }
+
     $(document).ready(function() {
-      setup_submit_button()
+      setup_submit_button();
+
+      if ($('#perf-required-hint').length === 0) {
+        $('#ticket_order_performance_code').closest('.cell').append(
+          '<small id="perf-required-hint" class="alert-color" style="display:none">' +
+          'Select a performance from the dropdown to enable order actions.</small>'
+        );
+      }
+
+      // User editing the autocomplete text invalidates any prior selection.
+      $('#ticket_order_performance_code').on('input', function() {
+        $('#performance_id').val('');
+        update_perf_submit_state();
+      });
+
+      // Autocomplete writes #performance_id asynchronously on select; recheck
+      // shortly after focus leaves the field so we observe the populated id.
+      $('#ticket_order_performance_code').on('blur', function() {
+        setTimeout(update_perf_submit_state, 200);
+      });
+
+      // Capture-phase guard runs before the inline onclick handlers on the
+      // submit links (confirmSubmit / submitForm).
+      document.addEventListener('click', function(e) {
+        var target = e.target.closest ? e.target.closest('.order-submit-button, #hold_button') : null;
+        if (target && !performance_selected()) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          alert('Please select a performance from the dropdown before continuing.');
+        }
+      }, true);
+
+      update_perf_submit_state();
     });

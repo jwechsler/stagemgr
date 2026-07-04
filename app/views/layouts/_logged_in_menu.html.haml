@@ -1,8 +1,8 @@
-.top-bar#app-menu
+.top-bar.hide-for-print#app-menu
   .top-bar-left
     %ul.dropdown.menu(data-dropdown-menu)
       %li.menu-text
-        =$APP_DISPLAY_NAME
+        =Rails.configuration.x.app_display_name
       %li
         - if current_user.is_theater_user? then  
           %a{:href=>"#"} Your Theaters

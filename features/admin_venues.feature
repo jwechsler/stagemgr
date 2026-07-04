@@ -23,3 +23,12 @@ Feature: The Administrator can manage venue seat maps
       And I go to the admin venue page for "Main Stage"
      Then I wait for the datatable to load
       And I should see "Tiny House"
+
+  @javascript
+  Scenario: Admin can open the graphical seat map editor
+    Given a venue "Main Stage" exists
+      And I am an Administrator
+      And I am logged in
+      And I go to the seat map editor for venue "Main Stage"
+     Then I should see "Add Seat"
+      And I should see "Save"

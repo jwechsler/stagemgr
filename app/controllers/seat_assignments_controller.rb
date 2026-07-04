@@ -2,13 +2,13 @@ class SeatAssignmentsController < ApplicationController
   protect_from_forgery with: :null_session
   helper SeatAssignmentHelper
 
-  expose :performance, ->{
+  expose :performance, lambda {
     Performance.find(params[:performance_id])
   }
 
-  expose :seat_assignments, ->{
-    sa = SeatAssignment.includes(:seat).joins(:seat).where(performance_id: performance.id).merge(Seat.order(:origin_y,  :origin_x))
-    if sa.empty? and !performance.production.seat_map.nil? then
+  expose :seat_assignments, lambda {
+    sa = SeatAssignment.includes(:seat).joins(:seat).where(performance_id: performance.id).merge(Seat.order(:origin_y, :origin_x))
+    if sa.empty? and !performance.production.seat_map.nil?
       sa = performance.production.seat_map.create_inventory_for_performance(performance)
     end
     sa
@@ -17,58 +17,92 @@ class SeatAssignmentsController < ApplicationController
   # before_action :load_performance_and_seat_assignments
   def index
     respond_to do |format|
-      format.html {
-        render partial:"available_seatmap", locals:{ticket_order_uuid: params[:ticket_order_uuid], performance: performance}
-      }
-      format.json {
-        render json: seat_assignments.map { |sa| { id: sa.id, seat_id:sa.seat_id, status:sa.status, label:sa.seat.location, origin_x: sa.seat.origin_x, origin_y: sa.seat.origin_y, width: sa.seat.width, accessible: sa.seat.accessible?}}
-      }
+      format.html do
+        render partial: 'available_seatmap',
+               locals: { ticket_order_uuid: params[:ticket_order_uuid], performance: performance }
+      end
+      format.json do
+        render json: seat_assignments.map { |sa|
+          { id: sa.id, seat_id: sa.seat_id, status: sa.status, label: sa.seat.location, origin_x: sa.seat.origin_x,
+            origin_y: sa.seat.origin_y, width: sa.seat.width, accessible: sa.seat.accessible? }
+        }
+      end
     end
   end
 
   def reserve
     respond_to do |format|
-      format.html {
-        raise "Action not allowed"
-      }
-      format.json {
+      format.html do
+        raise 'Action not allowed'
+      end
+      format.json do
         order_uuid = params[:order_uuid]
         ticket_class_id = params[:ticket_class_id]
         max_tickets = params[:max_tickets]
         accessible_setting = params[:accessible]
         price_override = parse_price_override(params[:price_override], ticket_class_id)
         unless order_uuid.nil?
-          max_seatable = can?(:seat_unlimited,SeatAssignment) ? 9999 : 20
+          max_seatable = can?(:seat_unlimited, SeatAssignment) ? 9999 : 20
           sa = SeatAssignment.find(params[:id])
-          unless (!max_tickets.nil? && current_assignment_count(order_uuid,sa.id) >= max_tickets.to_i)
+
+          # Zoned pricing: reject before any mutation so a mismatch leaves no
+          # state behind (no held seat, no TLI, no price_override). There is
+          # deliberately no override path for this rule.
+          if ticket_class_id.present?
+            tc = TicketClass.find_by(id: ticket_class_id)
+            if tc && !tc.sellable_for_zone?(sa.seat.zone)
+              render json: { id: sa.id, status: 'error',
+                             message: "Ticket type #{tc.class_name} is not available for seat #{sa.seat.location} (zone #{sa.seat.zone})" },
+                     status: :unprocessable_entity
+              return
+            end
+          else
+            # A classless reserve is how the reseating flow holds a replacement
+            # seat (the class stays with the line item). The replacement seat
+            # must sit in a zone served by at least one class being released;
+            # cross-zone moves require an exchange instead.
+            releasing_classes = TicketClass.where(
+              id: SeatAssignment.where(order_uuid: order_uuid, performance_id: sa.performance_id,
+                                       status: SeatAssignment::RELEASING).select(:ticket_class_id)
+            )
+            if releasing_classes.any? && releasing_classes.none? { |rc| rc.sellable_for_zone?(sa.seat.zone) }
+              render json: { id: sa.id, status: 'error',
+                             message: "Seat #{sa.seat.location} (zone #{sa.seat.zone}) is not available for your ticket type" },
+                     status: :unprocessable_entity
+              return
+            end
+          end
+
+          tli_id = nil
+          unless !max_tickets.nil? && current_assignment_count(order_uuid, sa.id) >= max_tickets.to_i
             SeatAssignment.transaction do
               if sa.available?(order_uuid)
                 sa.assign_to_order(order_uuid, max_seatable, ticket_class_id.to_i, accessible_setting)
                 sa.update(price_override: price_override) if price_override
-                upsert_ticket_line_item_for(sa, order_uuid, price_override)
+                tli_id = upsert_ticket_line_item_for(sa, order_uuid, price_override)
               end
             end
           end
           status = view_context.assignment_keys(sa, order_uuid)
-          render json: {id: sa.id, status:status, order_uuid: sa.order_uuid,
-            ticket_class_id: sa.ticket_class_id,
-            price_override: sa.price_override,
-            seat_label: sa.seat&.location,
-            unavailable: unavailable_seating_report(order_uuid, sa.performance_id),
-            current_seat_assignments: SeatAssignment.seating_as_list(order_uuid, [SeatAssignment::TEMPORARY, SeatAssignment::ASSIGNED]),
-            ticket_count: current_assignment_count(order_uuid)
-          }
+          render json: { id: sa.id, status: status, order_uuid: sa.order_uuid,
+                         ticket_class_id: sa.ticket_class_id,
+                         price_override: sa.price_override,
+                         seat_label: sa.seat&.location,
+                         ticket_line_item_id: tli_id,
+                         unavailable: unavailable_seating_report(order_uuid, sa.performance_id),
+                         current_seat_assignments: SeatAssignment.seating_as_list(order_uuid, [SeatAssignment::TEMPORARY, SeatAssignment::ASSIGNED]),
+                         ticket_count: current_assignment_count(order_uuid) }
         end
-      }
+      end
     end
   end
 
   def release
     respond_to do |format|
-      format.html {
-        raise "Action not allowed"
-      }
-      format.json {
+      format.html do
+        raise 'Action not allowed'
+      end
+      format.json do
         order_uuid = params[:order_uuid]
         sa = SeatAssignment.find(params[:id])
         reseating = params[:reseating]
@@ -80,23 +114,22 @@ class SeatAssignmentsController < ApplicationController
               sa.unassign_from_order(order_uuid)
               sa.update(price_override: nil)
             end
-          else
-            sa.begin_release_from_order(order_uuid) if sa.assigned?(order_uuid)
+          elsif sa.assigned?(order_uuid)
+            sa.begin_release_from_order(order_uuid)
           end
         end
         status = view_context.assignment_keys(sa, order_uuid)
-        render json: { id: sa.id, status:status, order_uuid: sa.order_uuid,
-          current_seat_assignments: SeatAssignment.seating_as_list(order_uuid, [SeatAssignment::TEMPORARY, SeatAssignment::ASSIGNED]),
-          ticket_class_id: released_ticket_class_id, unavailable: unavailable_seating_report(order_uuid, sa.performance_id),
-          ticket_count: current_assignment_count(order_uuid)
-        }
-      }
+        render json: { id: sa.id, status: status, order_uuid: sa.order_uuid,
+                       current_seat_assignments: SeatAssignment.seating_as_list(order_uuid, [SeatAssignment::TEMPORARY, SeatAssignment::ASSIGNED]),
+                       ticket_class_id: released_ticket_class_id, unavailable: unavailable_seating_report(order_uuid, sa.performance_id),
+                       ticket_count: current_assignment_count(order_uuid) }
+      end
     end
   end
 
   def update_price_override
     respond_to do |format|
-      format.json {
+      format.json do
         order_uuid = params[:order_uuid]
         sa = SeatAssignment.find(params[:id])
         price_override = parse_price_override(params[:price_override], sa.ticket_class_id)
@@ -105,7 +138,8 @@ class SeatAssignmentsController < ApplicationController
           return
         end
         unless sa.ticket_class&.ticket_type == TicketClass::DONATION
-          render json: { status: 'error', message: 'Price override only allowed on donation ticket classes' }, status: :unprocessable_entity
+          render json: { status: 'error', message: 'Price override only allowed on donation ticket classes' },
+                 status: :unprocessable_entity
           return
         end
         SeatAssignment.transaction do
@@ -114,63 +148,69 @@ class SeatAssignmentsController < ApplicationController
           tli.update(price_override: price_override) if tli
         end
         render json: { id: sa.id, price_override: sa.price_override, ticket_class_id: sa.ticket_class_id }
-      }
+      end
     end
   end
 
   def release_temporary
     respond_to do |format|
-      format.html {
-        raise "Action not allowed"
-      }
-      format.json {
+      format.html do
+        raise 'Action not allowed'
+      end
+      format.json do
         order_uuid = params[:order_uuid]
-        num_updated = SeatAssignment.where("order_uuid = :order_uuid and status = :temp_assignment and performance_id <> :performance_id",
-          order_uuid: order_uuid, temp_assignment: SeatAssignment::TEMPORARY,
-          performance_id: params['exclude_performance_id'].to_i).update_all(order_uuid: nil, updated_at: Time.now, status: SeatAssignment::AVAILABLE)
-        render json: {status: "released"}
-      }
+        SeatAssignment.where('order_uuid = :order_uuid and status = :temp_assignment and performance_id <> :performance_id',
+                             order_uuid: order_uuid, temp_assignment: SeatAssignment::TEMPORARY,
+                             performance_id: params['exclude_performance_id'].to_i).update_all(order_uuid: nil, updated_at: Time.now, status: SeatAssignment::AVAILABLE)
+        render json: { status: 'released' }
+      end
     end
   end
 
   def commit_reseating
     respond_to do |format|
-      format.html {
-        raise "Action not allowed"
-      }
-      format.json {
+      format.html do
+        raise 'Action not allowed'
+      end
+      format.json do
         order_uuid = params[:order_uuid]
         result = SeatAssignment.reseating_commit(order_uuid)
-        render json: {status: result,
-          current_seat_assignments: SeatAssignment.seating_as_list(order_uuid, [SeatAssignment::TEMPORARY, SeatAssignment::ASSIGNED])
-        }
-      }
+        success = result.eql?('success')
+        render json: { status: success ? 'success' : 'failure',
+                       message: success ? nil : result,
+                       current_seat_assignments: SeatAssignment.seating_as_list(order_uuid,
+                                                                                [SeatAssignment::TEMPORARY,
+                                                                                 SeatAssignment::ASSIGNED]) }
+      end
     end
   end
 
   def rollback_reseating
     respond_to do |format|
-      format.html {
-        raise "Action not allowed"
-      }
-      format.json {
+      format.html do
+        raise 'Action not allowed'
+      end
+      format.json do
         order_uuid = params[:order_uuid]
         SeatAssignment.reseating_rollback(order_uuid)
-        render json: {status: "success"}
-      }
+        render json: { status: 'success' }
+      end
     end
   end
 
-  def unavailable_seating_report(order_uuid,performance_id)
+  def unavailable_seating_report(order_uuid, performance_id)
     SeatAssignment.where(
-      "performance_id = :performance_id and order_uuid <> :order_uuid and status not in(:available_status)",
+      'performance_id = :performance_id and order_uuid <> :order_uuid and status not in(:available_status)',
       performance_id: performance_id,
       order_uuid: order_uuid,
-      available_status: SeatAssignment::AVAILABLE).all.map {|sa|
-        sa.id }
+      available_status: SeatAssignment::AVAILABLE
+    ).all.map do |sa|
+      sa.id
+    end
   end
 
   protected
+
   def current_assignment_count(order_uuid, exclude_sa_id = nil)
     SeatAssignment.current_seat_assignments(order_uuid, exclude_sa_id).count
   end
@@ -181,8 +221,10 @@ class SeatAssignmentsController < ApplicationController
   # or the referenced ticket class isn't a Donation class.
   def parse_price_override(raw, ticket_class_id)
     return nil if raw.nil? || raw.to_s.strip.empty?
+
     tc = TicketClass.find_by(id: ticket_class_id)
     return nil unless tc&.ticket_type == TicketClass::DONATION
+
     value = BigDecimal(raw.to_s)
     value.positive? ? value : nil
   rescue ArgumentError
@@ -196,14 +238,17 @@ class SeatAssignmentsController < ApplicationController
   # when the order is submitted.
   def upsert_ticket_line_item_for(sa, order_uuid, price_override)
     return if sa.ticket_class_id.to_i.zero?
+
     order = Order.find_by(uuid: order_uuid)
     return unless order.is_a?(TicketOrder) && order.persisted?
+
     tli = order.ticket_line_items.find_by(seat_assignment_id: sa.id) ||
           order.ticket_line_items.build(seat_assignment_id: sa.id)
     tli.ticket_class_id = sa.ticket_class_id
     tli.ticket_count = 1
     tli.price_override = price_override
     tli.save!
+    tli.id
   end
 
   def destroy_ticket_line_item_for(sa)
@@ -214,7 +259,7 @@ class SeatAssignmentsController < ApplicationController
   def load_performance_and_seat_assignments
     @performance = Performance.find(params[:performance_id])
     @seat_assignments = SeatAssignment.joins(:seat).where(performance_id: @performance.id)
-    if @seat_assignments.empty? and !@performance.production.seat_map.nil? then
+    if @seat_assignments.empty? and !@performance.production.seat_map.nil?
       @seat_assignments = @performance.production.seat_map.create_inventory_for_performance(@performance)
     end
     @seat_assignments.order(:originY, :originX)

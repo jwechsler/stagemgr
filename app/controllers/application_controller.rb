@@ -1,7 +1,7 @@
-
 class ApplicationController < ActionController::Base
   helper :all
-  helper_method :current_user_session, :current_user, :logged_in?, :current_user_is_admin?, :payment_types_for, :backend_user?
+  helper_method :current_user_session, :current_user, :logged_in?, :current_user_is_admin?, :payment_types_for,
+                :backend_user?
 
   rescue_from CanCan::AccessDenied do |exception|
     respond_to do |format|
@@ -11,16 +11,14 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  unless Rails.env.development?
-    rescue_from StandardError, with: :handle_exception
-  end
+  rescue_from StandardError, with: :handle_exception unless Rails.env.development?
 
   attr_accessor :markdown
 
   def payment_types_for(order, frontend = true)
     types = order.valid_payment_types_for(current_user)
     if frontend
-      types.select{|t| t.allow_for_public? }
+      types.select { |t| t.allow_for_public? }
     else
       types
     end
@@ -30,47 +28,44 @@ class ApplicationController < ActionController::Base
     current_user && (current_user.is_administrator? || current_user.is_box_office_user?)
   end
 
-  def method_missing(method, *args, &block)
+  def method_missing(method, *args, &)
     begin
       method_name = method.to_s
       if method_name =~ /^find_/
         match_data = method_name.match(/^find_(.*)$/)
         model_name = match_data[1]
         model_class = model_name.classify.constantize
-        param_id = "#{model_name}_id".to_sym
+        param_id = :"#{model_name}_id"
         found_model = if params[param_id]
-          model_class.find(params[param_id])
-        elsif params[:id]
-          model_class.find(params[:id])
-        else
-          nil
-        end
-        if found_model
-          instance_variable_set "@#{model_name}", found_model
-        end
+                        model_class.find(params[param_id])
+                      elsif params[:id]
+                        model_class.find(params[:id])
+                      end
+        instance_variable_set "@#{model_name}", found_model if found_model
         return
       end
-    rescue StandardError => e
-      #just do standard method_missing stuff if we fail
+    rescue StandardError
+      # just do standard method_missing stuff if we fail
     end
     super
   end
 
   def current_user
     return @current_user if defined?(@current_user)
+
     @current_user = current_user_session && current_user_session.record
   end
 
   def parse_date_param(key, default:)
     return default if params[key].blank?
+
     Date.parse(params[key])
   rescue ArgumentError, TypeError
     default
   end
 
-
   def index
-    render '/general/unavailable', :status=>404
+    render '/general/unavailable', status: :not_found
   end
 
   protected
@@ -81,32 +76,32 @@ class ApplicationController < ActionController::Base
   end
 
   def require_login
-    unless current_user
-      respond_to do |format|
-      format.html {
+    return if current_user
+
+    respond_to do |format|
+      format.html do
         session[:return_to] = request.url
-        flash[:error] = "You must be logged in to access this page"
+        flash[:error] = 'You must be logged in to access this page'
         redirect_to new_user_session_path
-      }
-      format.xml {
-        user = User.new
-        user.errors.add(:base, "Authentication is required.")
-        render :xml => user.errors, :status => 401
-      }
       end
-    return false
+      format.xml do
+        user = User.new
+        user.errors.add(:base, 'Authentication is required.')
+        render xml: user.errors, status: :unauthorized
+      end
     end
+    false
   end
 
- 
   def current_user_session
     return @current_user_session if defined?(@current_user_session)
+
     @current_user_session = UserSession.find
   end
 
   private
 
-   def handle_exception(exception)
+  def handle_exception(exception)
     # Log the exception
     Rails.logger.error "Exception: #{exception.message}"
     Rails.logger.error exception.backtrace.join("\n")
@@ -115,7 +110,8 @@ class ApplicationController < ActionController::Base
     ExceptionNotifier.notify_exception(exception, env: request.env)
 
     # Set the flash message with the exception
-    flash[:error] = "An unexpected error occurred at #{request.fullpath}: #{exception.message}. An error report has been filed with the administrator"
+    flash[:error] =
+      "An unexpected error occurred at #{request.fullpath}: #{exception.message}. An error report has been filed with the administrator"
 
     # Prevent redirect loop by checking if referer is the same as current request path
     referer = request.referer
@@ -129,13 +125,11 @@ class ApplicationController < ActionController::Base
     end
   end
 
-
   def store_location
-    case
-    when self.is_a?(UserSessionsController)
-      #don't store
-    when request.format == :json
-      #don't store
+    if is_a?(UserSessionsController)
+      # don't store
+    elsif request.format == :json
+      # don't store
     else
       session[:return_to] = request.url
     end
@@ -145,5 +139,4 @@ class ApplicationController < ActionController::Base
     redirect_to(session[:return_to] || default)
     session[:return_to] = nil
   end
-
 end

@@ -23,8 +23,8 @@
           %span.required-field *
         %select#broadcast-from-address{name: 'from_address', required: true}
           %option{value: ''} Select from address...
-          - if defined?($EMAIL_ADDRESS) && $EMAIL_ADDRESS['box_office']
-            %option{value: $EMAIL_ADDRESS['box_office']}= "Theater Wit Box Office <#{$EMAIL_ADDRESS['box_office']}>"
+          - if Rails.configuration.x.email_address&.dig('box_office')
+            %option{value: Rails.configuration.x.email_address['box_office']}= "Theater Wit Box Office <#{Rails.configuration.x.email_address['box_office']}>"
           - if current_user&.email.present?
             %option{value: current_user.email}= current_user.email
 

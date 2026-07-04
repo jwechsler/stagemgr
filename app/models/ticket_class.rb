@@ -1,53 +1,77 @@
 class TicketClass < ApplicationRecord
   include ActionView::Helpers::NumberHelper
   include ApplicationHelper
-  TICKET_TYPES = ['Fixed', 'Donation', 'Timed']
-  FIXED, DONATION, TIMED = 'Fixed', 'Donation', 'Timed'
-  validates_inclusion_of :ticket_type,        :in => TICKET_TYPES, :message => "is not an allowed value (must be #{TICKET_TYPES.join(', ')})"
-  validates_uniqueness_of :class_code,        :scope => :production_id
-  validates_length_of :class_code,            :minimum => 1
+
+  TICKET_TYPES = %w[Fixed Donation Timed]
+  FIXED = 'Fixed'
+  DONATION = 'Donation'
+  TIMED = 'Timed'
+  validates :ticket_type, inclusion: { in: TICKET_TYPES,
+                                       message: "is not an allowed value (must be #{TICKET_TYPES.join(', ')})" }
+  validates :class_code, uniqueness: { scope: :production_id }
+  validates :class_code, length: { minimum: 1 }
   belongs_to :production, inverse_of: :ticket_classes
   has_many :ticket_line_items, inverse_of: :ticket_class
   has_many :ticket_class_allocations, inverse_of: :ticket_class, dependent: :destroy
   has_many :performances, through: :ticket_class_allocations, inverse_of: :ticket_classes
-  
+
   before_validation :clean_values
-  validates_numericality_of :ticket_price
-  validates_numericality_of :minutes_before_show, :allow_nil => true
-  validates_presence_of :ticket_price
-  validates_presence_of :class_name
-  validates_presence_of :ticketing_fee
+  validates :ticket_price, numericality: true
+  validates :minutes_before_show, numericality: { allow_nil: true }
+  validates :ticket_price, presence: true
+  validates :class_name, presence: true
+  validates :ticketing_fee, presence: true
   before_validation :prevent_price_changes_after_sales
-  after_save :update_auto_attached_performances
   before_destroy :check_for_processed_tickets
   before_destroy :check_for_shift_to_codes
+  after_commit :sync_allocations_async, on: %i[create update]
 
-  def number_left(performance, exclude_order=nil)
+  # Zoned pricing: "*" (default) sells into any seat; a specific 1-2 char
+  # zone only sells into seats whose Seat#zone matches. Zone is a filter on
+  # top of the allocation/availability rules, never a replacement for them.
+  validates :zone_id, presence: true,
+                      format: { with: ZoneMatchable::CLASS_ZONE_FORMAT,
+                                message: 'must be "*" or 1-2 characters A-Z or 0-9' }
+  scope :for_zone, lambda { |seat_zone|
+    where('zone_id = :wildcard OR zone_id = :zone',
+          wildcard: ZoneMatchable::WILDCARD, zone: seat_zone)
+  }
+
+  def sellable_for_zone?(seat_zone)
+    ZoneMatchable.match?(zone_id, seat_zone)
+  end
+
+  def number_left(performance, _exclude_order = nil)
     ticket_class_capacity_left = production_capacity_left = performance.number_of_tickets_left
 
-    ticket_allocation = performance.ticket_class_allocations.select{|tc| tc.ticket_class_id.eql? self.id}.first
+    ticket_allocation = performance.ticket_class_allocations.select { |tc| tc.ticket_class_id.eql? id }.first
     unless ticket_allocation.ticket_limit.nil? || ticket_allocation.ticket_limit.eql?(0)
-      Rails.logger.debug("*** ticket limit = #{ticket_allocation.ticket_limit}\nnumber_take = #{number_taken(performance)}\nsum = #{self.ticket_line_items.sum(:ticket_count)}")
+      Rails.logger.debug do
+        "*** ticket limit = #{ticket_allocation.ticket_limit}\nnumber_take = #{number_taken(performance)}\nsum = #{ticket_line_items.sum(:ticket_count)}"
+      end
       ticket_class_capacity_left = ticket_allocation.ticket_limit - number_taken(performance)
     end
-    return [ticket_class_capacity_left,production_capacity_left].min
+    [ticket_class_capacity_left, production_capacity_left].min
   end
 
   def prevent_price_changes_after_sales
-    unless self.ticket_type == DONATION
-      if (self.ticket_price_was != self.ticket_price) && TicketLineItem.where(ticket_class_id:self.id).size > 0
-        errors.add(:base,"Cannot change ticket price from #{self.ticket_price_was} to #{self.ticket_price} if sales have already occurred")
-        return false
-      end
+    if ticket_type != DONATION && (ticket_price_was != ticket_price) && !TicketLineItem.where(ticket_class_id: id).empty?
+      errors.add(:base,
+                 "Cannot change ticket price from #{ticket_price_was} to #{ticket_price} if sales have already occurred")
+      return false
     end
-    return true;
+    true
   end
 
   def number_taken(performance, exclude_order = nil)
     if exclude_order.nil?
-      TicketLineItem.where("ticket_class_id = :tc_id and exists (select * from orders where orders.id = order_id and performance_id = :performance_id)" , tc_id: self.id, performance_id: performance.id).sum(:ticket_count)
+      TicketLineItem.where(
+        'ticket_class_id = :tc_id and exists (select * from orders where orders.id = order_id and performance_id = :performance_id)', tc_id: id, performance_id: performance.id
+      ).sum(:ticket_count)
     else
-      TicketLineItem.where('ticket_class_id = :tc_id and exists (select * from orders where orders.id = order_id and performance_id = :performance_id) and order_id != :order_id', tc_id: self.id, performance_id: performance.id, order_id: exclude_order.id).sum(:ticket_count)
+      TicketLineItem.where(
+        'ticket_class_id = :tc_id and exists (select * from orders where orders.id = order_id and performance_id = :performance_id) and order_id != :order_id', tc_id: id, performance_id: performance.id, order_id: exclude_order.id
+      ).sum(:ticket_count)
     end
   end
 
@@ -56,14 +80,14 @@ class TicketClass < ApplicationRecord
   end
 
   def to_s
-    "#{self.class_name||self.class_code}"
+    (class_name || class_code).to_s
   end
 
-  def self.search_by_code_and_performance_id(code, performance_id )
-    where("LOWER(class_code) LIKE ?",'%'+code.to_s.downcase + '%').
-      where("id IN (SELECT ticket_class_id from ticket_class_allocations where performance_id = ? and available = 1)",  performance_id ).
-      order("class_code ASC").
-      limit(10)
+  def self.search_by_code_and_performance_id(code, performance_id)
+    where('LOWER(class_code) LIKE ?', '%' + code.to_s.downcase + '%')
+      .where('id IN (SELECT ticket_class_id from ticket_class_allocations where performance_id = ? and available = 1)', performance_id)
+      .order('class_code ASC')
+      .limit(10)
   end
 
   def destroy
@@ -71,27 +95,34 @@ class TicketClass < ApplicationRecord
   end
 
   def check_for_processed_tickets
-    return true if self.ticket_line_items.count > 0
-    self.errors.add(:deletion_status, 'Cannot delete a ticket class with processed orders')
+    return true if ticket_line_items.count > 0
+
+    errors.add(:deletion_status, 'Cannot delete a ticket class with processed orders')
     throw :abort
   end
 
   def check_for_shift_to_codes
-    return true if TicketClassAllocation.joins(:performance).where("performances.production_id = :prod_id and shift_to_code = :shift_to", prod_id: self.production_id, shift_to: self.class_code).count > 0
-    self.errors.add(:deletion_status, 'Cannot delete a ticket class that can be shifted to for dynamic pricing')
+    return true if TicketClassAllocation.joins(:performance).where(
+      'performances.production_id = :prod_id and shift_to_code = :shift_to', prod_id: production_id, shift_to: class_code
+    ).count > 0
+
+    errors.add(:deletion_status, 'Cannot delete a ticket class that can be shifted to for dynamic pricing')
     throw :abort
   end
 
   private
-  def update_auto_attached_performances
-    Performance.where(production_id: self.production_id).each do |perf|
-        perf.populate_ticket_class_allocations
-        perf.save!
-    end
+
+  def sync_allocations_async
+    return unless saved_change_to_auto_attach? || previously_new_record?
+
+    production&.mark_allocation_sync_enqueued!
+    # production_id lets the job release the pending counter even if this
+    # ticket class is deleted before the job runs.
+    Resque.enqueue(SyncTicketClassAllocationsJob, id, production_id)
   end
 
-  private
   def clean_values
-    self.class_code.upcase! if self.class_code
+    class_code.upcase! if class_code
+    self.zone_id = zone_id.to_s.strip.upcase.presence || ZoneMatchable::WILDCARD
   end
 end

@@ -1,7 +1,6 @@
 require 'test_helper'
 
 class Admin::DefaultTicketClassesControllerTest < ActionController::TestCase
-
   def setup
     @sample_record = FactoryBot.create(:default_ticket_class)
     @sample_record.save!
@@ -10,13 +9,14 @@ class Admin::DefaultTicketClassesControllerTest < ActionController::TestCase
   def teardown
     @sample_record.destroy
   end
+
   def test_index
     get :index
     assert_template 'index'
   end
 
   def test_show
-    get :show, :id => DefaultTicketClass.first
+    get :show, params: { id: DefaultTicketClass.first }
     assert_template 'show'
   end
 
@@ -38,26 +38,26 @@ class Admin::DefaultTicketClassesControllerTest < ActionController::TestCase
   end
 
   def test_edit
-    get :edit, :id => DefaultTicketClass.first
+    get :edit, params: { id: DefaultTicketClass.first }
     assert_template 'edit'
   end
 
   def test_update_invalid
     DefaultTicketClass.any_instance.stubs(:valid?).returns(false)
-    put :update, :id => DefaultTicketClass.first
+    put :update, params: { id: DefaultTicketClass.first }
     assert_template 'edit'
   end
 
   def test_update_valid
     DefaultTicketClass.any_instance.stubs(:valid?).returns(true)
-    put :update, :id => DefaultTicketClass.first
+    put :update, params: { id: DefaultTicketClass.first }
     assert_redirected_to admin_default_ticket_class_url(assigns(:default_ticket_class))
   end
 
   def test_destroy
     default_ticket_class = DefaultTicketClass.first
-    delete :destroy, :id => default_ticket_class
+    delete :destroy, params: { id: default_ticket_class }
     assert_redirected_to admin_default_ticket_classes_url
-    assert !DefaultTicketClass.exists?(default_ticket_class.id)
+    assert_not DefaultTicketClass.exists?(default_ticket_class.id)
   end
 end

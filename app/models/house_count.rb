@@ -1,52 +1,79 @@
 # app/models/house_count.rb
 class HouseCount < Metric
-
   belongs_to :performance
 
   # Method to calculate and update the seat counts
   def calculate
-    unless performance.production.nil?
-      self.total_seats = performance.production&.capacity
-      self.sold_seats = calculate_sold_seats
-      self.held_seats = calculate_held_seats
-      self.available_seats = performance.production&.capacity - performance.seats_held
-      self.max_ticket_price = calculate_max_ticket_price
-      self.min_ticket_price = calculate_min_ticket_price
-      self.sold_out = calculate_sold_out
-      self.near_capacity = calculate_near_capacity
-    end
+    return if performance.production.nil?
+
+    self.total_seats = performance.production.capacity
+    self.sold_seats = calculate_sold_seats
+    self.held_seats = calculate_held_seats
+    # available = capacity minus every seat currently occupied (sold + on hold +
+    # in-progress + exchanging + releasing). performance.seats_occupied is the
+    # preferred alias of the original #seats_held and returns the same figure.
+    self.available_seats = performance.production.capacity - performance.seats_occupied
+    self.max_ticket_price = calculate_max_ticket_price
+    self.min_ticket_price = calculate_min_ticket_price
+    self.sold_out = calculate_sold_out
+    self.near_capacity = calculate_near_capacity
   end
 
   def calculate!
-    self.calculate
-    self.save!
+    calculate
+    save!
+  end
+
+  # Seat-inventory vocabulary facades (preferred reader names).
+  #
+  # HouseCount stores a CACHED snapshot of a performance's seat inventory. The
+  # underlying columns (total_seats, sold_seats, held_seats, available_seats)
+  # are written by #calculate and only refreshed when CalculateHouseCountsJob
+  # runs (every 5 minutes), so these readers can lag the live figures on
+  # Performance. The names below describe each column in the shared seat
+  # vocabulary; they read the existing columns unchanged.
+  #
+  #   seats_on_hold   -> held_seats      (box-office HOLD orders only)
+  #   seats_sold      -> sold_seats      (settled / paid orders)
+  #   seats_available -> available_seats (capacity minus all occupied seats)
+  #   seats_total     -> total_seats     (production capacity at snapshot time)
+  def seats_on_hold
+    held_seats
+  end
+
+  def seats_sold
+    sold_seats
+  end
+
+  def seats_available
+    available_seats
+  end
+
+  def seats_total
+    total_seats
   end
 
   # Required by Metric abstract class
   def self.export_columns
-    ['performance_code', 'total_seats', 'sold_seats', 'held_seats', 'available_seats', 'max_ticket_price']
+    %w[performance_code total_seats sold_seats held_seats available_seats max_ticket_price]
   end
 
   # Required by Metric abstract class
   def self.export_records
     HouseCount.joins(:performance).merge(Performance.sellable)
-                        .where(performances: { performance_date: Date.today..(Date.today + 14.days) }).order('performance_date, performance_code')
-  
+              .where(performances: { performance_date: Date.today..(Date.today + 14.days) }).order('performance_date, performance_code')
   end
 
   # Public accessor for performance code
-  def performance_code
-    self.performance.performance_code
-  end
+  delegate :performance_code, to: :performance
 
   private
 
   # Helper method to calculate sold seats based on the TicketOrder#sold? method
   def calculate_sold_seats
-    sold_tickets = performance.orders.includes(:ticket_line_items).select(&:sold?).sum do |order|
+    performance.orders.includes(:ticket_line_items).select(&:sold?).sum do |order|
       order.ticket_line_items.sum(:ticket_count)
     end
-    sold_tickets
   end
 
   # Count ticket_count from TicketLineItem joined to orders in Hold status
@@ -75,17 +102,15 @@ class HouseCount < Metric
   def calculate_sold_out
     available_seats <= 0 &&
       performance.ticket_class_allocations
-        .select { |tca| tca.available? && tca.ticket_class.web_visible? && !tca.ticket_class.holds_seats? }
-        .empty?
+                 .none? { |tca| tca.available? && tca.ticket_class.web_visible? && !tca.ticket_class.holds_seats? }
   end
 
   def calculate_near_capacity
-    available_seats <= $SERVER_CONFIG['restrict_sales_due_to_capacity_at']
+    available_seats <= Rails.configuration.x.server_config['restrict_sales_due_to_capacity_at'].to_i
   end
 
   def visible_priced_allocations
     performance.ticket_class_allocations
-      .select { |tca| tca.available? && tca.ticket_class.web_visible? && tca.ticket_class.show_in_pricing_range? }
+               .select { |tca| tca.available? && tca.ticket_class.web_visible? && tca.ticket_class.show_in_pricing_range? }
   end
-
 end

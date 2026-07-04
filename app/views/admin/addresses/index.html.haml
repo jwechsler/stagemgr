@@ -49,8 +49,8 @@
         },
         columns: [
           {data: 'id', visible: false, searchable: false},
-          {data: 'full_name', searchable: true},
-          {data: 'email'},
+          {data: 'full_name', searchable: true, className: 'all'},
+          {data: 'email', className: 'all', render: $.fn.dataTable.render.emailResponsive()},
           {data: 'visits', orderable: false},
           {data: 'description', orderable: false}
         ],

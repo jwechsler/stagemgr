@@ -4,7 +4,7 @@
   - when @production.status == Production::PRESALE
     %p
       Tickets are not on sale yet for this event. Join our mailing list to be kept up to date on when tickets will be available.
-  - when ((@production.performances.count{|p| p.visible?} > 1 || @production.performances.count{|p| !p.order_url_override.blank?} > 0))  && (@production.closing_at >= Date.today)
+  - when ((@production.performances.count{|p| p.visible?} > 1 || @production.performances.count{|p| !p.order_url_override.blank?} > 0))  && @production.effective_closing_at&.>=(Date.today)
     %table.performance_calendar
       %caption
         - if !@production.flex_pass_offer.blank?
@@ -26,7 +26,7 @@
 
           = Date::MONTHNAMES[@start_date.month]
           %span.month_navigation
-            -if @start_date+1.month <= @production.closing_at.end_of_month
+            -if @production.effective_closing_at && @start_date+1.month <= @production.effective_closing_at.end_of_month
               = link_to raw(Date::MONTHNAMES[(@start_date+1.month).month] + '&raquo;'), :action=>:index, :start_date=>@end_date+1, :end_date=>@end_date+1.week
             -else
               =Date::MONTHNAMES[(@start_date+1.month).month]

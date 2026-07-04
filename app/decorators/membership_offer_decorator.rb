@@ -10,7 +10,7 @@ class MembershipOfferDecorator < ApplicationDecorator
   end
 
   def dt_actions
-    object.active? ? h.link_to("Create Order", [:new, :admin, object, :order], class: 'tiny button' ) : '(Inactive)'
+    object.active? ? h.link_to('Create Order', [:new, :admin, object, :order], class: 'tiny button') : '(Inactive)'
   end
 
   # Define presentation-specific methods here. Helpers are accessed through
@@ -21,5 +21,4 @@ class MembershipOfferDecorator < ApplicationDecorator
   #       object.created_at.strftime("%a %m/%d/%y")
   #     end
   #   end
-
 end

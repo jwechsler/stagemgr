@@ -1,4 +1,4 @@
-- if $APP_DISPLAY_NAME.eql?('DEV')
+- if Rails.configuration.x.app_display_name.eql?('DEV')
   /= __FILE__.split("/").last.sub(/^_/, "")
 
 .grid-x.grid-padding-x

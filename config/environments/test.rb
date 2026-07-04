@@ -1,4 +1,4 @@
-require "active_support/core_ext/integer/time"
+require 'active_support/core_ext/integer/time'
 
 # The test environment is used exclusively to run your application's
 # test suite. You never need to work with it otherwise. Remember that
@@ -43,7 +43,7 @@ Rails.application.configure do
   config.action_mailer.delivery_method = :test
 
   # Print deprecation notices to the stderr.
-  #config.active_support.deprecation = :stderr
+  # config.active_support.deprecation = :stderr
   config.active_support.deprecation = :log
 
   # Raise exceptions for disallowed deprecations.
@@ -59,33 +59,37 @@ Rails.application.configure do
   # Annotate rendered view with file names.
   # config.action_view.annotate_rendered_view_with_filenames = true
 
-
   config.after_initialize do
     ActiveMerchant::Billing::Base.mode = :test
     PaymentProcessing.after_initialize
     MyEmma.disable
   end
 
-  # $TEST_CREDIT_CARD = paypal_config['test']['test_credit_card']
+  # config.x.test_credit_card is assigned from config.x.payment_config below.
 
-  $TKTPRINT = (YAML::load(File.open("#{::Rails.root.to_s}/config/ticket_print.yml")) || {})['test']
+  # Application configuration loaded from YAML. The loaded objects are kept
+  # exactly as parsed (string-keyed Hashes) and assigned to config.x.* so that
+  # existing string-key access (e.g. config.x.server_config['host']) keeps
+  # working. Legacy $GLOBALS alias these via config/initializers/legacy_globals.rb.
+  config.x.tktprint = (YAML.load(File.open(Rails.root.join('config/ticket_print.yml').to_s)) || {})['test']
 
-  config_data = YAML::load(File.open("#{::Rails.root.to_s}/config/server.yml")) || {}
-  $SERVER_CONFIG = (config_data['all'] || {}).deep_merge(config_data['test'] || {})
-  $PAYMENT_CONFIG = $SERVER_CONFIG['payment_processing'] || {}
-  $TEST_CREDIT_CARD = $PAYMENT_CONFIG['test_credit_card']
-  $EMAIL_ADDRESS = $SERVER_CONFIG.dig('email', 'addresses')
-  $SERVER_CONFIG['ext_site_wrapper'] = 'ext_test_wrapper'
-  $RAND_CLAUSE = 1
-  config.action_mailer.default_url_options = { host: $SERVER_CONFIG['host'] || 'localhost', protocol: $SERVER_CONFIG['host_protocol'] || 'http' }
+  config_data = YAML.load(File.open(Rails.root.join('config/server.yml').to_s)) || {}
+  config.x.server_config = (config_data['all'] || {}).deep_merge(config_data['test'] || {}).with_indifferent_access
+  config.x.payment_config = config.x.server_config['payment_processing'] || {}
+  config.x.test_credit_card = config.x.payment_config['test_credit_card']
+  config.x.email_address = config.x.server_config.dig('email', 'addresses')
+  config.x.server_config['ext_site_wrapper'] = 'ext_test_wrapper'
+  config.x.rand_clause = 1
+  config.action_mailer.default_url_options = { host: config.x.server_config['host'] || 'localhost',
+                                               protocol: config.x.server_config['host_protocol'] || 'http' }
 
   config.action_mailer.delivery_method = :test
-  $APP_DISPLAY_NAME = ($SERVER_CONFIG['app_name'] || 'StageMgr') + " TEST"
-  payment_config = $SERVER_CONFIG['payment_processing'] || {}
-  if payment_config['additional_card_types'].present?
-    $ADDITIONAL_CARD_TYPES = payment_config['additional_card_types'].split(',').map(&:strip)
+  config.x.app_display_name = "#{config.x.server_config['app_name'] || 'StageMgr'} TEST"
+  if config.x.server_config['payment_processing'].nil? ||
+     config.x.server_config['payment_processing']['additional_card_types'].blank?
+    config.x.additional_card_types = []
   else
-    $ADDITIONAL_CARD_TYPES = []
+    config.x.additional_card_types =
+      config.x.server_config['payment_processing']['additional_card_types'].split(',').map(&:strip)
   end
-  
 end
