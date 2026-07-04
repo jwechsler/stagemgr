@@ -1,6 +1,9 @@
 <%= content_for :title do %>Special Offers<% end %>
 <% content_for :breadcrumbs do %>
-  <%= render "shared/components/breadcrumb", items: [{ label: "Edit <%= @special_offer.code %>" }] %>
+  <%= render "shared/components/breadcrumb", items: [
+        { label: 'Special Offers', path: [:admin, :special_offers] },
+        { label: "Edit #{@special_offer.code}" }
+      ] %>
 <% end %>
 
 <%= simple_form_for [:admin, @special_offer], :url=>admin_special_offer_path do |f| %>

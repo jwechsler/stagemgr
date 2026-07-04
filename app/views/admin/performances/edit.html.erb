@@ -1,6 +1,11 @@
 <% content_for :title do %>Edit <%= @performance.performance_code %><% end %>
 <% content_for :breadcrumbs do %>
-  <%= render "shared/components/breadcrumb", items: [{ label: 'Theaters', path: admin_theaters_path }, { label: @performance.production.theater.name, path: admin_theater_path(@performance.production.theater) }, { label: @performance.production.name, path: admin_theater_production_path(@performance.production.theater, @performance.production) }, { label: "Edit <%= @performance.performance_code %>" }] %>
+  <%= render "shared/components/breadcrumb", items: [
+        { label: 'Theaters', path: admin_theaters_path },
+        { label: @performance.production.theater.name, path: admin_theater_path(@performance.production.theater) },
+        { label: @performance.production.name, path: admin_theater_production_path(@performance.production.theater, @performance.production) },
+        { label: "Edit #{@performance.performance_code}" }
+      ] %>
 <% end %>
 
 <%= render :partial => 'form', :locals=>{:performance=>@performance}%>

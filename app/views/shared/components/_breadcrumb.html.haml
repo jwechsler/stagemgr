@@ -7,14 +7,16 @@
 -#     ]
 -#
 -# Parent items are rendered as real links via their :path.
--# The last item is always rendered with .current and `<a href='#'>` — the
--# Foundation convention where `#` marks the current page (a non-functional
--# anchor). Any :path on the last item is ignored.
+-# The last item is the current page and renders as plain text — no link —
+-# per the Foundation convention (plain `li` text gets
+-# $breadcrumbs-item-color-current). Any :path on the last item is ignored.
+-# The visually-hidden "Current:" prefix announces the state to screen readers.
 
 %ul.breadcrumbs
   - items.each_with_index do |item, idx|
     - if idx == items.length - 1
       %li.current
-        %a{href: '#'}= item[:label]
+        %span.show-for-sr Current:
+        = item[:label]
     - else
       %li= link_to(item[:label], item[:path])
