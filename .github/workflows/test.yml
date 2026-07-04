@@ -60,6 +60,18 @@ jobs:
         with:
           bundler-cache: true
 
+      # Sprockets resolves what-input / foundation-sites out of node_modules
+      # (see app/assets/javascripts/application.js), so full-page renders in
+      # Cucumber need JS dependencies installed. Without them every page that
+      # includes the application bundle 500s.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: yarn
+
+      - name: Install JavaScript dependencies
+        run: yarn install --frozen-lockfile
+
       - name: Generate config files from templates
         run: bundle exec rake config:setup
 
@@ -69,13 +81,7 @@ jobs:
       - name: RSpec
         run: bundle exec rspec
 
-      # Non-blocking for now: the non-JS suite passes locally (incl. under a
-      # generated config + TZ=UTC + full-suite run) but the Authlogic HTTP login
-      # flow redirect-loops on the CI runner in a way that doesn't reproduce
-      # locally. RSpec gates the build; Cucumber runs for signal until the
-      # CI-environment difference is tracked down.
       - name: Cucumber (non-JS)
-        continue-on-error: true
         env:
           # Surface real exceptions instead of the app's rescue_from redirect
           # (which turns any per-request error into an InfiniteRedirectError).
