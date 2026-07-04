@@ -149,6 +149,8 @@ Only applicable when **Ticket Type** is set to **Timed**. Enter the number of mi
 
 When checked, this ticket class is automatically included in the allocation table for **every new performance** created for this production. When unchecked, the class must be manually added to each performance's allocations.
 
+Auto-attaching classes are flagged in the ticket classes list: a blue **＋** marker appears after the type tag in the **Type** column. Hover over the marker to see the tooltip "Added automatically to orders." Classes without the marker must be added to performances manually.
+
 !!! tip "When to Use Auto Attach"
     Enable auto attach for ticket classes that apply to every performance (e.g., General Admission, Senior). Disable it for special one-off classes (e.g., Opening Night VIP) that only apply to specific performances.
 
