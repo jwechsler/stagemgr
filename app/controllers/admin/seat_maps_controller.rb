@@ -14,7 +14,11 @@ class Admin::SeatMapsController < ApplicationController
     end
   end
 
-  def show; end
+  # The standalone show page was retired in favor of opening the graphical
+  # editor directly; keep old links/bookmarks working.
+  def show
+    redirect_to editor_admin_venue_seat_map_path(@venue, @seat_map)
+  end
 
   def new
     @seat_map.venue = @venue
