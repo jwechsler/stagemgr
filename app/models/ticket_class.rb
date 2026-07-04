@@ -116,7 +116,9 @@ class TicketClass < ApplicationRecord
     return unless saved_change_to_auto_attach? || previously_new_record?
 
     production&.mark_allocation_sync_enqueued!
-    Resque.enqueue(SyncTicketClassAllocationsJob, id)
+    # production_id lets the job release the pending counter even if this
+    # ticket class is deleted before the job runs.
+    Resque.enqueue(SyncTicketClassAllocationsJob, id, production_id)
   end
 
   def clean_values

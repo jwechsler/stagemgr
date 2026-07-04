@@ -78,7 +78,11 @@ class Production < ApplicationRecord
   end
 
   def mark_allocation_sync_completed!
-    Production.decrement_counter(:allocation_sync_pending_count, id)
+    # Clamped at zero: a requeued job whose counter was already released on
+    # failure would otherwise drive it negative and suppress future banners.
+    Production.where(id: id)
+              .where('allocation_sync_pending_count > 0')
+              .update_all('allocation_sync_pending_count = allocation_sync_pending_count - 1')
   end
 
   def allocations_syncing?
