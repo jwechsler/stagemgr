@@ -4,7 +4,7 @@ class SeatMapDatatable < DatatableBase
     # or in aliased_join_table.column_name format
     @view_columns ||= {
       label: { source: 'SeatMap.label' },
-      base_image_map: { source: 'SeatMap.base_image_map', searchable: false },
+      preview: { source: 'SeatMap.id', searchable: false },
       actions: { searchable: false }
       # id: { source: "User.id", cond: :eq },
       # name: { source: "User.name", cond: :like }
@@ -15,7 +15,7 @@ class SeatMapDatatable < DatatableBase
     records.map do |record|
       {
         label: record.decorate.label,
-        base_image_map: record.decorate.base_image_map(SeatMap::THUMB),
+        preview: record.decorate.preview,
         actions: record.decorate.dt_actions
         # example:
         # id: record.id,

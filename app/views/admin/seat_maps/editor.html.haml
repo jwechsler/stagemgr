@@ -4,8 +4,7 @@
 = content_for :breadcrumbs do
   - breadcrumb_items = [{ label: "Venues", path: admin_venues_path },
                         { label: @seat_map.venue.name, path: admin_venue_path(@venue) },
-                        { label: "Seat Map #{@seat_map.label}", path: admin_venue_seat_map_path(@venue, @seat_map) },
-                        { label: "Editor" }]
+                        { label: "Seat Map #{@seat_map.label}" }]
   = render "shared/components/breadcrumb", items: breadcrumb_items
 
 #seat-map-editor-app{data: { editor_data_url: editor_data_admin_venue_seat_map_path(@venue, @seat_map, format: :json),
