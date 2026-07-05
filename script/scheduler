@@ -11,10 +11,16 @@ case "$1" in
     fi
     ;;
   stop)
-    kill `cat ./resque-scheduler.pid`
-    if [ $? -eq 0 ]; then
-      rm ./resque-scheduler.pid
-      echo "Schedule worker stopped"
+    if [ -f ./resque-scheduler.pid ]; then
+      kill $(cat ./resque-scheduler.pid)
+      if [ $? -eq 0 ]; then
+        rm ./resque-scheduler.pid
+        echo "Schedule worker stopped"
+      else
+        echo "Could not stop schedule worker"
+      fi
+    else
+      echo "No schedule worker PID file found"
     fi
     ;;
 esac
