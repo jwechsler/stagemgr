@@ -13,16 +13,9 @@
       %fieldset.fieldset
         %legend Current Show
         %p.help-text Select the show you want to analyze
-        = text_field_tag :target_production_search, nil, id: 'target-production-search', placeholder: 'Type to search productions...', class: 'input-group-field', autocomplete: 'off', style: @target_production ? 'display:none' : nil
-        = hidden_field_tag :target_production_id, @target_production&.id, id: 'target-production-id'
-        - if @target_production
-          #target-production-display.callout.secondary
-            %span#target-production-name= "#{@target_production.season} - #{@target_production.name} (#{@target_production.theater.name})"
-            %a.float-right.remove-target{href: '#'} remove
-        - else
-          #target-production-display.callout.secondary.hide
-            %span#target-production-name
-            %a.float-right.remove-target{href: '#'} remove
+        = render 'shared/components/production_picker', field_name: 'target_production_id',
+          scope: :analysis, selected: @target_production,
+          exclude_field: '#comparison-productions-table input[type=hidden]'
 
     .small-12.medium-6.cell
       %fieldset.fieldset
@@ -35,16 +28,9 @@
       %fieldset.fieldset
         %legend Historical Production
         %p.help-text Select one historical production to compare
-        = text_field_tag :comparison_production_search_single, nil, id: 'comparison-production-search-single', placeholder: 'Type to search productions...', class: 'input-group-field', autocomplete: 'off', style: @comparison_production ? 'display:none' : nil
-        = hidden_field_tag :comparison_production_id, @comparison_production&.id, id: 'comparison-production-id'
-        - if @comparison_production
-          #comparison-single-display.callout.secondary
-            %span#comparison-single-name= "#{@comparison_production.season} - #{@comparison_production.name} (#{@comparison_production.theater.name})"
-            %a.float-right.remove-comparison-single{href: '#'} remove
-        - else
-          #comparison-single-display.callout.secondary.hide
-            %span#comparison-single-name
-            %a.float-right.remove-comparison-single{href: '#'} remove
+        = render 'shared/components/production_picker', field_name: 'comparison_production_id',
+          scope: :analysis, selected: @comparison_production,
+          exclude_field: 'input[name="target_production_id"]'
 
   .grid-x.grid-padding-x#comparison-multi-section
     .small-12.cell
@@ -107,11 +93,9 @@
   $(document).ready(function() {
     var targetProductionId      = #{@target_production ? @target_production.id : 'null'};
     var comparisonProductionIds = #{@comparison_productions.present? ? @comparison_productions.map(&:id).to_json : '[]'};
-    var comparisonSingleId      = #{@comparison_production ? @comparison_production.id : 'null'};
-    var searchMultiUrl          = '#{search_productions_admin_analysis_index_path}';
-    var searchSingleUrl         = '#{search_production_admin_analysis_index_path}';
+    var searchProductionsUrl    = '#{search_admin_productions_path}';
     var searchTheatersUrl       = '#{search_theaters_admin_analysis_index_path}';
-    var resolveGroupUrl         = '#{resolve_group_admin_analysis_index_path}';
+    var resolveGroupUrl         = '#{resolve_group_admin_productions_path}';
     var $form                   = $('#analysis-form');
     var rosUrl                  = $form.data('rate-of-sales-url');
     var trUrl                   = $form.data('ticket-revenue-url');
@@ -255,106 +239,33 @@
       updateSubmitButton();
     });
 
-    // Target production autocomplete
-    $('#target-production-search').autocomplete({
-      source: function(request, response) {
-        $.getJSON(searchMultiUrl, { q: request.term }, function(data) {
-          var filtered = data.filter(function(item) {
-            return !item.group_key && comparisonProductionIds.indexOf(item.id) === -1;
-          });
-          response(filtered);
-        });
-      },
-      minLength: 2,
-      select: function(event, ui) {
-        targetProductionId = ui.item.id;
-        targetTheaterId    = ui.item.theater_id || null;
-        targetTheaterName  = ui.item.theater    || null;
-        $('#target-production-id').val(ui.item.id);
-        $('#target-production-name').text(ui.item.label);
-        $('#target-production-display').removeClass('hide');
-        $(this).val('').hide();
+    // Target production picker (shared component)
+    $('[data-production-picker][data-field="target_production_id"]')
+      .on('production-picker:selected', function(e, item) {
+        targetProductionId = item.id;
+        targetTheaterId    = item.theater_id || null;
+        targetTheaterName  = item.theater    || null;
         seedDefaultComparisonTheater();
         updateSubmitButton();
-        return false;
-      }
-    });
-
-    // Remove target production
-    $(document).on('click', '.remove-target', function(e) {
-      e.preventDefault();
-      targetProductionId = null;
-      $('#target-production-id').val('');
-      $('#target-production-display').addClass('hide');
-      $('#target-production-search').show().val('');
-      updateSubmitButton();
-    });
-
-    // Single-production comparison autocomplete (Ticket Revenue tab)
-    $('#comparison-production-search-single').autocomplete({
-      source: function(request, response) {
-        $.getJSON(searchSingleUrl, { q: request.term, exclude_id: targetProductionId || '' }, function(data) {
-          response(data);
-        });
-      },
-      minLength: 2,
-      select: function(event, ui) {
-        comparisonSingleId = ui.item.id;
-        $('#comparison-production-id').val(ui.item.id);
-        $('#comparison-single-name').text(ui.item.label);
-        $('#comparison-single-display').removeClass('hide');
-        $(this).val('').hide();
+      })
+      .on('production-picker:cleared', function() {
+        targetProductionId = null;
         updateSubmitButton();
-        return false;
-      }
-    });
+      });
 
-    // Remove single comparison
-    $(document).on('click', '.remove-comparison-single', function(e) {
-      e.preventDefault();
-      comparisonSingleId = null;
-      $('#comparison-production-id').val('');
-      $('#comparison-single-display').addClass('hide');
-      $('#comparison-production-search-single').show().val('');
-      updateSubmitButton();
-    });
-
-    // Multi-show comparison autocomplete
-    $('#comparison-production-search').autocomplete({
-      source: function(request, response) {
-        $.getJSON(searchMultiUrl, { q: request.term }, function(data) {
-          var excluded = comparisonProductionIds.slice();
-          if (targetProductionId) excluded.push(targetProductionId);
-          var filtered = data.filter(function(item) {
-            return excluded.indexOf(item.id) === -1;
-          });
-          response(filtered);
-        });
+    // Multi-show comparison typeahead (shared component, multi mode)
+    ProductionPicker.attachMulti($('#comparison-production-search'), {
+      searchUrl: searchProductionsUrl,
+      resolveUrl: resolveGroupUrl,
+      scope: 'analysis',
+      getExcludedIds: function() {
+        var excluded = comparisonProductionIds.slice();
+        if (targetProductionId) excluded.push(targetProductionId);
+        return excluded;
       },
-      minLength: 2,
-      select: function(event, ui) {
-        var self = this;
-        if (ui.item.group_key) {
-          $.getJSON(resolveGroupUrl, { group_key: ui.item.group_key }, function(data) {
-            data.forEach(function(prod) { addComparisonProduction(prod); });
-            updateSubmitButton();
-          });
-        } else {
-          addComparisonProduction(ui.item);
-          updateSubmitButton();
-        }
-        $(self).val('');
-        return false;
-      }
+      onProduction: addComparisonProduction,
+      afterChange: updateSubmitButton
     });
-
-    // Custom rendering for multi-comparison autocomplete to distinguish group entries
-    $('#comparison-production-search').autocomplete('instance')._renderItem = function(ul, item) {
-      if (item.group_key) {
-        return $('<li>').append('<div><strong style="color: #1779ba;">\u25B6 ' + item.label + '</strong></div>').appendTo(ul);
-      }
-      return $('<li>').append('<div>' + item.label + '</div>').appendTo(ul);
-    };
 
     // Remove comparison production (multi)
     $(document).on('click', '.remove-comparison', function(e) {

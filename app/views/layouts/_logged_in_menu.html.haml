@@ -13,6 +13,9 @@
         - elsif can? :read, Theater then
           %li
             =link_to('Theaters',admin_theaters_path)
+        - if can? :read, Production
+          %li
+            =link_to('Productions', admin_productions_path)
         - if (can? :read, Order) || (can? :read, FlexPassOrder) || (can? :read, MembershipOrder) || (can? :read, TicketOrder)
           %li
             =link_to('Orders', admin_orders_path)

@@ -18,6 +18,9 @@ module NavigationHelpers
     when %r{^the admin[/| ]theaters? page$}
       @using_admin_interface = true
       admin_theaters_path
+    when %r{^the admin[/| ]productions? page$}
+      @using_admin_interface = true
+      admin_productions_path
     when /^the admin detail page for theater ["'](.*)['"]$/
       @using_admin_interface = true
       admin_theater_path(Theater.find_by_name(::Regexp.last_match(1)).id)

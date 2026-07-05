@@ -13,6 +13,7 @@
 //= require cocoon
 //= require jquery-ui/widgets/autocomplete
 //= require autocomplete-rails
+//= require production_picker
 //= require tagify
 //= require theater_tags
 //= require credit_card_track_parser
