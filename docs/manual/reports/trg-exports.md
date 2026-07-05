@@ -1,7 +1,7 @@
 # TRG Arts Exports
 
 !!! info "Roles: All Users"
-    TRGArts Production Export, TRGArts by Performance Date, and Donor Export are available
+    TRGArts Production Export, TRGArts Export by Performance Date, and Donor export are available
     to all users under the **Show Reports** permission group.
 
 **Navigation:** Admin Menu > Reports > TRG Arts Exports
@@ -19,7 +19,7 @@ download link and the CSV appears in the **Generated Reports** section.
 |---|---|---|
 | **TRGArts Production Export** | Production selection | Attendee info for a single production |
 | **TRGArts Export by Performance Date** | Date range | Buyer info across productions by attendance date |
-| **Donor Export** | Date range + theater | Donor contact information |
+| **Donor export** | Date range + theater | Donor contact information |
 
 ---
 
@@ -27,11 +27,11 @@ download link and the CSV appears in the **Generated Reports** section.
 
 Generates a comprehensive attendee export for a single production, formatted for TRG Arts.
 
-**Steps:** Select a **production** from the dropdown, then click **Generate**.
+**Steps:** Search for a **production** with the [production picker](../productions/finding-productions.md#the-production-search-picker), then click **Generate**.
 
 | Field | Required | Description |
 |---|---|---|
-| **Production** | Yes | Select the production to export |
+| **Production** | Yes | Search for the production to export |
 
 The CSV includes buyer name, mailing address, email, ticket details (performance date, ticket
 class, quantity), and order/payment information -- all formatted to TRG Arts specifications.
@@ -59,7 +59,7 @@ ticket/order information for all performances in the date range.
 
 ---
 
-## Donor Export
+## Donor export
 
 Generates a contact information export for donors within a date range, filtered by theater.
 This report is also documented on the [Donation Reports](donation-reports.md) page.

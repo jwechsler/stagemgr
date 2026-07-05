@@ -2,16 +2,16 @@
 
 !!! info "Roles: Box Office, Admin"
     **Membership Usage** is available under the **Membership Reports** permission group.
-    **Membership Orders Export** is available under the **Box Office Reports** permission group.
+    **Membership Orders** is available under the **Box Office Reports** permission group.
 
-**Navigation:** Admin Menu > Reports > Membership Usage / Membership Orders Export
+**Navigation:** Admin Menu > Reports > Membership Usage / Membership Orders
 
 ---
 
 ## Overview
 
 Stagemgr provides two membership-related reports. **Membership Usage** gives a month-by-month
-summary of membership counts and income. **Membership Orders Export** generates a detailed
+summary of membership counts and income. **Membership Orders** generates a detailed
 CSV of individual membership orders, with an optional TRG-compatible format.
 
 ---
@@ -54,17 +54,17 @@ budgeting, and reporting to management.
 
 ---
 
-## Membership Orders Export
+## Membership Orders
 
 ### Purpose
 
-The Membership Orders Export produces a detailed CSV of individual membership orders within a
+The Membership Orders produces a detailed CSV of individual membership orders within a
 date range, with an optional TRG-compatible format for TRG Arts integration.
 
 ### Generating the Report
 
 1. Navigate to **Admin Menu > Reports**.
-2. In the **Membership Orders Export** section, enter a **start date** and **end date**.
+2. In the **Membership Orders** section, enter a **start date** and **end date**.
 3. Optionally, check the **TRG Lists** checkbox to format the export for TRG Arts compatibility.
 4. Click **Generate**. The report runs as a background job.
 5. When processing completes, you will receive an email with a download link. The report also

@@ -76,4 +76,4 @@ reports.
 
 - [Reports Overview](reports-overview.md)
 - [Daily Receipts](daily-receipts.md)
-- [Production Sales by Performance](production-sales.md)
+- [Production Sales By Performance](production-sales.md)

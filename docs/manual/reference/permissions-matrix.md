@@ -32,6 +32,8 @@ Stagemgr has three staff roles, each building on the permissions of the role bel
 | Action | Administrator | Box Office | Theater User |
 |--------|:---:|:---:|:---:|
 | View productions | Yes | Yes | Own theaters only |
+| Global Productions list (top menu) | Yes | Yes | Own theaters only |
+| Production search picker (reports, imports, analysis) | Yes | Yes | Own theaters only |
 | Create productions | Yes | Yes | -- |
 | Edit productions | Yes | Yes | -- |
 | Duplicate productions | Yes | Yes | -- |

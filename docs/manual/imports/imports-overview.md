@@ -24,6 +24,13 @@ The imports page is available at **Options > Imports** and provides access to al
 | [Flex Pass Orders](flex-pass-orders-import.md) | Create and process flex pass orders in bulk | Theater (required) |
 | [Donor Levels (LGL)](donor-levels-import.md) | Update donor tier information from Little Green Light | None |
 
+!!! note "Selecting a production"
+    Imports that associate to a production use the typeahead
+    [production picker](../productions/finding-productions.md#the-production-search-picker):
+    search by name, season, code, or theater, or drill into a season/theater/tag group.
+    Inactive productions are not offered for import -- pick an Active, Private, Presale, or
+    Season Seating show.
+
 ## How Imports Work
 
 ### Background Processing

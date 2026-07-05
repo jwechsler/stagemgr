@@ -15,7 +15,7 @@ Use this import when you have attendee lists or address correction data but not 
 
 | Option | Required | Description |
 |--------|----------|-------------|
-| **Production Association** | No | Select a production to mark all imported contacts as attendees of that production. Leave blank to update addresses only. |
+| **Production Association** | No | Search for a production to mark all imported contacts as attendees of that production. Leave blank to update addresses only. |
 | **File Upload** | Yes | CSV file containing attendee and address data |
 
 ## Required CSV Headers

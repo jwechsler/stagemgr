@@ -19,13 +19,12 @@ The following operations are processed as background jobs:
 
 | Report | Delivery Method |
 |--------|-----------------|
-| Production Attendees Report | Emailed as CSV attachment |
-| Flex Pass Patron Report (Download) | Emailed as CSV attachment |
-| Donation List Export | Emailed as CSV attachment |
-| Membership Usage Export | Emailed as CSV attachment |
-| Weekly Box Office Report | Emailed as CSV attachment |
-| Order Dump | Emailed as CSV attachment |
-| Customer Data Mining | Emailed as CSV attachment |
+| Production Attendees | Emailed as CSV attachment |
+| FlexPass Patron Report (Download) | Emailed as CSV attachment |
+| Donor export | Emailed as CSV attachment |
+| Membership Usage | Emailed as CSV attachment |
+| Weekly Box Office | Emailed as CSV attachment |
+| Mine Customer Data | Emailed as CSV attachment |
 
 When you click **Download** on a report, the job is queued and you will receive the completed CSV by email. You do not need to keep the browser open.
 

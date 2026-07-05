@@ -57,7 +57,7 @@ Theater Users have the most restricted access, limited to theaters they are expl
 - View orders related to their theaters
 - Create and edit patron records
 - Add notes to orders
-- View basic reports (Production Sales, Production Attendees, Order Dump, TRG Dump, Donation Dump)
+- View basic reports (Production Sales By Performance, Royalty Report, Production Attendees, TRGArts Production Export, Donor export)
 - Place hold orders (with allowed payment types)
 
 **Theater Users cannot:**
@@ -125,21 +125,21 @@ Theater Users assigned to a **Resident Company** theater receive one additional 
 
 | Action | Administrator | Box Office | Theater User |
 |--------|:---:|:---:|:---:|
-| Production Sales by Performance | Yes | Yes | Yes |
+| Production Sales By Performance | Yes | Yes | Yes |
+| Royalty Report | Yes | Yes | Yes |
 | Production Attendees | Yes | Yes | Yes |
-| Order Dump | Yes | Yes | Yes |
-| TRG Dump | Yes | Yes | Yes |
-| Donation Dump | Yes | Yes | Yes |
-| Weekly Box Office | Yes | Yes | No |
-| Flex Pass Sales | Yes | Yes | No |
-| Daily Box Office Receipts | Yes | Yes | No |
-| Fulfill Tickets | Yes | Yes | No |
-| Donations Total | Yes | Yes | No |
-| Membership Export | Yes | Yes | No |
-| Flex Pass Patron Report | Yes | Yes | No |
-| Attended Dump | Yes | Yes | No |
-| House Management Seating | Yes | Yes | No |
+| TRGArts Production Export | Yes | Yes | Yes |
+| Donor export | Yes | Yes | Yes |
+| TRGArts Export by Performance Date | Yes | Yes | No |
+| Donation Totals | Yes | Yes | No |
 | Membership Usage | Yes | Yes | No |
+| Membership Orders | Yes | Yes | No |
+| FlexPass Sales | Yes | Yes | No |
+| FlexPass Patron Report | Yes | Yes | No |
+| House Management Seating Report | Yes | Yes | No |
+| Weekly Box Office | Yes | Yes | No |
+| Print Tickets | Yes | Yes | No |
+| Daily Receipts | Yes | Yes | No |
 | Mine Customer Data | Yes | No | No |
 
 ### System Configuration
