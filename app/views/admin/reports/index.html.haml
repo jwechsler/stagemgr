@@ -337,6 +337,10 @@
     %p.help_text Your report is being generated&hellip;
 
 :javascript
+  // True while the overlay covers the page. Lives in the closure, so it
+  // is frozen into the bfcache snapshot along with the visible overlay.
+  var reportOverlayShown = false;
+
   $(document).ready(function() {
     // Buttons named for a download or async export respond without leaving
     // the page, so their overlay dismisses itself; inline "Show" reports
@@ -352,11 +356,42 @@
 
       var submitter = e.originalEvent && e.originalEvent.submitter;
       $('#report-overlay').show();
+      reportOverlayShown = true;
       if (submitter && TRANSIENT_SUBMITS.indexOf(submitter.name) !== -1) {
-        setTimeout(function() { $('#report-overlay').hide(); }, 2000);
+        setTimeout(function() {
+          $('#report-overlay').hide();
+          reportOverlayShown = false;
+        }, 2000);
       }
     });
   });
+
+  // bfcache: the browser Back button can restore this page as a frozen
+  // snapshot with the overlay still up; ready() does not re-fire then.
+  // Browsers that fire pageshow on the restore (Chrome, Firefox) get an
+  // immediate reload; fresh loads re-run this script with the flag false,
+  // so normal Back navigation never reloads.
+  window.addEventListener('pageshow', function() {
+    if (reportOverlayShown) location.reload();
+  });
+
+  // Safari (verified via safaridriver, 2026-07) restores this page from
+  // the bfcache WITHOUT dispatching pagehide, pageshow, visibilitychange,
+  // or focus — and ignores both Cache-Control: no-store and beforeunload
+  // handlers as cache blockers — so no event above ever runs there. But
+  // suspended timers do resume on restore, so a heartbeat that sees a
+  // large gap knows the page was frozen and restored; reset the overlay.
+  var HEARTBEAT_MS = 300, FROZEN_GAP_MS = 1200;
+  var lastHeartbeat = Date.now();
+  setInterval(function() {
+    var now = Date.now();
+    if (now - lastHeartbeat > FROZEN_GAP_MS && reportOverlayShown) {
+      $('#report-overlay').hide();
+      $('input[type="submit"]').prop('disabled', false);
+      reportOverlayShown = false;
+    }
+    lastHeartbeat = now;
+  }, HEARTBEAT_MS);
 
 -if @generated_reports.size > 0
   .grid-x.grid-padding-x
