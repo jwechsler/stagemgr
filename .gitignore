@@ -79,3 +79,6 @@ docs/site/
 # NOTE: config/credentials/test.key is intentionally committed. The test
 # credentials it decrypts (config/credentials/test.yml.enc) hold only dummy
 # values (tests use StripeMock), so CI can decrypt them with no repo secret.
+
+# Local environment variables
+.env

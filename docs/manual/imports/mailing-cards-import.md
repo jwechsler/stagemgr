@@ -15,7 +15,7 @@ Use this import after collecting signup cards at a show or event to digitize the
 
 | Option | Required | Description |
 |--------|----------|-------------|
-| **Production Association** | Yes | Select the production where mailing list signups were collected |
+| **Production Association** | Yes | Search for the production where mailing list signups were collected. The form cannot be submitted until a production is chosen. |
 | **File Upload** | Yes | CSV file containing mailing list signup data |
 
 ## Required CSV Headers

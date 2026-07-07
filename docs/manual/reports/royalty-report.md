@@ -44,7 +44,7 @@ basis. See [Ticket Classes](../productions/ticket-classes.md#royalty-amount) for
 ## Generating the Report
 
 1. Navigate to **Admin Menu > Reports**.
-2. In the **Royalty Report** section, select a production from the dropdown.
+2. In the **Royalty Report** section, search for and select a production using the [production picker](../productions/finding-productions.md#the-production-search-picker).
 3. Click **Show** to display results on screen, or **Download** to export a CSV file.
 
 ## Columns
@@ -65,7 +65,7 @@ The on-screen view omits the ticket class breakdown columns. The CSV download in
 
 ## How Gross Is Calculated
 
-The Gross column differs from the Production Sales by Performance report. Instead of using the
+The Gross column differs from the Production Sales By Performance report. Instead of using the
 actual amount paid by patrons, the royalty report recalculates each order's gross using royalty
 pricing:
 
@@ -123,5 +123,5 @@ payments) report a royalty gross of $0.00.
 ## Related Pages
 
 - [Reports Overview](reports-overview.md)
-- [Production Sales by Performance](production-sales.md)
+- [Production Sales By Performance](production-sales.md)
 - [Ticket Classes](../productions/ticket-classes.md)

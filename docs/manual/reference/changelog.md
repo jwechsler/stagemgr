@@ -3,6 +3,27 @@
 !!! info "Reference"
     Recent feature additions and significant changes to Stagemgr, listed from newest to oldest.
 
+## July 2026
+
+### Production Navigation and Selection
+
+**Available to:** All staff roles (scoped to accessible theaters)
+
+A new **Productions** section in the top menu lists every production you can access across
+all theaters, and production selection on the Reports, Imports, and Analysis pages now uses
+a shared typeahead search with season/theater/tag drill-down.
+
+| Detail | Description |
+|--------|-------------|
+| **Where** | Top menu > Productions; Reports, Imports, and Analysis forms |
+| **Productions list** | Searchable table of all accessible productions with Name, Theater, Season, Status, and Actions |
+| **Search picker** | Replaces production dropdowns; matches name, season, code, or theater; group shortcuts drill down to a single show |
+| **Report scope** | Report search now offers all accessible productions, including Inactive and Presale |
+| **Import scope** | Import search excludes Inactive productions |
+| **Report feedback** | Submitting a report shows a "Report requested" overlay immediately |
+
+See [Finding Productions](../productions/finding-productions.md).
+
 ## April 2026
 
 ### House Management Report -- Visits Column and Frequent Attendees

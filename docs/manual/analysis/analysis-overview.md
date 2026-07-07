@@ -124,11 +124,14 @@ as soon as a current show is selected.
 
 ### Searching for Productions
 
-Type at least 2 characters in either search field. You can search by:
+The analysis page uses Stagemgr's shared
+[production picker](../productions/finding-productions.md#the-production-search-picker).
+Type at least 2 characters in any search field. You can search by:
 
 - Production name
 - Season year (e.g., "2025")
 - Production code
+- Theater name
 
 Productions on **Presale** status are excluded from search results. All other statuses
 (Active, Inactive, Private) are available.
@@ -148,6 +151,11 @@ Selecting a group shortcut expands it into individual productions in the compari
 You can then remove any shows you don't want included. Theater users only see groups whose
 productions belong to a theater they have access to; group shortcuts that would resolve to
 zero accessible productions don't appear.
+
+In the single-production fields (**Current Show** and Ticket Revenue's **Historical
+Production**), group shortcuts behave differently: selecting one **drills down** to a list
+of just that group's productions so you can pick a single show. Use the
+**&larr; All productions** entry to back out of the group.
 
 ![Autocomplete with group shortcuts](../assets/images/screenshots/analysis-autocomplete-groups.png)
 

@@ -1,6 +1,5 @@
 class Admin::ImportsController < Admin::ApplicationController
   skip_authorize_resource
-  include ProductionsHelper
 
   rescue_from ActionController::ParameterMissing do |_exception|
     flash[:error] = 'You must choose a file to import'
@@ -21,7 +20,6 @@ class Admin::ImportsController < Admin::ApplicationController
     @bulk_flex_pass_orders_import = FileStore.new
     @donor_import = FileStore.new
     @donor_import.format = FileStore::DONATION_LEVELS_IMPORT_FORMAT
-    @productions = productions_visible_to_operations
     @theaters = Theater.all.accessible_by(current_ability).where(status: Theater::ACTIVE)
     @payment_types = ExternalPaymentType.order(:display_name)
     respond_to do |format|
@@ -47,6 +45,11 @@ class Admin::ImportsController < Admin::ApplicationController
   end
 
   def mailing_cards
+    if params.dig(:production, :production_id).blank?
+      flash[:error] = 'Select a production for the mailing list import'
+      redirect_back_or_default(admin_imports_path) and return
+    end
+
     @card_basic_import = FileStore.create(file_store_params)
     @production = Production.find(params[:production][:production_id])
     @card_basic_import.user = current_user

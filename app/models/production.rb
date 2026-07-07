@@ -104,6 +104,11 @@ class Production < ApplicationRecord
     
   end
 
+  # Display label used by the production picker typeahead.
+  def picker_label
+    "#{season} - #{name} (#{theater.name})"
+  end
+
   # :section: Production dates
 
   def running_dates

@@ -18,14 +18,14 @@ analysis.
 ## Generating the Report
 
 1. Navigate to **Admin Menu > Reports**.
-2. In the **Production Attendees** section, select a production from the dropdown.
+2. In the **Production Attendees** section, search for and select a production using the [production picker](../productions/finding-productions.md#the-production-search-picker).
 3. Click **Download** to generate and download a CSV file.
 
 ## Input Fields
 
 | Field | Required | Description |
 |---|---|---|
-| **Production** | Yes | Select the production from the dropdown. Only productions you have permission to view are listed. |
+| **Production** | Yes | Search by name, season, code, or theater. Only productions you have permission to view appear. |
 
 ## Report Contents
 
@@ -103,5 +103,5 @@ business operations.
 ## Related Pages
 
 - [Reports Overview](reports-overview.md)
-- [Production Sales by Performance](production-sales.md)
+- [Production Sales By Performance](production-sales.md)
 - [TRG Exports](trg-exports.md)

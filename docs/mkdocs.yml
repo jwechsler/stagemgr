@@ -44,6 +44,7 @@ nav:
     - Users: setup/users.md
     - Email Configuration: setup/email-configuration.md
   - Productions:
+    - Finding Productions: productions/finding-productions.md
     - Creating a Production: productions/creating-a-production.md
     - Production Settings: productions/production-settings.md
     - General vs Reserved Seating: productions/general-vs-reserved.md

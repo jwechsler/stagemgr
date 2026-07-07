@@ -17,13 +17,13 @@ class Admin::ReportsController < Admin::ApplicationController
                                          current_user.id).order('created_at desc')
     @generated_reports.select { |r| r.datafile.attached? }
 
-    if is_theater_user
-      @productions = Production.accessible_by(current_ability, :read).order(press_opening_at: :desc)
-      @flex_pass_offers = @productions.reject { |p| p.flex_pass_offer.nil? }.map { |p| p.flex_pass_offer }
-    else
-      @productions = Production.accessible_by(current_ability, :read).sellable.order(:name)
-      @flex_pass_offers = FlexPassOffer.all
-    end
+    @flex_pass_offers = if is_theater_user
+                          Production.accessible_by(current_ability, :read)
+                                    .order(press_opening_at: :desc)
+                                    .filter_map(&:flex_pass_offer)
+                        else
+                          FlexPassOffer.all
+                        end
 
     respond_to do |format|
       format.html # index.html.erb

@@ -29,6 +29,10 @@ class ProductionDecorator < ApplicationDecorator
     h.raw("<span class=\"label\">#{production.status}</span>")
   end
 
+  def theater_link
+    h.link_to(object.theater.name, [:admin, object.theater])
+  end
+
   def promo_url(*dimensions)
     make_image_url(object.promo, dimensions)
   end

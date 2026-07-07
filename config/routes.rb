@@ -205,10 +205,7 @@ Rails.application.routes.draw do
 
     resources :analysis, only: [:index] do
       collection do
-        get :search_productions
-        get :search_production
         get :search_theaters
-        get :resolve_group
         post :rate_of_sales
         post :ticket_revenue
         post :audience
@@ -300,6 +297,13 @@ Rails.application.routes.draw do
     end
 
     resources :amount_off_special_offers, only: %i[edit index]
+
+    resources :productions, only: [:index] do
+      collection do
+        get :search
+        get :resolve_group
+      end
+    end
 
     resources :theaters do
       collection do

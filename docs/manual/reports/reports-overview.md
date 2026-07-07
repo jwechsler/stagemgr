@@ -18,12 +18,24 @@ you see depend on your user role.
 
 | Permission Group | Reports | Roles |
 |---|---|---|
-| **Show Reports** | Production Sales by Performance, Royalty Report, Production Attendees, TRG Dump, Donation Dump, Order Dump | All users |
-| **Box Office Reports** | Daily Receipts, Fulfill Tickets, Donations Total, Membership Export, FlexPass Patron Report, Attended Dump | Box Office, Admin |
-| **House Management** | House Management Seating | Box Office, Admin |
+| **Show Reports** | Production Sales By Performance, Royalty Report, Production Attendees, TRGArts Production Export, Donor export | All users |
+| **Box Office Reports** | Daily Receipts, Print Tickets, Donation Totals, Membership Orders, FlexPass Patron Report, TRGArts Export by Performance Date | Box Office, Admin |
+| **House Management** | House Management Seating Report | Box Office, Admin |
 | **Reconciliation** | FlexPass Sales, Weekly Box Office | Box Office, Admin |
 | **Membership** | Membership Usage | Box Office, Admin |
 | **Customer Data Mining** | Mine Customer Data | Admin only |
+
+## Selecting a Production
+
+Production-scoped reports use the same typeahead search field found throughout Stagemgr.
+Type a production name, season year, production code, or theater name to see matching
+productions, or pick a season/theater/tag group shortcut to drill down to its shows. See
+[Finding Productions](../productions/finding-productions.md#the-production-search-picker)
+for a full walkthrough.
+
+Unlike the old dropdowns, report search offers **every** production you can access,
+including Inactive and Presale shows -- useful for historical reporting on shows that are
+no longer on sale.
 
 ## Report Output Types
 
@@ -50,8 +62,21 @@ Larger or more complex reports run as background jobs. When you submit one of th
 4. The generated report also appears in the **Generated Reports** section at the bottom of the Reports page.
 
 !!! note "Background Job Reports"
-    TRG exports, Donor Export, Membership Orders Export, Order Dump, and Mine Customer Data all
-    run as background jobs. Processing time depends on the size of the dataset.
+    The TRGArts exports, Donor export, Membership Orders, Production Attendees, and Mine
+    Customer Data reports all run as background jobs. Processing time depends on the size
+    of the dataset.
+
+### Submission Feedback
+
+As soon as you submit any report, a **"Report requested"** overlay appears so you know the
+click registered:
+
+- For **Download** and **Generate** buttons, the overlay dismisses itself after a couple of
+  seconds while the file downloads or the background job is queued.
+- For inline **Show** reports, the overlay stays up until the results page replaces it --
+  helpful for larger reports that take a few seconds to compute.
+
+![Report requested overlay](../assets/images/screenshots/report-overlay.png)
 
 ## Generated Reports
 
@@ -70,10 +95,10 @@ Most reports require you to specify a scope before generating:
 
 | Input | Used By | Description |
 |---|---|---|
-| **Production** | Production Sales, Production Attendees, TRG Production Export | Select a specific production from the dropdown |
+| **Production** | Production Sales By Performance, Royalty Report, Production Attendees, TRGArts Production Export | Search for a production with the [production picker](../productions/finding-productions.md#the-production-search-picker) |
 | **Date Range** | Daily Receipts, Donations, Memberships, FlexPass, Weekly Box Office | Start and end dates to filter records |
-| **Theater** | Donor Export, Donation Totals | Filter by producing theater |
-| **Performance Date** | House Management Seating | Select a specific performance date |
+| **Theater** | Donor export, Donation Totals | Filter by producing theater |
+| **Performance Date** | House Management Seating Report | Select a specific performance date |
 
 !!! warning "Date Range Limits"
     Some reports enforce maximum date ranges. Daily Receipts is limited to 31 days. Donation
@@ -81,7 +106,7 @@ Most reports require you to specify a scope before generating:
 
 ## Tips
 
-- Use **Production Sales by Performance** for a quick snapshot of ticket revenue by performance.
+- Use **Production Sales By Performance** for a quick snapshot of ticket revenue by performance.
 - Use **Daily Receipts** to reconcile daily credit card and cash transactions.
 - Use **Weekly Box Office** for aggregate weekly reporting to management.
 - For customer email lists, use **Production Attendees** and review the email opt-in rules
@@ -91,7 +116,7 @@ Most reports require you to specify a scope before generating:
 
 ## Related Pages
 
-- [Production Sales by Performance](production-sales.md)
+- [Production Sales By Performance](production-sales.md)
 - [Royalty Report](royalty-report.md)
 - [Production Attendees](production-attendees.md)
 - [Weekly Box Office](weekly-box-office.md)
