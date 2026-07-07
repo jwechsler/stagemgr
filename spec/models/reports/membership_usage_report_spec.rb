@@ -116,6 +116,34 @@ RSpec.describe MembershipUsageReport do
     end
   end
 
+  describe '#create for a CSV download' do
+    # A non-nil reporting_user_id routes the report to the CSV/download path.
+    subject(:report) { described_class.new(starting_date, ending_date, 999) }
+
+    before do
+      gold_order = create_membership_order_for(gold_offer, collected: 50.0, processed_on: in_may)
+      silver_order = create_membership_order_for(silver_offer, collected: 30.0, processed_on: in_may)
+      create_membership_payment_for(gold_order.membership, paid: 20.0, processed_on: in_may)
+      create_membership_payment_for(silver_order.membership, paid: 10.0, processed_on: in_may)
+
+      # Skip the actual file/FileStore write; we only inspect the built rows.
+      allow(report).to receive(:report_data)
+      report.create
+    end
+
+    it 'suppresses the All Offers monthly subtotals' do
+      expect(report.data.pluck(:Offer)).not_to include(MembershipUsageReport::ALL_OFFERS_LABEL)
+    end
+
+    it 'still includes the per-offer detail rows' do
+      expect(report.data.pluck(:Offer)).to include('Gold', 'Silver')
+    end
+
+    it 'still ends with a grand Total row' do
+      expect(report.data.last).to include(Month: 'Total', Memberships: 2, Collected: 80.to_money, Paid: 30.to_money)
+    end
+  end
+
   describe '#create scoped to a single offer' do
     subject(:rows) { described_class.new(starting_date, ending_date, nil, gold_offer.id).create.last }
 

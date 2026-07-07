@@ -30,8 +30,7 @@ class MembershipUsageReport < Report
         detail_rows << row
         data << row
       end
-      # The monthly "All Offers" subtotal is redundant when scoped to one offer.
-      data << summary_row(month, monthly) unless single_offer?
+      data << summary_row(month, monthly) unless suppress_monthly_subtotals?
     end
 
     data << total_row(detail_rows) if detail_rows.any?
@@ -86,6 +85,13 @@ class MembershipUsageReport < Report
 
   def single_offer?
     membership_offer_id.present?
+  end
+
+  # Omit the per-month "All Offers" subtotal rows when scoped to a single offer
+  # (they duplicate that offer's row) and on CSV downloads (reporting_user_id is
+  # set), where the interleaved subtotals add noise to the exported detail data.
+  def suppress_monthly_subtotals?
+    single_offer? || reporting_user_id.present?
   end
 
   def paid_scope
