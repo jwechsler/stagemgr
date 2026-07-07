@@ -12,10 +12,13 @@ class MembershipOfferDecorator < ApplicationDecorator
   end
 
   def dt_actions
+    order_action =
+      if object.active?
+        h.link_to('Create Order', [:new, :admin, object, :order], class: 'tiny button')
+      else
+        h.content_tag(:span, 'Create Order', class: 'tiny button disabled', 'aria-disabled': true)
+      end
     edit_action = h.link_to('Edit', [:edit, :admin, object], class: 'tiny button')
-    return edit_action unless object.active?
-
-    order_action = h.link_to('Create Order', [:new, :admin, object, :order], class: 'tiny button')
     h.safe_join([order_action, edit_action], ' ')
   end
 
