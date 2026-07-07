@@ -83,4 +83,27 @@ RSpec.describe MembershipUsageReport do
       expect(rows.pluck(:Month).uniq).to eq(['2026-05'])
     end
   end
+
+  describe '#create scoped to a single offer' do
+    subject(:rows) { described_class.new(starting_date, ending_date, nil, gold_offer.id).create.last }
+
+    before do
+      gold_order = create_membership_order_for(gold_offer, collected: 50.0, processed_on: in_may)
+      silver_order = create_membership_order_for(silver_offer, collected: 30.0, processed_on: in_may)
+      create_membership_payment_for(gold_order.membership, paid: 20.0, processed_on: in_may)
+      create_membership_payment_for(silver_order.membership, paid: 10.0, processed_on: in_may)
+    end
+
+    it 'includes only the requested offer in the detail rows' do
+      detail_offers = rows.select { |row| row[:display_class] == :report_detail_row }.pluck(:Offer)
+
+      expect(detail_offers).to eq(['Gold'])
+    end
+
+    it 'scopes the monthly summary totals to that offer' do
+      summary_row = rows.find { |row| row[:Offer] == MembershipUsageReport::ALL_OFFERS_LABEL }
+
+      expect(summary_row).to include(Memberships: 1, Collected: 50.to_money, Paid: 20.to_money)
+    end
+  end
 end

@@ -236,17 +236,24 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def membership_usage
-    dates = parse_date_params(starting_date: params[:starting_date], ending_date: params[:ending_date])
-    @starting_date = dates[:starting_date].at_beginning_of_month
-    @ending_date = dates[:ending_date].at_end_of_month
+    if params[:membership_offer_id].present?
+      @membership_offer = MembershipOffer.find(params[:membership_offer_id])
+      first_payment, last_payment = @membership_offer.usage_date_range
+      @starting_date = (first_payment || Date.current).to_date.at_beginning_of_month
+      @ending_date = (last_payment || Date.current).to_date.at_end_of_month
+    else
+      dates = parse_date_params(starting_date: params[:starting_date], ending_date: params[:ending_date])
+      @starting_date = dates[:starting_date].at_beginning_of_month
+      @ending_date = dates[:ending_date].at_end_of_month
+    end
 
     process_report(
       report_class: MembershipUsageReport,
-      report_params: [@starting_date, @ending_date, nil],
+      report_params: [@starting_date, @ending_date, nil, @membership_offer&.id],
       job_class: MembershipUsageExport,
       job_params: [@starting_date, @ending_date],
       csv_filename: 'membership_usage',
-      timeout: 60.seconds
+      timeout: 120.seconds
     )
   end
 

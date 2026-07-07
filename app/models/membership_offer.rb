@@ -29,4 +29,14 @@ class MembershipOffer < ApplicationRecord
   def on_sale_to_public?
     on_sale
   end
+
+  # [earliest, latest] processed_on across this offer's membership order
+  # payments, used to run the usage report over the offer's entire history.
+  # Returns [nil, nil] when the offer has no payments yet.
+  def usage_date_range
+    MembershipOrder.joins(membership_line_item: :membership_offer)
+                   .joins(:payments)
+                   .where(membership_offers: { id: id })
+                   .pick(Arel.sql('MIN(payments.processed_on)'), Arel.sql('MAX(payments.processed_on)')) || [nil, nil]
+  end
 end

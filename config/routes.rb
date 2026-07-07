@@ -194,6 +194,7 @@ Rails.application.routes.draw do
         get :order_dump, action: :index
         post :membership_usage
         get :membership_usage, action: :index
+        get 'membership_usage/:membership_offer_id', action: :membership_usage, as: :membership_offer_usage
         post :donations_dump
         post :membership_export
         post :membership_usage

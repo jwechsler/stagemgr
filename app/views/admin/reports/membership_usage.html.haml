@@ -2,7 +2,10 @@
 .grid-x.grid-padding-x
   .small-12.cell
     %h3
-      Membership Usage:  
+      Membership Usage:
+      - if @membership_offer
+        = @membership_offer.name
+        &mdash;
       = @starting_date.to_s(:long)
       through
       = @ending_date.to_s(:long)

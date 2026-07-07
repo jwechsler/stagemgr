@@ -2,12 +2,13 @@ class MembershipUsageReport < Report
   ALL_OFFERS_LABEL = 'All Offers'.freeze
   MONTH_KEY = "DATE_FORMAT(payments.processed_on, '%Y-%m')".freeze
 
-  attr_reader :starting_date, :ending_date
+  attr_reader :starting_date, :ending_date, :membership_offer_id
 
-  def initialize(starting_date, ending_date, reporting_user_id = nil)
+  def initialize(starting_date, ending_date, reporting_user_id = nil, membership_offer_id = nil)
     super(%i[Month Offer Memberships Collected Paid], reporting_user_id)
     @starting_date = starting_date.to_date
     @ending_date = ending_date.to_date + 1.day
+    @membership_offer_id = membership_offer_id
     @data = []
   end
 
@@ -38,23 +39,44 @@ class MembershipUsageReport < Report
   # Aggregate monthly totals are queried independently of the per-offer breakouts so the
   # summary rows keep the historical behavior even for records that cannot be
   # joined to a membership offer (e.g. legacy rows missing a membership).
+  # When scoped to a single offer, the monthly totals join that offer too so the
+  # summary row reflects only that offer.
   def monthly_totals
     {
-      paid: paid_scope.group(MONTH_KEY).sum('payments.amount'),
-      collected: collected_scope.group(MONTH_KEY).sum('payments.amount'),
-      memberships: membership_count_scope.distinct.group(MONTH_KEY).count('line_items.membership_id')
+      paid: (single_offer? ? paid_by_offer : paid_scope).group(MONTH_KEY).sum('payments.amount'),
+      collected: (single_offer? ? collected_by_offer : collected_scope).group(MONTH_KEY).sum('payments.amount'),
+      memberships: (single_offer? ? memberships_by_offer : membership_count_scope)
+                   .distinct.group(MONTH_KEY).count('line_items.membership_id')
     }
   end
 
   def offer_breakouts
     {
-      paid: paid_scope.joins(membership: :membership_offer)
-                      .group(MONTH_KEY, 'membership_offers.name').sum('payments.amount'),
-      collected: collected_scope.joins(membership_line_item: :membership_offer)
-                                .group(MONTH_KEY, 'membership_offers.name').sum('payments.amount'),
-      memberships: membership_count_scope.joins(:membership_offer).distinct
-                                         .group(MONTH_KEY, 'membership_offers.name').count('line_items.membership_id')
+      paid: paid_by_offer.group(MONTH_KEY, 'membership_offers.name').sum('payments.amount'),
+      collected: collected_by_offer.group(MONTH_KEY, 'membership_offers.name').sum('payments.amount'),
+      memberships: memberships_by_offer.distinct
+                                       .group(MONTH_KEY, 'membership_offers.name').count('line_items.membership_id')
     }
+  end
+
+  def paid_by_offer
+    only_this_offer(paid_scope.joins(membership: :membership_offer))
+  end
+
+  def collected_by_offer
+    only_this_offer(collected_scope.joins(membership_line_item: :membership_offer))
+  end
+
+  def memberships_by_offer
+    only_this_offer(membership_count_scope.joins(:membership_offer))
+  end
+
+  def only_this_offer(relation)
+    single_offer? ? relation.where(membership_offers: { id: membership_offer_id }) : relation
+  end
+
+  def single_offer?
+    membership_offer_id.present?
   end
 
   def paid_scope
