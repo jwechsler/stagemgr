@@ -34,13 +34,8 @@ class FlexPassOfferDecorator < ApplicationDecorator
   end
 
   def restrictions
-    if object.theater.blank?
-      ''
-    elsif object.exclude_theater
-      "All but #{object.theater.name}"
-    else
-      "Only #{object.theater.name}"
-    end
+    label = h.ui_label('Inactive', variant: :alert) unless object.active?
+    h.safe_join([label, restriction_text].reject(&:blank?), ' ')
   end
 
   def dt_actions
@@ -63,5 +58,17 @@ class FlexPassOfferDecorator < ApplicationDecorator
     end
 
     h.safe_join(actions, ' ')
+  end
+
+  private
+
+  def restriction_text
+    if object.theater.blank?
+      ''
+    elsif object.exclude_theater
+      "All but #{object.theater.name}"
+    else
+      "Only #{object.theater.name}"
+    end
   end
 end
