@@ -6,12 +6,16 @@ class MembershipOfferDecorator < ApplicationDecorator
   end
 
   def on_sale?
+    return h.ui_label('Inactive', variant: :alert) unless object.active?
+
     show_as_checkmark if object.on_sale?
   end
 
   def dt_actions
-    order_action = object.active? ? h.link_to('Create Order', [:new, :admin, object, :order], class: 'tiny button') : '(Inactive)'
     edit_action = h.link_to('Edit', [:edit, :admin, object], class: 'tiny button')
+    return edit_action unless object.active?
+
+    order_action = h.link_to('Create Order', [:new, :admin, object, :order], class: 'tiny button')
     h.safe_join([order_action, edit_action], ' ')
   end
 
