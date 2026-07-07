@@ -8,9 +8,7 @@
 .grid-x.grid-padding-x
   .small-12.cell
 
-    %h2
-      = @flex_pass_offer.name
-      = render 'admin/tags/pills', tags: @flex_pass_offer.flex_pass_offer_tags
+    %h2= @flex_pass_offer.name
 
     %p
       - unless @flex_pass_offer.theater.nil?
@@ -35,6 +33,7 @@
         %b Flat Payout:
         = @flex_pass_offer.formatted_flat_payout
         %br
+    = render 'admin/tags/pills', tags: @flex_pass_offer.flex_pass_offer_tags
 .grid-x.grid-padding-x
   .small-12.cell
     = link_to 'Edit', edit_admin_flex_pass_offer_path(@flex_pass_offer)
