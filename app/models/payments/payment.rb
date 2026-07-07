@@ -71,9 +71,13 @@ class Payment < ApplicationRecord
     self
   end
 
+  # Overrides Rails' tracker so descendants are found even when subclasses
+  # haven't been autoloaded yet. Must compare against `self`, not Payment:
+  # Rails builds STI type conditions from `descendants`, and comparing against
+  # the base class made every subclass scope match every loaded payment type.
   def self.descendants
     result = []
-    ObjectSpace.each_object(Class).each { |c| result << c if c < Payment }
+    ObjectSpace.each_object(Class).each { |c| result << c if c < self }
     result
   end
 
