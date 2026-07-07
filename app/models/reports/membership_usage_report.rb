@@ -7,7 +7,10 @@ class MembershipUsageReport < Report
   def initialize(starting_date, ending_date, reporting_user_id = nil, membership_offer_id = nil)
     super(%i[Month Offer Memberships Collected Paid], reporting_user_id)
     @starting_date = starting_date.to_date
-    @ending_date = ending_date.to_date + 1.day
+    # @ending_date is the exclusive upper bound (payments.processed_on < @ending_date).
+    # Cap it at the first of the current month so the current, still-incomplete
+    # month is never reported — its payment data isn't final yet.
+    @ending_date = [ending_date.to_date + 1.day, Date.current.beginning_of_month].min
     @membership_offer_id = membership_offer_id
     @data = []
   end

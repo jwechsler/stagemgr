@@ -91,6 +91,31 @@ RSpec.describe MembershipUsageReport do
     end
   end
 
+  describe '#create excluding the current month' do
+    let(:this_month) { Time.current.change(day: 1, hour: 12) }
+    let(:last_month) { (Time.current - 1.month).change(day: 15, hour: 12) }
+
+    subject(:months) do
+      described_class.new(last_month.to_date, this_month.to_date.at_end_of_month)
+                     .create.last
+                     .reject { |row| row[:Month] == 'Total' }
+                     .pluck(:Month).uniq
+    end
+
+    before do
+      create_membership_order_for(gold_offer, collected: 40.0, processed_on: this_month)
+      create_membership_order_for(gold_offer, collected: 25.0, processed_on: last_month)
+    end
+
+    it 'omits the current (incomplete) month even when the range includes it' do
+      expect(months).not_to include(Time.current.strftime('%Y-%m'))
+    end
+
+    it 'still includes prior complete months' do
+      expect(months).to include((Time.current - 1.month).strftime('%Y-%m'))
+    end
+  end
+
   describe '#create scoped to a single offer' do
     subject(:rows) { described_class.new(starting_date, ending_date, nil, gold_offer.id).create.last }
 

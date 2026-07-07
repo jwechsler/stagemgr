@@ -247,6 +247,10 @@ class Admin::ReportsController < Admin::ApplicationController
       @ending_date = dates[:ending_date].at_end_of_month
     end
 
+    # Never report the current, still-incomplete month (matches the report's own cap).
+    last_reportable_month_end = Date.current.at_beginning_of_month - 1.day
+    @ending_date = [@ending_date, last_reportable_month_end].min
+
     process_report(
       report_class: MembershipUsageReport,
       report_params: [@starting_date, @ending_date, nil, @membership_offer&.id],
