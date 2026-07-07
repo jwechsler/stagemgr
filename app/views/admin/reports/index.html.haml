@@ -170,6 +170,10 @@
             %br
             = submit_tag "Show", :name=>'show', :class=>'tiny button'
             = submit_tag "Download", :name=>'download', :class=>'tiny button'
+          .small-8.cell
+            = render 'shared/components/offer_picker', field_name: 'membership_offer_ids',
+              search_url: search_admin_membership_offers_path,
+              resolve_url: resolve_group_admin_membership_offers_path
 
 - if can? :membership_export, Report
   .grid-x.grid-padding-x
@@ -197,6 +201,10 @@
           .small-4.cell
             %br
             = submit_tag "Generate", :name=>'generate_csv', :class=>'tiny button'
+          .small-8.cell
+            = render 'shared/components/offer_picker', field_name: 'membership_offer_ids',
+              search_url: search_admin_membership_offers_path,
+              resolve_url: resolve_group_admin_membership_offers_path
 
 
 - if can? :reconciliation_reports, Report then
@@ -217,14 +225,14 @@
             %label{:for=>:ending_date} On or before
             = text_field_tag( :ending_date, (Date.today-1.month).at_end_of_month, :default=>Date.today.at_end_of_month, :class=>'date_picker')
           .small-4.cell
-            &nbsp;
-          .small-8.cell
-            %label{ for: :flex_pass_offer_id } FlexPass Offer
-            = select_tag(:flex_pass_offer_id, options_from_collection_for_select(@flex_pass_offers.sort_by(&:name), 'id', 'name'), include_blank: true)
-          .small-4.cell
             %br
             = submit_tag "Show", :name=>'show', :class=>'tiny button'
             = submit_tag "Download", :name=>'download', :class=>'tiny button'
+          .small-8.cell
+            = render 'shared/components/offer_picker', field_name: 'flex_pass_offer_ids',
+              search_url: search_admin_flex_pass_offers_path,
+              resolve_url: resolve_group_admin_flex_pass_offers_path,
+              placeholder: 'Type an offer name, tag, or theater...'
 
   .grid-x.grid-padding-x
     .small-12.cell
@@ -246,6 +254,11 @@
             %br
             = submit_tag "Show", :class=>'tiny button'
             = submit_tag "Download", :name=>'download', :class=>'tiny button'
+          .small-8.cell
+            = render 'shared/components/offer_picker', field_name: 'flex_pass_offer_ids',
+              search_url: search_admin_flex_pass_offers_path,
+              resolve_url: resolve_group_admin_flex_pass_offers_path,
+              placeholder: 'Type an offer name, tag, or theater...'
 
 - if can? :house_management_reports, Report then
   .grid-x.grid-padding-x

@@ -254,7 +254,7 @@
       });
 
     // Multi-show comparison typeahead (shared component, multi mode)
-    ProductionPicker.attachMulti($('#comparison-production-search'), {
+    GroupedTypeahead.attachMulti($('#comparison-production-search'), {
       searchUrl: searchProductionsUrl,
       resolveUrl: resolveGroupUrl,
       scope: 'analysis',
@@ -263,7 +263,7 @@
         if (targetProductionId) excluded.push(targetProductionId);
         return excluded;
       },
-      onProduction: addComparisonProduction,
+      onItem: addComparisonProduction,
       afterChange: updateSubmitButton
     });
 

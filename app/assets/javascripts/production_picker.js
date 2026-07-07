@@ -1,15 +1,14 @@
 // Shared production typeahead picker (analysis, reports, imports).
 //
-// Single mode — auto-initializes on [data-production-picker] wrappers
-// (rendered by shared/components/_production_picker). Suggestions mix
-// individual productions with group entries (season / theater / tag);
-// picking a group drills down to just that group's productions and the
-// user then picks one. The submitted value is always a single production
-// id in the wrapper's hidden .production-picker-id field.
+// Auto-initializes on [data-production-picker] wrappers (rendered by
+// shared/components/_production_picker). Suggestions mix individual
+// productions with group entries (season / theater / tag); picking a
+// group drills down to just that group's productions and the user then
+// picks one. The submitted value is always a single production id in the
+// wrapper's hidden .production-picker-id field.
 //
-// Multi mode — ProductionPicker.attachMulti($input, opts) preserves the
-// analysis comparison semantics: picking a group expands it server-side
-// and hands each production to opts.onProduction.
+// Multi-select typeaheads (analysis comparisons, offer pickers) use the
+// generic GroupedTypeahead.attachMulti (grouped_typeahead.js) instead.
 //
 // Events (triggered on the wrapper): production-picker:selected (with the
 // suggestion object) and production-picker:cleared.
@@ -17,17 +16,7 @@
   'use strict';
 
   var BACK_LABEL = '← All productions';
-
-  function renderSuggestion(ul, item) {
-    var div = $('<div>');
-    if (item.picker_back || item.group_key) {
-      div.append($('<strong>').css('color', '#1779ba')
-        .text((item.group_key ? '▶ ' : '') + item.label));
-    } else {
-      div.text(item.label);
-    }
-    return $('<li>').append(div).appendTo(ul);
-  }
+  var renderSuggestion = window.GroupedTypeahead.renderSuggestion;
 
   function SinglePicker($wrap) {
     this.$wrap     = $wrap;
@@ -160,37 +149,7 @@
     }
   };
 
-  function attachMulti($input, opts) {
-    $input.autocomplete({
-      minLength: opts.minLength || 2,
-      source: function(request, response) {
-        $.getJSON(opts.searchUrl, { q: request.term, scope: opts.scope }, function(data) {
-          var excluded = opts.getExcludedIds ? opts.getExcludedIds() : [];
-          response(data.filter(function(item) {
-            return item.group_key || excluded.indexOf(item.id) === -1;
-          }));
-        });
-      },
-      select: function(event, ui) {
-        if (ui.item.group_key) {
-          $.getJSON(opts.resolveUrl, { group_key: ui.item.group_key, scope: opts.scope },
-            function(data) {
-              data.forEach(function(prod) { opts.onProduction(prod); });
-              if (opts.afterChange) opts.afterChange();
-            });
-        } else {
-          opts.onProduction(ui.item);
-          if (opts.afterChange) opts.afterChange();
-        }
-        $(this).val('');
-        return false;
-      }
-    });
-    $input.autocomplete('instance')._renderItem = renderSuggestion;
-  }
-
   window.ProductionPicker = {
-    attachMulti: attachMulti,
     initAll: function() {
       $('[data-production-picker]').each(function() {
         var $wrap = $(this);

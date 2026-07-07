@@ -2,16 +2,18 @@ class MembershipUsageReport < Report
   ALL_OFFERS_LABEL = 'All Offers'.freeze
   MONTH_KEY = "DATE_FORMAT(payments.processed_on, '%Y-%m')".freeze
 
-  attr_reader :starting_date, :ending_date, :membership_offer_id
+  attr_reader :starting_date, :ending_date, :membership_offer_ids
 
-  def initialize(starting_date, ending_date, reporting_user_id = nil, membership_offer_id = nil)
+  # membership_offer_ids accepts a single id or an array of ids; empty
+  # means no offer restriction.
+  def initialize(starting_date, ending_date, reporting_user_id = nil, membership_offer_ids = nil)
     super(%i[Month Offer Memberships Collected Paid], reporting_user_id)
     @starting_date = starting_date.to_date
     # @ending_date is the exclusive upper bound (payments.processed_on < @ending_date).
     # Cap it at the first of the current month so the current, still-incomplete
     # month is never reported — its payment data isn't final yet.
     @ending_date = [ending_date.to_date + 1.day, Date.current.beginning_of_month].min
-    @membership_offer_id = membership_offer_id
+    @membership_offer_ids = Array(membership_offer_ids).compact
     @data = []
   end
 
@@ -51,9 +53,9 @@ class MembershipUsageReport < Report
   # summary row reflects only that offer.
   def monthly_totals
     {
-      paid: (single_offer? ? paid_by_offer : paid_scope).group(MONTH_KEY).sum('payments.amount'),
-      collected: (single_offer? ? collected_by_offer : collected_scope).group(MONTH_KEY).sum('payments.amount'),
-      memberships: (single_offer? ? memberships_by_offer : membership_count_scope)
+      paid: (offers_selected? ? paid_by_offer : paid_scope).group(MONTH_KEY).sum('payments.amount'),
+      collected: (offers_selected? ? collected_by_offer : collected_scope).group(MONTH_KEY).sum('payments.amount'),
+      memberships: (offers_selected? ? memberships_by_offer : membership_count_scope)
                    .distinct.group(MONTH_KEY).count('line_items.membership_id')
     }
   end
@@ -68,28 +70,34 @@ class MembershipUsageReport < Report
   end
 
   def paid_by_offer
-    only_this_offer(paid_scope.joins(membership: :membership_offer))
+    only_selected_offers(paid_scope.joins(membership: :membership_offer))
   end
 
   def collected_by_offer
-    only_this_offer(collected_scope.joins(membership_line_item: :membership_offer))
+    only_selected_offers(collected_scope.joins(membership_line_item: :membership_offer))
   end
 
   def memberships_by_offer
-    only_this_offer(membership_count_scope.joins(:membership_offer))
+    only_selected_offers(membership_count_scope.joins(:membership_offer))
   end
 
-  def only_this_offer(relation)
-    single_offer? ? relation.where(membership_offers: { id: membership_offer_id }) : relation
+  def only_selected_offers(relation)
+    offers_selected? ? relation.where(membership_offers: { id: membership_offer_ids }) : relation
+  end
+
+  def offers_selected?
+    membership_offer_ids.present?
   end
 
   def single_offer?
-    membership_offer_id.present?
+    membership_offer_ids.length == 1
   end
 
   # Omit the per-month "All Offers" subtotal rows when scoped to a single offer
   # (they duplicate that offer's row) and on CSV downloads (reporting_user_id is
   # set), where the interleaved subtotals add noise to the exported detail data.
+  # With several offers selected the subtotal aggregates just those offers, so
+  # it stays.
   def suppress_monthly_subtotals?
     single_offer? || reporting_user_id.present?
   end
