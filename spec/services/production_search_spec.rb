@@ -103,32 +103,32 @@ RSpec.describe ProductionSearch do
     subject(:searcher) { described_class.new(admin_ability, 'reports') }
 
     it 'resolves a season group' do
-      names = searcher.resolve_group('season:2025').map { |r| r[:name] }
+      names = searcher.resolve_group('season:2025').pluck(:name)
       expect(names).to include('Hamlet', 'Hamlet Uptown')
       expect(names).not_to include('Hamlet Inactive')
     end
 
     it 'resolves a theater group' do
-      names = searcher.resolve_group("theater:#{other_theater.id}").map { |r| r[:name] }
+      names = searcher.resolve_group("theater:#{other_theater.id}").pluck(:name)
       expect(names).to contain_exactly('Hamlet Uptown')
     end
 
     it 'resolves a tag group case-insensitively' do
       TheaterTag.create!(theater: theater, name: 'Storefront')
-      names = searcher.resolve_group('tag:storefront').map { |r| r[:name] }
+      names = searcher.resolve_group('tag:storefront').pluck(:name)
       expect(names).to include('Hamlet')
       expect(names).not_to include('Hamlet Uptown')
     end
 
     it 'honors the consumer scope when resolving' do
       names = described_class.new(admin_ability, 'imports').resolve_group('season:2024')
-                             .map { |r| r[:name] }
+                             .pluck(:name)
       expect(names).not_to include('Hamlet Inactive')
     end
 
     it 'honors ability scoping when resolving' do
       names = described_class.new(theater_ability, 'reports').resolve_group('season:2025')
-                             .map { |r| r[:name] }
+                             .pluck(:name)
       expect(names).not_to include('Hamlet Uptown')
     end
 

@@ -12,10 +12,10 @@ RSpec.describe Admin::ProductionsController, type: :controller do
   let(:theater_user) { FactoryBot.create(:user, theaters: [theater]) }
 
   def datatable_params(search: '')
-    columns = %w[name theater season status actions].each_with_index.map do |col, i|
+    columns = %w[name theater season status actions].each_with_index.to_h do |col, i|
       [i.to_s, { data: col, searchable: 'true', orderable: 'false',
                  search: { value: '', regex: 'false' } }]
-    end.to_h
+    end
     { draw: '1', start: '0', length: '25',
       search: { value: search, regex: 'false' }, columns: columns }
   end
@@ -32,8 +32,8 @@ RSpec.describe Admin::ProductionsController, type: :controller do
 
       it 'returns productions across all theaters as JSON with a theater column' do
         get :index, params: datatable_params, format: :json
-        payload = JSON.parse(response.body)
-        names = payload['data'].map { |row| row['name'] }.join
+        payload = response.parsed_body
+        names = payload['data'].pluck('name').join
         expect(names).to include(production.name)
         expect(names).to include(other_production.name)
         expect(payload['data'].first).to have_key('theater')
@@ -41,8 +41,8 @@ RSpec.describe Admin::ProductionsController, type: :controller do
 
       it 'filters by theater name through the global search' do
         get :index, params: datatable_params(search: other_theater.name), format: :json
-        payload = JSON.parse(response.body)
-        names = payload['data'].map { |row| row['name'] }.join
+        payload = response.parsed_body
+        names = payload['data'].pluck('name').join
         expect(names).to include(other_production.name)
         expect(names).not_to include(production.name)
       end
@@ -53,8 +53,8 @@ RSpec.describe Admin::ProductionsController, type: :controller do
 
       it 'only returns productions for granted theaters' do
         get :index, params: datatable_params, format: :json
-        payload = JSON.parse(response.body)
-        names = payload['data'].map { |row| row['name'] }.join
+        payload = response.parsed_body
+        names = payload['data'].pluck('name').join
         expect(names).to include(production.name)
         expect(names).not_to include(other_production.name)
       end
@@ -66,13 +66,13 @@ RSpec.describe Admin::ProductionsController, type: :controller do
 
     it 'returns matching productions for a whitelisted scope' do
       get :search, params: { q: production.name, scope: 'reports' }, format: :json
-      labels = JSON.parse(response.body).map { |r| r['label'] }.join
+      labels = response.parsed_body.pluck('label').join
       expect(labels).to include(production.name)
     end
 
     it 'omits group entries when groups=0' do
       get :search, params: { q: theater.name, scope: 'reports', groups: '0' }, format: :json
-      expect(JSON.parse(response.body).none? { |r| r['group_key'] }).to be(true)
+      expect(response.parsed_body.none? { |r| r['group_key'] }).to be(true)
     end
 
     it 'rejects an unknown scope with 400' do
@@ -87,7 +87,7 @@ RSpec.describe Admin::ProductionsController, type: :controller do
     it 'expands a theater group into productions' do
       get :resolve_group, params: { group_key: "theater:#{theater.id}", scope: 'reports' },
                           format: :json
-      names = JSON.parse(response.body).map { |r| r['name'] }
+      names = response.parsed_body.pluck('name')
       expect(names).to include(production.name)
       expect(names).not_to include(other_production.name)
     end
@@ -105,8 +105,8 @@ RSpec.describe Admin::ProductionsController, type: :controller do
       params = datatable_params.merge(theater_id: theater.id)
       params[:columns] = params[:columns].reject { |_, c| c[:data] == 'theater' }
       get :index, params: params, format: :json
-      payload = JSON.parse(response.body)
-      names = payload['data'].map { |row| row['name'] }.join
+      payload = response.parsed_body
+      names = payload['data'].pluck('name').join
       expect(names).to include(production.name)
       expect(names).not_to include(other_production.name)
     end

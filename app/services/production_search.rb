@@ -7,8 +7,8 @@ class ProductionSearch
   # never define a scope.
   SCOPES = {
     'analysis' => ->(rel) { rel.where.not(status: Production::PRESALE) },
-    'reports'  => ->(rel) { rel },
-    'imports'  => ->(rel) { rel.where.not(status: Production::INACTIVE) }
+    'reports' => ->(rel) { rel },
+    'imports' => ->(rel) { rel.where.not(status: Production::INACTIVE) }
   }.freeze
 
   RESULT_LIMIT = 20
@@ -47,12 +47,10 @@ class ProductionSearch
 
   def group_entries(query)
     q = "%#{query.downcase}%"
-    results = []
-
     matching_seasons = @base_scope.where('CAST(productions.season AS CHAR) LIKE :q', q: "%#{query}%")
                                   .distinct.pluck(:season).sort.reverse
-    matching_seasons.each do |season|
-      results << { group_key: "season:#{season}", label: "All shows in #{season}" }
+    results = matching_seasons.map do |season|
+      { group_key: "season:#{season}", label: "All shows in #{season}" }
     end
 
     accessible_theater_ids = @base_scope.distinct.pluck(:theater_id)
