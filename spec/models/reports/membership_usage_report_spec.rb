@@ -80,7 +80,14 @@ RSpec.describe MembershipUsageReport do
     it 'excludes activity outside the reporting window' do
       create_membership_order_for(gold_offer, collected: 99.0, processed_on: Time.zone.local(2026, 7, 1, 12, 0, 0))
 
-      expect(rows.pluck(:Month).uniq).to eq(['2026-05'])
+      months = rows.reject { |row| row[:Month] == 'Total' }.pluck(:Month).uniq
+      expect(months).to eq(['2026-05'])
+    end
+
+    it 'ends with a grand Total row summing the detail rows across all months' do
+      total_row = rows.last
+
+      expect(total_row).to include(Month: 'Total', Memberships: 2, Collected: 80.to_money, Paid: 30.to_money)
     end
   end
 
@@ -108,6 +115,12 @@ RSpec.describe MembershipUsageReport do
 
     it 'suppresses the All Offers monthly subtotal' do
       expect(rows.pluck(:Offer)).not_to include(MembershipUsageReport::ALL_OFFERS_LABEL)
+    end
+
+    it 'ends with a grand Total row for the single offer' do
+      total_row = rows.last
+
+      expect(total_row).to include(Month: 'Total', Memberships: 1, Collected: 50.to_money, Paid: 20.to_money)
     end
   end
 end

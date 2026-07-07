@@ -20,13 +20,18 @@ class MembershipUsageReport < Report
 
     ActiveRecord::Base.connection.execute("SET sql_mode=CONCAT(@@sql_mode, ',ONLY_FULL_GROUP_BY');")
 
+    detail_rows = []
     months(monthly).each do |month|
       offer_names_for(month, by_offer).each do |offer|
-        data << offer_row(month, offer, by_offer)
+        row = offer_row(month, offer, by_offer)
+        detail_rows << row
+        data << row
       end
       # The monthly "All Offers" subtotal is redundant when scoped to one offer.
       data << summary_row(month, monthly) unless single_offer?
     end
+
+    data << total_row(detail_rows) if detail_rows.any?
 
     unless reporting_user_id.nil?
       return report_data("/tmp/membership_usage_report_#{starting_date.to_date.strftime('%y%m%d')}_#{ending_date.to_date.strftime('%y%m%d')}.csv")
@@ -127,6 +132,15 @@ class MembershipUsageReport < Report
       Memberships: monthly[:memberships][month] || 0,
       Collected: (monthly[:collected][month] || 0).to_money,
       Paid: (monthly[:paid][month] || 0).to_money,
+      display_class: :report_summary_row }
+  end
+
+  # Grand total of the detail (per-offer) rows across every month.
+  def total_row(detail_rows)
+    { Month: 'Total', Offer: '',
+      Memberships: detail_rows.sum { |row| row[:Memberships] },
+      Collected: detail_rows.sum(0.to_money) { |row| row[:Collected] },
+      Paid: detail_rows.sum(0.to_money) { |row| row[:Paid] },
       display_class: :report_summary_row }
   end
 end
