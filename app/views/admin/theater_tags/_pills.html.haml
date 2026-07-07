@@ -1,5 +1,0 @@
-- tags = Array(theater_tags).reject { |t| t.name.blank? }
-- unless tags.empty?
-  %span.theater-tags
-    - tags.each do |tag|
-      = ui_label(tag.name, variant: nil, class: 'theater-tag')

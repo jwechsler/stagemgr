@@ -708,7 +708,6 @@ Rails/OutputSafety:
   Exclude:
     - 'app/controllers/admin/membership_orders_controller.rb'
     - 'app/controllers/admin/service_item_templates_controller.rb'
-    - 'app/datatables/theater_datatable.rb'
     - 'app/decorators/payment_decorator.rb'
     - 'app/helpers/application_helper.rb'
     - 'app/helpers/orders_helper.rb'

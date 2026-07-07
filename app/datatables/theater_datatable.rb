@@ -26,23 +26,11 @@ class TheaterDatatable < DatatableBase
   private
 
   def name_with_tags(record)
-    pills = @view.render(
-      partial: 'admin/theater_tags/pills',
-      formats: [:html],
-      locals: { theater_tags: record.theater_tags.to_a }
-    )
-    (record.decorate.name.to_s + pills.to_s).html_safe
+    name_with_tag_pills(record.decorate.name, record.theater_tags)
   end
 
   def filter_records(records)
-    term = datatable.search.value.to_s
-    return super if term.blank?
-
-    base = build_conditions
-    tag_match = TheaterTag.arel_table[:name].matches("%#{term}%")
-    combined = base ? base.or(tag_match) : tag_match
-
-    records.left_outer_joins(:theater_tags).where(combined).distinct
+    filter_with_tag_search(records, TheaterTag, :theater_tags) { super }
   end
 
   def get_raw_records

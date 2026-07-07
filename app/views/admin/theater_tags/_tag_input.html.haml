@@ -1,3 +1,0 @@
-- existing = f.object.theater_tags.map(&:name).reject(&:blank?).join(',')
-.tag-input-wrap
-  = f.input :tag_names, label: false, input_html: { value: existing, placeholder: 'Type a tag and press Enter…', data: { tagify: true, 'tagify-url' => autocomplete_tag_admin_theaters_path } }

@@ -30,7 +30,7 @@ config/my_emma_credentials.yml
 config/credentials.yml.enc
 config/credentials/development.yml.enc
 config/credentials/production.yml.enc
-tags
+/tags
 rerun.txt
 *~
 log/*.log
