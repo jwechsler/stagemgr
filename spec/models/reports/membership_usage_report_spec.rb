@@ -100,10 +100,14 @@ RSpec.describe MembershipUsageReport do
       expect(detail_offers).to eq(['Gold'])
     end
 
-    it 'scopes the monthly summary totals to that offer' do
-      summary_row = rows.find { |row| row[:Offer] == MembershipUsageReport::ALL_OFFERS_LABEL }
+    it 'reports the offer totals for the month' do
+      gold_row = rows.find { |row| row[:Month] == '2026-05' && row[:Offer] == 'Gold' }
 
-      expect(summary_row).to include(Memberships: 1, Collected: 50.to_money, Paid: 20.to_money)
+      expect(gold_row).to include(Memberships: 1, Collected: 50.to_money, Paid: 20.to_money)
+    end
+
+    it 'suppresses the All Offers monthly subtotal' do
+      expect(rows.pluck(:Offer)).not_to include(MembershipUsageReport::ALL_OFFERS_LABEL)
     end
   end
 end

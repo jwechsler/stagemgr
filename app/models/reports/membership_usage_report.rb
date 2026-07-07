@@ -24,7 +24,8 @@ class MembershipUsageReport < Report
       offer_names_for(month, by_offer).each do |offer|
         data << offer_row(month, offer, by_offer)
       end
-      data << summary_row(month, monthly)
+      # The monthly "All Offers" subtotal is redundant when scoped to one offer.
+      data << summary_row(month, monthly) unless single_offer?
     end
 
     unless reporting_user_id.nil?
