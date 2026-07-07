@@ -19,7 +19,7 @@ class MembershipOfferDecorator < ApplicationDecorator
         h.content_tag(:span, 'Create Order', class: 'tiny button disabled', 'aria-disabled': true)
       end
     edit_action = h.link_to('Edit', [:edit, :admin, object], class: 'tiny button')
-    h.safe_join([order_action, edit_action], ' ')
+    h.safe_join([edit_action, order_action], ' ')
   end
 
   # Define presentation-specific methods here. Helpers are accessed through
