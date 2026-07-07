@@ -35,8 +35,8 @@ class FlexPassOfferDecorator < ApplicationDecorator
 
   def restrictions
     labels = []
-    labels << h.ui_label('Inactive', variant: :alert) unless object.active?
-    labels << h.ui_label(restriction_text, variant: :info) if restriction_text.present?
+    labels << h.ui_label('Inactive', variant: :alert, class: 'tiny') unless object.active?
+    labels << h.ui_label(restriction_text, variant: :info, class: 'tiny') if restriction_text.present?
     h.safe_join(labels, ' ')
   end
 

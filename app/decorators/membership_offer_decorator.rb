@@ -6,7 +6,7 @@ class MembershipOfferDecorator < ApplicationDecorator
   end
 
   def on_sale?
-    return h.ui_label('Inactive', variant: :alert) unless object.active?
+    return h.ui_label('Inactive', variant: :alert, class: 'tiny') unless object.active?
 
     show_as_checkmark if object.on_sale?
   end

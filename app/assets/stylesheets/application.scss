@@ -91,6 +91,13 @@ select[size], select[multiple] {
   font-size: 150%;
 }
 
+// Smaller status labels so they read as labels, not tiny buttons.
+.label.tiny {
+  font-size: 0.65rem;
+  padding: 0.2rem 0.5rem;
+  vertical-align: middle;
+}
+
 .tag-pills {
   margin-left: 0.5rem;
 
