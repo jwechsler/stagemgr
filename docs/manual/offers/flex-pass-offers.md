@@ -74,6 +74,24 @@ A flex pass is a prepaid ticket package. The patron purchases a set number of ti
 | **Short Description** | Brief summary displayed in offer listings and checkout. |
 | **Long Description** | Full description displayed on the flex pass detail page. |
 
+### Tags
+
+Tags are free-form labels you can attach to a flex pass offer to group it for analysis and reporting -- for example by season, package family, partner, or any attribute you want to slice by later. Tags are arbitrary text you define and can change at any time.
+
+A flex pass offer can have any number of tags. They appear as rounded pill labels in the **Tags** field on the offer form, next to the offer name in the Flex Pass Offers list, and on the offer detail page.
+
+#### Adding a tag
+
+1. Click into the **Tags** field on the flex pass offer form.
+2. Begin typing. As you type, a dropdown suggests existing tag names already used on other flex pass offers -- click one to apply it, or keep typing to create a brand-new tag.
+3. Press **Enter** (or type a comma) to commit the tag as a pill.
+4. Repeat to add as many tags as you need, then save the form.
+
+Click the **x** on any pill to remove that tag. Tags are matched case-insensitively, and removing a tag from one offer leaves it available on any others that use it.
+
+!!! tip "Search by tag"
+    The search box on the Flex Pass Offers list matches tag names as well as offer names, so you can quickly filter the list down to every offer sharing a tag.
+
 ---
 
 ## How Redemption Works
@@ -100,6 +118,24 @@ Flex passes expire based on the **Months Till Expiration** value, counted from t
 
 !!! warning "Expired passes cannot be extended"
     Once a flex pass has expired, it cannot be reactivated through the offer settings. Contact a system administrator if an exception is needed.
+
+---
+
+## The Flex Pass Offers List
+
+![Flex pass offers list showing tag pills, red Inactive labels, and blue theater-restriction labels in the Restrictions column](../assets/images/screenshots/offers-flex-pass-list.png)
+
+Each row on the Flex Pass Offers list has an actions column with **Edit**, **Destroy**, and **Create Order** buttons. The **Create Order** button is shown greyed out and disabled for offers that are not active, since inactive offers cannot be sold.
+
+The **Restrictions** column summarizes an offer's status and scope using small labels:
+
+| Label | Meaning |
+|-------|---------|
+| Red **Inactive** | The offer's **Active** checkbox is unchecked -- it cannot be purchased or redeemed. |
+| Blue **Only [Theater]** | Redemption is restricted to the named theater (the **Theater** field with **Exclude Theater** unchecked). |
+| Blue **All but [Theater]** | Redemption is allowed everywhere except the named theater (the **Theater** field with **Exclude Theater** checked). |
+
+An offer can show both an Inactive label and a theater-restriction label at the same time.
 
 ---
 

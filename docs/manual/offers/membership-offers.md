@@ -76,6 +76,29 @@ Leave both fields blank to skip the trial period and begin full-price billing im
 | **HTML Description** | Rich HTML content displayed on the membership detail/sales page. |
 | **Email HTML** | HTML content included in the membership confirmation email sent after purchase. |
 
+### Tags
+
+Tags are free-form labels you can attach to a membership offer to group it for analysis and reporting -- for example by campaign, tier family, season, or any attribute you want to slice by later. Tags are arbitrary text you define and can change at any time.
+
+A membership offer can have any number of tags. They appear as rounded pill labels in the **Tags** field on the offer form, next to the offer name in the Membership Offers list, and on the offer detail page.
+
+#### Adding a tag
+
+1. Click into the **Tags** field on the membership offer form.
+2. Begin typing. As you type, a dropdown suggests existing tag names already used on other membership offers -- click one to apply it, or keep typing to create a brand-new tag.
+3. Press **Enter** (or type a comma) to commit the tag as a pill.
+4. Repeat to add as many tags as you need, then save the form.
+
+!!! tip "Reuse existing tags when possible"
+    The autocomplete suggestions help you converge on a consistent vocabulary. Tags are matched case-insensitively, so "Gift" and "gift" are treated as the same tag, with the casing of the first one preserved.
+
+#### Removing a tag
+
+Click the **x** on the right side of any pill to remove that tag, then save the form. The tag is removed from this offer only; it remains available on any other offer that uses it.
+
+!!! tip "Search by tag"
+    The search box on the Membership Offers list matches tag names as well as offer names, so you can quickly filter the list down to every offer sharing a tag.
+
 ---
 
 ## How Membership Billing Works
@@ -94,6 +117,25 @@ Leave both fields blank to skip the trial period and begin full-price billing im
 2. The system issues up to **Tickets Per Performance** tickets using the **Use Ticket Class Code**.
 3. If guest tickets are configured via **Use Member Friend Code**, additional tickets are issued under that class.
 4. Members can redeem tickets for each performance independently -- there is no total cap across the membership period.
+
+---
+
+## The Membership Offers List
+
+![Membership offers list showing Edit, Create Order, and Usage buttons, tag pills, and red Inactive labels](../assets/images/screenshots/offers-membership-list.png)
+
+Each row on the Membership Offers list has an actions column with three buttons:
+
+| Button | What it does |
+|--------|--------------|
+| **Edit** | Opens the offer's edit form. |
+| **Create Order** | Starts a new membership order for this offer. For inactive offers this button is shown greyed out and disabled, since inactive offers cannot be sold. |
+| **Usage** | Opens the [Membership Usage report](../reports/membership-reports.md#membership-usage) for this offer alone, covering its entire history. |
+
+The **On Sale to Public** column shows a checkmark when the offer is publicly purchasable. Offers whose status is **Inactive** show a red **Inactive** label in this column instead.
+
+!!! tip "Usage over the offer's full history"
+    The **Usage** button runs the report from the offer's first membership payment through the end of last month -- you don't need to pick a date range. See [Membership Reports](../reports/membership-reports.md#running-the-report-for-a-single-offer) for what the per-offer report contains.
 
 ---
 

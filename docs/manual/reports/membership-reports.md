@@ -20,9 +20,9 @@ CSV of individual membership orders, with an optional TRG-compatible format.
 
 ### Purpose
 
-The Membership Usage report tracks membership activity over time, showing how many memberships
-were sold and how much income they generated in each month. It is useful for trend analysis,
-budgeting, and reporting to management.
+The Membership Usage report tracks membership activity over time, showing -- for each month and
+each membership offer -- how many memberships were active, how much was collected, and how much
+was paid out. It is useful for trend analysis, budgeting, and reporting to management.
 
 ### Generating the Report
 
@@ -37,20 +37,42 @@ budgeting, and reporting to management.
 | **Start Date** | Yes | The beginning of the reporting period |
 | **End Date** | Yes | The end of the reporting period |
 
-!!! note "Auto-Expanded Date Ranges"
+!!! note "Full months only"
     The system automatically expands your date range to align with full calendar months. For
-    example, if you enter March 10 through May 15, the report will cover March 1 through
-    May 31. This ensures consistent month-over-month comparisons.
+    example, if you enter March 10 through May 15, the report covers March 1 through May 31.
+    This keeps month-over-month comparisons consistent.
+
+!!! warning "The current month is never included"
+    The current month is always excluded, because its payment data is still incomplete. A report
+    run at any point in July, for instance, ends at June 30. This applies to every way of running
+    the report, including the per-offer **Usage** button.
 
 ### Output Format
 
+The report is grouped by month. Within each month there is one **detail row per membership offer**,
+followed by an **All Offers** summary row that totals that month across every offer. A single grand
+**Total** row at the very bottom sums all of the detail rows across every month in the range.
+
 | Column | Description |
 |---|---|
-| **Month** | Calendar month (e.g., January 2026) |
-| **New Memberships** | Number of new memberships sold during the month |
-| **Renewals** | Number of membership renewals processed |
-| **Total Active** | Total active memberships at end of month |
-| **Income** | Total membership income for the month |
+| **Month** | Calendar month (e.g., `2026-05`). The final row reads **Total**. |
+| **Offer** | The membership offer name on detail rows; **All Offers** on the monthly summary rows. |
+| **Memberships** | Number of memberships active in that month for that offer. |
+| **Collected** | Total amount collected on membership orders. |
+| **Paid** | Total membership payments applied. |
+
+### Running the Report for a Single Offer
+
+You can run this report for one membership offer over its entire history straight from the
+[Membership Offers list](../offers/membership-offers.md#the-membership-offers-list): click the
+**Usage** button on the offer's row.
+
+![Membership Usage report for a single offer, broken out by month with Month, Offer, Memberships, Collected, and Paid columns](../assets/images/screenshots/reports-membership-usage-offer.png)
+
+The per-offer report behaves the same as the full report with two differences:
+
+- The date range is set automatically to span from the offer's first membership payment through the end of last month -- you don't choose dates.
+- Because only one offer is included, the redundant per-month **All Offers** summary rows are omitted. The grand **Total** row at the bottom still totals every month.
 
 ---
 
