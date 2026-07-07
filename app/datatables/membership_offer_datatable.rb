@@ -14,7 +14,7 @@ class MembershipOfferDatatable < DatatableBase
     records.map do |record|
       {
         id: record.decorate.id,
-        name: record.decorate.name,
+        name: name_with_tags(record),
         on_sale: record.decorate.on_sale?,
         status: record.decorate.dt_actions,
         DT_RowID: record.id
@@ -24,9 +24,16 @@ class MembershipOfferDatatable < DatatableBase
 
   private
 
+  def name_with_tags(record)
+    name_with_tag_pills(record.decorate.name, record.membership_offer_tags)
+  end
+
+  def filter_records(records)
+    filter_with_tag_search(records, MembershipOfferTag, :membership_offer_tags) { super }
+  end
+
   def get_raw_records
-    MembershipOffer.all
-    # insert query here
+    MembershipOffer.includes(:membership_offer_tags)
   end
 
   def sort_records(records)

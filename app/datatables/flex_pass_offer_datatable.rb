@@ -15,7 +15,7 @@ class FlexPassOfferDatatable < DatatableBase
   def data
     (records || []).map do |flex_pass_offer|
       {
-        offer: flex_pass_offer.decorate.name,
+        offer: name_with_tags(flex_pass_offer),
         price: flex_pass_offer.decorate.price,
         qty: flex_pass_offer.decorate.number_of_tickets,
         public: flex_pass_offer.decorate.on_sale_to_public?,
@@ -28,8 +28,16 @@ class FlexPassOfferDatatable < DatatableBase
 
   private
 
+  def name_with_tags(record)
+    name_with_tag_pills(record.decorate.name, record.flex_pass_offer_tags)
+  end
+
+  def filter_records(records)
+    filter_with_tag_search(records, FlexPassOfferTag, :flex_pass_offer_tags) { super }
+  end
+
   def get_raw_records
-    FlexPassOffer.accessible_by(current_user.ability, :read)
+    FlexPassOffer.accessible_by(current_user.ability, :read).includes(:flex_pass_offer_tags)
   end
 
   # ==== These methods represent the basic operations to perform on records

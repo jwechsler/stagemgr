@@ -1,5 +1,12 @@
 class Admin::MembershipOffersController < ApplicationController
-  load_and_authorize_resource
+  load_and_authorize_resource except: [:autocomplete_tag]
+
+  def autocomplete_tag
+    term = params[:term].to_s
+    names = MembershipOfferTag.where('name LIKE ?', "#{term}%")
+                              .order(:name).limit(20).pluck(:name).uniq
+    render json: names
+  end
 
   def index
     respond_to do |format|
@@ -47,6 +54,7 @@ class Admin::MembershipOffersController < ApplicationController
     params.require(:membership_offer).permit(:name, :email_html, :html_description, :use_ticket_class_code,
                                              :use_member_friend_code, :tickets_per_performance,
                                              :billing_agreement, :myemma_group, :on_sale, :trial_period,
-                                             :restricted_to_first_time, :max_cycles_if_gift, :status, :price_id)
+                                             :restricted_to_first_time, :max_cycles_if_gift, :status, :price_id,
+                                             :tag_names)
   end
 end

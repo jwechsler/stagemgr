@@ -8,7 +8,9 @@
 .grid-x.grid-padding-x
   .small-12.cell
 
-    %h2= @flex_pass_offer.name
+    %h2
+      = @flex_pass_offer.name
+      = render 'admin/tags/pills', tags: @flex_pass_offer.flex_pass_offer_tags
 
     %p
       - unless @flex_pass_offer.theater.nil?

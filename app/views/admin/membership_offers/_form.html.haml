@@ -4,6 +4,8 @@
   .grid-x.grid-padding-x
     .small-12.medium-6.cell
       = f.input :name
+      %h5 Tags
+      = render 'admin/tags/tag_input', f: f, autocomplete_url: autocomplete_tag_admin_membership_offers_path
     .small-12.medium-6.cell
       .grid-x.grid-padding-x
         .small-6.cell

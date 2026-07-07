@@ -1,4 +1,8 @@
 class MembershipOffer < ApplicationRecord
+  include Taggable
+
+  has_tags :membership_offer_tags
+
   validates_presence_of :name, :use_ticket_class_code, :tickets_per_performance
   validates_presence_of :price_id, :if => :active?
   validates_numericality_of :tickets_per_performance

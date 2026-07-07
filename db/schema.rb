@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_07_02_210300) do
+ActiveRecord::Schema.define(version: 2026_07_07_120000) do
 
   create_table "active_storage_attachments", charset: "utf8mb3", force: :cascade do |t|
     t.string "name", null: false
@@ -154,6 +154,15 @@ ActiveRecord::Schema.define(version: 2026_07_02_210300) do
     t.index ["user_id"], name: "index_file_stores_on_user_id"
   end
 
+  create_table "flex_pass_offer_tags", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.integer "flex_pass_offer_id", null: false
+    t.string "name", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["flex_pass_offer_id", "name"], name: "index_flex_pass_offer_tags_on_flex_pass_offer_id_and_name", unique: true
+    t.index ["name"], name: "index_flex_pass_offer_tags_on_name"
+  end
+
   create_table "flex_pass_offers", id: :integer, charset: "latin1", force: :cascade do |t|
     t.integer "theater_id"
     t.decimal "price", precision: 8, scale: 2, null: false
@@ -233,6 +242,15 @@ ActiveRecord::Schema.define(version: 2026_07_02_210300) do
     t.index ["order_id"], name: "line_items_oid_i"
     t.index ["seat_assignment_id"], name: "index_line_items_on_seat_assignment_id", unique: true
     t.index ["ticket_class_id"], name: "line_items_to_ticket_class"
+  end
+
+  create_table "membership_offer_tags", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.integer "membership_offer_id", null: false
+    t.string "name", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["membership_offer_id", "name"], name: "index_membership_offer_tags_on_membership_offer_id_and_name", unique: true
+    t.index ["name"], name: "index_membership_offer_tags_on_name"
   end
 
   create_table "membership_offers", id: :integer, charset: "latin1", force: :cascade do |t|
@@ -728,9 +746,11 @@ ActiveRecord::Schema.define(version: 2026_07_02_210300) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "address_tags", "addresses", name: "address_tags_to_address", on_delete: :cascade
   add_foreign_key "address_tags", "theaters", name: "address_tags_to_theater", on_delete: :cascade
+  add_foreign_key "flex_pass_offer_tags", "flex_pass_offers", on_delete: :cascade
   add_foreign_key "house_counts", "performances"
   add_foreign_key "line_items", "orders", name: "line_items_to_orders", on_delete: :cascade
   add_foreign_key "line_items", "ticket_classes", name: "line_items_to_ticket_class"
+  add_foreign_key "membership_offer_tags", "membership_offers", on_delete: :cascade
   add_foreign_key "order_tasks", "orders", name: "fk_order_tasks", on_delete: :cascade
   add_foreign_key "payments", "orders", name: "payments_to_orders", on_delete: :cascade
   add_foreign_key "performance_broadcasts", "performances"

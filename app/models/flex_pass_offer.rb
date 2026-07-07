@@ -4,6 +4,10 @@ class FlexPassOffer < ApplicationRecord
   has_many :flex_passes, inverse_of: :flex_pass_offer
   has_many :flex_pass_line_items, inverse_of: :flex_pass_offer
 
+  include Taggable
+
+  has_tags :flex_pass_offer_tags
+
   validates :price, :number_of_tickets, numericality: { null: false }
   validates :price, numericality: { greater_than_or_equal_to: 0 }
   validates :facility_fee, :spiff, :flat_payout,

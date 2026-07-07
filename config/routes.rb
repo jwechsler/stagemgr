@@ -160,10 +160,17 @@ Rails.application.routes.draw do
     end
 
     resources :flex_pass_offers do
+      collection do
+        get :autocomplete_tag
+      end
       resources :orders, controller: 'flex_pass_offer_orders'
     end
 
-    resources :membership_offers
+    resources :membership_offers do
+      collection do
+        get :autocomplete_tag
+      end
+    end
 
     resources :membership_offers, only: false do
       resources :orders, controller: 'membership_offer_orders'
