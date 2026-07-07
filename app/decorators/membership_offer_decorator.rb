@@ -10,7 +10,9 @@ class MembershipOfferDecorator < ApplicationDecorator
   end
 
   def dt_actions
-    object.active? ? h.link_to('Create Order', [:new, :admin, object, :order], class: 'tiny button') : '(Inactive)'
+    order_action = object.active? ? h.link_to('Create Order', [:new, :admin, object, :order], class: 'tiny button') : '(Inactive)'
+    edit_action = h.link_to('Edit', [:edit, :admin, object], class: 'tiny button')
+    h.safe_join([order_action, edit_action], ' ')
   end
 
   # Define presentation-specific methods here. Helpers are accessed through
