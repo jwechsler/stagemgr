@@ -93,7 +93,7 @@ RSpec.describe MembershipUsageReport do
 
   describe '#create excluding the current month' do
     let(:this_month) { Time.current.change(day: 1, hour: 12) }
-    let(:last_month) { (Time.current - 1.month).change(day: 15, hour: 12) }
+    let(:last_month) { 1.month.ago.change(day: 15, hour: 12) }
 
     subject(:months) do
       described_class.new(last_month.to_date, this_month.to_date.at_end_of_month)
@@ -112,7 +112,7 @@ RSpec.describe MembershipUsageReport do
     end
 
     it 'still includes prior complete months' do
-      expect(months).to include((Time.current - 1.month).strftime('%Y-%m'))
+      expect(months).to include(1.month.ago.strftime('%Y-%m'))
     end
   end
 

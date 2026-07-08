@@ -88,7 +88,7 @@ RSpec.describe OfferSearch do
     end
 
     it 'labels offers with their restriction' do
-      labels = searcher.search('Pass').reject { |r| r[:group_key] }.map { |r| r[:label] }
+      labels = searcher.search('Pass').reject { |r| r[:group_key] }.pluck(:label)
       expect(labels).to include('Wit Pass — Only Steppenwolf', 'Roving Pass — All but Steppenwolf',
                                 'Anywhere Pass')
     end
