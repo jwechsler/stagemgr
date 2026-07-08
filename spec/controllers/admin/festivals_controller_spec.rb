@@ -33,6 +33,20 @@ RSpec.describe Admin::FestivalsController, type: :controller do
 
         expect(response.body).to include(festival_url('fringe-fest'))
       end
+
+      it 'lists member productions with their dates, ordered by preview date' do
+        second = FactoryBot.create(:production, name: 'Later Show', festival: festival,
+                                                first_preview_at: Date.new(2026, 8, 1),
+                                                closing_at: Date.new(2026, 8, 9))
+        first = FactoryBot.create(:production, name: 'Earlier Show', festival: festival,
+                                               first_preview_at: Date.new(2026, 7, 8),
+                                               closing_at: Date.new(2026, 7, 15))
+
+        get :show, params: { id: festival.id }
+
+        expect(response.body).to include('July 8 – July 15, 2026')
+        expect(response.body.index(first.name)).to be < response.body.index(second.name)
+      end
     end
 
     describe 'GET #new' do

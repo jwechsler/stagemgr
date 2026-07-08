@@ -30,13 +30,7 @@ class Festival < ApplicationRecord
   end
 
   def formatted_date_range
-    from, to = date_range
-    return nil if from.nil? && to.nil?
-    return from.strftime('%B %-d, %Y') if to.nil? || from == to
-    return to.strftime('through %B %-d, %Y') if from.nil?
-    return "#{from.strftime('%B %-d')} – #{to.strftime('%B %-d, %Y')}" if from.year == to.year
-
-    "#{from.strftime('%B %-d, %Y')} – #{to.strftime('%B %-d, %Y')}"
+    DateRangeDisplay.format(*date_range)
   end
 
   # The member shows with the soonest upcoming performances
