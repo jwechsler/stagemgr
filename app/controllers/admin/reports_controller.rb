@@ -161,7 +161,10 @@ class Admin::ReportsController < Admin::ApplicationController
     end
   end
 
-  # Exports production attendees segmented for TRG Arts. Includes email opt-in attendees
+  # Exports production attendees segmented for TRG Arts. Includes email opt-in attendees.
+  # NOTE: left single-production intentionally — the TRG segmentation logic is
+  # per-production and not trivially multi-production; the attendee/sales reports
+  # cover the multi-production/festival case.
   def trg_dump
     production = Production.find(params[:report][:production_id])
     Resque.enqueue(TrgProductionAttendeeExportJob, production.nil? ? 0 : production.id, current_user.id,
@@ -202,8 +205,15 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def production_sales_by_performance
-    @production = Production.accessible_by(current_ability, :read).find(params[:report][:production_id])
-    report = SalesByPerformanceReport.new([@production], !params['download_csv'].nil?)
+    # New multi-select param, with a fallback to the legacy single production_id
+    # (older bookmarks / per-production "Sales" links).
+    production_ids = production_ids_param(:production_ids)
+    production_ids = production_ids_param(:production_id) if production_ids.empty?
+    raise ReportProcessor::ParameterError, 'Select at least one production' if production_ids.empty?
+
+    @productions = Production.where(id: production_ids)
+    @report_title = productions_report_title(@productions)
+    report = SalesByPerformanceReport.new(@productions.to_a, !params['download_csv'].nil?)
     @headers, @report_data = report.create
     if params['download_csv'].nil?
       respond_to do |format|
@@ -292,8 +302,10 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def order_dump
-    production = Production.accessible_by(current_ability, :read).find(params[:report][:production_id])
-    Resque.enqueue(ProductionAttendeeExport, production.id, can?(:view_email, Address), current_user.id)
+    production_ids = production_ids_param(:production_ids)
+    raise ReportProcessor::ParameterError, 'Select at least one production' if production_ids.empty?
+
+    Resque.enqueue(ProductionAttendeeExport, production_ids, can?(:view_email, Address), current_user.id)
     flash[:notice] = "Your export is queued for generation. You'll recieve notification when the process is complete."
     redirect_to admin_reports_path
   end
@@ -348,6 +360,25 @@ class Admin::ReportsController < Admin::ApplicationController
   # current user may report on; an empty result means "no restriction".
   def offer_ids_param(key, kind)
     OfferSearch.new(current_ability, kind).permitted_ids(params[key])
+  end
+
+  # Narrows request-supplied production ids (from report[<key>] / [<key>][])
+  # to productions the current user may report on; drops everything else.
+  def production_ids_param(key)
+    ProductionSearch.new(current_ability, 'reports').permitted_ids(params.dig(:report, key))
+  end
+
+  # Display title for a multi-production report: the single name, the shared
+  # festival name when every production belongs to one festival, else generic.
+  def productions_report_title(productions)
+    return productions.first.name if productions.one?
+
+    festival_ids = productions.map(&:festival_id).uniq
+    if festival_ids.length == 1 && festival_ids.first.present?
+      Festival.find(festival_ids.first).name
+    else
+      'Selected Productions'
+    end
   end
 
   def send_report_as_csv(title, headers, data)

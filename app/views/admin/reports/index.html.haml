@@ -14,7 +14,7 @@
     = form_tag(production_sales_by_performance_admin_reports_path, :method=>"post") do
       .grid-x.grid-padding-x.collapse
         .small-8.cell
-          = render 'shared/components/production_picker', field_name: 'report[production_id]', scope: :reports, required: true
+          = render 'shared/components/production_multi_picker', field_name: 'report[production_ids]', scope: :reports
         .small-4.cell
           = submit_tag "Show", :class=>'tiny button postfix'
           &nbsp;
@@ -53,7 +53,7 @@
     = form_tag(order_dump_admin_reports_path, :method=>"post") do
       .grid-x.grid-padding-x.collapse
         .small-8.cell
-          = render 'shared/components/production_picker', field_name: 'report[production_id]', scope: :reports, required: true
+          = render 'shared/components/production_multi_picker', field_name: 'report[production_ids]', scope: :reports
         .small-4.cell
           = submit_tag "Download", :name=>'download_csv', :class=>'tiny button'
 

@@ -32,6 +32,8 @@ class ProductionSearch
                     ordered_scope.where(season: value.to_i)
                   when 'theater'
                     ordered_scope.where(theater_id: value.to_i)
+                  when 'festival'
+                    ordered_scope.where(festival_id: value.to_i)
                   when 'tag'
                     tagged_theater_ids = TheaterTag.where('LOWER(name) = ?', value.to_s.downcase)
                                                    .distinct.pluck(:theater_id)
@@ -41,6 +43,16 @@ class ProductionSearch
                   end
 
     productions.map { |p| production_entry(p) }
+  end
+
+  # Narrows a request-supplied array of production ids to those the current
+  # user may report on (authorized + in-scope); everything else is dropped
+  # silently. Mirrors OfferSearch#permitted_ids.
+  def permitted_ids(ids)
+    ids = Array(ids).map(&:to_i).select(&:positive?)
+    return [] if ids.empty?
+
+    @base_scope.where(id: ids).pluck(:id)
   end
 
   private
@@ -58,6 +70,15 @@ class ProductionSearch
            .where('LOWER(name) LIKE :q', q: q)
            .each do |theater|
       results << { group_key: "theater:#{theater.id}", label: "All shows by #{theater.name}" }
+    end
+
+    # Festivals with at least one production in scope (name-matched).
+    accessible_festival_ids = @base_scope.where.not(festival_id: nil).distinct.pluck(:festival_id)
+    Festival.where(id: accessible_festival_ids)
+            .where('LOWER(name) LIKE :q', q: q)
+            .order(:name)
+            .each do |festival|
+      results << { group_key: "festival:#{festival.id}", label: "All shows in #{festival.name}" }
     end
 
     # Dedup tags case-insensitively, preserving the first casing encountered.

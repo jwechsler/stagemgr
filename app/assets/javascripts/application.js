@@ -15,6 +15,7 @@
 //= require autocomplete-rails
 //= require grouped_typeahead
 //= require production_picker
+//= require production_multi_picker
 //= require offer_picker
 //= require tagify
 //= require theater_tags
