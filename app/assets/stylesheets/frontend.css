@@ -343,8 +343,13 @@ p .company_class {
 .production_festival_note {
   font-size: 80%;
   font-style: italic;
-  margin-top: -0.75em;
   margin-bottom: 1em;
+}
+
+/* Tuck the note up under the date line when one precedes it (show listings);
+   embed thumbs have no date line and keep normal flow. */
+.production_dates + .production_festival_note {
+  margin-top: -0.75em;
 }
 
 .production_logo {
