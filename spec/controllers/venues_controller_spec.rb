@@ -13,7 +13,7 @@ RSpec.describe VenuesController, type: :controller do
                       festival: festival)
   end
 
-  def next_up_play(venue)
+  def next_up_play(venue, festival: nil)
     open = Date.today + 2.weeks
     FactoryBot.create(:production,
                       venue: venue,
@@ -22,22 +22,54 @@ RSpec.describe VenuesController, type: :controller do
                       first_preview_at: open,
                       opening_at: open,
                       press_opening_at: open,
-                      closing_at: open + 2.weeks)
+                      closing_at: open + 2.weeks,
+                      festival: festival)
   end
 
   describe 'GET #now_playing' do
     let(:venue) { FactoryBot.create(:venue) }
     let(:festival) { FactoryBot.create(:festival) }
 
-    it 'partitions active-festival members into @festival_blocks instead of thumbs' do
+    it 'partitions grouped festival members into @festival_blocks instead of thumbs' do
       member = now_playing_play(venue, festival: festival)
+      other_member = now_playing_play(venue, festival: festival)
 
       get :now_playing
 
       blocks = assigns(:festival_blocks)
       expect(blocks.size).to eq(1)
       expect(blocks.first[:festival]).to eq(festival)
-      expect(assigns(:now_playing_productions)).not_to include(member)
+      expect(assigns(:now_playing_productions)).not_to include(member, other_member)
+    end
+
+    it 'lets a festival lone remaining show occupy the venue slot as a regular thumb' do
+      only_member = now_playing_play(venue, festival: festival)
+
+      get :now_playing
+
+      expect(assigns(:festival_blocks)).to be_empty
+      expect(assigns(:now_playing_productions)).to include(only_member)
+    end
+
+    it 'shows a lone upcoming festival show as the venue next-up thumb' do
+      only_member = next_up_play(venue, festival: festival)
+
+      get :now_playing
+
+      expect(assigns(:festival_blocks)).to be_empty
+      expect(assigns(:now_playing_productions)).to include(only_member)
+    end
+
+    it 'blocks a festival whose shows are all still upcoming instead of dropping it' do
+      soonest = next_up_play(venue, festival: festival)
+      next_up_play(venue, festival: festival)
+
+      get :now_playing
+
+      blocks = assigns(:festival_blocks)
+      expect(blocks.size).to eq(1)
+      expect(blocks.first[:festival]).to eq(festival)
+      expect(assigns(:now_playing_productions)).not_to include(soonest)
     end
 
     it 'exposes featured and full production lists per block' do
@@ -53,7 +85,8 @@ RSpec.describe VenuesController, type: :controller do
       expect(block[:all].to_a).to include(extra)
     end
 
-    it 'surfaces the venue next non-festival show when the current show is in the festival' do
+    it 'surfaces the venue next non-festival show when the current shows are in the festival' do
+      now_playing_play(venue, festival: festival)
       now_playing_play(venue, festival: festival)
       upcoming = next_up_play(venue)
 

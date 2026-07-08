@@ -149,6 +149,16 @@ class Production < ApplicationRecord
     closing_at.present? && closing_at < Date.today
   end
 
+  # True while this show belongs inside its festival's grouped callout/block
+  # rather than the regular listings: the festival must be active and still
+  # have more than one upcoming show. A festival's lone remaining show rides
+  # the normal listing flow again.
+  def festival_grouped?
+    return false unless festival&.active?
+
+    festival.upcoming_productions.many?
+  end
+
   def visible?
     Production.visible_statuses.include?(status)
   end

@@ -77,6 +77,44 @@ RSpec.describe Festival, type: :model do
     end
   end
 
+  describe '#upcoming_productions' do
+    it 'includes visible members that have not closed and excludes the rest' do
+      festival = FactoryBot.create(:festival)
+      upcoming = FactoryBot.create(:production, festival: festival, closing_at: Date.today + 1.week)
+      FactoryBot.create(:production, festival: festival, closing_at: Date.today - 1.day)
+      FactoryBot.create(:production, festival: festival, status: Production::INACTIVE)
+
+      expect(festival.upcoming_productions).to contain_exactly(upcoming)
+    end
+  end
+
+  describe 'Production#festival_grouped?' do
+    it 'is true while an active festival has multiple upcoming shows' do
+      festival = FactoryBot.create(:festival)
+      member = FactoryBot.create(:production, festival: festival, closing_at: Date.today + 1.week)
+      FactoryBot.create(:production, festival: festival, closing_at: Date.today + 2.weeks)
+
+      expect(member.festival_grouped?).to be true
+    end
+
+    it 'is false for a festival lone remaining show' do
+      festival = FactoryBot.create(:festival)
+      member = FactoryBot.create(:production, festival: festival, closing_at: Date.today + 1.week)
+      FactoryBot.create(:production, festival: festival, closing_at: Date.today - 1.day)
+
+      expect(member.festival_grouped?).to be false
+    end
+
+    it 'is false for inactive festivals and non-members' do
+      inactive = FactoryBot.create(:festival, :inactive)
+      member = FactoryBot.create(:production, festival: inactive)
+      loose = FactoryBot.create(:production)
+
+      expect(member.festival_grouped?).to be false
+      expect(loose.festival_grouped?).to be false
+    end
+  end
+
   describe '#public_productions' do
     it 'only includes visible, publicly sellable member productions' do
       festival = FactoryBot.create(:festival)

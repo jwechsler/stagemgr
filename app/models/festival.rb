@@ -48,6 +48,13 @@ class Festival < ApplicationRecord
     productions.visible.sellable_to_public.order(:first_preview_at)
   end
 
+  # Members that still have dates ahead of them. Drives whether the festival
+  # warrants a grouped callout/block (2+) or its lone remaining show returns
+  # to the regular listings.
+  def upcoming_productions
+    productions.select { |production| production.visible? && !production.closed? }
+  end
+
   # Festivals can span producing companies; theaters derive from members
   def theaters
     Theater.where(id: productions.select(:theater_id).distinct).order(:name)
