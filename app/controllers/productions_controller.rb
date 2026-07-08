@@ -1,6 +1,10 @@
 class ProductionsController < ApplicationController
   layout Rails.configuration.x.server_config['ext_site_wrapper']
 
+  # A run of festival member productions collapses into a single branded band
+  # on the box office page; +productions+ are the members within one section.
+  FestivalBand = Struct.new(:festival, :productions)
+
   prepend_before_action :find_theater, except: %i[index upcoming now_playing box_office by_date show]
   before_action :find_production, only: %i[edit update destroy]
 
@@ -37,21 +41,26 @@ class ProductionsController < ApplicationController
   end
 
   def box_office
-    @now_playing = now_playing_by_venue(Production::PLAY) + now_playing_by_venue(Production::OFF_TIME) + now_playing_by_venue(Production::SPECIAL_EVENT)
+    now_playing = now_playing_by_venue(Production::PLAY) + now_playing_by_venue(Production::OFF_TIME) + now_playing_by_venue(Production::SPECIAL_EVENT)
     end_of_week = Date.today.end_of_week
     three_months_from_now = (end_of_week + 2.months).end_of_month
     upcoming_shows = Production.opening_after(end_of_week).visible.order(
       :first_preview_at
     )
-    @coming_soon = []
-    @long_term = []
+    coming_soon = []
+    long_term = []
     upcoming_shows.each do |prod|
       if prod.first_playing_date <= three_months_from_now
-        @coming_soon << prod
+        coming_soon << prod
       else
-        @long_term << prod
+        long_term << prod
       end
     end
+    # Collapse active-festival members into bands so they never render as loose
+    # cards; the band appears wherever its first member falls in each section.
+    @now_playing = collapse_festival_bands(now_playing)
+    @coming_soon = collapse_festival_bands(coming_soon)
+    @long_term = collapse_festival_bands(long_term)
   end
 
   # GET /productions/1
@@ -137,5 +146,24 @@ class ProductionsController < ApplicationController
       now_playing_productions += prods
     end
     now_playing_productions
+  end
+
+  # Walk an ordered production list and emit a FestivalBand once per active
+  # festival (at its first member's position), skipping that festival's later
+  # members. Productions without an active festival pass through unchanged.
+  def collapse_festival_bands(productions)
+    members_by_festival = productions.select { |p| p.festival&.active? }.group_by(&:festival)
+    seen = Set.new
+    productions.each_with_object([]) do |production, entries|
+      festival = production.festival if production.festival&.active?
+      if festival
+        next if seen.include?(festival.id)
+
+        seen << festival.id
+        entries << FestivalBand.new(festival, members_by_festival[festival])
+      else
+        entries << production
+      end
+    end
   end
 end

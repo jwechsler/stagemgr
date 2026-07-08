@@ -7,11 +7,13 @@ class Venue < ApplicationRecord
     productions.select { |p| p.now_playing?(through) && p.visible? && p.production_class == production_class }
   end
 
-  def now_playing_or_next_up(production_class, through = nil)
+  def now_playing_or_next_up(production_class, through = nil, exclude_festival: false)
     prods = now_playing(production_class, through)
+    prods = prods.reject { |p| p.festival&.active? } if exclude_festival
     if prods.empty?
       future_prods = productions.select do |p|
-        p.first_playing_date > Date.today && p.visible? && p.production_class == production_class
+        p.first_playing_date > Date.today && p.visible? && p.production_class == production_class &&
+          (!exclude_festival || !p.festival&.active?)
       end.sort { |p1, p2| p1.first_preview_at <=> p2.first_preview_at }
       prods = [future_prods.first] unless future_prods.empty?
     end

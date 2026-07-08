@@ -1,0 +1,21 @@
+- festival = block[:festival]
+- featured = block[:featured]
+- all_shows = block[:all]
+- count = all_shows.size
+.festival-block{:class=>"background-#{background}"}
+  - if festival.box_office_image.attached?
+    = image_tag festival.decorate.box_office_image_url(Production::MEDIUM), :class=>"festival-block__image", :alt=>festival.name
+  %div.festival-block__name= festival.name
+  %div.festival-block__meta
+    = "#{count} #{'show'.pluralize(count)}"
+    - if festival.formatted_date_range
+      = "· #{festival.formatted_date_range}"
+  - featured.each do |production|
+    %div.festival-block__featured
+      = link_to production.name, production_performances_path(production.id, :anchor=>"top")
+  - if count > 0
+    %details.festival-full-list
+      %summary= "See all #{count} #{'show'.pluralize(count)}"
+      %ul
+        - all_shows.each do |production|
+          %li= link_to production.name, production_performances_path(production.id, :anchor=>"top")
