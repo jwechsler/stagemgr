@@ -1,0 +1,38 @@
+require 'rails_helper'
+
+RSpec.describe FestivalsController, type: :controller do
+  render_views
+
+  describe 'GET #show' do
+    it 'renders the festival when active with the landing page enabled' do
+      festival = FactoryBot.create(:festival, :with_landing_page, status: Festival::ACTIVE, slug: 'fringe-fest')
+
+      get :show, params: { slug: festival.slug }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include(festival.name)
+    end
+
+    it 'returns 404 when the landing page is disabled' do
+      festival = FactoryBot.create(:festival, status: Festival::ACTIVE, landing_page_enabled: false, slug: 'fringe-fest-2')
+
+      get :show, params: { slug: festival.slug }
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'returns 404 when the festival is inactive' do
+      festival = FactoryBot.create(:festival, :with_landing_page, status: Festival::INACTIVE)
+
+      get :show, params: { slug: festival.slug }
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'returns 404 for an unknown slug' do
+      get :show, params: { slug: 'no-such-festival' }
+
+      expect(response).to have_http_status(:not_found)
+    end
+  end
+end

@@ -190,5 +190,44 @@ RSpec.describe OrderMailer, type: :mailer do
         expect(conference_mail.body.encoded).to match(/#{time_format}\s*(AM|PM)/i)
       end
     end
+
+    describe '"Also playing" sidebar' do
+      def eligible_production(**attrs)
+        FactoryBot.create(:production, {
+          theater: theater,
+          venue: venue,
+          status: Production::ACTIVE,
+          production_class: Production::PLAY,
+          opening_at: Date.today,
+          first_preview_at: Date.today,
+          closing_at: Time.now.end_of_week + 2.weeks
+        }.merge(attrs))
+      end
+
+      it 'renders an active festival once, linking to its landing page when enabled' do
+        festival = FactoryBot.create(:festival, status: Festival::ACTIVE, landing_page_enabled: true,
+                                                slug: 'fringe-fest')
+        first_member = eligible_production(festival: festival)
+        eligible_production(festival: festival)
+
+        mail = OrderMailer.ticket_confirmation(regular_order)
+
+        expect(mail.body.encoded.scan(festival.name).size).to eq(1)
+        expect(mail.body.encoded).not_to include(first_member.name)
+        expect(mail.body.encoded).to include('/festivals/fringe-fest')
+      end
+
+      it 'links to the box office anchor when the landing page is disabled' do
+        festival = FactoryBot.create(:festival, status: Festival::ACTIVE, landing_page_enabled: false)
+        eligible_production(festival: festival)
+        eligible_production(festival: festival)
+
+        mail = OrderMailer.ticket_confirmation(regular_order)
+
+        expect(mail.body.encoded.scan(festival.name).size).to eq(1)
+        expect(mail.body.encoded).to include("/productions/box_office")
+        expect(mail.body.encoded).to include("festival-#{festival.id}")
+      end
+    end
   end
 end

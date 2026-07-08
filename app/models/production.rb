@@ -223,14 +223,46 @@ class Production < ApplicationRecord
     Production.where('ifnull(productions.first_preview_at,productions.opening_at) > ?', after_date)
   end
 
+  # LEGACY (pre-Festival): sole caller was order_mailer/_also_playing, which now
+  # uses #additional_upcoming_entries so an active festival occupies a single
+  # lottery slot instead of one slot per member show. Kept for compatibility.
   def self.additional_upcoming(order)
+    additional_upcoming_scope(order).limit(3)
+  end
+
+  # Same eligibility filters and rand-order as #additional_upcoming, but returns
+  # every matching production (no LIMIT) so festival membership can be collapsed
+  # in Ruby: the first member of an ACTIVE festival encountered becomes that
+  # Festival (occupying a single lottery slot), later members of the same
+  # festival are skipped, and members of an INACTIVE festival pass through as
+  # plain productions. Returns a mixed [Production, Festival] list, capped at 3.
+  def self.additional_upcoming_entries(order)
+    entries = []
+    seen_festival_ids = []
+    additional_upcoming_scope(order).each do |production|
+      festival = production.festival
+      if festival&.active?
+        next if seen_festival_ids.include?(festival.id)
+
+        seen_festival_ids << festival.id
+        entries << festival
+      else
+        entries << production
+      end
+      break if entries.size >= 3
+    end
+    entries.first(3)
+  end
+
+  def self.additional_upcoming_scope(order)
     Production.where("closing_at > :after_date and opening_at < :future_date and status in (:visible) and production_class in (:visible_classes) and not exists (select * from performances where status!='Inactive' and performances.production_id = productions.id and performances.id in (select performance_id from orders where address_id = :order_address))",
                      { :visible => Production.visible_statuses,
                        :visible_classes => [Production::PLAY],
                        :after_date => Time.now.end_of_week,
                        :future_date => (Time.now + 3.month),
-                       :order_address => order.address.id }).order(Rails.configuration.x.rand_clause).limit(3)
+                       :order_address => order.address.id }).order(Rails.configuration.x.rand_clause)
   end
+  private_class_method :additional_upcoming_scope
 
   def self.running_week_of(check_date)
     start_of_week = check_date.beginning_of_week

@@ -1,0 +1,19 @@
+.festival-band{:id=>"festival-#{@festival.id}"}
+  .grid-x.grid-padding-x
+    .small-12.cell
+      .festival-band__header
+        - if @festival.box_office_image.attached?
+          = image_tag @festival.decorate.box_office_image_url(Production::LARGE), :class=>"festival-band__image", :alt=>@festival.name
+        %h1.festival-band__name= @festival.name
+        - if @festival.formatted_date_range
+          %p.festival-band__dates= @festival.formatted_date_range
+        - unless @festival.description.blank?
+          .festival-band__description= display_markdown(@festival.description)
+
+      - festival_offer = @festival.flex_pass_offers.detect(&:on_sale_to_public?)
+      - if festival_offer
+        %div.special_offer_upsell
+          = link_to festival_offer.short_description, new_flex_pass_offer_order_path(festival_offer) unless festival_offer.short_description.blank?
+          or, purchase tickets for an individual show below
+
+  = render :partial=>'productions/list_in_row', :locals=>{:productions=>@festival.public_productions, :across=>3}
