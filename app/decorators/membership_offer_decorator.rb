@@ -18,9 +18,13 @@ class MembershipOfferDecorator < ApplicationDecorator
       else
         h.content_tag(:span, 'Create Order', class: 'tiny button disabled', 'aria-disabled': true)
       end
-    edit_action = h.link_to('Edit', [:edit, :admin, object], class: 'tiny button')
-    usage_action = h.link_to('Usage', h.membership_offer_usage_admin_reports_path(object), class: 'tiny button')
-    h.safe_join([edit_action, order_action, usage_action], ' ')
+    actions = []
+    # Membership offers are administrator-managed; box office staff only view
+    # them and create orders.
+    actions << h.link_to('Edit', [:edit, :admin, object], class: 'tiny button') if h.current_user.can?(:update, object)
+    actions << order_action
+    actions << h.link_to('Usage', h.membership_offer_usage_admin_reports_path(object), class: 'tiny button')
+    h.safe_join(actions, ' ')
   end
 
   # Define presentation-specific methods here. Helpers are accessed through
