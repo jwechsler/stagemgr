@@ -6,6 +6,6 @@ class FestivalsController < ApplicationController
   end
 
   def show
-    @festival = Festival.active.where(landing_page_enabled: true).find_by!(slug: params[:slug])
+    @festival = Festival.active.where(landing_page_enabled: true).find_by!(url_name: params[:url_name])
   end
 end

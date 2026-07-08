@@ -44,7 +44,7 @@ class Admin::FestivalsController < Admin::ApplicationController
   private
 
   def festival_params
-    params.require(:festival).permit(:name, :slug, :description, :short_description, :status,
-                                     :starts_on, :ends_on, :landing_page_enabled, :box_office_image)
+    params.require(:festival).permit(:name, :url_name, :description, :short_description, :status,
+                                     :landing_page_enabled, :box_office_image)
   end
 end

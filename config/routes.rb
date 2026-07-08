@@ -131,7 +131,7 @@ Rails.application.routes.draw do
 
   get '/productions/box_office', to: 'productions#box_office', as: 'box_office_productions'
 
-  get '/festivals/:slug', to: 'festivals#show', as: 'festival', constraints: { slug: /[a-z0-9-]+/ }
+  get '/festivals/:url_name', to: 'festivals#show', as: 'festival', constraints: { url_name: /[a-z0-9-]+/ }
 
   get '/productions/by_date',
       controller: 'productions',

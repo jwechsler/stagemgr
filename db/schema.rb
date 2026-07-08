@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_07_08_090200) do
+ActiveRecord::Schema.define(version: 2026_07_08_150000) do
 
   create_table "active_storage_attachments", charset: "utf8mb3", force: :cascade do |t|
     t.string "name", null: false
@@ -146,17 +146,15 @@ ActiveRecord::Schema.define(version: 2026_07_08_090200) do
 
   create_table "festivals", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name", null: false
-    t.string "slug"
+    t.string "url_name"
     t.text "description"
     t.string "short_description"
-    t.date "starts_on"
-    t.date "ends_on"
     t.string "status", default: "Active", null: false
     t.boolean "landing_page_enabled", default: false, null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.index ["slug"], name: "index_festivals_on_slug", unique: true
     t.index ["status"], name: "index_festivals_on_status"
+    t.index ["url_name"], name: "index_festivals_on_url_name", unique: true
   end
 
   create_table "file_stores", id: :integer, charset: "latin1", force: :cascade do |t|

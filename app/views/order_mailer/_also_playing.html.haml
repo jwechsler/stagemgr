@@ -6,12 +6,12 @@
       %td.center.panel
         - if entry.is_a?(Festival)
           %span.production_name
-            %a{:href=>(entry.landing_page_enabled? ? festival_url(entry.slug) : box_office_productions_url(anchor: "festival-#{entry.id}"))}
+            %a{:href=>(entry.landing_page_enabled? ? festival_url(entry.url_name) : box_office_productions_url(anchor: "festival-#{entry.id}"))}
               =entry.name
           %br
           - if entry.decorate.box_office_image_url(Production::THUMB).present?
             %span{:style=>'width:100%; height:100%; display: flex; align-items: center; justify-content: center;'}
-              %a{:href=>(entry.landing_page_enabled? ? festival_url(entry.slug) : box_office_productions_url(anchor: "festival-#{entry.id}")), :align=>'center'}
+              %a{:href=>(entry.landing_page_enabled? ? festival_url(entry.url_name) : box_office_productions_url(anchor: "festival-#{entry.id}")), :align=>'center'}
                 %img{:src=>"#{entry.decorate.box_office_image_url(Production::THUMB)}",:width=>"100%"}
           - unless entry.short_description.blank?
             %span.tag_line= entry.short_description

@@ -62,7 +62,11 @@
 
           %div.grid-x.grid-padding-x
             %div.small-6.cell
-              = f.association :festival, collection: Festival.order(:name), include_blank: true
+              - # Only active festivals are offered, so the list stays short as festivals
+              - # accumulate; the current assignment is always included (even once
+              - # inactive) so historical productions render and save correctly.
+              - festival_choices = (Festival.active.to_a | [f.object.festival].compact).sort_by(&:name)
+              = f.association :festival, collection: festival_choices, include_blank: true, hint: "Link to a festival"
 
               - # LEGACY (pre-Festival): flex_pass_offer_id predates the Festival model. Only
               - # shown for productions still pointing at a legacy festival-pass offer so the

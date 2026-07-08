@@ -10,11 +10,11 @@ class Festival < ApplicationRecord
 
   validates :name, presence: true
   validates :status, inclusion: { in: FESTIVAL_STATUSES }
-  validates :slug, uniqueness: true, allow_blank: true,
-                   format: { with: /\A[a-z0-9-]+\z/, allow_blank: true }
-  validates :slug, presence: true, if: :landing_page_enabled?
+  validates :url_name, uniqueness: true, allow_blank: true,
+                       format: { with: /\A[a-z0-9-]+\z/, allow_blank: true }
+  validates :url_name, presence: true, if: :landing_page_enabled?
 
-  before_validation :default_slug_from_name
+  before_validation :default_url_name_from_name
 
   scope :active, -> { where(status: ACTIVE) }
 
@@ -22,14 +22,9 @@ class Festival < ApplicationRecord
     status == ACTIVE
   end
 
-  # Stored marketing dates preferred; falls back to dates derived from
-  # member productions. Returns [start, end]; either may be nil.
+  # Always derived from the member productions — festivals carry no stored
+  # dates of their own. Returns [start, end]; either may be nil.
   def date_range
-    derived_start, derived_end = derived_date_range
-    [starts_on || derived_start, ends_on || derived_end]
-  end
-
-  def derived_date_range
     [productions.map(&:first_playing_date).min,
      productions.filter_map(&:effective_closing_at).max]
   end
@@ -37,10 +32,11 @@ class Festival < ApplicationRecord
   def formatted_date_range
     from, to = date_range
     return nil if from.nil? && to.nil?
-    return from.strftime('%B %-d, %Y') if to.nil?
+    return from.strftime('%B %-d, %Y') if to.nil? || from == to
     return to.strftime('through %B %-d, %Y') if from.nil?
+    return "#{from.strftime('%B %-d')} – #{to.strftime('%B %-d, %Y')}" if from.year == to.year
 
-    "#{from.strftime('%B %-d')} – #{to.strftime('%B %-d, %Y')}"
+    "#{from.strftime('%B %-d, %Y')} – #{to.strftime('%B %-d, %Y')}"
   end
 
   # The member shows with the soonest upcoming performances
@@ -73,10 +69,10 @@ class Festival < ApplicationRecord
 
   private
 
-  def default_slug_from_name
-    return if slug.present? || name.blank?
+  def default_url_name_from_name
+    return if url_name.present? || name.blank?
 
-    self.slug = name.parameterize
+    self.url_name = name.parameterize
   end
 
   def correct_box_office_image_mime_type

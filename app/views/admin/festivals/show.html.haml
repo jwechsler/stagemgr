@@ -12,19 +12,25 @@
       %br
       %b Landing page:
       = @festival.landing_page_enabled? ? 'Enabled' : 'Disabled'
-      - if @festival.landing_page_enabled? && @festival.slug.present?
-        (<code>#{@festival.slug}</code>)
       %br
-      %b Stored date range:
-      - stored_from, stored_to = [@festival.starts_on, @festival.ends_on]
-      = stored_from.present? || stored_to.present? ? "#{stored_from} – #{stored_to}" : 'Not set'
-      %br
-      %b Derived date range:
-      - derived_from, derived_to = @festival.derived_date_range
-      = derived_from.present? || derived_to.present? ? "#{derived_from} – #{derived_to}" : 'No member productions with dates'
-      %br
-      %b Displayed date range:
-      = @festival.formatted_date_range || 'Not set'
+      %b Dates:
+      = @festival.formatted_date_range || 'No member productions with dates yet'
+    - if @festival.landing_page_enabled? && @festival.url_name.present?
+      - landing_url = festival_url(@festival.url_name)
+      %p
+        %b Landing page URL:
+        = link_to landing_url, landing_url, target: '_blank', rel: 'noopener'
+        %button.tiny.button.copy-landing-url{ type: 'button', data: { url: landing_url } } Copy
+        - unless @festival.active?
+          %em (returns 404 to the public while the festival is Inactive)
+      :javascript
+        document.querySelector('.copy-landing-url').addEventListener('click', function () {
+          var button = this;
+          navigator.clipboard.writeText(button.dataset.url).then(function () {
+            button.textContent = 'Copied!';
+            setTimeout(function () { button.textContent = 'Copy'; }, 2000);
+          });
+        });
 
     - if @festival.short_description.present?
       %p= @festival.short_description

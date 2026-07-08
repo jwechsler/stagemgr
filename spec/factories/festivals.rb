@@ -2,8 +2,6 @@ FactoryBot.define do
   factory :festival do
     sequence(:name) { |n| "Festival ##{n}" }
     status { Festival::ACTIVE }
-    starts_on { Date.today }
-    ends_on { Date.today + 3.weeks }
     short_description { 'A celebration of remarkable performance' }
     description { 'An extended description of the festival and its offerings.' }
 

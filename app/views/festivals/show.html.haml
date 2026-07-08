@@ -12,8 +12,12 @@
 
       - festival_offer = @festival.flex_pass_offers.detect(&:on_sale_to_public?)
       - if festival_offer
-        %div.special_offer_upsell
-          = link_to festival_offer.short_description, new_flex_pass_offer_order_path(festival_offer) unless festival_offer.short_description.blank?
-          or, purchase tickets for an individual show below
+        .festival-pass-callout
+          %h2.festival-pass-callout__name= festival_offer.name
+          - unless festival_offer.short_description.blank?
+            %p.festival-pass-callout__description= festival_offer.short_description
+          %p.festival-pass-callout__actions
+            = link_to "Buy a #{festival_offer.name} — #{festival_offer.formatted_price}", new_flex_pass_offer_order_path(festival_offer), class: 'button'
+            %span.festival-pass-callout__alt or purchase tickets to an individual show below
 
   = render :partial=>'productions/list_in_row', :locals=>{:productions=>@festival.public_productions, :across=>3}

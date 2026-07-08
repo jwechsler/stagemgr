@@ -10,35 +10,30 @@ RSpec.describe Festival, type: :model do
       expect(FactoryBot.build(:festival, status: 'Bogus')).not_to be_valid
     end
 
-    it 'defaults the slug from the name' do
+    it 'defaults the URL name from the name' do
       festival = FactoryBot.create(:festival, name: 'Physical Theatre Festival')
-      expect(festival.slug).to eq('physical-theatre-festival')
+      expect(festival.url_name).to eq('physical-theatre-festival')
     end
 
-    it 'rejects malformed slugs' do
-      expect(FactoryBot.build(:festival, slug: 'Bad Slug!')).not_to be_valid
+    it 'rejects malformed URL names' do
+      expect(FactoryBot.build(:festival, url_name: 'Bad Name!')).not_to be_valid
     end
 
-    it 'requires unique slugs' do
-      FactoryBot.create(:festival, slug: 'fringe')
-      expect(FactoryBot.build(:festival, slug: 'fringe')).not_to be_valid
+    it 'requires unique URL names' do
+      FactoryBot.create(:festival, url_name: 'fringe')
+      expect(FactoryBot.build(:festival, url_name: 'fringe')).not_to be_valid
     end
 
-    it 'requires a slug when the landing page is enabled' do
+    it 'requires a URL name when the landing page is enabled' do
       festival = FactoryBot.build(:festival, :with_landing_page, name: '')
-      festival.slug = ''
+      festival.url_name = ''
       expect(festival).not_to be_valid
     end
   end
 
   describe '#date_range' do
-    it 'prefers stored dates' do
-      festival = FactoryBot.create(:festival, starts_on: Date.new(2026, 6, 4), ends_on: Date.new(2026, 6, 28))
-      expect(festival.date_range).to eq([Date.new(2026, 6, 4), Date.new(2026, 6, 28)])
-    end
-
-    it 'falls back to dates derived from member productions' do
-      festival = FactoryBot.create(:festival, starts_on: nil, ends_on: nil)
+    it 'derives the range from member productions' do
+      festival = FactoryBot.create(:festival)
       FactoryBot.create(:production, festival: festival,
                                      first_preview_at: Date.today + 1.week,
                                      closing_at: Date.today + 3.weeks)
@@ -49,9 +44,36 @@ RSpec.describe Festival, type: :model do
       expect(festival.date_range).to eq([Date.today + 1.week, Date.today + 5.weeks])
     end
 
-    it 'returns nils for an empty festival with no stored dates' do
-      festival = FactoryBot.create(:festival, starts_on: nil, ends_on: nil)
+    it 'returns nils for a festival with no member productions' do
+      festival = FactoryBot.create(:festival)
       expect(festival.date_range).to eq([nil, nil])
+    end
+  end
+
+  describe '#formatted_date_range' do
+    def festival_running(from, to)
+      FactoryBot.create(:festival).tap do |festival|
+        FactoryBot.create(:production, festival: festival, first_preview_at: from, closing_at: to)
+      end
+    end
+
+    it 'shows the year once when the range stays within one year' do
+      festival = festival_running(Date.new(2026, 7, 8), Date.new(2026, 7, 15))
+      expect(festival.formatted_date_range).to eq('July 8 – July 15, 2026')
+    end
+
+    it 'shows both years when the range crosses a year boundary' do
+      festival = festival_running(Date.new(2026, 12, 28), Date.new(2027, 1, 3))
+      expect(festival.formatted_date_range).to eq('December 28, 2026 – January 3, 2027')
+    end
+
+    it 'collapses a single-day festival to one date' do
+      festival = festival_running(Date.new(2026, 7, 8), Date.new(2026, 7, 8))
+      expect(festival.formatted_date_range).to eq('July 8, 2026')
+    end
+
+    it 'is nil without member productions' do
+      expect(FactoryBot.create(:festival).formatted_date_range).to be_nil
     end
   end
 
@@ -98,5 +120,4 @@ RSpec.describe Festival, type: :model do
       expect(festival.theaters).to contain_exactly(theater_one, theater_two)
     end
   end
-
 end

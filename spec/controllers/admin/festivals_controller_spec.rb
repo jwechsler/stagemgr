@@ -25,6 +25,14 @@ RSpec.describe Admin::FestivalsController, type: :controller do
         get :show, params: { id: festival.id }
         expect(response).to have_http_status(:ok)
       end
+
+      it 'shows the full landing page URL when the landing page is enabled' do
+        with_landing = FactoryBot.create(:festival, :with_landing_page, url_name: 'fringe-fest')
+
+        get :show, params: { id: with_landing.id }
+
+        expect(response.body).to include(festival_url('fringe-fest'))
+      end
     end
 
     describe 'GET #new' do

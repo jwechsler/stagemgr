@@ -438,6 +438,42 @@ del.diffmod, del.diffdel { color: #ff9999; }
   margin: 8px auto 0;
 }
 
+/* Festival landing page — flex pass callout above the show list */
+
+.festival-pass-callout {
+  max-width: 640px;
+  margin: 20px auto;
+  padding: 16px 20px;
+  text-align: center;
+  border: 1px solid #77919f;
+  border-left: 6px solid #77919f;
+  background-color: #f4f7f9;
+}
+
+.festival-pass-callout__name {
+  margin: 0 0 4px;
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+.festival-pass-callout__description {
+  margin: 0 0 10px;
+}
+
+.festival-pass-callout__actions {
+  margin: 0;
+}
+
+.festival-pass-callout__actions .button {
+  margin: 0 8px 4px 0;
+}
+
+.festival-pass-callout__alt {
+  font-size: .9em;
+  font-style: italic;
+  white-space: nowrap;
+}
+
 /* Festival grouping — embedded now-playing block */
 
 .festival-block {

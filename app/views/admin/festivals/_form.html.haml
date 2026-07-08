@@ -3,17 +3,9 @@
   .grid-x.grid-padding-x
     .cell.small-8
       = f.input :name
-      = f.input :slug, hint: "Lowercase letters, numbers, and hyphens only. Required when the landing page is enabled."
+      = f.input :url_name, label: 'URL name', hint: "Sets the landing page address (/festivals/<url name>). Lowercase letters, numbers, and hyphens only. Required when the landing page is enabled."
       = f.input :short_description, hint: "255 character max", input_html: { maxlength: 255 }
       = f.input :description, hint: "Long description (markdown enabled)", input_html: { rows: 6 }
-
-      %fieldset.fieldset
-        %legend Dates
-        .grid-x.grid-padding-x
-          .cell.small-6
-            = f.input :starts_on, hint: "Optional; falls back to the earliest member production's opening", input_html: { class: 'date_picker' }, as: :string
-          .cell.small-6
-            = f.input :ends_on, hint: "Optional; falls back to the latest member production's closing", input_html: { class: 'date_picker' }, as: :string
 
       = f.input :status, collection: Festival::FESTIVAL_STATUSES, include_blank: false
       = f.input :landing_page_enabled, label: "Enable public landing page"

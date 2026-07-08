@@ -206,7 +206,7 @@ RSpec.describe OrderMailer, type: :mailer do
 
       it 'renders an active festival once, linking to its landing page when enabled' do
         festival = FactoryBot.create(:festival, status: Festival::ACTIVE, landing_page_enabled: true,
-                                                slug: 'fringe-fest')
+                                                url_name: 'fringe-fest')
         first_member = eligible_production(festival: festival)
         eligible_production(festival: festival)
 
