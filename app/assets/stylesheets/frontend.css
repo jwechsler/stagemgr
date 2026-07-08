@@ -429,6 +429,12 @@ del.diffmod, del.diffdel { color: #ff9999; }
   max-width: 50%;
 }
 
+/* Member cards in the callout run six across, so their text scales down to
+   match; the landing page keeps full-size cards. */
+#box-office .festival-band .show-listing {
+  font-size: 70%;
+}
+
 /* Later This Season — festival represented by its artwork alone */
 
 .festival-image {
