@@ -131,6 +131,8 @@ Rails.application.routes.draw do
 
   get '/productions/box_office', to: 'productions#box_office', as: 'box_office_productions'
 
+  get '/festivals/:url_name', to: 'festivals#show', as: 'festival', constraints: { url_name: /[a-z0-9-]+/ }
+
   get '/productions/by_date',
       controller: 'productions',
       action: 'by_date'
@@ -167,6 +169,8 @@ Rails.application.routes.draw do
       end
       resources :orders, controller: 'flex_pass_offer_orders'
     end
+
+    resources :festivals
 
     resources :membership_offers do
       collection do

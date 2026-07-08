@@ -1,0 +1,30 @@
+= content_for :title do
+  Festivals
+= content_for :breadcrumbs do
+  = render "shared/components/breadcrumb", items: [{ label: "Festivals" }]
+
+.grid-x.grid-padding-x
+  .small-12.cell
+    %table
+      %thead
+        %tr
+          %th Name
+          %th Dates
+          %th Status
+          %th Productions
+          %th Landing Page
+          %th
+      %tbody
+        - @festivals.each do |festival|
+          %tr
+            %td= link_to festival.name, admin_festival_path(festival)
+            %td= festival.formatted_date_range
+            %td= festival.status
+            %td= festival.productions.count
+            %td.text-center= checkmark(festival.landing_page_enabled?)
+            %td
+              = link_to 'Edit', edit_admin_festival_path(festival), class: 'tiny button'
+              - if can? :destroy, festival
+                = link_to 'Destroy', admin_festival_path(festival), data: { confirm: 'Are you sure?' }, method: :delete, class: 'tiny alert button'
+
+    = link_to 'New Festival', new_admin_festival_path, class: 'button' if can? :create, Festival

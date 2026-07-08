@@ -60,6 +60,7 @@ class Ability
     can :read, Performance
     can :read, ServiceItemTemplate
     can :view_backend_classes, TicketClassAllocation
+    can :read, Festival
     can %i[read show_reports], Report
     can :perform_analysis, Analysis unless user.is_box_office_user?
     can %i[autocomplete_production_production_code
@@ -91,6 +92,7 @@ class Ability
     can :cru, FlexPassOrder
     can :manage, TicketClass
     can :manage, FlexPassOffer
+    can %i[read cru], Festival
     can :view_email, Address
     can %i[box_office_reports house_management_reports membership_reports reconciliation_reports], Report
     can %i[create read reactivate cancel update_seating], MembershipOrder
@@ -118,6 +120,7 @@ class Ability
     # below is for admins
     can :perform_analysis, Analysis
     can :manage, MembershipOffer
+    can :manage, Festival
     can :merge_selected, Address
     can :destroy, SeatMap
     can :destroy, Production

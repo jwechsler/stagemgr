@@ -1,14 +1,7 @@
 .production_list
   .grid-x.grid-padding-x
-    - num_pieces = productions.size
     - slice = 12 / across
-    - current_production_index=0
     - productions.each do |production|
       - content_for(:head) do
         = production_image_style(production)
-      - if current_production_index % across == 0
-        %div.grid-x.grid-padding-x
-        = render 'list_item', :production=>production, :slice=>slice
-      - else
-        = render 'list_item', :production=>production, :slice=>slice
-      - current_production_index += 1
+      = render 'productions/list_item', :production=>production, :slice=>slice, :cell_classes=>local_assigns[:cell_classes], :in_festival_panel=>local_assigns[:in_festival_panel]

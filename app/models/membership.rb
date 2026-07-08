@@ -42,6 +42,26 @@ class Membership < ApplicationRecord
       ).count
       raise Exceptions::RepeatVisitsAtDoorOnly.new("Tickets for repeat trips to the same show are based on availability at the door on the day of performance.  To see this show again, just come to the box office with your member pass on #{order.performance.performance_date.strftime("%B %d")} at #{(order.performance.performance_time - 30.minutes).strftime("%I:%M%p")}.") if prod_count > 0
     end
+
+    festival_id = order.performance.production.festival_id
+    cap = membership_offer.max_festival_tickets_in_advance
+    if festival_id.present? && !cap.nil? && !order.box_office_sale
+      requested = order.membership_payments.sum { |li| li.number_of_tickets }
+      if requested > 0
+        already = MembershipPayment.joins(order: { performance: :production }).where(
+          'payments.membership_id = :membership_id and orders.id != :order_id and
+            productions.festival_id = :festival_id and orders.status in (:attending)',
+          membership_id: id,
+          order_id: order.id,
+          festival_id: festival_id,
+          attending: Order::ATTENDING_STATUSES
+        ).sum(:number_of_tickets)
+        if (already + requested) > cap
+          festival = order.performance.production.festival
+          raise Exceptions::FestivalTicketsAtDoorOnly.new("This membership covers #{cap} #{festival.name} ticket#{'s' if cap > 1} in advance. Additional festival tickets are available at the box office on the day of each performance.")
+        end
+      end
+    end
   end
 
   def create_code(size = 6)

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_07_07_120000) do
+ActiveRecord::Schema.define(version: 2026_07_08_150000) do
 
   create_table "active_storage_attachments", charset: "utf8mb3", force: :cascade do |t|
     t.string "name", null: false
@@ -144,6 +144,19 @@ ActiveRecord::Schema.define(version: 2026_07_07_120000) do
     t.decimal "royalty_amount", precision: 8, scale: 2
   end
 
+  create_table "festivals", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "url_name"
+    t.text "description"
+    t.string "short_description"
+    t.string "status", default: "Active", null: false
+    t.boolean "landing_page_enabled", default: false, null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["status"], name: "index_festivals_on_status"
+    t.index ["url_name"], name: "index_festivals_on_url_name", unique: true
+  end
+
   create_table "file_stores", id: :integer, charset: "latin1", force: :cascade do |t|
     t.integer "user_id"
     t.text "notes"
@@ -184,6 +197,8 @@ ActiveRecord::Schema.define(version: 2026_07_07_120000) do
     t.boolean "on_sale_to_public", default: false
     t.string "code_prefix"
     t.integer "maximum_uses_per_production"
+    t.bigint "festival_id"
+    t.index ["festival_id"], name: "index_flex_pass_offers_on_festival_id"
   end
 
   create_table "flex_passes", id: :integer, charset: "latin1", force: :cascade do |t|
@@ -270,6 +285,7 @@ ActiveRecord::Schema.define(version: 2026_07_07_120000) do
     t.integer "max_cycles_if_gift"
     t.string "status", default: "Active"
     t.string "price_id"
+    t.integer "max_festival_tickets_in_advance"
   end
 
   create_table "memberships", id: :integer, charset: "latin1", force: :cascade do |t|
@@ -510,6 +526,8 @@ ActiveRecord::Schema.define(version: 2026_07_07_120000) do
     t.string "custom2"
     t.decimal "royalty_percent", precision: 5, scale: 2
     t.integer "allocation_sync_pending_count", default: 0, null: false
+    t.bigint "festival_id"
+    t.index ["festival_id"], name: "index_productions_on_festival_id"
     t.index ["production_code"], name: "index_productions_on_production_code"
     t.index ["seat_map_id"], name: "index_productions_on_seat_map_id"
   end
@@ -747,6 +765,7 @@ ActiveRecord::Schema.define(version: 2026_07_07_120000) do
   add_foreign_key "address_tags", "addresses", name: "address_tags_to_address", on_delete: :cascade
   add_foreign_key "address_tags", "theaters", name: "address_tags_to_theater", on_delete: :cascade
   add_foreign_key "flex_pass_offer_tags", "flex_pass_offers", on_delete: :cascade
+  add_foreign_key "flex_pass_offers", "festivals", on_delete: :nullify
   add_foreign_key "house_counts", "performances"
   add_foreign_key "line_items", "orders", name: "line_items_to_orders", on_delete: :cascade
   add_foreign_key "line_items", "ticket_classes", name: "line_items_to_ticket_class"
@@ -755,6 +774,7 @@ ActiveRecord::Schema.define(version: 2026_07_07_120000) do
   add_foreign_key "payments", "orders", name: "payments_to_orders", on_delete: :cascade
   add_foreign_key "performance_broadcasts", "performances"
   add_foreign_key "performance_broadcasts", "users"
+  add_foreign_key "productions", "festivals", on_delete: :nullify
   add_foreign_key "rate_of_sales", "productions"
   add_foreign_key "theater_tags", "theaters", on_delete: :cascade
 end

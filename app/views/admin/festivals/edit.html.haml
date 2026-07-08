@@ -1,0 +1,8 @@
+= content_for :title do
+  = @festival.name
+= content_for :breadcrumbs do
+  = render "shared/components/breadcrumb", items: [{ label: 'Festivals', path: admin_festivals_path }, { label: @festival.name }]
+
+.grid-x.grid-padding-x
+  .small-12.cell
+    = render 'form', festival: @festival

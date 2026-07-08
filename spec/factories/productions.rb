@@ -35,6 +35,10 @@ FactoryBot.define do
       #                     :production=>production)
     end
 
+    trait :in_festival do
+      festival
+    end
+
     initialize_with { Production.find_or_create_by(production_code: production_code) }
 
     factory :production_with_custom_label do

@@ -42,6 +42,16 @@ Stagemgr has three staff roles, each building on the permissions of the role bel
 | Send sample follow-up email | Yes | Yes | -- |
 | Auto-complete production search | Yes | Yes | Yes |
 
+## Festivals
+
+| Action | Administrator | Box Office | Theater User |
+|--------|:---:|:---:|:---:|
+| View festivals | Yes | Yes | Yes |
+| Create/edit festivals | Yes | Yes | -- |
+| Assign productions to a festival | Yes | Yes | -- |
+| Delete festivals | Yes | -- | -- |
+| Festival groups in report/analysis pickers | Yes | Yes | Own theaters' members only |
+
 ## Performances
 
 | Action | Administrator | Box Office | Theater User |

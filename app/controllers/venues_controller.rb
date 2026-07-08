@@ -52,18 +52,38 @@ class VenuesController < ApplicationController
   protected
 
   def set_now_playing_productions
+    festival_members = []
     @now_playing_productions = []
     Venue.all.sort.each do |venue|
+      # Grouped festival members never occupy the venue's slot (current show,
+      # else next up) — they render in the festival block instead, and the
+      # venue contributes no thumb of its own while the festival holds it.
       prods = if venue.external?
                 venue.now_playing(Production::PLAY, Date.today.end_of_week + 1.week)
               else
                 venue.now_playing_or_next_up(Production::PLAY)
               end
-      @now_playing_productions += prods
+      members, others = prods.partition(&:festival_grouped?)
+      festival_members += members
+      @now_playing_productions += others
     end
     @offtime_productions = []
     Venue.all.each do |venue|
-      @offtime_productions += venue.now_playing(Production::OFF_TIME, Date.today.end_of_week + 3.days)
+      prods = venue.now_playing(Production::OFF_TIME, Date.today.end_of_week + 3.days)
+      members, others = prods.partition(&:festival_grouped?)
+      festival_members += members
+      @offtime_productions += others
+    end
+    build_festival_blocks(festival_members)
+  end
+
+  # Grouped festival members (Production#festival_grouped?) never render as
+  # loose venue thumbs; group them into blocks that render after the per-venue
+  # listings. A festival's lone remaining show is not grouped and rides the
+  # regular venue flow.
+  def build_festival_blocks(festival_members)
+    @festival_blocks = festival_members.map(&:festival).uniq.map do |festival|
+      { festival: festival, featured: festival.featured_productions(3), all: festival.public_productions }
     end
   end
 end

@@ -174,7 +174,7 @@ class Admin::ProductionsController < Admin::ApplicationController
                                        :closing_at, :production_code, :production_class, :status, :season, :venue_id, :custom_label,
                                        :credit_lines, :short_description, :show_description, :running_time, :intermission,
                                        :allow_late_seating, :capacity, :additional_information_link, :calendar_callout, :conversion_pixel_code,
-                                       :flex_pass_offer_id, :myemma_attendee_group, :survey_link, :mailing_list_link,
+                                       :flex_pass_offer_id, :festival_id, :myemma_attendee_group, :survey_link, :mailing_list_link,
                                        :follow_up_message_2, :confirmation_message, :seat_map_id, :promo, :override_service_items, :override_first_exchange_items,
                                        :override_addl_exchange_items, :custom1, :custom2, :royalty_percent)
   end

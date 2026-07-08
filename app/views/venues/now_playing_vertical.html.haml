@@ -9,3 +9,7 @@
       .grid-x.grid-padding-x
         .small-12.cell
           = render 'show_thumb', :slice=>100, :production=>production, :background=>@background
+  - (@festival_blocks || []).each do |block|
+    .grid-x.grid-padding-x
+      .small-12.cell
+        = render 'venues/festival_block', :block=>block, :background=>@background, :slice=>100

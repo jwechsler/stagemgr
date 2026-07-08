@@ -4,6 +4,8 @@ module Exceptions
 
   class RepeatVisitsAtDoorOnly < StandardError; end
 
+  class FestivalTicketsAtDoorOnly < StandardError; end
+
   # Membership exceptions
   class UnknownMembershipCode < StandardError; end
 

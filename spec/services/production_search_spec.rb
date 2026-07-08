@@ -99,6 +99,61 @@ RSpec.describe ProductionSearch do
     end
   end
 
+  describe 'festival groups' do
+    subject(:searcher) { described_class.new(admin_ability, 'reports') }
+
+    let(:festival) { FactoryBot.create(:festival, name: 'Physical Theatre Festival') }
+    let!(:festival_production) do
+      FactoryBot.create(:production, theater: theater, name: 'Gravity', season: 2025, festival: festival)
+    end
+
+    it 'offers a festival group only for festivals with in-scope productions' do
+      empty_festival = FactoryBot.create(:festival, name: 'Empty Festival')
+      keys = searcher.search('Festival').filter_map { |r| r[:group_key] }
+      expect(keys).to include("festival:#{festival.id}")
+      expect(keys).not_to include("festival:#{empty_festival.id}")
+    end
+
+    it 'labels the festival group with its name' do
+      entry = searcher.search('Physical').find { |r| r[:group_key] == "festival:#{festival.id}" }
+      expect(entry[:label]).to eq('All shows in Physical Theatre Festival')
+    end
+
+    it 'resolves a festival group to its member productions' do
+      names = searcher.resolve_group("festival:#{festival.id}").pluck(:name)
+      expect(names).to contain_exactly('Gravity')
+    end
+
+    it 'honors ability scoping for festival groups' do
+      foreign_festival = FactoryBot.create(:festival, name: 'Uptown Festival')
+      FactoryBot.create(:production, theater: other_theater, name: 'Faraway', festival: foreign_festival)
+      keys = described_class.new(theater_ability, 'reports').search('Festival')
+                            .filter_map { |r| r[:group_key] }
+      expect(keys).to include("festival:#{festival.id}")
+      expect(keys).not_to include("festival:#{foreign_festival.id}")
+    end
+  end
+
+  describe '#permitted_ids' do
+    subject(:searcher) { described_class.new(admin_ability, 'reports') }
+
+    it 'keeps authorized in-scope ids and drops junk' do
+      ids = searcher.permitted_ids([active_production.id.to_s, 0, 'junk', 999_999])
+      expect(ids).to contain_exactly(active_production.id)
+    end
+
+    it 'drops ids outside a theater user ability' do
+      ids = described_class.new(theater_ability, 'reports')
+                           .permitted_ids([active_production.id, other_production.id])
+      expect(ids).to contain_exactly(active_production.id)
+    end
+
+    it 'returns an empty array for blank input' do
+      expect(searcher.permitted_ids(nil)).to eq([])
+      expect(searcher.permitted_ids([])).to eq([])
+    end
+  end
+
   describe '#resolve_group' do
     subject(:searcher) { described_class.new(admin_ability, 'reports') }
 

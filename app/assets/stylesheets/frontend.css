@@ -340,6 +340,18 @@ p .company_class {
   margin-bottom: 1em;
 }
 
+.production_festival_note {
+  font-size: 80%;
+  font-style: italic;
+  margin-bottom: 1em;
+}
+
+/* Tuck the note up under the date line when one precedes it (show listings);
+   embed thumbs have no date line and keep normal flow. */
+.production_dates + .production_festival_note {
+  margin-top: -0.75em;
+}
+
 .production_logo {
   float: left;
   margin-right: 6px;
@@ -397,4 +409,176 @@ del.diffmod, del.diffdel { color: #ff9999; }
   fill:  #000;
   fill-opacity:  .25;
   stroke-opacity:  .25;
+}
+
+/* Festival grouping — box office band */
+
+.festival-band {
+  clear: both;
+  width: 100%;
+  margin: 24px 0;
+  padding: 18px;
+  border-top: 3px solid #77919f;
+  border-bottom: 1px solid #ccc;
+  background-color: #f4f7f9;
+}
+
+.festival-band__header {
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.festival-band__image {
+  max-width: 100%;
+  height: auto;
+  margin-bottom: 10px;
+}
+
+/* Member cards in the callout run six across, so their text scales down to
+   match; the landing page keeps full-size cards. */
+#box-office .festival-band .show-listing {
+  font-size: 70%;
+}
+
+/* Later This Season — festival represented by its artwork alone */
+
+.festival-image {
+  clear: both;
+  width: 100%;
+  margin: 24px 0;
+  text-align: center;
+}
+
+.festival-image__image {
+  max-width: 50%;
+  height: auto;
+}
+
+.festival-band__name {
+  margin: 0;
+  font-weight: bold;
+}
+
+.festival-band__dates {
+  font-size: .85em;
+  font-style: italic;
+  margin: 4px 0;
+}
+
+.festival-band__description {
+  max-width: 640px;
+  margin: 8px auto 0;
+}
+
+/* Festival landing page — flex pass callout above the show list */
+
+.festival-pass-callout {
+  max-width: 640px;
+  margin: 20px auto;
+  padding: 16px 20px;
+  text-align: center;
+  border: 1px solid #77919f;
+  border-left: 6px solid #77919f;
+  background-color: #f4f7f9;
+}
+
+.festival-pass-callout__name {
+  margin: 0 0 4px;
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+.festival-pass-callout__description {
+  margin: 0 0 10px;
+}
+
+.festival-pass-callout__actions {
+  margin: 0;
+}
+
+.festival-pass-callout__actions .button {
+  margin: 0 8px 4px 0;
+}
+
+.festival-pass-callout__alt {
+  font-size: .9em;
+  font-style: italic;
+  white-space: nowrap;
+}
+
+/* Festival grouping — embedded now-playing block */
+
+.festival-block {
+  clear: both;
+  width: 100%;
+  margin: 18px 0;
+  padding: 12px;
+  border-top: 2px solid #77919f;
+  text-align: center;
+}
+
+.festival-block__image {
+  max-width: 100%;
+  height: auto;
+  margin-bottom: 8px;
+}
+
+.festival-block__name {
+  font-weight: bold;
+  font-size: 1.1em;
+}
+
+.festival-block__meta {
+  font-size: .85em;
+  font-style: italic;
+  margin-bottom: 6px;
+}
+
+.festival-block__featured {
+  margin: 2px 0;
+}
+
+.festival-full-list {
+  margin-top: 8px;
+}
+
+.festival-full-list > summary {
+  cursor: pointer;
+  font-size: .85em;
+  font-weight: bold;
+  list-style: none;
+}
+
+.festival-full-list > summary::-webkit-details-marker {
+  display: none;
+}
+
+.festival-full-list > summary::before {
+  content: "\25B8 ";
+}
+
+.festival-full-list[open] > summary::before {
+  content: "\25BE ";
+}
+
+.festival-full-list ul {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+}
+
+/* Light/dark background variants thread through like _show_thumb */
+
+.festival-block.background-dark {
+  color: white;
+}
+
+.festival-block.background-dark a:link,
+.festival-block.background-dark a:visited,
+.festival-block.background-dark .festival-full-list > summary {
+  color: white;
+}
+
+.festival-block.background-light {
+  color: inherit;
 }

@@ -1,11 +1,20 @@
 <div class="grid-x grid-padding-x">
   <div class="small-12 cell">
-    <h3><%= @production.theater.name %></h3>
-    <h4><%= @production.name %></h4>
+    <h3><%= @report_title %></h3>
+    <% if @productions.many? %>
+      <h5>Included productions</h5>
+      <ul>
+        <% @productions.sort_by(&:name).each do |production| %>
+          <li><%= production.name %> &mdash; <%= production.theater.name %></li>
+        <% end %>
+      </ul>
+    <% else %>
+      <h4><%= @productions.first.theater.name %></h4>
+    <% end %>
 
     <table id="production_revenue_by_performance" class="report">
       <caption>
-        <i><%= @production.name %></i> sales counts as of <%= Time.now.to_s(:hour_min) %> on <%= Time.now %></i>
+        <i><%= @report_title %></i> sales counts as of <%= Time.now.to_s(:hour_min) %> on <%= Time.now %></i>
       </caption>
       <%= render :partial=>"generic", :locals=>{:headers=>@headers, :report_body=>@report_data, :summary=>@totals} %>
     </table>

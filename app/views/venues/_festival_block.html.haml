@@ -1,0 +1,17 @@
+-# The festival renders as a tile in the same size and style as the
+-# production thumbs (_show_thumb), linking to its landing page when enabled,
+-# else to its band on the box office page.
+- festival = block[:festival]
+- count = block[:all].size
+- festival_link = festival.landing_page_enabled? && festival.url_name.present? ? festival_path(festival.url_name) : box_office_productions_path(anchor: "festival-#{festival.id}")
+%div{:class=>"show-listing background-#{background} cell small-12 medium-#{(slice * 12.0 / 100).round}"}
+  %p
+    %div.venue Festival
+    - if festival.box_office_image.attached?
+      %p.centered= link_to(festival.decorate.box_office_image(Production::THUMB), festival_link)
+    %div.production_name
+      = link_to festival.name, festival_link
+    - unless festival.short_description.blank?
+      = festival.short_description
+      <br>
+    %div.presenter= ["#{count} #{'show'.pluralize(count)}", festival.formatted_date_range].compact.join(' · ')

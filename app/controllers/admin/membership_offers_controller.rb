@@ -66,6 +66,6 @@ class Admin::MembershipOffersController < ApplicationController
                                              :use_member_friend_code, :tickets_per_performance,
                                              :billing_agreement, :myemma_group, :on_sale, :trial_period,
                                              :restricted_to_first_time, :max_cycles_if_gift, :status, :price_id,
-                                             :tag_names)
+                                             :max_festival_tickets_in_advance, :tag_names)
   end
 end

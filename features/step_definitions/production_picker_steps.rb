@@ -14,3 +14,15 @@ Then(/^the production picker in "([^"]*)" should show "([^"]*)"$/) do |selector,
     expect(find('.production-picker-label')).to have_text(label)
   end
 end
+
+When(/^I search the production multi picker in "([^"]*)" for "([^"]*)"$/) do |selector, term|
+  within(selector) do
+    find('.production-multi-picker-input').set(term)
+  end
+end
+
+Then(/^the production multi picker in "([^"]*)" should list "([^"]*)"$/) do |selector, label|
+  within(selector) do
+    expect(find('.production-multi-picker-table', visible: :all)).to have_text(label)
+  end
+end

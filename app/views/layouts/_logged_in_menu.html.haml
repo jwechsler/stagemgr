@@ -43,6 +43,8 @@
           %ul.menu.vertical
             - if can? :edit, SpecialOffer
               %li= link_to('Special Offers', admin_special_offers_path)
+            - if can? :read, Festival
+              %li= link_to('Festivals', admin_festivals_path)
             -if can? :read, FileStore 
               %li= link_to "Import data", admin_imports_path
             - if (can? :edit, User) || (can? :edit, SpecialFeature) || (can? :edit, DefaultTicketClass) || (can? :edit, PaymentType) || (can? :read, FileStore) || (can? :edit, Venue)
