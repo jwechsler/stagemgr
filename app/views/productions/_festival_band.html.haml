@@ -4,7 +4,7 @@
     - if festival.box_office_image.attached?
       .cell.medium-4.hide-for-small-only
         = image_tag festival.decorate.box_office_image_url(Production::LARGE), :class=>"festival-band__image", :alt=>festival.name
-    .cell.small-12.medium-6
+    .cell.small-12.medium-8
       %h3.festival-band__name= festival.name
       - if festival.formatted_date_range
         %p.festival-band__dates= festival.formatted_date_range
