@@ -21,6 +21,13 @@ fieldset legend {
   text-align: center;
 }
 
+/* Top-bar dropdown panes must paint above everything the app renders:
+   show listings above are position:relative + z-index:100, so Foundation's
+   submenu default of 1 slips underneath them. */
+.top-bar .is-dropdown-submenu {
+  z-index: 20000;
+}
+
 .show-listing,.production_list {
   position: relative;
   margin-bottom: 18px;

@@ -9,6 +9,13 @@
     background-color: transparent !important;
 }
 
+// Top-bar dropdown panes must paint above everything the app renders:
+// show listings are position:relative + z-index:100 (frontend.css) and the
+// timepicker sits at 10001, so Foundation's default of 1 slips underneath.
+.top-bar .is-dropdown-submenu {
+  z-index: 20000;
+}
+
 div.dt-buttons {
   float: right;
 }
