@@ -70,6 +70,9 @@
               - if f.object.flex_pass_offer_id.present?
                 - festival_passes = FlexPassOffer.where(treat_as_festival_pass:true).select do |pass|
                   - pass.theater_id.nil? || (pass.theater_id == f.object.theater_id && !pass.exclude_theater) || (pass.theater_id != f.object.theater_id && pass.exclude_theater)
+                - # The oldest festival offers predate the flag and were never backfilled;
+                - # always include the currently assigned offer so its value isn't dropped.
+                - festival_passes |= [f.object.flex_pass_offer]
                 = f.association :flex_pass_offer, :collection=>festival_passes, :label=>"Festival Pass Offer (legacy)"
 
               = f.input :myemma_attendee_group, :label=>"MyEmma Group Number"
