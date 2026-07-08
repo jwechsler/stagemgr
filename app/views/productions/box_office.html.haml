@@ -26,4 +26,4 @@
           - if chunk.first.is_a?(Production)
             = render :partial=>'list_in_row', :locals=>{:productions=>chunk, :across=>3}
           - else
-            = render :partial=>'festival_band', :locals=>{:band=>chunk.first}
+            = render :partial=>'festival_image', :locals=>{:entry=>chunk.first}

@@ -429,6 +429,20 @@ del.diffmod, del.diffdel { color: #ff9999; }
   max-width: 50%;
 }
 
+/* Later This Season — festival represented by its artwork alone */
+
+.festival-image {
+  clear: both;
+  width: 100%;
+  margin: 24px 0;
+  text-align: center;
+}
+
+.festival-image__image {
+  max-width: 50%;
+  height: auto;
+}
+
 .festival-band__name {
   margin: 0;
   font-weight: bold;
