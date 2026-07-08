@@ -102,6 +102,191 @@ RSpec.describe TicketOrder do
     expect { o.transition_to!(Order::FULFILLED) }.to raise_error(Exceptions::TooManyTicketsForMembership)
   end
 
+  describe "festival-restricted flex pass gate" do
+    let(:festival) { FactoryBot.create(:festival) }
+
+    def flex_pass_for(offer)
+      FactoryBot.create(:flex_pass_order, flex_pass_offer: offer).flex_pass
+    end
+
+    def flex_pass_order_on(production, pass)
+      performance = FactoryBot.create(:general_admission, production: production)
+      order = FactoryBot.create(:ticket_order, :for_a_single_ticket, :paid_with_flex_pass,
+                                performance: performance, flex_pass_code: pass.code)
+      order.reload
+      order
+    end
+
+    it "accepts a flex pass redeemed on a production in the offer's festival" do
+      offer = FactoryBot.create(:flex_pass_offer, festival: festival)
+      pass = flex_pass_for(offer)
+      order = flex_pass_order_on(FactoryBot.create(:production, festival: festival), pass)
+
+      expect { order.flex_pass_payments.first.process!(order) }.not_to raise_error
+    end
+
+    it "rejects a flex pass redeemed on a production in a different festival" do
+      offer = FactoryBot.create(:flex_pass_offer, festival: festival)
+      pass = flex_pass_for(offer)
+      other_festival = FactoryBot.create(:festival)
+      order = flex_pass_order_on(FactoryBot.create(:production, festival: other_festival), pass)
+
+      expect { order.flex_pass_payments.first.process!(order) }
+        .to raise_error(/only valid for #{festival.name} shows/)
+    end
+
+    it "rejects a festival flex pass redeemed on a production with no festival" do
+      offer = FactoryBot.create(:flex_pass_offer, festival: festival)
+      pass = flex_pass_for(offer)
+      order = flex_pass_order_on(FactoryBot.create(:production), pass)
+
+      expect { order.flex_pass_payments.first.process!(order) }
+        .to raise_error(/only valid for #{festival.name} shows/)
+    end
+
+    it "leaves unrestricted flex passes usable on any production (no festival gate)" do
+      offer = FactoryBot.create(:flex_pass_offer, festival: nil)
+      pass = flex_pass_for(offer)
+      order = flex_pass_order_on(FactoryBot.create(:production, festival: festival), pass)
+
+      expect { order.flex_pass_payments.first.process!(order) }.not_to raise_error
+    end
+
+    it "still enforces the theater gate alongside the festival gate (additive)" do
+      offer_theater = FactoryBot.create(:theater)
+      offer = FactoryBot.create(:flex_pass_offer, festival: festival,
+                                                  theater: offer_theater, exclude_theater: false)
+      pass = flex_pass_for(offer)
+      # Production is in the festival but at a different theater: the untouched
+      # theater gate fires first, proving the festival gate is purely additive.
+      production = FactoryBot.create(:production, festival: festival, theater: FactoryBot.create(:theater))
+      order = flex_pass_order_on(production, pass)
+
+      expect { order.flex_pass_payments.first.process!(order) }
+        .to raise_error(/restricted to #{offer_theater.name}/)
+    end
+  end
+
+  describe "membership festival advance cap" do
+    let(:festival) { FactoryBot.create(:festival) }
+    let(:prod_a) { FactoryBot.create(:production, festival: festival) }
+    let(:prod_b) { FactoryBot.create(:production, festival: festival) }
+    let(:perf_a) { FactoryBot.create(:general_admission, production: prod_a) }
+    let(:perf_b) { FactoryBot.create(:general_admission, production: prod_b) }
+
+    def membership_with_cap(cap)
+      # High per-performance limit keeps the unrelated per-performance/per-production
+      # checks from firing so these examples isolate the festival advance cap.
+      offer = FactoryBot.create(:membership_offer, tickets_per_performance: 10,
+                                                   max_festival_tickets_in_advance: cap)
+      FactoryBot.create(:membership, membership_offer: offer)
+    end
+
+    # Persist a prior processed order that consumes festival tickets, bypassing
+    # validation so setup can build up state independent of the cap under test.
+    def consume_festival_tickets(membership, performance, tickets)
+      order = FactoryBot.create(:ticket_order, :for_a_single_ticket,
+                                address: membership.address, performance: performance)
+      order.payments << FactoryBot.build(:membership_payment, number_of_tickets: tickets,
+                                                              membership: membership, amount: 0)
+      order.status = Order::PROCESSED
+      order.save!(validate: false)
+      order
+    end
+
+    # A persisted-but-unprocessed order requesting festival tickets to run verify
+    # against (real orders always have an id by the time this cap is checked).
+    def pending_festival_order(membership, performance, tickets, box_office: false)
+      order = FactoryBot.create(:ticket_order, :for_a_single_ticket,
+                                address: membership.address, performance: performance)
+      order.box_office_sale = box_office
+      order.payments << FactoryBot.build(:membership_payment, number_of_tickets: tickets,
+                                                              membership: membership, amount: 0)
+      order
+    end
+
+    it "allows a request that stays under the festival cap" do
+      membership = membership_with_cap(2)
+      order = pending_festival_order(membership, perf_b, 1)
+
+      expect { membership.verify_applicable_for(order) }.not_to raise_error
+    end
+
+    it "allows a request that exactly reaches the festival cap across two productions" do
+      membership = membership_with_cap(2)
+      consume_festival_tickets(membership, perf_a, 1)
+      order = pending_festival_order(membership, perf_b, 1)
+
+      expect { membership.verify_applicable_for(order) }.not_to raise_error
+    end
+
+    it "blocks a web request that exceeds the festival cap across two productions" do
+      membership = membership_with_cap(2)
+      consume_festival_tickets(membership, perf_a, 2)
+      order = pending_festival_order(membership, perf_b, 1)
+
+      expect { membership.verify_applicable_for(order) }
+        .to raise_error(Exceptions::FestivalTicketsAtDoorOnly,
+                        /covers 2 #{festival.name} tickets in advance/)
+    end
+
+    it "uses singular 'ticket' when the cap is one" do
+      membership = membership_with_cap(1)
+      consume_festival_tickets(membership, perf_a, 1)
+      order = pending_festival_order(membership, perf_b, 1)
+
+      expect { membership.verify_applicable_for(order) }
+        .to raise_error(Exceptions::FestivalTicketsAtDoorOnly,
+                        /covers 1 #{festival.name} ticket in advance/)
+    end
+
+    it "lets box office sales exceed the festival cap" do
+      membership = membership_with_cap(2)
+      consume_festival_tickets(membership, perf_a, 2)
+      order = pending_festival_order(membership, perf_b, 5, box_office: true)
+
+      expect { membership.verify_applicable_for(order) }.not_to raise_error
+    end
+
+    it "is a no-op when the offer has no festival cap" do
+      membership = membership_with_cap(nil)
+      consume_festival_tickets(membership, perf_a, 5)
+      order = pending_festival_order(membership, perf_b, 5)
+
+      expect { membership.verify_applicable_for(order) }.not_to raise_error
+    end
+
+    it "is a no-op for productions that are not in a festival" do
+      membership = membership_with_cap(1)
+      plain_perf = FactoryBot.create(:general_admission, production: FactoryBot.create(:production))
+      order = pending_festival_order(membership, plain_perf, 10)
+
+      expect { membership.verify_applicable_for(order) }.not_to raise_error
+    end
+
+    it "leaves the same-show RepeatVisitsAtDoorOnly rule untouched" do
+      membership = membership_with_cap(nil)
+      plain_prod = FactoryBot.create(:production)
+      plain_perf = FactoryBot.create(:general_admission, production: plain_prod)
+      pass_class = plain_prod.ticket_classes.find do |tc|
+        tc.class_code == membership.membership_offer.use_ticket_class_code
+      end
+
+      prior = FactoryBot.build(:ticket_order, address: membership.address, performance: plain_perf)
+      prior.ticket_line_items << FactoryBot.build(:ticket_line_item, ticket_class: pass_class,
+                                                                     ticket_count: 1, order: prior)
+      prior.save!
+      prior.payments << FactoryBot.build(:membership_payment, number_of_tickets: 1,
+                                                              membership: membership, amount: 0)
+      prior.status = Order::PROCESSED
+      prior.save!(validate: false)
+
+      order = pending_festival_order(membership, plain_perf, 1)
+      expect { membership.verify_applicable_for(order) }
+        .to raise_error(Exceptions::RepeatVisitsAtDoorOnly)
+    end
+  end
+
   it "should preserve the attendance when cancelling one of multiple reservations" do
     o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
     a = o.address

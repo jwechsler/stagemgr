@@ -49,6 +49,10 @@ class FlexPassPayment < PassPayment
         raise "That Flexpass cannot be used for tickets for #{Theater.find_by_id(flex_pass.flex_pass_offer.theater_id).name} productions"
       end
     end
+    if offer.festival_id.present? && order.performance.production.festival_id != offer.festival_id
+      raise "That FlexPass is only valid for #{offer.festival.name} shows. Please contact our box office for details."
+    end
+
     tc_list = order.performance.ticket_class_allocations.select do |tca|
       tca.available
     end.map { |tca| tca.ticket_class.class_code }
