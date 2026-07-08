@@ -20,4 +20,4 @@
             = link_to "Buy a #{festival_offer.name} — #{festival_offer.formatted_price}", new_flex_pass_offer_order_path(festival_offer), class: 'button'
             %span.festival-pass-callout__alt or purchase tickets to an individual show below
 
-  = render :partial=>'productions/list_in_row', :locals=>{:productions=>@festival.public_productions, :across=>3}
+  = render :partial=>'productions/list_in_row', :locals=>{:productions=>@festival.public_productions, :across=>3, :in_festival_panel=>true}

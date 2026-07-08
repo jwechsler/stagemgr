@@ -8,7 +8,7 @@
         = production_image_style(production)
       - if current_production_index % across == 0
         %div.grid-x.grid-padding-x
-        = render 'productions/list_item', :production=>production, :slice=>slice, :cell_classes=>local_assigns[:cell_classes]
+        = render 'productions/list_item', :production=>production, :slice=>slice, :cell_classes=>local_assigns[:cell_classes], :in_festival_panel=>local_assigns[:in_festival_panel]
       - else
-        = render 'productions/list_item', :production=>production, :slice=>slice, :cell_classes=>local_assigns[:cell_classes]
+        = render 'productions/list_item', :production=>production, :slice=>slice, :cell_classes=>local_assigns[:cell_classes], :in_festival_panel=>local_assigns[:in_festival_panel]
       - current_production_index += 1

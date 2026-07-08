@@ -13,6 +13,8 @@ RSpec.describe FestivalsController, type: :controller do
       expect(response).to have_http_status(:ok)
       expect(response.body).to include(festival.name)
       expect(response.body).to include(member.name)
+      # attribution is redundant inside the festival's own panel
+      expect(response.body).not_to include('Part of the')
     end
 
     it 'returns 404 when the landing page is disabled' do

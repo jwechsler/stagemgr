@@ -11,3 +11,7 @@
     %p.production_presale_notice
       %em Tickets not yet on sale
   = render '/productions/production_dates', :production=>production
+  -# Festival attribution is redundant inside a festival band/panel, where the
+  -# surrounding branding already says it.
+  - if production.festival&.active? && !local_assigns[:in_festival_panel]
+    %p.production_festival_note= "Part of the #{production.festival.name}"
