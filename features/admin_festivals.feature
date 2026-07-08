@@ -12,11 +12,11 @@ Feature: Administer Festivals
       And I go to the home page
      Then "Festivals" should link to "the admin festivals page"
 
-  Scenario: There is not a 'Festivals' menu link for theater users
+  Scenario: Theater users get a read-only 'Festivals' menu link
     Given I am a theater user
       And I am logged in
       And I go to the home page
-     Then I should not see "Festivals"
+     Then "Festivals" should link to "the admin festivals page"
 
   Scenario: Box office users can create a festival
     Given I am a box office user
@@ -50,6 +50,6 @@ Feature: Administer Festivals
       And I am an Administrator
       And I am logged in
       And I go to the admin festivals page
-      And I follow "Destroy"
+      And I follow "Destroy" and confirm
      Then I should see "This festival still has productions assigned"
       And a festival "Physical Theatre Festival" should still exist
