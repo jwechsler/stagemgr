@@ -28,9 +28,13 @@ performance of FlexPass offerings.
 
 1. Navigate to **Admin Menu > Reports**.
 2. In the **FlexPass Sales** section, enter a **start date** and **end date**.
-3. Optionally, select a specific **offer** from the dropdown to filter results to a single
-   FlexPass offer.
+3. Optionally, limit the report to one or more FlexPass offers using the
+   [offer picker](reports-overview.md#selecting-offers) -- search by offer name, tag, or
+   theater restriction.
 4. Click **Show** to display results on screen, or **Download** to export a CSV.
+
+The report always covers full calendar months: the range expands to the beginning of the
+start date's month and the end of the end date's month.
 
 ### Input Fields
 
@@ -38,21 +42,36 @@ performance of FlexPass offerings.
 |---|---|---|
 | **Start Date** | Yes | Include FlexPass activity on or after this date |
 | **End Date** | Yes | Include FlexPass activity on or before this date |
-| **Offer** | No | Filter to a specific FlexPass offer. Leave blank to include all offers. |
+| **Limit to offers** | No | Restrict the report to the selected FlexPass offers. Leave empty to include all offers. |
 
 ### Output Format
 
+One row per calendar month with activity:
+
 | Column | Description |
 |---|---|
-| **Month** | The calendar month |
-| **FlexPasses Sold** | Number of FlexPasses purchased |
-| **Revenue** | Total revenue from FlexPass sales |
-| **Redemptions** | Number of FlexPass ticket redemptions |
-| **Usage Rate** | Percentage of available admissions that have been redeemed |
+| **Month** | The calendar month (e.g., `2026-05`) |
+| **New Passes** | FlexPasses sold, counted in the month of the order's first payment |
+| **New Deposits** | Dollars collected on FlexPass orders that month |
+| **Tickets Redeemed** | Number of admissions redeemed against FlexPasses that month |
+| **Tickets Paid Out** | Dollars paid out for those redemptions |
+| **Total Spiff** | Spiff amounts owed on the passes sold that month |
+| **Total Flat Payout** | Flat payout amounts owed on the passes sold that month |
+| **Total Facility** | Facility fees on the passes sold that month |
+| **Expired FlexPasses** | Passes whose expiration date fell in that month |
+| **Recovered Amount** | Value reclaimed from expired passes: each expired pass's price (less its facility fee and flat payout), minus whatever was already paid out on its redemptions. A never-used pass is recovered in full. |
+| **Total Due To Facility** | Spiff + facility fees + recovered amount for the month |
+
+!!! tip "Tickets Redeemed vs. Tickets Paid Out"
+    Zero-dollar offers (such as producer subscriptions) show redemptions in **Tickets
+    Redeemed** even though **Tickets Paid Out** stays at $0.00 -- the pass is being used,
+    it just carries no payout.
 
 !!! tip "Offer Filter"
-    If you run multiple FlexPass offerings (e.g., 4-show pass, 6-show pass), use the offer
-    filter to see performance data for each type separately.
+    If you run multiple FlexPass offerings (e.g., 4-show pass, 6-show pass), limit the
+    report to each offer -- or to a tag that groups a package family -- to see performance
+    data for each type separately. Limited on-screen reports list the selected offers in a
+    "Limited to:" footnote.
 
 ---
 
@@ -69,7 +88,10 @@ service operations.
 
 1. Navigate to **Admin Menu > Reports**.
 2. In the **FlexPass Patron Report** section, enter a **start date** and **end date**.
-3. Click **Show** to display results on screen, or **Download** to export a CSV.
+3. Optionally, limit the report to one or more FlexPass offers using the
+   [offer picker](reports-overview.md#selecting-offers) -- search by offer name, tag, or
+   theater restriction.
+4. Click **Show** to display results on screen, or **Download** to export a CSV.
 
 ### Input Fields
 
@@ -77,12 +99,14 @@ service operations.
 |---|---|---|
 | **Start Date** | Yes | Include FlexPass orders created on or after this date |
 | **End Date** | Yes | Include FlexPass orders created on or before this date |
+| **Limit to offers** | No | Restrict the report to the selected FlexPass offers. Leave empty to include all offers. |
 
 The date range is inclusive of both start and end dates.
 
 ### Report Contents
 
-The report includes the following information for each FlexPass order:
+The report includes one row per FlexPass. An order containing several passes produces one
+row for each pass, each with its own code and remaining admissions.
 
 | Column | Description |
 |---|---|

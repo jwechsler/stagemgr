@@ -28,7 +28,9 @@ was paid out. It is useful for trend analysis, budgeting, and reporting to manag
 
 1. Navigate to **Admin Menu > Reports**.
 2. In the **Membership Usage** section, enter a **start date** and **end date**.
-3. Click **Show** to display results on screen, or **Download** to export a CSV.
+3. Optionally, limit the report to one or more membership offers using the
+   [offer picker](reports-overview.md#selecting-offers) -- search by offer name or tag.
+4. Click **Show** to display results on screen, or **Download** to export a CSV.
 
 ### Input Fields
 
@@ -36,6 +38,7 @@ was paid out. It is useful for trend analysis, budgeting, and reporting to manag
 |---|---|---|
 | **Start Date** | Yes | The beginning of the reporting period |
 | **End Date** | Yes | The end of the reporting period |
+| **Limit to offers** | No | Restrict the report to the selected membership offers. Leave empty to include all offers. |
 
 !!! note "Full months only"
     The system automatically expands your date range to align with full calendar months. For
@@ -60,6 +63,16 @@ followed by an **All Offers** summary row that totals that month across every of
 | **Memberships** | Number of memberships active in that month for that offer. |
 | **Collected** | Total amount collected on membership orders. |
 | **Paid** | Total membership payments applied. |
+
+When the report is limited with the offer picker, detail rows cover only the selected
+offers, the monthly **All Offers** summary rows total just that selection, and the on-screen
+report ends with a **"Limited to:"** footnote naming the selected offers.
+
+!!! note "When the All Offers rows are omitted"
+    The per-month **All Offers** summary rows are dropped whenever they would be redundant
+    or unwieldy: when exactly one offer is selected (they would duplicate the detail rows)
+    and in CSV downloads (so the file loads cleanly into a spreadsheet). The grand **Total**
+    row always remains.
 
 ### Running the Report for a Single Offer
 
@@ -88,8 +101,10 @@ date range, with an optional TRG-compatible format for TRG Arts integration.
 1. Navigate to **Admin Menu > Reports**.
 2. In the **Membership Orders** section, enter a **start date** and **end date**.
 3. Optionally, check the **TRG Lists** checkbox to format the export for TRG Arts compatibility.
-4. Click **Generate**. The report runs as a background job.
-5. When processing completes, you will receive an email with a download link. The report also
+4. Optionally, limit the export to one or more membership offers using the
+   [offer picker](reports-overview.md#selecting-offers) -- search by offer name or tag.
+5. Click **Generate**. The report runs as a background job.
+6. When processing completes, you will receive an email with a download link. The report also
    appears in the **Generated Reports** section at the bottom of the Reports page.
 
 ### Input Fields
@@ -99,6 +114,7 @@ date range, with an optional TRG-compatible format for TRG Arts integration.
 | **Start Date** | Yes | Include membership orders on or after this date |
 | **End Date** | Yes | Include membership orders on or before this date |
 | **TRG Lists** | No | When checked, formats the export for TRG Arts data integration |
+| **Limit to offers** | No | Restrict the export to orders for the selected membership offers. Leave empty to include all offers. |
 
 !!! note "Background Job"
     This report runs as a background job and is delivered via email. Processing time depends on
