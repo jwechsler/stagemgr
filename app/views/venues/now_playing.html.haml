@@ -1,7 +1,7 @@
 - festival_blocks = @festival_blocks || []
 - unless @now_playing_productions.empty? && @offtime_productions.empty? && festival_blocks.empty?
   #now_playing_shows_by_venue.production_list.grid-x.grid-padding-x
-    - num_pieces = (@now_playing_productions.size + (@offtime_productions.empty? ? 0 : 1))
+    - num_pieces = (@now_playing_productions.size + festival_blocks.size + (@offtime_productions.empty? ? 0 : 1))
     - row_count = (num_pieces > @max_pieces) ? @max_pieces : num_pieces
     - slice = 100 / [row_count, 1].max
     - @now_playing_productions.each do |venue_production|
@@ -22,4 +22,4 @@
               %br
               = "presented by #{production.theater.name}" if !production.theater.is_default?
     - festival_blocks.each do |block|
-      = render :partial=>"venues/festival_block", :locals=>{:block=>block, :background=>@background}
+      = render :partial=>"venues/festival_block", :locals=>{:block=>block, :background=>@background, :slice=>slice}

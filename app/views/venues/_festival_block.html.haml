@@ -1,21 +1,17 @@
+-# The festival renders as a tile in the same size and style as the
+-# production thumbs (_show_thumb), linking to its landing page when enabled,
+-# else to its band on the box office page.
 - festival = block[:festival]
-- featured = block[:featured]
-- all_shows = block[:all]
-- count = all_shows.size
-.festival-block{:class=>"background-#{background}"}
-  - if festival.box_office_image.attached?
-    = image_tag festival.decorate.box_office_image_url(Production::MEDIUM), :class=>"festival-block__image", :alt=>festival.name
-  %div.festival-block__name= festival.name
-  %div.festival-block__meta
-    = "#{count} #{'show'.pluralize(count)}"
-    - if festival.formatted_date_range
-      = "· #{festival.formatted_date_range}"
-  - featured.each do |production|
-    %div.festival-block__featured
-      = link_to production.name, production_performances_path(production.id, :anchor=>"top")
-  - if count > 0
-    %details.festival-full-list
-      %summary= "See all #{count} #{'show'.pluralize(count)}"
-      %ul
-        - all_shows.each do |production|
-          %li= link_to production.name, production_performances_path(production.id, :anchor=>"top")
+- count = block[:all].size
+- festival_link = festival.landing_page_enabled? && festival.url_name.present? ? festival_path(festival.url_name) : box_office_productions_path(anchor: "festival-#{festival.id}")
+%div{:class=>"show-listing background-#{background} cell small-12 medium-#{(slice * 12.0 / 100).round}"}
+  %p
+    %div.venue Festival
+    - if festival.box_office_image.attached?
+      %p.centered= link_to(festival.decorate.box_office_image(Production::THUMB), festival_link)
+    %div.production_name
+      = link_to festival.name, festival_link
+    - unless festival.short_description.blank?
+      = festival.short_description
+      <br>
+    %div.presenter= ["#{count} #{'show'.pluralize(count)}", festival.formatted_date_range].compact.join(' · ')
