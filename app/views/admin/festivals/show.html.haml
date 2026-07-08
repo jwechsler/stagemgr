@@ -1,0 +1,58 @@
+= content_for :title do
+  Festival
+= content_for :breadcrumbs do
+  = render "shared/components/breadcrumb", items: [{ label: 'Festivals', path: admin_festivals_path }, { label: @festival.name }]
+
+.grid-x.grid-padding-x
+  .small-8.cell
+    %h2= @festival.name
+    %p
+      %b Status:
+      = @festival.status
+      %br
+      %b Landing page:
+      = @festival.landing_page_enabled? ? 'Enabled' : 'Disabled'
+      - if @festival.landing_page_enabled? && @festival.slug.present?
+        (<code>#{@festival.slug}</code>)
+      %br
+      %b Stored date range:
+      - stored_from, stored_to = [@festival.starts_on, @festival.ends_on]
+      = stored_from.present? || stored_to.present? ? "#{stored_from} – #{stored_to}" : 'Not set'
+      %br
+      %b Derived date range:
+      - derived_from, derived_to = @festival.derived_date_range
+      = derived_from.present? || derived_to.present? ? "#{derived_from} – #{derived_to}" : 'No member productions with dates'
+      %br
+      %b Displayed date range:
+      = @festival.formatted_date_range || 'Not set'
+
+    - if @festival.short_description.present?
+      %p= @festival.short_description
+    - if @festival.description.present?
+      .cell= display_markdown(@festival.description)
+
+  .small-4.cell
+    = @festival.decorate.box_office_image if @festival.box_office_image.attached?
+
+.grid-x.grid-padding-x
+  .small-12.cell
+    %h3 Member Productions
+    - if @festival.productions.any?
+      %table
+        %thead
+          %tr
+            %th Production
+            %th Theater
+            %th Status
+        %tbody
+          - @festival.productions.each do |production|
+            %tr
+              %td= link_to production.name, [:admin, production.theater, production]
+              %td= link_to production.theater.name, admin_theater_path(production.theater)
+              %td= production.status
+    - else
+      %p No productions are assigned to this festival yet.
+
+.grid-x.grid-padding-x
+  .small-12.cell
+    = link_to 'Edit', edit_admin_festival_path(@festival), class: 'button'
