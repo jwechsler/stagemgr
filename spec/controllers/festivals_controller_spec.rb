@@ -4,13 +4,15 @@ RSpec.describe FestivalsController, type: :controller do
   render_views
 
   describe 'GET #show' do
-    it 'renders the festival when active with the landing page enabled' do
+    it 'renders the festival and its member show cards when active with the landing page enabled' do
       festival = FactoryBot.create(:festival, :with_landing_page, status: Festival::ACTIVE, slug: 'fringe-fest')
+      member = FactoryBot.create(:production, festival: festival)
 
       get :show, params: { slug: festival.slug }
 
       expect(response).to have_http_status(:ok)
       expect(response.body).to include(festival.name)
+      expect(response.body).to include(member.name)
     end
 
     it 'returns 404 when the landing page is disabled' do
