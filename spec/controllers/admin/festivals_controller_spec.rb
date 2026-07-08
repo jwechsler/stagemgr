@@ -45,6 +45,7 @@ RSpec.describe Admin::FestivalsController, type: :controller do
         get :show, params: { id: festival.id }
 
         expect(response.body).to include('July 8 – July 15, 2026')
+        expect(response.body).to include(first.venue.name)
         expect(response.body.index(first.name)).to be < response.body.index(second.name)
       end
     end

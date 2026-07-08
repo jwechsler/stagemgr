@@ -48,17 +48,19 @@
         %thead
           %tr
             %th Production
-            %th Theater
             %th Dates
-            %th Status
+            %th.show-for-medium Venue
+            %th.show-for-medium Status
+            %th.show-for-medium Theater
         %tbody
           - members = @festival.productions.order(Arel.sql('first_preview_at IS NULL, first_preview_at'))
           - members.each do |production|
             %tr
               %td= link_to production.name, [:admin, production.theater, production]
-              %td= link_to production.theater.name, admin_theater_path(production.theater)
               %td= DateRangeDisplay.format(production.first_preview_at, production.closing_at)
-              %td= production.status
+              %td.show-for-medium= production.venue.name
+              %td.show-for-medium= production.status
+              %td.show-for-medium= link_to production.theater.name, admin_theater_path(production.theater)
     - else
       %p No productions are assigned to this festival yet.
 
