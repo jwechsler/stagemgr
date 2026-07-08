@@ -51,6 +51,10 @@ gem 'validates_formatting_of'
 
 gem 'coffee-rails'
 gem 'dartsass-sprockets'
+# The production box runs macOS 13; sass-embedded 1.98.0 bumped the bundled
+# Dart runtime's minimum to macOS 14 (its compiler process dies at launch,
+# aborting assets:precompile). Lift the cap once that machine is on 14+.
+gem 'sass-embedded', '>= 1.80', '< 1.98'
 gem 'uglifier'
 # Foundation 6.9 via npm (foundation-sites in package.json)
 gem 'autoprefixer-rails'

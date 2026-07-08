@@ -529,7 +529,7 @@ GEM
     rubyzip (2.4.1)
     rufus-scheduler (3.9.2)
       fugit (~> 1.1, >= 1.11.1)
-    sass-embedded (1.99.0)
+    sass-embedded (1.97.3)
       google-protobuf (~> 4.31)
       rake (>= 13)
     sass-rails (6.0.0)
@@ -718,6 +718,7 @@ DEPENDENCIES
   rubocop
   rubocop-rails
   ruby-vips
+  sass-embedded (>= 1.80, < 1.98)
   scrypt
   selenium-webdriver (~> 4.15)
   simple-form-datepicker
