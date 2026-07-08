@@ -10,4 +10,4 @@
         %p.festival-band__dates= festival.formatted_date_range
       - unless festival.description.blank?
         .festival-band__description= festival.description
-      = render :partial=>'list_in_row', :locals=>{:productions=>band.productions, :across=>4, :cell_classes=>'small-6 medium-3', :in_festival_panel=>true}
+      = render :partial=>'list_in_row', :locals=>{:productions=>band.productions, :across=>4, :cell_classes=>'small-12 medium-6 large-3', :in_festival_panel=>true}
