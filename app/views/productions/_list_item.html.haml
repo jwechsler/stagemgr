@@ -1,7 +1,9 @@
 - presale_with_info_link = production.status == Production::PRESALE && production.additional_information_link.present?
 - header_link_url = presale_with_info_link ? production.additional_information_link : production_performances_path(production.id, :anchor=>"top")
 - header_link_opts = presale_with_info_link ? {:target=>"_blank"} : {}
-%div.cell.small-12.show-listing{:class=>"medium-#{slice}"}
+-# cell_classes overrides the default responsive sizing (festival callouts
+-# pack member shows tighter than the standard three-across grid)
+%div.cell.show-listing{:class=>(local_assigns[:cell_classes] || "small-12 medium-#{slice}")}
   = render 'productions/header', :production=>production, :link_url=>header_link_url, :link_html_opts=>header_link_opts
   - unless production.short_description.blank?
     %p.production_short_desc= production.short_description
