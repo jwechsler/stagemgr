@@ -94,7 +94,8 @@ class Ability
     can :view_email, Address
     can %i[box_office_reports house_management_reports membership_reports reconciliation_reports], Report
     can %i[create read reactivate cancel update_seating], MembershipOrder
-    can %i[read edit], MembershipOffer
+    # Membership offers are administrator-managed: box office staff read them
+    # and create orders only (:read granted below with the other offer reads)
     can :manage, SpecialFeature
     can :manage, SpecialOffer
     can :cru, DonationOrder
