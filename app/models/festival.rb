@@ -67,10 +67,6 @@ class Festival < ApplicationRecord
     productions.any? { |p| p.visible? && p.now_playing? }
   end
 
-  def to_param
-    slug.presence || id.to_s
-  end
-
   def to_s
     name
   end

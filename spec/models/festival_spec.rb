@@ -99,9 +99,4 @@ RSpec.describe Festival, type: :model do
     end
   end
 
-  describe '#to_param' do
-    it 'uses the slug when present' do
-      expect(FactoryBot.create(:festival, slug: 'fringe-2026').to_param).to eq('fringe-2026')
-    end
-  end
 end
