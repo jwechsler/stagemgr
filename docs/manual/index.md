@@ -35,6 +35,7 @@ See [Reports](reports/reports-overview.md) for all available reports, or [Import
 | Run a sales report | **Reports** menu |
 | Compare show performance | **Analysis** menu |
 | Set up a special offer | **Options > Special Offers** |
+| Group shows into a festival | **Options > Festivals** |
 | Clone an existing special offer | Edit the offer, click **Clone as New Offer** |
 | Import mailing list data | **Options > Import data** |
 | Manage staff users | **Options > Administer Users** |
@@ -48,6 +49,7 @@ This manual is organized into sections that match how Stagemgr is used:
 - **[Getting Started](getting-started/overview.md)** -- Overview, core concepts, and user roles
 - **[Setup & Configuration](setup/theaters.md)** -- One-time setup for theaters, venues, seat maps, and system settings
 - **[Productions](productions/finding-productions.md)** -- Finding, creating, and configuring shows and performances
+- **[Festivals](festivals/festivals-overview.md)** -- Branded groupings of productions with shared display, entitlements, and reporting
 - **[Offers & Pricing](offers/special-offers.md)** -- Special offers, flex passes, memberships, and service fees
 - **[Ticketing](ticketing/order-lifecycle.md)** -- Day-to-day order creation, exchanges, refunds, and management
 - **[Customers](customers/managing-patrons.md)** -- Patron records, tags, and duplicate management
