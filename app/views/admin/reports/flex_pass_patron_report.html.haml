@@ -13,3 +13,7 @@
           on
           = Time.now.to_date.to_s(:long)
       = render :partial=>"generic", :locals=>{:headers=>@headers, :report_body=>@report_data}
+    - if @flex_pass_offer_names.present?
+      %p.help_text
+        Limited to:
+        = @flex_pass_offer_names

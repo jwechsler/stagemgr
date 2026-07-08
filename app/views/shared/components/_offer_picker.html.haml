@@ -1,0 +1,24 @@
+-# Multi-select offer picker (see offer_picker.js). Chosen offers are
+-# submitted as hidden <field_name>[] inputs; choosing none leaves the
+-# report unfiltered. Suggestions mix offers with tag / theater groups.
+-#
+-# Locals:
+-#   field_name  (required) — array param name, e.g. 'flex_pass_offer_ids'
+-#   search_url  (required) — offer search endpoint
+-#   resolve_url (required) — group resolve endpoint
+-#   label       — label text above the input
+-#   placeholder — input placeholder text
+- label       = local_assigns.fetch(:label, 'Limit to offers (optional)')
+- placeholder = local_assigns.fetch(:placeholder, 'Type an offer name or tag...')
+.offer-picker{data: { offer_picker: true, field: field_name,
+                      search_url: search_url, resolve_url: resolve_url }}
+  %label
+    = label
+    .grid-x
+      .cell.auto
+        %input.offer-picker-input.input-group-field{type: 'text', placeholder: placeholder,
+                                                    autocomplete: 'off'}
+      .cell.shrink{style: 'padding-left: 0.5rem'}
+        %a.offer-picker-remove-all.button.alert.small{href: '#', style: 'display:none'} Remove all
+  %table.offer-picker-table.hover{style: 'display:none; margin-top: 0.5rem'}
+    %tbody

@@ -1,11 +1,22 @@
 class Admin::MembershipOffersController < ApplicationController
-  load_and_authorize_resource except: [:autocomplete_tag]
+  load_and_authorize_resource except: %i[autocomplete_tag search resolve_group]
 
   def autocomplete_tag
     term = params[:term].to_s
     names = MembershipOfferTag.where('name LIKE ?', "#{term}%")
                               .order(:name).limit(20).pluck(:name).uniq
     render json: names
+  end
+
+  # Offer-picker typeahead endpoints (reports page).
+  def search
+    authorize! :read, MembershipOffer
+    render json: OfferSearch.new(current_ability, 'membership').search(params[:q])
+  end
+
+  def resolve_group
+    authorize! :read, MembershipOffer
+    render json: OfferSearch.new(current_ability, 'membership').resolve_group(params[:group_key])
   end
 
   def index

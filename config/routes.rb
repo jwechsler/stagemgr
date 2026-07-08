@@ -162,6 +162,8 @@ Rails.application.routes.draw do
     resources :flex_pass_offers do
       collection do
         get :autocomplete_tag
+        get :search
+        get :resolve_group
       end
       resources :orders, controller: 'flex_pass_offer_orders'
     end
@@ -169,6 +171,8 @@ Rails.application.routes.draw do
     resources :membership_offers do
       collection do
         get :autocomplete_tag
+        get :search
+        get :resolve_group
       end
     end
 

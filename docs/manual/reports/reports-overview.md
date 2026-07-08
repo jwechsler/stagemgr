@@ -37,6 +37,37 @@ Unlike the old dropdowns, report search offers **every** production you can acce
 including Inactive and Presale shows -- useful for historical reporting on shows that are
 no longer on sale.
 
+## Selecting Offers
+
+The four membership and FlexPass reports -- **Membership Usage**, **Membership Orders**,
+**FlexPass Sales**, and **FlexPass Patron Report** -- include an optional **Limit to offers**
+picker that restricts the report to one or more offers. Leaving it empty runs the report
+across all offers.
+
+Type in the picker to search:
+
+- **By offer name** -- matching offers are listed individually. FlexPass offers show their
+  theater restriction next to the name ("Only Theater Wit" / "All but Theater Wit").
+- **By tag** -- choosing an **All offers tagged ...** suggestion adds every offer carrying
+  that tag in one click. Tags are assigned on the offer forms; see
+  [Membership Offer Tags](../offers/membership-offers.md#tags) and
+  [Flex Pass Offer Tags](../offers/flex-pass-offers.md#tags).
+- **By theater** (FlexPass reports only) -- typing a theater name lists that theater's
+  offers, plus an **All ... offers** group that adds every offer restricted to that theater.
+  The group does not include "All but" offers, which merely exclude the theater.
+
+![FlexPass Sales offer picker with two offers selected and a search for "wit" showing the All Theater Wit offers group and offers labeled Only Theater Wit](../assets/images/screenshots/reports-offer-picker.png)
+
+Each selection appears in a table beneath the field with its own remove link; **Remove all**
+clears the whole selection. An offer already selected is not suggested again.
+
+!!! note "Active offers only"
+    Suggestions only include **Active** offers. Inactive and retired offers never appear,
+    so a report limited by the picker reflects your current catalog.
+
+When a report is limited, the on-screen results end with a **"Limited to:"** footnote listing
+the selected offers, so a printed or shared report is self-describing.
+
 ## Report Output Types
 
 Reports deliver results in one of three ways depending on the report and the size of the data.

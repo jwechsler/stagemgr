@@ -93,7 +93,7 @@ RSpec.describe MembershipUsageReport do
 
   describe '#create excluding the current month' do
     let(:this_month) { Time.current.change(day: 1, hour: 12) }
-    let(:last_month) { (Time.current - 1.month).change(day: 15, hour: 12) }
+    let(:last_month) { 1.month.ago.change(day: 15, hour: 12) }
 
     subject(:months) do
       described_class.new(last_month.to_date, this_month.to_date.at_end_of_month)
@@ -112,7 +112,7 @@ RSpec.describe MembershipUsageReport do
     end
 
     it 'still includes prior complete months' do
-      expect(months).to include((Time.current - 1.month).strftime('%Y-%m'))
+      expect(months).to include(1.month.ago.strftime('%Y-%m'))
     end
   end
 
@@ -174,6 +174,38 @@ RSpec.describe MembershipUsageReport do
       total_row = rows.last
 
       expect(total_row).to include(Month: 'Total', Memberships: 1, Collected: 50.to_money, Paid: 20.to_money)
+    end
+  end
+
+  describe '#create scoped to several offers' do
+    let(:bronze_offer) { FactoryBot.create(:membership_offer, name: 'Bronze') }
+
+    subject(:rows) do
+      described_class.new(starting_date, ending_date, nil, [gold_offer.id, silver_offer.id]).create.last
+    end
+
+    before do
+      gold_order = create_membership_order_for(gold_offer, collected: 50.0, processed_on: in_may)
+      silver_order = create_membership_order_for(silver_offer, collected: 30.0, processed_on: in_may)
+      create_membership_order_for(bronze_offer, collected: 15.0, processed_on: in_may)
+      create_membership_payment_for(gold_order.membership, paid: 20.0, processed_on: in_may)
+      create_membership_payment_for(silver_order.membership, paid: 10.0, processed_on: in_may)
+    end
+
+    it 'includes only the requested offers in the detail rows' do
+      detail_offers = rows.select { |row| row[:display_class] == :report_detail_row }.pluck(:Offer)
+
+      expect(detail_offers).to contain_exactly('Gold', 'Silver')
+    end
+
+    it 'aggregates the monthly subtotal over just the selected offers' do
+      summary_row = rows.find { |row| row[:Offer] == MembershipUsageReport::ALL_OFFERS_LABEL }
+
+      expect(summary_row).to include(Memberships: 2, Collected: 80.to_money, Paid: 30.to_money)
+    end
+
+    it 'ends with a grand Total row over the selected offers' do
+      expect(rows.last).to include(Month: 'Total', Memberships: 2, Collected: 80.to_money, Paid: 30.to_money)
     end
   end
 end

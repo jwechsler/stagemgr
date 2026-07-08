@@ -13,7 +13,9 @@
 //= require cocoon
 //= require jquery-ui/widgets/autocomplete
 //= require autocomplete-rails
+//= require grouped_typeahead
 //= require production_picker
+//= require offer_picker
 //= require tagify
 //= require theater_tags
 //= require credit_card_track_parser
