@@ -13,8 +13,7 @@ RSpec.describe VenuesController, type: :controller do
                       festival: festival)
   end
 
-  def next_up_play(venue, festival: nil)
-    open = Date.today + 2.weeks
+  def next_up_play(venue, festival: nil, open: Date.today + 2.weeks)
     FactoryBot.create(:production,
                       venue: venue,
                       status: Production::ACTIVE,
@@ -85,14 +84,15 @@ RSpec.describe VenuesController, type: :controller do
       expect(block[:all].to_a).to include(extra)
     end
 
-    it 'surfaces the venue next non-festival show when the current shows are in the festival' do
+    it 'leaves the venue slot empty while a festival holds it, never skipping ahead' do
       now_playing_play(venue, festival: festival)
-      now_playing_play(venue, festival: festival)
-      upcoming = next_up_play(venue)
+      next_up_play(venue, festival: festival)
+      distant = next_up_play(venue, open: Date.today + 8.weeks)
 
       get :now_playing
 
-      expect(assigns(:now_playing_productions)).to include(upcoming)
+      expect(assigns(:now_playing_productions)).not_to include(distant)
+      expect(assigns(:festival_blocks).size).to eq(1)
     end
 
     it 'builds no festival blocks when no active-festival shows are playing' do

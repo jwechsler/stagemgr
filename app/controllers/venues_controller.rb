@@ -55,25 +55,17 @@ class VenuesController < ApplicationController
     festival_members = []
     @now_playing_productions = []
     Venue.all.sort.each do |venue|
-      if venue.external?
-        prods = venue.now_playing(Production::PLAY, Date.today.end_of_week + 1.week)
-        members, others = prods.partition(&:festival_grouped?)
-        festival_members += members
-        @now_playing_productions += others
-      else
-        # Partition the venue's natural slot (current show, else next up).
-        # Grouped festival members never occupy it — they render in the
-        # festival block instead, and the venue falls back to its next
-        # non-festival show.
-        members, others = venue.now_playing_or_next_up(Production::PLAY).partition(&:festival_grouped?)
-        festival_members += members
-        @now_playing_productions +=
-          if others.any? || members.empty?
-            others
-          else
-            venue.now_playing_or_next_up(Production::PLAY, exclude_festival: true)
-          end
-      end
+      # Grouped festival members never occupy the venue's slot (current show,
+      # else next up) — they render in the festival block instead, and the
+      # venue contributes no thumb of its own while the festival holds it.
+      prods = if venue.external?
+                venue.now_playing(Production::PLAY, Date.today.end_of_week + 1.week)
+              else
+                venue.now_playing_or_next_up(Production::PLAY)
+              end
+      members, others = prods.partition(&:festival_grouped?)
+      festival_members += members
+      @now_playing_productions += others
     end
     @offtime_productions = []
     Venue.all.each do |venue|
