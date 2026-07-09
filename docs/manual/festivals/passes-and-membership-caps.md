@@ -18,10 +18,21 @@ When a patron redeems a festival-restricted pass for a show outside the festival
 > That FlexPass is only valid for {Festival Name} shows. Please contact our box office for details.
 
 !!! warning "Festival restriction stacks with the other gates"
-    The festival gate is **additional** -- it never replaces the pass's existing rules. Theater restrictions, ticket class, expiration, and Maximum Uses Per Production all still apply exactly as before. A pass restricted to both a theater and a festival must satisfy both.
+    The festival gate is **additional** -- it never replaces the pass's existing rules. Theater restrictions, ticket class, expiration, and the Maximum Uses Per Production / Per Performance limits all still apply exactly as before. A pass restricted to both a theater and a festival must satisfy both.
+
+## Limiting Tickets per Show
+
+Festival passes usually pair the festival restriction with a redemption cap from the flex pass offer form (see [Flex Pass Offers](../offers/flex-pass-offers.md)):
+
+| Goal | Setting |
+|------|---------|
+| One seat at every festival show | **Maximum Uses Per Performance** = 1, with **Number of Tickets** equal to the number of shows. |
+| See any festival show, alone or with a guest | **Maximum Uses Per Production** = 2. |
+
+Both caps may be set together -- for example, per-performance 1 with per-production 2 lets a patron use the pass at two different performances of the same show, but never two seats at once.
 
 !!! note "Legacy festival passes"
-    Before festivals existed, the **Treat as Festival Pass** flag and per-production pass links approximated this behavior. Those settings still work for existing offers and are labeled "(legacy)" on the forms; new offers should use the **Festival** dropdown instead.
+    Before festivals existed, a **Treat as Festival Pass** flag and per-production pass links approximated this behavior. That mechanism has been removed; festival grouping now comes solely from the **Festival** dropdown on the production form and the **Restrict to festival** dropdown here.
 
 ## Capping Membership Advance Bookings
 

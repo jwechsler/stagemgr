@@ -143,9 +143,9 @@ These fields override the theater-level default service fees for this production
 
 ## Form Fields: Sales
 
-### Flex Pass Offer
+### Festival
 
-Associate a festival pass offer with this production, allowing flex pass holders to redeem tickets.
+Link the production to a festival. Festival membership groups the production with its festival-mates on public pages and lets festival-restricted flex passes redeem tickets for it. See [Festivals Overview](../festivals/festivals-overview.md).
 
 ### Conversion Pixel Code
 
