@@ -15,6 +15,8 @@ class FlexPassOffer < ApplicationRecord
   validates :price, numericality: { greater_than_or_equal_to: 0 }
   validates :facility_fee, :spiff, :flat_payout,
             numericality: { greater_than_or_equal_to: 0, allow_nil: true }
+  validates :maximum_uses_per_production, :maximum_uses_per_performance,
+            numericality: { greater_than_or_equal_to: 0, allow_nil: true, only_integer: true }
   validates :months_till_expiration, presence: true
   validates :name, :price, :number_of_tickets, :use_ticket_class_code, presence: true
 

@@ -13,6 +13,8 @@
       = f.input :use_ticket_class_code, :as=>:select, :collection=>DefaultTicketClass.all.map{|tc| tc.class_code}
     .cell.small-6.medium-3
       = f.input :maximum_uses_per_production
+    .cell.small-6.medium-3
+      = f.input :maximum_uses_per_performance
 
     .cell.small-12.medium-6
       = f.input :short_description
