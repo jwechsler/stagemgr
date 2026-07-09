@@ -6,6 +6,10 @@ module Exceptions
 
   class FestivalTicketsAtDoorOnly < StandardError; end
 
+  class PassAlreadyUsedThisWeek < StandardError; end
+
+  class PerformanceOutsideCurrentWeek < StandardError; end
+
   # Membership exceptions
   class UnknownMembershipCode < StandardError; end
 

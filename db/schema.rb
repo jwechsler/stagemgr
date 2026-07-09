@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_07_08_160100) do
+ActiveRecord::Schema.define(version: 2026_07_09_210000) do
 
   create_table "active_storage_attachments", charset: "utf8mb3", force: :cascade do |t|
     t.string "name", null: false
@@ -286,6 +286,7 @@ ActiveRecord::Schema.define(version: 2026_07_08_160100) do
     t.string "status", default: "Active"
     t.string "price_id"
     t.integer "max_festival_tickets_in_advance"
+    t.string "membership_type", default: "production", null: false
   end
 
   create_table "memberships", id: :integer, charset: "latin1", force: :cascade do |t|
