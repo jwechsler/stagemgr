@@ -5,6 +5,7 @@ class MembershipOfferDatatable < DatatableBase
     @view_columns ||= {
       name: { source: 'MembershipOffer.name', orderable: false },
       on_sale: { source: 'MembershipOffer.on_sale', orderable: false },
+      membership_type: { source: 'MembershipOffer.membership_type', orderable: false },
       status: { source: 'MembershipOffer.status', orderable: false },
       actions: { searchable: false, orderable: false }
     }
@@ -16,6 +17,7 @@ class MembershipOfferDatatable < DatatableBase
         id: record.decorate.id,
         name: name_with_tags(record),
         on_sale: record.decorate.on_sale?,
+        membership_type: record.membership_type,
         status: record.decorate.dt_actions,
         DT_RowID: record.id
       }

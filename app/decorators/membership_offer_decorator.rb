@@ -13,7 +13,7 @@ class MembershipOfferDecorator < ApplicationDecorator
 
   def dt_actions
     order_action =
-      if object.active?
+      if object.active? && !object.timed?
         h.link_to('Create Order', [:new, :admin, object, :order], class: 'tiny button')
       else
         h.content_tag(:span, 'Create Order', class: 'tiny button disabled', 'aria-disabled': true)
@@ -23,6 +23,7 @@ class MembershipOfferDecorator < ApplicationDecorator
     # them and create orders.
     actions << h.link_to('Edit', [:edit, :admin, object], class: 'tiny button') if h.current_user.can?(:update, object)
     actions << order_action
+    actions << h.link_to('Issue Pass', h.new_admin_membership_path(membership_offer_id: object.id), class: 'tiny button') if object.timed?
     actions << h.link_to('Usage', h.membership_offer_usage_admin_reports_path(object), class: 'tiny button')
     h.safe_join(actions, ' ')
   end

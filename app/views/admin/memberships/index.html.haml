@@ -1,0 +1,25 @@
+= content_for :title do
+  Memberships
+= content_for :breadcrumbs do
+  = render "shared/components/breadcrumb", items: [{ label: "Memberships" }]
+
+.grid-x.grid-padding-x
+  .small-12.cell
+    %table
+      %thead
+        %tr
+          %th Member Code
+          %th Offer
+          %th Address
+          %th Status
+          %th Member Since
+      %tbody
+        - @memberships.each do |membership|
+          %tr
+            %td= link_to membership.member_code, admin_membership_path(membership)
+            %td= "#{membership.membership_offer.name} (#{membership.membership_offer.membership_type})"
+            %td= membership.address&.full_name
+            %td= membership.status
+            %td= membership.member_since
+
+    = link_to "New Membership", new_admin_membership_path, :class=>'button' if can? :create, Membership

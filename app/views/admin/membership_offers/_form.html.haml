@@ -23,6 +23,9 @@
           .small-6.medium-3.cell
             = f.input :tickets_per_performance
           .small-6.medium-3.cell
+            = f.input :membership_type, :as=>:select, :collection=>MembershipOffer::MEMBERSHIP_TYPES, :include_blank=>false,
+                :hint=>"'timed' = library pass: one performance per calendar week (Mon–Sun), staff-issued, no Stripe billing, never on public sale"
+          .small-6.medium-3.cell
             = f.input :use_ticket_class_code, :as=>:select, :collection=>DefaultTicketClass.all.map{|tc| tc.class_code}
           .small-6.medium-3.cell
             = f.input :use_member_friend_code, :as=>:select, :collection=>DefaultTicketClass.all.map{|tc| tc.class_code}

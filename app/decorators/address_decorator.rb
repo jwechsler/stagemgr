@@ -38,7 +38,11 @@ class AddressDecorator < ApplicationDecorator
     if object.is_current_member?
       memberships = []
       object.memberships.select { |membership| membership.active? }.each do |membership|
-        memberships << h.link_to(membership.member_code, [:admin, membership.membership_order])
+        memberships << if membership.membership_order.nil?
+                          h.link_to(membership.member_code, [:admin, membership])
+                        else
+                          h.link_to(membership.member_code, [:admin, membership.membership_order])
+                        end
       end
       unless memberships.empty?
         memberships = h.safe_join(memberships, ',')

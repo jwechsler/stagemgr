@@ -98,6 +98,9 @@ class Ability
     can %i[create read reactivate cancel update_seating], MembershipOrder
     # Membership offers are administrator-managed: box office staff read them
     # and create orders only (:read granted below with the other offer reads)
+    # Individual memberships (including staff-issued "library pass" timed
+    # memberships) are managed directly by box office staff and admins.
+    can :manage, Membership
     can :manage, SpecialFeature
     can :manage, SpecialOffer
     can :cru, DonationOrder
