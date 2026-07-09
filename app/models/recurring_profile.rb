@@ -140,6 +140,8 @@ module RecurringProfile
   end
 
   def notify_on_suspension
+    return if recurring_order.nil?
+
     recurring_order.notify_suspended
     recurring_order.save
   end

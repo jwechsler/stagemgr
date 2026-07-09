@@ -19,6 +19,8 @@ class Membership < ApplicationRecord
   before_save :release_pending_tasks_on_cancel
 
   def verify_applicable_for(order)
+    return verify_timed_use_for(order) if membership_offer.timed?
+
     unless membership_offer.tickets_per_performance.nil?
       perfs = Order.where(
         "performance_id = ? and id <> ? and id in (select order_id from payments where type = 'MembershipPayment' and membership_id = ?)", order.id, order.performance_id, id
@@ -64,6 +66,47 @@ class Membership < ApplicationRecord
     end
   end
 
+  # Timed ("library pass") rules: ONE redemption order per calendar week
+  # (Monday-Sunday), for up to tickets_per_performance seats to a single
+  # performance. Any prior attending redemption whose performance falls in the
+  # same week -- even for the same performance -- blocks the order. Applies to
+  # box office sales too; there is deliberately no box_office_sale bypass.
+  def verify_timed_use_for(order)
+    limit = membership_offer.tickets_per_performance
+    raise Exceptions::TooManyTicketsForMembership.new("This pass only allows #{limit} seat#{'s' if limit > 1} per performance") if !limit.nil? && order.number_of_seats > limit
+
+    return if order.membership_payments.sum { |li| li.number_of_tickets } == 0
+
+    week_start = order.performance.performance_date.beginning_of_week(:monday)
+    already_used = MembershipPayment.joins(order: :performance).where(
+      'payments.membership_id = :membership_id and orders.id != :order_id and
+        orders.status in (:attending) and
+        performances.performance_date between :week_start and :week_end',
+      membership_id: id,
+      order_id: order.id || -1,
+      attending: Order::ATTENDING_STATUSES,
+      week_start: week_start,
+      week_end: week_start + 6.days
+    ).exists?
+
+    raise Exceptions::PassAlreadyUsedThisWeek.new("This pass has already been used this week. It can be used again starting Monday, #{(week_start + 7.days).strftime('%B %d')}.") if already_used
+  end
+
+  # Booking-window rule for timed passes: redemption may only target a
+  # performance in the CURRENT calendar week. Called from
+  # MembershipPayment#process! at redemption time only -- NOT from
+  # verify_applicable_for, because Order#validate_membership_payments re-runs
+  # that on any later save of a Processed order, which would spuriously fail
+  # once the week has passed.
+  def verify_bookable_this_week!(order)
+    return unless membership_offer.timed?
+
+    week_start = Date.today.beginning_of_week(:monday)
+    return if (week_start..week_start + 6.days).cover?(order.performance.performance_date.to_date)
+
+    raise Exceptions::PerformanceOutsideCurrentWeek.new("This pass can only reserve performances through Sunday, #{(week_start + 6.days).strftime('%B %d')}. Reservations for later weeks open on the Monday of that week.")
+  end
+
   def create_code(size = 6)
     charset = %w{2 3 4 6 7 9 A C D E F G H J K L M N P Q R T V W X Y Z}
     while member_code.nil? || !FlexPass.find_by_code(member_code).nil?
@@ -98,7 +141,9 @@ class Membership < ApplicationRecord
 
   def release_pending_tasks_on_cancel
     if status_changed? && canceled?
-      o = membership_line_item.order
+      o = membership_line_item&.order
+      return true if o.nil?
+
       o.cancel_pending_tasks
       o.save!
     end
