@@ -48,8 +48,6 @@
           .cell.small-12.medium-4
             = f.association :festival, :label=>"Restrict to festival", :as=>:select, :include_blank=>true, :collection=>Festival.order(:name)
           .cell.small-12.medium-4
-            = f.input :treat_as_festival_pass, :label=>"Treat as festival pass (legacy)"
-          .cell.small-12.medium-4
             = f.association :theater, :label=>"Restrict redemption to", :as=>:select, :collection=>Theater.where("status in (?)", ['Active', 'Private'])
             = f.input :exclude_theater, :label=>"Exclude selected theater"
     .cell.small-12

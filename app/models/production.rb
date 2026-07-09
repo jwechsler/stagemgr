@@ -58,9 +58,6 @@ class Production < ApplicationRecord
   before_save :finalize_season_seating, :if => :status_changed?
   before_save :update_performance_codes, :if => :production_code_changed?
   belongs_to :festival, optional: true, inverse_of: :productions
-  # LEGACY (pre-Festival): superseded by festival_id; still read as a fallback
-  # by the performances/_calendar flex-pass upsell and for pre-migration data.
-  belongs_to :flex_pass_offer, optional: true, inverse_of: :production
   has_and_belongs_to_many :addresses
   has_many :rate_of_sales
 

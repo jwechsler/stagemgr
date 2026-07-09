@@ -12,11 +12,6 @@
           %div.special_offer_upsell
             = link_to festival_offer.short_description, new_flex_pass_offer_order_path(festival_offer) unless festival_offer.short_description.blank?
             or, purchase tickets for an individual show below
-        - elsif !@production.flex_pass_offer.blank?
-          -# LEGACY (pre-Festival): superseded by festival-scoped flex pass offers above
-          %div.special_offer_upsell
-            = link_to @production.flex_pass_offer.short_description, new_flex_pass_offer_order_path(@production.flex_pass_offer) unless @production.flex_pass_offer.short_description.blank?
-            or, purchase tickets for an individual show below
         - else
           %span.special_offer_upsell
             %a{:href=>"/boxoffice/membership"} Become a member and see everything at the Wit

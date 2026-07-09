@@ -1,9 +1,6 @@
 class FlexPassOffer < ApplicationRecord
   belongs_to :theater, optional: true, inverse_of: :flex_pass_offers
   belongs_to :festival, optional: true, inverse_of: :flex_pass_offers
-  # LEGACY (pre-Festival): grouping productions by flex_pass_offer_id is
-  # superseded by Festival membership (productions.festival_id).
-  has_one :production, inverse_of: :flex_pass_offer
   has_many :flex_passes, inverse_of: :flex_pass_offer
   has_many :flex_pass_line_items, inverse_of: :flex_pass_offer
 

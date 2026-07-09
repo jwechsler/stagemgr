@@ -5,10 +5,11 @@
       <%= raw link_to "Get tickets/schedule for <i>#{production.name}</i>".html_safe, production_performances_path(production.id, :anchor=>"top"), :target=>(new_window_link ? '_blank' : '_self') %>
     </div>
 
-    <p class="special_offer_upsell">
-      <%- if !production.flex_pass_offer.blank? && !production.flex_pass_offer.short_description.blank? -%>
-        <%= link_to production.flex_pass_offer.short_description, new_flex_pass_offer_order_path(production.flex_pass_offer, :anchor=>"top") %>
-      <%- end -%></p>
+    <%- festival_offer = production.festival&.flex_pass_offers&.detect(&:on_sale_to_public?) -%>
+    <%- if festival_offer && festival_offer.short_description.present? -%>
+      <p class="special_offer_upsell">
+        <%= link_to festival_offer.short_description, new_flex_pass_offer_order_path(festival_offer, :anchor=>"top") %></p>
+    <%- end -%>
   <%- else -%>
     <p class="production tickets"><i>Tickets are not yet on sale for <%= production.name %>. Check back later!</i></p>
   <%- end %>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_07_08_160000) do
+ActiveRecord::Schema.define(version: 2026_07_08_160100) do
 
   create_table "active_storage_attachments", charset: "utf8mb3", force: :cascade do |t|
     t.string "name", null: false
@@ -193,7 +193,6 @@ ActiveRecord::Schema.define(version: 2026_07_08_160000) do
     t.decimal "flat_payout", precision: 8, scale: 2
     t.string "use_ticket_class_code"
     t.integer "months_till_expiration", default: 12
-    t.boolean "treat_as_festival_pass"
     t.boolean "on_sale_to_public", default: false
     t.string "code_prefix"
     t.integer "maximum_uses_per_production"
@@ -503,7 +502,6 @@ ActiveRecord::Schema.define(version: 2026_07_08_160000) do
     t.string "myemma_attendee_group"
     t.integer "running_time"
     t.boolean "intermission", default: true
-    t.integer "flex_pass_offer_id"
     t.text "follow_up_message"
     t.text "follow_up_text"
     t.text "confirmation_message"
