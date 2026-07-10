@@ -39,4 +39,39 @@ RSpec.describe MembershipOffer do
 
     expect(offer.reload.on_sale).to be_falsey
   end
+
+  describe '#usage_date_range' do
+    it 'returns [nil, nil] for an offer with neither payments nor memberships' do
+      offer = FactoryBot.create(:membership_offer, :timed)
+
+      expect(offer.usage_date_range).to eq([nil, nil])
+    end
+
+    it 'spans from the earliest membership window to today for a payment-less timed offer' do
+      offer = FactoryBot.create(:membership_offer, :timed)
+      FactoryBot.create(:library_pass, membership_offer: offer, member_since: Date.new(2026, 4, 5))
+
+      expect(offer.usage_date_range).to eq([Date.new(2026, 4, 5), Date.current])
+    end
+
+    it 'ignores Pending memberships when widening the range' do
+      offer = FactoryBot.create(:membership_offer, :timed)
+      FactoryBot.create(:library_pass, membership_offer: offer, member_since: Date.new(2026, 4, 5),
+                                       status: Membership::PENDING)
+
+      expect(offer.usage_date_range).to eq([nil, nil])
+    end
+
+    it 'widens a payment-derived range with earlier membership windows' do
+      offer = FactoryBot.create(:membership_offer)
+      order = FactoryBot.create(:membership_order)
+      order.membership_line_item.update!(membership_offer: offer)
+      order.membership.update!(membership_offer: offer, member_since: Date.new(2026, 2, 1))
+      order.payments.each { |payment| payment.update!(processed_on: Time.zone.local(2026, 3, 15, 12, 0, 0)) }
+
+      first, last = offer.usage_date_range
+      expect(first).to eq(Date.new(2026, 2, 1))
+      expect(last).to eq(Date.current)
+    end
+  end
 end

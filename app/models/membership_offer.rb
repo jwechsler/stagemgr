@@ -52,13 +52,23 @@ class MembershipOffer < ApplicationRecord
     on_sale && !timed?
   end
 
-  # [earliest, latest] processed_on across this offer's membership order
-  # payments, used to run the usage report over the offer's entire history.
-  # Returns [nil, nil] when the offer has no payments yet.
+  # [earliest, latest] activity dates for this offer, used to run the usage
+  # report over the offer's entire history: payment processed_on bounds
+  # widened by membership active windows, so offers whose memberships have
+  # never billed (staff-issued library passes) still produce a usable range.
+  # Returns [nil, nil] when the offer has neither payments nor memberships.
   def usage_date_range
-    MembershipOrder.joins(membership_line_item: :membership_offer)
-                   .joins(:payments)
-                   .where(membership_offers: { id: id })
-                   .pick(Arel.sql('MIN(payments.processed_on)'), Arel.sql('MAX(payments.processed_on)')) || [nil, nil]
+    first_payment, last_payment = MembershipOrder.joins(membership_line_item: :membership_offer)
+                                                 .joins(:payments)
+                                                 .where(membership_offers: { id: id })
+                                                 .pick(Arel.sql('MIN(payments.processed_on)'),
+                                                       Arel.sql('MAX(payments.processed_on)')) || [nil, nil]
+    window_start = Membership.where(membership_offer_id: id)
+                             .where.not(status: Membership::PENDING)
+                             .minimum(Arel.sql('COALESCE(memberships.start_date, memberships.member_since)'))
+    return [first_payment, last_payment] if window_start.nil?
+
+    [[first_payment&.to_date, window_start.to_date].compact.min,
+     [last_payment&.to_date, Date.current].compact.max]
   end
 end

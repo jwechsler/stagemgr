@@ -15,6 +15,7 @@ class Membership < ApplicationRecord
   before_destroy :cancel_future_reservations
   validates_presence_of :membership_offer
   before_validation :create_code, :on => :create
+  before_save :stamp_ended_at_on_close
   before_save :release_reservations_on_cancel
   before_save :release_pending_tasks_on_cancel
 
@@ -132,6 +133,14 @@ class Membership < ApplicationRecord
   end
 
   private
+
+  # Stripe-managed memberships get ended_at from subscription sync
+  # (RecurringProfile#update_from_profile); staff-closed memberships (admin
+  # form, library passes) otherwise have no end date, which reporting needs.
+  # The blank-guard keeps a Stripe-provided date authoritative.
+  def stamp_ended_at_on_close
+    self.ended_at = Date.today if status_changed? && [CANCELED, EXPIRED].include?(status) && ended_at.blank?
+  end
 
   def release_reservations_on_cancel
     if status_changed? && canceled?

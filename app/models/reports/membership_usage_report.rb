@@ -46,17 +46,17 @@ class MembershipUsageReport < Report
 
   private
 
-  # Aggregate monthly totals are queried independently of the per-offer breakouts so the
-  # summary rows keep the historical behavior even for records that cannot be
-  # joined to a membership offer (e.g. legacy rows missing a membership).
-  # When scoped to a single offer, the monthly totals join that offer too so the
-  # summary row reflects only that offer.
+  # Every metric is anchored on the Membership record: Memberships counts
+  # active-in-month memberships directly, and the payment columns traverse
+  # from the membership out to its payments. Purchase orders whose membership
+  # record no longer exists are therefore invisible here — the report is
+  # about memberships, not orders. When scoped to offers, the monthly totals
+  # apply the same offer restriction so the summary rows match the breakouts.
   def monthly_totals
     {
       paid: (offers_selected? ? paid_by_offer : paid_scope).group(MONTH_KEY).sum('payments.amount'),
       collected: (offers_selected? ? collected_by_offer : collected_scope).group(MONTH_KEY).sum('payments.amount'),
-      memberships: (offers_selected? ? memberships_by_offer : membership_count_scope)
-                   .distinct.group(MONTH_KEY).count('line_items.membership_id')
+      memberships: active_membership_counts
     }
   end
 
@@ -64,8 +64,7 @@ class MembershipUsageReport < Report
     {
       paid: paid_by_offer.group(MONTH_KEY, 'membership_offers.name').sum('payments.amount'),
       collected: collected_by_offer.group(MONTH_KEY, 'membership_offers.name').sum('payments.amount'),
-      memberships: memberships_by_offer.distinct
-                                       .group(MONTH_KEY, 'membership_offers.name').count('line_items.membership_id')
+      memberships: active_membership_counts(by_offer: true)
     }
   end
 
@@ -74,11 +73,7 @@ class MembershipUsageReport < Report
   end
 
   def collected_by_offer
-    only_selected_offers(collected_scope.joins(membership_line_item: :membership_offer))
-  end
-
-  def memberships_by_offer
-    only_selected_offers(membership_count_scope.joins(:membership_offer))
+    only_selected_offers(collected_scope.joins(:membership_offer))
   end
 
   def only_selected_offers(relation)
@@ -113,18 +108,58 @@ class MembershipUsageReport < Report
     )
   end
 
+  # Collected is a payments fact: money taken on membership purchase orders,
+  # attributed to the month it was processed. Anchored on the membership and
+  # traversed out to its order's payments so memberships without an order
+  # (staff-issued library passes) simply contribute nothing.
   def collected_scope
-    MembershipOrder.joins(:payments).where(
+    Membership.joins(membership_line_item: { membership_order: :payments }).where(
       'payments.processed_on >= :starting_date AND payments.processed_on < :ending_date',
       starting_date: starting_date, ending_date: ending_date
     )
   end
 
-  def membership_count_scope
-    MembershipLineItem.joins(membership_order: :payments).where(
-      'payments.processed_on >= :starting_date AND payments.processed_on < :ending_date',
-      starting_date: starting_date, ending_date: ending_date
-    )
+  # Memberships is a membership fact, not a billing fact: a membership counts
+  # in every month that overlaps its active window, regardless of whether a
+  # payment landed that month (trials, comps, failed charges, order-less
+  # library passes). Window: COALESCE(start_date, member_since) through
+  # ended_at (open when NULL); currently-Pending memberships never activated
+  # and are excluded. Suspended is a transient billing state and still counts.
+  def active_membership_counts(by_offer: false)
+    report_months.each_with_object({}) do |month_start, counts|
+      scope = active_memberships_in(month_start)
+      month_key = month_start.strftime('%Y-%m')
+      if by_offer
+        scope.group('membership_offers.name').count.each do |offer_name, count|
+          counts[[month_key, offer_name]] = count
+        end
+      else
+        count = scope.count
+        counts[month_key] = count if count.positive?
+      end
+    end
+  end
+
+  def active_memberships_in(month_start)
+    scope = Membership.joins(:membership_offer)
+                      .where.not(status: Membership::PENDING)
+                      .where(
+                        'COALESCE(memberships.start_date, memberships.member_since) <= :month_end AND
+                          (memberships.ended_at IS NULL OR memberships.ended_at >= :month_start)',
+                        month_start: month_start, month_end: month_start.end_of_month
+                      )
+    only_selected_offers(scope)
+  end
+
+  def report_months
+    month = starting_date.beginning_of_month
+    last = (ending_date - 1.day).beginning_of_month
+    months = []
+    while month <= last
+      months << month
+      month += 1.month
+    end
+    months
   end
 
   def months(monthly)
