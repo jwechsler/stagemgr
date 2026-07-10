@@ -22,9 +22,14 @@ class MembershipOfferDecorator < ApplicationDecorator
     end
   end
 
-  # Renders the "Issue Pass" button for staff-issued timed (library) passes.
+  # Renders the "Issue Pass" button for staff-issued timed (library) passes,
+  # enabled only while the offer is active — mirroring create_order_button.
   def issue_pass_button(css_class: 'tiny button')
-    h.link_to('Issue Pass', h.new_admin_membership_path(membership_offer_id: object.id), class: css_class)
+    if object.active?
+      h.link_to('Issue Pass', h.new_admin_membership_path(membership_offer_id: object.id), class: css_class)
+    else
+      h.content_tag(:span, 'Issue Pass', class: "#{css_class} disabled", 'aria-disabled': true)
+    end
   end
 
   # The primary sales action for an offer: timed passes are issued, everything
