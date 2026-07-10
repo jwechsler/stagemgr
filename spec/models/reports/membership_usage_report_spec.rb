@@ -85,10 +85,10 @@ RSpec.describe MembershipUsageReport do
       expect(months).to eq(['2026-05'])
     end
 
-    it 'ends with a grand Total row summing the detail rows across all months' do
+    it 'ends with a grand Total row summing the money columns but not Memberships' do
       total_row = rows.last
 
-      expect(total_row).to include(Month: 'Total', Memberships: 2, Collected: 80.to_money, Paid: 30.to_money)
+      expect(total_row).to include(Month: 'Total', Memberships: '', Collected: 80.to_money, Paid: 30.to_money)
     end
   end
 
@@ -242,7 +242,7 @@ RSpec.describe MembershipUsageReport do
     end
 
     it 'still ends with a grand Total row' do
-      expect(report.data.last).to include(Month: 'Total', Memberships: 2, Collected: 80.to_money, Paid: 30.to_money)
+      expect(report.data.last).to include(Month: 'Total', Memberships: '', Collected: 80.to_money, Paid: 30.to_money)
     end
   end
 
@@ -275,7 +275,7 @@ RSpec.describe MembershipUsageReport do
     it 'ends with a grand Total row for the single offer' do
       total_row = rows.last
 
-      expect(total_row).to include(Month: 'Total', Memberships: 1, Collected: 50.to_money, Paid: 20.to_money)
+      expect(total_row).to include(Month: 'Total', Memberships: '', Collected: 50.to_money, Paid: 20.to_money)
     end
   end
 
@@ -307,7 +307,7 @@ RSpec.describe MembershipUsageReport do
     end
 
     it 'ends with a grand Total row over the selected offers' do
-      expect(rows.last).to include(Month: 'Total', Memberships: 2, Collected: 80.to_money, Paid: 30.to_money)
+      expect(rows.last).to include(Month: 'Total', Memberships: '', Collected: 80.to_money, Paid: 30.to_money)
     end
   end
 end

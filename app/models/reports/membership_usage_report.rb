@@ -187,10 +187,12 @@ class MembershipUsageReport < Report
       display_class: :report_summary_row }
   end
 
-  # Grand total of the detail (per-offer) rows across every month.
+  # Grand total of the detail (per-offer) rows across every month. Memberships
+  # is left blank: it's an active-during-month count, so summing it across
+  # months double-counts every membership that spans more than one month.
   def total_row(detail_rows)
     { Month: 'Total', Offer: '',
-      Memberships: detail_rows.sum { |row| row[:Memberships] },
+      Memberships: '',
       Collected: detail_rows.sum(0.to_money) { |row| row[:Collected] },
       Paid: detail_rows.sum(0.to_money) { |row| row[:Paid] },
       display_class: :report_summary_row }
