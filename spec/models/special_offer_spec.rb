@@ -107,6 +107,18 @@ RSpec.describe 'a special offer' do
     expect(o.total_paid).to eq(6)
   end
 
+  it 'can make the cheapest qualifying tickets free (buy X get Y)' do
+    o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets)
+    expect(o.total_due).to eq(12)
+    offer = FactoryBot.create(:buy_x_get_y_special_offer, buy_quantity: 1, get_quantity: 1,
+                                                          ticket_class_code: 'GEN', number_of_uses: 5)
+    o.special_offer_code = offer.code
+    expect(o.total_due).to eq(12)
+    o.transition_to!(Order::PROCESSED)
+    expect(o.total_paid).to eq(6)
+    expect(offer.reload.number_of_uses).to eq(4)
+  end
+
   it 'can be restricted by the day of the week' do
     o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets)
     expect(o.total_due).to eq(12)

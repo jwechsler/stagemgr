@@ -202,7 +202,7 @@ class SpecialOffer < ApplicationRecord
 
   def description(order)
     count = applicable_count(order)
-    "on #{count} ticket#{'s' unless count > 0}"
+    "on #{count} ticket#{'s' unless count == 1}"
   end
 
   def to_s

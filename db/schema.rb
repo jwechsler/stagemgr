@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_07_08_160100) do
+ActiveRecord::Schema.define(version: 2026_07_10_120000) do
 
   create_table "active_storage_attachments", charset: "utf8mb3", force: :cascade do |t|
     t.string "name", null: false
@@ -651,6 +651,8 @@ ActiveRecord::Schema.define(version: 2026_07_08_160100) do
     t.date "performance_start_range"
     t.date "performance_end_range"
     t.integer "day_restrictions", default: 0
+    t.integer "buy_quantity"
+    t.integer "get_quantity"
     t.index ["code"], name: "index_special_offers_on_code"
     t.index ["performance_id"], name: "index_special_offers_on_performance_id"
     t.index ["production_id"], name: "index_special_offers_on_production_id"

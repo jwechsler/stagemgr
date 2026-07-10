@@ -22,7 +22,7 @@ class Admin::SpecialOffersController < Admin::ApplicationController
   end
 
   def create
-    object_type = %i[percent_off_special_offer amount_off_special_offer ticket_class_special_offer].select do |t|
+    object_type = %i[percent_off_special_offer amount_off_special_offer ticket_class_special_offer buy_x_get_y_special_offer].select do |t|
       params.key?(t)
     end.first || :special_offer
     @special_offer = SpecialOffer.new(special_offer_params(object_type))
@@ -37,7 +37,7 @@ class Admin::SpecialOffersController < Admin::ApplicationController
 
   def update
     @special_offer = SpecialOffer.find(params[:id])
-    object_type = %i[percent_off_special_offer amount_off_special_offer ticket_class_special_offer].select do |t|
+    object_type = %i[percent_off_special_offer amount_off_special_offer ticket_class_special_offer buy_x_get_y_special_offer].select do |t|
       params.key?(t)
     end.first
     @special_offer.update(special_offer_params(object_type))
@@ -54,7 +54,7 @@ class Admin::SpecialOffersController < Admin::ApplicationController
 
   def duplicate
     @special_offer = SpecialOffer.find(params[:id])
-    object_type = %i[percent_off_special_offer amount_off_special_offer ticket_class_special_offer].select do |t|
+    object_type = %i[percent_off_special_offer amount_off_special_offer ticket_class_special_offer buy_x_get_y_special_offer].select do |t|
       params.key?(t)
     end.first
     @special_offer.update(special_offer_params(object_type))
@@ -81,7 +81,7 @@ class Admin::SpecialOffersController < Admin::ApplicationController
       :change_ticket_class_code, :ticket_class_code, :performance_start_range, :performance_end_range,
       :restricted_monday, :restricted_tuesday, :restricted_wednesday, :restricted_thursday, :restricted_friday,
       :restricted_saturday, :restricted_sunday, :auto_start, :auto_expire, :number_of_uses,
-      :max_tickets_per_order
+      :max_tickets_per_order, :buy_quantity, :get_quantity
     )
   end
 end

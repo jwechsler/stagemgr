@@ -23,9 +23,11 @@
           - qty = 0
           - old_items = Array.new
           - new_items = Array.new
-          - unless @ticket_order.special_offer_line_item.nil?
+          - offer = @ticket_order.special_offer_line_item&.special_offer
+          - free_counts = offer.is_a?(BuyXGetYSpecialOffer) ? offer.free_ticket_counts(@ticket_order) : {}
+          - unless offer.nil?
 
-            - new2, old2 = @ticket_order.special_offer_line_item.special_offer.modified_line_items_in_order(@ticket_order)
+            - new2, old2 = offer.modified_line_items_in_order(@ticket_order)
             - old_items += old2
             - new_items += new2
 
@@ -34,20 +36,29 @@
           - tickets += new_items
           - tickets.each do |tli|
             - qty += tli.ticket_count
-            - total += tli.receipt_total.to_money unless tli.ticket_class.hide_pricing?
-            %tr
-              %td= tli.ticket_count
-              %td= tli.ticket_class.class_name
-              %td.currency= number_to_currency(tli.receipt_total) unless tli.ticket_class.hide_pricing?
+            - free = free_counts[tli.id] || 0
+            - paid = tli.ticket_count - free
+            - if paid > 0
+              - paid_total = tli.price * paid
+              - total += paid_total.to_money unless tli.ticket_class.hide_pricing?
+              %tr
+                %td= paid
+                %td= tli.ticket_class.class_name
+                %td.currency= number_to_currency(paid_total) unless tli.ticket_class.hide_pricing?
+            - if free > 0
+              %tr.free-ticket
+                %td= free
+                %td= "#{tli.ticket_class.class_name} — FREE with offer #{offer.code.upcase}"
+                %td.currency= number_to_currency(0) unless tli.ticket_class.hide_pricing?
 
-          - unless @ticket_order.special_offer_line_item.nil?
-            - discount = (-1*@ticket_order.special_offer_line_item.special_offer.calculate_discount(@ticket_order)).to_money
-            - total -= discount
+          - unless offer.nil?
+            - discount = (-1*offer.calculate_discount(@ticket_order)).to_money
+            - total -= discount unless offer.is_a?(BuyXGetYSpecialOffer)
             %tr
-              %td= @ticket_order.special_offer_line_item.special_offer.code.upcase
-              %td= @ticket_order.special_offer_line_item.special_offer.description(@ticket_order)
+              %td= offer.code.upcase
+              %td= offer.description(@ticket_order)
               %td.currency
-                = number_to_currency(discount) unless @ticket_order.special_offer_line_item.special_offer.is_a? TicketClassSpecialOffer
+                = number_to_currency(discount) unless offer.is_a?(TicketClassSpecialOffer) || offer.is_a?(BuyXGetYSpecialOffer)
 
           - unless @ticket_order.theater.is_default? || @ticket_order.theater.is_copro? || @ticket_order.additional_donation_for_other.blank?
             - donation2 = @ticket_order.additional_donation_for_other.to_f.to_money

@@ -181,7 +181,12 @@ class TicketOrder < Order
 
   def splittable?
     number_of_tickets > 1 && [Order::PROCESSED, Order::UNCLAIMED,
-                              Order::FULFILLED].include?(status) && !paid_with_membership?
+                              Order::FULFILLED].include?(status) && !paid_with_membership? &&
+      !buy_x_get_y_offer?
+  end
+
+  def buy_x_get_y_offer?
+    special_offer_line_item&.special_offer.is_a?(BuyXGetYSpecialOffer)
   end
 
   def convertible_to_donation?
