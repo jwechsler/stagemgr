@@ -30,7 +30,7 @@ RSpec.describe FlexPassPayment, type: :model do
   def performance_of(production)
     @performance_offset = (@performance_offset || 0) + 1
     FactoryBot.create(:general_admission, production: production,
-                      performance_time: Time.now + (@performance_offset * 15).minutes)
+                                          performance_time: Time.now + (@performance_offset * 15).minutes)
   end
 
   describe 'maximum_uses_per_production cap' do
