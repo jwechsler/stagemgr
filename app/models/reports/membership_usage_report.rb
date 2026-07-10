@@ -1,6 +1,7 @@
 class MembershipUsageReport < Report
   ALL_OFFERS_LABEL = 'All Offers'.freeze
   MONTH_KEY = "DATE_FORMAT(payments.processed_on, '%Y-%m')".freeze
+  MEMBERS_SQL = 'SUM(membership_offers.tickets_per_performance)'.freeze
 
   attr_reader :starting_date, :ending_date, :membership_offer_ids
 
@@ -122,8 +123,6 @@ class MembershipUsageReport < Report
       starting_date: starting_date, ending_date: ending_date
     )
   end
-
-  MEMBERS_SQL = 'SUM(membership_offers.tickets_per_performance)'.freeze
 
   # Memberships is a membership fact, not a billing fact: a membership counts
   # in every month that overlaps its active window, regardless of whether a

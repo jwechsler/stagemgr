@@ -79,16 +79,16 @@ class Membership < ApplicationRecord
     return if order.membership_payments.sum { |li| li.number_of_tickets } == 0
 
     week_start = order.performance.performance_date.beginning_of_week(:monday)
-    already_used = MembershipPayment.joins(order: :performance).where(
-      'payments.membership_id = :membership_id and orders.id != :order_id and
+    already_used = MembershipPayment.joins(order: :performance).exists?(
+      ['payments.membership_id = :membership_id and orders.id != :order_id and
         orders.status in (:attending) and
         performances.performance_date between :week_start and :week_end',
-      membership_id: id,
-      order_id: order.id || -1,
-      attending: Order::ATTENDING_STATUSES,
-      week_start: week_start,
-      week_end: week_start + 6.days
-    ).exists?
+       { membership_id: id,
+         order_id: order.id || -1,
+         attending: Order::ATTENDING_STATUSES,
+         week_start: week_start,
+         week_end: week_start + 6.days }]
+    )
 
     raise Exceptions::PassAlreadyUsedThisWeek.new("This pass has already been used this week. It can be used again starting Monday, #{(week_start + 7.days).strftime('%B %d')}.") if already_used
   end
@@ -103,7 +103,7 @@ class Membership < ApplicationRecord
     return unless membership_offer.timed?
 
     week_start = Date.today.beginning_of_week(:monday)
-    return if (week_start..week_start + 6.days).cover?(order.performance.performance_date.to_date)
+    return if (week_start..(week_start + 6.days)).cover?(order.performance.performance_date.to_date)
 
     raise Exceptions::PerformanceOutsideCurrentWeek.new("This pass can only reserve performances through Sunday, #{(week_start + 6.days).strftime('%B %d')}. Reservations for later weeks open on the Monday of that week.")
   end

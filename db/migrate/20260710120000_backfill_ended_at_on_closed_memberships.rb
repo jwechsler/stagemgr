@@ -9,7 +9,7 @@ class BackfillEndedAtOnClosedMemberships < ActiveRecord::Migration[6.1]
   # Status strings are literal on purpose — migrations shouldn't depend on
   # app constants (RecurringProfile::CANCELED/SUSPENDED).
   def up
-    execute <<~SQL
+    execute <<~SQL.squish
       UPDATE memberships m
       SET m.ended_at = COALESCE(
         (SELECT DATE(DATE_ADD(MAX(p.processed_on), INTERVAL 1 MONTH))

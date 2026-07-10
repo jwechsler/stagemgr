@@ -20,7 +20,8 @@ class MembershipOffer < ApplicationRecord
   before_save :take_timed_off_sale, :if => :timed?
   # Re-sync active members into the new MyEmma group when staff change it.
   # after_commit so the worker process reads the committed value.
-  after_commit :enqueue_myemma_group_resync, on: :update,
+  after_commit :enqueue_myemma_group_resync,
+               on: :update,
                if: -> { saved_change_to_myemma_group? && myemma_group.present? && !MyEmma.disabled? }
   def has_trial?
     !trial_period.nil? && trial_period > 0

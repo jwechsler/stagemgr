@@ -26,10 +26,9 @@ class MembershipPayment < PassPayment
 
   def process!(order = nil)
     o = self.order || order
-    unless membership.membership_offer.timed?
-      if o.address.email.present? && membership.address.email.downcase.strip != o.address.email.downcase.strip
-        raise 'Member ID does not match provided email address'
-      end
+    if !membership.membership_offer.timed? && o.address.email.present? &&
+       membership.address.email.downcase.strip != o.address.email.downcase.strip
+      raise 'Member ID does not match provided email address'
     end
     raise 'That member ID is not active. Please call the box office for assistance.' unless membership.active?
 
