@@ -1,0 +1,30 @@
+-# Picker for ticket classes that do NOT hold a seat (hearing-assist devices,
+-# meal bundles, a small GA section inside a reserved house, ...). Each "Add"
+-# appends a qty-1 row to the unified #ticket-display list; the row is a plain
+-# nested ticket_line_items_attributes group with no seat_assignment_id.
+-# Rows here are deliberately NOT zone-filtered — zones only constrain seats.
+- show_backend_classes = can? :view_backend_classes, TicketClassAllocation
+- allocations = order_form.object.performance.nil? ? [] : order_form.object.performance.ticket_class_allocations
+- eligible = allocations.select { |tca| tca.available? && !tca.ticket_class.holds_seats? && !tca.ticket_class.software_managed? && (tca.ticket_class.web_visible? || show_backend_classes) }
+#non-seat-ticket-picker{style: (eligible.empty? ? 'display:none' : nil)}
+  .grid-x.grid-padding-x{:style => 'margin-top: 12px; margin-bottom: 8px'}
+    .small-12.cell
+      %h4 Add-ons / non-seat tickets
+  #non-seat-ticket-rows
+    - eligible.each do |tca|
+      - tc = tca.ticket_class
+      .grid-x.grid-padding-x{class: ('front-facing' if tc.web_visible?), "data-ticket-class-id" => tc.id, "data-ticket-type" => tc.ticket_type}
+        .small-6.cell.vertical-center
+          = tc.class_name
+          - unless tc.purchase_page_annotation.blank?
+            %span.ticket_class_annotation
+              = display_markdown(tc.purchase_page_annotation)
+        .small-3.cell
+          - if tc.hide_pricing?
+            n/a
+          - elsif tc.ticket_type == TicketClass::DONATION
+            %input.donation-price-override{type:"number", step:"0.01", min:"0", value: tc.ticket_price, placeholder: number_to_currency(tc.ticket_price)}
+          - else
+            %span.ticket_price= number_to_currency(tc.ticket_price)
+        .small-3.cell
+          = ui_button "Add", "#", size: :tiny, class: "non-seat-add-button", data: { "ticket-class": tc.id, "ticket-type": tc.ticket_type }

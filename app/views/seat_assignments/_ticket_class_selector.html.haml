@@ -24,8 +24,10 @@
         -# Box office staff may sell classes hidden from the public purchase page;
         -# mirrors the ability gate in PerformancesController#ticket_classes.
         - show_backend_classes = can? :view_backend_classes, TicketClassAllocation
+        -# Only classes that hold a seat may be assigned to one; non-holds
+        -# classes are sold through the non-seat ticket picker instead.
         - order_form.object.performance.ticket_class_allocations.each do |tca|
-          -if tca.available? && !tca.ticket_class.software_managed? && (tca.ticket_class.web_visible? || show_backend_classes)
+          -if tca.available? && tca.ticket_class.holds_seats? && !tca.ticket_class.software_managed? && (tca.ticket_class.web_visible? || show_backend_classes)
             - tc = tca.ticket_class
             .grid-x.grid-padding-x{class: ('front-facing' if tc.web_visible?), "data-ticket-type" => tc.ticket_type, "data-zone-id" => tc.zone_id}
               .small-6.cell.vertical-center
@@ -55,6 +57,7 @@
       data = $.parseJSON($("#ticket-items").data('line-items'))
       $("#ticket-selector").empty()
       $.each( data, function( key, val ) {
+        if (!val['holds_seats']) { return; }
         ticket_class_id = val['id']
         var ticket_type = val['ticket_type']
         var visible_style

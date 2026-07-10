@@ -26,7 +26,7 @@
               =select_tag 'splits[]', options_for_select(['Order 1','Order 2']), {id:"target_line_#{index}"}
             .column.small-6
               -# =check_box_tag 'split_ticket_classes[]', "#{ticket[:source].id}:::#{ticket[:seat].seat.id}", false, {id: "tli_line#{index}"}
-              =hidden_field_tag 'seat_assignments[]', ticket[:seat].id, {id: "seat_assignment_#{index}"}
+              =hidden_field_tag 'seat_assignments[]', ticket[:seat]&.id || 0, {id: "seat_assignment_#{index}"}
               =hidden_field_tag 'tlis[]', tli.id, {id: "tli_#{index}"}
               =hidden_field_tag 'ticket_classes[]', tc.id, {id: "ticket_class_#{index}"}
               ="#{tc.class_name} (#{tc.class_code})"
@@ -35,7 +35,16 @@
               =number_to_currency(tli.price_override || tc.ticket_price)
 
             .column.small-2
-              =select_tag 'seats[]', options_for_select(all_seats, all_seats[index]), {include_blank: true, id:"line#{index}", class: 'seat-selector'}
+              -if ticket[:seat].nil?
+                -# Non-seat ticket (holds_seats=false): no seat to pick. The
+                -# hidden 0 mirrors the GA branch and satisfies
+                -# check_ready_to_submit()'s non-empty requirement.
+                =hidden_field_tag 'seats[]', 0, {id:"line#{index}", class: 'seat-selector'}
+                n/a
+              -else
+                -# Default to this ticket's own seat — indexing all_seats by row
+                -# position misaligns once non-seat rows interleave.
+                =select_tag 'seats[]', options_for_select(all_seats, ticket[:seat].seat.id), {include_blank: true, id:"line#{index}", class: 'seat-selector'}
           -index += 1
         = f.submit 'Split Order', :disable_with=>'Processing...', :class=>'alert button', confirm:"Are you sure?", id: "split_button"
       -else

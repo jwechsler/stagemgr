@@ -6,11 +6,12 @@ require 'rails_helper'
 # public purchase page (web_visible == false); the public list stays filtered.
 # Mirrors the ability gate in PerformancesController#ticket_classes.
 RSpec.describe 'seat_assignments/_ticket_class_selector', type: :view do
-  def ticket_class(class_name:, web_visible:)
+  def ticket_class(class_name:, web_visible:, holds_seats: true)
     tc = TicketClass.new(
       class_code: class_name.upcase.delete(' '), class_name: class_name,
       ticket_price: 25, ticket_type: 'Fixed', web_visible: web_visible,
-      software_managed: false, hide_pricing: false, zone_id: 'A'
+      software_managed: false, hide_pricing: false, zone_id: 'A',
+      holds_seats: holds_seats
     )
     allow(tc).to receive(:id).and_return(rand(10_000))
     tc
@@ -26,9 +27,11 @@ RSpec.describe 'seat_assignments/_ticket_class_selector', type: :view do
   def render_selector(can_view_backend:)
     public_class = ticket_class(class_name: 'General Admission', web_visible: true)
     backend_class = ticket_class(class_name: 'Box Office Comp', web_visible: false)
+    non_seat_class = ticket_class(class_name: 'Hearing Assist', web_visible: true, holds_seats: false)
 
     performance = instance_double(Performance,
-                                  ticket_class_allocations: [allocation(public_class), allocation(backend_class)])
+                                  ticket_class_allocations: [allocation(public_class), allocation(backend_class),
+                                                             allocation(non_seat_class)])
     order = double('order', performance: performance, performance_id: 1, uuid: 'test-uuid')
     order_form = double('order_form', object: order)
 
@@ -54,6 +57,14 @@ RSpec.describe 'seat_assignments/_ticket_class_selector', type: :view do
 
       expect(rendered).to include('General Admission')
       expect(rendered).not_to include('Box Office Comp')
+    end
+  end
+
+  context 'non-seat-holding classes (holds_seats == false)' do
+    it 'never lists them — a seat click can only assign seat-holding classes' do
+      render_selector(can_view_backend: true)
+
+      expect(rendered).not_to include('Hearing Assist')
     end
   end
 end

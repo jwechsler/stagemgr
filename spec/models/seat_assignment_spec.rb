@@ -268,6 +268,55 @@ RSpec.describe SeatAssignment, type: :model do
     end
   end
 
+  describe '.reseating_commit with non-seat tickets on the order' do
+    let(:production) { FactoryBot.create(:production_with_reserved_seating) }
+    let(:performance) do
+      FactoryBot.create(:reserved_seating, production: production, performance_date: Date.today + 1.day,
+                                           performance_time: Time.parse('19:00'))
+    end
+
+    before do
+      SeatAssignment.available_seat_assignments(performance)
+    end
+
+    it 'commits when held seats match the seat-holding ticket count (ignoring non-seat tickets)' do
+      seat_class = FactoryBot.create(:ticket_class, production: production)
+      addon_class = FactoryBot.create(:ticket_class, production: production, holds_seats: false)
+      [seat_class, addon_class].each do |tc|
+        tca = performance.ticket_class_allocations.find_or_initialize_by(ticket_class: tc)
+        tca.available = true
+        tca.save!
+      end
+
+      order = TicketOrder.new(
+        status: Order::HOLD,
+        performance: performance,
+        address: FactoryBot.create(:address),
+        payment_type: FactoryBot.create(:cash_payment_type)
+      )
+      seat = performance.seat_assignments.reload.find { |a| a.status == SeatAssignment::AVAILABLE }
+      seat.update!(order_uuid: order.uuid, ticket_class_id: seat_class.id, status: SeatAssignment::ASSIGNED)
+      order.seats << seat
+      order.ticket_line_items << FactoryBot.build(:ticket_line_item, ticket_class: seat_class,
+                                                                     ticket_count: 1, seat_assignment_id: seat.id, order: order)
+      order.ticket_line_items << FactoryBot.build(:ticket_line_item, ticket_class: addon_class,
+                                                                     ticket_count: 1, order: order)
+      order.save!
+
+      # Reseat in progress: the original seat is releasing, a new one is held.
+      seat.update!(status: SeatAssignment::RELEASING)
+      target = performance.seat_assignments.reload.find { |a| a.status == SeatAssignment::AVAILABLE }
+      target.update!(order_uuid: order.uuid, ticket_class_id: seat_class.id,
+                     status: SeatAssignment::TEMPORARY)
+
+      # number_of_tickets is 2 but only 1 seat is held — the commit must
+      # compare against number_of_seats (1) and succeed.
+      expect(SeatAssignment.reseating_commit(order.uuid)).to eq('success')
+      expect(target.reload.status).to eq(SeatAssignment::ASSIGNED)
+      expect(seat.reload.status).to eq(SeatAssignment::AVAILABLE)
+    end
+  end
+
   describe '.reseating_zone_conflict' do
     let(:production) { FactoryBot.create(:production_with_reserved_seating) }
     let(:performance) do

@@ -95,7 +95,8 @@ class PerformancesController < ApplicationController
         raw_ticket_price: tca.ticket_class.ticket_price,
         ticket_type: tca.ticket_class.ticket_type,
         purchase_page_annotation: tca.ticket_class.purchase_page_annotation,
-        zone_id: tca.ticket_class.zone_id
+        zone_id: tca.ticket_class.zone_id,
+        holds_seats: tca.ticket_class.holds_seats?
       }
     }
   end
