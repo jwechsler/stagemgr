@@ -28,8 +28,8 @@ class MembershipOfferDecorator < ApplicationDecorator
   end
 
   # The primary sales action for an offer: timed passes are issued, everything
-  # else is sold through the normal order flow. Used by the offer show page,
-  # which surfaces only one of the two.
+  # else is sold through the normal order flow. The show page and the offers
+  # datatable each surface exactly one of the two.
   def sales_action_button(css_class: 'tiny button')
     object.timed? ? issue_pass_button(css_class: css_class) : create_order_button(css_class: css_class)
   end
@@ -39,8 +39,7 @@ class MembershipOfferDecorator < ApplicationDecorator
     # Membership offers are administrator-managed; box office staff only view
     # them and create orders.
     actions << h.link_to('Edit', [:edit, :admin, object], class: 'tiny button') if h.current_user.can?(:update, object)
-    actions << create_order_button
-    actions << issue_pass_button if object.timed?
+    actions << sales_action_button
     actions << h.link_to('Usage', h.membership_offer_usage_admin_reports_path(object), class: 'tiny button')
     h.safe_join(actions, ' ')
   end
