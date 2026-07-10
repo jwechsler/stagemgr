@@ -81,6 +81,7 @@ nav:
     - Donation Orders: ticketing/donation-orders.md
     - Flex Pass Orders: ticketing/flex-pass-orders.md
     - Membership Orders: ticketing/membership-orders.md
+    - Managing Memberships: ticketing/managing-memberships.md
   - Customers:
     - Managing Patrons: customers/managing-patrons.md
     - Patron Tags: customers/patron-tags.md
