@@ -31,6 +31,10 @@
             %p
               %strong Type:
               = @membership_offer.membership_type
+            - unless MyEmma.disabled?
+              %p
+                %strong MyEmma Group:
+                = @membership_offer.myemma_group.presence || 'None'
           .small-6.cell
             %p
               %strong Use Ticket Class

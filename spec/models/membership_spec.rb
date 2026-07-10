@@ -85,4 +85,34 @@ RSpec.describe Membership do
       expect { membership.verify_bookable_this_week!(order) }.not_to raise_error
     end
   end
+
+  describe 'MyEmma list sync' do
+    let(:membership) { FactoryBot.create(:membership) }
+
+    context 'when MyEmma is enabled' do
+      before { allow(MyEmma).to receive(:disabled?).and_return(false) }
+
+      it 'enqueues a sync job when the status changes' do
+        expect(Resque).to receive(:enqueue).with(SyncMembershipMyEmmaJob, membership.id)
+
+        membership.update!(status: Membership::CANCELED)
+      end
+
+      it 'does not enqueue on a save that leaves status unchanged' do
+        membership # create before setting the expectation
+
+        expect(Resque).not_to receive(:enqueue).with(SyncMembershipMyEmmaJob, anything)
+
+        membership.update!(member_since: Date.yesterday)
+      end
+    end
+
+    it 'does not enqueue when MyEmma is disabled (test default)' do
+      membership
+
+      expect(Resque).not_to receive(:enqueue).with(SyncMembershipMyEmmaJob, anything)
+
+      membership.update!(status: Membership::CANCELED)
+    end
+  end
 end

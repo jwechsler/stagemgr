@@ -46,8 +46,9 @@
             = f.input :html_description
             = f.input :email_html
         .grid-x.grid-padding-x
-          .small-6.cell
-            = f.input :myemma_group, :label=>"MyEmma Group ID"
+          - unless MyEmma.disabled?
+            .small-6.cell
+              = f.input :myemma_group, :label=>"MyEmma Group ID"
           .small-6.cell
             = f.input :billing_agreement
   = f.submit :class=>'button'

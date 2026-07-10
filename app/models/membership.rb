@@ -179,63 +179,16 @@ end
 
 # my_emma add on
 class Membership
-  after_save :update_membership_list_subscription, :if => :status_changed_for_myemma?
+  # The actual add/remove HTTP work happens in SyncMembershipMyEmmaJob,
+  # which decides from the membership's state at run time.
+  after_save :enqueue_myemma_list_sync, :if => :status_changed_for_myemma?
 
   def status_changed_for_myemma?
-    (status_changed? || saved_change_to_status?) && !MyEmma.disabled?
+    saved_change_to_status? && !MyEmma.disabled?
   end
 
-  def update_my_emma_membership
-    if status_changed?
-      if inactive?
-        remove_from_membership_list
-      else
-        add_to_membership_list
-      end
-    end
-  end
-
-  def add_to_membership_list
-    unless membership_offer.myemma_group.nil?
-      begin
-        member = MyEmma::Member.new
-        member.name_first = address.first_name
-        member.name_last = address.last_name
-        member.email = address.email
-        member.address = address.line1
-        member.city = address.city
-        member.state = address.state
-        member.postal_code = address.zipcode
-        member.save([membership_offer.myemma_group])
-      rescue Exception => e
-        Rails.logger.error("Could not update membership mailing list for address ##{address.id}, #{e.message}")
-      end
-    end
-  end
-
-  def remove_from_membership_list
-    group_id = membership_offer.myemma_group
-    unless group_id.blank? || address.email.blank? || address.is_current_member?
-      begin
-        member = MyEmma::Member.find_by_email(address.email)
-
-        unless member.nil?
-          group = MyEmma::Group.find(group_id)
-          group.remove_members(member)
-        end
-      rescue Exception => e
-        Rails.logger.error("Could not update membership mailing list for address ##{address.id}, #{e.message}")
-      end
-    end
-  end
-
-  def update_membership_list_subscription
-    if inactive?
-      remove_from_membership_list
-    else
-      add_to_membership_list
-    end
-    true
+  def enqueue_myemma_list_sync
+    Resque.enqueue(SyncMembershipMyEmmaJob, id)
   end
 
   def last_payment

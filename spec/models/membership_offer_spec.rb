@@ -74,4 +74,42 @@ RSpec.describe MembershipOffer do
       expect(last).to eq(Date.current)
     end
   end
+
+  describe 'MyEmma group re-sync' do
+    let!(:offer) { FactoryBot.create(:membership_offer, myemma_group: 'OLD') }
+
+    context 'when MyEmma is enabled' do
+      before { allow(MyEmma).to receive(:disabled?).and_return(false) }
+
+      it 'enqueues a re-sync when the group changes' do
+        expect(Resque).to receive(:enqueue).with(SyncMembershipOfferMyEmmaGroupJob, offer.id)
+
+        offer.update!(myemma_group: 'NEW')
+      end
+
+      it 'does not enqueue when another attribute changes' do
+        expect(Resque).not_to receive(:enqueue).with(SyncMembershipOfferMyEmmaGroupJob, anything)
+
+        offer.update!(name: 'Renamed Offer')
+      end
+
+      it 'does not enqueue when the group is blanked' do
+        expect(Resque).not_to receive(:enqueue).with(SyncMembershipOfferMyEmmaGroupJob, anything)
+
+        offer.update!(myemma_group: '')
+      end
+
+      it 'does not enqueue on create' do
+        expect(Resque).not_to receive(:enqueue).with(SyncMembershipOfferMyEmmaGroupJob, anything)
+
+        FactoryBot.create(:membership_offer, name: 'Fresh', myemma_group: 'GRP')
+      end
+    end
+
+    it 'does not enqueue when MyEmma is disabled (test default)' do
+      expect(Resque).not_to receive(:enqueue).with(SyncMembershipOfferMyEmmaGroupJob, anything)
+
+      offer.update!(myemma_group: 'NEW')
+    end
+  end
 end
