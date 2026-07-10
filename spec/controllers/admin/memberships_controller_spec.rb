@@ -19,11 +19,59 @@ RSpec.describe Admin::MembershipsController, type: :controller do
     allow(controller).to receive(:current_user).and_return(admin_user)
   end
 
+  def datatable_params(search: '', order: nil)
+    columns = %w[member_code offer member status start membership_end actions]
+              .each_with_index.to_h do |col, i|
+      [i.to_s, { data: col, searchable: 'true', orderable: 'true',
+                 search: { value: '', regex: 'false' } }]
+    end
+    params = { draw: '1', start: '0', length: '25',
+               search: { value: search, regex: 'false' }, columns: columns }
+    params[:order] = order if order
+    params
+  end
+
   describe 'GET #index' do
-    it 'lists memberships' do
+    it 'renders the datatable shell' do
       get :index
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include(membership.member_code)
+      expect(response.body).to include('membership-listing')
+    end
+
+    it 'returns memberships as JSON with a membership_end column' do
+      get :index, params: datatable_params, format: :json
+      payload = response.parsed_body
+      expect(payload['data'].pluck('member_code').join).to include(membership.member_code)
+      expect(payload['data'].first).to have_key('membership_end')
+    end
+
+    it 'shows the ended_at date for a closed membership' do
+      membership.update!(status: Membership::CANCELED)
+
+      get :index, params: datatable_params, format: :json
+      row = response.parsed_body['data'].find { |r| r['member_code'].include?(membership.member_code) }
+      expect(row['membership_end']).to eq(Date.today.strftime('%m/%d/%Y'))
+    end
+
+    it 'filters by member name through the global search' do
+      other_address = FactoryBot.create(:address, full_name: 'Zelda Zzyzx', last_name: 'Zzyzx')
+      FactoryBot.create(:membership, address: other_address, membership_offer: timed_offer, member_code: 'TW-LIB02')
+
+      get :index, params: datatable_params(search: 'Zzyzx'), format: :json
+      codes = response.parsed_body['data'].pluck('member_code').join
+      expect(codes).to include('TW-LIB02')
+      expect(codes).not_to include('TW-LIB01')
+    end
+
+    it 'sorts status by business priority, not alphabetically' do
+      FactoryBot.create(:membership, membership_offer: timed_offer,
+                                     member_code: 'TW-CAN01', status: Membership::CANCELED)
+      FactoryBot.create(:membership, membership_offer: timed_offer,
+                                     member_code: 'TW-SUS01', status: Membership::SUSPENDED)
+
+      get :index, params: datatable_params(order: { '0' => { column: '3', dir: 'asc' } }), format: :json
+      statuses = response.parsed_body['data'].pluck('status')
+      expect(statuses).to eq([Membership::ACTIVE, Membership::SUSPENDED, Membership::CANCELED])
     end
   end
 
