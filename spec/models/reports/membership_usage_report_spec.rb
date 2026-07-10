@@ -5,8 +5,8 @@ RSpec.describe MembershipUsageReport do
   let(:ending_date) { Date.new(2026, 5, 31) }
   let(:in_may) { Time.zone.local(2026, 5, 10, 12, 0, 0) }
 
-  let(:gold_offer) { FactoryBot.create(:membership_offer, name: 'Gold') }
-  let(:silver_offer) { FactoryBot.create(:membership_offer, name: 'Silver') }
+  let(:gold_offer) { FactoryBot.create(:membership_offer, name: 'Gold', tickets_per_performance: 2) }
+  let(:silver_offer) { FactoryBot.create(:membership_offer, name: 'Silver', tickets_per_performance: 1) }
 
   def create_membership_order_for(offer, collected:, processed_on:, member_since: nil, ended_at: nil)
     order = FactoryBot.create(:membership_order)
@@ -38,20 +38,20 @@ RSpec.describe MembershipUsageReport do
     end
 
     it 'includes an Offer column in the headers' do
-      expect(headers).to eq(%i[Month Offer Memberships Collected Paid])
+      expect(headers).to eq(%i[Month Offer Memberships Members Collected Paid])
     end
 
     it 'breaks out each month by membership offer' do
       gold_row = rows.find { |row| row[:Month] == '2026-05' && row[:Offer] == 'Gold' }
 
-      expect(gold_row).to include(Memberships: 1, Collected: 50.to_money, Paid: 20.to_money,
+      expect(gold_row).to include(Memberships: 1, Members: 2, Collected: 50.to_money, Paid: 20.to_money,
                                   display_class: :report_detail_row)
     end
 
     it 'reports each offer independently' do
       silver_row = rows.find { |row| row[:Month] == '2026-05' && row[:Offer] == 'Silver' }
 
-      expect(silver_row).to include(Memberships: 1, Collected: 30.to_money, Paid: 10.to_money,
+      expect(silver_row).to include(Memberships: 1, Members: 1, Collected: 30.to_money, Paid: 10.to_money,
                                     display_class: :report_detail_row)
     end
 
@@ -60,7 +60,7 @@ RSpec.describe MembershipUsageReport do
         row[:Month] == '2026-05' && row[:Offer] == MembershipUsageReport::ALL_OFFERS_LABEL
       end
 
-      expect(summary_row).to include(Memberships: 2, Collected: 80.to_money, Paid: 30.to_money,
+      expect(summary_row).to include(Memberships: 2, Members: 3, Collected: 80.to_money, Paid: 30.to_money,
                                      display_class: :report_summary_row)
     end
 
@@ -85,10 +85,11 @@ RSpec.describe MembershipUsageReport do
       expect(months).to eq(['2026-05'])
     end
 
-    it 'ends with a grand Total row summing the money columns but not Memberships' do
+    it 'ends with a grand Total row summing the money columns but not the count columns' do
       total_row = rows.last
 
-      expect(total_row).to include(Month: 'Total', Memberships: '', Collected: 80.to_money, Paid: 30.to_money)
+      expect(total_row).to include(Month: 'Total', Memberships: '', Members: '',
+                                   Collected: 80.to_money, Paid: 30.to_money)
     end
   end
 

@@ -7,7 +7,7 @@ class MembershipUsageReport < Report
   # membership_offer_ids accepts a single id or an array of ids; empty
   # means no offer restriction.
   def initialize(starting_date, ending_date, reporting_user_id = nil, membership_offer_ids = nil)
-    super(%i[Month Offer Memberships Collected Paid], reporting_user_id)
+    super(%i[Month Offer Memberships Members Collected Paid], reporting_user_id)
     @starting_date = starting_date.to_date
     # @ending_date is the exclusive upper bound (payments.processed_on < @ending_date).
     # Cap it at the first of the current month so the current, still-incomplete
@@ -53,18 +53,22 @@ class MembershipUsageReport < Report
   # about memberships, not orders. When scoped to offers, the monthly totals
   # apply the same offer restriction so the summary rows match the breakouts.
   def monthly_totals
+    memberships, members = active_membership_metrics
     {
       paid: (offers_selected? ? paid_by_offer : paid_scope).group(MONTH_KEY).sum('payments.amount'),
       collected: (offers_selected? ? collected_by_offer : collected_scope).group(MONTH_KEY).sum('payments.amount'),
-      memberships: active_membership_counts
+      memberships: memberships,
+      members: members
     }
   end
 
   def offer_breakouts
+    memberships, members = active_membership_metrics(by_offer: true)
     {
       paid: paid_by_offer.group(MONTH_KEY, 'membership_offers.name').sum('payments.amount'),
       collected: collected_by_offer.group(MONTH_KEY, 'membership_offers.name').sum('payments.amount'),
-      memberships: active_membership_counts(by_offer: true)
+      memberships: memberships,
+      members: members
     }
   end
 
@@ -119,25 +123,40 @@ class MembershipUsageReport < Report
     )
   end
 
+  MEMBERS_SQL = 'SUM(membership_offers.tickets_per_performance)'.freeze
+
   # Memberships is a membership fact, not a billing fact: a membership counts
   # in every month that overlaps its active window, regardless of whether a
   # payment landed that month (trials, comps, failed charges, order-less
   # library passes). Window: COALESCE(start_date, member_since) through
   # ended_at (open when NULL); currently-Pending memberships never activated
   # and are excluded. Suspended is a transient billing state and still counts.
-  def active_membership_counts(by_offer: false)
-    report_months.each_with_object({}) do |month_start, counts|
+  #
+  # Members counts people rather than memberships: each membership admits
+  # tickets_per_performance patrons (a dual membership is two members).
+  # Returns [memberships, members] hashes sharing the memberships keying.
+  def active_membership_metrics(by_offer: false)
+    memberships = {}
+    members = {}
+    report_months.each do |month_start|
       scope = active_memberships_in(month_start)
       month_key = month_start.strftime('%Y-%m')
       if by_offer
-        scope.group('membership_offers.name').count.each do |offer_name, count|
-          counts[[month_key, offer_name]] = count
+        scope.group('membership_offers.name')
+             .pluck('membership_offers.name', Arel.sql('COUNT(*)'), Arel.sql(MEMBERS_SQL))
+             .each do |offer_name, count, member_count|
+          memberships[[month_key, offer_name]] = count
+          members[[month_key, offer_name]] = member_count
         end
       else
-        count = scope.count
-        counts[month_key] = count if count.positive?
+        count, member_count = scope.pick(Arel.sql('COUNT(*)'), Arel.sql(MEMBERS_SQL))
+        next unless count.positive?
+
+        memberships[month_key] = count
+        members[month_key] = member_count
       end
     end
+    [memberships, members]
   end
 
   def active_memberships_in(month_start)
@@ -174,6 +193,7 @@ class MembershipUsageReport < Report
     key = [month, offer]
     { Month: month, Offer: offer,
       Memberships: by_offer[:memberships][key] || 0,
+      Members: by_offer[:members][key] || 0,
       Collected: (by_offer[:collected][key] || 0).to_money,
       Paid: (by_offer[:paid][key] || 0).to_money,
       display_class: :report_detail_row }
@@ -182,17 +202,19 @@ class MembershipUsageReport < Report
   def summary_row(month, monthly)
     { Month: month, Offer: ALL_OFFERS_LABEL,
       Memberships: monthly[:memberships][month] || 0,
+      Members: monthly[:members][month] || 0,
       Collected: (monthly[:collected][month] || 0).to_money,
       Paid: (monthly[:paid][month] || 0).to_money,
       display_class: :report_summary_row }
   end
 
   # Grand total of the detail (per-offer) rows across every month. Memberships
-  # is left blank: it's an active-during-month count, so summing it across
-  # months double-counts every membership that spans more than one month.
+  # and Members are left blank: they're active-during-month counts, so summing
+  # them across months double-counts every membership that spans more than one
+  # month.
   def total_row(detail_rows)
     { Month: 'Total', Offer: '',
-      Memberships: '',
+      Memberships: '', Members: '',
       Collected: detail_rows.sum(0.to_money) { |row| row[:Collected] },
       Paid: detail_rows.sum(0.to_money) { |row| row[:Paid] },
       display_class: :report_summary_row }
