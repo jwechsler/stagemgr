@@ -72,6 +72,8 @@ RSpec.describe 'reserved-seating orders with non-seat-holding tickets' do
       expect(order.number_of_tickets).to eq(3)
     end
 
+    # Model-level capability used by the box office; the public flow
+    # additionally requires a seated ticket (OrdersHelper#validate_web_order).
     it 'accepts an order containing ONLY non-seat tickets in a reserved house' do
       addon = allocated_class(holds_seats: false)
       order = new_order

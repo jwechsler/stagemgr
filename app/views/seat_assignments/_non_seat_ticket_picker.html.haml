@@ -10,6 +10,10 @@
   .grid-x.grid-padding-x{:style => 'margin-top: 12px; margin-bottom: 8px'}
     .small-12.cell
       %h4 Add-ons / non-seat tickets
+      - unless show_backend_classes
+        -# Enforced server-side in OrdersHelper#validate_web_order: front-end
+        -# orders must contain at least one seated ticket.
+        %small.non-seat-picker-hint Add-ons require at least one seated ticket in your order.
   #non-seat-ticket-rows
     - eligible.each do |tca|
       - tc = tca.ticket_class
