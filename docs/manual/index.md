@@ -31,6 +31,7 @@ See [Reports](reports/reports-overview.md) for all available reports, or [Import
 | Create a new ticket order | **Orders** menu or **New Ticket Order** button |
 | Find a production across all theaters | **Productions** menu |
 | Look up a customer | **Customers** menu |
+| Look up a membership | **Passes > Memberships** |
 | View upcoming house counts | **My Account** (dashboard) |
 | Run a sales report | **Reports** menu |
 | Compare show performance | **Analysis** menu |

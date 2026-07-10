@@ -11,6 +11,8 @@ class MembershipOrder < Order
   # after_commit :update_membership_profile, :if=>:has_membership?
 
   def transition_processing_to_processed!(redirect_to = nil)
+    raise "#{membership_offer.name} passes are issued by the box office and cannot be purchased." if membership_offer.timed?
+
     build_membership_line_item(membership_offer: membership_offer) if membership_line_item.nil?
     nil
     begin

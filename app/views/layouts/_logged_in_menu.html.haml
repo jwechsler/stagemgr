@@ -22,10 +22,14 @@
         - if (can? :read, Address)
           %li
             =link_to('Customers', admin_addresses_path)
-        - if can?(:read, MembershipOffer) || can?(:read, FlexPassOffer)
+        - if can?(:read, Membership) || can?(:read, MembershipOffer) || can?(:read, FlexPassOffer)
           %li.has-dropdown
             %a{:href=>"#"} Passes
             %ul.menu.vertical
+              - if can? :read, Membership
+                %li
+                  =link_to('Memberships', admin_memberships_path)
+                %li.menu-divider
               - if can? :read, MembershipOffer
                 %li
                   =link_to('Membership Offers', admin_membership_offers_path)
@@ -68,7 +72,7 @@
                   - if (can? :edit, ServiceItemTemplate) then
                     %li= link_to('Service Items', admin_service_item_templates_path)
                   - if can? :read, FileStore
-                    %li.divider
+                    %li.menu-divider
                     
                   %li
                     = link_to 'Job Queue', resque_admin_path

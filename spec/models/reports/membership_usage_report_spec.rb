@@ -5,20 +5,21 @@ RSpec.describe MembershipUsageReport do
   let(:ending_date) { Date.new(2026, 5, 31) }
   let(:in_may) { Time.zone.local(2026, 5, 10, 12, 0, 0) }
 
-  let(:gold_offer) { FactoryBot.create(:membership_offer, name: 'Gold') }
-  let(:silver_offer) { FactoryBot.create(:membership_offer, name: 'Silver') }
+  let(:gold_offer) { FactoryBot.create(:membership_offer, name: 'Gold', tickets_per_performance: 2) }
+  let(:silver_offer) { FactoryBot.create(:membership_offer, name: 'Silver', tickets_per_performance: 1) }
 
-  def create_membership_order_for(offer, collected:, processed_on:)
+  def create_membership_order_for(offer, collected:, processed_on:, member_since: nil, ended_at: nil)
     order = FactoryBot.create(:membership_order)
     order.membership_line_item.update!(membership_offer: offer)
-    order.membership.update!(membership_offer: offer)
+    order.membership.update!(membership_offer: offer, member_since: member_since || processed_on.to_date,
+                             ended_at: ended_at)
     order.payments.each { |payment| payment.update!(amount: collected, processed_on: processed_on) }
     order
   end
 
   def create_membership_payment_for(membership, paid:, processed_on:)
     ticket_order = FactoryBot.create(:ticket_order)
-    FactoryBot.create(:membership_payment, order: ticket_order, membership: membership,
+    FactoryBot.create(:membership_payment, order: ticket_order, membership: membership, number_of_tickets: 1,
                                            amount: paid, processed_on: processed_on)
   end
 
@@ -37,20 +38,20 @@ RSpec.describe MembershipUsageReport do
     end
 
     it 'includes an Offer column in the headers' do
-      expect(headers).to eq(%i[Month Offer Memberships Collected Paid])
+      expect(headers).to eq(%i[Month Offer Memberships Members Collected Paid])
     end
 
     it 'breaks out each month by membership offer' do
       gold_row = rows.find { |row| row[:Month] == '2026-05' && row[:Offer] == 'Gold' }
 
-      expect(gold_row).to include(Memberships: 1, Collected: 50.to_money, Paid: 20.to_money,
+      expect(gold_row).to include(Memberships: 1, Members: 2, Collected: 50.to_money, Paid: 20.to_money,
                                   display_class: :report_detail_row)
     end
 
     it 'reports each offer independently' do
       silver_row = rows.find { |row| row[:Month] == '2026-05' && row[:Offer] == 'Silver' }
 
-      expect(silver_row).to include(Memberships: 1, Collected: 30.to_money, Paid: 10.to_money,
+      expect(silver_row).to include(Memberships: 1, Members: 1, Collected: 30.to_money, Paid: 10.to_money,
                                     display_class: :report_detail_row)
     end
 
@@ -59,7 +60,7 @@ RSpec.describe MembershipUsageReport do
         row[:Month] == '2026-05' && row[:Offer] == MembershipUsageReport::ALL_OFFERS_LABEL
       end
 
-      expect(summary_row).to include(Memberships: 2, Collected: 80.to_money, Paid: 30.to_money,
+      expect(summary_row).to include(Memberships: 2, Members: 3, Collected: 80.to_money, Paid: 30.to_money,
                                      display_class: :report_summary_row)
     end
 
@@ -84,10 +85,112 @@ RSpec.describe MembershipUsageReport do
       expect(months).to eq(['2026-05'])
     end
 
-    it 'ends with a grand Total row summing the detail rows across all months' do
+    it 'ends with a grand Total row summing the money columns but not the count columns' do
       total_row = rows.last
 
-      expect(total_row).to include(Month: 'Total', Memberships: 2, Collected: 80.to_money, Paid: 30.to_money)
+      expect(total_row).to include(Month: 'Total', Memberships: '', Members: '',
+                                   Collected: 80.to_money, Paid: 30.to_money)
+    end
+  end
+
+  describe 'active-in-month membership counting' do
+    let(:march) { Time.zone.local(2026, 3, 10, 12, 0, 0) }
+
+    def rows_for(range_start, range_end)
+      described_class.new(range_start, range_end).create.last
+    end
+
+    def memberships_by_month(rows)
+      rows.select { |row| row[:display_class] == :report_detail_row }
+          .to_h { |row| [row[:Month], row[:Memberships]] }
+    end
+
+    it 'counts a membership in every month of its active window, not just billing months' do
+      create_membership_order_for(gold_offer, collected: 50.0, processed_on: march)
+
+      rows = rows_for(Date.new(2026, 3, 1), Date.new(2026, 5, 31))
+
+      expect(memberships_by_month(rows)).to eq('2026-03' => 1, '2026-04' => 1, '2026-05' => 1)
+    end
+
+    it 'produces a row for months with active memberships but no payments' do
+      create_membership_order_for(gold_offer, collected: 50.0, processed_on: march)
+
+      april_row = rows_for(Date.new(2026, 4, 1), Date.new(2026, 4, 30))
+                  .find { |row| row[:Month] == '2026-04' && row[:Offer] == 'Gold' }
+
+      expect(april_row).to include(Memberships: 1, Collected: 0.to_money, Paid: 0.to_money)
+    end
+
+    it 'counts a canceled membership through its ended_at month and not after' do
+      create_membership_order_for(gold_offer, collected: 50.0, processed_on: march,
+                                              ended_at: Date.new(2026, 4, 15))
+
+      rows = rows_for(Date.new(2026, 3, 1), Date.new(2026, 5, 31))
+
+      expect(memberships_by_month(rows)).to eq('2026-03' => 1, '2026-04' => 1)
+    end
+
+    it 'never counts memberships whose status is Pending' do
+      order = create_membership_order_for(gold_offer, collected: 50.0, processed_on: march)
+      order.membership.update!(status: Membership::PENDING)
+
+      march_row = rows_for(Date.new(2026, 3, 1), Date.new(2026, 3, 31))
+                  .find { |row| row[:Month] == '2026-03' && row[:Offer] == 'Gold' }
+
+      # The collected payment still reports (money moved), but the
+      # never-activated membership itself doesn't count.
+      expect(march_row).to include(Memberships: 0, Collected: 50.to_money)
+    end
+
+    it 'counts Suspended memberships as active' do
+      order = create_membership_order_for(gold_offer, collected: 50.0, processed_on: march)
+      order.membership.update!(status: Membership::SUSPENDED)
+
+      rows = rows_for(Date.new(2026, 3, 1), Date.new(2026, 3, 31))
+
+      expect(memberships_by_month(rows)).to eq('2026-03' => 1)
+    end
+
+    it 'uses the Stripe start_date over member_since when present' do
+      order = create_membership_order_for(gold_offer, collected: 50.0, processed_on: march,
+                                                      member_since: Date.new(2026, 3, 10))
+      order.membership.update!(start_date: Date.new(2026, 4, 2))
+
+      rows = rows_for(Date.new(2026, 3, 1), Date.new(2026, 4, 30))
+
+      # March still gets a row for the collected payment, but the membership
+      # itself doesn't count until its Stripe start_date month.
+      expect(memberships_by_month(rows)).to eq('2026-03' => 0, '2026-04' => 1)
+    end
+  end
+
+  describe '#create with an order-less library pass' do
+    let(:library_offer) { FactoryBot.create(:membership_offer, :timed, name: 'Library Pass') }
+    let(:library_pass) do
+      FactoryBot.create(:library_pass, membership_offer: library_offer, member_since: Date.new(2026, 5, 3))
+    end
+
+    subject(:rows) { described_class.new(starting_date, ending_date).create.last }
+
+    before do
+      create_membership_payment_for(library_pass, paid: 24.0, processed_on: in_may)
+    end
+
+    it 'counts the pass as a membership with its redemptions in Paid and nothing Collected' do
+      library_row = rows.find { |row| row[:Month] == '2026-05' && row[:Offer] == 'Library Pass' }
+
+      expect(library_row).to include(Memberships: 1, Collected: 0.to_money, Paid: 24.to_money,
+                                     display_class: :report_detail_row)
+    end
+
+    it 'stops counting the pass after staff cancel it' do
+      library_pass.update!(status: Membership::CANCELED, ended_at: Date.new(2026, 5, 20))
+
+      june_rows = described_class.new(Date.new(2026, 6, 1), Date.new(2026, 6, 30)).create.last
+                                 .select { |row| row[:display_class] == :report_detail_row }
+
+      expect(june_rows).to be_empty
     end
   end
 
@@ -140,7 +243,7 @@ RSpec.describe MembershipUsageReport do
     end
 
     it 'still ends with a grand Total row' do
-      expect(report.data.last).to include(Month: 'Total', Memberships: 2, Collected: 80.to_money, Paid: 30.to_money)
+      expect(report.data.last).to include(Month: 'Total', Memberships: '', Collected: 80.to_money, Paid: 30.to_money)
     end
   end
 
@@ -173,7 +276,7 @@ RSpec.describe MembershipUsageReport do
     it 'ends with a grand Total row for the single offer' do
       total_row = rows.last
 
-      expect(total_row).to include(Month: 'Total', Memberships: 1, Collected: 50.to_money, Paid: 20.to_money)
+      expect(total_row).to include(Month: 'Total', Memberships: '', Collected: 50.to_money, Paid: 20.to_money)
     end
   end
 
@@ -205,7 +308,7 @@ RSpec.describe MembershipUsageReport do
     end
 
     it 'ends with a grand Total row over the selected offers' do
-      expect(rows.last).to include(Month: 'Total', Memberships: 2, Collected: 80.to_money, Paid: 30.to_money)
+      expect(rows.last).to include(Month: 'Total', Memberships: '', Collected: 80.to_money, Paid: 30.to_money)
     end
   end
 end

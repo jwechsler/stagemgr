@@ -16,6 +16,12 @@
   z-index: 20000;
 }
 
+// Foundation 6 dropped the F5 .divider class; draw menu separators ourselves.
+.menu li.menu-divider {
+  border-bottom: 1px solid $medium-gray;
+  margin: 0.25rem 0;
+}
+
 div.dt-buttons {
   float: right;
 }

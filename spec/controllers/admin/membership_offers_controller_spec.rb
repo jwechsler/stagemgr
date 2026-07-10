@@ -32,4 +32,25 @@ RSpec.describe Admin::MembershipOffersController, type: :controller do
       expect(response.parsed_body.pluck('name')).to contain_exactly('Gold Membership')
     end
   end
+
+  describe 'POST #create' do
+    it 'permits membership_type' do
+      expect do
+        post :create, params: { membership_offer: {
+          name: 'Library Pass', use_ticket_class_code: 'PASS', tickets_per_performance: 1,
+          membership_type: MembershipOffer::TIMED
+        } }
+      end.to change(MembershipOffer, :count).by(1)
+
+      expect(MembershipOffer.last.membership_type).to eq(MembershipOffer::TIMED)
+    end
+  end
+
+  describe 'PATCH #update' do
+    it 'permits membership_type' do
+      patch :update, params: { id: active_offer.id, membership_offer: { membership_type: MembershipOffer::TIMED } }
+
+      expect(active_offer.reload.membership_type).to eq(MembershipOffer::TIMED)
+    end
+  end
 end

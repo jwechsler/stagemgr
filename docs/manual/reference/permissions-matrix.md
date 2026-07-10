@@ -110,6 +110,8 @@ Stagemgr has three staff roles, each building on the permissions of the role bel
 | Delete flex pass orders | Yes | -- | -- |
 | View/manage flex pass offers | Yes | Yes | Own theaters only |
 | View/create membership orders | Yes | Yes | -- |
+| View/manage memberships list (Passes > Memberships) | Yes | Yes | -- |
+| Issue library pass memberships | Yes | Yes | -- |
 | Cancel/reactivate/fulfill memberships | Yes | Yes | -- |
 | Delete membership orders | Yes | -- | -- |
 | Edit membership offers | Yes | Yes | Own theaters only |
