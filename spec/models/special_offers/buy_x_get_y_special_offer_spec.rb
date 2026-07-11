@@ -20,6 +20,10 @@ RSpec.describe BuyXGetYSpecialOffer, type: :model do
     FactoryBot.create(:ticket_class, production: production, class_code: "PREV10",
                                      class_name: "Preview 10", ticket_price: 10.00)
   end
+  let!(:gen0) do
+    FactoryBot.create(:ticket_class, production: production, class_code: "GEN0",
+                                     class_name: "General Comp", ticket_price: 0.00)
+  end
 
   let(:special_offer) do
     BuyXGetYSpecialOffer.create!(
@@ -94,6 +98,16 @@ RSpec.describe BuyXGetYSpecialOffer, type: :model do
                                            status: SpecialOffer::ACTIVE)
       order = build_order([gen40, 2], [prev10, 1])
       expect(offer.calculate_discount(order)).to eq(-10.0)
+    end
+
+    it "does not free tickets that are already $0" do
+      order = build_order([gen40, 2], [gen0, 1])
+      expect(special_offer.calculate_discount(order)).to eq(0.0)
+    end
+
+    it "ignores $0 tickets and frees the cheapest paid ticket" do
+      order = build_order([gen40, 2], [gen20, 1], [gen0, 1])
+      expect(special_offer.calculate_discount(order)).to eq(-20.0)
     end
   end
 

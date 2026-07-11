@@ -5,10 +5,11 @@ class BuyXGetYSpecialOffer < SpecialOffer
   # Flattens qualifying line items into per-ticket units so a free ticket can
   # fall inside a multi-count line item. Returns the free units, cheapest first:
   # every full group of (buy_quantity + get_quantity) qualifying tickets earns
-  # get_quantity free.
+  # get_quantity free. Tickets that already cost $0 are excluded entirely — the
+  # offer neither frees them nor counts them toward the buy threshold.
   def free_units(order)
     units = applicable_line_items(order, false)
-            .select { |li| li.ticket_count.positive? }
+            .select { |li| li.ticket_count.positive? && li.price.positive? }
             .flat_map do |li|
       unit_royalty = li.royalty_total / li.ticket_count
       Array.new(li.ticket_count) { { line_item: li, price: li.price, royalty: unit_royalty } }
