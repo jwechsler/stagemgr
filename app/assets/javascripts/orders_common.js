@@ -142,13 +142,8 @@ function set_button_state_for_autocompletes() {
 }
 
 
-// The public site wrapper (ext_site_wrapper) yields :js twice, so this file
-// can be included twice on public order pages — bind the ready hook once.
-if (!window.__orders_common_ready_bound) {
-  window.__orders_common_ready_bound = true;
-  jQuery(document).ready(function($) {
-    setup_payment_form();
-    setup_gift_form();
-  });
-}
+jQuery(document).ready(function($) {
+  setup_payment_form();
+  setup_gift_form();
+});
 
