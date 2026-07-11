@@ -94,7 +94,10 @@ class SeatAssignment < ApplicationRecord
 
   def self.reseating_commit(order_uuid)
     o = Order.find_by(uuid: order_uuid)
-    if SeatAssignment.current_seat_assignments(o.uuid).count.eql?(o.number_of_tickets)
+    # Compare against seat-holding tickets only — number_of_tickets would also
+    # count non-seat (holds_seats=false) tickets and make mixed orders
+    # impossible to reseat.
+    if SeatAssignment.current_seat_assignments(o.uuid).count.eql?(o.number_of_seats)
       conflict = reseating_zone_conflict(order_uuid)
       return conflict unless conflict.nil?
 

@@ -13,6 +13,18 @@
            'data-ticket-price':tc&.ticket_price,
            'data-price-override':sa.price_override,
            'data-ticket-line-item-id':linked_tli&.id}
+    -# Non-seat tickets (holds_seats=false, no SeatAssignment). The holds_seats
+    -# condition keeps legacy aggregated seat-holding TLIs (nil FK) from
+    -# double-rendering — those are already represented by their seats above.
+    - ticket_order.ticket_line_items.select{|tli| tli.seat_assignment_id.nil? && tli.ticket_count.to_i > 0 && tli.ticket_class && !tli.ticket_class.holds_seats?}.each_with_index do |tli, ns_index|
+      %div{class:'non-seat-ticket-entry',
+           id:"non-seat-ticket-entry-#{tli.id || "new-#{ns_index}"}",
+           'data-ticket-line-item-id':tli.id,
+           'data-ticket-class-id':tli.ticket_class_id,
+           'data-ticket-class-name':tli.ticket_class.class_name,
+           'data-ticket-price':tli.ticket_class.ticket_price,
+           'data-price-override':tli.price_override,
+           'data-ticket-count':tli.ticket_count}
   - else
     - ticket_order.ticket_line_items.select{|tli| !tli.ticket_count.nil? && tli.ticket_count > 0}.each do |tli|
       %div{id:"ticket-line-item-merge-#{tli.ticket_class_id}", 'data-ticket-count':tli.ticket_count, 'data-ticket-line-item-id':tli.id, 'data-price-override':tli.price_override}

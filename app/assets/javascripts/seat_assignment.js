@@ -124,9 +124,11 @@ function initialize_seating_assignment() {
                 // Remove the per-seat row for this SeatAssignment.
                 var $row = $('#ticket-display .ticket_line_item[data-seat-assignment-id="' + response['id'] + '"]')
                 $row.remove()
-                // Rebuild the seatlocations label from remaining rows.
+                // Rebuild the seatlocations label from remaining SEAT rows only —
+                // non-seat ticket rows carry no seat and must not leak their
+                // class name into the label.
                 var remaining = []
-                $('#ticket-display .ticket_line_item').each(function() {
+                $('#ticket-display .ticket_line_item[data-seat-assignment-id]').each(function() {
                   var label = $(this).find('.cell.small-6').text().split(' / ')[0]
                   if (label) remaining.push(label.trim())
                 })
@@ -373,6 +375,202 @@ function build_reserved_seat_row(seatInfo, index) {
   return row
 }
 
+// Non-seat tickets (holds_seats=false): plain nested-attribute rows in the
+// unified #ticket-display list. They never touch the reserve/release ajax
+// endpoints — the form submit persists them.
+
+function next_non_seat_key() {
+  // Newly added rows get keys in the 2e9+ range; rows rebuilt from persisted
+  // TLIs use 1e9 + tli.id (see populate_non_seat_ticket_rows). Both ranges are
+  // integer-shaped (required by strong params) and disjoint from the raw
+  // SeatAssignment ids that key seat rows.
+  window.__non_seat_row_seq = (window.__non_seat_row_seq || 0) + 1
+  return 2000000000 + window.__non_seat_row_seq
+}
+
+function build_non_seat_ticket_row(info) {
+  // info: { key, ticket_class_id, ticket_class_name, ticket_price,
+  //         price_override, ticket_line_item_id, ticket_count }
+  var key = String(info.key)
+  var count = info.ticket_count == null ? 1 : info.ticket_count
+  var row = document.createElement("div")
+  row.setAttribute("class", "grid-x grid-padding-x ticket_line_item line_item non-seat-ticket")
+  row.setAttribute("data-ticket-class-id", info.ticket_class_id)
+  row.setAttribute("data-non-seat", "true")
+
+  function hidden(nameKey, value) {
+    var i = document.createElement("input")
+    i.setAttribute("type", "hidden")
+    i.setAttribute("name", "ticket_order[ticket_line_items_attributes][" + key + "][" + nameKey + "]")
+    i.setAttribute("data-attr", nameKey)
+    i.value = value == null ? "" : value
+    return i
+  }
+  if (info.ticket_line_item_id) { row.appendChild(hidden("id", info.ticket_line_item_id)) }
+  row.appendChild(hidden("ticket_class_id", info.ticket_class_id))
+  row.appendChild(hidden("ticket_count", count))
+  if (info.price_override != null && info.price_override !== "") {
+    row.appendChild(hidden("price_override", info.price_override))
+  }
+
+  row.appendChild(create_column("6", info.ticket_class_name || ""))
+
+  var qtyCol = create_column("2", "")
+  qtyCol.style.textAlign = "right"
+  var qty = document.createElement("span")
+  qty.setAttribute("class", "ticket_count right")
+  qty.appendChild(document.createTextNode(String(count)))
+  qtyCol.appendChild(qty)
+  row.appendChild(qtyCol)
+
+  var priceCol = create_column("3", "")
+  priceCol.style.textAlign = "right"
+  var price = document.createElement("span")
+  price.setAttribute("class", "ticket_price right")
+  var effective = (info.price_override != null && info.price_override !== "") ? info.price_override : info.ticket_price
+  price.appendChild(document.createTextNode(format_currency(effective)))
+  priceCol.appendChild(price)
+  row.appendChild(priceCol)
+
+  var actionCol = create_column("1", "")
+  var remove = document.createElement("a")
+  remove.setAttribute("href", "#")
+  remove.setAttribute("class", "remove-non-seat-ticket")
+  remove.appendChild(document.createTextNode("✕"))
+  actionCol.appendChild(remove)
+  row.appendChild(actionCol)
+
+  return row
+}
+
+function add_non_seat_ticket(ticket_class_id, price_override) {
+  var tcInfo = find_ticket_class_info(ticket_class_id) || {}
+  var pickerRow = $('#non-seat-ticket-rows > .grid-x[data-ticket-class-id="' + ticket_class_id + '"]')
+  var row = build_non_seat_ticket_row({
+    key: next_non_seat_key(),
+    ticket_class_id: ticket_class_id,
+    ticket_class_name: tcInfo['class_name'] || pickerRow.find('.cell.small-6').text().trim(),
+    ticket_price: tcInfo['raw_ticket_price'] != null ? tcInfo['raw_ticket_price'] : pickerRow.find('span.ticket_price').text().replace(/^\$/g, ''),
+    price_override: price_override
+  })
+  $("#ticket-display").append(row)
+  calculate_ticket_totals();
+  set_button_state_for_autocompletes();
+}
+
+function initialize_non_seat_picker() {
+  $(document).off("click.addNonSeat", ".non-seat-add-button");
+  $(document).on("click.addNonSeat", ".non-seat-add-button", function(e) {
+    e.preventDefault();
+    var ticket_class_id = $(this).data("ticket-class")
+    var ticket_type = $(this).data("ticket-type")
+    var price_override = ""
+    if (ticket_type === "Donation") {
+      var priceInput = $(this).closest(".grid-x").find(".donation-price-override")
+      if (priceInput.length > 0) { price_override = priceInput.val() }
+    }
+    add_non_seat_ticket(ticket_class_id, price_override)
+  });
+
+  $(document).off("click.removeNonSeat", ".remove-non-seat-ticket");
+  $(document).on("click.removeNonSeat", ".remove-non-seat-ticket", function(e) {
+    e.preventDefault();
+    var $row = $(this).closest(".ticket_line_item")
+    if ($row.find('input[data-attr="id"]').length > 0) {
+      // Persisted TLI: removing the node would silently keep the record.
+      // Flag it for nested-attributes destruction and zero it out of totals.
+      var key = $row.find('input[data-attr="id"]').attr("name").match(/\[(\d+)\]\[id\]$/)[1]
+      var destroy = document.createElement("input")
+      destroy.setAttribute("type", "hidden")
+      destroy.setAttribute("name", "ticket_order[ticket_line_items_attributes][" + key + "][_destroy]")
+      destroy.value = "1"
+      $row.append(destroy)
+      $row.find('input[data-attr="ticket_count"]').val(0)
+      $row.find('span.ticket_count').text("0")
+      $row.hide()
+    } else {
+      $row.remove()
+    }
+    calculate_ticket_totals();
+    set_button_state_for_autocompletes();
+  });
+}
+
+// Rebuild the picker rows from the #ticket-items JSON — used when the admin
+// order form switches performance (update_ticketing_panel). The public page
+// keeps its server-rendered rows, which are already filtered to web-visible
+// classes (same reasoning as populate_ticket_selector being skipped there).
+function populate_non_seat_picker() {
+  var container = $("#non-seat-ticket-rows")
+  if (container.length === 0) return
+  var data = $("#ticket-items").data('line-items')
+  if (!data) return
+  var parsed = typeof data === "string" ? $.parseJSON(data) : data
+  container.empty()
+  var any = false
+  $.each(parsed, function(_key, val) {
+    if (val['holds_seats']) { return; }
+    any = true
+    var row = document.createElement("div")
+    row.setAttribute("class", "grid-x grid-padding-x" + (val['web_visible'] ? " front-facing" : ""))
+    row.setAttribute("data-ticket-class-id", val['id'])
+    row.setAttribute("data-ticket-type", val['ticket_type'] || "")
+    var col = create_column("6", val['class_name'])
+    if (val['purchase_page_annotation']) {
+      var span = document.createElement('span')
+      span.setAttribute("class", "ticket_class_annotation")
+      span.appendChild(document.createTextNode(val['purchase_page_annotation']))
+      col.appendChild(span)
+    }
+    row.appendChild(col)
+    var price_col = create_column("3", "")
+    if (val['ticket_type'] === "Donation") {
+      var priceInput = document.createElement("input")
+      priceInput.setAttribute("type", "number")
+      priceInput.setAttribute("step", "0.01")
+      priceInput.setAttribute("min", "0")
+      priceInput.setAttribute("class", "donation-price-override")
+      priceInput.setAttribute("value", val['raw_ticket_price'])
+      priceInput.setAttribute("placeholder", val['ticket_price'])
+      price_col.appendChild(priceInput)
+    } else {
+      var priceSpan = document.createElement("span")
+      priceSpan.setAttribute("class", "ticket_price")
+      priceSpan.appendChild(document.createTextNode(val['ticket_price']))
+      price_col.appendChild(priceSpan)
+    }
+    row.appendChild(price_col)
+    var button = document.createElement("a")
+    button.setAttribute("class", "tiny non-seat-add-button button")
+    button.setAttribute("href", "#")
+    button.setAttribute("data-ticket-class", val['id'])
+    button.setAttribute("data-ticket-type", val['ticket_type'] || "")
+    button.appendChild(document.createTextNode('Add'))
+    row.appendChild(create_column("3", "", button))
+    container.append(row)
+  })
+  $("#non-seat-ticket-picker").toggle(any)
+}
+
+function populate_non_seat_ticket_rows() {
+  $("#ticket-line-item-merge .non-seat-ticket-entry").each(function() {
+    var $e = $(this)
+    // Unsaved orders (public re-render after a validation error) have no TLI
+    // id yet — fall back to a fresh 2e9-range key so rows never collide.
+    var tliId = Number($e.data("ticket-line-item-id"))
+    var row = build_non_seat_ticket_row({
+      key: (tliId > 0) ? (1000000000 + tliId) : next_non_seat_key(),
+      ticket_class_id: $e.data("ticket-class-id"),
+      ticket_class_name: $e.data("ticket-class-name"),
+      ticket_price: $e.data("ticket-price"),
+      price_override: $e.data("price-override"),
+      ticket_line_item_id: $e.data("ticket-line-item-id"),
+      ticket_count: $e.data("ticket-count")
+    })
+    $("#ticket-display").append(row)
+  })
+}
+
 function populate_reserved_seat_rows() {
   $("#ticket-display").empty()
   var locations = []
@@ -390,6 +588,7 @@ function populate_reserved_seat_rows() {
     $("#ticket-display").append(row)
     if ($e.data("seat-label")) { locations.push($e.data("seat-label")) }
   })
+  populate_non_seat_ticket_rows()
   $("#seatlocations").text(locations.join(", "))
 }
 
@@ -495,6 +694,7 @@ function update_ticketing_panel(perf_id) {
       get_ticket_classes()
       populate_ticket_order()
       populate_ticket_selector()
+      populate_non_seat_picker()
       initialize_seatingmap()
       initialize_seating_assignment()
       console.log("seatmap updated")
@@ -511,6 +711,7 @@ $(document).ready(function() {
   initialize_seating_assignment();
   initialize_donation_override_edit();
   initialize_remove_reserved_seat();
+  initialize_non_seat_picker();
 });
 
 function initialize_remove_reserved_seat() {

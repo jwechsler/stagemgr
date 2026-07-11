@@ -275,7 +275,9 @@ class Admin::TicketOrdersController < Admin::OrdersController
       new_tickets = []
       flattened_tickets = []
       split_instructions.size.times do |index|
-        if @ticket_order.performance.production.has_reserved_seating?
+        # Non-seat tickets in a reserved house submit seats[]=0 (no seat to
+        # move), so only look a seat up for positive ids.
+        if @ticket_order.performance.production.has_reserved_seating? && seat_ids[index].positive?
           seat_assignment = seat_assignments.select { |sa| sa.seat_id.eql?(seat_ids[index]) }.first
           seat_assignments.delete_at(seat_assignments.index(seat_assignment))
           # we've found the correct seat assignment.  Now we need to adjust the ticket class

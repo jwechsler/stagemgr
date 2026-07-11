@@ -8,7 +8,9 @@
 					%h3 Change Seating
 				.cell.medium-3.hide-for-small-only
 					%h4 Original
-					%span#number-of-tickets.hide= order.number_of_tickets
+					-# Seat-holding tickets only: reseating.js uses this as the number of
+					-# seats to hold, which excludes non-seat (holds_seats=false) tickets.
+					%span#number-of-tickets.hide= order.number_of_seats
 					%p
 						%span#original-seat-list= order.seat_assignments([SeatAssignment::ASSIGNED,SeatAssignment::RELEASING])
 					%h4 New

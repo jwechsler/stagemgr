@@ -50,6 +50,15 @@ class SeatAssignmentsController < ApplicationController
           # deliberately no override path for this rule.
           if ticket_class_id.present?
             tc = TicketClass.find_by(id: ticket_class_id)
+            # Non-seat-holding classes are sold through the non-seat ticket
+            # picker and never occupy a physical seat. Reject before any
+            # mutation, mirroring the zone guard below.
+            if tc && !tc.holds_seats?
+              render json: { id: sa.id, status: 'error',
+                             message: "Ticket type #{tc.class_name} does not reserve a seat and cannot be assigned to seat #{sa.seat.location}" },
+                     status: :unprocessable_entity
+              return
+            end
             if tc && !tc.sellable_for_zone?(sa.seat.zone)
               render json: { id: sa.id, status: 'error',
                              message: "Ticket type #{tc.class_name} is not available for seat #{sa.seat.location} (zone #{sa.seat.zone})" },
