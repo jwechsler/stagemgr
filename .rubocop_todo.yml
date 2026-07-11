@@ -388,8 +388,10 @@ Metrics/BlockNesting:
 # Configuration parameters: CountComments, CountAsOne.
 # Max bumped 1017 -> 1020 for the reviewed TicketOrder#occupies_seats? seat-
 # inventory vocabulary facade (3 LOC). TicketOrder was already at the limit.
+# Max bumped 1020 -> 1024 for the reviewed TicketOrder#buy_x_get_y_offer?
+# predicate backing the BXGY non-splittable rule (4 LOC).
 Metrics/ClassLength:
-  Max: 1020
+  Max: 1024
 
 # Offense count: 101
 # Configuration parameters: AllowedMethods, AllowedPatterns.

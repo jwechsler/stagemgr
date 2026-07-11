@@ -4,7 +4,7 @@
       .small-4.cell
         =f.input :code
       .small-4.cell
-        =f.input :type, :collection=>{"$ Off"=>AmountOffSpecialOffer,"% Off"=>PercentOffSpecialOffer, 'TktClass'=>TicketClassSpecialOffer}, :include_blank=>false
+        =f.input :type, :collection=>{"$ Off"=>AmountOffSpecialOffer,"% Off"=>PercentOffSpecialOffer, 'TktClass'=>TicketClassSpecialOffer, 'Buy X Get Y'=>BuyXGetYSpecialOffer}, :include_blank=>false
       .small-4.cell
         =f.input :status, :collection=>SpecialOffer::OFFER_STATUSES, :include_blank=>false
     .grid-x.grid-padding-x
@@ -26,6 +26,8 @@
           %legend Action
           =f.input :amount, :label=>"Discount"
           =f.input :change_ticket_class_code, :label=>"Set ticket class code"
+          =f.input :buy_quantity, :label=>"Buy quantity (X)"
+          =f.input :get_quantity, :label=>"Get free quantity (Y)"
     .grid-x.grid-padding-x
       .small-12.cell
         %fieldset.fieldset

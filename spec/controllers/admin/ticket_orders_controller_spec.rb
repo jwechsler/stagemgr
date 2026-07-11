@@ -7,6 +7,29 @@ require 'rails_helper'
 # (each_value yields the converted nested Parameters); this pins that EVERY nested
 # line-item entry is visited and reassigned by ticket_class_code.
 RSpec.describe Admin::TicketOrdersController, type: :controller do
+  describe '#ensure_splittable' do
+    it 'redirects to show with an error when the order is not splittable' do
+      order = double('order', splittable?: false, id: 42)
+      controller.instance_variable_set(:@ticket_order, order)
+      allow(controller).to receive(:redirect_to)
+
+      controller.send(:ensure_splittable)
+
+      expect(controller).to have_received(:redirect_to).with(action: 'show', id: 42)
+      expect(controller.flash[:error]).to eq('This order cannot be split.')
+    end
+
+    it 'does nothing when the order is splittable' do
+      order = double('order', splittable?: true, id: 42)
+      controller.instance_variable_set(:@ticket_order, order)
+      allow(controller).to receive(:redirect_to)
+
+      controller.send(:ensure_splittable)
+
+      expect(controller).not_to have_received(:redirect_to)
+    end
+  end
+
   describe '#set_ticket_classes_for_line_items' do
     it 'reassigns the ticket class for every nested line-item entry by code' do
       adult  = double('adult class', class_code: 'ADULT')

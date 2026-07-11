@@ -751,6 +751,19 @@ RSpec.describe TicketOrder do
   end
 
   context "when splitting" do
+    it "is not splittable when a buy X get Y offer was used" do
+      order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
+      expect(order.splittable?).to be true
+      order.build_special_offer_line_item(special_offer: FactoryBot.create(:buy_x_get_y_special_offer))
+      expect(order.splittable?).to be false
+    end
+
+    it "remains splittable with other special offer types" do
+      order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
+      order.build_special_offer_line_item(special_offer: FactoryBot.create(:percent_off_special_offer))
+      expect(order.splittable?).to be true
+    end
+
     it "replicates existing tasks and state" do
       original_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
       expect(original_order.tasks.size).to eql(2)
