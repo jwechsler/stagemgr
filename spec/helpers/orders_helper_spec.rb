@@ -2,8 +2,9 @@ require 'rails_helper'
 
 RSpec.describe OrdersHelper, type: :helper do
   # Channel rule: only box office (which never runs validate_web_order) may
-  # save reserved-seating orders with no seats. Front-end orders must contain
-  # at least one seated (holds_seats) ticket.
+  # save orders with no seat-holding tickets. Front-end orders must contain at
+  # least one seated (holds_seats) ticket, on both reserved-seating and
+  # general-admission performances.
   describe '#validate_web_order seated-ticket requirement' do
     let(:production) { FactoryBot.create(:production_with_reserved_seating) }
     let(:performance) do
@@ -60,7 +61,7 @@ RSpec.describe OrdersHelper, type: :helper do
       expect(helper.validate_web_order(order)).to be(true)
     end
 
-    it 'does not apply to general admission performances' do
+    it 'rejects a general-admission order containing only non-seat tickets' do
       ga_performance = FactoryBot.create(:general_admission, performance_date: Date.today + 1.day,
                                                              performance_time: Time.parse('20:00'))
       tc = FactoryBot.create(:ticket_class, production: ga_performance.production, holds_seats: false)
@@ -69,6 +70,25 @@ RSpec.describe OrdersHelper, type: :helper do
       tca.save!
       order = web_order(ga_performance)
       add_non_seat_ticket(order, tc)
+
+      expect(helper.validate_web_order(order)).to be(false)
+      expect(flash[:error]).to include('at least one seated ticket')
+    end
+
+    it 'accepts a general-admission order once a seat-holding ticket is present' do
+      ga_performance = FactoryBot.create(:general_admission, performance_date: Date.today + 1.day,
+                                                             performance_time: Time.parse('20:30'))
+      admission = FactoryBot.create(:ticket_class, production: ga_performance.production, holds_seats: true)
+      addon = FactoryBot.create(:ticket_class, production: ga_performance.production, holds_seats: false)
+      [admission, addon].each do |tc|
+        tca = ga_performance.ticket_class_allocations.find_or_initialize_by(ticket_class: tc)
+        tca.available = true
+        tca.save!
+      end
+      order = web_order(ga_performance)
+      order.ticket_line_items << FactoryBot.build(:ticket_line_item, ticket_class: admission,
+                                                                     ticket_count: 1, order: order)
+      add_non_seat_ticket(order, addon)
 
       expect(helper.validate_web_order(order)).to be(true)
     end
