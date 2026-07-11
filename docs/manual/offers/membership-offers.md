@@ -66,7 +66,18 @@ Leave both fields blank to skip the trial period and begin full-price billing im
 
 | Field | Description |
 |-------|-------------|
-| **MyEmma Group** | The email list group ID in MyEmma. Active members are automatically added to this group for targeted email campaigns. |
+| **MyEmma Group ID** | The email list group ID in MyEmma. Members are automatically kept in sync with this group for targeted email campaigns. |
+
+How the sync works:
+
+- When a membership on this offer becomes **Active**, the member's address is added to the group.
+- When a membership is **Canceled** or **Suspended**, the address is removed -- unless the patron still holds another current membership.
+- If you **change the group ID** on the offer, every active membership's address is added to the new group automatically. Addresses are not removed from the old group.
+
+All sync work runs as background jobs, so saving the form returns immediately and any email-service hiccup is retried without affecting the membership itself.
+
+!!! note "Only shown when MyEmma is configured"
+    The MyEmma Group ID field (and the matching row on the offer detail page) appears only when the MyEmma integration is enabled for this installation.
 
 ### Content and Legal
 
@@ -122,15 +133,18 @@ Click the **x** on the right side of any pill to remove that tag, then save the 
 
 ## The Membership Offers List
 
-![Membership offers list showing Edit, Create Order, and Usage buttons, tag pills, and red Inactive labels](../assets/images/screenshots/offers-membership-list.png)
+![Membership offers list showing Edit, sales action, and Usage buttons, tag pills, and red Inactive labels](../assets/images/screenshots/offers-membership-list.png)
 
-Each row on the Membership Offers list has an actions column with three buttons:
+Each row on the Membership Offers list has an actions column with three buttons. The middle button is the offer's **primary sales action** and depends on its type:
 
 | Button | What it does |
 |--------|--------------|
 | **Edit** | Opens the offer's edit form. |
-| **Create Order** | Starts a new membership order for this offer. For inactive offers this button is shown greyed out and disabled, since inactive offers cannot be sold. |
+| **Create Order** | (Production offers) Starts a new membership order for this offer. |
+| **Issue Pass** | (Timed offers) Creates a staff-issued membership directly, with no purchase order -- the library pass workflow. |
 | **Usage** | Opens the [Membership Usage report](../reports/membership-reports.md#membership-usage) for this offer alone, covering its entire history. |
+
+Each row shows exactly one of **Create Order** or **Issue Pass**. Either way, the button is greyed out and disabled while the offer's status is Inactive, since inactive offers cannot be sold or issued.
 
 The **On Sale to Public** column shows a checkmark when the offer is publicly purchasable. Offers whose status is **Inactive** show a red **Inactive** label in this column instead.
 
@@ -139,7 +153,22 @@ The **On Sale to Public** column shows a checkmark when the offer is publicly pu
 
 ---
 
+## The Offer Detail Page
+
+Clicking an offer's name opens its detail page.
+
+![Timed membership offer detail page with the offer name heading, offer details panel, and Issue Pass button](../assets/images/screenshots/offers-membership-show-timed.png)
+
+- The offer name appears as a heading above the offer's public description.
+- The **Offer Details** panel summarizes the Price ID, tickets per performance, type, MyEmma group (when MyEmma is enabled), and ticket classes; a **Notification** tab shows the confirmation email content when one is configured.
+- Status labels in the top-right corner show whether the offer is Active/Inactive and On Sale/Private.
+- Below the description sit **Edit** and the offer's primary sales action: **Create Order** for production offers or **Issue Pass** for timed offers, disabled while the offer is Inactive -- the same rule as the list.
+
+---
+
 ## Managing Memberships
+
+Individual membership records (who holds each membership, its status, start, and end) are managed on the [Memberships list](../ticketing/managing-memberships.md) under **Passes > Memberships**.
 
 - **Deactivate** an offer by setting Status to `Inactive`. Existing members continue their subscriptions until cancelled.
 - **Remove from public sale** by unchecking **On Sale** while keeping the offer active for box office staff.

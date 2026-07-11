@@ -572,7 +572,7 @@ class Order < ApplicationRecord
   end
 
   def link_to_address_of_record
-    merge = if paid_with_membership?
+    merge = if paid_with_membership? && !membership_payments.first.membership.membership_offer.timed?
       membership_payments.first.membership.address
     else
       address.find_original

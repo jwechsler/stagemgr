@@ -286,6 +286,7 @@ ActiveRecord::Schema.define(version: 2026_07_10_120000) do
     t.string "status", default: "Active"
     t.string "price_id"
     t.integer "max_festival_tickets_in_advance"
+    t.string "membership_type", default: "production", null: false
   end
 
   create_table "memberships", id: :integer, charset: "latin1", force: :cascade do |t|

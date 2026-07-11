@@ -85,12 +85,13 @@ Rails.application.configure do
   config.after_initialize do
     ActiveMerchant::Billing::Base.mode = :test
     PaymentProcessing.after_initialize
-    if Rails.application.credentials.dig(:my_emma, :account_id).nil?
-      MyEmma.read_only!
-    else
+    unless Rails.application.credentials.dig(:my_emma, :account_id).nil?
       MyEmma.set_credentials(Rails.application.credentials.dig(:my_emma, :username),
                              Rails.application.credentials.dig(:my_emma, :password), Rails.application.credentials.dig(:my_emma, :account_id))
     end
+    # Development must never write to the live Emma account: reads work with
+    # the credentials above, writes are skipped (and logged) regardless.
+    MyEmma.read_only!
   end
 
   config.external_site_root = 'file:///Users/jeremyw/dev/site'

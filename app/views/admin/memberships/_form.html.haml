@@ -1,0 +1,30 @@
+= simple_form_for [:admin, membership] do |f|
+  = token_tag
+  .grid-x.grid-padding-x
+    .small-12.medium-6.cell
+      = f.association :membership_offer, :as=>:select,
+          :collection=>MembershipOffer.where(status: MembershipOffer::ACTIVE).order(:name),
+          :label_method=>->(o) { "#{o.name} (#{o.membership_type})" }, :value_method=>:id,
+          :label=>"Membership Offer", :include_blank=>false
+    .small-12.medium-6.cell
+      = f.input :status, :as=>:select,
+          :collection=>[Membership::ACTIVE, Membership::CANCELED, Membership::EXPIRED], :include_blank=>false
+  .grid-x.grid-padding-x
+    .small-12.medium-6.cell
+      = f.label :address_id, "Address"
+      - if membership.address_id.present?
+        = text_field_tag :address_display, membership.address&.full_name, readonly: true, class: 'full_name'
+        = f.hidden_field :address_id
+      - else
+        = autocomplete_field_tag :address_search, '', autocomplete_address_admin_addresses_path,
+            :id_element=>'#membership_address_id_hidden', class: 'full_name'
+        = f.hidden_field :address_id, id: 'membership_address_id_hidden'
+    .small-12.medium-6.cell
+      = f.input :member_since, :as=>:string, :input_html=>{:class=>'date_picker'}
+  .grid-x.grid-padding-x
+    .small-12.medium-6.cell
+      = f.input :preferred_seating, :as=>:select, :collection=>Membership::SEATING_REQUESTS, :include_blank=>false
+    - if membership.persisted?
+      .small-12.medium-6.cell
+        = f.input :member_code, :label=>"Member Code", :input_html=>{:readonly=>true}
+  = f.button :submit, :class=>'button'

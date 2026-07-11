@@ -54,15 +54,21 @@ was paid out. It is useful for trend analysis, budgeting, and reporting to manag
 
 The report is grouped by month. Within each month there is one **detail row per membership offer**,
 followed by an **All Offers** summary row that totals that month across every offer. A single grand
-**Total** row at the very bottom sums all of the detail rows across every month in the range.
+**Total** row at the very bottom sums the money columns across every month in the range.
 
 | Column | Description |
 |---|---|
 | **Month** | Calendar month (e.g., `2026-05`). The final row reads **Total**. |
 | **Offer** | The membership offer name on detail rows; **All Offers** on the monthly summary rows. |
 | **Memberships** | Number of memberships active in that month for that offer. |
+| **Members** | Number of people those memberships admit -- each membership counts its offer's tickets-per-performance, so a dual membership counts as two members. |
 | **Collected** | Total amount collected on membership orders. |
 | **Paid** | Total membership payments applied. |
+
+!!! note "The Total row does not total the count columns"
+    **Memberships** and **Members** are active-during-month counts. Adding them across months
+    would count every membership once per month it spans, so the grand **Total** row leaves
+    those two columns blank and totals only **Collected** and **Paid**.
 
 When the report is limited with the offer picker, detail rows cover only the selected
 offers, the monthly **All Offers** summary rows total just that selection, and the on-screen
@@ -80,7 +86,7 @@ You can run this report for one membership offer over its entire history straigh
 [Membership Offers list](../offers/membership-offers.md#the-membership-offers-list): click the
 **Usage** button on the offer's row.
 
-![Membership Usage report for a single offer, broken out by month with Month, Offer, Memberships, Collected, and Paid columns](../assets/images/screenshots/reports-membership-usage-offer.png)
+![Membership Usage report for a single offer, broken out by month with Month, Offer, Memberships, Members, Collected, and Paid columns](../assets/images/screenshots/reports-membership-usage-offer.png)
 
 The per-offer report behaves the same as the full report with two differences:
 

@@ -1,0 +1,45 @@
+= content_for :title do
+  Memberships
+= content_for :breadcrumbs do
+  = render "shared/components/breadcrumb", items: [{ label: "Memberships" }]
+
+.grid-x.grid-padding-x
+  .small-12.cell
+    %table#membership-listing{:data=>{:source=>"#{admin_memberships_path(format: :json)}"}}
+      %thead
+        %tr
+          %th Member Code
+          %th Offer
+          %th Member
+          %th Status
+          %th Start
+          %th Membership End
+          %th
+      %tbody
+
+    = link_to "New Membership", new_admin_membership_path, :class=>'button' if can? :create, Membership
+
+= content_for :js do
+  :javascript
+    $(document).ready(function() {
+      $('#membership-listing').dataTable({
+        "processing": true,
+        "serverSide": true,
+        "stateSave": true,
+        "ajax": $('#membership-listing').data('source'),
+        "pagingType": 'full_numbers',
+        "language": {
+          "lengthMenu" : "_MENU_ entries"
+        },
+        columns: [
+          {data: 'member_code'},
+          {data: 'offer'},
+          {data: 'member'},
+          {data: 'status'},
+          {data: 'start'},
+          {data: 'membership_end'},
+          {data: 'actions', orderable: false, searchable: false}
+        ],
+        order: [[3, 'asc'], [2, 'asc']]
+      });
+    });
