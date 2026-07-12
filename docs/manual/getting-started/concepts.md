@@ -195,12 +195,13 @@ Service items follow an **inheritance chain**: system-wide defaults can be overr
 
 ## Special Offers
 
-A **special offer** is a promotional discount applied with a code during checkout. There are three types:
+A **special offer** is a promotional discount applied with a code during checkout. There are four types:
 
 | Offer Type | Effect |
 |-----------|--------|
 | **Percent Off** | Reduces the ticket price by a percentage |
 | **Amount Off** | Reduces the ticket price by a fixed dollar amount |
 | **Ticket Class Change** | Swaps the ticket to a different (usually cheaper) ticket class |
+| **Buy X Get Y** | Frees the cheapest tickets for every full group bought (e.g. buy 2, get 1 free) |
 
 Special offers can be scoped to specific theaters, productions, or performances, and can have date ranges, day-of-week restrictions, and usage limits.

@@ -11,13 +11,14 @@
 
 ![Special offers list showing codes, descriptions, usage counts, status, and expiration dates](../assets/images/screenshots/offers-special-offers-list.png)
 
-Special offers are promo codes that customers enter at checkout to receive a discount or ticket class change. Stagemgr supports three types of special offers, each with distinct behavior:
+Special offers are promo codes that customers enter at checkout to receive a discount or ticket class change. Stagemgr supports four types of special offers, each with distinct behavior:
 
 | Type | Label | Behavior |
 |------|-------|----------|
 | **AmountOffSpecialOffer** | $ Off | Deducts a flat dollar amount per qualifying ticket |
 | **PercentOffSpecialOffer** | % Off | Deducts a percentage from the total of qualifying tickets |
 | **TicketClassSpecialOffer** | TktClass | Replaces the ticket class with a different class at checkout |
+| **BuyXGetYSpecialOffer** | Buy X Get Y | Frees the cheapest tickets for every full group bought (e.g. buy 2, get 1 free) |
 
 ## Creating a Special Offer
 
@@ -38,6 +39,8 @@ Special offers are promo codes that customers enter at checkout to receive a dis
 | **Amount** | $ Off | Dollar amount to deduct per ticket (e.g., `5.00` takes $5 off each ticket). |
 | **Amount** | % Off | Percentage to deduct from the qualifying ticket total (e.g., `20` for 20% off). |
 | **Change Ticket Class Code** | TktClass | The target ticket class code that replaces the customer's original class. |
+| **Buy quantity (X)** | Buy X Get Y | Number of tickets that must be purchased to earn free tickets. |
+| **Get free quantity (Y)** | Buy X Get Y | Number of tickets made free for each full group of X + Y qualifying tickets. |
 
 ### Scoping the Offer
 
@@ -56,6 +59,18 @@ Leave the scope blank to make the offer available system-wide.
 | Field | Description |
 |-------|-------------|
 | **Ticket Class Code** | If set, the offer only applies to tickets whose class code starts with this value. For example, entering `REG` would match `REGULAR`, `REG-ADULT`, etc. |
+
+### How "Buy X Get Y" Offers Work
+
+Buy X Get Y offers reward customers with free tickets once they buy enough. For every full group of **X + Y** qualifying tickets in the order, the **Y cheapest** of those tickets become free.
+
+- **Groups repeat.** With Buy 2 Get 1 (a group of 3), an order of 6 qualifying tickets frees 2; an order of 9 frees 3.
+- **The cheapest tickets are freed.** Within each order, Stagemgr frees the lowest-priced qualifying tickets, so the customer keeps the highest value.
+- **The ticket class restriction covers both sides.** The **Ticket Class Code** filter determines which tickets both count toward the buy quantity *and* are eligible to be freed. If it is blank, every ticket in the order participates. There is no separate class for the qualifying versus the free tickets.
+- **Already-free tickets are ignored.** Tickets that cost $0 (such as comps) never count toward the buy quantity and are never "freed" again — the discount only ever applies to tickets that cost more than $0.
+
+!!! warning "Discount and Set-ticket-class fields don't apply"
+    Leave **Discount** and **Set ticket class code** blank for a Buy X Get Y offer. The free tickets are calculated from the buy/get quantities, not from a dollar amount.
 
 ### Usage Limits
 
@@ -119,6 +134,16 @@ Check any combination of **Sunday** through **Saturday** to restrict the offer t
 - **Scope:** Performance > specific performance
 - **Ticket Class Code:** `REG`
 - **Result:** Customers with regular tickets receive complimentary tickets for that one performance.
+
+### Example 4: Buy 2 Get 1 Free on General Admission
+
+- **Type:** Buy X Get Y
+- **Code:** `GROUP3`
+- **Buy quantity (X):** `2`
+- **Get free quantity (Y):** `1`
+- **Scope:** Production > "Our Town"
+- **Ticket Class Code:** `GEN`
+- **Result:** For every three GEN tickets in the order, the cheapest one is free. An order of six GEN tickets frees the two cheapest. Non-GEN tickets and any $0 comps are ignored.
 
 ---
 
