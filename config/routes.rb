@@ -298,6 +298,7 @@ Rails.application.routes.draw do
     resources :service_line_items, only: [:destroy]
     resources :special_offers do
       post 'duplicate', on: :member
+      post 'deactivate_stale', on: :collection
     end
     resources :payment_types do
       get :new_external_payment, on: :collection

@@ -47,6 +47,11 @@ PurgeExpiredSpecialOffers:
   description: 'Purge expired special offers'
   queue: maintenance
 
+DeactivateStaleSpecialOffers:
+  cron: '30 0 * * 0'
+  description: 'Mark Active special offers Inactive when their targets ended over a month ago'
+  queue: maintenance
+
 MarkInactiveShows:
   every: "1d"
   description: 'Productions/Theaters that have been inactive for over 6 months and not updated since then are marked as ''Inactive''.'

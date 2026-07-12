@@ -328,6 +328,32 @@ class SpecialOffer < ApplicationRecord
     Rails.logger.info "Deleted #{delete_count} expired and unused offers"
   end
 
+  # Marks Active offers Inactive when the thing they target is comfortably in
+  # the past (default cutoff: one month ago). Softer, earlier counterpart to
+  # purge_expired_offers, which destroys never-used offers after three months.
+  # A production with no closing_at falls back to its latest active
+  # performance date; productions with neither are never considered past.
+  #
+  # Runs as a single UPDATE rather than per-record saves: saving would fire
+  # find_limiting_object, which re-resolves theater/production/performance by
+  # code and can fail or silently unscope offers whose targets were purged.
+  def self.deactivate_stale_offers(cutoff = 1.month.ago.to_date)
+    count = where(status: ACTIVE)
+            .where(<<~SQL.squish, cutoff: cutoff)
+              performance_id IN (SELECT id FROM performances WHERE performance_date < :cutoff)
+              OR production_id IN (
+                SELECT p.id FROM productions p
+                WHERE COALESCE(p.closing_at,
+                      (SELECT MAX(pf.performance_date) FROM performances pf
+                       WHERE pf.production_id = p.id AND pf.status = 'Active')) < :cutoff)
+              OR auto_expire < :cutoff
+              OR performance_end_range < :cutoff
+            SQL
+            .update_all(status: INACTIVE, updated_at: Time.current)
+    Rails.logger.info "SpecialOffer.deactivate_stale_offers: marked #{count} offers Inactive (cutoff #{cutoff})"
+    count
+  end
+
   def redeem_one_use!
     self.number_of_uses -= 1 if number_of_uses.present? && number_of_uses >= 0
     save!

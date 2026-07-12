@@ -77,6 +77,13 @@ class Admin::SpecialOffersController < Admin::ApplicationController
     end
   end
 
+  def deactivate_stale
+    Resque.enqueue(DeactivateStaleSpecialOffers)
+    flash[:notice] = 'Stale offer deactivation queued. Active offers whose targets ended ' \
+                     'more than a month ago will be marked Inactive shortly.'
+    redirect_to admin_special_offers_path
+  end
+
   private
 
   def posted_offer_param_key

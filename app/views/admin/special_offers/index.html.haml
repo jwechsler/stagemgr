@@ -18,6 +18,9 @@
 .grid-x.grid-padding-x
   .small-12.cell
     .button-group.small.float-right
+      = ui_button "Deactivate Stale Offers", deactivate_stale_admin_special_offers_path,
+        variant: :alert, method: :post,
+        data: { confirm: "Deactivate every Active offer whose performance, production, expiration date, or performance date range ended more than a month ago? This cannot be undone." }
       - SpecialOffer::OFFER_TYPES.each do |type, meta|
         = ui_button "Add #{meta[:label]} Offer", new_admin_special_offer_path(type: type)
 
