@@ -1303,6 +1303,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Overview">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#active-and-expiredinactive-tabs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Active and Expired/Inactive Tabs
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -3758,7 +3775,7 @@
 <p><strong>Navigation:</strong> Admin &gt; Offers &gt; Special Offers</p>
 <hr />
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p><img alt="Special offers list showing codes, descriptions, usage counts, status, and expiration dates" src="../../assets/images/screenshots/offers-special-offers-list.png" /></p>
+<p><img alt="Special offers list showing the Active tab with codes, descriptions, status, and expiration dates" src="../../assets/images/screenshots/offers-special-offers-list.png" /></p>
 <p>Special offers are promo codes that customers enter at checkout to receive a discount or ticket class change. Stagemgr supports four types of special offers, each with distinct behavior:</p>
 <table>
 <thead>
@@ -3791,6 +3808,32 @@
 </tr>
 </tbody>
 </table>
+<h3 id="active-and-expiredinactive-tabs">Active and Expired/Inactive Tabs<a class="headerlink" href="#active-and-expiredinactive-tabs" title="Permanent link">&para;</a></h3>
+<p>The offers list is divided into two tabs:</p>
+<table>
+<thead>
+<tr>
+<th>Tab</th>
+<th>Shows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Active</strong></td>
+<td>Offers with <code>Active</code> status -- the codes customers can currently redeem. This tab opens by default.</td>
+</tr>
+<tr>
+<td><strong>Expired/Inactive</strong></td>
+<td>Offers with <code>Inactive</code> or <code>Expired</code> status, kept for reference or later reactivation.</td>
+</tr>
+</tbody>
+</table>
+<p>Each tab has its own search box, column sorting, and paging, so you can filter one list without affecting the other. The searches and sort order you set are remembered separately per tab when you return to the page.</p>
+<p><img alt="Expired/Inactive tab listing offers with Inactive and Expired statuses" src="../../assets/images/screenshots/offers-special-offers-inactive-tab.png" /></p>
+<div class="admonition tip">
+<p class="admonition-title">Where did my offer go?</p>
+<p>Changing an offer's status moves it between tabs. If a code you expect to see is missing from the Active tab, check the Expired/Inactive tab -- it may have been deactivated or passed its Auto Expire date.</p>
+</div>
 <h2 id="creating-a-special-offer">Creating a Special Offer<a class="headerlink" href="#creating-a-special-offer" title="Permanent link">&para;</a></h2>
 <p><img alt="Special offer form with code, type, status, criteria, action, filters, and use restrictions" src="../../assets/images/screenshots/offers-special-offer-form.png" /></p>
 <h3 id="required-fields">Required Fields<a class="headerlink" href="#required-fields" title="Permanent link">&para;</a></h3>
@@ -4014,10 +4057,15 @@
 <hr />
 <h2 id="managing-existing-offers">Managing Existing Offers<a class="headerlink" href="#managing-existing-offers" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Deactivate</strong> an offer by setting its status to <code>Inactive</code>.</li>
+<li><strong>Deactivate</strong> an offer by setting its status to <code>Inactive</code>. It moves to the <strong>Expired/Inactive</strong> tab and can no longer be redeemed.</li>
+<li><strong>Reactivate</strong> an offer from the Expired/Inactive tab by setting its status back to <code>Active</code>.</li>
 <li><strong>Track usage</strong> by reviewing the Number of Uses counter on the offer detail page.</li>
 <li>Offers that pass their Auto Expire datetime are automatically marked <code>Expired</code>.</li>
 </ul>
+<div class="admonition note">
+<p class="admonition-title">Automatic weekly cleanup</p>
+<p>Once a week, Stagemgr automatically marks an <code>Active</code> offer <code>Inactive</code> when everything it targets is well in the past -- its performance, production, expiration date, or performance date range ended more than a month ago. These offers appear on the Expired/Inactive tab afterward. Reactivate an offer manually if it was cleaned up but you still need it.</p>
+</div>
 
 
 
