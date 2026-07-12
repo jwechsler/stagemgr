@@ -312,8 +312,6 @@ Rails.application.routes.draw do
       post :donation_levels, on: :collection
     end
 
-    resources :amount_off_special_offers, only: %i[edit index]
-
     resources :productions, only: [:index] do
       collection do
         get :search

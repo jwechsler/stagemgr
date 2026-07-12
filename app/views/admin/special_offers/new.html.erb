@@ -1,6 +1,9 @@
-<%= content_for :title do %>New Special Offer<% end %>
+<%= content_for :title do %>New <%= @special_offer.type_label %> Special Offer<% end %>
 <% content_for :breadcrumbs do %>
-  <%= render "shared/components/breadcrumb", items: [{ label: "New Special Offer" }] %>
+  <%= render "shared/components/breadcrumb", items: [
+        { label: 'Special Offers', path: [:admin, :special_offers] },
+        { label: "New #{@special_offer.type_label} Special Offer" }
+      ] %>
 <% end %>
 
 <%= simple_form_for [:admin, @special_offer], url: admin_special_offers_path do |f| %>

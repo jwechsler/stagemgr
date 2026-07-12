@@ -17,7 +17,9 @@
 
 .grid-x.grid-padding-x
   .small-12.cell
-    = ui_button 'Add special offer', new_admin_special_offer_path, size: :small, class: 'right'
+    .button-group.small.float-right
+      - SpecialOffer::OFFER_TYPES.each do |type, meta|
+        = ui_button "Add #{meta[:label]} Offer", new_admin_special_offer_path(type: type)
 
 = content_for :js do
   :javascript

@@ -21,11 +21,24 @@ Feature: Administer Special Offers
     Given I am a box office user
       And I am logged in
       And I go to the admin special offers page
-      And I follow "Add special offer"
-      And I enter a special offer with code "TEST" for 50% off
-      And I press "Create Special offer"
+      And I follow "Add % Off Offer"
+     Then I should see "% Off"
+      And I should not see "Buy quantity"
+    When I enter a special offer with code "TEST" for 50% off
+      And I press "Create Percent off special offer"
      Then a special offer with code "TEST" for 50% off is found
       And I should see "Created new special offer 'TEST'"
+
+  Scenario: Box Office Users can create a Buy X Get Y offer
+    Given I am a box office user
+      And I am logged in
+      And I go to the admin special offers page
+      And I follow "Add Buy X Get Y Offer"
+     Then I should see "Buy X Get Y"
+    When I enter a buy 2 get 1 special offer with code "B2G1"
+      And I press "Create Buy x get y special offer"
+     Then a special offer called "B2G1" is found
+      And I should see "Created new special offer 'B2G1'"
 
   Scenario: Box Office Users can set day of the week filters
     Given I am a box office user
