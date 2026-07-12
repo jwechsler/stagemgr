@@ -537,6 +537,33 @@ RSpec.describe TicketOrder do
         expect(order.address.id).to eq(buyer.id)
         expect(Address.exists?(owner.id)).to be true
       end
+
+      # Regression: LinkHistoricPerformanceHoldsToAddressOfRecord crashed with
+      # "Cannot delete an address associated with orders" when an old order could
+      # no longer be re-saved (its performance had sold down since purchase). The
+      # unchecked `save` left the order bound to its address, but the destroy guard
+      # excludes the current order, so it destroyed the still-referenced address and
+      # Address#ensure_no_finalized_orders raised, aborting the whole job.
+      it "does not destroy the address when the order cannot be re-saved onto the address of record" do
+        dup_attrs = { full_name: "Pat Historic", first_name: "Pat", last_name: "Historic",
+                      email: "pat.historic@example.com" }
+        # Earlier-id duplicate is what find_original selects as the address of record.
+        FactoryBot.create(:address, **dup_attrs)
+        buyer = FactoryBot.create(:address, **dup_attrs)
+
+        production = FactoryBot.create(:production, capacity: 4)
+        performance = FactoryBot.create(:performance, production: production)
+        order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash,
+                                  address: buyer, performance: performance)
+
+        # Historic condition: the performance has since sold down, so this order can
+        # no longer clear ticket_stock_available and `save` becomes a silent no-op.
+        production.update!(capacity: 1)
+
+        expect { order.link_to_address_of_record }.not_to raise_error
+        expect(Address.exists?(buyer.id)).to be true
+        expect(order.reload.address_id).to eq(buyer.id)
+      end
     end
   end
 

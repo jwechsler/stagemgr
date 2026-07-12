@@ -586,7 +586,15 @@ class Order < ApplicationRecord
         a = address
         self.address = merge
         address.save
-        save
+        # Only purge the old address once this order has actually been re-pointed
+        # off it. Historic orders can fail re-validation on save (e.g. the
+        # performance has since sold out, tripping ticket_stock_available), which
+        # leaves `save` a no-op and the order still bound to `a`. The guard below
+        # excludes the current order (id <> :id), so it would wrongly conclude `a`
+        # is unreferenced and destroy it -- only for Address#ensure_no_finalized_orders
+        # to find this order still attached and raise, aborting the whole run.
+        return unless save
+
         a.destroy unless a.nil? || (Order.where("id <> :id AND address_id = :address_id", id: id,
                                                                                           address_id: a.id).count > 0)
       
