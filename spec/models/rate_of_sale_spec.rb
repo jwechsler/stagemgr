@@ -10,7 +10,7 @@ RSpec.describe RateOfSale, type: :model do
   # ---------------------------------------------------------------------------
   def build_ros(overrides = {})
     RateOfSale.new({
-      day_of_sale: Date.today,
+      day_of_sale: Date.current,
       production: production,
       total_single_tickets: 5,
       total_complimentary_tickets: 2,
@@ -155,9 +155,12 @@ RSpec.describe RateOfSale, type: :model do
         gross_sales: 20.00, processing_fees: 0.00, order_count: 1
       )
 
-      # A record outside the window (today/future — should be excluded)
+      # A record outside the window (today/future — should be excluded).
+      # Date.current keeps this in the app time zone like Date.yesterday
+      # above; Date.today (system zone) collides with it on late-evening
+      # runs from a zone west of Central.
       today_record = RateOfSale.create!(
-        day_of_sale: Date.today,
+        day_of_sale: Date.current,
         production: production,
         total_single_tickets: 3, total_complimentary_tickets: 0,
         gross_sales: 30.00, processing_fees: 0.00, order_count: 1

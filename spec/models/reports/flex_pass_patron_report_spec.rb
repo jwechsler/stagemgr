@@ -1,8 +1,11 @@
 require 'rails_helper'
 
 RSpec.describe FlexPassPatronReport do
-  let(:starting_date) { Date.today - 7 }
-  let(:ending_date) { Date.today }
+  # Date.current (app time zone) rather than Date.today (system time zone):
+  # on a machine west of Central, late-evening runs are already "tomorrow"
+  # in the app zone, and orders created now fall outside a Date.today range.
+  let(:starting_date) { Date.current - 7 }
+  let(:ending_date) { Date.current }
 
   let(:wit_offer)    { FactoryBot.create(:flex_pass_offer, name: 'Wit Pass') }
   let(:roving_offer) { FactoryBot.create(:flex_pass_offer, name: 'Roving Pass') }
@@ -34,7 +37,7 @@ RSpec.describe FlexPassPatronReport do
     line_item = wit_order.flex_pass.flex_pass_line_item
     FlexPass.create!(flex_pass_line_item: line_item, flex_pass_offer: wit_offer,
                      address: wit_order.address, code: 'SECONDCODE',
-                     expiration_date: Date.today + 12.months, active: true)
+                     expiration_date: Date.current + 12.months, active: true)
 
     rows = described_class.new(starting_date, ending_date, [wit_offer.id]).create.last
     expect(rows.length).to eq(2)
