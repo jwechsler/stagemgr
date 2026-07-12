@@ -1362,6 +1362,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#how-buy-x-get-y-offers-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How "Buy X Get Y" Offers Work
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#usage-limits" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1449,6 +1460,17 @@
     <span class="md-ellipsis">
       
         Example 3: Ticket Class Swap for Industry Night
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-4-buy-2-get-1-free-on-general-admission" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 4: Buy 2 Get 1 Free on General Admission
       
     </span>
   </a>
@@ -3737,7 +3759,7 @@
 <hr />
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
 <p><img alt="Special offers list showing codes, descriptions, usage counts, status, and expiration dates" src="../../assets/images/screenshots/offers-special-offers-list.png" /></p>
-<p>Special offers are promo codes that customers enter at checkout to receive a discount or ticket class change. Stagemgr supports three types of special offers, each with distinct behavior:</p>
+<p>Special offers are promo codes that customers enter at checkout to receive a discount or ticket class change. Stagemgr supports four types of special offers, each with distinct behavior:</p>
 <table>
 <thead>
 <tr>
@@ -3761,6 +3783,11 @@
 <td><strong>TicketClassSpecialOffer</strong></td>
 <td>TktClass</td>
 <td>Replaces the ticket class with a different class at checkout</td>
+</tr>
+<tr>
+<td><strong>BuyXGetYSpecialOffer</strong></td>
+<td>Buy X Get Y</td>
+<td>Frees the cheapest tickets for every full group bought (e.g. buy 2, get 1 free)</td>
 </tr>
 </tbody>
 </table>
@@ -3814,6 +3841,16 @@
 <td>TktClass</td>
 <td>The target ticket class code that replaces the customer's original class.</td>
 </tr>
+<tr>
+<td><strong>Buy quantity (X)</strong></td>
+<td>Buy X Get Y</td>
+<td>Number of tickets that must be purchased to earn free tickets.</td>
+</tr>
+<tr>
+<td><strong>Get free quantity (Y)</strong></td>
+<td>Buy X Get Y</td>
+<td>Number of tickets made free for each full group of X + Y qualifying tickets.</td>
+</tr>
 </tbody>
 </table>
 <h3 id="scoping-the-offer">Scoping the Offer<a class="headerlink" href="#scoping-the-offer" title="Permanent link">&para;</a></h3>
@@ -3856,6 +3893,18 @@
 </tr>
 </tbody>
 </table>
+<h3 id="how-buy-x-get-y-offers-work">How "Buy X Get Y" Offers Work<a class="headerlink" href="#how-buy-x-get-y-offers-work" title="Permanent link">&para;</a></h3>
+<p>Buy X Get Y offers reward customers with free tickets once they buy enough. For every full group of <strong>X + Y</strong> qualifying tickets in the order, the <strong>Y cheapest</strong> of those tickets become free.</p>
+<ul>
+<li><strong>Groups repeat.</strong> With Buy 2 Get 1 (a group of 3), an order of 6 qualifying tickets frees 2; an order of 9 frees 3.</li>
+<li><strong>The cheapest tickets are freed.</strong> Within each order, Stagemgr frees the lowest-priced qualifying tickets, so the customer keeps the highest value.</li>
+<li><strong>The ticket class restriction covers both sides.</strong> The <strong>Ticket Class Code</strong> filter determines which tickets both count toward the buy quantity <em>and</em> are eligible to be freed. If it is blank, every ticket in the order participates. There is no separate class for the qualifying versus the free tickets.</li>
+<li><strong>Already-free tickets are ignored.</strong> Tickets that cost $0 (such as comps) never count toward the buy quantity and are never "freed" again — the discount only ever applies to tickets that cost more than $0.</li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">Discount and Set-ticket-class fields don't apply</p>
+<p>Leave <strong>Discount</strong> and <strong>Set ticket class code</strong> blank for a Buy X Get Y offer. The free tickets are calculated from the buy/get quantities, not from a dollar amount.</p>
+</div>
 <h3 id="usage-limits">Usage Limits<a class="headerlink" href="#usage-limits" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3951,6 +4000,16 @@
 <li><strong>Scope:</strong> Performance &gt; specific performance</li>
 <li><strong>Ticket Class Code:</strong> <code>REG</code></li>
 <li><strong>Result:</strong> Customers with regular tickets receive complimentary tickets for that one performance.</li>
+</ul>
+<h3 id="example-4-buy-2-get-1-free-on-general-admission">Example 4: Buy 2 Get 1 Free on General Admission<a class="headerlink" href="#example-4-buy-2-get-1-free-on-general-admission" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Type:</strong> Buy X Get Y</li>
+<li><strong>Code:</strong> <code>GROUP3</code></li>
+<li><strong>Buy quantity (X):</strong> <code>2</code></li>
+<li><strong>Get free quantity (Y):</strong> <code>1</code></li>
+<li><strong>Scope:</strong> Production &gt; "Our Town"</li>
+<li><strong>Ticket Class Code:</strong> <code>GEN</code></li>
+<li><strong>Result:</strong> For every three GEN tickets in the order, the cheapest one is free. An order of six GEN tickets frees the two cheapest. Non-GEN tickets and any $0 comps are ignored.</li>
 </ul>
 <hr />
 <h2 id="managing-existing-offers">Managing Existing Offers<a class="headerlink" href="#managing-existing-offers" title="Permanent link">&para;</a></h2>
