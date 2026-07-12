@@ -4,6 +4,7 @@
 .grid-x.grid-padding-x
   .cell.small-12.medium-6
     = render partial:'/admin/ticket_orders/reserved_ticket_line_items', locals:{order_form: order_form, show_web_visible_only: false}
+    = render partial:'/seat_assignments/non_seat_ticket_picker', locals:{order_form: order_form}
   .cell.small-12.medium-6
     %div#seatmap-area
       - unless order_form.object.performance_id.nil?

@@ -1,18 +1,15 @@
 = content_for :title do
   = @membership_offer.name
 = content_for :breadcrumbs do
-  %ul.breadcrumbs
-    %li= link_to 'Membership Offers', admin_membership_offers_path
-    %li.current
-      %a{:href=>'#'}=@membership_offer.name
+  = render "shared/components/breadcrumb", items: [{ label: 'Membership Offers', path: admin_membership_offers_path }, { label: @membership_offer.name }]
 
 .grid-x.grid-padding-x
   .small-12.medium-6.cell
+    %h2= @membership_offer.name
     = render '/membership_offers/info', :membership_offer=>@membership_offer
   .small-12.medium-6.cell
-    %span.label.float-right= @membership_offer.on_sale? ? 'On Sale' : 'Private'
-    %span.label.float-right.alert= @membership_offer.status 
-        
+    = ui_label((@membership_offer.on_sale? ? 'On Sale' : 'Private'), variant: nil, class: 'float-right')
+    = ui_label(@membership_offer.status, variant: :alert, class: 'float-right')
 
     %ul.tabs#offertab(data-tabs)
       %li.tabs-title.is-active
@@ -31,6 +28,13 @@
             %p
               %strong Tickets/performance:
               = @membership_offer.tickets_per_performance
+            %p
+              %strong Type:
+              = @membership_offer.membership_type
+            - unless MyEmma.disabled?
+              %p
+                %strong MyEmma Group:
+                = @membership_offer.myemma_group.presence || 'None'
           .small-6.cell
             %p
               %strong Use Ticket Class
@@ -53,6 +57,8 @@
         .grid-x.grid-padding-x
           .small-12.cell
             = display_markdown @membership_offer.email_html
+    = render 'admin/tags/pills', tags: @membership_offer.membership_offer_tags
 
   .small-12.cell
     = link_to "Edit", edit_admin_membership_offer_path(@membership_offer), :class=>'button'
+    = @membership_offer.decorate.sales_action_button(css_class: 'button')

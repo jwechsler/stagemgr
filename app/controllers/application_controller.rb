@@ -11,7 +11,9 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  rescue_from StandardError, with: :handle_exception unless Rails.env.development?
+  # RAILS_RAISE_ERRORS disables the global rescue so the real exception (with
+  # backtrace) surfaces in test runs instead of collapsing into a redirect loop.
+  rescue_from StandardError, with: :handle_exception unless Rails.env.development? || ENV['RAILS_RAISE_ERRORS'].present?
 
   attr_accessor :markdown
 

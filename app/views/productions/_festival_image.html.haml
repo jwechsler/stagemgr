@@ -1,0 +1,12 @@
+-# Later This Season stand-in: the festival is represented by its artwork
+-# alone rather than a full callout. The id keeps email anchor links working.
+- festival = entry.festival
+.festival-image{:id=>"festival-#{festival.id}"}
+  - if festival.box_office_image.attached?
+    - image = image_tag(festival.decorate.box_office_image_url(Production::LARGE), :class=>"festival-image__image", :alt=>festival.name)
+    = festival.landing_page_enabled? && festival.url_name.present? ? link_to(image, festival_path(festival.url_name)) : image
+  - else
+    -# Fallback until artwork is uploaded
+    %h3.festival-band__name= festival.name
+  - if festival.formatted_date_range
+    %p.festival-band__dates= festival.formatted_date_range

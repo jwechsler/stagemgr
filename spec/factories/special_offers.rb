@@ -12,4 +12,10 @@ FactoryBot.define do
     amount            { 1 }
     sequence(:code) { |n| "SpecialOffer#{n}" }
   end
+
+  factory :buy_x_get_y_special_offer do
+    special_offer
+    buy_quantity      { 2 }
+    get_quantity      { 1 }
+  end
 end

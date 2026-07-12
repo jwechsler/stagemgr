@@ -1,0 +1,6 @@
+= content_for :title do
+  New Membership
+= content_for :breadcrumbs do
+  = render "shared/components/breadcrumb", items: [{ label: 'Memberships', path: admin_memberships_path }, { label: "New" }]
+
+= render 'form', membership: @membership

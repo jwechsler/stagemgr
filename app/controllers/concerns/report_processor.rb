@@ -8,31 +8,30 @@ module ReportProcessor
   class JobQueueError < ReportError; end
   class ParameterError < ReportError; end
 
+  included do
+    # Report actions parse dates and parameters before reaching process_report,
+    # so ReportErrors can be raised outside its rescue block. Catch them at the
+    # controller level so the user always gets a flash message, never a 500.
+    rescue_from ReportError, with: :handle_report_error
+  end
+
   private
 
   # Main method to process any report with comprehensive error handling
   def process_report(options = {}, &)
     log_report_access(options)
 
-    begin
-      validate_report_options!(options)
+    validate_report_options!(options)
 
-      if should_download?(options)
-        queue_background_report(options)
-      else
-        generate_inline_report(options, &)
-      end
-    rescue DateParsingError => e
-      handle_date_error(e.message)
-    rescue DatabaseTimeoutError
-      handle_database_timeout_error
-    rescue JobQueueError => e
-      handle_job_queue_error(e.message)
-    rescue ParameterError => e
-      handle_parameter_error(e.message)
-    rescue StandardError => e
-      handle_generic_error(e)
+    if should_download?(options)
+      queue_background_report(options)
+    else
+      generate_inline_report(options, &)
     end
+  rescue ReportError
+    raise # handled by the rescue_from registered in `included`
+  rescue StandardError => e
+    handle_generic_error(e)
   end
 
   # Parse and validate date parameters with proper error handling
@@ -172,24 +171,18 @@ module ReportProcessor
   end
 
   # Error handlers
-  def handle_date_error(message)
-    flash[:error] = message
-    redirect_to admin_reports_path
-  end
-
-  def handle_database_timeout_error
+  def handle_report_error(error)
     flash[:error] =
-      'This report is taking too long to generate. Please try a smaller date range or use the download option for large reports.'
-    redirect_to admin_reports_path
-  end
-
-  def handle_job_queue_error(message)
-    flash[:error] = "Report generation is temporarily unavailable: #{message}"
-    redirect_to admin_reports_path
-  end
-
-  def handle_parameter_error(message)
-    flash[:error] = "Invalid parameters: #{message}"
+      case error
+      when DatabaseTimeoutError
+        'This report is taking too long to generate. Please try a smaller date range or use the download option for large reports.'
+      when JobQueueError
+        "Report generation is temporarily unavailable: #{error.message}"
+      when ParameterError
+        "Invalid parameters: #{error.message}"
+      else # DateParsingError and any future ReportError subclass
+        error.message
+      end
     redirect_to admin_reports_path
   end
 

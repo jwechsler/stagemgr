@@ -7,9 +7,10 @@
   - when ((@production.performances.count{|p| p.visible?} > 1 || @production.performances.count{|p| !p.order_url_override.blank?} > 0))  && @production.effective_closing_at&.>=(Date.today)
     %table.performance_calendar
       %caption
-        - if !@production.flex_pass_offer.blank?
+        - festival_offer = @production.festival&.flex_pass_offers&.detect(&:on_sale_to_public?)
+        - if festival_offer
           %div.special_offer_upsell
-            = link_to @production.flex_pass_offer.short_description, new_flex_pass_offer_order_path(@production.flex_pass_offer) unless @production.flex_pass_offer.short_description.blank?
+            = link_to festival_offer.short_description, new_flex_pass_offer_order_path(festival_offer) unless festival_offer.short_description.blank?
             or, purchase tickets for an individual show below
         - else
           %span.special_offer_upsell

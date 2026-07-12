@@ -1,6 +1,14 @@
 class ProductionsController < ApplicationController
   layout Rails.configuration.x.server_config['ext_site_wrapper']
 
+  # A festival's single branded callout on the box office page; +productions+
+  # are ALL of its upcoming member shows, regardless of section.
+  FestivalBand = Struct.new(:festival, :productions)
+
+  # Compact stand-in used in Later This Season, where a festival is
+  # represented by its artwork rather than a full callout.
+  FestivalImage = Struct.new(:festival)
+
   prepend_before_action :find_theater, except: %i[index upcoming now_playing box_office by_date show]
   before_action :find_production, only: %i[edit update destroy]
 
@@ -37,21 +45,23 @@ class ProductionsController < ApplicationController
   end
 
   def box_office
-    @now_playing = now_playing_by_venue(Production::PLAY) + now_playing_by_venue(Production::OFF_TIME) + now_playing_by_venue(Production::SPECIAL_EVENT)
+    now_playing = now_playing_by_venue(Production::PLAY) + now_playing_by_venue(Production::OFF_TIME) + now_playing_by_venue(Production::SPECIAL_EVENT)
     end_of_week = Date.today.end_of_week
     three_months_from_now = (end_of_week + 2.months).end_of_month
     upcoming_shows = Production.opening_after(end_of_week).visible.order(
       :first_preview_at
     )
-    @coming_soon = []
-    @long_term = []
+    coming_soon = []
+    long_term = []
     upcoming_shows.each do |prod|
       if prod.first_playing_date <= three_months_from_now
-        @coming_soon << prod
+        coming_soon << prod
       else
-        @long_term << prod
+        long_term << prod
       end
     end
+    @now_playing, @coming_soon, @long_term =
+      collapse_festival_bands(now_playing, coming_soon, long_term)
   end
 
   # GET /productions/1
@@ -137,5 +147,38 @@ class ProductionsController < ApplicationController
       now_playing_productions += prods
     end
     now_playing_productions
+  end
+
+  # Page-level festival collapse for the box office sections (the last one is
+  # Later This Season). Each active festival appears exactly once:
+  # - a callout (FestivalBand) listing ALL of its upcoming member shows, in
+  #   the earliest section that holds a member — so a festival in Now Playing
+  #   never reappears in Coming Soon or Later This Season
+  # - Later This Season never hosts a callout; a festival whose members only
+  #   appear that far out is represented by its artwork alone (FestivalImage)
+  # - a festival with a single upcoming show gets no callout — the show
+  #   renders as a plain production card, as do inactive-festival members
+  def collapse_festival_bands(*sections)
+    members_by_festival = sections.flatten
+                                  .select { |production| production.festival&.active? }
+                                  .group_by(&:festival)
+                                  .select { |_festival, members| members.many? }
+    later_index = sections.size - 1
+    seen = Set.new
+    sections.each_with_index.map do |productions, section_index|
+      productions.each_with_object([]) do |production, entries|
+        members = members_by_festival[production.festival]
+        if members.nil?
+          entries << production
+        elsif seen.exclude?(production.festival.id)
+          seen << production.festival.id
+          entries << if section_index == later_index
+                       FestivalImage.new(production.festival)
+                     else
+                       FestivalBand.new(production.festival, members)
+                     end
+        end
+      end
+    end
   end
 end

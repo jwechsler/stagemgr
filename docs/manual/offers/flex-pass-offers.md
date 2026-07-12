@@ -29,11 +29,12 @@ A flex pass is a prepaid ticket package. The patron purchases a set number of ti
 | Field | Description |
 |-------|-------------|
 | **Use Ticket Class Code** | The ticket class assigned when a flex pass ticket is redeemed. Selected from the list of Default Ticket Classes. |
-| **Maximum Uses Per Production** | Limits how many pass tickets can be redeemed for a single production. Leave blank for no limit. |
+| **Maximum Uses Per Production** | Limits how many pass tickets can be redeemed for a single production, across all of its performances. Leave blank (or 0) for no limit. |
+| **Maximum Uses Per Performance** | Limits how many pass tickets can be redeemed for any single performance. Leave blank (or 0) for no limit. |
 | **Code Prefix** | Optional prefix added to generated flex pass codes for easy identification (e.g., `FP2026-`). |
 
 !!! tip "Controlling redemption spread"
-    Set **Maximum Uses Per Production** to encourage patrons to attend a variety of shows rather than using all tickets on a single production.
+    The two limits are independent and can be combined. Set **Maximum Uses Per Production** to encourage patrons to attend a variety of shows rather than using all tickets on a single production -- for example, a limit of 2 lets a pair attend any one show together. Set **Maximum Uses Per Performance** for festival-style passes where each ticket should cover a different performance -- for example, a 6-ticket festival pass limited to 1 ticket per performance.
 
 ### Visibility and Status
 
@@ -64,8 +65,10 @@ A flex pass is a prepaid ticket package. The patron purchases a set number of ti
 
 | Field | Description |
 |-------|-------------|
-| **Treat as Festival Pass** | When enabled, the pass behaves as a festival pass -- all tickets are redeemed at once for a set of performances rather than individually over time. |
 | **Redeem Immediately** | When enabled, the system prompts the patron to select performances and redeem tickets immediately at the time of purchase. |
+
+!!! note "Festival passes"
+    To create a festival pass, use the **Restrict to festival** dropdown in the Use Restrictions fieldset (see [Festival Passes & Membership Caps](../festivals/passes-and-membership-caps.md)). The former **Treat as Festival Pass** checkbox has been removed.
 
 ### Descriptions
 
@@ -73,6 +76,24 @@ A flex pass is a prepaid ticket package. The patron purchases a set number of ti
 |-------|-------------|
 | **Short Description** | Brief summary displayed in offer listings and checkout. |
 | **Long Description** | Full description displayed on the flex pass detail page. |
+
+### Tags
+
+Tags are free-form labels you can attach to a flex pass offer to group it for analysis and reporting -- for example by season, package family, partner, or any attribute you want to slice by later. Tags are arbitrary text you define and can change at any time.
+
+A flex pass offer can have any number of tags. They appear as rounded pill labels in the **Tags** field on the offer form, next to the offer name in the Flex Pass Offers list, and on the offer detail page.
+
+#### Adding a tag
+
+1. Click into the **Tags** field on the flex pass offer form.
+2. Begin typing. As you type, a dropdown suggests existing tag names already used on other flex pass offers -- click one to apply it, or keep typing to create a brand-new tag.
+3. Press **Enter** (or type a comma) to commit the tag as a pill.
+4. Repeat to add as many tags as you need, then save the form.
+
+Click the **x** on any pill to remove that tag. Tags are matched case-insensitively, and removing a tag from one offer leaves it available on any others that use it.
+
+!!! tip "Search by tag"
+    The search box on the Flex Pass Offers list matches tag names as well as offer names, so you can quickly filter the list down to every offer sharing a tag.
 
 ---
 
@@ -84,10 +105,10 @@ A flex pass is a prepaid ticket package. The patron purchases a set number of ti
 4. A ticket is issued using the **Use Ticket Class Code** defined on the offer.
 5. The remaining ticket count on the pass decreases by one.
 
-If **Maximum Uses Per Production** is set, the system enforces that limit across all redemptions for that production.
+If **Maximum Uses Per Production** or **Maximum Uses Per Performance** is set, the system enforces those limits across all of the pass's redemptions -- an order that would exceed a limit is refused with a message stating how many tickets the pass allows per production or per performance. Refunded and cancelled orders do not count toward either limit.
 
 !!! tip "Festival pass redemption"
-    When **Treat as Festival Pass** is enabled, the patron selects all performances at once. This is ideal for multi-show festivals where attendees pick their full schedule upfront.
+    For multi-show festivals, combine **Restrict to festival** with **Maximum Uses Per Performance** (typically 1) so each pass ticket covers a different festival performance.
 
 ---
 
@@ -100,6 +121,28 @@ Flex passes expire based on the **Months Till Expiration** value, counted from t
 
 !!! warning "Expired passes cannot be extended"
     Once a flex pass has expired, it cannot be reactivated through the offer settings. Contact a system administrator if an exception is needed.
+
+---
+
+## The Flex Pass Offers List
+
+![Flex pass offers list showing tag pills, red Inactive labels, and blue theater-restriction labels in the Restrictions column](../assets/images/screenshots/offers-flex-pass-list.png)
+
+Each row on the Flex Pass Offers list has an actions column with **Edit**, **Destroy**, and **Create Order** buttons. The **Create Order** button is shown greyed out and disabled for offers that are not active, since inactive offers cannot be sold.
+
+The **Restrictions** column summarizes an offer's status and scope using small labels:
+
+| Label | Meaning |
+|-------|---------|
+| Red **Inactive** | The offer's **Active** checkbox is unchecked -- it cannot be purchased or redeemed. |
+| Blue **Only [Theater]** | Redemption is restricted to the named theater (the **Theater** field with **Exclude Theater** unchecked). |
+| Blue **All but [Theater]** | Redemption is allowed everywhere except the named theater (the **Theater** field with **Exclude Theater** checked). |
+| Blue **Max N/production** | At most *N* pass tickets can be redeemed per production (**Maximum Uses Per Production**). |
+| Blue **Max N/performance** | At most *N* pass tickets can be redeemed per performance (**Maximum Uses Per Performance**). |
+
+An offer can show several labels at once -- for example, a festival pass restricted to one theater with both redemption caps set:
+
+![Flex pass offers list filtered to festival passes, showing theater-restriction and Max-per-production/performance labels together](../assets/images/screenshots/offers-flex-pass-caps-labels.png)
 
 ---
 

@@ -18,6 +18,29 @@ class DatatableBase < AjaxDatatablesRails::ActiveRecord
 
   private
 
+  # Renders a record name followed by its tag pills, escaping the name.
+  def name_with_tag_pills(name, tags)
+    pills = @view.render(
+      partial: 'admin/tags/pills',
+      formats: [:html],
+      locals: { tags: tags.to_a }
+    )
+    @view.safe_join([name.to_s, pills])
+  end
+
+  # Widens the standard column search to also match a tag table's name.
+  # Falls back to the caller's block (usually `super`) when there is no term.
+  def filter_with_tag_search(records, tag_class, association)
+    term = datatable.search.value.to_s
+    return yield if term.blank?
+
+    base = build_conditions
+    tag_match = tag_class.arel_table[:name].matches("%#{term}%")
+    combined = base ? base.or(tag_match) : tag_match
+
+    records.left_outer_joins(association).where(combined).distinct
+  end
+
   def sanitize_search_values_for_latin1!
     return unless @params.respond_to?(:dig)
 

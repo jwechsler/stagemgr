@@ -1,0 +1,30 @@
+-# Shared single-production typeahead picker (see production_picker.js).
+-#
+-# Locals:
+-#   field_name    (required) — name of the hidden field submitted with the production id
+-#   scope         (required) — ProductionSearch scope key (:analysis, :reports, :imports)
+-#   selected      — preselected Production (or nil)
+-#   groups        — offer season/theater/tag drill-down groups (default true)
+-#   required      — block form submit until a production is chosen (default false)
+-#   placeholder   — input placeholder text
+-#   exclude_field — CSS selector of hidden field(s) whose production ids are
+-#                   filtered out of the suggestions (default none)
+- selected      = local_assigns[:selected]
+- groups        = local_assigns.fetch(:groups, true)
+- required      = local_assigns.fetch(:required, false)
+- placeholder   = local_assigns.fetch(:placeholder, 'Type to search productions...')
+- exclude_field = local_assigns[:exclude_field]
+.production-picker{data: { production_picker: true, field: field_name,
+                           search_url: search_admin_productions_path,
+                           resolve_url: resolve_group_admin_productions_path,
+                           scope: scope, groups: (groups ? '1' : '0'),
+                           required: (required ? '1' : '0'),
+                           exclude_field: exclude_field }}
+  %input.production-picker-input.input-group-field{type: 'text', placeholder: placeholder,
+                                                   autocomplete: 'off',
+                                                   style: selected ? 'display:none' : nil}
+  %input.production-picker-id{type: 'hidden', name: field_name, value: selected&.id}
+  .production-picker-display.callout.secondary{class: selected ? nil : 'hide'}
+    %span.production-picker-label= selected&.picker_label
+    %a.float-right.production-picker-remove{href: '#'} remove
+  %span.production-picker-error.form-error{style: 'display:none'} Please select a production

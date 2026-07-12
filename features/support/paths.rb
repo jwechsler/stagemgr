@@ -15,9 +15,10 @@ module NavigationHelpers
       new_user_session_path
     when /^the logout page$/
       logout_path
-    when %r{^the admin[/| ]theaters? page$}
+    when %r{^the admin[/| ](theaters?|productions?) page$}
       @using_admin_interface = true
-      admin_theaters_path
+      { 'theater' => admin_theaters_path, 'production' => admin_productions_path }
+        .fetch(::Regexp.last_match(1).chomp('s'))
     when /^the admin detail page for theater ["'](.*)['"]$/
       @using_admin_interface = true
       admin_theater_path(Theater.find_by_name(::Regexp.last_match(1)).id)
@@ -87,6 +88,15 @@ module NavigationHelpers
     when /^the new admin membership offer page$/
       @using_admin_interface = true
       new_admin_membership_offer_path
+    when /^the admin festivals page$/
+      @using_admin_interface = true
+      admin_festivals_path
+    when /^the new admin festival page$/
+      @using_admin_interface = true
+      new_admin_festival_path
+    when /^the admin detail page for festival "([^"]*)"$/
+      @using_admin_interface = true
+      admin_festival_path(Festival.find_by(name: ::Regexp.last_match(1)))
     when /^the new admin flex pass offer page$/
       @using_admin_interface = true
       new_admin_flex_pass_offer_path

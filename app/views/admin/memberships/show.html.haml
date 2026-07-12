@@ -1,0 +1,33 @@
+= content_for :title do
+  = @membership.member_code
+= content_for :breadcrumbs do
+  = render "shared/components/breadcrumb", items: [{ label: 'Memberships', path: admin_memberships_path }, { label: @membership.member_code }]
+
+.grid-x.grid-padding-x
+  .small-12.medium-6.cell
+    %p
+      %strong Member Code:
+      = @membership.member_code
+    %p
+      %strong Offer:
+      = link_to "#{@membership.membership_offer.name} (#{@membership.membership_offer.membership_type})", admin_membership_offer_path(@membership.membership_offer)
+    %p
+      %strong Address:
+      - if @membership.address
+        = link_to @membership.address.full_name, admin_address_path(@membership.address)
+    %p
+      %strong Status:
+      = @membership.status
+    %p
+      %strong Member Since:
+      = @membership.member_since
+    %p
+      %strong Preferred Seating:
+      = @membership.preferred_seating
+    - if @membership.membership_order
+      %p
+        %strong Order:
+        = link_to "View Order", admin_membership_order_path(@membership.membership_order)
+
+  .small-12.cell
+    = link_to 'Edit', edit_admin_membership_path(@membership), :class=>'button'

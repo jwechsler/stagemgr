@@ -2,16 +2,20 @@
 .grid-x.grid-padding-x
   .small-12.cell
     %h3
-      Membership Usage:  
+      Membership Usage:
       = @starting_date.to_s(:long)
       through
       = @ending_date.to_s(:long)
     %table#donation_totals.report
       %caption
         %i
-          Membership Usage by Month, generated at
+          Membership Usage by Month and Offer, generated at
           = Time.now.to_s(:hour_min)
           on
           = Time.now
       = render :partial=>"generic", :locals=>{:headers=>@headers, :report_body=>@report_data, :summary=>@totals}
+    - if @membership_offer_names.present?
+      %p.help_text
+        Limited to:
+        = @membership_offer_names
 

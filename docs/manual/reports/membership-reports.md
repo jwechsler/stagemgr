@@ -2,16 +2,16 @@
 
 !!! info "Roles: Box Office, Admin"
     **Membership Usage** is available under the **Membership Reports** permission group.
-    **Membership Orders Export** is available under the **Box Office Reports** permission group.
+    **Membership Orders** is available under the **Box Office Reports** permission group.
 
-**Navigation:** Admin Menu > Reports > Membership Usage / Membership Orders Export
+**Navigation:** Admin Menu > Reports > Membership Usage / Membership Orders
 
 ---
 
 ## Overview
 
 Stagemgr provides two membership-related reports. **Membership Usage** gives a month-by-month
-summary of membership counts and income. **Membership Orders Export** generates a detailed
+summary of membership counts and income. **Membership Orders** generates a detailed
 CSV of individual membership orders, with an optional TRG-compatible format.
 
 ---
@@ -20,15 +20,17 @@ CSV of individual membership orders, with an optional TRG-compatible format.
 
 ### Purpose
 
-The Membership Usage report tracks membership activity over time, showing how many memberships
-were sold and how much income they generated in each month. It is useful for trend analysis,
-budgeting, and reporting to management.
+The Membership Usage report tracks membership activity over time, showing -- for each month and
+each membership offer -- how many memberships were active, how much was collected, and how much
+was paid out. It is useful for trend analysis, budgeting, and reporting to management.
 
 ### Generating the Report
 
 1. Navigate to **Admin Menu > Reports**.
 2. In the **Membership Usage** section, enter a **start date** and **end date**.
-3. Click **Show** to display results on screen, or **Download** to export a CSV.
+3. Optionally, limit the report to one or more membership offers using the
+   [offer picker](reports-overview.md#selecting-offers) -- search by offer name or tag.
+4. Click **Show** to display results on screen, or **Download** to export a CSV.
 
 ### Input Fields
 
@@ -36,38 +38,79 @@ budgeting, and reporting to management.
 |---|---|---|
 | **Start Date** | Yes | The beginning of the reporting period |
 | **End Date** | Yes | The end of the reporting period |
+| **Limit to offers** | No | Restrict the report to the selected membership offers. Leave empty to include all offers. |
 
-!!! note "Auto-Expanded Date Ranges"
+!!! note "Full months only"
     The system automatically expands your date range to align with full calendar months. For
-    example, if you enter March 10 through May 15, the report will cover March 1 through
-    May 31. This ensures consistent month-over-month comparisons.
+    example, if you enter March 10 through May 15, the report covers March 1 through May 31.
+    This keeps month-over-month comparisons consistent.
+
+!!! warning "The current month is never included"
+    The current month is always excluded, because its payment data is still incomplete. A report
+    run at any point in July, for instance, ends at June 30. This applies to every way of running
+    the report, including the per-offer **Usage** button.
 
 ### Output Format
 
+The report is grouped by month. Within each month there is one **detail row per membership offer**,
+followed by an **All Offers** summary row that totals that month across every offer. A single grand
+**Total** row at the very bottom sums the money columns across every month in the range.
+
 | Column | Description |
 |---|---|
-| **Month** | Calendar month (e.g., January 2026) |
-| **New Memberships** | Number of new memberships sold during the month |
-| **Renewals** | Number of membership renewals processed |
-| **Total Active** | Total active memberships at end of month |
-| **Income** | Total membership income for the month |
+| **Month** | Calendar month (e.g., `2026-05`). The final row reads **Total**. |
+| **Offer** | The membership offer name on detail rows; **All Offers** on the monthly summary rows. |
+| **Memberships** | Number of memberships active in that month for that offer. |
+| **Members** | Number of people those memberships admit -- each membership counts its offer's tickets-per-performance, so a dual membership counts as two members. |
+| **Collected** | Total amount collected on membership orders. |
+| **Paid** | Total membership payments applied. |
+
+!!! note "The Total row does not total the count columns"
+    **Memberships** and **Members** are active-during-month counts. Adding them across months
+    would count every membership once per month it spans, so the grand **Total** row leaves
+    those two columns blank and totals only **Collected** and **Paid**.
+
+When the report is limited with the offer picker, detail rows cover only the selected
+offers, the monthly **All Offers** summary rows total just that selection, and the on-screen
+report ends with a **"Limited to:"** footnote naming the selected offers.
+
+!!! note "When the All Offers rows are omitted"
+    The per-month **All Offers** summary rows are dropped whenever they would be redundant
+    or unwieldy: when exactly one offer is selected (they would duplicate the detail rows)
+    and in CSV downloads (so the file loads cleanly into a spreadsheet). The grand **Total**
+    row always remains.
+
+### Running the Report for a Single Offer
+
+You can run this report for one membership offer over its entire history straight from the
+[Membership Offers list](../offers/membership-offers.md#the-membership-offers-list): click the
+**Usage** button on the offer's row.
+
+![Membership Usage report for a single offer, broken out by month with Month, Offer, Memberships, Members, Collected, and Paid columns](../assets/images/screenshots/reports-membership-usage-offer.png)
+
+The per-offer report behaves the same as the full report with two differences:
+
+- The date range is set automatically to span from the offer's first membership payment through the end of last month -- you don't choose dates.
+- Because only one offer is included, the redundant per-month **All Offers** summary rows are omitted. The grand **Total** row at the bottom still totals every month.
 
 ---
 
-## Membership Orders Export
+## Membership Orders
 
 ### Purpose
 
-The Membership Orders Export produces a detailed CSV of individual membership orders within a
+The Membership Orders produces a detailed CSV of individual membership orders within a
 date range, with an optional TRG-compatible format for TRG Arts integration.
 
 ### Generating the Report
 
 1. Navigate to **Admin Menu > Reports**.
-2. In the **Membership Orders Export** section, enter a **start date** and **end date**.
+2. In the **Membership Orders** section, enter a **start date** and **end date**.
 3. Optionally, check the **TRG Lists** checkbox to format the export for TRG Arts compatibility.
-4. Click **Generate**. The report runs as a background job.
-5. When processing completes, you will receive an email with a download link. The report also
+4. Optionally, limit the export to one or more membership offers using the
+   [offer picker](reports-overview.md#selecting-offers) -- search by offer name or tag.
+5. Click **Generate**. The report runs as a background job.
+6. When processing completes, you will receive an email with a download link. The report also
    appears in the **Generated Reports** section at the bottom of the Reports page.
 
 ### Input Fields
@@ -77,6 +120,7 @@ date range, with an optional TRG-compatible format for TRG Arts integration.
 | **Start Date** | Yes | Include membership orders on or after this date |
 | **End Date** | Yes | Include membership orders on or before this date |
 | **TRG Lists** | No | When checked, formats the export for TRG Arts data integration |
+| **Limit to offers** | No | Restrict the export to orders for the selected membership offers. Leave empty to include all offers. |
 
 !!! note "Background Job"
     This report runs as a background job and is delivered via email. Processing time depends on

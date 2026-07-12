@@ -131,6 +131,8 @@ Rails.application.routes.draw do
 
   get '/productions/box_office', to: 'productions#box_office', as: 'box_office_productions'
 
+  get '/festivals/:url_name', to: 'festivals#show', as: 'festival', constraints: { url_name: /[a-z0-9-]+/ }
+
   get '/productions/by_date',
       controller: 'productions',
       action: 'by_date'
@@ -160,10 +162,23 @@ Rails.application.routes.draw do
     end
 
     resources :flex_pass_offers do
+      collection do
+        get :autocomplete_tag
+        get :search
+        get :resolve_group
+      end
       resources :orders, controller: 'flex_pass_offer_orders'
     end
 
-    resources :membership_offers
+    resources :festivals
+
+    resources :membership_offers do
+      collection do
+        get :autocomplete_tag
+        get :search
+        get :resolve_group
+      end
+    end
 
     resources :membership_offers, only: false do
       resources :orders, controller: 'membership_offer_orders'
@@ -187,6 +202,7 @@ Rails.application.routes.draw do
         get :order_dump, action: :index
         post :membership_usage
         get :membership_usage, action: :index
+        get 'membership_usage/:membership_offer_id', action: :membership_usage, as: :membership_offer_usage
         post :donations_dump
         post :membership_export
         post :membership_usage
@@ -205,10 +221,7 @@ Rails.application.routes.draw do
 
     resources :analysis, only: [:index] do
       collection do
-        get :search_productions
-        get :search_production
         get :search_theaters
-        get :resolve_group
         post :rate_of_sales
         post :ticket_revenue
         post :audience
@@ -299,7 +312,12 @@ Rails.application.routes.draw do
       post :donation_levels, on: :collection
     end
 
-    resources :amount_off_special_offers, only: %i[edit index]
+    resources :productions, only: [:index] do
+      collection do
+        get :search
+        get :resolve_group
+      end
+    end
 
     resources :theaters do
       collection do

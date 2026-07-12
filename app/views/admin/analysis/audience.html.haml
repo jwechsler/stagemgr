@@ -1,9 +1,7 @@
 = content_for :title do
   Audience Analysis
 = content_for :breadcrumbs do
-  %ul.breadcrumbs
-    %li= link_to 'Analysis', admin_analysis_index_path
-    %li.current Audience
+  = render "shared/components/breadcrumb", items: [{ label: 'Analysis', path: admin_analysis_index_path }, { label: "Audience" }]
 
 .grid-x.grid-padding-x
   .small-12.cell
@@ -28,7 +26,7 @@
 - if @results[:cohort_size] == 0
   .grid-x.grid-padding-x
     .small-12.cell
-      .callout.warning
+      = render "shared/components/callout", variant: "warning" do
         No paid attendees were found for
         = @target_production.name
         \. Audience metrics need at least one paid TicketOrder whose address has either an email or a street address, and is not flagged "Not a ticket buyer".
@@ -133,4 +131,4 @@
 .grid-x.grid-padding-x
   .small-12.cell
     %hr
-    = link_to 'Back to Analysis', admin_analysis_index_path(target_production_id: @target_production.id, analysis_type: 'audience', comparison_theater_ids: @comparison_theaters.map(&:id)), class: 'button secondary'
+    = ui_button 'Back to Analysis', admin_analysis_index_path(target_production_id: @target_production.id, analysis_type: 'audience', comparison_theater_ids: @comparison_theaters.map(&:id)), variant: :secondary

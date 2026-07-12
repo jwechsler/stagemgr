@@ -1,5 +1,27 @@
 class SpecialOffer < ApplicationRecord
-  SPECIAL_OFFER_TYPES = ()
+  # Concrete STI subclasses creatable from the admin UI, keyed by the `type`
+  # column value. Class names as strings so loading this file never forces the
+  # subclasses to load first. label: shown on index "Add" buttons and the
+  # form's type line; blurb: explains the offer's action to the admin.
+  OFFER_TYPES = {
+    'AmountOffSpecialOffer' => {
+      label: '$ Off',
+      blurb: 'Discounts a fixed dollar amount from each eligible ticket.'
+    },
+    'PercentOffSpecialOffer' => {
+      label: '% Off',
+      blurb: 'Discounts a percentage of the price of each eligible ticket.'
+    },
+    'TicketClassSpecialOffer' => {
+      label: 'Ticket Class',
+      blurb: 'Switches eligible tickets to a different ticket class.'
+    },
+    'BuyXGetYSpecialOffer' => {
+      label: 'Buy X Get Y',
+      blurb: 'Gives the cheapest Y tickets free for every X purchased.'
+    }
+  }.freeze
+
   belongs_to :membership, optional: true, inverse_of: :special_offers
   has_many :special_offer_line_items, inverse_of: :special_offer
 
@@ -202,7 +224,7 @@ class SpecialOffer < ApplicationRecord
 
   def description(order)
     count = applicable_count(order)
-    "on #{count} ticket#{'s' unless count > 0}"
+    "on #{count} ticket#{'s' unless count == 1}"
   end
 
   def to_s
@@ -244,6 +266,14 @@ class SpecialOffer < ApplicationRecord
       self.code = (0...size).map { charset.to_a[rand(charset.size)] }.join
     end
     self.code = prefix + code
+  end
+
+  def type_label
+    OFFER_TYPES.dig(type, :label)
+  end
+
+  def type_blurb
+    OFFER_TYPES.dig(type, :blurb)
   end
 
   def exhausted?

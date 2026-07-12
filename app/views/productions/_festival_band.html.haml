@@ -1,0 +1,13 @@
+- festival = band.festival
+.festival-band{:id=>"festival-#{festival.id}"}
+  .grid-x.grid-padding-x.festival-band__header
+    - if festival.box_office_image.attached?
+      .cell.medium-4.hide-for-small-only
+        = image_tag festival.decorate.box_office_image_url(Production::LARGE), :class=>"festival-band__image", :alt=>festival.name
+    .cell.small-12.medium-8
+      %h3.festival-band__name= festival.name
+      - if festival.formatted_date_range
+        %p.festival-band__dates= festival.formatted_date_range
+      - unless festival.description.blank?
+        .festival-band__description= festival.description
+      = render :partial=>'list_in_row', :locals=>{:productions=>band.productions, :across=>4, :cell_classes=>'small-12 medium-6 large-3', :in_festival_panel=>true}

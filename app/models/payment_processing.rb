@@ -50,7 +50,9 @@ module PaymentProcessing
     end
 
     def subscription_url(_subscription_id)
-      Rails.root + 'TESTSUBSCRIPTION'
+      # Must be a String: callers pass this to link_to, and a Pathname
+      # (the old Rails.root + '...' form) crashes url_for with to_model.
+      'http://localhost/TESTSUBSCRIPTION'
     end
 
     def external_type(_transaction_id)

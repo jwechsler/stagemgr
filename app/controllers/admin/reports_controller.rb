@@ -12,18 +12,9 @@ class Admin::ReportsController < Admin::ApplicationController
   # GET /admin/reports
   # GET /admin/reports.xml
   def index
-    is_theater_user = !current_user.nil? && current_user.is_theater_user?
     @generated_reports = FileStore.where('worker = ? and user_id = ?', FileStore::REPORT,
                                          current_user.id).order('created_at desc')
     @generated_reports.select { |r| r.datafile.attached? }
-
-    if is_theater_user
-      @productions = Production.accessible_by(current_ability, :read).order(press_opening_at: :desc)
-      @flex_pass_offers = @productions.reject { |p| p.flex_pass_offer.nil? }.map { |p| p.flex_pass_offer }
-    else
-      @productions = Production.accessible_by(current_ability, :read).sellable.order(:name)
-      @flex_pass_offers = FlexPassOffer.all
-    end
 
     respond_to do |format|
       format.html # index.html.erb
@@ -71,16 +62,17 @@ class Admin::ReportsController < Admin::ApplicationController
     dates = parse_date_params(starting_date: params[:starting_date], ending_date: params[:ending_date])
     @starting_date = dates[:starting_date].at_beginning_of_month
     @ending_date = dates[:ending_date].at_end_of_month
-    flex_pass_offer_id = params[:flex_pass_offer_id].presence
+    flex_pass_offer_ids = offer_ids_param(:flex_pass_offer_ids, 'flex_pass')
 
-    # Set flex pass offer name for view
-    @flex_pass_offer_name = FlexPassOffer.find(flex_pass_offer_id).name unless flex_pass_offer_id.nil?
+    # Selected offer names for the view's footnote
+    @flex_pass_offer_names = FlexPassOffer.where(id: flex_pass_offer_ids)
+                                          .order(:name).pluck(:name).join(', ').presence
 
     process_report(
       report_class: FlexPassUsageReport,
-      report_params: [@starting_date, @ending_date, flex_pass_offer_id, nil],
+      report_params: [@starting_date, @ending_date, flex_pass_offer_ids, nil],
       job_class: FlexPassUsageExport,
-      job_params: [@starting_date, @ending_date, flex_pass_offer_id],
+      job_params: [@starting_date, @ending_date, flex_pass_offer_ids],
       csv_filename: 'flexpass_sales',
       timeout: 60.seconds
     )
@@ -169,7 +161,10 @@ class Admin::ReportsController < Admin::ApplicationController
     end
   end
 
-  # Exports production attendees segmented for TRG Arts. Includes email opt-in attendees
+  # Exports production attendees segmented for TRG Arts. Includes email opt-in attendees.
+  # NOTE: left single-production intentionally — the TRG segmentation logic is
+  # per-production and not trivially multi-production; the attendee/sales reports
+  # cover the multi-production/festival case.
   def trg_dump
     production = Production.find(params[:report][:production_id])
     Resque.enqueue(TrgProductionAttendeeExportJob, production.nil? ? 0 : production.id, current_user.id,
@@ -210,8 +205,15 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def production_sales_by_performance
-    @production = Production.accessible_by(current_ability, :read).find(params[:report][:production_id])
-    report = SalesByPerformanceReport.new([@production], !params['download_csv'].nil?)
+    # New multi-select param, with a fallback to the legacy single production_id
+    # (older bookmarks / per-production "Sales" links).
+    production_ids = production_ids_param(:production_ids)
+    production_ids = production_ids_param(:production_id) if production_ids.empty?
+    raise ReportProcessor::ParameterError, 'Select at least one production' if production_ids.empty?
+
+    @productions = Production.where(id: production_ids)
+    @report_title = productions_report_title(@productions)
+    report = SalesByPerformanceReport.new(@productions.to_a, !params['download_csv'].nil?)
     @headers, @report_data = report.create
     if params['download_csv'].nil?
       respond_to do |format|
@@ -236,17 +238,34 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   def membership_usage
-    dates = parse_date_params(starting_date: params[:starting_date], ending_date: params[:ending_date])
-    @starting_date = dates[:starting_date].at_beginning_of_month
-    @ending_date = dates[:ending_date].at_end_of_month
+    if params[:membership_offer_id].present?
+      # Legacy single-offer path (per-offer "Usage" link): the date range
+      # spans the offer's whole payment history.
+      @membership_offer = MembershipOffer.find(params[:membership_offer_id])
+      membership_offer_ids = [@membership_offer.id]
+      first_payment, last_payment = @membership_offer.usage_date_range
+      @starting_date = (first_payment || Date.current).to_date.at_beginning_of_month
+      @ending_date = (last_payment || Date.current).to_date.at_end_of_month
+    else
+      membership_offer_ids = offer_ids_param(:membership_offer_ids, 'membership')
+      dates = parse_date_params(starting_date: params[:starting_date], ending_date: params[:ending_date])
+      @starting_date = dates[:starting_date].at_beginning_of_month
+      @ending_date = dates[:ending_date].at_end_of_month
+    end
+    @membership_offer_names = MembershipOffer.where(id: membership_offer_ids)
+                                             .order(:name).pluck(:name).join(', ').presence
+
+    # Never report the current, still-incomplete month (matches the report's own cap).
+    last_reportable_month_end = Date.current.at_beginning_of_month - 1.day
+    @ending_date = [@ending_date, last_reportable_month_end].min
 
     process_report(
       report_class: MembershipUsageReport,
-      report_params: [@starting_date, @ending_date, nil],
+      report_params: [@starting_date, @ending_date, nil, membership_offer_ids],
       job_class: MembershipUsageExport,
-      job_params: [@starting_date, @ending_date],
+      job_params: [@starting_date, @ending_date, membership_offer_ids],
       csv_filename: 'membership_usage',
-      timeout: 60.seconds
+      timeout: 120.seconds
     )
   end
 
@@ -254,9 +273,10 @@ class Admin::ReportsController < Admin::ApplicationController
     @starting_date = params[:starting_date].to_date.at_beginning_of_month
     @ending_date = params[:ending_date].to_date.at_end_of_month
     trg_lists = params[:trg_lists]
+    membership_offer_ids = offer_ids_param(:membership_offer_ids, 'membership')
 
-    Resque.enqueue(MembershipOrderMailingListExport, @starting_date, @ending_date, trg_lists, current_user.id,
-                   current_user.theater_ids)
+    Resque.enqueue(MembershipOrderMailingListExport, @starting_date, @ending_date, trg_lists,
+                   membership_offer_ids, current_user.id, current_user.theater_ids)
     flash[:notice] = "Your export is queued for generation. You'll recieve notification when the process is complete."
     redirect_to admin_reports_path
   end
@@ -265,20 +285,27 @@ class Admin::ReportsController < Admin::ApplicationController
     dates = parse_date_params(starting_date: params[:starting_date], ending_date: params[:ending_date])
     @starting_date = dates[:starting_date]
     @ending_date = dates[:ending_date]
+    flex_pass_offer_ids = offer_ids_param(:flex_pass_offer_ids, 'flex_pass')
+
+    # Selected offer names for the view's footnote
+    @flex_pass_offer_names = FlexPassOffer.where(id: flex_pass_offer_ids)
+                                          .order(:name).pluck(:name).join(', ').presence
 
     process_report(
       report_class: FlexPassPatronReport,
-      report_params: [@starting_date, @ending_date, nil],
+      report_params: [@starting_date, @ending_date, flex_pass_offer_ids, nil],
       job_class: FlexPassPatronReportJob,
-      job_params: [@starting_date, @ending_date],
+      job_params: [@starting_date, @ending_date, flex_pass_offer_ids],
       csv_filename: 'flex_pass_patron_report',
       timeout: 60.seconds
     )
   end
 
   def order_dump
-    production = Production.accessible_by(current_ability, :read).find(params[:report][:production_id])
-    Resque.enqueue(ProductionAttendeeExport, production.id, can?(:view_email, Address), current_user.id)
+    production_ids = production_ids_param(:production_ids)
+    raise ReportProcessor::ParameterError, 'Select at least one production' if production_ids.empty?
+
+    Resque.enqueue(ProductionAttendeeExport, production_ids, can?(:view_email, Address), current_user.id)
     flash[:notice] = "Your export is queued for generation. You'll recieve notification when the process is complete."
     redirect_to admin_reports_path
   end
@@ -328,6 +355,31 @@ class Admin::ReportsController < Admin::ApplicationController
   end
 
   private
+
+  # Narrows a request-supplied array of offer ids to Active offers the
+  # current user may report on; an empty result means "no restriction".
+  def offer_ids_param(key, kind)
+    OfferSearch.new(current_ability, kind).permitted_ids(params[key])
+  end
+
+  # Narrows request-supplied production ids (from report[<key>] / [<key>][])
+  # to productions the current user may report on; drops everything else.
+  def production_ids_param(key)
+    ProductionSearch.new(current_ability, 'reports').permitted_ids(params.dig(:report, key))
+  end
+
+  # Display title for a multi-production report: the single name, the shared
+  # festival name when every production belongs to one festival, else generic.
+  def productions_report_title(productions)
+    return productions.first.name if productions.one?
+
+    festival_ids = productions.map(&:festival_id).uniq
+    if festival_ids.length == 1 && festival_ids.first.present?
+      Festival.find(festival_ids.first).name
+    else
+      'Selected Productions'
+    end
+  end
 
   def send_report_as_csv(title, headers, data)
     csv_string = CSV.generate do |csv|

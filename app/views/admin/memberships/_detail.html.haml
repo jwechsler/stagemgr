@@ -6,7 +6,7 @@
 
 
       .small-6.cell
-        %span.label.success.right= "Membership #{membership.current_status}"
+        = ui_label("Membership #{membership.current_status}", variant: :success, class: 'right')
 
     .grid-x.grid-padding-x
       .small-6.cell
@@ -20,14 +20,15 @@
     %strong Member Since:
     = membership.member_since
     %br
-    %strong Next Billing Date:
-    = membership.next_billing_date
-    - if membership.cancel_at_period_end?
-      %span.label.warning= "Cancel pending"
+    - if membership.profile_id.present?
+      %strong Next Billing Date:
+      = membership.next_billing_date
+      - if membership.cancel_at_period_end?
+        = ui_label("Cancel pending", variant: :warning)
 
-    %br
-    %a.button{:href=>PaymentProcessing.subscription_url(membership.profile_id)} Manage Subscription
-    %br
+      %br
+      = ui_button "Manage Subscription", PaymentProcessing.subscription_url(membership.profile_id)
+      %br
     - linked_offers = membership.special_offers
     - codes = []
     - linked_offers.each do |offer|

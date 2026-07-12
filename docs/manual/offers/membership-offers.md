@@ -66,7 +66,18 @@ Leave both fields blank to skip the trial period and begin full-price billing im
 
 | Field | Description |
 |-------|-------------|
-| **MyEmma Group** | The email list group ID in MyEmma. Active members are automatically added to this group for targeted email campaigns. |
+| **MyEmma Group ID** | The email list group ID in MyEmma. Members are automatically kept in sync with this group for targeted email campaigns. |
+
+How the sync works:
+
+- When a membership on this offer becomes **Active**, the member's address is added to the group.
+- When a membership is **Canceled** or **Suspended**, the address is removed -- unless the patron still holds another current membership.
+- If you **change the group ID** on the offer, every active membership's address is added to the new group automatically. Addresses are not removed from the old group.
+
+All sync work runs as background jobs, so saving the form returns immediately and any email-service hiccup is retried without affecting the membership itself.
+
+!!! note "Only shown when MyEmma is configured"
+    The MyEmma Group ID field (and the matching row on the offer detail page) appears only when the MyEmma integration is enabled for this installation.
 
 ### Content and Legal
 
@@ -75,6 +86,29 @@ Leave both fields blank to skip the trial period and begin full-price billing im
 | **Billing Agreement** | Legal text displayed to the customer before purchase, describing the recurring billing terms. |
 | **HTML Description** | Rich HTML content displayed on the membership detail/sales page. |
 | **Email HTML** | HTML content included in the membership confirmation email sent after purchase. |
+
+### Tags
+
+Tags are free-form labels you can attach to a membership offer to group it for analysis and reporting -- for example by campaign, tier family, season, or any attribute you want to slice by later. Tags are arbitrary text you define and can change at any time.
+
+A membership offer can have any number of tags. They appear as rounded pill labels in the **Tags** field on the offer form, next to the offer name in the Membership Offers list, and on the offer detail page.
+
+#### Adding a tag
+
+1. Click into the **Tags** field on the membership offer form.
+2. Begin typing. As you type, a dropdown suggests existing tag names already used on other membership offers -- click one to apply it, or keep typing to create a brand-new tag.
+3. Press **Enter** (or type a comma) to commit the tag as a pill.
+4. Repeat to add as many tags as you need, then save the form.
+
+!!! tip "Reuse existing tags when possible"
+    The autocomplete suggestions help you converge on a consistent vocabulary. Tags are matched case-insensitively, so "Gift" and "gift" are treated as the same tag, with the casing of the first one preserved.
+
+#### Removing a tag
+
+Click the **x** on the right side of any pill to remove that tag, then save the form. The tag is removed from this offer only; it remains available on any other offer that uses it.
+
+!!! tip "Search by tag"
+    The search box on the Membership Offers list matches tag names as well as offer names, so you can quickly filter the list down to every offer sharing a tag.
 
 ---
 
@@ -97,7 +131,44 @@ Leave both fields blank to skip the trial period and begin full-price billing im
 
 ---
 
+## The Membership Offers List
+
+![Membership offers list showing Edit, sales action, and Usage buttons, tag pills, and red Inactive labels](../assets/images/screenshots/offers-membership-list.png)
+
+Each row on the Membership Offers list has an actions column with three buttons. The middle button is the offer's **primary sales action** and depends on its type:
+
+| Button | What it does |
+|--------|--------------|
+| **Edit** | Opens the offer's edit form. |
+| **Create Order** | (Production offers) Starts a new membership order for this offer. |
+| **Issue Pass** | (Timed offers) Creates a staff-issued membership directly, with no purchase order -- the library pass workflow. |
+| **Usage** | Opens the [Membership Usage report](../reports/membership-reports.md#membership-usage) for this offer alone, covering its entire history. |
+
+Each row shows exactly one of **Create Order** or **Issue Pass**. Either way, the button is greyed out and disabled while the offer's status is Inactive, since inactive offers cannot be sold or issued.
+
+The **On Sale to Public** column shows a checkmark when the offer is publicly purchasable. Offers whose status is **Inactive** show a red **Inactive** label in this column instead.
+
+!!! tip "Usage over the offer's full history"
+    The **Usage** button runs the report from the offer's first membership payment through the end of last month -- you don't need to pick a date range. See [Membership Reports](../reports/membership-reports.md#running-the-report-for-a-single-offer) for what the per-offer report contains.
+
+---
+
+## The Offer Detail Page
+
+Clicking an offer's name opens its detail page.
+
+![Timed membership offer detail page with the offer name heading, offer details panel, and Issue Pass button](../assets/images/screenshots/offers-membership-show-timed.png)
+
+- The offer name appears as a heading above the offer's public description.
+- The **Offer Details** panel summarizes the Price ID, tickets per performance, type, MyEmma group (when MyEmma is enabled), and ticket classes; a **Notification** tab shows the confirmation email content when one is configured.
+- Status labels in the top-right corner show whether the offer is Active/Inactive and On Sale/Private.
+- Below the description sit **Edit** and the offer's primary sales action: **Create Order** for production offers or **Issue Pass** for timed offers, disabled while the offer is Inactive -- the same rule as the list.
+
+---
+
 ## Managing Memberships
+
+Individual membership records (who holds each membership, its status, start, and end) are managed on the [Memberships list](../ticketing/managing-memberships.md) under **Passes > Memberships**.
 
 - **Deactivate** an offer by setting Status to `Inactive`. Existing members continue their subscriptions until cancelled.
 - **Remove from public sale** by unchecking **On Sale** while keeping the offer active for box office staff.

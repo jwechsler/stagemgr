@@ -164,6 +164,41 @@ RSpec.describe Admin::FlexPassOffersController, type: :controller do
     end
   end
 
+  describe 'GET #search' do
+    let!(:active_offer) { FactoryBot.create(:flex_pass_offer, name: 'Wit Pass', theater: theater) }
+    let!(:inactive_offer) do
+      FactoryBot.create(:flex_pass_offer, name: 'Wit Retired', theater: theater, active: false,
+                                          on_sale_to_public: false)
+    end
+
+    it 'returns matching active offers with tag groups' do
+      active_offer.flex_pass_offer_tags.create!(name: 'Witty')
+      get :search, params: { q: 'wit' }, format: :json
+
+      labels = response.parsed_body.pluck('label').join
+      expect(labels).to include('Wit Pass', 'All offers tagged Witty')
+      expect(labels).not_to include('Wit Retired')
+    end
+
+    it 'returns a theater group for a theater-name match' do
+      get :search, params: { q: theater.name }, format: :json
+      expect(response.parsed_body.pluck('group_key')).to include("theater:#{theater.id}")
+    end
+  end
+
+  describe 'GET #resolve_group' do
+    let!(:restricted_offer) { FactoryBot.create(:flex_pass_offer, name: 'Wit Pass', theater: theater) }
+    let!(:excluding_offer) do
+      FactoryBot.create(:flex_pass_offer, name: 'Roving Pass', theater: theater, exclude_theater: true)
+    end
+
+    it 'expands a theater group into restricted-to-theater offers only' do
+      get :resolve_group, params: { group_key: "theater:#{theater.id}" }, format: :json
+      names = response.parsed_body.pluck('name')
+      expect(names).to contain_exactly('Wit Pass')
+    end
+  end
+
   describe 'strong parameters' do
     it 'permits the currency fields' do
       ActionController::Parameters.new({

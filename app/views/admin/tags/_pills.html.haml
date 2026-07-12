@@ -1,0 +1,5 @@
+- tags = Array(tags).reject { |t| t.name.blank? }
+- unless tags.empty?
+  %span.tag-pills
+    - tags.each do |tag|
+      = ui_label(tag.name, variant: nil, class: 'tag-pill')

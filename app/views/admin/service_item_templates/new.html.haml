@@ -1,10 +1,7 @@
 = content_for :title do
   New Service Item Template
 = content_for :breadcrumbs do
-  %ul.breadcrumbs
-    %li= link_to 'Service Item Templates', admin_service_item_templates_path
-    %li.current
-      %a{:href=>'#'} New Template
+  = render "shared/components/breadcrumb", items: [{ label: 'Service Item Templates', path: admin_service_item_templates_path }, { label: "New Template" }]
 
 .grid-x.grid-padding-x
   .small-12.cell

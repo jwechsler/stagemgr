@@ -1,9 +1,7 @@
 = content_for :title do
   Existing Orders
 = content_for :breadcrumbs do
-  %ul.breadcrumbs
-    %li.current
-      %a{:href=>'#'} Orders
+  = render "shared/components/breadcrumb", items: [{ label: "Orders" }]
 
 .grid-x.grid-padding-x
   .small-12.cell

@@ -1,17 +1,35 @@
 class Admin::ProductionsController < Admin::ApplicationController
-  prepend_before_action :find_theater
+  prepend_before_action :find_theater, if: -> { params[:theater_id].present? }
   before_action :find_context, only: %i[show allocation_sync_status]
   load_and_authorize_resource
-  skip_load_and_authorize_resource only: [:allocation_sync_status]
+  skip_load_and_authorize_resource only: %i[allocation_sync_status search resolve_group]
 
   def index
     respond_to do |format|
+      format.html { redirect_to admin_theater_path(@theater) if @theater }
       format.json do
         params.permit!
-        render json: ProductionDatatable.new(params, view_context: view_context, current_user: current_user,
-                                                     current_theater: @theater)
+        render json: index_datatable
       end
     end
+  end
+
+  # Shared production-picker typeahead endpoints (analysis, reports, imports).
+  def search
+    authorize! :read, Production
+    searcher = ProductionSearch.new(current_ability, params[:scope])
+    render json: searcher.search(params[:q], groups: params[:groups] != '0',
+                                             exclude_id: params[:exclude_id])
+  rescue KeyError
+    head :bad_request
+  end
+
+  def resolve_group
+    authorize! :read, Production
+    searcher = ProductionSearch.new(current_ability, params[:scope])
+    render json: searcher.resolve_group(params[:group_key])
+  rescue KeyError
+    head :bad_request
   end
 
   # GET /productions/1
@@ -137,6 +155,16 @@ class Admin::ProductionsController < Admin::ApplicationController
 
   private
 
+  def index_datatable
+    if @theater
+      ProductionDatatable.new(params, view_context: view_context, current_user: current_user,
+                                      current_theater: @theater)
+    else
+      GlobalProductionDatatable.new(params, view_context: view_context, current_user: current_user,
+                                            accessible_scope: Production.accessible_by(current_ability, :read))
+    end
+  end
+
   def find_theater
     @theater = Theater.find(params[:theater_id])
   end
@@ -146,7 +174,7 @@ class Admin::ProductionsController < Admin::ApplicationController
                                        :closing_at, :production_code, :production_class, :status, :season, :venue_id, :custom_label,
                                        :credit_lines, :short_description, :show_description, :running_time, :intermission,
                                        :allow_late_seating, :capacity, :additional_information_link, :calendar_callout, :conversion_pixel_code,
-                                       :flex_pass_offer_id, :myemma_attendee_group, :survey_link, :mailing_list_link,
+                                       :festival_id, :myemma_attendee_group, :survey_link, :mailing_list_link,
                                        :follow_up_message_2, :confirmation_message, :seat_map_id, :promo, :override_service_items, :override_first_exchange_items,
                                        :override_addl_exchange_items, :custom1, :custom2, :royalty_percent)
   end

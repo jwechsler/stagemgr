@@ -34,13 +34,12 @@ class FlexPassOfferDecorator < ApplicationDecorator
   end
 
   def restrictions
-    if object.theater.blank?
-      ''
-    elsif object.exclude_theater
-      "All but #{object.theater.name}"
-    else
-      "Only #{object.theater.name}"
-    end
+    labels = []
+    labels << h.ui_label('Inactive', variant: :alert, class: 'tiny') unless object.active?
+    labels << h.ui_label(restriction_text, variant: :info, class: 'tiny') if restriction_text.present?
+    labels << h.ui_label("Max #{object.maximum_uses_per_production}/production", variant: :info, class: 'tiny') if object.maximum_uses_per_production.to_i.positive?
+    labels << h.ui_label("Max #{object.maximum_uses_per_performance}/performance", variant: :info, class: 'tiny') if object.maximum_uses_per_performance.to_i.positive?
+    h.safe_join(labels, ' ')
   end
 
   def dt_actions
@@ -63,5 +62,17 @@ class FlexPassOfferDecorator < ApplicationDecorator
     end
 
     h.safe_join(actions, ' ')
+  end
+
+  private
+
+  def restriction_text
+    if object.theater.blank?
+      ''
+    elsif object.exclude_theater
+      "All but #{object.theater.name}"
+    else
+      "Only #{object.theater.name}"
+    end
   end
 end

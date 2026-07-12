@@ -140,6 +140,7 @@ class Admin::OrdersController < Admin::ApplicationController
   #
   # @order [Order] order to process
   def create_or_update(order, commit_action = nil)
+    order.box_office_sale = true
     new_state = convert_button_label_to_state(params[:submit_action] || params[:commit])
     if new_state.blank?
       simple_save(order)
@@ -183,5 +184,6 @@ class Admin::OrdersController < Admin::ApplicationController
 
   def find_order
     @order = Order.find(params[:id]) if params[:id].present?
+    @order&.box_office_sale = true
   end
 end

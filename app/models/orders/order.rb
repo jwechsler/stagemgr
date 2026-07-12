@@ -34,7 +34,12 @@ class Order < ApplicationRecord
                                 :allow_destroy => true
 
   # Attribute accessors
-  attr_accessor :special_offer_code, :door_sale, :additional_donation, :additional_donation_for_other,
+  #
+  # :box_office_sale marks orders created/fulfilled through the admin box-office
+  # UI so entitlement caps (e.g. the festival advance cap) can be bypassed on the
+  # day of performance. Never persisted; web orders leave it falsy.
+  # :door_sale is legacy/unused (verified dead) and retained only to avoid churn.
+  attr_accessor :special_offer_code, :door_sale, :box_office_sale, :additional_donation, :additional_donation_for_other,
                 :email_confirmation, :add_to_email_list, :do_not_create_tasks, :give_gift_on_month, :give_gift_on_day,
                 :credit_card_number, :credit_card_type, :credit_card_expiration_year, :credit_card_expiration_month,
                 :credit_card_verification_number, :credit_card_confirmation_code, :credit_card_swipe, :flex_pass_code,
@@ -567,7 +572,7 @@ class Order < ApplicationRecord
   end
 
   def link_to_address_of_record
-    merge = if paid_with_membership?
+    merge = if paid_with_membership? && !membership_payments.first.membership.membership_offer.timed?
       membership_payments.first.membership.address
     else
       address.find_original
@@ -581,7 +586,15 @@ class Order < ApplicationRecord
         a = address
         self.address = merge
         address.save
-        save
+        # Only purge the old address once this order has actually been re-pointed
+        # off it. Historic orders can fail re-validation on save (e.g. the
+        # performance has since sold out, tripping ticket_stock_available), which
+        # leaves `save` a no-op and the order still bound to `a`. The guard below
+        # excludes the current order (id <> :id), so it would wrongly conclude `a`
+        # is unreferenced and destroy it -- only for Address#ensure_no_finalized_orders
+        # to find this order still attached and raise, aborting the whole run.
+        return unless save
+
         a.destroy unless a.nil? || (Order.where("id <> :id AND address_id = :address_id", id: id,
                                                                                           address_id: a.id).count > 0)
       

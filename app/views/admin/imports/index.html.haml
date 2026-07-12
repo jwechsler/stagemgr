@@ -1,8 +1,7 @@
 = content_for :title do
   Imports
 = content_for :breadcrumbs do
-  %ul.breadcrumbs
-    %li.current= link_to 'Imports', admin_imports_path
+  = render "shared/components/breadcrumb", items: [{ label: 'Imports'}]
 
 .grid-x.grid-padding-x
   .small-12.cell
@@ -13,7 +12,7 @@
           .small-3.cell
             = label_tag :production, 'Update attendees', :class=>'left inline'
           .small-9.cell
-            = collection_select :production, :production_id, @productions, :id, :name, :include_blank=>true
+            = render 'shared/components/production_picker', field_name: 'production[production_id]', scope: :imports
 
         .grid-x.grid-padding-x
           .small-3.cell
@@ -33,7 +32,7 @@
           .small-3.cell
             = label_tag :production, 'Update attendees', :class=>'left inline'
           .small-9.cell
-            = collection_select :production, :production_id, @productions, :id, :name
+            = render 'shared/components/production_picker', field_name: 'production[production_id]', scope: :imports, required: true
         .grid-x.grid-padding-x
           .small-3.cell
             = label_tag :datafile, 'From file', :class=>'left inline'

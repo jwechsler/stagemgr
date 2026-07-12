@@ -25,7 +25,7 @@
       -if can? :refund, TicketOrder
         = link_to 'Refund Order', new_admin_order_refund_order_path(@ticket_order), :class=>'alert small button' if @ticket_order.refundable?
       -if can? :convert_to_donation, TicketOrder
-        = link_to 'Refund to Donation', convert_to_donation_admin_ticket_order_path(@ticket_order), data: {confirm: "Convert this order to a donation? This will release all seats and move the payment to a new donation order."}, method: :post, class: 'alert small button' if @ticket_order.convertible_to_donation?
+        = ui_button 'Refund to Donation', convert_to_donation_admin_ticket_order_path(@ticket_order), size: :small, variant: :alert, data: {confirm: "Convert this order to a donation? This will release all seats and move the payment to a new donation order."}, method: :post if @ticket_order.convertible_to_donation?
 
       -if @ticket_order.status == 'Processing' || @ticket_order.status == 'Hold' || @ticket_order.status == Order::NEW
         = link_to 'Cancel Order', cancel_admin_order_path(@ticket_order), :confirm => "Are you sure?", :method=>:post, :class=>'alert small button'

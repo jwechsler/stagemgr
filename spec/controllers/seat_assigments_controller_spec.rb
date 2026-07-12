@@ -47,6 +47,48 @@ RSpec.describe SeatAssignmentsController, type: :controller do
     end
   end
 
+  describe 'non-seat ticket class guard' do
+    before(:each) do
+      @performance = @ticket_order.performance
+      @reservation_id = SeatAssignment.where(performance_id: @performance.id,
+                                             status: SeatAssignment::AVAILABLE).first.id
+    end
+
+    def allocated_class(holds_seats:)
+      tc = FactoryBot.create(:ticket_class, production: @performance.production, holds_seats: holds_seats)
+      tca = @performance.ticket_class_allocations.find_or_initialize_by(ticket_class: tc)
+      tca.available = true
+      tca.save!
+      tc
+    end
+
+    it 'rejects a class that does not hold a seat (no state left behind)' do
+      tc = allocated_class(holds_seats: false)
+      post :reserve,
+           params: { performance_id: @performance.id, id: @reservation_id,
+                     order_uuid: @ticket_order.uuid, ticket_class_id: tc.id }, format: :json
+      expect(response).to have_http_status(:unprocessable_entity)
+      result = JSON.parse response.body
+      expect(result['status']).to eq('error')
+      expect(result['message']).to include(tc.class_name)
+      expect(result['message']).to include('does not reserve a seat')
+
+      sa = SeatAssignment.find(@reservation_id)
+      expect(sa.status).to eq(SeatAssignment::AVAILABLE)
+      expect(sa.order_uuid).to be_blank
+      expect(sa.ticket_line_item).to be_nil
+    end
+
+    it 'accepts a seat-holding class' do
+      tc = allocated_class(holds_seats: true)
+      post :reserve,
+           params: { performance_id: @performance.id, id: @reservation_id,
+                     order_uuid: @ticket_order.uuid, ticket_class_id: tc.id }, format: :json
+      expect(response).to be_successful
+      expect(SeatAssignment.find(@reservation_id).status).to eq(SeatAssignment::TEMPORARY)
+    end
+  end
+
   describe 'zoned pricing enforcement' do
     before(:each) do
       @performance = @ticket_order.performance

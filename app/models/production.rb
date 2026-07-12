@@ -57,7 +57,7 @@ class Production < ApplicationRecord
   # before_save :queue_statistics_recalc
   before_save :finalize_season_seating, :if => :status_changed?
   before_save :update_performance_codes, :if => :production_code_changed?
-  belongs_to :flex_pass_offer, optional: true, inverse_of: :production
+  belongs_to :festival, optional: true, inverse_of: :productions
   has_and_belongs_to_many :addresses
   has_many :rate_of_sales
 
@@ -104,6 +104,11 @@ class Production < ApplicationRecord
     
   end
 
+  # Display label used by the production picker typeahead.
+  def picker_label
+    "#{season} - #{name} (#{theater.name})"
+  end
+
   # :section: Production dates
 
   def running_dates
@@ -139,6 +144,16 @@ class Production < ApplicationRecord
 
   def closed?
     closing_at.present? && closing_at < Date.today
+  end
+
+  # True while this show belongs inside its festival's grouped callout/block
+  # rather than the regular listings: the festival must be active and still
+  # have more than one upcoming show. A festival's lone remaining show rides
+  # the normal listing flow again.
+  def festival_grouped?
+    return false unless festival&.active?
+
+    festival.upcoming_productions.many?
   end
 
   def visible?
@@ -215,14 +230,46 @@ class Production < ApplicationRecord
     Production.where('ifnull(productions.first_preview_at,productions.opening_at) > ?', after_date)
   end
 
+  # LEGACY (pre-Festival): sole caller was order_mailer/_also_playing, which now
+  # uses #additional_upcoming_entries so an active festival occupies a single
+  # lottery slot instead of one slot per member show. Kept for compatibility.
   def self.additional_upcoming(order)
+    additional_upcoming_scope(order).limit(3)
+  end
+
+  # Same eligibility filters and rand-order as #additional_upcoming, but returns
+  # every matching production (no LIMIT) so festival membership can be collapsed
+  # in Ruby: the first member of an ACTIVE festival encountered becomes that
+  # Festival (occupying a single lottery slot), later members of the same
+  # festival are skipped, and members of an INACTIVE festival pass through as
+  # plain productions. Returns a mixed [Production, Festival] list, capped at 3.
+  def self.additional_upcoming_entries(order)
+    entries = []
+    seen_festival_ids = []
+    additional_upcoming_scope(order).each do |production|
+      festival = production.festival
+      if festival&.active?
+        next if seen_festival_ids.include?(festival.id)
+
+        seen_festival_ids << festival.id
+        entries << festival
+      else
+        entries << production
+      end
+      break if entries.size >= 3
+    end
+    entries.first(3)
+  end
+
+  def self.additional_upcoming_scope(order)
     Production.where("closing_at > :after_date and opening_at < :future_date and status in (:visible) and production_class in (:visible_classes) and not exists (select * from performances where status!='Inactive' and performances.production_id = productions.id and performances.id in (select performance_id from orders where address_id = :order_address))",
                      { :visible => Production.visible_statuses,
                        :visible_classes => [Production::PLAY],
                        :after_date => Time.now.end_of_week,
                        :future_date => (Time.now + 3.month),
-                       :order_address => order.address.id }).order(Rails.configuration.x.rand_clause).limit(3)
+                       :order_address => order.address.id }).order(Rails.configuration.x.rand_clause)
   end
+  private_class_method :additional_upcoming_scope
 
   def self.running_week_of(check_date)
     start_of_week = check_date.beginning_of_week

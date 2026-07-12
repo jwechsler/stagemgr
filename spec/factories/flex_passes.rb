@@ -23,22 +23,15 @@ FactoryBot.define do
         offer = evaluator.flex_pass_offer || FactoryBot.create(:flex_pass_offer,
                                                                theater: flex_pass_order.theater || FactoryBot.create(:theater))
 
-        # Create the line item
+        # Creating the line item also creates its flex pass
+        # (FlexPassLineItem#ensure_flex_pass); creating a second FlexPass
+        # here used to double every join through flex_passes.
         flex_pass_line_item = FlexPassLineItem.create!(
           order: flex_pass_order,
           flex_pass_offer: offer,
           ticket_count: 1
         )
-
-        # Create the flex pass
-        FlexPass.create!(
-          flex_pass_line_item: flex_pass_line_item,
-          flex_pass_offer: offer,
-          address: flex_pass_order.address,
-          code: "TESTPASS#{rand(1000..9999)}",
-          expiration_date: Date.today + 12.months,
-          active: true
-        )
+        flex_pass_line_item.flex_pass.update!(code: "TESTPASS#{rand(1000..9999)}", active: true)
 
         flex_pass_order.reload
       end

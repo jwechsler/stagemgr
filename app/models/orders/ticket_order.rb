@@ -132,7 +132,10 @@ class TicketOrder < Order
           errors.add(:seats, " do not match tickets in order (#{number_of_seats} required)")
           return false
         end
-        if seats.size.eql?(0) then
+        # An order containing only non-seat-holding tickets (number_of_seats
+        # == 0) legitimately has no seats — e.g. add-ons or a GA section
+        # inside a reserved house.
+        if number_of_seats > 0 && seats.size.eql?(0) then
           errors.add(:base, "You must select at least one seat")
           return false
         end
@@ -181,7 +184,12 @@ class TicketOrder < Order
 
   def splittable?
     number_of_tickets > 1 && [Order::PROCESSED, Order::UNCLAIMED,
-                              Order::FULFILLED].include?(status) && !paid_with_membership?
+                              Order::FULFILLED].include?(status) && !paid_with_membership? &&
+      !buy_x_get_y_offer?
+  end
+
+  def buy_x_get_y_offer?
+    special_offer_line_item&.special_offer.is_a?(BuyXGetYSpecialOffer)
   end
 
   def convertible_to_donation?
@@ -497,20 +505,31 @@ end
       }
     end
 
-    # Add tickets with current seat assignments
-    tli_index = 0
+    # Add tickets with current seat assignments. Per-seat TLIs resolve their
+    # seat through seat_assignment_id; legacy aggregated TLIs (nil FK, class
+    # holds seats) pool-match by ticket_class_id, mirroring
+    # flatten_ticket_line_items. Non-seat tickets (holds_seats=false) print
+    # with a blank seat, the same as general admission.
+    seat_pool = performance.production.has_reserved_seating? ? seats.to_a : []
     ticket_line_items.each do |tli|
       tli.ticket_count.times do
         seat_location = ""
-        if performance.production.has_reserved_seating? && !seats[tli_index].nil?
-          seat_location = seats[tli_index].seat.location
+        if tli.ticket_class&.holds_seats?
+          sa = if tli.seat_assignment_id.present?
+                 seat_pool.find { |s| s.id == tli.seat_assignment_id }
+               else
+                 seat_pool.find { |s| s.ticket_class_id == tli.ticket_class_id }
+               end
+          if sa
+            seat_pool.delete(sa)
+            seat_location = sa.seat.location
+          end
         end
 
         order_payload[:tickets_attributes] << {
           ticket_class: tli.ticket_class.class_code,
           seat: seat_location
         }
-        tli_index += 1
       end
     end
 
@@ -665,8 +684,10 @@ end
           # historical TicketOrders.
           seat = seat_assignments.select { |sa| sa.ticket_class_id == tli.ticket_class_id }.first
           seat_assignments.delete_at(seat_assignments.index(seat))
-        else
-          # Log when we have tickets without matching seat assignments
+        elsif tli.ticket_class&.holds_seats?
+          # Log when a seat-holding ticket has no matching seat assignment.
+          # A nil seat is the expected state for non-seat (holds_seats=false)
+          # tickets, so those don't warn.
           Rails.logger.warn("Order #{id}: Ticket without matching seat assignment for ticket_class_id #{tli.ticket_class_id}")
         end
         item = { source: tli, seat: seat, ticket_class_id: tli.ticket_class_id }
@@ -1053,7 +1074,9 @@ end
       # Reserved-seating orders now maintain 1 TicketLineItem per SeatAssignment
       # via TicketLineItem#seat_assignment_id. When that invariant holds there is
       # nothing to reconcile — the association itself guarantees the pairing.
-      if ticket_line_items.any? && ticket_line_items.all? { |tli| tli.seat_assignment_id.present? }
+      # Non-seat (holds_seats=false) TLIs never carry a seat and don't break
+      # the invariant.
+      if ticket_line_items.any? && ticket_line_items.all? { |tli| tli.seat_assignment_id.present? || !tli.ticket_class&.holds_seats? }
         return
       end
 

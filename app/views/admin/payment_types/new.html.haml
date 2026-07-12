@@ -1,10 +1,7 @@
 = content_for :title do
   New Payment Type
 = content_for :breadcrumbs do
-  %ul.breadcrumbs
-    %li= link_to 'Payment Types', admin_payment_types_path
-    %li.current
-      %a{:href=>'#'} New
+  = render "shared/components/breadcrumb", items: [{ label: 'Payment Types', path: admin_payment_types_path }, { label: "New" }]
 .grid-x.grid-padding-x
   .small-12.cell
     = render 'form', :payment_type=>@payment_type, :url=>:create_external_payment_admin_payment_types

@@ -2,9 +2,7 @@
   Edit
   = @user.email
 = content_for :breadcrumbs do
-  %ul.breadcrumbs
-    %li= link_to 'Users', admin_users_path
-    %li.current= @user.email
+  = render "shared/components/breadcrumb", items: [{ label: 'Users', path: admin_users_path }, { label: @user.email }]
 
 = render 'form', :user=>@user
 

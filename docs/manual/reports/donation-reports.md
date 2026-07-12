@@ -1,33 +1,33 @@
 # Donation Reports
 
 !!! info "Roles"
-    **Donor Export (Donation Dump):** All Users (Show Reports permission)
+    **Donor export:** All Users (Show Reports permission)
     **Donation Totals:** Box Office, Admin (Box Office Reports permission)
 
-**Navigation:** Admin Menu > Reports > Donor Export / Donation Totals
+**Navigation:** Admin Menu > Reports > Donor export / Donation Totals
 
 ---
 
 ## Overview
 
-Stagemgr provides two donation-related reports that serve different purposes. The **Donor Export**
+Stagemgr provides two donation-related reports that serve different purposes. The **Donor export**
 generates a detailed list of individual donor contact information, while **Donation Totals**
 provides a financial summary of donations grouped by theater.
 
 ---
 
-## Donor Export (Donation Dump)
+## Donor export
 
 ### Purpose
 
-The Donor Export produces a CSV of donor contact information for a specified date range and
+The Donor export produces a CSV of donor contact information for a specified date range and
 theater. It is designed for building mailing lists, importing into CRM systems, and generating
 thank-you letter mail merges.
 
 ### Generating the Report
 
 1. Navigate to **Admin Menu > Reports**.
-2. In the **Donor Export** section, enter a **start date** and **end date**.
+2. In the **Donor export** section, enter a **start date** and **end date**.
 3. Select a **theater** from the dropdown.
 4. Click **Generate**. The report runs as a background job.
 5. When processing completes, you will receive an email with a download link. The report also
@@ -104,7 +104,7 @@ analysis or inclusion in financial reports.
 
 ## Typical Use Cases
 
-- **Year-end tax letters**: Use the Donor Export to generate a mailing list for annual donation
+- **Year-end tax letters**: Use the Donor export to generate a mailing list for annual donation
   acknowledgment letters.
 - **Monthly financial reporting**: Use Donation Totals to report gross and net donation income
   to management.

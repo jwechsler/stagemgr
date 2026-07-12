@@ -51,9 +51,14 @@ Given(/^I enter a complete production with code "(.*?)"$/) do |code|
 end
 
 Given(/^I enter a special offer with code "(.*?)" for (\d+)% off$/) do |code, percent|
-  fill_in 'special_offer_code', with: code
-  select '% Off', from: 'special_offer_type'
-  fill_in 'special_offer_amount', with: percent
+  fill_in 'percent_off_special_offer_code', with: code
+  fill_in 'percent_off_special_offer_amount', with: percent
+end
+
+Given(/^I enter a buy (\d+) get (\d+) special offer with code "(.*?)"$/) do |buy, get, code|
+  fill_in 'buy_x_get_y_special_offer_code', with: code
+  fill_in 'buy_x_get_y_special_offer_buy_quantity', with: buy
+  fill_in 'buy_x_get_y_special_offer_get_quantity', with: get
 end
 
 Given(/^I enter a custom label "(.*?)"$/) do |label|

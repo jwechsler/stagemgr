@@ -28,3 +28,8 @@
       %div.presenter= production.theater.name
     - unless production.theater.is_default?
       %div.company_class= production.theater.theater_class
+    -# Thumbs only surface here when the show rides the regular venue flow
+    -# (a festival's lone remaining show); grouped members render in the
+    -# festival block, which carries its own branding.
+    - if production.festival&.active?
+      %div.production_festival_note= "Part of the #{production.festival.name}"

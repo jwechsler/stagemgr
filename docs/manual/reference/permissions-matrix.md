@@ -32,6 +32,8 @@ Stagemgr has three staff roles, each building on the permissions of the role bel
 | Action | Administrator | Box Office | Theater User |
 |--------|:---:|:---:|:---:|
 | View productions | Yes | Yes | Own theaters only |
+| Global Productions list (top menu) | Yes | Yes | Own theaters only |
+| Production search picker (reports, imports, analysis) | Yes | Yes | Own theaters only |
 | Create productions | Yes | Yes | -- |
 | Edit productions | Yes | Yes | -- |
 | Duplicate productions | Yes | Yes | -- |
@@ -39,6 +41,16 @@ Stagemgr has three staff roles, each building on the permissions of the role bel
 | Send sample confirmation email | Yes | Yes | -- |
 | Send sample follow-up email | Yes | Yes | -- |
 | Auto-complete production search | Yes | Yes | Yes |
+
+## Festivals
+
+| Action | Administrator | Box Office | Theater User |
+|--------|:---:|:---:|:---:|
+| View festivals | Yes | Yes | Yes |
+| Create/edit festivals | Yes | Yes | -- |
+| Assign productions to a festival | Yes | Yes | -- |
+| Delete festivals | Yes | -- | -- |
+| Festival groups in report/analysis pickers | Yes | Yes | Own theaters' members only |
 
 ## Performances
 
@@ -98,6 +110,8 @@ Stagemgr has three staff roles, each building on the permissions of the role bel
 | Delete flex pass orders | Yes | -- | -- |
 | View/manage flex pass offers | Yes | Yes | Own theaters only |
 | View/create membership orders | Yes | Yes | -- |
+| View/manage memberships list (Passes > Memberships) | Yes | Yes | -- |
+| Issue library pass memberships | Yes | Yes | -- |
 | Cancel/reactivate/fulfill memberships | Yes | Yes | -- |
 | Delete membership orders | Yes | -- | -- |
 | Edit membership offers | Yes | Yes | Own theaters only |

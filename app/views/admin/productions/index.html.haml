@@ -1,0 +1,41 @@
+- content_for :title do
+  Productions
+- content_for :breadcrumbs do
+  = render "shared/components/breadcrumb", items: [{ label: "Productions" }]
+
+.grid-x.grid-padding-x
+  .small-12.cell
+    %table#global-production-listing{:data=>{:source=>"#{admin_productions_path(format: :json)}"}}
+      %thead
+        %tr
+          %th Name
+          %th Theater
+          %th Season
+          %th Status
+          %th Actions
+      %tbody
+
+= content_for :js do
+  :javascript
+    $(document).ready(function() {
+      $('#global-production-listing').dataTable({
+        "dom": 'lf<"toolbar-buttons">rtip',
+        "stateSave": true,
+        "processing": true,
+        "serverSide": true,
+        "ajax": $("#global-production-listing").data('source'),
+        "pagingType": 'full_numbers',
+        "language": {
+          "lengthMenu" : "_MENU_",
+          "search": "_INPUT_"
+        },
+        columns: [
+          {data: 'name', className: 'all'},
+          {data: 'theater', className: 'min-medium'},
+          {data: 'season', className: 'min-medium'},
+          {data: 'status', className: 'all'},
+          {data: 'actions', className: 'all'},
+        ],
+        ordering: false
+      });
+    });

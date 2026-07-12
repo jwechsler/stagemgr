@@ -46,7 +46,9 @@ RSpec.describe Admin::SeatMapsController, type: :controller do
     let(:seat_map) { FactoryBot.create(:seat_map, venue: venue, seat_count: 3) }
 
     before do
-      user_double = double('User', id: 1, email: 'admin@example.com', role: User::ADMIN)
+      user_double = double('User', id: 1, email: 'admin@example.com', role: User::ADMIN,
+                                   theater_ids: [], is_box_office_user?: false,
+                                   is_theater_user?: false, is_resident?: false, can?: true)
       allow(controller).to receive(:current_user).and_return(user_double)
       allow(controller).to receive(:authorize!).and_return(true)
     end
@@ -55,6 +57,63 @@ RSpec.describe Admin::SeatMapsController, type: :controller do
       FactoryBot.create(:performance).tap do |perf|
         SeatAssignment.create!(seat: seat, performance: perf, status: SeatAssignment::ASSIGNED,
                                order_uuid: SecureRandom.uuid)
+      end
+    end
+
+    describe 'GET #index (datatable JSON)' do
+      # 1x1 transparent PNG; blob dimensions are set directly in the example.
+      let(:tiny_png) do
+        Base64.decode64(
+          'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
+        )
+      end
+
+      # The venue factory creates a seat map of its own, so pick our row out of
+      # the response by the editor link in its label.
+      def row_for(seat_map)
+        response.parsed_body['data'].find { |row| row['label'].include?("/seat_maps/#{seat_map.id}/") }
+      end
+
+      def datatable_params
+        column = { name: '', searchable: 'true', orderable: 'true', search: { value: '', regex: 'false' } }
+        {
+          venue_id: venue.id, draw: '1', start: '0', length: '10',
+          search: { value: '', regex: 'false' },
+          order: { '0' => { column: '0', dir: 'asc' } },
+          columns: {
+            '0' => column.merge(data: 'label'),
+            '1' => column.merge(data: 'preview'),
+            '2' => column.merge(data: 'actions')
+          }
+        }
+      end
+
+      it 'renders an SVG preview with seat circles when a base image is attached' do
+        # Analysis needs ImageMagick in-process; set the dimensions directly.
+        allow_any_instance_of(SeatMap).to receive(:save_image_dimensions)
+        seat_map.base_image_map.attach(io: StringIO.new(tiny_png), filename: 'map.png', content_type: 'image/png')
+        seat_map.base_image_map.blob.update!(metadata: { 'width' => 100, 'height' => 60, 'analyzed' => true })
+
+        get :index, params: datatable_params, format: :json
+        expect(response).to be_successful
+
+        preview = row_for(seat_map)['preview']
+        expect(preview).to include('<svg')
+        expect(preview.scan('<circle').length).to eq(3)
+      end
+
+      it 'renders a blank preview when no base image is attached' do
+        seat_map # create it, no attachment
+
+        get :index, params: datatable_params, format: :json
+        expect(row_for(seat_map)['preview']).to eq('')
+      end
+    end
+
+    describe 'GET #show' do
+      it 'redirects to the seat map editor' do
+        get :show, params: { venue_id: venue.id, id: seat_map.id }
+        expect(response).to redirect_to(editor_admin_venue_seat_map_path(venue, seat_map))
       end
     end
 

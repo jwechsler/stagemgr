@@ -22,6 +22,16 @@ module OrdersHelper
       raise 'Email required' if order.address&.email.blank?
       raise 'Name required' if order.address&.full_name.blank?
 
+      # Front-end ticket orders must anchor on at least one seat-holding
+      # (holds_seats) ticket, on both reserved-seating and general-admission
+      # performances. Non-holds classes (e.g. ASSIST captioning-tablet
+      # reservations) are add-ons; an add-on-only order may only be placed
+      # through the box office, which does not run this validation.
+      if order.is_a?(TicketOrder) &&
+         order.number_of_tickets.positive? && order.number_of_seats.zero?
+        raise 'Your order must include at least one seated ticket'
+      end
+
       unless order.payment_type.is_a? PassPaymentType
         if order.address&.line1.blank? || order.address&.city.blank? || order.address&.state.blank? || order.address&.zipcode.blank?
           raise 'Billing address incomplete'

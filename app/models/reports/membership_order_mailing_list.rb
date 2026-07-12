@@ -1,12 +1,16 @@
 class MembershipOrderMailingList < MailingList
-  attr_reader :starting_date, :ending_date, :trg_lists
+  attr_reader :starting_date, :ending_date, :trg_lists, :membership_offer_ids
 
-  def initialize(starting_date, ending_date, trg_lists, reporting_user_id = nil, theater_ids: [])
+  # membership_offer_ids accepts a single id or an array of ids; empty
+  # means no offer restriction.
+  def initialize(starting_date, ending_date, trg_lists, membership_offer_ids = nil,
+                 reporting_user_id = nil, theater_ids: [])
     super(reporting_user_id, theater_ids: theater_ids)
     @headers += %i[MembershipStartDate CurrentMember]
     @starting_date = starting_date
     @ending_date = ending_date
     @trg_lists = trg_lists
+    @membership_offer_ids = Array(membership_offer_ids).compact
   end
 
   def create
@@ -16,6 +20,9 @@ class MembershipOrderMailingList < MailingList
                             .where('memberships.member_since >= ? AND memberships.member_since <= ? AND addresses.placeholder = ?',
                                    starting_date, ending_date, false)
                             .includes(:address, membership_line_item: :membership).distinct
+    if membership_offer_ids.present?
+      orders = orders.where(memberships: { membership_offer_id: membership_offer_ids })
+    end
 
     current_member_ids = Address.joins(:memberships).where(memberships: { status: Membership::ACTIVE }).distinct.pluck(:id)
 

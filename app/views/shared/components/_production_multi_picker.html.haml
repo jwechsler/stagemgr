@@ -1,0 +1,27 @@
+-# Multi-select production picker (see production_multi_picker.js). Chosen
+-# productions are submitted as hidden <field_name>[] inputs; choosing none
+-# leaves the report unfiltered (the controller enforces "at least one" where
+-# required). Suggestions mix productions with season / theater / festival /
+-# tag groups, which resolve server-side and add every member production.
+-#
+-# Locals:
+-#   field_name  (required) — array param name, e.g. 'report[production_ids]'
+-#   scope       (required) — ProductionSearch scope key (:reports, :analysis, :imports)
+-#   label       — label text above the input
+-#   placeholder — input placeholder text
+- label       = local_assigns.fetch(:label, 'Productions')
+- placeholder = local_assigns.fetch(:placeholder, 'Type a production, season, theater, or festival...')
+.production-multi-picker{data: { production_multi_picker: true, field: field_name,
+                                 scope: scope,
+                                 search_url: search_admin_productions_path,
+                                 resolve_url: resolve_group_admin_productions_path }}
+  %label
+    = label
+    .grid-x
+      .cell.auto
+        %input.production-multi-picker-input.input-group-field{type: 'text', placeholder: placeholder,
+                                                              autocomplete: 'off'}
+      .cell.shrink{style: 'padding-left: 0.5rem'}
+        %a.production-multi-picker-remove-all.button.alert.small{href: '#', style: 'display:none'} Remove all
+  %table.production-multi-picker-table.hover{style: 'display:none; margin-top: 0.5rem'}
+    %tbody

@@ -1,9 +1,7 @@
 = content_for :title do
   Special Offers
 = content_for :breadcrumbs do
-  %ul.breadcrumbs
-    %li.current
-      %a{:href=>'#'} Special Offers
+  = render "shared/components/breadcrumb", items: [{ label: "Special Offers" }]
 
 .grid-x.grid-padding-x
   .small-12.cell
@@ -19,7 +17,9 @@
 
 .grid-x.grid-padding-x
   .small-12.cell
-    = link_to 'Add special offer', new_admin_special_offer_path, class: 'small button right'
+    .button-group.small.float-right
+      - SpecialOffer::OFFER_TYPES.each do |type, meta|
+        = ui_button "Add #{meta[:label]} Offer", new_admin_special_offer_path(type: type)
 
 = content_for :js do
   :javascript

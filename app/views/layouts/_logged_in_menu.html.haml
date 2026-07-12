@@ -13,16 +13,23 @@
         - elsif can? :read, Theater then
           %li
             =link_to('Theaters',admin_theaters_path)
+        - if can? :read, Production
+          %li
+            =link_to('Productions', admin_productions_path)
         - if (can? :read, Order) || (can? :read, FlexPassOrder) || (can? :read, MembershipOrder) || (can? :read, TicketOrder)
           %li
             =link_to('Orders', admin_orders_path)
         - if (can? :read, Address)
           %li
             =link_to('Customers', admin_addresses_path)
-        - if can?(:read, MembershipOffer) || can?(:read, FlexPassOffer)
+        - if can?(:read, Membership) || can?(:read, MembershipOffer) || can?(:read, FlexPassOffer)
           %li.has-dropdown
             %a{:href=>"#"} Passes
             %ul.menu.vertical
+              - if can? :read, Membership
+                %li
+                  =link_to('Memberships', admin_memberships_path)
+                %li.menu-divider
               - if can? :read, MembershipOffer
                 %li
                   =link_to('Membership Offers', admin_membership_offers_path)
@@ -40,6 +47,8 @@
           %ul.menu.vertical
             - if can? :edit, SpecialOffer
               %li= link_to('Special Offers', admin_special_offers_path)
+            - if can? :read, Festival
+              %li= link_to('Festivals', admin_festivals_path)
             -if can? :read, FileStore 
               %li= link_to "Import data", admin_imports_path
             - if (can? :edit, User) || (can? :edit, SpecialFeature) || (can? :edit, DefaultTicketClass) || (can? :edit, PaymentType) || (can? :read, FileStore) || (can? :edit, Venue)
@@ -63,7 +72,7 @@
                   - if (can? :edit, ServiceItemTemplate) then
                     %li= link_to('Service Items', admin_service_item_templates_path)
                   - if can? :read, FileStore
-                    %li.divider
+                    %li.menu-divider
                     
                   %li
                     = link_to 'Job Queue', resque_admin_path

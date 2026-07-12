@@ -2,6 +2,8 @@ class Admin::TicketOrdersController < Admin::OrdersController
   load_and_authorize_resource
   include Admin::TicketOrdersHelper
 
+  before_action :ensure_splittable, only: %i[split finalize_split]
+
   expose :order_production_id, lambda {
     if !@ticket_order.nil? && !@ticket_order.performance.nil?
       @ticket_order.performance.production_id
@@ -273,7 +275,9 @@ class Admin::TicketOrdersController < Admin::OrdersController
       new_tickets = []
       flattened_tickets = []
       split_instructions.size.times do |index|
-        if @ticket_order.performance.production.has_reserved_seating?
+        # Non-seat tickets in a reserved house submit seats[]=0 (no seat to
+        # move), so only look a seat up for positive ids.
+        if @ticket_order.performance.production.has_reserved_seating? && seat_ids[index].positive?
           seat_assignment = seat_assignments.select { |sa| sa.seat_id.eql?(seat_ids[index]) }.first
           seat_assignments.delete_at(seat_assignments.index(seat_assignment))
           # we've found the correct seat assignment.  Now we need to adjust the ticket class
@@ -300,6 +304,13 @@ class Admin::TicketOrdersController < Admin::OrdersController
   end
 
   protected
+
+  def ensure_splittable
+    return if @ticket_order.splittable?
+
+    flash[:error] = 'This order cannot be split.'
+    redirect_to action: 'show', id: @ticket_order.id
+  end
 
   def create_or_update(order, commit_action = nil)
     if convert_button_label_to_state(commit_action).eql?(Order::PROCESSED) && order.performance.production.season_seating? && current_user.cannot?(

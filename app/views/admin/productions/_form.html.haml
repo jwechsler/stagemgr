@@ -62,9 +62,11 @@
 
           %div.grid-x.grid-padding-x
             %div.small-6.cell
-              - festival_passes = FlexPassOffer.where(treat_as_festival_pass:true).select do |pass|
-                - pass.theater_id.nil? || (pass.theater_id == f.object.theater_id && !pass.exclude_theater) || (pass.theater_id != f.object.theater_id && pass.exclude_theater)
-              = f.association :flex_pass_offer, :collection=>festival_passes, :label=>"Festival Pass Offer"
+              - # Only active festivals are offered, so the list stays short as festivals
+              - # accumulate; the current assignment is always included (even once
+              - # inactive) so historical productions render and save correctly.
+              - festival_choices = (Festival.active.to_a | [f.object.festival].compact).sort_by(&:name)
+              = f.association :festival, collection: festival_choices, include_blank: true, hint: "Link to a festival"
 
               = f.input :myemma_attendee_group, :label=>"MyEmma Group Number"
 

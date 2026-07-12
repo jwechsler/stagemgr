@@ -1,15 +1,15 @@
-# Production Sales by Performance
+# Production Sales By Performance
 
 !!! info "Roles: All Users"
     This report is available to all authenticated users under the **Show Reports** permission group.
 
-**Navigation:** Admin Menu > Reports > Production Sales by Performance
+**Navigation:** Admin Menu > Reports > Production Sales By Performance
 
 ---
 
 ## Purpose
 
-The Production Sales by Performance report provides a breakdown of ticket counts and revenue for
+The Production Sales By Performance report provides a breakdown of ticket counts and revenue for
 every performance of a selected production. Data is organized by ticket class, giving you a
 detailed view of how each pricing tier performed at each show.
 
@@ -23,14 +23,14 @@ This report is useful for:
 ## Generating the Report
 
 1. Navigate to **Admin Menu > Reports**.
-2. In the **Production Sales by Performance** section, select a production from the dropdown.
+2. In the **Production Sales By Performance** section, search for and select a production using the [production picker](../productions/finding-productions.md#the-production-search-picker).
 3. Click **Show** to display results on screen, or **Download** to export a CSV file.
 
 ## Input Fields
 
 | Field | Required | Description |
 |---|---|---|
-| **Production** | Yes | Select the production to report on from the dropdown list. Only productions you have permission to view are listed. |
+| **Production** | Yes | Search by name, season, code, or theater. Only productions you have permission to view appear. |
 
 ## Output Format
 

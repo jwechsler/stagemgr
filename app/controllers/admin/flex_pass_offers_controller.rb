@@ -1,5 +1,23 @@
 class Admin::FlexPassOffersController < Admin::ApplicationController
-  load_and_authorize_resource
+  load_and_authorize_resource except: %i[autocomplete_tag search resolve_group]
+
+  def autocomplete_tag
+    term = params[:term].to_s
+    names = FlexPassOfferTag.where('name LIKE ?', "#{term}%")
+                            .order(:name).limit(20).pluck(:name).uniq
+    render json: names
+  end
+
+  # Offer-picker typeahead endpoints (reports page).
+  def search
+    authorize! :read, FlexPassOffer
+    render json: OfferSearch.new(current_ability, 'flex_pass').search(params[:q])
+  end
+
+  def resolve_group
+    authorize! :read, FlexPassOffer
+    render json: OfferSearch.new(current_ability, 'flex_pass').resolve_group(params[:group_key])
+  end
 
   def index
     respond_to do |format|
@@ -79,6 +97,6 @@ class Admin::FlexPassOffersController < Admin::ApplicationController
 
   def flex_pass_offer_params
     params.require(:flex_pass_offer).permit(:name, :price, :number_of_tickets, :use_ticket_class_code, :flat_payout, :spiff, :facility_fee,
-                                            :short_description, :description, :active, :code_prefix, :maximum_uses_per_production, :on_sale_to_public, :months_till_expiration, :treat_as_festival_pass, :theater_id, :exclude_theater, :redeem_immediately)
+                                            :short_description, :description, :active, :code_prefix, :maximum_uses_per_production, :maximum_uses_per_performance, :on_sale_to_public, :months_till_expiration, :festival_id, :theater_id, :exclude_theater, :redeem_immediately, :tag_names)
   end
 end

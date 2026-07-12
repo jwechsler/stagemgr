@@ -1,8 +1,7 @@
 = content_for :title do
   Reports
 = content_for :breadcrumbs do
-  %ul.breadcrumbs
-    %li.current= link_to 'Reports', admin_reports_path
+  = render "shared/components/breadcrumb", items: [{ label: 'Reports'}]
 
 .grid-x.grid-padding-x
   .small-4.cell
@@ -15,7 +14,7 @@
     = form_tag(production_sales_by_performance_admin_reports_path, :method=>"post") do
       .grid-x.grid-padding-x.collapse
         .small-8.cell
-          = collection_select(:report, :production_id, @productions, :id, :name)
+          = render 'shared/components/production_multi_picker', field_name: 'report[production_ids]', scope: :reports
         .small-4.cell
           = submit_tag "Show", :class=>'tiny button postfix'
           &nbsp;
@@ -34,7 +33,7 @@
     = form_tag(royalty_report_admin_reports_path, :method=>"post") do
       .grid-x.grid-padding-x.collapse
         .small-8.cell
-          = collection_select(:report, :production_id, @productions, :id, :name)
+          = render 'shared/components/production_picker', field_name: 'report[production_id]', scope: :reports, required: true
         .small-4.cell
           = submit_tag "Show", :class=>'tiny button postfix'
           &nbsp;
@@ -54,7 +53,7 @@
     = form_tag(order_dump_admin_reports_path, :method=>"post") do
       .grid-x.grid-padding-x.collapse
         .small-8.cell
-          = collection_select(:report, :production_id, @productions, :id, :name)
+          = render 'shared/components/production_multi_picker', field_name: 'report[production_ids]', scope: :reports
         .small-4.cell
           = submit_tag "Download", :name=>'download_csv', :class=>'tiny button'
 
@@ -74,7 +73,7 @@
       = form_tag(trg_dump_admin_reports_path, :method=>"post") do
         .grid-x.grid-padding-x.collapse
           .cell.small-8
-            = collection_select(:report, :production_id, @productions, :id, :name)
+            = render 'shared/components/production_picker', field_name: 'report[production_id]', scope: :reports, required: true
           .cell.small-4
             = submit_tag "Generate", :name=>'generate_csv', :class=>'tiny button'
 
@@ -171,6 +170,10 @@
             %br
             = submit_tag "Show", :name=>'show', :class=>'tiny button'
             = submit_tag "Download", :name=>'download', :class=>'tiny button'
+          .small-8.cell
+            = render 'shared/components/offer_picker', field_name: 'membership_offer_ids',
+              search_url: search_admin_membership_offers_path,
+              resolve_url: resolve_group_admin_membership_offers_path
 
 - if can? :membership_export, Report
   .grid-x.grid-padding-x
@@ -198,6 +201,10 @@
           .small-4.cell
             %br
             = submit_tag "Generate", :name=>'generate_csv', :class=>'tiny button'
+          .small-8.cell
+            = render 'shared/components/offer_picker', field_name: 'membership_offer_ids',
+              search_url: search_admin_membership_offers_path,
+              resolve_url: resolve_group_admin_membership_offers_path
 
 
 - if can? :reconciliation_reports, Report then
@@ -218,14 +225,14 @@
             %label{:for=>:ending_date} On or before
             = text_field_tag( :ending_date, (Date.today-1.month).at_end_of_month, :default=>Date.today.at_end_of_month, :class=>'date_picker')
           .small-4.cell
-            &nbsp;
-          .small-8.cell
-            %label{ for: :flex_pass_offer_id } FlexPass Offer
-            = select_tag(:flex_pass_offer_id, options_from_collection_for_select(@flex_pass_offers.sort_by(&:name), 'id', 'name'), include_blank: true)
-          .small-4.cell
             %br
             = submit_tag "Show", :name=>'show', :class=>'tiny button'
             = submit_tag "Download", :name=>'download', :class=>'tiny button'
+          .small-8.cell
+            = render 'shared/components/offer_picker', field_name: 'flex_pass_offer_ids',
+              search_url: search_admin_flex_pass_offers_path,
+              resolve_url: resolve_group_admin_flex_pass_offers_path,
+              placeholder: 'Type an offer name, tag, or theater...'
 
   .grid-x.grid-padding-x
     .small-12.cell
@@ -247,6 +254,11 @@
             %br
             = submit_tag "Show", :class=>'tiny button'
             = submit_tag "Download", :name=>'download', :class=>'tiny button'
+          .small-8.cell
+            = render 'shared/components/offer_picker', field_name: 'flex_pass_offer_ids',
+              search_url: search_admin_flex_pass_offers_path,
+              resolve_url: resolve_group_admin_flex_pass_offers_path,
+              placeholder: 'Type an offer name, tag, or theater...'
 
 - if can? :house_management_reports, Report then
   .grid-x.grid-padding-x
@@ -332,14 +344,67 @@
             = select_tag(:required_theaters,  options_from_collection_for_select(Theater.all.order(:name), "id", "name"), :multiple=>true, :size=>8)
             = submit_tag "Download", :name=>'download_csv', :class=>'tiny button postfix'
 
+#report-overlay{style: 'display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.45); z-index:2000;'}
+  .callout{style: 'position:absolute; top:40%; left:50%; transform:translate(-50%,-50%); padding:2rem 3rem; text-align:center;'}
+    %h4 Report requested
+    %p.help_text Your report is being generated&hellip;
+
 :javascript
+  // True while the overlay covers the page. Lives in the closure, so it
+  // is frozen into the bfcache snapshot along with the visible overlay.
+  var reportOverlayShown = false;
+
   $(document).ready(function() {
+    // Buttons named for a download or async export respond without leaving
+    // the page, so their overlay dismisses itself; inline "Show" reports
+    // keep it up until the response replaces the page.
+    var TRANSIENT_SUBMITS = ['download_csv', 'generate_csv', 'download'];
+
     $('input[type="submit"]').prop('disabled', false);
-    $('form').on('submit', function() {
+    $('form').on('submit', function(e) {
       var $buttons = $(this).find('input[type="submit"]');
       setTimeout(function() { $buttons.prop('disabled', false); }, 1000);
+
+      if (e.isDefaultPrevented()) return; // e.g. production picker guard
+
+      var submitter = e.originalEvent && e.originalEvent.submitter;
+      $('#report-overlay').show();
+      reportOverlayShown = true;
+      if (submitter && TRANSIENT_SUBMITS.indexOf(submitter.name) !== -1) {
+        setTimeout(function() {
+          $('#report-overlay').hide();
+          reportOverlayShown = false;
+        }, 2000);
+      }
     });
   });
+
+  // bfcache: the browser Back button can restore this page as a frozen
+  // snapshot with the overlay still up; ready() does not re-fire then.
+  // Browsers that fire pageshow on the restore (Chrome, Firefox) get an
+  // immediate reload; fresh loads re-run this script with the flag false,
+  // so normal Back navigation never reloads.
+  window.addEventListener('pageshow', function() {
+    if (reportOverlayShown) location.reload();
+  });
+
+  // Safari (verified via safaridriver, 2026-07) restores this page from
+  // the bfcache WITHOUT dispatching pagehide, pageshow, visibilitychange,
+  // or focus — and ignores both Cache-Control: no-store and beforeunload
+  // handlers as cache blockers — so no event above ever runs there. But
+  // suspended timers do resume on restore, so a heartbeat that sees a
+  // large gap knows the page was frozen and restored; reset the overlay.
+  var HEARTBEAT_MS = 300, FROZEN_GAP_MS = 1200;
+  var lastHeartbeat = Date.now();
+  setInterval(function() {
+    var now = Date.now();
+    if (now - lastHeartbeat > FROZEN_GAP_MS && reportOverlayShown) {
+      $('#report-overlay').hide();
+      $('input[type="submit"]').prop('disabled', false);
+      reportOverlayShown = false;
+    }
+    lastHeartbeat = now;
+  }, HEARTBEAT_MS);
 
 -if @generated_reports.size > 0
   .grid-x.grid-padding-x

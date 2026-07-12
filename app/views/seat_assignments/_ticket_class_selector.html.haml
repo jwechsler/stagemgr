@@ -1,4 +1,4 @@
-#ticket-modal.xlarge.reveal(data-reveal aria-labelledby="modalTitle" aria-hidden="true" role="dialog" data-assignment-id="none")
+= render layout: "shared/components/modal", locals: { id: "ticket-modal", size: "xlarge", aria_labelledby: "modalTitle", data: { "assignment-id" => "none" } } do
   %p.lead
     Select the ticket type for seat
     %span#seat-location &nbsp;
@@ -24,8 +24,10 @@
         -# Box office staff may sell classes hidden from the public purchase page;
         -# mirrors the ability gate in PerformancesController#ticket_classes.
         - show_backend_classes = can? :view_backend_classes, TicketClassAllocation
+        -# Only classes that hold a seat may be assigned to one; non-holds
+        -# classes are sold through the non-seat ticket picker instead.
         - order_form.object.performance.ticket_class_allocations.each do |tca|
-          -if tca.available? && !tca.ticket_class.software_managed? && (tca.ticket_class.web_visible? || show_backend_classes)
+          -if tca.available? && tca.ticket_class.holds_seats? && !tca.ticket_class.software_managed? && (tca.ticket_class.web_visible? || show_backend_classes)
             - tc = tca.ticket_class
             .grid-x.grid-padding-x{class: ('front-facing' if tc.web_visible?), "data-ticket-type" => tc.ticket_type, "data-zone-id" => tc.zone_id}
               .small-6.cell.vertical-center
@@ -42,13 +44,11 @@
                 -else
                   %span.ticket_price= number_to_currency(tc.ticket_price)
               .small-3.cell
-                %a.button.tiny.ticket-class-select-button{href:'#',"data-ticket-class":tc.id, "data-ticket-type":tc.ticket_type} Select
+                = ui_button "Select", "#", size: :tiny, class: "ticket-class-select-button", data: { "ticket-class": tc.id, "ticket-type": tc.ticket_type }
 
     #no-ticket-classes-message{style: "display:none"}
       %p No ticket types are available for this seat.
 
-  %button.close-button(data-close aria-label="Close modal" type="button")
-    %span(aria-hidden="true") &times;
 = render partial: "/seat_assignments/seating_config", locals: {performance_id: order_form.object.performance_id, order_uuid: order_form.object.uuid }
 
 = content_for :js do
@@ -57,6 +57,7 @@
       data = $.parseJSON($("#ticket-items").data('line-items'))
       $("#ticket-selector").empty()
       $.each( data, function( key, val ) {
+        if (!val['holds_seats']) { return; }
         ticket_class_id = val['id']
         var ticket_type = val['ticket_type']
         var visible_style

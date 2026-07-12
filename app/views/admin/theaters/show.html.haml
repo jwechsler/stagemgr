@@ -1,8 +1,5 @@
 = content_for :breadcrumbs do
-  %ul.breadcrumbs
-    %li= link_to 'Theaters', admin_theaters_path
-    %li.current
-      %a{:href=>'#'}= @theater.name
+  = render "shared/components/breadcrumb", items: [{ label: 'Theaters', path: admin_theaters_path }, { label: @theater.name }]
 
 .grid-x
   .small-10.cell.left
@@ -18,7 +15,7 @@
       .small.cell{:class=>"small-#{colsize} medium-#{colsize}"}
         %h3
           = @theater.name
-          = render 'admin/theater_tags/pills', theater_tags: @theater.theater_tags
+          = render 'admin/tags/pills', tags: @theater.theater_tags
         = link_to(@theater.url, @theater.url) unless @theater.url.blank?
 
 
@@ -33,4 +30,4 @@
 
 
   - if can? :create, Production then
-    = link_to 'Add production', [:new, :admin, @theater, :production], class: 'button'
+    = ui_button 'Add production', [:new, :admin, @theater, :production]

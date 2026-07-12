@@ -1,9 +1,7 @@
 = content_for :title do
   Ticket Revenue Analysis
 = content_for :breadcrumbs do
-  %ul.breadcrumbs
-    %li= link_to 'Analysis', admin_analysis_index_path(target_production_id: @target_production.id, comparison_production_id: @comparison_production&.id, analysis_type: 'ticket_revenue')
-    %li.current Ticket Revenue
+  = render "shared/components/breadcrumb", items: [{ label: 'Analysis', path: admin_analysis_index_path(target_production_id: @target_production.id, comparison_production_id: @comparison_production&.id, analysis_type: 'ticket_revenue') }, { label: "Ticket Revenue" }]
 
 .grid-x.grid-padding-x
   .small-12.cell
@@ -27,8 +25,8 @@
         %strong ⚑
         indicates a bucket that sold to its allocation limit.
       .button-group
-        %a.button.small#toggle-paid{href: '#'} % of Paid Sales
-        %a.button.small.secondary#toggle-capacity{href: '#'} % of Capacity
+        = ui_button "% of Paid Sales", "#", size: :small, id: "toggle-paid"
+        = ui_button "% of Capacity", "#", size: :small, variant: :secondary, id: "toggle-capacity"
 
   .grid-x.grid-padding-x
     .cell{class: @comparison_result ? 'small-12 medium-6' : 'small-12 medium-8 medium-offset-2'}
@@ -36,7 +34,7 @@
         %legend= @target_production.name
         %canvas#target-bucket-chart
       - unless @target_production.closed?
-        .callout.warning{style: 'margin-top: 0.5rem; padding: 0.5rem; font-size: 0.875rem'}
+        = render "shared/components/callout", variant: "warning", style: 'margin-top: 0.5rem; padding: 0.5rem; font-size: 0.875rem' do
           %strong Run in progress &mdash;
           = "#{@target_result.completed_performance_count} of #{@target_result.performance_count} performances complete."
     - if @comparison_result && @comparison_result.buckets.any?
@@ -45,7 +43,7 @@
           %legend= @comparison_production.name
           %canvas#comparison-bucket-chart
         - unless @comparison_production.closed?
-          .callout.warning{style: 'margin-top: 0.5rem; padding: 0.5rem; font-size: 0.875rem'}
+          = render "shared/components/callout", variant: "warning", style: 'margin-top: 0.5rem; padding: 0.5rem; font-size: 0.875rem' do
             %strong Run in progress &mdash;
             = "#{@comparison_result.completed_performance_count} of #{@comparison_result.performance_count} performances complete."
 
@@ -207,14 +205,14 @@
 - else
   .grid-x.grid-padding-x
     .small-12.cell
-      .callout.secondary
+      = render "shared/components/callout", variant: "secondary" do
         No ticket sales data found for
         %strong= @target_production.name
 
 .grid-x.grid-padding-x
   .small-12.cell
     %hr
-    = link_to 'Back to Analysis', admin_analysis_index_path(target_production_id: @target_production.id, comparison_production_id: @comparison_production&.id, analysis_type: 'ticket_revenue'), class: 'button secondary'
+    = ui_button 'Back to Analysis', admin_analysis_index_path(target_production_id: @target_production.id, comparison_production_id: @comparison_production&.id, analysis_type: 'ticket_revenue'), variant: :secondary
 
 - # Embed chart data as JSON for JavaScript
 - target_chart  = bucket_chart_data(@target_result)

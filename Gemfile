@@ -49,19 +49,17 @@ gem 'postmark-rails'
 gem 'rails-jquery-autocomplete' # :git=>"https://github.com/jwechsler/rails3-jquery-autocomplete.git" #:path=>'/Users/jeremyw/dev/rails3-jquery-autocomplete'
 gem 'validates_formatting_of'
 
-gem 'sassc-rails'
-# gem 'sass'  # Remove this line as we're using sassc
-# gem 'sass-rails'  # Remove this line as we're using sassc-rails
 gem 'coffee-rails'
+gem 'dartsass-sprockets'
+# The production box runs macOS 13; sass-embedded 1.98.0 bumped the bundled
+# Dart runtime's minimum to macOS 14 (its compiler process dies at launch,
+# aborting assets:precompile). Lift the cap once that machine is on 14+.
+gem 'sass-embedded', '>= 1.80', '< 1.98'
 gem 'uglifier'
-# Add Foundation Here
+# Foundation 6.9 via npm (foundation-sites in package.json)
 gem 'autoprefixer-rails'
-gem 'bourbon'
-gem 'foundation-icons-sass-rails'
-gem 'foundation-rails', '~> 6.6.2.0' # This version uses older Sass syntax
 
 gem 'draper'
-gem 'foundation-datetimepicker-rails'
 gem 'jquery-timepicker-rails'
 gem 'yajl-ruby', require: 'yajl'
 # gem 'jqgrid-rails3', :git=>"https://github.com/davebaldwin/jqgrid-rails3.git"

@@ -3,16 +3,27 @@
     .grid-x.grid-padding-x
       .small-12.cell
         %h2 Now Playing
-        = render :partial=>'list_in_row', :locals=>{:productions=>@now_playing, :across=>3}
+        - @now_playing.chunk_while{|a, b| a.is_a?(Production) && b.is_a?(Production)}.each do |chunk|
+          - if chunk.first.is_a?(Production)
+            = render :partial=>'list_in_row', :locals=>{:productions=>chunk, :across=>3}
+          - else
+            = render :partial=>'festival_band', :locals=>{:band=>chunk.first}
   - unless @coming_soon.nil? || @coming_soon.empty?
     .grid-x.grid-padding-x
       .small-12.cell
         %a{:name=>"coming_soon", :href=>'#'}
         %h2 Coming Soon
-        = render :partial=>'list_in_row', :locals=>{:productions=>@coming_soon, :across=>3}
+        - @coming_soon.chunk_while{|a, b| a.is_a?(Production) && b.is_a?(Production)}.each do |chunk|
+          - if chunk.first.is_a?(Production)
+            = render :partial=>'list_in_row', :locals=>{:productions=>chunk, :across=>3}
+          - else
+            = render :partial=>'festival_band', :locals=>{:band=>chunk.first}
   - unless @long_term.nil? || @long_term.empty?
     .grid-x.grid-padding-x
       .small-12.cell
         %h2 Later This Season
-        = render :partial=>'list_in_row', :locals=>{:productions=>@long_term, :across=>3}
-
+        - @long_term.chunk_while{|a, b| a.is_a?(Production) && b.is_a?(Production)}.each do |chunk|
+          - if chunk.first.is_a?(Production)
+            = render :partial=>'list_in_row', :locals=>{:productions=>chunk, :across=>3}
+          - else
+            = render :partial=>'festival_image', :locals=>{:entry=>chunk.first}

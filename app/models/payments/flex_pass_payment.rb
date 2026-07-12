@@ -18,15 +18,23 @@ class FlexPassPayment < PassPayment
       end
 
       offer = flex_pass.flex_pass_offer
-      unless offer.maximum_uses_per_production.nil? || offer.maximum_uses_per_production.eql?(0)
-        production = record.order.performance.production
-        already = FlexPassPayment.includes(order: [{ performance: :production }]).references(order: [{ performance: :production }]).where(
-          'flex_pass_id = :flex_pass_id and performances.production_id = :production_id AND orders.status NOT IN (:non_reserving_statuses) and orders.id <> :order_id', flex_pass_id: record.flex_pass_id, production_id: production.id, non_reserving_statuses: Order.non_reserving_statuses, order_id: record.order.id
-        ).sum(:number_of_tickets)
-        if (already + record.number_of_tickets) > offer.maximum_uses_per_production
-          record.errors.add(attr,
-                            " has been exceeded for #{record.order.performance.production.name}.  This flex pass can only be redeemed for #{offer.maximum_uses_per_production} ticket(s)/production, #{record.number_of_tickets + already} requested")
-        end
+      # Payments can be saved against orders with no performance (e.g. report
+      # fixtures, imports); the caps only make sense for performance-bound orders.
+      performance = record.order&.performance
+      if performance
+        production = performance.production
+        record.send(:check_redemption_cap, attr,
+                    limit: offer.maximum_uses_per_production,
+                    scope_sql: 'performances.production_id = :scope_id',
+                    scope_id: production.id,
+                    unit: 'production',
+                    scope_name: production.name)
+        record.send(:check_redemption_cap, attr,
+                    limit: offer.maximum_uses_per_performance,
+                    scope_sql: 'orders.performance_id = :scope_id',
+                    scope_id: record.order.performance_id,
+                    unit: 'performance',
+                    scope_name: "this performance of #{production.name}")
       end
     end
   end
@@ -49,6 +57,10 @@ class FlexPassPayment < PassPayment
         raise "That Flexpass cannot be used for tickets for #{Theater.find_by_id(flex_pass.flex_pass_offer.theater_id).name} productions"
       end
     end
+    if offer.festival_id.present? && order.performance.production.festival_id != offer.festival_id
+      raise "That FlexPass is only valid for #{offer.festival.name} shows. Please contact our box office for details."
+    end
+
     tc_list = order.performance.ticket_class_allocations.select do |tca|
       tca.available
     end.map { |tca| tca.ticket_class.class_code }
@@ -82,5 +94,26 @@ class FlexPassPayment < PassPayment
     offset_payment = super
     offset_payment.flex_pass = flex_pass
     offset_payment
+  end
+
+  private
+
+  # nil or 0 limit means unlimited (matches historic maximum_uses_per_production semantics)
+  def check_redemption_cap(attr, limit:, scope_sql:, scope_id:, unit:, scope_name:)
+    return if limit.nil? || limit.zero?
+
+    already = tickets_already_redeemed(scope_sql, scope_id)
+    return unless (already + number_of_tickets) > limit
+
+    errors.add(attr,
+               " has been exceeded for #{scope_name}.  This flex pass can only be redeemed for #{limit} ticket(s)/#{unit}, #{number_of_tickets + already} requested")
+  end
+
+  def tickets_already_redeemed(scope_sql, scope_id)
+    FlexPassPayment.includes(order: [{ performance: :production }]).references(order: [{ performance: :production }]).where(
+      "flex_pass_id = :flex_pass_id and #{scope_sql} AND orders.status NOT IN (:non_reserving_statuses) and orders.id <> :order_id",
+      flex_pass_id: flex_pass_id, scope_id: scope_id,
+      non_reserving_statuses: Order.non_reserving_statuses, order_id: order.id
+    ).sum(:number_of_tickets)
   end
 end

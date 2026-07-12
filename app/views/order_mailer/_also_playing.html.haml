@@ -1,27 +1,43 @@
 %h6 Also playing at the Wit…
-- productions = Production.additional_upcoming(order)
-- productions.each do |prod|
+- entries = Production.additional_upcoming_entries(order)
+- entries.each do |entry|
   %table.spacer
     %tr
       %td.center.panel
-        %span.production_name
-          %a{:href=>url_for(controller:'performances',:production_id=>prod.id, :only_path=>false)}
-            =prod.name
-        %br
-        - if prod.promo.attached?
-          %span{:style=>'width:100%; height:100%; display: flex; align-items: center; justify-content: center;'}
-            %a{:href=>url_for(controller:'performances',:production_id=>prod.id, :only_path=>false), :align=>'center'}
-              %img{:src=>"#{prod.decorate.promo_url(Production::THUMB)}",:width=>"100%"}
-        - unless prod.short_description.blank?
-          %span.tag_line= prod.short_description
+        - if entry.is_a?(Festival)
+          %span.production_name
+            %a{:href=>(entry.landing_page_enabled? ? festival_url(entry.url_name) : box_office_productions_url(anchor: "festival-#{entry.id}"))}
+              =entry.name
           %br
-        %span.producing_company= prod.theater.name
-        %br
-        .slug
-          - if prod.now_playing?
-            Closes
-            = prod.closing_at.to_s(:short)
-          - else
-            Starts
-            = prod.first_preview_at.to_s(:short)
-        %br
+          - if entry.decorate.box_office_image_url(Production::THUMB).present?
+            %span{:style=>'width:100%; height:100%; display: flex; align-items: center; justify-content: center;'}
+              %a{:href=>(entry.landing_page_enabled? ? festival_url(entry.url_name) : box_office_productions_url(anchor: "festival-#{entry.id}")), :align=>'center'}
+                %img{:src=>"#{entry.decorate.box_office_image_url(Production::THUMB)}",:width=>"100%"}
+          - unless entry.short_description.blank?
+            %span.tag_line= entry.short_description
+            %br
+          - production_count = entry.public_productions.count
+          %span.producing_company= ["#{production_count} #{'show'.pluralize(production_count)}", entry.formatted_date_range].compact.join(' · ')
+          %br
+        - else
+          %span.production_name
+            %a{:href=>url_for(controller:'performances',:production_id=>entry.id, :only_path=>false)}
+              =entry.name
+          %br
+          - if entry.promo.attached?
+            %span{:style=>'width:100%; height:100%; display: flex; align-items: center; justify-content: center;'}
+              %a{:href=>url_for(controller:'performances',:production_id=>entry.id, :only_path=>false), :align=>'center'}
+                %img{:src=>"#{entry.decorate.promo_url(Production::THUMB)}",:width=>"100%"}
+          - unless entry.short_description.blank?
+            %span.tag_line= entry.short_description
+            %br
+          %span.producing_company= entry.theater.name
+          %br
+          .slug
+            - if entry.now_playing?
+              Closes
+              = entry.closing_at.to_s(:short)
+            - else
+              Starts
+              = entry.first_preview_at.to_s(:short)
+          %br

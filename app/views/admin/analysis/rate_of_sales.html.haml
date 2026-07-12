@@ -1,9 +1,7 @@
 = content_for :title do
   Rate of Sales Analysis
 = content_for :breadcrumbs do
-  %ul.breadcrumbs
-    %li= link_to 'Analysis', admin_analysis_index_path
-    %li.current Rate of Sales
+  = render "shared/components/breadcrumb", items: [{ label: 'Analysis', path: admin_analysis_index_path }, { label: "Rate of Sales" }]
 
 .grid-x.grid-padding-x
   .small-12.cell
@@ -25,7 +23,7 @@
         - if @results[:daily_rolling].size > 1
           = line_chart @results[:daily_rolling], xtitle: "Date", ytitle: "Rolling 7-Day Revenue", prefix: "$", library: { scales: { x: { type: "category" } } }
         - else
-          .callout.warning
+          = render "shared/components/callout", variant: "warning" do
             Insufficient daily data to chart.
 
     - if single_comparison
@@ -38,7 +36,7 @@
           - if @results[:comparison_daily_rolling].size > 1
             = line_chart @results[:comparison_daily_rolling], xtitle: "Date", ytitle: "Rolling 7-Day Revenue", prefix: "$", library: { scales: { x: { type: "category" } } }
           - else
-            .callout.warning
+            = render "shared/components/callout", variant: "warning" do
               Insufficient daily data to chart.
 
     - unless single_comparison
@@ -50,7 +48,7 @@
           - if @results[:target_tickets].size > 1
             = line_chart [{ name: "Tickets", data: @results[:target_tickets] }, { name: "Revenue", data: @results[:target_revenue] }], xtitle: "Period", ytitle: "% Change Week over Week", suffix: "%", library: { scales: { x: { type: "category" } } }
           - else
-            .callout.warning
+            = render "shared/components/callout", variant: "warning" do
               Insufficient data to chart. Only #{@results[:target_tickets].size} week(s) of sales data available.
 
       .cell.small-12.medium-4
@@ -61,7 +59,7 @@
           - if @results[:aggregate_data].size > 1
             = line_chart @results[:aggregate_data], xtitle: "Period", ytitle: "Avg % Change in Tickets Sold", suffix: "%", library: { scales: { x: { type: "category" } } }
           - else
-            .callout.warning
+            = render "shared/components/callout", variant: "warning" do
               Insufficient aggregate data to chart.
 
   - if single_comparison
@@ -74,7 +72,7 @@
           - if @results[:target_tickets].size > 1
             = line_chart [{ name: "Tickets", data: @results[:target_tickets] }, { name: "Revenue", data: @results[:target_revenue] }], xtitle: "Period", ytitle: "% Change Week over Week", suffix: "%", library: { scales: { x: { type: "category" } } }
           - else
-            .callout.warning
+            = render "shared/components/callout", variant: "warning" do
               Insufficient data to chart. Only #{@results[:target_tickets].size} week(s) of sales data available.
 
       .cell.small-12.medium-6
@@ -85,7 +83,7 @@
           - if @results[:aggregate_data].size > 1
             = line_chart @results[:aggregate_data], xtitle: "Period", ytitle: "Avg % Change in Tickets Sold", suffix: "%", library: { scales: { x: { type: "category" } } }
           - else
-            .callout.warning
+            = render "shared/components/callout", variant: "warning" do
               Insufficient aggregate data to chart.
 
   - insights = @results[:insights] || {}
@@ -97,7 +95,7 @@
           - if insights[:avg_tickets_per_week] && insights[:hist_avg_tickets_per_week]
             - ticket_ratio = insights[:avg_tickets_per_week] / insights[:hist_avg_tickets_per_week] * 100
             - color = ticket_ratio >= 110 ? 'success' : (ticket_ratio >= 90 ? 'warning' : 'alert')
-            .callout{class: color}
+            = render "shared/components/callout", variant: color do
               %h6 Tickets / Week
               %p
                 %strong= "#{insights[:avg_tickets_per_week].round(0)} tickets"
@@ -110,7 +108,7 @@
           - if insights[:avg_revenue_per_week] && insights[:hist_avg_revenue_per_week]
             - rev_ratio = insights[:performance_pct] || 0
             - color = rev_ratio >= 110 ? 'success' : (rev_ratio >= 90 ? 'warning' : 'alert')
-            .callout{class: color}
+            = render "shared/components/callout", variant: color do
               %h6 Revenue / Week
               %p
                 %strong= number_to_currency(insights[:avg_revenue_per_week])
@@ -122,7 +120,7 @@
         .small-12.medium-4.cell
           - if insights[:trajectory] && !@target_production.closed?
             - color = insights[:trajectory] == :increasing ? 'success' : (insights[:trajectory] == :steady ? 'warning' : 'alert')
-            .callout{class: color}
+            = render "shared/components/callout", variant: color do
               %h6 Current Trajectory
               %p
                 - case insights[:trajectory]
@@ -147,7 +145,7 @@
         .small-12.medium-4.cell
           - if insights[:ticket_growth_diff] && !@target_production.closed?
             - diff = insights[:ticket_growth_diff]
-            .callout.secondary
+            = render "shared/components/callout", variant: "secondary" do
               %h6 Recent Growth Rate
               %p
                 Ticket sales growing at
@@ -165,7 +163,7 @@
 
         .small-12.medium-4.cell
           - if insights[:lifecycle] && !@target_production.closed?
-            .callout.secondary
+            = render "shared/components/callout", variant: "secondary" do
               %h6 Lifecycle Position
               %p
                 This show appears to be in the
@@ -257,7 +255,7 @@
             .grid-x.grid-padding-x{style: 'margin-top: 0.5rem'}
               .cell.auto
                 - if @extra_weeks > 0
-                  %span.label.secondary Extended by #{@extra_weeks} #{'week'.pluralize(@extra_weeks)}
+                  = ui_label "Extended by #{@extra_weeks} #{'week'.pluralize(@extra_weeks)}", variant: :secondary
               .cell.shrink
                 - if @extra_weeks > 0
                   %a#reset-extension.button.secondary.small{href: '#'} Reset
@@ -281,7 +279,7 @@
 - else
   .grid-x.grid-padding-x
     .small-12.cell
-      .callout.alert
+      = render "shared/components/callout", variant: "alert" do
         No rate of sale data found for
         = @target_production.name
         \. Rate of sale data is calculated daily for active productions.
@@ -289,7 +287,7 @@
 .grid-x.grid-padding-x
   .small-12.cell
     %hr
-    = link_to 'Back to Analysis', admin_analysis_index_path(target_production_id: @target_production.id, comparison_production_ids: @comparison_productions.map(&:id)), class: 'button secondary'
+    = ui_button 'Back to Analysis', admin_analysis_index_path(target_production_id: @target_production.id, comparison_production_ids: @comparison_productions.map(&:id)), variant: :secondary
     %h6 Comparison Shows
     %table.hover
       %thead

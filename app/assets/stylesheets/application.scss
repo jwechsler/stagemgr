@@ -1,14 +1,25 @@
 @import 'foundation_and_overrides';
-@import 'bourbon';
 @import 'common';
 @import 'font-awesome';
-@import 'foundation-icons';
 @import 'jquery.timepicker';
 @import 'datatables';
 @import 'tagify';
 
 .button-group, .button-group.disabled, .button-group[disabled], .button-group.disabled:hover, .button-group[disabled]:hover, .button-group.disabled:focus, .button-group[disabled]:focus {
     background-color: transparent !important;
+}
+
+// Top-bar dropdown panes must paint above everything the app renders:
+// show listings are position:relative + z-index:100 (frontend.css) and the
+// timepicker sits at 10001, so Foundation's default of 1 slips underneath.
+.top-bar .is-dropdown-submenu {
+  z-index: 20000;
+}
+
+// Foundation 6 dropped the F5 .divider class; draw menu separators ourselves.
+.menu li.menu-divider {
+  border-bottom: 1px solid $medium-gray;
+  margin: 0.25rem 0;
 }
 
 div.dt-buttons {
@@ -93,10 +104,17 @@ select[size], select[multiple] {
   font-size: 150%;
 }
 
-.theater-tags {
+// Smaller status labels so they read as labels, not tiny buttons.
+.label.tiny {
+  font-size: 0.65rem;
+  padding: 0.2rem 0.5rem;
+  vertical-align: middle;
+}
+
+.tag-pills {
   margin-left: 0.5rem;
 
-  .theater-tag {
+  .tag-pill {
     margin-left: 0.25rem;
     border-radius: 1rem;
     padding: 0.15rem 0.6rem;

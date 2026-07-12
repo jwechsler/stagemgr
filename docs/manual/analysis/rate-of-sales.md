@@ -25,7 +25,7 @@ The analysis page has five sections:
 
 !!! note "Revenue figure consistency"
     The gross revenue shown here is the same total cash figure used by the
-    [Production Sales by Performance](../reports/production-sales.md) report and the
+    [Production Sales By Performance](../reports/production-sales.md) report and the
     [Ticket Revenue Analysis](ticket-revenue.md) screen. Rate of Sales stores daily
     snapshots keyed on the order's creation date, and those snapshots are refreshed by
     a scheduled background job — the analysis screen itself never recomputes on page
@@ -37,7 +37,7 @@ The analysis page has five sections:
       days**, so any refund or exchange applied to an order within that window
       self-heals into the snapshot the following night. Drift on orders older than 30
       days stays frozen (Rate of Sales is used for velocity, not cumulative
-      reconciliation — use the Production Sales by Performance report for an as-of-now
+      reconciliation — use the Production Sales By Performance report for an as-of-now
       cash figure).
 
     If you need the snapshot refreshed immediately after a large refund, an administrator

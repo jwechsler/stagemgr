@@ -1,0 +1,6 @@
+= content_for :title do
+  = @membership.member_code
+= content_for :breadcrumbs do
+  = render "shared/components/breadcrumb", items: [{ label: 'Memberships', path: admin_memberships_path }, { label: @membership.member_code }]
+
+= render 'form', membership: @membership

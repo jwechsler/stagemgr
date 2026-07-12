@@ -19,11 +19,10 @@ class Theater < ApplicationRecord
   has_many :special_offers, inverse_of: :theaters
   has_many :flex_pass_offers, inverse_of: :theater
   has_many :orders, inverse_of: :theater
-  has_many :theater_tags, inverse_of: :theater, dependent: :destroy, autosave: true
 
-  scope :tagged_with, lambda { |name|
-    joins(:theater_tags).where("LOWER(theater_tags.name) = ?", name.to_s.downcase).distinct
-  }
+  include Taggable
+
+  has_tags :theater_tags
 
   # Returns theaters whose name contains the string OR whose tags contain it.
   # Case-insensitive substring match.
@@ -32,34 +31,6 @@ class Theater < ApplicationRecord
     by_name_ids = where("LOWER(theaters.name) LIKE ?", q).pluck(:id)
     by_tag_ids  = joins(:theater_tags).where("LOWER(theater_tags.name) LIKE ?", q).distinct.pluck(:id)
     where(id: (by_name_ids + by_tag_ids).uniq)
-  end
-
-  def tag_names
-    theater_tags.reject(&:marked_for_destruction?).map(&:name).sort_by { |n| n.to_s.downcase }
-  end
-
-  def tag_names=(value)
-    list =
-      case value
-      when nil, '' then []
-      when Array   then value.map { |v| v.is_a?(Hash) ? v['value'] : v.to_s }
-      when String  then value.split(',')
-      else []
-      end
-
-    desired = list.map { |s| s.to_s.strip }.compact_blank.uniq { |s| s.downcase }
-    desired_lc = desired.map(&:downcase)
-
-    theater_tags.each do |tag|
-      tag.mark_for_destruction unless desired_lc.include?(tag.name.to_s.downcase)
-    end
-
-    existing_lc = theater_tags.reject(&:marked_for_destruction?).map { |t| t.name.to_s.downcase }
-    desired.each do |name|
-      next if existing_lc.include?(name.downcase)
-
-      theater_tags.build(name: name)
-    end
   end
 
   has_and_belongs_to_many :users # , :as=>:owners

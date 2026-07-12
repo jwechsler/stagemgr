@@ -44,6 +44,7 @@ nav:
     - Users: setup/users.md
     - Email Configuration: setup/email-configuration.md
   - Productions:
+    - Finding Productions: productions/finding-productions.md
     - Creating a Production: productions/creating-a-production.md
     - Production Settings: productions/production-settings.md
     - General vs Reserved Seating: productions/general-vs-reserved.md
@@ -53,6 +54,11 @@ nav:
     - Dynamic Pricing: productions/dynamic-pricing.md
     - Duplicating Performances: productions/duplicating-performances.md
     - Season Seating: productions/season-seating.md
+  - Festivals:
+    - Festivals Overview: festivals/festivals-overview.md
+    - Public Display: festivals/public-display.md
+    - Festival Passes & Membership Caps: festivals/passes-and-membership-caps.md
+    - Festival Reporting: festivals/festival-reporting.md
   - Offers & Pricing:
     - Special Offers: offers/special-offers.md
     - Duplicating Special Offers: offers/duplicating-special-offers.md
@@ -75,6 +81,7 @@ nav:
     - Donation Orders: ticketing/donation-orders.md
     - Flex Pass Orders: ticketing/flex-pass-orders.md
     - Membership Orders: ticketing/membership-orders.md
+    - Managing Memberships: ticketing/managing-memberships.md
   - Customers:
     - Managing Patrons: customers/managing-patrons.md
     - Patron Tags: customers/patron-tags.md

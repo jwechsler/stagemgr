@@ -4,10 +4,6 @@
 = content_for :breadcrumbs do
   .grid-x
     .small-10.cell
-      %ul.breadcrumbs
-        %li
-          = link_to 'Orders', admin_orders_path
-        %li.current
-          = order.id.nil? ? "New Order" : "Order \##{order.id}"
+      = render "shared/components/breadcrumb", items: [{ label: 'Orders', path: admin_orders_path }, { label: (order.id.nil? ? "New Order" : "Order \##{order.id}") }]
     .small-2.cell
       = render '/admin/orders/status_bar', :order=>order

@@ -1,5 +1,4 @@
 //= require application
-//= require foundation
 
 function count_assigned() {
   count = 0

@@ -102,6 +102,471 @@ RSpec.describe TicketOrder do
     expect { o.transition_to!(Order::FULFILLED) }.to raise_error(Exceptions::TooManyTicketsForMembership)
   end
 
+  describe "festival-restricted flex pass gate" do
+    let(:festival) { FactoryBot.create(:festival) }
+
+    def flex_pass_for(offer)
+      FactoryBot.create(:flex_pass_order, flex_pass_offer: offer).flex_pass
+    end
+
+    def flex_pass_order_on(production, pass)
+      performance = FactoryBot.create(:general_admission, production: production)
+      order = FactoryBot.create(:ticket_order, :for_a_single_ticket, :paid_with_flex_pass,
+                                performance: performance, flex_pass_code: pass.code)
+      order.reload
+      order
+    end
+
+    it "accepts a flex pass redeemed on a production in the offer's festival" do
+      offer = FactoryBot.create(:flex_pass_offer, festival: festival)
+      pass = flex_pass_for(offer)
+      order = flex_pass_order_on(FactoryBot.create(:production, festival: festival), pass)
+
+      expect { order.flex_pass_payments.first.process!(order) }.not_to raise_error
+    end
+
+    it "rejects a flex pass redeemed on a production in a different festival" do
+      offer = FactoryBot.create(:flex_pass_offer, festival: festival)
+      pass = flex_pass_for(offer)
+      other_festival = FactoryBot.create(:festival)
+      order = flex_pass_order_on(FactoryBot.create(:production, festival: other_festival), pass)
+
+      expect { order.flex_pass_payments.first.process!(order) }
+        .to raise_error(/only valid for #{festival.name} shows/)
+    end
+
+    it "rejects a festival flex pass redeemed on a production with no festival" do
+      offer = FactoryBot.create(:flex_pass_offer, festival: festival)
+      pass = flex_pass_for(offer)
+      order = flex_pass_order_on(FactoryBot.create(:production), pass)
+
+      expect { order.flex_pass_payments.first.process!(order) }
+        .to raise_error(/only valid for #{festival.name} shows/)
+    end
+
+    it "leaves unrestricted flex passes usable on any production (no festival gate)" do
+      offer = FactoryBot.create(:flex_pass_offer, festival: nil)
+      pass = flex_pass_for(offer)
+      order = flex_pass_order_on(FactoryBot.create(:production, festival: festival), pass)
+
+      expect { order.flex_pass_payments.first.process!(order) }.not_to raise_error
+    end
+
+    it "still enforces the theater gate alongside the festival gate (additive)" do
+      offer_theater = FactoryBot.create(:theater)
+      offer = FactoryBot.create(:flex_pass_offer, festival: festival,
+                                                  theater: offer_theater, exclude_theater: false)
+      pass = flex_pass_for(offer)
+      # Production is in the festival but at a different theater: the untouched
+      # theater gate fires first, proving the festival gate is purely additive.
+      production = FactoryBot.create(:production, festival: festival, theater: FactoryBot.create(:theater))
+      order = flex_pass_order_on(production, pass)
+
+      expect { order.flex_pass_payments.first.process!(order) }
+        .to raise_error(/restricted to #{offer_theater.name}/)
+    end
+  end
+
+  describe "membership festival advance cap" do
+    let(:festival) { FactoryBot.create(:festival) }
+    let(:prod_a) { FactoryBot.create(:production, festival: festival) }
+    let(:prod_b) { FactoryBot.create(:production, festival: festival) }
+    let(:perf_a) { FactoryBot.create(:general_admission, production: prod_a) }
+    let(:perf_b) { FactoryBot.create(:general_admission, production: prod_b) }
+
+    def membership_with_cap(cap)
+      # High per-performance limit keeps the unrelated per-performance/per-production
+      # checks from firing so these examples isolate the festival advance cap.
+      offer = FactoryBot.create(:membership_offer, tickets_per_performance: 10,
+                                                   max_festival_tickets_in_advance: cap)
+      FactoryBot.create(:membership, membership_offer: offer)
+    end
+
+    # Persist a prior processed order that consumes festival tickets, bypassing
+    # validation so setup can build up state independent of the cap under test.
+    def consume_festival_tickets(membership, performance, tickets)
+      order = FactoryBot.create(:ticket_order, :for_a_single_ticket,
+                                address: membership.address, performance: performance)
+      order.payments << FactoryBot.build(:membership_payment, number_of_tickets: tickets,
+                                                              membership: membership, amount: 0)
+      order.status = Order::PROCESSED
+      order.save!(validate: false)
+      order
+    end
+
+    # A persisted-but-unprocessed order requesting festival tickets to run verify
+    # against (real orders always have an id by the time this cap is checked).
+    def pending_festival_order(membership, performance, tickets, box_office: false)
+      order = FactoryBot.create(:ticket_order, :for_a_single_ticket,
+                                address: membership.address, performance: performance)
+      order.box_office_sale = box_office
+      order.payments << FactoryBot.build(:membership_payment, number_of_tickets: tickets,
+                                                              membership: membership, amount: 0)
+      order
+    end
+
+    it "allows a request that stays under the festival cap" do
+      membership = membership_with_cap(2)
+      order = pending_festival_order(membership, perf_b, 1)
+
+      expect { membership.verify_applicable_for(order) }.not_to raise_error
+    end
+
+    it "allows a request that exactly reaches the festival cap across two productions" do
+      membership = membership_with_cap(2)
+      consume_festival_tickets(membership, perf_a, 1)
+      order = pending_festival_order(membership, perf_b, 1)
+
+      expect { membership.verify_applicable_for(order) }.not_to raise_error
+    end
+
+    it "blocks a web request that exceeds the festival cap across two productions" do
+      membership = membership_with_cap(2)
+      consume_festival_tickets(membership, perf_a, 2)
+      order = pending_festival_order(membership, perf_b, 1)
+
+      expect { membership.verify_applicable_for(order) }
+        .to raise_error(Exceptions::FestivalTicketsAtDoorOnly,
+                        /covers 2 #{festival.name} tickets in advance/)
+    end
+
+    it "uses singular 'ticket' when the cap is one" do
+      membership = membership_with_cap(1)
+      consume_festival_tickets(membership, perf_a, 1)
+      order = pending_festival_order(membership, perf_b, 1)
+
+      expect { membership.verify_applicable_for(order) }
+        .to raise_error(Exceptions::FestivalTicketsAtDoorOnly,
+                        /covers 1 #{festival.name} ticket in advance/)
+    end
+
+    it "lets box office sales exceed the festival cap" do
+      membership = membership_with_cap(2)
+      consume_festival_tickets(membership, perf_a, 2)
+      order = pending_festival_order(membership, perf_b, 5, box_office: true)
+
+      expect { membership.verify_applicable_for(order) }.not_to raise_error
+    end
+
+    it "is a no-op when the offer has no festival cap" do
+      membership = membership_with_cap(nil)
+      consume_festival_tickets(membership, perf_a, 5)
+      order = pending_festival_order(membership, perf_b, 5)
+
+      expect { membership.verify_applicable_for(order) }.not_to raise_error
+    end
+
+    it "is a no-op for productions that are not in a festival" do
+      membership = membership_with_cap(1)
+      plain_perf = FactoryBot.create(:general_admission, production: FactoryBot.create(:production))
+      order = pending_festival_order(membership, plain_perf, 10)
+
+      expect { membership.verify_applicable_for(order) }.not_to raise_error
+    end
+
+    it "leaves the same-show RepeatVisitsAtDoorOnly rule untouched" do
+      membership = membership_with_cap(nil)
+      plain_prod = FactoryBot.create(:production)
+      plain_perf = FactoryBot.create(:general_admission, production: plain_prod)
+      pass_class = plain_prod.ticket_classes.find do |tc|
+        tc.class_code == membership.membership_offer.use_ticket_class_code
+      end
+
+      prior = FactoryBot.build(:ticket_order, address: membership.address, performance: plain_perf)
+      prior.ticket_line_items << FactoryBot.build(:ticket_line_item, ticket_class: pass_class,
+                                                                     ticket_count: 1, order: prior)
+      prior.save!
+      prior.payments << FactoryBot.build(:membership_payment, number_of_tickets: 1,
+                                                              membership: membership, amount: 0)
+      prior.status = Order::PROCESSED
+      prior.save!(validate: false)
+
+      order = pending_festival_order(membership, plain_perf, 1)
+      expect { membership.verify_applicable_for(order) }
+        .to raise_error(Exceptions::RepeatVisitsAtDoorOnly)
+    end
+  end
+
+  describe "timed membership (library pass) redemption" do
+    # Anchor on a fixed Wednesday so Monday-Sunday week boundaries are deterministic.
+    let(:today) { Date.new(2025, 6, 11) }
+    let(:this_monday) { Date.new(2025, 6, 9) }
+    let(:this_sunday) { Date.new(2025, 6, 15) }
+    let(:prev_sunday) { Date.new(2025, 6, 8) }
+    let(:next_monday) { Date.new(2025, 6, 16) }
+
+    around { |example| travel_to(today) { example.run } }
+
+    # A shared library pass, staff-issued: no Stripe profile, its own owner
+    # address distinct from any buyer.
+    def timed_membership(seats: 1, owner_email: nil)
+      offer = FactoryBot.create(:membership_offer, :timed, tickets_per_performance: seats)
+      attrs = { membership_offer: offer, profile_id: nil, status: Membership::ACTIVE }
+      attrs[:address] = FactoryBot.create(:address, email: owner_email) unless owner_email.nil?
+      FactoryBot.create(:membership, **attrs)
+    end
+
+    def performance_on(date)
+      FactoryBot.create(:general_admission, performance_date: date)
+    end
+
+    # A prior attending redemption, persisted with validation skipped so setup
+    # can build up state independent of the rule under test.
+    def prior_redemption(membership, performance, tickets: 1, status: Order::PROCESSED)
+      order = FactoryBot.create(:ticket_order, :for_a_single_ticket,
+                                address: FactoryBot.create(:address), performance: performance)
+      order.payments << FactoryBot.build(:membership_payment, number_of_tickets: tickets,
+                                                              membership: membership, amount: 0)
+      order.status = status
+      order.save!(validate: false)
+      order
+    end
+
+    # A pending redemption order (distinct buyer address) to run the rules against.
+    def redemption_order(membership, performance, trait = :for_a_single_ticket, box_office: false)
+      order = FactoryBot.create(:ticket_order, trait,
+                                address: FactoryBot.create(:address), performance: performance)
+      order.box_office_sale = box_office
+      order.payments << FactoryBot.build(:membership_payment, number_of_tickets: order.number_of_seats,
+                                                              membership: membership, amount: 0)
+      order
+    end
+
+    it "allows the first redemption of the week" do
+      membership = timed_membership
+      order = redemption_order(membership, performance_on(today))
+
+      expect { membership.verify_applicable_for(order) }.not_to raise_error
+    end
+
+    it "blocks a second redemption in the same week on a different performance" do
+      membership = timed_membership
+      prior_redemption(membership, performance_on(this_monday))
+      order = redemption_order(membership, performance_on(this_sunday))
+
+      expect { membership.verify_applicable_for(order) }
+        .to raise_error(Exceptions::PassAlreadyUsedThisWeek)
+    end
+
+    it "blocks a second redemption in the same week even on the SAME performance under the seat cap" do
+      membership = timed_membership(seats: 4)
+      performance = performance_on(today)
+      prior_redemption(membership, performance, tickets: 1)
+      order = redemption_order(membership, performance)
+
+      expect { membership.verify_applicable_for(order) }
+        .to raise_error(Exceptions::PassAlreadyUsedThisWeek)
+    end
+
+    it "blocks an unsaved order when a prior same-week redemption exists" do
+      membership = timed_membership
+      prior_redemption(membership, performance_on(this_monday))
+      order = FactoryBot.build(:ticket_order, :for_a_single_ticket,
+                               address: FactoryBot.create(:address), performance: performance_on(this_sunday))
+      order.payments << FactoryBot.build(:membership_payment, number_of_tickets: 1,
+                                                              membership: membership, amount: 0)
+
+      expect(order.id).to be_nil
+      expect { membership.verify_applicable_for(order) }
+        .to raise_error(Exceptions::PassAlreadyUsedThisWeek)
+    end
+
+    it "allows a redemption when the only prior use was in the previous week" do
+      membership = timed_membership
+      prior_redemption(membership, performance_on(prev_sunday))
+      order = redemption_order(membership, performance_on(today))
+
+      expect { membership.verify_applicable_for(order) }.not_to raise_error
+    end
+
+    it "does not block across the Sunday/Monday week boundary" do
+      membership = timed_membership
+      prior_redemption(membership, performance_on(prev_sunday))
+      order = redemption_order(membership, performance_on(this_monday))
+
+      expect { membership.verify_applicable_for(order) }.not_to raise_error
+    end
+
+    it "blocks a Monday prior against that week's Sunday" do
+      membership = timed_membership
+      prior_redemption(membership, performance_on(this_monday))
+      order = redemption_order(membership, performance_on(this_sunday))
+
+      expect { membership.verify_applicable_for(order) }
+        .to raise_error(Exceptions::PassAlreadyUsedThisWeek)
+    end
+
+    it "ignores a prior redemption that was refunded" do
+      membership = timed_membership
+      prior_redemption(membership, performance_on(this_monday), status: Order::REFUNDED)
+      order = redemption_order(membership, performance_on(this_sunday))
+
+      expect { membership.verify_applicable_for(order) }.not_to raise_error
+    end
+
+    it "rejects an order that exceeds the per-order seat cap" do
+      membership = timed_membership(seats: 1)
+      order = redemption_order(membership, performance_on(today), :for_a_pair_of_tickets)
+
+      expect { membership.verify_applicable_for(order) }
+        .to raise_error(Exceptions::TooManyTicketsForMembership)
+    end
+
+    it "still enforces week exclusivity for box office sales" do
+      membership = timed_membership
+      prior_redemption(membership, performance_on(this_monday))
+      order = redemption_order(membership, performance_on(this_sunday), box_office: true)
+
+      expect { membership.verify_applicable_for(order) }
+        .to raise_error(Exceptions::PassAlreadyUsedThisWeek)
+    end
+
+    describe "booking window (via MembershipPayment#process!)" do
+      def redemption_for_process(membership, performance, box_office: false)
+        order = FactoryBot.create(:ticket_order, :for_a_single_ticket,
+                                  address: FactoryBot.create(:address), performance: performance)
+        order.box_office_sale = box_office
+        payment = FactoryBot.create(:membership_payment, order: order, membership: membership,
+                                                         number_of_tickets: 1, amount: 0)
+        order.payments.reload
+        [order, payment]
+      end
+
+      it "allows a performance later this week" do
+        membership = timed_membership
+        order, payment = redemption_for_process(membership, performance_on(this_sunday))
+
+        expect { payment.process!(order) }.not_to raise_error
+      end
+
+      it "allows a performance today" do
+        membership = timed_membership
+        order, payment = redemption_for_process(membership, performance_on(today))
+
+        expect { payment.process!(order) }.not_to raise_error
+      end
+
+      it "rejects a performance in a later week" do
+        membership = timed_membership
+        order, payment = redemption_for_process(membership, performance_on(next_monday))
+
+        expect { payment.process!(order) }
+          .to raise_error(Exceptions::PerformanceOutsideCurrentWeek)
+      end
+
+      it "still enforces the booking window for box office sales" do
+        membership = timed_membership
+        order, payment = redemption_for_process(membership, performance_on(next_monday), box_office: true)
+
+        expect { payment.process!(order) }
+          .to raise_error(Exceptions::PerformanceOutsideCurrentWeek)
+      end
+    end
+
+    describe "shared-pass owner-email handling (via MembershipPayment#process!)" do
+      it "ignores an owner-email mismatch for timed offers" do
+        membership = timed_membership(owner_email: 'owner@library.test')
+        order = FactoryBot.create(:ticket_order, :for_a_single_ticket,
+                                  address: FactoryBot.create(:address, email: 'patron@example.test'),
+                                  performance: performance_on(today))
+        payment = FactoryBot.create(:membership_payment, order: order, membership: membership,
+                                                         number_of_tickets: 1, amount: 0)
+        order.payments.reload
+
+        expect { payment.process!(order) }.not_to raise_error
+      end
+
+      it "still rejects an owner-email mismatch for production offers" do
+        owner = FactoryBot.create(:address, email: 'owner@members.test')
+        offer = FactoryBot.create(:membership_offer)
+        membership = FactoryBot.create(:membership, address: owner, membership_offer: offer)
+        order = FactoryBot.create(:ticket_order, :for_a_single_ticket,
+                                  address: FactoryBot.create(:address, email: 'someone@else.test'),
+                                  performance: performance_on(today))
+        payment = FactoryBot.create(:membership_payment, order: order, membership: membership,
+                                                         number_of_tickets: 1, amount: 0)
+        order.payments.reload
+
+        expect { payment.process!(order) }
+          .to raise_error(/does not match provided email address/)
+      end
+    end
+
+    it "rejects a canceled timed membership with the standard inactive error" do
+      membership = timed_membership
+      membership.update!(status: Membership::CANCELED)
+      order = FactoryBot.create(:ticket_order, :for_a_single_ticket,
+                                address: FactoryBot.create(:address), performance: performance_on(today))
+      payment = FactoryBot.create(:membership_payment, order: order, membership: membership,
+                                                       number_of_tickets: 1, amount: 0)
+      order.payments.reload
+
+      expect { payment.process!(order) }.to raise_error(/not active/)
+    end
+
+    describe "link_to_address_of_record" do
+      def redemption_paid_by(membership, buyer)
+        order = FactoryBot.create(:ticket_order, :for_a_single_ticket,
+                                  address: buyer, performance: performance_on(today))
+        FactoryBot.create(:membership_payment, order: order, membership: membership,
+                                               number_of_tickets: 1, amount: 0)
+        order.payments.reload
+        order
+      end
+
+      it "re-points a production-membership order to the owner's address" do
+        owner = FactoryBot.create(:address)
+        offer = FactoryBot.create(:membership_offer)
+        membership = FactoryBot.create(:membership, address: owner, membership_offer: offer)
+        buyer = FactoryBot.create(:address)
+        order = redemption_paid_by(membership, buyer)
+
+        order.link_to_address_of_record
+
+        expect(order.address.id).to eq(owner.id)
+      end
+
+      it "keeps the buyer's address for a timed-membership order and leaves the owner untouched" do
+        membership = timed_membership
+        owner = membership.address
+        buyer = FactoryBot.create(:address)
+        order = redemption_paid_by(membership, buyer)
+
+        order.link_to_address_of_record
+
+        expect(order.address.id).to eq(buyer.id)
+        expect(Address.exists?(owner.id)).to be true
+      end
+
+      # Regression: LinkHistoricPerformanceHoldsToAddressOfRecord crashed with
+      # "Cannot delete an address associated with orders" when an old order could
+      # no longer be re-saved (its performance had sold down since purchase). The
+      # unchecked `save` left the order bound to its address, but the destroy guard
+      # excludes the current order, so it destroyed the still-referenced address and
+      # Address#ensure_no_finalized_orders raised, aborting the whole job.
+      it "does not destroy the address when the order cannot be re-saved onto the address of record" do
+        dup_attrs = { full_name: "Pat Historic", first_name: "Pat", last_name: "Historic",
+                      email: "pat.historic@example.com" }
+        # Earlier-id duplicate is what find_original selects as the address of record.
+        FactoryBot.create(:address, **dup_attrs)
+        buyer = FactoryBot.create(:address, **dup_attrs)
+
+        production = FactoryBot.create(:production, capacity: 4)
+        performance = FactoryBot.create(:performance, production: production)
+        order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash,
+                                  address: buyer, performance: performance)
+
+        # Historic condition: the performance has since sold down, so this order can
+        # no longer clear ticket_stock_available and `save` becomes a silent no-op.
+        production.update!(capacity: 1)
+
+        expect { order.link_to_address_of_record }.not_to raise_error
+        expect(Address.exists?(buyer.id)).to be true
+        expect(order.reload.address_id).to eq(buyer.id)
+      end
+    end
+  end
+
   it "should preserve the attendance when cancelling one of multiple reservations" do
     o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
     a = o.address
@@ -313,6 +778,19 @@ RSpec.describe TicketOrder do
   end
 
   context "when splitting" do
+    it "is not splittable when a buy X get Y offer was used" do
+      order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
+      expect(order.splittable?).to be true
+      order.build_special_offer_line_item(special_offer: FactoryBot.create(:buy_x_get_y_special_offer))
+      expect(order.splittable?).to be false
+    end
+
+    it "remains splittable with other special offer types" do
+      order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
+      order.build_special_offer_line_item(special_offer: FactoryBot.create(:percent_off_special_offer))
+      expect(order.splittable?).to be true
+    end
+
     it "replicates existing tasks and state" do
       original_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
       expect(original_order.tasks.size).to eql(2)
