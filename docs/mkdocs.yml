@@ -1,6 +1,6 @@
 site_name: Stagemgr User Manual
 site_description: User manual for Stagemgr ticketing platform
-site_url: https://jwechsler.github.io/stagemgr/
+site_url: https://stagemgr.theaterwit.org/
 docs_dir: manual
 
 theme:
