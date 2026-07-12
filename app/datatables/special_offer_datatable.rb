@@ -34,12 +34,12 @@ class SpecialOfferDatatable < DatatableBase
   private
 
   def get_raw_records
-    # t_ids = Theater.where("status != 'Inactive'").map {|x| x.id}
-    # prod_ids = Production.where("status != 'Inactive'").map {|x| x.id}
-    # perf_ids = Performance.where("status != 'Inactive' and production_id in (?)",prod_ids).map {|x| x.id}
-    # prevent scan... or (theater_id is null and performance_id is null and production_id is null)
-    # .order("code, performance_id, production_id, theater_id")
-    SpecialOffer.where(system_generated: false).order(:code)
+    scope = SpecialOffer.where(system_generated: false).order(:code)
+    case params[:status_scope]
+    when 'active'   then scope.status_active
+    when 'inactive' then scope.status_inactive_or_expired
+    else scope
+    end
   end
 
   # ==== These methods represent the basic operations to perform on records

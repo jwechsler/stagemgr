@@ -33,6 +33,9 @@ class SpecialOffer < ApplicationRecord
   ACTIVE, INACTIVE, EXPIRED =
     "Active", "Inactive", "Expired")
 
+  scope :status_active, -> { where(status: ACTIVE) }
+  scope :status_inactive_or_expired, -> { where(status: [INACTIVE, EXPIRED]) }
+
   attr_accessor :limiting_model_type
   attr_accessor :limiting_id
 

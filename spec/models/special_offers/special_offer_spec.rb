@@ -1,6 +1,25 @@
 require 'rails_helper'
 
 RSpec.describe SpecialOffer, type: :model do
+  describe 'status scopes' do
+    let!(:active_offer)   { FactoryBot.create(:percent_off_special_offer, status: SpecialOffer::ACTIVE) }
+    let!(:inactive_offer) { FactoryBot.create(:percent_off_special_offer, status: SpecialOffer::INACTIVE) }
+    let!(:expired_offer)  { FactoryBot.create(:percent_off_special_offer, status: SpecialOffer::EXPIRED) }
+
+    describe '.status_active' do
+      it 'returns only Active offers' do
+        expect(described_class.status_active).to contain_exactly(active_offer)
+      end
+    end
+
+    describe '.status_inactive_or_expired' do
+      it 'returns Inactive and Expired offers' do
+        expect(described_class.status_inactive_or_expired)
+          .to contain_exactly(inactive_offer, expired_offer)
+      end
+    end
+  end
+
   describe '.deactivate_stale_offers' do
     # Pin the clock so "1 month ago" is stable regardless of when specs run
     # (late-evening Pacific runs cross the UTC date boundary).

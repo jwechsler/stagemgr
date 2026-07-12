@@ -5,48 +5,66 @@
 
 .grid-x.grid-padding-x
   .small-12.cell
-    %table#special_offer_listing{:data=>{:source=>"#{admin_special_offers_path(format: :json)}"}}
-      %thead
-        %tr
-          %th Code
-          %th Description
-          %th # Uses
-          %th Status
-          %th Expires
-      %tbody
+    %ul.tabs#offer-status-tabs(data-tabs)
+      %li.tabs-title.is-active
+        %a{:href => "#active-offers-panel", 'aria-selected' => "true"} Active
+      %li.tabs-title
+        %a{:href => "#inactive-offers-panel"} Expired/Inactive
+
+    .tabs-content{'data-tabs-content' => 'offer-status-tabs'}
+      - %w[active inactive].each do |status_scope|
+        %div{id: "#{status_scope}-offers-panel", class: "tabs-panel #{'is-active' if status_scope == 'active'}"}
+          %table{id: "#{status_scope}_special_offer_listing", data: {source: admin_special_offers_path(format: :json, status_scope: status_scope)}}
+            %thead
+              %tr
+                %th Code
+                %th Description
+                %th # Uses
+                %th Status
+                %th Expires
+            %tbody
 
 .grid-x.grid-padding-x
   .small-12.cell
     .button-group.small.float-right
-      = ui_button "Deactivate Stale Offers", deactivate_stale_admin_special_offers_path,
-        variant: :alert, method: :post,
-        data: { confirm: "Deactivate every Active offer whose performance, production, expiration date, or performance date range ended more than a month ago? This cannot be undone." }
+      - if Rails.env.development? || Rails.env.test?
+        = ui_button "Deactivate Stale Offers", deactivate_stale_admin_special_offers_path,
+          variant: :alert, method: :post,
+          data: { confirm: "Deactivate every Active offer whose performance, production, expiration date, or performance date range ended more than a month ago? This cannot be undone." }
       - SpecialOffer::OFFER_TYPES.each do |type, meta|
         = ui_button "Add #{meta[:label]} Offer", new_admin_special_offer_path(type: type)
 
 = content_for :js do
   :javascript
     $(document).ready(function() {
-      $('#special_offer_listing').dataTable({
-        // dom: 'lf<"toolbar-buttons">rtip',
+      var offerColumns = [
+        {data: 'code', className: 'all'},
+        {data: 'description', className: 'min-medium'},
+        {data: 'number_of_uses', className: 'none'},
+        {data: 'status', className: 'min-medium'},
+        {data: 'expires', className: 'all'},
+      ];
 
-        "processing": true,
-        "serverSide": true,
-        "stateSave": true,
-        "ajax": $('#special_offer_listing').data('source'),
-        "pagingType": 'full_numbers',
-        "language": {
-          "lengthMenu" : "_MENU_"
-        },
-        columns: [
-          {data: 'code'},
-          {data: 'description'},
-          {data: 'number_of_uses'},
-          {data: 'status'},
-          {data: 'expires'},
-        ]
+      function initOfferTable(selector) {
+        $(selector).dataTable({
+          "processing": true,
+          "serverSide": true,
+          "stateSave": true,
+          "ajax": $(selector).data('source'),
+          "pagingType": 'full_numbers',
+          "language": {
+            "lengthMenu" : "_MENU_"
+          },
+          columns: offerColumns
+        });
+      }
+
+      initOfferTable('#active_special_offer_listing');
+      initOfferTable('#inactive_special_offer_listing');
+
+      // Tables in an initially-hidden tab panel lay out with zero-width
+      // columns; recalculate once their panel becomes visible.
+      $('#offer-status-tabs').on('change.zf.tabs', function () {
+        $.fn.dataTable.tables({visible: true, api: true}).columns.adjust().responsive.recalc();
       });
-
-      // setupActiveSwitchOnDataTable('#special-offer-listing',3)
-
     });
