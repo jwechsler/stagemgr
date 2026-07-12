@@ -9,7 +9,7 @@
 
 ## Overview
 
-![Special offers list showing codes, descriptions, usage counts, status, and expiration dates](../assets/images/screenshots/offers-special-offers-list.png)
+![Special offers list showing the Active tab with codes, descriptions, status, and expiration dates](../assets/images/screenshots/offers-special-offers-list.png)
 
 Special offers are promo codes that customers enter at checkout to receive a discount or ticket class change. Stagemgr supports four types of special offers, each with distinct behavior:
 
@@ -19,6 +19,22 @@ Special offers are promo codes that customers enter at checkout to receive a dis
 | **PercentOffSpecialOffer** | % Off | Deducts a percentage from the total of qualifying tickets |
 | **TicketClassSpecialOffer** | TktClass | Replaces the ticket class with a different class at checkout |
 | **BuyXGetYSpecialOffer** | Buy X Get Y | Frees the cheapest tickets for every full group bought (e.g. buy 2, get 1 free) |
+
+### Active and Expired/Inactive Tabs
+
+The offers list is divided into two tabs:
+
+| Tab | Shows |
+|-----|-------|
+| **Active** | Offers with `Active` status -- the codes customers can currently redeem. This tab opens by default. |
+| **Expired/Inactive** | Offers with `Inactive` or `Expired` status, kept for reference or later reactivation. |
+
+Each tab has its own search box, column sorting, and paging, so you can filter one list without affecting the other. The searches and sort order you set are remembered separately per tab when you return to the page.
+
+![Expired/Inactive tab listing offers with Inactive and Expired statuses](../assets/images/screenshots/offers-special-offers-inactive-tab.png)
+
+!!! tip "Where did my offer go?"
+    Changing an offer's status moves it between tabs. If a code you expect to see is missing from the Active tab, check the Expired/Inactive tab -- it may have been deactivated or passed its Auto Expire date.
 
 ## Creating a Special Offer
 
@@ -149,6 +165,10 @@ Check any combination of **Sunday** through **Saturday** to restrict the offer t
 
 ## Managing Existing Offers
 
-- **Deactivate** an offer by setting its status to `Inactive`.
+- **Deactivate** an offer by setting its status to `Inactive`. It moves to the **Expired/Inactive** tab and can no longer be redeemed.
+- **Reactivate** an offer from the Expired/Inactive tab by setting its status back to `Active`.
 - **Track usage** by reviewing the Number of Uses counter on the offer detail page.
 - Offers that pass their Auto Expire datetime are automatically marked `Expired`.
+
+!!! note "Automatic weekly cleanup"
+    Once a week, Stagemgr automatically marks an `Active` offer `Inactive` when everything it targets is well in the past -- its performance, production, expiration date, or performance date range ended more than a month ago. These offers appear on the Expired/Inactive tab afterward. Reactivate an offer manually if it was cleaned up but you still need it.
