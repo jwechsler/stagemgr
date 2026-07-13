@@ -18,7 +18,7 @@ RSpec.describe PerformancesController, type: :controller do
 
       get :ticket_classes, params: { id: performance.id }, format: :json
       expect(response).to be_successful
-      result = JSON.parse(response.body)
+      result = response.parsed_body
 
       expect(result).not_to be_empty
       expect(result).to all(have_key('holds_seats'))

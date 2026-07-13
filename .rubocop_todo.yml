@@ -390,8 +390,10 @@ Metrics/BlockNesting:
 # inventory vocabulary facade (3 LOC). TicketOrder was already at the limit.
 # Max bumped 1020 -> 1024 for the reviewed TicketOrder#buy_x_get_y_offer?
 # predicate backing the BXGY non-splittable rule (4 LOC).
+# Max ratcheted 1024 -> 859 after extracting the tktprint printing block from
+# TicketOrder into TktprintPrintable; TicketOrder (859) is still the largest.
 Metrics/ClassLength:
-  Max: 1024
+  Max: 859
 
 # Offense count: 101
 # Configuration parameters: AllowedMethods, AllowedPatterns.
