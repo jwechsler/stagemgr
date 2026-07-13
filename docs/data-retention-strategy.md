@@ -76,7 +76,7 @@ from old orders.
 
 Expected result: DB shrinks from ~2.4GB to ~0.5GB.
 
-### Tier 1 — Make the primary DB scale (indexes implemented July 2026; query rewrites deferred)
+### Tier 1 — Make the primary DB scale (indexes and query rewrites implemented July 2026)
 
 **Implemented:** `db/migrate/20260712150100_add_retention_and_reporting_indexes.rb`
 
@@ -92,24 +92,33 @@ Expected result: DB shrinks from ~2.4GB to ~0.5GB.
   address datatable; maintenance-job predicates.
 - `job_metadata (job_name)` — looked up by name on every logged job run.
 
-**Deferred Tier 1 follow-ups (do these next, no urgency):**
+**Tier 1 follow-ups (implemented July 2026):**
 
-- Rewrite `app/models/resque_jobs/remove_unused_addresses.rb` — currently
-  `id NOT IN (SELECT address_id FROM orders)` plus Ruby-side filtering; the
-  single worst-scaling query in the app. Rewrite as SQL anti-joins
-  (`left_joins(:orders).where(orders: { id: nil })`, same for tags) with a
-  `JobMetadata` watermark so each run only examines recently-updated
-  addresses.
-- `app/controllers/admin/reports_controller.rb:559` — `Order.all(include:)`
-  loads every donation order with eager associations; convert to
-  `find_each` batching or a date filter. Biggest memory-blowup risk today.
-- `OrderTask.run_pending` still full-scans despite the new
-  `(status, execute_at)` index: ~122K permanently-failed tasks
-  (`status = 'Failed'`, `attempts >= 12` — already terminal per
-  `uncompleted?`) make the status predicate unselective (23% of the table),
-  while live `Untried` rows number ~73. A one-time data cleanup marking
-  `Failed`-with-exhausted-attempts tasks `Cancelled` (behaviorally neutral)
-  would restore index selectivity for the every-5-minutes poll.
+- `app/models/resque_jobs/remove_unused_addresses.rb` — rewritten from
+  `id NOT IN (SELECT address_id FROM orders)` plus per-address Ruby
+  filtering (the single worst-scaling query in the app) to SQL anti-joins
+  (`where.missing(:orders, :address_tags)`). A
+  `JobMetadata` watermark (`unused_addresses_examined_through`) means each
+  weekly run only examines addresses that became stale since the last run.
+  The old `productions_attended` check was dropped: attendance derives from
+  `orders.address_id`, so an address with no orders provably has none.
+  Known trade-off: a tag deleted without saving its address won't re-enter
+  the examination window; the address just survives.
+- The `donations_dump` report was **removed as dead code** rather than
+  batched. It had been broken since the Rails 2 era three ways over —
+  `Order.all(include:, conditions:)` raises under Rails 6, its
+  `donations_dump.html.haml` template does not exist, and it called an
+  undefined `create_hash_from_order_fields`. Nothing linked to it; the
+  surviving `donation_dump` / `donations_total` reports cover donation
+  reporting. Action, private builder, and both routes deleted.
+- `OrderTask.run_pending` full-scan fixed by a new weekly
+  `CancelExhaustedOrderTasks` job (not a one-time fix — tasks keep
+  exhausting): `Failed` tasks with `attempts >= OrderTask::MAX_ATTEMPTS`
+  (12) are already terminal per `uncompleted?`, so marking them `Cancelled`
+  is behaviorally neutral and restores selectivity of the
+  `(status, execute_at)` index for the every-5-minutes poll. Failure text
+  in `result` is left for `PruneOrderTaskResults`; admin retry
+  (`OrderTask#retry`) works regardless of status.
 
 ### Tier 2 — Order archival architecture (designed; **gated, not built**)
 

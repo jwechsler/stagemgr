@@ -203,10 +203,8 @@ Rails.application.routes.draw do
         post :membership_usage
         get :membership_usage, action: :index
         get 'membership_usage/:membership_offer_id', action: :membership_usage, as: :membership_offer_usage
-        post :donations_dump
         post :membership_export
         post :membership_usage
-        get :donations_dump, action: :index
         post :mine_customer_data
         get :mine_customer_data, action: :index
         post :house_management_seating

@@ -5,6 +5,11 @@ class OrderTask < ApplicationRecord
       UNTRIED, COMPLETED, FAILED, CANCELLED = "Untried", "Completed", "Failed", "Cancelled"
     )
 
+  # A Failed task with this many attempts is terminal (see #uncompleted?).
+  # CancelExhaustedOrderTasks marks such tasks Cancelled so they drop out of
+  # the run_pending poll's index range.
+  MAX_ATTEMPTS = 12
+
   belongs_to :order, inverse_of: :tasks
 
   validates :order, presence: true
@@ -59,11 +64,11 @@ class OrderTask < ApplicationRecord
   end
 
   def uncompleted?
-    (status == UNTRIED) or ((status == FAILED) and (attempts < 12))
+    (status == UNTRIED) or ((status == FAILED) and (attempts < MAX_ATTEMPTS))
   end
 
   def self.run_pending
-    pending_tasks = OrderTask.where("status in ('Untried','Failed') and attempts < 12 and execute_at < ?", Time.now)
+    pending_tasks = OrderTask.where("status in ('Untried','Failed') and attempts < ? and execute_at < ?", MAX_ATTEMPTS, Time.now)
     pending_tasks.each do |task|
       begin
         task.run!
