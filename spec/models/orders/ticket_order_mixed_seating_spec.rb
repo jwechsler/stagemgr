@@ -162,7 +162,7 @@ RSpec.describe 'reserved-seating orders with non-seat-holding tickets' do
       tickets = payload[:tickets_attributes]
 
       expect(tickets.size).to eq(3)
-      seats_printed = tickets.select { |t| t[:ticket_class] == seat_class.class_code }.map { |t| t[:seat] }
+      seats_printed = tickets.select { |t| t[:ticket_class] == seat_class.class_code }.pluck(:seat)
       expect(seats_printed).to match_array([sa1.seat.location, sa2.seat.location])
       addon_ticket = tickets.find { |t| t[:ticket_class] == addon.class_code }
       expect(addon_ticket[:seat]).to eq('')
@@ -188,7 +188,7 @@ RSpec.describe 'reserved-seating orders with non-seat-holding tickets' do
 
       payload = order.send(:build_tktprint_payload, 'BATCH-1', 1)
       tickets = payload[:tickets_attributes]
-      seats_printed = tickets.select { |t| t[:ticket_class] == seat_class.class_code }.map { |t| t[:seat] }
+      seats_printed = tickets.select { |t| t[:ticket_class] == seat_class.class_code }.pluck(:seat)
       expect(seats_printed).to match_array(locations)
       expect(tickets.find { |t| t[:ticket_class] == addon.class_code }[:seat]).to eq('')
     end
@@ -231,7 +231,7 @@ RSpec.describe 'reserved-seating orders with non-seat-holding tickets' do
       addon = allocated_class(holds_seats: false)
       order = new_order
       add_seat_ticket(order, seat_class)
-      tli = add_non_seat_ticket(order, addon)
+      add_non_seat_ticket(order, addon)
       order.save!
       tli_id = order.ticket_line_items.find { |t| t.ticket_class_id == addon.id }.id
 

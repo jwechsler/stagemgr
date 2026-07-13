@@ -56,7 +56,7 @@ RSpec.describe Admin::SpecialOffersController, type: :controller do
       end
 
       def listed_codes
-        response.parsed_body['data'].map { |row| row['code'] }.join
+        response.parsed_body['data'].pluck('code').join
       end
 
       it 'returns only Active offers for status_scope=active' do

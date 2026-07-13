@@ -48,7 +48,7 @@ RSpec.describe SpecialOffer, type: :model do
         offer = create_offer(performance: performance)
 
         expect { described_class.deactivate_stale_offers }
-          .not_to change { offer.reload.status }
+          .not_to(change { offer.reload.status })
       end
     end
 
@@ -66,7 +66,7 @@ RSpec.describe SpecialOffer, type: :model do
         offer = create_offer(production: production)
 
         expect { described_class.deactivate_stale_offers }
-          .not_to change { offer.reload.status }
+          .not_to(change { offer.reload.status })
       end
 
       context 'when the production has no closing date' do
@@ -93,7 +93,7 @@ RSpec.describe SpecialOffer, type: :model do
           offer = create_offer(production: production)
 
           expect { described_class.deactivate_stale_offers }
-            .not_to change { offer.reload.status }
+            .not_to(change { offer.reload.status })
         end
 
         it 'leaves offers when the production has no performances at all' do
@@ -101,7 +101,7 @@ RSpec.describe SpecialOffer, type: :model do
           offer = create_offer(production: production)
 
           expect { described_class.deactivate_stale_offers }
-            .not_to change { offer.reload.status }
+            .not_to(change { offer.reload.status })
         end
       end
     end
@@ -118,14 +118,14 @@ RSpec.describe SpecialOffer, type: :model do
         offer = create_offer(auto_expire: cutoff)
 
         expect { described_class.deactivate_stale_offers }
-          .not_to change { offer.reload.status }
+          .not_to(change { offer.reload.status })
       end
 
       it 'leaves offers with no expiration date' do
         offer = create_offer(auto_expire: nil)
 
         expect { described_class.deactivate_stale_offers }
-          .not_to change { offer.reload.status }
+          .not_to(change { offer.reload.status })
       end
     end
 
@@ -141,7 +141,7 @@ RSpec.describe SpecialOffer, type: :model do
         offer = create_offer(performance_end_range: Date.current - 1.week)
 
         expect { described_class.deactivate_stale_offers }
-          .not_to change { offer.reload.status }
+          .not_to(change { offer.reload.status })
       end
     end
 
@@ -152,7 +152,7 @@ RSpec.describe SpecialOffer, type: :model do
         offer = create_offer(theater: theater)
 
         expect { described_class.deactivate_stale_offers }
-          .not_to change { offer.reload.status }
+          .not_to(change { offer.reload.status })
       end
     end
 
