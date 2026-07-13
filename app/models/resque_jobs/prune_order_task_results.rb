@@ -15,7 +15,7 @@ class PruneOrderTaskResults
     total = 0
     loop do
       cleared = OrderTask.where.not(result: nil)
-                         .where('updated_at < ?', cutoff)
+                         .where(updated_at: ...cutoff)
                          .limit(BATCH_SIZE)
                          .update_all(result: nil)
       total += cleared

@@ -47,7 +47,7 @@ RSpec.describe ArchiveOldAudits do
 
       expect(archive_files.size).to eq(1)
       lines = Zlib::GzipReader.open(archive_files.first) { |gz| gz.each_line.map { |l| JSON.parse(l) } }
-      expect(lines.map { |row| row['id'] }).to eq([stale.id])
+      expect(lines.pluck('id')).to eq([stale.id])
       expect(marker_time).to be_within(1.minute).of(described_class::RETENTION_YEARS.years.ago)
       expect(Audited::Audit.exists?(fresh.id)).to be true
     end
@@ -60,8 +60,8 @@ RSpec.describe ArchiveOldAudits do
       expect(described_class.perform).to eq(1)
 
       lines = Zlib::GzipReader.open(archive_files.first) { |gz| gz.each_line.map { |l| JSON.parse(l) } }
-      expect(lines.map { |row| row['id'] }).to eq([unarchived.id])
-      expect(lines.map { |row| row['id'] }).not_to include(already_archived.id)
+      expect(lines.pluck('id')).to eq([unarchived.id])
+      expect(lines.pluck('id')).not_to include(already_archived.id)
     end
 
     it 'advances the marker without writing a file when the band is empty' do

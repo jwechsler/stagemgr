@@ -35,7 +35,7 @@ class PruneOldAudits
     cutoff = [retention_cutoff, archived_through].min
     total = 0
     loop do
-      deleted = Audited::Audit.where('created_at < ?', cutoff)
+      deleted = Audited::Audit.where(created_at: ...cutoff)
                               .limit(BATCH_SIZE)
                               .delete_all
       total += deleted

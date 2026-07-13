@@ -33,7 +33,7 @@ class ArchiveOldAudits
       return 0
     end
 
-    band = Audited::Audit.where('created_at >= ? AND created_at < ?', lower, upper)
+    band = Audited::Audit.where(created_at: lower...upper)
     expected = band.count
 
     if expected.positive?
