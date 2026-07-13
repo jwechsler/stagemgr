@@ -3,8 +3,11 @@ require 'rails_helper'
 RSpec.describe Admin::ProductionsController, type: :controller do
   render_views
 
-  let(:theater)       { FactoryBot.create(:theater) }
-  let(:other_theater) { FactoryBot.create(:theater) }
+  # Explicit names: the factory sequence ("Theater #n") can collide with the
+  # production-name sequence ("Production #m") under datatable global search,
+  # which tokenizes the term — searching "Theater #8" matches "Production #89".
+  let(:theater)       { FactoryBot.create(:theater, name: 'Alpha Stage') }
+  let(:other_theater) { FactoryBot.create(:theater, name: 'Zenith Playhouse') }
   let!(:production)       { FactoryBot.create(:production, theater: theater) }
   let!(:other_production) { FactoryBot.create(:production, theater: other_theater) }
 

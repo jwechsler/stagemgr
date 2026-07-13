@@ -39,11 +39,14 @@ Layout/IndentationWidth:
   Enabled: true
   Width: 2
 
-# follow_up_message_2 is an existing Production database column; specs and code
-# must reference it by its real name.
+# follow_up_message_2 is an existing Production database column; credit_1 and
+# credit_2 are field names in the tktprint API payload contract. Specs and code
+# must reference them by their real names.
 Naming/VariableNumber:
   AllowedIdentifiers:
     - follow_up_message_2
+    - credit_1
+    - credit_2
 
 # RSpec describe/context blocks are naturally long; block length is not a
 # meaningful complexity signal in specs.
