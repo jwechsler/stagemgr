@@ -31,6 +31,13 @@ all:
   ext_site_wrapper: 'ext_site_wrapper'
   # export directory for HUD reports
   hud_export_directory: "/tmp"
+  # Directory for data-retention archive files (aged-out audit rows, exported
+  # by ArchiveOldAudits before PruneOldAudits deletes them). MUST be a path
+  # covered by your backup regime — the exported files are the long-term
+  # record. Leave blank to disable the archive/prune pipeline entirely; the
+  # jobs refuse to run until an archival location is set explicitly.
+  # See docs/data-retention-strategy.md.
+  archive_directory:
   # report generation configuration
   max_report_date_range_days: 730
   report_timeout_seconds: 30
