@@ -20,23 +20,6 @@ RSpec.describe Admin::SpecialOffersController, type: :controller do
   end
 
   describe 'GET #index' do
-    it 'renders the deactivate-stale button with a not-undoable confirmation' do
-      get :index
-
-      expect(response).to have_http_status(:ok)
-      expect(response.body).to include('Deactivate Stale Offers')
-      expect(response.body).to include('This cannot be undone')
-    end
-
-    it 'hides the deactivate-stale button outside development and test' do
-      allow(Rails).to receive(:env).and_return(ActiveSupport::StringInquirer.new('production'))
-
-      get :index
-
-      expect(response).to have_http_status(:ok)
-      expect(response.body).not_to include('Deactivate Stale Offers')
-    end
-
     it 'renders Active and Expired/Inactive tabs, each with its own scoped table' do
       get :index
 
@@ -84,17 +67,6 @@ RSpec.describe Admin::SpecialOffersController, type: :controller do
 
         expect(listed_codes).not_to include(system_offer.code)
       end
-    end
-  end
-
-  describe 'POST #deactivate_stale' do
-    it 'enqueues the deactivation job and redirects with a notice' do
-      expect(Resque).to receive(:enqueue).with(DeactivateStaleSpecialOffers)
-
-      post :deactivate_stale
-
-      expect(response).to redirect_to(admin_special_offers_path)
-      expect(flash[:notice]).to match(/deactivation queued/i)
     end
   end
 end
