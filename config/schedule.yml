@@ -57,6 +57,11 @@ PruneOrderTaskResults:
   description: 'Clear stored failure backtraces on order tasks older than 6 months'
   queue: maintenance
 
+CancelExhaustedOrderTasks:
+  cron: '15 2 * * 0'
+  description: 'Mark Failed order tasks with exhausted attempts Cancelled so the run_pending poll stays on its index'
+  queue: maintenance
+
 ArchiveOldAudits:
   cron: '0 2 1 * *'
   description: 'Export aged-out audit rows to the configured archive_directory and advance the prune marker (no-op until archive_directory is set in server.yml)'
