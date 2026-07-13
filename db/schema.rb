@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_07_11_000000) do
+ActiveRecord::Schema.define(version: 2026_07_12_150100) do
 
   create_table "active_storage_attachments", charset: "utf8mb3", force: :cascade do |t|
     t.string "name", null: false
@@ -84,11 +84,13 @@ ActiveRecord::Schema.define(version: 2026_07_11_000000) do
     t.string "donor_tier_for_last_fiscal_year"
     t.string "donor_tier_for_current_fiscal_year"
     t.date "donor_tier_updated_on"
+    t.index ["email"], name: "index_addresses_on_email"
     t.index ["first_name"], name: "index_addresses_on_first_name"
     t.index ["last_first_name"], name: "index_addresses_on_last_first_name"
     t.index ["last_name"], name: "index_addresses_on_last_name"
     t.index ["search_name", "email"], name: "index_addresses_on_search_name_and_email"
     t.index ["street_number", "street", "city", "search_name"], name: "index_address_search"
+    t.index ["updated_at"], name: "index_addresses_on_updated_at"
   end
 
   create_table "addresses_productions", id: false, charset: "latin1", force: :cascade do |t|
@@ -232,6 +234,7 @@ ActiveRecord::Schema.define(version: 2026_07_11_000000) do
     t.datetime "last_run_at"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.index ["job_name"], name: "index_job_metadata_on_job_name"
   end
 
   create_table "line_items", id: :integer, charset: "latin1", force: :cascade do |t|
@@ -331,6 +334,7 @@ ActiveRecord::Schema.define(version: 2026_07_11_000000) do
     t.integer "repeat_monthly_interval"
     t.string "notifications"
     t.index ["order_id"], name: "fk_order_tasks"
+    t.index ["status", "execute_at"], name: "index_order_tasks_on_status_and_execute_at"
   end
 
   create_table "orders", id: :integer, charset: "latin1", force: :cascade do |t|
@@ -368,6 +372,8 @@ ActiveRecord::Schema.define(version: 2026_07_11_000000) do
     t.index ["performance_id"], name: "index_orders_on_performance_id"
     t.index ["recipient_address_id"], name: "recipient_address_id_idx"
     t.index ["split_source_id"], name: "index_orders_on_split_source_id"
+    t.index ["status"], name: "index_orders_on_status"
+    t.index ["type", "status"], name: "index_orders_on_type_and_status"
     t.index ["uuid"], name: "index_orders_on_uuid", unique: true
   end
 
@@ -418,7 +424,7 @@ ActiveRecord::Schema.define(version: 2026_07_11_000000) do
     t.index ["ipn_track_id"], name: "index_payments_on_ipn_track_id"
     t.index ["membership_id"], name: "index_payments_on_membership_id"
     t.index ["order_id"], name: "index_payments_on_order_id"
-    t.index ["order_id"], name: "payments_oid_i"
+    t.index ["processed_on"], name: "index_payments_on_processed_on"
     t.index ["transaction_id"], name: "index_payments_on_transaction_id"
   end
 
@@ -611,16 +617,6 @@ ActiveRecord::Schema.define(version: 2026_07_11_000000) do
     t.boolean "user_selectable", default: true
     t.boolean "suppress_for_pass_payments", default: false
     t.index ["name"], name: "index_service_item_templates_on_name", unique: true
-  end
-
-  create_table "sessions", id: :integer, charset: "latin1", force: :cascade do |t|
-    t.string "session_id", null: false
-    t.text "data"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-    t.datetime "last_request_at"
-    t.index ["session_id"], name: "index_sessions_on_session_id"
-    t.index ["updated_at"], name: "index_sessions_on_updated_at"
   end
 
   create_table "special_features", id: :integer, charset: "latin1", force: :cascade do |t|
