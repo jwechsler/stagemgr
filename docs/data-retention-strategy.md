@@ -42,7 +42,7 @@ from old orders.
    `DROP TABLE` returns the 1.29GB to the filesystem immediately
    (file-per-table InnoDB). Prod precondition: verify
    `SELECT MAX(updated_at) FROM sessions` is stale there too, and take a final
-   dump (`mysqldump --single-transaction <db> sessions | gzip`).
+   dump (`mysqldump --single-transaction --no-tablespaces <db> sessions | gzip`).
 2. **Archive then prune old audits** — a two-job pipeline, gated on explicit
    configuration:
    - **The gate:** both stages are inert until `archive_directory` is set in
@@ -198,7 +198,7 @@ admin read path.
    in the most universally restorable format:
 
    ```bash
-   mysqldump --single-transaction \
+   mysqldump --single-transaction --no-tablespaces \
      --where="created_at < '2023-01-01'" \
      stagemgr_production audits | gzip > audits_pre2023.sql.gz
    ```
@@ -231,7 +231,7 @@ admin read path.
 
 ```bash
 mysql -e "SELECT MAX(updated_at), COUNT(*) FROM sessions" stagemgr_production
-mysqldump --single-transaction stagemgr_production sessions | gzip > sessions_final.sql.gz
+mysqldump --single-transaction --no-tablespaces stagemgr_production sessions | gzip > sessions_final.sql.gz
 ```
 
 Then deploy and run `db/migrate/20260712150000_drop_sessions_table.rb`.

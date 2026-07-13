@@ -3,7 +3,7 @@
 #
 # Before running in production: verify `SELECT MAX(updated_at) FROM sessions`
 # is stale there too, and take a final dump for the backup archive:
-#   mysqldump --single-transaction <db> sessions | gzip > sessions_final.sql.gz
+#   mysqldump --single-transaction --no-tablespaces <db> sessions | gzip > sessions_final.sql.gz
 # See docs/data-retention-strategy.md.
 class DropSessionsTable < ActiveRecord::Migration[6.1]
   def up
