@@ -52,6 +52,21 @@ DeactivateStaleSpecialOffers:
   description: 'Mark Active special offers Inactive when their targets ended over a month ago'
   queue: maintenance
 
+PruneOrderTaskResults:
+  cron: '0 2 * * 0'
+  description: 'Clear stored failure backtraces on order tasks older than 6 months'
+  queue: maintenance
+
+ArchiveOldAudits:
+  cron: '0 2 1 * *'
+  description: 'Export aged-out audit rows to the configured archive_directory and advance the prune marker (no-op until archive_directory is set in server.yml)'
+  queue: maintenance
+
+PruneOldAudits:
+  cron: '30 2 * * 0'
+  description: 'Delete audit-trail rows past retention (no-op until the archive dump marker is recorded)'
+  queue: maintenance
+
 MarkInactiveShows:
   every: "1d"
   description: 'Productions/Theaters that have been inactive for over 6 months and not updated since then are marked as ''Inactive''.'
