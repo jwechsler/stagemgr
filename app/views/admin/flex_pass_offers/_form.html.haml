@@ -50,6 +50,8 @@
           .cell.small-12.medium-4
             = f.association :theater, :label=>"Restrict redemption to", :as=>:select, :collection=>Theater.where("status in (?)", ['Active', 'Private'])
             = f.input :exclude_theater, :label=>"Exclude selected theater"
+          .cell.small-12
+            = f.input :autofulfill_performance_codes, :label=>"Autofulfill against performances", :hint=>"Comma-separated performance codes. On purchase, tickets are automatically reserved for each listed performance (\"Maximum uses per performance\" tickets each)."
     .cell.small-12
       = f.input :redeem_immediately, :label=>"Redeem immediately"
       = f.button :submit, :class=>'button'

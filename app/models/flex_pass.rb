@@ -6,8 +6,12 @@ class FlexPass < ApplicationRecord
   has_many :flex_pass_payments, inverse_of: :flex_pass
   before_validation :create_code, on: :create
   before_create :set_expiration_date
-  after_create :queue_expiration
   before_destroy :has_no_placed_orders?
+  # after_commit (not after_create) so a purchase that rolls back — e.g. an
+  # autofulfill ticket order or card decline aborting the transition
+  # transaction — never enqueues an orphan ExpireFlexPass job. The job's
+  # RecordNotFound rescue remains the backstop for passes destroyed later.
+  after_commit :queue_expiration, on: :create
 
   validates :expiration_date, :flex_pass_offer, :flex_pass_line_item, :order, :code, presence: true
   validates :address, presence: true, unless: -> { address.blank? }

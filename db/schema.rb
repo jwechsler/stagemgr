@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_07_12_150100) do
+ActiveRecord::Schema.define(version: 2026_07_14_100000) do
 
   create_table "active_storage_attachments", charset: "utf8mb3", force: :cascade do |t|
     t.string "name", null: false
@@ -200,6 +200,7 @@ ActiveRecord::Schema.define(version: 2026_07_12_150100) do
     t.integer "maximum_uses_per_production"
     t.bigint "festival_id"
     t.integer "maximum_uses_per_performance"
+    t.text "autofulfill_performance_codes"
     t.index ["festival_id"], name: "index_flex_pass_offers_on_festival_id"
   end
 

@@ -18,6 +18,18 @@ class FlexPassOffer < ApplicationRecord
   validates :name, :price, :number_of_tickets, :use_ticket_class_code, presence: true
 
   before_validation :set_public_sale_by_active
+  validate :validate_autofulfill_configuration, if: :autofulfill?
+
+  # Performance codes this offer automatically redeems against at purchase
+  # time (see FlexPassOrder#autofulfill_ticket_orders!). Codes are upcased to
+  # match Performance#clean_values normalization.
+  def autofulfill_performance_code_list
+    (autofulfill_performance_codes || '').split(',').map { |code| code.strip.upcase }.compact_blank
+  end
+
+  def autofulfill?
+    autofulfill_performance_code_list.any?
+  end
 
   def formatted_price
     ActionController::Base.helpers.number_to_currency(price || 0)
@@ -39,5 +51,62 @@ class FlexPassOffer < ApplicationRecord
 
   def set_public_sale_by_active
     self.active ||= on_sale_to_public?
+  end
+
+  def validate_autofulfill_configuration
+    codes = autofulfill_performance_code_list
+
+    duplicates = codes.tally.select { |_code, count| count > 1 }.keys
+    if duplicates.any?
+      errors.add(:autofulfill_performance_codes, "contains duplicate performance codes: #{duplicates.join(', ')}")
+    end
+
+    if maximum_uses_per_performance.nil? || maximum_uses_per_performance.zero?
+      errors.add(:maximum_uses_per_performance, 'must be set (and non-zero) to autofulfill against performances')
+      return
+    end
+
+    performances = validate_autofulfill_performances(codes)
+
+    if codes.uniq.size * maximum_uses_per_performance > number_of_tickets.to_i
+      errors.add(:autofulfill_performance_codes,
+                 "requires #{codes.uniq.size * maximum_uses_per_performance} tickets " \
+                 "(#{codes.uniq.size} performances x #{maximum_uses_per_performance} uses) " \
+                 "but the pass only has #{number_of_tickets.to_i}")
+    end
+
+    validate_autofulfill_production_caps(performances)
+  end
+
+  def validate_autofulfill_performances(codes)
+    codes.uniq.filter_map do |code|
+      performance = Performance.find_by(performance_code: code)
+      if performance.nil?
+        errors.add(:autofulfill_performance_codes, "includes unknown performance code #{code}")
+        next
+      end
+      if performance.production.has_reserved_seating?
+        errors.add(:autofulfill_performance_codes,
+                   "includes #{code}, which has reserved seating (only general admission performances can be autofulfilled)")
+      end
+      performance
+    end
+  end
+
+  # Autofulfilling k performances of one production consumes
+  # k * maximum_uses_per_performance against maximum_uses_per_production; if
+  # that exceeds the cap, every purchase would fail its FlexPassPayment
+  # validation, so reject the configuration up front.
+  def validate_autofulfill_production_caps(performances)
+    return if maximum_uses_per_production.nil? || maximum_uses_per_production.zero?
+
+    performances.group_by(&:production).each do |production, production_performances|
+      needed = production_performances.size * maximum_uses_per_performance
+      next unless needed > maximum_uses_per_production
+
+      errors.add(:autofulfill_performance_codes,
+                 "would redeem #{needed} tickets for #{production.name}, " \
+                 "exceeding the #{maximum_uses_per_production} maximum uses per production")
+    end
   end
 end
