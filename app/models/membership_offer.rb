@@ -5,6 +5,9 @@ class MembershipOffer < ApplicationRecord
 
   OFFER_STATUSES = (ACTIVE, INACTIVE = 'Active', 'Inactive')
 
+  scope :status_active,   -> { where(status: ACTIVE) }
+  scope :status_inactive, -> { where(status: INACTIVE) }
+
   # 'production' memberships are the classic single-member subscription, good
   # for tickets_per_performance seats per production. 'timed' offers are
   # library passes: shared between patrons, staff-issued with no Stripe

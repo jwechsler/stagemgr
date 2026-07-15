@@ -44,8 +44,11 @@ class MembershipOfferDecorator < ApplicationDecorator
     # Membership offers are administrator-managed; box office staff only view
     # them and create orders.
     actions << h.link_to('Edit', [:edit, :admin, object], class: 'tiny button') if h.current_user.can?(:update, object)
-    actions << sales_action_button
     actions << h.link_to('Usage', h.membership_offer_usage_admin_reports_path(object), class: 'tiny button')
+    # Inactive offers render in their own datatable tab, so the disabled
+    # sales-action button would be redundant — omit it entirely. The show
+    # page still renders the disabled state via sales_action_button.
+    actions << sales_action_button if object.active?
     h.safe_join(actions, ' ')
   end
 

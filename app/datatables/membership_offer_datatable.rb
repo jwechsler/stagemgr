@@ -35,7 +35,12 @@ class MembershipOfferDatatable < DatatableBase
   end
 
   def get_raw_records
-    MembershipOffer.includes(:membership_offer_tags)
+    scope = MembershipOffer.includes(:membership_offer_tags)
+    case params[:status_scope]
+    when 'active' then scope.status_active
+    when 'inactive' then scope.status_inactive
+    else scope
+    end
   end
 
   def sort_records(records)

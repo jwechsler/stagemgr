@@ -53,12 +53,10 @@ class FlexPassOfferDecorator < ApplicationDecorator
                                                         class: 'tiny alert button')
     end
 
-    if h.current_user.can? :create, FlexPassOrder
-      actions << if flex_pass_offer.active?
-                   h.link_to('Create Order', [:new, :admin, object, :order], class: 'tiny button')
-                 else
-                   h.link_to('Create Order', '#', class: 'tiny button disabled')
-                 end
+    # Inactive offers render in their own datatable tab, so a disabled
+    # Create Order button would be redundant — omit it entirely.
+    if h.current_user.can?(:create, FlexPassOrder) && flex_pass_offer.active?
+      actions << h.link_to('Create Order', [:new, :admin, object, :order], class: 'tiny button')
     end
 
     h.safe_join(actions, ' ')

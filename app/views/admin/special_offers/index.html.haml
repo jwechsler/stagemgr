@@ -41,26 +41,7 @@
         {data: 'expires', className: 'all'},
       ];
 
-      function initOfferTable(selector) {
-        $(selector).dataTable({
-          "processing": true,
-          "serverSide": true,
-          "stateSave": true,
-          "ajax": $(selector).data('source'),
-          "pagingType": 'full_numbers',
-          "language": {
-            "lengthMenu" : "_MENU_"
-          },
-          columns: offerColumns
-        });
-      }
-
-      initOfferTable('#active_special_offer_listing');
-      initOfferTable('#inactive_special_offer_listing');
-
-      // Tables in an initially-hidden tab panel lay out with zero-width
-      // columns; recalculate once their panel becomes visible.
-      $('#offer-status-tabs').on('change.zf.tabs', function () {
-        $.fn.dataTable.tables({visible: true, api: true}).columns.adjust().responsive.recalc();
-      });
+      initOfferStatusTabs('special_offers');
+      initOfferTable('#active_special_offer_listing', offerColumns, {"lengthMenu": "_MENU_"});
+      initOfferTable('#inactive_special_offer_listing', offerColumns, {"lengthMenu": "_MENU_"});
     });

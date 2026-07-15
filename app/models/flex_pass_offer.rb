@@ -8,6 +8,11 @@ class FlexPassOffer < ApplicationRecord
 
   has_tags :flex_pass_offer_tags
 
+  # status_* naming (rather than a scope named "active") avoids shadowing the
+  # boolean active attribute and stays parallel with SpecialOffer's scopes.
+  scope :status_active,   -> { where(active: true) }
+  scope :status_inactive, -> { where(active: false) }
+
   validates :price, :number_of_tickets, numericality: { null: false }
   validates :price, numericality: { greater_than_or_equal_to: 0 }
   validates :facility_fee, :spiff, :flat_payout,

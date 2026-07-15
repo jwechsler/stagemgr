@@ -9,6 +9,76 @@ RSpec.describe Admin::FlexPassOffersController, type: :controller do
     allow(controller).to receive(:authorize!).and_return(true)
   end
 
+  describe 'GET #index' do
+    render_views
+
+    let!(:active_offer) { FactoryBot.create(:flex_pass_offer, name: 'Live Pass', theater: theater) }
+    let!(:inactive_offer) do
+      # on_sale_to_public must also be false: set_public_sale_by_active
+      # re-enables active from on_sale_to_public otherwise.
+      FactoryBot.create(:flex_pass_offer, name: 'Retired Pass', theater: theater,
+                                          active: false, on_sale_to_public: false)
+    end
+
+    def datatable_params(status_scope: nil)
+      columns = %w[offer price qty public restrictions actions]
+                .each_with_index.to_h do |col, i|
+        [i.to_s, { data: col, searchable: 'true', orderable: 'true',
+                   search: { value: '', regex: 'false' } }]
+      end
+      params = { draw: '1', start: '0', length: '25',
+                 search: { value: '', regex: 'false' }, columns: columns }
+      params[:status_scope] = status_scope if status_scope
+      params
+    end
+
+    it 'renders Active and Inactive tabs, each with its own scoped table' do
+      get :index
+
+      expect(response.body).to include('active_flex_pass_offer_listing')
+      expect(response.body).to include('inactive_flex_pass_offer_listing')
+      expect(response.body).to include('status_scope=active')
+      expect(response.body).to include('status_scope=inactive')
+    end
+
+    context 'as JSON' do
+      def listed_names
+        response.parsed_body['data'].pluck('offer').join
+      end
+
+      def listed_actions
+        response.parsed_body['data'].pluck('actions').join
+      end
+
+      it 'returns only active offers for status_scope=active' do
+        get :index, params: datatable_params(status_scope: 'active'), format: :json
+
+        expect(listed_names).to include('Live Pass')
+        expect(listed_names).not_to include('Retired Pass')
+        expect(listed_actions).to include('Create Order')
+      end
+
+      it 'returns only inactive offers for status_scope=inactive' do
+        get :index, params: datatable_params(status_scope: 'inactive'), format: :json
+
+        expect(listed_names).to include('Retired Pass')
+        expect(listed_names).not_to include('Live Pass')
+      end
+
+      it 'omits the Create Order button for inactive offers' do
+        get :index, params: datatable_params(status_scope: 'inactive'), format: :json
+
+        expect(listed_actions).not_to include('Create Order')
+      end
+
+      it 'returns all offers when status_scope is omitted' do
+        get :index, params: datatable_params, format: :json
+
+        expect(listed_names).to include('Live Pass', 'Retired Pass')
+      end
+    end
+  end
+
   describe 'POST #create' do
     context 'with decimal values for currency fields' do
       let(:valid_params) do

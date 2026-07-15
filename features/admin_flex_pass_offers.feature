@@ -13,6 +13,12 @@ Feature: Flex Pass Box Office Ordering
       And I follow "Create Order"
       And I should see "NEW ORDER"
 
+  Scenario: Offer status tab selection is sticky within a session
+    Given I visit the admin flex pass offer page
+      And I follow "Inactive"
+      And I visit the admin flex pass offer page
+    Then the "Inactive" tab should be selected
+
   Scenario: Place a flex pass order through the back end
     Given I go to the new admin flex pass order page for "Flex Pass"
       And I enter my contact information

@@ -17,6 +17,7 @@
 //= require production_picker
 //= require production_multi_picker
 //= require offer_picker
+//= require offer_status_tabs
 //= require tagify
 //= require theater_tags
 //= require credit_card_track_parser

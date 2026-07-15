@@ -126,9 +126,26 @@ Flex passes expire based on the **Months Till Expiration** value, counted from t
 
 ## The Flex Pass Offers List
 
-![Flex pass offers list showing tag pills, red Inactive labels, and blue theater-restriction labels in the Restrictions column](../assets/images/screenshots/offers-flex-pass-list.png)
+![Flex pass offers list showing the Active tab with tag pills and blue theater-restriction labels in the Restrictions column](../assets/images/screenshots/offers-flex-pass-list.png)
 
-Each row on the Flex Pass Offers list has an actions column with **Edit**, **Destroy**, and **Create Order** buttons. The **Create Order** button is shown greyed out and disabled for offers that are not active, since inactive offers cannot be sold.
+### Active and Inactive Tabs
+
+The offers list is divided into two tabs:
+
+| Tab | Shows |
+|-----|-------|
+| **Active** | Offers whose **Active** checkbox is checked -- the passes patrons can currently purchase. This tab opens by default. |
+| **Inactive** | Deactivated offers, kept for reference or later reactivation. |
+
+Each tab has its own search box, column sorting, and paging, so you can filter one list without affecting the other. The searches and sort order you set are remembered separately per tab, and the tab you last viewed stays selected when you return to the page during the same browser session.
+
+![Inactive tab of the flex pass offers list, where rows offer only Edit and Destroy buttons](../assets/images/screenshots/offers-flex-pass-list-inactive-tab.png)
+
+### Row Actions
+
+Each row on the **Active** tab has an actions column with **Edit**, **Destroy**, and **Create Order** buttons. Rows on the **Inactive** tab show only **Edit** and **Destroy** -- inactive offers cannot be sold, so no **Create Order** button appears.
+
+### Restriction Labels
 
 The **Restrictions** column summarizes an offer's status and scope using small labels:
 
@@ -148,6 +165,6 @@ An offer can show several labels at once -- for example, a festival pass restric
 
 ## Managing Flex Pass Offers
 
-- **Deactivate** an offer by unchecking the **Active** checkbox. Existing purchased passes remain valid until they expire.
+- **Deactivate** an offer by unchecking the **Active** checkbox. It moves to the **Inactive** tab, and existing purchased passes remain valid until they expire.
 - **Remove from public sale** by unchecking **On Sale to Public** while keeping the offer active for box office sales.
 - Changes to an offer (price, number of tickets) apply only to future purchases and do not affect already-sold passes.
