@@ -22,6 +22,10 @@ Given('I wait {int} seconds') do |int|
   sleep(int)
 end
 
+Then('the {string} tab should be selected') do |tab_label|
+  expect(page).to have_css('#offer-status-tabs .tabs-title.is-active a', text: tab_label)
+end
+
 def enter_base_production(code, capacity = 99)
   fill_in 'Production code', with: code
   fill_in 'production_name', with: "Production #{code}"
