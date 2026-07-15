@@ -183,4 +183,94 @@ RSpec.describe FlexPassOffer, type: :model do
       expect(offer.formatted_flat_payout).to eq('$0.00')
     end
   end
+
+  describe 'autofulfill configuration' do
+    # Performance#clean_values rounds times down to 15-minute blocks — stagger
+    # by full blocks so same-production performances stay unique.
+    def performance_of(production)
+      @performance_offset = (@performance_offset || 0) + 1
+      FactoryBot.create(:general_admission, production: production,
+                                            performance_time: Time.now + (@performance_offset * 15).minutes)
+    end
+
+    def offer_with(codes, **attrs)
+      FactoryBot.build(:flex_pass_offer,
+                       autofulfill_performance_codes: codes,
+                       maximum_uses_per_performance: 2,
+                       number_of_tickets: 10,
+                       **attrs)
+    end
+
+    let(:production) { FactoryBot.create(:production) }
+    let(:performance) { performance_of(production) }
+
+    it 'parses the code list, stripping blanks and normalizing case' do
+      offer = offer_with(" abc01 ,DEF02,, ghi03 ")
+      expect(offer.autofulfill_performance_code_list).to eq(%w[ABC01 DEF02 GHI03])
+      expect(offer).to be_autofulfill
+    end
+
+    it 'is valid with a blank code list' do
+      expect(offer_with(nil)).to be_valid
+      expect(offer_with('')).to be_valid
+      expect(offer_with(' , ')).to be_valid
+    end
+
+    it 'is valid with existing general admission performances' do
+      other = performance_of(production)
+      expect(offer_with("#{performance.performance_code},#{other.performance_code}")).to be_valid
+    end
+
+    it 'rejects unknown performance codes' do
+      offer = offer_with('NOSUCH99')
+      expect(offer).not_to be_valid
+      expect(offer.errors[:autofulfill_performance_codes]).to include(
+        'includes unknown performance code NOSUCH99'
+      )
+    end
+
+    it 'rejects duplicate performance codes' do
+      offer = offer_with("#{performance.performance_code},#{performance.performance_code}")
+      expect(offer).not_to be_valid
+      expect(offer.errors[:autofulfill_performance_codes].join).to include('duplicate performance codes')
+    end
+
+    it 'rejects reserved seating performances' do
+      reserved = FactoryBot.create(:reserved_seating)
+      offer = offer_with(reserved.performance_code)
+      expect(offer).not_to be_valid
+      expect(offer.errors[:autofulfill_performance_codes].join).to include('reserved seating')
+    end
+
+    it 'requires a non-zero maximum_uses_per_performance' do
+      [nil, 0].each do |maximum|
+        offer = offer_with(performance.performance_code, maximum_uses_per_performance: maximum)
+        expect(offer).not_to be_valid
+        expect(offer.errors[:maximum_uses_per_performance].join).to include('must be set')
+      end
+    end
+
+    it 'rejects a code list needing more tickets than the pass holds' do
+      other = performance_of(production)
+      offer = offer_with("#{performance.performance_code},#{other.performance_code}",
+                         maximum_uses_per_performance: 3, number_of_tickets: 5)
+      expect(offer).not_to be_valid
+      expect(offer.errors[:autofulfill_performance_codes].join).to include('requires 6 tickets')
+    end
+
+    it 'rejects a configuration that would always exceed the per-production cap' do
+      other = performance_of(production)
+      offer = offer_with("#{performance.performance_code},#{other.performance_code}",
+                         maximum_uses_per_production: 3)
+      expect(offer).not_to be_valid
+      expect(offer.errors[:autofulfill_performance_codes].join).to include('maximum uses per production')
+    end
+
+    it 'allows a configuration within the per-production cap' do
+      other = performance_of(production)
+      offer = offer_with("#{performance.performance_code},#{other.performance_code}",
+                         maximum_uses_per_production: 4)
+      expect(offer).to be_valid
+    end
+  end
 end

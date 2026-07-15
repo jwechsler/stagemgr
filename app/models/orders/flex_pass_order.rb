@@ -90,6 +90,65 @@ class FlexPassOrder < Order
 
   protected
 
+  # Autofulfill runs first, inside the transaction transition_to! already
+  # opened and before super creates the credit card payment — so the card is
+  # never charged (and nothing persists) unless every auto ticket order
+  # processes cleanly.
+  def transition_processing_to_processed!(redirect_to = nil)
+    autofulfill_ticket_orders! if flex_pass_offer.autofulfill?
+    super
+  end
+
+  def autofulfill_ticket_orders!
+    offer = flex_pass_offer
+    flex_pass_payment_type = FlexPassPaymentType.first!
+
+    offer.autofulfill_performance_code_list.each do |code|
+      performance = Performance.find_by(performance_code: code)
+
+      begin
+        allocation = autofulfillable_allocation_for(performance, code, offer)
+
+        ticket_order = TicketOrder.new(performance: performance, status: Order::NEW, address: address,
+                                       payment_type: flex_pass_payment_type, ip_address: ip_address)
+        ticket_order.flex_pass_code = flex_pass.code
+        ticket_order.ticket_line_items.build(ticket_class: allocation.ticket_class,
+                                             ticket_count: offer.maximum_uses_per_performance)
+        ticket_order.transition_to!(Order::PROCESSED)
+      rescue StandardError => e
+        errors.add(:base, "Could not reserve tickets for #{performance&.to_short_s || code}: " \
+                          "#{autofulfill_failure_message(e, ticket_order)}")
+        raise
+      end
+    end
+  end
+
+  def autofulfill_failure_message(error, ticket_order)
+    return error.record.errors.full_messages.join('; ') if error.is_a?(ActiveRecord::RecordInvalid)
+    # An order invalid at the PROCESSED save fails its transition with a
+    # generic "Transition unsuccessful" — the real reasons are on the order.
+    return ticket_order.errors.full_messages.join('; ') if ticket_order&.errors&.any?
+
+    error.message
+  end
+
+  # Backstop checks for conditions the offer validation can't freeze in time
+  # (seating changed, performance passed, production closed, allocation
+  # removed). Each raises with a message suitable for the purchase error.
+  def autofulfillable_allocation_for(performance, code, offer)
+    raise "performance #{code} no longer exists" if performance.nil?
+    raise 'this performance uses reserved seating' if performance.production.has_reserved_seating?
+    raise 'this performance has already occurred' if performance.performance_at < Time.now
+    raise 'this production is closed' if performance.production.closed?
+
+    allocation = performance.allocation(offer.use_ticket_class_code)
+    if allocation.nil? || !allocation.available?
+      raise "#{offer.use_ticket_class_code} tickets are not available for this performance"
+    end
+
+    allocation
+  end
+
   def create_receipt_task
     super
     return if suppress_receipt
