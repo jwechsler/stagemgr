@@ -133,20 +133,35 @@ Click the **x** on the right side of any pill to remove that tag, then save the 
 
 ## The Membership Offers List
 
-![Membership offers list showing Edit, sales action, and Usage buttons, tag pills, and red Inactive labels](../assets/images/screenshots/offers-membership-list.png)
+![Membership offers list showing the Active tab with tag pills and Edit, Usage, and sales action buttons](../assets/images/screenshots/offers-membership-list.png)
 
-Each row on the Membership Offers list has an actions column with three buttons. The middle button is the offer's **primary sales action** and depends on its type:
+### Active and Inactive Tabs
+
+The offers list is divided into two tabs:
+
+| Tab | Shows |
+|-----|-------|
+| **Active** | Offers with `Active` status -- the memberships patrons can currently purchase or be issued. This tab opens by default. |
+| **Inactive** | Offers with `Inactive` status, kept for reference or later reactivation. |
+
+Each tab has its own search box, column sorting, and paging, so you can filter one list without affecting the other. The searches and sort order you set are remembered separately per tab, and the tab you last viewed stays selected when you return to the page during the same browser session.
+
+![Inactive tab of the membership offers list, where rows offer only Edit and Usage buttons](../assets/images/screenshots/offers-membership-list-inactive-tab.png)
+
+### Row Actions
+
+Each row on the **Active** tab has an actions column with three buttons; the last one is the offer's **primary sales action** and depends on its type:
 
 | Button | What it does |
 |--------|--------------|
 | **Edit** | Opens the offer's edit form. |
+| **Usage** | Opens the [Membership Usage report](../reports/membership-reports.md#membership-usage) for this offer alone, covering its entire history. |
 | **Create Order** | (Production offers) Starts a new membership order for this offer. |
 | **Issue Pass** | (Timed offers) Creates a staff-issued membership directly, with no purchase order -- the library pass workflow. |
-| **Usage** | Opens the [Membership Usage report](../reports/membership-reports.md#membership-usage) for this offer alone, covering its entire history. |
 
-Each row shows exactly one of **Create Order** or **Issue Pass**. Either way, the button is greyed out and disabled while the offer's status is Inactive, since inactive offers cannot be sold or issued.
+Each active offer shows exactly one of **Create Order** or **Issue Pass**. Rows on the **Inactive** tab show only **Edit** and **Usage** -- inactive offers cannot be sold or issued, so no sales action appears.
 
-The **On Sale to Public** column shows a checkmark when the offer is publicly purchasable. Offers whose status is **Inactive** show a red **Inactive** label in this column instead.
+The **On Sale to Public** column shows a checkmark when the offer is publicly purchasable. Offers on the Inactive tab show a red **Inactive** label in this column instead.
 
 !!! tip "Usage over the offer's full history"
     The **Usage** button runs the report from the offer's first membership payment through the end of last month -- you don't need to pick a date range. See [Membership Reports](../reports/membership-reports.md#running-the-report-for-a-single-offer) for what the per-offer report contains.
@@ -162,7 +177,7 @@ Clicking an offer's name opens its detail page.
 - The offer name appears as a heading above the offer's public description.
 - The **Offer Details** panel summarizes the Price ID, tickets per performance, type, MyEmma group (when MyEmma is enabled), and ticket classes; a **Notification** tab shows the confirmation email content when one is configured.
 - Status labels in the top-right corner show whether the offer is Active/Inactive and On Sale/Private.
-- Below the description sit **Edit** and the offer's primary sales action: **Create Order** for production offers or **Issue Pass** for timed offers, disabled while the offer is Inactive -- the same rule as the list.
+- Below the description sit **Edit** and the offer's primary sales action: **Create Order** for production offers or **Issue Pass** for timed offers. Unlike the list -- where inactive offers show no sales action at all -- the detail page always shows the button, greyed out and disabled while the offer is Inactive.
 
 ---
 
@@ -170,7 +185,7 @@ Clicking an offer's name opens its detail page.
 
 Individual membership records (who holds each membership, its status, start, and end) are managed on the [Memberships list](../ticketing/managing-memberships.md) under **Passes > Memberships**.
 
-- **Deactivate** an offer by setting Status to `Inactive`. Existing members continue their subscriptions until cancelled.
+- **Deactivate** an offer by setting Status to `Inactive`. It moves to the **Inactive** tab, and existing members continue their subscriptions until cancelled.
 - **Remove from public sale** by unchecking **On Sale** while keeping the offer active for box office staff.
 - Changes to an offer do not retroactively affect existing subscribers.
 

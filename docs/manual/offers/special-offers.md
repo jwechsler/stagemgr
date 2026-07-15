@@ -29,7 +29,7 @@ The offers list is divided into two tabs:
 | **Active** | Offers with `Active` status -- the codes customers can currently redeem. This tab opens by default. |
 | **Expired/Inactive** | Offers with `Inactive` or `Expired` status, kept for reference or later reactivation. |
 
-Each tab has its own search box, column sorting, and paging, so you can filter one list without affecting the other. The searches and sort order you set are remembered separately per tab when you return to the page.
+Each tab has its own search box, column sorting, and paging, so you can filter one list without affecting the other. The searches and sort order you set are remembered separately per tab, and the tab you last viewed stays selected when you return to the page during the same browser session.
 
 ![Expired/Inactive tab listing offers with Inactive and Expired statuses](../assets/images/screenshots/offers-special-offers-inactive-tab.png)
 
