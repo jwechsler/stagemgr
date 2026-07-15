@@ -5,40 +5,42 @@
 
 .grid-x.grid-padding-x
   .small-12.cell
+    %ul.tabs#offer-status-tabs(data-tabs)
+      %li.tabs-title.is-active
+        %a{:href => "#active-offers-panel", 'aria-selected' => "true"} Active
+      %li.tabs-title
+        %a{:href => "#inactive-offers-panel"} Inactive
 
-    %table#flex-pass-offer-listing.display{:data=>{:source=>"#{admin_flex_pass_offers_path(format: :json)}"}}
-      %thead
-        %th Offer
-        %th Price
-        %th Qty
-        %th Public?
-        %th Restrictions
-        %th
-      %tbody
+    .tabs-content{'data-tabs-content' => 'offer-status-tabs'}
+      - %w[active inactive].each do |status_scope|
+        %div{id: "#{status_scope}-offers-panel", class: "tabs-panel #{'is-active' if status_scope == 'active'}"}
+          %table{id: "#{status_scope}_flex_pass_offer_listing", class: 'display', data: {source: admin_flex_pass_offers_path(format: :json, status_scope: status_scope)}}
+            %thead
+              %th Offer
+              %th Price
+              %th Qty
+              %th Public?
+              %th Restrictions
+              %th
+            %tbody
 
     = link_to 'New Flex Pass Offer', new_admin_flex_pass_offer_path, :class=>'button' if can? :create, FlexPassOffer
-
 
 = content_for :js do
   :javascript
     $(document).ready(function() {
-      $('#flex-pass-offer-listing').dataTable({
-        "processing": true,
-        "stateSave": true,
-        "serverSide": true,
-        "ajax": $('#flex-pass-offer-listing').data('source'),
-        "pagingType": 'full_numbers',
-        "language": {
-          "lengthMenu" : "_MENU_",
-          "search": "_INPUT_"
-        },
-        columns: [
-          {data: 'offer'},
-          {data: 'price'},
-          {data: 'qty'},
-          {data: 'public'},
-          {data: 'restrictions'},
-          {data: 'actions'},
-        ]
-      });
+      var offerColumns = [
+        {data: 'offer'},
+        {data: 'price'},
+        {data: 'qty'},
+        {data: 'public'},
+        {data: 'restrictions'},
+        {data: 'actions'},
+      ];
+
+      var offerLanguage = {"lengthMenu": "_MENU_", "search": "_INPUT_"};
+
+      initOfferStatusTabs('flex_pass_offers');
+      initOfferTable('#active_flex_pass_offer_listing', offerColumns, offerLanguage);
+      initOfferTable('#inactive_flex_pass_offer_listing', offerColumns, offerLanguage);
     });

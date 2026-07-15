@@ -12,6 +12,68 @@ RSpec.describe Admin::MembershipOffersController, type: :controller do
     allow(controller).to receive(:current_user).and_return(admin_user)
   end
 
+  describe 'GET #index' do
+    render_views
+
+    def datatable_params(status_scope: nil)
+      columns = %w[name on_sale membership_type status]
+                .each_with_index.to_h do |col, i|
+        [i.to_s, { data: col, searchable: 'true', orderable: 'true',
+                   search: { value: '', regex: 'false' } }]
+      end
+      params = { draw: '1', start: '0', length: '25',
+                 search: { value: '', regex: 'false' }, columns: columns }
+      params[:status_scope] = status_scope if status_scope
+      params
+    end
+
+    it 'renders Active and Inactive tabs, each with its own scoped table' do
+      get :index
+
+      expect(response.body).to include('active_membership_offer_listing')
+      expect(response.body).to include('inactive_membership_offer_listing')
+      expect(response.body).to include('status_scope=active')
+      expect(response.body).to include('status_scope=inactive')
+    end
+
+    context 'as JSON' do
+      def listed_names
+        response.parsed_body['data'].pluck('name').join
+      end
+
+      def listed_actions
+        response.parsed_body['data'].pluck('status').join
+      end
+
+      it 'returns only Active offers for status_scope=active' do
+        get :index, params: datatable_params(status_scope: 'active'), format: :json
+
+        expect(listed_names).to include('Gold Membership')
+        expect(listed_names).not_to include('Gold Legacy')
+        expect(listed_actions).to include('Create Order')
+      end
+
+      it 'returns only Inactive offers for status_scope=inactive' do
+        get :index, params: datatable_params(status_scope: 'inactive'), format: :json
+
+        expect(listed_names).to include('Gold Legacy')
+        expect(listed_names).not_to include('Gold Membership')
+      end
+
+      it 'omits the sales-action button for inactive offers' do
+        get :index, params: datatable_params(status_scope: 'inactive'), format: :json
+
+        expect(listed_actions).not_to include('Create Order', 'Issue Pass')
+      end
+
+      it 'returns all offers when status_scope is omitted' do
+        get :index, params: datatable_params, format: :json
+
+        expect(listed_names).to include('Gold Membership', 'Gold Legacy')
+      end
+    end
+  end
+
   describe 'GET #search' do
     it 'returns matching active offers with tag groups' do
       active_offer.membership_offer_tags.create!(name: 'Golden Circle')

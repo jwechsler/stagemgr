@@ -2,38 +2,40 @@
   Membership Offers
 = content_for :breadcrumbs do
   = render "shared/components/breadcrumb", items: [{ label: "Membership Offers" }]
-.grid-x
+
+.grid-x.grid-padding-x
   .small-12.cell
-    %table#membership-offer-listing{:data=>{:source=>"#{admin_membership_offers_path(format: :json)}"}}
-      %thead
-        %tr
-          %th Name
-          %th On Sale to Public
-          %th Type
-          %th
-      %tbody
+    %ul.tabs#offer-status-tabs(data-tabs)
+      %li.tabs-title.is-active
+        %a{:href => "#active-offers-panel", 'aria-selected' => "true"} Active
+      %li.tabs-title
+        %a{:href => "#inactive-offers-panel"} Inactive
+
+    .tabs-content{'data-tabs-content' => 'offer-status-tabs'}
+      - %w[active inactive].each do |status_scope|
+        %div{id: "#{status_scope}-offers-panel", class: "tabs-panel #{'is-active' if status_scope == 'active'}"}
+          %table{id: "#{status_scope}_membership_offer_listing", data: {source: admin_membership_offers_path(format: :json, status_scope: status_scope)}}
+            %thead
+              %tr
+                %th Name
+                %th On Sale to Public
+                %th Type
+                %th
+            %tbody
 
     = link_to "New Membership Offer", new_admin_membership_offer_path, :class=>'button' if can? :create, MembershipOffer
 
 = content_for :js do
   :javascript
     $(document).ready(function() {
-      $('#membership-offer-listing').dataTable({
-        "processing": true,
-        "serverSide": true,
-        "ajax": $('#membership-offer-listing').data('source'),
-        "pagingType": 'full_numbers',
-        "language": {
-          "lengthMenu" : "_MENU_ entries"
-        },
-        columns: [
-          {data: 'name'},
-          {data: 'on_sale'},
-          {data: 'membership_type'},
-          {data: 'status'},
-        ]
-      });
+      var offerColumns = [
+        {data: 'name'},
+        {data: 'on_sale'},
+        {data: 'membership_type'},
+        {data: 'status'},
+      ];
 
-
+      initOfferStatusTabs('membership_offers');
+      initOfferTable('#active_membership_offer_listing', offerColumns, {"lengthMenu": "_MENU_ entries"});
+      initOfferTable('#inactive_membership_offer_listing', offerColumns, {"lengthMenu": "_MENU_ entries"});
     });
-

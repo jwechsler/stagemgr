@@ -37,7 +37,12 @@ class FlexPassOfferDatatable < DatatableBase
   end
 
   def get_raw_records
-    FlexPassOffer.accessible_by(current_user.ability, :read).includes(:flex_pass_offer_tags)
+    scope = FlexPassOffer.accessible_by(current_user.ability, :read).includes(:flex_pass_offer_tags)
+    case params[:status_scope]
+    when 'active' then scope.status_active
+    when 'inactive' then scope.status_inactive
+    else scope
+    end
   end
 
   # ==== These methods represent the basic operations to perform on records
