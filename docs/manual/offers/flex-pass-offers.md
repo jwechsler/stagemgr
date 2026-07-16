@@ -66,9 +66,34 @@ A flex pass is a prepaid ticket package. The patron purchases a set number of ti
 | Field | Description |
 |-------|-------------|
 | **Redeem Immediately** | When enabled, the system prompts the patron to select performances and redeem tickets immediately at the time of purchase. |
+| **Autofulfill Against Performances** | Comma-separated performance codes. When set, purchasing the pass automatically reserves tickets for every listed performance -- see [Autofulfill Against Performances](#autofulfill-against-performances) below. |
 
 !!! note "Festival passes"
     To create a festival pass, use the **Restrict to festival** dropdown in the Use Restrictions fieldset (see [Festival Passes & Membership Caps](../festivals/passes-and-membership-caps.md)). The former **Treat as Festival Pass** checkbox has been removed.
+
+### Autofulfill Against Performances
+
+![Use Restrictions fieldset with the Autofulfill against performances field listing two performance codes](../assets/images/screenshots/offers-flex-pass-autofulfill-field.png)
+
+An autofulfilling pass turns checkout into a one-step package purchase: the patron buys the pass and immediately holds tickets for every performance on the list, with no separate redemption step. Enter the performance codes (e.g., `POUT0717, POUT0718`) in the **Autofulfill against performances** field, separated by commas.
+
+When a patron purchases the pass, the system creates one ticket order per listed performance -- each for **Maximum Uses Per Performance** tickets of the **Use Ticket Class Code** class -- paid from the newly purchased pass. The credit card is charged only after every reservation succeeds. If any performance cannot be reserved (sold out, already occurred, or its production has closed), the entire purchase is declined: nothing is charged, nothing is reserved, and the patron is told which performance failed and why.
+
+The patron receives the usual flex pass confirmation plus the standard ticket confirmation email for each auto-reserved performance.
+
+The following requirements are checked when you save the offer:
+
+- Every code must match an existing performance, with no duplicates.
+- All listed performances must be **general admission**. Reserved-seating performances cannot be autofulfilled, because seats cannot be chosen automatically.
+- **Maximum Uses Per Performance** must be set to a non-zero value -- it determines how many tickets are reserved per performance.
+- The list must fit the pass: *(number of codes) x (Maximum Uses Per Performance)* cannot exceed **Number of Tickets**.
+- If **Maximum Uses Per Production** is set, the auto-reserved tickets for each production must fit within it.
+
+!!! warning "Keep the code list current"
+    A purchase fails outright if any listed performance has already occurred or can no longer be reserved. As a festival or season progresses, remove past performance codes from the list (adjusting **Number of Tickets** or price as appropriate) or deactivate the offer.
+
+!!! tip "Instant festival package"
+    Combine autofulfill with **Restrict to festival** to sell an opening-weekend package: list the code of each opening-weekend performance, set **Maximum Uses Per Performance** to 2, and set **Number of Tickets** to 2 x the number of performances. A patron buying the pass instantly holds a pair of tickets for every show.
 
 ### Descriptions
 
@@ -109,6 +134,8 @@ If **Maximum Uses Per Production** or **Maximum Uses Per Performance** is set, t
 
 !!! tip "Festival pass redemption"
     For multi-show festivals, combine **Restrict to festival** with **Maximum Uses Per Performance** (typically 1) so each pass ticket covers a different festival performance.
+
+For autofulfilling passes, steps 2-5 happen automatically at purchase time for every performance listed in **Autofulfill against performances** -- the pass arrives with those redemptions already made, and any remaining tickets can be redeemed normally.
 
 ---
 
