@@ -30,6 +30,12 @@ config/my_emma_credentials.yml
 config/credentials.yml.enc
 config/credentials/development.yml.enc
 config/credentials/production.yml.enc
+
+# Local environment files — never commit (dotenv-rails)
+.env
+.env.local
+.env.*.local
+
 /tags
 rerun.txt
 *~

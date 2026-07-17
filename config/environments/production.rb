@@ -124,11 +124,11 @@ Rails.application.configure do
 
   config.after_initialize do
     PaymentProcessing.after_initialize
-    if Rails.application.credentials.dig(:my_emma, :account_id).nil?
-      MyEmma.disable
+    if ENV['MY_EMMA_USERNAME'].present? && ENV['MY_EMMA_PASSWORD'].present? && ENV['MY_EMMA_ACCOUNT_ID'].present?
+      MyEmma.set_credentials(ENV['MY_EMMA_USERNAME'], ENV['MY_EMMA_PASSWORD'], ENV['MY_EMMA_ACCOUNT_ID'])
+      MyEmma.read_only! if config.x.server_config.dig('my_emma', 'read_only')
     else
-      MyEmma.set_credentials(Rails.application.credentials.dig(:my_emma, :username),
-                             Rails.application.credentials.dig(:my_emma, :password), Rails.application.credentials.dig(:my_emma, :account_id))
+      MyEmma.disable
     end
   end
 
@@ -154,7 +154,7 @@ Rails.application.configure do
   delivery_method = email_config['delivery_method']
   config.action_mailer.delivery_method = delivery_method&.to_sym || :test
   if delivery_method.eql?('postmark')
-    config.action_mailer.postmark_settings = { api_key: Rails.application.credentials[:postmark_api_token] }
+    config.action_mailer.postmark_settings = { api_key: ENV['POSTMARK_API_TOKEN'] }
   end
 
   config.x.rand_clause = Arel.sql('RAND()')

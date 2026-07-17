@@ -1,4 +1,4 @@
-StripeEvent.signing_secret = Rails.application.credentials.dig(:stripe, :signing_secret)
+StripeEvent.signing_secret = ENV['STRIPE_SIGNING_SECRET']
 
 StripeEvent.configure do |events|
   # events.subscribe 'charge.failed' do |event|

@@ -83,7 +83,9 @@ gem 'config', git: 'https://github.com/railsconfig/config.git'
 gem 'decent_exposure'
 gem 'responders'
 
-gem 'dotenv-rails', groups: %i[development test]
+# All environments: bare-metal production (Passenger) has no Docker env_file
+# injection, so the app itself must load .env at boot.
+gem 'dotenv-rails'
 gem 'image_processing'
 # gem 'mini_magick'
 gem 'ruby-vips'

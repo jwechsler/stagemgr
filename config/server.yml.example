@@ -56,6 +56,10 @@ development:
   my_emma:
     create_production_groups: false
     create_theater_groups: false
+    # When true (and ENV MY_EMMA_* credentials are set), MyEmma is initialized
+    # in read-only mode so reads work but no writes hit the live account.
+    # Omit, leave blank, or set false to allow full writes.
+    read_only: true
   email:
     delivery_method: postmark
     addresses:

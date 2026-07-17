@@ -65,14 +65,14 @@ module PaymentProcessing
   end
 
   def self.after_initialize
-    if (Rails.configuration.x.payment_config['default_gateway'].eql?('paypal') || Rails.configuration.x.payment_config['default_recurring_gateway'].eql?('paypal')) && !Rails.credentials.dig(
-      :paypal, :pem_file
-    ).nil?
-      pem_file = File.read(::Rails.root.to_s + "/config/#{Rails.credentials.dig(:paypal, :pem_file)}")
-      ActiveMerchant::Billing::PaypalGateway.pem_file = pem_file
+    if Rails.configuration.x.payment_config['default_gateway'].eql?('paypal') || Rails.configuration.x.payment_config['default_recurring_gateway'].eql?('paypal')
+      unless ENV['PAYPAL_PEM_FILE'].nil?
+        pem_file = File.read(::Rails.root.to_s + "/config/#{ENV['PAYPAL_PEM_FILE']}")
+        ActiveMerchant::Billing::PaypalGateway.pem_file = pem_file
+      end
     end
     if Rails.configuration.x.payment_config['default_gateway'].eql?('stripe') || Rails.configuration.x.payment_config['default_recurring_gateway'].eql?('stripe')
-      Stripe.api_key = Rails.application.credentials.dig(:stripe, :secret_key)
+      Stripe.api_key = ENV['STRIPE_SECRET_KEY']
     end
   end
 
@@ -85,29 +85,20 @@ module PaymentProcessing
     requested_gateway ||= default_gateway
     case requested_gateway
     when 'paypal'
-      if Rails.credentials.dig(:paypal, :signature).nil?
-        ActiveMerchant::Billing::PaypalGateway.new(login: Rails.credentials.dig(:paypal, :login),
-                                                   password: Rails.credentials.dig(
-                                                     :paypal, :password
-                                                   ))
+      if ENV['PAYPAL_SIGNATURE'].nil?
+        ActiveMerchant::Billing::PaypalGateway.new(login: ENV['PAYPAL_LOGIN'],
+                                                   password: ENV['PAYPAL_PASSWORD'])
       else
-        ActiveMerchant::Billing::PaypalGateway.new(login: Rails.credentials.dig(:paypal, :login),
-                                                   password: Rails.credentials.dig(
-                                                     :paypal, :password
-                                                   ),
-                                                   signature: Rails.credentials.dig(
-                                                     :paypal, :signature
-                                                   ))
+        ActiveMerchant::Billing::PaypalGateway.new(login: ENV['PAYPAL_LOGIN'],
+                                                   password: ENV['PAYPAL_PASSWORD'],
+                                                   signature: ENV['PAYPAL_SIGNATURE'])
       end
     when 'paypal_express'
-      ActiveMerchant::Billing::PaypalExpressGateway.new(login: Rails.credentials.dig(:paypal_express, :login),
-                                                        password: Rails.credentials.dig(
-                                                          :paypal, :password
-                                                        ))
+      ActiveMerchant::Billing::PaypalExpressGateway.new(login: ENV['PAYPAL_EXPRESS_LOGIN'],
+                                                        password: ENV['PAYPAL_PASSWORD'])
     when 'stripe'
-      Stripe.api_key = Rails.application.credentials.dig(:stripe, :secret_key)
+      Stripe.api_key = ENV['STRIPE_SECRET_KEY']
       StripeGateway.new(login: Stripe.api_key)
-
     when 'bogus'
       PaymentProcessing::BogusGateway.new
     end
