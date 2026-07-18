@@ -101,6 +101,28 @@
             %br
             = submit_tag "Generate", :name=>'generate_csv', :class=>'tiny button'
 
+- if can? :first_time_attendees, Report
+  .grid-x.grid-padding-x
+    .small-12.cell
+      &nbsp;
+    .small-4.cell
+      %span.report_title
+        First Time Attendees (TRG)
+      %span.help_text
+        Download contact info for patrons whose first-ever attendance falls on or after the given date, in TRGArts format.
+        - if can?(:view_email, Address)
+          %br
+          %strong Warning: confidential email records included. DO NOT DISTRIBUTE.
+    .small-8.cell
+      = form_tag(first_time_attendees_admin_reports_path, method: "post") do
+        .grid-x.grid-padding-x
+          .small-4.cell
+            %label{for: :starting_date} First Attendance On or After
+            = text_field_tag(:starting_date, Date.today, class: 'date_picker')
+          .small-4.cell
+            %br
+            = submit_tag "Generate", name: 'generate_csv', class: 'tiny button'
+
 - if can? :donation_dump, Report
   .grid-x.grid-padding-x
     .small-12.cell

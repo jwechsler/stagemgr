@@ -19,7 +19,7 @@ you see depend on your user role.
 | Permission Group | Reports | Roles |
 |---|---|---|
 | **Show Reports** | Production Sales By Performance, Royalty Report, Production Attendees, TRGArts Production Export, Donor export | All users |
-| **Box Office Reports** | Daily Receipts, Print Tickets, Donation Totals, Membership Orders, FlexPass Patron Report, TRGArts Export by Performance Date | Box Office, Admin |
+| **Box Office Reports** | Daily Receipts, Print Tickets, Donation Totals, Membership Orders, FlexPass Patron Report, TRGArts Export by Performance Date, First Time Attendees (TRG) | Box Office, Admin |
 | **House Management** | House Management Seating Report | Box Office, Admin |
 | **Reconciliation** | FlexPass Sales, Weekly Box Office | Box Office, Admin |
 | **Membership** | Membership Usage | Box Office, Admin |
@@ -93,9 +93,9 @@ Larger or more complex reports run as background jobs. When you submit one of th
 4. The generated report also appears in the **Generated Reports** section at the bottom of the Reports page.
 
 !!! note "Background Job Reports"
-    The TRGArts exports, Donor export, Membership Orders, Production Attendees, and Mine
-    Customer Data reports all run as background jobs. Processing time depends on the size
-    of the dataset.
+    The TRGArts exports (including First Time Attendees), Donor export, Membership Orders,
+    Production Attendees, and Mine Customer Data reports all run as background jobs.
+    Processing time depends on the size of the dataset.
 
 ### Submission Feedback
 

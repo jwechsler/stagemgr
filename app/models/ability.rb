@@ -9,7 +9,7 @@ class Ability
     # aliasing to a real action name like :update, so extend :cru instead.
     alias_action :editor, :editor_data, :bulk_update_seats, to: :cru
     alias_action :attended_dump, :daily_box_office_receipts, :fulfill_tickets, :donations_total, :membership_export,
-                 :flex_pass_patron_report, to: :box_office_reports
+                 :flex_pass_patron_report, :first_time_attendees, to: :box_office_reports
     alias_action :trg_dump, :donation_dump, :production_sales_by_performance, :order_dump, :royalty_report,
                  to: :show_reports
     alias_action :house_management_seating, to: :house_management_reports

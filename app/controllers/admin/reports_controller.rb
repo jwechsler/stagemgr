@@ -130,7 +130,7 @@ class Admin::ReportsController < Admin::ApplicationController
                         end
     Resque.enqueue(TrgMinedExport, minimum_attended, minimum_revenue, start_day, required_theaters, current_user.id,
                    current_user.theater_ids)
-    flash[:notice] = 'Your export is queued for generation. You\'ll recieve notification when the process is complete.'
+    flash[:notice] = 'Your export is queued for generation. You\'ll receive notification when the process is complete.'
     redirect_to admin_reports_path
   end
 
@@ -151,7 +151,7 @@ class Admin::ReportsController < Admin::ApplicationController
     production = Production.find(params[:report][:production_id])
     Resque.enqueue(TrgProductionAttendeeExportJob, production.nil? ? 0 : production.id, current_user.id,
                    can?(:view_email, Address), current_user.theater_ids)
-    flash[:notice] = 'Your export is queued for generation. You\'ll recieve notification when the process is complete.'
+    flash[:notice] = 'Your export is queued for generation. You\'ll receive notification when the process is complete.'
     redirect_to admin_reports_path
   end
 
@@ -161,7 +161,20 @@ class Admin::ReportsController < Admin::ApplicationController
     ending_date = params[:ending_date].to_date
 
     Resque.enqueue(AttendedMailingListExport, starting_date, ending_date, current_user.id, current_user.theater_ids)
-    flash[:notice] = 'Your export is queued for generation. You\'ll recieve notification when the process is complete.'
+    flash[:notice] = 'Your export is queued for generation. You\'ll receive notification when the process is complete.'
+    redirect_to admin_reports_path
+  end
+
+  # Trg Export of patrons whose first-ever attendance falls on or after the given date.
+  def first_time_attendees
+    if params[:starting_date].blank?
+      flash[:alert] = 'Please provide a "First Attendance On or After" date.'
+      redirect_to admin_reports_path and return
+    end
+
+    starting_date = params[:starting_date].to_date
+    Resque.enqueue(FirstTimeAttendeeExport, starting_date, current_user.id, current_user.theater_ids)
+    flash[:notice] = 'Your export is queued for generation. You\'ll receive notification when the process is complete.'
     redirect_to admin_reports_path
   end
 
@@ -259,7 +272,7 @@ class Admin::ReportsController < Admin::ApplicationController
 
     Resque.enqueue(MembershipOrderMailingListExport, @starting_date, @ending_date, trg_lists,
                    membership_offer_ids, current_user.id, current_user.theater_ids)
-    flash[:notice] = "Your export is queued for generation. You'll recieve notification when the process is complete."
+    flash[:notice] = "Your export is queued for generation. You'll receive notification when the process is complete."
     redirect_to admin_reports_path
   end
 
@@ -288,7 +301,7 @@ class Admin::ReportsController < Admin::ApplicationController
     raise ReportProcessor::ParameterError, 'Select at least one production' if production_ids.empty?
 
     Resque.enqueue(ProductionAttendeeExport, production_ids, can?(:view_email, Address), current_user.id)
-    flash[:notice] = "Your export is queued for generation. You'll recieve notification when the process is complete."
+    flash[:notice] = "Your export is queued for generation. You'll receive notification when the process is complete."
     redirect_to admin_reports_path
   end
 
