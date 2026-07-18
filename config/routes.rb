@@ -211,6 +211,7 @@ Rails.application.routes.draw do
         get :house_management_seating, action: :index
         post :trg_dump
         post :attended_dump
+        post :first_time_attendees
         post :donation_dump
         post :donations_total
         post :flex_pass_patron_report

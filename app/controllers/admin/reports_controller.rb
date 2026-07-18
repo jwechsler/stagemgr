@@ -165,6 +165,19 @@ class Admin::ReportsController < Admin::ApplicationController
     redirect_to admin_reports_path
   end
 
+  # Trg Export of patrons whose first-ever attendance falls on or after the given date.
+  def first_time_attendees
+    if params[:starting_date].blank?
+      flash[:alert] = 'Please provide a "First Attendance On or After" date.'
+      redirect_to admin_reports_path and return
+    end
+
+    starting_date = params[:starting_date].to_date
+    Resque.enqueue(FirstTimeAttendeeExport, starting_date, current_user.id, current_user.theater_ids)
+    flash[:notice] = 'Your export is queued for generation. You\'ll receive notification when the process is complete.'
+    redirect_to admin_reports_path
+  end
+
   def donation_dump
     dates = parse_date_params(starting_date: params[:starting_date_donor], ending_date: params[:ending_date_donor])
     theater_id = params[:theater_id].to_i
