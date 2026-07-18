@@ -24,7 +24,7 @@ RSpec.describe FirstTimeAttendeeReport, type: :model do
   end
 
   def create_attended_order(address:, on:, ticket_class: regular_class,
-                            status: Order::PROCESSED, performance: nil)
+                            status: Order::FULFILLED, performance: nil)
     performance ||= create_performance(on)
     order = FactoryBot.create(:ticket_order, address: address, performance: performance)
     order.ticket_line_items << FactoryBot.build(:ticket_line_item, order: order,
@@ -152,6 +152,34 @@ RSpec.describe FirstTimeAttendeeReport, type: :model do
       expect(row).to be_present
       # First attendance still counts the flex visit; only *qualifying* is gated.
       expect(row[:FirstAttendedDate]).to eq(start_date + 1)
+    end
+  end
+
+  describe 'fulfillment requirement' do
+    it 'excludes a patron whose only orders are PROCESSED but never FULFILLED' do
+      address = FactoryBot.create(:address)
+      create_attended_order(address: address, on: start_date + 1, status: Order::PROCESSED)
+      create_attended_order(address: address, on: start_date + 6, status: Order::PROCESSED)
+
+      expect(reported_address_ids(run_report)).not_to include(address.id)
+    end
+
+    it 'dates a patron from a PROCESSED first visit once a later order is FULFILLED' do
+      address = FactoryBot.create(:address)
+      create_attended_order(address: address, on: start_date + 1, status: Order::PROCESSED)
+      create_attended_order(address: address, on: start_date + 6)
+
+      row = row_for(run_report, address)
+      expect(row).to be_present
+      expect(row[:FirstAttendedDate]).to eq(start_date + 1)
+    end
+
+    it 'still disqualifies on a PROCESSED attendance before the start date' do
+      address = FactoryBot.create(:address)
+      create_attended_order(address: address, on: start_date - 2, status: Order::PROCESSED)
+      create_attended_order(address: address, on: start_date + 6)
+
+      expect(reported_address_ids(run_report)).not_to include(address.id)
     end
   end
 

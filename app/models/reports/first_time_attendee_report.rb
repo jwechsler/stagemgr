@@ -5,10 +5,11 @@
 # (status PROCESSED/FULFILLED, performance already past) — comp, membership,
 # and flex-pass visits included. So :FirstAttendedDate may legitimately be a
 # comp visit; that is by design. To appear in the export at all, the patron
-# must additionally have at least one *qualifying* attended order: one that
-# contains a non-comp ticket and was NOT paid with a flex pass and NOT paid
-# with a standard ('production') membership. Timed-membership attendances
-# qualify.
+# must additionally have at least one *qualifying* order: a FULFILLED order
+# that contains a non-comp ticket and was NOT paid with a flex pass and NOT
+# paid with a standard ('production') membership. Timed-membership
+# attendances qualify. Merely PROCESSED orders still establish attendance
+# (and can disqualify or date a patron) but never make one eligible.
 #
 # Known limitations:
 # - Exchange chains count only the exchange-target order (the original is
@@ -26,7 +27,7 @@ class FirstTimeAttendeeReport < MailingList
   # Phase A: one grouped scan over attended orders. The INNER JOIN on
   # performances naturally drops donation/pass orders (no performance_id).
   # The HAVING clause keeps only addresses whose first-ever attendance is on
-  # or after :start_date AND who have at least one qualifying attended order.
+  # or after :start_date AND who have at least one qualifying FULFILLED order.
   # payments.type is pinned as a string literal on purpose: Payment STI
   # subclass scopes match ALL payment types project-wide, so subclass
   # constants are never used to build these predicates.
@@ -42,7 +43,8 @@ class FirstTimeAttendeeReport < MailingList
     GROUP BY o.address_id
     HAVING MIN(p.performance_date) >= :start_date
        AND MAX(CASE WHEN
-             EXISTS (SELECT 1 FROM line_items li
+             o.status = :fulfilled
+             AND EXISTS (SELECT 1 FROM line_items li
                      JOIN ticket_classes tc ON tc.id = li.ticket_class_id
                      WHERE li.order_id = o.id AND tc.complimentary = 0)
              AND NOT EXISTS (SELECT 1 FROM payments fp
@@ -122,6 +124,7 @@ class FirstTimeAttendeeReport < MailingList
   def first_attendance_dates
     sql = ActiveRecord::Base.sanitize_sql_array(
       [CANDIDATES_SQL, { attended_statuses: Order::ATTENDING_STATUSES,
+                         fulfilled: Order::FULFILLED,
                          today: Date.current,
                          start_date: start_date }]
     )
