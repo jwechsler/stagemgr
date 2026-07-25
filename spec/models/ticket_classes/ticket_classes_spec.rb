@@ -102,8 +102,8 @@ RSpec.describe TicketClass do
   describe 'pasted annotations' do
     it 'scrubs invisible characters' do
       ticket_class = FactoryBot.create(:ticket_class, production: @production,
-                                                     purchase_page_annotation: "﻿Limited ﻿availability",
-                                                     purchase_email_annotation: "Bring​ your ticket")
+                                                      purchase_page_annotation: "﻿Limited ﻿availability",
+                                                      purchase_email_annotation: "Bring​ your ticket")
 
       ticket_class.reload
       expect(ticket_class.purchase_page_annotation).to eq('Limited availability')
@@ -113,7 +113,7 @@ RSpec.describe TicketClass do
     it 'stores legitimate typography unchanged' do
       typography = "“Pay what you can” — café seating… £2.50"
       ticket_class = FactoryBot.create(:ticket_class, production: @production,
-                                                     purchase_page_annotation: typography)
+                                                      purchase_page_annotation: typography)
 
       expect(ticket_class.reload.purchase_page_annotation).to eq(typography)
     end

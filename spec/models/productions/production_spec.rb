@@ -79,8 +79,8 @@ RSpec.describe 'a production' do
   describe 'pasted copy' do
     it 'scrubs invisible characters from show copy' do
       production = FactoryBot.create(:production, capacity: 10,
-                                                 show_description: "﻿Winner of ﻿three awards",
-                                                 confirmation_message: "See you​ there")
+                                                  show_description: "﻿Winner of ﻿three awards",
+                                                  confirmation_message: "See you​ there")
 
       production.reload
       expect(production.show_description).to eq('Winner of three awards')
