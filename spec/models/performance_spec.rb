@@ -73,10 +73,10 @@ RSpec.describe 'a performance' do
                'and celebrating Black-identifying theatergoers and the Black community at large.')
     end
 
-    it 'saves copy containing emoji by dropping them' do
-      @performance.update!(special_feature_email_markdown: "Opening night \u{1F389}")
+    it 'stores emoji and non-Latin scripts now that the column is utf8mb4' do
+      @performance.update!(special_feature_email_markdown: "Opening night \u{1F389} 你好")
 
-      expect(@performance.reload.special_feature_email_markdown).to eq('Opening night ')
+      expect(@performance.reload.special_feature_email_markdown).to eq("Opening night \u{1F389} 你好")
     end
 
     it 'stores legitimate typography unchanged' do

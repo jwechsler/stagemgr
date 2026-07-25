@@ -22,7 +22,7 @@ class Admin::TicketOrdersController < Admin::OrdersController
   autocomplete :ticket_class, :ticket_class_code
 
   def autocomplete_production_production_code
-    term = sanitize_autocomplete_term(params[:term])
+    term = params[:term].to_s
     production = Production.accessible_by(current_ability).where('(production_code like :code_term or name like :name_term) and status in (:visible_status_list)',
                                                                  code_term: "#{term}%", name_term: "%#{term}%", visible_status_list: Production.on_sale_statuses)
     render json: production.map { |prod|
@@ -41,7 +41,7 @@ class Admin::TicketOrdersController < Admin::OrdersController
     if params[:production_id].blank? || production.nil?
       render json: []
     else
-      performances = sellable_performances_with_partial_code(production, sanitize_autocomplete_term(params[:term]))
+      performances = sellable_performances_with_partial_code(production, params[:term].to_s)
       render json: performances.map { |performance|
         { id: performance.id, label: "#{performance.performance_code} [#{performance.performance_date.to_formatted_s(:show_date)} #{performance.performance_time.to_formatted_s(:hour_min)} (#{performance.number_of_seats_left} remaining)]",
           value: performance.performance_code }
@@ -55,7 +55,7 @@ class Admin::TicketOrdersController < Admin::OrdersController
       render json: []
     else
       ticket_classes = performance.production.ticket_classes.search_by_code_and_performance_id(
-        sanitize_autocomplete_term(params[:term]), performance.id
+        params[:term].to_s, performance.id
       )
       render json: ticket_classes.reject { |tc| tc.software_managed }.map { |ticket_class|
         { id: ticket_class.id,
@@ -72,8 +72,7 @@ class Admin::TicketOrdersController < Admin::OrdersController
     if performance.nil?
       render json: []
     else
-      special_offers = SpecialOffer.find_all_by_performance(performance, sanitize_autocomplete_term(params[:term]),
-                                                            true)
+      special_offers = SpecialOffer.find_all_by_performance(performance, params[:term].to_s, true)
       render json: special_offers.map { |offer|
         { id: offer.id, value: offer.code, label: "#{offer.code}: #{offer}" }
       }
@@ -337,12 +336,5 @@ class Admin::TicketOrdersController < Admin::OrdersController
 
   def ticket_order_params
     params.require(:ticket_order).permit(*ticket_order_common_params)
-  end
-
-  # Autocomplete targets are latin1-encoded columns; coerce the search term so
-  # MySQL can compare it without raising an "Illegal mix of collations" error
-  # when the input contains characters outside latin1 (e.g. U+2019, BOMs).
-  def sanitize_autocomplete_term(term)
-    term.to_s.encode('ISO-8859-1', invalid: :replace, undef: :replace, replace: '')
   end
 end

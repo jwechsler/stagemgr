@@ -43,8 +43,10 @@ RSpec.describe TextSanitizable do
       expect(described_class.scrub('Opening night, 7:30PM')).to eq('Opening night, 7:30PM')
     end
 
-    it 'drops characters latin1 cannot store rather than raising' do
-      expect(described_class.scrub("Emoji \u{1F389} and CJK 你好")).to eq('Emoji  and CJK ')
+    # These used to be stripped, because latin1 could not store them. The tables
+    # are utf8mb4 now, so they are ordinary content.
+    it 'preserves emoji and non-Latin scripts' do
+      expect(described_class.scrub("Emoji \u{1F389} and CJK 你好")).to eq("Emoji \u{1F389} and CJK 你好")
     end
 
     it 'drops invalid byte sequences instead of raising' do
@@ -54,13 +56,12 @@ RSpec.describe TextSanitizable do
       expect(described_class.scrub(invalid)).to eq('caf unflagged')
     end
 
-    it 'always returns valid UTF-8 that latin1 can store' do
+    it 'always returns valid UTF-8' do
       [pasted_payload, "“quoted” café", "emoji \u{1F389}", ''].each do |value|
         scrubbed = described_class.scrub(value)
 
         expect(scrubbed.encoding).to eq(Encoding::UTF_8)
         expect(scrubbed).to be_valid_encoding
-        expect { scrubbed.encode(Encoding::WINDOWS_1252) }.not_to raise_error
       end
     end
 
