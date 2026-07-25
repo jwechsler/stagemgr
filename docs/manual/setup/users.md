@@ -47,6 +47,12 @@ New accounts default to Active. Accounts also become Inactive on their own after
 a long period of disuse -- see [Automatic Deactivation for
 Inactivity](#automatic-deactivation-for-inactivity).
 
+The **system administrator account** (the first account in the system) is the
+one exception: it cannot be set to Inactive. Saving it with Status set to
+Inactive is rejected with an error, and the inactivity rule below never applies
+to it. Everything else about the account -- email, password, role, theaters --
+is editable as normal.
+
 ### Password / Password Confirmation
 
 Set the user's password. Required when creating a new account. When editing an existing account, leave both fields blank to keep the current password unchanged.
@@ -80,7 +86,7 @@ Click **Edit** next to any user in the list. You can change their email, role, s
 Stagemgr expires unused logins. An account that goes **13 months** without any
 login activity is set to **Inactive** automatically, whether or not it was ever
 logged into -- an account created and never used expires 13 months after it was
-created.
+created. The system administrator account is exempt and never expires.
 
 - A nightly maintenance job deactivates accounts that have passed the 13-month
   mark. No email is sent.
@@ -103,11 +109,12 @@ account: **Options > Administer Users**, click **Edit**, set **Status** back to
 **Active**, and save. The password is unchanged, so the user can log in again
 immediately -- and the reactivated account then has a fresh 13-month window.
 
-!!! warning "Keep at least one Administrator account in use"
-    The rule applies to Administrator accounts too. If every Administrator
-    account went 13 months without a login, they would all be deactivated and
-    no one could log in to reactivate them (recovering from that requires
-    server-level database access). Logging in periodically avoids this.
+!!! note "The system administrator account is the way back in"
+    The rule applies to Administrator accounts too, so in principle a long
+    enough gap could deactivate every account an organization uses day to day.
+    The system administrator account is exempt from expiry and cannot be set
+    Inactive precisely for that case: it can always log in and reactivate the
+    others.
 
 ## Deactivating vs Deleting Users
 

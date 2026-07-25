@@ -4,12 +4,45 @@ RSpec.describe User, type: :model do
   # Creating a record can log it in (Authlogic session maintenance, whenever
   # another spec has activated Authlogic), which stamps the login columns. The
   # timestamps under test are therefore written after the record exists.
+  # Ids are explicit: the first account created into an empty users table would
+  # otherwise land on SYSTEM_ADMIN_ID and inherit the system administrator's
+  # exemptions.
   def user_last_active(**timestamps)
-    status = timestamps.delete(:status) || User::ACTIVE
-    user = FactoryBot.create(:user, status: status)
+    @next_id = (@next_id || User::SYSTEM_ADMIN_ID) + 1
+    attributes = { status: timestamps.delete(:status) || User::ACTIVE,
+                   id: timestamps.delete(:id) || @next_id }
+    user = FactoryBot.create(:user, attributes)
     user.update_columns({ current_login_at: nil, last_login_at: nil, last_request_at: nil }
                           .merge(timestamps))
     user.reload
+  end
+
+  describe 'the system administrator account' do
+    let(:system_admin) { FactoryBot.create(:admin_user, id: User::SYSTEM_ADMIN_ID) }
+
+    it 'cannot be set Inactive' do
+      system_admin.status = User::INACTIVE
+
+      expect(system_admin).not_to be_valid
+      expect(system_admin.errors[:status])
+        .to include('cannot be set to Inactive on the system administrator account')
+      expect(system_admin.reload.status).to eq(User::ACTIVE)
+    end
+
+    it 'is not deactivated by expire_login!' do
+      expect(system_admin.expire_login!).to be false
+      expect(system_admin.reload.status).to eq(User::ACTIVE)
+    end
+
+    it 'can still be edited in every other way' do
+      expect(system_admin.update(email: 'sysadmin@example.com')).to be true
+    end
+
+    it 'does not restrict any other account' do
+      other = FactoryBot.create(:user, id: User::SYSTEM_ADMIN_ID + 1)
+
+      expect(other.update(status: User::INACTIVE)).to be true
+    end
   end
 
   describe '#last_login_activity_at' do
@@ -41,6 +74,12 @@ RSpec.describe User, type: :model do
 
     it 'is false inside the expiration window' do
       expect(user_last_active(last_request_at: 12.months.ago).login_expired?).to be false
+    end
+
+    it 'is false for the system administrator account, however dormant' do
+      system_admin = user_last_active(id: User::SYSTEM_ADMIN_ID, last_request_at: 5.years.ago)
+
+      expect(system_admin.login_expired?).to be false
     end
 
     it 'is false for an account that is already Inactive' do
@@ -90,6 +129,16 @@ RSpec.describe User, type: :model do
 
       expect(described_class.expire_stale_logins).to eq(0)
       expect(user.reload.status).to eq(User::ACTIVE)
+    end
+
+    it 'never expires the system administrator account' do
+      system_admin = user_last_active(id: User::SYSTEM_ADMIN_ID, last_request_at: 5.years.ago)
+      other = user_last_active(last_request_at: 5.years.ago)
+
+      expect(described_class.expire_stale_logins).to eq(1)
+
+      expect(system_admin.reload.status).to eq(User::ACTIVE)
+      expect(other.reload.status).to eq(User::INACTIVE)
     end
 
     it 'leaves accounts that are already Inactive alone' do

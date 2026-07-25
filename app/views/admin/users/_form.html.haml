@@ -4,7 +4,8 @@
     .small-8.cell
       = f.input :email, :as=>:email
     .small-4.cell
-      = f.input :status, :as=>:select, :collection=>User::STATUSES, :include_blank=>false
+      -# The system administrator account cannot be deactivated (User#system_admin_stays_active)
+      = f.input :status, :as=>:select, :collection=>(user.system_admin? ? [User::ACTIVE] : User::STATUSES), :include_blank=>false
     .small-8.cell
       .grid-x.grid-padding-x
         .cell.small-6

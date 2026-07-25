@@ -33,6 +33,11 @@ class User < ApplicationRecord
   # any argument is NULL.
   NO_ACTIVITY_SENTINEL = Time.utc(1970, 1, 1)
 
+  # The system administrator login. It is the way back in when every other
+  # account has been locked out, so it never expires and can never be set
+  # Inactive.
+  SYSTEM_ADMIN_ID = 1
+
   acts_as_authentic do |c|
     c.logged_in_timeout = 6.hours
     c.transition_from_crypto_providers = [Authlogic::CryptoProviders::Sha512]
@@ -41,6 +46,7 @@ class User < ApplicationRecord
 
   before_validation :set_defaults, :on => :create
   after_initialize :init
+  validate :system_admin_stays_active
 
   def init
     self.status = User::ACTIVE if status.blank?
@@ -48,6 +54,10 @@ class User < ApplicationRecord
 
   def inactive?
     status == INACTIVE
+  end
+
+  def system_admin?
+    id == SYSTEM_ADMIN_ID
   end
 
   # The most recent evidence that this account was used. Authlogic maintains
@@ -61,7 +71,7 @@ class User < ApplicationRecord
   end
 
   def login_expired?(cutoff = self.class.login_expiration_cutoff)
-    return false if inactive?
+    return false if inactive? || system_admin?
 
     activity = last_login_activity_at
     activity.present? && activity < cutoff
@@ -69,8 +79,11 @@ class User < ApplicationRecord
 
   # Deactivates without running validations or callbacks: the account is being
   # closed for inactivity, not edited, and an old row that no longer passes
-  # validation must still expire.
+  # validation must still expire. The system administrator is exempt, and the
+  # guard is repeated here because validations are skipped.
   def expire_login!
+    return false if system_admin?
+
     update_columns(status: INACTIVE, updated_at: Time.current)
   end
 
@@ -78,10 +91,12 @@ class User < ApplicationRecord
     as_of - LOGIN_EXPIRATION_MONTHS.months
   end
 
-  # Active accounts whose last login activity predates the cutoff. The SQL
-  # mirrors #last_login_activity_at so a single UPDATE can do the sweep.
+  # Active accounts whose last login activity predates the cutoff, less the
+  # system administrator. The SQL mirrors #last_login_activity_at so a single
+  # UPDATE can do the sweep.
   def self.with_expired_logins(cutoff = login_expiration_cutoff)
     where(status: ACTIVE)
+      .where.not(id: SYSTEM_ADMIN_ID)
       .where(<<~SQL.squish, cutoff: cutoff, sentinel: NO_ACTIVITY_SENTINEL)
         CASE WHEN current_login_at IS NULL
               AND last_login_at IS NULL
@@ -166,5 +181,16 @@ class User < ApplicationRecord
 
   def ability
     @ability ||= Ability.new(self)
+  end
+
+  private
+
+  # The system administrator account is the recovery path into a system whose
+  # other logins have all been deactivated, so nothing may close it -- not the
+  # inactivity sweep, and not an administrator editing it.
+  def system_admin_stays_active
+    return unless system_admin? && inactive?
+
+    errors.add(:status, 'cannot be set to Inactive on the system administrator account')
   end
 end
