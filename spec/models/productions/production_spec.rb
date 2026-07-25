@@ -75,4 +75,23 @@ RSpec.describe 'a production' do
       expect(production.capacity).to eq(100)
     end
   end
+
+  describe 'pasted copy' do
+    it 'scrubs invisible characters from show copy' do
+      production = FactoryBot.create(:production, capacity: 10,
+                                                 show_description: "﻿Winner of ﻿three awards",
+                                                 confirmation_message: "See you​ there")
+
+      production.reload
+      expect(production.show_description).to eq('Winner of three awards')
+      expect(production.confirmation_message).to eq('See you there')
+    end
+
+    it 'stores legitimate typography unchanged' do
+      typography = "“Mud Row” — a café favorite… naïve, £2.50"
+      production = FactoryBot.create(:production, capacity: 10, show_description: typography)
+
+      expect(production.reload.show_description).to eq(typography)
+    end
+  end
 end

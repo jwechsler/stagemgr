@@ -55,4 +55,36 @@ RSpec.describe 'a performance' do
     # expect(@performance.allocation(ticket_class2.class_code).available?).to be false
     expect(@performance.allocation(ticket_class3.class_code).available?).to be true
   end
+
+  describe 'pasted special feature copy' do
+    # Verbatim from the crash report: box office pasted this into the admin form
+    # and the latin1 column rejected the byte-order marks with
+    # Mysql2::Error: Incorrect string value: '\xEF\xBB\xBFBla...'
+    let(:pasted_markdown) do
+      "﻿[1] Blackout Night: This performance is specifically dedicated to serving " \
+        "and celebrating ﻿Black-identifying theatergoers and the Black community at large."
+    end
+
+    it 'saves copy containing byte-order marks' do
+      expect { @performance.update!(special_feature_display_markdown: pasted_markdown) }.not_to raise_error
+
+      expect(@performance.reload.special_feature_display_markdown)
+        .to eq('[1] Blackout Night: This performance is specifically dedicated to serving ' \
+               'and celebrating Black-identifying theatergoers and the Black community at large.')
+    end
+
+    it 'saves copy containing emoji by dropping them' do
+      @performance.update!(special_feature_email_markdown: "Opening night \u{1F389}")
+
+      expect(@performance.reload.special_feature_email_markdown).to eq('Opening night ')
+    end
+
+    it 'stores legitimate typography unchanged' do
+      typography = "Featuring “Hamlet” — a café favorite… naïve, £2.50"
+
+      @performance.update!(special_feature_display_markdown: typography)
+
+      expect(@performance.reload.special_feature_display_markdown).to eq(typography)
+    end
+  end
 end

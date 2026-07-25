@@ -1,6 +1,8 @@
 # A production is a show with one or more performances.  Items common to performances are grouped here.
 
 class Production < ApplicationRecord
+  include TextSanitizable
+
   attr_accessor :updated_by_user_id
 
   # :section: Production Constants
@@ -355,12 +357,7 @@ class Production < ApplicationRecord
 
   def clean_values
     production_code.upcase! unless production_code.nil?
-    invisible_chars = /[\u200B\u200C\u200D\uFEFF\u00AD]/
-    attributes.each do |attr, value|
-      if value.is_a?(String) && value.match?(invisible_chars)
-        self[attr] = value.gsub(invisible_chars, '')
-      end
-    end
+    scrub_string_attributes
   end
 
   def assign_default_ticket_classes

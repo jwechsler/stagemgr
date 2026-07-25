@@ -1,4 +1,6 @@
 class Performance < ApplicationRecord
+  include TextSanitizable
+
   PERFORMANCE_STATUSES = (ACTIVE, INACTIVE, PRIVATE = 'Active', 'Inactive', 'Private')
 
   belongs_to               :production, inverse_of: :performances
@@ -295,6 +297,7 @@ class Performance < ApplicationRecord
   end
 
   def clean_values
+    scrub_string_attributes
     self.performance_date = Date.today if performance_date.nil?
     self.performance_time = Time.now if performance_time.nil?
     self.performance_date = performance_date.change(:hour => 0,
