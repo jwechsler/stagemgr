@@ -43,7 +43,9 @@ The user's email address, which also serves as their login username. Must be uni
 | **Active** | User can log in and access the system |
 | **Inactive** | User cannot log in. Use this to disable accounts without deleting them. |
 
-New accounts default to Active.
+New accounts default to Active. Accounts also become Inactive on their own after
+a long period of disuse -- see [Automatic Deactivation for
+Inactivity](#automatic-deactivation-for-inactivity).
 
 ### Password / Password Confirmation
 
@@ -73,6 +75,40 @@ A multi-select list of all active theaters. Select one or more theaters to assoc
 
 Click **Edit** next to any user in the list. You can change their email, role, status, theater assignments, and password. Changes take effect on the user's next page load or login.
 
+## Automatic Deactivation for Inactivity
+
+Stagemgr expires unused logins. An account that goes **13 months** without any
+login activity is set to **Inactive** automatically, whether or not it was ever
+logged into -- an account created and never used expires 13 months after it was
+created.
+
+- A nightly maintenance job deactivates accounts that have passed the 13-month
+  mark. No email is sent.
+- The same rule is applied at the login screen, so an account past the mark
+  cannot be used even in the window before the nightly job runs. The user sees a
+  message telling them the account was deactivated for inactivity and to contact
+  an administrator.
+- Nothing is deleted. The account, its theater assignments, and its audit
+  history are all preserved.
+
+"Login activity" means the most recent of the account's last login and its last
+page request -- the **Last Access Date** column on the Users list is the page
+request half of that. Any normal use of the system, logging in or loading a
+page, resets the clock, so an account used even once a year never expires.
+
+### Reactivating an Expired Account
+
+An Administrator reactivates the account the same way as any other Inactive
+account: **Options > Administer Users**, click **Edit**, set **Status** back to
+**Active**, and save. The password is unchanged, so the user can log in again
+immediately -- and the reactivated account then has a fresh 13-month window.
+
+!!! warning "Keep at least one Administrator account in use"
+    The rule applies to Administrator accounts too. If every Administrator
+    account went 13 months without a login, they would all be deactivated and
+    no one could log in to reactivate them (recovering from that requires
+    server-level database access). Logging in periodically avoids this.
+
 ## Deactivating vs Deleting Users
 
 - **Deactivating** (setting Status to Inactive) is the recommended way to remove access. The user's account and all associated audit history is preserved.
@@ -81,5 +117,7 @@ Click **Edit** next to any user in the list. You can change their email, role, s
 ## Session Behavior
 
 - Login sessions time out after **6 hours** of inactivity
+- Accounts are deactivated after **13 months** without a login (see [Automatic
+  Deactivation for Inactivity](#automatic-deactivation-for-inactivity))
 - The dashboard shows login count, last login date/IP, and current login date/IP
 - Users can change their own password via **My Account > Edit**

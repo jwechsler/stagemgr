@@ -52,6 +52,11 @@ DeactivateStaleSpecialOffers:
   description: 'Mark Active special offers Inactive when their targets ended over a month ago'
   queue: maintenance
 
+ExpireStaleLogins:
+  cron: '0 3 * * *'
+  description: 'Set backend accounts Inactive after 13 months without a login'
+  queue: maintenance
+
 PruneOrderTaskResults:
   cron: '0 2 * * 0'
   description: 'Clear stored failure backtraces on order tasks older than 6 months'
