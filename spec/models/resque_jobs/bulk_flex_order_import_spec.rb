@@ -38,7 +38,7 @@ RSpec.describe BulkFlexOrderImport do
 
   context 'when the send-confirmations argument is omitted' do
     it 'suppresses the confirmation, matching the historical behaviour' do
-      expect { run }.not_to change { confirmation_task_count }
+      expect { run }.not_to(change { confirmation_task_count })
       expect(FlexPassOrder.last.suppress_receipt).to be(true)
     end
 
@@ -51,11 +51,11 @@ RSpec.describe BulkFlexOrderImport do
     # check_box_tag has no hidden companion field, so an unchecked box sends
     # nothing at all and the param arrives as nil.
     it 'suppresses the confirmation for a nil param' do
-      expect { run(nil) }.not_to change { confirmation_task_count }
+      expect { run(nil) }.not_to(change { confirmation_task_count })
     end
 
     it 'suppresses the confirmation for a "0" param' do
-      expect { run('0') }.not_to change { confirmation_task_count }
+      expect { run('0') }.not_to(change { confirmation_task_count })
       expect(FlexPassOrder.last.suppress_receipt).to be(true)
     end
   end
