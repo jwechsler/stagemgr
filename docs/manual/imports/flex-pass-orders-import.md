@@ -17,6 +17,7 @@ Use this import when you need to set up flex passes for a large group -- for exa
 |--------|----------|-------------|
 | **Theater Association** | Yes | Select the theater for flex pass offer lookup and customer association |
 | **Payment Type** | No | Select a payment method for the flex pass orders |
+| **Send purchase confirmation emails** | No | Unchecked by default. Leave it unchecked to import silently; check it to send each patron the normal flex pass confirmation |
 | **File Upload** | Yes | CSV file containing flex pass order data |
 
 ## Required CSV Headers
@@ -73,17 +74,24 @@ All flex pass orders are **automatically processed** to PROCESSED status, regard
 
 Custom codes are useful when migrating from another system where patrons already know their pass codes.
 
-### Email Suppression
+### Confirmation Emails
 
-!!! note "No Receipts Sent During Import"
-    Receipt emails are **suppressed** during bulk import to prevent sending a flood of notifications. Patrons will not receive an email confirming their flex pass order. If you need to notify patrons, do so separately after the import completes.
+The **Send purchase confirmation emails** checkbox on the import form controls whether imported flex pass orders send a confirmation.
+
+| Checkbox | Result |
+|----------|--------|
+| **Unchecked** (default) | No confirmation emails are sent. Patrons will not receive an email confirming their flex pass order. |
+| **Checked** | Each imported order sends its normal flex pass confirmation, one per row. |
+
+!!! warning "Check the row count first"
+    Leave the box unchecked unless you intend to email every patron in the file. A large import with the box checked sends one confirmation per row.
 
 ## Expected Outcome
 
 - Flex pass orders are created and automatically processed
 - Customers receive active flex passes usable for future ticket purchases
 - Custom flex pass codes are assigned if provided, otherwise system-generated
-- No email receipts are sent during the import
+- No confirmation emails are sent unless **Send purchase confirmation emails** was checked
 - A result file (`flex_pass_import_results_<your-file-name>.csv`) listing every row, with an `Error` column populated for any that failed, is emailed to you when one or more rows could not be processed. Failed rows are rolled back completely. See [Result File](imports-overview.md#result-file) for the full naming rules and retry workflow.
 
 ## Example CSV
@@ -100,4 +108,4 @@ ExternalId,Id,FlexPassOffer,Code,EmailAddress,FullName,LastName,FirstName,Middle
 
 2. **Use custom codes for migrations.** If patrons already have flex pass codes from a previous system, populate the `Code` column to preserve continuity.
 
-3. **Communicate separately.** Since receipt emails are suppressed, plan a separate communication to let patrons know their flex passes are active.
+3. **Decide how patrons hear about it.** With **Send purchase confirmation emails** unchecked, nobody is notified -- plan a separate communication to let patrons know their flex passes are active. Check the box instead if you want the standard confirmation to go out as each row imports.

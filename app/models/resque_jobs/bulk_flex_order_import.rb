@@ -25,7 +25,11 @@ class BulkFlexOrderImport < ImportIssuesReport
 
   @queue = :import
 
-  def self.perform(filestore_id, theater_id, payment_type_id)
+  # send_confirmation_emails defaults to nil so jobs already queued in Redis with
+  # three arguments keep working across a deploy. Unchecked (or absent) means the
+  # historical behaviour: imported flex passes send no purchase confirmation.
+  def self.perform(filestore_id, theater_id, payment_type_id, send_confirmation_emails = nil)
+    suppress_receipt = !ActiveModel::Type::Boolean.new.cast(send_confirmation_emails)
     filestore = FileStore.find(filestore_id)
     filestore.notes = 'Importing flex pass orders'
     filestore.save
@@ -94,7 +98,7 @@ class BulkFlexOrderImport < ImportIssuesReport
             o.build_flex_pass_line_item(flex_pass_offer_id: flex_pass_offer_id)
 
             o.payment_type = payment_type
-            o.suppress_receipt = true
+            o.suppress_receipt = suppress_receipt
             o.transition_to!(Order::PROCESSED)
             o.payments.each do |p|
               p.note = "Imported from #{File.basename(filestore.path)} by #{filestore.user.email}"

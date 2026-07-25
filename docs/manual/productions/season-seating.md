@@ -43,8 +43,12 @@ With the production in Season Seating status, create subscriber orders:
 
 - **Bulk import:** Use the order import tool to load subscriber orders from a spreadsheet or external system. Imported orders are automatically held.
 - **Manual entry:** Administrators can create individual orders through the box office interface. These orders are also placed on hold.
+- **Flex pass autofulfill:** If a flex pass offer automatically reserves seats for performances in this production, those reservations are held too -- the subscriber's purchase confirmation goes out, but the seat confirmations wait for finalization along with everything else.
 
 All orders created during this phase appear in the orders list with a held/pending status.
+
+!!! note "Flex pass uses are counted at finalization"
+    A held flex pass reservation has no payment attached yet, so it does not count against the pass's remaining uses until the order is released. A subscriber can therefore be held into more performances than their pass covers; the overage surfaces as an error in the finalization result file rather than at the time of booking.
 
 ### Step 3: Assign Seats and Review Orders
 
@@ -75,9 +79,13 @@ This triggers the **FinalizeSeasonSeating** background job.
 
 The background job performs these actions automatically:
 
-1. **Processes all held orders:** Each order that was on hold is moved through the standard fulfillment workflow (from held to processed/fulfilled).
-2. **Sends notifications:** Confirmation emails are sent to all subscribers whose orders were held. Patrons receive their seat assignments, order details, and any production-specific messaging (confirmation message, etc.).
+1. **Processes held orders:** Every held order that has a payment type is moved through the standard fulfillment workflow (from held to processed/fulfilled). This includes orders paid by cash, credit card, check, comp, membership and flex pass.
+2. **Sends notifications:** Confirmation emails are sent to all subscribers whose orders were released. Patrons receive their seat assignments, order details, and any production-specific messaging (confirmation message, etc.).
 3. **Updates house counts:** Performance house counts are recalculated to reflect the processed subscriber orders.
+4. **Reports what it could not release:** Any held order the job skips or fails on is listed in the emailed result file with the reason in its `Error` column.
+
+!!! note "Held orders with no payment type"
+    An order imported without a payment type selected cannot create a payment, so the job leaves it held and lists it in the result file as `No payment type -- order cannot be processed`. Set a payment type on those orders in the box office and process them individually.
 
 The job runs in the background and may take several minutes depending on the number of orders. You can monitor progress through the Resque job dashboard.
 

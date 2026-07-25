@@ -10,7 +10,17 @@ class FinalizeSeasonSeating
 
     production.performances.each do |perf|
       perf.orders.each do |order|
-        next unless order.held? && order.paid_with_external?
+        next unless order.held?
+
+        # A held order with no payment type can't create a payment, so processing
+        # it would only fail. Report it rather than passing over it silently --
+        # BulkOrderImport creates these rows when no payment type is chosen.
+        if order.payment_type.nil?
+          results << build_row(order, perf).merge(
+            status: order.status, error: 'No payment type -- order cannot be processed'
+          )
+          next
+        end
 
         row = build_row(order, perf)
         begin

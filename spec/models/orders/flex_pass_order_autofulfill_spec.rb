@@ -100,6 +100,60 @@ RSpec.describe FlexPassOrder, type: :model do
     end
   end
 
+  describe 'an autofulfilling purchase against a Season Seating production' do
+    # Autofulfill reaches TicketOrder directly, so it never sees the season
+    # seating guard in Admin::TicketOrdersController. The reservation has to be
+    # parked in HOLD instead, or pre-booked subscribers are confirmed by email
+    # before the season is announced.
+    def season_seating_setup(**args)
+      offer, performances = autofulfill_setup(**args)
+      performances.first.production.update!(status: Production::SEASONSEATING)
+      [offer, performances]
+    end
+
+    it 'holds each auto-created ticket order rather than processing it' do
+      offer, performances = season_seating_setup
+
+      order = nil
+      expect { order = purchase(offer) }.to change(TicketOrder, :count).by(2)
+
+      expect(order.reload).to be_processed
+      performances.each do |performance|
+        expect(TicketOrder.find_by(performance_id: performance.id)).to be_held
+      end
+    end
+
+    it 'queues no confirmation email for the held orders' do
+      offer, = season_seating_setup
+
+      expect { purchase(offer) }.not_to change(OutreachTask.where(method_symbol: 'ticket_confirmation'), :count)
+
+      TicketOrder.find_each do |ticket_order|
+        expect(ticket_order.tasks.grep(OutreachTask)).to be_empty
+      end
+    end
+
+    it 'does not consume flex pass uses until the holds are released' do
+      offer, = season_seating_setup
+
+      order = purchase(offer)
+
+      expect(FlexPassPayment.count).to eq(0)
+      expect(order.flex_pass.uses_remaining).to eq(offer.number_of_tickets)
+    end
+
+    it 'still processes normally once the production is no longer season seating' do
+      offer, performances = season_seating_setup
+      performances.first.production.update!(status: Production::ACTIVE)
+
+      purchase(offer)
+
+      performances.each do |performance|
+        expect(TicketOrder.find_by(performance_id: performance.id)).to be_processed
+      end
+    end
+  end
+
   describe 'a purchase of an offer without autofulfill codes' do
     it 'creates no ticket orders' do
       offer = FactoryBot.create(:flex_pass_offer)

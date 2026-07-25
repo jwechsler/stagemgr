@@ -39,10 +39,13 @@ class Order < ApplicationRecord
   # UI so entitlement caps (e.g. the festival advance cap) can be bypassed on the
   # day of performance. Never persisted; web orders leave it falsy.
   # :door_sale is legacy/unused (verified dead) and retained only to avoid churn.
+  # Note :flex_pass_code is deliberately absent -- it is a real column. A held
+  # order has no FlexPassPayment yet, so the code is the only thing tying it to
+  # its pass, and it has to survive until FinalizeSeasonSeating releases it.
   attr_accessor :special_offer_code, :door_sale, :box_office_sale, :additional_donation, :additional_donation_for_other,
                 :email_confirmation, :add_to_email_list, :do_not_create_tasks, :give_gift_on_month, :give_gift_on_day,
                 :credit_card_number, :credit_card_type, :credit_card_expiration_year, :credit_card_expiration_month,
-                :credit_card_verification_number, :credit_card_confirmation_code, :credit_card_swipe, :flex_pass_code,
+                :credit_card_verification_number, :credit_card_confirmation_code, :credit_card_swipe,
                 :member_code, :check_number
 
   # Constants
