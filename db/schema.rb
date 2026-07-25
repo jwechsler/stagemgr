@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_07_14_100000) do
+ActiveRecord::Schema.define(version: 2026_07_25_120000) do
 
   create_table "active_storage_attachments", charset: "utf8mb3", force: :cascade do |t|
     t.string "name", null: false
@@ -89,7 +89,7 @@ ActiveRecord::Schema.define(version: 2026_07_14_100000) do
     t.index ["last_first_name"], name: "index_addresses_on_last_first_name"
     t.index ["last_name"], name: "index_addresses_on_last_name"
     t.index ["search_name", "email"], name: "index_addresses_on_search_name_and_email"
-    t.index ["street_number", "street", "city", "search_name"], name: "index_address_search"
+    t.index ["street_number", "street", "city", "search_name"], name: "index_address_search", length: { street_number: 20, street: 100, city: 60, search_name: 100 }
     t.index ["updated_at"], name: "index_addresses_on_updated_at"
   end
 
