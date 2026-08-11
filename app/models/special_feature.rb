@@ -1,8 +1,11 @@
 class SpecialFeature < ApplicationRecord
+  include TextSanitizable
+
   SPECIAL_FEATURE_STATUSES = (
       ACTIVE, INACTIVE = 'Active', 'Inactive'
     )
 
+  before_validation :scrub_string_attributes
   before_destroy :reassign_feature_to_custom
 
   has_and_belongs_to_many :performances

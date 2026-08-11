@@ -68,4 +68,45 @@ RSpec.describe Admin::PerformancesController, type: :controller do
       end
     end
   end
+
+  describe 'PATCH #update' do
+    # Reproduces the reported failure: copy pasted into the special feature box
+    # carried byte-order marks the latin1 column rejected, so the update raised
+    # Mysql2::Error: Incorrect string value: '\xEF\xBB\xBFBla...'
+    def patch_markdown(markdown)
+      patch :update, params: {
+        theater_id: theater.id,
+        production_id: production.id,
+        id: performance.id,
+        performance: {
+          production_id: production.id,
+          performance_code: performance.performance_code,
+          status: performance.status,
+          performance_date: performance.performance_date.to_s,
+          performance_time: performance.performance_time.to_s(:hour_min),
+          special_feature_display_markdown: markdown
+        }
+      }
+    end
+
+    it 'saves pasted copy containing byte-order marks' do
+      pasted = '[1] Blackout Night: This performance is specifically dedicated to serving ' \
+               "and celebrating ﻿Black-identifying theatergoers and the Black community at large."
+
+      patch_markdown(pasted)
+
+      expect(flash[:error]).to be_nil
+      expect(performance.reload.special_feature_display_markdown)
+        .to eq('[1] Blackout Night: This performance is specifically dedicated to serving ' \
+               'and celebrating Black-identifying theatergoers and the Black community at large.')
+    end
+
+    it 'preserves legitimate typography' do
+      typography = "Featuring “Hamlet” — a café favorite… £2.50"
+
+      patch_markdown(typography)
+
+      expect(performance.reload.special_feature_display_markdown).to eq(typography)
+    end
+  end
 end

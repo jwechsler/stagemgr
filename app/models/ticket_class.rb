@@ -1,6 +1,7 @@
 class TicketClass < ApplicationRecord
   include ActionView::Helpers::NumberHelper
   include ApplicationHelper
+  include TextSanitizable
 
   TICKET_TYPES = %w[Fixed Donation Timed]
   FIXED = 'Fixed'
@@ -122,6 +123,7 @@ class TicketClass < ApplicationRecord
   end
 
   def clean_values
+    scrub_string_attributes
     class_code.upcase! if class_code
     self.zone_id = zone_id.to_s.strip.upcase.presence || ZoneMatchable::WILDCARD
   end

@@ -10,9 +10,9 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_07_14_100000) do
+ActiveRecord::Schema.define(version: 2026_07_25_120100) do
 
-  create_table "active_storage_attachments", charset: "utf8mb3", force: :cascade do |t|
+  create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
     t.bigint "record_id", null: false
@@ -22,11 +22,11 @@ ActiveRecord::Schema.define(version: 2026_07_14_100000) do
     t.index ["record_type", "record_id", "name", "blob_id"], name: "index_active_storage_attachments_uniqueness", unique: true
   end
 
-  create_table "active_storage_blobs", charset: "utf8mb3", force: :cascade do |t|
+  create_table "active_storage_blobs", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "key", null: false
     t.string "filename", null: false
     t.string "content_type"
-    t.text "metadata"
+    t.text "metadata", size: :medium
     t.bigint "byte_size", null: false
     t.string "checksum", null: false
     t.datetime "created_at", null: false
@@ -34,13 +34,13 @@ ActiveRecord::Schema.define(version: 2026_07_14_100000) do
     t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
   end
 
-  create_table "active_storage_variant_records", charset: "utf8mb3", force: :cascade do |t|
+  create_table "active_storage_variant_records", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
-  create_table "address_tags", id: :integer, charset: "latin1", force: :cascade do |t|
+  create_table "address_tags", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "address_id"
     t.integer "theater_id"
     t.string "tag_label"
@@ -51,7 +51,7 @@ ActiveRecord::Schema.define(version: 2026_07_14_100000) do
     t.index ["theater_id"], name: "address_tags_to_theater"
   end
 
-  create_table "addresses", id: :integer, charset: "utf8mb3", force: :cascade do |t|
+  create_table "addresses", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "first_name"
     t.string "last_name"
     t.string "email"
@@ -89,17 +89,17 @@ ActiveRecord::Schema.define(version: 2026_07_14_100000) do
     t.index ["last_first_name"], name: "index_addresses_on_last_first_name"
     t.index ["last_name"], name: "index_addresses_on_last_name"
     t.index ["search_name", "email"], name: "index_addresses_on_search_name_and_email"
-    t.index ["street_number", "street", "city", "search_name"], name: "index_address_search"
+    t.index ["street_number", "street", "city", "search_name"], name: "index_address_search", length: { street_number: 20, street: 100, city: 60, search_name: 100 }
     t.index ["updated_at"], name: "index_addresses_on_updated_at"
   end
 
-  create_table "addresses_productions", id: false, charset: "latin1", force: :cascade do |t|
+  create_table "addresses_productions", id: false, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "address_id"
     t.integer "production_id"
     t.index ["address_id", "production_id"], name: "index_addresses_productions_on_address_id_and_production_id"
   end
 
-  create_table "audits", id: :integer, charset: "latin1", force: :cascade do |t|
+  create_table "audits", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "auditable_id"
     t.string "auditable_type"
     t.integer "associated_id"
@@ -108,7 +108,7 @@ ActiveRecord::Schema.define(version: 2026_07_14_100000) do
     t.string "user_type"
     t.string "username"
     t.string "action"
-    t.text "audited_changes"
+    t.text "audited_changes", size: :medium
     t.integer "version", default: 0
     t.string "comment"
     t.string "remote_address"
@@ -121,7 +121,7 @@ ActiveRecord::Schema.define(version: 2026_07_14_100000) do
     t.index ["user_id", "user_type"], name: "user_index"
   end
 
-  create_table "default_ticket_classes", id: :integer, charset: "latin1", force: :cascade do |t|
+  create_table "default_ticket_classes", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "class_code"
     t.string "class_name"
     t.string "description"
@@ -136,7 +136,7 @@ ActiveRecord::Schema.define(version: 2026_07_14_100000) do
     t.boolean "software_managed"
     t.boolean "holds_seats", default: true
     t.string "purchase_page_annotation"
-    t.text "purchase_email_annotation"
+    t.text "purchase_email_annotation", size: :medium
     t.boolean "assigns_seats", default: false
     t.boolean "show_in_pricing_range", default: true
     t.boolean "suppress_receipt"
@@ -159,9 +159,9 @@ ActiveRecord::Schema.define(version: 2026_07_14_100000) do
     t.index ["url_name"], name: "index_festivals_on_url_name", unique: true
   end
 
-  create_table "file_stores", id: :integer, charset: "latin1", force: :cascade do |t|
+  create_table "file_stores", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "user_id"
-    t.text "notes"
+    t.text "notes", size: :medium
     t.string "worker"
     t.datetime "created_at"
     t.datetime "updated_at"
@@ -178,7 +178,7 @@ ActiveRecord::Schema.define(version: 2026_07_14_100000) do
     t.index ["name"], name: "index_flex_pass_offer_tags_on_name"
   end
 
-  create_table "flex_pass_offers", id: :integer, charset: "latin1", force: :cascade do |t|
+  create_table "flex_pass_offers", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "theater_id"
     t.decimal "price", precision: 8, scale: 2, null: false
     t.integer "number_of_tickets"
@@ -188,7 +188,7 @@ ActiveRecord::Schema.define(version: 2026_07_14_100000) do
     t.boolean "active", default: true, null: false
     t.boolean "exclude_theater", default: false, null: false
     t.boolean "redeem_immediately"
-    t.text "description"
+    t.text "description", size: :medium
     t.string "short_description"
     t.decimal "facility_fee", precision: 8, scale: 2
     t.decimal "spiff", precision: 8, scale: 2
@@ -200,11 +200,11 @@ ActiveRecord::Schema.define(version: 2026_07_14_100000) do
     t.integer "maximum_uses_per_production"
     t.bigint "festival_id"
     t.integer "maximum_uses_per_performance"
-    t.text "autofulfill_performance_codes"
+    t.text "autofulfill_performance_codes", size: :medium
     t.index ["festival_id"], name: "index_flex_pass_offers_on_festival_id"
   end
 
-  create_table "flex_passes", id: :integer, charset: "latin1", force: :cascade do |t|
+  create_table "flex_passes", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "code"
     t.integer "address_id"
     t.integer "flex_pass_offer_id"
@@ -238,7 +238,7 @@ ActiveRecord::Schema.define(version: 2026_07_14_100000) do
     t.index ["job_name"], name: "index_job_metadata_on_job_name"
   end
 
-  create_table "line_items", id: :integer, charset: "latin1", force: :cascade do |t|
+  create_table "line_items", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "ticket_class_id"
     t.integer "order_id"
     t.integer "ticket_count"
@@ -272,15 +272,15 @@ ActiveRecord::Schema.define(version: 2026_07_14_100000) do
     t.index ["name"], name: "index_membership_offer_tags_on_name"
   end
 
-  create_table "membership_offers", id: :integer, charset: "latin1", force: :cascade do |t|
+  create_table "membership_offers", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name"
-    t.text "email_html"
+    t.text "email_html", size: :medium
     t.string "use_ticket_class_code"
     t.datetime "created_at"
     t.datetime "updated_at"
     t.integer "tickets_per_performance"
-    t.text "html_description"
-    t.text "billing_agreement"
+    t.text "html_description", size: :medium
+    t.text "billing_agreement", size: :medium
     t.string "myemma_group"
     t.string "use_member_friend_code"
     t.boolean "on_sale", default: true
@@ -293,7 +293,7 @@ ActiveRecord::Schema.define(version: 2026_07_14_100000) do
     t.string "membership_type", default: "production", null: false
   end
 
-  create_table "memberships", id: :integer, charset: "latin1", force: :cascade do |t|
+  create_table "memberships", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "membership_offer_id"
     t.date "member_since"
     t.integer "address_id"
@@ -314,7 +314,7 @@ ActiveRecord::Schema.define(version: 2026_07_14_100000) do
     t.boolean "cancel_at_period_end", default: false
   end
 
-  create_table "order_task_suppressions", id: :integer, charset: "utf8mb3", force: :cascade do |t|
+  create_table "order_task_suppressions", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "task_type"
     t.string "method_name"
     t.integer "payment_type_id"
@@ -322,14 +322,14 @@ ActiveRecord::Schema.define(version: 2026_07_14_100000) do
     t.datetime "updated_at", null: false
   end
 
-  create_table "order_tasks", id: :integer, charset: "latin1", force: :cascade do |t|
+  create_table "order_tasks", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.datetime "execute_at"
     t.integer "order_id"
     t.string "type"
     t.string "status"
     t.integer "attempts"
     t.string "method_symbol"
-    t.text "result"
+    t.text "result", size: :medium
     t.datetime "created_at"
     t.datetime "updated_at"
     t.integer "repeat_monthly_interval"
@@ -338,12 +338,12 @@ ActiveRecord::Schema.define(version: 2026_07_14_100000) do
     t.index ["status", "execute_at"], name: "index_order_tasks_on_status_and_execute_at"
   end
 
-  create_table "orders", id: :integer, charset: "latin1", force: :cascade do |t|
+  create_table "orders", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "performance_id"
     t.string "status"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.text "notes"
+    t.text "notes", size: :medium
     t.integer "address_id"
     t.string "special_offer_code"
     t.string "ip_address"
@@ -378,14 +378,14 @@ ActiveRecord::Schema.define(version: 2026_07_14_100000) do
     t.index ["uuid"], name: "index_orders_on_uuid", unique: true
   end
 
-  create_table "payment_restrictions", id: :integer, charset: "latin1", force: :cascade do |t|
+  create_table "payment_restrictions", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "performance_id"
     t.integer "payment_type_id"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
 
-  create_table "payment_types", id: :integer, charset: "latin1", force: :cascade do |t|
+  create_table "payment_types", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "display_name"
     t.datetime "created_at"
     t.datetime "updated_at"
@@ -398,7 +398,7 @@ ActiveRecord::Schema.define(version: 2026_07_14_100000) do
     t.boolean "report_as_production_revenue", default: true
   end
 
-  create_table "payments", id: :integer, charset: "latin1", force: :cascade do |t|
+  create_table "payments", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "card_last_four"
     t.string "card_type"
     t.integer "card_expiration_year"
@@ -444,7 +444,7 @@ ActiveRecord::Schema.define(version: 2026_07_14_100000) do
     t.index ["user_id"], name: "index_performance_broadcasts_on_user_id"
   end
 
-  create_table "performances", id: :integer, charset: "latin1", force: :cascade do |t|
+  create_table "performances", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "production_id"
     t.date "performance_date"
     t.time "performance_time"
@@ -453,23 +453,23 @@ ActiveRecord::Schema.define(version: 2026_07_14_100000) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.boolean "suppress_notification", default: false
-    t.text "special_feature_display_markdown"
-    t.text "special_feature_email_markdown"
+    t.text "special_feature_display_markdown", size: :medium
+    t.text "special_feature_email_markdown", size: :medium
     t.string "order_url_override"
     t.boolean "withhold_from_public", default: false
   end
 
-  create_table "performances_special_features", id: false, charset: "latin1", force: :cascade do |t|
+  create_table "performances_special_features", id: false, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "performance_id"
     t.integer "special_feature_id"
   end
 
-  create_table "performances_ticket_classes", id: :integer, charset: "latin1", force: :cascade do |t|
+  create_table "performances_ticket_classes", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "performance_id"
     t.integer "ticket_class_id"
   end
 
-  create_table "pledges", id: :integer, charset: "latin1", force: :cascade do |t|
+  create_table "pledges", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "order_id"
     t.string "profile_id"
     t.integer "address_id"
@@ -491,14 +491,14 @@ ActiveRecord::Schema.define(version: 2026_07_14_100000) do
     t.index ["profile_id"], name: "index_pledges_on_profile_id"
   end
 
-  create_table "productions", id: :integer, charset: "latin1", force: :cascade do |t|
+  create_table "productions", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name"
-    t.text "credit_lines"
+    t.text "credit_lines", size: :medium
     t.date "first_preview_at"
     t.date "press_opening_at"
     t.date "opening_at"
     t.date "closing_at"
-    t.text "show_description"
+    t.text "show_description", size: :medium
     t.string "production_code"
     t.integer "capacity"
     t.string "additional_information_link"
@@ -510,18 +510,18 @@ ActiveRecord::Schema.define(version: 2026_07_14_100000) do
     t.string "myemma_attendee_group"
     t.integer "running_time"
     t.boolean "intermission", default: true
-    t.text "follow_up_message"
-    t.text "follow_up_text"
-    t.text "confirmation_message"
-    t.text "follow_up_message_2"
+    t.text "follow_up_message", size: :medium
+    t.text "follow_up_text", size: :medium
+    t.text "confirmation_message", size: :medium
+    t.text "follow_up_message_2", size: :medium
     t.string "production_class", default: "Play"
     t.integer "venue_id"
     t.string "short_description"
     t.integer "season"
     t.boolean "allow_late_seating", default: false
     t.datetime "sf_last_sync_at"
-    t.text "conversion_pixel_code"
-    t.text "calendar_callout"
+    t.text "conversion_pixel_code", size: :medium
+    t.text "calendar_callout", size: :medium
     t.string "survey_link"
     t.string "mailing_list_link"
     t.string "custom_label"
@@ -554,7 +554,7 @@ ActiveRecord::Schema.define(version: 2026_07_14_100000) do
     t.index ["production_id"], name: "fk_rails_e797c43455"
   end
 
-  create_table "seat_assignments", id: :integer, charset: "utf8mb3", force: :cascade do |t|
+  create_table "seat_assignments", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "order_id"
     t.integer "seat_id"
     t.integer "performance_id"
@@ -572,7 +572,7 @@ ActiveRecord::Schema.define(version: 2026_07_14_100000) do
     t.index ["status", "updated_at"], name: "seat_assignments_on_updated_and_status"
   end
 
-  create_table "seat_assignments_recovery", id: :integer, default: 0, charset: "utf8mb3", force: :cascade do |t|
+  create_table "seat_assignments_recovery", id: :integer, default: 0, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "order_id"
     t.integer "seat_id"
     t.integer "seat_map_id"
@@ -582,7 +582,7 @@ ActiveRecord::Schema.define(version: 2026_07_14_100000) do
     t.datetime "updated_at", null: false
   end
 
-  create_table "seat_maps", id: :integer, charset: "utf8mb3", force: :cascade do |t|
+  create_table "seat_maps", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "label"
     t.integer "venue_id"
     t.datetime "created_at", null: false
@@ -591,7 +591,7 @@ ActiveRecord::Schema.define(version: 2026_07_14_100000) do
     t.index ["venue_id"], name: "index_seat_maps_on_venue_id"
   end
 
-  create_table "seats", id: :integer, charset: "utf8mb3", force: :cascade do |t|
+  create_table "seats", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "location", null: false
     t.string "zone", default: "A", null: false
     t.string "row", null: false
@@ -607,7 +607,7 @@ ActiveRecord::Schema.define(version: 2026_07_14_100000) do
     t.index ["seat_map_id"], name: "index_seats_on_seat_map_id"
   end
 
-  create_table "service_item_templates", id: :integer, charset: "utf8mb3", force: :cascade do |t|
+  create_table "service_item_templates", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name"
     t.string "description", null: false
     t.float "amount"
@@ -620,15 +620,15 @@ ActiveRecord::Schema.define(version: 2026_07_14_100000) do
     t.index ["name"], name: "index_service_item_templates_on_name", unique: true
   end
 
-  create_table "special_features", id: :integer, charset: "latin1", force: :cascade do |t|
+  create_table "special_features", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "short_name"
-    t.text "description"
+    t.text "description", size: :medium
     t.datetime "created_at"
     t.datetime "updated_at"
     t.string "status", default: "Active"
   end
 
-  create_table "special_offers", id: :integer, charset: "latin1", force: :cascade do |t|
+  create_table "special_offers", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "performance_id"
     t.integer "production_id"
     t.integer "theater_id"
@@ -667,7 +667,7 @@ ActiveRecord::Schema.define(version: 2026_07_14_100000) do
     t.index ["theater_id"], name: "index_theater_tags_on_theater_id"
   end
 
-  create_table "theaters", id: :integer, charset: "latin1", force: :cascade do |t|
+  create_table "theaters", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name"
     t.string "url"
     t.string "theater_class"
@@ -681,12 +681,12 @@ ActiveRecord::Schema.define(version: 2026_07_14_100000) do
     t.boolean "accepts_donations", default: false
   end
 
-  create_table "theaters_users", id: false, charset: "latin1", force: :cascade do |t|
+  create_table "theaters_users", id: false, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "theater_id"
     t.integer "user_id"
   end
 
-  create_table "ticket_class_allocations", id: :integer, charset: "latin1", force: :cascade do |t|
+  create_table "ticket_class_allocations", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "performance_id"
     t.integer "ticket_class_id"
     t.boolean "available"
@@ -700,7 +700,7 @@ ActiveRecord::Schema.define(version: 2026_07_14_100000) do
     t.index ["performance_id", "ticket_class_id"], name: "index_tca_on_performance_and_ticket_class"
   end
 
-  create_table "ticket_classes", id: :integer, charset: "latin1", force: :cascade do |t|
+  create_table "ticket_classes", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "class_code"
     t.string "class_name"
     t.boolean "web_visible"
@@ -714,7 +714,7 @@ ActiveRecord::Schema.define(version: 2026_07_14_100000) do
     t.boolean "software_managed"
     t.boolean "holds_seats", default: true
     t.string "purchase_page_annotation"
-    t.text "purchase_email_annotation"
+    t.text "purchase_email_annotation", size: :medium
     t.boolean "assigns_seats", default: false
     t.boolean "show_in_pricing_range", default: true
     t.boolean "suppress_receipt", default: false
@@ -727,7 +727,7 @@ ActiveRecord::Schema.define(version: 2026_07_14_100000) do
     t.string "zone_id", limit: 2, default: "*", null: false
   end
 
-  create_table "users", id: :integer, charset: "latin1", force: :cascade do |t|
+  create_table "users", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "email", null: false
     t.string "crypted_password", null: false
     t.string "password_salt", null: false
@@ -751,7 +751,7 @@ ActiveRecord::Schema.define(version: 2026_07_14_100000) do
     t.index ["perishable_token"], name: "index_users_on_perishable_token"
   end
 
-  create_table "venues", id: :integer, charset: "latin1", force: :cascade do |t|
+  create_table "venues", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name"
     t.datetime "created_at"
     t.datetime "updated_at"
