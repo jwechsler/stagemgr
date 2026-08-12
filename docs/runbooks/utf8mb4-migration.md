@@ -161,7 +161,7 @@ production:
   # ...existing settings
 ```
 
-Restart the app and workers afterward. Confirm the connection charset:
+Restart the app afterward, then confirm the connection charset:
 
 ```bash
 rails-runner 'puts ActiveRecord::Base.connection.select_value("SELECT @@character_set_client")'
@@ -169,7 +169,28 @@ rails-runner 'puts ActiveRecord::Base.connection.select_value("SELECT @@characte
 
 **Expected:** `utf8mb4`
 
-### 6. Verify
+### 6. Restart the Resque workers — separately, and do not skip this
+
+The restart above reloads Passenger. The **Resque workers are separate long-running processes** and must be restarted too. There are two independent reasons, and the second one bites hard:
+
+1. They need the new `encoding: utf8mb4` from `database.yml`, exactly as the app does.
+2. They hold a **stale autoloader**. This work adds the `TextSanitizable` concern (`app/models/concerns/text_sanitizable.rb`), included in `Performance`, `Production`, `TicketClass` and `SpecialFeature`. A worker booted before the deploy cannot autoload it, so **every job that touches those models fails** — `CalculateHouseCountsJob`, `RateOfSalesJob`, the house-count and export jobs, and `FinalizeSeasonSeating` — with:
+
+   ```
+   NameError: uninitialized constant Performance::TextSanitizable
+   ```
+
+   The failure is **silent**: nothing appears in the UI, the jobs simply pile into the Resque failure queue while house counts and reports quietly stop updating. Observed directly on a stale worker that had been running since before the concern existed.
+
+Restart the workers however they are supervised on this host — the same mechanism that started them (`$COMPOSE restart stagemgr` where they run inside the app container; the systemd/monit unit on bare metal). Then confirm they came back and are **not** failing:
+
+```bash
+rails-runner 'puts "workers: #{Resque.workers.size}  failures: #{Resque::Failure.count}"'
+```
+
+Note the failure count, then enqueue any job (or let the scheduler fire one) and re-check. The count must **hold steady**, not climb. A rising count carrying `uninitialized constant Performance::TextSanitizable` means a worker is still running pre-deploy code and has to be killed.
+
+### 7. Verify
 
 Every table converted:
 
@@ -200,7 +221,7 @@ rails-runner 'p = Performance.last;
 
 **Expected:** `[66, 108, 97]` (`Bla`), not `[65279, ...]`.
 
-### 7. Watch for a day
+### 8. Watch for a day
 
 ```bash
 $COMPOSE exec -T stagemgr bash -c "grep -iE 'Incorrect string value|Illegal mix of collations' \
