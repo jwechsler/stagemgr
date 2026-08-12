@@ -43,6 +43,19 @@ See [Payment Processing](payment-processing.md) for details.
 2. Submit the flex pass order
 3. The order is created with status **Processed**
 4. A **FlexPass** record is created with a unique code
+5. A purchase confirmation email is sent to the patron, unless suppressed (see below)
+
+### Suppressing the Purchase Confirmation
+
+The flex pass order form includes a **Don't send purchase confirmation email** checkbox. It is unchecked by default, so a confirmation is sent as normal. Check it before submitting to create the flex pass **without** emailing the patron — useful when the pass is set up on the patron's behalf, comped, or handled as part of a batch the box office will follow up on separately.
+
+| Checkbox | Result |
+|----------|--------|
+| **Unchecked** (default) | The patron receives the standard flex pass purchase confirmation. |
+| **Checked** | No confirmation email is sent. The order and flex pass are still created normally. |
+
+!!! note "Box office only"
+    This checkbox appears only on the box office (admin) flex pass order form. Patrons who buy a flex pass through the public website always receive their confirmation. For suppressing confirmations across a bulk import instead, see [Flex Pass Orders Import](../imports/flex-pass-orders-import.md).
 
 ## The Flex Pass Code
 
