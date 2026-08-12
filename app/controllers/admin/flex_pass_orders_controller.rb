@@ -29,7 +29,10 @@ class Admin::FlexPassOrdersController < Admin::OrdersController
 
   private
 
+  # :suppress_receipt is permitted here rather than in
+  # FlexPassOrdersHelper#common_flex_pass_order_params so it stays box office
+  # only -- that helper is shared with the public FlexPassOrdersController.
   def flex_pass_order_params
-    params.require(:flex_pass_order).permit(*common_flex_pass_order_params)
+    params.require(:flex_pass_order).permit(*common_flex_pass_order_params, :suppress_receipt)
   end
 end

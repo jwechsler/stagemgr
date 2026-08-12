@@ -57,7 +57,9 @@ class Production < ApplicationRecord
   before_create :assign_default_ticket_classes
   # removed until we fix/expose statistics
   # before_save :queue_statistics_recalc
-  before_save :finalize_season_seating, :if => :status_changed?
+  # Enqueued after commit: the job reads the production's status, so it must not
+  # run against an uncommitted (or rolled back) change.
+  after_commit :finalize_season_seating, :if => :saved_change_to_status?
   before_save :update_performance_codes, :if => :production_code_changed?
   belongs_to :festival, optional: true, inverse_of: :productions
   has_and_belongs_to_many :addresses
@@ -393,9 +395,9 @@ class Production < ApplicationRecord
 
   # when status changes from SEASON SEATING
   def finalize_season_seating
-    return unless status_was.eql?(SEASONSEATING)
-      Resque.enqueue(FinalizeSeasonSeating, id, updated_by_user_id)
-    
+    return unless status_previously_was.eql?(SEASONSEATING)
+
+    Resque.enqueue(FinalizeSeasonSeating, id, updated_by_user_id)
   end
 end
 

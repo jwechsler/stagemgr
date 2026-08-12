@@ -32,6 +32,8 @@
     .small-12.cell
       = render partial:'/admin/orders/input_notes', locals:{order_form: order_form}
     .small-12.cell
+      = order_form.input :suppress_receipt, :as=>:boolean, :label=>"Don't send purchase confirmation email", :default=>false
+    .small-12.cell
       = link_to 'Place Order', "#", :class=>'submit-button button order-submit-button', :onclick=>"confirmSubmit('Process this order?','Place Order')"
     .small-12.cell
       = render '/admin/orders/audit_show', :order_form=>order_form.object

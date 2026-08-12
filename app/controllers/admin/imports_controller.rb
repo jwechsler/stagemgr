@@ -106,7 +106,7 @@ class Admin::ImportsController < Admin::ApplicationController
     @bulk_flex_pass_orders_import.notes = 'Flex Pass order import'
     if @bulk_flex_pass_orders_import.save
       Resque.enqueue(BulkFlexOrderImport, @bulk_flex_pass_orders_import.id, @theater.id,
-                     params[:payment_type][:payment_type_id])
+                     params[:payment_type][:payment_type_id], params[:send_confirmation_emails])
       flash[:notice] = 'Your flex passes are being created'
     else
       flash[:error] = 'Invalid format'

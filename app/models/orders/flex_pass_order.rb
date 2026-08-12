@@ -114,7 +114,16 @@ class FlexPassOrder < Order
         ticket_order.flex_pass_code = flex_pass.code
         ticket_order.ticket_line_items.build(ticket_class: allocation.ticket_class,
                                              ticket_count: offer.maximum_uses_per_performance)
-        ticket_order.transition_to!(Order::PROCESSED)
+        # Autofulfill reaches the model directly, so it bypasses the season
+        # seating guard in Admin::TicketOrdersController. Park the reservation in
+        # HOLD like every other season seating order -- held orders create no
+        # OutreachTask, and FinalizeSeasonSeating releases and confirms them when
+        # the production leaves Season Seating status.
+        if performance.production.season_seating?
+          ticket_order.transition_to!(Order::HOLD)
+        else
+          ticket_order.transition_to!(Order::PROCESSED)
+        end
       rescue StandardError => e
         errors.add(:base, "Could not reserve tickets for #{performance&.to_short_s || code}: " \
                           "#{autofulfill_failure_message(e, ticket_order)}")

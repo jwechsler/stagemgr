@@ -81,6 +81,9 @@ When a patron purchases the pass, the system creates one ticket order per listed
 
 The patron receives the usual flex pass confirmation plus the standard ticket confirmation email for each auto-reserved performance.
 
+!!! note "Performances in a Season Seating production"
+    If a listed performance belongs to a production in **Season Seating** status, its reservation is placed on hold instead of processed, and no ticket confirmation is sent for it. The patron still gets the flex pass purchase confirmation immediately. The held reservations -- and their confirmation emails -- are released when the production leaves Season Seating status. See [Season Seating](../productions/season-seating.md).
+
 The following requirements are checked when you save the offer:
 
 - Every code must match an existing performance, with no duplicates.

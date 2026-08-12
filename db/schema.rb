@@ -366,9 +366,11 @@ ActiveRecord::Schema.define(version: 2026_07_25_120100) do
     t.string "uuid", null: false
     t.integer "split_source_id"
     t.boolean "suppress_receipt", default: false
+    t.string "flex_pass_code"
     t.index ["address_id"], name: "address_owns_orders"
     t.index ["created_at"], name: "index_orders_on_created_at"
     t.index ["exchange_source_id"], name: "index_orders_on_exchange_source_id"
+    t.index ["flex_pass_code"], name: "index_orders_on_flex_pass_code"
     t.index ["id"], name: "orders_id_i"
     t.index ["performance_id"], name: "index_orders_on_performance_id"
     t.index ["recipient_address_id"], name: "recipient_address_id_idx"

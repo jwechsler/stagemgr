@@ -99,8 +99,11 @@
         .grid-x.grid-padding-x
           .small-3.cell
             = label_tag :payment_type, 'Use Payment Type', :class=>'left inline'
-          .small-9.cell
+          .small-4.cell
             = collection_select :payment_type, :payment_type_id, @payment_types, :id, :display_name, :include_blank=>"None"
+          .small-5.cell
+            = check_box_tag :send_confirmation_emails, '1', false
+            = label_tag :send_confirmation_emails, 'Send purchase confirmation emails', :class=>'left inline'
         .grid-x.grid-padding-x
           .small-3.cell
             = label_tag :datafile, 'From file', :class=>'left inline'
