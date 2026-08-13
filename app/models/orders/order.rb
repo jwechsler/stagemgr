@@ -621,7 +621,7 @@ class Order < ApplicationRecord
   end
 
   def cancel_pending_tasks
-    tasks.select(&:uncompleted?).each(&:cancel!)
+    tasks.select(&:uncompleted?).select(&:cancel_with_order?).each(&:cancel!)
   end
 
   private
