@@ -215,11 +215,22 @@ end
       from_address.orders_as_recipient.update_all(recipient_address_id: id)
       from_address.memberships.update_all(address_id: id)
       from_address.flex_passes.update_all(address_id: id)
+      # Address has no has_many for these, but they carry address_id FKs that
+      # would dangle once from_address is destroyed: MembershipLineItem
+      # validates address presence, CreditCardPayment reads its address on
+      # re-processing, and Pledge (RecurringProfile) validates address on
+      # every PayPal IPN save.
+      LineItem.where(address_id: from_address.id).update_all(address_id: id)
+      Payment.where(address_id: from_address.id).update_all(address_id: id)
+      Pledge.where(address_id: from_address.id).update_all(address_id: id)
       new_production_ids = from_address.production_ids - production_ids
       productions << Production.where(id: new_production_ids) unless new_production_ids.empty?
       from_address.productions.clear
       save!
       from_address.reload
+      # update_from re-parented every tag the keeper lacked; whatever remains
+      # on from_address duplicates a tag already on the keeper.
+      from_address.address_tags.destroy_all
       from_address.destroy
     end
   end
