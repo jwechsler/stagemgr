@@ -40,6 +40,9 @@ module TktprintPrintable
 
   private
 
+  # Assembles the print payload. All string values are restricted to the
+  # Latin-1 repertoire via PrinterTextSanitizer before serialization — the
+  # Boca printer cannot render characters outside its Latin-1 code page.
   def build_tktprint_payload(batch_id, batch_sequence)
     # Build customer name
     cleaned_name, f_name, l_name = Address.parse_name(hold_under.presence || address.full_name)
@@ -141,7 +144,7 @@ module TktprintPrintable
       end
     end
 
-    order_payload
+    PrinterTextSanitizer.sanitize_payload(order_payload)
   end
 
   def reprint_existing_order(batch_id, batch_sequence)
