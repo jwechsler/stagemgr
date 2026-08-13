@@ -35,11 +35,24 @@ class Address < ApplicationRecord
 
   SEARCHABLE_REGEXP = /[\d+\s+.!,]/
 
+  # Characters that derail Namae's grammar entirely (a lone emoji anywhere
+  # in the name makes it return zero results): pictographic symbols
+  # (\p{So}), modifier symbols such as emoji skin tones (\p{Sk}), invisible
+  # format characters such as the zero-width joiner (\p{Cf}), and emoji
+  # variation selectors (U+FE00..U+FE0F, built from codepoints because they
+  # are invisible). Stripped for parsing only — the stored full_name keeps
+  # whatever the patron typed.
+  NAME_NOISE_CHARS = (0xFE00..0xFE0F).map { |cp| [cp].pack('U') }.join.freeze
+  NAME_NOISE_RE = /[\p{So}\p{Sk}\p{Cf}#{NAME_NOISE_CHARS}]/
+
   def self.parse_name(full_name)
     if full_name.blank?
       ["", "", ""]
     else
-      names = Namae.parse(full_name)
+      parseable = full_name.gsub(NAME_NOISE_RE, ' ').squish
+      return ["", "", ""] if parseable.blank?
+
+      names = Namae.parse(parseable)
       if names.any?
         primary_name = names.first
         secondary_name = names.length > 1 ? names.second : nil
@@ -59,7 +72,16 @@ class Address < ApplicationRecord
         end
         [full_name, f_name, l_name]
       else
-        ["", "", ""]
+        # Namae also chokes on parenthesized nicknames ("Kathleen (Kate)
+        # Early") and surnames that collide with its title vocabulary
+        # ("Paula Cantor", "Brian Pastor", "Bruce Elder"). Fall back to a
+        # naive last-token split rather than leaving the name blank.
+        tokens = parseable.split
+        if tokens.length == 1
+          [full_name, "", tokens.first]
+        else
+          [full_name, tokens[0..-2].join(" "), tokens.last]
+        end
       end
     end
   end
