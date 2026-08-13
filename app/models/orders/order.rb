@@ -574,34 +574,27 @@ class Order < ApplicationRecord
     expiration_year
   end
 
+  # Consolidates this order's address onto the address of record. Never
+  # re-validates the whole order: the old update_from/save sequence silently
+  # aborted whenever re-validation failed (e.g. ticket_stock_available on a
+  # performance that sold down after purchase), leaving duplicates behind
+  # with no signal. Returns true when the order ends the call pointing at
+  # the address of record (including "nothing to merge"); raises on failure
+  # so callers (LinkToAddressOfRecordTask) can retry.
   def link_to_address_of_record
-    merge = if paid_with_membership? && !membership_payments.first.membership.membership_offer.timed?
-      membership_payments.first.membership.address
+    duplicate = address
+    return true if duplicate.nil?
+
+    if paid_with_membership? && !membership_payments.first.membership.membership_offer.timed?
+      link_to_membership_owner(duplicate)
     else
-      address.find_original
-            end
-    return if merge.nil? 
+      merge = duplicate.find_original
+      return true if merge.nil? || merge.id == duplicate.id || duplicate.new_record?
 
-      comparison_id = address.id.nil? ? -1 : address.id
-      return unless comparison_id != merge.id 
-
-        merge.update_from(address)
-        a = address
-        self.address = merge
-        address.save
-        # Only purge the old address once this order has actually been re-pointed
-        # off it. Historic orders can fail re-validation on save (e.g. the
-        # performance has since sold out, tripping ticket_stock_available), which
-        # leaves `save` a no-op and the order still bound to `a`. The guard below
-        # excludes the current order (id <> :id), so it would wrongly conclude `a`
-        # is unreferenced and destroy it -- only for Address#ensure_no_finalized_orders
-        # to find this order still attached and raise, aborting the whole run.
-        return unless save
-
-        a.destroy unless a.nil? || (Order.where("id <> :id AND address_id = :address_id", id: id,
-                                                                                          address_id: a.id).count > 0)
-      
-    
+      merge.merge_and_purge(duplicate)
+      refresh_address_of_record(merge)
+    end
+    true
   end
 
   def last_processed_on
@@ -628,7 +621,7 @@ class Order < ApplicationRecord
   end
 
   def cancel_pending_tasks
-    tasks.select(&:uncompleted?).each(&:cancel!)
+    tasks.select(&:uncompleted?).select(&:cancel_with_order?).each(&:cancel!)
   end
 
   private
@@ -801,8 +794,7 @@ class Order < ApplicationRecord
   end
 
   def create_recipient_address
-    new_owner = Address.new(:full_name => recipient_name, :email => recipient_email)
-    new_owner = new_owner.find_original || new_owner
+    new_owner = Address.new(:full_name => recipient_name, :email => recipient_email).fold_into_original
     new_owner.save!
     self.recipient_address_id = new_owner.id
   end
@@ -861,6 +853,44 @@ class Order < ApplicationRecord
 
   private
 
+  # A membership-paid order links to the member's own address. When the buyer
+  # record is a strict duplicate of the member, fold it in entirely; otherwise
+  # the buyer may be a different person redeeming the member's card, so only
+  # this order is re-pointed (never collapse the buyer's other history onto
+  # the member). Blending the buyer's fields onto the owner via update_from
+  # preserves the long-standing behavior of keeping the member's contact info
+  # current with what was typed at checkout.
+  def link_to_membership_owner(duplicate)
+    owner = membership_payments.first.membership.address
+    return if owner.nil? || duplicate.new_record? || owner.id == duplicate.id
+
+    if duplicate.find_original == owner
+      owner.merge_and_purge(duplicate)
+    else
+      owner.update_from(duplicate)
+      owner.save!
+      update_columns(address_id: owner.id) unless new_record?
+      purge_if_unreferenced(duplicate)
+    end
+    refresh_address_of_record(owner)
+  end
+
+  def purge_if_unreferenced(record)
+    return if record.orders.reload.any? || record.orders_as_recipient.reload.any? ||
+              record.memberships.reload.any? || record.flex_passes.reload.any?
+
+    record.destroy
+  end
+
+  # merge_and_purge / update_columns already re-pointed orders.address_id at
+  # the database level; sync the in-memory association without dirtying the
+  # order, so a later unrelated save doesn't re-validate a historic order
+  # just to write an unchanged FK.
+  def refresh_address_of_record(record_address)
+    self.address = record_address
+    clear_attribute_changes(%w[address_id])
+  end
+
   def save_additional_donation_order(donation_amount, credit_to_theater = nil)
     donation = DonationOrder.new(:address => address, :payment_type => payment_type, :status => Order::NEW)
     donation.copy_payment_information(self)
@@ -892,14 +922,10 @@ class Order < ApplicationRecord
     self.hold_under = address.full_name if hold_under.blank?
   end
 
-  def create_recipient_address
-    return unless gift?
-
-    new_owner = Address.new(full_name: recipient_name, email: recipient_email)
-    new_owner.save!
-    new_owner = new_owner.find_original || new_owner
-    self.recipient_address_id = new_owner.id
-  end
+  # NOTE: create_recipient_address is defined once, earlier in this class.
+  # A second definition here used to shadow it and saved the new Address
+  # BEFORE checking find_original, orphaning a duplicate record whenever
+  # the recipient already existed.
 
   def set_tasks_on_save
     return unless do_not_create_tasks.nil? && (new_record? || saved_change_to_status?)

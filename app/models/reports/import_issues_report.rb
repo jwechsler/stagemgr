@@ -87,4 +87,31 @@ class ImportIssuesReport < SimpleReport
     sub_tag.theater_id = theater_id
     sub_tag
   end
+
+  # Shared by the bulk order/flex imports: resolve the row to an address by
+  # Id, then ExternalId tag, else a new record; apply the row's contact
+  # fields and tags; and fold a would-be new record into its existing
+  # original rather than importing a duplicate patron. Caller saves.
+  def self.imported_address(row, theater_id, external_address_ids)
+    a = if row['Id'].present? # if ID is present, use that as the match criteria
+          Address.find_by(id: row['Id'].to_i)
+        elsif row['ExternalId'].present?
+          Address.find_by(id: external_address_ids[row['ExternalId']])
+        end
+    a ||= Address.new
+    unless row['FullName'].blank? && row['LastName'].blank?
+      a.set_full_name(row['FullName'], row['FirstName'], row['MiddleName'], row['LastName'])
+    end
+    a.line1 = row['Address'] if row['Address'].present?
+    a.line2 = row['Address2'] if row['Address2'].present?
+    a.email = row['EmailAddress'] if row['EmailAddress'].present?
+    a.city = row['City'] if row['City'].present?
+    a.zipcode = row['ZipCode'] if row['ZipCode'].present?
+    a.phone = row['Phone'] if row['Phone'].present?
+    a.address_tags << new_address_tag(theater_id, a, row['Tag1'], row['TagValue1']) if row['Tag1'].present?
+    a.address_tags << new_address_tag(theater_id, a, row['Tag2'], row['TagValue2']) if row['Tag2'].present?
+    a.address_tags << new_address_tag(theater_id, a, 'External ID', row['ExternalId']) if row['ExternalId'].present?
+    a.regularize!
+    a.fold_into_original
+  end
 end

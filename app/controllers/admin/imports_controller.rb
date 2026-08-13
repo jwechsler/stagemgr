@@ -73,7 +73,11 @@ class Admin::ImportsController < Admin::ApplicationController
     @card_external_import.worker = FileStore::IMPORT
     @card_external_import.notes = "#{@theater.name} contact import"
     if @card_external_import.save
-      Resque.enqueue(ExternalAddressesImport, @card_external_import.id, @theater.id)
+      # "Refresh external IDs": the theater reassigned/reused its IDs, so the
+      # import must not match records by External ID tag; rows dedup by
+      # name/email and the matched records are retagged with the new IDs.
+      refresh_external_ids = params[:refresh_external_ids].present? && params[:refresh_external_ids] != '0'
+      Resque.enqueue(ExternalAddressesImport, @card_external_import.id, @theater.id, refresh_external_ids)
       flash[:notice] = 'Your contact list is importing'
     else
       flash[:error] = 'Invalid format'

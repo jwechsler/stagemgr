@@ -538,17 +538,16 @@ RSpec.describe TicketOrder do
         expect(Address.exists?(owner.id)).to be true
       end
 
-      # Regression: LinkHistoricPerformanceHoldsToAddressOfRecord crashed with
-      # "Cannot delete an address associated with orders" when an old order could
-      # no longer be re-saved (its performance had sold down since purchase). The
-      # unchecked `save` left the order bound to its address, but the destroy guard
-      # excludes the current order, so it destroyed the still-referenced address and
-      # Address#ensure_no_finalized_orders raised, aborting the whole job.
-      it "does not destroy the address when the order cannot be re-saved onto the address of record" do
+      # The merge must succeed even when the order would no longer pass its own
+      # validations (e.g. the performance sold down after purchase, tripping
+      # ticket_stock_available). The old implementation re-saved the whole order
+      # and silently aborted the merge in that case, leaving the duplicate
+      # behind with the task marked Completed.
+      it "merges the address even when the order can no longer be re-validated" do
         dup_attrs = { full_name: "Pat Historic", first_name: "Pat", last_name: "Historic",
                       email: "pat.historic@example.com" }
         # Earlier-id duplicate is what find_original selects as the address of record.
-        FactoryBot.create(:address, **dup_attrs)
+        keeper = FactoryBot.create(:address, **dup_attrs)
         buyer = FactoryBot.create(:address, **dup_attrs)
 
         production = FactoryBot.create(:production, capacity: 4)
@@ -556,13 +555,31 @@ RSpec.describe TicketOrder do
         order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash,
                                   address: buyer, performance: performance)
 
-        # Historic condition: the performance has since sold down, so this order can
-        # no longer clear ticket_stock_available and `save` becomes a silent no-op.
+        # Historic condition: the performance has since sold down, so this order
+        # can no longer clear ticket_stock_available on a full save.
         production.update!(capacity: 1)
 
-        expect { order.link_to_address_of_record }.not_to raise_error
-        expect(Address.exists?(buyer.id)).to be true
-        expect(order.reload.address_id).to eq(buyer.id)
+        expect(order.link_to_address_of_record).to be(true)
+        expect(order.reload.address_id).to eq(keeper.id)
+        expect(Address.exists?(buyer.id)).to be(false)
+        expect(order.address).not_to be_changed # in-memory association synced, order not dirtied
+      end
+
+      it "re-points only the redemption order when a distinct buyer pays with a member's card" do
+        owner = FactoryBot.create(:address, full_name: "Morgan Member", email: "morgan@example.com")
+        offer = FactoryBot.create(:membership_offer)
+        membership = FactoryBot.create(:membership, address: owner, membership_offer: offer)
+        buyer = FactoryBot.create(:address, full_name: "Casey Guest", email: "casey@example.com")
+        unrelated_order = FactoryBot.create(:ticket_order, :for_a_single_ticket, :paid_with_cash,
+                                            address: buyer, performance: performance_on(today))
+        order = redemption_paid_by(membership, buyer)
+
+        order.link_to_address_of_record
+
+        expect(order.reload.address_id).to eq(owner.id)
+        # The buyer's own record and history survive — never collapsed onto the member.
+        expect(Address.exists?(buyer.id)).to be(true)
+        expect(unrelated_order.reload.address_id).to eq(buyer.id)
       end
     end
   end
