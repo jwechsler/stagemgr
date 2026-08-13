@@ -79,9 +79,16 @@ class Admin::AddressesController < Admin::ApplicationController
     #    @address.address_tags << params[:address][:address_tags_attributes]
     match = @address.find_original
     if !match.nil? then
-      match.update_from(@address)
-      @address = match
-      notice = "Updated data merged with existing audience member"
+      # A true merge: field-copying alone (the old behavior) left the edited
+      # record and all of its orders behind as a permanent duplicate.
+      begin
+        match.merge_and_purge(@address)
+        @address = match
+        notice = "Updated data merged with existing audience member"
+      rescue StandardError => e
+        Rails.logger.warn("Admin address merge failed for ##{@address.id} -> ##{match.id}: #{e.message}")
+        notice = "Audience member was successfully updated. (Merge with existing record ##{match.id} failed and will be retried automatically.)"
+      end
     else
       notice = "Audience member was successfully updated."
     end

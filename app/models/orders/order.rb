@@ -794,8 +794,7 @@ class Order < ApplicationRecord
   end
 
   def create_recipient_address
-    new_owner = Address.new(:full_name => recipient_name, :email => recipient_email)
-    new_owner = new_owner.find_original || new_owner
+    new_owner = Address.new(:full_name => recipient_name, :email => recipient_email).fold_into_original
     new_owner.save!
     self.recipient_address_id = new_owner.id
   end
@@ -923,14 +922,10 @@ class Order < ApplicationRecord
     self.hold_under = address.full_name if hold_under.blank?
   end
 
-  def create_recipient_address
-    return unless gift?
-
-    new_owner = Address.new(full_name: recipient_name, email: recipient_email)
-    new_owner.save!
-    new_owner = new_owner.find_original || new_owner
-    self.recipient_address_id = new_owner.id
-  end
+  # NOTE: create_recipient_address is defined once, earlier in this class.
+  # A second definition here used to shadow it and saved the new Address
+  # BEFORE checking find_original, orphaning a duplicate record whenever
+  # the recipient already existed.
 
   def set_tasks_on_save
     return unless do_not_create_tasks.nil? && (new_record? || saved_change_to_status?)

@@ -64,38 +64,7 @@ class BulkOrderImport < OrderImport
         total += 1
         begin
           Order.transaction do
-            a = nil
-            if row['Id'].present? # if ID is present, use that as the match criteria
-              row['Id']
-              a = Address.find_by(id: row['Id'].to_i)
-
-            elsif row['ExternalId'].present?
-              current_address_id = row['ExternalId']
-              a = Address.find_by(id: external_address_ids[current_address_id])
-              a ||= Address.new
-
-            else
-              a = Address.new
-            end
-            a ||= Address.new
-            # Update Address-specific records
-            unless row['FullName'].blank? && row['LastName'].blank?
-              a.set_full_name(row['FullName'], row['FirstName'], row['MiddleName'],
-                              row['LastName'])
-            end
-            a.line1 = row['Address'] if row['Address'].present?
-            a.line2 = row['Address2'] if row['Address'].present?
-            a.email = row['EmailAddress'] if row['EmailAddress'].present?
-            a.city = row['City'] if row['City'].present?
-            a.zipcode = row['ZipCode'] if row['ZipCode'].present?
-            a.phone = row['Phone'] if row['Phone'].present?
-            a.address_tags << new_address_tag(theater_id, a, row['Tag1'], row['TagValue1']) if row['Tag1'].present?
-            a.address_tags << new_address_tag(theater_id, a, row['Tag2'], row['TagValue2']) if row['Tag2'].present?
-            if row['ExternalId'].present?
-              a.address_tags << new_address_tag(theater_id, a, 'External ID',
-                                                row['ExternalId'])
-            end
-            a.regularize!
+            a = imported_address(row, theater_id, external_address_ids)
             a.save!
             # build the ticket order
             o = TicketOrder.new

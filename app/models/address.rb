@@ -207,6 +207,20 @@ end
     photo.attach(newer.photo.blob) if !photo.attached? && newer.photo.attached?
   end
 
+  # For unsaved records: returns the existing original (with this record's
+  # data folded onto it) when one exists, otherwise self. Lets creation
+  # paths (imports, gift recipients) adopt an existing patron instead of
+  # persisting a duplicate.
+  def fold_into_original
+    return self unless new_record?
+
+    original = find_original
+    return self if original.nil?
+
+    original.update_from(self)
+    original
+  end
+
   def merge_and_purge(from_address)
     Rails.logger.debug("Merging address ##{from_address.id} into ##{id}")
     Address.transaction do

@@ -31,6 +31,13 @@ RSpec.describe BulkFlexOrderImport do
     described_class.perform(filestore_for(one_row_csv).id, theater.id, payment_type.id.to_s, *extra_args)
   end
 
+  it 'folds the imported patron into an existing matching address' do
+    existing = FactoryBot.create(:address, full_name: 'Casey Patron', email: 'patron@example.com')
+
+    expect { run }.not_to change(Address, :count)
+    expect(FlexPassOrder.last.address_id).to eq(existing.id)
+  end
+
   it 'creates the flex pass order' do
     expect { run }.to change(FlexPassOrder, :count).by(1)
     expect(FlexPassOrder.last).to be_processed
