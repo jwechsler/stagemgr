@@ -71,6 +71,26 @@ RSpec.describe Admin::ReportsController, type: :controller do
     end
   end
 
+  describe '#build_fulfill_labels' do
+    let!(:order) { FactoryBot.create(:ticket_order, :for_a_single_ticket) }
+    let(:through_date) { order.performance.performance_date }
+
+    before do
+      order.update!(status: Order::PROCESSED, hold_under: 'Kathleen (Kate) Early')
+      allow(PrintingService).to receive(:print_orders).and_return('BATCH-X')
+    end
+
+    it 'includes the hold-under last name in reserved_under' do
+      # Regression: the old 4-element destructure of Address.parse_name left
+      # l_name nil, so hold-under rows printed as "K" instead of "Early, K".
+      _headers, report = controller.send(:build_fulfill_labels, through_date)
+
+      row = report.find { |r| r[:order_id] == order.id }
+      expect(row).to be_present
+      expect(row[:reserved_under]).to eq('Early, K')
+    end
+  end
+
   describe '#production_sales_by_performance' do
     let!(:production) { FactoryBot.create(:production) }
 
