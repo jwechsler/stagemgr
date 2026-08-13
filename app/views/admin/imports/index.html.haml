@@ -54,6 +54,12 @@
             = label_tag :datafile, 'From file', :class=>'left inline'
           .small-9.cell
             = form.file_field :datafile
+        .grid-x.grid-padding-x
+          .small-3.cell
+            = label_tag :refresh_external_ids, 'Refresh external IDs', :class=>'left inline'
+          .small-9.cell
+            = check_box_tag :refresh_external_ids, '1', false
+            %span.help-text Check when the theater has reassigned its external IDs: rows are matched by name/email instead of by existing External ID tags, and matched records are retagged with the new IDs.
         = submit_tag "Import Mailing List", :class=>'button'
 
     %fieldset.fieldset

@@ -27,11 +27,19 @@ require 'csv'
 
 #
 # Note that, if present, the two users will create two different records in the ticketing system
+#
+# Matching: by default the row's ExternalId is authoritative — a record
+# already tagged with that External ID for this theater is updated in place;
+# rows with no ID match fall back to name/email dedup (find_original). When
+# refresh_external_ids is true (the "Refresh external IDs" checkbox at
+# /admin/imports), the ID lookup is skipped entirely — some theaters reuse
+# IDs for different patrons — and every row matches by name/email only, with
+# the matched or created record retagged to the row's (new) External ID.
 
 class ExternalAddressesImport
   @queue = :import
 
-  def self.perform(filestore_id, theater_id)
+  def self.perform(filestore_id, theater_id, refresh_external_ids = false)
     headers = nil
     total = 0
     merged = 0
@@ -59,8 +67,8 @@ class ExternalAddressesImport
 
     filestore = FileStore.find(filestore_id)
     theater = Theater.find(theater_id) unless theater_id.blank? || theater_id == 0
-    filestore.notes = "Importing contact list for #{theater.name}..."
-    filestore.save
+    filestore.update(notes: "Importing contact list for #{theater.name}...")
+    external_address_ids = external_id_lookup(theater_id, refresh_external_ids)
     CSV.foreach(filestore.path) do |row|
       if headers.nil?
         _index = 0
@@ -75,7 +83,10 @@ class ExternalAddressesImport
             replace: '', # Use a blank for those replacements
             universal_newline: true # Always break lines with \n
           }
-          stripped_key = key.encode(Encoding.find('ASCII'), encoding_options)
+          # Keyword splat required: under Ruby 3 a positional options hash is
+          # treated as a source encoding and raises TypeError, which the
+          # blanket rescue below turned into a silent no-op import.
+          stripped_key = key.encode(Encoding.find('ASCII'), **encoding_options)
           headers[stripped_key] = headers.delete(key)
         end
 
@@ -164,8 +175,8 @@ class ExternalAddressesImport
             a.address_tags << sub_tag
           end
 
-          a.save!
-          a, merge_occurred = ExternalAddressesImport.merge_imported_address(a)
+          a, merge_occurred = ExternalAddressesImport.match_and_save(a, row[external_id_idx],
+                                                                     external_address_ids)
           merged += 1 if merge_occurred
 
           unless row[full_name2_idx].blank? && row[last_name2_idx].blank?
@@ -210,6 +221,31 @@ class ExternalAddressesImport
       address.full_name = full_name
     end
     address
+  end
+
+  # Empty when refreshing (the theater reassigned its IDs, so existing tags
+  # must not drive matching); otherwise External ID tag value -> address id.
+  def self.external_id_lookup(theater_id, refresh_external_ids)
+    return {} if refresh_external_ids
+
+    AddressTag.where(tag_label: AddressTag::EXTERNAL_ID, theater_id: theater_id)
+              .pluck(:tag_value, :address_id).to_h
+  end
+
+  # The External ID is authoritative when a record already carries it:
+  # update that record in place (update_from also refreshes its tag values,
+  # including the per-theater External ID, and takes the row's email).
+  # Otherwise fall back to name/email dedup. Returns [address, merged].
+  def self.match_and_save(address, external_id, external_address_ids)
+    existing = external_id.present? && Address.find_by(id: external_address_ids[external_id])
+    if existing
+      existing.update_from(address)
+      existing.save!
+      [existing, true]
+    else
+      address.save!
+      merge_imported_address(address)
+    end
   end
 
   def self.merge_imported_address(address)

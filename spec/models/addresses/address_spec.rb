@@ -42,6 +42,26 @@ RSpec.describe 'a customer record' do
       expect(Address.exists?(duplicate.id)).to be(false)
     end
 
+    it 'takes the newer address email and refreshes External ID tags per theater' do
+      theater_a = keeper.orders.first.theater
+      theater_b = FactoryBot.create(:theater)
+      keeper.update!(email: 'old.email@example.com')
+      keeper.address_tags.create!(tag_label: AddressTag::EXTERNAL_ID, tag_value: 'A-OLD', theater: theater_a)
+      duplicate.update!(email: 'new.email@example.com')
+      duplicate.address_tags.create!(tag_label: AddressTag::EXTERNAL_ID, tag_value: 'A-NEW', theater: theater_a)
+      duplicate.address_tags.create!(tag_label: AddressTag::EXTERNAL_ID, tag_value: 'B-NEW', theater: theater_b)
+
+      keeper.merge_and_purge(duplicate)
+      keeper.reload
+
+      expect(keeper.email).to eq('new.email@example.com')
+      # Same theater: the existing tag's value is updated in place, not duplicated.
+      expect(keeper.external_id([theater_a.id])).to eq('A-NEW')
+      expect(keeper.address_tags.where(tag_label: AddressTag::EXTERNAL_ID, theater: theater_a).count).to eq(1)
+      # New theater: the tag is carried over.
+      expect(keeper.external_id([theater_b.id])).to eq('B-NEW')
+    end
+
     it 'leaves no address_tags pointing at the purged address' do
       theater = keeper.orders.first.theater
       keeper.address_tags.create!(tag_label: 'press', tag_value: '1', theater: theater)
