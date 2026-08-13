@@ -101,6 +101,11 @@ RemoveUnusedAddresses:
   every: "1w"
   description: "Remove addresses not associated with any records or notes"
   queue: maintenance
+
+ConsolidateDuplicateAddresses:
+  every: "1h"
+  description: "Merge strict duplicate patron addresses (same name and email) into the oldest record"
+  queue: maintenance
   
 InactivateUnusedProductions:
   every: "1w"
