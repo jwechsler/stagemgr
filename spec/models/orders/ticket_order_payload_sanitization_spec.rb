@@ -10,7 +10,9 @@ RSpec.describe TicketOrder, type: :model do
         name: 'Zoë’s “Big” Show — Act 1… 🎭',
         credit_lines: "Music by Dvořák\nChoreography — Łódź Ballet"
       )
-      order.update!(hold_under: 'Zoë Dvořák')
+      # Emoji included deliberately: unsanitized, it makes Namae fail to
+      # parse and the name prints blank (regression from dev E2E testing).
+      order.update!(hold_under: 'Zoë Dvořák 🎟️')
     end
 
     it 'restricts every string in the payload to the Latin-1 repertoire' do

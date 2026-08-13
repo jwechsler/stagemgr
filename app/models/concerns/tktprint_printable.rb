@@ -44,8 +44,11 @@ module TktprintPrintable
   # Latin-1 repertoire via PrinterTextSanitizer before serialization — the
   # Boca printer cannot render characters outside its Latin-1 code page.
   def build_tktprint_payload(batch_id, batch_sequence)
-    # Build customer name
-    cleaned_name, f_name, l_name = Address.parse_name(hold_under.presence || address.full_name)
+    # Build customer name. Sanitize before parsing: an emoji or other
+    # non-Latin-1 token makes Namae fail to parse and the ticket would
+    # otherwise print with a blank name.
+    printable_name = PrinterTextSanitizer.sanitize(hold_under.presence || address.full_name)
+    cleaned_name, f_name, l_name = Address.parse_name(printable_name)
     if cleaned_name == address.full_name
       use_last_name = address.last_name
       use_first_name = address.first_name
