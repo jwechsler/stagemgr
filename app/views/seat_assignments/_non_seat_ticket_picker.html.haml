@@ -3,7 +3,10 @@
 -# appends a qty-1 row to the unified #ticket-display list; the row is a plain
 -# nested ticket_line_items_attributes group with no seat_assignment_id.
 -# Rows here are deliberately NOT zone-filtered — zones only constrain seats.
-- show_backend_classes = can? :view_backend_classes, TicketClassAllocation
+-# Context gate, not a permission gate — see _ticket_class_selector. The admin
+-# box-office page passes show_backend_classes: true; the public flow must only
+-# ever see web-visible classes, regardless of who is signed in.
+- show_backend_classes = local_assigns.fetch(:show_backend_classes, false)
 - allocations = order_form.object.performance.nil? ? [] : order_form.object.performance.ticket_class_allocations
 - eligible = allocations.select { |tca| tca.available? && !tca.ticket_class.holds_seats? && !tca.ticket_class.software_managed? && (tca.ticket_class.web_visible? || show_backend_classes) }
 #non-seat-ticket-picker{style: (eligible.empty? ? 'display:none' : nil)}

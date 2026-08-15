@@ -3,7 +3,8 @@ require 'rails_helper'
 # Picker for non-seat-holding ticket classes on reserved-seating order forms,
 # shared by the public flow and the box office. It is the inverse of the
 # seat-click modal: ONLY classes with holds_seats == false appear, gated by the
-# same web_visible / :view_backend_classes rule as the modal.
+# same show_backend_classes render-context rule as the modal (the viewer's
+# ability is irrelevant — the admin page passes the local explicitly).
 RSpec.describe 'seat_assignments/_non_seat_ticket_picker', type: :view do
   def ticket_class(class_name:, web_visible: true, holds_seats: false, ticket_type: 'Fixed')
     tc = TicketClass.new(
@@ -23,15 +24,19 @@ RSpec.describe 'seat_assignments/_non_seat_ticket_picker', type: :view do
     tca
   end
 
-  def render_picker(classes, can_view_backend: false)
+  # show_backend_classes: :omitted exercises the default (public) render path.
+  def render_picker(classes, show_backend_classes: :omitted)
     performance = instance_double(Performance, ticket_class_allocations: classes.map { |tc| allocation(tc) })
     order = double('order', performance: performance, performance_id: 1, uuid: 'test-uuid')
     order_form = double('order_form', object: order)
 
+    # Prove the ability no longer leaks backend classes into the public render.
     allow(view).to receive(:can?).with(:view_backend_classes, TicketClassAllocation)
-                                 .and_return(can_view_backend)
+                                 .and_return(true)
 
-    render partial: 'seat_assignments/non_seat_ticket_picker', locals: { order_form: order_form }
+    locals = { order_form: order_form }
+    locals[:show_backend_classes] = show_backend_classes unless show_backend_classes == :omitted
+    render partial: 'seat_assignments/non_seat_ticket_picker', locals: locals
   end
 
   it 'lists only classes that do not hold seats' do
@@ -42,15 +47,21 @@ RSpec.describe 'seat_assignments/_non_seat_ticket_picker', type: :view do
     expect(rendered).not_to include('General Admission')
   end
 
-  it 'hides non-web-visible classes from the public flow' do
-    render_picker([ticket_class(class_name: 'Crew Comp', web_visible: false)], can_view_backend: false)
+  it 'hides non-web-visible classes on the public flow even when the viewer holds view_backend_classes' do
+    render_picker([ticket_class(class_name: 'Crew Comp', web_visible: false)])
 
     expect(rendered).not_to include('Crew Comp')
     expect(rendered).to include('display:none')
   end
 
-  it 'shows non-web-visible classes to box office staff' do
-    render_picker([ticket_class(class_name: 'Crew Comp', web_visible: false)], can_view_backend: true)
+  it 'hides non-web-visible classes when show_backend_classes is explicitly false' do
+    render_picker([ticket_class(class_name: 'Crew Comp', web_visible: false)], show_backend_classes: false)
+
+    expect(rendered).not_to include('Crew Comp')
+  end
+
+  it 'shows non-web-visible classes on the admin render (show_backend_classes: true)' do
+    render_picker([ticket_class(class_name: 'Crew Comp', web_visible: false)], show_backend_classes: true)
 
     expect(rendered).to include('Crew Comp')
   end

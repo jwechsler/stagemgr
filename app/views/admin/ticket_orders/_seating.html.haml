@@ -1,2 +1,2 @@
 #seating-block
-  =render partial:'/ticket_orders/seating', locals:{ticket_order:ticket_order}
+  =render partial:'/ticket_orders/seating', locals:{ticket_order:ticket_order, show_backend_classes: can?(:view_backend_classes, TicketClassAllocation)}

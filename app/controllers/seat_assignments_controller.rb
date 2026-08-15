@@ -65,6 +65,15 @@ class SeatAssignmentsController < ApplicationController
                      status: :unprocessable_entity
               return
             end
+            # Backend classes (not web_visible) may only be sold by users with
+            # the ability — the public popup never offers them, but reject a
+            # hand-crafted request too, before any mutation.
+            if tc && !tc.web_visible? && !can?(:view_backend_classes, TicketClassAllocation)
+              render json: { id: sa.id, status: 'error',
+                             message: "Ticket type #{tc.class_name} is not available for online purchase" },
+                     status: :unprocessable_entity
+              return
+            end
           else
             # A classless reserve is how the reseating flow holds a replacement
             # seat (the class stays with the line item). The replacement seat

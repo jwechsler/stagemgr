@@ -1,10 +1,10 @@
 /= /admin/ticket_orders/reserved_tickets
-= render partial:'/seat_assignments/ticket_class_selector', locals: {order_form: order_form}
+= render partial:'/seat_assignments/ticket_class_selector', locals: {order_form: order_form, show_backend_classes: can?(:view_backend_classes, TicketClassAllocation)}
 #ticket-items{'data-line-items':'[]'}
 .grid-x.grid-padding-x
   .cell.small-12.medium-6
     = render partial:'/admin/ticket_orders/reserved_ticket_line_items', locals:{order_form: order_form, show_web_visible_only: false}
-    = render partial:'/seat_assignments/non_seat_ticket_picker', locals:{order_form: order_form}
+    = render partial:'/seat_assignments/non_seat_ticket_picker', locals:{order_form: order_form, show_backend_classes: can?(:view_backend_classes, TicketClassAllocation)}
   .cell.small-12.medium-6
     %div#seatmap-area
       - unless order_form.object.performance_id.nil?

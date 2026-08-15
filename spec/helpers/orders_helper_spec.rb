@@ -93,4 +93,61 @@ RSpec.describe OrdersHelper, type: :helper do
       expect(helper.validate_web_order(order)).to be(true)
     end
   end
+
+  # Channel rule: backend (non-web-visible) classes may only be sold by users
+  # with the view_backend_classes ability. The reserve endpoint blocks seated
+  # tickets; this validation closes the remaining checkout paths (non-seat
+  # add-ons and GA nested attributes).
+  describe '#validate_web_order web-visibility requirement' do
+    let(:ga_performance) do
+      FactoryBot.create(:general_admission, performance_date: Date.today + 1.day,
+                                            performance_time: Time.parse('19:30'))
+    end
+
+    def allocated_class(web_visible:, holds_seats: true)
+      tc = FactoryBot.create(:ticket_class, production: ga_performance.production,
+                                            web_visible: web_visible, holds_seats: holds_seats)
+      tca = ga_performance.ticket_class_allocations.find_or_initialize_by(ticket_class: tc)
+      tca.available = true
+      tca.save!
+      tc
+    end
+
+    def order_with(*classes)
+      order = TicketOrder.new(
+        status: Order::NEW,
+        performance: ga_performance,
+        address: FactoryBot.create(:address, phone: '555-555-1234'),
+        payment_type: FactoryBot.create(:cash_payment_type)
+      )
+      classes.each do |tc|
+        order.ticket_line_items << FactoryBot.build(:ticket_line_item, ticket_class: tc,
+                                                                       ticket_count: 1, order: order)
+      end
+      order
+    end
+
+    it 'rejects an order containing a non-web-visible class for users without the ability' do
+      allow(helper).to receive(:can?).with(:view_backend_classes, TicketClassAllocation).and_return(false)
+      backend = allocated_class(web_visible: false)
+      order = order_with(allocated_class(web_visible: true), backend)
+
+      expect(helper.validate_web_order(order)).to be(false)
+      expect(flash[:error]).to include(backend.class_name)
+      expect(flash[:error]).to include('not available for online purchase')
+    end
+
+    it 'accepts the same order for a user with the ability (box office)' do
+      allow(helper).to receive(:can?).with(:view_backend_classes, TicketClassAllocation).and_return(true)
+      order = order_with(allocated_class(web_visible: true), allocated_class(web_visible: false))
+
+      expect(helper.validate_web_order(order)).to be(true)
+    end
+
+    it 'accepts an all-web-visible order without consulting the ability' do
+      order = order_with(allocated_class(web_visible: true))
+
+      expect(helper.validate_web_order(order)).to be(true)
+    end
+  end
 end

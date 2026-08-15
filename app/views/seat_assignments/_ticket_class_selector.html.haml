@@ -1,3 +1,8 @@
+-# Context gate, not a permission gate: the admin box-office page passes
+-# show_backend_classes: true so staff can sell classes hidden from the
+-# public purchase page. The public order flow omits it and must only
+-# ever see web-visible classes, regardless of who is signed in.
+- show_backend_classes = local_assigns.fetch(:show_backend_classes, false)
 = render layout: "shared/components/modal", locals: { id: "ticket-modal", size: "xlarge", aria_labelledby: "modalTitle", data: { "assignment-id" => "none" } } do
   %p.lead
     Select the ticket type for seat
@@ -21,9 +26,6 @@
       #ticket-selector
     - else
       #ticket-selector
-        -# Box office staff may sell classes hidden from the public purchase page;
-        -# mirrors the ability gate in PerformancesController#ticket_classes.
-        - show_backend_classes = can? :view_backend_classes, TicketClassAllocation
         -# Only classes that hold a seat may be assigned to one; non-holds
         -# classes are sold through the non-seat ticket picker instead.
         - order_form.object.performance.ticket_class_allocations.each do |tca|
@@ -49,7 +51,7 @@
     #no-ticket-classes-message{style: "display:none"}
       %p No ticket types are available for this seat.
 
-= render partial: "/seat_assignments/seating_config", locals: {performance_id: order_form.object.performance_id, order_uuid: order_form.object.uuid }
+= render partial: "/seat_assignments/seating_config", locals: {performance_id: order_form.object.performance_id, order_uuid: order_form.object.uuid, show_backend_classes: show_backend_classes }
 
 = content_for :js do
   :javascript
