@@ -89,6 +89,59 @@ RSpec.describe SeatAssignmentsController, type: :controller do
     end
   end
 
+  describe 'web visibility guard' do
+    before(:each) do
+      @performance = @ticket_order.performance
+      @reservation_id = SeatAssignment.where(performance_id: @performance.id,
+                                             status: SeatAssignment::AVAILABLE).first.id
+    end
+
+    def allocated_class(web_visible:)
+      tc = FactoryBot.create(:ticket_class, production: @performance.production, web_visible: web_visible)
+      tca = @performance.ticket_class_allocations.find_or_initialize_by(ticket_class: tc)
+      tca.available = true
+      tca.save!
+      tc
+    end
+
+    it 'rejects a non-web-visible class without the ability (no state left behind)' do
+      tc = allocated_class(web_visible: false)
+      post :reserve,
+           params: { performance_id: @performance.id, id: @reservation_id,
+                     order_uuid: @ticket_order.uuid, ticket_class_id: tc.id }, format: :json
+      expect(response).to have_http_status(:unprocessable_entity)
+      result = JSON.parse response.body
+      expect(result['status']).to eq('error')
+      expect(result['message']).to include(tc.class_name)
+      expect(result['message']).to include('not available for online purchase')
+
+      sa = SeatAssignment.find(@reservation_id)
+      expect(sa.status).to eq(SeatAssignment::AVAILABLE)
+      expect(sa.order_uuid).to be_blank
+      expect(sa.ticket_line_item).to be_nil
+    end
+
+    it 'accepts a non-web-visible class for a user with view_backend_classes (box office)' do
+      allow(controller).to receive(:can?).and_call_original
+      allow(controller).to receive(:can?).with(:view_backend_classes, TicketClassAllocation).and_return(true)
+      tc = allocated_class(web_visible: false)
+      post :reserve,
+           params: { performance_id: @performance.id, id: @reservation_id,
+                     order_uuid: @ticket_order.uuid, ticket_class_id: tc.id }, format: :json
+      expect(response).to be_successful
+      expect(SeatAssignment.find(@reservation_id).status).to eq(SeatAssignment::TEMPORARY)
+    end
+
+    it 'accepts a web-visible class anonymously' do
+      tc = allocated_class(web_visible: true)
+      post :reserve,
+           params: { performance_id: @performance.id, id: @reservation_id,
+                     order_uuid: @ticket_order.uuid, ticket_class_id: tc.id }, format: :json
+      expect(response).to be_successful
+      expect(SeatAssignment.find(@reservation_id).status).to eq(SeatAssignment::TEMPORARY)
+    end
+  end
+
   describe 'zoned pricing enforcement' do
     before(:each) do
       @performance = @ticket_order.performance

@@ -32,6 +32,19 @@ module OrdersHelper
         raise 'Your order must include at least one seated ticket'
       end
 
+      # Backend (non-web-visible) classes may only be sold by users with the
+      # ability. The reserve endpoint blocks seated tickets; this closes the
+      # remaining paths (non-seat add-ons and GA nested attributes), which
+      # arrive as ticket_line_items_attributes in the checkout POST.
+      if order.is_a?(TicketOrder)
+        backend_item = order.ticket_line_items.find do |tli|
+          tli.ticket_class && !tli.ticket_class.web_visible?
+        end
+        if backend_item && !can?(:view_backend_classes, TicketClassAllocation)
+          raise "Ticket type #{backend_item.ticket_class.class_name} is not available for online purchase"
+        end
+      end
+
       unless order.payment_type.is_a? PassPaymentType
         if order.address&.line1.blank? || order.address&.city.blank? || order.address&.state.blank? || order.address&.zipcode.blank?
           raise 'Billing address incomplete'

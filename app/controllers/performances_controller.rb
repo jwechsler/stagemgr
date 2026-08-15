@@ -74,12 +74,19 @@ class PerformancesController < ApplicationController
 
   def ticket_classes
     @performance = Performance.find(params[:id])
+    # Backend (non-web-visible) classes are included only when the caller asks
+    # for them AND has the ability — the admin box-office page sends
+    # include_backend=1 (see _seating_config). The public order flow never
+    # sends the param, so signed-in staff browsing the public page still get
+    # the customer-facing list. Spoofing the param without the ability is inert.
+    include_backend = params[:include_backend].present? &&
+                      current_user&.can?(:view_backend_classes, TicketClassAllocation)
     if @performance.inactive? || @performance.production.inactive?
       visible_to_public = []
     else
       visible_to_public = @performance.ticket_class_allocations.select do |tca|
-        tca.available? && (tca.ticket_class.web_visible? || current_user&.can?(:view_backend_classes,
-                                                                               TicketClassAllocation)) && !tca.ticket_class.software_managed?
+        tca.available? && (tca.ticket_class.web_visible? || include_backend) &&
+          !tca.ticket_class.software_managed?
       end.sort do |a, b|
         [(b.ticket_class.web_visible? ? 1 : 0), b.ticket_class.ticket_price,
          a.ticket_class.class_name] <=> [(a.ticket_class.web_visible? ? 1 : 0), a.ticket_class.ticket_price,

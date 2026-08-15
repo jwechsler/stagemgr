@@ -1,10 +1,12 @@
 require 'rails_helper'
 
 # Seat-selection ticket class modal, shared by the public order flow and the
-# admin (box office) order flow. Box office staff hold the
-# :view_backend_classes ability and may sell classes that are hidden from the
-# public purchase page (web_visible == false); the public list stays filtered.
-# Mirrors the ability gate in PerformancesController#ticket_classes.
+# admin (box office) order flow. The gate is the show_backend_classes RENDER
+# CONTEXT local, not the user's ability: the admin page passes true so staff
+# can sell classes hidden from the public purchase page (web_visible == false);
+# the public flow omits it and must only ever list web-visible classes, no
+# matter who is signed in. PerformancesController#ticket_classes applies the
+# same rule via the include_backend param.
 RSpec.describe 'seat_assignments/_ticket_class_selector', type: :view do
   def ticket_class(class_name:, web_visible:, holds_seats: true)
     tc = TicketClass.new(
@@ -24,7 +26,8 @@ RSpec.describe 'seat_assignments/_ticket_class_selector', type: :view do
     tca
   end
 
-  def render_selector(can_view_backend:)
+  # show_backend_classes: :omitted exercises the default (public) render path.
+  def render_selector(show_backend_classes: :omitted)
     public_class = ticket_class(class_name: 'General Admission', web_visible: true)
     backend_class = ticket_class(class_name: 'Box Office Comp', web_visible: false)
     non_seat_class = ticket_class(class_name: 'Hearing Assist', web_visible: true, holds_seats: false)
@@ -35,25 +38,39 @@ RSpec.describe 'seat_assignments/_ticket_class_selector', type: :view do
     order = double('order', performance: performance, performance_id: 1, uuid: 'test-uuid')
     order_form = double('order_form', object: order)
 
+    # The ability must be irrelevant to this partial: stub it true everywhere
+    # to prove a signed-in staff member browsing the public flow still gets
+    # the filtered list (the July 2026 regression).
     allow(view).to receive(:can?).with(:view_backend_classes, TicketClassAllocation)
-                                 .and_return(can_view_backend)
+                                 .and_return(true)
     stub_template 'seat_assignments/_seating_config.html.haml' => ''
 
-    render partial: 'seat_assignments/ticket_class_selector', locals: { order_form: order_form }
+    locals = { order_form: order_form }
+    locals[:show_backend_classes] = show_backend_classes unless show_backend_classes == :omitted
+    render partial: 'seat_assignments/ticket_class_selector', locals: locals
   end
 
-  context 'for box office staff (can view_backend_classes)' do
+  context 'admin box-office render (show_backend_classes: true)' do
     it 'lists classes that are hidden from the public purchase page' do
-      render_selector(can_view_backend: true)
+      render_selector(show_backend_classes: true)
 
       expect(rendered).to include('General Admission')
       expect(rendered).to include('Box Office Comp')
     end
   end
 
-  context 'for the public order flow (cannot view_backend_classes)' do
+  context 'public order flow (local omitted)' do
+    it 'lists only web-visible classes even when the viewer holds view_backend_classes' do
+      render_selector
+
+      expect(rendered).to include('General Admission')
+      expect(rendered).not_to include('Box Office Comp')
+    end
+  end
+
+  context 'public order flow (show_backend_classes: false)' do
     it 'lists only web-visible classes' do
-      render_selector(can_view_backend: false)
+      render_selector(show_backend_classes: false)
 
       expect(rendered).to include('General Admission')
       expect(rendered).not_to include('Box Office Comp')
@@ -62,7 +79,7 @@ RSpec.describe 'seat_assignments/_ticket_class_selector', type: :view do
 
   context 'non-seat-holding classes (holds_seats == false)' do
     it 'never lists them — a seat click can only assign seat-holding classes' do
-      render_selector(can_view_backend: true)
+      render_selector(show_backend_classes: true)
 
       expect(rendered).not_to include('Hearing Assist')
     end
