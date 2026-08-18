@@ -753,6 +753,79 @@ RSpec.describe TicketOrder do
     end
   end
 
+  describe "automated outreach tasks" do
+    let(:future_performance) do
+      performance = FactoryBot.create(:general_admission, performance_date: Date.current + 7.days)
+      # the schema default production_class "Play" is a legacy value outside
+      # PRODUCTION_CLASSES, and use_ticket_email_templates? rejects it
+      performance.production.update!(production_class: Production::PRIMETIME)
+      performance
+    end
+
+    def reminders_for(order)
+      OutreachTask.where(order_id: order.id, method_symbol: 'performance_reminder')
+    end
+
+    def followups_for(order)
+      OutreachTask.where(order_id: order.id).select { |t| t.method_symbol&.include?('followup') }
+    end
+
+    it "creates a performance reminder for the day before the show when processed" do
+      order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash,
+                                performance: future_performance)
+      reminders = reminders_for(order)
+      expect(reminders.count).to eq(1)
+      expect(reminders.first.execute_at).to eq((future_performance.performance_date - 1.day).to_datetime)
+    end
+
+    it "does not create a reminder when the show is less than two days away" do
+      tomorrow = FactoryBot.create(:general_admission, performance_date: Date.current + 1.day)
+      order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash,
+                                performance: tomorrow)
+      expect(reminders_for(order).count).to eq(0)
+    end
+
+    it "does not create a reminder when the performance suppresses notifications" do
+      future_performance.suppress_notification = true
+      future_performance.save!
+      order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash,
+                                performance: future_performance)
+      expect(reminders_for(order).count).to eq(0)
+    end
+
+    it "creates a first-time followup when a first-time buyer's order is fulfilled" do
+      order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash,
+                                performance: future_performance)
+      order.status = Order::FULFILLED
+      order.save!
+      followups = followups_for(order)
+      expect(followups.count).to eq(1)
+      expect(followups.first.method_symbol).to eq('first_time_followup')
+      expect(followups.first.execute_at.to_date).to eq(future_performance.performance_date.end_of_week + 1.day)
+    end
+
+    it "creates a standard followup when a returning buyer's order is fulfilled" do
+      earlier_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
+      order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash,
+                                performance: future_performance, address: earlier_order.address)
+      order.status = Order::FULFILLED
+      order.save!
+      followups = followups_for(order)
+      expect(followups.count).to eq(1)
+      expect(followups.first.method_symbol).to eq('standard_followup')
+    end
+
+    it "does not create a followup when the production does not use ticket email templates" do
+      future_performance.production.production_class = Production::CLASS
+      future_performance.production.save!
+      order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash,
+                                performance: future_performance)
+      order.status = Order::FULFILLED
+      order.save!
+      expect(followups_for(order).count).to eq(0)
+    end
+  end
+
   context "to an event that is not a performance" do
     before(:each) do
       @ticket_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)

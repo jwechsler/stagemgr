@@ -927,16 +927,8 @@ class Order < ApplicationRecord
   # BEFORE checking find_original, orphaning a duplicate record whenever
   # the recipient already existed.
 
-  def set_tasks_on_save
-    return unless do_not_create_tasks.nil? && (new_record? || saved_change_to_status?)
-
-    case status
-    when PROCESSED
-      create_mail_list_task
-      create_receipt_task
-      create_transfer_ownership_task if gift?
-    end
-  end
+  # NOTE: a dead duplicate of set_tasks_after_save named set_tasks_on_save
+  # lived here from commit 517b2511 until 2026-08; nothing ever called it.
 
   private # these might be ghost methods...
 

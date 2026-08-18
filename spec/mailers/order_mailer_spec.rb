@@ -13,7 +13,7 @@ RSpec.describe OrderMailer, type: :mailer do
                         theater: theater,
                         venue: venue,
                         name: 'Regular Play',
-                        production_class: Production::PLAY)
+                        production_class: Production::PRIMETIME)
     end
 
     # Create an External production
@@ -197,7 +197,7 @@ RSpec.describe OrderMailer, type: :mailer do
           theater: theater,
           venue: venue,
           status: Production::ACTIVE,
-          production_class: Production::PLAY,
+          production_class: Production::PRIMETIME,
           opening_at: Date.today,
           first_preview_at: Date.today,
           closing_at: Time.now.end_of_week + 2.weeks

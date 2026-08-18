@@ -45,7 +45,7 @@ class ProductionsController < ApplicationController
   end
 
   def box_office
-    now_playing = now_playing_by_venue(Production::PLAY) + now_playing_by_venue(Production::OFF_TIME) + now_playing_by_venue(Production::SPECIAL_EVENT)
+    now_playing = now_playing_by_venue(Production::PRIMETIME) + now_playing_by_venue(Production::OFF_TIME) + now_playing_by_venue(Production::SPECIAL_EVENT)
     end_of_week = Date.today.end_of_week
     three_months_from_now = (end_of_week + 2.months).end_of_month
     upcoming_shows = Production.opening_after(end_of_week).visible.order(

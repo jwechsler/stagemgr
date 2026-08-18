@@ -939,26 +939,32 @@ end
     ticket_line_items.each { |tli| tli.order = self if tli.order.nil? }
   end
 
-  def set_tasks_on_save
-    return unless do_not_create_tasks.nil? && (new_record? || saved_change_to_status?)
-      super
-      case status
-      when PROCESSED
-        create_reminder_task
-      when FULFILLED
-        create_performance_followup_task
-      end
-    
+  # Renamed back to set_tasks_after_save so the Order after_save callback
+  # reaches it again — commit 517b2511 renamed it to set_tasks_on_save,
+  # which silently disconnected reminder and followup creation.
+  def set_tasks_after_save
+    super
+    return unless do_not_create_tasks.nil? && saved_change_to_status?
+
+    case status
+    when PROCESSED
+      create_reminder_task
+    when FULFILLED
+      create_performance_followup_task
+    end
   end
 
   def create_reminder_task
-    return unless do_not_create_tasks.nil? || (contains_tickets? && !performance.suppress_notification)
-      day_before = performance.performance_date.to_datetime - 1.day
-      unless day_before - 1.day < Time.now
-        tasks << OutreachTask.new(:execute_at => day_before,
-                                  :method_symbol => :performance_reminder)
-      end
-    
+    # Historically this guard used || which both neutered the
+    # do_not_create_tasks check and sent reminders even when the performance
+    # suppressed notifications — the && form here is a deliberate behavior fix.
+    return unless do_not_create_tasks.nil? && contains_tickets? && !performance.suppress_notification
+
+    day_before = performance.performance_date.to_datetime - 1.day
+    unless day_before - 1.day < Time.now
+      tasks << OutreachTask.new(:execute_at => day_before,
+                                :method_symbol => :performance_reminder)
+    end
   end
 
   def create_receipt_task

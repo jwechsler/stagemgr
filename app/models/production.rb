@@ -14,7 +14,7 @@ class Production < ApplicationRecord
     'Active', 'Private', 'Inactive', 'Presale', 'Season Seating')
 
   PRODUCTION_CLASSES = (
-  PLAY, SPECIAL_EVENT, PRIVATE_PARTY, CONFERENCE, OFF_TIME, CLASS, EXTERNAL =
+  PRIMETIME, SPECIAL_EVENT, PRIVATE_PARTY, CONFERENCE, OFF_TIME, CLASS, EXTERNAL =
     'Primetime', 'Special Event', 'Private Party', 'Conference', 'Off/Late night', 'Class', 'External'
 )
 
@@ -215,7 +215,7 @@ class Production < ApplicationRecord
   end
 
   def self.performing_classes
-    [PLAY, SPECIAL_EVENT, OFF_TIME, EXTERNAL]
+    [PRIMETIME, SPECIAL_EVENT, OFF_TIME, EXTERNAL]
   end
 
   def self.sellable
@@ -268,7 +268,7 @@ class Production < ApplicationRecord
   def self.additional_upcoming_scope(order)
     Production.where("closing_at > :after_date and opening_at < :future_date and status in (:visible) and production_class in (:visible_classes) and not exists (select * from performances where status!='Inactive' and performances.production_id = productions.id and performances.id in (select performance_id from orders where address_id = :order_address))",
                      { :visible => Production.visible_statuses,
-                       :visible_classes => [Production::PLAY],
+                       :visible_classes => [Production::PRIMETIME],
                        :after_date => Time.now.end_of_week,
                        :future_date => (Time.now + 3.month),
                        :order_address => order.address.id }).order(Rails.configuration.x.rand_clause)

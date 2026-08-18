@@ -117,9 +117,9 @@ RSpec.describe SampleOrderBuilder, type: :service do
       end
     end
 
-    it "defaults production_class to PLAY when not provided" do
+    it "defaults production_class to PRIMETIME when not provided" do
       SampleOrderBuilder.with_sample_order(theater, recipient_email) do |order|
-        expect(order.performance.production.production_class).to eq(Production::PLAY)
+        expect(order.performance.production.production_class).to eq(Production::PRIMETIME)
       end
     end
 

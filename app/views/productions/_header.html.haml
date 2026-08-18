@@ -6,7 +6,7 @@
   %div.production_credit= production.credit_lines.nil? ? "" : raw(production.credit_lines.gsub("\n","<br/>"))
   %div.venue= production.venue.name
   - if production.custom_label.blank?
-    - unless production.production_class == Production::PLAY
+    - unless production.production_class == Production::PRIMETIME
       %div.production_class= production.production_class
   - else
     %div.production_class= production.custom_label.titlecase

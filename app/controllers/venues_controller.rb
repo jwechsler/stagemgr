@@ -31,7 +31,7 @@ class VenuesController < ApplicationController
   end
 
   def current_shows
-    @now_playing_productions = now_playing_by_venue(Production::PLAY) + now_playing_by_venue(Production::OFF_TIME)
+    @now_playing_productions = now_playing_by_venue(Production::PRIMETIME) + now_playing_by_venue(Production::OFF_TIME)
   end
 
   def offtime_now_playing; end
@@ -59,9 +59,9 @@ class VenuesController < ApplicationController
       # else next up) — they render in the festival block instead, and the
       # venue contributes no thumb of its own while the festival holds it.
       prods = if venue.external?
-                venue.now_playing(Production::PLAY, Date.today.end_of_week + 1.week)
+                venue.now_playing(Production::PRIMETIME, Date.today.end_of_week + 1.week)
               else
-                venue.now_playing_or_next_up(Production::PLAY)
+                venue.now_playing_or_next_up(Production::PRIMETIME)
               end
       members, others = prods.partition(&:festival_grouped?)
       festival_members += members

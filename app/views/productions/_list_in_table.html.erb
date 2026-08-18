@@ -28,7 +28,7 @@
         <%= link_to(production.name, production_performances_path(production.id, :anchor=>"top")) %>
       </p>
       <p class="venue"><%= production.venue.name %></p>
-       <%- unless production.production_class == Production::PLAY %>
+       <%- unless production.production_class == Production::PRIMETIME %>
         <p class="production_class"><%= production.production_class %></p>
        <%- end %>
       <%- unless production.theater.is_default? %>
