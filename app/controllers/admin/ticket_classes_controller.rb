@@ -75,6 +75,6 @@ class Admin::TicketClassesController < Admin::ApplicationController
                                          :ticket_price, :ticketing_fee, :web_visible, :software_managed, :holds_seats, :assigns_seats,
                                          :show_in_pricing_range, :auto_attach, :minutes_before_show, :purchase_page_annotation,
                                          :purchase_email_annotation, :suppress_receipt, :hide_pricing, :exchangeable, :royalty_amount,
-                                         :zone_id)
+                                         :zone_id, :complimentary)
   end
 end

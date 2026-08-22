@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_07_25_120100) do
+ActiveRecord::Schema.define(version: 2026_08_22_140000) do
 
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name", null: false
@@ -144,6 +144,7 @@ ActiveRecord::Schema.define(version: 2026_07_25_120100) do
     t.boolean "complimentary", default: false
     t.boolean "exchangeable", default: false
     t.decimal "royalty_amount", precision: 8, scale: 2
+    t.string "zone_id", limit: 2, default: "*", null: false
   end
 
   create_table "festivals", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|

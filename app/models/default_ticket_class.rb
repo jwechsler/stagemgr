@@ -8,6 +8,14 @@ class DefaultTicketClass < ApplicationRecord
   validates :ticketing_fee, numericality: true
   validates :ticket_type, inclusion: { in: TicketClass::TICKET_TYPES, message: 'Invalid ticket type' }
 
+  # Zoned pricing: same rule as TicketClass#zone_id -- "*" sells into any seat
+  # zone, a 1-2 char zone only into matching seats. Copied verbatim onto every
+  # TicketClass built from this default.
+  before_validation :normalize_zone_id
+  validates :zone_id, presence: true,
+                      format: { with: ZoneMatchable::CLASS_ZONE_FORMAT,
+                                message: 'must be "*" or 1-2 characters A-Z or 0-9' }
+
   before_destroy :block_destroy_if_referenced_by_offer
 
   def to_hash
@@ -19,6 +27,10 @@ class DefaultTicketClass < ApplicationRecord
   end
 
   private
+
+  def normalize_zone_id
+    self.zone_id = zone_id.to_s.strip.upcase.presence || ZoneMatchable::WILDCARD
+  end
 
   def block_destroy_if_referenced_by_offer
     parts = []
