@@ -181,6 +181,13 @@ Stagemgr::Application.config.middleware.use ExceptionNotification::Rack,
                                               email_prefix: '[Stagemgr Exception] ',
                                               sender_address: %("Exception Notifier" <bugs@theaterwit.org>),
                                               exception_recipients: %w[bugs@theaterwit.org],
-                                              delivery_method: :sendmail
+                                              delivery_method: :sendmail,
+                                              # 'user' first: who it happened to, before what they were
+                                              # doing (see app/views/exception_notifier/_user.text.erb).
+                                              # 'data' is deliberately absent -- EmailNotifier appends it
+                                              # itself whenever exception_notifier.exception_data or the
+                                              # :data option is non-empty, so listing it would duplicate
+                                              # the section.
+                                              sections: %w[user request session environment backtrace]
                                             },
                                             error_grouping: true

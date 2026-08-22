@@ -10,7 +10,6 @@ class Admin::ApplicationController < ApplicationController
       redirect_to root_path
     end
   end
-  before_action :prepare_exception_notifier
 
   protected
 
@@ -41,14 +40,5 @@ class Admin::ApplicationController < ApplicationController
         [Theater.find(params[:theater_id])].map { |m| [m, [:admin, m]] }.first
       end
     raise ActiveRecord::RecordNotFound if @context.nil?
-  end
-
-  private
-
-  def prepare_exception_notifier
-    request.env['exception_notifier.exception_data'] = {
-      user_id: current_user&.id,
-      user_email: current_user&.email
-    }
   end
 end

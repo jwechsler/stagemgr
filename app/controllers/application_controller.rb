@@ -108,8 +108,11 @@ class ApplicationController < ActionController::Base
     Rails.logger.error "Exception: #{exception.message}"
     Rails.logger.error exception.backtrace.join("\n")
 
-    # Notify an external service (optional)
-    ExceptionNotifier.notify_exception(exception, env: request.env)
+    # Notify an external service (optional). exception_notification is bundled
+    # for :production and :test only; the rescue_from above already skips
+    # development, so the guard is belt-and-braces against a NameError raised
+    # inside the rescue handler itself.
+    ExceptionNotifier.notify_exception(exception, env: request.env) if defined?(ExceptionNotifier)
 
     # Set the flash message with the exception
     flash[:error] =

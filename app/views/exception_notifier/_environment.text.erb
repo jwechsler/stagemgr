@@ -1,0 +1,13 @@
+<%# Shadows exception_notification's own _environment.text.erb. Identical except %>
+<%# that filtered_env is passed through ExceptionSecretRedactor.env, which %>
+<%# masks the Authlogic session token in both shapes it appears in: raw Cookie %>
+<%# header strings (HTTP_COOKIE, rack.request.cookie_string) and hash entries %>
+<%# (rack.session, unsigned_session_cookie, rack.request.cookie_hash). The hash %>
+<%# case is also covered by config.filter_parameters, but only when %>
+<%# env['action_dispatch.parameter_filter'] is set, which middleware above Rails %>
+<%# cannot guarantee -- so the redactor does not depend on it. %>
+<% filtered_env = ExceptionSecretRedactor.env(@request.filtered_env) -%>
+<% max = filtered_env.keys.map(&:to_s).max { |a, b| a.length <=> b.length } -%>
+<% filtered_env.keys.map(&:to_s).sort.each do |key| -%>
+  * <%= raw safe_encode("%-*s: %s" % [max.length, key, inspect_object(filtered_env[key])]).strip %>
+<% end -%>

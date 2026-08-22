@@ -190,14 +190,13 @@ module ReportProcessor
     Rails.logger.error "Report generation error: #{error.class} - #{error.message}"
     Rails.logger.error error.backtrace.join("\n")
 
-    # Add report-specific context for debugging
-    report_context = {
-      report_name: action_name,
-      user_id: current_user&.id,
-      user_email: current_user&.email,
-      request_ip: request.remote_ip,
-      parameters: params.except(:authenticity_token).to_hash
-    }
+    # Only the report name is unique to this call site now. User identity comes
+    # from the notifier's User section (ExceptionUserContext), which is more
+    # trustworthy -- it flags stale and timed-out sessions that current_user
+    # cannot. IP and params come from the Request section, whose params are run
+    # through config.filter_parameters; the raw params hash that used to be here
+    # was the one unfiltered dump in the notification stack.
+    report_context = { report_name: action_name }
 
     # Notify via the existing ExceptionNotifier system
     if defined?(ExceptionNotifier) && Rails.env.production?

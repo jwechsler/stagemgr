@@ -1,0 +1,16 @@
+<%# ExceptionNotifier "User" section -- see ExceptionUserContext (app/lib) and the %>
+<%# sections: list in config/environments/production.rb. Reached by both %>
+<%# notification paths (ApplicationController#handle_exception and %>
+<%# ExceptionNotification::Rack), so every request carries it. %>
+<%# %>
+<%# Caveat: with error_grouping: true the gem only mails on power-of-two %>
+<%# occurrence counts within a 5 minute window, so this names the actor on the %>
+<%# delivered request -- not every user affected by the same exception. %>
+<%# %>
+<%# Text only: email_format defaults to :text and is not overridden. If anyone %>
+<%# switches it to :html, the missing _user.html.erb degrades to the wrapper %>
+<%# template's per-section error block rather than losing the report. %>
+<% context = ExceptionUserContext.from_env(@env) %>
+<% context.fields.each do |label, value| %>
+* <%= raw label.ljust(16) %>: <%= raw value %>
+<% end %>

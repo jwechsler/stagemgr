@@ -1,0 +1,8 @@
+<%# Shadows exception_notification's own _session.text.erb (picked up because the %>
+<%# notifier prepends Rails.root/app/views). Identical to the gem's version %>
+<%# except that the data dump goes through ExceptionSecretRedactor, which masks %>
+<%# Authlogic's persistence_token and the CSRF token -- config.filter_parameters %>
+<%# does not reach this raw PP.pp dump. The signed-in user is reported by the %>
+<%# User section instead. %>
+* session id: <%= @request.ssl? ? "[FILTERED]" : (raw (@request.session['session_id'] || (@request.env["rack.session.options"] and @request.env["rack.session.options"][:id])).inspect.html_safe) %>
+* data: <%= raw PP.pp(ExceptionSecretRedactor.session(@request.session), "") %>

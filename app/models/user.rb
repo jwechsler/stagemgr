@@ -82,6 +82,19 @@ class User < ApplicationRecord
     roles
   end
 
+  # Single-value permission tier, mirroring Ability's cascade: producers return
+  # first, then box office, then admin. A user with BOTH booleans set reports as
+  # Box Office, because is_theater_user? is !admin && !box_office, so Ability
+  # hits `return if user.is_box_office_user?` (ability.rb:121) before reaching
+  # the admin grants -- box office silently shadows administrator. Derived, not
+  # the dead users.role column.
+  def permission_level
+    return THEATERUSER if is_theater_user?
+    return BOXOFFICE if is_box_office_user?
+
+    ADMIN
+  end
+
   def allowed_tags(tags)
     allowed = []
     if is_theater_user?
