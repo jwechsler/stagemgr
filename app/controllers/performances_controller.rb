@@ -2,7 +2,7 @@ class PerformancesController < ApplicationController
   helper PerformancesHelper
   layout Rails.configuration.x.server_config['ext_site_wrapper']
 
-  before_action :find_production, except: %i[by_date ticket_classes]
+  before_action :find_production, except: %i[ticket_classes]
 
   def index
     if @production.nil?
@@ -53,23 +53,6 @@ class PerformancesController < ApplicationController
 
       render :index, layout: Rails.configuration.x.server_config['ext_site_wrapper']
     end
-  end
-
-  def by_date
-    @footnotes = []
-    @start_date = parse_date_param(:start_date, default: Date.today.beginning_of_week)
-    @end_date = parse_date_param(:end_date, default: Date.today.beginning_of_week + 1.week - 1)
-    @performances = Performance.where('performances.performance_date >= ? and performances.performance_date <= ?', @start_date, @end_date).order(
-      :performance_date, :performance_time
-    )
-    @performances.select! { |p| p.production.visible? && p.production.sellable_to_public? }
-    @performances.each do |p|
-      unless p.special_features.empty?
-        @footnotes += p.special_features.map { |f| f.short_name }
-        @footnotes << "_custom#{p.id}"
-      end
-    end
-    render :by_date, layout: Rails.configuration.x.server_config['ext_site_wrapper']
   end
 
   def ticket_classes

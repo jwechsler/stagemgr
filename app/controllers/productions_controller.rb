@@ -9,18 +9,8 @@ class ProductionsController < ApplicationController
   # represented by its artwork rather than a full callout.
   FestivalImage = Struct.new(:festival)
 
-  prepend_before_action :find_theater, except: %i[index upcoming now_playing box_office by_date show]
+  prepend_before_action :find_theater, except: %i[index upcoming now_playing box_office show]
   before_action :find_production, only: %i[edit update destroy]
-
-  def by_date
-    @start_date = parse_date_param(:start_date, default: Date.today.beginning_of_week)
-    @end_date = parse_date_param(:end_date, default: Date.today.beginning_of_week + 1.week - 1)
-    @productions = Production.includes(:performances).where(
-      'performances.performance_date >= ? and performances.performance_date <= ?',
-      @start_date, @end_date
-    ).order(performance_date: :asc, performance_time: :asc)
-    render :index
-  end
 
   def index
     now_playing
