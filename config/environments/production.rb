@@ -154,7 +154,15 @@ Rails.application.configure do
   delivery_method = email_config['delivery_method']
   config.action_mailer.delivery_method = delivery_method&.to_sym || :test
   if delivery_method.eql?('postmark')
-    config.action_mailer.postmark_settings = { api_key: Rails.application.credentials[:postmark_api_token] }
+    # Key this :api_token, not :api_key. Mail::Postmark seeds its settings from
+    # ENV['POSTMARK_API_TOKEN'] and merges ours on top, then picks
+    # settings[:api_token] || settings[:api_key]. Under :api_key a blank env var
+    # won that fallback -- "" is truthy in Ruby -- and every send 401'd.
+    # .presence keeps a blank on either side from shadowing a real token.
+    config.action_mailer.postmark_settings = {
+      api_token: Rails.application.credentials[:postmark_api_token].presence ||
+                 ENV['POSTMARK_API_TOKEN'].presence
+    }
   end
 
   config.x.rand_clause = Arel.sql('RAND()')
