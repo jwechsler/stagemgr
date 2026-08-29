@@ -76,6 +76,7 @@ worktrees/
 .claude/settings.local.json
 docs/_site/
 docs/site/
+docs/manual/.venv/
 
 # NOTE: config/credentials/test.key is intentionally committed. The test
 # credentials it decrypts (config/credentials/test.yml.enc) hold only dummy
