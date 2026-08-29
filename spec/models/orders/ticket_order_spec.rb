@@ -818,25 +818,50 @@ RSpec.describe TicketOrder do
     # A seat paid for with a flex pass is still a seat. Until 2026-08 these orders
     # were routed to a :flex_pass_followup task with no template behind it, so
     # pass holders were the one group that never heard from us after a show.
-    it "creates a followup when the order was paid with a flex pass" do
+    #
+    # Which followup they now get turns on whether the address has any other
+    # settled order, so both sides are pinned: the everyday case is the holder
+    # redeeming a pass they bought, and the exception is a pass that reached them
+    # some other way -- comped, gifted, or bought under a different address.
+    it "creates a standard followup when the redeemer bought the pass themselves" do
+      buyer = FactoryBot.create(:address)
+      pass_order = FactoryBot.create(:flex_pass_order, address: buyer)
+      pass_order.transition_to!(Order::PROCESSED)
       order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_flex_pass,
-                                performance: future_performance)
+                                performance: future_performance, address: buyer,
+                                flex_pass_code: pass_order.flex_pass.code)
       order.status = Order::FULFILLED
       order.save!
       expect(order).to be_paid_with_flexpass
       followups = followups_for(order)
       expect(followups.count).to eq(1)
-      expect(followups.first.method_symbol).to eq('first_time_followup')
+      expect(followups.first.method_symbol).to eq('standard_followup')
       expect(followups.first.execute_at.to_date).to eq(future_performance.performance_date.end_of_week + 1.day)
     end
 
-    it "no longer routes any order to the templateless flex_pass_followup" do
+    it "creates a first-time followup when the redeemer has no settled order of their own" do
       order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_flex_pass,
                                 performance: future_performance)
       order.status = Order::FULFILLED
       order.save!
-      expect(followups_for(order).map(&:method_symbol)).not_to include('flex_pass_followup')
-      expect(OrderMailer).not_to respond_to(:flex_pass_followup)
+      expect(order.address.first_time_paying?(order)).to be(true)
+      followups = followups_for(order)
+      expect(followups.count).to eq(1)
+      expect(followups.first.method_symbol).to eq('first_time_followup')
+    end
+
+    # The defect being fixed was an outreach task naming a mailer action with no
+    # template behind it, which only surfaces when something renders the mail.
+    # Asserting the method is gone would not catch that class of bug again.
+    it "queues a followup whose mailer renders for a flex pass redemption" do
+      order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_flex_pass,
+                                performance: future_performance)
+      order.status = Order::FULFILLED
+      order.save!
+      task = followups_for(order).first
+      expect(task.method_symbol).not_to eq('flex_pass_followup')
+      body = OrderMailer.send(task.method_symbol, order).body.decoded
+      expect(body).to include('fill out a brief survey')
     end
 
     it "does not create a followup when the production does not use ticket email templates" do
