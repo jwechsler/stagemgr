@@ -815,6 +815,30 @@ RSpec.describe TicketOrder do
       expect(followups.first.method_symbol).to eq('standard_followup')
     end
 
+    # A seat paid for with a flex pass is still a seat. Until 2026-08 these orders
+    # were routed to a :flex_pass_followup task with no template behind it, so
+    # pass holders were the one group that never heard from us after a show.
+    it "creates a followup when the order was paid with a flex pass" do
+      order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_flex_pass,
+                                performance: future_performance)
+      order.status = Order::FULFILLED
+      order.save!
+      expect(order).to be_paid_with_flexpass
+      followups = followups_for(order)
+      expect(followups.count).to eq(1)
+      expect(followups.first.method_symbol).to eq('first_time_followup')
+      expect(followups.first.execute_at.to_date).to eq(future_performance.performance_date.end_of_week + 1.day)
+    end
+
+    it "no longer routes any order to the templateless flex_pass_followup" do
+      order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_flex_pass,
+                                performance: future_performance)
+      order.status = Order::FULFILLED
+      order.save!
+      expect(followups_for(order).map(&:method_symbol)).not_to include('flex_pass_followup')
+      expect(OrderMailer).not_to respond_to(:flex_pass_followup)
+    end
+
     it "does not create a followup when the production does not use ticket email templates" do
       future_performance.production.production_class = Production::CLASS
       future_performance.production.save!

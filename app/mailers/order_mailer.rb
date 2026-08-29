@@ -97,10 +97,6 @@ class OrderMailer < ActionMailer::Base
          tag: 'Member Followup')
   end
 
-  def flex_pass_followup(order, _address = nil, _action_by = nil)
-    standard_followup(order)
-  end
-
   def first_time_followup(order, _address = nil, _action_by = nil)
     @markdown_renderer = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)
     @order = order

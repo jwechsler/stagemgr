@@ -8,6 +8,10 @@ RSpec.describe FlexPassOrder, type: :model do
     order.tasks.select { |t| t.method_symbol.to_s == 'flexpass_confirmation' }
   end
 
+  def followup_tasks(order)
+    order.tasks.select { |t| t.method_symbol.to_s.include?('followup') }
+  end
+
   describe 'the purchase confirmation task' do
     it 'is queued when suppress_receipt is false' do
       order = FactoryBot.create(:flex_pass_order)
@@ -44,6 +48,29 @@ RSpec.describe FlexPassOrder, type: :model do
       order.transition_to!(Order::PROCESSED)
 
       expect(flexpass_confirmation_tasks(order.reload).size).to eq(1)
+    end
+  end
+  # Buying a pass and redeeming one are separate events with separate mail. The
+  # purchase confirms and then goes quiet -- there is no performance behind a
+  # FlexPassOrder to follow up on, and the patron hears from us again only after
+  # they actually attend, via the TicketOrder that spends the pass.
+  describe 'post-show followups' do
+    it 'queues none when the purchase is processed' do
+      order = FactoryBot.create(:flex_pass_order)
+
+      order.transition_to!(Order::PROCESSED)
+
+      expect(followup_tasks(order.reload)).to be_empty
+    end
+
+    it 'queues none when the purchase is fulfilled' do
+      order = FactoryBot.create(:flex_pass_order)
+      order.transition_to!(Order::PROCESSED)
+
+      order.transition_to!(Order::FULFILLED)
+
+      expect(order.reload).to be_fulfilled
+      expect(followup_tasks(order)).to be_empty
     end
   end
 end

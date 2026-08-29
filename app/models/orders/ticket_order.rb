@@ -988,24 +988,35 @@ end
     super
   end
 
+  # Picks the post-show followup a fulfilled order earns and schedules it for the
+  # Monday after the performance's week. How the seat was paid for does not enter
+  # into it: whoever sat in the house hears from us afterwards.
+  #
+  # Until 2026-08 a fourth branch sent flex pass redemptions to a
+  # :flex_pass_followup task. No mailer template of that name ever existed, so all
+  # 3,157 of those tasks burned through their attempts and were cancelled without
+  # sending -- pass holders, who attend more often than anyone, were the only
+  # patrons silently cut out of the post-show survey. Redeeming a pass now falls
+  # through to the same followup any other attendee gets.
+  #
+  # Buying a pass is a different event and still sends nothing: FlexPassOrder
+  # creates only its :flexpass_confirmation receipt and has no performance to
+  # follow up on.
   def create_performance_followup_task
     return unless do_not_create_tasks.nil?
-      unless contains_tickets? && !performance.suppress_notification && performance.production.use_ticket_email_templates?
-  return
-end
-        monday_following = performance.performance_date.end_of_week + 1.day
-        tasks << case
-        when address.current_member?
-          OutreachTask.new(:execute_at => monday_following, :method_symbol => :member_followup)
-        when paid_with_flexpass?
-          OutreachTask.new(:execute_at => monday_following, :method_symbol => :flex_pass_followup)
-        when address.first_time_paying?(self)
-          OutreachTask.new(:execute_at => monday_following, :method_symbol => :first_time_followup)
-        else
-          OutreachTask.new(:execute_at => monday_following, :method_symbol => :standard_followup)
-                 end
-      
-    
+    return unless contains_tickets? && !performance.suppress_notification &&
+                  performance.production.use_ticket_email_templates?
+
+    followup = if address.current_member?
+                 :member_followup
+               elsif address.first_time_paying?(self)
+                 :first_time_followup
+               else
+                 :standard_followup
+               end
+
+    tasks << OutreachTask.new(execute_at: performance.performance_date.end_of_week + 1.day,
+                              method_symbol: followup)
   end
 
   def suppress_receipt?
