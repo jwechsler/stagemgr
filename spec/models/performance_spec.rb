@@ -56,6 +56,49 @@ RSpec.describe 'a performance' do
     expect(@performance.allocation(ticket_class3.class_code).available?).to be true
   end
 
+  describe '#sold_out?' do
+    def sell_seats(performance, count)
+      count.times do
+        FactoryBot.create(:ticket_order, :for_a_single_ticket, :paid_with_credit_card, performance: performance)
+      end
+    end
+
+    def create_addon_allocation(production, performance)
+      # Mirrors the "Closed-Captioning Tablet" class that masked ADOL0830's
+      # sold-out status: web-visible add-on that does not occupy a seat.
+      addon = FactoryBot.create(:ticket_class, class_code: 'CCTABLET', class_name: 'Closed-Captioning Tablet',
+                                               production: production, ticket_price: 0,
+                                               web_visible: true, holds_seats: false)
+      FactoryBot.create(:ticket_class_allocation, performance: performance, ticket_class: addon, available: true)
+    end
+
+    it 'is sold out at zero seats even when a web-visible non-seat-holding add-on remains available' do
+      production = FactoryBot.create(:production, capacity: 2)
+      performance = FactoryBot.create(:general_admission, production: production, performance_date: Date.current)
+      sell_seats(performance, 2)
+      create_addon_allocation(production, performance)
+
+      expect(performance.reload.sold_out?).to be true
+    end
+
+    it 'is sold out when every seat is taken and only seat-holding classes exist' do
+      production = FactoryBot.create(:production, capacity: 2)
+      performance = FactoryBot.create(:general_admission, production: production, performance_date: Date.current)
+      sell_seats(performance, 2)
+
+      expect(performance.reload.sold_out?).to be true
+    end
+
+    it 'is not sold out while seats remain' do
+      production = FactoryBot.create(:production, capacity: 3)
+      performance = FactoryBot.create(:general_admission, production: production, performance_date: Date.current)
+      sell_seats(performance, 2)
+      create_addon_allocation(production, performance)
+
+      expect(performance.reload.sold_out?).to be false
+    end
+  end
+
   describe 'pasted special feature copy' do
     # Verbatim from the crash report: box office pasted this into the admin form
     # and the latin1 column rejected the byte-order marks with

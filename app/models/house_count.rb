@@ -97,12 +97,10 @@ class HouseCount < Metric
     visible_priced_allocations.map { |tca| tca.ticket_class.ticket_price }.min
   end
 
-  # Mirrors Performance#sold_out? logic: no seats left AND no available
-  # web-visible non-seat-holding ticket classes
+  # Mirrors Performance#sold_out?: zero available seats means sold out. See the
+  # comment there for why non-seat-holding allocations no longer factor in.
   def calculate_sold_out
-    available_seats <= 0 &&
-      performance.ticket_class_allocations
-                 .none? { |tca| tca.available? && tca.ticket_class.web_visible? && !tca.ticket_class.holds_seats? }
+    available_seats <= 0
   end
 
   def calculate_near_capacity

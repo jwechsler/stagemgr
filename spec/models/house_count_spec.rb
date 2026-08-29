@@ -156,6 +156,75 @@ RSpec.describe HouseCount, type: :model do
       end
     end
 
+    describe 'sold_out and near_capacity flags' do
+      def create_addon_allocation(production, performance)
+        # Mirrors the "Closed-Captioning Tablet" class that masked ADOL0830's
+        # sold-out status: web-visible add-on that does not occupy a seat.
+        addon = FactoryBot.create(:ticket_class, class_code: 'CCTABHC', class_name: 'Closed-Captioning Tablet',
+                                                 production: production, ticket_price: 0,
+                                                 web_visible: true, holds_seats: false)
+        FactoryBot.create(:ticket_class_allocation, performance: performance, ticket_class: addon, available: true)
+      end
+
+      it 'flags sold_out at zero available seats even when a non-seat-holding add-on remains available' do
+        production = FactoryBot.create(:production, capacity: 2)
+        performance = FactoryBot.create(:general_admission, production: production, performance_date: Date.current)
+        2.times do
+          FactoryBot.create(:ticket_order, :for_a_single_ticket, :paid_with_credit_card, performance: performance)
+        end
+        create_addon_allocation(production, performance)
+        performance.reload
+
+        house_count = HouseCount.new(performance: performance)
+        house_count.calculate
+
+        expect(house_count.available_seats).to eq(0)
+        expect(house_count.sold_out).to be true
+        expect(house_count.near_capacity).to be true
+      end
+
+      it 'does not flag sold_out or near_capacity while plenty of seats remain' do
+        production = FactoryBot.create(:production, capacity: 50)
+        performance = FactoryBot.create(:general_admission, production: production, performance_date: Date.current)
+        FactoryBot.create(:ticket_order, :for_a_single_ticket, :paid_with_credit_card, performance: performance)
+
+        house_count = HouseCount.new(performance: performance)
+        house_count.calculate
+
+        expect(house_count.sold_out).to be false
+        expect(house_count.near_capacity).to be false
+      end
+
+      it 'flags near_capacity but not sold_out at the box-office threshold' do
+        # restrict_sales_due_to_capacity_at is 9 (config/server.yml)
+        production = FactoryBot.create(:production, capacity: 10)
+        performance = FactoryBot.create(:general_admission, production: production, performance_date: Date.current)
+        FactoryBot.create(:ticket_order, :for_a_single_ticket, :paid_with_credit_card, performance: performance)
+
+        house_count = HouseCount.new(performance: performance)
+        house_count.calculate
+
+        expect(house_count.available_seats).to eq(9)
+        expect(house_count.near_capacity).to be true
+        expect(house_count.sold_out).to be false
+      end
+    end
+
+    describe '.export_records' do
+      it 'excludes Inactive performances from the HUD export' do
+        production = FactoryBot.create(:production, capacity: 50)
+        active = FactoryBot.create(:general_admission, production: production, performance_date: Date.current)
+        inactive = FactoryBot.create(:general_admission, production: production,
+                                                         performance_date: Date.current + 1.day,
+                                                         status: Performance::INACTIVE)
+
+        exported = HouseCount.export_records.map(&:performance)
+
+        expect(exported).to include(active)
+        expect(exported).not_to include(inactive)
+      end
+    end
+
     describe '.export_columns' do
       it 'includes held_seats and max_ticket_price' do
         expect(HouseCount.export_columns).to include('held_seats', 'max_ticket_price')

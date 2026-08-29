@@ -81,14 +81,18 @@ class CurrentUser::AccountsController < CurrentUser::ApplicationController
                            { name: production.name, data: data }
                          end
 
+    # Inactive performances are hidden here just as they are from the HUD text
+    # export (HouseCount.export_records), which applies the same sellable scope.
     if current_user.is_theater_user?
       @house_counts = HouseCount.joins(performance: :production)
+                                .merge(Performance.sellable)
                                 .where(performances: {
                                          performance_date: Date.today..(Date.today + 30.days),
                                          production: @user.allowed_productions
                                        }).limit(14 * @user.allowed_productions.count).order('performances.performance_date, performances.performance_code')
     else
       @house_counts = HouseCount.joins(performance: :production)
+                                .merge(Performance.sellable)
                                 .where(performances: {
                                          performance_date: Date.today..(Date.today + 7.days),
                                          production: @user.allowed_productions

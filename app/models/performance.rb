@@ -110,10 +110,14 @@ class Performance < ApplicationRecord
     number_of_seats_left
   end
 
+  # Zero seats means sold out, full stop. A 2020-era escape clause kept this
+  # false while any available web-visible non-seat-holding allocation existed
+  # (for remote-streaming tickets), but add-on classes like the closed-captioning
+  # tablet satisfied it too, leaving sold-out houses labeled "Limited seats
+  # remaining" on the calendar. Do not reintroduce it; if standalone non-seat
+  # products return, they need their own flag on TicketClass.
   def sold_out?
-    number_of_seats_left <= 0 && ticket_class_allocations.select do |tca|
-      tca.available? && tca.ticket_class.web_visible? && !tca.ticket_class.holds_seats?
-    end.size.eql?(0)
+    number_of_seats_left <= 0
   end
 
   def happening_soon?
