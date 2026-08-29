@@ -1,0 +1,8 @@
+<% content_for :email_title do %>
+  <%- if order.performance.production.theater.is_default? %>
+    Thanks for coming by to see <i><%= order.performance.production.name %></i>.
+  <%- else %>
+    Thanks for coming by to see <i><%= order.performance.production.name %>,</i>
+    presented by <%= order.performance.production.theater.name %>.
+  <%- end %>
+<% end %>

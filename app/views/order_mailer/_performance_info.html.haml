@@ -2,7 +2,7 @@
 = render :partial=>"confirmation_ticket_details", :locals=>{:order=>order}
 
 - unless order.performance.production.treat_as_special_event?
-  %h4 Handy stuff you'll want to know
+  %h4 About your visit to Theater Wit
 
   = render :partial=>"transportation_instructions", :locals=>{:order=>order}
   = render :partial=>"dining_recommendations", :locals=>{order: order}

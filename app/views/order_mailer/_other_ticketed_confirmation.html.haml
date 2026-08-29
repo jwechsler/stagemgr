@@ -11,5 +11,6 @@
   on
   = order.performance.performance_date.strftime('%A, %B %d')
 
+= render partial: 'presenter_identity', locals: {order: order}
 = render :partial=>"charge_information", :locals=>{:order=>order}
 = render :partial=>"confirmation_ticket_details", :locals=>{:order=>order}

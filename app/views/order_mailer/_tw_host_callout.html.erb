@@ -1,0 +1,22 @@
+<table class="callout w410" width="410" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <th class="callout-inner secondary">
+      <h5 align="left" class="article-title">
+        <i>A note from Theater Wit</i>
+      </h5>
+      <% if local_assigns[:welcome_pitch] %>
+      <div align="left" class="article-content">
+        <p>
+          I'd like to take this opportunity to welcome you to Theater Wit.
+          There's a ton happening here, some of which is listed in the sidebar to the right,
+          and I hope you'll have a chance to check out some more.
+        </p>
+      </div>
+      <% end %>
+      <%= render 'wit_pride', order: order %>
+      <%= render 'tell_us_about_it', order: order %>
+      <%= render 'stay_in_touch', order: order %>
+    </th>
+    <th class="expander"></th>
+  </tr>
+</table>

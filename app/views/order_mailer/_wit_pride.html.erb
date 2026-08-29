@@ -1,0 +1,21 @@
+<table class="w410" width="410" cellpadding="0" cellspacing="0" border="0">
+  <tbody>
+    <tr>
+      <td class="w410" width="410">
+        <div align="left" class="article-content">
+  <p>
+    <% if order.address.productions.count >= 2 %>
+      I see you've attended <%= pluralize order.address.productions.count, 'production' %> at the Wit.
+    <% end %>
+    I'm very proud of what we've been able to accomplish on the theater scene here in Chicago since our founding in 2003. We've grown into a key cultural center for bold and intimate theater and there's always a ton of cool things round the turnpike.
+    <% if order.address.productions.count >= 2 %>
+       If Theater Wit has been important to you, I'd like to invite you to
+      <a href="http://www.theaterwit.org/donate">support the theater and our mission</a>
+      or give me a call at 773-975-8150. I always love talking about our schemes. :)
+    <% end %>
+  </p>
+        </div>
+      </td>
+    </tr>
+  </tbody>
+</table>

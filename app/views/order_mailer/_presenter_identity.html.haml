@@ -1,0 +1,8 @@
+- unless order.theater.nil? || order.theater.producing?
+  %p.presenter-identity
+    Presented by
+    %b
+      - if order.theater.url.present?
+        %a{:href=>order.theater.url}= order.theater.name
+      - else
+        = order.theater.name

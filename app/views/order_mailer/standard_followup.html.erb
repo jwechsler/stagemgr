@@ -1,13 +1,12 @@
-<% content_for :email_title do %>
-  <%- if @order.performance.production.theater.is_default? %>
-    Thanks for coming by to see <i><%= @order.performance.production.name %></i>.
-  <%- else %>
-    Thanks for coming by to see <i><%= @order.performance.production.name %>,</i>
-    presented by <%= @order.performance.production.theater.name %>.
-  <%- end %>
-<% end %>
+<%= render 'followup_title', order: @order %>
+<% if @order.performance.production.theater.producing? %>
 <p>
   We hope you had a good time here at the theater and will return soon (there are a few suggestions in
   the sidebar on the right, but check our website for all upcoming events).
 </p>
-<%= render :partial=>'core_followup', :locals=>{:order=>@order} %>
+<%= render 'core_followup', order: @order %>
+<% else %>
+<%= render 'followup_custom_message', order: @order, neutral_fallback: true %>
+<%= render 'survey_prompt', order: @order %>
+<%= render 'tw_host_callout', order: @order %>
+<% end %>

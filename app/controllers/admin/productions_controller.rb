@@ -139,7 +139,9 @@ class Admin::ProductionsController < Admin::ApplicationController
       mailing_list_link: params[:mailing_list_link].presence || @production.mailing_list_link
     }
     SampleOrderBuilder.with_sample_order(@theater, current_user.email, production_attrs) do |order|
-      OrderMailer.member_followup(order).deliver_now
+      # standard_followup is presenter-aware, so the sample shows the format
+      # (and sender) this theater's patrons will actually receive
+      OrderMailer.standard_followup(order).deliver_now
     end
     render json: { success: true, message: "Sample follow-up email sent to #{current_user.email}" }
   rescue StandardError => e

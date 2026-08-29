@@ -4,6 +4,7 @@
 
 %h3
   Thanks for your order!
+= render partial: 'presenter_identity', locals: {order: order}
 %p
   We have
   = pluralize(order.number_of_seats, 'ticket')

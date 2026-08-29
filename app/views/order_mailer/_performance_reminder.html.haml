@@ -1,6 +1,7 @@
 - content_for :email_title do
   See you
   = Date::DAYNAMES[order.performance.performance_date.wday]
+= render partial: 'presenter_identity', locals: {order: order}
 %p
   Just a reminder, you have
   = "#{order.number_of_seats} #{order.number_of_seats == 1 ? 'ticket' : 'tickets'}"

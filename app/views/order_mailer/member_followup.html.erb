@@ -1,14 +1,5 @@
-<% content_for :email_title do %>
- <% if @order.performance.production.theater.is_default? %>
-            Thanks for coming by to see <i><%= @order.performance.production.name %></i>.
-          <% else %>
-            Thanks for coming by to see <i><%= @order.performance.production.name %>,</i>
-            presented by <%= @order.performance.production.theater.name %>.
-          <% end %>
-<% end %>
-
+<%= render 'followup_title', order: @order %>
 <p>
   As a member, you are a core part of our community, both as audience and supporters of small theatre in Chicago.
 </p>
-
-<%= render :partial=>'core_followup', :locals=>{:order=>@order} %>
+<%= render 'core_followup', order: @order %>

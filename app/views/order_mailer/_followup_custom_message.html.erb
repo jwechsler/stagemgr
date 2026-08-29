@@ -1,0 +1,32 @@
+<% message = order.performance.production.follow_up_message_2 %>
+<% if message.present? %>
+<table class="w410" width="410" cellpadding="0" cellspacing="0" border="0">
+  <tbody>
+    <tr>
+      <td class="w410" width="410">
+        <div align="left" class="article-content">
+          <%= raw @markdown_renderer.render(message) %>
+        </div>
+      </td>
+    </tr>
+    <tr><td class="w410" width="410" height="10"></td></tr>
+  </tbody>
+</table>
+<% elsif local_assigns[:neutral_fallback] %>
+<table class="w410" width="410" cellpadding="0" cellspacing="0" border="0">
+  <tbody>
+    <tr>
+      <td class="w410" width="410">
+        <div align="left" class="article-content">
+          <p>
+            Thanks again for joining us for <i><%= order.performance.production.name %></i>,
+            presented by <%= order.performance.production.theater.name %>.
+            We hope you enjoyed the performance!
+          </p>
+        </div>
+      </td>
+    </tr>
+    <tr><td class="w410" width="410" height="10"></td></tr>
+  </tbody>
+</table>
+<% end %>

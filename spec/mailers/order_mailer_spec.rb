@@ -94,7 +94,7 @@ RSpec.describe OrderMailer, type: :mailer do
 
         expect(mail.body.encoded).to include('box office')
         expect(mail.body.encoded).to include('Dining')
-        expect(mail.body.encoded).to include('Handy stuff')
+        expect(mail.body.encoded).to include('About your visit to Theater Wit')
         expect(mail.body.encoded).to include('Getting Here')
       end
 
@@ -102,7 +102,7 @@ RSpec.describe OrderMailer, type: :mailer do
         mail = OrderMailer.ticket_confirmation(external_order)
 
         expect(mail.body.encoded).not_to include('box office')
-        expect(mail.body.encoded).not_to include('Handy stuff')
+        expect(mail.body.encoded).not_to include('About your visit')
         expect(mail.body.encoded).not_to include('Dining')
         expect(mail.body.encoded).not_to include('Getting Here')
       end
@@ -111,7 +111,7 @@ RSpec.describe OrderMailer, type: :mailer do
         mail = OrderMailer.ticket_confirmation(conference_order)
 
         expect(mail.body.encoded).not_to include('box office')
-        expect(mail.body.encoded).not_to include('Handy stuff')
+        expect(mail.body.encoded).not_to include('About your visit')
         expect(mail.body.encoded).not_to include('Dining')
         expect(mail.body.encoded).not_to include('Getting Here')
       end
@@ -144,7 +144,7 @@ RSpec.describe OrderMailer, type: :mailer do
 
         expect(mail.body.encoded).to include('box office')
         expect(mail.body.encoded).to include('See you at the theater')
-        expect(mail.body.encoded).to include('Handy stuff you')
+        expect(mail.body.encoded).to include('About your visit to Theater Wit')
         expect(mail.body.encoded).to include('Dining Recommendations')
         expect(mail.body.encoded).to include('Getting Here')
       end
@@ -154,7 +154,7 @@ RSpec.describe OrderMailer, type: :mailer do
 
         expect(mail.body.encoded).not_to include('box office')
         expect(mail.body.encoded).not_to include('See you at the theater')
-        expect(mail.body.encoded).not_to include('Handy stuff you')
+        expect(mail.body.encoded).not_to include('About your visit')
         expect(mail.body.encoded).not_to include('Dining Recommendations')
         expect(mail.body.encoded).not_to include('Getting Here')
       end
@@ -164,7 +164,7 @@ RSpec.describe OrderMailer, type: :mailer do
 
         expect(mail.body.encoded).not_to include('box office')
         expect(mail.body.encoded).not_to include('See you at the theater')
-        expect(mail.body.encoded).not_to include('Handy stuff you')
+        expect(mail.body.encoded).not_to include('About your visit')
         expect(mail.body.encoded).not_to include('Dining Recommendations')
         expect(mail.body.encoded).not_to include('Getting Here')
       end
@@ -227,6 +227,135 @@ RSpec.describe OrderMailer, type: :mailer do
         expect(mail.body.encoded.scan(festival.name).size).to eq(1)
         expect(mail.body.encoded).to include("/productions/box_office")
         expect(mail.body.encoded).to include("festival-#{festival.id}")
+      end
+    end
+  end
+  describe 'presenter-aware follow-ups and transactional emails' do
+    let(:address) { FactoryBot.create(:address, email: 'patron@example.com') }
+    let(:venue) { FactoryBot.create(:venue) }
+    let(:payment_type) { FactoryBot.create(:cash_payment_type) }
+    let(:producing_theater) { FactoryBot.create(:theater) }
+    let(:visiting_theater) { FactoryBot.create(:theater, theater_class: Theater::VISITING) }
+
+    def order_for(theater, follow_up_message_2: nil)
+      production = FactoryBot.create(:production,
+                                     theater: theater,
+                                     venue: venue,
+                                     production_class: Production::PRIMETIME,
+                                     follow_up_message_2: follow_up_message_2)
+      performance = FactoryBot.create(:performance, production: production)
+      FactoryBot.create(:ticket_order, :for_a_pair_of_tickets,
+                        performance: performance,
+                        address: address,
+                        payment_type: payment_type)
+    end
+
+    describe '#standard_followup' do
+      context 'for a default (producing) theater' do
+        let(:order) { order_for(producing_theater) }
+
+        it 'keeps the personal letter: sent by Jeremy with the current subject' do
+          mail = OrderMailer.standard_followup(order)
+          expect(mail.from).to eq(['jeremy@theaterwit.org'])
+          expect(mail.subject).to eq('Nice to see you again')
+        end
+
+        it 'keeps the letter sections and renders the shared survey prompt' do
+          body = OrderMailer.standard_followup(order).body.decoded
+          expect(body).to include('Tell us about it')
+          expect(body).to include('Stay in touch')
+          expect(body).to include('Tell us what you thought of')
+          expect(body).to include('fill out a brief survey')
+          expect(body).not_to include('A note from Theater Wit')
+        end
+      end
+
+      context 'for a visiting theater' do
+        let(:order) { order_for(visiting_theater, follow_up_message_2: 'A word from **the visiting company**') }
+
+        it 'is sent by the box office with a show-centered subject' do
+          mail = OrderMailer.standard_followup(order)
+          expect(mail.from).to eq(['boxoffice@theaterwit.org'])
+          expect(mail.subject).to eq("Thanks for coming to #{order.performance.production.name}")
+        end
+
+        it 'leads with the presenting company message, then the survey, then the host callout' do
+          body = OrderMailer.standard_followup(order).body.decoded
+          expect(body).to include('the visiting company')
+          expect(body).to include('A note from Theater Wit')
+          expect(body).to include('Stay in touch')
+          expect(body).to include('Jeremy Wechsler')
+          custom_at  = body.index('the visiting company')
+          survey_at  = body.index('Tell us what you thought of')
+          callout_at = body.index('A note from Theater Wit')
+          expect(custom_at).to be < survey_at
+          expect(survey_at).to be < callout_at
+        end
+
+        it 'falls back to a neutral thanks when the company wrote no message' do
+          plain_order = order_for(visiting_theater)
+          body = OrderMailer.standard_followup(plain_order).body.decoded
+          expect(body).to include('We hope you enjoyed the performance')
+          expect(body).not_to include('We hope you had a good time here at the theater')
+        end
+      end
+    end
+
+    describe '#first_time_followup' do
+      it 'no longer generates a special offer' do
+        order = order_for(producing_theater)
+        expect { OrderMailer.first_time_followup(order).message }.not_to change(SpecialOffer, :count)
+      end
+
+      it 'keeps the personal letter for producing theaters' do
+        mail = OrderMailer.first_time_followup(order_for(producing_theater))
+        expect(mail.from).to eq(['jeremy@theaterwit.org'])
+        expect(mail.subject).to eq('Thanks for coming to Theater Wit')
+      end
+
+      it 'sends the box office version with the welcome pitch in the host callout for visiting theaters' do
+        order = order_for(visiting_theater)
+        mail = OrderMailer.first_time_followup(order)
+        expect(mail.from).to eq(['boxoffice@theaterwit.org'])
+        expect(mail.subject).to eq("Thanks for coming to #{order.performance.production.name}")
+        body = mail.body.decoded
+        expect(body).to include('A note from Theater Wit')
+        expect(body).to include('welcome you to Theater Wit')
+      end
+    end
+
+    describe '#member_followup' do
+      it 'preserves the current editorial format even for visiting theaters' do
+        order = order_for(visiting_theater)
+        mail = OrderMailer.member_followup(order)
+        expect(mail.from).to eq(['jeremy@theaterwit.org'])
+        expect(mail.subject).to eq("Thanks for coming to #{order.performance.production.name}")
+        body = mail.body.decoded
+        expect(body).to include('As a member')
+        expect(body).to include('Tell us what you thought of')
+        expect(body).not_to include('A note from Theater Wit')
+      end
+    end
+
+    describe 'presenter identity on transactional emails' do
+      it 'features the presenting company on confirmations for visiting theaters' do
+        order = order_for(visiting_theater)
+        body = OrderMailer.ticket_confirmation(order).body.decoded
+        expect(body).to include('Presented by')
+        expect(body).to include(visiting_theater.name)
+      end
+
+      it 'does not add a presenter block for producing theaters' do
+        order = order_for(producing_theater)
+        body = OrderMailer.ticket_confirmation(order).body.decoded
+        expect(body).not_to include('Presented by')
+      end
+
+      it 'features the presenting company on reminders for visiting theaters' do
+        order = order_for(visiting_theater)
+        body = OrderMailer.performance_reminder(order, nil, nil, true).body.decoded
+        expect(body).to include('Presented by')
+        expect(body).to include(visiting_theater.name)
       end
     end
   end
