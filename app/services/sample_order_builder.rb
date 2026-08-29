@@ -13,6 +13,11 @@ class SampleOrderBuilder
       name: production_attrs[:name].presence || 'Sample Production',
       confirmation_message: production_attrs[:confirmation_message],
       follow_up_message_2: production_attrs[:follow_up_message_2],
+      # The follow-up e-mail asks the production for these, falling back to the
+      # house-wide links in server.yml. Leaving them off the sample production
+      # previewed the house links no matter what the production had set.
+      survey_link: production_attrs[:survey_link],
+      mailing_list_link: production_attrs[:mailing_list_link],
       production_code: "SMP#{SecureRandom.hex(2).upcase}",
       production_class: production_attrs[:production_class].presence || Production::PRIMETIME,
       allow_late_seating: production_attrs[:allow_late_seating],

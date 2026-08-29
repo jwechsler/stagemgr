@@ -98,6 +98,8 @@
                       headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': token, 'Accept': 'application/json' },
                       body: JSON.stringify({
                         follow_up_message_2: document.getElementById('production_follow_up_message_2').value,
+                        survey_link: document.getElementById('production_survey_link').value,
+                        mailing_list_link: document.getElementById('production_mailing_list_link').value,
                         production_name: document.getElementById('production_name').value,
                         production_class: document.getElementById('production_production_class').value,
                         allow_late_seating: lateSeatingEl ? lateSeatingEl.checked.toString() : 'false',

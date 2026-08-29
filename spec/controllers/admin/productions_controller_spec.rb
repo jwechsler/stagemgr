@@ -119,4 +119,54 @@ RSpec.describe Admin::ProductionsController, type: :controller do
       expect(response).to redirect_to(admin_theater_path(theater))
     end
   end
+  # The box office verifies a production's follow-up copy with "Send sample
+  # follow-up email". The preview builds a throwaway production, so anything it
+  # fails to carry over is silently previewed at its house-wide default -- which
+  # is how a working survey override looked broken.
+  describe 'POST #send_sample_followup' do
+    let!(:cash_payment_type) { FactoryBot.create(:cash_payment_type) }
+    let(:production_with_links) do
+      FactoryBot.create(:production, theater: theater,
+                                     survey_link: 'https://survey.test/custom',
+                                     mailing_list_link: 'https://mailing.test/custom')
+    end
+
+    before { allow(controller).to receive(:current_user).and_return(admin_user) }
+
+    def send_sample(params = {})
+      post :send_sample_followup, params: {
+        theater_id: theater.id, id: production_with_links.id
+      }.merge(params)
+    end
+
+    it 'delivers a sample follow-up to the current user' do
+      expect { send_sample }.to change { ActionMailer::Base.deliveries.count }.by(1)
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body['success']).to be(true)
+      expect(ActionMailer::Base.deliveries.last.to).to eq([admin_user.email])
+    end
+
+    it "uses the production's survey and mailing list overrides" do
+      send_sample
+      body = ActionMailer::Base.deliveries.last.body.decoded
+      expect(body).to include('https://survey.test/custom')
+      expect(body).to include('https://mailing.test/custom')
+      expect(body).not_to include(Rails.configuration.x.server_config['survey_link'])
+    end
+
+    it 'previews unsaved survey and mailing list edits posted from the form' do
+      send_sample(survey_link: 'https://survey.test/unsaved',
+                  mailing_list_link: 'https://mailing.test/unsaved')
+      body = ActionMailer::Base.deliveries.last.body.decoded
+      expect(body).to include('https://survey.test/unsaved')
+      expect(body).to include('https://mailing.test/unsaved')
+    end
+
+    it 'falls back to the house links when the production has no overrides' do
+      bare = FactoryBot.create(:production, theater: theater, survey_link: nil, mailing_list_link: nil)
+      post :send_sample_followup, params: { theater_id: theater.id, id: bare.id }
+      body = ActionMailer::Base.deliveries.last.body.decoded
+      expect(body).to include(Rails.configuration.x.server_config['survey_link'])
+    end
+  end
 end

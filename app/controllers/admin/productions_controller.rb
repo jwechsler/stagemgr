@@ -132,7 +132,11 @@ class Admin::ProductionsController < Admin::ApplicationController
       follow_up_message_2: params[:follow_up_message_2],
       production_class: params[:production_class].presence || @production.production_class,
       allow_late_seating: params[:allow_late_seating] == 'true',
-      venue_id: params[:venue_id]
+      venue_id: params[:venue_id],
+      # Preview the links as edited, so the sample shows what a save would send;
+      # an older cached form posts neither, so fall back to what is on record.
+      survey_link: params[:survey_link].presence || @production.survey_link,
+      mailing_list_link: params[:mailing_list_link].presence || @production.mailing_list_link
     }
     SampleOrderBuilder.with_sample_order(@theater, current_user.email, production_attrs) do |order|
       OrderMailer.member_followup(order).deliver_now

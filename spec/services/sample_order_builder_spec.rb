@@ -155,6 +155,42 @@ RSpec.describe SampleOrderBuilder, type: :service do
       expect(result).to be_nil
     end
 
+    # The sample follow-up e-mail renders the same _core_followup partial as the
+    # real one, and that partial asks the production for its survey and mailing
+    # list overrides. A sample production that drops them previews the house-wide
+    # links, which reads to the box office as "the override is broken".
+    it "passes survey_link from production_attrs" do
+      SampleOrderBuilder.with_sample_order(theater, recipient_email,
+                                           survey_link: "https://survey.test/custom") do |order|
+        expect(order.performance.production.survey_link).to eq("https://survey.test/custom")
+      end
+    end
+
+    it "passes mailing_list_link from production_attrs" do
+      SampleOrderBuilder.with_sample_order(theater, recipient_email,
+                                           mailing_list_link: "https://mailing.test/custom") do |order|
+        expect(order.performance.production.mailing_list_link).to eq("https://mailing.test/custom")
+      end
+    end
+
+    it "renders the production survey override in the sample follow-up e-mail" do
+      SampleOrderBuilder.with_sample_order(theater, recipient_email,
+                                           survey_link: "https://survey.test/custom",
+                                           mailing_list_link: "https://mailing.test/custom") do |order|
+        body = OrderMailer.member_followup(order).body.decoded
+        expect(body).to include("https://survey.test/custom")
+        expect(body).to include("https://mailing.test/custom")
+        expect(body).not_to include(Rails.configuration.x.server_config["survey_link"])
+      end
+    end
+
+    it "falls back to the house links when the production has no overrides" do
+      SampleOrderBuilder.with_sample_order(theater, recipient_email) do |order|
+        body = OrderMailer.member_followup(order).body.decoded
+        expect(body).to include(Rails.configuration.x.server_config["survey_link"])
+      end
+    end
+
     it "names the address 'Sample Customer'" do
       SampleOrderBuilder.with_sample_order(theater, recipient_email) do |order|
         expect(order.address.full_name).to eq("Sample Customer")
