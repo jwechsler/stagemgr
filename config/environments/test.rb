@@ -1,3 +1,5 @@
+require_relative '../../lib/mailer_url_options'
+
 require 'active_support/core_ext/integer/time'
 
 # The test environment is used exclusively to run your application's
@@ -80,8 +82,7 @@ Rails.application.configure do
   config.x.email_address = config.x.server_config.dig('email', 'addresses')
   config.x.server_config['ext_site_wrapper'] = 'ext_test_wrapper'
   config.x.rand_clause = 1
-  config.action_mailer.default_url_options = { host: config.x.server_config['host'] || 'localhost',
-                                               protocol: config.x.server_config['host_protocol'] || 'http' }
+  config.action_mailer.default_url_options = MailerUrlOptions.for(config.x.server_config)
 
   config.action_mailer.delivery_method = :test
   config.x.app_display_name = "#{config.x.server_config['app_name'] || 'StageMgr'} TEST"

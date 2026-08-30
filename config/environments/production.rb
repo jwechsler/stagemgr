@@ -1,3 +1,5 @@
+require_relative '../../lib/mailer_url_options'
+
 require 'active_support/core_ext/integer/time'
 
 Rails.application.configure do
@@ -167,10 +169,7 @@ Rails.application.configure do
 
   config.x.rand_clause = Arel.sql('RAND()')
   config.x.app_display_name = config.x.server_config['app_name'] || 'StageMgr'
-  config.action_mailer.default_url_options = {
-    host: "#{config.x.server_config['host']}#{config.x.server_config['sub_uri']}",
-    protocol: config.x.server_config['host_protocol'] || 'http'
-  }
+  config.action_mailer.default_url_options = MailerUrlOptions.for(config.x.server_config)
   Rails.application.routes.default_url_options[:host] = config.x.server_config['host'] || 'localhost'
 
   # Set up notification for issues

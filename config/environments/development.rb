@@ -1,3 +1,5 @@
+require_relative '../../lib/mailer_url_options'
+
 require 'active_support/core_ext/integer/time'
 
 Rails.application.configure do
@@ -108,8 +110,7 @@ Rails.application.configure do
   config.x.payment_config = config.x.server_config['payment_processing']
   config.x.server_config['ext_site_wrapper'] = config.x.server_config['ext_site_wrapper'] || 'ext_site_wrapper'
   config.x.email_address = config.x.server_config.dig('email', 'addresses')
-  config.action_mailer.default_url_options = { host: config.x.server_config['host'] || 'localhost',
-                                               protocol: config.x.server_config['host_protocol'] || 'http' }
+  config.action_mailer.default_url_options = MailerUrlOptions.for(config.x.server_config)
   config.x.rand_clause = Arel.sql('RAND()')
 
   email_config = config.x.server_config['email'] || {}
