@@ -71,7 +71,7 @@
                           class="propagate-availability-toggle<%= ' is-active' if propagating %>"
                           aria-pressed="<%= propagating %>"
                           <%= 'hidden' unless ticket_class_allocation_form.object.available? %>
-                          title="On save, also make this class available on every later performance of this run (from this performance's date &amp; time onward). Earlier performances are left alone.">&#x21c9;</button>
+                          title="On save, also make this class available on every subsequent performance.">&#x21c9;</button>
                 <% end  %>
               </td>
               <td><%= ticket_class_allocation_form.object.ticket_class.class_code %></td>
