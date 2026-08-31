@@ -97,6 +97,32 @@ RSpec.describe 'allocation availability propagation' do
       expect(allocation_for(later).reload.available).to be_falsy
     end
 
+    it 'copies the limit and trigger settings along with the availability' do
+      [edited, same_slot, later].each(&:save!)
+      tca = allocation_for(edited)
+      # Give the target an existing (stale) config to prove it gets overwritten.
+      allocation_for(later).update!(available: true, ticket_limit: 99)
+
+      edited.update!(
+        ticket_class_allocations_attributes: [{ id: tca.id, available: '1', propagate_available: '1',
+                                                ticket_limit: 10, shiftable: '1',
+                                                shift_to_code: shadow.class_code,
+                                                shift_when_capacity_over: 80,
+                                                shift_days_before_performance: 3 }]
+      )
+
+      [same_slot, later].each do |perf|
+        target = allocation_for(perf).reload
+        expect(target.available).to be true
+        expect(target.ticket_limit).to eq(10)
+        expect(target.shiftable).to be true
+        expect(target.shift_to_code).to eq(shadow.class_code)
+        expect(target.shift_when_capacity_over).to eq(80)
+        expect(target.shift_days_before_performance).to eq(3)
+      end
+      expect(allocation_for(earlier)).to be_nil # never saved -> never populated
+    end
+
     it 'propagates plain (non-resourced) ticket classes too' do
       plain = TicketClass.create!(production: production, class_code: 'PLAIN',
                                   class_name: 'Plain class', ticket_type: 'Fixed',

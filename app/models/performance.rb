@@ -189,33 +189,42 @@ class Performance < ApplicationRecord
     end
   end
 
-  # Applies the allocation grid's "enable on all later performances" toggle
+  # The allocation row settings the propagate toggle copies forward: the
+  # availability itself plus the limit and the dynamic-pricing trigger fields
+  # (Trigger?, To Code, At %, Days Before) -- the whole row as staff see it.
+  PROPAGATED_ALLOCATION_ATTRIBUTES = %w[available ticket_limit shiftable shift_to_code
+                                        shift_when_capacity_over shift_days_before_performance].freeze
+
+  # Applies the allocation grid's "propagate to all later performances" toggle
   # (TicketClassAllocation#propagate_available, a form-only flag). Runs
   # after_save so nothing propagates unless this performance actually saved,
   # and inside the save transaction so a failure rolls everything back.
   #
   # "Later" is anchored to THIS performance's date/time, not the current date:
-  # editing a mid-run performance enables the class from that point in the run
+  # editing a mid-run performance applies the row from that point in the run
   # onward, leaving earlier performances alone.
   def propagate_requested_allocation_availability
     ticket_class_allocations.each do |tca|
       # Propagating an unavailable class would be surprising; the flag only
-      # fans out an activation.
+      # fans out an activation (with its settings), never a deactivation.
       next unless tca.propagate_available? && tca.available?
 
-      propagate_allocation_availability!(tca.ticket_class_id)
+      propagate_allocation_settings!(tca)
       tca.propagate_available = nil # one-shot: don't re-fire on a later save
     end
   end
 
-  def propagate_allocation_availability!(ticket_class_id)
+  # Copies the source row's settings onto every later performance's allocation
+  # for the same class, overwriting what is there -- an already-available
+  # allocation with a stale limit or trigger still gets this row's values, so
+  # the rest of the run ends up uniform.
+  def propagate_allocation_settings!(source_allocation)
+    copied = source_allocation.attributes.slice(*PROPAGATED_ALLOCATION_ATTRIBUTES)
     later_performances_in_run.each do |perf|
       target = TicketClassAllocation.find_or_initialize_by(performance_id: perf.id,
-                                                           ticket_class_id: ticket_class_id)
-      next if target.available?
-
-      target.available = true
-      target.save!
+                                                           ticket_class_id: source_allocation.ticket_class_id)
+      target.attributes = copied
+      target.save! if target.new_record? || target.changed?
     end
   end
 
