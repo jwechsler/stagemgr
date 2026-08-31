@@ -70,5 +70,64 @@ RSpec.describe PerformancesController, type: :controller do
         expect(returned_ids(include_backend: '1')).not_to include(backend_class.id)
       end
     end
+
+    # ResourcedTicketClass shadow rows: exhausted (pool == 0) means "not for
+    # sale" regardless of the per-performance allocation, and every resourced
+    # row carries a remaining count so box-office JS can cap quantity.
+    describe 'resourced ticket classes' do
+      let(:resource) do
+        FactoryBot.create(:resourced_ticket_class, quantity: 1, venues: [production.venue])
+      end
+
+      let!(:shadow) do
+        tc = TicketClass.find_or_initialize_by(production_id: production.id,
+                                               resourced_ticket_class_id: resource.id)
+        tc.synced_from_resource = true
+        tc.attributes = resource.shadow_attributes
+        tc.save!
+        tc
+      end
+
+      before do
+        tca = TicketClassAllocation.find_or_create_by!(performance: performance, ticket_class: shadow)
+        tca.update!(available: true)
+        performance.ticket_class_allocations.reload
+      end
+
+      def resourced_row
+        get :ticket_classes, params: { id: performance.id }, format: :json
+        response.parsed_body.find { |r| r['id'] == shadow.id }
+      end
+
+      it 'reports the remaining pool count for a resourced class' do
+        row = resourced_row
+        expect(row).to be_present
+        expect(row['remaining']).to eq(1)
+      end
+
+      it 'reports nil remaining for a non-resourced class' do
+        addon = FactoryBot.create(:ticket_class, production: production, holds_seats: false,
+                                                 class_name: 'Hearing Assist')
+        tca = performance.ticket_class_allocations.find_or_initialize_by(ticket_class: addon)
+        tca.available = true
+        tca.save!
+
+        get :ticket_classes, params: { id: performance.id }, format: :json
+        row = response.parsed_body.find { |r| r['id'] == addon.id }
+
+        expect(row['remaining']).to be_nil
+      end
+
+      it 'omits an exhausted resourced class from the response entirely' do
+        order = TicketOrder.new(status: Order::PROCESSED, performance: performance,
+                                address: FactoryBot.create(:address),
+                                payment_type: FactoryBot.create(:cash_payment_type))
+        order.ticket_line_items << TicketLineItem.new(ticket_class: shadow, ticket_count: 1)
+        order.save!
+
+        row = resourced_row
+        expect(row).to be_nil
+      end
+    end
   end
 end

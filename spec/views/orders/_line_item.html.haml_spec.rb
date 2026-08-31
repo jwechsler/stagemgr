@@ -9,12 +9,13 @@ require 'rails_helper'
 RSpec.describe 'orders/_line_item', type: :view do
   # Render the partial in isolation with a real SimpleForm builder over an
   # in-memory ticket line item, so we exercise the actual view branching.
-  def render_line_item(performance:, holds_seats: true, class_ticket_count_left: 50)
+  def render_line_item(performance:, holds_seats: true, class_ticket_count_left: 50, resourced: false)
     ticket_class = TicketClass.new(
       class_code: 'GEN01', class_name: 'General Admission', ticket_price: 32,
       ticket_type: 'Fixed', holds_seats: holds_seats, software_managed: false, hide_pricing: false
     )
     allow(ticket_class).to receive(:number_left).and_return(class_ticket_count_left)
+    allow(ticket_class).to receive(:resourced?).and_return(resourced)
 
     line_item = TicketLineItem.new(ticket_count: 0)
     allow(line_item).to receive(:ticket_class).and_return(ticket_class)
@@ -78,6 +79,30 @@ RSpec.describe 'orders/_line_item', type: :view do
       expect(rendered).to include('<select')
       expect(rendered).not_to include('Call')
       expect(rendered).not_to include('Sold Out')
+    end
+
+    it 'caps the dropdown at max_per_order for a plain (non-resourced) class' do
+      render_line_item(
+        performance: performance_double(seats_left: 50, near_capacity: false, happening_soon: false),
+        holds_seats: false
+      )
+
+      expect(rendered).to include('<option value="20">20</option>')
+    end
+
+    # A shared device pool (captioning tablets, ...) is an additional cap on
+    # top of max_per_order -- see TicketClass#resource_available? /
+    # #number_left.
+    it 'caps the dropdown at the device pool remaining for a resourced class' do
+      render_line_item(
+        performance: performance_double(seats_left: 50, near_capacity: false, happening_soon: false),
+        holds_seats: false,
+        class_ticket_count_left: 2,
+        resourced: true
+      )
+
+      expect(rendered).to include('<option value="2">2</option>')
+      expect(rendered).not_to include('<option value="3">3</option>')
     end
   end
 end

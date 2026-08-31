@@ -12,6 +12,11 @@ class TicketClass < ApplicationRecord
   validates :class_code, uniqueness: { scope: :production_id }
   validates :class_code, length: { minimum: 1 }
   belongs_to :production, inverse_of: :ticket_classes
+  # Set on "shadow" rows materialized by a ResourcedTicketClass: a globally
+  # managed class backed by a limited pool of physical devices. Shadow rows are
+  # ordinary ticket classes in every other respect, but their attributes are
+  # owned by the resource and only the sync path may change them.
+  belongs_to :resourced_ticket_class, optional: true, inverse_of: :ticket_classes
   has_many :ticket_line_items, inverse_of: :ticket_class
   has_many :ticket_class_allocations, inverse_of: :ticket_class, dependent: :destroy
   has_many :performances, through: :ticket_class_allocations, inverse_of: :ticket_classes
@@ -23,9 +28,21 @@ class TicketClass < ApplicationRecord
   validates :class_name, presence: true
   validates :ticketing_fee, presence: true
   before_validation :prevent_price_changes_after_sales
+  before_destroy :prevent_manual_destroy_of_resourced_class
   before_destroy :check_for_processed_tickets
   before_destroy :check_for_shift_to_codes
   after_commit :sync_allocations_async, on: %i[create update]
+
+  # Set by SyncResourcedTicketClassJob / ResourcedTicketClass /
+  # Production#assign_resourced_ticket_classes to mark a write as coming from
+  # the resource itself. Everything else may only read a shadow row.
+  attr_accessor :synced_from_resource
+
+  validate :prevent_manual_changes_to_resourced_class
+
+  def resourced?
+    resourced_ticket_class_id.present?
+  end
 
   # Zoned pricing: "*" (default) sells into any seat; a specific 1-2 char
   # zone only sells into seats whose Seat#zone matches. Zone is a filter on
@@ -42,7 +59,13 @@ class TicketClass < ApplicationRecord
     ZoneMatchable.match?(zone_id, seat_zone)
   end
 
-  def number_left(performance, _exclude_order = nil)
+  # exclude_order was historically ignored here (the allocation maths uses
+  # number_taken without it). It is now forwarded to the resourced branch, which
+  # needs it so an order being exchanged is not blocked by its own devices.
+  # The non-resourced path below is unchanged.
+  def number_left(performance, exclude_order = nil)
+    return resourced_number_left(performance, exclude_order) if resourced?
+
     ticket_class_capacity_left = production_capacity_left = performance.number_of_tickets_left
 
     ticket_allocation = performance.ticket_class_allocations.select { |tc| tc.ticket_class_id.eql? id }.first
@@ -53,6 +76,33 @@ class TicketClass < ApplicationRecord
       ticket_class_capacity_left = ticket_allocation.ticket_limit - number_taken(performance)
     end
     [ticket_class_capacity_left, production_capacity_left].min
+  end
+
+  # Availability for a shadow row of a ResourcedTicketClass. The pool is always
+  # a cap; the per-performance allocation ticket_limit still applies on top of
+  # it (effective = min of the two, smaller wins).
+  def resourced_number_left(performance, exclude_order)
+    limits = [resourced_ticket_class.remaining_for(performance, exclude_order: exclude_order)]
+
+    allocation = performance.ticket_class_allocations.select { |tca| tca.ticket_class_id.eql? id }.first
+    ticket_limit = allocation&.ticket_limit
+    limits << (ticket_limit - number_taken(performance)) unless ticket_limit.nil? || ticket_limit.eql?(0)
+
+    # Devices are not seats. A captioning tablet has holds_seats == false and
+    # consumes no house capacity, so the remaining-seats term must not cap it --
+    # a sold-out house can still hand out tablets to exchanged patrons. A
+    # resourced class that DOES hold seats keeps the normal capacity term.
+    limits << performance.number_of_tickets_left if holds_seats?
+
+    limits.min
+  end
+
+  # The single question every sale surface asks: may this class still be
+  # offered for this performance? Non-resourced classes are always available as
+  # far as the pool is concerned (their own allocation rules still apply).
+  def resource_available?(performance, exclude_order = nil)
+    !resourced? ||
+      resourced_ticket_class.remaining_for(performance, exclude_order: exclude_order) > 0
   end
 
   def prevent_price_changes_after_sales
@@ -112,6 +162,31 @@ class TicketClass < ApplicationRecord
   end
 
   private
+
+  # Shadow rows are owned by their ResourcedTicketClass: price, name,
+  # web_visible, auto_attach and the rest are pushed down by
+  # SyncResourcedTicketClassJob. A no-op save is still allowed so unrelated
+  # code paths that re-save a loaded record do not blow up.
+  def prevent_manual_changes_to_resourced_class
+    return unless resourced? && persisted? && changed? && !synced_from_resource
+
+    errors.add(:base,
+               "'#{class_code}' is managed globally by its resourced ticket class " \
+               'and cannot be edited from the production.')
+  end
+
+  # Resourced rows are never deleted per-production. Removing the venue from the
+  # resource (or deleting the resource) decommissions them instead --
+  # ResourcedTicketClass.decommission_shadow_classes keeps the history and just
+  # withdraws the class from sale.
+  def prevent_manual_destroy_of_resourced_class
+    return true unless resourced? && !synced_from_resource
+
+    errors.add(:deletion_status,
+               'Cannot delete a globally resourced ticket class here; ' \
+               'remove the venue from the resource instead.')
+    throw :abort
+  end
 
   def sync_allocations_async
     return unless saved_change_to_auto_attach? || previously_new_record?

@@ -51,7 +51,7 @@
               %li= link_to('Festivals', admin_festivals_path)
             -if can? :read, FileStore 
               %li= link_to "Import data", admin_imports_path
-            - if (can? :edit, User) || (can? :edit, SpecialFeature) || (can? :edit, DefaultTicketClass) || (can? :edit, PaymentType) || (can? :read, FileStore) || (can? :edit, Venue)
+            - if (can? :edit, User) || (can? :edit, SpecialFeature) || (can? :edit, DefaultTicketClass) || (can? :edit, ResourcedTicketClass) || (can? :edit, PaymentType) || (can? :read, FileStore) || (can? :edit, Venue)
               %li
                 %li.menu-text System Config
                 %ul.nested.vertical.menu
@@ -64,6 +64,9 @@
                   - if can? :read, DefaultTicketClass
                     %li
                       =link_to 'Default Ticket Classes', admin_default_ticket_classes_path
+                  - if can? :read, ResourcedTicketClass
+                    %li
+                      =link_to 'Resourced Ticket Classes', admin_resourced_ticket_classes_path
                   - if can? :read, PaymentType
                     %li
                       =link_to "Manage Payment Types", admin_payment_types_path

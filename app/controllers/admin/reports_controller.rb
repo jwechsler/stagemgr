@@ -1,7 +1,9 @@
 require 'csv'
 
 class Admin::ReportsController < Admin::ApplicationController
-  authorize_resource
+  # resource_pull authorizes itself against the existing :house_management_reports
+  # ability (see below) rather than adding a new ability action.
+  authorize_resource except: :resource_pull
   # filter_access_to :trg_dump,:index
 
   include Admin::ReportsHelper
@@ -141,6 +143,28 @@ class Admin::ReportsController < Admin::ApplicationController
     respond_to do |format|
       format.html
     end
+  end
+
+  # Staff pull sheet: which shared equipment (ResourcedTicketClass device
+  # pools) needs to be pulled/prepped for a given performance date, and for
+  # whom. Gated on the same ability as house_management_seating (see
+  # authorize_resource except: above) rather than a new ability action.
+  def resource_pull
+    if params[:performance_day].blank?
+      flash[:alert] = 'Please provide a performance date.'
+      redirect_to admin_reports_path and return
+    end
+
+    authorize! :house_management_reports, Report
+    @date = params[:performance_day].to_date
+    report = ResourcePullReport.new(@date)
+    @headers, @report_data = report.create
+    respond_to do |format|
+      format.html
+    end
+  rescue ArgumentError
+    flash[:alert] = 'Please provide a valid performance date.'
+    redirect_to admin_reports_path
   end
 
   # Exports production attendees segmented for TRG Arts. Includes email opt-in attendees.

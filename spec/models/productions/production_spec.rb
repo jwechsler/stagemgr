@@ -94,4 +94,40 @@ RSpec.describe 'a production' do
       expect(production.reload.show_description).to eq(typography)
     end
   end
+
+  # running_time sizes the equipment occupancy window used by
+  # ResourcedTicketClass, so a blank value would silently fall back to the
+  # server.yml assumption on every calculation.
+  describe 'running_time default' do
+    it 'pre-fills a blank running_time from the server.yml resourced default' do
+      configured = Rails.configuration.x.server_config['resourced_default_runtime_minutes']
+      production = FactoryBot.create(:production, venue: FactoryBot.create(:venue), running_time: nil)
+
+      expect(configured).to be_present
+      expect(production.running_time).to eq(configured.to_i)
+    end
+
+    it 'leaves an explicit running_time alone' do
+      production = FactoryBot.create(:production, venue: FactoryBot.create(:venue), running_time: 95)
+
+      expect(production.running_time).to eq(95)
+    end
+  end
+
+  describe 'resourced ticket classes' do
+    it 'materializes a shadow class for every resource covering its venue' do
+      venue = FactoryBot.create(:venue)
+      resource = FactoryBot.create(:resourced_ticket_class, venues: [venue])
+      elsewhere = FactoryBot.create(:resourced_ticket_class, venues: [FactoryBot.create(:venue)])
+
+      production = FactoryBot.create(:production, venue: venue)
+
+      shadow = TicketClass.find_by(production_id: production.id,
+                                   resourced_ticket_class_id: resource.id)
+      expect(shadow).to be_present
+      expect(shadow.class_code).to eq(resource.class_code)
+      expect(TicketClass.find_by(production_id: production.id,
+                                 resourced_ticket_class_id: elsewhere.id)).to be_nil
+    end
+  end
 end

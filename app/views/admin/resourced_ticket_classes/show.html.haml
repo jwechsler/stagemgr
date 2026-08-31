@@ -1,0 +1,70 @@
+= content_for :title do
+  = @resourced_ticket_class.class_code
+= content_for :breadcrumbs do
+  = render "shared/components/breadcrumb", items: [{ label: 'Resourced Ticket Classes', path: admin_resourced_ticket_classes_path }, { label: @resourced_ticket_class.class_code }]
+
+.grid-x.grid-padding-x
+  .small-12.medium-6.cell
+    %p
+      %strong Class Code:
+      = @resourced_ticket_class.class_code
+    %p
+      %strong Class Name:
+      = @resourced_ticket_class.class_name
+    %p
+      %strong Ticket Type:
+      = @resourced_ticket_class.ticket_type
+    %p
+      %strong Ticket Price:
+      = number_to_currency(@resourced_ticket_class.ticket_price)
+    %p
+      %strong Quantity:
+      = @resourced_ticket_class.quantity
+    %p
+      %strong Changeover:
+      = "#{@resourced_ticket_class.changeover_minutes} min"
+    %p
+      %strong Web Visible:
+      = checkmark(@resourced_ticket_class.web_visible)
+    %p
+      %strong Auto-attach:
+      = checkmark(@resourced_ticket_class.auto_attach)
+    %p
+      %strong Venues:
+      = @resourced_ticket_class.venues.order(:ordinal_sort).map(&:name).join(', ')
+
+- if @shadow_classes_with_sales.any?
+  .grid-x.grid-padding-x
+    .small-12.cell
+      .callout.warning
+        %strong Shadow classes with sales (price/attribute changes are blocked on these):
+        %ul
+          - @shadow_classes_with_sales.each do |tc|
+            %li
+              = link_to tc.production.production_code, [:admin, tc.production.theater, tc.production]
+              = "- #{TicketLineItem.where(ticket_class_id: tc.id).sum(:ticket_count)} sold"
+
+- if @productions_missing_running_time.any?
+  .grid-x.grid-padding-x
+    .small-12.cell
+      .callout.alert
+        %strong
+          = "Running time not set (occupancy window assumes #{@resourced_ticket_class.default_runtime_minutes} min):"
+        %ul
+          - @productions_missing_running_time.each do |production|
+            %li= link_to production.production_code, [:admin, production.theater, production]
+
+- if @productions_missing_shadow_class.any?
+  .grid-x.grid-padding-x
+    .small-12.cell
+      .callout.alert
+        %strong Not synced -- likely a class_code conflict with an existing ticket class. Resolve the conflict manually:
+        %ul
+          - @productions_missing_shadow_class.each do |production|
+            %li= link_to production.production_code, [:admin, production.theater, production]
+
+.grid-x.grid-padding-x
+  .small-12.cell
+    = link_to "Edit", edit_admin_resourced_ticket_class_path(@resourced_ticket_class), :class=>'tiny button'
+    = link_to "Destroy", [:admin, @resourced_ticket_class], :confirm => 'Are you sure?', :method => :delete, :class=>'tiny alert button'
+    = link_to "View All", admin_resourced_ticket_classes_path, :class=>'tiny button'

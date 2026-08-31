@@ -1,0 +1,53 @@
+/ Own copy of admin/ticket_classes/_fields.html.haml -- do NOT delete this
+/ duplication. That partial is shared with default_ticket_classes and must not
+/ see the pool-only quantity/changeover_minutes/venues fields below.
+.grid-x.grid-padding-x
+  .small-4.cell
+    = f.input :class_code
+  .small-8.cell
+    = f.input :ticket_type, :as=>:select, :collection=>TicketClass::TICKET_TYPES
+
+  .small-12.cell
+    = f.input :class_name
+
+  .small-12.medium-6.cell
+    %fieldset.fieldset
+      %legend Pricing
+
+      = f.label :ticket_price
+      = f.input_field :ticket_price, :type=>:number, :value=>number_with_precision(f.object.ticket_price, :precision => 2), step: 0.25
+      = f.label :ticketing_fee
+      = f.input_field :ticketing_fee, :type=>:number, :value=>number_with_precision(f.object.ticketing_fee, :precision => 2), step: 0.25
+      = f.input :royalty_amount, label: "Royalty Amount", hint: "Exclusive of facility fee. Uses ticket price - facility fee if blank.", input_html: { type: :number, value: number_with_precision(f.object.royalty_amount, precision: 2), step: 0.25 }
+      = f.input :zone_id, label: "Zone ID", hint: 'Seating zone this class sells into ("*" sells into any zone). Reserved seating only.', input_html: { maxlength: 2 }
+
+  .small-12.medium-6.cell
+    %fieldset.fieldset
+      %legend Ticket Class Options
+      = f.input :web_visible, :hint=>"Make this ticket class end-user purchasable"
+      = f.input :exchangeable, :hint=>"Override software default exchange policy communications?"
+      = f.input :software_managed, :hint=>"Not for box office sales"
+      = f.input :hide_pricing, :hint=>"Hide the actual price from the customer"
+      = f.input :suppress_receipt, :hint=>"Suppress automatic confirmation email"
+      = f.input :complimentary, :label=>"Treat as comp ticket", :hint=>"Comp tickets are separately inventoried and reported. Not the same as a $0 ticket"
+      = f.input :holds_seats, :default=>false, :hint=>"Reserve seats from inventory"
+      = f.input :assigns_seats, :default=>false,  :label=>"Manual seat assignment required", :hint=>"Requires house management seating"
+      = f.input :show_in_pricing_range, :default=>true, :hint=>"Show in pricing overview"
+      = f.input :auto_attach, :default=>true, :hint=>"Automatically attach to every performance"
+      = f.input :minutes_before_show, :hint=>"Reveal timed tickets at this point before showtime"
+      = f.input :purchase_page_annotation, :as=>:text, :hint=>'Additional detail text for purchase page', input_html: {rows: 2}
+      = f.input :purchase_email_annotation, :hint=>'Additional text to include in purchase emails.  Markdown enabled', input_html: {rows: 4}
+
+  .small-12.medium-6.cell
+    %fieldset.fieldset
+      %legend Device Pool
+      = f.input :quantity, hint: "Number of physical devices in this pool (e.g. captioning tablets, audio-description receivers)"
+      = f.input :changeover_minutes, hint: "Setup/teardown buffer before curtain and after the show ends, during which a device is unavailable to any other performance"
+
+  .small-12.medium-6.cell
+    %fieldset.fieldset
+      %legend Venues
+      = f.association :venues, :as=>:check_boxes, :collection=>Venue.order(:ordinal_sort), :member_label=>:name, :hint=>"Performances in these venues draw from this shared device pool"
+
+  .small-12.cell
+    = f.button :submit

@@ -1,0 +1,47 @@
+= content_for :title do
+  Resourced Ticket Classes
+= content_for :breadcrumbs do
+  = render "shared/components/breadcrumb", items: [{ label: "Resourced Ticket Classes" }]
+
+.grid-x.grid-padding-x
+  .small-12.cell
+    %table#resourced-ticket-class-listing{:data=>{:source=>"#{admin_resourced_ticket_classes_path(format: :json)}"}}
+      %thead
+        %tr
+          %th Class Code
+          %th Class Name
+          %th Quantity
+          %th Changeover
+          %th Venues
+          %th Price
+          %th Actions
+
+.grid-x.grid-padding-x
+  .small-12.cell
+    = ui_button "New Resourced Ticket Class", new_admin_resourced_ticket_class_path, size: :small, class: 'right'
+
+= content_for :js do
+  :javascript
+    $(document).ready(function() {
+      $('#resourced-ticket-class-listing').dataTable({
+          "processing": true,
+          "serverSide": true,
+          "stateSave": true,
+          "ajax": $('#resourced-ticket-class-listing').data('source'),
+          "pagingType": 'full_numbers',
+          "language": {
+            "lengthMenu" : "_MENU_",
+            "search": "_INPUT_"
+          },
+          columns: [
+            {data: 'class_code'},
+            {data: 'class_name'},
+            {data: 'quantity'},
+            {data: 'changeover_minutes'},
+            {data: 'venues'},
+            {data: 'ticket_price'},
+            {data: 'actions'},
+          ],
+          "order": [ [0, "asc"] ],
+        });
+      });

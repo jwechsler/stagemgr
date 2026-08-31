@@ -54,7 +54,9 @@ class Production < ApplicationRecord
   has_many :ticket_classes, inverse_of: :production
   has_many :ticket_orders, :source => :orders, :through => :performances
   before_validation :clean_values, :downcase_for_db
+  before_validation :default_running_time, on: :create
   before_create :assign_default_ticket_classes
+  after_create :assign_resourced_ticket_classes
   # removed until we fix/expose statistics
   # before_save :queue_statistics_recalc
   # Enqueued after commit: the job reads the production's status, so it must not
@@ -370,6 +372,43 @@ class Production < ApplicationRecord
       ticket_classes << tc
     end
     self
+  end
+
+  # Materialize the shadow rows for every ResourcedTicketClass covering this
+  # production's venue, so a brand-new production offers the shared equipment
+  # immediately instead of waiting for the next resource save.
+  #
+  # Deliberately NOT folded into assign_default_ticket_classes: resources are
+  # persistent global objects, not templates, and that method's blind
+  # `attributes = to_hash` copy must never see the pool attributes or the
+  # back-reference.
+  def assign_resourced_ticket_classes
+    ResourcedTicketClass.joins(:venues).where(venues: { id: venue_id }).find_each do |resource|
+      tc = TicketClass.new(production: self, resourced_ticket_class: resource)
+      tc.synced_from_resource = true
+      tc.attributes = resource.shadow_attributes
+      tc.save!
+    rescue ActiveRecord::RecordInvalid => e
+      # Usually a class_code collision with a default ticket class of the same
+      # code. Never adopt the existing row; log and carry on so the production
+      # itself still saves.
+      Rails.logger.warn(
+        "Production#assign_resourced_ticket_classes: could not add '#{resource.class_code}' " \
+        "to #{production_code} (#{id}) - #{e.message}"
+      )
+    end
+    self
+  end
+
+  # Running time drives the equipment occupancy window used by
+  # ResourcedTicketClass, so a blank value would silently fall back to the
+  # server.yml assumption on every calculation. Pre-fill it from that same key
+  # at creation time and let staff correct it.
+  def default_running_time
+    return if running_time.present?
+
+    configured = Rails.configuration.x.server_config['resourced_default_runtime_minutes']
+    self.running_time = configured.to_i if configured.present?
   end
 
   def manage_after_save_active

@@ -1,0 +1,44 @@
+<div class="grid-x grid-padding-x">
+  <div class="small-12 cell">
+    <h3>Resource Pull Sheet <%= @date.to_s(:long) %></h3>
+
+    <% if @report_data.empty? %>
+      <p>No resourced equipment sold for this date.</p>
+    <% else %>
+      <% @report_data.each do |group| %>
+        <table class="report resource-pull-group">
+          <caption>
+            <i><%= group[:resource_code] %> &mdash; <%= group[:resource_name] %> (<%= group[:total] %> total)</i>
+          </caption>
+          <% if group[:rows].empty? %>
+            <tr><td>No data found</td></tr>
+          <% else %>
+            <thead>
+              <th>Perf</th>
+              <th>Time</th>
+              <th>Production</th>
+              <th>Patron</th>
+              <th>Qty</th>
+            </thead>
+            <% group[:rows].each_with_index do |row, i| %>
+              <tr class="<%= i.odd? ? 'odd' : '' %>">
+                <td><%= row[:performance_code] %></td>
+                <td><%= row[:performance_time] %></td>
+                <td><%= row[:production_name] %></td>
+                <td><%= row[:patron_name] %></td>
+                <td class="numeric"><%= row[:device_count] %></td>
+              </tr>
+              <% next_performance_code = group[:rows][i + 1] && group[:rows][i + 1][:performance_code] %>
+              <% if next_performance_code != row[:performance_code] %>
+                <tr class="subtotal">
+                  <td colspan="4">Subtotal for <%= row[:performance_code] %></td>
+                  <td class="numeric"><%= group[:performance_subtotals][row[:performance_code]] %></td>
+                </tr>
+              <% end %>
+            <% end %>
+          <% end %>
+        </table>
+      <% end %>
+    <% end %>
+  </div>
+</div>

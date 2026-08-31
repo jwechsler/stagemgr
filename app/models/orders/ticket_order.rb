@@ -1,5 +1,7 @@
 class TicketOrder < Order
   include TktprintPrintable
+  # Hard cap on shared physical equipment (ResourcedTicketClass device pools).
+  include ResourcedStockValidatable
 
   SEATING_REQUESTS = (
     WHEELCHAIR, WHEELCHAIR_TRANSFER, STAIRS =
@@ -358,7 +360,8 @@ end
     return if finalized?
       tcs = ticket_line_items.map { |li| li.ticket_class_id }.uniq
       available = performance.ticket_class_allocations.select do |tca|
-        tca.available? && tcs.exclude?(tca.ticket_class.id) && tca.ticket_class.web_visible?
+        tca.available? && tcs.exclude?(tca.ticket_class.id) && tca.ticket_class.web_visible? &&
+          tca.ticket_class.resource_available?(performance)
       end.map { |tca| tca.ticket_class }
       available.each { |tc| ticket_line_items.build(:ticket_class => tc, :ticket_count => 0) }
       ticket_line_items.order(:ticket_class_id)

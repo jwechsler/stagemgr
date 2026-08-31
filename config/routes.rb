@@ -34,6 +34,8 @@ Rails.application.routes.draw do
 
   namespace(:admin) { resources :default_ticket_classes }
 
+  namespace(:admin) { resources :resourced_ticket_classes }
+
   namespace(:admin) do
     resources :service_item_templates
   end
@@ -201,6 +203,8 @@ Rails.application.routes.draw do
         get :mine_customer_data, action: :index
         post :house_management_seating
         get :house_management_seating, action: :index
+        post :resource_pull
+        get :resource_pull, action: :index
         post :trg_dump
         post :attended_dump
         post :first_time_attendees

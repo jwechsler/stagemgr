@@ -12,7 +12,7 @@ module TicketOrdersHelper
   def create_ticket_order_for_performance(performance)
     available_ticket_classes = performance.ticket_class_allocations.select do |tca|
       tca.available
-    end.map { |tca| tca.ticket_class }.select { |tc| tc.web_visible unless tc.nil? }
+    end.map { |tca| tca.ticket_class }.select { |tc| tc.web_visible && tc.resource_available?(performance) unless tc.nil? }
     order = performance.orders.build(status: Order::NEW)
     order.status = Order::NEW
     order.address = Address.new
@@ -24,7 +24,8 @@ module TicketOrdersHelper
   def preset_line_items_for_display(order)
     tcs = order.ticket_line_items.map { |li| li.ticket_class_id }.uniq
     available = order.performance.ticket_class_allocations.select do |tca|
-      !tca.ticket_class.nil? && tca.available? && tcs.exclude?(tca.ticket_class.id) && tca.ticket_class.web_visible?
+      !tca.ticket_class.nil? && tca.available? && tcs.exclude?(tca.ticket_class.id) && tca.ticket_class.web_visible? &&
+        tca.ticket_class.resource_available?(order.performance)
     end.map { |tca| tca.ticket_class }
     available.each { |tc| order.ticket_line_items.build(ticket_class: tc, ticket_count: 0) }
     order.ticket_line_items.order(:ticket_class_id)

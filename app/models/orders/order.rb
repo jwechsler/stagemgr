@@ -77,6 +77,15 @@ class Order < ApplicationRecord
   ON_HOLD_STATUSES = HELD_STATUSES                 # box-office holds only
   SEAT_OCCUPYING_STATUSES = HOLDING_SEAT_STATUSES  # everything that occupies a seat
 
+  # Statuses that tie up a unit from a ResourcedTicketClass device pool (e.g. an
+  # assistive captioning tablet). Same as SEAT_OCCUPYING_STATUSES minus
+  # RELEASING, and the omission is deliberate: in an exchange the source order
+  # goes RELEASING while the replacement order is EXCHANGING, so counting
+  # RELEASING would double-count the same physical device and make a same-pool
+  # exchange impossible at exactly-full capacity. Seats can afford to count
+  # RELEASING (there are many); a 10-tablet pool cannot.
+  RESOURCE_OCCUPYING_STATUSES = [HOLD, NEW, PROCESSING, PROCESSED, EXCHANGING, FULFILLED].freeze
+
   TRANSITORY_STATUSES = [NEW, PROCESSING].freeze
 
   UNPROCESSED_STATUSES = (TRANSITORY_STATUSES + [HOLD]).freeze

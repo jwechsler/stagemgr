@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_08_22_140000) do
+ActiveRecord::Schema.define(version: 2026_08_31_120000) do
 
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name", null: false
@@ -460,6 +460,7 @@ ActiveRecord::Schema.define(version: 2026_08_22_140000) do
     t.text "special_feature_email_markdown", size: :medium
     t.string "order_url_override"
     t.boolean "withhold_from_public", default: false
+    t.index ["performance_date"], name: "index_performances_on_performance_date"
   end
 
   create_table "performances_special_features", id: false, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -555,6 +556,41 @@ ActiveRecord::Schema.define(version: 2026_08_22_140000) do
     t.decimal "ticketing_fees", precision: 8, scale: 2
     t.index ["day_of_sale", "production_id"], name: "index_rate_of_sales_on_day_of_sale_and_production_id", unique: true
     t.index ["production_id"], name: "fk_rails_e797c43455"
+  end
+
+  create_table "resourced_ticket_classes", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.string "class_code", null: false
+    t.string "class_name"
+    t.string "description"
+    t.string "ticket_type"
+    t.integer "minutes_before_show"
+    t.boolean "web_visible"
+    t.boolean "auto_attach", default: true
+    t.boolean "software_managed"
+    t.boolean "holds_seats", default: false
+    t.boolean "assigns_seats", default: false
+    t.boolean "show_in_pricing_range", default: true
+    t.boolean "suppress_receipt", default: false
+    t.boolean "hide_pricing"
+    t.boolean "complimentary", default: false
+    t.boolean "exchangeable", default: false
+    t.decimal "ticketing_fee", precision: 8, scale: 2, default: "0.0"
+    t.decimal "ticket_price", precision: 8, scale: 2, default: "0.0"
+    t.decimal "royalty_amount", precision: 8, scale: 2
+    t.string "zone_id", limit: 2, default: "*", null: false
+    t.integer "quantity", null: false
+    t.integer "changeover_minutes", default: 0, null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.string "purchase_page_annotation"
+    t.text "purchase_email_annotation", size: :medium
+    t.index ["class_code"], name: "index_resourced_ticket_classes_on_class_code", unique: true
+  end
+
+  create_table "resourced_ticket_classes_venues", id: false, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "resourced_ticket_class_id", null: false
+    t.bigint "venue_id", null: false
+    t.index ["resourced_ticket_class_id", "venue_id"], name: "index_rtc_venues_on_rtc_and_venue", unique: true
   end
 
   create_table "seat_assignments", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -728,6 +764,8 @@ ActiveRecord::Schema.define(version: 2026_08_22_140000) do
     t.decimal "ticket_price", precision: 8, scale: 2, default: "0.0"
     t.decimal "royalty_amount", precision: 8, scale: 2
     t.string "zone_id", limit: 2, default: "*", null: false
+    t.integer "resourced_ticket_class_id"
+    t.index ["resourced_ticket_class_id"], name: "index_ticket_classes_on_resourced_ticket_class_id"
   end
 
   create_table "users", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|

@@ -48,4 +48,45 @@ RSpec.describe Admin::TicketClassesController, type: :controller do
       expect(ticket_class.complimentary).to be true
     end
   end
+
+  # Shadow rows (ticket_classes.resourced_ticket_class_id present) are owned by
+  # their ResourcedTicketClass. TicketClass itself already refuses the write at
+  # the model layer (prevent_manual_changes_to_resourced_class /
+  # prevent_manual_destroy_of_resourced_class); these specs cover the
+  # controller-level redirect that heads that off before a form even renders.
+  describe 'shadow (resourced) ticket classes' do
+    let(:venue) { production.venue }
+    let(:resource) { FactoryBot.create(:resourced_ticket_class, venues: [venue]) }
+    let(:shadow) do
+      tc = TicketClass.find_or_initialize_by(production_id: production.id,
+                                             resourced_ticket_class_id: resource.id)
+      tc.synced_from_resource = true
+      tc.attributes = resource.shadow_attributes
+      tc.save!
+      tc
+    end
+
+    it 'redirects GET #edit with a flash pointing to the global admin page' do
+      get :edit, params: nested_params(nil).merge(id: shadow.id)
+
+      expect(response).to redirect_to(admin_theater_production_ticket_classes_path(theater, production))
+      expect(flash[:error]).to include(admin_resourced_ticket_classes_path)
+    end
+
+    it 'redirects PATCH #update without persisting the attempted change' do
+      patch :update, params: nested_params(valid_params(class_name: 'Hijacked')).merge(id: shadow.id)
+
+      expect(response).to redirect_to(admin_theater_production_ticket_classes_path(theater, production))
+      expect(flash[:error]).to include(admin_resourced_ticket_classes_path)
+      expect(shadow.reload.class_name).not_to eq('Hijacked')
+    end
+
+    it 'redirects DELETE #destroy without destroying the shadow row' do
+      delete :destroy, params: nested_params(nil).merge(id: shadow.id)
+
+      expect(response).to redirect_to(admin_theater_production_ticket_classes_path(theater, production))
+      expect(flash[:error]).to include(admin_resourced_ticket_classes_path)
+      expect(TicketClass.exists?(shadow.id)).to be true
+    end
+  end
 end
