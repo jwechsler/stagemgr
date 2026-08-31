@@ -1,6 +1,11 @@
 class TicketClassDecorator < ApplicationDecorator
   delegate_all
   def dt_actions
+    if object.resourced?
+      return h.content_tag(:span, 'Global (resourced)', class: 'label secondary',
+                                                        title: 'Managed by a ResourcedTicketClass; edit it from the global admin page')
+    end
+
     actions = []
     if h.current_user.can? :update,
                            TicketClass

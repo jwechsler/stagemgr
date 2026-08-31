@@ -165,7 +165,7 @@ class Admin::PerformancesController < Admin::ApplicationController
                                         :performance_time, :suppress_notification, :withhold_from_public, :order_url_override,
                                         :special_feature_display_markdown,
                                         :special_feature_email_markdown,
-                                        ticket_class_allocations_attributes: %i[id available ticket_limit shiftable shift_to_code
+                                        ticket_class_allocations_attributes: %i[id available propagate_available ticket_limit shiftable shift_to_code
                                                                                 shift_when_capacity_over shift_days_before_performance ticket_class_id],
                                         restricted_payment_type_ids: [],
                                         special_feature_ids: [])

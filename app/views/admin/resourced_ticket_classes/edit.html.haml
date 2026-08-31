@@ -1,0 +1,6 @@
+= content_for :title do
+  = "Edit Resourced Ticket Class #{@resourced_ticket_class.class_code}"
+= content_for :breadcrumbs do
+  = render "shared/components/breadcrumb", items: [{ label: 'Resourced Ticket Classes', path: admin_resourced_ticket_classes_path }, { label: @resourced_ticket_class.class_code }]
+
+= render 'form'

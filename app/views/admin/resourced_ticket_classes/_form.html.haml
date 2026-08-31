@@ -1,0 +1,5 @@
+= simple_form_for [:admin, @resourced_ticket_class] do |f|
+  = token_tag
+  = render '/error_messages', f: f
+
+  = render 'fields', :f=>f

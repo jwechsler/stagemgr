@@ -126,4 +126,57 @@ RSpec.describe Admin::ReportsController, type: :controller do
       expect(flash[:error]).to include('Select at least one production')
     end
   end
+
+  describe '#resource_pull' do
+    let!(:resource) { FactoryBot.create(:resourced_ticket_class, quantity: 2, changeover_minutes: 30) }
+    let(:venue) { resource.venues.first }
+    let(:production) { FactoryBot.create(:production, venue: venue, running_time: 90) }
+    let(:show_date) { Date.current + 30.days }
+    let(:performance) do
+      FactoryBot.create(:performance, production: production, performance_date: show_date,
+                                      performance_time: Time.parse("#{show_date} 19:00"))
+    end
+    let(:shadow) do
+      tc = TicketClass.find_or_initialize_by(production_id: production.id,
+                                             resourced_ticket_class_id: resource.id)
+      tc.synced_from_resource = true
+      tc.attributes = resource.shadow_attributes
+      tc.save!
+      tc
+    end
+
+    before do
+      tca = TicketClassAllocation.find_or_create_by!(performance: performance, ticket_class: shadow)
+      tca.update!(available: true)
+    end
+
+    it 'builds the pull sheet for the requested date' do
+      order = TicketOrder.new(status: Order::PROCESSED, performance: performance,
+                              address: FactoryBot.create(:address),
+                              payment_type: FactoryBot.create(:cash_payment_type))
+      order.ticket_line_items << TicketLineItem.new(ticket_class: shadow, ticket_count: 1)
+      order.save!
+
+      post :resource_pull, params: { performance_day: show_date.to_s }
+
+      expect(response).to have_http_status(:ok)
+      expect(assigns(:date)).to eq(show_date)
+      expect(assigns(:report_data).first[:resource_code]).to eq(resource.class_code)
+      expect(assigns(:report_data).first[:total]).to eq(1)
+    end
+
+    it 'flashes an error and redirects when no date is given' do
+      post :resource_pull, params: {}
+
+      expect(response).to redirect_to(admin_reports_path)
+      expect(flash[:alert]).to be_present
+    end
+
+    it 'flashes an error and redirects for an unparseable date' do
+      post :resource_pull, params: { performance_day: 'not-a-date' }
+
+      expect(response).to redirect_to(admin_reports_path)
+      expect(flash[:alert]).to be_present
+    end
+  end
 end

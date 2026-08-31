@@ -47,6 +47,7 @@ class Performance < ApplicationRecord
   }
   before_destroy                  :protect_performances_with_orders
   after_create                    :create_metrics
+  after_save                      :propagate_requested_allocation_availability
   accepts_nested_attributes_for   :ticket_class_allocations
 
   def number_of_seats_left(exclude_order = nil)
@@ -186,6 +187,58 @@ class Performance < ApplicationRecord
     ticket_class_allocations.each do |tca|
       tca.available = true if tca.ticket_class.auto_attach?
     end
+  end
+
+  # The allocation row settings the propagate toggle copies forward: the
+  # availability itself plus the limit and the dynamic-pricing trigger fields
+  # (Trigger?, To Code, At %, Days Before) -- the whole row as staff see it.
+  PROPAGATED_ALLOCATION_ATTRIBUTES = %w[available ticket_limit shiftable shift_to_code
+                                        shift_when_capacity_over shift_days_before_performance].freeze
+
+  # Applies the allocation grid's "propagate to all later performances" toggle
+  # (TicketClassAllocation#propagate_available, a form-only flag). Runs
+  # after_save so nothing propagates unless this performance actually saved,
+  # and inside the save transaction so a failure rolls everything back.
+  #
+  # "Later" is anchored to THIS performance's date/time, not the current date:
+  # editing a mid-run performance applies the row from that point in the run
+  # onward, leaving earlier performances alone.
+  def propagate_requested_allocation_availability
+    ticket_class_allocations.each do |tca|
+      # Propagating an unavailable class would be surprising; the flag only
+      # fans out an activation (with its settings), never a deactivation.
+      next unless tca.propagate_available? && tca.available?
+
+      propagate_allocation_settings!(tca)
+      tca.propagate_available = nil # one-shot: don't re-fire on a later save
+    end
+  end
+
+  # Copies the source row's settings onto every later performance's allocation
+  # for the same class, overwriting what is there -- an already-available
+  # allocation with a stale limit or trigger still gets this row's values, so
+  # the rest of the run ends up uniform.
+  def propagate_allocation_settings!(source_allocation)
+    copied = source_allocation.attributes.slice(*PROPAGATED_ALLOCATION_ATTRIBUTES)
+    later_performances_in_run.each do |perf|
+      target = TicketClassAllocation.find_or_initialize_by(performance_id: perf.id,
+                                                           ticket_class_id: source_allocation.ticket_class_id)
+      target.attributes = copied
+      target.save! if target.new_record? || target.changed?
+    end
+  end
+
+  # Every other performance of this production on/after this one's date and
+  # time (performance_date and performance_time are separate columns, so the
+  # same-day case compares the TIME column). Status is deliberately not
+  # filtered: enabling an allocation on a not-yet-active performance is
+  # harmless and matches the "whole rest of the run" intent.
+  def later_performances_in_run
+    Performance.unscoped
+               .where(production_id: production_id)
+               .where.not(id: id)
+               .where('performance_date > :d OR (performance_date = :d AND performance_time >= :t)',
+                      d: performance_date, t: performance_time)
   end
 
   def allocation(class_code)

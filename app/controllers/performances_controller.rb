@@ -69,7 +69,7 @@ class PerformancesController < ApplicationController
     else
       visible_to_public = @performance.ticket_class_allocations.select do |tca|
         tca.available? && (tca.ticket_class.web_visible? || include_backend) &&
-          !tca.ticket_class.software_managed?
+          !tca.ticket_class.software_managed? && tca.ticket_class.resource_available?(@performance)
       end.sort do |a, b|
         [(b.ticket_class.web_visible? ? 1 : 0), b.ticket_class.ticket_price,
          a.ticket_class.class_name] <=> [(a.ticket_class.web_visible? ? 1 : 0), a.ticket_class.ticket_price,
@@ -86,7 +86,8 @@ class PerformancesController < ApplicationController
         ticket_type: tca.ticket_class.ticket_type,
         purchase_page_annotation: tca.ticket_class.purchase_page_annotation,
         zone_id: tca.ticket_class.zone_id,
-        holds_seats: tca.ticket_class.holds_seats?
+        holds_seats: tca.ticket_class.holds_seats?,
+        remaining: tca.ticket_class.resourced? ? tca.ticket_class.number_left(@performance) : nil
       }
     }
   end

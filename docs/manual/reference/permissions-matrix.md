@@ -71,6 +71,8 @@ Stagemgr has three staff roles, each building on the permissions of the role bel
 | View ticket class allocations | Yes | Yes | Yes (backend classes) |
 | Manage ticket classes | Yes | Yes | -- |
 | Manage default ticket classes | Yes | -- | -- |
+| Manage resourced ticket classes | Yes | -- | -- |
+| Enable a resourced class on a performance | Yes | Yes | -- |
 
 ## Orders
 

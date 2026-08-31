@@ -6,7 +6,7 @@ require 'rails_helper'
 # same show_backend_classes render-context rule as the modal (the viewer's
 # ability is irrelevant — the admin page passes the local explicitly).
 RSpec.describe 'seat_assignments/_non_seat_ticket_picker', type: :view do
-  def ticket_class(class_name:, web_visible: true, holds_seats: false, ticket_type: 'Fixed')
+  def ticket_class(class_name:, web_visible: true, holds_seats: false, ticket_type: 'Fixed', resource_available: true)
     tc = TicketClass.new(
       class_code: class_name.upcase.delete(' '), class_name: class_name,
       ticket_price: 15, ticket_type: ticket_type, web_visible: web_visible,
@@ -14,6 +14,7 @@ RSpec.describe 'seat_assignments/_non_seat_ticket_picker', type: :view do
       holds_seats: holds_seats
     )
     allow(tc).to receive(:id).and_return(rand(10_000))
+    allow(tc).to receive(:resource_available?).and_return(resource_available)
     tc
   end
 
@@ -84,5 +85,21 @@ RSpec.describe 'seat_assignments/_non_seat_ticket_picker', type: :view do
 
     expect(rendered).to include('non-seat-add-button')
     expect(rendered).to include("data-ticket-class=\"#{tc.id}\"")
+  end
+
+  # ResourcedTicketClass: an exhausted device pool (e.g. no captioning tablets
+  # left for this performance's occupancy window) must not be offered here,
+  # regardless of the per-performance allocation -- see
+  # TicketClass#resource_available?.
+  it 'excludes a resourced class whose device pool is exhausted for this performance' do
+    render_picker([ticket_class(class_name: 'Captioning Tablet', resource_available: false)])
+
+    expect(rendered).not_to include('Captioning Tablet')
+  end
+
+  it 'includes a resourced class that still has devices available' do
+    render_picker([ticket_class(class_name: 'Captioning Tablet', resource_available: true)])
+
+    expect(rendered).to include('Captioning Tablet')
   end
 end

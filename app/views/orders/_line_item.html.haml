@@ -22,7 +22,11 @@
       - else
         = f.input_field :ticket_count, collection: 0.upto(max_count).map{|x| x}, include_blank:false, :class=>'ticket_count'
     - else
-      = f.input_field :ticket_count, collection: 0.upto(max_per_order).map{|x| x}, include_blank:false, :class=>'ticket_count'
+      -# Resourced classes (e.g. shared captioning tablets) are additionally
+      -# capped by the device pool; non-resourced classes keep the prior
+      -# max_per_order-only behavior.
+      - max_count = f.object.ticket_class.resourced? ? [max_per_order, f.object.ticket_class.number_left(performance)].min : max_per_order
+      = f.input_field :ticket_count, collection: 0.upto(max_count).map{|x| x}, include_blank:false, :class=>'ticket_count'
   .small-12.medium-3.cell
     - if f.object.ticket_class.ticket_type == 'Donation'
       = f.input_field :price_override, :class=>'price_override', :placeholder=>"Suggested #{number_to_currency(f.object.ticket_class.ticket_price)}"

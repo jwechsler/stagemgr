@@ -7,8 +7,9 @@
 -# box-office page passes show_backend_classes: true; the public flow must only
 -# ever see web-visible classes, regardless of who is signed in.
 - show_backend_classes = local_assigns.fetch(:show_backend_classes, false)
-- allocations = order_form.object.performance.nil? ? [] : order_form.object.performance.ticket_class_allocations
-- eligible = allocations.select { |tca| tca.available? && !tca.ticket_class.holds_seats? && !tca.ticket_class.software_managed? && (tca.ticket_class.web_visible? || show_backend_classes) }
+- performance = order_form.object.performance
+- allocations = performance.nil? ? [] : performance.ticket_class_allocations
+- eligible = allocations.select { |tca| tca.available? && !tca.ticket_class.holds_seats? && !tca.ticket_class.software_managed? && (tca.ticket_class.web_visible? || show_backend_classes) && tca.ticket_class.resource_available?(performance) }
 #non-seat-ticket-picker{style: (eligible.empty? ? 'display:none' : nil)}
   .grid-x.grid-padding-x{:style => 'margin-top: 12px; margin-bottom: 8px'}
     .small-12.cell

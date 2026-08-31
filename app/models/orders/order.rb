@@ -77,6 +77,17 @@ class Order < ApplicationRecord
   ON_HOLD_STATUSES = HELD_STATUSES                 # box-office holds only
   SEAT_OCCUPYING_STATUSES = HOLDING_SEAT_STATUSES  # everything that occupies a seat
 
+  # Statuses that tie up a unit from a ResourcedTicketClass device pool (e.g. an
+  # assistive captioning tablet). Same as SEAT_OCCUPYING_STATUSES minus
+  # RELEASING, and the omission is deliberate: an exchange must not double-count
+  # the device it is moving, or a same-pool exchange would be impossible at
+  # exactly-full capacity. Note that no Order is currently ever PERSISTED as
+  # RELEASING (TicketOrder#begin_exchange! assigns it in memory only, and the
+  # source row goes PROCESSED -> EXCHANGED on disk), so the working exemption is
+  # ResourcedStockValidatable#pool_exempt_orders excluding the exchange source;
+  # RELEASING's absence here is defense in depth should it ever be persisted.
+  RESOURCE_OCCUPYING_STATUSES = [HOLD, NEW, PROCESSING, PROCESSED, EXCHANGING, FULFILLED].freeze
+
   TRANSITORY_STATUSES = [NEW, PROCESSING].freeze
 
   UNPROCESSED_STATUSES = (TRANSITORY_STATUSES + [HOLD]).freeze

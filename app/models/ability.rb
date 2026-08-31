@@ -135,5 +135,6 @@ class Ability
     can :manage, MembershipOffer
     can %i[membership_reports fulfill_donations mine_customer_data], Report
     can :manage, DefaultTicketClass
+    can :manage, ResourcedTicketClass
   end
 end

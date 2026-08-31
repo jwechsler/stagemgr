@@ -50,6 +50,7 @@ nav:
     - General vs Reserved Seating: productions/general-vs-reserved.md
     - Ticket Classes: productions/ticket-classes.md
     - Default Ticket Classes: productions/default-ticket-classes.md
+    - Resourced Ticket Classes: productions/resourced-ticket-classes.md
     - Performances: productions/performances.md
     - Dynamic Pricing: productions/dynamic-pricing.md
     - Duplicating Performances: productions/duplicating-performances.md
@@ -94,6 +95,7 @@ nav:
     - Fulfilling Orders: house-management/fulfilling-orders.md
     - Printing Tickets: house-management/printing-tickets.md
     - House Management Report: house-management/house-management-report.md
+    - Resource Pull Sheet: house-management/resource-pull-sheet.md
     - Email Attendees: house-management/email-attendees.md
     - HUD Display: house-management/hud-display.md
   - Analysis:
