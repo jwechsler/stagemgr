@@ -217,8 +217,8 @@ $(document).ready(function() {
   }, 5000);
 });
 
-// Resourced ticket classes: the allocation grid's compact "propagate
-// availability" toggle (admin/performances/_form). Flips the hidden
+// The allocation grid's compact "propagate availability" toggle
+// (admin/performances/_form, non-auto-attach classes). Flips the hidden
 // propagate_available flag submitted with the performance form; nothing
 // happens until the performance is saved.
 $(document).on('click', '#ticket-class-listing .propagate-availability-toggle', function() {
@@ -227,6 +227,21 @@ $(document).on('click', '#ticket-class-listing .propagate-availability-toggle', 
   var activating = $flag.val() !== '1';
   $flag.val(activating ? '1' : '0');
   $btn.toggleClass('is-active', activating).attr('aria-pressed', String(activating));
+});
+
+// The toggle only makes sense while the row's Available box is checked:
+// unchecking hides AND disarms it, so re-checking starts from a clean state.
+$(document).on('change', '#ticket-class-listing input[type="checkbox"][name$="[available]"]', function() {
+  var $cell = $(this).closest('td');
+  var $btn = $cell.find('.propagate-availability-toggle');
+  if ($btn.length === 0) return;
+
+  if (this.checked) {
+    $btn.prop('hidden', false);
+  } else {
+    $cell.find('.propagate-availability-flag').val('0');
+    $btn.removeClass('is-active').attr('aria-pressed', 'false').prop('hidden', true);
+  }
 });
 
 // Resourced ticket class sync polling — the show page's warning sections are

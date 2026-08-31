@@ -97,6 +97,21 @@ RSpec.describe 'allocation availability propagation' do
       expect(allocation_for(later).reload.available).to be_falsy
     end
 
+    it 'propagates plain (non-resourced) ticket classes too' do
+      plain = TicketClass.create!(production: production, class_code: 'PLAIN',
+                                  class_name: 'Plain class', ticket_type: 'Fixed',
+                                  ticket_price: 10, ticketing_fee: 1, auto_attach: false)
+      production.ticket_classes.reload
+      [edited, later].each(&:save!)
+      tca = TicketClassAllocation.find_by(performance_id: edited.id, ticket_class_id: plain.id)
+
+      edited.update!(ticket_class_allocations_attributes: [{ id: tca.id, available: '1',
+                                                             propagate_available: '1' }])
+
+      later_tca = TicketClassAllocation.find_by(performance_id: later.id, ticket_class_id: plain.id)
+      expect(later_tca.available).to be true
+    end
+
     it 'creates a missing allocation on a later performance rather than skipping it' do
       [edited, later].each(&:save!)
       allocation_for(later).destroy!
