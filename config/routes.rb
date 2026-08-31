@@ -34,7 +34,11 @@ Rails.application.routes.draw do
 
   namespace(:admin) { resources :default_ticket_classes }
 
-  namespace(:admin) { resources :resourced_ticket_classes }
+  namespace(:admin) do
+    resources :resourced_ticket_classes do
+      get :sync_status, on: :member
+    end
+  end
 
   namespace(:admin) do
     resources :service_item_templates

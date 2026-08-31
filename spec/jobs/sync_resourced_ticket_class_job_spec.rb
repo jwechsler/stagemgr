@@ -32,6 +32,40 @@ RSpec.describe SyncResourcedTicketClassJob do
     end
   end
 
+  describe 'sync-pending counter' do
+    it 'releases the pending sync marked at creation' do
+      resource = FactoryBot.create(:resourced_ticket_class, venues: [venue_a])
+      expect(resource).to be_syncing
+
+      described_class.perform(resource.id)
+
+      expect(resource).not_to be_syncing
+    end
+
+    it 'releases the counter even when a production fails to sync' do
+      prod = production_in(venue_a)
+      performance_at(prod, '19:00')
+      resource = FactoryBot.create(:resourced_ticket_class, venues: [venue_a])
+      # Force a class_code collision on the production (direct create: the
+      # ticket_class factory's find_or_create_by ignores production).
+      TicketClass.create!(production: prod, class_code: resource.class_code, class_name: 'Legacy',
+                          ticket_type: 'Fixed', ticket_price: 0, ticketing_fee: 0)
+
+      described_class.perform(resource.id)
+
+      expect(shadow_for(resource, prod)).to be_nil
+      expect(resource).not_to be_syncing
+    end
+
+    it 'is a no-op for a deleted resource' do
+      resource = FactoryBot.create(:resourced_ticket_class, venues: [venue_a])
+      id = resource.id
+      resource.destroy!
+
+      expect { described_class.perform(id) }.not_to raise_error
+    end
+  end
+
   describe 'shadow class creation' do
     it 'creates one shadow class per production across all of the resource venues' do
       prod_a = production_in(venue_a)

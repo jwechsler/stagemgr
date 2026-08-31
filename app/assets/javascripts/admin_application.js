@@ -216,3 +216,28 @@ $(document).ready(function() {
     });
   }, 5000);
 });
+
+// Resourced ticket class sync polling — the show page's warning sections are
+// suppressed server-side while the sync job runs, so reload (rather than just
+// hide the banner) to reveal any real class_code-conflict warnings.
+$(document).ready(function() {
+  var $banner = $('#resource-sync-status-banner');
+  if ($banner.length === 0) return;
+
+  var statusUrl = $banner.data('status-url');
+  if (!statusUrl) return;
+
+  var pollInterval = setInterval(function() {
+    $.ajax({
+      url: statusUrl,
+      method: 'GET',
+      dataType: 'json',
+      success: function(data) {
+        if (!data.syncing) {
+          clearInterval(pollInterval);
+          window.location.reload();
+        }
+      }
+    });
+  }, 5000);
+});

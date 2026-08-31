@@ -17,12 +17,24 @@ class Admin::ResourcedTicketClassesController < ApplicationController
   # (usually a class_code collision the sync job logged), and shadow rows that
   # already have sales (relevant if the resource is about to be edited/deleted).
   def show
+    @syncing = @resourced_ticket_class.syncing?
     @shadow_classes_with_sales = @resourced_ticket_class.shadow_classes_with_sales
     @productions_missing_running_time =
       Production.where(venue_id: @resourced_ticket_class.venue_ids, running_time: nil)
+    # Meaningless mid-sync: rows the job has not created yet are not conflicts.
     @productions_missing_shadow_class =
-      SyncResourcedTicketClassJob.productions_in_scope(@resourced_ticket_class)
-                                 .where.not(id: @resourced_ticket_class.ticket_classes.select(:production_id))
+      if @syncing
+        Production.none
+      else
+        SyncResourcedTicketClassJob.productions_in_scope(@resourced_ticket_class)
+                                   .where.not(id: @resourced_ticket_class.ticket_classes.select(:production_id))
+      end
+  end
+
+  # Polled by the show page's syncing banner (mirrors
+  # Admin::ProductionsController#allocation_sync_status).
+  def sync_status
+    render json: { syncing: @resourced_ticket_class.syncing? }
   end
 
   def new; end

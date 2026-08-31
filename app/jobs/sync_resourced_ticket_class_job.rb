@@ -15,8 +15,15 @@ class SyncResourcedTicketClassJob < ApplicationJob
     resource = ResourcedTicketClass.find_by(id: resourced_ticket_class_id)
     return if resource.nil?
 
-    sync_shadow_classes(resource)
-    decommission_out_of_scope_shadow_classes(resource)
+    begin
+      sync_shadow_classes(resource)
+      decommission_out_of_scope_shadow_classes(resource)
+    ensure
+      # Release the "syncing" banner even when the sync raises, mirroring
+      # SyncTicketClassAllocationsJob. A deleted resource needs no release --
+      # its counter row is gone (find_by above returned nil).
+      resource.mark_sync_completed!
+    end
   end
 
   # Productions that still matter: anything with a performance today or later,

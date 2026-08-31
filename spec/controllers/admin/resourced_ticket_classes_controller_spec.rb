@@ -42,7 +42,7 @@ RSpec.describe Admin::ResourcedTicketClassesController, type: :controller do
         expect(response).to have_http_status(:ok)
       end
 
-      it 'renders the running-time and sync-status warnings' do
+      it 'renders the running-time and sync-status warnings once the sync has settled' do
         # Created before the resource exists, so Production#after_create's
         # assign_resourced_ticket_classes never sees this resource, and the
         # resource's own sync job (enqueued, not inline in test) never runs --
@@ -56,6 +56,9 @@ RSpec.describe Admin::ResourcedTicketClassesController, type: :controller do
         FactoryBot.create(:performance, production: no_runtime, performance_date: Date.current + 30.days)
 
         resource = FactoryBot.create(:resourced_ticket_class, venues: [venue])
+        # The create's after_commit marked a sync as pending; settle it so the
+        # page reports real warnings instead of the syncing banner.
+        resource.mark_sync_completed!
 
         get :show, params: { id: resource.id }
 
@@ -63,6 +66,32 @@ RSpec.describe Admin::ResourcedTicketClassesController, type: :controller do
         expect(response.body).to include(no_runtime.production_code)
         expect(response.body).to include('Running time not set')
         expect(response.body).to include('Not synced')
+      end
+
+      it 'shows the syncing banner instead of conflict warnings while a sync is pending' do
+        production = FactoryBot.create(:production, venue: venue, theater: theater)
+        FactoryBot.create(:performance, production: production, performance_date: Date.current + 30.days)
+        resource = FactoryBot.create(:resourced_ticket_class, venues: [venue])
+        expect(resource).to be_syncing
+
+        get :show, params: { id: resource.id }
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include('being synced')
+        expect(response.body).not_to include('Not synced')
+      end
+    end
+
+    describe 'GET #sync_status' do
+      it 'reports the pending sync and its completion' do
+        resource = FactoryBot.create(:resourced_ticket_class, venues: [venue])
+
+        get :sync_status, params: { id: resource.id }
+        expect(response.parsed_body).to eq('syncing' => true)
+
+        resource.mark_sync_completed!
+        get :sync_status, params: { id: resource.id }
+        expect(response.parsed_body).to eq('syncing' => false)
       end
     end
 

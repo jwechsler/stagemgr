@@ -114,17 +114,37 @@ class ResourcedTicketClass < ApplicationRecord
     ticket_classes.reload.select { |tc| TicketLineItem.where(ticket_class_id: tc.id).any? }
   end
 
+  # In-flight sync tracking, mirroring Production#mark_allocation_sync_enqueued!
+  # and friends: while a SyncResourcedTicketClassJob is queued or running, the
+  # admin show page reports "syncing" instead of misreading not-yet-created
+  # shadow rows as class_code collisions.
+  def mark_sync_enqueued!
+    ResourcedTicketClass.increment_counter(:sync_pending_count, id)
+  end
+
+  def mark_sync_completed!
+    # Clamped at zero: a requeued job whose counter was already released on
+    # failure would otherwise drive it negative and suppress future banners.
+    ResourcedTicketClass.where(id: id)
+                        .where('sync_pending_count > 0')
+                        .update_all('sync_pending_count = sync_pending_count - 1')
+  end
+
+  def syncing?
+    reload.sync_pending_count > 0
+  end
+
   # Attributes copied onto every shadow TicketClass. Same shape as
   # DefaultTicketClass#to_hash: everything except the identity, the timestamps
-  # and the two pool-only attributes, which have no TicketClass counterpart.
+  # and the pool-only attributes, which have no TicketClass counterpart.
+  # NOTE: every column added to resourced_ticket_classes that ticket_classes
+  # does not share must be deleted here, or the shadow copy raises
+  # UnknownAttributeError.
+  POOL_ONLY_ATTRIBUTES = %w[id quantity changeover_minutes sync_pending_count
+                            created_at updated_at].freeze
+
   def shadow_attributes
-    h = attributes
-    h.delete('id')
-    h.delete('quantity')
-    h.delete('changeover_minutes')
-    h.delete('created_at')
-    h.delete('updated_at')
-    h
+    attributes.except(*POOL_ONLY_ATTRIBUTES)
   end
 
   # Assumed running time when a production leaves running_time blank.
@@ -242,6 +262,7 @@ class ResourcedTicketClass < ApplicationRecord
   end
 
   def sync_shadow_classes_async
+    mark_sync_enqueued!
     Resque.enqueue(SyncResourcedTicketClassJob, id)
   end
 

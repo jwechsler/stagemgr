@@ -54,7 +54,15 @@
           - @productions_missing_running_time.each do |production|
             %li= link_to production.production_code, [:admin, production.theater, production]
 
-- if @productions_missing_shadow_class.any?
+- if @syncing
+  -# While the background job is queued/running, missing shadow rows are
+  -# expected -- reporting them as class_code conflicts would be misleading.
+  -# The banner polls sync_status and reloads to reveal any real warnings.
+  .grid-x.grid-padding-x
+    .small-12.cell
+      #resource-sync-status-banner.callout.secondary{data: {status_url: sync_status_admin_resourced_ticket_class_path(@resourced_ticket_class)}}
+        This resource is being synced to its productions in the background and is not yet available for sale. This page will refresh when the sync finishes.
+- elsif @productions_missing_shadow_class.any?
   .grid-x.grid-padding-x
     .small-12.cell
       .callout.alert

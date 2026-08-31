@@ -322,6 +322,33 @@ RSpec.describe ResourcedTicketClass do
     end
   end
 
+  describe 'sync tracking' do
+    it 'marks a sync pending on create and settles it on completion' do
+      res = FactoryBot.create(:resourced_ticket_class)
+      expect(res).to be_syncing
+
+      res.mark_sync_completed!
+      expect(res).not_to be_syncing
+    end
+
+    it 'stacks pending syncs across successive saves' do
+      res = FactoryBot.create(:resourced_ticket_class)
+      res.update!(class_name: 'Renamed')
+
+      expect(res.reload.sync_pending_count).to eq(2)
+      res.mark_sync_completed!
+      expect(res).to be_syncing
+    end
+
+    it 'clamps the counter at zero on surplus completions' do
+      res = FactoryBot.create(:resourced_ticket_class)
+      res.mark_sync_completed!
+      res.mark_sync_completed!
+
+      expect(res.reload.sync_pending_count).to eq(0)
+    end
+  end
+
   describe 'deletion' do
     it 'destroys shadow rows and their allocations when nothing has sold' do
       res = resource(venues: [venue_a])
