@@ -145,10 +145,12 @@ class ResourcedTicketClass < ApplicationRecord
   # Devices left in the pool for this performance: quantity minus every device
   # already committed to an overlapping performance in the resource's venues.
   #
-  # exclude_order lets an order being edited (exchange, box-office revision)
-  # ignore its own current tickets so it is not blocked by itself.
+  # exclude_order (one order or an array) lets an order being edited ignore its
+  # own current tickets so it is not blocked by itself -- and, during an
+  # exchange, lets the replacement order ignore the source order it is
+  # releasing (see ResourcedStockValidatable#pool_exempt_orders).
   def remaining_for(performance, exclude_order: nil)
-    quantity - devices_taken_in_window(performance, exclude_order)
+    quantity - devices_taken_in_window(performance, Array(exclude_order))
   end
 
   # Decommission the shadow rows this resource no longer covers -- or all of
@@ -171,7 +173,7 @@ class ResourcedTicketClass < ApplicationRecord
 
   private
 
-  def devices_taken_in_window(performance, exclude_order)
+  def devices_taken_in_window(performance, exclude_orders)
     shadow_ids = ticket_classes.pluck(:id)
     return 0 if shadow_ids.empty?
 
@@ -182,7 +184,8 @@ class ResourcedTicketClass < ApplicationRecord
                           .where(ticket_class_id: shadow_ids)
                           .where(orders: { performance_id: candidate_ids,
                                            status: Order::RESOURCE_OCCUPYING_STATUSES })
-    scope = scope.where.not(orders: { id: exclude_order.id }) if exclude_order&.id
+    excluded_ids = exclude_orders.map { |order| order&.id }.compact
+    scope = scope.where.not(orders: { id: excluded_ids }) if excluded_ids.any?
     # Refunds are negative ticket_count rows, so the SUM nets them out.
     scope.sum(:ticket_count)
   end

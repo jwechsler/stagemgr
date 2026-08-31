@@ -79,11 +79,13 @@ class Order < ApplicationRecord
 
   # Statuses that tie up a unit from a ResourcedTicketClass device pool (e.g. an
   # assistive captioning tablet). Same as SEAT_OCCUPYING_STATUSES minus
-  # RELEASING, and the omission is deliberate: in an exchange the source order
-  # goes RELEASING while the replacement order is EXCHANGING, so counting
-  # RELEASING would double-count the same physical device and make a same-pool
-  # exchange impossible at exactly-full capacity. Seats can afford to count
-  # RELEASING (there are many); a 10-tablet pool cannot.
+  # RELEASING, and the omission is deliberate: an exchange must not double-count
+  # the device it is moving, or a same-pool exchange would be impossible at
+  # exactly-full capacity. Note that no Order is currently ever PERSISTED as
+  # RELEASING (TicketOrder#begin_exchange! assigns it in memory only, and the
+  # source row goes PROCESSED -> EXCHANGED on disk), so the working exemption is
+  # ResourcedStockValidatable#pool_exempt_orders excluding the exchange source;
+  # RELEASING's absence here is defense in depth should it ever be persisted.
   RESOURCE_OCCUPYING_STATUSES = [HOLD, NEW, PROCESSING, PROCESSED, EXCHANGING, FULFILLED].freeze
 
   TRANSITORY_STATUSES = [NEW, PROCESSING].freeze

@@ -146,12 +146,33 @@ RSpec.describe 'TicketOrder resourced equipment limits' do
     end
 
     it 'lets a same-pool exchange proceed at exactly-full capacity' do
-      # The source order releases (RELEASING is excluded from the pool) while the
-      # replacement order is EXCHANGING, so the device carries across.
+      # The REAL exchange path: begin_exchange! sets the source to RELEASING in
+      # memory only (the row still says PROCESSED when the replacement order
+      # validates), so pool_exempt_orders must exclude the source or the
+      # exchange is blocked by the very devices it is releasing.
       source = sell(perf_a, shadow_a, 2)
-      source.update!(status: Order::RELEASING)
 
-      expect(build_order(perf_a, shadow_a, 2, status: Order::EXCHANGING)).to be_valid
+      exchange = build_order(perf_a, shadow_a, 2)
+      exchange.uuid = SecureRandom.uuid
+      exchange.exchange_and_process_from!(source)
+
+      expect(exchange.reload.status).to eq(Order::PROCESSED)
+      expect(source.reload.status).to eq(Order::EXCHANGED)
+    end
+
+    it 'still blocks an exchange that asks for more devices than the source releases' do
+      # One tablet is out to venue B; the source order holds the other. An
+      # exchange growing the order to 2 tablets must fail -- the exemption only
+      # returns the source's own devices to the pool, not the whole pool.
+      sell(perf_b, shadow_b, 1)
+      source = sell(perf_a, shadow_a, 1)
+
+      exchange = build_order(perf_a, shadow_a, 2)
+      exchange.uuid = SecureRandom.uuid
+
+      expect { exchange.exchange_and_process_from!(source) }
+        .to raise_error(ActiveRecord::RecordInvalid, /equipment is in use/)
+      expect(source.reload.status).to eq(Order::PROCESSED)
     end
   end
 

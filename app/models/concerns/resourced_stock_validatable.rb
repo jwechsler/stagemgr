@@ -31,7 +31,7 @@ module ResourcedStockValidatable
       # A refund-only net is giving devices back, not asking for them.
       next unless requested > 0
 
-      remaining = resource.remaining_for(performance, exclude_order: self)
+      remaining = resource.remaining_for(performance, exclude_order: pool_exempt_orders)
       next if requested <= remaining
 
       errors.add(:base, resourced_stock_message(resource, remaining))
@@ -39,6 +39,24 @@ module ResourcedStockValidatable
   end
 
   private
+
+  # Orders whose devices must not count against this order's pool check.
+  #
+  # Besides the order itself, that is the source order of an in-flight
+  # exchange: TicketOrder#begin_exchange! sets the source to RELEASING in
+  # memory only -- the row still says PROCESSED when this validation runs, and
+  # an Order is never PERSISTED as RELEASING anywhere in the app -- so without
+  # this exemption a same-pool exchange would be blocked at exactly-full
+  # capacity by the very devices it is releasing. The exchange runs in a single
+  # transaction (exchange_and_process_from!), so an aborted exchange rolls the
+  # exemption's effects back with everything else.
+  def pool_exempt_orders
+    exempt = [self]
+    if exchange_source && Order::RESOURCE_OCCUPYING_STATUSES.exclude?(exchange_source.status)
+      exempt << exchange_source
+    end
+    exempt
+  end
 
   def requested_devices_by_resource
     counts = Hash.new(0)
