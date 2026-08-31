@@ -3,6 +3,89 @@
 !!! info "Reference"
     Recent feature additions and significant changes to Stagemgr, listed from newest to oldest.
 
+## August 2026
+
+### Resourced Ticket Classes -- Shared Equipment Pools
+
+**Available to:** Administrator (management); Box Office (selling and per-performance activation)
+
+A new kind of globally managed ticket class backed by a limited pool of physical equipment
+shared between venues -- assistive closed-captioning tablets, audio-description receivers,
+and similar devices. Each ticket sold claims one device, and Stagemgr enforces the pool
+limit across venues and across overlapping performances, so the hardware can never be
+double-booked.
+
+| Detail | Description |
+|--------|-------------|
+| **Where** | Options > Resourced Ticket Classes |
+| **Pool settings** | Quantity (devices that exist) and Changeover Minutes (buffer before curtain and after the show ends) |
+| **Venue scoping** | Each resource is tied to a set of venues; performances of productions in those venues share -- and count against -- the pool |
+| **Occupancy window** | A device is busy from (curtain − changeover) through (curtain + running time + changeover); productions without a Running Time use the `resourced_default_runtime_minutes` server default |
+| **Enforcement** | Exhausted pools hide the class from sale, cap quantity dropdowns, and refuse any order that would exceed the pool -- including box office orders. There is no override |
+| **Exchanges** | Exchanging a device ticket works even at a full pool -- the released ticket's device carries to the replacement order |
+| **Per-production copies** | The class appears on every production in scope, labeled "Global (resourced)" and read-only; price and settings are managed once, globally |
+| **Activation** | Allocations are always created inactive; staff enable them per performance (e.g., once the show is teched). There is deliberately no auto-attach |
+
+**Key behaviors:**
+
+- Editing the resource syncs changes to every production copy in the background; the detail page shows a syncing banner and refreshes when done.
+- The detail page warns about class code conflicts (a production's own class with the same code is never overwritten) and productions missing a Running Time.
+- Removing a venue or deleting a resource with sales *decommissions* the class -- hidden from sale, future allocations switched off, sold history preserved.
+
+**Use cases:** Ten captioning tablets shared by two theaters -- a 2:00 PM show using all ten
+blocks an overlapping 3:00 PM show next door from selling an eleventh, while a 7:30 PM show
+the same evening sells freely once the devices have turned around.
+
+See [Resourced Ticket Classes](../productions/resourced-ticket-classes.md).
+
+---
+
+### Resource Pull Sheet Report
+
+**Available to:** Administrator, Box Office, House Manager
+
+A per-date report listing every shared-equipment reservation so staff know how many devices
+to pull and stage at each venue, and which patrons reserved them.
+
+| Detail | Description |
+|--------|-------------|
+| **Where** | Admin > Reports > Resource Pull Sheet |
+| **Grouping** | One section per resourced ticket class, rows grouped by performance in code order |
+| **Sorting** | Patrons sorted by last name, first name within each performance |
+| **Totals** | Per-performance subtotal (devices to stage at that venue) and per-resource daily total |
+| **Counted orders** | Holds, in-progress checkouts, processed, fulfilled, and mid-exchange orders; refunds are netted out |
+
+See [Resource Pull Sheet](../house-management/resource-pull-sheet.md).
+
+---
+
+### Allocation Grid -- Propagate a Row to Later Performances
+
+**Available to:** Administrator, Box Office
+
+A compact **⇉** toggle in the performance edit form's ticket class allocation grid copies a
+row's configuration to the rest of the run in one save, instead of editing each performance
+individually.
+
+| Detail | Description |
+|--------|-------------|
+| **Where** | Performance edit page > Ticket Class Allocations grid, next to the Available checkbox |
+| **What propagates** | Availability, Ticket Limit, and the dynamic pricing trigger fields (Trigger?, To Code, At %, Days Before) |
+| **Scope** | Every subsequent performance of the production, anchored to the edited performance's date and time -- earlier performances are untouched |
+| **When** | Only on a successful save; arming the toggle alone changes nothing |
+| **Which classes** | All manually managed classes; shown only while Available is checked. Auto-attach classes have no toggle |
+
+**Key behaviors:**
+
+- Propagation overwrites the later allocations' settings so the rest of the run ends up uniform with the edited row.
+- It only fans out an activation -- unchecking Available hides and disarms the toggle; it never switches a class off down the run.
+
+**Use cases:** Enable captioning tablets for the remainder of a run the day the show is
+teched. Roll a mid-run price-tier change (new limit and shift trigger) forward across the
+remaining performances in one save.
+
+See [Performances](../productions/performances.md#propagating-a-row-to-later-performances).
+
 ## July 2026
 
 ### Production Navigation and Selection
