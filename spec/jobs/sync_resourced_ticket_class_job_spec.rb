@@ -88,7 +88,7 @@ RSpec.describe SyncResourcedTicketClassJob do
       performance_at(prod, '19:00')
       resource = FactoryBot.create(:resourced_ticket_class, venues: [venue_a],
                                                             ticket_price: 3, holds_seats: false,
-                                                            web_visible: true, auto_attach: true)
+                                                            web_visible: true)
       described_class.perform(resource.id)
 
       shadow = shadow_for(resource, prod)
@@ -133,32 +133,42 @@ RSpec.describe SyncResourcedTicketClassJob do
   end
 
   describe 'allocations' do
-    it 'yields available allocations for future sellable performances via the chained job' do
+    # There is deliberately no auto_attach on a resource: a global toggle would
+    # force-reactivate every outstanding performance's allocation and clobber
+    # per-performance curation (tablets go on sale only after the show is cued).
+    it 'creates allocations inactive, for staff to enable per performance' do
       prod = production_in(venue_a)
       future = performance_at(prod, '19:00')
-      resource = FactoryBot.create(:resourced_ticket_class, venues: [venue_a], auto_attach: true)
+      resource = FactoryBot.create(:resourced_ticket_class, venues: [venue_a])
 
       described_class.perform(resource.id)
       run_allocation_jobs_for(resource)
 
       shadow = shadow_for(resource, prod)
+      expect(shadow.auto_attach).to be_falsy
       tca = TicketClassAllocation.find_by(performance_id: future.id, ticket_class_id: shadow.id)
       expect(tca).to be_present
-      expect(tca.available).to be true
+      expect(tca.available).to be_falsy
     end
 
-    it 'leaves allocations unavailable when the resource does not auto_attach' do
+    it 'does not clobber a per-performance activation on re-sync' do
       prod = production_in(venue_a)
       future = performance_at(prod, '19:00')
-      resource = FactoryBot.create(:resourced_ticket_class, venues: [venue_a], auto_attach: false)
-
+      resource = FactoryBot.create(:resourced_ticket_class, venues: [venue_a])
       described_class.perform(resource.id)
       run_allocation_jobs_for(resource)
 
       shadow = shadow_for(resource, prod)
       tca = TicketClassAllocation.find_by(performance_id: future.id, ticket_class_id: shadow.id)
-      expect(tca).to be_present
-      expect(tca.available).to be false
+      # Staff switch the class on for this run once the equipment is cued...
+      tca.update!(available: true)
+
+      # ...and a later resource edit must leave that decision alone.
+      resource.update!(class_name: 'Renamed Tablets')
+      described_class.perform(resource.id)
+      run_allocation_jobs_for(resource)
+
+      expect(tca.reload.available).to be true
     end
   end
 

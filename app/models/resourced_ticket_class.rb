@@ -9,8 +9,16 @@
 # pointing back here and the ticket-class attributes copied from this record
 # (see #shadow_attributes). Every existing mechanism -- allocation creation via
 # Performance#populate_ticket_class_allocations and
-# TicketClass#sync_allocations_async, auto_attach, line items, order flow,
-# reports -- then works unchanged.
+# TicketClass#sync_allocations_async, line items, order flow, reports -- then
+# works unchanged.
+#
+# There is deliberately NO auto_attach on a resource: shadow rows always carry
+# auto_attach falsy, so allocations are created INACTIVE and staff enable them
+# per performance (e.g. captioning tablets only after the show is cued). A
+# global auto-attach toggle would force-reactivate every outstanding
+# performance's allocation across all productions in the venues
+# (populate_ticket_class_allocations re-forces available=true on every save),
+# silently clobbering that curation.
 #
 # Pool accounting: 1 ticket == 1 device. A device is busy for the whole
 # occupancy window of the performance it was sold into:

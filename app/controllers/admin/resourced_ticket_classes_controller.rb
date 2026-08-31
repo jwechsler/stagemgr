@@ -78,7 +78,7 @@ class Admin::ResourcedTicketClassesController < ApplicationController
   def resourced_ticket_class_params
     params.require(:resourced_ticket_class).permit(:class_code, :class_name, :ticket_type,
                                                    :ticket_price, :ticketing_fee, :web_visible, :software_managed,
-                                                   :holds_seats, :assigns_seats, :show_in_pricing_range, :auto_attach,
+                                                   :holds_seats, :assigns_seats, :show_in_pricing_range,
                                                    :minutes_before_show, :suppress_receipt, :hide_pricing,
                                                    :purchase_page_annotation, :purchase_email_annotation,
                                                    :exchangeable, :royalty_amount, :zone_id, :complimentary,

@@ -12,7 +12,6 @@ FactoryBot.define do
     quantity           { 2 }
     changeover_minutes { 30 }
     holds_seats        { false }
-    auto_attach        { true }
     web_visible        { true }
     software_managed   { false }
 

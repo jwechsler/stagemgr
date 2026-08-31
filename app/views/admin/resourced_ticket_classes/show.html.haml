@@ -27,11 +27,12 @@
       %strong Web Visible:
       = checkmark(@resourced_ticket_class.web_visible)
     %p
-      %strong Auto-attach:
-      = checkmark(@resourced_ticket_class.auto_attach)
-    %p
       %strong Venues:
       = @resourced_ticket_class.venues.order(:ordinal_sort).map(&:name).join(', ')
+    %p.help-text
+      Allocations for this class are created inactive on every performance in
+      these venues; enable them per performance (on the performance's edit
+      page) once the equipment is ready for that run.
 
 - if @shadow_classes_with_sales.any?
   .grid-x.grid-padding-x
