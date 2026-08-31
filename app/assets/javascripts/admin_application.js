@@ -217,6 +217,18 @@ $(document).ready(function() {
   }, 5000);
 });
 
+// Resourced ticket classes: the allocation grid's compact "propagate
+// availability" toggle (admin/performances/_form). Flips the hidden
+// propagate_available flag submitted with the performance form; nothing
+// happens until the performance is saved.
+$(document).on('click', '#ticket-class-listing .propagate-availability-toggle', function() {
+  var $btn = $(this);
+  var $flag = $btn.siblings('.propagate-availability-flag');
+  var activating = $flag.val() !== '1';
+  $flag.val(activating ? '1' : '0');
+  $btn.toggleClass('is-active', activating).attr('aria-pressed', String(activating));
+});
+
 // Resourced ticket class sync polling — the show page's warning sections are
 // suppressed server-side while the sync job runs, so reload (rather than just
 // hide the banner) to reveal any real class_code-conflict warnings.

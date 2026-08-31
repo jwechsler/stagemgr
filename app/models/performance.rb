@@ -47,6 +47,7 @@ class Performance < ApplicationRecord
   }
   before_destroy                  :protect_performances_with_orders
   after_create                    :create_metrics
+  after_save                      :propagate_requested_allocation_availability
   accepts_nested_attributes_for   :ticket_class_allocations
 
   def number_of_seats_left(exclude_order = nil)
@@ -186,6 +187,49 @@ class Performance < ApplicationRecord
     ticket_class_allocations.each do |tca|
       tca.available = true if tca.ticket_class.auto_attach?
     end
+  end
+
+  # Applies the allocation grid's "enable on all later performances" toggle
+  # (TicketClassAllocation#propagate_available, a form-only flag). Runs
+  # after_save so nothing propagates unless this performance actually saved,
+  # and inside the save transaction so a failure rolls everything back.
+  #
+  # "Later" is anchored to THIS performance's date/time, not the current date:
+  # editing a mid-run performance enables the class from that point in the run
+  # onward, leaving earlier performances alone.
+  def propagate_requested_allocation_availability
+    ticket_class_allocations.each do |tca|
+      # Propagating an unavailable class would be surprising; the flag only
+      # fans out an activation.
+      next unless tca.propagate_available? && tca.available?
+
+      propagate_allocation_availability!(tca.ticket_class_id)
+      tca.propagate_available = nil # one-shot: don't re-fire on a later save
+    end
+  end
+
+  def propagate_allocation_availability!(ticket_class_id)
+    later_performances_in_run.each do |perf|
+      target = TicketClassAllocation.find_or_initialize_by(performance_id: perf.id,
+                                                           ticket_class_id: ticket_class_id)
+      next if target.available?
+
+      target.available = true
+      target.save!
+    end
+  end
+
+  # Every other performance of this production on/after this one's date and
+  # time (performance_date and performance_time are separate columns, so the
+  # same-day case compares the TIME column). Status is deliberately not
+  # filtered: enabling an allocation on a not-yet-active performance is
+  # harmless and matches the "whole rest of the run" intent.
+  def later_performances_in_run
+    Performance.unscoped
+               .where(production_id: production_id)
+               .where.not(id: id)
+               .where('performance_date > :d OR (performance_date = :d AND performance_time >= :t)',
+                      d: performance_date, t: performance_time)
   end
 
   def allocation(class_code)

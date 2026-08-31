@@ -8,6 +8,16 @@ class TicketClassAllocation < ApplicationRecord
   belongs_to :performance, inverse_of: :ticket_class_allocations
   belongs_to :ticket_class, inverse_of: :ticket_class_allocations
   default_scope { includes(:ticket_class) }
+
+  # Form-only flag from the performance edit page's allocation grid: when set
+  # (and the allocation ends up available), saving the performance also enables
+  # this ticket class on every later performance of the run -- see
+  # Performance#propagate_requested_allocation_availability. Never persisted.
+  attr_accessor :propagate_available
+
+  def propagate_available?
+    ActiveModel::Type::Boolean.new.cast(propagate_available) || false
+  end
   validates :ticket_limit, numericality: { allow_nil: true }
   validates :shift_days_before_performance, numericality: { allow_nil: true }
   validates :shift_when_capacity_over, numericality: { allow_nil: true }

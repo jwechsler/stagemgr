@@ -59,6 +59,17 @@
                 <% else %>
                   <%= ticket_class_allocation_form.check_box :available %>
                 <% end  %>
+                <% if ticket_class_allocation_form.object.ticket_class.resourced? %>
+                  <%# Compact "fan out" toggle for resourced (shared-equipment) classes:
+                      applied only when this performance is saved. %>
+                  <% propagating = ticket_class_allocation_form.object.propagate_available? %>
+                  <%= ticket_class_allocation_form.hidden_field :propagate_available,
+                        value: (propagating ? '1' : '0'), class: 'propagate-availability-flag' %>
+                  <button type="button"
+                          class="propagate-availability-toggle<%= ' is-active' if propagating %>"
+                          aria-pressed="<%= propagating %>"
+                          title="On save, also make this class available on every later performance of this run (from this performance's date &amp; time onward). Earlier performances are left alone.">&#x21c9;</button>
+                <% end %>
               </td>
               <td><%= ticket_class_allocation_form.object.ticket_class.class_code %></td>
               <td><%= ticket_class_allocation_form.object.ticket_class.class_name %></td>

@@ -202,6 +202,27 @@ select[size], select[multiple] {
   cursor: not-allowed;
 }
 
+/* Resourced ticket classes: compact propagate-availability toggle in the
+   performance form's allocation grid (admin/performances/_form) */
+#ticket-class-listing .propagate-availability-toggle {
+  border: 1px solid #cacaca;
+  border-radius: 3px;
+  background: #fefefe;
+  color: #0a0a0a;
+  font-size: 0.8rem;
+  line-height: 1;
+  padding: 0.1rem 0.3rem;
+  margin-left: 0.3rem;
+  vertical-align: middle;
+  cursor: pointer;
+
+  &.is-active {
+    background: #1779ba;
+    border-color: #1779ba;
+    color: #fefefe;
+  }
+}
+
 /* Seat map editor (admin/seat_maps#editor) */
 #seatmap-editor {
   border: 1px solid #ccc;
