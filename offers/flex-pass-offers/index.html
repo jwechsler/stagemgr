@@ -889,6 +889,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../productions/resourced-ticket-classes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resourced Ticket Classes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../productions/performances/" class="md-nav__link">
         
   
@@ -1440,6 +1468,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#autofulfill-against-performances" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Autofulfill Against Performances
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#descriptions" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1513,6 +1552,45 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="The Flex Pass Offers List">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#active-and-inactive-tabs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Active and Inactive Tabs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#row-actions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Row Actions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#restriction-labels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Restriction Labels
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -2490,6 +2568,34 @@
     
   
     House Management Report
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../house-management/resource-pull-sheet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resource Pull Sheet
   
 
     
@@ -3875,11 +3981,40 @@
 <td><strong>Redeem Immediately</strong></td>
 <td>When enabled, the system prompts the patron to select performances and redeem tickets immediately at the time of purchase.</td>
 </tr>
+<tr>
+<td><strong>Autofulfill Against Performances</strong></td>
+<td>Comma-separated performance codes. When set, purchasing the pass automatically reserves tickets for every listed performance -- see <a href="#autofulfill-against-performances">Autofulfill Against Performances</a> below.</td>
+</tr>
 </tbody>
 </table>
 <div class="admonition note">
 <p class="admonition-title">Festival passes</p>
 <p>To create a festival pass, use the <strong>Restrict to festival</strong> dropdown in the Use Restrictions fieldset (see <a href="../../festivals/passes-and-membership-caps/">Festival Passes &amp; Membership Caps</a>). The former <strong>Treat as Festival Pass</strong> checkbox has been removed.</p>
+</div>
+<h3 id="autofulfill-against-performances">Autofulfill Against Performances<a class="headerlink" href="#autofulfill-against-performances" title="Permanent link">&para;</a></h3>
+<p><img alt="Use Restrictions fieldset with the Autofulfill against performances field listing two performance codes" src="../../assets/images/screenshots/offers-flex-pass-autofulfill-field.png" /></p>
+<p>An autofulfilling pass turns checkout into a one-step package purchase: the patron buys the pass and immediately holds tickets for every performance on the list, with no separate redemption step. Enter the performance codes (e.g., <code>POUT0717, POUT0718</code>) in the <strong>Autofulfill against performances</strong> field, separated by commas.</p>
+<p>When a patron purchases the pass, the system creates one ticket order per listed performance -- each for <strong>Maximum Uses Per Performance</strong> tickets of the <strong>Use Ticket Class Code</strong> class -- paid from the newly purchased pass. The credit card is charged only after every reservation succeeds. If any performance cannot be reserved (sold out, already occurred, or its production has closed), the entire purchase is declined: nothing is charged, nothing is reserved, and the patron is told which performance failed and why.</p>
+<p>The patron receives the usual flex pass confirmation plus the standard ticket confirmation email for each auto-reserved performance.</p>
+<div class="admonition note">
+<p class="admonition-title">Performances in a Season Seating production</p>
+<p>If a listed performance belongs to a production in <strong>Season Seating</strong> status, its reservation is placed on hold instead of processed, and no ticket confirmation is sent for it. The patron still gets the flex pass purchase confirmation immediately. The held reservations -- and their confirmation emails -- are released when the production leaves Season Seating status. See <a href="../../productions/season-seating/">Season Seating</a>.</p>
+</div>
+<p>The following requirements are checked when you save the offer:</p>
+<ul>
+<li>Every code must match an existing performance, with no duplicates.</li>
+<li>All listed performances must be <strong>general admission</strong>. Reserved-seating performances cannot be autofulfilled, because seats cannot be chosen automatically.</li>
+<li><strong>Maximum Uses Per Performance</strong> must be set to a non-zero value -- it determines how many tickets are reserved per performance.</li>
+<li>The list must fit the pass: <em>(number of codes) x (Maximum Uses Per Performance)</em> cannot exceed <strong>Number of Tickets</strong>.</li>
+<li>If <strong>Maximum Uses Per Production</strong> is set, the auto-reserved tickets for each production must fit within it.</li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">Keep the code list current</p>
+<p>A purchase fails outright if any listed performance has already occurred or can no longer be reserved. As a festival or season progresses, remove past performance codes from the list (adjusting <strong>Number of Tickets</strong> or price as appropriate) or deactivate the offer.</p>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Instant festival package</p>
+<p>Combine autofulfill with <strong>Restrict to festival</strong> to sell an opening-weekend package: list the code of each opening-weekend performance, set <strong>Maximum Uses Per Performance</strong> to 2, and set <strong>Number of Tickets</strong> to 2 x the number of performances. A patron buying the pass instantly holds a pair of tickets for every show.</p>
 </div>
 <h3 id="descriptions">Descriptions<a class="headerlink" href="#descriptions" title="Permanent link">&para;</a></h3>
 <table>
@@ -3929,6 +4064,7 @@
 <p class="admonition-title">Festival pass redemption</p>
 <p>For multi-show festivals, combine <strong>Restrict to festival</strong> with <strong>Maximum Uses Per Performance</strong> (typically 1) so each pass ticket covers a different festival performance.</p>
 </div>
+<p>For autofulfilling passes, steps 2-5 happen automatically at purchase time for every performance listed in <strong>Autofulfill against performances</strong> -- the pass arrives with those redemptions already made, and any remaining tickets can be redeemed normally.</p>
 <hr />
 <h2 id="expiration">Expiration<a class="headerlink" href="#expiration" title="Permanent link">&para;</a></h2>
 <p>Flex passes expire based on the <strong>Months Till Expiration</strong> value, counted from the date of purchase. Once expired:</p>
@@ -3942,8 +4078,32 @@
 </div>
 <hr />
 <h2 id="the-flex-pass-offers-list">The Flex Pass Offers List<a class="headerlink" href="#the-flex-pass-offers-list" title="Permanent link">&para;</a></h2>
-<p><img alt="Flex pass offers list showing tag pills, red Inactive labels, and blue theater-restriction labels in the Restrictions column" src="../../assets/images/screenshots/offers-flex-pass-list.png" /></p>
-<p>Each row on the Flex Pass Offers list has an actions column with <strong>Edit</strong>, <strong>Destroy</strong>, and <strong>Create Order</strong> buttons. The <strong>Create Order</strong> button is shown greyed out and disabled for offers that are not active, since inactive offers cannot be sold.</p>
+<p><img alt="Flex pass offers list showing the Active tab with tag pills and blue theater-restriction labels in the Restrictions column" src="../../assets/images/screenshots/offers-flex-pass-list.png" /></p>
+<h3 id="active-and-inactive-tabs">Active and Inactive Tabs<a class="headerlink" href="#active-and-inactive-tabs" title="Permanent link">&para;</a></h3>
+<p>The offers list is divided into two tabs:</p>
+<table>
+<thead>
+<tr>
+<th>Tab</th>
+<th>Shows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Active</strong></td>
+<td>Offers whose <strong>Active</strong> checkbox is checked -- the passes patrons can currently purchase. This tab opens by default.</td>
+</tr>
+<tr>
+<td><strong>Inactive</strong></td>
+<td>Deactivated offers, kept for reference or later reactivation.</td>
+</tr>
+</tbody>
+</table>
+<p>Each tab has its own search box, column sorting, and paging, so you can filter one list without affecting the other. The searches and sort order you set are remembered separately per tab, and the tab you last viewed stays selected when you return to the page during the same browser session.</p>
+<p><img alt="Inactive tab of the flex pass offers list, where rows offer only Edit and Destroy buttons" src="../../assets/images/screenshots/offers-flex-pass-list-inactive-tab.png" /></p>
+<h3 id="row-actions">Row Actions<a class="headerlink" href="#row-actions" title="Permanent link">&para;</a></h3>
+<p>Each row on the <strong>Active</strong> tab has an actions column with <strong>Edit</strong>, <strong>Destroy</strong>, and <strong>Create Order</strong> buttons. Rows on the <strong>Inactive</strong> tab show only <strong>Edit</strong> and <strong>Destroy</strong> -- inactive offers cannot be sold, so no <strong>Create Order</strong> button appears.</p>
+<h3 id="restriction-labels">Restriction Labels<a class="headerlink" href="#restriction-labels" title="Permanent link">&para;</a></h3>
 <p>The <strong>Restrictions</strong> column summarizes an offer's status and scope using small labels:</p>
 <table>
 <thead>
@@ -3980,7 +4140,7 @@
 <hr />
 <h2 id="managing-flex-pass-offers">Managing Flex Pass Offers<a class="headerlink" href="#managing-flex-pass-offers" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Deactivate</strong> an offer by unchecking the <strong>Active</strong> checkbox. Existing purchased passes remain valid until they expire.</li>
+<li><strong>Deactivate</strong> an offer by unchecking the <strong>Active</strong> checkbox. It moves to the <strong>Inactive</strong> tab, and existing purchased passes remain valid until they expire.</li>
 <li><strong>Remove from public sale</strong> by unchecking <strong>On Sale to Public</strong> while keeping the offer active for box office sales.</li>
 <li>Changes to an offer (price, number of tickets) apply only to future purchases and do not affect already-sold passes.</li>
 </ul>

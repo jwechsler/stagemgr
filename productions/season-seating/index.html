@@ -889,6 +889,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../resourced-ticket-classes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resourced Ticket Classes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../performances/" class="md-nav__link">
         
   
@@ -2499,6 +2527,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../house-management/resource-pull-sheet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resource Pull Sheet
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../house-management/email-attendees/" class="md-nav__link">
         
   
@@ -3773,8 +3829,13 @@
 <ul>
 <li><strong>Bulk import:</strong> Use the order import tool to load subscriber orders from a spreadsheet or external system. Imported orders are automatically held.</li>
 <li><strong>Manual entry:</strong> Administrators can create individual orders through the box office interface. These orders are also placed on hold.</li>
+<li><strong>Flex pass autofulfill:</strong> If a flex pass offer automatically reserves seats for performances in this production, those reservations are held too -- the subscriber's purchase confirmation goes out, but the seat confirmations wait for finalization along with everything else.</li>
 </ul>
 <p>All orders created during this phase appear in the orders list with a held/pending status.</p>
+<div class="admonition note">
+<p class="admonition-title">Flex pass uses are counted at finalization</p>
+<p>A held flex pass reservation has no payment attached yet, so it does not count against the pass's remaining uses until the order is released. A subscriber can therefore be held into more performances than their pass covers; the overage surfaces as an error in the finalization result file rather than at the time of booking.</p>
+</div>
 <h3 id="step-3-assign-seats-and-review-orders">Step 3: Assign Seats and Review Orders<a class="headerlink" href="#step-3-assign-seats-and-review-orders" title="Permanent link">&para;</a></h3>
 <p>With all subscriber orders in the system:</p>
 <ol>
@@ -3802,10 +3863,15 @@
 <h3 id="what-the-finalizeseasonseating-job-does">What the FinalizeSeasonSeating Job Does<a class="headerlink" href="#what-the-finalizeseasonseating-job-does" title="Permanent link">&para;</a></h3>
 <p>The background job performs these actions automatically:</p>
 <ol>
-<li><strong>Processes all held orders:</strong> Each order that was on hold is moved through the standard fulfillment workflow (from held to processed/fulfilled).</li>
-<li><strong>Sends notifications:</strong> Confirmation emails are sent to all subscribers whose orders were held. Patrons receive their seat assignments, order details, and any production-specific messaging (confirmation message, etc.).</li>
+<li><strong>Processes held orders:</strong> Every held order that has a payment type is moved through the standard fulfillment workflow (from held to processed/fulfilled). This includes orders paid by cash, credit card, check, comp, membership and flex pass.</li>
+<li><strong>Sends notifications:</strong> Confirmation emails are sent to all subscribers whose orders were released. Patrons receive their seat assignments, order details, and any production-specific messaging (confirmation message, etc.).</li>
 <li><strong>Updates house counts:</strong> Performance house counts are recalculated to reflect the processed subscriber orders.</li>
+<li><strong>Reports what it could not release:</strong> Any held order the job skips or fails on is listed in the emailed result file with the reason in its <code>Error</code> column.</li>
 </ol>
+<div class="admonition note">
+<p class="admonition-title">Held orders with no payment type</p>
+<p>An order imported without a payment type selected cannot create a payment, so the job leaves it held and lists it in the result file as <code>No payment type -- order cannot be processed</code>. Set a payment type on those orders in the box office and process them individually.</p>
+</div>
 <p>The job runs in the background and may take several minutes depending on the number of orders. You can monitor progress through the Resque job dashboard.</p>
 <h2 id="after-finalization">After Finalization<a class="headerlink" href="#after-finalization" title="Permanent link">&para;</a></h2>
 <p>Once the FinalizeSeasonSeating job completes:</p>

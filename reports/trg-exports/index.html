@@ -889,6 +889,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../productions/resourced-ticket-classes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resourced Ticket Classes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../productions/performances/" class="md-nav__link">
         
   
@@ -2286,6 +2314,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../house-management/resource-pull-sheet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resource Pull Sheet
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../house-management/email-attendees/" class="md-nav__link">
         
   
@@ -2945,6 +3001,45 @@
       
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#first-time-attendees-trg" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        First Time Attendees (TRG)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="First Time Attendees (TRG)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#who-is-included" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Who is included
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output format
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -3630,15 +3725,16 @@
 
 <h1 id="trg-arts-exports">TRG Arts Exports<a class="headerlink" href="#trg-arts-exports" title="Permanent link">&para;</a></h1>
 <div class="admonition info">
-<p class="admonition-title">Roles: All Users</p>
+<p class="admonition-title">Roles: All Users (except where noted)</p>
 <p>TRGArts Production Export, TRGArts Export by Performance Date, and Donor export are available
-to all users under the <strong>Show Reports</strong> permission group.</p>
+to all users under the <strong>Show Reports</strong> permission group. <strong>First Time Attendees (TRG)</strong> is
+limited to Box Office and Administrator users.</p>
 </div>
 <p><strong>Navigation:</strong> Admin Menu &gt; Reports &gt; TRG Arts Exports</p>
 <hr />
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p>Stagemgr provides three export reports designed for integration with external analytics and
-CRM platforms. All three run as <strong>background jobs</strong> and deliver results via email. After
+<p>Stagemgr provides four export reports designed for integration with external analytics and
+CRM platforms. All four run as <strong>background jobs</strong> and deliver results via email. After
 clicking <strong>Generate</strong>, the system queues the job. When complete, you receive an email with a
 download link and the CSV appears in the <strong>Generated Reports</strong> section.</p>
 <table>
@@ -3659,6 +3755,11 @@ download link and the CSV appears in the <strong>Generated Reports</strong> sect
 <td><strong>TRGArts Export by Performance Date</strong></td>
 <td>Date range</td>
 <td>Buyer info across productions by attendance date</td>
+</tr>
+<tr>
+<td><strong>First Time Attendees (TRG)</strong></td>
+<td>Single date</td>
+<td>Patrons whose first-ever attendance falls on or after the date</td>
 </tr>
 <tr>
 <td><strong>Donor export</strong></td>
@@ -3723,6 +3824,86 @@ ticket/order information for all performances in the date range.</p>
 a cross-production view of audience activity over a time period.</p>
 </div>
 <hr />
+<h2 id="first-time-attendees-trg">First Time Attendees (TRG)<a class="headerlink" href="#first-time-attendees-trg" title="Permanent link">&para;</a></h2>
+<div class="admonition info">
+<p class="admonition-title">Roles: Box Office, Administrator</p>
+<p>This export is part of the <strong>Box Office Reports</strong> permission group and does not appear for
+theater users.</p>
+</div>
+<p>Exports contact information for patrons who attended a show <strong>for the first time ever</strong> on or
+after a given date -- a ready-made outreach list for converting first-timers into repeat
+audience members through special offers or communication.</p>
+<p><img alt="First Time Attendees report form with the First Attendance On or After date field" src="../../assets/images/screenshots/first-time-attendees-form.png" /></p>
+<p><strong>Steps:</strong> Enter a <strong>First Attendance On or After</strong> date, then click <strong>Generate</strong>.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>First Attendance On or After</strong></td>
+<td>Yes</td>
+<td>A patron's first-ever attendance must fall between this date and today</td>
+</tr>
+</tbody>
+</table>
+<h3 id="who-is-included">Who is included<a class="headerlink" href="#who-is-included" title="Permanent link">&para;</a></h3>
+<p>A patron appears in the export when <strong>all</strong> of the following are true:</p>
+<ul>
+<li>Their <strong>first-ever attendance</strong> -- counting visits of any kind (complimentary, membership,
+  or flex pass) at <strong>any theater</strong> -- falls on or after the report date. A patron who attended
+  anything before the date is never included, no matter how often they have come since.</li>
+<li>They have at least one <strong>fulfilled</strong> order containing a paid (non-complimentary) ticket that
+  was <strong>not</strong> purchased with a flex pass or a standard membership. Attendances on a <strong>timed
+  membership</strong> ("library pass") count as qualifying.</li>
+<li>They are contactable: the address record has a street address or an email.</li>
+<li>The address is not flagged as a <strong>placeholder</strong> ("not a ticket buyer").</li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Multiple visits are fine</p>
+<p>Patrons who have attended several times since the date are still included -- only their
+<em>first</em> visit has to fall inside the window. The first visit may itself have been a comp
+or pass visit; what must be fulfilled and paid is at least one of their orders.</p>
+</div>
+<h3 id="output-format">Output format<a class="headerlink" href="#output-format" title="Permanent link">&para;</a></h3>
+<p>The CSV uses the standard TRG Arts import columns plus two extras:</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Segment</strong></td>
+<td><code>STB</code> (single-ticket buyer)</td>
+</tr>
+<tr>
+<td><strong>Season</strong></td>
+<td>The year of the report date</td>
+</tr>
+<tr>
+<td><strong>Title</strong></td>
+<td><code>First Time Attendee as of MM/DD</code> (the report date, no year)</td>
+</tr>
+<tr>
+<td><strong>FirstAttendedDate</strong></td>
+<td>Date of the patron's first attendance</td>
+</tr>
+<tr>
+<td><strong>FirstAttendedTheatre</strong></td>
+<td>Theater where that first attendance took place</td>
+</tr>
+</tbody>
+</table>
+<p>Because the report is restricted to Box Office and Administrator users, customer email
+addresses are always included in the file.</p>
+<hr />
 <h2 id="donor-export">Donor export<a class="headerlink" href="#donor-export" title="Permanent link">&para;</a></h2>
 <p>Generates a contact information export for donors within a date range, filtered by theater.
 This report is also documented on the <a href="../donation-reports/">Donation Reports</a> page.</p>
@@ -3755,7 +3936,9 @@ This report is also documented on the <a href="../donation-reports/">Donation Re
 </table>
 <hr />
 <h2 id="email-filtering-in-exports">Email Filtering in Exports<a class="headerlink" href="#email-filtering-in-exports" title="Permanent link">&para;</a></h2>
-<p>All three exports include customer email addresses, subject to permission-based filtering:</p>
+<p>The exports include customer email addresses, subject to permission-based filtering
+(First Time Attendees always includes emails, since only Box Office and Administrator
+users can run it):</p>
 <table>
 <thead>
 <tr>
@@ -3793,6 +3976,8 @@ away from the Reports page while the job runs.</p>
 <ul>
 <li><strong>TRG Arts analytics</strong>: Upload exports for audience segmentation and engagement analysis.</li>
 <li><strong>Seasonal reporting</strong>: Use Performance Date export for cross-production audience activity.</li>
+<li><strong>First-timer outreach</strong>: Use First Time Attendees to build a welcome-offer or follow-up
+  communication list of brand-new patrons.</li>
 <li><strong>Donor CRM integration</strong>: Export donor contacts for import into fundraising platforms.</li>
 </ul>
 <h2 id="related-pages">Related Pages<a class="headerlink" href="#related-pages" title="Permanent link">&para;</a></h2>

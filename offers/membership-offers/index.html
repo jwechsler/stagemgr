@@ -889,6 +889,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../productions/resourced-ticket-classes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resourced Ticket Classes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../productions/performances/" class="md-nav__link">
         
   
@@ -1552,6 +1580,34 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="The Membership Offers List">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#active-and-inactive-tabs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Active and Inactive Tabs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#row-actions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Row Actions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -2512,6 +2568,34 @@
     
   
     House Management Report
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../house-management/resource-pull-sheet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resource Pull Sheet
   
 
     
@@ -3961,8 +4045,31 @@
 </ol>
 <hr />
 <h2 id="the-membership-offers-list">The Membership Offers List<a class="headerlink" href="#the-membership-offers-list" title="Permanent link">&para;</a></h2>
-<p><img alt="Membership offers list showing Edit, sales action, and Usage buttons, tag pills, and red Inactive labels" src="../../assets/images/screenshots/offers-membership-list.png" /></p>
-<p>Each row on the Membership Offers list has an actions column with three buttons. The middle button is the offer's <strong>primary sales action</strong> and depends on its type:</p>
+<p><img alt="Membership offers list showing the Active tab with tag pills and Edit, Usage, and sales action buttons" src="../../assets/images/screenshots/offers-membership-list.png" /></p>
+<h3 id="active-and-inactive-tabs">Active and Inactive Tabs<a class="headerlink" href="#active-and-inactive-tabs" title="Permanent link">&para;</a></h3>
+<p>The offers list is divided into two tabs:</p>
+<table>
+<thead>
+<tr>
+<th>Tab</th>
+<th>Shows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Active</strong></td>
+<td>Offers with <code>Active</code> status -- the memberships patrons can currently purchase or be issued. This tab opens by default.</td>
+</tr>
+<tr>
+<td><strong>Inactive</strong></td>
+<td>Offers with <code>Inactive</code> status, kept for reference or later reactivation.</td>
+</tr>
+</tbody>
+</table>
+<p>Each tab has its own search box, column sorting, and paging, so you can filter one list without affecting the other. The searches and sort order you set are remembered separately per tab, and the tab you last viewed stays selected when you return to the page during the same browser session.</p>
+<p><img alt="Inactive tab of the membership offers list, where rows offer only Edit and Usage buttons" src="../../assets/images/screenshots/offers-membership-list-inactive-tab.png" /></p>
+<h3 id="row-actions">Row Actions<a class="headerlink" href="#row-actions" title="Permanent link">&para;</a></h3>
+<p>Each row on the <strong>Active</strong> tab has an actions column with three buttons; the last one is the offer's <strong>primary sales action</strong> and depends on its type:</p>
 <table>
 <thead>
 <tr>
@@ -3976,6 +4083,10 @@
 <td>Opens the offer's edit form.</td>
 </tr>
 <tr>
+<td><strong>Usage</strong></td>
+<td>Opens the <a href="../../reports/membership-reports/#membership-usage">Membership Usage report</a> for this offer alone, covering its entire history.</td>
+</tr>
+<tr>
 <td><strong>Create Order</strong></td>
 <td>(Production offers) Starts a new membership order for this offer.</td>
 </tr>
@@ -3983,14 +4094,10 @@
 <td><strong>Issue Pass</strong></td>
 <td>(Timed offers) Creates a staff-issued membership directly, with no purchase order -- the library pass workflow.</td>
 </tr>
-<tr>
-<td><strong>Usage</strong></td>
-<td>Opens the <a href="../../reports/membership-reports/#membership-usage">Membership Usage report</a> for this offer alone, covering its entire history.</td>
-</tr>
 </tbody>
 </table>
-<p>Each row shows exactly one of <strong>Create Order</strong> or <strong>Issue Pass</strong>. Either way, the button is greyed out and disabled while the offer's status is Inactive, since inactive offers cannot be sold or issued.</p>
-<p>The <strong>On Sale to Public</strong> column shows a checkmark when the offer is publicly purchasable. Offers whose status is <strong>Inactive</strong> show a red <strong>Inactive</strong> label in this column instead.</p>
+<p>Each active offer shows exactly one of <strong>Create Order</strong> or <strong>Issue Pass</strong>. Rows on the <strong>Inactive</strong> tab show only <strong>Edit</strong> and <strong>Usage</strong> -- inactive offers cannot be sold or issued, so no sales action appears.</p>
+<p>The <strong>On Sale to Public</strong> column shows a checkmark when the offer is publicly purchasable. Offers on the Inactive tab show a red <strong>Inactive</strong> label in this column instead.</p>
 <div class="admonition tip">
 <p class="admonition-title">Usage over the offer's full history</p>
 <p>The <strong>Usage</strong> button runs the report from the offer's first membership payment through the end of last month -- you don't need to pick a date range. See <a href="../../reports/membership-reports/#running-the-report-for-a-single-offer">Membership Reports</a> for what the per-offer report contains.</p>
@@ -4003,13 +4110,13 @@
 <li>The offer name appears as a heading above the offer's public description.</li>
 <li>The <strong>Offer Details</strong> panel summarizes the Price ID, tickets per performance, type, MyEmma group (when MyEmma is enabled), and ticket classes; a <strong>Notification</strong> tab shows the confirmation email content when one is configured.</li>
 <li>Status labels in the top-right corner show whether the offer is Active/Inactive and On Sale/Private.</li>
-<li>Below the description sit <strong>Edit</strong> and the offer's primary sales action: <strong>Create Order</strong> for production offers or <strong>Issue Pass</strong> for timed offers, disabled while the offer is Inactive -- the same rule as the list.</li>
+<li>Below the description sit <strong>Edit</strong> and the offer's primary sales action: <strong>Create Order</strong> for production offers or <strong>Issue Pass</strong> for timed offers. Unlike the list -- where inactive offers show no sales action at all -- the detail page always shows the button, greyed out and disabled while the offer is Inactive.</li>
 </ul>
 <hr />
 <h2 id="managing-memberships">Managing Memberships<a class="headerlink" href="#managing-memberships" title="Permanent link">&para;</a></h2>
 <p>Individual membership records (who holds each membership, its status, start, and end) are managed on the <a href="../../ticketing/managing-memberships/">Memberships list</a> under <strong>Passes &gt; Memberships</strong>.</p>
 <ul>
-<li><strong>Deactivate</strong> an offer by setting Status to <code>Inactive</code>. Existing members continue their subscriptions until cancelled.</li>
+<li><strong>Deactivate</strong> an offer by setting Status to <code>Inactive</code>. It moves to the <strong>Inactive</strong> tab, and existing members continue their subscriptions until cancelled.</li>
 <li><strong>Remove from public sale</strong> by unchecking <strong>On Sale</strong> while keeping the offer active for box office staff.</li>
 <li>Changes to an offer do not retroactively affect existing subscribers.</li>
 </ul>

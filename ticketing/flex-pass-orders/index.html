@@ -889,6 +889,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../productions/resourced-ticket-classes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resourced Ticket Classes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../productions/performances/" class="md-nav__link">
         
   
@@ -1926,6 +1954,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#suppressing-the-purchase-confirmation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suppressing the Purchase Confirmation
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2529,6 +2568,34 @@
     
   
     House Management Report
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../house-management/resource-pull-sheet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resource Pull Sheet
   
 
     
@@ -3820,7 +3887,32 @@
 <li>Submit the flex pass order</li>
 <li>The order is created with status <strong>Processed</strong></li>
 <li>A <strong>FlexPass</strong> record is created with a unique code</li>
+<li>A purchase confirmation email is sent to the patron, unless suppressed (see below)</li>
 </ol>
+<h3 id="suppressing-the-purchase-confirmation">Suppressing the Purchase Confirmation<a class="headerlink" href="#suppressing-the-purchase-confirmation" title="Permanent link">&para;</a></h3>
+<p>The flex pass order form includes a <strong>Don't send purchase confirmation email</strong> checkbox. It is unchecked by default, so a confirmation is sent as normal. Check it before submitting to create the flex pass <strong>without</strong> emailing the patron — useful when the pass is set up on the patron's behalf, comped, or handled as part of a batch the box office will follow up on separately.</p>
+<table>
+<thead>
+<tr>
+<th>Checkbox</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Unchecked</strong> (default)</td>
+<td>The patron receives the standard flex pass purchase confirmation.</td>
+</tr>
+<tr>
+<td><strong>Checked</strong></td>
+<td>No confirmation email is sent. The order and flex pass are still created normally.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Box office only</p>
+<p>This checkbox appears only on the box office (admin) flex pass order form. Patrons who buy a flex pass through the public website always receive their confirmation. For suppressing confirmations across a bulk import instead, see <a href="../../imports/flex-pass-orders-import/">Flex Pass Orders Import</a>.</p>
+</div>
 <h2 id="the-flex-pass-code">The Flex Pass Code<a class="headerlink" href="#the-flex-pass-code" title="Permanent link">&para;</a></h2>
 <p>When a flex pass order is processed, the system generates a unique code:</p>
 <table>

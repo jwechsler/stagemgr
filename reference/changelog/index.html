@@ -887,6 +887,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../productions/resourced-ticket-classes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resourced Ticket Classes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../productions/performances/" class="md-nav__link">
         
   
@@ -2284,6 +2312,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../house-management/resource-pull-sheet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resource Pull Sheet
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../house-management/email-attendees/" class="md-nav__link">
         
   
@@ -3517,6 +3573,56 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#august-2026" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        August 2026
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="August 2026">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#resourced-ticket-classes-shared-equipment-pools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resourced Ticket Classes -- Shared Equipment Pools
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#resource-pull-sheet-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resource Pull Sheet Report
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#allocation-grid-propagate-a-row-to-later-performances" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Allocation Grid -- Propagate a Row to Later Performances
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#july-2026" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3699,6 +3805,147 @@
 <p class="admonition-title">Reference</p>
 <p>Recent feature additions and significant changes to Stagemgr, listed from newest to oldest.</p>
 </div>
+<h2 id="august-2026">August 2026<a class="headerlink" href="#august-2026" title="Permanent link">&para;</a></h2>
+<h3 id="resourced-ticket-classes-shared-equipment-pools">Resourced Ticket Classes -- Shared Equipment Pools<a class="headerlink" href="#resourced-ticket-classes-shared-equipment-pools" title="Permanent link">&para;</a></h3>
+<p><strong>Available to:</strong> Administrator (management); Box Office (selling and per-performance activation)</p>
+<p>A new kind of globally managed ticket class backed by a limited pool of physical equipment
+shared between venues -- assistive closed-captioning tablets, audio-description receivers,
+and similar devices. Each ticket sold claims one device, and Stagemgr enforces the pool
+limit across venues and across overlapping performances, so the hardware can never be
+double-booked.</p>
+<table>
+<thead>
+<tr>
+<th>Detail</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Where</strong></td>
+<td>Options &gt; Resourced Ticket Classes</td>
+</tr>
+<tr>
+<td><strong>Pool settings</strong></td>
+<td>Quantity (devices that exist) and Changeover Minutes (buffer before curtain and after the show ends)</td>
+</tr>
+<tr>
+<td><strong>Venue scoping</strong></td>
+<td>Each resource is tied to a set of venues; performances of productions in those venues share -- and count against -- the pool</td>
+</tr>
+<tr>
+<td><strong>Occupancy window</strong></td>
+<td>A device is busy from (curtain − changeover) through (curtain + running time + changeover); productions without a Running Time use the <code>resourced_default_runtime_minutes</code> server default</td>
+</tr>
+<tr>
+<td><strong>Enforcement</strong></td>
+<td>Exhausted pools hide the class from sale, cap quantity dropdowns, and refuse any order that would exceed the pool -- including box office orders. There is no override</td>
+</tr>
+<tr>
+<td><strong>Exchanges</strong></td>
+<td>Exchanging a device ticket works even at a full pool -- the released ticket's device carries to the replacement order</td>
+</tr>
+<tr>
+<td><strong>Per-production copies</strong></td>
+<td>The class appears on every production in scope, labeled "Global (resourced)" and read-only; price and settings are managed once, globally</td>
+</tr>
+<tr>
+<td><strong>Activation</strong></td>
+<td>Allocations are always created inactive; staff enable them per performance (e.g., once the show is teched). There is deliberately no auto-attach</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key behaviors:</strong></p>
+<ul>
+<li>Editing the resource syncs changes to every production copy in the background; the detail page shows a syncing banner and refreshes when done.</li>
+<li>The detail page warns about class code conflicts (a production's own class with the same code is never overwritten) and productions missing a Running Time.</li>
+<li>Removing a venue or deleting a resource with sales <em>decommissions</em> the class -- hidden from sale, future allocations switched off, sold history preserved.</li>
+</ul>
+<p><strong>Use cases:</strong> Ten captioning tablets shared by two theaters -- a 2:00 PM show using all ten
+blocks an overlapping 3:00 PM show next door from selling an eleventh, while a 7:30 PM show
+the same evening sells freely once the devices have turned around.</p>
+<p>See <a href="../../productions/resourced-ticket-classes/">Resourced Ticket Classes</a>.</p>
+<hr />
+<h3 id="resource-pull-sheet-report">Resource Pull Sheet Report<a class="headerlink" href="#resource-pull-sheet-report" title="Permanent link">&para;</a></h3>
+<p><strong>Available to:</strong> Administrator, Box Office, House Manager</p>
+<p>A per-date report listing every shared-equipment reservation so staff know how many devices
+to pull and stage at each venue, and which patrons reserved them.</p>
+<table>
+<thead>
+<tr>
+<th>Detail</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Where</strong></td>
+<td>Admin &gt; Reports &gt; Resource Pull Sheet</td>
+</tr>
+<tr>
+<td><strong>Grouping</strong></td>
+<td>One section per resourced ticket class, rows grouped by performance in code order</td>
+</tr>
+<tr>
+<td><strong>Sorting</strong></td>
+<td>Patrons sorted by last name, first name within each performance</td>
+</tr>
+<tr>
+<td><strong>Totals</strong></td>
+<td>Per-performance subtotal (devices to stage at that venue) and per-resource daily total</td>
+</tr>
+<tr>
+<td><strong>Counted orders</strong></td>
+<td>Holds, in-progress checkouts, processed, fulfilled, and mid-exchange orders; refunds are netted out</td>
+</tr>
+</tbody>
+</table>
+<p>See <a href="../../house-management/resource-pull-sheet/">Resource Pull Sheet</a>.</p>
+<hr />
+<h3 id="allocation-grid-propagate-a-row-to-later-performances">Allocation Grid -- Propagate a Row to Later Performances<a class="headerlink" href="#allocation-grid-propagate-a-row-to-later-performances" title="Permanent link">&para;</a></h3>
+<p><strong>Available to:</strong> Administrator, Box Office</p>
+<p>A compact <strong>⇉</strong> toggle in the performance edit form's ticket class allocation grid copies a
+row's configuration to the rest of the run in one save, instead of editing each performance
+individually.</p>
+<table>
+<thead>
+<tr>
+<th>Detail</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Where</strong></td>
+<td>Performance edit page &gt; Ticket Class Allocations grid, next to the Available checkbox</td>
+</tr>
+<tr>
+<td><strong>What propagates</strong></td>
+<td>Availability, Ticket Limit, and the dynamic pricing trigger fields (Trigger?, To Code, At %, Days Before)</td>
+</tr>
+<tr>
+<td><strong>Scope</strong></td>
+<td>Every subsequent performance of the production, anchored to the edited performance's date and time -- earlier performances are untouched</td>
+</tr>
+<tr>
+<td><strong>When</strong></td>
+<td>Only on a successful save; arming the toggle alone changes nothing</td>
+</tr>
+<tr>
+<td><strong>Which classes</strong></td>
+<td>All manually managed classes; shown only while Available is checked. Auto-attach classes have no toggle</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key behaviors:</strong></p>
+<ul>
+<li>Propagation overwrites the later allocations' settings so the rest of the run ends up uniform with the edited row.</li>
+<li>It only fans out an activation -- unchecking Available hides and disarms the toggle; it never switches a class off down the run.</li>
+</ul>
+<p><strong>Use cases:</strong> Enable captioning tablets for the remainder of a run the day the show is
+teched. Roll a mid-run price-tier change (new limit and shift trigger) forward across the
+remaining performances in one save.</p>
+<p>See <a href="../../productions/performances/#propagating-a-row-to-later-performances">Performances</a>.</p>
 <h2 id="july-2026">July 2026<a class="headerlink" href="#july-2026" title="Permanent link">&para;</a></h2>
 <h3 id="production-navigation-and-selection">Production Navigation and Selection<a class="headerlink" href="#production-navigation-and-selection" title="Permanent link">&para;</a></h3>
 <p><strong>Available to:</strong> All staff roles (scoped to accessible theaters)</p>

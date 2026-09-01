@@ -889,6 +889,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../productions/resourced-ticket-classes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resourced Ticket Classes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../productions/performances/" class="md-nav__link">
         
   
@@ -2286,6 +2314,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../house-management/resource-pull-sheet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resource Pull Sheet
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../house-management/email-attendees/" class="md-nav__link">
         
   
@@ -3234,10 +3290,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#email-suppression" class="md-nav__link">
+  <a href="#confirmation-emails" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Email Suppression
+        Confirmation Emails
       
     </span>
   </a>
@@ -3719,6 +3775,11 @@
 <td>Select a payment method for the flex pass orders</td>
 </tr>
 <tr>
+<td><strong>Send purchase confirmation emails</strong></td>
+<td>No</td>
+<td>Unchecked by default. Leave it unchecked to import silently; check it to send each patron the normal flex pass confirmation</td>
+</tr>
+<tr>
 <td><strong>File Upload</strong></td>
 <td>Yes</td>
 <td>CSV file containing flex pass order data</td>
@@ -3837,17 +3898,36 @@
 </tbody>
 </table>
 <p>Custom codes are useful when migrating from another system where patrons already know their pass codes.</p>
-<h3 id="email-suppression">Email Suppression<a class="headerlink" href="#email-suppression" title="Permanent link">&para;</a></h3>
-<div class="admonition note">
-<p class="admonition-title">No Receipts Sent During Import</p>
-<p>Receipt emails are <strong>suppressed</strong> during bulk import to prevent sending a flood of notifications. Patrons will not receive an email confirming their flex pass order. If you need to notify patrons, do so separately after the import completes.</p>
+<h3 id="confirmation-emails">Confirmation Emails<a class="headerlink" href="#confirmation-emails" title="Permanent link">&para;</a></h3>
+<p>The <strong>Send purchase confirmation emails</strong> checkbox on the import form controls whether imported flex pass orders send a confirmation.</p>
+<table>
+<thead>
+<tr>
+<th>Checkbox</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Unchecked</strong> (default)</td>
+<td>No confirmation emails are sent. Patrons will not receive an email confirming their flex pass order.</td>
+</tr>
+<tr>
+<td><strong>Checked</strong></td>
+<td>Each imported order sends its normal flex pass confirmation, one per row.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Check the row count first</p>
+<p>Leave the box unchecked unless you intend to email every patron in the file. A large import with the box checked sends one confirmation per row.</p>
 </div>
 <h2 id="expected-outcome">Expected Outcome<a class="headerlink" href="#expected-outcome" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Flex pass orders are created and automatically processed</li>
 <li>Customers receive active flex passes usable for future ticket purchases</li>
 <li>Custom flex pass codes are assigned if provided, otherwise system-generated</li>
-<li>No email receipts are sent during the import</li>
+<li>No confirmation emails are sent unless <strong>Send purchase confirmation emails</strong> was checked</li>
 <li>A result file (<code>flex_pass_import_results_&lt;your-file-name&gt;.csv</code>) listing every row, with an <code>Error</code> column populated for any that failed, is emailed to you when one or more rows could not be processed. Failed rows are rolled back completely. See <a href="../imports-overview/#result-file">Result File</a> for the full naming rules and retry workflow.</li>
 </ul>
 <h2 id="example-csv">Example CSV<a class="headerlink" href="#example-csv" title="Permanent link">&para;</a></h2>
@@ -3864,7 +3944,7 @@
 <p><strong>Use custom codes for migrations.</strong> If patrons already have flex pass codes from a previous system, populate the <code>Code</code> column to preserve continuity.</p>
 </li>
 <li>
-<p><strong>Communicate separately.</strong> Since receipt emails are suppressed, plan a separate communication to let patrons know their flex passes are active.</p>
+<p><strong>Decide how patrons hear about it.</strong> With <strong>Send purchase confirmation emails</strong> unchecked, nobody is notified -- plan a separate communication to let patrons know their flex passes are active. Check the box instead if you want the standard confirmation to go out as each row imports.</p>
 </li>
 </ol>
 

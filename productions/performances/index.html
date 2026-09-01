@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://stagemgr.theaterwit.org/productions/performances/">
       
       
-        <link rel="prev" href="../default-ticket-classes/">
+        <link rel="prev" href="../resourced-ticket-classes/">
       
       
         <link rel="next" href="../dynamic-pricing/">
@@ -886,6 +886,34 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../resourced-ticket-classes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resourced Ticket Classes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -1150,6 +1178,23 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Ticket Class Allocations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#propagating-a-row-to-later-performances" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Propagating a Row to Later Performances
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -2560,6 +2605,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../house-management/resource-pull-sheet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resource Pull Sheet
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../house-management/email-attendees/" class="md-nav__link">
         
   
@@ -3891,11 +3964,36 @@
 <td><strong>Shift Days Before Performance</strong></td>
 <td>Number of days. Triggers the shift when the performance is within this many days.</td>
 </tr>
+<tr>
+<td><strong>⇉ (propagate toggle)</strong></td>
+<td>Small button next to the Available checkbox on manually-managed classes. When armed, saving the performance also applies this row to every subsequent performance. See below.</td>
+</tr>
 </tbody>
 </table>
 <div class="admonition tip">
 <p class="admonition-title">Setting Ticket Limits</p>
 <p>Ticket limits per class do not need to add up to the performance capacity. You can oversupply classes (e.g., 100 GA + 100 Senior for a 150-seat venue) if you expect one class to outsell the other. Stagemgr enforces the overall capacity limit regardless of per-class limits.</p>
+</div>
+<h3 id="propagating-a-row-to-later-performances">Propagating a Row to Later Performances<a class="headerlink" href="#propagating-a-row-to-later-performances" title="Permanent link">&para;</a></h3>
+<p><img alt="Allocation grid with the propagate toggle armed next to an available ticket class" src="../../assets/images/screenshots/performances-propagate-toggle.png" /></p>
+<p>Enabling the same ticket class one performance at a time is tedious for a long run. The <strong>propagate toggle</strong> -- the small <code>⇉</code> button that appears next to the <strong>Available</strong> checkbox once it is checked -- copies the row forward for you:</p>
+<ol>
+<li>Check <strong>Available</strong> on the class row (the <code>⇉</code> button appears).</li>
+<li>Set the row's <strong>Ticket Limit</strong> and any dynamic pricing trigger fields the way you want the rest of the run configured.</li>
+<li>Click <code>⇉</code> so it is highlighted (armed).</li>
+<li>Save the performance.</li>
+</ol>
+<p>On save, the row's <strong>availability, ticket limit, and trigger settings</strong> are applied to the same class on <strong>every subsequent performance</strong> of the production -- anchored to <em>this performance's</em> date and time, not today's date. Editing a mid-run performance updates the run from that point onward and leaves earlier performances untouched.</p>
+<p>Key details:</p>
+<ul>
+<li><strong>Nothing happens until you save.</strong> Arming the toggle alone changes nothing; if the save fails, nothing propagates.</li>
+<li><strong>It overwrites later rows.</strong> A later performance whose allocation was already configured differently receives this row's values, so the rest of the run ends up uniform.</li>
+<li><strong>It only fans out an activation.</strong> Unchecking <strong>Available</strong> hides and disarms the toggle -- propagation is never used to switch a class off.</li>
+<li><strong>Auto-attach classes have no toggle.</strong> They are already re-enabled on every performance automatically, so there is nothing to propagate.</li>
+</ul>
+<div class="admonition tip">
+<p class="admonition-title">Resourced classes</p>
+<p>The toggle is the recommended way to activate a <a href="../resourced-ticket-classes/">resourced ticket class</a> (shared equipment such as captioning tablets) for the remainder of a run once the equipment is confirmed ready.</p>
 </div>
 <h2 id="after-creating-a-performance">After Creating a Performance<a class="headerlink" href="#after-creating-a-performance" title="Permanent link">&para;</a></h2>
 <p>Once the performance is saved:</p>
