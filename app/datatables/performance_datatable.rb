@@ -28,7 +28,9 @@ class PerformanceDatatable < DatatableBase
   private
 
   def get_raw_records
-    Performance.where(production: production)
+    # The listing is not client-sortable, so chronological order is the only
+    # ordering applied (performance_date and performance_time are separate columns).
+    Performance.where(production: production).order(:performance_date, :performance_time)
   end
 
   def production
