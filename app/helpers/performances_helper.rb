@@ -22,6 +22,16 @@ module PerformancesHelper
     end
   end
 
+  # Markdown source for one calendar footnote. Custom copy travels in the key
+  # itself; every other key names a SpecialFeature by short_name.
+  def footnote_description(note)
+    if Performance.custom_footnote?(note)
+      Performance.custom_footnote_text(note)
+    else
+      SpecialFeature.find_by_short_name(note).description
+    end
+  end
+
   def new_order_path(performance)
     performance.order_url_override.presence || new_production_performance_order_path(performance.production.id, performance.id)
   end

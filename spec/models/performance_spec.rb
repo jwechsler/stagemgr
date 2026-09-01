@@ -130,4 +130,46 @@ RSpec.describe 'a performance' do
       expect(@performance.reload.special_feature_display_markdown).to eq(typography)
     end
   end
+
+  # Calendar footnotes are gathered by key. Custom special-feature copy is keyed
+  # by its own text so that performances repeating the same note share one
+  # footnote instead of printing it once per performance.
+  describe '#custom_footnote_key' do
+    def performance_with(markdown)
+      Performance.new(special_feature_display_markdown: markdown)
+    end
+
+    it 'is nil when no custom special feature is set' do
+      expect(performance_with(nil).custom_footnote_key).to be_nil
+      expect(performance_with('  ').custom_footnote_key).to be_nil
+    end
+
+    it 'matches for two performances sharing identical copy' do
+      note = 'Post-show discussion with the cast'
+
+      expect(performance_with(note).custom_footnote_key)
+        .to eq(performance_with(note).custom_footnote_key)
+    end
+
+    it 'ignores surrounding whitespace when matching' do
+      expect(performance_with("Open captioned\n").custom_footnote_key)
+        .to eq(performance_with('Open captioned').custom_footnote_key)
+    end
+
+    it 'differs for different copy' do
+      expect(performance_with('Open captioned').custom_footnote_key)
+        .not_to eq(performance_with('ASL interpreted').custom_footnote_key)
+    end
+
+    it 'round-trips the copy through the key' do
+      key = performance_with('Talkback follows').custom_footnote_key
+
+      expect(Performance.custom_footnote?(key)).to be true
+      expect(Performance.custom_footnote_text(key)).to eq('Talkback follows')
+    end
+
+    it 'does not claim a SpecialFeature short_name as a custom footnote' do
+      expect(Performance.custom_footnote?('ASL')).to be false
+    end
+  end
 end

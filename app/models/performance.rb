@@ -3,6 +3,10 @@ class Performance < ApplicationRecord
 
   PERFORMANCE_STATUSES = (ACTIVE, INACTIVE, PRIVATE = 'Active', 'Inactive', 'Private')
 
+  # Marks a calendar footnote key as carrying custom special-feature copy rather
+  # than naming a SpecialFeature by short_name. See #custom_footnote_key.
+  CUSTOM_FOOTNOTE_PREFIX = '_custom'.freeze
+
   belongs_to               :production, inverse_of: :performances
   has_many                 :special_offers, inverse_of: :performance
   has_many                 :ticket_class_allocations, -> { includes :ticket_class }, inverse_of: :performance
@@ -261,6 +265,24 @@ class Performance < ApplicationRecord
 
   def inactive?
     status == Performance::INACTIVE
+  end
+
+  # Identity of this performance's "Custom Special Feature" copy within a
+  # calendar's footnote list, or nil when there is none. The key is the copy
+  # itself rather than the performance id, so performances repeating the same
+  # note collapse into a single footnote instead of one footnote apiece.
+  def custom_footnote_key
+    return nil if special_feature_display_markdown.blank?
+
+    "#{CUSTOM_FOOTNOTE_PREFIX}#{special_feature_display_markdown.strip}"
+  end
+
+  def self.custom_footnote?(key)
+    key.to_s.start_with?(CUSTOM_FOOTNOTE_PREFIX)
+  end
+
+  def self.custom_footnote_text(key)
+    key.to_s.delete_prefix(CUSTOM_FOOTNOTE_PREFIX)
   end
 
   def self.sellable_statuses

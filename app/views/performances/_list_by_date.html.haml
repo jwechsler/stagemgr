@@ -27,9 +27,5 @@
       .grid-x.grid-padding-x
         .small-12.cell
           - footnotes.each_with_index do |note, i|
-            - index = i + 1
             %p.text-right
-              - if note.start_with?("_custom")
-                = display_markdown("[#{index}] " + Performance.find(note.sub(/^_custom/, '')).special_feature_display_markdown)
-              - else
-                = display_markdown "\[#{index}\] #{SpecialFeature.find_by_short_name(note).description}"
+              = display_markdown "[#{i + 1}] #{footnote_description(note)}"

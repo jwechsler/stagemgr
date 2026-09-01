@@ -1,6 +1,47 @@
 require 'rails_helper'
 
 RSpec.describe PerformancesController, type: :controller do
+  # Footnotes drive both calendar formats: @footnotes for the large-format
+  # month grid and @list_footnotes for the small-format date list. Identical
+  # "Custom Special Feature" copy must collapse to one footnote in both.
+  describe 'GET index footnotes' do
+    let(:production) { FactoryBot.create(:production) }
+
+    def create_performance(time, markdown)
+      perf = FactoryBot.create(:performance, production: production,
+                                             performance_date: Date.current + 1.day,
+                                             performance_time: Time.parse(time))
+      perf.update!(special_feature_display_markdown: markdown)
+      perf
+    end
+
+    def footnotes_for(*copy)
+      copy.each_with_index { |markdown, i| create_performance("#{18 + i}:00", markdown) }
+      get :index, params: { production_id: production.id }
+      [assigns(:footnotes), assigns(:list_footnotes)]
+    end
+
+    it 'emits one footnote for two performances sharing custom copy' do
+      calendar, list = footnotes_for('Post-show discussion', 'Post-show discussion')
+
+      expect(calendar.length).to eq(1)
+      expect(list.length).to eq(1)
+    end
+
+    it 'still emits one footnote per distinct custom copy' do
+      calendar, list = footnotes_for('Open captioned', 'ASL interpreted')
+
+      expect(calendar.length).to eq(2)
+      expect(list.length).to eq(2)
+    end
+
+    it 'carries the copy on the footnote key so no lookup by id is needed' do
+      calendar, = footnotes_for('Open captioned')
+
+      expect(Performance.custom_footnote_text(calendar.first)).to eq('Open captioned')
+    end
+  end
+
   describe 'GET ticket_classes (json)' do
     let(:production) { FactoryBot.create(:production_with_reserved_seating) }
     let(:performance) do

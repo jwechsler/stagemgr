@@ -30,12 +30,7 @@ class PerformancesController < ApplicationController
         'performances.status in (?) and performances.performance_date >= ? and performances.performance_date <= ?',
         Performance.visible_statuses, @start_date, @end_date
       ).order(performance_date: :asc, performance_time: :asc)
-      @footnotes = []
-      @performances.each do |p|
-        @footnotes += p.special_features.map { |f| f.short_name } unless p.special_features.empty?
-        @footnotes << "_custom#{p.id}" if p.special_feature_display_markdown.present?
-      end
-      @footnotes = @footnotes.uniq
+      @footnotes = special_feature_footnotes(@performances)
 
       @list_performances = @production.performances.includes(
         :house_count, :ticket_class_allocations, :special_features, :production
@@ -44,12 +39,7 @@ class PerformancesController < ApplicationController
         Performance.visible_statuses, Date.today
       ).order(performance_date: :asc, performance_time: :asc)
 
-      @list_footnotes = []
-      @list_performances.each do |p|
-        @list_footnotes += p.special_features.map(&:short_name) unless p.special_features.empty?
-        @list_footnotes << "_custom#{p.id}" if p.special_feature_display_markdown.present?
-      end
-      @list_footnotes.uniq!
+      @list_footnotes = special_feature_footnotes(@list_performances)
 
       render :index, layout: Rails.configuration.x.server_config['ext_site_wrapper']
     end
@@ -93,6 +83,16 @@ class PerformancesController < ApplicationController
   end
 
   private
+
+  # Footnote keys, in order of first appearance, for the special features shown
+  # against a set of performances. Custom copy is keyed by the copy itself (see
+  # Performance#custom_footnote_key), so two performances carrying identical
+  # "Custom Special Feature" text share one footnote rather than duplicating it.
+  def special_feature_footnotes(performances)
+    performances.flat_map do |p|
+      p.special_features.map(&:short_name) << p.custom_footnote_key
+    end.compact.uniq
+  end
 
   def find_production
     @production = Production.sellable_to_public.find_by(id: params[:production_id])

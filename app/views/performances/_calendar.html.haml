@@ -92,14 +92,9 @@
         - unless @footnotes.empty?
           %tr
             %td{:colspan=>"7"}
-              - index = 0
-              - @footnotes.each do |note|
-                - index += 1
+              - @footnotes.each_with_index do |note, i|
                 %p.text-right
-                  - if note.start_with?("_custom")
-                    = display_markdown("[#{index}] " + Performance.find(note.sub(/^_custom/, '')).special_feature_display_markdown)
-                  - else
-                    = display_markdown "\[#{index}\] #{SpecialFeature.find_by_short_name(note).description}"
+                  = display_markdown "[#{i + 1}] #{footnote_description(note)}"
   - when (@production.performances.count{|p| p.visible? && (p.performance_date >= Date.today) } == 1)
 
     = render :partial=>'/ticket_orders/edit', :locals=>{:order=>create_ticket_order_for_performance(@production.performances.select{|perf| perf.visible?}.first)}

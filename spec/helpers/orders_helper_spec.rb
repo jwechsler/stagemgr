@@ -150,4 +150,36 @@ RSpec.describe OrdersHelper, type: :helper do
       expect(helper.validate_web_order(order)).to be(true)
     end
   end
+
+  # Two performances carrying the same "Custom Special Feature" copy must point
+  # at the same footnote number, so the calendar prints the note once.
+  describe '#special_feature_footnotes_for' do
+    def performance_with(markdown)
+      Performance.new(special_feature_display_markdown: markdown)
+    end
+
+    it 'gives identical custom copy the same footnote marker' do
+      first = performance_with('Post-show discussion')
+      second = performance_with('Post-show discussion')
+      footnotes = [first.custom_footnote_key, second.custom_footnote_key].compact.uniq
+
+      expect(footnotes.length).to eq(1)
+      expect(helper.special_feature_footnotes_for(first, footnotes))
+        .to eq(helper.special_feature_footnotes_for(second, footnotes))
+    end
+
+    it 'gives distinct custom copy distinct footnote markers' do
+      first = performance_with('Open captioned')
+      second = performance_with('ASL interpreted')
+      footnotes = [first.custom_footnote_key, second.custom_footnote_key].compact.uniq
+
+      expect(footnotes.length).to eq(2)
+      expect(helper.special_feature_footnotes_for(first, footnotes)).to include('[1]')
+      expect(helper.special_feature_footnotes_for(second, footnotes)).to include('[2]')
+    end
+
+    it 'emits nothing for a performance with no special features' do
+      expect(helper.special_feature_footnotes_for(performance_with(nil), [])).to eq('')
+    end
+  end
 end

@@ -174,8 +174,9 @@ module OrdersHelper
       idx = footnotes.find_index(feature.short_name)
       text <<= raw "<sup>[#{idx + 1}]&nbsp;</sup>" unless idx.nil?
     end
-    if performance.special_feature_display_markdown.present?
-      idx = footnotes.find_index("_custom#{performance.id}")
+    custom_key = performance.custom_footnote_key
+    unless custom_key.nil?
+      idx = footnotes.find_index(custom_key)
       text <<= raw "<sup>[#{idx + 1}]&nbsp;</sup>" unless idx.nil?
     end
     text
