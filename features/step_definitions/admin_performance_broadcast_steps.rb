@@ -111,7 +111,7 @@ Given(/^a performance broadcast exists for performance "(.*?)"$/) do |perf_code|
                     performance: performance,
                     user: user,
                     subject: 'Previous broadcast',
-                    from_address: 'boxoffice@theaterwit.org',
+                    from_address: Rails.configuration.x.email_address['box_office'],
                     body: 'Previous message')
 end
 

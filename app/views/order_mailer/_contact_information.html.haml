@@ -1,7 +1,16 @@
+-# The footer block of every order email: how to reach the box office and where
+-# to find the house online.
+-#
+-# Everything here is a fact from the `theater:` block of config/server.yml, so
+-# a house configures it once instead of overriding this file. Each button and
+-# each line is guarded: an unconfigured house gets a shorter block, never an
+-# empty button or a dangling "Phone:".
 %table.callout
   %tr
     %th.callout-inner.secondary
-      %h6 CONNECT WITH THE WIT:
+      %h6= "CONNECT WITH #{theater_info.name.to_s.upcase}:"
+      -# In-app, not the marketing site: this is the listing patrons can buy
+      -# from, and it is correct for every install without configuration.
       %table.button.boxoffice.expand
         %tr
           %td
@@ -9,32 +18,47 @@
               %tr
                 %td
                   %center{'data-parsed'=>""}
-                    %a.float-center{:href=>"https://www.theaterwit.org/tickets/productions/box_office", :align=>"center"}
+                    %a.float-center{:href=>box_office_productions_url, :align=>"center"}
                       What's playing?
-      %table.button.facebook.expand
-        %tr
-          %td
-            %table
-              %tr
-                %td
-                  %center{'data-parsed'=>""}
-                    %a.float-center{:href=>"https://www.facebook.com/theaterwit", :align=>"center"}
-                      Facebook
-          %td.expander
-      %table.button.twitter.expand
-        %tr
-          %td
-            %table
-              %tr
-                %td
-                  %center{'data-parsed'=>""}
-                    %a.float-center{:href=>"https://www.twitter.com/theaterwit", :align=>"center"} Twitter
-          %td.expander
+      - if theater_info.facebook_url.present?
+        %table.button.facebook.expand
+          %tr
+            %td
+              %table
+                %tr
+                  %td
+                    %center{'data-parsed'=>""}
+                      %a.float-center{:href=>theater_info.facebook_url, :align=>"center"}
+                        Facebook
+            %td.expander
+      - if theater_info.twitter_url.present?
+        %table.button.twitter.expand
+          %tr
+            %td
+              %table
+                %tr
+                  %td
+                    %center{'data-parsed'=>""}
+                      %a.float-center{:href=>theater_info.twitter_url, :align=>"center"} Twitter
+            %td.expander
+      - if theater_info.instagram_url.present?
+        %table.button.instagram.expand
+          %tr
+            %td
+              %table
+                %tr
+                  %td
+                    %center{'data-parsed'=>""}
+                      %a.float-center{:href=>theater_info.instagram_url, :align=>"center"} Instagram
+            %td.expander
 
-      %p Real World:
-      %p 1229 W Belmont, Chicago
+      - if theater_info.full_address.present?
+        %p Real World:
+        %p= theater_info.full_address
 
-      %p Phone: 773.975.8150
-      %p
-        %a{:href=>"mailto:boxoffice@theaterwit.org"} boxoffice@theaterwit.org
+      - if theater_info.phone.present?
+        %p= "Phone: #{theater_info.phone}"
+      - if theater_info.box_office_email.present?
+        %p
+          %a{:href=>"mailto:#{theater_info.box_office_email}"}= theater_info.box_office_email
     %th.expander

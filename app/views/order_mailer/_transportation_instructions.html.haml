@@ -1,3 +1,10 @@
-%h5 Getting Here
-%p
-  Theater Wit is located at 1229 W Belmont, between Southport and Racine.  We are accessible by "L" at the Belmont stop for the red, brown and purple lines four blocks east of us.  The 77 CTA bus also drops you on our doorstep.  If you will be driving, there is often street parking, and we offer self parking in our large lot behind Kubo restaurant, directly across the street for $10.
+-# How to get here. The generic version knows only the street address, which is
+-# a fact; transit lines, parking and which door to use are editorial, and every
+-# house's are different. Override this whole partial in your theme -- see
+-# sites/example/README.md -- and say the useful things.
+-#
+-# With no address configured there is nothing to print, so the heading goes too
+-# rather than introducing an empty section.
+- if theater_info.full_address.present?
+  %h5 Getting Here
+  %p= "#{theater_info.name} is located at #{theater_info.full_address}."

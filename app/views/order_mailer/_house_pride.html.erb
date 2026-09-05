@@ -1,0 +1,38 @@
+<%# A word to a returning patron, inside the follow-up letter.
+
+    Renamed from _wit_pride when the copy was genericized; the house copy it
+    used to carry lives on verbatim as that house's theme override.
+
+    Nothing to say to a first-timer, so nothing is printed: the generic house
+    has no founding story, no awards and no neighbourhood to be proud of that
+    this application could know about. Houses that do should override this
+    partial in their theme.
+
+    The letter is signed by the artistic director where there is one, so it
+    speaks in the first person there and as the house otherwise. %>
+<% visits = order.address.productions.count %>
+<% if visits >= 2 %>
+  <% personal = theater_info.first_person? %>
+  <table class="w410" width="410" cellpadding="0" cellspacing="0" border="0">
+    <tbody>
+      <tr>
+        <td class="w410" width="410">
+          <div align="left" class="article-content">
+            <p>
+              <%= personal ? 'I see' : 'We see' %> you've attended
+              <%= pluralize visits, 'production' %> at <%= theater_info.name %>.
+              Thank you — an audience that comes back is the whole point of the
+              work we do here.
+              <% if theater_info.default_theater&.accepts_donations %>
+                If <%= theater_info.name %> has been important to you,
+                <%= personal ? "I'd" : "we'd" %> like to invite you to
+                <a href="<%= new_donation_url %>">support the theater and our mission</a><% if theater_info.phone.present? %>
+                  or give <%= personal ? 'me' : 'us' %> a call at <%= theater_info.phone %><% end %>.
+              <% end %>
+            </p>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+<% end %>

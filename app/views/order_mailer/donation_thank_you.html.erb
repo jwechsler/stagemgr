@@ -1,28 +1,23 @@
+<%# The donation receipt's letter. Short on purpose: the case for giving to a
+    particular theater cannot be written generically, and a vague version of it
+    is worse than none. A house that wants to make that case -- attendance
+    figures, what contributed income actually pays for -- overrides this whole
+    template in its theme; see sites/example/README.md.
+
+    The subject line is the one piece of house copy that is not a view; it is an
+    I18n key so a theme can carry it (see config/locales/en.yml). %>
 <% content_for :email_title do %>
  Thanks for your support!
 <% end %>
-          <p>
-      Thanks so much for supporting Theater Wit and the many storefront theaters that make our home so special
-      with your contribution of <%= number_to_currency(@order.total_paid) %>. Contributions from people like you are what make everything
-      we do all day possible, and I can't tell you what every sign of support means to me.  In our brief history,
-      we have already made some astonishing strides and contributions to Chicago:
-    </p><ul>
-      <li>Over 120,000 patrons have visited our theater to attend over 150 different productions since we opened our new facility in April of 2010.</li>
-      <li>In addition, we routinely use
-      contributed income to pay each and every one of our artists and technicians a fair market wage for all rehearsal,
-      construction and performance.  You are directly responsible for contributing
-        to the livelihood of over 75 practicing theater professionals in the Chicago area each and every year.</li>
-      <li>Finally, our artistic programming is 60% funded by contributions, the remainder coming from ticket sales.</li>
-    </ul>
 <p>
-    Please grab me next time you're in the theater and say hi, or call me at 773-975-8150 if you have anything you'd like
-      to discuss.
-    </p>
-
-    <p>
-      Best,<br/><br/>
-      <%= image_tag "http://www.theaterwit.org/static/img/mail/jmwsignature.png" -%><br clear="all"/>
-      Jeremy Wechsler<br/>
-      Artistic Director,<br/>
-      Theater Wit<br>
-     </p>
+  Thank you for your contribution of <%= number_to_currency(@order.total_paid) %>.
+  Gifts like yours pay for the work on our stages — they are not a nicety, they are
+  how the season happens.
+</p>
+<p>
+  <%= render 'shared/house_thanks_line' %>
+</p>
+<p>
+  Best,<br/><br/>
+  <%= render 'signature' %>
+</p>

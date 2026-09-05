@@ -1,12 +1,19 @@
 <%= render 'followup_title', order: @order %>
+<%# A show the house produced gets the house's own letter. A show it merely
+    presented leads with the visiting company's message, then the survey, then
+    the house's note -- see the editorial rules in sites/README.md.
+
+    The opening line was plural where the rest of the letter (and its signature)
+    is not; TheaterInfo#first_person? now decides it, as it decides every other
+    pronoun here. %>
 <% if @order.performance.production.theater.producing? %>
 <p>
-  We hope you had a good time here at the theater and will return soon (there are a few suggestions in
+  <%= theater_info.first_person? ? 'I hope' : 'We hope' %> you had a good time here at the theater and will return soon (there are a few suggestions in
   the sidebar on the right, but check our website for all upcoming events).
 </p>
 <%= render 'core_followup', order: @order %>
 <% else %>
 <%= render 'followup_custom_message', order: @order, neutral_fallback: true %>
 <%= render 'survey_prompt', order: @order %>
-<%= render 'tw_host_callout', order: @order %>
+<%= render 'host_callout', order: @order %>
 <% end %>

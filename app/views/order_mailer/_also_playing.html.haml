@@ -1,4 +1,4 @@
-%h6 Also playing at the Wit…
+%h6= "Also playing at #{theater_info.name}…"
 - entries = Production.additional_upcoming_entries(order)
 - entries.each do |entry|
   %table.spacer

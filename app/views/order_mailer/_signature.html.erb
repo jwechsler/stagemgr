@@ -1,0 +1,24 @@
+<%# Who the letter is from. Follow-up, donation and membership mail is written
+    in the first person, so it needs a person to sign it; a house that has not
+    named an artistic director signs as its staff instead, which reads as
+    deliberate rather than as a missing merge field.
+
+    The signature image is a fact (theater: signature_image_url:) and must be an
+    absolute, publicly reachable URL -- mail clients cannot fetch anything from
+    this application. See sites/README.md.
+
+    TheaterInfo#first_person? is the one predicate every pronoun and every
+    signature in this mailer is chosen by; see its comment for why it is not
+    #artistic_director?. %>
+<% if theater_info.first_person? %>
+  <% if theater_info.signature_image_url.present? %>
+    <%= image_tag theater_info.signature_image_url, alt: theater_info.artistic_director_name -%><br clear="all"/>
+  <% end %>
+  <%= theater_info.artistic_director_name %><br/>
+  <% if theater_info.artistic_director_title.present? %>
+    <%= theater_info.artistic_director_title %>,<br/>
+  <% end %>
+  <%= theater_info.name %>
+<% else %>
+  The Staff at <%= theater_info.name %>
+<% end %>

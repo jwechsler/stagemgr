@@ -34,6 +34,8 @@ houses usually want:
 | `order_mailer/_dining_recommendations.html.haml` | Where to eat first. Generic is empty — a ticketing system has no opinion about your neighbourhood. |
 | `order_mailer/_refunds_and_exchanges.html.haml` | Your exchange policy in your own words. The generic version says only that tickets are non-refundable. |
 | `order_mailer/_seating_policy.html.haml` | Latecomers, reserved vs general admission, house rules. |
+| `order_mailer/_amenities.html.haml` | The bar, the coat check, the lobby. Generic is empty — no two venues have the same things waiting for patrons. |
+| `order_mailer/_house_pride.html.erb` | The paragraph in the follow-up letter to someone who keeps coming back: your history, your awards, your case for a donation. Generic says only that they have been here before. |
 | `order_mailer/donation_thank_you.html.erb` | The whole donation receipt. The generic letter is short and correct; replace it if you want to make a case for the money. |
 
 `locales/en.yml` in this directory covers the one piece of house copy that is

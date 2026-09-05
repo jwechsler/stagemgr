@@ -1,0 +1,29 @@
+-# The house's own logo, at the top of every order email.
+-#
+-# Three sources, in order: the configured absolute URL (theater: logo_url:),
+-# then the Default theater's uploaded logo, then the house name set as text.
+-# The last one is not a fallback of last resort so much as a perfectly good
+-# masthead: a new install sends recognisable mail before anyone has uploaded
+-# anything.
+-#
+-# This is a fact rather than a theme override on purpose. Overriding the two
+-# mail layouts to change one src would fork ~90 lines of table markup per
+-# house and silently miss every later fix to them -- starting with the
+-# presenting-company branch just above this render.
+-#
+-# The variant is built and resolved here rather than through TheaterDecorator
+-# for two reasons: url_for in this view carries the mailer's own url options
+-# (host and, under a sub-URI mount, the script name), and a blob that has gone
+-# missing from storage must not raise in the middle of sending an order
+-# confirmation -- a nameless masthead is a far better outcome than an
+-# undelivered receipt.
+- if theater_info.logo_url.present?
+  %img{ src: theater_info.logo_url, alt: theater_info.name }
+- else
+  - logo = theater_info.default_theater&.logo
+  - logo = nil unless logo&.attached?
+  - variant = (logo&.variant(format: 'png', resize_and_pad: [*Theater::MEDIUM, { gravity: 'centre', alpha: true }])&.processed rescue nil)
+  - if variant.present?
+    %img{ src: url_for(variant), alt: theater_info.name }
+  - else
+    %h2= theater_info.name

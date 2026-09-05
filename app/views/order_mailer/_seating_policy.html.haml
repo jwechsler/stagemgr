@@ -1,13 +1,19 @@
+-# House rules for getting into the seat: general admission, doors, latecomers.
+-# The tone here is deliberately flat -- a house with a livelier policy (or a
+-# different one) overrides this partial in its theme.
 %h5 Seating and Admission
 - unless order.performance.production.has_reserved_seating?
   %p
-    All seating is general admission. Each show opens its doors 25 minutes before curtain time. Our houses are intimate with excellent sightlines, but if you are concerned, you may want to show up on the earlier side for your pick of seats.
+    All seating is general admission.
+    - if theater_info.doors_open_minutes_before.present?
+      = "Doors open #{pluralize(theater_info.doors_open_minutes_before, 'minute')} before curtain time."
     - if order.special_request.blank?
-      If you have any special seating requests (wheelchair accessibility, stairs, etc.), please call us at 773-975-8150 and we'll do our best to make sure you're taken care of.
+      - if theater_info.phone.present?
+        = "If you have any special seating requests (wheelchair accessibility, stairs, etc.), please call us at #{theater_info.phone} and we'll do our best to make sure you're taken care of."
     - else
       We have your request for
       = order.special_request
-      seating.  We will reserve those seats for you.  Look for your name on the seat :)
+      seating.  We will reserve those seats for you.
 %p
   %i
     Please note that late seating is
@@ -15,5 +21,4 @@
       not
       = 'necessarily' if order.performance.production.allow_late_seating?
       available.
-  Please make plans to be at the theater at least ten minutes before curtain to avoid tears and recriminations.
-</p>
+  Please make plans to be at the theater at least ten minutes before curtain.

@@ -129,6 +129,20 @@ RSpec.describe TheaterInfo do
     end
   end
 
+  describe '#first_person?' do
+    it 'is true with a name alone -- a name is enough to say "I"' do
+      expect(info('artistic_director_name' => 'Test Director')).to be_first_person
+    end
+
+    it 'is false with an address but nobody to attach it to' do
+      expect(info('artistic_director_email' => 'director@yourtheater.org')).not_to be_first_person
+    end
+
+    it 'is false for a house that named no one' do
+      expect(info).not_to be_first_person
+    end
+  end
+
   describe '#box_office_email' do
     it 'comes from the existing email addresses block, not a second copy of it' do
       expect(info.box_office_email).to eq('boxoffice@yourtheater.org')

@@ -118,6 +118,21 @@ class TheaterInfo
     artistic_director_name.present? && artistic_director_email.present?
   end
 
+  # May this house's mail speak as a person -- "I hope you had a good evening"
+  # -- rather than as an institution?
+  #
+  # A name is enough to say "I": the sentence is signed by whoever the house
+  # named, whether or not patrons can write back to them. #artistic_director?
+  # asks the stricter question, because it decides the From: header and whether
+  # to print an address to reply to, and neither works without both halves.
+  #
+  # Every pronoun in the mailer views is chosen by this one predicate, so a
+  # house cannot end up with a letter that says "I" in one paragraph and "we"
+  # in the next.
+  def first_person?
+    artistic_director_name.present?
+  end
+
   # The box office address, from the existing `email: addresses: box_office:`
   # key rather than a second copy in the `theater:` block.
   def box_office_email

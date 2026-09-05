@@ -1,17 +1,15 @@
 
 = render :partial=>"confirmation_ticket_details", :locals=>{:order=>order}
 
+-# Special events (conferences, external rentals) get the ticket details and the
+-# legal line only: the house's own visit advice would be wrong for them.
 - unless order.performance.production.treat_as_special_event?
-  %h4 About your visit to Theater Wit
+  %h4= "About your visit to #{theater_info.name}"
 
   = render :partial=>"transportation_instructions", :locals=>{:order=>order}
   = render :partial=>"dining_recommendations", :locals=>{order: order}
   = render :partial=>"seating_policy", :locals=>{order: order}
-
-  %h5 Bar
-
-  %p
-    Theater Wit has a full cocktail, wine and beer bar. Killer cocktails and a variety of top-shelf liquors, including local micro brews.
+  = render :partial=>"amenities", :locals=>{order: order}
 
 %h6 And The Obligatory Legal Speak at the End of Emails
 = render :partial=>'refunds_and_exchanges', locals: {order: order}
