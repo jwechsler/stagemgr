@@ -128,6 +128,14 @@ nav:
     - Dynamic Pricing Strategies: advanced/dynamic-pricing-advanced.md
     - Capacity Management: advanced/capacity-management.md
     - Background Jobs: advanced/background-jobs.md
+  - Developer:
+    - Developer Overview: developer/index.md
+    - Installation: developer/installation.md
+    - Configuration: developer/configuration.md
+    - Credentials & Secrets: developer/credentials.md
+    - Site Theming: developer/theming.md
+    - Deployment: developer/deployment.md
+    - Troubleshooting: developer/troubleshooting.md
   - Reference:
     - Glossary: reference/glossary.md
     - Permissions Matrix: reference/permissions-matrix.md
