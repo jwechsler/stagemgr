@@ -117,7 +117,7 @@ module Setup
         record OK, 'no encrypted credentials file — secrets come from the environment'
       when :no_key
         record FAIL, "#{AppSecrets.credentials_file} exists but no decryption key " \
-                     "(config/credentials/#{AppSecrets.env_name}.key or RAILS_MASTER_KEY) — " \
+                     "(config/credentials/#{Rails.env}.key or RAILS_MASTER_KEY) — " \
                      'every credential reads as missing'
       else
         record WARN, 'credentials store not inspectable in this process'

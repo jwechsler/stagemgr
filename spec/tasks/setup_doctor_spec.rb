@@ -67,11 +67,12 @@ RSpec.describe Setup::Doctor do
     # there, the key is not, and each secret reads as missing.
     it 'fails when the file is present but undecryptable' do
       allow(AppSecrets).to receive(:credentials_status).and_return(:no_key)
-      allow(AppSecrets).to receive(:env_name).and_return('production')
-
+      # No stubbing of anything else: the message must build from Rails.env
+      # alone (an earlier version called AppSecrets.env_name without its
+      # argument and only a stub kept the spec green).
       doctor.send(:check_credentials_store)
 
-      expect(output.string).to include('FAIL', 'no decryption key', 'config/credentials/production.key',
+      expect(output.string).to include('FAIL', 'no decryption key', "config/credentials/#{Rails.env}.key",
                                        'RAILS_MASTER_KEY')
       expect(doctor).not_to be_healthy
     end
