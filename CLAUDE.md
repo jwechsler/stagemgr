@@ -112,8 +112,8 @@ Based on analysis of the codebase, Stagemgr consists of these key components:
 
 ## Debugging Tips
 - Check Rails logs at `./stagemgr/log/development.log` for errors
-- Use `docker-compose logs stagemgr` to check container logs
-- Inspect Resque jobs with `docker-compose exec stagemgr bash -c "bundle exec rails c"` then `Resque.info`
+- Use `docker compose logs stagemgr` to check container logs
+- Inspect Resque jobs with `docker compose exec -u app stagemgr bash -lc "bundle exec rails c"` (or `../site/bin/rc`) then `Resque.info`
 - Most ticketing issues relate to inventory allocation or order processing
 - Database-level issues can be debugged by connecting directly to MySQL
 
