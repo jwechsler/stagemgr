@@ -4,10 +4,11 @@ class GenerateCalendar
     path = Rails.configuration.x.server_config['static_cache_dir'] + '/' + path
 
     cal = RiCal.Calendar do |cal|
-      cal.add_x_property 'X-WR-CALNAME', 'Theater Wit Performance Calendar'
-      cal.add_x_property 'X-WR-TIMEZONE', 'VALUE=TEXT:America/Chicago'
+      # The subscriber sees the calendar's name in their own calendar app, so it
+      # names the house; the timezone is the application's, not a fixed city.
+      cal.add_x_property 'X-WR-CALNAME', "#{TheaterInfo.new.name} Performance Calendar"
+      cal.add_x_property 'X-WR-TIMEZONE', "VALUE=TEXT:#{Time.zone.tzinfo.identifier}"
 
-      # cal.default_tzid = 'America/Chicago'
       Performance.joins(:production).references(:production).where(
         'productions.status = ? and performances.status in (?) and performance_date > ?', Production::ACTIVE, Performance.visible_statuses, Date.today.beginning_of_month
       ).includes(:production).each do |perf|

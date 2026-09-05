@@ -10,9 +10,13 @@
           The membership will be activated on
           = "#{@order.gift_date.to_s(:long)},"
           at which point,
-        your giftee will receive their passport number via e-mail and be ready to join us at the Wit for unlimited theater! If you would like to get their membership card in advance, please call our box office at 773-975-8150 and we'll get you set up!
+        your giftee will receive their passport number via e-mail and be ready to join us at #{theater_info.name} for unlimited theater!
+        - if theater_info.phone.present?
+          = "If you would like to get their membership card in advance, please call our box office at #{theater_info.phone} and we'll get you set up!"
     - else
       %p
-        We are processing your membership request right now and you'll get an email in a few minutes.  If you don't get anything from us in a bit (sometimes the credit card company gets stuck), give us a call at 773-975-8150 and we'll push it along.
+        We are processing your membership request right now and you'll get an email in a few minutes.
+        - if theater_info.phone.present?
+          = "If you don't get anything from us in a bit (sometimes the credit card company gets stuck), give us a call at #{theater_info.phone} and we'll push it along."
       %p
         Welcome to membership!

@@ -87,7 +87,9 @@ class Admin::FlexPassOffersController < Admin::ApplicationController
     respond_to do |format|
       format.html do
         flash.keep
-        redirect_to(flex_pass_offers_url)
+        # The admin listing, not the public one: `flex_pass_offers_url` named a
+        # public index that has no controller (and no longer has a route).
+        redirect_to(admin_flex_pass_offers_url)
       end
       format.xml { head :ok }
     end

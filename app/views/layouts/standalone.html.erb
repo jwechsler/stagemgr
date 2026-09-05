@@ -34,8 +34,15 @@
         </div>
       </div>
 
+      <%# The only chrome a standalone public page has, so it carries the house's
+          contact facts. Each is optional: an unconfigured house gets the
+          copyright line alone rather than an empty address. %>
       <footer id="footer" class="copyright text-center contrast">
-          <p class="text-center">&copy; <%= Date.current.year %> <%= Rails.configuration.x.app_display_name %></p>
+          <p class="text-center">&copy; <%= Date.current.year %> <%= theater_info.name %></p>
+          <% contact = [theater_info.full_address, theater_info.phone].compact_blank %>
+          <% if contact.any? %>
+            <p class="text-center"><%= contact.join(' · ') %></p>
+          <% end %>
       </footer>
     </div>
   </div>

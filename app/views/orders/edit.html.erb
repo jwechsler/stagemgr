@@ -31,15 +31,10 @@
         <td valign="top">
           <%= order_form.check_box :add_to_email_list, :checked=>1 %>
         <td>
-          Join the Theater
-          Wit <%= if !@order.flex_pass_line_item.nil? && !@order.flex_pass_line_item.flex_pass_offer.theater_id.blank?
-                    "and #{Theater.find(@order.flex_pass_line_item.flex_pass_offer.theater_id).name} mailing lists"
-                  else
-                    "mailing list"
-                  end
-        %>
-          <br/><span style="font-size: 11px">Get company news, special offers, ticket discounts and more delivered twice monthly. Your email
-                will not be shared. :) </span>
+          <%# A FlexPass sold on behalf of another company subscribes the patron to that
+              company's list too; a pass good at this house alone does not. %>
+          <%= render 'shared/mailing_list_optin_label',
+                     other_theater: @order.flex_pass_line_item&.flex_pass_offer&.theater %>
         </td>
       </tr>
     </table>
@@ -58,5 +53,5 @@
   <p style="text-align:center;"><%= order_form.submit @submit_text, :action=>:confirm, :disable_with => 'Processing...' if order_form.object.status == Order::NEW || order_form.object.status == Order::HOLD %></p>
 <%- end -%>
 <br clear="all"/>
-<p>If you are having any troubles, please call our box office at 773-975-8150 and we'll help you out!</p>
+<%= render 'shared/box_office_help' %>
 <p clear="all">&nbsp;</p>

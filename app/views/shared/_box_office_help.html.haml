@@ -1,0 +1,9 @@
+-# The "call us and we'll help you out" line at the foot of every public order
+-# page. Renders its own paragraph: #contact_boxoffice_info is styled in
+-# frontend.css, and each order page shows the line exactly once.
+-#
+-# A house that has configured no phone number gets no sentence at all rather
+-# than an invitation to call nobody.
+- if theater_info.phone.present?
+  %p#contact_boxoffice_info
+    = "If you are having any troubles, please call our box office at #{theater_info.phone} and we'll help you out!"

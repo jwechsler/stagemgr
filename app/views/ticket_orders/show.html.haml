@@ -23,10 +23,15 @@
         remaining.
       - else
         made.  You were not charged any money for this order.
-      Your order id is
-      = "#{@ticket_order.id},"
-      and your tickets will be available for pickup under your name at our box office at 1229 W Belmont
-      ninety minutes before curtain. A confirmation email will be sent shortly.
+      -# Where and when tickets can be collected are both facts, and either may be
+      -# unset. The clause is built from whichever are configured so the sentence
+      -# still ends cleanly ("...at our box office.") when neither is.
+      - pickup_details = []
+      - pickup_details << "at #{theater_info.full_address}" if theater_info.full_address.present?
+      - pickup_details << theater_info.pickup_window_text if theater_info.pickup_window_text.present?
+      - pickup_lead = "Your order id is #{@ticket_order.id}, and your tickets will be available for pickup under your name at our box office"
+      = "#{[pickup_lead, *pickup_details].join(' ')}."
+      A confirmation email will be sent shortly.
     %p
       We will see you at the show on
       = @ticket_order.performance.performance_date.to_formatted_s(:long_ordinal)
@@ -34,8 +39,11 @@
       = "#{@ticket_order.performance.performance_time.to_formatted_s(:hour_min)}."
       - unless @ticket_order.performance.production.has_reserved_seating?
         Seating is general admission.
-      If you have any questions, please don't hesitate to call us at 773-975-8150 or email us at
-      %a{href:"mailto:boxoffice@theaterwit.org"} boxoffice@theaterwit.org.
+      - if theater_info.phone.present?
+        = "If you have any questions, please don't hesitate to call us at #{theater_info.phone}."
+      - if theater_info.box_office_email.present?
+        You can also reach us by email at
+        = succeed('.') { mail_to theater_info.box_office_email }
       Thanks for your support and we'll see you at the theatre.  Enjoy the show!
 
 =content_for :js do

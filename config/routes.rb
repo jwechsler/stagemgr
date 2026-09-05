@@ -114,11 +114,15 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :flex_pass_offers, only: :index do
+  # `only:` on the parent leaves the nested order routes untouched: buying is
+  # what these public resources are for. There is no FlexPassOffersController,
+  # so the parent offers no actions of its own; membership offers do have a
+  # public index. Everything else about an offer is edited under /admin.
+  resources :flex_pass_offers, only: [] do
     resources :orders, controller: 'flex_pass_offer_orders'
   end
 
-  resources :membership_offers do
+  resources :membership_offers, only: :index do
     resources :orders, controller: 'membership_offer_orders'
   end
 

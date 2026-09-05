@@ -111,8 +111,9 @@
             %p
               %strong
                 PLEASE NOTE: Processing your order can take a minute.  Once you order your tickets, please don't refresh your browser or use the back button or you may be charged twice.
-            %p.text-center
-              Problems? Give us a call at 773-975-8150.
+            - if theater_info.phone.present?
+              %p.text-center
+                = "Problems? Give us a call at #{theater_info.phone}."
 
 :javascript
   function submitForm() {

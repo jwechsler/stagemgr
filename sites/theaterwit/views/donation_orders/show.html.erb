@@ -1,0 +1,22 @@
+<%# Overrides app/views/donation_orders/show.html.erb.
+    Theater Wit's donation thank-you page, word for word as it read before the
+    copy was genericized. The house says thank you in its own voice and signs
+    the page by hand, so this stays a whole-page override; the generic version
+    says the same things plainly. %>
+<div class="grid-x grid-padding-x">
+  <div class="small-12 cell">
+    <p>
+      Thanks! You are 100% awesome. And probably 100% adorable. We've charged your credit card
+      <%= number_to_currency(@order.total_paid) %> today for your
+      donation. We'll also be sending you both an email and regular ol' snail mail message for your tax records. Please
+      don't hesitate to call us at the
+      theater (773-975-8150) or drop by next time you're in. We'd love to say hi.
+    </p>
+    <p>
+      Thanks again, <br/>
+      Jeremy Wechsler<br/>
+      Artistic Director,<br/>
+      Theater Wit
+    </p>
+  </div>
+</div>

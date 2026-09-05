@@ -42,6 +42,7 @@ module Setup
       check_required_secrets
       check_database
       check_redis
+      check_myemma_groups
       summarize
       self
     end
@@ -172,6 +173,32 @@ module Setup
       record OK, "redis reachable at #{self.class.redact(redis_url)}"
     rescue StandardError => e
       record FAIL, "redis at #{self.class.redact(redis_url)} not reachable (#{e.class}: #{first_line(e.message)})"
+    end
+
+    # A mailing-list opt-in that silently reaches no group is invisible until a
+    # marketing person asks where the new subscribers went, so the group names
+    # from server.yml are resolved against the account here.
+    #
+    # Only ever a WARN: a group that has not been created yet does not stop this
+    # install serving patrons. Skipped entirely unless MyEmma is both configured
+    # and writable, which keeps `setup:doctor` off the network in development
+    # (MyEmma.read_only!) and in the test suite (no credentials, so disabled?).
+    def check_myemma_groups
+      return record OK, 'MyEmma is not configured — mailing-list opt-ins are not synced' if MyEmma.disabled?
+      return record OK, 'MyEmma is read-only in this environment — group names not verified' if MyEmma.read_only?
+
+      MyEmmaGroups::KEYS.each { |key| record(*myemma_group_result(key)) }
+    rescue StandardError => e
+      record WARN, "MyEmma groups not verified (#{e.class}: #{first_line(e.message)})"
+    end
+
+    def myemma_group_result(key)
+      name = MyEmmaGroups.name_for(key)
+      return [OK, "my_emma: #{key} is blank — nobody is added to that group"] if name.nil?
+      return [OK, "my_emma: #{key} '#{name}' found"] if MyEmmaGroups.id_for(key)
+
+      [WARN, "my_emma: #{key} '#{name}' does not exist in this Emma account — " \
+             'patrons opting in will not be added to it']
     end
 
     def redis_url

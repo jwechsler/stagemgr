@@ -1,1 +1,1 @@
-<h2>That item is no longer available for sale.  Please contact the box office at 773-975-8150</h2>
+<h2>That item is no longer available for sale.<% if theater_info.phone.present? %> Please contact the box office at <%= theater_info.phone %>.<% end %></h2>

@@ -1,0 +1,18 @@
+-# The public membership list. Price and terms live in each offer's
+-# html_description (an offer's only local price is a Stripe price_id), exactly
+-# as they do on the checkout page, so the box office writes them once in the
+-# admin form and they read the same in both places.
+.grid-x.grid-padding-x
+  .small-12.cell
+    %h1= "Memberships at #{theater_info.name}"
+
+    - if @membership_offers.empty?
+      %p
+        There are no memberships on sale right now.
+      = render 'shared/box_office_help'
+    - else
+      - @membership_offers.each do |offer|
+        = render "shared/components/callout" do
+          %h2= offer.name
+          = display_markdown(offer.html_description)
+          = link_to "Buy a #{offer.name}", new_membership_offer_order_path(offer), class: 'button'

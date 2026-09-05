@@ -12,9 +12,9 @@
           %div.special_offer_upsell
             = link_to festival_offer.short_description, new_flex_pass_offer_order_path(festival_offer) unless festival_offer.short_description.blank?
             or, purchase tickets for an individual show below
-        - else
+        - elsif MembershipOffer.on_sale_to_public.exists?
           %span.special_offer_upsell
-            %a{:href=>"/boxoffice/membership"} Become a member and see everything at the Wit
+            = link_to "Become a member and see everything at #{theater_info.name}", membership_offers_path
             for one low monthly subscription, or purchase tickets for an individual show below
 
         %h3
@@ -79,8 +79,9 @@
               .heatmap-legend
                 %span.heatmap-legend-item.heatmap-warning Popular performance
                 %span.heatmap-legend-item.heatmap-critical Near capacity
-        %tr
-          %td.boxoffice-message{:colspan=>"7"}  Problems? Call the box office at 773-975-8150 during business hours
+        - if theater_info.phone.present?
+          %tr
+            %td.boxoffice-message{:colspan=>"7"}= "Problems? Call the box office at #{theater_info.phone} during business hours"
         - if found_sold_out and !@production.allow_late_seating
           %tr
             %td.boxoffice-message{:colspan=>"7"}

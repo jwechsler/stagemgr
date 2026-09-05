@@ -134,6 +134,70 @@ RSpec.describe Setup::Doctor do
     end
   end
 
+  # Every example here stubs MyEmma: a doctor run must never reach the network
+  # from the test suite (the check is skipped for real, because the test
+  # environment sets no MyEmma credentials, so MyEmma.disabled? is true).
+  describe 'the MyEmma groups' do
+    before do
+      allow(MyEmma).to receive(:disabled?).and_return(false)
+      allow(MyEmma).to receive(:read_only?).and_return(false)
+      allow(MyEmmaGroups).to receive(:name_for).and_return('Newsletter')
+      allow(MyEmmaGroups).to receive(:id_for).and_return(11)
+    end
+
+    it 'reports each configured group that resolves' do
+      doctor.send(:check_myemma_groups)
+
+      expect(output.string).to include('newsletter_group', 'coupon_group', "'Newsletter' found")
+      expect(doctor).to be_healthy
+    end
+
+    it 'warns — never fails — for a group name that is not in the account' do
+      allow(MyEmmaGroups).to receive(:id_for).and_return(nil)
+
+      doctor.send(:check_myemma_groups)
+
+      expect(output.string).to include('warn', 'does not exist in this Emma account')
+      expect(doctor).to be_healthy
+    end
+
+    it 'says so when a group has been switched off with a blank name' do
+      allow(MyEmmaGroups).to receive(:name_for).and_return(nil)
+
+      doctor.send(:check_myemma_groups)
+
+      expect(output.string).to include('is blank — nobody is added to that group')
+      expect(doctor).to be_healthy
+    end
+
+    it 'makes no API call when MyEmma is not configured' do
+      allow(MyEmma).to receive(:disabled?).and_return(true)
+      expect(MyEmmaGroups).not_to receive(:id_for)
+
+      doctor.send(:check_myemma_groups)
+
+      expect(output.string).to include('MyEmma is not configured')
+    end
+
+    it 'makes no API call in a read-only environment such as development' do
+      allow(MyEmma).to receive(:read_only?).and_return(true)
+      expect(MyEmmaGroups).not_to receive(:id_for)
+
+      doctor.send(:check_myemma_groups)
+
+      expect(output.string).to include('read-only')
+    end
+
+    it 'warns rather than blowing up when the API is unreachable' do
+      allow(MyEmmaGroups).to receive(:id_for).and_raise(SocketError, 'getaddrinfo: nodename nor servname provided')
+
+      doctor.send(:check_myemma_groups)
+
+      expect(output.string).to include('warn', 'MyEmma groups not verified')
+      expect(doctor).to be_healthy
+    end
+  end
+
   describe 'the site theme' do
     it 'fails when server.yml names a theme directory that is not there' do
       allow(doctor).to receive(:server_config).and_return('site_theme' => 'nowhere')
