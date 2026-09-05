@@ -30,5 +30,5 @@ where
   orders.status in ('Fulfilled','Processed','Unclaimed') and
   date_format(convert_tz(orders.created_at,'UTC','SYSTEM'),'%Y-%m-%d') BETWEEN(curdate() - INTERVAL 14 DAY) AND (curdate() - INTERVAL 7 DAY)
 group by prod.id
-order by prod.name, perf.performance_date desc;" | /usr/local/bin/mysql --defaults-extra-file=/Users/jeremyw/.my.cnf --table=true -u stagemgr_prod stagemgr > /tmp/previous7_counts$1.txt
+order by prod.name, perf.performance_date desc;" | /usr/local/bin/mysql --defaults-extra-file="${MY_CNF:-$HOME/.my.cnf}" --table=true -u stagemgr_prod stagemgr > /tmp/previous7_counts$1.txt
 

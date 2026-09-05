@@ -98,8 +98,6 @@ Rails.application.configure do
     MyEmma.read_only!
   end
 
-  config.external_site_root = 'file:///Users/jeremyw/dev/site'
-
   # Application configuration loaded from YAML. The loaded objects are kept
   # exactly as parsed (string-keyed Hashes) and assigned to config.x.* so that
   # existing string-key access (e.g. config.x.server_config['host']) keeps
