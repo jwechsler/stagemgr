@@ -32,7 +32,7 @@ all:
     warning_at: 50
     critical_at: 30
   # layout for public-facing pages to match the main web site
-  ext_site_wrapper: 'ext_site_wrapper'
+  ext_site_wrapper: 'standalone'
   # export directory for HUD reports
   hud_export_directory: "/tmp"
   # Directory for data-retention archive files (aged-out audit rows, exported
@@ -55,8 +55,10 @@ development:
   root_url:  "http://localhost"
   secure_root_url:  "http://localhost"
   static_cache_dir: "/tmp/stagemgr-cache"
-  filestore_hash: "yoursecrethere"
-  resque_admin_password: "changeme"
+  # Basic-auth password for /admin/resque. It is a secret, so it now lives in
+  # ENV (RESQUE_ADMIN_PASSWORD, e.g. in .env) or in the encrypted credentials as
+  # `resque_admin_password`. A value left here still works but warns at boot.
+  # resque_admin_password: "changeme"
   my_emma:
     create_production_groups: false
     create_theater_groups: false
@@ -70,6 +72,8 @@ development:
       supervisor_notifications: admin@yourtheater.org
       wheelchair_conversion_notifications: stagemgr@yourtheater.org
       software_address: stagemgr@yourtheater.org
+      # crash reports from the exception notifier; falls back to software_address
+      exception_notifications: bugs@yourtheater.org
   payment_processing:
     default_gateway: bogus
     default_recurring_gateway: bogus
@@ -79,8 +83,6 @@ development:
 # The test/cucumber suites run against MySQL (see database.yml.example) and use
 # StripeMock, so no real gateway or credentials are needed here.
 test:
-  filestore_hash: "yoursecrethere"
-  resque_admin_password: "changeme"
   host: "127.0.0.1"
   root_url:  "http://127.0.0.1"
   secure_root_url:  ""
@@ -98,6 +100,8 @@ test:
       supervisor_notifications: admin@yourtheater.org
       wheelchair_conversion_notifications: stagemgr@yourtheater.org
       software_address: stagemgr@yourtheater.org
+      # crash reports from the exception notifier; falls back to software_address
+      exception_notifications: bugs@yourtheater.org
   payment_processing:
     default_gateway: bogus
     default_recurring_gateway: bogus
@@ -109,8 +113,8 @@ production:
   root_url:  "http://configure.yourserver.here/tickets"
   secure_root_url: "https://configure.yourserver.here/tickets"
   static_cache_dir: "/var/www/stagemgr/tmp/cache"
-  filestore_hash: "changeme"
-  resque_admin_password: "changeme"
+  # See the development block: set RESQUE_ADMIN_PASSWORD or the credential instead.
+  # resque_admin_password: "changeme"
   my_emma:
     create_production_groups: true
     create_theater_groups: true
@@ -124,6 +128,8 @@ production:
       supervisor_notifications: admin@yourtheater.org
       wheelchair_conversion_notifications: stagemgr@yourtheater.org
       software_address: stagemgr@yourtheater.org
+      # crash reports from the exception notifier; falls back to software_address
+      exception_notifications: bugs@yourtheater.org
   payment_processing:
     default_gateway: stripe
     default_recurring_gateway: stripe
