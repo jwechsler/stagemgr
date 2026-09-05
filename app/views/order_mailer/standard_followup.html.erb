@@ -3,12 +3,11 @@
     presented leads with the visiting company's message, then the survey, then
     the house's note -- see the editorial rules in sites/README.md.
 
-    The opening line was plural where the rest of the letter (and its signature)
-    is not; TheaterInfo#first_person? now decides it, as it decides every other
-    pronoun here. %>
+    The opening line is deliberately "We": the house as a whole is glad you
+    came; the artistic director's own voice starts in the next paragraph. %>
 <% if @order.performance.production.theater.producing? %>
 <p>
-  <%= theater_info.first_person? ? 'I hope' : 'We hope' %> you had a good time here at the theater and will return soon (there are a few suggestions in
+  We hope you had a good time here at the theater and will return soon (there are a few suggestions in
   the sidebar on the right, but check our website for all upcoming events).
 </p>
 <%= render 'core_followup', order: @order %>

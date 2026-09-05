@@ -4,4 +4,4 @@
 -# that rent its stages, and the sentence says so.
 = "Thank you for supporting #{theater_info.name} and the many storefront theaters that make our home so special."
 - if theater_info.phone.present?
-  = "If you have any questions, please call our box office at #{theater_info.phone}."
+  = "If you have any questions, please #{local_assigns.fetch(:phone_phrase, 'call our box office at')} #{theater_info.phone}."

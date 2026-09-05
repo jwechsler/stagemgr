@@ -1,10 +1,11 @@
 -# The house's thank-you sentence, for donation and pass copy on public pages
 -# and in email. Renders inline text with no wrapper: callers put it inside
--# their own paragraph.
+-# their own paragraph. Pass phone_phrase: to change how the phone sentence
+-# is worded (the membership email says "call us at").
 -#
 -# Houses generally want to say something particular here — about the artists
 -# the money pays, or the neighbourhood — so this is a leaf partial meant to be
 -# overridden at sites/<slug>/views/shared/_house_thanks_line.html.haml.
 = "Thank you for supporting #{theater_info.name}."
 - if theater_info.phone.present?
-  = "If you have any questions, please call our box office at #{theater_info.phone}."
+  = "If you have any questions, please #{local_assigns.fetch(:phone_phrase, 'call our box office at')} #{theater_info.phone}."

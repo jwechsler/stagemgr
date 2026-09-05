@@ -45,10 +45,6 @@ require 'rails_helper'
 #   * membership_confirmation: the Stripe portal button's surrounding <table>
 #     was previously left unclosed and is now balanced, so indentation and tag
 #     order shift around it.
-#   * standard_followup: the producing-theater opening reads "I hope you had a
-#     good time here at the theater" rather than "We hope ...". Every pronoun in
-#     this mailer is now chosen by TheaterInfo#first_person?, and a letter signed
-#     by a named artistic director says "I" throughout.
 #   * _stay_in_touch: "at our website, on Facebook page, or Twitter" becomes
 #     "on our website, Facebook, or Twitter" -- the list is built from whichever
 #     social facts are configured, so its connectives are generated.
