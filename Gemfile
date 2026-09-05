@@ -79,7 +79,6 @@ gem 'resque-scheduler'
 gem 'whenever', require: false
 
 gem 'activestorage-validator', '0.4.0' # validates blobs for activestorage
-gem 'config', git: 'https://github.com/railsconfig/config.git'
 gem 'decent_exposure'
 gem 'responders'
 
@@ -102,8 +101,6 @@ group :development do
   #  gem 'g'
   #  gem 'terminal-notifier'
   #  gem 'mongrel'
-  gem 'capistrano-rails'
-  gem 'capistrano-rbenv'
   gem 'haml-rails'
   gem 'http_logger'
   gem 'pry'

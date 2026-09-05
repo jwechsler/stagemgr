@@ -1,0 +1,45 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+  <title><%= content_for?(:title) ? yield(:title) : Rails.configuration.x.app_display_name %></title>
+  <%= stylesheet_link_tag "frontend" %>
+  <%= yield(:head) %>
+</head>
+<body>
+  <div id="page-container">
+    <div id="content-wrap">
+
+      <div class="grid-container fixed">
+
+        <div class="grid-x">
+          <div class="cell">
+
+            <div class="grid-padding-x paper">
+              <%- unless flash.empty? %>
+                  <%= render :partial=>'/flash_notice' %>
+              <%- end %>
+
+              <div class="small-12 cell">
+                <%= yield %>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <footer id="footer" class="copyright text-center contrast">
+          <p class="text-center">&copy; <%= Date.current.year %> <%= Rails.configuration.x.app_display_name %></p>
+      </footer>
+    </div>
+  </div>
+
+  <%= yield(:js) %>
+</body>
+</html>

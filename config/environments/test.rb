@@ -80,7 +80,7 @@ Rails.application.configure do
   config.x.payment_config = config.x.server_config['payment_processing'] || {}
   config.x.test_credit_card = config.x.payment_config['test_credit_card']
   config.x.email_address = config.x.server_config.dig('email', 'addresses')
-  config.x.server_config['ext_site_wrapper'] = 'ext_test_wrapper'
+  config.x.server_config['ext_site_wrapper'] = 'standalone'
   config.x.rand_clause = 1
   config.action_mailer.default_url_options = MailerUrlOptions.for(config.x.server_config)
 
