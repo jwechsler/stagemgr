@@ -31,3 +31,9 @@
 
 en:
   hello: "Hello world"
+  order_mailer:
+    donation_thank_you:
+      # The one piece of house copy that is not a view, so it is not a theme
+      # view override either: a site theme carries its own version of this key
+      # in sites/<slug>/locales/en.yml, which is loaded last and wins.
+      subject: "Thank you for your donation!"

@@ -1,0 +1,7 @@
+-# Overrides app/views/shared/_house_thanks_line.html.haml.
+-# Theater Wit's thank-you sentence, as it read before the copy was
+-# genericized: the house's identity is bound up with the storefront companies
+-# that rent its stages, and the sentence says so.
+= "Thank you for supporting #{theater_info.name} and the many storefront theaters that make our home so special."
+- if theater_info.phone.present?
+  = "If you have any questions, please call our box office at #{theater_info.phone}."

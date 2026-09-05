@@ -49,6 +49,17 @@ module ApplicationHelper
     end
   end
 
+  # Facts about the house -- phone, address, social links, who signs the mail --
+  # for the partials that need to name them. Memoized per view context, so the
+  # Default theater row is looked up once a rendered document rather than once a
+  # sentence. That is one lookup per page, and two for an email with both an
+  # HTML and a text part, which is cheap enough not to want a longer-lived cache
+  # that would go stale when the theater row is edited.
+  # OrderMailer's Ruby code has its own private +house+ memo for the same object.
+  def theater_info
+    @theater_info ||= TheaterInfo.new
+  end
+
   def mailing_list_link(production = nil)
     production.nil? || production.mailing_list_link.blank? ? Rails.configuration.x.server_config['mailing_list_link'] : production.mailing_list_link
   end

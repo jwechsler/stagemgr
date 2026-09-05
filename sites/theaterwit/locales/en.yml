@@ -1,0 +1,7 @@
+# Loaded after config/locales/en.yml (see config/initializers/site_theme.rb),
+# so anything here wins. Keep it to strings that are genuinely not views —
+# today that is exactly one, the donation receipt's subject line.
+en:
+  order_mailer:
+    donation_thank_you:
+      subject: "Thank you for your donation (you are AWESOME)!"

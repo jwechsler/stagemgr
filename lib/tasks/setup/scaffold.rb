@@ -57,7 +57,9 @@ module Setup
                      'Create the directory (see sites/README.md) or copy an existing theme by hand.'
       end
 
-      { site: copy_site(source, slug), server_yml: register_site_theme(slug) }
+      result = { site: copy_site(source, slug), server_yml: register_site_theme(slug) }
+      report_site(slug)
+      result
     end
 
     # Fills a blank or missing SECRET_KEY_BASE in .env. Returns :generated or
@@ -93,6 +95,21 @@ module Setup
       return if results[:created].empty?
 
       say 'Review the generated files and fill in deployment-specific values before starting the app.'
+    end
+
+    # A new theme is empty on purpose -- a blank override would render an empty
+    # section rather than the generic one -- so say how to put something in it.
+    def report_site(slug)
+      say ''
+      say 'Next steps: a theme overrides views by shadowing them. Copy the generic file, then edit the copy:'
+      say ''
+      say '    cp app/views/order_mailer/_transportation_instructions.html.haml \\'
+      say "       sites/#{slug}/views/order_mailer/"
+      say ''
+      say 'An override replaces the generic file completely and stops receiving later fixes to it, so'
+      say "override the smallest file that has the words you want to change. sites/#{slug}/README.md lists"
+      say 'the usual candidates; sites/README.md explains what belongs in a theme and what belongs in the'
+      say '`theater:` block of config/server.yml instead.'
     end
 
     def copy_site(source, slug)

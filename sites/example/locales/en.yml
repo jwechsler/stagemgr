@@ -1,0 +1,14 @@
+# Strings that are not views. Every file in this directory is appended to
+# I18n.load_path after config/locales, so anything defined here wins.
+#
+# There is exactly one such string today: the subject line of the donation
+# receipt. Everything else with a voice in it is a view, and views are
+# overridden by copying them into ../views/ instead.
+#
+# Uncomment the keys below to use it — or delete this file, which is equally
+# fine. Do not comment out the `en:` line itself: a YAML file with no mapping
+# at all is not loadable and I18n raises on it.
+en:
+  # order_mailer:
+  #   donation_thank_you:
+  #     subject: "Thank you for your donation!"
