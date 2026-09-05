@@ -1,38 +1,46 @@
-# SQLite version 3.x
-#   gem install sqlite3-ruby (not necessary on OS X Leopard)
-development:
-  adapter: mysql2
-  encoding: utf8mb4
-  collation: utf8mb4_0900_ai_ci
-  database: stagemgr_development
-  username: root
-  password:
-  socket: /tmp/mysql.sock
+# Copy to config/database.yml (`rake setup:config` does this) — the real file is
+# gitignored. Every value is environment-driven, so the same generated file
+# works for a native install, the Docker stack (which sets DATABASE_HOST=mysql)
+# and CI (which points at its ephemeral MySQL service).
+#
+# MySQL 8 only. utf8mb4/utf8mb4_0900_ai_ci is required: the schema stores emoji
+# and other 4-byte characters. See docs/runbooks/utf8mb4-migration.md.
+#
+# Set DATABASE_SOCKET to connect over a Unix socket instead of TCP — handy for a
+# native macOS Homebrew MySQL. Left blank, mysql2 uses host/port.
 
-# The test/cucumber suites run on MySQL (not sqlite). Values are ENV-driven so
-# the same template works locally and in CI (which sets DATABASE_HOST etc. to
-# point at its ephemeral MySQL service).
-# Do not set this db to the same as development or production.
-test: &TEST
+default: &default
   adapter: mysql2
   encoding: utf8mb4
   collation: utf8mb4_0900_ai_ci
-  database: <%= ENV.fetch("TEST_DATABASE", "stagemgr_test") %>
-  username: <%= ENV.fetch("DATABASE_USERNAME", "root") %>
-  password: <%= ENV.fetch("DATABASE_PASSWORD", "") %>
+  pool: <%= ENV.fetch("DATABASE_POOL", 5) %>
+  username: <%= ENV.fetch("DATABASE_USER", "stagemgr_dev") %>
+  password: <%= ENV.fetch("DATABASE_PASSWORD", "password") %>
   host: <%= ENV.fetch("DATABASE_HOST", "127.0.0.1") %>
   port: <%= ENV.fetch("DATABASE_PORT", 3306) %>
-  pool: 5
+  database: <%= ENV.fetch("DATABASE_NAME", "stagemgr_dev") %>
+<% if ENV["DATABASE_SOCKET"].to_s.strip != "" %>
+  socket: <%= ENV["DATABASE_SOCKET"] %>
+<% end %>
 
-# Unused stub -- the real production config is generated outside this repo and
-# lives on the server (config/database.yml is gitignored). It must also set
-# `encoding: utf8mb4` and `collation: utf8mb4_0900_ai_ci`; see
-# docs/runbooks/utf8mb4-migration.md.
-production:
-  adapter: sqlite3
-  database: db/production.sqlite3
-  pool: 5
-  timeout: 5000
+development:
+  <<: *default
+
+# Warning: the test database is truncated between examples. Never point it at
+# development or production. Give each concurrent checkout its own name via
+# TEST_DATABASE_NAME.
+test: &TEST
+  <<: *default
+  database: <%= ENV.fetch("TEST_DATABASE_NAME", "stagemgr_test") %>
 
 cucumber:
   <<: *TEST
+
+# No defaults here on purpose: booting production against `stagemgr_dev` with
+# the password "password" because a variable was unset is exactly the accident
+# worth failing loudly on. ENV.fetch raises KeyError naming the missing key.
+production:
+  <<: *default
+  username: <%= ENV.fetch("DATABASE_USER") %>
+  password: <%= ENV.fetch("DATABASE_PASSWORD") %>
+  database: <%= ENV.fetch("DATABASE_NAME", "stagemgr_production") %>

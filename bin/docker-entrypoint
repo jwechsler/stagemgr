@@ -1,0 +1,220 @@
+#!/bin/bash
+# Stagemgr Docker entrypoint.
+#
+# Runs on every container start and is idempotent — re-running bundle/yarn/
+# webpacker is cheap once the caches are warm, and nothing that already exists
+# is overwritten.
+#
+#   1. optionally renumber the `app` user to match the host (Linux bind mounts)
+#   2. bundle install (gems live in the RVM gemset, outside the checkout)
+#   3. rake setup:config — scaffold config/*.yml and .env from the templates
+#   4. production only: gate on `rake setup:doctor` before anything slow
+#   5. yarn install + webpacker:compile (+ assets:precompile in production)
+#   6. database prep (setup:bootstrap; default off in production)
+#   7. install the Nginx site config: foundation mode when a Foundation build is
+#      mounted at /var/www/foundation-dist, otherwise standalone
+#   8. exec the CMD (normally /sbin/my_init → Nginx + Passenger + the runit
+#      Resque services in docker/service/)
+#
+# In development a failed step is reported but the container stays up, so you
+# can exec in and fix it. In production every step is fatal.
+
+set -e
+
+APP_DIR=/var/www/stagemgr
+RUBY_ENV="3.2.2@stagemgr"
+GEMSET_DIR="/usr/local/rvm/gems/ruby-${RUBY_ENV}"
+APP_ENV="${PASSENGER_APP_ENV:-${RAILS_ENV:-development}}"
+NGINX_SRC_DIR=/etc/nginx/stagemgr
+NGINX_SITE=/etc/nginx/sites-enabled/stagemgr.conf
+FOUNDATION_DIST=/var/www/foundation-dist
+FOUNDATION_LAYOUT="$FOUNDATION_DIST/layouts/ext_site_wrapper.html"
+LAYOUT_DEST="$APP_DIR/app/views/layouts/ext_site_wrapper.html.erb"
+FOUNDATION_WAIT_SECONDS=30
+
+# passenger_app_env lands in an nginx directive; refuse anything that could
+# carry a newline or a `;` into the generated config.
+if [[ ! "$APP_ENV" =~ ^[a-z_]+$ ]]; then
+  echo "FATAL: refusing to boot with PASSENGER_APP_ENV/RAILS_ENV='$APP_ENV' (expected [a-z_]+)" >&2
+  exit 1
+fi
+
+# Keep RAILS_ENV and PASSENGER_APP_ENV in agreement for everything downstream,
+# including the exec'd my_init and the runit services under it. Without this a
+# stale RAILS_ENV from .env disagrees with the environment Passenger boots the
+# app in, and the Resque workers end up on the wrong Redis namespace.
+export RAILS_ENV="$APP_ENV"
+export PASSENGER_APP_ENV="$APP_ENV"
+
+is_production() { [[ "$APP_ENV" == "production" ]]; }
+
+# Fatal in production, a warning in development.
+fail() {
+  echo "    $1" >&2
+  is_production && exit 1
+  return 0
+}
+
+# Accepts true/1/yes in any case. Written without ${var,,} so the script stays
+# runnable on the bash 3.2 that ships with macOS, not just the image's bash 5.
+truthy() {
+  case "$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')" in
+    true | 1 | yes) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+cd "$APP_DIR"
+
+# ── 1. host uid/gid alignment ────────────────────────────────────────────────
+# The image's `app` user is uid 9999. On a Linux host that means every file the
+# container writes into the bind mount (log/, tmp/, public/packs) comes back
+# owned by a stranger. Renumber `app` instead of chowning the working tree —
+# chown -R on a bind mount rewrites the developer's own files.
+align_app_user() {
+  local changed=0
+  if [[ -n "${HOST_GID:-}" && "$HOST_GID" != "$(id -g app)" ]]; then
+    echo "==> Renumbering group app -> gid $HOST_GID to match the host..."
+    groupmod -o -g "$HOST_GID" app
+    changed=1
+  fi
+  if [[ -n "${HOST_UID:-}" && "$HOST_UID" != "$(id -u app)" ]]; then
+    echo "==> Renumbering user app -> uid $HOST_UID to match the host..."
+    usermod -o -u "$HOST_UID" app
+    changed=1
+  fi
+  # Only the container-owned directories, never $APP_DIR itself.
+  [[ $changed -eq 1 ]] && chown -R app:app "$GEMSET_DIR" /home/app "$APP_DIR/node_modules"
+  return 0
+}
+align_app_user
+
+# Run a command as `app` with the container's environment intact. `su - app`
+# would start a login shell and drop everything Compose loaded from .env
+# (DATABASE_*, REDIS_URL, STRIPE_*, ...); /sbin/setuser is the phusion-baseimage
+# helper that switches uid/gid without touching the environment.
+as_app() {
+  /sbin/setuser app bash -c "$1"
+}
+
+# Same, but with RVM sourced and the app's gemset selected.
+as_app_ruby() {
+  as_app "cd $APP_DIR && source /etc/profile.d/rvm.sh && rvm use $RUBY_ENV && $1"
+}
+
+echo "==> Configuring git safe.directory for the bind-mounted checkout..."
+# --replace-all so repeated boots do not append a duplicate entry every time.
+as_app "git config --global --replace-all safe.directory $APP_DIR"
+
+# Both are volumes, not host directories, and Docker creates their mount points
+# owned by root; the bind-mounted checkout itself is never chowned.
+echo "==> Ensuring the gemset and node_modules are writable by app..."
+mkdir -p "$APP_DIR/node_modules"
+chown app:app "$APP_DIR/node_modules"
+[[ "$(stat -c %U "$GEMSET_DIR" 2>/dev/null)" == "app" ]] || chown -R app:app "$GEMSET_DIR"
+
+# ── 2. gems ──────────────────────────────────────────────────────────────────
+# No `bundle config set path`: gems belong in the RVM gemset, which compose
+# backs with the bundle-cache volume — outside the working tree either way.
+echo "==> bundle install (gemset $RUBY_ENV)..."
+as_app "
+  cd $APP_DIR &&
+  source /etc/profile.d/rvm.sh &&
+  rvm use $RUBY_ENV --create &&
+  bundle install --retry 3 --jobs 4
+"
+
+# ── 3. configuration ─────────────────────────────────────────────────────────
+# After bundle install (rake needs the bundle) and before anything that boots
+# Rails: this generates config/database.yml and config/server.yml.
+echo "==> rake setup:config (scaffold config/*.yml and .env)..."
+as_app_ruby "bundle exec rake setup:config"
+
+# ── 4. production gate ───────────────────────────────────────────────────────
+# Before yarn and webpacker on purpose. In production the first thing to boot
+# Rails should be the one command whose job is to explain what is wrong: a
+# missing secret otherwise surfaces several minutes later as a bare
+# "secret_key_base for production environment must be a type of String" out of
+# some unrelated asset task.
+if is_production; then
+  echo "==> rake setup:doctor (production gate)..."
+  as_app_ruby "bundle exec rake setup:doctor" || {
+    echo "    setup:doctor could not certify this install; refusing to serve production traffic." >&2
+    echo "    If the error above is about secret_key_base, Rails could not boot at all:" >&2
+    echo "    set SECRET_KEY_BASE (see .env.example), or ship encrypted credentials plus" >&2
+    echo "    RAILS_MASTER_KEY, and restart." >&2
+    exit 1
+  }
+fi
+
+# ── 5. JavaScript ────────────────────────────────────────────────────────────
+echo "==> yarn install..."
+as_app "cd $APP_DIR && yarn install" || fail "(yarn install failed)"
+
+echo "==> webpacker:compile..."
+as_app_ruby "bundle exec rails webpacker:compile" ||
+  fail "(webpacker:compile failed)"
+
+# Sprockets, on top of the webpack bundle above.
+if is_production; then
+  echo "==> rake assets:precompile..."
+  as_app_ruby "bundle exec rake assets:precompile" || {
+    echo "    assets:precompile failed." >&2
+    exit 1
+  }
+fi
+
+# ── 6. database ──────────────────────────────────────────────────────────────
+# Off by default in production: schema changes there belong to a deploy step
+# (bin/deploy), not to whenever a container happens to restart.
+if is_production; then DB_PREPARE_DEFAULT=false; else DB_PREPARE_DEFAULT=true; fi
+if truthy "${DB_PREPARE_ON_BOOT:-$DB_PREPARE_DEFAULT}"; then
+  # setup:bootstrap rather than db:prepare: it loads db/schema.rb into the empty
+  # database MySQL pre-creates instead of replaying fifteen years of migrations
+  # (see Setup::Wizard#prepare_database), and seeds only when there are no users.
+  echo "==> setup:bootstrap (create the database, load the schema, migrate, seed if empty)..."
+  as_app_ruby "bundle exec rake setup:bootstrap" ||
+    fail "(setup:bootstrap failed — the app will not serve until this is fixed)"
+fi
+
+# ── 7. nginx ─────────────────────────────────────────────────────────────────
+# Foundation mode is selected purely by the presence of the mount, so the same
+# image serves a standalone install and Theater Wit's Foundation-fronted one.
+mkdir -p "$(dirname "$NGINX_SITE")"
+if [[ -d "$FOUNDATION_DIST" ]]; then
+  echo "==> Foundation build mounted; serving Rails under /tickets."
+  nginx_src="$NGINX_SRC_DIR/nginx.foundation.conf"
+
+  echo "==> Waiting up to ${FOUNDATION_WAIT_SECONDS}s for the Foundation layout..."
+  waited=0
+  while [[ ! -f "$FOUNDATION_LAYOUT" && $waited -lt $FOUNDATION_WAIT_SECONDS ]]; do
+    sleep 2
+    waited=$((waited + 2))
+  done
+
+  if [[ -f "$FOUNDATION_LAYOUT" ]]; then
+    # Rails needs a handler extension on the layout; the Foundation build emits
+    # plain .html, so link it in as .html.erb.
+    mkdir -p "$(dirname "$LAYOUT_DEST")"
+    ln -sf "$FOUNDATION_LAYOUT" "$LAYOUT_DEST"
+    echo "    linked $LAYOUT_DEST -> $FOUNDATION_LAYOUT"
+  else
+    fail "(the Foundation layout never appeared; public pages will 500 until it does)"
+  fi
+else
+  echo "==> No Foundation build mounted; serving Rails at /."
+  # A symlink left over from a previous foundation-mode run now dangles, and a
+  # dangling layout is worse than none: server.yml's ext_site_wrapper points at
+  # it and every public page 500s. Drop it — and note that standalone installs
+  # want `ext_site_wrapper: standalone` in server.yml, not the Foundation name.
+  if [[ -L "$LAYOUT_DEST" ]]; then
+    rm -f "$LAYOUT_DEST"
+    echo "    removed the stale Foundation layout symlink"
+    echo "    (standalone installs should set server.yml ext_site_wrapper: standalone)"
+  fi
+  nginx_src="$NGINX_SRC_DIR/nginx.conf"
+fi
+sed "s|__PASSENGER_APP_ENV__|$APP_ENV|g" "$nginx_src" > "$NGINX_SITE"
+
+echo "==> Boot complete ($APP_ENV); exec $*"
+exec "$@"

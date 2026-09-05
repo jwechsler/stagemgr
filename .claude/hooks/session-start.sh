@@ -24,9 +24,11 @@ apt-get install -y --no-install-recommends \
   pkg-config
 
 echo "[session-start] Generating local config files from examples (if missing)..."
-# Config files (database.yml, server.yml, ticket_print.yml, my_emma_credentials.yml, ...)
-# are gitignored; generate them from the checked-in *.yml.example templates.
-for example in config/*.yml.example; do
+# Same job as `rake setup:config`, open-coded in bash because this runs before
+# `bundle install` — there is no bundle to run rake with yet. Config files
+# (database.yml, server.yml, ticket_print.yml, my_emma_credentials.yml, ...) and
+# .env are gitignored; generate them from the checked-in *.example templates.
+for example in config/*.yml.example .env.example; do
   [ -e "$example" ] || continue
   target="${example%.example}"
   if [ ! -e "$target" ]; then
@@ -38,9 +40,10 @@ done
 echo "[session-start] Installing Ruby gems (bundle install)..."
 bundle install
 
-echo "[session-start] Preparing the test database (create + migrate)..."
-# There is no committed db/schema.rb, so the schema is built from migrations.
-RAILS_ENV=test bin/rails db:create db:migrate
+echo "[session-start] Preparing the test database (create + load schema)..."
+# db/schema.rb is committed, so load it directly instead of replaying every
+# migration — same result, a fraction of the time.
+RAILS_ENV=test bin/rails db:create db:schema:load
 
 # The gem executable directory (where the rspec binstub lives) is not on PATH in
 # this environment, so `bundle exec rspec` / `rspec` fail to resolve the command.

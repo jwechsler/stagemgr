@@ -1,0 +1,134 @@
+# Stagemgr development stack — MySQL, Redis and the Rails app behind
+# Passenger/Nginx.
+#
+#     cp .env.example .env
+#     docker compose up -d --build
+#     open http://localhost:8080/login
+#
+# Requires Docker Compose >= 2.24: this file uses the long-form `env_file:`
+# (`required: false`), and Theater Wit's workspace layers
+# ../site/infra/compose.stagemgr-tw.yml on top of it with `include:`.
+#
+# The checkout is bind-mounted at /var/www/stagemgr, so this file is the only
+# thing that has to exist before the first boot: config/*.yml, .env, encryption
+# keys and sites/<slug>/ are all read straight out of the working tree
+# (bin/docker-entrypoint scaffolds the missing ones with `rake setup:config`).
+# Nothing is baked into the image.
+#
+# Published ports bind to loopback by default — this is a development stack with
+# development credentials and it has no business being reachable from the LAN.
+# Set STAGEMGR_BIND=0.0.0.0 deliberately if you need to reach it from another
+# device. Host ports are overridable so a second stack can run beside an
+# existing one:
+#
+#     COMPOSE_PROJECT_NAME=smoke STAGEMGR_PORT=18080 MYSQL_PORT=13306 \
+#       REDIS_PORT=16379 docker compose up -d
+#
+# Two MySQL gotchas worth knowing before you debug them the hard way:
+#
+#   * The image bakes MYSQL_ROOT_PASSWORD / MYSQL_USER / MYSQL_PASSWORD into the
+#     data volume the first time it initializes. Changing them later in .env has
+#     no effect — `docker compose down -v` (destroys the data) or an ALTER USER.
+#   * The image refuses to start if MYSQL_USER is `root` ("MYSQL_USER=root is
+#     not supported"). DATABASE_USER must be an ordinary account.
+
+services:
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      # Kept distinct from the application account's password on purpose: the
+      # app never needs root, and reusing one password makes the blast radius of
+      # a leaked .env larger than it needs to be.
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD:-changeme-root}"
+      MYSQL_DATABASE: "${DATABASE_NAME:-stagemgr_dev}"
+      MYSQL_USER: "${DATABASE_USER:-stagemgr_dev}"
+      MYSQL_PASSWORD: "${DATABASE_PASSWORD:-password}"
+    ports:
+      - "127.0.0.1:${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      # Runs ONLY on a fresh data volume (the image skips this directory once
+      # the volume is initialized). It grants the app user the test databases —
+      # see docker/mysql-init/10-test-grants.sh for the one-line GRANT to run by
+      # hand on a volume that already exists.
+      - ./docker/mysql-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  stagemgr:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    restart: unless-stopped
+    # Resque workers run as runit services; give them time to finish the job in
+    # hand before Docker escalates to SIGKILL.
+    stop_grace_period: 30s
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    # Optional: a fresh clone has no .env until `rake setup:config` runs.
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      # Compose-internal hostnames. `environment:` beats `env_file:`, and
+      # dotenv-rails never overwrites a variable that is already set, so the
+      # native-friendly defaults in .env.example stay correct on the host while
+      # the container talks to the service names below.
+      DATABASE_HOST: mysql
+      REDIS_URL: redis://redis:6379/0
+      PASSENGER_APP_ENV: "${RAILS_ENV:-development}"
+      # Set STAGEMGR_SUB_URI=/tickets when serving the app under a sub-path
+      # (it must agree with server.yml's sub_uri).
+      RAILS_RELATIVE_URL_ROOT: "${STAGEMGR_SUB_URI:-}"
+      # Linux hosts: the image's `app` user is uid 9999, so files it writes into
+      # the bind mount (log/, tmp/, public/packs) come back owned by a stranger.
+      # Set HOST_UID/HOST_GID in .env to `id -u` / `id -g` and the entrypoint
+      # renumbers `app` to match. Unset (and on Docker Desktop, where the VM
+      # already maps ownership) nothing happens.
+      HOST_UID: "${HOST_UID:-}"
+      HOST_GID: "${HOST_GID:-}"
+      # Named here (rather than left to env_file alone) so a one-off shell
+      # override works the same way the port variables do:
+      #   DB_PREPARE_ON_BOOT=no docker compose up -d
+      # Empty means "not set", so the entrypoint's per-environment default wins.
+      DB_PREPARE_ON_BOOT: "${DB_PREPARE_ON_BOOT:-}"
+      RESQUE_QUEUES: "${RESQUE_QUEUES:-}"
+    ports:
+      - "${STAGEMGR_BIND:-127.0.0.1}:${STAGEMGR_PORT:-8080}:80"
+    volumes:
+      # Live source. Edits on the host are picked up without a rebuild.
+      - .:/var/www/stagemgr:rw
+      # Gems live in the image's RVM gemset, outside the checkout entirely, so
+      # nothing in the working tree is ever written by the container.
+      - bundle-cache:/usr/local/rvm/gems/ruby-3.2.2@stagemgr
+      # node_modules has to stay in-tree for yarn/webpacker resolution, but it
+      # is a volume rather than the host's directory: these are Linux builds.
+      - node-modules:/var/www/stagemgr/node_modules
+
+volumes:
+  mysql-data:
+  redis-data:
+  bundle-cache:
+  node-modules:

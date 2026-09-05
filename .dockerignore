@@ -1,0 +1,51 @@
+# Keep the build context small and keep local state out of the image.
+#
+# The application is bind-mounted at run time (see docker-compose.yml), so the
+# build only needs docker/, bin/docker-entrypoint and the metadata files — no
+# COPY in docker/Dockerfile touches app/, config/ or lib/ today. The exclusions
+# below are therefore belt-and-braces: they make sure that if a COPY is ever
+# added, it cannot pick up a key, a certificate or a machine-specific config.
+
+.git/
+.gitignore
+.github/
+.claude/
+.ruby-lsp/
+.zed/
+.idea/
+.vscode/
+.bundle/
+log/
+tmp/
+node_modules/
+vendor/bundle/
+storage/
+coverage/
+worktrees/
+public/packs/
+public/packs-test/
+public/system/
+public/assets/
+db/*.sqlite3
+db/*.sqlite3-journal
+
+# Secrets and machine-specific configuration. This excludes *tracked* files too
+# (config/*.yml.example is re-included; the rest of config/ never needs to be in
+# the build context).
+.env
+.env.*
+!.env.example
+config/master.key
+config/credentials/*.key
+config/*.yml
+!config/*.yml.example
+config/cert_key_pem_*.txt
+config/environments/*.local.yml
+*.pem
+*.key
+
+*.log
+*.pid
+*.swp
+*~
+.DS_Store
