@@ -22,8 +22,13 @@ all:
   allowed_order_task_suppressions: { OutreachTask: [ticket_confirmation, ANY] }
   # host used for building references to static resources
   host: "www.yourtheater.org"
-  # mount point for the application (some deployments serve it under a sub-path)
-  sub_uri: "/tickets"
+  # Mount point, when the application is NOT served from /. Leave it blank for a
+  # standalone install: it is folded into every mailed URL, so a stray "/tickets"
+  # here sends patrons to a 404. Set it to "/tickets" only when the web server
+  # actually mounts the app there (e.g. behind a separately built marketing
+  # site — see docker/nginx.foundation.conf), and keep it in agreement with
+  # RAILS_RELATIVE_URL_ROOT / STAGEMGR_SUB_URI.
+  sub_uri:
   # required protocol
   host_protocol: "https"
   # minutes before unpaid orders expire
@@ -146,6 +151,10 @@ development:
 # StripeMock, so no real gateway or credentials are needed here.
 test:
   host: "127.0.0.1"
+  # Explicit here even though `all:` now leaves it blank: the suite has to keep
+  # exercising the mounted-under-a-sub-path case, which is what Theater Wit runs
+  # in production and where the mailer URL bugs live.
+  sub_uri: "/tickets"
   root_url:  "http://127.0.0.1"
   secure_root_url:  ""
   # Sentinel values asserted by spec/models/productions/production_spec.rb

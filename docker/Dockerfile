@@ -70,10 +70,11 @@ RUN curl -sL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Pin Ruby 3.2.2 in a named gemset so the Passenger site configs can point at a
-# stable wrapper path.
+# stable wrapper path. The gemset -- not the bare ruby -- is the RVM default, so
+# a login shell lands in it without an explicit `rvm use`.
 RUN bash -lc "rvm gemset create stagemgr && \
               rvm gemset use stagemgr && \
-              rvm --default use 3.2.2 && \
+              rvm --default use 3.2.2@stagemgr && \
               rvm cleanup all"
 
 # The nginx configs hard-code this wrapper; fail the build here rather than
@@ -85,7 +86,21 @@ RUN echo 'source /etc/profile.d/rvm.sh' >> /etc/skel/.bashrc && \
     echo 'source /etc/profile.d/rvm.sh' >> /root/.bashrc && \
     echo 'source /etc/profile.d/rvm.sh' >> /home/app/.bashrc
 
-RUN gem install bundler
+# ...and in every NON-login shell too, which is the shape `docker compose exec`
+# and `docker compose run` use: they exec the command directly, so nothing
+# sources /etc/profile.d/rvm.sh and `bundle` would otherwise resolve to the
+# base image's /usr/bin/bundle with none of the app's gems on its path. These
+# are the exact values `rvm use 3.2.2@stagemgr` exports (verified with
+# `gem env` inside the image), pinned here so that
+# `docker compose exec -u app stagemgr bundle exec rake ...` just works.
+ENV GEM_HOME=/usr/local/rvm/gems/ruby-3.2.2@stagemgr
+ENV GEM_PATH=/usr/local/rvm/gems/ruby-3.2.2@stagemgr:/usr/local/rvm/gems/ruby-3.2.2@global
+ENV PATH=/usr/local/rvm/gems/ruby-3.2.2@stagemgr/bin:/usr/local/rvm/gems/ruby-3.2.2@global/bin:/usr/local/rvm/rubies/ruby-3.2.2/bin:/usr/local/rvm/bin:$PATH
+
+# Pinned to the version in Gemfile.lock's BUNDLED WITH. Unpinned, this now
+# installs a Bundler 4.x into the gemset (whose bin directory the ENV above puts
+# first on PATH), which would shadow the 2.4.x that generated the lockfile.
+RUN gem install bundler -v 2.4.10
 
 ENV BUNDLE_BUILD__MYSQL2="--with-mysql-config=/usr/bin/mysql_config"
 

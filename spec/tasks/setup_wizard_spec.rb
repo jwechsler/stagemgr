@@ -77,6 +77,85 @@ RSpec.describe Setup::Wizard do
     end
   end
 
+  # db/seeds.rb runs on the first boot (setup:bootstrap seeds an empty
+  # database), so by the time the wizard's own steps run there is already a
+  # placeholder administrator with a published password and a Default theater
+  # row named 'Theater 1'. Both steps below exist to replace those rather than
+  # to leave them sitting beside the real ones.
+  describe '#admin' do
+    subject(:wizard) { described_class.new(out: StringIO.new, input: answers) }
+
+    let(:answers) { StringIO.new("boss@example.org\nsupersecret\n") }
+
+    # ADMIN_EMAIL/ADMIN_PASSWORD skip the prompts, and dotenv loads the
+    # developer's own .env in this environment. Answer from `answers` regardless.
+    before do
+      allow(ENV).to receive(:[]).and_call_original
+      allow(ENV).to receive(:[]).with('ADMIN_EMAIL').and_return(nil)
+      allow(ENV).to receive(:[]).with('ADMIN_PASSWORD').and_return(nil)
+    end
+
+    def seeded_admin
+      User.create!(email: described_class::SEED_ADMIN_EMAIL, password: 'changeme',
+                   is_administrator: true, is_box_office_user: false)
+    end
+
+    it 'renames the seeded placeholder instead of adding a second administrator' do
+      placeholder = seeded_admin
+
+      wizard.admin
+
+      expect(User.where(is_administrator: true).pluck(:email)).to eq(['boss@example.org'])
+      expect(placeholder.reload.email).to eq('boss@example.org')
+    end
+
+    it 'creates a new account when a real administrator already exists' do
+      seeded_admin
+      User.create!(email: 'someone@example.org', password: 'supersecret',
+                   is_administrator: true, is_box_office_user: false)
+
+      wizard.admin
+
+      expect(User.where(is_administrator: true).pluck(:email))
+        .to contain_exactly(described_class::SEED_ADMIN_EMAIL, 'someone@example.org', 'boss@example.org')
+    end
+
+    it 'updates the account that already owns the email' do
+      existing = User.create!(email: 'boss@example.org', password: 'oldpassword',
+                              is_administrator: false, is_box_office_user: true)
+
+      wizard.admin
+
+      expect(User.where(email: 'boss@example.org').count).to eq(1)
+      expect(existing.reload).to be_is_administrator
+    end
+  end
+
+  describe '#theater' do
+    subject(:wizard) { described_class.new(out: StringIO.new, input: answers) }
+
+    let(:answers) { StringIO.new("My House\nMain Stage\n") }
+
+    # Theater.default_theater is the OLDEST Default row, so a second one would
+    # be inert while db/seeds.rb's 'Theater 1' went on naming the house.
+    it 'renames the existing default theater rather than creating a second one' do
+      seeded = Theater.create!(name: 'Theater 1', theater_class: Theater::DEFAULT,
+                               status: Theater::ACTIVE)
+
+      wizard.theater
+
+      expect(Theater.where(theater_class: Theater::DEFAULT).pluck(:name)).to eq(['My House'])
+      expect(seeded.reload.name).to eq('My House')
+      expect(Theater.default_theater.name).to eq('My House')
+    end
+
+    it 'creates a Default theater when there is none' do
+      wizard.theater
+
+      expect(Theater.default_theater).to have_attributes(name: 'My House', theater_class: Theater::DEFAULT)
+    end
+  end
+
   describe '#create_database_if_absent' do
     # DatabaseTasks.create prints and swallows several failures; without a probe
     # the wizard would announce "✓ created" and then collapse further down with

@@ -6,6 +6,17 @@
 #   cities = City.create([{ :name => 'Chicago' }, { :name => 'Copenhagen' }])
 #   Major.create(:name => 'Daley', :city => cities.first)
 
+# PLACEHOLDERS. The administrator below has a password that is published in
+# this repository, and 'Theater 1' is the Default theater row whose name becomes
+# the house name on every public page and in every email.
+#
+# Replace both before anyone can reach this install:
+#
+#   bundle exec rake setup:admin      # renames the placeholder account, if it
+#                                     # is still the only administrator
+#   bundle exec rake setup:theater    # renames the Default theater row
+#
+# `rake setup:wizard` runs both. See docs/manual/developer/installation.md.
 user                    = User.new
 user.email              = 'admin@yourtheater.com'
 user.is_administrator   = true

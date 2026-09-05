@@ -18,6 +18,10 @@ module Setup
   class Wizard
     HEADER_WIDTH = 68
 
+    # The placeholder administrator db/seeds.rb creates, whose password is in
+    # this repository for anyone to read.
+    SEED_ADMIN_EMAIL = 'admin@yourtheater.com'
+
     DEMO_CODE = 'DEMO'
     DEMO_PERFORMANCE_COUNT = 4
     DEMO_CURTAIN_HOUR = 20
@@ -71,13 +75,20 @@ module Setup
       abort "  ✗ database not usable: #{e.message}" # rubocop:disable Rails/Exit
     end
 
+    # db/seeds.rb creates a placeholder administrator with a password that is
+    # published in this repository. If that account is the only administrator,
+    # rename it rather than leaving it enabled beside the real one.
     def admin
       section 'Administrator account'
+      placeholder = placeholder_admin
+      say "  ! replacing the seeded placeholder account #{SEED_ADMIN_EMAIL}" if placeholder
+
       email = ENV['ADMIN_EMAIL'].presence || prompt('Administrator email')
       password = ENV['ADMIN_PASSWORD'].presence || prompt_password('Administrator password (>= 8 characters)')
 
-      user = User.find_or_initialize_by(email: email)
+      user = User.find_by(email: email) || placeholder || User.new(email: email)
       created = user.new_record?
+      user.email = email
       user.is_administrator = true
       user.is_box_office_user = false
       user.password = password
@@ -87,13 +98,27 @@ module Setup
       @admin_user = user
     end
 
+    # The house's name is Theater.default_theater.name -- it appears on every
+    # public page and in every email -- and default_theater is the OLDEST row of
+    # class Default. So a second Default row created here would be inert while
+    # db/seeds.rb's "Theater 1" went on naming the house. Update that row
+    # instead.
     def theater
       section 'Theater and venue'
-      theater_name = prompt('Theater name', default: Theater.first&.name || 'My Theater')
+      existing = Theater.default_theater
+      if existing
+        say "  ! updating the existing default theater '#{existing.name}' — this row names the house"
+        say '    on every public page and in every email'
+      end
+
+      theater_name = prompt('Theater name', default: existing&.name || 'My Theater')
       venue_name = prompt('Primary venue name', default: Venue.first&.name || 'Main Stage')
 
-      theater = Theater.find_or_initialize_by(name: theater_name)
-      theater.theater_class ||= Theater::THEATER_CLASSES.first
+      theater = existing || Theater.find_or_initialize_by(name: theater_name)
+      theater.name = theater_name
+      # Explicitly Default, not THEATER_CLASSES.first: this is the row
+      # Theater.default_theater looks for, and it is what names the house.
+      theater.theater_class ||= Theater::DEFAULT
       theater.status ||= Theater::THEATER_STATUSES.first
       theater.save!
 
@@ -159,6 +184,18 @@ module Setup
     end
 
     private
+
+    # The seeded placeholder, but only while it is the *only* administrator.
+    # Once a real one exists, the placeholder is somebody's deliberate choice to
+    # keep (or an account already renamed), and silently rewriting it would be a
+    # surprise.
+    def placeholder_admin
+      administrators = User.where(is_administrator: true).to_a
+      return nil unless administrators.size == 1
+      return nil unless administrators.first.email == SEED_ADMIN_EMAIL
+
+      administrators.first
+    end
 
     # Deliberately neither `db:prepare` nor `db:create`:
     #

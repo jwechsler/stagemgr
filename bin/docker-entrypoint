@@ -16,8 +16,13 @@
 #   8. exec the CMD (normally /sbin/my_init → Nginx + Passenger + the runit
 #      Resque services in docker/service/)
 #
-# In development a failed step is reported but the container stays up, so you
-# can exec in and fix it. In production every step is fatal.
+# In development every step below is guarded: a failure is reported and the
+# container stays up, so you can exec in and fix it. In production every step is
+# fatal.
+#
+# `bundle install` (step 2) is the one exception — it is fatal in every
+# environment. Nothing after it can run without gems, so continuing would just
+# replace one clear error with a page of confusing ones.
 
 set -e
 
@@ -87,7 +92,8 @@ align_app_user() {
   [[ $changed -eq 1 ]] && chown -R app:app "$GEMSET_DIR" /home/app "$APP_DIR/node_modules"
   return 0
 }
-align_app_user
+align_app_user ||
+  fail "(could not renumber app to HOST_UID/HOST_GID; files it writes into the bind mount stay owned by uid 9999)"
 
 # Run a command as `app` with the container's environment intact. `su - app`
 # would start a login shell and drop everything Compose loaded from .env
@@ -104,18 +110,23 @@ as_app_ruby() {
 
 echo "==> Configuring git safe.directory for the bind-mounted checkout..."
 # --replace-all so repeated boots do not append a duplicate entry every time.
-as_app "git config --global --replace-all safe.directory $APP_DIR"
+as_app "git config --global --replace-all safe.directory $APP_DIR" ||
+  fail "(could not set git safe.directory; git commands inside the container will refuse to run)"
 
 # Both are volumes, not host directories, and Docker creates their mount points
 # owned by root; the bind-mounted checkout itself is never chowned.
 echo "==> Ensuring the gemset and node_modules are writable by app..."
-mkdir -p "$APP_DIR/node_modules"
-chown app:app "$APP_DIR/node_modules"
-[[ "$(stat -c %U "$GEMSET_DIR" 2>/dev/null)" == "app" ]] || chown -R app:app "$GEMSET_DIR"
+{
+  mkdir -p "$APP_DIR/node_modules" &&
+    chown app:app "$APP_DIR/node_modules" &&
+    { [[ "$(stat -c %U "$GEMSET_DIR" 2>/dev/null)" == "app" ]] || chown -R app:app "$GEMSET_DIR"; }
+} || fail "(could not make the gemset and node_modules writable by app)"
 
 # ── 2. gems ──────────────────────────────────────────────────────────────────
 # No `bundle config set path`: gems belong in the RVM gemset, which compose
 # backs with the bundle-cache volume — outside the working tree either way.
+#
+# Deliberately unguarded: this one is fatal in development too (see the header).
 echo "==> bundle install (gemset $RUBY_ENV)..."
 as_app "
   cd $APP_DIR &&
@@ -128,7 +139,8 @@ as_app "
 # After bundle install (rake needs the bundle) and before anything that boots
 # Rails: this generates config/database.yml and config/server.yml.
 echo "==> rake setup:config (scaffold config/*.yml and .env)..."
-as_app_ruby "bundle exec rake setup:config"
+as_app_ruby "bundle exec rake setup:config" ||
+  fail "(rake setup:config failed — config/database.yml and config/server.yml may be missing, and nothing that boots Rails will work until they exist)"
 
 # ── 4. production gate ───────────────────────────────────────────────────────
 # Before yarn and webpacker on purpose. In production the first thing to boot
@@ -214,7 +226,8 @@ else
   fi
   nginx_src="$NGINX_SRC_DIR/nginx.conf"
 fi
-sed "s|__PASSENGER_APP_ENV__|$APP_ENV|g" "$nginx_src" > "$NGINX_SITE"
+sed "s|__PASSENGER_APP_ENV__|$APP_ENV|g" "$nginx_src" > "$NGINX_SITE" ||
+  fail "(could not write $NGINX_SITE from $nginx_src — Nginx will start with no site configured and answer nothing)"
 
 echo "==> Boot complete ($APP_ENV); exec $*"
 exec "$@"
