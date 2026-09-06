@@ -104,6 +104,14 @@ RUN gem install bundler -v 2.4.10
 
 ENV BUNDLE_BUILD__MYSQL2="--with-mysql-config=/usr/bin/mysql_config"
 
+# The checkout is bind-mounted, and a developer's own .bundle/config in it
+# (typically `BUNDLE_PATH: vendor/bundle` for native runs) would otherwise be
+# honoured inside the container: Linux gems land in the host's vendor/bundle
+# and clobber macOS native extensions built in place (scrypt, sassc). Reading
+# app config from a container-local directory makes the host's file invisible.
+ENV BUNDLE_APP_CONFIG=/home/app/.bundle
+RUN mkdir -p /home/app/.bundle && chown app:app /home/app/.bundle
+
 # Gems live in the RVM gemset, which docker-compose backs with the bundle-cache
 # volume. Deliberately NOT a custom BUNDLE_PATH: `rvm use` unsets BUNDLE_PATH
 # when it switches gemsets, so every consumer (the entrypoint, the runit

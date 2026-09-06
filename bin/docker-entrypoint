@@ -128,12 +128,20 @@ echo "==> Ensuring the gemset and node_modules are writable by app..."
 #
 # Deliberately unguarded: this one is fatal in development too (see the header).
 echo "==> bundle install (gemset $RUBY_ENV)..."
+lock_before=$(cksum "$APP_DIR/Gemfile.lock" 2>/dev/null)
 as_app "
   cd $APP_DIR &&
   source /etc/profile.d/rvm.sh &&
   rvm use $RUBY_ENV --create &&
   bundle install --retry 3 --jobs 4
 "
+# Gemfile.lock lists every platform we run on, so a Linux install should never
+# need to re-resolve. If it did, the bind-mounted lockfile just changed under
+# the developer -- say so rather than let it turn up in `git status` later.
+if [[ "$(cksum "$APP_DIR/Gemfile.lock" 2>/dev/null)" != "$lock_before" ]]; then
+  echo "    WARNING: bundle install modified Gemfile.lock. Run 'bundle lock --add-platform aarch64-linux x86_64-linux'" >&2
+  echo "             on the host and commit it, or the host and container bundles will disagree." >&2
+fi
 
 # ── 3. configuration ─────────────────────────────────────────────────────────
 # After bundle install (rake needs the bundle) and before anything that boots
