@@ -46,10 +46,16 @@ RSpec.describe PerformanceDatatable do
     end
   end
 
+  # performance_time is a bare `time` column and default_timezone is :local, so
+  # ActiveRecord stores the *system* wall-clock time. Build the value in the
+  # system zone (Time.local) rather than Time.zone, or the stored hour shifts by
+  # the offset between the two: on a UTC host 19:30 Central lands as 00:30 and
+  # sorts before 14:00 Central (19:00).
   def create_performance(date, time)
+    hour, minute = time.split(':').map(&:to_i)
     FactoryBot.create(:performance,
                       production: production,
                       performance_date: date,
-                      performance_time: Time.zone.parse("#{date} #{time}"))
+                      performance_time: Time.local(date.year, date.month, date.day, hour, minute))
   end
 end
