@@ -1,0 +1,4958 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="User manual for Stagemgr ticketing platform">
+      
+      
+      
+        <link rel="canonical" href="https://stagemgr.theaterwit.org/developer/configuration/">
+      
+      
+        <link rel="prev" href="../installation/">
+      
+      
+        <link rel="next" href="../credentials/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Configuration - Stagemgr User Manual</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#configuration" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Stagemgr User Manual" class="md-header__button md-logo" aria-label="Stagemgr User Manual" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Stagemgr User Manual
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Configuration
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Stagemgr User Manual" class="md-nav__button md-logo" aria-label="Stagemgr User Manual" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Stagemgr User Manual
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/concepts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core Concepts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/user-roles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Roles & Permissions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Setup & Configuration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Setup & Configuration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../setup/theaters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Theaters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../setup/venues/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Venues
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../setup/seat-maps/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Seat Maps
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../setup/seat-map-editor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Seat Map Editor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../setup/payment-types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payment Types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../setup/system-options/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    System Options
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../setup/users/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Users
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../setup/email-configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Email Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Productions
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Productions
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../productions/finding-productions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Finding Productions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../productions/creating-a-production/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Creating a Production
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../productions/production-settings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Production Settings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../productions/general-vs-reserved/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    General vs Reserved Seating
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../productions/ticket-classes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ticket Classes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../productions/default-ticket-classes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Default Ticket Classes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../productions/resourced-ticket-classes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resourced Ticket Classes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../productions/performances/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Performances
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../productions/dynamic-pricing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dynamic Pricing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../productions/duplicating-performances/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Duplicating Performances
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../productions/season-seating/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Season Seating
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Festivals
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Festivals
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../festivals/festivals-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Festivals Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../festivals/public-display/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Public Display
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../festivals/passes-and-membership-caps/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Festival Passes & Membership Caps
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../festivals/festival-reporting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Festival Reporting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Offers & Pricing
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Offers & Pricing
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../offers/special-offers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Special Offers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../offers/duplicating-special-offers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Duplicating Special Offers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../offers/flex-pass-offers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Flex Pass Offers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../offers/membership-offers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Membership Offers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../offers/special-features/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Performance Features
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../offers/service-items/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Service Items
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ticketing
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Ticketing
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ticketing/order-lifecycle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Order Lifecycle
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ticketing/creating-ticket-order-ga/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ticket Order: General Admission
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ticketing/creating-ticket-order-rs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ticket Order: Reserved Seating
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ticketing/seat-selection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Seat Selection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ticketing/payment-processing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payment Processing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ticketing/hold-orders/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hold Orders
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ticketing/exchanges/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exchanges
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ticketing/refunds/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Refunds
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ticketing/refund-to-donation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Refund to Donation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ticketing/split-orders/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Split Orders
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ticketing/order-search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Order Search
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ticketing/donation-orders/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Donation Orders
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ticketing/flex-pass-orders/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Flex Pass Orders
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ticketing/membership-orders/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Membership Orders
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ticketing/managing-memberships/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Managing Memberships
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Customers
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Customers
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../customers/managing-patrons/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Managing Patrons
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../customers/patron-tags/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Patron Tags
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../customers/merging-duplicates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Merging Duplicates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../customers/patron-history/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Patron History
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    House Management
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    House Management
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../house-management/daily-operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Daily Operations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../house-management/house-counts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    House Counts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../house-management/calendar-heatmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Calendar Heatmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../house-management/fulfilling-orders/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fulfilling Orders
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../house-management/printing-tickets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Printing Tickets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../house-management/house-management-report/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    House Management Report
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../house-management/resource-pull-sheet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resource Pull Sheet
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../house-management/email-attendees/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Email Attendees
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../house-management/hud-display/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HUD Display
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Analysis
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Analysis
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../analysis/analysis-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Analysis Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../analysis/rate-of-sales/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rate of Sales
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../analysis/ticket-revenue/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ticket Revenue
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../analysis/audience/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Audience
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reports
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reports
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/reports-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reports Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/production-sales/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Production Sales
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/royalty-report/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Royalty Report
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/production-attendees/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Production Attendees
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/weekly-box-office/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Weekly Box Office
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/daily-receipts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Daily Receipts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/donation-reports/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Donation Reports
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/flex-pass-reports/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Flex Pass Reports
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/membership-reports/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Membership Reports
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/customer-data-mining/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Customer Data Mining
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/trg-exports/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TRG Exports
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_12" >
+        
+          
+          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Imports
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Imports
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../imports/imports-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Import Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../imports/trg-arts-import/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TRG Arts Import
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../imports/mailing-cards-import/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mailing Cards Import
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../imports/external-contacts-import/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    External Contacts Import
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../imports/bulk-orders-import/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bulk Orders Import
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../imports/flex-pass-orders-import/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Flex Pass Orders Import
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../imports/donor-levels-import/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Donor Levels Import
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_13" >
+        
+          
+          <label class="md-nav__link" for="__nav_13" id="__nav_13_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_13_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_13">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Advanced
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/email-templates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Email Templates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/dynamic-pricing-advanced/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dynamic Pricing Strategies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/capacity-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Capacity Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/background-jobs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Background Jobs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_14" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_14" id="__nav_14_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_14_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_14">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Developer
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#scaffolding-the-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scaffolding the files
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scaffolding the files">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-rest-of-the-setup-namespace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The rest of the setup: namespace
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#env" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .env
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=".env">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#database" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Database
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#redis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Redis
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rails" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rails
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#secrets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Secrets
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#docker-compose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        docker compose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#first-run-and-ci" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        First-run and CI
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reports-run-from-cron" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reports run from cron
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configserveryml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        config/server.yml
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="config/server.yml">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#identity-and-mount-point" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Identity and mount point
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sales-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sales rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reports-and-storage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reports and storage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#theater-facts-about-the-house" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        theater: -- facts about the house
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#my_emma" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        my_emma:
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#email" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        email:
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#payment_processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        payment_processing:
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-resque-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Resque dashboard
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-test-environment-reads-the-example-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The test environment reads the example file
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#keys-that-are-gone" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Keys that are gone
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../credentials/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Credentials & Secrets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../theming/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Site Theming
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_15" >
+        
+          
+          <label class="md-nav__link" for="__nav_15" id="__nav_15_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_15_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_15">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Glossary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/permissions-matrix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Permissions Matrix
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h1>
+<p>Stagemgr reads its configuration from three places, and which one a setting
+belongs in is not a matter of taste:</p>
+<table>
+<thead>
+<tr>
+<th>Kind of setting</th>
+<th>Where</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Non-secret deployment settings -- host names, mount point, business rules, email addresses, house facts</td>
+<td><code>config/server.yml</code></td>
+</tr>
+<tr>
+<td>Connection details and secrets</td>
+<td>the process environment (<code>.env</code> in development and test) or <a href="../credentials/">encrypted credentials</a></td>
+</tr>
+<tr>
+<td>Anything the box office maintains -- theaters, venues, productions, users</td>
+<td>the database, through the admin UI</td>
+</tr>
+</tbody>
+</table>
+<h2 id="scaffolding-the-files">Scaffolding the files<a class="headerlink" href="#scaffolding-the-files" title="Permanent link">&para;</a></h2>
+<p>The real config files are gitignored; the repository tracks <code>.example</code>
+templates. One task copies them:</p>
+<div class="highlight"><pre><span></span><code>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rake<span class="w"> </span>setup:config
+</code></pre></div>
+<p>It creates each <code>config/*.yml</code> from its <code>config/*.yml.example</code>, plus <code>.env</code> from
+<code>.env.example</code>, and <strong>never overwrites</strong> a file that already exists. It does not
+load Rails -- it cannot, since <code>config/database.yml</code> is one of the files it
+produces. <code>bin/docker-entrypoint</code> runs it on every container start.</p>
+<table>
+<thead>
+<tr>
+<th>Generated</th>
+<th>Read by</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>config/database.yml</code></td>
+<td>Active Record</td>
+<td>Every value is environment-driven; the same file works native, in Docker and in CI</td>
+</tr>
+<tr>
+<td><code>config/server.yml</code></td>
+<td><code>config/environments/{development,production}.rb</code></td>
+<td>The main deployment file, documented below</td>
+</tr>
+<tr>
+<td><code>config/ticket_print.yml</code></td>
+<td><code>config.x.tktprint</code></td>
+<td>Ticket-printing service URL, per environment</td>
+</tr>
+<tr>
+<td><code>config/schedule.yml</code></td>
+<td>resque-scheduler</td>
+<td>Already tracked, so <code>setup:config</code> leaves it alone</td>
+</tr>
+<tr>
+<td><code>config/my_emma_credentials.yml</code></td>
+<td><strong>nothing</strong></td>
+<td>A dead legacy file. MyEmma credentials come from <code>MY_EMMA_*</code> or credentials</td>
+</tr>
+<tr>
+<td><code>.env</code></td>
+<td>dotenv (development, test) and <code>docker compose</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="the-rest-of-the-setup-namespace">The rest of the <code>setup:</code> namespace<a class="headerlink" href="#the-rest-of-the-setup-namespace" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Task</th>
+<th>Boots Rails?</th>
+<th>Does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>setup:config</code></td>
+<td>no</td>
+<td>The scaffolding above</td>
+</tr>
+<tr>
+<td><code>setup:site[slug]</code></td>
+<td>no</td>
+<td>Copies <code>sites/example/</code> to <code>sites/&lt;slug&gt;/</code> and inserts <code>site_theme: &lt;slug&gt;</code> under <code>all:</code> in <code>config/server.yml</code> (<a href="../theming/">Theming</a>)</td>
+</tr>
+<tr>
+<td><code>setup:secret_key_base</code></td>
+<td>no</td>
+<td>Generates <code>SECRET_KEY_BASE</code> in <code>.env</code> if it is blank or missing; never replaces an existing value</td>
+</tr>
+<tr>
+<td><code>setup:bootstrap</code></td>
+<td>yes</td>
+<td>Creates this environment's database, loads <code>db/schema.rb</code>, applies pending migrations, seeds only when there are no users</td>
+</tr>
+<tr>
+<td><code>setup:admin</code></td>
+<td>yes</td>
+<td>Creates or updates the first administrator (<code>ADMIN_EMAIL</code>/<code>ADMIN_PASSWORD</code> skip the prompts)</td>
+</tr>
+<tr>
+<td><code>setup:theater</code></td>
+<td>yes</td>
+<td>Creates the first theater and venue and associates the administrator</td>
+</tr>
+<tr>
+<td><code>setup:payments</code></td>
+<td>yes</td>
+<td>Prompts for Stripe keys and writes them to <code>.env</code></td>
+</tr>
+<tr>
+<td><code>setup:demo_data</code></td>
+<td>yes</td>
+<td>One sample production with performances, ticket classes and allocations</td>
+</tr>
+<tr>
+<td><code>setup:doctor</code></td>
+<td>yes</td>
+<td>Health check; exits 1 on problems</td>
+</tr>
+<tr>
+<td><code>setup:wizard</code></td>
+<td>yes</td>
+<td>All of the above, interactively, in order</td>
+</tr>
+</tbody>
+</table>
+<p>Every task is idempotent: re-running one reports what already exists instead of
+failing.</p>
+<div class="admonition note">
+<p class="admonition-title"><code>config:setup</code> is deprecated</p>
+<p>The old name still works and forwards to <code>setup:config</code>, printing a
+deprecation notice. Use <code>setup:config</code>.</p>
+</div>
+<div class="admonition info">
+<p class="admonition-title">Why <code>setup:bootstrap</code> and not <code>db:prepare</code></p>
+<p><code>db:prepare</code> only reaches for <code>db/schema.rb</code> when it hits <code>NoDatabaseError</code>.
+The Docker stack hands Rails a database MySQL has already created
+(<code>MYSQL_DATABASE</code>), so <code>db:prepare</code> sees an existing-but-empty database and
+replays every migration back to 2009 -- slow, fragile on MySQL 8, and it
+rewrites the committed <code>db/schema.rb</code> on the way out. <code>setup:bootstrap</code>
+loads the schema instead, and migrates only what is actually pending.</p>
+</div>
+<h2 id="env"><code>.env</code><a class="headerlink" href="#env" title="Permanent link">&para;</a></h2>
+<p><code>.env</code> is gitignored and read by two different things: <code>docker compose</code>, and
+dotenv-rails -- which is loaded in the <strong>development and test groups only</strong>. In
+production the same variables must come from the process environment (Compose
+<code>environment:</code>, Passenger <code>SetEnv</code>, a systemd <code>EnvironmentFile</code>).</p>
+<div class="admonition danger">
+<p class="admonition-title">Delete blank lines, do not leave them</p>
+<p>A variable set to the empty string is <em>ignored</em> by
+<a href="../credentials/"><code>AppSecrets</code></a> rather than shadowing a credential -- that is
+deliberate, and it is the fix for the outage described in
+<a href="../troubleshooting/#a-blank-env-variable-shadowed-a-working-credential">Troubleshooting</a>.
+But a blank line is still noise, and <code>setup:doctor</code> warns about every one it
+finds: five in a <code>.env</code> copied straight from the template, four once
+<code>setup:secret_key_base</code> (or the wizard) has filled in <code>SECRET_KEY_BASE</code>. If
+you are not using a key, delete the line.</p>
+</div>
+<h3 id="database">Database<a class="headerlink" href="#database" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Default</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DATABASE_USER</code></td>
+<td><code>stagemgr_dev</code></td>
+<td>MySQL account. <strong>Must not be <code>root</code></strong> -- the <code>mysql</code> image refuses to start with <code>MYSQL_USER=root</code></td>
+</tr>
+<tr>
+<td><code>DATABASE_PASSWORD</code></td>
+<td><code>password</code></td>
+<td>Its password</td>
+</tr>
+<tr>
+<td><code>DATABASE_HOST</code></td>
+<td><code>127.0.0.1</code></td>
+<td>Compose overrides this to <code>mysql</code></td>
+</tr>
+<tr>
+<td><code>DATABASE_PORT</code></td>
+<td><code>3306</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>DATABASE_NAME</code></td>
+<td><code>stagemgr_dev</code></td>
+<td>Development/production database</td>
+</tr>
+<tr>
+<td><code>TEST_DATABASE_NAME</code></td>
+<td><code>stagemgr_test</code></td>
+<td>RSpec and Cucumber. Give every concurrent checkout its own -- the suites truncate every table between examples</td>
+</tr>
+<tr>
+<td><code>DATABASE_POOL</code></td>
+<td><code>5</code></td>
+<td>Active Record connection pool</td>
+</tr>
+<tr>
+<td><code>DATABASE_SOCKET</code></td>
+<td>--</td>
+<td>Connect over a Unix socket instead of TCP (a native Homebrew MySQL)</td>
+</tr>
+<tr>
+<td><code>MYSQL_ROOT_PASSWORD</code></td>
+<td><code>changeme-root</code></td>
+<td>Compose only: the MySQL container's root password. Deliberately not <code>DATABASE_PASSWORD</code></td>
+</tr>
+</tbody>
+</table>
+<p>In <code>production</code> the database name still defaults (<code>stagemgr_production</code>) but the
+user and password do not: <code>config/database.yml.example</code> uses <code>ENV.fetch</code> without
+a default there, so booting production against <code>stagemgr_dev</code>/<code>password</code> because
+a variable was unset fails loudly instead.</p>
+<h3 id="redis">Redis<a class="headerlink" href="#redis" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Default</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>REDIS_URL</code></td>
+<td><code>redis://127.0.0.1:6379/0</code></td>
+<td>Resque queues and Rack::Attack counters. Compose overrides it to <code>redis://redis:6379/0</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="rails">Rails<a class="headerlink" href="#rails" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>RAILS_ENV</code></td>
+<td><code>development</code>, <code>test</code> or <code>production</code></td>
+</tr>
+<tr>
+<td><code>SECRET_KEY_BASE</code></td>
+<td>Session/cookie signing key. <code>rake setup:secret_key_base</code> fills it in; <code>bundle exec rails secret</code> generates one by hand</td>
+</tr>
+<tr>
+<td><code>RAILS_MASTER_KEY</code></td>
+<td>Alternative to shipping <code>config/master.key</code>/<code>config/credentials/&lt;env&gt;.key</code> as a file. See <a href="../credentials/">Credentials</a></td>
+</tr>
+<tr>
+<td><code>STAGEMGR_SUB_URI</code></td>
+<td>Sub-path the app is mounted at, e.g. <code>/tickets</code>. Compose passes it through as <code>RAILS_RELATIVE_URL_ROOT</code>; it must agree with <code>server.yml</code>'s <code>sub_uri</code></td>
+</tr>
+<tr>
+<td><code>RAILS_SERVE_STATIC_FILES</code></td>
+<td>Serve <code>public/</code> from Rails instead of from Nginx/Apache</td>
+</tr>
+<tr>
+<td><code>RAILS_LOG_TO_STDOUT</code></td>
+<td>Log to stdout for a container or journald log driver</td>
+</tr>
+<tr>
+<td><code>RAILS_MAX_THREADS</code>, <code>WEB_CONCURRENCY</code>, <code>PORT</code></td>
+<td>Puma only; the Docker image runs Passenger</td>
+</tr>
+<tr>
+<td><code>RAILS_RAISE_ERRORS</code></td>
+<td>Re-raise controller exceptions instead of rendering the friendly error page (<code>app/controllers/application_controller.rb</code>)</td>
+</tr>
+<tr>
+<td><code>BACKTRACE</code></td>
+<td>Unsilenced backtraces</td>
+</tr>
+<tr>
+<td><code>SKIP_REQUIRED_SECRETS_CHECK</code></td>
+<td>Let the production boot check pass with secrets missing. Only for a build or maintenance process that never serves a request</td>
+</tr>
+</tbody>
+</table>
+<h3 id="secrets">Secrets<a class="headerlink" href="#secrets" title="Permanent link">&para;</a></h3>
+<p>Each of these is also readable from encrypted credentials -- see
+<a href="../credentials/">Credentials &amp; secrets</a> for the full registry and the resolution
+order.</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Needed when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>STRIPE_SECRET_KEY</code></td>
+<td><code>payment_processing.default_gateway</code> (or <code>default_recurring_gateway</code>) is <code>stripe</code></td>
+</tr>
+<tr>
+<td><code>STRIPE_SIGNING_SECRET</code></td>
+<td>You receive Stripe webhooks (<code>whsec_…</code>)</td>
+</tr>
+<tr>
+<td><code>POSTMARK_API_TOKEN</code></td>
+<td><code>email.delivery_method</code> is <code>postmark</code></td>
+</tr>
+<tr>
+<td><code>RESQUE_ADMIN_PASSWORD</code></td>
+<td>Always, in production -- see <a href="#the-resque-dashboard">the Resque dashboard</a></td>
+</tr>
+<tr>
+<td><code>MY_EMMA_USERNAME</code>, <code>MY_EMMA_PASSWORD</code>, <code>MY_EMMA_ACCOUNT_ID</code></td>
+<td>Using MyEmma mailing lists. All three are required together; with any of them absent the integration disables itself</td>
+</tr>
+<tr>
+<td><code>AWS_ACCESS_KEY_ID</code>, <code>AWS_SECRET_ACCESS_KEY</code></td>
+<td>ActiveStorage on S3 (uncomment the matching block in <code>config/storage.yml</code>). Blank means local disk</td>
+</tr>
+<tr>
+<td><code>PAYPAL_LOGIN</code>, <code>PAYPAL_PASSWORD</code>, <code>PAYPAL_SIGNATURE</code>, <code>PAYPAL_PEM_FILE</code>, <code>PAYPAL_EXPRESS_LOGIN</code>, <code>PAYPAL_EXPRESS_PASSWORD</code></td>
+<td>Legacy PayPal gateways only</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Development runs MyEmma read-only</p>
+<p><code>config/environments/development.rb</code> calls <code>MyEmma.read_only!</code> after setting
+credentials: reads work, writes are logged and skipped, whatever account the
+credentials point at.</p>
+</div>
+<h3 id="docker-compose"><code>docker compose</code><a class="headerlink" href="#docker-compose" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Default</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>STAGEMGR_PORT</code></td>
+<td><code>8080</code></td>
+<td>Host port for the app</td>
+</tr>
+<tr>
+<td><code>STAGEMGR_BIND</code></td>
+<td><code>127.0.0.1</code></td>
+<td>Interface the published ports bind to</td>
+</tr>
+<tr>
+<td><code>MYSQL_PORT</code></td>
+<td><code>3306</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>REDIS_PORT</code></td>
+<td><code>6379</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>HOST_UID</code>, <code>HOST_GID</code></td>
+<td>--</td>
+<td>Linux only: renumber the container's <code>app</code> user so bind-mounted files come back owned by you</td>
+</tr>
+<tr>
+<td><code>DB_PREPARE_ON_BOOT</code></td>
+<td><code>true</code> in development, <code>false</code> in production</td>
+<td>Run <code>setup:bootstrap</code> on container start. Accepts <code>true</code>/<code>1</code>/<code>yes</code>, any case</td>
+</tr>
+<tr>
+<td><code>RESQUE_QUEUES</code></td>
+<td><code>*</code></td>
+<td>Queues the containerized worker consumes</td>
+</tr>
+</tbody>
+</table>
+<h3 id="first-run-and-ci">First-run and CI<a class="headerlink" href="#first-run-and-ci" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ADMIN_EMAIL</code>, <code>ADMIN_PASSWORD</code></td>
+<td>Skip <code>setup:admin</code>'s interactive prompts (scripted installs)</td>
+</tr>
+<tr>
+<td><code>MAIL_DUMP_DIR</code></td>
+<td><code>spec/mailers/theme_render_spec.rb</code> writes every rendered email body under this directory, for before/after diffing</td>
+</tr>
+</tbody>
+</table>
+<h3 id="reports-run-from-cron">Reports run from cron<a class="headerlink" href="#reports-run-from-cron" title="Permanent link">&para;</a></h3>
+<p><code>db/reports/*.sh</code> are plain shell + SQL, not Rails, and take their configuration
+from the cron environment:</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Default</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>REPORT_EMAIL</code></td>
+<td><strong>none -- the scripts abort without it</strong></td>
+<td>Recipient and envelope sender for <code>mail_*.sh</code></td>
+</tr>
+<tr>
+<td><code>REPORT_SUBJECT_TAG</code></td>
+<td><code>StageMgr</code></td>
+<td>Prefix in the subject line, e.g. <code>[StageMgr] Unfulfilled Flexpasses</code></td>
+</tr>
+<tr>
+<td><code>MY_CNF</code></td>
+<td><code>$HOME/.my.cnf</code></td>
+<td>MySQL defaults file the HUD count scripts (<code>db/reports/hud/*.sh</code>) authenticate with</td>
+</tr>
+</tbody>
+</table>
+<h2 id="configserveryml"><code>config/server.yml</code><a class="headerlink" href="#configserveryml" title="Permanent link">&para;</a></h2>
+<p>Copied from <code>config/server.yml.example</code>. Keys under <code>all:</code> apply to every
+environment; an environment block (<code>development:</code>, <code>test:</code>, <code>production:</code>)
+overrides them by deep merge.</p>
+<h3 id="identity-and-mount-point">Identity and mount point<a class="headerlink" href="#identity-and-mount-point" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>app_name</code></td>
+<td>Display name in page titles and as the fallback house name before a theater row exists</td>
+</tr>
+<tr>
+<td><code>host</code></td>
+<td>Host used to build absolute URLs (email links, calendar feeds)</td>
+</tr>
+<tr>
+<td><code>host_protocol</code></td>
+<td><code>http</code> or <code>https</code> for those URLs</td>
+</tr>
+<tr>
+<td><code>sub_uri</code></td>
+<td>Mount point when the app is <strong>not</strong> served from <code>/</code>, e.g. <code>/tickets</code>. Passed to ActionMailer as <code>:script_name</code>, so mail sent from a worker gets the prefix exactly once. <strong>Leave it blank on a standalone install</strong></td>
+</tr>
+<tr>
+<td><code>secure_root_url</code></td>
+<td>Absolute base for the links in the generated public calendar feed (<code>ResqueJobs::GenerateCalendar</code>)</td>
+</tr>
+<tr>
+<td><code>static_cache_dir</code></td>
+<td>Where that generated calendar is written</td>
+</tr>
+<tr>
+<td><code>ext_site_wrapper</code></td>
+<td>Layout for the public order pages. <code>standalone</code> for a self-contained install; the name of an externally supplied layout when a marketing site wraps the app</td>
+</tr>
+<tr>
+<td><code>site_theme</code></td>
+<td>Directory under <code>sites/</code> holding this house's editorial copy. Commented out = generic copy (<a href="../theming/">Theming</a>)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="sales-rules">Sales rules<a class="headerlink" href="#sales-rules" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>order_expiration_in_minutes</code></td>
+<td>How long an unpaid order is held</td>
+</tr>
+<tr>
+<td><code>restrict_sales_due_to_time_at_minutes_before</code></td>
+<td>Stop public sales this many minutes before curtain (inventory routes to the box office)</td>
+</tr>
+<tr>
+<td><code>minutes_before_performance_close_to_third_party_sales</code></td>
+<td>The same cut-off for theater users</td>
+</tr>
+<tr>
+<td><code>restrict_sales_due_to_capacity_at</code></td>
+<td>Seats remaining at or below which self-service sales stop; also drives "Call box office" on the calendar</td>
+</tr>
+<tr>
+<td><code>max_ticket_dropdown</code></td>
+<td>Largest quantity a patron can pick in one order</td>
+</tr>
+<tr>
+<td><code>resourced_default_runtime_minutes</code></td>
+<td>Assumed running time when <code>productions.running_time</code> is blank</td>
+</tr>
+<tr>
+<td><code>calendar_display.warning_at</code>, <code>calendar_display.critical_at</code></td>
+<td>Calendar heatmap thresholds, as a percentage of seats remaining</td>
+</tr>
+<tr>
+<td><code>allowed_order_task_suppressions</code></td>
+<td>Which order tasks a payment type may suppress</td>
+</tr>
+</tbody>
+</table>
+<h3 id="reports-and-storage">Reports and storage<a class="headerlink" href="#reports-and-storage" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>hud_export_directory</code></td>
+<td>Where the HUD export jobs write their text files</td>
+</tr>
+<tr>
+<td><code>archive_directory</code></td>
+<td>Destination for data-retention archives. <strong>Blank disables the archive/prune pipeline</strong> -- the jobs refuse to run rather than delete rows nothing exported. Must be covered by your backups</td>
+</tr>
+<tr>
+<td><code>max_report_date_range_days</code></td>
+<td>Widest date range a report may request</td>
+</tr>
+<tr>
+<td><code>report_timeout_seconds</code></td>
+<td>Report query timeout</td>
+</tr>
+<tr>
+<td><code>report_frequent_customer_at</code>, <code>report_frequent_customer_range_days</code></td>
+<td>"Frequent customer" threshold on the house management report</td>
+</tr>
+</tbody>
+</table>
+<h3 id="theater-facts-about-the-house"><code>theater:</code> -- facts about the house<a class="headerlink" href="#theater-facts-about-the-house" title="Permanent link">&para;</a></h3>
+<p>Plain, non-editorial facts printed on public order pages and in email. Every one
+may be left blank: the sentence that would have used it is omitted rather than
+printed empty. Anything with a <em>voice</em> to it belongs in a
+<a href="../theming/">site theme</a> instead. The full key list, with fallbacks, is in
+<a href="../theming/#the-theater-block">Theming → the <code>theater:</code> block</a>.</p>
+<div class="admonition warning">
+<p class="admonition-title">The house's name is not a key here</p>
+<p>It is the <code>name</code> of the <strong>Default theater row</strong> in the database, so the one
+proper noun that appears in dozens of places has a single source the box
+office already maintains. Renaming that row renames the house everywhere.</p>
+</div>
+<h3 id="my_emma"><code>my_emma:</code><a class="headerlink" href="#my_emma" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>newsletter_group</code>, <code>coupon_group</code></td>
+<td>Names of the MyEmma groups a patron joins when they tick the mailing-list box</td>
+</tr>
+<tr>
+<td><code>create_production_groups</code>, <code>create_theater_groups</code></td>
+<td>Whether new productions/theaters get their own Emma groups</td>
+</tr>
+</tbody>
+</table>
+<p>The two group-name keys have three distinct states:</p>
+<table>
+<thead>
+<tr>
+<th>State</th>
+<th>Behaviour</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Key <strong>absent</strong> from <code>server.yml</code></td>
+<td>The historical names <code>Newsletter</code> and <code>Flash Offers</code>, so a config predating these keys keeps behaving as it did</td>
+</tr>
+<tr>
+<td>Key present but <strong>blank</strong></td>
+<td>Nobody is added to that group -- an explicit opt-out, not a lookup for <code>""</code></td>
+</tr>
+<tr>
+<td>Key present with a name</td>
+<td>That group</td>
+</tr>
+</tbody>
+</table>
+<p>Group ids are resolved by name and cached for five minutes: the API resolves a
+name by listing every group in the account, so a lookup per order is expensive --
+but a permanent memo would go on serving the id of a group that has since been
+renamed. When MyEmma is configured <em>and</em> writable, <code>setup:doctor</code> checks that
+each configured name actually exists in the account and warns if it does not.</p>
+<h3 id="email"><code>email:</code><a class="headerlink" href="#email" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>delivery_method</code></td>
+<td><code>postmark</code>, <code>file</code> (writes to <code>tmp/mails</code> -- the development default, so a fresh install needs no mail credentials), <code>sendmail</code>, <code>test</code></td>
+</tr>
+<tr>
+<td><code>addresses.box_office</code></td>
+<td>Default From: for patron mail, and <code>TheaterInfo#box_office_email</code></td>
+</tr>
+<tr>
+<td><code>addresses.flex_pass_notifications</code></td>
+<td>Flex pass activity</td>
+</tr>
+<tr>
+<td><code>addresses.membership_notifications</code></td>
+<td>Membership activity</td>
+</tr>
+<tr>
+<td><code>addresses.supervisor_notifications</code></td>
+<td>High-priority system notices</td>
+</tr>
+<tr>
+<td><code>addresses.wheelchair_conversion_notifications</code></td>
+<td>Seat accessibility conversions</td>
+</tr>
+<tr>
+<td><code>addresses.software_address</code></td>
+<td>System/administrative mail; the last-resort sender</td>
+</tr>
+<tr>
+<td><code>addresses.exception_notifications</code></td>
+<td>Crash reports from the exception notifier</td>
+</tr>
+</tbody>
+</table>
+<p><code>exception_notifications</code> falls back to <code>software_address</code>. With <strong>neither</strong>
+configured the exception-notification middleware is left out of the stack
+entirely and a warning is logged: <code>EmailNotifier</code> would otherwise build a mail
+with no recipients and raise from inside the middleware while it was handling
+the real exception, replacing a useful 500 page with a confusing one.</p>
+<h3 id="payment_processing"><code>payment_processing:</code><a class="headerlink" href="#payment_processing" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>default_gateway</code></td>
+<td><code>stripe</code>, <code>paypal</code>, <code>bogus</code> (the development/test default)</td>
+</tr>
+<tr>
+<td><code>default_recurring_gateway</code></td>
+<td>Gateway for subscriptions</td>
+</tr>
+<tr>
+<td><code>additional_card_types</code></td>
+<td>Comma-separated extra card brands to accept</td>
+</tr>
+<tr>
+<td><code>test_credit_card</code>, <code>test_card_brand</code></td>
+<td>Values the non-production forms pre-fill</td>
+</tr>
+</tbody>
+</table>
+<p><code>RequiredSecrets</code> reads these: a <code>stripe</code> gateway makes <code>STRIPE_SECRET_KEY</code>
+mandatory in production, and <code>delivery_method: postmark</code> makes
+<code>POSTMARK_API_TOKEN</code> mandatory. See <a href="../credentials/">Credentials</a>.</p>
+<h3 id="the-resque-dashboard">The Resque dashboard<a class="headerlink" href="#the-resque-dashboard" title="Permanent link">&para;</a></h3>
+<p><code>config/routes.rb</code> mounts the Resque web UI at <code>/admin/resque</code> with no other
+authentication in front of it. Its HTTP basic-auth password comes from
+<code>RESQUE_ADMIN_PASSWORD</code> or the <code>resque_admin_password</code> credential:</p>
+<table>
+<thead>
+<tr>
+<th>Situation</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A password is configured</td>
+<td>Basic auth, compared with <code>secure_compare</code></td>
+</tr>
+<tr>
+<td>None, <strong>in production</strong></td>
+<td>Denied to everyone (fail closed). An open queue dashboard exposes job arguments -- order ids, email addresses -- and offers a one-click "Clear failed jobs"</td>
+</tr>
+<tr>
+<td>None, outside production</td>
+<td>Open to anyone who can reach it</td>
+</tr>
+</tbody>
+</table>
+<p>A <code>resque_admin_password:</code> still sitting in <code>config/server.yml</code> keeps working
+but warns once at boot. It is the only key with that plaintext fallback left.</p>
+<h3 id="the-test-environment-reads-the-example-file">The test environment reads the example file<a class="headerlink" href="#the-test-environment-reads-the-example-file" title="Permanent link">&para;</a></h3>
+<p><code>config/environments/test.rb</code> loads the <strong>tracked <code>config/server.yml.example</code></strong>,
+not the <code>config/server.yml</code> you copied it to, so every checkout and every CI run
+tests against the same values instead of whatever a developer's gitignored copy
+happens to say. Cucumber forces <code>RAILS_ENV=test</code> too, so it does the same.</p>
+<p>That makes the <code>test:</code> block part of the test suite. Its values are deliberate
+sentinels -- <code>555-BOX-OFFICE</code>, <code>PICKUPWINDOW.TEST</code>, <code>https://WEBSITE.TEST</code>,
+<code>Test Theater Box Office</code>, <code>Test Director</code> -- obviously fake, so a spec cannot
+pass against a developer's real config by accident. Specs and Cucumber features
+assert them.</p>
+<div class="admonition warning">
+<p class="admonition-title">Adding a key the tests need</p>
+<p>Add it to the <code>test:</code> block of <code>config/server.yml.example</code>, not to your own
+<code>config/server.yml</code>. <code>test.rb</code> also forces <code>ext_site_wrapper</code> to
+<code>standalone</code> regardless of what the file says.</p>
+</div>
+<h2 id="keys-that-are-gone">Keys that are gone<a class="headerlink" href="#keys-that-are-gone" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>filestore_hash</code> (<code>server.yml</code>)</td>
+<td>Read by nothing. Deleted from all three blocks of the example</td>
+</tr>
+<tr>
+<td><code>email.addresses.online_errors</code> (<code>server.yml</code>)</td>
+<td>Added in 2011 and never read by any code; unhandled exceptions go to <code>exception_notifications</code>. Deleted from the example -- a value left in your own file is ignored</td>
+</tr>
+<tr>
+<td><code>root_url</code> (<code>server.yml</code>)</td>
+<td>Read by nothing -- only <code>secure_root_url</code> is. Still present in the example's environment blocks; do not rely on it</td>
+</tr>
+<tr>
+<td><code>resque_admin_password</code> (<code>server.yml</code>)</td>
+<td>Now a deprecated fallback that warns at boot; use <code>RESQUE_ADMIN_PASSWORD</code> or the credential</td>
+</tr>
+<tr>
+<td><code>STRIPE_PUBLISHABLE_KEY</code></td>
+<td>Read by nothing; never prompted for</td>
+</tr>
+<tr>
+<td><code>config.external_site_root</code> (<code>development.rb</code>)</td>
+<td>Pointed at a developer's home directory and was read by nothing</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "search.highlight", "content.tabs.link", "toc.integrate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
