@@ -252,7 +252,6 @@ each configured name actually exists in the account and warns if it does not.
 |---|---|
 | `delivery_method` | `postmark`, `file` (writes to `tmp/mails` -- the development default, so a fresh install needs no mail credentials), `sendmail`, `test` |
 | `addresses.box_office` | Default From: for patron mail, and `TheaterInfo#box_office_email` |
-| `addresses.online_errors` | Online order processing errors |
 | `addresses.flex_pass_notifications` | Flex pass activity |
 | `addresses.membership_notifications` | Membership activity |
 | `addresses.supervisor_notifications` | High-priority system notices |
@@ -317,6 +316,7 @@ assert them.
 | Key | Why |
 |---|---|
 | `filestore_hash` (`server.yml`) | Read by nothing. Deleted from all three blocks of the example |
+| `email.addresses.online_errors` (`server.yml`) | Added in 2011 and never read by any code; unhandled exceptions go to `exception_notifications`. Deleted from the example -- a value left in your own file is ignored |
 | `root_url` (`server.yml`) | Read by nothing -- only `secure_root_url` is. Still present in the example's environment blocks; do not rely on it |
 | `resque_admin_password` (`server.yml`) | Now a deprecated fallback that warns at boot; use `RESQUE_ADMIN_PASSWORD` or the credential |
 | `STRIPE_PUBLISHABLE_KEY` | Read by nothing; never prompted for |

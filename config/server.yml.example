@@ -133,7 +133,6 @@ development:
     delivery_method: file
     addresses:
       box_office: boxoffice@yourtheater.org
-      online_errors: boxoffice@yourtheater.org
       flex_pass_notifications: boxoffice@yourtheater.org
       membership_notifications: boxoffice@yourtheater.org
       supervisor_notifications: admin@yourtheater.org
@@ -179,7 +178,6 @@ test:
   email:
     addresses:
       box_office: boxoffice@yourtheater.org
-      online_errors: boxoffice@yourtheater.org
       flex_pass_notifications: boxoffice@yourtheater.org
       membership_notifications: boxoffice@yourtheater.org
       supervisor_notifications: admin@yourtheater.org
@@ -207,7 +205,6 @@ production:
     delivery_method: postmark
     addresses:
       box_office: boxoffice@yourtheater.org
-      online_errors: boxoffice@yourtheater.org
       flex_pass_notifications: boxoffice@yourtheater.org
       membership_notifications: boxoffice@yourtheater.org
       supervisor_notifications: admin@yourtheater.org
