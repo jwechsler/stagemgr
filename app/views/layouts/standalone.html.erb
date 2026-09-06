@@ -1,0 +1,52 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+  <title><%= content_for?(:title) ? yield(:title) : Rails.configuration.x.app_display_name %></title>
+  <%= stylesheet_link_tag "frontend" %>
+  <%= yield(:head) %>
+</head>
+<body>
+  <div id="page-container">
+    <div id="content-wrap">
+
+      <div class="grid-container fixed">
+
+        <div class="grid-x">
+          <div class="cell">
+
+            <div class="grid-padding-x paper">
+              <%- unless flash.empty? %>
+                  <%= render :partial=>'/flash_notice' %>
+              <%- end %>
+
+              <div class="small-12 cell">
+                <%= yield %>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <%# The only chrome a standalone public page has, so it carries the house's
+          contact facts. Each is optional: an unconfigured house gets the
+          copyright line alone rather than an empty address. %>
+      <footer id="footer" class="copyright text-center contrast">
+          <p class="text-center">&copy; <%= Date.current.year %> <%= theater_info.name %></p>
+          <% contact = [theater_info.full_address, theater_info.phone].compact_blank %>
+          <% if contact.any? %>
+            <p class="text-center"><%= contact.join(' · ') %></p>
+          <% end %>
+      </footer>
+    </div>
+  </div>
+
+  <%= yield(:js) %>
+</body>
+</html>

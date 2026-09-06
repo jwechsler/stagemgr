@@ -4,7 +4,7 @@ FactoryBot.define do
     association :user
 
     subject { "Important update regarding #{performance.production.name}" }
-    from_address { 'boxoffice@theaterwit.org' }
+    from_address { Rails.configuration.x.email_address['box_office'] }
     body { "This is a test broadcast message.\n\n**Important information** for attendees." }
     recipient_count { nil }
     sent_at { nil }

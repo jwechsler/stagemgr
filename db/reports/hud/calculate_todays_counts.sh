@@ -31,5 +31,5 @@ where
   orders.status in ('Fulfilled','Processed','Unclaimed') and
   date_format(convert_tz(orders.created_at,'UTC','SYSTEM'),'%Y-%m-%d') = curdate()
 group by prod.id, date_format(convert_tz(orders.created_at,'UTC','SYSTEM'), '%Y-%m-%d')
-order by prod.name, perf.performance_date desc;" | /usr/local/bin/mysql --defaults-extra-file=/Users/jeremyw/.my.cnf --table=true -u stagemgr_prod stagemgr > /tmp/todays_counts$1.txt
+order by prod.name, perf.performance_date desc;" | /usr/local/bin/mysql --defaults-extra-file="${MY_CNF:-$HOME/.my.cnf}" --table=true -u stagemgr_prod stagemgr > /tmp/todays_counts$1.txt
 

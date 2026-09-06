@@ -1,14 +1,34 @@
-# Copy to config/server.yml (rake config:setup does this) and adjust for your
+# Copy to config/server.yml (rake setup:config does this) and adjust for your
 # deployment. Values in `all:` apply to every environment and are overridden by
 # any key present in the environment-specific section below.
+#
+# NOTE: the test environment reads THIS file directly, not the config/server.yml
+# you copy it to (see config/environments/test.rb) -- so that every checkout and
+# CI run test against the same values rather than against whatever each
+# developer's gitignored copy happens to say. That makes the `test:` block below
+# part of the test suite: its sentinel values are asserted by specs and cucumber
+# features, so changing one breaks them, and a new key the specs need has to be
+# added there rather than to your own config/server.yml. Keep the `test:` block
+# in sync with `all:` when you add a key that the tests exercise.
 all:
   app_name: "StageMgr"
+  # Name of the directory under sites/ holding this house's editorial copy
+  # (views that override app/views, plus optional locale files). Leave it
+  # commented out to run the generic, unbranded copy. `rake setup:site[myhouse]`
+  # creates sites/myhouse from sites/example and fills this line in for you.
+  # See sites/README.md.
+  # site_theme: myhouse
   # permits certain order tasks to be suppressed at the user's request
   allowed_order_task_suppressions: { OutreachTask: [ticket_confirmation, ANY] }
   # host used for building references to static resources
   host: "www.yourtheater.org"
-  # mount point for the application (some deployments serve it under a sub-path)
-  sub_uri: "/tickets"
+  # Mount point, when the application is NOT served from /. Leave it blank for a
+  # standalone install: it is folded into every mailed URL, so a stray "/tickets"
+  # here sends patrons to a 404. Set it to "/tickets" only when the web server
+  # actually mounts the app there (e.g. behind a separately built marketing
+  # site — see docker/nginx.foundation.conf), and keep it in agreement with
+  # RAILS_RELATIVE_URL_ROOT / STAGEMGR_SUB_URI.
+  sub_uri:
   # required protocol
   host_protocol: "https"
   # minutes before unpaid orders expire
@@ -32,7 +52,7 @@ all:
     warning_at: 50
     critical_at: 30
   # layout for public-facing pages to match the main web site
-  ext_site_wrapper: 'ext_site_wrapper'
+  ext_site_wrapper: 'standalone'
   # export directory for HUD reports
   hud_export_directory: "/tmp"
   # Directory for data-retention archive files (aged-out audit rows, exported
@@ -47,6 +67,49 @@ all:
   report_timeout_seconds: 30
   report_frequent_customer_at: 12
   report_frequent_customer_range_days: 1460
+  # Plain facts about your house, printed on public order pages and in email.
+  # Every one of them may be left blank: the sentence that would have used it is
+  # omitted rather than printed empty. Anything with a voice to it — the reason
+  # people should support you, what is good about the neighbourhood — is not
+  # here; that lives in a site theme (see sites/README.md).
+  #
+  # Your house's NAME is deliberately not a key here. It comes from the Default
+  # theater row in the database, so it is maintained in one place.
+  theater:
+    phone:
+    street_address:
+    city_state_zip:
+    # How the box office describes when tickets can be picked up, e.g.
+    # "ninety minutes before curtain".
+    pickup_window_text:
+    doors_open_minutes_before: 30
+    # Blank falls back to the Default theater's `url` from the admin form.
+    website_url:
+    facebook_url:
+    twitter_url:
+    instagram_url:
+    # Absolute URL of a logo for email. Email clients cannot see this app's
+    # assets, so it must be publicly reachable. Blank falls back to the Default
+    # theater's uploaded logo, then to the house name as text.
+    logo_url:
+    # One sentence under the mailing-list opt-in checkbox.
+    mailing_list_blurb: "Get company news, special offers and ticket discounts. Your email will not be shared."
+    # Blank becomes "<house name> Box Office".
+    box_office_display_name:
+    # Who signs follow-up mail. With no name or no address, follow-ups come
+    # from the box office instead.
+    artistic_director_name:
+    artistic_director_title: "Artistic Director"
+    artistic_director_email:
+    # Absolute URL of a signature image for the artistic director's sign-off.
+    signature_image_url:
+    # Stripe customer portal link, for members managing their own subscription.
+    stripe_billing_portal_url:
+  my_emma:
+    # Names of the MyEmma groups patrons are added to when they opt in. Leave a
+    # name blank to stop adding anyone to that group.
+    newsletter_group: "Newsletter"
+    coupon_group: "Flash Offers"
   payment_processing:
     additional_card_types:
 
@@ -55,21 +118,28 @@ development:
   root_url:  "http://localhost"
   secure_root_url:  "http://localhost"
   static_cache_dir: "/tmp/stagemgr-cache"
-  filestore_hash: "yoursecrethere"
-  resque_admin_password: "changeme"
+  # Basic-auth password for /admin/resque. It is a secret, so it now lives in
+  # ENV (RESQUE_ADMIN_PASSWORD, e.g. in .env) or in the encrypted credentials as
+  # `resque_admin_password`. A value left here still works but warns at boot.
+  # resque_admin_password: "changeme"
   my_emma:
     create_production_groups: false
     create_theater_groups: false
   email:
-    delivery_method: postmark
+    # `file` writes each message to tmp/mails instead of sending it, so a fresh
+    # install needs no mail credentials and `rake setup:doctor` comes back
+    # clean. Switch to `postmark` (and set POSTMARK_API_TOKEN) when you want
+    # development to deliver for real.
+    delivery_method: file
     addresses:
       box_office: boxoffice@yourtheater.org
-      online_errors: boxoffice@yourtheater.org
       flex_pass_notifications: boxoffice@yourtheater.org
       membership_notifications: boxoffice@yourtheater.org
       supervisor_notifications: admin@yourtheater.org
       wheelchair_conversion_notifications: stagemgr@yourtheater.org
       software_address: stagemgr@yourtheater.org
+      # crash reports from the exception notifier; falls back to software_address
+      exception_notifications: bugs@yourtheater.org
   payment_processing:
     default_gateway: bogus
     default_recurring_gateway: bogus
@@ -79,25 +149,42 @@ development:
 # The test/cucumber suites run against MySQL (see database.yml.example) and use
 # StripeMock, so no real gateway or credentials are needed here.
 test:
-  filestore_hash: "yoursecrethere"
-  resque_admin_password: "changeme"
   host: "127.0.0.1"
+  # Explicit here even though `all:` now leaves it blank: the suite has to keep
+  # exercising the mounted-under-a-sub-path case, which is what Theater Wit runs
+  # in production and where the mailer URL bugs live.
+  sub_uri: "/tickets"
   root_url:  "http://127.0.0.1"
   secure_root_url:  ""
   # Sentinel values asserted by spec/models/productions/production_spec.rb
   survey_link: "https://SURVEYLINK.TEST"
   mailing_list_link: "http://MAILINGLINK.TEST"
+  # Sentinels asserted by the specs and cucumber features that check house
+  # facts reach the page. Obviously fake on purpose: a real-looking value here
+  # would let a test pass against a developer's own config/server.yml.
+  theater:
+    phone: "555-BOX-OFFICE"
+    street_address: "1 EXAMPLE ST"
+    city_state_zip: "TESTCITY, IL 60657"
+    pickup_window_text: "PICKUPWINDOW.TEST"
+    box_office_display_name: "Test Theater Box Office"
+    artistic_director_name: "Test Director"
+    artistic_director_email: director@yourtheater.org
+    website_url: "https://WEBSITE.TEST"
+    facebook_url: "https://FACEBOOK.TEST"
+    stripe_billing_portal_url: "https://BILLING.TEST"
   my_emma:
     create_production_groups: false
   email:
     addresses:
       box_office: boxoffice@yourtheater.org
-      online_errors: boxoffice@yourtheater.org
       flex_pass_notifications: boxoffice@yourtheater.org
       membership_notifications: boxoffice@yourtheater.org
       supervisor_notifications: admin@yourtheater.org
       wheelchair_conversion_notifications: stagemgr@yourtheater.org
       software_address: stagemgr@yourtheater.org
+      # crash reports from the exception notifier; falls back to software_address
+      exception_notifications: bugs@yourtheater.org
   payment_processing:
     default_gateway: bogus
     default_recurring_gateway: bogus
@@ -109,8 +196,8 @@ production:
   root_url:  "http://configure.yourserver.here/tickets"
   secure_root_url: "https://configure.yourserver.here/tickets"
   static_cache_dir: "/var/www/stagemgr/tmp/cache"
-  filestore_hash: "changeme"
-  resque_admin_password: "changeme"
+  # See the development block: set RESQUE_ADMIN_PASSWORD or the credential instead.
+  # resque_admin_password: "changeme"
   my_emma:
     create_production_groups: true
     create_theater_groups: true
@@ -118,12 +205,13 @@ production:
     delivery_method: postmark
     addresses:
       box_office: boxoffice@yourtheater.org
-      online_errors: boxoffice@yourtheater.org
       flex_pass_notifications: boxoffice@yourtheater.org
       membership_notifications: boxoffice@yourtheater.org
       supervisor_notifications: admin@yourtheater.org
       wheelchair_conversion_notifications: stagemgr@yourtheater.org
       software_address: stagemgr@yourtheater.org
+      # crash reports from the exception notifier; falls back to software_address
+      exception_notifications: bugs@yourtheater.org
   payment_processing:
     default_gateway: stripe
     default_recurring_gateway: stripe

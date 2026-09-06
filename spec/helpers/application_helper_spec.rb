@@ -45,4 +45,16 @@ RSpec.describe ApplicationHelper, type: :helper do
       end
     end
   end
+
+  # Several partials on one page name the house, and each lookup would otherwise
+  # query for the Default theater row again.
+  describe '#theater_info' do
+    it 'returns the house facts' do
+      expect(helper.theater_info).to be_a(TheaterInfo)
+    end
+
+    it 'builds one instance per render and reuses it' do
+      expect(helper.theater_info).to equal(helper.theater_info)
+    end
+  end
 end

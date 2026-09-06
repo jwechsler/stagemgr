@@ -8,6 +8,14 @@ class MembershipOffer < ApplicationRecord
   scope :status_active,   -> { where(status: ACTIVE) }
   scope :status_inactive, -> { where(status: INACTIVE) }
 
+  # Offers a member of the public may actually buy right now: the query form of
+  # #on_sale_to_public?, condition for condition. Used by the public index and
+  # by the calendar's membership call-to-action, where listing anything else
+  # would print a buy button that lands on "not available" --
+  # MembershipOfferOrdersController#new renders general/unavailable for an offer
+  # that is off sale or timed.
+  scope :on_sale_to_public, -> { status_active.where(on_sale: true, membership_type: PRODUCTION) }
+
   # 'production' memberships are the classic single-member subscription, good
   # for tickets_per_performance seats per production. 'timed' offers are
   # library passes: shared between patrons, staff-issued with no Stripe
@@ -56,8 +64,12 @@ class MembershipOffer < ApplicationRecord
     true
   end
 
+  # Kept condition-for-condition with the on_sale_to_public scope. `active?` is
+  # implied today -- before_save takes an inactive offer off sale -- but saying
+  # it here keeps the record form and the query form answering alike for a row
+  # whose status was changed by anything that skips callbacks.
   def on_sale_to_public?
-    on_sale && !timed?
+    active? && on_sale && !timed?
   end
 
   def enqueue_myemma_group_resync

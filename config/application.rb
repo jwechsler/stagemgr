@@ -12,6 +12,12 @@ require 'rails/all'
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
 
+# Secret resolution (ENV -> credentials -> deprecated server.yml) and the
+# production boot gate. Required here, and ignored by the autoloader below,
+# because the environment files use them before Zeitwerk is set up.
+require_relative '../lib/app_secrets'
+require_relative '../lib/required_secrets'
+
 module Stagemgr
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
@@ -26,6 +32,9 @@ module Stagemgr
     Rails.autoloaders.main.ignore(Rails.root.join('lib/validates_credit_card.rb'))
     # Required by the environment files, which run before the autoloaders are set up.
     Rails.autoloaders.main.ignore(Rails.root.join('lib/mailer_url_options.rb'))
+    Rails.autoloaders.main.ignore(Rails.root.join('lib/app_secrets.rb'))
+    Rails.autoloaders.main.ignore(Rails.root.join('lib/required_secrets.rb'))
+    Rails.autoloaders.main.ignore(Rails.root.join('lib/exception_recipients.rb'))
     # Set Time.zone default to the specified zone and make Active Record auto-convert to this zone.
     # Run "rake -D time" for a list of tasks for finding time zone names. Default is UTC.
     config.time_zone = 'Central Time (US & Canada)'
@@ -70,9 +79,22 @@ module Stagemgr
     initializer :after_append_asset_paths,
                 group: :all,
                 after: :append_assets_path do |app|
-      app.config.x.markdown = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true,
-                                                                               space_after_headers: true,
-                                                                               filter_html: true)
+      # Staff-authored copy that reaches public pages. safe_links_only drops
+      # link and image targets outside http/https/mailto/ftp, so a
+      # `[click](javascript:...)` in an offer description cannot become a live
+      # link on the public membership index or a show page.
+      #
+      # Render options only take effect on a renderer INSTANCE: passed to
+      # Markdown.new alongside the extensions, as `filter_html: true` was, they
+      # are silently ignored -- so untrusted markdown has in fact been rendering
+      # raw HTML through all along. Leaving it that way on purpose:
+      # hundreds of existing show descriptions and every membership description
+      # contain hand-written HTML, and switching filter_html on for real would
+      # blank them. That is a decision about house data, not a config tweak.
+      app.config.x.markdown = Redcarpet::Markdown.new(
+        Redcarpet::Render::HTML.new(safe_links_only: true),
+        autolink: true, space_after_headers: true
+      )
       app.config.x.trusted_markdown = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true,
                                                                                        space_after_headers: true)
       # Deprecated compatibility shim for the markdown renderers. These run in a

@@ -65,15 +65,32 @@ module PaymentProcessing
   end
 
   def self.after_initialize
-    if (Rails.configuration.x.payment_config['default_gateway'].eql?('paypal') || Rails.configuration.x.payment_config['default_recurring_gateway'].eql?('paypal')) && !Rails.credentials.dig(
-      :paypal, :pem_file
-    ).nil?
-      pem_file = File.read(::Rails.root.to_s + "/config/#{Rails.credentials.dig(:paypal, :pem_file)}")
-      ActiveMerchant::Billing::PaypalGateway.pem_file = pem_file
+    # NOTE: the paypal branch read `Rails.credentials`, which does not exist in
+    # Rails 6.1 (it is Rails.application.credentials) -- so any paypal
+    # deployment raised NoMethodError here at boot. Routing through AppSecrets
+    # fixes that; Stripe deployments were never affected.
+    if gateway_configured?('paypal') && (pem_name = AppSecrets[:paypal_pem_file])
+      ActiveMerchant::Billing::PaypalGateway.pem_file = read_pem_file(pem_name)
     end
-    if Rails.configuration.x.payment_config['default_gateway'].eql?('stripe') || Rails.configuration.x.payment_config['default_recurring_gateway'].eql?('stripe')
-      Stripe.api_key = Rails.application.credentials.dig(:stripe, :secret_key)
+    Stripe.api_key = AppSecrets[:stripe_secret_key] if gateway_configured?('stripe')
+  end
+
+  # True when either the one-off or the recurring gateway is the named one.
+  def self.gateway_configured?(name)
+    default_gateway.eql?(name) || default_recurring_gateway.eql?(name)
+  end
+
+  # An absolute PAYPAL_PEM_FILE is used as given (a Docker or systemd secret
+  # mount); anything else is resolved under config/, as it always was. A bare
+  # Errno::ENOENT at boot names no path, so say which file we looked for.
+  def self.read_pem_file(pem_name)
+    path = Pathname.new(pem_name)
+    path = Rails.root.join('config', path) unless path.absolute?
+    unless path.exist?
+      raise "PayPal pem file not found at #{path} (from PAYPAL_PEM_FILE or the paypal.pem_file credential)"
     end
+
+    path.read
   end
 
   def self.recurring_gateway(requested_gateway = nil)
@@ -85,27 +102,23 @@ module PaymentProcessing
     requested_gateway ||= default_gateway
     case requested_gateway
     when 'paypal'
-      if Rails.credentials.dig(:paypal, :signature).nil?
-        ActiveMerchant::Billing::PaypalGateway.new(login: Rails.credentials.dig(:paypal, :login),
-                                                   password: Rails.credentials.dig(
-                                                     :paypal, :password
-                                                   ))
-      else
-        ActiveMerchant::Billing::PaypalGateway.new(login: Rails.credentials.dig(:paypal, :login),
-                                                   password: Rails.credentials.dig(
-                                                     :paypal, :password
-                                                   ),
-                                                   signature: Rails.credentials.dig(
-                                                     :paypal, :signature
-                                                   ))
-      end
+      # A blank signature omits the key entirely rather than passing "", which
+      # is what selects PayPal's legacy certificate API in ActiveMerchant --
+      # the same distinction the old `if signature.nil?` branch drew, now also
+      # covering a signature that is present but empty.
+      options = { login: AppSecrets[:paypal_login], password: AppSecrets[:paypal_password] }
+      signature = AppSecrets[:paypal_signature]
+      options[:signature] = signature if signature
+      ActiveMerchant::Billing::PaypalGateway.new(**options)
     when 'paypal_express'
-      ActiveMerchant::Billing::PaypalExpressGateway.new(login: Rails.credentials.dig(:paypal_express, :login),
-                                                        password: Rails.credentials.dig(
-                                                          :paypal, :password
-                                                        ))
+      # Express has always shared paypal's password; it now has a key of its own
+      # (PAYPAL_EXPRESS_PASSWORD / paypal_express.password) and falls back.
+      ActiveMerchant::Billing::PaypalExpressGateway.new(
+        login: AppSecrets[:paypal_express_login],
+        password: AppSecrets[:paypal_express_password] || AppSecrets[:paypal_password]
+      )
     when 'stripe'
-      Stripe.api_key = Rails.application.credentials.dig(:stripe, :secret_key)
+      Stripe.api_key = AppSecrets[:stripe_secret_key]
       StripeGateway.new(login: Stripe.api_key)
 
     when 'bogus'

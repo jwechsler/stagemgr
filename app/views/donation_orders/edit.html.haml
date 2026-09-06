@@ -1,6 +1,6 @@
 .grid-x.grid-padding-x
   .small-12.cell
-    %h3 Support Theater Wit
+    %h3= "Support #{theater_info.name}"
 
     = simple_form_for @order do |order_form|
       = token_tag
@@ -28,8 +28,10 @@
                       = donation.input_field :amount, :required=>false
 
         = render :partial=>'/orders/billing_form', :locals=>{:order_form=>order_form}
-        - label_value = "Join the Theater Wit mailing list.<br/>Get company news, special offers, ticket discounts and more delivered twice monthly. Your email will not be shared. :) "
-        = order_form.input :add_to_email_list, :as=>:boolean, :label=>raw(label_value)
+        -# Captured rather than rendered in place: the checkbox wants the sentence as
+        -# its label, and the partial is the one place that sentence is written.
+        - label_value = capture { render 'shared/mailing_list_optin_label' }
+        = order_form.input :add_to_email_list, :as=>:boolean, :label=>label_value
 
         %br
 
@@ -37,6 +39,5 @@
 
     %p#tax_deductible_notice
       Your donation is fully tax-deductible to the extent allowable by law under IRS code 501(c)(3).
-    %p#contact_boxoffice_info
-      If you are having any troubles, please call our box office at 773-975-8150 and we 'll help you out!
+    = render 'shared/box_office_help'
 

@@ -17,9 +17,11 @@ case "$1" in
       echo $! > ./resque-maint.pid
       echo "Started worker for default,maintenance queues with PID $(cat ./resque-maint.pid)"
     else
-      # For development, use a single worker for all queues
-      echo "Starting development Resque worker..."
-      RAILS_ENV=development nohup bundle exec rake environment resque:work PIDFILE=./resque.pid QUEUE="*" >> log/resque.log 2>&1 &
+      # Outside production, use a single worker for all queues. Honour an
+      # already-exported RAILS_ENV (test, cucumber, a staging env) rather than
+      # forcing development; the production branch above is unchanged.
+      echo "Starting ${RAILS_ENV:-development} Resque worker..."
+      RAILS_ENV="${RAILS_ENV:-development}" nohup bundle exec rake environment resque:work PIDFILE=./resque.pid QUEUE="*" >> log/resque.log 2>&1 &
       echo $! > ./resque.pid
       echo "Started worker for all queues with PID $(cat ./resque.pid)"
     fi

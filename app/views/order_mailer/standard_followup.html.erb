@@ -1,4 +1,10 @@
 <%= render 'followup_title', order: @order %>
+<%# A show the house produced gets the house's own letter. A show it merely
+    presented leads with the visiting company's message, then the survey, then
+    the house's note -- see the editorial rules in sites/README.md.
+
+    The opening line is deliberately "We": the house as a whole is glad you
+    came; the artistic director's own voice starts in the next paragraph. %>
 <% if @order.performance.production.theater.producing? %>
 <p>
   We hope you had a good time here at the theater and will return soon (there are a few suggestions in
@@ -8,5 +14,5 @@
 <% else %>
 <%= render 'followup_custom_message', order: @order, neutral_fallback: true %>
 <%= render 'survey_prompt', order: @order %>
-<%= render 'tw_host_callout', order: @order %>
+<%= render 'host_callout', order: @order %>
 <% end %>

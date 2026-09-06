@@ -1,6 +1,11 @@
 #!/bin/bash
 
-export EMAIL="boxoffice@theaterwit.org"
+# Envelope sender for mutt/mailx, and the recipient for the reports that do
+# not take one as an argument. Set REPORT_EMAIL in the cron environment to
+# your box office address. No default: a report quietly mailed to a
+# placeholder address is worse than a cron job that fails loudly.
+: "${REPORT_EMAIL:?set REPORT_EMAIL in the cron environment (e.g. boxoffice@yourtheater.org)}"
+export EMAIL="$REPORT_EMAIL"
 
 export PATH=$PATH:/usr/local/mysql/bin
 
@@ -32,7 +37,7 @@ previous_week_box_office_counts.txt -- Sales count by performance and ticket typ
 previous_week_box_office_revenue.txt -- Revenue by performance for all shows
 " >> /tmp/previous_week_box_office.txt
 
-mutt -s "[TheaterWit] Box Office Weekly Counts/Revenue - all theaters" -a /tmp/previous_week_box_office_counts.txt -a /tmp/previous_week_box_office_revenue.txt  $1 < /tmp/previous_week_box_office.txt
+mutt -s "[${REPORT_SUBJECT_TAG:-StageMgr}] Box Office Weekly Counts/Revenue - all theaters" -a /tmp/previous_week_box_office_counts.txt -a /tmp/previous_week_box_office_revenue.txt  "$1" < /tmp/previous_week_box_office.txt
 
 rm /tmp/previous_week_box_office.txt /tmp/previous_week_box_office_counts.txt /tmp/previous_week_box_office_revenue.txt
 

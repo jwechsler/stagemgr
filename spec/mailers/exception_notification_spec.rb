@@ -5,12 +5,15 @@ require 'rails_helper'
 # is a no-op. Build the notifier directly instead and render with #create_email,
 # which composes the mail without delivering it.
 RSpec.describe 'exception notification User section', type: :mailer do
-  # Mirrors config/environments/production.rb, minus the sendmail delivery method.
+  # Mirrors config/environments/production.rb, minus the sendmail delivery
+  # method -- addresses included, so this exercises the same resolution the
+  # production environment file performs against server.yml.
   def notifier(sections: %w[user request session environment backtrace])
+    addresses = Rails.configuration.x.email_address
     ExceptionNotifier::EmailNotifier.new(
       email_prefix: '[Stagemgr Exception] ',
-      sender_address: %("Exception Notifier" <bugs@theaterwit.org>),
-      exception_recipients: %w[bugs@theaterwit.org],
+      sender_address: ExceptionRecipients.sender_address(addresses),
+      exception_recipients: ExceptionRecipients.for(addresses),
       delivery_method: :test,
       sections: sections
     )
@@ -31,6 +34,55 @@ RSpec.describe 'exception notification User section', type: :mailer do
     raise ArgumentError, 'boom'
   rescue ArgumentError => e
     e
+  end
+
+  # config/environments/production.rb builds the notifier from these; getting it
+  # wrong sends crash reports nowhere, or (with an empty recipient list) raises
+  # inside the middleware while it is handling the real exception.
+  describe ExceptionRecipients do
+    let(:addresses) do
+      { 'exception_notifications' => 'bugs@yourtheater.org', 'software_address' => 'stagemgr@yourtheater.org' }
+    end
+
+    it 'prefers the dedicated exception address' do
+      expect(described_class.for(addresses)).to eq(%w[bugs@yourtheater.org])
+    end
+
+    it 'falls back to the software address when no exception address is configured' do
+      expect(described_class.for(addresses.except('exception_notifications')))
+        .to eq(%w[stagemgr@yourtheater.org])
+    end
+
+    it 'treats a blank exception address as unset' do
+      expect(described_class.for(addresses.merge('exception_notifications' => '  ')))
+        .to eq(%w[stagemgr@yourtheater.org])
+    end
+
+    it 'accepts a list of recipients' do
+      expect(described_class.for(addresses.merge('exception_notifications' => %w[a@x.org b@x.org])))
+        .to eq(%w[a@x.org b@x.org])
+    end
+
+    it 'is empty when nothing is configured, which is what suppresses the middleware' do
+      expect(described_class.for(nil)).to be_empty
+      expect(described_class.for({})).to be_empty
+      expect(described_class.sender_address({})).to be_nil
+    end
+
+    # The envelope sender stays the application's own address, so bounces and
+    # replies land somewhere a human reads rather than in the alert inbox.
+    it 'sends as the software address, not as the recipient' do
+      expect(described_class.sender_address(addresses)).to eq('"Exception Notifier" <stagemgr@yourtheater.org>')
+    end
+
+    it 'falls back to the recipient when there is no software address' do
+      expect(described_class.sender_address(addresses.except('software_address')))
+        .to eq('"Exception Notifier" <bugs@yourtheater.org>')
+    end
+
+    it 'reads the real server.yml configuration with indifferent access' do
+      expect(described_class.for(Rails.configuration.x.email_address)).to be_present
+    end
   end
 
   it 'names the acting user and their permission level, ahead of the request details' do

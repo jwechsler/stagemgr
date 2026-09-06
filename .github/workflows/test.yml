@@ -39,9 +39,9 @@ jobs:
       # points the test/cucumber DBs at the MySQL service above.
       DATABASE_HOST: 127.0.0.1
       DATABASE_PORT: 3306
-      DATABASE_USERNAME: root
+      DATABASE_USER: root
       DATABASE_PASSWORD: root
-      TEST_DATABASE: stagemgr_test
+      TEST_DATABASE_NAME: stagemgr_test
       REDIS_URL: redis://localhost:6379
       # No RAILS_MASTER_KEY needed: the test env decrypts
       # config/credentials/test.yml.enc with the committed, dummy-only test.key.
@@ -73,7 +73,7 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Generate config files from templates
-        run: bundle exec rake config:setup
+        run: bundle exec rake setup:config
 
       - name: Load the test database schema
         run: bundle exec rails db:create db:schema:load

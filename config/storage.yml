@@ -6,11 +6,12 @@ local:
   service: Disk
   root: <%= Rails.root.join("storage") %>
 
-# Use rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
+# Set AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY, or use rails credentials:edit
+# to store them as aws:access_key_id|secret_access_key. AppSecrets reads either.
 # amazon:
 #   service: S3
-#   access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
-#   secret_access_key: <%= Rails.application.credentials.dig(:aws, :secret_access_key) %>
+#   access_key_id: <%= AppSecrets[:aws_access_key_id] %>
+#   secret_access_key: <%= AppSecrets[:aws_secret_access_key] %>
 #   region: us-east-1
 #   bucket: your_own_bucket
 

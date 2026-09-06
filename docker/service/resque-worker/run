@@ -1,0 +1,31 @@
+#!/bin/bash
+# runit service: the Resque worker.
+#
+# A supervised foreground process rather than the `nohup ... &` in
+# script/resque-worker: runit restarts it if it dies, and Docker's SIGTERM
+# reaches it (with stop_grace_period in docker-compose.yml giving TERM_CHILD
+# time to finish the job in hand) instead of orphaning a detached process.
+#
+# Two environment traps, both learned the hard way:
+#
+#   * runit services start with a bare environment. my_init exports the
+#     container's own environment to /etc/container_environment.sh — without
+#     sourcing it, DATABASE_HOST, REDIS_URL and RAILS_ENV are all missing. It is
+#     readable by root only, hence sourcing it here rather than after setuser.
+#   * RVM has to be sourced *inside* the app user's shell. Sourcing it as root
+#     and then dropping to `app` leaves bundler pointed at root's gem paths and
+#     the worker crash-loops on Bundler::GitError.
+set -e
+
+source /etc/container_environment.sh 2>/dev/null || true
+
+export RAILS_ENV="${PASSENGER_APP_ENV:-${RAILS_ENV:-development}}"
+# Ask Resque to pass SIGTERM to the running job so it can finish or requeue.
+export TERM_CHILD=1
+
+exec /sbin/setuser app bash -c "
+  cd /var/www/stagemgr &&
+  source /etc/profile.d/rvm.sh &&
+  rvm use 3.2.2@stagemgr &&
+  exec bundle exec rake environment resque:work QUEUE='${RESQUE_QUEUES:-*}'
+"

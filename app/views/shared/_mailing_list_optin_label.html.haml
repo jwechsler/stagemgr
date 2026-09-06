@@ -1,0 +1,18 @@
+-# The label beside the mailing-list opt-in checkbox on public order pages.
+-# Renders inline (no wrapper): callers put it inside their own paragraph, or
+-# `capture` it to hand a form builder a label.
+-#
+-# `other_theater:` (optional) is a second house whose list the same checkbox
+-# subscribes the patron to -- a visiting company renting the stage, or the
+-# company a FlexPass is good at. Nil, or omitted, means the house alone.
+-#
+-# The sentence under it is a fact (theater: mailing_list_blurb:), because what
+-# a house promises to send is a promise it wants to word itself.
+- other_theater = local_assigns[:other_theater]
+- if other_theater
+  = "Join the #{theater_info.name} and #{other_theater.name} mailing lists."
+- else
+  = "Join the #{theater_info.name} mailing list."
+- if theater_info.mailing_list_blurb.present?
+  %br/
+  %span{:style => "font-size: 80%"}= theater_info.mailing_list_blurb

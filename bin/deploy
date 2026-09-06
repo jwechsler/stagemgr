@@ -4,7 +4,7 @@
 #
 # Runs the manual deploy sequence in a fixed order so no step can be
 # forgotten:
-#   git pull -> gems -> yarn -> migrate -> precompile -> restart -> smoke check
+#   git pull -> gems -> yarn -> migrate -> doctor -> precompile -> restart -> smoke check
 #
 # Every step is idempotent, so a failed deploy is retried by simply running
 # the script again. The smoke check doubles as the request that boots the
@@ -48,6 +48,13 @@ yarn install --frozen-lockfile
 
 step "Database migrations"
 bundle exec rails db:migrate
+
+# Fails the deploy BEFORE Passenger restarts if a required secret or a
+# config file is missing (RequiredSecrets would otherwise refuse the boot
+# and the smoke check below would be the first to notice, after the old
+# workers are already gone). Prints sources only, never values.
+step "Health check (rake setup:doctor)"
+bundle exec rake setup:doctor
 
 step "Assets"
 bundle exec rails assets:precompile

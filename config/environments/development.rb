@@ -89,16 +89,14 @@ Rails.application.configure do
   config.after_initialize do
     ActiveMerchant::Billing::Base.mode = :test
     PaymentProcessing.after_initialize
-    unless Rails.application.credentials.dig(:my_emma, :account_id).nil?
-      MyEmma.set_credentials(Rails.application.credentials.dig(:my_emma, :username),
-                             Rails.application.credentials.dig(:my_emma, :password), Rails.application.credentials.dig(:my_emma, :account_id))
+    if AppSecrets[:my_emma_account_id]
+      MyEmma.set_credentials(AppSecrets[:my_emma_username], AppSecrets[:my_emma_password],
+                             AppSecrets[:my_emma_account_id])
     end
     # Development must never write to the live Emma account: reads work with
     # the credentials above, writes are skipped (and logged) regardless.
     MyEmma.read_only!
   end
-
-  config.external_site_root = 'file:///Users/jeremyw/dev/site'
 
   # Application configuration loaded from YAML. The loaded objects are kept
   # exactly as parsed (string-keyed Hashes) and assigned to config.x.* so that
@@ -121,11 +119,8 @@ Rails.application.configure do
     # ENV['POSTMARK_API_TOKEN'] and merges ours on top, then picks
     # settings[:api_token] || settings[:api_key]. Under :api_key a blank env var
     # won that fallback -- "" is truthy in Ruby -- and every send 401'd.
-    # .presence keeps a blank on either side from shadowing a real token.
-    config.action_mailer.postmark_settings = {
-      api_token: Rails.application.credentials[:postmark_api_token].presence ||
-                 ENV['POSTMARK_API_TOKEN'].presence
-    }
+    # AppSecrets keeps a blank on either side from shadowing a real token.
+    config.action_mailer.postmark_settings = { api_token: AppSecrets[:postmark_api_token] }
   end
 
   if config.x.server_config['payment_processing'].nil? ||

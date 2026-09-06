@@ -1,3 +1,16 @@
+<%# The sign-off of the follow-up letter: where to follow the house, the
+    mailing-list pitch, and whoever signs the mail.
+
+    Every channel is a fact and every one is optional, so the sentence is built
+    from whichever are configured rather than printing dead links. A house with
+    no web presence at all still gets a sign-off. %>
+<% channels = [] %>
+<% channels << link_to('our website', theater_info.website_url) if theater_info.website_url.present? %>
+<% channels << link_to('Facebook', theater_info.facebook_url) if theater_info.facebook_url.present? %>
+<% channels << link_to('Twitter', theater_info.twitter_url) if theater_info.twitter_url.present? %>
+<% channels << link_to('Instagram', theater_info.instagram_url) if theater_info.instagram_url.present? %>
+<% mailing_list = mailing_list_link(order.performance.production) %>
+<% personal = theater_info.first_person? %>
 <table class="w410" width="410" cellpadding="0" cellspacing="0" border="0">
   <tbody>
     <tr>
@@ -6,17 +19,26 @@
           Stay in touch
         </h5>
         <div align="left" class="article-content">
-  <p>
-    You can check in at our <a href="http://www.theaterwit.org">website<a>,
-  on <a href="http://www.facebook.com/theaterwit">Facebook page</a>, or <a href="http://twitter.com/theaterwit">Twitter</a> for current news.  And, while this is
-  <b>the last email</b> you'll get from your ticket order, there's always our <a href="<%= mailing_list_link(order.performance.production) %>">mailing list if you're afraid you'll miss us</a>.
-  I hope you had a great time at the Wit. </p>
-  <br/>
-  See you at the theater!<br/>
-  <%= image_tag "http://www.theaterwit.org/assets/img/mail/jmwsignature.png" -%><br clear="all"/>
-  Jeremy Wechsler<br/>
-  Artistic Director,<br/>
-  Theater Wit</br>
+          <% if channels.any? %>
+            <%# to_sentence over SafeBuffers returns a plain String; the parts are
+                link_to output and literal connectors, so marking the result safe
+                re-asserts what each piece already guaranteed. %>
+            <p>
+              You can check in on
+              <%= channels.to_sentence(two_words_connector: ' or ', last_word_connector: ', or ').html_safe %>
+              for current news.
+            </p>
+          <% end %>
+          <p>
+            <% if mailing_list.present? %>
+              While this is <b>the last email</b> you'll get from your ticket order, there's always our
+              <a href="<%= mailing_list %>">mailing list if you're afraid you'll miss us</a>.
+            <% end %>
+            <%= personal ? 'I hope' : 'We hope' %> you had a great time at <%= theater_info.name %>.
+          </p>
+          <br/>
+          See you at the theater!<br/>
+          <%= render 'signature' %>
         </div>
       </td>
     </tr>

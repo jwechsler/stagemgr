@@ -1,5 +1,5 @@
 <% content_for :email_title do %>
-  <%= @order.address.first_name %>, bring a friend to Theater Wit for free
+  <%= @order.address.first_name %>, bring a friend to <%= theater_info.name %> for free
 <% end %>
 
 <p>
@@ -15,14 +15,10 @@
   As part of your membership, you'll get one of the these passes every six months as a thank you. But hey,
   why not bring a friend along with you in general? Don't be shy! You get to evangelize and support your
   theater, and you get an evening out.  What could be better? For more information
-  about supporting Theater Wit, you can read <a href="http://www.theaterwit.org/join/index.php">this</a>
-  or give me a call at 773-975-8150.
+  about supporting <%= theater_info.name %>, you can read
+  <a href="<%= membership_offers_url %>">about our memberships</a><% if theater_info.phone.present? %>
+  or give <%= theater_info.first_person? ? 'me' : 'us' %> a call at <%= theater_info.phone %><% end %>.
 </p><p>
   See you at the theater!<br/>
-  <%= image_tag "http://www.theaterwit.org/assets/img/mail/jmwsignature.png" -%><br clear="all"/>
-  Jeremy Wechsler<br/>
-  Artistic Director,<br/>
-  Theater Wit</br>
+  <%= render 'signature' %>
 </p>
-
-

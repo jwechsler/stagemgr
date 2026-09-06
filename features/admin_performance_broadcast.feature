@@ -61,7 +61,7 @@ Feature: Box office users can email performance attendees
     And I am logged in
     When I go to the admin production detail page for "Production One"
     And I follow "Email Attendees" in the datatable for performance "TEST01A"
-    And I select "Theater Wit Box Office" from "From Address"
+    And I select "Test Theater Box Office" from "From Address"
     And I fill in "Message Body" with "Important venue change notification"
     And I click "Send Email to 3 Recipients" and confirm with alert "Email queued for 3 recipients"
     And a performance broadcast should be created for performance "TEST01A"
@@ -73,7 +73,7 @@ Feature: Box office users can email performance attendees
     And I am logged in
     When I go to the admin production detail page for "Production One"
     And I follow "Email Attendees" in the datatable for performance "TEST01A"
-    And I select "Theater Wit Box Office" from "From Address"
+    And I select "Test Theater Box Office" from "From Address"
     And I fill in "Message Body" with "Test message"
     And I click "Send Email to 3 Recipients"
     Then I should see a confirmation dialog asking about sending to "3 recipients"
@@ -84,7 +84,7 @@ Feature: Box office users can email performance attendees
     And I am logged in
     When I go to the admin production detail page for "Production One"
     And I follow "Email Attendees" in the datatable for performance "TEST01A"
-    And I select "Theater Wit Box Office" from "From Address"
+    And I select "Test Theater Box Office" from "From Address"
     And I fill in "Message Body" with "Test message"
     And I click "Send Email to 3 Recipients" and cancel
     Then the modal should remain open
@@ -119,7 +119,7 @@ Feature: Box office users can email performance attendees
     And I am logged in
     When I go to the admin production detail page for "Production One"
     And I follow "Email Attendees" in the datatable for performance "TEST01A"
-    Then the from address dropdown should include "Theater Wit Box Office"
+    Then the from address dropdown should include "Test Theater Box Office"
     And the from address dropdown should include "boxoffice@example.com"
 
   @javascript
@@ -128,7 +128,7 @@ Feature: Box office users can email performance attendees
     And I am logged in
     When I go to the admin production detail page for "Production One"
     And I follow "Email Attendees" in the datatable for performance "TEST01A"
-    And I select "Theater Wit Box Office" from "From Address"
+    And I select "Test Theater Box Office" from "From Address"
     And I fill in "Message Body" with "Test message"
     And I click "Cancel"
     Then the modal should close
@@ -151,7 +151,7 @@ Feature: Box office users can email performance attendees
     And I am logged in
     When I go to the admin production detail page for "Production One"
     And I follow "Email Attendees" in the datatable for performance "TEST01A"
-    And I select "Theater Wit Box Office" from "From Address"
+    And I select "Test Theater Box Office" from "From Address"
     And I fill in "Message Body" with "**Important:** Show starts at 7pm"
     And I click "Send Email to 3 Recipients" and confirm with alert "Email queued for 3 recipients"
     And the broadcast body should contain markdown formatting
@@ -163,7 +163,7 @@ Feature: Box office users can email performance attendees
     And a performance broadcast exists for performance "TEST01A"
     When I go to the admin production detail page for "Production One"
     And I follow "Email Attendees" in the datatable for performance "TEST01A"
-    And I select "Theater Wit Box Office" from "From Address"
+    And I select "Test Theater Box Office" from "From Address"
     And I fill in "Message Body" with "Second broadcast message"
     And I click "Send Email to 3 Recipients" and confirm with alert "Email queued for 3 recipients"
     And 2 performance broadcasts should exist for performance "TEST01A"

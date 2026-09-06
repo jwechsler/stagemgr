@@ -40,6 +40,32 @@ RSpec.describe MembershipOffer do
     expect(offer.reload.on_sale).to be_falsey
   end
 
+  # The scope is the query form of the predicate; a public page listing an offer
+  # the predicate would reject prints a buy button that lands on "not available".
+  describe '.on_sale_to_public' do
+    it 'lists an active, on-sale production offer' do
+      offer = FactoryBot.create(:membership_offer, name: 'Buyable')
+
+      expect(MembershipOffer.on_sale_to_public).to contain_exactly(offer)
+    end
+
+    it 'agrees with #on_sale_to_public? for every row it returns' do
+      FactoryBot.create(:membership_offer, name: 'Buyable')
+      FactoryBot.create(:membership_offer, name: 'Off sale', on_sale: false)
+      FactoryBot.create(:membership_offer, :timed, name: 'Library pass')
+
+      expect(MembershipOffer.on_sale_to_public).to all(satisfy(&:on_sale_to_public?))
+    end
+
+    it 'excludes an offer left on sale by a callback-skipping write, as the predicate does' do
+      offer = FactoryBot.create(:membership_offer, name: 'Retired')
+      offer.update_columns(status: MembershipOffer::INACTIVE, on_sale: true)
+
+      expect(MembershipOffer.on_sale_to_public).to be_empty
+      expect(offer.reload.on_sale_to_public?).to be false
+    end
+  end
+
   describe '#usage_date_range' do
     it 'returns [nil, nil] for an offer with neither payments nor memberships' do
       offer = FactoryBot.create(:membership_offer, :timed)

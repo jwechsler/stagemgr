@@ -1,4 +1,5 @@
 require_relative '../../lib/mailer_url_options'
+require_relative '../../lib/exception_recipients'
 
 require 'active_support/core_ext/integer/time'
 
@@ -126,11 +127,11 @@ Rails.application.configure do
 
   config.after_initialize do
     PaymentProcessing.after_initialize
-    if Rails.application.credentials.dig(:my_emma, :account_id).nil?
-      MyEmma.disable
+    if AppSecrets[:my_emma_account_id]
+      MyEmma.set_credentials(AppSecrets[:my_emma_username], AppSecrets[:my_emma_password],
+                             AppSecrets[:my_emma_account_id])
     else
-      MyEmma.set_credentials(Rails.application.credentials.dig(:my_emma, :username),
-                             Rails.application.credentials.dig(:my_emma, :password), Rails.application.credentials.dig(:my_emma, :account_id))
+      MyEmma.disable
     end
   end
 
@@ -160,11 +161,10 @@ Rails.application.configure do
     # ENV['POSTMARK_API_TOKEN'] and merges ours on top, then picks
     # settings[:api_token] || settings[:api_key]. Under :api_key a blank env var
     # won that fallback -- "" is truthy in Ruby -- and every send 401'd.
-    # .presence keeps a blank on either side from shadowing a real token.
-    config.action_mailer.postmark_settings = {
-      api_token: Rails.application.credentials[:postmark_api_token].presence ||
-                 ENV['POSTMARK_API_TOKEN'].presence
-    }
+    # AppSecrets keeps a blank on either side from shadowing a real token; note
+    # it also flips the precedence, so a non-blank ENV var now wins over the
+    # credential rather than losing to it.
+    config.action_mailer.postmark_settings = { api_token: AppSecrets[:postmark_api_token] }
   end
 
   config.x.rand_clause = Arel.sql('RAND()')
@@ -176,25 +176,40 @@ Rails.application.configure do
 end
 
 # Exception notifications
+#
+# Recipients come from server.yml (email.addresses.exception_notifications),
+# falling back to software_address so an installation that never set the key
+# still gets its crash reports somewhere real. With neither configured the
+# middleware is left out entirely: EmailNotifier would build a mail with no
+# recipients and raise from inside the middleware while it is handling the real
+# exception, replacing a useful 500 page with a confusing one.
+exception_recipients = ExceptionRecipients.for(Rails.configuration.x.email_address)
 
-Stagemgr::Application.config.middleware.use ExceptionNotification::Rack,
-                                            ignore_exceptions: [
-                                              'ActionController::InvalidAuthenticityToken',
-                                              'ActiveRecord::RecordNotFound',
-                                              'ActionController::BadRequest',
-                                              'Rack::QueryParser::InvalidParameterError'
-                                            ] + ExceptionNotifier.ignored_exceptions,
-                                            email: {
-                                              email_prefix: '[Stagemgr Exception] ',
-                                              sender_address: %("Exception Notifier" <bugs@theaterwit.org>),
-                                              exception_recipients: %w[bugs@theaterwit.org],
-                                              delivery_method: :sendmail,
-                                              # 'user' first: who it happened to, before what they were
-                                              # doing (see app/views/exception_notifier/_user.text.erb).
-                                              # 'data' is deliberately absent -- EmailNotifier appends it
-                                              # itself whenever exception_notifier.exception_data or the
-                                              # :data option is non-empty, so listing it would duplicate
-                                              # the section.
-                                              sections: %w[user request session environment backtrace]
-                                            },
-                                            error_grouping: true
+if exception_recipients.empty?
+  Rails.logger.warn('[ExceptionNotification] no email.addresses.exception_notifications or ' \
+                    'software_address in server.yml -- crash reports are disabled.')
+else
+  Stagemgr::Application.config.middleware.use ExceptionNotification::Rack,
+                                              ignore_exceptions: [
+                                                'ActionController::InvalidAuthenticityToken',
+                                                'ActiveRecord::RecordNotFound',
+                                                'ActionController::BadRequest',
+                                                'Rack::QueryParser::InvalidParameterError'
+                                              ] + ExceptionNotifier.ignored_exceptions,
+                                              email: {
+                                                email_prefix: '[Stagemgr Exception] ',
+                                                sender_address: ExceptionRecipients.sender_address(
+                                                  Rails.configuration.x.email_address
+                                                ),
+                                                exception_recipients: exception_recipients,
+                                                delivery_method: :sendmail,
+                                                # 'user' first: who it happened to, before what they were
+                                                # doing (see app/views/exception_notifier/_user.text.erb).
+                                                # 'data' is deliberately absent -- EmailNotifier appends it
+                                                # itself whenever exception_notifier.exception_data or the
+                                                # :data option is non-empty, so listing it would duplicate
+                                                # the section.
+                                                sections: %w[user request session environment backtrace]
+                                              },
+                                              error_grouping: true
+end

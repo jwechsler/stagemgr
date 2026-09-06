@@ -2,6 +2,10 @@ require 'rails_helper'
 
 RSpec.describe OrderMailer, type: :mailer do
   describe 'emails for different production types' do
+    # Theater.default_theater drives every proper noun in the mail, and the
+    # :theater factory names its theaters from a sequence -- so the house is
+    # created first, by name, or the copy under test is whatever ran before it.
+    let!(:house) { FactoryBot.create(:theater, name: 'House Theater') }
     let(:theater) { FactoryBot.create(:theater) }
     let(:venue) { FactoryBot.create(:venue) }
     let(:address) { FactoryBot.create(:address, email: 'customer@example.com') }
@@ -93,8 +97,8 @@ RSpec.describe OrderMailer, type: :mailer do
         mail = OrderMailer.ticket_confirmation(regular_order)
 
         expect(mail.body.encoded).to include('box office')
-        expect(mail.body.encoded).to include('Dining')
-        expect(mail.body.encoded).to include('About your visit to Theater Wit')
+        expect(mail.body.encoded).to include('Seating and Admission')
+        expect(mail.body.encoded).to include("About your visit to #{house.name}")
         expect(mail.body.encoded).to include('Getting Here')
       end
 
@@ -103,7 +107,7 @@ RSpec.describe OrderMailer, type: :mailer do
 
         expect(mail.body.encoded).not_to include('box office')
         expect(mail.body.encoded).not_to include('About your visit')
-        expect(mail.body.encoded).not_to include('Dining')
+        expect(mail.body.encoded).not_to include('Seating and Admission')
         expect(mail.body.encoded).not_to include('Getting Here')
       end
 
@@ -112,7 +116,7 @@ RSpec.describe OrderMailer, type: :mailer do
 
         expect(mail.body.encoded).not_to include('box office')
         expect(mail.body.encoded).not_to include('About your visit')
-        expect(mail.body.encoded).not_to include('Dining')
+        expect(mail.body.encoded).not_to include('Seating and Admission')
         expect(mail.body.encoded).not_to include('Getting Here')
       end
 
@@ -144,8 +148,8 @@ RSpec.describe OrderMailer, type: :mailer do
 
         expect(mail.body.encoded).to include('box office')
         expect(mail.body.encoded).to include('See you at the theater')
-        expect(mail.body.encoded).to include('About your visit to Theater Wit')
-        expect(mail.body.encoded).to include('Dining Recommendations')
+        expect(mail.body.encoded).to include("About your visit to #{house.name}")
+        expect(mail.body.encoded).to include('Seating and Admission')
         expect(mail.body.encoded).to include('Getting Here')
       end
 
@@ -155,7 +159,7 @@ RSpec.describe OrderMailer, type: :mailer do
         expect(mail.body.encoded).not_to include('box office')
         expect(mail.body.encoded).not_to include('See you at the theater')
         expect(mail.body.encoded).not_to include('About your visit')
-        expect(mail.body.encoded).not_to include('Dining Recommendations')
+        expect(mail.body.encoded).not_to include('Seating and Admission')
         expect(mail.body.encoded).not_to include('Getting Here')
       end
 
@@ -165,7 +169,7 @@ RSpec.describe OrderMailer, type: :mailer do
         expect(mail.body.encoded).not_to include('box office')
         expect(mail.body.encoded).not_to include('See you at the theater')
         expect(mail.body.encoded).not_to include('About your visit')
-        expect(mail.body.encoded).not_to include('Dining Recommendations')
+        expect(mail.body.encoded).not_to include('Seating and Admission')
         expect(mail.body.encoded).not_to include('Getting Here')
       end
 
@@ -231,6 +235,7 @@ RSpec.describe OrderMailer, type: :mailer do
     end
   end
   describe 'presenter-aware follow-ups and transactional emails' do
+    let!(:house) { FactoryBot.create(:theater, name: 'House Theater') }
     let(:address) { FactoryBot.create(:address, email: 'patron@example.com') }
     let(:venue) { FactoryBot.create(:venue) }
     let(:payment_type) { FactoryBot.create(:cash_payment_type) }
@@ -254,9 +259,9 @@ RSpec.describe OrderMailer, type: :mailer do
       context 'for a default (producing) theater' do
         let(:order) { order_for(producing_theater) }
 
-        it 'keeps the personal letter: sent by Jeremy with the current subject' do
+        it 'keeps the personal letter: sent by the artistic director with the current subject' do
           mail = OrderMailer.standard_followup(order)
-          expect(mail.from).to eq(['jeremy@theaterwit.org'])
+          expect(mail.from).to eq(['director@yourtheater.org'])
           expect(mail.subject).to eq('Nice to see you again')
         end
 
@@ -266,7 +271,7 @@ RSpec.describe OrderMailer, type: :mailer do
           expect(body).to include('Stay in touch')
           expect(body).to include('Tell us what you thought of')
           expect(body).to include('fill out a brief survey')
-          expect(body).not_to include('A note from Theater Wit')
+          expect(body).not_to include("A note from #{house.name}")
         end
       end
 
@@ -275,19 +280,19 @@ RSpec.describe OrderMailer, type: :mailer do
 
         it 'is sent by the box office with a show-centered subject' do
           mail = OrderMailer.standard_followup(order)
-          expect(mail.from).to eq(['boxoffice@theaterwit.org'])
+          expect(mail.from).to eq(['boxoffice@yourtheater.org'])
           expect(mail.subject).to eq("Thanks for coming to #{order.performance.production.name}")
         end
 
         it 'leads with the presenting company message, then the survey, then the host callout' do
           body = OrderMailer.standard_followup(order).body.decoded
           expect(body).to include('the visiting company')
-          expect(body).to include('A note from Theater Wit')
+          expect(body).to include("A note from #{house.name}")
           expect(body).to include('Stay in touch')
-          expect(body).to include('Jeremy Wechsler')
+          expect(body).to include('Test Director')
           custom_at  = body.index('the visiting company')
           survey_at  = body.index('Tell us what you thought of')
-          callout_at = body.index('A note from Theater Wit')
+          callout_at = body.index("A note from #{house.name}")
           expect(custom_at).to be < survey_at
           expect(survey_at).to be < callout_at
         end
@@ -309,18 +314,18 @@ RSpec.describe OrderMailer, type: :mailer do
 
       it 'keeps the personal letter for producing theaters' do
         mail = OrderMailer.first_time_followup(order_for(producing_theater))
-        expect(mail.from).to eq(['jeremy@theaterwit.org'])
-        expect(mail.subject).to eq('Thanks for coming to Theater Wit')
+        expect(mail.from).to eq(['director@yourtheater.org'])
+        expect(mail.subject).to eq("Thanks for coming to #{house.name}")
       end
 
       it 'sends the box office version with the welcome pitch in the host callout for visiting theaters' do
         order = order_for(visiting_theater)
         mail = OrderMailer.first_time_followup(order)
-        expect(mail.from).to eq(['boxoffice@theaterwit.org'])
+        expect(mail.from).to eq(['boxoffice@yourtheater.org'])
         expect(mail.subject).to eq("Thanks for coming to #{order.performance.production.name}")
         body = mail.body.decoded
-        expect(body).to include('A note from Theater Wit')
-        expect(body).to include('welcome you to Theater Wit')
+        expect(body).to include("A note from #{house.name}")
+        expect(body).to include("welcome you to #{house.name}")
       end
     end
 
@@ -328,12 +333,12 @@ RSpec.describe OrderMailer, type: :mailer do
       it 'preserves the current editorial format even for visiting theaters' do
         order = order_for(visiting_theater)
         mail = OrderMailer.member_followup(order)
-        expect(mail.from).to eq(['jeremy@theaterwit.org'])
+        expect(mail.from).to eq(['director@yourtheater.org'])
         expect(mail.subject).to eq("Thanks for coming to #{order.performance.production.name}")
         body = mail.body.decoded
         expect(body).to include('As a member')
         expect(body).to include('Tell us what you thought of')
-        expect(body).not_to include('A note from Theater Wit')
+        expect(body).not_to include("A note from #{house.name}")
       end
     end
 

@@ -12,14 +12,6 @@ GIT
       activemodel
       httparty (>= 0.20)
 
-GIT
-  remote: https://github.com/railsconfig/config.git
-  revision: 25bc414a188cb05d2558d2e7f6035f6d9430b29c
-  specs:
-    config (5.5.2)
-      deep_merge (~> 1.2, >= 1.2.1)
-      ostruct
-
 GEM
   remote: https://rubygems.org/
   specs:
@@ -108,8 +100,6 @@ GEM
       zeitwerk (~> 2.3)
     addressable (2.8.7)
       public_suffix (>= 2.0.2, < 7.0)
-    airbrussh (1.5.3)
-      sshkit (>= 1.6.1, != 1.7.0)
     ajax-datatables-rails (1.5.0)
       rails (>= 6.0)
       zeitwerk
@@ -132,19 +122,6 @@ GEM
     builder (3.3.0)
     byebug (11.1.3)
     cancancan (3.6.1)
-    capistrano (3.19.2)
-      airbrussh (>= 1.0.0)
-      i18n
-      rake (>= 10.0.0)
-      sshkit (>= 1.9.0)
-    capistrano-bundler (2.1.1)
-      capistrano (~> 3.1)
-    capistrano-rails (1.6.3)
-      capistrano (~> 3.1)
-      capistrano-bundler (>= 1.1, < 3)
-    capistrano-rbenv (2.2.0)
-      capistrano (~> 3.1)
-      sshkit (~> 1.3)
     capybara (3.40.0)
       addressable
       matrix
@@ -224,7 +201,6 @@ GEM
     date (3.4.1)
     decent_exposure (3.0.4)
       activesupport (>= 4.0)
-    deep_merge (1.2.2)
     diff-lcs (1.5.1)
     docile (1.4.1)
     dotenv (3.1.6)
@@ -254,6 +230,10 @@ GEM
     fakeredis (0.8.0)
       redis (~> 4.1)
     ffi (1.17.0)
+    ffi (1.17.0-aarch64-linux-gnu)
+    ffi (1.17.0-arm64-darwin)
+    ffi (1.17.0-x86_64-darwin)
+    ffi (1.17.0-x86_64-linux-gnu)
     ffi-compiler (1.3.2)
       ffi (>= 1.15.5)
       rake
@@ -269,6 +249,18 @@ GEM
     globalid (1.2.1)
       activesupport (>= 6.1)
     google-protobuf (4.33.6)
+      bigdecimal
+      rake (>= 13)
+    google-protobuf (4.33.6-aarch64-linux-gnu)
+      bigdecimal
+      rake (>= 13)
+    google-protobuf (4.33.6-arm64-darwin)
+      bigdecimal
+      rake (>= 13)
+    google-protobuf (4.33.6-x86_64-darwin)
+      bigdecimal
+      rake (>= 13)
+    google-protobuf (4.33.6-x86_64-linux-gnu)
       bigdecimal
       rake (>= 13)
     haml (6.3.0)
@@ -369,18 +361,20 @@ GEM
       net-protocol
     net-protocol (0.2.2)
       timeout
-    net-scp (4.0.0)
-      net-ssh (>= 2.6.5, < 8.0.0)
-    net-sftp (4.0.0)
-      net-ssh (>= 5.0.0, < 8.0.0)
     net-smtp (0.5.0)
       net-protocol
-    net-ssh (7.3.0)
     nio4r (2.5.9)
     nokogiri (1.17.2)
       mini_portile2 (~> 2.8.2)
       racc (~> 1.4)
-    ostruct (0.6.1)
+    nokogiri (1.17.2-aarch64-linux)
+      racc (~> 1.4)
+    nokogiri (1.17.2-arm64-darwin)
+      racc (~> 1.4)
+    nokogiri (1.17.2-x86_64-darwin)
+      racc (~> 1.4)
+    nokogiri (1.17.2-x86_64-linux)
+      racc (~> 1.4)
     parallel (1.28.0)
     parser (3.3.11.1)
       ast (~> 2.4.1)
@@ -532,6 +526,14 @@ GEM
     sass-embedded (1.97.3)
       google-protobuf (~> 4.31)
       rake (>= 13)
+    sass-embedded (1.97.3-aarch64-linux-gnu)
+      google-protobuf (~> 4.31)
+    sass-embedded (1.97.3-arm64-darwin)
+      google-protobuf (~> 4.31)
+    sass-embedded (1.97.3-x86_64-darwin)
+      google-protobuf (~> 4.31)
+    sass-embedded (1.97.3-x86_64-linux-gnu)
+      google-protobuf (~> 4.31)
     sass-rails (6.0.0)
       sassc-rails (~> 2.1, >= 2.1.1)
     sassc (2.4.0)
@@ -579,12 +581,10 @@ GEM
       sprockets (>= 3.0.0)
     sqlite3 (1.6.9)
       mini_portile2 (~> 2.8.0)
-    sshkit (1.23.2)
-      base64
-      net-scp (>= 1.1.2)
-      net-sftp (>= 2.1.2)
-      net-ssh (>= 2.8.0)
-      ostruct
+    sqlite3 (1.6.9-aarch64-linux)
+    sqlite3 (1.6.9-arm64-darwin)
+    sqlite3 (1.6.9-x86_64-darwin)
+    sqlite3 (1.6.9-x86_64-linux)
     stripe (11.7.0)
     stripe-ruby-mock (4.0.0)
       dante (>= 0.2.0)
@@ -639,7 +639,11 @@ GEM
     zeitwerk (2.7.5)
 
 PLATFORMS
+  aarch64-linux
+  arm64-darwin
   ruby
+  x86_64-darwin
+  x86_64-linux
 
 DEPENDENCIES
   StreetAddress
@@ -655,13 +659,10 @@ DEPENDENCIES
   bootsnap
   byebug
   cancancan (~> 3.3)
-  capistrano-rails
-  capistrano-rbenv
   capybara
   chartkick
   cocoon
   coffee-rails
-  config!
   cucumber-rails (= 2.5.1)
   dartsass-sprockets
   database_cleaner-active_record

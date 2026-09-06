@@ -1,17 +1,20 @@
+<%# The page a donor lands on after giving. Deliberately short and plain: a
+    house with something warmer to say overrides this whole file in its theme
+    (sites/theaterwit/views/donation_orders/show.html.erb is the worked
+    example). See sites/README.md. %>
 <div class="grid-x grid-padding-x">
   <div class="small-12 cell">
     <p>
-      Thanks! You are 100% awesome. And probably 100% adorable. We've charged your credit card
-      <%= number_to_currency(@order.total_paid) %> today for your
-      donation. We'll also be sending you both an email and regular ol' snail mail message for your tax records. Please
-      don't hesitate to call us at the
-      theater (773-975-8150) or drop by next time you're in. We'd love to say hi.
+      Thank you! We have charged your credit card
+      <%= number_to_currency(@order.total_paid) %> today for your donation, and we will send
+      you a receipt by email for your tax records.
+      <% if theater_info.phone.present? %>
+        Please don't hesitate to call us at <%= theater_info.phone %> if you have any questions.
+      <% end %>
     </p>
     <p>
       Thanks again, <br/>
-      Jeremy Wechsler<br/>
-      Artistic Director,<br/>
-      Theater Wit
+      <%= render 'order_mailer/signature' %>
     </p>
   </div>
 </div>

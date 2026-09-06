@@ -93,8 +93,12 @@ end
     ServiceItemTemplate.where(name: service_item_template_list(default_addl_exchange_items))
   end
 
+  # The house this install belongs to, which every proper noun in the public
+  # pages and the mail is named after. Ordered explicitly: an install is only
+  # ever meant to have one Default row, but test data routinely has two, and
+  # "whichever one MySQL happens to return first" is not a house name.
   def self.default_theater
-    Theater.find_by(theater_class: Theater::DEFAULT)
+    Theater.where(theater_class: Theater::DEFAULT).order(:id).first
   end
 
   private

@@ -234,6 +234,18 @@ RSpec.describe Admin::FlexPassOffersController, type: :controller do
     end
   end
 
+  describe 'DELETE #destroy' do
+    let!(:flex_pass_offer) { FactoryBot.create(:flex_pass_offer, theater: theater) }
+
+    it 'destroys the offer and returns to the admin listing' do
+      expect do
+        delete :destroy, params: { id: flex_pass_offer.id }
+      end.to change(FlexPassOffer, :count).by(-1)
+
+      expect(response).to redirect_to(admin_flex_pass_offers_url)
+    end
+  end
+
   describe 'GET #search' do
     let!(:active_offer) { FactoryBot.create(:flex_pass_offer, name: 'Wit Pass', theater: theater) }
     let!(:inactive_offer) do

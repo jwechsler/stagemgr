@@ -36,8 +36,8 @@ RSpec.describe OrderMailer, type: :mailer do
       )
     end
 
-    # The "Also playing at the Wit" sidebar renders an Active Storage variant of
-    # this production's promo -- the URL that was reported broken.
+    # The "Also playing at …" sidebar renders an Active Storage variant of this
+    # production's promo -- the URL that was reported broken.
     let!(:sidebar_production) do
       FactoryBot.create(:production, theater: theater, venue: venue,
                                      name: 'Also Playing', production_class: Production::PRIMETIME,
@@ -74,6 +74,20 @@ RSpec.describe OrderMailer, type: :mailer do
 
         expect(image_urls).to be_present
         expect(image_urls).to all(start_with('https://www.example.org/tickets/rails/active_storage/'))
+      end
+
+      # The masthead resolves its own variant URL rather than going through the
+      # decorator, so it needs the same proof as the sidebar image: a mount
+      # point, present exactly once.
+      it 'prefixes the masthead logo once' do
+        theater.logo.attach(io: StringIO.new(tiny_png), filename: 'logo.png', content_type: 'image/png')
+
+        body = OrderMailer.ticket_confirmation(order).body.decoded
+        masthead = body[/<img[^>]*alt=['"]#{Regexp.escape(theater.name)}['"][^>]*>/]
+
+        expect(masthead).to be_present
+        expect(masthead).to include('https://www.example.org/tickets/rails/active_storage/')
+        expect(masthead).not_to include('/tickets/tickets')
       end
     end
 

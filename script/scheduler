@@ -4,11 +4,10 @@
 
 case "$1" in
   start)
-    if [[ "$RAILS_ENV" == "production" ]] ; then
-      nohup bundle exec rake environment resque:scheduler PIDFILE=./resque-scheduler.pid  QUEUE="*" >> log/resque-scheduler.log 2>&1 &
-    else
-      nohup bundle exec rake environment resque:scheduler PIDFILE=./resque-scheduler.pid QUEUE="*" >> log/resque-scheduler.log 2>&1 &
-    fi
+    # Both branches were identical; the scheduler simply inherits whatever
+    # RAILS_ENV the caller exported (production passes its own), defaulting to
+    # development when nothing is set.
+    RAILS_ENV="${RAILS_ENV:-development}" nohup bundle exec rake environment resque:scheduler PIDFILE=./resque-scheduler.pid QUEUE="*" >> log/resque-scheduler.log 2>&1 &
     ;;
   stop)
     if [ -f ./resque-scheduler.pid ]; then

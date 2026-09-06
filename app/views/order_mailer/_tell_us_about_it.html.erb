@@ -1,17 +1,40 @@
-<table class="w410" width="410" cellpadding="0" cellspacing="0" border="0">
-  <tbody>
-    <tr>
-      <td class="w410" width="410">
-        <h5 align="left" class="article-title">
-          Tell us about it
-        </h5>
-        <div align="left" class="article-content">
-          <p>
-            I always want to hear from you about your experience in our home here at Theater Wit. I hope you will feel free to
-            email me at any time (<a href="mailto:jeremy@theaterwit.org">jeremy@theaterwit.org</a>) to tell me about it.
-          </p>
-        </div>
-      </td>
-    </tr>
-  </tbody>
-</table>
+<%# An invitation to write back, in the follow-up letter.
+
+    Two independent questions here. Who is speaking (TheaterInfo#first_person?)
+    decides the pronouns, as it does everywhere else in this mailer. Where the
+    reply should go is separate: only a house with BOTH a named director and an
+    address for them can say "email me", so anyone else sends patrons to the
+    box office. With neither address configured there is no invitation worth
+    extending, so nothing prints. %>
+<% personal = theater_info.first_person? %>
+<% reply_to_director = theater_info.artistic_director? %>
+<% recipient = reply_to_director ? theater_info.artistic_director_email : theater_info.box_office_email %>
+<% if recipient.present? %>
+  <table class="w410" width="410" cellpadding="0" cellspacing="0" border="0">
+    <tbody>
+      <tr>
+        <td class="w410" width="410">
+          <h5 align="left" class="article-title">
+            Tell us about it
+          </h5>
+          <div align="left" class="article-content">
+            <p>
+              <% if personal %>
+                I always want to hear from you about your experience in our home here at <%= theater_info.name %>.
+              <% else %>
+                We always want to hear about your experience at <%= theater_info.name %>.
+              <% end %>
+              <% if reply_to_director %>
+                I hope you will feel free to email me at any time
+                (<a href="mailto:<%= recipient %>"><%= recipient %></a>) to tell me about it.
+              <% else %>
+                Please feel free to email us at any time
+                (<a href="mailto:<%= recipient %>"><%= recipient %></a>) to tell us about it.
+              <% end %>
+            </p>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+<% end %>

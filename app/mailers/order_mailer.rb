@@ -1,9 +1,6 @@
 require 'erb'
 
 class OrderMailer < ActionMailer::Base
-  BOX_OFFICE_FROM = '"Theater Wit Box Office" <boxoffice@theaterwit.org>'.freeze
-  ARTISTIC_DIRECTOR_FROM = '"Jeremy Wechsler" <jeremy@theaterwit.org>'.freeze
-
   @markdown_renderer = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)
   helper ApplicationHelper
 
@@ -22,7 +19,7 @@ class OrderMailer < ActionMailer::Base
       @confirmation_message = ERB.new(@order.performance.production.confirmation_message).result
     end
     mail(to: @order.address.email,
-         from: BOX_OFFICE_FROM,
+         from: house.box_office_from,
          subject: "Your reservation ##{order.id} for #{@order.performance.production.name} is confirmed",
          tag: 'Ticket Confirmation')
   end
@@ -31,7 +28,7 @@ class OrderMailer < ActionMailer::Base
     @order = order
     @membership = @order.membership
     mail(to: order.address.email,
-         from: BOX_OFFICE_FROM,
+         from: house.box_office_from,
          subject: "Your #{@membership.membership_offer.name}",
          tag: 'Membership Confirmation')
   end
@@ -39,8 +36,8 @@ class OrderMailer < ActionMailer::Base
   def donation_thank_you(order, _address = nil, _action_by = nil)
     @order = order
     mail(to: order.address.email,
-         from: ARTISTIC_DIRECTOR_FROM,
-         subject: 'Thank you for your donation (you are AWESOME)!',
+         from: house.artistic_director_from,
+         subject: I18n.t('order_mailer.donation_thank_you.subject'),
          tag: 'Donation Thank You') do |format|
       format.html { render layout: 'order_mailer_no_sidebar' }
     end
@@ -49,7 +46,7 @@ class OrderMailer < ActionMailer::Base
   def flexpass_confirmation(order, _address = nil, _action_by = nil)
     @order = order
     mail(to: order.address.email,
-         from: BOX_OFFICE_FROM,
+         from: house.box_office_from,
          subject: "Your #{@order.flex_pass.flex_pass_offer.name} [Order ##{@order.id}]",
          tag: 'Flex Pass Confirmation') do |format|
       format.html { render layout: 'order_mailer_no_sidebar' }
@@ -64,8 +61,11 @@ class OrderMailer < ActionMailer::Base
          tag: 'Alert')
   end
 
-  def test_message(_address)
-    mail(to: 'jeremy@theaterwit.org', from: BOX_OFFICE_FROM,
+  def test_message(address = nil)
+    # OutreachTask dispatches any mailer method with an Order, so only an
+    # explicitly addressed String is treated as a recipient here.
+    mail(to: (address.presence if address.is_a?(String)) || Rails.configuration.x.email_address['software_address'],
+         from: house.box_office_from,
          subject: 'Test',
          tag: 'Test Message')
   end
@@ -74,7 +74,7 @@ class OrderMailer < ActionMailer::Base
     if testing || (!order.performance.suppress_notification? && order.performance.performance_date > Date.today + 1.day)
       @order = order
       @markdown_renderer = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)
-      mail(to: @order.address.email, from: BOX_OFFICE_FROM,
+      mail(to: @order.address.email, from: house.box_office_from,
            subject: "Don't forget you have a reservation for #{@order.performance.production.name}",
            tag: 'Ticket Reminder')
     else
@@ -87,7 +87,7 @@ class OrderMailer < ActionMailer::Base
     @markdown_renderer = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)
     return if @order.performance.suppress_notification?
 
-    mail(to: order.address.email, from: ARTISTIC_DIRECTOR_FROM,
+    mail(to: order.address.email, from: house.artistic_director_from,
          subject: "Thanks for coming to #{order.performance.production.name}",
          tag: 'Member Followup')
   end
@@ -97,7 +97,7 @@ class OrderMailer < ActionMailer::Base
     @order = order
     mail(to: order.address.email,
          tag: 'First Time Followup',
-         **followup_envelope(order, 'Thanks for coming to Theater Wit'))
+         **followup_envelope(order, "Thanks for coming to #{house.name}"))
   end
 
   def membership_friend_pass(order, _address = nil, _action_by = nil, expiration_date = nil)
@@ -114,7 +114,7 @@ class OrderMailer < ActionMailer::Base
     @special_offer.change_ticket_class_code = @membership.membership_offer.use_member_friend_code
     @special_offer.membership_id = @membership.id
     @special_offer.save!
-    mail(to: order.address.email, from: ARTISTIC_DIRECTOR_FROM,
+    mail(to: order.address.email, from: house.artistic_director_from,
          subject: 'Thanks for being a member',
          tag: 'Member Bring a Friend')
   end
@@ -133,7 +133,7 @@ class OrderMailer < ActionMailer::Base
     return if flex_pass_orders.empty?
 
     @flex_pass_orders = flex_pass_orders
-    mail(to: Rails.configuration.x.email_address['flex_pass_notifications'], from: BOX_OFFICE_FROM,
+    mail(to: Rails.configuration.x.email_address['flex_pass_notifications'], from: house.box_office_from,
          subject: 'Unprocessed Flex Passes',
          tag: 'Internal Notification') do |format|
       format.html { render layout: 'internal_mail' }
@@ -144,7 +144,7 @@ class OrderMailer < ActionMailer::Base
     return if membership_orders.empty?
 
     @membership_orders = membership_orders
-    mail(to: Rails.configuration.x.email_address['membership_notifications'], from: BOX_OFFICE_FROM,
+    mail(to: Rails.configuration.x.email_address['membership_notifications'], from: house.box_office_from,
          subject: 'Unprocessed Memberships',
          tag: 'Internal Notification') do |format|
       format.html { render layout: 'internal_mail' }
@@ -172,11 +172,20 @@ class OrderMailer < ActionMailer::Base
 
   private
 
+  # The facts about this house -- who the box office is, who signs the mail --
+  # for the envelope. One instance per delivered message: a mailer object is
+  # built per call, so this is memoized for the duration of one email and picks
+  # up an edited theater row on the next.
+  # Views reach the same object through ApplicationHelper#theater_info.
+  def house
+    @house ||= TheaterInfo.new
+  end
+
   def followup_envelope(order, producing_subject)
     if order.performance.production.theater.producing?
-      { from: ARTISTIC_DIRECTOR_FROM, subject: producing_subject }
+      { from: house.artistic_director_from, subject: producing_subject }
     else
-      { from: BOX_OFFICE_FROM, subject: "Thanks for coming to #{order.performance.production.name}" }
+      { from: house.box_office_from, subject: "Thanks for coming to #{order.performance.production.name}" }
     end
   end
 end
