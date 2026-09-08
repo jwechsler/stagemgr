@@ -13,7 +13,9 @@ Dynamic pricing in Stagemgr allows ticket classes to automatically shift sales f
 
 ![Performance allocation table showing the Trigger, To Code, At %, and Days Before columns for dynamic pricing](../assets/images/screenshots/productions-performance-allocations.png)
 
-Dynamic pricing operates on a per-performance, per-ticket-class basis. Each allocation row can be marked as "shiftable" and given trigger conditions. When a patron attempts to purchase a shiftable ticket class and a trigger is active, the system automatically redirects the sale to the designated target class.
+Dynamic pricing operates on a per-performance, per-ticket-class basis. Each allocation row can be marked as "shiftable" and given trigger conditions. When a trigger is met, Stagemgr switches the shiftable class off for that performance and switches its target class on, so new purchases land on the target tier.
+
+Triggers are evaluated by a **nightly sweep** (around 1:00 AM) over every performance of every on-sale production, and **immediately after a performance is saved** in the admin. A performance that crosses a capacity threshold during the day keeps selling the lower tier until one of those runs.
 
 ### The Three Configuration Fields
 
@@ -31,7 +33,7 @@ A shift activates when **either** trigger condition is met (they are evaluated w
 - **Capacity trigger:** `(tickets sold / total capacity) * 100 >= shift_when_capacity_over`
 - **Time trigger:** `days until performance <= shift_days_before_performance`
 
-When either condition is true, any new purchase attempt for the shiftable class is redirected to the `shift_to_code` class instead.
+When either condition is true at the next evaluation, the shiftable class is switched off and the `shift_to_code` class switched on for that performance.
 
 !!! tip "Using One Trigger"
     You do not need to set both triggers. Set capacity to `0` if you only want time-based shifting, or set days to `0` if you only want demand-based shifting.
@@ -105,9 +107,26 @@ Capacity over is set to `0`, which means the capacity trigger is always met -- b
 
 3. **Consider the patron experience.** Patrons see the target class name and price, not the original. Make sure class names and purchase page annotations make sense to someone who never saw the lower tier.
 
-4. **Monitor mid-run.** Check sales reports to see if your triggers are firing at the right points. Adjust thresholds for future performances if needed.
+4. **Monitor mid-run.** Check sales reports to see if your triggers are firing at the right points. Adjust thresholds for future performances if needed -- see [Editing Triggers Mid-Run](#editing-triggers-mid-run).
 
 5. **Set ticket limits appropriately.** The ticket limit on a shiftable class does not affect when the shift triggers -- the trigger is based on overall performance capacity, not per-class sales. The limit only caps how many tickets of that specific class can be sold while it is active.
+
+## Editing Triggers Mid-Run
+
+Shifts only ever move *up* a ladder: once a class has shifted, nothing re-enables it on its own. That matters when you change a rule after some performances have already shifted -- say `GEN36` shifted to `GEN44` at 20% on a performance now 30% sold, and you raise the threshold to 40%. Simply re-enabling `GEN36` there would leave `GEN36` **and** `GEN44` on sale together, and the 40% rule would never clean it up.
+
+Use the **⇉ propagate toggle** on the earliest performance the new rule should apply to. For each later performance it:
+
+1. Walks that performance's existing ladder from the row (following its *current* shift-to links) and switches off every tier the shift had reached.
+2. Applies the new row -- availability, limit and trigger settings.
+3. Re-runs that performance's triggers against its own sales and date.
+
+So the 30%-sold performance ends up selling `GEN36` again, while a 50%-sold performance shifts straight back to `GEN44`. The rule is the same whether you raise a threshold, lower it, or point the row at a different target class. Propagating the row with **Available** unchecked switches off the head *and* the tiers it had shifted to.
+
+The performance you are editing gets the same treatment: re-checking `GEN36` (or changing its trigger, or arming the toggle) and saving switches off the tier it had shifted to on this performance and re-evaluates the triggers, whether or not you propagate. Any box you check or uncheck yourself in that save is left exactly as you set it.
+
+!!! warning "Manually enabled tiers are reset too"
+    Stagemgr records only whether a tier is on sale, not why. A tier someone switched on by hand on a later performance is indistinguishable from one a shift switched on, and is reset the same way (auto-attach classes are the exception: they are never switched off). If two classes shift into the same target (for example `STU` and `EA` both shifting to `GA`), propagating one head resets the shared target for the other as well -- propagate each head when you reconfigure converging ladders.
 
 ## Interaction with Other Features
 

@@ -61,17 +61,16 @@
                   <%= ticket_class_allocation_form.hidden_field :available, :value=>"1" %>&#x2713
                 <% else %>
                   <%= ticket_class_allocation_form.check_box :available %>
-                  <%# Compact "fan out" toggle: on save, also enable this class on
-                      every later performance of the run. Only meaningful (and only
-                      shown) while the Available box is checked. %>
+                  <%# Compact "fan out" toggle: on save, also apply this row -- on
+                      or off, with its limit and trigger settings -- to this class
+                      on every later performance of the run. %>
                   <% propagating = ticket_class_allocation_form.object.propagate_available? %>
                   <%= ticket_class_allocation_form.hidden_field :propagate_available,
                         value: (propagating ? '1' : '0'), class: 'propagate-availability-flag' %>
                   <button type="button"
                           class="propagate-availability-toggle<%= ' is-active' if propagating %>"
                           aria-pressed="<%= propagating %>"
-                          <%= 'hidden' unless ticket_class_allocation_form.object.available? %>
-                          title="On save, also apply this row's availability, limit and trigger settings to every subsequent performance.">&#x21c9;</button>
+                          title="On save, also apply this row's availability (on or off), limit and trigger settings to every subsequent performance. Any dynamic pricing shift already made there for this class is reset and the triggers re-run.">&#x21c9;</button>
                 <% end  %>
               </td>
               <td><%= ticket_class_allocation_form.object.ticket_class.class_code %></td>

@@ -3,6 +3,31 @@
 !!! info "Reference"
     Recent feature additions and significant changes to Stagemgr, listed from newest to oldest.
 
+## September 2026
+
+### Propagate Toggle -- Switch Classes Off Down the Run, Reset Dynamic Pricing
+
+**Available to:** Administrator, Box Office
+
+The allocation grid's **⇉** toggle is now always offered on manually managed classes and fans
+the row out **as-is, on or off**, so a class can be switched off for the rest of a run in one
+save. Propagating onto performances whose dynamic pricing ladder has already advanced no
+longer leaves the old and new price tiers on sale together.
+
+| Detail | Description |
+|--------|-------------|
+| **Deactivation** | An unchecked Available with the toggle armed switches the class off on every subsequent performance, along with any tiers it had shifted to |
+| **Reset and replay** | On each later performance the existing ladder from the row is switched off, the new row lands, and that performance's triggers re-run against its own sales and date |
+| **Immediate evaluation** | The edited performance resets the ladder of any row re-armed in the form and re-runs its own shift triggers on save instead of waiting for the 1:00 AM sweep |
+| **Sweep hardening** | A shift whose target class has no allocation on the performance is logged and skipped instead of aborting the nightly run |
+
+**Key behaviors:**
+
+- Manually enabled tiers downstream of the propagated row are reset like shifted ones; converging ladders share their target, so propagate each head.
+
+See [Performances](../productions/performances.md#propagating-a-row-to-later-performances) and
+[Dynamic Pricing](../productions/dynamic-pricing.md#editing-triggers-mid-run).
+
 ## August 2026
 
 ### Resourced Ticket Classes -- Shared Equipment Pools
@@ -73,12 +98,12 @@ individually.
 | **What propagates** | Availability, Ticket Limit, and the dynamic pricing trigger fields (Trigger?, To Code, At %, Days Before) |
 | **Scope** | Every subsequent performance of the production, anchored to the edited performance's date and time -- earlier performances are untouched |
 | **When** | Only on a successful save; arming the toggle alone changes nothing |
-| **Which classes** | All manually managed classes; shown only while Available is checked. Auto-attach classes have no toggle |
+| **Which classes** | All manually managed classes. Auto-attach classes have no toggle |
 
 **Key behaviors:**
 
 - Propagation overwrites the later allocations' settings so the rest of the run ends up uniform with the edited row.
-- It only fans out an activation -- unchecking Available hides and disarms the toggle; it never switches a class off down the run.
+- Originally it only fanned out an activation; since September 2026 it fans the row out on or off (see above).
 
 **Use cases:** Enable captioning tablets for the remainder of a run the day the show is
 teched. Roll a mid-run price-tier change (new limit and shift trigger) forward across the

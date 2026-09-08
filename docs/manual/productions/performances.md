@@ -108,7 +108,7 @@ Each row in the table represents one ticket class with these fields:
 | **Shift To Code** | Dropdown. The target ticket class to shift sales into when the trigger is met. |
 | **Shift When Capacity Over** | Percentage (0--100). Triggers the shift when overall performance capacity exceeds this threshold. |
 | **Shift Days Before Performance** | Number of days. Triggers the shift when the performance is within this many days. |
-| **⇉ (propagate toggle)** | Small button next to the Available checkbox on manually-managed classes. When armed, saving the performance also applies this row to every subsequent performance. See below. |
+| **⇉ (propagate toggle)** | Small button next to the Available checkbox on manually-managed classes. When armed, saving the performance also applies this row -- on or off -- to every subsequent performance. See below. |
 
 !!! tip "Setting Ticket Limits"
     Ticket limits per class do not need to add up to the performance capacity. You can oversupply classes (e.g., 100 GA + 100 Senior for a 150-seat venue) if you expect one class to outsell the other. Stagemgr enforces the overall capacity limit regardless of per-class limits.
@@ -117,9 +117,9 @@ Each row in the table represents one ticket class with these fields:
 
 ![Allocation grid with the propagate toggle armed next to an available ticket class](../assets/images/screenshots/performances-propagate-toggle.png)
 
-Enabling the same ticket class one performance at a time is tedious for a long run. The **propagate toggle** -- the small `⇉` button that appears next to the **Available** checkbox once it is checked -- copies the row forward for you:
+Enabling (or disabling) the same ticket class one performance at a time is tedious for a long run. The **propagate toggle** -- the small `⇉` button next to the **Available** checkbox -- copies the row forward for you:
 
-1. Check **Available** on the class row (the `⇉` button appears).
+1. Check or uncheck **Available** on the class row as you want the rest of the run to be.
 2. Set the row's **Ticket Limit** and any dynamic pricing trigger fields the way you want the rest of the run configured.
 3. Click `⇉` so it is highlighted (armed).
 4. Save the performance.
@@ -130,7 +130,9 @@ Key details:
 
 - **Nothing happens until you save.** Arming the toggle alone changes nothing; if the save fails, nothing propagates.
 - **It overwrites later rows.** A later performance whose allocation was already configured differently receives this row's values, so the rest of the run ends up uniform.
-- **It only fans out an activation.** Unchecking **Available** hides and disarms the toggle -- propagation is never used to switch a class off.
+- **It fans out the row as-is, on or off.** An unchecked **Available** with the toggle armed switches the class off for the rest of the run.
+- **It resets dynamic pricing already in motion.** If a later performance had already shifted this class up its price ladder (this class off, its shift-to class on), the tiers that shift had reached are switched off before the new row lands, and that performance's triggers are then re-run against its own sales and date. The result is exactly the tier the new rule calls for -- never the old and new tiers on sale together. See [Dynamic Pricing](dynamic-pricing.md#editing-triggers-mid-run).
+- **The edited performance follows the same rule.** A row you edit (or arm) and leave **Available** is treated as the head of its ladder here too: tiers it had already shifted to are switched off, and this performance's triggers are then evaluated right away rather than waiting for the nightly sweep. Boxes you check or uncheck yourself in the same save are always respected.
 - **Auto-attach classes have no toggle.** They are already re-enabled on every performance automatically, so there is nothing to propagate.
 
 !!! tip "Resourced classes"

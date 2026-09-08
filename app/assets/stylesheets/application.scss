@@ -205,10 +205,6 @@ select[size], select[multiple] {
 /* Compact propagate-availability toggle in the performance form's allocation
    grid (admin/performances/_form, non-auto-attach ticket classes) */
 #ticket-class-listing .propagate-availability-toggle {
-  &[hidden] {
-    display: none;
-  }
-
   border: 1px solid #cacaca;
   border-radius: 3px;
   background: #fefefe;

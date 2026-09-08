@@ -89,25 +89,46 @@ class Performance < ApplicationRecord
                          (exclude_order.nil? ? 0 : exclude_order.id)).includes(:order, :ticket_class).sum(:ticket_count)
   end
 
+  # Dynamic pricing: promote every available, shiftable allocation whose
+  # trigger is met to its shift_to_code tier (source off, target on), repeating
+  # while anything moved so a ladder can cascade A -> B -> C in one pass.
+  # Strictly forward: nothing here ever re-enables a source tier; the only
+  # "backward" path is Performance#reset_shift_ladder_from! (propagation).
+  # Runs from the nightly CheckPerformanceAllocationTriggers job and, since the
+  # propagate toggle learned to reset ladders, right after a performance saves.
   def scan_ticket_allocation_triggers
     max_scans = 15
     scan_required = true # we need to rescan if any performance allocation has shifted in case it cascades up
     while scan_required && max_scans > 0
       new_scan = false
       max_scans -= 1
+      # Callers may have written allocation rows through other objects (the
+      # propagate path saves a separately loaded target); start from the DB.
+      ticket_class_allocations.reload
       seats_currently_held = seats_held
       ticket_class_allocations.select { |tca| tca.shiftable? && tca.available? }.each do |tca|
         next unless tca.trigger_satisfied?(seats_currently_held)
-        Rails.logger.info("Promoting #{self}, ticket class #{tca.ticket_class.class_code} to #{tca.shift_to_code}")
-        tca.available = false
+
         allocation = self.allocation(tca.shift_to_code)
+        if allocation.nil?
+          # A stale or mistyped target (or a class added after this performance's
+          # rows were populated). Skip rather than abort the whole scan run.
+          Rails.logger.warn("Cannot promote #{performance_code}, ticket class #{tca.ticket_class.class_code}: " \
+                            "no allocation for shift_to_code #{tca.shift_to_code}")
+          next
+        end
+        Rails.logger.info("Promoting #{performance_code}, ticket class #{tca.ticket_class.class_code} " \
+                          "to #{tca.shift_to_code}")
+        tca.available = false
         allocation.available = true
-        allocation.save
-        tca.save
-        new_scan = true
+        if allocation.save && tca.save
+          new_scan = true
+        else
+          Rails.logger.warn("Promotion of #{performance_code}, ticket class #{tca.ticket_class.class_code} did not save: " \
+                            "#{(allocation.errors.full_messages + tca.errors.full_messages).join('; ')}")
+        end
       end
       scan_required = new_scan
-      ticket_class_allocations.reload
     end
   end
 
@@ -207,29 +228,140 @@ class Performance < ApplicationRecord
   # "Later" is anchored to THIS performance's date/time, not the current date:
   # editing a mid-run performance applies the row from that point in the run
   # onward, leaving earlier performances alone.
+  #
+  # The row is fanned out as-is, on OR off: the toggle is how staff switch a
+  # class off for the rest of a run as well as on. Afterwards this performance
+  # gets the same reset-and-replay as the later ones: every ladder whose head
+  # row staff re-armed in this save (edited, or toggle armed, and left
+  # available) is switched off below the head -- except rows staff explicitly
+  # checked or unchecked in the same save, which the form settles -- and then
+  # its dynamic pricing scan re-runs, so the edited performance and the ones it
+  # propagated to follow the same rule immediately instead of waiting for the
+  # nightly job.
   def propagate_requested_allocation_availability
-    ticket_class_allocations.each do |tca|
-      # Propagating an unavailable class would be surprising; the flag only
-      # fans out an activation (with its settings), never a deactivation.
-      next unless tca.propagate_available? && tca.available?
+    sources = ticket_class_allocations.select(&:propagate_available?)
+    propagate_allocation_settings!(sources) if sources.any?
+    sources.each { |tca| tca.propagate_available = nil } # one-shot: don't re-fire on a later save
+    rearmed = (sources + edited_allocation_rows).uniq
+    return if rearmed.empty?
 
-      propagate_allocation_settings!(tca)
-      tca.propagate_available = nil # one-shot: don't re-fire on a later save
+    rearmed.select(&:available?).each { |head| reset_shift_ladder_from!(head) }
+    # Last: the scan reloads the association, discarding the one-shot flags.
+    scan_ticket_allocation_triggers
+  end
+
+  # Existing allocation rows whose availability, limit or trigger settings this
+  # save changed -- i.e. staff edited the grid. Rows that
+  # populate_ticket_class_allocations just created do not count, so unrelated
+  # bulk saves (renumbering performance codes, reassigning special features)
+  # never run the dynamic pricing scan as a side effect.
+  def edited_allocation_rows
+    ticket_class_allocations.select do |tca|
+      !tca.previously_new_record? && tca.saved_changes.keys.intersect?(PROPAGATED_ALLOCATION_ATTRIBUTES)
     end
   end
 
-  # Copies the source row's settings onto every later performance's allocation
-  # for the same class, overwriting what is there -- an already-available
-  # allocation with a stale limit or trigger still gets this row's values, so
-  # the rest of the run ends up uniform.
-  def propagate_allocation_settings!(source_allocation)
-    copied = source_allocation.attributes.slice(*PROPAGATED_ALLOCATION_ATTRIBUTES)
+  # Copies each armed source row's settings onto every later performance's
+  # allocation for the same class, overwriting what is there -- an
+  # already-available allocation with a stale limit or trigger still gets the
+  # row's values, so the rest of the run ends up uniform.
+  #
+  # Reset and replay: a later performance may already have shifted a class up
+  # its dynamic pricing ladder (row off, its shift_to_code tier on). Per later
+  # performance, every armed row's ladder is walked from its OLD links and
+  # switched off, then ALL the rows land, then that performance's triggers are
+  # re-run once against its own sales and date -- so a changed threshold or
+  # target yields exactly the tier the new rule says, and rows armed together
+  # cannot undo each other (landing MID off after LOW's scan promoted to MID).
+  #
+  # A row that cannot be saved on a later performance is reported on this
+  # performance (the save returns false with the message) instead of vanishing:
+  # ActiveRecord::Base#save turns a RecordInvalid raised in after_save into a
+  # bare false, which the admin form would render with no error at all.
+  def propagate_allocation_settings!(source_allocations)
+    copies = source_allocations.map do |source|
+      [source.ticket_class_id, source.attributes.slice(*PROPAGATED_ALLOCATION_ATTRIBUTES)]
+    end
     later_performances_in_run.each do |perf|
-      target = TicketClassAllocation.find_or_initialize_by(performance_id: perf.id,
-                                                           ticket_class_id: source_allocation.ticket_class_id)
+      perf.apply_propagated_allocations!(copies)
+    rescue ActiveRecord::RecordInvalid => e
+      errors.add(:base, "Could not apply the ticket class settings to #{perf.performance_code}: #{e.message}")
+      raise
+    end
+  end
+
+  # One later performance's share of the fan-out: reset, land, scan. `copies`
+  # is [[ticket_class_id, attributes], ...]. Rows are found or built through
+  # this performance's own association so the walk, the landing and the scan
+  # all see the same objects.
+  def apply_propagated_allocations!(copies)
+    targets = copies.map do |ticket_class_id, copied|
+      target = ticket_class_allocations.detect { |tca| tca.ticket_class_id == ticket_class_id } ||
+               ticket_class_allocations.build(ticket_class_id: ticket_class_id)
+      [target, copied]
+    end
+    # Every reset before any landing: a landed row's new links must not steer
+    # another row's walk.
+    existing_heads = targets.map(&:first).reject(&:new_record?)
+    existing_heads.each { |head| reset_shift_ladder_from!(head) }
+    targets.each do |target, copied|
       target.attributes = copied
       target.save! if target.new_record? || target.changed?
     end
+    scan_ticket_allocation_triggers
+  end
+
+  # Switches off every tier this performance's dynamic pricing could have
+  # advanced to from `head`, following each row's shift_to_code link as it was
+  # BEFORE this save as well as as it is now (for a later performance, called
+  # before the new row lands, the two are the same). The head itself is left
+  # alone, as are auto-attach classes (force-available on every save and read
+  # as available everywhere, so switching one off here would hide it from sale
+  # until this performance next happened to save) and rows whose Available box
+  # staff changed in this very save (the form settles those). Stops at a
+  # non-shiftable tier, a blank or unknown target, or a code already seen (a
+  # mis-configured cycle).
+  #
+  # `available` records only whether a tier is on sale, not why, so this cannot
+  # tell a shift-derived tier from one staff enabled by hand: both are reset.
+  # Converging ladders (two heads shifting into one tier) share that target, so
+  # resetting one head turns it off for the other too; propagate each head to
+  # reconfigure them. A provenance column could later replace this walk.
+  def reset_shift_ladder_from!(head)
+    head_code = head.ticket_class&.class_code
+    return if head_code.nil?
+
+    visited = Set[head_code]
+    pending = shift_links_of(head)
+    reset_codes = []
+    until pending.empty?
+      code = pending.shift
+      next if visited.include?(code)
+
+      visited << code
+      node = allocation(code)
+      next if node.nil?
+
+      pending.concat(shift_links_of(node))
+      next if node.ticket_class.auto_attach? || node.saved_change_to_available? || !node.available?
+
+      node.update!(available: false)
+      reset_codes << node.ticket_class.class_code
+    end
+    return if reset_codes.empty?
+
+    Rails.logger.info("Reset dynamic pricing ladder on #{performance_code} from #{head_code}: " \
+                      "switched off #{reset_codes.join(', ')}")
+  end
+
+  # The tier codes a row shifts to, before this save and now (usually one).
+  def shift_links_of(node)
+    former_shiftable = node.saved_changes.key?('shiftable') ? node.saved_changes['shiftable'].first : node.shiftable?
+    former_code = node.saved_changes.key?('shift_to_code') ? node.saved_changes['shift_to_code'].first : node.shift_to_code
+    links = []
+    links << former_code if former_shiftable && former_code.present?
+    links << node.shift_to_code if node.shiftable? && node.shift_to_code.present?
+    links.uniq
   end
 
   # Every other performance of this production on/after this one's date and

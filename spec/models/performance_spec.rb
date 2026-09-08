@@ -50,10 +50,34 @@ RSpec.describe 'a performance' do
     allocation3.save
     expect(@performance.allocation(ticket_class3.class_code).available?).to be false
     @performance.scan_ticket_allocation_triggers
-    # There is some sort of weird rspec record caching happening that prevents these from updating, but they do in regular
-    # expect(@performance.allocation(ticket_class.class_code).available?).to be false
-    # expect(@performance.allocation(ticket_class2.class_code).available?).to be false
+    @performance.ticket_class_allocations.reload
+    expect(@performance.allocation(ticket_class.class_code).available?).to be false
+    expect(@performance.allocation(ticket_class2.class_code).available?).to be false
     expect(@performance.allocation(ticket_class3.class_code).available?).to be true
+  end
+
+  it 'skips a shift whose target has no allocation on this performance instead of aborting the scan' do
+    orphaned = FactoryBot.create(:ticket_class, class_code: 'TESTX', production: @production, ticket_price: 10,
+                                                auto_attach: false)
+    ticket_class = FactoryBot.create(:ticket_class, class_code: 'TESTA', production: @production, ticket_price: 10,
+                                                    auto_attach: false)
+    ticket_class2 = FactoryBot.create(:ticket_class, class_code: 'TESTB', production: @production, ticket_price: 20,
+                                                     auto_attach: false)
+    @production.reload
+    @performance.save! # populate rows
+    @performance.allocation(orphaned.class_code).update!(available: true, shiftable: true,
+                                                         shift_to_code: 'NOSUCHCODE',
+                                                         shift_days_before_performance: 1000)
+    @performance.allocation(ticket_class.class_code).update!(available: true, shiftable: true,
+                                                             shift_to_code: ticket_class2.class_code,
+                                                             shift_days_before_performance: 1000)
+
+    expect { @performance.scan_ticket_allocation_triggers }.not_to raise_error
+
+    @performance.ticket_class_allocations.reload
+    expect(@performance.allocation(orphaned.class_code).available?).to be true
+    expect(@performance.allocation(ticket_class.class_code).available?).to be false
+    expect(@performance.allocation(ticket_class2.class_code).available?).to be true
   end
 
   describe '#sold_out?' do

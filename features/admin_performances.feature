@@ -50,10 +50,12 @@ Feature: Box office users can manage performances
     And I should see "TEST2"
     And the performance date for "TEST2" is "2015-01-02"
 
+  # A future date: saving a performance now evaluates its shift triggers at
+  # once, and a "2 days before" rule on a past date would fire immediately.
   @javascript
   Scenario: The box office user can record trigger criteria
     Given I follow "Add performance"
-      And I enter a performance on "2015-01-01" with code "TEST1"
+      And I enter a performance on "2035-01-01" with code "TEST1"
       And I enter a trigger to "SECRET" based on capacity of "50" for the 5th ticket class
       And I enter a trigger to "SECRET" based on "2" days before for the 5th ticket class
       And I press "Create"
