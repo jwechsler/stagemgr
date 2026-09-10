@@ -58,4 +58,27 @@ RSpec.describe CalculateHouseCountsJob, type: :job do
       end
     end
   end
+
+  describe '.perform with a performance id' do
+    let!(:performance) { FactoryBot.create(:general_admission, performance_date: Date.today) }
+    let!(:ticket_order) do
+      FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, performance: performance, updated_at: 10.days.ago)
+    end
+
+    it 'recalculates that performance even when none of its orders changed recently' do
+      expect(performance.house_count.available_seats).to eq(performance.production.capacity)
+      CalculateHouseCountsJob.perform(performance.id)
+      expect(performance.reload.house_count.available_seats).to eq(performance.production.capacity - 2)
+    end
+
+    it 'creates the house count when the performance has none yet' do
+      performance.house_count.destroy!
+      CalculateHouseCountsJob.perform(performance.id)
+      expect(performance.reload.house_count.available_seats).to eq(performance.production.capacity - 2)
+    end
+
+    it 'does nothing when the performance no longer exists' do
+      expect { CalculateHouseCountsJob.perform(-1) }.not_to raise_error
+    end
+  end
 end

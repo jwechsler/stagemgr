@@ -392,8 +392,10 @@ Metrics/BlockNesting:
 # predicate backing the BXGY non-splittable rule (4 LOC).
 # Max ratcheted 1024 -> 859 after extracting the tktprint printing block from
 # TicketOrder into TktprintPrintable; TicketOrder (859) is still the largest.
+# Max bumped 859 -> 864 for TicketOrder#queue_house_count_refresh, the
+# after_commit that re-counts a performance when an order is cancelled (5 LOC).
 Metrics/ClassLength:
-  Max: 859
+  Max: 864
 
 # Offense count: 101
 # Configuration parameters: AllowedMethods, AllowedPatterns.

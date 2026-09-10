@@ -14,7 +14,38 @@ class CalculateHouseCountsJob < ApplicationJob
 
   # Manage conflicting resque/activejob setups during transition
 
-  def self.perform
+  # Two modes share one job class:
+  #
+  #   perform                 -- the scheduled sweep (config/schedule.yml). Finds
+  #                              performances through orders updated in the last
+  #                              two days and recalculates each one.
+  #   perform(performance_id) -- a targeted refresh queued by TicketOrder when an
+  #                              order is destroyed or changes status. Needed
+  #                              because Order#cancel! DESTROYS the order row, so
+  #                              the sweep's orders.updated_at join can never see
+  #                              a cancelled hold; the seats it freed stayed
+  #                              counted until some other order on the same
+  #                              performance happened to change.
+  #
+  # resque-lock-timeout builds the loner lock key from the job arguments, so the
+  # sweep and each per-performance refresh hold independent locks.
+  def self.perform(performance_id = nil)
+    return refresh_performance(performance_id) if performance_id
+
+    sweep_recently_changed_performances
+  end
+
+  def self.refresh_performance(performance_id)
+    performance = Performance.find_by(id: performance_id)
+    if performance.nil?
+      Rails.logger.info("CalculateHouseCountsJob: performance #{performance_id} no longer exists; nothing to refresh")
+      return
+    end
+
+    update_or_create_house_count(performance)
+  end
+
+  def self.sweep_recently_changed_performances
     # Fetch the last run time of this job from JobMetadata
     JobMetadata.last_run(self.class.name)
     last_run_at = Date.today - 2.days

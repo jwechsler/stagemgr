@@ -25,6 +25,10 @@ class TicketOrder < Order
   before_destroy :unassign_seats
   before_destroy :reverse_source_exchange_payments, if: :exchanging?
 
+  # Cancelling destroys the order row, so the scheduled CalculateHouseCountsJob
+  # sweep (keyed on orders.updated_at) can never see it; refresh directly instead.
+  after_commit :queue_house_count_refresh, on: %i[update destroy]
+
   attr_accessor :selected_production
 
   has_many :ticket_line_items, :foreign_key => :order_id, inverse_of: :ticket_order
@@ -753,6 +757,13 @@ end
 
       donation
     end
+  end
+
+  def queue_house_count_refresh
+    return if performance_id.nil?
+    return unless destroyed? || saved_change_to_status?
+
+    Resque.enqueue(CalculateHouseCountsJob, performance_id)
   end
 
   def release_tickets!
