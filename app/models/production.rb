@@ -62,6 +62,10 @@ class Production < ApplicationRecord
   # Enqueued after commit: the job reads the production's status, so it must not
   # run against an uncommitted (or rolled back) change.
   after_commit :finalize_season_seating, :if => :saved_change_to_status?
+  # Every performance's HouseCount caches this production's capacity in its
+  # total_seats column, so a capacity edit -- or swapping the seat map that
+  # supplies capacity for reserved seating -- invalidates all of them.
+  after_commit :queue_house_count_refresh, on: :update, :if => :capacity_source_changed?
   before_save :update_performance_codes, :if => :production_code_changed?
   belongs_to :festival, optional: true, inverse_of: :productions
   has_and_belongs_to_many :addresses
@@ -437,6 +441,16 @@ class Production < ApplicationRecord
     return unless status_previously_was.eql?(SEASONSEATING)
 
     Resque.enqueue(FinalizeSeasonSeating, id, updated_by_user_id)
+  end
+
+  # True when this save moved either input to #capacity: the manual count used
+  # by general admission, or the seat map whose seat count overrides it.
+  def capacity_source_changed?
+    saved_change_to_capacity? || saved_change_to_seat_map_id?
+  end
+
+  def queue_house_count_refresh
+    Resque.enqueue(RefreshProductionHouseCountsJob, id)
   end
 end
 

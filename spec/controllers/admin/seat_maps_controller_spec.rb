@@ -176,6 +176,38 @@ RSpec.describe Admin::SeatMapsController, type: :controller do
         expect(SeatAssignment.where(performance: performance, seat: new_seat)).to exist
       end
 
+      # Seat count is the effective capacity of every production using the map,
+      # and capacity is cached in each performance's HouseCount. Nothing the
+      # CalculateHouseCountsJob sweep watches changes when seats move, so the
+      # editor's save has to leave a refresh behind for each such production.
+      it 'queues a house count refresh for productions using the map when the seat count changes' do
+        production = FactoryBot.create(:production, seat_map: seat_map, venue: venue)
+        allow(Resque).to receive(:enqueue)
+
+        expect(Resque).to receive(:enqueue).with(RefreshProductionHouseCountsJob, production.id)
+
+        post :bulk_update_seats, format: :json,
+                                 params: { venue_id: venue.id, id: seat_map.id,
+                                           seats: [{ op: 'create', client_id: 'new-9', location: 'ZZ9', row: 'ZZ',
+                                                     seat_number: 9, origin_x: 10, origin_y: 20, width: 8, height: 8 }] }
+
+        expect(response).to be_successful
+      end
+
+      it 'does not queue a house count refresh for geometry-only edits' do
+        FactoryBot.create(:production, seat_map: seat_map, venue: venue)
+        seat = seat_map.seats.first
+        allow(Resque).to receive(:enqueue)
+
+        expect(Resque).not_to receive(:enqueue).with(RefreshProductionHouseCountsJob, anything)
+
+        post :bulk_update_seats, format: :json,
+                                 params: { venue_id: venue.id, id: seat_map.id,
+                                           seats: [{ op: 'update', id: seat.id, origin_x: 500 }] }
+
+        expect(response).to be_successful
+      end
+
       it 'allows geometry and zone updates on a sold seat' do
         sold_seat = seat_map.seats.first
         sold!(sold_seat)

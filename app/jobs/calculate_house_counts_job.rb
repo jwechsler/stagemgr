@@ -57,6 +57,12 @@ class CalculateHouseCountsJob < ApplicationJob
       update_or_create_house_count(performance)
     end
 
+    # Backstop for capacity drift, not the primary path. Production and Seat
+    # queue RefreshProductionHouseCountsJob the moment capacity, the seat map
+    # assignment or the seat count changes; this catches anything that edited
+    # the rows behind the app's back (console, import, direct SQL). It can only
+    # ever see productions whose OWN row changed, which is why a seat map edit
+    # needs its own trigger.
     productions = Production.where('updated_at > ?', last_run_at)
 
     productions.find_each do |prod|
