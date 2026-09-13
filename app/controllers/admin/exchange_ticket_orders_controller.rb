@@ -1,8 +1,14 @@
 class Admin::ExchangeTicketOrdersController < Admin::ApplicationController
   authorize_resource class: TicketOrder
+  # Outside create's rescue so CanCan::AccessDenied reaches the rescue_from handler.
+  before_action :authorize_refund, only: :create
 
   include OrdersHelper
   include TicketOrdersHelper
+
+  REFUND_PARAM = :exchange_and_refund
+  EXCHANGE_FAILED = 'There was a problem with the exchange.'.freeze
+  REFUND_FAILED = 'Refund could not be processed:'.freeze
 
   expose :order_production_id, lambda {
     if !@original_order.nil? && !@original_order.performance.nil?
@@ -33,27 +39,44 @@ class Admin::ExchangeTicketOrdersController < Admin::ApplicationController
   end
 
   def create
-    nil
-    begin
-      @original_order = TicketOrder.find(params[:ticket_order_id])
-      @exchange_order = TicketOrder.new(ticket_order_params)
-      @exchange_order.regularize_credit_card_expiration
-      @exchange_order.special_offer_code = params[:ticket_order][:special_offer_code]
-      @exchange_order.uuid = params[:uuid]
-      @exchange_order.exchange_and_process_from! @original_order
-      respond_to do |format|
-        flash[:notice] = 'Order was successfully exchanged.'
-        format.html { redirect_to(admin_ticket_order_path(@exchange_order)) }
-      end
-    rescue Exception => e
-      Rails.logger.error("There was a problem with an exchange. #{e.message}")
-      Rails.logger.error(e.backtrace.join("\n"))
-      flash[:error] = "There was a problem with the exchange. #{e.message}"
-      redirect_to admin_ticket_order_path(@original_order.id)
+    @original_order = TicketOrder.find(params[:ticket_order_id])
+    @exchange_order = build_exchange_order
+    if refund_requested?
+      @exchange_order.exchange_and_refund_from!(@original_order)
+    else
+      @exchange_order.exchange_and_process_from!(@original_order)
     end
+    flash[:notice] = 'Order was successfully exchanged.'
+    redirect_to admin_ticket_order_path(@exchange_order)
+  rescue CannotProcessPayment, ExchangeRefundable::RefundNotPossible => e
+    fail_exchange("#{REFUND_FAILED} #{e.message}", e)
+  rescue StandardError => e
+    fail_exchange("#{EXCHANGE_FAILED} #{e.message}", e)
   end
 
   private
+
+  def refund_requested?
+    params.key?(REFUND_PARAM)
+  end
+
+  def authorize_refund
+    authorize!(:refund, TicketOrder) if refund_requested?
+  end
+
+  def build_exchange_order
+    exchange_order = TicketOrder.new(ticket_order_params)
+    exchange_order.regularize_credit_card_expiration
+    exchange_order.special_offer_code = params[:ticket_order][:special_offer_code]
+    exchange_order.uuid = params[:uuid]
+    exchange_order
+  end
+
+  def fail_exchange(message, error)
+    Rails.logger.error("#{message}\n#{error.backtrace.join("\n")}")
+    flash[:error] = message
+    redirect_to admin_ticket_order_path(params[:ticket_order_id])
+  end
 
   def ticket_order_params
     params.require(:ticket_order).permit(*ticket_order_common_params)

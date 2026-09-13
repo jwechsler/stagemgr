@@ -24,4 +24,7 @@
         = render '/admin/orders/billing_form', :order_form=>order_form, :allowed_payment_types=>@allowed_payment_types
         = order_form.input :notes, :input_html=>{:rows => 4}
         - if order_form.object.status == Order::NEW || order_form.object.status == Order::HOLD
-          = order_form.submit 'Place Order', :disable_with=>'Processing...', :class=>'button'
+          = order_form.submit 'Exchange Order', :disable_with=>'Processing...', :class=>'button'
+          - if can? :refund, TicketOrder
+            = order_form.submit 'Exchange and Refund', :name=>'exchange_and_refund', :class=>'button alert',
+              :data=>{ :disable_with=>'Processing...', :confirm=>'Exchange this order and refund the price difference to the original payment?' }

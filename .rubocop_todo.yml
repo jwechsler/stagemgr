@@ -282,7 +282,6 @@ Lint/RaiseException:
 # Offense count: 8
 Lint/RescueException:
   Exclude:
-    - 'app/controllers/admin/exchange_ticket_orders_controller.rb'
     - 'app/controllers/admin/membership_orders_controller.rb'
     - 'app/controllers/admin/ticket_classes_controller.rb'
     - 'app/lib/email_validator.rb'
