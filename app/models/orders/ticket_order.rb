@@ -2,6 +2,8 @@ class TicketOrder < Order
   include TktprintPrintable
   # Hard cap on shared physical equipment (ResourcedTicketClass device pools).
   include ResourcedStockValidatable
+  # Exchange-and-refund: returns the price difference to the original payments.
+  include ExchangeRefundable
 
   SEATING_REQUESTS = (
     WHEELCHAIR, WHEELCHAIR_TRANSFER, STAIRS =
@@ -680,29 +682,28 @@ end
     a
   end
 
-  def begin_exchange!(original_order)
+  # Moves the original order's payments onto this order as exchange credits.
+  # Each original payment is offset by a negative ExchangePayment on the
+  # original and mirrored by a positive one here. With +refund: true+ the
+  # price difference is carved out of the offsets and recorded as
+  # RefundPayments on the original (returned by this method, unprocessed);
+  # otherwise the difference becomes a Carryover write-off or a new charge.
+  def begin_exchange!(original_order, refund: false)
     Order.transaction do
-      self.exchange_source = original_order
-      self.address = original_order.address
-      self.status = Order::EXCHANGING
-      exchange_source.status = Order::RELEASING
-
-      exchange_payments_on_original_order = original_order.create_offset_payments
-      exchange_payments_toward_exchange_order = payment_type.build_exchange_offset_payments(exchange_payments_on_original_order)
-      exchange_payments_on_original_order.each { |p| original_order.payments << p unless p.nil? }
-      exchange_payments_toward_exchange_order.each { |p| payments << p unless p.nil? }
-      payment_difference = total_due - exchange_payments_toward_exchange_order.inject(0) do |sum, x|
-        sum + x.amount
-      end
-      if payment_difference < 0
-        payments << PriceOverridePayment.new(:amount => payment_difference, :order => self,
-                                             :source_payment_type => original_order.payment_type)
-      elsif payment_difference > 0
-        create_proper_payment_in_amount_of!(payment_difference)
-      end
-
+      prepare_exchange_from(original_order)
+      # Applied before the offsets are sized so total_due already reflects an offer.
       update_special_offer_line_item_from_code!
+
+      offsets = original_order.create_offset_payments
+      refunds = refund ? allocate_exchange_refunds(offsets) : []
+      offsets.reject! { |offset| offset.amount.zero? }
+      credits = payment_type.build_exchange_offset_payments(offsets)
+
+      original_order.payments.concat(offsets, refunds)
+      payments.concat(credits)
+      settle_exchange_difference!(total_due - credits.sum(&:amount), refund: refund)
       save!
+      refunds
     end
   end
 
