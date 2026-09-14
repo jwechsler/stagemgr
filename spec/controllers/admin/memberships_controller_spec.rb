@@ -50,7 +50,7 @@ RSpec.describe Admin::MembershipsController, type: :controller do
 
       get :index, params: datatable_params, format: :json
       row = response.parsed_body['data'].find { |r| r['member_code'].include?(membership.member_code) }
-      expect(row['membership_end']).to eq(Date.today.strftime('%m/%d/%Y'))
+      expect(row['membership_end']).to eq(Date.current.strftime('%m/%d/%Y'))
     end
 
     it 'filters by member name through the global search' do
@@ -95,14 +95,14 @@ RSpec.describe Admin::MembershipsController, type: :controller do
       expect(assigns(:membership).address_id).to eq(address.id)
       expect(assigns(:membership).membership_offer_id).to eq(timed_offer.id)
       expect(assigns(:membership).status).to eq(Membership::ACTIVE)
-      expect(assigns(:membership).member_since).to eq(Date.today)
+      expect(assigns(:membership).member_since).to eq(Date.current)
     end
   end
 
   describe 'POST #create' do
     let(:valid_params) do
       { membership: { address_id: address.id, membership_offer_id: timed_offer.id, status: Membership::ACTIVE,
-                      member_since: Date.today, preferred_seating: Membership::BEST_AVAILABLE } }
+                      member_since: Date.current, preferred_seating: Membership::BEST_AVAILABLE } }
     end
 
     it 'creates an active membership with no order' do
@@ -125,7 +125,7 @@ RSpec.describe Admin::MembershipsController, type: :controller do
     context 'without an address' do
       let(:invalid_params) do
         { membership: { membership_offer_id: timed_offer.id, status: Membership::ACTIVE,
-                        member_since: Date.today } }
+                        member_since: Date.current } }
       end
 
       it 'does not create the membership' do

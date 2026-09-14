@@ -59,8 +59,8 @@ Given(/^a?\s?venue "(.*?)" exists$/) do |venue|
 end
 
 Given(/^a production "(.*?)" exists$/) do |name|
-  @production = FactoryBot.create(:production, name: name, theater: @theater, opening_at: Date.today,
-                                               closing_at: Date.today)
+  @production = FactoryBot.create(:production, name: name, theater: @theater, opening_at: Date.current,
+                                               closing_at: Date.current)
 end
 
 Given(/^a membership offer "(.*?)" exists$/) do |offer_name|

@@ -7,16 +7,16 @@ RSpec.describe ProductionsController, type: :controller do
                       venue: venue,
                       status: Production::ACTIVE,
                       production_class: Production::PRIMETIME,
-                      first_preview_at: Date.today,
-                      opening_at: Date.today,
-                      press_opening_at: Date.today,
-                      closing_at: Date.today + 1.week,
+                      first_preview_at: Date.current,
+                      opening_at: Date.current,
+                      press_opening_at: Date.current,
+                      closing_at: Date.current + 1.week,
                       festival: festival)
   end
 
   # A Primetime production opening next week (Coming Soon window).
   def coming_soon_play(venue, festival: nil)
-    open = Date.today.end_of_week + 1.week
+    open = Date.current.end_of_week + 1.week
     FactoryBot.create(:production,
                       venue: venue,
                       status: Production::ACTIVE,
@@ -30,7 +30,7 @@ RSpec.describe ProductionsController, type: :controller do
 
   # A Primetime production opening far enough out for Later This Season.
   def long_term_play(venue, festival: nil)
-    open = Date.today.end_of_week + 5.months
+    open = Date.current.end_of_week + 5.months
     FactoryBot.create(:production,
                       venue: venue,
                       status: Production::ACTIVE,

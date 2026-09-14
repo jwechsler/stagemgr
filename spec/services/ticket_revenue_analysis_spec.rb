@@ -12,7 +12,7 @@ RSpec.describe TicketRevenueAnalysis, type: :service do
   let(:theater) { FactoryBot.create(:theater) }
   let(:venue)   { FactoryBot.create(:venue) }
 
-  def make_production(capacity: 100, closing: Date.today + 30.days)
+  def make_production(capacity: 100, closing: Date.current + 30.days)
     @prod_seq ||= 0
     @prod_seq += 1
     prod = Production.new(
@@ -20,10 +20,10 @@ RSpec.describe TicketRevenueAnalysis, type: :service do
       production_code: "TP#{@prod_seq.to_s.rjust(4, '0')}",
       capacity: capacity,
       closing_at: closing,
-      opening_at: Date.today - 14.days,
-      first_preview_at: Date.today - 14.days,
-      press_opening_at: Date.today - 14.days,
-      season: Date.today.year,
+      opening_at: Date.current - 14.days,
+      first_preview_at: Date.current - 14.days,
+      press_opening_at: Date.current - 14.days,
+      season: Date.current.year,
       status: Production::ACTIVE,
       theater: theater,
       venue: venue
@@ -56,7 +56,7 @@ RSpec.describe TicketRevenueAnalysis, type: :service do
     @perf_seq ||= 0
     @perf_seq += 1
     perf_code = "#{production.production_code}#{@perf_seq.to_s.rjust(2, '0')}"[0, 8]
-    perf_date = Date.today + 10.days + @perf_seq.days
+    perf_date = Date.current + 10.days + @perf_seq.days
     perf_time = Time.now.beginning_of_day + (18 + @perf_seq).hours
     Performance.create!(
       performance_code: perf_code,

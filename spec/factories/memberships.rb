@@ -15,7 +15,7 @@ FactoryBot.define do
     member_code     { 'TESTMEM' }
     profile_id      { PaymentProcessing::BogusResponse::PROFILE_ID }
     status          { Membership::ACTIVE }
-    member_since    { Date.today }
+    member_since    { Date.current }
     association     :address
     membership_offer
 

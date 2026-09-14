@@ -89,7 +89,7 @@ end
 Given(/^I enter a gift recipient$/) do
   fill_in 'Recipient name', with: 'Gift Getter'
   fill_in 'Recipient email', with: 'test@theaterwit.org'
-  fill_in :membership_order_gift_date, with: Date.today
+  fill_in :membership_order_gift_date, with: Date.current
 end
 
 When(/^I prefer "(.*?)" seating$/) do |seating_preference|
@@ -103,7 +103,7 @@ When(/^I enter a valid credit card as payment through the backend?$/) do
   select 'bogus', from: "#{@_current_form}_credit_card_type"
   # select "Visa", :from=>"#{@_current_form}_credit_card_type"
   fill_in "#{@_current_form}_credit_card_expiration_month", with: '01'
-  fill_in "#{@_current_form}_credit_card_expiration_year", with: (Date.today.year + 1).to_s[2..3]
+  fill_in "#{@_current_form}_credit_card_expiration_year", with: (Date.current.year + 1).to_s[2..3]
   fill_in 'Credit card number', with: '4111111111111111'
   fill_in 'CVV', with: '581'
 end

@@ -37,7 +37,7 @@ RSpec.describe Membership do
 
       membership.update!(status: Membership::CANCELED)
 
-      expect(membership.reload.ended_at).to eq(Date.today)
+      expect(membership.reload.ended_at).to eq(Date.current)
     end
 
     it 'stamps ended_at when status transitions to Expired without one' do
@@ -45,7 +45,7 @@ RSpec.describe Membership do
 
       membership.update!(status: Membership::EXPIRED)
 
-      expect(membership.reload.ended_at).to eq(Date.today)
+      expect(membership.reload.ended_at).to eq(Date.current)
     end
 
     it 'does not stamp ended_at on suspension' do
@@ -70,7 +70,7 @@ RSpec.describe Membership do
 
       membership.update!(status: Membership::ACTIVE)
 
-      expect(membership.reload.ended_at).to eq(Date.today)
+      expect(membership.reload.ended_at).to eq(Date.current)
     end
   end
 
@@ -80,7 +80,7 @@ RSpec.describe Membership do
       membership = FactoryBot.create(:membership, membership_offer: offer)
       order = FactoryBot.create(:ticket_order, :for_a_single_ticket,
                                 performance: FactoryBot.create(:general_admission,
-                                                               performance_date: Date.today + 60.days))
+                                                               performance_date: Date.current + 60.days))
 
       expect { membership.verify_bookable_this_week!(order) }.not_to raise_error
     end

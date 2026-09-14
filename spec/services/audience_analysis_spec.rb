@@ -161,13 +161,13 @@ RSpec.describe AudienceAnalysis do
     end
 
     it 'uses today when the production is still running' do
-      future_close = Date.today + 30.days
+      future_close = Date.current + 30.days
       running = make_production(theater_a, name: 'STILL_RUNNING', closing_at: future_close,
-                                           opening_at: Date.today - 10.days)
+                                           opening_at: Date.current - 10.days)
       make_ticket_class(running, complimentary: false)
-      make_performance(running, Date.today - 1.day)
+      make_performance(running, Date.current - 1.day)
       svc = described_class.new(running, [theater_a.id, theater_b.id, theater_c.id])
-      expect(svc.compute[:anchor_date]).to eq(Date.today)
+      expect(svc.compute[:anchor_date]).to eq(Date.current)
     end
   end
 

@@ -4,11 +4,11 @@ RSpec.describe SeatAssignment, type: :model do
   describe '.release_temporary_holds_for_performance' do
     let(:production) { FactoryBot.create(:production_with_reserved_seating) }
     let(:performance1) do
-      FactoryBot.create(:reserved_seating, production: production, performance_date: Date.today + 1.day,
+      FactoryBot.create(:reserved_seating, production: production, performance_date: Date.current + 1.day,
                                            performance_time: Time.parse('19:00'))
     end
     let(:performance2) do
-      FactoryBot.create(:reserved_seating, production: production, performance_date: Date.today + 2.days,
+      FactoryBot.create(:reserved_seating, production: production, performance_date: Date.current + 2.days,
                                            performance_time: Time.parse('19:00'))
     end
     let(:seat_map) { performance1.production.seat_map }
@@ -271,7 +271,7 @@ RSpec.describe SeatAssignment, type: :model do
   describe '.reseating_commit with non-seat tickets on the order' do
     let(:production) { FactoryBot.create(:production_with_reserved_seating) }
     let(:performance) do
-      FactoryBot.create(:reserved_seating, production: production, performance_date: Date.today + 1.day,
+      FactoryBot.create(:reserved_seating, production: production, performance_date: Date.current + 1.day,
                                            performance_time: Time.parse('19:00'))
     end
 
@@ -320,7 +320,7 @@ RSpec.describe SeatAssignment, type: :model do
   describe '.reseating_zone_conflict' do
     let(:production) { FactoryBot.create(:production_with_reserved_seating) }
     let(:performance) do
-      FactoryBot.create(:reserved_seating, production: production, performance_date: Date.today + 1.day,
+      FactoryBot.create(:reserved_seating, production: production, performance_date: Date.current + 1.day,
                                            performance_time: Time.parse('19:00'))
     end
     let(:order_uuid) { SecureRandom.uuid }

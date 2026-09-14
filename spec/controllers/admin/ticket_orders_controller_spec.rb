@@ -79,7 +79,7 @@ RSpec.describe Admin::TicketOrdersController, type: :controller do
     let(:production) { FactoryBot.create(:production_with_reserved_seating) }
     let(:performance) do
       FactoryBot.create(:reserved_seating, production: production,
-                                           performance_date: Date.today + 1.day,
+                                           performance_date: Date.current + 1.day,
                                            performance_time: Time.parse('19:00'))
     end
 

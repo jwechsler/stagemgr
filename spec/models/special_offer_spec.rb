@@ -15,7 +15,7 @@ RSpec.describe 'a special offer' do
     o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets)
     expect(o.total_due).to eq(12)
     offer = FactoryBot.create(:percent_off_special_offer)
-    offer.auto_expire = Date.today - 1.day
+    offer.auto_expire = Date.current - 1.day
     offer.save!
     o.special_offer_code = offer.code
     expect(o.total_due).to eq(12)
