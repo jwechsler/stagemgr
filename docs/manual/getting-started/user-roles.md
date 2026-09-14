@@ -106,7 +106,7 @@ Theater Users assigned to a **Resident Company** theater receive one additional 
 | Convert to donation | Yes | Yes | No |
 | Cancel orders | Yes | Yes | No |
 | Delete orders | Yes | No | No |
-| Resend confirmation | Yes | Yes | No |
+| Resend confirmation | Yes | Yes | Yes |
 | Reprint tickets | Yes | Yes | No |
 
 ### Customers

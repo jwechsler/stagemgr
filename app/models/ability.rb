@@ -57,6 +57,10 @@ class Ability
     can %i[make update edit autocomplete_address], Address
 
     can :cancel_held_during_seating, TicketOrder
+    # Theater users may resend a patron's confirmation email for orders they
+    # can already read; the show page hides the button unless the order is
+    # settled, unrefunded and has an email address.
+    can :resend_confirmation, TicketOrder
     can :read, Performance
     can :read, ServiceItemTemplate
     can :view_backend_classes, TicketClassAllocation
@@ -86,7 +90,7 @@ class Ability
 
     can %i[unclaimed fulfill_selected], Order
     can :swipe_card, Order
-    can %i[swipe_card confirm_credit_card hold mark_unclaimed resend_confirmation], TicketOrder
+    can %i[swipe_card confirm_credit_card hold mark_unclaimed], TicketOrder
     can %i[fulfill read], [Order, TicketOrder, FlexPassOrder, MembershipOrder]
     can :confirm_credit_card, [Order, TicketOrder, FlexPassOrder, MembershipOrder]
     can :cru, FlexPassOrder

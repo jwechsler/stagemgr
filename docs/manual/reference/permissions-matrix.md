@@ -90,7 +90,7 @@ Stagemgr has three staff roles, each building on the permissions of the role bel
 | Convert to donation | Yes | Yes | -- |
 | Hold orders | Yes | Yes | -- |
 | Mark unclaimed | Yes | Yes | -- |
-| Resend confirmation | Yes | Yes | -- |
+| Resend confirmation | Yes | Yes | Yes |
 | Fulfill orders | Yes | Yes | -- |
 | Sell past performances | Yes | Yes | -- |
 | Order anytime | Yes | Yes | -- |
