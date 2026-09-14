@@ -3830,6 +3830,34 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#september-2026" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        September 2026
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="September 2026">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#propagate-toggle-switch-classes-off-down-the-run-reset-dynamic-pricing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Propagate Toggle -- Switch Classes Off Down the Run, Reset Dynamic Pricing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#august-2026" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4062,6 +4090,45 @@
 <p class="admonition-title">Reference</p>
 <p>Recent feature additions and significant changes to Stagemgr, listed from newest to oldest.</p>
 </div>
+<h2 id="september-2026">September 2026<a class="headerlink" href="#september-2026" title="Permanent link">&para;</a></h2>
+<h3 id="propagate-toggle-switch-classes-off-down-the-run-reset-dynamic-pricing">Propagate Toggle -- Switch Classes Off Down the Run, Reset Dynamic Pricing<a class="headerlink" href="#propagate-toggle-switch-classes-off-down-the-run-reset-dynamic-pricing" title="Permanent link">&para;</a></h3>
+<p><strong>Available to:</strong> Administrator, Box Office</p>
+<p>The allocation grid's <strong>⇉</strong> toggle is now always offered on manually managed classes and fans
+the row out <strong>as-is, on or off</strong>, so a class can be switched off for the rest of a run in one
+save. Propagating onto performances whose dynamic pricing ladder has already advanced no
+longer leaves the old and new price tiers on sale together.</p>
+<table>
+<thead>
+<tr>
+<th>Detail</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Deactivation</strong></td>
+<td>An unchecked Available with the toggle armed switches the class off on every subsequent performance, along with any tiers it had shifted to</td>
+</tr>
+<tr>
+<td><strong>Reset and replay</strong></td>
+<td>On each later performance the existing ladder from the row is switched off, the new row lands, and that performance's triggers re-run against its own sales and date</td>
+</tr>
+<tr>
+<td><strong>Immediate evaluation</strong></td>
+<td>The edited performance resets the ladder of any row re-armed in the form and re-runs its own shift triggers on save instead of waiting for the 1:00 AM sweep</td>
+</tr>
+<tr>
+<td><strong>Sweep hardening</strong></td>
+<td>A shift whose target class has no allocation on the performance is logged and skipped instead of aborting the nightly run</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key behaviors:</strong></p>
+<ul>
+<li>Manually enabled tiers downstream of the propagated row are reset like shifted ones; converging ladders share their target, so propagate each head.</li>
+</ul>
+<p>See <a href="../../productions/performances/#propagating-a-row-to-later-performances">Performances</a> and
+<a href="../../productions/dynamic-pricing/#editing-triggers-mid-run">Dynamic Pricing</a>.</p>
 <h2 id="august-2026">August 2026<a class="headerlink" href="#august-2026" title="Permanent link">&para;</a></h2>
 <h3 id="resourced-ticket-classes-shared-equipment-pools">Resourced Ticket Classes -- Shared Equipment Pools<a class="headerlink" href="#resourced-ticket-classes-shared-equipment-pools" title="Permanent link">&para;</a></h3>
 <p><strong>Available to:</strong> Administrator (management); Box Office (selling and per-performance activation)</p>
@@ -4190,14 +4257,14 @@ individually.</p>
 </tr>
 <tr>
 <td><strong>Which classes</strong></td>
-<td>All manually managed classes; shown only while Available is checked. Auto-attach classes have no toggle</td>
+<td>All manually managed classes. Auto-attach classes have no toggle</td>
 </tr>
 </tbody>
 </table>
 <p><strong>Key behaviors:</strong></p>
 <ul>
 <li>Propagation overwrites the later allocations' settings so the rest of the run ends up uniform with the edited row.</li>
-<li>It only fans out an activation -- unchecking Available hides and disarms the toggle; it never switches a class off down the run.</li>
+<li>Originally it only fanned out an activation; since September 2026 it fans the row out on or off (see above).</li>
 </ul>
 <p><strong>Use cases:</strong> Enable captioning tablets for the remainder of a run the day the show is
 teched. Roll a mid-run price-tier change (new limit and shift trigger) forward across the

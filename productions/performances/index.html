@@ -4223,7 +4223,7 @@
 </tr>
 <tr>
 <td><strong>⇉ (propagate toggle)</strong></td>
-<td>Small button next to the Available checkbox on manually-managed classes. When armed, saving the performance also applies this row to every subsequent performance. See below.</td>
+<td>Small button next to the Available checkbox on manually-managed classes. When armed, saving the performance also applies this row -- on or off -- to every subsequent performance. See below.</td>
 </tr>
 </tbody>
 </table>
@@ -4233,9 +4233,9 @@
 </div>
 <h3 id="propagating-a-row-to-later-performances">Propagating a Row to Later Performances<a class="headerlink" href="#propagating-a-row-to-later-performances" title="Permanent link">&para;</a></h3>
 <p><img alt="Allocation grid with the propagate toggle armed next to an available ticket class" src="../../assets/images/screenshots/performances-propagate-toggle.png" /></p>
-<p>Enabling the same ticket class one performance at a time is tedious for a long run. The <strong>propagate toggle</strong> -- the small <code>⇉</code> button that appears next to the <strong>Available</strong> checkbox once it is checked -- copies the row forward for you:</p>
+<p>Enabling (or disabling) the same ticket class one performance at a time is tedious for a long run. The <strong>propagate toggle</strong> -- the small <code>⇉</code> button next to the <strong>Available</strong> checkbox -- copies the row forward for you:</p>
 <ol>
-<li>Check <strong>Available</strong> on the class row (the <code>⇉</code> button appears).</li>
+<li>Check or uncheck <strong>Available</strong> on the class row as you want the rest of the run to be.</li>
 <li>Set the row's <strong>Ticket Limit</strong> and any dynamic pricing trigger fields the way you want the rest of the run configured.</li>
 <li>Click <code>⇉</code> so it is highlighted (armed).</li>
 <li>Save the performance.</li>
@@ -4245,7 +4245,9 @@
 <ul>
 <li><strong>Nothing happens until you save.</strong> Arming the toggle alone changes nothing; if the save fails, nothing propagates.</li>
 <li><strong>It overwrites later rows.</strong> A later performance whose allocation was already configured differently receives this row's values, so the rest of the run ends up uniform.</li>
-<li><strong>It only fans out an activation.</strong> Unchecking <strong>Available</strong> hides and disarms the toggle -- propagation is never used to switch a class off.</li>
+<li><strong>It fans out the row as-is, on or off.</strong> An unchecked <strong>Available</strong> with the toggle armed switches the class off for the rest of the run.</li>
+<li><strong>It resets dynamic pricing already in motion.</strong> If a later performance had already shifted this class up its price ladder (this class off, its shift-to class on), the tiers that shift had reached are switched off before the new row lands, and that performance's triggers are then re-run against its own sales and date. The result is exactly the tier the new rule calls for -- never the old and new tiers on sale together. See <a href="../dynamic-pricing/#editing-triggers-mid-run">Dynamic Pricing</a>.</li>
+<li><strong>The edited performance follows the same rule.</strong> A row you edit (or arm) and leave <strong>Available</strong> is treated as the head of its ladder here too: tiers it had already shifted to are switched off, and this performance's triggers are then evaluated right away rather than waiting for the nightly sweep. Boxes you check or uncheck yourself in the same save are always respected.</li>
 <li><strong>Auto-attach classes have no toggle.</strong> They are already re-enabled on every performance automatically, so there is nothing to propagate.</li>
 </ul>
 <div class="admonition tip">

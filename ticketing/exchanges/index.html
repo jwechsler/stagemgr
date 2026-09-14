@@ -1784,6 +1784,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Step 3: Review Price Differential">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#refunding-the-difference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refunding the difference
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -4065,7 +4082,7 @@
 </tr>
 <tr>
 <td><strong>New order costs less</strong></td>
-<td>Credit may be applied or the difference noted</td>
+<td>With <strong>Exchange Order</strong> the difference is written off as a <em>Carryover</em> on the new order. With <strong>Exchange and Refund</strong> the difference is returned to the patron (see below).</td>
 </tr>
 <tr>
 <td><strong>Same price</strong></td>
@@ -4073,6 +4090,23 @@
 </tr>
 </tbody>
 </table>
+<h4 id="refunding-the-difference">Refunding the difference<a class="headerlink" href="#refunding-the-difference" title="Permanent link">&para;</a></h4>
+<p>When an exchange to a cheaper performance or ticket class is the theater's error, use the red <strong>Exchange and Refund</strong> button instead of <strong>Exchange Order</strong>. The exchange is processed exactly the same way, but the price difference is returned to the patron:</p>
+<ul>
+<li><strong>Credit card</strong> -- a partial refund of the original charge is sent to Stripe for the exact difference. The patron's card is credited without re-entering it.</li>
+<li><strong>Cash or check</strong> -- a <em>Refund</em> row is recorded against the original payment for the box office to hand back.</li>
+</ul>
+<p>The refund appears on the <strong>original order</strong> as a <em>Credit Card Refund</em> (or <em>Cash Refund</em>) line alongside the exchange offset, and the original nets to $0.00. The Stripe refund reference (<code>re_...</code>) is stored as the confirmation code.</p>
+<div class="admonition warning">
+<p class="admonition-title">Refund Rules</p>
+<ul>
+<li>The button is available to Box Office and Administrator users only.</li>
+<li>The new order must cost <strong>less</strong> than the original. If it costs the same or more, the exchange is refused with <em>Nothing to refund</em>; use <strong>Exchange Order</strong> instead.</li>
+<li>Only cash, check and credit card payments can be refunded. Flex pass, membership, comp and exchange-credit payments cannot; if they do not cover the difference, the exchange is refused and nothing is changed.</li>
+<li>Exchange service fees retained by the theater are never refunded. Remove the fee line on the form if the exchange is the theater's error.</li>
+<li>If Stripe declines the refund, the whole exchange is cancelled: no new order is created and the original order is unchanged.</li>
+</ul>
+</div>
 <h3 id="step-4-exchange-service-fees">Step 4: Exchange Service Fees<a class="headerlink" href="#step-4-exchange-service-fees" title="Permanent link">&para;</a></h3>
 <p>Exchange service fees may be applied depending on theater policy:</p>
 <ul>
@@ -4120,7 +4154,7 @@
 <ol>
 <li>Review all details on the new order</li>
 <li>Process payment for any amount due</li>
-<li>Submit the exchange</li>
+<li>Click <strong>Exchange Order</strong>, or <strong>Exchange and Refund</strong> to return the price difference to the patron</li>
 </ol>
 <p>On successful submission:</p>
 <ul>

@@ -1116,6 +1116,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#editing-triggers-mid-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Editing Triggers Mid-Run
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#interaction-with-other-features" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3996,7 +4007,8 @@
 <p>Dynamic pricing in Stagemgr allows ticket classes to automatically shift sales from one price tier to another based on demand or timing. This is configured through the <strong>shiftable</strong> settings in each performance's ticket class allocation table. When a trigger condition is met, the system redirects new purchases from the original class to a different (typically higher-priced) class.</p>
 <h2 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h2>
 <p><img alt="Performance allocation table showing the Trigger, To Code, At %, and Days Before columns for dynamic pricing" src="../../assets/images/screenshots/productions-performance-allocations.png" /></p>
-<p>Dynamic pricing operates on a per-performance, per-ticket-class basis. Each allocation row can be marked as "shiftable" and given trigger conditions. When a patron attempts to purchase a shiftable ticket class and a trigger is active, the system automatically redirects the sale to the designated target class.</p>
+<p>Dynamic pricing operates on a per-performance, per-ticket-class basis. Each allocation row can be marked as "shiftable" and given trigger conditions. When a trigger is met, Stagemgr switches the shiftable class off for that performance and switches its target class on, so new purchases land on the target tier.</p>
+<p>Triggers are evaluated by a <strong>nightly sweep</strong> (around 1:00 AM) over every performance of every on-sale production, and <strong>immediately after a performance is saved</strong> in the admin. A performance that crosses a capacity threshold during the day keeps selling the lower tier until one of those runs.</p>
 <h3 id="the-three-configuration-fields">The Three Configuration Fields<a class="headerlink" href="#the-three-configuration-fields" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -4030,7 +4042,7 @@
 <li><strong>Capacity trigger:</strong> <code>(tickets sold / total capacity) * 100 &gt;= shift_when_capacity_over</code></li>
 <li><strong>Time trigger:</strong> <code>days until performance &lt;= shift_days_before_performance</code></li>
 </ul>
-<p>When either condition is true, any new purchase attempt for the shiftable class is redirected to the <code>shift_to_code</code> class instead.</p>
+<p>When either condition is true at the next evaluation, the shiftable class is switched off and the <code>shift_to_code</code> class switched on for that performance.</p>
 <div class="admonition tip">
 <p class="admonition-title">Using One Trigger</p>
 <p>You do not need to set both triggers. Set capacity to <code>0</code> if you only want time-based shifting, or set days to <code>0</code> if you only want demand-based shifting.</p>
@@ -4213,12 +4225,26 @@
 <p><strong>Consider the patron experience.</strong> Patrons see the target class name and price, not the original. Make sure class names and purchase page annotations make sense to someone who never saw the lower tier.</p>
 </li>
 <li>
-<p><strong>Monitor mid-run.</strong> Check sales reports to see if your triggers are firing at the right points. Adjust thresholds for future performances if needed.</p>
+<p><strong>Monitor mid-run.</strong> Check sales reports to see if your triggers are firing at the right points. Adjust thresholds for future performances if needed -- see <a href="#editing-triggers-mid-run">Editing Triggers Mid-Run</a>.</p>
 </li>
 <li>
 <p><strong>Set ticket limits appropriately.</strong> The ticket limit on a shiftable class does not affect when the shift triggers -- the trigger is based on overall performance capacity, not per-class sales. The limit only caps how many tickets of that specific class can be sold while it is active.</p>
 </li>
 </ol>
+<h2 id="editing-triggers-mid-run">Editing Triggers Mid-Run<a class="headerlink" href="#editing-triggers-mid-run" title="Permanent link">&para;</a></h2>
+<p>Shifts only ever move <em>up</em> a ladder: once a class has shifted, nothing re-enables it on its own. That matters when you change a rule after some performances have already shifted -- say <code>GEN36</code> shifted to <code>GEN44</code> at 20% on a performance now 30% sold, and you raise the threshold to 40%. Simply re-enabling <code>GEN36</code> there would leave <code>GEN36</code> <strong>and</strong> <code>GEN44</code> on sale together, and the 40% rule would never clean it up.</p>
+<p>Use the <strong>⇉ propagate toggle</strong> on the earliest performance the new rule should apply to. For each later performance it:</p>
+<ol>
+<li>Walks that performance's existing ladder from the row (following its <em>current</em> shift-to links) and switches off every tier the shift had reached.</li>
+<li>Applies the new row -- availability, limit and trigger settings.</li>
+<li>Re-runs that performance's triggers against its own sales and date.</li>
+</ol>
+<p>So the 30%-sold performance ends up selling <code>GEN36</code> again, while a 50%-sold performance shifts straight back to <code>GEN44</code>. The rule is the same whether you raise a threshold, lower it, or point the row at a different target class. Propagating the row with <strong>Available</strong> unchecked switches off the head <em>and</em> the tiers it had shifted to.</p>
+<p>The performance you are editing gets the same treatment: re-checking <code>GEN36</code> (or changing its trigger, or arming the toggle) and saving switches off the tier it had shifted to on this performance and re-evaluates the triggers, whether or not you propagate. Any box you check or uncheck yourself in that save is left exactly as you set it.</p>
+<div class="admonition warning">
+<p class="admonition-title">Manually enabled tiers are reset too</p>
+<p>Stagemgr records only whether a tier is on sale, not why. A tier someone switched on by hand on a later performance is indistinguishable from one a shift switched on, and is reset the same way (auto-attach classes are the exception: they are never switched off). If two classes shift into the same target (for example <code>STU</code> and <code>EA</code> both shifting to <code>GA</code>), propagating one head resets the shared target for the other as well -- propagate each head when you reconfigure converging ladders.</p>
+</div>
 <h2 id="interaction-with-other-features">Interaction with Other Features<a class="headerlink" href="#interaction-with-other-features" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Timed ticket classes</strong> (Timed type with <code>minutes_before_show</code>) are evaluated independently of dynamic pricing shifts. A timed class can also be shiftable.</li>
