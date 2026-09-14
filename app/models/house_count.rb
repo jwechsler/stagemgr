@@ -61,7 +61,7 @@ class HouseCount < Metric
   # Required by Metric abstract class
   def self.export_records
     HouseCount.joins(:performance).merge(Performance.sellable)
-              .where(performances: { performance_date: Date.today..(Date.today + 14.days) }).order('performance_date, performance_code')
+              .where(performances: { performance_date: Date.current..(Date.current + 14.days) }).order('performance_date, performance_code')
   end
 
   # Public accessor for performance code
