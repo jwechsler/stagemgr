@@ -1,8 +1,8 @@
 class MarkInactiveShows
   @queue = :maintenance
 
-  def self.perform(for_date = Date.today - 9.months)
-    for_date = Date.today if for_date.nil?
+  def self.perform(for_date = Date.current - 9.months)
+    for_date = Date.current if for_date.nil?
     productions = Production.where('status <> ? and updated_at < ? and closing_at < ?',
                                    Production::INACTIVE, for_date, for_date)
     productions.each do |prod|

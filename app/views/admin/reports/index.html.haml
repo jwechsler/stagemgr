@@ -93,10 +93,10 @@
         .grid-x.grid-padding-x
           .small-4.cell
             %label{:for=>:starting_date} On or after
-            = text_field_tag( :starting_date, Date.today, :default=>Date.today-7.days, :class=>'date_picker')
+            = text_field_tag( :starting_date, Date.current, :default=>Date.current-7.days, :class=>'date_picker')
           .small-4.cell
             %label{:for=>:ending_date} On or before
-            = text_field_tag( :ending_date, Date.today, :default=>Date.today, :class=>'date_picker')
+            = text_field_tag( :ending_date, Date.current, :default=>Date.current, :class=>'date_picker')
           .small-4.cell
             %br
             = submit_tag "Generate", :name=>'generate_csv', :class=>'tiny button'
@@ -118,7 +118,7 @@
         .grid-x.grid-padding-x
           .small-4.cell
             %label{for: :starting_date} First Attendance On or After
-            = text_field_tag(:starting_date, Date.today, class: 'date_picker')
+            = text_field_tag(:starting_date, Date.current, class: 'date_picker')
           .small-4.cell
             %br
             = submit_tag "Generate", name: 'generate_csv', class: 'tiny button'
@@ -138,10 +138,10 @@
         .grid-x.grid-padding-x
           .small-6.cell
             %label{:for=>:starting_date_donor} Gave On or after
-            = text_field_tag(:starting_date_donor, Date.today.at_beginning_of_month, :class=>'date_picker')
+            = text_field_tag(:starting_date_donor, Date.current.at_beginning_of_month, :class=>'date_picker')
           .small-6.cell
             %label{:for=>:ending_date_donor} Gave Before or on
-            = text_field_tag( :ending_date_donor, Date.today, :default=>Date.today, :class=>'date_picker')
+            = text_field_tag( :ending_date_donor, Date.current, :default=>Date.current, :class=>'date_picker')
           .small-12.cell
             %label{:for=>:theater_id} Theater 
             = select_tag(:theater_id, options_from_collection_for_select(current_user.allowed_theaters.order(:name), :id, :name))
@@ -162,10 +162,10 @@
         .grid-x.grid-padding-x
           .small-4.cell
             %label{:for=>:start_day} On or after
-            = text_field_tag(:start_day, (Date.today-1.month).at_beginning_of_month, :class=>'date_picker')
+            = text_field_tag(:start_day, (Date.current-1.month).at_beginning_of_month, :class=>'date_picker')
           .small-4.cell
             %label{:for=>:end_day} On or before
-            = text_field_tag(:end_day, (Date.today-1.month).at_end_of_month, :class=>'date_picker')
+            = text_field_tag(:end_day, (Date.current-1.month).at_end_of_month, :class=>'date_picker')
           .small-4.cell
             %br
             = submit_tag "Show", :class=>'tiny button'
@@ -184,10 +184,10 @@
         .grid-x.grid-padding-x
           .small-4.cell
             %label{:for=>:starting_date} On or after
-            = text_field_tag(:starting_date, (Date.today-1.month).at_beginning_of_month, :class=>'date_picker')
+            = text_field_tag(:starting_date, (Date.current-1.month).at_beginning_of_month, :class=>'date_picker')
           .small-4.cell
             %label{:for=>:ending_date} On or before
-            = text_field_tag( :ending_date, (Date.today-1.month).at_end_of_month, :default=>Date.today.at_end_of_month, :class=>'date_picker')
+            = text_field_tag( :ending_date, (Date.current-1.month).at_end_of_month, :default=>Date.current.at_end_of_month, :class=>'date_picker')
           .small-4.cell
             %br
             = submit_tag "Show", :name=>'show', :class=>'tiny button'
@@ -213,10 +213,10 @@
             .grid-x.grid-padding-x
               .small-4.cell
                 %label{:for=>:starting_date} On or after
-                = text_field_tag(:starting_date, (Date.today-1.month).at_beginning_of_month, :class=>'date_picker')
+                = text_field_tag(:starting_date, (Date.current-1.month).at_beginning_of_month, :class=>'date_picker')
               .small-4.cell
                 %label{:for=>:ending_date} On or before
-                = text_field_tag(:ending_date, (Date.today-1.month).at_end_of_month, :class=>'date_picker')
+                = text_field_tag(:ending_date, (Date.current-1.month).at_end_of_month, :class=>'date_picker')
               .small-4.cell
                 %label{:for=>:trg_lists} Include TRG lists
                 = check_box_tag(:trg_lists)
@@ -242,10 +242,10 @@
         .grid-x.grid-padding-x
           .small-4.cell
             %label{:for=>:starting_date} On or after
-            = text_field_tag(:starting_date, (Date.today-1.month).at_beginning_of_month, :class=>'date_picker')
+            = text_field_tag(:starting_date, (Date.current-1.month).at_beginning_of_month, :class=>'date_picker')
           .small-4.cell
             %label{:for=>:ending_date} On or before
-            = text_field_tag( :ending_date, (Date.today-1.month).at_end_of_month, :default=>Date.today.at_end_of_month, :class=>'date_picker')
+            = text_field_tag( :ending_date, (Date.current-1.month).at_end_of_month, :default=>Date.current.at_end_of_month, :class=>'date_picker')
           .small-4.cell
             %br
             = submit_tag "Show", :name=>'show', :class=>'tiny button'
@@ -268,10 +268,10 @@
         .grid-x.grid-padding-x
           .small-4.cell
             %label{:for=>:starting_date} On or after
-            = text_field_tag(:starting_date, (Date.today-1.month), :class=>'date_picker')
+            = text_field_tag(:starting_date, (Date.current-1.month), :class=>'date_picker')
           .small-4.cell
             %label{:for=>:ending_date} On or before
-            = text_field_tag(:ending_date, Date.today, :class=>'date_picker')
+            = text_field_tag(:ending_date, Date.current, :class=>'date_picker')
           .small-4.cell
             %br
             = submit_tag "Show", :class=>'tiny button'
@@ -293,7 +293,7 @@
       = form_tag(house_management_seating_admin_reports_path, :method=>"post") do
         .grid-x.grid-padding-x.collapse
           .small-8.cell
-            = text_field_tag( :performance_day, Date.today, :default=>Time.now.end_of_month, :class=>'date_picker')
+            = text_field_tag( :performance_day, Date.current, :default=>Time.now.end_of_month, :class=>'date_picker')
           .small-4.cell
             = submit_tag "Show", :class=>'tiny button postfix action'
 
@@ -308,7 +308,7 @@
       = form_tag(resource_pull_admin_reports_path, :method=>"post") do
         .grid-x.grid-padding-x.collapse
           .small-8.cell
-            = text_field_tag( :performance_day, Date.today, :default=>Time.now.end_of_month, :class=>'date_picker')
+            = text_field_tag( :performance_day, Date.current, :default=>Time.now.end_of_month, :class=>'date_picker')
           .small-4.cell
             = submit_tag "Show", :class=>'tiny button postfix action'
 
@@ -341,7 +341,7 @@
       = form_tag(fulfill_tickets_admin_reports_path, :method=>"post") do
         .grid-x.grid-padding-x.collapse
           .small-8.cell
-            = text_field_tag(:through_day, Date.today, :default=>Time.now, :class=>'date_picker')
+            = text_field_tag(:through_day, Date.current, :default=>Time.now, :class=>'date_picker')
           .small-4.cell
             = submit_tag "Print", :confirm =>"This will fulfill tickets.  Are you sure?", :class=>'tiny button postfix'
 
@@ -355,7 +355,7 @@
       %span.help_text Returns daily sales for specified range.  Order information included in download version
     .small-8.cell
       = form_tag(daily_box_office_receipts_admin_reports_path, :method=>"post") do
-        =render 'date_range_picker', :default_start=>Date.today, :default_end=>Date.today
+        =render 'date_range_picker', :default_start=>Date.current, :default_end=>Date.current
 - if can? :mine_customer_data, Report then
   .grid-x.grid-padding-x
     .small-12.cell

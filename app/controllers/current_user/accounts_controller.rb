@@ -45,7 +45,7 @@ class CurrentUser::AccountsController < CurrentUser::ApplicationController
     end
 
     # Weekly sales chart data — all historical weeks up through last Sunday
-    last_sunday = Date.today.beginning_of_week(:monday) - 1.day
+    last_sunday = Date.current.beginning_of_week(:monday) - 1.day
     currently_producing = @user.allowed_productions
                                .where(status: [Production::ACTIVE, Production::PRIVATE])
                                .where('closing_at IS NULL OR closing_at >= ?', 30.days.ago.to_date)
@@ -87,14 +87,14 @@ class CurrentUser::AccountsController < CurrentUser::ApplicationController
       @house_counts = HouseCount.joins(performance: :production)
                                 .merge(Performance.sellable)
                                 .where(performances: {
-                                         performance_date: Date.today..(Date.today + 30.days),
+                                         performance_date: Date.current..(Date.current + 30.days),
                                          production: @user.allowed_productions
                                        }).limit(14 * @user.allowed_productions.count).order('performances.performance_date, performances.performance_code')
     else
       @house_counts = HouseCount.joins(performance: :production)
                                 .merge(Performance.sellable)
                                 .where(performances: {
-                                         performance_date: Date.today..(Date.today + 7.days),
+                                         performance_date: Date.current..(Date.current + 7.days),
                                          production: @user.allowed_productions
                                        }).order('performances.performance_date, performances.performance_code')
     end

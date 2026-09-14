@@ -102,7 +102,7 @@ class Membership < ApplicationRecord
   def verify_bookable_this_week!(order)
     return unless membership_offer.timed?
 
-    week_start = Date.today.beginning_of_week(:monday)
+    week_start = Date.current.beginning_of_week(:monday)
     return if (week_start..(week_start + 6.days)).cover?(order.performance.performance_date.to_date)
 
     raise Exceptions::PerformanceOutsideCurrentWeek.new("This pass can only reserve performances through Sunday, #{(week_start + 6.days).strftime('%B %d')}. Reservations for later weeks open on the Monday of that week.")
@@ -122,7 +122,7 @@ class Membership < ApplicationRecord
   def last_effective_date
     lp = membership_payments.max_by { |payment| payment.processed_on.to_date }
     if lp.nil?
-      created_at.nil? ? Date.today : created_at.to_date
+      created_at.nil? ? Date.current : created_at.to_date
     else
       lp.processed_on + 1.month
     end
@@ -139,7 +139,7 @@ class Membership < ApplicationRecord
   # form, library passes) otherwise have no end date, which reporting needs.
   # The blank-guard keeps a Stripe-provided date authoritative.
   def stamp_ended_at_on_close
-    self.ended_at = Date.today if status_changed? && [CANCELED, EXPIRED].include?(status) && ended_at.blank?
+    self.ended_at = Date.current if status_changed? && [CANCELED, EXPIRED].include?(status) && ended_at.blank?
   end
 
   def release_reservations_on_cancel

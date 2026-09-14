@@ -30,9 +30,9 @@ def enter_base_production(code, capacity = 99)
   fill_in 'Production code', with: code
   fill_in 'production_name', with: "Production #{code}"
   fill_in 'Capacity', with: capacity
-  fill_in 'Season', with: Date.today.year
-  fill_in 'production_opening_at', with: Date.today.to_s
-  fill_in 'production_closing_at', with: Date.today.to_s
+  fill_in 'Season', with: Date.current.year
+  fill_in 'production_opening_at', with: Date.current.to_s
+  fill_in 'production_closing_at', with: Date.current.to_s
 
   select 'Space 1', from: 'Venue'
 end
@@ -44,10 +44,10 @@ end
 Given(/^I enter a complete production with code "(.*?)"$/) do |code|
   enter_base_production(code)
   fill_in 'Credit lines', with: 'by Willard Shakepare'
-  fill_in 'production_first_preview_at', with: "#{Date.today.year}-01-01"
-  fill_in 'production_press_opening_at', with: "#{Date.today.year}-01-01"
-  fill_in 'production_opening_at', with: "#{Date.today.year}-01-01"
-  fill_in 'production_closing_at', with: "#{Date.today.year}-01-01"
+  fill_in 'production_first_preview_at', with: "#{Date.current.year}-01-01"
+  fill_in 'production_press_opening_at', with: "#{Date.current.year}-01-01"
+  fill_in 'production_opening_at', with: "#{Date.current.year}-01-01"
+  fill_in 'production_closing_at', with: "#{Date.current.year}-01-01"
   fill_in 'Show description', with: '<h1>Hello</h1>'
   fill_in 'Capacity', with: '300'
   fill_in 'Additional information link', with: 'http://google.com'

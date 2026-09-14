@@ -16,9 +16,9 @@ class PerformancesController < ApplicationController
 
       @start_date = if valid_date.nil?
                       if @production.first_preview_at.nil?
-                        Date.today.beginning_of_month
+                        Date.current.beginning_of_month
                       else
-                        (@production.first_preview_at.beginning_of_month < Date.today.beginning_of_month ? Date.today.beginning_of_month : @production.first_preview_at.beginning_of_month)
+                        (@production.first_preview_at.beginning_of_month < Date.current.beginning_of_month ? Date.current.beginning_of_month : @production.first_preview_at.beginning_of_month)
                       end
                     else
                       valid_date
@@ -36,7 +36,7 @@ class PerformancesController < ApplicationController
         :house_count, :ticket_class_allocations, :special_features, :production
       ).where(
         'performances.status in (?) and performances.performance_date >= ?',
-        Performance.visible_statuses, Date.today
+        Performance.visible_statuses, Date.current
       ).order(performance_date: :asc, performance_time: :asc)
 
       @list_footnotes = special_feature_footnotes(@list_performances)

@@ -50,7 +50,7 @@ class MembershipOrder < Order
       "Member for #{months_active}"
     else
       member_start_date = membership.start_date || membership.created_at.to_date
-      [Date.today, membership.ended_at.nil? ? Date.today : membership.ended_at].min
+      [Date.current, membership.ended_at.nil? ? Date.current : membership.ended_at].min
 
       "#{member_start_date} -> #{member_start_date + months_active_i.months}"
     end
@@ -186,7 +186,7 @@ class MembershipOrder < Order
       'ERROR. Membership data missing'
     else
       member_start_date = membership.start_date || membership.created_at.to_date
-      end_date = [Date.today, membership.ended_at.nil? ? Date.today : membership.ended_at].min
+      end_date = [Date.current, membership.ended_at.nil? ? Date.current : membership.ended_at].min
       months = ((end_date.year * 12) + end_date.month) - ((member_start_date.year * 12) + member_start_date.month)
       if months == 0
         days = (end_date - member_start_date).to_i
@@ -202,7 +202,7 @@ class MembershipOrder < Order
       0
     else
       member_start_date = membership.start_date || membership.created_at.to_date
-      end_date = [Date.today, membership.ended_at.nil? ? Date.today : membership.ended_at].min
+      end_date = [Date.current, membership.ended_at.nil? ? Date.current : membership.ended_at].min
       ((end_date.year * 12) + end_date.month) - ((member_start_date.year * 12) + member_start_date.month)
     end
   end

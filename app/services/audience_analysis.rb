@@ -182,7 +182,7 @@ class AudienceAnalysis
   private
 
   def anchor_date
-    target_production.closed? ? target_production.closing_at : Date.today
+    target_production.closed? ? target_production.closing_at : Date.current
   end
 
   def comparison_theater_id_set

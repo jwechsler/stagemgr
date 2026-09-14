@@ -6,14 +6,14 @@ RSpec.describe VenuesController, type: :controller do
                       venue: venue,
                       status: Production::ACTIVE,
                       production_class: Production::PRIMETIME,
-                      first_preview_at: Date.today,
-                      opening_at: Date.today,
-                      press_opening_at: Date.today,
-                      closing_at: Date.today + 1.week,
+                      first_preview_at: Date.current,
+                      opening_at: Date.current,
+                      press_opening_at: Date.current,
+                      closing_at: Date.current + 1.week,
                       festival: festival)
   end
 
-  def next_up_play(venue, festival: nil, open: Date.today + 2.weeks)
+  def next_up_play(venue, festival: nil, open: Date.current + 2.weeks)
     FactoryBot.create(:production,
                       venue: venue,
                       status: Production::ACTIVE,
@@ -75,7 +75,7 @@ RSpec.describe VenuesController, type: :controller do
       now_playing_play(venue, festival: festival)
       extra = now_playing_play(venue, festival: festival)
       # featured_productions requires an active, non-past performance
-      FactoryBot.create(:performance, production: extra, performance_date: Date.today)
+      FactoryBot.create(:performance, production: extra, performance_date: Date.current)
 
       get :now_playing
 
@@ -87,7 +87,7 @@ RSpec.describe VenuesController, type: :controller do
     it 'leaves the venue slot empty while a festival holds it, never skipping ahead' do
       now_playing_play(venue, festival: festival)
       next_up_play(venue, festival: festival)
-      distant = next_up_play(venue, open: Date.today + 8.weeks)
+      distant = next_up_play(venue, open: Date.current + 8.weeks)
 
       get :now_playing
 

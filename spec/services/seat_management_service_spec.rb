@@ -6,7 +6,7 @@ RSpec.describe SeatManagementService, type: :service do
   let(:production) { FactoryBot.create(:production_with_reserved_seating) }
   let(:performance) do
     perf = FactoryBot.create(:reserved_seating, production: production,
-                                                performance_date: Date.today + 7.days,
+                                                performance_date: Date.current + 7.days,
                                                 performance_time: Time.parse("19:00"))
     SeatAssignment.available_seat_assignments(perf)
     perf.reload
@@ -195,7 +195,7 @@ RSpec.describe SeatManagementService, type: :service do
       it "succeeds because the seat_id is shared across performances via the seat map" do
         other_performance = FactoryBot.create(:reserved_seating,
                                               production: production,
-                                              performance_date: Date.today + 14.days,
+                                              performance_date: Date.current + 14.days,
                                               performance_time: Time.parse("19:00"))
         SeatAssignment.available_seat_assignments(other_performance)
         # A seat_id from the other performance also exists in the current performance

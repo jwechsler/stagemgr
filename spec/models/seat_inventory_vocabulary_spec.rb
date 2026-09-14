@@ -21,7 +21,7 @@ RSpec.describe 'Seat inventory vocabulary facades', type: :model do
   #   - 1 NEW (in-progress) single-ticket order          -> occupies a seat, not on hold
   let(:production) { FactoryBot.create(:production, capacity: 50) }
   let(:performance) do
-    FactoryBot.create(:general_admission, production: production, performance_date: Date.today)
+    FactoryBot.create(:general_admission, production: production, performance_date: Date.current)
   end
 
   before do

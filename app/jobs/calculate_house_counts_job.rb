@@ -48,7 +48,7 @@ class CalculateHouseCountsJob < ApplicationJob
   def self.sweep_recently_changed_performances
     # Fetch the last run time of this job from JobMetadata
     JobMetadata.last_run(self.class.name)
-    last_run_at = Date.today - 2.days
+    last_run_at = Date.current - 2.days
     # Fetch performances linked to updated ticket orders since last run
     performances = Performance.includes(:house_count).joins(:orders)
                               .where(orders: { updated_at: (last_run_at - 1.minute)..Time.current }).distinct

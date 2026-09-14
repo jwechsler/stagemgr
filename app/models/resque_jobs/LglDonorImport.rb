@@ -77,7 +77,7 @@ class LglDonorImport < ImportIssuesReport
             a.email = row[email_idx] if a.email.blank?
             a.donor_tier_for_last_fiscal_year = last_fiscal_tier
             a.donor_tier_for_current_fiscal_year = current_fiscal_tier
-            a.donor_tier_updated_on = Date.today
+            a.donor_tier_updated_on = Date.current
             merge_check = a.find_original
             merged += 1 unless merge_check.nil?
             unless merge_check.nil?

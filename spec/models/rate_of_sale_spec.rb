@@ -157,7 +157,7 @@ RSpec.describe RateOfSale, type: :model do
 
       # A record outside the window (today/future — should be excluded).
       # Date.current keeps this in the app time zone like Date.yesterday
-      # above; Date.today (system zone) collides with it on late-evening
+      # above; Date.current (system zone) collides with it on late-evening
       # runs from a zone west of Central.
       today_record = RateOfSale.create!(
         day_of_sale: Date.current,

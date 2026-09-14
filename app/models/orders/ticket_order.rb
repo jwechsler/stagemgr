@@ -983,7 +983,7 @@ end
   end
 
   def create_receipt_task
-    unless performance.suppress_notification || suppress_receipt? || !do_not_create_tasks.nil? || performance.performance_date < Date.today
+    unless performance.suppress_notification || suppress_receipt? || !do_not_create_tasks.nil? || performance.performance_date < Date.current
       tasks << OutreachTask.new(:execute_at => Time.now + 5.minutes,
                                 :method_symbol => :ticket_confirmation)
     end

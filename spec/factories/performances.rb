@@ -27,8 +27,8 @@ FactoryBot.define do
       perf.populate_ticket_class_allocations
     end
 
-    performance_date { Date.today }
-    sequence(:performance_time) { |_n| Time.now + 1.minute }
+    performance_date { Date.current }
+    sequence(:performance_time) { |_n| 1.minute.from_now }
     initialize_with { Performance.find_or_create_by(performance_code: performance_code) }
   end
 end

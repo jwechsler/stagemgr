@@ -11,7 +11,7 @@ class Venue < ApplicationRecord
     prods = now_playing(production_class, through)
     if prods.empty?
       future_prods = productions.select do |p|
-        p.first_playing_date > Date.today && p.visible? && p.production_class == production_class
+        p.first_playing_date > Date.current && p.visible? && p.production_class == production_class
       end.sort { |p1, p2| p1.first_preview_at <=> p2.first_preview_at }
       prods = [future_prods.first] unless future_prods.empty?
     end

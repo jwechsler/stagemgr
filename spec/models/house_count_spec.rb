@@ -8,7 +8,7 @@ RSpec.describe HouseCount, type: :model do
       production = FactoryBot.create(:production, capacity: 50)
 
       # Create a general admission performance linked to this production
-      performance = FactoryBot.create(:general_admission, production: production, performance_date: Date.today)
+      performance = FactoryBot.create(:general_admission, production: production, performance_date: Date.current)
 
       # Create 6 tickets sold for the performance using the single ticket trait
       6.times do
@@ -30,7 +30,7 @@ RSpec.describe HouseCount, type: :model do
     describe '#calculate_held_seats' do
       it 'counts tickets on Hold-status orders where the ticket class holds_seats' do
         production = FactoryBot.create(:production, capacity: 50)
-        performance = FactoryBot.create(:general_admission, production: production, performance_date: Date.today)
+        performance = FactoryBot.create(:general_admission, production: production, performance_date: Date.current)
 
         # Create a Hold order explicitly
         hold_order = FactoryBot.create(:ticket_order, :for_a_single_ticket, status: Order::HOLD,
@@ -49,7 +49,7 @@ RSpec.describe HouseCount, type: :model do
 
       it 'returns 0 when there are no Hold-status orders' do
         production = FactoryBot.create(:production, capacity: 50)
-        performance = FactoryBot.create(:general_admission, production: production, performance_date: Date.today)
+        performance = FactoryBot.create(:general_admission, production: production, performance_date: Date.current)
 
         FactoryBot.create(:ticket_order, :for_a_single_ticket, :paid_with_credit_card, performance: performance)
 
@@ -78,7 +78,7 @@ RSpec.describe HouseCount, type: :model do
                           show_in_pricing_range: true,
                           auto_attach: true)
 
-        performance = FactoryBot.create(:general_admission, production: production, performance_date: Date.today)
+        performance = FactoryBot.create(:general_admission, production: production, performance_date: Date.current)
 
         house_count = HouseCount.new(performance: performance)
         house_count.calculate
@@ -103,7 +103,7 @@ RSpec.describe HouseCount, type: :model do
                           show_in_pricing_range: true,
                           auto_attach: true)
 
-        performance = FactoryBot.create(:general_admission, production: production, performance_date: Date.today)
+        performance = FactoryBot.create(:general_admission, production: production, performance_date: Date.current)
 
         house_count = HouseCount.new(performance: performance)
         house_count.calculate
@@ -128,7 +128,7 @@ RSpec.describe HouseCount, type: :model do
                           show_in_pricing_range: false,
                           auto_attach: true)
 
-        performance = FactoryBot.create(:general_admission, production: production, performance_date: Date.today)
+        performance = FactoryBot.create(:general_admission, production: production, performance_date: Date.current)
 
         house_count = HouseCount.new(performance: performance)
         house_count.calculate
@@ -147,7 +147,7 @@ RSpec.describe HouseCount, type: :model do
                           show_in_pricing_range: true,
                           auto_attach: true)
 
-        performance = FactoryBot.create(:general_admission, production: production, performance_date: Date.today)
+        performance = FactoryBot.create(:general_admission, production: production, performance_date: Date.current)
 
         house_count = HouseCount.new(performance: performance)
         house_count.calculate

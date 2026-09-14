@@ -54,7 +54,7 @@ FactoryBot.define do
 
   factory :flex_pass do
     code                    { 'TESTPASS' }
-    expiration_date         { Date.today + 12.months }
+    expiration_date         { Date.current + 12.months }
     association :flex_pass_offer, factory: :flex_pass_offer
     # NOTE: flex_pass_line_item should be set by the creator to avoid circular dependency
 

@@ -1,9 +1,9 @@
 require 'rails_helper'
 
 RSpec.describe FlexPassPatronReport do
-  # Date.current (app time zone) rather than Date.today (system time zone):
+  # Date.current (app time zone) rather than Date.current (system time zone):
   # on a machine west of Central, late-evening runs are already "tomorrow"
-  # in the app zone, and orders created now fall outside a Date.today range.
+  # in the app zone, and orders created now fall outside a Date.current range.
   let(:starting_date) { Date.current - 7 }
   let(:ending_date) { Date.current }
 

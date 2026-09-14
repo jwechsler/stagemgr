@@ -19,7 +19,7 @@ class MembershipLineItem < LineItem
     return unless membership.nil?
 
     self.membership = Membership.new
-    membership.member_since = Date.today
+    membership.member_since = Date.current
     membership.membership_offer = membership_offer
     membership.status = Membership::PENDING
     membership.address = address
