@@ -12,7 +12,7 @@ RSpec.describe RateOfSalesAnalysis, type: :service do
   # ---------------------------------------------------------------------------
 
   # Create a production whose first_playing_date is `opening_at`
-  def create_production(opening: Date.today - 30.days, closing: Date.today + 30.days, capacity: 100)
+  def create_production(opening: Date.current - 30.days, closing: Date.current + 30.days, capacity: 100)
     FactoryBot.create(
       :production,
       first_preview_at: opening,
@@ -125,9 +125,9 @@ RSpec.describe RateOfSalesAnalysis, type: :service do
   # Private method: #weekly_totals_for (tested via #compute)
   # ---------------------------------------------------------------------------
   describe 'weekly_totals_for behavior (via compute result)' do
-    let(:opening_date) { Date.today - 60.days }
+    let(:opening_date) { Date.current - 60.days }
     let(:production) do
-      create_production(opening: opening_date, closing: Date.today + 10.days)
+      create_production(opening: opening_date, closing: Date.current + 10.days)
     end
 
     before do
@@ -182,9 +182,9 @@ RSpec.describe RateOfSalesAnalysis, type: :service do
   # Private method: #compute_pct_changes (tested via compute result)
   # ---------------------------------------------------------------------------
   describe 'pct_change behavior' do
-    let(:opening_date) { Date.today - 60.days }
+    let(:opening_date) { Date.current - 60.days }
     let(:production) do
-      create_production(opening: opening_date, closing: Date.today + 10.days)
+      create_production(opening: opening_date, closing: Date.current + 10.days)
     end
 
     before do
@@ -232,9 +232,9 @@ RSpec.describe RateOfSalesAnalysis, type: :service do
   # Private method: #aggregate_series (tested via compute result)
   # ---------------------------------------------------------------------------
   describe 'aggregate_series behavior' do
-    let(:target)  { create_production(opening: Date.today - 60.days, closing: Date.today + 10.days) }
-    let(:comp1)   { create_production(opening: Date.today - 90.days, closing: Date.today - 30.days) }
-    let(:comp2)   { create_production(opening: Date.today - 80.days, closing: Date.today - 20.days) }
+    let(:target)  { create_production(opening: Date.current - 60.days, closing: Date.current + 10.days) }
+    let(:comp1)   { create_production(opening: Date.current - 90.days, closing: Date.current - 30.days) }
+    let(:comp2)   { create_production(opening: Date.current - 80.days, closing: Date.current - 20.days) }
 
     before do
       # Seed comp1 with presale + week 1 data
@@ -278,8 +278,8 @@ RSpec.describe RateOfSalesAnalysis, type: :service do
   # #compute — comparison_summaries
   # ---------------------------------------------------------------------------
   describe 'comparison_summaries' do
-    let(:target) { create_production(opening: Date.today - 60.days, closing: Date.today + 10.days) }
-    let(:comp)   { create_production(opening: Date.today - 90.days, closing: Date.today - 10.days) }
+    let(:target) { create_production(opening: Date.current - 60.days, closing: Date.current + 10.days) }
+    let(:comp)   { create_production(opening: Date.current - 90.days, closing: Date.current - 10.days) }
 
     before do
       anchor = comp.first_playing_date
@@ -322,7 +322,7 @@ RSpec.describe RateOfSalesAnalysis, type: :service do
   # ---------------------------------------------------------------------------
   describe 'target_summary' do
     let(:production) do
-      create_production(opening: Date.today - 60.days, closing: Date.today + 10.days)
+      create_production(opening: Date.current - 60.days, closing: Date.current + 10.days)
     end
 
     before do
@@ -355,7 +355,7 @@ RSpec.describe RateOfSalesAnalysis, type: :service do
   # ---------------------------------------------------------------------------
   describe 'daily_rolling' do
     let(:production) do
-      create_production(opening: Date.today - 20.days, closing: Date.today + 10.days)
+      create_production(opening: Date.current - 20.days, closing: Date.current + 10.days)
     end
 
     before do
@@ -390,8 +390,8 @@ RSpec.describe RateOfSalesAnalysis, type: :service do
   # ---------------------------------------------------------------------------
   describe 'sort_week_labels (via aggregate_series)' do
     # This is indirectly tested via compute — we verify the ordering of keys
-    let(:target)  { create_production(opening: Date.today - 60.days, closing: Date.today + 10.days) }
-    let(:comp)    { create_production(opening: Date.today - 90.days, closing: Date.today - 10.days) }
+    let(:target)  { create_production(opening: Date.current - 60.days, closing: Date.current + 10.days) }
+    let(:comp)    { create_production(opening: Date.current - 90.days, closing: Date.current - 10.days) }
 
     before do
       anchor = comp.first_playing_date
@@ -426,10 +426,10 @@ RSpec.describe RateOfSalesAnalysis, type: :service do
   # Private helper: #interpolate_curve
   # ---------------------------------------------------------------------------
   describe '#interpolate_curve (via projection)' do
-    let(:opening)    { Date.today - 50.days }
-    let(:closing)    { Date.today + 20.days }
+    let(:opening)    { Date.current - 50.days }
+    let(:closing)    { Date.current + 20.days }
     let(:production) { create_production(opening: opening, closing: closing) }
-    let(:comp)       { create_production(opening: Date.today - 100.days, closing: Date.today - 10.days) }
+    let(:comp)       { create_production(opening: Date.current - 100.days, closing: Date.current - 10.days) }
 
     before do
       # Seed enough data to allow projection
@@ -658,7 +658,7 @@ RSpec.describe RateOfSalesAnalysis, type: :service do
     end
 
     it 'returns nil when total tickets is zero' do
-      RateOfSale.create!(production: production, day_of_sale: Date.today - 1,
+      RateOfSale.create!(production: production, day_of_sale: Date.current - 1,
                          total_single_tickets: 0, total_complimentary_tickets: 0,
                          gross_sales: 0, processing_fees: 0, order_count: 0)
       expect(analysis.send(:avg_ticket_price_to_date, production)).to be_nil
@@ -666,17 +666,17 @@ RSpec.describe RateOfSalesAnalysis, type: :service do
 
     it 'calculates the average correctly' do
       # 100 revenue, 10 tickets → avg = 10.0
-      RateOfSale.create!(production: production, day_of_sale: Date.today - 1,
+      RateOfSale.create!(production: production, day_of_sale: Date.current - 1,
                          total_single_tickets: 10, total_complimentary_tickets: 0,
                          gross_sales: 100.0, processing_fees: 0, order_count: 1)
       expect(analysis.send(:avg_ticket_price_to_date, production)).to be_within(0.001).of(10.0)
     end
 
     it 'sums across multiple records' do
-      RateOfSale.create!(production: production, day_of_sale: Date.today - 2,
+      RateOfSale.create!(production: production, day_of_sale: Date.current - 2,
                          total_single_tickets: 10, total_complimentary_tickets: 0,
                          gross_sales: 100.0, processing_fees: 0, order_count: 1)
-      RateOfSale.create!(production: production, day_of_sale: Date.today - 1,
+      RateOfSale.create!(production: production, day_of_sale: Date.current - 1,
                          total_single_tickets: 10, total_complimentary_tickets: 0,
                          gross_sales: 200.0, processing_fees: 0, order_count: 1)
       # total_rev=300, total_tix=20 → avg=15.0
@@ -754,10 +754,10 @@ RSpec.describe RateOfSalesAnalysis, type: :service do
   # #compute — projection return structure
   # ---------------------------------------------------------------------------
   describe '#compute projection structure' do
-    let(:opening) { Date.today - 40.days }
-    let(:closing) { Date.today + 20.days }
+    let(:opening) { Date.current - 40.days }
+    let(:closing) { Date.current + 20.days }
     let(:target)  { create_production(opening: opening, closing: closing) }
-    let(:comp)    { create_production(opening: Date.today - 100.days, closing: Date.today - 5.days) }
+    let(:comp)    { create_production(opening: Date.current - 100.days, closing: Date.current - 5.days) }
 
     before do
       anchor_t = target.first_playing_date
@@ -820,7 +820,7 @@ RSpec.describe RateOfSalesAnalysis, type: :service do
     it 'returns finite budget when avg_price is positive' do
       # Create a future performance
       FactoryBot.create(:performance, production: production,
-                                      performance_date: Date.today + 1.day)
+                                      performance_date: Date.current + 1.day)
       result = analysis.send(:remaining_revenue_budget, production, 10.0)
       expect(result).not_to eq(Float::INFINITY)
     end
@@ -884,10 +884,10 @@ RSpec.describe RateOfSalesAnalysis, type: :service do
   # #compute — compute extra_weeks=1 extension
   # ---------------------------------------------------------------------------
   describe '#compute with extra_weeks parameter' do
-    let(:opening) { Date.today - 40.days }
-    let(:closing) { Date.today + 10.days }
+    let(:opening) { Date.current - 40.days }
+    let(:closing) { Date.current + 10.days }
     let(:target)  { create_production(opening: opening, closing: closing) }
-    let(:comp)    { create_production(opening: Date.today - 100.days, closing: Date.today - 5.days) }
+    let(:comp)    { create_production(opening: Date.current - 100.days, closing: Date.current - 5.days) }
 
     before do
       anchor_t = target.first_playing_date
@@ -1015,8 +1015,8 @@ RSpec.describe RateOfSalesAnalysis, type: :service do
   # FIX 2: revenue-vs-revenue insight + new aggregate_revenue_data result key.
   # ---------------------------------------------------------------------------
   describe 'FIX 2: aggregate revenue series' do
-    let(:target) { create_production(opening: Date.today - 60.days, closing: Date.today + 10.days) }
-    let(:comp)   { create_production(opening: Date.today - 90.days, closing: Date.today - 10.days) }
+    let(:target) { create_production(opening: Date.current - 60.days, closing: Date.current + 10.days) }
+    let(:comp)   { create_production(opening: Date.current - 90.days, closing: Date.current - 10.days) }
 
     before do
       anchor = comp.first_playing_date
@@ -1040,7 +1040,7 @@ RSpec.describe RateOfSalesAnalysis, type: :service do
   # FIX 3: analysis revenue = gross_sales net of ticketing fees.
   # ---------------------------------------------------------------------------
   describe 'FIX 3: revenue is net of ticketing fees' do
-    let(:production) { create_production(opening: Date.today - 60.days, closing: Date.today + 10.days) }
+    let(:production) { create_production(opening: Date.current - 60.days, closing: Date.current + 10.days) }
 
     it 'subtracts ticketing_fees from gross_sales in revenue totals' do
       anchor = production.first_playing_date
@@ -1069,10 +1069,10 @@ RSpec.describe RateOfSalesAnalysis, type: :service do
   # ---------------------------------------------------------------------------
   describe 'FIX 4: pre-sales excluded from expectation curve' do
     it 'does not let a huge pre-sales bucket distort the projection' do
-      opening = Date.today - 30.days
-      closing = Date.today + 21.days
+      opening = Date.current - 30.days
+      closing = Date.current + 21.days
       target = create_production(opening: opening, closing: closing)
-      comp   = create_production(opening: Date.today - 120.days, closing: Date.today - 20.days)
+      comp   = create_production(opening: Date.current - 120.days, closing: Date.current - 20.days)
 
       anchor_t = target.first_playing_date
       pc_t = anchor_t - 21.days

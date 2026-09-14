@@ -2,11 +2,11 @@ FactoryBot.define do
   factory :production do
     status                  { Production::PRODUCTION_STATUSES.first }
     capacity                { 100 }
-    closing_at              { Date.today + 1.week }
-    opening_at              { Date.today }
-    press_opening_at        { Date.today }
-    first_preview_at        { Date.today }
-    season                  { Date.today.year }
+    closing_at              { Date.current + 1.week }
+    opening_at              { Date.current }
+    press_opening_at        { Date.current }
+    first_preview_at        { Date.current }
+    season                  { Date.current.year }
     seat_map                { nil }
     running_time            { 120 }
     theater

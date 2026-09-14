@@ -71,7 +71,7 @@ class OrderMailer < ActionMailer::Base
   end
 
   def performance_reminder(order, _address = nil, _action_by = nil, testing = false)
-    if testing || (!order.performance.suppress_notification? && order.performance.performance_date > Date.today + 1.day)
+    if testing || (!order.performance.suppress_notification? && order.performance.performance_date > Date.current + 1.day)
       @order = order
       @markdown_renderer = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)
       mail(to: @order.address.email, from: house.box_office_from,
@@ -108,7 +108,7 @@ class OrderMailer < ActionMailer::Base
     @special_offer = TicketClassSpecialOffer.new
     @special_offer.create_code('MF', 6)
     @special_offer.number_of_uses = 1
-    @special_offer.auto_expire = expiration_date.nil? ? Date.today + 6.months : expiration_date
+    @special_offer.auto_expire = expiration_date.nil? ? Date.current + 6.months : expiration_date
     @special_offer.max_tickets_per_order = 1
     @special_offer.system_generated = true
     @special_offer.change_ticket_class_code = @membership.membership_offer.use_member_friend_code

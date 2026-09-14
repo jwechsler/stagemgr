@@ -22,7 +22,7 @@ class RateOfSalesAnalysis
   end
 
   def compute(extra_weeks: 0)
-    cutoff = Date.today.beginning_of_week
+    cutoff = Date.current.beginning_of_week
     target_tickets = weekly_pct_change_for(target_production, cutoff: cutoff)
     target_revenue = weekly_pct_change_for(target_production, cutoff: cutoff, field: REVENUE_FIELD)
     comparison_series = comparison_productions.map { |p| weekly_pct_change_for(p) }
@@ -49,7 +49,7 @@ class RateOfSalesAnalysis
 
     daily_rolling = daily_rolling_revenue_for(target_production, cutoff: Date.yesterday)
     comparison_daily_rolling = if comparison_productions.size == 1
-                                 daily_rolling_revenue_for(comparison_productions.first, cutoff: Date.today)
+                                 daily_rolling_revenue_for(comparison_productions.first, cutoff: Date.current)
                                end
     insights = compute_insights(cutoff, target_tickets, target_revenue, aggregate_data, aggregate_revenue_data,
                                 daily_rolling)
@@ -393,7 +393,7 @@ class RateOfSalesAnalysis
 
   # Sum of seats_left across all performances that have not yet occurred.
   def remaining_seats_across_future_performances(production)
-    today = Date.today
+    today = Date.current
     production.performances
               .select { |p| p.performance_date && p.performance_date >= today }
               .sum { |p| [p.number_of_seats_left.to_i, 0].max }

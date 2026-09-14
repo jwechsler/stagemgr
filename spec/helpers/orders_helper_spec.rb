@@ -9,7 +9,7 @@ RSpec.describe OrdersHelper, type: :helper do
     let(:production) { FactoryBot.create(:production_with_reserved_seating) }
     let(:performance) do
       FactoryBot.create(:reserved_seating, production: production,
-                                           performance_date: Date.today + 1.day,
+                                           performance_date: Date.current + 1.day,
                                            performance_time: Time.parse('19:00'))
     end
 
@@ -62,7 +62,7 @@ RSpec.describe OrdersHelper, type: :helper do
     end
 
     it 'rejects a general-admission order containing only non-seat tickets' do
-      ga_performance = FactoryBot.create(:general_admission, performance_date: Date.today + 1.day,
+      ga_performance = FactoryBot.create(:general_admission, performance_date: Date.current + 1.day,
                                                              performance_time: Time.parse('20:00'))
       tc = FactoryBot.create(:ticket_class, production: ga_performance.production, holds_seats: false)
       tca = ga_performance.ticket_class_allocations.find_or_initialize_by(ticket_class: tc)
@@ -76,7 +76,7 @@ RSpec.describe OrdersHelper, type: :helper do
     end
 
     it 'accepts a general-admission order once a seat-holding ticket is present' do
-      ga_performance = FactoryBot.create(:general_admission, performance_date: Date.today + 1.day,
+      ga_performance = FactoryBot.create(:general_admission, performance_date: Date.current + 1.day,
                                                              performance_time: Time.parse('20:30'))
       admission = FactoryBot.create(:ticket_class, production: ga_performance.production, holds_seats: true)
       addon = FactoryBot.create(:ticket_class, production: ga_performance.production, holds_seats: false)
@@ -100,7 +100,7 @@ RSpec.describe OrdersHelper, type: :helper do
   # add-ons and GA nested attributes).
   describe '#validate_web_order web-visibility requirement' do
     let(:ga_performance) do
-      FactoryBot.create(:general_admission, performance_date: Date.today + 1.day,
+      FactoryBot.create(:general_admission, performance_date: Date.current + 1.day,
                                             performance_time: Time.parse('19:30'))
     end
 

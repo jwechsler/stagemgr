@@ -17,7 +17,7 @@ class Admin::MembershipsController < ApplicationController
     @membership.address_id = params[:address_id] if params[:address_id].present?
     @membership.membership_offer_id = params[:membership_offer_id] if params[:membership_offer_id].present?
     @membership.status ||= Membership::ACTIVE
-    @membership.member_since ||= Date.today
+    @membership.member_since ||= Date.current
   end
 
   def edit; end

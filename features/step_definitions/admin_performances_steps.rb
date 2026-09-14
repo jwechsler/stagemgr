@@ -80,14 +80,14 @@ Given(/^a theater with reserved seating exists$/) do
     name: 'Production One',
     production_code: 'PROD01',
     status: Production::PRODUCTION_STATUSES.first,
-    season: Date.today.year,
+    season: Date.current.year,
     theater: @theater,
     venue: @venue,
     seat_map: @seat_map,
-    opening_at: Date.today,
-    closing_at: Date.today + 30.days,
-    press_opening_at: Date.today,
-    first_preview_at: Date.today,
+    opening_at: Date.current,
+    closing_at: Date.current + 30.days,
+    press_opening_at: Date.current,
+    first_preview_at: Date.current,
     capacity: @seat_map.seats.count
   )
 
@@ -103,7 +103,7 @@ Given(/^a test performance "(.*?)" exists$/) do |perf_code|
   @performance = Performance.create!(
     production: production,
     performance_code: perf_code,
-    performance_date: Date.today + 7.days,
+    performance_date: Date.current + 7.days,
     performance_time: Time.parse('19:00'),
     status: 'Active'
   )
@@ -226,14 +226,14 @@ Given(/^a general admission production "(.*?)" exists$/) do |production_name|
     name: production_name,
     production_code: 'GA01',
     status: Production::PRODUCTION_STATUSES.first,
-    season: Date.today.year,
+    season: Date.current.year,
     theater: theater,
     venue: venue,
     seat_map: nil, # No seat map = general admission
-    opening_at: Date.today,
-    closing_at: Date.today + 30.days,
-    press_opening_at: Date.today,
-    first_preview_at: Date.today,
+    opening_at: Date.current,
+    closing_at: Date.current + 30.days,
+    press_opening_at: Date.current,
+    first_preview_at: Date.current,
     capacity: 100 # Manual capacity for general admission
   )
 
@@ -249,7 +249,7 @@ Given(/^a performance "(.*?)" exists for production "(.*?)"$/) do |perf_code, pr
   @performance = Performance.create!(
     production: production,
     performance_code: perf_code,
-    performance_date: Date.today + 8.days,
+    performance_date: Date.current + 8.days,
     performance_time: Time.parse('20:00'),
     status: 'Active'
   )

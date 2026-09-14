@@ -43,7 +43,7 @@ class FlexPass < ApplicationRecord
   end
 
   def expired?
-    expiration_date < Date.today
+    expiration_date < Date.current
   end
 
   def used_on_orders
@@ -56,7 +56,7 @@ class FlexPass < ApplicationRecord
 
   def self.check_expirations
     FlexPass.find_all_by_active(true).each do |flex_pass|
-      if flex_pass.expiration_date <= Date.today || flex_pass.uses_remaining == 0
+      if flex_pass.expiration_date <= Date.current || flex_pass.uses_remaining == 0
         flex_pass.active = false
         flex_pass.save!
       end
@@ -89,11 +89,11 @@ class FlexPass < ApplicationRecord
   end
 
   def upcoming_ticket_orders
-    ticket_orders.finalized.joins(:performance).where('performance_date >= ?', Date.today)
+    ticket_orders.finalized.joins(:performance).where('performance_date >= ?', Date.current)
   end
 
   def attended_ticket_orders
-    ticket_orders.attending.joins(:performance).where('performance_date < ?', Date.today)
+    ticket_orders.attending.joins(:performance).where('performance_date < ?', Date.current)
   end
 
   def has_no_placed_orders?

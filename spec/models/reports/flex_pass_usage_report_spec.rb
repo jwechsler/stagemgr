@@ -114,7 +114,7 @@ RSpec.describe FlexPassUsageReport do
       line_item = order.flex_pass.flex_pass_line_item
       FlexPass.create!(flex_pass_line_item: line_item, flex_pass_offer: line_item.flex_pass_offer,
                        address: order.address, code: "EXTRA#{order.id}",
-                       expiration_date: Date.today + 12.months, active: true)
+                       expiration_date: Date.current + 12.months, active: true)
     end
 
     it 'does not multiply deposits by the pass count of legacy multi-pass line items' do

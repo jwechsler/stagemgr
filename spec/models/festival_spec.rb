@@ -35,13 +35,13 @@ RSpec.describe Festival, type: :model do
     it 'derives the range from member productions' do
       festival = FactoryBot.create(:festival)
       FactoryBot.create(:production, festival: festival,
-                                     first_preview_at: Date.today + 1.week,
-                                     closing_at: Date.today + 3.weeks)
+                                     first_preview_at: Date.current + 1.week,
+                                     closing_at: Date.current + 3.weeks)
       FactoryBot.create(:production, festival: festival,
-                                     first_preview_at: Date.today + 2.weeks,
-                                     closing_at: Date.today + 5.weeks)
+                                     first_preview_at: Date.current + 2.weeks,
+                                     closing_at: Date.current + 5.weeks)
 
-      expect(festival.date_range).to eq([Date.today + 1.week, Date.today + 5.weeks])
+      expect(festival.date_range).to eq([Date.current + 1.week, Date.current + 5.weeks])
     end
 
     it 'returns nils for a festival with no member productions' do
@@ -80,8 +80,8 @@ RSpec.describe Festival, type: :model do
   describe '#upcoming_productions' do
     it 'includes visible members that have not closed and excludes the rest' do
       festival = FactoryBot.create(:festival)
-      upcoming = FactoryBot.create(:production, festival: festival, closing_at: Date.today + 1.week)
-      FactoryBot.create(:production, festival: festival, closing_at: Date.today - 1.day)
+      upcoming = FactoryBot.create(:production, festival: festival, closing_at: Date.current + 1.week)
+      FactoryBot.create(:production, festival: festival, closing_at: Date.current - 1.day)
       FactoryBot.create(:production, festival: festival, status: Production::INACTIVE)
 
       expect(festival.upcoming_productions).to contain_exactly(upcoming)
@@ -91,16 +91,16 @@ RSpec.describe Festival, type: :model do
   describe 'Production#festival_grouped?' do
     it 'is true while an active festival has multiple upcoming shows' do
       festival = FactoryBot.create(:festival)
-      member = FactoryBot.create(:production, festival: festival, closing_at: Date.today + 1.week)
-      FactoryBot.create(:production, festival: festival, closing_at: Date.today + 2.weeks)
+      member = FactoryBot.create(:production, festival: festival, closing_at: Date.current + 1.week)
+      FactoryBot.create(:production, festival: festival, closing_at: Date.current + 2.weeks)
 
       expect(member.festival_grouped?).to be true
     end
 
     it 'is false for a festival lone remaining show' do
       festival = FactoryBot.create(:festival)
-      member = FactoryBot.create(:production, festival: festival, closing_at: Date.today + 1.week)
-      FactoryBot.create(:production, festival: festival, closing_at: Date.today - 1.day)
+      member = FactoryBot.create(:production, festival: festival, closing_at: Date.current + 1.week)
+      FactoryBot.create(:production, festival: festival, closing_at: Date.current - 1.day)
 
       expect(member.festival_grouped?).to be false
     end
@@ -129,10 +129,10 @@ RSpec.describe Festival, type: :model do
   describe '#featured_productions' do
     it 'returns members ordered by soonest upcoming performance' do
       festival = FactoryBot.create(:festival)
-      later = FactoryBot.create(:production, festival: festival, closing_at: Date.today + 4.weeks)
-      sooner = FactoryBot.create(:production, festival: festival, closing_at: Date.today + 4.weeks)
-      FactoryBot.create(:performance, production: later, performance_date: Date.today + 10.days)
-      FactoryBot.create(:performance, production: sooner, performance_date: Date.today + 2.days)
+      later = FactoryBot.create(:production, festival: festival, closing_at: Date.current + 4.weeks)
+      sooner = FactoryBot.create(:production, festival: festival, closing_at: Date.current + 4.weeks)
+      FactoryBot.create(:performance, production: later, performance_date: Date.current + 10.days)
+      FactoryBot.create(:performance, production: sooner, performance_date: Date.current + 2.days)
 
       expect(festival.featured_productions(2).to_a).to eq([sooner, later])
     end
@@ -140,7 +140,7 @@ RSpec.describe Festival, type: :model do
     it 'excludes members with only past performances' do
       festival = FactoryBot.create(:festival)
       stale = FactoryBot.create(:production, festival: festival)
-      FactoryBot.create(:performance, production: stale, performance_date: Date.today - 2.days)
+      FactoryBot.create(:performance, production: stale, performance_date: Date.current - 2.days)
 
       expect(festival.featured_productions).to be_empty
     end

@@ -316,7 +316,7 @@ FactoryBot.define do
       credit_card_type                    { 'bogus' }
       credit_card_number                  { '4111111111111111' }
       credit_card_expiration_month        { '12' }
-      credit_card_expiration_year         { Date.today.year.to_s }
+      credit_card_expiration_year         { Date.current.year.to_s }
       credit_card_verification_number     { '999' }
       after(:create) do |order, _evaluator|
         order.create_proper_payment_in_amount_of!(order.value_of_all_line_items)

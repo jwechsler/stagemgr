@@ -38,7 +38,7 @@ class Festival < ApplicationRecord
     public_productions
       .joins(:performances)
       .where(performances: { status: Performance::ACTIVE })
-      .where(performances: { performance_date: Date.today.. })
+      .where(performances: { performance_date: Date.current.. })
       .group('productions.id')
       .reorder(Arel.sql('MIN(performances.performance_date), MIN(performances.performance_time)'))
       .limit(limit)

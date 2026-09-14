@@ -13,8 +13,8 @@ RSpec.describe 'Production.additional_upcoming_entries' do
     FactoryBot.create(:production, {
       status: Production::ACTIVE,
       production_class: Production::PRIMETIME,
-      opening_at: Date.today,
-      first_preview_at: Date.today,
+      opening_at: Date.current,
+      first_preview_at: Date.current,
       closing_at: Time.now.end_of_week + 2.weeks
     }.merge(attrs))
   end

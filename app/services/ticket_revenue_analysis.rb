@@ -42,7 +42,7 @@ class TicketRevenueAnalysis
   def uncached_compute
     ticket_classes  = @production.ticket_classes.to_a
     perf_count      = @production.performances.count
-    completed_perfs = @production.performances.where('performance_date < ?', Date.today).count
+    completed_perfs = @production.performances.where('performance_date < ?', Date.current).count
 
     return empty_summary(perf_count, completed_perfs) if ticket_classes.empty?
 

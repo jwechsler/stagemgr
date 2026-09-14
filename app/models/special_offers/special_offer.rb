@@ -297,7 +297,7 @@ class SpecialOffer < ApplicationRecord
       perf_id,
       prod_id,
       theater_id,
-      Time.now.to_date,
+      Time.current.to_date,
       Time.now
     ).order(performance_id: :desc, production_id: :desc, theater_id: :desc)
   end
@@ -316,7 +316,7 @@ class SpecialOffer < ApplicationRecord
   end
 
   def self.purge_expired_offers
-    expiration_delay = Date.today - 3.months
+    expiration_delay = Date.current - 3.months
     offers = SpecialOffer.where("not exists (select * from line_items where special_offer_id = special_offers.id) and
       ((production_id in (select id from productions where closing_at < ?)) or
        (performance_id in (select performances.id from performances,productions where performances.production_id = productions.id and productions.closing_at < ?)) or

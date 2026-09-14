@@ -75,7 +75,7 @@ class FinalizeSeasonSeating
       end
     end
 
-    file_name = "/tmp/finalize_season_seating_#{production.production_code.downcase}_#{Date.today.strftime('%y%m%d')}.csv"
+    file_name = "/tmp/finalize_season_seating_#{production.production_code.downcase}_#{Date.current.strftime('%y%m%d')}.csv"
     File.write(file_name, csv_string)
 
     file_store = FileStore.new

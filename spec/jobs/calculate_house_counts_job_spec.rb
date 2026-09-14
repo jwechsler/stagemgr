@@ -6,7 +6,7 @@ RSpec.describe CalculateHouseCountsJob, type: :job do
   describe '#perform' do
     # Uses the general_admission factory
     let!(:performance) do
-      FactoryBot.create(:general_admission, performance_date: Date.today)
+      FactoryBot.create(:general_admission, performance_date: Date.current)
     end
     let!(:ticket_order) do
       FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, performance: performance, updated_at: 2.days.ago)
@@ -60,7 +60,7 @@ RSpec.describe CalculateHouseCountsJob, type: :job do
   end
 
   describe '.perform with a performance id' do
-    let!(:performance) { FactoryBot.create(:general_admission, performance_date: Date.today) }
+    let!(:performance) { FactoryBot.create(:general_admission, performance_date: Date.current) }
     let!(:ticket_order) do
       FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, performance: performance, updated_at: 10.days.ago)
     end

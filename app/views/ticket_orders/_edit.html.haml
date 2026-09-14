@@ -1,6 +1,6 @@
 .grid-x.grid-padding-x
   .small-12.cell
-    - if order.performance.nil? || order.performance.withhold_from_public? || order.performance.performance_date < Date.today
+    - if order.performance.nil? || order.performance.withhold_from_public? || order.performance.performance_date < Date.current
       %p This performance is currently not available. Sorry!
     - elsif !order.updated_at.nil? && order.updated_at < Time.now - 8.minutes
       %p

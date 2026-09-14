@@ -22,7 +22,7 @@ class SampleOrderBuilder
       production_class: production_attrs[:production_class].presence || Production::PRIMETIME,
       allow_late_seating: production_attrs[:allow_late_seating],
       status: Production::ACTIVE,
-      season: Date.today.year.to_s,
+      season: Date.current.year.to_s,
       venue_id: production_attrs[:venue_id],
       capacity: 100
     )
