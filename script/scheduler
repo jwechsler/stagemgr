@@ -1,27 +1,70 @@
 #!/bin/bash
+# Start, stop, check or restart the resque-scheduler process (the recurring
+# jobs in config/schedule.yml). Inherits RAILS_ENV from the caller (bin/deploy
+# exports production), defaulting to development.
+#
+# stop waits for the old process to exit before returning and also sweeps any
+# scheduler that lost its pidfile, so restart can never leave two schedulers
+# competing for the master lock. See script/process-helpers.sh for why.
 
-#!/bin/bash
+APP_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$APP_ROOT" || exit 1
+. "$APP_ROOT/script/process-helpers.sh"
+
+export RAILS_ENV="${RAILS_ENV:-development}"
+LABEL="Resque scheduler"
+PIDFILE="$APP_ROOT/resque-scheduler.pid"
+LOGFILE="$APP_ROOT/log/resque-scheduler.log"
+# Matches the scheduler while it is still booting (rake command line) and once
+# resque-scheduler has rewritten its procline to "resque-scheduler-X.Y.Z[env]".
+PATTERN="^resque-scheduler-[0-9.]+\[${RAILS_ENV}\]|rake environment resque:scheduler"
+
+start_scheduler() {
+  if status_pidfile_process "$LABEL" "$PIDFILE" >/dev/null; then
+    echo "$LABEL is already running with PID $(cat "$PIDFILE"); use restart" >&2
+    return 1
+  fi
+  local orphans
+  orphans="$(find_processes "$PATTERN" | xargs)"
+  if [ -n "$orphans" ]; then
+    echo "$LABEL is already running without a PID file (PID $orphans); run '$0 stop' first" >&2
+    return 1
+  fi
+  echo "Starting $RAILS_ENV $LABEL..."
+  nohup bundle exec rake environment resque:scheduler PIDFILE="$PIDFILE" >> "$LOGFILE" 2>&1 &
+  echo $! > "$PIDFILE"
+  echo "Started $LABEL with PID $(cat "$PIDFILE")"
+}
+
+stop_scheduler() {
+  local rc=0 pid
+  stop_pidfile_process "$LABEL" "$PIDFILE" "$PATTERN" || rc=1
+  for pid in $(find_processes "$PATTERN"); do
+    echo "Found $LABEL running without a PID file"
+    stop_pid "$LABEL (no PID file)" "$pid" || rc=1
+  done
+  return $rc
+}
+
+status_scheduler() {
+  local rc=0 pid tracked
+  status_pidfile_process "$LABEL" "$PIDFILE" || rc=1
+  tracked="$([ -f "$PIDFILE" ] && tr -d '[:space:]' < "$PIDFILE")"
+  for pid in $(find_processes "$PATTERN"); do
+    [ "$pid" = "$tracked" ] && continue
+    echo "$LABEL is ALSO running without a PID file (PID $pid); run '$0 restart' to clean up"
+    rc=1
+  done
+  return $rc
+}
 
 case "$1" in
-  start)
-    # Both branches were identical; the scheduler simply inherits whatever
-    # RAILS_ENV the caller exported (production passes its own), defaulting to
-    # development when nothing is set.
-    RAILS_ENV="${RAILS_ENV:-development}" nohup bundle exec rake environment resque:scheduler PIDFILE=./resque-scheduler.pid QUEUE="*" >> log/resque-scheduler.log 2>&1 &
-    ;;
-  stop)
-    if [ -f ./resque-scheduler.pid ]; then
-      kill $(cat ./resque-scheduler.pid)
-      if [ $? -eq 0 ]; then
-        rm ./resque-scheduler.pid
-        echo "Schedule worker stopped"
-      else
-        echo "Could not stop schedule worker"
-      fi
-    else
-      echo "No schedule worker PID file found"
-    fi
+  start)   start_scheduler ;;
+  stop)    stop_scheduler ;;
+  status)  status_scheduler ;;
+  restart) stop_scheduler && start_scheduler ;;
+  *)
+    echo "Usage: $0 {start|stop|status|restart}"
+    exit 1
     ;;
 esac
-
-

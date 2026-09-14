@@ -65,11 +65,13 @@ touch tmp/restart.txt
 step "Restarting Resque workers"
 script/resque-worker restart
 
+# Both restarts wait for the old processes to exit (escalating to KILL) before
+# starting new ones, and the scheduler stop also sweeps a scheduler that lost
+# its pidfile -- see script/process-helpers.sh. A worker or scheduler that
+# cannot be stopped fails the deploy here rather than leaving two copies
+# running old code.
 step "Restarting Resque scheduler"
-# The scheduler script has no restart action, and its stop errors out when
-# the scheduler isn't running — tolerate that and just start a fresh one.
-script/scheduler stop || true
-script/scheduler start
+script/scheduler restart
 
 step "Smoke check (${SMOKE_URL})"
 curl -fsS --max-time 120 -o /dev/null "$SMOKE_URL"

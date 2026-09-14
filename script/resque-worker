@@ -1,113 +1,76 @@
 #!/bin/bash
+# Start, stop, check or restart the Resque workers. Inherits RAILS_ENV from the
+# caller (bin/deploy exports production), defaulting to development.
+#
+# Production runs three workers split by queue, each with its own pidfile and
+# log; every other environment runs a single worker for all queues. stop waits
+# for each worker to exit before returning (see script/process-helpers.sh), so
+# restart never overlaps old and new workers.
+
+APP_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$APP_ROOT" || exit 1
+. "$APP_ROOT/script/process-helpers.sh"
+
+export RAILS_ENV="${RAILS_ENV:-development}"
+# Matches a worker while it is still booting (rake command line) and once
+# Resque has rewritten its procline to "resque-X.Y.Z: Waiting for ...".
+PATTERN="^resque-[0-9.]+: |rake environment resque:work"
+FAILED=0
+
+# for_each_worker FUNCTION -- calls FUNCTION LABEL PIDFILE QUEUES LOGFILE
+for_each_worker() {
+  if [ "$RAILS_ENV" = "production" ]; then
+    "$1" "Resque worker #1" resque.pid "notification,report,import,sync" log/resque.log
+    "$1" "Resque worker #2 (printing)" resque-printing.pid "printing,batch_printing" log/printing_queue.log
+    "$1" "Resque worker #3 (maintenance)" resque-maint.pid "default,maintenance" log/maintenance_queue.log
+  else
+    "$1" "Resque worker" resque.pid "*" log/resque.log
+  fi
+}
+
+start_worker() {
+  local label="$1" pidfile="$APP_ROOT/$2" queues="$3" logfile="$4"
+  if status_pidfile_process "$label" "$pidfile" >/dev/null; then
+    echo "$label is already running with PID $(cat "$pidfile"); use restart" >&2
+    FAILED=1
+    return
+  fi
+  nohup bundle exec rake environment resque:work PIDFILE="$pidfile" QUEUE="$queues" >> "$logfile" 2>&1 &
+  echo $! > "$pidfile"
+  echo "Started $label for $queues queues with PID $(cat "$pidfile")"
+}
+
+stop_worker() {
+  stop_pidfile_process "$1" "$APP_ROOT/$2" "$PATTERN" || FAILED=1
+}
+
+status_worker() {
+  status_pidfile_process "$1" "$APP_ROOT/$2" || FAILED=1
+}
 
 case "$1" in
   start)
-    if [[ "$RAILS_ENV" == "production" ]] ; then
-      # For Resque 2.x in production, start workers for specific queues with nohup
-      echo "Starting production Resque workers..."
-      RAILS_ENV=production nohup bundle exec rake environment resque:work PIDFILE=./resque.pid QUEUE=notification,report,import,sync >> log/resque.log 2>&1 &
-      echo $! > ./resque.pid
-      echo "Started worker for notification,report,import,sync queues with PID $(cat ./resque.pid)"
-      
-      RAILS_ENV=production nohup bundle exec rake environment resque:work PIDFILE=./resque-printing.pid QUEUE=printing,batch_printing >> log/printing_queue.log 2>&1 &
-      echo $! > ./resque-printing.pid
-      echo "Started worker for printing queue with PID $(cat ./resque-printing.pid)"
-      
-      RAILS_ENV=production nohup bundle exec rake environment resque:work PIDFILE=./resque-maint.pid QUEUE=default,maintenance >> log/maintenance_queue.log 2>&1 &
-      echo $! > ./resque-maint.pid
-      echo "Started worker for default,maintenance queues with PID $(cat ./resque-maint.pid)"
-    else
-      # Outside production, use a single worker for all queues. Honour an
-      # already-exported RAILS_ENV (test, cucumber, a staging env) rather than
-      # forcing development; the production branch above is unchanged.
-      echo "Starting ${RAILS_ENV:-development} Resque worker..."
-      RAILS_ENV="${RAILS_ENV:-development}" nohup bundle exec rake environment resque:work PIDFILE=./resque.pid QUEUE="*" >> log/resque.log 2>&1 &
-      echo $! > ./resque.pid
-      echo "Started worker for all queues with PID $(cat ./resque.pid)"
-    fi
+    echo "Starting $RAILS_ENV Resque workers..."
+    for_each_worker start_worker
     ;;
   stop)
-    # Stop workers by killing their processes
-    if [ -f ./resque.pid ]; then
-      echo "Stopping Resque worker with PID $(cat ./resque.pid)..."
-      kill $(cat ./resque.pid)
-      if [ $? -eq 0 ]; then
-        rm ./resque.pid
-        echo "Resque worker #1 stopped"
-      else
-        echo "Could not stop Resque worker #1"
-      fi
-    else
-      echo "No Resque worker PID file found"
-    fi
-    
-    if [[ "$RAILS_ENV" == "production" ]] ; then
-      if [ -f ./resque-printing.pid ]; then
-        echo "Stopping printing queue worker with PID $(cat ./resque-printing.pid)..."
-        kill $(cat ./resque-printing.pid)
-        if [ $? -eq 0 ]; then
-          rm ./resque-printing.pid
-          echo "Resque worker #2 (printing) stopped"
-        else
-          echo "Could not stop Resque worker #2 (printing)"
-        fi
-      fi
-      
-      if [ -f ./resque-maint.pid ]; then
-        echo "Stopping maintenance queue worker with PID $(cat ./resque-maint.pid)..."
-        kill $(cat ./resque-maint.pid)
-        if [ $? -eq 0 ]; then
-          rm ./resque-maint.pid
-          echo "Resque worker #3 (maintenance) stopped"
-        else
-          echo "Could not stop Resque worker #3 (maintenance)"
-        fi
-      fi
-    fi
+    for_each_worker stop_worker
     ;;
   status)
-    # Check status of workers
-    echo "Checking Resque worker status..."
-    if [ -f ./resque.pid ]; then
-      if ps -p $(cat ./resque.pid) > /dev/null; then
-        echo "Resque worker #1 is running with PID $(cat ./resque.pid)"
-      else
-        echo "Resque worker #1 is not running (stale PID file)"
-      fi
-    else
-      echo "No Resque worker #1 PID file found"
-    fi
-    
-    if [[ "$RAILS_ENV" == "production" ]] ; then
-      if [ -f ./resque-printing.pid ]; then
-        if ps -p $(cat ./resque-printing.pid) > /dev/null; then
-          echo "Resque worker #2 (printing) is running with PID $(cat ./resque-printing.pid)"
-        else
-          echo "Resque worker #2 (printing) is not running (stale PID file)"
-        fi
-      else
-        echo "No Resque worker #2 (printing) PID file found"
-      fi
-      
-      if [ -f ./resque-maint.pid ]; then
-        if ps -p $(cat ./resque-maint.pid) > /dev/null; then
-          echo "Resque worker #3 (maintenance) is running with PID $(cat ./resque-maint.pid)"
-        else
-          echo "Resque worker #3 (maintenance) is not running (stale PID file)"
-        fi
-      else
-        echo "No Resque worker #3 (maintenance) PID file found"
-      fi
-    fi
+    for_each_worker status_worker
     ;;
   restart)
-    # Restart workers
-    $0 stop
-    sleep 2
-    $0 start
+    for_each_worker stop_worker
+    if [ "$FAILED" -ne 0 ]; then
+      echo "Not starting new workers while an old one is still running" >&2
+      exit 1
+    fi
+    echo "Starting $RAILS_ENV Resque workers..."
+    for_each_worker start_worker
     ;;
   *)
     echo "Usage: $0 {start|stop|status|restart}"
     exit 1
     ;;
 esac
+exit "$FAILED"

@@ -35,7 +35,7 @@ It runs the deploy sequence in a fixed order so no step can be forgotten:
 6. `rails assets:precompile`
 7. `touch tmp/restart.txt` (Passenger)
 8. `script/resque-worker restart`
-9. `script/scheduler stop || true` then `script/scheduler start`
+9. `script/scheduler restart`
 10. A `curl` smoke check against `SMOKE_URL`
 
 Every step is idempotent, so a failed deploy is retried by running the script
@@ -86,8 +86,15 @@ and `bundle check`.
 
 ```sh
 script/resque-worker {start|stop|status|restart}
-script/scheduler {start|stop}
+script/scheduler {start|stop|status|restart}
 ```
+
+Both `stop` actions wait for the old process to exit (sending KILL after
+`STOP_TIMEOUT`, default 30 s) before `restart` starts a replacement, and the
+scheduler `stop` also sweeps any scheduler running without a pidfile.
+resque-scheduler deletes its pidfile in an `at_exit` hook, so starting the new
+scheduler before the old one has exited used to wipe the new pidfile and leave
+an orphan scheduler behind. `script/scheduler status` reports such orphans.
 
 In production `script/resque-worker start` launches three workers, each with its
 own pidfile and log:
