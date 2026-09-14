@@ -97,16 +97,12 @@ class CreditCardPayment < CurrencyPayment
     return unless create_refund_payment?
 
     CreditCardPayment.transaction do
-      gateway = PaymentProcessing.gateway
-
       refund_payment = dup
       refund_payment.amount = 0.0 - amount
       refund_payment.ipn_track_id = nil
       order.payments << refund_payment
 
-      refund_amount = charge_amount
-
-      response = gateway.refund(refund_amount, transaction_id || confirmation_code, note: note)
+      response = refund_to_card!(charge_amount, note: note)
 
       unless response.success?
         # Check if charge was already refunded in Stripe
@@ -149,6 +145,20 @@ class CreditCardPayment < CurrencyPayment
     end
   end
 
+  # Partial refund against this charge for a RefundPayment recorded on the same
+  # order. Raises CannotProcessPayment on a gateway failure so the caller's
+  # transaction rolls back. The gateway's refund id (re_...) is stored on the
+  # refund row; BogusGateway returns none.
+  def return_funds!(refund_payment)
+    response = refund_to_card!(refund_payment.refund_cents,
+                               note: refund_payment.note,
+                               idempotency_key: refund_payment.idempotency_key)
+    raise CannotProcessPayment, response.message.to_s unless response.success?
+
+    refund_payment.confirmation_code = response.authorization
+    refund_payment.transaction_id = response.authorization
+  end
+
   def payment_info
     "#{card_type} ending in #{card_last_four.nil? ? '????' : card_last_four.to_s}"
   end
@@ -176,6 +186,14 @@ class CreditCardPayment < CurrencyPayment
 
   def charge_amount
     (amount * 100.0).to_i
+  end
+
+  # The one place the gateway refund is called, for both full and partial
+  # refunds. +cents+ is refunded against this payment's Stripe reference.
+  def refund_to_card!(cents, note: nil, idempotency_key: nil)
+    options = { note: note }
+    options[:idempotency_key] = idempotency_key if idempotency_key.present?
+    PaymentProcessing.gateway.refund(cents, transaction_id || confirmation_code, options)
   end
 
   def get_stripe_refund_amount

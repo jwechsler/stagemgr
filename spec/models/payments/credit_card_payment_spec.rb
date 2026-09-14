@@ -23,6 +23,18 @@ RSpec.describe CreditCardPayment, type: :model do
       Stripe.api_key = 'sk_test_fake_key_for_testing'
     end
 
+    it 'refunds the full charge in cents against the stored transaction' do
+      gateway = double('gateway')
+      allow(PaymentProcessing).to receive(:gateway).and_return(gateway)
+      response = double('response', success?: true, authorization: 're_full')
+      expect(gateway).to receive(:refund).with(5000, 'ch_test123', hash_including(note: 'test refund'))
+                                         .and_return(response)
+
+      payment.refund!(nil, 'test refund')
+
+      expect(order.payments.reload.last.amount).to eq(-50.0)
+    end
+
     context 'when charge has already been refunded in Stripe' do
       let(:stripe_charge) do
         double('Stripe::Charge',

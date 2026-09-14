@@ -37,8 +37,12 @@ StripeEvent.configure do |events|
 
   events.subscribe 'charge.refunded' do |event|
     invoice_id = event.data['object']['invoice']
+    # Only subscription invoices are booked here; one-off charges (including
+    # exchange refunds) are recorded by the app. Without this guard a nil
+    # invoice would match an unrelated payment with no transaction_id.
+    next if invoice_id.blank?
+
     payment = Payment.find_by(transaction_id: invoice_id)
-    # only handle refund charges for subscriptions — others are handled from the app
     unless payment.nil?
       refund_payment = payment.dup
       refund_payment.amount = CurrencyUtils.float_to_currency_decimal(BigDecimal(event.data['object']['amount_refunded'].to_s) / -100.0)

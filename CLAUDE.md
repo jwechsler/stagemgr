@@ -244,13 +244,22 @@ Performance
 ### Payment Processing
 ```
 Order
-  └── Payments (many)
-       ├── CreditCardPayment
-       ├── ExternalPayment
-       ├── GiftCertificatePayment
-       └── CompPayment
+  └── Payments (many, STI on payments.type)
+       ├── CurrencyPayment
+       │    ├── CashPayment
+       │    ├── CheckPayment
+       │    └── CreditCardPayment      (Stripe via PaymentProcessing.gateway)
+       ├── ExternalPayment              (comps and other non-currency tenders)
+       ├── PassPayment
+       │    ├── FlexPassPayment
+       │    └── MembershipPayment
+       ├── ExchangePayment              (offset on the original, credit on the new order)
+       ├── PriceOverridePayment         ("Carryover" write-off)
+       ├── RefundPayment                (partial refund on an exchange; payment_id -> refunded CurrencyPayment)
+       ├── ReversalPayment
+       └── RecurringPayment
 
-PaymentProcessor ─── PaymentTransaction (many)
+PaymentProcessing (module) ─── StripeGateway < ActiveMerchant StripePaymentIntentsGateway
 ```
 
 ### Job Framework

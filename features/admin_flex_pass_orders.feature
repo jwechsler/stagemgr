@@ -27,5 +27,5 @@ Feature: Flex Pass Ticket Order administration
        And I enter an exchange for the order to performance "TEST02"
        And I enter 2 tickets for performance "TEST02"
        And I enter flex pass code "TESTFLEX" as payment
-       And I press "Place Order"
+       And I press "Exchange Order"
       Then I should see "Order was successfully exchanged"

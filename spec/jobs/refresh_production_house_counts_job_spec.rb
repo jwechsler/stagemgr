@@ -7,9 +7,12 @@ RSpec.describe RefreshProductionHouseCountsJob, type: :job do
   let!(:production) { FactoryBot.create(:production, capacity: 100) }
   let!(:performance) { FactoryBot.create(:general_admission, production: production) }
   # A distinct date: performance times round to 15-minute blocks, so two
-  # performances created back to back on one day collide on uniqueness.
+  # performances created back to back on one day collide on uniqueness. Offset
+  # from the first performance's own date rather than "today": the factory dates
+  # in the system zone and Date.current in the app zone, which differ near midnight.
   let!(:other_performance) do
-    FactoryBot.create(:general_admission, production: production, performance_date: Date.current + 1.day)
+    FactoryBot.create(:general_admission, production: production,
+                                          performance_date: performance.performance_date + 1.day)
   end
 
   it 'recalculates the house count of every performance in the production' do

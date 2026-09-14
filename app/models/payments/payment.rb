@@ -1,6 +1,9 @@
 class Payment < ApplicationRecord
   belongs_to :order, inverse_of: :payments
   belongs_to :payment_type
+  # payment_id points at the payment this row offsets, reverses or refunds
+  # (ExchangePayment, ReversalPayment, RefundPayment). Nil for ordinary tenders.
+  belongs_to :source_payment, class_name: 'Payment', foreign_key: :payment_id, optional: true, inverse_of: false
 
   # validates_numericality_of :amount, :unless => :number_of_tickets
   # validates_numericality_of :number_of_tickets, :unless => :amount

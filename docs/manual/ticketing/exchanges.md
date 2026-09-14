@@ -47,8 +47,24 @@ The system calculates the difference between the original and new order:
 | Scenario | What Happens |
 |----------|-------------|
 | **New order costs more** | Patron pays the difference |
-| **New order costs less** | Credit may be applied or the difference noted |
+| **New order costs less** | With **Exchange Order** the difference is written off as a *Carryover* on the new order. With **Exchange and Refund** the difference is returned to the patron (see below). |
 | **Same price** | No additional payment required |
+
+#### Refunding the difference
+
+When an exchange to a cheaper performance or ticket class is the theater's error, use the red **Exchange and Refund** button instead of **Exchange Order**. The exchange is processed exactly the same way, but the price difference is returned to the patron:
+
+- **Credit card** -- a partial refund of the original charge is sent to Stripe for the exact difference. The patron's card is credited without re-entering it.
+- **Cash or check** -- a *Refund* row is recorded against the original payment for the box office to hand back.
+
+The refund appears on the **original order** as a *Credit Card Refund* (or *Cash Refund*) line alongside the exchange offset, and the original nets to $0.00. The Stripe refund reference (`re_...`) is stored as the confirmation code.
+
+!!! warning "Refund Rules"
+    - The button is available to Box Office and Administrator users only.
+    - The new order must cost **less** than the original. If it costs the same or more, the exchange is refused with *Nothing to refund*; use **Exchange Order** instead.
+    - Only cash, check and credit card payments can be refunded. Flex pass, membership, comp and exchange-credit payments cannot; if they do not cover the difference, the exchange is refused and nothing is changed.
+    - Exchange service fees retained by the theater are never refunded. Remove the fee line on the form if the exchange is the theater's error.
+    - If Stripe declines the refund, the whole exchange is cancelled: no new order is created and the original order is unchanged.
 
 ### Step 4: Exchange Service Fees
 
@@ -77,7 +93,7 @@ The allowed payment types for the exchange depend on the original order's paymen
 
 1. Review all details on the new order
 2. Process payment for any amount due
-3. Submit the exchange
+3. Click **Exchange Order**, or **Exchange and Refund** to return the price difference to the patron
 
 On successful submission:
 
