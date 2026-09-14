@@ -4039,7 +4039,7 @@ would need.</p>
 <li><code>rails assets:precompile</code></li>
 <li><code>touch tmp/restart.txt</code> (Passenger)</li>
 <li><code>script/resque-worker restart</code></li>
-<li><code>script/scheduler stop || true</code> then <code>script/scheduler start</code></li>
+<li><code>script/scheduler restart</code></li>
 <li>A <code>curl</code> smoke check against <code>SMOKE_URL</code></li>
 </ol>
 <p>Every step is idempotent, so a failed deploy is retried by running the script
@@ -4079,8 +4079,14 @@ by nothing.</p>
 and <code>bundle check</code>.</p>
 <h3 id="background-workers">Background workers<a class="headerlink" href="#background-workers" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code>script/resque-worker<span class="w"> </span><span class="o">{</span>start<span class="p">|</span>stop<span class="p">|</span>status<span class="p">|</span>restart<span class="o">}</span>
-script/scheduler<span class="w"> </span><span class="o">{</span>start<span class="p">|</span>stop<span class="o">}</span>
+script/scheduler<span class="w"> </span><span class="o">{</span>start<span class="p">|</span>stop<span class="p">|</span>status<span class="p">|</span>restart<span class="o">}</span>
 </code></pre></div>
+<p>Both <code>stop</code> actions wait for the old process to exit (sending KILL after
+<code>STOP_TIMEOUT</code>, default 30 s) before <code>restart</code> starts a replacement, and the
+scheduler <code>stop</code> also sweeps any scheduler running without a pidfile.
+resque-scheduler deletes its pidfile in an <code>at_exit</code> hook, so starting the new
+scheduler before the old one has exited used to wipe the new pidfile and leave
+an orphan scheduler behind. <code>script/scheduler status</code> reports such orphans.</p>
 <p>In production <code>script/resque-worker start</code> launches three workers, each with its
 own pidfile and log:</p>
 <table>
