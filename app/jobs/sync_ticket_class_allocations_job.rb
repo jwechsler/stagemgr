@@ -25,7 +25,7 @@ class SyncTicketClassAllocationsJob < ApplicationJob
 
   def self.sync_allocations(production, ticket_class)
     performances = production.performances
-                             .where('performance_date >= ?', Date.today)
+                             .where('performance_date >= ?', Date.current)
                              .where(status: Performance.sellable_statuses)
 
     performances.find_each do |perf|

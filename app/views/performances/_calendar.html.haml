@@ -4,7 +4,7 @@
   - when @production.status == Production::PRESALE
     %p
       Tickets are not on sale yet for this event. Join our mailing list to be kept up to date on when tickets will be available.
-  - when ((@production.performances.count{|p| p.visible?} > 1 || @production.performances.count{|p| !p.order_url_override.blank?} > 0))  && @production.effective_closing_at&.>=(Date.today)
+  - when ((@production.performances.count{|p| p.visible?} > 1 || @production.performances.count{|p| !p.order_url_override.blank?} > 0))  && @production.effective_closing_at&.>=(Date.current)
     %table.performance_calendar
       %caption
         - festival_offer = @production.festival&.flex_pass_offers&.detect(&:on_sale_to_public?)
@@ -20,7 +20,7 @@
         %h3
           %span.month_navigation
 
-            -if (@start_date-1.month >= @production.first_playing_date.beginning_of_month ) && (@start_date-1.month >= Date.today.beginning_of_month)
+            -if (@start_date-1.month >= @production.first_playing_date.beginning_of_month ) && (@start_date-1.month >= Date.current.beginning_of_month)
               = link_to raw("&laquo;#{Date::MONTHNAMES[(@start_date-1.month).month]}&nbsp;"), :action=>:index, :start_date=>@start_date.prev_month, :end_date=>@start_date-1
             -else
               = raw("#{Date::MONTHNAMES[(@start_date-1.month).month]}&nbsp;")
@@ -96,7 +96,7 @@
               - @footnotes.each_with_index do |note, i|
                 %p.text-right
                   = display_markdown "[#{i + 1}] #{footnote_description(note)}"
-  - when (@production.performances.count{|p| p.visible? && (p.performance_date >= Date.today) } == 1)
+  - when (@production.performances.count{|p| p.visible? && (p.performance_date >= Date.current) } == 1)
 
     = render :partial=>'/ticket_orders/edit', :locals=>{:order=>create_ticket_order_for_performance(@production.performances.select{|perf| perf.visible?}.first)}
   - else

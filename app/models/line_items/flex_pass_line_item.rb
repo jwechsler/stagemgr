@@ -24,6 +24,6 @@ class FlexPassLineItem < LineItem
     return unless flex_pass.nil?
 
     build_flex_pass(flex_pass_offer: flex_pass_offer, address: order.address,
-                    expiration_date: Date.today + flex_pass_offer.months_till_expiration.months)
+                    expiration_date: Date.current + flex_pass_offer.months_till_expiration.months)
   end
 end

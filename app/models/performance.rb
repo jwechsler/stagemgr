@@ -153,12 +153,17 @@ class Performance < ApplicationRecord
     (Time.now < at + production.running_time.minutes) && (Time.now + Rails.configuration.x.server_config['restrict_sales_due_to_time_at_minutes_before'].to_i.minutes > at)
   end
 
+  # Curtain as an instant in the app time zone. performance_time is a bare
+  # time-of-day, so it is rendered in Time.zone and re-parsed there rather than
+  # in the process's system zone, which differs from Central on a CI runner.
   def performance_at
-    Time.parse(performance_date.to_s(:default) + " " + performance_time.to_s(:hour_min))
+    Time.zone.parse("#{performance_date} #{curtain_hour_min}")
   end
 
-  def to_datetime
-    DateTime.parse("#{performance_date}T#{performance_time.strftime("%H:%M:00")}")
+  delegate :to_datetime, to: :performance_at
+
+  def curtain_hour_min
+    performance_time.in_time_zone.strftime('%H:%M')
   end
 
   def to_time_with_zone
@@ -509,8 +514,8 @@ class Performance < ApplicationRecord
 
   def clean_values
     scrub_string_attributes
-    self.performance_date = Date.today if performance_date.nil?
-    self.performance_time = Time.now if performance_time.nil?
+    self.performance_date = Date.current if performance_date.nil?
+    self.performance_time = Time.current if performance_time.nil?
     self.performance_date = performance_date.change(:hour => 0,
                                                     :min => 0,
                                                     :sec => 0,

@@ -130,7 +130,7 @@ class Production < ApplicationRecord
   end
 
   def first_playing_date
-    first_preview_at || press_opening_at || opening_at || Date.today + 10.years
+    first_preview_at || press_opening_at || opening_at || Date.current + 10.years
   end
 
   def effective_closing_at
@@ -143,17 +143,17 @@ class Production < ApplicationRecord
   #
   # by status (positional by PRODUCTION_STATUSES, opening_at
   def <=>(other)
-    [PRODUCTION_STATUSES.index(status) || 0, opening_at || Date.today, name || ''] <=>
-      [PRODUCTION_STATUSES.index(other.status) || 0, other.opening_at || Date.today, other.name || '']
+    [PRODUCTION_STATUSES.index(status) || 0, opening_at || Date.current, name || ''] <=>
+      [PRODUCTION_STATUSES.index(other.status) || 0, other.opening_at || Date.current, other.name || '']
   end
 
   def now_playing?(through = nil)
-    through ||= Date.today.end_of_week
-    first_playing_date <= through && (closing_at.nil? || (closing_at >= Date.today))
+    through ||= Date.current.end_of_week
+    first_playing_date <= through && (closing_at.nil? || (closing_at >= Date.current))
   end
 
   def closed?
-    closing_at.present? && closing_at < Date.today
+    closing_at.present? && closing_at < Date.current
   end
 
   # True while this show belongs inside its festival's grouped callout/block
@@ -275,7 +275,7 @@ class Production < ApplicationRecord
     Production.where("closing_at > :after_date and opening_at < :future_date and status in (:visible) and production_class in (:visible_classes) and not exists (select * from performances where status!='Inactive' and performances.production_id = productions.id and performances.id in (select performance_id from orders where address_id = :order_address))",
                      { :visible => Production.visible_statuses,
                        :visible_classes => [Production::PRIMETIME],
-                       :after_date => Time.now.end_of_week,
+                       :after_date => Time.current.end_of_week,
                        :future_date => (Time.now + 3.month),
                        :order_address => order.address.id }).order(Rails.configuration.x.rand_clause)
   end
@@ -296,7 +296,7 @@ class Production < ApplicationRecord
   #
   def self.inactivate_unused
     productions = Production.where("status = :active_status and closing_at < :closing_date and updated_at <= :last_mod_check",
-                                   { closing_date: Date.today - 3.years, active_status: Production::ACTIVE,
+                                   { closing_date: Date.current - 3.years, active_status: Production::ACTIVE,
                                      last_mod_check: Time.now - 14.days })
     productions.each do |prod|
       prod.status = INACTIVE
@@ -311,7 +311,7 @@ class Production < ApplicationRecord
                                       'web_visible = ? and production_id = ? and show_in_pricing_range = ?', true, id, true
                                     ])
     performances.each do |perf|
-      next unless perf.performance_date >= Date.today && perf.visible?
+      next unless perf.performance_date >= Date.current && perf.visible?
       visible = perf.ticket_class_allocations.select do |tca|
         tca.available? && tca.ticket_class.web_visible?
       end

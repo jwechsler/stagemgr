@@ -35,7 +35,7 @@ class TicketClassAllocation < ApplicationRecord
     shiftable? && (trigger_satisfied_by_capacity?(seats_currently_held) || trigger_satisifed_by_current_date?) && !shift_to_code.eql?(ticket_class.class_code)
   end
 
-  # Date.current (the Rails zone), not Date.today (the host's zone): this now
+  # Date.current (the Rails zone), not Date.current (the host's zone): this now
   # runs on every admin save, and a UTC host would otherwise judge "N days
   # before" a day early each evening.
   def trigger_satisifed_by_current_date?

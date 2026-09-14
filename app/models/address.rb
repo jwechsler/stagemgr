@@ -404,7 +404,7 @@ end
 
   def performances_attended(since_when = 5.years.ago)
     TicketOrder.includes(:performance).joins(:performance).where("orders.address_id = ? and orders.status = ? and performances.performance_date >= ? and performances.performance_date <= ?",
-                                                                 id, Order::FULFILLED, since_when, Date.today)
+                                                                 id, Order::FULFILLED, since_when, Date.current)
   end
 
   def orders_processed(for_theaters = nil)
@@ -429,13 +429,13 @@ end
   end
 
   def donated_this_year?
-    !donor_tier_updated_on.nil? && donor_tier_updated_on.year == Date.today.year && donor_tier_for_current_fiscal_year.present?
+    !donor_tier_updated_on.nil? && donor_tier_updated_on.year == Date.current.year && donor_tier_for_current_fiscal_year.present?
   end
 
   def donated_last_year?
     unless donor_tier_updated_on.nil?
-      return true if donor_tier_updated_on.year == Date.today.year - 1 && donor_tier_for_current_fiscal_year.present?
-      return true if donor_tier_updated_on.year == Date.today.year && donor_tier_for_last_fiscal_year.present?
+      return true if donor_tier_updated_on.year == Date.current.year - 1 && donor_tier_for_current_fiscal_year.present?
+      return true if donor_tier_updated_on.year == Date.current.year && donor_tier_for_last_fiscal_year.present?
     end
     false
   end
@@ -448,7 +448,7 @@ end
     TicketOrder.joins(:performance).maximum('performance_date', :conditions => ["orders.address_id = ?", id])
   end
 
-  def productions_attended(start_date = 25.years.ago.to_date, end_date = Date.today)
+  def productions_attended(start_date = 25.years.ago.to_date, end_date = Date.current)
     Production.joins(:performances => :orders).references(:orders).where("orders.address_id = :address_id and orders.status in (:attended_status) and performances.performance_date between :start_date AND :end_date",
                                                                          address_id: id,
                                                                          start_date: start_date,
@@ -456,7 +456,7 @@ end
                                                                          attended_status: Order::ATTENDING_STATUSES).distinct
   end
 
-  def theaters_attended(start_date = 25.years.ago.to_date, end_date = Date.today)
+  def theaters_attended(start_date = 25.years.ago.to_date, end_date = Date.current)
     Theater.joins(:productions => [:performances => :orders]).references(:orders).where("orders.address_id = :address_id and orders.status in (:attended_status) and performances.performance_date between :start_date AND :end_date",
                                                                                         address_id: id,
                                                                                         start_date: start_date,
@@ -464,19 +464,19 @@ end
                                                                                         attended_status: Order::ATTENDING_STATUSES).distinct
   end
 
-  def number_of_productions_attended(start_date = 25.years.ago.to_date, end_date = Date.today)
+  def number_of_productions_attended(start_date = 25.years.ago.to_date, end_date = Date.current)
     productions_attended(start_date, end_date).size
   end
 
-  def names_of_productions_attended(start_date = 25.years.ago.to_date, end_date = Date.today)
+  def names_of_productions_attended(start_date = 25.years.ago.to_date, end_date = Date.current)
     productions_attended(start_date, end_date).pluck(:name)
   end
 
-  def number_of_theaters_attended(start_date = 25.years.ago.to_date, end_date = Date.today)
+  def number_of_theaters_attended(start_date = 25.years.ago.to_date, end_date = Date.current)
     theaters_attended(start_date, end_date).size
   end
 
-  def names_of_theaters_attended(start_date = 25.years.ago.to_date, end_date = Date.today)
+  def names_of_theaters_attended(start_date = 25.years.ago.to_date, end_date = Date.current)
     theaters_attended(start_date, end_date).pluck(:name)
   end
 

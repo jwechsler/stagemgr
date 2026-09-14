@@ -35,7 +35,7 @@ class GenerateCalendar
   def self.upcoming_performances
     Performance.joins(:production).references(:production).where(
       'productions.status = ? and performances.status in (?) and performance_date > ?',
-      Production::ACTIVE, Performance.visible_statuses, Date.today.beginning_of_month
+      Production::ACTIVE, Performance.visible_statuses, Date.current.beginning_of_month
     ).includes(production: :venue)
   end
   private_class_method :upcoming_performances
@@ -69,7 +69,7 @@ class GenerateCalendar
   # nil once the performance is in the past -- the order page would only offer a
   # sale that can no longer happen.
   def self.order_url_for(perf)
-    return nil if perf.performance_date < Date.today
+    return nil if perf.performance_date < Date.current
 
     "#{Rails.configuration.x.server_config['secure_root_url']}" \
       "#{Rails.application.routes.url_helpers.new_production_performance_order_path(

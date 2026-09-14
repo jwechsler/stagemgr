@@ -35,7 +35,7 @@ module PaymentProcessing
       BogusGateway.profiles ||= {}
       if BogusGateway.profiles[profile_id].nil?
         BogusGateway.profiles[profile_id] = { balance: 9900, outstanding_balance: 9900, aggregate_amount: 0,
-                                              number_cycles_completed: 0, final_payment_due_date: Date.today + 1.year }
+                                              number_cycles_completed: 0, final_payment_due_date: Date.current + 1.year }
       end
       r.params.merge!(BogusGateway.profiles[profile_id])
       r

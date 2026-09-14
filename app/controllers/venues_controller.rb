@@ -59,7 +59,7 @@ class VenuesController < ApplicationController
       # else next up) — they render in the festival block instead, and the
       # venue contributes no thumb of its own while the festival holds it.
       prods = if venue.external?
-                venue.now_playing(Production::PRIMETIME, Date.today.end_of_week + 1.week)
+                venue.now_playing(Production::PRIMETIME, Date.current.end_of_week + 1.week)
               else
                 venue.now_playing_or_next_up(Production::PRIMETIME)
               end
@@ -69,7 +69,7 @@ class VenuesController < ApplicationController
     end
     @offtime_productions = []
     Venue.all.each do |venue|
-      prods = venue.now_playing(Production::OFF_TIME, Date.today.end_of_week + 3.days)
+      prods = venue.now_playing(Production::OFF_TIME, Date.current.end_of_week + 3.days)
       members, others = prods.partition(&:festival_grouped?)
       festival_members += members
       @offtime_productions += others

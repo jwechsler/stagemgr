@@ -16,7 +16,7 @@
     .small-4.medium-2.cell
       = f.label :credit_card_expiration_year, 'Year', :class=>'left prefix'
     .small-8.medium-3.cell
-      = f.input_field :credit_card_expiration_year, :label=>"Year",  :include_blank=>false, :as=>:select, :collection=>Date.today.year.upto(Date.today.year+12).to_a
+      = f.input_field :credit_card_expiration_year, :label=>"Year",  :include_blank=>false, :as=>:select, :collection=>Date.current.year.upto(Date.current.year+12).to_a
     .small-4.medium-1.cell
       = f.label :credit_card_verification_number, "CVV*", :class=>'left prefix'
     .small-8.medium-2.cell
