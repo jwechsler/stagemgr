@@ -35,6 +35,18 @@ RSpec.describe CreditCardPayment, type: :model do
       expect(order.payments.reload.last.amount).to eq(-50.0)
     end
 
+    it 'dates the refund row when it is issued, not when the card was charged' do
+      payment.update_column(:processed_on, 45.days.ago)
+      gateway = double('gateway')
+      allow(PaymentProcessing).to receive(:gateway).and_return(gateway)
+      allow(gateway).to receive(:refund).and_return(double('response', success?: true, authorization: 're_dated'))
+
+      payment.refund!(nil, 'test refund')
+
+      refund = order.payments.reload.detect { |p| p.amount.negative? }
+      expect(refund.processed_on).to be_within(1.minute).of(Time.current)
+    end
+
     context 'when charge has already been refunded in Stripe' do
       let(:stripe_charge) do
         double('Stripe::Charge',

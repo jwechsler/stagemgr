@@ -97,7 +97,7 @@ class CreditCardPayment < CurrencyPayment
     return unless create_refund_payment?
 
     CreditCardPayment.transaction do
-      refund_payment = dup
+      refund_payment = dup_for_refund
       refund_payment.amount = 0.0 - amount
       refund_payment.ipn_track_id = nil
       order.payments << refund_payment

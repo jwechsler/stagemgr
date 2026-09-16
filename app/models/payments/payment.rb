@@ -94,7 +94,7 @@ class Payment < ApplicationRecord
   end
 
   def create_refund_payment(_cc_number = nil, _note = nil)
-    refund_payment = dup
+    refund_payment = dup_for_refund
     refund_payment.amount = 0.0 - refund_payment.amount
     refund_payment.order = order
     order.payments << refund_payment
@@ -127,6 +127,15 @@ class Payment < ApplicationRecord
   end
 
   protected
+
+  # A refund is a new event and must carry the date it was issued. Plain #dup
+  # copies processed_on from the original tender, which backdated full refunds
+  # to the sale date in Daily Receipts; clearing it lets set_processed_on stamp now.
+  def dup_for_refund
+    refund_payment = dup
+    refund_payment.processed_on = nil
+    refund_payment
+  end
 
   def set_processed_on
     self.processed_on = processed_on || Time.now if new_record?
