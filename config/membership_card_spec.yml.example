@@ -1,0 +1,63 @@
+# Geometry the member ID card renderer reads (app/services/membership_cards/spec.rb).
+# Every key here is used. The design rationale, the artwork baked into each
+# offer's background, and the fonts are described in
+# docs/manual/developer/membership-card-spec.md.
+#
+# Pixels are at card.dpi; the card is ISO CR-80 (85.6 x 54 mm).
+
+card:
+  width_px: 1011
+  height_px: 638
+  dpi: 300
+
+# Cover-fit and centre-crop into this box, then Rec.709 luma on the non-linear
+# sRGB values (as CSS does it) and the tone ramp out = a * in + b on 0..1
+# channel values.
+photo:
+  x_px: 663.8
+  y_px: 28.3
+  w_px: 318.9
+  h_px: 580.9
+  grayscale_coefficients: [0.2126, 0.7152, 0.0722]
+  tone_ramp:
+    a: 1.0812
+    b: -0.0306
+
+# All fields are left-aligned and anchored on the baseline. Fonts come from the
+# offer's uploads: the name in the name font, member_id and since in the label
+# font.
+text_fields:
+  # Wraps after spaces and hyphens inside (w_px - fit_margin_px); starts at
+  # max_font_size_px and steps down by shrink_step_px until
+  # line_height_ratio * size * lines fits in (h_px - fit_margin_px). The first
+  # baseline is y_px + first_baseline_ratio * size, then line_height_ratio * size
+  # per extra line.
+  name:
+    x_px: 66.1
+    y_px: 228.2
+    w_px: 567.0
+    h_px: 127.5
+    max_font_size_px: 85.0
+    line_height_ratio: 0.98
+    shrink_step_px: 1.1811
+    fit_margin_px: 2
+    first_baseline_ratio: 0.8452
+    letter_spacing_px: 0.0
+    color: rgb(243, 239, 233)
+
+  member_id:
+    x_px: 66.1
+    baseline_px: 485.7
+    font_size_px: 35.4
+    letter_spacing_px: 1.4
+    color: rgb(243, 239, 233)
+
+  # Moved right from the design's 292.5 so a nine- or ten-character member code
+  # (about 230-240 px wide) keeps a clear gap before the year. The SINCE label
+  # baked into each background must sit at the same x.
+  since:
+    x_px: 350.0
+    baseline_px: 485.7
+    font_size_px: 35.4
+    letter_spacing_px: 1.4
+    color: rgb(178, 147, 77)

@@ -87,6 +87,38 @@ All sync work runs as background jobs, so saving the form returns immediately an
 | **HTML Description** | Rich HTML content displayed on the membership detail/sales page. |
 | **Email HTML** | HTML content included in the membership confirmation email sent after purchase. |
 
+### Member ID Card Artwork
+
+The **Member ID Card** section holds the artwork staff need to print a physical
+membership card for any membership on this offer. Nothing is drawn per offer at
+print time: the background you upload is the finished card face for this offer,
+and the renderer adds only the member's photo, name, member number and since
+year.
+
+| Upload | Required? | What it is |
+|--------|-----------|------------|
+| **Background** | Yes | The whole card except the four variable fields. A 1011 x 638 px PNG (85.6 x 54 mm at 300 dpi). Until one is uploaded, memberships on this offer show no card button. |
+| **Front overlay** | No | A 1011 x 638 px PNG with transparency, layered over the photo and background: a tint over the photo, a frame around it, a logo. Anything opaque here hides what is underneath. |
+| **Name font** | No | An `.otf` or `.ttf` file for the member's name. Falls back to Helvetica Bold. |
+| **Label font** | No | An `.otf` or `.ttf` file for the member number and since year. Falls back to Helvetica. |
+
+!!! warning "Backgrounds and overlays must be exactly 1011 x 638 pixels"
+    A file of any other size is rejected when you save the offer. A resized export
+    would misplace every field on the printed card, so regenerate the artwork at
+    the card size instead of scaling it.
+
+Fonts live on the offer rather than in the software because a house's typefaces
+are usually commercially licensed. Upload the same two font files to every offer
+that should print in them.
+
+Once a background is uploaded, the offer detail page shows a thumbnail of it
+under **Member ID Card** in the Offer Details panel. The edit form shows a
+preview of every upload above its file field, with `Not uploaded` in any empty
+slot, so you can see what a new upload will replace.
+
+The exact geometry of the card is documented for developers in
+[Membership card rendering specification](../developer/membership-card-spec.md).
+
 ### Tags
 
 Tags are free-form labels you can attach to a membership offer to group it for analysis and reporting -- for example by campaign, tier family, season, or any attribute you want to slice by later. Tags are arbitrary text you define and can change at any time.

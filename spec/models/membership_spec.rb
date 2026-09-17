@@ -115,4 +115,41 @@ RSpec.describe Membership do
       membership.update!(status: Membership::CANCELED)
     end
   end
+
+  describe '#patron_member_since_year' do
+    let(:address) { FactoryBot.create(:address) }
+    let(:offer)   { FactoryBot.create(:membership_offer) }
+
+    it 'uses the earliest membership on the address, not this one' do
+      FactoryBot.create(:membership, address: address, membership_offer: offer, member_code: 'TW-OLD01',
+                                     status: Membership::CANCELED, member_since: Date.new(2014, 3, 1))
+      current = FactoryBot.create(:membership, address: address, membership_offer: offer, member_code: 'TW-NEW01',
+                                               member_since: Date.new(2023, 9, 1))
+
+      expect(current.patron_member_since_year).to eq(2014)
+    end
+
+    it 'prefers the Stripe start_date over member_since when present' do
+      membership = FactoryBot.create(:membership, address: address, membership_offer: offer,
+                                                  member_since: Date.new(2020, 1, 1), start_date: Date.new(2018, 6, 1))
+
+      expect(membership.patron_member_since_year).to eq(2018)
+    end
+
+    it 'ignores pending memberships that never activated' do
+      FactoryBot.create(:membership, address: address, membership_offer: offer, member_code: 'TW-PEN01',
+                                     status: Membership::PENDING, member_since: Date.new(2010, 1, 1))
+      current = FactoryBot.create(:membership, address: address, membership_offer: offer, member_code: 'TW-ACT01',
+                                               member_since: Date.new(2021, 5, 5))
+
+      expect(current.patron_member_since_year).to eq(2021)
+    end
+
+    it 'falls back to its own dates when the address has no qualifying memberships' do
+      membership = FactoryBot.build(:membership, address: address, membership_offer: offer,
+                                                 status: Membership::PENDING, member_since: Date.new(2019, 2, 2))
+
+      expect(membership.patron_member_since_year).to eq(2019)
+    end
+  end
 end

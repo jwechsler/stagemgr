@@ -1,0 +1,17 @@
+-# The four member ID card uploads on an offer, each with a preview of what is
+-# currently attached. Pass `form: f` to add a file input under each preview.
+- form = local_assigns[:form]
+.grid-x.grid-padding-x.card-artwork
+  - MembershipOffer::CARD_ARTWORK_PARAMS.each do |attachment|
+    .small-12.medium-6.cell.card-artwork__item
+      %strong= card_artwork_label(attachment)
+      %p.help-text= card_artwork_description(attachment)
+      .card-artwork__preview
+        - preview = card_artwork_preview(offer, attachment)
+        - if preview
+          = preview
+          %div.card-artwork__filename= offer.public_send(attachment).filename
+        - else
+          %em.card-artwork__empty Not uploaded
+      - if form
+        = form.input attachment, as: :file, label: false, hint: false

@@ -43,6 +43,22 @@ class Admin::MembershipsController < ApplicationController
     redirect_to admin_memberships_url, notice: 'Successfully destroyed membership.'
   end
 
+  # Renders the printable member ID card and streams it as a download. The
+  # button only appears when the offer has a background, but the redirect
+  # covers a stale page or a hand-typed URL.
+  def id_card
+    unless @membership.membership_offer.card_available?
+      redirect_to [:admin, @membership], alert: 'This offer has no ID card background uploaded yet.'
+      return
+    end
+
+    card = MembershipCards::Card.new(@membership)
+    send_data card.png, type: 'image/png', filename: card.filename, disposition: 'attachment'
+  rescue MembershipCards::RenderError => e
+    Rails.logger.error("[MembershipCards] membership #{@membership.id}: #{e.message}")
+    redirect_to [:admin, @membership], alert: "The ID card could not be rendered: #{e.message}"
+  end
+
   private
 
   def membership_params

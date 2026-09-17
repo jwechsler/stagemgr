@@ -393,3 +393,41 @@ input.cohort-export-link:focus {
   text-decoration: underline;
   color: #0e5a8a;
 }
+
+/* Member ID card artwork previews (admin/membership_offers show and form) */
+.card-artwork__item {
+  margin-bottom: 1rem;
+}
+
+.card-artwork__preview {
+  margin: 0.25rem 0 0.5rem;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  /* Dark ground so a mostly transparent overlay is visible. */
+  background: #3a3a3a;
+  color: #eee;
+  min-height: 3rem;
+}
+
+.card-artwork__thumb {
+  display: block;
+  max-width: 320px;
+  width: 100%;
+  height: auto;
+}
+
+.card-artwork__filename,
+.card-artwork__font {
+  font-size: 0.85rem;
+  word-break: break-all;
+}
+
+.card-artwork__filename {
+  margin-top: 0.25rem;
+  color: #ccc;
+}
+
+.card-artwork__empty {
+  color: #aaa;
+}

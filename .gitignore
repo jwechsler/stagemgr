@@ -27,6 +27,7 @@ config/newrelic.yml
 config/server.yml
 config/payment_processing.yml
 config/my_emma_credentials.yml
+config/membership_card_spec.yml
 config/credentials.yml.enc
 config/credentials/development.yml.enc
 config/credentials/production.yml.enc

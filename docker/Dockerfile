@@ -29,7 +29,7 @@ RUN rm -f /etc/apt/sources.list.d/passenger.list && \
       build-essential curl gnupg2 git \
       mysql-client libmysqlclient-dev \
       libreadline-dev zlib1g-dev libssl-dev libcrypto++-dev automake \
-      libvips libvips-dev \
+      libvips libvips-dev fonts-urw-base35 \
       bzip2 libdbus-glib-1-2 libgtk-3-0 libx11-xcb1 libasound2 \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 

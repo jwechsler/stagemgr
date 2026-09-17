@@ -1,5 +1,6 @@
 class MembershipOffer < ApplicationRecord
   include Taggable
+  include MembershipCardArtwork
 
   has_tags :membership_offer_tags
 

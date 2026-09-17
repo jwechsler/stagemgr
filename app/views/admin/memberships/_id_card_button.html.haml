@@ -1,0 +1,12 @@
+-# The "Generate Member ID Card" button and its hints. Shared by the membership
+-# detail page and the Membership Information block on the membership order page.
+- if membership.membership_offer.card_available?
+  = ui_button 'Generate Member ID Card', id_card_admin_membership_path(membership), download: true
+  - if membership.address && !membership.address.photo.attached?
+    %p.help-text
+      This patron has no photo on file; the card will print without one.
+      = link_to 'Add a photo', edit_admin_address_path(membership.address)
+- elsif can?(:update, MembershipOffer)
+  %p.help-text
+    No ID card template is uploaded for this offer.
+    = link_to 'Add one on the offer', edit_admin_membership_offer_path(membership.membership_offer)

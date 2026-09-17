@@ -81,6 +81,58 @@ RSpec.describe Admin::MembershipsController, type: :controller do
       expect(response).to have_http_status(:ok)
       expect(response.body).to include(membership.member_code)
     end
+
+    it 'offers no card button and points at the offer while it has no background' do
+      get :show, params: { id: membership.id }
+
+      expect(response.body).not_to include('Generate Member ID Card')
+      expect(response.body).to include('No ID card template is uploaded for this offer')
+      expect(response.body).to include(edit_admin_membership_offer_path(timed_offer))
+    end
+
+    it 'shows the card button once the offer has a background', :membership_cards do
+      timed_offer.card_background.attach(blob_for(synthetic_background, 'bg.png'))
+
+      get :show, params: { id: membership.id }
+
+      expect(response.body).to include('Generate Member ID Card')
+      expect(response.body).to include(id_card_admin_membership_path(membership))
+      expect(response.body).to include('no photo on file')
+    end
+  end
+
+  describe 'GET #id_card', :membership_cards do
+    it 'redirects with an alert when the offer has no background' do
+      get :id_card, params: { id: membership.id }
+
+      expect(response).to redirect_to(admin_membership_path(membership))
+      expect(flash[:alert]).to match(/no ID card background/)
+    end
+
+    context 'with card artwork on the offer' do
+      before { timed_offer.card_background.attach(blob_for(synthetic_background, 'bg.png')) }
+
+      it 'downloads a PNG named after the member code' do
+        get :id_card, params: { id: membership.id }
+
+        expect(response).to have_http_status(:ok)
+        expect(response.media_type).to eq('image/png')
+        expect(response.headers['Content-Disposition']).to include('attachment')
+          .and include('member-card-tw-lib01.png')
+        image = Vips::Image.new_from_buffer(response.body, '')
+        expect([image.width, image.height]).to eq([card_spec.width, card_spec.height])
+      end
+
+      it 'redirects with the reason when rendering fails' do
+        allow_any_instance_of(MembershipCards::Card).to receive(:png)
+          .and_raise(MembershipCards::RenderError, 'name does not fit')
+
+        get :id_card, params: { id: membership.id }
+
+        expect(response).to redirect_to(admin_membership_path(membership))
+        expect(flash[:alert]).to include('name does not fit')
+      end
+    end
   end
 
   describe 'GET #new' do

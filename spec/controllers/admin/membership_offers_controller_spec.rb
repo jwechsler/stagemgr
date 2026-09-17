@@ -74,6 +74,41 @@ RSpec.describe Admin::MembershipOffersController, type: :controller do
     end
   end
 
+  describe 'GET #show', :membership_cards do
+    render_views
+
+    it 'shows no card block while no background is attached' do
+      get :show, params: { id: active_offer.id }
+
+      expect(response.body).not_to include('Member ID Card')
+      expect(response.body).not_to include('card-artwork__thumb')
+    end
+
+    it 'previews the attached background' do
+      active_offer.card_background.attach(blob_for(synthetic_background, 'bg.png'))
+
+      get :show, params: { id: active_offer.id }
+
+      expect(response.body).to include('Member ID Card')
+      expect(response.body).to include('card-artwork__thumb')
+      expect(response.body).to include('alt="bg.png"')
+    end
+  end
+
+  describe 'GET #edit', :membership_cards do
+    render_views
+
+    it 'shows the current background above its file input' do
+      active_offer.card_background.attach(blob_for(synthetic_background, 'bg.png'))
+
+      get :edit, params: { id: active_offer.id }
+
+      expect(response.body).to include('card-artwork__thumb')
+      expect(response.body).to include('bg.png')
+      expect(response.body).to include('name="membership_offer[card_background]"')
+    end
+  end
+
   describe 'GET #search' do
     it 'returns matching active offers with tag groups' do
       active_offer.membership_offer_tags.create!(name: 'Golden Circle')

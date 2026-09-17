@@ -28,7 +28,8 @@
 
       %br
       = ui_button "Manage Subscription", PaymentProcessing.subscription_url(membership.profile_id)
-      %br
+    = render '/admin/memberships/id_card_button', membership: membership
+    %br
     - linked_offers = membership.special_offers
     - codes = []
     - linked_offers.each do |offer|

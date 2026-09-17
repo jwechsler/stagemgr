@@ -11,6 +11,7 @@ require 'authlogic/test_case'
 
 # Add additional requires below this line. Rails is not loaded until this point!
 require Rails.root.join('spec/support/printing_service_mock')
+require Rails.root.join('spec/support/membership_card_fixtures')
 
 # Requires supporting ruby files with custom matchers and macros, etc, in
 # spec/support/ and its subdirectories. Files matching `spec/**/*_spec.rb` are
