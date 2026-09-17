@@ -51,5 +51,14 @@
               = f.input :myemma_group, :label=>"MyEmma Group ID"
           .small-6.cell
             = f.input :billing_agreement
+  .grid-x.grid-padding-x
+    .small-12.cell
+      %fieldset.fieldset
+        %legend Member ID Card
+        %p.help-text
+          Artwork for printed member ID cards (1011 x 638 px PNGs at 300 dpi). The background is the finished card
+          face for this offer; the renderer adds the member's photo, the optional overlay, and their name, number and
+          since year. Without fonts the card uses Helvetica. Choosing a file replaces the current one when you save.
+        = render 'admin/membership_offers/card_artwork', offer: membership_offer, form: f
   = f.submit :class=>'button'
 

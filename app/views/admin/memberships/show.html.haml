@@ -31,3 +31,4 @@
 
   .small-12.cell
     = link_to 'Edit', edit_admin_membership_path(@membership), :class=>'button'
+    = render '/admin/memberships/id_card_button', membership: @membership

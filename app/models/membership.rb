@@ -115,6 +115,19 @@ class Membership < ApplicationRecord
     end
   end
 
+  # The year printed on a member ID card: when this patron first became a
+  # member, across every membership on the address -- a lapsed-and-rejoined
+  # patron keeps their original year. Pending memberships never activated, so
+  # they do not count (same exclusion as MembershipOffer#usage_date_range).
+  # Falls back to this membership's own dates when the address has none.
+  def patron_member_since_year
+    earliest = if address
+                 address.memberships.where.not(status: PENDING)
+                        .minimum(Arel.sql('COALESCE(memberships.start_date, memberships.member_since)'))
+               end
+    (earliest || start_date || member_since)&.to_date&.year
+  end
+
   def source_order
     membership_line_item.order
   end

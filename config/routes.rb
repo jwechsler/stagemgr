@@ -3,7 +3,11 @@ require 'resque/server'
 Rails.application.routes.draw do
   mount StripeEvent::Engine, at: '/stripecb' # provide a custom path
 
-  namespace(:admin) { resources :memberships }
+  namespace(:admin) do
+    resources :memberships do
+      get :id_card, on: :member
+    end
+  end
 
   namespace(:admin) { resources :special_features }
 
@@ -29,8 +33,6 @@ Rails.application.routes.draw do
 
   # resque admin page
   mount Resque::Server.new, at: '/admin/resque', as: 'resque_admin'
-
-  namespace(:admin) { resources :memberships }
 
   namespace(:admin) { resources :default_ticket_classes }
 

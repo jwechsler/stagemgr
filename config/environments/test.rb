@@ -36,6 +36,11 @@ Rails.application.configure do
 
   # Store uploaded files on the local file system in a temporary directory.
   config.active_storage.service = :test
+  # Run jobs in the calling thread. The default :async adapter runs
+  # ActiveStorage's analyze job on a second thread the moment a spec attaches a
+  # blob; that thread's database traffic tramples the example's connection and
+  # the process dies inside mysql2 (Lost connection to MySQL server -> SIGSEGV).
+  config.active_job.queue_adapter = :inline
 
   config.action_mailer.perform_caching = false
 

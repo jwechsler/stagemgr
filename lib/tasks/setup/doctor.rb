@@ -43,6 +43,8 @@ module Setup
       check_database
       check_redis
       check_myemma_groups
+      check_membership_card_spec
+      check_membership_card_renderer
       summarize
       self
     end
@@ -90,6 +92,34 @@ module Setup
         record FAIL, "server.yml sets site_theme: #{slug} but sites/#{slug}/views does not exist — " \
                      "run `bundle exec rake setup:site[#{slug}]` or clear the key"
       end
+    end
+
+    # The card geometry is generated from config/membership_card_spec.yml.example
+    # by setup:config, like the other config/*.yml files; without it no card
+    # can render.
+    def check_membership_card_spec
+      MembershipCards::Spec.load
+      record OK, 'config/membership_card_spec.yml present and parses'
+    rescue MembershipCards::RenderError, Psych::SyntaxError, KeyError => e
+      record WARN, "member ID cards cannot render: #{e.message.lines.first&.strip}"
+    end
+
+    # Member ID cards render through libvips' Pango text operation; composite
+    # offsets arrived in 8.10 and older builds render nothing useful. The
+    # Helvetica probe confirms the font system has a face to fall back to when
+    # an offer has no fonts uploaded (Nimbus Sans on Debian/Ubuntu).
+    def check_membership_card_renderer
+      require 'vips'
+      unless Vips.at_least_libvips?(8, 10)
+        return record WARN, "libvips #{Vips.version_string} is older than 8.10 — member ID cards need " \
+                            'Pango text and composite offsets; upgrade libvips to print cards'
+      end
+
+      Vips::Image.text('H', font: "#{MembershipCards::Assets::FALLBACK_LABEL_FONT} 20", dpi: 72)
+      record OK, "libvips #{Vips.version_string} renders text; Helvetica fallback resolves through fontconfig"
+    rescue LoadError, Vips::Error => e
+      record WARN, "member ID cards cannot render: #{e.message.lines.first&.strip} — " \
+                   'install libvips with Pango support and a Helvetica-compatible font (fonts-urw-base35)'
     end
 
     def check_site_wrapper_layout

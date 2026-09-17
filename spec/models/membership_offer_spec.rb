@@ -138,4 +138,70 @@ RSpec.describe MembershipOffer do
       offer.update!(myemma_group: 'NEW')
     end
   end
+
+  describe 'member ID card artwork', :membership_cards do
+    let(:offer) { FactoryBot.create(:membership_offer) }
+
+    def png_upload(image, filename = 'art.png')
+      path = image_file(image)
+      Rack::Test::UploadedFile.new(path, 'image/png', original_filename: filename)
+    end
+
+    it 'has no card until a background is uploaded' do
+      expect(offer).not_to be_card_available
+      expect(offer.missing_card_artwork).to eq(['background', 'front overlay', 'name font', 'label font'])
+    end
+
+    it 'accepts a background at the card size' do
+      offer.card_background = png_upload(synthetic_background)
+
+      expect(offer).to be_valid
+      offer.save!
+      expect(offer.reload).to be_card_available
+      expect(offer.missing_card_artwork).to eq(['front overlay', 'name font', 'label font'])
+    end
+
+    it 'rejects a background that is not 1011 x 638' do
+      offer.card_background = png_upload(synthetic_background(width: 1000, height: 600))
+
+      expect(offer).not_to be_valid
+      expect(offer.errors[:card_background].join).to include('1011x638').and include('1000x600')
+    end
+
+    it 'rejects an overlay that is not the card size' do
+      offer.card_front_overlay = png_upload(synthetic_front.extract_area(0, 0, 500, 300))
+
+      expect(offer).not_to be_valid
+      expect(offer.errors[:card_front_overlay]).to be_present
+    end
+
+    it 'rejects a non-image background' do
+      Tempfile.create(['not-image', '.png']) do |file|
+        file.write('plain text')
+        file.flush
+        offer.card_background = Rack::Test::UploadedFile.new(file.path, 'text/plain', original_filename: 'x.png')
+
+        expect(offer).not_to be_valid
+        expect(offer.errors[:card_background]).to be_present
+      end
+    end
+
+    it 'rejects a font upload that is not an OpenType or TrueType file' do
+      Tempfile.create(['not-font', '.otf']) do |file|
+        file.write('%PDF-1.4 not a font')
+        file.flush
+        offer.card_name_font = Rack::Test::UploadedFile.new(file.path, 'font/otf', original_filename: 'x.otf')
+
+        expect(offer).not_to be_valid
+        expect(offer.errors[:card_name_font].join).to include('OpenType')
+      end
+    end
+
+    it 'accepts a real font file' do
+      path = system_bold_font_path || skip('fontconfig has no bold .ttf/.otf font to upload')
+      offer.card_label_font = Rack::Test::UploadedFile.new(path, 'font/ttf', original_filename: File.basename(path))
+
+      expect(offer).to be_valid
+    end
+  end
 end

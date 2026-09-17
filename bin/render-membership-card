@@ -1,0 +1,54 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Renders one member ID card. Reads a JSON job on stdin, writes PNG bytes to
+# stdout, diagnostics to stderr; exits non-zero on failure. Spawned by
+# MembershipCards::RenderProcess -- one process per card, because Pango only
+# sees fonts registered before its first text call (see FontRegistry).
+#
+# Deliberately Rails-free: only ruby-vips, ffi and the pure renderer files.
+#
+# Job shape:
+#   { "background_path": "...", "front_path": "..."|null, "photo_path": "..."|null,
+#     "name_font": {"path": "..."|null, "pango_family": "..."},
+#     "label_font": {"path": "..."|null, "pango_family": "..."},
+#     "name": "...", "member_number": "...", "year": "..." }
+
+require 'bundler/setup'
+require 'json'
+require 'logger'
+require 'vips'
+
+services = File.expand_path('../app/services/membership_cards', __dir__)
+%w[render_error spec font font_file font_registry text_renderer name_fitter photo renderer].each do |file|
+  require File.join(services, file)
+end
+
+def font_from(hash)
+  MembershipCards::Font.new(hash['path'], hash['pango_family'])
+end
+
+begin
+  job = JSON.parse($stdin.read)
+  name_font = font_from(job.fetch('name_font'))
+  label_font = font_from(job.fetch('label_font'))
+
+  # Before the first text call, or Pango never sees them.
+  MembershipCards::FontRegistry.register([name_font.path, label_font.path])
+
+  logger = Logger.new($stderr)
+  logger.formatter = ->(_severity, _time, _program, message) { "#{message}\n" }
+  renderer = MembershipCards::Renderer.new(text: MembershipCards::TextRenderer.new(logger: logger))
+  inputs = MembershipCards::Renderer::Inputs.new(
+    background_path: job.fetch('background_path'), front_path: job['front_path'], photo_path: job['photo_path'],
+    name_font: name_font, label_font: label_font,
+    name: job.fetch('name'), member_number: job.fetch('member_number'), year: job.fetch('year')
+  )
+
+  $stdout.binmode
+  $stdout.write(renderer.render(inputs))
+  $stdout.flush
+rescue StandardError => e
+  warn "#{e.class}: #{e.message}"
+  exit 1
+end

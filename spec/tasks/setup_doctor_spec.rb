@@ -199,6 +199,26 @@ RSpec.describe Setup::Doctor do
     end
   end
 
+  describe 'the membership card spec' do
+    it 'warns — never fails — when the generated config file is missing' do
+      allow(MembershipCards::Spec).to receive(:load).and_call_original
+      allow(File).to receive(:exist?).and_call_original
+      allow(File).to receive(:exist?).with(MembershipCards::Spec::PATH).and_return(false)
+
+      doctor.send(:check_membership_card_spec)
+
+      expect(output.string).to include('warn', 'membership_card_spec.yml is missing', 'setup:config')
+      expect(doctor).to be_healthy
+    end
+
+    it 'is happy when the file is present and parses' do
+      doctor.send(:check_membership_card_spec)
+
+      expect(output.string).to include('config/membership_card_spec.yml present')
+      expect(doctor).to be_healthy
+    end
+  end
+
   describe 'the site theme' do
     it 'fails when server.yml names a theme directory that is not there' do
       allow(doctor).to receive(:server_config).and_return('site_theme' => 'nowhere')

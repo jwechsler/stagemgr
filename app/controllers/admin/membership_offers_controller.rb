@@ -1,5 +1,6 @@
 class Admin::MembershipOffersController < ApplicationController
   load_and_authorize_resource except: %i[autocomplete_tag search resolve_group]
+  before_action :remove_empty_card_files, only: %i[create update]
 
   def autocomplete_tag
     term = params[:term].to_s
@@ -66,6 +67,16 @@ class Admin::MembershipOffersController < ApplicationController
                                              :use_member_friend_code, :tickets_per_performance,
                                              :billing_agreement, :myemma_group, :on_sale, :trial_period,
                                              :restricted_to_first_time, :max_cycles_if_gift, :status, :price_id,
-                                             :max_festival_tickets_in_advance, :tag_names, :membership_type)
+                                             :max_festival_tickets_in_advance, :tag_names, :membership_type,
+                                             *MembershipOffer::CARD_ARTWORK_PARAMS)
+  end
+
+  # A file field left empty submits a blank string; without this, saving the
+  # form would try to attach nothing and detach the existing artwork.
+  def remove_empty_card_files
+    sub = params[:membership_offer]
+    return unless sub
+
+    MembershipOffer::CARD_ARTWORK_PARAMS.each { |key| sub.delete(key) if sub[key].blank? }
   end
 end

@@ -53,6 +53,13 @@
             - unless @membership_offer.max_cycles_if_gift.blank?
               %p
                 %i= "#{@membership_offer.max_cycles_if_gift} months duration when given as gift"
+        - if @membership_offer.card_available?
+          .grid-x.grid-padding-x
+            .small-12.cell
+              %p
+                %strong Member ID Card
+                %br
+                = card_artwork_preview(@membership_offer, :card_background)
       #mo-panel-2.tabs-panel
         .grid-x.grid-padding-x
           .small-12.cell

@@ -17,7 +17,10 @@ class Address < ApplicationRecord
   has_one_attached :photo
   validates :photo, blob: { content_type: :image }, allow_blank: true
 
-  PHOTO_STORED = [225, 300]
+  # Stored size is card quality: the member ID card's photo panel is 319x581 px
+  # at 300 dpi and wants at least 400 px on the short side (see
+  # docs/manual/developer/membership-card-spec.md). Display variants stay small.
+  PHOTO_STORED = [600, 800]
   PHOTO_LARGE = [150, 200]
   PHOTO_THUMB = [75, 100]
 

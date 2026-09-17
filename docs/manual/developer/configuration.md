@@ -29,6 +29,7 @@ produces. `bin/docker-entrypoint` runs it on every container start.
 | `config/server.yml` | `config/environments/{development,production}.rb` | The main deployment file, documented below |
 | `config/ticket_print.yml` | `config.x.tktprint` | Ticket-printing service URL, per environment |
 | `config/schedule.yml` | resque-scheduler | Already tracked, so `setup:config` leaves it alone |
+| `config/membership_card_spec.yml` | `MembershipCards::Spec` | Member ID card geometry ([spec](membership-card-spec.md)); edit the copy to tune placement without touching the tracked example |
 | `config/my_emma_credentials.yml` | **nothing** | A dead legacy file. MyEmma credentials come from `MY_EMMA_*` or credentials |
 | `.env` | dotenv (development, test) and `docker compose` | |
 

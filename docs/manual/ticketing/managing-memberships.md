@@ -47,6 +47,33 @@ The Memberships list shows every individual membership in the system -- one row 
 | **Member Code link** | Opens the membership's detail page. |
 | **Edit** | Opens the membership's edit form (status, member since, preferred seating). |
 
+The detail page also offers **Generate Member ID Card**; see
+[below](#generating-a-member-id-card).
+
+## Generating a Member ID Card
+
+A membership's detail page (open it from the Member Code link) has a
+**Generate Member ID Card** button when the membership's offer has card artwork
+uploaded (see [Membership Offers -- Member ID Card Artwork](../offers/membership-offers.md#member-id-card-artwork)).
+Clicking it downloads a PNG named after the member code, for example
+`member-card-tw-abc123.png`, ready to print on a CR-80 card printer.
+
+The card shows four things from the record:
+
+| On the card | Comes from |
+|-------------|------------|
+| Photo | The patron's photo on their [address record](../customers/managing-patrons.md). Without one the card prints with the background showing through the photo panel. Square-ish, face near the middle, at least 400 px on the short side prints best. |
+| Name | The address's full name, as stored. Long names shrink and wrap onto two lines automatically. |
+| Member number | The member code, printed exactly as shown. |
+| Since | The year this patron *first* became a member, across all of their memberships -- a patron who lapsed and rejoined keeps their original year. |
+
+!!! tip "Printing"
+    The PNG is tagged 300 dpi. Print at 100%, never "fit to page": the artwork
+    already allows for the printer's unprinted edge.
+
+If the offer has no card background, the detail page shows a note instead of
+the button, with a link to the offer's edit form for administrators.
+
 ## Creating a Membership
 
 The **New Membership** button below the list creates a membership record directly -- without a purchase order. This is how staff issue shared [library passes](../offers/membership-offers.md) and complimentary memberships. For a paid membership, use **Create Order** on the [Membership Offers list](../offers/membership-offers.md#the-membership-offers-list) instead so billing is set up.
