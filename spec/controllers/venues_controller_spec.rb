@@ -103,4 +103,54 @@ RSpec.describe VenuesController, type: :controller do
       expect(assigns(:festival_blocks)).to be_empty
     end
   end
+
+  describe 'GET #now_playing rendered Plus block' do
+    render_views
+
+    let(:venue) { FactoryBot.create(:venue) }
+
+    def offtime_play(venue, short_description:)
+      FactoryBot.create(:production,
+                        venue: venue,
+                        status: Production::ACTIVE,
+                        production_class: Production::OFF_TIME,
+                        short_description: short_description,
+                        first_preview_at: Date.current,
+                        opening_at: Date.current,
+                        press_opening_at: Date.current,
+                        closing_at: Date.current + 1.week)
+    end
+
+    it 'heads the section with a venue-styled Plus header followed by a blank line' do
+      offtime_play(venue, short_description: 'A late night cabaret')
+
+      get :now_playing
+
+      expect(response.body).to include('<div class=\'venue\'>Plus</div>')
+      expect(response.body).to match(%r{<div class='venue'>Plus</div>\s*<br>})
+    end
+
+    it 'lists each off-time show with its short description and no promo image' do
+      offtime_play(venue, short_description: 'A late night cabaret')
+
+      get :now_playing
+
+      expect(response.body).to include('A late night cabaret')
+      expect(response.body).not_to include('nowplaying_thumb_')
+    end
+
+    it 'separates each off-time show from the preceding one with a line break' do
+      first = offtime_play(venue, short_description: 'First show blurb')
+      second = offtime_play(venue, short_description: 'Second show blurb')
+
+      get :now_playing
+
+      expect(assigns(:offtime_productions)).to include(first, second)
+      body = response.body
+      plus_block = body[body.index('>Plus<')..]
+      # One <br> heads the section, one more separates the two shows.
+      expect(plus_block.scan(/<br>\s*<div class='production_name'>/).size).to eq(2)
+      expect(plus_block).to match(/First show blurb\s*<br>\s*<div class='production_name'>/)
+    end
+  end
 end
