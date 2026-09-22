@@ -24,7 +24,7 @@ class RemoveUnusedAddresses
       removed += 1 if address.destroy
     end
 
-    JobMetadata.find_or_initialize_by(job_name: WATERMARK).update!(last_run_at: upper)
+    JobMetadata.record_run_at(WATERMARK, upper)
     removed
   end
 

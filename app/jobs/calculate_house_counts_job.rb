@@ -92,7 +92,7 @@ class CalculateHouseCountsJob < ApplicationJob
 
     # Recorded only after a clean pass. If the sweep raised partway through,
     # the watermark stays put and the next run re-covers this window.
-    JobMetadata.find_or_initialize_by(job_name: SWEEP_WATERMARK).update!(last_run_at: swept_through)
+    JobMetadata.record_run_at(SWEEP_WATERMARK, swept_through)
   end
 
   # Reaches back to the last successful sweep so a worker outage is caught up
