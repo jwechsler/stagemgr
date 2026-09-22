@@ -5,7 +5,9 @@ class JobMetadata < ApplicationRecord
   # Method to update the last run time for a job
   def self.record_last_run(job_name)
     job_metadata = find_or_initialize_by(job_name: job_name)
-    job_metadata.update(last_run_at: Time.current)
+    # update! so a failed write raises rather than returning false unnoticed;
+    # LoggedJob logs it.
+    job_metadata.update!(last_run_at: Time.current)
   end
 
   # Method to retrieve the last run time for a job

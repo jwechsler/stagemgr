@@ -99,7 +99,8 @@ Based on analysis of the codebase, Stagemgr consists of these key components:
    - LoggedJob and NotifyOnCompletion concerns for tracking and notifications
    - Background jobs for calculating house counts, exporting data, processing sales
    - Resque-based job scheduling with lock timeout prevention
-   - JobMetadata for tracking execution history and incremental processing
+   - JobMetadata records when each job last completed successfully (one row per
+     job name, no durations), used as a watermark for incremental processing
    - Queue prioritization for different job types
    - Automated scheduling for recurring tasks
 
@@ -135,7 +136,8 @@ Based on analysis of the codebase, Stagemgr consists of these key components:
 ### Background Job Issues
 - **Failed jobs**: Inspect `Resque::Failure.all` for stack traces
 - **Stuck jobs**: Look for worker processes or locks with `Resque.workers` and `Resque.redis.keys("*lock*")`
-- **Slow reporting**: Check JobMetadata execution times with `JobMetadata.order(created_at: :desc).limit(10)`
+- **Slow reporting**: JobMetadata stores only `last_run_at`, never durations; time jobs from the Resque worker logs
+- **Job last ran**: `JobMetadata.last_run("CalculateHouseCountsJob")` (epoch means it has never completed)
 - **Queue backlog**: Monitor queue sizes with `Resque.size(:high)`, `Resque.size(:low)`, etc.
 
 ### Database Troubleshooting
@@ -266,7 +268,7 @@ PaymentProcessing (module) ─── StripeGateway < ActiveMerchant StripePaymen
 ```
 LoggedJob (concern)
   └── Various Jobs
-       └── JobMetadata (many)
+       └── JobMetadata (one row per job name, stamped after each success)
 
 NotifyOnCompletion (concern)
   └── Export Jobs
@@ -319,6 +321,6 @@ Resque::Failure.clear
 ActiveRecord::Base.connection.execute("SHOW PROCESSLIST").each { |p| puts p.inspect }
 ActiveRecord::Base.connection.execute("SHOW ENGINE INNODB STATUS")
 
-# Performance tracking
-JobMetadata.where(job_class: "CalculateHouseCountsJob").order(created_at: :desc).limit(5).pluck(:execution_time)
+# When each logged job last completed successfully
+JobMetadata.order(last_run_at: :desc).pluck(:job_name, :last_run_at)
 ```
