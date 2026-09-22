@@ -24,8 +24,17 @@ RUN passwd -d app
 
 # Build deps for native gems (mysql2, ruby-vips, nokogiri) plus the shared
 # libraries Firefox needs for @javascript Cucumber scenarios.
+#
+# The base image enables deb-src for every pocket, so each `apt-get update`
+# drags down source-package indexes we never use (jammy/universe Sources alone
+# is 22 MB, ~25 MB all told). Stripping the lines here is a filesystem change,
+# so it applies to the Mozilla and NodeSource updates further down too.
+#
+# --no-install-recommends throughout: every library these packages actually need
+# is named explicitly, here or in the Firefox block below.
 RUN rm -f /etc/apt/sources.list.d/passenger.list && \
-    apt-get update && apt-get install -y \
+    sed -i '/^deb-src/d' /etc/apt/sources.list && \
+    apt-get update && apt-get install -y --no-install-recommends \
       build-essential curl gnupg2 git \
       mysql-client libmysqlclient-dev \
       libreadline-dev zlib1g-dev libssl-dev libcrypto++-dev automake \
@@ -48,7 +57,7 @@ RUN install -d -m 0755 /etc/apt/keyrings && \
         > /etc/apt/sources.list.d/mozilla.list && \
     printf 'Package: *\nPin: origin packages.mozilla.org\nPin-Priority: 1000\n' \
         > /etc/apt/preferences.d/mozilla && \
-    apt-get update && apt-get install -y firefox && \
+    apt-get update && apt-get install -y --no-install-recommends firefox && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN ARCH=$(uname -m) && \
@@ -65,7 +74,7 @@ RUN ARCH=$(uname -m) && \
 # Node 22 + Yarn for Webpacker asset compilation. Matches .nvmrc and the
 # actions/setup-node version in .github/workflows/test.yml.
 RUN curl -sL https://deb.nodesource.com/setup_22.x | bash - \
-    && apt-get install -y nodejs \
+    && apt-get install -y --no-install-recommends nodejs \
     && npm install -g yarn \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
