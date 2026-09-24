@@ -25,7 +25,7 @@ class OrdersDatatable < DatatableBase
         status: order.decorate.status,
         visits: order.address.nil? ? 'n/a' : order.address.decorate.orders_processed,
         total: order.decorate.total_paid,
-        description: order.decorate.description,
+        description: order.decorate.description_with_placed_date,
         order_id: order.id,
         DT_RowID: order.id
       }

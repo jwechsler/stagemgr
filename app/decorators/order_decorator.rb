@@ -60,6 +60,14 @@ class OrderDecorator < ApplicationDecorator
     result + order.description
   end
 
+  # Admin orders listing: the description followed by the date the order was
+  # placed, e.g. "Muses on 09/20 14:30 (2 COMP), placed 09/19". The placed date
+  # is created_at, the same value OrderReport and RevenueCalculator treat as the
+  # order date.
+  def description_with_placed_date
+    description + ", placed #{object.created_at.to_date.to_formatted_s(:numeric_month_and_day)}"
+  end
+
   private
 
   def order_status_severity_class
