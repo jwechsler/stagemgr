@@ -43,8 +43,7 @@ class ArchiveOldAudits
       Rails.logger.info "ArchiveOldAudits: no audits in band #{lower.to_date}...#{upper.to_date}; advancing marker"
     end
 
-    JobMetadata.find_or_initialize_by(job_name: PruneOldAudits::ARCHIVE_MARKER)
-               .update!(last_run_at: upper)
+    JobMetadata.record_run_at(PruneOldAudits::ARCHIVE_MARKER, upper)
     expected
   end
 

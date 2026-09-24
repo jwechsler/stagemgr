@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_09_16_120000) do
+ActiveRecord::Schema.define(version: 2026_09_22_110000) do
 
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name", null: false
@@ -236,7 +236,7 @@ ActiveRecord::Schema.define(version: 2026_09_16_120000) do
     t.datetime "last_run_at"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.index ["job_name"], name: "index_job_metadata_on_job_name"
+    t.index ["job_name"], name: "index_job_metadata_on_job_name", unique: true
   end
 
   create_table "line_items", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -378,6 +378,7 @@ ActiveRecord::Schema.define(version: 2026_09_16_120000) do
     t.index ["split_source_id"], name: "index_orders_on_split_source_id"
     t.index ["status"], name: "index_orders_on_status"
     t.index ["type", "status"], name: "index_orders_on_type_and_status"
+    t.index ["updated_at", "performance_id"], name: "index_orders_on_updated_at_and_performance_id"
     t.index ["uuid"], name: "index_orders_on_uuid", unique: true
   end
 
