@@ -5,7 +5,7 @@
 <% personal = theater_info.first_person? %>
 <% if @order.performance.production.theater.producing? %>
 <p>
-  <%= personal ? 'I hope' : 'We hope' %> you had a good evening and will return soon (there are a few suggestions in the sidebar on the right, but check our website for all upcoming events).
+  <%= render 'followup_opening', in_person: @order.attends_in_person?, first_time: true, personal: personal %>
 </p><p>
   <%= personal ? "I'd" : "We'd" %> like to take this opportunity to invite you back to <%= theater_info.name %>.
   There's a ton happening here, some of which are listed in the sidebar to the right, and <%= personal ? 'I hope' : 'we hope' %> you'll have a chance to check out some more.

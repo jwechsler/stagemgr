@@ -195,6 +195,134 @@ RSpec.describe OrderMailer, type: :mailer do
       end
     end
 
+    describe 'admission-aware ticket emails' do
+      let(:stream_note) { 'Stream link: https://stream.example.com/watch' }
+
+      def add_virtual_tickets(order, count)
+        stream_class = FactoryBot.create(:ticket_class, production: order.performance.production,
+                                                        class_code: 'STRM', holds_seats: false,
+                                                        admission: 'virtual', purchase_email_annotation: stream_note)
+        FactoryBot.create(:ticket_class_allocation, performance: order.performance, ticket_class: stream_class,
+                                                    ticket_limit: 10)
+        FactoryBot.create(:ticket_line_item, ticket_class: stream_class, ticket_count: count, order: order)
+        order.reload
+      end
+
+      def text_of(mail)
+        Nokogiri::HTML(mail.body.decoded).text.squish
+      end
+
+      let(:virtual_order) do
+        order = regular_order
+        order.ticket_line_items.each(&:destroy)
+        add_virtual_tickets(order.reload, 2)
+      end
+
+      let(:mixed_order) { add_virtual_tickets(regular_order, 1) }
+
+      let(:drink_note) { 'Includes one drink (beer/wine/cocktail) at our bar' }
+
+      # Two seats, plus a drink voucher and a stream, neither of which holds a seat.
+      let(:drink_and_stream_order) do
+        drink_class = FactoryBot.create(:ticket_class, production: regular_production,
+                                                       class_code: 'DRNK', holds_seats: false,
+                                                       admission: 'in_person', purchase_email_annotation: drink_note)
+        FactoryBot.create(:ticket_class_allocation, performance: regular_performance, ticket_class: drink_class,
+                                                    ticket_limit: 10)
+        FactoryBot.create(:ticket_line_item, ticket_class: drink_class, ticket_count: 1, order: regular_order)
+        add_virtual_tickets(regular_order, 1)
+      end
+
+      describe '#ticket_confirmation' do
+        it 'keeps the box office line, visit block and late-seating note for in-person orders' do
+          regular_production.update!(allow_late_seating: false)
+          text = text_of(OrderMailer.ticket_confirmation(regular_order))
+
+          expect(text).to include('will be waiting at the box office under Test Customer')
+          expect(text).to include("About your visit to #{house.name}")
+          expect(text).to include('there is no late seating available for this performance.')
+          expect(text).not_to include('virtual ticket')
+        end
+
+        it 'drops pickup and visit copy for a virtual-only order and points to the stream notes' do
+          regular_production.update!(allow_late_seating: false)
+          text = text_of(OrderMailer.ticket_confirmation(virtual_order))
+
+          expect(text).to include('Your 2 virtual tickets for Regular Play')
+          expect(text).to include('Access details are in the notes about your order below.')
+          expect(text).to include(stream_note)
+          expect(text).not_to include('box office')
+          expect(text).not_to include('About your visit')
+          expect(text).not_to include('0 tickets')
+          expect(text).not_to include('no late seating')
+        end
+
+        it 'gives a mixed order both summaries and the visit block, with the charge sentence once' do
+          text = text_of(OrderMailer.ticket_confirmation(mixed_order))
+
+          expect(text).to include('will be waiting at the box office')
+          expect(text).to include('Your 1 virtual ticket for Regular Play')
+          expect(text).to include("About your visit to #{house.name}")
+          expect(text).to include(stream_note)
+          expect(text.scan('the total charge was').size).to be <= 1
+          expect(text).not_to include('Access details are in the notes')
+        end
+
+        it 'counts only seats in the ticket total when a mixed order adds a drink and a stream' do
+          text = text_of(OrderMailer.ticket_confirmation(drink_and_stream_order))
+
+          expect(text).to include('We have 2 tickets reserved for Regular Play')
+          expect(text).to include('Your 2 tickets will be waiting at the box office')
+          expect(text).not_to match(/\b[34] tickets\b/)
+          expect(text).to include(drink_note)
+          expect(text).to include('Your 1 virtual ticket for Regular Play')
+          expect(text).to include(stream_note)
+        end
+      end
+
+      describe '#performance_reminder' do
+        it 'keeps the in-person reminder copy' do
+          text = text_of(OrderMailer.performance_reminder(regular_order, nil, nil, true))
+
+          expect(text).to include('Just a reminder, you have')
+          expect(text).to include('box office')
+          expect(text).to include('See you at the theater!')
+        end
+
+        it 'reminds a virtual-only order about the stream without pickup or visit copy' do
+          regular_production.update!(allow_late_seating: false)
+          text = text_of(OrderMailer.performance_reminder(virtual_order, nil, nil, true))
+
+          expect(text).to include('Just a reminder: the stream is at')
+          expect(text).to include(stream_note)
+          expect(text).not_to include('box office')
+          expect(text).not_to include('About your visit')
+          expect(text).not_to include('See you at the theater')
+          expect(text).not_to include('0 tickets')
+          expect(text).not_to include('no late seating')
+        end
+
+        it 'gives a mixed order both summaries and the visit block' do
+          text = text_of(OrderMailer.performance_reminder(mixed_order, nil, nil, true))
+
+          expect(text).to include('Just a reminder, you have')
+          expect(text).to include('You also have 1 virtual ticket for this performance.')
+          expect(text).to include("About your visit to #{house.name}")
+          expect(text).to include('See you at the theater!')
+        end
+
+        it 'counts only seats in the ticket total when a mixed order adds a drink and a stream' do
+          text = text_of(OrderMailer.performance_reminder(drink_and_stream_order, nil, nil, true))
+
+          expect(text).to include('Just a reminder, you have 2 tickets at')
+          expect(text).not_to match(/\b[34] tickets\b/)
+          expect(text).to include(drink_note)
+          expect(text).to include('You also have 1 virtual ticket for this performance.')
+          expect(text).to include(stream_note)
+        end
+      end
+    end
+
     describe '"Also playing" sidebar' do
       def eligible_production(**attrs)
         FactoryBot.create(:production, {
@@ -272,6 +400,22 @@ RSpec.describe OrderMailer, type: :mailer do
           expect(body).to include('Tell us what you thought of')
           expect(body).to include('fill out a brief survey')
           expect(body).not_to include("A note from #{house.name}")
+        end
+
+        it 'does not place a virtual-only patron at the theater' do
+          order.ticket_line_items.each { |tli| tli.ticket_class.update!(admission: 'virtual') }
+          body = OrderMailer.standard_followup(order.reload).body.decoded
+
+          expect(body).to include('We hope you enjoyed the performance')
+          expect(body).not_to include('here at the theater')
+          expect(body).to include('about your experience with')
+          expect(body).not_to include('in our home here')
+        end
+
+        it 'invites an in-person patron to describe their experience in the house' do
+          body = OrderMailer.standard_followup(order).body.decoded
+
+          expect(body).to include('about your experience in our home here at')
         end
       end
 

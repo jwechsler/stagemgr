@@ -19,8 +19,11 @@
           </h5>
           <div align="left" class="article-content">
             <p>
-              <% if personal %>
+              <% if personal && order.attends_in_person? %>
                 I always want to hear from you about your experience in our home here at <%= theater_info.name %>.
+              <% elsif personal %>
+                <%# No in-person tickets (e.g. streaming-only): they never came to the house. %>
+                I always want to hear from you about your experience with <%= theater_info.name %>.
               <% else %>
                 We always want to hear about your experience at <%= theater_info.name %>.
               <% end %>

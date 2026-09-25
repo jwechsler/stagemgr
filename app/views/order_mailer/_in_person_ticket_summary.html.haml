@@ -1,0 +1,38 @@
+-# The ticket summary for an order's in-person (admission: in_person) tickets.
+-# Rendered inside a paragraph by _performance_confirmation (which also appends
+-# the late-seating note) and, with reminder: true, by _performance_reminder.
+-# The confirmation version carries the charge sentence.
+- if local_assigns[:reminder]
+  Just a reminder, you have
+  = "#{order.number_of_seats} #{order.number_of_seats == 1 ? 'ticket' : 'tickets'}"
+  at
+  = order.performance.performance_time.strftime('%l:%M %p')
+  this
+  = "#{Date::DAYNAMES[order.performance.performance_date.wday]}."
+  - unless order.performance.production.treat_as_special_event?
+    We look forward to seeing you! Your tickets will be waiting at the box office under
+    = order.hold_under.blank? ? 'your name' : order.hold_under
+- else
+  We have
+  = pluralize(order.number_of_seats, 'ticket')
+  reserved for
+  %i= "#{order.performance.production.name}#{!order.theater.is_default? ? ',' : ''}"
+  = "presented by #{order.theater.name}" unless order.theater.is_default?
+  on
+  = "#{order.performance.performance_date.strftime('%A, %B %_d')}"
+  at
+  = "#{order.performance.performance_time.strftime('%l:%M %p')}."
+  Your
+  = pluralize(order.number_of_seats, 'ticket')
+  will be waiting at the
+  = order.performance.production.treat_as_special_event? ? "door" : "box office"
+  under
+  - display_payment = order.hold_under.blank? ? 'your name' : order.hold_under
+  - if !order.membership_payments.empty?
+    = display_payment + " and were purchased with your #{order.membership_payments.first.membership.membership_offer.name}."
+  - elsif !order.flex_pass_payments.empty?
+    = display_payment + " and were purchased with your flex pass."
+  - elsif order.customer_visible_total <= 0
+    = display_payment + "."
+  - else
+    = display_payment + " and the total charge was $#{'%0.2f' % order.customer_visible_total}."

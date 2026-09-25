@@ -7,8 +7,7 @@
     came; the artistic director's own voice starts in the next paragraph. %>
 <% if @order.performance.production.theater.producing? %>
 <p>
-  We hope you had a good time here at the theater and will return soon (there are a few suggestions in
-  the sidebar on the right, but check our website for all upcoming events).
+  <%= render 'followup_opening', in_person: @order.attends_in_person? %>
 </p>
 <%= render 'core_followup', order: @order %>
 <% else %>

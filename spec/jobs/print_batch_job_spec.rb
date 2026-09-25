@@ -19,6 +19,7 @@ RSpec.describe PrintBatchJob, type: :job do
 
       # Mock TicketOrder.find to return mock objects
       mock_order = double('order')
+      allow(mock_order).to receive(:contains_printable_tickets?).and_return(true)
       allow(mock_order).to receive(:send_to_printer_api).and_return(123)
       allow(mock_order).to receive(:print_order_id=)
       allow(mock_order).to receive(:save!)
@@ -42,6 +43,7 @@ RSpec.describe PrintBatchJob, type: :job do
     it 'calls send_to_printer_api on each order with required batch information' do
       mock_orders = order_ids.map do |id|
         mock = double("order_#{id}")
+        allow(mock).to receive(:contains_printable_tickets?).and_return(true)
         allow(mock).to receive(:send_to_printer_api).and_return(123 + id)
         allow(mock).to receive(:print_order_id=)
         allow(mock).to receive(:save!)
@@ -64,6 +66,7 @@ RSpec.describe PrintBatchJob, type: :job do
     it 'stores the returned print_order_id and marks order as FULFILLED in a single save' do
       mock_orders = order_ids.map do |id|
         mock = double("order_#{id}")
+        allow(mock).to receive(:contains_printable_tickets?).and_return(true)
         allow(mock).to receive(:send_to_printer_api).and_return(100 + id)
         allow(mock).to receive(:print_order_id=)
         allow(mock).to receive(:save!)
@@ -104,6 +107,7 @@ RSpec.describe PrintBatchJob, type: :job do
     context 'when an order fails to process' do
       before do
         failing_order = double('failing_order')
+        allow(failing_order).to receive(:contains_printable_tickets?).and_return(true)
         allow(failing_order).to receive(:send_to_printer_api).and_raise(StandardError.new('Printer error'))
         allow(TicketOrder).to receive(:find).with(order_ids.first).and_return(failing_order)
       end
@@ -125,6 +129,7 @@ RSpec.describe PrintBatchJob, type: :job do
     context 'when tktprint returns no order ID' do
       before do
         order_without_id = double('order')
+        allow(order_without_id).to receive(:contains_printable_tickets?).and_return(true)
         allow(order_without_id).to receive(:send_to_printer_api).and_return(nil)
         allow(order_without_id).to receive(:print_order_id=)
         allow(order_without_id).to receive(:save!)
@@ -149,6 +154,7 @@ RSpec.describe PrintBatchJob, type: :job do
         mock_orders = order_ids.each_with_index.map do |order_id, index|
           mock = double("order_#{order_id}")
           # Returns the same print_order_id that already exists (reprint scenario)
+          allow(mock).to receive(:contains_printable_tickets?).and_return(true)
           allow(mock).to receive(:send_to_printer_api).and_return(existing_print_order_ids[index])
           allow(mock).to receive(:print_order_id).and_return(existing_print_order_ids[index])
           allow(mock).to receive(:print_order_id=)
@@ -173,6 +179,7 @@ RSpec.describe PrintBatchJob, type: :job do
       it 'still marks the orders as FULFILLED' do
         mock_orders = order_ids.each_with_index.map do |order_id, index|
           mock = double("order_#{order_id}")
+          allow(mock).to receive(:contains_printable_tickets?).and_return(true)
           allow(mock).to receive(:send_to_printer_api).and_return(existing_print_order_ids[index])
           allow(mock).to receive(:print_order_id).and_return(existing_print_order_ids[index])
           allow(mock).to receive(:print_order_id=)
@@ -191,6 +198,41 @@ RSpec.describe PrintBatchJob, type: :job do
         mock_orders.each do |mock_order|
           expect(mock_order).to have_received(:status=).with(Order::FULFILLED)
         end
+      end
+    end
+
+    context 'when an order has no printable tickets (e.g. streaming-only)' do
+      let(:streaming_order) { double('streaming_order', contains_printable_tickets?: false, status: Order::PROCESSED) }
+
+      before do
+        allow(streaming_order).to receive(:send_to_printer_api)
+        allow(streaming_order).to receive(:status=)
+        allow(streaming_order).to receive(:save!)
+        allow(TicketOrder).to receive(:find).with(order_ids.first).and_return(streaming_order)
+      end
+
+      it 'marks it FULFILLED without sending it to the printer' do
+        PrintBatchJob.perform(batch_id, order_ids)
+
+        expect(streaming_order).not_to have_received(:send_to_printer_api)
+        expect(streaming_order).to have_received(:status=).with(Order::FULFILLED)
+        expect(streaming_order).to have_received(:save!).once
+        expect(Rails.logger).to have_received(:info).with(/Order #{order_ids.first} has no printable tickets/)
+      end
+
+      it 'still sends and fulfills the printable orders in the batch' do
+        mixed_order = double('mixed_order', contains_printable_tickets?: true, status: Order::PROCESSED)
+        allow(mixed_order).to receive(:send_to_printer_api).and_return(777)
+        allow(mixed_order).to receive(:print_order_id=)
+        allow(mixed_order).to receive(:status=)
+        allow(mixed_order).to receive(:save!)
+        allow(TicketOrder).to receive(:find).with(order_ids.last).and_return(mixed_order)
+
+        PrintBatchJob.perform(batch_id, order_ids)
+
+        expect(mixed_order).to have_received(:send_to_printer_api).with(batch_id, order_ids.length)
+        expect(mixed_order).to have_received(:print_order_id=).with(777)
+        expect(mixed_order).to have_received(:status=).with(Order::FULFILLED)
       end
     end
 

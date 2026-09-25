@@ -46,5 +46,20 @@ RSpec.describe DefaultTicketClass, type: :model do
 
       expect(production.ticket_classes.find_by(class_code: 'ZONED').zone_id).to eq('C2')
     end
+
+    it 'carries admission onto new productions via assign_default_ticket_classes' do
+      FactoryBot.create(:default_ticket_class, class_code: 'STRM', admission: 'virtual')
+
+      production = FactoryBot.create(:production)
+
+      expect(production.ticket_classes.find_by(class_code: 'STRM').admission).to eq('virtual')
+    end
+
+    it 'defaults admission to in_person and prints' do
+      default_class = FactoryBot.create(:default_ticket_class)
+
+      expect(default_class.reload.admission).to eq('in_person')
+      expect(default_class.prints_ticket?).to be true
+    end
   end
 end

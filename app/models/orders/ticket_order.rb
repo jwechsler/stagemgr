@@ -1,5 +1,6 @@
 class TicketOrder < Order
   include TktprintPrintable
+  include TicketOrderAdmission
   # Hard cap on shared physical equipment (ResourcedTicketClass device pools).
   include ResourcedStockValidatable
   # Exchange-and-refund: returns the price difference to the original payments.

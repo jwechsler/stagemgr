@@ -27,6 +27,7 @@
       = f.input :software_managed, :hint=>"Not for box office sales"
       = f.input :hide_pricing, :hint=>"Hide the actual price from the customer"
       = f.input :suppress_receipt, :hint=>"Suppress automatic confirmation email"
+      = f.input :admission, collection: [['In person', 'in_person'], ['Virtual (streaming)', 'virtual'], ['Other', 'other']], include_blank: false, hint: 'Only in-person tickets print; emails adapt to how the patron attends'
       = f.input :complimentary, :label=>"Treat as comp ticket", :hint=>"Comp tickets are separately inventoried and reported. Not the same as a $0 ticket"
       = f.input :holds_seats, :default=>true, :hint=>"Reserve seats from inventory"
       = f.input :assigns_seats, :default=>false,  :label=>"Manual seat assignment required", :hint=>"Requires house management seating"

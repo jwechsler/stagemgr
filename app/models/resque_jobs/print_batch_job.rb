@@ -19,6 +19,15 @@ class PrintBatchJob
           order = TicketOrder.find(order_id)
           Rails.logger.info("Processing order #{order_id} (sequence #{sequence}) for batch #{batch_id}")
 
+          unless order.contains_printable_tickets?
+            # Nothing physical to print (e.g. streaming-only): fulfill without a tktprint order.
+            order.status = Order::FULFILLED if order.status == Order::PROCESSED
+            order.save!
+            Rails.logger.info("Order #{order_id} has no printable tickets; fulfilled without printing")
+            successful_order_ids << order_id
+            next
+          end
+
           # Send to printer API with batch information (batch_id and sequence are required)
           tktprint_order_id = order.send_to_printer_api(batch_id, sequence)
 

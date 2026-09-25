@@ -1413,4 +1413,62 @@ RSpec.describe TicketOrder do
       expect(order.royalty_gross).to eq(0)
     end
   end
+
+  describe "admission vocabulary" do
+    def order_with(*lines)
+      TicketOrder.new.tap do |order|
+        lines.each do |admission, count|
+          order.ticket_line_items.build(ticket_class: TicketClass.new(admission: admission), ticket_count: count)
+        end
+      end
+    end
+
+    it "counts tickets, not seats, per admission mode" do
+      order = order_with(['in_person', 2], ['virtual', 3], ['virtual', 1], ['other', 4])
+
+      expect(order.admission_ticket_count('in_person')).to eq(2)
+      expect(order.admission_ticket_count('virtual')).to eq(4)
+      expect(order.admission_ticket_count(:other)).to eq(4)
+    end
+
+    it "attends in person, prints and has no virtual tickets for an in-person order" do
+      order = order_with(['in_person', 2])
+
+      expect(order.attends_in_person?).to be true
+      expect(order.includes_virtual?).to be false
+      expect(order.contains_printable_tickets?).to be true
+    end
+
+    it "includes virtual but neither attends nor prints for a virtual-only order" do
+      order = order_with(['virtual', 2])
+
+      expect(order.attends_in_person?).to be false
+      expect(order.includes_virtual?).to be true
+      expect(order.contains_printable_tickets?).to be false
+    end
+
+    it "neither attends, streams nor prints for an other-only order" do
+      order = order_with(['other', 1])
+
+      expect(order.attends_in_person?).to be false
+      expect(order.includes_virtual?).to be false
+      expect(order.contains_printable_tickets?).to be false
+    end
+
+    it "attends in person, includes virtual and prints for a mixed order" do
+      order = order_with(['in_person', 2], ['virtual', 1])
+
+      expect(order.attends_in_person?).to be true
+      expect(order.includes_virtual?).to be true
+      expect(order.contains_printable_tickets?).to be true
+    end
+
+    it "does not count zero-ticket lines" do
+      order = order_with(['in_person', 0], ['virtual', 1])
+
+      expect(order.admission_ticket_count('in_person')).to eq(0)
+      expect(order.attends_in_person?).to be false
+      expect(order.contains_printable_tickets?).to be false
+    end
+  end
 end
