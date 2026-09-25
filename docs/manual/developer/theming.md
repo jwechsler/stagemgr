@@ -172,6 +172,22 @@ web page**, not just the email. That is a feature -- one signature block, one
 definition -- but it is worth knowing before you tune the partial for email
 clients only.
 
+### Admission-aware ticket emails
+
+A ticket class's [admission](../productions/ticket-classes.md#admission-how-patrons-attend) (in person, virtual/streaming, or other) decides which parts of the confirmation, reminder and followup emails render. That decision is made in the **generic composing templates**, not in the partials themes usually override:
+
+- The visit partials (`_transportation_instructions`, `_dining_recommendations`, `_seating_policy`, `_amenities`) are not rendered for an order with no in-person tickets. An override of them doesn't need any admission logic, and existing overrides keep working unchanged.
+- The admission-specific wording lives in small leaf partials under `order_mailer/`, which are the override points:
+
+| Partial | What it says |
+|---|---|
+| `_in_person_ticket_summary` | "We have N tickets reserved… waiting at the box office" (confirmation) and "Just a reminder, you have N tickets" (reminder, `reminder: true`) |
+| `_virtual_ticket_summary` | The same for virtual tickets. Stream links belong in the ticket class's email annotation, not here. |
+| `_followup_opening` | The first sentence of the producing-house followups, with an `in_person: false` variant that doesn't mention a visit |
+
+!!! warning "Don't override the composing templates"
+    `_performance_confirmation`, `_performance_reminder`, `_performance_info`, `standard_followup`, `first_time_followup` and `_tell_us_about_it` carry the admission branching. A theme that replaces one of them wholesale drops that logic, and streaming patrons would be told to pick up tickets at the box office. Override the leaf partials instead.
+
 ### Locales
 
 `sites/<slug>/locales/*.yml` are appended last to `I18n.load_path`, so their
