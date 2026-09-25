@@ -11,6 +11,19 @@ module TicketOrderAdmission
                      .sum { |li| li.ticket_count.to_i }
   end
 
+  # Tickets that admit someone to the performance (in_person plus virtual),
+  # whether or not they hold seats; 'other' classes (e.g. drink vouchers)
+  # are add-ons and don't count. The ticket total in patron emails.
+  def attending_ticket_count
+    admission_ticket_count('in_person') + admission_ticket_count('virtual')
+  end
+
+  # In-person tickets that hold seats: what waits at the box office for pickup.
+  def box_office_ticket_count
+    ticket_line_items.select { |li| li.ticket_class&.admission_in_person? && li.ticket_class.holds_seats? }
+                     .sum { |li| li.ticket_count.to_i }
+  end
+
   def attends_in_person?
     admission_ticket_count('in_person').positive?
   end

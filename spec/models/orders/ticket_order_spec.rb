@@ -1431,6 +1431,23 @@ RSpec.describe TicketOrder do
       expect(order.admission_ticket_count(:other)).to eq(4)
     end
 
+    it "counts in-person and virtual tickets but not other tickets as attending" do
+      order = order_with(['in_person', 2], ['other', 1], ['virtual', 1])
+
+      expect(order.attending_ticket_count).to eq(3)
+    end
+
+    it "counts only in-person, seat-holding tickets for box office pickup" do
+      order = TicketOrder.new
+      [['in_person', true, 2], ['in_person', false, 1], ['virtual', true, 1], ['other', true, 1]]
+        .each do |admission, holds_seats, count|
+          order.ticket_line_items.build(ticket_class: TicketClass.new(admission: admission, holds_seats: holds_seats),
+                                        ticket_count: count)
+        end
+
+      expect(order.box_office_ticket_count).to eq(2)
+    end
+
     it "attends in person, prints and has no virtual tickets for an in-person order" do
       order = order_with(['in_person', 2])
 

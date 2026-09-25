@@ -1,10 +1,14 @@
 -# The ticket summary for an order's in-person (admission: in_person) tickets.
 -# Rendered inside a paragraph by _performance_confirmation (which also appends
 -# the late-seating note) and, with reminder: true, by _performance_reminder.
--# The confirmation version carries the charge sentence.
+-# The confirmation version carries the charge sentence. The ticket total is
+-# TicketOrder#attending_ticket_count: in-person and virtual tickets, seats or
+-# not, but never 'other' add-ons. The confirmation's pickup sentence counts
+-# only TicketOrder#box_office_ticket_count (in-person, seat-holding tickets),
+-# and drops the number when there are none ("Your tickets will be waiting").
 - if local_assigns[:reminder]
   Just a reminder, you have
-  = "#{order.number_of_seats} #{order.number_of_seats == 1 ? 'ticket' : 'tickets'}"
+  = "#{order.attending_ticket_count} #{order.attending_ticket_count == 1 ? 'ticket' : 'tickets'}"
   at
   = order.performance.performance_time.strftime('%l:%M %p')
   this
@@ -14,7 +18,7 @@
     = order.hold_under.blank? ? 'your name' : order.hold_under
 - else
   We have
-  = pluralize(order.number_of_seats, 'ticket')
+  = pluralize(order.attending_ticket_count, 'ticket')
   reserved for
   %i= "#{order.performance.production.name}#{!order.theater.is_default? ? ',' : ''}"
   = "presented by #{order.theater.name}" unless order.theater.is_default?
@@ -23,7 +27,8 @@
   at
   = "#{order.performance.performance_time.strftime('%l:%M %p')}."
   Your
-  = pluralize(order.number_of_seats, 'ticket')
+  - pickup_count = order.box_office_ticket_count
+  = pickup_count.zero? ? 'tickets' : pluralize(pickup_count, 'ticket')
   will be waiting at the
   = order.performance.production.treat_as_special_event? ? "door" : "box office"
   under
