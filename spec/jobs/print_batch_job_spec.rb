@@ -230,9 +230,37 @@ RSpec.describe PrintBatchJob, type: :job do
 
         PrintBatchJob.perform(batch_id, order_ids)
 
-        expect(mixed_order).to have_received(:send_to_printer_api).with(batch_id, order_ids.length)
+        # Sequence numbers count printable orders only; the streaming order took no slot.
+        expect(mixed_order).to have_received(:send_to_printer_api).with(batch_id, order_ids.length - 1)
         expect(mixed_order).to have_received(:print_order_id=).with(777)
         expect(mixed_order).to have_received(:status=).with(Order::FULFILLED)
+      end
+
+      context 'when every order in the batch is streaming-only' do
+        before { allow(TicketOrder).to receive(:find).and_return(streaming_order) }
+
+        it 'fulfills them without creating a tktprint batch' do
+          PrintBatchJob.perform(batch_id, order_ids)
+
+          expect(streaming_order).to have_received(:save!).exactly(order_ids.length).times
+          expect(PrintBatchJob).not_to have_received(:create_print_batch)
+          expect(PrintBatchJob).not_to have_received(:close_print_batch)
+        end
+
+        it 'still fulfills them when no printer is configured' do
+          allow(PrintBatchJob).to receive(:create_print_batch).and_raise(StandardError.new('Tktprint service not configured'))
+
+          expect { PrintBatchJob.perform(batch_id, order_ids) }.not_to raise_error
+          expect(streaming_order).to have_received(:status=).with(Order::FULFILLED).exactly(order_ids.length).times
+        end
+      end
+
+      it 'fulfills the streaming order even when the printable ones cannot reach tktprint' do
+        allow(PrintBatchJob).to receive(:create_print_batch).and_raise(StandardError.new('Tktprint service not configured'))
+
+        expect { PrintBatchJob.perform(batch_id, order_ids) }.to raise_error('Tktprint service not configured')
+        expect(streaming_order).to have_received(:status=).with(Order::FULFILLED)
+        expect(streaming_order).to have_received(:save!).once
       end
     end
 
