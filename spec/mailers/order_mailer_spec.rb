@@ -222,12 +222,12 @@ RSpec.describe OrderMailer, type: :mailer do
 
       let(:drink_note) { 'Includes one drink (beer/wine/cocktail) at our bar' }
 
-      # Two seats, plus a drink voucher ('other', never counted) and a stream
-      # (virtual, counted), neither of which holds a seat.
+      # Two seats, plus a drink voucher (an in-person add-on that doesn't hold a
+      # seat, so never counted) and a stream (virtual, counted).
       let(:drink_and_stream_order) do
         drink_class = FactoryBot.create(:ticket_class, production: regular_production,
                                                        class_code: 'DRNK', holds_seats: false,
-                                                       admission: 'other', purchase_email_annotation: drink_note)
+                                                       admission: 'in_person', purchase_email_annotation: drink_note)
         FactoryBot.create(:ticket_class_allocation, performance: regular_performance, ticket_class: drink_class,
                                                     ticket_limit: 10)
         FactoryBot.create(:ticket_line_item, ticket_class: drink_class, ticket_count: 1, order: regular_order)
@@ -269,7 +269,7 @@ RSpec.describe OrderMailer, type: :mailer do
           expect(text).not_to include('Access details are in the notes')
         end
 
-        it 'counts in-person and virtual tickets but not an other-class drink in the ticket total' do
+        it 'counts seats and virtual tickets but not a non-seat drink add-on in the ticket total' do
           text = text_of(OrderMailer.ticket_confirmation(drink_and_stream_order))
 
           expect(text).to include('We have 3 tickets reserved for Regular Play')
@@ -280,13 +280,14 @@ RSpec.describe OrderMailer, type: :mailer do
           expect(text).to include(stream_note)
         end
 
-        it 'leaves the number out of the pickup sentence when no in-person ticket holds a seat' do
+        it 'drops the ticket count for an order of only non-seat add-ons' do
           regular_order.ticket_line_items.each { |tli| tli.ticket_class.update!(holds_seats: false) }
           text = text_of(OrderMailer.ticket_confirmation(regular_order.reload))
 
-          expect(text).to include('We have 2 tickets reserved for Regular Play')
+          expect(text).to include('Your order is confirmed for Regular Play')
           expect(text).to include('Your tickets will be waiting at the box office')
           expect(text).not_to include('0 tickets')
+          expect(text).not_to include('We have')
         end
 
         it 'counts a seat-holding virtual ticket once in the ticket total' do
@@ -330,7 +331,7 @@ RSpec.describe OrderMailer, type: :mailer do
           expect(text).to include('See you at the theater!')
         end
 
-        it 'counts in-person and virtual tickets but not an other-class drink in the ticket total' do
+        it 'counts seats and virtual tickets but not a non-seat drink add-on in the ticket total' do
           text = text_of(OrderMailer.performance_reminder(drink_and_stream_order, nil, nil, true))
 
           expect(text).to include('Just a reminder, you have 3 tickets at')
@@ -338,6 +339,14 @@ RSpec.describe OrderMailer, type: :mailer do
           expect(text).to include(drink_note)
           expect(text).to include('You also have 1 virtual ticket for this performance.')
           expect(text).to include(stream_note)
+        end
+
+        it 'drops the ticket count for an order of only non-seat add-ons' do
+          regular_order.ticket_line_items.each { |tli| tli.ticket_class.update!(holds_seats: false) }
+          text = text_of(OrderMailer.performance_reminder(regular_order.reload, nil, nil, true))
+
+          expect(text).to include('Just a reminder, your order is for')
+          expect(text).not_to include('0 tickets')
         end
 
         it 'counts a seat-holding virtual ticket once in the ticket total' do

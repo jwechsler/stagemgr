@@ -7,8 +7,8 @@
 = render partial: 'presenter_identity', locals: {order: order}
 -# Admission decides the summary: in-person tickets get the box office line
 -# (which carries the charge sentence) and the late-seating note, virtual
--# tickets their own line, and an order of only 'other' tickets just the
--# charge line. Mixed orders get both summaries.
+-# tickets their own line, and an order with neither just the charge line.
+-# Mixed orders get both summaries.
 - if order.attends_in_person?
   %p
     = render partial: 'in_person_ticket_summary', locals: {order: order}

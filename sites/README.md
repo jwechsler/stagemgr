@@ -78,7 +78,7 @@ such partials are extracted later in this branch for exactly this reason.
 
 ### Admission-aware ticket emails
 
-A ticket class's `admission` (in person, virtual/streaming, or other) decides
+A ticket class's `admission` (in person or virtual/streaming) decides
 which parts of the confirmation, reminder and followup emails render. The
 generic composing templates make that decision, so the visit advice partials
 (`_transportation_instructions`, `_dining_recommendations`, `_seating_policy`,

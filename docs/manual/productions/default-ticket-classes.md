@@ -38,7 +38,7 @@ Default ticket classes have the same fields as production-level ticket classes. 
 | **Exchangeable** | Whether tickets can be exchanged |
 | **Complimentary** | Whether treated as comp tickets |
 | **Holds Seats** | Whether tickets deduct from inventory |
-| **Admission** | In person (default), Virtual (streaming), or Other -- decides printing and email copy. See [Admission](ticket-classes.md#admission-how-patrons-attend) |
+| **Admission** | In person (default) or Virtual (streaming) -- decides printing and email copy. See [Admission](ticket-classes.md#admission-how-patrons-attend) |
 | **Assigns Seats** | Whether box office can manually assign seats |
 | **Auto Attach** | Whether automatically added to new performances |
 | **Hide Pricing** | Whether to hide the price from patrons |

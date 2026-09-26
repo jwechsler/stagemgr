@@ -1,7 +1,7 @@
 class AddAdmissionToTicketClasses < ActiveRecord::Migration[6.1]
-  # How a ticket class's patrons attend: in_person (default), virtual
-  # (streaming) or other. Only in_person tickets print, and patron emails
-  # adapt their visit/pickup copy to it. resourced_ticket_classes is
+  # How a ticket class's patrons attend: in_person (default) or virtual
+  # (streaming). Only in_person tickets print, and patron emails adapt their
+  # visit/pickup copy to it. resourced_ticket_classes is
   # deliberately left out: shadow rows take the in_person default, so
   # equipment rentals keep printing.
   def change

@@ -2,13 +2,14 @@
 # TicketClass and DefaultTicketClass (DefaultTicketClass#to_hash copies the
 # string verbatim onto new productions).
 #
-# - in_person (default): a physical visit; the only mode that prints a ticket
+# - in_person (default): a physical visit; the only mode that prints a ticket.
+#   Add-ons used at the venue (drink vouchers, parking) are in_person classes
+#   that don't hold seats.
 # - virtual: streaming access; no printed ticket, no visit/pickup email copy
-# - other: neither prints nor streams (e.g. e-ticket or add-on style classes)
 module TicketAdmission
   extend ActiveSupport::Concern
 
-  ADMISSIONS = { in_person: 'in_person', virtual: 'virtual', other: 'other' }.freeze
+  ADMISSIONS = { in_person: 'in_person', virtual: 'virtual' }.freeze
 
   included do
     enum admission: ADMISSIONS, _prefix: true

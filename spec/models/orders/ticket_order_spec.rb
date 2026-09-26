@@ -1415,35 +1415,42 @@ RSpec.describe TicketOrder do
   end
 
   describe "admission vocabulary" do
+    # Each line is [admission, count] or [admission, count, holds_seats].
     def order_with(*lines)
       TicketOrder.new.tap do |order|
-        lines.each do |admission, count|
-          order.ticket_line_items.build(ticket_class: TicketClass.new(admission: admission), ticket_count: count)
+        lines.each do |admission, count, holds_seats = true|
+          order.ticket_line_items.build(ticket_class: TicketClass.new(admission: admission, holds_seats: holds_seats),
+                                        ticket_count: count)
         end
       end
     end
 
-    it "counts tickets, not seats, per admission mode" do
-      order = order_with(['in_person', 2], ['virtual', 3], ['virtual', 1], ['other', 4])
-
-      expect(order.admission_ticket_count('in_person')).to eq(2)
-      expect(order.admission_ticket_count('virtual')).to eq(4)
-      expect(order.admission_ticket_count(:other)).to eq(4)
+    it "offers only in_person and virtual admission modes" do
+      expect(TicketClass.admissions.keys).to eq(%w[in_person virtual])
+      expect(DefaultTicketClass.admissions.keys).to eq(%w[in_person virtual])
     end
 
-    it "counts in-person and virtual tickets but not other tickets as attending" do
-      order = order_with(['in_person', 2], ['other', 1], ['virtual', 1])
+    it "counts tickets, not seats, per admission mode" do
+      order = order_with(['in_person', 2], ['in_person', 1, false], ['virtual', 3], ['virtual', 1])
+
+      expect(order.admission_ticket_count('in_person')).to eq(3)
+      expect(order.admission_ticket_count(:virtual)).to eq(4)
+    end
+
+    it "counts seat-holding in-person and all virtual tickets, but not non-seat add-ons, as attending" do
+      order = order_with(['in_person', 2], ['in_person', 1, false], ['virtual', 1])
+
+      expect(order.attending_ticket_count).to eq(3)
+    end
+
+    it "counts virtual tickets as attending whether or not they hold seats" do
+      order = order_with(['virtual', 1, true], ['virtual', 2, false])
 
       expect(order.attending_ticket_count).to eq(3)
     end
 
     it "counts only in-person, seat-holding tickets for box office pickup" do
-      order = TicketOrder.new
-      [['in_person', true, 2], ['in_person', false, 1], ['virtual', true, 1], ['other', true, 1]]
-        .each do |admission, holds_seats, count|
-          order.ticket_line_items.build(ticket_class: TicketClass.new(admission: admission, holds_seats: holds_seats),
-                                        ticket_count: count)
-        end
+      order = order_with(['in_person', 2], ['in_person', 1, false], ['virtual', 1])
 
       expect(order.box_office_ticket_count).to eq(2)
     end
@@ -1464,12 +1471,12 @@ RSpec.describe TicketOrder do
       expect(order.contains_printable_tickets?).to be false
     end
 
-    it "neither attends, streams nor prints for an other-only order" do
-      order = order_with(['other', 1])
+    it "attends in person and prints, with no attending tickets, for an add-on-only order" do
+      order = order_with(['in_person', 1, false])
 
-      expect(order.attends_in_person?).to be false
-      expect(order.includes_virtual?).to be false
-      expect(order.contains_printable_tickets?).to be false
+      expect(order.attends_in_person?).to be true
+      expect(order.contains_printable_tickets?).to be true
+      expect(order.attending_ticket_count).to eq(0)
     end
 
     it "attends in person, includes virtual and prints for a mixed order" do

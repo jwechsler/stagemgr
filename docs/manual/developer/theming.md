@@ -174,7 +174,7 @@ clients only.
 
 ### Admission-aware ticket emails
 
-A ticket class's [admission](../productions/ticket-classes.md#admission-how-patrons-attend) (in person, virtual/streaming, or other) decides which parts of the confirmation, reminder and followup emails render. That decision is made in the **generic composing templates**, not in the partials themes usually override:
+A ticket class's [admission](../productions/ticket-classes.md#admission-how-patrons-attend) (in person or virtual/streaming) decides which parts of the confirmation, reminder and followup emails render. That decision is made in the **generic composing templates**, not in the partials themes usually override:
 
 - The visit partials (`_transportation_instructions`, `_dining_recommendations`, `_seating_policy`, `_amenities`) are not rendered for an order with no in-person tickets. An override of them doesn't need any admission logic, and existing overrides keep working unchanged.
 - The admission-specific wording lives in small leaf partials under `order_mailer/`, which are the override points:
