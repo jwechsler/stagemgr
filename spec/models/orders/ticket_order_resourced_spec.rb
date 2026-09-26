@@ -115,11 +115,12 @@ RSpec.describe 'TicketOrder resourced equipment limits' do
 
       # At the till the patron asks for a second tablet; there is none left.
       order.ticket_line_items.first.update!(ticket_count: 2)
-      order.status = Order::PROCESSED
-      # Order#transition_processing_to_processed! saves only `if valid?`, and the
-      # charge happens after that, so an invalid order never reaches the gateway.
-      expect(order).not_to be_valid
-      expect(order.errors[:base].join).to match(/equipment is in use/)
+      # The real transition validates while the order is still unsettled (the
+      # HOLD -> PROCESSING save, then valid? before the charge), so an invalid
+      # order never reaches the gateway and never becomes PROCESSED.
+      expect { order.transition_to!(Order::PROCESSED) }.to raise_error(ActiveRecord::RecordInvalid, /equipment is in use/)
+      expect(order.reload.status).to eq(Order::HOLD)
+      expect(order.payments).to be_empty
     end
 
     it 'gives no bypass to a box office sale' do
@@ -212,19 +213,31 @@ RSpec.describe 'TicketOrder resourced equipment limits' do
       end
     end
 
-    it 'still blocks a FULFILLED order that asks for more than the shrunk pool' do
+    # A settled order already has its devices. Checking it against the shrunk
+    # pool would let PrintBatchJob print the tickets and then fail to mark the
+    # order FULFILLED, leaving it to be printed again.
+    it 'lets a settled order be marked FULFILLED after the pool shrinks below its devices' do
       perf = performance_at(prod_a, '14:00')
       shadow = shadow_for(prod_a)
       allocate(shadow, perf)
       order = sell(perf, shadow, 2)
       resource.update!(quantity: 1)
 
-      # FULFILLED occupies the pool, and exclude_order means the order is not
-      # blocked by its own devices -- it simply asks for more than now exist.
       fresh = TicketOrder.find(order.id)
       fresh.status = Order::FULFILLED
-      expect(fresh).not_to be_valid
-      expect(fresh.errors[:base].join).to match(/only 1 .* available/)
+      expect(fresh).to be_valid
+      expect { fresh.save! }.not_to raise_error
+    end
+
+    it 'still blocks an unsettled order that asks for more than the shrunk pool' do
+      perf = performance_at(prod_a, '14:00')
+      shadow = shadow_for(prod_a)
+      allocate(shadow, perf)
+      resource.update!(quantity: 1)
+
+      order = build_order(perf, shadow, 2, status: Order::PROCESSING)
+      expect(order).not_to be_valid
+      expect(order.errors[:base].join).to match(/only 1 .* available/)
     end
   end
 

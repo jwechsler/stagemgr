@@ -79,7 +79,7 @@ class Admin::ResourcedTicketClassesController < ApplicationController
     params.require(:resourced_ticket_class).permit(:class_code, :class_name, :ticket_type,
                                                    :ticket_price, :ticketing_fee, :web_visible, :software_managed,
                                                    :holds_seats, :assigns_seats, :show_in_pricing_range,
-                                                   :minutes_before_show, :suppress_receipt, :hide_pricing,
+                                                   :minutes_before_show, :suppress_receipt, :admission, :hide_pricing,
                                                    :purchase_page_annotation, :purchase_email_annotation,
                                                    :exchangeable, :royalty_amount, :zone_id, :complimentary,
                                                    :quantity, :changeover_minutes, venue_ids: [])

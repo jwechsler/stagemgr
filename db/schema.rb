@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_09_22_110000) do
+ActiveRecord::Schema.define(version: 2026_09_26_110000) do
 
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name", null: false
@@ -145,6 +145,7 @@ ActiveRecord::Schema.define(version: 2026_09_22_110000) do
     t.boolean "exchangeable", default: false
     t.decimal "royalty_amount", precision: 8, scale: 2
     t.string "zone_id", limit: 2, default: "*", null: false
+    t.string "admission", limit: 16, default: "in_person", null: false
   end
 
   create_table "festivals", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -585,6 +586,7 @@ ActiveRecord::Schema.define(version: 2026_09_22_110000) do
     t.string "purchase_page_annotation"
     t.text "purchase_email_annotation", size: :medium
     t.integer "sync_pending_count", default: 0, null: false
+    t.string "admission", limit: 16, default: "in_person", null: false
     t.index ["class_code"], name: "index_resourced_ticket_classes_on_class_code", unique: true
   end
 
@@ -666,6 +668,7 @@ ActiveRecord::Schema.define(version: 2026_09_22_110000) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.string "status", default: "Active"
+    t.text "email_description", size: :medium
   end
 
   create_table "special_offers", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -766,6 +769,7 @@ ActiveRecord::Schema.define(version: 2026_09_22_110000) do
     t.decimal "royalty_amount", precision: 8, scale: 2
     t.string "zone_id", limit: 2, default: "*", null: false
     t.integer "resourced_ticket_class_id"
+    t.string "admission", limit: 16, default: "in_person", null: false
     t.index ["resourced_ticket_class_id"], name: "index_ticket_classes_on_resourced_ticket_class_id"
   end
 

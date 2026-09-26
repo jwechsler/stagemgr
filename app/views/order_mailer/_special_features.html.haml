@@ -1,15 +1,17 @@
-- unless order.performance.special_features.empty?
+-# Active canned features, then the performance's own custom text (its Custom
+-# Email, else its Custom Special Feature text). Inactive features stay
+-# attached to the performance but are left out of patron emails. The box
+-# renders when there is anything to put in it, custom text alone included.
+- features = order.performance.active_special_features
+- custom_text = order.performance.special_feature_email_markdown.presence || order.performance.special_feature_display_markdown.presence
+- if features.any? || custom_text
   %table.callout
     %tr
       %th.callout-inner.secondary
-        - order.performance.special_features.each do |feature|
-          - unless feature.description.blank?
-            = display_markdown(feature.description)
+        - features.each do |feature|
+          - unless feature.email_text.blank?
+            = display_markdown(feature.email_text)
           - else
             = display_markdown(feature.short_name)
 
-        - unless order.performance.special_feature_email_markdown.blank?
-          = display_markdown(order.performance.special_feature_email_markdown)
-        - else
-          = display_markdown(order.performance.special_feature_display_markdown) unless order.performance.special_feature_display_markdown.blank?
-
+        = display_markdown(custom_text) if custom_text

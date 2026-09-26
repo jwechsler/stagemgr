@@ -1,5 +1,6 @@
 class TicketOrder < Order
   include TktprintPrintable
+  include TicketOrderAdmission
   # Hard cap on shared physical equipment (ResourcedTicketClass device pools).
   include ResourcedStockValidatable
   # Exchange-and-refund: returns the price difference to the original payments.
@@ -41,7 +42,15 @@ class TicketOrder < Order
 
   validates_associated :ticket_line_items
   validates :performance, presence: true
-  validate :ticket_stock_available, :unless => :allow_deletion?
+  validate :ticket_allocations_present, :unless => :allow_deletion?
+  # Ticket limits and capacity are checked while an order is being placed
+  # (NEW/HOLD/PROCESSING/EXCHANGING). Once settled the sale is made: later
+  # inventory changes (a lowered ticket limit, reduced capacity) must not stop
+  # the order being saved again -- e.g. PrintBatchJob marking it FULFILLED
+  # after its tickets have printed. Every path to PROCESSED validates first:
+  # transition_processing_to_processed! checks valid? while still PROCESSING,
+  # and exchanges save while EXCHANGING in begin_exchange!.
+  validate :ticket_stock_available, :unless => -> { allow_deletion? || settled? }
   validate :seat_assignments_complete?, :if => :seating_check_required?
   validate :payments_exist?, :if => :processed?
   validates :uuid, presence: true
@@ -59,16 +68,22 @@ class TicketOrder < Order
     end
   end
 
+  def ticket_allocations_present
+    return if ticket_line_items.empty? || performance.nil?
+
+    allocated_classes = performance.ticket_class_allocations.map(&:ticket_class)
+    ticket_line_items.each do |tli|
+      next if allocated_classes.include?(tli.ticket_class)
+
+      errors.add(:base,
+                 "Missing allocation for #{performance.performance_code} / #{tli.ticket_class.nil? ? 'NIL' : tli.ticket_class.class_code}")
+    end
+  end
+
   def ticket_stock_available
     return if ticket_line_items.empty?
       ticket_counts_by_class = {}
       ticket_line_items.each do |tli|
-        unless performance.ticket_class_allocations.map do |tla|
-                                                                                                                                                       tla.ticket_class
-                                                                                                                                                     end.include?(tli.ticket_class)
-          errors.add(:base,
-                     "Missing allocation for #{performance.performance_code} / #{tli.ticket_class.nil? ? "NIL" : tli.ticket_class.class_code}")
-        end
         if ticket_counts_by_class.key?(tli.ticket_class_id)
           ticket_counts_by_class[tli.ticket_class_id] += tli.ticket_count
         else

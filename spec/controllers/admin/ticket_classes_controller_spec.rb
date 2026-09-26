@@ -32,6 +32,12 @@ RSpec.describe Admin::TicketClassesController, type: :controller do
       expect(ticket_class.show_in_pricing_range).to be false
       expect(ticket_class.complimentary).to be true
     end
+
+    it 'persists admission' do
+      post :create, params: nested_params(valid_params(admission: 'virtual'))
+
+      expect(production.ticket_classes.find_by(class_code: 'ZONEP').admission).to eq('virtual')
+    end
   end
 
   describe 'PATCH #update' do

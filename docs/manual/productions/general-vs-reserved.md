@@ -37,6 +37,8 @@ General admission is the default mode. The production has a fixed capacity numbe
 - As tickets are sold, Stagemgr subtracts from this number to calculate remaining availability.
 - The house count report shows total capacity vs. sold vs. remaining.
 - Stagemgr prevents sales that would exceed capacity (overselling protection).
+- **Capacity can't go below what's already sold.** When you lower it, Stagemgr checks every performance, and refuses a number smaller than the busiest one's seats in held, processed or fulfilled orders. The error names that performance (for example, "can't be lower than 42: ADOL0927 already has 42 seats sold or held"). Only tickets in classes that hold seats count, so drink tickets and streams don't; checkouts still in progress don't count either.
+- Once an order is processed, later capacity or ticket limit changes never block it: it can still be printed and fulfilled.
 
 ### Order Flow
 

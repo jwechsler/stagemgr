@@ -5,8 +5,8 @@
 # performance: the same physical devices are shared with every performance in
 # the resource's venues whose occupancy window overlaps this one.
 #
-# It is a plain `validate`, so it runs on every save and therefore covers web
-# checkout, the box office, the PROCESSED gate
+# It is a plain `validate`, so it runs on every save of an unsettled order and
+# therefore covers web checkout, the box office, the PROCESSED gate
 # (Order#transition_processing_to_processed! saves only `if valid?`, before the
 # payment is taken), exchanges, holds, bulk imports and flex-pass autofulfill.
 # There is deliberately no box_office_sale bypass -- the constraint is physical,
@@ -24,6 +24,11 @@ module ResourcedStockValidatable
     # DEVICES BACK; blocking it would make refunds impossible the moment the pool
     # were shrunk below current usage.
     return unless Order::RESOURCE_OCCUPYING_STATUSES.include?(status)
+    # A settled order (PROCESSED/FULFILLED) already has its devices; shrinking
+    # the pool afterwards must not block it being saved again (e.g. marked
+    # FULFILLED after printing). The PROCESSED gate is unaffected: that check
+    # runs via valid? while the order is still PROCESSING.
+    return if settled?
     return if ticket_line_items.empty?
     return if performance.nil?
 

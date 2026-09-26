@@ -20,7 +20,8 @@ Special features are descriptive tags that can be assigned to individual perform
 | Field | Description |
 |-------|-------------|
 | **Short Name** | A concise label displayed in listings and email subject lines (e.g., "ASL Interpreted"). Must be unique across all special features. Required. |
-| **Description** | A longer explanation of the feature shown on the performance detail page. Supports Markdown formatting for links, bold text, and lists. Required. |
+| **Description** | A longer explanation of the feature shown on the website and, unless **Custom Email** is filled in, in patron emails. Supports Markdown formatting for links, bold text, and lists. Required. |
+| **Custom Email** | Optional. Text shown in confirmation and reminder emails **instead of** the description. Markdown enabled. Leave it blank to use the description in emails too. |
 | **Status** | `Active` or `Inactive`. Only active features can be assigned to performances and are visible to customers. |
 
 !!! tip "Use Markdown in descriptions"
@@ -53,12 +54,17 @@ A single performance can have multiple features assigned simultaneously (e.g., b
 - **Calendar/listing view:** The short name appears as a badge or tag next to the performance date and time.
 - **Performance detail page:** The full description is displayed, rendered with Markdown formatting.
 
-### Confirmation Emails
+### Confirmation and Reminder Emails
 
-- When a customer purchases tickets for a performance with special features, the **short name** and **description** are included in the order confirmation email so the patron knows about the feature in advance.
+- Each feature on the performance appears in a highlighted box in the confirmation and reminder emails, for every patron with an order for that performance.
+- The box shows the feature's **Custom Email** text when it has one, otherwise its **Description**. This is the same rule the performance's own [custom feature texts](../productions/performances.md#special-feature-email-markdown) follow.
+- Every patron gets it, whatever they bought, including virtual (streaming) ticket holders. Keep the email text suitable for everyone, or put instructions for one kind of ticket in that ticket class's [Purchase Email Annotation](../productions/ticket-classes.md#purchase-email-annotation).
 
-!!! warning "Inactive features are hidden everywhere"
-    Setting a feature to `Inactive` immediately removes it from the website and from future confirmation emails. It does not remove it from already-sent emails.
+!!! tip "Different wording for the website and emails"
+    Use **Custom Email** when the web description doesn't suit an email. For example, "Reserve a captioning tablet when you buy your tickets" makes sense on the purchase page, but after purchase the email might instead say "Captioning tablets can be requested at the box office."
+
+!!! warning "Inactive features are hidden from patrons"
+    Setting a feature to `Inactive` hides it everywhere patrons see features: the calendar footnotes, the purchase page, and confirmation and reminder emails sent from then on. This applies even for performances that still have it checked. It doesn't change emails already sent. The performance's own custom feature text is unaffected and still appears.
 
 ---
 
@@ -77,6 +83,6 @@ A single performance can have multiple features assigned simultaneously (e.g., b
 
 ## Managing Special Features
 
-- **Deactivate** a feature by setting its status to `Inactive`. It will no longer appear on the website or in emails, and it cannot be assigned to new performances.
-- **Reactivate** by switching back to `Active`. Any performances that still have the feature checked will immediately display it again.
-- **Delete** a feature only if it is no longer assigned to any performances. Removing assignments first prevents orphaned references.
+- **Deactivate** a feature by setting its status to `Inactive`. It no longer appears on the website, in patron emails or on the performance's admin page, and it can't be assigned to more performances.
+- **Reactivate** by switching back to `Active`. Any performances that still have the feature checked show it on the website and in emails again.
+- **Delete** a feature only if it is no longer assigned to any performances. If it is still assigned, deleting it copies its Description into each performance's custom feature text (and its Custom Email into the performance's custom email text), so those performances keep displaying the same information.

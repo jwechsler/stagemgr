@@ -197,3 +197,15 @@ RSpec.describe 'a performance' do
     end
   end
 end
+
+RSpec.describe Performance, '#active_special_features' do
+  it 'returns only the attached features that are Active' do
+    performance = FactoryBot.create(:performance)
+    active = SpecialFeature.create!(short_name: 'Talkback', status: SpecialFeature::ACTIVE, description: 'Talkback')
+    retired = SpecialFeature.create!(short_name: 'Retired', status: SpecialFeature::INACTIVE, description: 'Retired')
+    performance.special_features << [active, retired]
+
+    expect(performance.reload.active_special_features).to eq([active])
+    expect(performance.special_features).to include(retired) # still attached
+  end
+end

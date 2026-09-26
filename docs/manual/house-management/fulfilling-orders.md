@@ -16,6 +16,9 @@ Fulfillment moves orders through specific states in the Stagemgr order lifecycle
 | Processed > Fulfilled | **Fulfill** | Patron picks up tickets or checks in at will-call |
 | Fulfilled > Unclaimed | **Unclaim** | Revert a fulfillment (e.g., patron marked as arrived but hasn't actually checked in) |
 
+!!! note "Streaming and reservation-only orders"
+    Orders with no In person tickets (only Virtual or Other ticket classes, such as streams or tablet reservations) have nothing to pick up. [Printing tickets](printing-tickets.md) or **Fulfill** marks them Fulfilled without sending anything to the printer. See [Admission](../productions/ticket-classes.md#admission-how-patrons-attend).
+
 !!! tip
     Only orders in **Processed** status can be fulfilled. Orders in Hold, New, or Processing states must first complete payment processing before they are eligible for fulfillment.
 

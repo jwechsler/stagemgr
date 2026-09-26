@@ -2,6 +2,7 @@ class TicketClass < ApplicationRecord
   include ActionView::Helpers::NumberHelper
   include ApplicationHelper
   include TextSanitizable
+  include TicketAdmission
 
   TICKET_TYPES = %w[Fixed Donation Timed]
   FIXED = 'Fixed'

@@ -7,16 +7,24 @@ class PrintBatchJob
     successful_order_ids = []
     failed_order_ids = []
 
+    # Orders with nothing physical to print (e.g. streaming-only) are fulfilled
+    # before tktprint is contacted, so they still complete when the printer
+    # service is down or not configured at all (a streaming-only venue).
+    printable_orders = fulfill_orders_without_printable_tickets(order_ids, successful_order_ids, failed_order_ids)
+    if printable_orders.empty?
+      Rails.logger.info("Completed print batch job: #{batch_id} - no printable orders; #{successful_order_ids.length} fulfilled without printing, #{failed_order_ids.length} failed")
+      return
+    end
+
     begin
       # Create the print batch in tktprint
       create_print_batch(batch_id)
 
-      # Send each order to tktprint with batch information
-      order_ids.each_with_index do |order_id, index|
+      # Send each printable order to tktprint with batch information
+      printable_orders.each_with_index do |(order_id, order), index|
         sequence = index + 1
 
         begin
-          order = TicketOrder.find(order_id)
           Rails.logger.info("Processing order #{order_id} (sequence #{sequence}) for batch #{batch_id}")
 
           # Send to printer API with batch information (batch_id and sequence are required)
@@ -52,6 +60,26 @@ class PrintBatchJob
       Rails.logger.error("Error in print batch job #{batch_id}: #{e.message}")
       Rails.logger.error("Backtrace: #{e.backtrace.join("\n")}")
       raise e
+    end
+  end
+
+  # Fulfills the orders that have no printable tickets and returns the rest
+  # as [order_id, order] pairs, in their original order, for printing. An order that cannot be loaded or
+  # saved is recorded as failed and left out of the batch.
+  def self.fulfill_orders_without_printable_tickets(order_ids, successful_order_ids, failed_order_ids)
+    order_ids.filter_map do |order_id|
+      order = TicketOrder.find(order_id)
+      next [order_id, order] if order.contains_printable_tickets?
+
+      order.status = Order::FULFILLED if order.status == Order::PROCESSED
+      order.save!
+      Rails.logger.info("Order #{order_id} has no printable tickets; fulfilled without printing")
+      successful_order_ids << order_id
+      nil
+    rescue StandardError => e
+      Rails.logger.error("Error processing order #{order_id}: #{e.message}")
+      failed_order_ids << order_id
+      nil
     end
   end
 

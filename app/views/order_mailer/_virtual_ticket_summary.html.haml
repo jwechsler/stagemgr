@@ -1,0 +1,42 @@
+-# The ticket summary for an order's virtual (admission: virtual, e.g.
+-# streaming) tickets, rendered inside a paragraph by _performance_confirmation
+-# and, with reminder: true, by _performance_reminder. show_charge is true when
+-# no in-person summary precedes this one to carry the charge sentence. Access
+-# details (stream links) live in the class's purchase_email_annotation, shown
+-# under "A few notes about your order".
+- virtual_count = order.admission_ticket_count('virtual')
+- virtual_only = !order.attends_in_person?
+- if local_assigns[:reminder]
+  - if virtual_only
+    Just a reminder: the stream is at
+    = order.performance.performance_time.strftime('%l:%M %p').strip
+    this
+    = "#{Date::DAYNAMES[order.performance.performance_date.wday]}."
+    Access details are in the notes about your order below.
+  - else
+    You also have
+    = pluralize(virtual_count, 'virtual ticket')
+    for this performance.
+- else
+  Your
+  = pluralize(virtual_count, 'virtual ticket')
+  for
+  %i= "#{order.performance.production.name}#{!order.theater.is_default? ? ',' : ''}"
+  = "presented by #{order.theater.name}" unless order.theater.is_default?
+  on
+  = order.performance.performance_date.strftime('%A, %B %_d')
+  at
+  = order.performance.performance_time.strftime('%l:%M %p').strip
+  = virtual_count == 1 ? 'is' : 'are'
+  - if !local_assigns[:show_charge]
+    confirmed.
+  - elsif !order.membership_payments.empty?
+    = "confirmed and #{virtual_count == 1 ? 'was' : 'were'} purchased with your #{order.membership_payments.first.membership.membership_offer.name}."
+  - elsif !order.flex_pass_payments.empty?
+    = "confirmed and #{virtual_count == 1 ? 'was' : 'were'} purchased with your flex pass."
+  - elsif order.customer_visible_total <= 0
+    confirmed.
+  - else
+    = "confirmed and the total charge was $#{'%0.2f' % order.customer_visible_total}."
+  - if virtual_only
+    Access details are in the notes about your order below.

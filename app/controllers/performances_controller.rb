@@ -90,7 +90,7 @@ class PerformancesController < ApplicationController
   # "Custom Special Feature" text share one footnote rather than duplicating it.
   def special_feature_footnotes(performances)
     performances.flat_map do |p|
-      p.special_features.map(&:short_name) << p.custom_footnote_key
+      p.active_special_features.map(&:short_name) << p.custom_footnote_key
     end.compact.uniq
   end
 

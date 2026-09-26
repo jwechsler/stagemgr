@@ -25,6 +25,13 @@ RSpec.describe Admin::DefaultTicketClassesController, type: :controller do
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('default_ticket_class[zone_id]')
     end
+
+    it 'renders the admission select' do
+      get :new
+
+      expect(response.body).to include('default_ticket_class[admission]')
+      expect(response.body).to include('Admission type', 'input--inline-select', '>Other<')
+    end
   end
 
   describe 'POST #create' do
@@ -52,6 +59,12 @@ RSpec.describe Admin::DefaultTicketClassesController, type: :controller do
       expect(default_class.assigns_seats).to be true
       expect(default_class.show_in_pricing_range).to be false
       expect(default_class.complimentary).to be true
+    end
+
+    it 'persists admission' do
+      post :create, params: { default_ticket_class: valid_params(admission: 'virtual') }
+
+      expect(DefaultTicketClass.find_by(class_code: 'ZONEP').admission).to eq('virtual')
     end
   end
 

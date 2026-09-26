@@ -76,6 +76,24 @@ over a full template, and if the string you want to change is buried in a large
 file, extract it into a partial in `app/views/` first and override that. Several
 such partials are extracted later in this branch for exactly this reason.
 
+### Admission-aware ticket emails
+
+A ticket class's `admission` (in person, virtual/streaming, or other) decides
+which parts of the confirmation, reminder and followup emails render. The
+generic composing templates make that decision, so the visit advice partials
+(`_transportation_instructions`, `_dining_recommendations`, `_seating_policy`,
+`_amenities`) are simply not rendered for an order with no in-person tickets and
+need no admission logic of their own. The admission-specific wording is in three
+small leaf partials under `order_mailer/`, which are the override points:
+
+- `_in_person_ticket_summary` — "We have N tickets reserved… waiting at the box
+  office" (confirmation) and "Just a reminder, you have N tickets" (reminder,
+  `reminder: true`)
+- `_virtual_ticket_summary` — the same for virtual tickets; stream links belong
+  in the ticket class's email annotation, not here
+- `_followup_opening` — the first sentence of the producing-house followups,
+  with an `in_person: false` variant that doesn't mention a visit
+
 ## What goes where
 
 Three tiers, in order of preference:

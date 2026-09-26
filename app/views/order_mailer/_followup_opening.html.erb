@@ -1,0 +1,14 @@
+<%# Opening sentence of the producing-house followups (standard and first-time),
+    rendered inside a paragraph. The composing template passes in_person: false
+    for an order with no in-person tickets (e.g. streaming-only), which must not
+    talk about a visit to the theater. first_time and personal come from
+    first_time_followup (personal = TheaterInfo#first_person?). %>
+<% hope = local_assigns[:personal] ? 'I hope' : 'We hope' %>
+<% if !in_person %>
+  <%= hope %> you enjoyed the performance and will return soon (there are a few suggestions in the sidebar on the right, but check our website for all upcoming events).
+<% elsif local_assigns[:first_time] %>
+  <%= hope %> you had a good evening and will return soon (there are a few suggestions in the sidebar on the right, but check our website for all upcoming events).
+<% else %>
+  We hope you had a good time here at the theater and will return soon (there are a few suggestions in
+  the sidebar on the right, but check our website for all upcoming events).
+<% end %>

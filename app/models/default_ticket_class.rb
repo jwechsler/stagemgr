@@ -1,4 +1,6 @@
 class DefaultTicketClass < ApplicationRecord
+  include TicketAdmission
+
   validates :class_code, presence: true
   validates :class_code, uniqueness: true
   validates :ticket_price, presence: true

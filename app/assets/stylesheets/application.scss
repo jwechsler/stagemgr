@@ -42,6 +42,31 @@ label.boolean + span.hint {
   margin-top: -1.6em;
 }
 
+// A select laid out like the checkbox rows around it: label on the left,
+// control on the right, hint on its own right-aligned line underneath.
+.input--inline-select {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+
+  > label {
+    margin: 0;
+  }
+
+  > select {
+    width: auto;
+    margin: 0 0 0 1rem;
+  }
+
+  > .hint {
+    flex-basis: 100%;
+    float: none;
+    margin-top: 0.25rem;
+    text-align: right;
+  }
+}
+
 form > .vertical-center {
   padding-top: .5em;
 }

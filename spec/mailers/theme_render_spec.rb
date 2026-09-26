@@ -172,6 +172,19 @@ RSpec.describe 'mailer rendering under each site theme', type: :mailer do
       end
     end
 
+    it 'leaves the visit advice overrides out of a virtual-only confirmation' do
+      ticket_order.ticket_line_items.each { |tli| tli.ticket_class.update!(admission: 'virtual') }
+
+      SiteTheme.with_theme('theaterwit') do
+        confirmation = OrderMailer.ticket_confirmation(ticket_order.reload).body.decoded
+
+        expect(confirmation).to include('virtual ticket')
+        expect(confirmation).not_to include('Kubo')
+        expect(confirmation).not_to include('tears and recriminations')
+        expect(confirmation).not_to include('About your visit')
+      end
+    end
+
     it 'renders the host callout for a show the house only presented' do
       visiting = FactoryBot.create(:theater, name: 'Visiting Company', theater_class: Theater::VISITING)
       visiting_production = FactoryBot.create(:production, theater: visiting, venue: venue,

@@ -19,11 +19,7 @@
       %a{:name=>"top",:style=>"text-decoration:none"}
         %h3= raw order.performance.production.name + ' on ' + order.performance.performance_date.to_formatted_s(:long_ordinal) + ' at ' + order.performance.performance_time.to_formatted_s(:hour_min)
 
-      - order.performance.special_features.each do |feature|
-        .special_feature= display_markdown(feature.description)
-
-      - unless order.performance.special_feature_display_markdown.blank?
-        .special_feature= display_markdown(order.performance.special_feature_display_markdown)
+      = render partial: 'ticket_orders/special_features', locals: { performance: order.performance }
 
 
       =simple_form_for order do |order_form|

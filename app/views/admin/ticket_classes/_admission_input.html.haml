@@ -1,0 +1,9 @@
+-# Admission type select, shared by the ticket class, default ticket class and
+-# resourced ticket class forms. Rendered inline (label left, select right) to
+-# line up with the checkbox rows around it; see .input--inline-select.
+= f.input :admission,
+  label: 'Admission type',
+  collection: [['In person', 'in_person'], ['Virtual (streaming)', 'virtual'], ['Other', 'other']],
+  include_blank: false,
+  wrapper_html: { class: 'input--inline-select' },
+  hint: 'Only in-person tickets print. Other is never counted as a ticket.'
