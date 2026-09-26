@@ -90,6 +90,8 @@ Custom text displayed on the **website** for this performance, below the date an
 
 Custom text included in **confirmation and reminder emails** for orders on this performance, **instead of** the Special Feature Display Markdown. **Markdown enabled.** Leave it blank and emails use the display markdown. Use this for performance-specific instructions or reminders sent to ticket holders.
 
+Click **Send sample email** in the field's **Email preview** header to send yourself a confirmation showing this text and the checked special features as they stand in the form.
+
 Checked special features follow the same rule: each shows its own **Custom Email** text in emails when set, otherwise its description. See [Special Features](../offers/special-features.md#confirmation-and-reminder-emails).
 
 **Example:** `*This performance includes an ASL interpreter. Interpreted seating is in the first three rows.*`

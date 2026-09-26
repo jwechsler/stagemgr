@@ -5,6 +5,49 @@
 
 ## September 2026
 
+### Formatted Text Editor
+
+**Available to:** Administrator, Box Office
+
+Every Markdown-enabled admin field now shows its text **as patrons will see it**, under a
+**Preview (click to edit)** header. Clicking the preview opens a formatting toolbar and the text
+box below it, and the preview updates as you type. Email-only fields are headed **Email preview**
+and preview with the formatting their email uses.
+
+**Key behaviors:**
+
+- Toolbar buttons for bold, italic, heading, link, bulleted and numbered lists; ⌘/Ctrl-B, -I and -K shortcuts.
+- **Done** or **Escape** closes the editor; a field with a validation error opens already expanded.
+- Stored text is never rewritten, so existing hand-written HTML keeps working.
+- The Email Attendees message body uses the same editor, opened ready to type.
+- Membership offer **Email HTML** is now **Confirmation Email Text** and is rendered as Markdown (embedded HTML still works).
+
+See [Formatted Text Fields](../getting-started/formatted-text.md).
+
+### Send Sample Email From Every Email Field
+
+**Available to:** Administrator, Box Office (membership offers: Administrator)
+
+Every email-only text field now has a **Send sample email** button at the right of its
+**Email preview** header. It mails you the real email built from the form's unsaved values,
+and nothing is saved. The production form's old **Send sample confirmation email** and
+**Send sample follow-up email** buttons under the fields are gone; the header button replaces them.
+
+| Field | Email sent |
+|-------|------------|
+| Production **Additional Confirmation Message** / **Follow-up message** | Ticket confirmation / post-show follow-up, as before |
+| Ticket class, default and resourced ticket class **Purchase Email Annotation** | Ticket confirmation carrying the annotation |
+| Performance and special feature **Custom Email** | Ticket confirmation with the feature text |
+| Membership offer **Confirmation Email Text** | Membership confirmation; no membership is created |
+| Email Attendees **Message Body** | The attendee email, to you only; nothing is queued for ticket holders |
+
+**Key behaviors:**
+
+- The header's **Email preview (click to edit)** is now a button that opens and closes the editor from the keyboard; clicking the preview still opens it.
+- Sending a sample doesn't open or close the editor.
+
+See [Email Templates](../advanced/email-templates.md#sample-email-preview).
+
 ### Propagate Toggle -- Switch Classes Off Down the Run, Reset Dynamic Pricing
 
 **Available to:** Administrator, Box Office

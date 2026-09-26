@@ -47,7 +47,7 @@ Default ticket classes have the same fields as production-level ticket classes. 
 | **Show in Pricing Range** | Whether included in the displayed price range |
 | **Minutes Before Show** | For Timed type: when the class becomes visible |
 | **Purchase Page Annotation** | Note shown on the purchase page |
-| **Purchase Email Annotation** | Note included in confirmation emails (markdown) |
+| **Purchase Email Annotation** | Note included in confirmation emails (markdown). **Send sample email** in its header mails you a confirmation for a sample production carrying the note as typed |
 
 ## How the Copy Works
 

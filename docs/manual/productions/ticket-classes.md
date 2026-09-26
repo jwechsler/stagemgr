@@ -143,6 +143,8 @@ Text included in the confirmation and reminder emails for orders containing this
 - "Includes one drink (beer/wine/cocktail) at our bar." (an In person add-on that doesn't hold seats)
 - "A captioning tablet will be waiting at your seat." (an Other reservation)
 
+Click **Send sample email** in the field's **Email preview** header to send yourself a confirmation carrying the annotation as typed, with the class name and admission type from the form. Nothing is saved. See [Sample Email Preview](../advanced/email-templates.md#sample-email-preview).
+
 ## Inventory and Seating
 
 ### Holds Seats

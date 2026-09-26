@@ -34,7 +34,12 @@
           Message Body
           %span.required-field *
           %small.help-text You can use Markdown formatting in the message body.
-        %textarea#broadcast-body{name: 'body', rows: 10, placeholder: 'Email message body (Markdown supported)', required: true}
+        -# Opens straight into the editor: a blank compose box has nothing to preview.
+        -# The sample's URL names the production; the performance id comes with this form.
+        = markdown_editor(text_area_tag('body', '', id: 'broadcast-body', rows: 10, required: true,
+                                                    placeholder: 'Email message body (Markdown supported)'),
+                          value: '', editor_id: 'broadcast-body-editor', open: true, flavor: 'email',
+                          sample: { kind: 'performance_broadcast', production_id: @production.id })
 
     .grid-x.grid-padding-x
       .cell.small-12

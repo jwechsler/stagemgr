@@ -38,8 +38,7 @@ Stagemgr has three staff roles, each building on the permissions of the role bel
 | Edit productions | Yes | Yes | -- |
 | Duplicate productions | Yes | Yes | -- |
 | Delete productions | Yes | -- | -- |
-| Send sample confirmation email | Yes | Yes | -- |
-| Send sample follow-up email | Yes | Yes | -- |
+| Send sample email (confirmation and follow-up message fields) | Yes | Yes | -- |
 | Auto-complete production search | Yes | Yes | Yes |
 
 ## Festivals

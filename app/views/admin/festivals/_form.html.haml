@@ -5,7 +5,7 @@
       = f.input :name
       = f.input :url_name, label: 'URL name', hint: "Sets the landing page address (/festivals/<url name>). Lowercase letters, numbers, and hyphens only. Required when the landing page is enabled."
       = f.input :short_description, hint: "255 character max", input_html: { maxlength: 255 }
-      = f.input :description, hint: "Long description (markdown enabled)", input_html: { rows: 6 }
+      = f.input :description, as: :markdown, hint: "Long description (markdown enabled)", input_html: { rows: 6 }
 
       = f.input :status, collection: Festival::FESTIVAL_STATUSES, include_blank: false
       = f.input :landing_page_enabled, label: "Enable public landing page"

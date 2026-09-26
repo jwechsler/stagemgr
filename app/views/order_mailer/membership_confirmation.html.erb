@@ -70,9 +70,11 @@
   <p>
     Keep in mind that your membership cannot be shared with another person.  Until our box office gets to know you, please make sure to bring a picture ID when you come to pick up tickets.
   </p>
-  <p>
-    <%=raw @membership.membership_offer.email_html %>
-  </p>
+  <%# Markdown (embedded HTML passes through). A div, not a <p>: the rendered
+      text brings its own paragraphs and lists. %>
+  <div>
+    <%= display_markdown @membership.membership_offer.email_html %>
+  </div>
 <% end %>
 <p>
   <%= render 'shared/house_thanks_line', phone_phrase: 'call us at' %>

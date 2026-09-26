@@ -32,6 +32,14 @@ RSpec.describe Admin::DefaultTicketClassesController, type: :controller do
       expect(response.body).to include('default_ticket_class[admission]')
       expect(response.body).to include('Admission type', 'input--inline-select', '>Other<')
     end
+
+    # The partial is shared with production ticket classes; a default has no production.
+    it 'offers a default ticket class sample of the purchase email annotation' do
+      get :new
+
+      sample = Nokogiri::HTML(response.body).at_css('.markdown-editor__sample')
+      expect(sample['data-url']).to end_with('/admin/sample_emails?kind=default_ticket_class')
+    end
   end
 
   describe 'POST #create' do

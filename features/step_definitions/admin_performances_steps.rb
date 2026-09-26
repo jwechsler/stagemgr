@@ -23,11 +23,11 @@ Given(/^I enter a trigger to "(.*?)" based on capacity of "(.*?)" for the (\d+)(
 end
 
 Given(/^I enter a custom feature description of "(.*?)"$/) do |description|
-  fill_in 'performance_special_feature_display_markdown', with: description
+  fill_in_markdown 'performance_special_feature_display_markdown', with: description
 end
 
 Given(/^I enter a custom feature email of "(.*?)"$/) do |email|
-  fill_in 'performance_special_feature_email_markdown', with: email
+  fill_in_markdown 'performance_special_feature_email_markdown', with: email
 end
 
 Then(/^show me the yaml for performance "(.*?)"$/) do |perf_code|

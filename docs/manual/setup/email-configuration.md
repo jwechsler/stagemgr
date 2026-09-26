@@ -80,6 +80,6 @@ Each production can include custom messages in confirmation and follow-up emails
 - **Additional Confirmation Message** -- Added to the ticket confirmation email
 - **Additional Follow-Up Message** -- Added to the post-performance follow-up email
 
-Both fields support Markdown formatting. Use the **Send sample email** feature on the production edit page to preview how these messages appear.
+Both fields support Markdown formatting. Click **Send sample email** in the field's **Email preview** header on the production edit page to send yourself a preview of how the message appears, unsaved edits included.
 
 See [Email Templates](../advanced/email-templates.md) for details on customizing email content.

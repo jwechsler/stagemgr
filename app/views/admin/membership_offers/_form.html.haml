@@ -43,8 +43,10 @@
         %legend Notification/Display
         .grid-x.grid-padding-x
           .small-12.cell
-            = f.input :html_description
-            = f.input :email_html
+            = f.input :html_description, as: :markdown
+            = f.input :email_html, as: :markdown, preview: 'email_site', label: 'Confirmation Email Text',
+                                   sample: { kind: 'membership_offer' },
+                                   hint: 'Added to the membership confirmation email. Markdown enabled'
         .grid-x.grid-padding-x
           - unless MyEmma.disabled?
             .small-6.cell

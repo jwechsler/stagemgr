@@ -186,7 +186,7 @@ Custom text included in the **order confirmation email** sent immediately after 
 Custom text included in the **follow-up email** sent after the performance. **Markdown enabled.** Use this for survey links, upcoming show promotions, or thank-you messages.
 
 !!! tip "Preview Sample Emails"
-    After saving the production, the edit page displays **Send sample confirmation email** and **Send sample follow-up email** buttons. Click either button to send a preview of that email to your own address, so you can verify formatting and content before patrons receive it.
+    After saving the production, each of these fields shows a **Send sample email** button at the right of its **Email preview** header. Click it to send a preview of that email, with any unsaved edits, to your own address, so you can verify formatting and content before patrons receive it. See [Email Templates](../advanced/email-templates.md#sample-email-preview).
 
 ## After Creating a Production
 

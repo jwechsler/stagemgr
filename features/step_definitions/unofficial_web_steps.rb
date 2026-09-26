@@ -54,7 +54,7 @@ end
 # end
 
 Given(/^I change "(.*?)" to "(.*?)"$/) do |field, value|
-  fill_in(field, with: value)
+  fill_in_markdown(field, with: value) # an ordinary field is simply filled in
 end
 
 Given(%r{^I select ([0-9]+/[0-9]+/[0-9]+) from "([^"]*)"$}) do |date, field|

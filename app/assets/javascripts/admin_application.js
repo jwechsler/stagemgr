@@ -1,4 +1,5 @@
 //= require_this
+//= require admin/markdown_editor
 // setup dataTable with standard active switch selector. Call from ready state
 function setupActiveSwitchOnDataTable(table_selector, status_column_idx) {
   $("div.toolbar-buttons").html('<a style="margin-right:6px; width:10em;" id="active-switch" href="#" class="tiny button right" >Active</a>');
@@ -94,6 +95,7 @@ $(document).ready(function() {
 
     // Reset form
     $('#broadcast-body').val('');
+    document.getElementById('broadcast-body').dispatchEvent(new Event('input')); // refresh the markdown preview
     $('#broadcast-from-address').val('');
 
     // Disable send button while loading
@@ -177,6 +179,7 @@ $(document).ready(function() {
           $('#email-attendees-modal').foundation('close');
           // Reset form
           $('#email-attendees-form')[0].reset();
+          document.getElementById('broadcast-body').dispatchEvent(new Event('input'));
         } else {
           alert('Error: ' + data.message);
         }
