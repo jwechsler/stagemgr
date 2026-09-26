@@ -44,6 +44,8 @@ When a seat map is assigned, the production's **capacity** is automatically deri
 
 For general admission productions (no seat map), enter the maximum number of seats available per performance. For reserved seating productions, this field is read-only and reflects the seat map's seat count.
 
+You can't set a general admission capacity lower than the seats already sold or held for any one performance. See [How Capacity Works](general-vs-reserved.md#how-capacity-works).
+
 ## Form Fields: Metadata
 
 ### Production Code

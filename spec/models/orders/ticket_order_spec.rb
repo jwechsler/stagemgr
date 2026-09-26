@@ -555,9 +555,11 @@ RSpec.describe TicketOrder do
         order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash,
                                   address: buyer, performance: performance)
 
-        # Historic condition: the performance has since sold down, so this order
-        # can no longer clear ticket_stock_available on a full save.
-        production.update!(capacity: 1)
+        # Historic condition: capacity below the seats already sold. The capacity
+        # floor now refuses this edit, but data from before it can still look
+        # like this, so write it directly. (Settled orders skip the capacity
+        # check anyway; the merge must not depend on re-validating the order.)
+        production.update_column(:capacity, 1)
 
         expect(order.link_to_address_of_record).to be(true)
         expect(order.reload.address_id).to eq(keeper.id)

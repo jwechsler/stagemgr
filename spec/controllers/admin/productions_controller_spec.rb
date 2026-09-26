@@ -169,4 +169,20 @@ RSpec.describe Admin::ProductionsController, type: :controller do
       expect(body).to include(Rails.configuration.x.server_config['survey_link'])
     end
   end
+
+  describe 'PATCH #update capacity' do
+    before do
+      allow(controller).to receive(:current_user).and_return(admin_user)
+      performance = FactoryBot.create(:performance, production: production)
+      FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash, performance: performance)
+    end
+
+    it 'refuses a general admission capacity below the seats already sold and says why' do
+      patch :update, params: { theater_id: theater.id, id: production.id, production: { capacity: 1 } }
+
+      expect(response).to have_http_status(:ok) # re-rendered edit
+      expect(response.body).to include('seats sold or held')
+      expect(production.reload.read_attribute(:capacity)).to eq(100)
+    end
+  end
 end

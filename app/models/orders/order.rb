@@ -70,6 +70,11 @@ class Order < ApplicationRecord
   # names so existing call sites keep working unchanged.
   HELD_STATUSES = [Order::HOLD].freeze
 
+  # Seats a general admission production's capacity must always cover: box
+  # office holds and sold tickets (see ProductionCapacityFloor). Narrower than
+  # SEAT_OCCUPYING_STATUSES, which also counts transient checkouts and exchanges.
+  CAPACITY_COMMITTED_STATUSES = [Order::HOLD, Order::PROCESSED, Order::FULFILLED].freeze
+
   HOLDING_SEAT_STATUSES = [HOLD, NEW, PROCESSING, PROCESSED, EXCHANGING, RELEASING, FULFILLED].freeze
 
   # Documented aliases for the two status sets above. Same frozen arrays, clearer

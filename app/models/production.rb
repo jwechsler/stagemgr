@@ -44,6 +44,7 @@ class Production < ApplicationRecord
     visible_prod.validates_presence_of :first_preview_at
   end
   validate :correct_promo_mime_type
+  include ProductionCapacityFloor
 
   before_destroy :ensure_no_performances
   belongs_to :venue, inverse_of: :productions
