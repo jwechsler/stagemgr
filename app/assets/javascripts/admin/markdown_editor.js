@@ -123,6 +123,10 @@
       if (isOpen) textarea.focus();
     }
 
+    // The server renders every editor open so the field still works without
+    // JavaScript; collapse to the preview unless it should start open.
+    if (editor.dataset.markdownStartOpen !== 'true') setOpen(false);
+
     previewToggle.addEventListener('click', function() {
       setOpen(editPanel.hidden);
     });
