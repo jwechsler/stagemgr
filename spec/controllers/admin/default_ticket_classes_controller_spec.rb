@@ -30,6 +30,7 @@ RSpec.describe Admin::DefaultTicketClassesController, type: :controller do
       get :new
 
       expect(response.body).to include('default_ticket_class[admission]')
+      expect(response.body).to include('Admission type', 'input--inline-select', '>Other<')
     end
   end
 

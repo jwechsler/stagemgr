@@ -5,7 +5,7 @@ module TicketOrderAdmission
   extend ActiveSupport::Concern
 
   # Tickets (not seats) in classes of the given admission mode
-  # ('in_person' or 'virtual').
+  # ('in_person', 'virtual' or 'other').
   def admission_ticket_count(mode)
     ticket_line_items.select { |li| li.ticket_class&.admission == mode.to_s }
                      .sum { |li| li.ticket_count.to_i }
@@ -13,8 +13,8 @@ module TicketOrderAdmission
 
   # Tickets that admit someone to the performance: seat-holding in_person
   # tickets plus virtual ones. In-person classes that don't hold seats are
-  # add-ons (drink vouchers, parking) and don't count. The ticket total in
-  # patron emails.
+  # add-ons (drink vouchers) and 'other' classes are not tickets at all, so
+  # neither counts. The ticket total in patron emails.
   def attending_ticket_count
     box_office_ticket_count + admission_ticket_count('virtual')
   end

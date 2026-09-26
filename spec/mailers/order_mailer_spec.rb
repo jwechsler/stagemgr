@@ -280,6 +280,19 @@ RSpec.describe OrderMailer, type: :mailer do
           expect(text).to include(stream_note)
         end
 
+        it 'does not count an other-class reservation, even one that holds a seat' do
+          tablet = FactoryBot.create(:ticket_class, production: regular_production, class_code: 'TABL',
+                                                    holds_seats: true, admission: 'other')
+          FactoryBot.create(:ticket_class_allocation, performance: regular_performance, ticket_class: tablet,
+                                                      ticket_limit: 10)
+          FactoryBot.create(:ticket_line_item, ticket_class: tablet, ticket_count: 1, order: regular_order)
+          text = text_of(OrderMailer.ticket_confirmation(regular_order.reload))
+
+          expect(text).to include('We have 2 tickets reserved for Regular Play')
+          expect(text).to include('Your 2 tickets will be waiting at the box office')
+          expect(text).not_to include('3 tickets')
+        end
+
         it 'drops the ticket count for an order of only non-seat add-ons' do
           regular_order.ticket_line_items.each { |tli| tli.ticket_class.update!(holds_seats: false) }
           text = text_of(OrderMailer.ticket_confirmation(regular_order.reload))

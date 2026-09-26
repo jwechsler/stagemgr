@@ -30,6 +30,8 @@
 # performance by summing live-order tickets across every performance in the
 # resource's venues whose window overlaps the candidate's.
 class ResourcedTicketClass < ApplicationRecord
+  include TicketAdmission
+
   # Upper bound on changeover_minutes. Keeps the +/- 1 day performance_date
   # prefilter in #remaining_for valid: with a changeover under 12 hours the
   # occupancy window can never reach a performance more than one calendar day

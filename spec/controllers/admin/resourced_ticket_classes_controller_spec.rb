@@ -108,6 +108,7 @@ RSpec.describe Admin::ResourcedTicketClassesController, type: :controller do
 
         get :edit, params: { id: resource.id }
         expect(response).to have_http_status(:ok)
+        expect(response.body).to include('Admission type')
       end
     end
 
@@ -121,6 +122,12 @@ RSpec.describe Admin::ResourcedTicketClassesController, type: :controller do
         expect(created.quantity).to eq(2)
         expect(created.changeover_minutes).to eq(30)
         expect(created.venue_ids).to eq([venue.id])
+      end
+
+      it 'saves the admission type' do
+        post :create, params: { resourced_ticket_class: valid_params(admission: 'other') }
+
+        expect(ResourcedTicketClass.find_by(class_code: 'TABLET').admission).to eq('other')
       end
 
       it 'rejects an invalid resource and re-renders new' do

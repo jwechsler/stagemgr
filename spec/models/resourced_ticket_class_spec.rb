@@ -173,6 +173,17 @@ RSpec.describe ResourcedTicketClass do
       expect(shadow.holds_seats).to be false
       expect(shadow).to be_resourced
     end
+
+    it 'carries the admission mode onto the shadow row, defaulting to in_person' do
+      res = resource(venues: [venue_a])
+      expect(shadow_class_for(res, production_in(venue_a)).admission).to eq('in_person')
+
+      res.update!(admission: 'other')
+      shadow = shadow_class_for(res, production_in(venue_a))
+
+      expect(shadow.admission).to eq('other')
+      expect(shadow.prints_ticket?).to be false
+    end
   end
 
   describe '#occupancy_window_for' do

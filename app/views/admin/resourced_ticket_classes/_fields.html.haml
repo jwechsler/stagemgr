@@ -29,6 +29,7 @@
       = f.input :software_managed, :hint=>"Not for box office sales"
       = f.input :hide_pricing, :hint=>"Hide the actual price from the customer"
       = f.input :suppress_receipt, :hint=>"Suppress automatic confirmation email"
+      = render 'admin/ticket_classes/admission_input', f: f
       = f.input :complimentary, :label=>"Treat as comp ticket", :hint=>"Comp tickets are separately inventoried and reported. Not the same as a $0 ticket"
       = f.input :holds_seats, :default=>false, :hint=>"Reserve seats from inventory"
       = f.input :assigns_seats, :default=>false,  :label=>"Manual seat assignment required", :hint=>"Requires house management seating"

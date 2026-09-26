@@ -3,9 +3,9 @@
 -# the late-seating note) and, with reminder: true, by _performance_reminder.
 -# The confirmation version carries the charge sentence. The ticket total is
 -# TicketOrder#attending_ticket_count: seat-holding in-person tickets plus
--# virtual ones, never non-seat add-ons such as drink vouchers. An order of only
--# add-ons has no total, so both versions drop the count rather than say
--# "0 tickets". The confirmation's pickup sentence counts only
+-# virtual ones, never non-seat add-ons such as drink vouchers or 'other'
+-# reservations. An order of only add-ons has no total, so both versions drop
+-# the count rather than say "0 tickets". The confirmation's pickup sentence counts only
 -# TicketOrder#box_office_ticket_count (in-person, seat-holding tickets), and
 -# drops the number when there are none ("Your tickets will be waiting").
 - attending = order.attending_ticket_count

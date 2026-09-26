@@ -66,6 +66,9 @@ The form contains the standard ticket class fields (see [Ticket Classes](ticket-
 | **Changeover Minutes** | Buffer before curtain and after the show ends during which a device cannot serve another performance |
 | **Venues** | The venues that share this pool. Performances of productions in these venues draw from -- and count against -- the pool |
 
+!!! tip "Admission type for equipment"
+    Resourced classes have the same [Admission type](ticket-classes.md#admission-how-patrons-attend) setting as other ticket classes, and every production copy follows it. The default is **In person**, which prints a ticket for the device. Choose **Other** when the patron doesn't need a ticket to collect the equipment (for example, the house sets the tablet at their seat). The reservation then never prints and never counts toward the patron's ticket total, and its email annotation still tells them it's arranged.
+
 !!! note "No Auto Attach"
     Resourced ticket classes deliberately have **no Auto Attach option**. Allocations are always created **inactive**, and staff enable them per performance -- typically once the equipment is confirmed ready for that run (for example, captioning tablets only after the show has been teched). A global auto-attach switch would re-activate the class on every outstanding performance in the venues, silently undoing that per-performance curation.
 

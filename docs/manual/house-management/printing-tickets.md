@@ -59,8 +59,8 @@ The batch print system includes orders that meet all of the following criteria:
 
 Only tickets whose class has [Admission](../productions/ticket-classes.md#admission-how-patrons-attend) set to **In person** are printed:
 
-- **Virtual-only orders** (streaming tickets) are not sent to the printer. They are marked **Fulfilled** as part of the same print run, so they don't stay in Processed status.
-- **Mixed orders** print only their In person tickets, including add-ons such as drink vouchers. Virtual purchases still appear on the printed receipt.
+- **Virtual-only or Other-only orders** (streaming tickets, tablet reservations) are not sent to the printer. They are marked **Fulfilled** as part of the same print run, so they don't stay in Processed status.
+- **Mixed orders** print only their In person tickets, including add-ons such as drink tickets. Virtual and Other purchases still appear on the printed receipt.
 
 !!! warning
     Orders in Hold status are not included in batch printing because payment has not been completed. If a held order needs tickets printed, it must first be converted to a paid order.
@@ -111,7 +111,7 @@ The ticket printing system requires a connected thermal ticket printer. Configur
     If the printer is offline or disconnected, print jobs will queue but not produce physical tickets. Check the printer connection if tickets are not appearing. The tktprint service status can be verified at its service URL.
 
 !!! note "Venues without a printer"
-    A venue that sells only Virtual tickets (for example, streaming-only performances) doesn't need a ticket printer. With no printer service configured, running a print still fulfills those orders. Orders containing In person tickets still need the printer.
+    A venue that sells only Virtual or Other tickets (for example, streaming-only performances) doesn't need a ticket printer. With no printer service configured, running a print still fulfills those orders. Orders containing In person tickets still need the printer.
 
 ---
 

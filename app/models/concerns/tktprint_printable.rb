@@ -124,8 +124,8 @@ module TktprintPrintable
     # holds seats) pool-match by ticket_class_id, mirroring
     # flatten_ticket_line_items. Non-seat tickets (holds_seats=false) print
     # with a blank seat, the same as general admission. Only in_person
-    # admission classes print; virtual (streaming) classes print no ticket but
-    # stay on the receipt line items/amount.
+    # admission classes print; virtual (streaming) and other classes print no
+    # ticket but stay on the receipt line items/amount.
     seat_pool = performance.production.has_reserved_seating? ? seats.to_a : []
     ticket_line_items.select { |tli| tli.ticket_class&.prints_ticket? }.each do |tli|
       tli.ticket_count.times do

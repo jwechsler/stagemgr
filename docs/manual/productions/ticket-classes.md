@@ -89,22 +89,24 @@ When checked, the ticket price is hidden from the patron on the purchase page an
 
 ## Admission (How Patrons Attend)
 
-**Default: In person.** Admission says how someone holding this ticket takes part in the performance. It decides two things: whether the ticket **prints** at the ticket printer, and which parts of the patron's **emails** they receive.
+**Default: In person.** The **Admission type** setting says how someone holding this ticket takes part in the performance. It decides two things: whether the ticket **prints** at the ticket printer, and which parts of the patron's **emails** they receive.
 
-| Admission | Prints a ticket? | Gets visit and pickup copy? | Use for |
-|-----------|------------------|-----------------------------|---------|
-| **In person** | Yes | Yes | Anyone coming to the building (GA, Senior, Comp, and so on), and add-ons used there, such as drink vouchers or parking |
-| **Virtual (streaming)** | No | No | Streaming access to the performance |
+| Admission type | Prints a ticket? | Counted as a ticket? | Gets visit and pickup copy? | Use for |
+|----------------|------------------|----------------------|-----------------------------|---------|
+| **In person** | Yes | Only if it holds seats | Yes | Anyone coming to the building (GA, Senior, Comp, and so on), and add-ons that need a printed voucher, such as a drink ticket |
+| **Virtual (streaming)** | No | Yes | No | Streaming access to the performance |
+| **Other** | No | No | No | Items that aren't a ticket for the patron, such as a captioning tablet reservation the house sets aside for them |
 
-!!! tip "Add-ons are In person classes that don't hold seats"
-    For a drink voucher, parking pass or similar add-on, choose **In person** and uncheck [Holds Seats](#holds-seats). The add-on prints (so it can serve as a voucher) and its email annotation appears. But it isn't counted in the patron's ticket total, and it doesn't use up house capacity.
+!!! tip "Drink tickets are In person; tablet reservations are Other"
+    - **Drink tickets and similar add-ons:** choose **In person** and uncheck [Holds Seats](#holds-seats). The patron needs the printed voucher, so it prints and its email annotation appears. But it doesn't reserve a seat, so it isn't counted in the patron's ticket total.
+    - **Reservations the patron doesn't carry,** like a captioning tablet waiting for them: choose **Other**. It never prints and is never counted, even if it holds seats. Its email annotation still appears.
 
 ### Printing
 
 Only **In person** tickets print. When you [print tickets](../house-management/printing-tickets.md):
 
-- An order with only Virtual tickets isn't sent to the printer. It is marked **Fulfilled** automatically.
-- A mixed order prints only its In person tickets (add-ons included), and becomes Fulfilled once they print. Its Virtual purchases still appear on the printed receipt.
+- An order with only Virtual or Other tickets isn't sent to the printer. It is marked **Fulfilled** automatically.
+- A mixed order prints only its In person tickets (drink tickets included), and becomes Fulfilled once they print. Its Virtual and Other purchases still appear on the printed receipt.
 
 ### Emails
 
@@ -113,7 +115,8 @@ Patron emails follow the order's admission:
 - **In-person orders** get the usual confirmation and reminder. That covers "Your tickets will be waiting at the box office", the late-seating note, "About your visit" (getting here, dining, seating, amenities) and "See you at the theater!".
 - **Virtual-only orders** get none of that visit and pickup copy. The confirmation says "Your 2 virtual tickets for *Show* on … are confirmed", the reminder says "Just a reminder: the stream is at 7:30 PM this Friday", and both point the patron to the notes about their order for access details. The post-show followup doesn't say they were at the theater.
 - **Mixed orders** get both: the in-person copy for the seats and a line about the virtual tickets.
-- **Ticket counts:** the ticket total ("We have 3 tickets reserved") counts In person tickets that hold seats plus all Virtual tickets. The box office line ("Your 2 tickets will be waiting") counts only In person tickets that hold seats. Add-ons are never counted. An order of only add-ons says "Your order is confirmed for…" instead of giving a count.
+- **Ticket counts:** the ticket total ("We have 3 tickets reserved") counts In person tickets that hold seats plus all Virtual tickets. The box office line ("Your 2 tickets will be waiting") counts only In person tickets that hold seats. In-person add-ons that don't hold seats, and Other items, are never counted. An order of only add-ons says "Your order is confirmed for…" instead of giving a count.
+- **Other-only orders** get the order details, the charge and the notes, without a pickup line or visit information.
 
 !!! tip "Put the stream link in the Purchase Email Annotation"
     Stagemgr doesn't generate stream links. Put the link and any viewing instructions in the virtual class's [Purchase Email Annotation](#purchase-email-annotation). It appears under "A few notes about your order" in both the confirmation and the reminder, but only on orders that include that class.
@@ -138,6 +141,7 @@ Text included in the confirmation and reminder emails for orders containing this
 - "Please arrive 15 minutes early for will-call pickup." (an In person class)
 - "Watch at https://stream.example.org/show -- the stream opens 15 minutes before curtain." (a Virtual class)
 - "Includes one drink (beer/wine/cocktail) at our bar." (an In person add-on that doesn't hold seats)
+- "A captioning tablet will be waiting at your seat." (an Other reservation)
 
 ## Inventory and Seating
 
@@ -219,18 +223,19 @@ For an invite-only industry event:
 
 ### Streaming and Add-ons
 
-A production that sells in-person seats, a stream, and a drink add-on:
+A production that sells in-person seats, a stream, a drink add-on, and captioning tablet reservations:
 
 | Code | Name | Admission | Holds Seats | Price | Purchase Email Annotation |
 |------|------|-----------|-------------|-------|---------------------------|
 | `GA` | General Admission | In person | Yes | $35.00 | |
 | `STRM` | Livestream | Virtual (streaming) | No | $20.00 | "Watch at https://stream.example.org/show" |
 | `DRNK` | Drink Ticket | In person | No | $8.00 | "Includes one drink (beer/wine/cocktail) at our bar" |
+| `TABLET` | Captioning Tablet | Other | No | $0.00 | "A captioning tablet will be waiting at your seat" |
 
-An order of 2 `GA`, 1 `STRM` and 1 `DRNK`:
+An order of 2 `GA`, 1 `STRM`, 1 `DRNK` and 1 `TABLET`:
 
-- prints the two `GA` tickets and the `DRNK` voucher, but not the stream
-- confirmation email: "We have 3 tickets reserved… Your 2 tickets will be waiting at the box office", a line confirming the virtual ticket, the visit information, and both annotations
+- prints the two `GA` tickets and the `DRNK` voucher, but not the stream or the tablet reservation
+- confirmation email: "We have 3 tickets reserved… Your 2 tickets will be waiting at the box office", a line confirming the virtual ticket, the visit information, and all three annotations
 
 An order of only `STRM` tickets prints nothing, is fulfilled automatically when tickets are printed, and gets the streaming versions of the emails.
 

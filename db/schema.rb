@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_09_24_100000) do
+ActiveRecord::Schema.define(version: 2026_09_26_100000) do
 
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name", null: false
@@ -586,6 +586,7 @@ ActiveRecord::Schema.define(version: 2026_09_24_100000) do
     t.string "purchase_page_annotation"
     t.text "purchase_email_annotation", size: :medium
     t.integer "sync_pending_count", default: 0, null: false
+    t.string "admission", limit: 16, default: "in_person", null: false
     t.index ["class_code"], name: "index_resourced_ticket_classes_on_class_code", unique: true
   end
 
