@@ -27,19 +27,21 @@ RSpec.describe MarkdownInput, type: :helper do
       .to include('<b>Hand-written</b> and <strong>markdown</strong>')
   end
 
-  it 'renders the editor open, so the field can be edited without JavaScript, and asks the script to collapse it' do
+  it 'keeps the editor hidden until the preview is clicked' do
     html = render_input
     panel = html.at_css('.markdown-editor__edit')
 
-    expect(panel['hidden']).to be_nil
-    expect(html.at_css('.markdown-editor')['data-markdown-start-open']).to eq('false')
+    expect(panel['hidden']).to be_present
+    expect(html.at_css('.markdown-editor__toggle')['aria-expanded']).to eq('false')
     expect(html.at_css('.markdown-editor__toggle')['aria-controls']).to eq(panel['id'])
   end
 
-  it 'asks the script to leave the editor open when the field has a validation error' do
+  it 'opens straight into the editor when the field has a validation error' do
     festival.errors.add(:description, 'is too long')
+    html = render_input
 
-    expect(render_input.at_css('.markdown-editor')['data-markdown-start-open']).to eq('true')
+    expect(html.at_css('.markdown-editor__edit')['hidden']).to be_nil
+    expect(html.at_css('.markdown-editor.is-editing')).to be_present
   end
 
   it 'says so when there is nothing to preview' do

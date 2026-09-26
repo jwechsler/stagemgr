@@ -28,16 +28,15 @@ module MarkdownEditorHelper
   # textarea: the field's rendered textarea (holds the raw stored text).
   # value:    that text, for the initial server-rendered preview.
   # open:     start with the editor showing (a blank compose box, a field with errors).
-  #           The server always renders the editor open, so the field can still be
-  #           edited without JavaScript; the script collapses it unless open.
   # flavor:   a MARKDOWN_PREVIEW_FLAVORS key.
   # sample:   { kind:, **context ids } -- offer "Send sample email" (a
   #           SampleEmails kind), shown only to staff allowed to send it.
   def markdown_editor(textarea, value:, editor_id:, open: false, flavor: 'web', sample: nil)
-    content_tag(:div, class: 'markdown-editor is-editing',
-                      data: { markdown_editor: true, markdown_flavor: flavor, markdown_start_open: open }) do
-      markdown_editor_preview(value, editor_id, flavor, sample) +
-        content_tag(:div, markdown_editor_toolbar + textarea, id: editor_id, class: 'markdown-editor__edit')
+    content_tag(:div, class: ['markdown-editor', ('is-editing' if open)],
+                      data: { markdown_editor: true, markdown_flavor: flavor }) do
+      markdown_editor_preview(value, editor_id, open, flavor, sample) +
+        content_tag(:div, markdown_editor_toolbar + textarea,
+                    id: editor_id, class: 'markdown-editor__edit', hidden: !open)
     end
   end
 
@@ -55,18 +54,18 @@ module MarkdownEditorHelper
 
   # Clicking the preview body also opens the editor, as a mouse convenience;
   # the header's toggle is the real (keyboard-reachable) control.
-  def markdown_editor_preview(value, editor_id, flavor, sample)
+  def markdown_editor_preview(value, editor_id, open, flavor, sample)
     content_tag(:div, class: 'markdown-editor__preview-wrapper') do
-      content_tag(:div, markdown_editor_toggle(editor_id, flavor) + markdown_sample_button(sample),
+      content_tag(:div, markdown_editor_toggle(editor_id, open, flavor) + markdown_sample_button(sample),
                   class: 'markdown-editor__header') +
         content_tag(:div, render_markdown_preview(value, flavor),
                     class: 'markdown-editor__preview', 'aria-live': 'polite')
     end
   end
 
-  def markdown_editor_toggle(editor_id, flavor)
+  def markdown_editor_toggle(editor_id, open, flavor)
     content_tag(:button, type: 'button', class: 'markdown-editor__toggle',
-                         'aria-expanded': 'true', 'aria-controls': editor_id) do
+                         'aria-expanded': open.to_s, 'aria-controls': editor_id) do
       content_tag(:span, MARKDOWN_PREVIEW_FLAVORS.fetch(flavor)[:label]) +
         content_tag(:span, ' (click to edit)', class: 'markdown-editor__edit-hint')
     end

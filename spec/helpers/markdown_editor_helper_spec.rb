@@ -9,8 +9,9 @@ RSpec.describe MarkdownEditorHelper, type: :helper do
   it 'starts open, with the textarea showing, when asked (a blank compose box)' do
     html = render_editor(open: true)
 
+    expect(html.at_css('#body-editor')['hidden']).to be_nil
     expect(html.at_css('#body-editor textarea#broadcast-body')).to be_present
-    expect(html.at_css('.markdown-editor')['data-markdown-start-open']).to eq('true')
+    expect(html.at_css('.markdown-editor__toggle')['aria-expanded']).to eq('true')
   end
 
   it 'labels an email preview and tells the script which renderer to use' do
@@ -33,7 +34,7 @@ RSpec.describe MarkdownEditorHelper, type: :helper do
       toggle = render_editor.at_css('.markdown-editor__header > button.markdown-editor__toggle')
 
       expect(toggle['type']).to eq('button')
-      expect(toggle['aria-expanded']).to eq('true') # rendered open; the script collapses it
+      expect(toggle['aria-expanded']).to eq('false')
       expect(toggle['aria-controls']).to eq('body-editor')
     end
 

@@ -129,7 +129,7 @@ RSpec.describe Admin::ProductionsController, type: :controller do
       editor = html.at_css('#email-attendees-modal .markdown-editor[data-markdown-flavor="email"]')
       expect(editor).to be_present
       expect(editor.at_css('textarea#broadcast-body[name="body"][required]')).to be_present
-      expect(editor['data-markdown-start-open']).to eq('true')
+      expect(editor.at_css('.markdown-editor__edit')['hidden']).to be_nil
     end
 
     # The URL names the production; the modal's form adds the performance it opens for.
