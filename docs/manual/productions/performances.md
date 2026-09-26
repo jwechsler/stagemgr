@@ -88,7 +88,9 @@ Custom text displayed on the **website** for this performance, below the date an
 
 ### Special Feature Email Markdown
 
-Custom text included in **confirmation emails** for orders on this performance. **Markdown enabled.** Use this for performance-specific instructions or reminders sent to ticket holders.
+Custom text included in **confirmation and reminder emails** for orders on this performance, **instead of** the Special Feature Display Markdown. **Markdown enabled.** Leave it blank and emails use the display markdown. Use this for performance-specific instructions or reminders sent to ticket holders.
+
+Checked special features follow the same rule: each shows its own **Custom Email** text in emails when set, otherwise its description. See [Special Features](../offers/special-features.md#confirmation-and-reminder-emails).
 
 **Example:** `*This performance includes an ASL interpreter. Interpreted seating is in the first three rows.*`
 

@@ -8,6 +8,12 @@
   <strong>Description:</strong>
   <%= @special_feature.description %>
 </p>
+<% if @special_feature.email_description.present? %>
+<p>
+  <strong>Custom Email:</strong>
+  <%= @special_feature.email_description %>
+</p>
+<% end %>
 
 <p>
   <%= link_to "Edit", edit_admin_special_feature_path(@special_feature) %> |

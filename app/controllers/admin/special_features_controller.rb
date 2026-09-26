@@ -41,6 +41,6 @@ class Admin::SpecialFeaturesController < ApplicationController
   private
 
   def special_feature_params
-    params.require(:special_feature).permit(:short_name, :description, :status)
+    params.require(:special_feature).permit(:short_name, :description, :email_description, :status)
   end
 end

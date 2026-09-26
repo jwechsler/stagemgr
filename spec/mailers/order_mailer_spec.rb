@@ -372,6 +372,68 @@ RSpec.describe OrderMailer, type: :mailer do
       end
     end
 
+    describe 'special features' do
+      def text_of(mail)
+        Nokogiri::HTML(mail.body.decoded).text.squish
+      end
+
+      def with_feature(**attrs)
+        feature = SpecialFeature.create!({ short_name: 'Captioned', status: SpecialFeature::ACTIVE,
+                                           description: 'Web: reserve a tablet on the purchase page.' }.merge(attrs))
+        regular_performance.special_features << feature
+        regular_order.reload
+      end
+
+      it "shows a canned feature's Custom Email text instead of its description" do
+        order = with_feature(email_description: 'Email: captions are shown on the house screens.')
+        text = text_of(OrderMailer.ticket_confirmation(order))
+
+        expect(text).to include('Email: captions are shown on the house screens.')
+        expect(text).not_to include('Web: reserve a tablet')
+      end
+
+      it 'falls back to the description when the feature has no Custom Email text' do
+        text = text_of(OrderMailer.ticket_confirmation(with_feature))
+
+        expect(text).to include('Web: reserve a tablet on the purchase page.')
+      end
+
+      it 'leaves inactive features out of the email while they stay on the performance' do
+        order = with_feature(email_description: 'Email: captions are shown on the house screens.')
+        SpecialFeature.find_by!(short_name: 'Captioned').update!(status: SpecialFeature::INACTIVE)
+        text = text_of(OrderMailer.ticket_confirmation(order.reload))
+
+        expect(regular_performance.special_features.count).to eq(1)
+        expect(text).not_to include('captions are shown')
+        expect(text).not_to include('reserve a tablet')
+      end
+
+      it "still shows the performance's custom email text when its only feature is inactive" do
+        order = with_feature
+        SpecialFeature.find_by!(short_name: 'Captioned').update!(status: SpecialFeature::INACTIVE)
+        regular_performance.update!(special_feature_email_markdown: 'Post-show talkback with the cast.')
+        text = text_of(OrderMailer.ticket_confirmation(order.reload))
+
+        expect(text).to include('Post-show talkback with the cast.')
+        expect(text).not_to include('reserve a tablet')
+      end
+
+      it 'shows custom feature text on its own, with no canned features attached' do
+        regular_performance.update!(special_feature_display_markdown: 'Opening night party after the show.')
+        text = text_of(OrderMailer.ticket_confirmation(regular_order.reload))
+
+        expect(text).to include('Opening night party after the show.')
+      end
+
+      it 'uses the Custom Email text in the reminder too' do
+        order = with_feature(email_description: 'Email: captions are shown on the house screens.')
+        text = text_of(OrderMailer.performance_reminder(order, nil, nil, true))
+
+        expect(text).to include('Email: captions are shown on the house screens.')
+        expect(text).not_to include('Web: reserve a tablet')
+      end
+    end
+
     describe '"Also playing" sidebar' do
       def eligible_production(**attrs)
         FactoryBot.create(:production, {
