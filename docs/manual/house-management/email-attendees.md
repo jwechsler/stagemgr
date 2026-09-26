@@ -22,8 +22,9 @@ You can send custom email messages to all ticket holders for a specific performa
    - **Subject**: Pre-filled with "Important update regarding [Production] on [Date]" (editable).
    - **From Address**: Choose between the box office email or your personal email.
    - **Message Body**: Write your custom message. Markdown formatting is supported.
-5. **Review Recipient Count**: The system automatically shows how many people will receive the email.
-6. **Send**: Click "Send Email to X Recipients" and confirm.
+5. **Preview it (optional)**: Click **Send sample email** in the message body's **Email preview** header. The email goes only to you, exactly as an attendee would get it; nothing is queued for the ticket holders.
+6. **Review Recipient Count**: The system automatically shows how many people will receive the email.
+7. **Send**: Click "Send Email to X Recipients" and confirm.
 
 !!! warning
     Emails are sent immediately upon confirmation and cannot be recalled. Always double-check the recipient count and message content before clicking Send.

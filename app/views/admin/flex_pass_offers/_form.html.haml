@@ -33,7 +33,7 @@
             = f.input :facility_fee, input_html: { step: '0.01' }
 
     .cell.small-12
-      = f.input :description, :input_html=>{ :rows=>6}
+      = f.input :description, :as=>:markdown, :input_html=>{ :rows=>6}
  
     .cell.small-6
       = f.input :active

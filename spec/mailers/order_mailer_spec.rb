@@ -619,4 +619,19 @@ RSpec.describe OrderMailer, type: :mailer do
       end
     end
   end
+
+  describe '#membership_confirmation' do
+    let(:membership_order) { FactoryBot.create(:membership_order) }
+    let(:offer) { membership_order.membership.membership_offer }
+
+    it "renders the offer's confirmation email text as markdown, passing embedded HTML through" do
+      offer.update!(email_html: "Welcome!\n\n**Bring a friend.**\n<ol>\n  <li>Unlimited plays</li>\n</ol>")
+
+      body = OrderMailer.membership_confirmation(membership_order).body.decoded
+
+      expect(body).to include('<p>Welcome!</p>')
+      expect(body).to include('<strong>Bring a friend.</strong>')
+      expect(body).to include('<li>Unlimited plays</li>')
+    end
+  end
 end

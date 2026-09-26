@@ -19,6 +19,17 @@ RSpec.describe Admin::TicketClassesController, type: :controller do
     { theater_id: theater.id, production_id: production.id, ticket_class: ticket_class_attrs }
   end
 
+  describe 'GET #new' do
+    render_views
+
+    it "offers a sample of the purchase email annotation for this production's class" do
+      get :new, params: { theater_id: theater.id, production_id: production.id }
+
+      sample = Nokogiri::HTML(response.body).at_css('.markdown-editor__sample')
+      expect(sample['data-url']).to end_with("/admin/sample_emails?kind=ticket_class&production_id=#{production.id}")
+    end
+  end
+
   describe 'POST #create' do
     # complimentary is rendered by the shared _fields partial but was missing
     # from the permit list, so the checkbox silently kept its column default.

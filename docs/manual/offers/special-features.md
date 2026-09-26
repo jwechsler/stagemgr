@@ -21,7 +21,7 @@ Special features are descriptive tags that can be assigned to individual perform
 |-------|-------------|
 | **Short Name** | A concise label displayed in listings and email subject lines (e.g., "ASL Interpreted"). Must be unique across all special features. Required. |
 | **Description** | A longer explanation of the feature shown on the website and, unless **Custom Email** is filled in, in patron emails. Supports Markdown formatting for links, bold text, and lists. Required. |
-| **Custom Email** | Optional. Text shown in confirmation and reminder emails **instead of** the description. Markdown enabled. Leave it blank to use the description in emails too. |
+| **Custom Email** | Optional. Text shown in confirmation and reminder emails **instead of** the description. Markdown enabled. Leave it blank to use the description in emails too. **Send sample email** in its header mails you a confirmation for a sample performance with this feature, as typed. |
 | **Status** | `Active` or `Inactive`. Only active features can be assigned to performances and are visible to customers. |
 
 !!! tip "Use Markdown in descriptions"

@@ -37,7 +37,7 @@
         = f.input :credit_lines, :input_html=>{rows:3}
       .cell
         = f.input :short_description, :hint => "255 character max", :input_html => { maxlength: 255 }
-        = f.input :show_description, :hint=>"Long description (markdown enabled)" , :input_html=>{rows:4}
+        = f.input :show_description, :as=>:markdown, :hint=>"Long description (markdown enabled)" , :input_html=>{rows:4}
 
       .small-6.cell
         %fieldset.fieldset
@@ -57,7 +57,7 @@
         %fieldset.fieldset
           %legend Sales
           = f.input :additional_information_link, :as=>:url
-          = f.input :calendar_callout, :input_html=>{:rows=>4}, :label=>"Calendar Call to Action", :hint=>"Markdown code placed in header of calendar display page for this production"
+          = f.input :calendar_callout, :as=>:markdown, :input_html=>{:rows=>4}, :label=>"Calendar Call to Action", :hint=>"Markdown code placed in header of calendar display page for this production"
           = f.input :conversion_pixel_code, :input_html=>{:rows=>4}, :label=>"Ad conversion pixel code", :hint=>"Code Placed in header of order confirmation for ad tracking"
 
           %div.grid-x.grid-padding-x
@@ -82,76 +82,8 @@
               = f.input :custom2, label: 'Custom field #2', hint: "Custom field for use in communications"
           .grid-x.grid-padding-x
             .cell.small-12
-              = f.input :follow_up_message_2, :input_html=>{:rows => 4}, :label=>"Follow-up message from your company", :hint=>"Markdown-enabled. For resident and visiting companies this message leads the post-show follow-up email; #{theater_info.name}'s note follows in a separate callout."
-              - if production.persisted? && can?(:send_sample_followup, production)
-                %a.button.small{href: "#", data: {url: send_sample_followup_admin_theater_production_path(production.theater, production), email: current_user.email}, onclick: "sendSampleFollowup(this); return false;"}
-                  Send sample follow-up email
-                :javascript
-                  function sendSampleFollowup(btn) {
-                    if (!confirm('Send sample follow-up email to ' + btn.dataset.email + '?')) return;
-                    btn.disabled = true;
-                    btn.textContent = 'Sending...';
-                    var token = document.querySelector('meta[name="csrf-token"]').content;
-                    var lateSeatingEl = document.querySelector('input[name="production[allow_late_seating]"][type="checkbox"]');
-                    fetch(btn.dataset.url, {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': token, 'Accept': 'application/json' },
-                      body: JSON.stringify({
-                        follow_up_message_2: document.getElementById('production_follow_up_message_2').value,
-                        survey_link: document.getElementById('production_survey_link').value,
-                        mailing_list_link: document.getElementById('production_mailing_list_link').value,
-                        production_name: document.getElementById('production_name').value,
-                        production_class: document.getElementById('production_production_class').value,
-                        allow_late_seating: lateSeatingEl ? lateSeatingEl.checked.toString() : 'false',
-                        venue_id: document.getElementById('production_venue_id').value
-                      })
-                    })
-                    .then(function(r) { return r.json(); })
-                    .then(function(data) {
-                      btn.disabled = false;
-                      btn.textContent = 'Send sample follow-up email';
-                      alert(data.success ? data.message : 'Error: ' + data.message);
-                    })
-                    .catch(function(err) {
-                      btn.disabled = false;
-                      btn.textContent = 'Send sample follow-up email';
-                      alert('Error: ' + err.message);
-                    });
-                  }
-              = f.input :confirmation_message, :input_html=>{ :rows=>4}, :label=>"Additional Confirmation Message", :hint=>"Markdown-enabled section to be embedded in receipt."
-              - if production.persisted? && can?(:send_sample_confirmation, production)
-                %a.button.small{href: "#", data: {url: send_sample_confirmation_admin_theater_production_path(production.theater, production), email: current_user.email}, onclick: "sendSampleConfirmation(this); return false;"}
-                  Send sample confirmation email
-                :javascript
-                  function sendSampleConfirmation(btn) {
-                    if (!confirm('Send sample confirmation email to ' + btn.dataset.email + '?')) return;
-                    btn.disabled = true;
-                    btn.textContent = 'Sending...';
-                    var token = document.querySelector('meta[name="csrf-token"]').content;
-                    var lateSeatingEl = document.querySelector('input[name="production[allow_late_seating]"][type="checkbox"]');
-                    fetch(btn.dataset.url, {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': token, 'Accept': 'application/json' },
-                      body: JSON.stringify({
-                        confirmation_message: document.getElementById('production_confirmation_message').value,
-                        production_name: document.getElementById('production_name').value,
-                        production_class: document.getElementById('production_production_class').value,
-                        allow_late_seating: lateSeatingEl ? lateSeatingEl.checked.toString() : 'false',
-                        venue_id: document.getElementById('production_venue_id').value
-                      })
-                    })
-                    .then(function(r) { return r.json(); })
-                    .then(function(data) {
-                      btn.disabled = false;
-                      btn.textContent = 'Send sample confirmation email';
-                      alert(data.success ? data.message : 'Error: ' + data.message);
-                    })
-                    .catch(function(err) {
-                      btn.disabled = false;
-                      btn.textContent = 'Send sample confirmation email';
-                      alert('Error: ' + err.message);
-                    });
-                  }
+              = f.input :follow_up_message_2, :as=>:markdown, :preview=>"email", :input_html=>{:rows => 4}, :label=>"Follow-up message from your company", :sample=>{ :kind=>"production_followup", :production_id=>production.id }, :hint=>"Markdown-enabled. For resident and visiting companies this message leads the post-show follow-up email; #{theater_info.name}'s note follows in a separate callout."
+              = f.input :confirmation_message, :as=>:markdown, :preview=>"email", :input_html=>{ :rows=>4}, :label=>"Additional Confirmation Message", :sample=>{ :kind=>"production_confirmation", :production_id=>production.id }, :hint=>"Markdown-enabled section to be embedded in receipt."
 
       .cell
         = f.button :submit

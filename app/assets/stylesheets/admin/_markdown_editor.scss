@@ -1,0 +1,148 @@
+// Markdown-enabled admin fields (app/inputs/markdown_input.rb,
+// admin/markdown_editor.js): the rendered preview is the resting display;
+// its header toggle (or a click on it) opens the toolbar and textarea below.
+.markdown-editor {
+  margin-bottom: 1rem;
+
+  textarea {
+    margin-bottom: 0;
+    border-radius: 0;
+  }
+}
+
+.markdown-editor__preview-wrapper {
+  border: 1px solid $medium-gray;
+  background: $white;
+  transition: border-color 0.15s ease;
+
+  &:hover,
+  &:focus-within {
+    border-color: $primary-color;
+  }
+
+  .is-editing & {
+    border-bottom-style: dashed;
+  }
+}
+
+// The toggle on the left, "Send sample email" (if any) pushed to the right.
+.markdown-editor__header {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px dashed $medium-gray;
+}
+
+.markdown-editor__toggle {
+  flex: 1 1 auto;
+  padding: 0.2rem 0.5rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: $dark-gray;
+  cursor: pointer;
+
+  &:focus {
+    outline: 1px dotted $primary-color;
+    outline-offset: -2px;
+  }
+}
+
+.markdown-editor__edit-hint {
+  font-weight: normal;
+  text-transform: none;
+  letter-spacing: 0;
+
+  .is-editing & {
+    display: none;
+  }
+}
+
+.markdown-editor__sample {
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding: 0.2rem 0.5rem;
+  border-radius: 3px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  color: $primary-color;
+  cursor: pointer;
+
+  &:hover,
+  &:focus {
+    background: $light-gray;
+    color: $black;
+  }
+
+  &[disabled] {
+    cursor: wait;
+    opacity: 0.6;
+  }
+}
+
+.markdown-editor__preview {
+  max-height: 20rem;
+  cursor: pointer;
+  overflow-y: auto;
+  padding: 0.5rem 0.75rem;
+
+  > :last-child {
+    margin-bottom: 0;
+  }
+
+  .is-editing & {
+    cursor: default;
+  }
+}
+
+.markdown-editor__edit[hidden] {
+  display: none;
+}
+
+.markdown-editor__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 0.25rem;
+  border: 1px solid $medium-gray;
+  border-top: 0;
+  border-bottom: 0;
+  background: $light-gray;
+}
+
+.markdown-editor__button,
+.markdown-editor__done {
+  padding: 0.35rem 0.5rem;
+  border-radius: 3px;
+  color: $dark-gray;
+  cursor: pointer;
+
+  &:hover,
+  &:focus {
+    background: $white;
+    color: $black;
+  }
+}
+
+.markdown-editor__button {
+  min-width: 2rem;
+}
+
+.markdown-editor__done {
+  margin-left: auto;
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: $primary-color;
+}
+
+.markdown-editor__empty,
+.markdown-editor__error {
+  font-style: italic;
+  color: $dark-gray;
+}
+
+.markdown-editor__error {
+  color: $alert-color;
+}

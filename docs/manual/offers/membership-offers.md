@@ -85,7 +85,7 @@ All sync work runs as background jobs, so saving the form returns immediately an
 |-------|-------------|
 | **Billing Agreement** | Legal text displayed to the customer before purchase, describing the recurring billing terms. |
 | **HTML Description** | Rich HTML content displayed on the membership detail/sales page. |
-| **Email HTML** | HTML content included in the membership confirmation email sent after purchase. |
+| **Confirmation Email Text** | Text added to the membership confirmation email sent after purchase. Markdown enabled; hand-written HTML tags still work. **Send sample email** in its header mails you the confirmation with the offer name and text as typed; no membership is created. |
 
 ### Member ID Card Artwork
 

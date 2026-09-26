@@ -10,6 +10,8 @@ Rails.application.routes.draw do
   end
 
   namespace(:admin) { resources :special_features }
+  namespace(:admin) { resource :markdown_preview, only: :create }
+  namespace(:admin) { resources :sample_emails, only: :create }
 
   post 'venues/now_playing_fb'
 
@@ -329,8 +331,6 @@ Rails.application.routes.draw do
         get :autocomplete_tag
       end
       resources :productions do
-        post 'send_sample_confirmation', on: :member
-        post 'send_sample_followup', on: :member
         get 'allocation_sync_status', on: :member
         resources :performances do
           get 'duplicate', on: :member

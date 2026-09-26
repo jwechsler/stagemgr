@@ -51,7 +51,7 @@ The follow-up email is sent after a performance date has passed. It thanks patro
 
 ## Markdown Formatting
 
-Both message fields support **Markdown** syntax, which is rendered as formatted HTML in the email. This allows you to include rich content without writing HTML.
+Both message fields support **Markdown** syntax, which is rendered as formatted HTML in the email. This allows you to include rich content without writing HTML. The editor's toolbar inserts this syntax for you, and its preview shows the result as you type; see [Formatted Text Fields](../getting-started/formatted-text.md).
 
 | Markdown Syntax | Result |
 |-----------------|--------|
@@ -72,11 +72,13 @@ You can preview exactly what patrons will see by sending yourself a **sample ema
 ### How to Send a Sample
 
 1. Navigate to the production edit page
-2. Enter or modify the message in the confirmation or follow-up text area
-3. Click **Send sample confirmation email** or **Send sample follow-up email** (the button appears directly below each message field)
+2. Enter or modify the message in the confirmation or follow-up field
+3. Click **Send sample email** at the right-hand end of that field's **Email preview** header. Hover over the button to see which email it sends
 4. A confirmation dialog shows the email address the sample will be sent to (your admin account email)
-5. Confirm the send -- the button briefly shows "Sending..." while the email is delivered
+5. Confirm the send -- the button briefly shows "Sending…" while the email is delivered
 6. Check your inbox -- the sample arrives within a few seconds
+
+Sending a sample never opens or closes the editor: the **Email preview (click to edit)** part of the header does that.
 
 !!! note "Unsaved Changes Are Included"
     The sample email uses your **current form values**, not the last saved version. You do not need to save the production first. This lets you iterate on the message and preview multiple drafts without saving.
@@ -102,7 +104,21 @@ You can preview exactly what patrons will see by sending yourself a **sample ema
 - You can send multiple samples in a row to compare different versions
 
 !!! warning "Sample Button Availability"
-    The sample email buttons only appear for productions that have already been saved. They are not available on the New Production form. Create the production first, then use the edit page to preview emails.
+    On the production form the sample buttons only appear for productions that have already been saved. They are not available on the New Production form. Create the production first, then use the edit page to preview emails.
+
+### Samples Elsewhere
+
+The same **Send sample email** button appears on every other email-only text field:
+
+| Field | Email sent |
+|-------|------------|
+| Ticket class, default ticket class and resourced ticket class **Purchase Email Annotation** | Ticket confirmation (a default or resourced class is previewed on a sample production) |
+| Performance **Custom Email** (special feature email text) | Ticket confirmation, with the performance's checked special features |
+| Special feature **Custom Email** | Ticket confirmation for a sample performance with that feature |
+| Membership offer **Confirmation Email Text** | Membership confirmation (member code `TW-SAMPLE`) |
+| Email Attendees **Message Body** | The attendee email, exactly as one attendee would get it |
+
+Each uses the form's unsaved values and is sent only to you. The attendee sample never goes to the performance's ticket holders.
 
 ## Email Template Workflow
 

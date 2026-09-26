@@ -83,6 +83,7 @@ class Ability
     can %i[manage duplicate create delete release_held_seats email_attendees], Performance
     can :read, Address
     can %i[read create edit update duplicate send_sample_confirmation send_sample_followup], Production
+    can :preview, :markdown # the live preview under every markdown-enabled admin field
     can :view_system_options, UserSession
     can :read, PaymentType
     can :manage, Theater

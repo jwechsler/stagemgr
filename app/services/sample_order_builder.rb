@@ -1,13 +1,17 @@
 class SampleOrderBuilder
-  def self.with_sample_order(theater, recipient_email, production_attrs = {})
+  # overrides: { ticket_class_attrs:, performance_attrs: }, merged into the
+  # sample ticket class and performance so a sample can preview a draft of
+  # either (SampleEmails::*). A positional hash, not keywords, so callers can
+  # keep passing production_attrs without braces.
+  def self.with_sample_order(theater, recipient_email, production_attrs = {}, overrides = {})
     ActiveRecord::Base.transaction do
-      order = build_sample_order(theater, recipient_email, production_attrs)
+      order = build_sample_order(theater, recipient_email, production_attrs, **overrides)
       yield order
       raise ActiveRecord::Rollback
     end
   end
 
-  def self.build_sample_order(theater, recipient_email, production_attrs)
+  def self.build_sample_order(theater, recipient_email, production_attrs, ticket_class_attrs: {}, performance_attrs: {})
     production = Production.new(
       theater: theater,
       name: production_attrs[:name].presence || 'Sample Production',
@@ -34,7 +38,8 @@ class SampleOrderBuilder
       class_name: 'General Admission',
       ticket_price: 35.00,
       ticket_type: TicketClass::TICKET_TYPES.first,
-      web_visible: true
+      web_visible: true,
+      **ticket_class_attrs
     )
 
     performance = Performance.new(
@@ -43,7 +48,8 @@ class SampleOrderBuilder
       performance_time: Time.zone.parse('19:30'),
       performance_code: "#{production.production_code}01",
       status: Performance::ACTIVE,
-      suppress_notification: false
+      suppress_notification: false,
+      **performance_attrs
     )
     performance.save!(validate: false)
 

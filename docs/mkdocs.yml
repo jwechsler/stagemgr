@@ -34,6 +34,7 @@ nav:
     - Overview: getting-started/overview.md
     - Core Concepts: getting-started/concepts.md
     - User Roles & Permissions: getting-started/user-roles.md
+    - Formatted Text Fields: getting-started/formatted-text.md
   - Setup & Configuration:
     - Theaters: setup/theaters.md
     - Venues: setup/venues.md

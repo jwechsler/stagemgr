@@ -1,3 +1,5 @@
+-# Shared with the default ticket class form, whose defaults belong to no production.
+- email_sample = f.object.is_a?(DefaultTicketClass) ? { kind: 'default_ticket_class' } : { kind: 'ticket_class', production_id: f.object.production_id }
 .grid-x.grid-padding-x
   .small-4.cell
     = f.input :class_code
@@ -34,8 +36,8 @@
       = f.input :show_in_pricing_range, :default=>true, :hint=>"Show in pricing overview"
       = f.input :auto_attach, :hint=>"Automatically attach to every performance"
       = f.input :minutes_before_show, :hint=>"Reveal timed tickets at this point before showtime"
-      = f.input :purchase_page_annotation, :as=>:text, :hint=>'Additional detail text for purchase page', input_html: {rows: 2}
-      = f.input :purchase_email_annotation, :hint=>'Additional text to include in purchase emails.  Markdown enabled', input_html: {rows: 4}
+      = f.input :purchase_page_annotation, :as=>:markdown, :hint=>'Additional detail text for purchase page', input_html: {rows: 2}
+      = f.input :purchase_email_annotation, :as=>:markdown, :preview=>"email_site", :sample=>email_sample, :hint=>'Additional text to include in purchase emails.  Markdown enabled', input_html: {rows: 4}
   
   .small-12.cell
     = f.button :submit
