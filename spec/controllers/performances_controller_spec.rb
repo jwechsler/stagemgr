@@ -42,6 +42,30 @@ RSpec.describe PerformancesController, type: :controller do
     end
   end
 
+  # An Inactive feature stays checked on the performance but is hidden from
+  # the public calendar footnotes (the purchase page is covered by the
+  # ticket_orders/_special_features view spec).
+  describe 'inactive special features' do
+    let(:production) { FactoryBot.create(:production) }
+    let!(:performance) do
+      FactoryBot.create(:performance, production: production, performance_date: Date.current + 1.day)
+    end
+
+    before do
+      performance.special_features << SpecialFeature.create!(short_name: 'Talkback', status: SpecialFeature::ACTIVE,
+                                                             description: 'Stay for the post-show talkback.')
+      performance.special_features << SpecialFeature.create!(short_name: 'Retired', status: SpecialFeature::INACTIVE,
+                                                             description: 'This retired feature must not show.')
+    end
+
+    it 'leaves them out of the footnotes' do
+      get :index, params: { production_id: production.id }
+
+      expect(assigns(:footnotes)).to eq(['Talkback'])
+      expect(assigns(:list_footnotes)).to eq(['Talkback'])
+    end
+  end
+
   describe 'GET ticket_classes (json)' do
     let(:production) { FactoryBot.create(:production_with_reserved_seating) }
     let(:performance) do

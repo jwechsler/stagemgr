@@ -1,0 +1,19 @@
+-# The performance's special features as patrons see them: active canned
+-# features (Inactive ones stay checked but are hidden everywhere), its Custom
+-# Special Feature text, and its Custom Email override.
+- features = performance.active_special_features
+- display_text = performance.special_feature_display_markdown.presence
+- email_text = performance.special_feature_email_markdown.presence
+- if features.any? || display_text || email_text
+  %fieldset.fieldset
+    %legend Special Features
+    - if features.any? || display_text
+      %ul
+        - features.each do |f|
+          %li= f.description
+        - if display_text
+          %li= display_markdown(display_text)
+
+    - if email_text
+      %h5 Email override for special features
+      = display_markdown(email_text)

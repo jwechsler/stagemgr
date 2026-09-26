@@ -170,7 +170,7 @@ module OrdersHelper
 
   def special_feature_footnotes_for(performance, footnotes)
     text = ''
-    performance.special_features.each do |feature|
+    performance.active_special_features.each do |feature|
       idx = footnotes.find_index(feature.short_name)
       text <<= raw "<sup>[#{idx + 1}]&nbsp;</sup>" unless idx.nil?
     end

@@ -10,7 +10,9 @@ class SpecialFeature < ApplicationRecord
 
   has_and_belongs_to_many :performances
 
-  scope :active, -> { where(status: ACTIVE) }
+  def active?
+    status == ACTIVE
+  end
 
   validates :short_name, :description, presence: true
   validates :short_name, :uniqueness => { :case_sensitive => false }

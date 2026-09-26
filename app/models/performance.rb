@@ -404,6 +404,14 @@ class Performance < ApplicationRecord
     status == Performance::INACTIVE
   end
 
+  # The special features patrons see, on the website and in emails. A feature
+  # set to Inactive stays checked on the performance but is hidden. Filters in
+  # memory so callers that preload :special_features (the calendar and list)
+  # don't issue a query per performance.
+  def active_special_features
+    special_features.select(&:active?)
+  end
+
   # Identity of this performance's "Custom Special Feature" copy within a
   # calendar's footnote list, or nil when there is none. The key is the copy
   # itself rather than the performance id, so performances repeating the same

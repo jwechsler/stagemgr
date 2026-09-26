@@ -2,7 +2,7 @@
 -# Email, else its Custom Special Feature text). Inactive features stay
 -# attached to the performance but are left out of patron emails. The box
 -# renders when there is anything to put in it, custom text alone included.
-- features = order.performance.special_features.active
+- features = order.performance.active_special_features
 - custom_text = order.performance.special_feature_email_markdown.presence || order.performance.special_feature_display_markdown.presence
 - if features.any? || custom_text
   %table.callout

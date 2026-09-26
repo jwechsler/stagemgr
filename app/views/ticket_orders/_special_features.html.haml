@@ -1,0 +1,8 @@
+-# The performance's special features on the purchase page: active canned
+-# features (Inactive ones stay checked on the performance but are hidden),
+-# then its Custom Special Feature text.
+- performance.active_special_features.each do |feature|
+  .special_feature= display_markdown(feature.description)
+
+- unless performance.special_feature_display_markdown.blank?
+  .special_feature= display_markdown(performance.special_feature_display_markdown)

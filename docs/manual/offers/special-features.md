@@ -63,8 +63,8 @@ A single performance can have multiple features assigned simultaneously (e.g., b
 !!! tip "Different wording for the website and emails"
     Use **Custom Email** when the web description doesn't suit an email. For example, "Reserve a captioning tablet when you buy your tickets" makes sense on the purchase page, but after purchase the email might instead say "Captioning tablets can be requested at the box office."
 
-!!! warning "Inactive features and emails"
-    Setting a feature to `Inactive` removes it from confirmation and reminder emails sent from then on, even for performances that still have it checked. It does not change emails already sent. The performance's own custom feature text is unaffected and still appears.
+!!! warning "Inactive features are hidden from patrons"
+    Setting a feature to `Inactive` hides it everywhere patrons see features: the calendar footnotes, the purchase page, and confirmation and reminder emails sent from then on. This applies even for performances that still have it checked. It doesn't change emails already sent. The performance's own custom feature text is unaffected and still appears.
 
 ---
 
@@ -83,6 +83,6 @@ A single performance can have multiple features assigned simultaneously (e.g., b
 
 ## Managing Special Features
 
-- **Deactivate** a feature by setting its status to `Inactive`. It no longer appears in patron emails, and it can't be assigned to more performances.
-- **Reactivate** by switching back to `Active`. Any performances that still have the feature checked include it in their emails again.
+- **Deactivate** a feature by setting its status to `Inactive`. It no longer appears on the website, in patron emails or on the performance's admin page, and it can't be assigned to more performances.
+- **Reactivate** by switching back to `Active`. Any performances that still have the feature checked show it on the website and in emails again.
 - **Delete** a feature only if it is no longer assigned to any performances. If it is still assigned, deleting it copies its Description into each performance's custom feature text (and its Custom Email into the performance's custom email text), so those performances keep displaying the same information.

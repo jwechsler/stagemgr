@@ -158,6 +158,15 @@ RSpec.describe OrdersHelper, type: :helper do
       Performance.new(special_feature_display_markdown: markdown)
     end
 
+    it 'gives no marker to an inactive feature, even one still in the footnote list' do
+      performance = Performance.new
+      performance.special_features.build(short_name: 'Retired', status: SpecialFeature::INACTIVE, description: 'x')
+      performance.special_features.build(short_name: 'Talkback', status: SpecialFeature::ACTIVE, description: 'y')
+
+      expect(helper.special_feature_footnotes_for(performance, %w[Retired Talkback])).to include('[2]')
+      expect(helper.special_feature_footnotes_for(performance, %w[Retired Talkback])).not_to include('[1]')
+    end
+
     it 'gives identical custom copy the same footnote marker' do
       first = performance_with('Post-show discussion')
       second = performance_with('Post-show discussion')

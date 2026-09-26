@@ -18,20 +18,7 @@
     Status:
     = @performance.status
     %br
-    - unless @performance.special_features.empty? && @performance.special_feature_display_markdown.blank?
-      %fieldset.fieldset
-        %legend Special Features
-        %ul
-          - unless @performance.special_features.empty?
-            - @performance.special_features.each do |f|
-              %li= f.description
-
-          - unless @performance.special_feature_display_markdown.blank?
-            %li= display_markdown(@performance.special_feature_display_markdown)
-
-        - unless @performance.special_feature_email_markdown.blank?
-          %h5 Email override for special features
-          = display_markdown(@performance.special_feature_email_markdown)
+    = render partial: 'admin/performances/special_features', locals: { performance: @performance }
 
 
     %h3 Available ticket classes
