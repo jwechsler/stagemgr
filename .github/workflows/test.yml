@@ -79,6 +79,18 @@ jobs:
       - name: Load the test database schema
         run: bundle exec rails db:create db:schema:load
 
+      # zeitwerk:check only eager loads eager_load_paths, and it skips the
+      # app/models/**/ subdirectories config/application.rb adds as autoload
+      # roots (it lists them as "not checked"). Even production only loads
+      # those lazily, on first reference, so a file defining the wrong constant
+      # fails at request time. force: true eager loads every root instead.
+      - name: Zeitwerk check
+        run: bin/rails zeitwerk:check
+
+      - name: Eager load every autoload root
+        run: |
+          bin/rails runner 'Rails.autoloaders.each { |loader| loader.eager_load(force: true) }'
+
       - name: RSpec
         run: bundle exec rspec
 
@@ -88,6 +100,20 @@ jobs:
           # (which turns any per-request error into an InfiniteRedirectError).
           RAILS_RAISE_ERRORS: "1"
         run: bundle exec cucumber --tags "not @javascript"
+
+      # The same production build bin/deploy runs, so a broken asset or pack
+      # fails here instead of mid-deploy. Runs last because compiled files in
+      # public/assets and public/packs shadow live sources in the test suites;
+      # !cancelled() keeps it running when an earlier test step failed.
+      # No database connection is made; Redis (the service above) is, by the
+      # Resque initializer. bin/webpack adds --openssl-legacy-provider itself.
+      # RequiredSecrets exempts rake runs, so only SECRET_KEY_BASE is needed.
+      - name: Precompile assets (production)
+        if: ${{ !cancelled() }}
+        env:
+          RAILS_ENV: production
+          SECRET_KEY_BASE: dummy-ci-only-not-a-secret
+        run: bundle exec rails assets:precompile
 
       - name: Dump test log on failure
         if: always()
