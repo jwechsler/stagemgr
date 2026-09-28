@@ -113,7 +113,7 @@ group :test do
   gem 'puma'
   gem 'rails-controller-testing'
   # gem 'poltergeist'
-  gem 'cucumber-rails', '2.5.1', require: false
+  gem 'cucumber-rails', '~> 3.1', require: false
   gem 'database_cleaner-active_record'
   gem 'selenium-webdriver', '~> 4.15' # Latest stable version
   gem 'simplecov'

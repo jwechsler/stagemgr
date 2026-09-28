@@ -17,7 +17,7 @@ require 'capybara'
 # WebDriver session is closed; a stale browser holds the Marionette port and
 # causes the next geckodriver-spawned Firefox to exit silently with status 0,
 # poisoning every @javascript scenario in the run.
-AfterConfiguration do
+BeforeAll do
   system("pkill -9 -f 'Firefox.app/Contents/MacOS/firefox' >/dev/null 2>&1")
   system('pkill -9 geckodriver >/dev/null 2>&1')
 end
