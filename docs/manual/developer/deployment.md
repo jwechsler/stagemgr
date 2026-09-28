@@ -44,6 +44,10 @@ Passenger, so a boot crash -- a missing gem, a missing secret -- fails the deplo
 there instead of surfacing to the first customer. Each run appends a line to
 `log/deploys.log`.
 
+The `curl` only proves the app boots. For a deploy that changes Rails, Ruby or
+the asset build, also walk the manual checklist kept in the repository at
+`docs/runbooks/upgrade-smoke-checklist.md`, which isn't part of this manual.
+
 Two knobs: `SMOKE_URL` (defaults to Theater Wit's login page) and
 `FORCE_DEPLOY=1`, which lifts the guard that refuses to run anywhere but
 `$HOME/stagemgr` -- the development tree must never receive production rake

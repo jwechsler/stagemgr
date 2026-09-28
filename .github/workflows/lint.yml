@@ -17,10 +17,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # No ruby-version input: ruby/setup-ruby then reads .ruby-version, so lint
+      # runs on the same Ruby as the app and a Ruby bump changes one file.
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.3'
 
       # RuboCop does not load the application, so we install it standalone
       # (pinned to the versions in Gemfile.lock) instead of running a full
