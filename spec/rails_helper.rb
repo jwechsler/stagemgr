@@ -12,6 +12,7 @@ require 'authlogic/test_case'
 # Add additional requires below this line. Rails is not loaded until this point!
 require Rails.root.join('spec/support/printing_service_mock')
 require Rails.root.join('spec/support/membership_card_fixtures')
+require Rails.root.join('spec/support/bare_time_to_s_detector')
 
 # Requires supporting ruby files with custom matchers and macros, etc, in
 # spec/support/ and its subdirectories. Files matching `spec/**/*_spec.rb` are
@@ -74,4 +75,14 @@ RSpec.configure do |config|
   end
 
   RSpec::Expectations.configuration.on_potential_false_positives = :nothing
+
+  # See spec/support/bare_time_to_s_detector.rb (remove on Rails 7.1+).
+  config.after(:suite) do
+    report = BareTimeToSDetector.report
+    if report && BareTimeToSDetector.report_only?
+      warn report
+    elsif report
+      raise report
+    end
+  end
 end
