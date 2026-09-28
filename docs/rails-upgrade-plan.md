@@ -224,13 +224,25 @@ ships first, on the framework that's already running in production.
 
 **1a. Safety net (~1 day)**
 
-1. Add `bundle exec rails assets:precompile` to `.github/workflows/test.yml`.
-2. Add an eager-load check to CI (`RAILS_ENV=test bin/rails zeitwerk:check` plus a
-   `Rails.application.eager_load!` run with all model subdirectories).
-3. Set `config.active_support.deprecation = :raise` in
-   `config/environments/test.rb`, once 1b fixes the one existing warning.
-4. Write the manual smoke checklist (§5) into `docs/runbooks/`.
-5. Align the lint workflow's Ruby with `.ruby-version`.
+*Done on `rails-upgrade/release-1a`.*
+
+1. CI runs `bundle exec rails assets:precompile` with `RAILS_ENV=production`,
+   as `bin/deploy` does, so production's asset config is what gets built. It needs
+   only a dummy `SECRET_KEY_BASE` (`RequiredSecrets` exempts rake) and the Redis
+   service (the Resque initializer connects at boot); no database. It runs as the
+   last step so compiled `public/assets` and `public/packs` can't shadow sources
+   in RSpec or Cucumber.
+2. CI runs `bin/rails zeitwerk:check`, then
+   `Rails.autoloaders.each { |l| l.eager_load(force: true) }`. `zeitwerk:check`
+   (and `eager_load!`) skip the `app/models/**/` autoload roots; `force: true` is
+   what loads them. That load failed on both bad files, so the two fixes moved up
+   from 1b.3: `app/models/admin/report_request.rb` is deleted (nothing
+   referenced it), and the ignore rule now points at
+   `lib/extensions/my_emma_patches.rb`.
+3. **Moved to 1b.** `deprecation = :raise` in test waits until the
+   EmailValidator initializer fix (1b.2) removes the one existing warning.
+4. Manual smoke checklist: `docs/runbooks/upgrade-smoke-checklist.md`.
+5. The lint workflow reads `.ruby-version` (no `ruby-version:` input).
 
 **1b. Cleanup (~1.5 days)**
 
@@ -241,8 +253,9 @@ ships first, on the framework that's already running in production.
 2. Fix initializer autoloading: move the boot-time `lib/` requires in
    `monkey_patches.rb` and `site_theme.rb` into `to_prepare` blocks, or into
    `autoload_once` or ignored paths.
-3. Delete `app/models/admin/report_request.rb`. Fix the `my_emma_patches` ignore
-   path. Delete `hash_extensions.rb`, `footnotes.rb`, `config/spring.rb`,
+3. ~~Delete `app/models/admin/report_request.rb`. Fix the `my_emma_patches` ignore
+   path.~~ (Done in 1a.) Set `config.active_support.deprecation = :raise` in
+   `config/environments/test.rb` once step 2 is in. Delete `hash_extensions.rb`, `footnotes.rb`, `config/spring.rb`,
    `config/resque_web.rb` and the `whiny_nils` lines. Decide on the legacy `test/`
    dir: delete it, or port anything valuable.
 4. `.deliver` → `.deliver_now` (4 sites).
@@ -367,7 +380,11 @@ apply any remaining YJIT and GC tuning.
 - Rack 3, once the Passenger version supports it.
 - The optimizations in §6.
 
-## 5. Per-release smoke checklist (draft)
+## 5. Per-release smoke checklist
+
+The working checklist, with routes and what to look for, is
+[`docs/runbooks/upgrade-smoke-checklist.md`](runbooks/upgrade-smoke-checklist.md).
+Summary:
 
 Public: browse productions → select performance → GA purchase → reserved-seat
 purchase with seat picker → Stripe test card + 3DS → confirmation email renders
@@ -382,8 +399,9 @@ reports and CSV exports (spot-check date columns) → house counts →
 card render.
 
 Ops: `rake setup:doctor`, the Resque workers and scheduler running, the Stripe
-webhook arriving, exception mail delivered, and `log/production.log` clear of
-deprecation noise.
+webhook arriving, exception mail delivered, and no deprecation warnings. (Production's
+`deprecation = :notify` has no subscriber, so they never reach `log/production.log`;
+check `log/test.log` from the release branch's suite run instead.)
 
 ## 6. Benefits of upgrading
 
