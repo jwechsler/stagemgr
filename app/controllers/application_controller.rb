@@ -118,16 +118,24 @@ class ApplicationController < ActionController::Base
     flash[:error] =
       "An unexpected error occurred at #{request.fullpath}: #{exception.message}. An error report has been filed with the administrator"
 
-    # Prevent redirect loop by checking if referer is the same as current request path
-    referer = request.referer
-    current_path = request.fullpath
-
-    if referer && URI(referer).path != current_path
-      redirect_to referer
+    if referer_safe_after_error?
+      redirect_back(fallback_location: root_path)
     else
-      # Fallback to a safe path if referer is not available or matches the current path
       redirect_to root_path
     end
+  end
+
+  # Only go back to a referer on this host (never send someone to a foreign
+  # site from an error page, and never raise UnsafeRedirectError here once
+  # raise_on_open_redirects is on), and not to the page that just failed,
+  # which would loop.
+  def referer_safe_after_error?
+    return false if request.referer.blank?
+
+    referer = URI.parse(request.referer)
+    referer.host == request.host && referer.path != request.path
+  rescue URI::InvalidURIError
+    false
   end
 
   def store_location
