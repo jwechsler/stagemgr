@@ -4,7 +4,7 @@
 
     <table id="house_management_seating" class="report">
       <caption>
-        <i>House Management Report, generated at <%= Time.now.to_formatted_s(:hour_min) %> on <%= Time.now %></i>
+        <i>House Management Report, generated at <%= Time.now.to_formatted_s(:hour_min) %> on <%= Time.now.to_formatted_s(:default) %></i>
       </caption>
       <% if @report_data.empty? %>
         <tr><td>No data found</td></tr>

@@ -5,7 +5,7 @@
 
     <table id="daily_box_office_receipts" class="report">
       <caption>
-        <i>Summarized Daily Sales, generated at <%= Time.now.to_formatted_s(:hour_min) %> on <%= Time.now %>
+        <i>Summarized Daily Sales, generated at <%= Time.now.to_formatted_s(:hour_min) %> on <%= Time.now.to_formatted_s(:default) %>
       </caption>
       <%= render :partial=>"generic", :locals=>{:headers=>@headers, :report_body=>@report_data, :summary=>@totals} %>
     </table>

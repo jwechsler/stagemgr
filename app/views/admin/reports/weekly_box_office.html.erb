@@ -4,7 +4,7 @@
 
     <table id="weekly_box_office" class="report">
       <caption>
-        <i>Weekly receipts, generated at <%= Time.now.to_formatted_s(:hour_min) %> on <%= Time.now %></i>
+        <i>Weekly receipts, generated at <%= Time.now.to_formatted_s(:hour_min) %> on <%= Time.now.to_formatted_s(:default) %></i>
       </caption>
       <%= render :partial=>"generic", :locals=>{:headers=>@headers, :report_body=>@report_data, :summary=>@totals} %>
     </table>

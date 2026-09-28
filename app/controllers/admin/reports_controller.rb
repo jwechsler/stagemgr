@@ -545,7 +545,7 @@ class Admin::ReportsController < Admin::ApplicationController
     payment_types.sort!
 
     payments.each do |p|
-      c_day = p.processed_on.to_s
+      c_day = p.processed_on.to_formatted_s(:default)
       if c_day != current_date
         current_date = c_day
         report << day_total unless day_total.empty?

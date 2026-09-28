@@ -12,7 +12,7 @@
           Membership Usage by Month and Offer, generated at
           = Time.now.to_formatted_s(:hour_min)
           on
-          = Time.now
+          = Time.now.to_formatted_s(:default)
       = render :partial=>"generic", :locals=>{:headers=>@headers, :report_body=>@report_data, :summary=>@totals}
     - if @membership_offer_names.present?
       %p.help_text

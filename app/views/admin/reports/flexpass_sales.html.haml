@@ -12,7 +12,7 @@
           FlexPass Usage by Month, generated at
           = Time.now.to_formatted_s(:hour_min)
           on
-          = Time.now
+          = Time.now.to_formatted_s(:default)
       = render :partial=>"generic", :locals=>{:headers=>@headers, :report_body=>@report_data, :summary=>@totals}
     - if @flex_pass_offer_names.present?
       %p.help_text
