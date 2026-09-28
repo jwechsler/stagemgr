@@ -199,9 +199,9 @@ GEM
     erubi (1.13.0)
     et-orbi (1.2.11)
       tzinfo
-    exception_notification (4.5.0)
-      actionmailer (>= 5.2, < 8)
-      activesupport (>= 5.2, < 8)
+    exception_notification (4.6.0)
+      actionmailer (>= 5.2, < 9)
+      activesupport (>= 5.2, < 9)
     execjs (2.10.0)
     factory_bot (6.5.0)
       activesupport (>= 5.0.0)
@@ -595,7 +595,7 @@ DEPENDENCIES
   decent_exposure
   dotenv-rails
   draper
-  exception_notification
+  exception_notification (~> 4.6)
   factory_bot_rails
   fakeredis
   ffi (= 1.17.0)

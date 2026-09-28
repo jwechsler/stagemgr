@@ -131,7 +131,7 @@ end
 
 group :production, :test do
   #  gem 'newrelic_rpm'
-  gem 'exception_notification' # , '< 4.5' # rails 5.0
+  gem 'exception_notification', '~> 4.6'
   gem 'mysql2'
 end
 
