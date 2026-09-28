@@ -126,7 +126,7 @@ group :test do
   gem 'fakeredis', require: 'fakeredis/rspec'
   gem 'flexmock'
   gem 'mocha', require: false
-  gem 'rspec-rails', '< 6.0'
+  gem 'rspec-rails', '~> 6.1'
 end
 
 group :production, :test do
