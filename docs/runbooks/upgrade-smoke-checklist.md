@@ -58,5 +58,5 @@ Paths are relative to the app's mount point: `https://www.theaterwit.org/tickets
 - [ ] `script/resque-worker status` shows three workers; `script/scheduler status` shows one scheduler and no orphans.
 - [ ] *(Stripe)* The next webhook to `/stripecb` gets a 2xx (Stripe dashboard → Webhooks → recent deliveries).
 - [ ] Exception mail arrives: `RAILS_ENV=production bin/rails runner 'ExceptionNotifier.notify_exception(RuntimeError.new("upgrade smoke test"))'`.
-- [ ] Deprecations: production sets `deprecation = :notify` with no subscriber, so `log/production.log` never shows them. Check `grep -c DEPRECATION log/test.log` from a local suite run on the release branch instead.
+- [ ] Deprecations: `grep DEPRECATION log/production.log | sort | uniq -c | sort -rn | head` shows nothing new since the last release (production logs them at warn level), and `grep -c DEPRECATION log/test.log` from a local suite run on the release branch is zero or expected.
 - [ ] `log/production.log` has no new errors in the first hour: `grep -E 'FATAL|Error' log/production.log | tail`.

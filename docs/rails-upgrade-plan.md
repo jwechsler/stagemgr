@@ -243,6 +243,9 @@ ships first, on the framework that's already running in production.
    EmailValidator initializer fix (1b.2) removes the one existing warning.
 4. Manual smoke checklist: `docs/runbooks/upgrade-smoke-checklist.md`.
 5. The lint workflow reads `.ruby-version` (no `ruby-version:` input).
+6. Production logs deprecations (`config.active_support.deprecation = :log`,
+   was `:notify` with no subscriber), so each release's warnings reach
+   `log/production.log`.
 
 **1b. Cleanup (~1.5 days)**
 
@@ -399,9 +402,8 @@ reports and CSV exports (spot-check date columns) → house counts →
 card render.
 
 Ops: `rake setup:doctor`, the Resque workers and scheduler running, the Stripe
-webhook arriving, exception mail delivered, and no deprecation warnings. (Production's
-`deprecation = :notify` has no subscriber, so they never reach `log/production.log`;
-check `log/test.log` from the release branch's suite run instead.)
+webhook arriving, exception mail delivered, and no new deprecation warnings in
+`log/production.log` (also check `log/test.log` from the release branch's suite run).
 
 ## 6. Benefits of upgrading
 
