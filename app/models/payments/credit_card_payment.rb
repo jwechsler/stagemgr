@@ -137,7 +137,9 @@ class CreditCardPayment < CurrencyPayment
           Rails.logger.info("Created carryover payment of #{-difference} for difference between order (#{amount}) and Stripe refund (#{actual_refund_amount / 100.0})")
         end
 
-        return # Successfully reconciled
+        # Reconciled: leave the block normally so the transaction commits the
+        # rows above. (`return` here committed on 6.1 but rolls back on 7.0.)
+        next
 
       end
 

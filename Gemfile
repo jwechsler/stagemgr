@@ -10,7 +10,6 @@ gem 'webpacker'
 gem 'redcarpet', '~> 3.6' # Markdown
 
 gem 'simple_form', '~> 5.1'
-gem 'simple-form-datepicker'
 # gem "databasedotcom"
 # gem 'restforce', '~> 2.5.3'
 # gem "validation_reflection"

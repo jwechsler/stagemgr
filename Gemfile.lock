@@ -499,8 +499,6 @@ GEM
       rubyzip (>= 1.2.2, < 3.0)
       websocket (~> 1.0)
     semantic_range (3.1.0)
-    simple-form-datepicker (0.1.3)
-      simple_form
     simple_form (5.3.1)
       actionpack (>= 5.2)
       activemodel (>= 5.2)
@@ -643,7 +641,6 @@ DEPENDENCIES
   sass-embedded (>= 1.80, < 1.98)
   scrypt
   selenium-webdriver (~> 4.15)
-  simple-form-datepicker
   simple_form (~> 5.1)
   simplecov
   sprockets-rails
