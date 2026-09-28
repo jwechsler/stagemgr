@@ -13,15 +13,24 @@ Paths are relative to the app's mount point: `https://www.theaterwit.org/tickets
 - [ ] Weekday daytime, with no on-sale, opening or show that night.
 - [ ] Asset or Ruby change? Dry-run the build on the production box in a separate checkout first, so a failure can't touch the live tree:
   ```sh
-  git -C ~/stagemgr worktree add ~/stagemgr-dryrun <branch>
+  git -C ~/stagemgr fetch origin
+  git -C ~/stagemgr worktree add --detach ~/stagemgr-dryrun origin/master
   cd ~/stagemgr-dryrun && cp ~/stagemgr/config/*.yml config/ \
-    && bundle install && yarn install --frozen-lockfile \
+    && BUNDLE_WITHOUT=development:test:cucumber bundle install \
+    && yarn install --frozen-lockfile \
     && RAILS_ENV=production bundle exec rails assets:precompile
   git -C ~/stagemgr worktree remove --force ~/stagemgr-dryrun
   ```
+  Releases are merged before they deploy, so the dry run is always of `origin/master`. `--detach` is needed because `~/stagemgr` already has `master` checked out. `BUNDLE_WITHOUT` matches production's excluded groups even if that setting lives in `~/stagemgr/.bundle/config`, which the worktree doesn't see.
 - [ ] Pause the scheduler so nothing new is enqueued: `script/scheduler stop` (`bin/deploy` starts it again).
 - [ ] Drain the queues: `/admin/resque` Overview shows 0 pending, and no worker is mid-job.
-- [ ] MySQL dump: `mysqldump --single-transaction --routines stagemgr_production | gzip > ~/backups/pre-deploy-$(date +%F).sql.gz`
+- [ ] MySQL dump. Credentials come from the `[mysqldump]` section of `~/.my.cnf` (`chmod 600`; `user=` and `password=` for the app's database user):
+  ```sh
+  mysqldump --single-transaction --routines --no-tablespaces stagemgr_production \
+    | gzip > ~/backups/pre-deploy-$(date +%F).sql.gz
+  gunzip -c ~/backups/pre-deploy-$(date +%F).sql.gz | tail -1   # must read "-- Dump completed on …"
+  ```
+  `--routines` keeps the stored function `random()` (migration `20141207072306`). `--no-tablespaces` avoids MySQL 8's PROCESS-privilege error for a non-root user. A failed dump still leaves a small `.gz` behind, so check the last line, not just that the file exists.
 - [ ] Snapshot ActiveStorage: `tar czf ~/backups/storage-$(date +%F).tgz -C ~/stagemgr storage`
 - [ ] Run `bin/deploy`, then everything below.
 
