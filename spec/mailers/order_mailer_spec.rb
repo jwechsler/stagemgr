@@ -140,6 +140,17 @@ RSpec.describe OrderMailer, type: :mailer do
         date_format = conference_order.performance.performance_date.strftime('%A, %B')
         expect(conference_mail.body.encoded).to include(date_format)
       end
+
+      # Literal strings on purpose: pins the rendered format, so a Rails bump
+      # that changes how dates and times print fails here, not in an inbox.
+      it 'prints the performance date and time in the house format' do
+        regular_performance.update_columns(performance_date: Date.new(2030, 10, 12), performance_time: '19:30:00')
+
+        body = OrderMailer.ticket_confirmation(regular_order.reload).body.decoded
+
+        expect(body).to include('Saturday, October 12')
+        expect(body).to include(' 7:30 PM')
+      end
     end
 
     describe '#performance_reminder' do

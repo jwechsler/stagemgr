@@ -45,4 +45,23 @@ RSpec.describe PerformanceDecorator do
       expect(html).not_to include('Limited seats')
     end
   end
+
+  # Literal strings on purpose: pins the printed time format, so a Rails bump
+  # that changes how times print fails here rather than on the public calendar.
+  describe 'time formatting' do
+    let(:performance) do
+      decorated_performance(sold_out: false, near_capacity: false, available_seats: 40).tap do |decorated|
+        decorated.object.update_columns(performance_time: '19:30:00')
+        decorated.object.reload
+      end
+    end
+
+    it 'prints the performance time as hour and minute' do
+      expect(performance.performance_time).to eq(' 7:30PM')
+    end
+
+    it 'uses the stripped time as the default order link text' do
+      expect(performance.order_link).to include('>7:30PM</a>')
+    end
+  end
 end
