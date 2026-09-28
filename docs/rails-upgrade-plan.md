@@ -4,8 +4,10 @@
 
 ## 1. Recommendation
 
-**Upgrade to Rails 8.1 (and Ruby 3.4), stepping through every minor version
-(6.1 → 7.0 → 7.1 → 7.2 → 8.0 → 8.1), shipping each hop to production on its own.**
+**Upgrade to Rails 8.1 (and Ruby 3.4) in three production releases:
+cleanup on 6.1, then 6.1 → 7.2, then 7.2 → 8.1.** Every intermediate minor
+version (7.0, 7.1, 8.0) is still stepped through on the branch and in CI so its
+deprecation warnings get used, but it isn't deployed. See §4.
 
 Do not stop at Rails 7. Per the Rails maintenance policy (security fixes for two
 years after a minor's first release):
@@ -21,7 +23,7 @@ years after a minor's first release):
 Rails 7.2 — the natural "Rails 7" stopping point — went out of security support
 last month, so a "Rails 7" upgrade would land on an unpatched framework. Rails
 8.1 is the only target that buys meaningful runway, and the incremental cost of
-8.0 → 8.1 over 7.2 is small for this codebase (about two days; see §4).
+7.2 → 8.1 is small for this codebase (about two days; see §4).
 
 Ruby 3.2 also reached end-of-life in March 2026, and the newest releases of
 several gems already require Ruby ≥ 3.3. Go to **3.3 early** (it runs today's
@@ -47,8 +49,9 @@ The codebase is in better shape than a typical 6.1 app:
 - Most blockers are gem pins with a released fix, or unused gems to delete.
 
 Estimated effort: **~8–12 focused dev-days** of code and verification, which at
-part-time pace (one developer + Claude) is roughly **8–12 calendar weeks**,
-with each hop deployed in a short, planned maintenance window.
+part-time pace (one developer + Claude) is roughly **6–8 calendar weeks**. That
+means three release windows (plus optional separate windows for the asset-pipeline
+change and each Ruby bump), with small follow-up deploys that flip framework defaults.
 
 ## 2. Current state (audit summary)
 
@@ -147,129 +150,224 @@ Likelihood/impact are for this codebase specifically.
 | R3 | **Authentication breakage** from the authlogic bump (staff box office and patron logins). | Medium | High | Bump authlogic in an isolated PR; run the session/login specs and cucumber login features; manual check of staff login, patron login, password reset. |
 | R4 | **Payment path regressions** (Stripe PaymentIntents via ActiveMerchant, stripe_event webhooks, refunds/exchanges). No Rails dependency in the gateway gems, but controllers/callbacks around them change. | Low | Very high | Keep stripe/activemerchant versions fixed during the upgrade; per-hop manual checklist in Stripe test mode: card purchase, 3DS, refund, exchange with differential, webhook receipt. |
 | R5 | **Asset build fails on the production box** (webpacker→esbuild swap; sass-embedded's Dart binary needs macOS ≥ 14 above 1.98; native gems on a Ruby bump). CI never runs `assets:precompile`, so this would first appear at deploy. | Medium | High (deploy aborts; site stays on old code if deploy is ordered right) | Add `assets:precompile` to CI now; do a dry-run precompile on the production box (in a separate checkout) before each deploy that touches assets or Ruby; keep the `< 1.98` cap. |
-| R6 | **Production host is macOS 13** (Apple no longer patching it). Future gem/Ruby/Node releases increasingly assume newer OS and toolchains. | Medium (grows over time) | Medium–High | Not a blocker for this plan, but budget an OS upgrade to macOS 14+ (or a Linux move) alongside or after Phase 6. |
-| R7 | **Autoload/eager-load surprises in production.** `app/models/**/` subdirectories are added as autoload roots, which are not eager loaded; one file defines the wrong constant. A class that loads fine lazily in dev can fail under eager load. | Medium | Medium | Fix the two bad files in Phase 1; add a CI step that eager loads with `config.eager_load = true` (`bin/rails zeitwerk:check` plus a full eager load); consider `config.autoload_lib` in 7.1. |
+| R6 | **Production host is macOS 13** (Apple no longer patching it). Future gem/Ruby/Node releases increasingly assume newer OS and toolchains. | Medium (grows over time) | Medium–High | Not a blocker for this plan, but budget an OS upgrade to macOS 14+ (or a Linux move) alongside or after Release 3. |
+| R7 | **Autoload/eager-load surprises in production.** `app/models/**/` subdirectories are added as autoload roots, which are not eager loaded; one file defines the wrong constant. A class that loads fine lazily in dev can fail under eager load. | Medium | Medium | Fix the two bad files in Release 1; add a CI step that eager loads with `config.eager_load = true` (`bin/rails zeitwerk:check` plus a full eager load); consider `config.autoload_lib` in 7.1. |
 | R8 | **Unmaintained gems break quietly** (rails-jquery-autocomplete, cocoon, ajax-datatables-rails, decent_exposure removal, simple-form-datepicker, resque-lock-timeout, ri_cal). | Medium | Low–Medium (admin UX) | Per-hop smoke list covers autocomplete (addresses, ticket orders), DataTables admin grids, cocoon nested forms, calendar export. Replace any that break rather than patching. |
 | R9 | **Monkey patches interacting with new framework code** (`Hash#deep_merge`, `validates_credit_card` reopening `ActiveRecord::Validations`, HWIA `to_yaml` used by audited). | Medium | Medium | Delete `hash_extensions.rb` (equivalent to ActiveSupport); keep the others under spec coverage; re-run audited specs every hop. |
-| R10 | **Test coverage gaps.** Cucumber `@javascript` scenarios don't run in CI; the legacy `test/` dir (65 files) is never run; no precompile or eager-load check. Green CI can overstate safety for JS-heavy admin pages (seat maps, order entry, reseating). | High | Medium | Phase 0 adds precompile + eager-load checks to CI and a written manual smoke checklist; run `@javascript` features locally (Docker has Firefox + geckodriver) before each deploy. |
+| R10 | **Test coverage gaps.** Cucumber `@javascript` scenarios don't run in CI; the legacy `test/` dir (65 files) is never run; no precompile or eager-load check. Green CI can overstate safety for JS-heavy admin pages (seat maps, order entry, reseating). | High | Medium | Release 1a adds precompile + eager-load checks to CI and a written manual smoke checklist; run `@javascript` features locally (Docker has Firefox + geckodriver) before each deploy. |
 | R11 | **Mixed-version Resque jobs at cutover.** Jobs enqueued by old code run on new workers. | Low (arguments are plain IDs/strings) | Low–Medium | Pause the scheduler, let queues drain, deploy, restart workers (`bin/deploy` already restarts them). |
-| R12 | **Rollback difficulty.** | Low | Medium | Rails upgrades here need no data migrations; `db/schema.rb` only changes its version header. Every hop is rollback-able by redeploying the previous commit (`git revert` + `bin/deploy`). Keep ActiveStorage migrations (if `rails app:update` generates any) in a separate, forward-compatible deploy. |
+| R12 | **Rollback difficulty**, which is larger per release because Releases 2 and 3 each span several Rails versions. | Low | Medium | Rails upgrades here need no data migrations; `db/schema.rb` only changes its version header. Each release deploys with `load_defaults` held back, so until defaults are flipped, rollback is redeploying the previous release (`git revert` + `bin/deploy`). Flip the cookie digest last within 7.0's defaults, because rolling back past it logs users out. Keep ActiveStorage migrations (if `rails app:update` generates any) in a separate, forward-compatible deploy. |
 | R13 | **Passenger / Rack compatibility.** Rails 7.1+ allows Rack 3; old Passenger versions don't support Rack 3. | Low–Medium | High (site down) | Pin `rack ~> 2.2` through the upgrade (Rails 8.x still permits it; Sinatra 3 in `Resque::Server` also wants Rack 2); move to Rack 3 only after confirming the Passenger version. |
-| R14 | **Framework defaults flipped wholesale** cause subtle behavior changes (e.g. `has_many_inversing`, `button_to` generating `<button>`, belongs_to strictness already on). | Medium | Medium | Flip `new_framework_defaults_X_Y.rb` settings one at a time or in small groups, each with a CI run, before bumping `load_defaults`. |
+| R14 | **Framework defaults flipped wholesale** cause subtle behavior changes (e.g. `has_many_inversing`, `button_to` generating `<button>`, belongs_to strictness already on). | Medium | Medium | Releases deploy with defaults held back; `new_framework_defaults_X_Y.rb` settings are then flipped in small groups, each its own CI run and small deploy, before bumping `load_defaults`. |
+| R15 | **Long-lived upgrade branches diverge** from `master` while ticketing work continues, and a multi-version release is harder to bisect in production. | Medium | Medium | Everything version-independent ships in Release 1 on 6.1, so the upgrade branches stay short. Keep one commit per minor version (bisectable), merge `master` into the branch weekly, and limit branch life to 3–4 weeks. |
 
 **Overall:** moderate, well-contained risk. The two highest-impact risks, R1
-(date formats) and R4 (payments), are both preventable with targeted checks.
+(date formats) and R4 (payments), are both preventable with targeted checks,
+and R1 is neutralized in Release 1 before any Rails version changes.
 The risk of *not* upgrading (R0) is the largest on the table.
 
 ## 4. Plan
 
-Principles: small PRs, green CI before each merge, each phase deployed to
-production in a short planned window (a weekday daytime with no on-sale,
-opening or show that night), soaked for about a week before the next hop.
-Before each production deploy: pause resque-scheduler, drain the queues, take a
-MySQL dump and a `storage/` snapshot, then run `bin/deploy`, then do the manual
-smoke checklist (§5).
+### Release structure
 
-### Phase 0: Safety net (on 6.1) · ~1 day
+The work ships in **three production releases**. Every Rails minor version is
+still passed through, but in CI and development, not in production:
+
+| Release | Production moves | Stepped through on the branch | Windows |
+|---|---|---|---|
+| **1** | Rails 6.1 (cleanup), Ruby 3.3, esbuild | — | 1–2 (1c may ship separately) |
+| **2** | 6.1 → **7.2** | 7.0, 7.1 | 1, plus small defaults-flip deploys |
+| **3** | 7.2 → **8.1**, then Ruby 3.4 | 8.0 | 1, plus small defaults-flip deploys |
+
+Why each minor is still stepped through: Rails deprecates in one minor version
+and removes in the next, so each intermediate version supplies warnings that
+point at the exact lines to fix. Skipping a version turns those warnings into
+crashes, or silent changes. The 7.1 `to_s(:format)` behavior is the worst example
+here. Why the intermediate versions aren't deployed: 7.0, 7.1 and 8.0 are out
+of (or nearly out of) security support, so running them in production adds
+maintenance windows and soak time without adding safety.
+
+**The key technique: upgrade the framework and flip its defaults separately.**
+Each release deploys the new Rails with `config.load_defaults` held at the
+*previous* release's value, and `new_framework_defaults_X_Y.rb` files left fully
+commented out. The code runs on the new framework, while behavior-changing
+defaults stay as they were. The defaults then get flipped in small follow-up
+deploys, a few settings at a time. That keeps each release's behavior change
+small, and it keeps rollback clean: until a default like the cookie digest is
+flipped, redeploying the previous release is a pure code rollback.
+
+Not everything is behind `load_defaults`. Removals (such as `legacy_connection_handling`,
+`Rails.application.secrets`, and keyword `enum`) and some behavior changes
+(`to_s(:format)`, `Time#to_s`) happen as soon as the version changes. That is what
+the per-version commits on the branch are for.
+
+**Branch discipline.** Releases 2 and 3 each live on a branch (`rails-7.2`,
+`rails-8.1`) with one commit (or small PR) per minor version. Each commit is
+green in CI with deprecations raising before the next one starts. Merge `master` into the
+branch at least weekly so ticketing work doesn't diverge. Target no more than
+3–4 weeks of branch life per release. Everything that can land on 6.1 lands
+in Release 1, which keeps the upgrade branches short.
+
+**Every production deploy** (releases and defaults flips alike) happens in a
+short planned window: a weekday daytime with no on-sale, opening or show that
+night. Beforehand, pause resque-scheduler, drain the queues, and take a MySQL
+dump and a `storage/` snapshot. Then run `bin/deploy` and the manual smoke
+checklist (§5). Soak each release for about a week before starting to flip its
+defaults.
+
+---
+
+### Release 1: Stabilize on Rails 6.1 · ~3.5 days
+
+Most of the upgrade's real risk is independent of the Rails version, so it
+ships first, on the framework that's already running in production.
+
+**1a. Safety net (~1 day)**
 
 1. Add `bundle exec rails assets:precompile` to `.github/workflows/test.yml`.
-2. Add an eager-load job to CI (`RAILS_ENV=test bin/rails zeitwerk:check` plus a
+2. Add an eager-load check to CI (`RAILS_ENV=test bin/rails zeitwerk:check` plus a
    `Rails.application.eager_load!` run with all model subdirectories).
-3. Set `config.active_support.deprecation = :raise` in `config/environments/test.rb`
-   (after Phase 1 fixes the one existing warning).
+3. Set `config.active_support.deprecation = :raise` in
+   `config/environments/test.rb`, once 1b fixes the one existing warning.
 4. Write the manual smoke checklist (§5) into `docs/runbooks/`.
 5. Align the lint workflow's Ruby with `.ruby-version`.
-6. Resolve the `sqlite3` lockfile platform churn by removing the gem (Phase 1).
 
-### Phase 1: Clean up on 6.1 · ~1.5 days
+**1b. Cleanup (~1.5 days)**
 
-1. Remove unused gems: resque-web, sqlite3, activerecord-session_store,
-   decent_exposure, i18n-js, uglifier, the dev fossils; verify and remove
-   jquery-timepicker-rails. Add `gem 'sprockets-rails'` explicitly.
+1. Remove the unused gems: resque-web, sqlite3 (this also ends the lockfile platform
+   churn), activerecord-session_store, decent_exposure, i18n-js, uglifier, and the dev
+   fossils. Verify jquery-timepicker-rails is unused, then remove it. Add
+   `gem 'sprockets-rails'` explicitly.
 2. Fix initializer autoloading: move the boot-time `lib/` requires in
-   `monkey_patches.rb` / `site_theme.rb` into `to_prepare` blocks, or into
-   `autoload_once` / ignored paths.
-3. Delete `app/models/admin/report_request.rb`; fix the `my_emma_patches` ignore
-   path; delete `hash_extensions.rb`, `footnotes.rb`, `config/spring.rb`,
-   `config/resque_web.rb`, `whiny_nils` lines; decide on the legacy `test/` dir
-   (delete or port anything valuable).
+   `monkey_patches.rb` and `site_theme.rb` into `to_prepare` blocks, or into
+   `autoload_once` or ignored paths.
+3. Delete `app/models/admin/report_request.rb`. Fix the `my_emma_patches` ignore
+   path. Delete `hash_extensions.rb`, `footnotes.rb`, `config/spring.rb`,
+   `config/resque_web.rb` and the `whiny_nils` lines. Decide on the legacy `test/`
+   dir: delete it, or port anything valuable.
 4. `.deliver` → `.deliver_now` (4 sites).
-5. `to_s(:fmt)` → `to_formatted_s(:fmt)` (43 sites; works on 6.1 through 8.x;
-   rename to `to_fs` later if desired). Replace reliance on
-   `Time::DATE_FORMATS[:default]` with explicit formatting.
+5. `to_s(:fmt)` → `to_formatted_s(:fmt)` (43 sites). This works on 6.1 through 8.x,
+   and you can rename it to `to_fs` later if you want. Replace reliance on
+   `Time::DATE_FORMATS[:default]` with explicit formatting. **This neutralizes the
+   biggest silent-regression risk (R1) before any Rails bump.**
 6. `redirect_to referer` → `redirect_back(fallback_location: …)`.
 7. Bump the gems that already support 6.1: rspec-rails 6.1, cucumber-rails 3.1,
-   exception_notification 4.6, authlogic 6.5 (verify its Rails 6.1 floor; if it
-   requires 7.0, move this to Phase 3).
-8. Set `load_defaults 6.1` and delete `new_framework_defaults_6_1.rb` (remove the
-   `legacy_connection_handling` line; it's the 6.1 default anyway).
-9. **Ruby 3.3** (update `.ruby-version`, Dockerfile, production Ruby; add a
-   `ruby` directive to the Gemfile). Enable YJIT
+   exception_notification 4.6. Also authlogic 6.5, if its floor allows 6.1;
+   otherwise it moves to Release 2.
+8. Set `load_defaults 6.1` and delete `new_framework_defaults_6_1.rb`. Remove the
+   `legacy_connection_handling` line; it's the 6.1 default anyway.
+9. **Ruby 3.3**: update `.ruby-version`, the Dockerfile and the production Ruby, and add a
+   `ruby` directive to the Gemfile. Enable YJIT
    (`RUBY_YJIT_ENABLE=1` in the Passenger environment).
 
-### Phase 2: Replace Webpacker (on 6.1) · ~1 day
+**1c. Replace Webpacker (~1 day)**
 
-1. Add jsbundling-rails with esbuild; build `seat_map_editor` to
+1. Add jsbundling-rails with esbuild. Build `seat_map_editor` to
    `app/assets/builds`, served by Sprockets.
-2. Remove the empty `application` pack and its `javascript_pack_tag`; switch
+2. Remove the empty `application` pack and its `javascript_pack_tag`. Switch
    `admin/seat_maps/editor.html.haml:60` to `javascript_include_tag`.
 3. Delete webpacker, `config/webpack/`, `webpacker.yml`, `babel.config.js`,
-   `postcss.config.js`, `bin/webpack*`, and unused npm packages.
-4. Convert the 5 CoffeeScript files to JS; drop coffee-rails.
-5. Update `bin/deploy`, `bin/docker-entrypoint`, docs (`troubleshooting.md`
+   `postcss.config.js`, `bin/webpack*` and the unused npm packages.
+4. Convert the 5 CoffeeScript files to JS and drop coffee-rails.
+5. Update `bin/deploy`, `bin/docker-entrypoint` and the docs (the `troubleshooting.md`
    Node/OpenSSL note).
 6. Dry-run `assets:precompile` on the production box before deploying.
 
-### Phase 3: Rails 7.0 · ~1.5 days
+**Deploy.** One window, or two if you'd rather ship 1c on its own, since it's
+the only step that changes the production asset build. It is reasonable to
+deploy Ruby 3.3 in its own window as well, because it touches the production host's
+toolchain.
 
-1. Bump `rails ~> 7.0.0`; run `bin/rails app:update` and review each diff by hand
-   (don't accept overwrites of `config/environments/*` blindly).
-2. Pin `rack ~> 2.2`.
-3. Add the SHA1→SHA256 cookie rotator, then flip
-   `new_framework_defaults_7_0.rb` settings in small groups:
-   `raise_on_open_redirects`, `button_to_generates_button_tag` (check
-   `admin/analysis_helper.rb:148`), cache format, and so on.
-4. Convert the enum to `enum :admission, ADMISSIONS, prefix: true`.
-5. Fix all new deprecations (the test env raises on them now).
-6. Deploy, soak, then `load_defaults 7.0`.
+---
 
-### Phase 4: Rails 7.1 · ~1 day
+### Release 2: Rails 6.1 → 7.2 · ~3.5 days + defaults flips
 
-1. Bump `rails ~> 7.1.0`, `app:update`; rspec-rails 7.1; exception_notification 5.
-2. Remove the `fixture_path` line; confirm the date-format sweep with rendered
-   output (mailers, tickets, reports); audit implicit `Time#to_s`.
-3. Adopt `config.autoload_lib(ignore: %w[tasks templates])`, reconciling with the
-   existing `autoload_paths`/ignore list.
-4. Verify site-theme reloading and the `ext_site_wrapper` symlink.
-5. Flip 7.1 defaults, deploy, soak, `load_defaults 7.1`.
+On branch `rails-7.2`, one commit per step. `load_defaults` stays at `6.1`
+throughout. `app:update` generates `new_framework_defaults_7_0.rb`, `_7_1.rb` and `_7_2.rb`;
+leave them fully commented out.
 
-### Phase 5: Rails 7.2 · ~1 day
+**2a. → 7.0**
 
-1. Bump `rails ~> 7.2.0`, `app:update`; authlogic 6.6; activeresource 6.2;
-   responders 3.2; simple_form 5.4.
+1. Bump `rails ~> 7.0.0`. Run `bin/rails app:update` and review each diff by hand;
+   don't accept overwrites of `config/environments/*` blindly.
+2. Pin `rack ~> 2.2` (see R13).
+3. Convert the enum to `enum :admission, ADMISSIONS, prefix: true`.
+4. Fix every new deprecation until CI is green.
+
+**2b. → 7.1**
+
+1. Bump `rails ~> 7.1.0`, run `app:update`, and bump rspec-rails to 7.1 and
+   exception_notification to 5.
+2. Remove the removed `legacy_connection_handling` setting if anything still
+   sets it, and remove the `fixture_path` line in `spec/rails_helper.rb`.
+3. Confirm the date-format sweep with rendered output (mailers, tickets,
+   reports), and audit implicit `Time#to_s`.
+4. Adopt `config.autoload_lib(ignore: %w[tasks templates])`, reconciling it with the
+   existing `autoload_paths` and ignore list.
+5. Verify site-theme reloading and the `ext_site_wrapper` symlink.
+
+**2c. → 7.2**
+
+1. Bump `rails ~> 7.2.0` and run `app:update`. Bump authlogic to 6.6, activeresource to 6.2,
+   responders to 3.2 and simple_form to 5.4.
 2. Remove `config/secrets.yml` and the `Rails.application.secrets` shim in
-   `lib/required_secrets.rb` (`SECRET_KEY_BASE` is read natively); update its spec.
-3. Replace `ActiveRecord::Base.connection` with `with_connection` /
-   `lease_connection` where it's easy (reports toggling `sql_mode`).
-4. Flip 7.2 defaults, deploy, soak, `load_defaults 7.2`.
+   `lib/required_secrets.rb` (`SECRET_KEY_BASE` is read natively), and update its spec.
+3. Replace `ActiveRecord::Base.connection` with `with_connection` or
+   `lease_connection` where it's easy, such as the reports that toggle `sql_mode`.
 
-### Phase 6: Rails 8.0 → 8.1 · ~2 days
+**Release 2 deploy.** Before the window, run the `@javascript` Cucumber features
+locally and do a full pass of §5 against the branch in Docker. Deploy with
+`load_defaults 6.1`. Rollback is a pure code redeploy of Release 1.
 
-1. Bump `rails ~> 8.0.0`, `app:update`; rspec-rails 8; cucumber-rails 4.
-   Confirm nothing still pulls a `< 8` constraint (`bundle exec gem dependency`).
-2. Flip 8.0 defaults, deploy, soak, `load_defaults 8.0`.
-3. Repeat for `rails ~> 8.1.0`.
-4. **Ruby 3.4**, then enable any remaining YJIT/GC tuning.
+**Defaults flips (after about a week's soak).** These are small deploys, each a few settings,
+walking through `new_framework_defaults_7_0.rb` → `_7_1.rb` → `_7_2.rb`:
 
-### Phase 7: Follow-ups (separate projects, not blocking)
+- `raise_on_open_redirects`. This is safe because 1b already fixed the referer
+  redirect.
+- `button_to_generates_button_tag`. Check `admin/analysis_helper.rb:148`.
+- The rest of each file in small groups.
+- **Last in 7.0's file: `key_generator_hash_digest_class`.** Add the SHA1→SHA256
+  cookie rotator *in the same deploy* so nobody is logged out (R2). Flip it last
+  because a code rollback past this deploy would sign everyone out. Remove the
+  rotator one or two releases later.
+- When a file is fully enabled, delete it and bump `load_defaults` (7.0, then
+  7.1, then 7.2).
+
+---
+
+### Release 3: Rails 7.2 → 8.1 · ~2 days + defaults flips
+
+On branch `rails-8.1`. `load_defaults` stays at `7.2`.
+
+**3a. → 8.0**
+
+1. Bump `rails ~> 8.0.0` and run `app:update`. Bump rspec-rails to 8 and cucumber-rails to 4.
+2. Confirm that nothing still pulls a `< 8` constraint
+   (`bundle exec gem dependency`).
+3. Fix new deprecations until CI is green.
+
+**3b. → 8.1**
+
+1. Bump `rails ~> 8.1.0`, run `app:update` and fix the deprecations.
+
+**Release 3 deploy.** This is the same pre-flight as Release 2. Deploy with `load_defaults 7.2`,
+then flip the 8.0 and 8.1 defaults in small deploys and bump `load_defaults`
+to 8.1.
+
+**3c. Ruby 3.4.** Ship it in its own window after Release 3 has soaked, then
+apply any remaining YJIT and GC tuning.
+
+---
+
+### Follow-ups (separate projects, not blocking)
 
 - Host OS: macOS 14+ (lifts the sass-embedded cap) or a Linux host.
-- money 7 / money-rails 2+, redis 5 + mock_redis, resque 3, Stripe gem beyond
+- money 7 / money-rails 2+, redis 5 + mock_redis, resque 3, and the Stripe gem beyond
   11.x (replace stripe-ruby-mock or bump it).
 - Rack 3, once the Passenger version supports it.
-- Optimizations from §6.
+- The optimizations in §6.
 
-## 5. Per-deploy smoke checklist (draft)
+## 5. Per-release smoke checklist (draft)
 
 Public: browse productions → select performance → GA purchase → reserved-seat
 purchase with seat picker → Stripe test card + 3DS → confirmation email renders
@@ -342,10 +440,10 @@ deprecation noise.
 ## 7. Open questions (answer before the relevant phase)
 
 1. **Passenger:** version, and whether it runs under Apache or Nginx (docs
-   disagree). This decides when Rack 3 is safe (R13). *(Before Phase 3.)*
+   disagree). This decides when Rack 3 is safe (R13). *(Before Release 2.)*
 2. **Ruby on the box:** install method (rbenv/rvm/asdf/Homebrew) and CPU
-   architecture (Apple Silicon or Intel). *(Before the Phase 1 Ruby bump.)*
-3. **Node/yarn on the box:** versions and install method. *(Before Phase 2.)*
+   architecture (Apple Silicon or Intel). *(Before the Release 1 Ruby bump.)*
+3. **Node/yarn on the box:** versions and install method. *(Before Release 1c.)*
 4. **MySQL and Redis on the box:** exact versions. MySQL 8.0 went EOL in April 2026;
    8.4 LTS is the forward path (independent of Rails).
 5. **Process supervision:** anything restarting Resque workers and the scheduler
