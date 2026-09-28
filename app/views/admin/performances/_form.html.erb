@@ -14,7 +14,7 @@
           <%= f.input :performance_date,  :label=>"Date", input_html: {:class=>'date_picker'}, as: :string %>
         </div>
         <div class="small-6 cell">
-          <%= f.input :performance_time, :as=>:time_picker, input_html: {:value=>performance.performance_time.nil? ? '' : performance.performance_time.to_s(:hour_min) }, :label=>"Time" %>
+          <%= f.input :performance_time, :as=>:time_picker, input_html: {:value=>performance.performance_time.nil? ? '' : performance.performance_time.to_formatted_s(:hour_min) }, :label=>"Time" %>
         </div>
       </div>
       

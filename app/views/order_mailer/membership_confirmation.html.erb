@@ -7,7 +7,7 @@
 <% end %>
 <%- if @order.gift? %>
     <p>
-    Starting <%= @order.gift_date.to_s(:long) %>, <%= @order.gift_recipient %> will be able to to use
+    Starting <%= @order.gift_date.to_formatted_s(:long) %>, <%= @order.gift_recipient %> will be able to to use
     member code <b><%= @membership.member_code %></b> to attend a wide variety of performances and
     productions here at <%= theater_info.name %>.  If you'd like to get a physical membership card to
     give with your gift, just contact our box office<% if theater_info.phone.present? %>

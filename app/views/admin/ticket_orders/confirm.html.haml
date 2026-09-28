@@ -6,7 +6,7 @@
     %div.small-12.medium-6.cell
       %h4
         %i= @ticket_order.performance.production.name
-      %h5= "#{@ticket_order.performance.performance_date.to_s(:long_with_day_of_week)} #{@ticket_order.performance.performance_time.to_s(:hour_min)}"
+      %h5= "#{@ticket_order.performance.performance_date.to_formatted_s(:long_with_day_of_week)} #{@ticket_order.performance.performance_time.to_formatted_s(:hour_min)}"
       =render '/admin/addresses/info', :address=>@ticket_order.address, :breadcrumb_order=>@ticket_order
     %div.small-12.medium-6.cell
       = render '/admin/ticket_line_items/table', :order=>@ticket_order

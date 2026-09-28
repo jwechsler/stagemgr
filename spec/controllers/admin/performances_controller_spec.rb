@@ -83,7 +83,7 @@ RSpec.describe Admin::PerformancesController, type: :controller do
           performance_code: performance.performance_code,
           status: performance.status,
           performance_date: performance.performance_date.to_s,
-          performance_time: performance.performance_time.to_s(:hour_min),
+          performance_time: performance.performance_time.to_formatted_s(:hour_min),
           special_feature_display_markdown: markdown
         }
       }

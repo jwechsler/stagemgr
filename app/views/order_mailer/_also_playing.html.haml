@@ -36,8 +36,8 @@
           .slug
             - if entry.now_playing?
               Closes
-              = entry.closing_at.to_s(:short)
+              = entry.closing_at.to_formatted_s(:short)
             - else
               Starts
-              = entry.first_preview_at.to_s(:short)
+              = entry.first_preview_at.to_formatted_s(:short)
           %br

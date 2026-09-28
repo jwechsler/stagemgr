@@ -14,7 +14,7 @@
 
     <table id="production_revenue_by_performance" class="report">
       <caption>
-        <i><%= @report_title %></i> sales counts as of <%= Time.now.to_s(:hour_min) %> on <%= Time.now %></i>
+        <i><%= @report_title %></i> sales counts as of <%= Time.now.to_formatted_s(:hour_min) %> on <%= Time.now %></i>
       </caption>
       <%= render :partial=>"generic", :locals=>{:headers=>@headers, :report_body=>@report_data, :summary=>@totals} %>
     </table>

@@ -7,9 +7,9 @@
         - found_heatmap ||= !perf_heatmap.nil?
         %tr{class: perf_heatmap ? "heatmap-#{perf_heatmap}" : nil}
           %td
-            = p.performance_date.to_s(:long)
+            = p.performance_date.to_formatted_s(:long)
           %td
-            = p.performance_time.to_s(:hour_min)
+            = p.performance_time.to_formatted_s(:hour_min)
             = raw special_feature_footnotes_for(p, footnotes)
           %td
             = price_range(p)

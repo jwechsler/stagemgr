@@ -30,19 +30,19 @@
             - unless @production.first_preview_at.blank?
               %p
                 %strong First preview:
-                = @production.first_preview_at.to_s(:long_with_day_of_week)
+                = @production.first_preview_at.to_formatted_s(:long_with_day_of_week)
             - unless @production.press_opening_at.nil?
               %p
                 %strong Press opening:
-                = @production.press_opening_at.to_s(:long_with_day_of_week)
+                = @production.press_opening_at.to_formatted_s(:long_with_day_of_week)
             - unless @production.opening_at.nil?
               %p
                 %strong Opening at:
-                = @production.opening_at.to_s(:long_with_day_of_week)
+                = @production.opening_at.to_formatted_s(:long_with_day_of_week)
             - unless @production.closing_at.nil?
               %p
                 %strong Closing at:
-                = @production.closing_at.to_s(:long_with_day_of_week)
+                = @production.closing_at.to_formatted_s(:long_with_day_of_week)
 
           .small-4.cell
             %p

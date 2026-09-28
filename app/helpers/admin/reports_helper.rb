@@ -14,7 +14,7 @@ module Admin::ReportsHelper
 
   def self.tidy_output(f)
     if f.is_a?(Time)
-      f.to_s(:hour_min)
+      f.to_formatted_s(:hour_min)
     else
       f
     end
