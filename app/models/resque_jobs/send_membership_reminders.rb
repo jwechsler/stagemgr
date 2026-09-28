@@ -6,7 +6,7 @@ class SendMembershipReminders
 
     if email.present?
       membership_orders = MembershipOrder.where(status: Order::PROCESSED)
-      OrderMailer.send(:membership_pending_reminder, membership_orders).deliver
+      OrderMailer.send(:membership_pending_reminder, membership_orders).deliver_now
     end
     nil
   end

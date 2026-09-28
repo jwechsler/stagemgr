@@ -6,7 +6,7 @@ class SendFlexPassReminders
 
     if email.present?
       flex_pass_orders = FlexPassOrder.where(status: Order::PROCESSED)
-      OrderMailer.send(:flex_pass_pending_reminder, flex_pass_orders).deliver
+      OrderMailer.send(:flex_pass_pending_reminder, flex_pass_orders).deliver_now
     end
     nil
   end
