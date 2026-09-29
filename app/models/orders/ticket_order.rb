@@ -249,7 +249,7 @@ class TicketOrder < Order
   end
 
   def refundable?
-    sold_status?
+    sold_status? && !paid_by_exchange?
   end
 
   def holdable?

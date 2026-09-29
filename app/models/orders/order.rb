@@ -408,11 +408,8 @@ class Order < ApplicationRecord
 
   def refund!
     Order.transaction do
-      payments.each do |payment|
-        if (payment.respond_to? :refund!) && payment.report_as_sales_collected?
-          payment.refund!(nil, notes)
-        end
-      end
+      # Each payment is refunded on its own tender (card, cash, pass, ...).
+      payments.select(&:refundable?).each { |payment| payment.refund!(nil, notes) }
       all_line_items.each { |li| refund_line_items (li.refund!) if li.respond_to? :refund! }
       self.status = REFUNDED
       create_notify_refund_task if fulfilled?

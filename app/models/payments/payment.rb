@@ -110,6 +110,13 @@ class Payment < ApplicationRecord
     end
   end
 
+  # True when refunding the order returns something for this payment: it was
+  # collected and there is still something to give back (money, or a pass's
+  # tickets). Order#refund! and the refund page both go by it.
+  def refundable?
+    report_as_sales_collected? && create_refund_payment?
+  end
+
   def report_as_sales_collected?
     payment_type_id.nil? || payment_type.report_as_sales_collected?
   end

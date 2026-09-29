@@ -68,6 +68,12 @@ module TicketOrderMergeable
       paid.any? { |p| p.is_a?(CurrencyPayment) && p.amount.to_f.positive? }
   end
 
+  # Paid (at least partly) with credit carried over from an exchanged order.
+  # Such an order is refunded through Exchange and Refund, never Refund.
+  def paid_by_exchange?
+    payments.any? { |p| p.is_a?(ExchangePayment) && p.amount.to_f.positive? }
+  end
+
   # Placing an addition is one transaction: the merge is checked before the
   # unchanged Order#transition_to! validates and charges it, and afterwards
   # only re-points rows and deletes the addition. A failure anywhere rolls all
