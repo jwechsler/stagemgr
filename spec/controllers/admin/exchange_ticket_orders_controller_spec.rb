@@ -79,6 +79,28 @@ RSpec.describe Admin::ExchangeTicketOrdersController, type: :controller do
     end
   end
 
+  describe 'an order paid with both a pass and a card' do
+    before do
+      allow(controller).to receive(:current_user).and_return(box_office_user)
+      original.payments << FactoryBot.create(:membership_payment, order: original, number_of_tickets: 1, amount: 0,
+                                                                  membership: FactoryBot.create(:membership))
+    end
+
+    it 'refuses the exchange page with the reason' do
+      get :new, params: { ticket_order_id: original.id }
+
+      expect(response).to redirect_to(admin_ticket_order_path(original))
+      expect(flash[:error]).to include("can't be exchanged")
+    end
+
+    it 'refuses a direct exchange request' do
+      post :create, params: exchange_params
+
+      expect(exchange_order).not_to have_received(:exchange_and_process_from!)
+      expect(response).to redirect_to(admin_ticket_order_path(original))
+    end
+  end
+
   describe 'GET #new' do
     render_views
 

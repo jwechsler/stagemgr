@@ -5,6 +5,9 @@
     = render 'detail', :ticket_order=>@ticket_order
   .small-12.cell
     = render '/admin/ticket_orders/notes', :order=>@ticket_order
+  - if @ticket_order.sold_status? && @ticket_order.paid_with_pass_and_currency?
+    .small-12.cell
+      .callout.warning#not-exchangeable= TicketOrderMergeable::MIXED_PAYMENT_NOT_EXCHANGEABLE
   %div.small-12.cell
     .button-group
       - if can? :exchange, TicketOrder

@@ -2,6 +2,7 @@ class Admin::ExchangeTicketOrdersController < Admin::ApplicationController
   authorize_resource class: TicketOrder
   # Outside create's rescue so CanCan::AccessDenied reaches the rescue_from handler.
   before_action :authorize_refund, only: :create
+  before_action :ensure_exchangeable
 
   include OrdersHelper
   include TicketOrdersHelper
@@ -68,6 +69,15 @@ class Admin::ExchangeTicketOrdersController < Admin::ApplicationController
     return unless @allowed_payment_types.map(&:id).include?(@original_order.payment_type_id)
 
     @exchange_order.payment_type_id = @original_order.payment_type_id
+  end
+
+  # The show page hides Exchange for these orders; refuse a direct request too.
+  def ensure_exchangeable
+    original = TicketOrder.find(params[:ticket_order_id])
+    return unless original.sold_status? && original.paid_with_pass_and_currency?
+
+    flash[:error] = TicketOrderMergeable::MIXED_PAYMENT_NOT_EXCHANGEABLE
+    redirect_to admin_ticket_order_path(original)
   end
 
   def refund_requested?

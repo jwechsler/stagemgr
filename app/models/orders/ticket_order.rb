@@ -207,12 +207,19 @@ class TicketOrder < Order
     ticket_line_items.select { |tli| tli.ticket_class.exchangeable? }.count > 0
   end
 
+  # An exchange cannot tell which seats a pass paid for and which another
+  # tender did, so an order holding both (e.g. a card-paid seat added to a
+  # membership order) is refunded instead (TicketOrderMergeable).
   def exchangeable?
-    status == Order::PROCESSED || status == Order::FULFILLED || status == Order::UNCLAIMED
+    sold_status? && !paid_with_pass_and_currency?
   end
 
+  # A pass + currency order (e.g. flex pass plus a card-paid Add to Order seat)
+  # can't be split: split spreads payments evenly per ticket, losing which
+  # seats the pass covered. Same reason exchangeable? refuses it.
   def splittable?
-    number_of_tickets > 1 && sold? && !paid_with_membership? && !buy_x_get_y_offer?
+    number_of_tickets > 1 && sold_status? && !paid_with_membership? &&
+      !paid_with_pass_and_currency? && !buy_x_get_y_offer?
   end
 
   def buy_x_get_y_offer?
@@ -242,7 +249,7 @@ class TicketOrder < Order
   end
 
   def refundable?
-    exchangeable?
+    sold_status?
   end
 
   def holdable?
@@ -266,7 +273,7 @@ class TicketOrder < Order
   end
 
   def sold?
-    exchangeable?
+    sold_status?
   end
 
   def processed_or_fulfilled?

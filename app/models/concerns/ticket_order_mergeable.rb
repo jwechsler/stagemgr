@@ -9,6 +9,9 @@
 module TicketOrderMergeable
   extend ActiveSupport::Concern
 
+  MIXED_PAYMENT_NOT_EXCHANGEABLE = "Orders paid with both a pass and another payment can't be exchanged; " \
+                                   'refund the order and place a new one instead.'.freeze
+
   included do
     # The order being added to. In memory only: an addition is created, merged
     # and deleted in one transaction, so no row ever needs to name its target.
@@ -49,6 +52,20 @@ module TicketOrderMergeable
 
   def send_merge_confirmation?
     @send_merge_confirmation != false
+  end
+
+  # Sold: Processed, Fulfilled or Unclaimed (the statuses #sold?, #refundable?
+  # and #exchangeable? share).
+  def sold_status?
+    [Order::PROCESSED, Order::FULFILLED, Order::UNCLAIMED].include?(status)
+  end
+
+  # Holds both a pass payment (membership or flex pass) and a money payment,
+  # as a membership order does after a card-paid seat is added to it.
+  def paid_with_pass_and_currency?
+    paid = payments.to_a
+    paid.any? { |p| p.is_a?(PassPayment) && p.number_of_tickets.to_i.positive? } &&
+      paid.any? { |p| p.is_a?(CurrencyPayment) && p.amount.to_f.positive? }
   end
 
   # Placing an addition is one transaction: the merge is checked before the

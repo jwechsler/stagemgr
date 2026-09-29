@@ -464,6 +464,19 @@ RSpec.describe TicketOrderAddition do
       expect { membership.verify_applicable_for(target) }.not_to raise_error
       expect(target).to be_valid
     end
+
+    it 'can no longer be exchanged once it holds a membership and a card payment, but stays sold and refundable' do
+      expect(target).to be_exchangeable
+      stub_gateway
+      place_addition(target, payment_type: FactoryBot.create(:credit_card_payment_type),
+                             lines: [[seat_class, 1]], **card_details)
+
+      target.reload
+      expect(target).to be_paid_with_pass_and_currency
+      expect(target).not_to be_exchangeable
+      expect(target).to be_sold
+      expect(target).to be_refundable
+    end
   end
 
   # Order#refund! on an order that gained a second payment through a merge.
