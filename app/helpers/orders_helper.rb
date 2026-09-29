@@ -157,10 +157,11 @@ module OrdersHelper
     end
   end
 
+  # The payment types a billing form offers: what this user may take for the
+  # order, narrowed to +allowed_payment_types+ when the page passes a list
+  # (Exchange, Add to Order).
   def payment_types(order, allowed_payment_types = nil, front_end_only = true)
-    paytype = payment_types_for(order, front_end_only)
-    paytype = paytype.select { |_pt| allowed_payment_types.includes?(paytype) } unless allowed_payment_types.nil?
-    paytype
+    PaymentType.restrict_to(payment_types_for(order, front_end_only), allowed_payment_types)
   end
 
   def payment_text_for(order)

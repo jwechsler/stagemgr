@@ -102,5 +102,50 @@ RSpec.describe Admin::ExchangeTicketOrdersController, type: :controller do
       expect(response.body).to include('value="Exchange Order"')
       expect(response.body).not_to include('exchange_and_refund')
     end
+
+    # The new order's performance decides the payment types
+    # (TicketOrder#valid_payment_types_for, which drops its restricted types).
+    describe 'payment types offered' do
+      let(:all_names) { ['Credit Card', 'Cash', 'Check', 'External Payment', 'Membership', 'Flex Pass'] }
+
+      before do
+        %i[credit_card_payment_type cash_payment_type check_payment_type external_payment_type
+           membership_payment_type flex_pass_payment_type].each { |type| FactoryBot.create(type) }
+        allow(controller).to receive(:current_user).and_return(box_office_user)
+      end
+
+      def options
+        Nokogiri::HTML(response.body).css('#ticket_order_payment_type_id option')
+      end
+
+      it 'offers every type the performance allows' do
+        get :new, params: { ticket_order_id: original.id }
+
+        expect(options.map(&:text)).to match_array(all_names)
+      end
+
+      it 'hides a type the performance restricts' do
+        PaymentRestriction.create!(performance: original.performance, payment_type: MembershipPaymentType.first)
+
+        get :new, params: { ticket_order_id: original.id }
+
+        expect(options.map(&:text)).to match_array(all_names - ['Membership'])
+      end
+
+      it "preselects the original order's payment type" do
+        member_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_membership)
+
+        get :new, params: { ticket_order_id: member_order.id }
+
+        expect(options.select { |o| o['selected'] }.map(&:text)).to eq(['Membership'])
+      end
+
+      it 'lets staff choose any other allowed type' do
+        get :new, params: { ticket_order_id: original.id }
+
+        expect(options.select { |o| o['selected'] }.map(&:text)).to eq(['Credit Card'])
+        expect(options.reject { |o| o['disabled'] }.map(&:text)).to include('Cash', 'Check', 'External Payment')
+      end
+    end
   end
 end

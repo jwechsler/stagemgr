@@ -57,9 +57,13 @@ class PaymentType < ApplicationRecord
     []
   end
 
-  def allowed_payment_types_for_exchange(_current_user)
-    PaymentType.all
-    []
+  # The members of +types+ that are also in +allowed+ (nil: no restriction).
+  # Compared by id, because PaymentType#== treats every row of a class as equal.
+  def self.restrict_to(types, allowed)
+    return types if allowed.nil?
+
+    allowed_ids = allowed.map(&:id)
+    types.select { |type| allowed_ids.include?(type.id) }
   end
 
   def prevent_orphans
