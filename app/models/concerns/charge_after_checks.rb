@@ -37,15 +37,13 @@ module ChargeAfterChecks
     balanced_transaction? && seat_holds_current? && special_offer_redeemable?
   end
 
-  # TicketOrder's finalize_seat_assignments runs after the charge and quietly
-  # assigns only the seats still held, so every reserved seat must still be
-  # held for this order now. The rows are locked (FOR UPDATE) so the
-  # expired-hold sweep cannot release one between this check and the save.
+  # valid? has already matched the seat count (seat_assignments_complete?),
+  # but that counts seats whatever their status. After the charge,
+  # finalize_seat_assignments assigns only TEMPORARY seats, so a RELEASING or
+  # BROKEN seat still on this order would be paid for and never assigned.
   def seat_holds_current?
     return true unless respond_to?(:number_of_seats) && performance&.production&.has_reserved_seating?
-
-    held = SeatAssignment.where(order_uuid: uuid).lock.to_a
-    return true if held.size >= number_of_seats && held.all? { |seat| seat_still_held?(seat) }
+    return true if seats.all? { |seat| seat_still_held?(seat) }
 
     errors.add(:seats, 'are no longer held for this order. Please select your seats again.')
     false

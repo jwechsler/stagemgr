@@ -131,8 +131,16 @@ RSpec.describe 'Charging only after every check' do
         expect_no_charge_and_unprocessed(order)
       end
 
-      it 'when a seat is no longer held for the order' do
+      it 'when a seat on the order is BROKEN' do
         order.seats.first.update_columns(status: SeatAssignment::BROKEN)
+
+        expect_no_charge_and_unprocessed(order)
+        expect(order.errors.full_messages)
+          .to include('Seats are no longer held for this order. Please select your seats again.')
+      end
+
+      it 'when a seat on the order is RELEASING' do
+        order.seats.first.update_columns(status: SeatAssignment::RELEASING)
 
         expect_no_charge_and_unprocessed(order)
         expect(order.errors.full_messages)
