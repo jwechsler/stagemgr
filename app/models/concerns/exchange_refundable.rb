@@ -61,6 +61,15 @@ module ExchangeRefundable
     payment
   end
 
+  # The last steps of transition_exchanging_to_processed!: a charge that
+  # succeeds is refunded if the save after it fails.
+  def charge_difference_and_save!(payment)
+    reversing_charges_on_failure do
+      charge_proper_payment!(payment) unless payment.nil?
+      save!
+    end
+  end
+
   def process_exchange_refund!(refund, index)
     refund.note = "Refund for exchange to order ##{id}"
     refund.idempotency_key = "#{uuid}-refund-#{index}" if uuid.present?

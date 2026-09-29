@@ -157,6 +157,13 @@ class CreditCardPayment < CurrencyPayment
     end
   end
 
+  # Returns this charge's money without recording a refund payment, for a
+  # charge whose order is being rolled back (ChargeAfterChecks). Returns the
+  # gateway response.
+  def reverse_charge!(note)
+    refund_to_card!(charge_amount, note: note)
+  end
+
   # Partial refund against this charge for a RefundPayment recorded on the same
   # order. Raises CannotProcessPayment on a gateway failure so the caller's
   # transaction rolls back. The gateway's refund id (re_...) is stored on the

@@ -460,8 +460,11 @@ class Order < ApplicationRecord
     new_payment
   end
 
-  # The charge for a payment from #build_proper_payment_in_amount_of.
+  # The charge for a payment from #build_proper_payment_in_amount_of. The
+  # payment is tracked before the gateway call, so a charge whose own save
+  # then fails is still refunded by #reversing_charges_on_failure.
   def charge_proper_payment!(payment)
+    charged_payments << payment
     payment_type.charge!(payment, self)
   end
 
@@ -785,6 +788,8 @@ class Order < ApplicationRecord
   #   2. charge: the gateway call, the last step that can fail
   #   3. persist: save!, then each donation order (its own charge, isolated so
   #      a decline cannot undo the paid ticket order), then the offer redemption
+  # If anything from the charge on raises, the charges already made are
+  # refunded (#reversing_charges_on_failure) before the rollback surfaces.
   # A failed check restores PROCESSING, drops the unbuilt payment and returns
   # (transition_to! then raises with the errors on the order), as before.
   def transition_processing_to_processed!(redirect_to = nil)
@@ -796,11 +801,13 @@ class Order < ApplicationRecord
       donations = checked_before_charge(payment)
       next if donations.nil?
 
-      charge_proper_payment!(payment)
-      set_email_confirmation
-      save!
-      process_additional_donation_orders(donations)
-      special_offer_line_item.mark_redeemed unless special_offer_line_item.nil?
+      reversing_charges_on_failure do
+        charge_proper_payment!(payment)
+        set_email_confirmation
+        save!
+        process_additional_donation_orders(donations)
+        special_offer_line_item.mark_redeemed unless special_offer_line_item.nil?
+      end
     end
     redirect_to
   end

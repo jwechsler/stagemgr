@@ -221,6 +221,60 @@ RSpec.describe 'Charging only after every check' do
     end
   end
 
+  describe 'refunding a charge when a later step fails' do
+    let(:refunded) { double('refund', success?: true, message: 'Refunded') }
+
+    before { allow(gateway).to receive(:refund).and_return(refunded) }
+
+    it 'refunds the ticket charge and re-raises, leaving nothing persisted' do
+      order = card_order
+      due = order.total_due
+      allow(order).to receive(:set_email_confirmation).and_raise(ActiveRecord::StatementInvalid, 'lost connection')
+
+      expect { order.transition_to!(Order::PROCESSED) }.to raise_error(ActiveRecord::StatementInvalid)
+
+      expect(gateway).to have_received(:refund).once.with((due * 100).to_i, 'ch_test', hash_including(:note))
+      expect(order).not_to be_processed
+      expect(CreditCardPayment.count).to eq(0)
+    end
+
+    it 'also refunds an additional donation that went through' do
+      order = card_order
+      due = order.total_due
+      order.additional_donation = '25'
+      allow(order).to receive(:process_additional_donation_orders).and_wrap_original do |original, *args|
+        original.call(*args)
+        raise ActiveRecord::StatementInvalid, 'lost connection'
+      end
+
+      expect { order.transition_to!(Order::PROCESSED) }.to raise_error(ActiveRecord::StatementInvalid)
+
+      expect(gateway).to have_received(:refund).with((due * 100).to_i, 'ch_test', anything)
+      expect(gateway).to have_received(:refund).with(2500, 'ch_test', anything)
+      expect(DonationOrder.count).to eq(0)
+      expect(CreditCardPayment.count).to eq(0)
+    end
+
+    it 'does not refund a declined card' do
+      allow(gateway).to receive(:purchase).and_return(declined)
+
+      expect { card_order.transition_to!(Order::PROCESSED) }.to raise_error(CannotProcessPayment)
+
+      expect(gateway).not_to have_received(:refund)
+    end
+
+    it 'logs a manual refund when the refund itself fails, and still raises the original error' do
+      allow(gateway).to receive(:refund).and_return(double('refund', success?: false, message: 'refund_failed'))
+      allow(Rails.logger).to receive(:error)
+      order = card_order
+      allow(order).to receive(:set_email_confirmation).and_raise(ActiveRecord::StatementInvalid, 'lost connection')
+
+      expect { order.transition_to!(Order::PROCESSED) }.to raise_error(ActiveRecord::StatementInvalid)
+
+      expect(Rails.logger).to have_received(:error).with(/MANUAL REFUND NEEDED for charge ch_test .*refund_failed/)
+    end
+  end
+
   describe 'an exchange that costs more than the original' do
     let(:original) { FactoryBot.create(:ticket_order, :for_a_cheap_pair_of_tickets, :paid_with_cash) }
 
@@ -257,6 +311,22 @@ RSpec.describe 'Charging only after every check' do
       expect { exchange.exchange_and_process_from!(original) }.to raise_error(ActiveRecord::RecordInvalid)
 
       expect(gateway).not_to have_received(:purchase)
+      expect(original.reload.status).to eq(Order::PROCESSED)
+      expect(CreditCardPayment.count).to eq(0)
+    end
+
+    it 'refunds the difference when the exchange fails after the charge' do
+      allow(gateway).to receive(:refund).and_return(double('refund', success?: true, message: 'Refunded'))
+      exchange = pricier_exchange_for(original)
+      difference = exchange.total_due - original.total_paid
+      allow(exchange).to receive(:charge_proper_payment!).and_wrap_original do |charge, *args|
+        charge.call(*args)
+        raise ActiveRecord::StatementInvalid, 'lost connection'
+      end
+
+      expect { exchange.exchange_and_process_from!(original) }.to raise_error(ActiveRecord::StatementInvalid)
+
+      expect(gateway).to have_received(:refund).once.with((difference * 100).to_i, 'ch_test', anything)
       expect(original.reload.status).to eq(Order::PROCESSED)
       expect(CreditCardPayment.count).to eq(0)
     end

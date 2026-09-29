@@ -9,6 +9,9 @@ module ChargeAfterChecks
   # donation could not be processed after the order itself was paid.
   DONATION_NOT_PROCESSED_NOTE = 'Additional donation not processed'.freeze
 
+  # Gateway note on a charge returned because its order rolled back.
+  CHARGE_REVERSAL_NOTE = 'Order rolled back after the charge'.freeze
+
   # A run of 12+ digits (spaces or dashes allowed) that could be a card number.
   CARD_NUMBER_PATTERN = /\d(?:[ -]?\d){11,}/
 
@@ -16,6 +19,12 @@ module ChargeAfterChecks
   # { amount:, reason: } hashes, so the checkout can tell the patron.
   def additional_donation_failures
     @additional_donation_failures ||= []
+  end
+
+  # Payments handed to the charge step during #reversing_charges_on_failure,
+  # including those of additional donation orders that went through.
+  def charged_payments
+    @charged_payments ||= []
   end
 
   protected
@@ -40,6 +49,18 @@ module ChargeAfterChecks
 
     errors.add(:seats, 'are no longer held for this order. Please select your seats again.')
     false
+  end
+
+  # Wraps the charge and every step after it. Anything that raises there rolls
+  # the order back, so a card already charged is refunded before re-raising.
+  # A decline leaves no transaction id, so nothing is refunded for it; a
+  # refund that fails is logged for the box office to return by hand.
+  def reversing_charges_on_failure
+    @charged_payments = []
+    yield
+  rescue StandardError => e
+    charged_payments.each { |payment| reverse_charge(payment, e) }
+    raise
   end
 
   private
@@ -109,9 +130,12 @@ module ChargeAfterChecks
   # Each donation charges separately after this order is paid. A failure rolls
   # back only that donation (its savepoint) and is flagged for the box office;
   # the paid order stands.
+  # A donation that went through joins charged_payments, so a later failure
+  # of this order refunds it too; a failed one has already refunded itself.
   def process_additional_donation_orders(donations)
     donations.each do |donation|
       Order.transaction(requires_new: true) { donation.transition_to!(Order::PROCESSED) }
+      charged_payments.concat(donation.charged_payments)
     rescue StandardError => e
       flag_failed_additional_donation(donation, e)
     end
@@ -127,6 +151,25 @@ module ChargeAfterChecks
     update_columns(notes: [notes, note].compact_blank.join("\n"))
     additional_donation_failures << { amount: amount, reason: reason }
     notify_box_office_of_failed_donation
+  end
+
+  def reverse_charge(payment, error)
+    return unless payment.is_a?(CreditCardPayment) && payment.transaction_id.present? && payment.amount.to_d.positive?
+
+    reason = error.message.to_s.gsub(CARD_NUMBER_PATTERN, '[redacted]')
+    Rails.logger.error("Order #{id}: #{error.class} after charging #{payment.transaction_id} " \
+                       "($#{format('%.2f', payment.amount)}); refunding the charge. #{reason}")
+    response = payment.reverse_charge!(CHARGE_REVERSAL_NOTE)
+    return if response.success?
+
+    log_manual_refund_needed(payment, response.message)
+  rescue StandardError => e
+    log_manual_refund_needed(payment, e.message)
+  end
+
+  def log_manual_refund_needed(payment, message)
+    Rails.logger.error("Order #{id}: MANUAL REFUND NEEDED for charge #{payment.transaction_id} " \
+                       "($#{format('%.2f', payment.amount)}): #{message}")
   end
 
   def notify_box_office_of_failed_donation
