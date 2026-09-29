@@ -1,3 +1,5 @@
+require 'csv'
+
 module Admin::ReportsHelper
   TRG_IMPORT_HEADERS = %i[FirstName LastName FullName CompanyName Email Address1 Address2
                           Address3 City State Zip HomePhone BusinessPhone ClientPatronID]

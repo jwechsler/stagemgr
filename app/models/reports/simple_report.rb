@@ -1,3 +1,5 @@
+require 'csv'
+
 class SimpleReport < Report
   def initialize(headers, reporting_user_id = nil)
     super
