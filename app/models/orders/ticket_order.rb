@@ -5,6 +5,8 @@ class TicketOrder < Order
   include ResourcedStockValidatable
   # Exchange-and-refund: returns the price difference to the original payments.
   include ExchangeRefundable
+  # resend_confirmation! (admin Resend Confirmation, Add to Order).
+  include TicketConfirmationResendable
 
   SEATING_REQUESTS = (
     WHEELCHAIR, WHEELCHAIR_TRANSFER, STAIRS =
