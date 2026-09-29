@@ -11,6 +11,12 @@ class CreditCardPayment < CurrencyPayment
 
   attr_accessor :card_number, :card_verification_number
 
+  # True from CreditCardPaymentType#build_uncharged_payment until #process!
+  # succeeds. While set, the payment validates as it will once charged (the
+  # confirmation code is still to come from the gateway), so an order can run
+  # its full validation before the charge; it can never be saved.
+  attr_accessor :awaiting_charge
+
   validates_credit_card_if_new :card_number,
                                :card_type, {}, :confirmation_code
   validates :card_type, presence: { if: :needs_confirmation_code? }
@@ -18,11 +24,16 @@ class CreditCardPayment < CurrencyPayment
   validates :card_number, presence: { if: :needs_confirmation_code? }
   validates :card_expiration_year, presence: { if: :needs_confirmation_code? }
   validates :card_expiration_month, presence: { if: :needs_confirmation_code? }
-  validates :confirmation_code, presence: true
+  validates :confirmation_code, presence: { unless: :awaiting_charge? }
   before_validation :set_defaults
+  before_save :refuse_uncharged_save
 
   def needs_confirmation_code?
-    confirmation_code.blank?
+    confirmation_code.blank? && !awaiting_charge?
+  end
+
+  def awaiting_charge?
+    awaiting_charge == true
   end
 
   def default_from_order
@@ -90,6 +101,7 @@ class CreditCardPayment < CurrencyPayment
       raise CannotProcessPayment, response.message.to_s unless response.success?
 
     end
+    self.awaiting_charge = false
     super
   end
 
@@ -183,6 +195,13 @@ class CreditCardPayment < CurrencyPayment
   end
 
   protected
+
+  def refuse_uncharged_save
+    return unless awaiting_charge?
+
+    errors.add(:base, 'cannot be saved before the card is charged')
+    throw :abort
+  end
 
   def charge_amount
     (amount * 100.0).to_i
