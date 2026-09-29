@@ -268,8 +268,11 @@ their own windows.*
    (`validates_credit_card`, `my_emma_patches`); the rest of `lib/`
    autoloads. `lib/site_theme.rb` is ignored by the main autoloader and
    required once by its initializer. The `EmailValidator` deprecation is gone.
-   (`lib/not_email_validator.rb` and `app/lib/email_validator.rb` look
-   unused: `Order` resolves `not_email:` to `EmailValidatable::NotEmailValidator`.)
+   Deleted the superseded top-level `app/lib/email_validator.rb` and
+   `lib/not_email_validator.rb`: `Address` resolves `email:` to
+   validates_formatting_of's `EmailValidator` and `Order` resolves `not_email:`
+   to `EmailValidatable::NotEmailValidator` (pinned by
+   `spec/models/email_validation_spec.rb`).
 3. Deleted `hash_extensions.rb` (same recursion as ActiveSupport's
    `deep_merge`, minus block support; its only callers, the environment
    files, run before initializers anyway) and the legacy `test/` directory.
