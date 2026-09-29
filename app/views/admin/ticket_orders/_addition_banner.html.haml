@@ -8,6 +8,10 @@
     = link_to "\##{target.id}", admin_ticket_order_path(target)
     = "for #{target.address&.full_name}"
   %p
+    Performance:
+    %strong= target.performance.to_short_s
+    = "(#{target.performance.performance_code})"
+  %p
     Already on the order:
     = target.ticket_detail_description
     - if target.performance.production.has_reserved_seating?

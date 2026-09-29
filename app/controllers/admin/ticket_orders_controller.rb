@@ -104,6 +104,9 @@ class Admin::TicketOrdersController < Admin::OrdersController
     end
 
     @ticket_order = TicketOrderAddition.build_for(@ticket_order)
+    # One blank line for the first item, as new_for_production builds;
+    # set_ticket_classes_for_line_items drops it if left unused.
+    @ticket_order.ticket_line_items.build
     render 'edit'
   end
 

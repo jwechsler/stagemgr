@@ -52,6 +52,32 @@ RSpec.describe Admin::TicketOrdersController, 'Add to Order', type: :controller 
       expect(page.at_css('#ticket_order_special_offer_code')).to be_nil
     end
 
+    it 'fixes the performance, starts one blank ticket line and leaves out Hold and Marketing' do
+      get :add_to, params: { id: target.id }
+
+      page = Nokogiri::HTML(response.body)
+      expect(page.at_css('#addition-banner').text.squish)
+        .to include("Performance: #{performance.to_short_s} (#{performance.performance_code})")
+      performance_field = page.at_css('#ticket_order_performance_code')
+      expect(performance_field['type']).to eq('hidden')
+      expect(performance_field['value']).to eq(performance.performance_code)
+      expect(page.css('#ticket_line_items .nested-fields').size).to eq(1)
+      expect(page.at_css('#ticket_order_hold_under')).to be_nil
+      expect(page.at_css('#ticket_order_marketing_source')).to be_nil
+      expect(page.at_css('#ticket_order_add_to_email_list')).to be_nil
+      expect(page.at_css('#ticket_order_notes')).to be_present
+    end
+
+    it 'drops the blank ticket line if staff leave it unused' do
+      params = place_params
+      params[:ticket_order][:ticket_line_items_attributes]['1'] = { ticket_class_code: '', ticket_count: '' }
+
+      post :create, params: params
+
+      expect(response).to redirect_to(admin_ticket_order_path(target))
+      expect(target.reload.ticket_line_items.map(&:ticket_class)).to include(tablet)
+    end
+
     it "offers the payment types the order's performance allows, hiding its restricted ones" do
       %i[credit_card_payment_type cash_payment_type check_payment_type external_payment_type
          membership_payment_type flex_pass_payment_type].each { |type| FactoryBot.create(type) }

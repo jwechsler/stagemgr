@@ -148,6 +148,20 @@ RSpec.describe TicketOrderAddition do
         .to include('create', 'destroy')
     end
 
+    it "appends the addition's notes to the order's own notes" do
+      target.update_columns(notes: 'Patron uses a wheelchair')
+      place_addition(target, payment_type: cash, lines: [[tablet, 1]], notes: 'Tablet requested by phone')
+
+      expect(target.reload.notes).to eq("Patron uses a wheelchair\nTablet requested by phone")
+    end
+
+    it 'leaves the order notes alone when the addition has none' do
+      target.update_columns(notes: 'Patron uses a wheelchair')
+      place_addition(target, payment_type: cash, lines: [[tablet, 1]])
+
+      expect(target.reload.notes).to eq('Patron uses a wheelchair')
+    end
+
     it 'carries the per-ticket ticketing fee onto the order (it is part of the face value)' do
       fee_before = target.ticketing_fee
       place_addition(target, payment_type: cash, lines: [[tablet, 2]])

@@ -161,14 +161,19 @@ class TicketOrderAddition
   end
 
   # No validation runs on the target after the charge: an audit row for the
-  # history, and updated_at for the house-count sweep.
+  # history, the addition's notes, and updated_at for the house-count sweep.
   def record_on_target!(charges)
     target.audits.create!(action: 'update', audited_changes: {}, comment: audit_comment(charges))
-    target.update_column(:updated_at, Time.current)
+    target.update_columns(notes: merged_notes, updated_at: Time.current)
     target.reload
     return if target.total_due == target.total_paid
 
     raise "order ##{target.id} would be unbalanced after the merge (due #{target.total_due}, paid #{target.total_paid})"
+  end
+
+  # Staff's notes on the addition are appended to the target's own.
+  def merged_notes
+    [target.notes, addition.notes].map { |note| note.to_s.strip }.compact_blank.join("\n").presence
   end
 
   def audit_comment(charges)
