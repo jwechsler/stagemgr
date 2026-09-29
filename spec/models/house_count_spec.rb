@@ -225,6 +225,25 @@ RSpec.describe HouseCount, type: :model do
       end
     end
 
+    describe '#calculate_sold_seats' do
+      it 'counts only seat-holding tickets on sold orders, not add-ons' do
+        production = FactoryBot.create(:production, capacity: 50)
+        performance = FactoryBot.create(:general_admission, production: production, performance_date: Date.current)
+        tablet = FactoryBot.create(:ticket_class, production: production, holds_seats: false, ticket_price: 0,
+                                                  class_code: 'HCTAB', class_name: 'Captioning tablet')
+        FactoryBot.create(:ticket_class_allocation, performance: performance, ticket_class: tablet)
+
+        order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_credit_card,
+                                  performance: performance)
+        order.ticket_line_items.create!(ticket_class: tablet, ticket_count: 1)
+
+        house_count = HouseCount.new(performance: performance)
+        house_count.calculate
+
+        expect(house_count.sold_seats).to eq(2)
+      end
+    end
+
     describe '.export_columns' do
       it 'includes held_seats and max_ticket_price' do
         expect(HouseCount.export_columns).to include('held_seats', 'max_ticket_price')
