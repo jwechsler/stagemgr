@@ -633,5 +633,17 @@ RSpec.describe OrderMailer, type: :mailer do
       expect(body).to include('<strong>Bring a friend.</strong>')
       expect(body).to include('<li>Unlimited plays</li>')
     end
+
+    # The gift paragraph called a nonexistent Order#gift_recipient, so every
+    # gift membership confirmation raised NoMethodError.
+    it 'renders a gift confirmation naming the recipient' do
+      membership_order.update!(gift: true, recipient_name: 'Gil Giftee', gift_date: Date.current + 7)
+
+      body = OrderMailer.membership_confirmation(membership_order).body.decoded
+
+      expect(body).to include('for Gil Giftee.')
+      expect(body).to include('Gil Giftee will be able to use')
+      expect(body).to include(membership_order.membership.member_code)
+    end
   end
 end
