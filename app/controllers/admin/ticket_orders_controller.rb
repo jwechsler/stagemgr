@@ -3,6 +3,8 @@ class Admin::TicketOrdersController < Admin::OrdersController
   include Admin::TicketOrdersHelper
 
   before_action :ensure_splittable, only: %i[split finalize_split]
+  # An addition (merge_target_id) is created by the normal create action.
+  before_action :authorize_addition, only: :create
 
   expose :order_production_id, lambda {
     if !@ticket_order.nil? && !@ticket_order.performance.nil?
@@ -92,6 +94,18 @@ class Admin::TicketOrdersController < Admin::OrdersController
   end
 
   def show; end
+
+  # Add to Order: the normal order page, for a new order that will merge into
+  # this one once it is processed (TicketOrderAddition).
+  def add_to
+    unless TicketOrderAddition.addable?(@ticket_order)
+      flash[:error] = "Order ##{@ticket_order.id} can't be added to."
+      return redirect_to(admin_ticket_order_path(@ticket_order))
+    end
+
+    @ticket_order = TicketOrderAddition.build_for(@ticket_order)
+    render 'edit'
+  end
 
   def new
     render '/general/unavailable'
@@ -312,11 +326,35 @@ class Admin::TicketOrdersController < Admin::OrdersController
     )
       flash[:error] = 'Orders for productions in Season Seating status cannot be placed'
       render 'edit'
+    elsif order.addition? && !placing_order?(commit_action)
+      # An addition is placed in one step (TicketOrderAddition runs it as one
+      # transaction), so it is never saved half-way: no Assign Seats or Hold.
+      flash.now[:error] = 'An addition is placed in one step: use Place Order.'
+      render 'edit'
     else
       set_payment_accessors_from_params(order, params[:ticket_order])
       set_ticket_classes_for_line_items(order)
+      order.send_merge_confirmation = params[:send_confirmation] != '0' if order.addition?
       super
+      # A failed addition leaves no order behind; free the seats it held.
+      TicketOrderAddition.release_holds(order) if order.addition? && !order.addition_placed?
     end
+  end
+
+  def placing_order?(commit_action)
+    label = params[:submit_action].presence || commit_action
+    label.present? && convert_button_label_to_state(label).eql?(Order::PROCESSED)
+  end
+
+  def redirect_after_processing(order)
+    return nil unless order.addition_placed?
+
+    flash[:notice] = "Added to order ##{order.merge_target_id}."
+    admin_ticket_order_path(order.merge_target_id)
+  end
+
+  def authorize_addition
+    authorize!(:add_to, TicketOrder) if params.dig(:ticket_order, :merge_target_id).present?
   end
 
   def template_by_order_status(order, commit_action = nil)
@@ -330,6 +368,10 @@ class Admin::TicketOrdersController < Admin::OrdersController
   private
 
   def ticket_order_params
-    params.require(:ticket_order).permit(*ticket_order_common_params)
+    # merge_target_id is admin-only (authorize_addition) and only starts a new
+    # addition: an existing order can never become one. The public order pages
+    # never permit it.
+    addition_params = action_name == 'create' ? [:merge_target_id] : []
+    params.require(:ticket_order).permit(*ticket_order_common_params, *addition_params)
   end
 end

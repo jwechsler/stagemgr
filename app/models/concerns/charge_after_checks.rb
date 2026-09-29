@@ -53,8 +53,16 @@ module ChargeAfterChecks
   # the order back, so a card already charged is refunded before re-raising.
   # A decline leaves no transaction id, so nothing is refunded for it; a
   # refund that fails is logged for the box office to return by hand.
-  def reversing_charges_on_failure
+  def reversing_charges_on_failure(&)
     @charged_payments = []
+    refunding_charged_payments_on_failure(&)
+  end
+
+  # Refunds the charges already in charged_payments if the block raises, then
+  # re-raises. For a step that runs after a successful transition but must
+  # still undo its charges (Add to Order's merge, TicketOrderMergeable); a
+  # transition that failed has already refunded its own.
+  def refunding_charged_payments_on_failure
     yield
   rescue StandardError => e
     charged_payments.each { |payment| reverse_charge(payment, e) }

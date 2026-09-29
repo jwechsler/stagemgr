@@ -1,0 +1,20 @@
+-# Add to Order: this new order merges into its target once it is processed
+-# (TicketOrderAddition). The target's seats already show as taken on the map.
+- target = order_form.object.merge_target
+= order_form.hidden_field :merge_target_id
+.callout.primary#addition-banner
+  %h5
+    Adding to order
+    = link_to "\##{target.id}", admin_ticket_order_path(target)
+    = "for #{target.address&.full_name}"
+  %p
+    Already on the order:
+    = target.ticket_detail_description
+    - if target.performance.production.has_reserved_seating?
+      = "(#{target.seat_assignments([SeatAssignment::ASSIGNED])})"
+  %p
+    %small Only the new items are charged here. Special offers and discount codes do not apply.
+  = hidden_field_tag :send_confirmation, '0', id: nil
+  %label
+    = check_box_tag :send_confirmation, '1', params[:send_confirmation] != '0', id: 'send_confirmation'
+    Email updated confirmation to patron
