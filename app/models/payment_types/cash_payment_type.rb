@@ -3,7 +3,7 @@ class CashPaymentType < CurrencyPaymentType
     true
   end
 
-  def build_payment(amount, order, _payment_details = {})
+  def build_uncharged_payment(amount, order, _payment_details = {})
     CashPayment.new(amount: amount, payment_type: self, order: order)
   end
 

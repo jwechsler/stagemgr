@@ -191,4 +191,22 @@ RSpec.describe OrdersHelper, type: :helper do
       expect(helper.special_feature_footnotes_for(performance_with(nil), [])).to eq('')
     end
   end
+
+  describe '#process_order success notice' do
+    let(:order) { FactoryBot.create(:ticket_order, :for_a_pair_of_tickets) }
+
+    it 'tells the patron when an additional donation could not be processed' do
+      allow(order).to receive(:transition_processing_to_processed!).and_wrap_original do |original, *args|
+        original.call(*args).tap { order.additional_donation_failures << { amount: 25, reason: 'card_declined' } }
+      end
+
+      expect(helper.process_order(order, Order::PROCESSED)).to be(true)
+      expect(flash[:notice]).to eq("Order was successfully processed. #{OrdersHelper::DONATION_NOT_PROCESSED_MESSAGE}")
+    end
+
+    it 'keeps the plain notice when there was no donation failure' do
+      expect(helper.process_order(order, Order::PROCESSED)).to be(true)
+      expect(flash[:notice]).to eq('Order was successfully processed')
+    end
+  end
 end

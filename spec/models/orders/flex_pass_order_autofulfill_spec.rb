@@ -209,7 +209,7 @@ RSpec.describe FlexPassOrder, type: :model do
     it 'rolls back the auto-created orders when the flex pass payment itself fails' do
       offer, = autofulfill_setup
       order = FactoryBot.create(:flex_pass_order, flex_pass_offer: offer)
-      allow(order).to receive(:create_proper_payment_in_amount_of!)
+      allow(order).to receive(:charge_proper_payment!)
         .and_raise(CannotProcessPayment, 'Card declined')
 
       expect { order.transition_to!(Order::PROCESSED) }.to raise_error(CannotProcessPayment)

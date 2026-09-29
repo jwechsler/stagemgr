@@ -726,16 +726,18 @@ end
     transition_processing_to_processing!
   end
 
+  # Checks, release the original, then charge and save (refunded if that fails).
   def transition_exchanging_to_processed!
     Order.transaction do
       original_order = exchange_source
       self.status = Order::PROCESSED
       set_email_confirmation
       payments.reload
-      save!
+      difference_payment = checked_exchange_difference_payment
       original_order.status = Order::EXCHANGED
       original_order.release_tickets!
       original_order.save!
+      charge_difference_and_save!(difference_payment)
     end
   end
 

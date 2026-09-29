@@ -30,8 +30,23 @@ class PaymentType < ApplicationRecord
     instance_of? other.class
   end
 
-  def build_payment(_amount, _order, _payment_details = {})
+  # Payment creation is two steps so an order can run every check that can
+  # fail before any money moves:
+  #   build_uncharged_payment -- builds the payment; no gateway call, no save
+  #   charge!                 -- settles it (the gateway call for cards)
+  # build_payment does both, for callers that want a settled payment at once.
+  def build_payment(amount, order, payment_details = {})
+    charge!(build_uncharged_payment(amount, order, payment_details), order)
+  end
+
+  def build_uncharged_payment(_amount, _order, _payment_details = {})
     raise 'New payment type not yet implemented.'
+  end
+
+  # Cash, check and external tenders have nothing to settle: they are recorded
+  # when the order saves.
+  def charge!(payment, _order)
+    payment
   end
 
   def to_label
