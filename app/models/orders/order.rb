@@ -2,6 +2,8 @@ class Order < ApplicationRecord
   include Admin::ReportsHelper
   include ActionView::Helpers::NumberHelper
   include EmailValidatable
+  # The pre-charge checks of transition_processing_to_processed!.
+  include ChargeAfterChecks
 
   # Associations
   belongs_to :theater, required: false, inverse_of: :orders
@@ -119,7 +121,9 @@ class Order < ApplicationRecord
   after_validation :prevent_status_rollbacks
   before_save :ensure_address_exists
   before_save :cancel_pending_tasks, if: :newly_canceled?
-  before_save :balanced_transaction?, if: [:saved_change_to_status?, :processed?]
+  # balanced_transaction? is checked only on the move into PROCESSED, before the
+  # charge (ChargeAfterChecks#ready_to_charge?). It is deliberately not a save
+  # callback: re-saving an already PROCESSED order must never be blocked by it.
   before_destroy :check_for_settled_payments
 
   after_save :set_tasks_after_save
@@ -440,10 +444,25 @@ class Order < ApplicationRecord
     @allow_destroy || false
   end
 
+  # Builds and charges in one step, for callers that want a settled payment.
   def create_proper_payment_in_amount_of!(amount, payment_options = {})
     new_payment = payment_type.build_payment(amount, self, payment_options)
     payments << new_payment
     new_payment
+  end
+
+  # Adds an uncharged payment to this order's payments without saving it
+  # (payments << would save it at once on a persisted order), so it is
+  # validated with the order and saved by the order's save!.
+  def build_proper_payment_in_amount_of(amount, payment_options = {})
+    new_payment = payment_type.build_uncharged_payment(amount, self, payment_options)
+    association(:payments).add_to_target(new_payment)
+    new_payment
+  end
+
+  # The charge for a payment from #build_proper_payment_in_amount_of.
+  def charge_proper_payment!(payment)
+    payment_type.charge!(payment, self)
   end
 
   def set_email_confirmation
@@ -758,23 +777,30 @@ class Order < ApplicationRecord
     redirect_to
   end
 
+  # Checks first, charge last, then persist.
+  #   1. checks: validate while PROCESSING (ticket stock), settle the special
+  #      offer and pass-suppressed fees so the total is final, build the
+  #      payment uncharged, then run save!'s full PROCESSED validation plus the
+  #      balance and seat-hold checks, and build any additional donation orders
+  #   2. charge: the gateway call, the last step that can fail
+  #   3. persist: save!, then each donation order (its own charge, isolated so
+  #      a decline cannot undo the paid ticket order), then the offer redemption
+  # A failed check restores PROCESSING, drops the unbuilt payment and returns
+  # (transition_to! then raises with the errors on the order), as before.
   def transition_processing_to_processed!(redirect_to = nil)
     Order.transaction do
-      if valid?
-        update_special_offer_line_item_from_code! unless special_offer_code.blank? || !special_offer_line_item.nil?
-        special_offer_line_item.special_offer.apply_to_order(self) unless special_offer_line_item.nil?
-        create_proper_payment_in_amount_of!(total)
-        self.status = Order::PROCESSED
-        set_email_confirmation
-        special_offer_line_item.mark_redeemed unless special_offer_line_item.nil?
-        save!
-        remove_suppressed_service_items
-        unless additional_donation.blank? || additional_donation.to_i == 0
-          save_additional_donation_order(additional_donation,
-                                         Theater.default_theater)
-        end
-        save_additional_donation_order(additional_donation_for_other) unless additional_donation_for_other.blank? || additional_donation_for_other.to_i == 0
-      end
+      next unless valid?
+
+      settle_total_before_payment
+      payment = build_proper_payment_in_amount_of(total)
+      donations = checked_before_charge(payment)
+      next if donations.nil?
+
+      charge_proper_payment!(payment)
+      set_email_confirmation
+      save!
+      process_additional_donation_orders(donations)
+      special_offer_line_item.mark_redeemed unless special_offer_line_item.nil?
     end
     redirect_to
   end
@@ -908,12 +934,16 @@ class Order < ApplicationRecord
   end
 
   def save_additional_donation_order(donation_amount, credit_to_theater = nil)
+    build_additional_donation_order(donation_amount, credit_to_theater).transition_to!(Order::PROCESSED)
+  end
+
+  def build_additional_donation_order(donation_amount, credit_to_theater = nil)
     donation = DonationOrder.new(:address => address, :payment_type => payment_type, :status => Order::NEW)
     donation.copy_payment_information(self)
     donation.campaign = performance.production.name unless performance.nil?
     donation.theater = credit_to_theater.nil? ? theater : credit_to_theater
     donation.donation_line_items.build(:amount => donation_amount)
-    donation.transition_to!(Order::PROCESSED)
+    donation
   end
 
   protected # validation methods

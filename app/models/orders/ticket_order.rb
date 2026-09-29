@@ -726,16 +726,20 @@ end
     transition_processing_to_processing!
   end
 
+  # Checks first, charge last, then persist: validate as PROCESSED and release
+  # the original (both rolled back by a decline), then charge, then save.
   def transition_exchanging_to_processed!
     Order.transaction do
       original_order = exchange_source
       self.status = Order::PROCESSED
       set_email_confirmation
       payments.reload
-      save!
+      difference_payment = checked_exchange_difference_payment
       original_order.status = Order::EXCHANGED
       original_order.release_tickets!
       original_order.save!
+      charge_proper_payment!(difference_payment) unless difference_payment.nil?
+      save!
     end
   end
 

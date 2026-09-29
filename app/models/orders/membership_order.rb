@@ -10,23 +10,31 @@ class MembershipOrder < Order
 
   # after_commit :update_membership_profile, :if=>:has_membership?
 
+  # The base transition runs every check first; the Stripe subscription is
+  # this order's charge (#charge_proper_payment!), so it is created last.
   def transition_processing_to_processed!(redirect_to = nil)
     raise "#{membership_offer.name} passes are issued by the box office and cannot be purchased." if membership_offer.timed?
 
     build_membership_line_item(membership_offer: membership_offer) if membership_line_item.nil?
-    nil
     begin
-      subscription_id = PaymentProcessing.create_subscription(self)
-
-      membership_line_item.membership.profile_id = subscription_id
-      membership_line_item.membership.update_from_profile
-
-      membership_line_item.membership.preferred_seating = special_request
-      membership_line_item.membership.save!
       super
     rescue StandardError => e
       raise "There was a problem setting up your account for the #{membership_offer.name} payment plan. #{e.message}"
     end
+  end
+
+  # Nothing to build before the charge: the first payment is recorded from
+  # the subscription once it exists.
+  def build_proper_payment_in_amount_of(_amount, _payment_options = {})
+    nil
+  end
+
+  def charge_proper_payment!(_payment)
+    membership.profile_id = PaymentProcessing.create_subscription(self)
+    membership.update_from_profile
+    membership.preferred_seating = special_request
+    membership.save!
+    create_proper_payment_in_amount_of!(total)
   end
 
   def display_code
@@ -125,6 +133,15 @@ class MembershipOrder < Order
   end
 
   protected
+
+  # membership.save! follows the subscription, so check it can save first.
+  def ready_to_charge?
+    return false unless super
+    return true if membership.valid?
+
+    errors.add(:base, membership.errors.full_messages.to_sentence)
+    false
+  end
 
   def ensure_membership_line_item_exists
     build_membership_line_item if membership_line_item.nil?
