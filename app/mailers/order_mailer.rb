@@ -4,7 +4,7 @@ class OrderMailer < ActionMailer::Base
   @markdown_renderer = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)
   helper ApplicationHelper
 
-  layout 'order_mailer', except: %i[performance_reminder flex_pass_pending_reminder refunded_item_alert]
+  layout 'order_mailer', except: %i[performance_reminder flex_pass_pending_reminder]
 
   def markdown_renderer
     Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)
@@ -51,14 +51,6 @@ class OrderMailer < ActionMailer::Base
          tag: 'Flex Pass Confirmation') do |format|
       format.html { render layout: 'order_mailer_no_sidebar' }
     end
-  end
-
-  def refunded_fulfilled_item_alert(order, email, action_by)
-    @order = order
-    @action_by = action_by
-    mail(to: email, from: Rails.configuration.x.email_address['box_office'],
-         subject: "Warning: Fulfilled order #{@order.id} refunded",
-         tag: 'Alert')
   end
 
   def test_message(address = nil)
