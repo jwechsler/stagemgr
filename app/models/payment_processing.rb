@@ -56,7 +56,7 @@ module PaymentProcessing
     end
 
     def external_type(_transaction_id)
-      'test'
+      'testing only'
     end
 
     def external_url(_transaction_id)
