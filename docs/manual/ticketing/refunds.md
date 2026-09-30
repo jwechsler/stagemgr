@@ -58,7 +58,7 @@ The confirmation dialog may include a notes field where you can record:
 | **Payment reversal** | Only payments marked as "report as sales collected" are reversed |
 | **Seat release** | All reserved seats are released back to available inventory |
 | **Status update** | Order status changes to **Refunded** |
-| **Notification** | If the order was **Fulfilled**, a refund notification email is sent to the patron |
+| **Box office alert** | If the order was **Fulfilled**, an alert email goes to the box office and supervisor addresses (the patron is not emailed) |
 
 ### Step 5: Verify Completion
 
@@ -91,14 +91,16 @@ The refund method depends on the original payment type:
 
 ## Notification Behavior
 
-The system sends a refund notification email under specific conditions:
+Stagemgr does not email the patron about a refund. Tell the patron yourself, including the credit card timeline above.
 
-| Original Status | Notification Sent? |
-|----------------|-------------------|
+When the refunded order was **Fulfilled**, its tickets have already been printed or handed over, so the system emails an internal alert asking staff to make sure those tickets are destroyed:
+
+| Original Status | Alert Sent? |
+|----------------|-------------|
 | **Processed** | No |
-| **Fulfilled** | Yes -- patron receives refund confirmation email |
+| **Fulfilled** | Yes -- to the **Box Office** and **Supervisor Notifications** addresses |
 
-The distinction exists because fulfilled orders indicate the patron has already received or used their tickets, so a notification confirms the reversal.
+The alert is titled "Warning: Fulfilled order *number* refunded" and names the staff member who processed the refund. It goes out within a few minutes, when the background task runner next checks for pending tasks. The recipients are the server-level addresses described in [Email Configuration](../setup/email-configuration.md).
 
 ## Important Rules
 
@@ -127,6 +129,6 @@ This approach preserves the tickets the patron wants to keep while refunding onl
 |-------|------------|
 | Refund button not available | Verify the order is in Processed or Fulfilled status |
 | Credit card refund failed | Check Stripe dashboard for the transaction; the card may have expired or the account closed |
-| Patron did not receive refund notification | Check the patron's email address; verify the order was in Fulfilled status when refunded |
+| Box office did not receive the refunded-order alert | Alerts are sent only for orders that were **Fulfilled** when refunded; check the order's history for the prior status and the configured box office and supervisor addresses |
 | Need to reverse a refund | Not possible through the system; create a new order for the patron |
 | Seats not released after refund | Verify the refund completed successfully; check for any system errors in the order history |

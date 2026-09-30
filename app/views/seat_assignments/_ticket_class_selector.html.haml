@@ -73,10 +73,10 @@
         row.setAttribute("data-ticket-type", ticket_type || "")
         row.setAttribute("data-zone-id", val['zone_id'] || "*")
         col = create_column("6",val['class_name'])
-        if (val['purchase_page_annotation']) {
+        if (val['purchase_page_annotation_html']) {
           span = document.createElement('span')
           span.setAttribute("class","ticket_class_annotation")
-          span.appendChild(document.createTextNode(val['purchase_page_annotation']))
+          span.innerHTML = val['purchase_page_annotation_html']
           col.appendChild(span)
         }
         row.appendChild(col)

@@ -21,11 +21,11 @@ The following email addresses are configured at the server level and used as sen
 
 | Address | Purpose |
 |---------|---------|
-| **Box Office** | Default "from" address for most patron-facing emails |
+| **Box Office** | Default "from" address for most patron-facing emails; also receives the alert when a fulfilled order is refunded |
 | **Online Errors** | Receives notifications about online order processing errors |
 | **Flex Pass Notifications** | Receives notifications about flex pass activity |
 | **Membership Notifications** | Receives notifications about membership activity |
-| **Supervisor Notifications** | Receives high-priority system notifications |
+| **Supervisor Notifications** | Receives high-priority system notifications, including the alert when a fulfilled order is refunded |
 | **Wheelchair Conversion Notifications** | Receives alerts when seats are converted to wheelchair-accessible |
 | **Software Address** | System administrative emails |
 

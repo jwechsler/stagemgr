@@ -516,10 +516,10 @@ function populate_non_seat_picker() {
     row.setAttribute("data-ticket-class-id", val['id'])
     row.setAttribute("data-ticket-type", val['ticket_type'] || "")
     var col = create_column("6", val['class_name'])
-    if (val['purchase_page_annotation']) {
+    if (val['purchase_page_annotation_html']) {
       var span = document.createElement('span')
       span.setAttribute("class", "ticket_class_annotation")
-      span.appendChild(document.createTextNode(val['purchase_page_annotation']))
+      span.innerHTML = val['purchase_page_annotation_html']
       col.appendChild(span)
     }
     row.appendChild(col)

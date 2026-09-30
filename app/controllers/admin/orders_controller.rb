@@ -146,10 +146,19 @@ class Admin::OrdersController < Admin::ApplicationController
       simple_save(order)
     else
       process_order(order, new_state) # Either way the process goes, we pick the display by current status
+      redirect_path = redirect_after_processing(order)
+      return redirect_to(redirect_path) if redirect_path
+
       respond_to do |format|
         format.html { render template_by_order_status(order, commit_action) }
       end
     end
+  end
+
+  # Override to leave the order page for somewhere else once processing is
+  # done (TicketOrdersController: a placed Add to Order goes to its target).
+  def redirect_after_processing(_order)
+    nil
   end
 
   # render the template refered to by template_by_order_status for the order

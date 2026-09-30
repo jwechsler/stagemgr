@@ -252,10 +252,10 @@ each configured name actually exists in the account and warns if it does not.
 | Key | Meaning |
 |---|---|
 | `delivery_method` | `postmark`, `file` (writes to `tmp/mails` -- the development default, so a fresh install needs no mail credentials), `sendmail`, `test` |
-| `addresses.box_office` | Default From: for patron mail, and `TheaterInfo#box_office_email` |
+| `addresses.box_office` | Default From: for patron mail, and `TheaterInfo#box_office_email`; also a recipient of the refunded-fulfilled-order alert |
 | `addresses.flex_pass_notifications` | Flex pass activity |
 | `addresses.membership_notifications` | Membership activity |
-| `addresses.supervisor_notifications` | High-priority system notices |
+| `addresses.supervisor_notifications` | High-priority system notices, including the refunded-fulfilled-order alert (`NotificationMailer#refunded_fulfilled_item_alert`, queued as a `NotificationTask` by `Order#refund!`) |
 | `addresses.wheelchair_conversion_notifications` | Seat accessibility conversions |
 | `addresses.software_address` | System/administrative mail; the last-resort sender |
 | `addresses.exception_notifications` | Crash reports from the exception notifier |

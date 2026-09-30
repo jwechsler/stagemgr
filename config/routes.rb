@@ -297,6 +297,7 @@ Rails.application.routes.draw do
         get :unclaimed
         post :confirm
         get :resend_confirmation
+        get :add_to
         post :update_notes
       end
       resources :exchange_ticket_orders, only: %i[new create]

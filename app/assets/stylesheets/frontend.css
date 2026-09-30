@@ -374,11 +374,12 @@ del.diffmod, del.diffdel { color: #ff9999; }
 
 
 .ticket_class_annotation {
+  display: block;
   font-size: .8em;
 }
 
 .ticket_class_annotation p {
-  margin-top: -1.5em;
+  margin: 0;
 }
 
 .seat.available {

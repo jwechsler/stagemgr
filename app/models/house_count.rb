@@ -69,10 +69,12 @@ class HouseCount < Metric
 
   private
 
-  # Helper method to calculate sold seats based on the TicketOrder#sold? method
+  # Seats on sold orders (TicketOrder#sold?). Only classes that hold a seat
+  # count, matching calculate_held_seats: an add-on such as a captioning tablet
+  # is a line item but occupies no seat in the house.
   def calculate_sold_seats
     performance.orders.includes(:ticket_line_items).select(&:sold?).sum do |order|
-      order.ticket_line_items.sum(:ticket_count)
+      order.ticket_line_items.joins(:ticket_class).where(ticket_classes: { holds_seats: true }).sum(:ticket_count)
     end
   end
 

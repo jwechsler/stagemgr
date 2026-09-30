@@ -13,6 +13,11 @@ class Admin::RefundOrdersController < Admin::ApplicationController
   def create
     authorize! :refund, Order
     @original_order = Order.find(params[:order_id])
+    unless @original_order.refundable?
+      flash[:error] = "Order ##{@original_order.id} can't be refunded here."
+      return redirect_to(edit_admin_order_path(@original_order.id))
+    end
+
     @original_order.notes = params[:order][:notes] unless params[:order].nil?
     begin
       @original_order.refund!

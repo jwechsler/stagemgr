@@ -1,13 +1,9 @@
 class MembershipPaymentType < PassPaymentType
-  def allowed_payment_types_for_exchange(current_user)
-    super + MembershipPaymentType.all
-  end
-
   def payment_types
     super + [MembershipPayment.class]
   end
 
-  def build_payment(_amount, order, _payment_details = {})
+  def build_uncharged_payment(_amount, order, _payment_details = {})
     membership = Membership.find_by_member_code(order.member_code)
     raise 'No current membership with that code exists' unless membership
 
@@ -16,10 +12,12 @@ class MembershipPaymentType < PassPaymentType
       total_amount + (PassPaymentType.applicable_price(li.ticket_class, pass_ticket_class) * li.ticket_count)
     end
 
-    new_payment = MembershipPayment.new(number_of_tickets: order.number_of_tickets, membership: membership,
-                                        amount: total_amount, order: order, payment_type: self)
-    new_payment.process!(order)
+    MembershipPayment.new(number_of_tickets: order.number_of_tickets, membership: membership,
+                          amount: total_amount, order: order, payment_type: self)
+  end
 
-    new_payment
+  # Redeems the pass: the pass's own restriction checks, then the save.
+  def charge!(payment, order)
+    payment.process!(order)
   end
 end

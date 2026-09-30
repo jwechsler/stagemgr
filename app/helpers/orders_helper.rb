@@ -1,6 +1,11 @@
 module OrdersHelper
   SWIPE_REGEX = /^%(?<FC>.)\$(?<PAN>\d{1,19}+)\^(?<NM>.{2,26})\^@(?<YY>\d{0,2}|\^)(?<MM>\d{0,2}|\^)(?<SC>\d{0,3}|\^)(?<DD>.*)\?;(?<PAN>\d{1,19}+)=(?<YY>\d{0,2}|\^)(?<MM>\d{0,2}|\^)(?<SC>\d{0,3}|\^)(?<DD>.*)\?/
 
+  # Appended to the success notice when the order was paid but an additional
+  # donation made with it failed (Order#additional_donation_failures).
+  DONATION_NOT_PROCESSED_MESSAGE = 'Your additional donation could not be processed; ' \
+                                   'the box office will follow up with you.'.freeze
+
   def convert_button_label_to_state(button_label)
     case button_label.downcase
     when 'checkout', 'review order', 'assign seats'
@@ -132,6 +137,7 @@ module OrdersHelper
       flash[:notice] = 'Print request submitted. Order will be marked as Fulfilled after successful printing.'
     elsif order.finalized?
       flash[:notice] = "Order was successfully #{order.status_display.downcase}"
+      flash[:notice] += ". #{DONATION_NOT_PROCESSED_MESSAGE}" if order.additional_donation_failures.any?
     end
     true
   end
@@ -151,10 +157,11 @@ module OrdersHelper
     end
   end
 
+  # The payment types a billing form offers: what this user may take for the
+  # order, narrowed to +allowed_payment_types+ when the page passes a list
+  # (Exchange, Add to Order).
   def payment_types(order, allowed_payment_types = nil, front_end_only = true)
-    paytype = payment_types_for(order, front_end_only)
-    paytype = paytype.select { |_pt| allowed_payment_types.includes?(paytype) } unless allowed_payment_types.nil?
-    paytype
+    PaymentType.restrict_to(payment_types_for(order, front_end_only), allowed_payment_types)
   end
 
   def payment_text_for(order)

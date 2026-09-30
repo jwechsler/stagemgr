@@ -23,12 +23,9 @@ class Membership < ApplicationRecord
     return verify_timed_use_for(order) if membership_offer.timed?
 
     unless membership_offer.tickets_per_performance.nil?
-      perfs = Order.where(
-        "performance_id = ? and id <> ? and id in (select order_id from payments where type = 'MembershipPayment' and membership_id = ?)", order.id, order.performance_id, id
-      )
+      raise Exceptions::TooManyTicketsForMembership.new("This membership only allows #{membership_offer.tickets_per_performance} seat#{'s' if membership_offer.tickets_per_performance > 1} per performance") if seats_covered_on(order) > membership_offer.tickets_per_performance
 
-      raise Exceptions::TooManyTicketsForMembership.new("This membership only allows #{membership_offer.tickets_per_performance} seat#{'s' if membership_offer.tickets_per_performance > 1} per performance") if order.number_of_seats > membership_offer.tickets_per_performance
-      raise Exceptions::TooManyTicketsForMembership.new("This membership allows you #{membership_offer.tickets_per_performance} seat#{'s' if membership_offer.tickets_per_performance > 1} per production") if membership_offer.tickets_per_performance < perfs.inject(0) { |sum, o1| sum + o1.membership_payments.inject(0) { |sum, p| sum + p.number_of_tickets } }
+      verify_performance_total_for(order)
     end
     if order.membership_payments.sum { |li| li.number_of_tickets } > 0
       prod_count = Performance.includes(
@@ -67,6 +64,53 @@ class Membership < ApplicationRecord
     end
   end
 
+  # Seats on +order+ this membership pays for.
+  # MembershipPaymentType#build_uncharged_payment records the order's ticket
+  # count on the payment, so for an ordinary order
+  # this is exactly number_of_seats. Seats paid another way and merged in
+  # later (Add to Order) are not the membership's, so the covered count is
+  # capped by the membership's own payments.
+  def seats_covered_on(order)
+    payments = order.membership_payments.select { |p| p.membership_id == id }
+    return order.number_of_seats if payments.empty? || payments.any? { |p| p.number_of_tickets.nil? }
+
+    [payments.sum(&:number_of_tickets), order.number_of_seats].min
+  end
+
+  # The cap holds across orders: this membership's tickets to the performance
+  # on its other attending orders plus the ones this order redeems. Only
+  # MembershipPayment rows count (Payment STI scopes match every type unless
+  # pinned). Exchanged, canceled, refunded and merged orders no longer attend.
+  # The order an exchange is replacing still reads PROCESSED while its
+  # replacement saves, so it is exempt, as in ResourcedStockValidatable.
+  #
+  # Until 2026-09 the query's arguments were swapped (performance_id = order
+  # id) and it compared only the other orders' total with the cap, so this
+  # rule had never fired since 2011.
+  def verify_performance_total_for(order)
+    cap = membership_offer.tickets_per_performance
+    requested = order.membership_payments.select { |p| p.membership_id == id }.sum { |p| p.number_of_tickets.to_i }
+    return unless requested.positive?
+
+    already = tickets_on_other_orders_for(order)
+    return if already + requested <= cap
+
+    raise Exceptions::TooManyTicketsForMembership.new(
+      "This membership allows #{cap} seat#{'s' if cap > 1} per performance and #{already} " \
+      "#{already == 1 ? 'is' : 'are'} already reserved on other orders; #{requested} more " \
+      'is not allowed for this membership.'
+    )
+  end
+
+  def tickets_on_other_orders_for(order)
+    exempt_ids = [order.id, order.try(:exchange_source_id)].compact
+    MembershipPayment.where(type: 'MembershipPayment', membership_id: id)
+                     .joins(:order)
+                     .where(orders: { performance_id: order.performance_id, status: Order::ATTENDING_STATUSES })
+                     .where.not(order_id: exempt_ids)
+                     .sum(:number_of_tickets)
+  end
+
   # Timed ("library pass") rules: ONE redemption order per calendar week
   # (Monday-Sunday), for up to tickets_per_performance seats to a single
   # performance. Any prior attending redemption whose performance falls in the
@@ -74,7 +118,7 @@ class Membership < ApplicationRecord
   # box office sales too; there is deliberately no box_office_sale bypass.
   def verify_timed_use_for(order)
     limit = membership_offer.tickets_per_performance
-    raise Exceptions::TooManyTicketsForMembership.new("This pass only allows #{limit} seat#{'s' if limit > 1} per performance") if !limit.nil? && order.number_of_seats > limit
+    raise Exceptions::TooManyTicketsForMembership.new("This pass only allows #{limit} seat#{'s' if limit > 1} per performance") if !limit.nil? && seats_covered_on(order) > limit
 
     return if order.membership_payments.sum { |li| li.number_of_tickets } == 0
 

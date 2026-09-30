@@ -3,11 +3,7 @@ class FlexPassPaymentType < PassPaymentType
     super + [FlexPassPayment.class]
   end
 
-  def allowed_payment_types_for_exchange(current_user)
-    super + FlexPassPaymentType.all
-  end
-
-  def build_payment(_amount, order, _payment_details = {})
+  def build_uncharged_payment(_amount, order, _payment_details = {})
     flex_pass = FlexPass.find_by_code(order.flex_pass_code)
     raise 'No FlexPass with that code exists' unless flex_pass
 
@@ -15,14 +11,17 @@ class FlexPassPaymentType < PassPaymentType
     total_amount = order.ticket_line_items.inject(0) do |total_amount, li|
       total_amount + (PassPaymentType.applicable_price(li.ticket_class, pass_ticket_class) * li.ticket_count)
     end
-    new_payment = FlexPassPayment.new(
+    FlexPassPayment.new(
       number_of_tickets: order.number_of_tickets,
       flex_pass: flex_pass,
       amount: total_amount,
       payment_type: self,
       order: order
     )
-    new_payment.process!(order)
-    new_payment
+  end
+
+  # Redeems the pass: the pass's own restriction checks, then the save.
+  def charge!(payment, order)
+    payment.process!(order)
   end
 end

@@ -117,4 +117,39 @@ RSpec.describe NotificationMailer, type: :mailer do
       end
     end
   end
+
+  describe '#refunded_fulfilled_item_alert' do
+    let(:order) { FactoryBot.create(:ticket_order) }
+    let(:recipient) { 'boxoffice@example.com' }
+
+    def audit_refund(user)
+      Audited::Audit.create!(auditable: order, action: 'update', user: user,
+                             audited_changes: { 'status' => [Order::FULFILLED, Order::REFUNDED] })
+    end
+
+    it 'addresses the alert to the recipient from the box office' do
+      mail = NotificationMailer.refunded_fulfilled_item_alert(order, recipient)
+
+      expect(mail.to).to eq([recipient])
+      expect(mail.from).to eq([Rails.configuration.x.email_address['box_office']])
+      expect(mail.subject).to eq("Warning: Fulfilled order #{order.id} refunded")
+    end
+
+    it 'names the user whose audit recorded the refund' do
+      audit_refund(FactoryBot.create(:user, email: 'refunder@example.com'))
+
+      mail = NotificationMailer.refunded_fulfilled_item_alert(order, recipient)
+
+      expect(mail.body.to_s).to include("Order ##{order.id}, which had already been fulfilled, " \
+                                        'has been refunded by refunder@example.com')
+    end
+
+    it 'says the refunder is unrecorded when the refund audit has no user' do
+      audit_refund(nil)
+
+      mail = NotificationMailer.refunded_fulfilled_item_alert(order, recipient)
+
+      expect(mail.body.to_s).to include('has been refunded by an unrecorded user')
+    end
+  end
 end

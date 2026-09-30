@@ -5,6 +5,15 @@
 
 ## September 2026
 
+### Refunded Fulfilled Order Alert Restored
+
+**Available to:** Administrator, Box Office
+
+Refunding an order that was already **Fulfilled** now emails the **Box Office** and **Supervisor
+Notifications** addresses again, naming the order and the staff member who refunded it, so the
+printed tickets can be destroyed. The alert had not been sent since 2022. Patrons still receive no
+refund email. See [Refunds](../ticketing/refunds.md#notification-behavior).
+
 ### Formatted Text Editor
 
 **Available to:** Administrator, Box Office

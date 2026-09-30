@@ -1,5 +1,5 @@
 class ExternalPaymentType < PaymentType
-  def build_payment(amount, order, _payment_details = {})
+  def build_uncharged_payment(amount, order, _payment_details = {})
     if restrict_to_ticket_classes.present? && order.respond_to?(:ticket_line_items)
       allowed_class_codes = restrict_to_ticket_classes.split(',')
       order.ticket_line_items.map do |tli|

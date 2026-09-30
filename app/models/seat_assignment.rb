@@ -135,12 +135,22 @@ class SeatAssignment < ApplicationRecord
     
   end
 
+  # Expired TEMPORARY holds are released when no order owns them yet, or when
+  # the owning order is already settled. A settled order holds TEMPORARY seats
+  # only mid-way through Add to Order or Change Seating; an abandoned pick
+  # there would otherwise sit forever, then be swept into the order by the next
+  # save (TicketOrder#finalize_seat_assignments) with no line item behind it.
+  # A settled order's hold that already has a line item is left alone: it is
+  # paid for (legacy side-door edits), and freeing it would let it be resold.
   def self.release_expired_temporary_holds
     results = SeatAssignment.where(
       "updated_at < :expire_time and status = :temp_status and " \
-      "(order_uuid is null or not exists (select * from orders where uuid=order_uuid))",
+      "(order_uuid is null or not exists (select * from orders where uuid=order_uuid) " \
+      "or (exists (select * from orders where uuid = order_uuid and status in (:settled_statuses)) " \
+      "and not exists (select * from line_items where line_items.seat_assignment_id = seat_assignments.id)))",
       expire_time: Time.now - Rails.configuration.x.server_config['order_expiration_in_minutes'].to_i.minutes,
-      temp_status: SeatAssignment::TEMPORARY
+      temp_status: SeatAssignment::TEMPORARY,
+      settled_statuses: Order::SETTLED_STATUSES
     )
     count = release_seat_assignments(results)
     Rails.logger.info("Released #{count} expired seat assignments") unless count.zero?

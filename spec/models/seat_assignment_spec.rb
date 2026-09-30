@@ -377,4 +377,61 @@ RSpec.describe SeatAssignment, type: :model do
       expect(SeatAssignment.reseating_zone_conflict(order_uuid)).to be_nil
     end
   end
+
+  describe '.release_expired_temporary_holds' do
+    let(:production) { FactoryBot.create(:production_with_reserved_seating) }
+    let(:performance) do
+      FactoryBot.create(:reserved_seating, production: production, performance_date: Date.current + 1.day,
+                                           performance_time: Time.parse('19:00'))
+    end
+    let(:seat_class) { FactoryBot.create(:ticket_class, production: production) }
+    let(:expired_at) do
+      Time.current - (Rails.configuration.x.server_config['order_expiration_in_minutes'].to_i + 1).minutes
+    end
+
+    before { SeatAssignment.available_seat_assignments(performance) }
+
+    def order_with_status(status)
+      order = TicketOrder.new(status: Order::NEW, performance: performance,
+                              address: FactoryBot.create(:address),
+                              payment_type: FactoryBot.create(:cash_payment_type))
+      order.save!
+      order.update_column(:status, status)
+      order
+    end
+
+    def expired_hold_for(order)
+      sa = performance.seat_assignments.reload.find { |a| a.status == SeatAssignment::AVAILABLE }
+      sa.update_columns(order_uuid: order.uuid, ticket_class_id: seat_class.id,
+                        status: SeatAssignment::TEMPORARY, updated_at: expired_at)
+      sa
+    end
+
+    it 'releases an abandoned Add to Order pick on a settled order' do
+      sa = expired_hold_for(order_with_status(Order::PROCESSED))
+
+      SeatAssignment.release_expired_temporary_holds
+
+      expect(sa.reload.status).to eq(SeatAssignment::AVAILABLE)
+      expect(sa.order_uuid).to be_nil
+    end
+
+    it 'keeps a settled order hold that already has a line item' do
+      order = order_with_status(Order::PROCESSED)
+      sa = expired_hold_for(order)
+      TicketLineItem.create!(order_id: order.id, ticket_class: seat_class, ticket_count: 1, seat_assignment_id: sa.id)
+
+      SeatAssignment.release_expired_temporary_holds
+
+      expect(sa.reload.status).to eq(SeatAssignment::TEMPORARY)
+    end
+
+    it 'keeps an expired hold that belongs to an unsettled saved order' do
+      sa = expired_hold_for(order_with_status(Order::HOLD))
+
+      SeatAssignment.release_expired_temporary_holds
+
+      expect(sa.reload.status).to eq(SeatAssignment::TEMPORARY)
+    end
+  end
 end

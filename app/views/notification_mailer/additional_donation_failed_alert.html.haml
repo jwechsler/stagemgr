@@ -1,0 +1,16 @@
+%p
+  Order #{link_to @order.id, admin_order_url(@order), :only_path => false} was paid, but the additional
+  donation made with it could not be processed. The patron was told the box office will follow up.
+%ul
+  - @failures.each do |failure|
+    %li= failure
+- address = @order.address
+- unless address.nil?
+  %p
+    = link_to address.full_name, admin_address_url(address)
+    - if address.email.present?
+      %br
+      = mail_to address.email
+    - if address.phone.present?
+      %br
+      Phone: #{address.phone}

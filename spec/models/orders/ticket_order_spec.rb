@@ -926,6 +926,13 @@ RSpec.describe TicketOrder do
       expect(order.splittable?).to be false
     end
 
+    it "is not splittable when paid with both a pass and a currency payment" do
+      order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
+      expect(order.splittable?).to be true
+      allow(order).to receive(:paid_with_pass_and_currency?).and_return(true)
+      expect(order.splittable?).to be false
+    end
+
     it "remains splittable with other special offer types" do
       order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
       order.build_special_offer_line_item(special_offer: FactoryBot.create(:percent_off_special_offer))

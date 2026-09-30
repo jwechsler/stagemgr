@@ -226,4 +226,49 @@ RSpec.describe SeatAssignmentsController, type: :controller do
       end
     end
   end
+
+  # Add to Order holds seats TEMPORARY under a settled order's uuid; only
+  # TicketOrderAddition may turn them into (paid) line items, and the order's
+  # paid seats must never be dropped from here.
+  describe 'settled-order guard' do
+    before(:each) do
+      @settled = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_credit_card,
+                                   performance: @ticket_order.performance)
+      @seat_class_id = @settled.ticket_line_items.first.ticket_class_id
+      @free_seat = SeatAssignment.where(performance_id: @settled.performance_id,
+                                        status: SeatAssignment::AVAILABLE).first
+    end
+
+    def reserve(seat)
+      post :reserve, params: { performance_id: @settled.performance_id, id: seat.id,
+                               order_uuid: @settled.uuid, ticket_class_id: @seat_class_id }, format: :json
+    end
+
+    def release(seat)
+      post :release, params: { performance_id: @settled.performance_id, id: seat.id,
+                               order_uuid: @settled.uuid }, format: :json
+    end
+
+    it 'holds a seat for a settled order without creating a line item' do
+      expect(@settled).to be_settled
+      expect { reserve(@free_seat) }.not_to(change { TicketLineItem.where(order_id: @settled.id).count })
+      expect(@free_seat.reload.status).to eq(SeatAssignment::TEMPORARY)
+      expect(@free_seat.order_uuid).to eq(@settled.uuid)
+    end
+
+    it 'releases a TEMPORARY pick on a settled order' do
+      reserve(@free_seat)
+      release(@free_seat)
+
+      expect(@free_seat.reload.status).to eq(SeatAssignment::AVAILABLE)
+    end
+
+    it 'refuses to release an ASSIGNED seat of a settled order' do
+      paid_seat = @settled.seats.reload.find { |sa| sa.status == SeatAssignment::ASSIGNED }
+
+      expect { release(paid_seat) }.not_to(change { TicketLineItem.where(order_id: @settled.id).count })
+      expect(paid_seat.reload.status).to eq(SeatAssignment::ASSIGNED)
+      expect(paid_seat.order_uuid).to eq(@settled.uuid)
+    end
+  end
 end

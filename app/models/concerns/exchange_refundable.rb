@@ -34,6 +34,8 @@ module ExchangeRefundable
 
   # Plain exchange: Carryover write-off or a new charge for the difference.
   # Refund exchange: the offsets were already netted, so any remainder is a bug.
+  # A charge is only built (and validated) here; transition_exchanging_to_processed!
+  # charges it once every check has passed.
   def settle_exchange_difference!(difference, refund:)
     if refund
       raise RefundNotPossible, "Exchange did not net to zero ($#{format('%.2f', difference)})" unless difference.zero?
@@ -41,7 +43,30 @@ module ExchangeRefundable
       payments << PriceOverridePayment.new(amount: difference, order: self,
                                            source_payment_type: exchange_source.payment_type)
     elsif difference.positive?
-      create_proper_payment_in_amount_of!(difference)
+      @exchange_difference_payment = payment_type.build_uncharged_payment(difference, self)
+      raise ActiveRecord::RecordInvalid, @exchange_difference_payment if @exchange_difference_payment.invalid?
+    end
+  end
+
+  # Puts the uncharged difference payment, if any, onto the reloaded payments
+  # and runs the pre-charge checks, raising if the order is not ready to charge.
+  def checked_exchange_difference_payment
+    payment = @exchange_difference_payment
+    return if payment.nil?
+
+    @exchange_difference_payment = nil
+    association(:payments).add_to_target(payment)
+    raise ActiveRecord::RecordInvalid, self unless ready_to_charge?
+
+    payment
+  end
+
+  # The last steps of transition_exchanging_to_processed!: a charge that
+  # succeeds is refunded if the save after it fails.
+  def charge_difference_and_save!(payment)
+    reversing_charges_on_failure do
+      charge_proper_payment!(payment) unless payment.nil?
+      save!
     end
   end
 

@@ -1,24 +1,31 @@
 /= /admin/ticket_orders/_form
 = order_form.hidden_field :status
+-# An addition (Add to Order) uses its target's address record
+-# (TicketOrderMergeable), so the patron's name and address are not editable
+-# here; Hold and Marketing belong to the original order only.
+- addition = order_form.object.addition?
 .grid-x.grid-padding-x
-  .small-12.cell
-    = order_form.simple_fields_for :address do |address_form|
-      = render '/admin/orders/name_form', :f => address_form
+  - unless addition
+    .small-12.cell
+      = order_form.simple_fields_for :address do |address_form|
+        = render '/admin/orders/name_form', :f => address_form
   .small-12.cell
     - unless order_production.has_reserved_seating?
       = order_form.input :special_request, :as=>:select, :collection=>TicketOrder::SEATING_REQUESTS + ['See Notes'], :label=>"Special seating requirements?"
-    = order_form.input :hold_under, :label=>'Hold reservation under'
+    - unless addition
+      = order_form.input :hold_under, :label=>'Hold reservation under'
 .grid-x.grid-padding-x
   .small-12.medium-6.cell
     = render '/admin/orders/billing_form', :order_form=>order_form
-  .small-12.medium-6.cell
-    = order_form.simple_fields_for :address do |address_form|
-      = render '/admin/orders/address_form', :f => address_form
-  .cell.small-12.medium-6
-    %fieldset.fieldset
-      %legend Marketing
-      = order_form.input :add_to_email_list, :as=>:boolean, :label=>'Add to email list?', :default=>false
-      = order_form.input :marketing_source, :collection=>Order::REFERRALS, :label=>"How did you hear about the show?"
+  - unless addition
+    .small-12.medium-6.cell
+      = order_form.simple_fields_for :address do |address_form|
+        = render '/admin/orders/address_form', :f => address_form
+    .cell.small-12.medium-6
+      %fieldset.fieldset
+        %legend Marketing
+        = order_form.input :add_to_email_list, :as=>:boolean, :label=>'Add to email list?', :default=>false
+        = order_form.input :marketing_source, :collection=>Order::REFERRALS, :label=>"How did you hear about the show?"
   .small-12.cell.medium-6
     = order_form.input :notes, :input_html => {:rows => 4}
 .grid-x
