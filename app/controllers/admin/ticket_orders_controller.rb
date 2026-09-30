@@ -371,9 +371,9 @@ class Admin::TicketOrdersController < Admin::OrdersController
   private
 
   def ticket_order_params
-    # merge_target_id is admin-only (authorize_addition) and only starts a new
-    # addition: an existing order can never become one. The public order pages
-    # never permit it.
+    # merge_target_id needs :add_to (Box Office and Administrator, see
+    # authorize_addition) and only starts a new addition: an existing order can
+    # never become one. The public order pages never permit it.
     addition_params = action_name == 'create' ? [:merge_target_id] : []
     params.require(:ticket_order).permit(*ticket_order_common_params, *addition_params)
   end
