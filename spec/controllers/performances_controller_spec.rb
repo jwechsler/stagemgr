@@ -4,6 +4,12 @@ RSpec.describe PerformancesController, type: :controller do
   # Footnotes drive both calendar formats: @footnotes for the large-format
   # month grid and @list_footnotes for the small-format date list. Identical
   # "Custom Special Feature" copy must collapse to one footnote in both.
+  # Tomorrow can fall in next month, outside the default month grid, so each
+  # request asks for the month the performances are in.
+  def get_index_for(production, date)
+    get :index, params: { production_id: production.id, start_date: date.beginning_of_month.to_s }
+  end
+
   describe 'GET index footnotes' do
     let(:production) { FactoryBot.create(:production) }
 
@@ -17,7 +23,7 @@ RSpec.describe PerformancesController, type: :controller do
 
     def footnotes_for(*copy)
       copy.each_with_index { |markdown, i| create_performance("#{18 + i}:00", markdown) }
-      get :index, params: { production_id: production.id }
+      get_index_for(production, Date.current + 1.day)
       [assigns(:footnotes), assigns(:list_footnotes)]
     end
 
@@ -59,7 +65,7 @@ RSpec.describe PerformancesController, type: :controller do
     end
 
     it 'leaves them out of the footnotes' do
-      get :index, params: { production_id: production.id }
+      get_index_for(production, performance.performance_date)
 
       expect(assigns(:footnotes)).to eq(['Talkback'])
       expect(assigns(:list_footnotes)).to eq(['Talkback'])
