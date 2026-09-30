@@ -63,10 +63,6 @@ Given(%r{^I select ([0-9]+/[0-9]+/[0-9]+) from "([^"]*)"$}) do |date, field|
   select_date_by_id(date, parent_of_date)
 end
 
-When(/^I attach the test file "([^"]*)" to "([^"]*)"$/) do |filename, field|
-  path = Rails.root.join('test', 'files', filename).to_s
-  attach_file(field, path)
-end
 Then(/^["']([^"]*)['"] should link to ['"]([^"]*)['"]$/) do |link_text, page_name|
   URI.parse(page.find_link(link_text)['href']).path.should == path_to(page_name)
 end

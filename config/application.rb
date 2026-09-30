@@ -30,6 +30,8 @@ module Stagemgr
     Rails.autoloaders.main.ignore("#{config.root}/lib/tasks")
     Rails.autoloaders.main.ignore(Rails.root.join('lib/extensions/my_emma_patches.rb'))
     Rails.autoloaders.main.ignore(Rails.root.join('lib/validates_credit_card.rb'))
+    # Needed by config/initializers/site_theme.rb at boot, so loaded once there.
+    Rails.autoloaders.main.ignore(Rails.root.join('lib/site_theme.rb'))
     # Required by the environment files, which run before the autoloaders are set up.
     Rails.autoloaders.main.ignore(Rails.root.join('lib/mailer_url_options.rb'))
     Rails.autoloaders.main.ignore(Rails.root.join('lib/app_secrets.rb'))

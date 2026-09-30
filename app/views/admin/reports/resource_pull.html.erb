@@ -1,6 +1,6 @@
 <div class="grid-x grid-padding-x">
   <div class="small-12 cell">
-    <h3>Resource Pull Sheet <%= @date.to_s(:long) %></h3>
+    <h3>Resource Pull Sheet <%= @date.to_formatted_s(:long) %></h3>
 
     <% if @report_data.empty? %>
       <p>No resourced equipment sold for this date.</p>

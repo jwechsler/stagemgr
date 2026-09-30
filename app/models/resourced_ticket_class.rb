@@ -243,7 +243,7 @@ class ResourcedTicketClass < ApplicationRecord
 
   # performance_date/performance_time are naive wall-clock columns, so the
   # window bounds have to be compared as wall clock in the application zone.
-  # NOTE: do NOT use TimeWithZone#to_s(:db) here -- it converts to UTC.
+  # NOTE: do NOT use TimeWithZone#to_formatted_s(:db) here -- it converts to UTC.
   def wall_clock(time)
     time.strftime('%Y-%m-%d %H:%M:%S')
   end

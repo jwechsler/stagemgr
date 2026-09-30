@@ -6,7 +6,7 @@ class UserDecorator < ApplicationDecorator
   end
 
   def last_request_at
-    object.last_request_at.to_s
+    object.last_request_at&.to_formatted_s(:default).to_s
   end
 
   def privs

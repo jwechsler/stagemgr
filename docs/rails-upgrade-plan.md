@@ -74,7 +74,7 @@ doctor → precompile → restart).
 | webpacker | 5.4.4 | retired upstream; webpack 4 needs `--openssl-legacy-provider` on Node 22 | Replace with jsbundling-rails (esbuild) |
 
 **Unused, delete:** activerecord-session_store (sessions are `:cookie_store`),
-decent_exposure (0 `expose` calls), i18n-js, uglifier, jquery-timepicker-rails
+i18n-js, uglifier, jquery-timepicker-rails
 (vendored/npm copy is what's loaded — verify), coffee-rails (after converting 5
 small `.coffee` files), and the dev-group fossils wirble, bond, what_methods,
 map_by_method, single_test, rbx-require-relative. Also `config/spring.rb`,
@@ -87,8 +87,8 @@ resque 2.7 + resque-scheduler 4.11 + resque-retry 1.9, mysql2 0.5.7, chartkick
 5.2, jquery-ui-rails 8, loosen the `nio4r`/`ffi` pins.
 
 **Keep but watch (unmaintained, no Rails upper bound):**
-rails-jquery-autocomplete, cocoon, ajax-datatables-rails, simple-form-datepicker
-(1 use), validates_formatting_of (2 uses), ri_cal (1 use), resque-lock-timeout
+rails-jquery-autocomplete, cocoon, ajax-datatables-rails, decent_exposure (3 controllers),
+validates_formatting_of (2 uses), ri_cal (1 use), resque-lock-timeout
 (0.4.1 is the only version compatible with resque 2/3), my_emma (git; deps are
 unconstrained activemodel + httparty — fine).
 
@@ -152,7 +152,7 @@ Likelihood/impact are for this codebase specifically.
 | R5 | **Asset build fails on the production box** (webpacker→esbuild swap; sass-embedded's Dart binary needs macOS ≥ 14 above 1.98; native gems on a Ruby bump). CI never runs `assets:precompile`, so this would first appear at deploy. | Medium | High (deploy aborts; site stays on old code if deploy is ordered right) | Add `assets:precompile` to CI now; do a dry-run precompile on the production box (in a separate checkout) before each deploy that touches assets or Ruby; keep the `< 1.98` cap. |
 | R6 | **Production host is macOS 13** (Apple no longer patching it). Future gem/Ruby/Node releases increasingly assume newer OS and toolchains. | Medium (grows over time) | Medium–High | Not a blocker for this plan, but budget an OS upgrade to macOS 14+ (or a Linux move) alongside or after Release 3. |
 | R7 | **Autoload/eager-load surprises in production.** `app/models/**/` subdirectories are added as autoload roots, which are not eager loaded; one file defines the wrong constant. A class that loads fine lazily in dev can fail under eager load. | Medium | Medium | Fix the two bad files in Release 1; add a CI step that eager loads with `config.eager_load = true` (`bin/rails zeitwerk:check` plus a full eager load); consider `config.autoload_lib` in 7.1. |
-| R8 | **Unmaintained gems break quietly** (rails-jquery-autocomplete, cocoon, ajax-datatables-rails, decent_exposure removal, simple-form-datepicker, resque-lock-timeout, ri_cal). | Medium | Low–Medium (admin UX) | Per-hop smoke list covers autocomplete (addresses, ticket orders), DataTables admin grids, cocoon nested forms, calendar export. Replace any that break rather than patching. |
+| R8 | **Unmaintained gems break quietly** (rails-jquery-autocomplete, cocoon, ajax-datatables-rails, decent_exposure, resque-lock-timeout, ri_cal). | Medium | Low–Medium (admin UX) | Per-hop smoke list covers autocomplete (addresses, ticket orders), DataTables admin grids, cocoon nested forms, calendar export. Replace any that break rather than patching. |
 | R9 | **Monkey patches interacting with new framework code** (`Hash#deep_merge`, `validates_credit_card` reopening `ActiveRecord::Validations`, HWIA `to_yaml` used by audited). | Medium | Medium | Delete `hash_extensions.rb` (equivalent to ActiveSupport); keep the others under spec coverage; re-run audited specs every hop. |
 | R10 | **Test coverage gaps.** Cucumber `@javascript` scenarios don't run in CI; the legacy `test/` dir (65 files) is never run; no precompile or eager-load check. Green CI can overstate safety for JS-heavy admin pages (seat maps, order entry, reseating). | High | Medium | Release 1a adds precompile + eager-load checks to CI and a written manual smoke checklist; run `@javascript` features locally (Docker has Firefox + geckodriver) before each deploy. |
 | R11 | **Mixed-version Resque jobs at cutover.** Jobs enqueued by old code run on new workers. | Low (arguments are plain IDs/strings) | Low–Medium | Pause the scheduler, let queues drain, deploy, restart workers (`bin/deploy` already restarts them). |
@@ -249,32 +249,89 @@ ships first, on the framework that's already running in production.
 
 **1b. Cleanup (~1.5 days)**
 
-1. Remove the unused gems: resque-web, sqlite3 (this also ends the lockfile platform
-   churn), activerecord-session_store, decent_exposure, i18n-js, uglifier, and the dev
-   fossils. Verify jquery-timepicker-rails is unused, then remove it. Add
-   `gem 'sprockets-rails'` explicitly.
-2. Fix initializer autoloading: move the boot-time `lib/` requires in
-   `monkey_patches.rb` and `site_theme.rb` into `to_prepare` blocks, or into
-   `autoload_once` or ignored paths.
-3. ~~Delete `app/models/admin/report_request.rb`. Fix the `my_emma_patches` ignore
-   path.~~ (Done in 1a.) Set `config.active_support.deprecation = :raise` in
-   `config/environments/test.rb` once step 2 is in. Delete `hash_extensions.rb`, `footnotes.rb`, `config/spring.rb`,
-   `config/resque_web.rb` and the `whiny_nils` lines. Decide on the legacy `test/`
-   dir: delete it, or port anything valuable.
+*Done on `rails-upgrade/release-1b` (items 1–7 below). Items 8 and 9 moved to
+their own windows.*
+
+1. Removed the unused gems: resque-web, sqlite3 (the lockfile platform churn
+   is gone), activerecord-session_store, i18n-js, uglifier,
+   jquery-timepicker-rails (the timepicker CSS is a vendored copy in
+   `app/assets/stylesheets`; the JS call is commented out) and the dev
+   fossils. resque-web also took twitter-bootstrap-rails, less,
+   font-awesome-sass and sass-rails/sassc out of the bundle; the production
+   `application-*.css`/`.js` digests are unchanged (Font Awesome 4.7 still
+   comes from font-awesome-rails). `sprockets-rails` is now explicit.
+   Deleted `config/resque_web.rb`, `config/spring.rb`, the footnotes
+   initializer and the `whiny_nils` lines. **Kept decent_exposure**: three
+   controllers use `expose` (the audit's "0 calls" was wrong).
+2. Initializer autoloading: `monkey_patches.rb` now requires only the two
+   autoloader-ignored files that reopen gem/framework constants
+   (`validates_credit_card`, `my_emma_patches`); the rest of `lib/`
+   autoloads. `lib/site_theme.rb` is ignored by the main autoloader and
+   required once by its initializer. The `EmailValidator` deprecation is gone.
+   Deleted the superseded top-level `app/lib/email_validator.rb` and
+   `lib/not_email_validator.rb`: `Address` resolves `email:` to
+   validates_formatting_of's `EmailValidator` and `Order` resolves `not_email:`
+   to `EmailValidatable::NotEmailValidator` (pinned by
+   `spec/models/email_validation_spec.rb`).
+3. Deleted `hash_extensions.rb` (same recursion as ActiveSupport's
+   `deep_merge`, minus block support; its only callers, the environment
+   files, run before initializers anyway) and the legacy `test/` directory.
+   One file there was live: factory_bot_rails loads `test/factories.rb` by
+   default, so it moved verbatim to `spec/factories/general.rb`. The dev
+   `/rails/mailers` previews went with it.
 4. `.deliver` → `.deliver_now` (4 sites).
-5. `to_s(:fmt)` → `to_formatted_s(:fmt)` (43 sites). This works on 6.1 through 8.x,
-   and you can rename it to `to_fs` later if you want. Replace reliance on
-   `Time::DATE_FORMATS[:default]` with explicit formatting. **This neutralizes the
-   biggest silent-regression risk (R1) before any Rails bump.**
-6. `redirect_to referer` → `redirect_back(fallback_location: …)`.
-7. Bump the gems that already support 6.1: rspec-rails 6.1, cucumber-rails 3.1,
-   exception_notification 4.6. Also authlogic 6.5, if its floor allows 6.1;
-   otherwise it moves to Release 2.
-8. Set `load_defaults 6.1` and delete `new_framework_defaults_6_1.rb`. Remove the
-   `legacy_connection_handling` line; it's the 6.1 default anyway.
-9. **Ruby 3.3**: update `.ruby-version`, the Dockerfile and the production Ruby, and add a
-   `ruby` directive to the Gemfile. Enable YJIT
-   (`RUBY_YJIT_ENABLE=1` in the Passenger environment).
+5. Dates and times (R1):
+   - All 43 `to_s(:fmt)` calls (every receiver a Date/Time) are
+     `to_formatted_s(:fmt)`.
+   - Every bare `Time#to_s` that relied on `Time::DATE_FORMATS[:default]` now
+     calls `to_formatted_s(:default)`: report "generated … on" lines, login
+     times on the account page and user datatable, the report/import file
+     lists, and the daily box office receipts report, whose day *grouping*
+     keys on that string.
+   - **Detector** (`spec/support/bare_time_to_s_detector.rb`, loaded by RSpec
+     and `features/support/bare_time_to_s.rb`): fails either suite if app
+     code reaches `Time`/`DateTime`/`TimeWithZone#to_s` with no format,
+     including interpolation, CSV, `join` and ERB/HAML output.
+     `BARE_TIME_TO_S=report` lists sites without failing. **Delete it once on
+     Rails 7.1+**, where `to_s` no longer reads `:default`. RSpec found none
+     (controller specs don't render views); Cucumber found three; the rest
+     came from a grep.
+   - Literal-format specs pin the ticket confirmation's date/time,
+     `PerformanceDecorator#performance_time`/`order_link` and the report
+     cell/CSV output.
+6. The global exception handler follows a referer only when it is on this
+   host and is not the failing path (`redirect_back`), otherwise `root_path`,
+   so a foreign referer can't raise `UnsafeRedirectError` once
+   `raise_on_open_redirects` is on.
+7. Bumped rspec-rails 5.1.2 → 6.1.5, cucumber-rails 2.5.1 → 3.1.1 (cucumber
+   7.1 → 9.2; `AfterConfiguration` became `BeforeAll`) and
+   exception_notification 4.5.0 → 4.6.0. **authlogic 6.5 is deferred** to
+   the 1b.8 window, see below.
+8. `config.active_support.deprecation = :raise` in test (moved here from 1a).
+   Fixed the two remaining app deprecations: `CreditCardPayment#refund!`
+   left a transaction block with `return` (6.1 commits, 7.0 would roll back
+   the reconciled refund; it now uses `next`). The Simple Form
+   `wrapper_options` warning came from the simple-form-datepicker gem's
+   `DatepickerInput`, not from `app/inputs/datepicker_input.rb`, which Zeitwerk
+   never loaded because the gem had already defined the constant. The gem's
+   class now lives in that file with the new signature, and the gem is gone.
+
+**Moved to their own windows:**
+
+- **Framework defaults** (was 1b.8): `load_defaults 6.1` and deleting
+  `new_framework_defaults_6_1.rb`. **Finding:** authlogic 6.4.3 loads
+  `ActiveRecord::Base` during `Bundler.require`, before the initializers run,
+  so the two `config.active_record` lines in `new_framework_defaults_6_1.rb`
+  (`has_many_inversing = true`, `legacy_connection_handling = false`) have
+  **never taken effect**. Production runs with `has_many_inversing` false and
+  legacy connection handling on. authlogic 6.5.0 (allows AR ≥ 5.2, < 8.1)
+  loads lazily, which silently turns both on. That changes behaviour: with
+  inversing on, `spec/models/orders/ticket_exchange_spec.rb` sees a duplicate
+  in-memory payment. So bump authlogic in the same window as the defaults
+  flip, decide `has_many_inversing` deliberately (and fix whatever code
+  depends on it being off), and run the login/session specs and features.
+  Then check staff login, patron login and password reset by hand.
+- **Ruby 3.3** (was 1b.9): unchanged, still a separate window.
 
 **1c. Replace Webpacker (~1 day)**
 

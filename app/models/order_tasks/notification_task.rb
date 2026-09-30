@@ -9,7 +9,7 @@ class NotificationTask < OrderTask
     result = true
     begin
       notifications.split(',').each do |address|
-        NotificationMailer.send(method_symbol, order, address).deliver
+        NotificationMailer.send(method_symbol, order, address).deliver_now
       end
     rescue StandardError => e
       result = false

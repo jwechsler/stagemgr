@@ -3,15 +3,15 @@
   .small-12.cell
     %h3
       Donations between 
-      = @start_day.to_s(:long)
+      = @start_day.to_formatted_s(:long)
       and
-      = @end_day.to_s(:long)
+      = @end_day.to_formatted_s(:long)
     %table#donation_totals.report
       %caption
         %i
           Donation amounts by theater, generated at
-          = Time.now.to_s(:hour_min)
+          = Time.now.to_formatted_s(:hour_min)
           on
-          = Time.now
+          = Time.now.to_formatted_s(:default)
       = render :partial=>"generic", :locals=>{:headers=>@headers, :report_body=>@report_data, :summary=>@totals}
 

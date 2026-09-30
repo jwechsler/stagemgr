@@ -20,13 +20,13 @@
           = @user.login_count
           %br
           %strong Last login on:
-          = @user.last_login_at
+          = @user.last_login_at&.to_formatted_s(:default)
           %br
           %strong Last login ip:
           = @user.last_login_ip
         .cell.small-6
           %strong Current login on:
-          = @user.current_login_at
+          = @user.current_login_at&.to_formatted_s(:default)
           %br
           %strong Current login ip:
           = @user.current_login_ip

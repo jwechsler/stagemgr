@@ -1,9 +1,10 @@
 # frozen_string_literal: true
 
-# Plain require rather than require_relative: the path is inside an autoload
-# path, so Zeitwerk still manages the constant and no `ignore` entry is needed.
-# Explicit because this file must not depend on some other initializer having
-# sorted before it and loaded lib/*.rb along the way.
+# lib/site_theme.rb is ignored by the main autoloader (config/application.rb)
+# and required here: this initializer needs SiteTheme at boot, and an
+# initializer that autoloads a reloadable constant is deprecated on 6.1 and a
+# NameError on 7.0. SiteTheme is side-effect free, so not reloading it costs
+# nothing but a server restart after editing it.
 require Rails.root.join('lib/site_theme').to_s
 
 # Activates the site theme named by `site_theme:` in config/server.yml, so that

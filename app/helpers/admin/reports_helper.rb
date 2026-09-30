@@ -1,3 +1,5 @@
+require 'csv'
+
 module Admin::ReportsHelper
   TRG_IMPORT_HEADERS = %i[FirstName LastName FullName CompanyName Email Address1 Address2
                           Address3 City State Zip HomePhone BusinessPhone ClientPatronID]
@@ -14,7 +16,7 @@ module Admin::ReportsHelper
 
   def self.tidy_output(f)
     if f.is_a?(Time)
-      f.to_s(:hour_min)
+      f.to_formatted_s(:hour_min)
     else
       f
     end

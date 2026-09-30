@@ -3,15 +3,13 @@ source 'https://rubygems.org'
 
 gem 'rails', '~> 6.1'
 
-gem 'activerecord-session_store'
 gem 'bootsnap'
-gem 'i18n-js'
+gem 'sprockets-rails'
 gem 'webpacker'
 
 gem 'redcarpet', '~> 3.6' # Markdown
 
 gem 'simple_form', '~> 5.1'
-gem 'simple-form-datepicker'
 # gem "databasedotcom"
 # gem 'restforce', '~> 2.5.3'
 # gem "validation_reflection"
@@ -55,12 +53,10 @@ gem 'dartsass-sprockets'
 # Dart runtime's minimum to macOS 14 (its compiler process dies at launch,
 # aborting assets:precompile). Lift the cap once that machine is on 14+.
 gem 'sass-embedded', '>= 1.80', '< 1.98'
-gem 'uglifier'
 # Foundation 6.9 via npm (foundation-sites in package.json)
 gem 'autoprefixer-rails'
 
 gem 'draper'
-gem 'jquery-timepicker-rails'
 gem 'yajl-ruby', require: 'yajl'
 # gem 'jqgrid-rails3', :git=>"https://github.com/davebaldwin/jqgrid-rails3.git"
 # gem "name_parse", "~> 0.0.5"
@@ -93,11 +89,7 @@ gem 'whiny_validation'
 gem 'chartkick'
 
 group :development do
-  gem 'bond'
   gem 'listen'
-  gem 'map_by_method'
-  gem 'what_methods'
-  gem 'wirble'
   #  gem 'g'
   #  gem 'terminal-notifier'
   #  gem 'mongrel'
@@ -105,7 +97,6 @@ group :development do
   gem 'http_logger'
   gem 'pry'
   gem 'pry-rails'
-  gem 'single_test'
 
   gem 'rubocop', require: false
   gem 'rubocop-rails', require: false
@@ -120,9 +111,8 @@ group :test do
   gem 'factory_bot_rails'
   gem 'puma'
   gem 'rails-controller-testing'
-  gem 'sqlite3', '~> 1.6.9'
   # gem 'poltergeist'
-  gem 'cucumber-rails', '2.5.1', require: false
+  gem 'cucumber-rails', '~> 3.1', require: false
   gem 'database_cleaner-active_record'
   gem 'selenium-webdriver', '~> 4.15' # Latest stable version
   gem 'simplecov'
@@ -135,22 +125,17 @@ group :test do
   gem 'fakeredis', require: 'fakeredis/rspec'
   gem 'flexmock'
   gem 'mocha', require: false
-  gem 'rspec-rails', '< 6.0'
+  gem 'rspec-rails', '~> 6.1'
 end
 
 group :production, :test do
   #  gem 'newrelic_rpm'
-  gem 'exception_notification' # , '< 4.5' # rails 5.0
+  gem 'exception_notification', '~> 4.6'
   gem 'mysql2'
-end
-
-group :development, :production do
-  gem 'resque-web', require: 'resque_web'
 end
 
 group :cucumber do
   gem 'launchy'
-  gem 'rbx-require-relative'
 end
 
 # assets

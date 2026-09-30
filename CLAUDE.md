@@ -45,6 +45,12 @@ stagemgr.theaterwit.org) and `README.md`. The essentials:
   `test:` block, whose sentinel values (`555-BOX-OFFICE`, `Test Director`, …)
   are asserted by specs and features.
 
+- **Format dates and times explicitly**: `time.to_formatted_s(:hour_min)`, never
+  `to_s(:hour_min)`, and never a bare `Time#to_s` (including `"#{time}"`,
+  `= time` in HAML, a Time in a CSV row). Rails 7.1 ignores both, so output
+  would silently change. `spec/support/bare_time_to_s_detector.rb` fails RSpec
+  and Cucumber on a bare call from app code (`BARE_TIME_TO_S=report` to list
+  without failing). Deprecations raise in the test environment.
 
 ## Stagemgr Architecture
 Based on analysis of the codebase, Stagemgr consists of these key components:

@@ -49,7 +49,7 @@ class FlexPassOrder < Order
     return if email.blank?
 
     flex_pass_orders = FlexPassOrder.find_all_by_status(Order::PROCESSED)
-    OrderMailer.send(:flex_pass_pending_reminder, flex_pass_orders).deliver
+    OrderMailer.send(:flex_pass_pending_reminder, flex_pass_orders).deliver_now
   end
 
   def cancel!

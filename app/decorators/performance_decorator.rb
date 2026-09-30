@@ -39,7 +39,7 @@ class PerformanceDecorator < ApplicationDecorator
   end
 
   def performance_time
-    object.performance_time.to_s(:hour_min)
+    object.performance_time.to_formatted_s(:hour_min)
   end
 
   def performance_code
@@ -51,7 +51,7 @@ class PerformanceDecorator < ApplicationDecorator
   end
 
   def order_link(display_text = nil, link_classes = [], link_style = '', suppress_display_if_unavailable = false)
-    display_text ||= object.performance_time.to_s(:hour_min).lstrip
+    display_text ||= object.performance_time.to_formatted_s(:hour_min).lstrip
     result = ''
     if object.order_url_override.present?
       result << h.link_to(h.raw(display_text), object.order_url_override, class: link_classes.join(' '),

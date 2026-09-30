@@ -3,7 +3,7 @@
     %h4
       %i= ticket_order.performance.production.name
   .small-12.medium-6.cell
-    %h5= "#{ticket_order.performance.performance_date.to_s(:long_with_day_of_week)} #{ticket_order.performance.performance_time.to_s(:hour_min)}"
+    %h5= "#{ticket_order.performance.performance_date.to_formatted_s(:long_with_day_of_week)} #{ticket_order.performance.performance_time.to_formatted_s(:hour_min)}"
   .small-12.medium-6.cell
     %fieldset.fieldset
       %legend Buyer

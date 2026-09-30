@@ -8,7 +8,7 @@
 
     <table id="royalty_report" class="report">
       <caption>
-        <i><%= @production.name %></i> royalty report as of <%= Time.now.to_s(:hour_min) %> on <%= Time.now %></i>
+        <i><%= @production.name %></i> royalty report as of <%= Time.now.to_formatted_s(:hour_min) %> on <%= Time.now.to_formatted_s(:default) %></i>
       </caption>
       <%= render partial: "generic", locals: { headers: @headers, report_body: @report_data, summary: @totals } %>
     </table>

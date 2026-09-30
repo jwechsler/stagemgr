@@ -10,7 +10,7 @@
       on
       = @performance.performance_date
       at
-      = @performance.performance_time.to_s(:hour_min)
+      = @performance.performance_time.to_formatted_s(:hour_min)
 
     Performance Code:
     = @performance.performance_code

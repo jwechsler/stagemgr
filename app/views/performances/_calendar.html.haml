@@ -61,7 +61,7 @@
                   = raw current_day<@start_date || current_day > @end_date ? '&nbsp;' : current_day.strftime('%d')
 
                 - performances.each do |performance|
-                  - title = "#{performance.performance_time.to_s(:hour_min).lstrip}"
+                  - title = "#{performance.performance_time.to_formatted_s(:hour_min).lstrip}"
                   - title << special_feature_footnotes_for(performance,@footnotes)
                   - found_sold_out ||= performance.calendar_sold_out?
                   - perf_heatmap = performance.calendar_heatmap_level

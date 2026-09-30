@@ -1,3 +1,6 @@
+# Moved verbatim from the retired test/factories.rb, which factory_bot_rails
+# loads by default: users/admin_user, address, line items, job metadata and
+# FactoryBot.create_test_theater (used by Cucumber) live here.
 # FactoryBot.duplicate_attribute_assignment_from_initialize_with = false
 
 module FactoryBot

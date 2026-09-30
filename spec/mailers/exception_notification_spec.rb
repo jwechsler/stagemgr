@@ -1,4 +1,6 @@
 require 'rails_helper'
+# Autoloader-ignored and required only by production.rb, so load it here.
+require Rails.root.join('lib/exception_recipients')
 
 # The ExceptionNotification middleware is configured only in production.rb, so in
 # the test environment ExceptionNotifier.notifiers is empty and notify_exception
