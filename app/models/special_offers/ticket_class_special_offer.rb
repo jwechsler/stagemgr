@@ -1,8 +1,8 @@
 class TicketClassSpecialOffer < SpecialOffer
   def apply_to_order(order)
     new_items, old_items = modified_line_items_in_order(order)
-    new_items.each { |li| order.ticket_line_items << li }
-    old_items.each { |li| order.ticket_line_items.delete(li) }
+    # Each new item takes over its old item's seat (see replace_ticket_line_item).
+    old_items.zip(new_items).each { |old_li, new_li| order.replace_ticket_line_item(old_li, new_li) }
     order.adjust_seating_to_match_ticket_line_items(new_items, old_items)
     self
   end

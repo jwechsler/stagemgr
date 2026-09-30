@@ -228,6 +228,12 @@ select[size], select[multiple] {
   cursor: not-allowed;
 }
 
+/* A reserve/release request for this seat is in flight (seat_map.js). */
+.seat.seat-pending {
+  fill-opacity: .5;
+  cursor: progress;
+}
+
 /* Compact propagate-availability toggle in the performance form's allocation
    grid (admin/performances/_form, non-auto-attach ticket classes) */
 #ticket-class-listing .propagate-availability-toggle {

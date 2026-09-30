@@ -203,6 +203,8 @@ class SpecialOffer < ApplicationRecord
         if li.ticket_count > num_remaining then
           li2 = li.dup
           li2.ticket_count = li.ticket_count - num_remaining
+          # The remainder is a second row; only one row may hold a seat FK.
+          li2.seat_assignment_id = nil
           order.ticket_line_items << li2 if modify
           li.ticket_count = num_remaining
           li.save if modify

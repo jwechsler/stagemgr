@@ -94,6 +94,10 @@ class SeatAssignmentsController < ApplicationController
           tli_id = nil
           unless !max_tickets.nil? && current_assignment_count(order_uuid, sa.id) >= max_tickets.to_i
             SeatAssignment.transaction do
+              # Row lock (reloads sa): overlapping reserves for one seat (a
+              # double click) serialize here, so the second sees the first's
+              # hold and its line item instead of inserting a duplicate TLI.
+              sa.lock!
               if sa.available?(order_uuid)
                 sa.assign_to_order(order_uuid, max_seatable, ticket_class_id.to_i, accessible_setting)
                 sa.update(price_override: price_override) if price_override
@@ -126,6 +130,8 @@ class SeatAssignmentsController < ApplicationController
         reseating = params[:reseating]
         released_ticket_class_id = sa.ticket_class_id
         SeatAssignment.transaction do
+          # Serialize with any overlapping reserve/release for this seat.
+          sa.lock!
           if reseating.nil?
             if sa.assigned?(order_uuid) && releasable_outside_reseating?(sa, order_uuid)
               destroy_ticket_line_item_for(sa)

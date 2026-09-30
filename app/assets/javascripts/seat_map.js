@@ -35,6 +35,46 @@ function update_seating_submit_button(seating_complete) {
   }
 }
 
+// Seats with a reserve/release request in flight, keyed by assignment id.
+// A second click on the same seat (a double click, or the modal's class
+// button clicked twice) is ignored until the first request settles; other
+// seats stay clickable. Kept on window because seat_map is bundled into both
+// seat_assignment.js and reseating.js.
+window.pending_seat_ids = window.pending_seat_ids || {}
+
+function is_seat_pending(assignment_id) {
+  return window.pending_seat_ids[String(assignment_id)] === true
+}
+
+function mark_seat_pending(assignment_id) {
+  window.pending_seat_ids[String(assignment_id)] = true
+  $('#seatingmap circle[data-assignment-id="' + assignment_id + '"]').addClass('seat-pending')
+}
+
+function clear_seat_pending(assignment_id) {
+  delete window.pending_seat_ids[String(assignment_id)]
+  $('#seatingmap circle[data-assignment-id="' + assignment_id + '"]').removeClass('seat-pending')
+}
+
+// Forget every in-flight seat, e.g. when the seatmap is swapped for another
+// performance: the old circles are gone and their ids no longer apply.
+function reset_pending_seats() {
+  window.pending_seat_ids = {}
+}
+
+// Friendly message for a failed reserve/release. The server's own message
+// (a 422 zone or class rejection) is written for patrons, so prefer it.
+function seat_request_failed(xhr) {
+  var msg = "Sorry, we couldn't update that seat. Please try again."
+  try {
+    var parsed = JSON.parse(xhr.responseText)
+    if (parsed && parsed.message) { msg = parsed.message }
+  } catch (e) {
+    console.log("seat request failed: " + xhr.status)
+  }
+  alert(msg)
+}
+
 function update_seating_attributes(e_reference, status) {
   
   old_status = $(e_reference).data('status')

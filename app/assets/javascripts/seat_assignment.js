@@ -75,13 +75,17 @@ function filter_ticket_selector_by_zone(seatZone) {
 
 function initialize_seating_assignment() {
 
-  $(document).on('closed.zf.reveal', '[data-reveal]', function () {
+  // Namespaced and unbound first: this runs again whenever
+  // update_ticketing_panel reloads the seatmap, and must not stack handlers.
+  $(document).off('closed.zf.reveal.seatAssignment')
+  $(document).on('closed.zf.reveal.seatAssignment', '[data-reveal]', function () {
     var modal = $(this);
     //$('img.seatingmap').mapster('rebind',mapster_options());
 
   });
 
-  $('#seatingmap circle').click( function(e) {
+  $('#seatingmap circle').off('click.seatAssignment')
+  $('#seatingmap circle').on('click.seatAssignment', function(e) {
     e.preventDefault();
     // var data = $('#seatingmap').data('maphilight') || {};
     // data.alwaysOn = true;
@@ -92,6 +96,9 @@ function initialize_seating_assignment() {
     console.log("starting status is " + starting_status)
 
     data_key = $(this).data('key')
+    var clicked_id = $(this).data('assignment-id')
+    // A request for this seat is still in flight: ignore the repeat click.
+    if (is_seat_pending(clicked_id)) { return; }
     switch (starting_status) {
       case "available":
         $("#seat-location").text($(this).data('location'));
@@ -107,10 +114,14 @@ function initialize_seating_assignment() {
         $('#ticket-modal').foundation('open');
         break;
       case "assigned":
+        var release_performance_id = $("#performance_id").val()
+        mark_seat_pending(clicked_id)
         $.post( release_url(),
-          { 'id': $( this ).data('assignment-id'),
+          { 'id': clicked_id,
              'order_uuid': ticket_order_id()
           }, function( response, status ) {
+            // The seatmap was swapped for another performance meanwhile.
+            if (release_performance_id !== $("#performance_id").val()) { return; }
             e_reference = '[data-assignment-id='+response['id']+']'
 
             if (response['status'] == 'available') {
@@ -159,7 +170,9 @@ function initialize_seating_assignment() {
 
             }
 
-          });
+          })
+          .fail(seat_request_failed)
+          .always(function() { clear_seat_pending(clicked_id) });
           break;
     };
 
@@ -176,16 +189,26 @@ function initialize_seating_assignment() {
       }
     }
 
-    $('#ticket-modal').foundation('close');
+    // Consume the modal's seat so a second click on a class button (a double
+    // click lands before the modal finishes closing) sends no second reserve.
+    var $modal = $('#ticket-modal')
+    var assignment_id = $modal.data('assignment-id')
+    $modal.data('assignment-id', 'none')
+    $modal.foundation('close');
+    if (assignment_id == null || assignment_id === 'none' || is_seat_pending(assignment_id)) { return; }
+    mark_seat_pending(assignment_id)
+    var reserve_performance_id = $("#performance_id").val()
     accessible_setting = ($("#convert-accessible").is(":checked") && $("#accessible").is(":visible")) ? $("#convert-accessible").val() : ""
     console.log("accessible is " + accessible_setting)
     $.post( reserve_url(),
-      { 'id': $('#ticket-modal').data('assignment-id'),
+      { 'id': assignment_id,
          'order_uuid': ticket_order_id(),
          'ticket_class_id': ticket_class_id,
          'accessible':accessible_setting,
          'price_override': price_override
       }, function( response, status ) {
+        // The seatmap was swapped for another performance meanwhile.
+        if (reserve_performance_id !== $("#performance_id").val()) { return; }
         e_reference = '[data-assignment-id='+response['id']+']'
         data_key = response['id']+','+response['status']
         update_unavailable_seats(response['unavailable']);
@@ -204,10 +227,18 @@ function initialize_seating_assignment() {
               price_override: response['price_override'],
               ticket_line_item_id: response['ticket_line_item_id'] || null
             })
-            $("#ticket-display").append(row)
-            c_locations = $("#seatlocations").text().trim()
-            if (c_locations != '') { c_locations = c_locations + ', ' }
-            $("#seatlocations").text(c_locations + ($(e_reference).data('location') || ''))
+            // Idempotent: a row for this seat already exists (a repeated
+            // reserve for the same seat) -> replace it, don't add a second.
+            var $existing = $('#ticket-display .ticket_line_item[data-seat-assignment-id="' + response['id'] + '"]')
+            if ($existing.length > 0) {
+              $existing.first().replaceWith(row)
+              $existing.slice(1).remove()
+            } else {
+              $("#ticket-display").append(row)
+              c_locations = $("#seatlocations").text().trim()
+              if (c_locations != '') { c_locations = c_locations + ', ' }
+              $("#seatlocations").text(c_locations + ($(e_reference).data('location') || ''))
+            }
           } else {
             current_count = $("#ticket_class_qty_display_"+ticket_class_id).text()
             if (current_count===undefined) { current_count = "0" }
@@ -230,7 +261,9 @@ function initialize_seating_assignment() {
         } else {
           $( e_reference ).mapster('deselect')
         }
-      });
+      })
+      .fail(seat_request_failed)
+      .always(function() { clear_seat_pending(assignment_id) });
 
   });
 }
@@ -682,6 +715,9 @@ function hide_ticket_class_row(ticket_class_id) {
 }
 
 function update_ticketing_panel(perf_id) {
+  // The seatmap is replaced: drop in-flight pending marks. A callback for a
+  // different performance ignores the new map (it compares performance ids).
+  reset_pending_seats()
   $('#seatmap-area').empty()
   release_temporary_holds_by_uuid(ticket_order_id())
 
@@ -725,10 +761,14 @@ function initialize_remove_reserved_seat() {
     var $circle = $('#seatingmap circle[data-assignment-id="' + saId + '"]');
     if ($circle.length === 0) {
       // Fallback: if circle isn't in DOM (unlikely), POST release directly.
+      if (is_seat_pending(saId)) { return; }
+      mark_seat_pending(saId)
       $.post(release_url(), { id: saId, order_uuid: ticket_order_id() }, function() {
         $(".ticket_line_item[data-seat-assignment-id='" + saId + "']").remove();
         calculate_ticket_totals();
-      });
+      })
+      .fail(seat_request_failed)
+      .always(function() { clear_seat_pending(saId) });
       return;
     }
     $circle.trigger('click');

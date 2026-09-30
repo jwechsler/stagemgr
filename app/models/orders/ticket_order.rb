@@ -582,11 +582,13 @@ end
       # by index, which may not match each TLI's original FK, so we cannot
       # rely on a per-iteration "release only when seat matches" check.
       ticket_line_items.where.not(seat_assignment_id: nil).update_all(seat_assignment_id: nil)
-      # Also clear any orphan line_items (order_id IS NULL) that hold one of
-      # the seat_assignment_ids being moved to a split order. These rows are
-      # dead — they belong to no order — but the unique index still treats
-      # them as live and would reject our dup TLIs. Scoping to seats that are
-      # actually being split keeps this surgical.
+      # LEGACY safety net: clear any orphan line_items (order_id IS NULL) that
+      # hold one of the seat_assignment_ids being moved to a split order.
+      # Class swaps used to orphan replaced TLIs with their seat FK intact;
+      # they now destroy them (TicketOrder#replace_ticket_line_item) and
+      # migration NullifyOrphanLineItemSeatAssignments cleared the backlog,
+      # so this should find nothing. Kept in case an unknown path still
+      # orphans a seat-holding row. Scoped to seats actually being split.
       seat_ids_to_release = remaining_tickets.map { |t| t[:seat]&.id }.compact
       if seat_ids_to_release.any?
         LineItem.where(order_id: nil, seat_assignment_id: seat_ids_to_release).delete_all
@@ -914,6 +916,23 @@ end
     
   end
 
+  # Swap old_li for new_li (a class change: pass redemption, ticket-class
+  # special offer). The new line item takes over the old one's seat, keeping
+  # the one-TLI-per-seat pairing. A persisted old row is destroyed first:
+  # has_many#delete would only null its order_id, leaving an orphan that holds
+  # the seat's unique FK and blocks the seat's next sale; and on a persisted
+  # order `<<` inserts new_li at once, which the index would reject while the
+  # old row still holds the seat.
+  def replace_ticket_line_item(old_li, new_li)
+    new_li.seat_assignment_id = old_li.seat_assignment_id
+    if old_li.persisted?
+      ticket_line_items.destroy(old_li)
+    else
+      ticket_line_items.delete(old_li)
+    end
+    ticket_line_items << new_li
+  end
+
   protected
 
   def fork_order_into_split
@@ -1066,10 +1085,11 @@ end
     end.all?
   end
 
+  # Destroy (not has_many#delete) so a zero-count row is removed rather than
+  # orphaned with order_id NULL while still holding its unique seat FK.
   def remove_empty_ticket_lines
-    ticket_line_items.map { |li| li.ticket_class.id }.uniq
-    ticket_line_items.each do |li|
-      ticket_line_items.delete(TicketLineItem.find(li.id)) if li.ticket_count == 0 && !li.id.nil?
+    ticket_line_items.to_a.each do |li|
+      ticket_line_items.destroy(li) if li.ticket_count == 0 && li.persisted?
     end
   end
 
@@ -1078,17 +1098,17 @@ end
   def set_ticket_classes_using_offer(offer)
     new_ticket_class = production_ticket_class_from_offer(offer)
     return if new_ticket_class.nil?
-      ticket_line_items.each do |li|
+      # Iterate a snapshot: replacing items mutates the association's target,
+      # and walking it live skips items and re-swaps the new ones.
+      ticket_line_items.to_a.each do |li|
         new_line_item = TicketLineItem.new
         new_line_item.ticket_class = new_ticket_class
-        li.ticket_class.ticket_price
         new_line_item.ticket_count = li.ticket_count
         if new_ticket_class.ticket_type == TicketClass::DONATION
           new_line_item.price_override = TicketOrder.applicable_price(li.ticket_class,
                                                                       new_ticket_class)
         end
-        ticket_line_items << new_line_item
-        ticket_line_items.delete(li)
+        replace_ticket_line_item(li, new_line_item)
         adjust_seating_to_match_ticket_line_items(new_line_item, li)
       end
     

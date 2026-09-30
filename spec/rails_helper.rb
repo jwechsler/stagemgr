@@ -69,8 +69,15 @@ RSpec.configure do |config|
   end
 
   config.around(:each) do |example|
-    DatabaseCleaner.cleaning do
+    # :concurrent_db examples drive several threads, each on its own DB
+    # connection, so they cannot share one wrapping transaction. They set
+    # use_transactional_tests = false and delete every row they create.
+    if example.metadata[:concurrent_db]
       example.run
+    else
+      DatabaseCleaner.cleaning do
+        example.run
+      end
     end
   end
 

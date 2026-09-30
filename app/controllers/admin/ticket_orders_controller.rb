@@ -238,8 +238,10 @@ class Admin::TicketOrdersController < Admin::OrdersController
         tli.ticket_class = use_class.first.ticket_class unless use_class.empty?
       end
     end
+    # destroy, not delete: a persisted row would otherwise be orphaned
+    # (order_id NULL) while still holding its unique seat FK.
     order.ticket_line_items.select { |tli| tli.ticket_class.nil? }.each do |tli|
-      order.ticket_line_items.delete(tli)
+      order.ticket_line_items.destroy(tli)
     end
   end
 

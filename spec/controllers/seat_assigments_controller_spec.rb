@@ -87,6 +87,21 @@ RSpec.describe SeatAssignmentsController, type: :controller do
       expect(response).to be_successful
       expect(SeatAssignment.find(@reservation_id).status).to eq(SeatAssignment::TEMPORARY)
     end
+
+    # A double click on the class button sends two reserves for one seat.
+    it 'leaves one line item when the same seat is reserved twice for a persisted order' do
+      tc = allocated_class(holds_seats: true)
+      2.times do
+        post :reserve,
+             params: { performance_id: @performance.id, id: @reservation_id,
+                       order_uuid: @ticket_order.uuid, ticket_class_id: tc.id }, format: :json
+        expect(response).to be_successful
+      end
+
+      tlis = TicketLineItem.where(seat_assignment_id: @reservation_id)
+      expect(tlis.pluck(:order_id)).to eq([@ticket_order.id])
+      expect(tlis.first.ticket_count).to eq(1)
+    end
   end
 
   describe 'web visibility guard' do

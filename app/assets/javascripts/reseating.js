@@ -55,6 +55,9 @@ $(document).ready(function() {
     assignment_id = $(this).data('assignment-id')
     data_key = $(this).data('key')
     max_tix = $("#number-of-tickets").text()
+    // A request for this seat is still in flight: ignore the repeat click.
+    if (is_seat_pending(assignment_id)) { return; }
+    var clicked_id = assignment_id
     switch (starting_status) {
       case "available":
       case "releasing":
@@ -65,8 +68,9 @@ $(document).ready(function() {
           alert("Seat " + $(this).data('location') + " (zone " + seatZone + ") is not available for your ticket type");
           break;
         }
+        mark_seat_pending(clicked_id)
         $.post( reserve_url(),
-              { 'id': assignment_id,
+              { 'id': clicked_id,
                  'order_uuid': ticket_order_id(),
                  'max_tickets': max_tix
               }, function( response, status ) {
@@ -97,12 +101,15 @@ $(document).ready(function() {
                 } else {
                   $("#finalize-seating").addClass("disabled")
                 }
-              });
+              })
+              .fail(seat_request_failed)
+              .always(function() { clear_seat_pending(clicked_id) });
 
         break;
       case "assigned":
+        mark_seat_pending(clicked_id)
         $.post( release_url(),
-          { 'id': $( this ).data('assignment-id'),
+          { 'id': clicked_id,
              'order_uuid': ticket_order_id(),
              'reseating': true,
           }, function( response, status ) {
@@ -122,9 +129,11 @@ $(document).ready(function() {
               } else {
                 $("#finalize-seating").addClass("disabled")
               }
-              
+
             }
-          });
+          })
+          .fail(seat_request_failed)
+          .always(function() { clear_seat_pending(clicked_id) });
           break;
         
     };

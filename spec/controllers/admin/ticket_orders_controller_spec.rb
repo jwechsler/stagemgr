@@ -65,6 +65,22 @@ RSpec.describe Admin::TicketOrdersController, type: :controller do
       expect(tli2).to have_received(:ticket_class=).with(senior)
     end
 
+    it 'destroys a persisted classless line item instead of orphaning its seat' do
+      order = FactoryBot.create(:ticket_order, :for_a_single_ticket, :reserved_seating)
+      seat = order.seats.first
+      tli = order.ticket_line_items.first
+      tli.update_columns(ticket_class_id: nil, seat_assignment_id: seat.id)
+      order = TicketOrder.find(order.id)
+      allow(controller).to receive(:params).and_return(
+        ActionController::Parameters.new(ticket_order: { ticket_line_items_attributes: {} })
+      )
+
+      controller.send(:set_ticket_classes_for_line_items, order)
+
+      expect(LineItem.exists?(tli.id)).to be(false)
+      expect(LineItem.where(order_id: nil, seat_assignment_id: seat.id)).to be_empty
+    end
+
     it 'is a no-op when there are no ticket_line_items_attributes' do
       order = double('order')
       allow(controller).to receive(:params).and_return(
