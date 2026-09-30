@@ -82,7 +82,7 @@ A group order where some tickets are being donated while others are exchanged. U
 | Original order status | Refunded | Canceled |
 | New order created | No | Yes (donation order) |
 | Tax-deductible for patron | No | Yes |
-| Receipt sent | Refund notification (if fulfilled) | Donation receipt |
+| Email sent | None to the patron (box office is alerted if the order was fulfilled) | Donation receipt |
 | Available payment types | All | Currency only (cash, check, credit card) |
 | Requires 501(c)(3) theater | No | Yes |
 

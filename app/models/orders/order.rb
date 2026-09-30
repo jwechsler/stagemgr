@@ -409,12 +409,16 @@ class Order < ApplicationRecord
   end
 
   def refund!
+    # Read before the status flips to REFUNDED: checking fulfilled? after that
+    # line (as this did from 2022-09 to 2026-09) is always false, so the
+    # box-office alert for a refunded fulfilled order was never queued.
+    was_fulfilled = fulfilled?
     Order.transaction do
       # Each payment is refunded on its own tender (card, cash, pass, ...).
       payments.select(&:refundable?).each { |payment| payment.refund!(nil, notes) }
       all_line_items.each { |li| refund_line_items (li.refund!) if li.respond_to? :refund! }
       self.status = REFUNDED
-      create_notify_refund_task if fulfilled?
+      create_notify_refund_task if was_fulfilled
       save!
     end
   end
