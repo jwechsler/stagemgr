@@ -26,7 +26,10 @@ The Refund Order button is available when:
 | Condition | Requirement |
 |-----------|-------------|
 | **Order status** | Must be **Processed** or **Fulfilled** |
-| **Payment type** | Any payment type that was reported as sales collected |
+| **Exchange credit** | The order must not be paid (even partly) with credit carried over from an exchange |
+
+!!! note "Orders Paid With Exchange Credit"
+    An order created by an exchange carries the original order's payment as exchange credit, so it cannot be refunded here. The Refund Order button is not shown, and the refund page explains why. To return money on such an order, exchange it and choose **Exchange and Refund** -- see [Exchanges](exchanges.md#refunding-the-difference).
 
 ## Refund Process
 
@@ -38,11 +41,20 @@ The Refund Order button is available when:
 ### Step 2: Initiate the Refund
 
 1. Click **Refund Order** in the action area
-2. A confirmation dialog appears
+2. The refund page opens, showing the full order and, under *Refunding returns each payment on its own tender*, one line for each payment on the order saying what will happen to it
+
+| Payment | What the Refund Page Says |
+|---------|---------------------------|
+| **Credit card** | The card and the amount that will be refunded to it |
+| **Cash** | The amount to give the patron in cash |
+| **Check / External** | The refund amount that will be recorded |
+| **Membership** | The number of tickets released back to the membership |
+| **Flex pass** | The number of tickets returned to the pass |
+| **Nothing collected** (e.g. a $0.00 comp) | *nothing to refund* -- the payment is skipped |
 
 ### Step 3: Add Refund Notes (Optional)
 
-The confirmation dialog may include a notes field where you can record:
+The refund page includes a **Notes** field where you can record:
 
 - Reason for the refund
 - Who authorized the refund
@@ -50,12 +62,12 @@ The confirmation dialog may include a notes field where you can record:
 
 ### Step 4: Confirm the Refund
 
-1. Click **Confirm** to process the refund
+1. Click the refund button -- **Process Refund** when money goes back, or **Cancel Membership reservation** / **Release Flex Pass tickets** when the order was paid only with a pass
 2. The system performs the following actions automatically:
 
 | Action | Description |
 |--------|-------------|
-| **Payment reversal** | Only payments marked as "report as sales collected" are reversed |
+| **Payment reversal** | Every payment that was collected and still has something to return is refunded on its own tender |
 | **Seat release** | All reserved seats are released back to available inventory |
 | **Status update** | Order status changes to **Refunded** |
 | **Box office alert** | If the order was **Fulfilled**, an alert email goes to the box office and supervisor addresses (the patron is not emailed) |
@@ -82,6 +94,13 @@ The refund method depends on the original payment type:
 | **Comp** | No financial reversal needed |
 | **Flex Pass** | Uses are restored to the flex pass |
 | **Membership** | Membership usage is restored |
+
+### Orders With Several Payments
+
+An order can carry more than one payment -- for example after [Add to Order](add-to-order.md), or a membership order with a card-paid extra seat. One refund handles them all: each payment goes back the way it came in, as listed on the refund page.
+
+- A card payment that was already **partly refunded** (for example by **Exchange and Refund**) returns only what is left on that charge.
+- If the order holds a payment kind the refund page cannot return (such as a *Carryover*), the page says *Can't refund this order* and names the payment kind, and no refund button is shown.
 
 !!! warning "Credit Card Refunds"
     Credit card refunds are processed through Stripe and may take 5-10 business days to appear on the patron's statement. Inform the patron of the expected timeline.
@@ -127,7 +146,8 @@ This approach preserves the tickets the patron wants to keep while refunding onl
 
 | Issue | Resolution |
 |-------|------------|
-| Refund button not available | Verify the order is in Processed or Fulfilled status |
+| Refund button not available | Verify the order is in Processed or Fulfilled status. Orders paid with exchange credit are refunded through **Exchange and Refund** instead. |
+| *Can't refund this order* on the refund page | The order holds a payment kind the refund cannot return; ask an administrator |
 | Credit card refund failed | Check Stripe dashboard for the transaction; the card may have expired or the account closed |
 | Box office did not receive the refunded-order alert | Alerts are sent only for orders that were **Fulfilled** when refunded; check the order's history for the prior status and the configured box office and supervisor addresses |
 | Need to reverse a refund | Not possible through the system; create a new order for the patron |

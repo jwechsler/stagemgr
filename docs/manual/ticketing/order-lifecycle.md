@@ -92,6 +92,13 @@ Stagemgr groups statuses into logical sets used throughout the system for filter
 4. Original order --> **Exchanged** (terminal)
 5. New order --> **Processed**
 
+### Add to Order
+1. Staff clicks **Add to Order** on a **Processed** order
+2. Staff adds tickets or add-ons for the same performance and takes payment for them
+3. The new items join the original order, which stays **Processed** with the same order number
+
+See [Add to Order](add-to-order.md).
+
 ### Refund
 1. Staff initiates refund on a Processed or Fulfilled order
 2. Payment is reversed
@@ -109,7 +116,7 @@ Stagemgr groups statuses into logical sets used throughout the system for filter
 | **Hold** | Process (convert to sale), Cancel |
 | **New** | None (transitory -- resolves automatically) |
 | **Processing** | None (transitory -- resolves automatically) |
-| **Processed** | Fulfill, Exchange, Refund, Cancel, Split, Refund to Donation |
+| **Processed** | Fulfill, Exchange, [Add to Order](add-to-order.md), Refund, Cancel, Split, Refund to Donation |
 | **Fulfilled** | Exchange, Refund, Split, Refund to Donation |
 | **Unclaimed** | None (terminal for most purposes) |
 | **Exchanging** | None (resolves when exchange completes) |

@@ -83,12 +83,13 @@ The ticket orders table typically displays:
 | Column | Description |
 |--------|-------------|
 | **ID** | Unique order identifier (clickable to open order detail) |
-| **Display Code** | Human-readable order code |
-| **Patron** | Full name from the address record |
-| **Performance** | Performance date and production name |
+| **Code** | Performance code (ticket orders) |
+| **Name** | Patron's name from the address record |
+| **Seats** | Seat locations (reserved seating) |
 | **Status** | Current order status |
-| **Total** | Order total amount |
-| **Created** | Date the order was created |
+| **Visits** | Number of the patron's current (attending) ticket orders |
+| **Total** | Amount paid |
+| **Description** | What the order is for, followed by the date it was placed -- for example *Muses on 09/20 14:30 (2 COMP), placed 09/19* |
 
 ## Finding a Specific Order
 

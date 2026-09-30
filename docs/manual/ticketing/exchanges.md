@@ -18,6 +18,12 @@ Common exchange scenarios:
 - Patron needs to switch ticket classes (e.g., upgrading from Student to Adult)
 - Group needs to move to a performance with more availability
 
+!!! tip "Adding Tickets Instead"
+    If the patron wants to keep their tickets and add more for the same performance -- a guest's seat, a captioning tablet -- use [Add to Order](add-to-order.md) instead of an exchange.
+
+!!! warning "Orders Paid With a Pass and Money"
+    An order paid with both a pass (membership or flex pass) and a money payment -- for example a membership order with a card-paid seat added -- cannot be exchanged, because the system cannot tell which seats the pass paid for. The Exchange Order button is hidden and the order page shows *Orders paid with both a pass and another payment can't be exchanged; refund the order and place a new one instead.* For reserved seating, **Update seating** still lets you change seats for the same performance.
+
 ## Exchange Workflow
 
 ### Step 1: Initiate the Exchange
@@ -76,18 +82,12 @@ Exchange service fees may be applied depending on theater policy:
 
 ### Step 5: Payment
 
-The allowed payment types for the exchange depend on the original order's payment method:
+The **Pay using** list offers the payment types the performance allows -- the same list a new order for that performance would show. The original order's payment type is preselected when it is one of them; you can choose any other type on the list.
 
-| Original Payment | Allowed Exchange Payment Types |
-|-----------------|-------------------------------|
-| Credit Card | Credit card (same or different card) |
-| Cash | Cash, credit card |
-| Check | Check, cash, credit card |
-| External | External, credit card |
-| Comp | Comp |
+If you move the order to a different performance that does not allow the chosen payment type, placing the exchange is refused with an error; pick another payment type.
 
 !!! tip "Payment Flexibility"
-    When the new order costs more, the patron can pay the difference using any allowed payment type. When the original was a comp, the exchange must also be a comp.
+    When the new order costs more, the patron can pay the difference using any payment type on the list.
 
 ### Step 6: Submit the Exchange
 
@@ -138,7 +138,8 @@ For reserved seating performances, the exchange process additionally involves:
 
 | Issue | Resolution |
 |-------|------------|
-| Exchange button not available | Verify the order is in Processed or Fulfilled status |
+| Exchange button not available | Verify the order is in Processed or Fulfilled status. Orders paid with both a pass and money cannot be exchanged; refund the order and place a new one. |
+| Expected payment type not offered | The performance restricts that payment type; choose another |
 | Price differential seems wrong | Check ticket class pricing for both the original and new performances |
 | Cannot select seats on new performance | Verify the new performance has available seats and a valid seat map |
 | Order stuck in Exchanging status | Contact an administrator to resolve the transitional state |

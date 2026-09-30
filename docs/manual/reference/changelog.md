@@ -5,6 +5,105 @@
 
 ## September 2026
 
+### Add to Order
+
+**Available to:** Administrator, Box Office
+
+An **Add to Order** button on a **Processed** ticket order adds tickets or add-ons -- a guest's
+seat, a captioning tablet, a dinner -- to the patron's existing order. The patron keeps their
+tickets and seats and pays only for the new items, which join the original order under the same
+order number.
+
+**Key behaviors:**
+
+- Any Processed order, whatever the performance date; once an order is Fulfilled the patron needs a new order.
+- Same performance only, shown in a banner at the top of the page along with what is already on the order.
+- Items sell at face value (no special offer or discount code); per-ticket fees still apply, and the addition may be comped.
+- Works for general admission and reserved seating (pick the new seats on the map).
+- Notes typed on the addition are added to the original order's notes; one updated confirmation is sent unless you untick it.
+- All or nothing: if anything fails, nothing is saved and any card charge is refunded.
+- The order's change history records *Added from order #...* with the items and card charge.
+
+See [Add to Order](../ticketing/add-to-order.md).
+
+### Refunds for Orders With Several Payments
+
+**Available to:** Administrator, Box Office
+
+Orders carrying more than one payment -- common after Add to Order -- can now be refunded. The
+refund page lists what happens to each payment (card refunded, cash handed back, pass tickets
+released, nothing-to-refund payments skipped) under a single button.
+
+**Key behaviors:**
+
+- A card payment already partly refunded returns only what is left on the charge.
+- Orders paid with exchange credit are refunded through **Exchange and Refund** instead; the Refund Order button is not shown for them.
+
+See [Refunds](../ticketing/refunds.md#orders-with-several-payments).
+
+### Exchange Payment Types and Pass-Plus-Money Orders
+
+**Available to:** Administrator, Box Office
+
+Exchange now offers the payment types the performance allows, with the original order's type
+preselected when it is allowed. Orders paid with both a pass (membership or flex pass) and a
+money payment can no longer be exchanged or split, because the system cannot tell which seats the
+pass paid for.
+
+**Key behaviors:**
+
+- The order page explains why Exchange is missing; refund the order and place a new one instead.
+- **Update seating** (Change Seating) still works on these orders.
+
+See [Exchanges](../ticketing/exchanges.md) and [Split Orders](../ticketing/split-orders.md).
+
+### Membership Tickets Per Performance Enforced Across Orders
+
+**Available to:** Administrator, Box Office
+
+A membership's **Tickets Per Performance** limit now counts the seats the membership has paid for
+on all of the member's current orders for the performance, not just the order being placed. The
+limit had never been checked across orders before.
+
+**Key behaviors:**
+
+- Exchanged, canceled and refunded orders do not count.
+- Extra seats paid by card (for example through Add to Order) do not count against the limit.
+
+See [Membership Offers](../offers/membership-offers.md#how-ticket-redemption-works).
+
+### Card Charged Only After Every Check
+
+**Available to:** All staff and online patrons
+
+A card is now charged only after every check on the order has passed, so a failed order no longer
+leaves the card charged. If something still fails after the charge, the charge is refunded
+automatically. The same applies to exchange price differences and membership purchases.
+
+**Key behaviors:**
+
+- A declined additional donation no longer affects the ticket order: the tickets go through, the patron is told the donation could not be processed, a note is added to the order and the box office is emailed an alert.
+
+See [Payment Processing](../ticketing/payment-processing.md#additional-donations).
+
+### Placed Date in the Orders List
+
+**Available to:** All staff
+
+Each row's **Description** on the Orders list now ends with the date the order was placed, for
+example *, placed 09/19*, so you can see when an order was made without opening it.
+
+See [Order Search](../ticketing/order-search.md).
+
+### House Count Ignores Add-Ons That Hold No Seat
+
+**Available to:** All staff
+
+The house count's **Sold** figure now counts only tickets whose class holds a seat, so add-ons such
+as a captioning tablet or a dinner no longer use up seats in the house.
+
+See [House Counts](../house-management/house-counts.md).
+
 ### Refunded Fulfilled Order Alert Restored
 
 **Available to:** Administrator, Box Office

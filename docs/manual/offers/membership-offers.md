@@ -31,7 +31,7 @@ Memberships are recurring subscription plans that grant patrons a set number of 
 
 | Field | Description |
 |-------|-------------|
-| **Tickets Per Performance** | Number of tickets the member receives for each performance they attend. |
+| **Tickets Per Performance** | Number of tickets the member receives for each performance they attend. The limit covers all of the member's orders for that performance together, not each order separately. |
 | **Use Ticket Class Code** | The ticket class assigned to the member's own tickets on redemption. |
 | **Use Member Friend Code** | The ticket class assigned to guest tickets. This allows different pricing or seating for the member's companions. |
 
@@ -160,6 +160,11 @@ Click the **x** on the right side of any pill to remove that tag, then save the 
 2. The system issues up to **Tickets Per Performance** tickets using the **Use Ticket Class Code**.
 3. If guest tickets are configured via **Use Member Friend Code**, additional tickets are issued under that class.
 4. Members can redeem tickets for each performance independently -- there is no total cap across the membership period.
+
+!!! note "Tickets Per Performance Across Orders"
+    The **Tickets Per Performance** limit counts every seat the membership has already paid for at that performance, on any of the member's current orders, plus the ones being requested. A second order that would take the member past the limit is refused with a message giving the limit and how many seats are already reserved on other orders. Exchanged, canceled and refunded orders do not count.
+
+    Extra seats paid another way -- for example by card through [Add to Order](../ticketing/add-to-order.md) -- do not count against the limit.
 
 ---
 

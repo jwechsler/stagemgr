@@ -76,6 +76,7 @@ nav:
     - Payment Processing: ticketing/payment-processing.md
     - Hold Orders: ticketing/hold-orders.md
     - Exchanges: ticketing/exchanges.md
+    - Add to Order: ticketing/add-to-order.md
     - Refunds: ticketing/refunds.md
     - Refund to Donation: ticketing/refund-to-donation.md
     - Split Orders: ticketing/split-orders.md

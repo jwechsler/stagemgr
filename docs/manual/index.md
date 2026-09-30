@@ -30,6 +30,7 @@ See [Reports](reports/reports-overview.md) for all available reports, or [Import
 |------|-------------|
 | Create a new ticket order | **Orders** menu or **New Ticket Order** button |
 | Find a production across all theaters | **Productions** menu |
+| Add tickets or add-ons to a processed order | Open the order, click **Add to Order** |
 | Look up a customer | **Customers** menu |
 | Look up a membership | **Passes > Memberships** |
 | View upcoming house counts | **My Account** (dashboard) |
@@ -54,7 +55,7 @@ This manual is organized into sections that match how Stagemgr is used:
 - **[Productions](productions/finding-productions.md)** -- Finding, creating, and configuring shows and performances
 - **[Festivals](festivals/festivals-overview.md)** -- Branded groupings of productions with shared display, entitlements, and reporting
 - **[Offers & Pricing](offers/special-offers.md)** -- Special offers, flex passes, memberships, and service fees
-- **[Ticketing](ticketing/order-lifecycle.md)** -- Day-to-day order creation, exchanges, refunds, and management
+- **[Ticketing](ticketing/order-lifecycle.md)** -- Day-to-day order creation, exchanges, adding to orders, refunds, and management
 - **[Customers](customers/managing-patrons.md)** -- Patron records, tags, and duplicate management
 - **[House Management](house-management/daily-operations.md)** -- Day-of-show operations, fulfillment, and printing
 - **[Reports](reports/reports-overview.md)** -- Sales, attendance, donation, and export reports

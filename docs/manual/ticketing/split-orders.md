@@ -18,6 +18,10 @@ The Split Order button appears when **all** of the following conditions are met:
 | **Number of tickets** | Order must contain **more than 1 ticket** |
 | **Order status** | Must be **Processed**, **Unclaimed**, or **Fulfilled** |
 | **Payment type** | Must **not** be paid with a Membership |
+| **Mixed payment** | Must **not** be paid with both a pass (membership or flex pass) and a money payment |
+
+!!! warning "Orders Paid With a Pass and Money"
+    A split shares the payments out across the tickets, so it cannot keep track of which seats a pass paid for. An order paid with both a pass and money -- for example a flex pass order with a card-paid seat added through [Add to Order](add-to-order.md) -- cannot be split or exchanged. Refund the order and place new ones instead. For reserved seating, **Update seating** still lets you change seats on the order.
 
 !!! warning "Single-Ticket Orders"
     An order with only one ticket cannot be split. There must be at least two tickets to divide.
@@ -117,12 +121,13 @@ Some tickets in an order should be donated while others are kept:
 3. **Same patron** -- Both new orders are associated with the same patron address as the original
 4. **Audit trail** -- The original order references both new orders, and each new order references the original
 5. **Membership restriction** -- Orders paid with a membership cannot be split
+6. **Mixed payment restriction** -- Orders paid with both a pass and money cannot be split
 
 ## Troubleshooting
 
 | Issue | Resolution |
 |-------|------------|
-| Split button not available | Verify the order has more than one ticket, is in an eligible status, and was not paid with a membership |
+| Split button not available | Verify the order has more than one ticket, is in an eligible status, was not paid with a membership, and was not paid with both a pass and money |
 | Cannot assign seats correctly | Review the seat map to ensure each seat is assigned to the correct new order |
 | Need to undo a split | Not possible; manage the two new orders individually instead |
 | Payment distribution seems wrong | Payment is split proportionally by ticket value; verify the ticket class pricing |
