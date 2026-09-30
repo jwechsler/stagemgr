@@ -26,9 +26,9 @@ Paths are relative to the app's mount point: `https://www.theaterwit.org/tickets
 - [ ] Drain the queues: `/admin/resque` Overview shows 0 pending, and no worker is mid-job.
 - [ ] MySQL dump. Credentials come from the `[mysqldump]` section of `~/.my.cnf` (`chmod 600`; `user=` and `password=` for the app's database user):
   ```sh
-  mysqldump --single-transaction --routines --no-tablespaces stagemgr_production \
-    | gzip > ~/backups/pre-deploy-$(date +%F).sql.gz
-  gunzip -c ~/backups/pre-deploy-$(date +%F).sql.gz | tail -1   # must read "-- Dump completed on …"
+  mysqldump --single-transaction --routines --no-tablespaces stagemgr_prod \
+    | gzip > ~/backup/db/pre-deploy-$(date +%F).sql.gz
+  gunzip -c ~/backup/db/pre-deploy-$(date +%F).sql.gz | tail -1   # must read "-- Dump completed on …"
   ```
   `--routines` keeps the stored function `random()` (migration `20141207072306`). `--no-tablespaces` avoids MySQL 8's PROCESS-privilege error for a non-root user. A failed dump still leaves a small `.gz` behind, so check the last line, not just that the file exists.
 - [ ] Snapshot ActiveStorage: `tar czf ~/backups/storage-$(date +%F).tgz -C ~/stagemgr storage`
