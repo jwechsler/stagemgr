@@ -91,6 +91,19 @@ RSpec.describe PerformancesController, type: :controller do
       expect(addon_row['holds_seats']).to eq(false)
     end
 
+    it 'renders purchase_page_annotation as markdown HTML for the JS row builders' do
+      addon = FactoryBot.create(:ticket_class, production: production, holds_seats: false,
+                                               class_name: 'Captioning Tablet',
+                                               purchase_page_annotation: 'Ask at the **box office**')
+      tca = performance.ticket_class_allocations.find_or_initialize_by(ticket_class: addon)
+      tca.available = true
+      tca.save!
+
+      get :ticket_classes, params: { id: performance.id }, format: :json
+      addon_row = response.parsed_body.find { |r| r['id'] == addon.id }
+      expect(addon_row['purchase_page_annotation_html']).to include('<strong>box office</strong>')
+    end
+
     # Backend (non-web-visible) classes require BOTH the include_backend param
     # (sent only by the admin box-office page) AND the view_backend_classes
     # ability. The public order flow never sends the param, so even signed-in

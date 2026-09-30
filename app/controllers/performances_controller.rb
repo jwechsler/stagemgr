@@ -74,7 +74,9 @@ class PerformancesController < ApplicationController
         ticket_price: tca.ticket_class.software_managed? || tca.ticket_class.hide_pricing? ? 'n/a' : view_context.number_to_currency(tca.ticket_class.ticket_price),
         raw_ticket_price: tca.ticket_class.ticket_price,
         ticket_type: tca.ticket_class.ticket_type,
-        purchase_page_annotation: tca.ticket_class.purchase_page_annotation,
+        # Rendered with the same helper as the server-drawn rows so the JS
+        # rebuild paths show identical markup.
+        purchase_page_annotation_html: view_context.display_markdown(tca.ticket_class.purchase_page_annotation),
         zone_id: tca.ticket_class.zone_id,
         holds_seats: tca.ticket_class.holds_seats?,
         remaining: tca.ticket_class.resourced? ? tca.ticket_class.number_left(@performance) : nil
