@@ -18,10 +18,10 @@ Paths are relative to the app's mount point: `https://www.theaterwit.org/tickets
   cd ~/stagemgr-dryrun && cp ~/stagemgr/config/*.yml config/ \
     && BUNDLE_WITHOUT=development:test:cucumber bundle install \
     && yarn install --frozen-lockfile \
-    && RAILS_ENV=production bundle exec rails assets:precompile
+    && RAILS_ENV=production SECRET_KEY_BASE=dryrun-not-a-secret bundle exec rails assets:precompile
   git -C ~/stagemgr worktree remove --force ~/stagemgr-dryrun
   ```
-  Releases are merged before they deploy, so the dry run is always of `origin/master`. `--detach` is needed because `~/stagemgr` already has `master` checked out. `BUNDLE_WITHOUT` matches production's excluded groups even if that setting lives in `~/stagemgr/.bundle/config`, which the worktree doesn't see.
+  Releases are merged before they deploy, so the dry run is always of `origin/master`. `--detach` is needed because `~/stagemgr` already has `master` checked out. `BUNDLE_WITHOUT` matches production's excluded groups even if that setting lives in `~/stagemgr/.bundle/config`, which the worktree doesn't see. `SECRET_KEY_BASE` is a throwaway, as in CI: the worktree has no `config/master.key` (gitignored), so without it the production boot aborts with "Missing `secret_key_base`". Precompile never uses the real key, so don't copy `master.key` into the dry-run tree.
 - [ ] Pause the scheduler so nothing new is enqueued: `script/scheduler stop` (`bin/deploy` starts it again).
 - [ ] Drain the queues: `/admin/resque` Overview shows 0 pending, and no worker is mid-job.
 - [ ] MySQL dump. Credentials come from the `[mysqldump]` section of `~/.my.cnf` (`chmod 600`; `user=` and `password=` for the app's database user):
