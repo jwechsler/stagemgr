@@ -124,7 +124,9 @@ class Order < ApplicationRecord
   # balanced_transaction? is checked only on the move into PROCESSED, before the
   # charge (ChargeAfterChecks#ready_to_charge?). It is deliberately not a save
   # callback: re-saving an already PROCESSED order must never be blocked by it.
-  before_destroy :check_for_settled_payments
+  # prepend: runs before the dependent: :destroy callbacks, so nothing is
+  # deleted first for an order that must be kept.
+  before_destroy :check_for_settled_payments, prepend: true
 
   after_save :set_tasks_after_save
 
@@ -689,14 +691,15 @@ class Order < ApplicationRecord
     status.present?
   end
 
+  # An order holding money that was actually taken must never be deleted.
+  # Returning false does not halt a destroy since Rails 5; throw :abort does,
+  # so destroy returns false and destroy! raises RecordNotDestroyed.
   def check_for_settled_payments
     paid_amt = total_paid || 0
-    if paid_amt > 0 && !payments.reject { |p| p.can_cancel? }.empty?
-      errors.add(:order, "Cannot destroy orders with settled payments")
-      false
-    else
-      true
-    end
+    return if paid_amt <= 0 || payments.all?(&:can_cancel?)
+
+    errors.add(:order, 'Cannot destroy orders with settled payments')
+    throw :abort
   end
 
   def prevent_status_rollbacks
