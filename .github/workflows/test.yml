@@ -101,6 +101,27 @@ jobs:
           RAILS_RAISE_ERRORS: "1"
         run: bundle exec cucumber --tags "not @javascript"
 
+      # Browser scenarios, headless Firefox (features/support/env.rb); the
+      # runner image ships Firefox and geckodriver. Must run before the
+      # precompile step: public/assets would shadow the live JS under test.
+      # continue-on-error while the suite proves stable on CI runners; drop it
+      # once runs are reliably green so failures block the build.
+      - name: Cucumber (JS)
+        id: cucumber-js
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        env:
+          RAILS_RAISE_ERRORS: "1"
+        run: bundle exec cucumber --tags @javascript
+
+      - name: Upload browser failure artifacts
+        if: failure() || steps.cucumber-js.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: cucumber-js-failures
+          path: tmp/capybara/
+          if-no-files-found: ignore
+
       # The same production build bin/deploy runs, so a broken asset or pack
       # fails here instead of mid-deploy. Runs last because compiled files in
       # public/assets and public/packs shadow live sources in the test suites;
