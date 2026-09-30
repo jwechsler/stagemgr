@@ -2,6 +2,7 @@ class Admin::ExchangeTicketOrdersController < Admin::ApplicationController
   authorize_resource class: TicketOrder
   # Outside create's rescue so CanCan::AccessDenied reaches the rescue_from handler.
   before_action :authorize_refund, only: :create
+  before_action :ensure_exchangeable
 
   include OrdersHelper
   include TicketOrdersHelper
@@ -32,7 +33,7 @@ class Admin::ExchangeTicketOrdersController < Admin::ApplicationController
     @exchange_order.ticket_line_items.build
     @exchange_order.status = Order::NEW
 
-    @allowed_payment_types = @original_order.payment_type.allowed_payment_types_for_exchange(current_user)
+    preset_exchange_payment_type
     respond_to do |format|
       format.html # new.html.erb
     end
@@ -55,6 +56,29 @@ class Admin::ExchangeTicketOrdersController < Admin::ApplicationController
   end
 
   private
+
+  # The payment types are the ones the new order's performance allows:
+  # TicketOrder#valid_payment_types_for, which drops the performance's
+  # restricted types (the same rule the PROCESSED validation enforces). The
+  # new order starts on the original's performance; if staff move it, that
+  # validation checks the performance they chose. The original's type is
+  # preselected when it is allowed; staff may pick any other allowed type.
+  def preset_exchange_payment_type
+    @allowed_payment_types = TicketOrder.new(performance: @original_order.performance)
+                                        .valid_payment_types_for(current_user)
+    return unless @allowed_payment_types.map(&:id).include?(@original_order.payment_type_id)
+
+    @exchange_order.payment_type_id = @original_order.payment_type_id
+  end
+
+  # The show page hides Exchange for these orders; refuse a direct request too.
+  def ensure_exchangeable
+    original = TicketOrder.find(params[:ticket_order_id])
+    return unless original.sold_status? && original.paid_with_pass_and_currency?
+
+    flash[:error] = TicketOrderMergeable::MIXED_PAYMENT_NOT_EXCHANGEABLE
+    redirect_to admin_ticket_order_path(original)
+  end
 
   def refund_requested?
     params.key?(REFUND_PARAM)

@@ -13,6 +13,9 @@
         - else
           - revision.audited_changes.each do |fld,changes|
             = raw "#{fld} changed to #{changes}<br/>" unless changes.nil?
+        -# e.g. Add to Order's "Added: 1× Captioning tablet by jdoe"
+        - if revision.comment.present?
+          %em= revision.comment
       .small-4.cell
   %br
   

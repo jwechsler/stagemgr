@@ -5,10 +5,15 @@
     = render 'detail', :ticket_order=>@ticket_order
   .small-12.cell
     = render '/admin/ticket_orders/notes', :order=>@ticket_order
+  - if @ticket_order.sold_status? && @ticket_order.paid_with_pass_and_currency?
+    .small-12.cell
+      .callout.warning#not-exchangeable= TicketOrderMergeable::MIXED_PAYMENT_NOT_EXCHANGEABLE
   %div.small-12.cell
     .button-group
       - if can? :exchange, TicketOrder
         = link_to 'Exchange Order', new_admin_ticket_order_exchange_ticket_order_path(@ticket_order), :class=>'small button' if (@ticket_order.exchangeable? && (!current_user.is_theater_user? || (current_user.is_theater_user? && @ticket_order.status!=Order::FULFILLED)))
+      - if can?(:add_to, TicketOrder) && TicketOrderAddition.addable?(@ticket_order)
+        = link_to 'Add to Order', add_to_admin_ticket_order_path(@ticket_order), :class=>'small button', :id=>'add-to-order-button'
       -if can? :split, TicketOrder
         = link_to 'Split Order', split_admin_ticket_order_path(@ticket_order), :class=>'small button' if @ticket_order.splittable?
       -if can? :fulfill, TicketOrder

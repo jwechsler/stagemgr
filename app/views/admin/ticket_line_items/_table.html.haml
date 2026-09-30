@@ -1,5 +1,5 @@
 - if order.ticket_line_items.size > 0
-	- if order.performance.production.has_reserved_seating? && order.exchangeable?
+	- if order.performance.production.has_reserved_seating? && order.sold_status?
 		#change-seats.reveal.large(data-reveal)
 			= render partial: "/seat_assignments/seating_config", locals: {performance_id: order.performance_id, order_uuid: order.uuid }
 
@@ -39,7 +39,7 @@
 								%i Total
 							%td.float-right
 								%i= order.ticket_line_items.sum(:ticket_count)
-				- if order.performance.production.has_reserved_seating? && order.exchangeable?
+				- if order.performance.production.has_reserved_seating? && order.sold_status?
 					.grid-x.grid-padding-x
 						.cell.small-8
 							Reserved Seating:

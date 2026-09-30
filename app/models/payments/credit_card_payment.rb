@@ -109,12 +109,13 @@ class CreditCardPayment < CurrencyPayment
     return unless create_refund_payment?
 
     CreditCardPayment.transaction do
+      remaining = refundable_amount
       refund_payment = dup_for_refund
-      refund_payment.amount = 0.0 - amount
+      refund_payment.amount = 0.0 - remaining
       refund_payment.ipn_track_id = nil
       order.payments << refund_payment
 
-      response = refund_to_card!(charge_amount, note: note)
+      response = refund_to_card!(cents(remaining), note: note)
 
       unless response.success?
         # Check if charge was already refunded in Stripe
@@ -132,8 +133,9 @@ class CreditCardPayment < CurrencyPayment
           actual_refund_amount = charge_amount # Use the original charge amount
         end
 
-        # Update refund payment to match actual Stripe refund amount
-        refund_payment.amount = 0.0 - (actual_refund_amount / 100.0)
+        # Stripe's total includes any partial refund already recorded against
+        # this charge; this refund row carries only the rest.
+        refund_payment.amount = 0.0 - ((actual_refund_amount / 100.0) - (amount - remaining))
         refund_payment.save!
 
         # If there's a difference between what Stripe refunded and order amount,
@@ -155,6 +157,15 @@ class CreditCardPayment < CurrencyPayment
 
       refund_payment.save!
     end
+  end
+
+  # What is still on this charge: its amount less the partial refunds
+  # (RefundPayment, pinned by type: see Payment STI scopes) already returned
+  # against it.
+  def refundable_amount
+    return amount if id.nil?
+
+    amount + Payment.where(type: 'RefundPayment', payment_id: id).sum(:amount)
   end
 
   # Returns this charge's money without recording a refund payment, for a
@@ -212,6 +223,14 @@ class CreditCardPayment < CurrencyPayment
 
   def charge_amount
     (amount * 100.0).to_i
+  end
+
+  def cents(dollars)
+    (dollars * 100).round.to_i
+  end
+
+  def create_refund_payment?
+    refundable_amount > 0
   end
 
   # The one place the gateway refund is called, for both full and partial

@@ -3,10 +3,6 @@ class FlexPassPaymentType < PassPaymentType
     super + [FlexPassPayment.class]
   end
 
-  def allowed_payment_types_for_exchange(current_user)
-    super + FlexPassPaymentType.all
-  end
-
   def build_uncharged_payment(_amount, order, _payment_details = {})
     flex_pass = FlexPass.find_by_code(order.flex_pass_code)
     raise 'No FlexPass with that code exists' unless flex_pass

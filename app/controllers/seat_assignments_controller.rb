@@ -127,7 +127,7 @@ class SeatAssignmentsController < ApplicationController
         released_ticket_class_id = sa.ticket_class_id
         SeatAssignment.transaction do
           if reseating.nil?
-            if sa.assigned?(order_uuid)
+            if sa.assigned?(order_uuid) && releasable_outside_reseating?(sa, order_uuid)
               destroy_ticket_line_item_for(sa)
               sa.unassign_from_order(order_uuid)
               sa.update(price_override: nil)
@@ -254,11 +254,17 @@ class SeatAssignmentsController < ApplicationController
   # match the SeatAssignment. For new-order checkout the Order does not yet
   # exist, so we skip — the per-seat TLI is built from nested form attributes
   # when the order is submitted.
+  #
+  # A settled order is also skipped: a priced line item on a paid order must
+  # come with a payment, so Add to Order (TicketOrderAddition) is the
+  # only way to append one. Here the seat is just held TEMPORARY under the
+  # order's uuid; the addition turns that hold into a line item when it is paid.
   def upsert_ticket_line_item_for(sa, order_uuid, price_override)
     return if sa.ticket_class_id.to_i.zero?
 
     order = Order.find_by(uuid: order_uuid)
     return unless order.is_a?(TicketOrder) && order.persisted?
+    return if order.settled?
 
     tli = order.ticket_line_items.find_by(seat_assignment_id: sa.id) ||
           order.ticket_line_items.build(seat_assignment_id: sa.id)
@@ -267,6 +273,17 @@ class SeatAssignmentsController < ApplicationController
     tli.price_override = price_override
     tli.save!
     tli.id
+  end
+
+  # Outside the reseating flow, a settled order may only drop seats it is
+  # holding TEMPORARY (an Add to Order pick being undone). Its ASSIGNED seats
+  # are paid for; releasing one here would delete its line item with no
+  # refund. Change Seating (the reseating branch) and Exchange cover that.
+  def releasable_outside_reseating?(sa, order_uuid)
+    order = Order.find_by(uuid: order_uuid)
+    return true unless order&.settled?
+
+    sa.temporary?
   end
 
   def destroy_ticket_line_item_for(sa)

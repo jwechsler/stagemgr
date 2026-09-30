@@ -35,6 +35,25 @@ RSpec.describe CreditCardPayment, type: :model do
       expect(order.payments.reload.last.amount).to eq(-50.0)
     end
 
+    it 'refunds only what is left after an earlier partial refund against the charge' do
+      RefundPayment.create!(order: order, amount: -10.00, source_payment: payment, payment_type: payment.payment_type)
+      gateway = double('gateway')
+      allow(PaymentProcessing).to receive(:gateway).and_return(gateway)
+      expect(gateway).to receive(:refund).with(4000, 'ch_test123', anything)
+                                         .and_return(double('response', success?: true, authorization: 're_rest'))
+
+      payment.refund!(nil, 'test refund')
+
+      expect(order.payments.reload.grep(CreditCardPayment).map(&:amount)).to contain_exactly(50.0, -40.0)
+    end
+
+    it 'has nothing to refund once earlier refunds cover the whole charge' do
+      RefundPayment.create!(order: order, amount: -50.00, source_payment: payment, payment_type: payment.payment_type)
+
+      expect(payment.refundable_amount).to eq(0)
+      expect(payment).not_to be_refundable
+    end
+
     it 'dates the refund row when it is issued, not when the card was charged' do
       payment.update_column(:processed_on, 45.days.ago)
       gateway = double('gateway')

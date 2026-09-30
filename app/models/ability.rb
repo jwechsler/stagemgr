@@ -114,6 +114,7 @@ class Ability
     can :read, FlexPassOffer
     can %i[cancel reprint refund sell_past_performances order_anytime], [Order, TicketOrder]
     can :exchange, TicketOrder
+    can :add_to, TicketOrder # Add to Order: same staff who may exchange
     can %i[split finalize_split], TicketOrder
     can :convert_to_donation, TicketOrder
     can :cru, Venue
