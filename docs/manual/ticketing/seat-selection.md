@@ -98,6 +98,9 @@ Selected seats can be released two ways:
 
 The total quantity and order total update immediately.
 
+!!! note "Seats on Paid Orders"
+    Once an order has been paid, its seats cannot be released or new priced seats added from the seat map outside of the order's own workflows. To move a paid order's seats use **Update seating** (Change Seating) or an [Exchange](exchanges.md); to add seats use [Add to Order](add-to-order.md), where new seats are only held until the addition is paid.
+
 ## Wheelchair and Accessible Seating
 
 ### Wheelchair Positions

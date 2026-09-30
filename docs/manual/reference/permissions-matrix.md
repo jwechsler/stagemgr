@@ -85,6 +85,7 @@ Stagemgr has three staff roles, each building on the permissions of the role bel
 | Refund donation orders | Yes | -- | -- |
 | Delete orders | Yes | -- | -- |
 | Exchange tickets | Yes | Yes | -- |
+| Add to order | Yes | Yes | -- |
 | Split orders | Yes | Yes | -- |
 | Convert to donation | Yes | Yes | -- |
 | Hold orders | Yes | Yes | -- |

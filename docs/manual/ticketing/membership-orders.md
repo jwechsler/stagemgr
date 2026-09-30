@@ -91,7 +91,7 @@ The system checks the following during redemption:
 |-----------|------|
 | **Code valid** | The member code exists in the system |
 | **Membership active** | The membership has not been canceled |
-| **Tickets per performance** | Does not exceed the allowed tickets per performance |
+| **Tickets per performance** | Together with the membership's seats on the member's other orders for the performance, does not exceed the allowed tickets per performance |
 | **Per-production frequency** | Does not exceed the allowed visits per production |
 
 !!! warning "Usage Limits"
@@ -173,7 +173,7 @@ Orders paid with a membership have certain restrictions:
 |-------|------------|
 | Member code not recognized | Verify the code format (TW-XXXXXX) and check for typos |
 | Membership is inactive | Check if it was canceled; reactivate if appropriate |
-| "Tickets per performance exceeded" | Member has redeemed the maximum tickets for this performance |
+| "Tickets per performance exceeded" | Member has redeemed the maximum tickets for this performance, on this order or earlier ones. Extra seats can be added paid by card with [Add to Order](add-to-order.md). |
 | "Production visit limit reached" | Member has attended this production the maximum allowed times |
 | Seating preference change needed | Use the Update Seating action on the membership record |
 | Membership canceled by mistake | Use the Reactivate action to restore it |

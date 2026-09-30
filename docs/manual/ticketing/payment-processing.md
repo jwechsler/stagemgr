@@ -28,9 +28,23 @@ Credit card payments are processed through Stripe, Stagemgr's primary payment ga
 
 1. Select **Credit Card** as the payment type
 2. Enter the card details
-3. On order submission, the card is authorized and charged
-4. If authorization fails, an error message is displayed and the order is not created
+3. On order submission, every check on the order runs first -- seats still held, balance, payment type allowed for the performance, special offer, any additional donation. The card is charged only after all of them pass.
+4. If a check fails or the card is declined, an error message is displayed, the order is not created and the card is not charged
 5. On success, the payment is recorded and linked to the order
+
+!!! note "Automatic Refund on Late Failure"
+    If something still goes wrong after the card has been charged, the order is not saved and the charge is refunded to the card automatically. The same applies to the price difference on an exchange and to [Add to Order](add-to-order.md).
+
+### Additional Donations
+
+An additional donation added to a ticket order is charged separately, after the tickets have been paid for. If the donation is declined:
+
+- The ticket order still goes through and keeps its tickets and payment
+- The on-screen notice after the order is placed adds *Your additional donation could not be processed; the box office will follow up with you.*
+- A note starting *Additional donation not processed* is added to the order's notes, with the amount and reason
+- An *Additional donation not processed* alert email goes to the box office address, with a link to the order and the patron's contact details
+
+Follow up with the patron to take the donation another way.
 
 !!! tip "Phone Orders"
     For phone orders, read the card details aloud and enter them carefully. Ask the patron to verify the billing ZIP code if the charge is declined.
@@ -119,9 +133,9 @@ Not all payment types are available for all order types:
 
 ## Payment in Exchanges
 
-When exchanging an order, the allowed payment types for the new order depend on the original order's payment method. The system calculates the price differential:
+When exchanging an order, the payment types offered are the ones the performance allows, with the original order's type preselected when it is allowed. The system calculates the price differential:
 
-- **New order costs more:** The patron pays the difference. Payment options may be limited based on the original payment type.
+- **New order costs more:** The patron pays the difference.
 - **New order costs less:** A credit or partial refund may apply.
 - **Same price:** No additional payment is needed.
 
@@ -140,6 +154,8 @@ When a refund is processed, the reversal method depends on the original payment:
 | Comp | No refund needed (no payment was made) |
 | Flex Pass | Uses are restored to the flex pass |
 | Membership | Membership usage is restored |
+
+An order with several payments has each one refunded on its own tender. See [Refunds](refunds.md#orders-with-several-payments).
 
 ## Troubleshooting
 

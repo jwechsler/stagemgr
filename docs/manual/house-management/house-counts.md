@@ -14,7 +14,7 @@ A house count record exists for each performance and tracks the following metric
 | Metric | Description |
 |--------|-------------|
 | Total Seats | The full capacity of the venue for this production (from seat map or manual capacity setting) |
-| Sold | Number of tickets on paid orders (Processed, Fulfilled, or Unclaimed status) |
+| Sold | Number of seat-holding tickets on paid orders (Processed, Fulfilled, or Unclaimed status). Add-ons whose ticket class does not hold a seat -- a captioning tablet, a dinner -- are not counted. |
 | Held | Number of tickets on Hold orders (reserved but not yet paid) |
 | Remaining | Seats still available for sale (Total Seats minus Sold minus Held) |
 | Percentage Booked | The proportion of capacity that is sold or held, shown as a percentage |
