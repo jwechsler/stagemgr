@@ -99,9 +99,13 @@ class SeatAssignmentsController < ApplicationController
               # hold and its line item instead of inserting a duplicate TLI.
               sa.lock!
               if sa.available?(order_uuid)
-                sa.assign_to_order(order_uuid, max_seatable, ticket_class_id.to_i, accessible_setting)
+                # A classless reserve of a seat this order is releasing (Change
+                # Seating, seat picked back) keeps the seat's class.
+                hold_class_id = ticket_class_id.blank? && sa.releasing?(order_uuid) ? sa.ticket_class_id : ticket_class_id.to_i
+                sa.assign_to_order(order_uuid, max_seatable, hold_class_id, accessible_setting)
                 sa.update(price_override: price_override) if price_override
-                tli_id = upsert_ticket_line_item_for(sa, order_uuid, price_override)
+                # Classless (reseating) holds never touch line items.
+                tli_id = upsert_ticket_line_item_for(sa, order_uuid, price_override) if ticket_class_id.present?
               end
             end
           end

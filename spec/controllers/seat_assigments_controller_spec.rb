@@ -217,6 +217,7 @@ RSpec.describe SeatAssignmentsController, type: :controller do
                                             status: SeatAssignment::AVAILABLE).first
         releasing_sa.update!(order_uuid: @ticket_order.uuid, ticket_class_id: @releasing_class.id,
                              status: SeatAssignment::RELEASING)
+        @releasing_sa = releasing_sa
         @target = SeatAssignment.where(performance_id: @performance.id,
                                        status: SeatAssignment::AVAILABLE).first
       end
@@ -238,6 +239,15 @@ RSpec.describe SeatAssignmentsController, type: :controller do
                        order_uuid: @ticket_order.uuid }, format: :json
         expect(response).to be_successful
         expect(@target.reload.status).to eq(SeatAssignment::TEMPORARY)
+      end
+
+      it 'keeps the class of a releasing seat that is picked again' do
+        post :reserve,
+             params: { performance_id: @performance.id, id: @releasing_sa.id,
+                       order_uuid: @ticket_order.uuid }, format: :json
+        expect(response).to be_successful
+        expect(@releasing_sa.reload).to have_attributes(status: SeatAssignment::TEMPORARY,
+                                                        ticket_class_id: @releasing_class.id)
       end
     end
   end

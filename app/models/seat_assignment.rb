@@ -75,14 +75,15 @@ class SeatAssignment < ApplicationRecord
   # wildcard ("*") classes take anything, so feasibility reduces to a per-zone
   # count check. Returns nil when feasible, or a human-readable conflict.
   def self.reseating_zone_conflict(order_uuid)
-    releasing = where(order_uuid: order_uuid, status: RELEASING).includes(:ticket_class)
-    return nil if releasing.empty?
+    # Same per-seat class SeatReseat pairs with: the linked line item's, else the seat's.
+    release_classes = SeatReseat.new(order_uuid).release_classes
+    return nil if release_classes.empty?
 
     incoming_zone_counts = where(order_uuid: order_uuid, status: TEMPORARY)
                            .includes(:seat).map { |sa| sa.seat.zone }.tally
 
-    specific = releasing.map(&:ticket_class).compact
-                        .reject { |tc| tc.zone_id == ZoneMatchable::WILDCARD }
+    specific = release_classes.compact
+                              .reject { |tc| tc.zone_id == ZoneMatchable::WILDCARD }
     specific.group_by(&:zone_id).each do |zone, classes|
       next if classes.size <= (incoming_zone_counts[zone] || 0)
 
@@ -102,13 +103,24 @@ class SeatAssignment < ApplicationRecord
       return conflict unless conflict.nil?
 
       SeatAssignment.transaction do
+        # Move line items, class, price and order id onto the new seats first.
+        unmatched = SeatReseat.new(order_uuid).apply!
+        if unmatched
+          conflict = unmatched
+          raise ActiveRecord::Rollback
+        end
+
         SeatAssignment.where(order_uuid: order_uuid, status: SeatAssignment::TEMPORARY).update_all(
           status: SeatAssignment::ASSIGNED, updated_at: Time.now
         )
-        SeatAssignment.where(order_uuid: order_uuid, status: SeatAssignment::RELEASING).update_all(status: SeatAssignment::AVAILABLE, order_uuid: nil,
-                                                                                                   accessibility: nil, updated_at: Time.now)
+        # A released seat keeps nothing of the order: a stale order_id or class
+        # would otherwise survive into its next sale.
+        SeatAssignment.where(order_uuid: order_uuid, status: SeatAssignment::RELEASING).update_all(
+          status: SeatAssignment::AVAILABLE, order_uuid: nil, order_id: nil, ticket_class_id: nil,
+          price_override: nil, accessibility: nil, updated_at: Time.now
+        )
       end
-      "success"
+      conflict || "success"
     else
       Rails.logger.debug("Mismatched seats for order #{o.id}")
       "failure"
