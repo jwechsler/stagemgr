@@ -923,6 +923,10 @@ end
   # the seat's unique FK and blocks the seat's next sale; and on a persisted
   # order `<<` inserts new_li at once, which the index would reject while the
   # old row still holds the seat.
+  #
+  # The seat also takes the new class (reclass_seat_for), so seat and line
+  # item agree: the admin order form posts each reserved seat's line item with
+  # the seat's ticket_class_id, and would otherwise revert the swap on save.
   def replace_ticket_line_item(old_li, new_li)
     new_li.seat_assignment_id = old_li.seat_assignment_id
     if old_li.persisted?
@@ -931,6 +935,7 @@ end
       ticket_line_items.delete(old_li)
     end
     ticket_line_items << new_li
+    reclass_seat_for(new_li)
   end
 
   protected
@@ -1094,6 +1099,24 @@ end
   end
 
   private
+
+  # After a swap, write the line item's class (and its donation price, the
+  # only class whose override survives TicketLineItem#check_price_override)
+  # onto the seat it took over. update_all: the seat row is not autosaved
+  # with the order, and no seat callback applies to a class change. Any copy
+  # of the seat already loaded on this order is updated to match.
+  def reclass_seat_for(new_li)
+    return if new_li.seat_assignment_id.nil?
+
+    price_override = new_li.ticket_class&.ticket_type == TicketClass::DONATION ? new_li.price_override : nil
+    attrs = { ticket_class_id: new_li.ticket_class_id, price_override: price_override }
+    SeatAssignment.where(id: new_li.seat_assignment_id).update_all(attrs)
+    loaded = [new_li.association(:seat_assignment).target, *(seats.loaded? ? seats.target : [])]
+    loaded.compact.select { |sa| sa.id == new_li.seat_assignment_id }.each do |sa|
+      sa.assign_attributes(attrs)
+      sa.clear_attribute_changes(attrs.keys)
+    end
+  end
 
   def set_ticket_classes_using_offer(offer)
     new_ticket_class = production_ticket_class_from_offer(offer)

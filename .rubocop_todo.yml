@@ -395,8 +395,10 @@ Metrics/BlockNesting:
 # after_commit that re-counts a performance when an order is cancelled (5 LOC).
 # Max bumped 864 -> 870 for TicketOrder#replace_ticket_line_item, the class
 # swap that carries a line item's seat over instead of orphaning it (6 LOC).
+# Max bumped 870 -> 882 for TicketOrder#reclass_seat_for, which gives the
+# taken-over seat the swapped-in class so seat and line item agree (12 LOC).
 Metrics/ClassLength:
-  Max: 870
+  Max: 882
 
 # Offense count: 101
 # Configuration parameters: AllowedMethods, AllowedPatterns.
