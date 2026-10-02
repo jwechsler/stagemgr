@@ -4,6 +4,8 @@ class Order < ApplicationRecord
   include EmailValidatable
   # The pre-charge checks of transition_processing_to_processed!.
   include ChargeAfterChecks
+  # refund_blockers, and what Order#refund! returns.
+  include RefundEligibility
 
   # Associations
   belongs_to :theater, required: false, inverse_of: :orders
@@ -414,29 +416,17 @@ class Order < ApplicationRecord
     # box-office alert for a refunded fulfilled order was never queued.
     was_fulfilled = fulfilled?
     Order.transaction do
+      # Callers check refund_blockers first; this catches a second submission
+      # or an exchange begun since.
+      blockers = locked_refund_blockers
+      raise RefundNotAllowed, blockers.to_sentence if blockers.any?
+
       refund_payments!(notes)
       all_line_items.each { |li| refund_line_items (li.refund!) if li.respond_to? :refund! }
       self.status = REFUNDED
       create_notify_refund_task if was_fulfilled
       save!
     end
-  end
-
-  # The orders a refund of this one settles: just this order, except for a
-  # TicketOrder at the end of an exchange chain (ExchangeChainRefundable).
-  def exchange_chain
-    [self]
-  end
-
-  # Payments Order#refund! returns, each on its own tender (card, cash, pass, ...).
-  def refund_tenders
-    payments.select(&:refundable?)
-  end
-
-  # Exchange credits, offsets and Carryovers a refund cancels with a
-  # ReversalPayment instead of refunding. None outside an exchange chain.
-  def refund_reversals
-    []
   end
 
   def unclaimed!
@@ -733,11 +723,6 @@ class Order < ApplicationRecord
   end
 
   def refund_line_items(reversing_entries); end
-
-  # The payment half of #refund!, inside its transaction.
-  def refund_payments!(refund_note)
-    refund_tenders.each { |payment| payment.refund!(nil, refund_note) }
-  end
 
   def cascade_address_to_nested_items
     # code here

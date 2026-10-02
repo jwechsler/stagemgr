@@ -1,19 +1,11 @@
 # The refund page lists what refunding does to each payment, grouped by order
 # for an exchange chain; Order#refund! then refunds every refund tender on its
 # own tender and reverses the chain's exchange credits, offsets and Carryovers.
+# Whether the order may be refunded at all is Order#refund_blockers.
 module Admin::RefundOrdersHelper
-  # Payment kinds the refund page knows how to return. Anything else with
-  # something to refund (e.g. a positive Carryover outside a chain) blocks the refund.
-  REFUNDABLE_PAYMENT_CLASSES = [CreditCardPayment, CashPayment, CheckPayment, ExternalPayment,
-                                MembershipPayment, FlexPassPayment].freeze
-
-  def unsupported_refund_payments(order)
-    order.refund_tenders.reject { |payment| REFUNDABLE_PAYMENT_CLASSES.include?(payment.class) }
-  end
-
   def refund_plan_line(payment, tenders:, reversals:)
     return reversal_plan_line(payment) if reversals.include?(payment)
-    return "#{payment.display_name} #{number_to_currency(payment.amount)}: nothing to refund" if tenders.exclude?(payment)
+    return "#{payment.display_name.strip} #{number_to_currency(payment.amount)}: nothing to refund" if tenders.exclude?(payment)
 
     case payment
     when CreditCardPayment

@@ -153,7 +153,7 @@ This approach preserves the tickets the patron wants to keep while refunding onl
 | Issue | Resolution |
 |-------|------------|
 | Refund button not available | Verify the order is in Processed or Fulfilled status. An **Exchanged** order is refunded from the newest order of its exchange chain. |
-| *Can't refund this order* on the refund page | The order holds a payment kind the refund cannot return; ask an administrator |
+| *Can't refund this order* on the refund page | The page lists why: the order is not Processed or Fulfilled, holds a payment kind the refund cannot return (ask an administrator), was exchanged for a later order (refund that one), or is part-way through an exchange (finish or abandon the exchange first) |
 | Credit card refund failed | Check Stripe dashboard for the transaction; the card may have expired or the account closed |
 | Box office did not receive the refunded-order alert | Alerts are sent only for orders that were **Fulfilled** when refunded; check the order's history for the prior status and the configured box office and supervisor addresses |
 | Need to reverse a refund | Not possible through the system; create a new order for the patron |

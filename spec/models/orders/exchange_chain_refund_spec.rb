@@ -116,6 +116,28 @@ RSpec.describe 'Refunding an exchange chain' do
     end
   end
 
+  context 'when the chain carries a $0 exchange payment with no tickets' do
+    it 'does not reverse it and lists it as nothing to refund' do
+      original = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_credit_card)
+      card = original.payments.first
+      exchange = exchange!(original, payment_type: card_type)
+      empty = ExchangePayment.create!(amount: 0, order: original, payment_type: card.payment_type, source_payment: card)
+      exchange.reload
+
+      expect(exchange.refund_reversals).not_to include(empty)
+      helper = Object.new.extend(ActionView::Helpers::NumberHelper, ActionView::Helpers::TextHelper,
+                                 Admin::RefundOrdersHelper)
+      expect(helper.refund_plan_line(empty, tenders: exchange.refund_tenders, reversals: exchange.refund_reversals))
+        .to eq("#{empty.display_name.strip} $0.00: nothing to refund")
+
+      exchange.refund!
+
+      expect(ReversalPayment.where(payment_id: empty.id)).to be_empty
+      expect(payments_total(original)).to eq(0)
+      expect(payments_total(exchange)).to eq(0)
+    end
+  end
+
   context 'when the exchange cost less and the difference was written off' do
     it 'reverses the Carryover and refunds the whole original charge' do
       original = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_credit_card)
@@ -259,6 +281,90 @@ RSpec.describe 'Refunding an exchange chain' do
       expect(gateway).to have_received(:refund).once.with((charge.amount * 100).round, 'ch_extra', anything)
       expect(payments_total(original)).to eq(0)
       expect(payments_total(exchange)).to eq(0)
+    end
+  end
+
+  context 'when the original was paid with a membership' do
+    let(:original) { FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_membership) }
+    let!(:membership_payment) { original.payments.grep(MembershipPayment).first }
+    let(:membership) { membership_payment.membership }
+
+    def expect_chain_settled(exchange)
+      expect(exchange.reload.status).to eq(Order::REFUNDED)
+      expect(original.reload.status).to eq(Order::EXCHANGED)
+      [original, exchange].each do |order|
+        expect(payments_total(order)).to eq(0)
+        expect(order.payments.sum { |payment| payment.number_of_tickets.to_i }).to eq(0)
+      end
+    end
+
+    it 'releases the membership tickets on both orders of a membership-to-membership chain' do
+      # Another production: a member's repeat visit to the same show is door-only.
+      exchange = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, payment_type: original.payment_type)
+      exchange.member_code = original.member_code
+      exchange.exchange_and_process_from!(original)
+      expect(exchange.reload.payments.grep(MembershipPayment).sum(&:number_of_tickets)).to eq(2)
+
+      exchange.refund!
+
+      expect_chain_settled(exchange)
+      expect(original.payments.grep(MembershipPayment).map(&:number_of_tickets)).to contain_exactly(2, -2)
+      expect(exchange.payments.grep(MembershipPayment).map(&:number_of_tickets)).to contain_exactly(2, -2)
+      expect_reversed(original.payments.grep(ExchangePayment).first)
+      expect(gateway).not_to have_received(:refund)
+    end
+
+    it 'releases the membership tickets when the exchange was into a card order' do
+      exchange = exchange!(original, payment_type: card_type)
+
+      exchange.refund!
+
+      expect_chain_settled(exchange)
+      expect(original.payments.grep(MembershipPayment).map(&:number_of_tickets)).to contain_exactly(2, -2)
+      (original.payments.grep(ExchangePayment) + exchange.payments.grep(ExchangePayment)).each do |payment|
+        expect_reversed(payment)
+      end
+      expect(membership.membership_payments.sum(:number_of_tickets)).to eq(0)
+    end
+
+    it 'refuses a second refund of the same order and adds no payments' do
+      exchange = exchange!(original, payment_type: card_type)
+      stale = TicketOrder.find(exchange.id)
+      exchange.refund!
+      payment_count = Payment.count
+
+      expect { stale.refund! }.to raise_error(Order::RefundNotAllowed, /already been refunded/)
+
+      expect(Payment.count).to eq(payment_count)
+    end
+  end
+
+  context 'when an exchange begins after the order was loaded' do
+    it 'refuses the refund under the row lock and changes nothing' do
+      original = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_credit_card)
+      exchange = exchange!(original, payment_type: card_type)
+      stale = TicketOrder.find(exchange.id)
+      exchange.update_columns(status: Order::RELEASING)
+      payment_count = Payment.count
+
+      expect { stale.refund! }.to raise_error(Order::RefundNotAllowed, /part-way through an exchange \(Releasing\)/)
+
+      expect(Payment.count).to eq(payment_count)
+      expect(exchange.reload.status).to eq(Order::RELEASING)
+      expect(gateway).not_to have_received(:refund)
+    end
+  end
+
+  context 'when an exchanged order is refunded directly' do
+    it 'refunds only that order, leaving the credit it passed on in place' do
+      original = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_credit_card)
+      middle = exchange!(original, payment_type: card_type)
+      last = exchange!(middle, payment_type: card_type)
+
+      middle.reload.refund!
+
+      expect(ReversalPayment.count).to eq(0)
+      expect(last.reload.payments.grep(ExchangePayment).sum(&:amount)).to eq(last.total_due)
     end
   end
 

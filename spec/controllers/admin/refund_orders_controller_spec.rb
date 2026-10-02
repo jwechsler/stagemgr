@@ -102,6 +102,32 @@ RSpec.describe Admin::RefundOrdersController, type: :controller do
       expect(page.at_css('input[type=submit]')['value']).to eq('Process Refund')
     end
 
+    it 'refuses a refund posted for the exchanged (earlier) order' do
+      exchange
+
+      post :create, params: { order_id: order.id }
+
+      expect(flash[:error]).to include("Order ##{order.id} can't be refunded",
+                                       "was exchanged for order ##{exchange.id}")
+      expect(response).to redirect_to(edit_admin_order_path(order.id))
+      expect(order.reload.status).to eq(Order::EXCHANGED)
+      expect(exchange.reload.status).to eq(Order::PROCESSED)
+      expect(gateway).not_to have_received(:refund)
+    end
+
+    it 'refuses a refund while an exchange from it is in progress' do
+      onward = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, performance: exchange.performance)
+      onward.update_columns(exchange_source_id: exchange.id, status: Order::EXCHANGING)
+      payment_count = Payment.count
+
+      post :create, params: { order_id: exchange.id }
+
+      expect(flash[:error]).to include('part-way through an exchange')
+      expect(exchange.reload.status).to eq(Order::PROCESSED)
+      expect(Payment.count).to eq(payment_count)
+      expect(gateway).not_to have_received(:refund)
+    end
+
     it 'refunds the original card and settles the whole chain' do
       card = order.payments.first
 
@@ -119,6 +145,28 @@ RSpec.describe Admin::RefundOrdersController, type: :controller do
   end
 
   describe 'POST create' do
+    it 'refuses an order holding a payment kind the refund cannot return' do
+      order.payments << PriceOverridePayment.new(amount: 5, order: order, source_payment_type: order.payment_type)
+
+      post :create, params: { order_id: order.id }
+
+      expect(flash[:error]).to include("Refunds don't handle")
+      expect(order.reload.status).to eq(Order::PROCESSED)
+      expect(gateway).not_to have_received(:refund)
+    end
+
+    it 'refuses a refund that finds the order mid-exchange under the lock' do
+      allow_any_instance_of(TicketOrder).to receive(:refund_blockers).and_return([])
+      onward = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, performance: order.performance)
+      onward.update_columns(exchange_source_id: order.id, status: Order::EXCHANGING)
+
+      post :create, params: { order_id: order.id }
+
+      expect(flash[:error]).to include('part-way through an exchange')
+      expect(order.reload.status).to eq(Order::PROCESSED)
+      expect(gateway).not_to have_received(:refund)
+    end
+
     it 'refunds the card and the cash payment each on its own tender' do
       card = order.payments.first
       add_payment(CashPayment, amount: 20)

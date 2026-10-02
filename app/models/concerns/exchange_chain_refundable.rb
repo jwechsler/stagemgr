@@ -4,8 +4,14 @@
 # nets to zero: exchange credits, offsets and Carryovers are cancelled with
 # ReversalPayments, then every real tender (card, cash, check, pass) on any
 # order in the chain is refunded on its own tender. A and B stay EXCHANGED.
+# Only the last order may be refunded (#refund_blockers); an order already
+# exchanged onward that is refunded anyway (Membership#cancel_future_reservations
+# calls refund! directly) keeps the plain single-order refund.
 module ExchangeChainRefundable
   extend ActiveSupport::Concern
+
+  # An order in either status is part-way through an exchange.
+  MID_EXCHANGE_STATUSES = [Order::RELEASING, Order::EXCHANGING].freeze
 
   # Moved between the orders of a chain rather than collected from the patron,
   # so a chain refund reverses them instead of refunding them.
@@ -24,15 +30,21 @@ module ExchangeChainRefundable
     chain
   end
 
+  def refund_blockers
+    super + exchange_successors.pluck(:id).map do |successor_id|
+      "Order ##{id} was exchanged for order ##{successor_id}; refund the last order of its exchange chain."
+    end
+  end
+
   # Oldest order first, so the original sale is refunded before later charges.
   def refund_tenders
-    return super if exchange_source.nil?
+    return super unless chain_refund?
 
     exchange_chain.reverse.flat_map { |order| chain_refund_tenders(order) }
   end
 
   def refund_reversals
-    return super if exchange_source.nil?
+    return super unless chain_refund?
 
     exchange_chain.reverse.flat_map { |order| chain_refund_reversals(order) }
   end
@@ -43,9 +55,8 @@ module ExchangeChainRefundable
   # last, so a gateway failure rolls back everything in Order#refund!'s
   # transaction before any further card is touched.
   def refund_payments!(refund_note)
-    return super if exchange_source.nil?
+    return super unless chain_refund?
 
-    Order.where(id: exchange_chain.map(&:id)).lock.pluck(:id)
     tenders = refund_tenders
     refund_reversals.each { |payment| reverse_for_chain_refund!(payment) }
     cards, others = tenders.partition { |payment| payment.is_a?(CreditCardPayment) }
@@ -55,7 +66,31 @@ module ExchangeChainRefundable
     end
   end
 
+  # Any order of the chain, or an order it is being exchanged for, part-way
+  # through an exchange. Statuses come from the database, so Order#refund!
+  # (+lock: true+) sees an exchange begun after the order was loaded and holds
+  # the rows until it commits.
+  def exchange_state_refund_blockers(lock: false)
+    rows = [Order.where(id: exchange_chain.map(&:id)), exchange_successors]
+    rows = rows.map(&:lock) if lock
+    rows.flat_map { |scope| scope.pluck(:id, :status) }.uniq
+        .select { |_order_id, status| MID_EXCHANGE_STATUSES.include?(status) }
+        .map { |order_id, status| "Order ##{order_id} is part-way through an exchange (#{status})." }
+  end
+
   private
+
+  def chain_refund?
+    exchange_source.present? && !exchange_successors.exists?
+  end
+
+  # Orders this one was (or is being) exchanged for. An abandoned exchange is
+  # destroyed; a cancelled one no longer holds the credit.
+  def exchange_successors
+    return TicketOrder.none if id.nil?
+
+    TicketOrder.where(exchange_source_id: id).where.not(status: Order::CANCELED)
+  end
 
   def chain_refund_tenders(order)
     order.payments.select do |payment|
@@ -68,8 +103,13 @@ module ExchangeChainRefundable
     reversed_ids = Payment.where(type: 'ReversalPayment', payment_id: order.payments.map(&:id)).pluck(:payment_id)
     order.payments.select do |payment|
       REVERSED_PAYMENT_CLASSES.any? { |klass| payment.is_a?(klass) } &&
-        reversed_ids.exclude?(payment.id) && !offsets_kept_tender?(payment)
+        reversed_ids.exclude?(payment.id) && !settles_nothing?(payment) && !offsets_kept_tender?(payment)
     end
+  end
+
+  # A $0 offset or credit with no tickets: there is nothing to reverse.
+  def settles_nothing?(payment)
+    payment.amount.zero? && payment.number_of_tickets.to_i.zero?
   end
 
   # An offset of a tender the refund leaves alone still balances that tender:
