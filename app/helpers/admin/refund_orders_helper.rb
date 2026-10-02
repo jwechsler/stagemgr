@@ -1,28 +1,31 @@
-# The refund page lists what refunding does to each payment on the order;
-# Order#refund! then refunds every refundable payment on its own tender.
+# The refund page lists what refunding does to each payment, grouped by order
+# for an exchange chain; Order#refund! then refunds every refund tender on its
+# own tender and reverses the chain's exchange credits, offsets and Carryovers.
 module Admin::RefundOrdersHelper
   # Payment kinds the refund page knows how to return. Anything else with
-  # something to refund (e.g. a positive Carryover) blocks the refund.
-  # Exchange credit is returned through Exchange and Refund (TicketOrder#refundable?).
+  # something to refund (e.g. a positive Carryover outside a chain) blocks the refund.
   REFUNDABLE_PAYMENT_CLASSES = [CreditCardPayment, CashPayment, CheckPayment, ExternalPayment,
                                 MembershipPayment, FlexPassPayment].freeze
 
   def unsupported_refund_payments(order)
-    order.payments.select { |payment| payment.refundable? && REFUNDABLE_PAYMENT_CLASSES.exclude?(payment.class) }
+    order.refund_tenders.reject { |payment| REFUNDABLE_PAYMENT_CLASSES.include?(payment.class) }
   end
 
-  def refund_plan_line(payment)
-    return "#{payment.display_name} #{number_to_currency(payment.amount)}: nothing to refund" unless payment.refundable?
+  def refund_plan_line(payment, tenders:, reversals:)
+    return reversal_plan_line(payment) if reversals.include?(payment)
+    return "#{payment.display_name} #{number_to_currency(payment.amount)}: nothing to refund" if tenders.exclude?(payment)
 
     case payment
     when CreditCardPayment
       "#{payment.payment_info}: refund #{number_to_currency(payment.refundable_amount)} to the card"
     when CashPayment
-      "Cash: give the patron #{number_to_currency(payment.amount)} in cash"
+      "Cash: give the patron #{number_to_currency(payment.refundable_amount)} in cash"
     when MembershipPayment
       "Membership: release #{pluralize(payment.number_of_tickets, 'ticket')}"
     when FlexPassPayment
       "Flex pass: return #{pluralize(payment.number_of_tickets, 'ticket')} to the pass"
+    when CurrencyPayment
+      "#{payment.display_name}: record a #{number_to_currency(payment.refundable_amount)} refund"
     else
       "#{payment.display_name}: record a #{number_to_currency(payment.amount)} refund"
     end
@@ -30,10 +33,22 @@ module Admin::RefundOrdersHelper
 
   # Money going back → "Process Refund"; only pass tickets → the pass's own label.
   def refund_button_label(order)
-    refunded = order.payments.select(&:refundable?)
+    refunded = order.refund_tenders
     return 'Process Refund' if refunded.empty? || refunded.any? { |payment| !payment.is_a?(PassPayment) }
     return 'Cancel Membership reservation' if refunded.all?(MembershipPayment)
 
     'Release Flex Pass tickets'
+  end
+
+  private
+
+  def reversal_plan_line(payment)
+    amount = number_to_currency(payment.amount)
+    case payment
+    when PriceOverridePayment then "Carryover #{amount}: reverse the Carryover"
+    when ExchangePayment
+      kind = payment.amount.negative? ? 'offset' : 'credit'
+      "#{payment.display_name.strip} #{amount}: reverse the exchange #{kind}"
+    end
   end
 end

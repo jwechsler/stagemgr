@@ -5,6 +5,8 @@ class TicketOrder < Order
   include ResourcedStockValidatable
   # Exchange-and-refund: returns the price difference to the original payments.
   include ExchangeRefundable
+  # Refunding the last order of an exchange chain settles the whole chain.
+  include ExchangeChainRefundable
   # resend_confirmation! (admin Resend Confirmation, Add to Order).
   include TicketConfirmationResendable
   # Add to Order: an addition is its own order until it merges into its target.
@@ -235,7 +237,7 @@ class TicketOrder < Order
   end
 
   def refundable?
-    sold_status? && !paid_by_exchange?
+    sold_status?
   end
 
   def holdable?

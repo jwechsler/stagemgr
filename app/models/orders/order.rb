@@ -414,13 +414,29 @@ class Order < ApplicationRecord
     # box-office alert for a refunded fulfilled order was never queued.
     was_fulfilled = fulfilled?
     Order.transaction do
-      # Each payment is refunded on its own tender (card, cash, pass, ...).
-      payments.select(&:refundable?).each { |payment| payment.refund!(nil, notes) }
+      refund_payments!(notes)
       all_line_items.each { |li| refund_line_items (li.refund!) if li.respond_to? :refund! }
       self.status = REFUNDED
       create_notify_refund_task if was_fulfilled
       save!
     end
+  end
+
+  # The orders a refund of this one settles: just this order, except for a
+  # TicketOrder at the end of an exchange chain (ExchangeChainRefundable).
+  def exchange_chain
+    [self]
+  end
+
+  # Payments Order#refund! returns, each on its own tender (card, cash, pass, ...).
+  def refund_tenders
+    payments.select(&:refundable?)
+  end
+
+  # Exchange credits, offsets and Carryovers a refund cancels with a
+  # ReversalPayment instead of refunding. None outside an exchange chain.
+  def refund_reversals
+    []
   end
 
   def unclaimed!
@@ -717,6 +733,11 @@ class Order < ApplicationRecord
   end
 
   def refund_line_items(reversing_entries); end
+
+  # The payment half of #refund!, inside its transaction.
+  def refund_payments!(refund_note)
+    refund_tenders.each { |payment| payment.refund!(nil, refund_note) }
+  end
 
   def cascade_address_to_nested_items
     # code here
