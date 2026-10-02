@@ -98,13 +98,13 @@ RSpec.describe SeatAssignment, type: :model do
                                                               ticket_count: 2,
                                                               order: @canceled_order)
 
-        # Create TEMPORARY seats pointing to the canceled order
+        # Saving an order as CANCELED releases its seats (SeatRelease), so
+        # the TEMPORARY holds are left on it afterwards, as a stray pick would.
+        @canceled_order.save!
         @abandoned_seats = performance1.seat_assignments.where(status: SeatAssignment::AVAILABLE).take(2)
         @abandoned_seats.each do |sa|
           sa.update!(status: SeatAssignment::TEMPORARY, order_uuid: @canceled_order.uuid)
-          @canceled_order.seats << sa
         end
-        @canceled_order.save!
       end
 
       it 'releases seats associated with non-holding orders' do
