@@ -16,11 +16,10 @@ class TicketOrder < Order
 
   before_validation :set_tickets_for_pass_redemption
   before_validation :unassign_seats_when_performance_changes, if: :performance_id_changed?
-  after_validation do
-    if status_changed? && (refunded? || unclaimed?) && performance.production.has_reserved_seating?
-      unassign_seats
-    end
-  end
+  # Entering a status that gives the seats up frees them (SeatRelease). Not
+  # gated on the production having reserved seating: one whose seat map was
+  # removed later still has seats held under the order's uuid.
+  before_save :unassign_seats, if: -> { status_changed? && SeatRelease.releasing_status?(status) }
 
   before_save :set_theater
   before_save :remove_empty_ticket_lines
@@ -121,31 +120,18 @@ class TicketOrder < Order
     !payments.empty?
   end
 
+  # Frees every seat this order holds and every seat link on its line items;
+  # see SeatRelease. Callers: the status hook above, before_destroy,
+  # convert_to_donation! and release_tickets! (exchange source).
   def unassign_seats
-    Rails.logger.info("Releasing seats for Order #{id} [#{status}] [#{seats.map do |s|
-      s.seat.location
-    end.join(',')}]")
-    seat_ids = seats.pluck(:id)
-    # Clear the seat FK on this order's TLIs so the seats can be re-sold after
-    # this order is released without hitting the unique index on
-    # seat_assignment_id. The TLI rows are preserved for accounting history.
-    if seat_ids.any?
-      TicketLineItem.where(order_id: id, seat_assignment_id: seat_ids)
-                    .update_all(seat_assignment_id: nil)
-    end
-    seats.each { |seat| seat.unassign_from_order(uuid) }
-    Rails.logger.info("Seats released for Order #{id} [#{status}] [#{seats.map do |s|
-      s.seat.location
-    end.join(',')}]")
+    result = SeatRelease.new(self).apply!
+    Rails.logger.info("Released #{result[:seats]} seat(s) and #{result[:links]} seat link(s) for Order #{id} [#{status}]")
   end
 
+  # Frees the seats (and line item seat links) left on the old performance;
+  # anything already picked on the new performance stays. See SeatRelease.
   def unassign_seats_when_performance_changes
-    seats.reload.each do |seat|
-      unless seat.performance_id.eql?(performance_id)
-        seat.unassign_from_order(self)
-      end
-    end
-    seats.reload
+    SeatRelease.new(self, keep_performance_id: performance_id).apply!
   end
 
   # def verify_fully_seated
