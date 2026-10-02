@@ -34,6 +34,8 @@ config/credentials/production.yml.enc
 /tags
 rerun.txt
 *~
+*.swp
+*.swo
 log/*.log
 db/*.sqlite3
 vendor/bundle/
