@@ -45,8 +45,9 @@ class FinalizeSeasonSeating
       email: order.address&.email,
       date: perf.performance_date,
       performance_code: perf.performance_code,
-      ticket_types: order.ticket_line_items.map do |tli|
-        "#{tli.ticket_count}x #{tli.ticket_class.class_code}"
+      # Reserved orders carry one line item per seat; report a count per class.
+      ticket_types: order.ticket_line_items.group_by { |tli| tli.ticket_class.class_code }.map do |code, tlis|
+        "#{tlis.sum(&:ticket_count)}x #{code}"
       end.join(', '),
       order_total: order.total,
       status: nil,

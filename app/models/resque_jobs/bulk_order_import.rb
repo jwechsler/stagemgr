@@ -87,25 +87,30 @@ class BulkOrderImport < OrderImport
               puts "Seating complete for #{o.ticket_line_items.first.ticket_count} #{o.ticket_line_items.first.ticket_class} Tix"
             else
               puts "IMPORT: Attempting seating for #{row['Seating']}"
-              seats = row['Seating'].blank? ? [] : row['Seating'].split(',')
-              o.ticket_line_items.build(ticket_count: seats.count, ticket_class: ticket_class)
-              unless seats.empty?
-                seats.each do |seat|
-                  if seat_locations[o.performance.production_id].nil?
-                    raise "Production #{o.performance.production.name} does not allow for assigned seating"
-                  end
+              seats = row['Seating'].split(',').map(&:strip).compact_blank
+              raise "Seating lists no seats" if seats.empty?
 
-                  seat_id = seat_locations[o.performance.production_id][seat]
-                  sa = SeatAssignment.find_by(performance_id: o.performance_id, seat_id: seat_id)
-                  raise "Seat map does not include seat '#{seat}'" if sa.nil?
-
-                  puts("IMPORT: Seating in #{seat}, assignment id: #{sa.id}")
-                  raise "Seat #{seat} is not available for seating" unless sa.assign_to_order(o.uuid,
-                                                                                              1000, ticket_class.id)
-                end
-                o.save!
-                puts 'IMPORT: Seating complete'
+              duplicates = seats.tally.select { |_, n| n > 1 }.keys
+              raise "Seat(s) listed more than once: #{duplicates.join(', ')}" if duplicates.any?
+              if seat_locations[o.performance.production_id].nil?
+                raise "Production #{o.performance.production.name} does not allow for assigned seating"
               end
+
+              # One line item per seat, linked to its seat assignment, as every
+              # other reserved-seating order is.
+              seats.each do |seat|
+                seat_id = seat_locations[o.performance.production_id][seat]
+                sa = SeatAssignment.find_by(performance_id: o.performance_id, seat_id: seat_id)
+                raise "Seat map does not include seat '#{seat}'" if sa.nil?
+
+                puts("IMPORT: Seating in #{seat}, assignment id: #{sa.id}")
+                raise "Seat #{seat} is not available for seating" unless sa.assign_to_order(o.uuid,
+                                                                                            1000, ticket_class.id)
+
+                o.ticket_line_items.build(ticket_count: 1, ticket_class: ticket_class, seat_assignment_id: sa.id)
+              end
+              o.save!
+              puts 'IMPORT: Seating complete'
             end
             puts("IMPORT: Ticket Class =  #{ticket_class}")
 

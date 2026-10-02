@@ -153,4 +153,16 @@ RSpec.describe FinalizeSeasonSeating do
       expect(purchase.flex_pass.reload.uses_remaining).to eq(offer.number_of_tickets - 2)
     end
   end
+
+  describe 'the report row' do
+    it 'counts per-seat line items by ticket class' do
+      order = held_order(season_seating_production, FactoryBot.create(:cash_payment_type))
+      tli = order.ticket_line_items.first
+      order.ticket_line_items.create!(ticket_class: tli.ticket_class, ticket_count: 1)
+
+      row = described_class.build_row(order.reload, order.performance)
+
+      expect(row[:ticket_types]).to eq("2x #{tli.ticket_class.class_code}")
+    end
+  end
 end
