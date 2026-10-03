@@ -118,7 +118,7 @@ An order can carry more than one payment -- for example after [Add to Order](add
 
 Sometimes a refund has to be issued straight from the Stripe dashboard -- for example when something stops a refund or exchange inside Stagemgr. Stagemgr hears about it from Stripe within moments and records the money, so box office totals stay right:
 
-- Each Stripe refund becomes one refund payment on the order, for that refund's amount, dated the day it was made in Stripe (so it lands on that day's Daily Receipts). Its note reads *Refunded in Stripe dashboard*.
+- Each Stripe refund becomes one refund payment on the order, for that refund's amount, dated the day it was made in Stripe (so it lands on that day's Daily Receipts). Its note reads *Refunded in Stripe dashboard*, followed by the reason picked in Stripe's refund dialog when there is one (for example *Refunded in Stripe dashboard: Requested by customer*).
 - A ticket order's refund is recorded against the card it came from, so a later refund in Stagemgr returns only what is left on that card. A membership refund is recorded as a negative subscription payment.
 - Refunds Stagemgr issues itself are never recorded twice, and neither is a refund Stripe reports more than once.
 - A refund Stripe holds as *pending* (for example when the Stripe balance can't cover it yet) is recorded once Stripe reports it succeeded.

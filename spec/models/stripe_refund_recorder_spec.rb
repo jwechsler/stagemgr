@@ -24,8 +24,9 @@ RSpec.describe StripeRefundRecorder do
                                     invoice: nil }.merge(attrs))
   end
 
-  def refund(id, cents, created: refunded_at, status: 'succeeded', metadata: {})
-    { id: id, object: 'refund', amount: cents, status: status, created: created.to_i, metadata: metadata }
+  def refund(id, cents, created: refunded_at, status: 'succeeded', metadata: {}, reason: nil)
+    { id: id, object: 'refund', amount: cents, status: status, created: created.to_i, metadata: metadata,
+      reason: reason }
   end
 
   def dashboard_refunds
@@ -67,6 +68,15 @@ RSpec.describe StripeRefundRecorder do
       expect { racing.call }.not_to raise_error
       expect(dashboard_refunds.count).to eq(1)
     end
+  end
+
+  it 'appends the reason picked in Stripe to the note and the review reason' do
+    refunds << refund('re_why', 2000, reason: 'requested_by_customer')
+
+    described_class.call(charge)
+
+    expect(dashboard_refunds.first!.note).to eq('Refunded in Stripe dashboard: Requested by customer')
+    expect(order.reload.review_reason).to end_with('(Requested by customer)')
   end
 
   it 'skips a refund the app issued itself' do

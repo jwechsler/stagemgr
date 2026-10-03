@@ -13,6 +13,7 @@ class StripeRefundRecorder
   # Stripe caps a list page at 100; no charge has more refunds than that.
   REFUND_LIST_LIMIT = 100
   CENTS_PER_DOLLAR = 100
+  NOTE_COLUMN_LIMIT = 255
 
   class UnmatchedRefund < StandardError; end
 
@@ -147,7 +148,7 @@ class StripeRefundRecorder
 
   def build_refund_row(source, refund)
     attributes = { amount: -refund_dollars(refund), processed_on: Time.zone.at(refund['created']),
-                   stripe_refund_id: refund['id'], note: NOTE }
+                   stripe_refund_id: refund['id'], note: refund_note(refund) }
     if source.is_a?(CreditCardPayment)
       RefundPayment.new(order: source.order, source_payment: source, payment_type: source.payment_type,
                         confirmation_code: refund['id'], transaction_id: refund['id'], **attributes)
@@ -160,9 +161,20 @@ class StripeRefundRecorder
     CurrencyUtils.float_to_currency_decimal(BigDecimal(refund['amount'].to_s) / CENTS_PER_DOLLAR)
   end
 
+  # The reason picked in the Stripe dashboard's refund dialog, e.g.
+  # requested_by_customer -> "Requested by customer"; nil when none was picked.
+  def stripe_reason(refund)
+    refund['reason'].presence&.humanize
+  end
+
+  def refund_note(refund)
+    [NOTE, stripe_reason(refund)].compact.join(': ').truncate(NOTE_COLUMN_LIMIT)
+  end
+
   def review_reason(refund)
     date = Time.zone.at(refund['created']).to_date.to_formatted_s(:numeric_month_and_day)
-    "Stripe refund #{ActiveSupport::NumberHelper.number_to_currency(refund_dollars(refund))} on #{date}"
+    reason = "Stripe refund #{ActiveSupport::NumberHelper.number_to_currency(refund_dollars(refund))} on #{date}"
+    stripe_reason(refund) ? "#{reason} (#{stripe_reason(refund)})" : reason
   end
 
   def report_unmatched(refund)
