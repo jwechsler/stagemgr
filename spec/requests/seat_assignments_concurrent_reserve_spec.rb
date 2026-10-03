@@ -17,56 +17,15 @@ module ConcurrentReserveRace
   # its line item, so the second request reliably arrives mid-transaction
   # (unaided, the critical window is a few ms and the race rarely lands).
   RACE_WINDOW_SECONDS = 0.2
-
-  # Tables without an id column cannot be trimmed by id; this example must
-  # leave them as it found them.
-  IGNORED_TABLES = %w[schema_migrations ar_internal_metadata].freeze
 end
 
 RSpec.describe 'SeatAssignmentsController#reserve under concurrent requests',
                :concurrent_db, type: :request do
   self.use_transactional_tests = false
 
-  def db_connection
-    ActiveRecord::Base.connection
-  end
+  include ConcurrentDbSnapshot
 
-  def id_tables
-    (db_connection.tables - ConcurrentReserveRace::IGNORED_TABLES).select { |t| db_connection.column_exists?(t, :id) }
-  end
-
-  def idless_tables
-    db_connection.tables - ConcurrentReserveRace::IGNORED_TABLES - id_tables
-  end
-
-  def snapshot
-    { max_ids: id_tables.index_with { |t| db_connection.select_value("SELECT COALESCE(MAX(id), 0) FROM `#{t}`").to_i },
-      counts: idless_tables.index_with { |t| db_connection.select_value("SELECT COUNT(*) FROM `#{t}`").to_i } }
-  end
-
-  # Deletes every row created since the snapshot; fails loudly if an id-less
-  # (join) table changed, rather than leaving rows behind for other specs.
-  def restore!(before)
-    db_connection.execute('SET FOREIGN_KEY_CHECKS = 0')
-    before[:max_ids].each do |table, max_id|
-      db_connection.execute("DELETE FROM `#{table}` WHERE id > #{max_id}")
-    end
-  ensure
-    db_connection.execute('SET FOREIGN_KEY_CHECKS = 1')
-    changed = before[:counts].reject do |table, count|
-      db_connection.select_value("SELECT COUNT(*) FROM `#{table}`").to_i == count
-    end
-    raise "concurrent reserve spec left rows in #{changed.keys.join(', ')}" if changed.any?
-  end
-
-  around do |example|
-    before = snapshot
-    begin
-      example.run
-    ensure
-      restore!(before)
-    end
-  end
+  around { |example| with_db_snapshot { example.run } }
 
   # One reserve through the full stack (routing, controller, real
   # transaction), on a thread with its own connection and session.
