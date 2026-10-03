@@ -35,6 +35,29 @@ RSpec.describe CreditCardPayment, type: :model do
       expect(order.payments.reload.last.amount).to eq(-50.0)
     end
 
+    it 'stores the Stripe refund id and marks the refund as the app\'s own' do
+      gateway = double('gateway')
+      allow(PaymentProcessing).to receive(:gateway).and_return(gateway)
+      expect(gateway).to receive(:refund)
+        .with(5000, 'ch_test123',
+              hash_including(metadata: { source: 'stagemgr', order_id: order.id, payment_id: payment.id }))
+        .and_return(double('response', success?: true, authorization: 're_full'))
+
+      payment.refund!(nil, 'test refund')
+
+      expect(order.payments.reload.last.stripe_refund_id).to eq('re_full')
+    end
+
+    it 'stores no refund id for a gateway reference that is not a Stripe refund' do
+      gateway = double('gateway')
+      allow(PaymentProcessing).to receive(:gateway).and_return(gateway)
+      allow(gateway).to receive(:refund).and_return(double('response', success?: true, authorization: nil))
+
+      payment.refund!(nil, 'test refund')
+
+      expect(order.payments.reload.last.stripe_refund_id).to be_nil
+    end
+
     it 'refunds only what is left after an earlier partial refund against the charge' do
       RefundPayment.create!(order: order, amount: -10.00, source_payment: payment, payment_type: payment.payment_type)
       gateway = double('gateway')

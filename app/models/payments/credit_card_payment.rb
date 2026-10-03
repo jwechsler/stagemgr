@@ -7,6 +7,11 @@ unless defined? InvalidCreditCard
 end
 
 class CreditCardPayment < CurrencyPayment
+  # Metadata source on every refund the app sends to Stripe, so the
+  # charge.refunded webhook (StripeRefundRecorder) knows it is the app's own.
+  REFUND_SOURCE = 'stagemgr'.freeze
+  STRIPE_REFUND_ID_PREFIX = 're_'.freeze
+
   belongs_to :address, optional: true
 
   attr_accessor :card_number, :card_verification_number
@@ -118,6 +123,7 @@ class CreditCardPayment < CurrencyPayment
       order.payments << refund_payment
 
       response = refund_to_card!(cents(remaining), note: note, idempotency_key: idempotency_key)
+      refund_payment.stripe_refund_id = refund_id_from(response)
 
       unless response.success?
         # Check if charge was already refunded in Stripe
@@ -182,6 +188,7 @@ class CreditCardPayment < CurrencyPayment
 
     refund_payment.confirmation_code = response.authorization
     refund_payment.transaction_id = response.authorization
+    refund_payment.stripe_refund_id = refund_id_from(response)
   end
 
   def payment_info
@@ -226,10 +233,25 @@ class CreditCardPayment < CurrencyPayment
 
   # The one place the gateway refund is called, for both full and partial
   # refunds. +cents+ is refunded against this payment's Stripe reference.
+  # The metadata marks the refund as the app's own, so the charge.refunded
+  # webhook (StripeRefundRecorder) never books it a second time.
   def refund_to_card!(cents, note: nil, idempotency_key: nil)
-    options = { note: note }
+    options = { note: note, metadata: refund_metadata }
     options[:idempotency_key] = idempotency_key if idempotency_key.present?
     PaymentProcessing.gateway.refund(cents, transaction_id || confirmation_code, options)
+  end
+
+  def refund_metadata
+    { source: REFUND_SOURCE, order_id: order_id, payment_id: id }
+  end
+
+  # The Stripe refund id (re_...) of a successful gateway refund. Nil on a
+  # failure, and for BogusGateway, whose references are not Stripe ids.
+  def refund_id_from(response)
+    return unless response.success?
+
+    reference = response.authorization.to_s
+    reference if reference.start_with?(STRIPE_REFUND_ID_PREFIX)
   end
 
   def get_stripe_refund_amount
