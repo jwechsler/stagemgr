@@ -118,6 +118,7 @@ Sometimes a refund has to be issued straight from the Stripe dashboard -- for ex
 
 - Each Stripe refund becomes one refund payment on the order, for that refund's amount, dated the day it was made in Stripe (so it lands on that day's Daily Receipts). Its note reads *Refunded in Stripe dashboard*, followed by the reason picked in Stripe's refund dialog when there is one (for example *Refunded in Stripe dashboard: Requested by customer*).
 - A ticket order's refund is recorded against the card it came from, so a later refund in Stagemgr returns only what is left on that card. A membership refund is recorded as a negative subscription payment.
+- If that order was already exchanged, the refund still sits beside the card on the original order, but the exchange credit on the **newest** order is reduced by the same amount. The newest order then shows only the credit that still exists, and a further exchange can't carry the refunded money forward. The newest order is the one flagged for review.
 - Refunds Stagemgr issues itself are never recorded twice, and neither is a refund Stripe reports more than once.
 - A refund Stripe holds as *pending* (for example when the Stripe balance can't cover it yet) is recorded once Stripe reports it succeeded.
 - **Only the money changes.** Tickets, seats and the order's status stay as they are. Instead the order is flagged for review.

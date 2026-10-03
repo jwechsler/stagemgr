@@ -65,7 +65,9 @@ class StripeRefundRecorder
     Payment.transaction do
       payment = build_refund_row(source, refund)
       payment.save!
-      ReviewFlaggable.order_to_review(source.order).flag_for_review!(review_reason(refund))
+      newest = ReviewFlaggable.order_to_review(source.order)
+      carry_reduction_forward!(payment, newest) unless newest == source.order
+      newest.flag_for_review!(review_reason(refund))
     end
   rescue ActiveRecord::RecordNotUnique
     # A concurrent delivery of the same event booked it first.
@@ -155,6 +157,34 @@ class StripeRefundRecorder
     else
       source.build_refund(**attributes)
     end
+  end
+
+  # The card's order was exchanged onward, so its money now sits as exchange
+  # credit on the newest order of the chain. The refund row stays beside the
+  # card; an ExchangePayment pair moves the reduction forward (+ on the card's
+  # order against the card's offset, - on the newest order against its
+  # credit), so the newest order holds only the credit that still exists and
+  # an onward exchange cannot carry the refunded amount. Orders in between are
+  # untouched, and a later chain refund (ExchangeChainRefundable) reverses the
+  # pair with the other exchange rows. Same shape as
+  # ExchangeRefundable#chain_refund_for.
+  def carry_reduction_forward!(refund_row, newest)
+    card = refund_row.source_payment
+    amount = -refund_row.amount
+    note = "Exchange credit reduced by a Stripe dashboard refund on order ##{card.order_id}"
+    ExchangePayment.create!(amount: amount, order: card.order, source_payment: exchange_offset_of(card),
+                            payment_type: card.payment_type, note: note)
+    ExchangePayment.create!(amount: -amount, order: newest, source_payment: exchange_credit_on(newest),
+                            payment_type: card.payment_type, note: note)
+  end
+
+  # Type pinned: Payment subclass scopes match every payment type.
+  def exchange_offset_of(card)
+    ExchangePayment.where(type: 'ExchangePayment', payment_id: card.id).where('amount < 0').order(:id).first
+  end
+
+  def exchange_credit_on(order)
+    ExchangePayment.where(type: 'ExchangePayment', order_id: order.id).where('amount > 0').order(:id).first
   end
 
   def refund_dollars(refund)
