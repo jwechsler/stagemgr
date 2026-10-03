@@ -6,6 +6,8 @@ class Order < ApplicationRecord
   include ChargeAfterChecks
   # refund_blockers, and what Order#refund! returns.
   include RefundEligibility
+  # The box office review flag (e.g. after a refund made in Stripe).
+  include ReviewFlaggable
 
   # Associations
   belongs_to :theater, required: false, inverse_of: :orders
@@ -29,6 +31,7 @@ class Order < ApplicationRecord
   has_many :seats, foreign_key: :order_uuid, primary_key: :uuid, class_name: 'SeatAssignment', inverse_of: :order
   has_one :special_offer_line_item, inverse_of: :order
   has_many :service_line_items, dependent: :destroy, inverse_of: :order
+  has_many :adjustment_line_items, dependent: :destroy, inverse_of: :order
 
   accepts_nested_attributes_for :address
   accepts_nested_attributes_for :tasks, allow_destroy: true
@@ -664,6 +667,7 @@ class Order < ApplicationRecord
     end
     result << special_offer_line_item unless special_offer_line_item.nil?
     result += service_line_items
+    result += adjustment_line_items
     result.reject { |r| r.nil? }
   end
 
