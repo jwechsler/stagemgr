@@ -56,7 +56,14 @@ class StripeRefundRecorder
   def bookable?(refund)
     refund['status'] == SUCCEEDED &&
       refund_source(refund) != CreditCardPayment::REFUND_SOURCE &&
-      !Payment.exists?(stripe_refund_id: refund['id'])
+      !already_recorded?(refund['id'])
+  end
+
+  # Partial refunds the app issued before stripe_refund_id existed carry the
+  # refund id in transaction_id (RefundPayment#process!).
+  def already_recorded?(refund_id)
+    Payment.where(stripe_refund_id: refund_id)
+           .or(Payment.where(type: 'RefundPayment', transaction_id: refund_id)).exists?
   end
 
   def refund_source(refund)

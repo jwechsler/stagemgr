@@ -60,11 +60,11 @@ RSpec.describe StripeRefundRecorder do
     end
 
     it 'treats a duplicate that wins the race to the unique index as already recorded' do
-      allow(Payment).to receive(:exists?).and_call_original
-      allow(Payment).to receive(:exists?).with(stripe_refund_id: 're_one').and_return(false)
       described_class.call(charge)
+      racing = described_class.new(charge)
+      allow(racing).to receive(:already_recorded?).and_return(false)
 
-      expect { described_class.call(charge) }.not_to raise_error
+      expect { racing.call }.not_to raise_error
       expect(dashboard_refunds.count).to eq(1)
     end
   end
@@ -75,6 +75,17 @@ RSpec.describe StripeRefundRecorder do
     described_class.call(charge)
 
     expect(dashboard_refunds).to be_empty
+    expect(order.reload).not_to be_needs_review
+  end
+
+  it 'skips a partial refund the app issued before refund ids were stored' do
+    RefundPayment.create!(order: order, source_payment: card, payment_type: card.payment_type, amount: -5,
+                          transaction_id: 're_exchange', confirmation_code: 're_exchange')
+    refunds << refund('re_exchange', 500)
+
+    described_class.call(charge)
+
+    expect(dashboard_refunds.pluck(:amount)).to eq([-5.0])
     expect(order.reload).not_to be_needs_review
   end
 
