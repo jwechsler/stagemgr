@@ -4,6 +4,11 @@ class Admin::RefundOrdersController < Admin::ApplicationController
     @original_order = Order.find(params[:order_id])
     @refund_order = Order.new
     @refund_order.payments.build
+    # The refund plan: what the page shows and Order#refund! will do.
+    @refund_blockers = @original_order.refund_blockers
+    @exchange_chain = @original_order.exchange_chain
+    @refund_tenders = @original_order.refund_tenders
+    @refund_reversals = @original_order.refund_reversals
 
     respond_to do |format|
       format.html # new.html.erb
