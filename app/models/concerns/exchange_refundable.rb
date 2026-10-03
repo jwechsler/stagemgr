@@ -15,8 +15,15 @@ module ExchangeRefundable
   # exchanged: another exchange or a refund got to it first.
   class ExchangeNotPossible < StandardError; end
 
+  # True after #exchange_and_refund_from! when the new order cost exactly what
+  # the original did: the exchange went through and nothing was refunded.
+  def refund_not_needed?
+    @refund_not_needed == true
+  end
+
   # Same exchange as #exchange_and_process_from!, but the price difference goes
-  # back to the original payments instead of being written off. The gateway
+  # back to the original payments instead of being written off. An even swap
+  # has no difference, so it is exchanged with no refund (#refund_not_needed?). The gateway
   # call is the LAST step so a card failure rolls back every row: the new
   # order, the offsets, the refunds and the original's status.
   def exchange_and_refund_from!(original_order)
@@ -107,10 +114,11 @@ module ExchangeRefundable
   # refunded more than its (fee-netted) charge.
   def allocate_exchange_refunds(offsets)
     refund_total = -(total_due + offsets.sum(&:amount))
-    unless refund_total.positive?
-      raise RefundNotPossible, 'Nothing to refund: the new order costs at least as much as the original. ' \
-                               'Use Exchange Order instead.'
+    if refund_total.zero?
+      @refund_not_needed = true
+      return []
     end
+    raise RefundNotPossible, costs_more_message(-refund_total) if refund_total.negative?
 
     remaining = refund_total
     refunds = []
@@ -137,6 +145,11 @@ module ExchangeRefundable
   def build_refund_payment(source_payment, portion)
     RefundPayment.new(amount: -portion, order: exchange_source, source_payment: source_payment,
                       payment_type: source_payment.payment_type, note: 'Exchange refund')
+  end
+
+  def costs_more_message(increase)
+    "Nothing to refund: the new order costs $#{format('%.2f', increase)} more than the original. " \
+      'Use Exchange Order to charge the difference.'
   end
 
   def uncoverable_refund_message(refund_total, remaining)

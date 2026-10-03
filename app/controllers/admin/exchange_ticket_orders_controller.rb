@@ -10,6 +10,7 @@ class Admin::ExchangeTicketOrdersController < Admin::ApplicationController
   REFUND_PARAM = :exchange_and_refund
   EXCHANGE_FAILED = 'There was a problem with the exchange.'.freeze
   REFUND_FAILED = 'Refund could not be processed:'.freeze
+  REFUND_NOT_NEEDED = 'Nothing to refund: the new order costs the same as the original, so no refund was issued.'.freeze
 
   expose :order_production_id, lambda {
     if !@original_order.nil? && !@original_order.performance.nil?
@@ -48,6 +49,7 @@ class Admin::ExchangeTicketOrdersController < Admin::ApplicationController
       @exchange_order.exchange_and_process_from!(@original_order)
     end
     flash[:notice] = 'Order was successfully exchanged.'
+    flash[:info] = REFUND_NOT_NEEDED if refund_requested? && @exchange_order.refund_not_needed?
     redirect_to admin_ticket_order_path(@exchange_order)
   rescue ExchangeRefundable::ExchangeNotPossible => e
     fail_exchange(e.message, e)

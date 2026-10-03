@@ -100,12 +100,28 @@ RSpec.describe 'TicketOrder#exchange_and_refund_from!' do
       expect(RefundPayment.count).to eq(0)
     end
 
-    it 'refuses when the new order does not cost less' do
+    it 'exchanges an even swap without refunding anything' do
       exchange = same_price_exchange_for(original)
       expect(gateway).not_to receive(:refund)
 
+      exchange.exchange_and_refund_from!(original)
+
+      expect(exchange).to be_refund_not_needed
+      expect(exchange.reload.status).to eq(Order::PROCESSED)
+      expect(original.reload.status).to eq(Order::EXCHANGED)
+      expect(RefundPayment.count).to eq(0)
+      expect(exchange.total_paid).to eq(exchange.total_due)
+    end
+
+    it 'refuses when the new order costs more, naming the increase' do
+      exchange = same_price_exchange_for(original)
+      exchange.ticket_line_items[0].ticket_class =
+        FactoryBot.create(:ticket_class, ticket_price: 100.0, class_code: 'DEAR',
+                                         production: exchange.performance.production)
+      expect(gateway).not_to receive(:refund)
+
       expect { exchange.exchange_and_refund_from!(original) }
-        .to raise_error(ExchangeRefundable::RefundNotPossible, /Nothing to refund/)
+        .to raise_error(ExchangeRefundable::RefundNotPossible, /Nothing to refund: the new order costs \$[\d.]+ more/)
       expect(original.reload.status).to eq(Order::PROCESSED)
       expect(Order.where(exchange_source_id: original.id)).to be_empty
     end
