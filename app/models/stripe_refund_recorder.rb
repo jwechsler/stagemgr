@@ -42,6 +42,7 @@ class StripeRefundRecorder
 
     source = card_source || recurring_source
     return report_unmatched(refund) if source.nil?
+    return if booked_by_legacy_handler?(source, refund)
 
     Payment.transaction do
       payment = build_refund_row(source, refund)
@@ -64,6 +65,19 @@ class StripeRefundRecorder
   def already_recorded?(refund_id)
     Payment.where(stripe_refund_id: refund_id)
            .or(Payment.where(type: 'RefundPayment', transaction_id: refund_id)).exists?
+  end
+
+  # Legacy: the charge.refunded handler this class replaced booked membership
+  # refunds as negative RecurringPayments with no stripe_refund_id. It ran when
+  # Stripe sent the event, so any refund created up to the newest such row on
+  # the invoice is already on the books.
+  def booked_by_legacy_handler?(source, refund)
+    return false unless source.is_a?(RecurringPayment)
+
+    booked_through = RecurringPayment.where(type: 'RecurringPayment', transaction_id: source.transaction_id,
+                                            stripe_refund_id: nil)
+                                     .where('amount < 0').maximum(:created_at)
+    booked_through.present? && Time.zone.at(refund['created']) <= booked_through
   end
 
   def refund_source(refund)

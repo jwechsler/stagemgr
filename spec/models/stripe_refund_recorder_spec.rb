@@ -132,6 +132,19 @@ RSpec.describe StripeRefundRecorder do
       expect(membership_order.reload).to be_needs_review
     end
 
+    it 'skips a refund the replaced handler already booked, but books a later one' do
+      invoice_payment.build_refund(amount: -10.0, processed_on: refunded_at, note: 'Refund')
+                     .tap { |legacy| legacy.update!(created_at: refunded_at + 1.minute) }
+      later = refund('re_later', 500, created: refunded_at + 1.day)
+      allow(Stripe::Refund).to receive(:list).with(hash_including(charge: 'ch_member'))
+                                             .and_return(Stripe::ListObject.construct_from(data: [refund('re_member', 1000), later]))
+
+      described_class.call(member_charge)
+
+      expect(Payment.find_by(stripe_refund_id: 're_member')).to be_nil
+      expect(Payment.find_by(stripe_refund_id: 're_later')).to have_attributes(amount: -5.0)
+    end
+
     it 'finds the invoice by re-reading the charge when the event payload has no invoice field' do
       payload = Stripe::Charge.construct_from(id: 'ch_member', object: 'charge', payment_intent: 'pi_member')
       allow(Stripe::Charge).to receive(:retrieve).with('ch_member')
