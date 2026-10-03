@@ -254,7 +254,6 @@ Rails.application.routes.draw do
       end
       member do
         post :cancel
-        post :refund
         get  :fulfill
         post :fulfill
         get :unclaimed
@@ -269,7 +268,6 @@ Rails.application.routes.draw do
       end
       member do
         post :cancel
-        post :refund
         get  :fulfill
       end
     end
@@ -288,7 +286,6 @@ Rails.application.routes.draw do
       member do
         post :cancel
         post :cancel_held_during_seating
-        post :refund
         post :convert_to_donation
         get :split
         patch :finalize_split

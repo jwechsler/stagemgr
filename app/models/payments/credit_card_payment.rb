@@ -105,7 +105,9 @@ class CreditCardPayment < CurrencyPayment
     super
   end
 
-  def refund!(_cc_number = nil, note = nil)
+  # +idempotency_key+ lets a retried exchange-chain refund replay the same
+  # Stripe refund instead of issuing a second one.
+  def refund!(_cc_number = nil, note = nil, idempotency_key: nil)
     return unless create_refund_payment?
 
     CreditCardPayment.transaction do
@@ -115,7 +117,7 @@ class CreditCardPayment < CurrencyPayment
       refund_payment.ipn_track_id = nil
       order.payments << refund_payment
 
-      response = refund_to_card!(cents(remaining), note: note)
+      response = refund_to_card!(cents(remaining), note: note, idempotency_key: idempotency_key)
 
       unless response.success?
         # Check if charge was already refunded in Stripe
@@ -159,15 +161,6 @@ class CreditCardPayment < CurrencyPayment
 
       refund_payment.save!
     end
-  end
-
-  # What is still on this charge: its amount less the partial refunds
-  # (RefundPayment, pinned by type: see Payment STI scopes) already returned
-  # against it.
-  def refundable_amount
-    return amount if id.nil?
-
-    amount + Payment.where(type: 'RefundPayment', payment_id: id).sum(:amount)
   end
 
   # Returns this charge's money without recording a refund payment, for a
@@ -229,10 +222,6 @@ class CreditCardPayment < CurrencyPayment
 
   def cents(dollars)
     (dollars * 100).round.to_i
-  end
-
-  def create_refund_payment?
-    refundable_amount > 0
   end
 
   # The one place the gateway refund is called, for both full and partial

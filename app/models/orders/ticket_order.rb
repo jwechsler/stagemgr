@@ -5,6 +5,8 @@ class TicketOrder < Order
   include ResourcedStockValidatable
   # Exchange-and-refund: returns the price difference to the original payments.
   include ExchangeRefundable
+  # Refunding the last order of an exchange chain settles the whole chain.
+  include ExchangeChainRefundable
   # resend_confirmation! (admin Resend Confirmation, Add to Order).
   include TicketConfirmationResendable
   # Add to Order: an addition is its own order until it merges into its target.
@@ -235,7 +237,7 @@ class TicketOrder < Order
   end
 
   def refundable?
-    sold_status? && !paid_by_exchange?
+    sold_status?
   end
 
   def holdable?
@@ -702,6 +704,7 @@ end
   # otherwise the difference becomes a Carryover write-off or a new charge.
   def begin_exchange!(original_order, refund: false)
     Order.transaction do
+      lock_exchange_source!(original_order)
       prepare_exchange_from(original_order)
       # Applied before the offsets are sized so total_due already reflects an offer.
       update_special_offer_line_item_from_code!
@@ -727,6 +730,7 @@ end
   def transition_exchanging_to_processed!
     Order.transaction do
       original_order = exchange_source
+      lock_exchange_source!(original_order)
       self.status = Order::PROCESSED
       set_email_confirmation
       payments.reload

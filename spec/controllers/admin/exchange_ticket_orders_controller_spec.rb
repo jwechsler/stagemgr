@@ -66,6 +66,39 @@ RSpec.describe Admin::ExchangeTicketOrdersController, type: :controller do
     end
   end
 
+  describe 'an order refunded or exchanged since the exchange page was opened' do
+    before { allow(controller).to receive(:current_user).and_return(box_office_user) }
+
+    it 'refuses the exchange with a friendly message when the order was refunded' do
+      original.update_columns(status: Order::REFUNDED)
+
+      post :create, params: exchange_params.merge(commit: 'Exchange Order')
+
+      expect(exchange_order).not_to have_received(:exchange_and_process_from!)
+      expect(response).to redirect_to(admin_ticket_order_path(original))
+      expect(flash[:error]).to eq("Order ##{original.id} is Refunded and can no longer be exchanged.")
+    end
+
+    it 'refuses to open the exchange page for an order already exchanged' do
+      original.update_columns(status: Order::EXCHANGED)
+
+      get :new, params: { ticket_order_id: original.id }
+
+      expect(response).to redirect_to(admin_ticket_order_path(original))
+      expect(flash[:error]).to eq("Order ##{original.id} is Exchanged and can no longer be exchanged.")
+    end
+
+    it 'shows the refusal the exchange raises under its lock' do
+      allow(exchange_order).to receive(:exchange_and_process_from!)
+        .and_raise(ExchangeRefundable::ExchangeNotPossible, "Order ##{original.id} is Exchanged and can no longer be exchanged.")
+
+      post :create, params: exchange_params.merge(commit: 'Exchange Order')
+
+      expect(response).to redirect_to(admin_ticket_order_path(original))
+      expect(flash[:error]).to eq("Order ##{original.id} is Exchanged and can no longer be exchanged.")
+    end
+  end
+
   describe 'POST #create as a theater user' do
     before { allow(controller).to receive(:current_user).and_return(theater_user) }
 

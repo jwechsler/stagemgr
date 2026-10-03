@@ -47,6 +47,15 @@ RSpec.describe CreditCardPayment, type: :model do
       expect(order.payments.reload.grep(CreditCardPayment).map(&:amount)).to contain_exactly(50.0, -40.0)
     end
 
+    it 'passes an idempotency key through to the gateway refund' do
+      gateway = double('gateway')
+      allow(PaymentProcessing).to receive(:gateway).and_return(gateway)
+      expect(gateway).to receive(:refund).with(5000, 'ch_test123', hash_including(idempotency_key: 'uuid-chain-refund-1'))
+                                         .and_return(double('response', success?: true, authorization: 're_keyed'))
+
+      payment.refund!(nil, 'test refund', idempotency_key: 'uuid-chain-refund-1')
+    end
+
     it 'has nothing to refund once earlier refunds cover the whole charge' do
       RefundPayment.create!(order: order, amount: -50.00, source_payment: payment, payment_type: payment.payment_type)
 

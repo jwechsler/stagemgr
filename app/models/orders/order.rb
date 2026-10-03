@@ -4,6 +4,8 @@ class Order < ApplicationRecord
   include EmailValidatable
   # The pre-charge checks of transition_processing_to_processed!.
   include ChargeAfterChecks
+  # refund_blockers, and what Order#refund! returns.
+  include RefundEligibility
 
   # Associations
   belongs_to :theater, required: false, inverse_of: :orders
@@ -414,8 +416,12 @@ class Order < ApplicationRecord
     # box-office alert for a refunded fulfilled order was never queued.
     was_fulfilled = fulfilled?
     Order.transaction do
-      # Each payment is refunded on its own tender (card, cash, pass, ...).
-      payments.select(&:refundable?).each { |payment| payment.refund!(nil, notes) }
+      # Callers check refund_blockers first; this catches a second submission
+      # or an exchange begun since.
+      blockers = locked_refund_blockers
+      raise RefundNotAllowed, blockers.to_sentence if blockers.any?
+
+      refund_payments!(notes)
       all_line_items.each { |li| refund_line_items (li.refund!) if li.respond_to? :refund! }
       self.status = REFUNDED
       create_notify_refund_task if was_fulfilled
