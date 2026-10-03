@@ -109,7 +109,7 @@
        { column_number: 1, filter_type: "text", filter_delay: 600 },
        { column_number: 2, filter_type: "text", filter_delay: 600 },
        { column_number: 3, filter_type: "text", filter_delay: 600 },
-       { column_number: 4, filter_type: "select", data: [#{raw Order::ORDER_STATUSES.map{|s| "'#{s}'"}.join(',')}], filter_default_label: "Any" },
+       { column_number: 4, filter_type: "select", data: #{raw((Order::ORDER_STATUSES + [OrdersDatatable::NEEDS_REVIEW]).to_json)}, filter_default_label: "Any" },
      ]);
 
      $('#order-listing_filter').hide();

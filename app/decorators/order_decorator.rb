@@ -23,17 +23,7 @@ class OrderDecorator < ApplicationDecorator
   end
 
   def status
-    if (object.is_a? MembershipOrder) && !object.membership.nil?
-      if object.membership.active?
-        h.raw("<span class=\"label #{order_status_severity_class}\">#{order.status}</span>")
-      elsif object.membership.pending?
-        h.raw("<span class=\"label secondary\">#{object.membership.status}</span>")
-      else
-        h.raw("<span class=\"label alert\">#{object.membership.status}</span>")
-      end
-    else
-      h.raw("<span class=\"label #{order_status_severity_class}\">#{order.status}</span>")
-    end
+    h.safe_join([status_label, review_label].compact, ' ')
   end
 
   def address
@@ -69,6 +59,31 @@ class OrderDecorator < ApplicationDecorator
   end
 
   private
+
+  def status_label
+    if (object.is_a? MembershipOrder) && !object.membership.nil?
+      if object.membership.active?
+        label(order.status, order_status_severity_class)
+      elsif object.membership.pending?
+        label(object.membership.status, 'secondary')
+      else
+        label(object.membership.status, 'alert')
+      end
+    else
+      label(order.status, order_status_severity_class)
+    end
+  end
+
+  # Reads only the order's own columns, so the listing adds no query for it.
+  def review_label
+    return unless object.needs_review?
+
+    h.content_tag(:span, 'Review', class: 'label alert review-flag', title: object.review_reason)
+  end
+
+  def label(text, severity)
+    h.content_tag(:span, text, class: "label #{severity}")
+  end
 
   def order_status_severity_class
     case object.status
