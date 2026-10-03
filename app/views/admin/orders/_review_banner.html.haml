@@ -1,0 +1,37 @@
+-# An order flagged for review (ReviewFlaggable), e.g. after a refund made in
+  the Stripe dashboard. The balance is worked out here only, never in the
+  orders listing. The fixes are for the same staff as Exchange.
+- if order.needs_review?
+  .callout.alert#review-banner
+    %h5 Needs review
+    %p#review-reason= order.review_reason
+    - if order.review_balance_tracked?
+      :ruby
+        difference = order.balance_difference
+        due = number_to_currency(order.review_due_total)
+        totals = "due #{due}, paid #{number_to_currency(order.review_paid_total)}"
+      %p#review-balance
+        - if difference.zero?
+          Order balances (#{totals}).
+        - else
+          Order is #{number_to_currency(difference.abs)} out of balance (#{totals}).
+    - if can?(:review, Order)
+      = form_tag resolve_admin_order_review_path(order), id: 'review-fixes' do
+        = label_tag :review_note, 'Note'
+        = text_area_tag :review_note, nil, rows: 2, id: 'review_note'
+        .button-group
+          - if order.review_discount_available?
+            = submit_tag 'Keep tickets, apply as discount',
+                         formaction: discount_admin_order_review_path(order),
+                         class: 'small button', id: 'review-discount'
+          - if order.review_refund_available?
+            - confirm_refund = 'Refund this order and release its seats? The card is already refunded in Stripe.'
+            = submit_tag 'Mark fully refunded',
+                         formaction: mark_refunded_admin_order_review_path(order),
+                         class: 'small alert button', id: 'review-mark-refunded',
+                         data: { confirm: confirm_refund }
+          - if order.is_a?(TicketOrder) && can?(:exchange, TicketOrder) && order.exchangeable?
+            = link_to 'Remove tickets (exchange)',
+                      new_admin_ticket_order_exchange_ticket_order_path(order),
+                      class: 'small secondary button', id: 'review-exchange'
+          = submit_tag 'Acknowledge', class: 'small secondary button', id: 'review-acknowledge'

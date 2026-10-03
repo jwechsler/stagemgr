@@ -1,6 +1,7 @@
 .grid-x.grid-padding-x
   .small-12.cell
     = render '/admin/orders/header', :order=>@flex_pass_order
+    = render '/admin/orders/review_banner', order: @flex_pass_order
 .grid-x.grid-padding-x
   .small-12.medium-6.cell
     %fieldset.fieldset

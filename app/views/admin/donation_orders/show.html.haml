@@ -1,5 +1,7 @@
 .grid-x.grid-padding-x
   .cell
+    = render '/admin/orders/review_banner', order: @donation_order
+  .cell
     = render 'full_order', :order=>@donation_order
   .cell.small-12
     %p

@@ -506,8 +506,10 @@ RSpec.describe TicketOrderAddition do
         allow(PaymentProcessing).to receive(:gateway).and_return(g)
         allow(g).to receive(:purchase)
           .and_return(double('charge', success?: true, authorization: 'ch_addition', params: {}, message: 'OK'))
-        allow(g).to receive(:refund)
-          .and_return(double('refund', success?: true, authorization: 're_1', params: {}, message: 'OK'))
+        # Stripe gives each refund its own id (payments.stripe_refund_id is unique).
+        allow(g).to receive(:refund) do |_cents, charge_id, _options|
+          double('refund', success?: true, authorization: "re_#{charge_id}", params: {}, message: 'OK')
+        end
       end
     end
 

@@ -5,6 +5,23 @@
 
 ## October 2026
 
+### Refunds Made in Stripe
+
+**Available to:** Administrator, Box Office
+
+A refund issued in the Stripe dashboard is now recorded on its order automatically, dated the day
+it was made, and the order is flagged for review. Only the money changes: tickets, seats and the
+order's status stay as they are.
+
+**Key behaviors:**
+
+- Each Stripe refund is recorded once, for its own amount; refunds Stagemgr issued itself are never recorded twice.
+- Flagged orders show a **Review** badge in the orders listing, and the status filter has a **Needs review** choice.
+- The order page shows the reason and the balance, with one-click fixes: keep the tickets and apply the refund as a discount, mark a fully refunded order as refunded, acknowledge with a note, or exchange to remove tickets.
+- A refund that matches no order is reported to the system administrator.
+
+See [Refunds](../ticketing/refunds.md#refunds-made-in-stripe).
+
 ### Refunds for Exchanged Orders
 
 **Available to:** Administrator, Box Office

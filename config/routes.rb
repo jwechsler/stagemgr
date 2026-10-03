@@ -260,6 +260,12 @@ Rails.application.routes.draw do
         post :update_notes
       end
       resources :refund_orders, only: %i[new create]
+      # Fixes on the review banner (ReviewFlaggable)
+      resource :review, controller: 'order_reviews', only: [] do
+        post :resolve
+        post :discount
+        post :mark_refunded
+      end
     end
 
     resources :donation_orders do

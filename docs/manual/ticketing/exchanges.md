@@ -67,8 +67,9 @@ The refund appears on the **original order** as a *Credit Card Refund* (or *Cash
 
 !!! warning "Refund Rules"
     - The button is available to Box Office and Administrator users only.
-    - The new order must cost **less** than the original. If it costs the same or more, the exchange is refused with *Nothing to refund*; use **Exchange Order** instead.
-    - Only cash, check and credit card payments can be refunded. Flex pass, membership, comp and exchange-credit payments cannot; if they do not cover the difference, the exchange is refused and nothing is changed.
+    - If the new order costs **the same** as the original, the exchange goes through with no refund, and a blue note says *Nothing to refund*.
+    - If it costs **more**, the exchange is refused with *Nothing to refund* and the amount of the increase; use **Exchange Order** to charge the difference.
+    - Only cash, check and credit card payments can be refunded. Flex pass and membership payments cannot. If the order was itself paid with exchange credit, Stagemgr follows the exchange back to the earlier order and refunds the card (or cash or check) used there; that refund appears on the earlier order. If nothing refundable covers the difference, the exchange is refused and nothing is changed.
     - Exchange service fees retained by the theater are never refunded. Remove the fee line on the form if the exchange is the theater's error.
     - If Stripe declines the refund, the whole exchange is cancelled: no new order is created and the original order is unchanged.
 

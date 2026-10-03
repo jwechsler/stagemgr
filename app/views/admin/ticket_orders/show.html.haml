@@ -1,6 +1,8 @@
 
 = render '/admin/orders/header_bar', :order=>@ticket_order
 %div.grid-x.grid-padding-x
+  .small-12.cell
+    = render '/admin/orders/review_banner', order: @ticket_order
   %div.small-12.cell
     = render 'detail', :ticket_order=>@ticket_order
   .small-12.cell

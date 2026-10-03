@@ -1,4 +1,9 @@
 class OrdersDatatable < DatatableBase
+  # The status filter's extra choice: orders flagged for review and not yet
+  # resolved (ReviewFlaggable). Read from the review columns alone, so the
+  # listing never works out a balance per row.
+  NEEDS_REVIEW = 'Needs review'.freeze
+
   def view_columns
     # Declare strings in this format: ModelName.column_name
     # or in aliased_join_table.column_name format
@@ -7,7 +12,7 @@ class OrdersDatatable < DatatableBase
       code: { source: 'Performance.performance_code', cond: filter_by_code },
       name: { source: 'Address.last_first_name', cond: filter_by_name },
       seats: { source: 'Seat.location' },
-      status: { source: 'Order.status' },
+      status: { source: 'Order.status', cond: filter_by_status },
       visits: { searchable: false, orderable: false },
       total: { searchable: false, orderable: false },
       description: { searchable: false, orderable: false },
@@ -56,6 +61,17 @@ class OrdersDatatable < DatatableBase
   rescue StandardError => e
     Rails.logger.error("error in Orders Datatable query: #{e.message}")
     Order.references(:address, :performance, seats: :seat).none
+  end
+
+  def filter_by_status
+    lambda { |column, value|
+      if value == NEEDS_REVIEW
+        orders = Order.arel_table
+        orders[:review_flagged_at].not_eq(nil).and(orders[:reviewed_at].eq(nil))
+      else
+        column.table[column.field].matches("%#{value}%")
+      end
+    }
   end
 
   def filter_by_code

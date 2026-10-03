@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_10_01_120000) do
+ActiveRecord::Schema.define(version: 2026_10_03_100100) do
 
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name", null: false
@@ -369,6 +369,11 @@ ActiveRecord::Schema.define(version: 2026_10_01_120000) do
     t.integer "split_source_id"
     t.boolean "suppress_receipt", default: false
     t.string "flex_pass_code"
+    t.string "review_reason"
+    t.datetime "review_flagged_at"
+    t.datetime "reviewed_at"
+    t.integer "reviewed_by_id"
+    t.text "review_note"
     t.index ["address_id"], name: "address_owns_orders"
     t.index ["created_at"], name: "index_orders_on_created_at"
     t.index ["exchange_source_id"], name: "index_orders_on_exchange_source_id"
@@ -376,6 +381,7 @@ ActiveRecord::Schema.define(version: 2026_10_01_120000) do
     t.index ["id"], name: "orders_id_i"
     t.index ["performance_id"], name: "index_orders_on_performance_id"
     t.index ["recipient_address_id"], name: "recipient_address_id_idx"
+    t.index ["review_flagged_at"], name: "index_orders_on_review_flagged_at"
     t.index ["split_source_id"], name: "index_orders_on_split_source_id"
     t.index ["status"], name: "index_orders_on_status"
     t.index ["type", "status"], name: "index_orders_on_type_and_status"
@@ -427,10 +433,12 @@ ActiveRecord::Schema.define(version: 2026_10_01_120000) do
     t.integer "source_payment_type_id"
     t.decimal "processing_fee", precision: 8, scale: 2
     t.decimal "amount", precision: 8, scale: 2, default: "0.0"
+    t.string "stripe_refund_id"
     t.index ["ipn_track_id"], name: "index_payments_on_ipn_track_id"
     t.index ["membership_id"], name: "index_payments_on_membership_id"
     t.index ["order_id"], name: "index_payments_on_order_id"
     t.index ["processed_on"], name: "index_payments_on_processed_on"
+    t.index ["stripe_refund_id"], name: "index_payments_on_stripe_refund_id", unique: true
     t.index ["transaction_id"], name: "index_payments_on_transaction_id"
   end
 

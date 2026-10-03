@@ -37,6 +37,17 @@ RSpec.describe Admin::ExchangeTicketOrdersController, type: :controller do
       expect(response).to redirect_to(admin_ticket_order_path(exchange_order))
     end
 
+    it 'reports an even swap as exchanged with an informational nothing-to-refund note' do
+      allow(exchange_order).to receive(:refund_not_needed?).and_return(true)
+
+      post :create, params: exchange_params.merge(exchange_and_refund: 'Exchange and Refund')
+
+      expect(response).to redirect_to(admin_ticket_order_path(exchange_order))
+      expect(flash[:notice]).to eq('Order was successfully exchanged.')
+      expect(flash[:info]).to eq(described_class::REFUND_NOT_NEEDED)
+      expect(flash[:error]).to be_nil
+    end
+
     it 'explains a declined refund and returns to the original order' do
       allow(exchange_order).to receive(:exchange_and_refund_from!).and_raise(CannotProcessPayment, 'card_declined')
 

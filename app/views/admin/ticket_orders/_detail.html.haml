@@ -42,6 +42,7 @@
     = render partial:'/admin/ticket_line_items/table', locals:{:order=>ticket_order}
     = render '/admin/service_line_items/table', :order=>ticket_order
     = render '/admin/special_offer_line_items/table', :order=>ticket_order
+    = render '/admin/adjustment_line_items/table', order: ticket_order
   %div.small-12.cell
     = render :partial => '/admin/orders/payments', :locals=>{:order=>ticket_order}
     = render :partial => '/admin/orders/referral', :locals=>{:order=>ticket_order}

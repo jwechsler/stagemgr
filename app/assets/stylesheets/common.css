@@ -64,7 +64,7 @@ a {
   margin: 2px 0px 5px 0px;
 }
 
-.flash_notice, .flash_error, .flash_warning {
+.flash_notice, .flash_error, .flash_warning, .flash_info {
   padding: 5px 8px;
   margin: 10px 0;
 }
@@ -78,6 +78,11 @@ a {
 .flash_error, .error {
   background-color: #FCC;
   border: solid 1px #C66;
+}
+
+.flash_info {
+  background-color: #DDEEFF;
+  border: solid 1px #69C;
 }
 
 .flash_warning {

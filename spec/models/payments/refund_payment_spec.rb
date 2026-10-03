@@ -94,6 +94,7 @@ RSpec.describe RefundPayment, type: :model do
         expect(refund).to be_persisted
         expect(refund.confirmation_code).to eq('re_1')
         expect(refund.transaction_id).to eq('re_1')
+        expect(refund.stripe_refund_id).to eq('re_1')
         expect(refund.processed_on).to be_present
       end
 

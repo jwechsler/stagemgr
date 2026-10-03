@@ -56,7 +56,6 @@ The Refund Order button is available when:
 | **Check / External** | The refund amount that will be recorded |
 | **Membership** | The number of tickets released back to the membership |
 | **Flex pass** | The number of tickets returned to the pass |
-| **Nothing collected** (e.g. a $0.00 comp) | *nothing to refund* -- the payment is skipped |
 
 ### Step 3: Add Refund Notes (Optional)
 
@@ -97,7 +96,6 @@ The refund method depends on the original payment type:
 | **Cash** | Record indicates cash refund to be given at box office |
 | **Check** | Record indicates check refund to be issued |
 | **External** | Record indicates refund through original external method |
-| **Comp** | No financial reversal needed |
 | **Flex Pass** | Uses are restored to the flex pass |
 | **Membership** | Membership usage is restored |
 
@@ -113,6 +111,47 @@ An order can carry more than one payment -- for example after [Add to Order](add
 
 !!! note "Processing Fees Are Not Reversed"
     When a credit card order is refunded, Stripe does not return the processing fee that was charged on the original transaction. The processing fee remains as a cost to the organization and will continue to appear on financial reports. This is standard credit card processor behavior.
+
+## Refunds Made in Stripe
+
+Sometimes a refund has to be issued straight from the Stripe dashboard -- for example when something stops a refund or exchange inside Stagemgr. Stagemgr hears about it from Stripe within moments and records the money, so box office totals stay right:
+
+- Each Stripe refund becomes one refund payment on the order, for that refund's amount, dated the day it was made in Stripe (so it lands on that day's Daily Receipts). Its note reads *Refunded in Stripe dashboard*, followed by the reason picked in Stripe's refund dialog when there is one (for example *Refunded in Stripe dashboard: Requested by customer*).
+- A ticket order's refund is recorded against the card it came from, so a later refund in Stagemgr returns only what is left on that card. A membership refund is recorded as a negative subscription payment.
+- Refunds Stagemgr issues itself are never recorded twice, and neither is a refund Stripe reports more than once.
+- A refund Stripe holds as *pending* (for example when the Stripe balance can't cover it yet) is recorded once Stripe reports it succeeded.
+- **Only the money changes.** Tickets, seats and the order's status stay as they are. Instead the order is flagged for review.
+
+!!! warning "A refund Stagemgr cannot match"
+    If a Stripe refund matches no payment in Stagemgr, nothing is recorded and an error report is sent to the system administrator with the Stripe charge and refund ids.
+
+### The Review Queue
+
+A flagged order shows a red **Review** badge beside its status in the [orders listing](order-search.md); hover over it to see why (e.g. *Stripe refund $20.00 on 10/02*). To see every order waiting, choose **Needs review** in the status filter.
+
+The order page shows a **Needs review** banner with the reason and the order's balance, for example:
+
+> Stripe refund $20.00 on 10/02
+>
+> Order is $20.00 out of balance (due $90.00, paid $70.00).
+
+For an order made by an exchange, the balance covers the orders it was exchanged from too. Membership orders show the reason only: their monthly payments never match their line items.
+
+### Resolving a Review
+
+!!! info "Role: Box Office Staff, Administrators"
+    The same staff who can exchange an order.
+
+Type an optional **Note** in the banner, then choose one fix. Each one records the note and who resolved the review in the order's change history, and clears the badge.
+
+| Fix | What It Does | Offered When |
+|-----|--------------|--------------|
+| **Keep tickets, apply as discount** | The patron keeps the tickets. A *Stripe refund adjustment* line is added for the difference, so the order balances. | The order is underpaid |
+| **Mark fully refunded** | Refunds the order as described above: seats are released and the order becomes **Refunded**. The card is not refunded again. | Every card on the order is already refunded in full in Stripe |
+| **Remove tickets (exchange)** | Opens the [exchange](exchanges.md) page, to exchange the order for fewer tickets | The order can be exchanged |
+| **Acknowledge** | Records the note and leaves the order as it is | Always |
+
+If the order is refunded again in Stripe after a review is resolved, it is flagged again.
 
 ## Notification Behavior
 
@@ -155,6 +194,7 @@ This approach preserves the tickets the patron wants to keep while refunding onl
 | Refund button not available | Verify the order is in Processed or Fulfilled status. An **Exchanged** order is refunded from the newest order of its exchange chain. |
 | *Can't refund this order* on the refund page | The page lists why: the order is not Processed or Fulfilled, holds a payment kind the refund cannot return (ask an administrator), was exchanged for a later order (refund that one), or is part-way through an exchange (finish or abandon the exchange first) |
 | Credit card refund failed | Check Stripe dashboard for the transaction; the card may have expired or the account closed |
+| Refunded in the Stripe dashboard instead | The refund is recorded on the order automatically and the order is flagged; see [Refunds Made in Stripe](#refunds-made-in-stripe) |
 | Box office did not receive the refunded-order alert | Alerts are sent only for orders that were **Fulfilled** when refunded; check the order's history for the prior status and the configured box office and supervisor addresses |
 | Need to reverse a refund | Not possible through the system; create a new order for the patron |
 | Seats not released after refund | Verify the refund completed successfully; check for any system errors in the order history |
