@@ -1,0 +1,12 @@
+- if order.adjustment_line_items.any?
+  %fieldset.fieldset
+    %legend Adjustments
+    %table#adjustment-line-items-display{ width: '100%' }
+      %thead
+        %th Description
+        %th Amount
+      %tbody
+        - order.adjustment_line_items.each do |item|
+          %tr
+            %td= item.description
+            %td.currency= number_to_currency(item.amount)

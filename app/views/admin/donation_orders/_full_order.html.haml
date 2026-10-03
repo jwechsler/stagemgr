@@ -2,5 +2,6 @@
   =render :partial=>'/admin/orders/header', :locals=>{:order=>order}
   =render :partial=>"/admin/addresses/address_contact_info", :locals=>{:address=>order.address}
   =render :partial => '/admin/donation_line_items/table', :locals=>{:order=>order}
+  = render '/admin/adjustment_line_items/table', order: order
   =render :partial => '/admin/orders/payments', :locals=>{:order=>order}
 
