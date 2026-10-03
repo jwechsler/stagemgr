@@ -195,6 +195,57 @@ RSpec.describe StripeRefundRecorder do
     expect(successor.reload).to be_needs_review
     expect(order.reload).not_to be_needs_review
   end
+
+  context 'when the card order was exchanged onward' do
+    def same_price_exchange_for(source, suffix)
+      performance = source.performance.dup
+      performance.performance_date = source.performance.performance_date + 1.day
+      performance.performance_code += suffix
+      performance.save!
+      FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, performance: performance.reload)
+                .tap { |exchange| exchange.exchange_and_process_from!(source) }.reload
+    end
+
+    let!(:middle) { same_price_exchange_for(order, 'M') }
+    let!(:newest) { same_price_exchange_for(middle, 'N') }
+
+    before { refunds << refund('re_after_exchange', 500) }
+
+    it 'keeps the refund beside the card and moves the credit reduction to the newest order' do
+      paid_before = newest.total_paid
+
+      described_class.call(charge)
+
+      expect(dashboard_refunds.first!.order_id).to eq(order.id)
+      expect(order.reload.total_paid).to eq(0)
+      expect(middle.reload.total_paid).to eq(0)
+      expect(newest.reload.total_paid).to eq(paid_before - 5)
+      expect(newest).to be_needs_review
+    end
+
+    it 'carries only the remaining credit into an onward exchange' do
+      described_class.call(charge)
+      remaining = newest.reload.total_paid
+
+      onward = same_price_exchange_for(newest, 'O')
+
+      expect(newest.reload.total_paid).to eq(0)
+      expect(onward.payments.grep(ExchangePayment).sum(&:amount)).to eq(remaining)
+    end
+
+    it 'settles every order to zero and refunds only what is left on the card when the newest order is refunded' do
+      described_class.call(charge)
+      gateway = double('gateway')
+      allow(PaymentProcessing).to receive(:gateway).and_return(gateway)
+      allow(gateway).to receive(:refund).and_return(double('response', success?: true, authorization: 're_rest'))
+
+      newest.reload.refund!
+
+      expect([order, middle, newest].map { |each_order| each_order.reload.total_paid }).to eq([0, 0, 0])
+      expect(gateway).to have_received(:refund).with(((card.amount - 5) * 100).to_i, anything, anything)
+    end
+  end
+
   describe '.call_for_refund' do
     def refund_object(id, cents, **attrs)
       Stripe::Refund.construct_from(refund(id, cents, **attrs).merge(charge: 'ch_ticket'))
