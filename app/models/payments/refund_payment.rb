@@ -1,5 +1,6 @@
-# A partial refund issued during an exchange. It is recorded on the ORIGINAL
-# order and points (via payment_id / source_payment) at the CurrencyPayment
+# A partial refund issued during an exchange. It is recorded on the order
+# holding the tender (the ORIGINAL, or an earlier order of its exchange chain;
+# ExchangeRefundable#allocate_chain_refunds) and points (via payment_id / source_payment) at the CurrencyPayment
 # whose funds are returned. Card refunds hit the gateway in #process!;
 # cash and check refunds are record-only.
 class RefundPayment < Payment

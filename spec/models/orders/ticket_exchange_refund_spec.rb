@@ -48,6 +48,48 @@ RSpec.describe 'TicketOrder#exchange_and_refund_from!' do
     order
   end
 
+  context 'when the original is itself an exchange of a card order' do
+    let(:first) { FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_credit_card) }
+    let(:card) { first.payments.grep(CreditCardPayment).first }
+    let(:original) do
+      same_price_exchange_for(first).tap { |order| order.exchange_and_process_from!(first) }.reload
+    end
+
+    it 'refunds the difference to the card on the earlier order and leaves every order balanced' do
+      exchange = cheaper_exchange_for(original)
+      difference = original.total_paid - exchange.total_due
+      expect(difference).to be > 0
+      expect(gateway).to receive(:refund)
+        .with((difference * 100).to_i, 'TEST_TRANSACTION', hash_including(idempotency_key: 'exch-uuid-refund-0'))
+        .once.and_return(success)
+
+      exchange.exchange_and_refund_from!(original)
+
+      refund = RefundPayment.find_by!(payment_id: card.id)
+      expect(refund).to have_attributes(amount: -difference, order_id: first.id)
+      expect(card.reload.refundable_amount).to eq(card.amount - difference)
+      expect([first, original].map { |order| order.reload.total_paid }).to eq([0, 0])
+      expect(original.status).to eq(Order::EXCHANGED)
+      expect(exchange.reload.total_paid).to eq(exchange.total_due)
+    end
+
+    it 'settles to zero on every order when the new order is refunded afterwards' do
+      exchange = cheaper_exchange_for(original)
+      refunded_cents = []
+      responses = [success, double('response', success?: true, authorization: 're_second')]
+      allow(gateway).to receive(:refund) do |cents, *|
+        refunded_cents << cents
+        responses.shift
+      end
+      exchange.exchange_and_refund_from!(original)
+
+      exchange.reload.refund!
+
+      expect([first, original, exchange].map { |order| order.reload.total_paid }).to eq([0, 0, 0])
+      expect(refunded_cents.sum).to eq((card.amount * 100).to_i)
+    end
+  end
+
   context 'when the original was paid by card' do
     let(:original) { FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_credit_card) }
     let(:card) { original.payments.grep(CreditCardPayment).first }

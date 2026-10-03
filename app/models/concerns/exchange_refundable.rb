@@ -130,9 +130,75 @@ module ExchangeRefundable
       remaining -= portion
       refunds << build_refund_payment(offset.source_payment, portion)
     end
+    remaining = allocate_chain_refunds(offsets, remaining, refunds) if remaining.positive?
     raise RefundNotPossible, uncoverable_refund_message(refund_total, remaining) if remaining.positive?
 
     refunds
+  end
+
+  # Rows an exchange-and-refund writes on earlier orders of the chain, saved by
+  # begin_exchange! after the original's own rows (#allocate_chain_refunds).
+  def chained_refund_rows
+    @chained_refund_rows ||= []
+  end
+
+  # Exchange credit on the original came from the orders it was exchanged
+  # from, so what its own payments cannot cover goes back to a cash, check or
+  # card payment on one of those, nearest order first. Per portion: the
+  # original's credit offset shrinks as for its own tenders; an ExchangePayment
+  # pair moves the credit back (-portion on the original against its credit,
+  # +portion on the tender's order against the tender's offset); the
+  # RefundPayment sits on the tender's order. Every order still nets to zero,
+  # and a later chain refund (ExchangeChainRefundable) reverses the pair along
+  # with the other exchange rows.
+  def allocate_chain_refunds(offsets, remaining, refunds)
+    credit_offsets = offsets.select { |offset| offset.amount.negative? && offset.source_payment.is_a?(ExchangePayment) }
+    return remaining if credit_offsets.empty? || exchange_source.branched_chain_blockers.any?
+
+    available = earlier_chain_tenders.index_with(&:refundable_amount)
+    credit_offsets.each do |offset|
+      available.each_key do |tender|
+        portion = [remaining, offset.amount.abs, available[tender]].min
+        next unless portion.positive?
+
+        offset.amount += portion
+        remaining -= portion
+        available[tender] -= portion
+        refunds << chain_refund_for(offset, tender, portion)
+      end
+    end
+    remaining
+  end
+
+  # Cash, check and card payments with money left on the orders the original
+  # was exchanged from, nearest order first.
+  def earlier_chain_tenders
+    exchange_source.exchange_chain.drop(1).flat_map do |order|
+      order.payments.select do |payment|
+        payment.is_a?(CurrencyPayment) && payment.amount.positive? && payment.refundable? &&
+          payment.refundable_amount.positive?
+      end
+    end
+  end
+
+  def chain_refund_for(credit_offset, tender, portion)
+    tender_order = tender.order
+    chained_refund_rows.push(
+      ExchangePayment.new(amount: -portion, order: exchange_source, source_payment: credit_offset.source_payment,
+                          payment_type: tender.payment_type,
+                          note: "Exchange credit returned to order ##{tender_order.id} for refund"),
+      ExchangePayment.new(amount: portion, order: tender_order, source_payment: tender_offset(tender),
+                          payment_type: tender.payment_type,
+                          note: "Exchange credit from order ##{exchange_source.id} returned for refund")
+    )
+    build_refund_payment(tender, portion, order: tender_order).tap { |refund| chained_refund_rows << refund }
+  end
+
+  # The offset written when the tender's order was exchanged onward.
+  def tender_offset(tender)
+    tender.order.payments.find do |payment|
+      payment.is_a?(ExchangePayment) && payment.payment_id == tender.id && payment.amount.negative?
+    end
   end
 
   # Offsets of cash, check or card payments, largest first. Positive offsets
@@ -142,8 +208,8 @@ module ExchangeRefundable
            .sort_by(&:amount)
   end
 
-  def build_refund_payment(source_payment, portion)
-    RefundPayment.new(amount: -portion, order: exchange_source, source_payment: source_payment,
+  def build_refund_payment(source_payment, portion, order: exchange_source)
+    RefundPayment.new(amount: -portion, order: order, source_payment: source_payment,
                       payment_type: source_payment.payment_type, note: 'Exchange refund')
   end
 
@@ -155,6 +221,6 @@ module ExchangeRefundable
   def uncoverable_refund_message(refund_total, remaining)
     covered = CurrencyUtils.float_to_currency_decimal(refund_total - remaining)
     "Only $#{format('%.2f', covered)} of the $#{format('%.2f', refund_total)} difference was paid by cash, check or card " \
-      "on order ##{exchange_source.id} and can be refunded."
+      "on order ##{exchange_source.id} or the orders it was exchanged from, and can be refunded."
   end
 end

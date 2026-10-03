@@ -79,12 +79,8 @@ module ExchangeChainRefundable
         .map { |order_id, status| "Order ##{order_id} is part-way through an exchange (#{status})." }
   end
 
-  private
-
-  def chain_refund?
-    exchange_source.present? && !exchange_successors.exists? && branched_chain_blockers.empty?
-  end
-
+  # Also checked by ExchangeRefundable before an exchange-and-refund draws on
+  # an earlier order's tender.
   # An earlier order of the chain whose credit also went to an order outside
   # the chain: a split of an exchanged order (the split orders copy its
   # exchange_source_id) or an exchange left part-way. Settling the chain would
@@ -100,6 +96,12 @@ module ExchangeChainRefundable
                  "Order ##{source_id}'s exchange credit also went to order ##{order_id}, " \
                    'so a refund cannot settle the exchange chain.'
                end
+  end
+
+  private
+
+  def chain_refund?
+    exchange_source.present? && !exchange_successors.exists? && branched_chain_blockers.empty?
   end
 
   # Orders this one was (or is being) exchanged for. An abandoned exchange is

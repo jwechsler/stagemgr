@@ -714,10 +714,11 @@ end
       offsets.reject! { |offset| offset.amount.zero? }
       credits = payment_type.build_exchange_offset_payments(offsets)
 
-      original_order.payments.concat(offsets, refunds)
+      original_order.payments.concat(offsets, refunds - chained_refund_rows)
       payments.concat(credits)
       settle_exchange_difference!(total_due - credits.sum(&:amount), refund: refund)
       save!
+      chained_refund_rows.each(&:save!)
       refunds
     end
   end
