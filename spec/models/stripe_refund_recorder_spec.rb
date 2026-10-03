@@ -185,4 +185,43 @@ RSpec.describe StripeRefundRecorder do
     expect(successor.reload).to be_needs_review
     expect(order.reload).not_to be_needs_review
   end
+  describe '.call_for_refund' do
+    def refund_object(id, cents, **attrs)
+      Stripe::Refund.construct_from(refund(id, cents, **attrs).merge(charge: 'ch_ticket'))
+    end
+
+    before { allow(Stripe::Charge).to receive(:retrieve).with('ch_ticket').and_return(charge) }
+
+    it 'books a refund that was pending at charge.refunded once Stripe reports it succeeded' do
+      refunds << refund('re_slow', 2000, status: 'pending')
+      described_class.call(charge)
+      expect(dashboard_refunds).to be_empty
+
+      refunds.replace([refund('re_slow', 2000)])
+      described_class.call_for_refund(refund_object('re_slow', 2000))
+
+      expect(dashboard_refunds.to_a).to contain_exactly(have_attributes(amount: -20.0, stripe_refund_id: 're_slow'))
+      expect(order.reload).to be_needs_review
+    end
+
+    it 'books nothing more when both refund update events arrive' do
+      refunds << refund('re_slow', 2000)
+
+      2.times { described_class.call_for_refund(refund_object('re_slow', 2000)) }
+
+      expect(dashboard_refunds.count).to eq(1)
+    end
+
+    it 'ignores an update that has not succeeded without asking Stripe for the charge' do
+      described_class.call_for_refund(refund_object('re_slow', 2000, status: 'pending'))
+
+      expect(Stripe::Charge).not_to have_received(:retrieve)
+    end
+
+    it "ignores an update to the app's own refund without asking Stripe for the charge" do
+      described_class.call_for_refund(refund_object('re_app', 2000, metadata: { source: 'stagemgr' }))
+
+      expect(Stripe::Charge).not_to have_received(:retrieve)
+    end
+  end
 end

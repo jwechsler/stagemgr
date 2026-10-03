@@ -20,6 +20,23 @@ class StripeRefundRecorder
     new(charge).call
   end
 
+  # A refund that was pending when charge.refunded arrived (e.g. the Stripe
+  # balance could not cover it) was skipped then; Stripe reports it reaching
+  # succeeded with a refund update event, so book its charge's refunds again.
+  def self.call_for_refund(refund)
+    return unless refund['status'] == SUCCEEDED
+    return if refund_source(refund) == CreditCardPayment::REFUND_SOURCE
+    return if refund['charge'].blank?
+
+    call(Stripe::Charge.retrieve(refund['charge']))
+  end
+
+  # StripeObject has no #dig.
+  def self.refund_source(refund)
+    metadata = refund['metadata']
+    metadata && metadata['source']
+  end
+
   def initialize(charge)
     @charge = charge
   end
@@ -81,8 +98,7 @@ class StripeRefundRecorder
   end
 
   def refund_source(refund)
-    metadata = refund['metadata']
-    metadata && metadata['source']
+    self.class.refund_source(refund)
   end
 
   # A one-off card sale stores the PaymentIntent id (older sales the charge

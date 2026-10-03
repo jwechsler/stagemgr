@@ -41,6 +41,15 @@ StripeEvent.configure do |events|
     StripeRefundRecorder.call(event.data.object)
   end
 
+  # A pending refund reaching succeeded. Older API versions name the event
+  # charge.refund.updated, newer ones refund.updated; booking is idempotent,
+  # so receiving both is harmless.
+  %w[charge.refund.updated refund.updated].each do |type|
+    events.subscribe type do |event|
+      StripeRefundRecorder.call_for_refund(event.data.object)
+    end
+  end
+
   events.all do |event|
     Rails.logger.debug("STRIPE CALLBACK: #{event.type}\n\t#{event.data.object}")
   end
