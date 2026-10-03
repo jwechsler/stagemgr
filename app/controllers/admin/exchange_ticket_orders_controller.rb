@@ -49,6 +49,8 @@ class Admin::ExchangeTicketOrdersController < Admin::ApplicationController
     end
     flash[:notice] = 'Order was successfully exchanged.'
     redirect_to admin_ticket_order_path(@exchange_order)
+  rescue ExchangeRefundable::ExchangeNotPossible => e
+    fail_exchange(e.message, e)
   rescue CannotProcessPayment, ExchangeRefundable::RefundNotPossible => e
     fail_exchange("#{REFUND_FAILED} #{e.message}", e)
   rescue StandardError => e
@@ -71,12 +73,19 @@ class Admin::ExchangeTicketOrdersController < Admin::ApplicationController
     @exchange_order.payment_type_id = @original_order.payment_type_id
   end
 
-  # The show page hides Exchange for these orders; refuse a direct request too.
+  # The show page hides Exchange for these orders; refuse a direct request
+  # too, e.g. from a page left open while the order was refunded or exchanged.
+  # The exchange itself re-checks under a row lock (lock_exchange_source!).
   def ensure_exchangeable
     original = TicketOrder.find(params[:ticket_order_id])
-    return unless original.sold_status? && original.paid_with_pass_and_currency?
+    message = if !original.sold_status?
+                "Order ##{original.id} is #{original.status} and can no longer be exchanged."
+              elsif original.paid_with_pass_and_currency?
+                TicketOrderMergeable::MIXED_PAYMENT_NOT_EXCHANGEABLE
+              end
+    return if message.nil?
 
-    flash[:error] = TicketOrderMergeable::MIXED_PAYMENT_NOT_EXCHANGEABLE
+    flash[:error] = message
     redirect_to admin_ticket_order_path(original)
   end
 

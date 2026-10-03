@@ -71,6 +71,10 @@ RSpec.describe RefundEligibility do
     expect(exchange.reload.refund_blockers).to be_empty
   end
 
+  it 'spells its given-up statuses the way Order does' do
+    expect(RefundEligibility::GIVEN_UP_STATUSES).to eq([Order::EXCHANGED, Order::SPLIT, Order::CANCELED])
+  end
+
   it 'has no blockers for a refundable donation' do
     donation = FactoryBot.create(:donation_order_for_one_thousand_dollars, status: Order::PROCESSED)
 

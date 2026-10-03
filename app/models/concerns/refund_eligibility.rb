@@ -15,13 +15,19 @@ module RefundEligibility
   REFUNDABLE_PAYMENT_CLASS_NAMES = %w[CreditCardPayment CashPayment CheckPayment ExternalPayment
                                       MembershipPayment FlexPassPayment].freeze
 
+  # An order that reached one of these since it was loaded has passed its
+  # value on (or never kept it). Other changes, e.g. PROCESSED -> FULFILLED
+  # when its tickets print, still leave it refundable.
+  # Literals: Order includes this module before it defines its status constants.
+  GIVEN_UP_STATUSES = %w[Exchanged Split Canceled].freeze
+
   # Human-readable reasons this order can't be refunded now; empty when it can.
   def refund_blockers
     blockers = []
     blockers << "Order ##{id} can't be refunded while it is #{status}." unless refundable?
     unsupported = unsupported_refund_payments
     if unsupported.any?
-      blockers << "Refunds don't handle #{unsupported.map(&:display_name).uniq.to_sentence} payments."
+      blockers << "Refunds don't handle #{unsupported.map { |payment| payment.display_name.strip }.uniq.to_sentence} payments."
     end
     blockers + exchange_state_refund_blockers
   end
@@ -54,12 +60,24 @@ module RefundEligibility
   protected
 
   # Re-read under row locks inside Order#refund!'s transaction: a refund
-  # submitted twice waits for the first, then finds the order REFUNDED.
+  # submitted twice waits for the first, then finds the order REFUNDED, and a
+  # refund that lost a race to an exchange finds it EXCHANGED.
+  #
+  # Lock order, to avoid deadlocks: a refund locks every order of its chain in
+  # one statement in ascending id, then the orders exchanged from it (always
+  # newer, so higher ids). An exchange (ExchangeRefundable#lock_exchange_source!)
+  # and Add to Order (TicketOrderAddition#prepare!) each lock a single order
+  # row, first thing in their transaction.
   def locked_refund_blockers
     return [] if new_record?
 
+    current = Order.where(id: exchange_chain.map(&:id)).order(:id).lock.pluck(:id, :status).to_h[id]
     blockers = []
-    blockers << "Order ##{id} has already been refunded." if Order.where(id: id).lock.pick(:status) == Order::REFUNDED
+    if current == Order::REFUNDED
+      blockers << "Order ##{id} has already been refunded."
+    elsif GIVEN_UP_STATUSES.include?(current) && current != status_in_database
+      blockers << "Order ##{id} is now #{current}."
+    end
     blockers + exchange_state_refund_blockers(lock: true)
   end
 

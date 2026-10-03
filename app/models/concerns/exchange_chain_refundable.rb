@@ -31,9 +31,10 @@ module ExchangeChainRefundable
   end
 
   def refund_blockers
-    super + exchange_successors.pluck(:id).map do |successor_id|
+    onward = exchange_successors.pluck(:id).map do |successor_id|
       "Order ##{id} was exchanged for order ##{successor_id}; refund the last order of its exchange chain."
     end
+    super + onward + branched_chain_blockers
   end
 
   # Oldest order first, so the original sale is refunded before later charges.
@@ -71,7 +72,7 @@ module ExchangeChainRefundable
   # (+lock: true+) sees an exchange begun after the order was loaded and holds
   # the rows until it commits.
   def exchange_state_refund_blockers(lock: false)
-    rows = [Order.where(id: exchange_chain.map(&:id)), exchange_successors]
+    rows = [Order.where(id: exchange_chain.map(&:id)).order(:id), exchange_successors.order(:id)]
     rows = rows.map(&:lock) if lock
     rows.flat_map { |scope| scope.pluck(:id, :status) }.uniq
         .select { |_order_id, status| MID_EXCHANGE_STATUSES.include?(status) }
@@ -81,7 +82,24 @@ module ExchangeChainRefundable
   private
 
   def chain_refund?
-    exchange_source.present? && !exchange_successors.exists?
+    exchange_source.present? && !exchange_successors.exists? && branched_chain_blockers.empty?
+  end
+
+  # An earlier order of the chain whose credit also went to an order outside
+  # the chain: a split of an exchanged order (the split orders copy its
+  # exchange_source_id) or an exchange left part-way. Settling the chain would
+  # refund credit the other order still holds.
+  def branched_chain_blockers
+    newer_by_older = exchange_chain.each_cons(2).to_h { |newer, older| [older.id, newer.id] }
+    return [] if newer_by_older.empty?
+
+    TicketOrder.where(exchange_source_id: newer_by_older.keys).where.not(status: Order::CANCELED)
+               .order(:id).pluck(:exchange_source_id, :id)
+               .reject { |source_id, order_id| newer_by_older[source_id] == order_id }
+               .map do |source_id, order_id|
+                 "Order ##{source_id}'s exchange credit also went to order ##{order_id}, " \
+                   'so a refund cannot settle the exchange chain.'
+               end
   end
 
   # Orders this one was (or is being) exchanged for. An abandoned exchange is

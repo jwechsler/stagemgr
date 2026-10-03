@@ -704,6 +704,7 @@ end
   # otherwise the difference becomes a Carryover write-off or a new charge.
   def begin_exchange!(original_order, refund: false)
     Order.transaction do
+      lock_exchange_source!(original_order)
       prepare_exchange_from(original_order)
       # Applied before the offsets are sized so total_due already reflects an offer.
       update_special_offer_line_item_from_code!
@@ -729,6 +730,7 @@ end
   def transition_exchanging_to_processed!
     Order.transaction do
       original_order = exchange_source
+      lock_exchange_source!(original_order)
       self.status = Order::PROCESSED
       set_email_confirmation
       payments.reload

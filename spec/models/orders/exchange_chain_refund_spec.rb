@@ -355,6 +355,35 @@ RSpec.describe 'Refunding an exchange chain' do
     end
   end
 
+  context 'when the order was exchanged after it was loaded' do
+    it 'refuses the refund of the stale order and changes nothing' do
+      original = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_credit_card)
+      stale = TicketOrder.find(original.id)
+      exchange!(original, payment_type: card_type)
+      payment_count = Payment.count
+
+      expect { stale.refund! }.to raise_error(Order::RefundNotAllowed, "Order ##{original.id} is now Exchanged.")
+
+      expect(Payment.count).to eq(payment_count)
+      expect(gateway).not_to have_received(:refund)
+    end
+  end
+
+  context 'when an exchange of the order was split' do
+    it 'refuses to settle the chain, since the other split order still holds credit' do
+      original = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_credit_card)
+      exchange = exchange!(original, payment_type: card_type)
+      sibling = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, performance: exchange.performance)
+      sibling.update_columns(exchange_source_id: original.id, status: Order::PROCESSED)
+
+      expect(exchange.reload.refund_blockers).to include(
+        "Order ##{original.id}'s exchange credit also went to order ##{sibling.id}, " \
+        'so a refund cannot settle the exchange chain.'
+      )
+      expect(exchange.refund_reversals).to be_empty
+    end
+  end
+
   context 'when an exchanged order is refunded directly' do
     it 'refunds only that order, leaving the credit it passed on in place' do
       original = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_credit_card)

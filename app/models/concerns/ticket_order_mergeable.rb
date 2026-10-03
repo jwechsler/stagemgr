@@ -9,6 +9,9 @@
 module TicketOrderMergeable
   extend ActiveSupport::Concern
 
+  # See #sold_status?.
+  SOLD_STATUSES = [Order::PROCESSED, Order::FULFILLED, Order::UNCLAIMED].freeze
+
   MIXED_PAYMENT_NOT_EXCHANGEABLE = "Orders paid with both a pass and another payment can't be exchanged; " \
                                    'refund the order and place a new one instead.'.freeze
 
@@ -57,7 +60,7 @@ module TicketOrderMergeable
   # Sold: Processed, Fulfilled or Unclaimed (the statuses #sold?, #refundable?
   # and #exchangeable? share).
   def sold_status?
-    [Order::PROCESSED, Order::FULFILLED, Order::UNCLAIMED].include?(status)
+    SOLD_STATUSES.include?(status)
   end
 
   # Holds both a pass payment (membership or flex pass) and a money payment,
