@@ -14,7 +14,10 @@ RSpec.describe 'Refunding an exchange chain' do
   before do
     allow(PaymentProcessing).to receive(:gateway).and_return(gateway)
     allow(gateway).to receive(:purchase).and_return(approved)
-    allow(gateway).to receive(:refund).and_return(refunded)
+    # Stripe gives each refund its own id (payments.stripe_refund_id is unique).
+    allow(gateway).to receive(:refund) do
+      double('response', success?: true, authorization: "re_#{SecureRandom.hex(4)}", message: 'Refunded')
+    end
   end
 
   # A pair of tickets on a later performance of the same production. +price+
