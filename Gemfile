@@ -98,9 +98,9 @@ group :development do
   gem 'pry'
   gem 'pry-rails'
 
+  gem 'haml_lint', require: false
   gem 'rubocop', require: false
   gem 'rubocop-rails', require: false
-  gem 'haml_lint', require: false
 
   # gem 'ruby_parser'  # for declarative authorization eager loading for resque tasks
 end
