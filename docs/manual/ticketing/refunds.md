@@ -56,7 +56,6 @@ The Refund Order button is available when:
 | **Check / External** | The refund amount that will be recorded |
 | **Membership** | The number of tickets released back to the membership |
 | **Flex pass** | The number of tickets returned to the pass |
-| **Nothing collected** (e.g. a $0.00 comp) | *nothing to refund* -- the payment is skipped |
 
 ### Step 3: Add Refund Notes (Optional)
 
@@ -97,7 +96,6 @@ The refund method depends on the original payment type:
 | **Cash** | Record indicates cash refund to be given at box office |
 | **Check** | Record indicates check refund to be issued |
 | **External** | Record indicates refund through original external method |
-| **Comp** | No financial reversal needed |
 | **Flex Pass** | Uses are restored to the flex pass |
 | **Membership** | Membership usage is restored |
 
