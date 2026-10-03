@@ -250,6 +250,12 @@ GEM
       activesupport (>= 5.1)
       haml (>= 4.0.6)
       railties (>= 5.1)
+    haml_lint (0.78.0)
+      haml (>= 5.0)
+      parallel (>= 1.10)
+      rainbow
+      rubocop (>= 1.0)
+      sysexits (~> 1.1)
     http_logger (0.7.0)
     httparty (0.24.2)
       csv
@@ -532,6 +538,7 @@ GEM
     sys-uname (1.5.1)
       ffi (~> 1.1)
       memoist3 (~> 1.0.0)
+    sysexits (1.2.0)
     temple (0.10.3)
     thor (1.3.2)
     tilt (2.4.0)
@@ -601,6 +608,7 @@ DEPENDENCIES
   font-awesome-rails
   haml
   haml-rails
+  haml_lint
   http_logger
   i18n
   image_processing

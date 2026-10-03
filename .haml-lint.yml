@@ -1,0 +1,5 @@
+# haml-lint (bin/haml-lint). Its RuboCop linter reads .rubocop.yml; keep the
+# line limit in step with RuboCop's default of 120.
+linters:
+  LineLength:
+    max: 120

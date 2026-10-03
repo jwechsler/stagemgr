@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Runs haml-lint with Logger preloaded: Rails 6.1's ActiveSupport references
+# Logger before requiring it (config/boot.rb does the same for the app).
+RUBYOPT="-rlogger ${RUBYOPT}" exec bundle exec haml-lint "$@"
