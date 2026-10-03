@@ -3,6 +3,24 @@
 !!! info "Reference"
     Recent feature additions and significant changes to Stagemgr, listed from newest to oldest.
 
+## October 2026
+
+### Refunds for Exchanged Orders
+
+**Available to:** Administrator, Box Office
+
+An order created by an exchange can now be refunded. Refunding the newest order of an exchange
+chain returns every payment in the chain on its own tender and reverses the exchange credits,
+offsets and Carryovers between the orders.
+
+**Key behaviors:**
+
+- The refund page lists each order in the chain under its own heading.
+- The newest order becomes **Refunded** and releases its seats; earlier orders stay **Exchanged**.
+- All or nothing: if a card refund fails, nothing is refunded.
+
+See [Refunds](../ticketing/refunds.md#refund-eligibility).
+
 ## September 2026
 
 ### Add to Order
@@ -37,7 +55,7 @@ released, nothing-to-refund payments skipped) under a single button.
 **Key behaviors:**
 
 - A card payment already partly refunded returns only what is left on the charge.
-- Orders paid with exchange credit are refunded through **Exchange and Refund** instead; the Refund Order button is not shown for them.
+- Orders paid with exchange credit were refunded through **Exchange and Refund** instead (see *Refunds for Exchanged Orders*, October 2026).
 
 See [Refunds](../ticketing/refunds.md#orders-with-several-payments).
 

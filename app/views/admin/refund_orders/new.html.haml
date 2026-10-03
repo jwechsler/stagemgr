@@ -7,20 +7,24 @@
 
     = render :partial=>'/error_messages', locals: {object: @original_order}
 
-    - unsupported = unsupported_refund_payments(@original_order)
-    - if @original_order.try(:paid_by_exchange?)
-      %h3 This order was paid with exchange credit, so it can't be refunded here.
-      %p Use Exchange Order and choose a refund to return money on an exchanged order.
-    - elsif !@original_order.refundable?
-      %h3 This order can't be refunded, as it hasn't been processed.
-    - elsif unsupported.any?
+    - if @refund_blockers.any?
       %h3 Can't refund this order.
-      %p= "Refunds don't handle #{unsupported.map(&:display_name).uniq.to_sentence} payments."
+      %ul#refund-blockers
+        - @refund_blockers.each do |blocker|
+          %li= blocker
     - else
-      %h4 Refunding returns each payment on its own tender:
-      %ul#refund-plan
-        - @original_order.payments.each do |payment|
-          %li= refund_plan_line(payment)
+      - if @exchange_chain.size > 1
+        %h4 This order ends an exchange chain. Refunding settles every order in it:
+      - else
+        %h4 Refunding returns each payment on its own tender:
+      - @exchange_chain.each do |order|
+        - if @exchange_chain.size > 1
+          %h5.refund-plan-order{ id: "refund-plan-order-#{order.id}" }
+            = link_to "Order ##{order.id}", admin_order_path(order)
+            = "(#{order.status})"
+        %ul.refund-plan{ id: ('refund-plan' if order == @original_order) }
+          - order.payments.each do |payment|
+            %li= refund_plan_line(payment, tenders: @refund_tenders, reversals: @refund_reversals)
       = form_for [:admin,@original_order,@refund_order], :url=>admin_order_refund_orders_path(@original_order) do |order_form|
         %p
           = order_form.label :notes

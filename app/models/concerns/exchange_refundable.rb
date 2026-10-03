@@ -11,6 +11,10 @@ module ExchangeRefundable
   # the original was not paid by cash, check or card.
   class RefundNotPossible < StandardError; end
 
+  # Raised, before any row is written, when the original can no longer be
+  # exchanged: another exchange or a refund got to it first.
+  class ExchangeNotPossible < StandardError; end
+
   # Same exchange as #exchange_and_process_from!, but the price difference goes
   # back to the original payments instead of being written off. The gateway
   # call is the LAST step so a card failure rolls back every row: the new
@@ -24,6 +28,27 @@ module ExchangeRefundable
   end
 
   private
+
+  # First statement of an exchange's transaction: locks the original's row
+  # (only that row; see RefundEligibility#locked_refund_blockers for the lock
+  # order) and re-reads it, so concurrent exchanges and refunds of one order
+  # serialize and the loser is refused. Reads the status without reloading
+  # +original_order+, which would drop the payments the exchange has built.
+  # The original stays PROCESSED on disk until the exchange commits it as
+  # EXCHANGED (RELEASING is in memory only), so a sold status is required both
+  # when the exchange begins and when it completes.
+  def lock_exchange_source!(original_order)
+    current = Order.where(id: original_order.id).lock.pick(:status)
+    unless TicketOrderMergeable::SOLD_STATUSES.include?(current)
+      raise ExchangeNotPossible, "Order ##{original_order.id} is #{current} and can no longer be exchanged."
+    end
+
+    other = TicketOrder.where(exchange_source_id: original_order.id, status: Order::EXCHANGING)
+                       .where.not(id: id).pick(:id)
+    return if other.nil?
+
+    raise ExchangeNotPossible, "Order ##{original_order.id} is already being exchanged for order ##{other}."
+  end
 
   def prepare_exchange_from(original_order)
     self.exchange_source = original_order

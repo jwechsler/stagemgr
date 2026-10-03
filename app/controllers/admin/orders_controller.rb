@@ -99,11 +99,6 @@ class Admin::OrdersController < Admin::ApplicationController
     redirect_to action: 'show', id: @order.id
   end
 
-  def refund
-    @order.refund!
-    redirect_to admin_order_path(@order)
-  end
-
   def unclaimed
     @order.unclaimed!
     redirect_to admin_order_path(@order)

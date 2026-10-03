@@ -26,10 +26,16 @@ The Refund Order button is available when:
 | Condition | Requirement |
 |-----------|-------------|
 | **Order status** | Must be **Processed** or **Fulfilled** |
-| **Exchange credit** | The order must not be paid (even partly) with credit carried over from an exchange |
+| **Exchanges** | Only the newest order of an exchange chain; orders it was exchanged from are **Exchanged** and show no button |
 
-!!! note "Orders Paid With Exchange Credit"
-    An order created by an exchange carries the original order's payment as exchange credit, so it cannot be refunded here. The Refund Order button is not shown, and the refund page explains why. To return money on such an order, exchange it and choose **Exchange and Refund** -- see [Exchanges](exchanges.md#refunding-the-difference).
+!!! note "Refunding an Exchanged Order"
+    An order created by an exchange carries the earlier order's payment as exchange credit. Refunding it settles the whole chain of exchanges behind it (e.g. A exchanged for B, B for C -- refund C):
+
+    - Each order in the chain is listed on the refund page under its own heading, with what happens to each of its payments.
+    - The original card, cash, check or pass payment is refunded on its own tender, on whichever order holds it; a card charged for a pricier exchange is refunded too. A card already partly refunded by **Exchange and Refund** returns only what is left on it.
+    - Exchange credits and offsets, and Carryover write-offs, are reversed, so every order in the chain nets to zero.
+    - The newest order becomes **Refunded** and releases its seats; the earlier orders stay **Exchanged**.
+    - If any card refund fails, nothing is refunded and every order is left as it was.
 
 ## Refund Process
 
@@ -146,8 +152,8 @@ This approach preserves the tickets the patron wants to keep while refunding onl
 
 | Issue | Resolution |
 |-------|------------|
-| Refund button not available | Verify the order is in Processed or Fulfilled status. Orders paid with exchange credit are refunded through **Exchange and Refund** instead. |
-| *Can't refund this order* on the refund page | The order holds a payment kind the refund cannot return; ask an administrator |
+| Refund button not available | Verify the order is in Processed or Fulfilled status. An **Exchanged** order is refunded from the newest order of its exchange chain. |
+| *Can't refund this order* on the refund page | The page lists why: the order is not Processed or Fulfilled, holds a payment kind the refund cannot return (ask an administrator), was exchanged for a later order (refund that one), or is part-way through an exchange (finish or abandon the exchange first) |
 | Credit card refund failed | Check Stripe dashboard for the transaction; the card may have expired or the account closed |
 | Box office did not receive the refunded-order alert | Alerts are sent only for orders that were **Fulfilled** when refunded; check the order's history for the prior status and the configured box office and supervisor addresses |
 | Need to reverse a refund | Not possible through the system; create a new order for the patron |
