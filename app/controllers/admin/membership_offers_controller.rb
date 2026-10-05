@@ -9,15 +9,16 @@ class Admin::MembershipOffersController < ApplicationController
     render json: names
   end
 
-  # Offer-picker typeahead endpoints (reports page).
+  # Offer-picker typeahead endpoints (reports page; Membership Analysis
+  # passes scope=analysis to include inactive offers).
   def search
     authorize! :read, MembershipOffer
-    render json: OfferSearch.new(current_ability, 'membership').search(params[:q])
+    render json: offer_search.search(params[:q])
   end
 
   def resolve_group
     authorize! :read, MembershipOffer
-    render json: OfferSearch.new(current_ability, 'membership').resolve_group(params[:group_key])
+    render json: offer_search.resolve_group(params[:group_key])
   end
 
   def index
@@ -61,6 +62,11 @@ class Admin::MembershipOffersController < ApplicationController
   end
 
   private
+
+  def offer_search
+    analysis = params[:scope] == 'analysis'
+    OfferSearch.new(current_ability, 'membership', include_inactive: analysis, aggregates: analysis)
+  end
 
   def membership_offer_params
     params.require(:membership_offer).permit(:name, :email_html, :html_description, :use_ticket_class_code,

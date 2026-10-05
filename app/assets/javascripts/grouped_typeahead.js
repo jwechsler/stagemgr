@@ -4,7 +4,9 @@
 // Suggestion rows are plain items ({id, label, ...}) mixed with group
 // entries ({group_key, label}) and an optional back row ({picker_back}).
 // attachMulti wires a bare text input as a multi-select source: picking a
-// group resolves it server-side and hands each member to opts.onItem.
+// group resolves it server-side and hands each member to opts.onItem. A
+// group marked dynamic (resolved later by the page's own controller) goes to
+// opts.onDynamicGroup instead, unresolved.
 (function($) {
   'use strict';
 
@@ -20,7 +22,8 @@
   }
 
   // opts: searchUrl, resolveUrl, scope (optional), minLength,
-  //       getExcludedIds(), onItem(item), afterChange()
+  //       getExcludedIds(), onItem(item), onDynamicGroup(item) (optional),
+  //       afterChange()
   function attachMulti($input, opts) {
     $input.autocomplete({
       minLength: opts.minLength || 2,
@@ -33,7 +36,10 @@
         });
       },
       select: function(event, ui) {
-        if (ui.item.group_key) {
+        if (ui.item.dynamic && opts.onDynamicGroup) {
+          opts.onDynamicGroup(ui.item);
+          if (opts.afterChange) opts.afterChange();
+        } else if (ui.item.group_key) {
           $.getJSON(opts.resolveUrl, { group_key: ui.item.group_key, scope: opts.scope },
             function(data) {
               data.forEach(function(item) { opts.onItem(item); });

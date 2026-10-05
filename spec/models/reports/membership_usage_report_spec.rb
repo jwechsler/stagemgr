@@ -78,6 +78,38 @@ RSpec.describe MembershipUsageReport do
       expect(summary_row[:Paid]).to eq(30.to_money)
     end
 
+    describe 'an exchanged redemption' do
+      # Exchange offsets the original redemption with a negative
+      # ExchangePayment; the replacement order gets its own MembershipPayment.
+      def exchange(membership, amount, processed_on)
+        original = create_membership_payment_for(membership, paid: amount, processed_on: processed_on)
+        original.order.update_column(:status, Order::EXCHANGED)
+        ExchangePayment.create!(order: original.order, amount: -amount, payment_id: original.id,
+                                payment_type: original.payment_type, processed_on: processed_on)
+        create_membership_payment_for(membership, paid: amount, processed_on: processed_on)
+      end
+
+      let(:gold_membership) { Membership.find_by!(membership_offer: gold_offer) }
+
+      it 'counts once in Paid for the offer, the month and the total' do
+        exchange(gold_membership, 15.0, in_may)
+
+        gold_row = rows.find { |row| row[:Month] == '2026-05' && row[:Offer] == 'Gold' }
+        summary_row = rows.find { |row| row[:Offer] == MembershipUsageReport::ALL_OFFERS_LABEL }
+        expect(gold_row[:Paid]).to eq(35.to_money)
+        expect(summary_row[:Paid]).to eq(45.to_money)
+        expect(rows.last[:Paid]).to eq(45.to_money)
+      end
+
+      it 'counts once when the report is scoped to the offer' do
+        exchange(gold_membership, 15.0, in_may)
+
+        scoped = described_class.new(starting_date, ending_date, nil, [gold_offer.id]).create.last
+        expect(scoped.find { |row| row[:Offer] == 'Gold' }[:Paid]).to eq(35.to_money)
+        expect(scoped.last[:Paid]).to eq(35.to_money)
+      end
+    end
+
     it 'excludes activity outside the reporting window' do
       create_membership_order_for(gold_offer, collected: 99.0, processed_on: Time.zone.local(2026, 7, 1, 12, 0, 0))
 
@@ -131,23 +163,59 @@ RSpec.describe MembershipUsageReport do
       expect(memberships_by_month(rows)).to eq('2026-03' => 1, '2026-04' => 1)
     end
 
-    it 'never counts memberships whose status is Pending' do
+    it 'counts a Pending membership that paid, through the month it paid for' do
+      # PayPal-era records left paying memberships Pending; payments decide.
       order = create_membership_order_for(gold_offer, collected: 50.0, processed_on: march)
       order.membership.update!(status: Membership::PENDING)
 
-      march_row = rows_for(Date.new(2026, 3, 1), Date.new(2026, 3, 31))
-                  .find { |row| row[:Month] == '2026-03' && row[:Offer] == 'Gold' }
+      rows = rows_for(Date.new(2026, 3, 1), Date.new(2026, 5, 31))
 
-      # The collected payment still reports (money moved), but the
-      # never-activated membership itself doesn't count.
-      expect(march_row).to include(Memberships: 0, Collected: 50.to_money)
+      # Paid on March 10, so paid through April 10.
+      expect(memberships_by_month(rows)).to eq('2026-03' => 1, '2026-04' => 1)
     end
 
-    it 'counts Suspended memberships as active' do
+    it 'never counts a Pending membership that never paid' do
+      order = create_membership_order_for(gold_offer, collected: 50.0, processed_on: march)
+      order.membership.update!(status: Membership::PENDING)
+      order.payments.each(&:destroy!)
+
+      expect(memberships_by_month(rows_for(Date.new(2026, 3, 1), Date.new(2026, 3, 31)))).to eq({})
+    end
+
+    it 'counts a Suspended membership in the month it paid for' do
       order = create_membership_order_for(gold_offer, collected: 50.0, processed_on: march)
       order.membership.update!(status: Membership::SUSPENDED)
 
       rows = rows_for(Date.new(2026, 3, 1), Date.new(2026, 3, 31))
+
+      expect(memberships_by_month(rows)).to eq('2026-03' => 1)
+    end
+
+    it 'counts a Suspended membership with ended_at through its ended_at month' do
+      order = create_membership_order_for(gold_offer, collected: 50.0, processed_on: march,
+                                                      ended_at: Date.new(2026, 4, 15))
+      order.membership.update!(status: Membership::SUSPENDED)
+
+      rows = rows_for(Date.new(2026, 3, 1), Date.new(2026, 5, 31))
+
+      expect(memberships_by_month(rows)).to eq('2026-03' => 1, '2026-04' => 1)
+    end
+
+    it 'counts a Suspended membership without ended_at through its paid-through date and not after' do
+      # Last payment March 10, so paid through April 10.
+      order = create_membership_order_for(gold_offer, collected: 50.0, processed_on: march)
+      order.membership.update!(status: Membership::SUSPENDED)
+
+      rows = rows_for(Date.new(2026, 3, 1), Date.new(2026, 5, 31))
+
+      expect(memberships_by_month(rows)).to eq('2026-03' => 1, '2026-04' => 1)
+    end
+
+    it 'counts a Suspended membership with no payments only in its start month' do
+      FactoryBot.create(:membership, membership_offer: gold_offer, member_since: Date.new(2026, 3, 10),
+                                     status: Membership::SUSPENDED)
+
+      rows = rows_for(Date.new(2026, 3, 1), Date.new(2026, 5, 31))
 
       expect(memberships_by_month(rows)).to eq('2026-03' => 1)
     end

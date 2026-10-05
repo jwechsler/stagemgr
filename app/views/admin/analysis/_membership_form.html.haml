@@ -1,0 +1,24 @@
+= form_tag(memberships_admin_analysis_index_path, method: :get, id: 'membership-analysis-form') do
+  = hidden_field_tag 'membership_offer_ids[]', '', id: nil
+  .grid-x.grid-padding-x
+    .small-12.medium-8.cell
+      = render 'shared/components/offer_picker',
+               field_name: 'membership_offer_ids',
+               search_url: search_admin_membership_offers_path,
+               resolve_url: resolve_group_admin_membership_offers_path,
+               scope: 'analysis',
+               selected: selected_offers,
+               group_field_name: 'membership_offer_groups',
+               selected_groups: selected_groups,
+               label: 'Membership offers',
+               placeholder: 'Type an offer name or tag, or "all" / "active"...'
+  .grid-x.grid-padding-x
+    .small-6.medium-3.cell
+      %label{ for: :starting_date } From
+      = text_field_tag :starting_date, starting_date.iso8601, class: 'date_picker'
+    .small-6.medium-3.cell
+      %label{ for: :ending_date } To
+      = text_field_tag :ending_date, ending_date.iso8601, class: 'date_picker'
+    .small-12.medium-3.cell
+      %br
+      = submit_tag 'Run', class: 'button', name: nil

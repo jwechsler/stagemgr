@@ -60,10 +60,10 @@ followed by an **All Offers** summary row that totals that month across every of
 |---|---|
 | **Month** | Calendar month (e.g., `2026-05`). The final row reads **Total**. |
 | **Offer** | The membership offer name on detail rows; **All Offers** on the monthly summary rows. |
-| **Memberships** | Number of memberships active in that month for that offer. |
+| **Memberships** | Number of memberships active in that month for that offer. An **Active** membership with no end date is active from its start date onward. Any other membership is active until the later of its end date and the date it is paid through (its last payment plus one month), so payments win over a stale status or end date. A **Pending** membership counts only if it has been paid. |
 | **Members** | Number of people those memberships admit -- each membership counts its offer's tickets-per-performance, so a dual membership counts as two members. |
 | **Collected** | Total amount collected on membership orders. |
-| **Paid** | Total membership payments applied. |
+| **Paid** | Ticket value members redeemed with their memberships. An exchanged order counts once: the exchange credit cancels the original order's redemption, leaving only the replacement order's. |
 
 !!! note "The Total row does not total the count columns"
     **Memberships** and **Members** are active-during-month counts. Adding them across months

@@ -105,6 +105,7 @@ nav:
     - Rate of Sales: analysis/rate-of-sales.md
     - Ticket Revenue: analysis/ticket-revenue.md
     - Audience: analysis/audience.md
+    - Membership Analysis: analysis/memberships.md
   - Reports:
     - Reports Overview: reports/reports-overview.md
     - Production Sales: reports/production-sales.md

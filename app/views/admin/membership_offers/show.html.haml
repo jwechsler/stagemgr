@@ -26,6 +26,9 @@
               %a{:href=>PaymentProcessing.product_url(@membership_offer.price_id)}
                 =@membership_offer.price_id
             %p
+              %strong Billing period:
+              = @membership_offer.billing_period_label
+            %p
               %strong Tickets/performance:
               = @membership_offer.tickets_per_performance
             %p

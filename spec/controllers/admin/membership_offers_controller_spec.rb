@@ -118,6 +118,14 @@ RSpec.describe Admin::MembershipOffersController, type: :controller do
       expect(labels).to include('Gold Membership', 'All offers tagged Golden Circle')
       expect(labels).not_to include('Gold Legacy')
     end
+
+    it 'includes inactive offers, labelled Inactive, for the analysis scope' do
+      get :search, params: { q: 'gold', scope: 'analysis' }, format: :json
+
+      offers = response.parsed_body.reject { |row| row['group_key'] }
+      expect(offers.pluck('label')).to include('Gold Membership', 'Gold Legacy (Inactive)')
+      expect(offers.find { |row| row['name'] == 'Gold Legacy' }['active']).to be(false)
+    end
   end
 
   describe 'GET #resolve_group' do
@@ -127,6 +135,14 @@ RSpec.describe Admin::MembershipOffersController, type: :controller do
 
       get :resolve_group, params: { group_key: 'tag:premium' }, format: :json
       expect(response.parsed_body.pluck('name')).to contain_exactly('Gold Membership')
+    end
+
+    it 'expands a tag group into inactive offers too for the analysis scope' do
+      active_offer.membership_offer_tags.create!(name: 'Premium')
+      inactive_offer.membership_offer_tags.create!(name: 'Premium')
+
+      get :resolve_group, params: { group_key: 'tag:premium', scope: 'analysis' }, format: :json
+      expect(response.parsed_body.pluck('name')).to contain_exactly('Gold Membership', 'Gold Legacy')
     end
   end
 

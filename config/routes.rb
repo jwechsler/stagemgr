@@ -229,6 +229,7 @@ Rails.application.routes.draw do
     resources :analysis, only: [:index] do
       collection do
         get :search_theaters
+        get :memberships
         post :rate_of_sales
         post :ticket_revenue
         post :audience

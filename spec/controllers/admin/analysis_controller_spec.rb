@@ -92,4 +92,161 @@ RSpec.describe Admin::AnalysisController, type: :controller do
       end
     end
   end
+
+  describe 'GET #memberships' do
+    render_views
+
+    let(:admin) { FactoryBot.create(:admin_user) }
+    let(:gold_offer) { FactoryBot.create(:membership_offer, name: 'Gold Membership') }
+    let(:retired_offer) do
+      FactoryBot.create(:membership_offer, name: 'Retired Membership', status: MembershipOffer::INACTIVE)
+    end
+    let(:valid_params) do
+      { membership_offer_ids: ['', gold_offer.id.to_s, retired_offer.id.to_s],
+        starting_date: '2026-01-01', ending_date: '2026-06-30' }
+    end
+
+    before do
+      # Use the real ability for these examples, not the file-wide stubs.
+      allow(controller).to receive(:authorize!).and_call_original
+      allow(controller).to receive(:current_ability).and_call_original
+      allow(controller).to receive(:can?).and_call_original
+      allow(controller).to receive(:current_user).and_return(admin)
+      FactoryBot.create(:membership, membership_offer: gold_offer, member_code: 'GOLD-1',
+                                     member_since: Date.new(2026, 2, 1))
+    end
+
+    it 'renders the offer typeahead with no results when nothing has been submitted' do
+      get :memberships
+
+      expect(response).to have_http_status(:ok)
+      page = Capybara.string(response.body)
+      expect(page).to have_css("[data-offer-picker][data-scope='analysis'][data-field='membership_offer_ids']")
+      expect(page).not_to have_css('.offer-picker-table input', visible: false)
+      expect(Capybara.string(response.body)).to have_css('#analysis-tabs li.tabs-title.is-active', text: 'Pass Sales')
+      expect(assigns(:results)).to be_nil
+    end
+
+    it 'renders results for valid params' do
+      get :memberships, params: valid_params
+
+      expect(response).to have_http_status(:ok)
+      expect(assigns(:results).total.memberships_in_range).to eq(1)
+      expect(assigns(:results).by_offer.map { |stats| stats.offer.name }).to eq(['Gold Membership'])
+      expect(response.body).to include('Per-membership economics, per month', 'Avg revenue / month', 'GOLD-1')
+      expect(response.body).to include('No activity in this range, so not shown:', 'Retired Membership')
+    end
+
+    it 'says so when none of the selected offers had activity in the range' do
+      get :memberships, params: valid_params.merge(membership_offer_ids: ['', retired_offer.id.to_s])
+
+      expect(response.body).to include('None of the selected offers had any memberships or payments between',
+                                       'January 01, 2026 and June 30, 2026')
+      expect(response.body).not_to include('Per-membership economics')
+    end
+
+    it 'shows submitted offers as chosen in the picker, marking inactive ones' do
+      get :memberships, params: valid_params
+
+      picker = Capybara.string(response.body).find('.offer-picker-table')
+      expect(picker).to have_css("input[name='membership_offer_ids[]'][value='#{gold_offer.id}']", visible: false)
+      expect(picker).to have_css("input[name='membership_offer_ids[]'][value='#{retired_offer.id}']", visible: false)
+      expect(picker.find('tr', text: 'Retired Membership')).to have_css('.label', text: 'Inactive')
+    end
+
+    it 'lists inactive offers below active ones in the picker' do
+      ancient = FactoryBot.create(:membership_offer, name: 'Ancient Membership', status: MembershipOffer::INACTIVE)
+      get :memberships, params: valid_params.merge(membership_offer_ids: [ancient.id, retired_offer.id, gold_offer.id])
+
+      rows = Capybara.string(response.body).all('.offer-picker-table tr').map { |row| row.text.squish }
+      expect(rows.map { |text| text.sub(/ ?(Inactive )?remove\z/, '') })
+        .to eq(['Gold Membership', 'Ancient Membership', 'Retired Membership'])
+    end
+
+    it 'rejects a submission with no offers selected' do
+      get :memberships, params: valid_params.merge(membership_offer_ids: [''])
+
+      expect(response).to have_http_status(:ok)
+      expect(flash[:error]).to match(/at least one membership offer/i)
+      expect(assigns(:results)).to be_nil
+    end
+
+    describe 'the with-active-memberships group' do
+      let(:group_params) do
+        { membership_offer_ids: [''], membership_offer_groups: [MembershipAnalysis::WITH_ACTIVE_MEMBERSHIPS],
+          starting_date: '2026-01-01', ending_date: '2026-06-30' }
+      end
+
+      it 'expands to offers with memberships active in the submitted dates' do
+        retired_offer
+
+        get :memberships, params: group_params
+
+        expect(assigns(:results).by_offer.map { |stats| stats.offer.name }).to eq(['Gold Membership'])
+      end
+
+      it 'stays a single row in the picker after the run' do
+        get :memberships, params: group_params
+
+        picker = Capybara.string(response.body).find('.offer-picker-table')
+        expect(picker).to have_css('tr.offer-picker-dynamic', text: 'Offers with active memberships in the selected dates')
+        expect(picker).to have_css("input.offer-picker-group[value='#{MembershipAnalysis::WITH_ACTIVE_MEMBERSHIPS}']",
+                                   visible: false)
+      end
+
+      it 'combines with offers picked individually' do
+        get :memberships, params: group_params.merge(membership_offer_ids: ['', retired_offer.id.to_s])
+
+        expect(assigns(:results).by_offer.map { |stats| stats.offer.name }).to eq(['Gold Membership'])
+        expect(assigns(:results).idle_offers.map(&:name)).to eq(['Retired Membership'])
+      end
+
+      it 'reports when no offer had active memberships in the dates' do
+        get :memberships, params: group_params.merge(starting_date: '2020-01-01', ending_date: '2020-12-31')
+
+        expect(flash[:error]).to match(/No membership offers had active memberships between/)
+        expect(assigns(:results)).to be_nil
+      end
+
+      it 'ignores unknown group keys' do
+        get :memberships, params: group_params.merge(membership_offer_groups: ['everything'])
+
+        expect(flash[:error]).to match(/at least one membership offer/i)
+      end
+    end
+
+    it 'rejects a start date after the end date' do
+      get :memberships, params: valid_params.merge(starting_date: '2026-07-01')
+
+      expect(flash[:error]).to match(/start date must be on or before/i)
+      expect(assigns(:results)).to be_nil
+    end
+
+    it 'rejects an unparseable date' do
+      get :memberships, params: valid_params.merge(ending_date: 'not a date')
+
+      expect(flash[:error]).to match(/valid start and end date/i)
+      expect(assigns(:results)).to be_nil
+    end
+
+    it 'forbids box office users' do
+      allow(controller).to receive(:current_user)
+        .and_return(FactoryBot.create(:user, is_box_office_user: true))
+
+      get :memberships, params: valid_params
+
+      expect(response).to redirect_to(root_path)
+      expect(assigns(:results)).to be_nil
+    end
+
+    it 'forbids theater users, who may run the production analyses' do
+      theater_user = FactoryBot.create(:user, theaters: [FactoryBot.create(:theater)])
+      allow(controller).to receive(:current_user).and_return(theater_user)
+
+      get :memberships, params: valid_params
+
+      expect(response).to redirect_to(root_path)
+      expect(assigns(:results)).to be_nil
+    end
+  end
 end

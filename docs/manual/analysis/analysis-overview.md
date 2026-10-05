@@ -6,6 +6,10 @@
 
 **Navigation:** Admin Menu > Analysis
 
+The Analysis page has two tabs: **Production Sales** (the default), which holds Rate of
+Sales, Ticket Revenue and Audience, and **Pass Sales**, which holds Membership Analysis.
+The Pass Sales tab is for **Admin** users only; Theater users see Production Sales alone.
+
 ---
 
 ## About Analysis
@@ -92,6 +96,16 @@ See [Audience Analysis](audience.md) for full details.
     yet because they need comparison shows you have to pick by hand.
 
 ![Analysis selection page](../assets/images/screenshots/analysis-selection-empty.png)
+
+### Membership Analysis
+
+Judges membership offers over a date range you choose: how many memberships and members
+there were, what members paid, what they redeemed in tickets, how long lapsed members
+stayed, and what a membership is worth (revenue against ticket value redeemed). Pick one
+or more offers, including inactive ones; the page shows a **Total** row across the
+selection and one row per offer. Open it from the **Pass Sales** tab of the Analysis page.
+
+See [Membership Analysis](memberships.md) for full details.
 
 ## Setting Up an Analysis
 

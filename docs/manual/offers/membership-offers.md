@@ -27,6 +27,13 @@ Memberships are recurring subscription plans that grant patrons a set number of 
 !!! warning "Price ID must be configured in Stripe first"
     Create the recurring price in your Stripe dashboard before setting up the membership offer. The Price ID links the membership to the correct billing plan.
 
+When you save an offer with a new Price ID, Stagemgr reads that price's billing period
+(monthly, yearly, one-time and so on) from Stripe in the background and shows it as
+**Billing period** on the offer's page. Until it has been read, or if Stripe does not
+recognise the price, the page says *Monthly (assumed; not synced from Stripe)*.
+[Membership Analysis](../analysis/memberships.md#per-membership-economics-per-month) uses
+the billing period to spread each payment across the months it pays for.
+
 ### Ticket Allocations
 
 | Field | Description |
@@ -212,7 +219,7 @@ Clicking an offer's name opens its detail page.
 ![Timed membership offer detail page with the offer name heading, offer details panel, and Issue Pass button](../assets/images/screenshots/offers-membership-show-timed.png)
 
 - The offer name appears as a heading above the offer's public description.
-- The **Offer Details** panel summarizes the Price ID, tickets per performance, type, MyEmma group (when MyEmma is enabled), and ticket classes; a **Notification** tab shows the confirmation email content when one is configured.
+- The **Offer Details** panel summarizes the Price ID and its **Billing period**, tickets per performance, type, MyEmma group (when MyEmma is enabled), and ticket classes; a **Notification** tab shows the confirmation email content when one is configured.
 - Status labels in the top-right corner show whether the offer is Active/Inactive and On Sale/Private.
 - Below the description sit **Edit** and the offer's primary sales action: **Create Order** for production offers or **Issue Pass** for timed offers. Unlike the list -- where inactive offers show no sales action at all -- the detail page always shows the button, greyed out and disabled while the offer is Inactive.
 

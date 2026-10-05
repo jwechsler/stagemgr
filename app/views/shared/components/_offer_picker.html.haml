@@ -8,9 +8,20 @@
 -#   resolve_url (required) — group resolve endpoint
 -#   label       — label text above the input
 -#   placeholder — input placeholder text
+-#   scope       — sent with search/resolve requests ('analysis' includes
+-#                 inactive offers)
+-#   selected    — offers to show as already chosen, in display order
+-#                 (records responding to id, name and active?)
+-#   group_field_name — array param name for dynamic groups (suggestions
+-#                 marked dynamic, expanded by the page's controller when it
+-#                 runs); without it dynamic suggestions are ignored
+-#   selected_groups — [key, label] pairs of dynamic groups already chosen
 - label       = local_assigns.fetch(:label, 'Limit to offers (optional)')
 - placeholder = local_assigns.fetch(:placeholder, 'Type an offer name or tag...')
-.offer-picker{data: { offer_picker: true, field: field_name,
+- selected    = Array(local_assigns[:selected])
+- selected_groups = Array(local_assigns[:selected_groups])
+.offer-picker{data: { offer_picker: true, field: field_name, scope: local_assigns[:scope],
+                      group_field: local_assigns[:group_field_name],
                       search_url: search_url, resolve_url: resolve_url }}
   %label
     = label
@@ -20,5 +31,22 @@
                                                     autocomplete: 'off'}
       .cell.shrink{style: 'padding-left: 0.5rem'}
         %a.offer-picker-remove-all.button.alert.small{href: '#', style: 'display:none'} Remove all
-  %table.offer-picker-table.hover{style: 'display:none; margin-top: 0.5rem'}
+  - any_selected = selected.any? || selected_groups.any?
+  %table.offer-picker-table.hover{style: any_selected ? 'margin-top: 0.5rem' : 'display:none; margin-top: 0.5rem'}
     %tbody
+      - selected_groups.each do |key, group_label|
+        %tr.offer-picker-dynamic
+          %td
+            %strong= group_label
+          %td.text-right
+            %a.offer-picker-remove.alert{ href: '#' } remove
+            %input.offer-picker-group{ type: 'hidden', name: "#{local_assigns[:group_field_name]}[]", value: key }
+      - selected.each do |offer|
+        %tr{ class: ('offer-picker-inactive' unless offer.active?) }
+          %td
+            = offer.name
+            - unless offer.active?
+              %span.label.secondary Inactive
+          %td.text-right
+            %a.offer-picker-remove.alert{ href: '#' } remove
+            %input{ type: 'hidden', name: "#{field_name}[]", value: offer.id }
