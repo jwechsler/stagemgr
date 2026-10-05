@@ -3,6 +3,8 @@ module RecurringProfile
   ACTIVE, EXPIRED, PENDING, CANCELED, SUSPENDED =
     "Active", "Expired", "Pending", "Canceled", "Suspended"
 )
+  # Stripe subscription statuses that mean the member is paid up and current.
+  LIVE_SUBSCRIPTION_STATUSES = %w[active trialing].freeze
   extend ActiveSupport::Concern
 
   included do
@@ -63,29 +65,49 @@ module RecurringProfile
 
   public
 
+  # Syncs from the Stripe subscription. With none to read (no profile yet, or
+  # a PayPal-era profile) there is nothing to sync, so the recorded status is
+  # kept; only a record with no status yet starts as Pending. Until 2026-10
+  # this branch set Pending outright, so viewing a PayPal-era membership's
+  # order in admin flipped a paying member to Pending.
   def update_from_profile(subscription_id = nil)
     self.profile_id = subscription_id if profile_id.blank? && subscription_id.present?
-    if profile_id.blank? || !profile_id.starts_with?('sub')
-      profile_status = PENDING
-    else # second condition is to wean off of paypal.  Remove it eventually
-      subscription = get_profile_data
-      self.start_date = Time.at(subscription.start_date).to_date unless subscription.start_date.nil?
-      self.ended_at = Time.at(subscription.ended_at).to_date unless subscription.ended_at.nil?
-      self.recurring_amount = subscription.items.data.first['price'].unit_amount.to_f / 100.0
-      self.next_billing_date = Time.at(subscription.current_period_end).to_date unless subscription.current_period_end.nil?
-      self.cancel_at_period_end = subscription.cancel_at_period_end
-      profile_status = subscription.status
+    return self.status ||= PENDING unless stripe_profile?
+
+    subscription = get_profile_data
+    self.start_date = Time.at(subscription.start_date).to_date unless subscription.start_date.nil?
+    sync_ended_at(subscription)
+    self.recurring_amount = subscription.items.data.first['price'].unit_amount.to_f / 100.0
+    self.next_billing_date = Time.at(subscription.current_period_end).to_date unless subscription.current_period_end.nil?
+    self.cancel_at_period_end = subscription.cancel_at_period_end
+    self.status = status_for_subscription(subscription.status)
+  end
+
+  def stripe_profile?
+    profile_id.present? && profile_id.starts_with?('sub')
+  end
+
+  def status_for_subscription(subscription_status)
+    if LIVE_SUBSCRIPTION_STATUSES.include?(subscription_status)
+      ACTIVE
+    elsif ['canceled', 'unpaid'].include?(subscription_status)
+      CANCELED
+    else
+      SUSPENDED
     end
-    self.status = case
-                  when ['active', 'trialing'].include?(profile_status)
-                    ACTIVE
-                  when [CANCELED, 'canceled', 'unpaid'].include?(profile_status)
-                    CANCELED
-                  when profile_status.eql?(PENDING)
-                    PENDING
-                  else
-                    SUSPENDED
-                  end
+  end
+
+  # Stripe's ended_at is authoritative when set. A live subscription (active
+  # or trialing) has not ended, so any ended_at left from an earlier ending is
+  # stale and is cleared; reports close a membership's window at ended_at, so
+  # a stale date drops a paying member. Other statuses keep a date stamped by
+  # staff (Membership#stamp_ended_at_on_close).
+  def sync_ended_at(subscription)
+    if subscription.ended_at
+      self.ended_at = Time.at(subscription.ended_at).to_date
+    elsif LIVE_SUBSCRIPTION_STATUSES.include?(subscription.status)
+      self.ended_at = nil
+    end
   end
 
   def update_from_profile!
