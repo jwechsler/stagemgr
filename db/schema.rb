@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_10_03_100100) do
+ActiveRecord::Schema.define(version: 2026_10_05_130000) do
 
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name", null: false
@@ -260,6 +260,7 @@ ActiveRecord::Schema.define(version: 2026_10_03_100100) do
     t.decimal "amount", precision: 8, scale: 2, default: "0.0"
     t.boolean "suppress_for_pass_payments", default: false
     t.integer "seat_assignment_id"
+    t.index ["membership_id"], name: "index_line_items_on_membership_id"
     t.index ["order_id"], name: "line_items_oid_i"
     t.index ["seat_assignment_id"], name: "index_line_items_on_seat_assignment_id", unique: true
     t.index ["ticket_class_id"], name: "line_items_to_ticket_class"
@@ -293,6 +294,9 @@ ActiveRecord::Schema.define(version: 2026_10_03_100100) do
     t.string "price_id"
     t.integer "max_festival_tickets_in_advance"
     t.string "membership_type", default: "production", null: false
+    t.string "billing_interval"
+    t.integer "billing_interval_count"
+    t.datetime "billing_period_synced_at"
   end
 
   create_table "memberships", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|

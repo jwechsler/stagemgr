@@ -96,6 +96,15 @@ class StripeGateway < ActiveMerchant::Billing::StripePaymentIntentsGateway
     "#{base_url}#{subscription_id}"
   end
 
+  # The billing period of a Stripe Price: its recurring interval and count,
+  # or one_time when the price does not recur.
+  def price_billing_period(price_id)
+    recurring = Stripe::Price.retrieve(price_id).recurring
+    return { interval: MembershipOffer::ONE_TIME, interval_count: nil } if recurring.nil?
+
+    { interval: recurring.interval, interval_count: recurring.interval_count }
+  end
+
   def product_url(price_id)
     base_url = if Stripe.api_key.starts_with?('sk_test')
                  'https://dashboard.stripe.com/test/prices/'

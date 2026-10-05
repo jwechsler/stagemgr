@@ -104,6 +104,9 @@ RSpec.describe MembershipOffer do
   describe 'MyEmma group re-sync' do
     let!(:offer) { FactoryBot.create(:membership_offer, myemma_group: 'OLD') }
 
+    # Offers carry a price_id, so creating one also enqueues a billing-period sync.
+    before { allow(Resque).to receive(:enqueue) }
+
     context 'when MyEmma is enabled' do
       before { allow(MyEmma).to receive(:disabled?).and_return(false) }
 
@@ -136,6 +139,120 @@ RSpec.describe MembershipOffer do
       expect(Resque).not_to receive(:enqueue).with(SyncMembershipOfferMyEmmaGroupJob, anything)
 
       offer.update!(myemma_group: 'NEW')
+    end
+  end
+
+  describe 'billing period sync' do
+    let!(:offer) { FactoryBot.create(:membership_offer, price_id: 'price_old') }
+
+    before do
+      offer.update_columns(billing_interval: MembershipOffer::YEAR, billing_interval_count: 1,
+                           billing_period_synced_at: Time.current)
+    end
+
+    it 'enqueues a sync when an offer is created with a price_id' do
+      expect(Resque).to receive(:enqueue).with(SyncMembershipOfferBillingPeriodJob, kind_of(Integer))
+
+      FactoryBot.create(:membership_offer, name: 'Fresh', price_id: 'price_new')
+    end
+
+    it 'does not enqueue for an offer created without a price_id' do
+      expect(Resque).not_to receive(:enqueue).with(SyncMembershipOfferBillingPeriodJob, anything)
+
+      FactoryBot.create(:membership_offer, :timed, name: 'Library pass')
+    end
+
+    it 'enqueues a sync when the price_id changes' do
+      expect(Resque).to receive(:enqueue).with(SyncMembershipOfferBillingPeriodJob, offer.id)
+
+      offer.update!(price_id: 'price_new')
+    end
+
+    it 'does not enqueue when another attribute changes' do
+      expect(Resque).not_to receive(:enqueue).with(SyncMembershipOfferBillingPeriodJob, anything)
+
+      offer.update!(name: 'Renamed Offer')
+    end
+
+    it 'clears the cached period when the price_id changes' do
+      allow(Resque).to receive(:enqueue)
+
+      offer.update!(price_id: 'price_new')
+
+      expect(offer.reload).to have_attributes(billing_interval: nil, billing_interval_count: nil,
+                                              billing_period_synced_at: nil)
+    end
+
+    it 'keeps the cached period on unrelated edits' do
+      offer.update!(name: 'Renamed Offer')
+
+      expect(offer.reload.billing_interval).to eq(MembershipOffer::YEAR)
+    end
+  end
+
+  describe '#billing_period_for, #billing_months and #billing_period_label' do
+    def offer_with(interval, count = 1)
+      FactoryBot.build(:membership_offer, billing_interval: interval, billing_interval_count: count)
+    end
+
+    def period(offer, paid_on, anchor_day)
+      offer.billing_period_for(Date.parse(paid_on), anchor_day: anchor_day).map(&:iso8601)
+    end
+
+    it 'assumes calendar-monthly when the period has not been synced' do
+      offer = offer_with(nil, nil)
+
+      expect(period(offer, '2026-03-01', 1)).to eq(%w[2026-03-01 2026-04-01])
+      expect(offer.billing_period_label).to eq('Monthly (assumed; not synced from Stripe)')
+    end
+
+    it 'runs a monthly period to the same day next month' do
+      expect(period(offer_with(MembershipOffer::MONTH), '2026-03-09', 9)).to eq(%w[2026-03-09 2026-04-09])
+      expect(period(offer_with(MembershipOffer::MONTH, 3), '2026-03-09', 9)).to eq(%w[2026-03-09 2026-06-09])
+    end
+
+    it "clamps a billing day the month doesn't have, then returns to it, as Stripe does" do
+      offer = offer_with(MembershipOffer::MONTH)
+
+      expect(period(offer, '2026-01-30', 30)).to eq(%w[2026-01-30 2026-02-28])
+      expect(period(offer, '2026-02-28', 30)).to eq(%w[2026-02-28 2026-03-30])
+    end
+
+    it 'lets a late payment pay for the period it was due for' do
+      offer = offer_with(MembershipOffer::MONTH)
+
+      expect(period(offer, '2026-01-13', 9)).to eq(%w[2026-01-09 2026-02-09])
+      expect(period(offer, '2026-02-02', 30)).to eq(%w[2026-01-30 2026-02-28])
+    end
+
+    it 'runs a yearly period to the same date the next year' do
+      expect(period(offer_with(MembershipOffer::YEAR), '2025-07-01', 1)).to eq(%w[2025-07-01 2026-07-01])
+      expect(period(offer_with(MembershipOffer::YEAR, 2), '2025-07-01', 1)).to eq(%w[2025-07-01 2027-07-01])
+    end
+
+    it 'counts weeks and days as fixed lengths from the payment' do
+      expect(period(offer_with(MembershipOffer::WEEK, 2), '2026-03-09', 1)).to eq(%w[2026-03-09 2026-03-23])
+      expect(period(offer_with(MembershipOffer::DAY, 30), '2026-03-09', 1)).to eq(%w[2026-03-09 2026-04-08])
+    end
+
+    it 'counts the months one payment pays for' do
+      expect(offer_with(nil, nil).billing_months).to eq(1)
+      expect(offer_with(MembershipOffer::MONTH, 3).billing_months).to eq(3)
+      expect(offer_with(MembershipOffer::YEAR, 2).billing_months).to eq(24)
+      expect(offer_with(MembershipOffer::WEEK, 2).billing_months).to eq(BigDecimal(14) / BigDecimal('30.44'))
+      expect(offer_with(MembershipOffer::ONE_TIME, nil).billing_months).to be_nil
+    end
+
+    it 'leaves a one-time price for the caller to spread' do
+      offer = offer_with(MembershipOffer::ONE_TIME, nil)
+
+      expect(offer.billing_period_for(Date.new(2026, 3, 9), anchor_day: 9)).to be_nil
+      expect(offer.billing_period_label).to eq('One-time payment (from Stripe)')
+    end
+
+    it 'labels a synced recurring period' do
+      expect(offer_with(MembershipOffer::MONTH).billing_period_label).to eq('Every 1 month (from Stripe)')
+      expect(offer_with(MembershipOffer::YEAR, 2).billing_period_label).to eq('Every 2 years (from Stripe)')
     end
   end
 

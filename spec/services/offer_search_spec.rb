@@ -54,6 +54,74 @@ RSpec.describe OfferSearch do
       expect(tag_keys.length).to eq(1)
     end
 
+    context 'with include_inactive' do
+      subject(:searcher) { described_class.new(admin_ability, 'membership', include_inactive: true) }
+
+      it 'finds inactive offers and labels them Inactive' do
+        results = searcher.search('Gold')
+        expect(results.pluck(:label)).to include('Gold Membership', 'Gold Legacy (Inactive)')
+        expect(results.find { |r| r[:name] == 'Gold Legacy' }[:active]).to be(false)
+        expect(results.find { |r| r[:name] == 'Gold Membership' }[:active]).to be(true)
+      end
+
+      it 'sorts inactive offers after active ones, by name within each' do
+        active_offer.membership_offer_tags.create!(name: 'Premium')
+        inactive_offer.membership_offer_tags.create!(name: 'Premium')
+        FactoryBot.create(:membership_offer, name: 'Gold Zenith').membership_offer_tags.create!(name: 'Premium')
+        FactoryBot.create(:membership_offer, name: 'Gold Antique', status: MembershipOffer::INACTIVE)
+
+        expect(result_names(searcher.search('Gold')))
+          .to eq(['Gold Membership', 'Gold Zenith', 'Gold Antique', 'Gold Legacy'])
+        expect(searcher.resolve_group('tag:premium').pluck(:name))
+          .to eq(['Gold Membership', 'Gold Zenith', 'Gold Legacy'])
+      end
+
+      it 'permits inactive offer ids' do
+        expect(searcher.permitted_ids([active_offer.id, inactive_offer.id]))
+          .to contain_exactly(active_offer.id, inactive_offer.id)
+      end
+    end
+
+    context 'with aggregates' do
+      subject(:searcher) do
+        described_class.new(admin_ability, 'membership', include_inactive: true, aggregates: true)
+      end
+
+      it 'offers All and All active for "all", and All active and the dynamic group for "active"' do
+        expect(searcher.search('all').select { |r| r[:group_key]&.exclude?(':') })
+          .to eq([{ group_key: 'all', label: 'All membership offers' },
+                  { group_key: 'active', label: 'All active membership offers' }])
+        expect(searcher.search('Act').select { |r| r[:group_key]&.exclude?(':') })
+          .to eq([{ group_key: 'active', label: 'All active membership offers' },
+                  { group_key: MembershipAnalysis::WITH_ACTIVE_MEMBERSHIPS,
+                    label: 'Offers with active memberships in the selected dates', dynamic: true }])
+      end
+
+      it 'keeps the shortcuts out of ordinary name searches' do
+        expect(group_keys(searcher.search('wit'))).to be_empty
+        expect(group_keys(searcher.search('membership'))).to be_empty
+        expect(group_keys(searcher.search('Gold'))).to be_empty
+      end
+
+      it 'resolves All to every offer, active first, and active to active offers only' do
+        expect(searcher.resolve_group('all').pluck(:name)).to eq(['Gold Membership', 'Gold Legacy'])
+        expect(searcher.resolve_group('active').pluck(:name)).to eq(['Gold Membership'])
+      end
+
+      it 'never resolves the dynamic group' do
+        expect(searcher.resolve_group(MembershipAnalysis::WITH_ACTIVE_MEMBERSHIPS)).to eq([])
+      end
+    end
+
+    it 'offers no aggregate groups without aggregates' do
+      expect(group_keys(searcher.search('all'))).to be_empty
+      expect(searcher.resolve_group('all')).to eq([])
+    end
+
+    it 'leaves labels unmarked without include_inactive' do
+      expect(searcher.search('Gold').find { |r| r[:name] == 'Gold Membership' }).not_to have_key(:active)
+    end
+
     it 'never offers theater groups' do
       expect(group_keys(searcher.search('Steppenwolf'))).to be_empty
       expect(searcher.resolve_group("theater:#{theater.id}")).to eq([])

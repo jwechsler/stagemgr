@@ -1,7 +1,9 @@
 # Shared offer search backing the offer picker typeahead on the admin
 # reports page (see offer_picker.js). Mixes "group" entries (tag /
 # theater restriction) with individual offers; groups resolve to concrete
-# offer lists via #resolve_group. Only Active offers are ever returned.
+# offer lists via #resolve_group. Only Active offers are returned unless
+# the caller passes include_inactive: true; aggregates: true adds the
+# whole-catalogue groups (see #aggregate_entries).
 class OfferSearch
   # Whitelisted per-kind configuration — the client can only name a key,
   # never define a scope. Membership offers carry no theater restriction,
@@ -12,28 +14,47 @@ class OfferSearch
       tag_model: 'MembershipOfferTag',
       tag_foreign_key: :membership_offer_id,
       active: ->(rel) { rel.where(status: MembershipOffer::ACTIVE) },
-      theater_groups: false
+      active_first: "membership_offers.status = '#{MembershipOffer::ACTIVE}' DESC",
+      noun: 'membership offers',
+      theater_groups: false,
+      # Groups the caller expands when it runs, not when picked: the picker
+      # keeps them as a single row (see MembershipAnalysis.offer_ids_for_groups).
+      dynamic_groups: { MembershipAnalysis::WITH_ACTIVE_MEMBERSHIPS => 'Offers with active memberships in the selected dates' }
     },
     'flex_pass' => {
       model: 'FlexPassOffer',
       tag_model: 'FlexPassOfferTag',
       tag_foreign_key: :flex_pass_offer_id,
       active: ->(rel) { rel.where(active: true) },
-      theater_groups: true
+      active_first: 'flex_pass_offers.active DESC',
+      noun: 'flex pass offers',
+      theater_groups: true,
+      dynamic_groups: {}
     }
   }.freeze
 
   RESULT_LIMIT = 20
+  AGGREGATE_ALL = 'all'.freeze
+  AGGREGATE_ACTIVE = 'active'.freeze
+  # Typed words that bring up each aggregate shortcut (see #aggregate_entries).
+  AGGREGATE_KEYWORDS = { AGGREGATE_ALL => %w[all], AGGREGATE_ACTIVE => %w[all active] }.freeze
+  DYNAMIC_GROUP_KEYWORDS = %w[active].freeze
 
-  # Raises KeyError on an unknown kind key.
-  def initialize(ability, kind_key)
+  # Raises KeyError on an unknown kind key. include_inactive: true widens
+  # every lookup to inactive offers too (the Membership Analysis picker,
+  # which reports on retired offers); their labels then say "(Inactive)".
+  def initialize(ability, kind_key, include_inactive: false, aggregates: false)
     @kind = KINDS.fetch(kind_key.to_s)
     @model = @kind[:model].constantize
-    @base_scope = @kind[:active].call(@model.accessible_by(ability, :read))
+    @include_inactive = include_inactive
+    @aggregates = aggregates
+    accessible = @model.accessible_by(ability, :read)
+    @base_scope = include_inactive ? accessible : @kind[:active].call(accessible)
   end
 
   # Narrows request-supplied ids to offers the user may actually report
-  # on (authorized and Active); everything else is dropped silently.
+  # on (authorized, and Active unless include_inactive); everything else is
+  # dropped silently.
   def permitted_ids(ids)
     ids = Array(ids).map(&:to_i).select(&:positive?)
     return [] if ids.empty?
@@ -43,7 +64,12 @@ class OfferSearch
 
   def search(query)
     query = query.to_s.strip
-    group_entries(query) + offer_entries(query)
+    aggregate_entries(query) + group_entries(query) + offer_entries(query)
+  end
+
+  # Label of a dynamic group key, or nil when the key is not one.
+  def self.dynamic_group_label(kind_key, group_key)
+    KINDS.fetch(kind_key.to_s)[:dynamic_groups][group_key.to_s]
   end
 
   def resolve_group(group_key)
@@ -54,6 +80,10 @@ class OfferSearch
                ordered_scope.merge(@model.tagged_with(value))
              when 'theater'
                theater_group_scope(value.to_i)
+             when AGGREGATE_ALL
+               @aggregates ? ordered_scope : @model.none
+             when AGGREGATE_ACTIVE
+               @aggregates ? @kind[:active].call(ordered_scope) : @model.none
              else
                @model.none
              end
@@ -62,6 +92,24 @@ class OfferSearch
   end
 
   private
+
+  # Whole-catalogue shortcuts, offered when the query starts one of their
+  # keywords ("all", "active"). Matching keywords rather than the whole label
+  # keeps them out of ordinary name searches: "wit" must not match "with".
+  # "All" and "active" resolve to concrete offers like any group; dynamic
+  # groups carry dynamic: true and never resolve here.
+  def aggregate_entries(query)
+    term = query.downcase
+    return [] unless @aggregates && term.present?
+
+    entries = [{ group_key: AGGREGATE_ALL, label: "All #{@kind[:noun]}" },
+               { group_key: AGGREGATE_ACTIVE, label: "All active #{@kind[:noun]}" }]
+    entries += @kind[:dynamic_groups].map { |key, label| { group_key: key, label: label, dynamic: true } }
+    entries.select do |entry|
+      keywords = AGGREGATE_KEYWORDS.fetch(entry[:group_key], DYNAMIC_GROUP_KEYWORDS)
+      keywords.any? { |keyword| keyword.start_with?(term) }
+    end
+  end
 
   def theater_groups?
     @kind[:theater_groups]
@@ -125,14 +173,20 @@ class OfferSearch
     scope.limit(RESULT_LIMIT).map { |offer| offer_entry(offer) }
   end
 
+  # Inactive offers (include_inactive only) sort after every active one.
   def ordered_scope
-    scope = @base_scope.order(:name)
+    scope = @include_inactive ? @base_scope.order(Arel.sql(@kind[:active_first])) : @base_scope
+    scope = scope.order(:name)
     scope = scope.includes(:theater) if theater_groups?
     scope
   end
 
   def offer_entry(offer)
     entry = { id: offer.id, label: offer.name, name: offer.name }
+    if @include_inactive
+      entry[:active] = offer.active?
+      entry[:label] = "#{offer.name} (Inactive)" unless offer.active?
+    end
     if theater_groups?
       entry[:label] = [offer.name, restriction_text(offer)].compact.join(' — ')
       entry[:restriction] = restriction_text(offer)

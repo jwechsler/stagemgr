@@ -1,0 +1,12 @@
+-#
+  Top-level Analysis tabs. Each tab is its own page (so results stay
+  bookmarkable), so these are plain links styled as Foundation tabs rather
+  than data-tabs panels. Locals: active — :production_sales or :pass_sales.
+- tabs = [[:production_sales, 'Production Sales', admin_analysis_index_path]]
+- tabs << [:pass_sales, 'Pass Sales', memberships_admin_analysis_index_path] if can?(:analyze_passes, Analysis)
+.grid-x.grid-padding-x
+  .small-12.cell
+    %ul.tabs#analysis-tabs
+      - tabs.each do |key, label, path|
+        %li.tabs-title{ class: ('is-active' if key == active) }
+          = link_to label, path, 'aria-selected': (key == active).to_s

@@ -74,6 +74,87 @@ RSpec.describe Membership do
     end
   end
 
+  describe 'ended_at sync from the Stripe subscription' do
+    let(:membership) do
+      FactoryBot.create(:membership, profile_id: 'sub_test_sync', status: Membership::ACTIVE,
+                                     ended_at: Date.new(2026, 7, 25))
+    end
+
+    def sync_with(status:, ended_at: nil)
+      price = { 'price' => Struct.new(:unit_amount).new(2900) }
+      subscription = Struct.new(:start_date, :ended_at, :items, :current_period_end, :cancel_at_period_end, :status,
+                                keyword_init: true)
+                           .new(start_date: Time.zone.local(2021, 10, 9).to_i, ended_at: ended_at&.to_i,
+                                items: Struct.new(:data).new([price]),
+                                current_period_end: Time.zone.local(2026, 10, 9).to_i,
+                                cancel_at_period_end: false, status: status)
+      allow(membership).to receive(:get_profile_data).and_return(subscription)
+      membership.update_from_profile
+    end
+
+    it 'clears a stale ended_at when the subscription is active again' do
+      sync_with(status: 'active')
+
+      expect(membership.ended_at).to be_nil
+      expect(membership.status).to eq(Membership::ACTIVE)
+    end
+
+    it 'clears a stale ended_at for a trialing subscription' do
+      sync_with(status: 'trialing')
+
+      expect(membership.ended_at).to be_nil
+    end
+
+    it "takes Stripe's ended_at when the subscription has ended" do
+      sync_with(status: 'canceled', ended_at: Time.zone.local(2026, 9, 1, 12))
+
+      expect(membership.ended_at).to eq(Date.new(2026, 9, 1))
+    end
+
+    it 'keeps an existing ended_at when a past-due subscription has no end date' do
+      sync_with(status: 'past_due')
+
+      expect(membership.ended_at).to eq(Date.new(2026, 7, 25))
+      expect(membership.status).to eq(Membership::SUSPENDED)
+    end
+  end
+
+  describe 'syncing a membership with no Stripe subscription' do
+    it 'keeps the status of a PayPal-era membership' do
+      membership = FactoryBot.create(:membership, profile_id: 'I-1TJFPJGB64Y9', status: Membership::ACTIVE)
+
+      membership.update_from_profile
+
+      expect(membership.status).to eq(Membership::ACTIVE)
+    end
+
+    it 'keeps the status of a canceled membership with no profile' do
+      membership = FactoryBot.create(:membership, profile_id: nil, status: Membership::CANCELED,
+                                                  ended_at: Date.new(2025, 1, 1))
+
+      membership.update_from_profile
+
+      expect(membership.status).to eq(Membership::CANCELED)
+    end
+
+    it 'starts a membership with no status yet as Pending' do
+      membership = Membership.new(profile_id: nil, status: nil)
+
+      membership.update_from_profile
+
+      expect(membership.status).to eq(Membership::PENDING)
+    end
+
+    it 'never reads Stripe for it' do
+      membership = FactoryBot.create(:membership, profile_id: 'I-1TJFPJGB64Y9', status: Membership::ACTIVE)
+      allow(membership).to receive(:get_profile_data)
+
+      membership.update_from_profile
+
+      expect(membership).not_to have_received(:get_profile_data)
+    end
+  end
+
   describe '#verify_bookable_this_week!' do
     it 'is a no-op for production offers' do
       offer = FactoryBot.create(:membership_offer)

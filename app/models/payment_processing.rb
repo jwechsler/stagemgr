@@ -49,6 +49,10 @@ module PaymentProcessing
       'TESTSUBSCRIPTION'
     end
 
+    def price_billing_period(_price_id)
+      { interval: MembershipOffer::MONTH, interval_count: 1 }
+    end
+
     def subscription_url(_subscription_id)
       # Must be a String: callers pass this to link_to, and a Pathname
       # (the old Rails.root + '...' form) crashes url_for with to_model.
@@ -167,6 +171,10 @@ module PaymentProcessing
 
   def self.product_url(price_id)
     gateway.product_url(price_id)
+  end
+
+  def self.price_billing_period(price_id)
+    gateway.price_billing_period(price_id)
   end
 
   def self.credit_card_type(ctype)

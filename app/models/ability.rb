@@ -129,6 +129,7 @@ class Ability
 
     # below is for admins
     can :perform_analysis, Analysis
+    can :analyze_passes, Analysis # the Pass Sales tab (membership analysis)
     can :manage, MembershipOffer
     can :manage, Festival
     can :merge_selected, Address

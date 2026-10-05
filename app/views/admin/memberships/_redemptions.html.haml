@@ -1,0 +1,42 @@
+-#
+  Orders paid for in whole or in part by this membership; mirrors the
+  address page's order history (admin/addresses/_order_history).
+.grid-x
+  .small-12.cell
+    %table#membership-redemptions-listing{ 'data-source': admin_membership_path(membership, format: :json) }
+      %thead
+        Redemptions
+        %tr
+          %th Order
+          %th Created
+          %th Description
+          %th Amount
+          %th Paid by membership
+          %th Status
+      %tbody
+
+= content_for :js do
+  :javascript
+    jQuery(document).ready(function() {
+      $('#membership-redemptions-listing').dataTable({
+        stateSave: true,
+        searching: false,
+        order: [[0, "desc"]],
+        processing: true,
+        ajax: $('#membership-redemptions-listing').data('source'),
+        pagingType: 'full_numbers',
+        serverSide: true,
+        language: {
+          lengthMenu: "_MENU_",
+          search: "_INPUT_"
+        },
+        columns: [
+          {data: 'order'},
+          {data: 'created'},
+          {data: 'description'},
+          {data: 'amount'},
+          {data: 'membership_paid'},
+          {data: 'status'}
+        ]
+      });
+    });

@@ -1,5 +1,6 @@
 class Admin::AnalysisController < Admin::ApplicationController
   before_action :authorize_analysis
+  before_action :authorize_pass_analysis, only: :memberships
 
   def index
     if params[:target_production_id].present?
@@ -153,9 +154,72 @@ class Admin::AnalysisController < Admin::ApplicationController
     end
   end
 
+  DEFAULT_MEMBERSHIP_RANGE = 12.months
+
+  # GET: the offer/date form, plus results once the form has been submitted
+  # (membership_offer_ids is present, even if only its blank hidden field), so
+  # a run is bookmarkable.
+  def memberships
+    @ending_date = Date.current
+    @starting_date = @ending_date - DEFAULT_MEMBERSHIP_RANGE + 1.day
+    @selected_offers = []
+    @selected_groups = []
+    return unless params.key?(:membership_offer_ids)
+
+    run_membership_analysis
+  end
+
   private
+
+  # Offers picked one by one (or through a group that expanded in the picker)
+  # arrive as membership_offer_ids; dynamic groups arrive as
+  # membership_offer_groups and expand here, against the submitted dates.
+  def run_membership_analysis
+    readable_offers = MembershipOffer.accessible_by(current_ability, :read)
+    requested_ids = Array(params[:membership_offer_ids]).compact_blank.map(&:to_i)
+    @selected_offers = readable_offers.where(id: requested_ids)
+                                      .sort_by { |offer| [offer.active? ? 0 : 1, offer.name.to_s] }
+    @selected_groups = Array(params[:membership_offer_groups]) & MembershipAnalysis::DYNAMIC_GROUPS
+    @starting_date = parse_date(params[:starting_date]) || @starting_date
+    @ending_date = parse_date(params[:ending_date]) || @ending_date
+    error = membership_analysis_error
+    if error
+      flash.now[:error] = error
+      return
+    end
+
+    offer_ids = @selected_offers.map(&:id) |
+                MembershipAnalysis.offer_ids_for_groups(@selected_groups, readable_offers, @starting_date, @ending_date)
+    if offer_ids.empty?
+      flash.now[:error] = 'No membership offers had active memberships between ' \
+                          "#{@starting_date.to_formatted_s(:long)} and #{@ending_date.to_formatted_s(:long)}."
+      return
+    end
+
+    @results = MembershipAnalysis.new(offer_ids, @starting_date, @ending_date).compute
+  end
+
+  def membership_analysis_error
+    return 'Select at least one membership offer.' if @selected_offers.empty? && @selected_groups.empty?
+    if parse_date(params[:starting_date]).nil? || parse_date(params[:ending_date]).nil?
+      return 'Enter a valid start and end date.'
+    end
+    return 'The start date must be on or before the end date.' if @starting_date > @ending_date
+
+    nil
+  end
+
+  def parse_date(value)
+    Date.iso8601(value.to_s)
+  rescue ArgumentError
+    nil
+  end
 
   def authorize_analysis
     authorize! :perform_analysis, Analysis
+  end
+
+  def authorize_pass_analysis
+    authorize! :analyze_passes, Analysis
   end
 end

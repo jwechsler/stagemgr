@@ -50,6 +50,17 @@ The Memberships list shows every individual membership in the system -- one row 
 The detail page also offers **Generate Member ID Card**; see
 [below](#generating-a-member-id-card).
 
+## Redemptions
+
+A membership's detail page lists its **Redemptions**: every order paid for in whole or in
+part with the membership. The table works like **Order History** on a patron's page, with
+the same columns (Order, Created, Description, Amount, Status) plus **Paid by membership**,
+the share of the order the membership covered. **Amount** is the order's total paid, so an
+order with a membership share smaller than its Amount was partly paid another way.
+Exchanged and refunded orders stay listed with their status. A refunded order's membership
+share nets to $0.00. An exchanged order still shows what the membership originally paid,
+and its replacement order appears as a separate row.
+
 ## Generating a Member ID Card
 
 A membership's detail page (open it from the Member Code link) has a

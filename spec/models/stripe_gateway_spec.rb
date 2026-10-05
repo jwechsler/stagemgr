@@ -320,4 +320,24 @@ RSpec.describe StripeGateway, type: :model do
       end
     end
   end
+
+  # ---------------------------------------------------------------------------
+  # #price_billing_period
+  # ---------------------------------------------------------------------------
+  describe "#price_billing_period" do
+    it "returns the interval and count of a recurring price" do
+      recurring = double("recurring", interval: "year", interval_count: 2)
+      allow(Stripe::Price).to receive(:retrieve).with("price_year")
+                                                .and_return(double("Stripe::Price", recurring: recurring))
+
+      expect(gateway.price_billing_period("price_year")).to eq(interval: "year", interval_count: 2)
+    end
+
+    it "returns one_time for a price that does not recur" do
+      allow(Stripe::Price).to receive(:retrieve).with("price_once")
+                                                .and_return(double("Stripe::Price", recurring: nil))
+
+      expect(gateway.price_billing_period("price_once")).to eq(interval: "one_time", interval_count: nil)
+    end
+  end
 end

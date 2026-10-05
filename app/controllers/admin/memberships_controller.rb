@@ -11,7 +11,16 @@ class Admin::MembershipsController < ApplicationController
     end
   end
 
-  def show; end
+  # The JSON format feeds the redemptions table, as on the address page.
+  def show
+    respond_to do |format|
+      format.html
+      format.json do
+        params.permit!
+        render json: MembershipRedemptionsDatatable.new(params, current_user: current_user, membership: @membership)
+      end
+    end
+  end
 
   def new
     @membership.address_id = params[:address_id] if params[:address_id].present?

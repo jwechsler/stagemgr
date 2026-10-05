@@ -1,0 +1,38 @@
+= content_for :title do
+  Membership Analysis
+= content_for :breadcrumbs do
+  - crumbs = [{ label: 'Analysis', path: admin_analysis_index_path }, { label: 'Pass Sales' }]
+  = render "shared/components/breadcrumb", items: crumbs
+
+= render 'analysis_tabs', active: :pass_sales
+
+.grid-x.grid-padding-x
+  .small-12.cell
+    %h4 Membership Analysis
+    %p.help-text
+      Memberships, members, money collected and tickets redeemed for the selected offers over a date range.
+      Both dates are inclusive; "active at end" means active on the end date.
+
+- selected_groups = @selected_groups.map { |key| [key, OfferSearch.dynamic_group_label('membership', key)] }
+= render 'membership_form', selected_offers: @selected_offers, selected_groups: selected_groups,
+                            starting_date: @starting_date, ending_date: @ending_date
+
+- if @results
+  #membership-analysis-results
+    - if @results.by_offer.empty?
+      .callout.secondary
+        None of the selected offers had any memberships or payments between
+        #{@starting_date.to_formatted_s(:long)} and #{@ending_date.to_formatted_s(:long)}.
+    - else
+      = render 'membership_results', results: @results
+
+-#
+  Results describe the offers and dates they were run with, so any change to
+  either removes them until the next Run.
+:javascript
+  $(function() {
+    $('#membership-analysis-form').on('change input offer-picker:changed', function(e) {
+      if (e.type !== 'offer-picker:changed' && !$(e.target).is('#starting_date, #ending_date')) return;
+      $('#membership-analysis-results').remove();
+    });
+  });

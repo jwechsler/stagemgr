@@ -1,0 +1,26 @@
+%h5= title
+%p.help-text
+  Per month of each membership's active time in range. Each payment is spread evenly across the
+  billing period it pays for, and only the part inside the range counts. Redeemed is the ticket
+  value its holder redeemed in range; net is revenue less redeemed. A membership active for less
+  than a month counts as one month.
+.table-scroll
+  %table.hover
+    %thead
+      %tr
+        %th Offer
+        %th Memberships
+        - ['Revenue / month', 'Redeemed / month', 'Net / month'].each do |figure|
+          %th Avg #{figure.downcase}
+          %th Min #{figure.downcase}
+          %th Max #{figure.downcase}
+    %tbody
+      - rows.each do |stats|
+        - figures = stats.public_send(economics)
+        %tr{ class: total_row_class(stats) }
+          %td= membership_offer_cell(stats.offer)
+          %td= figures.membership_count
+          - [figures.revenue, figures.redeemed, figures.net].each do |spread|
+            %td= membership_money(spread.avg)
+            %td= membership_extreme(spread.minimum, spread.minimum_membership)
+            %td= membership_extreme(spread.maximum, spread.maximum_membership)
