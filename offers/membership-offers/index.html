@@ -2905,6 +2905,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../analysis/memberships/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Membership Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -4228,6 +4256,12 @@
 <p class="admonition-title">Price ID must be configured in Stripe first</p>
 <p>Create the recurring price in your Stripe dashboard before setting up the membership offer. The Price ID links the membership to the correct billing plan.</p>
 </div>
+<p>When you save an offer with a new Price ID, Stagemgr reads that price's billing period
+(monthly, yearly, one-time and so on) from Stripe in the background and shows it as
+<strong>Billing period</strong> on the offer's page. Until it has been read, or if Stripe does not
+recognise the price, the page says <em>Monthly (assumed; not synced from Stripe)</em>.
+<a href="../../analysis/memberships/#per-membership-economics-per-month">Membership Analysis</a> uses
+the billing period to spread each payment across the months it pays for.</p>
 <h3 id="ticket-allocations">Ticket Allocations<a class="headerlink" href="#ticket-allocations" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -4517,7 +4551,7 @@ slot, so you can see what a new upload will replace.</p>
 <p><img alt="Timed membership offer detail page with the offer name heading, offer details panel, and Issue Pass button" src="../../assets/images/screenshots/offers-membership-show-timed.png" /></p>
 <ul>
 <li>The offer name appears as a heading above the offer's public description.</li>
-<li>The <strong>Offer Details</strong> panel summarizes the Price ID, tickets per performance, type, MyEmma group (when MyEmma is enabled), and ticket classes; a <strong>Notification</strong> tab shows the confirmation email content when one is configured.</li>
+<li>The <strong>Offer Details</strong> panel summarizes the Price ID and its <strong>Billing period</strong>, tickets per performance, type, MyEmma group (when MyEmma is enabled), and ticket classes; a <strong>Notification</strong> tab shows the confirmation email content when one is configured.</li>
 <li>Status labels in the top-right corner show whether the offer is Active/Inactive and On Sale/Private.</li>
 <li>Below the description sit <strong>Edit</strong> and the offer's primary sales action: <strong>Create Order</strong> for production offers or <strong>Issue Pass</strong> for timed offers. Unlike the list -- where inactive offers show no sales action at all -- the detail page always shows the button, greyed out and disabled while the offer is Inactive.</li>
 </ul>

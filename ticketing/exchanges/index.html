@@ -2833,6 +2833,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../analysis/memberships/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Membership Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -4193,8 +4221,9 @@
 <p class="admonition-title">Refund Rules</p>
 <ul>
 <li>The button is available to Box Office and Administrator users only.</li>
-<li>The new order must cost <strong>less</strong> than the original. If it costs the same or more, the exchange is refused with <em>Nothing to refund</em>; use <strong>Exchange Order</strong> instead.</li>
-<li>Only cash, check and credit card payments can be refunded. Flex pass, membership, comp and exchange-credit payments cannot; if they do not cover the difference, the exchange is refused and nothing is changed.</li>
+<li>If the new order costs <strong>the same</strong> as the original, the exchange goes through with no refund, and a blue note says <em>Nothing to refund</em>.</li>
+<li>If it costs <strong>more</strong>, the exchange is refused with <em>Nothing to refund</em> and the amount of the increase; use <strong>Exchange Order</strong> to charge the difference.</li>
+<li>Only cash, check and credit card payments can be refunded. Flex pass and membership payments cannot. If the order was itself paid with exchange credit, Stagemgr follows the exchange back to the earlier order and refunds the card (or cash or check) used there; that refund appears on the earlier order. If nothing refundable covers the difference, the exchange is refused and nothing is changed.</li>
 <li>Exchange service fees retained by the theater are never refunded. Remove the fee line on the form if the exchange is the theater's error.</li>
 <li>If Stripe declines the refund, the whole exchange is cancelled: no new order is created and the original order is unchanged.</li>
 </ul>

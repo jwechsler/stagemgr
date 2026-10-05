@@ -2618,6 +2618,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../analysis/memberships/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Membership Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -3914,6 +3942,45 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#october-2026" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        October 2026
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="October 2026">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#refunds-made-in-stripe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refunds Made in Stripe
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refunds-for-exchanged-orders" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refunds for Exchanged Orders
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#september-2026" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4284,6 +4351,32 @@
 <p class="admonition-title">Reference</p>
 <p>Recent feature additions and significant changes to Stagemgr, listed from newest to oldest.</p>
 </div>
+<h2 id="october-2026">October 2026<a class="headerlink" href="#october-2026" title="Permanent link">&para;</a></h2>
+<h3 id="refunds-made-in-stripe">Refunds Made in Stripe<a class="headerlink" href="#refunds-made-in-stripe" title="Permanent link">&para;</a></h3>
+<p><strong>Available to:</strong> Administrator, Box Office</p>
+<p>A refund issued in the Stripe dashboard is now recorded on its order automatically, dated the day
+it was made, and the order is flagged for review. Only the money changes: tickets, seats and the
+order's status stay as they are.</p>
+<p><strong>Key behaviors:</strong></p>
+<ul>
+<li>Each Stripe refund is recorded once, for its own amount; refunds Stagemgr issued itself are never recorded twice.</li>
+<li>Flagged orders show a <strong>Review</strong> badge in the orders listing, and the status filter has a <strong>Needs review</strong> choice.</li>
+<li>The order page shows the reason and the balance, with one-click fixes: keep the tickets and apply the refund as a discount, mark a fully refunded order as refunded, acknowledge with a note, or exchange to remove tickets.</li>
+<li>A refund that matches no order is reported to the system administrator.</li>
+</ul>
+<p>See <a href="../../ticketing/refunds/#refunds-made-in-stripe">Refunds</a>.</p>
+<h3 id="refunds-for-exchanged-orders">Refunds for Exchanged Orders<a class="headerlink" href="#refunds-for-exchanged-orders" title="Permanent link">&para;</a></h3>
+<p><strong>Available to:</strong> Administrator, Box Office</p>
+<p>An order created by an exchange can now be refunded. Refunding the newest order of an exchange
+chain returns every payment in the chain on its own tender and reverses the exchange credits,
+offsets and Carryovers between the orders.</p>
+<p><strong>Key behaviors:</strong></p>
+<ul>
+<li>The refund page lists each order in the chain under its own heading.</li>
+<li>The newest order becomes <strong>Refunded</strong> and releases its seats; earlier orders stay <strong>Exchanged</strong>.</li>
+<li>All or nothing: if a card refund fails, nothing is refunded.</li>
+</ul>
+<p>See <a href="../../ticketing/refunds/#refund-eligibility">Refunds</a>.</p>
 <h2 id="september-2026">September 2026<a class="headerlink" href="#september-2026" title="Permanent link">&para;</a></h2>
 <h3 id="add-to-order">Add to Order<a class="headerlink" href="#add-to-order" title="Permanent link">&para;</a></h3>
 <p><strong>Available to:</strong> Administrator, Box Office</p>
@@ -4310,7 +4403,7 @@ released, nothing-to-refund payments skipped) under a single button.</p>
 <p><strong>Key behaviors:</strong></p>
 <ul>
 <li>A card payment already partly refunded returns only what is left on the charge.</li>
-<li>Orders paid with exchange credit are refunded through <strong>Exchange and Refund</strong> instead; the Refund Order button is not shown for them.</li>
+<li>Orders paid with exchange credit were refunded through <strong>Exchange and Refund</strong> instead (see <em>Refunds for Exchanged Orders</em>, October 2026).</li>
 </ul>
 <p>See <a href="../../ticketing/refunds/#orders-with-several-payments">Refunds</a>.</p>
 <h3 id="exchange-payment-types-and-pass-plus-money-orders">Exchange Payment Types and Pass-Plus-Money Orders<a class="headerlink" href="#exchange-payment-types-and-pass-plus-money-orders" title="Permanent link">&para;</a></h3>

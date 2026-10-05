@@ -1937,6 +1937,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#refunds-made-in-stripe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refunds Made in Stripe
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Refunds Made in Stripe">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-review-queue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Review Queue
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#resolving-a-review" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resolving a Review
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#notification-behavior" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2831,6 +2870,34 @@
     
   
     Audience
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../analysis/memberships/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Membership Analysis
   
 
     
@@ -4159,14 +4226,21 @@
 <td>Must be <strong>Processed</strong> or <strong>Fulfilled</strong></td>
 </tr>
 <tr>
-<td><strong>Exchange credit</strong></td>
-<td>The order must not be paid (even partly) with credit carried over from an exchange</td>
+<td><strong>Exchanges</strong></td>
+<td>Only the newest order of an exchange chain; orders it was exchanged from are <strong>Exchanged</strong> and show no button</td>
 </tr>
 </tbody>
 </table>
 <div class="admonition note">
-<p class="admonition-title">Orders Paid With Exchange Credit</p>
-<p>An order created by an exchange carries the original order's payment as exchange credit, so it cannot be refunded here. The Refund Order button is not shown, and the refund page explains why. To return money on such an order, exchange it and choose <strong>Exchange and Refund</strong> -- see <a href="../exchanges/#refunding-the-difference">Exchanges</a>.</p>
+<p class="admonition-title">Refunding an Exchanged Order</p>
+<p>An order created by an exchange carries the earlier order's payment as exchange credit. Refunding it settles the whole chain of exchanges behind it (e.g. A exchanged for B, B for C -- refund C):</p>
+<ul>
+<li>Each order in the chain is listed on the refund page under its own heading, with what happens to each of its payments.</li>
+<li>The original card, cash, check or pass payment is refunded on its own tender, on whichever order holds it; a card charged for a pricier exchange is refunded too. A card already partly refunded by <strong>Exchange and Refund</strong> returns only what is left on it.</li>
+<li>Exchange credits and offsets, and Carryover write-offs, are reversed, so every order in the chain nets to zero.</li>
+<li>The newest order becomes <strong>Refunded</strong> and releases its seats; the earlier orders stay <strong>Exchanged</strong>.</li>
+<li>If any card refund fails, nothing is refunded and every order is left as it was.</li>
+</ul>
 </div>
 <h2 id="refund-process">Refund Process<a class="headerlink" href="#refund-process" title="Permanent link">&para;</a></h2>
 <h3 id="step-1-navigate-to-the-order">Step 1: Navigate to the Order<a class="headerlink" href="#step-1-navigate-to-the-order" title="Permanent link">&para;</a></h3>
@@ -4206,10 +4280,6 @@
 <tr>
 <td><strong>Flex pass</strong></td>
 <td>The number of tickets returned to the pass</td>
-</tr>
-<tr>
-<td><strong>Nothing collected</strong> (e.g. a $0.00 comp)</td>
-<td><em>nothing to refund</em> -- the payment is skipped</td>
 </tr>
 </tbody>
 </table>
@@ -4286,10 +4356,6 @@
 <td>Record indicates refund through original external method</td>
 </tr>
 <tr>
-<td><strong>Comp</strong></td>
-<td>No financial reversal needed</td>
-</tr>
-<tr>
 <td><strong>Flex Pass</strong></td>
 <td>Uses are restored to the flex pass</td>
 </tr>
@@ -4313,6 +4379,66 @@
 <p class="admonition-title">Processing Fees Are Not Reversed</p>
 <p>When a credit card order is refunded, Stripe does not return the processing fee that was charged on the original transaction. The processing fee remains as a cost to the organization and will continue to appear on financial reports. This is standard credit card processor behavior.</p>
 </div>
+<h2 id="refunds-made-in-stripe">Refunds Made in Stripe<a class="headerlink" href="#refunds-made-in-stripe" title="Permanent link">&para;</a></h2>
+<p>Sometimes a refund has to be issued straight from the Stripe dashboard -- for example when something stops a refund or exchange inside Stagemgr. Stagemgr hears about it from Stripe within moments and records the money, so box office totals stay right:</p>
+<ul>
+<li>Each Stripe refund becomes one refund payment on the order, for that refund's amount, dated the day it was made in Stripe (so it lands on that day's Daily Receipts). Its note reads <em>Refunded in Stripe dashboard</em>, followed by the reason picked in Stripe's refund dialog when there is one (for example <em>Refunded in Stripe dashboard: Requested by customer</em>).</li>
+<li>A ticket order's refund is recorded against the card it came from, so a later refund in Stagemgr returns only what is left on that card. A membership refund is recorded as a negative subscription payment.</li>
+<li>If that order was already exchanged, the refund still sits beside the card on the original order, but the exchange credit on the <strong>newest</strong> order is reduced by the same amount. The newest order then shows only the credit that still exists, and a further exchange can't carry the refunded money forward. The newest order is the one flagged for review.</li>
+<li>Refunds Stagemgr issues itself are never recorded twice, and neither is a refund Stripe reports more than once.</li>
+<li>A refund Stripe holds as <em>pending</em> (for example when the Stripe balance can't cover it yet) is recorded once Stripe reports it succeeded.</li>
+<li><strong>Only the money changes.</strong> Tickets, seats and the order's status stay as they are. Instead the order is flagged for review.</li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">A refund Stagemgr cannot match</p>
+<p>If a Stripe refund matches no payment in Stagemgr, nothing is recorded and an error report is sent to the system administrator with the Stripe charge and refund ids.</p>
+</div>
+<h3 id="the-review-queue">The Review Queue<a class="headerlink" href="#the-review-queue" title="Permanent link">&para;</a></h3>
+<p>A flagged order shows a red <strong>Review</strong> badge beside its status in the <a href="../order-search/">orders listing</a>; hover over it to see why (e.g. <em>Stripe refund $20.00 on 10/02</em>). To see every order waiting, choose <strong>Needs review</strong> in the status filter.</p>
+<p>The order page shows a <strong>Needs review</strong> banner with the reason and the order's balance, for example:</p>
+<blockquote>
+<p>Stripe refund $20.00 on 10/02</p>
+<p>Order is $20.00 out of balance (due $90.00, paid $70.00).</p>
+</blockquote>
+<p>For an order made by an exchange, the balance covers the orders it was exchanged from too. Membership orders show the reason only: their monthly payments never match their line items.</p>
+<h3 id="resolving-a-review">Resolving a Review<a class="headerlink" href="#resolving-a-review" title="Permanent link">&para;</a></h3>
+<div class="admonition info">
+<p class="admonition-title">Role: Box Office Staff, Administrators</p>
+<p>The same staff who can exchange an order.</p>
+</div>
+<p>Type an optional <strong>Note</strong> in the banner, then choose one fix. Each one records the note and who resolved the review in the order's change history, and clears the badge.</p>
+<table>
+<thead>
+<tr>
+<th>Fix</th>
+<th>What It Does</th>
+<th>Offered When</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Keep tickets, apply as discount</strong></td>
+<td>The patron keeps the tickets. A <em>Stripe refund adjustment</em> line is added for the difference, so the order balances.</td>
+<td>The order is underpaid</td>
+</tr>
+<tr>
+<td><strong>Mark fully refunded</strong></td>
+<td>Refunds the order as described above: seats are released and the order becomes <strong>Refunded</strong>. The card is not refunded again.</td>
+<td>Every card on the order is already refunded in full in Stripe</td>
+</tr>
+<tr>
+<td><strong>Remove tickets (exchange)</strong></td>
+<td>Opens the <a href="../exchanges/">exchange</a> page, to exchange the order for fewer tickets</td>
+<td>The order can be exchanged</td>
+</tr>
+<tr>
+<td><strong>Acknowledge</strong></td>
+<td>Records the note and leaves the order as it is</td>
+<td>Always</td>
+</tr>
+</tbody>
+</table>
+<p>If the order is refunded again in Stripe after a review is resolved, it is flagged again.</p>
 <h2 id="notification-behavior">Notification Behavior<a class="headerlink" href="#notification-behavior" title="Permanent link">&para;</a></h2>
 <p>Stagemgr does not email the patron about a refund. Tell the patron yourself, including the credit card timeline above.</p>
 <p>When the refunded order was <strong>Fulfilled</strong>, its tickets have already been printed or handed over, so the system emails an internal alert asking staff to make sure those tickets are destroyed:</p>
@@ -4366,15 +4492,19 @@
 <tbody>
 <tr>
 <td>Refund button not available</td>
-<td>Verify the order is in Processed or Fulfilled status. Orders paid with exchange credit are refunded through <strong>Exchange and Refund</strong> instead.</td>
+<td>Verify the order is in Processed or Fulfilled status. An <strong>Exchanged</strong> order is refunded from the newest order of its exchange chain.</td>
 </tr>
 <tr>
 <td><em>Can't refund this order</em> on the refund page</td>
-<td>The order holds a payment kind the refund cannot return; ask an administrator</td>
+<td>The page lists why: the order is not Processed or Fulfilled, holds a payment kind the refund cannot return (ask an administrator), was exchanged for a later order (refund that one), or is part-way through an exchange (finish or abandon the exchange first)</td>
 </tr>
 <tr>
 <td>Credit card refund failed</td>
 <td>Check Stripe dashboard for the transaction; the card may have expired or the account closed</td>
+</tr>
+<tr>
+<td>Refunded in the Stripe dashboard instead</td>
+<td>The refund is recorded on the order automatically and the order is flagged; see <a href="#refunds-made-in-stripe">Refunds Made in Stripe</a></td>
 </tr>
 <tr>
 <td>Box office did not receive the refunded-order alert</td>
