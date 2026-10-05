@@ -74,7 +74,7 @@ end date):
 
 - An **Active** membership with no end date is still running.
 - Any other membership runs until the later of its end date and the date it is paid
-  through (its last payment plus one month). A **Suspended** membership that stopped paying
+  through (its last payment plus one billing period: a month, or a year for a yearly offer). A **Suspended** membership that stopped paying
   therefore counts only for the period it paid for. Refunds and $0 payments don't extend it.
 - A **Pending** membership counts only if it has been paid; one that never paid never
   started.
@@ -131,7 +131,9 @@ How the figures are worked out:
   $120 one-year membership shows $10 a month even when the range covers only part of it.
   The 12-month default is an assumption; set the gift length on offers sold as a fixed
   term.
-- **Refunds** count as a negative rate over the period they refund, so they offset it.
+- **Refunds** count in the billing period they were issued in, as a negative rate, so a
+  credit-back or partial refund lowers the month it happened rather than the month of the
+  charge it reverses.
 - **Redemptions** happen on a single day, so they are not spread: only redemptions
   during the range count.
 

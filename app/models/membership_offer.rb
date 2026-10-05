@@ -27,6 +27,9 @@ class MembershipOffer < ApplicationRecord
   # Billing period of the offer's Stripe Price, cached by
   # SyncMembershipOfferBillingPeriodJob. NULL billing_interval: not synced.
   BILLING_INTERVALS = (DAY, WEEK, MONTH, YEAR, ONE_TIME = 'day', 'week', 'month', 'year', 'one_time').freeze
+  # A one-time price runs for the offer's gift length (max_cycles_if_gift)
+  # or, failing that, a year.
+  DEFAULT_ONE_TIME_MONTHS = 12
   BILLING_PERIOD_FIELDS = %i[billing_interval billing_interval_count billing_period_synced_at].freeze
 
   validates_presence_of :name, :use_ticket_class_code, :tickets_per_performance

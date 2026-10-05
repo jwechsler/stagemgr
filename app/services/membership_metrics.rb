@@ -14,7 +14,8 @@
 #
 # Effective end: open for an Active membership with no ended_at. Otherwise the
 # later of ended_at and its paid-through date: the last positive payment on
-# its membership order plus one month (as Membership#last_effective_date).
+# its membership order plus one of the offer's billing periods (a month when
+# no period has been synced from Stripe).
 # With neither, the window closes at its start. So a Suspended or Pending
 # membership that stopped paying counts only through the months it paid for.
 module MembershipMetrics
@@ -23,14 +24,44 @@ module MembershipMetrics
 
   WINDOW_START_SQL = 'COALESCE(memberships.start_date, memberships.member_since)'.freeze
 
+  # One billing period of the membership's offer, split into the months and
+  # days to add to a payment date (MembershipOffer#billing_period_for in SQL):
+  # years and months are calendar months, a one-time price lasts the gift
+  # length or a year, weeks and days are days, and no synced period is a
+  # month.
+  PERIOD_MONTHS_SQL = <<~SQL.squish.freeze
+    (SELECT CASE period_offers.billing_interval
+              WHEN '#{MembershipOffer::YEAR}' THEN 12 * COALESCE(period_offers.billing_interval_count, 1)
+              WHEN '#{MembershipOffer::MONTH}' THEN COALESCE(period_offers.billing_interval_count, 1)
+              WHEN '#{MembershipOffer::ONE_TIME}'
+                THEN COALESCE(period_offers.max_cycles_if_gift, #{MembershipOffer::DEFAULT_ONE_TIME_MONTHS})
+              WHEN '#{MembershipOffer::WEEK}' THEN 0
+              WHEN '#{MembershipOffer::DAY}' THEN 0
+              ELSE 1
+            END
+       FROM membership_offers period_offers
+      WHERE period_offers.id = memberships.membership_offer_id)
+  SQL
+
+  PERIOD_DAYS_SQL = <<~SQL.squish.freeze
+    (SELECT CASE period_offers.billing_interval
+              WHEN '#{MembershipOffer::WEEK}' THEN 7 * COALESCE(period_offers.billing_interval_count, 1)
+              WHEN '#{MembershipOffer::DAY}' THEN COALESCE(period_offers.billing_interval_count, 1)
+              ELSE 0
+            END
+       FROM membership_offers period_offers
+      WHERE period_offers.id = memberships.membership_offer_id)
+  SQL
+
   # Refunds (negative) and $0 trial payments do not extend a membership.
   PAID_THROUGH_SQL = <<~SQL.squish.freeze
-    (SELECT DATE(MAX(paid_through_payments.processed_on)) + INTERVAL 1 MONTH
-       FROM line_items paid_through_items
-       INNER JOIN payments paid_through_payments ON paid_through_payments.order_id = paid_through_items.order_id
-      WHERE paid_through_items.type = 'MembershipLineItem'
-        AND paid_through_items.membership_id = memberships.id
-        AND paid_through_payments.amount > 0)
+    ((SELECT DATE(MAX(paid_through_payments.processed_on))
+        FROM line_items paid_through_items
+        INNER JOIN payments paid_through_payments ON paid_through_payments.order_id = paid_through_items.order_id
+       WHERE paid_through_items.type = 'MembershipLineItem'
+         AND paid_through_items.membership_id = memberships.id
+         AND paid_through_payments.amount > 0)
+      + INTERVAL #{PERIOD_MONTHS_SQL} MONTH + INTERVAL #{PERIOD_DAYS_SQL} DAY)
   SQL
 
   STARTED_SQL = <<~SQL.squish.freeze

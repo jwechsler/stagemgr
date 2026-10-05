@@ -40,6 +40,11 @@ RSpec.describe MembershipAnalysis do
                                    ended_at: ended_at, status: status)
   end
 
+  def set_billing_period(offer, interval, count = 1)
+    offer.update_columns(billing_interval: interval, billing_interval_count: count,
+                         billing_period_synced_at: Time.current)
+  end
+
   def redeem(membership, amount, processed_on, status: Order::PROCESSED)
     ticket_order = FactoryBot.create(:ticket_order)
     ticket_order.update_column(:status, status)
@@ -133,7 +138,7 @@ RSpec.describe MembershipAnalysis do
 
     it 'counts a payment on the end date itself' do
       membership = membership_without_order(gold_offer, code: 'END1')
-      redeem(membership, 15, Time.zone.local(2026, 6, 30, 21))
+      redeem(membership, 15, Time.zone.local(2026, 6, 30, 12))
 
       expect(analyze.total.redeemed_amount).to eq(15)
     end
@@ -182,11 +187,6 @@ RSpec.describe MembershipAnalysis do
   end
 
   describe 'per-membership economics, per month' do
-    def set_billing_period(offer, interval, count = 1)
-      offer.update_columns(billing_interval: interval, billing_interval_count: count,
-                           billing_period_synced_at: Time.current)
-    end
-
     def months(days)
       BigDecimal(days) / MembershipMetrics::AVERAGE_DAYS_PER_MONTH
     end
@@ -273,6 +273,15 @@ RSpec.describe MembershipAnalysis do
                                                     [-35, Time.zone.local(2026, 2, 5, 12)]])
 
       expect(gold_economics.revenue.avg).to eq(0)
+    end
+
+    it 'counts a refund in the billing period it was issued in, not that of the charge it reverses' do
+      monthly = (1..6).map { |month| [50, Time.zone.local(2026, month, 1, 12)] }
+      membership_with_order(gold_offer, code: 'CREDIT', member_since: Date.new(2025, 12, 1),
+                                        collected: monthly + [[-20, Time.zone.local(2026, 2, 10, 12)]])
+
+      # Issued Feb 10, so -$20/month over February's 28 days (not January's 31) of the 181-day span.
+      expect(gold_economics.revenue.avg).to be_within(0.0001).of(50 - (BigDecimal(20) * 28 / 181))
     end
 
     it 'treats an offer with no price_id as monthly' do
@@ -402,6 +411,46 @@ RSpec.describe MembershipAnalysis do
                                         collected: [[0, Time.zone.local(2026, 1, 10, 12)]])
 
       expect(analyze.total.memberships_in_range).to eq(0)
+    end
+  end
+
+  describe "paid-through windows follow the offer's billing period" do
+    def lapsed_member(code, paid_on, amount = 420)
+      membership_with_order(gold_offer, code: code, member_since: paid_on.to_date, status: Membership::SUSPENDED,
+                                        collected: [[amount, paid_on]])
+    end
+
+    it 'keeps a lapsed yearly member counting through the year it paid for' do
+      set_billing_period(gold_offer, MembershipOffer::YEAR)
+      lapsed_member('YEARLY', Time.zone.local(2026, 1, 10, 12))
+
+      expect(analyze.total).to have_attributes(memberships_active_at_end: 1, dropped_count: 0)
+    end
+
+    it 'closes a lapsed monthly member a month after their last payment' do
+      set_billing_period(gold_offer, MembershipOffer::MONTH)
+      lapsed_member('MONTHLY', Time.zone.local(2026, 1, 10, 12), 35)
+
+      expect(analyze.total).to have_attributes(memberships_active_at_end: 0, dropped_count: 1)
+    end
+
+    it "runs a one-time price for the offer's gift length" do
+      set_billing_period(gold_offer, MembershipOffer::ONE_TIME, nil)
+      gold_offer.update_column(:max_cycles_if_gift, 6)
+      lapsed_member('ONCE', Time.zone.local(2026, 1, 10, 12), 120)
+
+      # Paid through 2026-07-10, past the range end.
+      expect(analyze.total.memberships_active_at_end).to eq(1)
+      expect(analyze(to: Date.new(2026, 7, 31)).total.memberships_active_at_end).to eq(0)
+    end
+
+    it 'runs a weekly price for its weeks' do
+      set_billing_period(gold_offer, MembershipOffer::WEEK, 2)
+      lapsed_member('WEEKLY', Time.zone.local(2026, 6, 1, 12), 20)
+
+      # Paid through 2026-06-15.
+      expect(analyze(from: Date.new(2026, 6, 14)).total.memberships_in_range).to eq(1)
+      expect(analyze(from: Date.new(2026, 6, 16)).total.memberships_in_range).to eq(0)
     end
   end
 

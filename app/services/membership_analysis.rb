@@ -78,10 +78,6 @@ class MembershipAnalysis
     end
   end
 
-  # A one-time payment on a membership that is still open is spread across
-  # the offer's gift length (max_cycles_if_gift) or, failing that, a year.
-  DEFAULT_ONE_TIME_MONTHS = 12
-
   # Offer-picker group resolved when the analysis runs, against the dates
   # chosen then: every offer (active or not) with a membership active at some
   # point in the range.
@@ -179,8 +175,10 @@ class MembershipAnalysis
 
   # Revenue per month is the time-weighted average of the monthly rates
   # paying for the span: each payment's rate (amount / months it pays for)
-  # times the span days it covers. Days nothing paid for count as $0, and a
-  # refund carries a negative rate over the period it refunds.
+  # times the span days it covers. Days nothing paid for count as $0. A
+  # refund is placed by the date it was issued, so it carries a negative rate
+  # over the billing period it was issued in, not the period of the charge it
+  # reverses: a credit-back or partial refund lowers the month it happened.
   def rate_days(row, payments)
     span = [row.span_start.jd, row.span_end.jd + 1]
     payments.sum(0.to_d) do |amount, paid_on|
@@ -205,7 +203,7 @@ class MembershipAnalysis
   def one_time_coverage(row)
     return [row.window_start, row.effective_end + 1.day, length_in_months(row)] if row.effective_end
 
-    months = offers[row.offer_id].max_cycles_if_gift || DEFAULT_ONE_TIME_MONTHS
+    months = offers[row.offer_id].max_cycles_if_gift || MembershipOffer::DEFAULT_ONE_TIME_MONTHS
     [row.window_start, row.window_start >> months, months]
   end
 
