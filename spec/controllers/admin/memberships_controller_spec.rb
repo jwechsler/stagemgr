@@ -101,6 +101,48 @@ RSpec.describe Admin::MembershipsController, type: :controller do
     end
   end
 
+  describe 'GET #show redemptions' do
+    let(:other_membership) do
+      FactoryBot.create(:membership, address: address, membership_offer: timed_offer, member_code: 'TW-LIB02')
+    end
+
+    def redeem(member, amount, status: Order::PROCESSED)
+      order = FactoryBot.create(:ticket_order)
+      order.update_column(:status, status)
+      FactoryBot.create(:membership_payment, order: order, membership: member, number_of_tickets: 1,
+                                             amount: amount, processed_on: Time.current)
+      order
+    end
+
+    def redemption_params
+      columns = %w[order created description amount membership_paid status].each_with_index.to_h do |col, i|
+        [i.to_s, { data: col, searchable: 'true', orderable: 'true', search: { value: '', regex: 'false' } }]
+      end
+      { id: membership.id, draw: '1', start: '0', length: '25', search: { value: '', regex: 'false' },
+        columns: columns, order: { '0' => { column: '0', dir: 'desc' } } }
+    end
+
+    it 'renders the redemptions table pointing at its JSON source' do
+      get :show, params: { id: membership.id }
+
+      page = Capybara.string(response.body)
+      expect(page).to have_css("table#membership-redemptions-listing[data-source='#{admin_membership_path(membership, format: :json)}']")
+      expect(page).to have_css('#membership-redemptions-listing th', text: 'Paid by membership')
+    end
+
+    it "lists only this membership's orders, with the amount the membership paid" do
+      redeemed = redeem(membership, 17.5)
+      exchanged = redeem(membership, 20, status: Order::EXCHANGED)
+      redeem(other_membership, 30)
+
+      get :show, params: redemption_params, format: :json
+
+      rows = response.parsed_body['data']
+      expect(rows.pluck('DT_RowID').map(&:to_i)).to contain_exactly(redeemed.id, exchanged.id)
+      expect(rows.find { |row| row['DT_RowID'].to_i == redeemed.id }['membership_paid']).to eq('$17.50')
+    end
+  end
+
   describe 'GET #id_card', :membership_cards do
     it 'redirects with an alert when the offer has no background' do
       get :id_card, params: { id: membership.id }
