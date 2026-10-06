@@ -4321,18 +4321,22 @@
 <tbody>
 <tr>
 <td><strong>Flat Payout</strong></td>
-<td>Fixed dollar amount paid to the producing company per redeemed ticket.</td>
+<td>Per pass sold: the part of the price owed to the producing company whether or not the pass is used. Reported for information and excluded from what can be recovered when the pass expires.</td>
 </tr>
 <tr>
 <td><strong>Spiff</strong></td>
-<td>Additional per-ticket incentive amount.</td>
+<td>Per pass sold: an incentive amount added to the total due to the facility.</td>
 </tr>
 <tr>
 <td><strong>Facility Fee</strong></td>
-<td>Per-ticket facility fee applied on redemption.</td>
+<td>Per pass sold: the facility's share, counted as due to the facility in the month of sale and excluded from what can be recovered at expiry.</td>
 </tr>
 </tbody>
 </table>
+<p>None of these change what the patron pays or what a redemption records. Redemptions pay out the
+lower of the performance ticket price and the pass ticket class price; whatever remains of the
+price after facility fee, flat payout and redemptions is recovered when the pass expires. See the
+<a href="../../reports/flex-pass-reports/#flexpass-sales">FlexPass Usage Report</a>.</p>
 <div class="admonition warning">
 <p class="admonition-title">Financial fields affect settlement</p>
 <p>Flat Payout, Spiff, and Facility Fee values are used in financial settlement calculations between the venue and producing companies. Coordinate with your finance team before changing these.</p>

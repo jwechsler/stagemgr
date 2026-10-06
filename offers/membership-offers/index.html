@@ -1524,10 +1524,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#content-and-legal" class="md-nav__link">
+  <a href="#content" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Content and Legal
+        Content
       
     </span>
   </a>
@@ -1622,6 +1622,17 @@
     <span class="md-ellipsis">
       
         How Ticket Redemption Works
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-friend-passes-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Friend Passes Work
       
     </span>
   </a>
@@ -4298,13 +4309,13 @@ the billing period to spread each payment across the months it pays for.</p>
 </tr>
 <tr>
 <td><strong>Use Member Friend Code</strong></td>
-<td>The ticket class assigned to guest tickets. This allows different pricing or seating for the member's companions.</td>
+<td>Turns on the twice-yearly <strong>bring a friend</strong> pass. Choose the ticket class the friend's seat should be booked under; leave it blank for no friend passes. See <a href="#how-friend-passes-work">How Friend Passes Work</a>.</td>
 </tr>
 </tbody>
 </table>
 <div class="admonition tip">
-<p class="admonition-title">Member vs. guest ticket classes</p>
-<p>Use different ticket class codes for members and their guests to track attendance patterns and generate accurate settlement reports.</p>
+<p class="admonition-title">Member vs. friend ticket classes</p>
+<p>Use a ticket class for friend passes that is distinct from the member's own class, so friend admissions show separately in attendance and settlement reports.</p>
 </div>
 <h3 id="restrictions">Restrictions<a class="headerlink" href="#restrictions" title="Permanent link">&para;</a></h3>
 <table>
@@ -4402,7 +4413,7 @@ if that is later. That is also when the recipient is sent their member number.</
 <p class="admonition-title">Only shown when MyEmma is configured</p>
 <p>The MyEmma Group ID field (and the matching row on the offer detail page) appears only when the MyEmma integration is enabled for this installation.</p>
 </div>
-<h3 id="content-and-legal">Content and Legal<a class="headerlink" href="#content-and-legal" title="Permanent link">&para;</a></h3>
+<h3 id="content">Content<a class="headerlink" href="#content" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
@@ -4411,10 +4422,6 @@ if that is later. That is also when the recipient is sent their member number.</
 </tr>
 </thead>
 <tbody>
-<tr>
-<td><strong>Billing Agreement</strong></td>
-<td>Legal text displayed to the customer before purchase, describing the recurring billing terms.</td>
-</tr>
 <tr>
 <td><strong>HTML Description</strong></td>
 <td>Rich HTML content displayed on the membership detail/sales page.</td>
@@ -4522,13 +4529,45 @@ slot, so you can see what a new upload will replace.</p>
 <ol>
 <li>A member visits the box office or logs in online to claim tickets for a performance.</li>
 <li>The system issues up to <strong>Tickets Per Performance</strong> tickets using the <strong>Use Ticket Class Code</strong>.</li>
-<li>If guest tickets are configured via <strong>Use Member Friend Code</strong>, additional tickets are issued under that class.</li>
 <li>Members can redeem tickets for each performance independently -- there is no total cap across the membership period.</li>
 </ol>
+<p>The <strong>Use Member Friend Code</strong> plays no part in redemption. Friend seats are booked on a separate order with an emailed promo code, described next.</p>
 <div class="admonition note">
 <p class="admonition-title">Tickets Per Performance Across Orders</p>
 <p>The <strong>Tickets Per Performance</strong> limit counts every seat the membership has already paid for at that performance, on any of the member's current orders, plus the ones being requested. A second order that would take the member past the limit is refused with a message giving the limit and how many seats are already reserved on other orders. Exchanged, canceled and refunded orders do not count.</p>
 <p>Extra seats paid another way -- for example by card through <a href="../../ticketing/add-to-order/">Add to Order</a> -- do not count against the limit.</p>
+</div>
+<hr />
+<h2 id="how-friend-passes-work">How Friend Passes Work<a class="headerlink" href="#how-friend-passes-work" title="Permanent link">&para;</a></h2>
+<p>When an offer has a <strong>Use Member Friend Code</strong>, every membership sold on it earns a free
+"bring a friend" admission twice a year. Nothing else needs to be set up; the field being
+filled in is the switch.</p>
+<ol>
+<li><strong>Scheduling.</strong> When the membership order is processed, Stagemgr queues an outreach task
+   for four months after the membership start date, repeating every six months for as long
+   as the membership lasts.</li>
+<li><strong>The pass.</strong> When the task runs, Stagemgr creates a one-use
+   <a href="../special-offers/">special offer</a> with a code beginning <strong>MF</strong>, good for one ticket on
+   one order and expiring six months later. Applying the code switches the ticket to the
+   offer's friend ticket class, which is normally a free class.</li>
+<li><strong>The email.</strong> The member receives the code in a "Thanks for being a member" email from
+   the artistic director. It explains that the friend's seat is booked as a separate general
+   admission reservation with the code entered as the special offer.</li>
+<li><strong>Tracking.</strong> Each MF code is linked to the membership that earned it and flagged as
+   system generated, so it does not clutter the
+   <a href="../special-offers/">special offers list</a>. Unused codes are purged three months after they
+   expire, like any other special offer.</li>
+</ol>
+<p>The task is not sent when the member has no email address on file. It stops when the
+membership is <strong>Canceled</strong>; a membership that lapses by suspension or expiry keeps its queued
+task until it is canceled. Orders paid with a payment type that
+<a href="../../setup/payment-types/#order-task-suppressions">suppresses the task</a> never receive friend
+passes.</p>
+<div class="admonition note">
+<p class="admonition-title">Changing the field later</p>
+<p>Clearing <strong>Use Member Friend Code</strong> on an offer stops future passes for every membership
+on it, even those already scheduled. Setting it on an offer that previously had none only
+affects memberships sold from then on; existing members are not back-filled.</p>
 </div>
 <hr />
 <h2 id="the-membership-offers-list">The Membership Offers List<a class="headerlink" href="#the-membership-offers-list" title="Permanent link">&para;</a></h2>
