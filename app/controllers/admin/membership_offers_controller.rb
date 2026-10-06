@@ -71,7 +71,7 @@ class Admin::MembershipOffersController < ApplicationController
   def membership_offer_params
     params.require(:membership_offer).permit(:name, :email_html, :html_description, :use_ticket_class_code,
                                              :use_member_friend_code, :tickets_per_performance,
-                                             :billing_agreement, :myemma_group, :on_sale, :trial_period,
+                                             :myemma_group, :on_sale, :trial_period,
                                              :restricted_to_first_time, :max_cycles_if_gift, :status, :price_id,
                                              :max_festival_tickets_in_advance, :tag_names, :membership_type,
                                              *MembershipOffer::CARD_ARTWORK_PARAMS)
