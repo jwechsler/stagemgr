@@ -1598,6 +1598,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="How Membership Billing Works">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#one-time-memberships" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        One-time memberships
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -4222,7 +4239,7 @@
 <p><strong>Navigation:</strong> Admin &gt; Offers &gt; Membership Offers</p>
 <hr />
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p>Memberships are recurring subscription plans that grant patrons a set number of tickets per performance, optional guest tickets, and other benefits. Memberships are billed on a recurring cycle through the payment processor and can include trial periods and gift options.</p>
+<p>Memberships grant patrons a set number of tickets per performance, optional guest tickets, and other benefits. Most are subscriptions billed on a recurring cycle through the payment processor, and can include trial periods and gift options. A membership whose Stripe price is a one-time price is instead paid once, up front, and runs for a fixed term -- the usual setup for a prepaid gift membership. See <a href="#one-time-memberships">One-time memberships</a>.</p>
 <h2 id="creating-a-membership-offer">Creating a Membership Offer<a class="headerlink" href="#creating-a-membership-offer" title="Permanent link">&para;</a></h2>
 <p><img alt="Membership offer form with name, status, price ID, tickets per performance, and notification fields" src="../../assets/images/screenshots/offers-membership-form.png" /></p>
 <h3 id="core-fields">Core Fields<a class="headerlink" href="#core-fields" title="Permanent link">&para;</a></h3>
@@ -4248,13 +4265,13 @@
 </tr>
 <tr>
 <td><strong>Price ID</strong></td>
-<td>The recurring price identifier from the payment processor (Stripe). This controls the billing amount and cycle.</td>
+<td>The price identifier from the payment processor (Stripe). A recurring price controls the billing amount and cycle; a one-time price makes this a prepaid, fixed-term membership.</td>
 </tr>
 </tbody>
 </table>
 <div class="admonition warning">
 <p class="admonition-title">Price ID must be configured in Stripe first</p>
-<p>Create the recurring price in your Stripe dashboard before setting up the membership offer. The Price ID links the membership to the correct billing plan.</p>
+<p>Create the price in your Stripe dashboard before setting up the membership offer. The Price ID links the membership to the correct billing plan, and whether that price is recurring or one-time decides how the membership is charged.</p>
 </div>
 <p>When you save an offer with a new Price ID, Stagemgr reads that price's billing period
 (monthly, yearly, one-time and so on) from Stripe in the background and shows it as
@@ -4334,15 +4351,31 @@ the billing period to spread each payment across the months it pays for.</p>
 </thead>
 <tbody>
 <tr>
-<td><strong>Max Cycles if Gift</strong></td>
-<td>Maximum number of billing cycles when the membership is purchased as a gift. After this many cycles, billing stops automatically.</td>
+<td><strong>Gift duration</strong></td>
+<td>How long a gift lasts. Its meaning depends on the offer's Stripe price, as the form's hint says: <em>Recurring price: billing cycles before a gift subscription ends. One-time price: months the gift lasts (blank = 12).</em></td>
 </tr>
 </tbody>
 </table>
-<div class="admonition tip">
-<p class="admonition-title">Setting gift duration</p>
-<p>For a 1-year gift membership billed monthly, set <strong>Max Cycles if Gift</strong> to <code>12</code>. The gift recipient enjoys full benefits for 12 months without further charges.</p>
+<p><strong>Recurring price -- billing cycles.</strong> When the membership is bought as a gift, the
+subscription is set to end after this many billing cycles of the price, and the giver
+is charged no more after that. A monthly price with <strong>Gift duration</strong> <code>12</code> bills 12
+months; a yearly price with <code>2</code> bills two years. When the last cycle ends, the
+membership becomes <strong>Canceled</strong>. Until then it shows <strong>Cancel pending</strong> with its final
+billing date. Leave the field blank and a gift subscription renews like any other
+until it is cancelled. The gift purchase page tells the buyer, for example, <em>"This gift
+membership renews for 12 months and then ends."</em></p>
+<p><strong>One-time price -- months.</strong> The whole term is paid at checkout, and the membership lasts
+this many months (12 when the field is blank). Every purchase of a one-time offer gets
+this term, whether or not it is a gift. The gift purchase page shows <em>"This gift
+membership lasts 12 months and does not renew."</em></p>
+<div class="admonition warning">
+<p class="admonition-title">A one-time offer's Gift duration is in months, not cycles</p>
+<p>A one-time price has no billing cycles, so the number is read as months. An offer
+that held <code>1</code> when it was billed yearly will run for <strong>one month</strong> once its price is
+switched to a one-time price. Set it to <code>12</code> for a one-year gift.</p>
 </div>
+<p>The term starts on the purchase date or, for a gift, on the <strong>Keep secret until...</strong> date
+if that is later. That is also when the recipient is sent their member number.</p>
 <h3 id="email-integration">Email Integration<a class="headerlink" href="#email-integration" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -4361,7 +4394,7 @@ the billing period to spread each payment across the months it pays for.</p>
 <p>How the sync works:</p>
 <ul>
 <li>When a membership on this offer becomes <strong>Active</strong>, the member's address is added to the group.</li>
-<li>When a membership is <strong>Canceled</strong> or <strong>Suspended</strong>, the address is removed -- unless the patron still holds another current membership.</li>
+<li>When a membership is <strong>Canceled</strong>, <strong>Suspended</strong> or <strong>Expired</strong>, the address is removed -- unless the patron still holds another current membership.</li>
 <li>If you <strong>change the group ID</strong> on the offer, every active membership's address is added to the new group automatically. Addresses are not removed from the old group.</li>
 </ul>
 <p>All sync work runs as background jobs, so saving the form returns immediately and any email-service hiccup is retried without affecting the membership itself.</p>
@@ -4471,8 +4504,19 @@ slot, so you can see what a new upload will replace.</p>
 <li>If a <strong>Trial Period</strong> is configured, the patron is charged the <strong>Trial Price</strong> and the trial countdown begins.</li>
 <li>After the trial period ends (or immediately if no trial), recurring billing at the full price begins based on the Stripe price configuration.</li>
 <li>Each billing cycle, the payment processor charges the patron automatically.</li>
-<li>If the membership was purchased as a gift, billing stops after <strong>Max Cycles if Gift</strong> cycles.</li>
+<li>If the membership was purchased as a gift and the offer sets a <strong>Gift duration</strong>, billing stops after that many cycles and the membership becomes Canceled.</li>
 </ol>
+<h3 id="one-time-memberships">One-time memberships<a class="headerlink" href="#one-time-memberships" title="Permanent link">&para;</a></h3>
+<p>An offer whose Price ID is a one-time Stripe price works differently:</p>
+<ol>
+<li>At checkout the patron's card is charged the full price once, on a Stripe invoice. No subscription is created, so nothing renews and the card is never charged again.</li>
+<li>The membership is Active straight away. Its term runs for <strong>Gift duration</strong> months (12 if blank), from the purchase date or a later gift date.</li>
+<li>The term ends on its <strong>Expires</strong> date, the last day it can be used. A 12-month membership starting October 6, 2026 expires October 5, 2027. Tickets for a performance after that date cannot be paid for with it.</li>
+<li>A nightly job at 1:15 am sets a membership to <strong>Expired</strong> the day after its Expires date. If a membership cannot be expired, usually because an old record fails validation, the job skips it and emails the <code>membership_notifications</code> address with the list. It retries those memberships every night until they are fixed.</li>
+<li>If something goes wrong after the card is charged and the order cannot be completed, the charge is refunded automatically and the patron sees an error.</li>
+</ol>
+<p>Staff can change a one-time membership's expiry date on its edit form; see
+<a href="../../ticketing/managing-memberships/#one-time-memberships">Managing Memberships</a>.</p>
 <hr />
 <h2 id="how-ticket-redemption-works">How Ticket Redemption Works<a class="headerlink" href="#how-ticket-redemption-works" title="Permanent link">&para;</a></h2>
 <ol>
@@ -4540,6 +4584,7 @@ slot, so you can see what a new upload will replace.</p>
 </tbody>
 </table>
 <p>Each active offer shows exactly one of <strong>Create Order</strong> or <strong>Issue Pass</strong>. Rows on the <strong>Inactive</strong> tab show only <strong>Edit</strong> and <strong>Usage</strong> -- inactive offers cannot be sold or issued, so no sales action appears.</p>
+<p>The <strong>Type</strong> column shows a blue <strong>Prepaid</strong> label next to offers whose Stripe price is a one-time price -- prepaid, fixed-term memberships (see <a href="#one-time-memberships">One-time memberships</a>). Offers without it are subscriptions.</p>
 <p>The <strong>On Sale to Public</strong> column shows a checkmark when the offer is publicly purchasable. Offers on the Inactive tab show a red <strong>Inactive</strong> label in this column instead.</p>
 <div class="admonition tip">
 <p class="admonition-title">Usage over the offer's full history</p>
@@ -4552,7 +4597,7 @@ slot, so you can see what a new upload will replace.</p>
 <ul>
 <li>The offer name appears as a heading above the offer's public description.</li>
 <li>The <strong>Offer Details</strong> panel summarizes the Price ID and its <strong>Billing period</strong>, tickets per performance, type, MyEmma group (when MyEmma is enabled), and ticket classes; a <strong>Notification</strong> tab shows the confirmation email content when one is configured.</li>
-<li>Status labels in the top-right corner show whether the offer is Active/Inactive and On Sale/Private.</li>
+<li>Status labels in the top-right corner show whether the offer is Active/Inactive and On Sale/Private, plus <strong>Prepaid</strong> for a prepaid offer. For a prepaid offer the panel also gives its term, for example <em>12 months term, paid once; does not renew</em>.</li>
 <li>Below the description sit <strong>Edit</strong> and the offer's primary sales action: <strong>Create Order</strong> for production offers or <strong>Issue Pass</strong> for timed offers. Unlike the list -- where inactive offers show no sales action at all -- the detail page always shows the button, greyed out and disabled while the offer is Inactive.</li>
 </ul>
 <hr />
@@ -4566,6 +4611,9 @@ slot, so you can see what a new upload will replace.</p>
 <div class="admonition warning">
 <p class="admonition-title">Cancellation is handled through the payment processor</p>
 <p>To cancel an individual member's subscription, the cancellation must be processed through Stripe. Changing the offer status to Inactive only prevents new sign-ups.</p>
+<p>A one-time membership has no subscription to cancel. To end one early, set its status
+to <code>Canceled</code> on the membership's edit form. Refund the payment in Stripe if the
+patron is owed money.</p>
 </div>
 
 

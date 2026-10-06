@@ -2061,6 +2061,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#one-time-memberships" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        One-time memberships
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#redemptions" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4129,7 +4140,8 @@
 <h3 id="how-membership-end-is-determined">How Membership End is determined<a class="headerlink" href="#how-membership-end-is-determined" title="Permanent link">&para;</a></h3>
 <ul>
 <li>For canceled or expired memberships, this is the date the membership actually closed.</li>
-<li>For an active membership scheduled to cancel at the end of its billing period, the final billing date is shown with a <strong>Cancel pending</strong> label.</li>
+<li>For an active membership scheduled to cancel at the end of its billing period, the final billing date is shown with a <strong>Cancel pending</strong> label. This includes gift subscriptions, which are set to end after the offer's <strong>Gift duration</strong> cycles.</li>
+<li>For an active <a href="#one-time-memberships">one-time membership</a>, its last valid day is shown with an <strong>Expires</strong> label.</li>
 <li>A blank value means the membership is ongoing with no scheduled end.</li>
 </ul>
 <h2 id="sorting-and-searching">Sorting and Searching<a class="headerlink" href="#sorting-and-searching" title="Permanent link">&para;</a></h2>
@@ -4158,12 +4170,39 @@
 </tr>
 <tr>
 <td><strong>Edit</strong></td>
-<td>Opens the membership's edit form (status, member since, preferred seating).</td>
+<td>Opens the membership's edit form (status, member since, preferred seating, and <strong>Expires on</strong> for a one-time membership).</td>
 </tr>
 </tbody>
 </table>
 <p>The detail page also offers <strong>Generate Member ID Card</strong>; see
 <a href="#generating-a-member-id-card">below</a>.</p>
+<h2 id="one-time-memberships">One-time memberships<a class="headerlink" href="#one-time-memberships" title="Permanent link">&para;</a></h2>
+<p>A membership bought under an offer with a one-time Stripe price is paid once and runs for a
+fixed term (see <a href="../../offers/membership-offers/#one-time-memberships">Membership Offers -- One-time memberships</a>).
+Instead of <strong>Next Billing Date</strong> and <strong>Manage Subscription</strong>, its detail page shows:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Expires</strong></td>
+<td>The last day the membership can be used. Tickets for a performance after this date cannot be paid for with it.</td>
+</tr>
+</tbody>
+</table>
+<p>Its edit form adds an <strong>Expires on</strong> field, with the hint <em>Last day this one-time membership
+can be used</em>. Change it to extend or shorten the term. Orders already booked are not
+affected; the new date applies to tickets paid for with the membership from then on.</p>
+<p>In the list, <strong>Membership End</strong> shows the same date with an <strong>Expires</strong> label. The day
+after it, a nightly job (1:15 am) sets the status to <strong>Expired</strong>, and <strong>Membership End</strong>
+shows the date without the label. Expiring removes the member from the
+offer's MyEmma group like any other status change. If the job cannot save a membership,
+it emails the <code>membership_notifications</code> address. The membership stays Active, and can
+still be used to book, until the record is fixed.</p>
 <h2 id="redemptions">Redemptions<a class="headerlink" href="#redemptions" title="Permanent link">&para;</a></h2>
 <p>A membership's detail page lists its <strong>Redemptions</strong>: every order paid for in whole or in
 part with the membership. The table works like <strong>Order History</strong> on a patron's page, with
@@ -4217,7 +4256,7 @@ the button, with a link to the offer's edit form for administrators.</p>
 <p>The <strong>New Membership</strong> button below the list creates a membership record directly -- without a purchase order. This is how staff issue shared <a href="../../offers/membership-offers/">library passes</a> and complimentary memberships. For a paid membership, use <strong>Create Order</strong> on the <a href="../../offers/membership-offers/#the-membership-offers-list">Membership Offers list</a> instead so billing is set up.</p>
 <div class="admonition note">
 <p class="admonition-title">Email list sync</p>
-<p>When a membership becomes Active, the member's address is automatically added to the offer's MyEmma email group (if one is configured); when it is canceled, the address is removed -- unless the patron still holds another current membership. The sync runs as a background job. See <a href="../../offers/membership-offers/#email-integration">Membership Offers -- Email Integration</a>.</p>
+<p>When a membership becomes Active, the member's address is automatically added to the offer's MyEmma email group (if one is configured); when it is canceled, suspended or expired, the address is removed -- unless the patron still holds another current membership. The sync runs as a background job. See <a href="../../offers/membership-offers/#email-integration">Membership Offers -- Email Integration</a>.</p>
 </div>
 <h2 id="related-pages">Related Pages<a class="headerlink" href="#related-pages" title="Permanent link">&para;</a></h2>
 <ul>
