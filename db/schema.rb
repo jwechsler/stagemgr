@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_10_06_120000) do
+ActiveRecord::Schema.define(version: 2026_10_06_140000) do
 
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name", null: false
@@ -283,7 +283,6 @@ ActiveRecord::Schema.define(version: 2026_10_06_120000) do
     t.datetime "updated_at"
     t.integer "tickets_per_performance"
     t.text "html_description", size: :medium
-    t.text "billing_agreement", size: :medium
     t.string "myemma_group"
     t.string "use_member_friend_code"
     t.boolean "on_sale", default: true

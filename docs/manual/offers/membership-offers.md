@@ -105,11 +105,10 @@ All sync work runs as background jobs, so saving the form returns immediately an
 !!! note "Only shown when MyEmma is configured"
     The MyEmma Group ID field (and the matching row on the offer detail page) appears only when the MyEmma integration is enabled for this installation.
 
-### Content and Legal
+### Content
 
 | Field | Description |
 |-------|-------------|
-| **Billing Agreement** | Legal text displayed to the customer before purchase, describing the recurring billing terms. |
 | **HTML Description** | Rich HTML content displayed on the membership detail/sales page. |
 | **Confirmation Email Text** | Text added to the membership confirmation email sent after purchase. Markdown enabled; hand-written HTML tags still work. **Send sample email** in its header mails you the confirmation with the offer name and text as typed; no membership is created. |
 
