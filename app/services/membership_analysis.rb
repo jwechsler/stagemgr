@@ -213,7 +213,7 @@ class MembershipAnalysis
   def one_time_coverage(row)
     return [row.window_start, row.effective_end + 1.day, length_in_months(row)] if row.effective_end
 
-    months = offers[row.offer_id].max_cycles_if_gift || MembershipOffer::DEFAULT_ONE_TIME_MONTHS
+    months = offers[row.offer_id].one_time_term_months
     [row.window_start, row.window_start >> months, months]
   end
 

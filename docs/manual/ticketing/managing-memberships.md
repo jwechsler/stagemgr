@@ -27,7 +27,8 @@ The Memberships list shows every individual membership in the system -- one row 
 ### How Membership End is determined
 
 - For canceled or expired memberships, this is the date the membership actually closed.
-- For an active membership scheduled to cancel at the end of its billing period, the final billing date is shown with a **Cancel pending** label.
+- For an active membership scheduled to cancel at the end of its billing period, the final billing date is shown with a **Cancel pending** label. This includes gift subscriptions, which are set to end after the offer's **Gift duration** cycles.
+- For an active [one-time membership](#one-time-memberships), its last valid day is shown with an **Expires** label.
 - A blank value means the membership is ongoing with no scheduled end.
 
 ## Sorting and Searching
@@ -45,10 +46,31 @@ The Memberships list shows every individual membership in the system -- one row 
 | Action | What it does |
 |--------|--------------|
 | **Member Code link** | Opens the membership's detail page. |
-| **Edit** | Opens the membership's edit form (status, member since, preferred seating). |
+| **Edit** | Opens the membership's edit form (status, member since, preferred seating, and **Expires on** for a one-time membership). |
 
 The detail page also offers **Generate Member ID Card**; see
 [below](#generating-a-member-id-card).
+
+## One-time memberships
+
+A membership bought under an offer with a one-time Stripe price is paid once and runs for a
+fixed term (see [Membership Offers -- One-time memberships](../offers/membership-offers.md#one-time-memberships)).
+Instead of **Next Billing Date** and **Manage Subscription**, its detail page shows:
+
+| Field | Meaning |
+|-------|---------|
+| **Expires** | The last day the membership can be used. Tickets for a performance after this date cannot be paid for with it. |
+
+Its edit form adds an **Expires on** field, with the hint *Last day this one-time membership
+can be used*. Change it to extend or shorten the term. Orders already booked are not
+affected; the new date applies to tickets paid for with the membership from then on.
+
+In the list, **Membership End** shows the same date with an **Expires** label. The day
+after it, a nightly job (1:15 am) sets the status to **Expired**, and **Membership End**
+shows the date without the label. Expiring removes the member from the
+offer's MyEmma group like any other status change. If the job cannot save a membership,
+it emails the `membership_notifications` address. The membership stays Active, and can
+still be used to book, until the record is fixed.
 
 ## Redemptions
 
@@ -90,7 +112,7 @@ the button, with a link to the offer's edit form for administrators.
 The **New Membership** button below the list creates a membership record directly -- without a purchase order. This is how staff issue shared [library passes](../offers/membership-offers.md) and complimentary memberships. For a paid membership, use **Create Order** on the [Membership Offers list](../offers/membership-offers.md#the-membership-offers-list) instead so billing is set up.
 
 !!! note "Email list sync"
-    When a membership becomes Active, the member's address is automatically added to the offer's MyEmma email group (if one is configured); when it is canceled, the address is removed -- unless the patron still holds another current membership. The sync runs as a background job. See [Membership Offers -- Email Integration](../offers/membership-offers.md#email-integration).
+    When a membership becomes Active, the member's address is automatically added to the offer's MyEmma email group (if one is configured); when it is canceled, suspended or expired, the address is removed -- unless the patron still holds another current membership. The sync runs as a background job. See [Membership Offers -- Email Integration](../offers/membership-offers.md#email-integration).
 
 ## Related Pages
 

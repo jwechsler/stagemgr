@@ -27,8 +27,8 @@ module MembershipMetrics
   # One billing period of the membership's offer, split into the months and
   # days to add to a payment date (MembershipOffer#billing_period_for in SQL):
   # years and months are calendar months, a one-time price lasts the gift
-  # length or a year, weeks and days are days, and no synced period is a
-  # month.
+  # length or a year (MembershipOffer#one_time_term_months; keep the two in
+  # step), weeks and days are days, and no synced period is a month.
   PERIOD_MONTHS_SQL = <<~SQL.squish.freeze
     (SELECT CASE period_offers.billing_interval
               WHEN '#{MembershipOffer::YEAR}' THEN 12 * COALESCE(period_offers.billing_interval_count, 1)
@@ -43,8 +43,11 @@ module MembershipMetrics
       WHERE period_offers.id = memberships.membership_offer_id)
   SQL
 
+  # A one-time term ends the day before its anniversary
+  # (MembershipOffer#one_time_term_end), so it subtracts a day.
   PERIOD_DAYS_SQL = <<~SQL.squish.freeze
     (SELECT CASE period_offers.billing_interval
+              WHEN '#{MembershipOffer::ONE_TIME}' THEN -1
               WHEN '#{MembershipOffer::WEEK}' THEN 7 * COALESCE(period_offers.billing_interval_count, 1)
               WHEN '#{MembershipOffer::DAY}' THEN COALESCE(period_offers.billing_interval_count, 1)
               ELSE 0

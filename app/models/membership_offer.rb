@@ -107,6 +107,63 @@ class MembershipOffer < ApplicationRecord
     billing_interval == ONE_TIME
   end
 
+  # Months a one-time (gift) purchase lasts. MembershipMetrics::PERIOD_MONTHS_SQL
+  # spells the same rule in SQL; change both together.
+  def one_time_term_months
+    max_cycles_if_gift || DEFAULT_ONE_TIME_MONTHS
+  end
+
+  # The last day (inclusive) of a one-time term starting on +start+: a
+  # 12-month term from 2026-10-06 runs through 2027-10-05, 365 days, not to
+  # the anniversary. MembershipMetrics::PERIOD_DAYS_SQL subtracts the same day.
+  def one_time_term_end(start)
+    (start >> one_time_term_months) - 1
+  end
+
+  # Reads the billing period of the offer's Stripe Price and caches it, as
+  # SyncMembershipOfferBillingPeriodJob does in the background. Checkout calls
+  # this when the offer is not synced yet, so a freshly saved one-time offer is
+  # charged as one-time rather than falling through to Subscription.create.
+  # update_columns, so saving the period does not re-enqueue the job.
+  def sync_billing_period!
+    period = PaymentProcessing.price_billing_period(price_id)
+    update_columns(billing_interval: period[:interval], billing_interval_count: period[:interval_count],
+                   billing_period_synced_at: Time.current)
+  end
+
+  # When a gift subscription bought at +from+ should end: max_cycles_if_gift
+  # billing periods later, so Stripe's cancel_at lands on a period boundary.
+  # Months and years add calendar months to the start, as Stripe's billing
+  # anchor does (January 31 + 1 month is February 28, + 2 is March 31).
+  # nil when the offer sets no gift length.
+  #
+  # Computed in UTC because Stripe anchors billing periods on the UTC start
+  # timestamp. Month arithmetic on Central time keeps the wall-clock hour, so
+  # across a CDT -> CST change the end landed an hour past Stripe's period
+  # boundary: Stripe renewed first and billed the buyer one cycle too many.
+  def gift_subscription_ends_at(from)
+    count, unit = gift_subscription_span
+    return nil if count.nil?
+
+    from = from.utc
+
+    case unit
+    when DAY then from + count.days
+    when WEEK then from + count.weeks
+    when YEAR then from + (12 * count).months
+    else from + count.months
+    end
+  end
+
+  # How long a gift of this offer lasts, as copy: "12 months", "2 years".
+  # nil for a recurring offer with no gift length, which renews until canceled.
+  def gift_length_label
+    count, unit = one_time_payment? ? [one_time_term_months, MONTH] : gift_subscription_span
+    return nil if count.nil?
+
+    "#{count} #{unit.pluralize(count)}"
+  end
+
   # Months one payment pays for, which turns a payment into a monthly rate:
   # 1 when not synced (assumed monthly), nil for a one-time price (the
   # caller measures the membership). Weeks and days use the average month.
@@ -176,6 +233,16 @@ class MembershipOffer < ApplicationRecord
   end
 
   private
+
+  # A recurring gift's length as [count, unit]: max_cycles_if_gift billing
+  # periods of the synced interval (not synced means assumed monthly), or nil
+  # when the offer sets no gift length.
+  def gift_subscription_span
+    cycles = max_cycles_if_gift.to_i
+    return nil unless cycles.positive?
+
+    [(billing_interval_count || 1) * cycles, billing_period_synced? ? billing_interval : MONTH]
+  end
 
   def calendar_billing_period(paid_on, months, anchor_day)
     start = billing_day_in(paid_on, anchor_day)

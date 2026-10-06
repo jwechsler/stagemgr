@@ -118,6 +118,23 @@ RSpec.describe NotificationMailer, type: :mailer do
     end
   end
 
+  describe '#membership_expiry_failed_alert' do
+    let(:failures) do
+      [{ id: 41, member_code: 'TW-AAAAAA', expires_on: Date.new(2026, 10, 5), error: 'ActiveRecord::RecordInvalid: Address is invalid' },
+       { id: 42, member_code: nil, expires_on: Date.new(2026, 10, 4), error: 'RuntimeError: boom' }]
+    end
+    let(:mail) { described_class.membership_expiry_failed_alert(failures, 'boxoffice@example.com') }
+
+    it 'lists each membership with a link, its expiry date and the error' do
+      body = mail.body.encoded
+
+      expect(mail.to).to eq(['boxoffice@example.com'])
+      expect(mail.subject).to eq('2 memberships could not be expired')
+      expect(body).to include('TW-AAAAAA', '/admin/memberships/41', 'October 05, 2026', 'Address is invalid')
+      expect(body).to include('Membership 42', '/admin/memberships/42', 'RuntimeError: boom')
+    end
+  end
+
   describe '#refunded_fulfilled_item_alert' do
     let(:order) { FactoryBot.create(:ticket_order) }
     let(:recipient) { 'boxoffice@example.com' }

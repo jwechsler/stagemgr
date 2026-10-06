@@ -1,4 +1,12 @@
 = f.input :recipient_name, :required=>true
 = f.input :recipient_email, :required=>true, :hint=>"Sssh! We won't contact this recipient regarding this order until after you give the gift"
-- h = ("This gift membership will auto-renew for #{pluralize(offer.max_cycles_if_gift, 'month')}." if (offer.max_cycles_if_gift || 0) > 0) || ""
+-# A one-time offer is paid once for its whole term; a recurring offer with a
+-# gift length renews for that many billing periods and then ends
+-# (StripeGateway#gift_cancel_at). No gift length: no hint.
+- length = offer.gift_length_label
+- h = ""
+- if length && offer.one_time_payment?
+  - h = "This gift membership lasts #{length} and does not renew."
+- elsif length
+  - h = "This gift membership renews for #{length} and then ends."
 = f.input :gift_date, :label=>"Keep secret until...", as: :datepicker, :hint=>h

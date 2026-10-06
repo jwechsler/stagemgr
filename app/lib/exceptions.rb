@@ -10,6 +10,8 @@ module Exceptions
 
   class PerformanceOutsideCurrentWeek < StandardError; end
 
+  class MembershipExpiredForPerformance < StandardError; end
+
   # Membership exceptions
   class UnknownMembershipCode < StandardError; end
 

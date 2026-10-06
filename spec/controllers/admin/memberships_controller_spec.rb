@@ -53,6 +53,23 @@ RSpec.describe Admin::MembershipsController, type: :controller do
       expect(row['membership_end']).to eq(Date.current.strftime('%m/%d/%Y'))
     end
 
+    it 'shows a running one-time membership its expiry date, labeled Expires' do
+      membership.update!(profile_id: nil, expires_on: Date.new(2027, 10, 5))
+
+      get :index, params: datatable_params, format: :json
+      row = response.parsed_body['data'].find { |r| r['member_code'].include?(membership.member_code) }
+      expect(row['membership_end']).to include('10/05/2027', 'Expires')
+    end
+
+    it 'shows an expired one-time membership its end date without the Expires label' do
+      membership.update!(profile_id: nil, expires_on: Date.current - 1)
+      membership.expire!
+
+      get :index, params: datatable_params, format: :json
+      row = response.parsed_body['data'].find { |r| r['member_code'].include?(membership.member_code) }
+      expect(row['membership_end']).to eq((Date.current - 1).strftime('%m/%d/%Y'))
+    end
+
     it 'filters by member name through the global search' do
       other_address = FactoryBot.create(:address, full_name: 'Zelda Zzyzx', last_name: 'Zzyzx')
       FactoryBot.create(:membership, address: other_address, membership_offer: timed_offer, member_code: 'TW-LIB02')
@@ -244,6 +261,32 @@ RSpec.describe Admin::MembershipsController, type: :controller do
     it 'redirects to the membership' do
       patch :update, params: { id: membership.id, membership: { status: Membership::CANCELED } }
       expect(response).to redirect_to(admin_membership_path(membership))
+    end
+
+    it "lets staff extend a one-time membership's expiry date" do
+      membership.update!(expires_on: Date.current + 30)
+
+      patch :update, params: { id: membership.id, membership: { expires_on: (Date.current + 90).iso8601 } }
+
+      expect(membership.reload.expires_on).to eq(Date.current + 90)
+    end
+  end
+
+  describe 'one-time membership display' do
+    before { membership.update!(expires_on: Date.new(2027, 10, 6)) }
+
+    it 'shows the edit field for the expiry date' do
+      get :edit, params: { id: membership.id }
+
+      expect(response.body).to include('membership[expires_on]')
+    end
+
+    it 'offers no expiry field for a subscription membership' do
+      membership.update!(expires_on: nil)
+
+      get :edit, params: { id: membership.id }
+
+      expect(response.body).not_to include('membership[expires_on]')
     end
   end
 end

@@ -656,5 +656,24 @@ RSpec.describe OrderMailer, type: :mailer do
       expect(body).to include('Gil Giftee will be able to use')
       expect(body).to include(membership_order.membership.member_code)
     end
+
+    it 'tells a one-time member when the membership ends instead of offering subscription management' do
+      membership_order.membership.update!(expires_on: Date.new(2027, 10, 6))
+
+      body = OrderMailer.membership_confirmation(membership_order).body.decoded
+
+      expect(body).to include('runs through October 06, 2027')
+      expect(body).to include('will not renew')
+      expect(body).not_to include('Manage your subscription')
+    end
+
+    it 'tells a one-time gift buyer when the gift ends' do
+      membership_order.update!(gift: true, recipient_name: 'Gil Giftee', gift_date: Date.current + 7)
+      membership_order.membership.update!(expires_on: Date.new(2027, 10, 13))
+
+      body = OrderMailer.membership_confirmation(membership_order).body.decoded
+
+      expect(body).to include('This gift membership runs through October 13, 2027 and does not renew.')
+    end
   end
 end

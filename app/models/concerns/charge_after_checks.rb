@@ -162,20 +162,27 @@ module ChargeAfterChecks
   def reverse_charge(payment, error)
     return unless payment.is_a?(CreditCardPayment) && payment.transaction_id.present? && payment.amount.to_d.positive?
 
-    reason = error.message.to_s.gsub(CARD_NUMBER_PATTERN, '[redacted]')
-    Rails.logger.error("Order #{id}: #{error.class} after charging #{payment.transaction_id} " \
-                       "($#{format('%.2f', payment.amount)}); refunding the charge. #{reason}")
+    reference = "charge #{payment.transaction_id}"
+    log_refunding_after_failure(reference, payment.amount, error)
     response = payment.reverse_charge!(CHARGE_REVERSAL_NOTE)
     return if response.success?
 
-    log_manual_refund_needed(payment, response.message)
+    log_manual_refund_needed(reference, payment.amount, response.message)
   rescue StandardError => e
-    log_manual_refund_needed(payment, e.message)
+    log_manual_refund_needed(reference, payment.amount, e.message)
   end
 
-  def log_manual_refund_needed(payment, message)
-    Rails.logger.error("Order #{id}: MANUAL REFUND NEEDED for charge #{payment.transaction_id} " \
-                       "($#{format('%.2f', payment.amount)}): #{message}")
+  # +reference+ names what was charged: "charge ch_..." for a card payment,
+  # "invoice in_..." for a one-time membership (MembershipOrder).
+  def log_refunding_after_failure(reference, amount, error)
+    reason = error.message.to_s.gsub(CARD_NUMBER_PATTERN, '[redacted]')
+    Rails.logger.error("Order #{id}: #{error.class} after #{reference} " \
+                       "($#{format('%.2f', amount)}); refunding it. #{reason}")
+  end
+
+  def log_manual_refund_needed(reference, amount, message)
+    Rails.logger.error("Order #{id}: MANUAL REFUND NEEDED for #{reference} " \
+                       "($#{format('%.2f', amount)}): #{message}")
   end
 
   def notify_box_office_of_failed_donation

@@ -17,7 +17,7 @@ class MembershipOfferDatatable < DatatableBase
         id: record.decorate.id,
         name: name_with_tags(record),
         on_sale: record.decorate.on_sale?,
-        membership_type: record.membership_type,
+        membership_type: record.decorate.membership_type_display,
         status: record.decorate.dt_actions,
         DT_RowID: record.id
       }

@@ -5,6 +5,30 @@ class MembershipOfferDecorator < ApplicationDecorator
     h.link_to(object.name, [:admin, object])
   end
 
+  TYPE_DESCRIPTIONS = {
+    MembershipOffer::PRODUCTION => 'Single-member membership, good for tickets to each production',
+    MembershipOffer::TIMED => 'Library pass: shared, staff-issued, one performance per calendar week'
+  }.freeze
+
+  # The offer's type as a label, plus a Prepaid label when its Stripe price is
+  # charged once (a prepaid, fixed-term membership) rather than as a
+  # subscription. Tag helpers, not a partial: h.render inside datatable JSON
+  # returns "".
+  def membership_type_display
+    h.safe_join([membership_type_label, one_time_label].compact, ' ')
+  end
+
+  def membership_type_label
+    h.ui_label(object.membership_type.to_s.titleize, variant: :secondary, class: 'tiny',
+                                                     title: TYPE_DESCRIPTIONS[object.membership_type])
+  end
+
+  def one_time_label(css_class: 'tiny')
+    return unless object.one_time_payment?
+
+    h.ui_label('Prepaid', variant: :info, class: css_class, title: 'Paid once; runs for a fixed term and does not renew')
+  end
+
   def on_sale?
     return h.ui_label('Inactive', variant: :alert, class: 'tiny') unless object.active?
 

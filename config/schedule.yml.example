@@ -87,3 +87,8 @@ InactivateUnusedProductions:
   description: "Inactivate productions older than 3 years"
   queue: maintenance
   
+
+ExpireOneTimeMembershipsJob:
+  cron: "15 1 * * *"
+  description: "Expire one-time (gift) memberships the day after their expires_on"
+  queue: maintenance

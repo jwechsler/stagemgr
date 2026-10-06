@@ -13,6 +13,9 @@
     give with your gift, just contact our box office<% if theater_info.phone.present? %>
     at <%= theater_info.phone %><% end %>; if not, <%= @order.recipient_name %> can pick
     up the card along with their first reservation.</p>
+    <%- if @membership.one_time? %>
+      <p>This gift membership runs through <%= @membership.expires_on.to_formatted_s(:long) %> and does not renew.</p>
+    <%- end %>
 <% else %>
   <p>
   <%- if @membership.active? %>
@@ -37,9 +40,16 @@
     neighborhood.</p>
   <%# Self-service subscription management is Stripe's hosted portal. A house
       that bills some other way has no such link, so the whole section goes
-      rather than sending members to a button that does nothing. %>
+      rather than sending members to a button that does nothing. A one-time
+      membership has no subscription to manage; it just ends. %>
   <% portal = theater_info.stripe_billing_portal_url %>
-  <% if portal.present? %>
+  <% if @membership.one_time? %>
+    <h4>Your membership term</h4>
+    <p>
+      Your membership runs through <%= @membership.expires_on.to_formatted_s(:long) %>. It was paid in full
+      and will not renew or charge your card again.
+    </p>
+  <% elsif portal.present? %>
     <% portal_url = [portal, { prefilled_email: @order.address.email }.to_query].join(portal.include?('?') ? '&' : '?') %>
     <h4>Managing your membership</h4>
     <p>

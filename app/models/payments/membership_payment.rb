@@ -33,6 +33,7 @@ class MembershipPayment < PassPayment
     raise 'That member ID is not active. Please call the box office for assistance.' unless membership.active?
 
     membership.verify_bookable_this_week!(o)
+    membership.verify_within_term_for!(o)
     membership.verify_applicable_for(o)
     super
   end

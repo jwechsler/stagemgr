@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_10_05_130000) do
+ActiveRecord::Schema.define(version: 2026_10_06_120000) do
 
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name", null: false
@@ -318,6 +318,7 @@ ActiveRecord::Schema.define(version: 2026_10_05_130000) do
     t.date "start_date"
     t.date "ended_at"
     t.boolean "cancel_at_period_end", default: false
+    t.date "expires_on"
   end
 
   create_table "order_task_suppressions", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|

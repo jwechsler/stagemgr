@@ -19,7 +19,7 @@ class MembershipOrder < Order
     begin
       super
     rescue StandardError => e
-      raise "There was a problem setting up your account for the #{membership_offer.name} payment plan. #{e.message}"
+      raise "There was a problem setting up your account for the #{purchase_description}. #{e.message}"
     end
   end
 
@@ -29,12 +29,15 @@ class MembershipOrder < Order
     nil
   end
 
+  # A one-time Stripe Price is charged once and the membership given an
+  # expiry date; a recurring one becomes a Stripe subscription. An offer saved
+  # moments ago may not have its billing period cached yet (the sync job runs
+  # in the background), so read it now rather than guess it is recurring.
   def charge_proper_payment!(_payment)
-    membership.profile_id = PaymentProcessing.create_subscription(self)
-    membership.update_from_profile
-    membership.preferred_seating = special_request
-    membership.save!
-    create_proper_payment_in_amount_of!(total)
+    membership_offer.sync_billing_period! unless membership_offer.billing_period_synced?
+    return charge_one_time_membership! if membership_offer.one_time_payment?
+
+    charge_subscription_membership!
   end
 
   def display_code
@@ -109,7 +112,12 @@ class MembershipOrder < Order
     total_paid
   end
 
+  # SUBSCRIPTION path only: the first payment follows the synced subscription.
+  # A one-time membership has no subscription to sync and records its payment
+  # in #charge_one_time_membership!.
   def create_proper_payment_in_amount_of!(_amount, _payment_options = {})
+    return if membership.one_time?
+
     membership.update_from_profile!
     return unless membership.active?
 
@@ -133,6 +141,32 @@ class MembershipOrder < Order
   end
 
   protected
+
+  # A paid one-time invoice is not a CreditCardPayment, so the base reversal
+  # (charged_payments) cannot see it. If anything after the charge raises --
+  # membership.save!, the order's save!, its donation orders -- refund the
+  # invoice before the rollback reaches the patron, so they are never left
+  # charged for a membership that was not created.
+  def reversing_charges_on_failure(&)
+    @paid_one_time_invoice = nil
+    super
+  rescue StandardError => e
+    refund_paid_one_time_invoice(e)
+    raise
+  end
+
+  def refund_paid_one_time_invoice(error)
+    invoice = @paid_one_time_invoice
+    return if invoice.nil?
+
+    @paid_one_time_invoice = nil
+    reference = "invoice #{invoice.id}"
+    amount = invoice.amount_paid / 100.0
+    log_refunding_after_failure(reference, amount, error)
+    PaymentProcessing.refund_one_time(invoice.id, source: CreditCardPayment::REFUND_SOURCE, order_id: id)
+  rescue StandardError => e
+    log_manual_refund_needed(reference, amount, e.message)
+  end
 
   # membership.save! follows the subscription, so check it can save first.
   def ready_to_charge?
@@ -158,6 +192,12 @@ class MembershipOrder < Order
 
   def starting_at
     [Time.now, gift_date.nil? ? Time.now : gift_date.to_datetime].max
+  end
+
+  # The day a one-time membership's term begins: the purchase date, or the
+  # gift date when that is later (the day starting_at falls on).
+  def term_start
+    [Date.current, gift_date&.to_date].compact.max
   end
 
   def create_receipt_task
@@ -225,6 +265,36 @@ class MembershipOrder < Order
   end
 
   private # ... might be ghost methods
+
+  def purchase_description
+    membership_offer.one_time_payment? ? membership_offer.name : "#{membership_offer.name} payment plan"
+  end
+
+  # SUBSCRIPTION path: Stripe bills the recurring price and ends the
+  # membership through the customer.subscription.* webhooks.
+  def charge_subscription_membership!
+    membership.profile_id = PaymentProcessing.create_subscription(self)
+    membership.update_from_profile
+    membership.preferred_seating = special_request
+    membership.save!
+    create_proper_payment_in_amount_of!(total)
+  end
+
+  # ONE-TIME path: one charge for the whole term. Nothing in Stripe will end
+  # this membership, so it carries its own expiry date, which
+  # ExpireOneTimeMembershipsJob acts on. The payment is recorded here, as a
+  # RecurringPayment keyed by the invoice id like a subscription's, so
+  # refunds made in Stripe find it (StripeRefundRecorder#recurring_source).
+  def charge_one_time_membership!
+    invoice = PaymentProcessing.charge_one_time(self)
+    @paid_one_time_invoice = invoice
+    membership.start_date = term_start
+    membership.expires_on = membership_offer.one_time_term_end(membership.start_date)
+    membership.status = Membership::ACTIVE
+    membership.preferred_seating = special_request
+    membership.save!
+    create_recurring_payment('One-time payment', amount: invoice.amount_paid / 100.0, invoice_id: invoice.id)
+  end
 
   def time_to_hold_in_transition
     8.hours
