@@ -9,7 +9,7 @@
 
 ## Overview
 
-Memberships are recurring subscription plans that grant patrons a set number of tickets per performance, optional guest tickets, and other benefits. Memberships are billed on a recurring cycle through the payment processor and can include trial periods and gift options.
+Memberships grant patrons a set number of tickets per performance, optional guest tickets, and other benefits. Most are subscriptions billed on a recurring cycle through the payment processor, and can include trial periods and gift options. A membership whose Stripe price is a one-time price is instead paid once, up front, and runs for a fixed term -- the usual setup for a prepaid gift membership. See [One-time memberships](#one-time-memberships).
 
 ## Creating a Membership Offer
 
@@ -22,10 +22,10 @@ Memberships are recurring subscription plans that grant patrons a set number of 
 | **Name** | Display name for the membership tier (e.g., "Gold Membership"). |
 | **Status** | `Active` or `Inactive`. Only active memberships can be purchased. |
 | **On Sale** | Whether the membership is available for purchase on the public website. |
-| **Price ID** | The recurring price identifier from the payment processor (Stripe). This controls the billing amount and cycle. |
+| **Price ID** | The price identifier from the payment processor (Stripe). A recurring price controls the billing amount and cycle; a one-time price makes this a prepaid, fixed-term membership. |
 
 !!! warning "Price ID must be configured in Stripe first"
-    Create the recurring price in your Stripe dashboard before setting up the membership offer. The Price ID links the membership to the correct billing plan.
+    Create the price in your Stripe dashboard before setting up the membership offer. The Price ID links the membership to the correct billing plan, and whether that price is recurring or one-time decides how the membership is charged.
 
 When you save an offer with a new Price ID, Stagemgr reads that price's billing period
 (monthly, yearly, one-time and so on) from Stripe in the background and shows it as
@@ -64,10 +64,29 @@ Leave both fields blank to skip the trial period and begin full-price billing im
 
 | Field | Description |
 |-------|-------------|
-| **Max Cycles if Gift** | Maximum number of billing cycles when the membership is purchased as a gift. After this many cycles, billing stops automatically. |
+| **Gift duration** | How long a gift lasts. Its meaning depends on the offer's Stripe price, as the form's hint says: *Recurring price: billing cycles before a gift subscription ends. One-time price: months the gift lasts (blank = 12).* |
 
-!!! tip "Setting gift duration"
-    For a 1-year gift membership billed monthly, set **Max Cycles if Gift** to `12`. The gift recipient enjoys full benefits for 12 months without further charges.
+**Recurring price -- billing cycles.** When the membership is bought as a gift, the
+subscription is set to end after this many billing cycles of the price, and the giver
+is charged no more after that. A monthly price with **Gift duration** `12` bills 12
+months; a yearly price with `2` bills two years. When the last cycle ends, the
+membership becomes **Canceled**. Until then it shows **Cancel pending** with its final
+billing date. Leave the field blank and a gift subscription renews like any other
+until it is cancelled. The gift purchase page tells the buyer, for example, *"This gift
+membership renews for 12 months and then ends."*
+
+**One-time price -- months.** The whole term is paid at checkout, and the membership lasts
+this many months (12 when the field is blank). Every purchase of a one-time offer gets
+this term, whether or not it is a gift. The gift purchase page shows *"This gift
+membership lasts 12 months and does not renew."*
+
+!!! warning "A one-time offer's Gift duration is in months, not cycles"
+    A one-time price has no billing cycles, so the number is read as months. An offer
+    that held `1` when it was billed yearly will run for **one month** once its price is
+    switched to a one-time price. Set it to `12` for a one-year gift.
+
+The term starts on the purchase date or, for a gift, on the **Keep secret until...** date
+if that is later. That is also when the recipient is sent their member number.
 
 ### Email Integration
 
@@ -78,7 +97,7 @@ Leave both fields blank to skip the trial period and begin full-price billing im
 How the sync works:
 
 - When a membership on this offer becomes **Active**, the member's address is added to the group.
-- When a membership is **Canceled** or **Suspended**, the address is removed -- unless the patron still holds another current membership.
+- When a membership is **Canceled**, **Suspended** or **Expired**, the address is removed -- unless the patron still holds another current membership.
 - If you **change the group ID** on the offer, every active membership's address is added to the new group automatically. Addresses are not removed from the old group.
 
 All sync work runs as background jobs, so saving the form returns immediately and any email-service hiccup is retried without affecting the membership itself.
@@ -157,7 +176,20 @@ Click the **x** on the right side of any pill to remove that tag, then save the 
 2. If a **Trial Period** is configured, the patron is charged the **Trial Price** and the trial countdown begins.
 3. After the trial period ends (or immediately if no trial), recurring billing at the full price begins based on the Stripe price configuration.
 4. Each billing cycle, the payment processor charges the patron automatically.
-5. If the membership was purchased as a gift, billing stops after **Max Cycles if Gift** cycles.
+5. If the membership was purchased as a gift and the offer sets a **Gift duration**, billing stops after that many cycles and the membership becomes Canceled.
+
+### One-time memberships
+
+An offer whose Price ID is a one-time Stripe price works differently:
+
+1. At checkout the patron's card is charged the full price once, on a Stripe invoice. No subscription is created, so nothing renews and the card is never charged again.
+2. The membership is Active straight away. Its term runs for **Gift duration** months (12 if blank), from the purchase date or a later gift date.
+3. The term ends on its **Expires** date, the last day it can be used. A 12-month membership starting October 6, 2026 expires October 5, 2027. Tickets for a performance after that date cannot be paid for with it.
+4. A nightly job at 1:15 am sets a membership to **Expired** the day after its Expires date. If a membership cannot be expired, usually because an old record fails validation, the job skips it and emails the `membership_notifications` address with the list. It retries those memberships every night until they are fixed.
+5. If something goes wrong after the card is charged and the order cannot be completed, the charge is refunded automatically and the patron sees an error.
+
+Staff can change a one-time membership's expiry date on its edit form; see
+[Managing Memberships](../ticketing/managing-memberships.md#one-time-memberships).
 
 ---
 
@@ -235,3 +267,7 @@ Individual membership records (who holds each membership, its status, start, and
 
 !!! warning "Cancellation is handled through the payment processor"
     To cancel an individual member's subscription, the cancellation must be processed through Stripe. Changing the offer status to Inactive only prevents new sign-ups.
+
+    A one-time membership has no subscription to cancel. To end one early, set its status
+    to `Canceled` on the membership's edit form. Refund the payment in Stripe if the
+    patron is owed money.

@@ -57,6 +57,17 @@ RSpec.describe SyncMembershipMyEmmaJob do
       expect(group).to have_received(:remove_members).with(member)
     end
 
+    it 'removes the member when a one-time membership expires' do
+      membership.update_column(:status, Membership::EXPIRED)
+      allow(MyEmma::Member).to receive(:find_by_email).with(address.email).and_return(member)
+      allow(MyEmma::Group).to receive(:find).with('GRP1').and_return(group)
+
+      described_class.perform(membership.id)
+
+      expect(group).to have_received(:remove_members).with(member)
+      expect(member).not_to have_received(:save)
+    end
+
     it 'does nothing when the address is still a current member elsewhere' do
       allow_any_instance_of(Address).to receive(:is_current_member?).and_return(true)
 

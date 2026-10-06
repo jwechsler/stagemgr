@@ -148,8 +148,11 @@ module RecurringProfile
     status == PENDING
   end
 
+  # No longer entitled to member benefits. Expired (a one-time membership
+  # past its term, ExpireOneTimeMembershipsJob) counts: until 2026-10 it did
+  # not, so the MyEmma sync re-added an expired member instead of removing them.
   def inactive?
-    [Membership::CANCELED, Membership::SUSPENDED].include?(status)
+    [Membership::CANCELED, Membership::SUSPENDED, Membership::EXPIRED].include?(status)
   end
 
   def canceled?
