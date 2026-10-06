@@ -8,8 +8,8 @@
 # rows with stale data often fail validation) is logged and skipped, so it
 # neither stops the rest of tonight's run nor blocks every run after it.
 # It stays Active and past expires_on, so it is retried each night until
-# someone fixes the row; the box office is emailed the list each night it
-# fails.
+# someone fixes the row; membership_notifications is emailed the list each
+# night it fails.
 class ExpireOneTimeMembershipsJob
   @queue = :maintenance
 
@@ -25,11 +25,11 @@ class ExpireOneTimeMembershipsJob
     end
     Rails.logger.info("ExpireOneTimeMembershipsJob: expired #{expired} one-time memberships, " \
                       "#{failures.size} failed")
-    alert_box_office(failures)
+    alert_staff(failures)
     { expired: expired, failed: failures.size }
   end
 
-  # nil on success; otherwise the failure, for the box office alert.
+  # nil on success; otherwise the failure, for the staff alert.
   def self.expire(membership)
     membership.expire!
     nil
@@ -42,14 +42,14 @@ class ExpireOneTimeMembershipsJob
 
   # A mail failure is logged, not raised: the expirations are already saved
   # and the failures are in the log.
-  def self.alert_box_office(failures)
-    box_office = Rails.configuration.x.email_address&.dig('box_office')
-    return if failures.empty? || box_office.blank?
+  def self.alert_staff(failures)
+    recipient = Rails.configuration.x.email_address&.dig('membership_notifications')
+    return if failures.empty? || recipient.blank?
 
-    NotificationMailer.membership_expiry_failed_alert(failures, box_office).deliver_now
+    NotificationMailer.membership_expiry_failed_alert(failures, recipient).deliver_now
   rescue StandardError => e
-    Rails.logger.error("ExpireOneTimeMembershipsJob: could not email the box office about " \
+    Rails.logger.error("ExpireOneTimeMembershipsJob: could not email membership_notifications about " \
                        "#{failures.size} failed expirations: #{e.class}: #{e.message}")
   end
-  private_class_method :expire, :alert_box_office
+  private_class_method :expire, :alert_staff
 end
