@@ -74,8 +74,18 @@ RSpec.describe Admin::MembershipOffersController, type: :controller do
         get :index, params: datatable_params(status_scope: 'active'), format: :json
         types = response.parsed_body['data'].to_h { |row| [row['id'].to_i, row['membership_type']] }
 
-        expect(types[prepaid.id]).to include('production', 'Prepaid')
-        expect(types[active_offer.id]).to eq('production')
+        expect(types[prepaid.id]).to include('>Production<', '>Prepaid<')
+        expect(types[active_offer.id]).to include('>Production<')
+        expect(types[active_offer.id]).not_to include('Prepaid')
+      end
+
+      it 'shows a timed offer as a Timed label' do
+        timed = FactoryBot.create(:membership_offer, name: 'Library Pass', membership_type: MembershipOffer::TIMED)
+
+        get :index, params: datatable_params(status_scope: 'active'), format: :json
+        row = response.parsed_body['data'].find { |r| r['id'].to_i == timed.id }
+
+        expect(row['membership_type']).to include('>Timed<')
       end
 
       it 'returns all offers when status_scope is omitted' do
