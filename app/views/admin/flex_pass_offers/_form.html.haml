@@ -26,11 +26,14 @@
         %legend Payout Info
         .grid-x.grid-padding-x
           .cell.small-12.medium-4
-            = f.input :flat_payout, input_html: { step: '0.01' }
+            = f.input :flat_payout, input_html: { step: '0.01' },
+                      hint: 'Per pass sold. Owed to the producer whether or not the pass is used; not recovered at expiry.'
           .cell.small-12.medium-4
-            = f.input :spiff, input_html: { step: '0.01' }
+            = f.input :spiff, input_html: { step: '0.01' },
+                      hint: 'Per pass sold. Added to the amount due to the facility.'
           .cell.small-12.medium-4
-            = f.input :facility_fee, input_html: { step: '0.01' }
+            = f.input :facility_fee, input_html: { step: '0.01' },
+                      hint: "Per pass sold. The facility's share, kept at sale; not recovered at expiry."
 
     .cell.small-12
       = f.input :description, :as=>:markdown, :input_html=>{ :rows=>6}

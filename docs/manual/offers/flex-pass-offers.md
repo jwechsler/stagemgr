@@ -54,9 +54,14 @@ A flex pass is a prepaid ticket package. The patron purchases a set number of ti
 
 | Field | Description |
 |-------|-------------|
-| **Flat Payout** | Fixed dollar amount paid to the producing company per redeemed ticket. |
-| **Spiff** | Additional per-ticket incentive amount. |
-| **Facility Fee** | Per-ticket facility fee applied on redemption. |
+| **Flat Payout** | Per pass sold: the part of the price owed to the producing company whether or not the pass is used. Reported for information and excluded from what can be recovered when the pass expires. |
+| **Spiff** | Per pass sold: an incentive amount added to the total due to the facility. |
+| **Facility Fee** | Per pass sold: the facility's share, counted as due to the facility in the month of sale and excluded from what can be recovered at expiry. |
+
+None of these change what the patron pays or what a redemption records. Redemptions pay out the
+lower of the performance ticket price and the pass ticket class price; whatever remains of the
+price after facility fee, flat payout and redemptions is recovered when the pass expires. See the
+[FlexPass Usage Report](../reports/flex-pass-reports.md#flexpass-sales).
 
 !!! warning "Financial fields affect settlement"
     Flat Payout, Spiff, and Facility Fee values are used in financial settlement calculations between the venue and producing companies. Coordinate with your finance team before changing these.
