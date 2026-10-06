@@ -18,6 +18,7 @@
             %th Members active at end
             %th New memberships
             %th Dropped memberships
+            %th{ title: 'Change from memberships active on the From date to those active on the To date' } % change
             %th Average length
         %tbody
           - rows.each do |stats|
@@ -29,6 +30,7 @@
               %td= stats.members_active_at_end
               %td= stats.new_count
               %td= stats.dropped_count
+              %td= membership_change(stats.membership_change_percent)
               %td= membership_length(stats.avg_length_days)
 
     %h5 Money

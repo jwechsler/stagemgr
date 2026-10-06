@@ -371,6 +371,66 @@ RSpec.describe MembershipAnalysis do
     end
   end
 
+  describe '% change in memberships across the range' do
+    it 'compares memberships active on the start date with those active on the end date' do
+      membership_without_order(gold_offer, code: 'STAYED', member_since: Date.new(2025, 6, 1))
+      membership_without_order(gold_offer, code: 'LEFT', member_since: Date.new(2025, 6, 1),
+                                           ended_at: Date.new(2026, 3, 1), status: Membership::CANCELED)
+      membership_without_order(gold_offer, code: 'JOINED1', member_since: Date.new(2026, 2, 1))
+      membership_without_order(gold_offer, code: 'JOINED2', member_since: Date.new(2026, 4, 1))
+
+      gold = stats_for(analyze, gold_offer)
+
+      # Two active on Jan 1 (STAYED, LEFT); three on Jun 30 (STAYED, JOINED1, JOINED2).
+      expect(gold).to have_attributes(memberships_active_at_start: 2, memberships_active_at_end: 3)
+      expect(gold.membership_change_percent).to eq(50)
+    end
+
+    it 'shows a fall as a negative change' do
+      membership_without_order(gold_offer, code: 'GONE', member_since: Date.new(2025, 6, 1),
+                                           ended_at: Date.new(2026, 3, 1), status: Membership::CANCELED)
+      membership_without_order(gold_offer, code: 'KEPT', member_since: Date.new(2025, 6, 1))
+
+      expect(stats_for(analyze, gold_offer).membership_change_percent).to eq(-50)
+    end
+
+    it 'has no change to report when nothing was active at the start' do
+      membership_without_order(gold_offer, code: 'FRESH', member_since: Date.new(2026, 2, 1))
+
+      expect(stats_for(analyze, gold_offer).membership_change_percent).to be_nil
+    end
+
+    it 'counts a membership starting on the start date as active at the start, not new' do
+      membership_without_order(gold_offer, code: 'DAYONE', member_since: Date.new(2026, 1, 1))
+
+      expect(stats_for(analyze, gold_offer)).to have_attributes(memberships_active_at_start: 1, new_count: 0)
+    end
+
+    it 'reconciles: active at start + new - dropped = active at end' do
+      membership_without_order(gold_offer, code: 'R1', member_since: Date.new(2025, 6, 1))
+      membership_without_order(gold_offer, code: 'R2', member_since: Date.new(2026, 1, 1),
+                                           ended_at: Date.new(2026, 2, 1), status: Membership::CANCELED)
+      membership_without_order(gold_offer, code: 'R3', member_since: Date.new(2026, 2, 1),
+                                           ended_at: Date.new(2026, 3, 1), status: Membership::CANCELED)
+      membership_without_order(gold_offer, code: 'R4', member_since: Date.new(2026, 5, 1))
+
+      gold = stats_for(analyze, gold_offer)
+
+      expect(gold.memberships_active_at_start + gold.new_count - gold.dropped_count)
+        .to eq(gold.memberships_active_at_end)
+    end
+
+    it 'pools the total across offers' do
+      membership_without_order(gold_offer, code: 'G1', member_since: Date.new(2025, 6, 1))
+      membership_without_order(silver_offer, code: 'S1', member_since: Date.new(2025, 6, 1))
+      membership_without_order(silver_offer, code: 'S2', member_since: Date.new(2026, 3, 1))
+      membership_without_order(silver_offer, code: 'S3', member_since: Date.new(2026, 4, 1))
+
+      # Two at the start, four at the end.
+      expect(analyze.total.membership_change_percent).to eq(100)
+    end
+  end
+
   describe 'memberships whose records disagree with their payments' do
     it 'counts a Pending membership that paid, through its paid-through date' do
       membership_with_order(gold_offer, code: 'PEND1', member_since: Date.new(2026, 1, 10), status: Membership::PENDING,

@@ -61,8 +61,9 @@ average is the average over all those memberships, not an average of the offer a
 | **Members in range** | The people those memberships admit. Each membership counts its offer's tickets per performance, so a dual membership is two members. |
 | **Memberships active at end** | Memberships active on the **To** date. This is the end of your range, not today. |
 | **Members active at end** | The people those memberships admit. |
-| **New memberships** | Memberships that started during the range. |
+| **New memberships** | Memberships that started after the **From** date. One that started on the From date counts among those active at the start instead, so active at start + new − dropped = active at end. |
 | **Dropped memberships** | Memberships that ended during the range and are no longer active (see below for how a membership's end is decided). |
+| **% change** | Growth in memberships over the range: memberships active on the **To** date compared with those active on the **From** date, as a percentage of the From-date count (a fall shows as negative). A dash means none were active on the From date. |
 | **Average length** | The average length of the memberships that ended in the range and of those still active at its end, in months. Each is measured from its start date, including any time before the range: to its end if it ended, or to the **To** date if it is still active. |
 
 A membership is active from its start date (the Stripe start date, or the member-since
